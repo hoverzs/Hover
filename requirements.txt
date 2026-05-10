@@ -1,0 +1,6 @@
+# Emmaus — digitális homiletikai műhely (Streamlit)
+# Python 3.10+ ajánlott
+
+streamlit>=1.28.0
+requests>=2.31.0
+urllib3>=2.0.0
