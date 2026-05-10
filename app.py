@@ -2815,8 +2815,33 @@ SECTION_LABELS = {
 }
 
 
+def _sync_inputs_to_last():
+    """Az élő input mezők értékét a `last_*` session kulcsokba menti.
+
+    Így minden tab generálás-gombja ugyanazt a forrást használja, és a
+    workspace-mentésnél is a legfrissebb állapot kerül exportra.
+    """
+    igehely = (st.session_state.get("igehely_input") or "").strip()
+    alkalom = st.session_state.get("alkalom_input") or ""
+    stilus = st.session_state.get("stilus_input") or ""
+    sajat = st.session_state.get("sajat_input") or ""
+
+    if igehely:
+        st.session_state["last_igehely"] = igehely
+        # verse_history frissítés (utolsó 10, duplikátum nélkül)
+        _vh = [v for v in st.session_state.get("verse_history", []) if v != igehely]
+        _vh.insert(0, igehely)
+        st.session_state["verse_history"] = _vh[:10]
+
+    if alkalom:
+        st.session_state["last_alkalom"] = alkalom
+    if stilus:
+        st.session_state["last_stilus"] = stilus
+    st.session_state["last_sajat"] = sajat
+
+
 def build_alap_from_state():
-    """A „last_…" session-mezőkből építi vissza az elemzés kontextusát."""
+    """A `last_…` session-mezőkből építi vissza az elemzés kontextusát."""
     return f"""Igehely: {st.session_state.get('last_igehely', '')}
 Alkalom: {st.session_state.get('last_alkalom', '')}
 Homiletikai stílus: {st.session_state.get('last_stilus', '')}
@@ -3031,17 +3056,96 @@ Soha ne találj ki nem létező éneket vagy énekszámot.
 SECTIONS_WITH_GOOGLE_SEARCH = {"actualization"}
 
 
-def regenerate_section(key):
-    """Egy adott szekciót ismét lefuttat ugyanazokkal a paraméterekkel."""
-    if not st.session_state.get("last_igehely"):
-        st.warning("Ehhez először indíts egy teljes elemzést az „Igehely” fülön.")
+def generate_section(key: str) -> bool:
+    """Egy adott szekciót lefuttat (első generálás VAGY újrageneráláshoz).
+
+    Olvassa az élő input mezőket (igehely_input stb.), szinkronizálja
+    `last_*`-okba, majd indít EGYETLEN Gemini hívást. Visszatérési érték:
+      - True   → eredmény bekerült a `st.session_state[key]`-be
+      - False  → blokkoló validáció (pl. nincs igehely vagy API kulcs)
+    """
+    _sync_inputs_to_last()
+
+    if not st.session_state.get("api_key"):
+        st.warning("Először add meg az API kulcsot a Beállítások fülön.")
         return False
+    if not st.session_state.get("last_igehely"):
+        st.warning("Add meg az igeszakaszt az „Igehely” fülön, mielőtt itt generálsz.")
+        return False
+
     label = SECTION_LABELS.get(key, key)
     use_search = key in SECTIONS_WITH_GOOGLE_SEARCH
-    with st.spinner(f"{label} újragenerálása…"):
+    with st.spinner(f"{label} készítése…"):
         prompt = SECTION_PROMPTS[key].format(alap=build_alap_from_state())
         st.session_state[key] = generate_text(prompt, enable_google_search=use_search)
     return True
+
+
+regenerate_section = generate_section
+
+
+# =========================================================
+# SECTION TAB RENDERER — DRY, TABONKÉNTI GENERÁLÁS
+# =========================================================
+
+def render_section_tab(
+    key: str,
+    header: str,
+    basket_label: str,
+    chat_title: str = None,
+    empty_msg: str = None,
+    extra_box_class: str = "",
+):
+    """Egységes szekció-tab renderelő.
+
+    - Saját **Generálás** gomb (futás közben tiltott, spinner aktív).
+    - Csak gombnyomásra fut Gemini hívás, page-load alatt SOHA.
+    - Az eredmény külön `st.session_state[key]`-ben él, rerun nem dobja.
+    - Megjeleníti a finomítás-chatet és a vázlatkosár-jegyzetet.
+    """
+    st.header(header)
+
+    has_result = bool(st.session_state.get(key))
+    running_flag = f"_{key}_running"
+    is_running = bool(st.session_state.get(running_flag))
+
+    btn_label = f"{header} újragenerálása" if has_result else f"{header} generálása"
+    btn_type = "secondary" if has_result else "primary"
+
+    if st.button(
+        btn_label,
+        type=btn_type,
+        key=f"{key}_generate_btn",
+        disabled=is_running,
+    ):
+        st.session_state[running_flag] = True
+        try:
+            generate_section(key)
+        finally:
+            st.session_state[running_flag] = False
+        st.rerun()
+
+    if has_result:
+        box_classes = f"result-box {extra_box_class}".strip()
+        st.markdown(f'<div class="{box_classes}">', unsafe_allow_html=True)
+        st.markdown(st.session_state[key])
+        st.markdown('</div>', unsafe_allow_html=True)
+    else:
+        st.info(empty_msg or "Még nincs tartalom — kattints a generálás gombra.")
+
+    refinement_chat(chat_title or header, key, f"{key}_chat")
+
+    note_key = f"{key}_note"
+    add_btn_key = f"{key}_add"
+    _maybe_clear_note(note_key)
+    note = st.text_area("Mit szeretnél ebből megtartani a vázlathoz?", key=note_key)
+
+    if st.button("Hozzáadás a vázlatkosárhoz", key=add_btn_key):
+        if note.strip():
+            st.session_state["basket"].append((basket_label, note.strip()))
+            _request_clear_note(note_key)
+            st.success("Hozzáadva.")
+            st.rerun()
 
 
 # =========================================================
@@ -3168,7 +3272,7 @@ defaults = {
     "using_builtin_key": bool(BUILTIN_API_KEY),
     "model_name": LOCKED_MODEL,
     "temperature": 0.3,
-    "max_tokens": 5000,
+    "max_tokens": 1500,
 
     "last_igehely": "",
     "last_alkalom": "",
@@ -3366,129 +3470,167 @@ def _strip_chatty_intro(text: str) -> str:
     return (leading_notice + text).strip()
 
 
-def generate_text(prompt, enable_google_search: bool = False):
-    api_key = st.session_state.get("api_key", "").strip()
+import time as _time
 
+# ─── Retry konfiguráció (rate-limit védelem) ─────────────────────────
+GEMINI_MAX_RETRIES = 3      # max. ennyi újrapróbálkozás 429 / 5xx esetén
+GEMINI_RETRY_BASE_S = 10    # exponenciális backoff alapja: 10s, 20s, 40s
+GEMINI_TIMEOUT_S = 120
+
+
+def _build_payload(prompt: str, enable_google_search: bool) -> dict:
+    """Összeállítja a Gemini REST kérés JSON body-ját.
+    Külön függvényben, hogy a retry logika ne építse újra minden ciklusban."""
+    final_prompt = (
+        f"{BASE_SYSTEM_PROMPT}\n\n"
+        "==================================================\n"
+        "FELADAT\n"
+        "==================================================\n\n"
+        f"{prompt}\n"
+    )
+    payload = {
+        "contents": [{"parts": [{"text": final_prompt}]}],
+        "generationConfig": {
+            "temperature": st.session_state.get("temperature", 0.3),
+            "maxOutputTokens": int(st.session_state.get("max_tokens", 1500)),
+        },
+    }
+    if enable_google_search:
+        payload["tools"] = [_google_search_tool_for_model(LOCKED_MODEL)]
+    return payload
+
+
+def generate_text(prompt, enable_google_search: bool = False):
+    """Egyetlen Gemini API hívás retry + exponenciális backoff védelemmel.
+
+    Hibakezelés:
+      - 429 (rate limit) és 5xx → max. 3 próbálkozás, 10/20/40s közökkel
+      - 404 / 401 / 403 / 400 → azonnali érthető hibaüzenet
+      - timeout / connection error → felhasználó-barát üzenet
+
+    A hívó függvénynek elég egyszer meghívnia; a retry teljes egészében
+    itt zajlik. Visszatérési érték: a generált szöveg (siker), VAGY egy
+    `⚠️ ...` kezdetű, magyar nyelvű hibaüzenet (Markdown).
+    """
+    api_key = st.session_state.get("api_key", "").strip()
     if not api_key:
         return "⚠️ **Hiányzó API kulcs.** Add meg a Beállítások fülön a Gemini API kulcsot, mielőtt elindítanád az elemzést."
 
-    # ─────────────────────────────────────────────────────────────────
-    # MODELL LOCK — kemény backend érvényesítés.
-    # A hívás mindig a `LOCKED_MODEL`-t használja, a session_state
-    # esetleges manipulációja nem tud másik modellt rákényszeríteni.
-    # A session_state értékét is visszaszinkronizáljuk, hogy az UI
-    # konzisztens maradjon.
-    # ─────────────────────────────────────────────────────────────────
-    model_name = LOCKED_MODEL
+    # ─── MODELL LOCK ─────────────────────────────────────────────────
     if st.session_state.get("model_name") != LOCKED_MODEL:
         st.session_state["model_name"] = LOCKED_MODEL
 
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{LOCKED_MODEL}:generateContent"
+    headers = {"Content-Type": "application/json", "x-goog-api-key": api_key}
+    data = _build_payload(prompt, enable_google_search)
 
-    headers = {
-        "Content-Type": "application/json",
-        "x-goog-api-key": api_key
-    }
+    last_error_msg = "⚠️ **Ismeretlen hiba történt a kérés közben.**"
 
-    final_prompt = f"""
-{BASE_SYSTEM_PROMPT}
-
-==================================================
-FELADAT
-==================================================
-
-{prompt}
-"""
-
-    data = {
-        "contents": [
-            {
-                "parts": [
-                    {"text": final_prompt}
-                ]
-            }
-        ],
-        "generationConfig": {
-            "temperature": st.session_state.get("temperature", 0.3),
-            "maxOutputTokens": st.session_state.get("max_tokens", 3000)
-        }
-    }
-
-    if enable_google_search:
-        data["tools"] = [_google_search_tool_for_model(model_name)]
-
-    try:
-        response = requests.post(
-            url,
-            headers=headers,
-            json=data,
-            verify=False,
-            timeout=120
-        )
-    except requests.exceptions.Timeout:
-        return ("⚠️ **Időtúllépés.** A Gemini szerver nem válaszolt időben. "
-                "Próbáld újra pár másodperc múlva, vagy csökkentsd a válaszhosszt a Beállítások fülön.")
-    except requests.exceptions.ConnectionError:
-        return ("⚠️ **Nincs internetkapcsolat.** Nem sikerült elérni a Gemini API-t. "
-                "Ellenőrizd a hálózati kapcsolatot.")
-    except Exception as e:
-        return f"⚠️ **Ismeretlen hiba történt a kérés közben.**\n\n```\n{e}\n```"
-
-    sc = response.status_code
-
-    if sc == 200:
+    for attempt in range(GEMINI_MAX_RETRIES):
+        # ─── Hálózati hívás ──────────────────────────────────────────
         try:
-            result = response.json()
-            text = result["candidates"][0]["content"]["parts"][0]["text"]
-            text = _strip_chatty_intro(text)
-            if enable_google_search:
-                sources_md = _format_grounding_sources(result)
-                if sources_md:
-                    text = text + "\n" + sources_md
-            return text
-        except (KeyError, IndexError, ValueError):
+            response = requests.post(
+                url, headers=headers, json=data,
+                verify=False, timeout=GEMINI_TIMEOUT_S,
+            )
+        except requests.exceptions.Timeout:
+            last_error_msg = (
+                "⚠️ **Időtúllépés.** A Gemini szerver nem válaszolt időben. "
+                "Próbáld újra pár másodperc múlva, vagy csökkentsd a válaszhosszt a Beállítások fülön."
+            )
+            if attempt < GEMINI_MAX_RETRIES - 1:
+                _time.sleep(GEMINI_RETRY_BASE_S * (2 ** attempt))
+                continue
+            return last_error_msg
+        except requests.exceptions.ConnectionError:
+            return (
+                "⚠️ **Nincs internetkapcsolat.** Nem sikerült elérni a Gemini API-t. "
+                "Ellenőrizd a hálózati kapcsolatot."
+            )
+        except Exception as e:
+            return f"⚠️ **Ismeretlen hiba történt a kérés közben.**\n\n```\n{e}\n```"
+
+        sc = response.status_code
+
+        # ─── Sikeres válasz ─────────────────────────────────────────
+        if sc == 200:
             try:
                 result = response.json()
-                feedback = result.get("promptFeedback", {})
-                block_reason = feedback.get("blockReason")
-                if block_reason:
-                    return (f"⚠️ **A modell biztonsági okból elutasította a kérést.** "
-                            f"(`{block_reason}`)\n\nFogalmazd át a kérést, vagy módosíts a tartalmon.")
-            except Exception:
-                pass
-            return ("⚠️ **A válasz üres vagy értelmezhetetlen volt.** "
-                    "Próbáld újra, vagy módosíts kissé a kérdésen.")
+                text = result["candidates"][0]["content"]["parts"][0]["text"]
+                text = _strip_chatty_intro(text)
+                if enable_google_search:
+                    sources_md = _format_grounding_sources(result)
+                    if sources_md:
+                        text = text + "\n" + sources_md
+                return text
+            except (KeyError, IndexError, ValueError):
+                try:
+                    result = response.json()
+                    feedback = result.get("promptFeedback", {})
+                    block_reason = feedback.get("blockReason")
+                    if block_reason:
+                        return (
+                            f"⚠️ **A modell biztonsági okból elutasította a kérést.** "
+                            f"(`{block_reason}`)\n\nFogalmazd át a kérést, vagy módosíts a tartalmon."
+                        )
+                except Exception:
+                    pass
+                return (
+                    "⚠️ **A válasz üres vagy értelmezhetetlen volt.** "
+                    "Próbáld újra, vagy módosíts kissé a kérdésen."
+                )
 
-    if sc == 404:
+        # ─── 429 rate-limit → exponenciális backoff retry ────────────
+        if sc == 429:
+            wait_s = GEMINI_RETRY_BASE_S * (2 ** attempt)
+            if attempt < GEMINI_MAX_RETRIES - 1:
+                _time.sleep(wait_s)
+                continue
+            return (
+                "⚠️ **Túl sok kérés rövid idő alatt (429).** "
+                f"Több próbálkozás után sem sikerült. "
+                "Várj 1–2 percet, majd próbáld újra. "
+                "Ha gyakori, érdemes saját API kulcsot megadni a Beállítások fülön."
+            )
+
+        # ─── 5xx szerver hiba → backoff retry ────────────────────────
+        if sc >= 500:
+            if attempt < GEMINI_MAX_RETRIES - 1:
+                _time.sleep(GEMINI_RETRY_BASE_S * (2 ** attempt))
+                continue
+            return (
+                f"⚠️ **A Gemini szerver átmenetileg nem elérhető** (státusz: {sc}). "
+                "Próbáld újra pár másodperc múlva."
+            )
+
+        # ─── Maradék hibakódok → azonnali, érthető hibaüzenet ────────
+        if sc == 404:
+            snippet = response.text[:400] if response.text else ""
+            return (
+                f"⚠️ **A modell ({LOCKED_MODEL}) átmenetileg nem érhető el (404).**\n\n"
+                "Ez többnyire átmeneti Google API-hiba; próbáld újra pár perc múlva. "
+                "Ha a hiba tartós, ellenőrizd a Beállítások fülön az API kulcsot.\n\n"
+                f"Részletek (rövidítve):\n```\n{snippet}\n```"
+            )
+
+        if sc in (401, 403):
+            return (
+                "⚠️ **Érvénytelen vagy lejárt API kulcs.** "
+                "Generálj újat a Google AI Studio-ban, és cseréld a Beállítások fülön."
+            )
+
+        if sc == 400:
+            snippet = response.text[:400] if response.text else ""
+            return (
+                "⚠️ **A kérés hibás vagy elutasított.** A modell nem tudta feldolgozni "
+                "a beküldött tartalmat (státusz: 400).\n\n"
+                f"Részletek (rövidítve):\n```\n{snippet}\n```"
+            )
+
         snippet = response.text[:400] if response.text else ""
-        return (
-            f"⚠️ **A modell ({LOCKED_MODEL}) átmenetileg nem érhető el (404).**\n\n"
-            f"Ez többnyire átmeneti Google API-hiba; próbáld újra pár perc múlva. "
-            f"Ha a hiba tartós, ellenőrizd a Beállítások fülön az API kulcsot.\n\n"
-            f"Részletek (rövidítve):\n```\n{snippet}\n```"
-        )
+        return f"⚠️ **Ismeretlen API válasz** (státusz: {sc}).\n\n```\n{snippet}\n```"
 
-    if sc in (401, 403):
-        return ("⚠️ **Érvénytelen vagy lejárt API kulcs.** "
-                "Generálj újat a Google AI Studio-ban, és cseréld a Beállítások fülön.")
-
-    if sc == 429:
-        return ("⚠️ **Túl sok kérés rövid idő alatt** (rate limit). "
-                "Várj egy percet, majd próbáld újra. Ha gyakran előfordul, "
-                "érdemes lehet saját API kulcsot megadni a Beállítások fülön.")
-
-    if sc == 400:
-        snippet = response.text[:400] if response.text else ""
-        return (f"⚠️ **A kérés hibás vagy elutasított.** A modell nem tudta feldolgozni "
-                f"a beküldött tartalmat (státusz: 400).\n\n"
-                f"Részletek (rövidítve):\n```\n{snippet}\n```")
-
-    if sc >= 500:
-        return ("⚠️ **A Gemini szerver átmenetileg nem elérhető** "
-                f"(státusz: {sc}). Próbáld újra pár másodperc múlva.")
-
-    snippet = response.text[:400] if response.text else ""
-    return f"⚠️ **Ismeretlen API válasz** (státusz: {sc}).\n\n```\n{snippet}\n```"
+    return last_error_msg
 
 
 # =========================================================
@@ -3607,16 +3749,16 @@ tabs = st.tabs([
 with tabs[0]:
     st.header("Igeszakasz megadása")
 
-    igehely = st.text_input(
+    st.text_input(
         "Melyik igeszakaszt elemezzük?",
         placeholder="Pl. Jn 3,16–21",
-        key="igehely_input"
+        key="igehely_input",
     )
 
     col1, col2 = st.columns(2)
 
     with col1:
-        alkalom = st.selectbox(
+        st.selectbox(
             "Felhasználási cél",
             [
                 "vasárnapi gyülekezeti igehirdetés",
@@ -3625,12 +3767,13 @@ with tabs[0]:
                 "temetés",
                 "esküvő",
                 "konferencia",
-                "pasztorális beszélgetés"
-            ]
+                "pasztorális beszélgetés",
+            ],
+            key="alkalom_input",
         )
 
     with col2:
-        stilus = st.selectbox(
+        st.selectbox(
             "Homiletikai stílus",
             [
                 "klasszikus református",
@@ -3639,13 +3782,15 @@ with tabs[0]:
                 "pasztorális",
                 "ifjúsági",
                 "storytelling",
-                "induktív"
-            ]
+                "induktív",
+            ],
+            key="stilus_input",
         )
 
-    sajat = st.text_area(
+    st.text_area(
         "Saját szempont vagy kérdés",
-        placeholder="Pl. szeretném hangsúlyozni a kegyelem, hit vagy reménység témáját..."
+        placeholder="Pl. szeretném hangsúlyozni a kegyelem, hit vagy reménység témáját...",
+        key="sajat_input",
     )
 
     if st.session_state.get("verse_history"):
@@ -3655,105 +3800,26 @@ with tabs[0]:
                     st.session_state["igehely_input"] = v
                     st.rerun()
 
-    progress_placeholder = st.empty()
+    st.info(
+        "**Tabonkénti generálás:** Itt csak az **Áttekintést** kéred le. "
+        "A többi szekciót (Eredeti szöveg, Exegézis, Kortörténet, Teológia, "
+        "Illusztrációk, Aktualizálás, Vázlat, Énekajánló) az adott fülön, "
+        "külön gombbal indíthatod — így pontosan azt generálod, amire szükséged van."
+    )
 
-    if st.button("Teljes elemzés indítása", type="primary"):
-        if not st.session_state.get("api_key"):
-            st.warning("Először add meg az API kulcsot a Beállítások fülön.")
-        elif not igehely:
-            st.warning("Add meg az igeszakaszt.")
-        else:
-            st.session_state["last_igehely"] = igehely
-            st.session_state["last_alkalom"] = alkalom
-            st.session_state["last_stilus"] = stilus
-            st.session_state["last_sajat"] = sajat
-
-            _vh = st.session_state.get("verse_history", [])
-            _vh = [v for v in _vh if v != igehely]
-            _vh.insert(0, igehely)
-            st.session_state["verse_history"] = _vh[:10]
-
-            analysis_order = list(SECTION_PROMPTS.keys())
-            analysis_steps = [
-                (key, SECTION_LABELS[key], SECTION_PROMPTS[key].format(alap=build_alap_from_state()))
-                for key in analysis_order
-            ]
-
-            # + Eredeti szöveg (csak az igehelyre épül)
-            analysis_steps.append((
-                "original_text",
-                "Eredeti szöveg",
-                build_original_text_prompt(igehely),
-            ))
-
-            # + Énekajánló (igehely + alkalom + alapértelmezett énekeskönyv)
-            analysis_steps.append((
-                "songs",
-                "Énekajánló",
-                build_songs_prompt(
-                    igehely=igehely,
-                    alkalom=alkalom,
-                    enekeskonyv="Vegyesen — magyar református hagyomány",
-                    hangsuly=sajat or "",
-                ),
-            ))
-
-            total_steps = len(analysis_steps)
-
-            def render_progress(done_count, current_label, finished=False):
-                pct = int((done_count / total_steps) * 100) if not finished else 100
-                items_html = ""
-                for j, (_, lbl, _p) in enumerate(analysis_steps):
-                    if finished or j < done_count:
-                        items_html += (
-                            f'<li class="done">'
-                            f'<span class="progress-dot done">✓</span>{lbl}</li>'
-                        )
-                    elif j == done_count:
-                        items_html += (
-                            f'<li class="current">'
-                            f'<span class="progress-dot current">●</span>{lbl}</li>'
-                        )
-                    else:
-                        items_html += (
-                            f'<li class="pending">'
-                            f'<span class="progress-dot pending">·</span>{lbl}</li>'
-                        )
-                if finished:
-                    title = "Az elemzés elkészült."
-                    eyebrow = f"A teljes elemzés folyamata · {total_steps} / {total_steps}"
-                else:
-                    title = f"{current_label} készül…"
-                    eyebrow = (
-                        f"A teljes elemzés folyamata · "
-                        f"{done_count + 1} / {total_steps}"
-                    )
-                state_class = "completed" if finished else "running"
-                return f"""
-<div class="analysis-progress {state_class}">
-    <div class="progress-eyebrow">{eyebrow}</div>
-    <div class="progress-step">{title}</div>
-    <div class="progress-bar"><div class="progress-fill" style="width:{pct}%"></div></div>
-    <div class="progress-meta">{pct}% &middot; {done_count if not finished else total_steps} szekció kész</div>
-    <ul class="progress-steps">{items_html}</ul>
-</div>
-"""
-
-            for i, (key, label, prompt) in enumerate(analysis_steps):
-                progress_placeholder.markdown(
-                    render_progress(i, label),
-                    unsafe_allow_html=True
-                )
-                use_search = key in SECTIONS_WITH_GOOGLE_SEARCH
-                st.session_state[key] = generate_text(
-                    prompt, enable_google_search=use_search
-                )
-
-            progress_placeholder.markdown(
-                render_progress(total_steps, "Kész", finished=True),
-                unsafe_allow_html=True
-            )
-            st.success("Az elemzés elkészült.")
+    overview_disabled = bool(st.session_state.get("_overview_running"))
+    if st.button(
+        "Áttekintés generálása",
+        type="primary",
+        key="overview_generate_btn",
+        disabled=overview_disabled,
+    ):
+        st.session_state["_overview_running"] = True
+        try:
+            if generate_section("overview"):
+                st.success("Áttekintés elkészült.")
+        finally:
+            st.session_state["_overview_running"] = False
 
     if st.session_state.get("overview"):
         st.markdown('<div class="result-box">', unsafe_allow_html=True)
@@ -3763,173 +3829,53 @@ with tabs[0]:
         col_regen_o, _ = st.columns([1, 4])
         with col_regen_o:
             if st.button("Áttekintés újragenerálása", key="overview_regen"):
-                if regenerate_section("overview"):
+                if generate_section("overview"):
                     st.rerun()
 
 
 # =========================================================
-# EXEGÉZIS
+# TARTALOM TABOK — egységes Generálás-gombos minta
 # =========================================================
 
 with tabs[2]:
-    st.header("Exegézis")
-
-    if st.session_state["exegesis"]:
-        st.markdown('<div class="result-box">', unsafe_allow_html=True)
-        st.markdown(st.session_state["exegesis"])
-        st.markdown('</div>', unsafe_allow_html=True)
-
-        col_regen_e, _ = st.columns([1, 4])
-        with col_regen_e:
-            if st.button("Exegézis újragenerálása", key="exegesis_regen"):
-                if regenerate_section("exegesis"):
-                    st.rerun()
-    else:
-        st.info("Még nincs exegézis.")
-
-    refinement_chat("Exegézis", "exegesis", "exegesis_chat")
-
-    _maybe_clear_note("exegesis_note")
-    note = st.text_area("Mit szeretnél ebből megtartani a vázlathoz?", key="exegesis_note")
-
-    if st.button("Hozzáadás a vázlatkosárhoz", key="exegesis_add"):
-        if note.strip():
-            st.session_state["basket"].append(("Exegézis", note.strip()))
-            _request_clear_note("exegesis_note")
-            st.success("Hozzáadva.")
-            st.rerun()
-
-
-# =========================================================
-# KORTÖRTÉNET
-# =========================================================
+    render_section_tab(
+        key="exegesis",
+        header="Exegézis",
+        basket_label="Exegézis",
+        empty_msg="Még nincs exegézis. Kattints a generálás gombra.",
+    )
 
 with tabs[3]:
-    st.header("Kortörténet")
-
-    if st.session_state["history"]:
-        st.markdown('<div class="result-box">', unsafe_allow_html=True)
-        st.markdown(st.session_state["history"])
-        st.markdown('</div>', unsafe_allow_html=True)
-
-        col_regen_h, _ = st.columns([1, 4])
-        with col_regen_h:
-            if st.button("Kortörténet újragenerálása", key="history_regen"):
-                if regenerate_section("history"):
-                    st.rerun()
-    else:
-        st.info("Még nincs kortörténeti háttér.")
-
-    refinement_chat("Kortörténet", "history", "history_chat")
-
-    _maybe_clear_note("history_note")
-    note = st.text_area("Mit szeretnél ebből megtartani a vázlathoz?", key="history_note")
-
-    if st.button("Hozzáadás a vázlatkosárhoz", key="history_add"):
-        if note.strip():
-            st.session_state["basket"].append(("Kortörténet", note.strip()))
-            _request_clear_note("history_note")
-            st.success("Hozzáadva.")
-            st.rerun()
-
-
-# =========================================================
-# TEOLÓGIA
-# =========================================================
+    render_section_tab(
+        key="history",
+        header="Kortörténet",
+        basket_label="Kortörténet",
+        empty_msg="Még nincs kortörténeti háttér. Kattints a generálás gombra.",
+    )
 
 with tabs[4]:
-    st.header("Teológia")
-
-    if st.session_state["theology"]:
-        st.markdown('<div class="result-box">', unsafe_allow_html=True)
-        st.markdown(st.session_state["theology"])
-        st.markdown('</div>', unsafe_allow_html=True)
-
-        col_regen_t, _ = st.columns([1, 4])
-        with col_regen_t:
-            if st.button("Teológia újragenerálása", key="theology_regen"):
-                if regenerate_section("theology"):
-                    st.rerun()
-    else:
-        st.info("Még nincs teológiai elemzés.")
-
-    refinement_chat("Teológia", "theology", "theology_chat")
-
-    _maybe_clear_note("theology_note")
-    note = st.text_area("Mit szeretnél ebből megtartani a vázlathoz?", key="theology_note")
-
-    if st.button("Hozzáadás a vázlatkosárhoz", key="theology_add"):
-        if note.strip():
-            st.session_state["basket"].append(("Teológia", note.strip()))
-            _request_clear_note("theology_note")
-            st.success("Hozzáadva.")
-            st.rerun()
-
-
-# =========================================================
-# ILLUSZTRÁCIÓK
-# =========================================================
+    render_section_tab(
+        key="theology",
+        header="Teológia",
+        basket_label="Teológia",
+        empty_msg="Még nincs teológiai elemzés. Kattints a generálás gombra.",
+    )
 
 with tabs[5]:
-    st.header("Illusztrációk")
-
-    if st.session_state["illustrations"]:
-        st.markdown('<div class="result-box">', unsafe_allow_html=True)
-        st.markdown(st.session_state["illustrations"])
-        st.markdown('</div>', unsafe_allow_html=True)
-
-        col_regen_i, _ = st.columns([1, 4])
-        with col_regen_i:
-            if st.button("Illusztrációk újragenerálása", key="illustrations_regen"):
-                if regenerate_section("illustrations"):
-                    st.rerun()
-    else:
-        st.info("Még nincsenek illusztrációs ötletek.")
-
-    refinement_chat("Illusztrációk", "illustrations", "illustrations_chat")
-
-    _maybe_clear_note("illustrations_note")
-    note = st.text_area("Mit szeretnél ebből megtartani a vázlathoz?", key="illustrations_note")
-
-    if st.button("Hozzáadás a vázlatkosárhoz", key="illustrations_add"):
-        if note.strip():
-            st.session_state["basket"].append(("Illusztráció", note.strip()))
-            _request_clear_note("illustrations_note")
-            st.success("Hozzáadva.")
-            st.rerun()
-
-
-# =========================================================
-# AKTUALIZÁLÁS
-# =========================================================
+    render_section_tab(
+        key="illustrations",
+        header="Illusztrációk",
+        basket_label="Illusztráció",
+        empty_msg="Még nincsenek illusztrációs ötletek. Kattints a generálás gombra.",
+    )
 
 with tabs[6]:
-    st.header("Aktualizálás")
-
-    if st.session_state["actualization"]:
-        st.markdown('<div class="result-box">', unsafe_allow_html=True)
-        st.markdown(st.session_state["actualization"])
-        st.markdown('</div>', unsafe_allow_html=True)
-
-        col_regen_a, _ = st.columns([1, 4])
-        with col_regen_a:
-            if st.button("Aktualizálás újragenerálása", key="actualization_regen"):
-                if regenerate_section("actualization"):
-                    st.rerun()
-    else:
-        st.info("Még nincs aktualizálás.")
-
-    refinement_chat("Aktualizálás", "actualization", "actualization_chat")
-
-    _maybe_clear_note("actualization_note")
-    note = st.text_area("Mit szeretnél ebből megtartani a vázlathoz?", key="actualization_note")
-
-    if st.button("Hozzáadás a vázlatkosárhoz", key="actualization_add"):
-        if note.strip():
-            st.session_state["basket"].append(("Aktualizálás", note.strip()))
-            _request_clear_note("actualization_note")
-            st.success("Hozzáadva.")
-            st.rerun()
+    render_section_tab(
+        key="actualization",
+        header="Aktualizálás",
+        basket_label="Aktualizálás",
+        empty_msg="Még nincs aktualizálás. Kattints a generálás gombra (Google-keresés használatával friss kontextust kap).",
+    )
 
 
 # =========================================================
@@ -3951,7 +3897,13 @@ with tabs[7]:
         ]
     )
 
-    if st.button("Vázlat generálása", type="primary"):
+    _outline_running = bool(st.session_state.get("_outline_running"))
+    if st.button(
+        "Vázlat generálása",
+        type="primary",
+        disabled=_outline_running,
+        key="outline_run",
+    ):
         basket_text = "\n".join([f"- {source}: {text}" for source, text in st.session_state["basket"]])
 
         prompt = f"""
@@ -4024,8 +3976,13 @@ Egy konkrét, **prédikációs zárás** — összefoglalás, hívás, ígéret.
 2–3 konkrét, gyülekezeti életbe illesztett **alkalmazási irány**.
 """
 
-        with st.spinner("Vázlat készül..."):
-            st.session_state["outline"] = generate_text(prompt)
+        st.session_state["_outline_running"] = True
+        try:
+            with st.spinner("Vázlat készül..."):
+                st.session_state["outline"] = generate_text(prompt)
+        finally:
+            st.session_state["_outline_running"] = False
+        st.rerun()
 
     if st.session_state["outline"]:
         st.markdown('<div class="result-box">', unsafe_allow_html=True)
@@ -4127,16 +4084,27 @@ with tabs[1]:
         key="original_verse"
     )
 
-    if st.button("Eredeti szöveg elemzése", type="primary", key="original_run"):
+    _orig_running = bool(st.session_state.get("_original_running"))
+    if st.button(
+        "Eredeti szöveg elemzése",
+        type="primary",
+        key="original_run",
+        disabled=_orig_running,
+    ):
         if not st.session_state.get("api_key"):
             st.warning("Először add meg az API kulcsot a Beállítások fülön.")
         elif not igehely_orig:
             st.warning("Add meg az igeszakaszt.")
         else:
-            with st.spinner("Eredeti nyelvi elemzés készül..."):
-                st.session_state["original_text"] = generate_text(
-                    build_original_text_prompt(igehely_orig)
-                )
+            st.session_state["_original_running"] = True
+            try:
+                with st.spinner("Eredeti nyelvi elemzés készül..."):
+                    st.session_state["original_text"] = generate_text(
+                        build_original_text_prompt(igehely_orig)
+                    )
+            finally:
+                st.session_state["_original_running"] = False
+            st.rerun()
 
     if st.session_state.get("original_text"):
         st.markdown(
@@ -4222,21 +4190,32 @@ with tabs[9]:
         key="songs_book"
     )
 
-    if st.button("Énekek ajánlása", type="primary", key="songs_run"):
+    _songs_running = bool(st.session_state.get("_songs_running"))
+    if st.button(
+        "Énekek ajánlása",
+        type="primary",
+        key="songs_run",
+        disabled=_songs_running,
+    ):
         if not st.session_state.get("api_key"):
             st.warning("Először add meg az API kulcsot a Beállítások fülön.")
         elif not igehely_song.strip():
             st.warning("Add meg az igeszakaszt.")
         else:
-            with st.spinner("Református énekek keresése a liturgiai ívhez..."):
-                st.session_state["songs"] = generate_text(
-                    build_songs_prompt(
-                        igehely=igehely_song,
-                        alkalom=alkalom_song,
-                        enekeskonyv=enekeskonyv_song,
-                        hangsuly=hangsuly_song,
+            st.session_state["_songs_running"] = True
+            try:
+                with st.spinner("Református énekek keresése a liturgiai ívhez..."):
+                    st.session_state["songs"] = generate_text(
+                        build_songs_prompt(
+                            igehely=igehely_song,
+                            alkalom=alkalom_song,
+                            enekeskonyv=enekeskonyv_song,
+                            hangsuly=hangsuly_song,
+                        )
                     )
-                )
+            finally:
+                st.session_state["_songs_running"] = False
+            st.rerun()
 
     if st.session_state.get("songs"):
         st.markdown(
@@ -4348,11 +4327,15 @@ with tabs[10]:
     )
 
     st.session_state["max_tokens"] = st.slider(
-        "Válaszhossz",
-        1000,
-        8000,
-        int(st.session_state.get("max_tokens", 3000)),
-        500
+        "Válaszhossz (max output token)",
+        500,
+        4000,
+        int(st.session_state.get("max_tokens", 1500)),
+        100,
+        help=(
+            "Token-limit egyetlen Gemini válaszra. Alacsonyabb érték = "
+            "gyorsabb válasz és kevesebb költség. Ajánlott: 1200–1800."
+        ),
     )
 
     with st.expander("Aktív közös alap prompt"):
