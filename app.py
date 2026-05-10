@@ -46,6 +46,24 @@ def _load_builtin_api_key() -> str:
 
 BUILTIN_API_KEY = _load_builtin_api_key()
 
+
+# =========================================================
+# RÖGZÍTETT GEMINI MODELL
+# =========================================================
+#
+# Az alkalmazás SZÁNDÉKOSAN csak a `gemini-2.5-flash` modellt
+# használja — ez az egyetlen engedélyezett modell.
+#
+# A backend a `generate_text()` függvényben kemény-érvényesíti
+# ezt: a session_state esetleges manipulációja sem tud másik
+# modellt rákényszeríteni az API hívásra.
+#
+# Ha valaha váltani akarsz (pl. egy új generációra), elég ezt az
+# EGY konstanst átírni — a kód minden része ebből olvas.
+
+LOCKED_MODEL = "gemini-2.5-flash"
+LOCKED_MODEL_DISPLAY = "Gemini 2.5 Flash"
+
 # =========================================================
 # SEGÉDFÜGGVÉNYEK
 # =========================================================
@@ -457,6 +475,59 @@ section.main {{
     vertical-align: middle;
     transform: translateY(-0.32em);
     text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
+}}
+
+/* ===== Rögzített modell — read-only kijelzés a Beállításokon ===== */
+.locked-model-row {{
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.85rem;
+    margin: 0.4rem 0 0.2rem;
+}}
+
+.locked-model-label {{
+    font-family: "Inter", "Segoe UI", sans-serif;
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: #4a3e32;
+    letter-spacing: 0.01em;
+}}
+
+.locked-model-value {{
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.45rem 0.85rem;
+    font-family: "Cormorant Garamond", Georgia, serif;
+    font-size: 1.12rem;
+    font-weight: 700;
+    color: #2a1f12;
+    background:
+        linear-gradient(180deg,
+            rgba(255, 252, 246, 0.62),
+            rgba(238, 226, 206, 0.42));
+    border: 1px solid rgba(206, 189, 166, 0.65);
+    border-radius: 12px;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.72),
+        0 4px 10px rgba(60, 42, 22, 0.10);
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
+}}
+
+.locked-model-pill {{
+    font-family: "Inter", system-ui, sans-serif;
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #6a4a22;
+    padding: 0.14rem 0.5rem;
+    background: rgba(228, 211, 178, 0.55);
+    border: 1px solid rgba(166, 134, 86, 0.42);
+    border-radius: 999px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    text-shadow: none;
 }}
 
 .subtitle {{
@@ -3095,7 +3166,7 @@ def build_outline_markdown():
 defaults = {
     "api_key": BUILTIN_API_KEY,
     "using_builtin_key": bool(BUILTIN_API_KEY),
-    "model_name": "gemini-2.5-flash",
+    "model_name": LOCKED_MODEL,
     "temperature": 0.3,
     "max_tokens": 5000,
 
@@ -3136,17 +3207,13 @@ for key, value in defaults.items():
 # GEMINI API HÍVÁS
 # =========================================================
 
-def _google_search_tool_for_model(model_name: str):
-    """Modell-függő Google Search grounding tool.
+def _google_search_tool_for_model(model_name: str = LOCKED_MODEL):
+    """Google Search grounding tool a rögzített Gemini 2.5 modellhez.
 
-    A Gemini 1.5 családban a tool neve `google_search_retrieval`,
-    a Gemini 2.0+ családban (2.0, 2.5, ...) viszont `google_search`.
-    Helytelen tool-név esetén a Gemini 400-zal utasítja el a kérést,
-    ezért modell alapján kell választani.
+    Megtartjuk a függvényt és paraméterét a hívók kompatibilitása miatt,
+    de mivel csak `gemini-2.5-flash` engedélyezett, mindig a 2.0+ családra
+    érvényes `google_search` tool-nevet adjuk vissza.
     """
-    name = (model_name or "").lower()
-    if "1.5" in name:
-        return {"google_search_retrieval": {}}
     return {"google_search": {}}
 
 
@@ -3305,13 +3372,16 @@ def generate_text(prompt, enable_google_search: bool = False):
     if not api_key:
         return "⚠️ **Hiányzó API kulcs.** Add meg a Beállítások fülön a Gemini API kulcsot, mielőtt elindítanád az elemzést."
 
-    model_name = st.session_state.get("model_name", "gemini-2.5-flash")
-    if model_name in (
-        "gemini-1.5-flash", "gemini-1.5-pro", "gemini-1.0-pro",
-        "gemini-2.0-flash", "gemini-2.0-flash-exp",
-    ):
-        model_name = "gemini-2.5-flash"
-        st.session_state["model_name"] = model_name
+    # ─────────────────────────────────────────────────────────────────
+    # MODELL LOCK — kemény backend érvényesítés.
+    # A hívás mindig a `LOCKED_MODEL`-t használja, a session_state
+    # esetleges manipulációja nem tud másik modellt rákényszeríteni.
+    # A session_state értékét is visszaszinkronizáljuk, hogy az UI
+    # konzisztens maradjon.
+    # ─────────────────────────────────────────────────────────────────
+    model_name = LOCKED_MODEL
+    if st.session_state.get("model_name") != LOCKED_MODEL:
+        st.session_state["model_name"] = LOCKED_MODEL
 
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent"
 
@@ -3366,50 +3436,6 @@ FELADAT
 
     sc = response.status_code
 
-    # ──────────────────────────────────────────────────────────────────
-    # 404 AUTO-FALLBACK: ha a választott modell a Google által kivezetett /
-    # ismeretlen, automatikusan próbáljuk meg a stabil `gemini-2.0-flash`-sel,
-    # és értesítsük a felhasználót.
-    # ──────────────────────────────────────────────────────────────────
-    fallback_used = False
-    fallback_model = "gemini-2.5-flash"
-    if sc == 404 and model_name != fallback_model:
-        try:
-            new_url = (
-                f"https://generativelanguage.googleapis.com/v1beta/"
-                f"models/{fallback_model}:generateContent"
-            )
-            if enable_google_search:
-                data["tools"] = [_google_search_tool_for_model(fallback_model)]
-            response = requests.post(
-                new_url, headers=headers, json=data, verify=False, timeout=120
-            )
-            sc = response.status_code
-            if sc == 200:
-                fallback_used = True
-                st.session_state["model_name"] = fallback_model
-                url = new_url
-                model_name = fallback_model
-        except Exception:
-            pass
-
-    # Ha a Google Search tool-név miatt 400 jön, próbáljuk meg a másik tool-névvel.
-    # (Pl. ha a felhasználó egy ismeretlen modell-családot választ.)
-    if sc == 400 and enable_google_search:
-        try:
-            current_tool = data.get("tools", [{}])[0]
-            if "google_search" in current_tool:
-                fallback_tool = {"google_search_retrieval": {}}
-            else:
-                fallback_tool = {"google_search": {}}
-            data["tools"] = [fallback_tool]
-            response = requests.post(
-                url, headers=headers, json=data, verify=False, timeout=120
-            )
-            sc = response.status_code
-        except Exception:
-            pass
-
     if sc == 200:
         try:
             result = response.json()
@@ -3419,13 +3445,6 @@ FELADAT
                 sources_md = _format_grounding_sources(result)
                 if sources_md:
                     text = text + "\n" + sources_md
-            if fallback_used:
-                notice = (
-                    f"> ℹ️ _A választott modell már nem elérhető a Gemini API-ban. "
-                    f"Az elemzés automatikusan a stabil **`{fallback_model}`** modellel "
-                    f"készült, és a Beállítások fülön is erre váltottam._\n\n"
-                )
-                text = notice + text
             return text
         except (KeyError, IndexError, ValueError):
             try:
@@ -3443,10 +3462,9 @@ FELADAT
     if sc == 404:
         snippet = response.text[:400] if response.text else ""
         return (
-            f"⚠️ **A választott modell nem található a Gemini API-ban (404).**\n\n"
-            f"A Google a régi modelleket (pl. `gemini-1.5-flash`, `gemini-2.0-flash`) "
-            f"kivezette új felhasználók elől. Válassz a Beállítások fülön egy elérhető modellt: "
-            f"`gemini-2.5-flash`, `gemini-2.5-pro` vagy `gemini-2.5-flash-lite`.\n\n"
+            f"⚠️ **A modell ({LOCKED_MODEL}) átmenetileg nem érhető el (404).**\n\n"
+            f"Ez többnyire átmeneti Google API-hiba; próbáld újra pár perc múlva. "
+            f"Ha a hiba tartós, ellenőrizd a Beállítások fülön az API kulcsot.\n\n"
             f"Részletek (rövidítve):\n```\n{snippet}\n```"
         )
 
@@ -3456,19 +3474,14 @@ FELADAT
 
     if sc == 429:
         return ("⚠️ **Túl sok kérés rövid idő alatt** (rate limit). "
-                "Várj egy percet, majd próbáld újra. Ha gyakran előfordul, érdemes lehet "
-                "más Gemini modellt választani a Beállítások fülön.")
+                "Várj egy percet, majd próbáld újra. Ha gyakran előfordul, "
+                "érdemes lehet saját API kulcsot megadni a Beállítások fülön.")
 
     if sc == 400:
         snippet = response.text[:400] if response.text else ""
-        extra = ""
-        if enable_google_search:
-            extra = ("\n\n_Tipp:_ a Google Search grounding nem minden modellben "
-                     "érhető el. Ha ez a hiba a keresés miatt jött, próbálj át egy "
-                     "újabb Gemini modellre (pl. `gemini-2.5-flash` vagy `gemini-2.5-pro`).")
         return (f"⚠️ **A kérés hibás vagy elutasított.** A modell nem tudta feldolgozni "
                 f"a beküldött tartalmat (státusz: 400).\n\n"
-                f"Részletek (rövidítve):\n```\n{snippet}\n```{extra}")
+                f"Részletek (rövidítve):\n```\n{snippet}\n```")
 
     if sc >= 500:
         return ("⚠️ **A Gemini szerver átmenetileg nem elérhető** "
@@ -4303,39 +4316,27 @@ with tabs[10]:
         else:
             st.success("Saját API kulcs mentve erre a munkamenetre.")
 
-    model_options = [
-        "gemini-2.5-flash",
-        "gemini-2.5-pro",
-        "gemini-2.5-flash-lite",
-    ]
+    # ─── Modell — RÖGZÍTETT ─────────────────────────────────────────
+    # Az alkalmazás csak a `gemini-2.5-flash` modellt használja.
+    # A backend (`generate_text`) ezt kemény-érvényesíti, ezért itt
+    # csak egy diszkrét read-only kijelzés szerepel — nincs választás.
+    st.session_state["model_name"] = LOCKED_MODEL
 
-    DEFAULT_MODEL = "gemini-2.5-flash"
-
-    current_model = st.session_state.get("model_name", DEFAULT_MODEL)
-
-    DEPRECATED_ALIASES = {
-        "gemini-1.5-flash": "gemini-2.5-flash",
-        "gemini-1.5-pro": "gemini-2.5-pro",
-        "gemini-1.0-pro": "gemini-2.5-pro",
-        "gemini-2.0-flash": "gemini-2.5-flash",
-        "gemini-2.0-flash-exp": "gemini-2.5-flash",
-        "gemini-2.0-pro": "gemini-2.5-pro",
-    }
-    if current_model in DEPRECATED_ALIASES:
-        current_model = DEPRECATED_ALIASES[current_model]
-    if current_model not in model_options:
-        current_model = DEFAULT_MODEL
-
-    st.session_state["model_name"] = st.selectbox(
-        "Gemini modell",
-        model_options,
-        index=model_options.index(current_model),
-        help=(
-            "• `gemini-2.5-flash` — **alapértelmezett**, gyors és minőségi modell, "
-            "ideális a teljes elemzésre.\n"
-            "• `gemini-2.5-pro` — legmélyebb teológiai elemzés, lassabb és drágább.\n"
-            "• `gemini-2.5-flash-lite` — leggyorsabb és legolcsóbb, rövid kérésekhez."
-        ),
+    st.markdown(
+        f"""
+<div class="locked-model-row">
+    <span class="locked-model-label">Gemini modell</span>
+    <span class="locked-model-value">{LOCKED_MODEL_DISPLAY}
+        <span class="locked-model-pill">rögzített</span>
+    </span>
+</div>
+""",
+        unsafe_allow_html=True,
+    )
+    st.caption(
+        f"Ez a verzió a `{LOCKED_MODEL}` modellre van rögzítve — gyors, "
+        "stabil, és a Google Search grounding (Aktualizálás modul) is "
+        "elérhető hozzá."
     )
 
     st.session_state["temperature"] = st.slider(
@@ -4469,7 +4470,7 @@ st.markdown(
     <div class="ars-poetica">
         <strong>Emmaus Műhely v{APP_VERSION}</strong><br>
         Az Emmaus jelenleg ingyenesen használható, a legújabb
-        <em>Gemini 2.5 Flash</em> nyelvi modell támogatásával.
+        <em>{LOCKED_MODEL_DISPLAY}</em> nyelvi modell támogatásával.
     </div>
     <div class="ars-divider"></div>
     <div class="ars-stations">
