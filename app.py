@@ -3077,7 +3077,11 @@ def generate_section(key: str) -> bool:
     use_search = key in SECTIONS_WITH_GOOGLE_SEARCH
     with st.spinner(f"{label} készítése…"):
         prompt = SECTION_PROMPTS[key].format(alap=build_alap_from_state())
-        st.session_state[key] = generate_text(prompt, enable_google_search=use_search)
+        st.session_state[key] = generate_text(
+            prompt,
+            enable_google_search=use_search,
+            tab_label=label,
+        )
     return True
 
 
@@ -3272,7 +3276,7 @@ defaults = {
     "using_builtin_key": bool(BUILTIN_API_KEY),
     "model_name": LOCKED_MODEL,
     "temperature": 0.3,
-    "max_tokens": 1500,
+    "max_tokens": 700,
 
     "last_igehely": "",
     "last_alkalom": "",
@@ -3299,7 +3303,13 @@ defaults = {
     "actualization_chat": [],
     "outline_chat": [],
     "original_text_chat": [],
-    "songs_chat": []
+    "songs_chat": [],
+
+    # Cache + cooldown + debug log infra
+    "enable_cache": True,
+    "_call_cache": {},
+    "_debug_log": [],
+    "_last_api_call_ts": 0.0,
 }
 
 for key, value in defaults.items():
@@ -3471,18 +3481,154 @@ def _strip_chatty_intro(text: str) -> str:
 
 
 import time as _time
+import hashlib as _hashlib
+from datetime import datetime as _dt
 
-# ─── Retry konfiguráció (rate-limit védelem) ─────────────────────────
-GEMINI_MAX_RETRIES = 3      # max. ennyi újrapróbálkozás 429 / 5xx esetén
-GEMINI_RETRY_BASE_S = 10    # exponenciális backoff alapja: 10s, 20s, 40s
+# ─── Retry, cooldown, debug, cache konfiguráció ──────────────────────
+GEMINI_MAX_RETRIES = 3       # max. ennyi újrapróbálkozás 429 / 5xx esetén
+GEMINI_RETRY_BASE_S = 10     # exponenciális backoff alapja: 10s, 20s, 40s
 GEMINI_TIMEOUT_S = 120
+GEMINI_COOLDOWN_S = 8        # globális cooldown két logikai hívás közt
+GEMINI_DEFAULT_MAX_TOKENS = 700
+GEMINI_DEBUG_LOG_MAX = 80    # session debug-log max bejegyzések
+
+# Globális, kötelező tömörítési előírás (minden FELADAT-hoz csatolva).
+_BREVITY_DIRECTIVE = """\
+==================================================
+TÖMÖRÍTÉSI ELŐÍRÁS — KÖTELEZŐ
+==================================================
+
+- A teljes válasz legfeljebb 600 szó (kb. 700 token).
+- Ne írj fölösleges felvezetést vagy lezárást, csak érdemi tartalmat.
+- Markdown listákkal és rövid címekkel tagolj.
+- Ha a téma részletesebb kifejtést érdemelne, NE írd ki teljes
+  hosszában; helyette zárd egyetlen sorral:
+  *(A részletesebb kifejtésért indítsd a finomítás chatet,
+  vagy kérd külön bővítésre.)*
+"""
+
+
+def _now_str() -> str:
+    return _dt.now().strftime("%H:%M:%S")
+
+
+def _hash_prompt(prompt: str, extra: str = "") -> str:
+    h = _hashlib.sha256()
+    h.update(prompt.encode("utf-8"))
+    if extra:
+        h.update(b"|")
+        h.update(extra.encode("utf-8"))
+    return h.hexdigest()[:16]
+
+
+def _mask_api_key(key) -> str:
+    """API kulcsot biztonságosan maszkol a logokhoz.
+
+    Csak az első 6 karaktert mutatja, a többit `*`-ra cseréli.
+    Pl.: `AIzaSyB123...456` → `AIzaSy**********`. A teljes kulcsot
+    SOHA nem írja ki — semmilyen log, terminál vagy debug felület felé.
+    """
+    if not key:
+        return "(nincs)"
+    key = str(key).strip()
+    if not key:
+        return "(nincs)"
+    if len(key) <= 6:
+        return "*" * len(key)
+    return key[:6] + ("*" * (len(key) - 6))
+
+
+def _get_session_id() -> str:
+    """Streamlit session azonosítót ad vissza (max 12 karakter), biztonságosan.
+
+    Elsősorban a Streamlit belső script-run-context session_id-jét
+    használja; ha az nem elérhető (pl. headless teszt), egyszer generált
+    UUID-fallback kerül a session_state-be.
+    """
+    try:
+        from streamlit.runtime.scriptrunner import get_script_run_ctx  # noqa: WPS433
+        ctx = get_script_run_ctx()
+        if ctx and getattr(ctx, "session_id", None):
+            return str(ctx.session_id)[:12]
+    except Exception:
+        pass
+    sid = st.session_state.get("_session_uuid")
+    if not sid:
+        import uuid as _uuid
+        sid = _uuid.uuid4().hex[:12]
+        st.session_state["_session_uuid"] = sid
+    return sid
+
+
+def _debug_log_append(entry: dict):
+    """Egyetlen debug-bejegyzést hozzáfűz a session loghoz + konzolra is print.
+
+    Automatikusan kitölti a kontextus-mezőket, ha még nincsenek:
+    `session_id`, `key_source` (built-in / saját), `key_masked`.
+    """
+    if "session_id" not in entry:
+        try:
+            entry["session_id"] = _get_session_id()
+        except Exception:
+            entry["session_id"] = "unknown"
+
+    if "key_source" not in entry or "key_masked" not in entry:
+        api_key = (st.session_state.get("api_key") or "").strip()
+        using_builtin = bool(st.session_state.get("using_builtin_key", False))
+        entry.setdefault(
+            "key_source",
+            ("built-in" if using_builtin else ("saját" if api_key else "—")),
+        )
+        entry.setdefault("key_masked", _mask_api_key(api_key))
+
+    log = st.session_state.setdefault("_debug_log", [])
+    log.append(entry)
+    if len(log) > GEMINI_DEBUG_LOG_MAX:
+        del log[: len(log) - GEMINI_DEBUG_LOG_MAX]
+
+    try:
+        print(
+            "[GEMINI {ts}] sid={sid} key_src={ksrc} key={kmsk} "
+            "tab={tab} attempt={att} status={st} model={mdl} "
+            "prompt_chars={pc} resp_chars={rc} latency_ms={lat}".format(
+                ts=entry.get("ts", ""),
+                sid=entry.get("session_id", ""),
+                ksrc=entry.get("key_source", ""),
+                kmsk=entry.get("key_masked", ""),
+                tab=entry.get("tab", ""),
+                att=entry.get("attempt", ""),
+                st=entry.get("status", ""),
+                mdl=entry.get("model", ""),
+                pc=entry.get("prompt_chars", ""),
+                rc=entry.get("response_chars", ""),
+                lat=entry.get("latency_ms", ""),
+            ),
+            flush=True,
+        )
+    except Exception:
+        pass
+
+
+def _cooldown_remaining() -> float:
+    """Hátralévő mp a globális cooldown végéig (0.0 ha elindítható)."""
+    last = float(st.session_state.get("_last_api_call_ts", 0.0))
+    if last <= 0:
+        return 0.0
+    elapsed = _time.time() - last
+    if elapsed >= GEMINI_COOLDOWN_S:
+        return 0.0
+    return GEMINI_COOLDOWN_S - elapsed
 
 
 def _build_payload(prompt: str, enable_google_search: bool) -> dict:
     """Összeállítja a Gemini REST kérés JSON body-ját.
-    Külön függvényben, hogy a retry logika ne építse újra minden ciklusban."""
+
+    A `_BREVITY_DIRECTIVE` minden hívásnál érvényesül (token-takarékosság),
+    a `maxOutputTokens` a Beállítások fülön szabott korlátot követi.
+    """
     final_prompt = (
         f"{BASE_SYSTEM_PROMPT}\n\n"
+        f"{_BREVITY_DIRECTIVE}\n"
         "==================================================\n"
         "FELADAT\n"
         "==================================================\n\n"
@@ -3492,7 +3638,7 @@ def _build_payload(prompt: str, enable_google_search: bool) -> dict:
         "contents": [{"parts": [{"text": final_prompt}]}],
         "generationConfig": {
             "temperature": st.session_state.get("temperature", 0.3),
-            "maxOutputTokens": int(st.session_state.get("max_tokens", 1500)),
+            "maxOutputTokens": int(st.session_state.get("max_tokens", GEMINI_DEFAULT_MAX_TOKENS)),
         },
     }
     if enable_google_search:
@@ -3500,17 +3646,27 @@ def _build_payload(prompt: str, enable_google_search: bool) -> dict:
     return payload
 
 
-def generate_text(prompt, enable_google_search: bool = False):
-    """Egyetlen Gemini API hívás retry + exponenciális backoff védelemmel.
+def generate_text(
+    prompt,
+    enable_google_search: bool = False,
+    *,
+    tab_label: str = "unknown",
+    use_cache: bool = True,
+):
+    """EGYETLEN logikai Gemini-hívás — gomb-szintű egyediség garantált.
 
-    Hibakezelés:
-      - 429 (rate limit) és 5xx → max. 3 próbálkozás, 10/20/40s közökkel
-      - 404 / 401 / 403 / 400 → azonnali érthető hibaüzenet
-      - timeout / connection error → felhasználó-barát üzenet
+    Egyetlen gombnyomás MAX 1 logikai `generate_text` hívást indíthat;
+    a retry-loop (429/5xx esetén) ugyanahhoz a gombnyomáshoz tartozik
+    (a debug log `attempt` mezője láthatóvá teszi az ismétlést).
 
-    A hívó függvénynek elég egyszer meghívnia; a retry teljes egészében
-    itt zajlik. Visszatérési érték: a generált szöveg (siker), VAGY egy
-    `⚠️ ...` kezdetű, magyar nyelvű hibaüzenet (Markdown).
+    Védelmi rétegek (sorrendben):
+      1. API-kulcs check
+      2. Opcionális cache-hit (enable_cache + azonos prompt) → 0 hívás
+      3. Globális cooldown (`GEMINI_COOLDOWN_S`) → blokkoló üzenet
+      4. HTTP hívás retry-jal (429/5xx → 10/20/40s backoff, max 3x)
+
+    Minden HTTP-küldés ELŐTT és UTÁN debug-log bejegyzés készül
+    (session_state["_debug_log"] + konzol-print).
     """
     api_key = st.session_state.get("api_key", "").strip()
     if not api_key:
@@ -3520,20 +3676,82 @@ def generate_text(prompt, enable_google_search: bool = False):
     if st.session_state.get("model_name") != LOCKED_MODEL:
         st.session_state["model_name"] = LOCKED_MODEL
 
+    cache_enabled = (
+        use_cache
+        and bool(st.session_state.get("enable_cache", True))
+        and not enable_google_search  # Google-keresés esetén mindig friss adat kell
+    )
+    prompt_hash = _hash_prompt(prompt, extra=str(st.session_state.get("max_tokens", GEMINI_DEFAULT_MAX_TOKENS)))
+
+    # ─── 1. CACHE HIT ────────────────────────────────────────────────
+    cache = st.session_state.setdefault("_call_cache", {})
+    if cache_enabled and prompt_hash in cache:
+        cached_text, _cached_ts = cache[prompt_hash]
+        _debug_log_append({
+            "ts": _now_str(),
+            "tab": tab_label,
+            "attempt": 0,
+            "status": "CACHE_HIT",
+            "model": LOCKED_MODEL,
+            "prompt_chars": len(prompt),
+            "response_chars": len(cached_text),
+            "latency_ms": 0,
+        })
+        return cached_text
+
+    # ─── 2. GLOBÁLIS COOLDOWN ────────────────────────────────────────
+    remaining = _cooldown_remaining()
+    if remaining > 0:
+        _debug_log_append({
+            "ts": _now_str(),
+            "tab": tab_label,
+            "attempt": 0,
+            "status": "COOLDOWN_BLOCK",
+            "model": LOCKED_MODEL,
+            "prompt_chars": len(prompt),
+            "response_chars": 0,
+            "latency_ms": 0,
+        })
+        return (
+            "⏳ **Kérlek várj néhány másodpercet az újabb generálás előtt.** "
+            f"(Még kb. {int(remaining) + 1} másodperc.)"
+        )
+
+    # ─── 3. HTTP HÍVÁS (retry-jal) ───────────────────────────────────
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{LOCKED_MODEL}:generateContent"
     headers = {"Content-Type": "application/json", "x-goog-api-key": api_key}
     data = _build_payload(prompt, enable_google_search)
+    prompt_chars = len(prompt)
 
     last_error_msg = "⚠️ **Ismeretlen hiba történt a kérés közben.**"
 
     for attempt in range(GEMINI_MAX_RETRIES):
-        # ─── Hálózati hívás ──────────────────────────────────────────
+        # log: BEFORE
+        _debug_log_append({
+            "ts": _now_str(),
+            "tab": tab_label,
+            "attempt": attempt + 1,
+            "status": "REQUEST",
+            "model": LOCKED_MODEL,
+            "prompt_chars": prompt_chars,
+            "response_chars": 0,
+            "latency_ms": 0,
+        })
+        start_ts = _time.time()
+
         try:
             response = requests.post(
                 url, headers=headers, json=data,
                 verify=False, timeout=GEMINI_TIMEOUT_S,
             )
         except requests.exceptions.Timeout:
+            latency_ms = int((_time.time() - start_ts) * 1000)
+            _debug_log_append({
+                "ts": _now_str(), "tab": tab_label, "attempt": attempt + 1,
+                "status": "TIMEOUT", "model": LOCKED_MODEL,
+                "prompt_chars": prompt_chars, "response_chars": 0, "latency_ms": latency_ms,
+            })
+            st.session_state["_last_api_call_ts"] = _time.time()
             last_error_msg = (
                 "⚠️ **Időtúllépés.** A Gemini szerver nem válaszolt időben. "
                 "Próbáld újra pár másodperc múlva, vagy csökkentsd a válaszhosszt a Beállítások fülön."
@@ -3543,14 +3761,31 @@ def generate_text(prompt, enable_google_search: bool = False):
                 continue
             return last_error_msg
         except requests.exceptions.ConnectionError:
+            _debug_log_append({
+                "ts": _now_str(), "tab": tab_label, "attempt": attempt + 1,
+                "status": "CONN_ERROR", "model": LOCKED_MODEL,
+                "prompt_chars": prompt_chars, "response_chars": 0,
+                "latency_ms": int((_time.time() - start_ts) * 1000),
+            })
+            st.session_state["_last_api_call_ts"] = _time.time()
             return (
                 "⚠️ **Nincs internetkapcsolat.** Nem sikerült elérni a Gemini API-t. "
                 "Ellenőrizd a hálózati kapcsolatot."
             )
         except Exception as e:
+            _debug_log_append({
+                "ts": _now_str(), "tab": tab_label, "attempt": attempt + 1,
+                "status": "EXCEPTION", "model": LOCKED_MODEL,
+                "prompt_chars": prompt_chars, "response_chars": 0,
+                "latency_ms": int((_time.time() - start_ts) * 1000),
+            })
+            st.session_state["_last_api_call_ts"] = _time.time()
             return f"⚠️ **Ismeretlen hiba történt a kérés közben.**\n\n```\n{e}\n```"
 
+        latency_ms = int((_time.time() - start_ts) * 1000)
         sc = response.status_code
+        # cooldown timestamp frissítés MINDEN befejezett HTTP után
+        st.session_state["_last_api_call_ts"] = _time.time()
 
         # ─── Sikeres válasz ─────────────────────────────────────────
         if sc == 200:
@@ -3562,8 +3797,23 @@ def generate_text(prompt, enable_google_search: bool = False):
                     sources_md = _format_grounding_sources(result)
                     if sources_md:
                         text = text + "\n" + sources_md
+
+                _debug_log_append({
+                    "ts": _now_str(), "tab": tab_label, "attempt": attempt + 1,
+                    "status": "200_OK", "model": LOCKED_MODEL,
+                    "prompt_chars": prompt_chars, "response_chars": len(text),
+                    "latency_ms": latency_ms,
+                })
+                if cache_enabled:
+                    cache[prompt_hash] = (text, _time.time())
                 return text
             except (KeyError, IndexError, ValueError):
+                _debug_log_append({
+                    "ts": _now_str(), "tab": tab_label, "attempt": attempt + 1,
+                    "status": "EMPTY_OR_BLOCKED", "model": LOCKED_MODEL,
+                    "prompt_chars": prompt_chars, "response_chars": 0,
+                    "latency_ms": latency_ms,
+                })
                 try:
                     result = response.json()
                     feedback = result.get("promptFeedback", {})
@@ -3582,19 +3832,29 @@ def generate_text(prompt, enable_google_search: bool = False):
 
         # ─── 429 rate-limit → exponenciális backoff retry ────────────
         if sc == 429:
-            wait_s = GEMINI_RETRY_BASE_S * (2 ** attempt)
+            _debug_log_append({
+                "ts": _now_str(), "tab": tab_label, "attempt": attempt + 1,
+                "status": "429_RATE_LIMIT", "model": LOCKED_MODEL,
+                "prompt_chars": prompt_chars, "response_chars": 0,
+                "latency_ms": latency_ms,
+            })
             if attempt < GEMINI_MAX_RETRIES - 1:
-                _time.sleep(wait_s)
+                _time.sleep(GEMINI_RETRY_BASE_S * (2 ** attempt))
                 continue
             return (
                 "⚠️ **Túl sok kérés rövid idő alatt (429).** "
-                f"Több próbálkozás után sem sikerült. "
-                "Várj 1–2 percet, majd próbáld újra. "
+                "Több próbálkozás után sem sikerült. Várj 1–2 percet, majd próbáld újra. "
                 "Ha gyakori, érdemes saját API kulcsot megadni a Beállítások fülön."
             )
 
         # ─── 5xx szerver hiba → backoff retry ────────────────────────
         if sc >= 500:
+            _debug_log_append({
+                "ts": _now_str(), "tab": tab_label, "attempt": attempt + 1,
+                "status": f"{sc}_SERVER", "model": LOCKED_MODEL,
+                "prompt_chars": prompt_chars, "response_chars": 0,
+                "latency_ms": latency_ms,
+            })
             if attempt < GEMINI_MAX_RETRIES - 1:
                 _time.sleep(GEMINI_RETRY_BASE_S * (2 ** attempt))
                 continue
@@ -3603,31 +3863,33 @@ def generate_text(prompt, enable_google_search: bool = False):
                 "Próbáld újra pár másodperc múlva."
             )
 
-        # ─── Maradék hibakódok → azonnali, érthető hibaüzenet ────────
+        # ─── Egyéb hibakódok → azonnali, érthető üzenet ──────────────
+        _debug_log_append({
+            "ts": _now_str(), "tab": tab_label, "attempt": attempt + 1,
+            "status": f"{sc}_OTHER", "model": LOCKED_MODEL,
+            "prompt_chars": prompt_chars, "response_chars": 0,
+            "latency_ms": latency_ms,
+        })
+        snippet = response.text[:400] if response.text else ""
+
         if sc == 404:
-            snippet = response.text[:400] if response.text else ""
             return (
                 f"⚠️ **A modell ({LOCKED_MODEL}) átmenetileg nem érhető el (404).**\n\n"
                 "Ez többnyire átmeneti Google API-hiba; próbáld újra pár perc múlva. "
                 "Ha a hiba tartós, ellenőrizd a Beállítások fülön az API kulcsot.\n\n"
                 f"Részletek (rövidítve):\n```\n{snippet}\n```"
             )
-
         if sc in (401, 403):
             return (
                 "⚠️ **Érvénytelen vagy lejárt API kulcs.** "
                 "Generálj újat a Google AI Studio-ban, és cseréld a Beállítások fülön."
             )
-
         if sc == 400:
-            snippet = response.text[:400] if response.text else ""
             return (
                 "⚠️ **A kérés hibás vagy elutasított.** A modell nem tudta feldolgozni "
                 "a beküldött tartalmat (státusz: 400).\n\n"
                 f"Részletek (rövidítve):\n```\n{snippet}\n```"
             )
-
-        snippet = response.text[:400] if response.text else ""
         return f"⚠️ **Ismeretlen API válasz** (státusz: {sc}).\n\n```\n{snippet}\n```"
 
     return last_error_msg
@@ -3674,7 +3936,12 @@ Válaszolj magyarul, teológiailag óvatosan, lelkipásztori szempontból haszn�
 Ne írj teljesen új prédikációt, csak ehhez a részhez kapcsolódj.
 """
 
-        answer = generate_text(prompt)
+        # Chat-finomítás: ne legyen cache (interaktív, mindig friss válasz)
+        answer = generate_text(
+            prompt,
+            tab_label=f"chat: {title}",
+            use_cache=False,
+        )
 
         st.session_state[chat_key].append({"role": "assistant", "content": answer})
 
@@ -3804,7 +4071,10 @@ with tabs[0]:
         "**Tabonkénti generálás:** Itt csak az **Áttekintést** kéred le. "
         "A többi szekciót (Eredeti szöveg, Exegézis, Kortörténet, Teológia, "
         "Illusztrációk, Aktualizálás, Vázlat, Énekajánló) az adott fülön, "
-        "külön gombbal indíthatod — így pontosan azt generálod, amire szükséged van."
+        "külön gombbal indíthatod — így pontosan azt generálod, amire szükséged van. "
+        "\n\n*Két API-hívás között legalább "
+        f"{GEMINI_COOLDOWN_S} másodperc vár; a tömör válasz max. ~{GEMINI_DEFAULT_MAX_TOKENS} "
+        "token. Ha bővebb kifejtés kell, használd a finomítás chatet.*"
     )
 
     overview_disabled = bool(st.session_state.get("_overview_running"))
@@ -3979,7 +4249,9 @@ Egy konkrét, **prédikációs zárás** — összefoglalás, hívás, ígéret.
         st.session_state["_outline_running"] = True
         try:
             with st.spinner("Vázlat készül..."):
-                st.session_state["outline"] = generate_text(prompt)
+                st.session_state["outline"] = generate_text(
+                    prompt, tab_label="Vázlat",
+                )
         finally:
             st.session_state["_outline_running"] = False
         st.rerun()
@@ -4100,7 +4372,8 @@ with tabs[1]:
             try:
                 with st.spinner("Eredeti nyelvi elemzés készül..."):
                     st.session_state["original_text"] = generate_text(
-                        build_original_text_prompt(igehely_orig)
+                        build_original_text_prompt(igehely_orig),
+                        tab_label="Eredeti szöveg",
                     )
             finally:
                 st.session_state["_original_running"] = False
@@ -4211,7 +4484,8 @@ with tabs[9]:
                             alkalom=alkalom_song,
                             enekeskonyv=enekeskonyv_song,
                             hangsuly=hangsuly_song,
-                        )
+                        ),
+                        tab_label="Énekajánló",
                     )
             finally:
                 st.session_state["_songs_running"] = False
@@ -4328,13 +4602,14 @@ with tabs[10]:
 
     st.session_state["max_tokens"] = st.slider(
         "Válaszhossz (max output token)",
-        500,
-        4000,
-        int(st.session_state.get("max_tokens", 1500)),
-        100,
+        300,
+        1500,
+        int(st.session_state.get("max_tokens", 700)),
+        50,
         help=(
             "Token-limit egyetlen Gemini válaszra. Alacsonyabb érték = "
-            "gyorsabb válasz és kevesebb költség. Ajánlott: 1200–1800."
+            "gyorsabb válasz és kevesebb költség. Ajánlott: 600–900. "
+            "Ha többre van szükséged, finomítsd a tartalmat a finomítás-chatben."
         ),
     )
 
@@ -4346,8 +4621,81 @@ with tabs[10]:
             disabled=True
         )
 
+    # ─── Cache & cooldown ────────────────────────────────────────────
+    st.divider()
+    st.subheader("Cache és cooldown")
+    st.caption(
+        f"Globális cooldown két API-hívás közt: **{GEMINI_COOLDOWN_S} mp**. "
+        "Ha túl gyorsan kattintasz, az alkalmazás megvár, és figyelmeztet."
+    )
+
+    cache_col1, cache_col2 = st.columns([2, 1])
+    with cache_col1:
+        st.checkbox(
+            "Cache azonos kérésekre (igehely + tab + beállítások)",
+            value=bool(st.session_state.get("enable_cache", True)),
+            key="enable_cache",
+            help=(
+                "Ha be van kapcsolva, ugyanaz a kérés (azonos prompt és "
+                "max-token beállítás) nem indít új API-hívást — a korábbi "
+                "választ adja vissza azonnal. Csak az aktuális munkamenetre érvényes."
+            ),
+        )
+    with cache_col2:
+        cache_size = len(st.session_state.get("_call_cache", {}))
+        st.metric("Cache-elt válaszok", cache_size)
+
+    if st.button("Cache törlése", key="clear_cache_btn"):
+        st.session_state["_call_cache"] = {}
+        st.success("Cache kiürítve.")
+        st.rerun()
+
+    # ─── Debug log ───────────────────────────────────────────────────
+    debug_log = st.session_state.get("_debug_log", [])
+    with st.expander(
+        f"Gemini debug log — utolsó {len(debug_log)} bejegyzés",
+        expanded=False,
+    ):
+        st.caption(
+            "Minden Gemini-hívás előtt és után egy bejegyzés készül. "
+            "Egyetlen gombnyomás max. **1 logikai hívást** indít; ha "
+            "`attempt > 1` látható, az automatikus 429-retry történt."
+        )
+        st.caption(
+            f"Aktuális session ID: `{_get_session_id()}` · "
+            f"Kulcs: `{_mask_api_key(st.session_state.get('api_key', ''))}` "
+            f"({'built-in' if st.session_state.get('using_builtin_key') else 'saját' if st.session_state.get('api_key') else '—'})"
+        )
+        if not debug_log:
+            st.info("Még nincs API-hívás ebben a munkamenetben.")
+        else:
+            rows = []
+            for e in reversed(debug_log[-30:]):
+                rows.append({
+                    "Idő": e.get("ts", ""),
+                    "Session": e.get("session_id", ""),
+                    "Kulcs": e.get("key_masked", ""),
+                    "Forrás": e.get("key_source", ""),
+                    "Tab": e.get("tab", ""),
+                    "Próba": e.get("attempt", ""),
+                    "Státusz": e.get("status", ""),
+                    "Modell": e.get("model", ""),
+                    "Prompt (kar.)": e.get("prompt_chars", ""),
+                    "Válasz (kar.)": e.get("response_chars", ""),
+                    "Latency (ms)": e.get("latency_ms", ""),
+                })
+            st.dataframe(rows, hide_index=True, use_container_width=True)
+
+        if st.button("Debug log ürítése", key="clear_debug_log_btn"):
+            st.session_state["_debug_log"] = []
+            st.rerun()
+
     if st.button("API kapcsolat tesztelése"):
-        test = generate_text("Válaszolj röviden magyarul: működik a kapcsolat?")
+        test = generate_text(
+            "Válaszolj röviden magyarul: működik a kapcsolat?",
+            tab_label="API teszt",
+            use_cache=False,
+        )
         if test.startswith("⚠️") or test.startswith("Hiba") or test.startswith("Nincs"):
             st.error(test)
         else:
