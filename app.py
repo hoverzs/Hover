@@ -3130,6 +3130,8 @@ def render_section_tab(
     chat_title: str = None,
     empty_msg: str = None,
     extra_box_class: str = "",
+    action_label: str = None,
+    regen_label: str = None,
 ):
     """Egységes szekció-tab renderelő.
 
@@ -3137,6 +3139,12 @@ def render_section_tab(
     - Csak gombnyomásra fut Gemini hívás, page-load alatt SOHA.
     - Az eredmény külön `st.session_state[key]`-ben él, rerun nem dobja.
     - Megjeleníti a finomítás-chatet és a vázlatkosár-jegyzetet.
+
+    Paraméterek:
+      - `action_label`: a gomb felirata első generáláskor. Ha nincs megadva,
+        az alapértelmezett `"{header} generálása"` lesz.
+      - `regen_label`: a gomb felirata újrageneráláskor. Ha nincs megadva,
+        a `regen_label = "Frissítés — " + action_label` automatikus.
     """
     st.header(header)
 
@@ -3144,7 +3152,9 @@ def render_section_tab(
     running_flag = f"_{key}_running"
     is_running = bool(st.session_state.get(running_flag))
 
-    btn_label = f"{header} újragenerálása" if has_result else f"{header} generálása"
+    _primary = action_label or f"{header} generálása"
+    _regen = regen_label or (f"Frissítés — {action_label}" if action_label else f"{header} újragenerálása")
+    btn_label = _regen if has_result else _primary
     btn_type = "secondary" if has_result else "primary"
 
     if st.button(
@@ -4376,7 +4386,8 @@ with tabs[2]:
         key="exegesis",
         header="Exegézis",
         basket_label="Exegézis",
-        empty_msg="Még nincs exegézis. Kattints a generálás gombra.",
+        empty_msg="Még nincs exegézis. Kattints az „Exegetikai háttér feltárása” gombra.",
+        action_label="Exegetikai háttér feltárása",
     )
 
 with tabs[3]:
@@ -4384,7 +4395,8 @@ with tabs[3]:
         key="history",
         header="Kortörténet",
         basket_label="Kortörténet",
-        empty_msg="Még nincs kortörténeti háttér. Kattints a generálás gombra.",
+        empty_msg="Még nincs kortörténeti háttér. Kattints a „Kortörténeti háttér feltárása” gombra.",
+        action_label="Kortörténeti háttér feltárása",
     )
 
 with tabs[4]:
@@ -4392,7 +4404,8 @@ with tabs[4]:
         key="theology",
         header="Teológia",
         basket_label="Teológia",
-        empty_msg="Még nincs teológiai elemzés. Kattints a generálás gombra.",
+        empty_msg="Még nincs teológiai elemzés. Kattints a „Teológiai összefüggések feltárása” gombra.",
+        action_label="Teológiai összefüggések feltárása",
     )
 
 with tabs[5]:
@@ -4400,7 +4413,8 @@ with tabs[5]:
         key="illustrations",
         header="Illusztrációk",
         basket_label="Illusztráció",
-        empty_msg="Még nincsenek illusztrációs ötletek. Kattints a generálás gombra.",
+        empty_msg="Még nincsenek illusztrációs ötletek. Kattints az „Illusztrációs ötletek gyűjtése” gombra.",
+        action_label="Illusztrációs ötletek gyűjtése",
     )
 
 with tabs[6]:
@@ -4408,7 +4422,8 @@ with tabs[6]:
         key="actualization",
         header="Aktualizálás",
         basket_label="Aktualizálás",
-        empty_msg="Még nincs aktualizálás. Kattints a generálás gombra (Google-keresés használatával friss kontextust kap).",
+        empty_msg="Még nincs aktualizálás. Kattints a „Mai kapcsolódások keresése” gombra (Google-keresés használatával friss kontextust kap).",
+        action_label="Mai kapcsolódások keresése",
     )
 
 
