@@ -4343,7 +4343,7 @@ with tabs[0]:
 
     overview_disabled = bool(st.session_state.get("_overview_running"))
     if st.button(
-        "Áttekintés generálása",
+        "Bibliai háttér összegzése",
         type="primary",
         key="overview_generate_btn",
         disabled=overview_disabled,
@@ -4351,7 +4351,7 @@ with tabs[0]:
         st.session_state["_overview_running"] = True
         try:
             if generate_section("overview"):
-                st.success("Áttekintés elkészült.")
+                st.success("Bibliai háttér elkészült.")
         finally:
             st.session_state["_overview_running"] = False
 
@@ -4362,7 +4362,7 @@ with tabs[0]:
 
         col_regen_o, _ = st.columns([1, 4])
         with col_regen_o:
-            if st.button("Áttekintés újragenerálása", key="overview_regen"):
+            if st.button("Bibliai háttér újragenerálása", key="overview_regen"):
                 if generate_section("overview"):
                     st.rerun()
 
