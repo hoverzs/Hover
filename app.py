@@ -28,12 +28,35 @@ st.set_page_config(
 # =========================================================
 #
 # Az alapértelmezett kulcsot SOHA nem írjuk a forráskódba.
-# Két forrásból olvashatjuk (priorítás-sorrendben):
-#   1) `.streamlit/secrets.toml` → `GEMINI_API_KEY` (`.gitignore` blokkolja)
-#   2) `GEMINI_API_KEY` környezeti változó (Cloud / Docker / Render stb.)
+# Források (priorítás):
+#   1) `st.secrets["GEMINI_API_KEY"]` — Streamlit Cloud + helyi, ha a futtatás
+#      munkakönyvtára olyan, ahol van `.streamlit/secrets.toml`
+#   2) Ugyanez a fájl közvetlenül az `app.py` könyvtárából (`Path(__file__)`),
+#      ha pl. `streamlit run` más cwd-ből indul: így a beépített kulcs nem marad
+#      üres, miközben a kézi beírás továbbra is működött volna a sessionbe.
+#   3) `GEMINI_API_KEY` környezeti változó (Docker / Render stb.)
 #
-# Ha sem az egyik, sem a másik nincs jelen, akkor a felhasználónak saját
-# kulcsot kell megadnia a Beállítások fülön — az app működik továbbra is.
+# Ha egyik sincs, a felhasználó a Beállítások fülön adhat meg saját kulcsot.
+
+def _read_gemini_key_from_project_secrets_file() -> str:
+    """`.streamlit/secrets.toml` az app fájl melletti projektgyökérben (TOML)."""
+    p = Path(__file__).resolve().parent / ".streamlit" / "secrets.toml"
+    if not p.is_file():
+        return ""
+    try:
+        import tomllib  # py3.11+
+    except ImportError:
+        return ""
+    try:
+        with p.open("rb") as f:
+            data = tomllib.load(f)
+        v = data.get("GEMINI_API_KEY")
+        if v:
+            return str(v).strip()
+    except Exception:
+        pass
+    return ""
+
 
 def _load_builtin_api_key() -> str:
     try:
@@ -42,6 +65,9 @@ def _load_builtin_api_key() -> str:
             return str(v).strip()
     except Exception:
         pass
+    v2 = _read_gemini_key_from_project_secrets_file()
+    if v2:
+        return v2
     return (os.environ.get("GEMINI_API_KEY", "") or "").strip()
 
 
@@ -3347,6 +3373,12 @@ if st.session_state.get("using_builtin_key", False):
     _sk_sync = _load_builtin_api_key().strip()
     if _sk_sync:
         st.session_state["api_key"] = _sk_sync
+
+# Régi munkamenet / rossz cwd: üres session-kulcs, de a projekt secrets már elérhető
+_live_builtin = _load_builtin_api_key().strip()
+if _live_builtin and not (st.session_state.get("api_key") or "").strip():
+    st.session_state["api_key"] = _live_builtin
+    st.session_state["using_builtin_key"] = True
 
 
 def _resolve_api_key() -> str:
