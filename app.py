@@ -64,6 +64,25 @@ BUILTIN_API_KEY = _load_builtin_api_key()
 LOCKED_MODEL = "gemini-2.5-flash"
 LOCKED_MODEL_DISPLAY = "Gemini 2.5 Flash"
 
+# ─────────────────────────────────────────────────────────────────────
+# MODELL FALLBACK LÁNC
+#   Ha az elsődleges modell 404 NotFound-ot ad (pl. átmeneti Google
+#   API-hiba, regionális deprecation, kulcs-engedélyezetlenség), az
+#   `_advance_active_model()` automatikusan átvált a következőre,
+#   ÉS a választás KITART a teljes munkamenet alatt — nem hívunk újra
+#   meg újra olyan modellt, ami már egyszer 404-et adott.
+# ─────────────────────────────────────────────────────────────────────
+MODEL_FALLBACK_CHAIN = [
+    "gemini-2.5-flash",
+    "gemini-2.0-flash",
+    "gemini-1.5-flash",
+]
+MODEL_DISPLAY = {
+    "gemini-2.5-flash": "Gemini 2.5 Flash",
+    "gemini-2.0-flash": "Gemini 2.0 Flash",
+    "gemini-1.5-flash": "Gemini 1.5 Flash",
+}
+
 # =========================================================
 # SEGÉDFÜGGVÉNYEK
 # =========================================================
@@ -3275,6 +3294,7 @@ defaults = {
     "api_key": BUILTIN_API_KEY,
     "using_builtin_key": bool(BUILTIN_API_KEY),
     "model_name": LOCKED_MODEL,
+    "active_model": LOCKED_MODEL,
     "temperature": 0.3,
     "max_tokens": 700,
 
@@ -3322,13 +3342,109 @@ for key, value in defaults.items():
 # =========================================================
 
 def _google_search_tool_for_model(model_name: str = LOCKED_MODEL):
-    """Google Search grounding tool a rögzített Gemini 2.5 modellhez.
+    """Google Search grounding tool — modell-családtól függő név.
 
-    Megtartjuk a függvényt és paraméterét a hívók kompatibilitása miatt,
-    de mivel csak `gemini-2.5-flash` engedélyezett, mindig a 2.0+ családra
-    érvényes `google_search` tool-nevet adjuk vissza.
+    A 2.x család a `google_search` tool-t használja, az 1.5 család még
+    a régi `google_search_retrieval` formátumot. A fallback chain
+    automatikusan a megfelelőt választja.
     """
+    if model_name and model_name.startswith("gemini-1.5"):
+        return {"google_search_retrieval": {}}
     return {"google_search": {}}
+
+
+# ─────────────────────────────────────────────────────────────────────
+# AKTÍV MODELL — fallback chain kezelés (404 NotFound védelem)
+# ─────────────────────────────────────────────────────────────────────
+
+def _get_active_model() -> str:
+    """A munkamenet aktuálisan használandó Gemini modellje.
+
+    Default = `LOCKED_MODEL`; ha korábban 404 miatt fallback-eltünk,
+    az `active_model` session_state-ben tárolt értéket használjuk.
+    """
+    m = st.session_state.get("active_model")
+    if m and m in MODEL_FALLBACK_CHAIN:
+        return m
+    st.session_state["active_model"] = LOCKED_MODEL
+    return LOCKED_MODEL
+
+
+def _advance_active_model(current: str) -> str | None:
+    """A fallback chain következő modelljére vált. None, ha kifutottunk."""
+    try:
+        idx = MODEL_FALLBACK_CHAIN.index(current)
+    except ValueError:
+        idx = -1
+    nxt = MODEL_FALLBACK_CHAIN[idx + 1] if idx + 1 < len(MODEL_FALLBACK_CHAIN) else None
+    if nxt:
+        st.session_state["active_model"] = nxt
+    return nxt
+
+
+def _extract_retry_after_seconds(response, attempt: int, default_base_s: int) -> int:
+    """A 429-válaszból kinyeri a Google által javasolt várakozási időt.
+
+    Sorrend:
+      1. `Retry-After` HTTP header (egész másodperc)
+      2. body → `error.details[*]` `RetryInfo.retryDelay` (pl. "30s")
+      3. fallback: `default_base_s * 2^attempt`
+    """
+    raw = response.headers.get("Retry-After") or response.headers.get("retry-after")
+    if raw:
+        try:
+            v = int(float(raw))
+            if 0 < v < 600:
+                return v
+        except (ValueError, TypeError):
+            pass
+
+    try:
+        body = response.json()
+        details = body.get("error", {}).get("details", []) or []
+        for d in details:
+            tname = d.get("@type", "") or ""
+            if "RetryInfo" in tname:
+                rd = d.get("retryDelay", "")
+                if isinstance(rd, str) and rd.endswith("s"):
+                    try:
+                        v = int(float(rd[:-1]))
+                        if 0 < v < 600:
+                            return v
+                    except (ValueError, TypeError):
+                        pass
+    except Exception:
+        pass
+
+    return default_base_s * (2 ** attempt)
+
+
+def _extract_error_message(response) -> str:
+    """A Google API hibaválaszából tisztán kinyeri az `error.message` szöveget."""
+    try:
+        body = response.json()
+        msg = body.get("error", {}).get("message", "")
+        if msg:
+            return str(msg)[:500]
+    except Exception:
+        pass
+    snippet = (response.text or "").strip()
+    return snippet[:500] if snippet else "(nincs hibaüzenet a válaszban)"
+
+
+def _log_http_error(model: str, sc: int, response) -> str:
+    """Részletes konzol-log a nem-200 válaszról + visszaadja a hibaüzenetet."""
+    err_msg = _extract_error_message(response)
+    body_snippet = (response.text or "")[:800]
+    try:
+        print(
+            f"[GEMINI ERROR] model={model} status={sc} message={err_msg}\n"
+            f"  body[:800]={body_snippet}",
+            flush=True,
+        )
+    except Exception:
+        pass
+    return err_msg
 
 
 def _format_grounding_sources(result: dict) -> str:
@@ -3485,12 +3601,13 @@ import hashlib as _hashlib
 from datetime import datetime as _dt
 
 # ─── Retry, cooldown, debug, cache konfiguráció ──────────────────────
-GEMINI_MAX_RETRIES = 3       # max. ennyi újrapróbálkozás 429 / 5xx esetén
-GEMINI_RETRY_BASE_S = 10     # exponenciális backoff alapja: 10s, 20s, 40s
+GEMINI_MAX_RETRIES = 3            # max. ennyi újrapróbálkozás 429 / 5xx esetén
+GEMINI_RETRY_BASE_S = 10          # 5xx exponenciális backoff: 10s, 20s, 40s
+GEMINI_RATE_LIMIT_BASE_S = 15     # 429-re külön, hosszabb backoff: 15s, 30s, 60s
 GEMINI_TIMEOUT_S = 120
-GEMINI_COOLDOWN_S = 8        # globális cooldown két logikai hívás közt
+GEMINI_COOLDOWN_S = 8             # globális cooldown két logikai hívás közt
 GEMINI_DEFAULT_MAX_TOKENS = 700
-GEMINI_DEBUG_LOG_MAX = 80    # session debug-log max bejegyzések
+GEMINI_DEBUG_LOG_MAX = 80         # session debug-log max bejegyzések
 
 # Globális, kötelező tömörítési előírás (minden FELADAT-hoz csatolva).
 _BREVITY_DIRECTIVE = """\
@@ -3620,11 +3737,12 @@ def _cooldown_remaining() -> float:
     return GEMINI_COOLDOWN_S - elapsed
 
 
-def _build_payload(prompt: str, enable_google_search: bool) -> dict:
+def _build_payload(prompt: str, enable_google_search: bool, model: str) -> dict:
     """Összeállítja a Gemini REST kérés JSON body-ját.
 
     A `_BREVITY_DIRECTIVE` minden hívásnál érvényesül (token-takarékosság),
     a `maxOutputTokens` a Beállítások fülön szabott korlátot követi.
+    A Google Search grounding tool a modell-családhoz illeszkedik.
     """
     final_prompt = (
         f"{BASE_SYSTEM_PROMPT}\n\n"
@@ -3642,7 +3760,7 @@ def _build_payload(prompt: str, enable_google_search: bool) -> dict:
         },
     }
     if enable_google_search:
-        payload["tools"] = [_google_search_tool_for_model(LOCKED_MODEL)]
+        payload["tools"] = [_google_search_tool_for_model(model)]
     return payload
 
 
@@ -3672,16 +3790,19 @@ def generate_text(
     if not api_key:
         return "⚠️ **Hiányzó API kulcs.** Add meg a Beállítások fülön a Gemini API kulcsot, mielőtt elindítanád az elemzést."
 
-    # ─── MODELL LOCK ─────────────────────────────────────────────────
-    if st.session_state.get("model_name") != LOCKED_MODEL:
-        st.session_state["model_name"] = LOCKED_MODEL
+    # ─── MODELL VÁLASZTÁS (fallback chain support) ──────────────────
+    active_model = _get_active_model()
+    st.session_state["model_name"] = active_model  # UI sync
 
     cache_enabled = (
         use_cache
         and bool(st.session_state.get("enable_cache", True))
         and not enable_google_search  # Google-keresés esetén mindig friss adat kell
     )
-    prompt_hash = _hash_prompt(prompt, extra=str(st.session_state.get("max_tokens", GEMINI_DEFAULT_MAX_TOKENS)))
+    prompt_hash = _hash_prompt(
+        prompt,
+        extra=f"{active_model}|{st.session_state.get('max_tokens', GEMINI_DEFAULT_MAX_TOKENS)}",
+    )
 
     # ─── 1. CACHE HIT ────────────────────────────────────────────────
     cache = st.session_state.setdefault("_call_cache", {})
@@ -3692,7 +3813,7 @@ def generate_text(
             "tab": tab_label,
             "attempt": 0,
             "status": "CACHE_HIT",
-            "model": LOCKED_MODEL,
+            "model": active_model,
             "prompt_chars": len(prompt),
             "response_chars": len(cached_text),
             "latency_ms": 0,
@@ -3707,7 +3828,7 @@ def generate_text(
             "tab": tab_label,
             "attempt": 0,
             "status": "COOLDOWN_BLOCK",
-            "model": LOCKED_MODEL,
+            "model": active_model,
             "prompt_chars": len(prompt),
             "response_chars": 0,
             "latency_ms": 0,
@@ -3717,22 +3838,23 @@ def generate_text(
             f"(Még kb. {int(remaining) + 1} másodperc.)"
         )
 
-    # ─── 3. HTTP HÍVÁS (retry-jal) ───────────────────────────────────
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{LOCKED_MODEL}:generateContent"
+    # ─── 3. HTTP HÍVÁS (retry + 404-fallback chain) ──────────────────
     headers = {"Content-Type": "application/json", "x-goog-api-key": api_key}
-    data = _build_payload(prompt, enable_google_search)
     prompt_chars = len(prompt)
-
     last_error_msg = "⚠️ **Ismeretlen hiba történt a kérés közben.**"
+    fallback_notice = ""
 
     for attempt in range(GEMINI_MAX_RETRIES):
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{active_model}:generateContent"
+        data = _build_payload(prompt, enable_google_search, active_model)
+
         # log: BEFORE
         _debug_log_append({
             "ts": _now_str(),
             "tab": tab_label,
             "attempt": attempt + 1,
             "status": "REQUEST",
-            "model": LOCKED_MODEL,
+            "model": active_model,
             "prompt_chars": prompt_chars,
             "response_chars": 0,
             "latency_ms": 0,
@@ -3746,10 +3868,15 @@ def generate_text(
             )
         except requests.exceptions.Timeout:
             latency_ms = int((_time.time() - start_ts) * 1000)
+            try:
+                print(f"[GEMINI ERROR] model={active_model} TIMEOUT after {latency_ms}ms", flush=True)
+            except Exception:
+                pass
             _debug_log_append({
                 "ts": _now_str(), "tab": tab_label, "attempt": attempt + 1,
-                "status": "TIMEOUT", "model": LOCKED_MODEL,
+                "status": "TIMEOUT", "model": active_model,
                 "prompt_chars": prompt_chars, "response_chars": 0, "latency_ms": latency_ms,
+                "error_message": "Network timeout",
             })
             st.session_state["_last_api_call_ts"] = _time.time()
             last_error_msg = (
@@ -3760,12 +3887,17 @@ def generate_text(
                 _time.sleep(GEMINI_RETRY_BASE_S * (2 ** attempt))
                 continue
             return last_error_msg
-        except requests.exceptions.ConnectionError:
+        except requests.exceptions.ConnectionError as ce:
+            try:
+                print(f"[GEMINI ERROR] model={active_model} CONN_ERROR: {ce}", flush=True)
+            except Exception:
+                pass
             _debug_log_append({
                 "ts": _now_str(), "tab": tab_label, "attempt": attempt + 1,
-                "status": "CONN_ERROR", "model": LOCKED_MODEL,
+                "status": "CONN_ERROR", "model": active_model,
                 "prompt_chars": prompt_chars, "response_chars": 0,
                 "latency_ms": int((_time.time() - start_ts) * 1000),
+                "error_message": str(ce)[:300],
             })
             st.session_state["_last_api_call_ts"] = _time.time()
             return (
@@ -3773,11 +3905,16 @@ def generate_text(
                 "Ellenőrizd a hálózati kapcsolatot."
             )
         except Exception as e:
+            try:
+                print(f"[GEMINI ERROR] model={active_model} EXCEPTION: {e}", flush=True)
+            except Exception:
+                pass
             _debug_log_append({
                 "ts": _now_str(), "tab": tab_label, "attempt": attempt + 1,
-                "status": "EXCEPTION", "model": LOCKED_MODEL,
+                "status": "EXCEPTION", "model": active_model,
                 "prompt_chars": prompt_chars, "response_chars": 0,
                 "latency_ms": int((_time.time() - start_ts) * 1000),
+                "error_message": str(e)[:300],
             })
             st.session_state["_last_api_call_ts"] = _time.time()
             return f"⚠️ **Ismeretlen hiba történt a kérés közben.**\n\n```\n{e}\n```"
@@ -3800,19 +3937,21 @@ def generate_text(
 
                 _debug_log_append({
                     "ts": _now_str(), "tab": tab_label, "attempt": attempt + 1,
-                    "status": "200_OK", "model": LOCKED_MODEL,
+                    "status": "200_OK", "model": active_model,
                     "prompt_chars": prompt_chars, "response_chars": len(text),
                     "latency_ms": latency_ms,
                 })
                 if cache_enabled:
                     cache[prompt_hash] = (text, _time.time())
-                return text
+                return fallback_notice + text
             except (KeyError, IndexError, ValueError):
+                err_msg = _log_http_error(active_model, sc, response)
                 _debug_log_append({
                     "ts": _now_str(), "tab": tab_label, "attempt": attempt + 1,
-                    "status": "EMPTY_OR_BLOCKED", "model": LOCKED_MODEL,
+                    "status": "EMPTY_OR_BLOCKED", "model": active_model,
                     "prompt_chars": prompt_chars, "response_chars": 0,
                     "latency_ms": latency_ms,
+                    "error_message": err_msg[:300],
                 })
                 try:
                     result = response.json()
@@ -3830,59 +3969,93 @@ def generate_text(
                     "Próbáld újra, vagy módosíts kissé a kérdésen."
                 )
 
-        # ─── 429 rate-limit → exponenciális backoff retry ────────────
-        if sc == 429:
+        # ─── 404 NotFound → fallback chain (modellváltás) ────────────
+        if sc == 404:
+            err_msg = _log_http_error(active_model, sc, response)
+            nxt = _advance_active_model(active_model)
             _debug_log_append({
                 "ts": _now_str(), "tab": tab_label, "attempt": attempt + 1,
-                "status": "429_RATE_LIMIT", "model": LOCKED_MODEL,
+                "status": "404_NOT_FOUND", "model": active_model,
                 "prompt_chars": prompt_chars, "response_chars": 0,
                 "latency_ms": latency_ms,
+                "error_message": (err_msg + (f" → fallback: {nxt}" if nxt else " → no fallback left"))[:300],
+            })
+            if nxt:
+                fallback_notice = (
+                    f"> ℹ️ A `{active_model}` modell jelenleg nem érhető el — "
+                    f"automatikusan átváltottam erre: **{MODEL_DISPLAY.get(nxt, nxt)}**.\n\n"
+                )
+                active_model = nxt
+                st.session_state["model_name"] = active_model
+                # fallback nem számít attempt-nek; ne csökkentsünk retry-t,
+                # de legalább 1 mp pihenő, hogy ne forrjon a kapcsolat
+                _time.sleep(1)
+                continue
+            return (
+                f"⚠️ **A Gemini modellek (404 NotFound) jelenleg nem érhetők el.**\n\n"
+                f"Próbáltam: {', '.join(MODEL_FALLBACK_CHAIN)}.\n\n"
+                f"**Google API üzenet:**\n```\n{err_msg}\n```\n\n"
+                "Ez többnyire átmeneti Google-szerver vagy kulcs-engedélyezési hiba; "
+                "próbáld újra pár perc múlva, vagy ellenőrizd a kulcsot."
+            )
+
+        # ─── 429 rate-limit → exponenciális backoff (Retry-After-aware) ─
+        if sc == 429:
+            err_msg = _log_http_error(active_model, sc, response)
+            wait_s = _extract_retry_after_seconds(response, attempt, GEMINI_RATE_LIMIT_BASE_S)
+            _debug_log_append({
+                "ts": _now_str(), "tab": tab_label, "attempt": attempt + 1,
+                "status": "429_RATE_LIMIT", "model": active_model,
+                "prompt_chars": prompt_chars, "response_chars": 0,
+                "latency_ms": latency_ms,
+                "error_message": f"{err_msg} (wait={wait_s}s)"[:300],
             })
             if attempt < GEMINI_MAX_RETRIES - 1:
-                _time.sleep(GEMINI_RETRY_BASE_S * (2 ** attempt))
+                _time.sleep(wait_s)
                 continue
             return (
                 "⚠️ **Túl sok kérés rövid idő alatt (429).** "
-                "Több próbálkozás után sem sikerült. Várj 1–2 percet, majd próbáld újra. "
-                "Ha gyakori, érdemes saját API kulcsot megadni a Beállítások fülön."
+                f"A Google API ajánlott várakozása: ~{wait_s} mp. "
+                "Több próbálkozás után sem sikerült — várj 1–2 percet, majd próbáld újra. "
+                "Ha gyakori, érdemes saját API kulcsot megadni a Beállítások fülön.\n\n"
+                f"**Google API üzenet:**\n```\n{err_msg}\n```"
             )
 
         # ─── 5xx szerver hiba → backoff retry ────────────────────────
         if sc >= 500:
+            err_msg = _log_http_error(active_model, sc, response)
             _debug_log_append({
                 "ts": _now_str(), "tab": tab_label, "attempt": attempt + 1,
-                "status": f"{sc}_SERVER", "model": LOCKED_MODEL,
+                "status": f"{sc}_SERVER", "model": active_model,
                 "prompt_chars": prompt_chars, "response_chars": 0,
                 "latency_ms": latency_ms,
+                "error_message": err_msg[:300],
             })
             if attempt < GEMINI_MAX_RETRIES - 1:
                 _time.sleep(GEMINI_RETRY_BASE_S * (2 ** attempt))
                 continue
             return (
                 f"⚠️ **A Gemini szerver átmenetileg nem elérhető** (státusz: {sc}). "
-                "Próbáld újra pár másodperc múlva."
+                "Próbáld újra pár másodperc múlva.\n\n"
+                f"**Google API üzenet:**\n```\n{err_msg}\n```"
             )
 
-        # ─── Egyéb hibakódok → azonnali, érthető üzenet ──────────────
+        # ─── Egyéb hibakódok (401/403/400/…) → azonnali ──────────────
+        err_msg = _log_http_error(active_model, sc, response)
         _debug_log_append({
             "ts": _now_str(), "tab": tab_label, "attempt": attempt + 1,
-            "status": f"{sc}_OTHER", "model": LOCKED_MODEL,
+            "status": f"{sc}_OTHER", "model": active_model,
             "prompt_chars": prompt_chars, "response_chars": 0,
             "latency_ms": latency_ms,
+            "error_message": err_msg[:300],
         })
-        snippet = response.text[:400] if response.text else ""
+        snippet = (response.text or "")[:400]
 
-        if sc == 404:
-            return (
-                f"⚠️ **A modell ({LOCKED_MODEL}) átmenetileg nem érhető el (404).**\n\n"
-                "Ez többnyire átmeneti Google API-hiba; próbáld újra pár perc múlva. "
-                "Ha a hiba tartós, ellenőrizd a Beállítások fülön az API kulcsot.\n\n"
-                f"Részletek (rövidítve):\n```\n{snippet}\n```"
-            )
         if sc in (401, 403):
             return (
-                "⚠️ **Érvénytelen vagy lejárt API kulcs.** "
-                "Generálj újat a Google AI Studio-ban, és cseréld a Beállítások fülön."
+                "⚠️ **Érvénytelen vagy lejárt API kulcs (státusz: "
+                f"{sc}).** Generálj újat a Google AI Studio-ban, és cseréld a Beállítások fülön.\n\n"
+                f"**Google API üzenet:**\n```\n{err_msg}\n```"
             )
         if sc == 400:
             return (
@@ -4586,10 +4759,19 @@ with tabs[10]:
 """,
         unsafe_allow_html=True,
     )
+    _active_model_now = _get_active_model()
+    if _active_model_now != LOCKED_MODEL:
+        st.warning(
+            f"⚠️ Az elsődleges modell ({LOCKED_MODEL_DISPLAY}) jelenleg **404 NotFound**-ot ad — "
+            f"a fallback chain átváltott erre: **{MODEL_DISPLAY.get(_active_model_now, _active_model_now)}**. "
+            "A munkamenet hátralévő részében ezt használja az alkalmazás. "
+            "A `Cache törlése` után a következő próbálkozáskor visszaáll az elsődleges modellre.",
+            icon="↩️",
+        )
     st.caption(
-        f"Ez a verzió a `{LOCKED_MODEL}` modellre van rögzítve — gyors, "
-        "stabil, és a Google Search grounding (Aktualizálás modul) is "
-        "elérhető hozzá."
+        f"Az elsődleges modell `{LOCKED_MODEL}` — gyors, stabil, és a "
+        "Google Search grounding (Aktualizálás modul) is elérhető hozzá. "
+        f"404 esetén automatikus fallback: `{' → '.join(MODEL_FALLBACK_CHAIN)}`."
     )
 
     st.session_state["temperature"] = st.slider(
@@ -4645,10 +4827,22 @@ with tabs[10]:
         cache_size = len(st.session_state.get("_call_cache", {}))
         st.metric("Cache-elt válaszok", cache_size)
 
-    if st.button("Cache törlése", key="clear_cache_btn"):
-        st.session_state["_call_cache"] = {}
-        st.success("Cache kiürítve.")
-        st.rerun()
+    cc1, cc2 = st.columns(2)
+    with cc1:
+        if st.button("Cache törlése", key="clear_cache_btn", use_container_width=True):
+            st.session_state["_call_cache"] = {}
+            st.success("Cache kiürítve.")
+            st.rerun()
+    with cc2:
+        if st.button(
+            "Modell visszaállítása",
+            key="reset_active_model_btn",
+            use_container_width=True,
+            help="Visszaállítja az aktív modellt az elsődlegesre (gemini-2.5-flash). Hasznos, ha 404 miatt fallback történt.",
+        ):
+            st.session_state["active_model"] = LOCKED_MODEL
+            st.success(f"Aktív modell visszaállítva: {LOCKED_MODEL_DISPLAY}.")
+            st.rerun()
 
     # ─── Debug log ───────────────────────────────────────────────────
     debug_log = st.session_state.get("_debug_log", [])
@@ -4661,10 +4855,15 @@ with tabs[10]:
             "Egyetlen gombnyomás max. **1 logikai hívást** indít; ha "
             "`attempt > 1` látható, az automatikus 429-retry történt."
         )
+        _active_now = _get_active_model()
+        _active_display = MODEL_DISPLAY.get(_active_now, _active_now)
+        _fallback_remaining = MODEL_FALLBACK_CHAIN[MODEL_FALLBACK_CHAIN.index(_active_now) + 1:] if _active_now in MODEL_FALLBACK_CHAIN else []
         st.caption(
-            f"Aktuális session ID: `{_get_session_id()}` · "
+            f"Session: `{_get_session_id()}` · "
             f"Kulcs: `{_mask_api_key(st.session_state.get('api_key', ''))}` "
-            f"({'built-in' if st.session_state.get('using_builtin_key') else 'saját' if st.session_state.get('api_key') else '—'})"
+            f"({'built-in' if st.session_state.get('using_builtin_key') else 'saját' if st.session_state.get('api_key') else '—'}) · "
+            f"Aktív modell: **{_active_display}**"
+            + (f" · Fallback még elérhető: {', '.join(_fallback_remaining)}" if _fallback_remaining else " · (utolsó modell a láncban)")
         )
         if not debug_log:
             st.info("Még nincs API-hívás ebben a munkamenetben.")
@@ -4683,6 +4882,7 @@ with tabs[10]:
                     "Prompt (kar.)": e.get("prompt_chars", ""),
                     "Válasz (kar.)": e.get("response_chars", ""),
                     "Latency (ms)": e.get("latency_ms", ""),
+                    "Hibaüzenet": e.get("error_message", ""),
                 })
             st.dataframe(rows, hide_index=True, use_container_width=True)
 
