@@ -28,13 +28,13 @@ st.set_page_config(
 # =========================================================
 #
 # Az alapértelmezett kulcsot SOHA nem írjuk a forráskódba.
-# Források (priorítás):
-#   1) `st.secrets["GEMINI_API_KEY"]` — Streamlit Cloud + helyi, ha a futtatás
-#      munkakönyvtára olyan, ahol van `.streamlit/secrets.toml`
-#   2) Ugyanez a fájl közvetlenül az `app.py` könyvtárából (`Path(__file__)`),
-#      ha pl. `streamlit run` más cwd-ből indul: így a beépített kulcs nem marad
-#      üres, miközben a kézi beírás továbbra is működött volna a sessionbe.
-#   3) `GEMINI_API_KEY` környezeti változó (Docker / Render stb.)
+# Források (priorítás — fontos a sorrend):
+#   1) `GEMINI_API_KEY` környezeti változó (Docker / CI / explicit felülírás)
+#   2) `.streamlit/secrets.toml` az `app.py` könyvtárában (`Path(__file__)`):
+#      mindig ehhez a projekthez kötött kulcs; nem írja felül egy másik
+#      mappából indított Streamlit által betöltött `st.secrets`.
+#   3) `st.secrets["GEMINI_API_KEY"]` — Streamlit Cloud + helyi, ha a cwd
+#      alatti `.streamlit/secrets.toml` az egyetlen elérhető forrás.
 #
 # Ha egyik sincs, a felhasználó a Beállítások fülön adhat meg saját kulcsot.
 
@@ -59,16 +59,20 @@ def _read_gemini_key_from_project_secrets_file() -> str:
 
 
 def _load_builtin_api_key() -> str:
+    """Beépített kulcs: env > projekt secrets.toml > Streamlit cwd secrets."""
+    env_k = (os.environ.get("GEMINI_API_KEY", "") or "").strip()
+    if env_k:
+        return env_k
+    v2 = _read_gemini_key_from_project_secrets_file()
+    if v2:
+        return v2
     try:
         v = st.secrets.get("GEMINI_API_KEY", "")
         if v:
             return str(v).strip()
     except Exception:
         pass
-    v2 = _read_gemini_key_from_project_secrets_file()
-    if v2:
-        return v2
-    return (os.environ.get("GEMINI_API_KEY", "") or "").strip()
+    return ""
 
 
 BUILTIN_API_KEY = _load_builtin_api_key()
@@ -3387,9 +3391,8 @@ def _resolve_api_key() -> str:
     Felülírási sorrend (a feladat szerinti fallback):
       1. Ha a felhasználó **saját kulcsot** adott meg (`using_builtin_key` hamis
          és van nem üres `st.session_state["api_key"]`) → **azt** használjuk.
-      2. Egyébként → **`st.secrets["GEMINI_API_KEY"]`** (majd env `GEMINI_API_KEY`),
-         minden híváskor frissen (`_load_builtin_api_key()`), hogy ne maradjon
-         elavult, csak import-időben beolvasott kulcs.
+      2. Egyébként → `_load_builtin_api_key()` (env → projekt `secrets.toml` →
+         `st.secrets`), minden híváskor frissen, hogy ne maradjon elavult érték.
 
     A `x-goog-api-key` fejléc **mindig** ennek a függvénynek a visszatérési értékét
     kapja — nincs párhuzamos, eltérő kulcsforrás a kódban.
@@ -3409,8 +3412,15 @@ def _api_key_source_label() -> str:
         st.session_state.get("api_key") or ""
     ).strip():
         return "user-override"
-    if _load_builtin_api_key().strip():
-        return "st.secrets-default"
+    if (os.environ.get("GEMINI_API_KEY", "") or "").strip():
+        return "env-GEMINI_API_KEY"
+    if _read_gemini_key_from_project_secrets_file():
+        return "project-.streamlit/secrets.toml"
+    try:
+        if st.secrets.get("GEMINI_API_KEY", ""):
+            return "st.secrets-cwd"
+    except Exception:
+        pass
     return "none"
 
 
