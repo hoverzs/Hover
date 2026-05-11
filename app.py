@@ -64,25 +64,8 @@ BUILTIN_API_KEY = _load_builtin_api_key()
 
 LOCKED_MODEL = "gemini-2.5-flash"
 LOCKED_MODEL_DISPLAY = "Gemini 2.5 Flash"
-
-# ─────────────────────────────────────────────────────────────────────
-# MODELL FALLBACK LÁNC
-#   Ha az elsődleges modell 404 NotFound-ot ad (pl. átmeneti Google
-#   API-hiba, regionális deprecation, kulcs-engedélyezetlenség), az
-#   `_advance_active_model()` automatikusan átvált a következőre,
-#   ÉS a választás KITART a teljes munkamenet alatt — nem hívunk újra
-#   meg újra olyan modellt, ami már egyszer 404-et adott.
-# ─────────────────────────────────────────────────────────────────────
-MODEL_FALLBACK_CHAIN = [
-    "gemini-2.5-flash",
-    "gemini-2.0-flash",
-    "gemini-1.5-flash",
-]
-MODEL_DISPLAY = {
-    "gemini-2.5-flash": "Gemini 2.5 Flash",
-    "gemini-2.0-flash": "Gemini 2.0 Flash",
-    "gemini-1.5-flash": "Gemini 1.5 Flash",
-}
+# Csak ez az egy modell engedélyezett — nincs Pro, Flash Lite vagy régebbi modell.
+# Minden `generateContent` hívás a `LOCKED_MODEL`-re megy.
 
 # =========================================================
 # SEGÉDFÜGGVÉNYEK
@@ -3097,7 +3080,7 @@ def generate_section(key: str) -> bool:
     """
     _sync_inputs_to_last()
 
-    if not st.session_state.get("api_key"):
+    if not _resolve_api_key().strip():
         st.warning("Először add meg az API kulcsot a Beállítások fülön.")
         return False
     if not st.session_state.get("last_igehely"):
@@ -3316,7 +3299,6 @@ defaults = {
     "api_key": BUILTIN_API_KEY,
     "using_builtin_key": bool(BUILTIN_API_KEY),
     "model_name": LOCKED_MODEL,
-    "active_model": LOCKED_MODEL,
     "temperature": 0.3,
     "max_tokens": 700,
 
@@ -3358,50 +3340,55 @@ for key, value in defaults.items():
     if key not in st.session_state:
         st.session_state[key] = value
 
+# Beépített módban a session kulcs másolatát szinkronban tartjuk a
+# Streamlit Secrets / env aktuális értékével (Cloud Secrets frissítés,
+# lokális secrets.toml szerkesztés újraindítás nélkül is konzisztens).
+if st.session_state.get("using_builtin_key", False):
+    _sk_sync = _load_builtin_api_key().strip()
+    if _sk_sync:
+        st.session_state["api_key"] = _sk_sync
+
+
+def _resolve_api_key() -> str:
+    """Minden Gemini REST-kéréshez használandó API-kulcs (egyetlen belépési pont).
+
+    Felülírási sorrend (a feladat szerinti fallback):
+      1. Ha a felhasználó **saját kulcsot** adott meg (`using_builtin_key` hamis
+         és van nem üres `st.session_state["api_key"]`) → **azt** használjuk.
+      2. Egyébként → **`st.secrets["GEMINI_API_KEY"]`** (majd env `GEMINI_API_KEY`),
+         minden híváskor frissen (`_load_builtin_api_key()`), hogy ne maradjon
+         elavult, csak import-időben beolvasott kulcs.
+
+    A `x-goog-api-key` fejléc **mindig** ennek a függvénynek a visszatérési értékét
+    kapja — nincs párhuzamos, eltérő kulcsforrás a kódban.
+    """
+    sess = (st.session_state.get("api_key") or "").strip()
+    using_builtin = bool(st.session_state.get("using_builtin_key", True))
+    secret_default = _load_builtin_api_key().strip()
+
+    if not using_builtin and sess:
+        return sess
+    return secret_default or sess
+
+
+def _api_key_source_label() -> str:
+    """Debug / napló: honnan jön az épp aktív kulcs."""
+    if not bool(st.session_state.get("using_builtin_key", True)) and (
+        st.session_state.get("api_key") or ""
+    ).strip():
+        return "user-override"
+    if _load_builtin_api_key().strip():
+        return "st.secrets-default"
+    return "none"
+
 
 # =========================================================
 # GEMINI API HÍVÁS
 # =========================================================
 
 def _google_search_tool_for_model(model_name: str = LOCKED_MODEL):
-    """Google Search grounding tool — modell-családtól függő név.
-
-    A 2.x család a `google_search` tool-t használja, az 1.5 család még
-    a régi `google_search_retrieval` formátumot. A fallback chain
-    automatikusan a megfelelőt választja.
-    """
-    if model_name and model_name.startswith("gemini-1.5"):
-        return {"google_search_retrieval": {}}
+    """Google Search grounding — csak `gemini-2.5-flash` támogatott (`google_search`)."""
     return {"google_search": {}}
-
-
-# ─────────────────────────────────────────────────────────────────────
-# AKTÍV MODELL — fallback chain kezelés (404 NotFound védelem)
-# ─────────────────────────────────────────────────────────────────────
-
-def _get_active_model() -> str:
-    """A munkamenet aktuálisan használandó Gemini modellje.
-
-    Default = `LOCKED_MODEL`; ha korábban 404 miatt fallback-eltünk,
-    az `active_model` session_state-ben tárolt értéket használjuk.
-    """
-    m = st.session_state.get("active_model")
-    if m and m in MODEL_FALLBACK_CHAIN:
-        return m
-    st.session_state["active_model"] = LOCKED_MODEL
-    return LOCKED_MODEL
-
-
-def _advance_active_model(current: str) -> str | None:
-    """A fallback chain következő modelljére vált. None, ha kifutottunk."""
-    try:
-        idx = MODEL_FALLBACK_CHAIN.index(current)
-    except ValueError:
-        idx = -1
-    nxt = MODEL_FALLBACK_CHAIN[idx + 1] if idx + 1 < len(MODEL_FALLBACK_CHAIN) else None
-    if nxt:
-        st.session_state["active_model"] = nxt
-    return nxt
 
 
 def _extract_retry_after_seconds(response, attempt: int, default_base_s: int) -> int:
@@ -3771,13 +3758,9 @@ def _debug_log_append(entry: dict):
             entry["session_id"] = "unknown"
 
     if "key_source" not in entry or "key_masked" not in entry:
-        api_key = (st.session_state.get("api_key") or "").strip()
-        using_builtin = bool(st.session_state.get("using_builtin_key", False))
-        entry.setdefault(
-            "key_source",
-            ("built-in" if using_builtin else ("saját" if api_key else "—")),
-        )
-        entry.setdefault("key_masked", _mask_api_key(api_key))
+        resolved = _resolve_api_key().strip()
+        entry.setdefault("key_source", _api_key_source_label())
+        entry.setdefault("key_masked", _mask_api_key(resolved))
 
     log = st.session_state.setdefault("_debug_log", [])
     log.append(entry)
@@ -3786,13 +3769,14 @@ def _debug_log_append(entry: dict):
 
     try:
         print(
-            "[GEMINI {ts}] sid={sid} key_src={ksrc} key={kmsk} "
+            "[GEMINI {ts}] sid={sid} key_src={ksrc} key={kmsk} auth_ok={auth} "
             "tab={tab} attempt={att} status={st} model={mdl} "
             "prompt_chars={pc} resp_chars={rc} latency_ms={lat}".format(
                 ts=entry.get("ts", ""),
                 sid=entry.get("session_id", ""),
                 ksrc=entry.get("key_source", ""),
                 kmsk=entry.get("key_masked", ""),
+                auth=entry.get("auth_ok", "—"),
                 tab=entry.get("tab", ""),
                 att=entry.get("attempt", ""),
                 st=entry.get("status", ""),
@@ -3819,13 +3803,14 @@ def _cooldown_remaining() -> float:
 
 
 def _build_payload(prompt: str, enable_google_search: bool, model: str) -> dict:
-    """Összeállítja a Gemini REST kérés JSON body-ját.
+    """Összeállítja a Gemini REST kérés JSON body-ját (`gemini-2.5-flash`).
 
     A brevity / tartalmi előírás TIER-FÜGGŐ:
       - beépített közös kulcsnál: tömör (600 szó / ~700 token)
       - saját kulcsnál: kifejtő (akár 2500 szó / 8192 token)
-    A `maxOutputTokens` a tier-ceiling-hez vágott felhasználói beállítás.
-    A Google Search grounding tool a modell-családhoz illeszkedik.
+    A `temperature` és a `maxOutputTokens` a felhasználói Beállításokból jön;
+    a max. kimenet a tier plafonjáig vágott (Flash 2.5 kompatibilis tartomány).
+    Google Search grounding: `google_search` tool ehhez a modellhez.
     """
     final_prompt = (
         f"{BASE_SYSTEM_PROMPT}\n\n"
@@ -3869,13 +3854,12 @@ def generate_text(
     Minden HTTP-küldés ELŐTT és UTÁN debug-log bejegyzés készül
     (session_state["_debug_log"] + konzol-print).
     """
-    api_key = st.session_state.get("api_key", "").strip()
+    api_key = _resolve_api_key().strip()
     if not api_key:
         return "⚠️ **Hiányzó API kulcs.** Add meg a Beállítások fülön a Gemini API kulcsot, mielőtt elindítanád az elemzést."
 
-    # ─── MODELL VÁLASZTÁS (fallback chain support) ──────────────────
-    active_model = _get_active_model()
-    st.session_state["model_name"] = active_model  # UI sync
+    # ─── MODELL — kizárólag gemini-2.5-flash (nincs fallback) ───────────
+    st.session_state["model_name"] = LOCKED_MODEL
 
     cache_enabled = (
         use_cache
@@ -3884,7 +3868,7 @@ def generate_text(
     )
     prompt_hash = _hash_prompt(
         prompt,
-        extra=f"{active_model}|{st.session_state.get('max_tokens', GEMINI_DEFAULT_MAX_TOKENS)}",
+        extra=f"{LOCKED_MODEL}|{st.session_state.get('max_tokens', GEMINI_DEFAULT_MAX_TOKENS)}",
     )
 
     # ─── 1. CACHE HIT ────────────────────────────────────────────────
@@ -3896,7 +3880,7 @@ def generate_text(
             "tab": tab_label,
             "attempt": 0,
             "status": "CACHE_HIT",
-            "model": active_model,
+            "model": LOCKED_MODEL,
             "prompt_chars": len(prompt),
             "response_chars": len(cached_text),
             "latency_ms": 0,
@@ -3911,7 +3895,7 @@ def generate_text(
             "tab": tab_label,
             "attempt": 0,
             "status": "COOLDOWN_BLOCK",
-            "model": active_model,
+            "model": LOCKED_MODEL,
             "prompt_chars": len(prompt),
             "response_chars": 0,
             "latency_ms": 0,
@@ -3921,26 +3905,26 @@ def generate_text(
             f"(Még kb. {int(remaining) + 1} másodperc.)"
         )
 
-    # ─── 3. HTTP HÍVÁS (retry + 404-fallback chain) ──────────────────
+    # ─── 3. HTTP HÍVÁS (retry: 429 / 5xx — ugyanazon a modellen) ───────
     headers = {"Content-Type": "application/json", "x-goog-api-key": api_key}
     prompt_chars = len(prompt)
     last_error_msg = "⚠️ **Ismeretlen hiba történt a kérés közben.**"
-    fallback_notice = ""
 
     for attempt in range(GEMINI_MAX_RETRIES):
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/{active_model}:generateContent"
-        data = _build_payload(prompt, enable_google_search, active_model)
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{LOCKED_MODEL}:generateContent"
+        data = _build_payload(prompt, enable_google_search, LOCKED_MODEL)
 
-        # log: BEFORE
+        # log: BEFORE (kulcsforrás + auth még függőben)
         _debug_log_append({
             "ts": _now_str(),
             "tab": tab_label,
             "attempt": attempt + 1,
             "status": "REQUEST",
-            "model": active_model,
+            "model": LOCKED_MODEL,
             "prompt_chars": prompt_chars,
             "response_chars": 0,
             "latency_ms": 0,
+            "auth_ok": "pending",
         })
         start_ts = _time.time()
 
@@ -3952,12 +3936,12 @@ def generate_text(
         except requests.exceptions.Timeout:
             latency_ms = int((_time.time() - start_ts) * 1000)
             try:
-                print(f"[GEMINI ERROR] model={active_model} TIMEOUT after {latency_ms}ms", flush=True)
+                print(f"[GEMINI ERROR] model={LOCKED_MODEL} TIMEOUT after {latency_ms}ms", flush=True)
             except Exception:
                 pass
             _debug_log_append({
                 "ts": _now_str(), "tab": tab_label, "attempt": attempt + 1,
-                "status": "TIMEOUT", "model": active_model,
+                "status": "TIMEOUT", "model": LOCKED_MODEL,
                 "prompt_chars": prompt_chars, "response_chars": 0, "latency_ms": latency_ms,
                 "error_message": "Network timeout",
             })
@@ -3972,12 +3956,12 @@ def generate_text(
             return last_error_msg
         except requests.exceptions.ConnectionError as ce:
             try:
-                print(f"[GEMINI ERROR] model={active_model} CONN_ERROR: {ce}", flush=True)
+                print(f"[GEMINI ERROR] model={LOCKED_MODEL} CONN_ERROR: {ce}", flush=True)
             except Exception:
                 pass
             _debug_log_append({
                 "ts": _now_str(), "tab": tab_label, "attempt": attempt + 1,
-                "status": "CONN_ERROR", "model": active_model,
+                "status": "CONN_ERROR", "model": LOCKED_MODEL,
                 "prompt_chars": prompt_chars, "response_chars": 0,
                 "latency_ms": int((_time.time() - start_ts) * 1000),
                 "error_message": str(ce)[:300],
@@ -3989,12 +3973,12 @@ def generate_text(
             )
         except Exception as e:
             try:
-                print(f"[GEMINI ERROR] model={active_model} EXCEPTION: {e}", flush=True)
+                print(f"[GEMINI ERROR] model={LOCKED_MODEL} EXCEPTION: {e}", flush=True)
             except Exception:
                 pass
             _debug_log_append({
                 "ts": _now_str(), "tab": tab_label, "attempt": attempt + 1,
-                "status": "EXCEPTION", "model": active_model,
+                "status": "EXCEPTION", "model": LOCKED_MODEL,
                 "prompt_chars": prompt_chars, "response_chars": 0,
                 "latency_ms": int((_time.time() - start_ts) * 1000),
                 "error_message": str(e)[:300],
@@ -4048,19 +4032,20 @@ def generate_text(
 
                 _debug_log_append({
                     "ts": _now_str(), "tab": tab_label, "attempt": attempt + 1,
-                    "status": status_label, "model": active_model,
+                    "status": status_label, "model": LOCKED_MODEL,
                     "prompt_chars": prompt_chars, "response_chars": len(text),
                     "latency_ms": latency_ms,
                     "error_message": ("finishReason=MAX_TOKENS" if truncated else ""),
+                    "auth_ok": True,
                 })
                 if cache_enabled and not truncated:
                     cache[prompt_hash] = (text, _time.time())
-                return fallback_notice + text
+                return text
             except (KeyError, IndexError, ValueError):
-                err_msg = _log_http_error(active_model, sc, response)
+                err_msg = _log_http_error(LOCKED_MODEL, sc, response)
                 _debug_log_append({
                     "ts": _now_str(), "tab": tab_label, "attempt": attempt + 1,
-                    "status": "EMPTY_OR_BLOCKED", "model": active_model,
+                    "status": "EMPTY_OR_BLOCKED", "model": LOCKED_MODEL,
                     "prompt_chars": prompt_chars, "response_chars": 0,
                     "latency_ms": latency_ms,
                     "error_message": err_msg[:300],
@@ -4081,43 +4066,28 @@ def generate_text(
                     "Próbáld újra, vagy módosíts kissé a kérdésen."
                 )
 
-        # ─── 404 NotFound → fallback chain (modellváltás) ────────────
+        # ─── 404 NotFound — nincs modellváltás, csak egyértelmű üzenet ───
         if sc == 404:
-            err_msg = _log_http_error(active_model, sc, response)
-            nxt = _advance_active_model(active_model)
+            err_msg = _log_http_error(LOCKED_MODEL, sc, response)
             _debug_log_append({
                 "ts": _now_str(), "tab": tab_label, "attempt": attempt + 1,
-                "status": "404_NOT_FOUND", "model": active_model,
+                "status": "404_NOT_FOUND", "model": LOCKED_MODEL,
                 "prompt_chars": prompt_chars, "response_chars": 0,
                 "latency_ms": latency_ms,
-                "error_message": (err_msg + (f" → fallback: {nxt}" if nxt else " → no fallback left"))[:300],
+                "error_message": err_msg[:300],
             })
-            if nxt:
-                fallback_notice = (
-                    f"> ℹ️ A `{active_model}` modell jelenleg nem érhető el — "
-                    f"automatikusan átváltottam erre: **{MODEL_DISPLAY.get(nxt, nxt)}**.\n\n"
-                )
-                active_model = nxt
-                st.session_state["model_name"] = active_model
-                # fallback nem számít attempt-nek; ne csökkentsünk retry-t,
-                # de legalább 1 mp pihenő, hogy ne forrjon a kapcsolat
-                _time.sleep(1)
-                continue
             return (
-                f"⚠️ **A Gemini modellek (404 NotFound) jelenleg nem érhetők el.**\n\n"
-                f"Próbáltam: {', '.join(MODEL_FALLBACK_CHAIN)}.\n\n"
-                f"**Google API üzenet:**\n```\n{err_msg}\n```\n\n"
-                "Ez többnyire átmeneti Google-szerver vagy kulcs-engedélyezési hiba; "
-                "próbáld újra pár perc múlva, vagy ellenőrizd a kulcsot."
+                "⚠️ **A modellnév vagy API elérés hibás.**\n\n"
+                f"**Részletek (Google):**\n```\n{err_msg}\n```"
             )
 
         # ─── 429 rate-limit → exponenciális backoff (Retry-After-aware) ─
         if sc == 429:
-            err_msg = _log_http_error(active_model, sc, response)
+            err_msg = _log_http_error(LOCKED_MODEL, sc, response)
             wait_s = _extract_retry_after_seconds(response, attempt, GEMINI_RATE_LIMIT_BASE_S)
             _debug_log_append({
                 "ts": _now_str(), "tab": tab_label, "attempt": attempt + 1,
-                "status": "429_RATE_LIMIT", "model": active_model,
+                "status": "429_RATE_LIMIT", "model": LOCKED_MODEL,
                 "prompt_chars": prompt_chars, "response_chars": 0,
                 "latency_ms": latency_ms,
                 "error_message": f"{err_msg} (wait={wait_s}s)"[:300],
@@ -4126,19 +4096,16 @@ def generate_text(
                 _time.sleep(wait_s)
                 continue
             return (
-                "⚠️ **Túl sok kérés rövid idő alatt (429).** "
-                f"A Google API ajánlott várakozása: ~{wait_s} mp. "
-                "Több próbálkozás után sem sikerült — várj 1–2 percet, majd próbáld újra. "
-                "Ha gyakori, érdemes saját API kulcsot megadni a Beállítások fülön.\n\n"
-                f"**Google API üzenet:**\n```\n{err_msg}\n```"
+                "⚠️ **Túl sok kérés vagy quota limit. Próbáld újra később.**\n\n"
+                f"**Részletek (Google):**\n```\n{err_msg}\n```"
             )
 
         # ─── 5xx szerver hiba → backoff retry ────────────────────────
         if sc >= 500:
-            err_msg = _log_http_error(active_model, sc, response)
+            err_msg = _log_http_error(LOCKED_MODEL, sc, response)
             _debug_log_append({
                 "ts": _now_str(), "tab": tab_label, "attempt": attempt + 1,
-                "status": f"{sc}_SERVER", "model": active_model,
+                "status": f"{sc}_SERVER", "model": LOCKED_MODEL,
                 "prompt_chars": prompt_chars, "response_chars": 0,
                 "latency_ms": latency_ms,
                 "error_message": err_msg[:300],
@@ -4153,14 +4120,17 @@ def generate_text(
             )
 
         # ─── Egyéb hibakódok (401/403/400/…) → azonnali ──────────────
-        err_msg = _log_http_error(active_model, sc, response)
-        _debug_log_append({
+        err_msg = _log_http_error(LOCKED_MODEL, sc, response)
+        _dbg_other = {
             "ts": _now_str(), "tab": tab_label, "attempt": attempt + 1,
-            "status": f"{sc}_OTHER", "model": active_model,
+            "status": f"{sc}_OTHER", "model": LOCKED_MODEL,
             "prompt_chars": prompt_chars, "response_chars": 0,
             "latency_ms": latency_ms,
             "error_message": err_msg[:300],
-        })
+        }
+        if sc in (401, 403):
+            _dbg_other["auth_ok"] = False
+        _debug_log_append(_dbg_other)
         snippet = (response.text or "")[:400]
 
         if sc in (401, 403):
@@ -4734,7 +4704,7 @@ with tabs[1]:
         key="original_run",
         disabled=_orig_running,
     ):
-        if not st.session_state.get("api_key"):
+        if not _resolve_api_key().strip():
             st.warning("Először add meg az API kulcsot a Beállítások fülön.")
         elif not igehely_orig:
             st.warning("Add meg az igeszakaszt.")
@@ -4841,7 +4811,7 @@ with tabs[9]:
         key="songs_run",
         disabled=_songs_running,
     ):
-        if not st.session_state.get("api_key"):
+        if not _resolve_api_key().strip():
             st.warning("Először add meg az API kulcsot a Beállítások fülön.")
         elif not igehely_song.strip():
             st.warning("Add meg az igeszakaszt.")
@@ -4911,7 +4881,7 @@ with tabs[10]:
                 "a beépített közös kulcsra."
             )
             if st.button("Vissza a beépített közös kulcsra", key="restore_builtin_key"):
-                st.session_state["api_key"] = BUILTIN_API_KEY
+                st.session_state["api_key"] = _load_builtin_api_key().strip()
                 st.session_state["using_builtin_key"] = True
                 # max_tokens auto-reset a beépített tier defaultra
                 st.session_state["max_tokens"] = BUILTIN_KEY_DEFAULT_TOKENS
@@ -4936,7 +4906,7 @@ with tabs[10]:
     if api_input and api_input.strip() and api_input.strip() != st.session_state.get("api_key", ""):
         new_key = api_input.strip()
         st.session_state["api_key"] = new_key
-        st.session_state["using_builtin_key"] = (new_key == BUILTIN_API_KEY)
+        st.session_state["using_builtin_key"] = (new_key == _load_builtin_api_key().strip())
         # max_tokens auto-reset a megfelelő tier defaultra
         if st.session_state["using_builtin_key"]:
             st.session_state["max_tokens"] = BUILTIN_KEY_DEFAULT_TOKENS
@@ -4965,19 +4935,10 @@ with tabs[10]:
 """,
         unsafe_allow_html=True,
     )
-    _active_model_now = _get_active_model()
-    if _active_model_now != LOCKED_MODEL:
-        st.warning(
-            f"⚠️ Az elsődleges modell ({LOCKED_MODEL_DISPLAY}) jelenleg **404 NotFound**-ot ad — "
-            f"a fallback chain átváltott erre: **{MODEL_DISPLAY.get(_active_model_now, _active_model_now)}**. "
-            "A munkamenet hátralévő részében ezt használja az alkalmazás. "
-            "A `Cache törlése` után a következő próbálkozáskor visszaáll az elsődleges modellre.",
-            icon="↩️",
-        )
     st.caption(
-        f"Az elsődleges modell `{LOCKED_MODEL}` — gyors, stabil, és a "
-        "Google Search grounding (Aktualizálás modul) is elérhető hozzá. "
-        f"404 esetén automatikus fallback: `{' → '.join(MODEL_FALLBACK_CHAIN)}`."
+        f"Minden generálás a **{LOCKED_MODEL_DISPLAY}** (`{LOCKED_MODEL}`) modellt hívja — "
+        "nincs másik modell vagy automatikus váltás. A *Kreativitás* és a *Válaszhossz* "
+        "ehhez a modellhez igazított tier-limiten belül érvényesül."
     )
 
     st.session_state["temperature"] = st.slider(
@@ -5062,22 +5023,10 @@ with tabs[10]:
         cache_size = len(st.session_state.get("_call_cache", {}))
         st.metric("Cache-elt válaszok", cache_size)
 
-    cc1, cc2 = st.columns(2)
-    with cc1:
-        if st.button("Cache törlése", key="clear_cache_btn", use_container_width=True):
-            st.session_state["_call_cache"] = {}
-            st.success("Cache kiürítve.")
-            st.rerun()
-    with cc2:
-        if st.button(
-            "Modell visszaállítása",
-            key="reset_active_model_btn",
-            use_container_width=True,
-            help="Visszaállítja az aktív modellt az elsődlegesre (gemini-2.5-flash). Hasznos, ha 404 miatt fallback történt.",
-        ):
-            st.session_state["active_model"] = LOCKED_MODEL
-            st.success(f"Aktív modell visszaállítva: {LOCKED_MODEL_DISPLAY}.")
-            st.rerun()
+    if st.button("Cache törlése", key="clear_cache_btn", use_container_width=True):
+        st.session_state["_call_cache"] = {}
+        st.success("Cache kiürítve.")
+        st.rerun()
 
     # ─── Debug log ───────────────────────────────────────────────────
     debug_log = st.session_state.get("_debug_log", [])
@@ -5090,15 +5039,11 @@ with tabs[10]:
             "Egyetlen gombnyomás max. **1 logikai hívást** indít; ha "
             "`attempt > 1` látható, az automatikus 429-retry történt."
         )
-        _active_now = _get_active_model()
-        _active_display = MODEL_DISPLAY.get(_active_now, _active_now)
-        _fallback_remaining = MODEL_FALLBACK_CHAIN[MODEL_FALLBACK_CHAIN.index(_active_now) + 1:] if _active_now in MODEL_FALLBACK_CHAIN else []
         st.caption(
             f"Session: `{_get_session_id()}` · "
-            f"Kulcs: `{_mask_api_key(st.session_state.get('api_key', ''))}` "
-            f"({'built-in' if st.session_state.get('using_builtin_key') else 'saját' if st.session_state.get('api_key') else '—'}) · "
-            f"Aktív modell: **{_active_display}**"
-            + (f" · Fallback még elérhető: {', '.join(_fallback_remaining)}" if _fallback_remaining else " · (utolsó modell a láncban)")
+            f"Kulcs: `{_mask_api_key(_resolve_api_key())}` "
+            f"({_api_key_source_label()}) · "
+            f"Modell: **{LOCKED_MODEL_DISPLAY}** (`{LOCKED_MODEL}`)"
         )
         if not debug_log:
             st.info("Még nincs API-hívás ebben a munkamenetben.")
@@ -5117,6 +5062,7 @@ with tabs[10]:
                     "Prompt (kar.)": e.get("prompt_chars", ""),
                     "Válasz (kar.)": e.get("response_chars", ""),
                     "Latency (ms)": e.get("latency_ms", ""),
+                    "Auth": e.get("auth_ok", ""),
                     "Hibaüzenet": e.get("error_message", ""),
                 })
             st.dataframe(rows, hide_index=True, use_container_width=True)
