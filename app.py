@@ -4156,14 +4156,29 @@ def _inject_tawkto_widget():
         """
 <script type="text/javascript">
 (function() {
-    // Próbáljuk a TOP-LEVEL window-ba injektálni (hogy a chat-buborék
-    // az alkalmazás jobb alsó sarkában jelenjen meg, ne csak az
-    // 0-magasságú iframe-en belül).
-    try {
-        var doc = window.parent.document;
+    // Tawk.to widget elhelyezés — feljebb tolva, hogy a Streamlit
+    // Cloud "Manage app" sávja ne takarja el a chat-buborékot.
+    // A `yOffset` az alulról mért távolság pixelben.
+    var TAWK_CUSTOM_STYLE = {
+        visibility: {
+            desktop: {
+                position: 'br',  // bottom-right
+                xOffset: 20,
+                yOffset: 80      // ~Manage app sáv + biztonsági ráhagyás
+            },
+            mobile: {
+                position: 'br',
+                xOffset: 10,
+                yOffset: 70
+            }
+        }
+    };
+
+    function bootstrapTawk(win, doc) {
         if (doc.getElementById('tawkto-script-inject')) return;
-        window.parent.Tawk_API = window.parent.Tawk_API || {};
-        window.parent.Tawk_LoadStart = new Date();
+        win.Tawk_API = win.Tawk_API || {};
+        win.Tawk_API.customStyle = TAWK_CUSTOM_STYLE;
+        win.Tawk_LoadStart = new Date();
         var s1 = doc.createElement("script");
         s1.id = 'tawkto-script-inject';
         s1.async = true;
@@ -4176,26 +4191,18 @@ def _inject_tawkto_widget():
         } else {
             doc.body.appendChild(s1);
         }
+    }
+
+    // Próbáljuk a TOP-LEVEL window-ba injektálni (hogy a chat-buborék
+    // az alkalmazás jobb alsó sarkában jelenjen meg, ne csak az
+    // 0-magasságú iframe-en belül).
+    try {
+        bootstrapTawk(window.parent, window.parent.document);
         return;
     } catch (e) {
-        // Cross-origin sandbox: az iframe-en belül indítjuk
-        // (fallback, a widget így is működik, csak az iframe-be esik)
+        // Cross-origin sandbox: az iframe-en belül indítjuk (fallback)
     }
-    if (document.getElementById('tawkto-script-inject')) return;
-    var Tawk_API = window.Tawk_API || (window.Tawk_API = {});
-    var Tawk_LoadStart = new Date();
-    var s1 = document.createElement("script");
-    s1.id = 'tawkto-script-inject';
-    s1.async = true;
-    s1.src = 'https://embed.tawk.to/6a01a241eb073e1c334f0d94/1job63k35';
-    s1.charset = 'UTF-8';
-    s1.setAttribute('crossorigin', '*');
-    var s0 = document.getElementsByTagName("script")[0];
-    if (s0 && s0.parentNode) {
-        s0.parentNode.insertBefore(s1, s0);
-    } else {
-        document.body.appendChild(s1);
-    }
+    bootstrapTawk(window, document);
 })();
 </script>
         """,
