@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.components.v1 as st_components
 import requests
 import urllib3
 import base64
@@ -303,6 +304,17 @@ div[data-testid="stHeader"],
     display: none !important;
     height: 0 !important;
     visibility: hidden !important;
+}}
+
+/* Tawk.to widget injector iframe-je 0 magasságú, ne foglaljon margin/padding-helyet */
+iframe[title="streamlit_components.v1.html.html"],
+iframe[height="0"] {{
+    height: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    display: block;
 }}
 
 [data-testid="stAppViewContainer"] > .main,
@@ -4120,6 +4132,78 @@ Ne írj teljesen új prédikációt, csak ehhez a részhez kapcsolódj.
 
         with st.chat_message("assistant"):
             st.markdown(answer)
+
+
+# =========================================================
+# TAWK.TO CHAT WIDGET
+# =========================================================
+# A widget a böngésző fő ablakának jobb alsó sarkában jelenik meg.
+# A Streamlit-`components.v1.html()` egy iframe-et hoz létre — a
+# tawk.to script-et a `window.parent.document`-be injektáljuk, hogy
+# a chat-buborék a top-level dokumentumban legyen, ne csak az
+# iframe-en belül (ami a height=0 miatt láthatatlan lenne).
+#
+# A `tawkto-script-inject` id-vel ellenőrizzük, hogy ne kerüljön
+# többszöri beillesztésre Streamlit-rerunkor.
+
+def _inject_tawkto_widget():
+    """Tawk.to chat-widget beágyazása (0 magasságú, helyfoglalás nélkül).
+
+    A widget a teljes alkalmazásban (minden tabon, minden reruna alatt)
+    elérhető marad, a fő böngészőablak DOM-jához csatolva.
+    """
+    st_components.html(
+        """
+<script type="text/javascript">
+(function() {
+    // Próbáljuk a TOP-LEVEL window-ba injektálni (hogy a chat-buborék
+    // az alkalmazás jobb alsó sarkában jelenjen meg, ne csak az
+    // 0-magasságú iframe-en belül).
+    try {
+        var doc = window.parent.document;
+        if (doc.getElementById('tawkto-script-inject')) return;
+        window.parent.Tawk_API = window.parent.Tawk_API || {};
+        window.parent.Tawk_LoadStart = new Date();
+        var s1 = doc.createElement("script");
+        s1.id = 'tawkto-script-inject';
+        s1.async = true;
+        s1.src = 'https://embed.tawk.to/6a01a241eb073e1c334f0d94/1job63k35';
+        s1.charset = 'UTF-8';
+        s1.setAttribute('crossorigin', '*');
+        var s0 = doc.getElementsByTagName("script")[0];
+        if (s0 && s0.parentNode) {
+            s0.parentNode.insertBefore(s1, s0);
+        } else {
+            doc.body.appendChild(s1);
+        }
+        return;
+    } catch (e) {
+        // Cross-origin sandbox: az iframe-en belül indítjuk
+        // (fallback, a widget így is működik, csak az iframe-be esik)
+    }
+    if (document.getElementById('tawkto-script-inject')) return;
+    var Tawk_API = window.Tawk_API || (window.Tawk_API = {});
+    var Tawk_LoadStart = new Date();
+    var s1 = document.createElement("script");
+    s1.id = 'tawkto-script-inject';
+    s1.async = true;
+    s1.src = 'https://embed.tawk.to/6a01a241eb073e1c334f0d94/1job63k35';
+    s1.charset = 'UTF-8';
+    s1.setAttribute('crossorigin', '*');
+    var s0 = document.getElementsByTagName("script")[0];
+    if (s0 && s0.parentNode) {
+        s0.parentNode.insertBefore(s1, s0);
+    } else {
+        document.body.appendChild(s1);
+    }
+})();
+</script>
+        """,
+        height=0,
+    )
+
+
+_inject_tawkto_widget()
 
 
 # =========================================================
