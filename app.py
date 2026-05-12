@@ -4638,6 +4638,7 @@ tabs = st.tabs([
     "Vázlatkosár",
     "Énekajánló",
     "📅 Igehirdetési sorozat tervező",
+    "📖 Útmutatás",
     "⚙️ Beállítások",
 ])
 
@@ -5194,7 +5195,7 @@ with tabs[9]:
 # BEÁLLÍTÁSOK
 # =========================================================
 
-with tabs[11]:
+with tabs[12]:
     st.header("⚙️ Beállítások")
 
     st.warning("Ha az API kulcs valaha megjelenik hibaüzenetben vagy képernyőképen, generálj újat a Google AI Studio-ban.")
@@ -5455,6 +5456,86 @@ stabilan és korlátlanul rendelkezésedre álljon.
 </div>
 """,
         unsafe_allow_html=True,
+    )
+
+    st.divider()
+    st.caption(f"Emmaus v{APP_VERSION} · digitális homiletikai műhely")
+
+
+# =========================================================
+# ÚTMUTATÁS — ARS POETICA + PROMPT GYORSSEGÉD
+# =========================================================
+
+with tabs[11]:
+    st.header("📖 Útmutatás")
+
+    st.subheader("Ars Poetica: Miért készítettem ezt az eszközt?")
+    st.markdown(
+        "Az Emmaus Műhely nem egy „prédikációgyár”. Tudatos döntésem volt, "
+        "hogy ne egy automatizált, kész szövegeket gyártó rendszert hozzak "
+        "létre. Azért dolgoztam ezen az applikáción, hogy a technológia "
+        "segítségével olyan mélységekhez is közelebb vigyelek, amelyekhez a "
+        "hétköznapi rohanásban sokszor nem jutsz el: az **eredeti szöveg "
+        "árnyalataihoz**, a **kortörténeti háttérhez** és az **exegetikai "
+        "szempontokhoz**.\n\n"
+        "Az AI itt egy **digitális szolgatárs**, aki segít az előkészítésben, "
+        "de az **üzenet megszületése** és a **személyes tanúságtétel** továbbra "
+        "is a te imádságos küzdelmed és a Szentlélek közös titka marad."
+    )
+
+    st.divider()
+
+    st.subheader("Hogyan „beszélgess” az AI-val? — Prompt-gyorssegéd")
+    st.markdown(
+        "Az eredmény minősége nagyban azon múlik, **hogyan kérdezel**. Ezt "
+        "hívják *promptolásnak*. Íme a javaslatom a „jó kérdezéshez”:"
+    )
+
+    st.markdown("##### 1. Adj meg szerepet és célközönséget")
+    st.markdown(
+        "Ne csak annyit írj, hogy *„írj vázlatot”*. Próbáld így:"
+    )
+    st.info(
+        "„Légy egy alapos bibliakutató, és segíts vázlatot készíteni a Lukács "
+        "15-ről. A célközönségem fiatal felnőttek, akik távol állnak a "
+        "templomtól.”",
+        icon="🎯",
+    )
+
+    st.markdown("##### 2. Kérj konkrét szempontokat")
+    st.markdown(
+        "Az AI nagyszerűen tud kontextust adni — használd bátran:"
+    )
+    st.info(
+        "„Gyűjts össze 3 olyan kulturális vagy történelmi érdekességet az "
+        "ókori Izraelből, ami segít jobban megérteni ezt a textust!”",
+        icon="🔎",
+    )
+
+    st.markdown("##### 3. Az „arany szabály” — vitázz és finomíts")
+    st.markdown(
+        "Ha a válasz túl száraz vagy gépies, **ne add fel**. Az AI-val lehet "
+        "és érdemes vitatkozni — írj neki vissza:"
+    )
+    st.info(
+        "„Ez túl elméleti lett. Tudnál mondani egy hétköznapi, mai példát, "
+        "amivel ezt szemléltethetném?”\n\n"
+        "„Ez a pont nem elég hangsúlyos a textus alapján. Kérlek, keress hozzá "
+        "egy idevágó ószövetségi párhuzamot!”",
+        icon="💬",
+    )
+
+    st.markdown("##### 4. Ellenőrizd és válogasd meg")
+    st.markdown(
+        "Az AI néha **magabiztosan tévedhet**. A hivatkozásokat és neveket "
+        "**mindig ellenőrizd!** Tekints a válaszokra úgy, mint **nyersanyagra**, "
+        "amit neked kell megmunkálnod a saját stílusodban."
+    )
+    st.info(
+        "Tipp: amelyik elemzés tetszik, mentsd el a **Vázlatkosárba** "
+        "(„Hozzáadás a vázlatkosárhoz” gomb); a végén ezekből építed össze a "
+        "saját vázlatodat.",
+        icon="🧺",
     )
 
     st.divider()
