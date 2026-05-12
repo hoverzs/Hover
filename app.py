@@ -4086,6 +4086,38 @@ def generate_text(
             if attempt < GEMINI_MAX_RETRIES - 1:
                 _time.sleep(wait_s)
                 continue
+
+            # Free-tier konkrét detektálás: a Google a hibában maga jelzi,
+            # hogy `generate_content_free_tier_requests` metrikát lépett túl
+            # → a kulcs Google-oldalon még mindig free tier kvótán fut,
+            # nem a billing-es paid tier-en (akkor is, ha a felhasználó a
+            # Cloud Console-ban beállította a billinget).
+            _free_tier = "free_tier" in (err_msg or "").lower()
+            if _free_tier:
+                _src = _api_key_source_label()
+                _key_mask = _mask_api_key(_resolve_api_key())
+                return (
+                    "⚠️ **Túl sok kérés vagy quota limit. Próbáld újra később.**\n\n"
+                    "**A Google a hibában `free_tier_requests` metrikát említ — "
+                    "vagyis ez a kulcs Google-oldalon még mindig a `Free` szinten van, "
+                    "NEM a fizetős (paid) szinten, hiába van billing a Cloud-projekthez kötve.**\n\n"
+                    f"Aktív kulcs forrása: `{_src}` · maszk: `{_key_mask}`\n\n"
+                    "**Mit tegyél (egyszer, 2–5 perc):**\n"
+                    "1. Nyisd meg az AI Studio kulcsfelületét: "
+                    "<https://aistudio.google.com/apikey> — a kulcs sorában szerepelnie kell, "
+                    "hogy **Paid** (nem `Free of charge`). Ha még `Free`, kattints a kulcsra, "
+                    "és kösd egy olyan **Cloud-projekthez**, amelynél aktív a billing.\n"
+                    "2. Cloud Console → válaszd a projektet → **Billing → Link a billing account** "
+                    "(ha még nincs összekötve), és győződj meg, hogy a számla **aktív**, nem `Closed`.\n"
+                    "3. Cloud Console → **APIs & Services → Library → Generative Language API → Enable** "
+                    "ugyanabban a projektben.\n"
+                    "4. Várj 2–5 percet (Google-oldalon a tier-váltás nem azonnali), majd próbáld újra.\n"
+                    "5. Ha 5 perc után is `free_tier_requests` jön: a legbiztosabb megoldás **új API "
+                    "kulcsot generálni a Cloud Console-ban** (APIs & Services → Credentials → "
+                    "Create credentials → API key), majd a `.streamlit/secrets.toml` `GEMINI_API_KEY` "
+                    "értékét lecserélni rá. Az új kulcs **a billing-es projekttől örökli a paid tier kvótát**.\n\n"
+                    f"**Részletek (Google):**\n```\n{err_msg}\n```"
+                )
             return (
                 "⚠️ **Túl sok kérés vagy quota limit. Próbáld újra később.**\n\n"
                 f"**Részletek (Google):**\n```\n{err_msg}\n```"
