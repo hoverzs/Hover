@@ -3840,6 +3840,7 @@ Lelki célkitűzés: 2-3 mondatban foglald össze, mi a sorozat fő üzenete és
 Alkalmankénti bontás: Minden egyes alkalomra (a megadott számnak megfelelően) készíts egy külön részt. A fejléc a sorozat jellegéhez igazodjon:
 - vasárnapi (heti) sorozatnál: „1. hét — …”, „2. hét — …” …
 - hétköznapi sorozatnál (pl. bűnbánati hét, esti istentiszteleti hét): a hét napjai szerint („Hétfő — …”, „Kedd — …” stb.) vagy „1. nap — …”, „2. nap — …”.
+- sátoros ünnepi (Karácsony / Húsvét / Pünkösd) sorozatnál: pontosan **3** alkalom, „Ünnep első napja — …”, „Ünnep második napja — …”, „Ünnep harmadik napja — …” fejlécekkel (vagy konkrétan: „Karácsony 1. napja — …”, „Húsvét 1. napja — …”, „Pünkösd 1. napja — …”).
 - vegyes / egyéb ütemnél: „1. alkalom — …”, „2. alkalom — …”.
 A fejléc legyen önálló sor elején (Markdown bold vagy `##`/`###` cím is lehet), hogy a felület külön egységekbe tagolja.
 
@@ -3859,7 +3860,13 @@ Teológiai iránytű: Kövesd a protestáns hagyományokat, legyél bibliacentri
 _SERIES_WEEKDAY_OR_FESTIVAL = (
     r"H[eé]tf[oő]|Kedd|Szerda|Cs[uü]t[oö]rt[oö]k|P[eé]ntek|Szombat|Vas[aá]rnap|"
     r"Vir[aá]gvas[aá]rnap|Nagyh[eé]tf[oő]|Nagykedd|Nagyszerda|"
-    r"Nagycs[uü]t[oö]rt[oö]k|Nagyp[eé]ntek|Nagyszombat|H[uú]sv[eé]t"
+    r"Nagycs[uü]t[oö]rt[oö]k|Nagyp[eé]ntek|Nagyszombat|"
+    r"Kar[aá]csony|H[uú]sv[eé]t|P[uü]nk[oö]sd"
+)
+
+_SERIES_FESTIVAL_DAY = (
+    r"(?:Kar[aá]csony|H[uú]sv[eé]t|P[uü]nk[oö]sd|Ünnep)\s+"
+    r"(?:els[oő]|m[aá]sodik|harmadik|\d+\.)\s*napja"
 )
 
 _SERIES_SECTION_SPLIT_RE = re.compile(
@@ -3868,6 +3875,7 @@ _SERIES_SECTION_SPLIT_RE = re.compile(
     r"(?:\*\*)?"
     r"(?:"
     r"\d+\.\s*(?:hét|alkalom|nap|este)\b"
+    r"|" + _SERIES_FESTIVAL_DAY +
     r"|" + _SERIES_WEEKDAY_OR_FESTIVAL + r"\b"
     r")"
     r")",
@@ -5487,6 +5495,7 @@ with tabs[10]:
     SERIES_CADENCE_OPTIONS = {
         "vasárnapi": "Vasárnapi sorozat (heti, vasárnaponkénti alkalom)",
         "hetkoznapi": "Hétköznapi sorozat (egymást követő napok — pl. bűnbánati hét, esti istentiszteleti hét)",
+        "satoros": "Sátoros ünnepek (három napos ünnep — Karácsony / Húsvét / Pünkösd)",
         "vegyes": "Egyéb / vegyes ütem (havi, alkalmi, lelkigyakorlat stb.)",
     }
     series_cadence_key = st.selectbox(
@@ -5496,16 +5505,25 @@ with tabs[10]:
         key="series_cadence",
     )
 
-    st.slider(
-        "Hány alkalmas legyen a sorozat?",
-        min_value=2,
-        max_value=14,
-        key="series_weeks",
-        help=(
-            "Vasárnapi sorozatnál ez a hetek száma, hétköznapi sorozatnál "
-            "az egymást követő alkalmak (napok / esték) száma."
-        ),
-    )
+    if series_cadence_key == "satoros":
+        st.caption(
+            "📅 **Sátoros ünnepi sorozat — kötött, 3 napos struktúra:** "
+            "*1. nap (központi üzenet) → 2. nap (mélyítés, megélés) → "
+            "3. nap (továbblépés / küldetés / hálaadás).* "
+            "Az „alkalmak száma” itt nem állítható — a hagyomány szerint 3."
+        )
+    else:
+        st.slider(
+            "Hány alkalmas legyen a sorozat?",
+            min_value=2,
+            max_value=14,
+            key="series_weeks",
+            help=(
+                "Vasárnapi sorozatnál ez a hetek száma; hétköznapi sorozatnál "
+                "az egymást követő alkalmak (napok / esték) száma; vegyes "
+                "ütemnél az alkalmak száma."
+            ),
+        )
 
     series_busy = bool(st.session_state.get("_series_planner_running"))
     if st.button(
@@ -5515,7 +5533,10 @@ with tabs[10]:
         disabled=series_busy,
     ):
         idea_raw = (st.session_state.get("series_idea") or "").strip()
-        weeks_n = int(st.session_state.get("series_weeks", 4))
+        if series_cadence_key == "satoros":
+            weeks_n = 3
+        else:
+            weeks_n = int(st.session_state.get("series_weeks", 4))
         cadence_label = SERIES_CADENCE_OPTIONS.get(series_cadence_key, "")
         cadence_instructions = {
             "vasárnapi": (
@@ -5530,6 +5551,25 @@ with tabs[10]:
                 "„1. nap — …”, „2. nap — …” formában add. Ha a téma a Nagyhetet "
                 "vagy más egyházi hetet érinti, használhatsz konkrét napneveket "
                 "is („Nagyhétfő — …”, „Nagypéntek — …”)."
+            ),
+            "satoros": (
+                "A sorozat **sátoros ünnepi** — a magyar protestáns hagyomány "
+                "szerinti **három napos ünnep** (Karácsony / Húsvét / Pünkösd) "
+                "struktúrájában gondolkodj. Pontosan **3** alkalmat dolgozz ki, "
+                "az ünnep teológiai ívére fűzve:\n"
+                "• **1. nap** — a központi üzenet és az ünnep teológiai csúcsa "
+                "(születés / feltámadás / Lélek kiáradása).\n"
+                "• **2. nap** — az ünnep mélyítése és személyes megélése "
+                "(megtestesülés mélysége / találkozás a Feltámadottal / a Lélek "
+                "ajándékai és gyümölcsei).\n"
+                "• **3. nap** — továbblépés, küldetés vagy hálaadás (igeválasz, "
+                "tanúságtétel, gyülekezeti küldetés).\n"
+                "A fejléceket „Ünnep első napja — …”, „Ünnep második napja — …”, "
+                "„Ünnep harmadik napja — …” stílusban add; ha a téma egyértelműen "
+                "Karácsony / Húsvét / Pünkösd, akkor használhatsz konkrét nevet is: "
+                "„Karácsony 1. napja — …”, „Húsvét 2. napja — …”, „Pünkösd 3. napja "
+                "— …”. A három napot egymásra építsd — koherens teológiai mozgás "
+                "kell, hogy átvezesse a hallgatókat."
             ),
             "vegyes": (
                 "A sorozat **vegyes / egyéb ütemű** — válaszd meg a természetes "
