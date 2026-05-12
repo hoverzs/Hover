@@ -1712,6 +1712,72 @@ div[data-testid="stForm"] {{
     );
 }}
 
+/* ===== AUTHOR SIGNATURE (Útmutatás — Ars Poetica aláírás) ===== */
+.author-signature {{
+    margin: 1.4rem 0 0.4rem auto;
+    padding: 0.85rem 1.15rem 0.95rem;
+    max-width: 360px;
+    text-align: right;
+    border-right: 3px solid rgba(141, 113, 79, 0.55);
+    background: rgba(255, 252, 246, 0.42);
+    border-radius: 12px 4px 4px 12px;
+    box-shadow: 0 4px 12px rgba(74, 51, 28, 0.06);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    font-family: 'Cormorant Garamond', 'Times New Roman', serif;
+    line-height: 1.45;
+}}
+
+.author-signature .author-name {{
+    font-size: 1.18rem;
+    font-weight: 600;
+    color: #4a3520;
+    letter-spacing: 0.01em;
+}}
+
+.author-signature .author-role {{
+    font-size: 0.97rem;
+    font-style: italic;
+    color: #6b5238;
+    margin-top: 0.1rem;
+}}
+
+.author-signature .author-place {{
+    font-size: 0.92rem;
+    color: #7a6244;
+    margin-top: 0.15rem;
+}}
+
+.author-signature .author-mail {{
+    font-size: 0.92rem;
+    margin-top: 0.45rem;
+    letter-spacing: 0.01em;
+}}
+
+.author-signature .author-mail a {{
+    color: #5a7ba0 !important;
+    text-decoration: none;
+    border-bottom: 1px dotted rgba(90, 123, 160, 0.45);
+    transition: border-bottom-color 0.18s ease, color 0.18s ease;
+}}
+
+.author-signature .author-mail a:hover {{
+    color: #3f5d7e !important;
+    border-bottom-color: rgba(63, 93, 126, 0.85);
+}}
+
+@media (max-width: 768px) {{
+    .author-signature {{
+        max-width: 100%;
+        margin: 1.2rem 0 0.4rem;
+        padding: 0.75rem 1rem 0.85rem;
+        border-right: none;
+        border-left: 3px solid rgba(141, 113, 79, 0.55);
+        border-radius: 4px 12px 12px 4px;
+        text-align: left;
+    }}
+}}
+
 /* ===== API GUIDE BOX (Beállítások — kulcs igénylés) ===== */
 .api-guide-box {{
     padding: 26px 32px;
@@ -5481,6 +5547,18 @@ with tabs[11]:
         "Az AI itt egy **digitális szolgatárs**, aki segít az előkészítésben, "
         "de az **üzenet megszületése** és a **személyes tanúságtétel** továbbra "
         "is a te imádságos küzdelmed és a Szentlélek közös titka marad."
+    )
+
+    st.markdown(
+        "<div class=\"author-signature\">"
+        "<div class=\"author-name\">Hover Zsolt</div>"
+        "<div class=\"author-role\">református lelkipásztor</div>"
+        "<div class=\"author-place\">Kalotaszeg · Magyargyerőmonostor</div>"
+        "<div class=\"author-mail\">"
+        "<a href=\"mailto:hoverzsolt@gmail.com\">hoverzsolt@gmail.com</a>"
+        "</div>"
+        "</div>",
+        unsafe_allow_html=True,
     )
 
     st.divider()
