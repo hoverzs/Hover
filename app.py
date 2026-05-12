@@ -3838,9 +3838,9 @@ Sorozat címe: Adj egy beszédes, hívogató címet a sorozatnak.
 Lelki célkitűzés: 2-3 mondatban foglald össze, mi a sorozat fő üzenete és hová kívánja elvezetni a hallgatókat.
 
 Alkalmankénti bontás: Minden egyes alkalomra (a megadott számnak megfelelően) készíts egy külön részt. A fejléc a sorozat jellegéhez igazodjon:
-- vasárnapi (heti) sorozatnál: „1. hét — …", „2. hét — …" …
-- hétköznapi sorozatnál (pl. bűnbánati hét, esti istentiszteleti hét): a hét napjai szerint („Hétfő — …", „Kedd — …" stb.) vagy „1. nap — …", „2. nap — …".
-- vegyes / egyéb ütemnél: „1. alkalom — …", „2. alkalom — …".
+- vasárnapi (heti) sorozatnál: „1. hét — …”, „2. hét — …” …
+- hétköznapi sorozatnál (pl. bűnbánati hét, esti istentiszteleti hét): a hét napjai szerint („Hétfő — …”, „Kedd — …” stb.) vagy „1. nap — …”, „2. nap — …”.
+- vegyes / egyéb ütemnél: „1. alkalom — …”, „2. alkalom — …”.
 A fejléc legyen önálló sor elején (Markdown bold vagy `##`/`###` cím is lehet), hogy a felület külön egységekbe tagolja.
 
 Minden alkalom tartalma:
@@ -5520,21 +5520,21 @@ with tabs[10]:
         cadence_instructions = {
             "vasárnapi": (
                 "A sorozat **vasárnapi (heti) ütemű** — minden alkalom egy-egy "
-                "vasárnapi istentisztelet. A fejléceket „1. hét — …", „2. hét — …" "
+                "vasárnapi istentisztelet. A fejléceket „1. hét — …”, „2. hét — …” "
                 "stílusban add (sorszámozva)."
             ),
             "hetkoznapi": (
                 "A sorozat **hétköznapi**, egymást követő napokon zajlik (pl. "
                 "bűnbánati hét, esti istentiszteleti hét). A fejléceket vagy a "
-                "hét napjai szerint („Hétfő — …", „Kedd — …" stb.), vagy "
-                "„1. nap — …", „2. nap — …" formában add. Ha a téma a Nagyhetet "
+                "hét napjai szerint („Hétfő — …”, „Kedd — …” stb.), vagy "
+                "„1. nap — …”, „2. nap — …” formában add. Ha a téma a Nagyhetet "
                 "vagy más egyházi hetet érinti, használhatsz konkrét napneveket "
-                "is („Nagyhétfő — …", „Nagypéntek — …")."
+                "is („Nagyhétfő — …”, „Nagypéntek — …”)."
             ),
             "vegyes": (
                 "A sorozat **vegyes / egyéb ütemű** — válaszd meg a természetes "
                 "egységet (alkalom / este / összejövetel). A fejléceket "
-                "„1. alkalom — …", „2. alkalom — …" stílusban add."
+                "„1. alkalom — …”, „2. alkalom — …” stílusban add."
             ),
         }.get(series_cadence_key, "")
         if not idea_raw:
