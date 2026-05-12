@@ -5429,9 +5429,7 @@ with tabs[10]:
     st.header("📅 Igehirdetési sorozat tervező")
 
     st.info(
-        "Ez a fül **külön** működik az igehely-alapú elemzéstől — más "
-        "session-kulcsokat használ (`series_*`). A terv **Gemini 1.5 Flash** "
-        f"modellen készül, akár **{GEMINI_SERIES_MAX_OUTPUT_TOKENS}** kimeneti tokenig.",
+        "Ez a fül **külön** működik az igehely-alapú elemzéstől.",
         icon="📅",
     )
 
