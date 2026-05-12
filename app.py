@@ -3313,47 +3313,6 @@ def deserialize_workspace(raw_bytes):
 
 
 # =========================================================
-# VÁZLAT MARKDOWN EXPORT
-# =========================================================
-
-def build_outline_markdown():
-    igehely = st.session_state.get("last_igehely", "—")
-    alkalom = st.session_state.get("last_alkalom", "—")
-    stilus = st.session_state.get("last_stilus", "—")
-    outline = st.session_state.get("outline", "").strip()
-    basket = st.session_state.get("basket", [])
-    songs = st.session_state.get("songs", "").strip()
-    now = datetime.now().strftime("%Y. %m. %d. %H:%M")
-
-    lines = [
-        "# Prédikációvázlat — Emmaus",
-        "",
-        f"**Igehely:** {igehely}  ",
-        f"**Alkalom:** {alkalom}  ",
-        f"**Homiletikai stílus:** {stilus}  ",
-        f"**Készült:** {now}",
-        "",
-        "---",
-        "",
-        "## Vázlat",
-        "",
-        outline if outline else "_Még nem készült vázlat._",
-        "",
-    ]
-    if basket:
-        lines += ["---", "", "## Vázlatkosár — gondolatok a vázlathoz", ""]
-        for source, item in basket:
-            lines.append(f"### {source}")
-            lines.append("")
-            lines.append(item)
-            lines.append("")
-    if songs:
-        lines += ["---", "", "## Liturgiai énekajánlás", "", songs, ""]
-    lines += ["---", "", f"_Emmaus v{APP_VERSION} — digitális homiletikai műhely_"]
-    return "\n".join(lines)
-
-
-# =========================================================
 # VÁZLAT WORD EXPORT (.docx)
 # =========================================================
 # Ugyanaz a tartalom-struktúra, mint a Markdown exportnál; a vázlat törzsét
@@ -4786,41 +4745,31 @@ Egy konkrét, **prédikációs zárás** — összefoglalás, hívás, ígéret.
         st.divider()
         st.subheader("Letöltés és megosztás")
         st.caption(
-            "A vázlat, a vázlatkosár tartalma és (ha van) az énekajánlás letölthető "
-            "**Word (.docx)** formában (címsor-stílusok, kiemelt igehely, tagolt listák, UTF-8), "
-            "vagy **Markdown** fájlként — bármelyik szerkesztőben megnyitható, nyomtatható vagy telefonra küldhető."
+            "A vázlat, a vázlatkosár tartalma és (ha van) az énekajánlás "
+            "**Word (.docx)** formátumban tölthető le — címsor-stílusokkal, "
+            "kiemelt igehellyel, tagolt listákkal, UTF-8 ékezetekkel; "
+            "Word/LibreOffice-ban azonnal megnyitható, nyomtatható vagy telefonra küldhető."
         )
 
-        _md_payload = build_outline_markdown()
         _verse_clean = (st.session_state.get("last_igehely") or "vazlat").replace(" ", "_").replace("/", "-").replace(",", "").replace(":", "-")
         _ts = datetime.now().strftime("%Y%m%d-%H%M")
-        _filename_md = f"emmaus-vazlat-{_verse_clean}-{_ts}.md"
         _filename_docx = f"emmaus-vazlat-{_verse_clean}-{_ts}.docx"
 
-        _col_docx, _col_md = st.columns(2)
-        with _col_docx:
-            try:
-                _docx_bytes = build_outline_docx()
-                st.download_button(
-                    label="Vázlat letöltése (Word)",
-                    data=_docx_bytes,
-                    file_name=_filename_docx,
-                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                    use_container_width=True,
-                    key="outline_download_docx",
-                )
-            except ImportError:
-                st.caption(
-                    "Word exporthoz telepítsd: `pip install python-docx`, majd indítsd újra az alkalmazást."
-                )
-        with _col_md:
+        try:
+            _docx_bytes = build_outline_docx()
             st.download_button(
-                label="Vázlat letöltése (Markdown)",
-                data=_md_payload,
-                file_name=_filename_md,
-                mime="text/markdown",
-                use_container_width=True,
-                key="outline_download_md",
+                label="Vázlat letöltése (Word)",
+                data=_docx_bytes,
+                file_name=_filename_docx,
+                mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                use_container_width=False,
+                key="outline_download_docx",
+                type="primary",
+            )
+        except ImportError:
+            st.error(
+                "**Word export nem érhető el** — hiányzik a `python-docx` csomag.\n\n"
+                "Telepítés: `pip install python-docx`, majd indítsd újra az alkalmazást."
             )
     else:
         st.info("Még nincs vázlat.")
