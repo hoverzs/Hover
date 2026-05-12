@@ -92,12 +92,14 @@ BUILTIN_API_KEY = _load_builtin_api_key()
 
 LOCKED_MODEL = "gemini-2.5-flash"
 GEMINI_MODEL_FLASH_LITE = "gemini-2.5-flash-lite"
-GEMINI_MODEL_SERIES_PLANNER = "gemini-1.5-flash"
+# A sorozattervezőhöz a mélyebb (Flash) modellt használjuk — több hetes,
+# strukturált, teológiailag igényes Markdownt termel. A régebbi
+# `gemini-1.5-flash` v1beta-n már gyakran nem elérhető (404 / not supported).
+GEMINI_MODEL_SERIES_PLANNER = LOCKED_MODEL
 LOCKED_MODEL_DISPLAY = "Gemini 2.5 Flash"
 GEMINI_MODEL_DISPLAY_BY_ID: dict[str, str] = {
     LOCKED_MODEL: LOCKED_MODEL_DISPLAY,
     GEMINI_MODEL_FLASH_LITE: "Gemini 2.5 Flash Lite",
-    GEMINI_MODEL_SERIES_PLANNER: "Gemini 1.5 Flash",
 }
 
 # Kulcs = `generate_text(..., tab_label=…)` (SECTION_LABELS magyar címek +
@@ -5218,8 +5220,7 @@ with tabs[11]:
     )
     st.caption(
         f"A backend a fül szerint választ modellt — **{LOCKED_MODEL_DISPLAY}** "
-        f"(`{LOCKED_MODEL}`), **Gemini 2.5 Flash Lite** (`{GEMINI_MODEL_FLASH_LITE}`) "
-        f"vagy **Gemini 1.5 Flash** (`{GEMINI_MODEL_SERIES_PLANNER}`) a sorozattervezőnél; "
+        f"(`{LOCKED_MODEL}`) vagy **Gemini 2.5 Flash Lite** (`{GEMINI_MODEL_FLASH_LITE}`); "
         "nincs kézi modellválasztás. A *Kreativitás* beállítás minden hívásra érvényes."
     )
 
