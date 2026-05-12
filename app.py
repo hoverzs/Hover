@@ -92,10 +92,12 @@ BUILTIN_API_KEY = _load_builtin_api_key()
 
 LOCKED_MODEL = "gemini-2.5-flash"
 GEMINI_MODEL_FLASH_LITE = "gemini-2.5-flash-lite"
+GEMINI_MODEL_SERIES_PLANNER = "gemini-1.5-flash"
 LOCKED_MODEL_DISPLAY = "Gemini 2.5 Flash"
 GEMINI_MODEL_DISPLAY_BY_ID: dict[str, str] = {
     LOCKED_MODEL: LOCKED_MODEL_DISPLAY,
     GEMINI_MODEL_FLASH_LITE: "Gemini 2.5 Flash Lite",
+    GEMINI_MODEL_SERIES_PLANNER: "Gemini 1.5 Flash",
 }
 
 # Kulcs = `generate_text(..., tab_label=…)` (SECTION_LABELS magyar címek +
@@ -115,6 +117,7 @@ GEMINI_MODEL_BY_TAB_LABEL: dict[str, str] = {
     "Vázlat": GEMINI_MODEL_FLASH_LITE,
     "Énekajánló": GEMINI_MODEL_FLASH_LITE,
     "Prédikációvázlat": GEMINI_MODEL_FLASH_LITE,
+    "Igehirdetési sorozat tervező": GEMINI_MODEL_SERIES_PLANNER,
 }
 
 
@@ -1407,6 +1410,8 @@ section[data-testid="stSidebar"] .stAlert {{
 .stTextInput input::placeholder,
 .stTextArea textarea::placeholder {{
     color: rgba(90, 86, 82, 0.62) !important;
+    line-height: 1.55 !important;
+    opacity: 1; /* Firefox: a default 0.54 opacity-t felülírjuk a saját rgba-val */
 }}
 
 [data-testid="stChatMessage"] {{
@@ -2447,7 +2452,8 @@ Tartalmi elvárások:
 - teológiailag árnyalt,
 - homiletikailag használható,
 - történetileg érzékeny,
-- világosan strukturált.
+- világosan strukturált,
+- tömör és gyakorlatias — kerüld a túlmagyarázást, a tankönyvszerű körítést és a felesleges ismétlést.
 
 Pontosság és integritás:
 - NE találj ki nem létező idézeteket, hamis forrásokat, bizonytalan
@@ -3272,6 +3278,7 @@ WORKSPACE_STR_KEYS = [
     "overview", "exegesis", "history", "theology",
     "illustrations", "actualization", "outline",
     "original_text", "songs",
+    "series_planner_output", "series_idea",
 ]
 
 WORKSPACE_LIST_KEYS = [
@@ -3463,6 +3470,10 @@ defaults = {
     "outline": "",
     "original_text": "",
     "songs": "",
+
+    "series_planner_output": "",
+    "series_idea": "",
+    "series_weeks": 4,
 
     "basket": [],
 
@@ -3775,30 +3786,32 @@ GEMINI_TIMEOUT_S = 120
 GEMINI_COOLDOWN_S = 8             # globális cooldown két logikai hívás közt
 GEMINI_DEBUG_LOG_MAX = 80         # session debug-log max bejegyzések
 
+# Kimeneti token plafon (REST `generationConfig.maxOutputTokens`) — ~600–700:
+# rövid, max. 4 bekezdéses válaszokhoz; a prompt direktíva ehhez igazodik.
+GEMINI_MAX_OUTPUT_TOKENS = 650
+# Sorozattervező: hosszú, heti bontású Markdown — külön kimeneti plafon
+GEMINI_SERIES_MAX_OUTPUT_TOKENS = 8192
+
 # ─────────────────────────────────────────────────────────────────────
-# VÁLASZHOSSZ — TOKEN-KORLÁT NÉLKÜL, BEKEZDÉS-ELŐÍRÁSSAL
+# VÁLASZHOSSZ — PROMPT + maxOutputTokens (rövid, gyakorlati válaszok)
 # ─────────────────────────────────────────────────────────────────────
-# A Gemini-hívásban SZÁNDÉKOSAN nincs `maxOutputTokens` cap és nincs
-# tier-szerinti tartomány: ehelyett maga a prompt utasítja a modellt,
-# hogy a választ 3–4 bekezdésben, lényegre törően foglalja össze.
-# Ez egyszerre kíméli a kvótát (Flash 2.5 free tier) és tartalmilag
-# is konzisztens, könnyen olvasható válaszokat ad minden modulban.
+# A `_build_payload` minden hívásnál beállítja a `maxOutputTokens` mezőt
+# (`GEMINI_MAX_OUTPUT_TOKENS`). A `_RESPONSE_LENGTH_DIRECTIVE` ugyanezt
+# tartalmilag is kikényszeríti (4 rövid bekezdés, nincs túlmagyarázás).
 
 _RESPONSE_LENGTH_DIRECTIVE = """\
 ==================================================
-VÁLASZHOSSZ — KÖTELEZŐ
+VÁLASZHOSSZ ÉS STÍLUS — KÖTELEZŐ
 ==================================================
 
-- A teljes válasz LEGFELJEBB 3–4 jól megformált bekezdés legyen.
-- Egy bekezdés ~3–6 mondat; ne legyen egymondatos bekezdés-darabolás.
-- Tilos felsorolásokkal, alcímekkel mesterségesen felduzzasztani —
-  rövid `##` / `###` címsor csak akkor, ha valóban tagolja a választ.
-- NE írj felvezetést, megszólítást vagy záró udvariaskodást;
-  azonnal kezdj a lényeggel, és az utolsó mondat legyen lezárt egész.
-- Ha a téma bővebb kifejtést érdemelne, jelezd egyetlen mondatban:
-  *(A részletesebb kifejtésért indítsd a finomítás chatet.)*
-- A válasz LEGYEN TELJES — ne hagyj nyitott gondolatot, és ne szakadj
-  meg félmondatban. Inkább zárj le **korábban** egy kerek bekezdéssel.
+- A teljes válasz **legfeljebb 4 rövid bekezdés**; bekezdésenként **legfeljebb 2–3 mondat**.
+- **Tilos a túlmagyarázás**, a tankönyvszerű körítés, a felesleges ismétlés és a „szőttes” hosszú bevezetők.
+- A tartalom **tömör, jól strukturált és gyakorlatias** legyen — a lelkipásztor következő lépéseit segítse, ne helyettesítse a saját gondolkodását hosszú értekezéssel.
+- Struktúra: **legfeljebb egy** `##` vagy `###` címsor az egész válaszban; ha lista kell, **max. 5 tétel**, felesleges alcímek nélkül.
+- NE írj felvezetést, megszólítást vagy záró udvariaskodást; **azonnal** kezdj a lényeggel.
+- Ha ennél több részlet kellene, zárd egy sorban:
+  *(Részletekért használd a finomítás chatet.)*
+- A válasz **teljes mondatokkal záródjon** — félmondat és lelógó gondolat tilos (a kimeneti token-korlát miatt is).
 """
 
 
@@ -3808,8 +3821,58 @@ def _is_using_builtin_key() -> bool:
 
 
 def _active_brevity_directive() -> str:
-    """Egységes, kulcsforrástól független válaszhossz-előírás (3–4 bekezdés)."""
+    """Egységes, kulcsforrástól független válaszhossz- és stíluselőírás."""
     return _RESPONSE_LENGTH_DIRECTIVE
+
+
+SERIES_PLANNER_SYSTEM_PROMPT = """\
+Te egy tapasztalt lelkipásztor és homiletikai tanácsadó vagy. A feladatod, hogy a megadott téma alapján egy összefüggő, teológiailag megalapozott és gyülekezetépítő Igehirdetési sorozat tervezetet készíts.
+
+A válaszod szerkezete (Markdown formátumban):
+
+Sorozat címe: Adj egy beszédes, hívogató címet a sorozatnak.
+
+Lelki célkitűzés: 2-3 mondatban foglald össze, mi a sorozat fő üzenete és hová kívánja elvezetni a hallgatókat.
+
+Heti bontás: Minden egyes hétre (a megadott számnak megfelelően) készíts egy külön részt:
+
+[Sorszám]. hét címe
+
+Fő alapige: (Pontos hivatkozás és a legfontosabb vers idézése)
+
+Kapcsolódó igeszakasz: (Egy kiegészítő igehely a mélyebb megértéshez)
+
+Az igehirdetés fő üzenete: (3-4 pontba szedett teológiai és gyakorlati kulcsgondolat)
+
+Hétköznapi tanulság: (Egy konkrét kérdés vagy gyakorlat, amit a hívek magukkal vihetnek)
+
+Teológiai iránytű: Kövesd a protestáns hagyományokat, legyél bibliacentrikus, de a magyarázatok legyenek relevánsak a 21. századi ember életvezetési nehézségeire is."""
+
+
+def _parse_series_week_sections(markdown: str) -> tuple[str, list[tuple[str, str]]]:
+    """Sorozat-fej + heti blokkok szétválasztása: sor eleji „N. hét …” mintázat alapján."""
+    text = (markdown or "").strip()
+    if not text:
+        return "", []
+
+    pattern = re.compile(r"(?m)^(?=\d+\.\s*hét)", re.IGNORECASE)
+    parts = pattern.split(text)
+    if len(parts) <= 1:
+        return text, []
+
+    head = parts[0].strip()
+    weeks: list[tuple[str, str]] = []
+    for chunk in parts[1:]:
+        chunk = chunk.strip()
+        if not chunk:
+            continue
+        first_line, sep, rest = chunk.partition("\n")
+        title = (first_line.strip() or "Hét")[:160]
+        body = rest.strip() if sep else chunk
+        if not body:
+            body = chunk
+        weeks.append((title, body))
+    return head, weeks
 
 
 def _now_str() -> str:
@@ -3921,26 +3984,54 @@ def _cooldown_remaining() -> float:
     return GEMINI_COOLDOWN_S - elapsed
 
 
-def _build_payload(prompt: str, enable_google_search: bool, model: str) -> dict:
+def _build_payload(
+    prompt: str,
+    enable_google_search: bool,
+    model: str,
+    *,
+    system_bundle: str | None = None,
+    include_brevity_directive: bool = True,
+    max_output_tokens: int | None = None,
+) -> dict:
     """Összeállítja a Gemini REST kérés JSON body-ját (`model` = Flash vagy Flash Lite).
 
-    Token-korlát SEHOL nincs: nincs `maxOutputTokens` mező a payloadban.
-    A válasz hosszát maga a prompt szabályozza — `_RESPONSE_LENGTH_DIRECTIVE`
-    minden hívás elé bekerül és 3–4 bekezdésben kéri az összegzést.
+    Alapértelmezés: `BASE_SYSTEM_PROMPT` + `_RESPONSE_LENGTH_DIRECTIVE` + FELADAT.
+    Ha `system_bundle` meg van adva, az váltja ki a `BASE_SYSTEM_PROMPT` részt
+    (pl. sorozattervező saját rendszerpromptja). `include_brevity_directive=False`
+    esetén a rövid válasz direktíva nem kerül a promptba.
+
+    `max_output_tokens`: ha None, `GEMINI_MAX_OUTPUT_TOKENS` (~650).
     Google Search grounding: `google_search` tool, ha `enable_google_search`.
     """
-    final_prompt = (
-        f"{BASE_SYSTEM_PROMPT}\n\n"
-        f"{_active_brevity_directive()}\n"
+    task_block = (
         "==================================================\n"
         "FELADAT\n"
         "==================================================\n\n"
         f"{prompt}\n"
     )
+    if system_bundle is not None:
+        body_parts = [system_bundle.strip()]
+        if include_brevity_directive:
+            body_parts.append(_active_brevity_directive())
+        body_parts.append(task_block)
+        final_prompt = "\n\n".join(body_parts)
+    else:
+        body_parts = [BASE_SYSTEM_PROMPT.strip()]
+        if include_brevity_directive:
+            body_parts.append(_active_brevity_directive())
+        body_parts.append(task_block)
+        final_prompt = "\n\n".join(body_parts)
+
+    _max_out = (
+        max_output_tokens
+        if max_output_tokens is not None
+        else GEMINI_MAX_OUTPUT_TOKENS
+    )
     payload = {
         "contents": [{"parts": [{"text": final_prompt}]}],
         "generationConfig": {
             "temperature": st.session_state.get("temperature", 0.3),
+            "maxOutputTokens": _max_out,
         },
     }
     if enable_google_search:
@@ -3954,6 +4045,9 @@ def generate_text(
     *,
     tab_label: str = "unknown",
     use_cache: bool = True,
+    system_bundle: str | None = None,
+    include_brevity_directive: bool = True,
+    max_output_tokens: int | None = None,
 ):
     """EGYETLEN logikai Gemini-hívás — gomb-szintű egyediség garantált.
 
@@ -3972,6 +4066,9 @@ def generate_text(
 
     A cél-modell a `tab_label` alapján automatikusan választódik
     (`resolve_gemini_model_for_tab`) — nincs felhasználói modellválasztás.
+
+    `system_bundle` / `include_brevity_directive` / `max_output_tokens`:
+    speciális fülekhez (pl. sorozattervező) — lásd `_build_payload`.
     """
     api_key = _resolve_api_key().strip()
     if not api_key:
@@ -3985,9 +4082,21 @@ def generate_text(
         and bool(st.session_state.get("enable_cache", True))
         and not enable_google_search  # Google-keresés esetén mindig friss adat kell
     )
+    _eff_max = (
+        max_output_tokens
+        if max_output_tokens is not None
+        else GEMINI_MAX_OUTPUT_TOKENS
+    )
+    _sys_key = "def"
+    if system_bundle is not None:
+        _sys_key = _hash_prompt(system_bundle)[:12]
+    _brv = "1" if include_brevity_directive else "0"
     prompt_hash = _hash_prompt(
         prompt,
-        extra=f"{model}|{st.session_state.get('temperature', 0.3)}",
+        extra=(
+            f"{model}|{st.session_state.get('temperature', 0.3)}|{_eff_max}|"
+            f"{_sys_key}|{_brv}"
+        ),
     )
 
     # ─── 1. CACHE HIT ────────────────────────────────────────────────
@@ -4031,7 +4140,14 @@ def generate_text(
 
     for attempt in range(GEMINI_MAX_RETRIES):
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
-        data = _build_payload(prompt, enable_google_search, model)
+        data = _build_payload(
+            prompt,
+            enable_google_search,
+            model,
+            system_bundle=system_bundle,
+            include_brevity_directive=include_brevity_directive,
+            max_output_tokens=max_output_tokens,
+        )
 
         # log: BEFORE (kulcsforrás + auth még függőben)
         _debug_log_append({
@@ -4067,7 +4183,7 @@ def generate_text(
             st.session_state["_last_api_call_ts"] = _time.time()
             last_error_msg = (
                 "⚠️ **Időtúllépés.** A Gemini szerver nem válaszolt időben. "
-                "Próbáld újra pár másodperc múlva, vagy csökkentsd a válaszhosszt a Beállítások fülön."
+                "Próbáld újra pár másodperc múlva, vagy rövidítsd a kérést / bontsd kisebb részekre."
             )
             if attempt < GEMINI_MAX_RETRIES - 1:
                 _time.sleep(GEMINI_RETRY_BASE_S * (2 ** attempt))
@@ -4119,11 +4235,8 @@ def generate_text(
                 text = _strip_chatty_intro(text)
 
                 # ── TRUNCATION DETEKTÁLÁS ─────────────────────────────
-                # Nincs `maxOutputTokens` cap a payloadban, így MAX_TOKENS
-                # csak a modell saját, magas default plafonjánál fordulhat
-                # elő — ritka. Ha mégis megtörténne, diszkrét üzenet kerül
-                # a válasz végére, és a prompt-direktíva (3–4 bekezdés)
-                # legközelebb kérdezze újra a modellt rövidebb formára.
+                # `finishReason == MAX_TOKENS` = elértük a `maxOutputTokens`
+                # plafont (`GEMINI_MAX_OUTPUT_TOKENS`).
                 finish_reason = candidate.get("finishReason", "STOP")
                 truncated = finish_reason == "MAX_TOKENS"
                 status_label = "200_OK" if not truncated else "200_TRUNCATED"
@@ -4136,9 +4249,10 @@ def generate_text(
                 if truncated:
                     text = text + (
                         "\n\n---\n\n"
-                        "> ⚠️ **A válasz a modell saját kimeneti plafonjánál megszakadt.** "
-                        "Próbáld újrakérni rövidebb, célzottabb formában, vagy bontsd "
-                        "kisebb szekciókra a kérést."
+                        f"> ⚠️ **A válasz a kimeneti token-limitnél megszakadt** "
+                        f"(max. {_eff_max} token). "
+                        "A modell tömörebben fogalmazzon, vagy bontsd kisebb részekre a kérést; "
+                        "részletekért használd a **finomítás chatet**."
                     )
 
                 _debug_log_append({
@@ -4482,7 +4596,8 @@ tabs = st.tabs([
     "Vázlat",
     "Vázlatkosár",
     "Énekajánló",
-    "Beállítások"
+    "📅 Igehirdetési sorozat tervező",
+    "⚙️ Beállítások",
 ])
 
 
@@ -4550,7 +4665,7 @@ with tabs[0]:
         "Illusztrációk, Aktualizálás, Vázlat, Énekajánló) az adott fülön, "
         "külön gombbal indíthatod — így pontosan azt generálod, amire szükséged van. "
         f"\n\n*Két API-hívás között legalább {GEMINI_COOLDOWN_S} másodperc vár; "
-        "minden válasz 3–4 bekezdésben érkezik (token-korlát nélkül).*"
+        f"minden válasz max. 4 rövid bekezdés, max. {GEMINI_MAX_OUTPUT_TOKENS} kimeneti token.*"
     )
 
     overview_disabled = bool(st.session_state.get("_overview_running"))
@@ -4767,9 +4882,16 @@ Egy konkrét, **prédikációs zárás** — összefoglalás, hívás, ígéret.
                 type="primary",
             )
         except ImportError:
+            import sys as _sys
+            _py = _sys.executable or "python"
             st.error(
-                "**Word export nem érhető el** — hiányzik a `python-docx` csomag.\n\n"
-                "Telepítés: `pip install python-docx`, majd indítsd újra az alkalmazást."
+                "**Word export nem érhető el** — a `python-docx` csomag nincs telepítve "
+                "abba a Python környezetbe, amit ez a Streamlit alkalmazás használ.\n\n"
+                "**Gyors megoldás (másold be PowerShell / cmd ablakba):**\n\n"
+                f"```powershell\n\"{_py}\" -m pip install python-docx\n```\n\n"
+                "Majd **állítsd le a Streamlit-et** (Ctrl+C a terminálban) és indítsd újra:\n\n"
+                "```powershell\nstreamlit run app.py\n```\n\n"
+                f"_(Aktív Python: `{_py}`)_"
             )
     else:
         st.info("Még nincs vázlat.")
@@ -5031,8 +5153,8 @@ with tabs[9]:
 # BEÁLLÍTÁSOK
 # =========================================================
 
-with tabs[10]:
-    st.header("Beállítások")
+with tabs[11]:
+    st.header("⚙️ Beállítások")
 
     st.warning("Ha az API kulcs valaha megjelenik hibaüzenetben vagy képernyőképen, generálj újat a Google AI Studio-ban.")
 
@@ -5096,7 +5218,8 @@ with tabs[10]:
     )
     st.caption(
         f"A backend a fül szerint választ modellt — **{LOCKED_MODEL_DISPLAY}** "
-        f"(`{LOCKED_MODEL}`) vagy **Gemini 2.5 Flash Lite** (`{GEMINI_MODEL_FLASH_LITE}`); "
+        f"(`{LOCKED_MODEL}`), **Gemini 2.5 Flash Lite** (`{GEMINI_MODEL_FLASH_LITE}`) "
+        f"vagy **Gemini 1.5 Flash** (`{GEMINI_MODEL_SERIES_PLANNER}`) a sorozattervezőnél; "
         "nincs kézi modellválasztás. A *Kreativitás* beállítás minden hívásra érvényes."
     )
 
@@ -5109,9 +5232,9 @@ with tabs[10]:
     )
 
     st.info(
-        "**Válaszhossz:** nincs token-korlát — minden generálás 3–4 bekezdésben "
-        "összegez. A pontos formát maga a prompt írja elő a modellnek, így "
-        "egységesen rövid, olvasható, prédikációs munkára kész válaszokat kapsz.",
+        f"**Válaszhossz:** minden generálás **max. {GEMINI_MAX_OUTPUT_TOKENS} kimeneti token** "
+        "korláttal és **max. 4 rövid bekezdésre** optimalizált prompttal érkezik — "
+        "tömör, gyakorlati, jól strukturált szöveg. A *Kreativitás* csúszka továbbra is érvényes.",
         icon="📝",
     )
 
@@ -5296,6 +5419,104 @@ stabilan és korlátlanul rendelkezésedre álljon.
 
     st.divider()
     st.caption(f"Emmaus v{APP_VERSION} · digitális homiletikai műhely")
+
+
+# =========================================================
+# IGEHIRDETÉSI SOROZAT TERVEZŐ
+# =========================================================
+
+with tabs[10]:
+    st.header("📅 Igehirdetési sorozat tervező")
+
+    st.info(
+        "Ez a fül **külön** működik az igehely-alapú elemzéstől — más "
+        "session-kulcsokat használ (`series_*`). A terv **Gemini 1.5 Flash** "
+        f"modellen készül, akár **{GEMINI_SERIES_MAX_OUTPUT_TOKENS}** kimeneti tokenig.",
+        icon="📅",
+    )
+
+    st.subheader("Tervezzünk meg egy új sorozatot!")
+
+    st.text_area(
+        "Mi a sorozat központi témája vagy alapötlete?",
+        key="series_idea",
+        height=260,
+        placeholder=(
+            "Pl.: „Amikor elfogy az erő” — sorozat Illés történetei alapján;\n"
+            "„Jézus nehéz kérdései”;\n"
+            "„Remény a fogságban” — Dániel könyve;\n"
+            "„Sebek és helyreállás” — bibliai történetek a gyógyulásról;\n"
+            "vagy egy aktuális gyülekezeti kihívás bibliai feldolgozása stb.\n"
+            "\n"
+            "Tipp: Érdemes megadni a sorozat hangulatát, célját vagy a "
+            "gyülekezet aktuális kérdéseit is. A részletesebb leírás "
+            "általában mélyebb és relevánsabb eredményt ad."
+        ),
+    )
+
+    st.slider(
+        "Hány hetes legyen a sorozat?",
+        min_value=3,
+        max_value=12,
+        key="series_weeks",
+    )
+
+    series_busy = bool(st.session_state.get("_series_planner_running"))
+    if st.button(
+        "📅 Sorozat vázlatának elkészítése",
+        type="primary",
+        key="series_generate_btn",
+        disabled=series_busy,
+    ):
+        idea_raw = (st.session_state.get("series_idea") or "").strip()
+        weeks_n = int(st.session_state.get("series_weeks", 4))
+        if not idea_raw:
+            st.warning("Írd be a sorozat központi témáját vagy alapötletét.")
+        else:
+            series_user_prompt = (
+                "Központi téma / alapötlet:\n"
+                f"{idea_raw}\n\n"
+                f"Heti ütem (hét száma): **{weeks_n}**.\n\n"
+                f"Készíts **magyar** nyelven, a rendszerutasításban megadott Markdown-szerkezetnek "
+                f"megfelelően egy teljes sorozattervet. A **Heti bontás** alatt pontosan **{weeks_n}** hetet "
+                "dolgozz ki, sorszámozva (1. hét …, 2. hét …). Ne hagyj ki hetet, és ne adj több hetet, "
+                f"mint {weeks_n}. Minden hét legyen önálló, jól elkülönülő blokk."
+            )
+            st.session_state["_series_planner_running"] = True
+            try:
+                with st.spinner("A sorozat vázlatának összeállítása folyamatban..."):
+                    series_out = generate_text(
+                        series_user_prompt,
+                        tab_label="Igehirdetési sorozat tervező",
+                        use_cache=False,
+                        system_bundle=SERIES_PLANNER_SYSTEM_PROMPT,
+                        include_brevity_directive=False,
+                        max_output_tokens=GEMINI_SERIES_MAX_OUTPUT_TOKENS,
+                    )
+                st.session_state["series_planner_output"] = series_out
+            finally:
+                st.session_state["_series_planner_running"] = False
+            st.rerun()
+
+    series_md = (st.session_state.get("series_planner_output") or "").strip()
+    if series_md:
+        if series_md.startswith("⚠️") or series_md.startswith("⏳"):
+            st.warning(series_md)
+        else:
+            head_block, week_blocks = _parse_series_week_sections(series_md)
+            with st.container():
+                st.markdown("#### Sorozat — összefoglaló")
+                st.markdown(head_block or series_md)
+            if week_blocks:
+                st.markdown("#### Heti bontás")
+                for exp_title, exp_body in week_blocks:
+                    with st.expander(exp_title, expanded=False):
+                        st.markdown(exp_body)
+            else:
+                st.caption(
+                    "A heti részek külön expanderekbe rendezése nem sikerült automatikusan — "
+                    "a teljes válasz fent látható."
+                )
 
 
 # =========================================================
