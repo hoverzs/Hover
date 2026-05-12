@@ -3330,7 +3330,6 @@ defaults = {
     "using_builtin_key": bool(BUILTIN_API_KEY),
     "model_name": LOCKED_MODEL,
     "temperature": 0.3,
-    "max_tokens": 700,
 
     "last_igehely": "",
     "last_alkalom": "",
@@ -3660,79 +3659,40 @@ GEMINI_COOLDOWN_S = 8             # globális cooldown két logikai hívás köz
 GEMINI_DEBUG_LOG_MAX = 80         # session debug-log max bejegyzések
 
 # ─────────────────────────────────────────────────────────────────────
-# KÉT TIER — token-limitek a kulcsforrástól függően
+# VÁLASZHOSSZ — TOKEN-KORLÁT NÉLKÜL, BEKEZDÉS-ELŐÍRÁSSAL
 # ─────────────────────────────────────────────────────────────────────
-# Beépített, közös kulcsnál konzervatív (sok felhasználó osztozik
-# a kvótán), saját kulcsnál bőséges (kifejtett, lelkipásztori
-# minőségű válaszok teljes szöveg-átfogással).
+# A Gemini-hívásban SZÁNDÉKOSAN nincs `maxOutputTokens` cap és nincs
+# tier-szerinti tartomány: ehelyett maga a prompt utasítja a modellt,
+# hogy a választ 3–4 bekezdésben, lényegre törően foglalja össze.
+# Ez egyszerre kíméli a kvótát (Flash 2.5 free tier) és tartalmilag
+# is konzisztens, könnyen olvasható válaszokat ad minden modulban.
 
-BUILTIN_KEY_DEFAULT_TOKENS = 700      # közös kulcs default
-BUILTIN_KEY_MAX_TOKENS = 1500         # közös kulcs slider felső limit
-BUILTIN_KEY_MIN_TOKENS = 300
-
-OWN_KEY_DEFAULT_TOKENS = 4000         # saját kulcs default (min. 4000, ahogy kérted)
-OWN_KEY_MAX_TOKENS = 8192             # saját kulcs slider felső limit
-OWN_KEY_MIN_TOKENS = 1000
-
-GEMINI_DEFAULT_MAX_TOKENS = BUILTIN_KEY_DEFAULT_TOKENS  # backward-compat fallback
-
-# ─── Tier-szerinti tartalmi előírás ──────────────────────────────────
-# Beépített kulcsnál tömör, költségtakarékos.
-# Saját kulcsnál bővebb, teljes kifejtés, levágás-mentes lezárás.
-
-_BREVITY_DIRECTIVE_TIGHT = """\
+_RESPONSE_LENGTH_DIRECTIVE = """\
 ==================================================
-TÖMÖRÍTÉSI ELŐÍRÁS — KÖTELEZŐ
+VÁLASZHOSSZ — KÖTELEZŐ
 ==================================================
 
-- A teljes válasz legfeljebb 600 szó (kb. 700 token).
-- Ne írj fölösleges felvezetést vagy lezárást, csak érdemi tartalmat.
-- Markdown listákkal és rövid címekkel tagolj.
-- Ha a téma részletesebb kifejtést érdemelne, NE írd ki teljes
-  hosszában; helyette zárd egyetlen sorral:
-  *(A részletesebb kifejtésért indítsd a finomítás chatet,
-  vagy kérd külön bővítésre.)*
-"""
-
-_BREVITY_DIRECTIVE_FULL = """\
-==================================================
-TARTALMI ELŐÍRÁS — KIFEJTŐ, TELJES VÁLASZ
-==================================================
-
-- A válasz lehet részletes, alapos és kifejtő (akár 1500–2500 szó).
-- Markdown címsorokkal (`##`, `###`), listákkal, idézetekkel tagolj.
-- Természetes, közvetlen lelkipásztori hangon írj — ne legyen sablonos.
-- KRITIKUS: a válasz LEGYEN TELJES; ne hagyj nyitva fontos gondolatot.
-- Ha a token-keret szűkös lenne, inkább zárj le **korábban** egy
-  utolsó, kerek bekezdéssel, mint hogy félmondatban szakadj meg.
-- Az utolsó mondat mindig legyen lezárt, értelmes egész.
+- A teljes válasz LEGFELJEBB 3–4 jól megformált bekezdés legyen.
+- Egy bekezdés ~3–6 mondat; ne legyen egymondatos bekezdés-darabolás.
+- Tilos felsorolásokkal, alcímekkel mesterségesen felduzzasztani —
+  rövid `##` / `###` címsor csak akkor, ha valóban tagolja a választ.
+- NE írj felvezetést, megszólítást vagy záró udvariaskodást;
+  azonnal kezdj a lényeggel, és az utolsó mondat legyen lezárt egész.
+- Ha a téma bővebb kifejtést érdemelne, jelezd egyetlen mondatban:
+  *(A részletesebb kifejtésért indítsd a finomítás chatet.)*
+- A válasz LEGYEN TELJES — ne hagyj nyitott gondolatot, és ne szakadj
+  meg félmondatban. Inkább zárj le **korábban** egy kerek bekezdéssel.
 """
 
 
 def _is_using_builtin_key() -> bool:
-    """A felhasználó a beépített közös kulcsot használja-e."""
+    """A felhasználó a beépített közös kulcsot használja-e (csak label)."""
     return bool(st.session_state.get("using_builtin_key", False))
 
 
-def _tier_token_bounds() -> tuple[int, int, int]:
-    """Visszatér a (min, default, max) tuple-lel az aktuális tier alapján."""
-    if _is_using_builtin_key():
-        return BUILTIN_KEY_MIN_TOKENS, BUILTIN_KEY_DEFAULT_TOKENS, BUILTIN_KEY_MAX_TOKENS
-    return OWN_KEY_MIN_TOKENS, OWN_KEY_DEFAULT_TOKENS, OWN_KEY_MAX_TOKENS
-
-
-def _effective_max_tokens() -> int:
-    """A felhasználó beállítása, tier-ceiling-hez vágva (anti-truncation)."""
-    lo, default, hi = _tier_token_bounds()
-    raw = st.session_state.get("max_tokens")
-    if not isinstance(raw, (int, float)):
-        raw = default
-    return max(lo, min(int(raw), hi))
-
-
 def _active_brevity_directive() -> str:
-    """Tier-szerinti tartalmi előírás (tömör vs. kifejtő)."""
-    return _BREVITY_DIRECTIVE_TIGHT if _is_using_builtin_key() else _BREVITY_DIRECTIVE_FULL
+    """Egységes, kulcsforrástól független válaszhossz-előírás (3–4 bekezdés)."""
+    return _RESPONSE_LENGTH_DIRECTIVE
 
 
 def _now_str() -> str:
@@ -3847,11 +3807,9 @@ def _cooldown_remaining() -> float:
 def _build_payload(prompt: str, enable_google_search: bool, model: str) -> dict:
     """Összeállítja a Gemini REST kérés JSON body-ját (`gemini-2.5-flash`).
 
-    A brevity / tartalmi előírás TIER-FÜGGŐ:
-      - beépített közös kulcsnál: tömör (600 szó / ~700 token)
-      - saját kulcsnál: kifejtő (akár 2500 szó / 8192 token)
-    A `temperature` és a `maxOutputTokens` a felhasználói Beállításokból jön;
-    a max. kimenet a tier plafonjáig vágott (Flash 2.5 kompatibilis tartomány).
+    Token-korlát SEHOL nincs: nincs `maxOutputTokens` mező a payloadban.
+    A válasz hosszát maga a prompt szabályozza — `_RESPONSE_LENGTH_DIRECTIVE`
+    minden hívás elé bekerül és 3–4 bekezdésben kéri az összegzést.
     Google Search grounding: `google_search` tool ehhez a modellhez.
     """
     final_prompt = (
@@ -3866,7 +3824,6 @@ def _build_payload(prompt: str, enable_google_search: bool, model: str) -> dict:
         "contents": [{"parts": [{"text": final_prompt}]}],
         "generationConfig": {
             "temperature": st.session_state.get("temperature", 0.3),
-            "maxOutputTokens": _effective_max_tokens(),
         },
     }
     if enable_google_search:
@@ -3910,7 +3867,7 @@ def generate_text(
     )
     prompt_hash = _hash_prompt(
         prompt,
-        extra=f"{LOCKED_MODEL}|{st.session_state.get('max_tokens', GEMINI_DEFAULT_MAX_TOKENS)}",
+        extra=f"{LOCKED_MODEL}|{st.session_state.get('temperature', 0.3)}",
     )
 
     # ─── 1. CACHE HIT ────────────────────────────────────────────────
@@ -4042,9 +3999,11 @@ def generate_text(
                 text = _strip_chatty_intro(text)
 
                 # ── TRUNCATION DETEKTÁLÁS ─────────────────────────────
-                # A Gemini API a `finishReason` mezőben jelzi, hogy a
-                # generálás miért állt le. `MAX_TOKENS` = a beállított
-                # max_output_tokens elfogyott → a válasz LEVÁGOTT.
+                # Nincs `maxOutputTokens` cap a payloadban, így MAX_TOKENS
+                # csak a modell saját, magas default plafonjánál fordulhat
+                # elő — ritka. Ha mégis megtörténne, diszkrét üzenet kerül
+                # a válasz végére, és a prompt-direktíva (3–4 bekezdés)
+                # legközelebb kérdezze újra a modellt rövidebb formára.
                 finish_reason = candidate.get("finishReason", "STOP")
                 truncated = finish_reason == "MAX_TOKENS"
                 status_label = "200_OK" if not truncated else "200_TRUNCATED"
@@ -4054,22 +4013,12 @@ def generate_text(
                     if sources_md:
                         text = text + "\n" + sources_md
 
-                # Truncation jelzés a felhasználónak (csak ha valóban levágott)
                 if truncated:
-                    _eff = _effective_max_tokens()
-                    _is_builtin = _is_using_builtin_key()
-                    _ceil = BUILTIN_KEY_MAX_TOKENS if _is_builtin else OWN_KEY_MAX_TOKENS
-                    _hint = (
-                        "Növeld a *Válaszhossz* értéket a Beállítások fülön, "
-                        f"vagy adj meg saját API kulcsot a bővebb tier eléréséhez (jelenleg max. {_ceil} token)."
-                        if _is_builtin
-                        else f"Növeld a *Válaszhossz* csúszkát a Beállítások fülön (jelenleg {_eff} / max {_ceil} token), "
-                             "vagy bontsd kisebb szekciókra a kérést."
-                    )
                     text = text + (
                         "\n\n---\n\n"
-                        f"> ⚠️ **A válasz a token-limitnél megszakadt** (jelenlegi limit: {_eff} token). "
-                        f"{_hint}"
+                        "> ⚠️ **A válasz a modell saját kimeneti plafonjánál megszakadt.** "
+                        "Próbáld újrakérni rövidebb, célzottabb formában, vagy bontsd "
+                        "kisebb szekciókra a kérést."
                     )
 
                 _debug_log_append({
@@ -4443,16 +4392,13 @@ with tabs[0]:
                     st.session_state["igehely_input"] = v
                     st.rerun()
 
-    _info_tok = _effective_max_tokens()
-    _info_tier = "közös kulcs (tömör)" if _is_using_builtin_key() else "saját kulcs (kifejtő)"
     st.info(
         "**Tabonkénti generálás:** Itt csak az **Áttekintést** kéred le. "
         "A többi szekciót (Eredeti szöveg, Exegézis, Kortörténet, Teológia, "
         "Illusztrációk, Aktualizálás, Vázlat, Énekajánló) az adott fülön, "
         "külön gombbal indíthatod — így pontosan azt generálod, amire szükséged van. "
         f"\n\n*Két API-hívás között legalább {GEMINI_COOLDOWN_S} másodperc vár; "
-        f"jelenlegi válaszhossz: ~{_info_tok} token ({_info_tier}). "
-        "A Beállítások fülön állítható.*"
+        "minden válasz 3–4 bekezdésben érkezik (token-korlát nélkül).*"
     )
 
     overview_disabled = bool(st.session_state.get("_overview_running"))
@@ -4925,9 +4871,7 @@ with tabs[10]:
             if st.button("Vissza a beépített közös kulcsra", key="restore_builtin_key"):
                 st.session_state["api_key"] = _load_builtin_api_key().strip()
                 st.session_state["using_builtin_key"] = True
-                # max_tokens auto-reset a beépített tier defaultra
-                st.session_state["max_tokens"] = BUILTIN_KEY_DEFAULT_TOKENS
-                st.success("Visszaállítva a közös kulcsra (konzervatív válaszhossz aktiválva).")
+                st.success("Visszaállítva a közös kulcsra.")
                 st.rerun()
     else:
         st.info(
@@ -4949,16 +4893,10 @@ with tabs[10]:
         new_key = api_input.strip()
         st.session_state["api_key"] = new_key
         st.session_state["using_builtin_key"] = (new_key == _load_builtin_api_key().strip())
-        # max_tokens auto-reset a megfelelő tier defaultra
         if st.session_state["using_builtin_key"]:
-            st.session_state["max_tokens"] = BUILTIN_KEY_DEFAULT_TOKENS
-            st.success("Visszaállítva a közös kulcsra (konzervatív válaszhossz aktiválva).")
+            st.success("Visszaállítva a közös kulcsra.")
         else:
-            st.session_state["max_tokens"] = OWN_KEY_DEFAULT_TOKENS
-            st.success(
-                f"Saját API kulcs mentve. Bővebb válaszhossz aktiválva "
-                f"({OWN_KEY_DEFAULT_TOKENS} token / max {OWN_KEY_MAX_TOKENS})."
-            )
+            st.success("Saját API kulcs mentve.")
 
     # ─── Modell — RÖGZÍTETT ─────────────────────────────────────────
     # Az alkalmazás csak a `gemini-2.5-flash` modellt használja.
@@ -4991,46 +4929,11 @@ with tabs[10]:
         0.1
     )
 
-    # ─── Tier-szerinti slider tartomány ─────────────────────────────
-    _tier_min, _tier_default, _tier_max = _tier_token_bounds()
-    _is_builtin_tier = _is_using_builtin_key()
-
-    # Aktuális érték a tier-tartományba vágva (anti-truncation safety)
-    _curr_tok = st.session_state.get("max_tokens")
-    if not isinstance(_curr_tok, (int, float)):
-        _curr_tok = _tier_default
-    _curr_tok = max(_tier_min, min(int(_curr_tok), _tier_max))
-    st.session_state["max_tokens"] = _curr_tok
-
-    if _is_builtin_tier:
-        st.info(
-            f"**Beépített közös kulcs** — konzervatív tartomány "
-            f"({BUILTIN_KEY_MIN_TOKENS}–{BUILTIN_KEY_MAX_TOKENS} token). "
-            "Ha bővebb, kifejtett válaszra van szükséged, adj meg saját Gemini "
-            "kulcsot lent — automatikusan átáll a bővebb tartományra.",
-            icon="🔒",
-        )
-    else:
-        st.success(
-            f"**Saját Gemini kulcs aktív** — bővebb tartomány "
-            f"({OWN_KEY_MIN_TOKENS}–{OWN_KEY_MAX_TOKENS} token). "
-            "A válaszok kifejtettek és teljes lezárással érkeznek.",
-            icon="🚀",
-        )
-
-    _step = 100 if _is_builtin_tier else 200
-    st.session_state["max_tokens"] = st.slider(
-        "Válaszhossz (max output token)",
-        _tier_min,
-        _tier_max,
-        _curr_tok,
-        _step,
-        help=(
-            f"Token-limit egyetlen Gemini válaszra (jelenlegi tier: "
-            f"{'beépített kulcs' if _is_builtin_tier else 'saját kulcs'}). "
-            "Alacsonyabb = gyorsabb és olcsóbb; magasabb = részletesebb. "
-            f"Ajánlott alapérték: {_tier_default}."
-        ),
+    st.info(
+        "**Válaszhossz:** nincs token-korlát — minden generálás 3–4 bekezdésben "
+        "összegez. A pontos formát maga a prompt írja elő a modellnek, így "
+        "egységesen rövid, olvasható, prédikációs munkára kész válaszokat kapsz.",
+        icon="📝",
     )
 
     with st.expander("Aktív közös alap prompt"):
@@ -5057,7 +4960,7 @@ with tabs[10]:
             key="enable_cache",
             help=(
                 "Ha be van kapcsolva, ugyanaz a kérés (azonos prompt és "
-                "max-token beállítás) nem indít új API-hívást — a korábbi "
+                "kreativitás-beállítás) nem indít új API-hívást — a korábbi "
                 "választ adja vissza azonnal. Csak az aktuális munkamenetre érvényes."
             ),
         )
