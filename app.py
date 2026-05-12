@@ -4711,11 +4711,24 @@ with tabs[1]:
     st.header("Eredeti szöveg")
     st.caption("Görög / héber kulcsszavak a prédikációra készüléshez")
 
-    igehely_orig = st.text_input(
-        "Igeszakasz az eredeti nyelvi vizsgálathoz",
-        placeholder="Pl. Jn 3,16 vagy 1Móz 1,1–3",
-        key="original_verse"
+    # Az igeszakaszt az "Igehely" fülről örököljük — ugyanaz a forrás,
+    # mint a többi szekciónál (Exegézis, Kortörténet stb.). Itt csak
+    # olvasható kijelzést mutatunk; a változtatás az "Igehely" fülön
+    # történik, és a `_sync_inputs_to_last()` szinkronizálja minden
+    # generálás-gombnyomáskor.
+    _igehely_orig = (
+        (st.session_state.get("igehely_input") or "").strip()
+        or (st.session_state.get("last_igehely") or "").strip()
     )
+    if _igehely_orig:
+        st.markdown(
+            f"**Igeszakasz** *(az „Igehely” fülről):* `{_igehely_orig}`"
+        )
+    else:
+        st.info(
+            "Add meg az igeszakaszt az **Igehely** fülön — innen "
+            "automatikusan átvesszük."
+        )
 
     _orig_running = bool(st.session_state.get("_original_running"))
     if st.button(
@@ -4724,16 +4737,18 @@ with tabs[1]:
         key="original_run",
         disabled=_orig_running,
     ):
+        _sync_inputs_to_last()
+        _igehely_now = (st.session_state.get("last_igehely") or "").strip()
         if not _resolve_api_key().strip():
             st.warning("Először add meg az API kulcsot a Beállítások fülön.")
-        elif not igehely_orig:
-            st.warning("Add meg az igeszakaszt.")
+        elif not _igehely_now:
+            st.warning("Add meg az igeszakaszt az „Igehely” fülön, mielőtt itt generálsz.")
         else:
             st.session_state["_original_running"] = True
             try:
                 with st.spinner("Eredeti nyelvi elemzés készül..."):
                     st.session_state["original_text"] = generate_text(
-                        build_original_text_prompt(igehely_orig),
+                        build_original_text_prompt(_igehely_now),
                         tab_label="Eredeti szöveg",
                     )
             finally:
