@@ -6,6 +6,7 @@ import base64
 import json
 import io
 import os
+import re
 from datetime import datetime
 from pathlib import Path
 
@@ -3353,6 +3354,132 @@ def build_outline_markdown():
 
 
 # =========================================================
+# VÁZLAT WORD EXPORT (.docx)
+# =========================================================
+# Ugyanaz a tartalom-struktúra, mint a Markdown exportnál; a vázlat törzsét
+# és a kosár/ének szövegeket soronkénti, egyszerű Markdown-heurisztikával
+# alakítjuk Word-be (UTF-8, Calibri — magyar ékezetek).
+
+def _docx_strip_md_links(text: str) -> str:
+    return re.sub(r"\[([^\]]+)\]\([^)]*\)", r"\1", text or "")
+
+
+def _docx_add_inline_runs(paragraph, line: str) -> None:
+    """`**félkövér**` és sima szöveg — páros `**` felosztással."""
+    t = _docx_strip_md_links(line)
+    parts = t.split("**")
+    for i, seg in enumerate(parts):
+        if not seg:
+            continue
+        run = paragraph.add_run(seg)
+        if i % 2 == 1:
+            run.bold = True
+
+
+def _docx_append_markdown_body(doc, text: str) -> None:
+    """Markdown-szerű blokk Word-be: címsorok, listák, idézet, üres sorok."""
+    if not (text or "").strip():
+        p = doc.add_paragraph(style="Intense Quote")
+        p.add_run("_Még nem készült vázlat._")
+        return
+    for raw_line in text.splitlines():
+        line = raw_line.rstrip()
+        stripped = line.strip()
+        if not stripped:
+            doc.add_paragraph()
+            continue
+        if stripped in ("---", "***", "___"):
+            doc.add_paragraph()
+            continue
+        hm = re.match(r"^(#{1,6})\s+(.*)$", stripped)
+        if hm:
+            level = min(len(hm.group(1)), 4)
+            doc.add_heading(hm.group(2).strip(), level=level)
+            continue
+        if stripped.startswith(">"):
+            content = stripped.lstrip(">").strip()
+            p = doc.add_paragraph(style="Quote")
+            _docx_add_inline_runs(p, content)
+            continue
+        if re.match(r"^[-*+]\s+", stripped):
+            content = re.sub(r"^[-*+]\s+", "", stripped)
+            p = doc.add_paragraph(style="List Bullet")
+            _docx_add_inline_runs(p, content)
+            continue
+        if re.match(r"^\d+\.\s+", stripped):
+            content = re.sub(r"^\d+\.\s+", "", stripped)
+            p = doc.add_paragraph(style="List Number")
+            _docx_add_inline_runs(p, content)
+            continue
+        p = doc.add_paragraph()
+        _docx_add_inline_runs(p, stripped)
+
+
+def build_outline_docx() -> bytes:
+    """Összeállítja a vázlatkosár + ének Word dokumentumát (bináris .docx)."""
+    from docx import Document
+    from docx.enum.text import WD_COLOR_INDEX
+    from docx.shared import Pt
+
+    doc = Document()
+    doc.styles["Normal"].font.name = "Calibri"
+    doc.styles["Normal"].font.size = Pt(11)
+
+    doc.add_heading("Prédikációvázlat — Emmaus", level=1)
+
+    igehely = st.session_state.get("last_igehely", "—")
+    alkalom = st.session_state.get("last_alkalom", "—")
+    stilus = st.session_state.get("last_stilus", "—")
+    outline = st.session_state.get("outline", "").strip()
+    basket = st.session_state.get("basket", [])
+    songs = st.session_state.get("songs", "").strip()
+    now = datetime.now().strftime("%Y. %m. %d. %H:%M")
+
+    p_meta = doc.add_paragraph()
+    r_l = p_meta.add_run("Igehely: ")
+    r_l.bold = True
+    r_v = p_meta.add_run(igehely)
+    r_v.bold = True
+    try:
+        r_v.font.highlight_color = WD_COLOR_INDEX.YELLOW
+    except Exception:
+        r_v.italic = True
+
+    p_al = doc.add_paragraph()
+    p_al.add_run("Alkalom: ").bold = True
+    _docx_add_inline_runs(p_al, alkalom)
+
+    p_st = doc.add_paragraph()
+    p_st.add_run("Homiletikai stílus: ").bold = True
+    _docx_add_inline_runs(p_st, stilus)
+
+    doc.add_paragraph(f"Készült: {now}")
+    doc.add_paragraph()
+
+    doc.add_heading("Vázlat", level=2)
+    _docx_append_markdown_body(doc, outline)
+
+    if basket:
+        doc.add_heading("Vázlatkosár — gondolatok a vázlathoz", level=2)
+        for source, item in basket:
+            doc.add_heading(source, level=3)
+            _docx_append_markdown_body(doc, item)
+
+    if songs:
+        doc.add_heading("Liturgiai énekajánlás", level=2)
+        _docx_append_markdown_body(doc, songs)
+
+    doc.add_paragraph()
+    p_f = doc.add_paragraph()
+    r_f = p_f.add_run(f"Emmaus v{APP_VERSION} — digitális homiletikai műhely")
+    r_f.italic = True
+
+    buf = io.BytesIO()
+    doc.save(buf)
+    return buf.getvalue()
+
+
+# =========================================================
 # SESSION STATE
 # =========================================================
 
@@ -4658,19 +4785,43 @@ Egy konkrét, **prédikációs zárás** — összefoglalás, hívás, ígéret.
 
         st.divider()
         st.subheader("Letöltés és megosztás")
-        st.caption("A vázlat, a vázlatkosár tartalma és (ha van) az énekajánlás letölthető Markdown fájlként. Bármelyik szerkesztőben megnyitható, vasárnapra kinyomtatható, vagy átküldhető telefonra.")
+        st.caption(
+            "A vázlat, a vázlatkosár tartalma és (ha van) az énekajánlás letölthető "
+            "**Word (.docx)** formában (címsor-stílusok, kiemelt igehely, tagolt listák, UTF-8), "
+            "vagy **Markdown** fájlként — bármelyik szerkesztőben megnyitható, nyomtatható vagy telefonra küldhető."
+        )
 
         _md_payload = build_outline_markdown()
         _verse_clean = (st.session_state.get("last_igehely") or "vazlat").replace(" ", "_").replace("/", "-").replace(",", "").replace(":", "-")
-        _filename = f"emmaus-vazlat-{_verse_clean}-{datetime.now().strftime('%Y%m%d-%H%M')}.md"
+        _ts = datetime.now().strftime("%Y%m%d-%H%M")
+        _filename_md = f"emmaus-vazlat-{_verse_clean}-{_ts}.md"
+        _filename_docx = f"emmaus-vazlat-{_verse_clean}-{_ts}.docx"
 
-        st.download_button(
-            label="Vázlat letöltése (Markdown)",
-            data=_md_payload,
-            file_name=_filename,
-            mime="text/markdown",
-            use_container_width=False,
-        )
+        _col_docx, _col_md = st.columns(2)
+        with _col_docx:
+            try:
+                _docx_bytes = build_outline_docx()
+                st.download_button(
+                    label="Vázlat letöltése (Word)",
+                    data=_docx_bytes,
+                    file_name=_filename_docx,
+                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                    use_container_width=True,
+                    key="outline_download_docx",
+                )
+            except ImportError:
+                st.caption(
+                    "Word exporthoz telepítsd: `pip install python-docx`, majd indítsd újra az alkalmazást."
+                )
+        with _col_md:
+            st.download_button(
+                label="Vázlat letöltése (Markdown)",
+                data=_md_payload,
+                file_name=_filename_md,
+                mime="text/markdown",
+                use_container_width=True,
+                key="outline_download_md",
+            )
     else:
         st.info("Még nincs vázlat.")
 
