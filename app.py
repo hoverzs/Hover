@@ -3476,6 +3476,7 @@ defaults = {
     "series_planner_output": "",
     "series_idea": "",
     "series_weeks": 4,
+    "series_cadence": "vasárnapi",
 
     "basket": [],
 
@@ -3828,7 +3829,7 @@ def _active_brevity_directive() -> str:
 
 
 SERIES_PLANNER_SYSTEM_PROMPT = """\
-Te egy tapasztalt lelkipásztor és homiletikai tanácsadó vagy. A feladatod, hogy a megadott téma alapján egy összefüggő, teológiailag megalapozott és gyülekezetépítő Igehirdetési sorozat tervezetet készíts.
+Te egy tapasztalt lelkipásztor és homiletikai tanácsadó vagy. A feladatod, hogy a megadott téma és a felhasználó által megadott sorozat-jelleg (vasárnapi heti / hétköznapi napi / vegyes) alapján egy összefüggő, teológiailag megalapozott és gyülekezetépítő Igehirdetési sorozat tervezetet készíts.
 
 A válaszod szerkezete (Markdown formátumban):
 
@@ -3836,9 +3837,13 @@ Sorozat címe: Adj egy beszédes, hívogató címet a sorozatnak.
 
 Lelki célkitűzés: 2-3 mondatban foglald össze, mi a sorozat fő üzenete és hová kívánja elvezetni a hallgatókat.
 
-Heti bontás: Minden egyes hétre (a megadott számnak megfelelően) készíts egy külön részt:
+Alkalmankénti bontás: Minden egyes alkalomra (a megadott számnak megfelelően) készíts egy külön részt. A fejléc a sorozat jellegéhez igazodjon:
+- vasárnapi (heti) sorozatnál: „1. hét — …", „2. hét — …" …
+- hétköznapi sorozatnál (pl. bűnbánati hét, esti istentiszteleti hét): a hét napjai szerint („Hétfő — …", „Kedd — …" stb.) vagy „1. nap — …", „2. nap — …".
+- vegyes / egyéb ütemnél: „1. alkalom — …", „2. alkalom — …".
+A fejléc legyen önálló sor elején (Markdown bold vagy `##`/`###` cím is lehet), hogy a felület külön egységekbe tagolja.
 
-[Sorszám]. hét címe
+Minden alkalom tartalma:
 
 Fő alapige: (Pontos hivatkozás és a legfontosabb vers idézése)
 
@@ -3846,35 +3851,61 @@ Kapcsolódó igeszakasz: (Egy kiegészítő igehely a mélyebb megértéshez)
 
 Az igehirdetés fő üzenete: (3-4 pontba szedett teológiai és gyakorlati kulcsgondolat)
 
-Hétköznapi tanulság: (Egy konkrét kérdés vagy gyakorlat, amit a hívek magukkal vihetnek)
+Gyakorlati tanulság: (Egy konkrét kérdés vagy gyakorlat, amit a hívek magukkal vihetnek)
 
-Teológiai iránytű: Kövesd a protestáns hagyományokat, legyél bibliacentrikus, de a magyarázatok legyenek relevánsak a 21. századi ember életvezetési nehézségeire is."""
+Teológiai iránytű: Kövesd a protestáns hagyományokat, legyél bibliacentrikus, de a magyarázatok legyenek relevánsak a 21. századi ember életvezetési nehézségeire is. Ne adj több vagy kevesebb alkalmat, mint amennyit a felhasználó kért."""
+
+
+_SERIES_WEEKDAY_OR_FESTIVAL = (
+    r"H[eé]tf[oő]|Kedd|Szerda|Cs[uü]t[oö]rt[oö]k|P[eé]ntek|Szombat|Vas[aá]rnap|"
+    r"Vir[aá]gvas[aá]rnap|Nagyh[eé]tf[oő]|Nagykedd|Nagyszerda|"
+    r"Nagycs[uü]t[oö]rt[oö]k|Nagyp[eé]ntek|Nagyszombat|H[uú]sv[eé]t"
+)
+
+_SERIES_SECTION_SPLIT_RE = re.compile(
+    r"(?m)^(?=\s*"
+    r"(?:#{1,6}\s+)?"
+    r"(?:\*\*)?"
+    r"(?:"
+    r"\d+\.\s*(?:hét|alkalom|nap|este)\b"
+    r"|" + _SERIES_WEEKDAY_OR_FESTIVAL + r"\b"
+    r")"
+    r")",
+    re.IGNORECASE,
+)
 
 
 def _parse_series_week_sections(markdown: str) -> tuple[str, list[tuple[str, str]]]:
-    """Sorozat-fej + heti blokkok szétválasztása: sor eleji „N. hét …” mintázat alapján."""
+    """Sorozat-fej + alkalmankénti blokkok szétválasztása.
+
+    Több mintázatot ismer: `N. hét`, `N. alkalom`, `N. nap`, `N. este`,
+    valamint hétköznap- és ünnepneveket (Hétfő, Nagypéntek, …) — opcionális
+    `**` vagy `##`/`###` előtaggal.
+    """
     text = (markdown or "").strip()
     if not text:
         return "", []
 
-    pattern = re.compile(r"(?m)^(?=\d+\.\s*hét)", re.IGNORECASE)
-    parts = pattern.split(text)
+    parts = _SERIES_SECTION_SPLIT_RE.split(text)
     if len(parts) <= 1:
         return text, []
 
     head = parts[0].strip()
-    weeks: list[tuple[str, str]] = []
+    sections: list[tuple[str, str]] = []
     for chunk in parts[1:]:
         chunk = chunk.strip()
         if not chunk:
             continue
         first_line, sep, rest = chunk.partition("\n")
-        title = (first_line.strip() or "Hét")[:160]
+        title_raw = first_line.strip() or "Alkalom"
+        title = re.sub(r"^#{1,6}\s+", "", title_raw)
+        title = title.strip("*").strip()
+        title = (title or "Alkalom")[:160]
         body = rest.strip() if sep else chunk
         if not body:
             body = chunk
-        weeks.append((title, body))
-    return head, weeks
+        sections.append((title, body))
+    return head, sections
 
 
 def _now_str() -> str:
@@ -5453,11 +5484,27 @@ with tabs[10]:
         ),
     )
 
+    SERIES_CADENCE_OPTIONS = {
+        "vasárnapi": "Vasárnapi sorozat (heti, vasárnaponkénti alkalom)",
+        "hetkoznapi": "Hétköznapi sorozat (egymást követő napok — pl. bűnbánati hét, esti istentiszteleti hét)",
+        "vegyes": "Egyéb / vegyes ütem (havi, alkalmi, lelkigyakorlat stb.)",
+    }
+    series_cadence_key = st.selectbox(
+        "Milyen jellegű a sorozat?",
+        options=list(SERIES_CADENCE_OPTIONS.keys()),
+        format_func=lambda k: SERIES_CADENCE_OPTIONS[k],
+        key="series_cadence",
+    )
+
     st.slider(
-        "Hány hetes legyen a sorozat?",
-        min_value=3,
-        max_value=12,
+        "Hány alkalmas legyen a sorozat?",
+        min_value=2,
+        max_value=14,
         key="series_weeks",
+        help=(
+            "Vasárnapi sorozatnál ez a hetek száma, hétköznapi sorozatnál "
+            "az egymást követő alkalmak (napok / esték) száma."
+        ),
     )
 
     series_busy = bool(st.session_state.get("_series_planner_running"))
@@ -5469,17 +5516,41 @@ with tabs[10]:
     ):
         idea_raw = (st.session_state.get("series_idea") or "").strip()
         weeks_n = int(st.session_state.get("series_weeks", 4))
+        cadence_label = SERIES_CADENCE_OPTIONS.get(series_cadence_key, "")
+        cadence_instructions = {
+            "vasárnapi": (
+                "A sorozat **vasárnapi (heti) ütemű** — minden alkalom egy-egy "
+                "vasárnapi istentisztelet. A fejléceket „1. hét — …", „2. hét — …" "
+                "stílusban add (sorszámozva)."
+            ),
+            "hetkoznapi": (
+                "A sorozat **hétköznapi**, egymást követő napokon zajlik (pl. "
+                "bűnbánati hét, esti istentiszteleti hét). A fejléceket vagy a "
+                "hét napjai szerint („Hétfő — …", „Kedd — …" stb.), vagy "
+                "„1. nap — …", „2. nap — …" formában add. Ha a téma a Nagyhetet "
+                "vagy más egyházi hetet érinti, használhatsz konkrét napneveket "
+                "is („Nagyhétfő — …", „Nagypéntek — …")."
+            ),
+            "vegyes": (
+                "A sorozat **vegyes / egyéb ütemű** — válaszd meg a természetes "
+                "egységet (alkalom / este / összejövetel). A fejléceket "
+                "„1. alkalom — …", „2. alkalom — …" stílusban add."
+            ),
+        }.get(series_cadence_key, "")
         if not idea_raw:
             st.warning("Írd be a sorozat központi témáját vagy alapötletét.")
         else:
             series_user_prompt = (
                 "Központi téma / alapötlet:\n"
                 f"{idea_raw}\n\n"
-                f"Heti ütem (hét száma): **{weeks_n}**.\n\n"
-                f"Készíts **magyar** nyelven, a rendszerutasításban megadott Markdown-szerkezetnek "
-                f"megfelelően egy teljes sorozattervet. A **Heti bontás** alatt pontosan **{weeks_n}** hetet "
-                "dolgozz ki, sorszámozva (1. hét …, 2. hét …). Ne hagyj ki hetet, és ne adj több hetet, "
-                f"mint {weeks_n}. Minden hét legyen önálló, jól elkülönülő blokk."
+                f"Sorozat jellege: **{cadence_label}**\n"
+                f"{cadence_instructions}\n\n"
+                f"Alkalmak száma: **{weeks_n}**.\n\n"
+                "Készíts **magyar** nyelven, a rendszerutasításban megadott Markdown-szerkezetnek "
+                f"megfelelően egy teljes sorozattervet. Az **Alkalmankénti bontás** alatt pontosan "
+                f"**{weeks_n}** alkalmat dolgozz ki — a sorozat jellegéhez illő fejlécekkel "
+                "(lásd fent). Ne hagyj ki alkalmat, és ne adj többet a kért számnál. "
+                "Minden alkalom legyen önálló, jól elkülönülő blokk."
             )
             st.session_state["_series_planner_running"] = True
             try:
@@ -5502,18 +5573,18 @@ with tabs[10]:
         if series_md.startswith("⚠️") or series_md.startswith("⏳"):
             st.warning(series_md)
         else:
-            head_block, week_blocks = _parse_series_week_sections(series_md)
+            head_block, section_blocks = _parse_series_week_sections(series_md)
             with st.container():
                 st.markdown("#### Sorozat — összefoglaló")
                 st.markdown(head_block or series_md)
-            if week_blocks:
-                st.markdown("#### Heti bontás")
-                for exp_title, exp_body in week_blocks:
+            if section_blocks:
+                st.markdown("#### Alkalmankénti bontás")
+                for exp_title, exp_body in section_blocks:
                     with st.expander(exp_title, expanded=False):
                         st.markdown(exp_body)
             else:
                 st.caption(
-                    "A heti részek külön expanderekbe rendezése nem sikerült automatikusan — "
+                    "Az egyes alkalmak külön expanderekbe rendezése nem sikerült automatikusan — "
                     "a teljes válasz fent látható."
                 )
 
