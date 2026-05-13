@@ -4849,8 +4849,8 @@ with tabs[7]:
         ]
     )
 
-    # Régebbi munkamenetnél a korábban generált vázlatot induló piszkozatként
-    # tesszük szerkeszthetővé, de csak akkor, ha még nincs külön műhely-piszkozat.
+    # Régebbi munkamenetnél a korábban generált vázlatot induló vázlatként
+    # tesszük szerkeszthetővé, de csak akkor, ha még nincs külön műhely-vázlat.
     if st.session_state.get("outline") and not st.session_state.get("outline_draft"):
         st.session_state["outline_draft"] = st.session_state["outline"]
 
@@ -4867,7 +4867,7 @@ with tabs[7]:
 
     _outline_running = bool(st.session_state.get("_outline_running"))
     if st.button(
-        "Szerkeszthető piszkozat készítése",
+        "Szerkeszthető vázlat készítése",
         type="primary",
         disabled=_outline_running,
         key="outline_run",
@@ -4875,10 +4875,10 @@ with tabs[7]:
         basket_text = "\n".join([f"- {source}: {text}" for source, text in st.session_state["basket"]])
 
         prompt = f"""
-# PISZKOZAT — KOHERENS PRÉDIKÁCIÓS STRUKTÚRA
+# VÁZLAT — KOHERENS PRÉDIKÁCIÓS STRUKTÚRA
 
 Szakmai vízió:
-Készíts **szerkeszthető homiletikai piszkozatot**, nem végleges prédikációt.
+Készíts **szerkeszthető homiletikai vázlatot**, nem végleges prédikációt.
 Rendezd össze az eddigi fülekből és a vázlatkosárból származó gondolatokat
 egy **koherens prédikációs struktúrává**. Ne írj kimondásra kész prédikációs
 mondatokat; ne úgy fogalmazz, mintha már maga az igehirdetés szólalna meg.
@@ -4912,12 +4912,12 @@ Az eddigi elemzések, amelyekből építkezz:
 ## A vázlatba feltétlenül beépítendő, megőrzött gondolatok
 {basket_text if basket_text else "Nincs külön elem."}
 
-A piszkozat legyen lelkipásztori használatra alkalmas, de NE legyen teljes prédikáció.
+A vázlat legyen lelkipásztori használatra alkalmas, de NE legyen teljes prédikáció.
 Ne adj kész bevezető-, átvezető- vagy zárómondatokat. Inkább irányokat,
 logikai kapcsolódásokat, hangsúlyokat és szerkezeti pontokat adj.
 Hagyj benne olyan elemeket is, amelyeket a lelkipásztor tovább tud gondolni.
 
-A piszkozatot pontosan az alábbi szerkezetben add (Markdown formátum):
+A vázlatot pontosan az alábbi szerkezetben add (Markdown formátum):
 
 ## Tételmondat (scopus)
 A prédikáció gerince egyetlen világos, teológiailag tartós állításban.
@@ -4948,7 +4948,7 @@ Jelezd, milyen lelki vagy teológiai irányba fusson ki a vázlat; ne írj kész
 
         st.session_state["_outline_running"] = True
         try:
-            with st.spinner("Szerkeszthető piszkozat készül..."):
+            with st.spinner("Szerkeszthető vázlat készül..."):
                 draft = generate_text(
                     prompt,
                     tab_label="Vázlat",
@@ -4966,17 +4966,17 @@ Jelezd, milyen lelki vagy teológiai irányba fusson ki a vázlat; ne írj kész
             st.session_state["_outline_running"] = False
         st.rerun()
 
-    st.subheader("1. Szerkeszthető fő piszkozat")
+    st.subheader("1. Szerkeszthető fő vázlat")
     st.caption(
         "Ez a fő műhelymező. A későbbi „Végleges vázlat készítése” mindig "
         "ennek az aktuális tartalmából dolgozik."
     )
     outline_draft_current = st.text_area(
-        "Fő piszkozat",
+        "Fő vázlat",
         key="_outline_draft_editor",
         height=420,
         placeholder=(
-            "Írj vagy generálj egy első homiletikai piszkozatot. "
+            "Írj vagy generálj egy első homiletikai vázlatot. "
             "Ide kerülhet a tételmondat, az ív, a fő pontok, átvezetések, "
             "képek, alkalmazási irányok."
         ),
@@ -4988,7 +4988,7 @@ Jelezd, milyen lelki vagy teológiai irányba fusson ki a vázlat; ne írj kész
     st.divider()
     st.subheader("2. Iteratív homiletikai műhely")
     st.caption(
-        "A kérdések nem kerülnek bele automatikusan a piszkozatba. Előbb válaszolsz "
+        "A kérdések nem kerülnek bele automatikusan a vázlatba. Előbb válaszolsz "
         "rájuk, majd külön kérheted az átdolgozást."
     )
 
@@ -4999,14 +4999,14 @@ Jelezd, milyen lelki vagy teológiai irányba fusson ki a vázlat; ne írj kész
         disabled=question_running or not has_draft,
     ):
         question_prompt = f"""
-Egy prédikációs piszkozatot műhelyezünk. Ne írd át a piszkozatot.
+Egy prédikációs vázlatot műhelyezünk. Ne írd át a vázlatot.
 Csak tegyél fel **pontosan 4** egyszerű, gondolkodtató kérdést.
 
 A kérdések célja brainstorming: segítsék a lelkipásztort abban, hogy
 észrevegye, mit szeretne még jobban kiemelni, elmélyíteni vagy személyesebbé
 tenni a vázlatban és később az igehirdetésben.
 
-Jelenlegi fő piszkozat:
+Jelenlegi fő vázlat:
 {outline_draft_current}
 
 Kérdésirányok:
@@ -5033,7 +5033,7 @@ A kérdések legyenek közérthetőek, természetesek, nem túlbonyolított teol
         st.rerun()
 
     if not has_draft:
-        st.info("Előbb írj vagy generálj egy fő piszkozatot.")
+        st.info("Előbb írj vagy generálj egy fő vázlatot.")
 
     if st.session_state.get("outline_workshop_questions"):
         st.markdown("#### Tisztázó kérdések")
@@ -5055,18 +5055,18 @@ A kérdések legyenek közérthetőek, természetesek, nem túlbonyolított teol
 
     rework_running = bool(st.session_state.get("_outline_rework_running"))
     if st.button(
-        "Piszkozat átdolgozása a válaszok alapján",
+        "Vázlat átdolgozása a válaszok alapján",
         key="outline_rework_btn",
         disabled=rework_running or not has_draft or not answers_current.strip(),
     ):
         rework_prompt = f"""
-Egy prédikációs piszkozatot kell **valóban átszerkesztened** a lelkipásztor
+Egy prédikációs vázlatot kell **valóban átszerkesztened** a lelkipásztor
 válaszai és új hangsúlyai alapján.
 
 Fontos:
-- NE másold be a válaszokat a piszkozat végére.
+- NE másold be a válaszokat a vázlat végére.
 - NE csak függeléket írj.
-- Szerkeszd át a teljes piszkozatot úgy, hogy a válaszokból származó hangsúlyok
+- Szerkeszd át a teljes vázlatot úgy, hogy a válaszokból származó hangsúlyok
   szervesen beépüljenek.
 - Tartsd meg a felhasználó saját gondolatait, hangját és eredeti jó meglátásait.
 - Pontosítsd a fő üzenetet (scopus).
@@ -5077,7 +5077,7 @@ Fontos:
 - Ne adj kimondásra kész prédikációs mondatokat; a szöveg maradjon vázlat,
   nem elmondandó igehirdetés.
 
-Aktuális fő piszkozat:
+Aktuális fő vázlat:
 {outline_draft_current}
 
 AI által korábban feltett tisztázó kérdések:
@@ -5087,12 +5087,12 @@ Felhasználói válaszok, hangsúlyok, pontosítások:
 {answers_current}
 
 Kimenet:
-Adj egy **átdolgozott, egységes prédikációs piszkozatot** Markdown formátumban.
-Ne írj meta-kommentárt arról, mit változtattál; csak az átdolgozott piszkozatot add.
+Adj egy **átdolgozott, egységes prédikációs vázlatot** Markdown formátumban.
+Ne írj meta-kommentárt arról, mit változtattál; csak az átdolgozott vázlatot add.
 """
         st.session_state["_outline_rework_running"] = True
         try:
-            with st.spinner("A piszkozat átdolgozása folyamatban..."):
+            with st.spinner("A vázlat átdolgozása folyamatban..."):
                 reworked = generate_text(
                     rework_prompt,
                     tab_label="Vázlat",
@@ -5105,22 +5105,22 @@ Ne írj meta-kommentárt arról, mit változtattál; csak az átdolgozott piszko
         st.rerun()
 
     if st.session_state.get("outline_reworked_draft"):
-        st.markdown("#### Átdolgozott piszkozat")
+        st.markdown("#### Átdolgozott vázlat")
         reworked_current = st.text_area(
-            "Átdolgozott piszkozat (szerkeszthető)",
+            "Átdolgozott vázlat (szerkeszthető)",
             key="_outline_reworked_editor",
             height=420,
         )
         st.session_state["outline_reworked_draft"] = reworked_current
 
         if st.button(
-            "Átdolgozott piszkozat használata",
+            "Átdolgozott vázlat használata",
             key="outline_accept_reworked_btn",
             disabled=not reworked_current.strip(),
         ):
             st.session_state["outline_draft"] = reworked_current
             st.session_state["_pending_outline_draft_editor"] = reworked_current
-            st.success("Az átdolgozott piszkozat lett a fő piszkozat.")
+            st.success("Az átdolgozott vázlat lett a fő vázlat.")
             st.rerun()
 
     st.divider()
@@ -5186,7 +5186,7 @@ Az eddigi fülek anyaga:
 ## Vázlatkosár megtartott gondolatai
 {basket_text_final}
 
-Aktuális fő piszkozat:
+Aktuális fő vázlat:
 {outline_draft_current}
 
 Vázlat műhely-kérdések:
@@ -5195,7 +5195,7 @@ Vázlat műhely-kérdések:
 Felhasználói válaszok és finomítások:
 {st.session_state.get("outline_workshop_answers", "").strip() or "Nincs külön válasz."}
 
-Átdolgozott piszkozat, ha készült:
+Átdolgozott vázlat, ha készült:
 {st.session_state.get("outline_reworked_draft", "").strip() or "Nincs külön átdolgozott változat."}
 
 A végleges vázlatot pontosan az alábbi szerkezetben add (Markdown formátum):
@@ -5229,7 +5229,7 @@ Ne írj kész záróbeszédet.
 """
         st.session_state["_outline_final_running"] = True
         try:
-            with st.spinner("Végleges vázlat készül az aktuális fő piszkozatból..."):
+            with st.spinner("Végleges vázlat készül az aktuális fő vázlatból..."):
                 st.session_state["outline"] = generate_text(
                     final_prompt,
                     tab_label="Vázlat",
@@ -5330,7 +5330,7 @@ Válaszformátum:
                 f"_(Aktív Python: `{_py}`)_"
             )
     else:
-        st.info("Még nincs végleges vázlat. A véglegesítés mindig a fenti fő piszkozat aktuális tartalmából készül.")
+        st.info("Még nincs végleges vázlat. A véglegesítés mindig a fenti fő vázlat aktuális tartalmából készül.")
 
 
 # =========================================================
