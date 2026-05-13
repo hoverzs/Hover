@@ -2748,10 +2748,10 @@ Ne írj teljes prédikációt — szakmai feltáró elemzést készíts.
 """,
     "exegesis": """{alap}
 
-# EXEGÉZIS — PROFESSZIONÁLIS SZÖVEGELEMZÉS
+# Exegézis — Szövegelemzés
 
 Szakmai vízió:
-Készíts professzionális exegetikai elemzést. Határozd meg a szakasz **pontos
+Készíts alapos exegetikai elemzést. Határozd meg a szakasz **pontos
 szerkezetét** és **irodalmi műfaját**. Elemezd a kontextuális összefüggéseket:
 mi előzi meg, mi követi, és hogyan illeszkedik ez a rész **a kánon egészébe**.
 Világíts rá a **biztos pontokra** és a **vitatott értelmezési kérdésekre** is.
@@ -3241,6 +3241,7 @@ WORKSPACE_STR_KEYS = [
     "illustrations", "actualization", "outline",
     "outline_draft", "outline_workshop_questions",
     "outline_workshop_answers", "outline_reworked_draft",
+    "outline_title_suggestions",
     "original_text", "songs",
     "series_planner_output", "series_idea",
 ]
@@ -3436,6 +3437,7 @@ defaults = {
     "outline_workshop_questions": "",
     "outline_workshop_answers": "",
     "outline_reworked_draft": "",
+    "outline_title_suggestions": "",
     "original_text": "",
     "songs": "",
 
@@ -4877,11 +4879,12 @@ with tabs[7]:
 
 Szakmai vízió:
 Készíts **szerkeszthető homiletikai piszkozatot**, nem végleges prédikációt.
-Dolgozz ki egy **koherens prédikációs struktúrát**. Fogalmazz meg egy
-**világos tételmondatot (scopus)**. Alakíts ki egy **természetes ívű
-gondolatmenetet** teológiai hangsúlyokkal. Jelöld meg a prédikáció
-**„evangéliumi fordulatát"** — az utat a **diagnózistól az Isten
-gyógyító válaszáig**.
+Rendezd össze az eddigi fülekből és a vázlatkosárból származó gondolatokat
+egy **koherens prédikációs struktúrává**. Ne írj kimondásra kész prédikációs
+mondatokat; ne úgy fogalmazz, mintha már maga az igehirdetés szólalna meg.
+
+A cél: jól felépített, áttekinthető, tovább szerkeszthető vázlat,
+amely segíti a lelkipásztort a saját igehirdetése megformálásában.
 
 Homiletikai modell:
 {homiletikai_modell}
@@ -4910,35 +4913,34 @@ Az eddigi elemzések, amelyekből építkezz:
 {basket_text if basket_text else "Nincs külön elem."}
 
 A piszkozat legyen lelkipásztori használatra alkalmas, de NE legyen teljes prédikáció.
-Hagyj benne olyan pontokat is, amelyeket a lelkipásztor tovább tud gondolni.
+Ne adj kész bevezető-, átvezető- vagy zárómondatokat. Inkább irányokat,
+logikai kapcsolódásokat, hangsúlyokat és szerkezeti pontokat adj.
+Hagyj benne olyan elemeket is, amelyeket a lelkipásztor tovább tud gondolni.
 
 A piszkozatot pontosan az alábbi szerkezetben add (Markdown formátum):
 
-## Címajánlatok
-3–5 erős, kifejező címet — mindegyikhez 1 mondatos rövid indoklás.
-
 ## Tételmondat (scopus)
-**Egyetlen, lényegre törő, teológiailag tartós mondat** — ez a prédikáció gerince.
+A prédikáció gerince egyetlen világos, teológiailag tartós állításban.
 
 ## Az ív — diagnózis → evangéliumi fordulat → Isten válasza
-Egy bekezdésben mutasd meg, milyen **mozgás** vezeti a hallgatót az igehirdetésen át,
-hol van az **„evangéliumi fordulat"**, ahol a textus a diagnózistól az Isten gyógyító
-válaszához vezet.
+Mutasd meg, milyen **mozgás** rendezheti a vázlatot: honnan indul, hol van
+az **evangéliumi fordulat**, és hová érkezik meg a textus alapján.
 
 ## Szerkezet
 A választott modell szerint **2–4 pontos vázlat**, mindegyik ponthoz:
 - pont címe (rövid, hangsúlyos),
-- 2–3 mondatos magyarázat,
+- rövid magyarázat arról, mit rendez ez a pont,
 - konkrét textuális vagy teológiai horgony.
 
-## Átvezetések
-Az egyes pontok közti **természetes átvezetések** (1–1 mondat).
+## Átvezetési logika
+Ne kész mondatokat írj, hanem jelezd, hogyan kapcsolódnak egymáshoz a pontok.
 
-## Bevezetés
-Egy konkrét, **prédikációs nyitó megoldás** — kép, kérdés, élethelyzet.
+## Bevezetési irány
+Adj egy lehetséges nyitási irányt: kép, kérdés, élethelyzet vagy feszültség,
+de ne fogalmazd meg kész prédikációs szövegként.
 
-## Lezárás
-Egy konkrét, **prédikációs zárás** — összefoglalás, hívás, ígéret.
+## Lezárási irány
+Jelezd, milyen lelki vagy teológiai irányba fusson ki a vázlat; ne írj kész záróbeszédet.
 
 ## Alkalmazási pontok
 2–3 konkrét, gyülekezeti életbe illesztett **alkalmazási irány**.
@@ -4959,6 +4961,7 @@ Egy konkrét, **prédikációs zárás** — összefoglalás, hívás, ígéret.
                 st.session_state["outline_reworked_draft"] = ""
                 st.session_state["_outline_reworked_editor"] = ""
                 st.session_state["outline"] = ""
+                st.session_state["outline_title_suggestions"] = ""
         finally:
             st.session_state["_outline_running"] = False
         st.rerun()
@@ -4997,23 +5000,25 @@ Egy konkrét, **prédikációs zárás** — összefoglalás, hívás, ígéret.
     ):
         question_prompt = f"""
 Egy prédikációs piszkozatot műhelyezünk. Ne írd át a piszkozatot.
-Csak tegyél fel **5–8 tisztázó homiletikai kérdést**, amelyek segítik
-a lelkipásztort a továbbgondolásban.
+Csak tegyél fel **pontosan 4** egyszerű, gondolkodtató kérdést.
+
+A kérdések célja brainstorming: segítsék a lelkipásztort abban, hogy
+észrevegye, mit szeretne még jobban kiemelni, elmélyíteni vagy személyesebbé
+tenni a vázlatban és később az igehirdetésben.
 
 Jelenlegi fő piszkozat:
 {outline_draft_current}
 
 Kérdésirányok:
-- mi a textus központi evangéliumi mozgása,
-- mi a hallgatók konkrét élethelyzete,
-- hol túl általános vagy moralizáló a piszkozat,
-- melyik pont igényel textuális / teológiai pontosítást,
-- milyen személyes, gyülekezeti vagy pasztorális megfigyelés hiányzik,
-- hogyan lehetne természetesebb az átvezetés és a lezárás.
+- Mit emelne ki a lelkipásztor leginkább ebből az igéből?
+- Melyik pontot lenne érdemes még elmélyíteni vagy konkrétabbá tenni?
+- Milyen kérdés, kép, tapasztalat vagy gyülekezeti helyzet kapcsolódhat ehhez?
+- Mi hiányzik még ahhoz, hogy a vázlat élőbb, személyesebb és prédikálhatóbb legyen?
 
 Válaszformátum:
-Csak számozott kérdéslista legyen, röviden, magyarul. Ne adj tanácsot,
-ne írj új vázlatot, ne fűzz magyarázatot a kérdésekhez.
+Csak **4 számozott kérdés** legyen, magyarul.
+Ne adj tanácsot, ne írj új vázlatot, ne fűzz hosszú magyarázatot.
+A kérdések legyenek közérthetőek, természetesek, nem túlbonyolított teológiai kérdések.
 """
         st.session_state["_outline_questions_running"] = True
         try:
@@ -5069,6 +5074,8 @@ Fontos:
 - Javítsd az átvezetéseket.
 - Szűrd ki a túl általános, moralizáló vagy textustól elszakadó részeket.
 - Ne készíts teljes prédikációt; maradjon műhelyben tovább szerkeszthető vázlat.
+- Ne adj kimondásra kész prédikációs mondatokat; a szöveg maradjon vázlat,
+  nem elmondandó igehirdetés.
 
 Aktuális fő piszkozat:
 {outline_draft_current}
@@ -5125,50 +5132,97 @@ Ne írj meta-kommentárt arról, mit változtattál; csak az átdolgozott piszko
         key="outline_final_btn",
         disabled=final_running or not has_draft,
     ):
+        basket_text_final = "\n".join(
+            f"- {source}: {text}"
+            for source, text in st.session_state["basket"]
+        ) or "Nincs külön elem."
+
         final_prompt = f"""
-Az alábbi **aktuális fő piszkozatból** készíts végleges, lelkipásztori
-használatra alkalmas prédikációvázlatot.
+Készíts végleges, lelkipásztori használatra alkalmas **prédikációvázlatot**.
+Ez ne legyen kimondásra kész prédikációszöveg: ne adj elmondandó mondatokat,
+ne írj kész bevezetést, átvezetést vagy záróbeszédet.
+
+A feladatod: strukturáld össze az összes eddig generált fül gondolatait,
+a vázlatkosár megtartott elemeit, valamint a Vázlat fülön született
+finomításokat egy szépen felépített, de nem túl bőbeszédű vázlattá.
 
 Nagyon fontos:
-- Csak az aktuális fő piszkozat tartalmából dolgozz.
-- Ne használd a korábbi kérdéslistát önálló tartalomként.
-- Ne másold be a műhelyválaszokat függelékként.
-- A piszkozat gondolatait szerkeszd kész, koherens vázlattá.
-- Tartsd meg a felhasználó saját hangsúlyait.
+- Ne írj kész prédikációt.
+- Ne adj címjavaslatokat; ez külön gombbal készül.
+- Ne másold be a kérdéseket vagy válaszokat függelékként.
+- A finomításokból származó hangsúlyokat szervesen építsd be a vázlatba.
+- Tartsd meg a felhasználó saját gondolatait és jó meglátásait.
+- Szűrd ki a túl általános, moralizáló vagy textustól elszakadó részeket.
 
 Homiletikai modell:
 {homiletikai_modell}
 
+Az eddigi fülek anyaga:
+
+## Áttekintés
+{st.session_state["overview"]}
+
+## Eredeti szöveg tanulmányozása
+{st.session_state["original_text"]}
+
+## Exegézis
+{st.session_state["exegesis"]}
+
+## Kortörténet
+{st.session_state["history"]}
+
+## Teológia
+{st.session_state["theology"]}
+
+## Illusztrációk
+{st.session_state["illustrations"]}
+
+## Aktualizálás
+{st.session_state["actualization"]}
+
+## Énekajánló
+{st.session_state["songs"]}
+
+## Vázlatkosár megtartott gondolatai
+{basket_text_final}
+
 Aktuális fő piszkozat:
 {outline_draft_current}
 
+Vázlat műhely-kérdések:
+{st.session_state.get("outline_workshop_questions", "").strip() or "Nincs külön kérdéslista."}
+
+Felhasználói válaszok és finomítások:
+{st.session_state.get("outline_workshop_answers", "").strip() or "Nincs külön válasz."}
+
+Átdolgozott piszkozat, ha készült:
+{st.session_state.get("outline_reworked_draft", "").strip() or "Nincs külön átdolgozott változat."}
+
 A végleges vázlatot pontosan az alábbi szerkezetben add (Markdown formátum):
 
-## Címajánlatok
-3–5 erős, kifejező címet — mindegyikhez 1 mondatos rövid indoklás.
-
 ## Tételmondat (scopus)
-**Egyetlen, lényegre törő, teológiailag tartós mondat** — ez a prédikáció gerince.
+Egyetlen, lényegre törő, teológiailag tartós állítás — a vázlat gerince.
 
 ## Az ív — diagnózis → evangéliumi fordulat → Isten válasza
-Egy bekezdésben mutasd meg, milyen **mozgás** vezeti a hallgatót az igehirdetésen át,
-hol van az **„evangéliumi fordulat”**, ahol a textus a diagnózistól az Isten gyógyító
-válaszához vezet.
+Mutasd meg, milyen logikai és teológiai mozgás rendezze a prédikációt:
+honnan indul, hol van az evangéliumi fordulat, és hová érkezik.
 
 ## Szerkezet
 A választott modell szerint **2–4 pontos vázlat**, mindegyik ponthoz:
 - pont címe (rövid, hangsúlyos),
-- 2–3 mondatos magyarázat,
+- rövid magyarázat arról, mit rendez ez a pont,
 - konkrét textuális vagy teológiai horgony.
 
-## Átvezetések
-Az egyes pontok közti **természetes átvezetések** (1–1 mondat).
+## Átvezetési logika
+Ne kész átvezető mondatokat írj, hanem jelezd, hogyan kapcsolódnak a pontok.
 
-## Bevezetés
-Egy konkrét, **prédikációs nyitó megoldás** — kép, kérdés, élethelyzet.
+## Bevezetési irány
+Lehetséges nyitási irány: kép, kérdés, élethelyzet vagy feszültség.
+Ne fogalmazd meg kész prédikációs szövegként.
 
-## Lezárás
-Egy konkrét, **prédikációs zárás** — összefoglalás, hívás, ígéret.
+## Lezárási irány
+Jelezd, milyen lelki vagy teológiai irányba fusson ki a vázlat.
+Ne írj kész záróbeszédet.
 
 ## Alkalmazási pontok
 2–3 konkrét, gyülekezeti életbe illesztett **alkalmazási irány**.
@@ -5181,6 +5235,7 @@ Egy konkrét, **prédikációs zárás** — összefoglalás, hívás, ígéret.
                     tab_label="Vázlat",
                     use_cache=False,
                 )
+                st.session_state["outline_title_suggestions"] = ""
         finally:
             st.session_state["_outline_final_running"] = False
         st.rerun()
@@ -5190,6 +5245,53 @@ Egy konkrét, **prédikációs zárás** — összefoglalás, hívás, ígéret.
         st.markdown('<div class="result-box">', unsafe_allow_html=True)
         st.markdown(st.session_state["outline"])
         st.markdown('</div>', unsafe_allow_html=True)
+
+        title_running = bool(st.session_state.get("_outline_titles_running"))
+        if st.button(
+            "Címjavaslatok",
+            key="outline_title_suggestions_btn",
+            disabled=title_running,
+        ):
+            title_prompt = f"""
+Az alábbi prédikációvázlathoz adj **3–5 címjavaslatot**.
+
+Fontos:
+- Ne írj új vázlatot.
+- Ne bővítsd az igehirdetést.
+- Csak címeket adj, mindegyikhez legfeljebb egy rövid indoklással.
+- A címek legyenek beszédesek, igehirdetéshez használhatók, de ne hatásvadászok.
+- Legyen köztük visszafogottabb, biblikusabb és képszerűbb lehetőség is.
+
+Igeszakasz:
+{st.session_state.get("last_igehely", "")}
+
+Végleges vázlat:
+{st.session_state["outline"]}
+
+Válaszformátum:
+## Címjavaslatok
+1. **Cím** — rövid indoklás.
+2. **Cím** — rövid indoklás.
+"""
+            st.session_state["_outline_titles_running"] = True
+            try:
+                with st.spinner("Címjavaslatok készülnek..."):
+                    st.session_state["outline_title_suggestions"] = generate_text(
+                        title_prompt,
+                        tab_label="Vázlat",
+                        use_cache=False,
+                    )
+            finally:
+                st.session_state["_outline_titles_running"] = False
+            st.rerun()
+
+        if st.session_state.get("outline_title_suggestions"):
+            if st.session_state["outline_title_suggestions"].startswith(("⚠️", "⏳")):
+                st.warning(st.session_state["outline_title_suggestions"])
+            else:
+                st.markdown('<div class="result-box">', unsafe_allow_html=True)
+                st.markdown(st.session_state["outline_title_suggestions"])
+                st.markdown('</div>', unsafe_allow_html=True)
 
         st.divider()
         st.subheader("Letöltés és megosztás")
