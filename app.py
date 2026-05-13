@@ -6028,14 +6028,46 @@ with tabs[10]:
 # LÁBLÉC — ARS POETICA / MŰHELYREND
 # =========================================================
 
-st.markdown(
-    f"""
+footer_html = """
 <div class="ars-section ars-footer">
     <div class="ars-poetica">
-        <strong>Emmaus Műhely v{APP_VERSION}</strong><br>
+        <strong>Emmaus Műhely v{app_version}</strong><br>
         Az Emmaus jelenleg ingyenesen használható, a legújabb
-        <em>{LOCKED_MODEL_DISPLAY}</em> nyelvi modell támogatásával.
+        <em>{locked_model_display}</em> nyelvi modell támogatásával.
     </div>
     <div class="ars-divider"></div>
     <div class="ars-stations">
- 
+        <div class="ars-station">
+            <div class="ars-numeral">I &middot; Saját API kulcs</div>
+            <div class="ars-station-title">Beállítások fülön</div>
+            <div class="ars-station-text">
+                Ha rendelkezel saját Google API kulccsal, a
+                <strong>Beállítások</strong> fülön bármikor megadhatod.
+            </div>
+        </div>
+        <div class="ars-station">
+            <div class="ars-numeral">II &middot; Nincs még kulcsod?</div>
+            <div class="ars-station-title">Ingyen igényelhető</div>
+            <div class="ars-station-text">
+                A Google fiókoddal pár kattintással igényelhetsz egyet — a pontos
+                leírást és segítséget szintén a <strong>Beállítások</strong> fül
+                alatt találod.
+            </div>
+        </div>
+        <div class="ars-station">
+            <div class="ars-numeral">III &middot; Visszajelzés</div>
+            <div class="ars-station-title">Keress bizalommal</div>
+            <div class="ars-station-text">
+                Használd bátran a munkádhoz! Észrevétel, ötlet vagy tapasztalat:<br>
+                📧 <a href="mailto:hoverzsolt@gmail.com">hoverzsolt@gmail.com</a><br>
+                🔵 <a href="https://www.facebook.com/" target="_blank" rel="noopener">Facebook: Zsolt Hover</a>
+            </div>
+        </div>
+    </div>
+</div>
+""".format(
+    app_version=APP_VERSION,
+    locked_model_display=LOCKED_MODEL_DISPLAY,
+)
+
+st.markdown(footer_html, unsafe_allow_html=True)
