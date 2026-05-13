@@ -110,6 +110,7 @@ GEMINI_MODEL_BY_TAB_LABEL: dict[str, str] = {
     "Exegézis": LOCKED_MODEL,
     "Teológia": LOCKED_MODEL,
     "Eredeti szöveg": LOCKED_MODEL,
+    "Eredeti szöveg tanulmányozása": LOCKED_MODEL,
     "API teszt": LOCKED_MODEL,
     # --- gemini-2.5-flash-lite (összegzés, háttér, könnyebb szekciók) ---
     "Áttekintés": GEMINI_MODEL_FLASH_LITE,
@@ -2521,7 +2522,8 @@ Tartalmi elvárások:
 - homiletikailag használható,
 - történetileg érzékeny,
 - világosan strukturált,
-- tömör és gyakorlatias — kerüld a túlmagyarázást, a tankönyvszerű körítést és a felesleges ismétlést.
+- tömör és gyakorlatias, de nem hiányos — ne hagyj ki fontos információt,
+  ugyanakkor kerüld a túlmagyarázást, a tankönyvszerű körítést és a felesleges ismétlést.
 
 Pontosság és integritás:
 - NE találj ki nem létező idézeteket, hamis forrásokat, bizonytalan
@@ -2595,76 +2597,51 @@ művelt és igényes nyelven.
 
 
 ORIGINAL_TEXT_BASE_PROMPT = """
-Te egy bibliai eredeti nyelvi (görög és héber) műhelyvezető vagy,
-aki kifejezetten lelkipásztori prédikációra való készülést támogat.
+Légy alapos, teológiai és nyelvészeti érzékenységgel dolgozó exegéta.
+Segíts a megadott bibliai szakasz eredeti nyelvű tanulmányozásában úgy,
+hogy az közvetlenül támogassa az ige mélyebb megértését és az üzenet
+megfogalmazását.
 
-Szakmai vízió — ALAPOS FILOLÓGIAI ELEMZÉS:
-Végezz alapos filológiai elemzést. NE csupán szótári jelentéseket közölj,
-hanem vizsgáld meg az **eredeti görög vagy héber kifejezések szemantikai
-hálóját**. Add meg a szavak **pontos alakját**, **fonetikus átírását**
-és (ahol biztos és releváns) **etimológiáját**. Elemezd a szavak közötti
-**teológiai feszültséget és szimbiózist** a konkrét bibliai környezetben.
+Ne készíts teljes kommentárt. Ne elemezz minden szót. Válassz ki néhány
+valóban fontos eredeti kifejezést, motívumot vagy jelentésréteget, amelyek
+érdemben segítik a textus megértését.
 
-A célod NEM tudományos nyelvészeti tanulmány,
-hanem prémium szintű digitális exegetikai-homiletikai műhelyélmény:
-mély, strukturált, pontos, prédikálható és gazdag segítség.
+Elsősorban azokra a héber vagy görög kifejezésekre figyelj, amelyek:
+- több jelentésréteget hordoznak,
+- a magyar fordításban könnyen elsimulnak,
+- teológiailag vagy homiletikailag fontosak,
+- belső feszültséget, kontrasztot vagy hangsúlyt adnak a szakasznak.
 
-Alap szemlélet — JELENTÉSHÁLÓ, NE EGYETLEN SZÓ:
-Egy bibliai szakaszban szinte sosem egyetlen kulcsszó hordozza a textust.
-A textus jelentését több, egymással kapcsolatban álló szó és kifejezés
-építi fel. A te dolgod, hogy ezt a jelentéshálót láttasd, ne csak
-kiemelj egy „központi szót" és arra szűkíts.
+Minden kiemelt kifejezésnél világosan mutasd meg:
+- mi az eredeti szó vagy kifejezés (ha biztosan azonosítható),
+- mit jelent alapvetően,
+- milyen árnyalatokat vagy többletjelentést hordozhat,
+- miért fontos ez a textus üzenete szempontjából,
+- hogyan segítheti az igehirdetés fő gondolatának megfogalmazását.
 
-Ezért minden elemzésnél:
-- AZONOSÍTSD a szakasz több fontos kulcsszavát és kulcskifejezését
-  (4–8 darabot, kivéve ha a szakasz jellege miatt indokoltan kevesebb),
-- mutasd meg, hogyan kapcsolódnak egymáshoz a szavak,
-- emeld ki az ismétlődő szavakat, motívumokat és szóláncokat,
-- jelezd a textus belső feszültségeit, ellentétpárjait, fokozásait,
-- és tárd fel, hogyan épül fel ezekből a szakasz mélyebb üzenete.
+Ha valóban releváns, említs néhány bibliai párhuzamot is, ahol ugyanaz a szó,
+motívum vagy gondolat megjelenik. Csak akkor hozz párhuzamot, ha az tényleg
+segít a mostani szakasz megértésében. Ha egy szó máshol eltérő árnyalattal
+szerepel, ezt röviden magyarázd el.
 
-NE elégedj meg azzal, hogy egyetlen héber vagy görög szót elemzel.
-NE szűkíts egyetlen „kulcsfogalomra".
-HA mégis kevesebb mint 4 szó marad indokoltan (pl. nagyon rövid, egyetlen
-mondatos textus), ezt rövid mondatban indokold meg.
+A válasz legyen:
+- világos és jól tagolt,
+- lényegre törő,
+- nem túl hosszú,
+- de szakmailag elég mély egy alapos prédikációs készüléshez.
 
-Minden válaszod legyen:
-- biblikusan megalapozott,
-- exegetikailag pontos,
-- teológiailag árnyalt,
-- homiletikailag használható,
-- visszafogott hangvételű,
-- jól strukturált, gazdag és könnyen olvasható.
+Javasolt forma:
 
-A kulcsszavak elemzése legyen mély és prédikáció-orientált:
-- ne adj rövid, lexikonszerű definíciókat,
-- ne sorolj fel száraz nyelvtani kategóriákat,
-- ne építs spekulatív etimológiákat,
-- ne írj álakadémikus nyelvészeti értekezést,
-- helyette: minden kulcsszó esetében emeld ki
-  a textuális, teológiai és pasztorális mélységet,
-  valamint a szó helyét a textus jelentéshálójában.
+### [eredeti szó / kifejezés] — [rövid magyar jelzés]
+**Alapjelentés:** ...
+**Miért fontos itt:** ...
+**Mélyebb árnyalat:** ...
+**Bibliai párhuzam (ha releváns):** ...
+**Igehirdetési hozam:** ...
 
-Külön emeld ki, ha egy szó:
-- ismétlődik a szakaszban (és hányszor),
-- fontos bibliai motívumhoz kapcsolódik,
-- nagyobb teológiai súllyal bír, mint amit a magyar fordítás kifejez,
-- több jelentésréteget hordoz,
-- több irányba nyitja az értelmezést,
-- a szakaszban hangsúlyos szerepet kap,
-- vagy gyakran félreértik a gyülekezetben.
-
-Stílus:
-- prémium digitális tanulmányi élmény,
-- gazdag, részletes, mégis fegyelmezett,
-- prédikációra elővehető — ne tankönyvszerű.
-
-Ha valami a tudományban vitatott, használd a „Vitatott:" jelölést.
-Ha bizonytalan vagy egy adatban, mondd ki nyíltan, hogy bizonytalan.
-Soha ne találj ki nem létező idézetet, etimológiát, párhuzamos helyet
-vagy bibliai kapcsolatot.
-
-Válaszolj magyarul, prédikációs munkában jól használható, élő nyelven.
+Ha bizonytalan vagy egy eredeti alakban, etimológiában vagy párhuzamban,
+jelöld világosan: „Bizonytalan:” vagy „Vitatott:”. Ne találj ki nem létező
+eredeti nyelvi adatot, bibliai párhuzamot vagy idézetet.
 """
 
 
@@ -3017,124 +2994,41 @@ EREDETI NYELVI MŰHELY — FELADAT
 
 Igeszakasz: {igehely}
 
-Vizsgáld meg ennek a szakasznak az eredeti görög vagy héber szövegét.
+Készíts eredeti nyelvű elemzést ehhez a textushoz a fenti mesterprompt
+szerkezete szerint.
 
-NAGYON FONTOS — TÖBB KULCSSZÓ, NE EGY:
-A szakasz jelentése sosem áll egyetlen szón. Azonosítsd a textus
-TÖBB fontos kulcsszavát és kulcskifejezését, és láttasd a köztük lévő
-jelentéshálót. Egyetlen szót elemezni nem elég.
-
-KÖTELEZŐ:
-- emelj ki LEGALÁBB 4, lehetőleg 6–8 valóban fontos kulcsszót
-  vagy kulcskifejezést a szakaszból,
-- csak valódi, valóban hangsúlyos szavakat hozz, ne tölts fel
-  mesterségesen jelentéktelen szavakkal,
-- ha indokoltan kevesebb mint 4 szó van (pl. nagyon rövid textus),
-  ezt egy mondatban indokold meg az elemzés elején.
-
-Ne adj felszínes szótári definíciókat.
-Minden szó kapjon prédikáció-orientált, mély, strukturált elemzést,
-és minden szó kapja meg a helyét a textus jelentéshálójában.
-
-==================================================
-1. JELENTÉSHÁLÓ — ÁTTEKINTÉS (kötelező, az elemzés ELEJÉN)
-==================================================
-
-Először — a részletes szóelemzések ELŐTT — adj egy rövid áttekintést
-a szakasz jelentéshálójáról, pontosan ezzel a címmel és szerkezettel:
-
-## Jelentésháló
-
-3–6 mondatban mutasd meg:
-- mely kulcsszavak hordozzák együtt a textus üzenetét,
-- milyen ismétlődések, motívumok, szóláncok, ellentétpárok, fokozások
-  szervezik a szakaszt,
-- milyen belső feszültség(ek) feszítik a szöveget,
-- és hogyan kapcsolódnak ezek a kulcsszavak egymáshoz.
-
-Ezután — szintén az elemzés legelején — adj egy rövid, vesszővel elválasztott
-listát a kulcsszavakról MAGYAR átírással, hogy a lelkipásztor első
-ránézésre lássa a szóhalmazt:
-
-**Kulcsszavak:** szó1, szó2, szó3, szó4, szó5, szó6 …
-
-==================================================
-2. KULCSSZÓ-ELEMZÉSEK (4–8 darab, a fenti hálóhoz illesztve)
-==================================================
-
-Minden egyes kulcsszót pontosan a következő markdown szerkezetben tárgyalj
-(NE térj el a struktúrától, hogy a felület helyesen jeleníthesse meg):
-
-### EREDETI_SZÓ · *fonetikus_átírás*
-
-**Alapjelentés:** rövid, pontos alapjelentés.
-Egy mondatban add meg azt, amit egy lelkipásztornak elsőként tudnia kell.
-
-**Jelentésárnyalatok:** 2–4 mondat a finomabb jelentésárnyalatokról,
-lehetséges alternatív jelentésekről, és arról, hogy a szó hány irányba
-nyitja az értelmezést.
-Ha a magyar fordítás nem adja vissza ezt a mélységet, ezt itt jelezd.
-
-**Szövegkörnyezeti szerep:** 2–4 mondat arról, hogy
-ez a szó miért fontos pontosan ebben a szakaszban,
-milyen hangsúlyt ad a textusnak,
-és hogyan működik irodalmilag (kompozíció, ismétlés, retorikai szerep).
-Ha a szó ismétlődik a szakaszban, jelezd hányszor és milyen szerepben.
-
-**Kapcsolódás a hálóhoz:** 1–3 mondat arról, hogy ez a szó
-hogyan kapcsolódik a szakasz többi kulcsszavához
-(milyen szóláncot, ellentétpárt, fokozást, motívumot épít velük együtt).
-
-**Bibliai kapcsolatok:** 2–4 mondat arról, hogy
-hol fordul elő még ez a szó vagy ehhez kapcsolódó fontos fogalom,
-és milyen átfogóbb bibliai összefüggések épülnek köré.
-Csak biztos, ellenőrizhető bibliai kapcsolatokat hozz.
-
-**Teológiai jelentőség:** 2–4 mondat arról, hogy
-milyen teológiai hangsúlyt hordoz a szó:
-istenkép, emberkép, bűn, kegyelem, hit, szövetség, krisztológia stb.
-Konkrét, prédikálható teológiai tartalmat adj — nem általánosságot.
-
-**Homiletikai insight:** 2–4 mondat arról, hogy
-ez a szó hogyan segíti a prédikációt:
-milyen lelkipásztori alkalmazás születhet belőle,
-és milyen prédikációs hangsúlyt alapozhat meg.
-Itt legyél kifejezetten gyakorlatias és prédikálható.
-
-> **Figyelmeztetés:** ezt csak akkor írd ki, ha a szóhoz
-> gyakori félreértés vagy bizonytalan értelmezés kapcsolódik,
-> vagy ha az AI valamiben bizonytalan az adott szóval kapcsolatban.
-> Ha nincs ilyen, akkor ezt a sort teljesen hagyd ki.
-
----
-
-A "EREDETI_SZÓ" helyére a tényleges görög vagy héber alakot írd
-(eredeti betűkkel, NE átírással), a "fonetikus_átírás" helyére pedig
-egy magyar kiejtést segítő egyszerű, természetes átírást.
-
-Két kulcsszó-blokk között mindig legyen `---` elválasztó, hogy a
-kártyák tisztán elkülönüljenek.
-
-==================================================
-3. ÖSSZEFOGLALÓ — A JELENTÉSHÁLÓ HOMILETIKAI HOZAMA
-==================================================
-
-Az elemzés végén — kötelezően — adj egy
-4–6 mondatos összefoglalót, amely a kulcsszavak EGYÜTTESÉRE építve
-mutatja meg, milyen prédikációs hangsúlyok bontakozhatnak ki a textusból.
-Ne ismételd a szavak egyenkénti elemzését, hanem a háló egészéből
-építkezz, és vezesd át a lelkipásztori-homiletikai irányba.
-Ezt írd a következő cím alá:
-
-## Összefoglaló
-
-Nagyon fontos:
-- ne találj ki nem létező szavakat, etimológiát, párhuzamos helyeket,
-- ne hozz akadémikus szakkifejezéseket fölöslegesen,
-- ne adj üres lexikon-szerű meghatározásokat,
-- ne szűkíts egyetlen szóra, mindig a textus jelentéshálóját mutasd,
-- a hangsúly végig az exegetikai mélység és a prédikációs haszon legyen.
+Ha a szakasz eredeti nyelvi kulcsszavai biztonsággal azonosíthatók, építsd be
+őket a kapcsolati hálóba. Ha az eredeti alakban bizonytalan vagy, ne találgass:
+inkább jelezd a bizonytalanságot, és dolgozz a textus biztos motívumaival,
+ismétlődéseivel, belső feszültségeivel és homiletikai lehetőségeivel.
 """
+
+
+def _looks_incomplete_response(text: str) -> bool:
+    """Óvatos heurisztika: csak láthatóan félbeszakadt választ jelölünk rövidítettnek."""
+    cleaned = _strip_chatty_intro(text or "").strip()
+    if not cleaned:
+        return False
+
+    # Markdown kerítések / idézőjelek gyakori félbeszakadás-jelei.
+    if cleaned.count("```") % 2 == 1:
+        return True
+    if cleaned.endswith(("-", "–", "—", ",", ";", ":", "(", "[", "{", "/")):
+        return True
+
+    last_nonempty = ""
+    for line in reversed(cleaned.splitlines()):
+        if line.strip():
+            last_nonempty = line.strip()
+            break
+    if not last_nonempty:
+        return False
+
+    if re.match(r"^[-*+]\s*$", last_nonempty) or re.match(r"^\d+\.\s*$", last_nonempty):
+        return True
+
+    # Ha a legutolsó sor természetes záró írásjel nélkül áll meg, az gyanús.
+    return not re.search(r'[.!?…)"”\]\}]$', last_nonempty)
 
 
 def build_songs_prompt(
@@ -3345,6 +3239,8 @@ WORKSPACE_STR_KEYS = [
     "last_igehely", "last_alkalom", "last_stilus", "last_sajat",
     "overview", "exegesis", "history", "theology",
     "illustrations", "actualization", "outline",
+    "outline_draft", "outline_workshop_questions",
+    "outline_workshop_answers", "outline_reworked_draft",
     "original_text", "songs",
     "series_planner_output", "series_idea",
 ]
@@ -3536,6 +3432,10 @@ defaults = {
     "illustrations": "",
     "actualization": "",
     "outline": "",
+    "outline_draft": "",
+    "outline_workshop_questions": "",
+    "outline_workshop_answers": "",
+    "outline_reworked_draft": "",
     "original_text": "",
     "songs": "",
 
@@ -3855,32 +3755,70 @@ GEMINI_TIMEOUT_S = 120
 GEMINI_COOLDOWN_S = 8             # globális cooldown két logikai hívás közt
 GEMINI_DEBUG_LOG_MAX = 80         # session debug-log max bejegyzések
 
-# Kimeneti token plafon (REST `generationConfig.maxOutputTokens`) — ~600–700:
-# rövid, max. 4 bekezdéses válaszokhoz; a prompt direktíva ehhez igazodik.
-GEMINI_MAX_OUTPUT_TOKENS = 650
-# Sorozattervező: hosszú, heti bontású Markdown — külön kimeneti plafon
-GEMINI_SERIES_MAX_OUTPUT_TOKENS = 8192
+# Nincs alkalmazásszintű kimeneti tokenplafon: nem küldünk
+# `generationConfig.maxOutputTokens` mezőt. A válaszhosszt promptszinten
+# szabályozzuk: tömör, strukturált, de a fontos információkat nem kihagyó
+# válaszokat kérünk.
+
+KEY_EXPRESSIONS_SYSTEM_PROMPT = """\
+Te egy bibliai eredeti nyelvi és exegetikai műhelyvezető vagy.
+Az Eredeti szöveg tanulmányozása funkcióban fontos héber/görög kifejezéseket,
+jelentésárnyalatokat, bibliai párhuzamokat és prédikációs hozamokat emelsz ki
+magyarul.
+
+A cél nem teljes teológiai rendszer, hanem tiszta, fókuszált segítség a textus
+tudatosabb olvasásához és prédikációra való előkészítéséhez.
+Kerüld a chatty megszólítást, önbemutatkozást és udvariaskodó zárást; azonnal
+a szakmai tartalommal kezdj.
+"""
 
 # ─────────────────────────────────────────────────────────────────────
-# VÁLASZHOSSZ — PROMPT + maxOutputTokens (rövid, gyakorlati válaszok)
+# VÁLASZADÁSI STÍLUS — GLOBÁLIS IRÁNYELVEK
 # ─────────────────────────────────────────────────────────────────────
-# A `_build_payload` minden hívásnál beállítja a `maxOutputTokens` mezőt
-# (`GEMINI_MAX_OUTPUT_TOKENS`). A `_RESPONSE_LENGTH_DIRECTIVE` ugyanezt
-# tartalmilag is kikényszeríti (4 rövid bekezdés, nincs túlmagyarázás).
+# A `_build_payload` nem állít kimeneti tokenlimitet. Ez a direktíva csak
+# stílusirány: legyen áttekinthető, arányos és prédikáció-előkészítésben
+# használható, de ne terjengős.
 
 _RESPONSE_LENGTH_DIRECTIVE = """\
 ==================================================
-VÁLASZHOSSZ ÉS STÍLUS — KÖTELEZŐ
+VÁLASZADÁSI STÍLUS — GLOBÁLIS IRÁNYELVEK
 ==================================================
 
-- A teljes válasz **legfeljebb 4 rövid bekezdés**; bekezdésenként **legfeljebb 2–3 mondat**.
-- **Tilos a túlmagyarázás**, a tankönyvszerű körítés, a felesleges ismétlés és a „szőttes” hosszú bevezetők.
-- A tartalom **tömör, jól strukturált és gyakorlatias** legyen — a lelkipásztor következő lépéseit segítse, ne helyettesítse a saját gondolkodását hosszú értekezéssel.
-- Struktúra: **legfeljebb egy** `##` vagy `###` címsor az egész válaszban; ha lista kell, **max. 5 tétel**, felesleges alcímek nélkül.
-- NE írj felvezetést, megszólítást vagy záró udvariaskodást; **azonnal** kezdj a lényeggel.
-- Ha ennél több részlet kellene, zárd egy sorban:
-  *(Részletekért használd a finomítás chatet.)*
-- A válasz **teljes mondatokkal záródjon** — félmondat és lelógó gondolat tilos (a kimeneti token-korlát miatt is).
+Minden válasz legyen:
+
+- világos,
+- jól strukturált,
+- könnyen áttekinthető,
+- teológiailag igényes,
+- gyakorlati szempontból használható.
+
+A cél nem akadémiai szóhalmozás vagy teljes kommentár készítése,
+hanem egy prédikációra készülő lelkipásztor segítése.
+
+FONTOS:
+
+- Emeld ki a lényeget.
+- Ne elemezz feleslegesen minden részletet.
+- Ne ismételd önmagad különböző megfogalmazásokban.
+- Kerüld a túl hosszú körmondatokat és a szócséplést.
+- A válasz ne legyen sem túl rövid, sem indokolatlanul hosszú.
+- Inkább kevés, de lényeges és jól megfogalmazott megfigyelést adj.
+- A felsorolások legyenek áttekinthetőek és funkcionálisak.
+- A hangsúly a használhatóságon, nem a terjedelem maximalizálásán legyen.
+
+A stílus legyen:
+- természetes,
+- emberközeli,
+- tiszteletteljes,
+- de ne túl informális.
+
+A válaszok segítsék:
+- az igehirdetés előkészítését,
+- az exegetikai tájékozódást,
+- a teológiai reflexiót,
+- és a gyakorlati alkalmazhatóságot.
+
+NE írj megszólítást, udvariaskodó nyitást vagy zárást; azonnal kezdd a szakmai tartalommal.
 """
 
 
@@ -3890,7 +3828,7 @@ def _is_using_builtin_key() -> bool:
 
 
 def _active_brevity_directive() -> str:
-    """Egységes, kulcsforrástól független válaszhossz- és stíluselőírás."""
+    """Egységes, kulcsforrástól független válaszstílus-irányelv."""
     return _RESPONSE_LENGTH_DIRECTIVE
 
 
@@ -4098,7 +4036,6 @@ def _build_payload(
     *,
     system_bundle: str | None = None,
     include_brevity_directive: bool = True,
-    max_output_tokens: int | None = None,
 ) -> dict:
     """Összeállítja a Gemini REST kérés JSON body-ját (`model` = Flash vagy Flash Lite).
 
@@ -4107,7 +4044,8 @@ def _build_payload(
     (pl. sorozattervező saját rendszerpromptja). `include_brevity_directive=False`
     esetén a rövid válasz direktíva nem kerül a promptba.
 
-    `max_output_tokens`: ha None, `GEMINI_MAX_OUTPUT_TOKENS` (~650).
+    Nem állítunk `generationConfig.maxOutputTokens` mezőt; a válaszhosszt
+    promptszinten szabályozzuk.
     Google Search grounding: `google_search` tool, ha `enable_google_search`.
     """
     task_block = (
@@ -4129,16 +4067,10 @@ def _build_payload(
         body_parts.append(task_block)
         final_prompt = "\n\n".join(body_parts)
 
-    _max_out = (
-        max_output_tokens
-        if max_output_tokens is not None
-        else GEMINI_MAX_OUTPUT_TOKENS
-    )
     payload = {
         "contents": [{"parts": [{"text": final_prompt}]}],
         "generationConfig": {
             "temperature": st.session_state.get("temperature", 0.3),
-            "maxOutputTokens": _max_out,
         },
     }
     if enable_google_search:
@@ -4154,7 +4086,9 @@ def generate_text(
     use_cache: bool = True,
     system_bundle: str | None = None,
     include_brevity_directive: bool = True,
-    max_output_tokens: int | None = None,
+    truncation_message: str | None = None,
+    truncation_notice_mode: str = "always",
+    incomplete_response_message: str | None = None,
 ):
     """EGYETLEN logikai Gemini-hívás — gomb-szintű egyediség garantált.
 
@@ -4174,7 +4108,7 @@ def generate_text(
     A cél-modell a `tab_label` alapján automatikusan választódik
     (`resolve_gemini_model_for_tab`) — nincs felhasználói modellválasztás.
 
-    `system_bundle` / `include_brevity_directive` / `max_output_tokens`:
+    `system_bundle` / `include_brevity_directive`:
     speciális fülekhez (pl. sorozattervező) — lásd `_build_payload`.
     """
     api_key = _resolve_api_key().strip()
@@ -4189,20 +4123,19 @@ def generate_text(
         and bool(st.session_state.get("enable_cache", True))
         and not enable_google_search  # Google-keresés esetén mindig friss adat kell
     )
-    _eff_max = (
-        max_output_tokens
-        if max_output_tokens is not None
-        else GEMINI_MAX_OUTPUT_TOKENS
-    )
     _sys_key = "def"
     if system_bundle is not None:
         _sys_key = _hash_prompt(system_bundle)[:12]
     _brv = "1" if include_brevity_directive else "0"
+    _trunc_key = _hash_prompt(
+        f"{truncation_message or 'default'}|{truncation_notice_mode}|"
+        f"{incomplete_response_message or 'allow_partial'}"
+    )[:12]
     prompt_hash = _hash_prompt(
         prompt,
         extra=(
-            f"{model}|{st.session_state.get('temperature', 0.3)}|{_eff_max}|"
-            f"{_sys_key}|{_brv}"
+            f"{model}|{st.session_state.get('temperature', 0.3)}|"
+            f"{_sys_key}|{_brv}|{_trunc_key}"
         ),
     )
 
@@ -4253,7 +4186,6 @@ def generate_text(
             model,
             system_bundle=system_bundle,
             include_brevity_directive=include_brevity_directive,
-            max_output_tokens=max_output_tokens,
         )
 
         # log: BEFORE (kulcsforrás + auth még függőben)
@@ -4273,7 +4205,7 @@ def generate_text(
         try:
             response = requests.post(
                 url, headers=headers, json=data,
-                verify=False, timeout=GEMINI_TIMEOUT_S,
+                verify=False, timeout=GEMINI_TIMEOUT_S, stream=False,
             )
         except requests.exceptions.Timeout:
             latency_ms = int((_time.time() - start_ts) * 1000)
@@ -4338,29 +4270,67 @@ def generate_text(
             try:
                 result = response.json()
                 candidate = result["candidates"][0]
-                text = candidate["content"]["parts"][0]["text"]
+                parts = candidate.get("content", {}).get("parts", [])
+                text = "".join(
+                    str(part.get("text", ""))
+                    for part in parts
+                    if isinstance(part, dict) and part.get("text")
+                )
                 text = _strip_chatty_intro(text)
 
-                # ── TRUNCATION DETEKTÁLÁS ─────────────────────────────
-                # `finishReason == MAX_TOKENS` = elértük a `maxOutputTokens`
-                # plafont (`GEMINI_MAX_OUTPUT_TOKENS`).
+                # ── MODELL-OLDALI LEVÁGÁS DETEKTÁLÁSA ─────────────────
+                # Nem állítunk app-szintű kimeneti plafont, de a modellnek
+                # lehet saját természetes kimeneti korlátja.
                 finish_reason = candidate.get("finishReason", "STOP")
                 truncated = finish_reason == "MAX_TOKENS"
                 status_label = "200_OK" if not truncated else "200_TRUNCATED"
+
+                if not text.strip():
+                    _debug_log_append({
+                        "ts": _now_str(), "tab": tab_label, "attempt": attempt + 1,
+                        "status": "EMPTY_TEXT", "model": model,
+                        "prompt_chars": prompt_chars, "response_chars": 0,
+                        "latency_ms": latency_ms,
+                        "error_message": "No text parts in Gemini response",
+                        "auth_ok": True,
+                    })
+                    return (
+                        "⚠️ **A Gemini válasza üres volt.** "
+                        "Próbáld újra, vagy fogalmazd át kissé a kérést."
+                    )
+
+                if incomplete_response_message and (
+                    truncated or _looks_incomplete_response(text)
+                ):
+                    _debug_log_append({
+                        "ts": _now_str(), "tab": tab_label, "attempt": attempt + 1,
+                        "status": "INCOMPLETE_REJECTED", "model": model,
+                        "prompt_chars": prompt_chars, "response_chars": len(text),
+                        "latency_ms": latency_ms,
+                        "error_message": f"finishReason={finish_reason}",
+                        "auth_ok": True,
+                    })
+                    return incomplete_response_message
 
                 if enable_google_search:
                     sources_md = _format_grounding_sources(result)
                     if sources_md:
                         text = text + "\n" + sources_md
 
-                if truncated:
-                    text = text + (
-                        "\n\n---\n\n"
-                        f"> ⚠️ **A válasz a kimeneti token-limitnél megszakadt** "
-                        f"(max. {_eff_max} token). "
-                        "A modell tömörebben fogalmazzon, vagy bontsd kisebb részekre a kérést; "
+                show_truncation_note = truncated and (
+                    truncation_notice_mode != "never"
+                    and (
+                        truncation_notice_mode != "if_incomplete"
+                        or _looks_incomplete_response(text)
+                    )
+                )
+                if show_truncation_note:
+                    note = truncation_message or (
+                        "> ⚠️ **A válasz a modell kimeneti korlátjánál megszakadt.** "
+                        "Kérlek, próbáld újra vagy bontsd kisebb részekre a kérést; "
                         "részletekért használd a **finomítás chatet**."
                     )
+                    text = text + "\n\n---\n\n" + note
 
                 _debug_log_append({
                     "ts": _now_str(), "tab": tab_label, "attempt": attempt + 1,
@@ -4694,7 +4664,7 @@ if not logo_file:
 
 tabs = st.tabs([
     "Igehely",
-    "Eredeti szöveg",
+    "Eredeti szöveg tanulmányozása",
     "Exegézis",
     "Kortörténet",
     "Teológia",
@@ -4769,11 +4739,11 @@ with tabs[0]:
 
     st.info(
         "**Tabonkénti generálás:** Itt csak az **Áttekintést** kéred le. "
-        "A többi szekciót (Eredeti szöveg, Exegézis, Kortörténet, Teológia, "
+        "A többi szekciót (Eredeti szöveg tanulmányozása, Exegézis, Kortörténet, Teológia, "
         "Illusztrációk, Aktualizálás, Vázlat, Énekajánló) az adott fülön, "
         "külön gombbal indíthatod — így pontosan azt generálod, amire szükséged van. "
         f"\n\n*Két API-hívás között legalább {GEMINI_COOLDOWN_S} másodperc vár; "
-        f"minden válasz max. 4 rövid bekezdés, max. {GEMINI_MAX_OUTPUT_TOKENS} kimeneti token.*"
+        "a válaszok tömör, strukturált, de a fontos információkat nem kihagyó prompttal készülnek.*"
     )
 
     overview_disabled = bool(st.session_state.get("_overview_running"))
@@ -4859,6 +4829,12 @@ with tabs[6]:
 with tabs[7]:
     st.header("Prédikációvázlat")
 
+    if st.session_state.pop("_clear_outline_workshop_editors", False):
+        st.session_state["_outline_draft_editor"] = ""
+        st.session_state["_outline_answers_editor"] = ""
+        st.session_state["_outline_reworked_editor"] = ""
+        st.session_state.pop("_pending_outline_draft_editor", None)
+
     homiletikai_modell = st.selectbox(
         "Homiletikai modell",
         [
@@ -4871,9 +4847,25 @@ with tabs[7]:
         ]
     )
 
+    # Régebbi munkamenetnél a korábban generált vázlatot induló piszkozatként
+    # tesszük szerkeszthetővé, de csak akkor, ha még nincs külön műhely-piszkozat.
+    if st.session_state.get("outline") and not st.session_state.get("outline_draft"):
+        st.session_state["outline_draft"] = st.session_state["outline"]
+
+    if "_pending_outline_draft_editor" in st.session_state:
+        st.session_state["_outline_draft_editor"] = st.session_state.pop("_pending_outline_draft_editor")
+    elif "_outline_draft_editor" not in st.session_state:
+        st.session_state["_outline_draft_editor"] = st.session_state.get("outline_draft", "")
+
+    if "_outline_reworked_editor" not in st.session_state:
+        st.session_state["_outline_reworked_editor"] = st.session_state.get("outline_reworked_draft", "")
+
+    if "_outline_answers_editor" not in st.session_state:
+        st.session_state["_outline_answers_editor"] = st.session_state.get("outline_workshop_answers", "")
+
     _outline_running = bool(st.session_state.get("_outline_running"))
     if st.button(
-        "Vázlat generálása",
+        "Szerkeszthető piszkozat készítése",
         type="primary",
         disabled=_outline_running,
         key="outline_run",
@@ -4881,9 +4873,10 @@ with tabs[7]:
         basket_text = "\n".join([f"- {source}: {text}" for source, text in st.session_state["basket"]])
 
         prompt = f"""
-# VÁZLAT — KOHERENS PRÉDIKÁCIÓS STRUKTÚRA
+# PISZKOZAT — KOHERENS PRÉDIKÁCIÓS STRUKTÚRA
 
 Szakmai vízió:
+Készíts **szerkeszthető homiletikai piszkozatot**, nem végleges prédikációt.
 Dolgozz ki egy **koherens prédikációs struktúrát**. Fogalmazz meg egy
 **világos tételmondatot (scopus)**. Alakíts ki egy **természetes ívű
 gondolatmenetet** teológiai hangsúlyokkal. Jelöld meg a prédikáció
@@ -4916,9 +4909,10 @@ Az eddigi elemzések, amelyekből építkezz:
 ## A vázlatba feltétlenül beépítendő, megőrzött gondolatok
 {basket_text if basket_text else "Nincs külön elem."}
 
-A vázlat legyen lelkipásztori használatra alkalmas, de NE legyen teljes prédikáció.
+A piszkozat legyen lelkipásztori használatra alkalmas, de NE legyen teljes prédikáció.
+Hagyj benne olyan pontokat is, amelyeket a lelkipásztor tovább tud gondolni.
 
-A vázlatot pontosan az alábbi szerkezetben add (Markdown formátum):
+A piszkozatot pontosan az alábbi szerkezetben add (Markdown formátum):
 
 ## Címajánlatok
 3–5 erős, kifejező címet — mindegyikhez 1 mondatos rövid indoklás.
@@ -4952,15 +4946,247 @@ Egy konkrét, **prédikációs zárás** — összefoglalás, hívás, ígéret.
 
         st.session_state["_outline_running"] = True
         try:
-            with st.spinner("Vázlat készül..."):
-                st.session_state["outline"] = generate_text(
-                    prompt, tab_label="Vázlat",
+            with st.spinner("Szerkeszthető piszkozat készül..."):
+                draft = generate_text(
+                    prompt,
+                    tab_label="Vázlat",
                 )
+                st.session_state["outline_draft"] = draft
+                st.session_state["_outline_draft_editor"] = draft
+                st.session_state["outline_workshop_questions"] = ""
+                st.session_state["outline_workshop_answers"] = ""
+                st.session_state["_outline_answers_editor"] = ""
+                st.session_state["outline_reworked_draft"] = ""
+                st.session_state["_outline_reworked_editor"] = ""
+                st.session_state["outline"] = ""
         finally:
             st.session_state["_outline_running"] = False
         st.rerun()
 
+    st.subheader("1. Szerkeszthető fő piszkozat")
+    st.caption(
+        "Ez a fő műhelymező. A későbbi „Végleges vázlat készítése” mindig "
+        "ennek az aktuális tartalmából dolgozik."
+    )
+    outline_draft_current = st.text_area(
+        "Fő piszkozat",
+        key="_outline_draft_editor",
+        height=420,
+        placeholder=(
+            "Írj vagy generálj egy első homiletikai piszkozatot. "
+            "Ide kerülhet a tételmondat, az ív, a fő pontok, átvezetések, "
+            "képek, alkalmazási irányok."
+        ),
+    )
+    st.session_state["outline_draft"] = outline_draft_current
+
+    has_draft = bool(outline_draft_current.strip())
+
+    st.divider()
+    st.subheader("2. Iteratív homiletikai műhely")
+    st.caption(
+        "A kérdések nem kerülnek bele automatikusan a piszkozatba. Előbb válaszolsz "
+        "rájuk, majd külön kérheted az átdolgozást."
+    )
+
+    question_running = bool(st.session_state.get("_outline_questions_running"))
+    if st.button(
+        "Segíts továbbgondolni",
+        key="outline_questions_btn",
+        disabled=question_running or not has_draft,
+    ):
+        question_prompt = f"""
+Egy prédikációs piszkozatot műhelyezünk. Ne írd át a piszkozatot.
+Csak tegyél fel **5–8 tisztázó homiletikai kérdést**, amelyek segítik
+a lelkipásztort a továbbgondolásban.
+
+Jelenlegi fő piszkozat:
+{outline_draft_current}
+
+Kérdésirányok:
+- mi a textus központi evangéliumi mozgása,
+- mi a hallgatók konkrét élethelyzete,
+- hol túl általános vagy moralizáló a piszkozat,
+- melyik pont igényel textuális / teológiai pontosítást,
+- milyen személyes, gyülekezeti vagy pasztorális megfigyelés hiányzik,
+- hogyan lehetne természetesebb az átvezetés és a lezárás.
+
+Válaszformátum:
+Csak számozott kérdéslista legyen, röviden, magyarul. Ne adj tanácsot,
+ne írj új vázlatot, ne fűzz magyarázatot a kérdésekhez.
+"""
+        st.session_state["_outline_questions_running"] = True
+        try:
+            with st.spinner("Tisztázó kérdések készülnek..."):
+                st.session_state["outline_workshop_questions"] = generate_text(
+                    question_prompt,
+                    tab_label="Vázlat",
+                    use_cache=False,
+                )
+        finally:
+            st.session_state["_outline_questions_running"] = False
+        st.rerun()
+
+    if not has_draft:
+        st.info("Előbb írj vagy generálj egy fő piszkozatot.")
+
+    if st.session_state.get("outline_workshop_questions"):
+        st.markdown("#### Tisztázó kérdések")
+        st.markdown('<div class="result-box">', unsafe_allow_html=True)
+        st.markdown(st.session_state["outline_workshop_questions"])
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    answers_current = st.text_area(
+        "Válaszaid, új hangsúlyok, pontosítások, személyes megfigyelések",
+        key="_outline_answers_editor",
+        height=220,
+        placeholder=(
+            "Válaszolj a kérdésekre, vagy írd le, milyen hangsúlyt, személyes "
+            "megfigyelést, gyülekezeti helyzetet, textuális pontosítást szeretnél "
+            "beépíteni az átdolgozásba."
+        ),
+    )
+    st.session_state["outline_workshop_answers"] = answers_current
+
+    rework_running = bool(st.session_state.get("_outline_rework_running"))
+    if st.button(
+        "Piszkozat átdolgozása a válaszok alapján",
+        key="outline_rework_btn",
+        disabled=rework_running or not has_draft or not answers_current.strip(),
+    ):
+        rework_prompt = f"""
+Egy prédikációs piszkozatot kell **valóban átszerkesztened** a lelkipásztor
+válaszai és új hangsúlyai alapján.
+
+Fontos:
+- NE másold be a válaszokat a piszkozat végére.
+- NE csak függeléket írj.
+- Szerkeszd át a teljes piszkozatot úgy, hogy a válaszokból származó hangsúlyok
+  szervesen beépüljenek.
+- Tartsd meg a felhasználó saját gondolatait, hangját és eredeti jó meglátásait.
+- Pontosítsd a fő üzenetet (scopus).
+- Rendezd a szerkezetet.
+- Javítsd az átvezetéseket.
+- Szűrd ki a túl általános, moralizáló vagy textustól elszakadó részeket.
+- Ne készíts teljes prédikációt; maradjon műhelyben tovább szerkeszthető vázlat.
+
+Aktuális fő piszkozat:
+{outline_draft_current}
+
+AI által korábban feltett tisztázó kérdések:
+{st.session_state.get("outline_workshop_questions", "").strip() or "Nincs külön kérdéslista."}
+
+Felhasználói válaszok, hangsúlyok, pontosítások:
+{answers_current}
+
+Kimenet:
+Adj egy **átdolgozott, egységes prédikációs piszkozatot** Markdown formátumban.
+Ne írj meta-kommentárt arról, mit változtattál; csak az átdolgozott piszkozatot add.
+"""
+        st.session_state["_outline_rework_running"] = True
+        try:
+            with st.spinner("A piszkozat átdolgozása folyamatban..."):
+                reworked = generate_text(
+                    rework_prompt,
+                    tab_label="Vázlat",
+                    use_cache=False,
+                )
+                st.session_state["outline_reworked_draft"] = reworked
+                st.session_state["_outline_reworked_editor"] = reworked
+        finally:
+            st.session_state["_outline_rework_running"] = False
+        st.rerun()
+
+    if st.session_state.get("outline_reworked_draft"):
+        st.markdown("#### Átdolgozott piszkozat")
+        reworked_current = st.text_area(
+            "Átdolgozott piszkozat (szerkeszthető)",
+            key="_outline_reworked_editor",
+            height=420,
+        )
+        st.session_state["outline_reworked_draft"] = reworked_current
+
+        if st.button(
+            "Átdolgozott piszkozat használata",
+            key="outline_accept_reworked_btn",
+            disabled=not reworked_current.strip(),
+        ):
+            st.session_state["outline_draft"] = reworked_current
+            st.session_state["_pending_outline_draft_editor"] = reworked_current
+            st.success("Az átdolgozott piszkozat lett a fő piszkozat.")
+            st.rerun()
+
+    st.divider()
+    st.subheader("3. Végleges vázlat")
+    final_running = bool(st.session_state.get("_outline_final_running"))
+    if st.button(
+        "Végleges vázlat készítése",
+        type="primary",
+        key="outline_final_btn",
+        disabled=final_running or not has_draft,
+    ):
+        final_prompt = f"""
+Az alábbi **aktuális fő piszkozatból** készíts végleges, lelkipásztori
+használatra alkalmas prédikációvázlatot.
+
+Nagyon fontos:
+- Csak az aktuális fő piszkozat tartalmából dolgozz.
+- Ne használd a korábbi kérdéslistát önálló tartalomként.
+- Ne másold be a műhelyválaszokat függelékként.
+- A piszkozat gondolatait szerkeszd kész, koherens vázlattá.
+- Tartsd meg a felhasználó saját hangsúlyait.
+
+Homiletikai modell:
+{homiletikai_modell}
+
+Aktuális fő piszkozat:
+{outline_draft_current}
+
+A végleges vázlatot pontosan az alábbi szerkezetben add (Markdown formátum):
+
+## Címajánlatok
+3–5 erős, kifejező címet — mindegyikhez 1 mondatos rövid indoklás.
+
+## Tételmondat (scopus)
+**Egyetlen, lényegre törő, teológiailag tartós mondat** — ez a prédikáció gerince.
+
+## Az ív — diagnózis → evangéliumi fordulat → Isten válasza
+Egy bekezdésben mutasd meg, milyen **mozgás** vezeti a hallgatót az igehirdetésen át,
+hol van az **„evangéliumi fordulat”**, ahol a textus a diagnózistól az Isten gyógyító
+válaszához vezet.
+
+## Szerkezet
+A választott modell szerint **2–4 pontos vázlat**, mindegyik ponthoz:
+- pont címe (rövid, hangsúlyos),
+- 2–3 mondatos magyarázat,
+- konkrét textuális vagy teológiai horgony.
+
+## Átvezetések
+Az egyes pontok közti **természetes átvezetések** (1–1 mondat).
+
+## Bevezetés
+Egy konkrét, **prédikációs nyitó megoldás** — kép, kérdés, élethelyzet.
+
+## Lezárás
+Egy konkrét, **prédikációs zárás** — összefoglalás, hívás, ígéret.
+
+## Alkalmazási pontok
+2–3 konkrét, gyülekezeti életbe illesztett **alkalmazási irány**.
+"""
+        st.session_state["_outline_final_running"] = True
+        try:
+            with st.spinner("Végleges vázlat készül az aktuális fő piszkozatból..."):
+                st.session_state["outline"] = generate_text(
+                    final_prompt,
+                    tab_label="Vázlat",
+                    use_cache=False,
+                )
+        finally:
+            st.session_state["_outline_final_running"] = False
+        st.rerun()
+
     if st.session_state["outline"]:
+        st.markdown("#### Végleges vázlat")
         st.markdown('<div class="result-box">', unsafe_allow_html=True)
         st.markdown(st.session_state["outline"])
         st.markdown('</div>', unsafe_allow_html=True)
@@ -5002,9 +5228,7 @@ Egy konkrét, **prédikációs zárás** — összefoglalás, hívás, ígéret.
                 f"_(Aktív Python: `{_py}`)_"
             )
     else:
-        st.info("Még nincs vázlat.")
-
-    refinement_chat("Prédikációvázlat", "outline", "outline_chat")
+        st.info("Még nincs végleges vázlat. A véglegesítés mindig a fenti fő piszkozat aktuális tartalmából készül.")
 
 
 # =========================================================
@@ -5072,8 +5296,8 @@ with tabs[8]:
 # =========================================================
 
 with tabs[1]:
-    st.header("Eredeti szöveg")
-    st.caption("Görög / héber kulcsszavak a prédikációra készüléshez")
+    st.header("Eredeti szöveg tanulmányozása")
+    st.caption("Héber / görög kulcskifejezések, jelentésárnyalatok és prédikációs hozam")
 
     # Az igeszakaszt az "Igehely" fülről örököljük — ugyanaz a forrás,
     # mint a többi szekciónál (Exegézis, Kortörténet stb.). Itt csak
@@ -5096,7 +5320,7 @@ with tabs[1]:
 
     _orig_running = bool(st.session_state.get("_original_running"))
     if st.button(
-        "Eredeti szöveg elemzése",
+        "Eredeti szöveg tanulmányozása",
         type="primary",
         key="original_run",
         disabled=_orig_running,
@@ -5113,23 +5337,35 @@ with tabs[1]:
                 with st.spinner("Eredeti nyelvi elemzés készül..."):
                     st.session_state["original_text"] = generate_text(
                         build_original_text_prompt(_igehely_now),
-                        tab_label="Eredeti szöveg",
+                        tab_label="Eredeti szöveg tanulmányozása",
+                        use_cache=False,
+                        system_bundle=KEY_EXPRESSIONS_SYSTEM_PROMPT,
+                        include_brevity_directive=False,
+                        truncation_notice_mode="never",
+                        incomplete_response_message=(
+                            "⚠️ **Az eredeti nyelvi elemzés nem érkezett meg teljesen.** "
+                            "Nem jelenítek meg félbeszakadt szöveget. Kérlek, próbáld újra."
+                        ),
                     )
             finally:
                 st.session_state["_original_running"] = False
             st.rerun()
 
     if st.session_state.get("original_text"):
-        st.markdown(
-            '<div class="result-box original-text-result">',
-            unsafe_allow_html=True
-        )
-        st.markdown(st.session_state["original_text"])
-        st.markdown('</div>', unsafe_allow_html=True)
+        if st.session_state["original_text"].startswith(("⚠️", "⏳")):
+            st.warning(st.session_state["original_text"])
+        else:
+            st.markdown(
+                '<div class="result-box original-text-result">',
+                unsafe_allow_html=True
+            )
+            st.markdown(st.session_state["original_text"])
+            st.markdown('</div>', unsafe_allow_html=True)
+
     else:
         st.info("Még nincs eredeti nyelvi elemzés.")
 
-    refinement_chat("Eredeti szöveg", "original_text", "original_text_chat")
+    refinement_chat("Eredeti szöveg tanulmányozása", "original_text", "original_text_chat")
 
     _maybe_clear_note("original_note")
     note = st.text_area(
@@ -5139,7 +5375,7 @@ with tabs[1]:
 
     if st.button("Hozzáadás a vázlatkosárhoz", key="original_add"):
         if note.strip():
-            st.session_state["basket"].append(("Eredeti szöveg", note.strip()))
+            st.session_state["basket"].append(("Eredeti szöveg tanulmányozása", note.strip()))
             _request_clear_note("original_note")
             st.success("Hozzáadva.")
             st.rerun()
@@ -5339,9 +5575,9 @@ with tabs[12]:
     )
 
     st.info(
-        f"**Válaszhossz:** minden generálás **max. {GEMINI_MAX_OUTPUT_TOKENS} kimeneti token** "
-        "korláttal és **max. 4 rövid bekezdésre** optimalizált prompttal érkezik — "
-        "tömör, gyakorlati, jól strukturált szöveg. A *Kreativitás* csúszka továbbra is érvényes.",
+        "**Válaszhossz:** nincs alkalmazásszintű kimeneti tokenlimit beállítva. "
+        "A promptok tömör, strukturált, de a fontos információkat nem kihagyó válaszokat kérnek. "
+        "A *Kreativitás* csúszka továbbra is érvényes.",
         icon="📝",
     )
 
@@ -5485,6 +5721,7 @@ with tabs[12]:
             st.session_state[k] = ""
         for k in WORKSPACE_LIST_KEYS:
             st.session_state[k] = []
+        st.session_state["_clear_outline_workshop_editors"] = True
         st.success("A munkamenet törölve.")
         st.rerun()
 
@@ -5760,7 +5997,6 @@ with tabs[10]:
                         use_cache=False,
                         system_bundle=SERIES_PLANNER_SYSTEM_PROMPT,
                         include_brevity_directive=False,
-                        max_output_tokens=GEMINI_SERIES_MAX_OUTPUT_TOKENS,
                     )
                 st.session_state["series_planner_output"] = series_out
             finally:
@@ -5802,34 +6038,4 @@ st.markdown(
     </div>
     <div class="ars-divider"></div>
     <div class="ars-stations">
-        <div class="ars-station">
-            <div class="ars-numeral">I &middot; Saját API kulcs</div>
-            <div class="ars-station-title">Beállítások fülön</div>
-            <div class="ars-station-text">
-                Ha rendelkezel saját Google API kulccsal, a
-                <strong>Beállítások</strong> fülön bármikor megadhatod.
-            </div>
-        </div>
-        <div class="ars-station">
-            <div class="ars-numeral">II &middot; Nincs még kulcsod?</div>
-            <div class="ars-station-title">Ingyen igényelhető</div>
-            <div class="ars-station-text">
-                A Google fiókoddal pár kattintással igényelhetsz egyet — a pontos
-                leírást és segítséget szintén a <strong>Beállítások</strong> fül
-                alatt találod.
-            </div>
-        </div>
-        <div class="ars-station">
-            <div class="ars-numeral">III &middot; Visszajelzés</div>
-            <div class="ars-station-title">Keress bizalommal</div>
-            <div class="ars-station-text">
-                Használd bátran a munkádhoz! Észrevétel, ötlet vagy tapasztalat:<br>
-                📧 <a href="mailto:hoverzsolt@gmail.com">hoverzsolt@gmail.com</a><br>
-                🔵 <a href="https://www.facebook.com/" target="_blank" rel="noopener">Facebook: Zsolt Hover</a>
-            </div>
-        </div>
-    </div>
-</div>
-""",
-    unsafe_allow_html=True,
-)
+ 
