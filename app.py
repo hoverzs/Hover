@@ -468,7 +468,7 @@ section.main {{
 
 .header-grid {{
     display: grid;
-    grid-template-columns: 150px 1fr;
+    grid-template-columns: 180px 1fr;
     gap: 1.6rem;
     align-items: center;
 }}
@@ -480,7 +480,7 @@ section.main {{
 }}
 
 .header-logo .main-logo {{
-    width: 120px;
+    width: 150px;
     height: auto;
     filter: drop-shadow(0 6px 14px rgba(40, 28, 14, 0.28));
 }}
@@ -2269,12 +2269,12 @@ div[data-testid="stForm"] {{
     }}
 
     .header-grid {{
-        grid-template-columns: 110px 1fr;
+        grid-template-columns: 130px 1fr;
         gap: 1.1rem;
     }}
 
     .header-logo .main-logo {{
-        width: 96px;
+        width: 112px;
     }}
 
     .main-card {{
@@ -2323,7 +2323,7 @@ div[data-testid="stForm"] {{
     }}
 
     .header-logo .main-logo {{
-        width: 84px !important;
+        width: 96px !important;
     }}
 
     .main-title {{
@@ -2481,7 +2481,7 @@ div[data-testid="stForm"] {{
     }}
 
     .header-logo .main-logo {{
-        width: 72px !important;
+        width: 84px !important;
     }}
 
     .main-title {{
