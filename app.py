@@ -468,8 +468,8 @@ section.main {{
 
 .header-grid {{
     display: grid;
-    grid-template-columns: 180px 1fr;
-    gap: 1.6rem;
+    grid-template-columns: 300px 1fr;
+    gap: 1.4rem;
     align-items: center;
 }}
 
@@ -480,7 +480,8 @@ section.main {{
 }}
 
 .header-logo .main-logo {{
-    width: 150px;
+    width: 280px !important;
+    max-width: none !important;
     height: auto;
     filter: drop-shadow(0 6px 14px rgba(40, 28, 14, 0.28));
 }}
@@ -2255,8 +2256,8 @@ div[data-testid="stForm"] {{
     hyphens: auto;
 }}
 
-/* Képek a tartalomban sose lógjanak túl */
-[data-testid="stMarkdownContainer"] img {{
+/* Képek a tartalomban sose lógjanak túl — fejléc logó kivétel */
+[data-testid="stMarkdownContainer"] img:not(.main-logo) {{
     max-width: 100%;
     height: auto;
 }}
@@ -2269,12 +2270,12 @@ div[data-testid="stForm"] {{
     }}
 
     .header-grid {{
-        grid-template-columns: 130px 1fr;
+        grid-template-columns: 220px 1fr;
         gap: 1.1rem;
     }}
 
     .header-logo .main-logo {{
-        width: 112px;
+        width: 190px !important;
     }}
 
     .main-card {{
@@ -2323,7 +2324,7 @@ div[data-testid="stForm"] {{
     }}
 
     .header-logo .main-logo {{
-        width: 96px !important;
+        width: 140px !important;
     }}
 
     .main-title {{
@@ -2481,7 +2482,7 @@ div[data-testid="stForm"] {{
     }}
 
     .header-logo .main-logo {{
-        width: 84px !important;
+        width: 120px !important;
     }}
 
     .main-title {{
