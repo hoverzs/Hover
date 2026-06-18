@@ -14,12 +14,22 @@ from pathlib import Path
 # VERZIÓ
 # =========================================================
 APP_VERSION = "1.0"
+APP_NAME = "TEXTUS"
+APP_SUBTITLE = "Homiletikai műhely"
+APP_TAGLINE = "A szövegtől a szószékig"
+APP_SCRIPTURE = (
+    "„A teljes Írás Istentől ihletett és hasznos a tanításra, a feddésre, "
+    "a megjobbításra és az igazságban való nevelésre.”"
+)
+APP_SCRIPTURE_REF = "— 2Timóteus 3,16"
+APP_DOMAIN = "textus.ro"
+APP_STREAMLIT_URL = "https://textus.streamlit.app"
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 st.set_page_config(
-    page_title=f"Emmaus {APP_VERSION}",
-    page_icon="✝️",
+    page_title=f"{APP_NAME} {APP_VERSION}",
+    page_icon="📖",
     layout="wide"
 )
 
@@ -164,11 +174,12 @@ background_file = find_file([
 ])
 
 logo_file = find_file([
+    "textus_logo.png",
     "logo.png",
     "logo.jpg",
     "logo.jpeg",
     "logo.webp",
-    "emmaus_logo.png"
+    "emmaus_logo.png",  # visszafelé kompatibilitás — régi telepítésekhez
 ])
 
 igehely_icon_file = find_file([
@@ -476,7 +487,9 @@ section.main {{
 
 .main-logo-fallback {{
     font-family: "Cormorant Garamond", Georgia, serif;
-    font-size: 4.6rem;
+    font-size: 4.2rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
     color: #6b4f2e;
     text-shadow: 0 6px 14px rgba(40, 28, 14, 0.28);
 }}
@@ -526,7 +539,8 @@ section.main {{
     font-family: "Playfair Display", "Cormorant Garamond", Georgia, serif;
     font-size: clamp(3rem, 5vw, 4.15rem);
     font-weight: 700;
-    letter-spacing: 0.012em;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
     color: #2b2116;
     line-height: 0.96;
     margin-bottom: 6px;
@@ -535,27 +549,15 @@ section.main {{
         0 8px 18px rgba(71, 52, 30, 0.16);
 }}
 
-.version-badge {{
-    display: inline-block;
-    margin-left: 0.65rem;
-    padding: 0.18rem 0.62rem;
+.version-line {{
     font-family: "Inter", "Helvetica Neue", system-ui, sans-serif;
-    font-size: 0.78rem;
+    font-size: 0.92rem;
     font-weight: 600;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
     color: #5d4830;
-    background:
-        linear-gradient(180deg,
-            rgba(252, 246, 232, 0.92),
-            rgba(228, 211, 178, 0.78));
-    border: 1px solid rgba(166, 134, 86, 0.42);
-    border-radius: 999px;
-    box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.72),
-        0 2px 6px rgba(71, 52, 30, 0.14);
-    vertical-align: middle;
-    transform: translateY(-0.32em);
+    margin-top: 0.2rem;
+    margin-bottom: 0.15rem;
     text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
 }}
 
@@ -612,16 +614,39 @@ section.main {{
     text-shadow: none;
 }}
 
+.header-tagline {{
+    font-family: "Cormorant Garamond", Georgia, serif;
+    font-size: 1.22rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: #5a4630;
+    line-height: 1.35;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.65);
+}}
+
 .subtitle {{
     font-family: "Lora", "Cormorant Garamond", Georgia, serif;
-    font-size: 1.38rem;
+    font-size: 1.22rem;
     color: #4f3f31;
     font-style: italic;
-    line-height: 1.42;
+    line-height: 1.48;
     max-width: 96ch;
+    margin-top: 0.35rem;
+    padding-left: 0.85rem;
+    border-left: 2px solid rgba(141, 113, 79, 0.42);
     text-shadow:
         0 1px 0 rgba(255, 255, 255, 0.72),
         0 2px 10px rgba(255, 252, 246, 0.55);
+}}
+
+.scripture-ref {{
+    font-family: "Inter", "Segoe UI", sans-serif;
+    font-size: 0.88rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: #6a5844;
+    margin-top: 0.35rem;
+    padding-left: 0.85rem;
 }}
 
 h1, h2, h3, h4, h5, h6 {{
@@ -2306,11 +2331,9 @@ div[data-testid="stForm"] {{
         line-height: 1 !important;
     }}
 
-    .version-badge {{
-        font-size: 0.66rem !important;
-        padding: 0.14rem 0.5rem !important;
-        margin-left: 0.45rem !important;
-        transform: translateY(-0.2em) !important;
+    .version-line {{
+        font-size: 0.78rem !important;
+        letter-spacing: 0.12em !important;
     }}
 
     .subtitle {{
@@ -2465,11 +2488,8 @@ div[data-testid="stForm"] {{
         font-size: 1.95rem !important;
     }}
 
-    .version-badge {{
-        display: block !important;
-        margin: 0.4rem auto 0 !important;
-        width: max-content;
-        transform: none !important;
+    .version-line {{
+        margin: 0.25rem auto 0 !important;
     }}
 
     .subtitle {{
@@ -2498,7 +2518,7 @@ div[data-testid="stForm"] {{
 # =========================================================
 
 BASE_SYSTEM_PROMPT = """
-Te az Emmaus digitális homiletikai műhely szakértő teológiai modulja vagy.
+Te a TEXTUS homiletikai műhely szakértő teológiai modulja vagy.
 Feladatod a református lelkipásztor tudományos igényű exegetikai és homiletikai
 munkájának támogatása.
 
@@ -2559,8 +2579,8 @@ SOHA, SEMMILYEN KÖRÜLMÉNYEK KÖZÖTT NE használj:
    - „Drága Testvérem", „Kedves Olvasó"
 
 ❌ Öndefiniáló / önbemutatkozó bevezetést:
-   - „Az Emmaus digitális homiletikai műhely szakértő teológiai moduljaként…"
-   - „Mint az Emmaus modulja, örömmel segítek…"
+   - „A TEXTUS homiletikai műhely szakértő teológiai moduljaként…"
+   - „Mint a TEXTUS modulja, örömmel segítek…"
    - „A teológiai segédletként…"
    - „AI-ként", „Modellként", „Asszisztensként"
 
@@ -3259,7 +3279,7 @@ WORKSPACE_KEYS = WORKSPACE_STR_KEYS + WORKSPACE_LIST_KEYS
 
 def serialize_workspace():
     payload = {
-        "_app": "Emmaus",
+        "_app": "Textus",
         "_version": APP_VERSION,
         "_saved_at": datetime.now().isoformat(timespec="seconds"),
     }
@@ -3276,8 +3296,8 @@ def deserialize_workspace(raw_bytes):
         obj = json.loads(text)
     except Exception as e:
         return False, f"A fájl nem olvasható JSON: {e}"
-    if not isinstance(obj, dict) or obj.get("_app") != "Emmaus":
-        return False, "Ez nem Emmaus munkamenet-fájl."
+    if not isinstance(obj, dict) or obj.get("_app") not in ("Textus", "Emmaus"):
+        return False, "Ez nem TEXTUS munkamenet-fájl."
     for k in WORKSPACE_KEYS:
         if k in obj:
             st.session_state[k] = obj[k]
@@ -3356,7 +3376,7 @@ def build_outline_docx() -> bytes:
     doc.styles["Normal"].font.name = "Calibri"
     doc.styles["Normal"].font.size = Pt(11)
 
-    doc.add_heading("Prédikációvázlat — Emmaus", level=1)
+    doc.add_heading(f"Prédikációvázlat — {APP_NAME}", level=1)
 
     igehely = st.session_state.get("last_igehely", "—")
     alkalom = st.session_state.get("last_alkalom", "—")
@@ -3402,7 +3422,7 @@ def build_outline_docx() -> bytes:
 
     doc.add_paragraph()
     p_f = doc.add_paragraph()
-    r_f = p_f.add_run(f"Emmaus v{APP_VERSION} — digitális homiletikai műhely")
+    r_f = p_f.add_run(f"{APP_NAME} v{APP_VERSION} — {APP_SUBTITLE} · {APP_TAGLINE}")
     r_f.italic = True
 
     buf = io.BytesIO()
@@ -3634,7 +3654,7 @@ def _format_grounding_sources(result: dict) -> str:
 # =========================================================
 #
 # Második védelmi vonal a prompt-szintű tiltás mellett: ha a Gemini
-# mégis becsempész egy "Üdvözlöm…" / "Az Emmaus moduljaként…" típusú
+# mégis becsempész egy "Üdvözlöm…" / "A TEXTUS moduljaként…" típusú
 # bevezetőt vagy záró "Bízom benne, hogy…" sort, kódból kivágjuk.
 
 import re as _re_chatty
@@ -3643,7 +3663,9 @@ _CHATTY_INTRO_PATTERNS = [
     # Üdvözlések
     r"^(üdvözlöm|üdv|hello|szia|szervusz|tisztelt|kedves|drága|jó (napot|reggelt|estét))\b",
     # Öndefiniáló bevezetők
-    r"^(az emmaus|mint (az |)emmaus|emmaus(ként| modulként| moduljaként)|"
+    r"^(a textus|az textus|mint (a |)textus|textus(ként| modulként| moduljaként)|"
+    r"(a |)textus homiletikai|"
+    r"az emmaus|mint (az |)emmaus|emmaus(ként| modulként| moduljaként)|"
     r"(az |)emmaus digitális|teológiai modul(ja)?ként|"
     r"ai(-)?(\s*ként|nak|ként)|asszisztens(ként)?|"
     r"modell(ként)?|chatbot(ként)?|nyelvi modell)\b",
@@ -4511,7 +4533,7 @@ def refinement_chat(title, result_key, chat_key):
             st.markdown(user_msg)
 
         prompt = f"""
-Egy digitális homiletikai műhely egyik részét finomítjuk.
+A TEXTUS homiletikai műhely egyik részét finomítjuk.
 
 Szekció:
 {title}
@@ -4633,9 +4655,9 @@ if logo_file:
         logo_mime = "image/svg+xml"
     else:
         logo_mime = "image/jpeg"
-    logo_html = f'<img src="data:{logo_mime};base64,{logo_b64}" class="main-logo" alt="Emmaus" />'
+    logo_html = f'<img src="data:{logo_mime};base64,{logo_b64}" class="main-logo" alt="{APP_NAME}" />'
 else:
-    logo_html = '<div class="main-logo-fallback">✝</div>'
+    logo_html = f'<div class="main-logo-fallback">{APP_NAME[0]}</div>'
 
 st.markdown(
     f"""
@@ -4643,9 +4665,12 @@ st.markdown(
     <div class="header-grid">
         <div class="header-logo">{logo_html}</div>
         <div class="header-text">
-            <div class="main-title">Emmaus<span class="version-badge">v{APP_VERSION}</span></div>
-            <div class="subtitle">„Nem hevült-e a szívünk, amikor beszélt hozzánk az úton, és feltárta előttünk az Írásokat?” — Lk 24,32</div>
-            <div class="header-caption">Digitális homiletikai műhely</div>
+            <div class="main-title">{APP_NAME}</div>
+            <div class="version-line">V{APP_VERSION}</div>
+            <div class="header-caption">{APP_SUBTITLE}</div>
+            <div class="header-tagline">{APP_TAGLINE}</div>
+            <div class="subtitle">{APP_SCRIPTURE}</div>
+            <div class="scripture-ref">{APP_SCRIPTURE_REF}</div>
         </div>
     </div>
 </div>
@@ -4657,7 +4682,7 @@ if not background_file:
     st.warning("A háttérkép nem található. Neve legyen background.jpg, background.jpeg, background.png vagy background.webp, és ugyanabban a mappában legyen, mint az app.py.")
 
 if not logo_file:
-    st.info("Logó nem található. Neve legyen logo.png, logo.jpg vagy logo.webp, és ugyanabban a mappában legyen, mint az app.py.")
+    st.info("Logó nem található. Neve legyen textus_logo.png, logo.png, logo.jpg vagy logo.webp, és ugyanabban a mappában legyen, mint az app.py.")
 
 
 # =========================================================
@@ -5304,7 +5329,7 @@ Válaszformátum:
 
         _verse_clean = (st.session_state.get("last_igehely") or "vazlat").replace(" ", "_").replace("/", "-").replace(",", "").replace(":", "-")
         _ts = datetime.now().strftime("%Y%m%d-%H%M")
-        _filename_docx = f"emmaus-vazlat-{_verse_clean}-{_ts}.docx"
+        _filename_docx = f"textus-vazlat-{_verse_clean}-{_ts}.docx"
 
         try:
             _docx_bytes = build_outline_docx()
@@ -5608,7 +5633,7 @@ with tabs[12]:
     if BUILTIN_API_KEY:
         if st.session_state.get("using_builtin_key", False):
             st.success(
-                "✓ **Beépített közös kulcs aktív.** Az Emmaus azonnal használható, "
+                "✓ **Beépített közös kulcs aktív.** A TEXTUS azonnal használható, "
                 "nem kell saját kulcsot megadnod. Ha szeretnél, lent megadhatsz "
                 "saját kulcsot — az felülírja a közöset."
             )
@@ -5787,7 +5812,7 @@ with tabs[12]:
 
     _ws_payload = serialize_workspace()
     _ws_verse = (st.session_state.get("last_igehely") or "munka").replace(" ", "_").replace("/", "-").replace(",", "").replace(":", "-")
-    _ws_filename = f"emmaus-munka-{_ws_verse}-{datetime.now().strftime('%Y%m%d-%H%M')}.json"
+    _ws_filename = f"textus-munka-{_ws_verse}-{datetime.now().strftime('%Y%m%d-%H%M')}.json"
 
     col_save, col_load = st.columns(2)
     with col_save:
@@ -5835,7 +5860,7 @@ with tabs[12]:
         """
 <div class="result-box api-guide-box">
 
-A saját kulcs használata biztosítja, hogy az **Emmaus** hosszú távon is
+A saját kulcs használata biztosítja, hogy a **TEXTUS** hosszú távon is
 stabilan és korlátlanul rendelkezésedre álljon.
 
 1. **Lépj be a Google AI Studio oldalára.**
@@ -5854,7 +5879,7 @@ stabilan és korlátlanul rendelkezésedre álljon.
    A rendszer legenerál egy hosszú karaktersort — ez az API kulcsod.
    Kattints a **Copy** gombra.
 
-6. **Illeszd be az Emmausba.**
+6. **Illeszd be a TEXTUS-ba.**
    Gyere vissza ide a **Beállításokhoz**, és illeszd be a kulcsot
    a fenti **„Gemini API kulcs"** mezőbe.
 
@@ -5864,7 +5889,7 @@ stabilan és korlátlanul rendelkezésedre álljon.
     )
 
     st.divider()
-    st.caption(f"Emmaus v{APP_VERSION} · digitális homiletikai műhely")
+    st.caption(f"{APP_NAME} v{APP_VERSION} · {APP_SUBTITLE} · {APP_TAGLINE}")
 
 
 # =========================================================
@@ -5876,7 +5901,7 @@ with tabs[11]:
 
     st.subheader("Ars Poetica: Miért készítettem ezt az eszközt?")
     st.markdown(
-        "Az Emmaus Műhely nem egy „prédikációgyár”. Tudatos döntésem volt, "
+        "A TEXTUS nem egy „prédikációgyár”. Tudatos döntésem volt, "
         "hogy ne egy automatizált, kész szövegeket gyártó rendszert hozzak "
         "létre. Azért dolgoztam ezen az applikáción, hogy a technológia "
         "segítségével olyan mélységekhez is közelebb vigyelek, amelyekhez a "
@@ -5956,7 +5981,7 @@ with tabs[11]:
     )
 
     st.divider()
-    st.caption(f"Emmaus v{APP_VERSION} · digitális homiletikai műhely")
+    st.caption(f"{APP_NAME} v{APP_VERSION} · {APP_SUBTITLE} · {APP_TAGLINE}")
 
 
 # =========================================================
@@ -6133,9 +6158,12 @@ with tabs[10]:
 footer_html = """
 <div class="ars-section ars-footer">
     <div class="ars-poetica">
-        <strong>Emmaus Műhely v{app_version}</strong><br>
-        Az Emmaus jelenleg ingyenesen használható, a legújabb
-        <em>{locked_model_display}</em> nyelvi modell támogatásával.
+        <strong>{app_name} v{app_version}</strong><br>
+        A TEXTUS jelenleg ingyenesen használható, a legújabb
+        <em>{locked_model_display}</em> nyelvi modell támogatásával.<br>
+        <a href="https://{app_domain}" target="_blank" rel="noopener">{app_domain}</a>
+        ·
+        <a href="{app_streamlit_url}" target="_blank" rel="noopener">textus.streamlit.app</a>
     </div>
     <div class="ars-divider"></div>
     <div class="ars-stations">
@@ -6168,8 +6196,11 @@ footer_html = """
     </div>
 </div>
 """.format(
+    app_name=APP_NAME,
     app_version=APP_VERSION,
     locked_model_display=LOCKED_MODEL_DISPLAY,
+    app_domain=APP_DOMAIN,
+    app_streamlit_url=APP_STREAMLIT_URL,
 )
 
 st.markdown(footer_html, unsafe_allow_html=True)
