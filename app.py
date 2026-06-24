@@ -4705,6 +4705,56 @@ def _send_feedback_smtp(name: str, email: str, category: str, message: str) -> t
         return False, f"E-mail küldési hiba: {exc}"
 
 
+def _send_feedback_formsubmit(name: str, email: str, category: str, message: str) -> tuple:
+    """Alapértelmezett kézbesítés: FormSubmit.co → FEEDBACK_TO_EMAIL postaláda."""
+    to_email = _feedback_secret("FEEDBACK_TO_EMAIL", FEEDBACK_TO_EMAIL)
+    headers = {
+        "Accept": "application/json",
+        "Referer": f"{APP_STREAMLIT_URL}/",
+        "Origin": APP_STREAMLIT_URL,
+        "User-Agent": f"{APP_NAME}-Feedback/{APP_VERSION}",
+    }
+    payload = {
+        "name": name or "Névtelen látogató",
+        "email": email or "",
+        "message": (
+            f"Téma: {category}\n"
+            f"Név: {name or '—'}\n"
+            f"Visszajelző e-mail: {email or '—'}\n\n"
+            f"Üzenet:\n{message}"
+        ),
+        "_subject": f"TEXTUS visszajelzés: {category}",
+        "_template": "table",
+        "_captcha": "false",
+    }
+    try:
+        resp = requests.post(
+            f"https://formsubmit.co/ajax/{to_email}",
+            data=payload,
+            headers=headers,
+            timeout=20,
+        )
+        try:
+            data = resp.json()
+        except ValueError:
+            data = {}
+        success = str(data.get("success", "")).lower() == "true"
+        if success:
+            return True, "Köszönjük! Visszajelzésed e-mailben megérkezett hozzánk."
+        api_msg = (data.get("message") or "").strip()
+        if "activation" in api_msg.lower() or "activate" in api_msg.lower():
+            return False, (
+                "Az e-mail küldés még aktiválásra vár. "
+                f"Ellenőrizd a(z) {to_email} postaládát — a FormSubmit küldött egy "
+                "„Activate Form” linket; egyszer rá kell kattintani, utána működni fog."
+            )
+        if api_msg:
+            return False, f"Nem sikerült elküldeni: {api_msg}"
+        return False, "Nem sikerült elküldeni a visszajelzést. Próbáld újra később."
+    except Exception as exc:
+        return False, f"Küldési hiba: {exc}"
+
+
 def _send_feedback(name: str, email: str, category: str, message: str) -> tuple:
     web3_key = _feedback_secret("FEEDBACK_WEB3FORMS_ACCESS_KEY")
     if web3_key:
@@ -4753,9 +4803,15 @@ def _send_feedback(name: str, email: str, category: str, message: str) -> tuple:
     if ok:
         return ok, msg
 
+    ok, msg = _send_feedback_formsubmit(name, email, category, message)
+    if ok:
+        return ok, msg
+    if msg and "aktiválás" in msg.lower():
+        return False, msg
+
     return False, (
-        "A visszajelzés-küldés jelenleg nincs beállítva. "
-        f"Írj nekünk közvetlenül: {FEEDBACK_TO_EMAIL}"
+        f"Nem sikerült elküldeni e-mailben. Próbáld újra, vagy írj közvetlenül: {FEEDBACK_TO_EMAIL}"
+        + (f"\n\n(Részlet: {msg})" if msg else "")
     )
 
 
@@ -4768,7 +4824,7 @@ def render_feedback_section() -> None:
         <div class="ars-station-title">Mondd el a tapasztalataidat</div>
         <div class="ars-station-text">
             Ötlet, hiba, dicséret — minden visszajelzés segít jobbá tenni a műhelyt.
-            Az űrlap kitöltése után közvetlenül hozzánk érkezik az üzenet.
+            A kitöltött üzenet e-mailben érkezik meg: <strong>hoverzsolt@gmail.com</strong>.
         </div>
     </div>
 </div>
