@@ -1,5 +1,4 @@
 import streamlit as st
-import streamlit.components.v1 as st_components
 import requests
 import urllib3
 import base64
@@ -24,6 +23,7 @@ APP_SCRIPTURE = (
 APP_SCRIPTURE_REF = "— 2Timóteus 3,16"
 APP_DOMAIN = "textus.ro"
 APP_STREAMLIT_URL = "https://textus.streamlit.app"
+FEEDBACK_TO_EMAIL = "hoverzsolt@gmail.com"
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -368,7 +368,7 @@ div[data-testid="stHeader"],
     visibility: hidden !important;
 }}
 
-/* Tawk.to widget injector iframe-je 0 magasságú, ne foglaljon margin/padding-helyet */
+/* Streamlit components iframe (0 magasság) ne foglaljon helyet */
 iframe[title="streamlit_components.v1.html.html"],
 iframe[height="0"] {{
     height: 0 !important;
@@ -1620,6 +1620,71 @@ div[data-testid="stForm"] {{
     margin-top: 2.6rem !important;
     margin-bottom: 1.2rem !important;
     opacity: 0.96;
+}}
+
+
+.feedback-wrap {{
+    margin: 0 0 36px;
+    padding: 28px 34px 30px;
+    background:
+        linear-gradient(165deg, rgba(252, 244, 228, 0.42), rgba(238, 224, 198, 0.30)),
+        radial-gradient(circle at 86% -10%, rgba(122, 145, 176, 0.14), transparent 52%);
+    backdrop-filter: blur(32px) saturate(145%);
+    -webkit-backdrop-filter: blur(32px) saturate(145%);
+    border: 1px solid rgba(208, 184, 142, 0.55);
+    border-radius: 22px;
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.65) inset,
+        0 -1px 0 rgba(118, 86, 50, 0.10) inset,
+        0 8px 18px rgba(58, 40, 22, 0.14),
+        0 22px 44px rgba(38, 25, 10, 0.20);
+}}
+
+.feedback-header {{
+    text-align: center;
+    margin-bottom: 1.1rem;
+}}
+
+.feedback-header .ars-station-title {{
+    margin-bottom: 0.45rem;
+}}
+
+.feedback-header .ars-station-text {{
+    max-width: 68ch;
+    margin: 0 auto;
+}}
+
+.feedback-wrap [data-testid="stForm"],
+[data-testid="stForm"] {{
+    border: none;
+    padding: 0;
+    background: transparent;
+}}
+
+[data-testid="stForm"] label {{
+    font-family: "Inter", "Segoe UI", sans-serif !important;
+    font-size: 0.88rem !important;
+    font-weight: 600 !important;
+    color: #4a3826 !important;
+}}
+
+[data-testid="stForm"] textarea,
+[data-testid="stForm"] input {{
+    background: rgba(255, 251, 244, 0.72) !important;
+    border: 1px solid rgba(180, 150, 110, 0.45) !important;
+    border-radius: 12px !important;
+    font-family: "Lora", Georgia, serif !important;
+    color: #3a2c1d !important;
+}}
+
+[data-testid="stForm"] button[kind="primaryFormSubmit"] {{
+    background: linear-gradient(135deg, #5a7a9e, #3d567a) !important;
+    border: 1px solid rgba(61, 86, 122, 0.35) !important;
+    border-radius: 12px !important;
+    font-family: "Inter", "Segoe UI", sans-serif !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.04em;
+    box-shadow: 0 8px 18px rgba(61, 86, 122, 0.22);
 }}
 
 /* ===== EREDETI SZÖVEG / WORD CARDS ===== */
@@ -4564,82 +4629,201 @@ Ne írj teljesen új prédikációt, csak ehhez a részhez kapcsolódj.
 
 
 # =========================================================
-# TAWK.TO CHAT WIDGET
+# VISSZAJELZÉS (beépített űrlap)
 # =========================================================
-# A widget a böngésző fő ablakának jobb alsó sarkában jelenik meg.
-# A Streamlit-`components.v1.html()` egy iframe-et hoz létre — a
-# tawk.to script-et a `window.parent.document`-be injektáljuk, hogy
-# a chat-buborék a top-level dokumentumban legyen, ne csak az
-# iframe-en belül (ami a height=0 miatt láthatatlan lenne).
-#
-# A `tawkto-script-inject` id-vel ellenőrizzük, hogy ne kerüljön
-# többszöri beillesztésre Streamlit-rerunkor.
 
-def _inject_tawkto_widget():
-    """Tawk.to chat-widget beágyazása (0 magasságú, helyfoglalás nélkül).
+def _read_project_secret(key: str) -> str:
+    """`.streamlit/secrets.toml` titok olvasása kulcs alapján."""
+    p = Path(__file__).resolve().parent / ".streamlit" / "secrets.toml"
+    if not p.is_file():
+        return ""
+    try:
+        import tomllib
+    except ImportError:
+        return ""
+    try:
+        with p.open("rb") as f:
+            data = tomllib.load(f)
+        v = data.get(key)
+        if v:
+            return str(v).strip()
+    except Exception:
+        pass
+    return ""
 
-    A widget a teljes alkalmazásban (minden tabon, minden reruna alatt)
-    elérhető marad, a fő böngészőablak DOM-jához csatolva.
-    """
-    st_components.html(
-        """
-<script type="text/javascript">
-(function() {
-    // Tawk.to widget elhelyezés — feljebb tolva, hogy a Streamlit
-    // Cloud "Manage app" sávja ne takarja el a chat-buborékot.
-    // A `yOffset` az alulról mért távolság pixelben.
-    var TAWK_CUSTOM_STYLE = {
-        visibility: {
-            desktop: {
-                position: 'br',  // bottom-right
-                xOffset: 20,
-                yOffset: 80      // ~Manage app sáv + biztonsági ráhagyás
-            },
-            mobile: {
-                position: 'br',
-                xOffset: 10,
-                yOffset: 70
-            }
-        }
-    };
 
-    function bootstrapTawk(win, doc) {
-        if (doc.getElementById('tawkto-script-inject')) return;
-        win.Tawk_API = win.Tawk_API || {};
-        win.Tawk_API.customStyle = TAWK_CUSTOM_STYLE;
-        win.Tawk_LoadStart = new Date();
-        var s1 = doc.createElement("script");
-        s1.id = 'tawkto-script-inject';
-        s1.async = true;
-        s1.src = 'https://embed.tawk.to/6a01a241eb073e1c334f0d94/1job63k35';
-        s1.charset = 'UTF-8';
-        s1.setAttribute('crossorigin', '*');
-        var s0 = doc.getElementsByTagName("script")[0];
-        if (s0 && s0.parentNode) {
-            s0.parentNode.insertBefore(s1, s0);
-        } else {
-            doc.body.appendChild(s1);
-        }
-    }
+def _feedback_secret(key: str, default: str = "") -> str:
+    env_val = (os.environ.get(key, "") or "").strip()
+    if env_val:
+        return env_val
+    file_val = _read_project_secret(key)
+    if file_val:
+        return file_val
+    try:
+        sec_val = st.secrets.get(key, "")
+        if sec_val:
+            return str(sec_val).strip()
+    except Exception:
+        pass
+    return default
 
-    // Próbáljuk a TOP-LEVEL window-ba injektálni (hogy a chat-buborék
-    // az alkalmazás jobb alsó sarkában jelenjen meg, ne csak az
-    // 0-magasságú iframe-en belül).
-    try {
-        bootstrapTawk(window.parent, window.parent.document);
-        return;
-    } catch (e) {
-        // Cross-origin sandbox: az iframe-en belül indítjuk (fallback)
-    }
-    bootstrapTawk(window, document);
-})();
-</script>
-        """,
-        height=0,
+
+def _send_feedback_smtp(name: str, email: str, category: str, message: str) -> tuple:
+    import smtplib
+    from email.mime.text import MIMEText
+
+    smtp_user = _feedback_secret("FEEDBACK_SMTP_USER")
+    smtp_pass = _feedback_secret("FEEDBACK_SMTP_PASSWORD")
+    if not smtp_user or not smtp_pass:
+        return False, ""
+
+    smtp_host = _feedback_secret("FEEDBACK_SMTP_HOST", "smtp.gmail.com")
+    smtp_port = int(_feedback_secret("FEEDBACK_SMTP_PORT", "587") or "587")
+    to_email = _feedback_secret("FEEDBACK_TO_EMAIL", FEEDBACK_TO_EMAIL)
+
+    body = (
+        f"TEXTUS visszajelzés\n\n"
+        f"Téma: {category}\n"
+        f"Név: {name or '—'}\n"
+        f"E-mail: {email or '—'}\n\n"
+        f"Üzenet:\n{message}\n"
+    )
+    msg = MIMEText(body, "plain", "utf-8")
+    msg["Subject"] = f"TEXTUS visszajelzés: {category}"
+    msg["From"] = smtp_user
+    msg["To"] = to_email
+    if email:
+        msg["Reply-To"] = email
+
+    try:
+        with smtplib.SMTP(smtp_host, smtp_port, timeout=20) as server:
+            server.starttls()
+            server.login(smtp_user, smtp_pass)
+            server.sendmail(smtp_user, [to_email], msg.as_string())
+        return True, "Köszönjük! Visszajelzésed megérkezett — hamarosan elolvassuk."
+    except Exception as exc:
+        return False, f"E-mail küldési hiba: {exc}"
+
+
+def _send_feedback(name: str, email: str, category: str, message: str) -> tuple:
+    web3_key = _feedback_secret("FEEDBACK_WEB3FORMS_ACCESS_KEY")
+    if web3_key:
+        try:
+            resp = requests.post(
+                "https://api.web3forms.com/submit",
+                json={
+                    "access_key": web3_key,
+                    "subject": f"TEXTUS visszajelzés: {category}",
+                    "from_name": APP_NAME,
+                    "name": name or "Névtelen látogató",
+                    "email": email or FEEDBACK_TO_EMAIL,
+                    "message": f"Téma: {category}\n\n{message}",
+                },
+                timeout=20,
+            )
+            data = resp.json()
+            if resp.ok and data.get("success"):
+                return True, "Köszönjük! Visszajelzésed megérkezett — hamarosan elolvassuk."
+            return False, data.get("message", "Nem sikerült elküldeni a visszajelzést.")
+        except Exception as exc:
+            return False, f"Küldési hiba: {exc}"
+
+    webhook = _feedback_secret("FEEDBACK_WEBHOOK_URL")
+    if webhook:
+        try:
+            resp = requests.post(
+                webhook,
+                json={
+                    "name": name or "Névtelen látogató",
+                    "email": email or "",
+                    "category": category,
+                    "message": message,
+                    "_subject": f"TEXTUS visszajelzés: {category}",
+                },
+                headers={"Accept": "application/json"},
+                timeout=20,
+            )
+            if resp.ok:
+                return True, "Köszönjük! Visszajelzésed megérkezett — hamarosan elolvassuk."
+            return False, "Nem sikerült elküldeni a visszajelzést."
+        except Exception as exc:
+            return False, f"Küldési hiba: {exc}"
+
+    ok, msg = _send_feedback_smtp(name, email, category, message)
+    if ok:
+        return ok, msg
+
+    return False, (
+        "A visszajelzés-küldés jelenleg nincs beállítva. "
+        f"Írj nekünk közvetlenül: {FEEDBACK_TO_EMAIL}"
     )
 
 
-_inject_tawkto_widget()
+def render_feedback_section() -> None:
+    st.markdown(
+        """
+<div id="visszajelzes" class="feedback-wrap">
+    <div class="feedback-header">
+        <div class="ars-numeral">Visszajelzés</div>
+        <div class="ars-station-title">Mondd el a tapasztalataidat</div>
+        <div class="ars-station-text">
+            Ötlet, hiba, dicséret — minden visszajelzés segít jobbá tenni a műhelyt.
+            Az űrlap kitöltése után közvetlenül hozzánk érkezik az üzenet.
+        </div>
+    </div>
+</div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    with st.form("textus_feedback_form", clear_on_submit=True):
+        col_name, col_email = st.columns(2)
+        with col_name:
+            fb_name = st.text_input("Név (opcionális)", placeholder="Hogyan szólíthatunk?")
+        with col_email:
+            fb_email = st.text_input("E-mail (opcionális)", placeholder="Ha választ szeretnél")
+        fb_category = st.selectbox(
+            "Téma",
+            [
+                "Tapasztalat / vélemény",
+                "Ötlet javaslat",
+                "Hiba / technikai",
+                "Egyéb",
+            ],
+        )
+        fb_message = st.text_area(
+            "Üzeneted",
+            placeholder="Írd le röviden, mi tetszett, mi nem, mit javítsunk…",
+            height=140,
+        )
+        submitted = st.form_submit_button(
+            "Visszajelzés küldése",
+            type="primary",
+            use_container_width=True,
+        )
+
+    if submitted:
+        msg_text = (fb_message or "").strip()
+        if not msg_text:
+            st.warning("Kérjük, írd meg az üzeneted.")
+        elif len(msg_text) < 10:
+            st.warning("Kérjük, írj legalább néhány mondatot — így jobban megérthetjük a véleményed.")
+        else:
+            last_sent = st.session_state.get("_feedback_last_sent")
+            if last_sent and (datetime.now().timestamp() - last_sent) < 30:
+                st.warning("Kérjük, várj pár másodpercet a következő üzenet küldése előtt.")
+            else:
+                ok, result_msg = _send_feedback(
+                    (fb_name or "").strip(),
+                    (fb_email or "").strip(),
+                    fb_category,
+                    msg_text,
+                )
+                if ok:
+                    st.session_state["_feedback_last_sent"] = datetime.now().timestamp()
+                    st.success(result_msg)
+                else:
+                    st.error(result_msg)
 
 
 # =========================================================
@@ -6187,11 +6371,11 @@ footer_html = """
         </div>
         <div class="ars-station">
             <div class="ars-numeral">III &middot; Visszajelzés</div>
-            <div class="ars-station-title">Keress bizalommal</div>
+            <div class="ars-station-title">Írj közvetlenül az oldalon</div>
             <div class="ars-station-text">
-                Használd bátran a munkádhoz! Észrevétel, ötlet vagy tapasztalat:<br>
-                📧 <a href="mailto:hoverzsolt@gmail.com">hoverzsolt@gmail.com</a><br>
-                🔵 <a href="https://www.facebook.com/" target="_blank" rel="noopener">Facebook: Zsolt Hover</a>
+                Görgess az oldal legaljára, és küldd el véleményed az űrlapon —
+                ötlet, hiba, tapasztalat egy helyen.<br>
+                <a href="#visszajelzes">Ugrás a visszajelzéshez ↓</a>
             </div>
         </div>
     </div>
@@ -6205,3 +6389,5 @@ footer_html = """
 )
 
 st.markdown(footer_html, unsafe_allow_html=True)
+
+render_feedback_section()
