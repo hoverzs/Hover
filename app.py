@@ -96,31 +96,37 @@ BUILTIN_API_KEY = _load_builtin_api_key()
 # --- Gemini REST modellek (költség-optimalizált páros) --------------------
 # A `generate_text(..., tab_label=…)` a `resolve_gemini_model_for_tab()` alapján
 # választ modellt. Beépített közös kulcsnál: `gemini-2.5-flash` vagy
-# `gemini-2.5-flash-lite`. Saját kulcs + fejlett mód: a Flash-szintű szekciók
-# `gemini-3.1-pro-preview`-ra váltanak.
+# `gemini-2.5-flash-lite`. Saját kulcsnál opcionális kézi modellválasztás;
+# alapértelmezés („auto”) = ugyanaz a fül szerinti párosítás.
 #
 # `LOCKED_MODEL` = fő (Flash) modell-ID — backward compat + „ismeretlen” fül.
 
 LOCKED_MODEL = "gemini-2.5-flash"
 GEMINI_MODEL_FLASH_LITE = "gemini-2.5-flash-lite"
-# Saját API kulcs + „Fejlett modell” bekapcsolva: mély szekciók (Flash szint).
 GEMINI_MODEL_PRO = "gemini-3.1-pro-preview"
+GEMINI_MODEL_FLASH_3 = "gemini-3-flash-preview"
 # A sorozattervezőhöz a mélyebb (Flash) modellt használjuk — több hetes,
 # strukturált, teológiailag igényes Markdownt termel. A régebbi
 # `gemini-1.5-flash` v1beta-n már gyakran nem elérhető (404 / not supported).
 GEMINI_MODEL_SERIES_PLANNER = LOCKED_MODEL
 LOCKED_MODEL_DISPLAY = "Gemini 2.5 Flash"
 GEMINI_MODEL_PRO_DISPLAY = "Gemini 3.1 Pro"
+GEMINI_MODEL_FLASH_3_DISPLAY = "Gemini 3 Flash"
+OWN_KEY_MODEL_AUTO = "auto"
 GEMINI_MODEL_DISPLAY_BY_ID: dict[str, str] = {
     LOCKED_MODEL: LOCKED_MODEL_DISPLAY,
     GEMINI_MODEL_FLASH_LITE: "Gemini 2.5 Flash Lite",
     GEMINI_MODEL_PRO: GEMINI_MODEL_PRO_DISPLAY,
+    GEMINI_MODEL_FLASH_3: GEMINI_MODEL_FLASH_3_DISPLAY,
 }
-# Saját kulcs + fejlett mód: ezek a modell-ID-k Pro-ra váltanak (Flash szint).
-GEMINI_MODEL_ADVANCED_UPGRADE_IDS = frozenset({
-    LOCKED_MODEL,
-    GEMINI_MODEL_SERIES_PLANNER,
-})
+# Saját kulcsnál választható modellek (kulcs = API modell-ID).
+OWN_KEY_MODEL_OPTIONS: dict[str, str] = {
+    OWN_KEY_MODEL_AUTO: "Alapértelmezett (fül szerint: Flash / Flash Lite)",
+    LOCKED_MODEL: LOCKED_MODEL_DISPLAY,
+    GEMINI_MODEL_FLASH_LITE: "Gemini 2.5 Flash Lite",
+    GEMINI_MODEL_FLASH_3: GEMINI_MODEL_FLASH_3_DISPLAY,
+    GEMINI_MODEL_PRO: GEMINI_MODEL_PRO_DISPLAY,
+}
 
 # Kulcs = `generate_text(..., tab_label=…)` (SECTION_LABELS magyar címek +
 # speciális hívások). A finomító chat `tab_label="chat: {cím}"` — a resolver
@@ -151,11 +157,14 @@ def _is_using_own_api_key() -> bool:
     return bool((st.session_state.get("api_key") or "").strip())
 
 
-def _wants_advanced_model() -> bool:
-    """Saját kulcs + Beállításokon bekapcsolt fejlett modell."""
-    return _is_using_own_api_key() and bool(
-        st.session_state.get("use_advanced_model", False)
-    )
+def _own_key_model_override() -> str | None:
+    """Saját kulcsnál kézzel választott modell, vagy None (= fül szerinti alap)."""
+    if not _is_using_own_api_key():
+        return None
+    choice = (st.session_state.get("user_model_choice") or OWN_KEY_MODEL_AUTO).strip()
+    if choice == OWN_KEY_MODEL_AUTO or choice not in OWN_KEY_MODEL_OPTIONS:
+        return None
+    return choice
 
 
 def resolve_gemini_model_for_tab(tab_label: str) -> str:
@@ -163,16 +172,16 @@ def resolve_gemini_model_for_tab(tab_label: str) -> str:
 
     A teljes táblázat: `GEMINI_MODEL_BY_TAB_LABEL`. Ismeretlen címkénél
     a biztonságos alapértelmezés a `LOCKED_MODEL` (Flash).
-    Saját kulcsnál, fejlett módban a Flash-szintű szekciók `GEMINI_MODEL_PRO`-ra
-    váltanak; a Flash Lite szekciók változatlanok maradnak.
+    Saját kulcsnál, ha a felhasználó modellt választott, az minden hívásra
+    érvényes; „Alapértelmezett” esetén a fül szerinti Flash / Flash Lite páros.
     """
+    override = _own_key_model_override()
+    if override:
+        return override
     raw = (tab_label or "").strip()
     if raw.lower().startswith("chat:"):
         raw = raw.split(":", 1)[1].strip()
-    base = GEMINI_MODEL_BY_TAB_LABEL.get(raw, LOCKED_MODEL)
-    if _wants_advanced_model() and base in GEMINI_MODEL_ADVANCED_UPGRADE_IDS:
-        return GEMINI_MODEL_PRO
-    return base
+    return GEMINI_MODEL_BY_TAB_LABEL.get(raw, LOCKED_MODEL)
 
 # =========================================================
 # SEGÉDFÜGGVÉNYEK
@@ -3532,7 +3541,7 @@ def build_outline_docx() -> bytes:
 defaults = {
     "api_key": BUILTIN_API_KEY,
     "using_builtin_key": bool(BUILTIN_API_KEY),
-    "use_advanced_model": False,
+    "user_model_choice": OWN_KEY_MODEL_AUTO,
     "model_name": LOCKED_MODEL,
     "temperature": 0.3,
 
@@ -4227,7 +4236,7 @@ def generate_text(
 
     A cél-modell a `tab_label` alapján automatikusan választódik
     (`resolve_gemini_model_for_tab`). Közös kulcsnál Flash / Flash Lite;
-    saját kulcsnál opcionálisan Pro a mély szekciókhoz.
+    saját kulcsnál opcionális kézi modellválasztás (alapértelmezés = fül szerint).
 
     `system_bundle` / `include_brevity_directive`:
     speciális fülekhez (pl. sorozattervező) — lásd `_build_payload`.
@@ -5917,7 +5926,7 @@ with tabs[12]:
             if st.button("Vissza a beépített közös kulcsra", key="restore_builtin_key"):
                 st.session_state["api_key"] = _load_builtin_api_key().strip()
                 st.session_state["using_builtin_key"] = True
-                st.session_state["use_advanced_model"] = False
+                st.session_state["user_model_choice"] = OWN_KEY_MODEL_AUTO
                 st.success("Visszaállítva a közös kulcsra.")
                 st.rerun()
     else:
@@ -5941,40 +5950,42 @@ with tabs[12]:
         st.session_state["api_key"] = new_key
         st.session_state["using_builtin_key"] = (new_key == _load_builtin_api_key().strip())
         if st.session_state["using_builtin_key"]:
-            st.session_state["use_advanced_model"] = False
+            st.session_state["user_model_choice"] = OWN_KEY_MODEL_AUTO
             st.success("Visszaállítva a közös kulcsra.")
         else:
             st.success("Saját API kulcs mentve.")
 
-    # ─── Modell — közös kulcs: rögzített; saját kulcs: opcionális Pro ───
+    # ─── Modell — közös kulcs: rögzített; saját kulcs: választható ───
     using_own_key = _is_using_own_api_key()
 
     if using_own_key:
-        st.checkbox(
-            "Fejlett modell (Gemini 3.1 Pro) saját kulccsal",
-            value=bool(st.session_state.get("use_advanced_model", False)),
+        if st.session_state.get("user_model_choice") not in OWN_KEY_MODEL_OPTIONS:
+            st.session_state["user_model_choice"] = OWN_KEY_MODEL_AUTO
+        st.selectbox(
+            "Modell (saját kulccsal)",
+            options=list(OWN_KEY_MODEL_OPTIONS.keys()),
+            format_func=lambda model_id: OWN_KEY_MODEL_OPTIONS[model_id],
             help=(
-                "Bekapcsolva a mély elemzési szekciók (Exegézis, Teológia, Eredeti szöveg, "
-                "sorozattervező stb.) a Gemini 3.1 Pro modellt használják. "
-                "Az összegző szekciók továbbra is Flash Lite maradnak. "
-                "A költség a saját Google AI Studio számládon jelenik meg."
+                "Alapértelmezett: a fül szerint választ (Flash a mély szekciókhoz, "
+                "Flash Lite az összegzőkhöz). Ha konkrét modellt választasz, "
+                "az minden API-hívásra érvényes. A költség a saját Google AI Studio "
+                "számládon jelenik meg."
             ),
-            key="use_advanced_model",
+            key="user_model_choice",
         )
-        if st.session_state["use_advanced_model"]:
+        choice = st.session_state.get("user_model_choice", OWN_KEY_MODEL_AUTO)
+        if choice == OWN_KEY_MODEL_AUTO:
             model_summary = (
-                f"**{GEMINI_MODEL_PRO_DISPLAY}** (`{GEMINI_MODEL_PRO}`) "
-                f"a mély szekciókhoz · **Gemini 2.5 Flash Lite** az összegzőkhöz"
-            )
-            pill = "saját kulcs · Pro"
-        else:
-            model_summary = (
-                f"**{LOCKED_MODEL_DISPLAY}** (`{LOCKED_MODEL}`) "
-                f"vagy **Gemini 2.5 Flash Lite** (`{GEMINI_MODEL_FLASH_LITE}`)"
+                f"**Alapértelmezett** — **{LOCKED_MODEL_DISPLAY}** "
+                f"vagy **Gemini 2.5 Flash Lite** (fül szerint)"
             )
             pill = "saját kulcs · alap"
+        else:
+            display = OWN_KEY_MODEL_OPTIONS.get(choice, choice)
+            model_summary = f"**{display}** (`{choice}`) — minden hívásra"
+            pill = "saját kulcs · egyedi"
     else:
-        st.session_state["use_advanced_model"] = False
+        st.session_state["user_model_choice"] = OWN_KEY_MODEL_AUTO
         model_summary = (
             f"**{LOCKED_MODEL_DISPLAY}** (`{LOCKED_MODEL}`) "
             f"vagy **Gemini 2.5 Flash Lite** (`{GEMINI_MODEL_FLASH_LITE}`)"
@@ -5994,9 +6005,8 @@ with tabs[12]:
     )
     if using_own_key:
         st.caption(
-            "Saját API kulccsal választható a fejlettebb modell a mély szekciókhoz. "
-            "A Gemini Pro előfizetés (app) és az API számlázás külön — a Pro modell "
-            "csak itt, saját kulcs + kapcsoló mellett aktiválódik."
+            "Saját API kulccsal választhatsz modellt. Az *Alapértelmezett* ugyanazt csinálja, "
+            "mint a közös kulcsnál. A Gemini Pro előfizetés (app) és az API számlázás külön."
         )
     else:
         st.caption(
