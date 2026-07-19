@@ -6,8 +6,21 @@ import json
 import io
 import os
 import re
-from datetime import datetime
+import time
+from datetime import datetime, timedelta
 from pathlib import Path
+
+PROJECT_AUTOSAVE_INTERVAL_S = 180  # 3 perc — csak bejelentkezve, megnyitott projektnél
+
+
+from workspace_data import (
+    PROJECT_DATA_KEYS,
+    WORKSPACE_KEYS,
+    WORKSPACE_LIST_KEYS,
+    WORKSPACE_STR_KEYS,
+    build_workspace_payload,
+    project_content_fingerprint,
+)
 
 # =========================================================
 # VERZIÓ
@@ -3359,38 +3372,8 @@ def _request_clear_note(note_key: str) -> None:
 # WORKSPACE MENTÉS / BETÖLTÉS
 # =========================================================
 
-WORKSPACE_STR_KEYS = [
-    "last_igehely", "last_alkalom", "last_stilus", "last_sajat",
-    "overview", "exegesis", "history", "theology",
-    "illustrations", "actualization", "outline",
-    "outline_draft", "outline_workshop_questions",
-    "outline_workshop_answers", "outline_reworked_draft",
-    "outline_title_suggestions",
-    "original_text", "songs",
-    "series_planner_output", "series_idea",
-]
-
-WORKSPACE_LIST_KEYS = [
-    "basket",
-    "verse_history",
-    "exegesis_chat", "history_chat", "theology_chat",
-    "illustrations_chat", "actualization_chat",
-    "outline_chat", "original_text_chat", "songs_chat",
-]
-
-WORKSPACE_KEYS = WORKSPACE_STR_KEYS + WORKSPACE_LIST_KEYS
-
-
 def serialize_workspace():
-    payload = {
-        "_app": "Textus",
-        "_version": APP_VERSION,
-        "_saved_at": datetime.now().isoformat(timespec="seconds"),
-    }
-    for k in WORKSPACE_STR_KEYS:
-        payload[k] = st.session_state.get(k, "")
-    for k in WORKSPACE_LIST_KEYS:
-        payload[k] = st.session_state.get(k, [])
+    payload = build_workspace_payload(version=APP_VERSION, state=st.session_state)
     return json.dumps(payload, ensure_ascii=False, indent=2)
 
 
@@ -3406,6 +3389,546 @@ def deserialize_workspace(raw_bytes):
         if k in obj:
             st.session_state[k] = obj[k]
     return True, obj.get("_saved_at", "ismeretlen időpont")
+
+
+def _owner_sub() -> str | None:
+    """Bejelentkezett felhasználó azonosítója: kizárólag `st.user["sub"]`."""
+    try:
+        if not st.user.is_logged_in:
+            return None
+        sub = (st.user["sub"] or "").strip()
+    except Exception:
+        return None
+    return sub or None
+
+
+def _queue_project_widget_sync_from_state() -> None:
+    """Widget-kulcsok frissítését a következő futás elejére ütemezi.
+
+    A Beállítások fülön a megnyitás után a tabok widgetjei már létezhetnek
+    ugyanabban a futásban — közvetlen írás Streamlit hibát okozna.
+    """
+    st.session_state["_pending_project_widget_sync"] = {
+        "igehely_input": st.session_state.get("last_igehely", "") or "",
+        "alkalom_input": st.session_state.get("last_alkalom", "") or "",
+        "stilus_input": st.session_state.get("last_stilus", "") or "",
+        "sajat_input": st.session_state.get("last_sajat", "") or "",
+        "_outline_draft_editor": st.session_state.get("outline_draft", "") or "",
+        "_outline_answers_editor": (
+            st.session_state.get("outline_workshop_answers", "") or ""
+        ),
+        "_outline_reworked_editor": (
+            st.session_state.get("outline_reworked_draft", "") or ""
+        ),
+    }
+    st.session_state.pop("_pending_outline_draft_editor", None)
+
+
+def _apply_pending_project_widget_sync() -> None:
+    """Pending widget-értékek alkalmazása — a tabok/widgetek létrehozása előtt."""
+    pending = st.session_state.pop("_pending_project_widget_sync", None)
+    if not isinstance(pending, dict):
+        return
+    for key, value in pending.items():
+        st.session_state[key] = value
+
+
+def _apply_project_data_to_session(project_data: dict) -> None:
+    """Felhő `project_data` visszaírása; widget-szinkron pending + rerun után."""
+    if not isinstance(project_data, dict):
+        return
+    for key in PROJECT_DATA_KEYS:
+        if key in project_data:
+            st.session_state[key] = project_data[key]
+    _queue_project_widget_sync_from_state()
+
+
+def _workspace_has_substantive_content() -> bool:
+    for key in (
+        "overview",
+        "exegesis",
+        "history",
+        "theology",
+        "illustrations",
+        "actualization",
+        "outline",
+        "outline_draft",
+        "original_text",
+        "songs",
+        "series_planner_output",
+        "last_igehely",
+    ):
+        if (st.session_state.get(key) or "").strip():
+            return True
+    if st.session_state.get("basket"):
+        return True
+    return False
+
+
+def _set_flash(message: str, kind: str = "success") -> None:
+    st.session_state["_flash_message"] = {"type": kind, "text": message}
+
+
+def _render_flash_message() -> None:
+    flash = st.session_state.pop("_flash_message", None)
+    if not isinstance(flash, dict):
+        return
+    text = (flash.get("text") or "").strip()
+    if not text:
+        return
+    kind = flash.get("type") or "success"
+    if kind == "error":
+        st.error(text)
+    elif kind == "warning":
+        st.warning(text)
+    elif kind == "info":
+        st.info(text)
+    else:
+        st.success(text)
+
+
+def _mark_project_clean() -> None:
+    st.session_state["project_saved_fingerprint"] = project_content_fingerprint(
+        st.session_state
+    )
+    st.session_state["_project_last_save_ts"] = time.time()
+
+
+def _is_project_dirty() -> bool:
+    """Van-e nem mentett tartalmi változás a legutóbbi felhő-mentéshez képest."""
+    _sync_inputs_to_last()
+    title_now = (st.session_state.get("project_title_input") or "").strip()
+    title_saved = (st.session_state.get("current_project_title") or "").strip()
+    if title_now and title_now != title_saved:
+        return True
+    saved = (st.session_state.get("project_saved_fingerprint") or "").strip()
+    current = project_content_fingerprint(st.session_state)
+    if not saved:
+        return _workspace_has_substantive_content()
+    return current != saved
+
+
+def _resolve_project_title() -> str:
+    title = (st.session_state.get("project_title_input") or "").strip()
+    if not title:
+        title = (st.session_state.get("current_project_title") or "").strip()
+    if not title:
+        title = (st.session_state.get("last_igehely") or "").strip()
+    return title or "Névtelen projekt"
+
+
+def _cloud_save_project(*, as_new: bool = False, autosave: bool = False) -> None:
+    """Mentés a fejlécsávból. Vendégnél no-op. Autosave csak meglévő projektre."""
+    owner = _owner_sub()
+    if not owner:
+        if not autosave:
+            _set_flash("A felhőmentéshez jelentkezz be.", "warning")
+            st.rerun()
+        return
+
+    from project_storage import (
+        build_project_data_from_state,
+        create_project,
+        update_project,
+    )
+
+    try:
+        _sync_inputs_to_last()
+        pdata = build_project_data_from_state(st.session_state, version=APP_VERSION)
+        passage = (st.session_state.get("last_igehely") or "").strip()
+        title = _resolve_project_title()
+        cur_id = (st.session_state.get("current_project_id") or "").strip()
+
+        if autosave:
+            if not cur_id:
+                return
+            updated = update_project(cur_id, owner, title, passage, pdata)
+            if not updated:
+                return
+            st.session_state["current_project_title"] = title
+            st.session_state["_pending_project_title_input"] = title
+            _mark_project_clean()
+            _set_flash(f"Automatikus mentés: {title}", "info")
+            st.rerun()
+            return
+
+        if as_new or not cur_id:
+            row = create_project(owner, title, passage, pdata)
+            st.session_state["current_project_id"] = str(row.get("id") or "")
+            st.session_state["current_project_title"] = title
+            st.session_state["_pending_project_title_input"] = title
+            _mark_project_clean()
+            _set_flash(f"Új projekt mentve: {title}")
+        else:
+            updated = update_project(cur_id, owner, title, passage, pdata)
+            if not updated:
+                _set_flash(
+                    "A projekt nem található, vagy nem a te fiókodhoz tartozik.",
+                    "error",
+                )
+            else:
+                st.session_state["current_project_title"] = title
+                st.session_state["_pending_project_title_input"] = title
+                _mark_project_clean()
+                _set_flash(f"Mentve: {title}")
+        st.session_state["project_delete_confirm_id"] = None
+        st.session_state["project_open_confirm_id"] = None
+        st.rerun()
+    except Exception as exc:
+        if autosave:
+            return
+        _set_flash(f"Mentési hiba: {exc}", "error")
+        st.rerun()
+
+
+def _project_confirm_blocking() -> bool:
+    return bool(
+        st.session_state.get("project_open_confirm_id")
+        or st.session_state.get("project_logout_confirm")
+        or st.session_state.get("project_new_work_confirm")
+        or st.session_state.get("project_delete_confirm_id")
+    )
+
+
+def _maybe_autosave_project() -> None:
+    """3 percenként ment, ha be van jelentkezve, van megnyitott projekt, és dirty."""
+    if not _owner_sub():
+        return
+    cur_id = (st.session_state.get("current_project_id") or "").strip()
+    if not cur_id:
+        return
+    if _project_confirm_blocking():
+        return
+    if not _is_project_dirty():
+        return
+    last = float(st.session_state.get("_project_last_save_ts") or 0.0)
+    if (time.time() - last) < PROJECT_AUTOSAVE_INTERVAL_S:
+        return
+    _cloud_save_project(as_new=False, autosave=True)
+
+
+@st.fragment(run_every=timedelta(seconds=PROJECT_AUTOSAVE_INTERVAL_S))
+def _project_autosave_fragment() -> None:
+    """Háttérben futó autosave-ütemező (Streamlit fragment)."""
+    _maybe_autosave_project()
+
+
+def _cloud_open_project(project_id: str) -> None:
+    owner = _owner_sub()
+    if not owner:
+        _set_flash("A betöltéshez jelentkezz be.", "warning")
+        st.rerun()
+        return
+
+    from project_storage import get_project
+
+    try:
+        row = get_project(str(project_id), owner)
+        if not row:
+            _set_flash("A projekt nem található, vagy nem a tied.", "error")
+            st.session_state["project_open_confirm_id"] = None
+            st.rerun()
+            return
+        _apply_project_data_to_session(row.get("project_data") or {})
+        title = (row.get("title") or "").strip() or "Névtelen projekt"
+        st.session_state["current_project_id"] = str(row.get("id") or "")
+        st.session_state["current_project_title"] = title
+        st.session_state["_pending_project_title_input"] = title
+        st.session_state["project_open_confirm_id"] = None
+        st.session_state["project_delete_confirm_id"] = None
+        st.session_state["show_projects_panel"] = False
+        _mark_project_clean()
+        _set_flash(f"Betöltve: {title}")
+        st.rerun()
+    except Exception as exc:
+        _set_flash(f"Betöltési hiba: {exc}", "error")
+        st.rerun()
+
+
+def _request_open_project(project_id: str) -> None:
+    """Megnyitás dirty / nem üres munkamenet esetén megerősítéssel."""
+    pid = (project_id or "").strip()
+    if not pid:
+        return
+    cur_id = (st.session_state.get("current_project_id") or "").strip()
+    needs_confirm = pid != cur_id and (
+        _is_project_dirty() or _workspace_has_substantive_content()
+    )
+    if needs_confirm:
+        st.session_state["project_open_confirm_id"] = pid
+        st.session_state["project_delete_confirm_id"] = None
+        st.session_state["project_logout_confirm"] = False
+        st.session_state["project_new_work_confirm"] = False
+        st.rerun()
+        return
+    _cloud_open_project(pid)
+
+
+def _clear_workspace_content() -> None:
+    """Generált tartalom ürítése (API-kulcs érintetlen)."""
+    for k in WORKSPACE_STR_KEYS:
+        st.session_state[k] = ""
+    for k in WORKSPACE_LIST_KEYS:
+        st.session_state[k] = []
+    for k in ("series_cadence",):
+        st.session_state[k] = "vasárnapi"
+    st.session_state["series_weeks"] = 4
+    st.session_state["_clear_outline_workshop_editors"] = True
+    st.session_state["current_project_id"] = ""
+    st.session_state["current_project_title"] = ""
+    st.session_state["_pending_project_title_input"] = ""
+    st.session_state["project_saved_fingerprint"] = ""
+    _queue_project_widget_sync_from_state()
+
+
+def _start_new_work() -> None:
+    _clear_workspace_content()
+    st.session_state["project_new_work_confirm"] = False
+    st.session_state["show_projects_panel"] = False
+    _set_flash("Új üres munka indítva.", "info")
+    st.rerun()
+
+
+def _render_project_nav_confirms(owner: str | None) -> None:
+    """Dirty váltás / megnyitás / kijelentkezés / új munka megerősítői."""
+    open_pending = st.session_state.get("project_open_confirm_id")
+    if open_pending:
+        st.warning(
+            "Nem mentett vagy meglévő munkamenet van a böngészőben. "
+            "A megnyitás felülírja a jelenlegi tartalmat (a többi felhőprojekt érintetlen)."
+        )
+        c1, c2 = st.columns(2)
+        with c1:
+            if st.button(
+                "Megnyitás a jelenlegi felülírásával",
+                key="project_open_confirm_yes",
+                use_container_width=True,
+            ):
+                _cloud_open_project(str(open_pending))
+        with c2:
+            if st.button("Mégsem", key="project_open_confirm_no", use_container_width=True):
+                st.session_state["project_open_confirm_id"] = None
+                st.rerun()
+
+    if st.session_state.get("project_new_work_confirm"):
+        st.warning("Nem mentett változások elveszhetnek. Indítod az új üres munkát?")
+        n1, n2 = st.columns(2)
+        with n1:
+            if st.button(
+                "Igen, új üres munka",
+                key="project_new_work_yes",
+                use_container_width=True,
+            ):
+                _start_new_work()
+        with n2:
+            if st.button("Mégsem", key="project_new_work_no", use_container_width=True):
+                st.session_state["project_new_work_confirm"] = False
+                st.rerun()
+
+    if st.session_state.get("project_logout_confirm"):
+        st.warning(
+            "Nem mentett változások elveszhetnek a kijelentkezéssel. "
+            "Előbb mentsd a fejlécsávból, vagy erősítsd meg a kilépést."
+        )
+        l1, l2 = st.columns(2)
+        with l1:
+            if st.button(
+                "Kijelentkezés mentés nélkül",
+                key="project_logout_yes",
+                use_container_width=True,
+            ):
+                st.session_state["project_logout_confirm"] = False
+                st.logout()
+        with l2:
+            if st.button("Mégsem", key="project_logout_no", use_container_width=True):
+                st.session_state["project_logout_confirm"] = False
+                st.rerun()
+
+
+def _render_projects_quick_list(owner: str) -> None:
+    """Kompakt projektlista a fejlécsáv „Projektek…” paneljében."""
+    from project_storage import delete_project, get_user_projects
+
+    del_pending = st.session_state.get("project_delete_confirm_id")
+    if del_pending:
+        del_label = "ezt a projektet"
+        try:
+            for p in get_user_projects(owner):
+                if str(p.get("id")) == str(del_pending):
+                    del_label = (p.get("title") or "").strip() or del_label
+                    break
+        except Exception:
+            pass
+        st.warning(f"Biztosan törlöd: **{del_label}**? Ez nem vonható vissza.")
+        d1, d2 = st.columns(2)
+        with d1:
+            if st.button(
+                "Végleges törlés",
+                key="bar_project_delete_yes",
+                use_container_width=True,
+            ):
+                try:
+                    ok = delete_project(str(del_pending), owner)
+                    if ok:
+                        if str(st.session_state.get("current_project_id") or "") == str(
+                            del_pending
+                        ):
+                            st.session_state["current_project_id"] = ""
+                            st.session_state["current_project_title"] = ""
+                            st.session_state["project_saved_fingerprint"] = ""
+                        st.session_state["project_delete_confirm_id"] = None
+                        _set_flash("Projekt törölve.")
+                        st.rerun()
+                    else:
+                        _set_flash("A törlés nem sikerült.", "error")
+                        st.rerun()
+                except Exception as exc:
+                    _set_flash(f"Törlési hiba: {exc}", "error")
+                    st.rerun()
+        with d2:
+            if st.button("Mégsem", key="bar_project_delete_no", use_container_width=True):
+                st.session_state["project_delete_confirm_id"] = None
+                st.rerun()
+
+    try:
+        projects = get_user_projects(owner)
+    except Exception as exc:
+        st.error(f"A projektlista nem tölthető be: {exc}")
+        return
+
+    if not projects:
+        st.caption("Még nincs mentett projekt. Használd a Mentés gombot az első mentéshez.")
+        return
+
+    cur_id = (st.session_state.get("current_project_id") or "").strip()
+    for proj in projects:
+        pid = str(proj.get("id") or "")
+        ptitle = (proj.get("title") or "").strip() or "Névtelen projekt"
+        ppassage = (proj.get("passage") or "").strip() or "—"
+        pupdated = (proj.get("updated_at") or "")[:19].replace("T", " ")
+        is_current = bool(pid and pid == cur_id)
+        st.markdown(
+            f"**{ptitle}**"
+            + (" · *megnyitva*" if is_current else "")
+            + f"  \n{ppassage}"
+            + (f" · {pupdated}" if pupdated else "")
+        )
+        c1, c2 = st.columns(2)
+        with c1:
+            if st.button(
+                "Megnyitás",
+                key=f"bar_project_open_{pid}",
+                use_container_width=True,
+                disabled=not pid,
+            ):
+                _request_open_project(pid)
+        with c2:
+            if st.button(
+                "Törlés",
+                key=f"bar_project_delete_{pid}",
+                use_container_width=True,
+                disabled=not pid,
+            ):
+                st.session_state["project_delete_confirm_id"] = pid
+                st.session_state["project_open_confirm_id"] = None
+                st.rerun()
+
+
+def _apply_pending_project_title_input() -> None:
+    """Pending cím alkalmazása a `project_title_input` widget létrehozása előtt."""
+    if st.session_state.get("_pending_project_title_input") is not None:
+        st.session_state["project_title_input"] = st.session_state[
+            "_pending_project_title_input"
+        ]
+        st.session_state["_pending_project_title_input"] = None
+    elif "project_title_input" not in st.session_state:
+        st.session_state["project_title_input"] = (
+            (st.session_state.get("current_project_title") or "").strip()
+            or (st.session_state.get("last_igehely") or "").strip()
+            or ""
+        )
+
+
+def _render_project_status_bar() -> None:
+    """Állandó projekt-sáv a fejléc után — mentés, dirty, projektek."""
+    owner = _owner_sub()
+    st.markdown("##### Projekt")
+    if not owner:
+        st.caption(
+            "Vendég mód · a felhőmentéshez jelentkezz be Google-fiókkal. "
+            "A TEXTUS minden funkciója így is használható."
+        )
+        if st.button("Bejelentkezés Google-fiókkal", key="bar_google_login"):
+            st.login()
+        return
+
+    cur_id = (st.session_state.get("current_project_id") or "").strip()
+    cur_title = (st.session_state.get("current_project_title") or "").strip()
+    passage = (st.session_state.get("last_igehely") or "").strip()
+    dirty = _is_project_dirty()
+
+    if cur_id:
+        status = "Nem mentett változások" if dirty else "Mentve"
+        label = cur_title or "Névtelen projekt"
+        if passage and passage not in label:
+            st.caption(
+                f"**{label}** · {passage} · {status} · autosave ~3 perc"
+            )
+        else:
+            st.caption(f"**{label}** · {status} · autosave ~3 perc")
+    else:
+        status = "Nem mentett változások" if dirty else "Nincs megnyitott projekt"
+        st.caption(
+            f"{status} · az autosave csak megnyitott / elmentett projektnél fut"
+        )
+
+    _apply_pending_project_title_input()
+    st.text_input(
+        "Projekt címe",
+        placeholder="Pl. Jn 3,16 — húsvéti igehirdetés",
+        key="project_title_input",
+        help="A következő mentéskor (kézi vagy automatikus) ez a cím kerül a felhőbe.",
+    )
+
+    b1, b2, b3, b4 = st.columns([1.2, 1.2, 1.2, 1.2])
+    with b1:
+        save_label = "Mentés" if cur_id else "Mentés újként"
+        if st.button(save_label, key="bar_project_save", use_container_width=True):
+            _cloud_save_project(as_new=not bool(cur_id))
+    with b2:
+        if cur_id and st.button(
+            "Mentés újként",
+            key="bar_project_save_as_new",
+            use_container_width=True,
+        ):
+            _cloud_save_project(as_new=True)
+    with b3:
+        toggle = "Projektek elrejtése" if st.session_state.get("show_projects_panel") else "Projektek…"
+        if st.button(toggle, key="bar_projects_toggle", use_container_width=True):
+            st.session_state["show_projects_panel"] = not bool(
+                st.session_state.get("show_projects_panel")
+            )
+            st.rerun()
+    with b4:
+        if st.button("Új munka", key="bar_new_work", use_container_width=True):
+            if _is_project_dirty() or _workspace_has_substantive_content():
+                st.session_state["project_new_work_confirm"] = True
+                st.session_state["project_logout_confirm"] = False
+                st.session_state["project_open_confirm_id"] = None
+                st.rerun()
+            else:
+                _start_new_work()
+
+    _render_project_nav_confirms(owner)
+
+    if st.session_state.get("show_projects_panel"):
+        with st.expander("Mentett projektek", expanded=True):
+            _render_projects_quick_list(owner)
+
+    # Autosave: fragment 3 percenként + azonnali ellenőrzés interakciókor
+    if cur_id:
+        _maybe_autosave_project()
+        _project_autosave_fragment()
 
 
 # =========================================================
@@ -3587,6 +4110,20 @@ defaults = {
     "_call_cache": {},
     "_debug_log": [],
     "_last_api_call_ts": 0.0,
+
+    # Felhő projekt (Saját munkáim) — csak bejelentkezve használt
+    "current_project_id": "",
+    "current_project_title": "",
+    "project_delete_confirm_id": None,
+    "project_open_confirm_id": None,
+    "project_logout_confirm": False,
+    "project_new_work_confirm": False,
+    "show_projects_panel": False,
+    "project_saved_fingerprint": "",
+    "_project_last_save_ts": 0.0,
+    "_flash_message": None,
+    "_pending_project_title_input": None,
+    "_pending_project_widget_sync": None,
 }
 
 for key, value in defaults.items():
@@ -4965,10 +5502,19 @@ if not background_file:
 if not logo_file:
     st.info("Logó nem található. Neve legyen textus_logo.png, logo.png, logo.jpg vagy logo.webp, és ugyanabban a mappában legyen, mint az app.py.")
 
+# Flash (mentés/megnyitás utáni üzenet — túléli az st.rerun()-t)
+_render_flash_message()
+
+# Állandó projekt-sáv (mentés / dirty / projektek) — a tabok előtt
+_render_project_status_bar()
+
 
 # =========================================================
 # TABOK
 # =========================================================
+
+# Felhőprojekt megnyitás után: widget-szinkron a tabok létrehozása előtt
+_apply_pending_project_widget_sync()
 
 tabs = st.tabs([
     "Igehely",
@@ -5908,6 +6454,103 @@ with tabs[9]:
 with tabs[12]:
     st.header("⚙️ Beállítások")
 
+    # ─── 0) Opcionális Google-bejelentkezés (nem kapu — vendégként is teljes app) ──
+    st.subheader("Fiók")
+    if st.user.is_logged_in:
+        _auth_name = (st.user.get("name") or "").strip()
+        _auth_email = (st.user.get("email") or "").strip()
+        _auth_label = _auth_name or _auth_email or "Bejelentkezett felhasználó"
+        st.caption(f"Bejelentkezve: {_auth_label}")
+        if st.button("Kijelentkezés", key="settings_google_logout"):
+            if _is_project_dirty():
+                st.session_state["project_logout_confirm"] = True
+                st.session_state["project_new_work_confirm"] = False
+                st.session_state["project_open_confirm_id"] = None
+                st.rerun()
+            else:
+                st.logout()
+        if st.session_state.get("project_logout_confirm"):
+            st.caption(
+                "A kijelentkezés megerősítése a lap tetején, a Projekt sávnál jelenik meg."
+            )
+    else:
+        st.caption(
+            "A bejelentkezés opcionális. Vendégként is teljes mértékben használhatod a TEXTUS-t; "
+            "a Google-fiók csak a személyes azonosítást szolgálja."
+        )
+        if st.button("Bejelentkezés Google-fiókkal", key="settings_google_login"):
+            st.login()
+
+    # ─── 0b) Saját munkáim — részletes lista; napi mentés a fejlécsávon ──
+    st.subheader("Saját munkáim")
+    _owner = _owner_sub()
+    if not _owner:
+        st.info(
+            "A felhőbe mentéshez jelentkezz be Google-fiókkal. "
+            "Vendégként a TEXTUS minden funkciója továbbra is használható; "
+            "adatbázisba semmi nem kerül."
+        )
+    else:
+        from project_storage import get_user_projects
+
+        st.caption(
+            "A mentés, a **projektcím** és a projektváltás a lap tetején lévő **Projekt** sávon érhető el. "
+            "Megnyitott projektnél kb. 3 percenként automatikus mentés is fut, ha van nem mentett változás."
+        )
+
+        _cur_id = (st.session_state.get("current_project_id") or "").strip()
+        _cur_title = (st.session_state.get("current_project_title") or "").strip()
+        if _cur_id:
+            st.caption(f"Megnyitott felhőprojekt: **{_cur_title or 'Névtelen projekt'}**")
+        else:
+            st.caption("Nincs megnyitott felhőprojekt.")
+
+        st.markdown("##### Mentett projektek")
+        st.caption(
+            "Megnyitás és törlés: ugyanez a lista a lap tetején a **Projektek…** gombbal is elérhető."
+        )
+        try:
+            _projects = get_user_projects(_owner)
+        except Exception as _exc:
+            _projects = []
+            st.error(f"A projektlista nem tölthető be: {_exc}")
+
+        if not _projects:
+            st.caption("Még nincs mentett projekt. Használd a lap tetején a Mentés gombot.")
+        else:
+            for _proj in _projects:
+                _pid = str(_proj.get("id") or "")
+                _ptitle = (_proj.get("title") or "").strip() or "Névtelen projekt"
+                _ppassage = (_proj.get("passage") or "").strip() or "—"
+                _pupdated = (_proj.get("updated_at") or "")[:19].replace("T", " ")
+                _is_current = _pid and _pid == _cur_id
+                st.markdown(
+                    f"**{_ptitle}**"
+                    + (" · *megnyitva*" if _is_current else "")
+                    + f"  \n{_ppassage}"
+                    + (f" · {_pupdated}" if _pupdated else "")
+                )
+                _lc1, _lc2 = st.columns(2)
+                with _lc1:
+                    if st.button(
+                        "Megnyitás",
+                        key=f"settings_project_open_{_pid}",
+                        use_container_width=True,
+                        disabled=not _pid,
+                    ):
+                        _request_open_project(_pid)
+                with _lc2:
+                    if st.button(
+                        "Törlés",
+                        key=f"settings_project_delete_{_pid}",
+                        use_container_width=True,
+                        disabled=not _pid,
+                    ):
+                        st.session_state["project_delete_confirm_id"] = _pid
+                        st.session_state["project_open_confirm_id"] = None
+                        st.session_state["show_projects_panel"] = True
+                        st.rerun()
+
     st.warning("Ha az API kulcs valaha megjelenik hibaüzenetben vagy képernyőképen, generálj újat a Google AI Studio-ban.")
 
     # ─── 1) Beépített közös kulcs státusza ────────────────────────────
@@ -6166,12 +6809,8 @@ with tabs[12]:
     st.caption("Csak a generált tartalmat, a kosarat és a beszélgetéseket törli — az API kulcsot és a modellbeállításokat megőrzi.")
     st.markdown('<div class="btn-danger-marker"></div>', unsafe_allow_html=True)
     if st.button("Munkamenet törlése"):
-        for k in WORKSPACE_STR_KEYS:
-            st.session_state[k] = ""
-        for k in WORKSPACE_LIST_KEYS:
-            st.session_state[k] = []
-        st.session_state["_clear_outline_workshop_editors"] = True
-        st.success("A munkamenet törölve.")
+        _clear_workspace_content()
+        _set_flash("A munkamenet törölve.", "info")
         st.rerun()
 
     st.divider()
