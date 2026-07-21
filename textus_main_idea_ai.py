@@ -243,15 +243,29 @@ def build_main_idea_context(
     }
 
 
+# Javaslatkészítéshez elfogadott minimális források
+# (a passage_text hiánya önmagában nem blokkol).
+_SUGGEST_SOURCE_KEYS: tuple[tuple[str, str], ...] = (
+    ("passage_text", "bibliai szöveg (passage_text)"),
+    ("approved_insights", "jóváhagyott felismerések"),
+    ("exegesis", "exegézis"),
+    ("original_text", "eredeti szöveg elemzése"),
+    ("theology", "teológia"),
+    ("overview", "áttekintés"),
+)
+
+_PASSAGE_TEXT_MISSING_WARNING = (
+    "A teljes bibliai szöveg (passage_text) nem állt közvetlenül "
+    "rendelkezésre; a javaslat az elemzési anyagból készült, ezért "
+    "ne tulajdoníts neki nagyobb bizonyosságot."
+)
+_PASSAGE_TEXT_MISSING_LABEL = "bibliai szöveg (passage_text)"
+
+
 def _analysis_sources_present(ctx: Mapping[str, str]) -> list[str]:
-    """Mely elemzési források vannak ténylegesen jelen."""
+    """Mely elemzési források vannak ténylegesen jelen (értékeléshez is)."""
     keys = (
-        ("passage_text", "bibliai szöveg (passage_text)"),
-        ("approved_insights", "jóváhagyott felismerések"),
-        ("exegesis", "exegézis"),
-        ("original_text", "eredeti szöveg elemzése"),
-        ("theology", "teológia"),
-        ("overview", "áttekintés"),
+        *_SUGGEST_SOURCE_KEYS,
         ("historical_context", "kortörténet"),
     )
     present: list[str] = []
@@ -264,28 +278,60 @@ def _analysis_sources_present(ctx: Mapping[str, str]) -> list[str]:
     return present
 
 
+def _suggest_sources_present(ctx: Mapping[str, str]) -> list[str]:
+    """Javaslatkészítéshez használható források (passage_text opcionális)."""
+    present: list[str] = []
+    for key, label in _SUGGEST_SOURCE_KEYS:
+        if _is_present(ctx.get(key, MISSING)):
+            present.append(label)
+    return present
+
+
 def _missing_analysis_labels(ctx: Mapping[str, str]) -> list[str]:
-    labels = {
-        "passage_text": "bibliai szöveg (passage_text)",
-        "approved_insights": "jóváhagyott felismerések",
-        "exegesis": "exegézis",
-        "original_text": "eredeti szöveg elemzése",
-        "theology": "teológia",
-        "overview": "áttekintés",
-    }
     missing: list[str] = []
-    for key, label in labels.items():
+    for key, label in _SUGGEST_SOURCE_KEYS:
         if not _is_present(ctx.get(key, MISSING)):
             missing.append(label)
     return missing
 
 
 def has_sufficient_suggest_material(ctx: Mapping[str, str]) -> bool:
-    """Van-e elegendő anyag felelős javaslat API-híváshoz."""
+    """Van-e elegendő anyag felelős javaslat API-híváshoz.
+
+    Minimális feltétel: nem üres `passage`, ÉS legalább egy érdemi forrás:
+    `passage_text`, `approved_insights`, `exegesis`, `original_text`,
+    `theology` vagy `overview`. A `passage_text` hiánya önmagában nem
+    blokkol, ha van más elemzési anyag.
+    """
     if not _is_present(ctx.get("passage", MISSING)):
         return False
-    return bool(_analysis_sources_present(ctx))
+    return bool(_suggest_sources_present(ctx))
 
+
+def _ensure_passage_text_absence_notes(
+    result: MainIdeaSuggestionResult,
+    ctx: Mapping[str, str],
+) -> MainIdeaSuggestionResult:
+    """Ha nincs passage_text, de van javaslat: figyelmeztetés + hiányjelzés."""
+    if not result.ok:
+        return result
+    if _is_present(ctx.get("passage_text", MISSING)):
+        return result
+    # Csak akkor, ha tényleg elemzési anyagra támaszkodtunk / van eredmény
+    if not (result.recommended or result.alternatives):
+        # Üres javaslatnál is jelezhető a hiány a missing listában
+        if _PASSAGE_TEXT_MISSING_LABEL not in result.missing_information:
+            result.missing_information = list(result.missing_information) + [
+                _PASSAGE_TEXT_MISSING_LABEL
+            ]
+        return result
+    if _PASSAGE_TEXT_MISSING_WARNING not in result.warnings:
+        result.warnings = list(result.warnings) + [_PASSAGE_TEXT_MISSING_WARNING]
+    if _PASSAGE_TEXT_MISSING_LABEL not in result.missing_information:
+        result.missing_information = list(result.missing_information) + [
+            _PASSAGE_TEXT_MISSING_LABEL
+        ]
+    return result
 
 # ---------------------------------------------------------------------------
 # Promptépítés (a TEXTUS_MAIN_IDEA_PROMPTS_DRAFT.md elvei szerint)
@@ -318,16 +364,17 @@ A textus fő gondolata:
 - Az {{passage}} csak igehely-megjelölés. Önmagában NEM tekinthető rendelkezésre bocsátott bibliai szövegnek.
 - A rendelkezésre bocsátott bibliai szöveg kizárólag az {{passage_text}} mezőben van (ha van).
 - NE egészítsd ki a hiányzó bibliai szöveget saját emlékezetből, betanított versidézettel vagy „ismert szöveg” pótlásával.
-- Ha a bibliai szöveg és az elemzési anyag együtt sem elegendő megalapozott döntéshez, jelezd hiányként (lásd: elégtelen adat).
+- A {{passage_text}} hiánya ÖNMAGÁBAN NEM blokkolja a javaslatot, ha van érdemi elemzési anyag (jóváhagyott felismerések, exegézis, eredeti szöveg, teológia vagy áttekintés).
+- Csak akkor jelezd elégtelen adatként a helyzetet, ha sem a bibliai szöveg, sem érdemi elemzési anyag nem áll rendelkezésre (lásd: elégtelen adat).
 
 ## Források súlya
 
-Elsődleges:
+Elsődleges (bármelyik elegendő lehet javaslatindításhoz, ha érdemi):
 1) a rendelkezésre bocsátott bibliai szöveg ({{passage_text}}), ha van;
 2) a jóváhagyott felismerések;
 3) az exegézis és a szövegszerkezet.
 
-Fontos kiegészítő:
+Fontos kiegészítő (önállóan is elegendőek lehetnek, ha érdemi tartalmúak):
 4) eredeti szöveg elemzése;
 5) teológiai elemzés;
 6) áttekintés.
@@ -355,17 +402,32 @@ TILOS forrásként használni (még ha máshol léteznének is): illusztrációk
 
 ## Elégtelen adat (kötelező szabály)
 
-Ha nincs elegendő adat felelős főgondolat-javaslathoz:
+Csak akkor nincs elegendő adat felelős főgondolat-javaslathoz, ha:
+- a {{passage_text}} NEM áll rendelkezésre, ÉS
+- az összes használható elemzési forrás is üres vagy hiányzik
+  (jóváhagyott felismerések, exegézis, eredeti szöveg elemzése, teológia, áttekintés).
+
+Ilyenkor:
 - "recommended" legyen üres string: "";
 - "alternatives" legyen üres lista: [];
 - "textual_basis" legyen üres lista: [];
 - a problémát a "reasoning_summary", "warnings" és "missing_information" mezők jelezzék.
 Ilyenkor NE találj ki „valószínű” fő gondolatot.
 
+A {{passage_text}} vagy a jóváhagyott felismerések hiánya ÖNMAGÁBAN NEM elégtelen adat.
+Ha van legalább egy érdemi elemzési forrás (exegézis, eredeti szöveg, teológia, áttekintés vagy jóváhagyott felismerés), készíts recommended javaslatot.
+
+Ha nincs {{passage_text}}, de van elegendő elemzési anyag:
+- készíts recommended javaslatot az elemzési anyag alapján;
+- a warnings mezőben jelezd, hogy a teljes bibliai szöveg nem állt közvetlenül rendelkezésre;
+- a missing_information mezőben szerepelhet a bibliai szöveg hiánya;
+- ne kelts nagyobb bizonyosságot, mint amit az elemzési anyag megenged;
+- NE találj ki bibliai idézetet, görög/héber adatot vagy történeti hátteret.
+
 ## Hibajelző mezők
 
-- missing_information: CSAK a hiányzó vagy rendelkezésre nem bocsátott adatok (pl. nincs passage_text; nincs exegézis).
-- warnings: bizonytalanságok, ellentmondások, többféle megalapozott értelmezés, vagy a következtetés korlátai — NEM a puszta hiánylista megismétlése.
+- missing_information: CSAK a hiányzó vagy rendelkezésre nem bocsátott adatok (pl. nincs passage_text; nincs exegézis). A hiány jelzése NEM jelenti automatikusan, hogy a recommended üres legyen.
+- warnings: bizonytalanságok, ellentmondások, többféle megalapozott értelmezés, a következtetés korlátai, vagy a közvetlen bibliai szöveg hiánya — NEM a puszta hiánylista megismétlése.
 
 ## Alternatívák szabálya
 
@@ -980,7 +1042,10 @@ def suggest_text_main_idea(
             ok=False,
         )
 
-    return parse_main_idea_suggestions(raw or "")
+    return _ensure_passage_text_absence_notes(
+        parse_main_idea_suggestions(raw or ""),
+        ctx,
+    )
 
 
 def assess_user_main_idea(
@@ -1203,8 +1268,136 @@ def _self_check() -> list[str]:
     if "{{passage" in prompt:
         errors.append("unfilled placeholder in suggest prompt")
 
-    return errors
+    # 7) Prompt: passage_text hiánya önmagában ne legyen blokkoló
+    if "ÖNMAGÁBAN NEM" not in prompt and "önmagában nem" not in prompt.casefold():
+        # A kitöltött prompt a sablont használja; a sablont ellenőrizzük
+        if "ÖNMAGÁBAN NEM" not in _SUGGEST_PROMPT_TEMPLATE:
+            errors.append("suggest prompt missing non-blocking passage_text rule")
 
+    def _mock_suggest_json(recommended: str = "Javasolt fő gondolat.") -> str:
+        return json.dumps(
+            {
+                "recommended": recommended,
+                "alternatives": [],
+                "reasoning_summary": "Az elemzési anyag alapján.",
+                "textual_basis": ["Exegézis — állítás"],
+                "warnings": [],
+                "missing_information": [],
+            },
+            ensure_ascii=False,
+        )
+
+    # A) passage + exegesis, passage_text nélkül → API hívás + figyelmeztetés
+    called["n"] = 0
+
+    def _gen_a(*_a, **_k):
+        called["n"] += 1
+        return _mock_suggest_json("Isten szeretete világosságba hív.")
+
+    ra = suggest_text_main_idea(
+        passage="Jn 3,16–21",
+        exegesis=(
+            "A szakasz a világosság és a sötétség ellentétén keresztül "
+            "mutatja be Isten szeretetét és az ítélet elkerülését."
+        ),
+        generate_fn=_gen_a,
+    )
+    if called["n"] != 1:
+        errors.append("A: passage+exegesis should call API")
+    if not ra.recommended:
+        errors.append("A: expected recommended from exegesis")
+    if not any("passage_text" in w or "bibliai szöveg" in w for w in ra.warnings):
+        errors.append("A: expected passage_text warning")
+    if _PASSAGE_TEXT_MISSING_LABEL not in ra.missing_information:
+        errors.append("A: expected passage_text in missing_information")
+
+    # B) passage + theology + overview → javaslat
+    called["n"] = 0
+
+    def _gen_b(*_a, **_k):
+        called["n"] += 1
+        return _mock_suggest_json("A kegyelem megelőzi az emberi választ.")
+
+    rb = suggest_text_main_idea(
+        passage="Ef 2,1–10",
+        theology="Az üdvösség kegyelemből, hit által van; nem cselekedetekből.",
+        overview="Pál a kegyelem elsőbbségét hangsúlyozza a volt holtak életre kelésében.",
+        generate_fn=_gen_b,
+    )
+    if called["n"] != 1 or not rb.recommended:
+        errors.append("B: theology+overview should yield suggestion")
+
+    # C) csak passage → ne legyen javaslat / API
+    called["n"] = 0
+    rc = suggest_text_main_idea(
+        passage="Jn 3,16",
+        generate_fn=_should_not_run,
+    )
+    if called["n"] != 0 or rc.recommended or rc.alternatives:
+        errors.append("C: passage-only must stay empty")
+
+    # D) passage + approved_insights → javaslat
+    called["n"] = 0
+
+    def _gen_d(*_a, **_k):
+        called["n"] += 1
+        return _mock_suggest_json("Isten szeretete ajándékozza a Fiút.")
+
+    rd = suggest_text_main_idea(
+        passage="Jn 3,16",
+        approved_insights=[
+            {
+                "category": "Állítás",
+                "content": "Isten szeretete a Fiú elküldésében válik láthatóvá.",
+                "approved": True,
+            }
+        ],
+        generate_fn=_gen_d,
+    )
+    if called["n"] != 1 or not rd.recommended:
+        errors.append("D: approved_insights should yield suggestion")
+
+    # E) passage + passage_text → javaslat
+    called["n"] = 0
+
+    def _gen_e(*_a, **_k):
+        called["n"] += 1
+        return _mock_suggest_json(
+            "Aki hisz a Fiúban, nem megy a kárhozatra, hanem örök élete van."
+        )
+
+    re_ = suggest_text_main_idea(
+        passage="Jn 3,16",
+        passage_text=(
+            "Mert úgy szerette Isten a világot, hogy egyszülött Fiát adta, "
+            "hogy aki hisz őbenne, el ne vesszen, hanem örök élete legyen."
+        ),
+        generate_fn=_gen_e,
+    )
+    if called["n"] != 1 or not re_.recommended:
+        errors.append("E: passage_text should yield suggestion")
+    if any("nem állt közvetlenül" in w for w in re_.warnings):
+        errors.append("E: should not warn about missing passage_text")
+
+    # has_sufficient: historical_context alone is NOT enough
+    ctx_hist = build_main_idea_context(
+        passage="Jn 3,16",
+        historical_context="Első századi jeruzsálemi háttér.",
+        include_historical_context=True,
+    )
+    if has_sufficient_suggest_material(ctx_hist):
+        errors.append("historical_context alone should not be sufficient")
+
+    # user_main_idea / text_main_idea not required
+    ctx_ex = build_main_idea_context(
+        passage="Jn 3,16",
+        exegesis="Érdemi exegézis a szerkezetről és az állításról.",
+        user_main_idea="",
+    )
+    if not has_sufficient_suggest_material(ctx_ex):
+        errors.append("exegesis without user_main_idea should be sufficient")
+
+    return errors
 
 if __name__ == "__main__":
     errs = _self_check()
