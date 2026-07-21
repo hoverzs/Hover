@@ -1,9 +1,12 @@
-"""Textus 2.0 Igehirdetési műhely — UI (M4: kézi fő gondolat + emberi helyzet).
+"""Textus 2.0 Igehirdetési műhely — UI (M4: kézi + MI-segéd).
 
-Gemini nélkül. Nem importál az app.py-ból.
+Nem importál az app.py-ból. A Gemini-hívást a hívó által átadott
+`generate_fn` végzi (tipikusan `generate_text`).
 """
 
 from __future__ import annotations
+
+from typing import Any, Callable
 
 import streamlit as st
 
@@ -11,9 +14,25 @@ from sermon_workshop_data import (
     add_approved_sermon_decision,
     ensure_sermon_workshop_state,
     remove_approved_sermon_decision,
+    save_human_condition_assessment,
+    save_human_condition_suggestion,
+    save_sermon_main_idea_assessment,
+    save_sermon_main_idea_suggestions,
     update_sermon_workshop_section,
 )
+from sermon_workshop_m4_ai import (
+    HumanConditionAssessmentResult,
+    HumanConditionSuggestionResult,
+    SermonMainIdeaAssessmentResult,
+    SermonMainIdeaSuggestionResult,
+    assess_human_condition,
+    assess_sermon_main_idea,
+    suggest_human_condition,
+    suggest_sermon_main_idea,
+)
 from textus_workshop_data import ensure_text_workshop_state
+
+GenerateFn = Callable[..., str]
 
 _SW_SECTION_OPTIONS = [
     "Az igehirdetés fő gondolata",
@@ -148,6 +167,33 @@ _HC_FIELDS = [
     ),
 ]
 
+_SERMON_ASSESSMENT_LABELS = [
+    ("text_fidelity", "Textushűség"),
+    ("hearability", "Hallhatóság"),
+    ("unity", "Egység"),
+    ("theological_accuracy", "Teológiai pontosság"),
+    ("listener_relevance", "Hallgatói relevancia"),
+    ("title_or_slogan_confusion", "Cím / szlogen kockázat"),
+    ("application_confusion", "Alkalmazás-összekeverés"),
+]
+
+_HC_ASSESSMENT_LABELS = [
+    ("text_fidelity", "Textushűség"),
+    ("template_risk", "Sablon-kockázat"),
+    ("divine_human_separation", "Isteni–emberi elkülönítés"),
+    ("moralizing_risk", "Moralizálás kockázata"),
+    ("false_response_appropriateness", "Téves válasz indokoltsága"),
+    ("grace_grounding", "Kegyelmi megalapozottság"),
+]
+
+_HC_SUGGEST_DISPLAY = [
+    ("human_condition", "Emberi helyzet"),
+    ("false_response", "Téves vagy elégtelen válasz"),
+    ("human_need", "Emberi szükség"),
+    ("divine_action", "Isten cselekvése"),
+    ("grace_response", "Kegyelmi válasz"),
+]
+
 # Widget / technikai kulcsok — nem project_data
 _KEY_ACTIVE_SECTION = "sw_active_section"
 _KEY_SERMON_IDEA = "sw_sermon_main_idea_input"
@@ -159,6 +205,16 @@ _KEY_HC = {
     "grace_response": "sw_hc_grace_response",
 }
 _RESYNC_FLAG = "_sw_ui_resync"
+_ADOPT_SERMON_PENDING = "_sw_sermon_idea_adopt_pending"
+_ADOPT_HC_PENDING = "_sw_hc_adopt_pending"
+
+_HC_PROMPT_TO_UI = {
+    "human_condition": "condition",
+    "false_response": "false_response",
+    "human_need": "human_need",
+    "divine_action": "divine_action",
+    "grace_response": "grace_response",
+}
 
 
 def _session_str(*keys: str) -> str:
@@ -167,6 +223,35 @@ def _session_str(*keys: str) -> str:
         if isinstance(val, str) and val.strip():
             return val.strip()
     return ""
+
+
+def _apply_pending_adopts_if_needed() -> None:
+    """Átvétel: widget ELŐTT (pending + rerun). Nem hagy jóvá automatikusan."""
+    pending_idea = st.session_state.pop(_ADOPT_SERMON_PENDING, None)
+    if pending_idea is not None:
+        text = str(pending_idea).strip()
+        st.session_state[_KEY_SERMON_IDEA] = text
+        update_sermon_workshop_section(
+            st.session_state,
+            "sermon_main_idea",
+            {
+                "sermon_main_idea": text,
+                "sermon_main_idea_status": "draft",
+            },
+        )
+
+    pending_hc = st.session_state.pop(_ADOPT_HC_PENDING, None)
+    if isinstance(pending_hc, dict):
+        # Csak nem üres javasolt mezőket írjuk; üres javaslat ne töröljön.
+        for ui_key, wkey in _KEY_HC.items():
+            suggested = str(pending_hc.get(ui_key) or "").strip()
+            if suggested:
+                st.session_state[wkey] = suggested
+        block = {
+            field: (st.session_state.get(wkey) or "").strip()
+            for field, wkey in _KEY_HC.items()
+        }
+        update_sermon_workshop_section(st.session_state, "human_condition", block)
 
 
 def _apply_sw_ui_resync_if_needed() -> None:
@@ -182,6 +267,118 @@ def _apply_sw_ui_resync_if_needed() -> None:
     for field, wkey in _KEY_HC.items():
         if force or wkey not in st.session_state:
             st.session_state[wkey] = str(hc.get(field) or "")
+
+
+def _request_adopt_sermon_sentence(sentence: str) -> None:
+    st.session_state[_ADOPT_SERMON_PENDING] = str(sentence or "").strip()
+    st.rerun()
+
+
+def _request_adopt_hc_block(block: dict[str, str]) -> None:
+    st.session_state[_ADOPT_HC_PENDING] = dict(block or {})
+    st.rerun()
+
+
+def _user_facing_error(result_ok: bool, error_message: str, *, fallback: str) -> str:
+    if result_ok:
+        return ""
+    msg = (error_message or "").strip()
+    if not msg:
+        return fallback
+    if len(msg) > 280:
+        return fallback
+    lower = msg.casefold()
+    if "api key" in lower or "apikey" in lower or "x-goog-api-key" in lower:
+        return fallback
+    return msg
+
+
+def _collect_m4_kwargs(*, sermon_main_idea: str = "") -> dict[str, Any]:
+    """Sessionből M4 MI-bemenet; illusztráció / aktualizálás / ének / vázlat nélkül."""
+    tw = ensure_text_workshop_state(st.session_state)
+    sw = ensure_sermon_workshop_state(st.session_state)
+    idea = (sermon_main_idea or "").strip()
+    if not idea:
+        idea = (sw.get("sermon_main_idea") or "").strip()
+    return {
+        "passage": _session_str("last_igehely", "igehely_input"),
+        "passage_text": _session_str("passage_text"),
+        "occasion": _session_str("last_alkalom", "alkalom_input"),
+        "user_focus": _session_str("last_sajat", "sajat_input"),
+        "text_main_idea": (tw.get("text_main_idea") or "").strip(),
+        "text_main_idea_status": (tw.get("text_main_idea_status") or "").strip(),
+        "approved_insights": tw.get("approved_insights") or [],
+        "exegesis": _session_str("exegesis"),
+        "theology": _session_str("theology"),
+        "sermon_main_idea": idea,
+    }
+
+
+def _suggestion_payload_from_result(
+    result: SermonMainIdeaSuggestionResult,
+) -> dict[str, Any]:
+    return {
+        "recommended": result.recommended,
+        "alternatives": list(result.alternatives),
+        "reasoning_summary": result.reasoning_summary,
+        "textual_and_homiletical_basis": list(result.textual_and_homiletical_basis),
+        "warnings": list(result.warnings),
+        "missing_information": list(result.missing_information),
+        "ok": bool(result.ok),
+        "error_message": result.error_message or "",
+    }
+
+
+def _sermon_assessment_payload(
+    result: SermonMainIdeaAssessmentResult,
+) -> dict[str, Any]:
+    return {
+        "assessment": result.assessment.to_dict(),
+        "strengths": list(result.strengths),
+        "revision_priorities": list(result.revision_priorities),
+        "revised_version": result.revised_version,
+        "warnings": list(result.warnings),
+        "ok": bool(result.ok),
+        "error_message": result.error_message or "",
+    }
+
+
+def _hc_suggestion_payload(result: HumanConditionSuggestionResult) -> dict[str, Any]:
+    return {
+        "human_condition": result.human_condition,
+        "false_response": result.false_response,
+        "human_need": result.human_need,
+        "divine_action": result.divine_action,
+        "grace_response": result.grace_response,
+        "warnings": list(result.warnings),
+        "missing_information": list(result.missing_information),
+        "ok": bool(result.ok),
+        "error_message": result.error_message or "",
+    }
+
+
+def _hc_assessment_payload(result: HumanConditionAssessmentResult) -> dict[str, Any]:
+    return {
+        "assessment": result.assessment.to_dict(),
+        "strengths": list(result.strengths),
+        "revision_priorities": list(result.revision_priorities),
+        "revised_block": result.revised_block.to_dict(),
+        "warnings": list(result.warnings),
+        "ok": bool(result.ok),
+        "error_message": result.error_message or "",
+    }
+
+
+def _prompt_block_to_ui(block: dict[str, Any] | None) -> dict[str, str]:
+    out = {k: "" for k in _KEY_HC}
+    if not isinstance(block, dict):
+        return out
+    for prompt_key, ui_key in _HC_PROMPT_TO_UI.items():
+        if prompt_key in block:
+            out[ui_key] = str(block.get(prompt_key) or "").strip()
+        elif ui_key in block:
+            out[ui_key] = str(block.get(ui_key) or "").strip()
+    return out
 
 
 def _render_shell_input_summary() -> None:
@@ -328,8 +525,410 @@ def _render_decisions_for_section(source_section: str) -> None:
                         st.rerun()
 
 
-def render_sermon_main_idea_section() -> None:
-    """Az igehirdetés fő gondolata — kézi szerkesztő (Gemini nélkül)."""
+def _run_sermon_suggest(generate_fn: GenerateFn) -> None:
+    kwargs = _collect_m4_kwargs(
+        sermon_main_idea=(st.session_state.get(_KEY_SERMON_IDEA) or "").strip()
+    )
+    if not kwargs["passage"]:
+        st.warning(
+            "Add meg az igeszakaszt az „Igehely” szakaszon, mielőtt javaslatot kérsz."
+        )
+        return
+    with st.spinner(
+        "Az igehirdetés fő gondolatának lehetséges megfogalmazásait vizsgálom…"
+    ):
+        result = suggest_sermon_main_idea(**kwargs, generate_fn=generate_fn)
+    if not result.ok:
+        st.warning(
+            _user_facing_error(
+                False,
+                result.error_message,
+                fallback="A javaslatkészítés nem sikerült. Próbáld újra később.",
+            )
+        )
+        return
+    save_sermon_main_idea_suggestions(
+        st.session_state,
+        _suggestion_payload_from_result(result),
+    )
+    if not (result.recommended or "").strip():
+        st.info(
+            "A rendelkezésre álló anyag alapján nem készült felelős ajánlott "
+            "fő gondolat. Nézd meg a hiányzó információkat és figyelmeztetéseket."
+        )
+    else:
+        st.success("A javaslatok elkészültek.")
+
+
+def _run_sermon_assess(generate_fn: GenerateFn) -> None:
+    idea = (st.session_state.get(_KEY_SERMON_IDEA) or "").strip()
+    if not idea:
+        st.warning("Nincs megfogalmazás az értékeléshez.")
+        return
+    kwargs = _collect_m4_kwargs(sermon_main_idea=idea)
+    if not kwargs["passage"]:
+        st.warning(
+            "Add meg az igeszakaszt az „Igehely” szakaszon, mielőtt értékelést kérsz."
+        )
+        return
+    with st.spinner(
+        "A megfogalmazást textushűségi és hallhatósági szempontból vizsgálom…"
+    ):
+        result = assess_sermon_main_idea(**kwargs, generate_fn=generate_fn)
+    if not result.ok:
+        st.warning(
+            _user_facing_error(
+                False,
+                result.error_message,
+                fallback="Az értékelés nem sikerült. Próbáld újra később.",
+            )
+        )
+        return
+    save_sermon_main_idea_assessment(
+        st.session_state,
+        _sermon_assessment_payload(result),
+    )
+    st.success("Az értékelés elkészült.")
+
+
+def _render_sermon_suggestion_results() -> None:
+    sw = ensure_sermon_workshop_state(st.session_state)
+    sugs = sw.get("sermon_main_idea_suggestions")
+    if not isinstance(sugs, dict):
+        return
+
+    st.subheader("MI-javaslatok")
+    generated_at = (sw.get("m4_last_generated_at") or "").strip()
+    if generated_at:
+        st.caption(f"Utolsó generálás: {generated_at}")
+
+    recommended = (sugs.get("recommended") or "").strip()
+    alternatives = sugs.get("alternatives") or []
+    if not isinstance(alternatives, list):
+        alternatives = []
+
+    if recommended:
+        with st.container(border=True):
+            st.markdown("**Ajánlott fő gondolat**")
+            st.markdown(recommended)
+            if st.button("Átveszem", key="sw_mi_adopt_recommended"):
+                _request_adopt_sermon_sentence(recommended)
+    else:
+        st.info(
+            "Nincs ajánlott fő gondolat (elégtelen adat vagy a modell üresen hagyta). "
+            "A részletek a „Mi alapján készült?” részben vannak."
+        )
+
+    alt_items: list[str] = []
+    for alt in alternatives[:2]:
+        text = (alt or "").strip() if isinstance(alt, str) else str(alt or "").strip()
+        if text:
+            alt_items.append(text)
+    if alt_items:
+        with st.expander("További javaslatok", expanded=False):
+            for idx, text in enumerate(alt_items):
+                with st.container(border=True):
+                    st.markdown(f"**Alternatíva {idx + 1}**")
+                    st.markdown(text)
+                    if st.button("Átveszem", key=f"sw_mi_adopt_alt_{idx}"):
+                        _request_adopt_sermon_sentence(text)
+
+    reasoning = (sugs.get("reasoning_summary") or "").strip()
+    basis = sugs.get("textual_and_homiletical_basis") or []
+    warnings = sugs.get("warnings") or []
+    missing = sugs.get("missing_information") or []
+    has_basis = isinstance(basis, list) and any(str(x).strip() for x in basis)
+    has_warnings = isinstance(warnings, list) and any(str(x).strip() for x in warnings)
+    has_missing = isinstance(missing, list) and any(str(x).strip() for x in missing)
+
+    if reasoning or has_basis or has_warnings or has_missing:
+        with st.expander("Mi alapján készült?", expanded=False):
+            if reasoning:
+                st.markdown("**Indoklás**")
+                st.markdown(reasoning)
+            if has_basis:
+                st.markdown("**Szövegbeli és homiletikai alapok**")
+                for item in basis:
+                    line = str(item or "").strip()
+                    if line:
+                        st.markdown(f"- {line}")
+            if has_warnings:
+                st.markdown("**Figyelmeztetések**")
+                for item in warnings:
+                    line = str(item or "").strip()
+                    if line:
+                        st.warning(line)
+            if has_missing:
+                st.markdown("**Hiányzó információk**")
+                for item in missing:
+                    line = str(item or "").strip()
+                    if line:
+                        st.markdown(f"- {line}")
+
+
+def _render_sermon_assessment_results() -> None:
+    sw = ensure_sermon_workshop_state(st.session_state)
+    assessment_payload = sw.get("sermon_main_idea_assessment")
+    if not isinstance(assessment_payload, dict):
+        return
+
+    fields = assessment_payload.get("assessment") or {}
+    if not isinstance(fields, dict):
+        fields = {}
+    strengths = assessment_payload.get("strengths") or []
+    priorities = assessment_payload.get("revision_priorities") or []
+    revised = (assessment_payload.get("revised_version") or "").strip()
+    warnings = assessment_payload.get("warnings") or []
+
+    with st.expander("Szakmai értékelés részletei", expanded=False):
+        if any(str(fields.get(k) or "").strip() for k, _ in _SERMON_ASSESSMENT_LABELS):
+            st.markdown("**Szempontok**")
+            for key, label in _SERMON_ASSESSMENT_LABELS:
+                text = str(fields.get(key) or "").strip()
+                if text:
+                    st.markdown(f"**{label}:** {text}")
+
+        if isinstance(strengths, list) and any(str(x).strip() for x in strengths):
+            st.markdown("**Erősségek**")
+            for item in strengths[:3]:
+                line = str(item or "").strip()
+                if line:
+                    st.markdown(f"- {line}")
+
+        if isinstance(priorities, list) and any(str(x).strip() for x in priorities):
+            st.markdown("**Javítási szempontok**")
+            for item in priorities[:3]:
+                line = str(item or "").strip()
+                if line:
+                    st.markdown(f"- {line}")
+
+        if revised:
+            st.markdown("**Átdolgozott javaslat**")
+            st.markdown(revised)
+            if st.button(
+                "Átdolgozott változat átvétele",
+                key="sw_mi_adopt_revised_sermon",
+            ):
+                _request_adopt_sermon_sentence(revised)
+        else:
+            st.caption(
+                "Nincs átdolgozott javaslat (üres mező vagy elégtelen elemzési alap)."
+            )
+
+        if isinstance(warnings, list) and any(str(x).strip() for x in warnings):
+            st.markdown("**Figyelmeztetések**")
+            for item in warnings:
+                line = str(item or "").strip()
+                if line:
+                    st.warning(line)
+
+
+def _run_hc_suggest(generate_fn: GenerateFn) -> None:
+    kwargs = _collect_m4_kwargs(
+        sermon_main_idea=(st.session_state.get(_KEY_SERMON_IDEA) or "").strip()
+    )
+    if not kwargs["passage"]:
+        st.warning(
+            "Add meg az igeszakaszt az „Igehely” szakaszon, mielőtt javaslatot kérsz."
+        )
+        return
+    with st.spinner(
+        "A textus által feltárt emberi helyzetet és Isten kegyelmi "
+        "cselekvését vizsgálom…"
+    ):
+        result = suggest_human_condition(**kwargs, generate_fn=generate_fn)
+    if not result.ok:
+        st.warning(
+            _user_facing_error(
+                False,
+                result.error_message,
+                fallback="A javaslatkészítés nem sikerült. Próbáld újra később.",
+            )
+        )
+        return
+    save_human_condition_suggestion(
+        st.session_state,
+        _hc_suggestion_payload(result),
+    )
+    if not (
+        result.human_condition.strip()
+        or result.divine_action.strip()
+        or result.false_response.strip()
+        or result.human_need.strip()
+        or result.grace_response.strip()
+    ):
+        st.info(
+            "A rendelkezésre álló anyag alapján nem készült felelős javaslat. "
+            "Nézd meg a hiányzó információkat és figyelmeztetéseket."
+        )
+    else:
+        st.success("A javaslat elkészült.")
+
+
+def _run_hc_assess(generate_fn: GenerateFn) -> None:
+    block = {
+        field: (st.session_state.get(wkey) or "").strip()
+        for field, wkey in _KEY_HC.items()
+    }
+    if not any(block.values()):
+        st.warning("Nincs kitöltött elemzés az értékeléshez.")
+        return
+    kwargs = _collect_m4_kwargs(
+        sermon_main_idea=(st.session_state.get(_KEY_SERMON_IDEA) or "").strip()
+    )
+    if not kwargs["passage"]:
+        st.warning(
+            "Add meg az igeszakaszt az „Igehely” szakaszon, mielőtt értékelést kérsz."
+        )
+        return
+    with st.spinner(
+        "Az emberihelyzet-elemzést textushűségi és szakmai szempontból vizsgálom…"
+    ):
+        result = assess_human_condition(
+            **kwargs,
+            human_condition=block,
+            generate_fn=generate_fn,
+        )
+    if not result.ok:
+        st.warning(
+            _user_facing_error(
+                False,
+                result.error_message,
+                fallback="Az értékelés nem sikerült. Próbáld újra később.",
+            )
+        )
+        return
+    save_human_condition_assessment(
+        st.session_state,
+        _hc_assessment_payload(result),
+    )
+    st.success("Az értékelés elkészült.")
+
+
+def _render_hc_suggestion_results() -> None:
+    sw = ensure_sermon_workshop_state(st.session_state)
+    sugs = sw.get("human_condition_suggestion")
+    if not isinstance(sugs, dict):
+        return
+
+    st.subheader("MI-javaslat")
+    generated_at = (sw.get("m4_last_generated_at") or "").strip()
+    if generated_at:
+        st.caption(f"Utolsó generálás: {generated_at}")
+
+    any_field = False
+    for key, label in _HC_SUGGEST_DISPLAY:
+        value = str(sugs.get(key) or "").strip()
+        with st.container(border=True):
+            st.markdown(f"**{label}**")
+            if value:
+                any_field = True
+                st.markdown(value)
+            else:
+                st.caption(
+                    "Üresen hagyva — a textus alapján nem megalapozható, "
+                    "vagy szándékosan nem kötelező mező."
+                )
+
+    warnings = sugs.get("warnings") or []
+    missing = sugs.get("missing_information") or []
+    if isinstance(warnings, list) and any(str(x).strip() for x in warnings):
+        st.markdown("**Figyelmeztetések**")
+        for item in warnings:
+            line = str(item or "").strip()
+            if line:
+                st.warning(line)
+    if isinstance(missing, list) and any(str(x).strip() for x in missing):
+        st.markdown("**Hiányzó információk**")
+        for item in missing:
+            line = str(item or "").strip()
+            if line:
+                st.markdown(f"- {line}")
+
+    ui_block = _prompt_block_to_ui(sugs)
+    if any(ui_block.values()):
+        if st.button("Javaslat átvétele", key="sw_mi_hc_adopt_suggestion"):
+            _request_adopt_hc_block(ui_block)
+    elif not any_field:
+        st.info("Nincs átvehető javasolt mező.")
+
+
+def _render_hc_assessment_results() -> None:
+    sw = ensure_sermon_workshop_state(st.session_state)
+    assessment_payload = sw.get("human_condition_assessment")
+    if not isinstance(assessment_payload, dict):
+        return
+
+    fields = assessment_payload.get("assessment") or {}
+    if not isinstance(fields, dict):
+        fields = {}
+    strengths = assessment_payload.get("strengths") or []
+    priorities = assessment_payload.get("revision_priorities") or []
+    revised_raw = assessment_payload.get("revised_block") or {}
+    if not isinstance(revised_raw, dict):
+        revised_raw = {}
+    warnings = assessment_payload.get("warnings") or []
+
+    with st.expander("Szakmai értékelés részletei", expanded=False):
+        if any(str(fields.get(k) or "").strip() for k, _ in _HC_ASSESSMENT_LABELS):
+            st.markdown("**Szempontok**")
+            for key, label in _HC_ASSESSMENT_LABELS:
+                text = str(fields.get(key) or "").strip()
+                if text:
+                    st.markdown(f"**{label}:** {text}")
+
+        if isinstance(strengths, list) and any(str(x).strip() for x in strengths):
+            st.markdown("**Erősségek**")
+            for item in strengths[:3]:
+                line = str(item or "").strip()
+                if line:
+                    st.markdown(f"- {line}")
+
+        if isinstance(priorities, list) and any(str(x).strip() for x in priorities):
+            st.markdown("**Javítási szempontok**")
+            for item in priorities[:3]:
+                line = str(item or "").strip()
+                if line:
+                    st.markdown(f"- {line}")
+
+        st.markdown("**Átdolgozott blokk**")
+        revised_ui = _prompt_block_to_ui(revised_raw)
+        any_revised = False
+        for key, label in _HC_SUGGEST_DISPLAY:
+            ui_key = _HC_PROMPT_TO_UI[key]
+            value = (revised_ui.get(ui_key) or "").strip()
+            st.markdown(f"*{label}*")
+            if value:
+                any_revised = True
+                st.markdown(value)
+            else:
+                st.caption("Üres")
+
+        if any_revised:
+            if st.button(
+                "Átdolgozott blokk átvétele",
+                key="sw_mi_hc_adopt_revised",
+            ):
+                _request_adopt_hc_block(revised_ui)
+        else:
+            st.caption(
+                "Nincs átdolgozott javaslat (üres mezők vagy elégtelen elemzési alap)."
+            )
+
+        if isinstance(warnings, list) and any(str(x).strip() for x in warnings):
+            st.markdown("**Figyelmeztetések**")
+            for item in warnings:
+                line = str(item or "").strip()
+                if line:
+                    st.warning(line)
+
+
+def render_sermon_main_idea_section(
+    *,
+    generate_fn: GenerateFn | None = None,
+) -> None:
+    """Az igehirdetés fő gondolata — kézi szerkesztő + opcionális MI-segéd."""
+    _apply_pending_adopts_if_needed()
     _apply_sw_ui_resync_if_needed()
     ensure_sermon_workshop_state(st.session_state)
     tw = ensure_text_workshop_state(st.session_state)
@@ -428,12 +1027,49 @@ def render_sermon_main_idea_section() -> None:
         label = _STATUS_LABELS.get(saved_status, saved_status or "—")
         st.caption(f"Elmentett állapot: **{label}**")
 
+    st.markdown("---")
+    st.markdown("**MI-segéd**")
+    st.caption(
+        "Az MI a jóváhagyott textusműhelyi eredményekből segít "
+        "megfogalmazni és megvizsgálni az igehirdetés fő gondolatát. "
+        "A végső döntés továbbra is a prédikátoré."
+    )
+    ai_ready = generate_fn is not None
+    idea_draft = (st.session_state.get(_KEY_SERMON_IDEA) or "").strip()
+    a1, a2 = st.columns(2)
+    with a1:
+        if st.button(
+            "Javaslatok készítése",
+            key="sw_mi_sermon_suggest",
+            disabled=not ai_ready,
+        ):
+            if generate_fn is None:
+                st.warning("Az MI-segéd jelenleg nem elérhető.")
+            else:
+                _run_sermon_suggest(generate_fn)
+    with a2:
+        if st.button(
+            "Saját megfogalmazás értékelése",
+            key="sw_mi_sermon_assess",
+            disabled=not ai_ready or not idea_draft,
+        ):
+            if generate_fn is None:
+                st.warning("Az MI-segéd jelenleg nem elérhető.")
+            else:
+                _run_sermon_assess(generate_fn)
+
+    _render_sermon_suggestion_results()
+    _render_sermon_assessment_results()
     _render_textus_basis_expander()
     _render_decisions_for_section(_SOURCE_SERMON_MAIN)
 
 
-def render_human_condition_section() -> None:
-    """Emberi helyzet és kegyelmi válasz — kézi szerkesztő (Gemini nélkül)."""
+def render_human_condition_section(
+    *,
+    generate_fn: GenerateFn | None = None,
+) -> None:
+    """Emberi helyzet és kegyelmi válasz — kézi szerkesztő + opcionális MI-segéd."""
+    _apply_pending_adopts_if_needed()
     _apply_sw_ui_resync_if_needed()
     ensure_sermon_workshop_state(st.session_state)
 
@@ -523,6 +1159,42 @@ def render_human_condition_section() -> None:
                         "homiletikai döntések között."
                     )
 
+    st.markdown("---")
+    st.markdown("**MI-segéd**")
+    st.caption(
+        "Az MI a jóváhagyott textusműhelyi eredményekből segít "
+        "megfogalmazni és megvizsgálni az emberi helyzetet és a kegyelmi választ. "
+        "A végső döntés továbbra is a prédikátoré."
+    )
+    ai_ready = generate_fn is not None
+    hc_filled = any(
+        (st.session_state.get(wkey) or "").strip() for wkey in _KEY_HC.values()
+    )
+    a1, a2 = st.columns(2)
+    with a1:
+        if st.button(
+            "Javaslat készítése",
+            key="sw_mi_hc_suggest",
+            disabled=not ai_ready,
+        ):
+            if generate_fn is None:
+                st.warning("Az MI-segéd jelenleg nem elérhető.")
+            else:
+                _run_hc_suggest(generate_fn)
+    with a2:
+        if st.button(
+            "Saját elemzés értékelése",
+            key="sw_mi_hc_assess",
+            disabled=not ai_ready or not hc_filled,
+        ):
+            if generate_fn is None:
+                st.warning("Az MI-segéd jelenleg nem elérhető.")
+            else:
+                _run_hc_assess(generate_fn)
+
+    _render_hc_suggestion_results()
+    _render_hc_assessment_results()
+
     st.caption("Következő ajánlott lépés: Hallgatói kérdés és feszültség")
     _render_decisions_for_section(_SOURCE_HUMAN)
 
@@ -538,8 +1210,12 @@ def _render_section_placeholder(section: str) -> None:
     st.caption("Következő fejlesztési mérföldkőben válik működővé.")
 
 
-def render_sermon_workshop_shell() -> None:
+def render_sermon_workshop_shell(
+    *,
+    generate_fn: GenerateFn | None = None,
+) -> None:
     """Igehirdetési műhely keret — M4: két működő szakasz + helyőrzők."""
+    _apply_pending_adopts_if_needed()
     _apply_sw_ui_resync_if_needed()
     ensure_sermon_workshop_state(st.session_state)
     ensure_text_workshop_state(st.session_state)
@@ -563,14 +1239,12 @@ def render_sermon_workshop_shell() -> None:
 
     active = st.session_state.get(_KEY_ACTIVE_SECTION) or _SW_SECTION_OPTIONS[0]
     if active == "Az igehirdetés fő gondolata":
-        render_sermon_main_idea_section()
+        render_sermon_main_idea_section(generate_fn=generate_fn)
     elif active == "Emberi helyzet és kegyelmi válasz":
-        render_human_condition_section()
+        render_human_condition_section(generate_fn=generate_fn)
     else:
         _render_section_placeholder(active)
 
-    # A két működő szakasz saját hintet / döntéslistát kezel;
-    # a helyőrzőknél a shell adja a következő lépést.
     if active not in (
         "Az igehirdetés fő gondolata",
         "Emberi helyzet és kegyelmi válasz",

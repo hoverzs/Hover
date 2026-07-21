@@ -133,6 +133,10 @@ EXCLUDED_SESSION_KEYS: frozenset[str] = frozenset(
         "sw_hc_divine_action",
         "sw_hc_grace_response",
         "_sw_ui_resync",
+        "_sw_sermon_idea_adopt_pending",
+        "_sw_hc_adopt_pending",
+        "_sw_m4_suggest_running",
+        "_sw_m4_assess_running",
     }
 )
 

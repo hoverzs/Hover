@@ -5909,7 +5909,7 @@ if st.session_state.get("ui_mode") == "workshop":
 
 # Igehirdetési műhely: csak a műhelykeret; tabok és Textusműhely ne jöjjenek létre
 if st.session_state.get("ui_mode") == "sermon_workshop":
-    render_sermon_workshop_shell()
+    render_sermon_workshop_shell(generate_fn=generate_text)
     st.stop()
 
 

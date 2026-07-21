@@ -74,6 +74,11 @@ def get_default_sermon_workshop() -> dict[str, Any]:
             "priorities": [],
         },
         "approved_sermon_decisions": [],
+        "sermon_main_idea_suggestions": None,
+        "sermon_main_idea_assessment": None,
+        "human_condition_suggestion": None,
+        "human_condition_assessment": None,
+        "m4_last_generated_at": "",
     }
 
 
@@ -133,6 +138,15 @@ def _normalize_generic_list(raw: Any) -> list[Any]:
     return list(raw)
 
 
+def _normalize_optional_dict(raw: Any) -> dict[str, Any] | None:
+    """MI-eredmény dict vagy None; hibás típus → None (régi projektek biztonsága)."""
+    if raw is None:
+        return None
+    if isinstance(raw, dict):
+        return dict(raw)
+    return None
+
+
 def normalize_sermon_workshop(data: Any) -> dict[str, Any]:
     """Bármilyen bemenetből érvényes `sermon_workshop` struktúrát ad vissza."""
     base = get_default_sermon_workshop()
@@ -166,6 +180,31 @@ def normalize_sermon_workshop(data: Any) -> dict[str, Any]:
         "approved_sermon_decisions": _normalize_decisions(
             data.get("approved_sermon_decisions")
         ),
+        "sermon_main_idea_suggestions": _normalize_optional_dict(
+            data.get(
+                "sermon_main_idea_suggestions",
+                base["sermon_main_idea_suggestions"],
+            )
+        ),
+        "sermon_main_idea_assessment": _normalize_optional_dict(
+            data.get(
+                "sermon_main_idea_assessment",
+                base["sermon_main_idea_assessment"],
+            )
+        ),
+        "human_condition_suggestion": _normalize_optional_dict(
+            data.get(
+                "human_condition_suggestion",
+                base["human_condition_suggestion"],
+            )
+        ),
+        "human_condition_assessment": _normalize_optional_dict(
+            data.get(
+                "human_condition_assessment",
+                base["human_condition_assessment"],
+            )
+        ),
+        "m4_last_generated_at": _as_str(data.get("m4_last_generated_at")),
     }
 
 
@@ -280,6 +319,70 @@ def deepcopy_sermon_workshop(data: Any) -> dict[str, Any]:
     return copy.deepcopy(normalize_sermon_workshop(data))
 
 
+def save_sermon_main_idea_suggestions(
+    session_state: MutableMapping[str, Any],
+    payload: dict[str, Any],
+    *,
+    stamp_generated_at: bool = True,
+) -> dict[str, Any]:
+    """Tartós M4 főgondolat-javaslat mentése a sermon_workshop-ba."""
+    sw = ensure_sermon_workshop_state(session_state)
+    sw["sermon_main_idea_suggestions"] = (
+        dict(payload) if isinstance(payload, dict) else None
+    )
+    if stamp_generated_at:
+        sw["m4_last_generated_at"] = datetime.now().isoformat(timespec="seconds")
+    return sw
+
+
+def save_sermon_main_idea_assessment(
+    session_state: MutableMapping[str, Any],
+    payload: dict[str, Any],
+    *,
+    stamp_generated_at: bool = True,
+) -> dict[str, Any]:
+    """Tartós M4 főgondolat-értékelés mentése a sermon_workshop-ba."""
+    sw = ensure_sermon_workshop_state(session_state)
+    sw["sermon_main_idea_assessment"] = (
+        dict(payload) if isinstance(payload, dict) else None
+    )
+    if stamp_generated_at:
+        sw["m4_last_generated_at"] = datetime.now().isoformat(timespec="seconds")
+    return sw
+
+
+def save_human_condition_suggestion(
+    session_state: MutableMapping[str, Any],
+    payload: dict[str, Any],
+    *,
+    stamp_generated_at: bool = True,
+) -> dict[str, Any]:
+    """Tartós emberi helyzet javaslat mentése a sermon_workshop-ba."""
+    sw = ensure_sermon_workshop_state(session_state)
+    sw["human_condition_suggestion"] = (
+        dict(payload) if isinstance(payload, dict) else None
+    )
+    if stamp_generated_at:
+        sw["m4_last_generated_at"] = datetime.now().isoformat(timespec="seconds")
+    return sw
+
+
+def save_human_condition_assessment(
+    session_state: MutableMapping[str, Any],
+    payload: dict[str, Any],
+    *,
+    stamp_generated_at: bool = True,
+) -> dict[str, Any]:
+    """Tartós emberi helyzet értékelés mentése a sermon_workshop-ba."""
+    sw = ensure_sermon_workshop_state(session_state)
+    sw["human_condition_assessment"] = (
+        dict(payload) if isinstance(payload, dict) else None
+    )
+    if stamp_generated_at:
+        sw["m4_last_generated_at"] = datetime.now().isoformat(timespec="seconds")
+    return sw
+
+
 __all__ = [
     "SERMON_WORKSHOP_KEY",
     "get_default_sermon_workshop",
@@ -289,4 +392,8 @@ __all__ = [
     "add_approved_sermon_decision",
     "remove_approved_sermon_decision",
     "deepcopy_sermon_workshop",
+    "save_sermon_main_idea_suggestions",
+    "save_sermon_main_idea_assessment",
+    "save_human_condition_suggestion",
+    "save_human_condition_assessment",
 ]
