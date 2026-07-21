@@ -4223,6 +4223,10 @@ defaults = {
     "last_sajat": "",
     "bible_translation": "",
     "passage_text": "",
+    "passage_text_source": "",
+    "passage_text_source_url": "",
+    "passage_text_fetched_at": "",
+    "passage_text_fetched_reference": "",
     "verse_history": [],
 
     "overview": "",

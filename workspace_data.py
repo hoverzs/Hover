@@ -28,6 +28,10 @@ WORKSPACE_STR_KEYS: list[str] = [
     "last_sajat",
     "bible_translation",
     "passage_text",
+    "passage_text_source",
+    "passage_text_source_url",
+    "passage_text_fetched_at",
+    "passage_text_fetched_reference",
     "overview",
     "exegesis",
     "history",
@@ -229,7 +233,14 @@ def sanitize_project_data(project_data: Mapping[str, Any] | None) -> dict[str, A
         else:
             clean[key] = value
     # Régi projektek: hiányzó új string mezők biztonságos alapértéke
-    for key in ("bible_translation", "passage_text"):
+    for key in (
+        "bible_translation",
+        "passage_text",
+        "passage_text_source",
+        "passage_text_source_url",
+        "passage_text_fetched_at",
+        "passage_text_fetched_reference",
+    ):
         if key not in clean:
             clean[key] = ""
     return clean
