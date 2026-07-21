@@ -3392,9 +3392,24 @@ def deserialize_workspace(raw_bytes):
 
 
 def _is_logged_in() -> bool:
-    """Biztonságos login-check: `[auth]` nélkül az `is_logged_in` attribútum nem létezik."""
+    """Biztonságos login-check: `[auth]` nélkül az `is_logged_in` attribútum nem létezik.
+
+    Szándékosan NEM használjuk a `st.user.is_logged_in` attribútum-elérést
+    a hívó oldalon — csak ezt a wrappert, hogy Cloud secrets nélkül se omoljon az app.
+    """
     try:
-        return bool(st.user.is_logged_in)
+        user = st.user
+    except Exception:
+        return False
+    # Dict-szerű elérés: hiányzó kulcsnál KeyError/AttributeError → vendég
+    try:
+        if hasattr(user, "get"):
+            val = user.get("is_logged_in", False)
+            return bool(val)
+    except Exception:
+        pass
+    try:
+        return bool(user["is_logged_in"])
     except Exception:
         return False
 
