@@ -29,7 +29,6 @@ from textus_workshop_data import (
 
 GenerateFn = Callable[..., str]
 
-_STATUS_OPTIONS = ["draft", "approved"]
 _STATUS_LABELS = {
     "draft": "Vázlat",
     "approved": "Jóváhagyva",
@@ -80,7 +79,6 @@ _MAIN_IDEA_CATEGORY = "Fő gondolat"
 
 # Widget / technikai kulcsok — csak session UI, nem project_data
 _KEY_IDEA_INPUT = "tw_main_idea_input"
-_KEY_IDEA_STATUS = "tw_main_idea_status_radio"
 _RESYNC_FLAG = "_tw_ui_resync"
 _ADOPT_PENDING = "_tw_main_idea_adopt_pending"
 
@@ -98,13 +96,15 @@ def _session_str(*keys: str) -> str:
 
 
 def _apply_pending_adopt_if_needed() -> None:
-    """Átvétel: widget ELŐTT alkalmazza a pending mondatot (pending + rerun)."""
+    """Átvétel: widget ELŐTT alkalmazza a pending mondatot (pending + rerun).
+
+    Csak a szerkeszthető mezőbe másol; nem hagyja jóvá automatikusan.
+    """
     pending = st.session_state.pop(_ADOPT_PENDING, None)
     if pending is None:
         return
     text = str(pending).strip()
     st.session_state[_KEY_IDEA_INPUT] = text
-    st.session_state[_KEY_IDEA_STATUS] = "draft"
     update_text_main_idea(st.session_state, text, "draft")
 
 
@@ -112,16 +112,10 @@ def _apply_tw_ui_resync_if_needed() -> None:
     """Widgetkulcsok szinkronja a tartós text_workshop adatokkal (widget előtt)."""
     tw = ensure_text_workshop_state(st.session_state)
     force = bool(st.session_state.pop(_RESYNC_FLAG, False))
-
-    status = tw.get("text_main_idea_status") or "draft"
-    if status not in _STATUS_OPTIONS:
-        status = "draft"
     idea = tw.get("text_main_idea") or ""
 
     if force or _KEY_IDEA_INPUT not in st.session_state:
         st.session_state[_KEY_IDEA_INPUT] = idea
-    if force or _KEY_IDEA_STATUS not in st.session_state:
-        st.session_state[_KEY_IDEA_STATUS] = status
 
 
 def _request_adopt_sentence(sentence: str) -> None:
@@ -429,26 +423,22 @@ def render_text_main_idea_section(
         placeholder="Egyetlen, világos mondat…",
     )
 
-    st.radio(
-        "Állapot",
-        options=_STATUS_OPTIONS,
-        format_func=lambda s: _STATUS_LABELS.get(s, s),
-        horizontal=True,
-        key=_KEY_IDEA_STATUS,
-    )
-
-    if st.button("Fő gondolat mentése", type="primary", key="tw_main_idea_save_btn"):
-        content = (st.session_state.get(_KEY_IDEA_INPUT) or "").strip()
-        status = st.session_state.get(_KEY_IDEA_STATUS) or "draft"
-        if status not in _STATUS_OPTIONS:
-            status = "draft"
-        update_text_main_idea(st.session_state, content, status)
-        st.success("A fő gondolat elmentve.")
+    b1, b2 = st.columns(2)
+    with b1:
+        if st.button("Mentés vázlatként", key="tw_main_idea_save_draft_btn"):
+            _save_main_idea_as_draft()
+    with b2:
+        if st.button(
+            "Jóváhagyom és továbbviszem",
+            type="primary",
+            key="tw_main_idea_approve_forward_btn",
+        ):
+            _approve_main_idea_and_forward()
 
     tw = ensure_text_workshop_state(st.session_state)
     saved = (tw.get("text_main_idea") or "").strip()
     saved_status = tw.get("text_main_idea_status") or ""
-    if saved:
+    if saved or saved_status:
         label = _STATUS_LABELS.get(saved_status, saved_status or "—")
         st.caption(f"Elmentett állapot: **{label}**")
 
@@ -491,6 +481,10 @@ def render_text_main_idea_section(
     _render_source_materials_expander()
 
 
+def _current_main_idea_text() -> str:
+    return (st.session_state.get(_KEY_IDEA_INPUT) or "").strip()
+
+
 def _insight_is_duplicate_main_idea(content: str) -> bool:
     tw = ensure_text_workshop_state(st.session_state)
     needle = (content or "").strip()
@@ -506,31 +500,41 @@ def _insight_is_duplicate_main_idea(content: str) -> bool:
     return False
 
 
-def _render_forward_main_idea_button() -> None:
-    tw = ensure_text_workshop_state(st.session_state)
-    idea = (tw.get("text_main_idea") or "").strip()
-    status = tw.get("text_main_idea_status") or ""
-    if not idea or status != "approved":
+def _save_main_idea_as_draft() -> None:
+    """Mező mentése vázlatként — nem kerül az approved_insights listába."""
+    content = _current_main_idea_text()
+    if not content:
+        st.warning("Üres fő gondolatot nem lehet menteni. Írj egy mondatot.")
+        return
+    update_text_main_idea(st.session_state, content, "draft")
+    st.success("Vázlatként elmentve.")
+
+
+def _approve_main_idea_and_forward() -> None:
+    """Jóváhagyás + továbbvitel a felismerésekhez (duplikáció nélkül)."""
+    content = _current_main_idea_text()
+    if not content:
+        st.warning(
+            "Üres fő gondolatot nem lehet jóváhagyni. Írj egy mondatot."
+        )
         return
 
-    if st.button(
-        "Fő gondolat hozzáadása a továbbvihető felismerésekhez",
-        key="tw_forward_main_idea_btn",
-    ):
-        if _insight_is_duplicate_main_idea(idea):
-            st.info(
-                "Ez a fő gondolat változatlan tartalommal már szerepel "
-                "a továbbvihető felismerések között."
-            )
-        else:
-            add_approved_insight(
-                st.session_state,
-                _MAIN_IDEA_SOURCE,
-                _MAIN_IDEA_CATEGORY,
-                idea,
-            )
-            st.success("A fő gondolat hozzáadva a továbbvihető felismerésekhez.")
-            st.rerun()
+    update_text_main_idea(st.session_state, content, "approved")
+
+    if _insight_is_duplicate_main_idea(content):
+        st.success(
+            "Jóváhagyva. Ez a fő gondolat már szerepel a továbbvihető "
+            "felismerések között."
+        )
+        return
+
+    add_approved_insight(
+        st.session_state,
+        _MAIN_IDEA_SOURCE,
+        _MAIN_IDEA_CATEGORY,
+        content,
+    )
+    st.success("Jóváhagyva és továbbvíve a felismerésekhez.")
 
 
 def _render_insight_cards() -> None:
@@ -539,7 +543,8 @@ def _render_insight_cards() -> None:
     if not insights:
         st.info(
             "Még nincs jóváhagyott felismerés. "
-            "Add hozzá az elsőt a fenti űrlapon, vagy továbbítsd a jóváhagyott fő gondolatot."
+            "Add hozzá az elsőt a fenti űrlapon, vagy használd a "
+            "„Jóváhagyom és továbbviszem” gombot a fő gondolat szakaszban."
         )
         return
 
@@ -595,8 +600,6 @@ def render_approved_insights_section() -> None:
         "Itt gyűjtheted össze azokat a felismeréseket, amelyekre az "
         "igehirdetés felépítésekor valóban támaszkodni szeretnél."
     )
-
-    _render_forward_main_idea_button()
 
     with st.form("tw_add_insight_form", clear_on_submit=True):
         source = st.selectbox("Forrás", options=_INSIGHT_SOURCES)
