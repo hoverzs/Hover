@@ -4170,6 +4170,10 @@ defaults = {
     "_flash_message": None,
     "_pending_project_title_input": None,
     "_pending_project_widget_sync": None,
+
+    # Textus 2.0 M0 — nézetváltó (nem kerül project_data mentésbe)
+    "ui_mode": "quick",
+    "tw_active_section": "Igehely, alkalom és szövegkörnyezet",
 }
 
 for key, value in defaults.items():
@@ -5556,7 +5560,69 @@ _render_project_status_bar()
 
 
 # =========================================================
-# TABOK
+# NÉZETVÁLTÓ (Gyorseszközök / Textusműhely) — M0 Lépés 3
+# =========================================================
+
+_TW_SECTION_OPTIONS = [
+    "Igehely, alkalom és szövegkörnyezet",
+    "Eredeti szöveg és kulcsszavak",
+    "Exegézis, műfaj és szerkezet",
+    "Kortörténeti háttér",
+    "Teológiai hangsúlyok",
+    "A textus nagy gondolata",
+    "Mit viszünk tovább?",
+]
+
+_UI_MODE_LABELS = {
+    "quick": "Gyorseszközök",
+    "workshop": "Textusműhely",
+}
+
+
+def render_textus_workshop_shell() -> None:
+    """Üres Textusműhely-keret helyőrző szakaszokkal (M0 Lépés 3).
+
+    Nem hívja meg a meglévő generáló paneleket; csak UI-helyőrző.
+    """
+    st.header("Textusműhely")
+    st.caption("A bibliai szöveg megértésétől a továbbvihető felismerésekig.")
+
+    if st.session_state.get("tw_active_section") not in _TW_SECTION_OPTIONS:
+        st.session_state["tw_active_section"] = _TW_SECTION_OPTIONS[0]
+
+    st.radio(
+        "Aktív szakasz",
+        options=_TW_SECTION_OPTIONS,
+        key="tw_active_section",
+    )
+
+    active = st.session_state.get("tw_active_section") or _TW_SECTION_OPTIONS[0]
+    st.subheader(active)
+    st.info(
+        "Ez a műhelyszakasz a következő fejlesztési lépésben kapcsolódik "
+        "a meglévő Textus-funkcióhoz."
+    )
+
+
+if st.session_state.get("ui_mode") not in ("quick", "workshop"):
+    st.session_state["ui_mode"] = "quick"
+
+st.radio(
+    "Nézet",
+    options=["quick", "workshop"],
+    format_func=lambda m: _UI_MODE_LABELS.get(m, m),
+    horizontal=True,
+    key="ui_mode",
+)
+
+# Textusműhely: csak a műhelykeret; a régi 13 fül ne jöjjön létre
+if st.session_state.get("ui_mode") == "workshop":
+    render_textus_workshop_shell()
+    st.stop()
+
+
+# =========================================================
+# TABOK (Gyorseszközök mód)
 # =========================================================
 
 # Felhőprojekt megnyitás után: widget-szinkron a tabok létrehozása előtt
