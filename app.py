@@ -5579,76 +5579,6 @@ _UI_MODE_LABELS = {
 }
 
 
-def render_textus_workshop_shell() -> None:
-    """Üres Textusműhely-keret helyőrző szakaszokkal (M0 Lépés 3).
-
-    Nem hívja meg a meglévő generáló paneleket; csak UI-helyőrző.
-    """
-    st.header("Textusműhely")
-    st.caption("A bibliai szöveg megértésétől a továbbvihető felismerésekig.")
-
-    if st.session_state.get("tw_active_section") not in _TW_SECTION_OPTIONS:
-        st.session_state["tw_active_section"] = _TW_SECTION_OPTIONS[0]
-
-    st.radio(
-        "Aktív szakasz",
-        options=_TW_SECTION_OPTIONS,
-        key="tw_active_section",
-    )
-
-    active = st.session_state.get("tw_active_section") or _TW_SECTION_OPTIONS[0]
-    st.subheader(active)
-    st.info(
-        "Ez a műhelyszakasz a következő fejlesztési lépésben kapcsolódik "
-        "a meglévő Textus-funkcióhoz."
-    )
-
-
-if st.session_state.get("ui_mode") not in ("quick", "workshop"):
-    st.session_state["ui_mode"] = "quick"
-
-st.radio(
-    "Nézet",
-    options=["quick", "workshop"],
-    format_func=lambda m: _UI_MODE_LABELS.get(m, m),
-    horizontal=True,
-    key="ui_mode",
-)
-
-# Textusműhely: csak a műhelykeret; a régi 13 fül ne jöjjön létre
-if st.session_state.get("ui_mode") == "workshop":
-    render_textus_workshop_shell()
-    st.stop()
-
-
-# =========================================================
-# TABOK (Gyorseszközök mód)
-# =========================================================
-
-# Felhőprojekt megnyitás után: widget-szinkron a tabok létrehozása előtt
-_apply_pending_project_widget_sync()
-
-tabs = st.tabs([
-    "Igehely",
-    "Eredeti szöveg tanulmányozása",
-    "Exegézis",
-    "Kortörténet",
-    "Teológia",
-    "Illusztrációk",
-    "Aktualizálás",
-    "Vázlat",
-    "Vázlatkosár",
-    "Énekajánló",
-    "📅 Igehirdetési sorozat tervező",
-    "📖 Útmutatás",
-    "⚙️ Beállítások",
-])
-
-
-# =========================================================
-# IGEHELY PANEL (újrahasználható renderelő — M0 Lépés 1)
-# =========================================================
-
 def render_igehely_panel() -> None:
     """Igehely, alkalom, stílus, saját szempont + Áttekintés (bibliai háttér)."""
     st.header("Igeszakasz megadása")
@@ -5739,8 +5669,75 @@ def render_igehely_panel() -> None:
                     st.rerun()
 
 
+def render_textus_workshop_shell() -> None:
+    """Textusműhely-keret: első szakasz = meglévő Igehely panel; többi helyőrző."""
+    st.header("Textusműhely")
+    st.caption("A bibliai szöveg megértésétől a továbbvihető felismerésekig.")
+
+    if st.session_state.get("tw_active_section") not in _TW_SECTION_OPTIONS:
+        st.session_state["tw_active_section"] = _TW_SECTION_OPTIONS[0]
+
+    st.radio(
+        "Aktív szakasz",
+        options=_TW_SECTION_OPTIONS,
+        key="tw_active_section",
+    )
+
+    active = st.session_state.get("tw_active_section") or _TW_SECTION_OPTIONS[0]
+    st.subheader(active)
+
+    if active == "Igehely, alkalom és szövegkörnyezet":
+        render_igehely_panel()
+    else:
+        st.info(
+            "Ez a műhelyszakasz a következő fejlesztési lépésben kapcsolódik "
+            "a meglévő Textus-funkcióhoz."
+        )
+
+
+if st.session_state.get("ui_mode") not in ("quick", "workshop"):
+    st.session_state["ui_mode"] = "quick"
+
+st.radio(
+    "Nézet",
+    options=["quick", "workshop"],
+    format_func=lambda m: _UI_MODE_LABELS.get(m, m),
+    horizontal=True,
+    key="ui_mode",
+)
+
+# Textusműhely: csak a műhelykeret; a régi 13 fül ne jöjjön létre
+if st.session_state.get("ui_mode") == "workshop":
+    render_textus_workshop_shell()
+    st.stop()
+
+
 # =========================================================
-# IGEHELY
+# TABOK (Gyorseszközök mód)
+# =========================================================
+
+# Felhőprojekt megnyitás után: widget-szinkron a tabok létrehozása előtt
+_apply_pending_project_widget_sync()
+
+tabs = st.tabs([
+    "Igehely",
+    "Eredeti szöveg tanulmányozása",
+    "Exegézis",
+    "Kortörténet",
+    "Teológia",
+    "Illusztrációk",
+    "Aktualizálás",
+    "Vázlat",
+    "Vázlatkosár",
+    "Énekajánló",
+    "📅 Igehirdetési sorozat tervező",
+    "📖 Útmutatás",
+    "⚙️ Beállítások",
+])
+
+
+# =========================================================
+# IGEHELY (Gyorseszközök — ugyanaz a panel, mint a Textusműhelyben)
 # =========================================================
 
 with tabs[0]:
