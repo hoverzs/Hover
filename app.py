@@ -5757,7 +5757,7 @@ def render_original_text_panel() -> None:
 
 
 def render_textus_workshop_shell() -> None:
-    """Textusműhely-keret: Igehely, Eredeti szöveg, Exegézis, Kortörténet; többi helyőrző."""
+    """Textusműhely-keret: Igehely…Teológia bekötve; két szakasz még helyőrző."""
     st.header("Textusműhely")
     st.caption("A bibliai szöveg megértésétől a továbbvihető felismerésekig.")
 
@@ -5792,6 +5792,14 @@ def render_textus_workshop_shell() -> None:
             basket_label="Kortörténet",
             empty_msg="Még nincs kortörténeti háttér. Kattints a „Kortörténeti háttér feltárása” gombra.",
             action_label="Kortörténeti háttér feltárása",
+        )
+    elif active == "Teológiai hangsúlyok":
+        render_section_tab(
+            key="theology",
+            header="Teológia",
+            basket_label="Teológia",
+            empty_msg="Még nincs teológiai elemzés. Kattints a „Teológiai összefüggések feltárása” gombra.",
+            action_label="Teológiai összefüggések feltárása",
         )
     else:
         st.info(
