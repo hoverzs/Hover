@@ -5669,8 +5669,95 @@ def render_igehely_panel() -> None:
                     st.rerun()
 
 
+def render_original_text_panel() -> None:
+    """Eredeti héber/görög szöveg tanulmányozása, jegyzet és vázlatkosár."""
+    st.header("Eredeti szöveg tanulmányozása")
+    st.caption("Héber / görög kulcskifejezések, jelentésárnyalatok és prédikációs hozam")
+
+    # Az igeszakaszt az "Igehely" fülről örököljük — ugyanaz a forrás,
+    # mint a többi szekciónál (Exegézis, Kortörténet stb.). Itt csak
+    # olvasható kijelzést mutatunk; a változtatás az "Igehely" fülön
+    # történik, és a `_sync_inputs_to_last()` szinkronizálja minden
+    # generálás-gombnyomáskor.
+    _igehely_orig = (
+        (st.session_state.get("igehely_input") or "").strip()
+        or (st.session_state.get("last_igehely") or "").strip()
+    )
+    if _igehely_orig:
+        st.markdown(
+            f"**Igeszakasz** *(az „Igehely” fülről):* `{_igehely_orig}`"
+        )
+    else:
+        st.info(
+            "Add meg az igeszakaszt az **Igehely** fülön — innen "
+            "automatikusan átvesszük."
+        )
+
+    _orig_running = bool(st.session_state.get("_original_running"))
+    if st.button(
+        "Eredeti szöveg tanulmányozása",
+        type="primary",
+        key="original_run",
+        disabled=_orig_running,
+    ):
+        _sync_inputs_to_last()
+        _igehely_now = (st.session_state.get("last_igehely") or "").strip()
+        if not _resolve_api_key().strip():
+            st.warning("Először add meg az API kulcsot a Beállítások fülön.")
+        elif not _igehely_now:
+            st.warning("Add meg az igeszakaszt az „Igehely” fülön, mielőtt itt generálsz.")
+        else:
+            st.session_state["_original_running"] = True
+            try:
+                with st.spinner("Eredeti nyelvi elemzés készül..."):
+                    st.session_state["original_text"] = generate_text(
+                        build_original_text_prompt(_igehely_now),
+                        tab_label="Eredeti szöveg tanulmányozása",
+                        use_cache=False,
+                        system_bundle=KEY_EXPRESSIONS_SYSTEM_PROMPT,
+                        include_brevity_directive=False,
+                        truncation_notice_mode="never",
+                        incomplete_response_message=(
+                            "⚠️ **Az eredeti nyelvi elemzés nem érkezett meg teljesen.** "
+                            "Nem jelenítek meg félbeszakadt szöveget. Kérlek, próbáld újra."
+                        ),
+                    )
+            finally:
+                st.session_state["_original_running"] = False
+            st.rerun()
+
+    if st.session_state.get("original_text"):
+        if st.session_state["original_text"].startswith(("⚠️", "⏳")):
+            st.warning(st.session_state["original_text"])
+        else:
+            st.markdown(
+                '<div class="result-box original-text-result">',
+                unsafe_allow_html=True
+            )
+            st.markdown(st.session_state["original_text"])
+            st.markdown('</div>', unsafe_allow_html=True)
+
+    else:
+        st.info("Még nincs eredeti nyelvi elemzés.")
+
+    refinement_chat("Eredeti szöveg tanulmányozása", "original_text", "original_text_chat")
+
+    _maybe_clear_note("original_note")
+    note = st.text_area(
+        "Mit szeretnél ebből megtartani a vázlathoz?",
+        key="original_note"
+    )
+
+    if st.button("Hozzáadás a vázlatkosárhoz", key="original_add"):
+        if note.strip():
+            st.session_state["basket"].append(("Eredeti szöveg tanulmányozása", note.strip()))
+            _request_clear_note("original_note")
+            st.success("Hozzáadva.")
+            st.rerun()
+
+
 def render_textus_workshop_shell() -> None:
-    """Textusműhely-keret: első szakasz = meglévő Igehely panel; többi helyőrző."""
+    """Textusműhely-keret: Igehely + Eredeti szöveg panelek; többi helyőrző."""
     st.header("Textusműhely")
     st.caption("A bibliai szöveg megértésétől a továbbvihető felismerésekig.")
 
@@ -5688,6 +5775,8 @@ def render_textus_workshop_shell() -> None:
 
     if active == "Igehely, alkalom és szövegkörnyezet":
         render_igehely_panel()
+    elif active == "Eredeti szöveg és kulcsszavak":
+        render_original_text_panel()
     else:
         st.info(
             "Ez a műhelyszakasz a következő fejlesztési lépésben kapcsolódik "
@@ -6364,98 +6453,7 @@ with tabs[8]:
 
 
 # =========================================================
-# EREDETI SZÖVEG PANEL (újrahasználható renderelő — M0 Lépés 2)
-# =========================================================
-
-def render_original_text_panel() -> None:
-    """Eredeti héber/görög szöveg tanulmányozása, jegyzet és vázlatkosár."""
-    st.header("Eredeti szöveg tanulmányozása")
-    st.caption("Héber / görög kulcskifejezések, jelentésárnyalatok és prédikációs hozam")
-
-    # Az igeszakaszt az "Igehely" fülről örököljük — ugyanaz a forrás,
-    # mint a többi szekciónál (Exegézis, Kortörténet stb.). Itt csak
-    # olvasható kijelzést mutatunk; a változtatás az "Igehely" fülön
-    # történik, és a `_sync_inputs_to_last()` szinkronizálja minden
-    # generálás-gombnyomáskor.
-    _igehely_orig = (
-        (st.session_state.get("igehely_input") or "").strip()
-        or (st.session_state.get("last_igehely") or "").strip()
-    )
-    if _igehely_orig:
-        st.markdown(
-            f"**Igeszakasz** *(az „Igehely” fülről):* `{_igehely_orig}`"
-        )
-    else:
-        st.info(
-            "Add meg az igeszakaszt az **Igehely** fülön — innen "
-            "automatikusan átvesszük."
-        )
-
-    _orig_running = bool(st.session_state.get("_original_running"))
-    if st.button(
-        "Eredeti szöveg tanulmányozása",
-        type="primary",
-        key="original_run",
-        disabled=_orig_running,
-    ):
-        _sync_inputs_to_last()
-        _igehely_now = (st.session_state.get("last_igehely") or "").strip()
-        if not _resolve_api_key().strip():
-            st.warning("Először add meg az API kulcsot a Beállítások fülön.")
-        elif not _igehely_now:
-            st.warning("Add meg az igeszakaszt az „Igehely” fülön, mielőtt itt generálsz.")
-        else:
-            st.session_state["_original_running"] = True
-            try:
-                with st.spinner("Eredeti nyelvi elemzés készül..."):
-                    st.session_state["original_text"] = generate_text(
-                        build_original_text_prompt(_igehely_now),
-                        tab_label="Eredeti szöveg tanulmányozása",
-                        use_cache=False,
-                        system_bundle=KEY_EXPRESSIONS_SYSTEM_PROMPT,
-                        include_brevity_directive=False,
-                        truncation_notice_mode="never",
-                        incomplete_response_message=(
-                            "⚠️ **Az eredeti nyelvi elemzés nem érkezett meg teljesen.** "
-                            "Nem jelenítek meg félbeszakadt szöveget. Kérlek, próbáld újra."
-                        ),
-                    )
-            finally:
-                st.session_state["_original_running"] = False
-            st.rerun()
-
-    if st.session_state.get("original_text"):
-        if st.session_state["original_text"].startswith(("⚠️", "⏳")):
-            st.warning(st.session_state["original_text"])
-        else:
-            st.markdown(
-                '<div class="result-box original-text-result">',
-                unsafe_allow_html=True
-            )
-            st.markdown(st.session_state["original_text"])
-            st.markdown('</div>', unsafe_allow_html=True)
-
-    else:
-        st.info("Még nincs eredeti nyelvi elemzés.")
-
-    refinement_chat("Eredeti szöveg tanulmányozása", "original_text", "original_text_chat")
-
-    _maybe_clear_note("original_note")
-    note = st.text_area(
-        "Mit szeretnél ebből megtartani a vázlathoz?",
-        key="original_note"
-    )
-
-    if st.button("Hozzáadás a vázlatkosárhoz", key="original_add"):
-        if note.strip():
-            st.session_state["basket"].append(("Eredeti szöveg tanulmányozása", note.strip()))
-            _request_clear_note("original_note")
-            st.success("Hozzáadva.")
-            st.rerun()
-
-
-# =========================================================
-# EREDETI SZÖVEG
+# EREDETI SZÖVEG (Gyorseszközök — ugyanaz a panel, mint a Textusműhelyben)
 # =========================================================
 
 with tabs[1]:
