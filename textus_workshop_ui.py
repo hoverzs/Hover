@@ -127,6 +127,7 @@ def _request_adopt_sentence(sentence: str) -> None:
 def _suggestion_payload_from_result(result: MainIdeaSuggestionResult) -> dict[str, Any]:
     return {
         "recommended": result.recommended,
+        "expanded_summary": result.expanded_summary or "",
         "alternatives": list(result.alternatives),
         "reasoning_summary": result.reasoning_summary,
         "textual_basis": list(result.textual_basis),
@@ -216,15 +217,19 @@ def _render_suggestion_results() -> None:
         st.caption(f"Utolsó generálás: {generated_at}")
 
     recommended = (sugs.get("recommended") or "").strip()
+    expanded = (sugs.get("expanded_summary") or "").strip()
     alternatives = sugs.get("alternatives") or []
     if not isinstance(alternatives, list):
         alternatives = []
 
-    # Elsődleges: csak az ajánlott mondat + átvétel
+    # Elsődleges: ajánlott mondat + rövid kifejtés + átvétel (csak főmondat)
     if recommended:
         with st.container(border=True):
             st.markdown("**Ajánlott fő gondolat**")
             st.markdown(recommended)
+            if expanded:
+                st.caption("Rövid kifejtés")
+                st.markdown(expanded)
             if st.button("Átveszem", key="tw_mi_adopt_recommended"):
                 _request_adopt_sentence(recommended)
     else:

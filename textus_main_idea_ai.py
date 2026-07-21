@@ -67,6 +67,7 @@ class MainIdeaSuggestionResult:
     """Javaslatkészítő strukturált kimenet."""
 
     recommended: str = ""
+    expanded_summary: str = ""
     alternatives: list[str] = field(default_factory=list)
     reasoning_summary: str = ""
     textual_basis: list[str] = field(default_factory=list)
@@ -409,6 +410,7 @@ Csak akkor nincs elegendő adat felelős főgondolat-javaslathoz, ha:
 
 Ilyenkor:
 - "recommended" legyen üres string: "";
+- "expanded_summary" legyen üres string: "";
 - "alternatives" legyen üres lista: [];
 - "textual_basis" legyen üres lista: [];
 - a problémát a "reasoning_summary", "warnings" és "missing_information" mezők jelezzék.
@@ -435,6 +437,24 @@ Ha nincs {{passage_text}}, de van elegendő elemzési anyag:
 - Minden alternatíva egy-egy teljes mondat legyen.
 - Az alternatívák NE ugyanazon mondat stilisztikai változatai legyenek, hanem valódi értelmezési hangsúlyeltérést mutassanak.
 - Ha nincs két megalapozott alternatíva, az alternatives lista legyen rövidebb vagy üres: [].
+- Az alternatives elemei továbbra is egy-egy mondatos főgondolatok; NE készíts hozzájuk külön 3–4 mondatos kifejtést.
+
+## expanded_summary szabályai
+
+A recommended továbbra is EGYETLEN teljes állító mondat.
+A többmondatos magyarázat KIZÁRÓLAG az expanded_summary mezőbe kerüljön.
+
+Az expanded_summary:
+- 3–4 rövid, összefüggő mondat;
+- fejtse ki a textus belső mozgását;
+- mutassa meg, hogyan kapcsolódnak össze a szakasz fő elemei;
+- nevezze meg Isten cselekvését és az emberi választ, ha a textus ezt megalapozza;
+- NE legyen prédikációs alkalmazás;
+- NE szólítsa meg közvetlenül a hallgatót;
+- NE írjon minivázlatot vagy pontlistát;
+- NE ismételje szó szerint a recommended mondatot;
+- NE tartalmazzon új, a forrásanyagban nem szereplő adatot;
+- elégtelen recommended esetén legyen üres string: "".
 
 ## textual_basis forrásjelölés
 
@@ -492,6 +512,7 @@ Felhasználói főgondolat-vázlat (opcionális; NEM tekintélyi forrás; ne hor
 - Minden mező kötelező.
 - Ha nincs elem egy listában, üres listát adj: [].
 - Ha van recommended, az egyetlen mondat legyen; elégtelen adatnál "".
+- Az expanded_summary 3–4 rövid mondat legyen, vagy elégtelen adatnál "".
 - A reasoning_summary rövid legyen (legfeljebb néhány mondat).
 - Minden JSON-string legyen szabályosan escape-elt, érvényes JSON-érték.
 - Az objektumban ne legyen záró vessző (trailing comma).
@@ -501,6 +522,7 @@ Séma:
 
 {
   "recommended": "string",
+  "expanded_summary": "string",
   "alternatives": ["string"],
   "reasoning_summary": "string",
   "textual_basis": ["string"],
@@ -741,6 +763,7 @@ def fallback_suggestion(
 ) -> MainIdeaSuggestionResult:
     return MainIdeaSuggestionResult(
         recommended="",
+        expanded_summary="",
         alternatives=[],
         reasoning_summary=reasoning,
         textual_basis=[],
@@ -809,6 +832,7 @@ def parse_main_idea_suggestions(
         )
 
     recommended = _as_text(obj.get("recommended"))
+    expanded_summary = _as_text(obj.get("expanded_summary"))
     alternatives = _as_str_list(obj.get("alternatives"), max_items=2)
     reasoning = _as_text(obj.get("reasoning_summary"))
     textual_basis = _as_str_list(obj.get("textual_basis"), max_items=4)
@@ -817,8 +841,12 @@ def parse_main_idea_suggestions(
 
     if force_empty_on_insufficient:
         recommended = ""
+        expanded_summary = ""
         alternatives = []
         textual_basis = []
+
+    if not recommended:
+        expanded_summary = ""
 
     if not reasoning:
         reasoning = (
@@ -829,6 +857,7 @@ def parse_main_idea_suggestions(
 
     return MainIdeaSuggestionResult(
         recommended=recommended,
+        expanded_summary=expanded_summary,
         alternatives=alternatives,
         reasoning_summary=reasoning,
         textual_basis=textual_basis,
@@ -1221,15 +1250,31 @@ def _self_check() -> list[str]:
         errors.append("empty assess prefix wrong")
 
     # 3) JSON fence parse
-    raw = '```json\n{"recommended":"A.","alternatives":["B."],"reasoning_summary":"Ok.","textual_basis":["Exegézis — x"],"warnings":[],"missing_information":[]}\n```'
+    raw = (
+        '```json\n{"recommended":"A.","expanded_summary":"Egy. Kettő. Három.",'
+        '"alternatives":["B."],"reasoning_summary":"Ok.",'
+        '"textual_basis":["Exegézis — x"],"warnings":[],"missing_information":[]}\n```'
+    )
     p = parse_main_idea_suggestions(raw)
     if not p.ok or p.recommended != "A." or p.alternatives != ["B."]:
         errors.append("suggest parse failed")
+    if p.expanded_summary != "Egy. Kettő. Három.":
+        errors.append("expanded_summary parse failed")
+
+    # 3b) Régi JSON expanded_summary nélkül → üres string
+    legacy = parse_main_idea_suggestions(
+        '{"recommended":"Régi.","alternatives":[],"reasoning_summary":"r",'
+        '"textual_basis":[],"warnings":[],"missing_information":[]}'
+    )
+    if legacy.expanded_summary != "":
+        errors.append("legacy suggest should default expanded_summary to empty")
 
     # 4) Hibás JSON fallback
     bad = parse_main_idea_suggestions("ez nem json")
     if bad.ok or bad.recommended:
         errors.append("bad json should fallback")
+    if bad.expanded_summary:
+        errors.append("bad json expanded_summary should be empty")
 
     # 5) Assessment prefix normalizálás
     raw_a = json.dumps(
@@ -1278,6 +1323,11 @@ def _self_check() -> list[str]:
         return json.dumps(
             {
                 "recommended": recommended,
+                "expanded_summary": (
+                    "A szakasz belső mozgása a sötétségből a világosság felé tart. "
+                    "Isten cselekvése a Fiú ajándékozásában válik láthatóvá. "
+                    "Az emberi válasz a hit, amennyiben a textus ezt megalapozza."
+                ),
                 "alternatives": [],
                 "reasoning_summary": "Az elemzési anyag alapján.",
                 "textual_basis": ["Exegézis — állítás"],
@@ -1306,10 +1356,16 @@ def _self_check() -> list[str]:
         errors.append("A: passage+exegesis should call API")
     if not ra.recommended:
         errors.append("A: expected recommended from exegesis")
+    if not ra.expanded_summary:
+        errors.append("A: expected expanded_summary")
     if not any("passage_text" in w or "bibliai szöveg" in w for w in ra.warnings):
         errors.append("A: expected passage_text warning")
     if _PASSAGE_TEXT_MISSING_LABEL not in ra.missing_information:
         errors.append("A: expected passage_text in missing_information")
+
+    # Prompt séma tartalmazza az expanded_summary-t
+    if '"expanded_summary"' not in _SUGGEST_PROMPT_TEMPLATE:
+        errors.append("suggest prompt schema missing expanded_summary")
 
     # B) passage + theology + overview → javaslat
     called["n"] = 0

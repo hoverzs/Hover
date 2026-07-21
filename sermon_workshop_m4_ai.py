@@ -82,6 +82,7 @@ GenerateFn = Callable[..., str]
 @dataclass
 class SermonMainIdeaSuggestionResult:
     recommended: str = ""
+    expanded_summary: str = ""
     alternatives: list[str] = field(default_factory=list)
     reasoning_summary: str = ""
     textual_and_homiletical_basis: list[str] = field(default_factory=list)
@@ -478,7 +479,7 @@ A mondat akkor hallható, ha:
 - Ne erőltesd a Krisztus-kapcsolatot.
 - Ne találj ki görög/héber adatot, kommentárt, történeti hátteret.
 - Ne adj belső gondolatmenetet — csak rövid reasoning_summary-t.
-- Ha nincs elegendő adat: recommended = ""; alternatives = []; a hiányt reasoning_summary, warnings és missing_information jelezze. Az üres mező jobb, mint a kitalált állítás.
+- Ha nincs elegendő adat: recommended = ""; expanded_summary = ""; alternatives = []; a hiányt reasoning_summary, warnings és missing_information jelezze. Az üres mező jobb, mint a kitalált állítás.
 
 ## recommended szabályai
 
@@ -486,6 +487,21 @@ A mondat akkor hallható, ha:
 - Textushű és hallható.
 - Ne legyen cím vagy szlogen.
 - Ne próbálja egyetlen mondatba zsúfolni a teljes exegézist.
+- A többmondatos magyarázat NE a recommended mezőbe kerüljön, hanem az expanded_summary-ba.
+
+## expanded_summary szabályai
+
+Az expanded_summary 3–4 rövid, összefüggő mondatban:
+- mutassa meg a prédikáció lehetséges felismerési irányát;
+- tegye világossá a fő gondolat jelentőségét a hallgató számára;
+- jelezze a textusban lévő feszültséget és annak irányát, ha van;
+- kapcsolja össze Isten cselekvését és a kegyelemből fakadó emberi választ;
+- MÉG NE készítsen vázlatot vagy alkalmazáslistát;
+- NE sorolja fel a későbbi prédikációs pontokat;
+- NE használjon közvetlen, moralizáló felszólításokat;
+- NE erőltesse a Krisztus-kapcsolatot (az külön műhelyszakasz);
+- NE ismételje szó szerint a recommended mondatot;
+- elégtelen recommended esetén legyen üres string: "".
 
 ## Alternatívák
 
@@ -493,7 +509,7 @@ A mondat akkor hallható, ha:
 - Csak valódi homiletikai hangsúlyeltérés esetén jelenjenek meg.
 - NE legyenek puszta stilisztikai átfogalmazások.
 - Ha nincs valódi hangsúlyeltérés: alternatives = [].
-
+- Az alternatives elemei egy-egy mondatos főgondolatok; NE készíts hozzájuk külön 3–4 mondatos kifejtést.
 ## textual_and_homiletical_basis forrásjelölés
 
 Minden elem ezzel a forrástípussal kezdődjön, majd kötőjel és rövid tartalom:
@@ -547,6 +563,7 @@ Teológia (részlet):
 
 {
   "recommended": "string",
+  "expanded_summary": "string",
   "alternatives": ["string"],
   "reasoning_summary": "string",
   "textual_and_homiletical_basis": ["string"],
@@ -952,6 +969,7 @@ def fallback_sermon_main_idea_suggestion(
 ) -> SermonMainIdeaSuggestionResult:
     return SermonMainIdeaSuggestionResult(
         recommended="",
+        expanded_summary="",
         alternatives=[],
         reasoning_summary=reasoning,
         textual_and_homiletical_basis=[],
@@ -1061,11 +1079,14 @@ def parse_sermon_main_idea_suggestions(raw: str) -> SermonMainIdeaSuggestionResu
             ok=False,
         )
     recommended = _as_text(obj.get("recommended"))
+    expanded_summary = _as_text(obj.get("expanded_summary"))
     alternatives = _as_str_list(obj.get("alternatives"), max_items=2)
     reasoning = _as_text(obj.get("reasoning_summary"))
     basis = _as_str_list(obj.get("textual_and_homiletical_basis"), max_items=6)
     warnings = _as_str_list(obj.get("warnings"))
     missing = _as_str_list(obj.get("missing_information"))
+    if not recommended:
+        expanded_summary = ""
     if not reasoning:
         reasoning = (
             "A modell nem adott indoklást."
@@ -1074,6 +1095,7 @@ def parse_sermon_main_idea_suggestions(raw: str) -> SermonMainIdeaSuggestionResu
         )
     return SermonMainIdeaSuggestionResult(
         recommended=recommended,
+        expanded_summary=expanded_summary,
         alternatives=alternatives,
         reasoning_summary=reasoning,
         textual_and_homiletical_basis=basis,
@@ -1663,12 +1685,24 @@ def _self_check() -> list[str]:
 
     # JSON parse — tiszta
     good = parse_sermon_main_idea_suggestions(
-        '{"recommended":"A","alternatives":["B"],"reasoning_summary":"r",'
+        '{"recommended":"A","expanded_summary":"Egy. Kettő. Három. Négy.",'
+        '"alternatives":["B"],"reasoning_summary":"r",'
         '"textual_and_homiletical_basis":["x"],"warnings":[],"missing_information":[]}'
     )
     if good.recommended != "A" or good.alternatives != ["B"]:
         errors.append("good sermon suggest parse failed")
+    if good.expanded_summary != "Egy. Kettő. Három. Négy.":
+        errors.append("sermon expanded_summary parse failed")
 
+    legacy = parse_sermon_main_idea_suggestions(
+        '{"recommended":"A","alternatives":[],"reasoning_summary":"r",'
+        '"textual_and_homiletical_basis":[],"warnings":[],"missing_information":[]}'
+    )
+    if legacy.expanded_summary != "":
+        errors.append("legacy sermon suggest expanded_summary should be empty")
+
+    if '"expanded_summary"' not in _SUGGEST_SERMON_MAIN_IDEA_TEMPLATE:
+        errors.append("sermon suggest prompt missing expanded_summary")
     bad = parse_sermon_main_idea_suggestions("not json at all")
     if bad.ok:
         errors.append("bad json should not be ok")
