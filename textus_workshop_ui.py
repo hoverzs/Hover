@@ -95,6 +95,14 @@ def _session_str(*keys: str) -> str:
     return ""
 
 
+def _session_passage_text() -> str:
+    for key in ("passage_text", "passage_text_input"):
+        val = st.session_state.get(key)
+        if isinstance(val, str) and val.strip():
+            return val.replace("\r\n", "\n").replace("\r", "\n")
+    return ""
+
+
 def _apply_pending_adopt_if_needed() -> None:
     """Átvétel: widget ELŐTT alkalmazza a pending mondatot (pending + rerun).
 
@@ -155,7 +163,7 @@ def _collect_ai_kwargs(*, user_main_idea: str) -> dict[str, Any]:
     history = _session_str("history")
     return {
         "passage": _session_str("last_igehely", "igehely_input"),
-        "passage_text": _session_str("passage_text"),
+        "passage_text": _session_passage_text(),
         "occasion": _session_str("last_alkalom", "alkalom_input"),
         "user_focus": _session_str("last_sajat", "sajat_input"),
         "approved_insights": (

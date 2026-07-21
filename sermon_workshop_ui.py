@@ -10,6 +10,7 @@ from typing import Any, Callable
 
 import streamlit as st
 
+from bible_text_ui import render_bible_text_preview
 from sermon_workshop_data import (
     add_approved_sermon_decision,
     ensure_sermon_workshop_state,
@@ -269,6 +270,15 @@ def _session_str(*keys: str) -> str:
     return ""
 
 
+def _session_passage_text() -> str:
+    """Központi passage_text; mentés előtt a szerkesztő widget is elfogadható."""
+    for key in ("passage_text", "passage_text_input"):
+        val = st.session_state.get(key)
+        if isinstance(val, str) and val.strip():
+            return val.replace("\r\n", "\n").replace("\r", "\n")
+    return ""
+
+
 def _apply_pending_adopts_if_needed() -> None:
     """Átvétel: widget ELŐTT (pending + rerun). Nem hagy jóvá automatikusan."""
     pending_idea = st.session_state.pop(_ADOPT_SERMON_PENDING, None)
@@ -372,7 +382,7 @@ def _collect_m4_kwargs(*, sermon_main_idea: str = "") -> dict[str, Any]:
         idea = (sw.get("sermon_main_idea") or "").strip()
     return {
         "passage": _session_str("last_igehely", "igehely_input"),
-        "passage_text": _session_str("passage_text"),
+        "passage_text": _session_passage_text(),
         "occasion": _session_str("last_alkalom", "alkalom_input"),
         "user_focus": _session_str("last_sajat", "sajat_input"),
         "text_main_idea": (tw.get("text_main_idea") or "").strip(),
@@ -399,7 +409,7 @@ def _collect_m5_kwargs() -> dict[str, Any]:
     hc = sw.get("human_condition") if isinstance(sw.get("human_condition"), dict) else {}
     return {
         "passage": _session_str("last_igehely", "igehely_input"),
-        "passage_text": _session_str("passage_text"),
+        "passage_text": _session_passage_text(),
         "occasion": _session_str("last_alkalom", "alkalom_input"),
         "user_focus": _session_str("last_sajat", "sajat_input"),
         "text_main_idea": (tw.get("text_main_idea") or "").strip(),
@@ -540,6 +550,8 @@ def _render_shell_input_summary() -> None:
         f"**Jóváhagyott felismerések:** {insight_count}"
         + (f"  \n**Projekt:** {project_title}" if project_title else "")
     )
+
+    render_bible_text_preview(expanded=False)
 
     if status != "approved" or not idea:
         st.info(

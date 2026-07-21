@@ -14,7 +14,10 @@ PROJECT_AUTOSAVE_INTERVAL_S = 180  # 3 perc — csak bejelentkezve, megnyitott p
 
 
 from workspace_data import (
+    PROJECT_DATA_INT_KEYS,
     PROJECT_DATA_KEYS,
+    PROJECT_DATA_LIST_KEYS,
+    PROJECT_DATA_STR_KEYS,
     WORKSPACE_KEYS,
     WORKSPACE_LIST_KEYS,
     WORKSPACE_STR_KEYS,
@@ -38,7 +41,14 @@ from sermon_workshop_data import (
     normalize_sermon_workshop,
 )
 from sermon_workshop_ui import render_sermon_workshop_shell
-
+from bible_text_ui import (
+    KEY_PASSAGE_TEXT_INPUT as _BIBLE_PASSAGE_TEXT_INPUT,
+    RESYNC_FLAG as _BIBLE_TEXT_RESYNC_FLAG,
+    apply_bible_text_resync_if_needed,
+    queue_bible_widget_sync_values,
+    render_bible_text_editor,
+    save_bible_text_from_widgets,
+)
 # =========================================================
 # VERZIÓ
 # =========================================================
@@ -3120,15 +3130,46 @@ def _sync_inputs_to_last():
         st.session_state["last_stilus"] = stilus
     st.session_state["last_sajat"] = sajat
 
+    # Bibliai szöveg: ha a szerkesztő widget létezik, tartós mezőkbe is kerüljön
+    # (projekt Mentés / autosave ne veszítse el a még nem „Mentett” szöveget).
+    if _BIBLE_PASSAGE_TEXT_INPUT in st.session_state:
+        save_bible_text_from_widgets(st.session_state)
+
 
 def build_alap_from_state():
     """A `last_…` session-mezőkből építi vissza az elemzés kontextusát."""
-    return f"""Igehely: {st.session_state.get('last_igehely', '')}
-Alkalom: {st.session_state.get('last_alkalom', '')}
-Homiletikai stílus: {st.session_state.get('last_stilus', '')}
-Saját megjegyzés: {st.session_state.get('last_sajat') or 'Nincs külön megjegyzés.'}
-"""
+    passage = st.session_state.get("last_igehely", "") or ""
+    translation = (st.session_state.get("bible_translation") or "").strip()
+    passage_text = st.session_state.get("passage_text") or ""
+    if not str(passage_text).strip():
+        passage_text = st.session_state.get("passage_text_input") or ""
+    # Sortörések megőrzése; ne strip-eljük a belső whitespace-t.
+    if isinstance(passage_text, str):
+        passage_text = passage_text.replace("\r\n", "\n").replace("\r", "\n")
+    else:
+        passage_text = str(passage_text or "")
 
+    lines = [f"Igehely: {passage}"]
+    if translation:
+        lines.append(
+            f"Bibliafordítás (felhasználói jelölés, nem ellenőrzött): {translation}"
+        )
+    if passage_text.strip():
+        lines.append("Bibliai szöveg (felhasználó által megadva):")
+        lines.append(passage_text)
+    else:
+        lines.append("Bibliai szöveg: nincs adat")
+    lines.extend(
+        [
+            f"Alkalom: {st.session_state.get('last_alkalom', '')}",
+            f"Homiletikai stílus: {st.session_state.get('last_stilus', '')}",
+            (
+                "Saját megjegyzés: "
+                f"{st.session_state.get('last_sajat') or 'Nincs külön megjegyzés.'}"
+            ),
+        ]
+    )
+    return "\n".join(lines)
 
 # =========================================================
 # EREDETI SZÖVEG ÉS ÉNEKAJÁNLÓ — PROMPT ÉPÍTŐK
@@ -3139,6 +3180,18 @@ Saját megjegyzés: {st.session_state.get('last_sajat') or 'Nincs külön megjeg
 def build_original_text_prompt(igehely: str) -> str:
     """Az „Eredeti szöveg" fül teljes promptja. Csak az igehely kell
     bemenetként — ugyanaz a sablon, mint a tab saját gombja mögött."""
+    passage_text = st.session_state.get("passage_text") or ""
+    if not str(passage_text).strip():
+        passage_text = st.session_state.get("passage_text_input") or ""
+    if isinstance(passage_text, str):
+        passage_text = passage_text.replace("\r\n", "\n").replace("\r", "\n")
+    else:
+        passage_text = str(passage_text or "")
+    text_block = (
+        f"\nBibliai szöveg (felhasználó által megadva):\n{passage_text}\n"
+        if passage_text.strip()
+        else "\nBibliai szöveg: nincs adat\n"
+    )
     return f"""
 {ORIGINAL_TEXT_BASE_PROMPT}
 
@@ -3147,7 +3200,7 @@ EREDETI NYELVI MŰHELY — FELADAT
 ==================================================
 
 Igeszakasz: {igehely}
-
+{text_block}
 Készíts eredeti nyelvű elemzést ehhez a textushoz a fenti mesterprompt
 szerkezete szerint.
 
@@ -3465,7 +3518,7 @@ def _queue_project_widget_sync_from_state() -> None:
     A Beállítások fülön a megnyitás után a tabok widgetjei már létezhetnek
     ugyanabban a futásban — közvetlen írás Streamlit hibát okozna.
     """
-    st.session_state["_pending_project_widget_sync"] = {
+    pending = {
         "igehely_input": st.session_state.get("last_igehely", "") or "",
         "alkalom_input": st.session_state.get("last_alkalom", "") or "",
         "stilus_input": st.session_state.get("last_stilus", "") or "",
@@ -3478,8 +3531,9 @@ def _queue_project_widget_sync_from_state() -> None:
             st.session_state.get("outline_reworked_draft", "") or ""
         ),
     }
+    pending.update(queue_bible_widget_sync_values(st.session_state))
+    st.session_state["_pending_project_widget_sync"] = pending
     st.session_state.pop("_pending_outline_draft_editor", None)
-
 
 def _apply_pending_project_widget_sync() -> None:
     """Pending widget-értékek alkalmazása — a tabok/widgetek létrehozása előtt."""
@@ -3494,11 +3548,19 @@ def _apply_project_data_to_session(project_data: dict) -> None:
     """Felhő `project_data` visszaírása; widget-szinkron pending + rerun után."""
     if not isinstance(project_data, dict):
         return
-    for key in PROJECT_DATA_KEYS:
-        if key in (TEXT_WORKSHOP_KEY, SERMON_WORKSHOP_KEY):
-            continue
-        if key in project_data:
-            st.session_state[key] = project_data[key]
+    # String / lista / int mezők: hiányzó kulcs → alapérték (projektváltás ne
+    # hagyjon bent idegen szöveg / fordítás értéket).
+    for key in PROJECT_DATA_STR_KEYS:
+        st.session_state[key] = str(project_data.get(key, "") or "")
+    for key in PROJECT_DATA_LIST_KEYS:
+        raw = project_data.get(key, [])
+        st.session_state[key] = list(raw) if isinstance(raw, list) else []
+    for key in PROJECT_DATA_INT_KEYS:
+        raw = project_data.get(key, 4)
+        try:
+            st.session_state[key] = int(raw)
+        except (TypeError, ValueError):
+            st.session_state[key] = 4
     # Régi projektek: hiányzó text_workshop → alapértelmezett struktúra
     if TEXT_WORKSHOP_KEY in project_data:
         st.session_state[TEXT_WORKSHOP_KEY] = normalize_text_workshop(
@@ -3518,6 +3580,7 @@ def _apply_project_data_to_session(project_data: dict) -> None:
     # Widgetkulcsok újraszinkronja a következő Textusműhely- / sermon-render előtt
     st.session_state["_tw_ui_resync"] = True
     st.session_state["_sw_ui_resync"] = True
+    st.session_state[_BIBLE_TEXT_RESYNC_FLAG] = True
     _queue_project_widget_sync_from_state()
 
 
@@ -3535,6 +3598,7 @@ def _workspace_has_substantive_content() -> bool:
         "songs",
         "series_planner_output",
         "last_igehely",
+        "passage_text",
     ):
         if (st.session_state.get(key) or "").strip():
             return True
@@ -3756,6 +3820,7 @@ def _clear_workspace_content() -> None:
     st.session_state["current_project_title"] = ""
     st.session_state["_pending_project_title_input"] = ""
     st.session_state["project_saved_fingerprint"] = ""
+    st.session_state[_BIBLE_TEXT_RESYNC_FLAG] = True
     _queue_project_widget_sync_from_state()
 
 
@@ -4156,6 +4221,8 @@ defaults = {
     "last_alkalom": "",
     "last_stilus": "",
     "last_sajat": "",
+    "bible_translation": "",
+    "passage_text": "",
     "verse_history": [],
 
     "overview": "",
@@ -5652,6 +5719,7 @@ _UI_MODE_LABELS = {
 
 def render_igehely_panel() -> None:
     """Igehely, alkalom, stílus, saját szempont + Áttekintés (bibliai háttér)."""
+    apply_bible_text_resync_if_needed(st.session_state)
     st.header("Igeszakasz megadása")
 
     st.text_input(
@@ -5659,6 +5727,8 @@ def render_igehely_panel() -> None:
         placeholder="Pl. Jn 3,16–21",
         key="igehely_input",
     )
+
+    render_bible_text_editor()
 
     col1, col2 = st.columns(2)
 

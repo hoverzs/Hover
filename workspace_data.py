@@ -26,6 +26,8 @@ WORKSPACE_STR_KEYS: list[str] = [
     "last_alkalom",
     "last_stilus",
     "last_sajat",
+    "bible_translation",
+    "passage_text",
     "overview",
     "exegesis",
     "history",
@@ -110,6 +112,10 @@ EXCLUDED_SESSION_KEYS: frozenset[str] = frozenset(
         "alkalom_input",
         "stilus_input",
         "sajat_input",
+        "passage_text_input",
+        "bible_translation_select",
+        "bible_translation_other",
+        "_bible_text_ui_resync",
         "_outline_draft_editor",
         "_outline_answers_editor",
         "_outline_reworked_editor",
@@ -222,6 +228,10 @@ def sanitize_project_data(project_data: Mapping[str, Any] | None) -> dict[str, A
             clean[key] = normalize_sermon_workshop(value)
         else:
             clean[key] = value
+    # Régi projektek: hiányzó új string mezők biztonságos alapértéke
+    for key in ("bible_translation", "passage_text"):
+        if key not in clean:
+            clean[key] = ""
     return clean
 
 
