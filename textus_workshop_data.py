@@ -13,20 +13,36 @@ from typing import Any, MutableMapping
 
 TEXT_WORKSHOP_KEY = "text_workshop"
 
-_INSIGHT_KEYS = ("id", "source", "category", "content", "approved", "created_at")
+# Régi mezőnevek → új (visszafelé kompatibilis betöltés)
+_LEGACY_MAIN_IDEA = "text_big_idea"
+_LEGACY_MAIN_IDEA_STATUS = "text_big_idea_status"
 
 
 def get_default_text_workshop() -> dict[str, Any]:
     """Üres Textusműhely-adat (új session / régi projekt hiányzó mező)."""
     return {
-        "text_big_idea": "",
-        "text_big_idea_status": "",
+        "text_main_idea": "",
+        "text_main_idea_status": "",
         "approved_insights": [],
     }
 
 
+def _migrate_main_idea_field(raw: dict[str, Any], new_key: str, legacy_key: str) -> str:
+    """Új mező előnyt élvez; hiányában a régi mező értékét másolja át."""
+    if new_key in raw:
+        return str(raw.get(new_key) or "")
+    if legacy_key in raw:
+        return str(raw.get(legacy_key) or "")
+    return ""
+
+
 def normalize_text_workshop(raw: Any) -> dict[str, Any]:
-    """Bármilyen bemenetből érvényes `text_workshop` struktúrát ad vissza."""
+    """Bármilyen bemenetből érvényes `text_workshop` struktúrát ad vissza.
+
+    Régi `text_big_idea` / `text_big_idea_status` mezőket az új
+    `text_main_idea` / `text_main_idea_status` nevekre migrálja.
+    Az új mentések csak az új mezőneveket tartalmazzák.
+    """
     base = get_default_text_workshop()
     if not isinstance(raw, dict):
         return base
@@ -49,8 +65,12 @@ def normalize_text_workshop(raw: Any) -> dict[str, Any]:
             )
 
     return {
-        "text_big_idea": str(raw.get("text_big_idea") or ""),
-        "text_big_idea_status": str(raw.get("text_big_idea_status") or ""),
+        "text_main_idea": _migrate_main_idea_field(
+            raw, "text_main_idea", _LEGACY_MAIN_IDEA
+        ),
+        "text_main_idea_status": _migrate_main_idea_field(
+            raw, "text_main_idea_status", _LEGACY_MAIN_IDEA_STATUS
+        ),
         "approved_insights": insights_out,
     }
 
@@ -95,15 +115,15 @@ def remove_approved_insight(
     return tw
 
 
-def update_text_big_idea(
+def update_text_main_idea(
     session_state: MutableMapping[str, Any],
     content: str,
     status: str,
 ) -> dict[str, Any]:
-    """A textus nagy gondolatának tartalma / státusza (UI nélkül)."""
+    """A textus fő gondolatának tartalma / státusza (UI nélkül)."""
     tw = ensure_text_workshop_state(session_state)
-    tw["text_big_idea"] = str(content or "")
-    tw["text_big_idea_status"] = str(status or "")
+    tw["text_main_idea"] = str(content or "")
+    tw["text_main_idea_status"] = str(status or "")
     return tw
 
 
@@ -114,5 +134,5 @@ __all__ = [
     "ensure_text_workshop_state",
     "add_approved_insight",
     "remove_approved_insight",
-    "update_text_big_idea",
+    "update_text_main_idea",
 ]

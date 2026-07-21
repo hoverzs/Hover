@@ -5588,9 +5588,14 @@ _TW_SECTION_OPTIONS = [
     "Exegézis, műfaj és szerkezet",
     "Kortörténeti háttér",
     "Teológiai hangsúlyok",
-    "A textus nagy gondolata",
+    "A textus fő gondolata",
     "Mit viszünk tovább?",
 ]
+
+# Régi szakaszfelirat → új (session / mentett UI-állapot migrációja)
+_TW_SECTION_LABEL_ALIASES = {
+    "A textus nagy gondolata": "A textus fő gondolata",
+}
 
 _UI_MODE_LABELS = {
     "quick": "Gyorseszközök",
@@ -5781,7 +5786,11 @@ def render_textus_workshop_shell() -> None:
     st.caption("A bibliai szöveg megértésétől a továbbvihető felismerésekig.")
 
     if st.session_state.get("tw_active_section") not in _TW_SECTION_OPTIONS:
-        st.session_state["tw_active_section"] = _TW_SECTION_OPTIONS[0]
+        alias = _TW_SECTION_LABEL_ALIASES.get(st.session_state.get("tw_active_section"))
+        if alias in _TW_SECTION_OPTIONS:
+            st.session_state["tw_active_section"] = alias
+        else:
+            st.session_state["tw_active_section"] = _TW_SECTION_OPTIONS[0]
 
     st.radio(
         "Aktív szakasz",
