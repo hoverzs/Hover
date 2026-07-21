@@ -6301,10 +6301,11 @@ with tabs[8]:
 
 
 # =========================================================
-# EREDETI SZÖVEG
+# EREDETI SZÖVEG PANEL (újrahasználható renderelő — M0 Lépés 2)
 # =========================================================
 
-with tabs[1]:
+def render_original_text_panel() -> None:
+    """Eredeti héber/görög szöveg tanulmányozása, jegyzet és vázlatkosár."""
     st.header("Eredeti szöveg tanulmányozása")
     st.caption("Héber / görög kulcskifejezések, jelentésárnyalatok és prédikációs hozam")
 
@@ -6388,6 +6389,14 @@ with tabs[1]:
             _request_clear_note("original_note")
             st.success("Hozzáadva.")
             st.rerun()
+
+
+# =========================================================
+# EREDETI SZÖVEG
+# =========================================================
+
+with tabs[1]:
+    render_original_text_panel()
 
 
 # =========================================================
