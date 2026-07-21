@@ -5580,10 +5580,11 @@ tabs = st.tabs([
 
 
 # =========================================================
-# IGEHELY
+# IGEHELY PANEL (újrahasználható renderelő — M0 Lépés 1)
 # =========================================================
 
-with tabs[0]:
+def render_igehely_panel() -> None:
+    """Igehely, alkalom, stílus, saját szempont + Áttekintés (bibliai háttér)."""
     st.header("Igeszakasz megadása")
 
     st.text_input(
@@ -5670,6 +5671,14 @@ with tabs[0]:
             if st.button("Bibliai háttér újragenerálása", key="overview_regen"):
                 if generate_section("overview"):
                     st.rerun()
+
+
+# =========================================================
+# IGEHELY
+# =========================================================
+
+with tabs[0]:
+    render_igehely_panel()
 
 
 # =========================================================
