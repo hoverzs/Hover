@@ -3515,8 +3515,9 @@ def _apply_project_data_to_session(project_data: dict) -> None:
     else:
         st.session_state[SERMON_WORKSHOP_KEY] = get_default_sermon_workshop()
     ensure_sermon_workshop_state(st.session_state)
-    # Widgetkulcsok újraszinkronja a következő Textusműhely-render előtt
+    # Widgetkulcsok újraszinkronja a következő Textusműhely- / sermon-render előtt
     st.session_state["_tw_ui_resync"] = True
+    st.session_state["_sw_ui_resync"] = True
     _queue_project_widget_sync_from_state()
 
 
