@@ -5757,7 +5757,7 @@ def render_original_text_panel() -> None:
 
 
 def render_textus_workshop_shell() -> None:
-    """Textusműhely-keret: Igehely, Eredeti szöveg, Exegézis; többi helyőrző."""
+    """Textusműhely-keret: Igehely, Eredeti szöveg, Exegézis, Kortörténet; többi helyőrző."""
     st.header("Textusműhely")
     st.caption("A bibliai szöveg megértésétől a továbbvihető felismerésekig.")
 
@@ -5784,6 +5784,14 @@ def render_textus_workshop_shell() -> None:
             basket_label="Exegézis",
             empty_msg="Még nincs exegézis. Kattints az „Exegetikai háttér feltárása” gombra.",
             action_label="Exegetikai háttér feltárása",
+        )
+    elif active == "Kortörténeti háttér":
+        render_section_tab(
+            key="history",
+            header="Kortörténet",
+            basket_label="Kortörténet",
+            empty_msg="Még nincs kortörténeti háttér. Kattints a „Kortörténeti háttér feltárása” gombra.",
+            action_label="Kortörténeti háttér feltárása",
         )
     else:
         st.info(
