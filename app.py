@@ -3391,11 +3391,36 @@ def deserialize_workspace(raw_bytes):
     return True, obj.get("_saved_at", "ismeretlen időpont")
 
 
+def _is_logged_in() -> bool:
+    """Biztonságos login-check: `[auth]` nélkül az `is_logged_in` attribútum nem létezik."""
+    try:
+        return bool(st.user.is_logged_in)
+    except Exception:
+        return False
+
+
+def _auth_secrets_configured() -> bool:
+    """Van-e használható `[auth]` blokk a Streamlit secrets-ben."""
+    try:
+        auth = st.secrets.get("auth", None)
+        if not auth:
+            return False
+        # TOML tábla / dict-szerű
+        client_id = ""
+        try:
+            client_id = str(auth.get("client_id", "") or "")
+        except Exception:
+            client_id = str(getattr(auth, "client_id", "") or "")
+        return bool(client_id.strip())
+    except Exception:
+        return False
+
+
 def _owner_sub() -> str | None:
     """Bejelentkezett felhasználó azonosítója: kizárólag `st.user["sub"]`."""
+    if not _is_logged_in():
+        return None
     try:
-        if not st.user.is_logged_in:
-            return None
         sub = (st.user["sub"] or "").strip()
     except Exception:
         return None
@@ -3854,12 +3879,18 @@ def _render_project_status_bar() -> None:
     owner = _owner_sub()
     st.markdown("##### Projekt")
     if not owner:
-        st.caption(
-            "Vendég mód · a felhőmentéshez jelentkezz be Google-fiókkal. "
-            "A TEXTUS minden funkciója így is használható."
-        )
-        if st.button("Bejelentkezés Google-fiókkal", key="bar_google_login"):
-            st.login()
+        if not _auth_secrets_configured():
+            st.caption(
+                "Vendég mód · a felhő-bejelentkezéshez a Streamlit Secrets-ben "
+                "be kell állítani az `[auth]` blokkot (és a Google OAuth redirect URI-t)."
+            )
+        else:
+            st.caption(
+                "Vendég mód · a felhőmentéshez jelentkezz be Google-fiókkal. "
+                "A TEXTUS minden funkciója így is használható."
+            )
+            if st.button("Bejelentkezés Google-fiókkal", key="bar_google_login"):
+                st.login()
         return
 
     cur_id = (st.session_state.get("current_project_id") or "").strip()
@@ -6456,9 +6487,12 @@ with tabs[12]:
 
     # ─── 0) Opcionális Google-bejelentkezés (nem kapu — vendégként is teljes app) ──
     st.subheader("Fiók")
-    if st.user.is_logged_in:
-        _auth_name = (st.user.get("name") or "").strip()
-        _auth_email = (st.user.get("email") or "").strip()
+    if _is_logged_in():
+        try:
+            _auth_name = (st.user.get("name") or "").strip()
+            _auth_email = (st.user.get("email") or "").strip()
+        except Exception:
+            _auth_name, _auth_email = "", ""
         _auth_label = _auth_name or _auth_email or "Bejelentkezett felhasználó"
         st.caption(f"Bejelentkezve: {_auth_label}")
         if st.button("Kijelentkezés", key="settings_google_logout"):
@@ -6473,6 +6507,13 @@ with tabs[12]:
             st.caption(
                 "A kijelentkezés megerősítése a lap tetején, a Projekt sávnál jelenik meg."
             )
+    elif not _auth_secrets_configured():
+        st.info(
+            "A Google-bejelentkezéshez add meg az `[auth]` beállításokat a Streamlit Cloud "
+            "**Secrets** felületén (`client_id`, `client_secret`, `cookie_secret`, "
+            "`redirect_uri` = `https://textus.streamlit.app/oauth2callback`). "
+            "Vendégként az app továbbra is használható."
+        )
     else:
         st.caption(
             "A bejelentkezés opcionális. Vendégként is teljes mértékben használhatod a TEXTUS-t; "
