@@ -137,6 +137,12 @@ EXCLUDED_SESSION_KEYS: frozenset[str] = frozenset(
         "_sw_hc_adopt_pending",
         "_sw_m4_suggest_running",
         "_sw_m4_assess_running",
+        "sw_lt_listener_question",
+        "sw_lt_listener_resistance",
+        "sw_lt_sermon_tension",
+        "_sw_lt_adopt_pending",
+        "_sw_m5_suggest_running",
+        "_sw_m5_assess_running",
     }
 )
 

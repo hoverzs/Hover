@@ -79,6 +79,9 @@ def get_default_sermon_workshop() -> dict[str, Any]:
         "human_condition_suggestion": None,
         "human_condition_assessment": None,
         "m4_last_generated_at": "",
+        "listener_tension_suggestions": None,
+        "listener_tension_assessment": None,
+        "m5_last_generated_at": "",
     }
 
 
@@ -205,6 +208,19 @@ def normalize_sermon_workshop(data: Any) -> dict[str, Any]:
             )
         ),
         "m4_last_generated_at": _as_str(data.get("m4_last_generated_at")),
+        "listener_tension_suggestions": _normalize_optional_dict(
+            data.get(
+                "listener_tension_suggestions",
+                base["listener_tension_suggestions"],
+            )
+        ),
+        "listener_tension_assessment": _normalize_optional_dict(
+            data.get(
+                "listener_tension_assessment",
+                base["listener_tension_assessment"],
+            )
+        ),
+        "m5_last_generated_at": _as_str(data.get("m5_last_generated_at")),
     }
 
 
@@ -383,6 +399,38 @@ def save_human_condition_assessment(
     return sw
 
 
+def save_listener_tension_suggestions(
+    session_state: MutableMapping[str, Any],
+    payload: dict[str, Any],
+    *,
+    stamp_generated_at: bool = True,
+) -> dict[str, Any]:
+    """Tartós M5 hallgatói feszültség-javaslat mentése."""
+    sw = ensure_sermon_workshop_state(session_state)
+    sw["listener_tension_suggestions"] = (
+        dict(payload) if isinstance(payload, dict) else None
+    )
+    if stamp_generated_at:
+        sw["m5_last_generated_at"] = datetime.now().isoformat(timespec="seconds")
+    return sw
+
+
+def save_listener_tension_assessment(
+    session_state: MutableMapping[str, Any],
+    payload: dict[str, Any],
+    *,
+    stamp_generated_at: bool = True,
+) -> dict[str, Any]:
+    """Tartós M5 hallgatói feszültség-értékelés mentése."""
+    sw = ensure_sermon_workshop_state(session_state)
+    sw["listener_tension_assessment"] = (
+        dict(payload) if isinstance(payload, dict) else None
+    )
+    if stamp_generated_at:
+        sw["m5_last_generated_at"] = datetime.now().isoformat(timespec="seconds")
+    return sw
+
+
 __all__ = [
     "SERMON_WORKSHOP_KEY",
     "get_default_sermon_workshop",
@@ -396,4 +444,6 @@ __all__ = [
     "save_sermon_main_idea_assessment",
     "save_human_condition_suggestion",
     "save_human_condition_assessment",
+    "save_listener_tension_suggestions",
+    "save_listener_tension_assessment",
 ]
