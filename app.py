@@ -5598,6 +5598,28 @@ _TW_SECTION_OPTIONS = [
     "Mit viszünk tovább?",
 ]
 
+# Visszafogott, nem kötelező következő-lépés szöveg (nincs navigáció / gomb).
+_TW_NEXT_STEP_HINTS: dict[str, str] = {
+    "Igehely, alkalom és szövegkörnyezet": (
+        "Következő ajánlott lépés: Eredeti szöveg vagy Exegézis"
+    ),
+    "Eredeti szöveg és kulcsszavak": (
+        "Következő ajánlott lépés: Exegézis, műfaj és szerkezet"
+    ),
+    "Exegézis, műfaj és szerkezet": (
+        "Következő ajánlott lépés: A textus fő gondolata"
+    ),
+    "Kortörténeti háttér": (
+        "Következő ajánlott lépés: Teológiai hangsúlyok vagy A textus fő gondolata"
+    ),
+    "Teológiai hangsúlyok": (
+        "Következő ajánlott lépés: A textus fő gondolata"
+    ),
+    "A textus fő gondolata": (
+        "Következő ajánlott lépés: Mit viszünk tovább?"
+    ),
+}
+
 # Régi szakaszfelirat → új (session / mentett UI-állapot migrációja)
 _TW_SECTION_LABEL_ALIASES = {
     "A textus nagy gondolata": "A textus fő gondolata",
@@ -5844,6 +5866,10 @@ def render_textus_workshop_shell() -> None:
             "Ez a műhelyszakasz a következő fejlesztési lépésben kapcsolódik "
             "a meglévő Textus-funkcióhoz."
         )
+
+    next_hint = _TW_NEXT_STEP_HINTS.get(active)
+    if next_hint:
+        st.caption(next_hint)
 
 
 if st.session_state.get("ui_mode") not in ("quick", "workshop"):

@@ -220,6 +220,7 @@ def _render_suggestion_results() -> None:
     if not isinstance(alternatives, list):
         alternatives = []
 
+    # Elsődleges: csak az ajánlott mondat + átvétel
     if recommended:
         with st.container(border=True):
             st.markdown("**Ajánlott fő gondolat**")
@@ -228,47 +229,56 @@ def _render_suggestion_results() -> None:
                 _request_adopt_sentence(recommended)
     else:
         st.info(
-            "Nincs ajánlott fő gondolat (elégtelen adat vagy a modell üresen hagyta)."
+            "Nincs ajánlott fő gondolat (elégtelen adat vagy a modell üresen hagyta). "
+            "A részletek a „Mi alapján készült?” részben vannak."
         )
 
-    for idx, alt in enumerate(alternatives[:2]):
+    # Alternatívák — alapból összecsukva
+    alt_items: list[str] = []
+    for alt in alternatives[:2]:
         text = (alt or "").strip() if isinstance(alt, str) else str(alt or "").strip()
-        if not text:
-            continue
-        with st.container(border=True):
-            st.markdown(f"**Alternatíva {idx + 1}**")
-            st.markdown(text)
-            if st.button("Átveszem", key=f"tw_mi_adopt_alt_{idx}"):
-                _request_adopt_sentence(text)
+        if text:
+            alt_items.append(text)
+    if alt_items:
+        with st.expander("További javaslatok", expanded=False):
+            for idx, text in enumerate(alt_items):
+                with st.container(border=True):
+                    st.markdown(f"**Alternatíva {idx + 1}**")
+                    st.markdown(text)
+                    if st.button("Átveszem", key=f"tw_mi_adopt_alt_{idx}"):
+                        _request_adopt_sentence(text)
 
     reasoning = (sugs.get("reasoning_summary") or "").strip()
-    if reasoning:
-        with st.expander("Indoklás", expanded=True):
-            st.markdown(reasoning)
-
     basis = sugs.get("textual_basis") or []
-    if isinstance(basis, list) and any(str(x).strip() for x in basis):
-        with st.expander("Szövegbeli alapok", expanded=False):
-            for item in basis:
-                line = str(item or "").strip()
-                if line:
-                    st.markdown(f"- {line}")
-
     warnings = sugs.get("warnings") or []
-    if isinstance(warnings, list) and any(str(x).strip() for x in warnings):
-        with st.expander("Figyelmeztetések", expanded=True):
-            for item in warnings:
-                line = str(item or "").strip()
-                if line:
-                    st.warning(line)
-
     missing = sugs.get("missing_information") or []
-    if isinstance(missing, list) and any(str(x).strip() for x in missing):
-        with st.expander("Hiányzó információk", expanded=True):
-            for item in missing:
-                line = str(item or "").strip()
-                if line:
-                    st.markdown(f"- {line}")
+    has_basis = isinstance(basis, list) and any(str(x).strip() for x in basis)
+    has_warnings = isinstance(warnings, list) and any(str(x).strip() for x in warnings)
+    has_missing = isinstance(missing, list) and any(str(x).strip() for x in missing)
+
+    if reasoning or has_basis or has_warnings or has_missing:
+        with st.expander("Mi alapján készült?", expanded=False):
+            if reasoning:
+                st.markdown("**Indoklás**")
+                st.markdown(reasoning)
+            if has_basis:
+                st.markdown("**Szövegbeli alapok**")
+                for item in basis:
+                    line = str(item or "").strip()
+                    if line:
+                        st.markdown(f"- {line}")
+            if has_warnings:
+                st.markdown("**Figyelmeztetések**")
+                for item in warnings:
+                    line = str(item or "").strip()
+                    if line:
+                        st.warning(line)
+            if has_missing:
+                st.markdown("**Hiányzó információk**")
+                for item in missing:
+                    line = str(item or "").strip()
+                    if line:
+                        st.markdown(f"- {line}")
 
 
 def _render_assessment_results() -> None:
@@ -277,37 +287,37 @@ def _render_assessment_results() -> None:
     if not isinstance(assessment_payload, dict):
         return
 
-    st.subheader("MI-értékelés")
     fields = assessment_payload.get("assessment") or {}
     if not isinstance(fields, dict):
         fields = {}
-
-    with st.container(border=True):
-        st.markdown("**Szempontok**")
-        for key, label in _ASSESSMENT_FIELD_LABELS:
-            text = str(fields.get(key) or "").strip()
-            if text:
-                st.markdown(f"**{label}:** {text}")
-
     strengths = assessment_payload.get("strengths") or []
-    if isinstance(strengths, list) and any(str(x).strip() for x in strengths):
-        with st.expander("Erősségek", expanded=True):
+    priorities = assessment_payload.get("revision_priorities") or []
+    revised = (assessment_payload.get("revised_version") or "").strip()
+    warnings = assessment_payload.get("warnings") or []
+
+    with st.expander("Szakmai értékelés részletei", expanded=False):
+        if any(str(fields.get(k) or "").strip() for k, _ in _ASSESSMENT_FIELD_LABELS):
+            st.markdown("**Szempontok**")
+            for key, label in _ASSESSMENT_FIELD_LABELS:
+                text = str(fields.get(key) or "").strip()
+                if text:
+                    st.markdown(f"**{label}:** {text}")
+
+        if isinstance(strengths, list) and any(str(x).strip() for x in strengths):
+            st.markdown("**Erősségek**")
             for item in strengths[:3]:
                 line = str(item or "").strip()
                 if line:
                     st.markdown(f"- {line}")
 
-    priorities = assessment_payload.get("revision_priorities") or []
-    if isinstance(priorities, list) and any(str(x).strip() for x in priorities):
-        with st.expander("Javítási szempontok", expanded=True):
+        if isinstance(priorities, list) and any(str(x).strip() for x in priorities):
+            st.markdown("**Javítási szempontok**")
             for item in priorities[:3]:
                 line = str(item or "").strip()
                 if line:
                     st.markdown(f"- {line}")
 
-    revised = (assessment_payload.get("revised_version") or "").strip()
-    if revised:
-        with st.container(border=True):
+        if revised:
             st.markdown("**Átdolgozott javaslat**")
             st.markdown(revised)
             if st.button(
@@ -315,12 +325,13 @@ def _render_assessment_results() -> None:
                 key="tw_mi_adopt_revised",
             ):
                 _request_adopt_sentence(revised)
-    else:
-        st.caption("Nincs átdolgozott javaslat (üres mező vagy elégtelen elemzési alap).")
+        else:
+            st.caption(
+                "Nincs átdolgozott javaslat (üres mező vagy elégtelen elemzési alap)."
+            )
 
-    warnings = assessment_payload.get("warnings") or []
-    if isinstance(warnings, list) and any(str(x).strip() for x in warnings):
-        with st.expander("Figyelmeztetések", expanded=True):
+        if isinstance(warnings, list) and any(str(x).strip() for x in warnings):
+            st.markdown("**Figyelmeztetések**")
             for item in warnings:
                 line = str(item or "").strip()
                 if line:
@@ -543,8 +554,9 @@ def _render_insight_cards() -> None:
     if not insights:
         st.info(
             "Még nincs jóváhagyott felismerés. "
-            "Add hozzá az elsőt a fenti űrlapon, vagy használd a "
-            "„Jóváhagyom és továbbviszem” gombot a fő gondolat szakaszban."
+            "Add hozzá az elsőt az „Új felismerés hozzáadása” résznél, "
+            "vagy használd a „Jóváhagyom és továbbviszem” gombot "
+            "a fő gondolat szakaszban."
         )
         return
 
@@ -601,30 +613,31 @@ def render_approved_insights_section() -> None:
         "igehirdetés felépítésekor valóban támaszkodni szeretnél."
     )
 
-    with st.form("tw_add_insight_form", clear_on_submit=True):
-        source = st.selectbox("Forrás", options=_INSIGHT_SOURCES)
-        category = st.selectbox("Kategória", options=_INSIGHT_CATEGORIES)
-        content = st.text_area(
-            "Tartalom",
-            placeholder="Fogalmazd meg röviden a továbbvihető felismerést…",
-            height=100,
-        )
-        submitted = st.form_submit_button(
-            "Jóváhagyott felismerés hozzáadása",
-            type="primary",
-        )
-
-    if submitted:
-        text = (content or "").strip()
-        if not text:
-            st.warning("Üres felismerést nem lehet hozzáadni.")
-        else:
-            add_approved_insight(st.session_state, source, category, text)
-            st.success("Felismerés hozzáadva.")
-            st.rerun()
-
     st.subheader("Jóváhagyott felismerések")
     _render_insight_cards()
+
+    with st.expander("Új felismerés hozzáadása", expanded=False):
+        with st.form("tw_add_insight_form", clear_on_submit=True):
+            source = st.selectbox("Forrás", options=_INSIGHT_SOURCES)
+            category = st.selectbox("Kategória", options=_INSIGHT_CATEGORIES)
+            content = st.text_area(
+                "Tartalom",
+                placeholder="Fogalmazd meg röviden a továbbvihető felismerést…",
+                height=100,
+            )
+            submitted = st.form_submit_button(
+                "Jóváhagyott felismerés hozzáadása",
+                type="primary",
+            )
+
+        if submitted:
+            text = (content or "").strip()
+            if not text:
+                st.warning("Üres felismerést nem lehet hozzáadni.")
+            else:
+                add_approved_insight(st.session_state, source, category, text)
+                st.success("Felismerés hozzáadva.")
+                st.rerun()
 
 
 __all__ = [
