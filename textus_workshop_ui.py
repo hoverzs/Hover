@@ -639,6 +639,17 @@ def render_approved_insights_section() -> None:
                 st.success("Felismerés hozzáadva.")
                 st.rerun()
 
+    st.caption(
+        "A jóváhagyott felismerésekkel folytathatod a munkát az "
+        "Igehirdetési műhelyben."
+    )
+    if st.button(
+        "Tovább az Igehirdetési műhelybe",
+        key="tw_goto_sermon_workshop_btn",
+    ):
+        st.session_state["ui_mode"] = "sermon_workshop"
+        st.rerun()
+
 
 __all__ = [
     "render_text_main_idea_section",

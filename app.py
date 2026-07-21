@@ -31,6 +31,13 @@ from textus_workshop_ui import (
     render_approved_insights_section,
     render_text_main_idea_section,
 )
+from sermon_workshop_data import (
+    SERMON_WORKSHOP_KEY,
+    ensure_sermon_workshop_state,
+    get_default_sermon_workshop,
+    normalize_sermon_workshop,
+)
+from sermon_workshop_ui import render_sermon_workshop_shell
 
 # =========================================================
 # VERZIÓ
@@ -3488,7 +3495,7 @@ def _apply_project_data_to_session(project_data: dict) -> None:
     if not isinstance(project_data, dict):
         return
     for key in PROJECT_DATA_KEYS:
-        if key == TEXT_WORKSHOP_KEY:
+        if key in (TEXT_WORKSHOP_KEY, SERMON_WORKSHOP_KEY):
             continue
         if key in project_data:
             st.session_state[key] = project_data[key]
@@ -3500,6 +3507,14 @@ def _apply_project_data_to_session(project_data: dict) -> None:
     else:
         st.session_state[TEXT_WORKSHOP_KEY] = get_default_text_workshop()
     ensure_text_workshop_state(st.session_state)
+    # Régi projektek: hiányzó sermon_workshop → alapértelmezett struktúra
+    if SERMON_WORKSHOP_KEY in project_data:
+        st.session_state[SERMON_WORKSHOP_KEY] = normalize_sermon_workshop(
+            project_data.get(SERMON_WORKSHOP_KEY)
+        )
+    else:
+        st.session_state[SERMON_WORKSHOP_KEY] = get_default_sermon_workshop()
+    ensure_sermon_workshop_state(st.session_state)
     # Widgetkulcsok újraszinkronja a következő Textusműhely-render előtt
     st.session_state["_tw_ui_resync"] = True
     _queue_project_widget_sync_from_state()
@@ -4196,6 +4211,7 @@ defaults = {
     # Textus 2.0 M0 — nézetváltó (nem kerül project_data mentésbe)
     "ui_mode": "quick",
     "tw_active_section": "Igehely, alkalom és szövegkörnyezet",
+    "sw_active_section": "Az igehirdetés fő gondolata",
 }
 
 for key, value in defaults.items():
@@ -4204,6 +4220,7 @@ for key, value in defaults.items():
 
 # Textus 2.0 műhelyadat — mindig friss példány / érvényes struktúra
 ensure_text_workshop_state(st.session_state)
+ensure_sermon_workshop_state(st.session_state)
 
 # Beépített módban a session kulcs másolatát szinkronban tartjuk a
 # Streamlit Secrets / env aktuális értékével (Cloud Secrets frissítés,
@@ -5628,6 +5645,7 @@ _TW_SECTION_LABEL_ALIASES = {
 _UI_MODE_LABELS = {
     "quick": "Gyorseszközök",
     "workshop": "Textusműhely",
+    "sermon_workshop": "Igehirdetési műhely",
 }
 
 
@@ -5872,12 +5890,12 @@ def render_textus_workshop_shell() -> None:
         st.caption(next_hint)
 
 
-if st.session_state.get("ui_mode") not in ("quick", "workshop"):
+if st.session_state.get("ui_mode") not in ("quick", "workshop", "sermon_workshop"):
     st.session_state["ui_mode"] = "quick"
 
 st.radio(
     "Nézet",
-    options=["quick", "workshop"],
+    options=["quick", "workshop", "sermon_workshop"],
     format_func=lambda m: _UI_MODE_LABELS.get(m, m),
     horizontal=True,
     key="ui_mode",
@@ -5886,6 +5904,11 @@ st.radio(
 # Textusműhely: csak a műhelykeret; a régi 13 fül ne jöjjön létre
 if st.session_state.get("ui_mode") == "workshop":
     render_textus_workshop_shell()
+    st.stop()
+
+# Igehirdetési műhely: csak a műhelykeret; tabok és Textusműhely ne jöjjenek létre
+if st.session_state.get("ui_mode") == "sermon_workshop":
+    render_sermon_workshop_shell()
     st.stop()
 
 

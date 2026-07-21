@@ -15,6 +15,10 @@ from textus_workshop_data import (
     TEXT_WORKSHOP_KEY,
     normalize_text_workshop,
 )
+from sermon_workshop_data import (
+    SERMON_WORKSHOP_KEY,
+    normalize_sermon_workshop,
+)
 
 # Meglévő workspace-export kulcsok (app.py serialize_workspace).
 WORKSPACE_STR_KEYS: list[str] = [
@@ -67,6 +71,7 @@ PROJECT_EXTRA_INT_KEYS: list[str] = [
 # Beágyazott objektumok a tartós project_data-ban (Textus 2.0).
 PROJECT_NESTED_KEYS: list[str] = [
     TEXT_WORKSHOP_KEY,
+    SERMON_WORKSHOP_KEY,
 ]
 
 PROJECT_DATA_STR_KEYS: list[str] = WORKSPACE_STR_KEYS + PROJECT_EXTRA_STR_KEYS
@@ -120,6 +125,7 @@ EXCLUDED_SESSION_KEYS: frozenset[str] = frozenset(
         "_tw_main_idea_adopt_pending",
         "_main_idea_suggest_running",
         "_main_idea_assess_running",
+        "sw_active_section",
     }
 )
 
@@ -171,6 +177,9 @@ def build_project_data(
 
     # Textus 2.0 műhelyadat — hiányzó / hibás érték esetén alapértelmezett
     payload[TEXT_WORKSHOP_KEY] = normalize_text_workshop(state.get(TEXT_WORKSHOP_KEY))
+    payload[SERMON_WORKSHOP_KEY] = normalize_sermon_workshop(
+        state.get(SERMON_WORKSHOP_KEY)
+    )
 
     # Biztonsági szűrés: kizárt / titkos / futásidejű kulcsok soha ne maradjanak.
     for excluded in EXCLUDED_SESSION_KEYS:
@@ -192,6 +201,8 @@ def sanitize_project_data(project_data: Mapping[str, Any] | None) -> dict[str, A
             continue
         if key == TEXT_WORKSHOP_KEY:
             clean[key] = normalize_text_workshop(value)
+        elif key == SERMON_WORKSHOP_KEY:
+            clean[key] = normalize_sermon_workshop(value)
         else:
             clean[key] = value
     return clean
@@ -212,6 +223,9 @@ def project_content_fingerprint(state: Mapping[str, Any]) -> str:
         value = state.get(key, [])
         payload[key] = list(value) if isinstance(value, list) else []
     payload[TEXT_WORKSHOP_KEY] = normalize_text_workshop(state.get(TEXT_WORKSHOP_KEY))
+    payload[SERMON_WORKSHOP_KEY] = normalize_sermon_workshop(
+        state.get(SERMON_WORKSHOP_KEY)
+    )
     raw = json.dumps(payload, ensure_ascii=False, sort_keys=True, default=str)
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()
 
