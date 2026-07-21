@@ -114,6 +114,9 @@ EXCLUDED_SESSION_KEYS: frozenset[str] = frozenset(
         # Felületi nézetkulcsok — ne kerüljenek tartós mentésbe
         "ui_mode",
         "tw_active_section",
+        "tw_main_idea_input",
+        "tw_main_idea_status_radio",
+        "_tw_ui_resync",
     }
 )
 

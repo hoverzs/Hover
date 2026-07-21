@@ -27,6 +27,10 @@ from textus_workshop_data import (
     get_default_text_workshop,
     normalize_text_workshop,
 )
+from textus_workshop_ui import (
+    render_approved_insights_section,
+    render_text_main_idea_section,
+)
 
 # =========================================================
 # VERZIÓ
@@ -3496,6 +3500,8 @@ def _apply_project_data_to_session(project_data: dict) -> None:
     else:
         st.session_state[TEXT_WORKSHOP_KEY] = get_default_text_workshop()
     ensure_text_workshop_state(st.session_state)
+    # Widgetkulcsok újraszinkronja a következő Textusműhely-render előtt
+    st.session_state["_tw_ui_resync"] = True
     _queue_project_widget_sync_from_state()
 
 
@@ -5781,7 +5787,7 @@ def render_original_text_panel() -> None:
 
 
 def render_textus_workshop_shell() -> None:
-    """Textusműhely-keret: Igehely…Teológia bekötve; két szakasz még helyőrző."""
+    """Textusműhely-keret: elemző szakaszok + kézi fő gondolat / felismerések."""
     st.header("Textusműhely")
     st.caption("A bibliai szöveg megértésétől a továbbvihető felismerésekig.")
 
@@ -5829,6 +5835,10 @@ def render_textus_workshop_shell() -> None:
             empty_msg="Még nincs teológiai elemzés. Kattints a „Teológiai összefüggések feltárása” gombra.",
             action_label="Teológiai összefüggések feltárása",
         )
+    elif active == "A textus fő gondolata":
+        render_text_main_idea_section()
+    elif active == "Mit viszünk tovább?":
+        render_approved_insights_section()
     else:
         st.info(
             "Ez a műhelyszakasz a következő fejlesztési lépésben kapcsolódik "
