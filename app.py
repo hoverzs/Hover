@@ -5836,7 +5836,7 @@ def render_textus_workshop_shell() -> None:
             action_label="Teológiai összefüggések feltárása",
         )
     elif active == "A textus fő gondolata":
-        render_text_main_idea_section()
+        render_text_main_idea_section(generate_fn=generate_text)
     elif active == "Mit viszünk tovább?":
         render_approved_insights_section()
     else:

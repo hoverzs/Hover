@@ -24,6 +24,9 @@ def get_default_text_workshop() -> dict[str, Any]:
         "text_main_idea": "",
         "text_main_idea_status": "",
         "approved_insights": [],
+        "main_idea_suggestions": None,
+        "main_idea_assessment": None,
+        "main_idea_last_generated_at": "",
     }
 
 
@@ -36,12 +39,22 @@ def _migrate_main_idea_field(raw: dict[str, Any], new_key: str, legacy_key: str)
     return ""
 
 
+def _normalize_optional_dict(raw: Any) -> dict[str, Any] | None:
+    """MI-eredmény dict vagy None; hibás típus → None (régi projektek biztonsága)."""
+    if raw is None:
+        return None
+    if isinstance(raw, dict):
+        return dict(raw)
+    return None
+
+
 def normalize_text_workshop(raw: Any) -> dict[str, Any]:
     """Bármilyen bemenetből érvényes `text_workshop` struktúrát ad vissza.
 
     Régi `text_big_idea` / `text_big_idea_status` mezőket az új
     `text_main_idea` / `text_main_idea_status` nevekre migrálja.
-    Az új mentések csak az új mezőneveket tartalmazzák.
+    Hiányzó MI-mezők alapértéket kapnak. Az új mentések csak az új
+    mezőneveket tartalmazzák.
     """
     base = get_default_text_workshop()
     if not isinstance(raw, dict):
@@ -72,6 +85,15 @@ def normalize_text_workshop(raw: Any) -> dict[str, Any]:
             raw, "text_main_idea_status", _LEGACY_MAIN_IDEA_STATUS
         ),
         "approved_insights": insights_out,
+        "main_idea_suggestions": _normalize_optional_dict(
+            raw.get("main_idea_suggestions", base["main_idea_suggestions"])
+        ),
+        "main_idea_assessment": _normalize_optional_dict(
+            raw.get("main_idea_assessment", base["main_idea_assessment"])
+        ),
+        "main_idea_last_generated_at": str(
+            raw.get("main_idea_last_generated_at") or ""
+        ),
     }
 
 
@@ -127,6 +149,34 @@ def update_text_main_idea(
     return tw
 
 
+def save_main_idea_suggestions(
+    session_state: MutableMapping[str, Any],
+    payload: dict[str, Any],
+    *,
+    stamp_generated_at: bool = True,
+) -> dict[str, Any]:
+    """Tartós javaslat-eredmény mentése a text_workshop-ba."""
+    tw = ensure_text_workshop_state(session_state)
+    tw["main_idea_suggestions"] = dict(payload) if isinstance(payload, dict) else None
+    if stamp_generated_at:
+        tw["main_idea_last_generated_at"] = datetime.now().isoformat(timespec="seconds")
+    return tw
+
+
+def save_main_idea_assessment(
+    session_state: MutableMapping[str, Any],
+    payload: dict[str, Any],
+    *,
+    stamp_generated_at: bool = True,
+) -> dict[str, Any]:
+    """Tartós értékelés-eredmény mentése a text_workshop-ba."""
+    tw = ensure_text_workshop_state(session_state)
+    tw["main_idea_assessment"] = dict(payload) if isinstance(payload, dict) else None
+    if stamp_generated_at:
+        tw["main_idea_last_generated_at"] = datetime.now().isoformat(timespec="seconds")
+    return tw
+
+
 __all__ = [
     "TEXT_WORKSHOP_KEY",
     "get_default_text_workshop",
@@ -135,4 +185,6 @@ __all__ = [
     "add_approved_insight",
     "remove_approved_insight",
     "update_text_main_idea",
+    "save_main_idea_suggestions",
+    "save_main_idea_assessment",
 ]

@@ -117,6 +117,9 @@ EXCLUDED_SESSION_KEYS: frozenset[str] = frozenset(
         "tw_main_idea_input",
         "tw_main_idea_status_radio",
         "_tw_ui_resync",
+        "_tw_main_idea_adopt_pending",
+        "_main_idea_suggest_running",
+        "_main_idea_assess_running",
     }
 )
 

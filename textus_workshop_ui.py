@@ -1,20 +1,33 @@
-"""Textus 2.0 Textusműhely — kézi UI (AI-hívás nélkül).
+"""Textus 2.0 Textusműhely — kézi UI + főgondolat MI-segéd bekötés.
 
 A textus fő gondolata és a továbbvihető felismerések felülete.
-Csak a `text_workshop` adatot és a `textus_workshop_data` segédfüggvényeit
-használja. Nem importál az app.py-ból.
+A Gemini-hívást a hívó által átadott `generate_fn` végzi
+(általában az app.py `generate_text` függvénye).
+Nem importál az app.py-ból (nincs körkörös import).
 """
 
 from __future__ import annotations
 
+from typing import Any, Callable
+
 import streamlit as st
 
+from textus_main_idea_ai import (
+    MainIdeaAssessmentResult,
+    MainIdeaSuggestionResult,
+    assess_user_main_idea,
+    suggest_text_main_idea,
+)
 from textus_workshop_data import (
     add_approved_insight,
     ensure_text_workshop_state,
     remove_approved_insight,
+    save_main_idea_assessment,
+    save_main_idea_suggestions,
     update_text_main_idea,
 )
+
+GenerateFn = Callable[..., str]
 
 _STATUS_OPTIONS = ["draft", "approved"]
 _STATUS_LABELS = {
@@ -52,13 +65,47 @@ _SOURCE_REVIEW = [
     ("theology", "Teológia"),
 ]
 
+_ASSESSMENT_FIELD_LABELS = [
+    ("text_fidelity", "Szöveghűség"),
+    ("clarity", "Világosság"),
+    ("unity", "Egység"),
+    ("theological_accuracy", "Teológiai pontosság"),
+    ("scope", "Terjedelem"),
+    ("statement_quality", "Állítás minősége"),
+    ("application_confusion", "Alkalmazással való keveredés"),
+]
+
 _MAIN_IDEA_SOURCE = "A textus fő gondolata"
 _MAIN_IDEA_CATEGORY = "Fő gondolat"
 
-# Widgetkulcsok — csak session UI, nem project_data
+# Widget / technikai kulcsok — csak session UI, nem project_data
 _KEY_IDEA_INPUT = "tw_main_idea_input"
 _KEY_IDEA_STATUS = "tw_main_idea_status_radio"
 _RESYNC_FLAG = "_tw_ui_resync"
+_ADOPT_PENDING = "_tw_main_idea_adopt_pending"
+
+
+def _session_str(*keys: str) -> str:
+    for key in keys:
+        val = st.session_state.get(key)
+        if isinstance(val, str) and val.strip():
+            return val.strip()
+        if val is not None and not isinstance(val, str):
+            text = str(val).strip()
+            if text:
+                return text
+    return ""
+
+
+def _apply_pending_adopt_if_needed() -> None:
+    """Átvétel: widget ELŐTT alkalmazza a pending mondatot (pending + rerun)."""
+    pending = st.session_state.pop(_ADOPT_PENDING, None)
+    if pending is None:
+        return
+    text = str(pending).strip()
+    st.session_state[_KEY_IDEA_INPUT] = text
+    st.session_state[_KEY_IDEA_STATUS] = "draft"
+    update_text_main_idea(st.session_state, text, "draft")
 
 
 def _apply_tw_ui_resync_if_needed() -> None:
@@ -75,6 +122,73 @@ def _apply_tw_ui_resync_if_needed() -> None:
         st.session_state[_KEY_IDEA_INPUT] = idea
     if force or _KEY_IDEA_STATUS not in st.session_state:
         st.session_state[_KEY_IDEA_STATUS] = status
+
+
+def _request_adopt_sentence(sentence: str) -> None:
+    """Mondat átvétele a kézi mezőbe — következő futásban, widget előtt."""
+    st.session_state[_ADOPT_PENDING] = str(sentence or "").strip()
+    st.rerun()
+
+
+def _suggestion_payload_from_result(result: MainIdeaSuggestionResult) -> dict[str, Any]:
+    return {
+        "recommended": result.recommended,
+        "alternatives": list(result.alternatives),
+        "reasoning_summary": result.reasoning_summary,
+        "textual_basis": list(result.textual_basis),
+        "warnings": list(result.warnings),
+        "missing_information": list(result.missing_information),
+        "ok": bool(result.ok),
+        "error_message": result.error_message or "",
+    }
+
+
+def _assessment_payload_from_result(result: MainIdeaAssessmentResult) -> dict[str, Any]:
+    return {
+        "assessment": result.assessment.to_dict(),
+        "strengths": list(result.strengths),
+        "revision_priorities": list(result.revision_priorities),
+        "revised_version": result.revised_version,
+        "warnings": list(result.warnings),
+        "ok": bool(result.ok),
+        "error_message": result.error_message or "",
+    }
+
+
+def _collect_ai_kwargs(*, user_main_idea: str) -> dict[str, Any]:
+    """Sessionből MI-bemenet; illusztráció / aktualizálás / ének / vázlat nélkül."""
+    history = _session_str("history")
+    return {
+        "passage": _session_str("last_igehely", "igehely_input"),
+        "passage_text": _session_str("passage_text"),
+        "occasion": _session_str("last_alkalom", "alkalom_input"),
+        "user_focus": _session_str("last_sajat", "sajat_input"),
+        "approved_insights": (
+            ensure_text_workshop_state(st.session_state).get("approved_insights") or []
+        ),
+        "exegesis": _session_str("exegesis"),
+        "original_text": _session_str("original_text"),
+        "theology": _session_str("theology"),
+        "overview": _session_str("overview"),
+        "historical_context": history,
+        "user_main_idea": (user_main_idea or "").strip(),
+        "include_historical_context": bool(history),
+    }
+
+
+def _user_facing_error(result_ok: bool, error_message: str, *, fallback: str) -> str:
+    if result_ok:
+        return ""
+    msg = (error_message or "").strip()
+    if not msg:
+        return fallback
+    # Ne szivárogtassunk hosszú technikai dumpot / kulcsot
+    if len(msg) > 280:
+        return fallback
+    lower = msg.casefold()
+    if "api key" in lower or "apikey" in lower or "x-goog-api-key" in lower:
+        return fallback
+    return msg
 
 
 def _render_source_materials_expander() -> None:
@@ -96,8 +210,207 @@ def _render_source_materials_expander() -> None:
             )
 
 
-def render_text_main_idea_section() -> None:
-    """Kézi szerkesztő: a textus fő gondolata (Gemini nélkül)."""
+def _render_suggestion_results() -> None:
+    tw = ensure_text_workshop_state(st.session_state)
+    sugs = tw.get("main_idea_suggestions")
+    if not isinstance(sugs, dict):
+        return
+
+    st.subheader("MI-javaslatok")
+    generated_at = (tw.get("main_idea_last_generated_at") or "").strip()
+    if generated_at:
+        st.caption(f"Utolsó generálás: {generated_at}")
+
+    recommended = (sugs.get("recommended") or "").strip()
+    alternatives = sugs.get("alternatives") or []
+    if not isinstance(alternatives, list):
+        alternatives = []
+
+    if recommended:
+        with st.container(border=True):
+            st.markdown("**Ajánlott fő gondolat**")
+            st.markdown(recommended)
+            if st.button("Átveszem", key="tw_mi_adopt_recommended"):
+                _request_adopt_sentence(recommended)
+    else:
+        st.info(
+            "Nincs ajánlott fő gondolat (elégtelen adat vagy a modell üresen hagyta)."
+        )
+
+    for idx, alt in enumerate(alternatives[:2]):
+        text = (alt or "").strip() if isinstance(alt, str) else str(alt or "").strip()
+        if not text:
+            continue
+        with st.container(border=True):
+            st.markdown(f"**Alternatíva {idx + 1}**")
+            st.markdown(text)
+            if st.button("Átveszem", key=f"tw_mi_adopt_alt_{idx}"):
+                _request_adopt_sentence(text)
+
+    reasoning = (sugs.get("reasoning_summary") or "").strip()
+    if reasoning:
+        with st.expander("Indoklás", expanded=True):
+            st.markdown(reasoning)
+
+    basis = sugs.get("textual_basis") or []
+    if isinstance(basis, list) and any(str(x).strip() for x in basis):
+        with st.expander("Szövegbeli alapok", expanded=False):
+            for item in basis:
+                line = str(item or "").strip()
+                if line:
+                    st.markdown(f"- {line}")
+
+    warnings = sugs.get("warnings") or []
+    if isinstance(warnings, list) and any(str(x).strip() for x in warnings):
+        with st.expander("Figyelmeztetések", expanded=True):
+            for item in warnings:
+                line = str(item or "").strip()
+                if line:
+                    st.warning(line)
+
+    missing = sugs.get("missing_information") or []
+    if isinstance(missing, list) and any(str(x).strip() for x in missing):
+        with st.expander("Hiányzó információk", expanded=True):
+            for item in missing:
+                line = str(item or "").strip()
+                if line:
+                    st.markdown(f"- {line}")
+
+
+def _render_assessment_results() -> None:
+    tw = ensure_text_workshop_state(st.session_state)
+    assessment_payload = tw.get("main_idea_assessment")
+    if not isinstance(assessment_payload, dict):
+        return
+
+    st.subheader("MI-értékelés")
+    fields = assessment_payload.get("assessment") or {}
+    if not isinstance(fields, dict):
+        fields = {}
+
+    with st.container(border=True):
+        st.markdown("**Szempontok**")
+        for key, label in _ASSESSMENT_FIELD_LABELS:
+            text = str(fields.get(key) or "").strip()
+            if text:
+                st.markdown(f"**{label}:** {text}")
+
+    strengths = assessment_payload.get("strengths") or []
+    if isinstance(strengths, list) and any(str(x).strip() for x in strengths):
+        with st.expander("Erősségek", expanded=True):
+            for item in strengths[:3]:
+                line = str(item or "").strip()
+                if line:
+                    st.markdown(f"- {line}")
+
+    priorities = assessment_payload.get("revision_priorities") or []
+    if isinstance(priorities, list) and any(str(x).strip() for x in priorities):
+        with st.expander("Javítási szempontok", expanded=True):
+            for item in priorities[:3]:
+                line = str(item or "").strip()
+                if line:
+                    st.markdown(f"- {line}")
+
+    revised = (assessment_payload.get("revised_version") or "").strip()
+    if revised:
+        with st.container(border=True):
+            st.markdown("**Átdolgozott javaslat**")
+            st.markdown(revised)
+            if st.button(
+                "Átdolgozott változat átvétele",
+                key="tw_mi_adopt_revised",
+            ):
+                _request_adopt_sentence(revised)
+    else:
+        st.caption("Nincs átdolgozott javaslat (üres mező vagy elégtelen elemzési alap).")
+
+    warnings = assessment_payload.get("warnings") or []
+    if isinstance(warnings, list) and any(str(x).strip() for x in warnings):
+        with st.expander("Figyelmeztetések", expanded=True):
+            for item in warnings:
+                line = str(item or "").strip()
+                if line:
+                    st.warning(line)
+
+
+def _run_suggest(generate_fn: GenerateFn) -> None:
+    idea_draft = (st.session_state.get(_KEY_IDEA_INPUT) or "").strip()
+    kwargs = _collect_ai_kwargs(user_main_idea=idea_draft)
+    if not kwargs["passage"]:
+        st.warning(
+            "Add meg az igeszakaszt az „Igehely” szakaszon, mielőtt javaslatot kérsz."
+        )
+        return
+
+    with st.spinner(
+        "A textus fő gondolatának lehetséges megfogalmazásait vizsgálom…"
+    ):
+        result = suggest_text_main_idea(**kwargs, generate_fn=generate_fn)
+
+    if not result.ok:
+        st.warning(
+            _user_facing_error(
+                False,
+                result.error_message,
+                fallback="A javaslatkészítés nem sikerült. Próbáld újra később.",
+            )
+        )
+        return
+
+    save_main_idea_suggestions(
+        st.session_state,
+        _suggestion_payload_from_result(result),
+    )
+    if not (result.recommended or "").strip():
+        st.info(
+            "A rendelkezésre álló anyag alapján nem készült felelős ajánlott "
+            "fő gondolat. Nézd meg a hiányzó információkat és figyelmeztetéseket."
+        )
+    else:
+        st.success("A javaslatok elkészültek.")
+
+
+def _run_assess(generate_fn: GenerateFn) -> None:
+    idea = (st.session_state.get(_KEY_IDEA_INPUT) or "").strip()
+    if not idea:
+        st.warning("Nincs megfogalmazás az értékeléshez.")
+        return
+
+    kwargs = _collect_ai_kwargs(user_main_idea=idea)
+    if not kwargs["passage"]:
+        st.warning(
+            "Add meg az igeszakaszt az „Igehely” szakaszon, mielőtt értékelést kérsz."
+        )
+        return
+
+    with st.spinner(
+        "A megfogalmazást textushűségi és szakmai szempontból vizsgálom…"
+    ):
+        result = assess_user_main_idea(**kwargs, generate_fn=generate_fn)
+
+    if not result.ok:
+        st.warning(
+            _user_facing_error(
+                False,
+                result.error_message,
+                fallback="Az értékelés nem sikerült. Próbáld újra később.",
+            )
+        )
+        return
+
+    save_main_idea_assessment(
+        st.session_state,
+        _assessment_payload_from_result(result),
+    )
+    st.success("Az értékelés elkészült.")
+
+
+def render_text_main_idea_section(
+    *,
+    generate_fn: GenerateFn | None = None,
+) -> None:
+    """A textus fő gondolata: kézi szerkesztő + opcionális MI-segéd."""
+    _apply_pending_adopt_if_needed()
     _apply_tw_ui_resync_if_needed()
     ensure_text_workshop_state(st.session_state)
 
@@ -139,6 +452,42 @@ def render_text_main_idea_section() -> None:
         label = _STATUS_LABELS.get(saved_status, saved_status or "—")
         st.caption(f"Elmentett állapot: **{label}**")
 
+    st.markdown("---")
+    st.caption(
+        "Az MI a már elkészült és jóváhagyott műhelyanyagok alapján "
+        "segít. A végső megfogalmazás és jóváhagyás továbbra is a "
+        "prédikátor döntése."
+    )
+
+    idea_now = (st.session_state.get(_KEY_IDEA_INPUT) or "").strip()
+    ai_ready = generate_fn is not None
+    c1, c2 = st.columns(2)
+    with c1:
+        if st.button(
+            "Javaslatok készítése",
+            key="tw_mi_suggest_btn",
+            disabled=not ai_ready,
+        ):
+            if generate_fn is None:
+                st.warning("A javaslatkészítés jelenleg nem érhető el.")
+            else:
+                _run_suggest(generate_fn)
+    with c2:
+        if st.button(
+            "Saját megfogalmazás értékelése",
+            key="tw_mi_assess_btn",
+            disabled=(not ai_ready) or (not idea_now),
+        ):
+            if generate_fn is None:
+                st.warning("Az értékelés jelenleg nem érhető el.")
+            else:
+                _run_assess(generate_fn)
+
+    if not ai_ready:
+        st.caption("Az MI-segéd nincs bekötve ehhez a nézethez.")
+
+    _render_suggestion_results()
+    _render_assessment_results()
     _render_source_materials_expander()
 
 
