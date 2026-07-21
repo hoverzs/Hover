@@ -21,6 +21,12 @@ from workspace_data import (
     build_workspace_payload,
     project_content_fingerprint,
 )
+from textus_workshop_data import (
+    TEXT_WORKSHOP_KEY,
+    ensure_text_workshop_state,
+    get_default_text_workshop,
+    normalize_text_workshop,
+)
 
 # =========================================================
 # VERZIÓ
@@ -3478,8 +3484,18 @@ def _apply_project_data_to_session(project_data: dict) -> None:
     if not isinstance(project_data, dict):
         return
     for key in PROJECT_DATA_KEYS:
+        if key == TEXT_WORKSHOP_KEY:
+            continue
         if key in project_data:
             st.session_state[key] = project_data[key]
+    # Régi projektek: hiányzó text_workshop → alapértelmezett struktúra
+    if TEXT_WORKSHOP_KEY in project_data:
+        st.session_state[TEXT_WORKSHOP_KEY] = normalize_text_workshop(
+            project_data.get(TEXT_WORKSHOP_KEY)
+        )
+    else:
+        st.session_state[TEXT_WORKSHOP_KEY] = get_default_text_workshop()
+    ensure_text_workshop_state(st.session_state)
     _queue_project_widget_sync_from_state()
 
 
@@ -4179,6 +4195,9 @@ defaults = {
 for key, value in defaults.items():
     if key not in st.session_state:
         st.session_state[key] = value
+
+# Textus 2.0 műhelyadat — mindig friss példány / érvényes struktúra
+ensure_text_workshop_state(st.session_state)
 
 # Beépített módban a session kulcs másolatát szinkronban tartjuk a
 # Streamlit Secrets / env aktuális értékével (Cloud Secrets frissítés,

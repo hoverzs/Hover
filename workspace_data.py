@@ -11,6 +11,11 @@ import json
 from datetime import datetime
 from typing import Any, Mapping
 
+from textus_workshop_data import (
+    TEXT_WORKSHOP_KEY,
+    normalize_text_workshop,
+)
+
 # Meglévő workspace-export kulcsok (app.py serialize_workspace).
 WORKSPACE_STR_KEYS: list[str] = [
     "last_igehely",
@@ -59,11 +64,19 @@ PROJECT_EXTRA_INT_KEYS: list[str] = [
     "series_weeks",
 ]
 
+# Beágyazott objektumok a tartós project_data-ban (Textus 2.0).
+PROJECT_NESTED_KEYS: list[str] = [
+    TEXT_WORKSHOP_KEY,
+]
+
 PROJECT_DATA_STR_KEYS: list[str] = WORKSPACE_STR_KEYS + PROJECT_EXTRA_STR_KEYS
 PROJECT_DATA_INT_KEYS: list[str] = list(PROJECT_EXTRA_INT_KEYS)
 PROJECT_DATA_LIST_KEYS: list[str] = list(WORKSPACE_LIST_KEYS)
 PROJECT_DATA_KEYS: list[str] = (
-    PROJECT_DATA_STR_KEYS + PROJECT_DATA_INT_KEYS + PROJECT_DATA_LIST_KEYS
+    PROJECT_DATA_STR_KEYS
+    + PROJECT_DATA_INT_KEYS
+    + PROJECT_DATA_LIST_KEYS
+    + PROJECT_NESTED_KEYS
 )
 
 # Szándékosan soha nem kerül a project_data / workspace JSON-ba.
@@ -98,6 +111,9 @@ EXCLUDED_SESSION_KEYS: frozenset[str] = frozenset(
         "_pending_outline_draft_editor",
         "_clear_outline_workshop_editors",
         "_feedback_last_sent",
+        # Felületi nézetkulcsok — ne kerüljenek tartós mentésbe
+        "ui_mode",
+        "tw_active_section",
     }
 )
 
@@ -147,6 +163,9 @@ def build_project_data(
         except (TypeError, ValueError):
             payload[key] = 4
 
+    # Textus 2.0 műhelyadat — hiányzó / hibás érték esetén alapértelmezett
+    payload[TEXT_WORKSHOP_KEY] = normalize_text_workshop(state.get(TEXT_WORKSHOP_KEY))
+
     # Biztonsági szűrés: kizárt / titkos / futásidejű kulcsok soha ne maradjanak.
     for excluded in EXCLUDED_SESSION_KEYS:
         payload.pop(excluded, None)
@@ -165,7 +184,10 @@ def sanitize_project_data(project_data: Mapping[str, Any] | None) -> dict[str, A
             continue
         if key not in allowed:
             continue
-        clean[key] = value
+        if key == TEXT_WORKSHOP_KEY:
+            clean[key] = normalize_text_workshop(value)
+        else:
+            clean[key] = value
     return clean
 
 
@@ -183,6 +205,7 @@ def project_content_fingerprint(state: Mapping[str, Any]) -> str:
     for key in PROJECT_DATA_LIST_KEYS:
         value = state.get(key, [])
         payload[key] = list(value) if isinstance(value, list) else []
+    payload[TEXT_WORKSHOP_KEY] = normalize_text_workshop(state.get(TEXT_WORKSHOP_KEY))
     raw = json.dumps(payload, ensure_ascii=False, sort_keys=True, default=str)
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()
 
@@ -192,6 +215,7 @@ __all__ = [
     "WORKSPACE_LIST_KEYS",
     "WORKSPACE_KEYS",
     "PROJECT_DATA_KEYS",
+    "PROJECT_NESTED_KEYS",
     "build_workspace_payload",
     "build_project_data",
     "sanitize_project_data",
