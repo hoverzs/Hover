@@ -58,6 +58,8 @@ def get_default_sermon_workshop() -> dict[str, Any]:
         "sermon_path": {
             "type": "",
             "reason": "",
+            "starting_point": "",
+            "destination": "",
         },
         "sermon_movements": [],
         "selected_images": [],
@@ -84,7 +86,62 @@ def get_default_sermon_workshop() -> dict[str, Any]:
         "gospel_arc_suggestions": None,
         "gospel_arc_assessment": None,
         "m5_gospel_arc_last_generated_at": "",
+        "sermon_path_suggestions": None,
+        "sermon_path_assessment": None,
+        "m6_last_generated_at": "",
     }
+
+
+_MOVEMENT_FIELD_KEYS = (
+    "id",
+    "title",
+    "role",
+    "core_content",
+    "textual_basis",
+    "listener_discovery",
+    "transition_to_next",
+)
+
+
+def empty_sermon_movement(*, role: str = "") -> dict[str, str]:
+    """Üres prédikációs mozgás (új elem / biztonságos alapérték)."""
+    return {
+        "id": str(uuid.uuid4()),
+        "title": "",
+        "role": _as_str(role),
+        "core_content": "",
+        "textual_basis": "",
+        "listener_discovery": "",
+        "transition_to_next": "",
+    }
+
+
+def normalize_sermon_movement(raw: Any) -> dict[str, str]:
+    """Egy mozgás normalizálása; hiányzó mezők üres stringgel."""
+    base = empty_sermon_movement()
+    if not isinstance(raw, dict):
+        return base
+    out = dict(base)
+    for key in _MOVEMENT_FIELD_KEYS:
+        if key in raw:
+            out[key] = _as_str(raw.get(key))
+    if not out["id"]:
+        out["id"] = str(uuid.uuid4())
+    return out
+
+
+def normalize_sermon_movements(raw: Any, *, max_items: int = 5) -> list[dict[str, str]]:
+    """Mozgáslista normalizálása; max 5 elem, érvénytelen elemek kihagyva."""
+    if not isinstance(raw, list):
+        return []
+    out: list[dict[str, str]] = []
+    for item in raw:
+        if not isinstance(item, dict):
+            continue
+        out.append(normalize_sermon_movement(item))
+        if len(out) >= max_items:
+            break
+    return out
 
 
 def _as_str(value: Any) -> str:
@@ -177,7 +234,7 @@ def normalize_sermon_workshop(data: Any) -> dict[str, Any]:
         "sermon_path": _normalize_str_dict(
             data.get("sermon_path"), base["sermon_path"]
         ),
-        "sermon_movements": _normalize_generic_list(data.get("sermon_movements")),
+        "sermon_movements": normalize_sermon_movements(data.get("sermon_movements")),
         "selected_images": _normalize_generic_list(data.get("selected_images")),
         "applications": _normalize_generic_list(data.get("applications")),
         "closing": _normalize_str_dict(data.get("closing"), base["closing"]),
@@ -238,6 +295,19 @@ def normalize_sermon_workshop(data: Any) -> dict[str, Any]:
         "m5_gospel_arc_last_generated_at": _as_str(
             data.get("m5_gospel_arc_last_generated_at")
         ),
+        "sermon_path_suggestions": _normalize_optional_dict(
+            data.get(
+                "sermon_path_suggestions",
+                base["sermon_path_suggestions"],
+            )
+        ),
+        "sermon_path_assessment": _normalize_optional_dict(
+            data.get(
+                "sermon_path_assessment",
+                base["sermon_path_assessment"],
+            )
+        ),
+        "m6_last_generated_at": _as_str(data.get("m6_last_generated_at")),
     }
 
 
@@ -304,6 +374,8 @@ def update_sermon_workshop_section(
     if key in _SECTION_LIST_KEYS:
         if key == "approved_sermon_decisions":
             sw[key] = _normalize_decisions(data)
+        elif key == "sermon_movements":
+            sw[key] = normalize_sermon_movements(data)
         else:
             sw[key] = _normalize_generic_list(data)
         return sw
@@ -480,6 +552,38 @@ def save_gospel_arc_assessment(
     return sw
 
 
+def save_sermon_path_suggestions(
+    session_state: MutableMapping[str, Any],
+    payload: dict[str, Any],
+    *,
+    stamp_generated_at: bool = True,
+) -> dict[str, Any]:
+    """Tartós M6 igehirdetési út javaslat mentése."""
+    sw = ensure_sermon_workshop_state(session_state)
+    sw["sermon_path_suggestions"] = (
+        dict(payload) if isinstance(payload, dict) else None
+    )
+    if stamp_generated_at:
+        sw["m6_last_generated_at"] = datetime.now().isoformat(timespec="seconds")
+    return sw
+
+
+def save_sermon_path_assessment(
+    session_state: MutableMapping[str, Any],
+    payload: dict[str, Any],
+    *,
+    stamp_generated_at: bool = True,
+) -> dict[str, Any]:
+    """Tartós M6 igehirdetési út értékelés mentése."""
+    sw = ensure_sermon_workshop_state(session_state)
+    sw["sermon_path_assessment"] = (
+        dict(payload) if isinstance(payload, dict) else None
+    )
+    if stamp_generated_at:
+        sw["m6_last_generated_at"] = datetime.now().isoformat(timespec="seconds")
+    return sw
+
+
 __all__ = [
     "SERMON_WORKSHOP_KEY",
     "get_default_sermon_workshop",
@@ -489,6 +593,9 @@ __all__ = [
     "add_approved_sermon_decision",
     "remove_approved_sermon_decision",
     "deepcopy_sermon_workshop",
+    "empty_sermon_movement",
+    "normalize_sermon_movement",
+    "normalize_sermon_movements",
     "save_sermon_main_idea_suggestions",
     "save_sermon_main_idea_assessment",
     "save_human_condition_suggestion",
@@ -497,4 +604,6 @@ __all__ = [
     "save_listener_tension_assessment",
     "save_gospel_arc_suggestions",
     "save_gospel_arc_assessment",
+    "save_sermon_path_suggestions",
+    "save_sermon_path_assessment",
 ]

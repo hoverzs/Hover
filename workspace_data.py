@@ -161,6 +161,15 @@ EXCLUDED_SESSION_KEYS: frozenset[str] = frozenset(
         "_sw_ga_adopt_pending",
         "_sw_m5_ga_suggest_running",
         "_sw_m5_ga_assess_running",
+        "sw_path_type",
+        "sw_path_reason",
+        "sw_path_starting_point",
+        "sw_path_destination",
+        "_sw_path_adopt_pending",
+        "_sw_movements_adopt_pending",
+        "_sw_mv_delete_pending",
+        "_sw_m6_suggest_running",
+        "_sw_m6_assess_running",
     }
 )
 
