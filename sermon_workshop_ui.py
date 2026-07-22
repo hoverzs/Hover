@@ -13,9 +13,15 @@ import streamlit as st
 from bible_text_ui import render_bible_text_preview
 from sermon_workshop_data import (
     add_approved_sermon_decision,
+    empty_application,
+    empty_illustration,
     empty_sermon_movement,
+    empty_textual_image,
     ensure_sermon_workshop_state,
+    normalize_applications,
+    normalize_illustrations,
     normalize_sermon_movements,
+    normalize_textual_images,
     remove_approved_sermon_decision,
     save_gospel_arc_assessment,
     save_gospel_arc_suggestions,
@@ -23,6 +29,8 @@ from sermon_workshop_data import (
     save_human_condition_suggestion,
     save_listener_tension_assessment,
     save_listener_tension_suggestions,
+    save_sermon_enrichment_assessment,
+    save_sermon_enrichment_suggestions,
     save_sermon_main_idea_assessment,
     save_sermon_main_idea_suggestions,
     save_sermon_path_assessment,
@@ -72,6 +80,35 @@ from sermon_workshop_m6_ai import (
     sermon_path_type_label,
     suggest_sermon_path,
 )
+from sermon_workshop_m7_ai import (
+    APPLICATION_SCOPES,
+    APPLICATION_SCOPE_LABELS_HU,
+    IMAGE_FUNCTIONS,
+    IMAGE_FUNCTION_LABELS_HU,
+    ILLUSTRATION_FUNCTIONS,
+    ILLUSTRATION_FUNCTION_LABELS_HU,
+    ILLUSTRATION_SOURCES,
+    ILLUSTRATION_SOURCE_LABELS_HU,
+    MAX_APPLICATIONS,
+    MAX_ILLUSTRATIONS,
+    MAX_TEXTUAL_IMAGES,
+    PLACEMENT_KINDS,
+    PLACEMENT_KIND_LABELS_HU,
+    EnrichmentAssessmentResult,
+    EnrichmentSuggestionResult,
+    application_scope_label,
+    assess_enrichment,
+    illustration_function_label,
+    illustration_source_label,
+    image_function_label,
+    normalize_application_scope,
+    normalize_illustration_function,
+    normalize_illustration_source,
+    normalize_image_function,
+    normalize_placement_kind,
+    placement_kind_label,
+    suggest_enrichment,
+)
 from textus_workshop_data import ensure_text_workshop_state
 
 GenerateFn = Callable[..., str]
@@ -88,16 +125,6 @@ _SW_SECTION_OPTIONS = [
 ]
 
 _SW_SECTION_PLACEHOLDERS: dict[str, dict[str, str]] = {
-    "Képek, illusztrációk és alkalmazás": {
-        "goal": (
-            "Válogatni textusból eredő képeket, illusztrációkat és "
-            "konkrét alkalmazásokat."
-        ),
-        "later": (
-            "Itt a meglévő illusztráció / aktualizálás anyagából is "
-            "átvehetsz elemeket — a régi promptok változatlanok maradnak."
-        ),
-    },
     "Lezárás": {
         "goal": (
             "Meghatározni, hová érkezik a hallgató, milyen reménységet "
@@ -150,6 +177,7 @@ _SOURCE_HUMAN = "Emberi helyzet és kegyelmi válasz"
 _SOURCE_LISTENER = "Hallgatói kérdés és feszültség"
 _SOURCE_GOSPEL = "Krisztus-központú és evangéliumi ív"
 _SOURCE_PATH = "Az igehirdetés útja és mozgásai"
+_SOURCE_ENRICHMENT = "Képek, illusztrációk és alkalmazás"
 _CAT_MAIN_IDEA = "Fő gondolat"
 
 _HC_FIELDS = [
@@ -333,6 +361,42 @@ _ADOPT_PATH_PENDING = "_sw_path_adopt_pending"
 _ADOPT_MOVEMENTS_PENDING = "_sw_movements_adopt_pending"
 _MV_DELETE_PENDING = "_sw_mv_delete_pending"
 _MV_WIDGET_PREFIX = "sw_mv_"
+_IMG_WIDGET_PREFIX = "sw_en_img_"
+_ILL_WIDGET_PREFIX = "sw_en_ill_"
+_APP_WIDGET_PREFIX = "sw_en_app_"
+_ADOPT_EN_ALL_PENDING = "_sw_en_adopt_all_pending"
+_ADOPT_EN_IMAGES_PENDING = "_sw_en_adopt_images_pending"
+_ADOPT_EN_ILL_PENDING = "_sw_en_adopt_ill_pending"
+_ADOPT_EN_APPS_PENDING = "_sw_en_adopt_apps_pending"
+_EN_IMG_DELETE_PENDING = "_sw_en_img_delete_pending"
+_EN_ILL_DELETE_PENDING = "_sw_en_ill_delete_pending"
+_EN_APP_DELETE_PENDING = "_sw_en_app_delete_pending"
+_IMG_FIELDS = (
+    "image",
+    "textual_basis",
+    "homiletical_function",
+    "placement",
+    "movement_id",
+    "development_notes",
+)
+_ILL_FIELDS = (
+    "idea",
+    "source",
+    "function",
+    "placement",
+    "movement_id",
+    "connection_to_text",
+    "risk_or_limit",
+)
+_APP_FIELDS = (
+    "application",
+    "scope",
+    "gospel_basis",
+    "concreteness",
+    "placement",
+    "movement_id",
+    "pastoral_caution",
+)
 _MV_FIELDS = (
     "title",
     "role",
@@ -444,6 +508,389 @@ def _apply_pending_adopts_if_needed() -> None:
         )
         _clear_movement_widgets()
         st.session_state[_RESYNC_FLAG] = True
+
+    pending_en_all = st.session_state.pop(_ADOPT_EN_ALL_PENDING, None)
+    if isinstance(pending_en_all, dict):
+        if pending_en_all.get("images") is not None:
+            update_sermon_workshop_section(
+                st.session_state,
+                "selected_images",
+                normalize_textual_images(pending_en_all.get("images")),
+            )
+            _clear_enrichment_widgets("images")
+        if pending_en_all.get("illustrations") is not None:
+            update_sermon_workshop_section(
+                st.session_state,
+                "illustrations",
+                normalize_illustrations(pending_en_all.get("illustrations")),
+            )
+            _clear_enrichment_widgets("illustrations")
+        if pending_en_all.get("applications") is not None:
+            update_sermon_workshop_section(
+                st.session_state,
+                "applications",
+                normalize_applications(pending_en_all.get("applications")),
+            )
+            _clear_enrichment_widgets("applications")
+        st.session_state[_RESYNC_FLAG] = True
+
+    pending_en_imgs = st.session_state.pop(_ADOPT_EN_IMAGES_PENDING, None)
+    if isinstance(pending_en_imgs, list):
+        update_sermon_workshop_section(
+            st.session_state, "selected_images", normalize_textual_images(pending_en_imgs)
+        )
+        _clear_enrichment_widgets("images")
+        st.session_state[_RESYNC_FLAG] = True
+
+    pending_en_ills = st.session_state.pop(_ADOPT_EN_ILL_PENDING, None)
+    if isinstance(pending_en_ills, list):
+        update_sermon_workshop_section(
+            st.session_state, "illustrations", normalize_illustrations(pending_en_ills)
+        )
+        _clear_enrichment_widgets("illustrations")
+        st.session_state[_RESYNC_FLAG] = True
+
+    pending_en_apps = st.session_state.pop(_ADOPT_EN_APPS_PENDING, None)
+    if isinstance(pending_en_apps, list):
+        update_sermon_workshop_section(
+            st.session_state, "applications", normalize_applications(pending_en_apps)
+        )
+        _clear_enrichment_widgets("applications")
+        st.session_state[_RESYNC_FLAG] = True
+
+
+def _en_widget_key(prefix: str, item_id: str, field: str) -> str:
+    return f"{prefix}{item_id}_{field}"
+
+
+def _clear_enrichment_widgets(kind: str | None = None) -> None:
+    prefixes: tuple[str, ...]
+    if kind == "images":
+        prefixes = (_IMG_WIDGET_PREFIX,)
+    elif kind == "illustrations":
+        prefixes = (_ILL_WIDGET_PREFIX,)
+    elif kind == "applications":
+        prefixes = (_APP_WIDGET_PREFIX,)
+    else:
+        prefixes = (_IMG_WIDGET_PREFIX, _ILL_WIDGET_PREFIX, _APP_WIDGET_PREFIX)
+    stale = [
+        key
+        for key in list(st.session_state.keys())
+        if isinstance(key, str) and key.startswith(prefixes)
+    ]
+    for key in stale:
+        st.session_state.pop(key, None)
+
+
+def _movement_options() -> list[tuple[str, str]]:
+    sw = ensure_sermon_workshop_state(st.session_state)
+    mvs = normalize_sermon_movements(sw.get("sermon_movements"))
+    options: list[tuple[str, str]] = [("", "— nincs mozgáskapcsolat —")]
+    for idx, mv in enumerate(mvs, start=1):
+        mid = str(mv.get("id") or "")
+        if not mid:
+            continue
+        title = str(mv.get("title") or f"Mozgás {idx}").strip()
+        role = movement_role_label(mv.get("role"))
+        options.append((mid, f"{idx}. {title} ({role})"))
+    return options
+
+
+def _read_textual_images_from_widgets() -> list[dict[str, str]]:
+    sw = ensure_sermon_workshop_state(st.session_state)
+    current = normalize_textual_images(sw.get("selected_images"))
+    out: list[dict[str, str]] = []
+    for item in current:
+        iid = str(item.get("id") or "")
+        if not iid:
+            continue
+        row = dict(item)
+        for field in _IMG_FIELDS:
+            wkey = _en_widget_key(_IMG_WIDGET_PREFIX, iid, field)
+            if wkey not in st.session_state:
+                continue
+            raw = st.session_state.get(wkey)
+            if field == "homiletical_function":
+                row[field] = normalize_image_function(raw)
+            elif field == "placement":
+                row[field] = normalize_placement_kind(raw)
+            else:
+                row[field] = str(raw or "").strip()
+        out.append(row)
+    return out
+
+
+def _read_illustrations_from_widgets() -> list[dict[str, str]]:
+    sw = ensure_sermon_workshop_state(st.session_state)
+    current = normalize_illustrations(sw.get("illustrations"))
+    out: list[dict[str, str]] = []
+    for item in current:
+        iid = str(item.get("id") or "")
+        if not iid:
+            continue
+        row = dict(item)
+        for field in _ILL_FIELDS:
+            wkey = _en_widget_key(_ILL_WIDGET_PREFIX, iid, field)
+            if wkey not in st.session_state:
+                continue
+            raw = st.session_state.get(wkey)
+            if field == "source":
+                row[field] = normalize_illustration_source(raw)
+            elif field == "function":
+                row[field] = normalize_illustration_function(raw)
+            elif field == "placement":
+                row[field] = normalize_placement_kind(raw)
+            else:
+                row[field] = str(raw or "").strip()
+        out.append(row)
+    return out
+
+
+def _read_applications_from_widgets() -> list[dict[str, str]]:
+    sw = ensure_sermon_workshop_state(st.session_state)
+    current = normalize_applications(sw.get("applications"))
+    out: list[dict[str, str]] = []
+    for item in current:
+        iid = str(item.get("id") or "")
+        if not iid:
+            continue
+        row = dict(item)
+        for field in _APP_FIELDS:
+            wkey = _en_widget_key(_APP_WIDGET_PREFIX, iid, field)
+            if wkey not in st.session_state:
+                continue
+            raw = st.session_state.get(wkey)
+            if field == "scope":
+                row[field] = normalize_application_scope(raw)
+            elif field == "placement":
+                row[field] = normalize_placement_kind(raw)
+            else:
+                row[field] = str(raw or "").strip()
+        out.append(row)
+    return out
+
+
+def _persist_enrichment_from_widgets() -> None:
+    update_sermon_workshop_section(
+        st.session_state, "selected_images", _read_textual_images_from_widgets()
+    )
+    update_sermon_workshop_section(
+        st.session_state, "illustrations", _read_illustrations_from_widgets()
+    )
+    update_sermon_workshop_section(
+        st.session_state, "applications", _read_applications_from_widgets()
+    )
+
+
+def _existing_source_refs() -> set[str]:
+    sw = ensure_sermon_workshop_state(st.session_state)
+    refs: set[str] = set()
+    for key in ("selected_images", "illustrations", "applications"):
+        for item in sw.get(key) or []:
+            if isinstance(item, dict):
+                ref = str(item.get("source_ref") or "").strip()
+                if ref:
+                    refs.add(ref)
+    return refs
+
+
+def _collect_text_workshop_import_items() -> list[dict[str, str]]:
+    items: list[dict[str, str]] = []
+    basket = st.session_state.get("basket") or []
+    if isinstance(basket, list):
+        for idx, entry in enumerate(basket):
+            if not isinstance(entry, (list, tuple)) or len(entry) < 2:
+                continue
+            source, text = str(entry[0] or ""), str(entry[1] or "").strip()
+            if not text:
+                continue
+            if source == "Illusztráció":
+                items.append(
+                    {
+                        "kind": "illustration",
+                        "label": f"Illusztráció ({idx + 1})",
+                        "content": text,
+                        "source_ref": f"basket:Illusztráció:{idx}",
+                    }
+                )
+            elif source == "Aktualizálás":
+                items.append(
+                    {
+                        "kind": "application",
+                        "label": f"Aktualizálás ({idx + 1})",
+                        "content": text,
+                        "source_ref": f"basket:Aktualizálás:{idx}",
+                    }
+                )
+    tw = ensure_text_workshop_state(st.session_state)
+    for insight in tw.get("approved_insights") or []:
+        if not isinstance(insight, dict):
+            continue
+        content = str(insight.get("content") or "").strip()
+        iid = str(insight.get("id") or "").strip()
+        if not content:
+            continue
+        items.append(
+            {
+                "kind": "application",
+                "label": f"Jóváhagyott felismerés ({insight.get('category') or '—'})",
+                "content": content,
+                "source_ref": f"insight:{iid or content[:40]}",
+            }
+        )
+    return items
+
+
+def _request_adopt_enrichment_plan(
+    *,
+    images: list[dict[str, str]] | None = None,
+    illustrations: list[dict[str, str]] | None = None,
+    applications: list[dict[str, str]] | None = None,
+) -> None:
+    st.session_state[_ADOPT_EN_ALL_PENDING] = {
+        "images": images,
+        "illustrations": illustrations,
+        "applications": applications,
+    }
+    st.rerun()
+
+
+def _request_adopt_enrichment_images(images: list[dict[str, str]]) -> None:
+    st.session_state[_ADOPT_EN_IMAGES_PENDING] = list(images or [])
+    st.rerun()
+
+
+def _request_adopt_enrichment_illustrations(items: list[dict[str, str]]) -> None:
+    st.session_state[_ADOPT_EN_ILL_PENDING] = list(items or [])
+    st.rerun()
+
+
+def _request_adopt_enrichment_applications(items: list[dict[str, str]]) -> None:
+    st.session_state[_ADOPT_EN_APPS_PENDING] = list(items or [])
+    st.rerun()
+
+
+def _append_enrichment_item(kind: str) -> None:
+    _persist_enrichment_from_widgets()
+    sw = ensure_sermon_workshop_state(st.session_state)
+    if kind == "images":
+        current = normalize_textual_images(sw.get("selected_images"))
+        if len(current) >= MAX_TEXTUAL_IMAGES:
+            return
+        current.append(empty_textual_image())
+        update_sermon_workshop_section(st.session_state, "selected_images", current)
+    elif kind == "illustrations":
+        current = normalize_illustrations(sw.get("illustrations"))
+        if len(current) >= MAX_ILLUSTRATIONS:
+            return
+        current.append(empty_illustration())
+        update_sermon_workshop_section(st.session_state, "illustrations", current)
+    else:
+        current = normalize_applications(sw.get("applications"))
+        if len(current) >= MAX_APPLICATIONS:
+            return
+        current.append(empty_application())
+        update_sermon_workshop_section(st.session_state, "applications", current)
+    st.session_state[_RESYNC_FLAG] = True
+
+
+def _sync_enrichment_widgets(
+    *,
+    force: bool,
+    images: list[dict[str, str]],
+    illustrations: list[dict[str, str]],
+    applications: list[dict[str, str]],
+) -> None:
+    if force:
+        _clear_enrichment_widgets()
+    live_img = {str(i.get("id") or "") for i in images if i.get("id")}
+    live_ill = {str(i.get("id") or "") for i in illustrations if i.get("id")}
+    live_app = {str(i.get("id") or "") for i in applications if i.get("id")}
+    if not force:
+        for prefix, live_ids in (
+            (_IMG_WIDGET_PREFIX, live_img),
+            (_ILL_WIDGET_PREFIX, live_ill),
+            (_APP_WIDGET_PREFIX, live_app),
+        ):
+            stale = [
+                key
+                for key in list(st.session_state.keys())
+                if isinstance(key, str)
+                and key.startswith(prefix)
+                and not any(
+                    key.startswith(f"{prefix}{iid}_") for iid in live_ids
+                )
+            ]
+            for key in stale:
+                st.session_state.pop(key, None)
+    mv_options = _movement_options()
+    mv_ids = [mid for mid, _label in mv_options if mid]
+    for item in images:
+        iid = str(item.get("id") or "")
+        if not iid:
+            continue
+        for field in _IMG_FIELDS:
+            wkey = _en_widget_key(_IMG_WIDGET_PREFIX, iid, field)
+            if force or wkey not in st.session_state:
+                if field == "homiletical_function":
+                    raw = str(item.get(field) or "").strip()
+                    st.session_state[wkey] = (
+                        normalize_image_function(raw) if raw else "open"
+                    )
+                elif field == "placement":
+                    st.session_state[wkey] = normalize_placement_kind(
+                        item.get(field)
+                    )
+                elif field == "movement_id":
+                    mid = str(item.get("movement_id") or "")
+                    st.session_state[wkey] = mid if mid in mv_ids else ""
+                else:
+                    st.session_state[wkey] = str(item.get(field) or "")
+    for item in illustrations:
+        iid = str(item.get("id") or "")
+        if not iid:
+            continue
+        for field in _ILL_FIELDS:
+            wkey = _en_widget_key(_ILL_WIDGET_PREFIX, iid, field)
+            if force or wkey not in st.session_state:
+                if field == "source":
+                    st.session_state[wkey] = normalize_illustration_source(
+                        item.get(field)
+                    )
+                elif field == "function":
+                    raw = str(item.get(field) or "").strip()
+                    st.session_state[wkey] = (
+                        normalize_illustration_function(raw) if raw else "bridge"
+                    )
+                elif field == "placement":
+                    st.session_state[wkey] = normalize_placement_kind(
+                        item.get(field)
+                    )
+                elif field == "movement_id":
+                    mid = str(item.get("movement_id") or "")
+                    st.session_state[wkey] = mid if mid in mv_ids else ""
+                else:
+                    st.session_state[wkey] = str(item.get(field) or "")
+    for item in applications:
+        iid = str(item.get("id") or "")
+        if not iid:
+            continue
+        for field in _APP_FIELDS:
+            wkey = _en_widget_key(_APP_WIDGET_PREFIX, iid, field)
+            if force or wkey not in st.session_state:
+                if field == "scope":
+                    st.session_state[wkey] = normalize_application_scope(
+                        item.get(field)
+                    )
+                elif field == "placement":
+                    st.session_state[wkey] = normalize_placement_kind(
+                        item.get(field)
+                    )
+                elif field == "movement_id":
+                    mid = str(item.get("movement_id") or "")
+                    st.session_state[wkey] = mid if mid in mv_ids else ""
+                else:
+                    st.session_state[wkey] = str(item.get(field) or "")
 
 
 def _mv_widget_key(movement_id: str, field: str) -> str:
@@ -614,6 +1061,17 @@ def _apply_sw_ui_resync_if_needed() -> None:
                     )
                 else:
                     st.session_state[wkey] = str(mv.get(field) or "")
+
+    images = normalize_textual_images(sw.get("selected_images"))
+    illustrations = normalize_illustrations(sw.get("illustrations"))
+    applications = normalize_applications(sw.get("applications"))
+    _sync_enrichment_widgets(
+        force=force,
+        images=images,
+        illustrations=illustrations,
+        applications=applications,
+    )
+
 
 def _request_adopt_sermon_sentence(sentence: str) -> None:
     st.session_state[_ADOPT_SERMON_PENDING] = str(sentence or "").strip()
@@ -822,6 +1280,855 @@ def _collect_sermon_path_kwargs() -> dict[str, Any]:
     )
     base["literary_genre"] = _session_str("exegesis")
     return base
+
+
+def _collect_enrichment_kwargs() -> dict[str, Any]:
+    """Sessionből M7 kép/illusztráció/alkalmazás MI-bemenet."""
+    base = _collect_sermon_path_kwargs()
+    base["selected_images"] = _read_textual_images_from_widgets()
+    base["illustrations"] = _read_illustrations_from_widgets()
+    base["applications"] = _read_applications_from_widgets()
+    base["workshop_illustrations"] = _session_str("illustrations")
+    base["workshop_actualization"] = _session_str("actualization")
+    return base
+
+
+def _enrichment_suggestion_payload(result: EnrichmentSuggestionResult) -> dict[str, Any]:
+    return result.to_dict()
+
+
+def _enrichment_assessment_payload(result: EnrichmentAssessmentResult) -> dict[str, Any]:
+    return result.to_dict()
+
+
+def _run_enrichment_suggest(*, generate_fn: GenerateFn | None) -> None:
+    with st.spinner("Képek és alkalmazások javaslata készül…"):
+        kwargs = _collect_enrichment_kwargs()
+        result = suggest_enrichment(**kwargs, generate_fn=generate_fn)
+        save_sermon_enrichment_suggestions(
+            st.session_state, _enrichment_suggestion_payload(result)
+        )
+        if not result.ok:
+            st.error(
+                _user_facing_error(
+                    result.ok,
+                    result.error_message,
+                    fallback="A javaslatkészítés nem sikerült.",
+                )
+            )
+        elif result.missing_information and not (
+            result.recommended_textual_images
+            or result.recommended_illustrations
+            or result.recommended_applications
+        ):
+            st.warning(
+                "Nincs elegendő adat a felelős javaslathoz. Hiányzik: "
+                + "; ".join(result.missing_information)
+            )
+        else:
+            st.success("Javaslat elkészült.")
+
+
+def _run_enrichment_assess(*, generate_fn: GenerateFn | None) -> None:
+    with st.spinner("Saját terv értékelése…"):
+        kwargs = _collect_enrichment_kwargs()
+        result = assess_enrichment(**kwargs, generate_fn=generate_fn)
+        save_sermon_enrichment_assessment(
+            st.session_state, _enrichment_assessment_payload(result)
+        )
+        if not result.ok:
+            st.error(
+                _user_facing_error(
+                    result.ok,
+                    result.error_message,
+                    fallback="Az értékelés nem sikerült.",
+                )
+            )
+        else:
+            st.success("Értékelés elkészült.")
+
+
+def _render_placement_and_movement(
+    *,
+    prefix: str,
+    item_id: str,
+    placement_key: str,
+    movement_key: str,
+) -> None:
+    st.selectbox(
+        "Elhelyezés",
+        options=list(PLACEMENT_KINDS),
+        format_func=lambda v: PLACEMENT_KIND_LABELS_HU.get(v, str(v)),
+        key=placement_key,
+    )
+    placement = normalize_placement_kind(st.session_state.get(placement_key))
+    mv_options = _movement_options()
+    mv_ids = [mid for mid, _label in mv_options if mid]
+    if placement == "movement" and mv_ids:
+        current_mid = str(st.session_state.get(movement_key) or "")
+        if current_mid not in mv_ids:
+            st.session_state[movement_key] = mv_ids[0]
+        st.selectbox(
+            "Kapcsolódó mozgás",
+            options=mv_ids,
+            format_func=lambda mid: next(
+                (label for oid, label in mv_options if oid == mid), mid
+            ),
+            key=movement_key,
+        )
+    elif movement_key in st.session_state:
+        st.session_state[movement_key] = ""
+
+
+def _render_reorder_delete_bar(
+    *,
+    kind: str,
+    item_id: str,
+    index: int,
+    total: int,
+    list_key: str,
+    delete_pending_key: str,
+    delete_prefix: str,
+) -> None:
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        if st.button("Feljebb", key=f"{delete_prefix}_up_{item_id}", disabled=index <= 0):
+            _persist_enrichment_from_widgets()
+            sw = ensure_sermon_workshop_state(st.session_state)
+            if kind == "images":
+                items = normalize_textual_images(sw.get("selected_images"))
+            elif kind == "illustrations":
+                items = normalize_illustrations(sw.get("illustrations"))
+            else:
+                items = normalize_applications(sw.get("applications"))
+            if index > 0 and index < len(items):
+                items[index - 1], items[index] = items[index], items[index - 1]
+                update_sermon_workshop_section(st.session_state, list_key, items)
+                st.session_state[_RESYNC_FLAG] = True
+                st.rerun()
+    with c2:
+        if st.button(
+            "Lejjebb",
+            key=f"{delete_prefix}_down_{item_id}",
+            disabled=index >= total - 1,
+        ):
+            _persist_enrichment_from_widgets()
+            sw = ensure_sermon_workshop_state(st.session_state)
+            if kind == "images":
+                items = normalize_textual_images(sw.get("selected_images"))
+            elif kind == "illustrations":
+                items = normalize_illustrations(sw.get("illustrations"))
+            else:
+                items = normalize_applications(sw.get("applications"))
+            if index < len(items) - 1:
+                items[index + 1], items[index] = items[index], items[index + 1]
+                update_sermon_workshop_section(st.session_state, list_key, items)
+                st.session_state[_RESYNC_FLAG] = True
+                st.rerun()
+    with c3:
+        pending = st.session_state.get(delete_pending_key)
+        if pending == item_id:
+            if st.button(
+                "Igen, törlés",
+                key=f"{delete_prefix}_del_yes_{item_id}",
+                type="primary",
+            ):
+                _persist_enrichment_from_widgets()
+                sw = ensure_sermon_workshop_state(st.session_state)
+                if kind == "images":
+                    items = [
+                        x
+                        for x in normalize_textual_images(sw.get("selected_images"))
+                        if str(x.get("id") or "") != item_id
+                    ]
+                    update_sermon_workshop_section(
+                        st.session_state, "selected_images", items
+                    )
+                    _clear_enrichment_widgets("images")
+                elif kind == "illustrations":
+                    items = [
+                        x
+                        for x in normalize_illustrations(sw.get("illustrations"))
+                        if str(x.get("id") or "") != item_id
+                    ]
+                    update_sermon_workshop_section(
+                        st.session_state, "illustrations", items
+                    )
+                    _clear_enrichment_widgets("illustrations")
+                else:
+                    items = [
+                        x
+                        for x in normalize_applications(sw.get("applications"))
+                        if str(x.get("id") or "") != item_id
+                    ]
+                    update_sermon_workshop_section(
+                        st.session_state, "applications", items
+                    )
+                    _clear_enrichment_widgets("applications")
+                st.session_state.pop(delete_pending_key, None)
+                st.session_state[_RESYNC_FLAG] = True
+                st.rerun()
+            if st.button("Mégse", key=f"{delete_prefix}_del_no_{item_id}"):
+                st.session_state.pop(delete_pending_key, None)
+                st.rerun()
+        elif st.button("Törlés", key=f"{delete_prefix}_del_{item_id}"):
+            st.session_state[delete_pending_key] = item_id
+            st.rerun()
+
+
+def _render_textual_image_editor(item: dict[str, str], *, index: int, total: int) -> None:
+    iid = str(item.get("id") or "")
+    preview = (
+        st.session_state.get(_en_widget_key(_IMG_WIDGET_PREFIX, iid, "image"))
+        or item.get("image")
+        or ""
+    ).strip() or f"Kép {index + 1}"
+    func = image_function_label(
+        st.session_state.get(
+            _en_widget_key(_IMG_WIDGET_PREFIX, iid, "homiletical_function")
+        )
+        or item.get("homiletical_function")
+    )
+    with st.expander(f"{index + 1}. {preview} — {func}", expanded=False):
+        st.text_input(
+            "Kép vagy motívum",
+            key=_en_widget_key(_IMG_WIDGET_PREFIX, iid, "image"),
+            placeholder="Textusbeli kép, jelenet, motívum…",
+        )
+        st.text_area(
+            "Textusbeli alap",
+            key=_en_widget_key(_IMG_WIDGET_PREFIX, iid, "textual_basis"),
+            height=70,
+        )
+        st.selectbox(
+            "Homiletikai funkció",
+            options=list(IMAGE_FUNCTIONS),
+            format_func=lambda v: IMAGE_FUNCTION_LABELS_HU.get(v, str(v)),
+            key=_en_widget_key(_IMG_WIDGET_PREFIX, iid, "homiletical_function"),
+        )
+        _render_placement_and_movement(
+            prefix=_IMG_WIDGET_PREFIX,
+            item_id=iid,
+            placement_key=_en_widget_key(_IMG_WIDGET_PREFIX, iid, "placement"),
+            movement_key=_en_widget_key(_IMG_WIDGET_PREFIX, iid, "movement_id"),
+        )
+        st.text_area(
+            "Kibontási jegyzet",
+            key=_en_widget_key(_IMG_WIDGET_PREFIX, iid, "development_notes"),
+            height=70,
+        )
+        _render_reorder_delete_bar(
+            kind="images",
+            item_id=iid,
+            index=index,
+            total=total,
+            list_key="selected_images",
+            delete_pending_key=_EN_IMG_DELETE_PENDING,
+            delete_prefix="sw_en_img",
+        )
+
+
+def _render_illustration_editor(item: dict[str, str], *, index: int, total: int) -> None:
+    iid = str(item.get("id") or "")
+    preview = (
+        st.session_state.get(_en_widget_key(_ILL_WIDGET_PREFIX, iid, "idea"))
+        or item.get("idea")
+        or ""
+    ).strip() or f"Illusztráció {index + 1}"
+    func = illustration_function_label(
+        st.session_state.get(_en_widget_key(_ILL_WIDGET_PREFIX, iid, "function"))
+        or item.get("function")
+    )
+    with st.expander(f"{index + 1}. {preview} — {func}", expanded=False):
+        st.text_area(
+            "Illusztrációs ötlet",
+            key=_en_widget_key(_ILL_WIDGET_PREFIX, iid, "idea"),
+            height=80,
+        )
+        st.selectbox(
+            "Forrás",
+            options=list(ILLUSTRATION_SOURCES),
+            format_func=lambda v: ILLUSTRATION_SOURCE_LABELS_HU.get(v, str(v)),
+            key=_en_widget_key(_ILL_WIDGET_PREFIX, iid, "source"),
+        )
+        st.selectbox(
+            "Funkció",
+            options=list(ILLUSTRATION_FUNCTIONS),
+            format_func=lambda v: ILLUSTRATION_FUNCTION_LABELS_HU.get(v, str(v)),
+            key=_en_widget_key(_ILL_WIDGET_PREFIX, iid, "function"),
+        )
+        _render_placement_and_movement(
+            prefix=_ILL_WIDGET_PREFIX,
+            item_id=iid,
+            placement_key=_en_widget_key(_ILL_WIDGET_PREFIX, iid, "placement"),
+            movement_key=_en_widget_key(_ILL_WIDGET_PREFIX, iid, "movement_id"),
+        )
+        st.text_area(
+            "Kapcsolódás a textushoz",
+            key=_en_widget_key(_ILL_WIDGET_PREFIX, iid, "connection_to_text"),
+            height=70,
+        )
+        st.text_area(
+            "Kockázat vagy korlát",
+            key=_en_widget_key(_ILL_WIDGET_PREFIX, iid, "risk_or_limit"),
+            height=60,
+        )
+        _render_reorder_delete_bar(
+            kind="illustrations",
+            item_id=iid,
+            index=index,
+            total=total,
+            list_key="illustrations",
+            delete_pending_key=_EN_ILL_DELETE_PENDING,
+            delete_prefix="sw_en_ill",
+        )
+
+
+def _render_application_editor(item: dict[str, str], *, index: int, total: int) -> None:
+    iid = str(item.get("id") or "")
+    preview = (
+        st.session_state.get(_en_widget_key(_APP_WIDGET_PREFIX, iid, "application"))
+        or item.get("application")
+        or ""
+    ).strip() or f"Alkalmazás {index + 1}"
+    scope = application_scope_label(
+        st.session_state.get(_en_widget_key(_APP_WIDGET_PREFIX, iid, "scope"))
+        or item.get("scope")
+    )
+    with st.expander(f"{index + 1}. {preview} — {scope}", expanded=False):
+        st.text_area(
+            "Alkalmazás",
+            key=_en_widget_key(_APP_WIDGET_PREFIX, iid, "application"),
+            height=80,
+        )
+        st.selectbox(
+            "Hatókör",
+            options=list(APPLICATION_SCOPES),
+            format_func=lambda v: APPLICATION_SCOPE_LABELS_HU.get(v, str(v)),
+            key=_en_widget_key(_APP_WIDGET_PREFIX, iid, "scope"),
+        )
+        st.text_area(
+            "Evangéliumi alap",
+            key=_en_widget_key(_APP_WIDGET_PREFIX, iid, "gospel_basis"),
+            height=70,
+        )
+        st.text_area(
+            "Konkrétság",
+            key=_en_widget_key(_APP_WIDGET_PREFIX, iid, "concreteness"),
+            height=70,
+        )
+        _render_placement_and_movement(
+            prefix=_APP_WIDGET_PREFIX,
+            item_id=iid,
+            placement_key=_en_widget_key(_APP_WIDGET_PREFIX, iid, "placement"),
+            movement_key=_en_widget_key(_APP_WIDGET_PREFIX, iid, "movement_id"),
+        )
+        st.text_area(
+            "Pásztori óvatosság",
+            key=_en_widget_key(_APP_WIDGET_PREFIX, iid, "pastoral_caution"),
+            height=60,
+        )
+        _render_reorder_delete_bar(
+            kind="applications",
+            item_id=iid,
+            index=index,
+            total=total,
+            list_key="applications",
+            delete_pending_key=_EN_APP_DELETE_PENDING,
+            delete_prefix="sw_en_app",
+        )
+
+
+def _render_text_workshop_import_panel() -> None:
+    import_items = _collect_text_workshop_import_items()
+    existing_refs = _existing_source_refs()
+    with st.expander("Elem átvétele a Textusműhely / meglévő anyagból", expanded=False):
+        if not import_items:
+            st.caption(
+                "Nincs átvehető illusztráció, aktualizálás vagy jóváhagyott felismerés."
+            )
+            return
+        for idx, entry in enumerate(import_items):
+            ref = entry.get("source_ref") or ""
+            if ref in existing_refs:
+                st.caption(f"✓ Már átvéve: {entry.get('label')}")
+                continue
+            st.markdown(f"**{entry.get('label')}**")
+            st.write(str(entry.get("content") or "")[:500])
+            if st.button("Átveszem", key=f"sw_en_import_{idx}"):
+                _persist_enrichment_from_widgets()
+                sw = ensure_sermon_workshop_state(st.session_state)
+                content = str(entry.get("content") or "").strip()
+                if entry.get("kind") == "illustration":
+                    current = normalize_illustrations(sw.get("illustrations"))
+                    if len(current) >= MAX_ILLUSTRATIONS:
+                        st.warning(f"Legfeljebb {MAX_ILLUSTRATIONS} illusztráció lehet.")
+                    else:
+                        item = empty_illustration()
+                        item["idea"] = content
+                        item["source"] = "text_workshop_import"
+                        item["source_ref"] = ref
+                        current.append(item)
+                        update_sermon_workshop_section(
+                            st.session_state, "illustrations", current
+                        )
+                        st.session_state[_RESYNC_FLAG] = True
+                        st.rerun()
+                else:
+                    current = normalize_applications(sw.get("applications"))
+                    if len(current) >= MAX_APPLICATIONS:
+                        st.warning(f"Legfeljebb {MAX_APPLICATIONS} alkalmazás lehet.")
+                    else:
+                        item = empty_application()
+                        item["application"] = content
+                        item["source_ref"] = ref
+                        current.append(item)
+                        update_sermon_workshop_section(
+                            st.session_state, "applications", current
+                        )
+                        st.session_state[_RESYNC_FLAG] = True
+                        st.rerun()
+
+
+def _render_enrichment_suggestions() -> None:
+    sw = ensure_sermon_workshop_state(st.session_state)
+    data = sw.get("sermon_enrichment_suggestions")
+    if not isinstance(data, dict):
+        return
+    if data.get("ok") is False and not (
+        data.get("recommended_textual_images")
+        or data.get("recommended_illustrations")
+        or data.get("recommended_applications")
+    ):
+        err = str(data.get("error_message") or "").strip()
+        if err:
+            st.error(err)
+        return
+
+    images = normalize_textual_images(data.get("recommended_textual_images"))
+    ills = normalize_illustrations(data.get("recommended_illustrations"))
+    apps = normalize_applications(data.get("recommended_applications"))
+    expanded = str(data.get("expanded_summary") or "").strip()
+    load = str(data.get("load_assessment") or "").strip()
+    basis = data.get("basis") if isinstance(data.get("basis"), list) else []
+    warnings = data.get("warnings") if isinstance(data.get("warnings"), list) else []
+    missing = (
+        data.get("missing_information")
+        if isinstance(data.get("missing_information"), list)
+        else []
+    )
+    reasoning = str(data.get("reasoning_summary") or "").strip()
+
+    if not (images or ills or apps or expanded or load):
+        if missing:
+            st.info("Hiányzó információ: " + "; ".join(str(x) for x in missing if x))
+        return
+
+    st.markdown("**MI-javaslat**")
+    if images:
+        st.markdown("**Textusból fakadó képek**")
+        for idx, img in enumerate(images, start=1):
+            with st.expander(
+                f"{idx}. {img.get('image') or '—'} — "
+                f"{image_function_label(img.get('homiletical_function'))}",
+                expanded=False,
+            ):
+                st.write(img.get("textual_basis") or "")
+                if st.button(f"Átveszem ezt a képet ({idx})", key=f"sw_mi_en_img_{idx}"):
+                    current = _read_textual_images_from_widgets()
+                    if len(current) >= MAX_TEXTUAL_IMAGES:
+                        st.warning(f"Legfeljebb {MAX_TEXTUAL_IMAGES} kép lehet.")
+                    else:
+                        new_item = empty_textual_image()
+                        for field in _IMG_FIELDS:
+                            if field != "id":
+                                new_item[field] = str(img.get(field) or "")
+                        new_item["homiletical_function"] = normalize_image_function(
+                            img.get("homiletical_function")
+                        )
+                        new_item["placement"] = normalize_placement_kind(
+                            img.get("placement")
+                        )
+                        current.append(new_item)
+                        _request_adopt_enrichment_images(current)
+
+    if ills:
+        st.markdown("**Illusztrációk**")
+        for idx, ill in enumerate(ills, start=1):
+            with st.expander(
+                f"{idx}. {ill.get('idea') or '—'} — "
+                f"{illustration_function_label(ill.get('function'))}",
+                expanded=False,
+            ):
+                st.write(ill.get("connection_to_text") or "")
+                if st.button(
+                    f"Átveszem ezt az illusztrációt ({idx})",
+                    key=f"sw_mi_en_ill_{idx}",
+                ):
+                    current = _read_illustrations_from_widgets()
+                    if len(current) >= MAX_ILLUSTRATIONS:
+                        st.warning(f"Legfeljebb {MAX_ILLUSTRATIONS} illusztráció lehet.")
+                    else:
+                        new_item = empty_illustration()
+                        for field in _ILL_FIELDS:
+                            if field != "id":
+                                new_item[field] = str(ill.get(field) or "")
+                        new_item["source"] = normalize_illustration_source(
+                            ill.get("source")
+                        ) or "needs_verification"
+                        new_item["function"] = normalize_illustration_function(
+                            ill.get("function")
+                        )
+                        current.append(new_item)
+                        _request_adopt_enrichment_illustrations(current)
+    elif load and "nem szükséges" in load.casefold():
+        st.info(load)
+
+    if apps:
+        st.markdown("**Alkalmazási irányok**")
+        for idx, app in enumerate(apps, start=1):
+            with st.expander(
+                f"{idx}. {app.get('application') or '—'} — "
+                f"{application_scope_label(app.get('scope'))}",
+                expanded=False,
+            ):
+                st.write(app.get("gospel_basis") or "")
+                if st.button(
+                    f"Átveszem ezt az alkalmazást ({idx})",
+                    key=f"sw_mi_en_app_{idx}",
+                ):
+                    current = _read_applications_from_widgets()
+                    if len(current) >= MAX_APPLICATIONS:
+                        st.warning(f"Legfeljebb {MAX_APPLICATIONS} alkalmazás lehet.")
+                    else:
+                        new_item = empty_application()
+                        for field in _APP_FIELDS:
+                            if field != "id":
+                                new_item[field] = str(app.get(field) or "")
+                        new_item["scope"] = normalize_application_scope(app.get("scope"))
+                        current.append(new_item)
+                        _request_adopt_enrichment_applications(current)
+
+    if expanded:
+        st.markdown("**Az egész ív rövid összefoglalása**")
+        st.write(expanded)
+    if load:
+        st.markdown(f"**Terheltségi értékelés:** {load}")
+
+    if st.button("Átveszem a teljes tervet", key="sw_mi_en_adopt_all"):
+        merged_imgs = _read_textual_images_from_widgets()
+        merged_ills = _read_illustrations_from_widgets()
+        merged_apps = _read_applications_from_widgets()
+        for img in images:
+            if len(merged_imgs) >= MAX_TEXTUAL_IMAGES:
+                break
+            new_item = empty_textual_image()
+            for field in _IMG_FIELDS:
+                if field != "id":
+                    new_item[field] = str(img.get(field) or "")
+            merged_imgs.append(new_item)
+        for ill in ills:
+            if len(merged_ills) >= MAX_ILLUSTRATIONS:
+                break
+            new_item = empty_illustration()
+            for field in _ILL_FIELDS:
+                if field != "id":
+                    new_item[field] = str(ill.get(field) or "")
+            new_item["source"] = normalize_illustration_source(ill.get("source"))
+            merged_ills.append(new_item)
+        for app in apps:
+            if len(merged_apps) >= MAX_APPLICATIONS:
+                break
+            new_item = empty_application()
+            for field in _APP_FIELDS:
+                if field != "id":
+                    new_item[field] = str(app.get(field) or "")
+            merged_apps.append(new_item)
+        _request_adopt_enrichment_plan(
+            images=merged_imgs,
+            illustrations=merged_ills,
+            applications=merged_apps,
+        )
+
+    with st.expander("Mi alapján készült?", expanded=False):
+        if reasoning:
+            st.write(reasoning)
+        if basis:
+            for item in basis:
+                if item:
+                    st.markdown(f"- {item}")
+
+    for w in warnings:
+        if w:
+            st.warning(str(w))
+    if missing:
+        st.info("Hiányzó információ: " + "; ".join(str(x) for x in missing if x))
+
+
+def _render_enrichment_assessment() -> None:
+    sw = ensure_sermon_workshop_state(st.session_state)
+    data = sw.get("sermon_enrichment_assessment")
+    if not isinstance(data, dict):
+        return
+    overall = str(data.get("overall_assessment") or "").strip()
+    if not overall and data.get("ok") is False:
+        err = str(data.get("error_message") or "").strip()
+        if err:
+            st.error(err)
+        return
+    if not overall and not data.get("revised_textual_images"):
+        return
+
+    st.markdown("**MI-értékelés**")
+    if overall:
+        st.write(overall)
+    for key, label in (
+        ("image_assessment", "Textusbeli képek"),
+        ("illustration_assessment", "Illusztrációk"),
+        ("application_assessment", "Alkalmazások"),
+        ("load_assessment", "Terheltség"),
+    ):
+        val = str(data.get(key) or "").strip()
+        if val:
+            st.markdown(f"**{label}:** {val}")
+
+    strengths = data.get("strengths") if isinstance(data.get("strengths"), list) else []
+    improvements = (
+        data.get("improvements") if isinstance(data.get("improvements"), list) else []
+    )
+    if strengths:
+        st.markdown("**Erősségek**")
+        for s in strengths:
+            if s:
+                st.markdown(f"- {s}")
+    if improvements:
+        st.markdown("**Javítási javaslatok**")
+        for s in improvements:
+            if s:
+                st.markdown(f"- {s}")
+
+    rev_imgs = normalize_textual_images(data.get("revised_textual_images"))
+    rev_ills = normalize_illustrations(data.get("revised_illustrations"))
+    rev_apps = normalize_applications(data.get("revised_applications"))
+    if rev_imgs or rev_ills or rev_apps:
+        st.markdown("**Javított javaslatok**")
+        if st.button("Átveszem a javított teljes tervet", key="sw_mi_en_adopt_rev_all"):
+            _request_adopt_enrichment_plan(
+                images=rev_imgs or None,
+                illustrations=rev_ills or None,
+                applications=rev_apps or None,
+            )
+
+    warnings = data.get("warnings") if isinstance(data.get("warnings"), list) else []
+    for w in warnings:
+        if w:
+            st.warning(str(w))
+
+
+def render_enrichment_section(
+    *,
+    generate_fn: GenerateFn | None = None,
+) -> None:
+    """Képek, illusztrációk és alkalmazás — kézi szerkesztő + MI-segéd."""
+    _apply_pending_adopts_if_needed()
+    _apply_sw_ui_resync_if_needed()
+    ensure_sermon_workshop_state(st.session_state)
+
+    st.subheader("Képek, illusztrációk és alkalmazás")
+    st.markdown(
+        "Itt azt tervezzük meg, milyen kép segítheti a textus hallását, "
+        "milyen illusztráció szolgálhatja a felismerést, és hogyan érkezhet "
+        "meg az üzenet a hallgató valós életébe."
+    )
+
+    sw = ensure_sermon_workshop_state(st.session_state)
+    if (sw.get("sermon_main_idea_status") or "").strip() != "approved":
+        st.info(
+            "A szakasz használható, de a javaslatkészítéshez előbb jóvá kell "
+            "hagyni az igehirdetés fő gondolatát, szükség van M6-os útra vagy "
+            "legalább három mozgásra, valamint evangéliumi feloldásra vagy "
+            "Isten kegyelmi cselekvésére."
+        )
+
+    _render_text_workshop_import_panel()
+
+    st.markdown("**Textusból fakadó képek**")
+    st.caption(f"0–{MAX_TEXTUAL_IMAGES} kép vagy motívum (MI javaslat: legfeljebb 2).")
+    images = normalize_textual_images(sw.get("selected_images"))
+    if not images:
+        st.info("Még nincs textusbeli kép.")
+    for idx, img in enumerate(images):
+        _render_textual_image_editor(img, index=idx, total=len(images))
+    if st.button(
+        "Kép hozzáadása",
+        key="sw_en_add_image",
+        disabled=len(images) >= MAX_TEXTUAL_IMAGES,
+    ):
+        _append_enrichment_item("images")
+        st.rerun()
+
+    st.markdown("**Illusztrációk**")
+    st.caption(
+        f"0–{MAX_ILLUSTRATIONS} illusztráció — nem kötelező minden prédikációhoz."
+    )
+    illustrations = normalize_illustrations(sw.get("illustrations"))
+    if not illustrations:
+        st.info("Még nincs illusztráció.")
+    for idx, ill in enumerate(illustrations):
+        _render_illustration_editor(ill, index=idx, total=len(illustrations))
+    if st.button(
+        "Illusztráció hozzáadása",
+        key="sw_en_add_ill",
+        disabled=len(illustrations) >= MAX_ILLUSTRATIONS,
+    ):
+        _append_enrichment_item("illustrations")
+        st.rerun()
+
+    st.markdown("**Alkalmazási irányok**")
+    st.caption(f"1–{MAX_APPLICATIONS} alkalmazás (ajánlott: 2–4).")
+    applications = normalize_applications(sw.get("applications"))
+    if not applications:
+        st.info("Még nincs alkalmazási irány.")
+    for idx, app in enumerate(applications):
+        _render_application_editor(app, index=idx, total=len(applications))
+    if st.button(
+        "Alkalmazás hozzáadása",
+        key="sw_en_add_app",
+        disabled=len(applications) >= MAX_APPLICATIONS,
+    ):
+        _append_enrichment_item("applications")
+        st.rerun()
+
+    b1, b2 = st.columns(2)
+    with b1:
+        if st.button("Mentés vázlatként", key="sw_en_save_draft"):
+            _persist_enrichment_from_widgets()
+            imgs = _read_textual_images_from_widgets()
+            ills = _read_illustrations_from_widgets()
+            apps = _read_applications_from_widgets()
+            filled = any(
+                (x.get("image") or x.get("textual_basis") or "").strip() for x in imgs
+            ) or any((x.get("idea") or "").strip() for x in ills) or any(
+                (x.get("application") or "").strip() for x in apps
+            )
+            if not filled:
+                st.warning("Üres mezőket nem lehet menteni. Tölts ki legalább egyet.")
+            else:
+                update_sermon_workshop_section(st.session_state, "enrichment_status", "draft")
+                st.success("Vázlatként elmentve.")
+    with b2:
+        if st.button(
+            "Jóváhagyom és továbbviszem",
+            type="primary",
+            key="sw_en_approve",
+        ):
+            _persist_enrichment_from_widgets()
+            imgs = _read_textual_images_from_widgets()
+            ills = _read_illustrations_from_widgets()
+            apps = _read_applications_from_widgets()
+            filled = any(
+                (x.get("image") or x.get("textual_basis") or "").strip() for x in imgs
+            ) or any((x.get("idea") or "").strip() for x in ills) or any(
+                (x.get("application") or "").strip() for x in apps
+            )
+            if not filled:
+                st.warning(
+                    "Üres megfogalmazást nem lehet jóváhagyni. "
+                    "Tölts ki legalább egy elemet."
+                )
+            else:
+                update_sermon_workshop_section(
+                    st.session_state, "enrichment_status", "approved"
+                )
+                added = 0
+                skipped = 0
+                for idx, img in enumerate(imgs, start=1):
+                    summary = (
+                        f"{idx}. {img.get('image') or 'Kép'} "
+                        f"({image_function_label(img.get('homiletical_function'))}): "
+                        f"{(img.get('textual_basis') or '')[:120]}"
+                    ).strip()
+                    if not (img.get("image") or img.get("textual_basis")):
+                        continue
+                    if _decision_is_duplicate(
+                        source_section=_SOURCE_ENRICHMENT,
+                        category="Textusbeli kép",
+                        content=summary,
+                    ):
+                        skipped += 1
+                        continue
+                    add_approved_sermon_decision(
+                        st.session_state,
+                        _SOURCE_ENRICHMENT,
+                        "Textusbeli kép",
+                        summary,
+                    )
+                    added += 1
+                for idx, ill in enumerate(ills, start=1):
+                    summary = (
+                        f"{idx}. {ill.get('idea') or 'Illusztráció'} "
+                        f"({illustration_function_label(ill.get('function'))})"
+                    ).strip()
+                    if not ill.get("idea"):
+                        continue
+                    if _decision_is_duplicate(
+                        source_section=_SOURCE_ENRICHMENT,
+                        category="Illusztráció",
+                        content=summary,
+                    ):
+                        skipped += 1
+                        continue
+                    add_approved_sermon_decision(
+                        st.session_state,
+                        _SOURCE_ENRICHMENT,
+                        "Illusztráció",
+                        summary,
+                    )
+                    added += 1
+                for idx, app in enumerate(apps, start=1):
+                    summary = (
+                        f"{idx}. {app.get('application') or 'Alkalmazás'} "
+                        f"({application_scope_label(app.get('scope'))})"
+                    ).strip()
+                    if not app.get("application"):
+                        continue
+                    if _decision_is_duplicate(
+                        source_section=_SOURCE_ENRICHMENT,
+                        category="Alkalmazás",
+                        content=summary,
+                    ):
+                        skipped += 1
+                        continue
+                    add_approved_sermon_decision(
+                        st.session_state,
+                        _SOURCE_ENRICHMENT,
+                        "Alkalmazás",
+                        summary,
+                    )
+                    added += 1
+                if added:
+                    st.success(f"Jóváhagyva ({added} döntés).")
+                elif skipped:
+                    st.info("Ezek a döntések már szerepelnek.")
+                else:
+                    st.warning("Nem volt menthető tartalom.")
+
+    _render_decisions_for_section(_SOURCE_ENRICHMENT)
+
+    st.markdown("---")
+    st.markdown("**MI-segéd**")
+    mi1, mi2 = st.columns(2)
+    with mi1:
+        if st.button("Képek és alkalmazások javaslata", key="sw_en_mi_suggest"):
+            _run_enrichment_suggest(generate_fn=generate_fn)
+    with mi2:
+        if st.button("Saját terv értékelése", key="sw_en_mi_assess"):
+            _run_enrichment_assess(generate_fn=generate_fn)
+
+    _render_enrichment_suggestions()
+    _render_enrichment_assessment()
+
+    st.caption("Következő ajánlott lépés: Lezárás")
 
 
 def _suggestion_payload_from_result(
@@ -3492,6 +4799,8 @@ def render_sermon_workshop_shell(
         render_gospel_arc_section(generate_fn=generate_fn)
     elif active == "Az igehirdetés útja és mozgásai":
         render_sermon_path_section(generate_fn=generate_fn)
+    elif active == "Képek, illusztrációk és alkalmazás":
+        render_enrichment_section(generate_fn=generate_fn)
     else:
         _render_section_placeholder(active)
 
@@ -3501,6 +4810,7 @@ def render_sermon_workshop_shell(
         "Hallgatói kérdés és feszültség",
         "Krisztus-központú és evangéliumi ív",
         "Az igehirdetés útja és mozgásai",
+        "Képek, illusztrációk és alkalmazás",
     ):
         next_hint = _SW_NEXT_HINTS.get(active)
         if next_hint:
@@ -3516,4 +4826,5 @@ __all__ = [
     "render_listener_tension_section",
     "render_gospel_arc_section",
     "render_sermon_path_section",
+    "render_enrichment_section",
 ]

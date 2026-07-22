@@ -26,6 +26,7 @@ _SECTION_DICT_KEYS = (
 _SECTION_LIST_KEYS = (
     "sermon_movements",
     "selected_images",
+    "illustrations",
     "applications",
     "approved_sermon_decisions",
 )
@@ -63,7 +64,9 @@ def get_default_sermon_workshop() -> dict[str, Any]:
         },
         "sermon_movements": [],
         "selected_images": [],
+        "illustrations": [],
         "applications": [],
+        "enrichment_status": "draft",
         "closing": {
             "final_discovery": "",
             "hope": "",
@@ -89,6 +92,9 @@ def get_default_sermon_workshop() -> dict[str, Any]:
         "sermon_path_suggestions": None,
         "sermon_path_assessment": None,
         "m6_last_generated_at": "",
+        "sermon_enrichment_suggestions": None,
+        "sermon_enrichment_assessment": None,
+        "m7_last_generated_at": "",
     }
 
 
@@ -139,6 +145,158 @@ def normalize_sermon_movements(raw: Any, *, max_items: int = 5) -> list[dict[str
         if not isinstance(item, dict):
             continue
         out.append(normalize_sermon_movement(item))
+        if len(out) >= max_items:
+            break
+    return out
+
+
+_TEXTUAL_IMAGE_FIELDS = (
+    "id",
+    "image",
+    "textual_basis",
+    "homiletical_function",
+    "placement",
+    "movement_id",
+    "development_notes",
+    "source_ref",
+)
+
+_ILLUSTRATION_FIELDS = (
+    "id",
+    "idea",
+    "source",
+    "function",
+    "placement",
+    "movement_id",
+    "connection_to_text",
+    "risk_or_limit",
+    "source_ref",
+)
+
+_APPLICATION_FIELDS = (
+    "id",
+    "application",
+    "scope",
+    "gospel_basis",
+    "concreteness",
+    "placement",
+    "movement_id",
+    "pastoral_caution",
+    "source_ref",
+)
+
+
+def empty_textual_image() -> dict[str, str]:
+    return {
+        "id": str(uuid.uuid4()),
+        "image": "",
+        "textual_basis": "",
+        "homiletical_function": "",
+        "placement": "general",
+        "movement_id": "",
+        "development_notes": "",
+        "source_ref": "",
+    }
+
+
+def empty_illustration() -> dict[str, str]:
+    return {
+        "id": str(uuid.uuid4()),
+        "idea": "",
+        "source": "needs_verification",
+        "function": "",
+        "placement": "general",
+        "movement_id": "",
+        "connection_to_text": "",
+        "risk_or_limit": "",
+        "source_ref": "",
+    }
+
+
+def empty_application() -> dict[str, str]:
+    return {
+        "id": str(uuid.uuid4()),
+        "application": "",
+        "scope": "personal",
+        "gospel_basis": "",
+        "concreteness": "",
+        "placement": "general",
+        "movement_id": "",
+        "pastoral_caution": "",
+        "source_ref": "",
+    }
+
+
+def _normalize_enrichment_item(
+    raw: Any,
+    *,
+    fields: tuple[str, ...],
+    empty_fn,
+) -> dict[str, str]:
+    base = empty_fn()
+    if not isinstance(raw, dict):
+        return base
+    out = dict(base)
+    for key in fields:
+        if key in raw:
+            out[key] = _as_str(raw.get(key))
+    if not out["id"]:
+        out["id"] = str(uuid.uuid4())
+    return out
+
+
+def normalize_textual_image(raw: Any) -> dict[str, str]:
+    return _normalize_enrichment_item(
+        raw, fields=_TEXTUAL_IMAGE_FIELDS, empty_fn=empty_textual_image
+    )
+
+
+def normalize_illustration(raw: Any) -> dict[str, str]:
+    return _normalize_enrichment_item(
+        raw, fields=_ILLUSTRATION_FIELDS, empty_fn=empty_illustration
+    )
+
+
+def normalize_application(raw: Any) -> dict[str, str]:
+    return _normalize_enrichment_item(
+        raw, fields=_APPLICATION_FIELDS, empty_fn=empty_application
+    )
+
+
+def normalize_textual_images(raw: Any, *, max_items: int = 3) -> list[dict[str, str]]:
+    if not isinstance(raw, list):
+        return []
+    out: list[dict[str, str]] = []
+    for item in raw:
+        if not isinstance(item, dict):
+            continue
+        out.append(normalize_textual_image(item))
+        if len(out) >= max_items:
+            break
+    return out
+
+
+def normalize_illustrations(raw: Any, *, max_items: int = 3) -> list[dict[str, str]]:
+    if not isinstance(raw, list):
+        return []
+    out: list[dict[str, str]] = []
+    for item in raw:
+        if not isinstance(item, dict):
+            continue
+        out.append(normalize_illustration(item))
+        if len(out) >= max_items:
+            break
+    return out
+
+
+def normalize_applications(raw: Any, *, max_items: int = 4) -> list[dict[str, str]]:
+    if not isinstance(raw, list):
+        return []
+    out: list[dict[str, str]] = []
+    for item in raw:
+        if not isinstance(item, dict):
+            continue
+        out.append(normalize_application(item))
         if len(out) >= max_items:
             break
     return out
@@ -219,6 +377,10 @@ def normalize_sermon_workshop(data: Any) -> dict[str, Any]:
     if status not in ("draft", "approved", ""):
         status = "draft"
 
+    enrichment_status = _as_str(data.get("enrichment_status")) or "draft"
+    if enrichment_status not in ("draft", "approved", ""):
+        enrichment_status = "draft"
+
     return {
         "sermon_main_idea": _as_str(data.get("sermon_main_idea")),
         "sermon_main_idea_status": status or "draft",
@@ -235,8 +397,10 @@ def normalize_sermon_workshop(data: Any) -> dict[str, Any]:
             data.get("sermon_path"), base["sermon_path"]
         ),
         "sermon_movements": normalize_sermon_movements(data.get("sermon_movements")),
-        "selected_images": _normalize_generic_list(data.get("selected_images")),
-        "applications": _normalize_generic_list(data.get("applications")),
+        "selected_images": normalize_textual_images(data.get("selected_images")),
+        "illustrations": normalize_illustrations(data.get("illustrations")),
+        "applications": normalize_applications(data.get("applications")),
+        "enrichment_status": enrichment_status or "draft",
         "closing": _normalize_str_dict(data.get("closing"), base["closing"]),
         "diagnostics": _normalize_diagnostics(data.get("diagnostics")),
         "approved_sermon_decisions": _normalize_decisions(
@@ -308,6 +472,19 @@ def normalize_sermon_workshop(data: Any) -> dict[str, Any]:
             )
         ),
         "m6_last_generated_at": _as_str(data.get("m6_last_generated_at")),
+        "sermon_enrichment_suggestions": _normalize_optional_dict(
+            data.get(
+                "sermon_enrichment_suggestions",
+                base["sermon_enrichment_suggestions"],
+            )
+        ),
+        "sermon_enrichment_assessment": _normalize_optional_dict(
+            data.get(
+                "sermon_enrichment_assessment",
+                base["sermon_enrichment_assessment"],
+            )
+        ),
+        "m7_last_generated_at": _as_str(data.get("m7_last_generated_at")),
     }
 
 
@@ -354,6 +531,13 @@ def update_sermon_workshop_section(
         sw["sermon_main_idea_status"] = status or "draft"
         return sw
 
+    if key == "enrichment_status":
+        status = _as_str(data) or "draft"
+        if status not in ("draft", "approved", ""):
+            status = "draft"
+        sw["enrichment_status"] = status or "draft"
+        return sw
+
     if key in _SECTION_DICT_KEYS:
         template = get_default_sermon_workshop()[key]
         if key == "diagnostics":
@@ -376,6 +560,12 @@ def update_sermon_workshop_section(
             sw[key] = _normalize_decisions(data)
         elif key == "sermon_movements":
             sw[key] = normalize_sermon_movements(data)
+        elif key == "selected_images":
+            sw[key] = normalize_textual_images(data)
+        elif key == "illustrations":
+            sw[key] = normalize_illustrations(data)
+        elif key == "applications":
+            sw[key] = normalize_applications(data)
         else:
             sw[key] = _normalize_generic_list(data)
         return sw
@@ -584,6 +774,38 @@ def save_sermon_path_assessment(
     return sw
 
 
+def save_sermon_enrichment_suggestions(
+    session_state: MutableMapping[str, Any],
+    payload: dict[str, Any],
+    *,
+    stamp_generated_at: bool = True,
+) -> dict[str, Any]:
+    """Tartós M7 kép/illusztráció/alkalmazás javaslat mentése."""
+    sw = ensure_sermon_workshop_state(session_state)
+    sw["sermon_enrichment_suggestions"] = (
+        dict(payload) if isinstance(payload, dict) else None
+    )
+    if stamp_generated_at:
+        sw["m7_last_generated_at"] = datetime.now().isoformat(timespec="seconds")
+    return sw
+
+
+def save_sermon_enrichment_assessment(
+    session_state: MutableMapping[str, Any],
+    payload: dict[str, Any],
+    *,
+    stamp_generated_at: bool = True,
+) -> dict[str, Any]:
+    """Tartós M7 kép/illusztráció/alkalmazás értékelés mentése."""
+    sw = ensure_sermon_workshop_state(session_state)
+    sw["sermon_enrichment_assessment"] = (
+        dict(payload) if isinstance(payload, dict) else None
+    )
+    if stamp_generated_at:
+        sw["m7_last_generated_at"] = datetime.now().isoformat(timespec="seconds")
+    return sw
+
+
 __all__ = [
     "SERMON_WORKSHOP_KEY",
     "get_default_sermon_workshop",
@@ -596,6 +818,15 @@ __all__ = [
     "empty_sermon_movement",
     "normalize_sermon_movement",
     "normalize_sermon_movements",
+    "empty_textual_image",
+    "empty_illustration",
+    "empty_application",
+    "normalize_textual_image",
+    "normalize_illustration",
+    "normalize_application",
+    "normalize_textual_images",
+    "normalize_illustrations",
+    "normalize_applications",
     "save_sermon_main_idea_suggestions",
     "save_sermon_main_idea_assessment",
     "save_human_condition_suggestion",
@@ -606,4 +837,6 @@ __all__ = [
     "save_gospel_arc_assessment",
     "save_sermon_path_suggestions",
     "save_sermon_path_assessment",
+    "save_sermon_enrichment_suggestions",
+    "save_sermon_enrichment_assessment",
 ]

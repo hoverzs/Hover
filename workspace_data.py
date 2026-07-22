@@ -170,6 +170,15 @@ EXCLUDED_SESSION_KEYS: frozenset[str] = frozenset(
         "_sw_mv_delete_pending",
         "_sw_m6_suggest_running",
         "_sw_m6_assess_running",
+        "_sw_en_adopt_all_pending",
+        "_sw_en_adopt_images_pending",
+        "_sw_en_adopt_ill_pending",
+        "_sw_en_adopt_apps_pending",
+        "_sw_en_img_delete_pending",
+        "_sw_en_ill_delete_pending",
+        "_sw_en_app_delete_pending",
+        "_sw_m7_suggest_running",
+        "_sw_m7_assess_running",
     }
 )
 
