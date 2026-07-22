@@ -1755,141 +1755,114 @@ div[data-testid="stForm"] {{
     max-width: 36rem;
 }}
 
-/* ===== Elsődleges nézetváltó (segmented) — erős szelektorok, nincs piros tab ===== */
-.ws-primary-nav-anchor {{
+/* ===== Elsődleges főmenü — három nagy, prémium nézetkártya ===== */
+.tx-mainnav-anchor {{
     display: none !important;
     height: 0 !important;
     margin: 0 !important;
     padding: 0 !important;
 }}
 
-/* Anchor utáni widget VAGY globális segmented (egyetlen app-nav) */
-.element-container:has(.ws-primary-nav-anchor) + .element-container,
-.element-container:has(.ws-primary-nav-anchor) ~ .element-container:has([data-testid="stSegmentedControl"]) {{
-    margin: 0.45rem 0 1rem !important;
+/* A közvetlenül az anchor utáni horizontális blokk a főmenü. */
+.element-container:has(.tx-mainnav-anchor) + .element-container [data-testid="stHorizontalBlock"] {{
+    gap: 0.6rem !important;
+    margin: 0.4rem 0 1.1rem !important;
+    align-items: stretch !important;
 }}
 
-[data-testid="stSegmentedControl"],
-.element-container:has(.ws-primary-nav-anchor) + .element-container [data-testid="stSegmentedControl"] {{
-    width: 100% !important;
-}}
-
-[data-testid="stSegmentedControl"] > div,
-.element-container:has(.ws-primary-nav-anchor) + .element-container [data-testid="stSegmentedControl"] > div {{
-    width: 100% !important;
+.element-container:has(.tx-mainnav-anchor) + .element-container [data-testid="column"] {{
     display: flex !important;
-    background:
-        linear-gradient(165deg, rgba(255, 252, 247, 0.78), rgba(236, 228, 214, 0.48)) !important;
-    border: 1px solid rgba(186, 158, 122, 0.42) !important;
-    border-radius: 14px !important;
-    padding: 0.32rem !important;
-    box-shadow:
-        0 1px 0 rgba(255, 255, 255, 0.75) inset,
-        0 8px 18px rgba(58, 40, 22, 0.08) !important;
-    gap: 0.28rem !important;
 }}
 
-[data-testid="stSegmentedControl"] button,
-.element-container:has(.ws-primary-nav-anchor) + .element-container [data-testid="stSegmentedControl"] button {{
-    flex: 1 1 0 !important;
-    min-width: 0 !important;
-    min-height: 2.85rem !important;
-    border-radius: 10px !important;
-    border: 1px solid transparent !important;
-    background: transparent !important;
-    box-shadow: none !important;
-    color: #5a4a38 !important;
-    font-family: "Inter", "Segoe UI", sans-serif !important;
-    font-weight: 550 !important;
-    font-size: 0.95rem !important;
-    letter-spacing: 0.01em !important;
-    padding: 0.55rem 0.7rem !important;
-    transition: background 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease, color 0.16s ease;
+.element-container:has(.tx-mainnav-anchor) + .element-container .stButton {{
+    width: 100% !important;
 }}
 
-[data-testid="stSegmentedControl"] button:hover {{
-    background: rgba(255, 252, 247, 0.7) !important;
-    border-color: rgba(186, 158, 122, 0.3) !important;
-}}
-
-[data-testid="stSegmentedControl"] button[aria-checked="true"],
-[data-testid="stSegmentedControl"] button[aria-pressed="true"],
-[data-testid="stSegmentedControl"] button[data-selected="true"] {{
-    background: linear-gradient(100deg, rgba(232, 238, 247, 0.95), rgba(255, 250, 242, 0.72)) !important;
-    border-color: rgba(90, 122, 168, 0.48) !important;
-    color: #1f334d !important;
-    font-weight: 650 !important;
-    box-shadow:
-        0 1px 0 rgba(255, 255, 255, 0.8) inset,
-        0 4px 12px rgba(52, 72, 98, 0.12) !important;
-}}
-
-/* Streamlit default piros underline / indicator kiütése */
-[data-testid="stSegmentedControl"] button::before,
-[data-testid="stSegmentedControl"] button::after,
-[data-testid="stSegmentedControl"] [class*="indicator"],
-[data-testid="stSegmentedControl"] hr {{
-    display: none !important;
-    background: transparent !important;
-    border: none !important;
-}}
-
-/* Fallback: radio-as-segmented */
-.element-container:has(.ws-primary-nav-anchor) + .element-container [data-testid="stRadio"] > label {{
-    display: none !important;
-}}
-
-.element-container:has(.ws-primary-nav-anchor) + .element-container [data-testid="stRadio"] [role="radiogroup"] {{
+/* Nézetkártya alap (inaktív = secondary) */
+.element-container:has(.tx-mainnav-anchor) + .element-container .stButton > button {{
+    width: 100% !important;
+    min-height: 64px !important;
+    height: 100% !important;
     display: flex !important;
     flex-direction: row !important;
-    flex-wrap: wrap !important;
-    gap: 0.28rem !important;
-    width: 100% !important;
-    background:
-        linear-gradient(165deg, rgba(255, 252, 247, 0.78), rgba(236, 228, 214, 0.48)) !important;
-    border: 1px solid rgba(186, 158, 122, 0.42) !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 0.6rem !important;
+    text-align: left !important;
+    padding: 0.7rem 1rem !important;
     border-radius: 14px !important;
-    padding: 0.32rem !important;
-    box-shadow:
-        0 1px 0 rgba(255, 255, 255, 0.75) inset,
-        0 8px 18px rgba(58, 40, 22, 0.08) !important;
+    border: 1px solid rgba(186, 158, 122, 0.42) !important;
+    background:
+        linear-gradient(165deg, rgba(255, 252, 247, 0.82), rgba(238, 230, 216, 0.5)) !important;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset !important;
+    color: #4a3c2c !important;
+    transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
 }}
 
-.element-container:has(.ws-primary-nav-anchor) + .element-container [data-testid="stRadio"] label[data-baseweb="radio"] {{
-    flex: 1 1 0 !important;
-    min-width: 8.5rem !important;
-    min-height: 2.85rem !important;
+/* Cím (1. sor) + alcím (2. sor) */
+.element-container:has(.tx-mainnav-anchor) + .element-container .stButton > button p {{
     margin: 0 !important;
-    padding: 0.55rem 0.7rem !important;
-    border-radius: 10px !important;
-    border: 1px solid transparent !important;
-    background: transparent !important;
-    justify-content: center !important;
-    gap: 0.45rem !important;
-}}
-
-.element-container:has(.ws-primary-nav-anchor) + .element-container [data-testid="stRadio"] label[data-baseweb="radio"] > div:first-child {{
-    display: none !important;
-}}
-
-.element-container:has(.ws-primary-nav-anchor) + .element-container [data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) {{
-    background: linear-gradient(100deg, rgba(232, 238, 247, 0.95), rgba(255, 250, 242, 0.72)) !important;
-    border-color: rgba(90, 122, 168, 0.48) !important;
-    box-shadow:
-        0 1px 0 rgba(255, 255, 255, 0.8) inset,
-        0 4px 12px rgba(52, 72, 98, 0.12) !important;
-}}
-
-.element-container:has(.ws-primary-nav-anchor) + .element-container [data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) [data-testid="stMarkdownContainer"] p {{
-    color: #1f334d !important;
+    font-family: "Inter", "Segoe UI", sans-serif !important;
     font-weight: 650 !important;
+    font-size: 1.02rem !important;
+    line-height: 1.25 !important;
+    letter-spacing: 0.005em !important;
+    white-space: normal !important;
+}}
+
+.element-container:has(.tx-mainnav-anchor) + .element-container .stButton > button p:not(:first-child) {{
+    font-weight: 500 !important;
+    font-size: 0.82rem !important;
+    color: #6a5a48 !important;
+    margin-top: 0.12rem !important;
+}}
+
+/* Ikon nagyobb, kék hangsúly */
+.element-container:has(.tx-mainnav-anchor) + .element-container .stButton > button [data-testid="stIconMaterial"],
+.element-container:has(.tx-mainnav-anchor) + .element-container .stButton > button span[class*="material"] {{
+    font-size: 1.5rem !important;
+    color: #5a7aa8 !important;
+    flex-shrink: 0 !important;
+}}
+
+.element-container:has(.tx-mainnav-anchor) + .element-container .stButton > button:hover {{
+    transform: translateY(-1px) !important;
+    border-color: rgba(90, 122, 168, 0.4) !important;
+    box-shadow: 0 6px 16px rgba(58, 40, 22, 0.1) !important;
+}}
+
+/* Aktív nézet (primary): meleg-kékes felület + bal arany hangsúly */
+.element-container:has(.tx-mainnav-anchor) + .element-container .stButton > button[kind="primary"] {{
+    background:
+        linear-gradient(120deg, rgba(226, 234, 246, 0.96), rgba(255, 250, 242, 0.7)) !important;
+    border: 1px solid rgba(90, 122, 168, 0.5) !important;
+    border-left: 4px solid #b38a4e !important;
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.85) inset,
+        0 6px 16px rgba(52, 72, 98, 0.14) !important;
+    color: #1f334d !important;
+}}
+
+.element-container:has(.tx-mainnav-anchor) + .element-container .stButton > button[kind="primary"] p {{
+    color: #1f334d !important;
+}}
+
+.element-container:has(.tx-mainnav-anchor) + .element-container .stButton > button[kind="primary"] p:not(:first-child) {{
+    color: #3a5170 !important;
+}}
+
+.element-container:has(.tx-mainnav-anchor) + .element-container .stButton > button:focus-visible {{
+    outline: 2px solid rgba(90, 122, 168, 0.6) !important;
+    outline-offset: 2px !important;
 }}
 
 @media (max-width: 720px) {{
-    [data-testid="stSegmentedControl"] button,
-    .element-container:has(.ws-primary-nav-anchor) + .element-container [data-testid="stRadio"] label[data-baseweb="radio"] {{
+    .element-container:has(.tx-mainnav-anchor) + .element-container [data-testid="stHorizontalBlock"] {{
+        flex-direction: column !important;
+    }}
+    .element-container:has(.tx-mainnav-anchor) + .element-container [data-testid="column"] {{
+        width: 100% !important;
         flex: 1 1 100% !important;
-        min-width: 100% !important;
     }}
 }}
 

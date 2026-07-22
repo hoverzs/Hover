@@ -117,14 +117,28 @@ def render_workshop_step_grid(
 render_section_stepper = render_workshop_stepper
 
 
+# Rövid, opcionális alcímek a fő nézetekhez (prémium főmenü).
+_DEFAULT_UI_MODE_SUBTITLES: dict[str, str] = {
+    "quick": "Gyors elemzés és segédeszközök",
+    "workshop": "A bibliai szöveg feltárása",
+    "sermon_workshop": "Az igehirdetés felépítése",
+}
+
+
 def render_primary_view_switcher(
     options: Sequence[str] | None = None,
     *,
     labels: Mapping[str, str] | None = None,
     icons: Mapping[str, str] | None = None,
+    subtitles: Mapping[str, str] | None = None,
     key: str = "ui_mode",
 ) -> str:
-    """Háromelemű elsődleges nézetváltó (segmented control)."""
+    """Háromelemű, prémium elsődleges főmenü — nagy, teljesen kattintható kártyák.
+
+    A nézetváltási state és logika változatlan: a `key` (alapból `ui_mode`)
+    értéke marad a nézet forrása. A gombok közvetlenül állítják be, mivel ez
+    tisztán felületi állapot (nincs widget-tulajdonlás, nem kerül mentésbe).
+    """
     opts = [str(o) for o in (options or ("quick", "workshop", "sermon_workshop"))]
     label_map = dict(_DEFAULT_UI_MODE_LABELS)
     if labels:
@@ -132,39 +146,36 @@ def render_primary_view_switcher(
     icon_map = dict(_DEFAULT_UI_MODE_ICONS)
     if icons:
         icon_map.update({str(k): str(v) for k, v in icons.items()})
+    subtitle_map = dict(_DEFAULT_UI_MODE_SUBTITLES)
+    if subtitles:
+        subtitle_map.update({str(k): str(v) for k, v in subtitles.items()})
 
     if st.session_state.get(key) not in opts:
         st.session_state[key] = opts[0]
-
-    def _format(mode: str) -> str:
-        text = label_map.get(mode, mode)
-        icon = (icon_map.get(mode) or "").strip()
-        return f"{icon} {text}".strip() if icon else text
+    current = str(st.session_state.get(key) or opts[0])
 
     st.markdown(
-        '<div class="ws-primary-nav-anchor" aria-hidden="true"></div>',
+        '<div class="tx-mainnav-anchor" aria-hidden="true"></div>',
         unsafe_allow_html=True,
     )
-
-    if hasattr(st, "segmented_control"):
-        st.segmented_control(
-            "Nézet",
-            options=opts,
-            format_func=_format,
-            key=key,
-            required=True,
-            label_visibility="collapsed",
-            width="stretch",
-        )
-    else:
-        st.radio(
-            "Nézet",
-            options=opts,
-            format_func=_format,
-            horizontal=True,
-            key=key,
-            label_visibility="collapsed",
-        )
+    cols = st.columns(len(opts), gap="small")
+    for col, mode in zip(cols, opts):
+        is_active = mode == current
+        title = label_map.get(mode, mode)
+        subtitle = (subtitle_map.get(mode) or "").strip()
+        # A teljes gomb kattintható; az alcím a címke második sora.
+        btn_label = f"{title}\n\n{subtitle}" if subtitle else title
+        with col:
+            clicked = st.button(
+                btn_label,
+                key=f"tx_mainnav_{mode}",
+                icon=(icon_map.get(mode) or None),
+                type="primary" if is_active else "secondary",
+                use_container_width=True,
+            )
+        if clicked and not is_active:
+            st.session_state[key] = mode
+            st.rerun()
 
     return str(st.session_state.get(key) or opts[0])
 
