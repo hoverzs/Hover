@@ -186,19 +186,26 @@ def premium_overlay_css() -> str:
 }
 
 .stTabs [data-baseweb="tab"] {
-    min-height: 3.2rem !important;
+    min-height: 72px !important;
     height: auto !important;
     border-radius: var(--tx-radius-md) !important;
     border: 1px solid var(--tx-border) !important;
-    background: var(--tx-surface) !important;
+    background:
+        linear-gradient(165deg, rgba(255, 252, 247, 0.82), rgba(238, 230, 216, 0.5)) !important;
     justify-content: flex-start !important;
     text-align: left !important;
     align-items: center !important;
-    padding: 0.55rem 0.8rem !important;
+    padding: 0.7rem 0.9rem !important;
     box-shadow: none !important;
     font-weight: 550 !important;
     white-space: normal !important;
     line-height: 1.25 !important;
+    transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.stTabs [data-baseweb="tab"]:hover {
+    transform: translateY(-1px) !important;
+    box-shadow: var(--tx-shadow-soft) !important;
 }
 
 /* Teljes cím: két sorra törhet, nincs levágás / ellipszis */
@@ -243,6 +250,18 @@ def premium_overlay_css() -> str:
     border: 1px solid var(--tx-border) !important;
     border-radius: var(--tx-radius-md) !important;
     background: var(--tx-surface) !important;
+}
+
+/* ===== Egységes gombhierarchia (alap magasság; scoped nav felülírja) ===== */
+.stButton > button {
+    min-height: 2.75rem !important;
+    border-radius: var(--tx-radius-md) !important;
+    font-weight: 600 !important;
+    transition: transform 0.14s ease, box-shadow 0.14s ease, background 0.14s ease, border-color 0.14s ease;
+}
+.stButton > button:focus-visible {
+    outline: 2px solid rgba(90, 122, 168, 0.55) !important;
+    outline-offset: 2px !important;
 }
 
 @media (max-width: 1024px) {
