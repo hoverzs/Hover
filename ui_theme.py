@@ -337,16 +337,35 @@ def premium_overlay_css() -> str:
     }
 }
 
-/* Shell polish: projekttoolbar gap + címmező */
+/* Shell polish: projekttoolbar — egységes, egymás utáni gombcsoport */
+.element-container:has(.ws-project-toolbar-anchor) + [data-testid="stLayoutWrapper"] [data-testid="stHorizontalBlock"],
 .element-container:has(.ws-project-toolbar-anchor) + .element-container [data-testid="stHorizontalBlock"] {
-    gap: 0.45rem !important;
-    column-gap: 0.45rem !important;
+    gap: 0.4rem !important;
+    column-gap: 0.4rem !important;
     justify-content: flex-start !important;
+    align-items: stretch !important;
 }
 
+.element-container:has(.ws-project-toolbar-anchor) + [data-testid="stLayoutWrapper"] [data-testid="column"],
+.element-container:has(.ws-project-toolbar-anchor) + .element-container [data-testid="column"] {
+    flex: 0 0 auto !important;
+    width: auto !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+.element-container:has(.ws-project-toolbar-anchor) + [data-testid="stLayoutWrapper"] [data-testid="column"]:last-child,
+.element-container:has(.ws-project-toolbar-anchor) + .element-container [data-testid="column"]:last-child {
+    flex: 1 1 auto !important;
+}
+
+.element-container:has(.ws-project-toolbar-anchor) + [data-testid="stLayoutWrapper"] [data-testid="column"] .stButton > button,
 .element-container:has(.ws-project-toolbar-anchor) + .element-container [data-testid="column"] .stButton > button {
     width: auto !important;
-    min-width: 7.5rem !important;
+    min-width: 0 !important;
+    height: 2.5rem !important;
+    min-height: 2.5rem !important;
+    white-space: nowrap !important;
 }
 
 /* Segmented nav: Streamlit piros indikátor kiütése (theme primary mellett is) */
@@ -357,90 +376,226 @@ def premium_overlay_css() -> str:
     color: #1f334d !important;
 }
 
-/* ===== Központi lépésválasztó (StepSelector) ===== */
+/* ===== Központi lépésválasztó (StepSelector) — függőleges idővonal ===== */
 .tx-stepselect-anchor { display: none !important; height: 0 !important; margin: 0 !important; }
 
-/* A popover trigger a triggerhez tartozó element-container (anchor utáni testvér). */
+/* A trigger konténer középre, a munkakártya szélességéhez igazítva. */
+.element-container:has(.tx-stepselect-anchor) + [data-testid="stLayoutWrapper"] {
+    max-width: 720px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+
+/* Zárt vezérlő (popover trigger) — kompakt, egy chevronnal. */
 .element-container:has(.tx-stepselect-anchor) + [data-testid="stLayoutWrapper"] [data-testid="stPopover"] button {
     width: 100% !important;
+    display: flex !important;
+    align-items: center !important;
     justify-content: flex-start !important;
+    gap: 0.1rem !important;
     text-align: left !important;
     min-height: 3rem !important;
     border-radius: 12px !important;
     border: 1px solid rgba(90, 122, 168, 0.32) !important;
-    background:
-        linear-gradient(165deg, rgba(255, 252, 247, 0.9), rgba(240, 232, 218, 0.6)) !important;
+    background: rgba(255, 253, 249, 0.96) !important;
     box-shadow: 0 1px 0 rgba(255,255,255,0.65) inset !important;
     color: #1f334d !important;
     font-family: "Inter", "Segoe UI", sans-serif !important;
     font-weight: 600 !important;
     font-size: 1rem !important;
-    padding: 0.6rem 0.95rem !important;
+    padding: 0.5rem 0.9rem !important;
 }
 .element-container:has(.tx-stepselect-anchor) + [data-testid="stLayoutWrapper"] [data-testid="stPopover"] button:hover {
     border-color: rgba(90, 122, 168, 0.5) !important;
     box-shadow: 0 4px 12px rgba(52, 72, 98, 0.1) !important;
 }
-/* A chevron ikont told jobbra */
-.element-container:has(.tx-stepselect-anchor) + [data-testid="stLayoutWrapper"] [data-testid="stPopover"] button [data-testid="stIconMaterial"] {
-    margin-left: auto !important;
-    color: #5a7aa8 !important;
-    order: 2 !important;
+/* Bal oldali kör alakú haladásjelző (conic-gradient gyűrű).
+   Szöveges alternatíva: a jobb oldali „N / M elkészült” felirat. */
+.element-container:has(.tx-stepselect-anchor) + [data-testid="stLayoutWrapper"] [data-testid="stPopover"] button::before {
+    content: "";
+    order: 0;
+    flex: 0 0 auto;
+    width: 30px;
+    height: 30px;
+    margin-right: 0.7rem;
+    border-radius: 50%;
+    background: conic-gradient(#5a7aa8 calc(var(--tx-step-pct, 0) * 1%), rgba(160, 150, 135, 0.28) 0);
+    -webkit-mask: radial-gradient(closest-side, transparent 64%, #000 65%);
+            mask: radial-gradient(closest-side, transparent 64%, #000 65%);
 }
-.element-container:has(.tx-stepselect-anchor) + [data-testid="stLayoutWrapper"] [data-testid="stPopover"] button > div:first-child,
-.element-container:has(.tx-stepselect-anchor) + [data-testid="stLayoutWrapper"] [data-testid="stPopover"] button p {
+/* A címke konténere: kitölti a középső sávot. */
+.element-container:has(.tx-stepselect-anchor) + [data-testid="stLayoutWrapper"] [data-testid="stPopover"] button [data-testid="stMarkdownContainer"] {
     order: 1 !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+}
+/* Bal (szám + név) és jobb (állapotszámláló) szétfeszítve. */
+.element-container:has(.tx-stepselect-anchor) + [data-testid="stLayoutWrapper"] [data-testid="stPopover"] button [data-testid="stMarkdownContainer"] p {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 0.75rem !important;
+    width: 100% !important;
+    margin: 0 !important;
+}
+/* A visszafogott jobb oldali elkészültségi számláló. */
+.element-container:has(.tx-stepselect-anchor) + [data-testid="stLayoutWrapper"] [data-testid="stPopover"] button [data-testid="stMarkdownContainer"] p span {
+    flex: 0 0 auto !important;
+    color: var(--tx-text-muted) !important;
+    font-weight: 500 !important;
+    font-size: 0.82rem !important;
+    white-space: nowrap !important;
+}
+/* Egyetlen chevron a jobb szélen. */
+.element-container:has(.tx-stepselect-anchor) + [data-testid="stLayoutWrapper"] [data-testid="stPopover"] button [data-testid="stIconMaterial"] {
+    order: 2 !important;
+    flex: 0 0 auto !important;
+    margin-left: 0.55rem !important;
+    color: #5a7aa8 !important;
 }
 
-/* Lenyíló lista: rendezett, kompakt menüsorok (nem árnyékos gombkártyák) */
+/* ===== Lenyíló panel — összegző fejléc (görgetéskor ragadós) ===== */
 .tx-stepmenu-head {
     font-family: "Inter", "Segoe UI", sans-serif;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    margin: 0 0 0.4rem;
+    padding: 0.35rem 0.15rem 0.55rem;
+    border-bottom: 1px solid var(--tx-border);
+    background: rgba(253, 251, 247, 0.97);
+}
+.tx-stepmenu-title {
     font-size: 0.72rem;
-    font-weight: 600;
-    letter-spacing: 0.05em;
+    font-weight: 700;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
     color: var(--tx-gold);
-    margin-bottom: 0.3rem;
 }
+.tx-stepmenu-sub {
+    font-size: 0.8rem;
+    color: var(--tx-text-muted);
+    margin: 0.15rem 0 0.4rem;
+}
+.tx-stepmenu-head .tx-wf-progress { margin: 0; }
+
+/* ===== Idővonal sorok — kompakt, teljes szélességű flex (ikon | név | állapot) ===== */
 [data-testid="stPopover"] .stButton > button,
 div[data-baseweb="popover"] .stButton > button {
+    position: relative !important;
+    display: flex !important;
+    align-items: center !important;
     justify-content: flex-start !important;
+    gap: 0.45rem !important;
     text-align: left !important;
-    min-height: 2.4rem !important;
-    border-radius: 8px !important;
+    min-height: 48px !important;
+    height: auto !important;
+    border-radius: 10px !important;
     border: 1px solid transparent !important;
     background: transparent !important;
     box-shadow: none !important;
     white-space: normal !important;
     font-weight: 500 !important;
     color: #3d3228 !important;
-    padding: 0.4rem 0.6rem !important;
-    margin: 0 !important;
+    padding: 0.25rem 0.5rem !important;
+    margin: 0.1rem 0 !important;
+    width: 100% !important;
+}
+/* Vékony függőleges összekötő vonal a státuszkör mögött (szín lépésenként). */
+[data-testid="stPopover"] .stButton > button::before,
+div[data-baseweb="popover"] .stButton > button::before {
+    content: "";
+    position: absolute;
+    left: 1.34rem;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: rgba(160, 150, 135, 0.45);
+    z-index: 0;
 }
 [data-testid="stPopover"] .stButton > button:hover,
 div[data-baseweb="popover"] .stButton > button:hover {
-    background: rgba(90, 122, 168, 0.08) !important;
+    background: rgba(90, 122, 168, 0.07) !important;
     border-color: transparent !important;
 }
-/* Aktív sor: halvány kék háttér + kék ikon */
+/* Aktív sor: halvány kék háttér, finom keret, kissé erősebb betű. */
 [data-testid="stPopover"] .stButton > button[kind="primary"],
 div[data-baseweb="popover"] .stButton > button[kind="primary"] {
-    background: rgba(90, 122, 168, 0.14) !important;
+    background: rgba(90, 122, 168, 0.12) !important;
     border-color: rgba(90, 122, 168, 0.3) !important;
     color: #1f334d !important;
     font-weight: 650 !important;
 }
-[data-testid="stPopover"] .stButton > button [data-testid="stIconMaterial"] {
-    color: #6a7f9c !important;
+/* Státuszkör (material ikon) mint idővonal-csomópont; korong maszkolja a vonalat. */
+[data-testid="stPopover"] .stButton > button [data-testid="stIconMaterial"],
+div[data-baseweb="popover"] .stButton > button [data-testid="stIconMaterial"] {
+    position: relative !important;
+    z-index: 1 !important;
+    order: 0 !important;
+    flex: 0 0 auto !important;
+    margin-right: 0.6rem !important;
+    font-size: 1.35rem !important;
+    background: #fdfbf7 !important;
+    border-radius: 50% !important;
+    color: #9c9384;
 }
-[data-testid="stPopover"] .stButton > button[kind="primary"] [data-testid="stIconMaterial"] {
-    color: #4a7c74 !important;
+/* Címke konténere és belső flex: szám + név balra, állapot jobbra. */
+[data-testid="stPopover"] .stButton > button [data-testid="stMarkdownContainer"],
+div[data-baseweb="popover"] .stButton > button [data-testid="stMarkdownContainer"] {
+    order: 1 !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    position: relative;
+    z-index: 1;
 }
-/* Hosszú munkafolyamat: max magasság + belső görgetés */
+[data-testid="stPopover"] .stButton > button [data-testid="stMarkdownContainer"] p,
+div[data-baseweb="popover"] .stButton > button [data-testid="stMarkdownContainer"] p {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 0.6rem !important;
+    width: 100% !important;
+    margin: 0 !important;
+}
+/* Jobb oldali, minden soron azonos pozíciójú, visszafogott állapotszöveg. */
+[data-testid="stPopover"] .stButton > button [data-testid="stMarkdownContainer"] p span,
+div[data-baseweb="popover"] .stButton > button [data-testid="stMarkdownContainer"] p span {
+    flex: 0 0 110px !important;
+    width: 110px !important;
+    min-width: 110px !important;
+    text-align: right !important;
+    color: var(--tx-text-muted) !important;
+    font-size: 0.78rem !important;
+    font-weight: 500 !important;
+    white-space: nowrap !important;
+}
+/* Hosszú munkafolyamat: panelmagasság + belső görgetés, triggerhez igazított szélesség. */
 div[data-baseweb="popover"] [data-testid="stPopoverBody"] {
-    max-height: 60vh !important;
+    max-height: min(70vh, 620px) !important;
     overflow-y: auto !important;
-    min-width: 20rem !important;
+    width: min(720px, 92vw) !important;
+    padding: 0.35rem 0.55rem 0.5rem 0.35rem !important;
+    background: rgba(253, 251, 247, 0.98) !important;
+    border: 1px solid rgba(186, 158, 122, 0.35) !important;
+    border-radius: 14px !important;
+    box-shadow: 0 10px 28px rgba(58, 40, 22, 0.1) !important;
+}
+div[data-baseweb="popover"] [data-testid="stPopoverBody"]::-webkit-scrollbar {
+    width: 8px;
+}
+div[data-baseweb="popover"] [data-testid="stPopoverBody"]::-webkit-scrollbar-thumb {
+    background: rgba(160, 140, 115, 0.35);
+    border-radius: 999px;
+}
+/* Nyitási animáció — mozgáscsökkentés esetén kikapcsol. */
+@media (prefers-reduced-motion: no-preference) {
+    div[data-baseweb="popover"] [data-testid="stPopoverBody"] {
+        animation: tx-stepmenu-in 180ms ease both;
+    }
+}
+@keyframes tx-stepmenu-in {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
 }
 
 /* ===== Haladás összegzés (ProgressSummary) ===== */
@@ -500,10 +655,25 @@ div[data-baseweb="popover"] [data-testid="stPopoverBody"] {
 }
 
 @media (max-width: 768px) {
-    .element-container:has(.tx-stepselect-anchor) + [data-testid="stLayoutWrapper"] [data-testid="stPopover"] button {
-        min-height: 2.75rem !important;
+    .element-container:has(.tx-stepselect-anchor) + [data-testid="stLayoutWrapper"] {
+        max-width: 100% !important;
     }
-    div[data-baseweb="popover"] [data-testid="stPopoverBody"] { min-width: 15rem !important; }
+    .element-container:has(.tx-stepselect-anchor) + [data-testid="stLayoutWrapper"] [data-testid="stPopover"] button {
+        min-height: 2.9rem !important;
+    }
+    div[data-baseweb="popover"] [data-testid="stPopoverBody"] { width: 94vw !important; }
+    /* Az állapotszöveg a cím alá törhet, ha nem fér ki egy sorba. */
+    [data-testid="stPopover"] .stButton > button [data-testid="stMarkdownContainer"] p,
+    div[data-baseweb="popover"] .stButton > button [data-testid="stMarkdownContainer"] p {
+        flex-wrap: wrap !important;
+    }
+    [data-testid="stPopover"] .stButton > button [data-testid="stMarkdownContainer"] p span,
+    div[data-baseweb="popover"] .stButton > button [data-testid="stMarkdownContainer"] p span {
+        flex: 1 1 100% !important;
+        width: auto !important;
+        min-width: 0 !important;
+        text-align: left !important;
+    }
 }
 """.strip()
 

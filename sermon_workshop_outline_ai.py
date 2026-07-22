@@ -172,6 +172,21 @@ class OutlineReadiness:
     source_keys: list[str] = field(default_factory=list)
 
 
+def collect_available_sermon_material(
+    session_state: Mapping[str, Any],
+    *,
+    sermon_workshop: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Központi anyaggyűjtés: minden nem üres, elmentett tartalom státusztól függetlenül.
+
+    Alias a meglévő `collect_outline_context_bundle` fölött — a vázlatgenerálás
+    és a diagnosztika ugyanezt a forrást használja.
+    """
+    return collect_outline_context_bundle(
+        session_state, sermon_workshop=sermon_workshop
+    )
+
+
 def assess_outline_readiness(
     session_state: Mapping[str, Any],
     *,
@@ -695,6 +710,26 @@ def build_outline_from_workshop(
     outline["manually_edited"] = False
     outline["source_sections"] = list(dict.fromkeys(sources))
     outline["provisional_sections"] = list(dict.fromkeys(provisional))
+    # Forrás-ujjlenyomat + teljesség — diagnosztikai frissességhez.
+    import hashlib
+    import json as _json
+
+    fp_payload = {
+        "keys": list(dict.fromkeys(sources)),
+        "main_idea": _s(outline.get("main_idea")),
+        "movements": len(outline.get("movements") or []),
+        "closing": _s((outline.get("closing") or {}).get("final_insight")),
+    }
+    outline["source_fingerprint"] = hashlib.sha1(
+        _json.dumps(fp_payload, ensure_ascii=False, sort_keys=True).encode("utf-8")
+    ).hexdigest()[:16]
+    n_src = len(sources)
+    if n_src >= 8 and not provisional:
+        outline["source_completeness"] = "full"
+    elif n_src >= 3:
+        outline["source_completeness"] = "partial"
+    else:
+        outline["source_completeness"] = "minimal"
     return normalize_sermon_outline(outline)
 
 
@@ -710,6 +745,8 @@ def outline_has_content(outline: Any) -> bool:
         "lection_translation",
         "source_sections",
         "provisional_sections",
+        "source_fingerprint",
+        "source_completeness",
     }
     return _has_any_text(*(v for k, v in outline.items() if k not in skip))
 
@@ -1443,7 +1480,7 @@ def assemble_sermon_outline(
             overwritten_manual_edit=False,
         )
 
-    bundle = collect_outline_context_bundle(session_state, sermon_workshop=sw)
+    bundle = collect_available_sermon_material(session_state, sermon_workshop=sw)
     outline = build_outline_from_workshop(session_state, sermon_workshop=sw)
     warnings: list[str] = []
 
@@ -1482,6 +1519,7 @@ __all__ = [
     "assemble_sermon_outline",
     "build_outline_from_workshop",
     "collect_outline_context_bundle",
+    "collect_available_sermon_material",
     "editable_outline_snapshot",
     "empty_sermon_outline",
     "outline_has_content",

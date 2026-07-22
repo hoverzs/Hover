@@ -286,6 +286,8 @@ def empty_sermon_outline() -> dict[str, Any]:
         # Meta — fejlesztői / diagnosztikai; a fő UI nem listázza nyersen
         "source_sections": [],
         "provisional_sections": [],
+        "source_fingerprint": "",
+        "source_completeness": "",
         "actualization_connections": [],
     }
 
@@ -410,6 +412,11 @@ def normalize_sermon_outline(raw: Any) -> dict[str, Any]:
     out["provisional_sections"] = _normalize_str_list(
         raw.get("provisional_sections"), max_items=20
     )
+    out["source_fingerprint"] = _as_str(raw.get("source_fingerprint"))
+    completeness = _as_str(raw.get("source_completeness"))
+    if completeness not in ("full", "partial", "minimal", ""):
+        completeness = "partial" if out["source_sections"] else ""
+    out["source_completeness"] = completeness
     out["actualization_connections"] = _normalize_simple_card_list(
         raw.get("actualization_connections"), max_items=8
     )
@@ -459,10 +466,53 @@ def normalize_sermon_outline_diagnostics(raw: Any) -> dict[str, Any]:
         "next_step": _as_str(raw.get("next_step") or raw.get("readiness_note")),
         "detailed_notes": _normalize_str_list(raw.get("detailed_notes"), max_items=30),
         "warnings": _normalize_str_list(raw.get("warnings"), max_items=20),
+        "diagnostic_areas": _normalize_outline_diag_areas(raw.get("diagnostic_areas")),
+        "mode": _as_str(raw.get("mode")) or "ai",
         "ok": bool(raw.get("ok", True)),
         "error_message": _as_str(raw.get("error_message")),
         "missing_outline": bool(raw.get("missing_outline")),
+        "outline_updated_at_at_diagnosis": _as_str(
+            raw.get("outline_updated_at_at_diagnosis")
+        ),
     }
+
+
+def _normalize_outline_diag_areas(raw: Any) -> list[dict[str, Any]]:
+    """Vázlatdiagnosztika 8 tengelye — hiányzó score soha ne legyen 0."""
+    if not isinstance(raw, list):
+        return []
+    out: list[dict[str, Any]] = []
+    for item in raw:
+        if not isinstance(item, dict):
+            continue
+        key = _as_str(item.get("key"))
+        if not key:
+            continue
+        status = _as_str(item.get("status")) or "not_enough_information"
+        score_raw = item.get("score")
+        score: int | None
+        if status == "not_enough_information" or score_raw in (None, "", 0, "0"):
+            score = None
+        else:
+            try:
+                score = int(score_raw)
+            except (TypeError, ValueError):
+                score = None
+            if score is not None and score <= 0:
+                score = None
+            elif score is not None:
+                score = max(1, min(4, score))
+        out.append(
+            {
+                "key": key,
+                "label": _as_str(item.get("label")) or key,
+                "status": status,
+                "score": score,
+                "summary": _as_str(item.get("summary")),
+                "suggested_action": _as_str(item.get("suggested_action")),
+            }
+        )
+    return out
 
 
 def normalize_sermon_movement(raw: Any) -> dict[str, str]:

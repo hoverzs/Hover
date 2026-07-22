@@ -11,6 +11,7 @@ from html import escape
 from typing import Any
 
 import streamlit as st
+import streamlit.components.v1 as components
 
 _DEFAULT_UI_MODE_LABELS: dict[str, str] = {
     "quick": "Gyorseszközök",
@@ -153,24 +154,70 @@ def render_step_selector(
     idx = opts.index(current)
     total = len(opts)
     prefix = key_prefix or key
+    done_count = sum(1 for o in opts if o in done)
+    pct = int(round((done_count / total) * 100)) if total else 0
 
-    st.markdown('<div class="tx-stepselect-anchor" aria-hidden="true"></div>', unsafe_allow_html=True)
+    def _state_of(opt: str) -> str:
+        if opt == current:
+            return "active"
+        if opt in done:
+            return "done"
+        return "pending"
 
-    trigger_label = f"{idx + 1} / {total} · {current}"
+    # Idővonal-csomópontok és összekötő vonal színe lépésenként (st-key osztályok).
+    node_rules: list[str] = []
+    for i, opt in enumerate(opts):
+        state = _state_of(opt)
+        cls = f"st-key-{prefix}_step_{i}"
+        if state == "done":
+            icon_c, line_c = "#5a7aa8", "#5a7aa8"
+        elif state == "active":
+            icon_c, line_c = "#3f6699", "rgba(160, 150, 135, 0.45)"
+        else:
+            icon_c, line_c = "#9c9384", "rgba(160, 150, 135, 0.45)"
+        node_rules.append(
+            f'.{cls} button [data-testid="stIconMaterial"]{{color:{icon_c} !important;}}'
+            f".{cls} button::before{{background:{line_c} !important;}}"
+        )
+        if i == 0:
+            node_rules.append(f".{cls} button::before{{top:50% !important;}}")
+        if i == total - 1:
+            node_rules.append(f".{cls} button::before{{bottom:50% !important;}}")
+    if total == 1:
+        node_rules.append(f".st-key-{prefix}_step_0 button::before{{display:none !important;}}")
+
+    # Horgony + a bal oldali körgyűrű haladási aránya + a lépésenkénti csomópontok.
+    st.markdown(
+        '<div class="tx-stepselect-anchor" aria-hidden="true"></div>'
+        "<style>.element-container:has(.tx-stepselect-anchor) "
+        '+ [data-testid="stLayoutWrapper"] [data-testid="stPopover"] button'
+        f"{{--tx-step-pct:{pct};}}"
+        + "".join(node_rules)
+        + "</style>",
+        unsafe_allow_html=True,
+    )
+
+    # Zárt vezérlő: bal oldalon „{szám}. {név}”, jobb oldalon a visszafogott
+    # elkészültségi számláló; egyetlen chevron a jobb szélen (CSS).
+    trigger_label = f"{idx + 1}. {current} :gray[{done_count} / {total} elkészült]"
     with st.popover(trigger_label, use_container_width=True, icon=":material/expand_more:"):
         st.markdown(
-            '<div class="tx-stepmenu-head">Munkafolyamat lépései</div>',
+            (
+                '<div class="tx-stepmenu-head">'
+                '<div class="tx-stepmenu-title">Munkafolyamat</div>'
+                f'<div class="tx-stepmenu-sub">{done_count} / {total} lépés elkészült</div>'
+                '<div class="tx-wf-progress" role="presentation">'
+                f'<div class="tx-wf-progress-fill" style="width:{pct}%"></div>'
+                "</div>"
+                "</div>"
+            ),
             unsafe_allow_html=True,
         )
-        st.markdown('<div class="tx-stepmenu" role="menu">', unsafe_allow_html=True)
         for i, opt in enumerate(opts):
-            if opt == current:
-                state = "active"
-            elif opt in done:
-                state = "done"
-            else:
-                state = "pending"
-            label = f"{i + 1}.  {opt}  ·  {_STEP_STATE_LABEL[state]}"
+            state = _state_of(opt)
+            # A szám + név balra; az állapot visszafogott, jobbra igazított
+            # szövegként (a névhez NEM fűzve) — a szétválasztást CSS végzi.
+            label = f"{i + 1}. {opt} :gray[{_STEP_STATE_LABEL[state]}]"
             if st.button(
                 label,
                 key=f"{prefix}_step_{i}",
@@ -181,7 +228,43 @@ def render_step_selector(
                 if opt != current:
                     st.session_state[key] = opt
                     st.rerun()
-        st.markdown("</div>", unsafe_allow_html=True)
+        # Nyitáskor az aktív lépéshez görgetés (mozgáscsökkentést tisztelve).
+        components.html(
+            """
+<script>
+(function () {
+  try {
+    var pdoc = window.parent.document;
+    var mq = window.parent.matchMedia
+      && window.parent.matchMedia('(prefers-reduced-motion: reduce)');
+    var reduce = !!(mq && mq.matches);
+    function scrollActive() {
+      var body = pdoc.querySelector('[data-testid="stPopoverBody"]');
+      if (!body) return;
+      var act = body.querySelector('.stButton > button[kind="primary"]');
+      if (act) act.scrollIntoView({ block: 'center', behavior: reduce ? 'auto' : 'smooth' });
+    }
+    setTimeout(scrollActive, 60);
+    var obs = new MutationObserver(function (muts) {
+      for (var i = 0; i < muts.length; i++) {
+        var added = muts[i].addedNodes || [];
+        for (var j = 0; j < added.length; j++) {
+          var n = added[j];
+          if (n.nodeType === 1 && n.querySelector &&
+              (n.matches && n.matches('[data-testid="stPopoverBody"]')
+               || n.querySelector('[data-testid="stPopoverBody"]'))) {
+            setTimeout(scrollActive, 50);
+          }
+        }
+      }
+    });
+    obs.observe(pdoc.body, { childList: true, subtree: true });
+  } catch (e) {}
+})();
+</script>
+""",
+            height=0,
+        )
 
     return str(st.session_state.get(key) or opts[0])
 

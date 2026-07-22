@@ -44,7 +44,7 @@ def _area(key: str, status: str, **extra) -> dict:
         "key": key,
         "label": key,
         "status": status,
-        "summary": extra.get("summary", f"{key} összefoglaló"),
+        "summary": extra.get("summary", "Rövid területi összefoglaló."),
         "evidence": extra.get("evidence", "bizonyíték"),
         "concerns": extra.get("concerns", ""),
     }
@@ -102,6 +102,8 @@ def _stub_streamlit(monkeypatch, calls: list[str]) -> None:
         ),
     )
     monkeypatch.setattr(st, "columns", lambda n: [nullcontext() for _ in range(n)])
+    monkeypatch.setattr(st, "container", lambda *a, **k: nullcontext())
+    monkeypatch.setattr(st, "button", lambda *a, **k: False)
 
 
 def test_main_view_three_parts_in_source():
@@ -111,8 +113,9 @@ def test_main_view_three_parts_in_source():
     body = src[start:end]
     assert "Rövid összkép" in body
     assert "Ami már jól működik" in body
-    assert "Ezen érdemes még finomítani" in body
-    assert "Továbbhaladás" in body
+    assert "Amin most érdemes dolgozni" in body
+    assert "_render_diag_overview_card(" in body
+    assert "_render_diag_profile_list(" in body
     assert "Részletesebb homiletikai megjegyzések" in body
     # Régi státuszszámlálók / 12 kategória ne legyen a fő nézetben
     assert "_render_diag_status_cards(" not in body
@@ -237,8 +240,7 @@ def test_render_simple_main_view(session, monkeypatch):
 
     assert "Rövid összkép" in main
     assert "Ami már jól működik" in main
-    assert "Ezen érdemes még finomítani" in main
-    assert "Továbbhaladás" in main
+    assert "Amin most érdemes dolgozni" in main
     assert "Hallgatói feszültség tisztázása" in main
     assert "Erős textushűség" in main
     assert "Gyors státusz" not in main

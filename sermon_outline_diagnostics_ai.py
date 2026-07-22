@@ -58,6 +58,8 @@ class OutlineDiagnosticsResult:
     next_step: str = ""
     detailed_notes: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
+    diagnostic_areas: list[dict[str, Any]] = field(default_factory=list)
+    mode: str = "ai"  # ai | local_heuristic | api_error | parse_error
     ok: bool = True
     error_message: str = ""
     missing_outline: bool = False
@@ -72,6 +74,8 @@ class OutlineDiagnosticsResult:
             "next_step": self.next_step,
             "detailed_notes": list(self.detailed_notes),
             "warnings": list(self.warnings),
+            "diagnostic_areas": list(self.diagnostic_areas),
+            "mode": self.mode or "ai",
             "ok": self.ok,
             "error_message": self.error_message,
             "missing_outline": self.missing_outline,
@@ -132,6 +136,10 @@ def normalize_outline_diagnostics(raw: Any) -> dict[str, Any]:
             _s(x) for x in (raw.get("detailed_notes") or []) if _s(x)
         ],
         "warnings": [_s(x) for x in (raw.get("warnings") or []) if _s(x)],
+        "diagnostic_areas": [
+            dict(a) for a in (raw.get("diagnostic_areas") or []) if isinstance(a, dict)
+        ],
+        "mode": _s(raw.get("mode")) or "ai",
         "ok": bool(raw.get("ok", True)),
         "error_message": _s(raw.get("error_message")),
         "missing_outline": bool(raw.get("missing_outline")),
@@ -260,13 +268,17 @@ vázlat ezen a ponton rövid.” — de a teljes diagnosztikát ne tedd használ
 - strengths: legfeljebb 3, csak valódi erősség;
 - refinements: legfeljebb 3; ne gyárts mesterséges problémát modulhiányból;
 - detailed_notes: opcionális;
-- ne listázd az összes ki nem töltött műhelymodult.
+- ne listázd az összes ki nem töltött műhelymodult;
+- diagnostic_areas: pontosan a lenti 8 kulcs; ha nincs elég vázlattartalom
+  egy tengelyhez, status legyen "not_enough_information", score pedig null
+  (SOHA ne írj 0 pontot hiányzó adat helyett).
 
 ## Vázlat JSON
 {{outline_json}}
 
 ## Összevetés (rövid, csak ha van)
 Fő gondolat: {{sermon_main_idea}}
+Igehely: {{passage}}
 
 ## Kimenet — KIZÁRÓLAG érvényes JSON
 {
@@ -280,12 +292,55 @@ Fő gondolat: {{sermon_main_idea}}
       "affected_outline_parts": ["opcionális"]
     }
   ],
+  "diagnostic_areas": [
+    {
+      "key": "text_fidelity",
+      "label": "Textushűség",
+      "status": "strong|stable|needs_attention|critical_gap|not_enough_information",
+      "score": 1,
+      "summary": "rövid indoklás a vázlatból",
+      "suggested_action": "konkrét javaslat vagy üres"
+    },
+    {"key": "unity_and_focus", "label": "Fő gondolat és fókusz", "status": "…", "score": null, "summary": "", "suggested_action": ""},
+    {"key": "listener_tension", "label": "Hallgatói megszólítás", "status": "…", "score": null, "summary": "", "suggested_action": ""},
+    {"key": "christ_centeredness", "label": "Krisztus-központúság", "status": "…", "score": null, "summary": "", "suggested_action": ""},
+    {"key": "sermon_path", "label": "Szerkezet és mozgások", "status": "…", "score": null, "summary": "", "suggested_action": ""},
+    {"key": "application", "label": "Alkalmazás", "status": "…", "score": null, "summary": "", "suggested_action": ""},
+    {"key": "closing", "label": "Lezárás", "status": "…", "score": null, "summary": "", "suggested_action": ""},
+    {"key": "pastoral_responsibility", "label": "Pásztori hang", "status": "…", "score": null, "summary": "", "suggested_action": ""}
+  ],
   "ready_to_use": true,
   "next_step": "egy rövid mondat",
   "detailed_notes": ["opcionális"],
   "warnings": ["opcionális"]
 }
 """
+
+# Homiletikai profil 8 tengelye (dashboard és AI-séma).
+OUTLINE_PROFILE_AREA_KEYS: tuple[str, ...] = (
+    "text_fidelity",
+    "unity_and_focus",
+    "listener_tension",
+    "christ_centeredness",
+    "sermon_path",
+    "application",
+    "closing",
+    "pastoral_responsibility",
+)
+
+OUTLINE_PROFILE_AREA_LABELS: dict[str, str] = {
+    "text_fidelity": "Textushűség",
+    "unity_and_focus": "Fő gondolat és fókusz",
+    "listener_tension": "Hallgatói megszólítás",
+    "christ_centeredness": "Krisztus-központúság",
+    "sermon_path": "Szerkezet és mozgások",
+    "application": "Alkalmazás",
+    "closing": "Lezárás",
+    "pastoral_responsibility": "Pásztori hang",
+}
+
+_USER_API_FAIL = "A részletes MI-diagnosztika most nem sikerült."
+_USER_PARSE_FAIL = "A diagnosztikai válasz nem volt érvényes."
 
 
 def _fill(template: str, ctx: Mapping[str, str]) -> str:
@@ -295,18 +350,83 @@ def _fill(template: str, ctx: Mapping[str, str]) -> str:
     return out
 
 
+def _normalize_area_score(raw: Any, *, status: str) -> int | None:
+    """Hiányzó adat → None (soha ne 0). Érvényes score: 1–4."""
+    if status == "not_enough_information":
+        return None
+    if raw is None or raw == "":
+        return None
+    try:
+        n = int(raw)
+    except (TypeError, ValueError):
+        return None
+    if n <= 0:
+        return None
+    return max(1, min(4, n))
+
+
+def _parse_diagnostic_areas(raw: Any) -> list[dict[str, Any]]:
+    """8 profil-tengely; hiányzó tengely → not_enough_information, score=null."""
+    by_key: dict[str, dict[str, Any]] = {}
+    if isinstance(raw, list):
+        for item in raw:
+            if not isinstance(item, dict):
+                continue
+            key = _s(item.get("key"))
+            if key not in OUTLINE_PROFILE_AREA_KEYS:
+                continue
+            status = _s(item.get("status")) or "not_enough_information"
+            if status not in (
+                "strong",
+                "stable",
+                "needs_attention",
+                "critical_gap",
+                "not_enough_information",
+            ):
+                status = "not_enough_information"
+            score = _normalize_area_score(item.get("score"), status=status)
+            by_key[key] = {
+                "key": key,
+                "label": OUTLINE_PROFILE_AREA_LABELS.get(
+                    key, _s(item.get("label")) or key
+                ),
+                "status": status,
+                "score": score,
+                "summary": _as_text(item.get("summary")),
+                "suggested_action": _as_text(item.get("suggested_action")),
+            }
+    out: list[dict[str, Any]] = []
+    for key in OUTLINE_PROFILE_AREA_KEYS:
+        if key in by_key:
+            out.append(by_key[key])
+        else:
+            out.append(
+                {
+                    "key": key,
+                    "label": OUTLINE_PROFILE_AREA_LABELS[key],
+                    "status": "not_enough_information",
+                    "score": None,
+                    "summary": "",
+                    "suggested_action": "",
+                }
+            )
+    return out
+
+
 def parse_outline_diagnostics(raw: str) -> OutlineDiagnosticsResult:
     if not _s(raw) or _is_api_error_text(raw):
         return OutlineDiagnosticsResult(
             ok=False,
-            error_message="A vázlatdiagnosztika nem adott érvényes választ.",
+            mode="api_error",
+            error_message=_USER_API_FAIL,
             raw_response=raw or "",
         )
     obj = extract_json_object(raw)
     if not isinstance(obj, dict):
         return OutlineDiagnosticsResult(
             ok=False,
-            error_message="Érvénytelen diagnosztikai JSON.",
+            mode="parse_error",
+            error_message=_USER_PARSE_FAIL,
             raw_response=raw,
         )
     strengths = [_s(x) for x in _as_str_list(obj.get("strengths")) if _s(x)][
@@ -333,16 +453,33 @@ def parse_outline_diagnostics(raw: str) -> OutlineDiagnosticsResult:
         )
         if len(refinements) >= MAX_REFINEMENTS:
             break
+    areas = _parse_diagnostic_areas(obj.get("diagnostic_areas"))
+    evaluated = sum(
+        1
+        for a in areas
+        if a.get("status") != "not_enough_information"
+        or _s(a.get("summary"))
+    )
+    overview = _as_text(obj.get("overview"))
+    if not overview and not strengths and not refinements and evaluated == 0:
+        return OutlineDiagnosticsResult(
+            ok=False,
+            mode="parse_error",
+            error_message=_USER_PARSE_FAIL,
+            raw_response=raw,
+        )
     return OutlineDiagnosticsResult(
-        overview=_as_text(obj.get("overview")),
+        overview=overview,
         strengths=strengths,
         refinements=refinements,
+        diagnostic_areas=areas,
         ready_to_use=bool(obj.get("ready_to_use")),
         next_step=_as_text(obj.get("next_step")),
         detailed_notes=[
             _s(x) for x in _as_str_list(obj.get("detailed_notes")) if _s(x)
         ],
         warnings=[_s(x) for x in _as_str_list(obj.get("warnings")) if _s(x)],
+        mode="ai",
         ok=True,
         raw_response=raw,
     )
@@ -432,6 +569,8 @@ def fallback_outline_diagnostics(
         overview=overview,
         strengths=strengths,
         refinements=refinements,
+        # Gyors helyi ellenőrzés: NEM töltünk ki kitalált 0/8-as dashboardot.
+        diagnostic_areas=[],
         ready_to_use=ready,
         next_step=(
             "A vázlat használható kézi kidolgozásra."
@@ -439,8 +578,32 @@ def fallback_outline_diagnostics(
             else "Kezdd a legelső finomítási javaslattal."
         ),
         detailed_notes=notes,
+        mode="local_heuristic",
         ok=True,
-        warnings=["Az ellenőrzés a jelenlegi vázlat alapján készült."],
+        warnings=[
+            "Gyors helyi ellenőrzés — nem teljes MI-diagnosztika.",
+            "Az ellenőrzés a jelenlegi vázlat alapján készült.",
+        ],
+    )
+
+
+def _api_failure_result(
+    *,
+    technical: str = "",
+    raw: str = "",
+    mode: str = "api_error",
+) -> OutlineDiagnosticsResult:
+    """API / hálózat / parse hiba — soha ne jelenjen meg sikeres diagnózisként."""
+    warnings: list[str] = []
+    if technical:
+        warnings.append(f"Generálási hiba: {technical}")
+    return OutlineDiagnosticsResult(
+        ok=False,
+        mode=mode,
+        error_message=_USER_API_FAIL if mode == "api_error" else _USER_PARSE_FAIL,
+        warnings=warnings,
+        raw_response=raw,
+        diagnostic_areas=[],
     )
 
 
@@ -462,9 +625,15 @@ def run_outline_diagnostics(
     user_focus: str = "",
     text_main_idea: str = "",
     generate_fn: GenerateFn | None = None,
+    prefer_local_heuristic: bool = False,
     **_extra: Any,
 ) -> OutlineDiagnosticsResult:
-    """Vázlatközpontú diagnosztika. Nincs vázlat → nem futtat teljes nyers M8-at."""
+    """Vázlatközpontú diagnosztika. Nincs vázlat → nem futtat teljes nyers M8-at.
+
+    API-hiba esetén ok=False (nincs hamis siker / heurisztikus ál-diagnózis).
+    A gyors helyi ellenőrzés csak generate_fn=None vagy prefer_local_heuristic=True
+    esetén fut, és mode=local_heuristic jelzéssel tér vissza.
+    """
     outline = normalize_sermon_outline(sermon_outline)
     if not outline_has_content(outline):
         return OutlineDiagnosticsResult(
@@ -501,8 +670,9 @@ def run_outline_diagnostics(
     ctx["outline_json"] = _outline_context_block(outline)
     # Tokenhatékonyság: a sablon csak a fő gondolatot és a vázlat JSON-t használja
     ctx.setdefault("sermon_main_idea", sermon_main_idea or _s(outline.get("main_idea")))
+    ctx.setdefault("passage", passage or "")
 
-    if generate_fn is None:
+    if generate_fn is None or prefer_local_heuristic:
         return fallback_outline_diagnostics(outline=outline)
 
     prompt = _fill(_OUTLINE_DIAG_TEMPLATE, ctx)
@@ -516,35 +686,31 @@ def run_outline_diagnostics(
                 "Te a TEXTUS homiletikai diagnoszta asszisztense vagy. "
                 "A vizsgált tárgy a végső vázlat, nem a kitöltött modulok száma. "
                 "Ne minősítsd hibának a kihagyott műhelyszakaszokat. "
+                "Hiányzó adatnál score=null és status=not_enough_information. "
                 "Válaszod KIZÁRÓLAG érvényes JSON."
             ),
             temperature=DEFAULT_TEMPERATURE,
         )
     except Exception as exc:  # noqa: BLE001
-        result = fallback_outline_diagnostics(
-            outline=outline,
-            message="A diagnosztika hálózati hiba miatt heurisztikus módra váltott.",
-        )
-        result.warnings.append(str(exc))
-        return result
+        return _api_failure_result(technical=str(exc), mode="api_error")
 
     if _is_api_error_text(raw or ""):
-        return fallback_outline_diagnostics(
-            outline=outline,
-            message="A diagnosztika nem volt elérhető; heurisztikus összkép készült.",
+        return _api_failure_result(
+            technical=_s(raw)[:400],
+            raw=raw or "",
+            mode="api_error",
         )
 
     parsed = parse_outline_diagnostics(raw or "")
-    if not parsed.ok or not (parsed.overview or parsed.strengths or parsed.refinements):
-        fb = fallback_outline_diagnostics(outline=outline)
-        fb.raw_response = raw or ""
-        return fb
+    if not parsed.ok:
+        return parsed
     # Kemény korlátok
     parsed.strengths = parsed.strengths[:MAX_STRENGTHS]
     parsed.refinements = parsed.refinements[:MAX_REFINEMENTS]
     notice = "Az ellenőrzés a jelenlegi vázlat alapján készült."
     if notice not in parsed.warnings:
         parsed.warnings = list(parsed.warnings) + [notice]
+    parsed.mode = "ai"
     return parsed
 
 
@@ -553,6 +719,8 @@ __all__ = [
     "MAX_STRENGTHS",
     "MAX_REFINEMENTS",
     "MISSING_PART",
+    "OUTLINE_PROFILE_AREA_KEYS",
+    "OUTLINE_PROFILE_AREA_LABELS",
     "OutlineDiagnosticsResult",
     "OutlineRefinement",
     "adapt_m8_to_outline_diagnostics",

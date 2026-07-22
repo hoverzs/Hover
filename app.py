@@ -1698,7 +1698,7 @@ div[data-testid="stForm"] {{
     color: #3a4f6a;
 }}
 
-/* ===== Projekt eszköztár (tömör, balra zárt) ===== */
+/* ===== Projekt eszköztár (tömör, balra zárt, egymás után) ===== */
 .ws-project-toolbar-anchor {{
     display: none !important;
     height: 0 !important;
@@ -1706,38 +1706,61 @@ div[data-testid="stForm"] {{
     padding: 0 !important;
 }}
 
+.element-container:has(.ws-project-toolbar-anchor) + [data-testid="stLayoutWrapper"] [data-testid="stHorizontalBlock"],
 .element-container:has(.ws-project-toolbar-anchor) + .element-container [data-testid="stHorizontalBlock"] {{
-    gap: var(--ws-gap-toolbar) !important;
-    column-gap: var(--ws-gap-toolbar) !important;
-    row-gap: 0.5rem !important;
+    gap: 0.4rem !important;
+    column-gap: 0.4rem !important;
+    row-gap: 0.4rem !important;
     justify-content: flex-start !important;
-    align-items: center !important;
+    align-items: stretch !important;
     flex-wrap: wrap !important;
     width: 100% !important;
-    margin: 0.15rem 0 0.35rem !important;
+    margin: 0.2rem 0 0.4rem !important;
 }}
 
+/* Gomboszlopok: tartalomhoz igazodó szélesség; a trailing spacer kitölti a maradékot. */
+.element-container:has(.ws-project-toolbar-anchor) + [data-testid="stLayoutWrapper"] [data-testid="column"],
 .element-container:has(.ws-project-toolbar-anchor) + .element-container [data-testid="column"] {{
     flex: 0 0 auto !important;
     width: auto !important;
     min-width: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
 }}
 
+.element-container:has(.ws-project-toolbar-anchor) + [data-testid="stLayoutWrapper"] [data-testid="column"]:last-child,
+.element-container:has(.ws-project-toolbar-anchor) + .element-container [data-testid="column"]:last-child {{
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+}}
+
+.element-container:has(.ws-project-toolbar-anchor) + [data-testid="stLayoutWrapper"] [data-testid="column"] > div,
 .element-container:has(.ws-project-toolbar-anchor) + .element-container [data-testid="column"] > div {{
     width: auto !important;
 }}
 
+.element-container:has(.ws-project-toolbar-anchor) + [data-testid="stLayoutWrapper"] .stButton,
 .element-container:has(.ws-project-toolbar-anchor) + .element-container .stButton {{
-    margin-right: 0 !important;
+    margin: 0 !important;
+    width: auto !important;
 }}
 
+.element-container:has(.ws-project-toolbar-anchor) + [data-testid="stLayoutWrapper"] .stButton > button,
 .element-container:has(.ws-project-toolbar-anchor) + .element-container .stButton > button {{
-    min-height: 2.45rem !important;
-    padding: 0.48rem 0.95rem !important;
-    border-radius: var(--ws-radius) !important;
+    width: auto !important;
+    min-width: 0 !important;
+    min-height: 2.5rem !important;
+    height: 2.5rem !important;
+    padding: 0.45rem 0.9rem !important;
+    border-radius: 10px !important;
+    white-space: nowrap !important;
+    font-size: 0.92rem !important;
+    font-weight: 550 !important;
+    line-height: 1.2 !important;
 }}
 
 /* Új munka — csendesebb hierarchia (utolsó gomboszlop a spacer előtt) */
+.element-container:has(.ws-project-toolbar-anchor) + [data-testid="stLayoutWrapper"] [data-testid="column"]:nth-last-child(2) .stButton > button:not([kind="primary"]):not([kind="primaryFormSubmit"]),
 .element-container:has(.ws-project-toolbar-anchor) + .element-container [data-testid="column"]:nth-last-child(2) .stButton > button:not([kind="primary"]):not([kind="primaryFormSubmit"]) {{
     background: transparent !important;
     border-color: rgba(160, 140, 115, 0.35) !important;
@@ -1746,6 +1769,7 @@ div[data-testid="stForm"] {{
     font-weight: 500 !important;
 }}
 
+.element-container:has(.ws-project-toolbar-anchor) + [data-testid="stLayoutWrapper"] [data-testid="column"]:nth-last-child(2) .stButton > button:not([kind="primary"]):not([kind="primaryFormSubmit"]):hover,
 .element-container:has(.ws-project-toolbar-anchor) + .element-container [data-testid="column"]:nth-last-child(2) .stButton > button:not([kind="primary"]):not([kind="primaryFormSubmit"]):hover {{
     background: rgba(255, 252, 247, 0.55) !important;
     border-color: rgba(160, 140, 115, 0.5) !important;
@@ -4620,14 +4644,9 @@ def _render_project_status_bar() -> None:
     toolbar_items.append(("bar_projects_toggle", toggle, False))
     toolbar_items.append(("bar_new_work", "Új munka", False))
 
-    # Egyenlő full-width columns helyett: tartalomhoz igazodó arány + spacer
+    # Tartalomhoz igazodó keskeny oszlopok + trailing spacer (CSS auto-width).
     n = len(toolbar_items)
-    if n == 3:
-        ratios: list[float] = [1.15, 1.05, 0.95, 6.2]
-    elif n == 4:
-        ratios = [1.05, 1.15, 1.05, 0.95, 5.2]
-    else:
-        ratios = [1.0] * n + [max(4.0, 8.0 - n)]
+    ratios: list[float] = [1.0] * n + [max(6.0, 10.0 - n)]
     cols = st.columns(ratios, gap="small")
     for col, (btn_key, btn_label, is_primary) in zip(cols, toolbar_items):
         with col:

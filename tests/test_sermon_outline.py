@@ -508,6 +508,7 @@ def test_diagnostics_ui_gate_and_simplified_view(session, monkeypatch):
         ),
     )
     monkeypatch.setattr(st, "columns", lambda n: [nullcontext() for _ in range(n)])
+    monkeypatch.setattr(st, "container", lambda *a, **k: nullcontext())
     monkeypatch.setattr(st, "info", lambda *a, **k: calls.append(f"INFO:{a[0]}" if a else "INFO"))
     monkeypatch.setattr(st, "success", lambda *a, **k: None)
     monkeypatch.setattr(st, "error", lambda *a, **k: None)
@@ -546,8 +547,7 @@ def test_diagnostics_ui_gate_and_simplified_view(session, monkeypatch):
     joined = "\n".join(calls)
     assert "Rövid összkép" in joined
     assert "Ami már jól működik" in joined
-    assert "Ezen érdemes még finomítani" in joined
-    assert "Továbbhaladás" in joined
+    assert "Amin most érdemes dolgozni" in joined
     assert any(
         "Részletesebb homiletikai megjegyzések" in c for c in calls
     )
