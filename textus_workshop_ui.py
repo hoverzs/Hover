@@ -126,6 +126,24 @@ def _apply_tw_ui_resync_if_needed() -> None:
         st.session_state[_KEY_IDEA_INPUT] = idea
 
 
+def flush_textus_workshop_from_widgets() -> None:
+    """Élő Streamlit widgetek → tartós `text_workshop` (ha a widget létezik).
+
+    A fejléc Mentés / autosave előtt hívandó, hogy a még nem „Mentés
+    vázlatként” gombbal elmentett fő gondolat se vesszen el — ugyanaz a
+    minta, mint a Bibliai szöveg és az Igehirdetési műhely flush.
+    Nem változtatja a jóváhagyási státuszokat (draft/approved).
+    Projektváltás után, ha a UI-resync még nem futott, előbb a tartós
+    adatból frissíti a widgetet, hogy régi session-érték ne írjon felül.
+    """
+    ensure_text_workshop_state(st.session_state)
+    _apply_tw_ui_resync_if_needed()
+
+    if _KEY_IDEA_INPUT in st.session_state:
+        tw = ensure_text_workshop_state(st.session_state)
+        tw["text_main_idea"] = (st.session_state.get(_KEY_IDEA_INPUT) or "").strip()
+
+
 def _request_adopt_sentence(sentence: str) -> None:
     """Mondat átvétele a kézi mezőbe — következő futásban, widget előtt."""
     st.session_state[_ADOPT_PENDING] = str(sentence or "").strip()
@@ -665,6 +683,7 @@ def render_approved_insights_section() -> None:
 
 
 __all__ = [
+    "flush_textus_workshop_from_widgets",
     "render_text_main_idea_section",
     "render_approved_insights_section",
 ]

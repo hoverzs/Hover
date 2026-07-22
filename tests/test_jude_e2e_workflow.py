@@ -776,23 +776,29 @@ def test_no_full_prayer_adopt_button() -> None:
 
 
 def test_flush_wired_for_project_save() -> None:
-    """Projekt Mentés a sermon workshop widgeteket is tartósítsa (adatvesztés ellen)."""
-    ui = (ROOT / "sermon_workshop_ui.py").read_text(encoding="utf-8")
+    """Projekt Mentés a sermon / textus workshop widgeteket is tartósítsa."""
+    sw_ui = (ROOT / "sermon_workshop_ui.py").read_text(encoding="utf-8")
+    tw_ui = (ROOT / "textus_workshop_ui.py").read_text(encoding="utf-8")
     app = (ROOT / "app.py").read_text(encoding="utf-8")
-    ok("def flush_sermon_workshop_from_widgets" in ui, "flush helper missing")
-    ok("flush_sermon_workshop_from_widgets()" in app, "flush not called from app")
+    ok("def flush_sermon_workshop_from_widgets" in sw_ui, "sermon flush helper missing")
     ok(
-        "flush_sermon_workshop_from_widgets" in app
-        and "_sync_inputs_to_last" in app,
-        "flush should live near save sync",
+        "def flush_textus_workshop_from_widgets" in tw_ui,
+        "textus flush helper missing",
     )
-    # call site inside _sync_inputs_to_last
+    ok("flush_sermon_workshop_from_widgets()" in app, "sermon flush not called from app")
+    ok("flush_textus_workshop_from_widgets()" in app, "textus flush not called from app")
+    # call sites inside _sync_inputs_to_last
     idx_sync = app.find("def _sync_inputs_to_last")
-    idx_flush = app.find("flush_sermon_workshop_from_widgets()", idx_sync)
     idx_next_def = app.find("\ndef ", idx_sync + 1)
+    idx_sw = app.find("flush_sermon_workshop_from_widgets()", idx_sync)
+    idx_tw = app.find("flush_textus_workshop_from_widgets()", idx_sync)
     ok(
-        idx_flush != -1 and idx_flush < idx_next_def,
-        "flush not inside _sync_inputs_to_last",
+        idx_sw != -1 and idx_sw < idx_next_def,
+        "sermon flush not inside _sync_inputs_to_last",
+    )
+    ok(
+        idx_tw != -1 and idx_tw < idx_next_def,
+        "textus flush not inside _sync_inputs_to_last",
     )
 
 

@@ -31,6 +31,7 @@ from textus_workshop_data import (
     normalize_text_workshop,
 )
 from textus_workshop_ui import (
+    flush_textus_workshop_from_widgets,
     render_approved_insights_section,
     render_text_main_idea_section,
 )
@@ -3135,6 +3136,10 @@ def _sync_inputs_to_last():
     if _BIBLE_PASSAGE_TEXT_INPUT in st.session_state:
         save_bible_text_from_widgets(st.session_state)
 
+    # Textusműhely: ugyanez a minta a text_workshop widgetekre
+    # (pl. textus fő gondolat — ne kelljen előbb „Mentés vázlatként”).
+    flush_textus_workshop_from_widgets()
+
     # Igehirdetési műhely: ugyanez a minta a sermon_workshop widgetekre.
     flush_sermon_workshop_from_widgets()
 
@@ -3535,6 +3540,10 @@ def _queue_project_widget_sync_from_state() -> None:
         ),
     }
     pending.update(queue_bible_widget_sync_values(st.session_state))
+    # Textusműhely fő gondolat: projektváltáskor a widget is az új tartós értéket kapja
+    # (ne maradjon bent az előző projekt szövege a Mentés flush előtt).
+    tw = ensure_text_workshop_state(st.session_state)
+    pending["tw_main_idea_input"] = tw.get("text_main_idea") or ""
     st.session_state["_pending_project_widget_sync"] = pending
     st.session_state.pop("_pending_outline_draft_editor", None)
 
