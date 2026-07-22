@@ -22,6 +22,7 @@ _SECTION_DICT_KEYS = (
     "closing",
     "diagnostics",
     "lection",
+    "prayer_preparation",
 )
 
 _SECTION_LIST_KEYS = (
@@ -106,6 +107,34 @@ def get_default_sermon_workshop() -> dict[str, Any]:
         "lection_suggestions": None,
         "lection_assessment": None,
         "m9_lection_last_generated_at": "",
+        "prayer_preparation": {
+            "tone_preference": "mixed",
+            "general_focus": "",
+            "rewrite_mode": "integrate_into_arc",
+            "before": {
+                "own_thoughts": "",
+                "purpose": "",
+                "movement_notes": "",
+                "selected_opening": "",
+                "selected_lines": [],
+                "closing_direction": "",
+                "status": "draft",
+            },
+            "after": {
+                "own_thoughts": "",
+                "purpose": "",
+                "movement_notes": "",
+                "selected_opening": "",
+                "selected_lines": [],
+                "closing_direction": "",
+                "status": "draft",
+            },
+            "before_suggestions": None,
+            "after_suggestions": None,
+            "assessment": None,
+            "status": "draft",
+            "last_generated_at": "",
+        },
         "approved_sermon_decisions": [],
         "sermon_main_idea_suggestions": None,
         "sermon_main_idea_assessment": None,
@@ -440,6 +469,114 @@ def _normalize_lection(raw: Any) -> dict[str, str]:
     return out
 
 
+_PRAYER_TONE_PREFS = frozenset(
+    {
+        "quiet_meditative",
+        "honest_confessional",
+        "hopeful",
+        "assuring",
+        "intercessory",
+        "communal",
+        "festive",
+        "simple_direct",
+        "biblical_imagery",
+        "mixed",
+    }
+)
+_PRAYER_REWRITE_MODES = frozenset(
+    {"light_polish", "integrate_into_arc", "free_rephrase"}
+)
+_PRAYER_SIDE_STATUS = frozenset({"draft", "approved", ""})
+
+
+def normalize_prayer_tone_preference(raw: Any) -> str:
+    value = _as_str(raw).strip().casefold()
+    return value if value in _PRAYER_TONE_PREFS else "mixed"
+
+
+def normalize_prayer_rewrite_mode(raw: Any) -> str:
+    value = _as_str(raw).strip().casefold()
+    return value if value in _PRAYER_REWRITE_MODES else "integrate_into_arc"
+
+
+def _normalize_prayer_lines(raw: Any, *, max_items: int = 24) -> list[str]:
+    if isinstance(raw, list):
+        out = [_as_str(x).strip() for x in raw if _as_str(x).strip()]
+        return out[:max_items]
+    text = _as_str(raw).replace("\r\n", "\n").replace("\r", "\n").strip()
+    if not text:
+        return []
+    lines = [ln.strip() for ln in text.split("\n") if ln.strip()]
+    return lines[:max_items]
+
+
+def empty_prayer_side() -> dict[str, Any]:
+    return {
+        "own_thoughts": "",
+        "purpose": "",
+        "movement_notes": "",
+        "selected_opening": "",
+        "selected_lines": [],
+        "closing_direction": "",
+        "status": "draft",
+    }
+
+
+def _normalize_prayer_side(raw: Any) -> dict[str, Any]:
+    base = empty_prayer_side()
+    if not isinstance(raw, dict):
+        return base
+    out = dict(base)
+    for key in (
+        "own_thoughts",
+        "purpose",
+        "movement_notes",
+        "selected_opening",
+        "closing_direction",
+    ):
+        if key in raw:
+            out[key] = _as_str(raw.get(key))
+    if "selected_lines" in raw:
+        out["selected_lines"] = _normalize_prayer_lines(raw.get("selected_lines"))
+    status = _as_str(raw.get("status")) or "draft"
+    if status not in _PRAYER_SIDE_STATUS:
+        status = "draft"
+    out["status"] = status or "draft"
+    return out
+
+
+def _normalize_prayer_preparation(raw: Any) -> dict[str, Any]:
+    """M9 imádsági előkészítés — biztonságos alapértékek régi projektekhez."""
+    base = get_default_sermon_workshop()["prayer_preparation"]
+    if not isinstance(raw, dict):
+        return copy.deepcopy(base)
+    status = _as_str(raw.get("status")) or "draft"
+    if status not in ("draft", "approved", ""):
+        status = "draft"
+    return {
+        "tone_preference": normalize_prayer_tone_preference(
+            raw.get("tone_preference", base["tone_preference"])
+        ),
+        "general_focus": _as_str(raw.get("general_focus")),
+        "rewrite_mode": normalize_prayer_rewrite_mode(
+            raw.get("rewrite_mode", base["rewrite_mode"])
+        ),
+        "before": _normalize_prayer_side(raw.get("before")),
+        "after": _normalize_prayer_side(raw.get("after")),
+        "before_suggestions": _normalize_optional_dict(
+            raw.get("before_suggestions", base["before_suggestions"])
+        ),
+        "after_suggestions": _normalize_optional_dict(
+            raw.get("after_suggestions", base["after_suggestions"])
+        ),
+        "assessment": _normalize_optional_dict(
+            raw.get("assessment", base["assessment"])
+        ),
+        "status": status or "draft",
+        "last_generated_at": _as_str(raw.get("last_generated_at")),
+    }
+
+
 def _normalize_decisions(raw: Any) -> list[dict[str, Any]]:
     if not isinstance(raw, list):
         return []
@@ -522,6 +659,9 @@ def normalize_sermon_workshop(data: Any) -> dict[str, Any]:
         "diagnostics": _normalize_diagnostics(data.get("diagnostics")),
         "lection": _normalize_lection(data.get("lection")),
         "lection_status": lection_status or "draft",
+        "prayer_preparation": _normalize_prayer_preparation(
+            data.get("prayer_preparation")
+        ),
         "approved_sermon_decisions": _normalize_decisions(
             data.get("approved_sermon_decisions")
         ),
@@ -717,6 +857,30 @@ def update_sermon_workshop_section(
                     if field_key in data:
                         merged[field_key] = _as_str(data.get(field_key))
             sw[key] = _normalize_lection(merged)
+        elif key == "prayer_preparation":
+            current = sw.get(key) if isinstance(sw.get(key), dict) else {}
+            merged = copy.deepcopy(template)
+            if isinstance(current, dict):
+                merged = _normalize_prayer_preparation({**merged, **current})
+            if isinstance(data, dict):
+                # Mély merge: top-level + before/after részleges frissítés
+                for top_key, top_val in data.items():
+                    if top_key in ("before", "after") and isinstance(top_val, dict):
+                        side = dict(merged.get(top_key) or {})
+                        side.update(top_val)
+                        merged[top_key] = side
+                    elif top_key in merged or top_key in (
+                        "before_suggestions",
+                        "after_suggestions",
+                        "assessment",
+                        "tone_preference",
+                        "general_focus",
+                        "rewrite_mode",
+                        "status",
+                        "last_generated_at",
+                    ):
+                        merged[top_key] = top_val
+            sw[key] = _normalize_prayer_preparation(merged)
         else:
             # Merge: meglévő + új mezők
             current = sw.get(key) if isinstance(sw.get(key), dict) else {}
@@ -1073,6 +1237,54 @@ def save_lection_assessment(
     return sw
 
 
+def save_prayer_before_suggestions(
+    session_state: MutableMapping[str, Any],
+    payload: dict[str, Any],
+    *,
+    stamp_generated_at: bool = True,
+) -> dict[str, Any]:
+    """Tartós M9 előtti imaív javaslat mentése."""
+    sw = ensure_sermon_workshop_state(session_state)
+    prep = _normalize_prayer_preparation(sw.get("prayer_preparation"))
+    prep["before_suggestions"] = dict(payload) if isinstance(payload, dict) else None
+    if stamp_generated_at:
+        prep["last_generated_at"] = datetime.now().isoformat(timespec="seconds")
+    sw["prayer_preparation"] = prep
+    return sw
+
+
+def save_prayer_after_suggestions(
+    session_state: MutableMapping[str, Any],
+    payload: dict[str, Any],
+    *,
+    stamp_generated_at: bool = True,
+) -> dict[str, Any]:
+    """Tartós M9 utáni imaív javaslat mentése."""
+    sw = ensure_sermon_workshop_state(session_state)
+    prep = _normalize_prayer_preparation(sw.get("prayer_preparation"))
+    prep["after_suggestions"] = dict(payload) if isinstance(payload, dict) else None
+    if stamp_generated_at:
+        prep["last_generated_at"] = datetime.now().isoformat(timespec="seconds")
+    sw["prayer_preparation"] = prep
+    return sw
+
+
+def save_prayer_assessment(
+    session_state: MutableMapping[str, Any],
+    payload: dict[str, Any],
+    *,
+    stamp_generated_at: bool = True,
+) -> dict[str, Any]:
+    """Tartós M9 imádsági terv értékelés mentése."""
+    sw = ensure_sermon_workshop_state(session_state)
+    prep = _normalize_prayer_preparation(sw.get("prayer_preparation"))
+    prep["assessment"] = dict(payload) if isinstance(payload, dict) else None
+    if stamp_generated_at:
+        prep["last_generated_at"] = datetime.now().isoformat(timespec="seconds")
+    sw["prayer_preparation"] = prep
+    return sw
+
+
 __all__ = [
     "SERMON_WORKSHOP_KEY",
     "get_default_sermon_workshop",
@@ -1097,6 +1309,9 @@ __all__ = [
     "normalize_lection_testament_preference",
     "normalize_lection_length_preference",
     "normalize_lection_connection_type",
+    "normalize_prayer_tone_preference",
+    "normalize_prayer_rewrite_mode",
+    "empty_prayer_side",
     "save_sermon_main_idea_suggestions",
     "save_sermon_main_idea_assessment",
     "save_human_condition_suggestion",
@@ -1114,4 +1329,7 @@ __all__ = [
     "save_homiletical_diagnostics",
     "save_lection_suggestions",
     "save_lection_assessment",
+    "save_prayer_before_suggestions",
+    "save_prayer_after_suggestions",
+    "save_prayer_assessment",
 ]

@@ -43,6 +43,9 @@ from sermon_workshop_data import (
     save_homiletical_diagnostics,
     save_lection_assessment,
     save_lection_suggestions,
+    save_prayer_after_suggestions,
+    save_prayer_assessment,
+    save_prayer_before_suggestions,
     save_sermon_enrichment_assessment,
     save_sermon_enrichment_suggestions,
     save_sermon_main_idea_assessment,
@@ -50,6 +53,8 @@ from sermon_workshop_data import (
     save_sermon_path_assessment,
     save_sermon_path_suggestions,
     update_sermon_workshop_section,
+    normalize_prayer_rewrite_mode,
+    normalize_prayer_tone_preference,
 )
 from sermon_workshop_m4_ai import (
     HumanConditionAssessmentResult,
@@ -160,6 +165,20 @@ from sermon_workshop_m9_lection_ai import (
     suggest_lections,
     validate_lection_reference,
 )
+from sermon_workshop_m9_prayer_ai import (
+    PRAYER_REWRITE_MODES,
+    PRAYER_REWRITE_MODE_LABELS_HU,
+    PRAYER_TONE_PREFERENCES,
+    PRAYER_TONE_PREFERENCE_LABELS_HU,
+    PrayerArcSuggestionResult,
+    PrayerAssessmentResult,
+    assess_prayer_preparation,
+    integrate_prayer_thoughts,
+    prayer_rewrite_mode_label,
+    prayer_tone_preference_label,
+    suggest_prayer_after,
+    suggest_prayer_before,
+)
 from textus_workshop_data import ensure_text_workshop_state
 
 GenerateFn = Callable[..., str]
@@ -174,6 +193,7 @@ _SW_SECTION_OPTIONS = [
     "Lezárás és megérkezés",
     "Homiletikai diagnosztika",
     "Lekciójavaslat",
+    "Imádsági előkészítés",
 ]
 
 _SW_SECTION_PLACEHOLDERS: dict[str, dict[str, str]] = {}
@@ -203,6 +223,9 @@ _SW_NEXT_HINTS: dict[str, str] = {
     "Homiletikai diagnosztika": (
         "Következő ajánlott lépés: Lekciójavaslat"
     ),
+    "Lekciójavaslat": (
+        "Következő ajánlott lépés: Imádsági előkészítés"
+    ),
 }
 
 _STATUS_LABELS = {
@@ -218,6 +241,7 @@ _SOURCE_PATH = "Az igehirdetés útja és mozgásai"
 _SOURCE_ENRICHMENT = "Képek, illusztrációk és alkalmazás"
 _SOURCE_CLOSING = "Lezárás és megérkezés"
 _SOURCE_LECTION = "Lekciójavaslat"
+_SOURCE_PRAYER = "Imádsági előkészítés"
 _CAT_MAIN_IDEA = "Fő gondolat"
 
 _HC_FIELDS = [
@@ -411,6 +435,7 @@ _ADOPT_EN_APPS_PENDING = "_sw_en_adopt_apps_pending"
 _ADOPT_CL_PENDING = "_sw_cl_adopt_pending"
 _ADOPT_LECTION_PENDING = "_sw_lection_adopt_pending"
 _LECTION_RUF_PENDING = "_sw_lection_ruf_pending"
+_ADOPT_PRAYER_PENDING = "_sw_prayer_adopt_pending"
 _KEY_DIAG = {
     "self_review_strengths": "sw_diag_self_strengths",
     "self_review_uncertainties": "sw_diag_self_uncertainties",
@@ -440,6 +465,29 @@ _KEY_LECTION = {
 DEFAULT_LECTION_CONNECTION_UI = "thematic"
 DEFAULT_LECTION_TESTAMENT_UI = "any"
 DEFAULT_LECTION_LENGTH_UI = "standard"
+_KEY_PRAYER_COMMON = {
+    "tone_preference": "sw_prayer_tone",
+    "general_focus": "sw_prayer_general_focus",
+    "rewrite_mode": "sw_prayer_rewrite_mode",
+}
+_KEY_PRAYER_BEFORE = {
+    "own_thoughts": "sw_prayer_before_own_thoughts",
+    "purpose": "sw_prayer_before_purpose",
+    "movement_notes": "sw_prayer_before_movement_notes",
+    "selected_opening": "sw_prayer_before_selected_opening",
+    "selected_lines": "sw_prayer_before_selected_lines",
+    "closing_direction": "sw_prayer_before_closing_direction",
+}
+_KEY_PRAYER_AFTER = {
+    "own_thoughts": "sw_prayer_after_own_thoughts",
+    "purpose": "sw_prayer_after_purpose",
+    "movement_notes": "sw_prayer_after_movement_notes",
+    "selected_opening": "sw_prayer_after_selected_opening",
+    "selected_lines": "sw_prayer_after_selected_lines",
+    "closing_direction": "sw_prayer_after_closing_direction",
+}
+DEFAULT_PRAYER_TONE_UI = "mixed"
+DEFAULT_PRAYER_REWRITE_UI = "integrate_into_arc"
 _CL_FIELDS = (
     ("type", "Lezárás iránya", "", False),
     (
@@ -717,6 +765,39 @@ def _apply_pending_adopts_if_needed() -> None:
                     continue
                 st.session_state[wkey] = suggested
         _persist_lection_from_widgets(include_text=False)
+
+    pending_prayer = st.session_state.pop(_ADOPT_PRAYER_PENDING, None)
+    if isinstance(pending_prayer, dict):
+        side = str(pending_prayer.get("side") or "before").strip()
+        keys = _KEY_PRAYER_BEFORE if side != "after" else _KEY_PRAYER_AFTER
+        if "purpose" in pending_prayer:
+            val = str(pending_prayer.get("purpose") or "").strip()
+            if val:
+                st.session_state[keys["purpose"]] = val
+        if "movement_notes" in pending_prayer:
+            val = str(pending_prayer.get("movement_notes") or "").strip()
+            if val:
+                st.session_state[keys["movement_notes"]] = val
+        if "selected_opening" in pending_prayer:
+            val = str(pending_prayer.get("selected_opening") or "").strip()
+            if val:
+                st.session_state[keys["selected_opening"]] = val
+        if "closing_direction" in pending_prayer:
+            val = str(pending_prayer.get("closing_direction") or "").strip()
+            if val:
+                st.session_state[keys["closing_direction"]] = val
+        append_line = str(pending_prayer.get("append_line") or "").strip()
+        if append_line:
+            current = str(st.session_state.get(keys["selected_lines"]) or "")
+            lines = [
+                ln.strip()
+                for ln in current.replace("\r\n", "\n").split("\n")
+                if ln.strip()
+            ]
+            if append_line not in lines:
+                lines.append(append_line)
+            st.session_state[keys["selected_lines"]] = "\n".join(lines)
+        _persist_prayer_from_widgets()
 
 
 def _en_widget_key(prefix: str, item_id: str, field: str) -> str:
@@ -1273,6 +1354,42 @@ def _apply_sw_ui_resync_if_needed() -> None:
             else:
                 st.session_state[wkey] = str(lection.get(field) or "")
 
+    prep = (
+        sw.get("prayer_preparation")
+        if isinstance(sw.get("prayer_preparation"), dict)
+        else {}
+    )
+    for field, wkey in _KEY_PRAYER_COMMON.items():
+        if force or wkey not in st.session_state:
+            if field == "tone_preference":
+                st.session_state[wkey] = normalize_prayer_tone_preference(
+                    prep.get(field)
+                )
+            elif field == "rewrite_mode":
+                st.session_state[wkey] = normalize_prayer_rewrite_mode(
+                    prep.get(field)
+                )
+            else:
+                st.session_state[wkey] = str(prep.get(field) or "")
+    before = prep.get("before") if isinstance(prep.get("before"), dict) else {}
+    after = prep.get("after") if isinstance(prep.get("after"), dict) else {}
+    for side_data, key_map in (
+        (before, _KEY_PRAYER_BEFORE),
+        (after, _KEY_PRAYER_AFTER),
+    ):
+        for field, wkey in key_map.items():
+            if force or wkey not in st.session_state:
+                if field == "selected_lines":
+                    lines = side_data.get("selected_lines")
+                    if isinstance(lines, list):
+                        st.session_state[wkey] = "\n".join(
+                            str(x).strip() for x in lines if str(x).strip()
+                        )
+                    else:
+                        st.session_state[wkey] = str(lines or "")
+                else:
+                    st.session_state[wkey] = str(side_data.get(field) or "")
+
 
 def _request_adopt_sermon_sentence(sentence: str) -> None:
     st.session_state[_ADOPT_SERMON_PENDING] = str(sentence or "").strip()
@@ -1568,6 +1685,75 @@ def _persist_lection_from_widgets(*, include_text: bool = True) -> None:
         ):
             block[meta] = str(current.get(meta) or "")
     update_sermon_workshop_section(st.session_state, "lection", block)
+
+
+def _lines_from_widget(raw: Any) -> list[str]:
+    text = str(raw or "").replace("\r\n", "\n").replace("\r", "\n")
+    return [ln.strip() for ln in text.split("\n") if ln.strip()]
+
+
+def _read_prayer_side_from_widgets(key_map: dict[str, str]) -> dict[str, Any]:
+    return {
+        "own_thoughts": (st.session_state.get(key_map["own_thoughts"]) or "").strip(),
+        "purpose": (st.session_state.get(key_map["purpose"]) or "").strip(),
+        "movement_notes": (
+            st.session_state.get(key_map["movement_notes"]) or ""
+        ).strip(),
+        "selected_opening": (
+            st.session_state.get(key_map["selected_opening"]) or ""
+        ).strip(),
+        "selected_lines": _lines_from_widget(
+            st.session_state.get(key_map["selected_lines"])
+        ),
+        "closing_direction": (
+            st.session_state.get(key_map["closing_direction"]) or ""
+        ).strip(),
+    }
+
+
+def _read_prayer_from_widgets() -> dict[str, Any]:
+    sw = ensure_sermon_workshop_state(st.session_state)
+    prep = (
+        sw.get("prayer_preparation")
+        if isinstance(sw.get("prayer_preparation"), dict)
+        else {}
+    )
+    before = _read_prayer_side_from_widgets(_KEY_PRAYER_BEFORE)
+    after = _read_prayer_side_from_widgets(_KEY_PRAYER_AFTER)
+    before["status"] = str(
+        (prep.get("before") or {}).get("status")
+        if isinstance(prep.get("before"), dict)
+        else "draft"
+    ) or "draft"
+    after["status"] = str(
+        (prep.get("after") or {}).get("status")
+        if isinstance(prep.get("after"), dict)
+        else "draft"
+    ) or "draft"
+    return {
+        "tone_preference": normalize_prayer_tone_preference(
+            st.session_state.get(_KEY_PRAYER_COMMON["tone_preference"])
+        ),
+        "general_focus": (
+            st.session_state.get(_KEY_PRAYER_COMMON["general_focus"]) or ""
+        ).strip(),
+        "rewrite_mode": normalize_prayer_rewrite_mode(
+            st.session_state.get(_KEY_PRAYER_COMMON["rewrite_mode"])
+        ),
+        "before": before,
+        "after": after,
+        "before_suggestions": prep.get("before_suggestions"),
+        "after_suggestions": prep.get("after_suggestions"),
+        "assessment": prep.get("assessment"),
+        "status": str(prep.get("status") or "draft"),
+        "last_generated_at": str(prep.get("last_generated_at") or ""),
+    }
+
+
+def _persist_prayer_from_widgets() -> None:
+    update_sermon_workshop_section(
+        st.session_state, "prayer_preparation", _read_prayer_from_widgets()
+    )
 
 
 def _collect_closing_kwargs() -> dict[str, Any]:
@@ -2454,6 +2640,636 @@ def render_lection_section(
 
     st.markdown("---")
     _render_lection_reader()
+
+
+def _request_adopt_prayer(payload: dict[str, Any]) -> None:
+    st.session_state[_ADOPT_PRAYER_PENDING] = dict(payload or {})
+    st.rerun()
+
+
+def _collect_prayer_kwargs() -> dict[str, Any]:
+    base = _collect_closing_kwargs()
+    live = _read_prayer_from_widgets()
+    base["tone_preference"] = live.get("tone_preference") or "mixed"
+    base["general_focus"] = live.get("general_focus") or ""
+    base["rewrite_mode"] = live.get("rewrite_mode") or "integrate_into_arc"
+    base["prayer_before"] = live.get("before") or {}
+    base["prayer_after"] = live.get("after") or {}
+    return base
+
+
+def _run_prayer_before_suggest(*, generate_fn: GenerateFn | None) -> None:
+    _persist_prayer_from_widgets()
+    with st.spinner("Igehirdetés előtti imaív készül…"):
+        kwargs = _collect_prayer_kwargs()
+        result = suggest_prayer_before(**kwargs, generate_fn=generate_fn)
+        save_prayer_before_suggestions(st.session_state, result.to_dict())
+        if not result.ok:
+            st.error(
+                _user_facing_error(
+                    result.ok,
+                    result.error_message,
+                    fallback="A javaslatkészítés nem sikerült.",
+                )
+            )
+        elif result.missing_information and not (
+            result.recommended_movements or result.suggested_lines
+        ):
+            st.warning(
+                "Nincs elegendő adat. Hiányzik: "
+                + "; ".join(result.missing_information)
+            )
+        else:
+            st.success("Előtti imaív javaslat elkészült.")
+
+
+def _run_prayer_after_suggest(*, generate_fn: GenerateFn | None) -> None:
+    _persist_prayer_from_widgets()
+    with st.spinner("Igehirdetés utáni imaív készül…"):
+        kwargs = _collect_prayer_kwargs()
+        result = suggest_prayer_after(**kwargs, generate_fn=generate_fn)
+        save_prayer_after_suggestions(st.session_state, result.to_dict())
+        if not result.ok:
+            st.error(
+                _user_facing_error(
+                    result.ok,
+                    result.error_message,
+                    fallback="A javaslatkészítés nem sikerült.",
+                )
+            )
+        elif result.missing_information and not (
+            result.recommended_movements or result.suggested_lines
+        ):
+            st.warning(
+                "Nincs elegendő adat. Hiányzik: "
+                + "; ".join(result.missing_information)
+            )
+        else:
+            st.success("Utáni imaív javaslat elkészült.")
+
+
+def _run_prayer_integrate(
+    *,
+    side: str,
+    generate_fn: GenerateFn | None,
+) -> None:
+    _persist_prayer_from_widgets()
+    label = "előtti" if side != "after" else "utáni"
+    with st.spinner(f"Saját {label} gondolatok beépítése…"):
+        kwargs = _collect_prayer_kwargs()
+        result = integrate_prayer_thoughts(
+            **kwargs, side=side, generate_fn=generate_fn
+        )
+        if side != "after":
+            save_prayer_before_suggestions(st.session_state, result.to_dict())
+        else:
+            save_prayer_after_suggestions(st.session_state, result.to_dict())
+        if not result.ok:
+            st.error(
+                _user_facing_error(
+                    result.ok,
+                    result.error_message,
+                    fallback="A beépítés nem sikerült.",
+                )
+            )
+        else:
+            st.success(f"Saját {label} gondolatok beépítve (javaslatként).")
+
+
+def _run_prayer_assess(*, generate_fn: GenerateFn | None) -> None:
+    _persist_prayer_from_widgets()
+    with st.spinner("Imádsági terv értékelése…"):
+        kwargs = _collect_prayer_kwargs()
+        result = assess_prayer_preparation(**kwargs, generate_fn=generate_fn)
+        save_prayer_assessment(st.session_state, result.to_dict())
+        if not result.ok:
+            st.error(
+                _user_facing_error(
+                    result.ok,
+                    result.error_message,
+                    fallback="Az értékelés nem sikerült.",
+                )
+            )
+        else:
+            st.success("Értékelés elkészült.")
+
+
+def _render_prayer_side_fields(
+    *,
+    title: str,
+    key_map: dict[str, str],
+    purpose_help: str,
+) -> None:
+    st.markdown(f"**{title}**")
+    st.markdown("**Saját imádsági gondolataim**")
+    st.caption("Opcionális — töredékesen is írható.")
+    st.text_area(
+        f"{title} — saját gondolatok",
+        key=key_map["own_thoughts"],
+        height=90,
+        label_visibility="collapsed",
+    )
+    st.markdown("**Az imádság célja**")
+    st.caption(purpose_help)
+    st.text_area(
+        f"{title} — cél",
+        key=key_map["purpose"],
+        height=70,
+        label_visibility="collapsed",
+    )
+    st.markdown("**Imaív**")
+    st.caption("3–6 rövid mozzanat kézzel is rögzíthető.")
+    st.text_area(
+        f"{title} — imaív",
+        key=key_map["movement_notes"],
+        height=100,
+        label_visibility="collapsed",
+    )
+    st.markdown("**Kiválasztott imaindítás**")
+    st.text_input(
+        f"{title} — indítás",
+        key=key_map["selected_opening"],
+        label_visibility="collapsed",
+    )
+    st.markdown("**Kiválasztott mondatmagok**")
+    st.caption("Soronként egy mondatmag — az MI-javaslatokból is átvehetők.")
+    st.text_area(
+        f"{title} — mondatmagok",
+        key=key_map["selected_lines"],
+        height=110,
+        label_visibility="collapsed",
+    )
+    st.markdown("**Záró irány**")
+    st.text_area(
+        f"{title} — záró irány",
+        key=key_map["closing_direction"],
+        height=60,
+        label_visibility="collapsed",
+    )
+
+
+def _render_prayer_arc_result(
+    data: dict[str, Any] | None,
+    *,
+    side: str,
+    heading: str,
+) -> None:
+    if not isinstance(data, dict):
+        return
+    if data.get("ok") is False and not (
+        data.get("recommended_movements") or data.get("suggested_lines")
+    ):
+        err = str(data.get("error_message") or "").strip()
+        if err:
+            st.error(err)
+        return
+
+    movements = (
+        data.get("recommended_movements")
+        if isinstance(data.get("recommended_movements"), list)
+        else []
+    )
+    openings = (
+        data.get("opening_options")
+        if isinstance(data.get("opening_options"), list)
+        else []
+    )
+    lines = (
+        data.get("suggested_lines")
+        if isinstance(data.get("suggested_lines"), list)
+        else []
+    )
+    purpose = str(data.get("purpose") or "").strip()
+    closing_dir = str(data.get("closing_direction") or "").strip()
+    if not (movements or lines or purpose or openings):
+        missing = (
+            data.get("missing_information")
+            if isinstance(data.get("missing_information"), list)
+            else []
+        )
+        if missing:
+            st.info("Hiányzó információ: " + "; ".join(str(x) for x in missing if x))
+        return
+
+    st.markdown(f"**{heading}**")
+    if purpose:
+        st.markdown(f"**Javasolt cél:** {purpose}")
+
+    if movements:
+        st.markdown("**Javasolt imaív**")
+        for idx, mov in enumerate(movements, start=1):
+            if not isinstance(mov, dict):
+                continue
+            title = str(mov.get("title") or "").strip()
+            fn = str(mov.get("function") or "").strip()
+            direction = str(mov.get("content_direction") or "").strip()
+            label = title or f"Mozzanat {idx}"
+            extra = f" ({fn})" if fn else ""
+            st.markdown(f"{idx}. **{label}**{extra}")
+            if direction:
+                st.caption(direction)
+
+    if openings:
+        st.markdown("**Eltérő imaindítások**")
+        for idx, opening in enumerate(openings, start=1):
+            text = str(opening or "").strip()
+            if not text:
+                continue
+            st.write(text)
+            if st.button(
+                "Átveszem ezt az indítást",
+                key=f"sw_prayer_{side}_open_{idx}",
+            ):
+                _request_adopt_prayer(
+                    {"side": side, "selected_opening": text}
+                )
+
+    if lines:
+        st.markdown("**Mondatmagok**")
+        for idx, line in enumerate(lines, start=1):
+            text = str(line or "").strip()
+            if not text:
+                continue
+            st.write(text)
+            if st.button(
+                "Átveszem ezt a mondatmagot",
+                key=f"sw_prayer_{side}_line_{idx}",
+            ):
+                _request_adopt_prayer({"side": side, "append_line": text})
+
+    integrated = (
+        data.get("integrated_user_thoughts")
+        if isinstance(data.get("integrated_user_thoughts"), list)
+        else []
+    )
+    if integrated:
+        st.markdown("**Saját gondolatok finomított beépítése**")
+        for item in integrated:
+            if not isinstance(item, dict):
+                continue
+            original = str(item.get("original") or "").strip()
+            refined = str(item.get("refined") or "").strip()
+            placement = str(item.get("placement") or "").strip()
+            if refined:
+                st.write(refined)
+            if original and original != refined:
+                st.caption(f"Eredeti: {original}")
+            if placement:
+                st.caption(f"Hely: {placement}")
+            if refined and st.button(
+                "Átveszem a finomított mondatot",
+                key=f"sw_prayer_{side}_int_{hash((original, refined)) % 10_000}",
+            ):
+                _request_adopt_prayer({"side": side, "append_line": refined})
+
+    notes = data.get("language_notes") if isinstance(data.get("language_notes"), list) else []
+    if notes:
+        st.markdown("**Nyelvi megjegyzések**")
+        for n in notes:
+            if str(n).strip():
+                st.caption(f"• {n}")
+
+    cliches = data.get("cliche_risks") if isinstance(data.get("cliche_risks"), list) else []
+    if cliches:
+        st.markdown("**Sablonossági kockázatok**")
+        for c in cliches:
+            if str(c).strip():
+                st.warning(str(c))
+
+    if movements or purpose or closing_dir:
+        if st.button("Átveszem az imaívet", key=f"sw_prayer_{side}_adopt_arc"):
+            notes_lines: list[str] = []
+            for mov in movements:
+                if not isinstance(mov, dict):
+                    continue
+                title = str(mov.get("title") or "").strip()
+                direction = str(mov.get("content_direction") or "").strip()
+                if title and direction:
+                    notes_lines.append(f"{title}: {direction}")
+                elif title:
+                    notes_lines.append(title)
+                elif direction:
+                    notes_lines.append(direction)
+            payload: dict[str, Any] = {"side": side}
+            if purpose:
+                payload["purpose"] = purpose
+            if notes_lines:
+                payload["movement_notes"] = "\n".join(notes_lines)
+            if closing_dir:
+                payload["closing_direction"] = closing_dir
+            if openings:
+                first_open = str(openings[0] or "").strip()
+                if first_open:
+                    payload["selected_opening"] = first_open
+            _request_adopt_prayer(payload)
+
+    with st.expander("Mi alapján készült?", expanded=False):
+        st.caption(
+            "Az imaív a textushoz és a műhelyanyaghoz kötődik; "
+            "nem teljes imádság."
+        )
+        missing = (
+            data.get("missing_information")
+            if isinstance(data.get("missing_information"), list)
+            else []
+        )
+        if missing:
+            st.caption("Hiányzó: " + "; ".join(str(x) for x in missing if x))
+
+    warnings = data.get("warnings") if isinstance(data.get("warnings"), list) else []
+    for w in warnings:
+        if str(w).strip():
+            st.warning(str(w))
+
+
+def _render_prayer_assessment() -> None:
+    sw = ensure_sermon_workshop_state(st.session_state)
+    prep = (
+        sw.get("prayer_preparation")
+        if isinstance(sw.get("prayer_preparation"), dict)
+        else {}
+    )
+    data = prep.get("assessment")
+    if not isinstance(data, dict):
+        return
+    if data.get("ok") is False and not str(data.get("overall_assessment") or "").strip():
+        err = str(data.get("error_message") or "").strip()
+        if err:
+            st.error(err)
+        return
+    overall = str(data.get("overall_assessment") or "").strip()
+    if not overall and not data.get("strengths"):
+        return
+    st.markdown("**Imádsági terv értékelése**")
+    if overall:
+        st.write(overall)
+    before_a = str(data.get("before_assessment") or "").strip()
+    after_a = str(data.get("after_assessment") or "").strip()
+    if before_a:
+        st.markdown(f"**Előtti:** {before_a}")
+    if after_a:
+        st.markdown(f"**Utáni:** {after_a}")
+    for label, key in (
+        ("Erősségek", "strengths"),
+        ("Javítási lehetőségek", "improvements"),
+        ("Sablonosság", "cliche_findings"),
+    ):
+        items = data.get(key) if isinstance(data.get(key), list) else []
+        if items:
+            st.markdown(f"**{label}**")
+            for item in items:
+                if str(item).strip():
+                    st.caption(f"• {item}")
+    for label, key in (
+        ("Textuskötöttség", "text_connection_assessment"),
+        ("Saját hang", "voice_assessment"),
+    ):
+        val = str(data.get(key) or "").strip()
+        if val:
+            st.markdown(f"**{label}:** {val}")
+    revised_shown = False
+    for label, key in (
+        ("Javasolt előtti mozzanatok", "revised_before_movements"),
+        ("Javasolt előtti mondatmagok", "revised_before_lines"),
+        ("Javasolt utáni mozzanatok", "revised_after_movements"),
+        ("Javasolt utáni mondatmagok", "revised_after_lines"),
+    ):
+        items = data.get(key) if isinstance(data.get(key), list) else []
+        if not items:
+            continue
+        if not revised_shown:
+            st.caption("Javítási javaslatok (nem írják felül automatikusan):")
+            revised_shown = True
+        st.markdown(f"**{label}**")
+        for item in items:
+            if isinstance(item, dict):
+                title = str(item.get("title") or "").strip()
+                direction = str(item.get("content_direction") or "").strip()
+                st.caption(f"• {title}: {direction}" if title else f"• {direction}")
+            elif str(item).strip():
+                st.caption(f"• {item}")
+    warnings = data.get("warnings") if isinstance(data.get("warnings"), list) else []
+    for w in warnings:
+        if str(w).strip():
+            st.warning(str(w))
+
+
+def render_prayer_section(
+    *,
+    generate_fn: GenerateFn | None = None,
+) -> None:
+    """Imádsági előkészítés — előtti/utáni imaív, saját gondolatok, MI-segéd."""
+    _apply_pending_adopts_if_needed()
+    _apply_sw_ui_resync_if_needed()
+    ensure_sermon_workshop_state(st.session_state)
+
+    st.subheader("Imádsági előkészítés")
+    st.markdown(
+        "Az alkalmazás nem kész imádságot ír, hanem segít kialakítani az "
+        "imádság ívét, változatos mondatmagokat kínál, és beépíti a saját "
+        "imádsági gondolataidat."
+    )
+
+    sw = ensure_sermon_workshop_state(st.session_state)
+    prep = (
+        sw.get("prayer_preparation")
+        if isinstance(sw.get("prayer_preparation"), dict)
+        else {}
+    )
+    status = str(prep.get("status") or "draft").strip()
+    st.caption(f"Állapot: {_STATUS_LABELS.get(status, status)}")
+
+    st.markdown("**Közös hangoltság és külön fókusz**")
+    st.selectbox(
+        "Imádsági hangoltság",
+        options=list(PRAYER_TONE_PREFERENCES),
+        format_func=lambda v: PRAYER_TONE_PREFERENCE_LABELS_HU.get(v, str(v)),
+        key=_KEY_PRAYER_COMMON["tone_preference"],
+    )
+    st.selectbox(
+        "Saját gondolatok átalakítási módja",
+        options=list(PRAYER_REWRITE_MODES),
+        format_func=lambda v: PRAYER_REWRITE_MODE_LABELS_HU.get(v, str(v)),
+        key=_KEY_PRAYER_COMMON["rewrite_mode"],
+    )
+    st.markdown("**Külön hangsúly**")
+    st.caption(
+        "Van-e külön gyülekezeti, liturgiai vagy lelkipásztori hangsúly, "
+        "amelynek meg kell jelennie az imádságban?"
+    )
+    st.text_area(
+        "Külön hangsúly",
+        key=_KEY_PRAYER_COMMON["general_focus"],
+        height=70,
+        label_visibility="collapsed",
+    )
+
+    st.markdown("---")
+    _render_prayer_side_fields(
+        title="Igehirdetés előtti imádság",
+        key_map=_KEY_PRAYER_BEFORE,
+        purpose_help="Mit szeretnél kérni Istentől az Ige hallása előtt?",
+    )
+    st.markdown("---")
+    _render_prayer_side_fields(
+        title="Igehirdetés utáni imádság",
+        key_map=_KEY_PRAYER_AFTER,
+        purpose_help=(
+            "Milyen válaszra, hálaadásra, bűnvallásra vagy kérésre vezessen "
+            "a hallott Ige?"
+        ),
+    )
+
+    b1, b2 = st.columns(2)
+    with b1:
+        if st.button("Mentés vázlatként", key="sw_prayer_save_draft"):
+            block = _read_prayer_from_widgets()
+            before = block.get("before") if isinstance(block.get("before"), dict) else {}
+            after = block.get("after") if isinstance(block.get("after"), dict) else {}
+            filled = any(
+                before.get(k) or after.get(k)
+                for k in (
+                    "own_thoughts",
+                    "purpose",
+                    "movement_notes",
+                    "selected_opening",
+                    "closing_direction",
+                )
+            ) or bool(before.get("selected_lines")) or bool(after.get("selected_lines")) or bool(
+                block.get("general_focus")
+            )
+            if not filled:
+                st.warning("Üres mezőket nem lehet menteni. Tölts ki legalább egyet.")
+            else:
+                block["status"] = "draft"
+                update_sermon_workshop_section(
+                    st.session_state, "prayer_preparation", block
+                )
+                st.success("Vázlatként elmentve.")
+    with b2:
+        if st.button(
+            "Jóváhagyom és továbbviszem",
+            type="primary",
+            key="sw_prayer_approve",
+        ):
+            block = _read_prayer_from_widgets()
+            before = block.get("before") if isinstance(block.get("before"), dict) else {}
+            after = block.get("after") if isinstance(block.get("after"), dict) else {}
+            if not (
+                before.get("purpose")
+                or before.get("movement_notes")
+                or after.get("purpose")
+                or after.get("movement_notes")
+            ):
+                st.warning(
+                    "Jóváhagyáshoz legyen legalább egy cél vagy imaív "
+                    "(előtti vagy utáni)."
+                )
+            else:
+                before["status"] = "approved"
+                after["status"] = "approved"
+                block["before"] = before
+                block["after"] = after
+                block["status"] = "approved"
+                update_sermon_workshop_section(
+                    st.session_state, "prayer_preparation", block
+                )
+                decisions = [
+                    (
+                        "tone",
+                        "Imádsági hangoltság",
+                        prayer_tone_preference_label(block.get("tone_preference")),
+                    ),
+                    (
+                        "before_purpose",
+                        "Előtti ima célja",
+                        str(before.get("purpose") or ""),
+                    ),
+                    (
+                        "after_purpose",
+                        "Utáni ima célja",
+                        str(after.get("purpose") or ""),
+                    ),
+                ]
+                added = 0
+                skipped = 0
+                for _field, category, content in decisions:
+                    if not content:
+                        continue
+                    if _decision_is_duplicate(
+                        source_section=_SOURCE_PRAYER,
+                        category=category,
+                        content=content,
+                    ):
+                        skipped += 1
+                        continue
+                    add_approved_sermon_decision(
+                        st.session_state,
+                        _SOURCE_PRAYER,
+                        category,
+                        content,
+                    )
+                    added += 1
+                if added:
+                    st.success(f"Jóváhagyva ({added} döntés).")
+                elif skipped:
+                    st.info("Ezek a döntések már szerepelnek.")
+                else:
+                    st.warning("Nem volt menthető tartalom.")
+
+    _render_decisions_for_section(_SOURCE_PRAYER)
+
+    st.markdown("---")
+    st.markdown("**MI-segéd**")
+    mi1, mi2 = st.columns(2)
+    with mi1:
+        if st.button(
+            "Igehirdetés előtti imaív javaslata",
+            key="sw_prayer_mi_before",
+        ):
+            _run_prayer_before_suggest(generate_fn=generate_fn)
+    with mi2:
+        if st.button(
+            "Igehirdetés utáni imaív javaslata",
+            key="sw_prayer_mi_after",
+        ):
+            _run_prayer_after_suggest(generate_fn=generate_fn)
+
+    st.markdown("**Saját gondolatok beépítése**")
+    int1, int2 = st.columns(2)
+    with int1:
+        if st.button(
+            "Előtti gondolatok beépítése",
+            key="sw_prayer_mi_int_before",
+        ):
+            _run_prayer_integrate(side="before", generate_fn=generate_fn)
+    with int2:
+        if st.button(
+            "Utáni gondolatok beépítése",
+            key="sw_prayer_mi_int_after",
+        ):
+            _run_prayer_integrate(side="after", generate_fn=generate_fn)
+
+    if st.button("Imádsági terv értékelése", key="sw_prayer_mi_assess"):
+        _run_prayer_assess(generate_fn=generate_fn)
+
+    prep = ensure_sermon_workshop_state(st.session_state).get("prayer_preparation")
+    prep = prep if isinstance(prep, dict) else {}
+    _render_prayer_arc_result(
+        prep.get("before_suggestions")
+        if isinstance(prep.get("before_suggestions"), dict)
+        else None,
+        side="before",
+        heading="MI-javaslat — igehirdetés előtti imádság",
+    )
+    _render_prayer_arc_result(
+        prep.get("after_suggestions")
+        if isinstance(prep.get("after_suggestions"), dict)
+        else None,
+        side="after",
+        heading="MI-javaslat — igehirdetés utáni imádság",
+    )
+    _render_prayer_assessment()
 
 
 def _request_adopt_closing_block(block: dict[str, str]) -> None:
@@ -6401,6 +7217,8 @@ def render_sermon_workshop_shell(
         render_diagnostics_section(generate_fn=generate_fn)
     elif active == "Lekciójavaslat":
         render_lection_section(generate_fn=generate_fn)
+    elif active == "Imádsági előkészítés":
+        render_prayer_section(generate_fn=generate_fn)
     else:
         _render_section_placeholder(active)
 
@@ -6414,6 +7232,7 @@ def render_sermon_workshop_shell(
         "Lezárás és megérkezés",
         "Homiletikai diagnosztika",
         "Lekciójavaslat",
+        "Imádsági előkészítés",
     ):
         next_hint = _SW_NEXT_HINTS.get(active)
         if next_hint:
@@ -6421,6 +7240,8 @@ def render_sermon_workshop_shell(
     elif active == "Az igehirdetés fő gondolata":
         st.caption(_SW_NEXT_HINTS[active])
     elif active == "Homiletikai diagnosztika":
+        st.caption(_SW_NEXT_HINTS[active])
+    elif active == "Lekciójavaslat":
         st.caption(_SW_NEXT_HINTS[active])
 
 
@@ -6435,4 +7256,5 @@ __all__ = [
     "render_closing_section",
     "render_diagnostics_section",
     "render_lection_section",
+    "render_prayer_section",
 ]

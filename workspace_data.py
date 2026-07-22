@@ -204,6 +204,22 @@ EXCLUDED_SESSION_KEYS: frozenset[str] = frozenset(
         "sw_lection_user_focus",
         "_sw_lection_adopt_pending",
         "_sw_lection_ruf_pending",
+        "sw_prayer_tone",
+        "sw_prayer_general_focus",
+        "sw_prayer_rewrite_mode",
+        "sw_prayer_before_own_thoughts",
+        "sw_prayer_before_purpose",
+        "sw_prayer_before_movement_notes",
+        "sw_prayer_before_selected_opening",
+        "sw_prayer_before_selected_lines",
+        "sw_prayer_before_closing_direction",
+        "sw_prayer_after_own_thoughts",
+        "sw_prayer_after_purpose",
+        "sw_prayer_after_movement_notes",
+        "sw_prayer_after_selected_opening",
+        "sw_prayer_after_selected_lines",
+        "sw_prayer_after_closing_direction",
+        "_sw_prayer_adopt_pending",
     }
 )
 
