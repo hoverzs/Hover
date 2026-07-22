@@ -50,11 +50,10 @@ def get_default_sermon_workshop() -> dict[str, Any]:
             "promised_resolution": "",
         },
         "christ_centered_arc": {
-            "connection_type": "",
-            "connection": "",
-            "gospel_indicative": "",
-            "grace_before_demand": "",
-            "uncertainty_note": "",
+            "divine_gracious_action": "",
+            "christ_connection": "",
+            "christ_connection_type": "",
+            "grace_enabled_response": "",
         },
         "sermon_path": {
             "type": "",
@@ -82,6 +81,9 @@ def get_default_sermon_workshop() -> dict[str, Any]:
         "listener_tension_suggestions": None,
         "listener_tension_assessment": None,
         "m5_last_generated_at": "",
+        "gospel_arc_suggestions": None,
+        "gospel_arc_assessment": None,
+        "m5_gospel_arc_last_generated_at": "",
     }
 
 
@@ -221,6 +223,21 @@ def normalize_sermon_workshop(data: Any) -> dict[str, Any]:
             )
         ),
         "m5_last_generated_at": _as_str(data.get("m5_last_generated_at")),
+        "gospel_arc_suggestions": _normalize_optional_dict(
+            data.get(
+                "gospel_arc_suggestions",
+                base["gospel_arc_suggestions"],
+            )
+        ),
+        "gospel_arc_assessment": _normalize_optional_dict(
+            data.get(
+                "gospel_arc_assessment",
+                base["gospel_arc_assessment"],
+            )
+        ),
+        "m5_gospel_arc_last_generated_at": _as_str(
+            data.get("m5_gospel_arc_last_generated_at")
+        ),
     }
 
 
@@ -431,6 +448,38 @@ def save_listener_tension_assessment(
     return sw
 
 
+def save_gospel_arc_suggestions(
+    session_state: MutableMapping[str, Any],
+    payload: dict[str, Any],
+    *,
+    stamp_generated_at: bool = True,
+) -> dict[str, Any]:
+    """Tartós M5 evangéliumi ív javaslat mentése."""
+    sw = ensure_sermon_workshop_state(session_state)
+    sw["gospel_arc_suggestions"] = dict(payload) if isinstance(payload, dict) else None
+    if stamp_generated_at:
+        sw["m5_gospel_arc_last_generated_at"] = datetime.now().isoformat(
+            timespec="seconds"
+        )
+    return sw
+
+
+def save_gospel_arc_assessment(
+    session_state: MutableMapping[str, Any],
+    payload: dict[str, Any],
+    *,
+    stamp_generated_at: bool = True,
+) -> dict[str, Any]:
+    """Tartós M5 evangéliumi ív értékelés mentése."""
+    sw = ensure_sermon_workshop_state(session_state)
+    sw["gospel_arc_assessment"] = dict(payload) if isinstance(payload, dict) else None
+    if stamp_generated_at:
+        sw["m5_gospel_arc_last_generated_at"] = datetime.now().isoformat(
+            timespec="seconds"
+        )
+    return sw
+
+
 __all__ = [
     "SERMON_WORKSHOP_KEY",
     "get_default_sermon_workshop",
@@ -446,4 +495,6 @@ __all__ = [
     "save_human_condition_assessment",
     "save_listener_tension_suggestions",
     "save_listener_tension_assessment",
+    "save_gospel_arc_suggestions",
+    "save_gospel_arc_assessment",
 ]

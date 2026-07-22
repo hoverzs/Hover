@@ -15,6 +15,8 @@ from sermon_workshop_data import (
     add_approved_sermon_decision,
     ensure_sermon_workshop_state,
     remove_approved_sermon_decision,
+    save_gospel_arc_assessment,
+    save_gospel_arc_suggestions,
     save_human_condition_assessment,
     save_human_condition_suggestion,
     save_listener_tension_assessment,
@@ -39,6 +41,16 @@ from sermon_workshop_m5_ai import (
     assess_listener_tension,
     suggest_listener_tension,
 )
+from sermon_workshop_m5_gospel_ai import (
+    CHRIST_CONNECTION_TYPES,
+    CHRIST_CONNECTION_TYPE_LABELS_HU,
+    GospelArcAssessmentResult,
+    GospelArcSuggestionResult,
+    assess_gospel_arc,
+    christ_connection_type_label,
+    normalize_christ_connection_type,
+    suggest_gospel_arc,
+)
 from textus_workshop_data import ensure_text_workshop_state
 
 GenerateFn = Callable[..., str]
@@ -56,16 +68,6 @@ _SW_SECTION_OPTIONS = [
 ]
 
 _SW_SECTION_PLACEHOLDERS: dict[str, dict[str, str]] = {
-    "Krisztus-központú és evangéliumi ív": {
-        "goal": (
-            "Meghatározni, hogyan kapcsolódik a textus Krisztushoz "
-            "és az evangéliumhoz — erőltetés nélkül."
-        ),
-        "later": (
-            "Itt jelölöd a kapcsolattípust, a kegyelem elsőbbségét, "
-            "és a bizonytalanságot, ha a kapcsolat közvetett."
-        ),
-    },
     "A prédikáció útja": {
         "goal": (
             "Kiválasztani, hogyan haladjon a prédikáció "
@@ -147,6 +149,7 @@ _STATUS_LABELS = {
 _SOURCE_SERMON_MAIN = "Az igehirdetés fő gondolata"
 _SOURCE_HUMAN = "Emberi helyzet és kegyelmi válasz"
 _SOURCE_LISTENER = "Hallgatói kérdés és feszültség"
+_SOURCE_GOSPEL = "Krisztus-központú és evangéliumi ív"
 _CAT_MAIN_IDEA = "Fő gondolat"
 
 _HC_FIELDS = [
@@ -206,6 +209,66 @@ _LT_FIELDS = [
     ),
 ]
 
+_GA_TEXT_FIELDS = [
+    (
+        "divine_gracious_action",
+        "Isten kegyelmi cselekvése",
+        (
+            "Fogalmazd meg, mit tesz Isten a textusban, a textus ígéretében vagy a "
+            "teljes bibliai összefüggésben. Ne csak azt írd le, mit kell tennie az "
+            "embernek."
+        ),
+        "Isten nem hagyja magára a hitben megmaradásért küzdő gyülekezetet, "
+        "hanem szeretetével körülveszi és irgalmában megtartja.",
+        "Isten kegyelmi cselekvése",
+    ),
+    (
+        "christ_connection",
+        "Krisztus-kapcsolat",
+        (
+            "Fogalmazd meg, hogyan kapcsolódik a textus Krisztus személyéhez, "
+            "munkájához vagy evangéliumához. Ne erőltesd a közvetlen kapcsolatot, "
+            "ha a textus csak kánoni, üdvtörténeti vagy tematikus kapcsolatot "
+            "alapoz meg."
+        ),
+        "A megtartó szeretet Krisztusban válik személyessé a gyülekezet számára.",
+        "Krisztus-kapcsolat",
+    ),
+    (
+        "promised_resolution",
+        "Evangéliumi feloldás",
+        (
+            "Fogalmazd meg, hogyan válaszol Isten kegyelme a központi "
+            "feszültségre. Ez ne legyen olcsó megoldás vagy gyors vallásos válasz, "
+            "hanem a textusból és az evangéliumból fakadó valódi feloldás."
+        ),
+        "A romboló erők közepette Isten megtartó kegyelme ad valós reményt "
+        "a megmaradásra.",
+        "Evangéliumi feloldás",
+    ),
+    (
+        "grace_enabled_response",
+        "Kegyelemből fakadó válasz",
+        (
+            "Fogalmazd meg, milyen emberi válasz válik lehetővé Isten kegyelmi "
+            "cselekvése által. Ne puszta kötelességet vagy moralizáló felszólítást adj."
+        ),
+        "A gyülekezet hittel ragaszkodhat Krisztushoz, és egymást is építheti.",
+        "Kegyelemből fakadó válasz",
+    ),
+]
+
+_GA_TYPE_HELP = (
+    "Válaszd ki, milyen módon kapcsolódik a textus Krisztushoz. "
+    "A közvetett vagy kánoni kapcsolat nem alacsonyabb rendű a közvetlennél."
+)
+
+_CONFIDENCE_LABELS_HU = {
+    "high": "Magas bizonyosság",
+    "medium": "Közepes bizonyosság",
+    "low": "Alacsony bizonyosság / óvatosság",
+}
+
 _SERMON_ASSESSMENT_LABELS = [
     ("text_fidelity", "Textushűség"),
     ("hearability", "Hallhatóság"),
@@ -248,10 +311,18 @@ _KEY_LT = {
     "listener_resistance": "sw_lt_listener_resistance",
     "sermon_tension": "sw_lt_sermon_tension",
 }
+_KEY_GA = {
+    "divine_gracious_action": "sw_ga_divine_gracious_action",
+    "christ_connection": "sw_ga_christ_connection",
+    "christ_connection_type": "sw_ga_christ_connection_type",
+    "promised_resolution": "sw_ga_promised_resolution",
+    "grace_enabled_response": "sw_ga_grace_enabled_response",
+}
 _RESYNC_FLAG = "_sw_ui_resync"
 _ADOPT_SERMON_PENDING = "_sw_sermon_idea_adopt_pending"
 _ADOPT_HC_PENDING = "_sw_hc_adopt_pending"
 _ADOPT_LT_PENDING = "_sw_lt_adopt_pending"
+_ADOPT_GA_PENDING = "_sw_ga_adopt_pending"
 
 _HC_PROMPT_TO_UI = {
     "human_condition": "condition",
@@ -323,6 +394,48 @@ def _apply_pending_adopts_if_needed() -> None:
         block["promised_resolution"] = str(current.get("promised_resolution") or "")
         update_sermon_workshop_section(st.session_state, "listener_tension", block)
 
+    pending_ga = st.session_state.pop(_ADOPT_GA_PENDING, None)
+    if isinstance(pending_ga, dict):
+        for ui_key, wkey in _KEY_GA.items():
+            suggested = str(pending_ga.get(ui_key) or "").strip()
+            if not suggested:
+                continue
+            if ui_key == "christ_connection_type":
+                st.session_state[wkey] = normalize_christ_connection_type(suggested)
+            else:
+                st.session_state[wkey] = suggested
+        _persist_gospel_arc_from_widgets()
+
+
+def _persist_gospel_arc_from_widgets() -> None:
+    """Widgetek → christ_centered_arc + listener_tension.promised_resolution."""
+    sw = ensure_sermon_workshop_state(st.session_state)
+    arc = {
+        "divine_gracious_action": (
+            st.session_state.get(_KEY_GA["divine_gracious_action"]) or ""
+        ).strip(),
+        "christ_connection": (
+            st.session_state.get(_KEY_GA["christ_connection"]) or ""
+        ).strip(),
+        "christ_connection_type": normalize_christ_connection_type(
+            st.session_state.get(_KEY_GA["christ_connection_type"])
+        ),
+        "grace_enabled_response": (
+            st.session_state.get(_KEY_GA["grace_enabled_response"]) or ""
+        ).strip(),
+    }
+    update_sermon_workshop_section(st.session_state, "christ_centered_arc", arc)
+    lt = sw.get("listener_tension") if isinstance(sw.get("listener_tension"), dict) else {}
+    lt_block = {
+        "listener_question": str(lt.get("listener_question") or ""),
+        "listener_resistance": str(lt.get("listener_resistance") or ""),
+        "sermon_tension": str(lt.get("sermon_tension") or ""),
+        "promised_resolution": (
+            st.session_state.get(_KEY_GA["promised_resolution"]) or ""
+        ).strip(),
+    }
+    update_sermon_workshop_section(st.session_state, "listener_tension", lt_block)
+
 
 def _apply_sw_ui_resync_if_needed() -> None:
     """Widgetkulcsok szinkronja a tartós sermon_workshop adatokkal (widget előtt)."""
@@ -343,6 +456,25 @@ def _apply_sw_ui_resync_if_needed() -> None:
         if force or wkey not in st.session_state:
             st.session_state[wkey] = str(lt.get(field) or "")
 
+    arc = (
+        sw.get("christ_centered_arc")
+        if isinstance(sw.get("christ_centered_arc"), dict)
+        else {}
+    )
+    for field, wkey in _KEY_GA.items():
+        if force or wkey not in st.session_state:
+            if field == "promised_resolution":
+                st.session_state[wkey] = str(lt.get("promised_resolution") or "")
+            elif field == "christ_connection_type":
+                raw = str(arc.get(field) or "").strip()
+                st.session_state[wkey] = (
+                    normalize_christ_connection_type(raw)
+                    if raw
+                    else "none_or_uncertain"
+                )
+            else:
+                st.session_state[wkey] = str(arc.get(field) or "")
+
 
 def _request_adopt_sermon_sentence(sentence: str) -> None:
     st.session_state[_ADOPT_SERMON_PENDING] = str(sentence or "").strip()
@@ -356,6 +488,11 @@ def _request_adopt_hc_block(block: dict[str, str]) -> None:
 
 def _request_adopt_lt_block(block: dict[str, str]) -> None:
     st.session_state[_ADOPT_LT_PENDING] = dict(block or {})
+    st.rerun()
+
+
+def _request_adopt_ga_block(block: dict[str, str]) -> None:
+    st.session_state[_ADOPT_GA_PENDING] = dict(block or {})
     st.rerun()
 
 
@@ -423,6 +560,67 @@ def _collect_m5_kwargs() -> dict[str, Any]:
         "exegesis": _session_str("exegesis"),
         "theology": _session_str("theology"),
     }
+
+
+def _collect_gospel_arc_kwargs() -> dict[str, Any]:
+    """Sessionből M5 evangéliumi ív MI-bemenet."""
+    base = _collect_m5_kwargs()
+    sw = ensure_sermon_workshop_state(st.session_state)
+    lt = sw.get("listener_tension") if isinstance(sw.get("listener_tension"), dict) else {}
+    # Élő widgetekkel frissített LT (feszültség + feloldás)
+    live_lt = {
+        "listener_question": (
+            st.session_state.get(_KEY_LT["listener_question"])
+            or lt.get("listener_question")
+            or ""
+        ),
+        "listener_resistance": (
+            st.session_state.get(_KEY_LT["listener_resistance"])
+            or lt.get("listener_resistance")
+            or ""
+        ),
+        "sermon_tension": (
+            st.session_state.get(_KEY_LT["sermon_tension"])
+            or lt.get("sermon_tension")
+            or ""
+        ),
+        "promised_resolution": (
+            st.session_state.get(_KEY_GA["promised_resolution"])
+            or lt.get("promised_resolution")
+            or ""
+        ),
+    }
+    arc = (
+        sw.get("christ_centered_arc")
+        if isinstance(sw.get("christ_centered_arc"), dict)
+        else {}
+    )
+    live_arc = {
+        "divine_gracious_action": (
+            st.session_state.get(_KEY_GA["divine_gracious_action"])
+            or arc.get("divine_gracious_action")
+            or ""
+        ),
+        "christ_connection": (
+            st.session_state.get(_KEY_GA["christ_connection"])
+            or arc.get("christ_connection")
+            or ""
+        ),
+        "christ_connection_type": normalize_christ_connection_type(
+            st.session_state.get(_KEY_GA["christ_connection_type"])
+            or arc.get("christ_connection_type")
+            or ""
+        ),
+        "grace_enabled_response": (
+            st.session_state.get(_KEY_GA["grace_enabled_response"])
+            or arc.get("grace_enabled_response")
+            or ""
+        ),
+    }
+    base["listener_tension"] = live_lt
+    base["christ_centered_arc"] = live_arc
+    base["bible_translation"] = _session_str("bible_translation") or "RÚF 2014"
+    return base
 
 
 def _suggestion_payload_from_result(
@@ -505,6 +703,44 @@ def _lt_assessment_payload(result: ListenerTensionAssessmentResult) -> dict[str,
         "revised_listener_question": result.revised_listener_question,
         "revised_listener_resistance": result.revised_listener_resistance,
         "revised_tension": result.revised_tension,
+        "warnings": list(result.warnings),
+        "ok": bool(result.ok),
+        "error_message": result.error_message or "",
+    }
+
+
+def _ga_suggestion_payload(result: GospelArcSuggestionResult) -> dict[str, Any]:
+    return {
+        "recommended_divine_gracious_action": result.recommended_divine_gracious_action,
+        "recommended_christ_connection": result.recommended_christ_connection,
+        "recommended_christ_connection_type": result.recommended_christ_connection_type,
+        "recommended_promised_resolution": result.recommended_promised_resolution,
+        "recommended_grace_enabled_response": result.recommended_grace_enabled_response,
+        "expanded_summary": result.expanded_summary or "",
+        "confidence": result.confidence or "low",
+        "alternative_connections": [
+            alt.to_dict() for alt in result.alternative_connections
+        ],
+        "reasoning_summary": result.reasoning_summary,
+        "basis": list(result.basis),
+        "warnings": list(result.warnings),
+        "missing_information": list(result.missing_information),
+        "ok": bool(result.ok),
+        "error_message": result.error_message or "",
+    }
+
+
+def _ga_assessment_payload(result: GospelArcAssessmentResult) -> dict[str, Any]:
+    return {
+        "overall_assessment": result.overall_assessment,
+        "strengths": list(result.strengths),
+        "improvements": list(result.improvements),
+        "connection_type_assessment": result.connection_type_assessment,
+        "revised_divine_gracious_action": result.revised_divine_gracious_action,
+        "revised_christ_connection": result.revised_christ_connection,
+        "suggested_christ_connection_type": result.suggested_christ_connection_type,
+        "revised_promised_resolution": result.revised_promised_resolution,
+        "revised_grace_enabled_response": result.revised_grace_enabled_response,
         "warnings": list(result.warnings),
         "ok": bool(result.ok),
         "error_message": result.error_message or "",
@@ -1776,6 +2012,576 @@ def render_listener_tension_section(
     _render_decisions_for_section(_SOURCE_LISTENER)
 
 
+def _run_ga_suggest(generate_fn: GenerateFn) -> None:
+    if st.session_state.get("_sw_m5_ga_suggest_running"):
+        return
+    st.session_state["_sw_m5_ga_suggest_running"] = True
+    try:
+        kwargs = _collect_gospel_arc_kwargs()
+        with st.spinner("Evangéliumi ív javaslat készül…"):
+            result = suggest_gospel_arc(**kwargs, generate_fn=generate_fn)
+        save_gospel_arc_suggestions(
+            st.session_state, _ga_suggestion_payload(result)
+        )
+        if result.ok and (
+            result.recommended_divine_gracious_action
+            or result.recommended_christ_connection
+            or result.recommended_promised_resolution
+            or result.recommended_grace_enabled_response
+        ):
+            st.success("A javaslatok elkészültek.")
+        elif result.ok:
+            st.info(
+                result.reasoning_summary
+                or "Nincs elegendő anyag felelős javaslathoz."
+            )
+        else:
+            st.error(
+                _user_facing_error(
+                    result.ok,
+                    result.error_message,
+                    fallback="A javaslatkészítés nem sikerült. Próbáld újra később.",
+                )
+            )
+    finally:
+        st.session_state["_sw_m5_ga_suggest_running"] = False
+
+
+def _run_ga_assess(generate_fn: GenerateFn) -> None:
+    if st.session_state.get("_sw_m5_ga_assess_running"):
+        return
+    st.session_state["_sw_m5_ga_assess_running"] = True
+    try:
+        kwargs = _collect_gospel_arc_kwargs()
+        with st.spinner("Az evangéliumi ív értékelése készül…"):
+            result = assess_gospel_arc(
+                **kwargs,
+                generate_fn=generate_fn,
+            )
+        save_gospel_arc_assessment(
+            st.session_state, _ga_assessment_payload(result)
+        )
+        if result.ok:
+            st.success("Az értékelés elkészült.")
+        else:
+            st.error(
+                _user_facing_error(
+                    result.ok,
+                    result.error_message,
+                    fallback="Az értékelés nem sikerült. Próbáld újra később.",
+                )
+            )
+    finally:
+        st.session_state["_sw_m5_ga_assess_running"] = False
+
+
+def _render_ga_suggestion_results() -> None:
+    sw = ensure_sermon_workshop_state(st.session_state)
+    data = sw.get("gospel_arc_suggestions")
+    if not isinstance(data, dict):
+        return
+    if data.get("ok") is False and not any(
+        str(data.get(k) or "").strip()
+        for k in (
+            "recommended_divine_gracious_action",
+            "recommended_christ_connection",
+            "recommended_promised_resolution",
+            "recommended_grace_enabled_response",
+        )
+    ):
+        err = _user_facing_error(
+            False,
+            str(data.get("error_message") or ""),
+            fallback="A legutóbbi javaslatkészítés nem sikerült.",
+        )
+        if err:
+            st.warning(err)
+        return
+
+    divine = str(data.get("recommended_divine_gracious_action") or "").strip()
+    christ = str(data.get("recommended_christ_connection") or "").strip()
+    ctype = normalize_christ_connection_type(
+        data.get("recommended_christ_connection_type")
+    )
+    resolution = str(data.get("recommended_promised_resolution") or "").strip()
+    grace = str(data.get("recommended_grace_enabled_response") or "").strip()
+    expanded = str(data.get("expanded_summary") or "").strip()
+    confidence = str(data.get("confidence") or "low").strip().casefold()
+    if not (divine or christ or resolution or grace or expanded):
+        missing = data.get("missing_information") or []
+        warnings = data.get("warnings") or []
+        if missing or warnings:
+            st.markdown("**MI-javaslat**")
+            for item in warnings if isinstance(warnings, list) else []:
+                line = str(item or "").strip()
+                if line:
+                    st.warning(line)
+            if isinstance(missing, list) and any(str(x).strip() for x in missing):
+                st.caption("Hiányzó információk: " + "; ".join(
+                    str(x).strip() for x in missing if str(x).strip()
+                ))
+        return
+
+    st.markdown("**MI-javaslat**")
+    if divine:
+        st.markdown(f"**Isten kegyelmi cselekvése**  \n{divine}")
+    if christ:
+        st.markdown(f"**Krisztus-kapcsolat**  \n{christ}")
+    st.markdown(
+        f"**Kapcsolat típusa:** {christ_connection_type_label(ctype)}  \n"
+        f"**Bizonyosság:** {_CONFIDENCE_LABELS_HU.get(confidence, confidence)}"
+    )
+    if ctype == "none_or_uncertain":
+        st.info(
+            "A rendelkezésre álló anyag alapján a konkrét Krisztus-kapcsolat még "
+            "további vizsgálatot igényel."
+        )
+    if resolution:
+        st.markdown(f"**Evangéliumi feloldás**  \n{resolution}")
+    if grace:
+        st.markdown(f"**Kegyelemből fakadó válasz**  \n{grace}")
+    if expanded:
+        st.markdown("**Rövid kifejtés**")
+        st.write(expanded)
+
+    if st.button("Átveszem mindet", key="sw_mi_ga_adopt_all"):
+        _request_adopt_ga_block(
+            {
+                "divine_gracious_action": divine,
+                "christ_connection": christ,
+                "christ_connection_type": ctype,
+                "promised_resolution": resolution,
+                "grace_enabled_response": grace,
+            }
+        )
+
+    c1, c2 = st.columns(2)
+    with c1:
+        if divine and st.button(
+            "Kegyelmi cselekvés átvétele", key="sw_mi_ga_adopt_divine"
+        ):
+            _request_adopt_ga_block({"divine_gracious_action": divine})
+        if christ and st.button(
+            "Krisztus-kapcsolat átvétele", key="sw_mi_ga_adopt_christ"
+        ):
+            _request_adopt_ga_block(
+                {"christ_connection": christ, "christ_connection_type": ctype}
+            )
+    with c2:
+        if resolution and st.button(
+            "Feloldás átvétele", key="sw_mi_ga_adopt_resolution"
+        ):
+            _request_adopt_ga_block({"promised_resolution": resolution})
+        if grace and st.button(
+            "Emberi válasz átvétele", key="sw_mi_ga_adopt_grace"
+        ):
+            _request_adopt_ga_block({"grace_enabled_response": grace})
+    if ctype and st.button(
+        "Kapcsolattípus átvétele", key="sw_mi_ga_adopt_type"
+    ):
+        _request_adopt_ga_block({"christ_connection_type": ctype})
+
+    alts = data.get("alternative_connections") or []
+    if isinstance(alts, list) and any(isinstance(a, dict) for a in alts):
+        with st.expander("Alternatív kapcsolódási irányok", expanded=False):
+            for idx, alt in enumerate(alts[:2]):
+                if not isinstance(alt, dict):
+                    continue
+                a_conn = str(alt.get("christ_connection") or "").strip()
+                a_type = normalize_christ_connection_type(alt.get("connection_type"))
+                a_emp = str(alt.get("emphasis") or "").strip()
+                if not (a_conn or a_emp):
+                    continue
+                st.markdown(
+                    f"**Alternatíva {idx + 1}** — "
+                    f"{christ_connection_type_label(a_type)}"
+                )
+                if a_conn:
+                    st.write(a_conn)
+                if a_emp:
+                    st.caption(f"Hangsúly: {a_emp}")
+                if st.button(
+                    "Ezt a kapcsolatot átveszem",
+                    key=f"sw_mi_ga_adopt_alt_{idx}",
+                ):
+                    _request_adopt_ga_block(
+                        {
+                            "christ_connection": a_conn,
+                            "christ_connection_type": a_type,
+                        }
+                    )
+
+    basis = data.get("basis") or []
+    reasoning = str(data.get("reasoning_summary") or "").strip()
+    if reasoning or (isinstance(basis, list) and any(str(x).strip() for x in basis)):
+        with st.expander("Mi alapján készült?", expanded=False):
+            if reasoning:
+                st.write(reasoning)
+            if isinstance(basis, list):
+                for item in basis:
+                    line = str(item or "").strip()
+                    if line:
+                        st.markdown(f"- {line}")
+
+    warnings = data.get("warnings") or []
+    missing = data.get("missing_information") or []
+    if isinstance(warnings, list):
+        for item in warnings:
+            line = str(item or "").strip()
+            if line:
+                st.warning(line)
+    if isinstance(missing, list) and any(str(x).strip() for x in missing):
+        st.caption(
+            "Hiányzó információk: "
+            + "; ".join(str(x).strip() for x in missing if str(x).strip())
+        )
+
+
+def _render_ga_assessment_results() -> None:
+    sw = ensure_sermon_workshop_state(st.session_state)
+    data = sw.get("gospel_arc_assessment")
+    if not isinstance(data, dict):
+        return
+    if data.get("ok") is False and not str(data.get("overall_assessment") or "").strip():
+        err = _user_facing_error(
+            False,
+            str(data.get("error_message") or ""),
+            fallback="A legutóbbi értékelés nem sikerült.",
+        )
+        if err:
+            st.warning(err)
+        return
+
+    overall = str(data.get("overall_assessment") or "").strip()
+    if not overall and not any(
+        str(data.get(k) or "").strip()
+        for k in (
+            "revised_divine_gracious_action",
+            "revised_christ_connection",
+            "revised_promised_resolution",
+            "revised_grace_enabled_response",
+        )
+    ):
+        return
+
+    st.markdown("**MI-értékelés**")
+    if overall:
+        st.write(overall)
+
+    strengths = data.get("strengths") or []
+    if isinstance(strengths, list) and any(str(x).strip() for x in strengths):
+        st.markdown("**Erősségek**")
+        for item in strengths:
+            line = str(item or "").strip()
+            if line:
+                st.markdown(f"- {line}")
+
+    improvements = data.get("improvements") or []
+    if isinstance(improvements, list) and any(str(x).strip() for x in improvements):
+        st.markdown("**Javítási irányok**")
+        for item in improvements:
+            line = str(item or "").strip()
+            if line:
+                st.markdown(f"- {line}")
+
+    type_assess = str(data.get("connection_type_assessment") or "").strip()
+    if type_assess:
+        st.markdown(f"**Kapcsolattípus értékelése**  \n{type_assess}")
+
+    rd = str(data.get("revised_divine_gracious_action") or "").strip()
+    rc = str(data.get("revised_christ_connection") or "").strip()
+    rt = normalize_christ_connection_type(
+        data.get("suggested_christ_connection_type") or ""
+    )
+    rr = str(data.get("revised_promised_resolution") or "").strip()
+    rg = str(data.get("revised_grace_enabled_response") or "").strip()
+    has_rev = bool(rd or rc or rr or rg or data.get("suggested_christ_connection_type"))
+    if has_rev:
+        st.markdown("**Átdolgozott javaslatok**")
+        if rd:
+            st.markdown(f"*Isten kegyelmi cselekvése:* {rd}")
+            if st.button(
+                "Átdolgozott kegyelmi cselekvés átvétele",
+                key="sw_mi_ga_adopt_rev_divine",
+            ):
+                _request_adopt_ga_block({"divine_gracious_action": rd})
+        if rc:
+            st.markdown(f"*Krisztus-kapcsolat:* {rc}")
+            if st.button(
+                "Átdolgozott Krisztus-kapcsolat átvétele",
+                key="sw_mi_ga_adopt_rev_christ",
+            ):
+                block = {"christ_connection": rc}
+                if data.get("suggested_christ_connection_type"):
+                    block["christ_connection_type"] = rt
+                _request_adopt_ga_block(block)
+        if data.get("suggested_christ_connection_type"):
+            st.markdown(
+                f"*Javasolt kapcsolattípus:* {christ_connection_type_label(rt)}"
+            )
+            if st.button(
+                "Javasolt típus átvétele", key="sw_mi_ga_adopt_rev_type"
+            ):
+                _request_adopt_ga_block({"christ_connection_type": rt})
+        if rr:
+            st.markdown(f"*Evangéliumi feloldás:* {rr}")
+            if st.button(
+                "Átdolgozott feloldás átvétele", key="sw_mi_ga_adopt_rev_resolution"
+            ):
+                _request_adopt_ga_block({"promised_resolution": rr})
+        if rg:
+            st.markdown(f"*Kegyelemből fakadó válasz:* {rg}")
+            if st.button(
+                "Átdolgozott emberi válasz átvétele", key="sw_mi_ga_adopt_rev_grace"
+            ):
+                _request_adopt_ga_block({"grace_enabled_response": rg})
+        if rd or rc or rr or rg:
+            if st.button(
+                "Átdolgozott ív átvétele", key="sw_mi_ga_adopt_rev_all"
+            ):
+                _request_adopt_ga_block(
+                    {
+                        "divine_gracious_action": rd,
+                        "christ_connection": rc,
+                        "christ_connection_type": rt
+                        if data.get("suggested_christ_connection_type")
+                        else "",
+                        "promised_resolution": rr,
+                        "grace_enabled_response": rg,
+                    }
+                )
+
+    warnings = data.get("warnings") or []
+    if isinstance(warnings, list):
+        for item in warnings:
+            line = str(item or "").strip()
+            if line:
+                st.warning(line)
+
+
+def render_gospel_arc_section(
+    *,
+    generate_fn: GenerateFn | None = None,
+) -> None:
+    """Krisztus-központú és evangéliumi ív — kézi szerkesztő + MI-segéd."""
+    _apply_pending_adopts_if_needed()
+    _apply_sw_ui_resync_if_needed()
+    ensure_sermon_workshop_state(st.session_state)
+    tw = ensure_text_workshop_state(st.session_state)
+
+    st.subheader("Krisztus-központú és evangéliumi ív")
+    st.markdown(
+        "Mutasd meg, mit tesz Isten, hogyan kapcsolódik a textus Krisztushoz, "
+        "és milyen kegyelemből fakadó válasz következhet. A cél nem az erőltetett "
+        "krisztologizálás, hanem a textushű evangéliumi feloldási ív."
+    )
+
+    sw = ensure_sermon_workshop_state(st.session_state)
+    text_status = (tw.get("text_main_idea_status") or "").strip()
+    sermon_status = (sw.get("sermon_main_idea_status") or "").strip()
+    if text_status != "approved" and sermon_status != "approved":
+        st.info(
+            "A szakasz használható, de a munka biztosabb, ha előbb jóváhagyod "
+            "a textus vagy az igehirdetés fő gondolatát."
+        )
+
+    for field, title, help_text, placeholder, _category in _GA_TEXT_FIELDS:
+        if field == "promised_resolution":
+            # Kapcsolattípus a Krisztus-kapcsolat után, feloldás előtt
+            st.markdown("**Kapcsolat típusa**")
+            st.caption(_GA_TYPE_HELP)
+            st.selectbox(
+                "Kapcsolat típusa",
+                options=list(CHRIST_CONNECTION_TYPES),
+                format_func=lambda v: CHRIST_CONNECTION_TYPE_LABELS_HU.get(
+                    v, str(v)
+                ),
+                key=_KEY_GA["christ_connection_type"],
+                label_visibility="collapsed",
+            )
+            if (
+                st.session_state.get(_KEY_GA["christ_connection_type"])
+                == "none_or_uncertain"
+            ):
+                st.caption(
+                    "A rendelkezésre álló anyag alapján a konkrét Krisztus-kapcsolat "
+                    "még további vizsgálatot igényelhet."
+                )
+        st.markdown(f"**{title}**")
+        st.caption(help_text)
+        st.text_area(
+            title,
+            key=_KEY_GA[field],
+            height=90,
+            label_visibility="collapsed",
+            placeholder=placeholder,
+        )
+
+    b1, b2 = st.columns(2)
+    with b1:
+        if st.button("Mentés vázlatként", key="sw_ga_save_draft"):
+            filled = any(
+                (st.session_state.get(wkey) or "").strip()
+                for field, wkey in _KEY_GA.items()
+                if field != "christ_connection_type"
+            ) or bool(st.session_state.get(_KEY_GA["christ_connection_type"]))
+            if not filled:
+                st.warning("Üres mezőket nem lehet menteni. Tölts ki legalább egyet.")
+            else:
+                _persist_gospel_arc_from_widgets()
+                st.success("Vázlatként elmentve.")
+    with b2:
+        if st.button(
+            "Jóváhagyom és továbbviszem",
+            type="primary",
+            key="sw_ga_approve",
+        ):
+            block = {
+                field: (st.session_state.get(wkey) or "").strip()
+                for field, wkey in _KEY_GA.items()
+            }
+            block["christ_connection_type"] = normalize_christ_connection_type(
+                block.get("christ_connection_type")
+            )
+            if not any(
+                block.get(f)
+                for f in (
+                    "divine_gracious_action",
+                    "christ_connection",
+                    "promised_resolution",
+                    "grace_enabled_response",
+                )
+            ):
+                st.warning(
+                    "Üres megfogalmazást nem lehet jóváhagyni. Tölts ki legalább egyet."
+                )
+            else:
+                _persist_gospel_arc_from_widgets()
+                text_items = [
+                    (field, title, category)
+                    for field, title, _help, _ph, category in _GA_TEXT_FIELDS
+                ]
+                # Add type as decision if meaningful
+                added = 0
+                skipped = 0
+                for field, _title, category in text_items:
+                    content = block.get(field) or ""
+                    if not content:
+                        continue
+                    if _decision_is_duplicate(
+                        source_section=_SOURCE_GOSPEL,
+                        category=category,
+                        content=content,
+                    ):
+                        skipped += 1
+                        continue
+                    add_approved_sermon_decision(
+                        st.session_state,
+                        _SOURCE_GOSPEL,
+                        category,
+                        content,
+                    )
+                    added += 1
+                type_label = christ_connection_type_label(
+                    block.get("christ_connection_type")
+                )
+                type_content = f"Kapcsolat típusa: {type_label}"
+                if block.get("christ_connection_type") and block.get(
+                    "christ_connection_type"
+                ) != "none_or_uncertain":
+                    if not _decision_is_duplicate(
+                        source_section=_SOURCE_GOSPEL,
+                        category="Kapcsolat típusa",
+                        content=type_content,
+                    ):
+                        add_approved_sermon_decision(
+                            st.session_state,
+                            _SOURCE_GOSPEL,
+                            "Kapcsolat típusa",
+                            type_content,
+                        )
+                        added += 1
+                    else:
+                        skipped += 1
+                if added and skipped:
+                    st.success(
+                        f"Jóváhagyva. {added} új döntés került továbbvitelre; "
+                        f"{skipped} már szerepelt."
+                    )
+                elif added:
+                    st.success(
+                        f"Jóváhagyva és továbbvíve ({added} homiletikai döntés)."
+                    )
+                else:
+                    st.success(
+                        "Jóváhagyva. A kitöltött elemek már szerepeltek a "
+                        "homiletikai döntések között."
+                    )
+
+    saved_arc = (
+        ensure_sermon_workshop_state(st.session_state).get("christ_centered_arc") or {}
+    )
+    saved_lt = (
+        ensure_sermon_workshop_state(st.session_state).get("listener_tension") or {}
+    )
+    if isinstance(saved_arc, dict) and (
+        any(
+            str(saved_arc.get(k) or "").strip()
+            for k in (
+                "divine_gracious_action",
+                "christ_connection",
+                "grace_enabled_response",
+            )
+        )
+        or (
+            isinstance(saved_lt, dict)
+            and str(saved_lt.get("promised_resolution") or "").strip()
+        )
+    ):
+        st.caption("Elmentett állapot: **vázlat / jóváhagyott döntésekkel** (lásd lent)")
+
+    st.markdown("---")
+    st.markdown("**MI-segéd**")
+    st.caption(
+        "Az MI a jóváhagyott műhelyeredményekből segít megfogalmazni az "
+        "evangéliumi ívet. Nem erőltet kapcsolatot, ahol az nem megalapozható. "
+        "A végső döntés a prédikátoré."
+    )
+    ai_ready = generate_fn is not None
+    ga_filled = any(
+        (st.session_state.get(wkey) or "").strip()
+        for field, wkey in _KEY_GA.items()
+        if field != "christ_connection_type"
+    )
+    a1, a2 = st.columns(2)
+    with a1:
+        if st.button(
+            "Javaslatok készítése",
+            key="sw_mi_ga_suggest",
+            disabled=not ai_ready,
+        ):
+            if generate_fn is None:
+                st.warning("Az MI-segéd jelenleg nem elérhető.")
+            else:
+                _run_ga_suggest(generate_fn)
+    with a2:
+        if st.button(
+            "Saját megfogalmazás értékelése",
+            key="sw_mi_ga_assess",
+            disabled=not ai_ready or not ga_filled,
+        ):
+            if generate_fn is None:
+                st.warning("Az MI-segéd jelenleg nem elérhető.")
+            else:
+                _run_ga_assess(generate_fn)
+
+    _render_ga_suggestion_results()
+    _render_ga_assessment_results()
+
+    st.caption("Következő ajánlott lépés: A prédikáció útja")
+    _render_decisions_for_section(_SOURCE_GOSPEL)
+
+
 def _render_section_placeholder(section: str) -> None:
     meta = _SW_SECTION_PLACEHOLDERS.get(section) or {
         "goal": "Ez a szakasz a későbbi mérföldkövekben válik működővé.",
@@ -1821,6 +2627,8 @@ def render_sermon_workshop_shell(
         render_human_condition_section(generate_fn=generate_fn)
     elif active == "Hallgatói kérdés és feszültség":
         render_listener_tension_section(generate_fn=generate_fn)
+    elif active == "Krisztus-központú és evangéliumi ív":
+        render_gospel_arc_section(generate_fn=generate_fn)
     else:
         _render_section_placeholder(active)
 
@@ -1828,6 +2636,7 @@ def render_sermon_workshop_shell(
         "Az igehirdetés fő gondolata",
         "Emberi helyzet és kegyelmi válasz",
         "Hallgatói kérdés és feszültség",
+        "Krisztus-központú és evangéliumi ív",
     ):
         next_hint = _SW_NEXT_HINTS.get(active)
         if next_hint:
@@ -1841,4 +2650,5 @@ __all__ = [
     "render_sermon_main_idea_section",
     "render_human_condition_section",
     "render_listener_tension_section",
+    "render_gospel_arc_section",
 ]

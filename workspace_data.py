@@ -153,6 +153,14 @@ EXCLUDED_SESSION_KEYS: frozenset[str] = frozenset(
         "_sw_lt_adopt_pending",
         "_sw_m5_suggest_running",
         "_sw_m5_assess_running",
+        "sw_ga_divine_gracious_action",
+        "sw_ga_christ_connection",
+        "sw_ga_christ_connection_type",
+        "sw_ga_promised_resolution",
+        "sw_ga_grace_enabled_response",
+        "_sw_ga_adopt_pending",
+        "_sw_m5_ga_suggest_running",
+        "_sw_m5_ga_assess_running",
     }
 )
 
