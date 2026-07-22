@@ -55,8 +55,25 @@ PRAYER_TONE_PREFERENCE_LABELS_HU: dict[str, str] = {
     "festive": "Ünnepélyes",
     "simple_direct": "Egyszerű és közvetlen",
     "biblical_imagery": "Bibliai képekre építő",
-    "mixed": "Vegyes",
+    "mixed": "Az MI válasszon",
 }
+
+# Egyszerűsített UI hangoltságok — a ritkább értékek kompatibilisek maradnak.
+PRAYER_TONE_UI_OPTIONS = (
+    "mixed",
+    "quiet_meditative",
+    "honest_confessional",
+    "hopeful",
+    "assuring",
+    "intercessory",
+    "communal",
+    "simple_direct",
+)
+
+_SOFT_CLICHE_WARNING = (
+    "A javaslat néhány általános fordulatot tartalmaz. Érdemes egy "
+    "textusból fakadó képpel vagy konkrétabb kéréssel személyesebbé tenni."
+)
 
 PRAYER_REWRITE_MODES = (
     "light_polish",
@@ -195,6 +212,160 @@ class PrayerArcSuggestionResult:
         return "\n".join(lines)
 
 
+def _first_sentences(text: str, *, max_sentences: int = 2) -> str:
+    raw = _as_text(text).strip()
+    if not raw:
+        return ""
+    parts: list[str] = []
+    buf = ""
+    for ch in raw:
+        buf += ch
+        if ch in ".!?…" and buf.strip():
+            parts.append(buf.strip())
+            buf = ""
+            if len(parts) >= max_sentences:
+                break
+    if len(parts) < max_sentences and buf.strip():
+        parts.append(buf.strip())
+    return " ".join(parts[:max_sentences]).strip()
+
+
+def _is_english_function_code(text: str) -> bool:
+    value = _as_text(text).strip().casefold()
+    return value in BEFORE_MOVEMENT_FUNCTIONS or value in AFTER_MOVEMENT_FUNCTIONS
+
+
+def _short_hu_title(raw: str, *, fallback: str) -> str:
+    title = _as_text(raw).strip()
+    if not title or _is_english_function_code(title):
+        return fallback
+    # Ne engedjük át a technikai kódokat zárójelben
+    if "(" in title and ")" in title:
+        cleaned = title
+        for code in BEFORE_MOVEMENT_FUNCTIONS + AFTER_MOVEMENT_FUNCTIONS:
+            cleaned = cleaned.replace(f"({code})", "").replace(f"({code.upper()})", "")
+        title = " ".join(cleaned.split()).strip() or fallback
+    # Rövid cím: max ~6 szó
+    words = title.split()
+    if len(words) > 6:
+        title = " ".join(words[:6])
+    return title
+
+
+def _thought_from_movement(mov: Mapping[str, Any]) -> str:
+    direction = _first_sentences(
+        _as_text(mov.get("content_direction")), max_sentences=2
+    )
+    if direction:
+        return direction
+    return _first_sentences(_as_text(mov.get("title")), max_sentences=1)
+
+
+def adapt_prayer_suggestion_for_ui(data: Any) -> dict[str, Any]:
+    """Részletes imaív-JSON → egyszerű UI-kimenet (nyitó / 4–6 ívpont / záró).
+
+    A részletes eredmény megmarad a kompatibilitás miatt; ez csak megjelenítés.
+    Nem állít össze teljes imádságot; angol function-kódokat nem ad vissza.
+    """
+    empty: dict[str, Any] = {
+        "opening_line": "",
+        "prayer_arc": [],
+        "closing_line": "",
+        "brief_warning": "",
+    }
+    if isinstance(data, PrayerArcSuggestionResult):
+        raw = data.to_dict()
+    elif isinstance(data, Mapping):
+        raw = dict(data)
+    else:
+        return empty
+
+    openings = _as_str_list(raw.get("opening_options"), max_items=4)
+    opening_line = _first_sentences(openings[0] if openings else "", max_sentences=1)
+    closing_line = _first_sentences(
+        _as_text(raw.get("closing_direction")), max_sentences=1
+    )
+
+    arc: list[dict[str, str]] = []
+    movements = raw.get("recommended_movements")
+    if isinstance(movements, list):
+        for idx, mov in enumerate(movements):
+            if not isinstance(mov, Mapping):
+                continue
+            thought = _thought_from_movement(mov)
+            if not thought:
+                continue
+            if thought == opening_line or thought == closing_line:
+                continue
+            title = _short_hu_title(
+                _as_text(mov.get("title")),
+                fallback=f"Gondolat {len(arc) + 1}",
+            )
+            # Function kód soha ne legyen cím
+            if _is_english_function_code(_as_text(mov.get("function"))):
+                pass  # backend only — ignore for display
+            arc.append({"title": title, "thought": thought})
+            if len(arc) >= 6:
+                break
+
+    # Fallback: suggested_lines / integrated thoughts → ívpontok
+    if len(arc) < 4:
+        line_pool: list[str] = []
+        for line in _as_str_list(raw.get("suggested_lines"), max_items=8):
+            if line and line not in line_pool:
+                line_pool.append(line)
+        integrated = raw.get("integrated_user_thoughts")
+        if isinstance(integrated, list):
+            for item in integrated:
+                if not isinstance(item, Mapping):
+                    continue
+                refined = _as_text(item.get("refined"))
+                if refined and refined not in line_pool:
+                    line_pool.append(refined)
+        for line in line_pool:
+            thought = _first_sentences(line, max_sentences=2)
+            if not thought or thought == opening_line or thought == closing_line:
+                continue
+            if any(a["thought"] == thought for a in arc):
+                continue
+            arc.append(
+                {
+                    "title": f"Gondolat {len(arc) + 1}",
+                    "thought": thought,
+                }
+            )
+            if len(arc) >= 6:
+                break
+
+    # Cél beolvad az ívbe: ha van purpose és kevés pont, elsőként
+    purpose = _first_sentences(_as_text(raw.get("purpose")), max_sentences=2)
+    if purpose and len(arc) < 4 and not any(a["thought"] == purpose for a in arc):
+        arc.insert(
+            0,
+            {"title": "Irány", "thought": purpose},
+        )
+    arc = arc[:6]
+
+    brief_warning = ""
+    for w in _as_str_list(raw.get("warnings"), max_items=4):
+        low = w.casefold()
+        if "passage_text" in low or "generate_fn" in low or "elégtelen" in low:
+            continue
+        brief_warning = _first_sentences(w, max_sentences=2)
+        break
+    cliches = _as_str_list(raw.get("cliche_risks"), max_items=4)
+    if not brief_warning and cliches:
+        # Csak ha van valódi sablonossági jelzés — egy rövid figyelmeztetés
+        brief_warning = _SOFT_CLICHE_WARNING
+
+    return {
+        "opening_line": opening_line,
+        "prayer_arc": arc,
+        "closing_line": closing_line,
+        "brief_warning": brief_warning,
+    }
+
+
 @dataclass
 class PrayerAssessmentResult:
     overall_assessment: str = ""
@@ -240,9 +411,20 @@ def _format_prayer_prefs(
     general_focus: str = "",
     rewrite_mode: str = "integrate_into_arc",
 ) -> str:
+    tone = normalize_prayer_tone_preference(tone_preference)
+    if tone == "mixed":
+        tone_line = (
+            "Hangoltság: az MI válasszon a textushoz illő természetes hangot"
+        )
+    else:
+        tone_line = f"Hangoltság: {prayer_tone_preference_label(tone)}"
     lines = [
-        f"Hangoltság: {prayer_tone_preference_label(tone_preference)}",
+        tone_line,
         f"Átalakítási mód: {prayer_rewrite_mode_label(rewrite_mode)}",
+        (
+            "Ha vannak saját gondolatok: építsd be őket felismerhetően "
+            "ebben a módban; ne tedd steril MI-nyelvűvé."
+        ),
     ]
     focus = _as_text(general_focus)
     if focus:
@@ -354,7 +536,7 @@ _COMMON_GUARDRAILS = """\
 
 
 _BEFORE_TEMPLATE = """\
-Feladatod: IGEHIRDETÉS ELŐTTI imádsági ív és mondatmagok javaslata.
+Feladatod: IGEHIRDETÉS ELŐTTI imádsági ív javaslata — egy koherens ív.
 
 Az előtti ima feladata: Isten megszólítása, elcsendesedés, az Ige hallására
 való megnyílás, a Szentlélek munkájának kérése, az igehirdető és a gyülekezet
@@ -365,10 +547,20 @@ TILOS:
 - előre feloldani a központi feszültséget;
 - teljes kész imádságot írni.
 
-Mozzanat-funkciók (function):
+Mozzanat-funkciók (function — csak a JSON-ban, ne magyarázd a felhasználónak):
 address | silence | confession | illumination | preacher | hearers | surrender
 
-Korlátok: 3–6 movement; 2–4 opening_options; 4–7 suggested_lines.
+Kimenet formája (kötelező mennyiség):
+- egyetlen, kimondható nyitó mondat → opening_options[0] (1 mondat; max 2 opció);
+- 4–6 recommended_movements: rövid magyar title + 1–2 mondatos,
+  Istenhez szóló content_direction (ne technikai kategória-magyarázat);
+- egy rövid záró mondat → closing_direction;
+- purpose: rövid irány, beolvad az ívbe (ne külön hosszú „cél” szöveg);
+- NE adj külön mondatmag-bankot: suggested_lines legyen üres vagy
+  legfeljebb a movements tartalmának rövid visszhangja (max 4);
+- NE sorolj fel minden lehetséges sablonossági kockázatot; cliche_risks
+  csak ha valóban általános a javaslat;
+- Ha vannak saját gondolatok: építsd be felismerhetően (rewrite_mode szerint).
 
 """ + _COMMON_GUARDRAILS + """
 
@@ -422,7 +614,7 @@ Kézi imaív / cél (ha van):
 
 
 _AFTER_TEMPLATE = """\
-Feladatod: IGEHIRDETÉS UTÁNI imádsági ív és mondatmagok javaslata.
+Feladatod: IGEHIRDETÉS UTÁNI imádsági ív javaslata — egy koherens ív.
 
 Az utáni ima feladata: válasz a hallott Igére, hála, indokolt bűnvallás,
 ráhagyatkozás Isten kegyelmi cselekvésére, kérés a kegyelemből fakadó
@@ -433,10 +625,19 @@ TILOS:
 - teljes kész imádságot írni;
 - kegyelem nélküli moralizáló felszólítást adni.
 
-Mozzanat-funkciók (function):
+Mozzanat-funkciók (function — csak a JSON-ban, ne magyarázd a felhasználónak):
 gratitude | confession | gospel_trust | request | intercession | response | hope
 
-Korlátok: 3–7 movement; 2–4 opening_options; 4–8 suggested_lines.
+Kimenet formája (kötelező mennyiség):
+- egyetlen, kimondható nyitó mondat → opening_options[0] (1 mondat; max 2 opció);
+- 4–6 recommended_movements: rövid magyar title + 1–2 mondatos,
+  Istenhez szóló content_direction (ne technikai kategória-magyarázat);
+- egy rövid záró mondat → closing_direction;
+- purpose: rövid irány, beolvad az ívbe;
+- NE adj külön mondatmag-bankot: suggested_lines üres vagy max 4 visszhang;
+- NE sorolj fel minden lehetséges sablonossági kockázatot; cliche_risks
+  csak ha valóban általános a javaslat;
+- Ha vannak saját gondolatok: építsd be felismerhetően (rewrite_mode szerint).
 
 """ + _COMMON_GUARDRAILS + """
 
@@ -1714,6 +1915,30 @@ def _self_check() -> list[str]:
     if bad.ok:
         errors.append("bad json should fail")
 
+    # UI adapter: opening + 4–6 arc + closing; no English codes; soft cliche
+    ui = adapt_prayer_suggestion_for_ui(ra)
+    if not ui.get("opening_line"):
+        errors.append("adapter: missing opening")
+    arc = ui.get("prayer_arc") if isinstance(ui.get("prayer_arc"), list) else []
+    if not (4 <= len(arc) <= 6):
+        errors.append(f"adapter: arc count {len(arc)} not in 4–6")
+    for item in arc:
+        blob = f"{item.get('title', '')} {item.get('thought', '')}".casefold()
+        for code in ("address", "confession", "illumination", "preacher", "hearers"):
+            if f"({code})" in blob or blob.strip() == code:
+                errors.append(f"adapter: english code leaked: {code}")
+                break
+    if not ui.get("closing_line"):
+        errors.append("adapter: missing closing")
+    if ui.get("brief_warning"):
+        errors.append("adapter: unexpected warning without cliche")
+
+    with_cliche = ra.to_dict()
+    with_cliche["cliche_risks"] = ["ebben a rohanó világban"]
+    ui_c = adapt_prayer_suggestion_for_ui(with_cliche)
+    if not ui_c.get("brief_warning"):
+        errors.append("adapter: expected soft cliche warning")
+
     return errors
 
 
@@ -1731,12 +1956,14 @@ __all__ = [
     "TAB_PRAYER",
     "PRAYER_TONE_PREFERENCES",
     "PRAYER_TONE_PREFERENCE_LABELS_HU",
+    "PRAYER_TONE_UI_OPTIONS",
     "PRAYER_REWRITE_MODES",
     "PRAYER_REWRITE_MODE_LABELS_HU",
     "PrayerMovement",
     "IntegratedThought",
     "PrayerArcSuggestionResult",
     "PrayerAssessmentResult",
+    "adapt_prayer_suggestion_for_ui",
     "prayer_tone_preference_label",
     "prayer_rewrite_mode_label",
     "normalize_prayer_tone_preference",

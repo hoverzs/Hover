@@ -773,6 +773,10 @@ def test_no_full_prayer_adopt_button() -> None:
     src = (ROOT / "sermon_workshop_ui.py").read_text(encoding="utf-8")
     ok("Teljes imádság" not in src, "full prayer adopt button present")
     ok("Átveszem az imaívet" in src, "arc adopt missing")
+    ok("Átveszem ezt a mondatmagot" not in src, "per-line adopt still present")
+    ok("Átveszem ezt az indítást" not in src, "per-opening adopt still present")
+    ok("Eltérő imaindítások" not in src, "opening list still in main UI")
+    ok("Saját gondolatok beépítése" not in src or "További beállítások" in src, "integrate section")
 
 
 def test_flush_wired_for_project_save() -> None:
