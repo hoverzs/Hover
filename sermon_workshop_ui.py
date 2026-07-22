@@ -6,6 +6,7 @@ Nem importál az app.py-ból. A Gemini-hívást a hívó által átadott
 
 from __future__ import annotations
 
+import html
 from typing import Any, Callable
 
 import streamlit as st
@@ -143,6 +144,7 @@ from sermon_workshop_m7_closing_ai import (
     suggest_closing,
 )
 from sermon_workshop_m8_ai import (
+    DIAGNOSTIC_AREA_KEYS,
     HomileticalDiagnosticsResult,
     diagnostic_area_label,
     diagnostic_status_label,
@@ -1874,17 +1876,472 @@ def _diag_status_caption(status: str) -> str:
     return diagnostic_status_label(status)
 
 
-def _render_diagnostic_status_badge(status: str) -> None:
+_DIAG_STATUS_COLORS: dict[str, str] = {
+    "strong": "#4a7c74",
+    "stable": "#5a6f8a",
+    "needs_attention": "#c4923a",
+    "critical_gap": "#a65d48",
+    "not_enough_information": "#8a8580",
+}
+
+_DIAG_STATUS_RANK: dict[str, int] = {
+    "critical_gap": 4,
+    "needs_attention": 3,
+    "not_enough_information": 2,
+    "stable": 1,
+    "strong": 0,
+}
+
+_DIAG_MAP_GROUPS: tuple[dict[str, Any], ...] = (
+    {
+        "title": "Bibliai és teológiai alap",
+        "blurb": "Textushűség, teológiai pontosság és Krisztus-központúság.",
+        "keys": (
+            "text_fidelity",
+            "theological_accuracy",
+            "christ_centeredness",
+        ),
+    },
+    {
+        "title": "Az igehirdetés íve",
+        "blurb": "Egység, hallgatói feszültség, prédikációs út és lezárás.",
+        "keys": (
+            "unity_and_focus",
+            "listener_tension",
+            "sermon_path",
+            "closing",
+        ),
+    },
+    {
+        "title": "Hallhatóság és megvalósítás",
+        "blurb": "Hallhatóság, képek/illusztrációk és alkalmazás.",
+        "keys": (
+            "hearability",
+            "images_and_illustrations",
+            "application",
+        ),
+    },
+    {
+        "title": "Pásztori hang és felelősség",
+        "blurb": "Pásztori felelősség, saját hang és eredetiség.",
+        "keys": (
+            "pastoral_responsibility",
+            "voice_and_originality",
+        ),
+    },
+)
+
+_DIAG_STYLES_FLAG = "_sw_diag_ui_styles"
+
+
+def _ensure_diag_styles() -> None:
+    if st.session_state.get(_DIAG_STYLES_FLAG):
+        return
+    st.session_state[_DIAG_STYLES_FLAG] = True
+    st.markdown(
+        """
+<style>
+.sw-diag-overview {
+  border: 1px solid rgba(93, 72, 48, 0.18);
+  border-radius: 14px;
+  padding: 0.95rem 1.05rem 1.05rem;
+  background: rgba(255, 252, 247, 0.82);
+  margin-bottom: 0.85rem;
+}
+.sw-diag-overview h4 {
+  margin: 0 0 0.45rem 0;
+  color: #2b2116;
+  font-size: 1.05rem;
+}
+.sw-diag-summary {
+  color: #3d3228;
+  line-height: 1.45;
+  margin: 0 0 0.65rem 0;
+}
+.sw-diag-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-bottom: 0.75rem;
+}
+.sw-diag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: 999px;
+  padding: 0.22rem 0.7rem;
+  font-size: 0.84rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+  line-height: 1.3;
+}
+.sw-diag-chip .dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  flex: 0 0 auto;
+}
+.sw-diag-chip-strong { background: rgba(74,124,116,0.14); color: #2f5a54; border-color: rgba(74,124,116,0.28); }
+.sw-diag-chip-stable { background: rgba(90,111,138,0.14); color: #3a4b63; border-color: rgba(90,111,138,0.28); }
+.sw-diag-chip-needs_attention { background: rgba(196,146,58,0.16); color: #7a5620; border-color: rgba(196,146,58,0.34); }
+.sw-diag-chip-critical_gap { background: rgba(166,93,72,0.14); color: #7a3d2f; border-color: rgba(166,93,72,0.30); }
+.sw-diag-chip-not_enough_information { background: rgba(138,133,128,0.16); color: #5a5652; border-color: rgba(138,133,128,0.30); }
+.sw-diag-chip-neutral { background: rgba(93,72,48,0.08); color: #5d4830; border-color: rgba(93,72,48,0.16); }
+.sw-diag-count-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+@media (max-width: 900px) {
+  .sw-diag-count-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 520px) {
+  .sw-diag-count-grid { grid-template-columns: 1fr; }
+}
+.sw-diag-count-card {
+  border-radius: 12px;
+  padding: 0.65rem 0.7rem;
+  background: rgba(248, 245, 238, 0.92);
+  border: 1px solid rgba(93, 72, 48, 0.12);
+  min-width: 0;
+}
+.sw-diag-count-card .n {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #2b2116;
+  line-height: 1.1;
+}
+.sw-diag-count-card .lbl {
+  font-size: 0.78rem;
+  color: #6b5a48;
+  margin-top: 0.15rem;
+  line-height: 1.25;
+}
+.sw-diag-prio-card {
+  border-radius: 12px;
+  padding: 0.8rem 0.9rem;
+  margin-bottom: 0.55rem;
+  background: linear-gradient(180deg, rgba(255,248,238,0.95), rgba(252,242,228,0.9));
+  border: 1px solid rgba(196,146,58,0.35);
+  border-left: 4px solid #c4923a;
+}
+.sw-diag-prio-card.critical {
+  border-left-color: #a65d48;
+  border-color: rgba(166,93,72,0.32);
+  background: linear-gradient(180deg, rgba(255,246,242,0.95), rgba(250,236,230,0.9));
+}
+.sw-diag-prio-card h5 {
+  margin: 0 0 0.35rem 0;
+  color: #2b2116;
+  font-size: 0.98rem;
+}
+.sw-diag-prio-card p {
+  margin: 0 0 0.35rem 0;
+  color: #4a3e32;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+.sw-diag-prio-card .meta {
+  font-size: 0.8rem;
+  color: #6b5a48;
+}
+.sw-diag-group-card {
+  border-radius: 14px;
+  padding: 0.85rem 0.9rem;
+  margin-bottom: 0.65rem;
+  background: rgba(255, 252, 247, 0.88);
+  border: 1px solid rgba(93, 72, 48, 0.14);
+  box-shadow: inset 3px 0 0 var(--sw-diag-accent, #5a6f8a);
+  min-width: 0;
+}
+.sw-diag-group-card h5 {
+  margin: 0 0 0.2rem 0;
+  color: #2b2116;
+  font-size: 0.98rem;
+}
+.sw-diag-group-card .blurb {
+  margin: 0 0 0.55rem 0;
+  color: #6b5a48;
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+.sw-diag-area-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.35rem 0.55rem;
+  padding: 0.28rem 0;
+  border-top: 1px solid rgba(93, 72, 48, 0.08);
+}
+.sw-diag-area-row:first-of-type { border-top: none; }
+.sw-diag-area-name {
+  color: #3d3228;
+  font-size: 0.86rem;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.sw-diag-strip {
+  display: inline-block;
+  width: 0.35rem;
+  height: 1rem;
+  border-radius: 999px;
+  margin-right: 0.35rem;
+  vertical-align: middle;
+}
+</style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def _diag_areas_index(areas: Any) -> dict[str, dict[str, Any]]:
+    out: dict[str, dict[str, Any]] = {}
+    if not isinstance(areas, list):
+        return out
+    for area in areas:
+        if not isinstance(area, dict):
+            continue
+        key = str(area.get("key") or "").strip()
+        if key:
+            out[key] = area
+    return out
+
+
+def _diag_shorten(text: str, *, limit: int = 320) -> str:
+    raw = " ".join(str(text or "").split())
+    if len(raw) <= limit:
+        return raw
+    cut = raw[: limit - 1].rsplit(" ", 1)[0].rstrip(".,;:")
+    return (cut or raw[: limit - 1]) + "…"
+
+
+def _diag_status_chip_html(status: str, *, label: str | None = None) -> str:
     key = normalize_diagnostic_status(status)
-    label = diagnostic_status_label(key)
-    if key in ("strong", "stable"):
-        st.caption(label)
-    elif key == "needs_attention":
-        st.info(label)
-    elif key == "critical_gap":
-        st.warning(label)
-    else:
-        st.caption(label)
+    text = html.escape(label or diagnostic_status_label(key))
+    color = _DIAG_STATUS_COLORS.get(key, _DIAG_STATUS_COLORS["not_enough_information"])
+    return (
+        f'<span class="sw-diag-chip sw-diag-chip-{html.escape(key)}">'
+        f'<span class="dot" style="background:{color};"></span>'
+        f"{text}</span>"
+    )
+
+
+def _diag_worst_status(statuses: list[str]) -> str:
+    if not statuses:
+        return "not_enough_information"
+    return max(
+        statuses,
+        key=lambda s: _DIAG_STATUS_RANK.get(normalize_diagnostic_status(s), 0),
+    )
+
+
+def _diag_collect_priorities(diag: dict[str, Any], result: dict[str, Any]) -> list[dict[str, Any]]:
+    priorities = diag.get("priorities") if isinstance(diag.get("priorities"), list) else []
+    if not priorities:
+        rev_raw = result.get("revision_priorities")
+        if isinstance(rev_raw, list):
+            priorities = [p for p in rev_raw if isinstance(p, dict)]
+    out: list[dict[str, Any]] = []
+    for item in priorities[:3]:
+        if not isinstance(item, dict):
+            continue
+        title = str(item.get("title") or "").strip()
+        if not title:
+            continue
+        out.append(item)
+    return out
+
+
+def _render_diag_area_detail(area: dict[str, Any], *, expanded: bool) -> None:
+    key = str(area.get("key") or "").strip()
+    label = str(area.get("label") or "").strip() or diagnostic_area_label(key)
+    status = str(area.get("status") or "").strip()
+    status_label = diagnostic_status_label(status)
+    with st.expander(f"{label} — {status_label}", expanded=expanded):
+        st.markdown(
+            _diag_status_chip_html(status),
+            unsafe_allow_html=True,
+        )
+        for field_label, field_key in (
+            ("Megállapítás", "summary"),
+            ("Bizonyíték", "evidence"),
+            ("Javasolt javítási irány", "concerns"),
+        ):
+            text = str(area.get(field_key) or "").strip()
+            if text:
+                st.markdown(f"**{field_label}:** {text}")
+        if normalize_diagnostic_status(status) == "not_enough_information":
+            missing_hint = str(area.get("summary") or area.get("concerns") or "").strip()
+            if missing_hint:
+                st.caption(f"Hiányzó adat: {_diag_shorten(missing_hint, limit=180)}")
+
+
+def _render_diag_overview(
+    *,
+    summary: str,
+    coherence: str,
+    ready: Any,
+    readiness_note: str,
+    areas_by_key: dict[str, dict[str, Any]],
+) -> None:
+    counts = {
+        "strong_stable": 0,
+        "needs_attention": 0,
+        "critical_gap": 0,
+        "not_enough_information": 0,
+    }
+    for key in DIAGNOSTIC_AREA_KEYS:
+        area = areas_by_key.get(key) or {}
+        status = normalize_diagnostic_status(area.get("status"))
+        if key not in areas_by_key:
+            status = "not_enough_information"
+        if status in ("strong", "stable"):
+            counts["strong_stable"] += 1
+        elif status in counts:
+            counts[status] += 1
+        else:
+            counts["not_enough_information"] += 1
+
+    short = _diag_shorten(summary, limit=340) if summary else ""
+    ready_msg = ""
+    if isinstance(ready, bool):
+        ready_msg = (
+            "A terv alapján tovább lehet lépni a következő szakaszra."
+            if ready
+            else "Még érdemes finomítani, mielőtt továbblépnél."
+        )
+    if readiness_note:
+        note = _diag_shorten(readiness_note, limit=180)
+        ready_msg = f"{ready_msg} {note}".strip() if ready_msg else note
+
+    meta_bits: list[str] = []
+    if coherence:
+        meta_bits.append(
+            '<span class="sw-diag-chip sw-diag-chip-neutral">'
+            f"Összhang: {html.escape(_diag_shorten(coherence, limit=120))}"
+            "</span>"
+        )
+    if isinstance(ready, bool):
+        meta_bits.append(
+            _diag_status_chip_html("stable", label="Továbbhaladás: igen")
+            if ready
+            else _diag_status_chip_html(
+                "needs_attention", label="Továbbhaladás: még nem"
+            )
+        )
+
+    count_cards = [
+        (counts["strong_stable"], "Erős vagy stabil területek", "#4a7c74"),
+        (counts["needs_attention"], "Figyelmet igénylő területek", "#c4923a"),
+        (counts["critical_gap"], "Lényeges hiányok", "#a65d48"),
+        (counts["not_enough_information"], "Nincs elég adat", "#8a8580"),
+    ]
+    cards_html = "".join(
+        (
+            '<div class="sw-diag-count-card" '
+            f'style="border-top: 3px solid {color};">'
+            f'<div class="n">{n}</div>'
+            f'<div class="lbl">{html.escape(lbl)}</div>'
+            "</div>"
+        )
+        for n, lbl, color in count_cards
+    )
+
+    st.markdown("**Gyors áttekintés**")
+    if short:
+        st.markdown(short)
+    if meta_bits:
+        st.markdown(
+            f'<div class="sw-diag-meta">{"".join(meta_bits)}</div>',
+            unsafe_allow_html=True,
+        )
+    if ready_msg:
+        st.caption(ready_msg)
+    st.markdown(
+        f'<div class="sw-diag-count-grid">{cards_html}</div>',
+        unsafe_allow_html=True,
+    )
+
+
+def _render_diag_priorities(priorities: list[dict[str, Any]]) -> None:
+    if not priorities:
+        return
+    st.markdown("**Most erre érdemes figyelni**")
+    for item in priorities:
+        title = str(item.get("title") or "").strip()
+        why = str(item.get("why_it_matters") or item.get("problem") or "").strip()
+        action = str(item.get("recommended_action") or "").strip()
+        sections = item.get("affected_sections")
+        sec_text = ""
+        if isinstance(sections, list):
+            sec_text = ", ".join(str(x).strip() for x in sections if str(x).strip())
+        # Terracotta accent if problem text suggests critical; otherwise amber
+        criticalish = "lényeges" in why.casefold() or "hiány" in title.casefold()
+        cls = "sw-diag-prio-card critical" if criticalish else "sw-diag-prio-card"
+        parts = [f"<h5>{html.escape(title)}</h5>"]
+        if why:
+            parts.append(f"<p>{html.escape(_diag_shorten(why, limit=220))}</p>")
+        if sec_text:
+            parts.append(
+                f'<div class="meta">Érintett részek: {html.escape(sec_text)}</div>'
+            )
+        if action:
+            parts.append(
+                f'<div class="meta"><strong>Következő lépés:</strong> '
+                f"{html.escape(_diag_shorten(action, limit=200))}</div>"
+            )
+        st.markdown(
+            f'<div class="{cls}">{"".join(parts)}</div>',
+            unsafe_allow_html=True,
+        )
+
+
+def _render_diag_map(areas_by_key: dict[str, dict[str, Any]]) -> None:
+    if not any(key in areas_by_key for key in DIAGNOSTIC_AREA_KEYS):
+        # Régi / részleges eredmény: ha van bármilyen terület, azt is térképezzük
+        if not areas_by_key:
+            return
+
+    st.markdown("**Diagnosztikai térkép**")
+    cols = st.columns(2)
+    for idx, group in enumerate(_DIAG_MAP_GROUPS):
+        keys = tuple(group["keys"])
+        resolved_statuses: list[str] = []
+        rows_html: list[str] = []
+        for key in keys:
+            area = areas_by_key.get(key) or {}
+            if key in areas_by_key:
+                status = normalize_diagnostic_status(area.get("status"))
+            else:
+                status = "not_enough_information"
+            resolved_statuses.append(status)
+            color = _DIAG_STATUS_COLORS[status]
+            name = html.escape(diagnostic_area_label(key))
+            chip = _diag_status_chip_html(status)
+            rows_html.append(
+                '<div class="sw-diag-area-row">'
+                f'<span class="sw-diag-area-name">'
+                f'<span class="sw-diag-strip" style="background:{color};"></span>'
+                f"{name}</span>"
+                f"{chip}"
+                "</div>"
+            )
+        worst = _diag_worst_status(resolved_statuses)
+        accent = _DIAG_STATUS_COLORS[worst]
+        worst_label = diagnostic_status_label(worst)
+        card = (
+            f'<div class="sw-diag-group-card" style="--sw-diag-accent:{accent};">'
+            f"<h5>{html.escape(str(group['title']))}</h5>"
+            f'<p class="blurb">{html.escape(str(group["blurb"]))}</p>'
+            f'<div style="margin-bottom:0.45rem;">'
+            f"{_diag_status_chip_html(worst, label=f'Csoport: {worst_label}')}"
+            "</div>"
+            + "".join(rows_html)
+            + "</div>"
+        )
+        with cols[idx % 2]:
+            st.markdown(card, unsafe_allow_html=True)
 
 
 def _render_diagnostics_results() -> None:
@@ -1894,45 +2351,31 @@ def _render_diagnostics_results() -> None:
     if not result:
         return
 
+    _ensure_diag_styles()
+
     summary = str(result.get("overall_summary") or "").strip()
-    if summary:
-        st.markdown("**Összefoglaló**")
-        st.markdown(summary)
-
     coherence = str(result.get("overall_coherence") or "").strip()
-    if coherence:
-        st.markdown("**Összhang**")
-        st.markdown(coherence)
+    ready = result.get("ready_for_next_stage")
+    readiness_note = str(result.get("readiness_note") or "").strip()
+    areas_by_key = _diag_areas_index(result.get("diagnostic_areas"))
+    priorities = _diag_collect_priorities(diag, result)
 
-    priorities = diag.get("priorities") if isinstance(diag.get("priorities"), list) else []
-    rev_raw = result.get("revision_priorities")
-    if not priorities and isinstance(rev_raw, list):
-        priorities = [p for p in rev_raw if isinstance(p, dict)]
-    if priorities:
-        st.markdown("**Javítási prioritások**")
-        for item in priorities[:3]:
-            if not isinstance(item, dict):
-                continue
-            title = str(item.get("title") or "").strip()
-            if not title:
-                continue
-            prio = item.get("priority")
-            header = f"{prio}. {title}" if prio else title
-            st.markdown(f"**{header}**")
-            for label, key in (
-                ("Probléma", "problem"),
-                ("Miért fontos", "why_it_matters"),
-                ("Javasolt lépés", "recommended_action"),
-            ):
-                text = str(item.get(key) or "").strip()
-                if text:
-                    st.markdown(f"*{label}:* {text}")
-            sections = item.get("affected_sections")
-            if isinstance(sections, list):
-                sec_text = ", ".join(str(x).strip() for x in sections if str(x).strip())
-                if sec_text:
-                    st.caption(f"Érintett szakaszok: {sec_text}")
+    # 1. Gyors áttekintés
+    _render_diag_overview(
+        summary=summary,
+        coherence=coherence,
+        ready=ready,
+        readiness_note=readiness_note,
+        areas_by_key=areas_by_key,
+    )
 
+    # 2. Prioritások
+    _render_diag_priorities(priorities)
+
+    # 3. Diagnosztikai térkép
+    _render_diag_map(areas_by_key)
+
+    # 4. Fő erősségek
     strengths = result.get("major_strengths")
     if isinstance(strengths, list) and any(str(x).strip() for x in strengths):
         st.markdown("**Fő erősségek**")
@@ -1941,27 +2384,7 @@ def _render_diagnostics_results() -> None:
             if line:
                 st.markdown(f"- {line}")
 
-    areas = result.get("diagnostic_areas")
-    if isinstance(areas, list) and areas:
-        st.markdown("**Diagnosztikai területek**")
-        for area in areas:
-            if not isinstance(area, dict):
-                continue
-            key = str(area.get("key") or "").strip()
-            label = str(area.get("label") or "").strip() or diagnostic_area_label(key)
-            status = str(area.get("status") or "").strip()
-            status_label = diagnostic_status_label(status)
-            with st.expander(f"{label} — {status_label}", expanded=False):
-                _render_diagnostic_status_badge(status)
-                for field_label, field_key in (
-                    ("Összefoglaló", "summary"),
-                    ("Bizonyíték", "evidence"),
-                    ("Aggályok", "concerns"),
-                ):
-                    text = str(area.get(field_key) or "").strip()
-                    if text:
-                        st.markdown(f"**{field_label}:** {text}")
-
+    # 5–6. Figyelmeztetések
     consistency = result.get("consistency_warnings")
     if isinstance(consistency, list) and any(str(x).strip() for x in consistency):
         st.markdown("**Konzisztencia-figyelmeztetések**")
@@ -1978,35 +2401,74 @@ def _render_diagnostics_results() -> None:
             if line:
                 st.warning(line)
 
+    # 7. Hang és eredetiség
     voice_note = str(result.get("voice_and_originality_note") or "").strip()
     if voice_note:
-        st.markdown("**Hang és eredetiség**")
+        st.markdown("**Saját hang és eredetiség**")
         st.markdown(voice_note)
 
-    ready = result.get("ready_for_next_stage")
-    readiness_note = str(result.get("readiness_note") or "").strip()
+    # 8. Minden diagnosztikai részlet
+    areas = result.get("diagnostic_areas")
+    if isinstance(areas, list) and areas:
+        attention_areas = [
+            a
+            for a in areas
+            if isinstance(a, dict)
+            and normalize_diagnostic_status(a.get("status"))
+            in ("critical_gap", "needs_attention")
+        ]
+        if attention_areas:
+            st.markdown("**Figyelmet igénylő részletek**")
+            for area in attention_areas:
+                _render_diag_area_detail(area, expanded=False)
+
+        with st.expander("Minden diagnosztikai részlet", expanded=False):
+            # Prefer known key order, then any extras
+            ordered: list[dict[str, Any]] = []
+            seen: set[str] = set()
+            for key in DIAGNOSTIC_AREA_KEYS:
+                if key in areas_by_key:
+                    ordered.append(areas_by_key[key])
+                    seen.add(key)
+            for area in areas:
+                if not isinstance(area, dict):
+                    continue
+                key = str(area.get("key") or "").strip()
+                if key in seen:
+                    continue
+                ordered.append(area)
+            for area in ordered:
+                status = normalize_diagnostic_status(area.get("status"))
+                _render_diag_area_detail(
+                    area,
+                    expanded=status in ("critical_gap", "needs_attention"),
+                )
+
+    # 9. Továbbhaladás
     if ready is not None or readiness_note:
-        st.markdown("**Készenlét a következő lépésre**")
+        st.markdown("**Továbbhaladási megjegyzés**")
         if isinstance(ready, bool):
-            st.markdown("Igen" if ready else "Még nem")
+            st.markdown(
+                "Igen — folytathatod a következő szakasszal."
+                if ready
+                else "Még nem — érdemes a fenti prioritásokkal foglalkozni."
+            )
         if readiness_note:
             st.markdown(readiness_note)
 
     warnings = result.get("warnings")
     if isinstance(warnings, list) and any(str(x).strip() for x in warnings):
-        st.markdown("**Figyelmeztetések**")
         for item in warnings:
             line = str(item or "").strip()
             if line:
-                st.warning(line)
+                st.caption(f"Figyelem: {line}")
 
     missing = result.get("missing_information")
     if isinstance(missing, list) and any(str(x).strip() for x in missing):
-        st.markdown("**Hiányzó információk**")
-        for item in missing:
-            line = str(item or "").strip()
-            if line:
-                st.caption(f"- {line}")
+        st.caption(
+            "Hiányzó információ: "
+            + "; ".join(str(x).strip() for x in missing if str(x).strip())
+        )
 
     generated = str(sw.get("m8_last_generated_at") or "").strip()
     if generated:
@@ -2125,13 +2587,9 @@ def _run_lection_suggest(*, generate_fn: GenerateFn | None) -> None:
             st.session_state, _lection_suggestion_payload(result)
         )
         if not result.ok:
-            st.error(
-                _user_facing_error(
-                    result.ok,
-                    result.error_message,
-                    fallback="A javaslatkészítés nem sikerült.",
-                )
-            )
+            # A hibaüzenetet a _render_lection_suggestions jeleníti meg
+            # (ne legyen kétszer ugyanaz a banner).
+            pass
         elif result.missing_information and not (
             result.recommended_lection.reference
             or result.no_separate_lection_needed
@@ -2374,11 +2832,13 @@ def _render_lection_suggestions() -> None:
         if isinstance(data.get("alternative_lections"), list)
         else []
     )
-    if alts:
-        with st.expander("További javaslatok", expanded=False):
-            for idx, alt in enumerate(alts[:3], start=1):
-                if not isinstance(alt, dict):
-                    continue
+    visible_alts = [a for a in alts[:3] if isinstance(a, dict)]
+    if visible_alts:
+        with st.expander(
+            f"További javaslatok ({len(visible_alts)})",
+            expanded=True,
+        ):
+            for idx, alt in enumerate(visible_alts, start=1):
                 _render_lection_candidate(
                     alt,
                     key_prefix=f"sw_mi_lection_alt_{idx}",
