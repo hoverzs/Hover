@@ -48,6 +48,8 @@ from workshop_nav_ui import (
     render_section_stepper,
     textus_completed_sections,
 )
+from ui_components import render_page_intro, render_status_badge
+from ui_theme import premium_overlay_css, premium_tokens_css
 from bible_text_ui import (
     KEY_PASSAGE_TEXT_INPUT as _BIBLE_PASSAGE_TEXT_INPUT,
     RESYNC_FLAG as _BIBLE_TEXT_RESYNC_FLAG,
@@ -3084,6 +3086,12 @@ div[data-testid="stForm"] {{
 </style>
 """, unsafe_allow_html=True)
 
+# Premium UX 2.0 overlay: közös design tokenek és finomhangolt app-szintű felületi rendszer.
+st.markdown(
+    f"<style>{premium_tokens_css()}\n{premium_overlay_css()}</style>",
+    unsafe_allow_html=True,
+)
+
 
 # =========================================================
 # KÖZÖS ALAP PROMPT
@@ -4452,6 +4460,10 @@ def _render_project_status_bar() -> None:
     if cur_id:
         status = "Nem mentett változások" if dirty else "Mentve"
         label = cur_title or "Névtelen projekt"
+        render_status_badge(
+            "Munkaközben" if dirty else "Szinkronban",
+            tone="warning" if dirty else "success",
+        )
         if passage and passage not in label:
             st.caption(
                 f"**{label}** · {passage} · {status} · autosave ~3 perc"
@@ -4460,6 +4472,10 @@ def _render_project_status_bar() -> None:
             st.caption(f"**{label}** · {status} · autosave ~3 perc")
     else:
         status = "Nem mentett változások" if dirty else "Nincs megnyitott projekt"
+        render_status_badge(
+            "Ideiglenes munkamenet" if dirty else "Nincs aktív projekt",
+            tone="neutral",
+        )
         st.caption(
             f"{status} · az autosave csak megnyitott / elmentett projektnél fut"
         )
@@ -6351,8 +6367,14 @@ def render_original_text_panel() -> None:
 
 def render_textus_workshop_shell() -> None:
     """Textusműhely-keret: elemző szakaszok + kézi fő gondolat / felismerések."""
-    st.header("Textusműhely")
-    st.caption("A bibliai szöveg megértésétől a továbbvihető felismerésekig.")
+    render_page_intro(
+        eyebrow="Munkafolyamat",
+        title="Textusműhely",
+        body=(
+            "A bibliai szöveg megértésétől a továbbvihető felismerésekig. "
+            "A lépések rugalmasan használhatók, a saját műhelyritmusod szerint."
+        ),
+    )
 
     if st.session_state.get("tw_active_section") not in _TW_SECTION_OPTIONS:
         alias = _TW_SECTION_LABEL_ALIASES.get(st.session_state.get("tw_active_section"))
@@ -6440,6 +6462,15 @@ if st.session_state.get("ui_mode") == "sermon_workshop":
 
 # Felhőprojekt megnyitás után: widget-szinkron a tabok létrehozása előtt
 _apply_pending_project_widget_sync()
+
+render_page_intro(
+    eyebrow="Elsődleges nézet",
+    title="Gyorseszközök",
+    body=(
+        "A leggyakrabban használt eszközök egy helyen. "
+        "Válassz egy kártyát, és folytasd a munkát az aktuális projekttel."
+    ),
+)
 
 tabs = st.tabs([
     "Igehely",
