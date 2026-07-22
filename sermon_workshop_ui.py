@@ -1446,7 +1446,36 @@ def _user_facing_error(result_ok: bool, error_message: str, *, fallback: str) ->
     lower = msg.casefold()
     if "api key" in lower or "apikey" in lower or "x-goog-api-key" in lower:
         return fallback
+    if (
+        "unexpected keyword argument" in lower
+        or "got an unexpected keyword" in lower
+        or "system_instruction" in lower
+    ):
+        return fallback
     return msg
+
+
+def _log_lection_developer_error(exact: str, *, tab: str = "Lekciójavaslat") -> None:
+    """Pontos kivétel a fejlesztői debug logba; a UI-n ne jelenjen meg."""
+    entry = {
+        "ts": __import__("datetime").datetime.now().strftime("%H:%M:%S"),
+        "tab": tab,
+        "attempt": 0,
+        "status": "LECTION_UI_ERROR",
+        "error": (exact or "")[:2000],
+    }
+    try:
+        log = st.session_state.setdefault("_debug_log", [])
+        if isinstance(log, list):
+            log.append(entry)
+            if len(log) > 200:
+                del log[:-200]
+    except Exception:
+        pass
+    try:
+        print(f"[lection] {tab}: {exact}", flush=True)
+    except Exception:
+        pass
 
 
 def _collect_m4_kwargs(*, sermon_main_idea: str = "") -> dict[str, Any]:
@@ -2515,14 +2544,23 @@ def _run_lection_suggest(*, generate_fn: GenerateFn | None) -> None:
     with st.spinner("Lekciójavaslat készül…"):
         kwargs = _collect_lection_kwargs()
         result = suggest_lections(**kwargs, generate_fn=generate_fn)
+        if not result.ok:
+            exact = (result.error_message or "").strip()
+            for w in result.warnings or []:
+                if "Generálási hiba:" in str(w):
+                    exact = str(w)
+                    break
+            _log_lection_developer_error(exact or "lection suggest failed")
+            # Ne töröljük a korábbi javaslatokat / manuális lekcióadatot.
+            st.error(
+                "A lekciójavaslat most nem készíthető el. "
+                "Próbáld újra, vagy ellenőrizd a kapcsolatot."
+            )
+            return
         save_lection_suggestions(
             st.session_state, _lection_suggestion_payload(result)
         )
-        if not result.ok:
-            # A hibaüzenetet a _render_lection_suggestions jeleníti meg
-            # (ne legyen kétszer ugyanaz a banner).
-            pass
-        elif result.missing_information and not (
+        if result.missing_information and not (
             result.recommended_lection.reference
             or result.no_separate_lection_needed
         ):
@@ -2543,20 +2581,32 @@ def _run_lection_assess(*, generate_fn: GenerateFn | None) -> None:
     with st.spinner("Saját lekció értékelése…"):
         kwargs = _collect_lection_kwargs()
         result = assess_lection(**kwargs, generate_fn=generate_fn)
+        if not result.ok:
+            exact = (result.error_message or "").strip()
+            for w in result.warnings or []:
+                if "Generálási hiba:" in str(w):
+                    exact = str(w)
+                    break
+            _log_lection_developer_error(
+                exact or "lection assess failed", tab="Lekcióértékelés"
+            )
+            # Korábbi értékelés és manuális lekciómezők megmaradnak.
+            st.error(
+                _user_facing_error(
+                    False,
+                    result.error_message,
+                    fallback=(
+                        "A lekciójavaslat most nem készíthető el. "
+                        "Próbáld újra, vagy ellenőrizd a kapcsolatot."
+                    ),
+                )
+            )
+            return
         save_lection_assessment(
             st.session_state, _lection_assessment_payload(result)
         )
-        if not result.ok:
-            st.error(
-                _user_facing_error(
-                    result.ok,
-                    result.error_message,
-                    fallback="Az értékelés nem sikerült.",
-                )
-            )
-        else:
-            _apply_lection_assessment_to_fields(result)
-            st.success("Értékelés elkészült.")
+        _apply_lection_assessment_to_fields(result)
+        st.success("Értékelés elkészült.")
 
 
 def _apply_lection_ruf_result(result: dict[str, Any]) -> None:
@@ -2739,7 +2789,14 @@ def _render_lection_suggestions() -> None:
         isinstance(data.get("recommended_lection"), dict)
         and data.get("recommended_lection", {}).get("reference")
     ):
-        err = str(data.get("error_message") or "").strip()
+        err = _user_facing_error(
+            False,
+            str(data.get("error_message") or ""),
+            fallback=(
+                "A lekciójavaslat most nem készíthető el. "
+                "Próbáld újra, vagy ellenőrizd a kapcsolatot."
+            ),
+        )
         if err:
             st.error(err)
         return
@@ -2808,7 +2865,14 @@ def _render_lection_assessment() -> None:
     if not isinstance(data, dict):
         return
     if data.get("ok") is False and not str(data.get("overall_assessment") or "").strip():
-        err = str(data.get("error_message") or "").strip()
+        err = _user_facing_error(
+            False,
+            str(data.get("error_message") or ""),
+            fallback=(
+                "A lekciójavaslat most nem készíthető el. "
+                "Próbáld újra, vagy ellenőrizd a kapcsolatot."
+            ),
+        )
         if err:
             st.error(err)
         return

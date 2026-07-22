@@ -33,8 +33,25 @@ from sermon_workshop_m7_closing_ai import build_closing_context
 TAB_LECTION = "Lekciójavaslat"
 DEFAULT_TEMPERATURE = 0.2
 MAX_ALTERNATIVES = 3
+LECTION_GENERATE_USER_ERROR = (
+    "A lekciójavaslat most nem készíthető el. "
+    "Próbáld újra, vagy ellenőrizd a kapcsolatot."
+)
 
 GenerateFn = Callable[..., str]
+
+
+def _public_generate_error_message(exc: BaseException) -> str:
+    """Felhasználói üzenet; nyers TypeError / váratlan kwargs ne jelenjen meg."""
+    raw = str(exc)
+    lower = raw.casefold()
+    if (
+        "unexpected keyword argument" in lower
+        or "system_instruction" in lower
+        or "got an unexpected keyword" in lower
+    ):
+        return LECTION_GENERATE_USER_ERROR
+    return (raw[:280] if raw else LECTION_GENERATE_USER_ERROR)
 
 LECTION_CONNECTION_TYPES = (
     "thematic",
@@ -1079,7 +1096,7 @@ def suggest_lections(
             reasoning="A Gemini-hívás sikertelen volt.",
             warnings=[f"Generálási hiba: {exc}"],
             missing=missing,
-            error_message=str(exc)[:280],
+            error_message=_public_generate_error_message(exc),
             ok=False,
         )
     result = parse_lection_suggestion_response(raw)
@@ -1199,7 +1216,7 @@ def assess_lection(
             overall_assessment="A Gemini-hívás sikertelen volt.",
             warnings=[f"Generálási hiba: {exc}"],
             ok=False,
-            error_message=str(exc)[:280],
+            error_message=_public_generate_error_message(exc),
         )
     return parse_lection_assessment_response(raw)
 

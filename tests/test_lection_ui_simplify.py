@@ -295,18 +295,20 @@ def test_suggest_generate_fn_matches_app_signature(session):
         truncation_message: str | None = None,
         truncation_notice_mode: str = "always",
         incomplete_response_message: str | None = None,
-        **kwargs,
     ):
-        if "system_instruction" in kwargs:
-            raise TypeError(
-                "generate_text() got an unexpected keyword argument "
-                "'system_instruction'"
-            )
-        seen["tab_label"] = tab_label
+        # Nincs **kwargs: system_instruction → TypeError (mint app.generate_text).
+        seen.setdefault("calls", []).append(
+            {
+                "tab_label": tab_label,
+                "enable_google_search": enable_google_search,
+                "use_cache": use_cache,
+                "include_brevity_directive": include_brevity_directive,
+                "system_bundle": system_bundle,
+            }
+        )
         seen["prompt"] = prompt
         return json.dumps(_lection_suggest_payload(), ensure_ascii=False)
 
-    # Üres lection_user_focus — a munkafolyamat alapján is kell javaslat
     result = suggest_lections(
         passage="Júd 17–20",
         passage_text="17 Ti pedig…",
@@ -318,9 +320,105 @@ def test_suggest_generate_fn_matches_app_signature(session):
         generate_fn=fake_generate,
     )
     assert result.ok
-    assert seen.get("tab_label") == "Lekciójavaslat"
+    assert seen.get("calls")
+    assert seen["calls"][0]["tab_label"] == "Lekciójavaslat"
+    assert seen["calls"][0]["enable_google_search"] is False
+    assert seen["calls"][0]["use_cache"] is False
+    assert seen["calls"][0]["include_brevity_directive"] is False
     assert result.recommended_lection.reference == "Jn 15,1–11"
-    assert len(result.alternative_lections) >= 0
+    assert "szőlőtő" in result.recommended_lection.rationale
+
+    assess_seen: dict[str, Any] = {}
+
+    def fake_assess(
+        prompt,
+        enable_google_search: bool = False,
+        *,
+        tab_label: str = "unknown",
+        use_cache: bool = True,
+        system_bundle: str | None = None,
+        include_brevity_directive: bool = True,
+        truncation_message: str | None = None,
+        truncation_notice_mode: str = "always",
+        incomplete_response_message: str | None = None,
+    ):
+        assess_seen["tab_label"] = tab_label
+        assess_seen["prompt"] = prompt
+        return json.dumps(
+            {
+                "overall_assessment": "Illeszkedik.",
+                "strengths": ["Tematikus kapcsolat"],
+                "improvements": [],
+                "connection_type_assessment": "thematic",
+                "length_assessment": "standard",
+                "liturgical_fit_assessment": "jó",
+                "suggested_reference": "",
+                "suggested_connection_type": "thematic",
+                "revised_rationale": "",
+                "warnings": [],
+            },
+            ensure_ascii=False,
+        )
+
+    assessed = assess_lection(
+        passage="Júd 17–20",
+        passage_text="17 Ti pedig…",
+        sermon_main_idea="Isten megtartja népét.",
+        sermon_main_idea_status="approved",
+        text_main_idea="Őrizzétek magatokat.",
+        text_main_idea_status="approved",
+        lection={
+            "reference": "Jn 15,1–11",
+            "connection_type": "gospel_complement",
+            "rationale": "próba",
+        },
+        generate_fn=fake_assess,
+    )
+    assert assessed.ok
+    assert assess_seen.get("tab_label") == "Lekciójavaslat"
+    assert "Illeszkedik" in assessed.overall_assessment
+
+
+def test_suggest_rejects_system_instruction_like_app(session):
+    """Ha a wrapper TypeError-t dob system_instruction-re, a publikus API elnyeli."""
+
+    def strict_generate(
+        prompt,
+        enable_google_search: bool = False,
+        *,
+        tab_label: str = "unknown",
+        use_cache: bool = True,
+        system_bundle: str | None = None,
+        include_brevity_directive: bool = True,
+        truncation_message: str | None = None,
+        truncation_notice_mode: str = "always",
+        incomplete_response_message: str | None = None,
+    ):
+        return json.dumps(_lection_suggest_payload(), ensure_ascii=False)
+
+    # Közvetlen hívás a belső helperen: ha mégis system_instruction menne, TypeError.
+    from sermon_workshop_m9_lection_ai import _call_lection_generate
+
+    try:
+        _call_lection_generate(
+            strict_generate,
+            "prompt",
+            tab_label="Lekciójavaslat",
+        )
+    except TypeError as exc:
+        pytest.fail(f"compatible call raised TypeError: {exc}")
+
+    result = suggest_lections(
+        passage="Júd 17–20",
+        passage_text="17 Ti pedig…",
+        sermon_main_idea="Isten megtartja népét.",
+        sermon_main_idea_status="approved",
+        text_main_idea="Őrizzétek magatokat.",
+        text_main_idea_status="approved",
+        generate_fn=strict_generate,
+    )
+    assert result.ok
+    assert "unexpected keyword" not in (result.error_message or "").casefold()
 
 
 def test_suggest_returns_alternatives(session):
