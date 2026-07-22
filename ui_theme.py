@@ -172,23 +172,44 @@ def premium_overlay_css() -> str:
     margin-top: 0.25rem !important;
 }
 
-/* Gyorseszközök tabok: chip-fal helyett rendezett eszközrács-hatás */
+/* Gyorseszközök tabok: chip-fal helyett rendezett eszközkártya-rács (max 4 oszlop) */
 .stTabs [data-baseweb="tab-list"] {
     display: grid !important;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 0.45rem !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 0.5rem !important;
+    border-bottom: none !important;
+}
+
+.stTabs [data-baseweb="tab-highlight"],
+.stTabs [data-baseweb="tab-border"] {
+    display: none !important;
 }
 
 .stTabs [data-baseweb="tab"] {
-    min-height: 3rem !important;
+    min-height: 3.2rem !important;
+    height: auto !important;
     border-radius: var(--tx-radius-md) !important;
     border: 1px solid var(--tx-border) !important;
     background: var(--tx-surface) !important;
     justify-content: flex-start !important;
     text-align: left !important;
-    padding: 0.55rem 0.75rem !important;
+    align-items: center !important;
+    padding: 0.55rem 0.8rem !important;
     box-shadow: none !important;
     font-weight: 550 !important;
+    white-space: normal !important;
+    line-height: 1.25 !important;
+}
+
+/* Teljes cím: két sorra törhet, nincs levágás / ellipszis */
+.stTabs [data-baseweb="tab"] [data-testid="stMarkdownContainer"] p,
+.stTabs [data-baseweb="tab"] p {
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    font-size: 0.9rem !important;
+    line-height: 1.22 !important;
+    margin: 0 !important;
 }
 
 .stTabs [aria-selected="true"][data-baseweb="tab"] {
@@ -197,7 +218,7 @@ def premium_overlay_css() -> str:
         var(--tx-primary-soft),
         rgba(255, 249, 240, 0.8)
     ) !important;
-    border-color: rgba(90, 122, 168, 0.42) !important;
+    border-color: rgba(90, 122, 168, 0.45) !important;
     color: var(--tx-primary-deep) !important;
     box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset, var(--tx-shadow-soft) !important;
 }
@@ -247,11 +268,16 @@ def premium_overlay_css() -> str:
     .main-title {
         font-size: 2.1rem !important;
     }
+}
+
+/* Gyorseszközök: közepes képernyőn 2 oszlop */
+@media (max-width: 1024px) {
     .stTabs [data-baseweb="tab-list"] {
-        grid-template-columns: 1fr 1fr !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     }
 }
 
+/* Gyorseszközök: mobilon 1 oszlop */
 @media (max-width: 560px) {
     .stTabs [data-baseweb="tab-list"] {
         grid-template-columns: 1fr !important;

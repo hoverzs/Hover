@@ -46,6 +46,7 @@ from workshop_nav_ui import (
     render_primary_view_switcher,
     render_project_toolbar_anchor,
     render_section_stepper,
+    render_workshop_step_grid,
     textus_completed_sections,
 )
 from ui_components import render_page_intro, render_status_badge
@@ -394,13 +395,15 @@ exegezis_icon_css = ""
 # =========================================================
 
 # Shared nav / toolbar / stepper visual tokens (centralized)
+# A kész-állapot mindkét variánsra érvényes: függőleges stepper + felső lépésrács.
+_WS_DONE_ANCHORS = (".ws-stepper-anchor", ".ws-step-grid-anchor")
 _WS_DONE_CSS = "\n".join(
     f"""
-.element-container:has(.ws-stepper-anchor.ws-done-{i}) + .element-container [data-testid="stRadio"] [role="radiogroup"] > label:nth-child({i + 1}):not(:has(input:checked)) {{
+.element-container:has({anchor}.ws-done-{i}) + .element-container [data-testid="stRadio"] [role="radiogroup"] > label:nth-child({i + 1}):not(:has(input:checked)) {{
     border-color: rgba(120, 150, 120, 0.28) !important;
     background: var(--ws-completed-bg) !important;
 }}
-.element-container:has(.ws-stepper-anchor.ws-done-{i}) + .element-container [data-testid="stRadio"] [role="radiogroup"] > label:nth-child({i + 1}):not(:has(input:checked)) > div:first-child {{
+.element-container:has({anchor}.ws-done-{i}) + .element-container [data-testid="stRadio"] [role="radiogroup"] > label:nth-child({i + 1}):not(:has(input:checked)) > div:first-child {{
     border-color: var(--ws-completed) !important;
     background: var(--ws-completed) !important;
     box-shadow: none !important;
@@ -409,7 +412,7 @@ _WS_DONE_CSS = "\n".join(
     justify-content: center !important;
     position: relative !important;
 }}
-.element-container:has(.ws-stepper-anchor.ws-done-{i}) + .element-container [data-testid="stRadio"] [role="radiogroup"] > label:nth-child({i + 1}):not(:has(input:checked)) > div:first-child::after {{
+.element-container:has({anchor}.ws-done-{i}) + .element-container [data-testid="stRadio"] [role="radiogroup"] > label:nth-child({i + 1}):not(:has(input:checked)) > div:first-child::after {{
     content: "";
     width: 0.28rem;
     height: 0.48rem;
@@ -418,10 +421,11 @@ _WS_DONE_CSS = "\n".join(
     transform: rotate(45deg) translateY(-0.06rem);
     display: block;
 }}
-.element-container:has(.ws-stepper-anchor.ws-done-{i}) + .element-container [data-testid="stRadio"] [role="radiogroup"] > label:nth-child({i + 1}):not(:has(input:checked)) [data-testid="stMarkdownContainer"] p {{
+.element-container:has({anchor}.ws-done-{i}) + .element-container [data-testid="stRadio"] [role="radiogroup"] > label:nth-child({i + 1}):not(:has(input:checked)) [data-testid="stMarkdownContainer"] p {{
     color: #3d5342 !important;
 }}
 """.strip()
+    for anchor in _WS_DONE_ANCHORS
     for i in range(16)
 )
 
@@ -1897,10 +1901,6 @@ div[data-testid="stForm"] {{
     padding: 0 !important;
 }}
 
-.ws-workspace-shell {{
-    margin: 0.15rem 0 0.85rem;
-}}
-
 .element-container:has(.ws-stepper-anchor) + .element-container [data-testid="stRadio"] {{
     background:
         linear-gradient(165deg, rgba(255, 252, 247, 0.72), rgba(236, 228, 214, 0.42));
@@ -2002,15 +2002,134 @@ div[data-testid="stForm"] {{
     color: var(--ws-neutral-muted) !important;
 }}
 
-/* Workspace: stepper + tartalom oszlopok mobilon egymás alá */
-@media (max-width: 900px) {{
-    .element-container:has(.ws-workspace-shell) + .element-container [data-testid="stHorizontalBlock"] {{
-        flex-direction: column !important;
-        gap: 0.75rem !important;
+/* ===== Felső munkafolyamat-lépésrács (max 4 / 2 / 1 oszlop) ===== */
+.ws-step-grid-anchor {{
+    display: none !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}}
+
+.element-container:has(.ws-step-grid-anchor) + .element-container [data-testid="stRadio"] {{
+    background:
+        linear-gradient(165deg, rgba(255, 252, 247, 0.68), rgba(236, 228, 214, 0.4));
+    border: 1px solid rgba(186, 158, 122, 0.38);
+    border-radius: 14px;
+    padding: 0.5rem;
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.7) inset,
+        0 6px 14px rgba(58, 40, 22, 0.06);
+    margin: 0.15rem 0 1rem;
+    width: 100%;
+}}
+
+.element-container:has(.ws-step-grid-anchor) + .element-container [data-testid="stRadio"] > label {{
+    display: none !important;
+}}
+
+.element-container:has(.ws-step-grid-anchor) + .element-container [data-testid="stRadio"] [role="radiogroup"] {{
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 0.4rem !important;
+    width: 100% !important;
+}}
+
+.element-container:has(.ws-step-grid-anchor) + .element-container [data-testid="stRadio"] label[data-baseweb="radio"] {{
+    display: flex !important;
+    align-items: center !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    min-height: 52px !important;
+    gap: 0.5rem !important;
+    margin: 0 !important;
+    padding: 0.5rem 0.7rem !important;
+    border-radius: 10px !important;
+    border: 1px solid rgba(186, 158, 122, 0.3) !important;
+    border-left: 3px solid transparent !important;
+    background: rgba(255, 253, 249, 0.55) !important;
+    box-shadow: none !important;
+    transition: background 0.15s ease, border-color 0.15s ease;
+    cursor: pointer;
+}}
+
+.element-container:has(.ws-step-grid-anchor) + .element-container [data-testid="stRadio"] label[data-baseweb="radio"]:hover {{
+    background: rgba(255, 252, 247, 0.85) !important;
+    border-color: rgba(186, 158, 122, 0.5) !important;
+}}
+
+.element-container:has(.ws-step-grid-anchor) + .element-container [data-testid="stRadio"] label[data-baseweb="radio"] [data-testid="stMarkdownContainer"] {{
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+}}
+
+/* Teljes cím, két sorra törhet, nincs ellipszis */
+.element-container:has(.ws-step-grid-anchor) + .element-container [data-testid="stRadio"] label[data-baseweb="radio"] [data-testid="stMarkdownContainer"] p {{
+    font-family: "Inter", "Segoe UI", sans-serif !important;
+    font-size: 0.88rem !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.003em !important;
+    text-transform: none !important;
+    color: var(--ws-neutral-text) !important;
+    line-height: 1.28 !important;
+    margin: 0 !important;
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2 !important;
+    -webkit-box-orient: vertical !important;
+}}
+
+/* Aktív lépés */
+.element-container:has(.ws-step-grid-anchor) + .element-container [data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) {{
+    background:
+        linear-gradient(100deg, rgba(232, 238, 247, 0.95), rgba(255, 250, 242, 0.6)) !important;
+    border-color: rgba(90, 122, 168, 0.5) !important;
+    border-left-color: #5a7aa8 !important;
+    box-shadow: 0 2px 8px rgba(52, 72, 98, 0.1) !important;
+}}
+
+.element-container:has(.ws-step-grid-anchor) + .element-container [data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) [data-testid="stMarkdownContainer"] p {{
+    color: var(--ws-blue-deep) !important;
+    font-weight: 650 !important;
+}}
+
+/* Státuszikon (balra) — pending */
+.element-container:has(.ws-step-grid-anchor) + .element-container [data-testid="stRadio"] label[data-baseweb="radio"] > div:first-child {{
+    width: 0.85rem !important;
+    height: 0.85rem !important;
+    min-width: 0.85rem !important;
+    border-radius: 999px !important;
+    border: 2px solid rgba(160, 140, 115, 0.42) !important;
+    background: rgba(255, 252, 247, 0.7) !important;
+    box-shadow: none !important;
+    flex-shrink: 0 !important;
+}}
+
+/* Aktív státuszikon */
+.element-container:has(.ws-step-grid-anchor) + .element-container [data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) > div:first-child {{
+    border-color: rgba(90, 120, 160, 0.85) !important;
+    background:
+        radial-gradient(circle at center, var(--ws-blue) 0 40%, transparent 44%),
+        rgba(232, 238, 247, 0.95) !important;
+}}
+
+/* Pending szöveg */
+.element-container:has(.ws-step-grid-anchor) + .element-container [data-testid="stRadio"] label[data-baseweb="radio"]:not(:has(input:checked)) [data-testid="stMarkdownContainer"] p {{
+    color: var(--ws-neutral-muted) !important;
+}}
+
+/* Közepes képernyő: 2 oszlop */
+@media (max-width: 1024px) {{
+    .element-container:has(.ws-step-grid-anchor) + .element-container [data-testid="stRadio"] [role="radiogroup"] {{
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     }}
-    .element-container:has(.ws-workspace-shell) + .element-container [data-testid="column"] {{
-        width: 100% !important;
-        flex: 1 1 100% !important;
+}}
+
+/* Mobil: 1 oszlop */
+@media (max-width: 640px) {{
+    .element-container:has(.ws-step-grid-anchor) + .element-container [data-testid="stRadio"] [role="radiogroup"] {{
+        grid-template-columns: 1fr !important;
     }}
 }}
 
@@ -6428,64 +6547,57 @@ def render_textus_workshop_shell() -> None:
         else:
             st.session_state["tw_active_section"] = _TW_SECTION_OPTIONS[0]
 
-    st.markdown(
-        '<div class="ws-workspace-shell" aria-hidden="true"></div>',
-        unsafe_allow_html=True,
+    render_workshop_step_grid(
+        _TW_SECTION_OPTIONS,
+        key="tw_active_section",
+        completed=textus_completed_sections(st.session_state),
+        label="Munkafolyamat",
     )
-    nav_col, main_col = st.columns([0.92, 2.2], gap="medium")
-    with nav_col:
-        render_section_stepper(
-            _TW_SECTION_OPTIONS,
-            key="tw_active_section",
-            completed=textus_completed_sections(st.session_state),
-            label="Aktív szakasz",
-        )
 
     active = st.session_state.get("tw_active_section") or _TW_SECTION_OPTIONS[0]
-    with main_col:
-        st.subheader(active)
+    st.subheader(active)
 
-        if active == "Igehely, alkalom és szövegkörnyezet":
-            render_igehely_panel()
-        elif active == "Eredeti szöveg és kulcsszavak":
-            render_original_text_panel()
-        elif active == "Exegézis, műfaj és szerkezet":
-            render_section_tab(
-                key="exegesis",
-                header="Exegézis",
-                basket_label="Exegézis",
-                empty_msg="Még nincs exegézis. Kattints az „Exegetikai háttér feltárása” gombra.",
-                action_label="Exegetikai háttér feltárása",
-            )
-        elif active == "Kortörténeti háttér":
-            render_section_tab(
-                key="history",
-                header="Kortörténet",
-                basket_label="Kortörténet",
-                empty_msg="Még nincs kortörténeti háttér. Kattints a „Kortörténeti háttér feltárása” gombra.",
-                action_label="Kortörténeti háttér feltárása",
-            )
-        elif active == "Teológiai hangsúlyok":
-            render_section_tab(
-                key="theology",
-                header="Teológia",
-                basket_label="Teológia",
-                empty_msg="Még nincs teológiai elemzés. Kattints a „Teológiai összefüggések feltárása” gombra.",
-                action_label="Teológiai összefüggések feltárása",
-            )
-        elif active == "A textus fő gondolata":
-            render_text_main_idea_section(generate_fn=generate_text)
-        elif active == "Mit viszünk tovább?":
-            render_approved_insights_section()
-        else:
-            st.info(
-                "Ez a műhelyszakasz a következő fejlesztési lépésben kapcsolódik "
-                "a meglévő Textus-funkcióhoz."
-            )
+    if active == "Igehely, alkalom és szövegkörnyezet":
+        render_igehely_panel()
+    elif active == "Eredeti szöveg és kulcsszavak":
+        render_original_text_panel()
+    elif active == "Exegézis, műfaj és szerkezet":
+        render_section_tab(
+            key="exegesis",
+            header="Exegézis",
+            basket_label="Exegézis",
+            empty_msg="Még nincs exegézis. Kattints az „Exegetikai háttér feltárása” gombra.",
+            action_label="Exegetikai háttér feltárása",
+        )
+    elif active == "Kortörténeti háttér":
+        render_section_tab(
+            key="history",
+            header="Kortörténet",
+            basket_label="Kortörténet",
+            empty_msg="Még nincs kortörténeti háttér. Kattints a „Kortörténeti háttér feltárása” gombra.",
+            action_label="Kortörténeti háttér feltárása",
+        )
+    elif active == "Teológiai hangsúlyok":
+        render_section_tab(
+            key="theology",
+            header="Teológia",
+            basket_label="Teológia",
+            empty_msg="Még nincs teológiai elemzés. Kattints a „Teológiai összefüggések feltárása” gombra.",
+            action_label="Teológiai összefüggések feltárása",
+        )
+    elif active == "A textus fő gondolata":
+        render_text_main_idea_section(generate_fn=generate_text)
+    elif active == "Mit viszünk tovább?":
+        render_approved_insights_section()
+    else:
+        st.info(
+            "Ez a műhelyszakasz a következő fejlesztési lépésben kapcsolódik "
+            "a meglévő Textus-funkcióhoz."
+        )
 
-        next_hint = _TW_NEXT_STEP_HINTS.get(active)
-        if next_hint:
-            st.caption(next_hint)
+    next_hint = _TW_NEXT_STEP_HINTS.get(active)
+    if next_hint:
+        st.caption(next_hint)
 
 
 if st.session_state.get("ui_mode") not in ("quick", "workshop", "sermon_workshop"):

@@ -35,16 +35,18 @@ def completed_step_indices(
     return [i for i, opt in enumerate(options) if opt in done]
 
 
-def render_workshop_stepper(
+def _render_stepper(
     options: Sequence[str],
     *,
     key: str,
-    completed: Iterable[str] | None = None,
-    label: str = "Szakaszok",
+    completed: Iterable[str] | None,
+    label: str,
+    anchor_base: str,
 ) -> str:
-    """Egy közös lépésnavigáció — aktív / kész / várakozó, státuszikon balra.
+    """Közös lépésnavigáció-mag — a megjelenést az anchor osztály vezérli.
 
     A címben nincs ✓; a kész állapotot CSS jelöli (ws-done-N osztályok).
+    A session kulcs és a navigációs logika minden variánsnál azonos.
     """
     opts = [str(o) for o in options if str(o).strip()]
     if not opts:
@@ -57,7 +59,7 @@ def render_workshop_stepper(
         current = opts[0]
 
     done_classes = " ".join(f"ws-done-{i}" for i in completed_step_indices(opts, done))
-    anchor_cls = f"ws-stepper-anchor {done_classes}".strip()
+    anchor_cls = f"{anchor_base} {done_classes}".strip()
     st.markdown(
         f'<div class="{anchor_cls}" aria-hidden="true"></div>',
         unsafe_allow_html=True,
@@ -73,7 +75,45 @@ def render_workshop_stepper(
     return str(st.session_state.get(key) or opts[0])
 
 
-# Backward-compatible alias
+def render_workshop_stepper(
+    options: Sequence[str],
+    *,
+    key: str,
+    completed: Iterable[str] | None = None,
+    label: str = "Szakaszok",
+) -> str:
+    """Függőleges lépésnavigáció (visszafelé kompatibilis változat)."""
+    return _render_stepper(
+        options,
+        key=key,
+        completed=completed,
+        label=label,
+        anchor_base="ws-stepper-anchor",
+    )
+
+
+def render_workshop_step_grid(
+    options: Sequence[str],
+    *,
+    key: str,
+    completed: Iterable[str] | None = None,
+    label: str = "Munkafolyamat",
+) -> str:
+    """Felső, több sorba törhető lépésrács — aktív / kész / várakozó.
+
+    Ugyanaz a widget és session kulcs, mint a függőleges stepperé; csak a
+    megjelenés más (grid). Mindkét műhely ezt használja.
+    """
+    return _render_stepper(
+        options,
+        key=key,
+        completed=completed,
+        label=label,
+        anchor_base="ws-step-grid-anchor",
+    )
+
+
+# Backward-compatible aliasok
 render_section_stepper = render_workshop_stepper
 
 
