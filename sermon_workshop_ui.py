@@ -7165,6 +7165,92 @@ def _render_section_placeholder(section: str) -> None:
     st.caption("Következő fejlesztési mérföldkőben válik működővé.")
 
 
+def flush_sermon_workshop_from_widgets() -> None:
+    """Élő Streamlit widgetek → tartós `sermon_workshop` (ha a widget létezik).
+
+    A fejléc Mentés / autosave előtt hívandó, hogy a még nem „Mentés
+    vázlatként” gombbal elmentett mezők se vesszenek el — ugyanaz a minta,
+    mint a Bibliai szöveg `save_bible_text_from_widgets` hívása.
+    Nem változtatja a jóváhagyási státuszokat (draft/approved).
+    """
+    ensure_sermon_workshop_state(st.session_state)
+
+    if _KEY_SERMON_IDEA in st.session_state:
+        update_sermon_workshop_section(
+            st.session_state,
+            "sermon_main_idea",
+            (st.session_state.get(_KEY_SERMON_IDEA) or "").strip(),
+        )
+
+    if all(wkey in st.session_state for wkey in _KEY_HC.values()):
+        block = {
+            field: (st.session_state.get(wkey) or "").strip()
+            for field, wkey in _KEY_HC.items()
+        }
+        update_sermon_workshop_section(st.session_state, "human_condition", block)
+
+    if all(wkey in st.session_state for wkey in _KEY_LT.values()):
+        sw = ensure_sermon_workshop_state(st.session_state)
+        current = (
+            sw.get("listener_tension")
+            if isinstance(sw.get("listener_tension"), dict)
+            else {}
+        )
+        block = {
+            field: (st.session_state.get(wkey) or "").strip()
+            for field, wkey in _KEY_LT.items()
+        }
+        # promised_resolution a GA widgetből jöhet, ha létezik
+        if _KEY_GA["promised_resolution"] in st.session_state:
+            block["promised_resolution"] = (
+                st.session_state.get(_KEY_GA["promised_resolution"]) or ""
+            ).strip()
+        else:
+            block["promised_resolution"] = str(
+                current.get("promised_resolution") or ""
+            )
+        update_sermon_workshop_section(st.session_state, "listener_tension", block)
+
+    if all(
+        wkey in st.session_state
+        for field, wkey in _KEY_GA.items()
+        if field != "promised_resolution"
+    ):
+        _persist_gospel_arc_from_widgets()
+
+    if all(wkey in st.session_state for wkey in _KEY_PATH.values()):
+        _persist_sermon_path_from_widgets()
+
+    if any(
+        isinstance(k, str) and k.startswith(_MV_WIDGET_PREFIX)
+        for k in st.session_state.keys()
+    ):
+        _persist_sermon_movements_from_widgets()
+
+    if any(
+        isinstance(k, str)
+        and (
+            k.startswith(_IMG_WIDGET_PREFIX)
+            or k.startswith(_ILL_WIDGET_PREFIX)
+            or k.startswith(_APP_WIDGET_PREFIX)
+        )
+        for k in st.session_state.keys()
+    ):
+        _persist_enrichment_from_widgets()
+
+    if all(wkey in st.session_state for wkey in _KEY_CL.values()):
+        _persist_closing_from_widgets()
+
+    if all(wkey in st.session_state for wkey in _KEY_DIAG.values()):
+        _persist_self_review_from_widgets()
+
+    if _KEY_LECTION["reference"] in st.session_state:
+        _persist_lection_from_widgets(include_text=True)
+
+    if _KEY_PRAYER_COMMON["tone_preference"] in st.session_state:
+        _persist_prayer_from_widgets()
+
+
 def render_sermon_workshop_shell(
     *,
     generate_fn: GenerateFn | None = None,
@@ -7247,6 +7333,7 @@ def render_sermon_workshop_shell(
 
 __all__ = [
     "render_sermon_workshop_shell",
+    "flush_sermon_workshop_from_widgets",
     "render_sermon_main_idea_section",
     "render_human_condition_section",
     "render_listener_tension_section",

@@ -40,7 +40,7 @@ from sermon_workshop_data import (
     get_default_sermon_workshop,
     normalize_sermon_workshop,
 )
-from sermon_workshop_ui import render_sermon_workshop_shell
+from sermon_workshop_ui import flush_sermon_workshop_from_widgets, render_sermon_workshop_shell
 from bible_text_ui import (
     KEY_PASSAGE_TEXT_INPUT as _BIBLE_PASSAGE_TEXT_INPUT,
     RESYNC_FLAG as _BIBLE_TEXT_RESYNC_FLAG,
@@ -3134,6 +3134,9 @@ def _sync_inputs_to_last():
     # (projekt Mentés / autosave ne veszítse el a még nem „Mentett” szöveget).
     if _BIBLE_PASSAGE_TEXT_INPUT in st.session_state:
         save_bible_text_from_widgets(st.session_state)
+
+    # Igehirdetési műhely: ugyanez a minta a sermon_workshop widgetekre.
+    flush_sermon_workshop_from_widgets()
 
 
 def build_alap_from_state():
