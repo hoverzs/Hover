@@ -1,25 +1,51 @@
-"""Közös műhely-szakasz navigáció (Textusműhely / Igehirdetési műhely).
+"""Közös műhely-navigáció (Textusműhely / Igehirdetési műhely).
 
-Streamlit radio + CSS stepper stílus. Ugyanazok a session kulcsok
-maradnak, a funkcionalitás változatlan.
+Streamlit widgetek + CSS stepper / elsődleges nézetváltó.
+A session kulcsok és a navigációs logika változatlan.
 """
 
 from __future__ import annotations
 
-from collections.abc import Callable, Iterable, Sequence
+from collections.abc import Callable, Iterable, Mapping, Sequence
+from html import escape
 from typing import Any
 
 import streamlit as st
 
+_DEFAULT_UI_MODE_LABELS: dict[str, str] = {
+    "quick": "Gyorseszközök",
+    "workshop": "Textusműhely",
+    "sermon_workshop": "Igehirdetési műhely",
+}
 
-def render_section_stepper(
+# Optional Material icons (Streamlit markdown) — clean, not emoji.
+_DEFAULT_UI_MODE_ICONS: dict[str, str] = {
+    "quick": ":material/bolt:",
+    "workshop": ":material/menu_book:",
+    "sermon_workshop": ":material/auto_stories:",
+}
+
+
+def completed_step_indices(
+    options: Sequence[str],
+    completed: Iterable[str] | None,
+) -> list[int]:
+    """0-based indices of completed (not necessarily active) steps."""
+    done = {str(x) for x in (completed or ()) if str(x).strip()}
+    return [i for i, opt in enumerate(options) if opt in done]
+
+
+def render_workshop_stepper(
     options: Sequence[str],
     *,
     key: str,
     completed: Iterable[str] | None = None,
     label: str = "Szakaszok",
 ) -> str:
-    """Vizuális lépésnavigáció — aktív / kész / várakozó állapotokkal."""
+    """Egy közös lépésnavigáció — aktív / kész / várakozó, státuszikon balra.
+
+    A címben nincs ✓; a kész állapotot CSS jelöli (ws-done-N osztályok).
+    """
     opts = [str(o) for o in options if str(o).strip()]
     if not opts:
         return ""
@@ -30,23 +56,103 @@ def render_section_stepper(
         st.session_state[key] = opts[0]
         current = opts[0]
 
-    def _format(opt: str) -> str:
-        if opt in done and opt != current:
-            return f"✓  {opt}"
-        return opt
-
+    done_classes = " ".join(f"ws-done-{i}" for i in completed_step_indices(opts, done))
+    anchor_cls = f"ws-stepper-anchor {done_classes}".strip()
     st.markdown(
-        '<div class="ws-stepper-anchor" aria-hidden="true"></div>',
+        f'<div class="{anchor_cls}" aria-hidden="true"></div>',
         unsafe_allow_html=True,
     )
+    # format_func: plain labels only (no checkmark in text)
     st.radio(
         label,
         options=opts,
         key=key,
-        format_func=_format,
+        format_func=lambda opt: str(opt),
         label_visibility="collapsed",
     )
     return str(st.session_state.get(key) or opts[0])
+
+
+# Backward-compatible alias
+render_section_stepper = render_workshop_stepper
+
+
+def render_primary_view_switcher(
+    options: Sequence[str] | None = None,
+    *,
+    labels: Mapping[str, str] | None = None,
+    icons: Mapping[str, str] | None = None,
+    key: str = "ui_mode",
+) -> str:
+    """Háromelemű elsődleges nézetváltó (segmented control)."""
+    opts = [str(o) for o in (options or ("quick", "workshop", "sermon_workshop"))]
+    label_map = dict(_DEFAULT_UI_MODE_LABELS)
+    if labels:
+        label_map.update({str(k): str(v) for k, v in labels.items()})
+    icon_map = dict(_DEFAULT_UI_MODE_ICONS)
+    if icons:
+        icon_map.update({str(k): str(v) for k, v in icons.items()})
+
+    if st.session_state.get(key) not in opts:
+        st.session_state[key] = opts[0]
+
+    def _format(mode: str) -> str:
+        text = label_map.get(mode, mode)
+        icon = (icon_map.get(mode) or "").strip()
+        return f"{icon} {text}".strip() if icon else text
+
+    st.markdown(
+        '<div class="ws-primary-nav-anchor" aria-hidden="true"></div>',
+        unsafe_allow_html=True,
+    )
+
+    if hasattr(st, "segmented_control"):
+        st.segmented_control(
+            "Nézet",
+            options=opts,
+            format_func=_format,
+            key=key,
+            required=True,
+            label_visibility="collapsed",
+            width="stretch",
+        )
+    else:
+        st.radio(
+            "Nézet",
+            options=opts,
+            format_func=_format,
+            horizontal=True,
+            key=key,
+            label_visibility="collapsed",
+        )
+
+    return str(st.session_state.get(key) or opts[0])
+
+
+def render_project_toolbar_anchor() -> None:
+    """CSS horog a projektgombok tömör eszköztárához."""
+    st.markdown(
+        '<div class="ws-project-toolbar-anchor" aria-hidden="true"></div>',
+        unsafe_allow_html=True,
+    )
+
+
+# Alias — a gombok és mentési logika az app projekt-sávjában marad.
+render_project_toolbar = render_project_toolbar_anchor
+
+
+def render_info_panel(title: str, body: str = "") -> None:
+    """Cím + törzs hierarchia info-panelekhez (sentence case)."""
+    t = escape((title or "").strip())
+    b = escape((body or "").strip())
+    if not t and not b:
+        return
+    title_html = f'<div class="ws-info-title">{t}</div>' if t else ""
+    body_html = f'<div class="ws-info-body">{b}</div>' if b else ""
+    st.markdown(
+        f'<div class="ws-info-panel">{title_html}{body_html}</div>',
+        unsafe_allow_html=True,
+    )
 
 
 def textus_completed_sections(state: Any) -> set[str]:
@@ -129,8 +235,13 @@ def sermon_completed_sections(
     ):
         done.add("Az igehirdetés útja és mozgásai")
     if _status("enrichment_status") == "approved" or _has_text(
-        "selected_images", "illustrations", "applications"
+        "selected_images",
+        "illustrations",
+        "applications",
+        "retained_illustration_cards",
+        "actualization_connections",
     ):
+        done.add("Illusztrációk és aktualizálás")
         done.add("Képek, illusztrációk és alkalmazás")
     if _status("closing_status") == "approved" or _has_text("closing"):
         done.add("Lezárás és megérkezés")
@@ -154,7 +265,13 @@ def sermon_completed_sections(
 
 
 __all__ = [
+    "completed_step_indices",
+    "render_workshop_stepper",
     "render_section_stepper",
+    "render_primary_view_switcher",
+    "render_project_toolbar_anchor",
+    "render_project_toolbar",
+    "render_info_panel",
     "textus_completed_sections",
     "sermon_completed_sections",
 ]

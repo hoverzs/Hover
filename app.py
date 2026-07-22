@@ -42,7 +42,12 @@ from sermon_workshop_data import (
     normalize_sermon_workshop,
 )
 from sermon_workshop_ui import flush_sermon_workshop_from_widgets, render_sermon_workshop_shell
-from workshop_nav_ui import render_section_stepper, textus_completed_sections
+from workshop_nav_ui import (
+    render_primary_view_switcher,
+    render_project_toolbar_anchor,
+    render_section_stepper,
+    textus_completed_sections,
+)
 from bible_text_ui import (
     KEY_PASSAGE_TEXT_INPUT as _BIBLE_PASSAGE_TEXT_INPUT,
     RESYNC_FLAG as _BIBLE_TEXT_RESYNC_FLAG,
@@ -386,10 +391,58 @@ exegezis_icon_css = ""
 # CSS
 # =========================================================
 
+# Shared nav / toolbar / stepper visual tokens (centralized)
+_WS_DONE_CSS = "\n".join(
+    f"""
+.element-container:has(.ws-stepper-anchor.ws-done-{i}) + .element-container [data-testid="stRadio"] [role="radiogroup"] > label:nth-child({i + 1}):not(:has(input:checked)) {{
+    border-color: rgba(120, 150, 120, 0.28) !important;
+    background: var(--ws-completed-bg) !important;
+}}
+.element-container:has(.ws-stepper-anchor.ws-done-{i}) + .element-container [data-testid="stRadio"] [role="radiogroup"] > label:nth-child({i + 1}):not(:has(input:checked)) > div:first-child {{
+    border-color: var(--ws-completed) !important;
+    background: var(--ws-completed) !important;
+    box-shadow: none !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    position: relative !important;
+}}
+.element-container:has(.ws-stepper-anchor.ws-done-{i}) + .element-container [data-testid="stRadio"] [role="radiogroup"] > label:nth-child({i + 1}):not(:has(input:checked)) > div:first-child::after {{
+    content: "";
+    width: 0.28rem;
+    height: 0.48rem;
+    border: solid #fff;
+    border-width: 0 1.6px 1.6px 0;
+    transform: rotate(45deg) translateY(-0.06rem);
+    display: block;
+}}
+.element-container:has(.ws-stepper-anchor.ws-done-{i}) + .element-container [data-testid="stRadio"] [role="radiogroup"] > label:nth-child({i + 1}):not(:has(input:checked)) [data-testid="stMarkdownContainer"] p {{
+    color: #3d5342 !important;
+}}
+""".strip()
+    for i in range(16)
+)
+
 st.markdown(f"""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&family=Lora:ital,wght@0,500;1,500;1,600&display=swap');
 @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css');
+
+:root {{
+    --ws-blue: #5a7aa8;
+    --ws-blue-deep: #1f334d;
+    --ws-blue-bg: rgba(232, 238, 247, 0.72);
+    --ws-blue-border: rgba(122, 145, 176, 0.45);
+    --ws-neutral-text: #5a4a38;
+    --ws-neutral-muted: #6a5a48;
+    --ws-completed: #6f9a78;
+    --ws-completed-bg: rgba(232, 242, 234, 0.42);
+    --ws-radius: 12px;
+    --ws-radius-panel: 16px;
+    --ws-gap-toolbar: 10px;
+    --ws-shadow-active: 0 4px 12px rgba(52, 72, 98, 0.10);
+    --ws-shadow-panel: 0 8px 18px rgba(58, 40, 22, 0.07);
+}}
 
 .stApp {{
     {background_css}
@@ -1611,6 +1664,210 @@ div[data-testid="stForm"] {{
     margin-right: 0.35rem;
 }}
 
+/* ===== Shared info panel (title + body) ===== */
+.ws-info-panel {{
+    margin: 0.55rem 0 0.85rem;
+    padding: 0.7rem 0.95rem 0.75rem;
+    border-left: 3px solid var(--ws-blue-border);
+    border-radius: 0 12px 12px 0;
+    background: linear-gradient(
+        90deg,
+        rgba(232, 238, 247, 0.48),
+        rgba(232, 238, 247, 0.08) 70%,
+        rgba(232, 238, 247, 0)
+    );
+    max-width: 68ch;
+}}
+.ws-info-title {{
+    font-family: "Inter", "Segoe UI", sans-serif;
+    font-size: 0.92rem;
+    font-weight: 650;
+    letter-spacing: 0.01em;
+    text-transform: none;
+    color: var(--ws-blue-deep);
+    margin-bottom: 0.2rem;
+}}
+.ws-info-body {{
+    font-family: "Lora", Georgia, serif;
+    font-size: 0.98rem;
+    font-weight: 500;
+    line-height: 1.55;
+    text-transform: none;
+    color: #3a4f6a;
+}}
+
+/* ===== Projekt eszköztár (tömör, balra zárt) ===== */
+.ws-project-toolbar-anchor {{
+    display: none !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}}
+
+.element-container:has(.ws-project-toolbar-anchor) + .element-container [data-testid="stHorizontalBlock"] {{
+    gap: var(--ws-gap-toolbar) !important;
+    column-gap: var(--ws-gap-toolbar) !important;
+    row-gap: 0.5rem !important;
+    justify-content: flex-start !important;
+    align-items: center !important;
+    flex-wrap: wrap !important;
+    width: 100% !important;
+    margin: 0.15rem 0 0.35rem !important;
+}}
+
+.element-container:has(.ws-project-toolbar-anchor) + .element-container [data-testid="column"] {{
+    flex: 0 0 auto !important;
+    width: auto !important;
+    min-width: 0 !important;
+}}
+
+.element-container:has(.ws-project-toolbar-anchor) + .element-container [data-testid="column"] > div {{
+    width: auto !important;
+}}
+
+.element-container:has(.ws-project-toolbar-anchor) + .element-container .stButton {{
+    margin-right: 0 !important;
+}}
+
+.element-container:has(.ws-project-toolbar-anchor) + .element-container .stButton > button {{
+    min-height: 2.45rem !important;
+    padding: 0.48rem 0.95rem !important;
+    border-radius: var(--ws-radius) !important;
+}}
+
+/* Új munka — csendesebb hierarchia (utolsó gomb a toolbarban) */
+.element-container:has(.ws-project-toolbar-anchor) + .element-container [data-testid="column"]:last-child .stButton > button:not([kind="primary"]):not([kind="primaryFormSubmit"]) {{
+    background: transparent !important;
+    border-color: rgba(160, 140, 115, 0.35) !important;
+    color: #5a4a38 !important;
+    box-shadow: none !important;
+    font-weight: 500 !important;
+}}
+
+.element-container:has(.ws-project-toolbar-anchor) + .element-container [data-testid="column"]:last-child .stButton > button:not([kind="primary"]):not([kind="primaryFormSubmit"]):hover {{
+    background: rgba(255, 252, 247, 0.55) !important;
+    border-color: rgba(160, 140, 115, 0.5) !important;
+}}
+
+/* ===== Elsődleges nézetváltó (segmented) ===== */
+.ws-primary-nav-anchor {{
+    display: none !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}}
+
+.element-container:has(.ws-primary-nav-anchor) + .element-container {{
+    margin: 0.35rem 0 0.85rem !important;
+}}
+
+.element-container:has(.ws-primary-nav-anchor) + .element-container [data-testid="stSegmentedControl"] {{
+    width: 100% !important;
+}}
+
+.element-container:has(.ws-primary-nav-anchor) + .element-container [data-testid="stSegmentedControl"] > div {{
+    width: 100% !important;
+    background:
+        linear-gradient(165deg, rgba(255, 252, 247, 0.55), rgba(236, 228, 214, 0.32));
+    border: 1px solid rgba(206, 184, 152, 0.45);
+    border-radius: var(--ws-radius-panel);
+    padding: 0.35rem;
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.7) inset,
+        var(--ws-shadow-panel);
+    gap: 0.25rem !important;
+}}
+
+.element-container:has(.ws-primary-nav-anchor) + .element-container [data-testid="stSegmentedControl"] button {{
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    border-radius: 11px !important;
+    border: 1px solid transparent !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    color: var(--ws-neutral-text) !important;
+    font-family: "Inter", "Segoe UI", sans-serif !important;
+    font-weight: 550 !important;
+    font-size: 0.95rem !important;
+    letter-spacing: 0.01em !important;
+    padding: 0.62rem 0.75rem !important;
+    transition: background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, color 0.18s ease;
+}}
+
+.element-container:has(.ws-primary-nav-anchor) + .element-container [data-testid="stSegmentedControl"] button:hover {{
+    background: rgba(255, 252, 247, 0.55) !important;
+    border-color: rgba(186, 158, 122, 0.28) !important;
+}}
+
+.element-container:has(.ws-primary-nav-anchor) + .element-container [data-testid="stSegmentedControl"] button[aria-checked="true"],
+.element-container:has(.ws-primary-nav-anchor) + .element-container [data-testid="stSegmentedControl"] button[aria-pressed="true"] {{
+    background: linear-gradient(100deg, var(--ws-blue-bg), rgba(255, 250, 242, 0.55)) !important;
+    border-color: var(--ws-blue-border) !important;
+    color: var(--ws-blue-deep) !important;
+    font-weight: 650 !important;
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.75) inset,
+        var(--ws-shadow-active) !important;
+}}
+
+/* Fallback: radio-as-segmented (ha nincs segmented_control) */
+.element-container:has(.ws-primary-nav-anchor) + .element-container [data-testid="stRadio"] > label {{
+    display: none !important;
+}}
+
+.element-container:has(.ws-primary-nav-anchor) + .element-container [data-testid="stRadio"] [role="radiogroup"] {{
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    gap: 0.25rem !important;
+    width: 100% !important;
+    background:
+        linear-gradient(165deg, rgba(255, 252, 247, 0.55), rgba(236, 228, 214, 0.32));
+    border: 1px solid rgba(206, 184, 152, 0.45);
+    border-radius: var(--ws-radius-panel);
+    padding: 0.35rem;
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.7) inset,
+        var(--ws-shadow-panel);
+}}
+
+.element-container:has(.ws-primary-nav-anchor) + .element-container [data-testid="stRadio"] label[data-baseweb="radio"] {{
+    flex: 1 1 0 !important;
+    min-width: 8.5rem !important;
+    margin: 0 !important;
+    padding: 0.62rem 0.75rem !important;
+    border-radius: 11px !important;
+    border: 1px solid transparent !important;
+    background: transparent !important;
+    justify-content: center !important;
+    gap: 0.45rem !important;
+}}
+
+.element-container:has(.ws-primary-nav-anchor) + .element-container [data-testid="stRadio"] label[data-baseweb="radio"] > div:first-child {{
+    display: none !important;
+}}
+
+.element-container:has(.ws-primary-nav-anchor) + .element-container [data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) {{
+    background: linear-gradient(100deg, var(--ws-blue-bg), rgba(255, 250, 242, 0.55)) !important;
+    border-color: var(--ws-blue-border) !important;
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.75) inset,
+        var(--ws-shadow-active) !important;
+}}
+
+.element-container:has(.ws-primary-nav-anchor) + .element-container [data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) [data-testid="stMarkdownContainer"] p {{
+    color: var(--ws-blue-deep) !important;
+    font-weight: 650 !important;
+}}
+
+@media (max-width: 720px) {{
+    .element-container:has(.ws-primary-nav-anchor) + .element-container [data-testid="stSegmentedControl"] button,
+    .element-container:has(.ws-primary-nav-anchor) + .element-container [data-testid="stRadio"] label[data-baseweb="radio"] {{
+        flex: 1 1 100% !important;
+        min-width: 100% !important;
+    }}
+}}
+
 /* ===== Műhely lépésnavigáció (stepper) ===== */
 .ws-stepper-anchor {{
     display: none !important;
@@ -1623,12 +1880,13 @@ div[data-testid="stForm"] {{
     background:
         linear-gradient(165deg, rgba(255, 252, 247, 0.42), rgba(236, 228, 214, 0.28));
     border: 1px solid rgba(206, 184, 152, 0.42);
-    border-radius: 16px;
+    border-radius: var(--ws-radius-panel);
     padding: 0.55rem 0.65rem;
     box-shadow:
         0 1px 0 rgba(255, 255, 255, 0.7) inset,
-        0 8px 18px rgba(58, 40, 22, 0.07);
+        var(--ws-shadow-panel);
     margin-bottom: 0.85rem;
+    width: 100%;
 }}
 
 .element-container:has(.ws-stepper-anchor) + .element-container [data-testid="stRadio"] > label {{
@@ -1636,13 +1894,17 @@ div[data-testid="stForm"] {{
 }}
 
 .element-container:has(.ws-stepper-anchor) + .element-container [data-testid="stRadio"] [role="radiogroup"] {{
-    gap: 0.35rem !important;
+    gap: 0.3rem !important;
     display: flex !important;
     flex-direction: column !important;
+    width: 100% !important;
 }}
 
 .element-container:has(.ws-stepper-anchor) + .element-container [data-testid="stRadio"] label[data-baseweb="radio"] {{
+    display: flex !important;
     align-items: center !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
     gap: 0.7rem !important;
     margin: 0 !important;
     padding: 0.62rem 0.85rem 0.62rem 0.75rem !important;
@@ -1658,32 +1920,37 @@ div[data-testid="stForm"] {{
     border-color: rgba(186, 158, 122, 0.28) !important;
 }}
 
+.element-container:has(.ws-stepper-anchor) + .element-container [data-testid="stRadio"] label[data-baseweb="radio"] [data-testid="stMarkdownContainer"] {{
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+}}
+
 .element-container:has(.ws-stepper-anchor) + .element-container [data-testid="stRadio"] label[data-baseweb="radio"] [data-testid="stMarkdownContainer"] p {{
     font-family: "Inter", "Segoe UI", sans-serif !important;
     font-size: 0.94rem !important;
     font-weight: 500 !important;
     letter-spacing: 0.005em !important;
     text-transform: none !important;
-    color: #5a4a38 !important;
+    color: var(--ws-neutral-text) !important;
     line-height: 1.35 !important;
 }}
 
 /* Aktív lépés */
 .element-container:has(.ws-stepper-anchor) + .element-container [data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) {{
     background:
-        linear-gradient(100deg, rgba(232, 238, 247, 0.72), rgba(255, 250, 242, 0.55)) !important;
-    border-color: rgba(122, 145, 176, 0.42) !important;
+        linear-gradient(100deg, var(--ws-blue-bg), rgba(255, 250, 242, 0.55)) !important;
+    border-color: var(--ws-blue-border) !important;
     box-shadow:
         0 1px 0 rgba(255, 255, 255, 0.75) inset,
-        0 4px 12px rgba(52, 72, 98, 0.08) !important;
+        var(--ws-shadow-active) !important;
 }}
 
 .element-container:has(.ws-stepper-anchor) + .element-container [data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) [data-testid="stMarkdownContainer"] p {{
-    color: #1f334d !important;
+    color: var(--ws-blue-deep) !important;
     font-weight: 600 !important;
 }}
 
-/* Radio kör → diszkrét státuszjelölő */
+/* Radio kör → státuszikon (balra); pending */
 .element-container:has(.ws-stepper-anchor) + .element-container [data-testid="stRadio"] label[data-baseweb="radio"] > div:first-child {{
     width: 0.95rem !important;
     height: 0.95rem !important;
@@ -1692,24 +1959,24 @@ div[data-testid="stForm"] {{
     border: 2px solid rgba(160, 140, 115, 0.45) !important;
     background: rgba(255, 252, 247, 0.7) !important;
     box-shadow: none !important;
+    flex-shrink: 0 !important;
 }}
 
+/* Aktív státuszikon */
 .element-container:has(.ws-stepper-anchor) + .element-container [data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) > div:first-child {{
     border-color: rgba(90, 120, 160, 0.85) !important;
     background:
-        radial-gradient(circle at center, #5a7aa8 0 38%, transparent 42%),
+        radial-gradient(circle at center, var(--ws-blue) 0 38%, transparent 42%),
         rgba(232, 238, 247, 0.95) !important;
 }}
 
-/* Elkészült lépés (✓ prefix a format_func-ból) */
+/* Pending (nem aktív, nem kész) szöveg */
 .element-container:has(.ws-stepper-anchor) + .element-container [data-testid="stRadio"] label[data-baseweb="radio"]:not(:has(input:checked)) [data-testid="stMarkdownContainer"] p {{
-    color: #6a5a48 !important;
+    color: var(--ws-neutral-muted) !important;
 }}
 
-/* Elkészült (nem aktív) lépés — visszafogott pozitív jelzés */
-.element-container:has(.ws-stepper-anchor) + .element-container [data-testid="stRadio"] label[data-baseweb="radio"]:not(:has(input:checked)):has([data-testid="stMarkdownContainer"] p) {{
-    border-color: rgba(120, 150, 120, 0.12) !important;
-}}
+/* Completed states via ws-done-N on anchor (no ✓ in label text) */
+{_WS_DONE_CSS}
 
 .stDivider {{
     margin-top: 2rem !important;
@@ -4205,33 +4472,49 @@ def _render_project_status_bar() -> None:
         help="A következő mentéskor (kézi vagy automatikus) ez a cím kerül a felhőbe.",
     )
 
-    b1, b2, b3, b4, _sp = st.columns([1.35, 1.55, 1.75, 1.2, 4.0], gap="small")
-    with b1:
-        save_label = "Mentés" if cur_id else "Mentés újként"
-        if st.button(save_label, key="bar_project_save"):
-            _cloud_save_project(as_new=not bool(cur_id))
-    with b2:
-        if cur_id and st.button(
-            "Mentés újként",
-            key="bar_project_save_as_new",
-        ):
-            _cloud_save_project(as_new=True)
-    with b3:
-        toggle = "Projektek elrejtése" if st.session_state.get("show_projects_panel") else "Projektek…"
-        if st.button(toggle, key="bar_projects_toggle"):
-            st.session_state["show_projects_panel"] = not bool(
-                st.session_state.get("show_projects_panel")
+    # Tömör eszköztár: tartalomszélességű gombok, egyenletes rés, balra zárt
+    render_project_toolbar_anchor()
+    save_label = "Mentés" if cur_id else "Mentés újként"
+    toolbar_items: list[tuple[str, str, bool]] = [
+        ("bar_project_save", save_label, True),
+    ]
+    if cur_id:
+        toolbar_items.append(("bar_project_save_as_new", "Mentés újként", False))
+    toggle = (
+        "Projektek elrejtése"
+        if st.session_state.get("show_projects_panel")
+        else "Projektek…"
+    )
+    toolbar_items.append(("bar_projects_toggle", toggle, False))
+    toolbar_items.append(("bar_new_work", "Új munka", False))
+
+    cols = st.columns(len(toolbar_items), gap="small")
+    for col, (btn_key, btn_label, is_primary) in zip(cols, toolbar_items):
+        with col:
+            clicked = st.button(
+                btn_label,
+                key=btn_key,
+                type="primary" if is_primary else "secondary",
             )
-            st.rerun()
-    with b4:
-        if st.button("Új munka", key="bar_new_work"):
-            if _is_project_dirty() or _workspace_has_substantive_content():
-                st.session_state["project_new_work_confirm"] = True
-                st.session_state["project_logout_confirm"] = False
-                st.session_state["project_open_confirm_id"] = None
+            if not clicked:
+                continue
+            if btn_key == "bar_project_save":
+                _cloud_save_project(as_new=not bool(cur_id))
+            elif btn_key == "bar_project_save_as_new":
+                _cloud_save_project(as_new=True)
+            elif btn_key == "bar_projects_toggle":
+                st.session_state["show_projects_panel"] = not bool(
+                    st.session_state.get("show_projects_panel")
+                )
                 st.rerun()
-            else:
-                _start_new_work()
+            elif btn_key == "bar_new_work":
+                if _is_project_dirty() or _workspace_has_substantive_content():
+                    st.session_state["project_new_work_confirm"] = True
+                    st.session_state["project_logout_confirm"] = False
+                    st.session_state["project_open_confirm_id"] = None
+                    st.rerun()
+                else:
+                    _start_new_work()
 
     _render_project_nav_confirms(owner)
 
@@ -6134,11 +6417,9 @@ def render_textus_workshop_shell() -> None:
 if st.session_state.get("ui_mode") not in ("quick", "workshop", "sermon_workshop"):
     st.session_state["ui_mode"] = "quick"
 
-st.radio(
-    "Nézet",
+render_primary_view_switcher(
     options=["quick", "workshop", "sermon_workshop"],
-    format_func=lambda m: _UI_MODE_LABELS.get(m, m),
-    horizontal=True,
+    labels=_UI_MODE_LABELS,
     key="ui_mode",
 )
 

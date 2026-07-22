@@ -2,7 +2,16 @@
 
 from __future__ import annotations
 
-from workshop_nav_ui import sermon_completed_sections, textus_completed_sections
+from workshop_nav_ui import (
+    completed_step_indices,
+    render_info_panel,
+    render_primary_view_switcher,
+    render_project_toolbar_anchor,
+    render_section_stepper,
+    render_workshop_stepper,
+    sermon_completed_sections,
+    textus_completed_sections,
+)
 
 
 def test_textus_completed_sections_empty():
@@ -49,3 +58,17 @@ def test_sermon_completed_sections_approved_and_content():
     assert "Lekciójavaslat" in done
     assert "Homiletikai diagnosztika" in done
     assert "Imádsági előkészítés" not in done
+
+
+def test_completed_step_indices_order():
+    opts = ["A", "B", "C", "D"]
+    assert completed_step_indices(opts, {"B", "D"}) == [1, 3]
+    assert completed_step_indices(opts, None) == []
+    assert completed_step_indices(opts, {"Z"}) == []
+
+
+def test_stepper_aliases_and_helpers_importable():
+    assert render_section_stepper is render_workshop_stepper
+    assert callable(render_primary_view_switcher)
+    assert callable(render_project_toolbar_anchor)
+    assert callable(render_info_panel)
