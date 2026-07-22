@@ -29,6 +29,8 @@ from sermon_workshop_data import (
     save_human_condition_suggestion,
     save_listener_tension_assessment,
     save_listener_tension_suggestions,
+    save_closing_assessment,
+    save_closing_suggestions,
     save_sermon_enrichment_assessment,
     save_sermon_enrichment_suggestions,
     save_sermon_main_idea_assessment,
@@ -109,6 +111,20 @@ from sermon_workshop_m7_ai import (
     placement_kind_label,
     suggest_enrichment,
 )
+from sermon_workshop_m7_closing_ai import (
+    CLOSING_TONES,
+    CLOSING_TONE_LABELS_HU,
+    CLOSING_TYPES,
+    CLOSING_TYPE_LABELS_HU,
+    ClosingAssessmentResult,
+    ClosingSuggestionResult,
+    assess_closing,
+    closing_tone_label,
+    closing_type_label,
+    normalize_closing_tone,
+    normalize_closing_type,
+    suggest_closing,
+)
 from textus_workshop_data import ensure_text_workshop_state
 
 GenerateFn = Callable[..., str]
@@ -120,21 +136,11 @@ _SW_SECTION_OPTIONS = [
     "Krisztus-központú és evangéliumi ív",
     "Az igehirdetés útja és mozgásai",
     "Képek, illusztrációk és alkalmazás",
-    "Lezárás",
+    "Lezárás és megérkezés",
     "Homiletikai diagnosztika",
 ]
 
 _SW_SECTION_PLACEHOLDERS: dict[str, dict[str, str]] = {
-    "Lezárás": {
-        "goal": (
-            "Meghatározni, hová érkezik a hallgató, milyen reménységet "
-            "visz, és mi maradjon nyitott."
-        ),
-        "later": (
-            "Itt a lezárás nem puszta összefoglaló, és nem érzelmi "
-            "manipuláció."
-        ),
-    },
     "Homiletikai diagnosztika": {
         "goal": (
             "Rövid, szöveges tükrözést kapni textushűségről, egységről, "
@@ -163,8 +169,12 @@ _SW_NEXT_HINTS: dict[str, str] = {
     "Az igehirdetés útja és mozgásai": (
         "Következő ajánlott lépés: Képek, illusztrációk és alkalmazás"
     ),
-    "Képek, illusztrációk és alkalmazás": "Következő ajánlott lépés: Lezárás",
-    "Lezárás": "Következő ajánlott lépés: Homiletikai diagnosztika",
+    "Képek, illusztrációk és alkalmazás": (
+        "Következő ajánlott lépés: Lezárás és megérkezés"
+    ),
+    "Lezárás és megérkezés": (
+        "Következő ajánlott lépés: Homiletikai diagnosztika"
+    ),
 }
 
 _STATUS_LABELS = {
@@ -178,6 +188,7 @@ _SOURCE_LISTENER = "Hallgatói kérdés és feszültség"
 _SOURCE_GOSPEL = "Krisztus-központú és evangéliumi ív"
 _SOURCE_PATH = "Az igehirdetés útja és mozgásai"
 _SOURCE_ENRICHMENT = "Képek, illusztrációk és alkalmazás"
+_SOURCE_CLOSING = "Lezárás és megérkezés"
 _CAT_MAIN_IDEA = "Fő gondolat"
 
 _HC_FIELDS = [
@@ -368,6 +379,58 @@ _ADOPT_EN_ALL_PENDING = "_sw_en_adopt_all_pending"
 _ADOPT_EN_IMAGES_PENDING = "_sw_en_adopt_images_pending"
 _ADOPT_EN_ILL_PENDING = "_sw_en_adopt_ill_pending"
 _ADOPT_EN_APPS_PENDING = "_sw_en_adopt_apps_pending"
+_ADOPT_CL_PENDING = "_sw_cl_adopt_pending"
+_KEY_CL = {
+    "type": "sw_cl_type",
+    "final_discovery": "sw_cl_final_discovery",
+    "hope": "sw_cl_hope",
+    "call_or_response": "sw_cl_call_or_response",
+    "image_or_line": "sw_cl_image_or_line",
+    "open_question": "sw_cl_open_question",
+    "tone": "sw_cl_tone",
+}
+_CL_FIELDS = (
+    ("type", "Lezárás iránya", "", False),
+    (
+        "final_discovery",
+        "Végső felismerés",
+        "Fogalmazd meg egyetlen világos mondatban, mit lásson másként a "
+        "hallgató az igehirdetés végére.",
+        False,
+    ),
+    (
+        "hope",
+        "Evangéliumi bizonyosság",
+        "Mi az az isteni ígéret, kegyelmi valóság vagy Krisztusban adott "
+        "bizonyosság, amelyre a hallgató támaszkodhat?",
+        False,
+    ),
+    (
+        "call_or_response",
+        "Kegyelemből fakadó meghívás",
+        "Milyen válaszra hívhatja az Ige a hallgatót Isten kegyelmi "
+        "cselekvésének fényében? Ne parancslistát írj, hanem egy világos, "
+        "megélhető irányt.",
+        True,
+    ),
+    (
+        "image_or_line",
+        "Záró kép vagy mondatmag",
+        "Adj egy rövid kép- vagy mondatmagot a lezárás megfogalmazásához. "
+        "Ez még ne legyen teljes kész záróbekezdés.",
+        True,
+    ),
+    (
+        "open_question",
+        "Nyitva maradó kérdés",
+        "Ha indokolt, fogalmazz meg egy őszinte kérdést, amely tovább "
+        "dolgozhat a hallgatóban. Ne tartalmazza előre a választ.",
+        True,
+    ),
+    ("tone", "Hangnem", "", False),
+)
+DEFAULT_CLOSING_TYPE_UI = "gospel_assurance"
+DEFAULT_CLOSING_TONE_UI = "hopeful"
 _EN_IMG_DELETE_PENDING = "_sw_en_img_delete_pending"
 _EN_ILL_DELETE_PENDING = "_sw_en_ill_delete_pending"
 _EN_APP_DELETE_PENDING = "_sw_en_app_delete_pending"
@@ -557,6 +620,20 @@ def _apply_pending_adopts_if_needed() -> None:
         )
         _clear_enrichment_widgets("applications")
         st.session_state[_RESYNC_FLAG] = True
+
+    pending_cl = st.session_state.pop(_ADOPT_CL_PENDING, None)
+    if isinstance(pending_cl, dict):
+        for ui_key, wkey in _KEY_CL.items():
+            suggested = str(pending_cl.get(ui_key) or "").strip()
+            if not suggested:
+                continue
+            if ui_key == "type":
+                st.session_state[wkey] = normalize_closing_type(suggested)
+            elif ui_key == "tone":
+                st.session_state[wkey] = normalize_closing_tone(suggested)
+            else:
+                st.session_state[wkey] = suggested
+        _persist_closing_from_widgets()
 
 
 def _en_widget_key(prefix: str, item_id: str, field: str) -> str:
@@ -1072,6 +1149,22 @@ def _apply_sw_ui_resync_if_needed() -> None:
         applications=applications,
     )
 
+    closing = sw.get("closing") if isinstance(sw.get("closing"), dict) else {}
+    for field, wkey in _KEY_CL.items():
+        if force or wkey not in st.session_state:
+            if field == "type":
+                raw = str(closing.get(field) or "").strip()
+                st.session_state[wkey] = (
+                    normalize_closing_type(raw) if raw else DEFAULT_CLOSING_TYPE_UI
+                )
+            elif field == "tone":
+                raw = str(closing.get(field) or "").strip()
+                st.session_state[wkey] = (
+                    normalize_closing_tone(raw) if raw else DEFAULT_CLOSING_TONE_UI
+                )
+            else:
+                st.session_state[wkey] = str(closing.get(field) or "")
+
 
 def _request_adopt_sermon_sentence(sentence: str) -> None:
     st.session_state[_ADOPT_SERMON_PENDING] = str(sentence or "").strip()
@@ -1291,6 +1384,98 @@ def _collect_enrichment_kwargs() -> dict[str, Any]:
     base["workshop_illustrations"] = _session_str("illustrations")
     base["workshop_actualization"] = _session_str("actualization")
     return base
+
+
+def _read_closing_from_widgets() -> dict[str, str]:
+    return {
+        "type": normalize_closing_type(st.session_state.get(_KEY_CL["type"])),
+        "final_discovery": (
+            st.session_state.get(_KEY_CL["final_discovery"]) or ""
+        ).strip(),
+        "hope": (st.session_state.get(_KEY_CL["hope"]) or "").strip(),
+        "call_or_response": (
+            st.session_state.get(_KEY_CL["call_or_response"]) or ""
+        ).strip(),
+        "image_or_line": (
+            st.session_state.get(_KEY_CL["image_or_line"]) or ""
+        ).strip(),
+        "open_question": (
+            st.session_state.get(_KEY_CL["open_question"]) or ""
+        ).strip(),
+        "tone": normalize_closing_tone(st.session_state.get(_KEY_CL["tone"])),
+    }
+
+
+def _persist_closing_from_widgets() -> None:
+    update_sermon_workshop_section(
+        st.session_state, "closing", _read_closing_from_widgets()
+    )
+
+
+def _collect_closing_kwargs() -> dict[str, Any]:
+    """Sessionből M7 lezárás MI-bemenet (M6 + M7 + élő lezárás widgetek)."""
+    base = _collect_enrichment_kwargs()
+    base["closing"] = _read_closing_from_widgets()
+    return base
+
+
+def _request_adopt_closing_block(block: dict[str, str]) -> None:
+    st.session_state[_ADOPT_CL_PENDING] = dict(block or {})
+    st.rerun()
+
+
+def _closing_suggestion_payload(result: ClosingSuggestionResult) -> dict[str, Any]:
+    return result.to_dict()
+
+
+def _closing_assessment_payload(result: ClosingAssessmentResult) -> dict[str, Any]:
+    return result.to_dict()
+
+
+def _run_closing_suggest(*, generate_fn: GenerateFn | None) -> None:
+    with st.spinner("Lezárási irány javaslata készül…"):
+        kwargs = _collect_closing_kwargs()
+        kwargs.pop("closing", None)
+        result = suggest_closing(**kwargs, generate_fn=generate_fn)
+        save_closing_suggestions(
+            st.session_state, _closing_suggestion_payload(result)
+        )
+        if not result.ok:
+            st.error(
+                _user_facing_error(
+                    result.ok,
+                    result.error_message,
+                    fallback="A javaslatkészítés nem sikerült.",
+                )
+            )
+        elif result.missing_information and not (
+            result.recommended_final_insight or result.recommended_gospel_assurance
+        ):
+            st.warning(
+                "Nincs elegendő adat a felelős javaslathoz. Hiányzik: "
+                + "; ".join(result.missing_information)
+            )
+        else:
+            st.success("Javaslat elkészült.")
+
+
+def _run_closing_assess(*, generate_fn: GenerateFn | None) -> None:
+    with st.spinner("Saját lezárási terv értékelése…"):
+        kwargs = _collect_closing_kwargs()
+        result = assess_closing(**kwargs, generate_fn=generate_fn)
+        save_closing_assessment(
+            st.session_state, _closing_assessment_payload(result)
+        )
+        if not result.ok:
+            st.error(
+                _user_facing_error(
+                    result.ok,
+                    result.error_message,
+                    fallback="Az értékelés nem sikerült.",
+                )
+            )
+        else:
+            st.success("Értékelés elkészült.")
 
 
 def _enrichment_suggestion_payload(result: EnrichmentSuggestionResult) -> dict[str, Any]:
@@ -1925,6 +2110,376 @@ def _render_enrichment_assessment() -> None:
             st.warning(str(w))
 
 
+def _render_closing_suggestions() -> None:
+    sw = ensure_sermon_workshop_state(st.session_state)
+    data = sw.get("closing_suggestions")
+    if not isinstance(data, dict):
+        return
+    if data.get("ok") is False and not (
+        data.get("recommended_final_insight") or data.get("recommended_gospel_assurance")
+    ):
+        err = str(data.get("error_message") or "").strip()
+        if err:
+            st.error(err)
+        return
+
+    closing_type = normalize_closing_type(data.get("recommended_closing_type"))
+    final_insight = str(data.get("recommended_final_insight") or "").strip()
+    assurance = str(data.get("recommended_gospel_assurance") or "").strip()
+    invitation = str(data.get("recommended_invitation") or "").strip()
+    image_line = str(data.get("recommended_closing_image_or_line") or "").strip()
+    open_q = str(data.get("recommended_open_question") or "").strip()
+    tone = normalize_closing_tone(data.get("recommended_tone"))
+    expanded = str(data.get("expanded_summary") or "").strip()
+    alternatives = (
+        data.get("alternative_closings")
+        if isinstance(data.get("alternative_closings"), list)
+        else []
+    )
+    basis = data.get("basis") if isinstance(data.get("basis"), list) else []
+    warnings = data.get("warnings") if isinstance(data.get("warnings"), list) else []
+    missing = (
+        data.get("missing_information")
+        if isinstance(data.get("missing_information"), list)
+        else []
+    )
+    reasoning = str(data.get("reasoning_summary") or "").strip()
+
+    if not (final_insight or assurance or invitation or image_line or open_q):
+        if missing:
+            st.info("Hiányzó információ: " + "; ".join(str(x) for x in missing if x))
+        return
+
+    st.markdown("**MI-javaslat**")
+    st.markdown(f"**Ajánlott lezárási irány:** {closing_type_label(closing_type)}")
+    if st.button("Átveszem a lezárási irányt", key="sw_mi_cl_adopt_type"):
+        _request_adopt_closing_block({"type": closing_type})
+
+    if final_insight:
+        st.markdown(f"**Végső felismerés:** {final_insight}")
+        if st.button("Átveszem a végső felismerést", key="sw_mi_cl_adopt_insight"):
+            _request_adopt_closing_block({"final_discovery": final_insight})
+
+    if assurance:
+        st.markdown(f"**Evangéliumi bizonyosság:** {assurance}")
+        if st.button("Átveszem az evangéliumi bizonyosságot", key="sw_mi_cl_adopt_hope"):
+            _request_adopt_closing_block({"hope": assurance})
+
+    if invitation:
+        st.markdown(f"**Kegyelemből fakadó meghívás:** {invitation}")
+        if st.button("Átveszem a meghívást", key="sw_mi_cl_adopt_inv"):
+            _request_adopt_closing_block({"call_or_response": invitation})
+
+    if image_line:
+        st.markdown(f"**Záró kép vagy mondatmag:** {image_line}")
+        if st.button("Átveszem a záró képet", key="sw_mi_cl_adopt_img"):
+            _request_adopt_closing_block({"image_or_line": image_line})
+
+    if open_q:
+        st.markdown(f"**Nyitva maradó kérdés:** {open_q}")
+        if st.button("Átveszem a nyitott kérdést", key="sw_mi_cl_adopt_q"):
+            _request_adopt_closing_block({"open_question": open_q})
+
+    st.markdown(f"**Hangnem:** {closing_tone_label(tone)}")
+    if st.button("Átveszem a hangnemet", key="sw_mi_cl_adopt_tone"):
+        _request_adopt_closing_block({"tone": tone})
+
+    if expanded:
+        st.markdown("**Rövid kifejtés**")
+        st.write(expanded)
+
+    ui_block = {
+        "type": closing_type,
+        "final_discovery": final_insight,
+        "hope": assurance,
+        "call_or_response": invitation,
+        "image_or_line": image_line,
+        "open_question": open_q,
+        "tone": tone,
+    }
+    if st.button("Átveszem a teljes lezárási tervet", key="sw_mi_cl_adopt_all"):
+        _request_adopt_closing_block(ui_block)
+
+    if alternatives:
+        with st.expander("Alternatív lezárási irányok", expanded=False):
+            for idx, alt in enumerate(alternatives, start=1):
+                if not isinstance(alt, dict):
+                    continue
+                st.markdown(
+                    f"**{idx}. {closing_type_label(alt.get('closing_type'))}** "
+                    f"({closing_tone_label(alt.get('tone'))})"
+                )
+                if alt.get("emphasis"):
+                    st.write(str(alt.get("emphasis")))
+                if alt.get("reason_for_use"):
+                    st.caption(str(alt.get("reason_for_use")))
+
+    with st.expander("Mi alapján készült?", expanded=False):
+        if reasoning:
+            st.write(reasoning)
+        if basis:
+            for item in basis:
+                if item:
+                    st.markdown(f"- {item}")
+
+    for w in warnings:
+        if w:
+            st.warning(str(w))
+    if missing:
+        st.info("Hiányzó információ: " + "; ".join(str(x) for x in missing if x))
+
+
+def _render_closing_assessment() -> None:
+    sw = ensure_sermon_workshop_state(st.session_state)
+    data = sw.get("closing_assessment")
+    if not isinstance(data, dict):
+        return
+    overall = str(data.get("overall_assessment") or "").strip()
+    if not overall and data.get("ok") is False:
+        err = str(data.get("error_message") or "").strip()
+        if err:
+            st.error(err)
+        return
+    if not overall and not data.get("revised_final_insight"):
+        return
+
+    st.markdown("**MI-értékelés**")
+    if overall:
+        st.write(overall)
+    strengths = data.get("strengths") if isinstance(data.get("strengths"), list) else []
+    improvements = (
+        data.get("improvements") if isinstance(data.get("improvements"), list) else []
+    )
+    if strengths:
+        st.markdown("**Erősségek**")
+        for s in strengths:
+            if s:
+                st.markdown(f"- {s}")
+    if improvements:
+        st.markdown("**Javítási javaslatok**")
+        for s in improvements:
+            if s:
+                st.markdown(f"- {s}")
+    for key, label in (
+        ("arrival_assessment", "Megérkezés"),
+        ("gospel_assurance_assessment", "Evangéliumi bizonyosság"),
+        ("invitation_assessment", "Meghívás"),
+        ("tone_assessment", "Hangnem"),
+    ):
+        val = str(data.get(key) or "").strip()
+        if val:
+            st.markdown(f"**{label}:** {val}")
+
+    revised = {
+        "type": normalize_closing_type(data.get("revised_closing_type")),
+        "final_discovery": str(data.get("revised_final_insight") or "").strip(),
+        "hope": str(data.get("revised_gospel_assurance") or "").strip(),
+        "call_or_response": str(data.get("revised_invitation") or "").strip(),
+        "image_or_line": str(data.get("revised_closing_image_or_line") or "").strip(),
+        "open_question": str(data.get("revised_open_question") or "").strip(),
+        "tone": normalize_closing_tone(data.get("revised_tone")),
+    }
+    if any(revised.values()):
+        st.markdown("**Javított javaslatok**")
+        if st.button("Átveszem a javított teljes tervet", key="sw_mi_cl_adopt_rev_all"):
+            _request_adopt_closing_block(
+                {k: v for k, v in revised.items() if v}
+            )
+        for field, label, key in (
+            ("type", "lezárási irányt", "sw_mi_cl_adopt_rev_type"),
+            ("final_discovery", "végső felismerést", "sw_mi_cl_adopt_rev_insight"),
+            ("hope", "evangéliumi bizonyosságot", "sw_mi_cl_adopt_rev_hope"),
+            ("call_or_response", "meghívást", "sw_mi_cl_adopt_rev_inv"),
+            ("image_or_line", "záró képet", "sw_mi_cl_adopt_rev_img"),
+            ("open_question", "nyitott kérdést", "sw_mi_cl_adopt_rev_q"),
+            ("tone", "hangnemet", "sw_mi_cl_adopt_rev_tone"),
+        ):
+            val = revised.get(field) or ""
+            if not val:
+                continue
+            display = (
+                closing_type_label(val)
+                if field == "type"
+                else closing_tone_label(val)
+                if field == "tone"
+                else val
+            )
+            st.markdown(f"*{label.capitalize()}:* {display}")
+            if st.button(f"Átveszem a {label}", key=key):
+                _request_adopt_closing_block({field: val})
+
+    warnings = data.get("warnings") if isinstance(data.get("warnings"), list) else []
+    for w in warnings:
+        if w:
+            st.warning(str(w))
+
+
+def render_closing_section(
+    *,
+    generate_fn: GenerateFn | None = None,
+) -> None:
+    """Lezárás és megérkezés — kézi szerkesztő + MI-segéd."""
+    _apply_pending_adopts_if_needed()
+    _apply_sw_ui_resync_if_needed()
+    ensure_sermon_workshop_state(st.session_state)
+
+    st.subheader("Lezárás és megérkezés")
+    st.markdown(
+        "Itt nem a teljes záróbekezdést írjuk meg, hanem megtervezzük, milyen "
+        "felismeréshez és milyen kegyelemből fakadó válaszhoz érkezzen meg az "
+        "igehirdetés."
+    )
+
+    sw = ensure_sermon_workshop_state(st.session_state)
+    status = (sw.get("closing_status") or "draft").strip()
+    st.caption(f"Állapot: {_STATUS_LABELS.get(status, status)}")
+
+    if (sw.get("sermon_main_idea_status") or "").strip() != "approved":
+        st.info(
+            "A szakasz használható, de a javaslatkészítéshez előbb jóvá kell "
+            "hagyni az igehirdetés fő gondolatát, szükség van M6-os megérkezési "
+            "pontra vagy legalább három mozgásra, valamint evangéliumi feloldásra "
+            "vagy Isten kegyelmi cselekvésére."
+        )
+
+    for field, title, help_text, optional in _CL_FIELDS:
+        st.markdown(f"**{title}**")
+        if help_text:
+            st.caption(help_text)
+        if optional:
+            st.caption("Opcionális mező — üresen hagyható.")
+        if field == "type":
+            st.selectbox(
+                title,
+                options=list(CLOSING_TYPES),
+                format_func=lambda v: CLOSING_TYPE_LABELS_HU.get(v, str(v)),
+                key=_KEY_CL["type"],
+                label_visibility="collapsed",
+            )
+        elif field == "tone":
+            st.selectbox(
+                title,
+                options=list(CLOSING_TONES),
+                format_func=lambda v: CLOSING_TONE_LABELS_HU.get(v, str(v)),
+                key=_KEY_CL["tone"],
+                label_visibility="collapsed",
+            )
+        else:
+            st.text_area(
+                title,
+                key=_KEY_CL[field],
+                height=80,
+                label_visibility="collapsed",
+            )
+
+    b1, b2 = st.columns(2)
+    with b1:
+        if st.button("Mentés vázlatként", key="sw_cl_save_draft"):
+            block = _read_closing_from_widgets()
+            filled = any(
+                block.get(k)
+                for k in (
+                    "final_discovery",
+                    "hope",
+                    "call_or_response",
+                    "image_or_line",
+                    "open_question",
+                )
+            )
+            if not filled:
+                st.warning("Üres mezőket nem lehet menteni. Tölts ki legalább egyet.")
+            else:
+                _persist_closing_from_widgets()
+                update_sermon_workshop_section(
+                    st.session_state, "closing_status", "draft"
+                )
+                st.success("Vázlatként elmentve.")
+    with b2:
+        if st.button(
+            "Jóváhagyom és továbbviszem",
+            type="primary",
+            key="sw_cl_approve",
+        ):
+            block = _read_closing_from_widgets()
+            if not any(
+                block.get(k)
+                for k in (
+                    "final_discovery",
+                    "hope",
+                    "call_or_response",
+                    "image_or_line",
+                    "open_question",
+                )
+            ):
+                st.warning(
+                    "Üres megfogalmazást nem lehet jóváhagyni. Tölts ki legalább egyet."
+                )
+            else:
+                _persist_closing_from_widgets()
+                update_sermon_workshop_section(
+                    st.session_state, "closing_status", "approved"
+                )
+                decisions = [
+                    ("type", "Lezárás iránya", closing_type_label(block["type"])),
+                    ("final_discovery", "Végső felismerés", block["final_discovery"]),
+                    ("hope", "Evangéliumi bizonyosság", block["hope"]),
+                    (
+                        "call_or_response",
+                        "Kegyelemből fakadó meghívás",
+                        block["call_or_response"],
+                    ),
+                    (
+                        "image_or_line",
+                        "Záró kép vagy mondatmag",
+                        block["image_or_line"],
+                    ),
+                    ("open_question", "Nyitva maradó kérdés", block["open_question"]),
+                    ("tone", "Hangnem", closing_tone_label(block["tone"])),
+                ]
+                added = 0
+                skipped = 0
+                for _field, category, content in decisions:
+                    if not content:
+                        continue
+                    if _decision_is_duplicate(
+                        source_section=_SOURCE_CLOSING,
+                        category=category,
+                        content=content,
+                    ):
+                        skipped += 1
+                        continue
+                    add_approved_sermon_decision(
+                        st.session_state,
+                        _SOURCE_CLOSING,
+                        category,
+                        content,
+                    )
+                    added += 1
+                if added:
+                    st.success(f"Jóváhagyva ({added} döntés).")
+                elif skipped:
+                    st.info("Ezek a döntések már szerepelnek.")
+                else:
+                    st.warning("Nem volt menthető tartalom.")
+
+    _render_decisions_for_section(_SOURCE_CLOSING)
+
+    st.markdown("---")
+    st.markdown("**MI-segéd**")
+    mi1, mi2 = st.columns(2)
+    with mi1:
+        if st.button("Lezárási irány javaslata", key="sw_cl_mi_suggest"):
+            _run_closing_suggest(generate_fn=generate_fn)
+    with mi2:
+        if st.button("Saját lezárási terv értékelése", key="sw_cl_mi_assess"):
+            _run_closing_assess(generate_fn=generate_fn)
+
+    _render_closing_suggestions()
+    _render_closing_assessment()
+
+    st.caption("Következő ajánlott lépés: Homiletikai diagnosztika")
+
+
 def render_enrichment_section(
     *,
     generate_fn: GenerateFn | None = None,
@@ -2128,7 +2683,7 @@ def render_enrichment_section(
     _render_enrichment_suggestions()
     _render_enrichment_assessment()
 
-    st.caption("Következő ajánlott lépés: Lezárás")
+    st.caption("Következő ajánlott lépés: Lezárás és megérkezés")
 
 
 def _suggestion_payload_from_result(
@@ -4779,6 +5334,8 @@ def render_sermon_workshop_shell(
         legacy = str(st.session_state.get(_KEY_ACTIVE_SECTION) or "")
         if legacy in ("A prédikáció útja", "Prédikációs mozgások"):
             st.session_state[_KEY_ACTIVE_SECTION] = "Az igehirdetés útja és mozgásai"
+        elif legacy == "Lezárás":
+            st.session_state[_KEY_ACTIVE_SECTION] = "Lezárás és megérkezés"
         else:
             st.session_state[_KEY_ACTIVE_SECTION] = _SW_SECTION_OPTIONS[0]
 
@@ -4801,6 +5358,8 @@ def render_sermon_workshop_shell(
         render_sermon_path_section(generate_fn=generate_fn)
     elif active == "Képek, illusztrációk és alkalmazás":
         render_enrichment_section(generate_fn=generate_fn)
+    elif active == "Lezárás és megérkezés":
+        render_closing_section(generate_fn=generate_fn)
     else:
         _render_section_placeholder(active)
 
@@ -4811,6 +5370,7 @@ def render_sermon_workshop_shell(
         "Krisztus-központú és evangéliumi ív",
         "Az igehirdetés útja és mozgásai",
         "Képek, illusztrációk és alkalmazás",
+        "Lezárás és megérkezés",
     ):
         next_hint = _SW_NEXT_HINTS.get(active)
         if next_hint:
@@ -4827,4 +5387,5 @@ __all__ = [
     "render_gospel_arc_section",
     "render_sermon_path_section",
     "render_enrichment_section",
+    "render_closing_section",
 ]

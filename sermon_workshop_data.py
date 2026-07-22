@@ -68,11 +68,15 @@ def get_default_sermon_workshop() -> dict[str, Any]:
         "applications": [],
         "enrichment_status": "draft",
         "closing": {
+            "type": "",
             "final_discovery": "",
             "hope": "",
             "call_or_response": "",
+            "image_or_line": "",
             "open_question": "",
+            "tone": "",
         },
+        "closing_status": "draft",
         "diagnostics": {
             "result": {},
             "priorities": [],
@@ -95,6 +99,9 @@ def get_default_sermon_workshop() -> dict[str, Any]:
         "sermon_enrichment_suggestions": None,
         "sermon_enrichment_assessment": None,
         "m7_last_generated_at": "",
+        "closing_suggestions": None,
+        "closing_assessment": None,
+        "m7_closing_last_generated_at": "",
     }
 
 
@@ -381,6 +388,10 @@ def normalize_sermon_workshop(data: Any) -> dict[str, Any]:
     if enrichment_status not in ("draft", "approved", ""):
         enrichment_status = "draft"
 
+    closing_status = _as_str(data.get("closing_status")) or "draft"
+    if closing_status not in ("draft", "approved", ""):
+        closing_status = "draft"
+
     return {
         "sermon_main_idea": _as_str(data.get("sermon_main_idea")),
         "sermon_main_idea_status": status or "draft",
@@ -402,6 +413,7 @@ def normalize_sermon_workshop(data: Any) -> dict[str, Any]:
         "applications": normalize_applications(data.get("applications")),
         "enrichment_status": enrichment_status or "draft",
         "closing": _normalize_str_dict(data.get("closing"), base["closing"]),
+        "closing_status": closing_status or "draft",
         "diagnostics": _normalize_diagnostics(data.get("diagnostics")),
         "approved_sermon_decisions": _normalize_decisions(
             data.get("approved_sermon_decisions")
@@ -485,6 +497,15 @@ def normalize_sermon_workshop(data: Any) -> dict[str, Any]:
             )
         ),
         "m7_last_generated_at": _as_str(data.get("m7_last_generated_at")),
+        "closing_suggestions": _normalize_optional_dict(
+            data.get("closing_suggestions", base["closing_suggestions"])
+        ),
+        "closing_assessment": _normalize_optional_dict(
+            data.get("closing_assessment", base["closing_assessment"])
+        ),
+        "m7_closing_last_generated_at": _as_str(
+            data.get("m7_closing_last_generated_at")
+        ),
     }
 
 
@@ -536,6 +557,13 @@ def update_sermon_workshop_section(
         if status not in ("draft", "approved", ""):
             status = "draft"
         sw["enrichment_status"] = status or "draft"
+        return sw
+
+    if key == "closing_status":
+        status = _as_str(data) or "draft"
+        if status not in ("draft", "approved", ""):
+            status = "draft"
+        sw["closing_status"] = status or "draft"
         return sw
 
     if key in _SECTION_DICT_KEYS:
@@ -806,6 +834,38 @@ def save_sermon_enrichment_assessment(
     return sw
 
 
+def save_closing_suggestions(
+    session_state: MutableMapping[str, Any],
+    payload: dict[str, Any],
+    *,
+    stamp_generated_at: bool = True,
+) -> dict[str, Any]:
+    """Tartós M7 lezárási javaslat mentése."""
+    sw = ensure_sermon_workshop_state(session_state)
+    sw["closing_suggestions"] = dict(payload) if isinstance(payload, dict) else None
+    if stamp_generated_at:
+        sw["m7_closing_last_generated_at"] = datetime.now().isoformat(
+            timespec="seconds"
+        )
+    return sw
+
+
+def save_closing_assessment(
+    session_state: MutableMapping[str, Any],
+    payload: dict[str, Any],
+    *,
+    stamp_generated_at: bool = True,
+) -> dict[str, Any]:
+    """Tartós M7 lezárási értékelés mentése."""
+    sw = ensure_sermon_workshop_state(session_state)
+    sw["closing_assessment"] = dict(payload) if isinstance(payload, dict) else None
+    if stamp_generated_at:
+        sw["m7_closing_last_generated_at"] = datetime.now().isoformat(
+            timespec="seconds"
+        )
+    return sw
+
+
 __all__ = [
     "SERMON_WORKSHOP_KEY",
     "get_default_sermon_workshop",
@@ -839,4 +899,6 @@ __all__ = [
     "save_sermon_path_assessment",
     "save_sermon_enrichment_suggestions",
     "save_sermon_enrichment_assessment",
+    "save_closing_suggestions",
+    "save_closing_assessment",
 ]
