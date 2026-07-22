@@ -1,4 +1,4 @@
-"""M8 diagnosztika dashboard — UI-szerkezet és státusz-összesítés regresszió."""
+"""M8 diagnosztika — egyszerűsített pastor-facing UI regresszió."""
 
 from __future__ import annotations
 
@@ -21,16 +21,18 @@ from sermon_workshop_data import (
 )
 from sermon_workshop_m8_ai import (
     DIAGNOSTIC_AREA_KEYS,
-    diagnostic_status_label,
     normalize_diagnostic_status,
 )
 from sermon_workshop_ui import (
+    _DIAG_DETAIL_GROUPS,
     _DIAG_MAP_GROUPS,
     _diag_areas_index,
     _diag_collect_priorities,
     _diag_shorten,
+    _diag_soften_text,
     _diag_status_chip_html,
-    _diag_worst_status,
+    _diag_status_soft_label,
+    _diag_view_model,
     _render_diagnostics_results,
 )
 from workspace_data import build_project_data, sanitize_project_data
@@ -59,12 +61,20 @@ def _content_calls(calls: list[str]) -> str:
     return "\n".join(c for c in calls if not c.lstrip().startswith("<style"))
 
 
+def _main_content(calls: list[str]) -> str:
+    """Main surface only — stop before the closed details expander."""
+    parts: list[str] = []
+    for c in calls:
+        if c.startswith("EXP:Részletes diagnosztika"):
+            break
+        if c.lstrip().startswith("<style"):
+            continue
+        parts.append(c)
+    return "\n".join(parts)
+
+
 def _prio_card_count(calls: list[str]) -> int:
-    return sum(
-        1
-        for c in calls
-        if 'class="sw-diag-prio-card' in c or 'class="sw-diag-prio-card ' in c
-    )
+    return sum(1 for c in calls if 'class="sw-diag-prio-card' in c)
 
 
 @pytest.fixture
@@ -91,42 +101,47 @@ def _stub_streamlit(monkeypatch, calls: list[str]) -> None:
     monkeypatch.setattr(st, "columns", lambda n: [nullcontext() for _ in range(n)])
 
 
-def test_dashboard_section_order_in_source():
+def test_main_view_three_parts_in_source():
     src = (ROOT / "sermon_workshop_ui.py").read_text(encoding="utf-8")
     start = src.find("def _render_diagnostics_results")
     end = src.find("\ndef render_diagnostics_section", start)
     body = src[start:end]
     markers = [
-        "_render_diag_overview(",
-        "_render_diag_priorities(",
-        "_render_diag_map(",
-        "Fő erősségek",
-        "Konzisztencia-figyelmeztetések",
-        "Pásztori figyelmeztetések",
-        "Saját hang és eredetiség",
-        "Minden diagnosztikai részlet",
-        "Továbbhaladási megjegyzés",
+        "_render_diag_summary(",
+        "_render_diag_status_cards(",
+        "_render_diag_focus(",
+        "_render_diag_details(",
     ]
     positions = [body.find(m) for m in markers]
     assert all(p >= 0 for p in positions), list(zip(markers, positions))
     assert positions == sorted(positions)
-    assert "Gyors áttekintés" in src
-    assert "Most erre érdemes figyelni" in src
-    assert "Diagnosztikai térkép" in src
+    assert "Rövid összkép" in src
+    assert "Gyors státusz" in src
+    assert "Most erre figyelj" in src
+    assert "Részletes diagnosztika" in src
+    # Old audit-like main sections must not drive the main flow anymore.
+    assert "_render_diag_map(" not in src
+    assert "Diagnosztikai térkép" not in src
+    assert "Minden diagnosztikai részlet" not in src
 
 
-def test_four_thematic_groups_cover_all_keys():
-    grouped = [k for g in _DIAG_MAP_GROUPS for k in g["keys"]]
-    assert len(_DIAG_MAP_GROUPS) == 4
+def test_detail_groups_cover_all_keys():
+    grouped = [k for g in _DIAG_DETAIL_GROUPS for k in g["keys"]]
+    assert len(_DIAG_DETAIL_GROUPS) == 4
     assert set(grouped) == set(DIAGNOSTIC_AREA_KEYS)
     assert len(grouped) == len(set(grouped))
+    assert _DIAG_MAP_GROUPS is _DIAG_DETAIL_GROUPS or set(
+        k for g in _DIAG_MAP_GROUPS for k in g["keys"]
+    ) == set(DIAGNOSTIC_AREA_KEYS)
 
 
-def test_status_chip_has_label_and_no_score():
+def test_status_chip_soft_labels_and_no_score():
     chip = _diag_status_chip_html("needs_attention")
     assert "Figyelmet igényel" in chip
     assert "%" not in chip
     assert "pontszám" not in chip.casefold()
+    assert _diag_status_soft_label("critical_gap") == "Javítandó"
+    assert "Lényeges hiány" not in _diag_status_soft_label("critical_gap")
     for status in (
         "strong",
         "stable",
@@ -135,16 +150,11 @@ def test_status_chip_has_label_and_no_score():
         "not_enough_information",
     ):
         html_chip = _diag_status_chip_html(status)
-        assert diagnostic_status_label(status) in html_chip
+        assert _diag_status_soft_label(status) in html_chip
         assert "sw-diag-chip" in html_chip
 
 
-def test_worst_status_and_priority_cards():
-    assert _diag_worst_status(["stable", "strong"]) == "stable"
-    assert _diag_worst_status(["stable", "critical_gap"]) == "critical_gap"
-    assert _diag_worst_status(["needs_attention", "not_enough_information"]) == (
-        "needs_attention"
-    )
+def test_priority_collect_and_soften():
     diag = {
         "priorities": [
             {
@@ -166,10 +176,15 @@ def test_worst_status_and_priority_cards():
     items = _diag_collect_priorities(diag, {})
     assert len(items) == 2
     assert items[0]["title"] == "Első"
+    soft = _diag_soften_text(
+        "A terv kritikus hiányosságot mutat, koherenciája jelenleg alacsony."
+    )
+    assert "kritikus hiányosságot mutat" not in soft.casefold()
+    assert "koherenciája jelenleg alacsony" not in soft.casefold()
 
 
-def test_render_all_status_types_without_empty_critical(session, monkeypatch):
-    """A–B: minden státusz + nincs critical_gap üres szakasz nélkül."""
+def test_render_simple_main_view(session, monkeypatch):
+    """Main surface: summary + status counts + max 3 focus cards."""
     calls: list[str] = []
     _stub_streamlit(monkeypatch, calls)
 
@@ -203,7 +218,7 @@ def test_render_all_status_types_without_empty_critical(session, monkeypatch):
                     "problem": "Hiányzik",
                     "why_it_matters": "Nélküle gyenge a hallhatóság.",
                     "recommended_action": "Fogalmazd meg a feszültséget.",
-                    "affected_sections": ["Hallgatói kérdés"],
+                    "affected_sections": ["Hallgatói kérdés", "unity_and_focus"],
                 }
             ],
             "consistency_warnings": [],
@@ -218,19 +233,37 @@ def test_render_all_status_types_without_empty_critical(session, monkeypatch):
     )
 
     _render_diagnostics_results()
+    main = _main_content(calls)
     content = _content_calls(calls)
-    assert "Gyors áttekintés" in content
-    assert "Most erre érdemes figyelni" in content
-    assert "Diagnosztikai térkép" in content
-    assert "Hallgatói feszültség tisztázása" in content
-    assert "Pásztori figyelmeztetések" not in content
+
+    assert "Rövid összkép" in main
+    assert "Gyors státusz" in main
+    assert "Most erre figyelj" in main
+    assert "Hallgatói feszültség tisztázása" in main
+    assert "Erősségek" in main
+    assert "Javítandó pontok" in main
+    assert "Nincs elég adat" in main
+
+    # Demoted / hidden from main surface
+    assert "Diagnosztikai térkép" not in main
+    assert "Fő erősségek" not in main
+    assert "Pásztori figyelmeztetések" not in main
+    assert "Konzisztencia-figyelmeztetések" not in main
+    assert "Saját hang és eredetiség" not in main
+    assert "Továbbhaladási megjegyzés" not in main
+    assert "Érintett részek" not in main
+    assert "unity_and_focus" not in main
     assert "pontszám" not in content.casefold()
     assert "87%" not in content
     assert _prio_card_count(calls) == 1
 
+    # Details remain, closed
+    assert any(c.startswith("EXP:Részletes diagnosztika:False") for c in calls)
+    assert "Ami jól áll" in content or "Erős textushűség" in content
 
-def test_multiple_critical_gaps_and_partial(session, monkeypatch):
-    """C–D: több hiány + részleges adat."""
+
+def test_multiple_gaps_details_not_main_warnings(session, monkeypatch):
+    """Critical/attention counts on main; long warnings only in details."""
     calls: list[str] = []
     _stub_streamlit(monkeypatch, calls)
 
@@ -246,8 +279,8 @@ def test_multiple_critical_gaps_and_partial(session, monkeypatch):
     save_homiletical_diagnostics(
         session,
         {
-            "overall_summary": "Több lényeges hiány.",
-            "overall_coherence": "Gyenge.",
+            "overall_summary": "Több javítandó pont van a tervben.",
+            "overall_coherence": "Még gyenge az összhang.",
             "diagnostic_areas": areas,
             "major_strengths": [],
             "revision_priorities": [
@@ -265,6 +298,20 @@ def test_multiple_critical_gaps_and_partial(session, monkeypatch):
                     "recommended_action": "Pontosíts",
                     "affected_sections": ["Teológia"],
                 },
+                {
+                    "priority": 3,
+                    "title": "Krisztus-központúság",
+                    "why_it_matters": "Evangélium",
+                    "recommended_action": "Emeld ki",
+                    "affected_sections": [],
+                },
+                {
+                    "priority": 4,
+                    "title": "Ne jelenjen meg",
+                    "why_it_matters": "Negyedik",
+                    "recommended_action": "Skip",
+                    "affected_sections": [],
+                },
             ],
             "pastoral_warnings": ["Óvatosan a bűntudattal."],
             "ready_for_next_stage": False,
@@ -273,18 +320,24 @@ def test_multiple_critical_gaps_and_partial(session, monkeypatch):
         },
     )
     _render_diagnostics_results()
+    main = _main_content(calls)
     content = _content_calls(calls)
-    assert "Lényeges hiány" in content or "critical_gap" in content
-    assert "Nincs elég adat" in content
-    assert "Pásztori figyelmeztetések" in content
-    assert _prio_card_count(calls) == 2
+
+    assert "Javítandó pontok" in main
+    assert "Nincs elég adat" in main
+    assert _prio_card_count(calls) == 3
+    assert "Ne jelenjen meg" not in main
+    assert "Pásztori figyelmeztetések" not in main
+    assert "Óvatosan a bűntudattal." not in main
+    assert "Óvatosan a bűntudattal." in content
     assert "Bibliai és teológiai alap" in content
+    assert "text_fidelity" not in main
 
 
-def test_legacy_saved_diagnostics_roundtrip(session):
-    """G: régi mentett diagnosztika változtatás nélkül megjeleníthető."""
+def test_view_model_and_legacy_roundtrip(session):
+    """UI mapper + régi mentett diagnosztika változatlan schema mellett."""
     payload = {
-        "overall_summary": "Régi összefoglaló.",
+        "overall_summary": "A terv kritikus hiányosságot mutat.",
         "overall_coherence": "Rendben.",
         "diagnostic_areas": _full_areas({"closing": "needs_attention"}),
         "revision_priorities": [
@@ -304,12 +357,17 @@ def test_legacy_saved_diagnostics_roundtrip(session):
     cleaned = sanitize_project_data(project)
     reloaded = normalize_sermon_workshop(cleaned[SERMON_WORKSHOP_KEY])
     result = reloaded["diagnostics"]["result"]
-    assert result["overall_summary"] == "Régi összefoglaló."
+    assert result["overall_summary"] == "A terv kritikus hiányosságot mutat."
     indexed = _diag_areas_index(result["diagnostic_areas"])
     assert normalize_diagnostic_status(indexed["closing"]["status"]) == (
         "needs_attention"
     )
     assert len(_diag_collect_priorities(reloaded["diagnostics"], result)) == 1
+
+    view = _diag_view_model(reloaded["diagnostics"], result)
+    assert "kritikus hiányosságot mutat" not in view["summary"].casefold()
+    assert len(view["priorities"]) == 1
+    assert view["counts"]["needs_attention"] >= 1
 
 
 def test_shorten_and_mobile_css_present():
