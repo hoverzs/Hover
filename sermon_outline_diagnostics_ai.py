@@ -231,32 +231,42 @@ Feladatod: a végső IGEHIRDETÉSI VÁZLAT homiletikai ellenőrzése.
 
 Ez NEM pontozás, NEM átírás, NEM teljes kézirat. Ne találj ki új teológiát.
 
+## Fontos elv
+A műhelymodulok (M4–M9) kihagyása önmagában NEM hiba.
+Ne minősítsd `critical_gap`-nek és ne sorold fel hiányzó modulként, ha:
+- nincs külön hallgatói kérdés modul, de a vázlat megszólítja a hallgatót;
+- nincs M6 modul, de a vázlat mozgásai világosak;
+- nincs M7 / illusztráció, de van alkalmazási irány vagy a vázlat enélkül is működik
+  (külső illusztráció hiánya SOHA ne legyen hiba);
+- nincs külön lezárási modul, de a vázlat jól megérkezik;
+- nincs lekció vagy imádság — ezek opcionálisak.
+
+Csak a vázlatban ténylegesen érzékelhető homiletikai problémákat jelezd.
+Ha valami nem ítélhető meg a rövidség miatt, írd egyszerűen:
+„Az alkalmazás részletezettsége még nem ítélhető meg teljesen, mert a
+vázlat ezen a ponton rövid.” — de a teljes diagnosztikát ne tedd használhatatlanná.
+
 ## Vizsgáld elsősorban
 - egyetlen fő gondolat körül épül-e;
 - a bevezetés megnyitja-e a központi kérdést;
 - a mozgások különböző funkciót töltenek-e be / ismétlés nélkül;
-- világos-e az evangéliumi fordulat;
-- az alkalmazások kegyelemből fakadnak-e;
-- a lezárás oda érkezik-e, ahová az út vezetett;
+- világos-e az evangéliumi fordulat (ha a vázlatban van ilyen tartalom);
+- az alkalmazások kegyelemből fakadnak-e (ha vannak);
+- a lezárás oda érkezik-e, ahová az út vezetett (ha van);
 - hallás útján követhető-e;
-- maradt-e hely a prédikátor saját hangjának;
-- lekció / imádság: összhang, nem versengő téma, előtti/utáni nem keveredik,
-  nem váltak teljes sablonos MI-imádsággá.
+- maradt-e hely a prédikátor saját hangjának.
 
 ## Korlátok
 - strengths: legfeljebb 3, csak valódi erősség;
-- refinements: legfeljebb 3; ne gyárts mesterséges harmadik problémát;
-- detailed_notes: opcionális, mélyebb megjegyzések.
+- refinements: legfeljebb 3; ne gyárts mesterséges problémát modulhiányból;
+- detailed_notes: opcionális;
+- ne listázd az összes ki nem töltött műhelymodult.
 
 ## Vázlat JSON
 {{outline_json}}
 
-## Összevetés (rövid műhelykivonat)
+## Összevetés (rövid, csak ha van)
 Fő gondolat: {{sermon_main_idea}}
-Hallgatói feszültség: {{listener_tension_block}}
-Evangéliumi ív: {{christ_arc_block}}
-Mozgások: {{movements_block}}
-Lezárás: {{closing_block}}
 
 ## Kimenet — KIZÁRÓLAG érvényes JSON
 {
@@ -343,48 +353,73 @@ def fallback_outline_diagnostics(
     outline: Mapping[str, Any],
     message: str = "",
 ) -> OutlineDiagnosticsResult:
-    """Hálózat nélküli / hiányos válasz esetén egyszerű heurisztika."""
+    """Hálózat nélküli / hiányos válasz esetén egyszerű heurisztika.
+
+    Nem bünteti a kihagyott műhelymodulokat — csak a vázlat tartalmát nézi.
+    """
     strengths: list[str] = []
     refinements: list[OutlineRefinement] = []
     if _s(outline.get("main_idea")):
         strengths.append("Van világos igehirdetési fő gondolat.")
-    if outline.get("movements"):
+    mvs = outline.get("movements") if isinstance(outline.get("movements"), list) else []
+    if mvs:
         strengths.append("A prédikációs mozgások struktúrája kirajzolódik.")
     closing = outline.get("closing") if isinstance(outline.get("closing"), dict) else {}
     if _s(closing.get("final_insight")):
         strengths.append("A lezárás irányát rögzítetted.")
+    if _s(outline.get("opening_direction")) and len(strengths) < MAX_STRENGTHS:
+        strengths.append("A bevezetési irány kirajzolódik.")
     strengths = strengths[:MAX_STRENGTHS]
 
-    if not _s(outline.get("opening_direction")):
+    # Csak tényleges vázlathiány — ne küldjük az M6/M7 modulba
+    if not _s(outline.get("main_idea")):
         refinements.append(
             OutlineRefinement(
-                title="Bevezetési irány hiányzik",
-                explanation="A vázlat még nem rögzítette, hogyan nyílik meg a prédikáció.",
-                suggested_action="Fogalmazz meg rövid kiindulópontot a hallgatói kérdéshez kapcsolva.",
-                affected_outline_parts=["opening_direction"],
+                title="Fő gondolat még gyenge",
+                explanation="A vázlat magja még nem kristályosodott ki egy mondatban.",
+                suggested_action="Fogalmazz meg egyetlen, hallható fő gondolatot a vázlatban.",
+                affected_outline_parts=["main_idea"],
             )
         )
-    mvs = outline.get("movements") or []
-    if isinstance(mvs, list) and len(mvs) < 3:
+    elif not mvs:
         refinements.append(
             OutlineRefinement(
-                title="Kevesebb mint három mozgás",
-                explanation="A hallható ívhez általában legalább három mozgás segít.",
-                suggested_action="Egészítsd ki a mozgásokat az M6 szakaszban, majd frissítsd a vázlatot.",
+                title="Mozgások még hiányoznak",
+                explanation="A hallható ívhez legalább néhány világos mozgás segít.",
+                suggested_action="Egészítsd ki a vázlat mozgásait, majd futtasd újra az ellenőrzést.",
                 affected_outline_parts=["movements"],
             )
         )
-    if not _s(closing.get("final_insight")):
+    elif len(mvs) == 1:
+        refinements.append(
+            OutlineRefinement(
+                title="Az ív még rövid",
+                explanation="Egyetlen mozgás mellett a hallgatói út kevésbé bontakozik ki.",
+                suggested_action="Ha indokolt, adj még egy-két világos mozgást a vázlathoz.",
+                affected_outline_parts=["movements"],
+            )
+        )
+    if not _s(closing.get("final_insight")) and len(refinements) < MAX_REFINEMENTS:
         refinements.append(
             OutlineRefinement(
                 title="Lezárás még nyitott",
                 explanation="A megérkezés nélkül a vázlat nehezebben zárul.",
-                suggested_action="Rögzíts egy végső felismerést a Lezárás szakaszban.",
+                suggested_action="Rögzíts egy rövid végső felismerést a vázlat lezárásában.",
                 affected_outline_parts=["closing"],
             )
         )
-    refinements = refinements[:MAX_REFINEMENTS]
+    # Rövid vázlat — nem hiba, csak jelzés
+    notes: list[str] = []
+    blob_len = len(_s(outline.get("main_idea"))) + sum(
+        len(_s(m.get("core_content")) if isinstance(m, dict) else "") for m in mvs
+    )
+    if blob_len < 120:
+        notes.append(
+            "Az alkalmazás részletezettsége még nem ítélhető meg teljesen, "
+            "mert a vázlat ezen a ponton rövid."
+        )
 
+    refinements = refinements[:MAX_REFINEMENTS]
     ready = bool(strengths) and len(refinements) == 0
     overview = (
         "A vázlat alapjai kirajzolódnak; a finomítandó pontok a lenti listában vannak."
@@ -403,8 +438,9 @@ def fallback_outline_diagnostics(
             if ready
             else "Kezdd a legelső finomítási javaslattal."
         ),
+        detailed_notes=notes,
         ok=True,
-        warnings=[],
+        warnings=["Az ellenőrzés a jelenlegi vázlat alapján készült."],
     )
 
 
@@ -439,7 +475,8 @@ def run_outline_diagnostics(
             next_step="Előbb állítsd össze az igehirdetési vázlatot.",
         )
 
-    # Összevető kontextus a műhelyből (UI-ban nem jelenik meg nyersen)
+    # Összevető kontextus: elsősorban a vázlat; a műhelyblokkok csak röviden,
+    # ha a vázlatban még nincs megfelelő tartalom.
     ctx = build_diagnostics_context(
         passage=passage,
         bible_translation=bible_translation,
@@ -448,16 +485,22 @@ def run_outline_diagnostics(
         text_main_idea=text_main_idea,
         sermon_main_idea=sermon_main_idea or _s(outline.get("main_idea")),
         sermon_main_idea_status="approved",
-        listener_tension=listener_tension,
-        christ_centered_arc=christ_centered_arc,
+        listener_tension=listener_tension
+        if not _s(outline.get("listener_question"))
+        else None,
+        christ_centered_arc=christ_centered_arc
+        if not _s(outline.get("divine_gracious_action"))
+        else None,
         sermon_path=sermon_path,
-        sermon_movements=sermon_movements or outline.get("movements"),
+        sermon_movements=outline.get("movements") or sermon_movements,
         selected_images=selected_images,
         illustrations=illustrations,
         applications=applications,
-        closing=closing or outline.get("closing"),
+        closing=outline.get("closing") or closing,
     )
     ctx["outline_json"] = _outline_context_block(outline)
+    # Tokenhatékonyság: a sablon csak a fő gondolatot és a vázlat JSON-t használja
+    ctx.setdefault("sermon_main_idea", sermon_main_idea or _s(outline.get("main_idea")))
 
     if generate_fn is None:
         return fallback_outline_diagnostics(outline=outline)
@@ -471,7 +514,8 @@ def run_outline_diagnostics(
             use_cache=False,
             system_bundle=(
                 "Te a TEXTUS homiletikai diagnoszta asszisztense vagy. "
-                "Csak a megadott vázlatból és összevető kivonatból dolgozz. "
+                "A vizsgált tárgy a végső vázlat, nem a kitöltött modulok száma. "
+                "Ne minősítsd hibának a kihagyott műhelyszakaszokat. "
                 "Válaszod KIZÁRÓLAG érvényes JSON."
             ),
             temperature=DEFAULT_TEMPERATURE,
@@ -498,6 +542,9 @@ def run_outline_diagnostics(
     # Kemény korlátok
     parsed.strengths = parsed.strengths[:MAX_STRENGTHS]
     parsed.refinements = parsed.refinements[:MAX_REFINEMENTS]
+    notice = "Az ellenőrzés a jelenlegi vázlat alapján készült."
+    if notice not in parsed.warnings:
+        parsed.warnings = list(parsed.warnings) + [notice]
     return parsed
 
 

@@ -2863,15 +2863,16 @@ def render_outline_section(
     *,
     generate_fn: GenerateFn | None = None,
 ) -> None:
-    """Igehirdetési vázlat — egységes olvasónézet a műhelyanyagokból."""
+    """Igehirdetési vázlat — egységes olvasónézet a rendelkezésre álló anyagból."""
     _apply_pending_adopts_if_needed()
     _apply_sw_ui_resync_if_needed()
     ensure_sermon_workshop_state(st.session_state)
 
     st.subheader("Igehirdetési vázlat")
     st.markdown(
-        "Az alkalmazás a teljes műhelymunka megtartott eredményeiből állítja "
-        "össze a prédikáció szerkeszthető vázlatát."
+        "Nem szükséges minden műhelyszakaszt kitölteni. Az alkalmazás az "
+        "aktuálisan rendelkezésre álló anyagból állít össze használható "
+        "munkavázlatot."
     )
 
     sw = ensure_sermon_workshop_state(st.session_state)
@@ -2881,9 +2882,9 @@ def render_outline_section(
     need_confirm = bool(st.session_state.get(_CONFIRM_OUTLINE_OVERWRITE))
 
     primary_label = (
-        "Vázlat frissítése a műhelyanyagokból"
+        "Vázlat frissítése a meglévő anyagból"
         if has_outline
-        else "Igehirdetési vázlat összeállítása"
+        else "Vázlat összeállítása a meglévő anyagból"
     )
     if st.button(primary_label, type="primary", key="sw_outline_assemble"):
         if has_outline and manually_edited and not need_confirm:
@@ -3046,19 +3047,22 @@ def render_diagnostics_section(
     st.subheader("Homiletikai diagnosztika")
     st.markdown(
         "Rövid, szöveges tükrözés az összeállított igehirdetési vázlatról — "
-        "pontszám és automatikus átírás nélkül."
+        "pontszám és automatikus átírás nélkül. A diagnosztika a tényleges "
+        "vázlatot értékeli, nem a kitöltött műhelymodulok számát."
     )
 
     sw = ensure_sermon_workshop_state(st.session_state)
     outline = normalize_sermon_outline(sw.get("sermon_outline"))
     has_outline = outline_has_content(outline)
     if not has_outline:
-        st.warning("Előbb állítsd össze az igehirdetési vázlatot.")
-        st.caption(
-            "A diagnosztika fő folyamata a végső vázlatot vizsgálja; "
-            "nyers modul-diagnosztika helyett előbb állítsd össze a vázlatot."
+        st.info(
+            "Ha van összeállított vázlat, itt ellenőrizheted. "
+            "Előbb állítsd össze az igehirdetési vázlatot a rendelkezésre "
+            "álló anyagból — nem kell minden műhelyszakaszt kitölteni."
         )
         return
+
+    st.caption("Az ellenőrzés a jelenlegi vázlat alapján készült.")
 
     if st.button(
         "A vázlat homiletikai ellenőrzése",

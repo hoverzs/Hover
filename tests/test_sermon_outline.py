@@ -32,10 +32,14 @@ from sermon_workshop_data import (
 )
 from sermon_workshop_outline_ai import (
     MISSING_PART,
+    PROVISIONAL_NOTICE,
     assemble_sermon_outline,
+    assess_outline_readiness,
     build_outline_from_workshop,
+    collect_outline_context_bundle,
     editable_outline_snapshot,
     outline_has_content,
+    outline_has_provisional_bridges,
     outline_missing_parts,
     outline_part_display,
     render_compact_sermon_outline,
@@ -86,13 +90,15 @@ def test_b_missing_sections_show_placeholder():
     assert outline_part_display(outline.get("main_idea")) == MISSING_PART
     assert outline_part_display(outline.get("opening_direction")) == MISSING_PART
     assert outline_part_display([]) == MISSING_PART
-    # Ne találjon ki teológiát
+    # Ne találjon ki teológiát üres projektből
     assert not outline["main_idea"]
     assert not outline["movements"]
     missing = outline_missing_parts(outline)
-    assert "Az igehirdetés fő gondolata" in missing
-    assert "A prédikációs mozgások" in missing
-    assert "A lezárás" in missing
+    assert any("fő gondolat" in x for x in missing)
+    assert any("mozgás" in x for x in missing)
+    assert any("lezárás" in x for x in missing)
+    ready = assess_outline_readiness(state)
+    assert not ready.ok
 
 
 def test_c_references_only_no_full_bible_text():
@@ -275,7 +281,7 @@ def test_ui_a_full_outline_no_long_textarea_form(session, monkeypatch):
     assert "A prédikáció mozgásai" in joined
     assert "Következő lépés: a vázlat homiletikai ellenőrzése" in joined
     assert "Vázlat szerkesztése" in joined
-    assert any("Vázlat frissítése a műhelyanyagokból" in c for c in calls)
+    assert any("Vázlat frissítése a meglévő anyagból" in c for c in calls)
     assert not any(c == "TA:Hallgatói ellenállás (röviden)" for c in calls)
     assert not any(c == "TA:Isten kegyelmi cselekvése" for c in calls)
     assert not any(c == "TI:Kapcsolattípus" for c in calls)
@@ -284,7 +290,7 @@ def test_ui_a_full_outline_no_long_textarea_form(session, monkeypatch):
 
 
 def test_ui_b_missing_parts_single_list(session, monkeypatch):
-    """B: Hiányos vázlat — egyetlen kompakt hiánylista."""
+    """B: Hiányos vázlat — egyetlen kompakt finomítható blokk."""
     calls = _stub_streamlit_capture(monkeypatch)
     outline = {
         "passage_reference": "Júd 17–20",
@@ -298,10 +304,9 @@ def test_ui_b_missing_parts_single_list(session, monkeypatch):
     save_sermon_outline(session, outline)
     render_compact_sermon_outline(session[SERMON_WORKSHOP_KEY]["sermon_outline"])
     joined = "\n".join(calls)
-    assert "Még kidolgozandó részek" in joined
-    assert "Az igehirdetés fő gondolata" in joined
-    assert "A prédikációs mozgások" in joined
-    assert "A lezárás" in joined
+    assert "Még finomítható részek" in joined
+    assert "fő gondolat" in joined.casefold() or "mozgás" in joined.casefold()
+    assert "Még kidolgozandó részek" not in joined
     assert joined.count("Ez a rész még nincs kidolgozva.") == 0
 
 
@@ -503,7 +508,7 @@ def test_diagnostics_ui_gate_and_simplified_view(session, monkeypatch):
         ),
     )
     monkeypatch.setattr(st, "columns", lambda n: [nullcontext() for _ in range(n)])
-    monkeypatch.setattr(st, "info", lambda *a, **k: None)
+    monkeypatch.setattr(st, "info", lambda *a, **k: calls.append(f"INFO:{a[0]}" if a else "INFO"))
     monkeypatch.setattr(st, "success", lambda *a, **k: None)
     monkeypatch.setattr(st, "error", lambda *a, **k: None)
     monkeypatch.setattr(st, "text_area", lambda *a, **k: "")
@@ -511,7 +516,8 @@ def test_diagnostics_ui_gate_and_simplified_view(session, monkeypatch):
     monkeypatch.setattr(st, "rerun", lambda: None)
 
     render_diagnostics_section(generate_fn=None)
-    assert any("vázlatot" in c.casefold() for c in calls)
+    assert any("vázlat" in c.casefold() for c in calls)
+    assert not any("WARN:" in c and "minden műhely" in c.casefold() for c in calls)
 
     # With outline + diagnostics
     jude = build_jude_state()

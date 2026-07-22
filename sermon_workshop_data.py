@@ -264,6 +264,9 @@ def empty_sermon_outline() -> dict[str, Any]:
         },
         "manual_notes": "",
         "manually_edited": False,
+        # Meta — fejlesztői / diagnosztikai; a fő UI nem listázza nyersen
+        "source_sections": [],
+        "provisional_sections": [],
     }
 
 
@@ -381,6 +384,12 @@ def normalize_sermon_outline(raw: Any) -> dict[str, Any]:
     }
     out["prayer_before"] = _normalize_outline_prayer(raw.get("prayer_before"))
     out["prayer_after"] = _normalize_outline_prayer(raw.get("prayer_after"))
+    out["source_sections"] = _normalize_str_list(
+        raw.get("source_sections"), max_items=40
+    )
+    out["provisional_sections"] = _normalize_str_list(
+        raw.get("provisional_sections"), max_items=20
+    )
     return out
 
 

@@ -1,8 +1,9 @@
 """Igehirdetési műhely — igehirdetési vázlat összeállítása (M10).
 
-Determinisztikus összeszerelés a jóváhagyott / megtartott műhelyanyagból.
-Az opcionális MI csak tömörítést és átmeneteket finomíthat — új teológiát,
-illusztrációt, alkalmazást vagy fő gondolatot nem talál ki.
+Részleges munkafolyamatot is támogat: a rendelkezésre álló anyagból
+állít össze munkavázlatot. Az opcionális egyetlen összegző MI-hívás
+csak a hiányzó szerkezeti kapcsolatokat egészítheti ki a
+`sermon_outline` belsejében — az M4–M9 forrásmezőket nem írja vissza.
 Nem importál app.py / sermon_workshop_ui.py fájlból.
 """
 
@@ -28,10 +29,24 @@ from sermon_workshop_m5_ai import _as_text, _is_api_error_text
 from sermon_workshop_m5_gospel_ai import christ_connection_type_label
 from sermon_workshop_m6_ai import movement_role_label
 from sermon_workshop_m7_closing_ai import closing_tone_label
+from textus_workshop_data import TEXT_WORKSHOP_KEY, normalize_text_workshop
 
 TAB_OUTLINE = "Igehirdetési vázlat"
 MISSING_PART = "Ez a rész még nincs kidolgozva."
-DEFAULT_TEMPERATURE = 0.1
+DEFAULT_TEMPERATURE = 0.2
+MAX_PASSAGE_CHARS = 3200
+MAX_EXEGESIS_CHARS = 1600
+MAX_THEOLOGY_CHARS = 1200
+MAX_HISTORY_CHARS = 800
+MAX_INSIGHTS = 8
+PROVISIONAL_NOTICE = (
+    "A vázlat néhány összekötő eleme a rendelkezésre álló anyag alapján "
+    "munkajavaslatként készült."
+)
+EMPTY_PROJECT_MESSAGE = (
+    "A vázlathoz legalább a RÚF-szöveg betöltése vagy egy rövid saját "
+    "gondolat / fő gondolat szükséges. Az igehely önmagában nem elég."
+)
 
 GenerateFn = Callable[..., str]
 
@@ -127,61 +142,385 @@ def _has_any_text(*values: Any) -> bool:
     return False
 
 
-def build_outline_from_workshop(
+def _truncate(text: str, limit: int) -> str:
+    raw = _s(text)
+    if len(raw) <= limit:
+        return raw
+    return raw[: max(0, limit - 1)].rstrip() + "…"
+
+
+def _approved_insights_texts(tw: Mapping[str, Any]) -> list[str]:
+    out: list[str] = []
+    for item in tw.get("approved_insights") or []:
+        if not isinstance(item, dict):
+            continue
+        if item.get("approved") is False:
+            continue
+        content = _s(item.get("content"))
+        if content:
+            out.append(content)
+        if len(out) >= MAX_INSIGHTS:
+            break
+    return out
+
+
+@dataclass
+class OutlineReadiness:
+    ok: bool
+    message: str = ""
+    source_keys: list[str] = field(default_factory=list)
+
+
+def assess_outline_readiness(
     session_state: Mapping[str, Any],
     *,
     sermon_workshop: Mapping[str, Any] | None = None,
-) -> dict[str, Any]:
-    """Műhelyanyag → vázlat struktúra. Nem módosít sessiont / forrásmezőket."""
+) -> OutlineReadiness:
+    """Minimális bemenet: igehely + legalább egy használható anyag."""
     sw = (
         dict(sermon_workshop)
         if isinstance(sermon_workshop, dict)
         else dict(session_state.get(SERMON_WORKSHOP_KEY) or {})
     )
-    outline = empty_sermon_outline()
-
-    outline["project_title"] = _session_str(
-        session_state, "current_project_title", "project_title_input"
-    )
-    outline["passage_reference"] = _session_str(
+    tw = normalize_text_workshop(session_state.get(TEXT_WORKSHOP_KEY))
+    passage_ref = _session_str(
         session_state, "last_igehely", "igehely_input", "passage_reference"
     )
-    outline["bible_translation"] = _session_str(
-        session_state, "bible_translation"
-    ) or "RÚF 2014"
-    outline["sermon_title"] = _session_str(
-        session_state, "sermon_title", "current_sermon_title"
-    )
+    sources: list[str] = []
+    if passage_ref:
+        sources.append("passage_reference")
 
-    idea = _s(sw.get("sermon_main_idea"))
-    outline["main_idea"] = idea
-    # Rövid kifejtés csak ha van approved insights / summary a textus műhelyből —
-    # de új teológiát nem találunk ki; max tömörítés a meglévő fő gondolatból.
-    if idea and len(idea) > 180:
-        outline["main_idea_summary"] = idea[:177].rstrip() + "…"
-    else:
-        outline["main_idea_summary"] = ""
-
+    passage_text = _session_str(session_state, "passage_text")
+    if passage_text:
+        sources.append("passage_text")
+    if _s(tw.get("text_main_idea")):
+        sources.append("text_main_idea")
+    if _approved_insights_texts(tw):
+        sources.append("approved_insights")
+    if _session_str(session_state, "exegesis"):
+        sources.append("exegesis")
+    if _session_str(session_state, "theology"):
+        sources.append("theology")
+    if _session_str(session_state, "history"):
+        sources.append("history")
+    if _s(sw.get("sermon_main_idea")):
+        sources.append("sermon_main_idea")
+    if _s(session_state.get("last_sajat")) or _s(session_state.get("sajat_input")):
+        sources.append("user_notes")
+    existing = normalize_sermon_outline(sw.get("sermon_outline"))
+    if _s(existing.get("manual_notes")):
+        sources.append("outline_manual_notes")
+    movements = normalize_sermon_movements(sw.get("sermon_movements"))
+    if movements:
+        sources.append("sermon_movements")
+    hc = sw.get("human_condition") if isinstance(sw.get("human_condition"), dict) else {}
+    if _has_any_text(*hc.values()):
+        sources.append("human_condition")
     lt = sw.get("listener_tension") if isinstance(sw.get("listener_tension"), dict) else {}
-    outline["listener_question"] = _s(lt.get("listener_question"))
-    outline["central_tension"] = _s(lt.get("sermon_tension"))
-    outline["listener_resistance"] = _s(lt.get("listener_resistance"))
-
+    if _has_any_text(*lt.values()):
+        sources.append("listener_tension")
     arc = (
         sw.get("christ_centered_arc")
         if isinstance(sw.get("christ_centered_arc"), dict)
         else {}
     )
-    outline["divine_gracious_action"] = _s(arc.get("divine_gracious_action"))
+    if _has_any_text(*arc.values()):
+        sources.append("christ_centered_arc")
+    path = sw.get("sermon_path") if isinstance(sw.get("sermon_path"), dict) else {}
+    if _has_any_text(*path.values()):
+        sources.append("sermon_path")
+    closing = sw.get("closing") if isinstance(sw.get("closing"), dict) else {}
+    if _has_any_text(*closing.values()):
+        sources.append("closing")
+
+    substantive = [k for k in sources if k != "passage_reference"]
+    if not passage_ref:
+        return OutlineReadiness(
+            ok=False,
+            message="Add meg az igehelyet, majd tölts be RÚF-szöveget vagy egy rövid gondolatot.",
+            source_keys=sources,
+        )
+    if not substantive:
+        return OutlineReadiness(
+            ok=False,
+            message=EMPTY_PROJECT_MESSAGE,
+            source_keys=sources,
+        )
+    return OutlineReadiness(ok=True, source_keys=sources)
+
+
+def collect_outline_context_bundle(
+    session_state: Mapping[str, Any],
+    *,
+    sermon_workshop: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Tokenhatékony forráscsomag — csak nem üres mezők, aliasok nélkül."""
+    sw = (
+        dict(sermon_workshop)
+        if isinstance(sermon_workshop, dict)
+        else dict(session_state.get(SERMON_WORKSHOP_KEY) or {})
+    )
+    tw = normalize_text_workshop(session_state.get(TEXT_WORKSHOP_KEY))
+    bundle: dict[str, Any] = {
+        "passage_reference": _session_str(
+            session_state, "last_igehely", "igehely_input", "passage_reference"
+        ),
+        "occasion": _session_str(session_state, "last_alkalom", "alkalom_input"),
+        "user_focus": _session_str(session_state, "last_sajat", "sajat_input"),
+        "bible_translation": _session_str(session_state, "bible_translation")
+        or "RÚF 2014",
+        "project_title": _session_str(
+            session_state, "current_project_title", "project_title_input"
+        ),
+        "source_keys": [],
+    }
+    keys: list[str] = []
+    if bundle["passage_reference"]:
+        keys.append("passage_reference")
+
+    passage_text = _truncate(
+        _session_str(session_state, "passage_text"), MAX_PASSAGE_CHARS
+    )
+    if passage_text:
+        bundle["passage_text"] = passage_text
+        keys.append("passage_text")
+
+    # Forráshierarchia: jóváhagyott / elmentett műhely → textus → saját
+    sermon_idea = _s(sw.get("sermon_main_idea"))
+    sermon_status = _s(sw.get("sermon_main_idea_status"))
+    text_idea = _s(tw.get("text_main_idea"))
+    text_status = _s(tw.get("text_main_idea_status"))
+    if sermon_idea:
+        bundle["sermon_main_idea"] = sermon_idea
+        bundle["sermon_main_idea_status"] = sermon_status or "draft"
+        keys.append("sermon_main_idea")
+    if text_idea:
+        bundle["text_main_idea"] = text_idea
+        bundle["text_main_idea_status"] = text_status or "draft"
+        keys.append("text_main_idea")
+
+    insights = _approved_insights_texts(tw)
+    if insights:
+        bundle["approved_insights"] = insights
+        keys.append("approved_insights")
+
+    for field_name, limit, session_key in (
+        ("exegesis", MAX_EXEGESIS_CHARS, "exegesis"),
+        ("theology", MAX_THEOLOGY_CHARS, "theology"),
+        ("history", MAX_HISTORY_CHARS, "history"),
+    ):
+        text = _truncate(_session_str(session_state, session_key), limit)
+        if text:
+            bundle[field_name] = text
+            keys.append(field_name)
+
+    # Ne küldjük a nyers MI-alternatívákat / elutasított javaslatokat
+    for block_key in (
+        "human_condition",
+        "listener_tension",
+        "christ_centered_arc",
+        "sermon_path",
+        "closing",
+    ):
+        block = sw.get(block_key) if isinstance(sw.get(block_key), dict) else {}
+        cleaned = {k: _s(v) for k, v in block.items() if _s(v)}
+        if cleaned:
+            bundle[block_key] = cleaned
+            keys.append(block_key)
+
+    movements = normalize_sermon_movements(sw.get("sermon_movements"))
+    if movements:
+        compact_mvs = []
+        for mv in movements:
+            compact_mvs.append(
+                {
+                    "id": _s(mv.get("id")),
+                    "title": _s(mv.get("title")),
+                    "role": _s(mv.get("role")),
+                    "textual_basis": _s(mv.get("textual_basis")),
+                    "core_content": _s(mv.get("core_content")),
+                    "listener_discovery": _s(mv.get("listener_discovery")),
+                    "transition_to_next": _s(mv.get("transition_to_next")),
+                }
+            )
+        bundle["sermon_movements"] = compact_mvs
+        keys.append("sermon_movements")
+
+    images = normalize_textual_images(sw.get("selected_images"))
+    illustrations = normalize_illustrations(sw.get("illustrations"))
+    applications = normalize_applications(sw.get("applications"))
+    if images:
+        bundle["selected_images"] = images
+        keys.append("selected_images")
+    if illustrations:
+        bundle["illustrations"] = illustrations
+        keys.append("illustrations")
+    if applications:
+        bundle["applications"] = applications
+        keys.append("applications")
+
+    lection = sw.get("lection") if isinstance(sw.get("lection"), dict) else {}
+    if _s(lection.get("reference")):
+        bundle["lection"] = {
+            "reference": _s(lection.get("reference")),
+            "function": _s(lection.get("function")),
+            "rationale": _truncate(_s(lection.get("rationale")), 400),
+        }
+        keys.append("lection")
+
+    prep = (
+        sw.get("prayer_preparation")
+        if isinstance(sw.get("prayer_preparation"), dict)
+        else {}
+    )
+    before = prep.get("before") if isinstance(prep.get("before"), dict) else {}
+    after = prep.get("after") if isinstance(prep.get("after"), dict) else {}
+    pb = _prayer_side_retained(before)
+    pa = _prayer_side_retained(after)
+    if _has_any_text(*pb.values()):
+        bundle["prayer_before"] = pb
+        keys.append("prayer_before")
+    if _has_any_text(*pa.values()):
+        bundle["prayer_after"] = pa
+        keys.append("prayer_after")
+
+    existing = normalize_sermon_outline(sw.get("sermon_outline"))
+    if _s(existing.get("manual_notes")):
+        bundle["outline_manual_notes"] = _s(existing.get("manual_notes"))
+        keys.append("outline_manual_notes")
+
+    bundle["source_keys"] = list(dict.fromkeys(keys))
+    bundle["_sw"] = sw
+    bundle["_tw"] = tw
+    return bundle
+
+
+def _prefer_main_idea(bundle: Mapping[str, Any]) -> str:
+    sermon = _s(bundle.get("sermon_main_idea"))
+    text = _s(bundle.get("text_main_idea"))
+    sermon_status = _s(bundle.get("sermon_main_idea_status"))
+    text_status = _s(bundle.get("text_main_idea_status"))
+    if sermon and sermon_status == "approved":
+        return sermon
+    if text and text_status == "approved" and not sermon:
+        return text
+    if sermon:
+        return sermon
+    if text:
+        return text
+    insights = bundle.get("approved_insights") or []
+    if isinstance(insights, list) and insights:
+        return _s(insights[0])
+    return ""
+
+
+def _heuristic_provisional_movements(
+    *,
+    main_idea: str,
+    insights: list[str],
+    exegesis: str,
+    christ: Mapping[str, Any] | None,
+) -> list[dict[str, Any]]:
+    """3 egyszerű mozgás — csak ha nincs M6, AI nélkül."""
+    idea = _s(main_idea) or (insights[0] if insights else "")
+    if not idea:
+        return []
+    christ = christ if isinstance(christ, dict) else {}
+    grace = _s(christ.get("divine_gracious_action")) or _s(
+        christ.get("grace_enabled_response")
+    )
+    second = _s(insights[1]) if len(insights) > 1 else ""
+    if not second and exegesis:
+        second = _truncate(exegesis, 220)
+    if not second:
+        second = "A textus a fő gondolatot a saját hangján bontja ki."
+    third = grace or (
+        _s(insights[2]) if len(insights) > 2 else "A hallgató a kegyelem felől válaszolhat."
+    )
+    specs = [
+        ("Nyitás", "opening", "A hallgató a textus világába lép.", idea),
+        ("Kibontás", "deepening", "A textus magja elmélyül.", second),
+        ("Megérkezés", "arrival", "A fő gondolat megérkezik a hallgatóhoz.", third),
+    ]
+    out: list[dict[str, Any]] = []
+    for i, (title, role, discovery, core) in enumerate(specs, start=1):
+        item = empty_outline_movement()
+        item.update(
+            {
+                "id": f"prov_mv_{i}",
+                "title": title,
+                "role": role,
+                "role_label": movement_role_label(role) if role else title,
+                "textual_basis": "",
+                "core_content": _s(core),
+                "listener_discovery": discovery,
+                "transition": "",
+                "images": [],
+                "illustrations": [],
+                "applications": [],
+            }
+        )
+        out.append(item)
+    return out
+
+
+def build_outline_from_workshop(
+    session_state: Mapping[str, Any],
+    *,
+    sermon_workshop: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Műhelyanyag → vázlat. Nem módosít sessiont / forrásmezőket."""
+    bundle = collect_outline_context_bundle(
+        session_state, sermon_workshop=sermon_workshop
+    )
+    sw = bundle.get("_sw") if isinstance(bundle.get("_sw"), dict) else {}
+    outline = empty_sermon_outline()
+    sources: list[str] = list(bundle.get("source_keys") or [])
+    provisional: list[str] = []
+
+    outline["project_title"] = _s(bundle.get("project_title"))
+    outline["passage_reference"] = _s(bundle.get("passage_reference"))
+    outline["bible_translation"] = _s(bundle.get("bible_translation")) or "RÚF 2014"
+    outline["sermon_title"] = _session_str(
+        session_state, "sermon_title", "current_sermon_title"
+    )
+
+    idea = _prefer_main_idea(bundle)
+    outline["main_idea"] = idea
+    if idea and len(idea) > 180:
+        outline["main_idea_summary"] = idea[:177].rstrip() + "…"
+    else:
+        outline["main_idea_summary"] = ""
+
+    lt = bundle.get("listener_tension") if isinstance(bundle.get("listener_tension"), dict) else {}
+    outline["listener_question"] = _s(lt.get("listener_question"))
+    outline["central_tension"] = _s(lt.get("sermon_tension"))
+    outline["listener_resistance"] = _s(lt.get("listener_resistance"))
+
+    arc = (
+        bundle.get("christ_centered_arc")
+        if isinstance(bundle.get("christ_centered_arc"), dict)
+        else {}
+    )
+    hc = (
+        bundle.get("human_condition")
+        if isinstance(bundle.get("human_condition"), dict)
+        else {}
+    )
+    outline["divine_gracious_action"] = _s(arc.get("divine_gracious_action")) or _s(
+        hc.get("divine_action")
+    )
     outline["christ_connection"] = _s(arc.get("christ_connection"))
     ctype = _s(arc.get("christ_connection_type"))
     outline["christ_connection_type_label"] = (
         christ_connection_type_label(ctype) if ctype else ""
     )
     outline["gospel_resolution"] = _s(lt.get("promised_resolution"))
-    outline["grace_enabled_response"] = _s(arc.get("grace_enabled_response"))
+    outline["grace_enabled_response"] = _s(arc.get("grace_enabled_response")) or _s(
+        hc.get("grace_response")
+    )
 
-    path = sw.get("sermon_path") if isinstance(sw.get("sermon_path"), dict) else {}
+    path = bundle.get("sermon_path") if isinstance(bundle.get("sermon_path"), dict) else {}
     start = _s(path.get("starting_point"))
     question = outline["listener_question"]
     if start and question:
@@ -196,7 +535,11 @@ def build_outline_from_workshop(
         outline["opening_direction"] = ""
 
     movements_out: list[dict[str, Any]] = []
-    for mv in normalize_sermon_movements(sw.get("sermon_movements")):
+    workshop_movements = bundle.get("sermon_movements") or []
+    used_m6 = bool(workshop_movements)
+    for mv in workshop_movements if isinstance(workshop_movements, list) else []:
+        if not isinstance(mv, dict):
+            continue
         role = _s(mv.get("role"))
         item = empty_outline_movement()
         item.update(
@@ -216,19 +559,48 @@ def build_outline_from_workshop(
         )
         movements_out.append(item)
 
-    images = normalize_textual_images(sw.get("selected_images"))
-    illustrations = normalize_illustrations(sw.get("illustrations"))
-    applications = normalize_applications(sw.get("applications"))
-    movements_out, extra = _attach_enrichment(
-        movements_out,
-        images=images,
-        illustrations=illustrations,
-        applications=applications,
-    )
+    images = list(bundle.get("selected_images") or [])
+    illustrations = list(bundle.get("illustrations") or [])
+    applications = list(bundle.get("applications") or [])
+    if movements_out:
+        movements_out, extra = _attach_enrichment(
+            movements_out,
+            images=images,
+            illustrations=illustrations,
+            applications=applications,
+        )
+    else:
+        extra = {"images": [], "illustrations": [], "applications": []}
+        for item in images:
+            t = _enrichment_text(item, kind="image")
+            if t:
+                extra["images"].append(t)
+        for item in illustrations:
+            t = _enrichment_text(item, kind="illustration")
+            if t:
+                extra["illustrations"].append(t)
+        for item in applications:
+            t = _enrichment_text(item, kind="application")
+            if t:
+                extra["applications"].append(t)
+
+    if not movements_out and idea:
+        movements_out = _heuristic_provisional_movements(
+            main_idea=idea,
+            insights=list(bundle.get("approved_insights") or []),
+            exegesis=_s(bundle.get("exegesis")),
+            christ=arc or hc,
+        )
+        if movements_out:
+            provisional.append("sermon_movements")
+            if not used_m6:
+                # Ne jelöljük M6 forrásként
+                pass
+
     outline["movements"] = movements_out
     outline["extra_enrichment"] = extra
 
-    closing = sw.get("closing") if isinstance(sw.get("closing"), dict) else {}
+    closing = bundle.get("closing") if isinstance(bundle.get("closing"), dict) else {}
     tone = _s(closing.get("tone"))
     outline["closing"] = {
         "final_insight": _s(closing.get("final_discovery")),
@@ -240,7 +612,25 @@ def build_outline_from_workshop(
         "tone_label": closing_tone_label(tone) if tone else "",
     }
 
-    lection = sw.get("lection") if isinstance(sw.get("lection"), dict) else {}
+    # Rövid munkajavaslat lezárásra — csak ha teljesen üres, van fő gondolat
+    if not _s(outline["closing"]["final_insight"]) and idea:
+        outline["closing"]["final_insight"] = (
+            f"A hallgató a fő gondolat fényében állhat meg: {idea}"
+        )
+        if _s(outline["grace_enabled_response"]):
+            outline["closing"]["invitation"] = _s(outline["grace_enabled_response"])
+        provisional.append("closing")
+
+    if not _s(outline["opening_direction"]) and (idea or question):
+        if question:
+            outline["opening_direction"] = f"Hallgatói nyitás: {question}"
+        else:
+            outline["opening_direction"] = (
+                f"A prédikáció a fő gondolat felől nyílik: {idea}"
+            )
+        provisional.append("opening_direction")
+
+    lection = bundle.get("lection") if isinstance(bundle.get("lection"), dict) else {}
     lec_ref = _s(lection.get("reference"))
     outline["lection_reference"] = lec_ref
     outline["lection_translation"] = (
@@ -252,22 +642,27 @@ def build_outline_from_workshop(
         "rationale": _s(lection.get("rationale")),
     }
 
-    prep = (
-        sw.get("prayer_preparation")
-        if isinstance(sw.get("prayer_preparation"), dict)
-        else {}
+    outline["prayer_before"] = (
+        dict(bundle["prayer_before"])
+        if isinstance(bundle.get("prayer_before"), dict)
+        else _prayer_side_retained({})
     )
-    before = prep.get("before") if isinstance(prep.get("before"), dict) else {}
-    after = prep.get("after") if isinstance(prep.get("after"), dict) else {}
-    outline["prayer_before"] = _prayer_side_retained(before)
-    outline["prayer_after"] = _prayer_side_retained(after)
+    outline["prayer_after"] = (
+        dict(bundle["prayer_after"])
+        if isinstance(bundle.get("prayer_after"), dict)
+        else _prayer_side_retained({})
+    )
+
+    if _s(bundle.get("outline_manual_notes")):
+        outline["manual_notes"] = _s(bundle.get("outline_manual_notes"))
 
     stamp = _now()
     outline["generated_at"] = stamp
     outline["updated_at"] = stamp
     outline["status"] = "draft"
     outline["manually_edited"] = False
-    outline["manual_notes"] = ""
+    outline["source_sections"] = list(dict.fromkeys(sources))
+    outline["provisional_sections"] = list(dict.fromkeys(provisional))
     return normalize_sermon_outline(outline)
 
 
@@ -281,6 +676,8 @@ def outline_has_content(outline: Any) -> bool:
         "manually_edited",
         "bible_translation",
         "lection_translation",
+        "source_sections",
+        "provisional_sections",
     }
     return _has_any_text(*(v for k, v in outline.items() if k not in skip))
 
@@ -297,18 +694,48 @@ def outline_part_display(value: Any, *, missing: str = MISSING_PART) -> str:
 
 
 def outline_missing_parts(outline: Any) -> list[str]:
-    """Kötelező hiányok egyetlen kompakt listához — opcionális üresek nem szerepelnek."""
+    """Finomítható részek — nem blokkoló hibák, opcionális üresek kimaradnak."""
+    return outline_refinable_parts(outline)
+
+
+def outline_refinable_parts(outline: Any) -> list[str]:
+    """Rövid, pasztorális finomítási tippek — modulhiány nélkül."""
     safe = normalize_sermon_outline(outline)
-    missing: list[str] = []
+    tips: list[str] = []
+    provisional = set(safe.get("provisional_sections") or [])
     if not _s(safe.get("main_idea")):
-        missing.append("Az igehirdetés fő gondolata")
-    movements = safe.get("movements") if isinstance(safe.get("movements"), list) else []
-    if not movements:
-        missing.append("A prédikációs mozgások")
+        tips.append("a fő gondolat")
+    if "sermon_movements" in provisional or not (
+        safe.get("movements") if isinstance(safe.get("movements"), list) else []
+    ):
+        if "sermon_movements" in provisional:
+            tips.append("a prédikációs mozgások (jelenleg munkajavaslat)")
+        elif not (safe.get("movements") or []):
+            tips.append("a prédikációs mozgások")
     closing = safe.get("closing") if isinstance(safe.get("closing"), dict) else {}
-    if not _s(closing.get("final_insight")):
-        missing.append("A lezárás")
-    return missing
+    if "closing" in provisional or not _s(closing.get("final_insight")):
+        if "closing" in provisional:
+            tips.append("a lezárás (jelenleg munkajavaslat)")
+        elif not _s(closing.get("final_insight")):
+            tips.append("a lezárás")
+    if "opening_direction" in provisional and _s(safe.get("opening_direction")):
+        tips.append("a bevezetési irány (jelenleg munkajavaslat)")
+    return tips
+
+
+def outline_has_provisional_bridges(outline: Any) -> bool:
+    safe = normalize_sermon_outline(outline)
+    return bool(safe.get("provisional_sections"))
+
+
+def outline_refinable_summary(outline: Any) -> str:
+    tips = outline_refinable_parts(outline)
+    if not tips:
+        return ""
+    return (
+        "A vázlat elkészült a rendelkezésre álló anyagból. "
+        f"Még finomítható: {', '.join(tips)}."
+    )
 
 
 def editable_outline_snapshot(outline: Any) -> dict[str, Any]:
@@ -425,14 +852,13 @@ def render_compact_sermon_outline(outline: Any) -> None:
         return
 
     _ensure_outline_reader_styles()
-    missing = outline_missing_parts(safe)
-    if missing:
-        items = "".join(
-            f"<li>{html_lib.escape(_s(x))}</li>" for x in missing
-        )
+    if outline_has_provisional_bridges(safe):
+        st.caption(PROVISIONAL_NOTICE)
+    refinable = outline_refinable_summary(safe)
+    if refinable:
         st.markdown(
-            '<div class="sw-outline-missing"><strong>Még kidolgozandó részek</strong>'
-            f"<ul>{items}</ul></div>",
+            f'<div class="sw-outline-missing"><strong>Még finomítható részek</strong>'
+            f"<p>{html_lib.escape(refinable)}</p></div>",
             unsafe_allow_html=True,
         )
 
@@ -752,20 +1178,178 @@ def _optional_polish(
         return outline, warnings
 
 
+_SYNTH_SYSTEM = """\
+Te a TEXTUS homiletikai vázlat-összegző asszisztense vagy.
+Egyetlen feladattal: a megadott meglévő anyagból egészítsd ki a hiányzó
+szerkezeti kapcsolatokat a végső igehirdetési vázlatban.
+TILOS: új bibliai / történeti / teológiai adat kitalálása; teljes kézirat;
+az üres modulok külön háttérben való „pótlása"; nyers MI-alternatívák
+felhasználása. Csak a megadott anyagból dolgozz.
+Ha van sermon_movements a forrásban, TARTSD meg őket — ne cseréld le.
+Ha nincs mozgás, adj 3–5 egyszerű prédikációs mozgást.
+Válaszod KIZÁRÓLAG érvényes JSON legyen.\
+"""
+
+
+def _synthesize_outline_gaps(
+    outline: dict[str, Any],
+    bundle: Mapping[str, Any],
+    *,
+    generate_fn: GenerateFn | None,
+) -> tuple[dict[str, Any], list[str]]:
+    """Egyetlen összegző MI-hívás a hiányzó vázlatelemekhez — forrásmezők érintetlenek."""
+    if generate_fn is None:
+        return outline, []
+    needs_movements = not (outline.get("movements") or [])
+    needs_opening = not _s(outline.get("opening_direction"))
+    closing = outline.get("closing") if isinstance(outline.get("closing"), dict) else {}
+    needs_closing = not _s(closing.get("final_insight"))
+    needs_idea = not _s(outline.get("main_idea"))
+    # Ha már van heurisztikus provisional, az MI finomíthatja — de csak gap-ekre
+    if not (needs_movements or needs_opening or needs_closing or needs_idea):
+        # Van provisional heurisztika → engedjük az MI-nek finomítani a provisional részeket
+        provisional = set(outline.get("provisional_sections") or [])
+        if not provisional:
+            return outline, []
+
+    import json
+
+    warnings: list[str] = []
+    ctx = {k: v for k, v in bundle.items() if not str(k).startswith("_")}
+    # Ne küldjük újra a teljes diagnosztikát / nyers javaslatlistákat
+    prompt = (
+        "Egészítsd ki a vázlat hiányzó szerkezeti elemeit a forrásanyag alapján.\n"
+        "Csak a hiányzó / munkajavaslat mezőket töltsd; a meglévő kanonikus "
+        "tartalmat ne cseréld le.\n\n"
+        f"FORRÁS (csak nem üres mezők):\n{json.dumps(ctx, ensure_ascii=False)}\n\n"
+        f"JELENLEGI VÁZLAT:\n{json.dumps(outline, ensure_ascii=False)}\n\n"
+        "Kimenet JSON kulcsok (opcionálisak, csak ha indokolt):\n"
+        '{"main_idea":"","opening_direction":"","movements":[{"id":"","title":"",'
+        '"role":"","textual_basis":"","core_content":"","listener_discovery":"",'
+        '"transition":""}],"closing":{"final_insight":"","gospel_assurance":"",'
+        '"invitation":""},"provisional_sections":["opening_direction","sermon_movements","closing"]}'
+    )
+    try:
+        raw = generate_fn(
+            prompt,
+            enable_google_search=False,
+            tab_label=TAB_OUTLINE,
+            use_cache=False,
+            system_bundle=_SYNTH_SYSTEM,
+            temperature=DEFAULT_TEMPERATURE,
+        )
+    except Exception as exc:  # noqa: BLE001
+        warnings.append(f"Összegző kiegészítés kihagyva: {exc}")
+        return outline, warnings
+
+    if _is_api_error_text(raw or ""):
+        warnings.append("Az összegző kiegészítés nem sikerült; a helyi összeállítás megmaradt.")
+        return outline, warnings
+    obj = extract_json_object(raw or "")
+    if not isinstance(obj, dict):
+        warnings.append("Érvénytelen összegző válasz; a helyi összeállítás megmaradt.")
+        return outline, warnings
+
+    merged = dict(outline)
+    provisional = list(merged.get("provisional_sections") or [])
+
+    # Fő gondolat: csak ha üres volt
+    if not _s(merged.get("main_idea")) and _s(obj.get("main_idea")):
+        merged["main_idea"] = _as_text(obj.get("main_idea"))
+        provisional.append("main_idea")
+
+    if (not _s(merged.get("opening_direction")) or "opening_direction" in provisional) and _s(
+        obj.get("opening_direction")
+    ):
+        merged["opening_direction"] = _as_text(obj.get("opening_direction"))
+        if "opening_direction" not in provisional:
+            provisional.append("opening_direction")
+
+    # Mozgások: csak ha nem volt M6 forrás, vagy üres / provisional
+    had_m6 = "sermon_movements" in (bundle.get("source_keys") or [])
+    raw_mvs = obj.get("movements")
+    if (
+        isinstance(raw_mvs, list)
+        and raw_mvs
+        and (not had_m6)
+        and (
+            not merged.get("movements")
+            or "sermon_movements" in provisional
+        )
+    ):
+        new_mvs: list[dict[str, Any]] = []
+        for i, mv in enumerate(raw_mvs[:5], start=1):
+            if not isinstance(mv, dict):
+                continue
+            role = _s(mv.get("role"))
+            item = empty_outline_movement()
+            item.update(
+                {
+                    "id": _s(mv.get("id")) or f"prov_mv_{i}",
+                    "title": _s(mv.get("title")) or f"{i}. mozgás",
+                    "role": role,
+                    "role_label": movement_role_label(role) if role else "",
+                    "textual_basis": _s(mv.get("textual_basis")),
+                    "core_content": _s(mv.get("core_content")),
+                    "listener_discovery": _s(mv.get("listener_discovery")),
+                    "transition": _s(mv.get("transition")),
+                    "images": [],
+                    "illustrations": [],
+                    "applications": [],
+                }
+            )
+            if _s(item["core_content"]) or _s(item["title"]):
+                new_mvs.append(item)
+        if new_mvs:
+            merged["movements"] = new_mvs
+            if "sermon_movements" not in provisional:
+                provisional.append("sermon_movements")
+
+    obj_closing = obj.get("closing") if isinstance(obj.get("closing"), dict) else {}
+    if obj_closing:
+        cur_closing = dict(merged.get("closing") or {})
+        for key in ("final_insight", "gospel_assurance", "invitation"):
+            if (not _s(cur_closing.get(key)) or "closing" in provisional) and _s(
+                obj_closing.get(key)
+            ):
+                cur_closing[key] = _as_text(obj_closing.get(key))
+                if "closing" not in provisional:
+                    provisional.append("closing")
+        merged["closing"] = cur_closing
+
+    for extra in obj.get("provisional_sections") or []:
+        label = _s(extra)
+        if label and label not in provisional:
+            provisional.append(label)
+
+    merged["provisional_sections"] = list(dict.fromkeys(provisional))
+    return normalize_sermon_outline(merged), warnings
+
+
 def assemble_sermon_outline(
     session_state: MutableMapping[str, Any],
     *,
     generate_fn: GenerateFn | None = None,
     force_overwrite: bool = False,
     polish: bool = False,
+    synthesize: bool = True,
 ) -> OutlineAssemblyResult:
-    """Összeállítja a vázlatot a műhelyanyagból.
+    """Összeállítja a vázlatot a rendelkezésre álló anyagból.
 
-    Nem módosítja a forrás műhelymezőket. Ha már van kézzel szerkesztett
-    vázlat és `force_overwrite` False, nem írja felül — jelez.
+    Nem módosítja a forrás műhelymezőket. Részleges munkafolyamat esetén
+    is működik — egyetlen összegző MI-hívással kiegészítheti a hiányzó
+    szerkezeti kapcsolatokat a vázlatban.
     """
     ensure_sermon_workshop_state(session_state)
     sw = session_state[SERMON_WORKSHOP_KEY]
+    readiness = assess_outline_readiness(session_state, sermon_workshop=sw)
+    if not readiness.ok:
+        return OutlineAssemblyResult(
+            outline=normalize_sermon_outline(sw.get("sermon_outline")),
+            ok=False,
+            error_message=readiness.message or EMPTY_PROJECT_MESSAGE,
+        )
+
     existing = normalize_sermon_outline(sw.get("sermon_outline"))
     manually_edited = bool(
         existing.get("manually_edited")
@@ -781,16 +1365,29 @@ def assemble_sermon_outline(
             ok=False,
             error_message=(
                 "A vázlat kézzel szerkesztve van. "
-                "Frissítéshez használd: „Vázlat frissítése a műhelyanyagokból”."
+                "Frissítéshez használd: „Vázlat frissítése a meglévő anyagból”."
             ),
             overwritten_manual_edit=False,
         )
 
+    bundle = collect_outline_context_bundle(session_state, sermon_workshop=sw)
     outline = build_outline_from_workshop(session_state, sermon_workshop=sw)
     warnings: list[str] = []
+
+    if synthesize:
+        outline, synth_warnings = _synthesize_outline_gaps(
+            outline, bundle, generate_fn=generate_fn
+        )
+        warnings.extend(synth_warnings)
+
     if polish:
         outline, polish_warnings = _optional_polish(outline, generate_fn=generate_fn)
         warnings.extend(polish_warnings)
+
+    if outline_has_provisional_bridges(outline):
+        notice = PROVISIONAL_NOTICE
+        if notice not in warnings:
+            warnings.append(notice)
 
     return OutlineAssemblyResult(
         outline=outline,
@@ -803,14 +1400,22 @@ def assemble_sermon_outline(
 __all__ = [
     "TAB_OUTLINE",
     "MISSING_PART",
+    "PROVISIONAL_NOTICE",
+    "EMPTY_PROJECT_MESSAGE",
     "GenerateFn",
     "OutlineAssemblyResult",
+    "OutlineReadiness",
+    "assess_outline_readiness",
     "assemble_sermon_outline",
     "build_outline_from_workshop",
+    "collect_outline_context_bundle",
     "editable_outline_snapshot",
     "empty_sermon_outline",
     "outline_has_content",
+    "outline_has_provisional_bridges",
     "outline_missing_parts",
     "outline_part_display",
+    "outline_refinable_parts",
+    "outline_refinable_summary",
     "render_compact_sermon_outline",
 ]
