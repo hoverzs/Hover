@@ -1,4 +1,4 @@
-"""Igehirdetési vázlat + vázlatdiagnosztika regresszió (A–O)."""
+"""Igehirdetési vázlat + vázlatdiagnosztika regresszió (A–O + kompakt UI)."""
 
 from __future__ import annotations
 
@@ -29,20 +29,23 @@ from sermon_workshop_data import (
     normalize_sermon_workshop,
     save_sermon_outline,
     save_sermon_outline_diagnostics,
-    update_sermon_workshop_section,
 )
 from sermon_workshop_outline_ai import (
     MISSING_PART,
     assemble_sermon_outline,
     build_outline_from_workshop,
+    editable_outline_snapshot,
     outline_has_content,
+    outline_missing_parts,
     outline_part_display,
+    render_compact_sermon_outline,
 )
 from sermon_workshop_ui import (
     _SW_SECTION_OPTIONS,
     _diag_view_model_simplified,
     _render_diagnostics_results,
     render_diagnostics_section,
+    render_outline_section,
 )
 from workspace_data import build_project_data, sanitize_project_data
 
@@ -86,6 +89,10 @@ def test_b_missing_sections_show_placeholder():
     # Ne találjon ki teológiát
     assert not outline["main_idea"]
     assert not outline["movements"]
+    missing = outline_missing_parts(outline)
+    assert "Az igehirdetés fő gondolata" in missing
+    assert "A prédikációs mozgások" in missing
+    assert "A lezárás" in missing
 
 
 def test_c_references_only_no_full_bible_text():
@@ -207,6 +214,195 @@ def test_k_project_switch_no_mix():
         payload_a[SERMON_WORKSHOP_KEY]["sermon_outline"]["main_idea"]
         != payload_b[SERMON_WORKSHOP_KEY]["sermon_outline"]["main_idea"]
     )
+
+
+def _stub_streamlit_capture(monkeypatch):
+    calls: list[str] = []
+
+    def _md(*a, **k):
+        calls.append(str(a[0]) if a else "")
+
+    def _cap(*a, **k):
+        calls.append(str(a[0]) if a else "")
+
+    def _info(*a, **k):
+        calls.append(f"INFO:{a[0]}" if a else "INFO")
+
+    def _warn(*a, **k):
+        calls.append(f"WARN:{a[0]}" if a else "WARN")
+
+    def _btn(*a, **k):
+        calls.append(f"BTN:{a[0]}" if a else "BTN")
+        return False
+
+    def _ta(*a, **k):
+        calls.append(f"TA:{a[0] if a else k.get('key', '')}")
+        return ""
+
+    def _ti(*a, **k):
+        calls.append(f"TI:{a[0] if a else k.get('key', '')}")
+        return ""
+
+    def _exp(label, expanded=False):
+        calls.append(f"EXP:{label}:{expanded}")
+        return nullcontext()
+
+    monkeypatch.setattr(st, "markdown", _md)
+    monkeypatch.setattr(st, "caption", _cap)
+    monkeypatch.setattr(st, "info", _info)
+    monkeypatch.setattr(st, "warning", _warn)
+    monkeypatch.setattr(st, "success", lambda *a, **k: None)
+    monkeypatch.setattr(st, "error", lambda *a, **k: None)
+    monkeypatch.setattr(st, "subheader", lambda *a, **k: calls.append(f"H:{a[0]}" if a else ""))
+    monkeypatch.setattr(st, "button", _btn)
+    monkeypatch.setattr(st, "text_area", _ta)
+    monkeypatch.setattr(st, "text_input", _ti)
+    monkeypatch.setattr(st, "expander", _exp)
+    monkeypatch.setattr(st, "columns", lambda n: [nullcontext() for _ in range(n)])
+    monkeypatch.setattr(st, "rerun", lambda: None)
+    return calls
+
+
+def test_ui_a_full_outline_no_long_textarea_form(session, monkeypatch):
+    """A: Teljes vázlat — főnézetben nincs hosszú textarea-sorozat."""
+    calls = _stub_streamlit_capture(monkeypatch)
+    jude = build_jude_state()
+    outline = build_outline_from_workshop(jude)
+    save_sermon_outline(session, outline)
+    render_outline_section(generate_fn=None)
+    joined = "\n".join(calls)
+    assert "Az igehirdetés magja" in joined or "Fő gondolat" in joined
+    assert "A prédikáció mozgásai" in joined
+    assert "Következő lépés: a vázlat homiletikai ellenőrzése" in joined
+    assert "Vázlat szerkesztése" in joined
+    assert any("Vázlat frissítése a műhelyanyagokból" in c for c in calls)
+    assert not any(c == "TA:Hallgatói ellenállás (röviden)" for c in calls)
+    assert not any(c == "TA:Isten kegyelmi cselekvése" for c in calls)
+    assert not any(c == "TI:Kapcsolattípus" for c in calls)
+    assert not any(c == "TA:Indoklás" for c in calls)
+    assert any("EXP:Vázlat szerkesztése:False" in c for c in calls)
+
+
+def test_ui_b_missing_parts_single_list(session, monkeypatch):
+    """B: Hiányos vázlat — egyetlen kompakt hiánylista."""
+    calls = _stub_streamlit_capture(monkeypatch)
+    outline = {
+        "passage_reference": "Júd 17–20",
+        "bible_translation": "RÚF 2014",
+        "main_idea": "",
+        "movements": [],
+        "closing": {"final_insight": ""},
+        "opening_direction": "Nyitás a hallgatói kérdés felől.",
+        "status": "draft",
+    }
+    save_sermon_outline(session, outline)
+    render_compact_sermon_outline(session[SERMON_WORKSHOP_KEY]["sermon_outline"])
+    joined = "\n".join(calls)
+    assert "Még kidolgozandó részek" in joined
+    assert "Az igehirdetés fő gondolata" in joined
+    assert "A prédikációs mozgások" in joined
+    assert "A lezárás" in joined
+    assert joined.count("Ez a rész még nincs kidolgozva.") == 0
+
+
+def test_ui_c_optional_empties_hidden(session, monkeypatch):
+    """C: Üres opcionális mezők — nem jelennek meg üres szakaszként."""
+    calls = _stub_streamlit_capture(monkeypatch)
+    jude = build_jude_state()
+    outline = build_outline_from_workshop(jude)
+    outline["listener_resistance"] = ""
+    outline["closing"]["open_question"] = ""
+    outline["closing"]["image_or_line"] = ""
+    save_sermon_outline(session, outline)
+    render_compact_sermon_outline(session[SERMON_WORKSHOP_KEY]["sermon_outline"])
+    joined = "\n".join(calls)
+    assert "Hallgatói ellenállás" not in joined
+    assert "Nyitott kérdés" not in joined
+    assert "Záró kép vagy mondatmag" not in joined
+
+
+def test_ui_d_e_movements_order_and_enrichment(session, monkeypatch):
+    """D+E: Mozgások sorrendje és gazdagítás a kártyán."""
+    calls = _stub_streamlit_capture(monkeypatch)
+    jude = build_jude_state()
+    outline = build_outline_from_workshop(jude)
+    save_sermon_outline(session, outline)
+    render_compact_sermon_outline(session[SERMON_WORKSHOP_KEY]["sermon_outline"])
+    joined = "\n".join(calls)
+    assert "1. Emlékezzetek" in joined
+    assert "2. Gúnyolódók" in joined
+    assert "3. Megmaradás" in joined
+    assert "épülő ház" in joined
+    assert "gospel_resolution" not in joined
+
+
+def test_ui_f_refs_only(session, monkeypatch):
+    """F: Textus és lekció csak igehelyként."""
+    calls = _stub_streamlit_capture(monkeypatch)
+    jude = build_jude_state()
+    outline = build_outline_from_workshop(jude)
+    passage = jude.get("passage_text") or ""
+    save_sermon_outline(session, outline)
+    render_compact_sermon_outline(session[SERMON_WORKSHOP_KEY]["sermon_outline"])
+    joined = "\n".join(calls)
+    assert "Alapadatok" in joined
+    assert outline["passage_reference"] in joined
+    if passage and len(passage) > 40:
+        assert passage[:40] not in joined
+
+
+def test_ui_g_prayer_compact_only(session, monkeypatch):
+    """G: Imádság — csak átvett nyitás, gondolatok, zárás."""
+    calls = _stub_streamlit_capture(monkeypatch)
+    jude = build_jude_state()
+    outline = build_outline_from_workshop(jude)
+    save_sermon_outline(session, outline)
+    render_compact_sermon_outline(session[SERMON_WORKSHOP_KEY]["sermon_outline"])
+    joined = "\n".join(calls)
+    assert any("EXP:Igehirdetés előtti imádság:False" in c for c in calls)
+    assert any("EXP:Igehirdetés utáni imádság:False" in c for c in calls)
+    assert "Uram, szólj hozzánk." in joined
+    assert "before_suggestions" not in joined
+    assert "cliche" not in joined.casefold()
+
+
+def test_ui_h_edit_expander_closed(session, monkeypatch):
+    """H: Vázlat szerkesztése alapból zárt."""
+    calls = _stub_streamlit_capture(monkeypatch)
+    jude = build_jude_state()
+    outline = build_outline_from_workshop(jude)
+    save_sermon_outline(session, outline)
+    render_outline_section(generate_fn=None)
+    assert any(c == "EXP:Vázlat szerkesztése:False" for c in calls)
+    assert any("Saját megjegyzéseim" in c for c in calls)
+
+
+def test_ui_i_old_project_compact_view(session, monkeypatch):
+    """I: Régi projekt mentett vázlata megjelenik adatvesztés nélkül."""
+    calls = _stub_streamlit_capture(monkeypatch)
+    legacy_outline = {
+        "main_idea": "Régi fő gondolat",
+        "passage_reference": "Júd 1,1",
+        "bible_translation": "RÚF 2014",
+        "movements": [
+            {
+                "id": "m1",
+                "title": "Régi mozgás",
+                "role_label": "Megnyitás",
+                "core_content": "Tartalom",
+            }
+        ],
+        "closing": {"final_insight": "Régi lezárás"},
+        "status": "draft",
+    }
+    save_sermon_outline(session, legacy_outline)
+    render_compact_sermon_outline(session[SERMON_WORKSHOP_KEY]["sermon_outline"])
+    joined = "\n".join(calls)
+    assert "Régi fő gondolat" in joined
+    assert "1. Régi mozgás" in joined
+    assert "Régi lezárás" in joined
+    snap = editable_outline_snapshot(session[SERMON_WORKSHOP_KEY]["sermon_outline"])
+    assert snap["main_idea"] == "Régi fő gondolat"
 
 
 def test_l_m_diagnostics_max_three_no_fake_third():
