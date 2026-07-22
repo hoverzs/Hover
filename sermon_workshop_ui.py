@@ -10,6 +10,7 @@ import html
 from typing import Any, Callable
 
 import streamlit as st
+from ui_components import render_empty_state, render_info_panel, render_page_intro
 
 from bible_text_ui import (
     normalize_passage_text,
@@ -2885,11 +2886,14 @@ def render_outline_section(
     _apply_sw_ui_resync_if_needed()
     ensure_sermon_workshop_state(st.session_state)
 
-    st.subheader("Igehirdetési vázlat")
-    st.markdown(
-        "Nem szükséges minden műhelyszakaszt kitölteni. Az alkalmazás az "
-        "aktuálisan rendelkezésre álló anyagból állít össze használható "
-        "munkavázlatot."
+    render_page_intro(
+        eyebrow="Műhelyszakasz",
+        title="Igehirdetési vázlat",
+        body=(
+            "Nem szükséges minden műhelyszakaszt kitölteni. Az alkalmazás az "
+            "aktuálisan rendelkezésre álló anyagból állít össze használható "
+            "munkavázlatot."
+        ),
     )
 
     sw = ensure_sermon_workshop_state(st.session_state)
@@ -3061,21 +3065,26 @@ def render_diagnostics_section(
     _apply_sw_ui_resync_if_needed()
     ensure_sermon_workshop_state(st.session_state)
 
-    st.subheader("Homiletikai diagnosztika")
-    st.markdown(
-        "Rövid, szöveges tükrözés az összeállított igehirdetési vázlatról — "
-        "pontszám és automatikus átírás nélkül. A diagnosztika a tényleges "
-        "vázlatot értékeli, nem a kitöltött műhelymodulok számát."
+    render_page_intro(
+        eyebrow="Műhelyszakasz",
+        title="Homiletikai diagnosztika",
+        body=(
+            "Rövid, szöveges tükrözés az összeállított igehirdetési vázlatról — "
+            "pontszám és automatikus átírás nélkül. A diagnosztika a tényleges "
+            "vázlatot értékeli, nem a kitöltött műhelymodulok számát."
+        ),
     )
 
     sw = ensure_sermon_workshop_state(st.session_state)
     outline = normalize_sermon_outline(sw.get("sermon_outline"))
     has_outline = outline_has_content(outline)
     if not has_outline:
-        st.info(
-            "Ha van összeállított vázlat, itt ellenőrizheted. "
-            "Előbb állítsd össze az igehirdetési vázlatot a rendelkezésre "
-            "álló anyagból — nem kell minden műhelyszakaszt kitölteni."
+        render_empty_state(
+            title="Még nincs összeállított vázlat",
+            body=(
+                "Előbb állítsd össze az igehirdetési vázlatot a rendelkezésre "
+                "álló anyagból. Nem kell minden műhelyszakaszt kitölteni."
+            ),
         )
         return
 
@@ -5733,17 +5742,20 @@ def render_enrichment_section(
     _merge_textus_enrichment_into_retained()
     sw = ensure_sermon_workshop_state(st.session_state)
 
-    st.subheader("Illusztrációk és aktualizálás")
-    st.markdown(
-        "Az alkalmazás a textus és a rendelkezésre álló igehirdetési anyag "
-        "alapján ajánl képeket, példákat és aktuális kapcsolódási pontokat. "
-        "Nem kell minden műhelyszakaszt kitölteni, és nem kötelező külső "
-        "illusztrációt vagy hírt használni."
+    render_page_intro(
+        eyebrow="Műhelyszakasz",
+        title="Illusztrációk és aktualizálás",
+        body=(
+            "Az alkalmazás a textus és a rendelkezésre álló igehirdetési anyag "
+            "alapján ajánl képeket, példákat és aktuális kapcsolódási pontokat. "
+            "Nem kell minden műhelyszakaszt kitölteni, és nem kötelező külső "
+            "illusztrációt vagy hírt használni."
+        ),
     )
 
     ready = assess_enrichment_readiness(st.session_state)
     if not ready.ok:
-        st.info(ready.message)
+        render_info_panel(title="Még nincs elég alapanyag", body=ready.message, tone="info")
 
     tab_ill, tab_act = st.tabs(["Illusztrációk", "Aktualizálás"])
 
@@ -8701,10 +8713,13 @@ def render_sermon_workshop_shell(
     ensure_sermon_workshop_state(st.session_state)
     ensure_text_workshop_state(st.session_state)
 
-    st.header("Igehirdetési műhely")
-    st.caption(
-        "A textus megértésétől a hallható, textushű és kegyelemközpontú "
-        "igehirdetés felépítéséig."
+    render_page_intro(
+        eyebrow="Munkafolyamat",
+        title="Igehirdetési műhely",
+        body=(
+            "A textus megértésétől a hallható, textushű és kegyelemközpontú "
+            "igehirdetés felépítéséig."
+        ),
     )
 
     _render_shell_input_summary()
