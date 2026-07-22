@@ -132,6 +132,20 @@ from sermon_workshop_m7_ai import (
     placement_kind_label,
     suggest_enrichment,
 )
+from sermon_workshop_m7_simple_ai import (
+    NO_SEARCH_MESSAGE as _EN_NO_SEARCH,
+    assess_enrichment_readiness,
+    collect_textus_retained_actualizations,
+    collect_textus_retained_illustrations,
+    illustration_card_to_legacy,
+    legacy_illustration_to_card,
+    normalize_actualization_card,
+    normalize_actualization_cards,
+    normalize_illustration_card,
+    normalize_illustration_cards,
+    suggest_actualizations,
+    suggest_illustrations,
+)
 from sermon_workshop_m7_closing_ai import (
     CLOSING_TONES,
     CLOSING_TONE_LABELS_HU,
@@ -206,7 +220,7 @@ _SW_SECTION_OPTIONS = [
     "Hallgatói kérdés és feszültség",
     "Krisztus-központú és evangéliumi ív",
     "Az igehirdetés útja és mozgásai",
-    "Képek, illusztrációk és alkalmazás",
+    "Illusztrációk és aktualizálás",
     "Lezárás és megérkezés",
     "Lekciójavaslat",
     "Imádsági előkészítés",
@@ -230,7 +244,10 @@ _SW_NEXT_HINTS: dict[str, str] = {
         "Következő ajánlott lépés: Az igehirdetés útja és mozgásai"
     ),
     "Az igehirdetés útja és mozgásai": (
-        "Következő ajánlott lépés: Képek, illusztrációk és alkalmazás"
+        "Következő ajánlott lépés: Illusztrációk és aktualizálás"
+    ),
+    "Illusztrációk és aktualizálás": (
+        "Következő ajánlott lépés: Lezárás és megérkezés"
     ),
     "Képek, illusztrációk és alkalmazás": (
         "Következő ajánlott lépés: Lezárás és megérkezés"
@@ -259,7 +276,7 @@ _SOURCE_HUMAN = "Emberi helyzet és kegyelmi válasz"
 _SOURCE_LISTENER = "Hallgatói kérdés és feszültség"
 _SOURCE_GOSPEL = "Krisztus-központú és evangéliumi ív"
 _SOURCE_PATH = "Az igehirdetés útja és mozgásai"
-_SOURCE_ENRICHMENT = "Képek, illusztrációk és alkalmazás"
+_SOURCE_ENRICHMENT = "Illusztrációk és aktualizálás"
 _SOURCE_CLOSING = "Lezárás és megérkezés"
 _SOURCE_LECTION = "Lekciójavaslat"
 _SOURCE_PRAYER = "Imádsági előkészítés"
@@ -5500,158 +5517,421 @@ def render_closing_section(
     st.caption("Következő ajánlott lépés: Lekciójavaslat")
 
 
+def _ensure_enrichment_retained_from_legacy(sw: dict[str, Any]) -> None:
+    """Régi M7 illusztrációk → megtartott kártyák, ha a lista még üres."""
+    retained = normalize_illustration_cards(sw.get("retained_illustration_cards"))
+    if retained:
+        return
+    legacy = normalize_illustrations(sw.get("illustrations"))
+    if not legacy:
+        return
+    cards = [legacy_illustration_to_card(x) for x in legacy]
+    update_sermon_workshop_section(
+        st.session_state, "retained_illustration_cards", cards
+    )
+
+
+def _sync_retained_illustrations_legacy(cards: list[dict[str, Any]]) -> None:
+    legacy = [illustration_card_to_legacy(c) for c in cards]
+    update_sermon_workshop_section(st.session_state, "illustrations", legacy)
+    update_sermon_workshop_section(
+        st.session_state, "retained_illustration_cards", cards
+    )
+
+
+def _retain_illustration_card(card: dict[str, Any]) -> None:
+    sw = ensure_sermon_workshop_state(st.session_state)
+    retained = normalize_illustration_cards(sw.get("retained_illustration_cards"))
+    cid = str(card.get("id") or "")
+    if any(str(x.get("id") or "") == cid for x in retained):
+        st.info("Ez az ötlet már meg van tartva.")
+        return
+    item = normalize_illustration_card(card)
+    item["selected"] = True
+    retained.append(item)
+    _sync_retained_illustrations_legacy(retained)
+    st.success("Illusztráció megtartva.")
+    st.rerun()
+
+
+def _retain_actualization_card(card: dict[str, Any]) -> None:
+    sw = ensure_sermon_workshop_state(st.session_state)
+    retained = normalize_actualization_cards(sw.get("actualization_connections"))
+    cid = str(card.get("id") or "")
+    if any(str(x.get("id") or "") == cid for x in retained):
+        st.info("Ez a kapcsolódási pont már meg van tartva.")
+        return
+    item = normalize_actualization_card(card)
+    item["selected"] = True
+    retained.append(item)
+    update_sermon_workshop_section(
+        st.session_state, "actualization_connections", retained
+    )
+    st.success("Kapcsolódási pont megtartva.")
+    st.rerun()
+
+
+def _merge_textus_enrichment_into_retained() -> None:
+    """Textusműhely kosár / mező → megtartott listák (duplikáció nélkül)."""
+    sw = ensure_sermon_workshop_state(st.session_state)
+    retained_ill = normalize_illustration_cards(sw.get("retained_illustration_cards"))
+    ids_ill = {str(x.get("id") or "") for x in retained_ill}
+    for card in collect_textus_retained_illustrations(
+        st.session_state, existing_ids=ids_ill
+    ):
+        retained_ill.append(card)
+        ids_ill.add(str(card.get("id") or ""))
+    if retained_ill != normalize_illustration_cards(sw.get("retained_illustration_cards")):
+        _sync_retained_illustrations_legacy(retained_ill)
+
+    retained_act = normalize_actualization_cards(sw.get("actualization_connections"))
+    ids_act = {str(x.get("id") or "") for x in retained_act}
+    changed = False
+    for card in collect_textus_retained_actualizations(
+        st.session_state, existing_ids=ids_act
+    ):
+        retained_act.append(card)
+        ids_act.add(str(card.get("id") or ""))
+        changed = True
+    if changed:
+        update_sermon_workshop_section(
+            st.session_state, "actualization_connections", retained_act
+        )
+
+
+def _render_illustration_suggestion_card(card: dict[str, Any], *, key_prefix: str) -> None:
+    title = str(card.get("title") or "Illusztráció").strip()
+    idea = str(card.get("idea") or "").strip()
+    connection = str(card.get("connection_to_text") or "").strip()
+    usage = str(card.get("usage_note") or "").strip()
+    listener = str(card.get("listener_link") or "").strip()
+    st.markdown(f"**{title}**")
+    if idea:
+        st.markdown(f"**Az ötlet**\n\n{idea}")
+    if connection:
+        st.markdown(f"**Kapcsolódás a textushoz**\n\n{connection}")
+    if usage:
+        st.caption(f"Használati megjegyzés: {usage}")
+    if listener:
+        st.caption(f"Lehetséges kapcsolódás a hallgató életéhez: {listener}")
+    if card.get("from_text_workshop"):
+        st.caption("A Textusműhelyből megtartva")
+    if st.button("Megtartom ezt az ötletet", key=f"{key_prefix}_keep"):
+        _retain_illustration_card(card)
+
+
+def _render_actualization_suggestion_card(
+    card: dict[str, Any], *, key_prefix: str
+) -> None:
+    title = str(card.get("title") or "Kapcsolódási pont").strip()
+    summary = str(card.get("event_summary") or "").strip()
+    connection = str(card.get("connection_to_text") or "").strip()
+    use = str(card.get("possible_use") or "").strip()
+    source = str(card.get("source_name") or "").strip()
+    url = str(card.get("source_url") or "").strip()
+    published = str(card.get("published_at") or "").strip()
+    caution = str(card.get("caution") or "").strip()
+    st.markdown(f"**{title}**")
+    if summary:
+        st.markdown(f"**Mi történt?**\n\n{summary}")
+    if connection:
+        st.markdown(f"**Miért kapcsolódhat a textushoz?**\n\n{connection}")
+    if use:
+        st.markdown(f"**Felhasználási lehetőség**\n\n{use}")
+    src_bits = []
+    if source:
+        src_bits.append(source)
+    if published:
+        src_bits.append(published)
+    if src_bits:
+        st.caption("Forrás és dátum: " + " · ".join(src_bits))
+    if url:
+        st.markdown(f"[Forráshivatkozás]({url})")
+    if caution:
+        st.caption(f"Óvatosság: {caution}")
+    if card.get("from_text_workshop"):
+        st.caption("A Textusműhelyből megtartva")
+    if st.button("Megtartom kapcsolódási pontként", key=f"{key_prefix}_keep"):
+        _retain_actualization_card(card)
+
+
+def _run_simple_illustration_suggest(*, generate_fn: GenerateFn | None) -> None:
+    sw = ensure_sermon_workshop_state(st.session_state)
+    direction = str(
+        st.session_state.get("sw_en_ill_direction")
+        or sw.get("illustration_user_direction")
+        or ""
+    ).strip()
+    update_sermon_workshop_section(
+        st.session_state, "illustration_user_direction", direction
+    )
+    with st.spinner("Illusztrációs javaslatok készülnek…"):
+        result = suggest_illustrations(
+            st.session_state,
+            user_direction=direction,
+            generate_fn=generate_fn,
+        )
+    if not result.ok:
+        st.warning(result.error_message or "A javaslatkészítés nem sikerült.")
+        return
+    update_sermon_workshop_section(
+        st.session_state,
+        "illustration_suggestions",
+        result.suggestions,
+    )
+    update_sermon_workshop_section(
+        st.session_state, "illustration_suggest_note", result.note
+    )
+    st.success("Illusztrációs javaslatok elkészültek.")
+    st.rerun()
+
+
+def _run_simple_actualization_suggest(*, generate_fn: GenerateFn | None) -> None:
+    sw = ensure_sermon_workshop_state(st.session_state)
+    direction = str(
+        st.session_state.get("sw_en_act_direction")
+        or sw.get("actualization_user_direction")
+        or ""
+    ).strip()
+    update_sermon_workshop_section(
+        st.session_state, "actualization_user_direction", direction
+    )
+    with st.spinner("Aktuális kapcsolódások keresése…"):
+        result = suggest_actualizations(
+            st.session_state,
+            user_direction=direction,
+            generate_fn=generate_fn,
+        )
+    if not result.ok:
+        st.warning(result.error_message or _EN_NO_SEARCH)
+        return
+    update_sermon_workshop_section(
+        st.session_state,
+        "actualization_suggestions",
+        result.suggestions,
+    )
+    update_sermon_workshop_section(
+        st.session_state, "actualization_suggest_note", result.note
+    )
+    if result.suggestions:
+        st.success("Aktuális kapcsolódási pontok elkészültek.")
+    else:
+        st.info(result.note or "Nincs erőltetés nélkül kapcsolható friss találat.")
+    st.rerun()
+
+
 def render_enrichment_section(
     *,
     generate_fn: GenerateFn | None = None,
 ) -> None:
-    """Képek, illusztrációk és alkalmazás — kézi szerkesztő + MI-segéd."""
+    """Illusztrációk és aktualizálás — egyszerű javaslat + megtartás."""
     _apply_pending_adopts_if_needed()
     _apply_sw_ui_resync_if_needed()
     ensure_sermon_workshop_state(st.session_state)
-
-    st.subheader("Képek, illusztrációk és alkalmazás")
-    st.markdown(
-        "Itt azt tervezzük meg, milyen kép segítheti a textus hallását, "
-        "milyen illusztráció szolgálhatja a felismerést, és hogyan érkezhet "
-        "meg az üzenet a hallgató valós életébe."
-    )
-
     sw = ensure_sermon_workshop_state(st.session_state)
-    if (sw.get("sermon_main_idea_status") or "").strip() != "approved":
-        st.info(
-            "A szakasz használható, de a javaslatkészítéshez előbb jóvá kell "
-            "hagyni az igehirdetés fő gondolatát, szükség van M6-os útra vagy "
-            "legalább három mozgásra, valamint evangéliumi feloldásra vagy "
-            "Isten kegyelmi cselekvésére."
-        )
+    _ensure_enrichment_retained_from_legacy(sw)
+    _merge_textus_enrichment_into_retained()
+    sw = ensure_sermon_workshop_state(st.session_state)
 
-    _render_text_workshop_import_panel()
-
-    st.markdown("**Textusból fakadó képek**")
-    st.caption(f"0–{MAX_TEXTUAL_IMAGES} kép vagy motívum (MI javaslat: legfeljebb 2).")
-    images = normalize_textual_images(sw.get("selected_images"))
-    if not images:
-        st.info("Még nincs textusbeli kép.")
-    for idx, img in enumerate(images):
-        _render_textual_image_editor(img, index=idx, total=len(images))
-    if st.button(
-        "Kép hozzáadása",
-        key="sw_en_add_image",
-        disabled=len(images) >= MAX_TEXTUAL_IMAGES,
-    ):
-        _append_enrichment_item("images")
-        st.rerun()
-
-    st.markdown("**Illusztrációk**")
-    st.caption(
-        f"0–{MAX_ILLUSTRATIONS} illusztráció — nem kötelező minden prédikációhoz."
+    st.subheader("Illusztrációk és aktualizálás")
+    st.markdown(
+        "Az alkalmazás a textus és a rendelkezésre álló igehirdetési anyag "
+        "alapján ajánl képeket, példákat és aktuális kapcsolódási pontokat. "
+        "Nem kell minden műhelyszakaszt kitölteni, és nem kötelező külső "
+        "illusztrációt vagy hírt használni."
     )
-    illustrations = normalize_illustrations(sw.get("illustrations"))
-    if not illustrations:
-        st.info("Még nincs illusztráció.")
-    for idx, ill in enumerate(illustrations):
-        _render_illustration_editor(ill, index=idx, total=len(illustrations))
-    if st.button(
-        "Illusztráció hozzáadása",
-        key="sw_en_add_ill",
-        disabled=len(illustrations) >= MAX_ILLUSTRATIONS,
-    ):
-        _append_enrichment_item("illustrations")
-        st.rerun()
 
-    st.markdown("**Alkalmazási irányok**")
-    st.caption(f"1–{MAX_APPLICATIONS} alkalmazás (ajánlott: 2–4).")
-    applications = normalize_applications(sw.get("applications"))
-    if not applications:
-        st.info("Még nincs alkalmazási irány.")
-    for idx, app in enumerate(applications):
-        _render_application_editor(app, index=idx, total=len(applications))
-    if st.button(
-        "Alkalmazás hozzáadása",
-        key="sw_en_add_app",
-        disabled=len(applications) >= MAX_APPLICATIONS,
-    ):
-        _append_enrichment_item("applications")
-        st.rerun()
+    ready = assess_enrichment_readiness(st.session_state)
+    if not ready.ok:
+        st.info(ready.message)
 
+    tab_ill, tab_act = st.tabs(["Illusztrációk", "Aktualizálás"])
+
+    with tab_ill:
+        st.markdown("#### Illusztrációk és képek")
+        st.markdown(
+            "Az alkalmazás a textus és az elkészült igehirdetési anyag alapján "
+            "ajánl képeket, példákat és történeteket. Nem szükséges minden "
+            "prédikációhoz külső illusztrációt használni."
+        )
+        if "sw_en_ill_direction" not in st.session_state:
+            st.session_state["sw_en_ill_direction"] = str(
+                sw.get("illustration_user_direction") or ""
+            )
+        st.text_area(
+            "Milyen illusztrációt keresel?",
+            key="sw_en_ill_direction",
+            height=90,
+            help=(
+                "Röviden megadhatod az irányt. Ha üresen hagyod, az alkalmazás "
+                "a textus alapján önállóan javasol."
+            ),
+            placeholder=(
+                "Pl. Egy hétköznapi, mai életből vett példát keresek. / "
+                "Egy rövid haszid vagy spirituális történetet szeretnék. / "
+                "Ne legyen történet, inkább a textus egyik képét bontsa ki."
+            ),
+        )
+        if st.button(
+            "Illusztrációk javaslata",
+            type="primary",
+            key="sw_en_ill_suggest",
+            disabled=not ready.ok,
+        ):
+            _run_simple_illustration_suggest(generate_fn=generate_fn)
+
+        note = str(sw.get("illustration_suggest_note") or "").strip()
+        if note:
+            st.caption(note)
+        suggestions = normalize_illustration_cards(sw.get("illustration_suggestions"))
+        for idx, card in enumerate(suggestions):
+            with st.container():
+                _render_illustration_suggestion_card(
+                    card, key_prefix=f"sw_en_ill_sug_{idx}"
+                )
+                st.markdown("---")
+
+        retained = normalize_illustration_cards(sw.get("retained_illustration_cards"))
+        with st.expander("Megtartott illusztrációk", expanded=False):
+            if not retained:
+                st.caption("Még nincs megtartott illusztráció.")
+            else:
+                for idx, card in enumerate(retained):
+                    title = str(card.get("title") or "Illusztráció").strip()
+                    idea = str(card.get("idea") or "").strip()
+                    st.markdown(f"**{title}**")
+                    if idea:
+                        st.write(idea)
+                    if card.get("from_text_workshop"):
+                        st.caption("A Textusműhelyből megtartva")
+                    new_idea = st.text_area(
+                        "Szerkesztés",
+                        value=idea,
+                        key=f"sw_en_ill_ret_edit_{idx}",
+                        height=80,
+                    )
+                    if st.button("Mentés", key=f"sw_en_ill_ret_save_{idx}"):
+                        retained[idx] = normalize_illustration_card(
+                            {**card, "idea": new_idea}
+                        )
+                        _sync_retained_illustrations_legacy(retained)
+                        st.rerun()
+                    if st.button("Eltávolítás", key=f"sw_en_ill_ret_del_{idx}"):
+                        del retained[idx]
+                        _sync_retained_illustrations_legacy(retained)
+                        st.rerun()
+
+    with tab_act:
+        st.markdown("#### Aktuális kapcsolódási pontok")
+        st.markdown(
+            "Az alkalmazás friss hírekből, társadalmi jelenségekből és aktuális "
+            "eseményekből kereshet olyan kapcsolódási pontokat, amelyek "
+            "segíthetik a textus mai meghallását. Nem kell mindenáron aktuális "
+            "hírt beleilleszteni a prédikációba."
+        )
+        if "sw_en_act_direction" not in st.session_state:
+            st.session_state["sw_en_act_direction"] = str(
+                sw.get("actualization_user_direction") or ""
+            )
+        st.text_area(
+            "Milyen irányban keressünk?",
+            key="sw_en_act_direction",
+            height=90,
+            help=(
+                "Megadhatsz témát, földrajzi területet vagy kerülendő területet. "
+                "Ha üresen hagyod, az alkalmazás a textus fő hangsúlyai alapján keres."
+            ),
+            placeholder=(
+                "Pl. Romániai vagy erdélyi aktualitást keresek. / "
+                "Ne politikai hírt, inkább hétköznapi társadalmi jelenséget keress."
+            ),
+        )
+        if st.button(
+            "Aktuális kapcsolódások keresése",
+            type="primary",
+            key="sw_en_act_suggest",
+            disabled=not ready.ok,
+        ):
+            _run_simple_actualization_suggest(generate_fn=generate_fn)
+
+        act_note = str(sw.get("actualization_suggest_note") or "").strip()
+        if act_note:
+            st.caption(act_note)
+        act_suggestions = normalize_actualization_cards(
+            sw.get("actualization_suggestions")
+        )
+        for idx, card in enumerate(act_suggestions):
+            with st.container():
+                _render_actualization_suggestion_card(
+                    card, key_prefix=f"sw_en_act_sug_{idx}"
+                )
+                st.markdown("---")
+
+        retained_act = normalize_actualization_cards(
+            sw.get("actualization_connections")
+        )
+        with st.expander("Megtartott aktualizálások", expanded=False):
+            if not retained_act:
+                st.caption("Még nincs megtartott aktualizálás.")
+            else:
+                for idx, card in enumerate(retained_act):
+                    title = str(card.get("title") or "Kapcsolódás").strip()
+                    summary = str(card.get("event_summary") or "").strip()
+                    st.markdown(f"**{title}**")
+                    if summary:
+                        st.write(summary)
+                    src = str(card.get("source_name") or "").strip()
+                    published = str(card.get("published_at") or "").strip()
+                    if src or published:
+                        st.caption(" · ".join(x for x in (src, published) if x))
+                    if card.get("from_text_workshop"):
+                        st.caption("A Textusműhelyből megtartva")
+                    if st.button("Eltávolítás", key=f"sw_en_act_ret_del_{idx}"):
+                        del retained_act[idx]
+                        update_sermon_workshop_section(
+                            st.session_state,
+                            "actualization_connections",
+                            retained_act,
+                        )
+                        st.rerun()
+
+    st.markdown("---")
     b1, b2 = st.columns(2)
     with b1:
         if st.button("Mentés vázlatként", key="sw_en_save_draft"):
-            _persist_enrichment_from_widgets()
-            imgs = _read_textual_images_from_widgets()
-            ills = _read_illustrations_from_widgets()
-            apps = _read_applications_from_widgets()
-            filled = any(
-                (x.get("image") or x.get("textual_basis") or "").strip() for x in imgs
-            ) or any((x.get("idea") or "").strip() for x in ills) or any(
-                (x.get("application") or "").strip() for x in apps
+            update_sermon_workshop_section(
+                st.session_state, "enrichment_status", "draft"
             )
-            if not filled:
-                st.warning("Üres mezőket nem lehet menteni. Tölts ki legalább egyet.")
-            else:
-                update_sermon_workshop_section(st.session_state, "enrichment_status", "draft")
-                st.success("Vázlatként elmentve.")
+            st.success("Vázlatként elmentve.")
     with b2:
         if st.button(
             "Jóváhagyom és továbbviszem",
             type="primary",
             key="sw_en_approve",
         ):
-            _persist_enrichment_from_widgets()
-            imgs = _read_textual_images_from_widgets()
-            ills = _read_illustrations_from_widgets()
-            apps = _read_applications_from_widgets()
-            filled = any(
-                (x.get("image") or x.get("textual_basis") or "").strip() for x in imgs
-            ) or any((x.get("idea") or "").strip() for x in ills) or any(
-                (x.get("application") or "").strip() for x in apps
+            retained = normalize_illustration_cards(
+                sw.get("retained_illustration_cards")
             )
-            if not filled:
-                st.warning(
-                    "Üres megfogalmazást nem lehet jóváhagyni. "
-                    "Tölts ki legalább egy elemet."
-                )
+            retained_act = normalize_actualization_cards(
+                sw.get("actualization_connections")
+            )
+            if not retained and not retained_act:
+                st.warning("Legalább egy megtartott elemet adj hozzá a jóváhagyáshoz.")
             else:
                 update_sermon_workshop_section(
                     st.session_state, "enrichment_status", "approved"
                 )
                 added = 0
-                skipped = 0
-                for idx, img in enumerate(imgs, start=1):
+                for idx, card in enumerate(retained, start=1):
                     summary = (
-                        f"{idx}. {img.get('image') or 'Kép'} "
-                        f"({image_function_label(img.get('homiletical_function'))}): "
-                        f"{(img.get('textual_basis') or '')[:120]}"
+                        f"{idx}. {card.get('title') or 'Illusztráció'}: "
+                        f"{(card.get('idea') or '')[:160]}"
                     ).strip()
-                    if not (img.get("image") or img.get("textual_basis")):
-                        continue
-                    if _decision_is_duplicate(
-                        source_section=_SOURCE_ENRICHMENT,
-                        category="Textusbeli kép",
-                        content=summary,
-                    ):
-                        skipped += 1
-                        continue
-                    add_approved_sermon_decision(
-                        st.session_state,
-                        _SOURCE_ENRICHMENT,
-                        "Textusbeli kép",
-                        summary,
-                    )
-                    added += 1
-                for idx, ill in enumerate(ills, start=1):
-                    summary = (
-                        f"{idx}. {ill.get('idea') or 'Illusztráció'} "
-                        f"({illustration_function_label(ill.get('function'))})"
-                    ).strip()
-                    if not ill.get("idea"):
-                        continue
                     if _decision_is_duplicate(
                         source_section=_SOURCE_ENRICHMENT,
                         category="Illusztráció",
                         content=summary,
                     ):
-                        skipped += 1
                         continue
                     add_approved_sermon_decision(
                         st.session_state,
@@ -5660,49 +5940,27 @@ def render_enrichment_section(
                         summary,
                     )
                     added += 1
-                for idx, app in enumerate(apps, start=1):
+                for idx, card in enumerate(retained_act, start=1):
                     summary = (
-                        f"{idx}. {app.get('application') or 'Alkalmazás'} "
-                        f"({application_scope_label(app.get('scope'))})"
+                        f"{idx}. {card.get('title') or 'Aktualizálás'}: "
+                        f"{(card.get('event_summary') or '')[:160]}"
                     ).strip()
-                    if not app.get("application"):
-                        continue
                     if _decision_is_duplicate(
                         source_section=_SOURCE_ENRICHMENT,
-                        category="Alkalmazás",
+                        category="Aktualizálás",
                         content=summary,
                     ):
-                        skipped += 1
                         continue
                     add_approved_sermon_decision(
                         st.session_state,
                         _SOURCE_ENRICHMENT,
-                        "Alkalmazás",
+                        "Aktualizálás",
                         summary,
                     )
                     added += 1
-                if added:
-                    st.success(f"Jóváhagyva ({added} döntés).")
-                elif skipped:
-                    st.info("Ezek a döntések már szerepelnek.")
-                else:
-                    st.warning("Nem volt menthető tartalom.")
+                st.success(f"Jóváhagyva ({added} döntés)." if added else "Jóváhagyva.")
 
     _render_decisions_for_section(_SOURCE_ENRICHMENT)
-
-    st.markdown("---")
-    st.markdown("**MI-segéd**")
-    mi1, mi2 = st.columns(2)
-    with mi1:
-        if st.button("Képek és alkalmazások javaslata", key="sw_en_mi_suggest"):
-            _run_enrichment_suggest(generate_fn=generate_fn)
-    with mi2:
-        if st.button("Saját terv értékelése", key="sw_en_mi_assess"):
-            _run_enrichment_assess(generate_fn=generate_fn)
-
-    _render_enrichment_suggestions()
-    _render_enrichment_assessment()
-
     st.caption("Következő ajánlott lépés: Lezárás és megérkezés")
 
 
@@ -8318,7 +8576,7 @@ def render_sermon_path_section(
     _render_sermon_path_suggestions()
     _render_sermon_path_assessment()
 
-    st.caption("Következő ajánlott lépés: Képek, illusztrációk és alkalmazás")
+    st.caption("Következő ajánlott lépés: Illusztrációk és aktualizálás")
 
 
 def _render_section_placeholder(section: str) -> None:
@@ -8455,8 +8713,12 @@ def render_sermon_workshop_shell(
         legacy = str(st.session_state.get(_KEY_ACTIVE_SECTION) or "")
         if legacy in ("A prédikáció útja", "Prédikációs mozgások"):
             st.session_state[_KEY_ACTIVE_SECTION] = "Az igehirdetés útja és mozgásai"
-        elif legacy == "Lezárás":
+        elif legacy in (
+            "Lezárás",
+        ):
             st.session_state[_KEY_ACTIVE_SECTION] = "Lezárás és megérkezés"
+        elif legacy == "Képek, illusztrációk és alkalmazás":
+            st.session_state[_KEY_ACTIVE_SECTION] = "Illusztrációk és aktualizálás"
         else:
             st.session_state[_KEY_ACTIVE_SECTION] = _SW_SECTION_OPTIONS[0]
 
@@ -8478,7 +8740,10 @@ def render_sermon_workshop_shell(
         render_gospel_arc_section(generate_fn=generate_fn)
     elif active == "Az igehirdetés útja és mozgásai":
         render_sermon_path_section(generate_fn=generate_fn)
-    elif active == "Képek, illusztrációk és alkalmazás":
+    elif active in (
+        "Illusztrációk és aktualizálás",
+        "Képek, illusztrációk és alkalmazás",
+    ):
         render_enrichment_section(generate_fn=generate_fn)
     elif active == "Lezárás és megérkezés":
         render_closing_section(generate_fn=generate_fn)
@@ -8499,6 +8764,7 @@ def render_sermon_workshop_shell(
         "Hallgatói kérdés és feszültség",
         "Krisztus-központú és evangéliumi ív",
         "Az igehirdetés útja és mozgásai",
+        "Illusztrációk és aktualizálás",
         "Képek, illusztrációk és alkalmazás",
         "Lezárás és megérkezés",
         "Lekciójavaslat",

@@ -31,6 +31,17 @@ _SECTION_LIST_KEYS = (
     "illustrations",
     "applications",
     "approved_sermon_decisions",
+    "illustration_suggestions",
+    "actualization_suggestions",
+    "retained_illustration_cards",
+    "actualization_connections",
+)
+
+_SECTION_STR_KEYS = (
+    "illustration_user_direction",
+    "actualization_user_direction",
+    "illustration_suggest_note",
+    "actualization_suggest_note",
 )
 
 
@@ -69,6 +80,14 @@ def get_default_sermon_workshop() -> dict[str, Any]:
         "illustrations": [],
         "applications": [],
         "enrichment_status": "draft",
+        "illustration_user_direction": "",
+        "actualization_user_direction": "",
+        "illustration_suggestions": [],
+        "actualization_suggestions": [],
+        "retained_illustration_cards": [],
+        "actualization_connections": [],
+        "illustration_suggest_note": "",
+        "actualization_suggest_note": "",
         "closing": {
             "type": "",
             "final_discovery": "",
@@ -267,6 +286,7 @@ def empty_sermon_outline() -> dict[str, Any]:
         # Meta — fejlesztői / diagnosztikai; a fő UI nem listázza nyersen
         "source_sections": [],
         "provisional_sections": [],
+        "actualization_connections": [],
     }
 
 
@@ -389,6 +409,9 @@ def normalize_sermon_outline(raw: Any) -> dict[str, Any]:
     )
     out["provisional_sections"] = _normalize_str_list(
         raw.get("provisional_sections"), max_items=20
+    )
+    out["actualization_connections"] = _normalize_simple_card_list(
+        raw.get("actualization_connections"), max_items=8
     )
     return out
 
@@ -591,6 +614,30 @@ def normalize_textual_images(raw: Any, *, max_items: int = 3) -> list[dict[str, 
         if not isinstance(item, dict):
             continue
         out.append(normalize_textual_image(item))
+        if len(out) >= max_items:
+            break
+    return out
+
+
+def _normalize_simple_card_list(raw: Any, *, max_items: int = 12) -> list[dict[str, Any]]:
+    """UI-kártyák laza normalizálása — régi projektek biztonsága."""
+    if not isinstance(raw, list):
+        return []
+    out: list[dict[str, Any]] = []
+    for item in raw:
+        if not isinstance(item, dict):
+            continue
+        cleaned: dict[str, Any] = {}
+        for key, val in item.items():
+            if isinstance(val, bool):
+                cleaned[str(key)] = val
+            elif isinstance(val, (int, float)):
+                cleaned[str(key)] = val
+            else:
+                cleaned[str(key)] = _as_str(val)
+        if not cleaned.get("id"):
+            cleaned["id"] = str(uuid.uuid4())
+        out.append(cleaned)
         if len(out) >= max_items:
             break
     return out
@@ -917,6 +964,26 @@ def normalize_sermon_workshop(data: Any) -> dict[str, Any]:
         "illustrations": normalize_illustrations(data.get("illustrations")),
         "applications": normalize_applications(data.get("applications")),
         "enrichment_status": enrichment_status or "draft",
+        "illustration_user_direction": _as_str(
+            data.get("illustration_user_direction")
+        ),
+        "actualization_user_direction": _as_str(
+            data.get("actualization_user_direction")
+        ),
+        "illustration_suggestions": _normalize_simple_card_list(
+            data.get("illustration_suggestions")
+        ),
+        "actualization_suggestions": _normalize_simple_card_list(
+            data.get("actualization_suggestions")
+        ),
+        "retained_illustration_cards": _normalize_simple_card_list(
+            data.get("retained_illustration_cards")
+        ),
+        "actualization_connections": _normalize_simple_card_list(
+            data.get("actualization_connections")
+        ),
+        "illustration_suggest_note": _as_str(data.get("illustration_suggest_note")),
+        "actualization_suggest_note": _as_str(data.get("actualization_suggest_note")),
         "closing": _normalize_str_dict(data.get("closing"), base["closing"]),
         "closing_status": closing_status or "draft",
         "diagnostics": _normalize_diagnostics(data.get("diagnostics")),
@@ -1207,8 +1274,19 @@ def update_sermon_workshop_section(
             sw[key] = normalize_illustrations(data)
         elif key == "applications":
             sw[key] = normalize_applications(data)
+        elif key in (
+            "illustration_suggestions",
+            "actualization_suggestions",
+            "retained_illustration_cards",
+            "actualization_connections",
+        ):
+            sw[key] = _normalize_simple_card_list(data)
         else:
             sw[key] = _normalize_generic_list(data)
+        return sw
+
+    if key in _SECTION_STR_KEYS:
+        sw[key] = _as_str(data)
         return sw
 
     # Ismeretlen szakasz: ne dobjon hibát; hagyja érintetlenül

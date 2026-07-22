@@ -29,6 +29,7 @@ from sermon_workshop_m5_ai import _as_text, _is_api_error_text
 from sermon_workshop_m5_gospel_ai import christ_connection_type_label
 from sermon_workshop_m6_ai import movement_role_label
 from sermon_workshop_m7_closing_ai import closing_tone_label
+from sermon_workshop_m7_simple_ai import illustration_card_to_legacy
 from textus_workshop_data import TEXT_WORKSHOP_KEY, normalize_text_workshop
 
 TAB_OUTLINE = "Igehirdetési vázlat"
@@ -560,7 +561,16 @@ def build_outline_from_workshop(
         movements_out.append(item)
 
     images = list(bundle.get("selected_images") or [])
-    illustrations = list(bundle.get("illustrations") or [])
+    # Csak megtartott illusztrációk — ne az összes generált alternatíva
+    retained_cards = sw.get("retained_illustration_cards")
+    if isinstance(retained_cards, list) and retained_cards:
+        illustrations = [
+            illustration_card_to_legacy(c)
+            for c in retained_cards
+            if isinstance(c, dict)
+        ]
+    else:
+        illustrations = list(bundle.get("illustrations") or [])
     applications = list(bundle.get("applications") or [])
     if movements_out:
         movements_out, extra = _attach_enrichment(
@@ -599,6 +609,28 @@ def build_outline_from_workshop(
 
     outline["movements"] = movements_out
     outline["extra_enrichment"] = extra
+
+    act_conn = sw.get("actualization_connections")
+    outline["actualization_connections"] = []
+    if isinstance(act_conn, list):
+        for item in act_conn[:5]:
+            if not isinstance(item, dict):
+                continue
+            title = _s(item.get("title"))
+            summary = _s(item.get("event_summary"))
+            if not (title or summary):
+                continue
+            outline["actualization_connections"].append(
+                {
+                    "title": title,
+                    "event_summary": _truncate(summary, 280),
+                    "source_name": _s(item.get("source_name")),
+                    "published_at": _s(item.get("published_at")),
+                    "source_url": _s(item.get("source_url")),
+                }
+            )
+        if outline["actualization_connections"]:
+            sources.append("actualization_connections")
 
     closing = bundle.get("closing") if isinstance(bundle.get("closing"), dict) else {}
     tone = _s(closing.get("tone"))
@@ -991,6 +1023,47 @@ def render_compact_sermon_outline(outline: Any) -> None:
     if closing_lines:
         st.markdown("#### Lezárás")
         st.markdown("\n\n".join(closing_lines))
+        st.markdown('<hr class="sw-outline-sep"/>', unsafe_allow_html=True)
+
+    extra = (
+        safe.get("extra_enrichment")
+        if isinstance(safe.get("extra_enrichment"), dict)
+        else {}
+    )
+    ill_bits = [
+        _s(x) for x in (extra.get("illustrations") or []) if _s(x)
+    ] + [_s(x) for x in (extra.get("images") or []) if _s(x)]
+    if ill_bits:
+        st.markdown("#### Illusztráció")
+        for bit in ill_bits[:4]:
+            st.markdown(f"- {_truncate(bit, 220)}")
+        st.markdown('<hr class="sw-outline-sep"/>', unsafe_allow_html=True)
+
+    act_list = (
+        safe.get("actualization_connections")
+        if isinstance(safe.get("actualization_connections"), list)
+        else []
+    )
+    if act_list:
+        st.markdown("#### Aktuális kapcsolódás")
+        for item in act_list[:5]:
+            if not isinstance(item, dict):
+                continue
+            title = _s(item.get("title"))
+            summary = _s(item.get("event_summary"))
+            meta = " · ".join(
+                x
+                for x in (
+                    _s(item.get("source_name")),
+                    _s(item.get("published_at")),
+                )
+                if x
+            )
+            line = f"**{title}** — {summary}" if title else summary
+            if meta:
+                line = f"{line} ({meta})"
+            if line:
+                st.markdown(line)
         st.markdown('<hr class="sw-outline-sep"/>', unsafe_allow_html=True)
 
     lection = safe.get("lection") if isinstance(safe.get("lection"), dict) else {}
