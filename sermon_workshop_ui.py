@@ -211,6 +211,7 @@ from sermon_outline_diagnostics_ai import (
     run_outline_diagnostics,
 )
 from textus_workshop_data import ensure_text_workshop_state
+from diagnostics_profile_ui import render_profile_chart
 from workshop_nav_ui import (
     render_section_stepper,
     render_workshop_step_grid,
@@ -2405,6 +2406,59 @@ def _ensure_diag_styles() -> None:
   color: #2b2116;
   font-size: 0.9rem;
 }
+/* ===== Diagnosztikai dashboard: KPI-kártyák ===== */
+.tx-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.6rem;
+  margin: 0.2rem 0 1rem 0;
+}
+@media (max-width: 900px) { .tx-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .tx-kpi-grid { grid-template-columns: 1fr; } }
+.tx-kpi-card {
+  border-radius: 12px;
+  padding: 0.7rem 0.8rem;
+  background: linear-gradient(165deg, rgba(255,252,247,0.92), rgba(240,232,218,0.6));
+  border: 1px solid rgba(170,145,112,0.28);
+  border-top: 3px solid #5a7aa8;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.6) inset;
+  min-width: 0;
+}
+.tx-kpi-card .k-lbl {
+  font-family: "Inter","Segoe UI",sans-serif;
+  font-size: 0.72rem; font-weight: 600; letter-spacing: 0.04em;
+  text-transform: uppercase; color: #8a6a3f; margin-bottom: 0.25rem;
+}
+.tx-kpi-card .k-val {
+  font-family: "Inter","Segoe UI",sans-serif;
+  font-size: 1.02rem; font-weight: 650; color: #1f334d; line-height: 1.25;
+}
+/* ===== Homiletikai profil — vízszintes státuszsávok (fallback / natív) ===== */
+.tx-profile { margin: 0.2rem 0 0.4rem; }
+.tx-profile-row { margin: 0.4rem 0; }
+.tx-profile-head {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem;
+  font-family: "Inter","Segoe UI",sans-serif;
+}
+.tx-profile-name { font-size: 0.9rem; color: #3d3228; font-weight: 550; }
+.tx-profile-status { font-size: 0.8rem; color: #6b5a48; }
+.tx-profile-track {
+  height: 8px; width: 100%; background: rgba(160,140,115,0.18);
+  border-radius: 999px; margin-top: 0.25rem; overflow: hidden;
+}
+.tx-profile-fill { height: 100%; border-radius: 999px; transition: width 0.3s ease; }
+/* Dashboard fejlesztési fókusz kártyák (kék hangsúly, elkülönítve) */
+.tx-diag-prio-card {
+  border-radius: 12px;
+  padding: 0.7rem 0.8rem;
+  margin-bottom: 0.5rem;
+  background: rgba(244, 247, 251, 0.94);
+  border: 1px solid rgba(90,122,168,0.28);
+  border-left: 4px solid #5a7aa8;
+}
+.tx-diag-prio-card h5 { margin: 0 0 0.3rem 0; color: #1f334d; font-size: 0.95rem; }
+.tx-diag-prio-card p { margin: 0 0 0.3rem 0; color: #3a4b63; font-size: 0.86rem; line-height: 1.4; }
+.tx-diag-prio-card .meta { font-size: 0.8rem; color: #5a6b82; }
 </style>
         """,
         unsafe_allow_html=True,
@@ -2958,6 +3012,139 @@ def render_outline_section(
         _render_outline_edit_expander(outline)
 
 
+# A homiletikai profil 8 tengelye (a prompt szerinti nevekkel), meglévő
+# terület-kulcsokra képezve. A numerikus érték csak a grafikonhoz kell.
+_DIAG_PROFILE_AXES: tuple[tuple[str, str], ...] = (
+    ("text_fidelity", "Textushűség"),
+    ("unity_and_focus", "Fő gondolat és fókusz"),
+    ("listener_tension", "Hallgatói megszólítás"),
+    ("christ_centeredness", "Krisztus-központúság"),
+    ("sermon_path", "Szerkezet és mozgások"),
+    ("application", "Alkalmazás"),
+    ("closing", "Lezárás"),
+    ("pastoral_responsibility", "Pásztori hang"),
+)
+
+# Státusz → belső numerikus szint (csak renderhez; nincs összpontszám).
+_DIAG_STATUS_VALUE: dict[str, int | None] = {
+    "strong": 4,
+    "stable": 3,
+    "needs_attention": 2,
+    "critical_gap": 1,
+    "not_enough_information": None,
+}
+
+
+def _diag_profile_rows(areas_by_key: dict[str, dict[str, Any]]) -> list[dict[str, Any]]:
+    """A 8 profil-tengely státusza + numerikus értéke (hiány → None)."""
+    rows: list[dict[str, Any]] = []
+    for key, label in _DIAG_PROFILE_AXES:
+        if key in areas_by_key:
+            status = normalize_diagnostic_status(areas_by_key[key].get("status"))
+        else:
+            status = "not_enough_information"
+        rows.append(
+            {
+                "key": key,
+                "label": label,
+                "status": status,
+                "status_label": _diag_status_soft_label(status),
+                "value": _DIAG_STATUS_VALUE.get(status),
+                "color": _DIAG_STATUS_COLORS.get(
+                    status, _DIAG_STATUS_COLORS["not_enough_information"]
+                ),
+            }
+        )
+    return rows
+
+
+def _diag_overall_state(rows: list[dict[str, Any]], *, ready: Any) -> str:
+    evaluated = [r for r in rows if isinstance(r["value"], int)]
+    if not evaluated:
+        return "A vázlat alapján"
+    if ready is True:
+        return "Továbbvihető"
+    strong_stable = sum(1 for r in evaluated if r["value"] >= 3)
+    weak = sum(1 for r in evaluated if r["value"] <= 1)
+    if weak == 0 and strong_stable >= max(1, len(evaluated) // 2):
+        return "Jó alap"
+    return "Még finomítandó"
+
+
+def _render_diag_dashboard(source: dict[str, Any], view: dict[str, Any]) -> None:
+    """Vizuális homiletikai műszerfal: KPI-kártyák + profil + 3 prioritás."""
+    areas_by_key = _diag_areas_index(source.get("diagnostic_areas"))
+    rows = _diag_profile_rows(areas_by_key)
+    evaluable = sum(1 for r in rows if isinstance(r["value"], int))
+    total = len(rows)
+
+    ready = view.get("ready_to_use")
+    overall = _diag_overall_state(rows, ready=ready)
+
+    strongest = "—"
+    best_val = 0
+    for r in rows:
+        if isinstance(r["value"], int) and r["value"] > best_val:
+            best_val = r["value"]
+            strongest = r["label"]
+
+    focus = "—"
+    refinements = view.get("refinements") or []
+    if refinements and isinstance(refinements[0], dict):
+        focus = str(refinements[0].get("title") or "").strip() or "—"
+    if focus == "—":
+        worst_val = 5
+        for r in rows:
+            if isinstance(r["value"], int) and r["value"] < worst_val:
+                worst_val = r["value"]
+                focus = r["label"]
+
+    kpis = [
+        ("Általános állapot", overall),
+        ("Lefedettség", f"{evaluable} / {total} terület értékelhető"),
+        ("Legerősebb terület", strongest),
+        ("Elsődleges fókusz", focus),
+    ]
+    cards_html = "".join(
+        (
+            '<div class="tx-kpi-card">'
+            f'<div class="k-lbl">{html.escape(lbl)}</div>'
+            f'<div class="k-val">{html.escape(str(val))}</div>'
+            "</div>"
+        )
+        for lbl, val in kpis
+    )
+    st.markdown(f'<div class="tx-kpi-grid">{cards_html}</div>', unsafe_allow_html=True)
+    st.caption("Az ellenőrzés a jelenlegi vázlat alapján készült.")
+
+    chart_col, prio_col = st.columns(2)
+    with chart_col:
+        st.markdown("**Homiletikai profil**")
+        render_profile_chart(rows)
+    with prio_col:
+        st.markdown("**Elsődleges fejlesztési fókusz**")
+        if not refinements:
+            st.caption("Most nincs kiemelt fejlesztési javaslat.")
+        for item in refinements[:3]:
+            if not isinstance(item, dict):
+                continue
+            title = _diag_soften_text(str(item.get("title") or "").strip())
+            expl = _diag_soften_text(str(item.get("explanation") or "").strip())
+            action = _diag_soften_text(str(item.get("suggested_action") or "").strip())
+            parts = [f"<h5>{html.escape(title)}</h5>"]
+            if expl:
+                parts.append(f"<p>{html.escape(_diag_shorten(expl, limit=180))}</p>")
+            if action:
+                parts.append(
+                    '<div class="meta"><strong>Következő lépés:</strong> '
+                    f"{html.escape(_diag_shorten(action, limit=160))}</div>"
+                )
+            st.markdown(
+                f'<div class="tx-diag-prio-card">{"".join(parts)}</div>',
+                unsafe_allow_html=True,
+            )
+
+
 def _render_diagnostics_results() -> None:
     sw = ensure_sermon_workshop_state(st.session_state)
     outline_diag = sw.get("sermon_outline_diagnostics")
@@ -2981,6 +3168,8 @@ def _render_diagnostics_results() -> None:
 
     _ensure_diag_styles()
     view = _diag_view_model_simplified(source)
+
+    _render_diag_dashboard(source, view)
 
     st.markdown("**Rövid összkép**")
     overview = str(view.get("overview") or "").strip()
