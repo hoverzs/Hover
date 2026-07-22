@@ -257,5 +257,25 @@ def premium_overlay_css() -> str:
         grid-template-columns: 1fr !important;
     }
 }
+
+/* Shell polish: projekttoolbar gap + címmező */
+.element-container:has(.ws-project-toolbar-anchor) + .element-container [data-testid="stHorizontalBlock"] {
+    gap: 0.45rem !important;
+    column-gap: 0.45rem !important;
+    justify-content: flex-start !important;
+}
+
+.element-container:has(.ws-project-toolbar-anchor) + .element-container [data-testid="column"] .stButton > button {
+    width: auto !important;
+    min-width: 7.5rem !important;
+}
+
+/* Segmented nav: Streamlit piros indikátor kiütése (theme primary mellett is) */
+[data-testid="stSegmentedControl"] button {
+    outline: none !important;
+}
+[data-testid="stSegmentedControl"] button[aria-checked="true"] {
+    color: #1f334d !important;
+}
 """.strip()
 
