@@ -115,30 +115,30 @@ def render_workshop_step_grid(
 
 # Státuszikonok a lépéslistához (glyph-alapú, nem csak szín → hozzáférhető).
 _STEP_STATE_ICON: dict[str, str] = {
-    "active": ":material/edit:",
+    "active": ":material/radio_button_checked:",
     "done": ":material/check_circle:",
     "pending": ":material/radio_button_unchecked:",
 }
 _STEP_STATE_LABEL: dict[str, str] = {
     "active": "Munkában",
     "done": "Elkészült",
-    "pending": "Még nincs kidolgozva",
+    "pending": "Nincs elkezdve",
 }
 
 
-def render_workshop_workflow_nav(
+def render_step_selector(
     options: Sequence[str],
     *,
     key: str,
     completed: Iterable[str] | None = None,
     key_prefix: str | None = None,
 ) -> str:
-    """Kompakt munkafolyamat-navigáció (közös komponens mindkét műhelyhez).
+    """Központi lépésválasztó — egyetlen „i / N · Cím” vezérlő, lenyíló listával.
 
-    Fő sor: „Munkafolyamat”, aktuális lépés, N / összes; jobbra Előző /
-    Lépések (popover) / Következő. Alatta vékony, visszafogott haladássáv.
-    A `key` (pl. `tw_active_section` / `sw_active_section`) marad a szakasz
-    forrása; gombok állítják, mivel ez tisztán felületi állapot.
+    Nincs Előző/Következő navigáció: a felhasználó szabadon választ a lépések
+    közül. A lenyíló panel a triggerhez igazodik (st.popover), Escape és külső
+    kattintás bezárja, billentyűzettel használható. A `key` marad a szakasz
+    forrása; gombok állítják (tisztán felületi állapot).
     """
     opts = [str(o) for o in options if str(o).strip()]
     if not opts:
@@ -153,79 +153,81 @@ def render_workshop_workflow_nav(
     idx = opts.index(current)
     total = len(opts)
     prefix = key_prefix or key
-    done_count = sum(1 for o in opts if o in done)
-    pct = int(round((done_count / total) * 100)) if total else 0
 
-    st.markdown('<div class="tx-workflow-anchor" aria-hidden="true"></div>', unsafe_allow_html=True)
+    st.markdown('<div class="tx-stepselect-anchor" aria-hidden="true"></div>', unsafe_allow_html=True)
 
-    left, right = st.columns([2.3, 2.0], gap="small")
-    with left:
+    trigger_label = f"{idx + 1} / {total} · {current}"
+    with st.popover(trigger_label, use_container_width=True, icon=":material/expand_more:"):
         st.markdown(
-            (
-                '<div class="tx-wf-bar">'
-                '<div class="tx-wf-eyebrow">Munkafolyamat</div>'
-                f'<div class="tx-wf-title">{escape(current)}</div>'
-                f'<div class="tx-wf-count">{idx + 1} / {total} lépés</div>'
-                "</div>"
-            ),
+            '<div class="tx-stepmenu-head">Munkafolyamat lépései</div>',
             unsafe_allow_html=True,
         )
-    with right:
-        c_prev, c_steps, c_next = st.columns([1.0, 1.25, 1.0], gap="small")
-        with c_prev:
+        st.markdown('<div class="tx-stepmenu" role="menu">', unsafe_allow_html=True)
+        for i, opt in enumerate(opts):
+            if opt == current:
+                state = "active"
+            elif opt in done:
+                state = "done"
+            else:
+                state = "pending"
+            label = f"{i + 1}.  {opt}  ·  {_STEP_STATE_LABEL[state]}"
             if st.button(
-                "Előző",
-                key=f"{prefix}_wf_prev",
-                icon=":material/chevron_left:",
-                disabled=idx <= 0,
+                label,
+                key=f"{prefix}_step_{i}",
+                icon=_STEP_STATE_ICON[state],
+                type="primary" if state == "active" else "secondary",
                 use_container_width=True,
             ):
-                st.session_state[key] = opts[idx - 1]
-                st.rerun()
-        with c_steps:
-            with st.popover("Lépések", use_container_width=True):
-                st.caption(f"{done_count} / {total} szakaszban van megtartott anyag")
-                for i, opt in enumerate(opts):
-                    if opt == current:
-                        state = "active"
-                    elif opt in done:
-                        state = "done"
-                    else:
-                        state = "pending"
-                    label = f"{opt}  ·  {_STEP_STATE_LABEL[state]}"
-                    if st.button(
-                        label,
-                        key=f"{prefix}_wf_step_{i}",
-                        icon=_STEP_STATE_ICON[state],
-                        type="primary" if state == "active" else "secondary",
-                        use_container_width=True,
-                    ):
-                        if opt != current:
-                            st.session_state[key] = opt
-                            st.rerun()
-        with c_next:
-            if st.button(
-                "Következő",
-                key=f"{prefix}_wf_next",
-                icon=":material/chevron_right:",
-                disabled=idx >= total - 1,
-                use_container_width=True,
-            ):
-                st.session_state[key] = opts[idx + 1]
-                st.rerun()
+                if opt != current:
+                    st.session_state[key] = opt
+                    st.rerun()
+        st.markdown("</div>", unsafe_allow_html=True)
 
+    return str(st.session_state.get(key) or opts[0])
+
+
+def render_progress_summary(
+    options: Sequence[str],
+    *,
+    completed: Iterable[str] | None = None,
+) -> None:
+    """Kompakt haladási információ + vékony progress bar a lépésválasztó alatt."""
+    opts = [str(o) for o in options if str(o).strip()]
+    if not opts:
+        return
+    done = {str(x) for x in (completed or ()) if str(x).strip()}
+    total = len(opts)
+    done_count = sum(1 for o in opts if o in done)
+    pct = int(round((done_count / total) * 100)) if total else 0
     st.markdown(
         (
+            '<div class="tx-progress-wrap">'
+            '<div class="tx-progress-info">'
+            f'<span>{done_count} / {total} szakaszban van megtartott anyag</span>'
+            "<span>A lépések rugalmasan használhatók; nem kötelező mindet kitölteni.</span>"
+            "</div>"
             '<div class="tx-wf-progress" role="presentation">'
             f'<div class="tx-wf-progress-fill" style="width:{pct}%"></div>'
             "</div>"
-            '<div class="tx-wf-progress-note">A lépések rugalmasan használhatók; '
-            "nem szükséges mindegyiket kitölteni.</div>"
+            "</div>"
         ),
         unsafe_allow_html=True,
     )
 
-    return str(st.session_state.get(key) or opts[0])
+
+def render_workshop_workflow_nav(
+    options: Sequence[str],
+    *,
+    key: str,
+    completed: Iterable[str] | None = None,
+    key_prefix: str | None = None,
+) -> str:
+    """Közös munkafolyamat-navigáció: központi lépésválasztó + haladásösszegzés."""
+    active = render_step_selector(
+        options, key=key, completed=completed, key_prefix=key_prefix
+    )
+    render_progress_summary(options, completed=completed)
+    return active
 
 
 # Backward-compatible aliasok
@@ -277,12 +279,9 @@ def render_primary_view_switcher(
     for col, mode in zip(cols, opts):
         is_active = mode == current
         title = label_map.get(mode, mode)
-        subtitle = (subtitle_map.get(mode) or "").strip()
-        # A teljes gomb kattintható; az alcím a címke második sora.
-        btn_label = f"{title}\n\n{subtitle}" if subtitle else title
         with col:
             clicked = st.button(
-                btn_label,
+                title,
                 key=f"tx_mainnav_{mode}",
                 icon=(icon_map.get(mode) or None),
                 type="primary" if is_active else "secondary",

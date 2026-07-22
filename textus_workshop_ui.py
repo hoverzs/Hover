@@ -471,7 +471,7 @@ def render_text_main_idea_section(
             _save_main_idea_as_draft()
     with b2:
         if st.button(
-            "Jóváhagyom és továbbviszem",
+            "Jóváhagyom és átadom",
             type="primary",
             key="tw_main_idea_approve_forward_btn",
         ):
@@ -586,7 +586,7 @@ def _render_insight_cards() -> None:
         st.info(
             "Még nincs jóváhagyott felismerés. "
             "Add hozzá az elsőt az „Új felismerés hozzáadása” résznél, "
-            "vagy használd a „Jóváhagyom és továbbviszem” gombot "
+            "vagy használd a „Jóváhagyom és átadom” gombot "
             "a fő gondolat szakaszban."
         )
         return

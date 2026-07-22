@@ -70,6 +70,27 @@ def render_info_panel(
     )
 
 
+def render_context_summary(items: list[tuple[str, str]]) -> None:
+    """Kompakt kontextussor: címke–érték párok egyetlen rendezett blokkban.
+
+    Nem három különálló, félkövér szövegsor, hanem egy visszafogott
+    ContextSummary sáv (pl. Igehely · Fő gondolat · Jóváhagyott felismerések).
+    """
+    rows = [
+        (escape(str(k).strip()), escape(str(v).strip()))
+        for k, v in items
+        if str(k).strip()
+    ]
+    if not rows:
+        return
+    inner = "".join(
+        f'<span class="tx-context-item"><span class="k">{k}:</span>'
+        f'<span class="v">{v or "—"}</span></span>'
+        for k, v in rows
+    )
+    st.markdown(f'<div class="tx-context">{inner}</div>', unsafe_allow_html=True)
+
+
 def render_empty_state(
     *,
     title: str,

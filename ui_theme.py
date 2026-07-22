@@ -122,7 +122,9 @@ def premium_overlay_css() -> str:
 .tx-panel-neutral { border-left: 3px solid var(--tx-neutral); }
 
 .block-container {
-    max-width: 1280px !important;
+    max-width: 1220px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
 }
 
 .main-card {
@@ -355,55 +357,109 @@ def premium_overlay_css() -> str:
     color: #1f334d !important;
 }
 
-/* ===== Kompakt munkafolyamat-navigáció ===== */
-.tx-workflow-anchor { display: none !important; height: 0 !important; margin: 0 !important; }
+/* ===== Központi lépésválasztó (StepSelector) ===== */
+.tx-stepselect-anchor { display: none !important; height: 0 !important; margin: 0 !important; }
 
-.element-container:has(.tx-workflow-anchor) + .element-container [data-testid="stHorizontalBlock"] {
-    align-items: center !important;
+/* A popover trigger a triggerhez tartozó element-container (anchor utáni testvér). */
+.element-container:has(.tx-stepselect-anchor) + [data-testid="stLayoutWrapper"] [data-testid="stPopover"] button {
+    width: 100% !important;
+    justify-content: flex-start !important;
+    text-align: left !important;
+    min-height: 3rem !important;
+    border-radius: 12px !important;
+    border: 1px solid rgba(90, 122, 168, 0.32) !important;
     background:
-        linear-gradient(165deg, rgba(255, 252, 247, 0.8), rgba(238, 230, 216, 0.5)) !important;
-    border: 1px solid rgba(186, 158, 122, 0.4) !important;
-    border-radius: 14px !important;
-    padding: 0.6rem 0.85rem !important;
-    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset, 0 6px 14px rgba(58, 40, 22, 0.06) !important;
-    margin-top: 0.35rem !important;
+        linear-gradient(165deg, rgba(255, 252, 247, 0.9), rgba(240, 232, 218, 0.6)) !important;
+    box-shadow: 0 1px 0 rgba(255,255,255,0.65) inset !important;
+    color: #1f334d !important;
+    font-family: "Inter", "Segoe UI", sans-serif !important;
+    font-weight: 600 !important;
+    font-size: 1rem !important;
+    padding: 0.6rem 0.95rem !important;
+}
+.element-container:has(.tx-stepselect-anchor) + [data-testid="stLayoutWrapper"] [data-testid="stPopover"] button:hover {
+    border-color: rgba(90, 122, 168, 0.5) !important;
+    box-shadow: 0 4px 12px rgba(52, 72, 98, 0.1) !important;
+}
+/* A chevron ikont told jobbra */
+.element-container:has(.tx-stepselect-anchor) + [data-testid="stLayoutWrapper"] [data-testid="stPopover"] button [data-testid="stIconMaterial"] {
+    margin-left: auto !important;
+    color: #5a7aa8 !important;
+    order: 2 !important;
+}
+.element-container:has(.tx-stepselect-anchor) + [data-testid="stLayoutWrapper"] [data-testid="stPopover"] button > div:first-child,
+.element-container:has(.tx-stepselect-anchor) + [data-testid="stLayoutWrapper"] [data-testid="stPopover"] button p {
+    order: 1 !important;
 }
 
-.tx-wf-bar { display: flex; flex-direction: column; gap: 0.05rem; }
-.tx-wf-eyebrow {
+/* Lenyíló lista: rendezett, kompakt menüsorok (nem árnyékos gombkártyák) */
+.tx-stepmenu-head {
     font-family: "Inter", "Segoe UI", sans-serif;
     font-size: 0.72rem;
     font-weight: 600;
     letter-spacing: 0.05em;
     text-transform: uppercase;
     color: var(--tx-gold);
+    margin-bottom: 0.3rem;
 }
-.tx-wf-title {
-    font-family: "Inter", "Segoe UI", sans-serif;
-    font-size: 1.05rem;
-    font-weight: 650;
-    color: #1f334d;
-    line-height: 1.2;
+[data-testid="stPopover"] .stButton > button,
+div[data-baseweb="popover"] .stButton > button {
+    justify-content: flex-start !important;
+    text-align: left !important;
+    min-height: 2.4rem !important;
+    border-radius: 8px !important;
+    border: 1px solid transparent !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    white-space: normal !important;
+    font-weight: 500 !important;
+    color: #3d3228 !important;
+    padding: 0.4rem 0.6rem !important;
+    margin: 0 !important;
 }
-.tx-wf-count {
+[data-testid="stPopover"] .stButton > button:hover,
+div[data-baseweb="popover"] .stButton > button:hover {
+    background: rgba(90, 122, 168, 0.08) !important;
+    border-color: transparent !important;
+}
+/* Aktív sor: halvány kék háttér + kék ikon */
+[data-testid="stPopover"] .stButton > button[kind="primary"],
+div[data-baseweb="popover"] .stButton > button[kind="primary"] {
+    background: rgba(90, 122, 168, 0.14) !important;
+    border-color: rgba(90, 122, 168, 0.3) !important;
+    color: #1f334d !important;
+    font-weight: 650 !important;
+}
+[data-testid="stPopover"] .stButton > button [data-testid="stIconMaterial"] {
+    color: #6a7f9c !important;
+}
+[data-testid="stPopover"] .stButton > button[kind="primary"] [data-testid="stIconMaterial"] {
+    color: #4a7c74 !important;
+}
+/* Hosszú munkafolyamat: max magasság + belső görgetés */
+div[data-baseweb="popover"] [data-testid="stPopoverBody"] {
+    max-height: 60vh !important;
+    overflow-y: auto !important;
+    min-width: 20rem !important;
+}
+
+/* ===== Haladás összegzés (ProgressSummary) ===== */
+.tx-progress-wrap { margin: 0.5rem 0 0.4rem; }
+.tx-progress-info {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex-wrap: wrap;
     font-family: "Inter", "Segoe UI", sans-serif;
-    font-size: 0.82rem;
+    font-size: 0.78rem;
     color: var(--tx-text-muted);
+    margin-bottom: 0.3rem;
 }
-
-/* Workflow gombok: kompakt, egységes magasság */
-.element-container:has(.tx-workflow-anchor) + .element-container .stButton > button {
-    min-height: 2.6rem !important;
-    border-radius: 10px !important;
-}
-
-/* Vékony, visszafogott haladássáv */
 .tx-wf-progress {
     height: 4px;
     width: 100%;
     background: rgba(160, 140, 115, 0.22);
     border-radius: 999px;
-    margin: 0.5rem 0 0.25rem;
     overflow: hidden;
 }
 .tx-wf-progress-fill {
@@ -412,34 +468,42 @@ def premium_overlay_css() -> str:
     border-radius: 999px;
     transition: width 0.3s ease;
 }
-.tx-wf-progress-note {
-    font-family: "Inter", "Segoe UI", sans-serif;
-    font-size: 0.78rem;
-    color: var(--tx-text-muted);
-    margin-bottom: 0.6rem;
-}
 
-/* Lépéslista a popoverben: egyetlen oszlop, teljes sor kattintható */
-[data-testid="stPopover"] .stButton > button,
-div[data-baseweb="popover"] .stButton > button {
-    justify-content: flex-start !important;
-    text-align: left !important;
-    min-height: 2.5rem !important;
-    border-radius: 9px !important;
-    white-space: normal !important;
-    font-weight: 500 !important;
+/* ===== ContextSummary — kompakt kontextussor ===== */
+.tx-context {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.1rem;
+    align-items: baseline;
+    padding: 0.55rem 0.85rem;
+    margin: 0.2rem 0 0.6rem;
+    border: 1px solid var(--tx-border);
+    border-radius: 12px;
+    background: rgba(255, 252, 247, 0.7);
+    font-family: "Inter", "Segoe UI", sans-serif;
+}
+.tx-context-item { font-size: 0.86rem; color: #3d3228; }
+.tx-context-item .k { color: var(--tx-text-muted); margin-right: 0.3rem; }
+.tx-context-item .v { font-weight: 600; color: #1f334d; }
+
+/* ===== Munkakártya (StepWorkspace) ===== */
+.tx-workcard-anchor { display: none !important; height: 0 !important; margin: 0 !important; }
+.element-container:has(.tx-workcard-anchor) + [data-testid="stLayoutWrapper"] > [data-testid="stVerticalBlock"],
+.element-container:has(.tx-workcard-anchor) + [data-testid="stLayoutWrapper"] [data-testid="stVerticalBlockBorderWrapper"] {
+    max-width: 1040px !important;
+    margin: 0.4rem auto 0 !important;
+    border: 1px solid var(--tx-border) !important;
+    border-radius: 18px !important;
+    padding: clamp(1.1rem, 2.2vw, 1.75rem) !important;
+    background: rgba(255, 253, 249, 0.94) !important;
+    box-shadow: 0 8px 26px rgba(58, 40, 22, 0.07) !important;
 }
 
 @media (max-width: 768px) {
-    .element-container:has(.tx-workflow-anchor) + .element-container [data-testid="stHorizontalBlock"] {
-        flex-direction: column !important;
-        align-items: stretch !important;
-        gap: 0.5rem !important;
+    .element-container:has(.tx-stepselect-anchor) + [data-testid="stLayoutWrapper"] [data-testid="stPopover"] button {
+        min-height: 2.75rem !important;
     }
-    .element-container:has(.tx-workflow-anchor) + .element-container [data-testid="column"] {
-        width: 100% !important;
-        flex: 1 1 100% !important;
-    }
+    div[data-baseweb="popover"] [data-testid="stPopoverBody"] { min-width: 15rem !important; }
 }
 """.strip()
 

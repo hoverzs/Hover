@@ -1756,7 +1756,7 @@ div[data-testid="stForm"] {{
     max-width: 36rem;
 }}
 
-/* ===== Elsődleges főmenü — három nagy, prémium nézetkártya ===== */
+/* ===== Elsődleges főmenü — egységes, kompakt segmented navigáció ===== */
 .tx-mainnav-anchor {{
     display: none !important;
     height: 0 !important;
@@ -1764,106 +1764,92 @@ div[data-testid="stForm"] {{
     padding: 0 !important;
 }}
 
-/* A közvetlenül az anchor utáni horizontális blokk a főmenü. */
-.element-container:has(.tx-mainnav-anchor) + .element-container [data-testid="stHorizontalBlock"] {{
-    gap: 0.6rem !important;
-    margin: 0.4rem 0 1.1rem !important;
+/* Közös keret: központosított, kompakt szélesség (nem terül szét). */
+.element-container:has(.tx-mainnav-anchor) + [data-testid="stLayoutWrapper"] [data-testid="stHorizontalBlock"] {{
+    gap: 0.25rem !important;
+    margin: 0.4rem auto 1.1rem !important;
+    max-width: 640px !important;
     align-items: stretch !important;
+    background:
+        linear-gradient(165deg, rgba(255, 252, 247, 0.82), rgba(236, 228, 214, 0.5)) !important;
+    border: 1px solid rgba(186, 158, 122, 0.42) !important;
+    border-radius: 14px !important;
+    padding: 0.3rem !important;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 6px 16px rgba(58, 40, 22, 0.06) !important;
 }}
 
-.element-container:has(.tx-mainnav-anchor) + .element-container [data-testid="column"] {{
+.element-container:has(.tx-mainnav-anchor) + [data-testid="stLayoutWrapper"] [data-testid="column"] {{
     display: flex !important;
 }}
 
-.element-container:has(.tx-mainnav-anchor) + .element-container .stButton {{
+.element-container:has(.tx-mainnav-anchor) + [data-testid="stLayoutWrapper"] .stButton {{
     width: 100% !important;
 }}
 
-/* Nézetkártya alap (inaktív = secondary) */
-.element-container:has(.tx-mainnav-anchor) + .element-container .stButton > button {{
+/* Szegmens (inaktív) */
+.element-container:has(.tx-mainnav-anchor) + [data-testid="stLayoutWrapper"] .stButton > button {{
     width: 100% !important;
-    min-height: 64px !important;
-    height: 100% !important;
+    min-height: 48px !important;
     display: flex !important;
     flex-direction: row !important;
     align-items: center !important;
-    justify-content: flex-start !important;
-    gap: 0.6rem !important;
-    text-align: left !important;
-    padding: 0.7rem 1rem !important;
-    border-radius: 14px !important;
-    border: 1px solid rgba(186, 158, 122, 0.42) !important;
-    background:
-        linear-gradient(165deg, rgba(255, 252, 247, 0.82), rgba(238, 230, 216, 0.5)) !important;
-    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset !important;
-    color: #4a3c2c !important;
-    transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+    justify-content: center !important;
+    gap: 0.4rem !important;
+    padding: 0.5rem 0.7rem !important;
+    border-radius: 10px !important;
+    border: 1px solid transparent !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    color: #5a4a38 !important;
+    transition: background 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease, color 0.16s ease;
 }}
 
-/* Cím (1. sor) + alcím (2. sor) */
-.element-container:has(.tx-mainnav-anchor) + .element-container .stButton > button p {{
+.element-container:has(.tx-mainnav-anchor) + [data-testid="stLayoutWrapper"] .stButton > button p {{
     margin: 0 !important;
     font-family: "Inter", "Segoe UI", sans-serif !important;
-    font-weight: 650 !important;
-    font-size: 1.02rem !important;
-    line-height: 1.25 !important;
-    letter-spacing: 0.005em !important;
-    white-space: normal !important;
+    font-weight: 600 !important;
+    font-size: 0.95rem !important;
+    line-height: 1.2 !important;
+    white-space: nowrap !important;
 }}
 
-.element-container:has(.tx-mainnav-anchor) + .element-container .stButton > button p:not(:first-child) {{
-    font-weight: 500 !important;
-    font-size: 0.82rem !important;
-    color: #6a5a48 !important;
-    margin-top: 0.12rem !important;
-}}
-
-/* Ikon nagyobb, kék hangsúly */
-.element-container:has(.tx-mainnav-anchor) + .element-container .stButton > button [data-testid="stIconMaterial"],
-.element-container:has(.tx-mainnav-anchor) + .element-container .stButton > button span[class*="material"] {{
-    font-size: 1.5rem !important;
+.element-container:has(.tx-mainnav-anchor) + [data-testid="stLayoutWrapper"] .stButton > button [data-testid="stIconMaterial"] {{
+    font-size: 1.2rem !important;
     color: #5a7aa8 !important;
     flex-shrink: 0 !important;
 }}
 
-.element-container:has(.tx-mainnav-anchor) + .element-container .stButton > button:hover {{
-    transform: translateY(-1px) !important;
-    border-color: rgba(90, 122, 168, 0.4) !important;
-    box-shadow: 0 6px 16px rgba(58, 40, 22, 0.1) !important;
+.element-container:has(.tx-mainnav-anchor) + [data-testid="stLayoutWrapper"] .stButton > button:hover {{
+    background: rgba(255, 252, 247, 0.7) !important;
+    border-color: rgba(186, 158, 122, 0.3) !important;
 }}
 
-/* Aktív nézet (primary): meleg-kékes felület + bal arany hangsúly */
-.element-container:has(.tx-mainnav-anchor) + .element-container .stButton > button[kind="primary"] {{
+/* Aktív szegmens (primary) */
+.element-container:has(.tx-mainnav-anchor) + [data-testid="stLayoutWrapper"] .stButton > button[kind="primary"] {{
     background:
-        linear-gradient(120deg, rgba(226, 234, 246, 0.96), rgba(255, 250, 242, 0.7)) !important;
-    border: 1px solid rgba(90, 122, 168, 0.5) !important;
-    border-left: 4px solid #b38a4e !important;
-    box-shadow:
-        0 1px 0 rgba(255, 255, 255, 0.85) inset,
-        0 6px 16px rgba(52, 72, 98, 0.14) !important;
+        linear-gradient(120deg, rgba(226, 234, 246, 0.98), rgba(255, 250, 242, 0.78)) !important;
+    border: 1px solid rgba(90, 122, 168, 0.45) !important;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.85) inset, 0 3px 9px rgba(52, 72, 98, 0.12) !important;
     color: #1f334d !important;
 }}
 
-.element-container:has(.tx-mainnav-anchor) + .element-container .stButton > button[kind="primary"] p {{
+.element-container:has(.tx-mainnav-anchor) + [data-testid="stLayoutWrapper"] .stButton > button[kind="primary"] p {{
     color: #1f334d !important;
+    font-weight: 650 !important;
 }}
 
-.element-container:has(.tx-mainnav-anchor) + .element-container .stButton > button[kind="primary"] p:not(:first-child) {{
-    color: #3a5170 !important;
-}}
-
-.element-container:has(.tx-mainnav-anchor) + .element-container .stButton > button:focus-visible {{
+.element-container:has(.tx-mainnav-anchor) + [data-testid="stLayoutWrapper"] .stButton > button:focus-visible {{
     outline: 2px solid rgba(90, 122, 168, 0.6) !important;
     outline-offset: 2px !important;
 }}
 
 @media (max-width: 720px) {{
-    .element-container:has(.tx-mainnav-anchor) + .element-container [data-testid="stHorizontalBlock"] {{
-        flex-direction: column !important;
+    .element-container:has(.tx-mainnav-anchor) + [data-testid="stLayoutWrapper"] [data-testid="stHorizontalBlock"] {{
+        max-width: 100% !important;
     }}
-    .element-container:has(.tx-mainnav-anchor) + .element-container [data-testid="column"] {{
-        width: 100% !important;
-        flex: 1 1 100% !important;
+    .element-container:has(.tx-mainnav-anchor) + [data-testid="stLayoutWrapper"] .stButton > button p {{
+        white-space: normal !important;
+        font-size: 0.85rem !important;
     }}
 }}
 
@@ -6528,49 +6514,50 @@ def render_textus_workshop_shell() -> None:
     )
 
     active = st.session_state.get("tw_active_section") or _TW_SECTION_OPTIONS[0]
-    st.subheader(active)
 
-    if active == "Igehely, alkalom és szövegkörnyezet":
-        render_igehely_panel()
-    elif active == "Eredeti szöveg és kulcsszavak":
-        render_original_text_panel()
-    elif active == "Exegézis, műfaj és szerkezet":
-        render_section_tab(
-            key="exegesis",
-            header="Exegézis",
-            basket_label="Exegézis",
-            empty_msg="Még nincs exegézis. Kattints az „Exegetikai háttér feltárása” gombra.",
-            action_label="Exegetikai háttér feltárása",
-        )
-    elif active == "Kortörténeti háttér":
-        render_section_tab(
-            key="history",
-            header="Kortörténet",
-            basket_label="Kortörténet",
-            empty_msg="Még nincs kortörténeti háttér. Kattints a „Kortörténeti háttér feltárása” gombra.",
-            action_label="Kortörténeti háttér feltárása",
-        )
-    elif active == "Teológiai hangsúlyok":
-        render_section_tab(
-            key="theology",
-            header="Teológia",
-            basket_label="Teológia",
-            empty_msg="Még nincs teológiai elemzés. Kattints a „Teológiai összefüggések feltárása” gombra.",
-            action_label="Teológiai összefüggések feltárása",
-        )
-    elif active == "A textus fő gondolata":
-        render_text_main_idea_section(generate_fn=generate_text)
-    elif active == "Mit viszünk tovább?":
-        render_approved_insights_section()
-    else:
-        st.info(
-            "Ez a műhelyszakasz a következő fejlesztési lépésben kapcsolódik "
-            "a meglévő Textus-funkcióhoz."
-        )
+    st.markdown('<div class="tx-workcard-anchor" aria-hidden="true"></div>', unsafe_allow_html=True)
+    with st.container(border=True):
+        if active == "Igehely, alkalom és szövegkörnyezet":
+            render_igehely_panel()
+        elif active == "Eredeti szöveg és kulcsszavak":
+            render_original_text_panel()
+        elif active == "Exegézis, műfaj és szerkezet":
+            render_section_tab(
+                key="exegesis",
+                header="Exegézis",
+                basket_label="Exegézis",
+                empty_msg="Még nincs exegézis. Kattints az „Exegetikai háttér feltárása” gombra.",
+                action_label="Exegetikai háttér feltárása",
+            )
+        elif active == "Kortörténeti háttér":
+            render_section_tab(
+                key="history",
+                header="Kortörténet",
+                basket_label="Kortörténet",
+                empty_msg="Még nincs kortörténeti háttér. Kattints a „Kortörténeti háttér feltárása” gombra.",
+                action_label="Kortörténeti háttér feltárása",
+            )
+        elif active == "Teológiai hangsúlyok":
+            render_section_tab(
+                key="theology",
+                header="Teológia",
+                basket_label="Teológia",
+                empty_msg="Még nincs teológiai elemzés. Kattints a „Teológiai összefüggések feltárása” gombra.",
+                action_label="Teológiai összefüggések feltárása",
+            )
+        elif active == "A textus fő gondolata":
+            render_text_main_idea_section(generate_fn=generate_text)
+        elif active == "Mit viszünk tovább?":
+            render_approved_insights_section()
+        else:
+            st.info(
+                "Ez a műhelyszakasz a következő fejlesztési lépésben kapcsolódik "
+                "a meglévő Textus-funkcióhoz."
+            )
 
-    next_hint = _TW_NEXT_STEP_HINTS.get(active)
-    if next_hint:
-        st.caption(next_hint)
+        next_hint = _TW_NEXT_STEP_HINTS.get(active)
+        if next_hint:
+            st.caption(next_hint)
 
 
 if st.session_state.get("ui_mode") not in ("quick", "workshop", "sermon_workshop"):

@@ -10,7 +10,12 @@ import html
 from typing import Any, Callable
 
 import streamlit as st
-from ui_components import render_empty_state, render_info_panel, render_page_intro
+from ui_components import (
+    render_context_summary,
+    render_empty_state,
+    render_info_panel,
+    render_page_intro,
+)
 
 from bible_text_ui import (
     normalize_passage_text,
@@ -3844,7 +3849,7 @@ def _render_lection_save_approve() -> None:
                 st.success("Vázlatként elmentve.")
     with b2:
         if st.button(
-            "Jóváhagyom és továbbviszem",
+            "Jóváhagyom és átadom",
             type="primary",
             key="sw_lection_approve",
         ):
@@ -4577,7 +4582,7 @@ def render_prayer_section(
                 st.success("Vázlatként elmentve.")
     with b2:
         if st.button(
-            "Jóváhagyom és továbbviszem",
+            "Jóváhagyom és átadom",
             type="primary",
             key="sw_prayer_approve",
         ):
@@ -5636,7 +5641,7 @@ def render_closing_section(
                 st.success("Vázlatként elmentve.")
     with b2:
         if st.button(
-            "Jóváhagyom és továbbviszem",
+            "Jóváhagyom és átadom",
             type="primary",
             key="sw_cl_approve",
         ):
@@ -6111,7 +6116,7 @@ def render_enrichment_section(
             st.success("Vázlatként elmentve.")
     with b2:
         if st.button(
-            "Jóváhagyom és továbbviszem",
+            "Jóváhagyom és átadom",
             type="primary",
             key="sw_en_approve",
         ):
@@ -6306,8 +6311,8 @@ def _prompt_block_to_ui(block: dict[str, Any] | None) -> dict[str, str]:
     return out
 
 
-def _render_shell_input_summary() -> None:
-    """Rövid bemeneti összegzés a shell tetején."""
+def _render_shell_context_summary() -> None:
+    """Kompakt kontextussor (ContextSummary) a shell tetején."""
     tw = ensure_text_workshop_state(st.session_state)
     passage = _session_str("last_igehely", "igehely_input") or "—"
     idea = (tw.get("text_main_idea") or "").strip()
@@ -6321,26 +6326,27 @@ def _render_shell_input_summary() -> None:
     )
 
     if status == "approved" and idea:
-        idea_line = idea
+        idea_line = _diag_shorten(idea, limit=80)
     elif idea:
-        idea_line = f"{idea} *(még nem jóváhagyva)*"
+        idea_line = f"{_diag_shorten(idea, limit=70)} (még nem jóváhagyva)"
     else:
         idea_line = "—"
 
-    st.markdown(
-        f"**Igehely:** {passage}  \n"
-        f"**A textus fő gondolata:** {idea_line}  \n"
-        f"**Jóváhagyott felismerések:** {insight_count}"
-        + (f"  \n**Projekt:** {project_title}" if project_title else "")
-    )
+    items: list[tuple[str, str]] = [
+        ("Igehely", passage),
+        ("A textus fő gondolata", idea_line),
+        ("Jóváhagyott felismerések", str(insight_count)),
+    ]
+    if project_title:
+        items.append(("Projekt", project_title))
+    render_context_summary(items)
 
-    render_bible_text_preview(expanded=False)
 
-    if status != "approved" or not idea:
-        st.info(
-            "A műhely használható, de a homiletikai munka biztosabb alapokon "
-            "áll, ha előbb jóváhagyod a textus fő gondolatát."
-        )
+def _sermon_main_idea_approved() -> bool:
+    tw = ensure_text_workshop_state(st.session_state)
+    idea = (tw.get("text_main_idea") or "").strip()
+    status = (tw.get("text_main_idea_status") or "").strip()
+    return bool(idea and status == "approved")
 
 
 def _render_textus_basis_expander() -> None:
@@ -6915,7 +6921,7 @@ def render_sermon_main_idea_section(
                 st.success("Vázlatként elmentve.")
     with b2:
         if st.button(
-            "Jóváhagyom és továbbviszem",
+            "Jóváhagyom és átadom",
             type="primary",
             key="sw_sermon_idea_approve",
         ):
@@ -7038,7 +7044,7 @@ def render_human_condition_section(
                 st.success("Vázlatként elmentve.")
     with b2:
         if st.button(
-            "Jóváhagyom és továbbviszem",
+            "Jóváhagyom és átadom",
             type="primary",
             key="sw_hc_approve",
         ):
@@ -7456,7 +7462,7 @@ def render_listener_tension_section(
                 st.success("Vázlatként elmentve.")
     with b2:
         if st.button(
-            "Jóváhagyom és továbbviszem",
+            "Jóváhagyom és átadom",
             type="primary",
             key="sw_lt_approve",
         ):
@@ -7979,7 +7985,7 @@ def render_gospel_arc_section(
                 st.success("Vázlatként elmentve.")
     with b2:
         if st.button(
-            "Jóváhagyom és továbbviszem",
+            "Jóváhagyom és átadom",
             type="primary",
             key="sw_ga_approve",
         ):
@@ -8680,7 +8686,7 @@ def render_sermon_path_section(
                 st.success("Vázlatként elmentve.")
     with b2:
         if st.button(
-            "Jóváhagyom és továbbviszem",
+            "Jóváhagyom és átadom",
             type="primary",
             key="sw_path_approve",
         ):
@@ -8916,7 +8922,7 @@ def render_sermon_workshop_shell(
         ),
     )
 
-    _render_shell_input_summary()
+    _render_shell_context_summary()
 
     if st.session_state.get(_KEY_ACTIVE_SECTION) not in _SW_SECTION_OPTIONS:
         legacy = str(st.session_state.get(_KEY_ACTIVE_SECTION) or "")
@@ -8938,59 +8944,76 @@ def render_sermon_workshop_shell(
     )
 
     active = st.session_state.get(_KEY_ACTIVE_SECTION) or _SW_SECTION_OPTIONS[0]
-    if active == "Az igehirdetés fő gondolata":
-        render_sermon_main_idea_section(generate_fn=generate_fn)
-    elif active == "Emberi helyzet és kegyelmi válasz":
-        render_human_condition_section(generate_fn=generate_fn)
-    elif active == "Hallgatói kérdés és feszültség":
-        render_listener_tension_section(generate_fn=generate_fn)
-    elif active == "Krisztus-központú és evangéliumi ív":
-        render_gospel_arc_section(generate_fn=generate_fn)
-    elif active == "Az igehirdetés útja és mozgásai":
-        render_sermon_path_section(generate_fn=generate_fn)
-    elif active in (
-        "Illusztrációk és aktualizálás",
-        "Képek, illusztrációk és alkalmazás",
-    ):
-        render_enrichment_section(generate_fn=generate_fn)
-    elif active == "Lezárás és megérkezés":
-        render_closing_section(generate_fn=generate_fn)
-    elif active == "Lekciójavaslat":
-        render_lection_section(generate_fn=generate_fn)
-    elif active == "Imádsági előkészítés":
-        render_prayer_section(generate_fn=generate_fn)
-    elif active == "Igehirdetési vázlat":
-        render_outline_section(generate_fn=generate_fn)
-    elif active == "Homiletikai diagnosztika":
-        render_diagnostics_section(generate_fn=generate_fn)
-    else:
-        _render_section_placeholder(active)
 
-    if active not in (
-        "Az igehirdetés fő gondolata",
-        "Emberi helyzet és kegyelmi válasz",
-        "Hallgatói kérdés és feszültség",
-        "Krisztus-központú és evangéliumi ív",
-        "Az igehirdetés útja és mozgásai",
-        "Illusztrációk és aktualizálás",
-        "Képek, illusztrációk és alkalmazás",
-        "Lezárás és megérkezés",
-        "Lekciójavaslat",
-        "Imádsági előkészítés",
-        "Igehirdetési vázlat",
-        "Homiletikai diagnosztika",
-    ):
-        next_hint = _SW_NEXT_HINTS.get(active)
-        if next_hint:
-            st.caption(next_hint)
-    elif active == "Az igehirdetés fő gondolata":
-        st.caption(_SW_NEXT_HINTS[active])
-    elif active == "Lekciójavaslat":
-        st.caption(_SW_NEXT_HINTS[active])
-    elif active == "Imádsági előkészítés":
-        st.caption(_SW_NEXT_HINTS[active])
-    elif active == "Igehirdetési vázlat":
-        st.caption(_SW_NEXT_HINTS[active])
+    st.markdown('<div class="tx-workcard-anchor" aria-hidden="true"></div>', unsafe_allow_html=True)
+    with st.container(border=True):
+        # Egyetlen, releváns figyelmeztetés a kapcsolódó munkarész fölött.
+        if not _sermon_main_idea_approved():
+            render_info_panel(
+                title="A textus fő gondolata még nincs jóváhagyva",
+                body=(
+                    "A műhely most is használható; a homiletikai munka biztosabb "
+                    "alapokon áll, ha előbb jóváhagyod a fő gondolatot a "
+                    "Textusműhelyben."
+                ),
+                tone="info",
+            )
+
+        # A bibliai szöveg a munkakártya szerkezetében, nem külön lebegve.
+        render_bible_text_preview(expanded=False)
+
+        if active == "Az igehirdetés fő gondolata":
+            render_sermon_main_idea_section(generate_fn=generate_fn)
+        elif active == "Emberi helyzet és kegyelmi válasz":
+            render_human_condition_section(generate_fn=generate_fn)
+        elif active == "Hallgatói kérdés és feszültség":
+            render_listener_tension_section(generate_fn=generate_fn)
+        elif active == "Krisztus-központú és evangéliumi ív":
+            render_gospel_arc_section(generate_fn=generate_fn)
+        elif active == "Az igehirdetés útja és mozgásai":
+            render_sermon_path_section(generate_fn=generate_fn)
+        elif active in (
+            "Illusztrációk és aktualizálás",
+            "Képek, illusztrációk és alkalmazás",
+        ):
+            render_enrichment_section(generate_fn=generate_fn)
+        elif active == "Lezárás és megérkezés":
+            render_closing_section(generate_fn=generate_fn)
+        elif active == "Lekciójavaslat":
+            render_lection_section(generate_fn=generate_fn)
+        elif active == "Imádsági előkészítés":
+            render_prayer_section(generate_fn=generate_fn)
+        elif active == "Igehirdetési vázlat":
+            render_outline_section(generate_fn=generate_fn)
+        elif active == "Homiletikai diagnosztika":
+            render_diagnostics_section(generate_fn=generate_fn)
+        else:
+            _render_section_placeholder(active)
+
+        if active not in (
+            "Az igehirdetés fő gondolata",
+            "Emberi helyzet és kegyelmi válasz",
+            "Hallgatói kérdés és feszültség",
+            "Krisztus-központú és evangéliumi ív",
+            "Az igehirdetés útja és mozgásai",
+            "Illusztrációk és aktualizálás",
+            "Képek, illusztrációk és alkalmazás",
+            "Lezárás és megérkezés",
+            "Lekciójavaslat",
+            "Imádsági előkészítés",
+            "Igehirdetési vázlat",
+            "Homiletikai diagnosztika",
+        ):
+            next_hint = _SW_NEXT_HINTS.get(active)
+            if next_hint:
+                st.caption(next_hint)
+        elif active in (
+            "Az igehirdetés fő gondolata",
+            "Lekciójavaslat",
+            "Imádsági előkészítés",
+            "Igehirdetési vázlat",
+        ):
+            st.caption(_SW_NEXT_HINTS[active])
 
 
 __all__ = [
