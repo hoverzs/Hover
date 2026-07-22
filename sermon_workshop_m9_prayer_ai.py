@@ -793,8 +793,10 @@ def _call_prayer_generate(
     try:
         return generate_fn(
             prompt,
-            system_instruction=None,
+            enable_google_search=False,
             tab_label=TAB_PRAYER,
+            use_cache=False,
+            include_brevity_directive=False,
         )
     finally:
         if touched_temp:

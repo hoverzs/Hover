@@ -654,7 +654,9 @@ Teológia: {{theology}}
   "missing_information": []
 }
 
-Az `alternative_lections` legfeljebb 3 elem.
+Az `alternative_lections` listában adj 2–3 valódi alternatívát
+(legfeljebb 3 elem). Ha nincs különálló lekció indokolt, hagyd üresen,
+és állítsd `no_separate_lection_needed`-et true-ra.
 """
 
 
@@ -755,8 +757,10 @@ def _call_lection_generate(
     try:
         return generate_fn(
             prompt,
-            system_instruction=None,
+            enable_google_search=False,
             tab_label=tab_label,
+            use_cache=False,
+            include_brevity_directive=False,
         )
     finally:
         if touched_temp:

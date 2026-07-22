@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import sys
 from pathlib import Path
+from typing import Any
 
 import pytest
 import streamlit as st
@@ -277,6 +278,98 @@ def test_save_reload_and_project_switch(session):
     assert other["lection"]["reference"] == ""
     assert other["lection"]["connection_type"] == ""
     assert other["lection"]["user_focus"] == ""
+
+
+def test_suggest_generate_fn_matches_app_signature(session):
+    """generate_text nem fogad system_instruction-t — a hívás kompatibilis legyen."""
+    seen: dict[str, Any] = {}
+
+    def fake_generate(
+        prompt,
+        enable_google_search: bool = False,
+        *,
+        tab_label: str = "unknown",
+        use_cache: bool = True,
+        system_bundle: str | None = None,
+        include_brevity_directive: bool = True,
+        truncation_message: str | None = None,
+        truncation_notice_mode: str = "always",
+        incomplete_response_message: str | None = None,
+        **kwargs,
+    ):
+        if "system_instruction" in kwargs:
+            raise TypeError(
+                "generate_text() got an unexpected keyword argument "
+                "'system_instruction'"
+            )
+        seen["tab_label"] = tab_label
+        seen["prompt"] = prompt
+        return json.dumps(_lection_suggest_payload(), ensure_ascii=False)
+
+    # Üres lection_user_focus — a munkafolyamat alapján is kell javaslat
+    result = suggest_lections(
+        passage="Júd 17–20",
+        passage_text="17 Ti pedig…",
+        sermon_main_idea="Isten megtartja népét.",
+        sermon_main_idea_status="approved",
+        text_main_idea="Őrizzétek magatokat Isten szeretetében.",
+        text_main_idea_status="approved",
+        lection_user_focus="",
+        generate_fn=fake_generate,
+    )
+    assert result.ok
+    assert seen.get("tab_label") == "Lekciójavaslat"
+    assert result.recommended_lection.reference == "Jn 15,1–11"
+    assert len(result.alternative_lections) >= 0
+
+
+def test_suggest_returns_alternatives(session):
+    payload = _lection_suggest_payload()
+    payload["alternative_lections"] = [
+        {
+            "reference": "Fil 2,1–11",
+            "connection_type": "thematic",
+            "rationale": "a",
+            "liturgical_function": "b",
+            "estimated_length": "standard",
+            "warnings": [],
+        },
+        {
+            "reference": "Zsolt 23",
+            "connection_type": "liturgical_echo",
+            "rationale": "c",
+            "liturgical_function": "d",
+            "estimated_length": "short",
+            "warnings": [],
+        },
+        {
+            "reference": "Ézs 40,1–11",
+            "connection_type": "preparatory",
+            "rationale": "e",
+            "liturgical_function": "f",
+            "estimated_length": "standard",
+            "warnings": [],
+        },
+    ]
+    result = suggest_lections(
+        passage="Júd 17–20",
+        passage_text="17 Ti pedig…",
+        sermon_main_idea="Isten megtartja népét.",
+        sermon_main_idea_status="approved",
+        text_main_idea="Őrizzétek magatokat.",
+        text_main_idea_status="approved",
+        lection_user_focus="",
+        generate_fn=stub_json(payload),
+    )
+    assert result.ok
+    assert len(result.alternative_lections) == 3
+    assert "2–3" in (ROOT / "sermon_workshop_m9_lection_ai.py").read_text(
+        encoding="utf-8"
+    )
+    ui = (ROOT / "sermon_workshop_ui.py").read_text(encoding="utf-8")
+    assert 'expanded=True' in ui[
+        ui.find("További javaslatok") : ui.find("További javaslatok") + 200
+    ]
 
 
 def test_old_project_normalize_keeps_lection_fields():
