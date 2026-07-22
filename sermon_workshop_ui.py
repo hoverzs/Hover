@@ -51,11 +51,14 @@ from sermon_workshop_data import (
     save_sermon_enrichment_suggestions,
     save_sermon_main_idea_assessment,
     save_sermon_main_idea_suggestions,
+    save_sermon_outline,
+    save_sermon_outline_diagnostics,
     save_sermon_path_assessment,
     save_sermon_path_suggestions,
     update_sermon_workshop_section,
     normalize_prayer_rewrite_mode,
     normalize_prayer_tone_preference,
+    normalize_sermon_outline,
 )
 from sermon_workshop_m4_ai import (
     HumanConditionAssessmentResult,
@@ -181,6 +184,19 @@ from sermon_workshop_m9_prayer_ai import (
     suggest_prayer_after,
     suggest_prayer_before,
 )
+from sermon_workshop_outline_ai import (
+    MISSING_PART,
+    assemble_sermon_outline,
+    outline_has_content,
+    outline_part_display,
+)
+from sermon_outline_diagnostics_ai import (
+    MAX_REFINEMENTS,
+    MAX_STRENGTHS,
+    OutlineDiagnosticsResult,
+    adapt_m8_to_outline_diagnostics,
+    run_outline_diagnostics,
+)
 from textus_workshop_data import ensure_text_workshop_state
 
 GenerateFn = Callable[..., str]
@@ -193,9 +209,10 @@ _SW_SECTION_OPTIONS = [
     "Az igehirdetés útja és mozgásai",
     "Képek, illusztrációk és alkalmazás",
     "Lezárás és megérkezés",
-    "Homiletikai diagnosztika",
     "Lekciójavaslat",
     "Imádsági előkészítés",
+    "Igehirdetési vázlat",
+    "Homiletikai diagnosztika",
 ]
 
 _SW_SECTION_PLACEHOLDERS: dict[str, dict[str, str]] = {}
@@ -220,13 +237,16 @@ _SW_NEXT_HINTS: dict[str, str] = {
         "Következő ajánlott lépés: Lezárás és megérkezés"
     ),
     "Lezárás és megérkezés": (
-        "Következő ajánlott lépés: Homiletikai diagnosztika"
-    ),
-    "Homiletikai diagnosztika": (
         "Következő ajánlott lépés: Lekciójavaslat"
     ),
     "Lekciójavaslat": (
         "Következő ajánlott lépés: Imádsági előkészítés"
+    ),
+    "Imádsági előkészítés": (
+        "Következő ajánlott lépés: Igehirdetési vázlat"
+    ),
+    "Igehirdetési vázlat": (
+        "Következő ajánlott lépés: Homiletikai diagnosztika"
     ),
 }
 
@@ -244,6 +264,7 @@ _SOURCE_ENRICHMENT = "Képek, illusztrációk és alkalmazás"
 _SOURCE_CLOSING = "Lezárás és megérkezés"
 _SOURCE_LECTION = "Lekciójavaslat"
 _SOURCE_PRAYER = "Imádsági előkészítés"
+_SOURCE_OUTLINE = "Igehirdetési vázlat"
 _CAT_MAIN_IDEA = "Fő gondolat"
 
 _HC_FIELDS = [
@@ -488,6 +509,47 @@ _KEY_PRAYER_AFTER = {
     "selected_lines": "sw_prayer_after_selected_lines",
     "closing_direction": "sw_prayer_after_closing_direction",
 }
+_KEY_OUTLINE = {
+    "main_idea": "sw_outline_main_idea",
+    "main_idea_summary": "sw_outline_main_idea_summary",
+    "listener_question": "sw_outline_listener_question",
+    "central_tension": "sw_outline_central_tension",
+    "listener_resistance": "sw_outline_listener_resistance",
+    "divine_gracious_action": "sw_outline_divine_action",
+    "christ_connection": "sw_outline_christ_connection",
+    "christ_connection_type_label": "sw_outline_christ_type",
+    "gospel_resolution": "sw_outline_gospel_resolution",
+    "grace_enabled_response": "sw_outline_grace_response",
+    "opening_direction": "sw_outline_opening",
+    "manual_notes": "sw_outline_manual_notes",
+}
+_KEY_OUTLINE_CLOSING = {
+    "final_insight": "sw_outline_closing_final",
+    "gospel_assurance": "sw_outline_closing_hope",
+    "invitation": "sw_outline_closing_invitation",
+    "image_or_line": "sw_outline_closing_image",
+    "open_question": "sw_outline_closing_question",
+    "tone_label": "sw_outline_closing_tone",
+}
+_KEY_OUTLINE_LECTION = {
+    "reference": "sw_outline_lection_ref",
+    "function": "sw_outline_lection_function",
+    "rationale": "sw_outline_lection_rationale",
+}
+_KEY_OUTLINE_PRAYER_BEFORE = {
+    "own_thoughts": "sw_outline_prayer_before_own",
+    "selected_opening": "sw_outline_prayer_before_opening",
+    "selected_lines": "sw_outline_prayer_before_lines",
+    "closing_direction": "sw_outline_prayer_before_closing",
+}
+_KEY_OUTLINE_PRAYER_AFTER = {
+    "own_thoughts": "sw_outline_prayer_after_own",
+    "selected_opening": "sw_outline_prayer_after_opening",
+    "selected_lines": "sw_outline_prayer_after_lines",
+    "closing_direction": "sw_outline_prayer_after_closing",
+}
+_OUTLINE_MV_PREFIX = "sw_outline_mv_"
+_CONFIRM_OUTLINE_OVERWRITE = "_sw_outline_confirm_overwrite"
 DEFAULT_PRAYER_TONE_UI = "mixed"
 DEFAULT_PRAYER_REWRITE_UI = "integrate_into_arc"
 _CL_FIELDS = (
@@ -1392,6 +1454,67 @@ def _apply_sw_ui_resync_if_needed() -> None:
                 else:
                     st.session_state[wkey] = str(side_data.get(field) or "")
 
+    outline = normalize_sermon_outline(sw.get("sermon_outline"))
+    for field, wkey in _KEY_OUTLINE.items():
+        if force or wkey not in st.session_state:
+            st.session_state[wkey] = str(outline.get(field) or "")
+    closing_o = outline.get("closing") if isinstance(outline.get("closing"), dict) else {}
+    for field, wkey in _KEY_OUTLINE_CLOSING.items():
+        if force or wkey not in st.session_state:
+            st.session_state[wkey] = str(closing_o.get(field) or "")
+    lection_o = outline.get("lection") if isinstance(outline.get("lection"), dict) else {}
+    for field, wkey in _KEY_OUTLINE_LECTION.items():
+        if force or wkey not in st.session_state:
+            st.session_state[wkey] = str(lection_o.get(field) or "")
+    for side_key, key_map in (
+        ("prayer_before", _KEY_OUTLINE_PRAYER_BEFORE),
+        ("prayer_after", _KEY_OUTLINE_PRAYER_AFTER),
+    ):
+        side = outline.get(side_key) if isinstance(outline.get(side_key), dict) else {}
+        for field, wkey in key_map.items():
+            if force or wkey not in st.session_state:
+                if field == "selected_lines":
+                    lines = side.get("selected_lines")
+                    if isinstance(lines, list):
+                        st.session_state[wkey] = "\n".join(
+                            str(x).strip() for x in lines if str(x).strip()
+                        )
+                    else:
+                        st.session_state[wkey] = str(lines or "")
+                else:
+                    st.session_state[wkey] = str(side.get(field) or "")
+    movements_o = outline.get("movements") if isinstance(outline.get("movements"), list) else []
+    if force:
+        for key in list(st.session_state.keys()):
+            if isinstance(key, str) and key.startswith(_OUTLINE_MV_PREFIX):
+                st.session_state.pop(key, None)
+    for mv in movements_o:
+        if not isinstance(mv, dict):
+            continue
+        mid = str(mv.get("id") or "")
+        if not mid:
+            continue
+        for field in (
+            "title",
+            "role_label",
+            "textual_basis",
+            "core_content",
+            "listener_discovery",
+            "transition",
+            "images",
+            "illustrations",
+            "applications",
+        ):
+            wkey = f"{_OUTLINE_MV_PREFIX}{mid}_{field}"
+            if force or wkey not in st.session_state:
+                val = mv.get(field)
+                if isinstance(val, list):
+                    st.session_state[wkey] = "\n".join(
+                        str(x).strip() for x in val if str(x).strip()
+                    )
+                else:
+                    st.session_state[wkey] = str(val or "")
+
 
 def _request_adopt_sermon_sentence(sentence: str) -> None:
     st.session_state[_ADOPT_SERMON_PENDING] = str(sentence or "").strip()
@@ -1859,6 +1982,142 @@ def _persist_self_review_from_widgets() -> None:
         update_sermon_workshop_section(st.session_state, field, value)
 
 
+def _outline_mv_widget_key(mid: str, field: str) -> str:
+    return f"{_OUTLINE_MV_PREFIX}{mid}_{field}"
+
+
+def _read_outline_from_widgets() -> dict[str, Any]:
+    sw = ensure_sermon_workshop_state(st.session_state)
+    base = normalize_sermon_outline(sw.get("sermon_outline"))
+    out = dict(base)
+    for field, wkey in _KEY_OUTLINE.items():
+        if wkey in st.session_state:
+            out[field] = (st.session_state.get(wkey) or "").strip()
+    closing = dict(out.get("closing") or {})
+    for field, wkey in _KEY_OUTLINE_CLOSING.items():
+        if wkey in st.session_state:
+            closing[field] = (st.session_state.get(wkey) or "").strip()
+    out["closing"] = closing
+    lection = dict(out.get("lection") or {})
+    for field, wkey in _KEY_OUTLINE_LECTION.items():
+        if wkey in st.session_state:
+            lection[field] = (st.session_state.get(wkey) or "").strip()
+    out["lection"] = lection
+    out["lection_reference"] = str(lection.get("reference") or "")
+    for side_key, key_map in (
+        ("prayer_before", _KEY_OUTLINE_PRAYER_BEFORE),
+        ("prayer_after", _KEY_OUTLINE_PRAYER_AFTER),
+    ):
+        side = dict(out.get(side_key) or {})
+        for field, wkey in key_map.items():
+            if wkey not in st.session_state:
+                continue
+            raw = st.session_state.get(wkey) or ""
+            if field == "selected_lines":
+                side[field] = [
+                    line.strip()
+                    for line in str(raw).splitlines()
+                    if line.strip()
+                ]
+            else:
+                side[field] = str(raw).strip()
+        out[side_key] = side
+    movements: list[dict[str, Any]] = []
+    for mv in out.get("movements") or []:
+        if not isinstance(mv, dict):
+            continue
+        mid = str(mv.get("id") or "")
+        item = dict(mv)
+        if mid:
+            for field in (
+                "title",
+                "role_label",
+                "textual_basis",
+                "core_content",
+                "listener_discovery",
+                "transition",
+            ):
+                wkey = _outline_mv_widget_key(mid, field)
+                if wkey in st.session_state:
+                    item[field] = (st.session_state.get(wkey) or "").strip()
+            for field in ("images", "illustrations", "applications"):
+                wkey = _outline_mv_widget_key(mid, field)
+                if wkey in st.session_state:
+                    item[field] = [
+                        line.strip()
+                        for line in str(st.session_state.get(wkey) or "").splitlines()
+                        if line.strip()
+                    ]
+        movements.append(item)
+    out["movements"] = movements
+    return normalize_sermon_outline(out)
+
+
+def _persist_outline_from_widgets(*, mark_manual_edit: bool = True) -> None:
+    outline = _read_outline_from_widgets()
+    save_sermon_outline(
+        st.session_state,
+        outline,
+        stamp_generated_at=False,
+        mark_manual_edit=mark_manual_edit,
+    )
+
+
+def _collect_outline_diagnostics_kwargs() -> dict[str, Any]:
+    base = _collect_closing_kwargs()
+    sw = ensure_sermon_workshop_state(st.session_state)
+    base["sermon_outline"] = normalize_sermon_outline(sw.get("sermon_outline"))
+    return base
+
+
+def _outline_diagnostics_payload(result: OutlineDiagnosticsResult) -> dict[str, Any]:
+    return result.to_dict()
+
+
+def _run_outline_homiletical_diagnostics(*, generate_fn: GenerateFn | None) -> None:
+    sw = ensure_sermon_workshop_state(st.session_state)
+    outline = normalize_sermon_outline(sw.get("sermon_outline"))
+    if not outline_has_content(outline):
+        st.warning("Előbb állítsd össze az igehirdetési vázlatot.")
+        return
+    with st.spinner("A vázlat homiletikai ellenőrzése…"):
+        kwargs = _collect_outline_diagnostics_kwargs()
+        # Snapshot before run — diagnosztika nem módosíthatja a vázlatot.
+        outline_before = dict(outline)
+        main_idea_before = str(sw.get("sermon_main_idea") or "")
+        result = run_outline_diagnostics(**kwargs, generate_fn=generate_fn)
+        if result.missing_outline:
+            st.warning(result.error_message or "Előbb állítsd össze az igehirdetési vázlatot.")
+            return
+        if result.ok and (result.overview or result.strengths or result.refinements):
+            save_sermon_outline_diagnostics(
+                st.session_state, _outline_diagnostics_payload(result)
+            )
+        # Védelem: ne írjunk vissza forrásmezőket / vázlatot
+        sw_after = ensure_sermon_workshop_state(st.session_state)
+        sw_after["sermon_outline"] = normalize_sermon_outline(outline_before)
+        sw_after["sermon_main_idea"] = main_idea_before
+        if not result.ok:
+            st.error(
+                _user_facing_error(
+                    result.ok,
+                    result.error_message,
+                    fallback="A vázlatdiagnosztika nem sikerült.",
+                )
+            )
+        else:
+            st.success("Vázlatellenőrzés elkészült.")
+
+
+def _run_homiletical_diagnostics(*, generate_fn: GenerateFn | None) -> None:
+    """Kompatibilitási alias — a fő folyamat a vázlatdiagnosztika."""
+    _run_outline_homiletical_diagnostics(generate_fn=generate_fn)
+
+
+def _diagnostics_payload(result: HomileticalDiagnosticsResult) -> dict[str, Any]:
+    return result.to_dict()
+
+
 def _collect_diagnostics_kwargs() -> dict[str, Any]:
     """Sessionből M8 diagnosztika MI-bemenet (M4–M7 + lezárás + önellenőrzés)."""
     base = _collect_closing_kwargs()
@@ -1867,38 +2126,65 @@ def _collect_diagnostics_kwargs() -> dict[str, Any]:
     return base
 
 
-def _diagnostics_payload(result: HomileticalDiagnosticsResult) -> dict[str, Any]:
-    return result.to_dict()
-
-
-def _run_homiletical_diagnostics(*, generate_fn: GenerateFn | None) -> None:
-    _persist_self_review_from_widgets()
-    with st.spinner("Homiletikai diagnosztika készül…"):
-        kwargs = _collect_diagnostics_kwargs()
-        result = run_homiletical_diagnostics(**kwargs, generate_fn=generate_fn)
-        if result.ok and (
-            result.overall_summary
-            or result.revision_priorities
-            or any(a.summary for a in result.diagnostic_areas)
-        ):
-            save_homiletical_diagnostics(
-                st.session_state, _diagnostics_payload(result)
-            )
+def _assemble_and_save_outline(
+    *,
+    generate_fn: GenerateFn | None,
+    force_overwrite: bool,
+) -> None:
+    with st.spinner("Igehirdetési vázlat összeállítása…"):
+        result = assemble_sermon_outline(
+            st.session_state,
+            generate_fn=generate_fn,
+            force_overwrite=force_overwrite,
+            polish=False,
+        )
         if not result.ok:
-            st.error(
-                _user_facing_error(
-                    result.ok,
-                    result.error_message,
-                    fallback="A diagnosztika nem sikerült.",
-                )
-            )
-        elif result.missing_information and not result.overall_summary:
-            st.warning(
-                "Nincs elegendő adat a felelős diagnosztikához. Hiányzik: "
-                + "; ".join(result.missing_information)
-            )
-        else:
-            st.success("Diagnosztika elkészült.")
+            st.warning(result.error_message or "A vázlat összeállítása nem sikerült.")
+            st.session_state[_CONFIRM_OUTLINE_OVERWRITE] = True
+            return
+        save_sermon_outline(st.session_state, result.outline, mark_manual_edit=False)
+        st.session_state[_CONFIRM_OUTLINE_OVERWRITE] = False
+        st.session_state[_RESYNC_FLAG] = True
+        for w in result.warnings:
+            st.caption(w)
+        st.success("A vázlat elkészült.")
+        st.rerun()
+
+
+def _diag_view_model_simplified(diag: dict[str, Any]) -> dict[str, Any]:
+    """Egyszerűsített diagnosztikai nézet — vázlatdiagnosztika vagy M8 adapter."""
+    if not isinstance(diag, dict) or not diag:
+        return {
+            "overview": "",
+            "strengths": [],
+            "refinements": [],
+            "ready_to_use": False,
+            "next_step": "",
+            "detailed_notes": [],
+            "warnings": [],
+        }
+    # Új séma
+    if "overview" in diag or "refinements" in diag or "strengths" in diag:
+        return {
+            "overview": str(diag.get("overview") or "").strip(),
+            "strengths": [
+                str(x).strip() for x in (diag.get("strengths") or []) if str(x).strip()
+            ][:MAX_STRENGTHS],
+            "refinements": list(diag.get("refinements") or [])[:MAX_REFINEMENTS],
+            "ready_to_use": bool(diag.get("ready_to_use")),
+            "next_step": str(diag.get("next_step") or "").strip(),
+            "detailed_notes": [
+                str(x).strip()
+                for x in (diag.get("detailed_notes") or [])
+                if str(x).strip()
+            ],
+            "warnings": [
+                str(x).strip() for x in (diag.get("warnings") or []) if str(x).strip()
+            ],
+        }
+    # Régi M8 séma a diagnostics.result alatt
+    adapted = adapt_m8_to_outline_diagnostics(diag)
+    return adapted.to_dict()
 
 
 _DIAG_STATUS_COLORS: dict[str, str] = {
@@ -2413,25 +2699,443 @@ def _render_diag_details(view: dict[str, Any]) -> None:
             )
 
 
+def _render_outline_basics(outline: dict[str, Any]) -> None:
+    st.markdown("**Alapadatok**")
+    rows = [
+        ("Projekt", outline.get("project_title")),
+        ("Textus", outline.get("passage_reference")),
+        ("Fordítás", outline.get("bible_translation")),
+        ("Lekció", outline.get("lection_reference")),
+        ("Lekciófordítás", outline.get("lection_translation")),
+        ("Cím", outline.get("sermon_title")),
+    ]
+    for label, value in rows:
+        text = str(value or "").strip()
+        if text:
+            st.markdown(f"- **{label}:** {text}")
+    if not any(str(v or "").strip() for _, v in rows):
+        st.caption(MISSING_PART)
+
+
+def _render_outline_editor() -> None:
+    sw = ensure_sermon_workshop_state(st.session_state)
+    outline = normalize_sermon_outline(sw.get("sermon_outline"))
+    if not outline_has_content(outline):
+        st.info("Még nincs összeállított vázlat.")
+        return
+
+    _render_outline_basics(outline)
+
+    st.markdown("**Az igehirdetés fő gondolata**")
+    st.text_area("Fő gondolat", key=_KEY_OUTLINE["main_idea"], height=90)
+    st.text_area(
+        "Rövid kifejtés (opcionális)",
+        key=_KEY_OUTLINE["main_idea_summary"],
+        height=70,
+    )
+
+    st.markdown("**Hallgatói kérdés és központi feszültség**")
+    st.text_area("Hallgatói kérdés", key=_KEY_OUTLINE["listener_question"], height=70)
+    st.text_area("Központi feszültség", key=_KEY_OUTLINE["central_tension"], height=70)
+    st.text_area(
+        "Hallgatói ellenállás (röviden)",
+        key=_KEY_OUTLINE["listener_resistance"],
+        height=60,
+    )
+
+    st.markdown("**Isten kegyelmi cselekvése és az evangéliumi fordulat**")
+    st.text_area(
+        "Isten kegyelmi cselekvése",
+        key=_KEY_OUTLINE["divine_gracious_action"],
+        height=70,
+    )
+    st.text_area("Krisztus-kapcsolat", key=_KEY_OUTLINE["christ_connection"], height=70)
+    st.text_input(
+        "Kapcsolattípus",
+        key=_KEY_OUTLINE["christ_connection_type_label"],
+    )
+    st.text_area(
+        "Evangéliumi feloldás",
+        key=_KEY_OUTLINE["gospel_resolution"],
+        height=70,
+    )
+    st.text_area(
+        "Kegyelemből fakadó válasz",
+        key=_KEY_OUTLINE["grace_enabled_response"],
+        height=70,
+    )
+
+    st.markdown("**Bevezetési irány**")
+    st.text_area(
+        "Bevezetési irány",
+        key=_KEY_OUTLINE["opening_direction"],
+        height=80,
+        label_visibility="collapsed",
+    )
+
+    st.markdown("**Prédikációs mozgások**")
+    movements = outline.get("movements") if isinstance(outline.get("movements"), list) else []
+    if not movements:
+        st.caption(MISSING_PART)
+    for idx, mv in enumerate(movements, start=1):
+        if not isinstance(mv, dict):
+            continue
+        mid = str(mv.get("id") or f"mv{idx}")
+        title = str(mv.get("title") or f"{idx}. mozgás").strip()
+        role = str(mv.get("role_label") or "").strip()
+        label = f"{idx}. {title}" + (f" — {role}" if role else "")
+        with st.expander(label, expanded=False):
+            st.text_input("Cím", key=_outline_mv_widget_key(mid, "title"))
+            st.text_input("Funkció", key=_outline_mv_widget_key(mid, "role_label"))
+            st.text_area(
+                "Textusbeli alap",
+                key=_outline_mv_widget_key(mid, "textual_basis"),
+                height=60,
+            )
+            st.text_area(
+                "Központi tartalom",
+                key=_outline_mv_widget_key(mid, "core_content"),
+                height=80,
+            )
+            st.text_area(
+                "Hallgatói felismerés",
+                key=_outline_mv_widget_key(mid, "listener_discovery"),
+                height=60,
+            )
+            st.text_area(
+                "Átmenet",
+                key=_outline_mv_widget_key(mid, "transition"),
+                height=60,
+            )
+            st.text_area(
+                "Kapcsolódó képek (soronként)",
+                key=_outline_mv_widget_key(mid, "images"),
+                height=50,
+            )
+            st.text_area(
+                "Kapcsolódó illusztrációk (soronként)",
+                key=_outline_mv_widget_key(mid, "illustrations"),
+                height=50,
+            )
+            st.text_area(
+                "Kapcsolódó alkalmazások (soronként)",
+                key=_outline_mv_widget_key(mid, "applications"),
+                height=50,
+            )
+
+    extra = outline.get("extra_enrichment") if isinstance(outline.get("extra_enrichment"), dict) else {}
+    if any(
+        isinstance(extra.get(k), list) and any(str(x).strip() for x in extra.get(k) or [])
+        for k in ("images", "illustrations", "applications")
+    ):
+        with st.expander("További felhasználható elemek", expanded=False):
+            for label, key in (
+                ("Képek", "images"),
+                ("Illusztrációk", "illustrations"),
+                ("Alkalmazások", "applications"),
+            ):
+                items = [str(x).strip() for x in (extra.get(key) or []) if str(x).strip()]
+                if items:
+                    st.markdown(f"**{label}**")
+                    for item in items:
+                        st.markdown(f"- {item}")
+
+    st.markdown("**Lezárás és megérkezés**")
+    st.text_area("Végső felismerés", key=_KEY_OUTLINE_CLOSING["final_insight"], height=70)
+    st.text_area(
+        "Evangéliumi bizonyosság",
+        key=_KEY_OUTLINE_CLOSING["gospel_assurance"],
+        height=70,
+    )
+    st.text_area(
+        "Kegyelemből fakadó meghívás",
+        key=_KEY_OUTLINE_CLOSING["invitation"],
+        height=60,
+    )
+    st.text_area(
+        "Záró kép vagy mondatmag",
+        key=_KEY_OUTLINE_CLOSING["image_or_line"],
+        height=50,
+    )
+    st.text_area(
+        "Nyitott kérdés",
+        key=_KEY_OUTLINE_CLOSING["open_question"],
+        height=50,
+    )
+    st.text_input("Hangnem", key=_KEY_OUTLINE_CLOSING["tone_label"])
+
+    st.markdown("**Lekció**")
+    st.text_input("Igehely", key=_KEY_OUTLINE_LECTION["reference"])
+    st.text_area("Funkció", key=_KEY_OUTLINE_LECTION["function"], height=50)
+    st.text_area("Indoklás", key=_KEY_OUTLINE_LECTION["rationale"], height=50)
+
+    with st.expander("Igehirdetés előtti imádság — megtartott gondolatok", expanded=False):
+        before = outline.get("prayer_before") if isinstance(outline.get("prayer_before"), dict) else {}
+        notes = before.get("movements") if isinstance(before.get("movements"), list) else []
+        if notes:
+            st.caption("Imaív: " + "; ".join(str(x) for x in notes if str(x).strip()))
+        st.text_area(
+            "Saját gondolatok",
+            key=_KEY_OUTLINE_PRAYER_BEFORE["own_thoughts"],
+            height=70,
+        )
+        st.text_area(
+            "Átvett imaindítás",
+            key=_KEY_OUTLINE_PRAYER_BEFORE["selected_opening"],
+            height=50,
+        )
+        st.text_area(
+            "Átvett mondatmagok (soronként)",
+            key=_KEY_OUTLINE_PRAYER_BEFORE["selected_lines"],
+            height=70,
+        )
+        st.text_area(
+            "Záró irány",
+            key=_KEY_OUTLINE_PRAYER_BEFORE["closing_direction"],
+            height=50,
+        )
+
+    with st.expander("Igehirdetés utáni imádság — megtartott gondolatok", expanded=False):
+        after = outline.get("prayer_after") if isinstance(outline.get("prayer_after"), dict) else {}
+        notes = after.get("movements") if isinstance(after.get("movements"), list) else []
+        if notes:
+            st.caption("Imaív: " + "; ".join(str(x) for x in notes if str(x).strip()))
+        st.text_area(
+            "Saját gondolatok",
+            key=_KEY_OUTLINE_PRAYER_AFTER["own_thoughts"],
+            height=70,
+        )
+        st.text_area(
+            "Átvett imaindítás",
+            key=_KEY_OUTLINE_PRAYER_AFTER["selected_opening"],
+            height=50,
+        )
+        st.text_area(
+            "Átvett mondatmagok (soronként)",
+            key=_KEY_OUTLINE_PRAYER_AFTER["selected_lines"],
+            height=70,
+        )
+        st.text_area(
+            "Záró irány",
+            key=_KEY_OUTLINE_PRAYER_AFTER["closing_direction"],
+            height=50,
+        )
+
+    st.markdown("**Saját megjegyzések**")
+    st.text_area(
+        "Megjegyzések",
+        key=_KEY_OUTLINE["manual_notes"],
+        height=80,
+        label_visibility="collapsed",
+    )
+
+
+def render_outline_section(
+    *,
+    generate_fn: GenerateFn | None = None,
+) -> None:
+    """Igehirdetési vázlat — szerkeszthető felkészülési összegzés."""
+    _apply_pending_adopts_if_needed()
+    _apply_sw_ui_resync_if_needed()
+    ensure_sermon_workshop_state(st.session_state)
+
+    st.subheader("Igehirdetési vázlat")
+    st.markdown(
+        "A vázlat összegzi a teljes műhelymunka során megtartott "
+        "homiletikai, liturgiai és imádsági döntéseket. Nem kész kézirat, "
+        "hanem szerkeszthető felkészülési és szolgálati vázlat."
+    )
+
+    sw = ensure_sermon_workshop_state(st.session_state)
+    outline = normalize_sermon_outline(sw.get("sermon_outline"))
+    has_outline = outline_has_content(outline)
+    manually_edited = bool(outline.get("manually_edited"))
+    need_confirm = bool(st.session_state.get(_CONFIRM_OUTLINE_OVERWRITE))
+
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        if st.button(
+            "Igehirdetési vázlat összeállítása",
+            type="primary",
+            key="sw_outline_assemble",
+        ):
+            if has_outline and manually_edited and not need_confirm:
+                st.session_state[_CONFIRM_OUTLINE_OVERWRITE] = True
+                st.warning(
+                    "A vázlat kézzel szerkesztve van. "
+                    "Frissítéshez erősítsd meg, vagy használd a "
+                    "„Vázlat frissítése a műhelyanyagokból” gombot."
+                )
+            else:
+                _assemble_and_save_outline(
+                    generate_fn=generate_fn,
+                    force_overwrite=bool(need_confirm),
+                )
+    with c2:
+        if st.button(
+            "Vázlat frissítése a műhelyanyagokból",
+            key="sw_outline_refresh",
+        ):
+            _assemble_and_save_outline(generate_fn=generate_fn, force_overwrite=True)
+    with c3:
+        if has_outline and st.button("Mentés", key="sw_outline_save"):
+            _persist_outline_from_widgets(mark_manual_edit=True)
+            st.session_state[_RESYNC_FLAG] = True
+            st.success("Vázlat elmentve.")
+            st.rerun()
+
+    if has_outline:
+        status = str(sw.get("sermon_outline_status") or outline.get("status") or "draft")
+        b_ap, b_dr = st.columns(2)
+        with b_ap:
+            if status != "approved" and st.button(
+                "Vázlat jóváhagyása", key="sw_outline_approve"
+            ):
+                _persist_outline_from_widgets(mark_manual_edit=True)
+                update_sermon_workshop_section(
+                    st.session_state, "sermon_outline_status", "approved"
+                )
+                st.success("Vázlat jóváhagyva.")
+                st.rerun()
+        with b_dr:
+            if status == "approved" and st.button(
+                "Jóváhagyás visszavonása", key="sw_outline_unapprove"
+            ):
+                update_sermon_workshop_section(
+                    st.session_state, "sermon_outline_status", "draft"
+                )
+                st.rerun()
+        generated = str(sw.get("sermon_outline_updated_at") or outline.get("updated_at") or "")
+        if generated:
+            st.caption(f"Utolsó frissítés: {generated}")
+
+    st.markdown("---")
+    _render_outline_editor()
+    # Hiányzó részek jelzése a még üres alapmezőknél
+    if has_outline:
+        checks = [
+            ("Fő gondolat", outline.get("main_idea")),
+            ("Hallgatói kérdés", outline.get("listener_question")),
+            ("Bevezetési irány", outline.get("opening_direction")),
+            ("Mozgások", outline.get("movements")),
+            ("Lezárás", (outline.get("closing") or {}).get("final_insight")),
+        ]
+        missing_labels = [
+            label
+            for label, val in checks
+            if outline_part_display(val) == MISSING_PART
+            or (
+                label == "Mozgások"
+                and (not isinstance(val, list) or not val)
+            )
+        ]
+        if missing_labels:
+            st.caption(
+                "Még nincs kidolgozva: "
+                + ", ".join(missing_labels)
+                + f". ({MISSING_PART})"
+            )
+
+
 def _render_diagnostics_results() -> None:
     sw = ensure_sermon_workshop_state(st.session_state)
-    diag = sw.get("diagnostics") if isinstance(sw.get("diagnostics"), dict) else {}
-    result = diag.get("result") if isinstance(diag.get("result"), dict) else {}
-    if not result:
+    outline_diag = sw.get("sermon_outline_diagnostics")
+    legacy = sw.get("diagnostics") if isinstance(sw.get("diagnostics"), dict) else {}
+    legacy_result = legacy.get("result") if isinstance(legacy.get("result"), dict) else {}
+
+    source: dict[str, Any] = {}
+    generated = ""
+    if isinstance(outline_diag, dict) and (
+        outline_diag.get("overview")
+        or outline_diag.get("strengths")
+        or outline_diag.get("refinements")
+    ):
+        source = outline_diag
+        generated = str(sw.get("sermon_outline_diagnostics_generated_at") or "").strip()
+    elif legacy_result:
+        source = legacy_result
+        generated = str(sw.get("m8_last_generated_at") or "").strip()
+    else:
         return
 
     _ensure_diag_styles()
-    view = _diag_view_model(diag, result)
+    view = _diag_view_model_simplified(source)
 
-    # Main view: only three pastor-facing parts.
-    _render_diag_summary(str(view.get("summary") or ""))
-    _render_diag_status_cards(view.get("counts") or {})
-    _render_diag_focus(view.get("priorities") or [])
+    st.markdown("**Rövid összkép**")
+    overview = str(view.get("overview") or "").strip()
+    if overview:
+        st.markdown(_diag_soften_text(overview))
+    else:
+        st.caption("Még nincs rövid összkép.")
 
-    # Everything else behind one closed expander.
-    _render_diag_details(view)
+    st.markdown("**Ami már jól működik**")
+    strengths = view.get("strengths") or []
+    if strengths:
+        for item in strengths[:MAX_STRENGTHS]:
+            line = _diag_soften_text(str(item or "").strip())
+            if line:
+                st.markdown(f"- {line}")
+    else:
+        st.caption("Még nincs kiemelt erősség.")
 
-    generated = str(sw.get("m8_last_generated_at") or "").strip()
+    st.markdown("**Ezen érdemes még finomítani**")
+    refinements = view.get("refinements") or []
+    if not refinements:
+        st.caption("Most nincs kiemelt finomítási javaslat.")
+    else:
+        for item in refinements[:MAX_REFINEMENTS]:
+            if not isinstance(item, dict):
+                continue
+            title = _diag_soften_text(str(item.get("title") or "").strip())
+            explanation = _diag_soften_text(
+                str(item.get("explanation") or "").strip()
+            )
+            action = _diag_soften_text(
+                str(item.get("suggested_action") or "").strip()
+            )
+            parts = [f"<h5>{html.escape(title)}</h5>"]
+            if explanation:
+                parts.append(
+                    f"<p>{html.escape(_diag_shorten(explanation, limit=280))}</p>"
+                )
+            if action:
+                parts.append(
+                    f'<div class="meta"><strong>Javaslat:</strong> '
+                    f"{html.escape(_diag_shorten(action, limit=200))}</div>"
+                )
+            st.markdown(
+                f'<div class="sw-diag-prio-card">{"".join(parts)}</div>',
+                unsafe_allow_html=True,
+            )
+
+    st.markdown("**Továbbhaladás**")
+    ready = view.get("ready_to_use")
+    next_step = _diag_soften_text(str(view.get("next_step") or "").strip())
+    if isinstance(ready, bool):
+        st.markdown(
+            "A vázlat alapján tovább lehet lépni a kézi kidolgozásra."
+            if ready
+            else "Érdemes még finomítani a fenti pontokon."
+        )
+    if next_step:
+        st.markdown(next_step)
+
+    with st.expander("Részletesebb homiletikai megjegyzések", expanded=False):
+        notes = view.get("detailed_notes") or []
+        warnings = view.get("warnings") or []
+        if notes:
+            for note in notes:
+                line = _diag_soften_text(str(note or "").strip())
+                if line:
+                    st.markdown(f"- {line}")
+        if warnings:
+            for warn in warnings:
+                line = _diag_soften_text(str(warn or "").strip())
+                if line:
+                    st.caption(line)
+        if not notes and not warnings:
+            st.caption("Nincs további részletes megjegyzés.")
+
     if generated:
         st.caption(f"Utolsó diagnosztika: {generated}")
 
@@ -2440,67 +3144,34 @@ def render_diagnostics_section(
     *,
     generate_fn: GenerateFn | None = None,
 ) -> None:
-    """Homiletikai diagnosztika — önellenőrzés + MI tükrözés."""
+    """Homiletikai diagnosztika — elsősorban a végső vázlat ellenőrzése."""
     _apply_pending_adopts_if_needed()
     _apply_sw_ui_resync_if_needed()
     ensure_sermon_workshop_state(st.session_state)
 
     st.subheader("Homiletikai diagnosztika")
     st.markdown(
-        "Rövid, szöveges tükrözés textushűségről, egységről, kegyelemről és "
-        "hallhatóságról — pontszám és automatikus átírás nélkül."
+        "Rövid, szöveges tükrözés az összeállított igehirdetési vázlatról — "
+        "pontszám és automatikus átírás nélkül."
     )
 
     sw = ensure_sermon_workshop_state(st.session_state)
-    if (sw.get("sermon_main_idea_status") or "").strip() != "approved":
-        st.info(
-            "A diagnosztika részben is futtatható, de a teljes értékeléshez "
-            "jóvá kell hagyni az igehirdetés fő gondolatát, szükség van "
-            "hallgatói feszültségre, evangéliumi feloldásra vagy Isten kegyelmi "
-            "cselekvésére, M6-os útra vagy legalább három mozgásra, valamint "
-            "lezárási tervre."
+    outline = normalize_sermon_outline(sw.get("sermon_outline"))
+    has_outline = outline_has_content(outline)
+    if not has_outline:
+        st.warning("Előbb állítsd össze az igehirdetési vázlatot.")
+        st.caption(
+            "A diagnosztika fő folyamata a végső vázlatot vizsgálja; "
+            "nyers modul-diagnosztika helyett előbb állítsd össze a vázlatot."
         )
+        return
 
-    st.markdown("**Saját önellenőrzés (opcionális)**")
-    st.caption(
-        "Ezek a mezők nem kötelezők; segíthetik a diagnosztikát, de nem írják "
-        "felül a műhely tartalmát."
-    )
-    for field, wkey in _KEY_DIAG.items():
-        titles = {
-            "self_review_strengths": "Mit érzek erősnek ebben a tervben?",
-            "self_review_uncertainties": "Mi bizonytalan vagy nyitott?",
-            "self_review_priority": "Mi lenne az elsődleges javítási prioritásom?",
-            "self_review_focus": "Mire szeretnék most fókuszálni?",
-        }
-        st.text_area(
-            titles.get(field, field),
-            key=wkey,
-            height=80,
-            label_visibility="collapsed",
-        )
-
-    b1, b2 = st.columns(2)
-    with b1:
-        if st.button("Mentés", key="sw_diag_save_self_review"):
-            _persist_self_review_from_widgets()
-            st.success("Önellenőrzés elmentve.")
-    with b2:
-        pass
-
-    st.markdown("---")
-    st.markdown("**MI diagnosztika**")
-    diag = sw.get("diagnostics") if isinstance(sw.get("diagnostics"), dict) else {}
-    has_result = bool(
-        isinstance(diag.get("result"), dict) and diag.get("result")
-    )
-    btn_label = (
-        "Diagnosztika frissítése"
-        if has_result
-        else "Homiletikai diagnosztika készítése"
-    )
-    if st.button(btn_label, type="primary", key="sw_diag_run"):
-        _run_homiletical_diagnostics(generate_fn=generate_fn)
+    if st.button(
+        "A vázlat homiletikai ellenőrzése",
+        type="primary",
+        key="sw_diag_run",
+    ):
+        _run_outline_homiletical_diagnostics(generate_fn=generate_fn)
 
     _render_diagnostics_results()
 
@@ -4900,7 +5571,7 @@ def render_closing_section(
     _render_closing_suggestions()
     _render_closing_assessment()
 
-    st.caption("Következő ajánlott lépés: Homiletikai diagnosztika")
+    st.caption("Következő ajánlott lépés: Lekciójavaslat")
 
 
 def render_enrichment_section(
@@ -7823,6 +8494,16 @@ def flush_sermon_workshop_from_widgets() -> None:
     if _KEY_PRAYER_COMMON["tone_preference"] in st.session_state:
         _persist_prayer_from_widgets()
 
+    if (
+        _KEY_OUTLINE["main_idea"] in st.session_state
+        or _KEY_OUTLINE["opening_direction"] in st.session_state
+        or any(
+            isinstance(k, str) and k.startswith(_OUTLINE_MV_PREFIX)
+            for k in st.session_state.keys()
+        )
+    ):
+        _persist_outline_from_widgets(mark_manual_edit=True)
+
 
 def render_sermon_workshop_shell(
     *,
@@ -7872,12 +8553,14 @@ def render_sermon_workshop_shell(
         render_enrichment_section(generate_fn=generate_fn)
     elif active == "Lezárás és megérkezés":
         render_closing_section(generate_fn=generate_fn)
-    elif active == "Homiletikai diagnosztika":
-        render_diagnostics_section(generate_fn=generate_fn)
     elif active == "Lekciójavaslat":
         render_lection_section(generate_fn=generate_fn)
     elif active == "Imádsági előkészítés":
         render_prayer_section(generate_fn=generate_fn)
+    elif active == "Igehirdetési vázlat":
+        render_outline_section(generate_fn=generate_fn)
+    elif active == "Homiletikai diagnosztika":
+        render_diagnostics_section(generate_fn=generate_fn)
     else:
         _render_section_placeholder(active)
 
@@ -7889,18 +8572,21 @@ def render_sermon_workshop_shell(
         "Az igehirdetés útja és mozgásai",
         "Képek, illusztrációk és alkalmazás",
         "Lezárás és megérkezés",
-        "Homiletikai diagnosztika",
         "Lekciójavaslat",
         "Imádsági előkészítés",
+        "Igehirdetési vázlat",
+        "Homiletikai diagnosztika",
     ):
         next_hint = _SW_NEXT_HINTS.get(active)
         if next_hint:
             st.caption(next_hint)
     elif active == "Az igehirdetés fő gondolata":
         st.caption(_SW_NEXT_HINTS[active])
-    elif active == "Homiletikai diagnosztika":
-        st.caption(_SW_NEXT_HINTS[active])
     elif active == "Lekciójavaslat":
+        st.caption(_SW_NEXT_HINTS[active])
+    elif active == "Imádsági előkészítés":
+        st.caption(_SW_NEXT_HINTS[active])
+    elif active == "Igehirdetési vázlat":
         st.caption(_SW_NEXT_HINTS[active])
 
 
@@ -7914,7 +8600,8 @@ __all__ = [
     "render_sermon_path_section",
     "render_enrichment_section",
     "render_closing_section",
-    "render_diagnostics_section",
     "render_lection_section",
     "render_prayer_section",
+    "render_outline_section",
+    "render_diagnostics_section",
 ]

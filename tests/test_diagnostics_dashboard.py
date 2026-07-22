@@ -26,6 +26,7 @@ from sermon_workshop_m8_ai import (
 from sermon_workshop_ui import (
     _DIAG_DETAIL_GROUPS,
     _DIAG_MAP_GROUPS,
+    _SW_SECTION_OPTIONS,
     _diag_areas_index,
     _diag_collect_priorities,
     _diag_shorten,
@@ -65,7 +66,9 @@ def _main_content(calls: list[str]) -> str:
     """Main surface only — stop before the closed details expander."""
     parts: list[str] = []
     for c in calls:
-        if c.startswith("EXP:Részletes diagnosztika"):
+        if c.startswith("EXP:Részletesebb homiletikai megjegyzések") or c.startswith(
+            "EXP:Részletes diagnosztika"
+        ):
             break
         if c.lstrip().startswith("<style"):
             continue
@@ -106,23 +109,19 @@ def test_main_view_three_parts_in_source():
     start = src.find("def _render_diagnostics_results")
     end = src.find("\ndef render_diagnostics_section", start)
     body = src[start:end]
-    markers = [
-        "_render_diag_summary(",
-        "_render_diag_status_cards(",
-        "_render_diag_focus(",
-        "_render_diag_details(",
-    ]
-    positions = [body.find(m) for m in markers]
-    assert all(p >= 0 for p in positions), list(zip(markers, positions))
-    assert positions == sorted(positions)
-    assert "Rövid összkép" in src
-    assert "Gyors státusz" in src
-    assert "Most erre figyelj" in src
-    assert "Részletes diagnosztika" in src
-    # Old audit-like main sections must not drive the main flow anymore.
-    assert "_render_diag_map(" not in src
+    assert "Rövid összkép" in body
+    assert "Ami már jól működik" in body
+    assert "Ezen érdemes még finomítani" in body
+    assert "Továbbhaladás" in body
+    assert "Részletesebb homiletikai megjegyzések" in body
+    # Régi státuszszámlálók / 12 kategória ne legyen a fő nézetben
+    assert "_render_diag_status_cards(" not in body
+    assert "Gyors státusz" not in body
     assert "Diagnosztikai térkép" not in src
-    assert "Minden diagnosztikai részlet" not in src
+    assert "_render_diag_map(" not in src
+    assert "A vázlat homiletikai ellenőrzése" in src
+    assert _SW_SECTION_OPTIONS[-1] == "Homiletikai diagnosztika"
+    assert _SW_SECTION_OPTIONS[-2] == "Igehirdetési vázlat"
 
 
 def test_detail_groups_cover_all_keys():
@@ -184,7 +183,7 @@ def test_priority_collect_and_soften():
 
 
 def test_render_simple_main_view(session, monkeypatch):
-    """Main surface: summary + status counts + max 3 focus cards."""
+    """Main surface: összkép + erősségek + max 3 finomítás + továbbhaladás."""
     calls: list[str] = []
     _stub_streamlit(monkeypatch, calls)
 
@@ -237,33 +236,24 @@ def test_render_simple_main_view(session, monkeypatch):
     content = _content_calls(calls)
 
     assert "Rövid összkép" in main
-    assert "Gyors státusz" in main
-    assert "Most erre figyelj" in main
+    assert "Ami már jól működik" in main
+    assert "Ezen érdemes még finomítani" in main
+    assert "Továbbhaladás" in main
     assert "Hallgatói feszültség tisztázása" in main
-    assert "Erősségek" in main
-    assert "Javítandó pontok" in main
-    assert "Nincs elég adat" in main
-
-    # Demoted / hidden from main surface
+    assert "Erős textushűség" in main
+    assert "Gyors státusz" not in main
     assert "Diagnosztikai térkép" not in main
-    assert "Fő erősségek" not in main
-    assert "Pásztori figyelmeztetések" not in main
-    assert "Konzisztencia-figyelmeztetések" not in main
-    assert "Saját hang és eredetiség" not in main
-    assert "Továbbhaladási megjegyzés" not in main
-    assert "Érintett részek" not in main
     assert "unity_and_focus" not in main
     assert "pontszám" not in content.casefold()
     assert "87%" not in content
     assert _prio_card_count(calls) == 1
-
-    # Details remain, closed
-    assert any(c.startswith("EXP:Részletes diagnosztika:False") for c in calls)
-    assert "Ami jól áll" in content or "Erős textushűség" in content
+    assert any(
+        c.startswith("EXP:Részletesebb homiletikai megjegyzések:False") for c in calls
+    )
 
 
 def test_multiple_gaps_details_not_main_warnings(session, monkeypatch):
-    """Critical/attention counts on main; long warnings only in details."""
+    """Max 3 refinement cards; long notes only in closed details."""
     calls: list[str] = []
     _stub_streamlit(monkeypatch, calls)
 
@@ -323,15 +313,13 @@ def test_multiple_gaps_details_not_main_warnings(session, monkeypatch):
     main = _main_content(calls)
     content = _content_calls(calls)
 
-    assert "Javítandó pontok" in main
-    assert "Nincs elég adat" in main
     assert _prio_card_count(calls) == 3
     assert "Ne jelenjen meg" not in main
-    assert "Pásztori figyelmeztetések" not in main
     assert "Óvatosan a bűntudattal." not in main
     assert "Óvatosan a bűntudattal." in content
-    assert "Bibliai és teológiai alap" in content
     assert "text_fidelity" not in main
+    assert "Gyors státusz" not in main
+    assert "Javítandó pontok" not in main
 
 
 def test_view_model_and_legacy_roundtrip(session):

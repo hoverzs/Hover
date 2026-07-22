@@ -156,6 +156,12 @@ def get_default_sermon_workshop() -> dict[str, Any]:
         "closing_suggestions": None,
         "closing_assessment": None,
         "m7_closing_last_generated_at": "",
+        "sermon_outline": empty_sermon_outline(),
+        "sermon_outline_status": "draft",
+        "sermon_outline_generated_at": "",
+        "sermon_outline_updated_at": "",
+        "sermon_outline_diagnostics": {},
+        "sermon_outline_diagnostics_generated_at": "",
     }
 
 
@@ -180,6 +186,250 @@ def empty_sermon_movement(*, role: str = "") -> dict[str, str]:
         "textual_basis": "",
         "listener_discovery": "",
         "transition_to_next": "",
+    }
+
+
+def empty_outline_movement() -> dict[str, Any]:
+    return {
+        "id": "",
+        "title": "",
+        "role": "",
+        "role_label": "",
+        "textual_basis": "",
+        "core_content": "",
+        "listener_discovery": "",
+        "transition": "",
+        "images": [],
+        "illustrations": [],
+        "applications": [],
+    }
+
+
+def empty_sermon_outline() -> dict[str, Any]:
+    """Üres igehirdetési vázlat — régi projektek biztonságos alapértéke."""
+    return {
+        "status": "draft",
+        "generated_at": "",
+        "updated_at": "",
+        "project_title": "",
+        "passage_reference": "",
+        "bible_translation": "",
+        "lection_reference": "",
+        "lection_translation": "",
+        "sermon_title": "",
+        "main_idea": "",
+        "main_idea_summary": "",
+        "listener_question": "",
+        "central_tension": "",
+        "listener_resistance": "",
+        "divine_gracious_action": "",
+        "christ_connection": "",
+        "christ_connection_type_label": "",
+        "gospel_resolution": "",
+        "grace_enabled_response": "",
+        "opening_direction": "",
+        "movements": [],
+        "extra_enrichment": {
+            "images": [],
+            "illustrations": [],
+            "applications": [],
+        },
+        "closing": {
+            "final_insight": "",
+            "gospel_assurance": "",
+            "invitation": "",
+            "image_or_line": "",
+            "open_question": "",
+            "tone": "",
+            "tone_label": "",
+        },
+        "lection": {
+            "reference": "",
+            "function": "",
+            "rationale": "",
+        },
+        "prayer_before": {
+            "movements": [],
+            "own_thoughts": "",
+            "selected_opening": "",
+            "selected_lines": [],
+            "closing_direction": "",
+        },
+        "prayer_after": {
+            "movements": [],
+            "own_thoughts": "",
+            "selected_opening": "",
+            "selected_lines": [],
+            "closing_direction": "",
+        },
+        "manual_notes": "",
+        "manually_edited": False,
+    }
+
+
+def _normalize_str_list(raw: Any, *, max_items: int = 20) -> list[str]:
+    if not isinstance(raw, list):
+        return []
+    out: list[str] = []
+    for item in raw:
+        text = _as_str(item)
+        if text:
+            out.append(text)
+        if len(out) >= max_items:
+            break
+    return out
+
+
+def _normalize_outline_prayer(raw: Any) -> dict[str, Any]:
+    template = empty_sermon_outline()["prayer_before"]
+    if not isinstance(raw, dict):
+        return dict(template)
+    return {
+        "movements": _normalize_str_list(raw.get("movements")),
+        "own_thoughts": _as_str(raw.get("own_thoughts")),
+        "selected_opening": _as_str(raw.get("selected_opening")),
+        "selected_lines": _normalize_str_list(raw.get("selected_lines")),
+        "closing_direction": _as_str(raw.get("closing_direction")),
+    }
+
+
+def _normalize_outline_movement(raw: Any) -> dict[str, Any]:
+    base = empty_outline_movement()
+    if not isinstance(raw, dict):
+        return base
+    out = dict(base)
+    for key in (
+        "id",
+        "title",
+        "role",
+        "role_label",
+        "textual_basis",
+        "core_content",
+        "listener_discovery",
+        "transition",
+    ):
+        if key in raw:
+            out[key] = _as_str(raw.get(key))
+    for list_key in ("images", "illustrations", "applications"):
+        out[list_key] = _normalize_str_list(raw.get(list_key))
+    return out
+
+
+def normalize_sermon_outline(raw: Any) -> dict[str, Any]:
+    """Vázlat normalizálása; hiányzó mezők biztonságos alapértékkel."""
+    base = empty_sermon_outline()
+    if not isinstance(raw, dict):
+        return base
+    out = dict(base)
+    for key in (
+        "generated_at",
+        "updated_at",
+        "project_title",
+        "passage_reference",
+        "bible_translation",
+        "lection_reference",
+        "lection_translation",
+        "sermon_title",
+        "main_idea",
+        "main_idea_summary",
+        "listener_question",
+        "central_tension",
+        "listener_resistance",
+        "divine_gracious_action",
+        "christ_connection",
+        "christ_connection_type_label",
+        "gospel_resolution",
+        "grace_enabled_response",
+        "opening_direction",
+        "manual_notes",
+    ):
+        if key in raw:
+            out[key] = _as_str(raw.get(key))
+    status = _as_str(raw.get("status")) or "draft"
+    if status not in ("draft", "approved", ""):
+        status = "draft"
+    out["status"] = status or "draft"
+    out["manually_edited"] = bool(raw.get("manually_edited"))
+    movements_raw = raw.get("movements")
+    movements: list[dict[str, Any]] = []
+    if isinstance(movements_raw, list):
+        for item in movements_raw[:8]:
+            if isinstance(item, dict):
+                movements.append(_normalize_outline_movement(item))
+    out["movements"] = movements
+    closing_raw = raw.get("closing") if isinstance(raw.get("closing"), dict) else {}
+    closing = dict(base["closing"])
+    for key in closing:
+        if key in closing_raw:
+            closing[key] = _as_str(closing_raw.get(key))
+    out["closing"] = closing
+    lection_raw = raw.get("lection") if isinstance(raw.get("lection"), dict) else {}
+    lection = dict(base["lection"])
+    for key in lection:
+        if key in lection_raw:
+            lection[key] = _as_str(lection_raw.get(key))
+    out["lection"] = lection
+    extra_raw = (
+        raw.get("extra_enrichment")
+        if isinstance(raw.get("extra_enrichment"), dict)
+        else {}
+    )
+    out["extra_enrichment"] = {
+        "images": _normalize_str_list(extra_raw.get("images")),
+        "illustrations": _normalize_str_list(extra_raw.get("illustrations")),
+        "applications": _normalize_str_list(extra_raw.get("applications")),
+    }
+    out["prayer_before"] = _normalize_outline_prayer(raw.get("prayer_before"))
+    out["prayer_after"] = _normalize_outline_prayer(raw.get("prayer_after"))
+    return out
+
+
+def normalize_sermon_outline_diagnostics(raw: Any) -> dict[str, Any]:
+    """Egyszerűsített vázlatdiagnosztika — max 3 erősség / finomítás."""
+    if not isinstance(raw, dict):
+        return {}
+    strengths = _normalize_str_list(raw.get("strengths"), max_items=3)
+    refinements: list[dict[str, Any]] = []
+    for item in raw.get("refinements") or []:
+        if not isinstance(item, dict):
+            continue
+        title = _as_str(item.get("title"))
+        if not title:
+            continue
+        refinements.append(
+            {
+                "title": title,
+                "explanation": _as_str(
+                    item.get("explanation")
+                    or item.get("why_it_matters")
+                    or item.get("problem")
+                ),
+                "suggested_action": _as_str(
+                    item.get("suggested_action") or item.get("recommended_action")
+                ),
+                "affected_outline_parts": _normalize_str_list(
+                    item.get("affected_outline_parts")
+                    or item.get("affected_sections")
+                ),
+            }
+        )
+        if len(refinements) >= 3:
+            break
+    return {
+        "overview": _as_str(raw.get("overview") or raw.get("overall_summary")),
+        "strengths": strengths,
+        "refinements": refinements,
+        "ready_to_use": bool(
+            raw.get("ready_to_use")
+            if "ready_to_use" in raw
+            else raw.get("ready_for_next_stage")
+        ),
+        "next_step": _as_str(raw.get("next_step") or raw.get("readiness_note")),
+        "detailed_notes": _normalize_str_list(raw.get("detailed_notes"), max_items=30),
+        "warnings": _normalize_str_list(raw.get("warnings"), max_items=20),
+        "ok": bool(raw.get("ok", True)),
+        "error_message": _as_str(raw.get("error_message")),
+        "missing_outline": bool(raw.get("missing_outline")),
     }
 
 
@@ -634,6 +884,10 @@ def normalize_sermon_workshop(data: Any) -> dict[str, Any]:
     if lection_status not in ("draft", "approved", ""):
         lection_status = "draft"
 
+    outline_status = _as_str(data.get("sermon_outline_status")) or "draft"
+    if outline_status not in ("draft", "approved", ""):
+        outline_status = "draft"
+
     return {
         "sermon_main_idea": _as_str(data.get("sermon_main_idea")),
         "sermon_main_idea_status": status or "draft",
@@ -767,6 +1021,18 @@ def normalize_sermon_workshop(data: Any) -> dict[str, Any]:
         "m9_lection_last_generated_at": _as_str(
             data.get("m9_lection_last_generated_at")
         ),
+        "sermon_outline": normalize_sermon_outline(data.get("sermon_outline")),
+        "sermon_outline_status": outline_status or "draft",
+        "sermon_outline_generated_at": _as_str(
+            data.get("sermon_outline_generated_at")
+        ),
+        "sermon_outline_updated_at": _as_str(data.get("sermon_outline_updated_at")),
+        "sermon_outline_diagnostics": normalize_sermon_outline_diagnostics(
+            data.get("sermon_outline_diagnostics")
+        ),
+        "sermon_outline_diagnostics_generated_at": _as_str(
+            data.get("sermon_outline_diagnostics_generated_at")
+        ),
     }
 
 
@@ -832,6 +1098,33 @@ def update_sermon_workshop_section(
         if status not in ("draft", "approved", ""):
             status = "draft"
         sw["lection_status"] = status or "draft"
+        return sw
+
+    if key == "sermon_outline_status":
+        status = _as_str(data) or "draft"
+        if status not in ("draft", "approved", ""):
+            status = "draft"
+        sw["sermon_outline_status"] = status or "draft"
+        outline = normalize_sermon_outline(sw.get("sermon_outline"))
+        outline["status"] = sw["sermon_outline_status"]
+        sw["sermon_outline"] = outline
+        return sw
+
+    if key in ("sermon_outline", "outline"):
+        outline = normalize_sermon_outline(data)
+        sw["sermon_outline"] = outline
+        status = _as_str(outline.get("status")) or "draft"
+        if status not in ("draft", "approved", ""):
+            status = "draft"
+        sw["sermon_outline_status"] = status or "draft"
+        if outline.get("generated_at"):
+            sw["sermon_outline_generated_at"] = _as_str(outline.get("generated_at"))
+        if outline.get("updated_at"):
+            sw["sermon_outline_updated_at"] = _as_str(outline.get("updated_at"))
+        return sw
+
+    if key == "sermon_outline_diagnostics":
+        sw["sermon_outline_diagnostics"] = normalize_sermon_outline_diagnostics(data)
         return sw
 
     if key in (
@@ -1285,6 +1578,49 @@ def save_prayer_assessment(
     return sw
 
 
+def save_sermon_outline(
+    session_state: MutableMapping[str, Any],
+    outline: dict[str, Any],
+    *,
+    stamp_generated_at: bool = True,
+    mark_manual_edit: bool = False,
+) -> dict[str, Any]:
+    """Igehirdetési vázlat tartós mentése. Nem módosítja az M4–M9 forrásmezőket."""
+    sw = ensure_sermon_workshop_state(session_state)
+    normalized = normalize_sermon_outline(outline)
+    now = datetime.now().isoformat(timespec="seconds")
+    if stamp_generated_at and not _as_str(normalized.get("generated_at")):
+        normalized["generated_at"] = now
+    normalized["updated_at"] = now
+    if mark_manual_edit:
+        normalized["manually_edited"] = True
+    status = _as_str(normalized.get("status")) or "draft"
+    if status not in ("draft", "approved", ""):
+        status = "draft"
+    normalized["status"] = status or "draft"
+    sw["sermon_outline"] = normalized
+    sw["sermon_outline_status"] = normalized["status"]
+    sw["sermon_outline_generated_at"] = _as_str(normalized.get("generated_at"))
+    sw["sermon_outline_updated_at"] = now
+    return sw
+
+
+def save_sermon_outline_diagnostics(
+    session_state: MutableMapping[str, Any],
+    payload: dict[str, Any],
+    *,
+    stamp_generated_at: bool = True,
+) -> dict[str, Any]:
+    """Vázlatdiagnosztika mentése — nem módosítja a vázlatot / műhelymezőket."""
+    sw = ensure_sermon_workshop_state(session_state)
+    sw["sermon_outline_diagnostics"] = normalize_sermon_outline_diagnostics(payload)
+    if stamp_generated_at:
+        sw["sermon_outline_diagnostics_generated_at"] = datetime.now().isoformat(
+            timespec="seconds"
+        )
+    return sw
+
+
 __all__ = [
     "SERMON_WORKSHOP_KEY",
     "get_default_sermon_workshop",
@@ -1297,6 +1633,10 @@ __all__ = [
     "empty_sermon_movement",
     "normalize_sermon_movement",
     "normalize_sermon_movements",
+    "empty_outline_movement",
+    "empty_sermon_outline",
+    "normalize_sermon_outline",
+    "normalize_sermon_outline_diagnostics",
     "empty_textual_image",
     "empty_illustration",
     "empty_application",
@@ -1332,4 +1672,6 @@ __all__ = [
     "save_prayer_before_suggestions",
     "save_prayer_after_suggestions",
     "save_prayer_assessment",
+    "save_sermon_outline",
+    "save_sermon_outline_diagnostics",
 ]
