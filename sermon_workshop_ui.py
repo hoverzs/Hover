@@ -196,6 +196,7 @@ from sermon_outline_diagnostics_ai import (
     run_outline_diagnostics,
 )
 from textus_workshop_data import ensure_text_workshop_state
+from workshop_nav_ui import render_section_stepper, sermon_completed_sections
 
 GenerateFn = Callable[..., str]
 
@@ -8455,10 +8456,11 @@ def render_sermon_workshop_shell(
         else:
             st.session_state[_KEY_ACTIVE_SECTION] = _SW_SECTION_OPTIONS[0]
 
-    st.radio(
-        "Aktív szakasz",
-        options=_SW_SECTION_OPTIONS,
+    render_section_stepper(
+        _SW_SECTION_OPTIONS,
         key=_KEY_ACTIVE_SECTION,
+        completed=sermon_completed_sections(st.session_state),
+        label="Aktív szakasz",
     )
 
     active = st.session_state.get(_KEY_ACTIVE_SECTION) or _SW_SECTION_OPTIONS[0]

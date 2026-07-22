@@ -81,8 +81,8 @@ _BIBLE_TEXT_CSS = """
   border-radius: 14px !important;
   font-family: "Inter", "Segoe UI", sans-serif !important;
   font-weight: 700 !important;
-  letter-spacing: 0.04em !important;
-  text-transform: uppercase !important;
+  letter-spacing: 0.01em !important;
+  text-transform: none !important;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.85) !important;
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.92) inset,
