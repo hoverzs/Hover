@@ -10,7 +10,13 @@ from typing import Any, Callable
 
 import streamlit as st
 
-from bible_text_ui import render_bible_text_preview
+from bible_text_ui import (
+    normalize_passage_text,
+    render_bible_text_preview,
+    render_formatted_bible_text,
+)
+from bible_text_ui import _ensure_bible_text_styles
+from ruf_bible_service import SOURCE_NAME, fetch_ruf_passage
 from sermon_workshop_data import (
     add_approved_sermon_decision,
     empty_application,
@@ -20,6 +26,9 @@ from sermon_workshop_data import (
     ensure_sermon_workshop_state,
     normalize_applications,
     normalize_illustrations,
+    normalize_lection_connection_type,
+    normalize_lection_length_preference,
+    normalize_lection_testament_preference,
     normalize_sermon_movements,
     normalize_textual_images,
     remove_approved_sermon_decision,
@@ -32,6 +41,8 @@ from sermon_workshop_data import (
     save_closing_assessment,
     save_closing_suggestions,
     save_homiletical_diagnostics,
+    save_lection_assessment,
+    save_lection_suggestions,
     save_sermon_enrichment_assessment,
     save_sermon_enrichment_suggestions,
     save_sermon_main_idea_assessment,
@@ -133,6 +144,22 @@ from sermon_workshop_m8_ai import (
     normalize_diagnostic_status,
     run_homiletical_diagnostics,
 )
+from sermon_workshop_m9_lection_ai import (
+    LECTION_CONNECTION_TYPES,
+    LECTION_LENGTH_PREFERENCES,
+    LECTION_TESTAMENT_PREFERENCES,
+    LECTION_CONNECTION_TYPE_LABELS_HU,
+    LECTION_LENGTH_PREFERENCE_LABELS_HU,
+    LECTION_TESTAMENT_PREFERENCE_LABELS_HU,
+    LectionAssessmentResult,
+    LectionCandidate,
+    LectionSuggestionResult,
+    assess_lection,
+    lection_connection_type_label,
+    references_equivalent,
+    suggest_lections,
+    validate_lection_reference,
+)
 from textus_workshop_data import ensure_text_workshop_state
 
 GenerateFn = Callable[..., str]
@@ -146,6 +173,7 @@ _SW_SECTION_OPTIONS = [
     "Képek, illusztrációk és alkalmazás",
     "Lezárás és megérkezés",
     "Homiletikai diagnosztika",
+    "Lekciójavaslat",
 ]
 
 _SW_SECTION_PLACEHOLDERS: dict[str, dict[str, str]] = {}
@@ -172,6 +200,9 @@ _SW_NEXT_HINTS: dict[str, str] = {
     "Lezárás és megérkezés": (
         "Következő ajánlott lépés: Homiletikai diagnosztika"
     ),
+    "Homiletikai diagnosztika": (
+        "Következő ajánlott lépés: Lekciójavaslat"
+    ),
 }
 
 _STATUS_LABELS = {
@@ -186,6 +217,7 @@ _SOURCE_GOSPEL = "Krisztus-központú és evangéliumi ív"
 _SOURCE_PATH = "Az igehirdetés útja és mozgásai"
 _SOURCE_ENRICHMENT = "Képek, illusztrációk és alkalmazás"
 _SOURCE_CLOSING = "Lezárás és megérkezés"
+_SOURCE_LECTION = "Lekciójavaslat"
 _CAT_MAIN_IDEA = "Fő gondolat"
 
 _HC_FIELDS = [
@@ -377,6 +409,8 @@ _ADOPT_EN_IMAGES_PENDING = "_sw_en_adopt_images_pending"
 _ADOPT_EN_ILL_PENDING = "_sw_en_adopt_ill_pending"
 _ADOPT_EN_APPS_PENDING = "_sw_en_adopt_apps_pending"
 _ADOPT_CL_PENDING = "_sw_cl_adopt_pending"
+_ADOPT_LECTION_PENDING = "_sw_lection_adopt_pending"
+_LECTION_RUF_PENDING = "_sw_lection_ruf_pending"
 _KEY_DIAG = {
     "self_review_strengths": "sw_diag_self_strengths",
     "self_review_uncertainties": "sw_diag_self_uncertainties",
@@ -392,6 +426,20 @@ _KEY_CL = {
     "open_question": "sw_cl_open_question",
     "tone": "sw_cl_tone",
 }
+_KEY_LECTION = {
+    "reference": "sw_lection_reference",
+    "connection_type": "sw_lection_connection_type",
+    "function": "sw_lection_function",
+    "rationale": "sw_lection_rationale",
+    "text": "sw_lection_text",
+    "notes": "sw_lection_notes",
+    "testament_preference": "sw_lection_testament_preference",
+    "length_preference": "sw_lection_length_preference",
+    "user_focus": "sw_lection_user_focus",
+}
+DEFAULT_LECTION_CONNECTION_UI = "thematic"
+DEFAULT_LECTION_TESTAMENT_UI = "any"
+DEFAULT_LECTION_LENGTH_UI = "standard"
 _CL_FIELDS = (
     ("type", "Lezárás iránya", "", False),
     (
@@ -637,6 +685,38 @@ def _apply_pending_adopts_if_needed() -> None:
             else:
                 st.session_state[wkey] = suggested
         _persist_closing_from_widgets()
+
+    pending_lection = st.session_state.pop(_ADOPT_LECTION_PENDING, None)
+    if isinstance(pending_lection, dict):
+        for ui_key, wkey in _KEY_LECTION.items():
+            if ui_key not in pending_lection:
+                continue
+            suggested = str(pending_lection.get(ui_key) or "").strip()
+            if ui_key == "connection_type":
+                st.session_state[wkey] = (
+                    normalize_lection_connection_type(suggested)
+                    if suggested
+                    else DEFAULT_LECTION_CONNECTION_UI
+                )
+            elif ui_key == "testament_preference":
+                st.session_state[wkey] = normalize_lection_testament_preference(
+                    suggested
+                )
+            elif ui_key == "length_preference":
+                st.session_state[wkey] = normalize_lection_length_preference(
+                    suggested
+                )
+            elif suggested or ui_key in (
+                "reference",
+                "function",
+                "rationale",
+                "notes",
+            ):
+                # Átvétel: csak a választott mezőket írja; textet nem törli itt
+                if ui_key == "text":
+                    continue
+                st.session_state[wkey] = suggested
+        _persist_lection_from_widgets(include_text=False)
 
 
 def _en_widget_key(prefix: str, item_id: str, field: str) -> str:
@@ -1172,6 +1252,27 @@ def _apply_sw_ui_resync_if_needed() -> None:
         if force or wkey not in st.session_state:
             st.session_state[wkey] = str(sw.get(field) or "")
 
+    lection = sw.get("lection") if isinstance(sw.get("lection"), dict) else {}
+    for field, wkey in _KEY_LECTION.items():
+        if force or wkey not in st.session_state:
+            if field == "connection_type":
+                raw = str(lection.get(field) or "").strip()
+                st.session_state[wkey] = (
+                    normalize_lection_connection_type(raw) if raw else ""
+                )
+            elif field == "testament_preference":
+                st.session_state[wkey] = normalize_lection_testament_preference(
+                    lection.get(field)
+                )
+            elif field == "length_preference":
+                st.session_state[wkey] = normalize_lection_length_preference(
+                    lection.get(field)
+                )
+            elif field == "text":
+                st.session_state[wkey] = normalize_passage_text(lection.get(field))
+            else:
+                st.session_state[wkey] = str(lection.get(field) or "")
+
 
 def _request_adopt_sermon_sentence(sentence: str) -> None:
     st.session_state[_ADOPT_SERMON_PENDING] = str(sentence or "").strip()
@@ -1417,6 +1518,56 @@ def _persist_closing_from_widgets() -> None:
     update_sermon_workshop_section(
         st.session_state, "closing", _read_closing_from_widgets()
     )
+
+
+def _read_lection_from_widgets() -> dict[str, str]:
+    conn_raw = st.session_state.get(_KEY_LECTION["connection_type"])
+    return {
+        "reference": (st.session_state.get(_KEY_LECTION["reference"]) or "").strip(),
+        "connection_type": (
+            normalize_lection_connection_type(conn_raw)
+            if str(conn_raw or "").strip()
+            else ""
+        ),
+        "function": (st.session_state.get(_KEY_LECTION["function"]) or "").strip(),
+        "rationale": (st.session_state.get(_KEY_LECTION["rationale"]) or "").strip(),
+        "text": normalize_passage_text(st.session_state.get(_KEY_LECTION["text"])),
+        "notes": (st.session_state.get(_KEY_LECTION["notes"]) or "").strip(),
+        "testament_preference": normalize_lection_testament_preference(
+            st.session_state.get(_KEY_LECTION["testament_preference"])
+        ),
+        "length_preference": normalize_lection_length_preference(
+            st.session_state.get(_KEY_LECTION["length_preference"])
+        ),
+        "user_focus": (
+            st.session_state.get(_KEY_LECTION["user_focus"]) or ""
+        ).strip(),
+    }
+
+
+def _persist_lection_from_widgets(*, include_text: bool = True) -> None:
+    """Lekció mezők mentése; opcionálisan a szövegmező kihagyásával."""
+    sw = ensure_sermon_workshop_state(st.session_state)
+    current = sw.get("lection") if isinstance(sw.get("lection"), dict) else {}
+    block = _read_lection_from_widgets()
+    if not include_text:
+        block["text"] = str(current.get("text") or "")
+        for meta in (
+            "text_source",
+            "text_source_url",
+            "text_fetched_at",
+            "text_fetched_reference",
+        ):
+            block[meta] = str(current.get(meta) or "")
+    else:
+        for meta in (
+            "text_source",
+            "text_source_url",
+            "text_fetched_at",
+            "text_fetched_reference",
+        ):
+            block[meta] = str(current.get(meta) or "")
+    update_sermon_workshop_section(st.session_state, "lection", block)
 
 
 def _collect_closing_kwargs() -> dict[str, Any]:
@@ -1691,6 +1842,618 @@ def render_diagnostics_section(
         _run_homiletical_diagnostics(generate_fn=generate_fn)
 
     _render_diagnostics_results()
+
+
+def _request_adopt_lection_block(block: dict[str, str]) -> None:
+    st.session_state[_ADOPT_LECTION_PENDING] = dict(block or {})
+    st.rerun()
+
+
+def _lection_suggestion_payload(result: LectionSuggestionResult) -> dict[str, Any]:
+    return result.to_dict()
+
+
+def _lection_assessment_payload(result: LectionAssessmentResult) -> dict[str, Any]:
+    return result.to_dict()
+
+
+def _collect_lection_kwargs() -> dict[str, Any]:
+    """Sessionből M9 lekció MI-bemenet."""
+    base = _collect_closing_kwargs()
+    live = _read_lection_from_widgets()
+    sw = ensure_sermon_workshop_state(st.session_state)
+    durable = sw.get("lection") if isinstance(sw.get("lection"), dict) else {}
+    # Meta mezők megőrzése a durable blokkból
+    for meta in (
+        "text_source",
+        "text_source_url",
+        "text_fetched_at",
+        "text_fetched_reference",
+    ):
+        live[meta] = str(durable.get(meta) or "")
+    base["lection"] = live
+    base["testament_preference"] = live.get("testament_preference") or "any"
+    base["length_preference"] = live.get("length_preference") or "standard"
+    base["lection_user_focus"] = live.get("user_focus") or ""
+    return base
+
+
+def _run_lection_suggest(*, generate_fn: GenerateFn | None) -> None:
+    _persist_lection_from_widgets()
+    with st.spinner("Lekciójavaslat készül…"):
+        kwargs = _collect_lection_kwargs()
+        result = suggest_lections(**kwargs, generate_fn=generate_fn)
+        save_lection_suggestions(
+            st.session_state, _lection_suggestion_payload(result)
+        )
+        if not result.ok:
+            st.error(
+                _user_facing_error(
+                    result.ok,
+                    result.error_message,
+                    fallback="A javaslatkészítés nem sikerült.",
+                )
+            )
+        elif result.missing_information and not (
+            result.recommended_lection.reference
+            or result.no_separate_lection_needed
+        ):
+            st.warning(
+                "Nincs elegendő adat a felelős javaslathoz. Hiányzik: "
+                + "; ".join(result.missing_information)
+            )
+        else:
+            st.success("Javaslat elkészült.")
+
+
+def _run_lection_assess(*, generate_fn: GenerateFn | None) -> None:
+    _persist_lection_from_widgets()
+    with st.spinner("Saját lekció értékelése…"):
+        kwargs = _collect_lection_kwargs()
+        result = assess_lection(**kwargs, generate_fn=generate_fn)
+        save_lection_assessment(
+            st.session_state, _lection_assessment_payload(result)
+        )
+        if not result.ok:
+            st.error(
+                _user_facing_error(
+                    result.ok,
+                    result.error_message,
+                    fallback="Az értékelés nem sikerült.",
+                )
+            )
+        else:
+            st.success("Értékelés elkészült.")
+
+
+def _apply_lection_ruf_result(result: dict[str, Any]) -> None:
+    """RÚF eredmény → lection_text + meta; nem érinti a passage_text-et."""
+    text = normalize_passage_text(result.get("text"))
+    from datetime import datetime, timezone
+
+    sw = ensure_sermon_workshop_state(st.session_state)
+    current = sw.get("lection") if isinstance(sw.get("lection"), dict) else {}
+    block = dict(current)
+    block["text"] = text
+    block["text_source"] = SOURCE_NAME
+    block["text_source_url"] = str(result.get("source_url") or "")
+    block["text_fetched_at"] = datetime.now(timezone.utc).strftime(
+        "%Y-%m-%dT%H:%M:%SZ"
+    )
+    block["text_fetched_reference"] = str(
+        result.get("normalized_reference") or result.get("requested_reference") or ""
+    )
+    # Widget + tartós
+    st.session_state[_KEY_LECTION["text"]] = text
+    update_sermon_workshop_section(st.session_state, "lection", block)
+    st.session_state[_RESYNC_FLAG] = True
+
+
+def _lection_text_mismatch_warning() -> None:
+    sw = ensure_sermon_workshop_state(st.session_state)
+    lection = sw.get("lection") if isinstance(sw.get("lection"), dict) else {}
+    fetched = str(lection.get("text_fetched_reference") or "").strip()
+    current = str(
+        st.session_state.get(_KEY_LECTION["reference"])
+        or lection.get("reference")
+        or ""
+    ).strip()
+    text = normalize_passage_text(
+        st.session_state.get(_KEY_LECTION["text"]) or lection.get("text")
+    )
+    if not fetched or not current or not text.strip():
+        return
+    if references_equivalent(fetched, current):
+        return
+    st.warning(
+        "A betöltött lekciószöveg egy másik igehelyhez tartozik. "
+        "Töltsd be az új szakaszt, vagy ellenőrizd a jelenlegi szöveget."
+    )
+
+
+def _request_lection_ruf_load(reference: str) -> None:
+    ref = (reference or "").strip()
+    validation = validate_lection_reference(ref)
+    if not validation.get("ok"):
+        st.warning(
+            str(validation.get("error") or "Az igehely nem érvényes a RÚF-betöltéshez.")
+        )
+        return
+    with st.spinner("RÚF szöveg betöltése a szentiras.hu-ról…"):
+        result = fetch_ruf_passage(ref)
+    if not result.get("success"):
+        err = str(result.get("error") or "A RÚF-szöveg betöltése nem sikerült.")
+        st.error(err)
+        st.info("A meglévő lekciószöveg nem törlődött.")
+        return
+
+    sw = ensure_sermon_workshop_state(st.session_state)
+    lection = sw.get("lection") if isinstance(sw.get("lection"), dict) else {}
+    existing = normalize_passage_text(lection.get("text")).strip()
+    fetched_ref = str(lection.get("text_fetched_reference") or "").strip()
+    new_ref = str(
+        result.get("normalized_reference") or result.get("requested_reference") or ""
+    )
+    if existing and fetched_ref and not references_equivalent(fetched_ref, new_ref):
+        st.session_state[_LECTION_RUF_PENDING] = result
+        st.warning(
+            "Már van betöltött lekciószöveg egy másik igehelyhez. "
+            "Megerősítés nélkül nem írjuk felül."
+        )
+        return
+    _apply_lection_ruf_result(result)
+    st.success("A lekció RÚF-szövege betöltődött.")
+    st.rerun()
+
+
+def _render_lection_ruf_confirm() -> None:
+    pending = st.session_state.get(_LECTION_RUF_PENDING)
+    if not isinstance(pending, dict):
+        return
+    st.warning(
+        "Megerősíted a meglévő lekciószöveg cseréjét az új RÚF-szakaszra?"
+    )
+    c1, c2 = st.columns(2)
+    with c1:
+        if st.button("Igen, cserélem", key="sw_lection_ruf_confirm_yes"):
+            result = st.session_state.pop(_LECTION_RUF_PENDING, None)
+            if isinstance(result, dict):
+                _apply_lection_ruf_result(result)
+                st.success("A lekció RÚF-szövege frissült.")
+            st.rerun()
+    with c2:
+        if st.button("Mégse", key="sw_lection_ruf_confirm_no"):
+            st.session_state.pop(_LECTION_RUF_PENDING, None)
+            st.info("A meglévő lekciószöveg megmaradt.")
+
+
+def _render_lection_candidate(
+    candidate: LectionCandidate | dict[str, Any],
+    *,
+    key_prefix: str,
+    heading: str,
+) -> None:
+    if isinstance(candidate, LectionCandidate):
+        data = candidate.to_dict()
+    elif isinstance(candidate, dict):
+        data = candidate
+    else:
+        return
+    ref = str(data.get("reference") or "").strip()
+    if not ref and not str(data.get("rationale") or "").strip():
+        return
+    valid = bool(data.get("reference_valid"))
+    if "reference_valid" not in data and ref:
+        validation = validate_lection_reference(ref)
+        valid = bool(validation.get("ok"))
+        data["reference_error"] = str(validation.get("error") or "")
+        data["reference_valid"] = valid
+
+    st.markdown(f"**{heading}**")
+    st.markdown(f"**Igehely:** {ref or '—'}")
+    conn = normalize_lection_connection_type(data.get("connection_type"))
+    if conn:
+        st.markdown(
+            f"**Kapcsolat típusa:** {lection_connection_type_label(conn)}"
+        )
+    rationale = str(data.get("rationale") or "").strip()
+    if rationale:
+        st.markdown("**Miért illik hozzá?**")
+        st.write(rationale)
+    func = str(
+        data.get("liturgical_function") or data.get("function") or ""
+    ).strip()
+    if func:
+        st.markdown(f"**Liturgiai funkció:** {func}")
+    length = str(data.get("estimated_length") or "").strip()
+    if length:
+        st.markdown(f"**Becsült hossz:** {length}")
+
+    warnings = data.get("warnings") if isinstance(data.get("warnings"), list) else []
+    for w in warnings:
+        if str(w).strip():
+            st.caption(f"Figyelem: {w}")
+    if ref and not valid:
+        err = str(data.get("reference_error") or "").strip()
+        st.warning(
+            err
+            or "Az igehely nem érvényesíthető — RÚF-betöltés nem érhető el."
+        )
+
+    b1, b2 = st.columns(2)
+    with b1:
+        if st.button("Ezt választom lekciónak", key=f"{key_prefix}_adopt"):
+            _request_adopt_lection_block(
+                {
+                    "reference": ref,
+                    "connection_type": conn,
+                    "function": func,
+                    "rationale": rationale,
+                }
+            )
+    with b2:
+        if ref and valid:
+            if st.button("RÚF-szöveg betöltése", key=f"{key_prefix}_ruf"):
+                _request_lection_ruf_load(ref)
+
+
+def _render_lection_suggestions() -> None:
+    sw = ensure_sermon_workshop_state(st.session_state)
+    data = sw.get("lection_suggestions")
+    if not isinstance(data, dict):
+        return
+    if data.get("ok") is False and not (
+        isinstance(data.get("recommended_lection"), dict)
+        and data.get("recommended_lection", {}).get("reference")
+    ):
+        err = str(data.get("error_message") or "").strip()
+        if err:
+            st.error(err)
+        return
+
+    if data.get("no_separate_lection_needed"):
+        st.info(
+            str(data.get("no_lection_reason") or "").strip()
+            or "Az MI szerint külön lekció nem feltétlenül szükséges."
+        )
+
+    rec = data.get("recommended_lection")
+    if isinstance(rec, dict) and (
+        rec.get("reference") or rec.get("rationale")
+    ):
+        st.markdown("**MI-javaslat**")
+        _render_lection_candidate(
+            rec, key_prefix="sw_mi_lection_rec", heading="Ajánlott lekció"
+        )
+
+    alts = (
+        data.get("alternative_lections")
+        if isinstance(data.get("alternative_lections"), list)
+        else []
+    )
+    if alts:
+        with st.expander("További javaslatok", expanded=False):
+            for idx, alt in enumerate(alts[:3], start=1):
+                if not isinstance(alt, dict):
+                    continue
+                _render_lection_candidate(
+                    alt,
+                    key_prefix=f"sw_mi_lection_alt_{idx}",
+                    heading=f"Alternatíva {idx}",
+                )
+
+    reasoning = str(data.get("overall_reasoning") or "").strip()
+    basis = data.get("basis") if isinstance(data.get("basis"), list) else []
+    with st.expander("Mi alapján készült?", expanded=False):
+        if reasoning:
+            st.write(reasoning)
+        if basis:
+            for b in basis:
+                if str(b).strip():
+                    st.caption(f"• {b}")
+        if not reasoning and not basis:
+            st.caption("Nincs részletes indoklás.")
+
+    warnings = data.get("warnings") if isinstance(data.get("warnings"), list) else []
+    missing = (
+        data.get("missing_information")
+        if isinstance(data.get("missing_information"), list)
+        else []
+    )
+    for w in warnings:
+        if str(w).strip():
+            st.warning(str(w))
+    if missing:
+        st.info("Hiányzó információ: " + "; ".join(str(x) for x in missing if x))
+
+
+def _render_lection_assessment() -> None:
+    sw = ensure_sermon_workshop_state(st.session_state)
+    data = sw.get("lection_assessment")
+    if not isinstance(data, dict):
+        return
+    if data.get("ok") is False and not str(data.get("overall_assessment") or "").strip():
+        err = str(data.get("error_message") or "").strip()
+        if err:
+            st.error(err)
+        return
+    overall = str(data.get("overall_assessment") or "").strip()
+    if not overall and not data.get("strengths") and not data.get("improvements"):
+        return
+    st.markdown("**Saját lekció értékelése**")
+    if overall:
+        st.write(overall)
+    strengths = data.get("strengths") if isinstance(data.get("strengths"), list) else []
+    if strengths:
+        st.markdown("**Erősségek**")
+        for s in strengths:
+            if str(s).strip():
+                st.caption(f"• {s}")
+    improvements = (
+        data.get("improvements") if isinstance(data.get("improvements"), list) else []
+    )
+    if improvements:
+        st.markdown("**Javítási lehetőségek**")
+        for s in improvements:
+            if str(s).strip():
+                st.caption(f"• {s}")
+    for label, key in (
+        ("Kapcsolattípus", "connection_type_assessment"),
+        ("Hossz", "length_assessment"),
+        ("Liturgiai illeszkedés", "liturgical_fit_assessment"),
+    ):
+        val = str(data.get(key) or "").strip()
+        if val:
+            st.markdown(f"**{label}:** {val}")
+    sug_ref = str(data.get("suggested_reference") or "").strip()
+    sug_conn = normalize_lection_connection_type(
+        data.get("suggested_connection_type")
+    )
+    revised = str(data.get("revised_rationale") or "").strip()
+    if sug_ref or revised:
+        st.caption("Javaslatok (nem írják felül automatikusan a választásodat):")
+        if sug_ref:
+            st.write(f"Javasolt igehely: {sug_ref}")
+        if sug_conn:
+            st.write(
+                f"Javasolt kapcsolattípus: {lection_connection_type_label(sug_conn)}"
+            )
+        if revised:
+            st.write(revised)
+    warnings = data.get("warnings") if isinstance(data.get("warnings"), list) else []
+    for w in warnings:
+        if str(w).strip():
+            st.warning(str(w))
+
+
+def _render_lection_reader() -> None:
+    """Betöltött lekció olvasónézete — külön az alaptextustól."""
+    text = normalize_passage_text(st.session_state.get(_KEY_LECTION["text"]))
+    _ensure_bible_text_styles()
+    st.markdown("**Lekció szövege**")
+    if text.strip():
+        _lection_text_mismatch_warning()
+        render_formatted_bible_text(text)
+        sw = ensure_sermon_workshop_state(st.session_state)
+        lection = sw.get("lection") if isinstance(sw.get("lection"), dict) else {}
+        source = str(lection.get("text_source") or "").strip()
+        url = str(lection.get("text_source_url") or "").strip()
+        fetched_ref = str(lection.get("text_fetched_reference") or "").strip()
+        if source or url or fetched_ref:
+            caption = f"Forrás: {source or SOURCE_NAME}"
+            if fetched_ref:
+                caption += f" — {fetched_ref}"
+            if url:
+                st.markdown(f"{caption}  \n[Megnyitás a forrásoldalon]({url})")
+            else:
+                st.caption(caption)
+    with st.expander(
+        "Lekció szövegének szerkesztése",
+        expanded=not bool(text.strip()),
+    ):
+        st.text_area(
+            "Lekció szövege",
+            key=_KEY_LECTION["text"],
+            height=180,
+            label_visibility="collapsed",
+            placeholder="Töltsd be a RÚF szöveget, vagy illeszd be ide kézzel…",
+        )
+        if st.button("Lekciószöveg mentése", key="sw_lection_text_save"):
+            _persist_lection_from_widgets(include_text=True)
+            st.success("Lekciószöveg elmentve.")
+
+
+def render_lection_section(
+    *,
+    generate_fn: GenerateFn | None = None,
+) -> None:
+    """Lekciójavaslat — beállítások, kézi mezők, MI-segéd, RÚF-olvasó."""
+    _apply_pending_adopts_if_needed()
+    _apply_sw_ui_resync_if_needed()
+    ensure_sermon_workshop_state(st.session_state)
+
+    st.subheader("Lekciójavaslat")
+    st.markdown(
+        "A lekció hosszabb, összefüggő bibliai szakasz, amely előkészíti, "
+        "elmélyíti vagy tágabb bibliai összefüggésbe helyezi az igehirdetés "
+        "üzenetét."
+    )
+
+    sw = ensure_sermon_workshop_state(st.session_state)
+    status = (sw.get("lection_status") or "draft").strip()
+    st.caption(f"Állapot: {_STATUS_LABELS.get(status, status)}")
+
+    st.markdown("**Lekcióbeállítások**")
+    st.selectbox(
+        "Kívánt bibliai rész",
+        options=list(LECTION_TESTAMENT_PREFERENCES),
+        format_func=lambda v: LECTION_TESTAMENT_PREFERENCE_LABELS_HU.get(v, str(v)),
+        key=_KEY_LECTION["testament_preference"],
+    )
+    st.selectbox(
+        "Kívánt hossz",
+        options=list(LECTION_LENGTH_PREFERENCES),
+        format_func=lambda v: LECTION_LENGTH_PREFERENCE_LABELS_HU.get(v, str(v)),
+        key=_KEY_LECTION["length_preference"],
+    )
+    st.caption(
+        "Irányadó: rövidebb ≈ 5–9 vers; átlagos ≈ 8–18; hosszabb ≈ 15–30. "
+        "A szakasz természetes egysége fontosabb, mint a pontos versszám."
+    )
+    st.text_area(
+        "Külön szempont (opcionális)",
+        key=_KEY_LECTION["user_focus"],
+        height=70,
+        placeholder="Pl. Lehetőleg evangéliumi szakaszt szeretnék.",
+    )
+
+    st.markdown("---")
+    st.markdown("**Saját lekció**")
+    st.markdown("**Lekció igehelye**")
+    st.text_input(
+        "Lekció igehelye",
+        key=_KEY_LECTION["reference"],
+        placeholder="Pl. Fil 2,1–16",
+        label_visibility="collapsed",
+    )
+    conn_options = [""] + list(LECTION_CONNECTION_TYPES)
+    st.selectbox(
+        "Kapcsolat típusa",
+        options=conn_options,
+        format_func=lambda v: (
+            "—"
+            if not v
+            else LECTION_CONNECTION_TYPE_LABELS_HU.get(v, str(v))
+        ),
+        key=_KEY_LECTION["connection_type"],
+    )
+    st.markdown("**A lekció funkciója**")
+    st.caption("Mit készít elő vagy mit mélyít el ez a lekció az istentiszteleten?")
+    st.text_area(
+        "A lekció funkciója",
+        key=_KEY_LECTION["function"],
+        height=70,
+        label_visibility="collapsed",
+    )
+    st.markdown("**Rövid indoklás**")
+    st.caption(
+        "Fogalmazd meg 2–3 mondatban, hogyan kapcsolódik a lekció az "
+        "alaptextushoz és az igehirdetés fő gondolatához."
+    )
+    st.text_area(
+        "Rövid indoklás",
+        key=_KEY_LECTION["rationale"],
+        height=90,
+        label_visibility="collapsed",
+    )
+    st.markdown("**Saját megjegyzés**")
+    st.caption("Opcionális mező.")
+    st.text_area(
+        "Saját megjegyzés",
+        key=_KEY_LECTION["notes"],
+        height=70,
+        label_visibility="collapsed",
+    )
+
+    manual_ref = (st.session_state.get(_KEY_LECTION["reference"]) or "").strip()
+    if manual_ref:
+        validation = validate_lection_reference(manual_ref)
+        if validation.get("ok"):
+            if st.button(
+                "RÚF-szöveg betöltése a megadott igehelyhez",
+                key="sw_lection_manual_ruf",
+            ):
+                _request_lection_ruf_load(manual_ref)
+        else:
+            st.caption(
+                str(validation.get("error") or "Az igehely nem érvényesíthető.")
+            )
+
+    _render_lection_ruf_confirm()
+    _lection_text_mismatch_warning()
+
+    b1, b2 = st.columns(2)
+    with b1:
+        if st.button("Mentés vázlatként", key="sw_lection_save_draft"):
+            block = _read_lection_from_widgets()
+            if not any(
+                block.get(k)
+                for k in ("reference", "function", "rationale", "notes", "text")
+            ):
+                st.warning("Üres mezőket nem lehet menteni. Tölts ki legalább egyet.")
+            else:
+                _persist_lection_from_widgets()
+                update_sermon_workshop_section(
+                    st.session_state, "lection_status", "draft"
+                )
+                st.success("Vázlatként elmentve.")
+    with b2:
+        if st.button(
+            "Jóváhagyom és továbbviszem",
+            type="primary",
+            key="sw_lection_approve",
+        ):
+            block = _read_lection_from_widgets()
+            if not block.get("reference"):
+                st.warning("Jóváhagyáshoz add meg a lekció igehelyét.")
+            else:
+                _persist_lection_from_widgets()
+                update_sermon_workshop_section(
+                    st.session_state, "lection_status", "approved"
+                )
+                decisions = [
+                    ("reference", "Lekció igehelye", block["reference"]),
+                    (
+                        "connection_type",
+                        "Kapcsolat típusa",
+                        lection_connection_type_label(block["connection_type"]),
+                    ),
+                    ("function", "A lekció funkciója", block["function"]),
+                    ("rationale", "Rövid indoklás", block["rationale"]),
+                ]
+                added = 0
+                skipped = 0
+                for _field, category, content in decisions:
+                    if not content:
+                        continue
+                    if _decision_is_duplicate(
+                        source_section=_SOURCE_LECTION,
+                        category=category,
+                        content=content,
+                    ):
+                        skipped += 1
+                        continue
+                    add_approved_sermon_decision(
+                        st.session_state,
+                        _SOURCE_LECTION,
+                        category,
+                        content,
+                    )
+                    added += 1
+                if added:
+                    st.success(f"Jóváhagyva ({added} döntés).")
+                elif skipped:
+                    st.info("Ezek a döntések már szerepelnek.")
+                else:
+                    st.warning("Nem volt menthető tartalom.")
+
+    _render_decisions_for_section(_SOURCE_LECTION)
+
+    st.markdown("---")
+    st.markdown("**MI-segéd**")
+    mi1, mi2 = st.columns(2)
+    with mi1:
+        if st.button("Lekciók javaslata", key="sw_lection_mi_suggest"):
+            _run_lection_suggest(generate_fn=generate_fn)
+    with mi2:
+        if st.button("Saját lekció értékelése", key="sw_lection_mi_assess"):
+            _run_lection_assess(generate_fn=generate_fn)
+
+    _render_lection_suggestions()
+    _render_lection_assessment()
+
+    st.markdown("---")
+    _render_lection_reader()
 
 
 def _request_adopt_closing_block(block: dict[str, str]) -> None:
@@ -5636,6 +6399,8 @@ def render_sermon_workshop_shell(
         render_closing_section(generate_fn=generate_fn)
     elif active == "Homiletikai diagnosztika":
         render_diagnostics_section(generate_fn=generate_fn)
+    elif active == "Lekciójavaslat":
+        render_lection_section(generate_fn=generate_fn)
     else:
         _render_section_placeholder(active)
 
@@ -5648,11 +6413,14 @@ def render_sermon_workshop_shell(
         "Képek, illusztrációk és alkalmazás",
         "Lezárás és megérkezés",
         "Homiletikai diagnosztika",
+        "Lekciójavaslat",
     ):
         next_hint = _SW_NEXT_HINTS.get(active)
         if next_hint:
             st.caption(next_hint)
     elif active == "Az igehirdetés fő gondolata":
+        st.caption(_SW_NEXT_HINTS[active])
+    elif active == "Homiletikai diagnosztika":
         st.caption(_SW_NEXT_HINTS[active])
 
 
@@ -5666,4 +6434,5 @@ __all__ = [
     "render_enrichment_section",
     "render_closing_section",
     "render_diagnostics_section",
+    "render_lection_section",
 ]

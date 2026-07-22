@@ -193,6 +193,17 @@ EXCLUDED_SESSION_KEYS: frozenset[str] = frozenset(
         "sw_diag_self_uncertainties",
         "sw_diag_self_priority",
         "sw_diag_self_focus",
+        "sw_lection_reference",
+        "sw_lection_connection_type",
+        "sw_lection_function",
+        "sw_lection_rationale",
+        "sw_lection_text",
+        "sw_lection_notes",
+        "sw_lection_testament_preference",
+        "sw_lection_length_preference",
+        "sw_lection_user_focus",
+        "_sw_lection_adopt_pending",
+        "_sw_lection_ruf_pending",
     }
 )
 

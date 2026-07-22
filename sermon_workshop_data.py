@@ -21,6 +21,7 @@ _SECTION_DICT_KEYS = (
     "sermon_path",
     "closing",
     "diagnostics",
+    "lection",
 )
 
 _SECTION_LIST_KEYS = (
@@ -86,6 +87,25 @@ def get_default_sermon_workshop() -> dict[str, Any]:
         "self_review_priority": "",
         "self_review_focus": "",
         "m8_last_generated_at": "",
+        "lection": {
+            "reference": "",
+            "connection_type": "",
+            "function": "",
+            "rationale": "",
+            "text": "",
+            "notes": "",
+            "testament_preference": "any",
+            "length_preference": "standard",
+            "user_focus": "",
+            "text_source": "",
+            "text_source_url": "",
+            "text_fetched_at": "",
+            "text_fetched_reference": "",
+        },
+        "lection_status": "draft",
+        "lection_suggestions": None,
+        "lection_assessment": None,
+        "m9_lection_last_generated_at": "",
         "approved_sermon_decisions": [],
         "sermon_main_idea_suggestions": None,
         "sermon_main_idea_assessment": None,
@@ -373,6 +393,53 @@ def _normalize_diagnostics(raw: Any) -> dict[str, Any]:
     }
 
 
+_LECTION_TESTAMENT_PREFS = frozenset(
+    {"any", "old_testament", "psalm", "gospel", "new_testament"}
+)
+_LECTION_LENGTH_PREFS = frozenset({"short", "standard", "extended"})
+_LECTION_CONNECTION_TYPES = frozenset(
+    {
+        "thematic",
+        "canonical",
+        "redemptive_historical",
+        "preparatory",
+        "contrast",
+        "gospel_complement",
+        "liturgical_echo",
+    }
+)
+
+
+def normalize_lection_testament_preference(raw: Any) -> str:
+    value = _as_str(raw).strip().casefold()
+    return value if value in _LECTION_TESTAMENT_PREFS else "any"
+
+
+def normalize_lection_length_preference(raw: Any) -> str:
+    value = _as_str(raw).strip().casefold()
+    return value if value in _LECTION_LENGTH_PREFS else "standard"
+
+
+def normalize_lection_connection_type(raw: Any) -> str:
+    value = _as_str(raw).strip().casefold()
+    return value if value in _LECTION_CONNECTION_TYPES else ""
+
+
+def _normalize_lection(raw: Any) -> dict[str, str]:
+    """M9 lekcióblokk — biztonságos alapértékek régi projektekhez."""
+    template = get_default_sermon_workshop()["lection"]
+    out = _normalize_str_dict(raw, template)
+    out["testament_preference"] = normalize_lection_testament_preference(
+        out.get("testament_preference")
+    )
+    out["length_preference"] = normalize_lection_length_preference(
+        out.get("length_preference")
+    )
+    conn = normalize_lection_connection_type(out.get("connection_type"))
+    out["connection_type"] = conn
+    return out
+
+
 def _normalize_decisions(raw: Any) -> list[dict[str, Any]]:
     if not isinstance(raw, list):
         return []
@@ -426,6 +493,10 @@ def normalize_sermon_workshop(data: Any) -> dict[str, Any]:
     if closing_status not in ("draft", "approved", ""):
         closing_status = "draft"
 
+    lection_status = _as_str(data.get("lection_status")) or "draft"
+    if lection_status not in ("draft", "approved", ""):
+        lection_status = "draft"
+
     return {
         "sermon_main_idea": _as_str(data.get("sermon_main_idea")),
         "sermon_main_idea_status": status or "draft",
@@ -449,6 +520,8 @@ def normalize_sermon_workshop(data: Any) -> dict[str, Any]:
         "closing": _normalize_str_dict(data.get("closing"), base["closing"]),
         "closing_status": closing_status or "draft",
         "diagnostics": _normalize_diagnostics(data.get("diagnostics")),
+        "lection": _normalize_lection(data.get("lection")),
+        "lection_status": lection_status or "draft",
         "approved_sermon_decisions": _normalize_decisions(
             data.get("approved_sermon_decisions")
         ),
@@ -545,6 +618,15 @@ def normalize_sermon_workshop(data: Any) -> dict[str, Any]:
         "self_review_priority": _as_str(data.get("self_review_priority")),
         "self_review_focus": _as_str(data.get("self_review_focus")),
         "m8_last_generated_at": _as_str(data.get("m8_last_generated_at")),
+        "lection_suggestions": _normalize_optional_dict(
+            data.get("lection_suggestions", base["lection_suggestions"])
+        ),
+        "lection_assessment": _normalize_optional_dict(
+            data.get("lection_assessment", base["lection_assessment"])
+        ),
+        "m9_lection_last_generated_at": _as_str(
+            data.get("m9_lection_last_generated_at")
+        ),
     }
 
 
@@ -605,6 +687,13 @@ def update_sermon_workshop_section(
         sw["closing_status"] = status or "draft"
         return sw
 
+    if key == "lection_status":
+        status = _as_str(data) or "draft"
+        if status not in ("draft", "approved", ""):
+            status = "draft"
+        sw["lection_status"] = status or "draft"
+        return sw
+
     if key in (
         "self_review_strengths",
         "self_review_uncertainties",
@@ -618,6 +707,16 @@ def update_sermon_workshop_section(
         template = get_default_sermon_workshop()[key]
         if key == "diagnostics":
             sw[key] = _normalize_diagnostics(data)
+        elif key == "lection":
+            current = sw.get(key) if isinstance(sw.get(key), dict) else {}
+            merged = dict(template)
+            if isinstance(current, dict):
+                merged.update({k: _as_str(current.get(k)) for k in template})
+            if isinstance(data, dict):
+                for field_key in template:
+                    if field_key in data:
+                        merged[field_key] = _as_str(data.get(field_key))
+            sw[key] = _normalize_lection(merged)
         else:
             # Merge: meglévő + új mezők
             current = sw.get(key) if isinstance(sw.get(key), dict) else {}
@@ -942,6 +1041,38 @@ def save_homiletical_diagnostics(
     return sw
 
 
+def save_lection_suggestions(
+    session_state: MutableMapping[str, Any],
+    payload: dict[str, Any],
+    *,
+    stamp_generated_at: bool = True,
+) -> dict[str, Any]:
+    """Tartós M9 lekciójavaslat mentése."""
+    sw = ensure_sermon_workshop_state(session_state)
+    sw["lection_suggestions"] = dict(payload) if isinstance(payload, dict) else None
+    if stamp_generated_at:
+        sw["m9_lection_last_generated_at"] = datetime.now().isoformat(
+            timespec="seconds"
+        )
+    return sw
+
+
+def save_lection_assessment(
+    session_state: MutableMapping[str, Any],
+    payload: dict[str, Any],
+    *,
+    stamp_generated_at: bool = True,
+) -> dict[str, Any]:
+    """Tartós M9 lekcióértékelés mentése."""
+    sw = ensure_sermon_workshop_state(session_state)
+    sw["lection_assessment"] = dict(payload) if isinstance(payload, dict) else None
+    if stamp_generated_at:
+        sw["m9_lection_last_generated_at"] = datetime.now().isoformat(
+            timespec="seconds"
+        )
+    return sw
+
+
 __all__ = [
     "SERMON_WORKSHOP_KEY",
     "get_default_sermon_workshop",
@@ -963,6 +1094,9 @@ __all__ = [
     "normalize_textual_images",
     "normalize_illustrations",
     "normalize_applications",
+    "normalize_lection_testament_preference",
+    "normalize_lection_length_preference",
+    "normalize_lection_connection_type",
     "save_sermon_main_idea_suggestions",
     "save_sermon_main_idea_assessment",
     "save_human_condition_suggestion",
@@ -978,4 +1112,6 @@ __all__ = [
     "save_closing_suggestions",
     "save_closing_assessment",
     "save_homiletical_diagnostics",
+    "save_lection_suggestions",
+    "save_lection_assessment",
 ]
