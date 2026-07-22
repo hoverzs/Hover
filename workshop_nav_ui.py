@@ -113,6 +113,121 @@ def render_workshop_step_grid(
     )
 
 
+# Státuszikonok a lépéslistához (glyph-alapú, nem csak szín → hozzáférhető).
+_STEP_STATE_ICON: dict[str, str] = {
+    "active": ":material/edit:",
+    "done": ":material/check_circle:",
+    "pending": ":material/radio_button_unchecked:",
+}
+_STEP_STATE_LABEL: dict[str, str] = {
+    "active": "Munkában",
+    "done": "Elkészült",
+    "pending": "Még nincs kidolgozva",
+}
+
+
+def render_workshop_workflow_nav(
+    options: Sequence[str],
+    *,
+    key: str,
+    completed: Iterable[str] | None = None,
+    key_prefix: str | None = None,
+) -> str:
+    """Kompakt munkafolyamat-navigáció (közös komponens mindkét műhelyhez).
+
+    Fő sor: „Munkafolyamat”, aktuális lépés, N / összes; jobbra Előző /
+    Lépések (popover) / Következő. Alatta vékony, visszafogott haladássáv.
+    A `key` (pl. `tw_active_section` / `sw_active_section`) marad a szakasz
+    forrása; gombok állítják, mivel ez tisztán felületi állapot.
+    """
+    opts = [str(o) for o in options if str(o).strip()]
+    if not opts:
+        return ""
+
+    done = {str(x) for x in (completed or ()) if str(x).strip()}
+    current = str(st.session_state.get(key) or "")
+    if current not in opts:
+        st.session_state[key] = opts[0]
+        current = opts[0]
+
+    idx = opts.index(current)
+    total = len(opts)
+    prefix = key_prefix or key
+    done_count = sum(1 for o in opts if o in done)
+    pct = int(round((done_count / total) * 100)) if total else 0
+
+    st.markdown('<div class="tx-workflow-anchor" aria-hidden="true"></div>', unsafe_allow_html=True)
+
+    left, right = st.columns([2.3, 2.0], gap="small")
+    with left:
+        st.markdown(
+            (
+                '<div class="tx-wf-bar">'
+                '<div class="tx-wf-eyebrow">Munkafolyamat</div>'
+                f'<div class="tx-wf-title">{escape(current)}</div>'
+                f'<div class="tx-wf-count">{idx + 1} / {total} lépés</div>'
+                "</div>"
+            ),
+            unsafe_allow_html=True,
+        )
+    with right:
+        c_prev, c_steps, c_next = st.columns([1.0, 1.25, 1.0], gap="small")
+        with c_prev:
+            if st.button(
+                "Előző",
+                key=f"{prefix}_wf_prev",
+                icon=":material/chevron_left:",
+                disabled=idx <= 0,
+                use_container_width=True,
+            ):
+                st.session_state[key] = opts[idx - 1]
+                st.rerun()
+        with c_steps:
+            with st.popover("Lépések", use_container_width=True):
+                st.caption(f"{done_count} / {total} szakaszban van megtartott anyag")
+                for i, opt in enumerate(opts):
+                    if opt == current:
+                        state = "active"
+                    elif opt in done:
+                        state = "done"
+                    else:
+                        state = "pending"
+                    label = f"{opt}  ·  {_STEP_STATE_LABEL[state]}"
+                    if st.button(
+                        label,
+                        key=f"{prefix}_wf_step_{i}",
+                        icon=_STEP_STATE_ICON[state],
+                        type="primary" if state == "active" else "secondary",
+                        use_container_width=True,
+                    ):
+                        if opt != current:
+                            st.session_state[key] = opt
+                            st.rerun()
+        with c_next:
+            if st.button(
+                "Következő",
+                key=f"{prefix}_wf_next",
+                icon=":material/chevron_right:",
+                disabled=idx >= total - 1,
+                use_container_width=True,
+            ):
+                st.session_state[key] = opts[idx + 1]
+                st.rerun()
+
+    st.markdown(
+        (
+            '<div class="tx-wf-progress" role="presentation">'
+            f'<div class="tx-wf-progress-fill" style="width:{pct}%"></div>'
+            "</div>"
+            '<div class="tx-wf-progress-note">A lépések rugalmasan használhatók; '
+            "nem szükséges mindegyiket kitölteni.</div>"
+        ),
+        unsafe_allow_html=True,
+    )
+
+    return str(st.session_state.get(key) or opts[0])
+
+
 # Backward-compatible aliasok
 render_section_stepper = render_workshop_stepper
 

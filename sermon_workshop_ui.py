@@ -214,6 +214,7 @@ from textus_workshop_data import ensure_text_workshop_state
 from workshop_nav_ui import (
     render_section_stepper,
     render_workshop_step_grid,
+    render_workshop_workflow_nav,
     sermon_completed_sections,
 )
 
@@ -8741,11 +8742,10 @@ def render_sermon_workshop_shell(
         else:
             st.session_state[_KEY_ACTIVE_SECTION] = _SW_SECTION_OPTIONS[0]
 
-    render_workshop_step_grid(
+    render_workshop_workflow_nav(
         _SW_SECTION_OPTIONS,
         key=_KEY_ACTIVE_SECTION,
         completed=sermon_completed_sections(st.session_state),
-        label="Munkafolyamat",
     )
 
     active = st.session_state.get(_KEY_ACTIVE_SECTION) or _SW_SECTION_OPTIONS[0]

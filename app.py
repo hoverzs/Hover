@@ -47,6 +47,7 @@ from workshop_nav_ui import (
     render_project_toolbar_anchor,
     render_section_stepper,
     render_workshop_step_grid,
+    render_workshop_workflow_nav,
     textus_completed_sections,
 )
 from ui_components import render_page_intro, render_status_badge
@@ -6520,11 +6521,10 @@ def render_textus_workshop_shell() -> None:
         else:
             st.session_state["tw_active_section"] = _TW_SECTION_OPTIONS[0]
 
-    render_workshop_step_grid(
+    render_workshop_workflow_nav(
         _TW_SECTION_OPTIONS,
         key="tw_active_section",
         completed=textus_completed_sections(st.session_state),
-        label="Munkafolyamat",
     )
 
     active = st.session_state.get("tw_active_section") or _TW_SECTION_OPTIONS[0]

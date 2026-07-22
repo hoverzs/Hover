@@ -303,5 +303,92 @@ def premium_overlay_css() -> str:
 [data-testid="stSegmentedControl"] button[aria-checked="true"] {
     color: #1f334d !important;
 }
+
+/* ===== Kompakt munkafolyamat-navigáció ===== */
+.tx-workflow-anchor { display: none !important; height: 0 !important; margin: 0 !important; }
+
+.element-container:has(.tx-workflow-anchor) + .element-container [data-testid="stHorizontalBlock"] {
+    align-items: center !important;
+    background:
+        linear-gradient(165deg, rgba(255, 252, 247, 0.8), rgba(238, 230, 216, 0.5)) !important;
+    border: 1px solid rgba(186, 158, 122, 0.4) !important;
+    border-radius: 14px !important;
+    padding: 0.6rem 0.85rem !important;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset, 0 6px 14px rgba(58, 40, 22, 0.06) !important;
+    margin-top: 0.35rem !important;
+}
+
+.tx-wf-bar { display: flex; flex-direction: column; gap: 0.05rem; }
+.tx-wf-eyebrow {
+    font-family: "Inter", "Segoe UI", sans-serif;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--tx-gold);
+}
+.tx-wf-title {
+    font-family: "Inter", "Segoe UI", sans-serif;
+    font-size: 1.05rem;
+    font-weight: 650;
+    color: #1f334d;
+    line-height: 1.2;
+}
+.tx-wf-count {
+    font-family: "Inter", "Segoe UI", sans-serif;
+    font-size: 0.82rem;
+    color: var(--tx-text-muted);
+}
+
+/* Workflow gombok: kompakt, egységes magasság */
+.element-container:has(.tx-workflow-anchor) + .element-container .stButton > button {
+    min-height: 2.6rem !important;
+    border-radius: 10px !important;
+}
+
+/* Vékony, visszafogott haladássáv */
+.tx-wf-progress {
+    height: 4px;
+    width: 100%;
+    background: rgba(160, 140, 115, 0.22);
+    border-radius: 999px;
+    margin: 0.5rem 0 0.25rem;
+    overflow: hidden;
+}
+.tx-wf-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #5a7aa8, #7c96b8);
+    border-radius: 999px;
+    transition: width 0.3s ease;
+}
+.tx-wf-progress-note {
+    font-family: "Inter", "Segoe UI", sans-serif;
+    font-size: 0.78rem;
+    color: var(--tx-text-muted);
+    margin-bottom: 0.6rem;
+}
+
+/* Lépéslista a popoverben: egyetlen oszlop, teljes sor kattintható */
+[data-testid="stPopover"] .stButton > button,
+div[data-baseweb="popover"] .stButton > button {
+    justify-content: flex-start !important;
+    text-align: left !important;
+    min-height: 2.5rem !important;
+    border-radius: 9px !important;
+    white-space: normal !important;
+    font-weight: 500 !important;
+}
+
+@media (max-width: 768px) {
+    .element-container:has(.tx-workflow-anchor) + .element-container [data-testid="stHorizontalBlock"] {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 0.5rem !important;
+    }
+    .element-container:has(.tx-workflow-anchor) + .element-container [data-testid="column"] {
+        width: 100% !important;
+        flex: 1 1 100% !important;
+    }
+}
 """.strip()
 
