@@ -264,6 +264,38 @@ def premium_overlay_css() -> str:
     outline-offset: 2px !important;
 }
 
+/* ===== Tartalmi felületek és üzenetek ===== */
+/* Szakaszcím (H2/H3) egységes, visszafogott méret */
+.stMarkdown h2, [data-testid="stHeading"] h2 {
+    font-size: 1.55rem !important;
+    line-height: 1.25 !important;
+    letter-spacing: 0 !important;
+}
+.stMarkdown h3, [data-testid="stHeading"] h3 {
+    font-size: 1.2rem !important;
+    line-height: 1.3 !important;
+}
+
+/* Információs panelek: finom, bal kék sáv, nem csupa félkövér, nem harsány */
+[data-testid="stAlert"] {
+    border-radius: var(--tx-radius-md) !important;
+    border: 1px solid var(--tx-border) !important;
+    border-left: 3px solid var(--tx-primary) !important;
+    box-shadow: none !important;
+    padding: 0.65rem 0.9rem !important;
+}
+[data-testid="stAlertContentSuccess"] { }
+[data-testid="stAlert"]:has([data-testid="stAlertContentSuccess"]) { border-left-color: var(--tx-success) !important; }
+[data-testid="stAlert"]:has([data-testid="stAlertContentWarning"]) { border-left-color: var(--tx-warning) !important; }
+[data-testid="stAlert"]:has([data-testid="stAlertContentError"]) { border-left-color: var(--tx-danger) !important; }
+[data-testid="stAlert"] p {
+    font-weight: 500 !important;
+    text-transform: none !important;
+    letter-spacing: 0 !important;
+    font-size: 0.95rem !important;
+    line-height: 1.5 !important;
+}
+
 @media (max-width: 1024px) {
     .block-container {
         max-width: 100% !important;
