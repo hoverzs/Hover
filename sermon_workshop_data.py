@@ -81,6 +81,11 @@ def get_default_sermon_workshop() -> dict[str, Any]:
             "result": {},
             "priorities": [],
         },
+        "self_review_strengths": "",
+        "self_review_uncertainties": "",
+        "self_review_priority": "",
+        "self_review_focus": "",
+        "m8_last_generated_at": "",
         "approved_sermon_decisions": [],
         "sermon_main_idea_suggestions": None,
         "sermon_main_idea_assessment": None,
@@ -324,18 +329,47 @@ def _normalize_str_dict(raw: Any, template: dict[str, str]) -> dict[str, str]:
 
 
 def _normalize_diagnostics(raw: Any) -> dict[str, Any]:
-    base = {"result": {}, "priorities": []}
+    """M8 diagnosztika: result = teljes MI-eredmény; priorities = max 3 elem."""
+    base: dict[str, Any] = {"result": {}, "priorities": []}
     if not isinstance(raw, dict):
         return base
     result = raw.get("result")
-    priorities = raw.get("priorities")
+    priorities_raw = raw.get("priorities")
+    priorities: list[Any] = []
+    if isinstance(priorities_raw, list):
+        for item in priorities_raw:
+            if isinstance(item, dict):
+                priorities.append(
+                    {
+                        "priority": item.get("priority", len(priorities) + 1),
+                        "title": _as_str(item.get("title")),
+                        "problem": _as_str(item.get("problem")),
+                        "why_it_matters": _as_str(item.get("why_it_matters")),
+                        "recommended_action": _as_str(item.get("recommended_action")),
+                        "affected_sections": (
+                            [_as_str(x) for x in item.get("affected_sections", []) if _as_str(x)]
+                            if isinstance(item.get("affected_sections"), list)
+                            else []
+                        ),
+                    }
+                )
+            elif _as_str(item):
+                # Régi string prioritások visszafelé kompatibilisen
+                priorities.append(
+                    {
+                        "priority": len(priorities) + 1,
+                        "title": _as_str(item),
+                        "problem": "",
+                        "why_it_matters": "",
+                        "recommended_action": "",
+                        "affected_sections": [],
+                    }
+                )
+            if len(priorities) >= 3:
+                break
     return {
         "result": dict(result) if isinstance(result, dict) else {},
-        "priorities": (
-            [_as_str(x) for x in priorities if _as_str(x)]
-            if isinstance(priorities, list)
-            else []
-        ),
+        "priorities": priorities,
     }
 
 
@@ -506,6 +540,11 @@ def normalize_sermon_workshop(data: Any) -> dict[str, Any]:
         "m7_closing_last_generated_at": _as_str(
             data.get("m7_closing_last_generated_at")
         ),
+        "self_review_strengths": _as_str(data.get("self_review_strengths")),
+        "self_review_uncertainties": _as_str(data.get("self_review_uncertainties")),
+        "self_review_priority": _as_str(data.get("self_review_priority")),
+        "self_review_focus": _as_str(data.get("self_review_focus")),
+        "m8_last_generated_at": _as_str(data.get("m8_last_generated_at")),
     }
 
 
@@ -564,6 +603,15 @@ def update_sermon_workshop_section(
         if status not in ("draft", "approved", ""):
             status = "draft"
         sw["closing_status"] = status or "draft"
+        return sw
+
+    if key in (
+        "self_review_strengths",
+        "self_review_uncertainties",
+        "self_review_priority",
+        "self_review_focus",
+    ):
+        sw[key] = _as_str(data)
         return sw
 
     if key in _SECTION_DICT_KEYS:
@@ -866,6 +914,34 @@ def save_closing_assessment(
     return sw
 
 
+def save_homiletical_diagnostics(
+    session_state: MutableMapping[str, Any],
+    payload: dict[str, Any],
+    *,
+    stamp_generated_at: bool = True,
+) -> dict[str, Any]:
+    """Tartós M8 diagnosztika mentése a meglévő `diagnostics` kulcsba.
+
+    Nem módosítja az M4–M7 tartalmakat és a kézi önellenőrző mezőket.
+    """
+    sw = ensure_sermon_workshop_state(session_state)
+    result = dict(payload) if isinstance(payload, dict) else {}
+    priorities_raw = result.get("revision_priorities")
+    priorities: list[Any] = []
+    if isinstance(priorities_raw, list):
+        for item in priorities_raw[:3]:
+            if isinstance(item, dict):
+                priorities.append(item)
+            elif _as_str(item):
+                priorities.append({"title": _as_str(item), "priority": len(priorities) + 1})
+    sw["diagnostics"] = _normalize_diagnostics(
+        {"result": result, "priorities": priorities}
+    )
+    if stamp_generated_at:
+        sw["m8_last_generated_at"] = datetime.now().isoformat(timespec="seconds")
+    return sw
+
+
 __all__ = [
     "SERMON_WORKSHOP_KEY",
     "get_default_sermon_workshop",
@@ -901,4 +977,5 @@ __all__ = [
     "save_sermon_enrichment_assessment",
     "save_closing_suggestions",
     "save_closing_assessment",
+    "save_homiletical_diagnostics",
 ]

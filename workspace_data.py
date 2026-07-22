@@ -189,6 +189,10 @@ EXCLUDED_SESSION_KEYS: frozenset[str] = frozenset(
         "_sw_cl_adopt_pending",
         "_sw_m7_cl_suggest_running",
         "_sw_m7_cl_assess_running",
+        "sw_diag_self_strengths",
+        "sw_diag_self_uncertainties",
+        "sw_diag_self_priority",
+        "sw_diag_self_focus",
     }
 )
 

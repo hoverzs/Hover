@@ -31,6 +31,7 @@ from sermon_workshop_data import (
     save_listener_tension_suggestions,
     save_closing_assessment,
     save_closing_suggestions,
+    save_homiletical_diagnostics,
     save_sermon_enrichment_assessment,
     save_sermon_enrichment_suggestions,
     save_sermon_main_idea_assessment,
@@ -125,6 +126,13 @@ from sermon_workshop_m7_closing_ai import (
     normalize_closing_type,
     suggest_closing,
 )
+from sermon_workshop_m8_ai import (
+    HomileticalDiagnosticsResult,
+    diagnostic_area_label,
+    diagnostic_status_label,
+    normalize_diagnostic_status,
+    run_homiletical_diagnostics,
+)
 from textus_workshop_data import ensure_text_workshop_state
 
 GenerateFn = Callable[..., str]
@@ -140,18 +148,7 @@ _SW_SECTION_OPTIONS = [
     "Homiletikai diagnosztika",
 ]
 
-_SW_SECTION_PLACEHOLDERS: dict[str, dict[str, str]] = {
-    "Homiletikai diagnosztika": {
-        "goal": (
-            "Rövid, szöveges tükrözést kapni textushűségről, egységről, "
-            "kegyelemről és hallhatóságról."
-        ),
-        "later": (
-            "Itt legfeljebb három javítási prioritás jelenik meg — "
-            "pontszám és automatikus átírás nélkül."
-        ),
-    },
-}
+_SW_SECTION_PLACEHOLDERS: dict[str, dict[str, str]] = {}
 
 _SW_NEXT_HINTS: dict[str, str] = {
     "Az igehirdetés fő gondolata": (
@@ -380,6 +377,12 @@ _ADOPT_EN_IMAGES_PENDING = "_sw_en_adopt_images_pending"
 _ADOPT_EN_ILL_PENDING = "_sw_en_adopt_ill_pending"
 _ADOPT_EN_APPS_PENDING = "_sw_en_adopt_apps_pending"
 _ADOPT_CL_PENDING = "_sw_cl_adopt_pending"
+_KEY_DIAG = {
+    "self_review_strengths": "sw_diag_self_strengths",
+    "self_review_uncertainties": "sw_diag_self_uncertainties",
+    "self_review_priority": "sw_diag_self_priority",
+    "self_review_focus": "sw_diag_self_focus",
+}
 _KEY_CL = {
     "type": "sw_cl_type",
     "final_discovery": "sw_cl_final_discovery",
@@ -1165,6 +1168,10 @@ def _apply_sw_ui_resync_if_needed() -> None:
             else:
                 st.session_state[wkey] = str(closing.get(field) or "")
 
+    for field, wkey in _KEY_DIAG.items():
+        if force or wkey not in st.session_state:
+            st.session_state[wkey] = str(sw.get(field) or "")
+
 
 def _request_adopt_sermon_sentence(sentence: str) -> None:
     st.session_state[_ADOPT_SERMON_PENDING] = str(sentence or "").strip()
@@ -1417,6 +1424,273 @@ def _collect_closing_kwargs() -> dict[str, Any]:
     base = _collect_enrichment_kwargs()
     base["closing"] = _read_closing_from_widgets()
     return base
+
+
+def _read_self_review_from_widgets() -> dict[str, str]:
+    return {
+        field: (st.session_state.get(wkey) or "").strip()
+        for field, wkey in _KEY_DIAG.items()
+    }
+
+
+def _persist_self_review_from_widgets() -> None:
+    block = _read_self_review_from_widgets()
+    for field, value in block.items():
+        update_sermon_workshop_section(st.session_state, field, value)
+
+
+def _collect_diagnostics_kwargs() -> dict[str, Any]:
+    """Sessionből M8 diagnosztika MI-bemenet (M4–M7 + lezárás + önellenőrzés)."""
+    base = _collect_closing_kwargs()
+    review = _read_self_review_from_widgets()
+    base.update(review)
+    return base
+
+
+def _diagnostics_payload(result: HomileticalDiagnosticsResult) -> dict[str, Any]:
+    return result.to_dict()
+
+
+def _run_homiletical_diagnostics(*, generate_fn: GenerateFn | None) -> None:
+    _persist_self_review_from_widgets()
+    with st.spinner("Homiletikai diagnosztika készül…"):
+        kwargs = _collect_diagnostics_kwargs()
+        result = run_homiletical_diagnostics(**kwargs, generate_fn=generate_fn)
+        if result.ok and (
+            result.overall_summary
+            or result.revision_priorities
+            or any(a.summary for a in result.diagnostic_areas)
+        ):
+            save_homiletical_diagnostics(
+                st.session_state, _diagnostics_payload(result)
+            )
+        if not result.ok:
+            st.error(
+                _user_facing_error(
+                    result.ok,
+                    result.error_message,
+                    fallback="A diagnosztika nem sikerült.",
+                )
+            )
+        elif result.missing_information and not result.overall_summary:
+            st.warning(
+                "Nincs elegendő adat a felelős diagnosztikához. Hiányzik: "
+                + "; ".join(result.missing_information)
+            )
+        else:
+            st.success("Diagnosztika elkészült.")
+
+
+def _diag_status_caption(status: str) -> str:
+    return diagnostic_status_label(status)
+
+
+def _render_diagnostic_status_badge(status: str) -> None:
+    key = normalize_diagnostic_status(status)
+    label = diagnostic_status_label(key)
+    if key in ("strong", "stable"):
+        st.caption(label)
+    elif key == "needs_attention":
+        st.info(label)
+    elif key == "critical_gap":
+        st.warning(label)
+    else:
+        st.caption(label)
+
+
+def _render_diagnostics_results() -> None:
+    sw = ensure_sermon_workshop_state(st.session_state)
+    diag = sw.get("diagnostics") if isinstance(sw.get("diagnostics"), dict) else {}
+    result = diag.get("result") if isinstance(diag.get("result"), dict) else {}
+    if not result:
+        return
+
+    summary = str(result.get("overall_summary") or "").strip()
+    if summary:
+        st.markdown("**Összefoglaló**")
+        st.markdown(summary)
+
+    coherence = str(result.get("overall_coherence") or "").strip()
+    if coherence:
+        st.markdown("**Összhang**")
+        st.markdown(coherence)
+
+    priorities = diag.get("priorities") if isinstance(diag.get("priorities"), list) else []
+    rev_raw = result.get("revision_priorities")
+    if not priorities and isinstance(rev_raw, list):
+        priorities = [p for p in rev_raw if isinstance(p, dict)]
+    if priorities:
+        st.markdown("**Javítási prioritások**")
+        for item in priorities[:3]:
+            if not isinstance(item, dict):
+                continue
+            title = str(item.get("title") or "").strip()
+            if not title:
+                continue
+            prio = item.get("priority")
+            header = f"{prio}. {title}" if prio else title
+            st.markdown(f"**{header}**")
+            for label, key in (
+                ("Probléma", "problem"),
+                ("Miért fontos", "why_it_matters"),
+                ("Javasolt lépés", "recommended_action"),
+            ):
+                text = str(item.get(key) or "").strip()
+                if text:
+                    st.markdown(f"*{label}:* {text}")
+            sections = item.get("affected_sections")
+            if isinstance(sections, list):
+                sec_text = ", ".join(str(x).strip() for x in sections if str(x).strip())
+                if sec_text:
+                    st.caption(f"Érintett szakaszok: {sec_text}")
+
+    strengths = result.get("major_strengths")
+    if isinstance(strengths, list) and any(str(x).strip() for x in strengths):
+        st.markdown("**Fő erősségek**")
+        for item in strengths[:3]:
+            line = str(item or "").strip()
+            if line:
+                st.markdown(f"- {line}")
+
+    areas = result.get("diagnostic_areas")
+    if isinstance(areas, list) and areas:
+        st.markdown("**Diagnosztikai területek**")
+        for area in areas:
+            if not isinstance(area, dict):
+                continue
+            key = str(area.get("key") or "").strip()
+            label = str(area.get("label") or "").strip() or diagnostic_area_label(key)
+            status = str(area.get("status") or "").strip()
+            status_label = diagnostic_status_label(status)
+            with st.expander(f"{label} — {status_label}", expanded=False):
+                _render_diagnostic_status_badge(status)
+                for field_label, field_key in (
+                    ("Összefoglaló", "summary"),
+                    ("Bizonyíték", "evidence"),
+                    ("Aggályok", "concerns"),
+                ):
+                    text = str(area.get(field_key) or "").strip()
+                    if text:
+                        st.markdown(f"**{field_label}:** {text}")
+
+    consistency = result.get("consistency_warnings")
+    if isinstance(consistency, list) and any(str(x).strip() for x in consistency):
+        st.markdown("**Konzisztencia-figyelmeztetések**")
+        for item in consistency:
+            line = str(item or "").strip()
+            if line:
+                st.warning(line)
+
+    pastoral = result.get("pastoral_warnings")
+    if isinstance(pastoral, list) and any(str(x).strip() for x in pastoral):
+        st.markdown("**Pásztori figyelmeztetések**")
+        for item in pastoral:
+            line = str(item or "").strip()
+            if line:
+                st.warning(line)
+
+    voice_note = str(result.get("voice_and_originality_note") or "").strip()
+    if voice_note:
+        st.markdown("**Hang és eredetiség**")
+        st.markdown(voice_note)
+
+    ready = result.get("ready_for_next_stage")
+    readiness_note = str(result.get("readiness_note") or "").strip()
+    if ready is not None or readiness_note:
+        st.markdown("**Készenlét a következő lépésre**")
+        if isinstance(ready, bool):
+            st.markdown("Igen" if ready else "Még nem")
+        if readiness_note:
+            st.markdown(readiness_note)
+
+    warnings = result.get("warnings")
+    if isinstance(warnings, list) and any(str(x).strip() for x in warnings):
+        st.markdown("**Figyelmeztetések**")
+        for item in warnings:
+            line = str(item or "").strip()
+            if line:
+                st.warning(line)
+
+    missing = result.get("missing_information")
+    if isinstance(missing, list) and any(str(x).strip() for x in missing):
+        st.markdown("**Hiányzó információk**")
+        for item in missing:
+            line = str(item or "").strip()
+            if line:
+                st.caption(f"- {line}")
+
+    generated = str(sw.get("m8_last_generated_at") or "").strip()
+    if generated:
+        st.caption(f"Utolsó diagnosztika: {generated}")
+
+
+def render_diagnostics_section(
+    *,
+    generate_fn: GenerateFn | None = None,
+) -> None:
+    """Homiletikai diagnosztika — önellenőrzés + MI tükrözés."""
+    _apply_pending_adopts_if_needed()
+    _apply_sw_ui_resync_if_needed()
+    ensure_sermon_workshop_state(st.session_state)
+
+    st.subheader("Homiletikai diagnosztika")
+    st.markdown(
+        "Rövid, szöveges tükrözés textushűségről, egységről, kegyelemről és "
+        "hallhatóságról — pontszám és automatikus átírás nélkül."
+    )
+
+    sw = ensure_sermon_workshop_state(st.session_state)
+    if (sw.get("sermon_main_idea_status") or "").strip() != "approved":
+        st.info(
+            "A diagnosztika részben is futtatható, de a teljes értékeléshez "
+            "jóvá kell hagyni az igehirdetés fő gondolatát, szükség van "
+            "hallgatói feszültségre, evangéliumi feloldásra vagy Isten kegyelmi "
+            "cselekvésére, M6-os útra vagy legalább három mozgásra, valamint "
+            "lezárási tervre."
+        )
+
+    st.markdown("**Saját önellenőrzés (opcionális)**")
+    st.caption(
+        "Ezek a mezők nem kötelezők; segíthetik a diagnosztikát, de nem írják "
+        "felül a műhely tartalmát."
+    )
+    for field, wkey in _KEY_DIAG.items():
+        titles = {
+            "self_review_strengths": "Mit érzek erősnek ebben a tervben?",
+            "self_review_uncertainties": "Mi bizonytalan vagy nyitott?",
+            "self_review_priority": "Mi lenne az elsődleges javítási prioritásom?",
+            "self_review_focus": "Mire szeretnék most fókuszálni?",
+        }
+        st.text_area(
+            titles.get(field, field),
+            key=wkey,
+            height=80,
+            label_visibility="collapsed",
+        )
+
+    b1, b2 = st.columns(2)
+    with b1:
+        if st.button("Mentés", key="sw_diag_save_self_review"):
+            _persist_self_review_from_widgets()
+            st.success("Önellenőrzés elmentve.")
+    with b2:
+        pass
+
+    st.markdown("---")
+    st.markdown("**MI diagnosztika**")
+    diag = sw.get("diagnostics") if isinstance(sw.get("diagnostics"), dict) else {}
+    has_result = bool(
+        isinstance(diag.get("result"), dict) and diag.get("result")
+    )
+    btn_label = (
+        "Diagnosztika frissítése"
+        if has_result
+        else "Homiletikai diagnosztika készítése"
+    )
+    if st.button(btn_label, type="primary", key="sw_diag_run"):
+        _run_homiletical_diagnostics(generate_fn=generate_fn)
+
+    _render_diagnostics_results()
 
 
 def _request_adopt_closing_block(block: dict[str, str]) -> None:
@@ -5360,6 +5634,8 @@ def render_sermon_workshop_shell(
         render_enrichment_section(generate_fn=generate_fn)
     elif active == "Lezárás és megérkezés":
         render_closing_section(generate_fn=generate_fn)
+    elif active == "Homiletikai diagnosztika":
+        render_diagnostics_section(generate_fn=generate_fn)
     else:
         _render_section_placeholder(active)
 
@@ -5371,6 +5647,7 @@ def render_sermon_workshop_shell(
         "Az igehirdetés útja és mozgásai",
         "Képek, illusztrációk és alkalmazás",
         "Lezárás és megérkezés",
+        "Homiletikai diagnosztika",
     ):
         next_hint = _SW_NEXT_HINTS.get(active)
         if next_hint:
@@ -5388,4 +5665,5 @@ __all__ = [
     "render_sermon_path_section",
     "render_enrichment_section",
     "render_closing_section",
+    "render_diagnostics_section",
 ]
