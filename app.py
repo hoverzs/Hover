@@ -51,6 +51,12 @@ from workshop_nav_ui import (
 )
 from ui_components import render_page_intro
 from ui_theme import premium_overlay_css, premium_tokens_css
+from auth_config import (
+    DEFAULT_CLOUD_APP_URL,
+    apply_oauth_redirect_uri,
+    oauth_redirect_uri_for,
+    safe_streamlit_login,
+)
 from bible_text_ui import (
     KEY_PASSAGE_TEXT_INPUT as _BIBLE_PASSAGE_TEXT_INPUT,
     RESYNC_FLAG as _BIBLE_TEXT_RESYNC_FLAG,
@@ -78,7 +84,7 @@ APP_SCRIPTURE = (
 )
 APP_SCRIPTURE_REF = "— 2Timóteus 3,16"
 APP_DOMAIN = "textus.ro"
-APP_STREAMLIT_URL = "https://textus.streamlit.app"
+APP_STREAMLIT_URL = "https://emmaus.streamlit.app"
 FEEDBACK_TO_EMAIL = "hoverzsolt@gmail.com"
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -88,6 +94,12 @@ st.set_page_config(
     page_icon="📖",
     layout="wide"
 )
+
+# OAuth redirect: élesen soha ne maradjon localhost a secretsből
+try:
+    apply_oauth_redirect_uri()
+except Exception:
+    pass
 
 
 # =========================================================
@@ -4777,7 +4789,7 @@ def _render_project_status_bar() -> None:
         st.session_state["editing_project_title"] = False
         st.rerun()
     elif toolbar_action == "login":
-        st.login()
+        safe_streamlit_login()
     elif toolbar_action == "settings":
         st.session_state["shell_panel"] = "settings"
         st.rerun()
@@ -6775,7 +6787,8 @@ def _render_settings_panel() -> None:
         st.info(
             "A Google-bejelentkezéshez add meg az `[auth]` beállításokat a Streamlit Cloud "
             "**Secrets** felületén (`client_id`, `client_secret`, `cookie_secret`, "
-            "`redirect_uri` = `https://textus.streamlit.app/oauth2callback`). "
+            f'`TEXTUS_PUBLIC_URL = "{DEFAULT_CLOUD_APP_URL}"`, '
+            f'`redirect_uri = "{oauth_redirect_uri_for(DEFAULT_CLOUD_APP_URL)}"`). '
             "Vendégként az app továbbra is használható."
         )
     else:
@@ -6784,7 +6797,7 @@ def _render_settings_panel() -> None:
             "a Google-fiók csak a személyes azonosítást szolgálja."
         )
         if st.button("Bejelentkezés Google-fiókkal", key="settings_google_login"):
-            st.login()
+            safe_streamlit_login()
 
     # ─── 0b) Saját munkáim — részletes lista; napi mentés a fejlécsávon ──
     st.subheader("Saját munkáim")
