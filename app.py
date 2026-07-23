@@ -1569,7 +1569,8 @@ small {{
 }}
 
 /* Legacy chip-wall flex — Gyorseszközök (.st-key-quick_tools_grid) kivétel:
-   ott a premium_overlay 4×3 rács érvényesül (auth-független). */
+   ott a premium_overlay 4×3 rács érvényesül (auth-független).
+   ≤1.58: data-baseweb; ≥1.59/Cloud: role=tablist (react-aria). */
 .stTabs [data-baseweb="tab-list"] {{
     display: flex !important;
     flex-wrap: wrap !important;
@@ -1584,13 +1585,16 @@ small {{
 }}
 
 .st-key-quick_tools_grid [data-testid="stTabs"] [data-baseweb="tab-list"],
-.st-key-quick_tools_grid [data-baseweb="tab-list"] {{
+.st-key-quick_tools_grid [data-testid="stTabs"] [role="tablist"],
+.st-key-quick_tools_grid [data-baseweb="tab-list"],
+.st-key-quick_tools_grid [role="tablist"] {{
     display: grid !important;
     flex-wrap: unset !important;
     grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
     row-gap: 9px !important;
     column-gap: 9px !important;
     border-bottom: none !important;
+    overflow-x: visible !important;
 }}
 
 .stTabs [data-baseweb="tab-border"] {{

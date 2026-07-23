@@ -98,8 +98,10 @@ def test_quick_tools_css_grid_breakpoints_guest_safe():
     # Mobil 1 oszlop a 390-es queryben
     block_390 = overlay.split("@media (max-width: 390px)")[1].split("@media")[0]
     assert "grid-template-columns: 1fr !important" in block_390
-    # Keretezett kártyák
+    # Keretezett kártyák — BaseWeb (≤1.58) + react-aria/stTab (≥1.59 Cloud)
     assert '.st-key-quick_tools_grid [data-baseweb="tab"]' in overlay
+    assert '.st-key-quick_tools_grid [data-testid="stTab"]' in overlay
+    assert '.st-key-quick_tools_grid [role="tablist"]' in overlay
     assert "border: 1px solid var(--ui-border)" in overlay
 
 
@@ -140,8 +142,19 @@ def test_legacy_flex_does_not_override_quick_tools_grid():
         '.st-key-quick_tools_grid [data-testid="stTabs"] [data-baseweb="tab-list"]'
         in app
     )
+    assert '.st-key-quick_tools_grid [role="tablist"]' in app
     # A felülíró szabály display:grid-et kényszerít (ne a komment-blokk)
     rule = app.split(
         '.st-key-quick_tools_grid [data-testid="stTabs"] [data-baseweb="tab-list"]'
-    )[1][:350]
+    )[1][:450]
     assert "display: grid" in rule
+    assert '[role="tablist"]' in rule
+
+
+def test_quick_tools_css_supports_streamlit_159_react_aria():
+    """Cloud Streamlit ≥1.59: nincs data-baseweb; role=tablist + stTab kell."""
+    overlay = premium_overlay_css()
+    assert '.st-key-quick_tools_grid [data-testid="stTabs"] [role="tablist"]' in overlay
+    assert '.st-key-quick_tools_grid [data-testid="stTab"]' in overlay
+    assert "react-aria-SelectionIndicator" in overlay
+    assert "stTabsScrollRight" in overlay

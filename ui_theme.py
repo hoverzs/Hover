@@ -364,11 +364,22 @@ div.header-logo img.textus-logo-image.main-logo,
 }
 
 /* Gyorseszközök kártyarács — .st-key-quick_tools_grid (auth-független, JS nélkül).
+   Streamlit ≤1.58: [data-baseweb="tab-list"/"tab"].
+   Streamlit ≥1.59 (Cloud): react-aria — [role="tablist"] + [data-testid="stTab"].
    .tx-quick-tools* csak visszafelé kompatibilis alias; új kód a keyed konténert használja. */
+.st-key-quick_tools_grid [data-testid="stTabs"],
+.st-key-quick_tools_grid [data-testid="stTabs"] > div {
+    overflow: visible !important;
+    max-width: 100% !important;
+}
+
 .st-key-quick_tools_grid [data-testid="stTabs"] [data-baseweb="tab-list"],
+.st-key-quick_tools_grid [data-testid="stTabs"] [role="tablist"],
 .st-key-quick_tools_grid [data-baseweb="tab-list"],
+.st-key-quick_tools_grid [role="tablist"],
 .tx-quick-tools,
-.tx-quick-tools-root [data-baseweb="tab-list"] {
+.tx-quick-tools-root [data-baseweb="tab-list"],
+.tx-quick-tools-root [role="tablist"] {
     display: grid !important;
     grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
     gap: 9px !important;
@@ -380,20 +391,27 @@ div.header-logo img.textus-logo-image.main-logo,
     box-shadow: var(--ui-shadow-sm) !important;
     flex-wrap: unset !important;
     overflow-x: visible !important;
+    overflow-y: visible !important;
     width: 100% !important;
     max-width: 100% !important;
 }
 
 .st-key-quick_tools_grid [data-testid="stTabs"] [data-baseweb="tab-highlight"],
 .st-key-quick_tools_grid [data-testid="stTabs"] [data-baseweb="tab-border"],
+.st-key-quick_tools_grid .react-aria-SelectionIndicator,
+.st-key-quick_tools_grid [data-testid="stTabsScrollLeft"],
+.st-key-quick_tools_grid [data-testid="stTabsScrollRight"],
 .tx-quick-tools-root [data-baseweb="tab-highlight"],
 .tx-quick-tools-root [data-baseweb="tab-border"] {
     display: none !important;
 }
 
 .st-key-quick_tools_grid [data-baseweb="tab"],
+.st-key-quick_tools_grid [data-testid="stTab"],
 .tx-quick-tools [data-baseweb="tab"],
-.tx-quick-tools-root [data-baseweb="tab"] {
+.tx-quick-tools [data-testid="stTab"],
+.tx-quick-tools-root [data-baseweb="tab"],
+.tx-quick-tools-root [data-testid="stTab"] {
     min-height: 58px !important;
     height: 60px !important;
     max-height: 62px !important;
@@ -420,22 +438,40 @@ div.header-logo img.textus-logo-image.main-logo,
 /* Nincs második ikon / elválasztó — csak Streamlit Material */
 .st-key-quick_tools_grid [data-baseweb="tab"]::before,
 .st-key-quick_tools_grid [data-baseweb="tab"]::after,
+.st-key-quick_tools_grid [data-testid="stTab"]::before,
+.st-key-quick_tools_grid [data-testid="stTab"]::after,
 .tx-quick-tools [data-baseweb="tab"]::before,
 .tx-quick-tools [data-baseweb="tab"]::after,
+.tx-quick-tools [data-testid="stTab"]::before,
+.tx-quick-tools [data-testid="stTab"]::after,
 .tx-quick-tools-root [data-baseweb="tab"]::before,
 .tx-quick-tools-root [data-baseweb="tab"]::after,
+.tx-quick-tools-root [data-testid="stTab"]::before,
+.tx-quick-tools-root [data-testid="stTab"]::after,
 .st-key-quick_tools_grid [data-baseweb="tab"] p::before,
 .st-key-quick_tools_grid [data-baseweb="tab"] p::after,
 .st-key-quick_tools_grid [data-baseweb="tab"] span::before,
 .st-key-quick_tools_grid [data-baseweb="tab"] span::after,
+.st-key-quick_tools_grid [data-testid="stTab"] p::before,
+.st-key-quick_tools_grid [data-testid="stTab"] p::after,
+.st-key-quick_tools_grid [data-testid="stTab"] span::before,
+.st-key-quick_tools_grid [data-testid="stTab"] span::after,
 .tx-quick-tools [data-baseweb="tab"] p::before,
 .tx-quick-tools [data-baseweb="tab"] p::after,
 .tx-quick-tools [data-baseweb="tab"] span::before,
 .tx-quick-tools [data-baseweb="tab"] span::after,
+.tx-quick-tools [data-testid="stTab"] p::before,
+.tx-quick-tools [data-testid="stTab"] p::after,
+.tx-quick-tools [data-testid="stTab"] span::before,
+.tx-quick-tools [data-testid="stTab"] span::after,
 .tx-quick-tools-root [data-baseweb="tab"] p::before,
 .tx-quick-tools-root [data-baseweb="tab"] p::after,
 .tx-quick-tools-root [data-baseweb="tab"] span::before,
-.tx-quick-tools-root [data-baseweb="tab"] span::after {
+.tx-quick-tools-root [data-baseweb="tab"] span::after,
+.tx-quick-tools-root [data-testid="stTab"] p::before,
+.tx-quick-tools-root [data-testid="stTab"] p::after,
+.tx-quick-tools-root [data-testid="stTab"] span::before,
+.tx-quick-tools-root [data-testid="stTab"] span::after {
     content: none !important;
     display: none !important;
     width: 0 !important;
@@ -447,8 +483,11 @@ div.header-logo img.textus-logo-image.main-logo,
 }
 
 .st-key-quick_tools_grid [data-baseweb="tab"]:hover,
+.st-key-quick_tools_grid [data-testid="stTab"]:hover,
 .tx-quick-tools [data-baseweb="tab"]:hover,
-.tx-quick-tools-root [data-baseweb="tab"]:hover {
+.tx-quick-tools [data-testid="stTab"]:hover,
+.tx-quick-tools-root [data-baseweb="tab"]:hover,
+.tx-quick-tools-root [data-testid="stTab"]:hover {
     transform: none !important;
     background: var(--ui-surface-hover) !important;
     border-color: var(--ui-border-active) !important;
@@ -456,8 +495,11 @@ div.header-logo img.textus-logo-image.main-logo,
 }
 
 .st-key-quick_tools_grid [data-baseweb="tab"] [data-testid="stMarkdownContainer"],
+.st-key-quick_tools_grid [data-testid="stTab"] [data-testid="stMarkdownContainer"],
 .tx-quick-tools [data-baseweb="tab"] [data-testid="stMarkdownContainer"],
-.tx-quick-tools-root [data-baseweb="tab"] [data-testid="stMarkdownContainer"] {
+.tx-quick-tools [data-testid="stTab"] [data-testid="stMarkdownContainer"],
+.tx-quick-tools-root [data-baseweb="tab"] [data-testid="stMarkdownContainer"],
+.tx-quick-tools-root [data-testid="stTab"] [data-testid="stMarkdownContainer"] {
     display: inline-flex !important;
     align-items: center !important;
     gap: 9px !important;
@@ -466,9 +508,14 @@ div.header-logo img.textus-logo-image.main-logo,
 
 .st-key-quick_tools_grid [data-baseweb="tab"] [data-testid="stMarkdownContainer"] p,
 .st-key-quick_tools_grid [data-baseweb="tab"] p,
+.st-key-quick_tools_grid [data-testid="stTab"] [data-testid="stMarkdownContainer"] p,
+.st-key-quick_tools_grid [data-testid="stTab"] p,
 .tx-quick-tools [data-baseweb="tab"] [data-testid="stMarkdownContainer"] p,
 .tx-quick-tools [data-baseweb="tab"] p,
-.tx-quick-tools-root [data-baseweb="tab"] p {
+.tx-quick-tools [data-testid="stTab"] [data-testid="stMarkdownContainer"] p,
+.tx-quick-tools [data-testid="stTab"] p,
+.tx-quick-tools-root [data-baseweb="tab"] p,
+.tx-quick-tools-root [data-testid="stTab"] p {
     display: inline-flex !important;
     align-items: center !important;
     gap: 9px !important;
@@ -482,8 +529,14 @@ div.header-logo img.textus-logo-image.main-logo,
 }
 
 .st-key-quick_tools_grid [data-baseweb="tab"] [data-testid="stIconMaterial"],
+.st-key-quick_tools_grid [data-testid="stTab"] [data-testid="stIconMaterial"],
+.st-key-quick_tools_grid [data-testid="stTab"] [role="img"],
 .tx-quick-tools [data-baseweb="tab"] [data-testid="stIconMaterial"],
-.tx-quick-tools-root [data-baseweb="tab"] [data-testid="stIconMaterial"] {
+.tx-quick-tools [data-testid="stTab"] [data-testid="stIconMaterial"],
+.tx-quick-tools [data-testid="stTab"] [role="img"],
+.tx-quick-tools-root [data-baseweb="tab"] [data-testid="stIconMaterial"],
+.tx-quick-tools-root [data-testid="stTab"] [data-testid="stIconMaterial"],
+.tx-quick-tools-root [data-testid="stTab"] [role="img"] {
     font-family: "Material Symbols Rounded", "Material Symbols Outlined", sans-serif !important;
     font-feature-settings: "liga" 1 !important;
     -webkit-font-feature-settings: "liga" 1 !important;
@@ -500,8 +553,11 @@ div.header-logo img.textus-logo-image.main-logo,
 }
 
 .st-key-quick_tools_grid [aria-selected="true"][data-baseweb="tab"],
+.st-key-quick_tools_grid [data-testid="stTab"][aria-selected="true"],
 .tx-quick-tools [aria-selected="true"][data-baseweb="tab"],
-.tx-quick-tools-root [aria-selected="true"][data-baseweb="tab"] {
+.tx-quick-tools [data-testid="stTab"][aria-selected="true"],
+.tx-quick-tools-root [aria-selected="true"][data-baseweb="tab"],
+.tx-quick-tools-root [data-testid="stTab"][aria-selected="true"] {
     background: var(--ui-surface-active) !important;
     border-color: var(--ui-border-active) !important;
     color: var(--tx-primary-deep) !important;
@@ -510,23 +566,32 @@ div.header-logo img.textus-logo-image.main-logo,
 
 @media (max-width: 1024px) {
     .st-key-quick_tools_grid [data-testid="stTabs"] [data-baseweb="tab-list"],
+    .st-key-quick_tools_grid [data-testid="stTabs"] [role="tablist"],
     .st-key-quick_tools_grid [data-baseweb="tab-list"],
+    .st-key-quick_tools_grid [role="tablist"],
     .tx-quick-tools,
-    .tx-quick-tools-root [data-baseweb="tab-list"] {
+    .tx-quick-tools-root [data-baseweb="tab-list"],
+    .tx-quick-tools-root [role="tablist"] {
         grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     }
 }
 
 @media (max-width: 560px) {
     .st-key-quick_tools_grid [data-testid="stTabs"] [data-baseweb="tab-list"],
+    .st-key-quick_tools_grid [data-testid="stTabs"] [role="tablist"],
     .st-key-quick_tools_grid [data-baseweb="tab-list"],
+    .st-key-quick_tools_grid [role="tablist"],
     .tx-quick-tools,
-    .tx-quick-tools-root [data-baseweb="tab-list"] {
+    .tx-quick-tools-root [data-baseweb="tab-list"],
+    .tx-quick-tools-root [role="tablist"] {
         grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     }
     .st-key-quick_tools_grid [data-baseweb="tab"],
+    .st-key-quick_tools_grid [data-testid="stTab"],
     .tx-quick-tools [data-baseweb="tab"],
-    .tx-quick-tools-root [data-baseweb="tab"] {
+    .tx-quick-tools [data-testid="stTab"],
+    .tx-quick-tools-root [data-baseweb="tab"],
+    .tx-quick-tools-root [data-testid="stTab"] {
         min-height: 52px !important;
         height: 56px !important;
         max-height: none !important;
@@ -535,9 +600,12 @@ div.header-logo img.textus-logo-image.main-logo,
 
 @media (max-width: 390px) {
     .st-key-quick_tools_grid [data-testid="stTabs"] [data-baseweb="tab-list"],
+    .st-key-quick_tools_grid [data-testid="stTabs"] [role="tablist"],
     .st-key-quick_tools_grid [data-baseweb="tab-list"],
+    .st-key-quick_tools_grid [role="tablist"],
     .tx-quick-tools,
-    .tx-quick-tools-root [data-baseweb="tab-list"] {
+    .tx-quick-tools-root [data-baseweb="tab-list"],
+    .tx-quick-tools-root [role="tablist"] {
         grid-template-columns: 1fr !important;
     }
 }
