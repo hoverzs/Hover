@@ -105,8 +105,10 @@ def premium_overlay_css() -> str:
 }
 
 /* Gyorseszközök cím után a rács távolsága */
-.tx-page-intro + .element-container:has(.tx-quick-tools-anchor),
-.tx-page-intro ~ .element-container:has(.tx-quick-tools-anchor) {
+.tx-page-intro + .st-key-quick_tools_grid,
+.tx-page-intro ~ .st-key-quick_tools_grid,
+.st-key-workspace_intro + .st-key-quick_tools_grid,
+.st-key-workspace_intro ~ .st-key-quick_tools_grid {
     margin-top: 24px !important;
 }
 
@@ -361,16 +363,11 @@ div.header-logo img.textus-logo-image.main-logo,
     color: #7a6a56 !important;
 }
 
-/* Gyorseszközök kártyarács — scoped (.tx-quick-tools / anchor) */
-.tx-quick-tools-anchor {
-    display: none !important;
-    height: 0 !important;
-    margin: 0 !important;
-    padding: 0 !important;
-}
-
+/* Gyorseszközök kártyarács — .st-key-quick_tools_grid (auth-független, JS nélkül).
+   .tx-quick-tools* csak visszafelé kompatibilis alias; új kód a keyed konténert használja. */
+.st-key-quick_tools_grid [data-testid="stTabs"] [data-baseweb="tab-list"],
+.st-key-quick_tools_grid [data-baseweb="tab-list"],
 .tx-quick-tools,
-.element-container:has(.tx-quick-tools-anchor) ~ * [data-baseweb="tab-list"].tx-quick-tools,
 .tx-quick-tools-root [data-baseweb="tab-list"] {
     display: grid !important;
     grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
@@ -381,13 +378,20 @@ div.header-logo img.textus-logo-image.main-logo,
     border: 1px solid var(--ui-border) !important;
     border-radius: var(--ui-radius-md) !important;
     box-shadow: var(--ui-shadow-sm) !important;
+    flex-wrap: unset !important;
+    overflow-x: visible !important;
+    width: 100% !important;
+    max-width: 100% !important;
 }
 
+.st-key-quick_tools_grid [data-testid="stTabs"] [data-baseweb="tab-highlight"],
+.st-key-quick_tools_grid [data-testid="stTabs"] [data-baseweb="tab-border"],
 .tx-quick-tools-root [data-baseweb="tab-highlight"],
 .tx-quick-tools-root [data-baseweb="tab-border"] {
     display: none !important;
 }
 
+.st-key-quick_tools_grid [data-baseweb="tab"],
 .tx-quick-tools [data-baseweb="tab"],
 .tx-quick-tools-root [data-baseweb="tab"] {
     min-height: 58px !important;
@@ -409,13 +413,21 @@ div.header-logo img.textus-logo-image.main-logo,
     transition: background 160ms ease, border-color 160ms ease !important;
     transform: none !important;
     position: relative !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
 }
 
 /* Nincs második ikon / elválasztó — csak Streamlit Material */
+.st-key-quick_tools_grid [data-baseweb="tab"]::before,
+.st-key-quick_tools_grid [data-baseweb="tab"]::after,
 .tx-quick-tools [data-baseweb="tab"]::before,
 .tx-quick-tools [data-baseweb="tab"]::after,
 .tx-quick-tools-root [data-baseweb="tab"]::before,
 .tx-quick-tools-root [data-baseweb="tab"]::after,
+.st-key-quick_tools_grid [data-baseweb="tab"] p::before,
+.st-key-quick_tools_grid [data-baseweb="tab"] p::after,
+.st-key-quick_tools_grid [data-baseweb="tab"] span::before,
+.st-key-quick_tools_grid [data-baseweb="tab"] span::after,
 .tx-quick-tools [data-baseweb="tab"] p::before,
 .tx-quick-tools [data-baseweb="tab"] p::after,
 .tx-quick-tools [data-baseweb="tab"] span::before,
@@ -434,6 +446,7 @@ div.header-logo img.textus-logo-image.main-logo,
     background: none !important;
 }
 
+.st-key-quick_tools_grid [data-baseweb="tab"]:hover,
 .tx-quick-tools [data-baseweb="tab"]:hover,
 .tx-quick-tools-root [data-baseweb="tab"]:hover {
     transform: none !important;
@@ -442,6 +455,7 @@ div.header-logo img.textus-logo-image.main-logo,
     box-shadow: none !important;
 }
 
+.st-key-quick_tools_grid [data-baseweb="tab"] [data-testid="stMarkdownContainer"],
 .tx-quick-tools [data-baseweb="tab"] [data-testid="stMarkdownContainer"],
 .tx-quick-tools-root [data-baseweb="tab"] [data-testid="stMarkdownContainer"] {
     display: inline-flex !important;
@@ -450,6 +464,8 @@ div.header-logo img.textus-logo-image.main-logo,
     min-width: 0 !important;
 }
 
+.st-key-quick_tools_grid [data-baseweb="tab"] [data-testid="stMarkdownContainer"] p,
+.st-key-quick_tools_grid [data-baseweb="tab"] p,
 .tx-quick-tools [data-baseweb="tab"] [data-testid="stMarkdownContainer"] p,
 .tx-quick-tools [data-baseweb="tab"] p,
 .tx-quick-tools-root [data-baseweb="tab"] p {
@@ -465,6 +481,7 @@ div.header-logo img.textus-logo-image.main-logo,
     color: var(--ui-text) !important;
 }
 
+.st-key-quick_tools_grid [data-baseweb="tab"] [data-testid="stIconMaterial"],
 .tx-quick-tools [data-baseweb="tab"] [data-testid="stIconMaterial"],
 .tx-quick-tools-root [data-baseweb="tab"] [data-testid="stIconMaterial"] {
     font-family: "Material Symbols Rounded", "Material Symbols Outlined", sans-serif !important;
@@ -482,6 +499,7 @@ div.header-logo img.textus-logo-image.main-logo,
     white-space: nowrap !important;
 }
 
+.st-key-quick_tools_grid [aria-selected="true"][data-baseweb="tab"],
 .tx-quick-tools [aria-selected="true"][data-baseweb="tab"],
 .tx-quick-tools-root [aria-selected="true"][data-baseweb="tab"] {
     background: var(--ui-surface-active) !important;
@@ -491,19 +509,22 @@ div.header-logo img.textus-logo-image.main-logo,
 }
 
 @media (max-width: 1024px) {
+    .st-key-quick_tools_grid [data-testid="stTabs"] [data-baseweb="tab-list"],
+    .st-key-quick_tools_grid [data-baseweb="tab-list"],
     .tx-quick-tools,
-    .element-container:has(.tx-quick-tools-anchor) ~ * [data-baseweb="tab-list"].tx-quick-tools,
     .tx-quick-tools-root [data-baseweb="tab-list"] {
         grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     }
 }
 
 @media (max-width: 560px) {
+    .st-key-quick_tools_grid [data-testid="stTabs"] [data-baseweb="tab-list"],
+    .st-key-quick_tools_grid [data-baseweb="tab-list"],
     .tx-quick-tools,
-    .element-container:has(.tx-quick-tools-anchor) ~ * [data-baseweb="tab-list"].tx-quick-tools,
     .tx-quick-tools-root [data-baseweb="tab-list"] {
         grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     }
+    .st-key-quick_tools_grid [data-baseweb="tab"],
     .tx-quick-tools [data-baseweb="tab"],
     .tx-quick-tools-root [data-baseweb="tab"] {
         min-height: 52px !important;
@@ -513,8 +534,9 @@ div.header-logo img.textus-logo-image.main-logo,
 }
 
 @media (max-width: 390px) {
+    .st-key-quick_tools_grid [data-testid="stTabs"] [data-baseweb="tab-list"],
+    .st-key-quick_tools_grid [data-baseweb="tab-list"],
     .tx-quick-tools,
-    .element-container:has(.tx-quick-tools-anchor) ~ * [data-baseweb="tab-list"].tx-quick-tools,
     .tx-quick-tools-root [data-baseweb="tab-list"] {
         grid-template-columns: 1fr !important;
     }
@@ -1642,10 +1664,7 @@ div[data-baseweb="popover"] [data-testid="stPopoverBody"]::-webkit-scrollbar-thu
     max-width: 740px !important;
 }
 
-.st-key-workspace_intro + .element-container:has(.tx-quick-tools-anchor),
-.st-key-workspace_intro ~ .element-container:has(.tx-quick-tools-anchor) {
-    margin-top: 0 !important;
-}
+/* spacing handled above (.st-key-workspace_intro ~ .st-key-quick_tools_grid) */
 
 @media (max-width: 768px) {
     .st-key-workspace_switcher [data-testid="stHorizontalBlock"] {

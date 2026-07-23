@@ -209,9 +209,12 @@ def test_project_toolbar_actions(monkeypatch):
 
 def test_global_appbar_and_workspace_switcher_importable():
     from workshop_nav_ui import (
+        QUICK_TOOLS_GRID_KEY,
+        QUICK_TOOLS_TAB_LABELS,
         render_app_toolbar,
         render_global_appbar,
         render_project_toolbar,
+        render_quick_tools_tabs,
         render_workspace_switcher,
     )
 
@@ -219,6 +222,9 @@ def test_global_appbar_and_workspace_switcher_importable():
     assert callable(render_global_appbar)
     assert callable(render_workspace_switcher)
     assert callable(render_project_toolbar)
+    assert callable(render_quick_tools_tabs)
+    assert QUICK_TOOLS_GRID_KEY == "quick_tools_grid"
+    assert len(QUICK_TOOLS_TAB_LABELS) == 12
     assert render_workspace_switcher is not None
 
 
@@ -232,6 +238,8 @@ def test_shell_components_use_keyed_containers():
     assert 'key="project_picker_content"' in src
     assert 'key="workspace_switcher"' in src
     assert 'key="workshop_step_bar"' in src
+    assert 'key="quick_tools_grid"' in src or "QUICK_TOOLS_GRID_KEY" in src
+    assert "render_quick_tools_tabs" in src
     assert "Azonnali segítség" not in src
     assert "horizontal=True" in src
     assert "Szerkesztés" not in src or 'key="bar_title_edit"' in src

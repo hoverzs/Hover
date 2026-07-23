@@ -605,6 +605,42 @@ def render_workspace_switcher(
     )
 
 
+# Gyorseszközök kártyarács — egyetlen közös render; vendég/login azonos.
+# A `.st-key-quick_tools_grid` CSS a ui_theme.premium_overlay_css-ben van (startup).
+QUICK_TOOLS_TAB_LABELS: tuple[str, ...] = (
+    ":material/menu_book: Igehely",
+    ":material/translate: Eredeti szöveg tanulmányozása",
+    ":material/psychology: Exegézis",
+    ":material/history_edu: Kortörténet",
+    ":material/account_balance: Teológia",
+    ":material/image: Illusztrációk",
+    ":material/lightbulb: Aktualizálás",
+    ":material/format_list_bulleted: Vázlat",
+    ":material/shopping_basket: Vázlatkosár",
+    ":material/music_note: Énekajánló",
+    ":material/calendar_month: Igehirdetési sorozat tervező",
+    ":material/help: Útmutatás",
+)
+
+QUICK_TOOLS_GRID_KEY = "quick_tools_grid"
+
+
+def render_quick_tools_tabs(
+    labels: Sequence[str] | None = None,
+) -> Sequence[Any]:
+    """Gyorseszközök 4×3 kártyarács — auth-független, egyetlen render út.
+
+    Mindig kulcsolt konténerben épül (`quick_tools_grid`), hogy a premium
+    rács-CSS vendég/Cloud módban is érvényesüljön JS/`parent.document` nélkül.
+    Nem fogad login/guest paramétert: a megjelenés minden sessionben azonos.
+    """
+    tab_labels = [str(x) for x in (labels or QUICK_TOOLS_TAB_LABELS) if str(x).strip()]
+    if not tab_labels:
+        tab_labels = list(QUICK_TOOLS_TAB_LABELS)
+    with st.container(key=QUICK_TOOLS_GRID_KEY):
+        return st.tabs(tab_labels)
+
+
 def render_project_toolbar_anchor() -> None:
     """Kompatibilitási no-op — a toolbar `st.container(key=…)`-t használ."""
     return None
@@ -1155,6 +1191,9 @@ __all__ = [
     "render_section_stepper",
     "render_primary_view_switcher",
     "render_workspace_switcher",
+    "render_quick_tools_tabs",
+    "QUICK_TOOLS_TAB_LABELS",
+    "QUICK_TOOLS_GRID_KEY",
     "render_app_toolbar",
     "render_global_appbar",
     "render_project_toolbar_anchor",

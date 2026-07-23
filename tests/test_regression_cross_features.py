@@ -169,7 +169,8 @@ def test_css_mainnav_and_prayer_not_conflicting():
     assert ".st-key-workspace_intro" in overlay
     assert ".st-key-textus_app_toolbar" in overlay
     assert ".st-key-project_picker_content" in overlay or "project_picker_content" in overlay
-    assert ".tx-quick-tools" in overlay
+    assert ".st-key-quick_tools_grid" in overlay
+    assert ".tx-quick-tools" in overlay or ".st-key-quick_tools_grid" in overlay
     # Gyorseszköz kártyákon ne legyen CSS ::before tartalomikon
     assert 'content: "\\f518"' not in overlay
     assert ".tx-prayer-quick" in overlay
@@ -187,6 +188,8 @@ def test_css_mainnav_and_prayer_not_conflicting():
     assert "bar_title_edit" in overlay or "Projekt nevének szerkesztése" in (
         __import__("pathlib").Path("workshop_nav_ui.py").read_text(encoding="utf-8")
     )
+    # Gyorseszközök: 4 oszlopos grid keyed konténerrel
+    assert "repeat(4, minmax(0, 1fr))" in overlay
 
 def test_project_save_preserves_outline_diag_prayer(session):
     """Mentés: vázlat + diagnosztika + mindkét imaív megmarad."""

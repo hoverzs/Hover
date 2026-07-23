@@ -1,6 +1,5 @@
 # ruff: noqa: E402
 import streamlit as st
-import streamlit.components.v1 as components
 import requests
 import urllib3
 import base64
@@ -45,6 +44,7 @@ from sermon_workshop_data import (
 from sermon_workshop_ui import flush_sermon_workshop_from_widgets, render_sermon_workshop_shell
 from workshop_nav_ui import (
     render_app_toolbar,
+    render_quick_tools_tabs,
     render_workshop_workflow_nav,
     render_workspace_switcher,
     textus_completed_sections,
@@ -1556,6 +1556,8 @@ small {{
     pointer-events: none;
 }}
 
+/* Legacy chip-wall flex — Gyorseszközök (.st-key-quick_tools_grid) kivétel:
+   ott a premium_overlay 4×3 rács érvényesül (auth-független). */
 .stTabs [data-baseweb="tab-list"] {{
     display: flex !important;
     flex-wrap: wrap !important;
@@ -1567,6 +1569,16 @@ small {{
     margin-bottom: 0.6rem;
     border-bottom: 1px solid rgba(170, 149, 123, 0.20);
     white-space: normal !important;
+}}
+
+.st-key-quick_tools_grid [data-testid="stTabs"] [data-baseweb="tab-list"],
+.st-key-quick_tools_grid [data-baseweb="tab-list"] {{
+    display: grid !important;
+    flex-wrap: unset !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    row-gap: 9px !important;
+    column-gap: 9px !important;
+    border-bottom: none !important;
 }}
 
 .stTabs [data-baseweb="tab-border"] {{
@@ -7174,7 +7186,7 @@ if st.session_state.get("ui_mode") == "sermon_workshop":
 
 
 # =========================================================
-# TABOK (Gyorseszközök mód)
+# TABOK (Gyorseszközök mód) — egy közös render, vendég = bejelentkezett
 # =========================================================
 
 # Felhőprojekt megnyitás után: widget-szinkron a tabok létrehozása előtt
@@ -7186,74 +7198,8 @@ render_page_intro(
     workspace_scope=True,
 )
 
-st.markdown(
-    '<div class="tx-quick-tools-anchor" aria-hidden="true"></div>',
-    unsafe_allow_html=True,
-)
-
-tabs = st.tabs([
-    ":material/menu_book: Igehely",
-    ":material/translate: Eredeti szöveg tanulmányozása",
-    ":material/psychology: Exegézis",
-    ":material/history_edu: Kortörténet",
-    ":material/account_balance: Teológia",
-    ":material/image: Illusztrációk",
-    ":material/lightbulb: Aktualizálás",
-    ":material/format_list_bulleted: Vázlat",
-    ":material/shopping_basket: Vázlatkosár",
-    ":material/music_note: Énekajánló",
-    ":material/calendar_month: Igehirdetési sorozat tervező",
-    ":material/help: Útmutatás",
-])
-
-components.html(
-    """
-<script>
-(function () {
-  try {
-    var pdoc = window.parent.document;
-    function applyQuickToolsGrid(list) {
-      if (!list) return;
-      var w = pdoc.defaultView ? pdoc.defaultView.innerWidth : 1200;
-      var cols = 'repeat(4, minmax(0, 1fr))';
-      if (w <= 390) cols = '1fr';
-      else if (w <= 1024) cols = 'repeat(2, minmax(0, 1fr))';
-      list.style.setProperty('grid-template-columns', cols, 'important');
-    }
-    function markQuickTools() {
-      var anchor = pdoc.querySelector('.tx-quick-tools-anchor');
-      if (!anchor) return;
-      var host = anchor.closest('.element-container');
-      if (!host) return;
-      var node = host.nextElementSibling;
-      for (var i = 0; i < 8 && node; i++) {
-        var list = node.querySelector && node.querySelector('[data-baseweb="tab-list"]');
-        if (list) {
-          list.classList.add('tx-quick-tools');
-          var tabsRoot = list.closest('[data-testid="stTabs"]') || list.parentElement;
-          if (tabsRoot) tabsRoot.classList.add('tx-quick-tools-root');
-          applyQuickToolsGrid(list);
-          return;
-        }
-        node = node.nextElementSibling;
-      }
-    }
-    markQuickTools();
-    setTimeout(markQuickTools, 80);
-    setTimeout(markQuickTools, 240);
-    if (pdoc.defaultView) {
-      pdoc.defaultView.addEventListener('resize', function () {
-        var list = pdoc.querySelector('.tx-quick-tools');
-        applyQuickToolsGrid(list);
-      });
-    }
-  } catch (e) {}
-})();
-</script>
-""".strip(),
-    height=0,
-    width=0,
-)
+# Egyetlen auth-független komponens (nem JS/parent.document; nincs login-ág).
+tabs = render_quick_tools_tabs()
 
 
 # =========================================================
