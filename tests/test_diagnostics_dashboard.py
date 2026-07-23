@@ -1,3 +1,4 @@
+# ruff: noqa: E402
 """M8 diagnosztika — egyszerűsített pastor-facing UI regresszió."""
 
 from __future__ import annotations
@@ -117,6 +118,9 @@ def test_main_view_three_parts_in_source():
     assert "_render_diag_overview_card(" in body
     assert "_render_diag_profile_list(" in body
     assert "Részletesebb homiletikai megjegyzések" in body
+    assert "Általános állapot" in src
+    assert "Homiletikai diagnózis" in src
+    assert "Fő gondolat kidolgozása" in src
     # Régi státuszszámlálók / 12 kategória ne legyen a fő nézetben
     assert "_render_diag_status_cards(" not in body
     assert "Gyors státusz" not in body

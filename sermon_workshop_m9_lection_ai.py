@@ -100,6 +100,7 @@ LECTION_LENGTH_PREFERENCE_LABELS_HU: dict[str, str] = {
 _LIMITS_EXTRA = {
     "lection_prefs": 400,
     "lection_block": 2500,
+    "sermon_outline_block": 1600,
 }
 
 
@@ -341,6 +342,40 @@ def _format_lection_block(lection: Any) -> str:
     return _display("\n".join(lines), max_chars=_LIMITS_EXTRA["lection_block"])
 
 
+def _format_sermon_outline_block(outline: Any) -> str:
+    """Kompakt vázlatösszefoglaló a lekció MI-nek — ha van elkészült vázlat."""
+    block = outline if isinstance(outline, dict) else {}
+    if not block:
+        return MISSING
+    lines: list[str] = []
+    for key, label in (
+        ("main_idea", "Fő gondolat"),
+        ("opening_direction", "Bevezetési irány"),
+        ("listener_question", "Hallgatói kérdés"),
+        ("central_tension", "Központi feszültség"),
+        ("gospel_resolution", "Evangéliumi feloldás"),
+    ):
+        val = _as_text(block.get(key))
+        if val:
+            lines.append(f"{label}: {val}")
+    movements = block.get("movements") if isinstance(block.get("movements"), list) else []
+    for idx, mv in enumerate(movements[:6], start=1):
+        if not isinstance(mv, dict):
+            continue
+        title = _as_text(mv.get("title"))
+        core = _as_text(mv.get("core_content"))
+        bit = " — ".join(x for x in (title, core) if x)
+        if bit:
+            lines.append(f"Mozgás {idx}: {bit}")
+    closing = block.get("closing") if isinstance(block.get("closing"), dict) else {}
+    final = _as_text(closing.get("final_insight"))
+    if final:
+        lines.append(f"Lezárás: {final}")
+    if not lines:
+        return MISSING
+    return _display("\n".join(lines), max_chars=_LIMITS_EXTRA["sermon_outline_block"])
+
+
 def build_lection_context(
     *,
     passage: str = "",
@@ -365,6 +400,7 @@ def build_lection_context(
     applications: Any = None,
     closing: Any = None,
     lection: Any = None,
+    sermon_outline: Any = None,
     workshop_illustrations: str = "",
     workshop_actualization: str = "",
     exegesis: str = "",
@@ -418,7 +454,20 @@ def build_lection_context(
         lection_user_focus=focus,
     )
     ctx["lection_block"] = _format_lection_block(live)
+    ctx["sermon_outline_block"] = _format_sermon_outline_block(sermon_outline)
     return ctx
+
+
+def _has_usable_main_idea(
+    *,
+    text_main_idea: str = "",
+    text_main_idea_status: str = "",
+    sermon_main_idea: str = "",
+    sermon_main_idea_status: str = "",
+) -> bool:
+    """Draft vagy approved fő gondolat — a státusz nem kötelező a javaslathoz."""
+    del text_main_idea_status, sermon_main_idea_status
+    return _is_present(text_main_idea) or _is_present(sermon_main_idea)
 
 
 def _has_approved_main_idea(
@@ -446,8 +495,13 @@ def _has_extra_basis(
     christ_centered_arc: Any = None,
     theology: str = "",
     sermon_path: Any = None,
+    lection_user_focus: str = "",
 ) -> bool:
     if _is_present(ctx.get("passage_text", MISSING)):
+        return True
+    if _is_present(lection_user_focus):
+        return True
+    if _is_present(ctx.get("sermon_outline_block", MISSING)):
         return True
     if isinstance(approved_insights, list) and any(
         _as_text(x) for x in approved_insights
@@ -474,6 +528,10 @@ def _has_extra_basis(
         return True
     if _is_present(ctx.get("sermon_path_block", MISSING)):
         return True
+    if _is_present(ctx.get("listener_tension_block", MISSING)):
+        return True
+    if _is_present(ctx.get("human_condition_block", MISSING)):
+        return True
     return False
 
 
@@ -488,15 +546,19 @@ def has_sufficient_lection_material(
     christ_centered_arc: Any = None,
     theology: str = "",
     sermon_path: Any = None,
+    lection_user_focus: str = "",
 ) -> bool:
     if not _is_present(ctx.get("passage", MISSING)):
         return False
-    if not _has_approved_main_idea(
+    has_idea = _has_usable_main_idea(
         text_main_idea=text_main_idea,
         text_main_idea_status=text_main_idea_status,
         sermon_main_idea=sermon_main_idea,
         sermon_main_idea_status=sermon_main_idea_status,
-    ):
+    )
+    has_focus = _is_present(lection_user_focus)
+    has_outline = _is_present(ctx.get("sermon_outline_block", MISSING))
+    if not (has_idea or has_focus or has_outline):
         return False
     return _has_extra_basis(
         ctx,
@@ -504,7 +566,8 @@ def has_sufficient_lection_material(
         christ_centered_arc=christ_centered_arc,
         theology=theology,
         sermon_path=sermon_path,
-    )
+        lection_user_focus=lection_user_focus,
+    ) or has_outline or has_focus
 
 
 def _missing_lection_labels(
@@ -518,29 +581,40 @@ def _missing_lection_labels(
     christ_centered_arc: Any = None,
     theology: str = "",
     sermon_path: Any = None,
+    lection_user_focus: str = "",
 ) -> list[str]:
     missing: list[str] = []
     if not _is_present(ctx.get("passage", MISSING)):
         missing.append("alapigehely")
-    if not _has_approved_main_idea(
+    has_idea = _has_usable_main_idea(
         text_main_idea=text_main_idea,
         text_main_idea_status=text_main_idea_status,
         sermon_main_idea=sermon_main_idea,
         sermon_main_idea_status=sermon_main_idea_status,
-    ):
+    )
+    has_focus = _is_present(lection_user_focus)
+    has_outline = _is_present(ctx.get("sermon_outline_block", MISSING))
+    if not (has_idea or has_focus or has_outline):
         missing.append(
-            "jóváhagyott textusfőgondolat vagy jóváhagyott igehirdetési fő gondolat"
+            "textus- vagy igehirdetési fő gondolat, saját lekciószempont, "
+            "vagy elkészült vázlat"
         )
-    if not _has_extra_basis(
-        ctx,
-        approved_insights=approved_insights,
-        christ_centered_arc=christ_centered_arc,
-        theology=theology,
-        sermon_path=sermon_path,
+    if not (
+        _has_extra_basis(
+            ctx,
+            approved_insights=approved_insights,
+            christ_centered_arc=christ_centered_arc,
+            theology=theology,
+            sermon_path=sermon_path,
+            lection_user_focus=lection_user_focus,
+        )
+        or has_outline
+        or has_focus
     ):
         missing.append(
             "legalább egy további érdemi alap "
-            "(passage_text, felismerés, evangéliumi ív, teológia vagy megérkezési pont)"
+            "(passage_text, felismerés, evangéliumi ív, teológia, "
+            "saját szempont vagy vázlat)"
         )
     return missing
 
@@ -639,6 +713,9 @@ Alkalmazási irányok:
 
 Lezárási terv:
 {{closing_block}}
+
+Elkészült igehirdetési vázlat (ha van):
+{{sermon_outline_block}}
 
 Exegézis: {{exegesis}}
 Teológia: {{theology}}
@@ -976,6 +1053,7 @@ def suggest_lections(
     applications: Any = None,
     closing: Any = None,
     lection: Any = None,
+    sermon_outline: Any = None,
     workshop_illustrations: str = "",
     workshop_actualization: str = "",
     exegesis: str = "",
@@ -1011,6 +1089,7 @@ def suggest_lections(
         applications=applications,
         closing=closing,
         lection=lection,
+        sermon_outline=sermon_outline,
         workshop_illustrations=workshop_illustrations,
         workshop_actualization=workshop_actualization,
         exegesis=exegesis,
@@ -1030,6 +1109,7 @@ def suggest_lections(
         christ_centered_arc=christ_centered_arc,
         theology=theology,
         sermon_path=sermon_path,
+        lection_user_focus=lection_user_focus,
     )
     if not _is_present(ctx["passage"]):
         return fallback_lection_suggestion(
@@ -1049,21 +1129,25 @@ def suggest_lections(
         christ_centered_arc=christ_centered_arc,
         theology=theology,
         sermon_path=sermon_path,
+        lection_user_focus=lection_user_focus,
     ):
-        only_passage = not _has_approved_main_idea(
-            text_main_idea=text_main_idea,
-            text_main_idea_status=text_main_idea_status,
-            sermon_main_idea=sermon_main_idea,
-            sermon_main_idea_status=sermon_main_idea_status,
+        only_passage = not (
+            _has_usable_main_idea(
+                text_main_idea=text_main_idea,
+                text_main_idea_status=text_main_idea_status,
+                sermon_main_idea=sermon_main_idea,
+                sermon_main_idea_status=sermon_main_idea_status,
+            )
+            or _is_present(lection_user_focus)
+            or _is_present(ctx.get("sermon_outline_block", MISSING))
         )
         reason = (
-            "Csak az igehely áll rendelkezésre — előbb legalább a textus "
-            "fő gondolatát érdemes tisztázni. Ne készüljön felszínes "
-            "kapcsolódó verslista."
+            "Csak az igehely áll rendelkezésre — adj meg fő gondolatot, "
+            "saját szempontot, vagy állíts össze vázlatot a felelős javaslathoz."
             if only_passage
             else (
-                "Nincs elegendő jóváhagyott műhelyeredmény a felelős "
-                "lekciójavaslathoz."
+                "Nincs elegendő műhelyanyag a felelős lekciójavaslathoz. "
+                "Tölts ki még egy-két szakaszt, vagy írj rövid saját szempontot."
             )
         )
         return fallback_lection_suggestion(
@@ -1073,7 +1157,8 @@ def suggest_lections(
                 reason,
             ],
             missing=missing,
-            ok=True,
+            error_message=reason,
+            ok=False,
         )
     if generate_fn is None:
         return fallback_lection_suggestion(
@@ -1143,6 +1228,7 @@ def assess_lection(
     applications: Any = None,
     closing: Any = None,
     lection: Any = None,
+    sermon_outline: Any = None,
     workshop_illustrations: str = "",
     workshop_actualization: str = "",
     exegesis: str = "",
@@ -1187,6 +1273,7 @@ def assess_lection(
         applications=applications,
         closing=closing,
         lection=lection,
+        sermon_outline=sermon_outline,
         workshop_illustrations=workshop_illustrations,
         workshop_actualization=workshop_actualization,
         exegesis=exegesis,
@@ -1514,6 +1601,8 @@ def _self_check() -> list[str]:
     )
     if insuff.recommended_lection.reference:
         errors.append("9: insufficient should not invent refs")
+    if insuff.ok:
+        errors.append("9: insufficient must be ok=False (no false success)")
     if not insuff.missing_information:
         errors.append("9: should list missing info")
 

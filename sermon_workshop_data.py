@@ -125,6 +125,7 @@ def get_default_sermon_workshop() -> dict[str, Any]:
         "lection_status": "draft",
         "lection_suggestions": None,
         "lection_assessment": None,
+        "lection_connection_analysis": None,
         "m9_lection_last_generated_at": "",
         "prayer_preparation": {
             "tone_preference": "mixed",
@@ -181,6 +182,9 @@ def get_default_sermon_workshop() -> dict[str, Any]:
         "sermon_outline_updated_at": "",
         "sermon_outline_diagnostics": {},
         "sermon_outline_diagnostics_generated_at": "",
+        # idle | running | ready | error — normalize megőrzi (ne vesszen el rerun-kor)
+        "sermon_outline_diagnostics_status": "idle",
+        "sermon_outline_diagnostics_error": "",
     }
 
 
@@ -215,9 +219,15 @@ def empty_outline_movement() -> dict[str, Any]:
         "role": "",
         "role_label": "",
         "textual_basis": "",
+        "textual_anchor": "",
         "core_content": "",
+        "exegetical_core": "",
+        "theological_claim": "",
         "listener_discovery": "",
+        "grace_application": "",
         "transition": "",
+        # Kibontott prédikációs bekezdések (munkavázlat főnézet).
+        "development": [],
         "images": [],
         "illustrations": [],
         "applications": [],
@@ -236,8 +246,11 @@ def empty_sermon_outline() -> dict[str, Any]:
         "lection_reference": "",
         "lection_translation": "",
         "sermon_title": "",
+        "title_suggestions": [],
         "main_idea": "",
         "main_idea_summary": "",
+        "homiletical_aim": "",
+        "human_situation": "",
         "listener_question": "",
         "central_tension": "",
         "listener_resistance": "",
@@ -247,6 +260,20 @@ def empty_sermon_outline() -> dict[str, Any]:
         "gospel_resolution": "",
         "grace_enabled_response": "",
         "opening_direction": "",
+        # Munkavázlat bevezetés / megérkezés (főnézet).
+        "introduction": {
+            "development": "",
+            "transition": "",
+        },
+        "conclusion": {
+            "development": "",
+            "final_sentence": "",
+        },
+        # Nem blokkoló textushatár-megjegyzés (pl. gondolati ív a következő versben).
+        "text_boundary_note": "",
+        "suggested_text_boundary": "",
+        # Kanonikus, olvasható vázlatszöveg — előnézet / szerkesztés / diagnosztika.
+        "content": "",
         "movements": [],
         "extra_enrichment": {
             "images": [],
@@ -282,7 +309,10 @@ def empty_sermon_outline() -> dict[str, Any]:
             "closing_direction": "",
         },
         "manual_notes": "",
+        "editorial_tips": [],
         "manually_edited": False,
+        # Hibás (approved + üres) állapot javítása után UI-üzenethez.
+        "needs_rebuild": False,
         # Meta — fejlesztői / diagnosztikai; a fő UI nem listázza nyersen
         "source_sections": [],
         "provisional_sections": [],
@@ -329,12 +359,24 @@ def _normalize_outline_movement(raw: Any) -> dict[str, Any]:
         "role",
         "role_label",
         "textual_basis",
+        "textual_anchor",
         "core_content",
+        "exegetical_core",
+        "theological_claim",
         "listener_discovery",
+        "grace_application",
         "transition",
     ):
         if key in raw:
             out[key] = _as_str(raw.get(key))
+    # Címek ne tartalmazzanak saját számozást (a render adja: „1. …”)
+    if out["title"]:
+        import re
+
+        out["title"] = re.sub(r"^\s*\d+[.)]\s*", "", out["title"]).strip()
+    if not out["textual_anchor"] and out["textual_basis"]:
+        out["textual_anchor"] = out["textual_basis"]
+    out["development"] = _normalize_str_list(raw.get("development"), max_items=8)
     for list_key in ("images", "illustrations", "applications"):
         out[list_key] = _normalize_str_list(raw.get(list_key))
     return out
@@ -357,6 +399,8 @@ def normalize_sermon_outline(raw: Any) -> dict[str, Any]:
         "sermon_title",
         "main_idea",
         "main_idea_summary",
+        "homiletical_aim",
+        "human_situation",
         "listener_question",
         "central_tension",
         "listener_resistance",
@@ -366,15 +410,37 @@ def normalize_sermon_outline(raw: Any) -> dict[str, Any]:
         "gospel_resolution",
         "grace_enabled_response",
         "opening_direction",
+        "content",
         "manual_notes",
+        "text_boundary_note",
+        "suggested_text_boundary",
     ):
         if key in raw:
             out[key] = _as_str(raw.get(key))
+    # Új munkavázlat aliasok
+    if not out["main_idea"] and raw.get("focus_sentence"):
+        out["main_idea"] = _as_str(raw.get("focus_sentence"))
+    if not out["sermon_title"] and raw.get("title"):
+        out["sermon_title"] = _as_str(raw.get("title"))
+    if not out["passage_reference"] and raw.get("text_reference"):
+        out["passage_reference"] = _as_str(raw.get("text_reference"))
+    out["title_suggestions"] = _normalize_str_list(
+        raw.get("title_suggestions"), max_items=5
+    )
+    out["editorial_tips"] = _normalize_str_list(
+        raw.get("editorial_tips"), max_items=2
+    )
+    # Új séma alias: refinement_suggestions → editorial_tips
+    if not out["editorial_tips"]:
+        out["editorial_tips"] = _normalize_str_list(
+            raw.get("refinement_suggestions"), max_items=2
+        )
     status = _as_str(raw.get("status")) or "draft"
-    if status not in ("draft", "approved", ""):
+    if status not in ("draft", "approved", "empty", ""):
         status = "draft"
     out["status"] = status or "draft"
     out["manually_edited"] = bool(raw.get("manually_edited"))
+    out["needs_rebuild"] = bool(raw.get("needs_rebuild"))
     movements_raw = raw.get("movements")
     movements: list[dict[str, Any]] = []
     if isinstance(movements_raw, list):
@@ -382,11 +448,40 @@ def normalize_sermon_outline(raw: Any) -> dict[str, Any]:
             if isinstance(item, dict):
                 movements.append(_normalize_outline_movement(item))
     out["movements"] = movements
+    intro_raw = (
+        raw.get("introduction") if isinstance(raw.get("introduction"), dict) else {}
+    )
+    introduction = dict(base["introduction"])
+    for key in introduction:
+        if key in intro_raw:
+            introduction[key] = _as_str(intro_raw.get(key))
+    # Legacy: opening_direction → introduction.development
+    if not introduction["development"] and out.get("opening_direction"):
+        introduction["development"] = _as_str(out.get("opening_direction"))
+    out["introduction"] = introduction
+    if introduction["development"] and not out.get("opening_direction"):
+        out["opening_direction"] = introduction["development"]
+    conc_raw = raw.get("conclusion") if isinstance(raw.get("conclusion"), dict) else {}
+    conclusion = dict(base["conclusion"])
+    for key in conclusion:
+        if key in conc_raw:
+            conclusion[key] = _as_str(conc_raw.get(key))
+    out["conclusion"] = conclusion
     closing_raw = raw.get("closing") if isinstance(raw.get("closing"), dict) else {}
     closing = dict(base["closing"])
     for key in closing:
         if key in closing_raw:
             closing[key] = _as_str(closing_raw.get(key))
+    # Sync conclusion ↔ closing
+    if not conclusion["development"] and closing.get("final_insight"):
+        conclusion["development"] = _as_str(closing.get("final_insight"))
+    if not conclusion["final_sentence"] and closing.get("image_or_line"):
+        conclusion["final_sentence"] = _as_str(closing.get("image_or_line"))
+    if conclusion["development"] and not closing.get("final_insight"):
+        closing["final_insight"] = conclusion["development"]
+    if conclusion["final_sentence"] and not closing.get("image_or_line"):
+        closing["image_or_line"] = conclusion["final_sentence"]
+    out["conclusion"] = conclusion
     out["closing"] = closing
     lection_raw = raw.get("lection") if isinstance(raw.get("lection"), dict) else {}
     lection = dict(base["lection"])
@@ -421,6 +516,32 @@ def normalize_sermon_outline(raw: Any) -> dict[str, Any]:
         raw.get("actualization_connections"), max_items=8
     )
     return out
+
+
+def _normalize_diag_status(raw: Any) -> str:
+    status = _as_str(raw).casefold() or "idle"
+    if status not in ("idle", "running", "ready", "error"):
+        return "idle"
+    return status
+
+
+def _diagnostics_has_result(payload: Any) -> bool:
+    """Van-e megjeleníthető diagnosztikai eredmény (üres skeleton nem számít)."""
+    if not isinstance(payload, dict) or not payload:
+        return False
+    if _as_str(payload.get("overview")):
+        return True
+    if _normalize_str_list(payload.get("strengths"), max_items=3):
+        return True
+    if isinstance(payload.get("refinements"), list) and any(
+        isinstance(x, dict) and _as_str(x.get("title")) for x in payload["refinements"]
+    ):
+        return True
+    if isinstance(payload.get("diagnostic_areas"), list) and any(
+        isinstance(x, dict) and _as_str(x.get("key")) for x in payload["diagnostic_areas"]
+    ):
+        return True
+    return False
 
 
 def normalize_sermon_outline_diagnostics(raw: Any) -> dict[str, Any]:
@@ -991,7 +1112,7 @@ def normalize_sermon_workshop(data: Any) -> dict[str, Any]:
         lection_status = "draft"
 
     outline_status = _as_str(data.get("sermon_outline_status")) or "draft"
-    if outline_status not in ("draft", "approved", ""):
+    if outline_status not in ("draft", "approved", "empty", ""):
         outline_status = "draft"
 
     return {
@@ -1144,6 +1265,12 @@ def normalize_sermon_workshop(data: Any) -> dict[str, Any]:
         "lection_assessment": _normalize_optional_dict(
             data.get("lection_assessment", base["lection_assessment"])
         ),
+        "lection_connection_analysis": _normalize_lection_connection_analysis_field(
+            data.get(
+                "lection_connection_analysis",
+                base.get("lection_connection_analysis"),
+            )
+        ),
         "m9_lection_last_generated_at": _as_str(
             data.get("m9_lection_last_generated_at")
         ),
@@ -1158,6 +1285,18 @@ def normalize_sermon_workshop(data: Any) -> dict[str, Any]:
         ),
         "sermon_outline_diagnostics_generated_at": _as_str(
             data.get("sermon_outline_diagnostics_generated_at")
+        ),
+        "sermon_outline_diagnostics_status": _normalize_diag_status(
+            data.get(
+                "sermon_outline_diagnostics_status",
+                base.get("sermon_outline_diagnostics_status"),
+            )
+        ),
+        "sermon_outline_diagnostics_error": _as_str(
+            data.get(
+                "sermon_outline_diagnostics_error",
+                base.get("sermon_outline_diagnostics_error"),
+            )
         ),
     }
 
@@ -1228,7 +1367,7 @@ def update_sermon_workshop_section(
 
     if key == "sermon_outline_status":
         status = _as_str(data) or "draft"
-        if status not in ("draft", "approved", ""):
+        if status not in ("draft", "approved", "empty", ""):
             status = "draft"
         sw["sermon_outline_status"] = status or "draft"
         outline = normalize_sermon_outline(sw.get("sermon_outline"))
@@ -1240,7 +1379,7 @@ def update_sermon_workshop_section(
         outline = normalize_sermon_outline(data)
         sw["sermon_outline"] = outline
         status = _as_str(outline.get("status")) or "draft"
-        if status not in ("draft", "approved", ""):
+        if status not in ("draft", "approved", "empty", ""):
             status = "draft"
         sw["sermon_outline_status"] = status or "draft"
         if outline.get("generated_at"):
@@ -1635,6 +1774,17 @@ def save_homiletical_diagnostics(
     return sw
 
 
+def _normalize_lection_connection_analysis_field(raw: Any) -> dict[str, Any] | None:
+    """Lekció–textus kapcsolati elemzés tartós mezője."""
+    try:
+        from sermon_workshop_lection_link_ai import (
+            normalize_lection_connection_analysis,
+        )
+    except Exception:  # pragma: no cover
+        return _normalize_optional_dict(raw) if isinstance(raw, dict) else None
+    return normalize_lection_connection_analysis(raw)
+
+
 def save_lection_suggestions(
     session_state: MutableMapping[str, Any],
     payload: dict[str, Any],
@@ -1661,6 +1811,26 @@ def save_lection_assessment(
     sw = ensure_sermon_workshop_state(session_state)
     sw["lection_assessment"] = dict(payload) if isinstance(payload, dict) else None
     if stamp_generated_at:
+        sw["m9_lection_last_generated_at"] = datetime.now().isoformat(
+            timespec="seconds"
+        )
+    return sw
+
+
+def save_lection_connection_analysis(
+    session_state: MutableMapping[str, Any],
+    payload: dict[str, Any] | None,
+    *,
+    stamp_generated_at: bool = True,
+) -> dict[str, Any]:
+    """Tartós lekció–textus kapcsolati elemzés mentése."""
+    sw = ensure_sermon_workshop_state(session_state)
+    normalized = _normalize_lection_connection_analysis_field(payload)
+    sw["lection_connection_analysis"] = normalized
+    if stamp_generated_at and isinstance(normalized, dict) and normalized.get("ok"):
+        if not _as_str(normalized.get("generated_at")):
+            normalized["generated_at"] = datetime.now().isoformat(timespec="seconds")
+            sw["lection_connection_analysis"] = normalized
         sw["m9_lection_last_generated_at"] = datetime.now().isoformat(
             timespec="seconds"
         )
@@ -1732,8 +1902,23 @@ def save_sermon_outline(
     if mark_manual_edit:
         normalized["manually_edited"] = True
     status = _as_str(normalized.get("status")) or "draft"
-    if status not in ("draft", "approved", ""):
+    if status not in ("draft", "approved", "empty", ""):
         status = "draft"
+    # Üres tartalom soha ne maradjon approved.
+    try:
+        from sermon_workshop_outline_ai import outline_has_content, sync_outline_content
+
+        # Content: csak ha üres, töltsük a struktúrából — kézi content ne vesszen el.
+        if not _as_str(normalized.get("content")):
+            normalized = sync_outline_content(normalized, force=True)
+        if not outline_has_content(normalized):
+            if status == "approved":
+                status = "draft"
+                normalized["needs_rebuild"] = True
+        else:
+            normalized["needs_rebuild"] = False
+    except Exception:  # pragma: no cover
+        pass
     normalized["status"] = status or "draft"
     sw["sermon_outline"] = normalized
     sw["sermon_outline_status"] = normalized["status"]
@@ -1750,11 +1935,36 @@ def save_sermon_outline_diagnostics(
 ) -> dict[str, Any]:
     """Vázlatdiagnosztika mentése — nem módosítja a vázlatot / műhelymezőket."""
     sw = ensure_sermon_workshop_state(session_state)
-    sw["sermon_outline_diagnostics"] = normalize_sermon_outline_diagnostics(payload)
+    normalized = normalize_sermon_outline_diagnostics(payload)
+    # Üres payload soha ne törölje a korábbi érvényes diagnózist.
+    if not _diagnostics_has_result(normalized) and _diagnostics_has_result(
+        sw.get("sermon_outline_diagnostics")
+    ):
+        return sw
+    sw["sermon_outline_diagnostics"] = normalized
     if stamp_generated_at:
         sw["sermon_outline_diagnostics_generated_at"] = datetime.now().isoformat(
             timespec="seconds"
         )
+    sw["sermon_outline_diagnostics_status"] = "ready"
+    sw["sermon_outline_diagnostics_error"] = ""
+    return sw
+
+
+def set_sermon_outline_diagnostics_status(
+    session_state: MutableMapping[str, Any],
+    status: str,
+    *,
+    error_message: str = "",
+) -> dict[str, Any]:
+    """Diagnosztika futási / hibastátusz — a meglévő eredményt nem törli."""
+    sw = ensure_sermon_workshop_state(session_state)
+    normalized = _normalize_diag_status(status)
+    sw["sermon_outline_diagnostics_status"] = normalized
+    if normalized == "error":
+        sw["sermon_outline_diagnostics_error"] = _as_str(error_message)
+    elif normalized in ("idle", "running", "ready"):
+        sw["sermon_outline_diagnostics_error"] = ""
     return sw
 
 
@@ -1806,9 +2016,12 @@ __all__ = [
     "save_homiletical_diagnostics",
     "save_lection_suggestions",
     "save_lection_assessment",
+    "save_lection_connection_analysis",
     "save_prayer_before_suggestions",
     "save_prayer_after_suggestions",
     "save_prayer_assessment",
     "save_sermon_outline",
     "save_sermon_outline_diagnostics",
+    "set_sermon_outline_diagnostics_status",
+    "_diagnostics_has_result",
 ]

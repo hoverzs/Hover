@@ -17,7 +17,6 @@ from sermon_workshop_m8_ai import (
     MAX_REVISION_PRIORITIES,
     HomileticalDiagnosticsResult,
     build_diagnostics_context,
-    parse_homiletical_diagnostics,
 )
 from sermon_workshop_outline_ai import MISSING_PART, outline_has_content
 
@@ -229,9 +228,27 @@ def adapt_m8_to_outline_diagnostics(
 def _outline_context_block(outline: Mapping[str, Any]) -> str:
     import json
 
+    from sermon_workshop_outline_ai import outline_canonical_text
+
     # Ne küldjük a teljes bibliai szöveget — a vázlatban amúgy sincs.
     safe = normalize_sermon_outline(outline)
-    return json.dumps(safe, ensure_ascii=False, indent=2)
+    text = outline_canonical_text(safe)
+    payload = {
+        "content": text,
+        "main_idea": _s(safe.get("main_idea")),
+        "opening_direction": _s(safe.get("opening_direction")),
+        "movements": safe.get("movements") or [],
+        "closing": safe.get("closing") or {},
+        "listener_question": _s(safe.get("listener_question")),
+        "central_tension": _s(safe.get("central_tension")),
+        "divine_gracious_action": _s(safe.get("divine_gracious_action")),
+        "christ_connection": _s(safe.get("christ_connection")),
+        "gospel_resolution": _s(safe.get("gospel_resolution")),
+        "grace_enabled_response": _s(safe.get("grace_enabled_response")),
+        "passage_reference": _s(safe.get("passage_reference")),
+        # Saját megjegyzés NEM helyettesíti a vázlatot — diagnosztikába nem megy.
+    }
+    return json.dumps(payload, ensure_ascii=False, indent=2)
 
 
 _OUTLINE_DIAG_TEMPLATE = """\
@@ -339,8 +356,19 @@ OUTLINE_PROFILE_AREA_LABELS: dict[str, str] = {
     "pastoral_responsibility": "Pásztori hang",
 }
 
-_USER_API_FAIL = "A részletes MI-diagnosztika most nem sikerült."
-_USER_PARSE_FAIL = "A diagnosztikai válasz nem volt érvényes."
+_USER_API_FAIL = (
+    "A diagnosztika most nem készült el: a modell vagy a hálózat nem válaszolt "
+    "megbízhatóan. A vázlat változatlanul megmaradt, próbáld újra."
+)
+_USER_PARSE_FAIL = (
+    "A diagnosztika most nem készült el: a modell válasza nem volt érvényes. "
+    "A vázlat változatlanul megmaradt, próbáld újra."
+)
+_REPAIR_HINT = (
+    "Az előző válaszod nem volt érvényes JSON a kért sémában. "
+    "Add vissza UGYANAZT az értékelést KIZÁRÓLAG érvényes JSON-ként, "
+    "magarázó szöveg nélkül."
+)
 
 
 def _fill(template: str, ctx: Mapping[str, str]) -> str:
@@ -702,6 +730,30 @@ def run_outline_diagnostics(
         )
 
     parsed = parse_outline_diagnostics(raw or "")
+    if not parsed.ok and parsed.mode == "parse_error":
+        # Egyszeri javító kör — hibás modellválasz esetén.
+        repair_prompt = f"{prompt}\n\n{_REPAIR_HINT}\n\nElőző válasz:\n{_s(raw)[:2500]}"
+        try:
+            raw2 = generate_fn(
+                repair_prompt,
+                enable_google_search=False,
+                tab_label=TAB_OUTLINE_DIAG,
+                use_cache=False,
+                system_bundle=(
+                    "Te a TEXTUS homiletikai diagnoszta asszisztense vagy. "
+                    "Válaszod KIZÁRÓLAG érvényes JSON a kért sémában."
+                ),
+                temperature=DEFAULT_TEMPERATURE,
+            )
+        except Exception as exc:  # noqa: BLE001
+            return _api_failure_result(technical=str(exc), mode="api_error")
+        if _is_api_error_text(raw2 or ""):
+            return _api_failure_result(
+                technical=_s(raw2)[:400],
+                raw=raw2 or "",
+                mode="api_error",
+            )
+        parsed = parse_outline_diagnostics(raw2 or "")
     if not parsed.ok:
         return parsed
     # Kemény korlátok

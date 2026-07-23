@@ -1,3 +1,4 @@
+# ruff: noqa: E402
 """Igehirdetési vázlat + vázlatdiagnosztika regresszió (A–O + kompakt UI)."""
 
 from __future__ import annotations
@@ -32,14 +33,11 @@ from sermon_workshop_data import (
 )
 from sermon_workshop_outline_ai import (
     MISSING_PART,
-    PROVISIONAL_NOTICE,
     assemble_sermon_outline,
     assess_outline_readiness,
     build_outline_from_workshop,
-    collect_outline_context_bundle,
     editable_outline_snapshot,
     outline_has_content,
-    outline_has_provisional_bridges,
     outline_missing_parts,
     outline_part_display,
     render_compact_sermon_outline,
@@ -265,32 +263,33 @@ def _stub_streamlit_capture(monkeypatch):
     monkeypatch.setattr(st, "text_input", _ti)
     monkeypatch.setattr(st, "expander", _exp)
     monkeypatch.setattr(st, "columns", lambda n: [nullcontext() for _ in range(n)])
+    monkeypatch.setattr(st, "container", lambda **k: nullcontext())
     monkeypatch.setattr(st, "rerun", lambda: None)
     return calls
 
 
 def test_ui_a_full_outline_no_long_textarea_form(session, monkeypatch):
-    """A: Teljes vázlat — főnézetben nincs hosszú textarea-sorozat."""
+    """A: Teljes vázlat — főnézetben kanonikus előnézet, nem mező-űrlap."""
     calls = _stub_streamlit_capture(monkeypatch)
     jude = build_jude_state()
     outline = build_outline_from_workshop(jude)
     save_sermon_outline(session, outline)
     render_outline_section(generate_fn=None)
     joined = "\n".join(calls)
-    assert "Az igehirdetés magja" in joined or "Fő gondolat" in joined
-    assert "A prédikáció mozgásai" in joined
-    assert "Következő lépés: a vázlat homiletikai ellenőrzése" in joined
+    assert "Vázlat előnézete" in joined
+    assert "Fókuszmondat" in joined or "fókuszmondat" in joined.casefold()
+    assert "Prédikációs egységek" in joined or "mozgás" in joined.casefold()
     assert "Vázlat szerkesztése" in joined
     assert any("Vázlat frissítése a meglévő anyagból" in c for c in calls)
+    assert any("TA:Vázlatszöveg" in c for c in calls)
+    assert any("TA:Saját megjegyzéseim" in c for c in calls)
     assert not any(c == "TA:Hallgatói ellenállás (röviden)" for c in calls)
     assert not any(c == "TA:Isten kegyelmi cselekvése" for c in calls)
-    assert not any(c == "TI:Kapcsolattípus" for c in calls)
-    assert not any(c == "TA:Indoklás" for c in calls)
     assert any("EXP:Vázlat szerkesztése:False" in c for c in calls)
 
 
 def test_ui_b_missing_parts_single_list(session, monkeypatch):
-    """B: Hiányos vázlat — egyetlen kompakt finomítható blokk."""
+    """B: Hiányos vázlat — üres fejezetek NEM jelennek meg helykitöltővel."""
     calls = _stub_streamlit_capture(monkeypatch)
     outline = {
         "passage_reference": "Júd 17–20",
@@ -304,20 +303,24 @@ def test_ui_b_missing_parts_single_list(session, monkeypatch):
     save_sermon_outline(session, outline)
     render_compact_sermon_outline(session[SERMON_WORKSHOP_KEY]["sermon_outline"])
     joined = "\n".join(calls)
-    assert "Még finomítható részek" in joined
-    assert "fő gondolat" in joined.casefold() or "mozgás" in joined.casefold()
+    assert "Nyitás a hallgatói kérdés felől" in joined
+    assert MISSING_PART not in joined
+    assert "Nem állapítható meg felelősen" not in joined
     assert "Még kidolgozandó részek" not in joined
-    assert joined.count("Ez a rész még nincs kidolgozva.") == 0
+    # Meta badge-ek külön jelennek meg
+    assert "Textus: Júd 17–20" in joined
+    assert "Fordítás: RÚF 2014" in joined
 
 
 def test_ui_c_optional_empties_hidden(session, monkeypatch):
-    """C: Üres opcionális mezők — nem jelennek meg üres szakaszként."""
+    """C: Üres opcionális mezők — nem jelennek meg a kanonikus szövegben."""
     calls = _stub_streamlit_capture(monkeypatch)
     jude = build_jude_state()
     outline = build_outline_from_workshop(jude)
     outline["listener_resistance"] = ""
     outline["closing"]["open_question"] = ""
     outline["closing"]["image_or_line"] = ""
+    outline["content"] = ""  # kényszerített újraszinkron
     save_sermon_outline(session, outline)
     render_compact_sermon_outline(session[SERMON_WORKSHOP_KEY]["sermon_outline"])
     joined = "\n".join(calls)
@@ -350,23 +353,24 @@ def test_ui_f_refs_only(session, monkeypatch):
     save_sermon_outline(session, outline)
     render_compact_sermon_outline(session[SERMON_WORKSHOP_KEY]["sermon_outline"])
     joined = "\n".join(calls)
-    assert "Alapadatok" in joined
+    assert "Textus" in joined
     assert outline["passage_reference"] in joined
     if passage and len(passage) > 40:
         assert passage[:40] not in joined
 
 
-def test_ui_g_prayer_compact_only(session, monkeypatch):
-    """G: Imádság — csak átvett nyitás, gondolatok, zárás."""
+def test_ui_g_prayer_not_in_outline_body(session, monkeypatch):
+    """G: Imádság nem helyettesíti / nem része a kanonikus vázlattestnek."""
     calls = _stub_streamlit_capture(monkeypatch)
     jude = build_jude_state()
     outline = build_outline_from_workshop(jude)
     save_sermon_outline(session, outline)
     render_compact_sermon_outline(session[SERMON_WORKSHOP_KEY]["sermon_outline"])
     joined = "\n".join(calls)
-    assert any("EXP:Igehirdetés előtti imádság:False" in c for c in calls)
-    assert any("EXP:Igehirdetés utáni imádság:False" in c for c in calls)
-    assert "Uram, szólj hozzánk." in joined
+    assert "Fókuszmondat" in joined or "fókuszmondat" in joined.casefold()
+    assert not any("EXP:Igehirdetés előtti imádság" in c for c in calls)
+    # Az imaszöveg ne legyen a vázlat törzsében
+    assert "Uram, szólj hozzánk." not in joined
     assert "before_suggestions" not in joined
     assert "cliche" not in joined.casefold()
 
@@ -572,4 +576,28 @@ def test_view_model_limits():
 def test_outline_has_content_helper():
     assert not outline_has_content({})
     assert not outline_has_content({"status": "draft", "bible_translation": "RÚF"})
+    assert not outline_has_content({"manual_notes": "csak jegyzet"})
+    assert not outline_has_content({"lection_reference": "Zsolt 23", "status": "approved"})
     assert outline_has_content({"main_idea": "Van tartalom"})
+    assert not outline_has_content(
+        {
+            "passage_reference": "Júd 17–20",
+            "text_boundary_note": (
+                "A gondolati ív a következő versben zárul le. "
+                "Javasolt textushatár: Júd 17–21"
+            ),
+            "content": (
+                "**Textus**\n\nJúd 17–20\n\n"
+                "**Megjegyzés a textushatárról**\n\n"
+                "A gondolati ív a következő versben zárul le."
+            ),
+        }
+    )
+    assert outline_has_content(
+        {
+            "content": (
+                "## Központi állítás\n\n"
+                "Egy valódi, olvasható munkavázlat szövege a textus alapján."
+            )
+        }
+    )

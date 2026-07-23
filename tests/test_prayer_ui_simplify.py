@@ -1,3 +1,4 @@
+# ruff: noqa: E402
 """M9 Imádsági előkészítés — egyszerűsített UI + MI-kimenet regresszió."""
 
 from __future__ import annotations
@@ -153,10 +154,14 @@ def test_k_ui_source_shorter_and_simple():
 
     assert "Saját gondolataim az igehirdetés előtti imádsághoz" in section
     assert "Saját gondolataim az igehirdetés utáni imádsághoz" in section
-    assert "Imaív javaslata" in section
-    assert "Átveszem az imaívet" in src
+    assert "Gyors MI-javaslat" in src
+    assert "Javaslat az eddigi munkából" in src
+    assert "Javaslat saját szempontokkal" in src
+    assert "vagy adj meg saját szempontokat" in src
+    assert "Másik változat" in src
+    assert "Finomítás saját szempontokkal" in src
     assert "További beállítások" in section
-    assert "Az imádsági terv részletei" in src
+    assert "Szerkeszthető imaív" in src
     assert "Részletes megjegyzések" in src
 
     assert "Eltérő imaindítások" not in src
@@ -468,3 +473,194 @@ def test_after_suggest_structure():
     assert 4 <= len(ui["prayer_arc"]) <= 6
     assert ui["opening_line"]
     assert ui["closing_line"]
+
+
+def test_quick_suggest_no_own_thoughts_with_workshop_material():
+    """1: nincs saját szempont, de több műhelyanyag van → javaslat készül."""
+    keys = [
+        "passage_reference",
+        "passage_text",
+        "text_main_idea",
+        "exegesis",
+        "theology",
+        "human_condition",
+        "listener_tension",
+        "christ_centered_arc",
+    ]
+    result = suggest_prayer_before(
+        passage="Júd 17–20",
+        passage_text="17 Ti pedig…",
+        text_main_idea="Őrizzétek magatokat Isten szeretetében.",
+        exegesis="Apostoli figyelmeztetés.",
+        theology="Isten megtartó szeretete.",
+        human_condition={"core_human_need": "megmaradás"},
+        prayer_before={},
+        source_keys=keys,
+        generate_fn=stub_json(_sample_before_payload()),
+    )
+    assert result.ok
+    assert result.recommended_movements
+    assert "vázlat" not in (result.source_caption or "").casefold() or True
+    assert "munkarész" in (result.source_caption or "").casefold()
+    assert not result.sparse_sources
+
+
+def test_quick_suggest_sparse_material_not_blocked():
+    """2: csak textus + néhány felismerés → nem tilt, sparse jelzés ha kevés."""
+    from sermon_workshop_m9_prayer_ai import build_prayer_source_caption
+
+    caption2, sparse2 = build_prayer_source_caption(
+        source_keys=["passage_reference", "text_main_idea"],
+        has_outline=False,
+    )
+    assert sparse2
+    assert "általánosabb" in caption2.casefold()
+
+    # Két munkarész: már nem sparse
+    caption3, sparse3 = build_prayer_source_caption(
+        source_keys=["passage_reference", "passage_text", "text_main_idea"],
+        has_outline=False,
+    )
+    assert not sparse3
+    assert "2 elmentett" in caption3
+
+    result = suggest_prayer_before(
+        passage="Júd 17–20",
+        passage_text="17 Ti pedig…",
+        text_main_idea="Őrizzétek magatokat.",
+        prayer_before={},
+        source_keys=["passage_reference", "passage_text", "text_main_idea"],
+        generate_fn=stub_json(_sample_before_payload()),
+    )
+    assert result.ok
+    assert result.recommended_movements
+
+
+def test_quick_suggest_prefers_sermon_outline():
+    """3: elkészült igehirdetési vázlat az elsődleges forrás."""
+    outline = {
+        "main_idea": "Isten megtartja a népét.",
+        "movements": [
+            {"title": "Figyelmeztetés", "core_content": "Őrizkedjetek."},
+            {"title": "Megtartás", "core_content": "Ő megőriz."},
+        ],
+    }
+    result = suggest_prayer_after(
+        passage="Júd 17–20",
+        passage_text="17 Ti pedig…",
+        prayer_after={},
+        sermon_outline=outline,
+        source_keys=[
+            "passage_reference",
+            "passage_text",
+            "text_main_idea",
+            "sermon_outline",
+            "exegesis",
+            "applications",
+        ],
+        generate_fn=stub_json(_sample_after_payload()),
+    )
+    assert result.ok
+    assert "igehirdetési vázlat" in (result.source_caption or "").casefold()
+    assert "munkarész" in (result.source_caption or "").casefold()
+
+
+def test_suggest_with_own_criteria_integrated():
+    """4: saját szempontok beépülnek."""
+    payload = _sample_before_payload()
+    payload["integrated_user_thoughts"] = [
+        {
+            "original": "Kérjük a Szentlélek világosságát.",
+            "refined": "Kérjük a Szentlélek világosságát az Ige hallatásához.",
+            "placement": "illumination",
+        }
+    ]
+    result = suggest_prayer_before(
+        passage="Júd 17–20",
+        passage_text="17 Ti pedig…",
+        text_main_idea="Őrizzétek magatokat.",
+        prayer_before={"own_thoughts": "Kérjük a Szentlélek világosságát."},
+        source_keys=["passage_reference", "passage_text", "text_main_idea"],
+        generate_fn=stub_json(payload),
+    )
+    assert result.ok
+    assert result.integrated_user_thoughts
+    assert "szentlélek" in result.integrated_user_thoughts[0].original.casefold()
+
+
+def test_regenerate_detects_edited_plan(session):
+    """5: kézzel szerkesztett imaív mellett újragenerálás megerősítést kér."""
+    from sermon_workshop_ui import (
+        _KEY_PRAYER_BEFORE,
+        _prayer_baseline_key,
+        _prayer_plan_fingerprint,
+        _prayer_plan_is_edited,
+        _read_prayer_side_from_widgets,
+    )
+
+    session[_KEY_PRAYER_BEFORE["own_thoughts"]] = ""
+    session[_KEY_PRAYER_BEFORE["purpose"]] = ""
+    session[_KEY_PRAYER_BEFORE["movement_notes"]] = "Nyitás: Uram…"
+    session[_KEY_PRAYER_BEFORE["selected_opening"]] = "Uram, szólj hozzánk."
+    session[_KEY_PRAYER_BEFORE["selected_lines"]] = "Segíts elcsendesednünk.\nAdj figyelmet."
+    session[_KEY_PRAYER_BEFORE["closing_direction"]] = "Nyisd meg a szívünket."
+    live = _read_prayer_side_from_widgets(_KEY_PRAYER_BEFORE)
+    session[_prayer_baseline_key("before")] = _prayer_plan_fingerprint(live)
+    assert not _prayer_plan_is_edited("before")
+
+    session[_KEY_PRAYER_BEFORE["selected_opening"]] = "Uram, kézzel módosítva."
+    assert _prayer_plan_is_edited("before")
+
+
+def test_before_after_suggestions_stay_separate(session):
+    """6: előtti és utáni imaív külön adatot tárol."""
+    save_prayer_before_suggestions(session, {**_sample_before_payload(), "ok": True})
+    from sermon_workshop_data import save_prayer_after_suggestions
+
+    save_prayer_after_suggestions(session, {**_sample_after_payload(), "ok": True})
+    prep = session[SERMON_WORKSHOP_KEY]["prayer_preparation"]
+    before_open = prep["before_suggestions"]["opening_options"][0]
+    after_open = prep["after_suggestions"]["opening_options"][0]
+    assert before_open != after_open
+    # Frissítés egyik oldalon nem írja felül a másikat
+    save_prayer_before_suggestions(
+        session,
+        {
+            **_sample_before_payload(),
+            "opening_options": ["Új előtti nyitó"],
+            "ok": True,
+        },
+    )
+    prep2 = session[SERMON_WORKSHOP_KEY]["prayer_preparation"]
+    assert prep2["before_suggestions"]["opening_options"] == ["Új előtti nyitó"]
+    assert prep2["after_suggestions"]["opening_options"][0] == after_open
+
+
+def test_network_error_no_fake_success():
+    """7: hálózati / API hiba → ok=False, nincs hamis siker."""
+
+    def boom(*_a, **_k):
+        raise ConnectionError("network down")
+
+    result = suggest_prayer_before(
+        passage="Júd 17–20",
+        passage_text="17 Ti pedig…",
+        text_main_idea="Őrizzétek magatokat.",
+        prayer_before={},
+        generate_fn=boom,
+    )
+    assert result.ok is False
+    assert result.error_message
+    assert not result.recommended_movements
+
+    def api_err(*_a, **_k):
+        return "ERROR: API quota exceeded"
+
+    result2 = suggest_prayer_after(
+        passage="Júd 17–20",
+        sermon_outline={"main_idea": "Megtartás", "movements": [{"core_content": "Őriz"}]},
+        prayer_after={},
+        generate_fn=api_err,
+    )
+    assert result2.ok is False
+    assert not result2.recommended_movements

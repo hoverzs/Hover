@@ -49,6 +49,43 @@ EMPTY_PROJECT_MESSAGE = (
     "gondolat / fő gondolat szükséges. Az igehely önmagában nem elég."
 )
 
+# Előnézetben és generált szövegben tiltott sablon / technikai helykitöltők.
+OUTLINE_PLACEHOLDER_BANLIST: tuple[str, ...] = (
+    "Ez a rész még nincs kidolgozva.",
+    "Nem állapítható meg felelősen",
+    "Nincs elegendő adat",
+    "Nincs elég adat",
+    "A textus magja elmélyül.",
+    "A hallgató a textus világába lép.",
+    "A fő gondolat megérkezik a hallgatóhoz.",
+    "A textus a fő gondolatot a saját hangján bontja ki.",
+    "A hallgató a kegyelem felől válaszolhat.",
+    "Nyitás – Megnyitás",
+    "Nyitás — Megnyitás",
+    "Kibontás – Elmélyítés",
+    "Kibontás — Elmélyítés",
+    "Megérkezés – Megérkezés",
+    "Megérkezés — Megérkezés",
+)
+_GENERIC_MOVEMENT_TITLES = {
+    "nyitás",
+    "kibontás",
+    "megérkezés",
+    "megnyitás",
+    "elmélyítés",
+    "1. mozgás",
+    "2. mozgás",
+    "3. mozgás",
+    "4. mozgás",
+    "5. mozgás",
+}
+_UNCERTAIN_CHRIST_LABELS = {
+    "nem állapítható meg felelősen",
+    "none_or_uncertain",
+    "—",
+    "-",
+}
+
 GenerateFn = Callable[..., str]
 
 
@@ -66,6 +103,85 @@ def _session_str(session: Mapping[str, Any], *keys: str) -> str:
         if val:
             return val
     return ""
+
+
+def _normalize_cmp(text: str) -> str:
+    return " ".join(_s(text).casefold().split())
+
+
+def is_banned_outline_placeholder(text: Any) -> bool:
+    """Igaz, ha a szöveg tiltott sablon / technikai helykitöltő."""
+    raw = _s(text)
+    if not raw:
+        return False
+    norm = _normalize_cmp(raw)
+    for banned in OUTLINE_PLACEHOLDER_BANLIST:
+        b = _normalize_cmp(banned)
+        if not b:
+            continue
+        if norm == b or b in norm:
+            return True
+    return False
+
+
+def _clean_source_text(text: Any) -> str:
+    """Forrásmező tisztítás: markdown fejléc, mezőnév, csonka vég, ismétlés."""
+    import re
+
+    raw = _s(text)
+    if not raw:
+        return ""
+    # Markdown / technikai jelek
+    raw = re.sub(r"(?m)^#{1,6}\s*", "", raw)
+    raw = raw.replace("```", "")
+    # Nyers mezőnevek / JSON-szerű kulcsok a szöveg elején
+    raw = re.sub(
+        r"(?i)^\s*(main_idea|core_content|listener_discovery|textual_basis|"
+        r"gospel_resolution|christ_connection|opening_direction)\s*[:=]\s*",
+        "",
+        raw,
+    )
+    # Többszörös whitespace
+    raw = re.sub(r"[ \t]+", " ", raw)
+    raw = re.sub(r"\n{3,}", "\n\n", raw).strip()
+    # Félbehagyott / csonka vég („az útmu…”, „…”)
+    if raw.endswith("…") or raw.endswith("..."):
+        # Ha az utolsó „mondat” túl rövid / szó közepén vágott, vágjuk le
+        parts = re.split(r"(?<=[.!?])\s+", raw)
+        if len(parts) >= 2 and len(parts[-1]) < 18:
+            raw = " ".join(parts[:-1]).rstrip()
+        else:
+            raw = raw.rstrip("….").rstrip()
+    # Azonos mondat kétszer egymás után
+    sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+", raw) if s.strip()]
+    deduped: list[str] = []
+    for sent in sentences:
+        if deduped and _normalize_cmp(sent) == _normalize_cmp(deduped[-1]):
+            continue
+        deduped.append(sent)
+    raw = " ".join(deduped) if deduped else raw
+    if is_banned_outline_placeholder(raw):
+        return ""
+    return raw.strip()
+
+
+def _usable_text(value: Any) -> str:
+    """Üres / tiltott / technikai szöveg kiszűrése."""
+    return _clean_source_text(value)
+
+
+def _title_from_text(text: str, *, fallback: str, max_len: int = 48) -> str:
+    cleaned = _usable_text(text)
+    if not cleaned:
+        return fallback
+    words = cleaned.split()
+    title = " ".join(words[:6]).rstrip(".,;:")
+    if len(title) > max_len:
+        title = title[: max_len - 1].rstrip() + "…"
+    low = _normalize_cmp(title)
+    if low in _GENERIC_MOVEMENT_TITLES or is_banned_outline_placeholder(title):
+        return fallback
+    return title or fallback
 
 
 def _prayer_side_retained(side: Mapping[str, Any] | None) -> dict[str, Any]:
@@ -91,10 +207,10 @@ def _prayer_side_retained(side: Mapping[str, Any] | None) -> dict[str, Any]:
 
 def _enrichment_text(item: Mapping[str, Any], *, kind: str) -> str:
     if kind == "image":
-        return _s(item.get("image"))
+        return _usable_text(item.get("image"))
     if kind == "illustration":
-        return _s(item.get("idea"))
-    return _s(item.get("application"))
+        return _usable_text(item.get("idea"))
+    return _usable_text(item.get("application"))
 
 
 def _attach_enrichment(
@@ -144,11 +260,24 @@ def _has_any_text(*values: Any) -> bool:
 
 
 def _truncate(text: str, limit: int) -> str:
-    raw = _s(text)
-    if len(raw) <= limit:
-        return raw
-    return raw[: max(0, limit - 1)].rstrip() + "…"
+    """Rövidítés gondolati egység határán — ne vágjon szó/mondat közepén."""
+    import re
 
+    raw = _clean_source_text(text)
+    if not raw or len(raw) <= limit:
+        return raw
+    window = raw[:limit].rstrip()
+    # Preferált: utolsó teljes mondat a ablakban
+    sentences = re.split(r"(?<=[.!?])\s+", window)
+    if len(sentences) >= 2:
+        candidate = " ".join(sentences[:-1]).strip()
+        if len(candidate) >= max(40, limit // 3):
+            return candidate
+    # Másodlagos: utolsó szóhatár
+    cut = window.rsplit(" ", 1)[0].rstrip(".,;:")
+    if len(cut) >= max(24, limit // 4):
+        return cut
+    return window.rstrip(".,;:")
 
 def _approved_insights_texts(tw: Mapping[str, Any]) -> list[str]:
     out: list[str] = []
@@ -427,6 +556,10 @@ def _prefer_main_idea(bundle: Mapping[str, Any]) -> str:
     insights = bundle.get("approved_insights") or []
     if isinstance(insights, list) and insights:
         return _s(insights[0])
+    # Minimális forrás: saját szempont / fókusz is elég a szintézis magjához
+    focus = _s(bundle.get("user_focus"))
+    if focus:
+        return focus
     return ""
 
 
@@ -436,30 +569,91 @@ def _heuristic_provisional_movements(
     insights: list[str],
     exegesis: str,
     christ: Mapping[str, Any] | None,
+    listener_question: str = "",
+    passage_reference: str = "",
 ) -> list[dict[str, Any]]:
-    """3 egyszerű mozgás — csak ha nincs M6, AI nélkül."""
-    idea = _s(main_idea) or (insights[0] if insights else "")
+    """3 textusspecifikus mozgás — csak ha nincs M6; sablon címek nélkül."""
+    idea = _usable_text(main_idea) or (
+        _usable_text(insights[0]) if insights else ""
+    )
     if not idea:
         return []
     christ = christ if isinstance(christ, dict) else {}
-    grace = _s(christ.get("divine_gracious_action")) or _s(
+    grace = _usable_text(christ.get("divine_gracious_action")) or _usable_text(
         christ.get("grace_enabled_response")
+    ) or _usable_text(christ.get("christ_connection"))
+    clean_insights = [_usable_text(x) for x in insights if _usable_text(x)]
+    exe = _truncate(exegesis, 220)
+
+    # Bevezetés: helyzet / kérdés — ne ismételje a fő gondolatot.
+    q = _usable_text(listener_question)
+    first_core = q or (
+        clean_insights[0]
+        if clean_insights and _normalize_cmp(clean_insights[0]) != _normalize_cmp(idea)
+        else ""
     )
-    second = _s(insights[1]) if len(insights) > 1 else ""
-    if not second and exegesis:
-        second = _truncate(exegesis, 220)
-    if not second:
-        second = "A textus a fő gondolatot a saját hangján bontja ki."
-    third = grace or (
-        _s(insights[2]) if len(insights) > 2 else "A hallgató a kegyelem felől válaszolhat."
+    if not first_core:
+        first_core = (
+            "A hallgató abból a feszültségből indul, amelyet a textus "
+            "saját világában megszólít."
+        )
+    first_discovery = (
+        "A textus megnevezi a helyzetet, mielőtt választ adna."
+        if q
+        else "A hallgató felismeri: a textus az ő helyzetéről beszél."
     )
+
+    second_core = ""
+    if len(clean_insights) > 1:
+        second_core = clean_insights[1]
+    elif exe:
+        second_core = exe
+    elif len(clean_insights) == 1 and _normalize_cmp(clean_insights[0]) != _normalize_cmp(
+        first_core
+    ):
+        second_core = clean_insights[0]
+    if not second_core or _normalize_cmp(second_core) == _normalize_cmp(first_core):
+        second_core = idea
+    second_discovery = "A textus teológiai magja kibontakozik a hallgató előtt."
+
+    third_core = grace
+    if not third_core and len(clean_insights) > 2:
+        third_core = clean_insights[2]
+    if not third_core:
+        third_core = (
+            "Isten megtartó kegyelme hív válaszra — nem csupán emberi erőfeszítés."
+        )
+    third_discovery = "A hallgató kegyelmi válaszra talál, nem csupán kötelességre."
+
+    ref = _usable_text(passage_reference)
     specs = [
-        ("Nyitás", "opening", "A hallgató a textus világába lép.", idea),
-        ("Kibontás", "deepening", "A textus magja elmélyül.", second),
-        ("Megérkezés", "arrival", "A fő gondolat megérkezik a hallgatóhoz.", third),
+        (
+            _title_from_text(first_core, fallback="A helyzet megnevezése"),
+            "opening",
+            first_discovery,
+            first_core,
+            ref,
+        ),
+        (
+            _title_from_text(second_core, fallback="A textus magja"),
+            "deepening",
+            second_discovery,
+            second_core,
+            ref,
+        ),
+        (
+            _title_from_text(third_core, fallback="Kegyelmi megérkezés"),
+            "arrival",
+            third_discovery,
+            third_core,
+            ref,
+        ),
     ]
     out: list[dict[str, Any]] = []
-    for i, (title, role, discovery, core) in enumerate(specs, start=1):
+    for i, (title, role, discovery, core, basis) in enumerate(specs, start=1):
+        core_u = _usable_text(core)
+        if not core_u:
+            continue
         item = empty_outline_movement()
         item.update(
             {
@@ -467,9 +661,9 @@ def _heuristic_provisional_movements(
                 "title": title,
                 "role": role,
                 "role_label": movement_role_label(role) if role else title,
-                "textual_basis": "",
-                "core_content": _s(core),
-                "listener_discovery": discovery,
+                "textual_basis": basis,
+                "core_content": core_u,
+                "listener_discovery": _usable_text(discovery),
                 "transition": "",
                 "images": [],
                 "illustrations": [],
@@ -509,9 +703,9 @@ def build_outline_from_workshop(
         outline["main_idea_summary"] = ""
 
     lt = bundle.get("listener_tension") if isinstance(bundle.get("listener_tension"), dict) else {}
-    outline["listener_question"] = _s(lt.get("listener_question"))
-    outline["central_tension"] = _s(lt.get("sermon_tension"))
-    outline["listener_resistance"] = _s(lt.get("listener_resistance"))
+    outline["listener_question"] = _usable_text(lt.get("listener_question"))
+    outline["central_tension"] = _usable_text(lt.get("sermon_tension"))
+    outline["listener_resistance"] = _usable_text(lt.get("listener_resistance"))
 
     arc = (
         bundle.get("christ_centered_arc")
@@ -523,30 +717,34 @@ def build_outline_from_workshop(
         if isinstance(bundle.get("human_condition"), dict)
         else {}
     )
-    outline["divine_gracious_action"] = _s(arc.get("divine_gracious_action")) or _s(
-        hc.get("divine_action")
-    )
-    outline["christ_connection"] = _s(arc.get("christ_connection"))
+    outline["divine_gracious_action"] = _usable_text(
+        arc.get("divine_gracious_action")
+    ) or _usable_text(hc.get("divine_action"))
+    outline["christ_connection"] = _usable_text(arc.get("christ_connection"))
     ctype = _s(arc.get("christ_connection_type"))
-    outline["christ_connection_type_label"] = (
-        christ_connection_type_label(ctype) if ctype else ""
-    )
-    outline["gospel_resolution"] = _s(lt.get("promised_resolution"))
-    outline["grace_enabled_response"] = _s(arc.get("grace_enabled_response")) or _s(
-        hc.get("grace_response")
-    )
+    type_label = christ_connection_type_label(ctype) if ctype else ""
+    if _normalize_cmp(type_label) in _UNCERTAIN_CHRIST_LABELS or not ctype:
+        outline["christ_connection_type_label"] = ""
+    elif _normalize_cmp(type_label) in {"direct", "indirect", "typological"}:
+        outline["christ_connection_type_label"] = ""
+    else:
+        outline["christ_connection_type_label"] = type_label
+    outline["gospel_resolution"] = _usable_text(lt.get("promised_resolution"))
+    outline["grace_enabled_response"] = _usable_text(
+        arc.get("grace_enabled_response")
+    ) or _usable_text(hc.get("grace_response"))
 
     path = bundle.get("sermon_path") if isinstance(bundle.get("sermon_path"), dict) else {}
-    start = _s(path.get("starting_point"))
+    start = _usable_text(path.get("starting_point"))
     question = outline["listener_question"]
     if start and question:
         outline["opening_direction"] = (
-            f"Kiindulópont: {start}. A hallgatói kérdés, amely megnyitja: {question}"
+            f"{start.rstrip('.')} — és felmerül a kérdés: {question}"
         )
     elif start:
-        outline["opening_direction"] = f"Kiindulópont: {start}."
+        outline["opening_direction"] = start
     elif question:
-        outline["opening_direction"] = f"Hallgatói nyitás: {question}"
+        outline["opening_direction"] = question
     else:
         outline["opening_direction"] = ""
 
@@ -565,14 +763,18 @@ def build_outline_from_workshop(
                 "role": role,
                 "role_label": movement_role_label(role) if role else "",
                 "textual_basis": _s(mv.get("textual_basis")),
+                "textual_anchor": _s(mv.get("textual_basis")),
                 "core_content": _s(mv.get("core_content")),
                 "listener_discovery": _s(mv.get("listener_discovery")),
                 "transition": _s(mv.get("transition_to_next")),
+                "development": [],
                 "images": [],
                 "illustrations": [],
                 "applications": [],
             }
         )
+        # Fejlesztési bekezdések a meglévő mezőkből — technikai címke nélkül
+        item["development"] = _movement_development_paragraphs(item)
         movements_out.append(item)
 
     images = list(bundle.get("selected_images") or [])
@@ -615,6 +817,8 @@ def build_outline_from_workshop(
             insights=list(bundle.get("approved_insights") or []),
             exegesis=_s(bundle.get("exegesis")),
             christ=arc or hc,
+            listener_question=question,
+            passage_reference=_s(outline.get("passage_reference")),
         )
         if movements_out:
             provisional.append("sermon_movements")
@@ -659,21 +863,41 @@ def build_outline_from_workshop(
         "tone_label": closing_tone_label(tone) if tone else "",
     }
 
-    # Rövid munkajavaslat lezárásra — csak ha teljesen üres, van fő gondolat
-    if not _s(outline["closing"]["final_insight"]) and idea:
-        outline["closing"]["final_insight"] = (
-            f"A hallgató a fő gondolat fényében állhat meg: {idea}"
+    # Lezárás: ne ismételje változtatás nélkül a fő gondolatot.
+    if not _usable_text(outline["closing"]["final_insight"]) and idea:
+        closing_seed = (
+            _usable_text(outline.get("grace_enabled_response"))
+            or _usable_text(outline.get("gospel_resolution"))
+            or _usable_text(outline.get("divine_gracious_action"))
         )
-        if _s(outline["grace_enabled_response"]):
-            outline["closing"]["invitation"] = _s(outline["grace_enabled_response"])
+        if closing_seed and _normalize_cmp(closing_seed) != _normalize_cmp(idea):
+            outline["closing"]["final_insight"] = closing_seed
+        else:
+            outline["closing"]["final_insight"] = (
+                "A hallgató Isten megtartó szeretetében állhat meg — "
+                "a megnyitott kérdésre kegyelmi válasz érkezik."
+            )
+        if not _usable_text(outline["closing"].get("invitation")) and _usable_text(
+            outline.get("grace_enabled_response")
+        ):
+            outline["closing"]["invitation"] = _usable_text(
+                outline.get("grace_enabled_response")
+            )
         provisional.append("closing")
 
-    if not _s(outline["opening_direction"]) and (idea or question):
-        if question:
-            outline["opening_direction"] = f"Hallgatói nyitás: {question}"
+    if not _usable_text(outline["opening_direction"]) and (idea or question):
+        if question and start:
+            outline["opening_direction"] = (
+                f"{start.rstrip('.')} — és felmerül a kérdés: {question}"
+            )
+        elif question:
+            outline["opening_direction"] = question
+        elif start:
+            outline["opening_direction"] = start
         else:
             outline["opening_direction"] = (
-                f"A prédikáció a fő gondolat felől nyílik: {idea}"
+                "A bevezetés hallgatói helyzetet és feszültséget teremt, "
+                "mielőtt a textus központi állítását kibontanánk."
             )
         provisional.append("opening_direction")
 
@@ -708,6 +932,7 @@ def build_outline_from_workshop(
     outline["updated_at"] = stamp
     outline["status"] = "draft"
     outline["manually_edited"] = False
+    outline["needs_rebuild"] = False
     outline["source_sections"] = list(dict.fromkeys(sources))
     outline["provisional_sections"] = list(dict.fromkeys(provisional))
     # Forrás-ujjlenyomat + teljesség — diagnosztikai frissességhez.
@@ -730,25 +955,362 @@ def build_outline_from_workshop(
         outline["source_completeness"] = "partial"
     else:
         outline["source_completeness"] = "minimal"
+    # Bevezetés / megérkezés szinkron a főnézet sémájához
+    outline["introduction"] = {
+        "development": _usable_text(outline.get("opening_direction")),
+        "transition": "",
+    }
+    cl = outline.get("closing") if isinstance(outline.get("closing"), dict) else {}
+    outline["conclusion"] = {
+        "development": _usable_text(cl.get("final_insight")),
+        "final_sentence": _usable_text(cl.get("image_or_line"))
+        or _usable_text(cl.get("invitation")),
+    }
+    for mv in outline.get("movements") or []:
+        if isinstance(mv, dict) and not (mv.get("development") or []):
+            mv["development"] = _movement_development_paragraphs(mv)
+        if isinstance(mv, dict) and not _usable_text(mv.get("textual_anchor")):
+            mv["textual_anchor"] = _usable_text(mv.get("textual_basis"))
+    outline = normalize_sermon_outline(outline)
+    outline["content"] = outline_to_readable_content(outline)
     return normalize_sermon_outline(outline)
 
 
+def _movement_development_paragraphs(mv: Mapping[str, Any]) -> list[str]:
+    """Mozgás kibontása: development lista, vagy legacy mezőkből összerakva."""
+    paras: list[str] = []
+    seen: set[str] = set()
+    anchor_n = _normalize_cmp(
+        _usable_text(mv.get("textual_anchor")) or _usable_text(mv.get("textual_basis"))
+    )
+
+    def _push(text: Any) -> None:
+        cleaned = _usable_text(text)
+        if not cleaned:
+            return
+        n = _normalize_cmp(cleaned)
+        if n in seen:
+            return
+        # Ne ismételjük a vershorgonyt bekezdésként
+        if anchor_n and n == anchor_n:
+            return
+        seen.add(n)
+        paras.append(cleaned)
+
+    for item in mv.get("development") or []:
+        _push(item)
+    if paras:
+        for key in ("images", "illustrations"):
+            for item in mv.get(key) or []:
+                _push(item)
+        return paras[:8]
+
+    # Legacy → természetes bekezdések (technikai címkék nélkül)
+    # textual_basis kihagyva — a vershorgony külön jelenik meg
+    for key in (
+        "exegetical_core",
+        "theological_claim",
+        "core_content",
+        "listener_discovery",
+        "grace_application",
+    ):
+        _push(mv.get(key))
+    for item in mv.get("applications") or []:
+        _push(item)
+    for key in ("images", "illustrations"):
+        for item in mv.get(key) or []:
+            _push(item)
+    return paras[:8]
+
+
+def outline_to_readable_content(outline: Any) -> str:
+    """Kanonikus szószéki munkavázlat — tiszta, emberi nyelvű szöveg.
+
+    Főnézet mezői: cím, textus, fókuszmondat, bevezetés, 3–4 mozgás, megérkezés.
+    Nincs `##` fejléc, nincs technikai mezőnév, nincs üres adatlap-címke.
+    """
+    import re
+
+    safe = outline if isinstance(outline, dict) else {}
+    blocks: list[str] = []
+
+    def _section(label: str, body: str) -> None:
+        text = _usable_text(body)
+        if not text:
+            return
+        blocks.append(f"**{label}**\n\n{text}")
+
+    title = _usable_text(safe.get("sermon_title"))
+    if not title:
+        suggestions = [
+            _usable_text(t)
+            for t in (safe.get("title_suggestions") or [])
+            if _usable_text(t)
+        ]
+        title = suggestions[0] if suggestions else ""
+    _section("Cím", title)
+
+    passage = _usable_text(safe.get("passage_reference"))
+    bt = _usable_text(safe.get("bible_translation"))
+    textus = passage
+    if passage and bt:
+        textus = f"{passage} ({bt})"
+    _section("Textus", textus)
+
+    boundary = _usable_text(safe.get("text_boundary_note"))
+    if boundary:
+        _section("Megjegyzés a textushatárról", boundary)
+
+    focus = _usable_text(safe.get("main_idea"))
+    _section("Fókuszmondat", focus)
+
+    intro = safe.get("introduction") if isinstance(safe.get("introduction"), dict) else {}
+    opening = (
+        _usable_text(intro.get("development"))
+        or _usable_text(safe.get("opening_direction"))
+    )
+    if opening and focus and _normalize_cmp(opening) == _normalize_cmp(focus):
+        opening = ""
+    intro_parts: list[str] = []
+    if opening:
+        intro_parts.append(opening)
+    transition = _usable_text(intro.get("transition"))
+    if transition and _normalize_cmp(transition) != _normalize_cmp(opening):
+        intro_parts.append(transition)
+    _section("Bevezetés", "\n\n".join(intro_parts))
+
+    movements = safe.get("movements") if isinstance(safe.get("movements"), list) else []
+    for idx, mv in enumerate(
+        [m for m in movements if isinstance(m, dict)], start=1
+    ):
+        mv_title = re.sub(
+            r"^\s*\d+[.)]\s*", "", _usable_text(mv.get("title"))
+        ).strip()
+        if not mv_title or _normalize_cmp(mv_title) in _GENERIC_MOVEMENT_TITLES:
+            continue
+        if is_banned_outline_placeholder(mv_title):
+            continue
+        paras = _movement_development_paragraphs(mv)
+        if not paras:
+            continue
+        anchor = _usable_text(mv.get("textual_anchor")) or _usable_text(
+            mv.get("textual_basis")
+        )
+        body_parts: list[str] = []
+        if anchor:
+            body_parts.append(f"*{anchor}*")
+        for p in paras:
+            if anchor and _normalize_cmp(p) == _normalize_cmp(anchor):
+                continue
+            body_parts.append(p)
+        mv_transition = _usable_text(mv.get("transition"))
+        if mv_transition and _normalize_cmp(mv_transition) not in {
+            _normalize_cmp(p) for p in paras
+        }:
+            body_parts.append(mv_transition)
+        blocks.append(f"**{idx}. {mv_title}**\n\n" + "\n\n".join(body_parts))
+
+    conclusion = (
+        safe.get("conclusion") if isinstance(safe.get("conclusion"), dict) else {}
+    )
+    closing = safe.get("closing") if isinstance(safe.get("closing"), dict) else {}
+    arrival = (
+        _usable_text(conclusion.get("development"))
+        or _usable_text(closing.get("final_insight"))
+        or _usable_text(closing.get("gospel_assurance"))
+    )
+    if arrival and focus and _normalize_cmp(arrival) == _normalize_cmp(focus):
+        arrival = (
+            _usable_text(closing.get("invitation"))
+            or _usable_text(closing.get("gospel_assurance"))
+            or ""
+        )
+    final_line = (
+        _usable_text(conclusion.get("final_sentence"))
+        or _usable_text(closing.get("image_or_line"))
+        or _usable_text(closing.get("invitation"))
+    )
+    arrival_parts: list[str] = []
+    if arrival:
+        arrival_parts.append(arrival)
+    if final_line and _normalize_cmp(final_line) != _normalize_cmp(arrival):
+        arrival_parts.append(final_line)
+    _section("Megérkezés", "\n\n".join(arrival_parts))
+
+    text = "\n\n".join(blocks).strip()
+    # Védőháló: sem ##, sem tiltott sablon
+    if "##" in text:
+        text = re.sub(r"(?m)^#{1,6}\s*", "", text)
+    for banned in OUTLINE_PLACEHOLDER_BANLIST:
+        text = text.replace(banned, "")
+    return text.strip() + ("\n" if text.strip() else "")
+
+
+def _structure_has_substantive_text(safe: Mapping[str, Any]) -> bool:
+    """Valódi vázlattartalom — nem jegyzet, nem lekció, nem imádság önmagában."""
+    text_keys = (
+        "main_idea",
+        "main_idea_summary",
+        "listener_question",
+        "central_tension",
+        "listener_resistance",
+        "divine_gracious_action",
+        "christ_connection",
+        "gospel_resolution",
+        "grace_enabled_response",
+        "opening_direction",
+    )
+    if any(_s(safe.get(k)) for k in text_keys):
+        return True
+    intro = safe.get("introduction") if isinstance(safe.get("introduction"), dict) else {}
+    if _s(intro.get("development")):
+        return True
+    movements = safe.get("movements") if isinstance(safe.get("movements"), list) else []
+    for mv in movements:
+        if not isinstance(mv, dict):
+            continue
+        if _has_any_text(
+            mv.get("title"),
+            mv.get("textual_basis"),
+            mv.get("textual_anchor"),
+            mv.get("core_content"),
+            mv.get("listener_discovery"),
+            mv.get("transition"),
+            mv.get("development"),
+            mv.get("images"),
+            mv.get("illustrations"),
+            mv.get("applications"),
+        ):
+            return True
+    conclusion = (
+        safe.get("conclusion") if isinstance(safe.get("conclusion"), dict) else {}
+    )
+    if _has_any_text(conclusion.get("development"), conclusion.get("final_sentence")):
+        return True
+    closing = safe.get("closing") if isinstance(safe.get("closing"), dict) else {}
+    if _has_any_text(
+        closing.get("final_insight"),
+        closing.get("gospel_assurance"),
+        closing.get("invitation"),
+        closing.get("image_or_line"),
+        closing.get("open_question"),
+    ):
+        return True
+    return False
+
+
 def outline_has_content(outline: Any) -> bool:
+    """Van-e olvasható, valódi vázlattartalom.
+
+    A saját megjegyzés, igehely, lekcióhivatkozás, imádság, textushatár-megjegyzés
+    vagy státusz / időbélyeg önmagában NEM számít elkészült vázlatnak.
+    """
     if not isinstance(outline, dict) or not outline:
         return False
-    skip = {
-        "status",
-        "generated_at",
-        "updated_at",
-        "manually_edited",
-        "bible_translation",
-        "lection_translation",
-        "source_sections",
-        "provisional_sections",
-        "source_fingerprint",
-        "source_completeness",
-    }
-    return _has_any_text(*(v for k, v in outline.items() if k not in skip))
+    safe = normalize_sermon_outline(outline)
+    if _structure_has_substantive_text(safe):
+        return True
+    body = _s(safe.get("content"))
+    if not body:
+        return False
+    stripped = (
+        body.replace(MISSING_PART, "")
+        .replace("_", "")
+        .replace("#", "")
+        .replace("*", "")
+        .replace("-", "")
+        .strip()
+    )
+    if len(stripped) < 40:
+        return False
+    # Ne fogadjuk el a csak Textus + textushatár-héjat „kész vázlatként”
+    outline_markers = (
+        "Fókuszmondat",
+        "Bevezetés",
+        "Megérkezés",
+        "Központi állítás",
+        "**1.",
+        "1. ",
+    )
+    if any(m in body for m in outline_markers):
+        return True
+    # Legacy szabad szöveg (nem csak meta-fejléc)
+    meta_only_labels = (
+        "**Textus**",
+        "**Cím**",
+        "**Megjegyzés a textushatárról**",
+    )
+    residual = body
+    for label in meta_only_labels:
+        residual = residual.replace(label, "")
+    residual_stripped = (
+        residual.replace("*", "").replace("#", "").replace("-", "").strip()
+    )
+    # Ha a maradék lényegében az igehely + határjegyzet, az nem vázlat
+    if "textushatár" in residual.casefold() or "következő versben" in residual.casefold():
+        without_note = residual
+        for frag in (
+            "A gondolati ív a következő versben zárul le.",
+            "Javasolt textushatár:",
+            "Júd 17–21",
+            "Júd 17–20",
+        ):
+            without_note = without_note.replace(frag, "")
+        without_note = without_note.strip()
+        if len(without_note) < 40:
+            return False
+    return len(residual_stripped) >= 40
+
+
+def sync_outline_content(outline: Any, *, force: bool = False) -> dict[str, Any]:
+    """Biztosítja, hogy a kanonikus `content` mező a struktúrából frissüljön."""
+    safe = normalize_sermon_outline(outline)
+    if _structure_has_substantive_text(safe):
+        if force or not _s(safe.get("content")):
+            safe["content"] = outline_to_readable_content(safe)
+    elif not _s(safe.get("content")):
+        safe["content"] = ""
+    return normalize_sermon_outline(safe)
+
+
+def repair_outline_integrity(outline: Any) -> tuple[dict[str, Any], bool]:
+    """approved/üres → draft+needs_rebuild. Más adatot nem töröl."""
+    safe = normalize_sermon_outline(outline)
+    has = outline_has_content(safe)
+    repaired = False
+    if has:
+        if safe.get("needs_rebuild"):
+            safe["needs_rebuild"] = False
+            repaired = True
+        if not _s(safe.get("content")):
+            safe = sync_outline_content(safe, force=True)
+            repaired = True
+        return normalize_sermon_outline(safe), repaired
+
+    status = _s(safe.get("status"))
+    if status in {"approved", "empty"}:
+        safe["status"] = "empty" if status == "empty" else "draft"
+        safe["needs_rebuild"] = True
+        repaired = True
+    elif _s(safe.get("updated_at")) or _s(safe.get("generated_at")) or safe.get(
+        "manually_edited"
+    ):
+        safe["status"] = "draft"
+        safe["needs_rebuild"] = True
+        repaired = True
+    if not _s(safe.get("content")):
+        safe["content"] = ""
+    return normalize_sermon_outline(safe), repaired
+
+
+def outline_canonical_text(outline: Any) -> str:
+    """A megjelenítéshez / diagnosztikához használt kanonikus szöveg."""
+    safe = normalize_sermon_outline(outline)
+    if _s(safe.get("content")):
+        return _s(safe.get("content"))
+    if _structure_has_substantive_text(safe):
+        return outline_to_readable_content(safe)
+    return ""
 
 
 def outline_part_display(value: Any, *, missing: str = MISSING_PART) -> str:
@@ -811,6 +1373,7 @@ def editable_outline_snapshot(outline: Any) -> dict[str, Any]:
     """Összehasonlítható kivágat — időbélyeg / státusz nélkül."""
     safe = normalize_sermon_outline(outline)
     return {
+        "content": _s(safe.get("content")),
         "main_idea": _s(safe.get("main_idea")),
         "main_idea_summary": _s(safe.get("main_idea_summary")),
         "opening_direction": _s(safe.get("opening_direction")),
@@ -870,38 +1433,72 @@ def _ensure_outline_reader_styles() -> None:
     st.markdown(
         """
 <style>
-.sw-outline-card {
-  border: 1px solid rgba(49, 51, 63, 0.16);
-  border-radius: 0.5rem;
-  padding: 0.85rem 1rem 0.35rem 1rem;
-  margin: 0.35rem 0 0.75rem 0;
-  background: rgba(250, 250, 252, 0.65);
+.sw-outline-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.55rem;
+  margin: 0.15rem 0 0.85rem 0;
+  align-items: center;
 }
-.sw-outline-card h4 {
-  margin: 0.15rem 0 0.55rem 0;
+.sw-outline-badge {
+  display: inline-block;
+  padding: 0.22rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid rgba(90, 122, 168, 0.28);
+  background: rgba(90, 122, 168, 0.08);
+  color: #1f334d;
+  font-size: 0.86rem;
+  font-weight: 600;
+  line-height: 1.35;
+  font-family: "Inter", "Segoe UI", sans-serif;
+}
+.sw-outline-body {
   font-size: 1.02rem;
+  line-height: 1.55;
+  color: #2b2116;
 }
-.sw-outline-sep {
-  border: 0;
-  border-top: 1px solid rgba(49, 51, 63, 0.12);
-  margin: 0.65rem 0;
+.sw-outline-body strong {
+  display: block;
+  margin-top: 1.05rem;
+  margin-bottom: 0.35rem;
+  font-size: 1.08rem;
+  color: #1f334d;
 }
-.sw-outline-mv {
-  border: 1px solid rgba(49, 51, 63, 0.12);
-  border-radius: 0.4rem;
-  padding: 0.55rem 0.75rem;
-  margin: 0.4rem 0;
-  background: #fff;
+.sw-outline-body p {
+  margin-bottom: 0.55rem !important;
 }
-.sw-outline-mv h5 {
-  margin: 0 0 0.35rem 0;
-  font-size: 0.98rem;
+.sw-pulpit-view {
+  background: #fbf8f1;
+  color: #1a1712;
+  padding: 1.6rem 1.8rem 2rem;
+  border-radius: 12px;
+  border: 1px solid rgba(117, 99, 72, 0.22);
+  font-size: 1.22rem;
+  line-height: 1.65;
+  font-family: "Georgia", "Times New Roman", serif;
 }
-.sw-outline-missing {
-  border-left: 3px solid rgba(49, 51, 63, 0.35);
-  padding: 0.35rem 0.65rem;
-  margin: 0.5rem 0 0.75rem 0;
-  background: rgba(49, 51, 63, 0.04);
+.sw-pulpit-view strong {
+  display: block;
+  margin-top: 1.35rem;
+  margin-bottom: 0.45rem;
+  font-size: 1.28rem;
+  font-family: "Georgia", "Times New Roman", serif;
+  color: #2b2116;
+  letter-spacing: 0.01em;
+}
+.sw-pulpit-view em {
+  color: #5a4a38;
+}
+/* Egyetlen chevron az outline-szerkesztő expanderben — ne legyen dupla ikon. */
+div[data-testid="stExpander"]:has(textarea) summary [data-testid="stIconMaterial"]:not(:last-of-type),
+div[data-testid="stExpander"] summary svg + svg {
+  display: none !important;
+}
+div[data-testid="stExpander"] summary {
+  list-style: none !important;
+}
+div[data-testid="stExpander"] summary::-webkit-details-marker {
+  display: none !important;
 }
 </style>
         """,
@@ -909,10 +1506,67 @@ def _ensure_outline_reader_styles() -> None:
     )
 
 
-def render_compact_sermon_outline(outline: Any) -> None:
-    """Olvasó / dokumentumnézet — nem űrlap. Streamlit UI."""
-    import html as html_lib
+def _render_outline_meta_badges(outline: Mapping[str, Any]) -> None:
+    import html
 
+    import streamlit as st
+
+    safe = outline if isinstance(outline, dict) else {}
+    passage = _usable_text(safe.get("passage_reference"))
+    bt = _usable_text(safe.get("bible_translation"))
+    lec_block = safe.get("lection") if isinstance(safe.get("lection"), dict) else {}
+    lec = _usable_text(lec_block.get("reference")) or _usable_text(
+        safe.get("lection_reference")
+    )
+    title = _usable_text(safe.get("sermon_title"))
+    badges: list[str] = []
+    if passage:
+        badges.append(
+            f'<span class="sw-outline-badge">Textus: {html.escape(passage)}</span>'
+        )
+    if bt:
+        badges.append(
+            f'<span class="sw-outline-badge">Fordítás: {html.escape(bt)}</span>'
+        )
+    if lec:
+        badges.append(
+            f'<span class="sw-outline-badge">Lekció: {html.escape(lec)}</span>'
+        )
+    if title:
+        badges.append(
+            f'<span class="sw-outline-badge">Cím: {html.escape(title)}</span>'
+        )
+    if badges:
+        st.markdown(
+            f'<div class="sw-outline-meta">{"".join(badges)}</div>',
+            unsafe_allow_html=True,
+        )
+
+
+def _strip_meta_section_from_content(text: str) -> str:
+    """A meta badge-ek mellett a tartalomból kihagyjuk a duplikált Cím/Textus fejet."""
+    import re
+
+    raw = _s(text)
+    if not raw:
+        return ""
+    # Régi ## formátum
+    raw = re.sub(
+        r"(?ms)^##\s*Textus és alapadatok\s*\n.*?(?=^##\s|\Z)",
+        "",
+        raw,
+    ).strip()
+    # Új formátum: Cím / Textus a badge-ek mellett felesleges lehet az előnézetben,
+    # de a fókuszmondattól kezdve kell — megtartjuk a teljes tartalmat.
+    return raw
+
+
+def render_compact_sermon_outline(outline: Any) -> None:
+    """Olvasó / dokumentumnézet — nem űrlap. Streamlit UI.
+
+    A kanonikus `content` mezőt jeleníti meg (ugyanaz, mint az előnézet /
+    diagnosztika). Ha a content üres, a struktúrából épít szöveget.
+    """
     import streamlit as st
 
     safe = normalize_sermon_outline(outline)
@@ -921,242 +1575,73 @@ def render_compact_sermon_outline(outline: Any) -> None:
         return
 
     _ensure_outline_reader_styles()
-    if outline_has_provisional_bridges(safe):
+    tips = [
+        _usable_text(t)
+        for t in (safe.get("editorial_tips") or [])
+        if _usable_text(t)
+    ]
+    if outline_has_provisional_bridges(safe) and not tips:
         st.caption(PROVISIONAL_NOTICE)
-    refinable = outline_refinable_summary(safe)
-    if refinable:
-        st.markdown(
-            f'<div class="sw-outline-missing"><strong>Még finomítható részek</strong>'
-            f"<p>{html_lib.escape(refinable)}</p></div>",
-            unsafe_allow_html=True,
-        )
 
-    st.markdown('<div class="sw-outline-card">', unsafe_allow_html=True)
+    _render_outline_meta_badges(safe)
 
-    basics: list[str] = []
-    for label, key in (
-        ("Textus", "passage_reference"),
-        ("Lekció", "lection_reference"),
-        ("Fordítás", "bible_translation"),
-    ):
-        line = _md_line(label, safe.get(key))
-        if line:
-            basics.append(line)
-    if basics:
-        st.markdown("#### Alapadatok")
-        st.markdown("\n\n".join(basics))
-        st.markdown('<hr class="sw-outline-sep"/>', unsafe_allow_html=True)
+    text = _strip_meta_section_from_content(outline_canonical_text(safe))
+    for banned in OUTLINE_PLACEHOLDER_BANLIST:
+        if banned in text:
+            text = text.replace(f"_{banned}_", "").replace(banned, "")
+    import re
 
-    core_bits: list[str] = []
-    if _s(safe.get("main_idea")):
-        core_bits.append(f"**Fő gondolat**\n\n{_s(safe.get('main_idea'))}")
-        if _s(safe.get("main_idea_summary")):
-            core_bits.append(_s(safe.get("main_idea_summary")))
-    if _s(safe.get("listener_question")):
-        core_bits.append(
-            f"**Hallgatói kérdés**\n\n{_s(safe.get('listener_question'))}"
-        )
-    if _s(safe.get("central_tension")):
-        core_bits.append(
-            f"**Központi feszültség**\n\n{_s(safe.get('central_tension'))}"
-        )
-    if _s(safe.get("listener_resistance")):
-        core_bits.append(
-            f"**Hallgatói ellenállás**\n\n{_s(safe.get('listener_resistance'))}"
-        )
-    if core_bits:
-        st.markdown("#### Az igehirdetés magja")
-        for bit in core_bits:
-            st.markdown(bit)
-        st.markdown('<hr class="sw-outline-sep"/>', unsafe_allow_html=True)
-
-    gospel_lines: list[str] = []
-    for label, key in (
-        ("Isten kegyelmi cselekvése", "divine_gracious_action"),
-        ("Krisztus-kapcsolat", "christ_connection"),
-        ("Evangéliumi feloldás", "gospel_resolution"),
-        ("Kegyelemből fakadó válasz", "grace_enabled_response"),
-    ):
-        line = _md_line(label, safe.get(key))
-        if line:
-            gospel_lines.append(line)
-    ctype = _s(safe.get("christ_connection_type_label"))
-    if ctype and ctype not in {"—", "-", "direct", "indirect", "typological"}:
-        insert_at = 1 if gospel_lines else 0
-        gospel_lines.insert(insert_at, f"**Kapcsolat:** {ctype}")
-    if gospel_lines:
-        st.markdown("#### Evangéliumi fordulat")
-        st.markdown("\n\n".join(gospel_lines))
-        st.markdown('<hr class="sw-outline-sep"/>', unsafe_allow_html=True)
-
-    if _s(safe.get("opening_direction")):
-        st.markdown("#### Bevezetési irány")
-        st.markdown(_s(safe.get("opening_direction")))
-        st.markdown('<hr class="sw-outline-sep"/>', unsafe_allow_html=True)
-
-    movements = safe.get("movements") if isinstance(safe.get("movements"), list) else []
-    if movements:
-        st.markdown("#### A prédikáció mozgásai")
-        for idx, mv in enumerate(movements, start=1):
-            if not isinstance(mv, dict):
-                continue
-            title = _s(mv.get("title")) or f"{idx}. mozgás"
-            role = _s(mv.get("role_label"))
-            role_raw = _s(mv.get("role"))
-            if role and role == role_raw and "_" in role:
-                role = ""
-            header = f"{idx}. {title}"
-            if role:
-                header = f"{header} — {role}"
-            body: list[str] = [
-                f'<div class="sw-outline-mv"><h5>{html_lib.escape(header)}</h5>'
-            ]
-            for label, key in (
-                ("Textusbeli alap", "textual_basis"),
-                ("Mit bont ki?", "core_content"),
-                ("Mit ismer fel a hallgató?", "listener_discovery"),
-                ("Átmenet", "transition"),
-            ):
-                val = _s(mv.get(key))
-                if val:
-                    body.append(
-                        f"<div><strong>{html_lib.escape(label)}:</strong> "
-                        f"{html_lib.escape(val)}</div>"
-                    )
-            images = [_s(x) for x in (mv.get("images") or []) if _s(x)]
-            illustrations = [
-                _s(x) for x in (mv.get("illustrations") or []) if _s(x)
-            ]
-            applications = [
-                _s(x) for x in (mv.get("applications") or []) if _s(x)
-            ]
-            media = images + illustrations
-            if media:
-                body.append(
-                    "<div><strong>Kép vagy illusztráció:</strong> "
-                    f"{html_lib.escape('; '.join(media))}</div>"
-                )
-            if applications:
-                body.append(
-                    "<div><strong>Alkalmazási irány:</strong> "
-                    f"{html_lib.escape('; '.join(applications))}</div>"
-                )
-            body.append("</div>")
-            st.markdown("\n".join(body), unsafe_allow_html=True)
-        st.markdown('<hr class="sw-outline-sep"/>', unsafe_allow_html=True)
-
-    closing = safe.get("closing") if isinstance(safe.get("closing"), dict) else {}
-    closing_lines: list[str] = []
-    for label, key in (
-        ("Végső felismerés", "final_insight"),
-        ("Evangéliumi bizonyosság", "gospel_assurance"),
-        ("Meghívás", "invitation"),
-        ("Záró kép vagy mondatmag", "image_or_line"),
-        ("Nyitott kérdés", "open_question"),
-    ):
-        line = _md_line(label, closing.get(key))
-        if line:
-            closing_lines.append(line)
-    if closing_lines:
-        st.markdown("#### Lezárás")
-        st.markdown("\n\n".join(closing_lines))
-        st.markdown('<hr class="sw-outline-sep"/>', unsafe_allow_html=True)
-
-    extra = (
-        safe.get("extra_enrichment")
-        if isinstance(safe.get("extra_enrichment"), dict)
-        else {}
-    )
-    ill_bits = [
-        _s(x) for x in (extra.get("illustrations") or []) if _s(x)
-    ] + [_s(x) for x in (extra.get("images") or []) if _s(x)]
-    if ill_bits:
-        st.markdown("#### Illusztráció")
-        for bit in ill_bits[:4]:
-            st.markdown(f"- {_truncate(bit, 220)}")
-        st.markdown('<hr class="sw-outline-sep"/>', unsafe_allow_html=True)
-
-    act_list = (
-        safe.get("actualization_connections")
-        if isinstance(safe.get("actualization_connections"), list)
-        else []
-    )
-    if act_list:
-        st.markdown("#### Aktuális kapcsolódás")
-        for item in act_list[:5]:
-            if not isinstance(item, dict):
-                continue
-            title = _s(item.get("title"))
-            summary = _s(item.get("event_summary"))
-            meta = " · ".join(
-                x
-                for x in (
-                    _s(item.get("source_name")),
-                    _s(item.get("published_at")),
-                )
-                if x
-            )
-            line = f"**{title}** — {summary}" if title else summary
-            if meta:
-                line = f"{line} ({meta})"
-            if line:
-                st.markdown(line)
-        st.markdown('<hr class="sw-outline-sep"/>', unsafe_allow_html=True)
-
-    lection = safe.get("lection") if isinstance(safe.get("lection"), dict) else {}
-    lec_ref = _s(lection.get("reference")) or _s(safe.get("lection_reference"))
-    lec_role = _s(lection.get("function")) or _s(lection.get("rationale"))
-    if lec_ref or lec_role:
-        st.markdown("#### Lekció")
-        lec_bits: list[str] = []
-        if lec_ref:
-            lec_bits.append(f"**Lekció:** {lec_ref}")
-        if lec_role:
-            lec_bits.append(f"**Szerepe:** {lec_role}")
-        st.markdown("\n\n".join(lec_bits))
-        st.markdown('<hr class="sw-outline-sep"/>', unsafe_allow_html=True)
-
-    before = (
-        safe.get("prayer_before")
-        if isinstance(safe.get("prayer_before"), dict)
-        else {}
-    )
-    after = (
-        safe.get("prayer_after") if isinstance(safe.get("prayer_after"), dict) else {}
-    )
-    if _prayer_has_compact_content(before) or _prayer_has_compact_content(after):
-        st.markdown("#### Imádsági előkészítés")
-
-        def _render_prayer_side(label: str, side: Mapping[str, Any]) -> None:
-            if not _prayer_has_compact_content(side):
-                return
-            with st.expander(label, expanded=False):
-                opening = _s(side.get("selected_opening"))
-                if opening:
-                    st.markdown(f"**Nyitó mondat**\n\n{opening}")
-                lines = [
-                    _s(x)
-                    for x in (side.get("selected_lines") or [])
-                    if _s(x)
-                ][:5]
-                if lines:
-                    st.markdown("**Fő gondolatok**")
-                    for item in lines:
-                        st.markdown(f"- {item}")
-                closing_dir = _s(side.get("closing_direction"))
-                if closing_dir:
-                    st.markdown(f"**Záró mondat**\n\n{closing_dir}")
-
-        _render_prayer_side("Igehirdetés előtti imádság", before)
-        _render_prayer_side("Igehirdetés utáni imádság", after)
-
+    text = re.sub(r"(?m)^#{1,6}\s*", "", text).strip()
+    text = re.sub(r"\n{3,}", "\n\n", text).strip()
+    if text:
+        with st.container(border=True):
+            st.markdown(text)
     notes = _s(safe.get("manual_notes"))
     if notes:
         st.markdown("#### Saját megjegyzéseim")
         st.markdown(notes)
+    if tips:
+        with st.expander("További szerkesztési lehetőségek", expanded=False):
+            st.caption(
+                "Opcionális szerkesztői javaslatok — nem hibák, és nem "
+                "akadályozzák a mentést vagy a jóváhagyást."
+            )
+            for tip in tips[:2]:
+                st.markdown(f"- {tip}")
+    return
 
-    st.markdown("</div>", unsafe_allow_html=True)
-    st.caption("Következő lépés: a vázlat homiletikai ellenőrzése")
+
+def render_pulpit_outline_view(outline: Any) -> None:
+    """Szószéki nézet — nagyobb betű, tiszta háttér, zavaró UI nélkül."""
+    import streamlit as st
+
+    safe = normalize_sermon_outline(outline)
+    if not outline_has_content(safe):
+        st.info("Még nincs összeállított vázlat a szószéki nézethez.")
+        return
+    _ensure_outline_reader_styles()
+    text = outline_canonical_text(safe)
+    import re
+
+    text = re.sub(r"(?m)^#{1,6}\s*", "", text).strip()
+    for banned in OUTLINE_PLACEHOLDER_BANLIST:
+        text = text.replace(banned, "")
+    st.markdown(
+        f'<div class="sw-pulpit-view">{_markdownish_to_html(text)}</div>',
+        unsafe_allow_html=True,
+    )
+
+
+def _markdownish_to_html(text: str) -> str:
+    """Egyszerű **félkövér** / *dőlt* → HTML a szószéki nézethez."""
+    import html
+    import re
+
+    escaped = html.escape(_s(text))
+    escaped = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", escaped)
+    escaped = re.sub(r"(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)", r"<em>\1</em>", escaped)
+    paras = [p.strip() for p in escaped.split("\n\n") if p.strip()]
+    return "".join(f"<p>{p.replace(chr(10), '<br/>')}</p>" for p in paras)
 
 
 @dataclass
@@ -1296,7 +1781,14 @@ TILOS: új bibliai / történeti / teológiai adat kitalálása; teljes kézirat
 az üres modulok külön háttérben való „pótlása"; nyers MI-alternatívák
 felhasználása. Csak a megadott anyagból dolgozz.
 Ha van sermon_movements a forrásban, TARTSD meg őket — ne cseréld le.
-Ha nincs mozgás, adj 3–5 egyszerű prédikációs mozgást.
+Ha nincs mozgás, adj 3–4 textusspecifikus prédikációs mozgást.
+TILOS sablon: „Nyitás/Kibontás/Megérkezés", „A textus magja elmélyül",
+„A hallgató a textus világába lép", „Nem állapítható meg felelősen",
+„Ez a rész még nincs kidolgozva", Markdown ## jelek, mezőnevek, JSON.
+A bevezetés NE ismételje szó szerint a fő gondolatot.
+A lezárás oldja fel a bevezetés kérdését, ne másolja a fő gondolatot.
+Adj felelős Krisztus-/kegyelemívet a textus és a kánoni összefüggés alapján —
+ne erőltess mesterséges utalást, de ne is térj ki a feladat elől.
 Válaszod KIZÁRÓLAG érvényes JSON legyen.\
 """
 
@@ -1315,8 +1807,18 @@ def _synthesize_outline_gaps(
     closing = outline.get("closing") if isinstance(outline.get("closing"), dict) else {}
     needs_closing = not _s(closing.get("final_insight"))
     needs_idea = not _s(outline.get("main_idea"))
+    needs_gospel = not (
+        _usable_text(outline.get("christ_connection"))
+        or _usable_text(outline.get("divine_gracious_action"))
+    )
     # Ha már van heurisztikus provisional, az MI finomíthatja — de csak gap-ekre
-    if not (needs_movements or needs_opening or needs_closing or needs_idea):
+    if not (
+        needs_movements
+        or needs_opening
+        or needs_closing
+        or needs_idea
+        or needs_gospel
+    ):
         # Van provisional heurisztika → engedjük az MI-nek finomítani a provisional részeket
         provisional = set(outline.get("provisional_sections") or [])
         if not provisional:
@@ -1330,24 +1832,51 @@ def _synthesize_outline_gaps(
     prompt = (
         "Egészítsd ki a vázlat hiányzó szerkezeti elemeit a forrásanyag alapján.\n"
         "Csak a hiányzó / munkajavaslat mezőket töltsd; a meglévő kanonikus "
-        "tartalmat ne cseréld le.\n\n"
+        "tartalmat ne cseréld le.\n"
+        "Mozgáscímek legyenek textusspecifikusak. Tilos a sablonos helykitöltő.\n"
+        "Töltsd ki a christ_connection / divine_gracious_action / applications "
+        "mezőket is, ha a forrásból felelősen következnek.\n\n"
         f"FORRÁS (csak nem üres mezők):\n{json.dumps(ctx, ensure_ascii=False)}\n\n"
         f"JELENLEGI VÁZLAT:\n{json.dumps(outline, ensure_ascii=False)}\n\n"
         "Kimenet JSON kulcsok (opcionálisak, csak ha indokolt):\n"
-        '{"main_idea":"","opening_direction":"","movements":[{"id":"","title":"",'
+        '{"main_idea":"","opening_direction":"","christ_connection":"",'
+        '"divine_gracious_action":"","grace_enabled_response":"",'
+        '"gospel_resolution":"",'
+        '"movements":[{"id":"","title":"",'
         '"role":"","textual_basis":"","core_content":"","listener_discovery":"",'
         '"transition":""}],"closing":{"final_insight":"","gospel_assurance":"",'
-        '"invitation":""},"provisional_sections":["opening_direction","sermon_movements","closing"]}'
+        '"invitation":""},"applications":["",""],'
+        '"provisional_sections":["opening_direction","sermon_movements","closing"]}'
     )
     try:
-        raw = generate_fn(
-            prompt,
-            enable_google_search=False,
-            tab_label=TAB_OUTLINE,
-            use_cache=False,
-            system_bundle=_SYNTH_SYSTEM,
-            temperature=DEFAULT_TEMPERATURE,
-        )
+        # generate_text a session temperature-t használja, nem kwarg-ot.
+        prev_temp = None
+        try:
+            import streamlit as st
+
+            prev_temp = st.session_state.get("temperature")
+            st.session_state["temperature"] = DEFAULT_TEMPERATURE
+        except Exception:  # noqa: BLE001
+            prev_temp = None
+        try:
+            raw = generate_fn(
+                prompt,
+                enable_google_search=False,
+                tab_label=TAB_OUTLINE,
+                use_cache=False,
+                system_bundle=_SYNTH_SYSTEM,
+                include_brevity_directive=False,
+            )
+        finally:
+            try:
+                import streamlit as st
+
+                if prev_temp is None:
+                    st.session_state.pop("temperature", None)
+                else:
+                    st.session_state["temperature"] = prev_temp
+            except Exception:  # noqa: BLE001
+                pass
     except Exception as exc:  # noqa: BLE001
         warnings.append(f"Összegző kiegészítés kihagyva: {exc}")
         return outline, warnings
@@ -1364,16 +1893,29 @@ def _synthesize_outline_gaps(
     provisional = list(merged.get("provisional_sections") or [])
 
     # Fő gondolat: csak ha üres volt
-    if not _s(merged.get("main_idea")) and _s(obj.get("main_idea")):
-        merged["main_idea"] = _as_text(obj.get("main_idea"))
+    if not _s(merged.get("main_idea")) and _usable_text(obj.get("main_idea")):
+        merged["main_idea"] = _usable_text(obj.get("main_idea"))
         provisional.append("main_idea")
 
-    if (not _s(merged.get("opening_direction")) or "opening_direction" in provisional) and _s(
-        obj.get("opening_direction")
+    if (
+        not _s(merged.get("opening_direction")) or "opening_direction" in provisional
+    ) and _usable_text(obj.get("opening_direction")):
+        opening = _usable_text(obj.get("opening_direction"))
+        idea_n = _normalize_cmp(merged.get("main_idea"))
+        if opening and _normalize_cmp(opening) != idea_n:
+            merged["opening_direction"] = opening
+            if "opening_direction" not in provisional:
+                provisional.append("opening_direction")
+
+    # Krisztus-/kegyelemív — csak üres mezőkre
+    for gkey in (
+        "christ_connection",
+        "divine_gracious_action",
+        "grace_enabled_response",
+        "gospel_resolution",
     ):
-        merged["opening_direction"] = _as_text(obj.get("opening_direction"))
-        if "opening_direction" not in provisional:
-            provisional.append("opening_direction")
+        if not _usable_text(merged.get(gkey)) and _usable_text(obj.get(gkey)):
+            merged[gkey] = _usable_text(obj.get(gkey))
 
     # Mozgások: csak ha nem volt M6 forrás, vagy üres / provisional
     had_m6 = "sermon_movements" in (bundle.get("source_keys") or [])
@@ -1392,23 +1934,35 @@ def _synthesize_outline_gaps(
             if not isinstance(mv, dict):
                 continue
             role = _s(mv.get("role"))
+            title = _usable_text(mv.get("title")) or _title_from_text(
+                _usable_text(mv.get("core_content")),
+                fallback=f"{i}. mozgás",
+            )
+            if is_banned_outline_placeholder(title) or _normalize_cmp(
+                title
+            ) in _GENERIC_MOVEMENT_TITLES:
+                title = _title_from_text(
+                    _usable_text(mv.get("core_content"))
+                    or _usable_text(mv.get("textual_basis")),
+                    fallback=f"{i}. mozgás",
+                )
             item = empty_outline_movement()
             item.update(
                 {
                     "id": _s(mv.get("id")) or f"prov_mv_{i}",
-                    "title": _s(mv.get("title")) or f"{i}. mozgás",
+                    "title": title,
                     "role": role,
                     "role_label": movement_role_label(role) if role else "",
-                    "textual_basis": _s(mv.get("textual_basis")),
-                    "core_content": _s(mv.get("core_content")),
-                    "listener_discovery": _s(mv.get("listener_discovery")),
-                    "transition": _s(mv.get("transition")),
+                    "textual_basis": _usable_text(mv.get("textual_basis")),
+                    "core_content": _usable_text(mv.get("core_content")),
+                    "listener_discovery": _usable_text(mv.get("listener_discovery")),
+                    "transition": _usable_text(mv.get("transition")),
                     "images": [],
                     "illustrations": [],
                     "applications": [],
                 }
             )
-            if _s(item["core_content"]) or _s(item["title"]):
+            if _usable_text(item["core_content"]) or _usable_text(item["title"]):
                 new_mvs.append(item)
         if new_mvs:
             merged["movements"] = new_mvs
@@ -1418,14 +1972,38 @@ def _synthesize_outline_gaps(
     obj_closing = obj.get("closing") if isinstance(obj.get("closing"), dict) else {}
     if obj_closing:
         cur_closing = dict(merged.get("closing") or {})
+        idea_n = _normalize_cmp(merged.get("main_idea"))
         for key in ("final_insight", "gospel_assurance", "invitation"):
-            if (not _s(cur_closing.get(key)) or "closing" in provisional) and _s(
-                obj_closing.get(key)
-            ):
-                cur_closing[key] = _as_text(obj_closing.get(key))
+            candidate = _usable_text(obj_closing.get(key))
+            if not candidate:
+                continue
+            if key == "final_insight" and idea_n and _normalize_cmp(candidate) == idea_n:
+                continue
+            if not _usable_text(cur_closing.get(key)) or "closing" in provisional:
+                cur_closing[key] = candidate
                 if "closing" not in provisional:
                     provisional.append("closing")
         merged["closing"] = cur_closing
+
+    # Alkalmazások → extra_enrichment
+    raw_apps = obj.get("applications")
+    if isinstance(raw_apps, list):
+        extra = dict(merged.get("extra_enrichment") or {})
+        existing = [
+            _usable_text(x)
+            for x in (extra.get("applications") or [])
+            if _usable_text(x)
+        ]
+        seen = {_normalize_cmp(x) for x in existing}
+        for item in raw_apps:
+            a = _usable_text(item)
+            n = _normalize_cmp(a)
+            if a and n not in seen:
+                existing.append(a)
+                seen.add(n)
+        if existing:
+            extra["applications"] = existing[:8]
+            merged["extra_enrichment"] = extra
 
     for extra in obj.get("provisional_sections") or []:
         label = _s(extra)
@@ -1433,6 +2011,8 @@ def _synthesize_outline_gaps(
             provisional.append(label)
 
     merged["provisional_sections"] = list(dict.fromkeys(provisional))
+    merged = normalize_sermon_outline(merged)
+    merged["content"] = outline_to_readable_content(merged)
     return normalize_sermon_outline(merged), warnings
 
 
@@ -1485,19 +2065,83 @@ def assemble_sermon_outline(
     warnings: list[str] = []
 
     if synthesize:
-        outline, synth_warnings = _synthesize_outline_gaps(
-            outline, bundle, generate_fn=generate_fn
-        )
-        warnings.extend(synth_warnings)
+        # Kétfázisú homiletikai szintézis (szerkesztő + opcionális lektor).
+        # generate_fn nélkül a helyi seed marad (offline / teszt).
+        # AI minőségi bukás esetén ne mentünk használhatatlan vázlatot „kész”-ként.
+        try:
+            from sermon_workshop_outline_synth_ai import (
+                assess_outline_quality_issues,
+                run_two_phase_outline_synthesis,
+            )
+
+            outline, synth_warnings = run_two_phase_outline_synthesis(
+                outline, bundle, generate_fn=generate_fn
+            )
+            warnings.extend(
+                w for w in synth_warnings if not str(w).startswith("QUALITY_GATE_FAILED:")
+            )
+            quality_failed = any(
+                str(w).startswith("QUALITY_GATE_FAILED:") for w in synth_warnings
+            )
+            remaining_ai = assess_outline_quality_issues(
+                outline, for_ai_output=True
+            )
+            if generate_fn is not None and (quality_failed or remaining_ai):
+                return OutlineAssemblyResult(
+                    outline=normalize_sermon_outline(sw.get("sermon_outline")),
+                    ok=False,
+                    error_message=(
+                        "A vázlatgenerálás nem adott szószéken használható eredményt. "
+                        "Próbáld újra, vagy egészítsd ki a műhelyanyagot. "
+                        + (
+                            f"(Ellenőrzés: {', '.join(remaining_ai)})"
+                            if remaining_ai
+                            else ""
+                        )
+                    ),
+                    warnings=warnings,
+                )
+        except Exception as exc:  # noqa: BLE001
+            if generate_fn is not None:
+                return OutlineAssemblyResult(
+                    outline=normalize_sermon_outline(sw.get("sermon_outline")),
+                    ok=False,
+                    error_message=(
+                        "A vázlat AI-szintézise sikertelen. "
+                        f"Próbáld újra. ({exc})"
+                    ),
+                    warnings=warnings,
+                )
+            warnings.append(f"Szintézis tartalék módra váltott: {exc}")
+            outline, synth_warnings = _synthesize_outline_gaps(
+                outline, bundle, generate_fn=generate_fn
+            )
+            warnings.extend(synth_warnings)
 
     if polish:
         outline, polish_warnings = _optional_polish(outline, generate_fn=generate_fn)
         warnings.extend(polish_warnings)
 
-    if outline_has_provisional_bridges(outline):
+    # Ne jelenjen meg „hiányos műhely” jellegű figyelmeztetés, ha van tipp.
+    if outline_has_provisional_bridges(outline) and not (
+        outline.get("editorial_tips") or []
+    ):
         notice = PROVISIONAL_NOTICE
         if notice not in warnings:
             warnings.append(notice)
+
+    outline = sync_outline_content(outline, force=True)
+    outline["needs_rebuild"] = False
+    if not outline_has_content(outline):
+        return OutlineAssemblyResult(
+            outline=normalize_sermon_outline(sw.get("sermon_outline")),
+            ok=False,
+            error_message=(
+                "Nem jött létre olvasható vázlattartalom a rendelkezésre álló "
+                "anyagból. Tölts ki legalább egy műhelyszakaszt, majd próbáld újra."
+            ),
+            warnings=warnings,
+        )
 
     return OutlineAssemblyResult(
         outline=outline,
@@ -1510,6 +2154,7 @@ def assemble_sermon_outline(
 __all__ = [
     "TAB_OUTLINE",
     "MISSING_PART",
+    "OUTLINE_PLACEHOLDER_BANLIST",
     "PROVISIONAL_NOTICE",
     "EMPTY_PROJECT_MESSAGE",
     "GenerateFn",
@@ -1522,11 +2167,17 @@ __all__ = [
     "collect_available_sermon_material",
     "editable_outline_snapshot",
     "empty_sermon_outline",
+    "is_banned_outline_placeholder",
+    "outline_canonical_text",
     "outline_has_content",
     "outline_has_provisional_bridges",
     "outline_missing_parts",
     "outline_part_display",
     "outline_refinable_parts",
     "outline_refinable_summary",
+    "outline_to_readable_content",
+    "repair_outline_integrity",
     "render_compact_sermon_outline",
+    "render_pulpit_outline_view",
+    "sync_outline_content",
 ]

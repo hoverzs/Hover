@@ -26,7 +26,6 @@ _DEFAULT_UI_MODE_ICONS: dict[str, str] = {
     "sermon_workshop": ":material/auto_stories:",
 }
 
-
 def completed_step_indices(
     options: Sequence[str],
     completed: Iterable[str] | None,
@@ -115,16 +114,29 @@ def render_workshop_step_grid(
 
 
 # Státuszikonok a lépéslistához (glyph-alapú, nem csak szín → hozzáférhető).
+# Opcionális műhelyszakaszok: ne „Nincs elkezdve” (kötelező hangnem).
 _STEP_STATE_ICON: dict[str, str] = {
     "active": ":material/radio_button_checked:",
+    "approved": ":material/verified:",
+    "own_emphasis": ":material/edit_note:",
+    "ai_suggested": ":material/auto_awesome:",
+    "ai_ready": ":material/radio_button_unchecked:",
+    # Legacy aliasok (régi completed-halmaz)
     "done": ":material/check_circle:",
     "pending": ":material/radio_button_unchecked:",
 }
 _STEP_STATE_LABEL: dict[str, str] = {
     "active": "Munkában",
-    "done": "Elkészült",
-    "pending": "Nincs elkezdve",
+    "approved": "Jóváhagyva",
+    "own_emphasis": "Saját hangsúly hozzáadva",
+    "ai_suggested": "AI-javaslat elkészült",
+    "ai_ready": "AI által kidolgozható",
+    "done": "Jóváhagyva",
+    "pending": "AI által kidolgozható",
 }
+
+# Progress / „kész” számlálóhoz: saját hangsúly vagy jóváhagyás.
+_PROGRESS_DONE_STATES = frozenset({"approved", "own_emphasis", "done"})
 
 
 def render_step_selector(
@@ -132,19 +144,25 @@ def render_step_selector(
     *,
     key: str,
     completed: Iterable[str] | None = None,
+    status_map: Mapping[str, str] | None = None,
     key_prefix: str | None = None,
+    outline_ready: bool | None = None,
 ) -> str:
-    """Központi lépésválasztó — egyetlen „i / N · Cím” vezérlő, lenyíló listával.
+    """Központi lépésválasztó — zárt sáv (szám · név · státusz · chevron) + lista.
 
     Nincs Előző/Következő navigáció: a felhasználó szabadon választ a lépések
     közül. A lenyíló panel a triggerhez igazodik (st.popover), Escape és külső
     kattintás bezárja, billentyűzettel használható. A `key` marad a szakasz
     forrása; gombok állítják (tisztán felületi állapot).
+
+    `status_map`: szakasz → ai_ready | ai_suggested | own_emphasis | approved.
+    Ha meg van adva, az opcionális műhely hangnemét használja (nem „Nincs elkezdve”).
     """
     opts = [str(o) for o in options if str(o).strip()]
     if not opts:
         return ""
 
+    statuses = {str(k): str(v) for k, v in (status_map or {}).items()}
     done = {str(x) for x in (completed or ()) if str(x).strip()}
     current = str(st.session_state.get(key) or "")
     if current not in opts:
@@ -154,25 +172,38 @@ def render_step_selector(
     idx = opts.index(current)
     total = len(opts)
     prefix = key_prefix or key
-    done_count = sum(1 for o in opts if o in done)
-    pct = int(round((done_count / total) * 100)) if total else 0
+
+    def _underlying(opt: str) -> str:
+        """Aktív UI-állapot mögötti tartalmi státusz (progresshez)."""
+        if statuses:
+            stt = statuses.get(opt, "ai_ready")
+            return stt if stt in _STEP_STATE_LABEL else "ai_ready"
+        return "done" if opt in done else "pending"
 
     def _state_of(opt: str) -> str:
         if opt == current:
             return "active"
-        if opt in done:
-            return "done"
-        return "pending"
+        return _underlying(opt)
+
+    progress_done = sum(
+        1 for o in opts if _underlying(o) in _PROGRESS_DONE_STATES
+    )
+    pct = int(round((progress_done / total) * 100)) if total else 0
 
     # Idővonal-csomópontok és összekötő vonal színe lépésenként (st-key osztályok).
     node_rules: list[str] = []
     for i, opt in enumerate(opts):
         state = _state_of(opt)
+        underlying = _underlying(opt)
         cls = f"st-key-{prefix}_step_{i}"
-        if state == "done":
-            icon_c, line_c = "#5a7aa8", "#5a7aa8"
-        elif state == "active":
+        if state == "active":
             icon_c, line_c = "#3f6699", "rgba(160, 150, 135, 0.45)"
+        elif underlying in ("approved", "done"):
+            icon_c, line_c = "#5a7aa8", "#5a7aa8"
+        elif underlying == "own_emphasis":
+            icon_c, line_c = "#5a7aa8", "rgba(90, 122, 168, 0.55)"
+        elif underlying == "ai_suggested":
+            icon_c, line_c = "#7a91b0", "rgba(160, 150, 135, 0.45)"
         else:
             icon_c, line_c = "#9c9384", "rgba(160, 150, 135, 0.45)"
         node_rules.append(
@@ -186,51 +217,214 @@ def render_step_selector(
     if total == 1:
         node_rules.append(f".st-key-{prefix}_step_0 button::before{{display:none !important;}}")
 
-    # Horgony + a bal oldali körgyűrű haladási aránya + a lépésenkénti csomópontok.
-    st.markdown(
-        '<div class="tx-stepselect-anchor" aria-hidden="true"></div>'
-        "<style>.element-container:has(.tx-stepselect-anchor) "
-        '+ [data-testid="stLayoutWrapper"] [data-testid="stPopover"] button'
-        f"{{--tx-step-pct:{pct};}}"
-        + "".join(node_rules)
-        + "</style>",
-        unsafe_allow_html=True,
-    )
+    # Zárt sáv státuszszövege (meglévő logika) + mobil rövidítés CSS-változóhoz.
+    if outline_ready is True:
+        progress_caption = "Vázlathoz elegendő forrás"
+        progress_short = "Forrás OK"
+    elif outline_ready is False:
+        progress_caption = "Vázlathoz még forrás kell"
+        progress_short = "Forrás kell"
+    elif statuses:
+        progress_caption = f"{progress_done} saját hangsúly / jóváhagyás"
+        progress_short = f"{progress_done} hangsúly"
+    else:
+        progress_caption = f"{progress_done} / {total} megtartott anyag"
+        progress_short = f"{progress_done}/{total} megtartva"
 
-    # Zárt vezérlő: bal oldalon „{szám}. {név}”, jobb oldalon a visszafogott
-    # elkészültségi számláló; egyetlen chevron a jobb szélen (CSS).
-    trigger_label = f"{idx + 1}. {current} :gray[{done_count} / {total} elkészült]"
-    with st.popover(trigger_label, use_container_width=True, icon=":material/expand_more:"):
+    step_num_css = f'"{idx + 1}"'
+    status_short_css = '"' + progress_short.replace("\\", "\\\\").replace('"', '\\"') + '"'
+
+    with st.container(key="workshop_step_bar"):
+        # Horgony + CSS-változók + zárt sáv layout (helyi style: biztosan eljut a böngészőbe).
+        # Kerüljük a child combinatort (>) — a Streamlit HTML sanitizer azt kiszűrheti.
         st.markdown(
-            (
-                '<div class="tx-stepmenu-head">'
-                '<div class="tx-stepmenu-title">Munkafolyamat</div>'
-                f'<div class="tx-stepmenu-sub">{done_count} / {total} lépés elkészült</div>'
-                '<div class="tx-wf-progress" role="presentation">'
-                f'<div class="tx-wf-progress-fill" style="width:{pct}%"></div>'
-                "</div>"
-                "</div>"
-            ),
+            '<div class="tx-stepselect-anchor" aria-hidden="true"></div>'
+            "<style>"
+            ".st-key-workshop_step_bar{"
+            "max-width:780px !important;margin-left:auto !important;"
+            "margin-right:auto !important;width:100% !important;"
+            "}"
+            ".st-key-workshop_step_bar [data-testid=\"stPopoverButton\"]{"
+            f"--tx-step-pct:{pct};"
+            f"--tx-step-num:{step_num_css};"
+            f"--tx-step-status-short:{status_short_css};"
+            "position:relative !important;width:100% !important;"
+            "display:flex !important;align-items:center !important;"
+            "min-height:60px !important;height:auto !important;"
+            "border-radius:12px !important;"
+            "border:1px solid rgba(170,145,112,0.28) !important;"
+            "background:rgba(255,253,249,0.97) !important;"
+            "box-shadow:0 1px 3px rgba(58,40,22,0.06) !important;"
+            "color:var(--tx-primary-deep) !important;"
+            "font-family:Inter,Segoe UI,sans-serif !important;"
+            "font-weight:600 !important;font-size:0.97rem !important;"
+            "padding:0.55rem 2.4rem 0.55rem 0.7rem !important;"
+            "text-align:left !important;"
+            "}"
+            ".st-key-workshop_step_bar [data-testid=\"stPopoverButton\"]:hover{"
+            "background:rgba(255,252,247,1) !important;"
+            "border-color:rgba(90,122,168,0.38) !important;"
+            "}"
+            ".st-key-workshop_step_bar [data-testid=\"stPopoverButton\"]:focus-visible{"
+            "outline:2px solid var(--tx-primary) !important;outline-offset:2px !important;"
+            "}"
+            ".st-key-workshop_step_bar [data-testid=\"stPopoverButton\"]::before{"
+            "content:var(--tx-step-num,\"1\");flex:0 0 auto;"
+            "display:inline-flex !important;align-items:center;justify-content:center;"
+            "width:28px;height:28px;min-width:28px;margin-right:0.55rem;"
+            "border-radius:999px;background:rgba(90,122,168,0.12);"
+            "color:var(--tx-primary-deep);font-size:0.82rem;font-weight:650;line-height:1;"
+            "}"
+            ".st-key-workshop_step_bar [data-testid=\"stPopoverButton\"] "
+            "[data-testid=\"stMarkdownContainer\"]{"
+            "position:absolute !important;left:3.15rem !important;right:2.35rem !important;"
+            "top:50% !important;transform:translateY(-50%) !important;"
+            "width:auto !important;max-width:none !important;margin:0 !important;"
+            "}"
+            ".st-key-workshop_step_bar [data-testid=\"stPopoverButton\"] "
+            "[data-testid=\"stMarkdownContainer\"] p{"
+            "display:flex !important;align-items:center !important;"
+            "justify-content:space-between !important;gap:0.75rem !important;"
+            "width:100% !important;margin:0 !important;line-height:1.3 !important;"
+            "}"
+            ".st-key-workshop_step_bar [data-testid=\"stPopoverButton\"] "
+            "[data-testid=\"stMarkdownContainer\"] p strong{"
+            "flex:1 1 auto !important;min-width:0 !important;"
+            "font-size:15.5px !important;font-weight:600 !important;"
+            "color:var(--tx-primary-deep) !important;"
+            "display:-webkit-box !important;-webkit-box-orient:vertical !important;"
+            "-webkit-line-clamp:2 !important;overflow:hidden !important;"
+            "}"
+            ".st-key-workshop_step_bar [data-testid=\"stPopoverButton\"] "
+            "[data-testid=\"stMarkdownContainer\"] p span{"
+            "flex:0 0 auto !important;color:var(--tx-text-muted) !important;"
+            "font-weight:500 !important;font-size:0.8rem !important;"
+            "white-space:nowrap !important;"
+            "}"
+            ".st-key-workshop_step_bar [data-testid=\"stPopoverButton\"] "
+            "[data-testid=\"stIconMaterial\"]{display:none !important;}"
+            ".st-key-workshop_step_bar [data-testid=\"stPopoverButton\"] "
+            "[data-testid=\"stIconMaterial\"]:last-of-type{"
+            "display:inline-flex !important;position:absolute !important;"
+            "right:0.7rem !important;top:50% !important;transform:translateY(-50%) !important;"
+            "color:#5a7aa8 !important;font-size:1.2rem !important;margin:0 !important;"
+            "transition:transform 0.18s ease !important;"
+            "}"
+            "body:has([data-testid=\"stPopoverBody\"] .tx-stepmenu-head) "
+            ".st-key-workshop_step_bar [data-testid=\"stPopoverButton\"]{"
+            "background:rgba(90,122,168,0.08) !important;"
+            "border-color:rgba(90,122,168,0.36) !important;"
+            "box-shadow:inset 3px 0 0 0 var(--tx-primary),0 1px 3px rgba(58,40,22,0.05) !important;"
+            "}"
+            "body:has([data-testid=\"stPopoverBody\"] .tx-stepmenu-head) "
+            ".st-key-workshop_step_bar [data-testid=\"stPopoverButton\"] "
+            "[data-testid=\"stIconMaterial\"]:last-of-type{"
+            "transform:translateY(-50%) rotate(180deg) !important;"
+            "}"
+            ".st-key-workshop_step_bar .tx-stepbar-track{margin:3px 2px 0;padding:0;}"
+            ".st-key-workshop_step_bar .tx-stepbar-track .tx-wf-progress{"
+            "height:3px;background:rgba(160,150,135,0.22);border-radius:999px;overflow:hidden;"
+            "}"
+            ".st-key-workshop_step_bar .tx-stepbar-track .tx-wf-progress-fill{"
+            "height:100%;background:var(--tx-primary,#5a7aa8);border-radius:999px;"
+            "}"
+            "@media (max-width:768px){"
+            ".st-key-workshop_step_bar{max-width:100% !important;}"
+            ".st-key-workshop_step_bar [data-testid=\"stPopoverButton\"]{"
+            "min-height:52px !important;padding:0.5rem 2.1rem 0.5rem 0.55rem !important;"
+            "}"
+            ".st-key-workshop_step_bar [data-testid=\"stPopoverButton\"]::before{"
+            "width:26px;height:26px;min-width:26px;margin-right:0.4rem;font-size:0.78rem;"
+            "}"
+            ".st-key-workshop_step_bar [data-testid=\"stPopoverButton\"] "
+            "[data-testid=\"stMarkdownContainer\"]{"
+            "left:2.85rem !important;right:2.05rem !important;"
+            "}"
+            ".st-key-workshop_step_bar [data-testid=\"stPopoverButton\"] "
+            "[data-testid=\"stMarkdownContainer\"] p{"
+            "flex-direction:column !important;align-items:flex-start !important;"
+            "gap:0.12rem !important;"
+            "}"
+            ".st-key-workshop_step_bar [data-testid=\"stPopoverButton\"] "
+            "[data-testid=\"stMarkdownContainer\"] p strong{font-size:14.5px !important;width:100% !important;}"
+            ".st-key-workshop_step_bar [data-testid=\"stPopoverButton\"] "
+            "[data-testid=\"stMarkdownContainer\"] p span{font-size:0 !important;line-height:0 !important;}"
+            ".st-key-workshop_step_bar [data-testid=\"stPopoverButton\"] "
+            "[data-testid=\"stMarkdownContainer\"] p span::after{"
+            "content:var(--tx-step-status-short,\"\");font-size:0.74rem !important;"
+            "font-weight:500 !important;color:var(--tx-text-muted) !important;"
+            "line-height:1.25 !important;white-space:nowrap !important;"
+            "}"
+            "}"
+            + "".join(node_rules)
+            + "</style>",
             unsafe_allow_html=True,
         )
-        for i, opt in enumerate(opts):
-            state = _state_of(opt)
-            # A szám + név balra; az állapot visszafogott, jobbra igazított
-            # szövegként (a névhez NEM fűzve) — a szétválasztást CSS végzi.
-            label = f"{i + 1}. {opt} :gray[{_STEP_STATE_LABEL[state]}]"
-            if st.button(
-                label,
-                key=f"{prefix}_step_{i}",
-                icon=_STEP_STATE_ICON[state],
-                type="primary" if state == "active" else "secondary",
-                use_container_width=True,
-            ):
-                if opt != current:
-                    st.session_state[key] = opt
-                    st.rerun()
-        # Nyitáskor az aktív lépéshez görgetés (mozgáscsökkentést tisztelve).
-        components.html(
-            """
+
+        # Zárt vezérlő: **név** balra, státusz jobbra; a szám CSS ::before jelvény.
+        # Ne „N/M elkészült” (az minden lépést kötelezőnek sugall).
+        trigger_label = f"**{current}** :gray[{progress_caption}]"
+        with st.popover(trigger_label, use_container_width=True):
+            if statuses or outline_ready is not None:
+                sub = (
+                    "A részletes szakaszok opcionálisak. A vázlat a textus és a "
+                    "rendelkezésre álló anyag alapján készülhet."
+                )
+                if outline_ready is True:
+                    sub = (
+                        "Vázlatkészítéshez elegendő forrásanyag áll rendelkezésre. "
+                        "A többi szakasz finomít, nem kötelező."
+                    )
+                head_count = (
+                    f"{progress_done} szakaszban van saját hangsúly vagy jóváhagyás"
+                )
+            else:
+                sub = (
+                    "A lépések rugalmasan használhatók; nem kötelező mindet kitölteni."
+                )
+                head_count = (
+                    f"{progress_done} / {total} szakaszban van megtartott anyag"
+                )
+            st.markdown(
+                (
+                    '<div class="tx-stepmenu-head">'
+                    '<div class="tx-stepmenu-title">Munkafolyamat</div>'
+                    f'<div class="tx-stepmenu-sub">{head_count}</div>'
+                    f'<div class="tx-stepmenu-sub">{sub}</div>'
+                    '<div class="tx-wf-progress" role="presentation">'
+                    f'<div class="tx-wf-progress-fill" style="width:{pct}%"></div>'
+                    "</div>"
+                    "</div>"
+                ),
+                unsafe_allow_html=True,
+            )
+            for i, opt in enumerate(opts):
+                state = _state_of(opt)
+                # Aktív sor: tartalmi státusz is látszódjon zárójelben, ha van.
+                if state == "active" and statuses:
+                    detail = _STEP_STATE_LABEL.get(
+                        _underlying(opt), _STEP_STATE_LABEL["ai_ready"]
+                    )
+                    status_txt = f"Munkában · {detail}"
+                else:
+                    status_txt = _STEP_STATE_LABEL.get(
+                        state, _STEP_STATE_LABEL["ai_ready"]
+                    )
+                label = f"{i + 1}. {opt} :gray[{status_txt}]"
+                icon = _STEP_STATE_ICON.get(state) or _STEP_STATE_ICON["ai_ready"]
+                if st.button(
+                    label,
+                    key=f"{prefix}_step_{i}",
+                    icon=icon,
+                    type="primary" if state == "active" else "secondary",
+                    use_container_width=True,
+                ):
+                    if opt != current:
+                        st.session_state[key] = opt
+                        st.rerun()
+            # Nyitáskor az aktív lépéshez görgetés (mozgáscsökkentést tisztelve).
+            components.html(
+                """
 <script>
 (function () {
   try {
@@ -263,7 +457,18 @@ def render_step_selector(
 })();
 </script>
 """,
-            height=0,
+                height=0,
+            )
+
+        # Diszkrét progress sáv a zárt trigger alatt (ugyanaz a % számítás).
+        st.markdown(
+            (
+                '<div class="tx-stepbar-track" role="presentation" aria-hidden="true">'
+                '<div class="tx-wf-progress">'
+                f'<div class="tx-wf-progress-fill" style="width:{pct}%"></div>'
+                "</div></div>"
+            ),
+            unsafe_allow_html=True,
         )
 
     return str(st.session_state.get(key) or opts[0])
@@ -273,29 +478,16 @@ def render_progress_summary(
     options: Sequence[str],
     *,
     completed: Iterable[str] | None = None,
+    status_map: Mapping[str, str] | None = None,
+    outline_ready: bool | None = None,
 ) -> None:
-    """Kompakt haladási információ + vékony progress bar a lépésválasztó alatt."""
-    opts = [str(o) for o in options if str(o).strip()]
-    if not opts:
-        return
-    done = {str(x) for x in (completed or ()) if str(x).strip()}
-    total = len(opts)
-    done_count = sum(1 for o in opts if o in done)
-    pct = int(round((done_count / total) * 100)) if total else 0
-    st.markdown(
-        (
-            '<div class="tx-progress-wrap">'
-            '<div class="tx-progress-info">'
-            f'<span>{done_count} / {total} szakaszban van megtartott anyag</span>'
-            "<span>A lépések rugalmasan használhatók; nem kötelező mindet kitölteni.</span>"
-            "</div>"
-            '<div class="tx-wf-progress" role="presentation">'
-            f'<div class="tx-wf-progress-fill" style="width:{pct}%"></div>'
-            "</div>"
-            "</div>"
-        ),
-        unsafe_allow_html=True,
-    )
+    """Kompatibilitási no-op — a progress sáv a zárt lépéssáv alatt van.
+
+    A státusz / százalék számítás a ``render_step_selector``-ban történik;
+    ez a függvény szándékosan nem rajzol második sávot.
+    """
+    _ = (options, completed, status_map, outline_ready)
+    return None
 
 
 def render_workshop_workflow_nav(
@@ -303,26 +495,23 @@ def render_workshop_workflow_nav(
     *,
     key: str,
     completed: Iterable[str] | None = None,
+    status_map: Mapping[str, str] | None = None,
     key_prefix: str | None = None,
+    outline_ready: bool | None = None,
 ) -> str:
-    """Közös munkafolyamat-navigáció: központi lépésválasztó + haladásösszegzés."""
-    active = render_step_selector(
-        options, key=key, completed=completed, key_prefix=key_prefix
+    """Közös munkafolyamat-navigáció: központi lépésválasztó (státusz + progress)."""
+    return render_step_selector(
+        options,
+        key=key,
+        completed=completed,
+        status_map=status_map,
+        key_prefix=key_prefix,
+        outline_ready=outline_ready,
     )
-    render_progress_summary(options, completed=completed)
-    return active
 
 
 # Backward-compatible aliasok
 render_section_stepper = render_workshop_stepper
-
-
-# Rövid, opcionális alcímek a fő nézetekhez (prémium főmenü).
-_DEFAULT_UI_MODE_SUBTITLES: dict[str, str] = {
-    "quick": "Gyors elemzés és segédeszközök",
-    "workshop": "A bibliai szöveg feltárása",
-    "sermon_workshop": "Az igehirdetés felépítése",
-}
 
 
 def render_primary_view_switcher(
@@ -333,11 +522,11 @@ def render_primary_view_switcher(
     subtitles: Mapping[str, str] | None = None,
     key: str = "ui_mode",
 ) -> str:
-    """Háromelemű, prémium elsődleges főmenü — nagy, teljesen kattintható kártyák.
+    """Háromelemű module switcher — egyenlő szélességű szegmensek.
 
     A nézetváltási state és logika változatlan: a `key` (alapból `ui_mode`)
-    értéke marad a nézet forrása. A gombok közvetlenül állítják be, mivel ez
-    tisztán felületi állapot (nincs widget-tulajdonlás, nem kerül mentésbe).
+    értéke marad a nézet forrása. A gombok `secondary` típusúak (a Streamlit
+    primary kék kitöltését CSS/kulcs alapján kerüljük el).
     """
     opts = [str(o) for o in (options or ("quick", "workshop", "sermon_workshop"))]
     label_map = dict(_DEFAULT_UI_MODE_LABELS)
@@ -346,47 +535,362 @@ def render_primary_view_switcher(
     icon_map = dict(_DEFAULT_UI_MODE_ICONS)
     if icons:
         icon_map.update({str(k): str(v) for k, v in icons.items()})
-    subtitle_map = dict(_DEFAULT_UI_MODE_SUBTITLES)
-    if subtitles:
-        subtitle_map.update({str(k): str(v) for k, v in subtitles.items()})
+    # Subtitles are intentionally unused — segments are label-only.
+    _ = subtitles
 
     if st.session_state.get(key) not in opts:
         st.session_state[key] = opts[0]
     current = str(st.session_state.get(key) or opts[0])
 
-    st.markdown(
-        '<div class="tx-mainnav-anchor" aria-hidden="true"></div>',
-        unsafe_allow_html=True,
-    )
-    cols = st.columns(len(opts), gap="small")
-    for col, mode in zip(cols, opts):
-        is_active = mode == current
-        title = label_map.get(mode, mode)
-        with col:
-            clicked = st.button(
-                title,
-                key=f"tx_mainnav_{mode}",
-                icon=(icon_map.get(mode) or None),
-                type="primary" if is_active else "secondary",
-                use_container_width=True,
-            )
-        if clicked and not is_active:
-            st.session_state[key] = mode
-            st.rerun()
+    # Aktív szegmens: kulcs-alapú CSS a workspace_switcher konténeren belül.
+    active_cls = f"st-key-tx_mainnav_{current}"
+    scope = ".st-key-workspace_switcher"
+    with st.container(key="workspace_switcher"):
+        st.markdown(
+            "<style>"
+            f"{scope} .{active_cls} .stButton button,"
+            f"{scope} .{active_cls} button{{"
+            "background:var(--ui-surface-active)!important;"
+            "border:1px solid var(--ui-border-active)!important;"
+            "box-shadow:var(--ui-shadow-sm)!important;"
+            "color:var(--tx-primary-deep)!important;"
+            "}"
+            f"{scope} .{active_cls} .stButton button p,"
+            f"{scope} .{active_cls} button p{{"
+            "color:var(--tx-primary-deep)!important;font-weight:650!important;"
+            "}"
+            f"{scope} .{active_cls} .stButton button [data-testid=\"stIconMaterial\"],"
+            f"{scope} .{active_cls} button [data-testid=\"stIconMaterial\"]{{"
+            "color:#3f6699!important;"
+            "}"
+            f"{scope} .{active_cls} .stButton button::after,"
+            f"{scope} .{active_cls} button::after{{height:2px!important;}}"
+            "</style>",
+            unsafe_allow_html=True,
+        )
+        cols = st.columns(len(opts), gap="small")
+        for col, mode in zip(cols, opts):
+            is_active = mode == current
+            title = label_map.get(mode, mode)
+            with col:
+                clicked = st.button(
+                    title,
+                    key=f"tx_mainnav_{mode}",
+                    icon=(icon_map.get(mode) or None),
+                    type="secondary",
+                    use_container_width=True,
+                )
+            if clicked and not is_active:
+                st.session_state[key] = mode
+                st.rerun()
 
     return str(st.session_state.get(key) or opts[0])
 
 
-def render_project_toolbar_anchor() -> None:
-    """CSS horog a projektgombok tömör eszköztárához."""
-    st.markdown(
-        '<div class="ws-project-toolbar-anchor" aria-hidden="true"></div>',
-        unsafe_allow_html=True,
+def render_workspace_switcher(
+    options: Sequence[str] | None = None,
+    *,
+    labels: Mapping[str, str] | None = None,
+    icons: Mapping[str, str] | None = None,
+    subtitles: Mapping[str, str] | None = None,
+    key: str = "ui_mode",
+) -> str:
+    """Egységes munkaterület-váltó — alias a primary view switcherre."""
+    return render_primary_view_switcher(
+        options,
+        labels=labels,
+        icons=icons,
+        subtitles=subtitles,
+        key=key,
     )
 
 
-# Alias — a gombok és mentési logika az app projekt-sávjában marad.
-render_project_toolbar = render_project_toolbar_anchor
+def render_project_toolbar_anchor() -> None:
+    """Kompatibilitási no-op — a toolbar `st.container(key=…)`-t használ."""
+    return None
+
+
+def _render_account_controls(
+    *,
+    is_logged_in: bool,
+    auth_configured: bool,
+    user_label: str,
+) -> str | None:
+    """Fiók / vendég vezérlők a toolbar jobb szélére. Visszatér: login|logout|settings|None."""
+    action: str | None = None
+    if is_logged_in:
+        label = (user_label or "Fiók").strip() or "Fiók"
+        short = label if len(label) <= 28 else (label[:25] + "…")
+        with st.popover(
+            short,
+            icon=":material/account_circle:",
+            help="Fiók és beállítások",
+            use_container_width=False,
+            key="tx_appbar_account_popover",
+        ):
+            st.caption(label)
+            if st.button(
+                "Beállítások",
+                key="tx_appbar_settings",
+                icon=":material/settings:",
+                type="secondary",
+                use_container_width=True,
+            ):
+                action = "settings"
+            if st.button(
+                "Kijelentkezés",
+                key="tx_appbar_logout",
+                icon=":material/logout:",
+                type="secondary",
+                use_container_width=True,
+            ):
+                action = "logout"
+    elif auth_configured:
+        st.markdown(
+            '<div class="tx-appbar-guest-label">Vendég mód</div>',
+            unsafe_allow_html=True,
+        )
+        with st.popover(
+            "Bejelentkezés",
+            icon=":material/login:",
+            help="Opcionális Google-bejelentkezés",
+            use_container_width=False,
+            key="tx_appbar_login_popover",
+        ):
+            st.caption(
+                "A bejelentkezés opcionális. Vendégként is teljes mértékben "
+                "használhatod a TEXTUS-t; a Google-fiók a felhőmentéshez kell."
+            )
+            if st.button(
+                "Bejelentkezés Google-fiókkal",
+                key="tx_appbar_login",
+                icon=":material/login:",
+                type="primary",
+                use_container_width=True,
+            ):
+                action = "login"
+    else:
+        st.markdown(
+            '<div class="tx-appbar-guest-label">Vendég mód</div>',
+            unsafe_allow_html=True,
+        )
+    return action
+
+
+def render_app_toolbar(
+    *,
+    is_logged_in: bool = False,
+    auth_configured: bool = False,
+    user_label: str = "",
+    home_active: bool = False,
+    has_active_project: bool = False,
+    project_label: str = "",
+    status_label: str = "Ideiglenes",
+    status_kind: str = "temp",
+    editing_title: bool = False,
+    projects_renderer: Callable[[], None] | None = None,
+) -> str | None:
+    """Egyetlen felső app-sáv: Főoldal → projekt → mentés → Projektek → Új munka | fiók.
+
+    Visszatér: home | login | logout | settings | save | save_as_new |
+    new_work | edit_title | done_edit | None
+    """
+    action: str | None = None
+    label = (project_label or "").strip() or "Névtelen projekt"
+    status = (status_label or "").strip() or "Ideiglenes"
+    kind = status_kind if status_kind in {"temp", "saved", "dirty"} else "temp"
+    kind_cls = {
+        "temp": "is-temp",
+        "saved": "is-saved",
+        "dirty": "is-dirty",
+    }.get(kind, "is-temp")
+
+    with st.container(
+        key="textus_app_toolbar",
+        horizontal=True,
+        vertical_alignment="center",
+        gap="small",
+    ):
+        with st.container(
+            key="tx_toolbar_main",
+            horizontal=True,
+            vertical_alignment="center",
+            gap="small",
+            width="content",
+        ):
+            home_help = (
+                "Aktuális nézet: Főoldal"
+                if home_active
+                else "Vissza a Főoldalra (a projekt megmarad)"
+            )
+            if st.button(
+                "Főoldal",
+                key="tx_appbar_home",
+                icon=":material/home:",
+                type="secondary",
+                use_container_width=False,
+                help=home_help,
+            ):
+                action = "home"
+
+            st.markdown(
+                '<div class="tx-toolbar-divider" aria-hidden="true"></div>',
+                unsafe_allow_html=True,
+            )
+
+            if editing_title:
+                with st.form("bar_project_title_form", border=False, clear_on_submit=False):
+                    st.text_input(
+                        "Projekt címe",
+                        key="project_title_input",
+                        label_visibility="collapsed",
+                        placeholder="Pl. Jn 3,16 — húsvéti igehirdetés",
+                    )
+                    if st.form_submit_button(
+                        "Kész",
+                        type="secondary",
+                        use_container_width=False,
+                    ):
+                        action = "done_edit"
+            else:
+                safe_label = escape(label)
+                st.markdown(
+                    (
+                        f'<div class="tx-project-name-row" title="{safe_label}">'
+                        f'<span class="tx-project-name-text">{safe_label}</span>'
+                        f'<span class="tx-project-status-chip {kind_cls}">'
+                        f"{escape(status)}</span></div>"
+                    ),
+                    unsafe_allow_html=True,
+                )
+                if st.button(
+                    "Projekt nevének szerkesztése",
+                    key="bar_title_edit",
+                    icon=":material/edit:",
+                    type="secondary",
+                    use_container_width=False,
+                    help="Projekt nevének szerkesztése",
+                ):
+                    action = "edit_title"
+
+            if has_active_project:
+                if st.button(
+                    "Mentés",
+                    key="bar_project_save",
+                    type="primary",
+                    icon=":material/save:",
+                    use_container_width=False,
+                ):
+                    action = "save"
+                with st.popover(
+                    "···",
+                    help="További mentési lehetőségek",
+                    use_container_width=False,
+                    key="bar_save_more_popover",
+                ):
+                    if st.button(
+                        "Mentés másolatként",
+                        key="bar_project_save_as_new",
+                        type="secondary",
+                        icon=":material/save_as:",
+                        use_container_width=True,
+                    ):
+                        action = "save_as_new"
+            else:
+                if st.button(
+                    "Mentés újként",
+                    key="bar_project_save_as_new",
+                    type="primary",
+                    icon=":material/save_as:",
+                    use_container_width=False,
+                ):
+                    action = "save_as_new"
+
+            with st.popover(
+                "Projektek",
+                icon=":material/folder:",
+                help="Mentett projektek megnyitása",
+                use_container_width=False,
+                width=520,
+                key="bar_projects_popover",
+            ):
+                with st.container(key="project_picker_content"):
+                    if projects_renderer is not None:
+                        projects_renderer()
+                    else:
+                        st.markdown(
+                            '<div class="tx-projects-empty">'
+                            "Nincs megjeleníthető projekt.</div>",
+                            unsafe_allow_html=True,
+                        )
+
+            if st.button(
+                "Új munka",
+                key="bar_new_work",
+                type="secondary",
+                icon=":material/add:",
+                use_container_width=False,
+            ):
+                action = "new_work"
+
+        st.container(key="tx_toolbar_flex", width="stretch")
+
+        with st.container(
+            key="tx_toolbar_account",
+            horizontal=True,
+            vertical_alignment="center",
+            gap="small",
+            width="content",
+        ):
+            account_action = _render_account_controls(
+                is_logged_in=is_logged_in,
+                auth_configured=auth_configured,
+                user_label=user_label,
+            )
+            if account_action and action is None:
+                action = account_action
+
+    return action
+
+
+def render_global_appbar(
+    *,
+    is_logged_in: bool,
+    auth_configured: bool,
+    user_label: str = "",
+    home_active: bool = False,
+) -> str | None:
+    """Kompatibilitási no-op — használd a `render_app_toolbar`-t (egy sáv)."""
+    _ = (is_logged_in, auth_configured, user_label, home_active)
+    return None
+
+
+def render_project_toolbar(
+    *,
+    has_active_project: bool,
+    project_label: str = "",
+    status_label: str = "Ideiglenes",
+    status_kind: str = "temp",
+    editing_title: bool = False,
+    projects_renderer: Callable[[], None] | None = None,
+    is_logged_in: bool = False,
+    auth_configured: bool = False,
+    user_label: str = "",
+    home_active: bool = False,
+) -> str | None:
+    """Kompatibilitási alias a unified app toolbarra."""
+    return render_app_toolbar(
+        is_logged_in=is_logged_in,
+        auth_configured=auth_configured,
+        user_label=user_label,
+        home_active=home_active,
+        has_active_project=has_active_project,
+        project_label=project_label,
+        status_label=status_label,
+        status_kind=status_kind,
+        editing_title=editing_title,
+        projects_renderer=projects_renderer,
+    )
 
 
 def render_info_panel(title: str, body: str = "") -> None:
@@ -434,12 +938,37 @@ def textus_completed_sections(state: Any) -> set[str]:
     return done
 
 
-def sermon_completed_sections(
+def _suggestion_payload_nonempty(raw: Any) -> bool:
+    if raw is None:
+        return False
+    if isinstance(raw, list):
+        return any(
+            (isinstance(x, dict) and any(str(v).strip() for v in x.values() if not isinstance(v, (list, dict))))
+            or (isinstance(x, str) and x.strip())
+            for x in raw
+        )
+    if isinstance(raw, dict):
+        # Tipikus MI-javaslat csomag: van legalább egy nem üres mező / lista
+        for v in raw.values():
+            if isinstance(v, str) and v.strip():
+                return True
+            if isinstance(v, list) and v:
+                return True
+            if isinstance(v, dict) and any(str(x).strip() for x in v.values()):
+                return True
+        return False
+    return bool(str(raw).strip())
+
+
+def sermon_section_statuses(
     state: Any,
     *,
     status_of: Callable[[str], str] | None = None,
-) -> set[str]:
-    """Igehirdetési műhely: jóváhagyott / érdemi tartalmú szakaszok."""
+) -> dict[str, str]:
+    """Igehirdetési műhely szakaszállapotai (opcionális hangnem).
+
+    Értékek: ``ai_ready`` | ``ai_suggested`` | ``own_emphasis`` | ``approved``.
+    """
     get = state.get if hasattr(state, "get") else (lambda *_: None)
     sw = get("sermon_workshop") if isinstance(get("sermon_workshop"), dict) else {}
     if not isinstance(sw, dict):
@@ -463,53 +992,161 @@ def sermon_completed_sections(
                 return True
         return False
 
-    done: set[str] = set()
-    if _status("sermon_main_idea_status") == "approved" or _has_text(
-        "sermon_main_idea"
-    ):
-        done.add("Az igehirdetés fő gondolata")
-    if _status("human_condition_status") == "approved" or _has_text("human_condition"):
-        done.add("Emberi helyzet és kegyelmi válasz")
-    if _status("listener_tension_status") == "approved" or _has_text(
-        "listener_tension"
-    ):
-        done.add("Hallgatói kérdés és feszültség")
-    if _status("christ_centered_arc_status") == "approved" or _has_text(
-        "christ_centered_arc"
-    ):
-        done.add("Krisztus-központú és evangéliumi ív")
-    if _status("sermon_path_status") == "approved" or _has_text(
-        "sermon_path", "sermon_movements"
-    ):
-        done.add("Az igehirdetés útja és mozgásai")
-    if _status("enrichment_status") == "approved" or _has_text(
-        "selected_images",
-        "illustrations",
-        "applications",
-        "retained_illustration_cards",
-        "actualization_connections",
-    ):
-        done.add("Illusztrációk és aktualizálás")
-        done.add("Képek, illusztrációk és alkalmazás")
-    if _status("closing_status") == "approved" or _has_text("closing"):
-        done.add("Lezárás és megérkezés")
-    if _status("lection_status") == "approved" or (
-        isinstance(sw.get("lection"), dict)
-        and str(sw["lection"].get("reference") or "").strip()
-    ):
-        done.add("Lekciójavaslat")
-    if _status("prayer_status") == "approved" or _has_text("prayer_preparation"):
-        done.add("Imádsági előkészítés")
-    if _status("sermon_outline_status") == "approved" or _has_text("sermon_outline"):
-        done.add("Igehirdetési vázlat")
-    diag = sw.get("diagnostics") if isinstance(sw.get("diagnostics"), dict) else {}
-    result = diag.get("result") if isinstance(diag.get("result"), dict) else {}
-    outline_diag = sw.get("sermon_outline_diagnostics")
-    if (isinstance(result, dict) and result) or (
-        isinstance(outline_diag, dict) and outline_diag
-    ):
-        done.add("Homiletikai diagnosztika")
-    return done
+    def _classify(
+        *,
+        approved: bool,
+        own: bool,
+        suggested: bool,
+    ) -> str:
+        if approved:
+            return "approved"
+        if own:
+            return "own_emphasis"
+        if suggested:
+            return "ai_suggested"
+        return "ai_ready"
+
+    out: dict[str, str] = {}
+    out["Az igehirdetés fő gondolata"] = _classify(
+        approved=_status("sermon_main_idea_status") == "approved",
+        own=_has_text("sermon_main_idea"),
+        suggested=_suggestion_payload_nonempty(sw.get("sermon_main_idea_suggestions")),
+    )
+    out["Emberi helyzet és kegyelmi válasz"] = _classify(
+        approved=_status("human_condition_status") == "approved",
+        own=_has_text("human_condition"),
+        suggested=_suggestion_payload_nonempty(sw.get("human_condition_suggestions")),
+    )
+    out["Hallgatói kérdés és feszültség"] = _classify(
+        approved=_status("listener_tension_status") == "approved",
+        own=_has_text("listener_tension"),
+        suggested=_suggestion_payload_nonempty(sw.get("listener_tension_suggestions")),
+    )
+    out["Krisztus-központú és evangéliumi ív"] = _classify(
+        approved=_status("christ_centered_arc_status") == "approved",
+        own=_has_text("christ_centered_arc"),
+        suggested=_suggestion_payload_nonempty(sw.get("gospel_arc_suggestions")),
+    )
+    out["Az igehirdetés útja és mozgásai"] = _classify(
+        approved=_status("sermon_path_status") == "approved",
+        own=_has_text("sermon_path", "sermon_movements"),
+        suggested=_suggestion_payload_nonempty(sw.get("sermon_path_suggestions")),
+    )
+    out["Illusztrációk és aktualizálás"] = _classify(
+        approved=_status("enrichment_status") == "approved",
+        own=_has_text(
+            "selected_images",
+            "illustrations",
+            "applications",
+            "retained_illustration_cards",
+            "actualization_connections",
+        ),
+        suggested=_suggestion_payload_nonempty(sw.get("sermon_enrichment_suggestions"))
+        or _suggestion_payload_nonempty(sw.get("illustration_suggestions"))
+        or _suggestion_payload_nonempty(sw.get("actualization_suggestions")),
+    )
+    out["Képek, illusztrációk és alkalmazás"] = out["Illusztrációk és aktualizálás"]
+    out["Lezárás és megérkezés"] = _classify(
+        approved=_status("closing_status") == "approved",
+        own=_has_text("closing"),
+        suggested=_suggestion_payload_nonempty(sw.get("closing_suggestions")),
+    )
+    out["Lekciójavaslat"] = _classify(
+        approved=_status("lection_status") == "approved",
+        own=isinstance(sw.get("lection"), dict)
+        and bool(str(sw["lection"].get("reference") or "").strip()),
+        suggested=_suggestion_payload_nonempty(sw.get("lection_suggestions")),
+    )
+    prep = sw.get("prayer_preparation") if isinstance(sw.get("prayer_preparation"), dict) else {}
+    prayer_own = False
+    if isinstance(prep, dict):
+        for side_key in ("before", "after"):
+            side = prep.get(side_key) if isinstance(prep.get(side_key), dict) else {}
+            if any(
+                str(side.get(f) or "").strip()
+                for f in (
+                    "own_thoughts",
+                    "selected_opening",
+                    "closing_direction",
+                    "purpose",
+                    "movement_notes",
+                )
+            ):
+                prayer_own = True
+            lines = side.get("selected_lines")
+            if isinstance(lines, list) and any(str(x).strip() for x in lines):
+                prayer_own = True
+    out["Imádsági előkészítés"] = _classify(
+        approved=str(prep.get("status") or "").strip().casefold() == "approved"
+        or _status("prayer_status") == "approved",
+        own=prayer_own,
+        suggested=_suggestion_payload_nonempty(prep.get("before_suggestions"))
+        or _suggestion_payload_nonempty(prep.get("after_suggestions")),
+    )
+
+    try:
+        from sermon_workshop_outline_ai import outline_has_content
+    except Exception:  # pragma: no cover
+        outline_has_content = None  # type: ignore[assignment]
+
+    has_outline = bool(
+        outline_has_content is not None and outline_has_content(sw.get("sermon_outline"))
+    )
+    outline = sw.get("sermon_outline") if isinstance(sw.get("sermon_outline"), dict) else {}
+    outline_approved = (
+        _status("sermon_outline_status") == "approved"
+        or str(outline.get("status") or "").strip() == "approved"
+    ) and has_outline
+    if outline_approved:
+        out["Igehirdetési vázlat"] = "approved"
+    elif has_outline and bool(outline.get("manually_edited")):
+        out["Igehirdetési vázlat"] = "own_emphasis"
+    elif has_outline:
+        out["Igehirdetési vázlat"] = "ai_suggested"
+    else:
+        out["Igehirdetési vázlat"] = "ai_ready"
+
+    diag_raw = sw.get("diagnostics")
+    diag = diag_raw if isinstance(diag_raw, dict) else {}
+    result_raw = diag.get("result")
+    result = result_raw if isinstance(result_raw, dict) else {}
+    outline_diag = (
+        sw.get("sermon_outline_diagnostics")
+        if isinstance(sw.get("sermon_outline_diagnostics"), dict)
+        else {}
+    )
+    has_diag = bool(
+        str(result.get("overview") or "").strip()
+        or result.get("diagnostic_areas")
+        or (isinstance(diag.get("priorities"), list) and diag.get("priorities"))
+        or str(outline_diag.get("overview") or "").strip()
+        or outline_diag.get("strengths")
+        or outline_diag.get("refinements")
+    )
+    out["Homiletikai diagnosztika"] = _classify(
+        approved=False,
+        own=has_diag,
+        suggested=False,
+    )
+    return out
+
+
+def sermon_completed_sections(
+    state: Any,
+    *,
+    status_of: Callable[[str], str] | None = None,
+) -> set[str]:
+    """Igehirdetési műhely: saját hangsúly / jóváhagyott / AI-összeállított szakaszok.
+
+    A ``ai_ready`` szakaszok szándékosan nincsenek benne — azok opcionálisak,
+    és a vázlat nélkülük is elkészülhet.
+    """
+    statuses = sermon_section_statuses(state, status_of=status_of)
+    return {
+        name
+        for name, stt in statuses.items()
+        if stt in ("approved", "own_emphasis", "ai_suggested", "done")
+    }
 
 
 __all__ = [
@@ -517,9 +1154,13 @@ __all__ = [
     "render_workshop_stepper",
     "render_section_stepper",
     "render_primary_view_switcher",
+    "render_workspace_switcher",
+    "render_app_toolbar",
+    "render_global_appbar",
     "render_project_toolbar_anchor",
     "render_project_toolbar",
     "render_info_panel",
     "textus_completed_sections",
     "sermon_completed_sections",
+    "sermon_section_statuses",
 ]

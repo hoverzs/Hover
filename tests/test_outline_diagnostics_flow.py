@@ -45,7 +45,7 @@ def test_api_exception_does_not_claim_success():
     )
     assert result.ok is False
     assert result.mode == "api_error"
-    assert "nem sikerült" in result.error_message.casefold()
+    assert "nem készült el" in result.error_message.casefold()
     assert result.diagnostic_areas == []
     assert any("Generálási hiba:" in w for w in result.warnings)
 

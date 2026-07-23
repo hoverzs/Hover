@@ -178,6 +178,8 @@ class PrayerArcSuggestionResult:
     ok: bool = True
     error_message: str = ""
     raw_response: str = ""
+    source_caption: str = ""
+    sparse_sources: bool = False
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -196,6 +198,8 @@ class PrayerArcSuggestionResult:
             "side": self.side,
             "ok": self.ok,
             "error_message": self.error_message,
+            "source_caption": self.source_caption,
+            "sparse_sources": bool(self.sparse_sources),
         }
 
     def movements_as_notes(self) -> str:
@@ -481,15 +485,109 @@ def _has_gospel_resolution(
     )
 
 
+_SPARSE_SOURCE_CAPTION = (
+    "A javaslat kevés előkészítő anyagból készült, ezért általánosabb lehet."
+)
+
+
+def count_prayer_work_parts(source_keys: Any = None) -> int:
+    """Elmentett munkarészek száma (igehely / vázlat külön kezelendő)."""
+    keys = source_keys if isinstance(source_keys, (list, tuple)) else []
+    return len(
+        [
+            k
+            for k in keys
+            if k
+            and k
+            not in (
+                "passage_reference",
+                "sermon_outline",
+            )
+        ]
+    )
+
+
+def build_prayer_source_caption(
+    *,
+    source_keys: Any = None,
+    has_outline: bool = False,
+) -> tuple[str, bool]:
+    """Rövid forrásjelzés + sparse flag a javaslat fölé."""
+    work_parts = count_prayer_work_parts(source_keys)
+    strength = work_parts + (1 if has_outline else 0)
+    sparse = strength < 2
+    if sparse:
+        return _SPARSE_SOURCE_CAPTION, True
+    if has_outline and work_parts:
+        caption = (
+            "A javaslat az aktuális igehirdetési vázlat és "
+            f"{work_parts} elmentett munkarész alapján készült."
+        )
+    elif has_outline:
+        caption = "A javaslat az aktuális igehirdetési vázlat alapján készült."
+    else:
+        caption = (
+            f"A javaslat {work_parts} elmentett munkarész alapján készült."
+        )
+    return caption, False
+
+
+def attach_prayer_source_meta(
+    result: PrayerArcSuggestionResult,
+    *,
+    source_keys: Any = None,
+    has_outline: bool = False,
+) -> PrayerArcSuggestionResult:
+    caption, sparse = build_prayer_source_caption(
+        source_keys=source_keys,
+        has_outline=has_outline,
+    )
+    result.source_caption = caption
+    result.sparse_sources = sparse
+    if sparse and _SPARSE_SOURCE_CAPTION not in result.warnings:
+        result.warnings.append(_SPARSE_SOURCE_CAPTION)
+    return result
+
+
 def has_sufficient_before_material(
     *,
     passage: str = "",
     passage_text: str = "",
     text_main_idea: str = "",
+    sermon_outline: Any = None,
+    source_keys: Any = None,
 ) -> bool:
+    """Van-e minimális anyag előtti imaívhez — saját szempont NEM kötelező.
+
+    Kevés forrás esetén sem tiltjuk a generálást (sparse figyelmeztetés a UI-n).
+    """
     if not _is_present(passage):
         return False
-    return _is_present(text_main_idea) or _is_present(passage_text)
+    if _is_present(text_main_idea) or _is_present(passage_text):
+        return True
+    if isinstance(sermon_outline, dict) and any(
+        _is_present(sermon_outline.get(k))
+        for k in ("main_idea", "opening_direction", "listener_question")
+    ):
+        return True
+    keys = source_keys if isinstance(source_keys, (list, tuple)) else []
+    if any(
+        k in keys
+        for k in (
+            "text_main_idea",
+            "passage_text",
+            "sermon_main_idea",
+            "approved_insights",
+            "exegesis",
+            "theology",
+            "sermon_outline",
+            "human_condition",
+            "listener_tension",
+        )
+    ):
+        return True
+    # Csak igehely: engedjük (általánosabb lehet)
+    return True
 
 
 def has_sufficient_after_material(
@@ -499,17 +597,52 @@ def has_sufficient_after_material(
     sermon_main_idea_status: str = "",
     christ_centered_arc: Any = None,
     listener_tension: Any = None,
+    sermon_outline: Any = None,
+    text_main_idea: str = "",
+    source_keys: Any = None,
 ) -> bool:
+    """Van-e minimális anyag utáni imaívhez — ne követeljen minden műhelylépést."""
     if not _is_present(passage):
         return False
-    if sermon_main_idea_status.strip().casefold() != "approved":
-        return False
-    if not _is_present(sermon_main_idea):
-        return False
-    return _has_gospel_resolution(
-        christ_centered_arc=christ_centered_arc,
-        listener_tension=listener_tension,
-    )
+    if isinstance(sermon_outline, dict) and (
+        _is_present(sermon_outline.get("main_idea"))
+        or (
+            isinstance(sermon_outline.get("movements"), list)
+            and any(
+                isinstance(m, dict) and _is_present(m.get("core_content"))
+                for m in sermon_outline.get("movements") or []
+            )
+        )
+    ):
+        return True
+    if (
+        sermon_main_idea_status.strip().casefold() == "approved"
+        and _is_present(sermon_main_idea)
+        and _has_gospel_resolution(
+            christ_centered_arc=christ_centered_arc,
+            listener_tension=listener_tension,
+        )
+    ):
+        return True
+    if _is_present(sermon_main_idea) or _is_present(text_main_idea):
+        return True
+    keys = source_keys if isinstance(source_keys, (list, tuple)) else []
+    if any(
+        k in keys
+        for k in (
+            "sermon_main_idea",
+            "christ_centered_arc",
+            "closing",
+            "sermon_movements",
+            "applications",
+            "sermon_outline",
+            "listener_tension",
+            "text_main_idea",
+            "passage_text",
+        )
+    ):
+        return True
+    return True
 
 
 _COMMON_GUARDRAILS = """\
@@ -1258,11 +1391,21 @@ def suggest_prayer_before(
     general_focus: str = "",
     rewrite_mode: str = "integrate_into_arc",
     prayer_before: Any = None,
+    sermon_outline: Any = None,
+    source_keys: Any = None,
     generate_fn: GenerateFn | None = None,
     temperature: float | None = DEFAULT_TEMPERATURE,
     skip_api_if_insufficient: bool = True,
     **_ignored: Any,
 ) -> PrayerArcSuggestionResult:
+    # Vázlat elsődleges, ha van fő gondolat
+    outline = sermon_outline if isinstance(sermon_outline, dict) else {}
+    if _is_present(outline.get("main_idea")) and not _is_present(sermon_main_idea):
+        sermon_main_idea = str(outline.get("main_idea") or "").strip()
+        sermon_main_idea_status = "approved"
+    if _is_present(outline.get("main_idea")) and not _is_present(text_main_idea):
+        text_main_idea = str(outline.get("main_idea") or "").strip()
+
     ctx = build_prayer_before_context(
         passage=passage,
         passage_text=passage_text,
@@ -1288,7 +1431,7 @@ def suggest_prayer_before(
     missing: list[str] = []
     if not _is_present(passage):
         missing.append("alapigehely")
-    if not (_is_present(text_main_idea) or _is_present(passage_text)):
+    if not (_is_present(text_main_idea) or _is_present(passage_text) or outline):
         missing.append("textusfőgondolat vagy passage_text")
 
     if not _is_present(passage):
@@ -1303,12 +1446,14 @@ def suggest_prayer_before(
         passage=passage,
         passage_text=passage_text,
         text_main_idea=text_main_idea,
+        sermon_outline=outline,
+        source_keys=source_keys,
     ):
         return fallback_prayer_arc(
             side="before",
             reasoning=(
                 "Nincs elegendő adat a felelős előtti imaívhez. "
-                "Ne készüljön általános sablon."
+                "Adj meg igehelyet és legalább egy rövid textusgondolatot."
             ),
             warnings=["Elégtelen adat: üres ajánlások."],
             missing=missing,
@@ -1334,11 +1479,34 @@ def suggest_prayer_before(
             error_message=str(exc)[:280],
             ok=False,
         )
+    if _is_api_error_text(raw or ""):
+        return fallback_prayer_arc(
+            side="before",
+            reasoning="A Gemini-hívás sikertelen volt.",
+            warnings=[f"Generálási hiba: {(raw or '')[:280]}"],
+            missing=missing,
+            error_message="A részletes MI-javaslat most nem sikerült.",
+            ok=False,
+        )
     result = parse_prayer_arc_response(raw, side="before")
     for item in missing:
         if item not in result.missing_information:
             result.missing_information.append(item)
-    return _strip_false_passage_warnings(result, passage_text=passage_text)
+    result = _strip_false_passage_warnings(result, passage_text=passage_text)
+    return attach_prayer_source_meta(
+        result,
+        source_keys=source_keys,
+        has_outline=bool(
+            _is_present(outline.get("main_idea"))
+            or (
+                isinstance(outline.get("movements"), list)
+                and any(
+                    isinstance(m, dict) and _is_present(m.get("core_content"))
+                    for m in outline.get("movements") or []
+                )
+            )
+        ),
+    )
 
 
 def suggest_prayer_after(
@@ -1373,11 +1541,20 @@ def suggest_prayer_after(
     general_focus: str = "",
     rewrite_mode: str = "integrate_into_arc",
     prayer_after: Any = None,
+    sermon_outline: Any = None,
+    source_keys: Any = None,
     generate_fn: GenerateFn | None = None,
     temperature: float | None = DEFAULT_TEMPERATURE,
     skip_api_if_insufficient: bool = True,
     **_ignored: Any,
 ) -> PrayerArcSuggestionResult:
+    outline = sermon_outline if isinstance(sermon_outline, dict) else {}
+    if _is_present(outline.get("main_idea")) and not _is_present(sermon_main_idea):
+        sermon_main_idea = str(outline.get("main_idea") or "").strip()
+        sermon_main_idea_status = "approved"
+    if _is_present(outline.get("main_idea")) and not _is_present(text_main_idea):
+        text_main_idea = str(outline.get("main_idea") or "").strip()
+
     ctx = build_prayer_after_context(
         passage=passage,
         passage_text=passage_text,
@@ -1411,15 +1588,24 @@ def suggest_prayer_after(
     missing: list[str] = []
     if not _is_present(passage):
         missing.append("alapigehely")
-    if sermon_main_idea_status.strip().casefold() != "approved" or not _is_present(
-        sermon_main_idea
+    if not (
+        _is_present(sermon_main_idea)
+        or _is_present(text_main_idea)
+        or outline
+        or _has_gospel_resolution(
+            christ_centered_arc=christ_centered_arc,
+            listener_tension=listener_tension,
+        )
     ):
-        missing.append("jóváhagyott igehirdetési fő gondolat")
-    if not _has_gospel_resolution(
-        christ_centered_arc=christ_centered_arc,
-        listener_tension=listener_tension,
-    ):
-        missing.append("evangéliumi feloldás vagy Isten kegyelmi cselekvése")
+        if sermon_main_idea_status.strip().casefold() != "approved" or not _is_present(
+            sermon_main_idea
+        ):
+            missing.append("igehirdetési fő gondolat vagy vázlat")
+        if not _has_gospel_resolution(
+            christ_centered_arc=christ_centered_arc,
+            listener_tension=listener_tension,
+        ):
+            missing.append("evangéliumi feloldás vagy Isten kegyelmi cselekvése")
 
     if not _is_present(passage):
         return fallback_prayer_arc(
@@ -1435,12 +1621,15 @@ def suggest_prayer_after(
         sermon_main_idea_status=sermon_main_idea_status,
         christ_centered_arc=christ_centered_arc,
         listener_tension=listener_tension,
+        sermon_outline=outline,
+        text_main_idea=text_main_idea,
+        source_keys=source_keys,
     ):
         return fallback_prayer_arc(
             side="after",
             reasoning=(
                 "Nincs elegendő adat a felelős utáni imaívhez. "
-                "Ne készüljön általános sablon."
+                "Adj meg igehelyet és legalább egy rövid igehirdetési gondolatot."
             ),
             warnings=["Elégtelen adat: üres ajánlások."],
             missing=missing,
@@ -1466,11 +1655,34 @@ def suggest_prayer_after(
             error_message=str(exc)[:280],
             ok=False,
         )
+    if _is_api_error_text(raw or ""):
+        return fallback_prayer_arc(
+            side="after",
+            reasoning="A Gemini-hívás sikertelen volt.",
+            warnings=[f"Generálási hiba: {(raw or '')[:280]}"],
+            missing=missing,
+            error_message="A részletes MI-javaslat most nem sikerült.",
+            ok=False,
+        )
     result = parse_prayer_arc_response(raw, side="after")
     for item in missing:
         if item not in result.missing_information:
             result.missing_information.append(item)
-    return _strip_false_passage_warnings(result, passage_text=passage_text)
+    result = _strip_false_passage_warnings(result, passage_text=passage_text)
+    return attach_prayer_source_meta(
+        result,
+        source_keys=source_keys,
+        has_outline=bool(
+            _is_present(outline.get("main_idea"))
+            or (
+                isinstance(outline.get("movements"), list)
+                and any(
+                    isinstance(m, dict) and _is_present(m.get("core_content"))
+                    for m in outline.get("movements") or []
+                )
+            )
+        ),
+    )
 
 
 def integrate_prayer_thoughts(
@@ -1919,10 +2131,13 @@ def _self_check() -> list[str]:
     ui = adapt_prayer_suggestion_for_ui(ra)
     if not ui.get("opening_line"):
         errors.append("adapter: missing opening")
-    arc = ui.get("prayer_arc") if isinstance(ui.get("prayer_arc"), list) else []
+    arc_raw = ui.get("prayer_arc")
+    arc: list[Any] = arc_raw if isinstance(arc_raw, list) else []
     if not (4 <= len(arc) <= 6):
         errors.append(f"adapter: arc count {len(arc)} not in 4–6")
     for item in arc:
+        if not isinstance(item, dict):
+            continue
         blob = f"{item.get('title', '')} {item.get('thought', '')}".casefold()
         for code in ("address", "confession", "illumination", "preacher", "hearers"):
             if f"({code})" in blob or blob.strip() == code:
@@ -1970,6 +2185,9 @@ __all__ = [
     "normalize_prayer_rewrite_mode",
     "has_sufficient_before_material",
     "has_sufficient_after_material",
+    "build_prayer_source_caption",
+    "attach_prayer_source_meta",
+    "count_prayer_work_parts",
     "suggest_prayer_before",
     "suggest_prayer_after",
     "integrate_prayer_thoughts",

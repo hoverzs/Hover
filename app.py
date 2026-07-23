@@ -1,4 +1,6 @@
+# ruff: noqa: E402
 import streamlit as st
+import streamlit.components.v1 as components
 import requests
 import urllib3
 import base64
@@ -15,7 +17,6 @@ PROJECT_AUTOSAVE_INTERVAL_S = 180  # 3 perc — csak bejelentkezve, megnyitott p
 
 from workspace_data import (
     PROJECT_DATA_INT_KEYS,
-    PROJECT_DATA_KEYS,
     PROJECT_DATA_LIST_KEYS,
     PROJECT_DATA_STR_KEYS,
     WORKSPACE_KEYS,
@@ -43,11 +44,10 @@ from sermon_workshop_data import (
 )
 from sermon_workshop_ui import flush_sermon_workshop_from_widgets, render_sermon_workshop_shell
 from workshop_nav_ui import (
+    render_app_toolbar,
     render_primary_view_switcher,
-    render_project_toolbar_anchor,
-    render_section_stepper,
-    render_workshop_step_grid,
     render_workshop_workflow_nav,
+    render_workspace_switcher,
     textus_completed_sections,
 )
 from ui_components import render_page_intro, render_status_badge
@@ -59,6 +59,12 @@ from bible_text_ui import (
     queue_bible_widget_sync_values,
     render_bible_text_editor,
     save_bible_text_from_widgets,
+)
+from passage_search_history import invalidate_used_passage_cache
+from passage_search_ui import (
+    apply_pending_passage_search_before_widget,
+    ensure_passage_search_state,
+    render_passage_search_expander,
 )
 # =========================================================
 # VERZIÓ
@@ -263,6 +269,8 @@ background_file = find_file([
 ])
 
 logo_file = find_file([
+    "Textus_logo_transparent.png",
+    "textus_logo_transparent.png",
     "textus_logo.png",
     "logo.png",
     "logo.jpg",
@@ -491,7 +499,7 @@ st.markdown(f"""
 }}
 
 .block-container {{
-    max-width: 1450px;
+    max-width: 1160px;
     padding-top: 0.6rem;
     padding-bottom: 3.5rem;
     padding-left: 1.35rem;
@@ -606,10 +614,21 @@ section.main {{
     margin-top: 0.4rem;
 }}
 
-.header-grid {{
+@media (min-width: 721px) {{
+    .header-grid.textus-header,
+    div.header-grid.textus-header {{
+        display: grid !important;
+        grid-template-columns: 160px minmax(0, 1fr) !important;
+        gap: 28px !important;
+        align-items: center !important;
+    }}
+}}
+
+.header-grid,
+.textus-header {{
     display: grid;
-    grid-template-columns: 300px 1fr;
-    gap: 1.4rem;
+    grid-template-columns: 160px minmax(0, 1fr);
+    gap: 28px;
     align-items: center;
 }}
 
@@ -617,13 +636,73 @@ section.main {{
     display: flex;
     align-items: center;
     justify-content: center;
+    width: 160px;
+    margin: 0;
+    padding: 0;
+    background: transparent !important;
+    background-image: none !important;
 }}
 
+.textus-logo-badge {{
+    position: relative;
+    width: 160px;
+    height: 160px;
+    flex: 0 0 160px;
+    display: grid;
+    place-items: center;
+    place-content: center;
+    padding: 12px;
+    margin: 0;
+    box-sizing: border-box;
+    border-radius: 50%;
+    background: #f2ece1;
+    border: 1px solid rgba(195, 161, 94, 0.52);
+    box-shadow:
+        0 10px 24px rgba(42, 49, 60, 0.14),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    overflow: hidden;
+}}
+
+/* Magas specificitás — a badge belső területét tölti ki középen */
+div.header-logo > div.textus-logo-badge > img.textus-logo-image,
+div.textus-logo-badge > img.textus-logo-image,
+div.header-logo img.textus-logo-image.main-logo,
+.textus-logo-badge .textus-logo-image,
+.textus-logo-badge .main-logo,
+.header-logo .textus-logo-image,
 .header-logo .main-logo {{
-    width: 280px !important;
-    max-width: none !important;
-    height: auto;
-    filter: drop-shadow(0 6px 14px rgba(40, 28, 14, 0.28));
+    position: static !important;
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    inset: auto !important;
+    left: auto !important;
+    top: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    transform: none !important;
+    object-fit: contain !important;
+    object-position: center center !important;
+    background: transparent !important;
+    background-image: none !important;
+    opacity: 1 !important;
+    mix-blend-mode: normal !important;
+    filter: drop-shadow(0 3px 4px rgba(42, 49, 60, 0.14));
+}}
+
+@media (min-width: 721px) {{
+    div.header-logo > div.textus-logo-badge > img.textus-logo-image,
+    div.textus-logo-badge > img.textus-logo-image,
+    div.header-logo img.textus-logo-image.main-logo,
+    .textus-logo-badge .textus-logo-image,
+    .textus-logo-badge .main-logo,
+    .header-logo .textus-logo-image,
+    .header-logo .main-logo {{
+        max-width: 136px !important;
+        max-height: 136px !important;
+    }}
 }}
 
 .main-logo-fallback {{
@@ -639,6 +718,7 @@ section.main {{
     display: flex;
     flex-direction: column;
     gap: 0.45rem;
+    min-width: 0;
 }}
 
 .header-caption {{
@@ -665,10 +745,38 @@ section.main {{
 }}
 
 @media (max-width: 720px) {{
-    .header-grid {{
-        grid-template-columns: 1fr;
+    .header-grid,
+    .textus-header,
+    .header-grid.textus-header,
+    div.header-grid.textus-header {{
+        grid-template-columns: 1fr !important;
         text-align: center;
-        gap: 0.8rem;
+        gap: 0.8rem !important;
+        justify-items: center !important;
+    }}
+    .header-logo {{
+        width: 112px !important;
+    }}
+    .textus-logo-badge {{
+        width: 112px !important;
+        height: 112px !important;
+        flex-basis: 112px !important;
+        padding: 8px !important;
+    }}
+    div.header-logo > div.textus-logo-badge > img.textus-logo-image,
+    div.textus-logo-badge > img.textus-logo-image,
+    .textus-logo-badge .textus-logo-image,
+    .textus-logo-badge .main-logo,
+    .header-logo .textus-logo-image,
+    .header-logo .main-logo {{
+        width: 100% !important;
+        height: 100% !important;
+        max-width: 94px !important;
+        max-height: 94px !important;
+        transform: none !important;
+        margin: 0 auto !important;
+        left: auto !important;
+        top: auto !important;
     }}
     .header-caption {{
         margin-left: auto;
@@ -1332,24 +1440,21 @@ small {{
 .stTabs [data-baseweb="tab"] span {{
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.55rem;
     font-weight: 700 !important;
     font-size: 0.97rem !important;
     letter-spacing: 0.01em;
     text-shadow: 0 1px 0 rgba(255, 255, 255, 0.44);
 }}
 
+/* Egyetlen ikonforrás: Streamlit Material (:material/… a tab címkében).
+   Nincs Font Awesome / CSS ::before tartalomikon — elkerüli a dupla ikont. */
 .stTabs [data-baseweb="tab"] p::before,
-.stTabs [data-baseweb="tab"] span::before {{
-    font-family: "Font Awesome 6 Free";
-    font-weight: 900;
-    font-size: 0.96rem;
-    opacity: 0.92;
-    color: #6f7f95;
-    text-shadow:
-        0 1px 0 rgba(255, 255, 255, 0.62),
-        0 0 8px rgba(111, 127, 149, 0.22);
-    transition: transform 0.18s ease, color 0.18s ease;
+.stTabs [data-baseweb="tab"] span::before,
+.stTabs [data-baseweb="tab"] p::after,
+.stTabs [data-baseweb="tab"] span::after {{
+    content: none !important;
+    display: none !important;
 }}
 
 .stTabs [data-baseweb="tab"]:hover {{
@@ -1411,46 +1516,6 @@ small {{
     box-shadow: 0 0 12px rgba(141, 113, 79, 0.45);
     pointer-events: none;
 }}
-
-.stTabs [data-baseweb="tab"]:hover p::before,
-.stTabs [data-baseweb="tab"]:hover span::before {{
-    color: #4f6786;
-    transform: translateY(-1px) scale(1.06);
-}}
-
-.stTabs [aria-selected="true"] p::before,
-.stTabs [aria-selected="true"] span::before {{
-    color: #3f5979;
-    text-shadow:
-        0 1px 0 rgba(255, 255, 255, 0.72),
-        0 0 10px rgba(123, 151, 187, 0.35);
-}}
-
-.stTabs [data-baseweb="tab"]:nth-of-type(1) p::before,
-.stTabs [data-baseweb="tab"]:nth-of-type(1) span::before {{ content: "\\f518"; }}
-.stTabs [data-baseweb="tab"]:nth-of-type(2) p::before,
-.stTabs [data-baseweb="tab"]:nth-of-type(2) span::before {{ content: "\\f02d"; }}
-.stTabs [data-baseweb="tab"]:nth-of-type(3) p::before,
-.stTabs [data-baseweb="tab"]:nth-of-type(3) span::before {{ content: "\\f002"; }}
-.stTabs [data-baseweb="tab"]:nth-of-type(4) p::before,
-.stTabs [data-baseweb="tab"]:nth-of-type(4) span::before {{ content: "\\f19c"; }}
-.stTabs [data-baseweb="tab"]:nth-of-type(5) p::before,
-.stTabs [data-baseweb="tab"]:nth-of-type(5) span::before {{ content: "\\f669"; }}
-.stTabs [data-baseweb="tab"]:nth-of-type(6) p::before,
-.stTabs [data-baseweb="tab"]:nth-of-type(6) span::before {{ content: "\\f03e"; }}
-.stTabs [data-baseweb="tab"]:nth-of-type(7) p::before,
-.stTabs [data-baseweb="tab"]:nth-of-type(7) span::before {{ content: "\\f57d"; }}
-.stTabs [data-baseweb="tab"]:nth-of-type(8) p::before,
-.stTabs [data-baseweb="tab"]:nth-of-type(8) span::before {{ content: "\\f303"; }}
-.stTabs [data-baseweb="tab"]:nth-of-type(9) p::before,
-.stTabs [data-baseweb="tab"]:nth-of-type(9) span::before {{ content: "\\f07a"; }}
-.stTabs [data-baseweb="tab"]:nth-of-type(10) p::before,
-.stTabs [data-baseweb="tab"]:nth-of-type(10) span::before {{ content: "\\f001"; }}
-.stTabs [data-baseweb="tab"]:nth-of-type(11) p::before,
-.stTabs [data-baseweb="tab"]:nth-of-type(11) span::before {{ content: "\\f013"; }}
-
-{igehely_icon_css}
-{exegezis_icon_css}
 
 .stTabs [data-baseweb="tab-list"] {{
     display: flex !important;
@@ -1780,102 +1845,7 @@ div[data-testid="stForm"] {{
     max-width: 36rem;
 }}
 
-/* ===== Elsődleges főmenü — egységes, kompakt segmented navigáció ===== */
-.tx-mainnav-anchor {{
-    display: none !important;
-    height: 0 !important;
-    margin: 0 !important;
-    padding: 0 !important;
-}}
-
-/* Közös keret: központosított, kompakt szélesség (nem terül szét). */
-.element-container:has(.tx-mainnav-anchor) + [data-testid="stLayoutWrapper"] [data-testid="stHorizontalBlock"] {{
-    gap: 0.25rem !important;
-    margin: 0.4rem auto 1.1rem !important;
-    max-width: 640px !important;
-    align-items: stretch !important;
-    background:
-        linear-gradient(165deg, rgba(255, 252, 247, 0.82), rgba(236, 228, 214, 0.5)) !important;
-    border: 1px solid rgba(186, 158, 122, 0.42) !important;
-    border-radius: 14px !important;
-    padding: 0.3rem !important;
-    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 6px 16px rgba(58, 40, 22, 0.06) !important;
-}}
-
-.element-container:has(.tx-mainnav-anchor) + [data-testid="stLayoutWrapper"] [data-testid="column"] {{
-    display: flex !important;
-}}
-
-.element-container:has(.tx-mainnav-anchor) + [data-testid="stLayoutWrapper"] .stButton {{
-    width: 100% !important;
-}}
-
-/* Szegmens (inaktív) */
-.element-container:has(.tx-mainnav-anchor) + [data-testid="stLayoutWrapper"] .stButton > button {{
-    width: 100% !important;
-    min-height: 48px !important;
-    display: flex !important;
-    flex-direction: row !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 0.4rem !important;
-    padding: 0.5rem 0.7rem !important;
-    border-radius: 10px !important;
-    border: 1px solid transparent !important;
-    background: transparent !important;
-    box-shadow: none !important;
-    color: #5a4a38 !important;
-    transition: background 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease, color 0.16s ease;
-}}
-
-.element-container:has(.tx-mainnav-anchor) + [data-testid="stLayoutWrapper"] .stButton > button p {{
-    margin: 0 !important;
-    font-family: "Inter", "Segoe UI", sans-serif !important;
-    font-weight: 600 !important;
-    font-size: 0.95rem !important;
-    line-height: 1.2 !important;
-    white-space: nowrap !important;
-}}
-
-.element-container:has(.tx-mainnav-anchor) + [data-testid="stLayoutWrapper"] .stButton > button [data-testid="stIconMaterial"] {{
-    font-size: 1.2rem !important;
-    color: #5a7aa8 !important;
-    flex-shrink: 0 !important;
-}}
-
-.element-container:has(.tx-mainnav-anchor) + [data-testid="stLayoutWrapper"] .stButton > button:hover {{
-    background: rgba(255, 252, 247, 0.7) !important;
-    border-color: rgba(186, 158, 122, 0.3) !important;
-}}
-
-/* Aktív szegmens (primary) */
-.element-container:has(.tx-mainnav-anchor) + [data-testid="stLayoutWrapper"] .stButton > button[kind="primary"] {{
-    background:
-        linear-gradient(120deg, rgba(226, 234, 246, 0.98), rgba(255, 250, 242, 0.78)) !important;
-    border: 1px solid rgba(90, 122, 168, 0.45) !important;
-    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.85) inset, 0 3px 9px rgba(52, 72, 98, 0.12) !important;
-    color: #1f334d !important;
-}}
-
-.element-container:has(.tx-mainnav-anchor) + [data-testid="stLayoutWrapper"] .stButton > button[kind="primary"] p {{
-    color: #1f334d !important;
-    font-weight: 650 !important;
-}}
-
-.element-container:has(.tx-mainnav-anchor) + [data-testid="stLayoutWrapper"] .stButton > button:focus-visible {{
-    outline: 2px solid rgba(90, 122, 168, 0.6) !important;
-    outline-offset: 2px !important;
-}}
-
-@media (max-width: 720px) {{
-    .element-container:has(.tx-mainnav-anchor) + [data-testid="stLayoutWrapper"] [data-testid="stHorizontalBlock"] {{
-        max-width: 100% !important;
-    }}
-    .element-container:has(.tx-mainnav-anchor) + [data-testid="stLayoutWrapper"] .stButton > button p {{
-        white-space: normal !important;
-        font-size: 0.85rem !important;
-    }}
-}}
+/* Elsődleges főmenü (tx-mainnav): stílusok a ui_theme.premium_overlay_css-ben. */
 
 /* ===== Műhely lépésnavigáció (stepper) ===== */
 .ws-stepper-anchor {{
@@ -2959,7 +2929,7 @@ div[data-testid="stForm"] {{
 }}
 
 /* Képek a tartalomban sose lógjanak túl — fejléc logó kivétel */
-[data-testid="stMarkdownContainer"] img:not(.main-logo) {{
+[data-testid="stMarkdownContainer"] img:not(.main-logo):not(.textus-logo-image) {{
     max-width: 100%;
     height: auto;
 }}
@@ -2971,13 +2941,33 @@ div[data-testid="stForm"] {{
         padding-right: 1rem !important;
     }}
 
-    .header-grid {{
-        grid-template-columns: 220px 1fr;
-        gap: 1.1rem;
+    .header-grid,
+    .textus-header,
+    .header-grid.textus-header {{
+        grid-template-columns: 1fr !important;
+        gap: 0.8rem !important;
+        justify-items: center !important;
+        text-align: center;
     }}
 
-    .header-logo .main-logo {{
-        width: 190px !important;
+    .header-logo {{
+        width: 112px !important;
+    }}
+
+    .textus-logo-badge {{
+        width: 112px !important;
+        height: 112px !important;
+        flex-basis: 112px !important;
+        padding: 8px !important;
+    }}
+
+    div.header-logo > div.textus-logo-badge > img.textus-logo-image,
+    .textus-logo-badge .textus-logo-image,
+    .textus-logo-badge .main-logo {{
+        width: 100% !important;
+        height: 100% !important;
+        max-width: 94px !important;
+        max-height: 94px !important;
     }}
 
     .main-card {{
@@ -3015,18 +3005,39 @@ div[data-testid="stForm"] {{
         padding: 22px 18px !important;
     }}
 
-    .header-grid {{
+    .header-grid,
+    .textus-header {{
         grid-template-columns: 1fr !important;
         text-align: center;
         gap: 0.8rem !important;
+        justify-items: center;
     }}
 
     .header-logo {{
+        width: 112px;
         justify-content: center;
     }}
 
+    .textus-logo-badge {{
+        width: 112px;
+        height: 112px;
+        flex-basis: 112px;
+        padding: 8px;
+        margin: 0;
+    }}
+
+    .textus-logo-badge .textus-logo-image,
+    .textus-logo-badge .main-logo,
+    .header-logo .textus-logo-image,
     .header-logo .main-logo {{
-        width: 140px !important;
+        width: 100% !important;
+        height: 100% !important;
+        max-width: 94px !important;
+        max-height: 94px !important;
+        transform: none !important;
+        margin: 0 auto !important;
+        left: auto !important;
+        top: auto !important;
     }}
 
     .main-title {{
@@ -3194,8 +3205,21 @@ div[data-testid="stForm"] {{
         padding-right: 0.5rem !important;
     }}
 
-    .header-logo .main-logo {{
-        width: 120px !important;
+    .textus-logo-badge {{
+        width: 112px;
+        height: 112px;
+        flex-basis: 112px;
+        padding: 8px;
+    }}
+
+    .textus-logo-badge .textus-logo-image,
+    .textus-logo-badge .main-logo {{
+        width: 100% !important;
+        height: 100% !important;
+        max-width: 94px !important;
+        max-height: 94px !important;
+        transform: none !important;
+        margin: 0 auto !important;
     }}
 
     .main-title {{
@@ -4277,6 +4301,7 @@ def _cloud_save_project(*, as_new: bool = False, autosave: bool = False) -> None
             st.session_state["current_project_title"] = title
             st.session_state["_pending_project_title_input"] = title
             _mark_project_clean()
+            invalidate_used_passage_cache(st.session_state)
             _set_flash(f"Automatikus mentés: {title}", "info")
             st.rerun()
             return
@@ -4287,6 +4312,7 @@ def _cloud_save_project(*, as_new: bool = False, autosave: bool = False) -> None
             st.session_state["current_project_title"] = title
             st.session_state["_pending_project_title_input"] = title
             _mark_project_clean()
+            invalidate_used_passage_cache(st.session_state)
             _set_flash(f"Új projekt mentve: {title}")
         else:
             updated = update_project(cur_id, owner, title, passage, pdata)
@@ -4299,6 +4325,7 @@ def _cloud_save_project(*, as_new: bool = False, autosave: bool = False) -> None
                 st.session_state["current_project_title"] = title
                 st.session_state["_pending_project_title_input"] = title
                 _mark_project_clean()
+                invalidate_used_passage_cache(st.session_state)
                 _set_flash(f"Mentve: {title}")
         st.session_state["project_delete_confirm_id"] = None
         st.session_state["project_open_confirm_id"] = None
@@ -4465,6 +4492,7 @@ def _render_project_nav_confirms(owner: str | None) -> None:
                 key="project_logout_yes",
             ):
                 st.session_state["project_logout_confirm"] = False
+                invalidate_used_passage_cache(st.session_state)
                 st.logout()
         with l2:
             if st.button("Mégsem", key="project_logout_no"):
@@ -4473,25 +4501,23 @@ def _render_project_nav_confirms(owner: str | None) -> None:
 
 
 def _render_projects_quick_list(owner: str) -> None:
-    """Kompakt projektlista a fejlécsáv „Projektek…” paneljében."""
+    """Kompakt projektlista a Projektek popoverben."""
+    from html import escape
+
     from project_storage import delete_project, get_user_projects
 
     del_pending = st.session_state.get("project_delete_confirm_id")
     if del_pending:
-        del_label = "ezt a projektet"
-        try:
-            for p in get_user_projects(owner):
-                if str(p.get("id")) == str(del_pending):
-                    del_label = (p.get("title") or "").strip() or del_label
-                    break
-        except Exception:
-            pass
-        st.warning(f"Biztosan törlöd: **{del_label}**? Ez nem vonható vissza.")
-        d1, d2 = st.columns(2)
-        with d1:
+        st.warning("Biztosan törlöd ezt a projektet?")
+        with st.container(horizontal=True, gap="small"):
+            if st.button("Mégse", key="bar_project_delete_no", use_container_width=False):
+                st.session_state["project_delete_confirm_id"] = None
+                st.rerun()
             if st.button(
-                "Végleges törlés",
+                "Projekt törlése",
                 key="bar_project_delete_yes",
+                type="primary",
+                use_container_width=False,
             ):
                 try:
                     ok = delete_project(str(del_pending), owner)
@@ -4503,6 +4529,7 @@ def _render_projects_quick_list(owner: str) -> None:
                             st.session_state["current_project_title"] = ""
                             st.session_state["project_saved_fingerprint"] = ""
                         st.session_state["project_delete_confirm_id"] = None
+                        invalidate_used_passage_cache(st.session_state)
                         _set_flash("Projekt törölve.")
                         st.rerun()
                     else:
@@ -4511,19 +4538,32 @@ def _render_projects_quick_list(owner: str) -> None:
                 except Exception as exc:
                     _set_flash(f"Törlési hiba: {exc}", "error")
                     st.rerun()
-        with d2:
-            if st.button("Mégsem", key="bar_project_delete_no"):
-                st.session_state["project_delete_confirm_id"] = None
-                st.rerun()
-
-    try:
-        projects = get_user_projects(owner)
-    except Exception as exc:
-        st.error(f"A projektlista nem tölthető be: {exc}")
         return
 
+    try:
+        with st.spinner("Mentett projektek betöltése…"):
+            projects = get_user_projects(owner)
+    except Exception:
+        st.error("A mentett projekteket most nem sikerült betölteni.")
+        return
+
+    n = len(projects) if isinstance(projects, list) else 0
+    title_bits = ["Mentett projektek"]
+    if n:
+        title_bits.append(f"{n} projekt")
+    st.markdown(
+        f'<div class="tx-project-picker-title">{escape(" · ".join(title_bits))}</div>',
+        unsafe_allow_html=True,
+    )
+
     if not projects:
-        st.caption("Még nincs mentett projekt. Használd a Mentés gombot az első mentéshez.")
+        st.markdown(
+            '<div class="tx-projects-empty">'
+            "<p>Még nincs mentett projekted.</p>"
+            "<p>Az aktuális munkát a <strong>Mentés újként</strong> gombbal mentheted el.</p>"
+            "</div>",
+            unsafe_allow_html=True,
+        )
         return
 
     cur_id = (st.session_state.get("current_project_id") or "").strip()
@@ -4533,29 +4573,46 @@ def _render_projects_quick_list(owner: str) -> None:
         ppassage = (proj.get("passage") or "").strip() or "—"
         pupdated = (proj.get("updated_at") or "")[:19].replace("T", " ")
         is_current = bool(pid and pid == cur_id)
-        st.markdown(
-            f"**{ptitle}**"
-            + (" · *megnyitva*" if is_current else "")
-            + f"  \n{ppassage}"
-            + (f" · {pupdated}" if pupdated else "")
-        )
-        c1, c2, _sp = st.columns([1.2, 1.1, 4])
-        with c1:
-            if st.button(
-                "Megnyitás",
-                key=f"bar_project_open_{pid}",
-                disabled=not pid,
+        row_key = f"project_picker_row_{pid or hash(ptitle) & 0xFFFF}"
+        with st.container(key=row_key, border=True):
+            badge = (
+                '<span class="tx-project-current-badge">Aktuális</span>'
+                if is_current
+                else ""
+            )
+            st.markdown(
+                f'<div class="tx-project-row-name">{escape(ptitle)}{badge}</div>',
+                unsafe_allow_html=True,
+            )
+            meta = escape(ppassage)
+            if pupdated:
+                meta = f"{meta} · {escape(pupdated)}"
+            st.markdown(
+                f'<div class="tx-project-row-meta">{meta}</div>',
+                unsafe_allow_html=True,
+            )
+            with st.container(
+                key=f"project_picker_actions_{pid or row_key}",
+                horizontal=True,
+                gap="small",
             ):
-                _request_open_project(pid)
-        with c2:
-            if st.button(
-                "Törlés",
-                key=f"bar_project_delete_{pid}",
-                disabled=not pid,
-            ):
-                st.session_state["project_delete_confirm_id"] = pid
-                st.session_state["project_open_confirm_id"] = None
-                st.rerun()
+                if not is_current:
+                    if st.button(
+                        "Megnyitás",
+                        key=f"bar_project_open_{pid}",
+                        disabled=not pid,
+                        use_container_width=False,
+                    ):
+                        _request_open_project(pid)
+                if st.button(
+                    "Törlés",
+                    key=f"bar_project_delete_{pid}",
+                    disabled=not pid,
+                    use_container_width=False,
+                ):
+                    st.session_state["project_delete_confirm_id"] = pid
+                    st.session_state["project_open_confirm_id"] = None
+                    st.rerun()
 
 
 def _apply_pending_project_title_input() -> None:
@@ -4573,115 +4630,126 @@ def _apply_pending_project_title_input() -> None:
         )
 
 
-def _render_project_status_bar() -> None:
-    """Állandó projekt-sáv a fejléc után — mentés, dirty, projektek."""
-    owner = _owner_sub()
-    st.markdown("##### Projekt")
-    if not owner:
-        if not _auth_secrets_configured():
-            st.caption(
-                "Vendég mód · a felhő-bejelentkezéshez a Streamlit Secrets-ben "
-                "be kell állítani az `[auth]` blokkot (és a Google OAuth redirect URI-t)."
-            )
-        else:
-            st.caption(
-                "Vendég mód · a felhőmentéshez jelentkezz be Google-fiókkal. "
-                "A TEXTUS minden funkciója így is használható."
-            )
-            if st.button("Bejelentkezés Google-fiókkal", key="bar_google_login"):
-                st.login()
-        return
-
+def _project_status_meta() -> tuple[str, str, str]:
+    """(label, status_label, status_kind) a project toolbarhoz."""
     cur_id = (st.session_state.get("current_project_id") or "").strip()
     cur_title = (st.session_state.get("current_project_title") or "").strip()
-    passage = (st.session_state.get("last_igehely") or "").strip()
+    title_input = (st.session_state.get("project_title_input") or "").strip()
+    label = title_input or cur_title or "Névtelen projekt"
     dirty = _is_project_dirty()
+    if not cur_id:
+        return label, "Ideiglenes", "temp"
+    if dirty:
+        return label, "Nem mentett változások", "dirty"
+    return label, "Mentve", "saved"
 
-    if cur_id:
-        status = "Nem mentett változások" if dirty else "Mentve"
-        label = cur_title or "Névtelen projekt"
-        render_status_badge(
-            "Munkaközben" if dirty else "Szinkronban",
-            tone="warning" if dirty else "success",
-        )
-        if passage and passage not in label:
-            st.caption(
-                f"**{label}** · {passage} · {status} · autosave ~3 perc"
+
+def _render_project_status_bar() -> None:
+    """Egyetlen unified app toolbar (+ opcionális vendég sáv secrets hiányánál)."""
+    owner = _owner_sub()
+    logged_in = bool(owner)
+    auth_ok = _auth_secrets_configured()
+
+    user_label = ""
+    if logged_in:
+        try:
+            user_label = (
+                (st.user.get("name") or "").strip()
+                or (st.user.get("email") or "").strip()
+                or "Bejelentkezett felhasználó"
             )
-        else:
-            st.caption(f"**{label}** · {status} · autosave ~3 perc")
-    else:
-        status = "Nem mentett változások" if dirty else "Nincs megnyitott projekt"
-        render_status_badge(
-            "Ideiglenes munkamenet" if dirty else "Nincs aktív projekt",
-            tone="neutral",
-        )
-        st.caption(
-            f"{status} · az autosave csak megnyitott / elmentett projektnél fut"
+        except Exception:
+            user_label = "Bejelentkezett felhasználó"
+
+    # Vendég sáv csak akkor, ha az auth nincs beállítva (secrets hiány).
+    if not logged_in and not auth_ok:
+        st.markdown(
+            '<div class="tx-guest-strip">Vendég mód · a felhő-bejelentkezéshez '
+            "a Streamlit Secrets-ben be kell állítani az <code>[auth]</code> blokkot."
+            "</div>",
+            unsafe_allow_html=True,
         )
 
     _apply_pending_project_title_input()
-    st.text_input(
-        "Projekt címe",
-        placeholder="Pl. Jn 3,16 — húsvéti igehirdetés",
-        key="project_title_input",
-        help="A következő mentéskor (kézi vagy automatikus) ez a cím kerül a felhőbe.",
-    )
+    label, status_label, status_kind = _project_status_meta()
+    editing = bool(st.session_state.get("editing_project_title"))
 
-    # Tömör eszköztár: keskeny gomboszlopok + trailing spacer (ne full-width stretch)
-    render_project_toolbar_anchor()
-    save_label = "Mentés" if cur_id else "Mentés újként"
-    toolbar_items: list[tuple[str, str, bool]] = [
-        ("bar_project_save", save_label, True),
-    ]
-    if cur_id:
-        toolbar_items.append(("bar_project_save_as_new", "Mentés újként", False))
-    toggle = (
-        "Projektek elrejtése"
-        if st.session_state.get("show_projects_panel")
-        else "Projektek…"
-    )
-    toolbar_items.append(("bar_projects_toggle", toggle, False))
-    toolbar_items.append(("bar_new_work", "Új munka", False))
-
-    # Tartalomhoz igazodó keskeny oszlopok + trailing spacer (CSS auto-width).
-    n = len(toolbar_items)
-    ratios: list[float] = [1.0] * n + [max(6.0, 10.0 - n)]
-    cols = st.columns(ratios, gap="small")
-    for col, (btn_key, btn_label, is_primary) in zip(cols, toolbar_items):
-        with col:
-            clicked = st.button(
-                btn_label,
-                key=btn_key,
-                type="primary" if is_primary else "secondary",
+    def _projects_body() -> None:
+        if not owner:
+            st.markdown(
+                '<div class="tx-projects-empty">'
+                "<p>A felhőprojektekhez jelentkezz be.</p>"
+                "<p>Vendégként a munka a böngészőben marad.</p>"
+                "</div>",
+                unsafe_allow_html=True,
             )
-            if not clicked:
-                continue
-            if btn_key == "bar_project_save":
-                _cloud_save_project(as_new=not bool(cur_id))
-            elif btn_key == "bar_project_save_as_new":
-                _cloud_save_project(as_new=True)
-            elif btn_key == "bar_projects_toggle":
-                st.session_state["show_projects_panel"] = not bool(
-                    st.session_state.get("show_projects_panel")
-                )
-                st.rerun()
-            elif btn_key == "bar_new_work":
-                if _is_project_dirty() or _workspace_has_substantive_content():
-                    st.session_state["project_new_work_confirm"] = True
-                    st.session_state["project_logout_confirm"] = False
-                    st.session_state["project_open_confirm_id"] = None
-                    st.rerun()
-                else:
-                    _start_new_work()
+            return
+        _render_projects_quick_list(owner)
+
+    toolbar_action = render_app_toolbar(
+        is_logged_in=logged_in,
+        auth_configured=auth_ok,
+        user_label=user_label,
+        home_active=(
+            st.session_state.get("ui_mode") == "quick"
+            and st.session_state.get("shell_panel") is None
+        ),
+        has_active_project=bool(
+            (st.session_state.get("current_project_id") or "").strip()
+        ),
+        project_label=label,
+        status_label=status_label,
+        status_kind=status_kind,
+        editing_title=editing,
+        projects_renderer=_projects_body,
+    )
+    if toolbar_action == "home":
+        # Főoldal: quick nézet, projekt állapot megmarad
+        st.session_state["shell_panel"] = None
+        st.session_state["ui_mode"] = "quick"
+        st.session_state["editing_project_title"] = False
+        st.rerun()
+    elif toolbar_action == "login":
+        st.login()
+    elif toolbar_action == "settings":
+        st.session_state["shell_panel"] = "settings"
+        st.rerun()
+    elif toolbar_action == "logout":
+        if _is_project_dirty():
+            st.session_state["project_logout_confirm"] = True
+            st.session_state["project_new_work_confirm"] = False
+            st.session_state["project_open_confirm_id"] = None
+            st.rerun()
+        else:
+            invalidate_used_passage_cache(st.session_state)
+            st.logout()
+    elif toolbar_action == "edit_title":
+        st.session_state["editing_project_title"] = True
+        st.rerun()
+    elif toolbar_action == "done_edit":
+        st.session_state["editing_project_title"] = False
+        # Cím azonnal a tartós mezőbe (mentés előtt is látszódjon)
+        new_title = (st.session_state.get("project_title_input") or "").strip()
+        if new_title:
+            st.session_state["current_project_title"] = new_title
+        st.rerun()
+    elif toolbar_action == "save":
+        _cloud_save_project(as_new=False)
+    elif toolbar_action == "save_as_new":
+        _cloud_save_project(as_new=True)
+    elif toolbar_action == "new_work":
+        if _is_project_dirty() or _workspace_has_substantive_content():
+            st.session_state["project_new_work_confirm"] = True
+            st.session_state["project_logout_confirm"] = False
+            st.session_state["project_open_confirm_id"] = None
+            st.rerun()
+        else:
+            _start_new_work()
 
     _render_project_nav_confirms(owner)
 
-    if st.session_state.get("show_projects_panel"):
-        with st.expander("Mentett projektek", expanded=True):
-            _render_projects_quick_list(owner)
-
     # Autosave: fragment 3 percenként + azonnali ellenőrzés interakciókor
+    cur_id = (st.session_state.get("current_project_id") or "").strip()
     if cur_id:
         _maybe_autosave_project()
         _project_autosave_fragment()
@@ -4881,6 +4949,8 @@ defaults = {
     "project_logout_confirm": False,
     "project_new_work_confirm": False,
     "show_projects_panel": False,
+    "editing_project_title": False,
+    "shell_panel": None,
     "project_saved_fingerprint": "",
     "_project_last_save_ts": 0.0,
     "_flash_message": None,
@@ -4891,6 +4961,8 @@ defaults = {
     "ui_mode": "quick",
     "tw_active_section": "Igehely, alkalom és szövegkörnyezet",
     "sw_active_section": "Az igehirdetés fő gondolata",
+    "passage_content_stale": False,
+    "passage_stale_from_reference": "",
 }
 
 for key, value in defaults.items():
@@ -4900,6 +4972,7 @@ for key, value in defaults.items():
 # Textus 2.0 műhelyadat — mindig friss példány / érvényes struktúra
 ensure_text_workshop_state(st.session_state)
 ensure_sermon_workshop_state(st.session_state)
+ensure_passage_search_state(st.session_state)
 
 # Beépített módban a session kulcs másolatát szinkronban tartjuk a
 # Streamlit Secrets / env aktuális értékével (Cloud Secrets frissítés,
@@ -6236,22 +6309,30 @@ def render_feedback_section() -> None:
 
 if logo_file:
     logo_b64 = file_to_base64(logo_file)
-    if logo_file.endswith(".png"):
-        logo_mime = "image/png"
-    elif logo_file.endswith(".webp"):
-        logo_mime = "image/webp"
-    elif logo_file.endswith(".svg"):
-        logo_mime = "image/svg+xml"
-    else:
-        logo_mime = "image/jpeg"
-    logo_html = f'<img src="data:{logo_mime};base64,{logo_b64}" class="main-logo" alt="{APP_NAME}" />'
+    # Mindig PNG data URI — az alfa-csatorna megőrzése miatt.
+    logo_mime = "image/png" if str(logo_file).lower().endswith(".png") else (
+        "image/webp" if str(logo_file).lower().endswith(".webp") else (
+            "image/svg+xml" if str(logo_file).lower().endswith(".svg") else "image/png"
+        )
+    )
+    logo_html = (
+        '<div class="textus-logo-badge">'
+        f'<img src="data:{logo_mime};base64,{logo_b64}" '
+        f'class="textus-logo-image main-logo" alt="{APP_NAME}" '
+        'decoding="async" />'
+        "</div>"
+    )
 else:
-    logo_html = f'<div class="main-logo-fallback">{APP_NAME[0]}</div>'
+    logo_html = (
+        '<div class="textus-logo-badge">'
+        f'<div class="main-logo-fallback">{APP_NAME[0]}</div>'
+        "</div>"
+    )
 
 st.markdown(
     f"""
 <div class="main-card header-card">
-    <div class="header-grid">
+    <div class="header-grid textus-header">
         <div class="header-logo">{logo_html}</div>
         <div class="header-text">
             <div class="main-title">{APP_NAME}</div>
@@ -6271,7 +6352,10 @@ if not background_file:
     st.warning("A háttérkép nem található. Neve legyen background.jpg, background.jpeg, background.png vagy background.webp, és ugyanabban a mappában legyen, mint az app.py.")
 
 if not logo_file:
-    st.info("Logó nem található. Neve legyen textus_logo.png, logo.png, logo.jpg vagy logo.webp, és ugyanabban a mappában legyen, mint az app.py.")
+    st.info(
+        "Logó nem található. Neve legyen Textus_logo_transparent.png "
+        "(vagy textus_logo.png), és ugyanabban a mappában legyen, mint az app.py."
+    )
 
 # Flash (mentés/megnyitás utáni üzenet — túléli az st.rerun()-t)
 _render_flash_message()
@@ -6331,12 +6415,26 @@ _UI_MODE_LABELS = {
 def render_igehely_panel() -> None:
     """Igehely, alkalom, stílus, saját szempont + Áttekintés (bibliai háttér)."""
     apply_bible_text_resync_if_needed(st.session_state)
+    # Widget létrehozása előtt: igehely-keresésből érkező kiválasztás
+    apply_pending_passage_search_before_widget()
     st.header("Igeszakasz megadása")
 
     st.text_input(
         "Melyik igeszakaszt elemezzük?",
         placeholder="Pl. Jn 3,16–21",
         key="igehely_input",
+    )
+
+    _ps_owner = _owner_sub()
+    _ps_fetch = None
+    if _ps_owner:
+        from project_storage import get_user_projects as _ps_get_user_projects
+
+        _ps_fetch = _ps_get_user_projects
+    render_passage_search_expander(
+        generate_fn=generate_text,
+        owner_sub=_ps_owner,
+        fetch_projects_fn=_ps_fetch,
     )
 
     render_bible_text_editor()
@@ -6511,12 +6609,9 @@ def render_original_text_panel() -> None:
 def render_textus_workshop_shell() -> None:
     """Textusműhely-keret: elemző szakaszok + kézi fő gondolat / felismerések."""
     render_page_intro(
-        eyebrow="Munkafolyamat",
         title="Textusműhely",
-        body=(
-            "A bibliai szöveg megértésétől a továbbvihető felismerésekig. "
-            "A lépések rugalmasan használhatók, a saját műhelyritmusod szerint."
-        ),
+        body="A bibliai szöveg feltárása a textus fő gondolatáig.",
+        workspace_scope=True,
     )
 
     if st.session_state.get("tw_active_section") not in _TW_SECTION_OPTIONS:
@@ -6582,7 +6677,429 @@ def render_textus_workshop_shell() -> None:
 if st.session_state.get("ui_mode") not in ("quick", "workshop", "sermon_workshop"):
     st.session_state["ui_mode"] = "quick"
 
-render_primary_view_switcher(
+def _render_settings_panel() -> None:
+    """Beállítások panel — fiókmenüből / shell_panel."""
+    # ─── 0) Opcionális Google-bejelentkezés (nem kapu — vendégként is teljes app) ──
+    st.subheader("Fiók")
+    if _is_logged_in():
+        try:
+            _auth_name = (st.user.get("name") or "").strip()
+            _auth_email = (st.user.get("email") or "").strip()
+        except Exception:
+            _auth_name, _auth_email = "", ""
+        _auth_label = _auth_name or _auth_email or "Bejelentkezett felhasználó"
+        st.caption(f"Bejelentkezve: {_auth_label}")
+        if st.button("Kijelentkezés", key="settings_google_logout"):
+            if _is_project_dirty():
+                st.session_state["project_logout_confirm"] = True
+                st.session_state["project_new_work_confirm"] = False
+                st.session_state["project_open_confirm_id"] = None
+                st.rerun()
+            else:
+                invalidate_used_passage_cache(st.session_state)
+                st.logout()
+        if st.session_state.get("project_logout_confirm"):
+            st.caption(
+                "A kijelentkezés megerősítése a lap tetején, a Projekt sávnál jelenik meg."
+            )
+    elif not _auth_secrets_configured():
+        st.info(
+            "A Google-bejelentkezéshez add meg az `[auth]` beállításokat a Streamlit Cloud "
+            "**Secrets** felületén (`client_id`, `client_secret`, `cookie_secret`, "
+            "`redirect_uri` = `https://textus.streamlit.app/oauth2callback`). "
+            "Vendégként az app továbbra is használható."
+        )
+    else:
+        st.caption(
+            "A bejelentkezés opcionális. Vendégként is teljes mértékben használhatod a TEXTUS-t; "
+            "a Google-fiók csak a személyes azonosítást szolgálja."
+        )
+        if st.button("Bejelentkezés Google-fiókkal", key="settings_google_login"):
+            st.login()
+
+    # ─── 0b) Saját munkáim — részletes lista; napi mentés a fejlécsávon ──
+    st.subheader("Saját munkáim")
+    _owner = _owner_sub()
+    if not _owner:
+        st.info(
+            "A felhőbe mentéshez jelentkezz be Google-fiókkal. "
+            "Vendégként a TEXTUS minden funkciója továbbra is használható; "
+            "adatbázisba semmi nem kerül."
+        )
+    else:
+        from project_storage import get_user_projects
+
+        st.caption(
+            "A mentés, a **projektcím** és a projektváltás a lap tetején lévő **Projekt** sávon érhető el. "
+            "Megnyitott projektnél kb. 3 percenként automatikus mentés is fut, ha van nem mentett változás."
+        )
+
+        _cur_id = (st.session_state.get("current_project_id") or "").strip()
+        _cur_title = (st.session_state.get("current_project_title") or "").strip()
+        if _cur_id:
+            st.caption(f"Megnyitott felhőprojekt: **{_cur_title or 'Névtelen projekt'}**")
+        else:
+            st.caption("Nincs megnyitott felhőprojekt.")
+
+        st.markdown("##### Mentett projektek")
+        st.caption(
+            "Megnyitás és törlés: ugyanez a lista a lap tetején a **Projektek…** gombbal is elérhető."
+        )
+        try:
+            _projects = get_user_projects(_owner)
+        except Exception as _exc:
+            _projects = []
+            st.error(f"A projektlista nem tölthető be: {_exc}")
+
+        if not _projects:
+            st.caption("Még nincs mentett projekt. Használd a lap tetején a Mentés gombot.")
+        else:
+            for _proj in _projects:
+                _pid = str(_proj.get("id") or "")
+                _ptitle = (_proj.get("title") or "").strip() or "Névtelen projekt"
+                _ppassage = (_proj.get("passage") or "").strip() or "—"
+                _pupdated = (_proj.get("updated_at") or "")[:19].replace("T", " ")
+                _is_current = _pid and _pid == _cur_id
+                st.markdown(
+                    f"**{_ptitle}**"
+                    + (" · *megnyitva*" if _is_current else "")
+                    + f"  \n{_ppassage}"
+                    + (f" · {_pupdated}" if _pupdated else "")
+                )
+                _lc1, _lc2 = st.columns(2)
+                with _lc1:
+                    if st.button(
+                        "Megnyitás",
+                        key=f"settings_project_open_{_pid}",
+                        use_container_width=True,
+                        disabled=not _pid,
+                    ):
+                        _request_open_project(_pid)
+                with _lc2:
+                    if st.button(
+                        "Törlés",
+                        key=f"settings_project_delete_{_pid}",
+                        use_container_width=True,
+                        disabled=not _pid,
+                    ):
+                        st.session_state["project_delete_confirm_id"] = _pid
+                        st.session_state["project_open_confirm_id"] = None
+                        st.session_state["show_projects_panel"] = True
+                        st.rerun()
+
+    st.warning("Ha az API kulcs valaha megjelenik hibaüzenetben vagy képernyőképen, generálj újat a Google AI Studio-ban.")
+
+    # ─── 1) Beépített közös kulcs státusza ────────────────────────────
+    if BUILTIN_API_KEY:
+        if st.session_state.get("using_builtin_key", False):
+            st.success(
+                "✓ **Beépített közös kulcs aktív.** A TEXTUS azonnal használható, "
+                "nem kell saját kulcsot megadnod. Ha szeretnél, lent megadhatsz "
+                "saját kulcsot — az felülírja a közöset."
+            )
+        else:
+            st.info(
+                "🔑 **Saját API kulcsot használsz.** Ha szeretnéd, visszaválthatsz "
+                "a beépített közös kulcsra."
+            )
+            if st.button("Vissza a beépített közös kulcsra", key="restore_builtin_key"):
+                st.session_state["api_key"] = _load_builtin_api_key().strip()
+                st.session_state["using_builtin_key"] = True
+                st.session_state["user_model_choice"] = OWN_KEY_MODEL_AUTO
+                st.success("Visszaállítva a közös kulcsra.")
+                st.rerun()
+    else:
+        st.info(
+            "Még nincs beépített közös kulcs ezen a példányon. "
+            "Add meg a saját Gemini API kulcsodat lent a használathoz."
+        )
+
+    # ─── 2) Saját kulcs megadása (felülírja a beépítettet) ────────────
+    using_builtin = st.session_state.get("using_builtin_key", False)
+    api_input = st.text_input(
+        "Saját Gemini API kulcs (opcionális, felülírja a beépítettet)" if BUILTIN_API_KEY else "Gemini API kulcs",
+        type="password",
+        value="" if using_builtin else st.session_state["api_key"],
+        placeholder="Hagyd üresen a közös kulcs használatához…" if BUILTIN_API_KEY else "Illeszd be a Google AI Studio-ban generált kulcsot",
+        key="api_key_input",
+    )
+
+    if api_input and api_input.strip() and api_input.strip() != st.session_state.get("api_key", ""):
+        new_key = api_input.strip()
+        st.session_state["api_key"] = new_key
+        st.session_state["using_builtin_key"] = (new_key == _load_builtin_api_key().strip())
+        if st.session_state["using_builtin_key"]:
+            st.session_state["user_model_choice"] = OWN_KEY_MODEL_AUTO
+            st.success("Visszaállítva a közös kulcsra.")
+        else:
+            st.success("Saját API kulcs mentve.")
+
+    # ─── Modell — közös kulcs: rögzített; saját kulcs: választható ───
+    using_own_key = _is_using_own_api_key()
+
+    if using_own_key:
+        if st.session_state.get("user_model_choice") not in OWN_KEY_MODEL_OPTIONS:
+            st.session_state["user_model_choice"] = OWN_KEY_MODEL_AUTO
+        st.selectbox(
+            "Modell (saját kulccsal)",
+            options=list(OWN_KEY_MODEL_OPTIONS.keys()),
+            format_func=lambda model_id: OWN_KEY_MODEL_OPTIONS[model_id],
+            help=(
+                "Alapértelmezett: a fül szerint választ (Flash a mély szekciókhoz, "
+                "Flash Lite az összegzőkhöz). Ha konkrét modellt választasz, "
+                "az minden API-hívásra érvényes. A költség a saját Google AI Studio "
+                "számládon jelenik meg."
+            ),
+            key="user_model_choice",
+        )
+        choice = st.session_state.get("user_model_choice", OWN_KEY_MODEL_AUTO)
+        if choice == OWN_KEY_MODEL_AUTO:
+            model_summary = (
+                f"**Alapértelmezett** — **{LOCKED_MODEL_DISPLAY}** "
+                f"vagy **Gemini 2.5 Flash Lite** (fül szerint)"
+            )
+            pill = "saját kulcs · alap"
+        else:
+            display = OWN_KEY_MODEL_OPTIONS.get(choice, choice)
+            model_summary = f"**{display}** (`{choice}`) — minden hívásra"
+            pill = "saját kulcs · egyedi"
+    else:
+        st.session_state["user_model_choice"] = OWN_KEY_MODEL_AUTO
+        model_summary = (
+            f"**{LOCKED_MODEL_DISPLAY}** (`{LOCKED_MODEL}`) "
+            f"vagy **Gemini 2.5 Flash Lite** (`{GEMINI_MODEL_FLASH_LITE}`)"
+        )
+        pill = "közös kulcs · rögzített"
+
+    st.markdown(
+        f"""
+    <div class="locked-model-row">
+    <span class="locked-model-label">Gemini modell</span>
+    <span class="locked-model-value">{model_summary}
+        <span class="locked-model-pill">{pill}</span>
+    </span>
+    </div>
+    """,
+        unsafe_allow_html=True,
+    )
+    if using_own_key:
+        st.caption(
+            "Saját API kulccsal választhatsz modellt. Az *Alapértelmezett* ugyanazt csinálja, "
+            "mint a közös kulcsnál. A Gemini Pro előfizetés (app) és az API számlázás külön."
+        )
+    else:
+        st.caption(
+            f"A közös kulcsnál a backend a fül szerint választ — **{LOCKED_MODEL_DISPLAY}** "
+            f"(`{LOCKED_MODEL}`) vagy **Gemini 2.5 Flash Lite** (`{GEMINI_MODEL_FLASH_LITE}`); "
+            "nincs kézi modellválasztás. A *Kreativitás* beállítás minden hívásra érvényes."
+        )
+
+    st.session_state["temperature"] = st.slider(
+        "Kreativitás",
+        0.0,
+        1.0,
+        float(st.session_state.get("temperature", 0.3)),
+        0.1
+    )
+
+    st.info(
+        "**Válaszhossz:** nincs alkalmazásszintű kimeneti tokenlimit beállítva. "
+        "A promptok tömör, strukturált, de a fontos információkat nem kihagyó válaszokat kérnek. "
+        "A *Kreativitás* csúszka továbbra is érvényes.",
+        icon="📝",
+    )
+
+    with st.expander("Aktív közös alap prompt"):
+        st.text_area(
+            "Ez kerül minden AI-hívás elé",
+            BASE_SYSTEM_PROMPT,
+            height=360,
+            disabled=True
+        )
+
+    # ─── Cache & cooldown ────────────────────────────────────────────
+    st.divider()
+    st.subheader("Cache és cooldown")
+    st.caption(
+        f"Globális cooldown két API-hívás közt: **{GEMINI_COOLDOWN_S} mp**. "
+        "Ha túl gyorsan kattintasz, az alkalmazás megvár, és figyelmeztet."
+    )
+
+    cache_col1, cache_col2 = st.columns([2, 1])
+    with cache_col1:
+        st.checkbox(
+            "Cache azonos kérésekre (igehely + tab + beállítások)",
+            value=bool(st.session_state.get("enable_cache", True)),
+            key="enable_cache",
+            help=(
+                "Ha be van kapcsolva, ugyanaz a kérés (azonos prompt és "
+                "kreativitás-beállítás) nem indít új API-hívást — a korábbi "
+                "választ adja vissza azonnal. Csak az aktuális munkamenetre érvényes."
+            ),
+        )
+    with cache_col2:
+        cache_size = len(st.session_state.get("_call_cache", {}))
+        st.metric("Cache-elt válaszok", cache_size)
+
+    if st.button("Cache törlése", key="clear_cache_btn", use_container_width=True):
+        st.session_state["_call_cache"] = {}
+        st.success("Cache kiürítve.")
+        st.rerun()
+
+    # ─── Debug log ───────────────────────────────────────────────────
+    debug_log = st.session_state.get("_debug_log", [])
+    with st.expander(
+        f"Gemini debug log — utolsó {len(debug_log)} bejegyzés",
+        expanded=False,
+    ):
+        st.caption(
+            "Minden Gemini-hívás előtt és után egy bejegyzés készül. "
+            "Egyetlen gombnyomás max. **1 logikai hívást** indít; ha "
+            "`attempt > 1` látható, az automatikus 429-retry történt."
+        )
+        _mid = st.session_state.get("model_name", LOCKED_MODEL)
+        _mdisp = GEMINI_MODEL_DISPLAY_BY_ID.get(_mid, _mid)
+        st.caption(
+            f"Session: `{_get_session_id()}` · "
+            f"Kulcs: `{_mask_api_key(_resolve_api_key())}` "
+            f"({_api_key_source_label()}) · "
+            f"Utolsó hívás modellje: **{_mdisp}** (`{_mid}`)"
+        )
+        if not debug_log:
+            st.info("Még nincs API-hívás ebben a munkamenetben.")
+        else:
+            rows = []
+            for e in reversed(debug_log[-30:]):
+                rows.append({
+                    "Idő": e.get("ts", ""),
+                    "Session": e.get("session_id", ""),
+                    "Kulcs": e.get("key_masked", ""),
+                    "Forrás": e.get("key_source", ""),
+                    "Tab": e.get("tab", ""),
+                    "Próba": e.get("attempt", ""),
+                    "Státusz": e.get("status", ""),
+                    "Modell": e.get("model", ""),
+                    "Prompt (kar.)": e.get("prompt_chars", ""),
+                    "Válasz (kar.)": e.get("response_chars", ""),
+                    "Latency (ms)": e.get("latency_ms", ""),
+                    "Auth": e.get("auth_ok", ""),
+                    "Hibaüzenet": e.get("error_message", ""),
+                })
+            st.dataframe(rows, hide_index=True, use_container_width=True)
+
+        if st.button("Debug log ürítése", key="clear_debug_log_btn"):
+            st.session_state["_debug_log"] = []
+            st.rerun()
+
+    if st.button("API kapcsolat tesztelése"):
+        test = generate_text(
+            "Válaszolj röviden magyarul: működik a kapcsolat?",
+            tab_label="API teszt",
+            use_cache=False,
+        )
+        if test.startswith("⚠️") or test.startswith("Hiba") or test.startswith("Nincs"):
+            st.error(test)
+        else:
+            st.success("Kapcsolat sikeres.")
+            st.write(test)
+
+    st.divider()
+    st.subheader("Munkamenet mentése és betöltése")
+    st.caption(
+        "A teljes műhely-állapot (igehely, elemzések, finomító beszélgetések, "
+        "vázlatkosár, vázlat, énekek) egyetlen fájlba menthető és visszatölthető. "
+        "Hasznos, ha napokon át dolgozol egy prédikáción, vagy másik gépen folytatnád."
+    )
+
+    _ws_payload = serialize_workspace()
+    _ws_verse = (st.session_state.get("last_igehely") or "munka").replace(" ", "_").replace("/", "-").replace(",", "").replace(":", "-")
+    _ws_filename = f"textus-munka-{_ws_verse}-{datetime.now().strftime('%Y%m%d-%H%M')}.json"
+
+    col_save, col_load = st.columns(2)
+    with col_save:
+        st.download_button(
+            label="Munkamenet mentése (.json)",
+            data=_ws_payload,
+            file_name=_ws_filename,
+            mime="application/json",
+            use_container_width=True,
+        )
+
+    with col_load:
+        uploaded_ws = st.file_uploader(
+            "Korábbi munkamenet betöltése",
+            type=["json"],
+            key="ws_uploader",
+            label_visibility="collapsed",
+        )
+        if uploaded_ws is not None:
+            ok, info = deserialize_workspace(uploaded_ws.read())
+            if ok:
+                st.success(f"Munkamenet betöltve. (Mentés időpontja: {info})")
+                st.rerun()
+            else:
+                st.error(info)
+
+    st.divider()
+    st.subheader("Munkamenet törlése")
+    st.caption("Csak a generált tartalmat, a kosarat és a beszélgetéseket törli — az API kulcsot és a modellbeállításokat megőrzi.")
+    st.markdown('<div class="btn-danger-marker"></div>', unsafe_allow_html=True)
+    if st.button("Munkamenet törlése"):
+        _clear_workspace_content()
+        _set_flash("A munkamenet törölve.", "info")
+        st.rerun()
+
+    st.divider()
+    st.subheader("Hogyan igényelhetsz saját Gemini API kulcsot?")
+    st.caption("Lépésről lépésre — a folyamat teljesen ingyenes, és csak egy Google-fiók (Gmail cím) szükséges hozzá.")
+
+    st.markdown(
+        """
+    <div class="result-box api-guide-box">
+
+    A saját kulcs használata biztosítja, hogy a **TEXTUS** hosszú távon is
+    stabilan és korlátlanul rendelkezésedre álljon.
+
+    1. **Lépj be a Google AI Studio oldalára.**
+       Kattints ide: <a href="https://aistudio.google.com/" target="_blank" rel="noopener">aistudio.google.com</a> — jelentkezz be a megszokott Google-fiókoddal.
+
+    2. **Fogadd el a feltételeket.**
+       Az első belépéskor el kell fogadnod a felhasználási feltételeket.
+
+    3. **Kulcs létrehozása.**
+       A bal oldali menüben válaszd a **„Get API key"** gombot.
+
+    4. **Új projekt indítása.**
+       Kattints a **„Create API key in new project"** feliratú gombra.
+
+    5. **Másold ki a kulcsot.**
+       A rendszer legenerál egy hosszú karaktersort — ez az API kulcsod.
+       Kattints a **Copy** gombra.
+
+    6. **Illeszd be a TEXTUS-ba.**
+       Gyere vissza ide a **Beállításokhoz**, és illeszd be a kulcsot
+       a fenti **„Gemini API kulcs"** mezőbe.
+
+    </div>
+    """,
+        unsafe_allow_html=True,
+    )
+
+    st.divider()
+    st.caption(f"{APP_NAME} v{APP_VERSION} · {APP_SUBTITLE} · {APP_TAGLINE}")
+
+
+# Beállítások panel (fiókmenüből) — projekt/nézet megmarad
+if st.session_state.get("shell_panel") == "settings":
+    render_page_intro(
+        eyebrow="Fiók",
+        title="Beállítások",
+        body="API-kulcs, munkamenet és fiókbeállítások. A Főoldal gombbal visszatérhetsz a munkához.",
+    )
+    _render_settings_panel()
+    st.stop()
+
+render_workspace_switcher(
     options=["quick", "workshop", "sermon_workshop"],
     labels=_UI_MODE_LABELS,
     key="ui_mode",
@@ -6607,29 +7124,79 @@ if st.session_state.get("ui_mode") == "sermon_workshop":
 _apply_pending_project_widget_sync()
 
 render_page_intro(
-    eyebrow="Elsődleges nézet",
     title="Gyorseszközök",
-    body=(
-        "A leggyakrabban használt eszközök egy helyen. "
-        "Válassz egy kártyát, és folytasd a munkát az aktuális projekttel."
-    ),
+    body="Válassz egy eszközt, és folytasd a munkát az aktuális projekttel.",
+    workspace_scope=True,
+)
+
+st.markdown(
+    '<div class="tx-quick-tools-anchor" aria-hidden="true"></div>',
+    unsafe_allow_html=True,
 )
 
 tabs = st.tabs([
-    "Igehely",
-    "Eredeti szöveg tanulmányozása",
-    "Exegézis",
-    "Kortörténet",
-    "Teológia",
-    "Illusztrációk",
-    "Aktualizálás",
-    "Vázlat",
-    "Vázlatkosár",
-    "Énekajánló",
-    "📅 Igehirdetési sorozat tervező",
-    "📖 Útmutatás",
-    "⚙️ Beállítások",
+    ":material/menu_book: Igehely",
+    ":material/translate: Eredeti szöveg tanulmányozása",
+    ":material/psychology: Exegézis",
+    ":material/history_edu: Kortörténet",
+    ":material/account_balance: Teológia",
+    ":material/image: Illusztrációk",
+    ":material/lightbulb: Aktualizálás",
+    ":material/format_list_bulleted: Vázlat",
+    ":material/shopping_basket: Vázlatkosár",
+    ":material/music_note: Énekajánló",
+    ":material/calendar_month: Igehirdetési sorozat tervező",
+    ":material/help: Útmutatás",
 ])
+
+components.html(
+    """
+<script>
+(function () {
+  try {
+    var pdoc = window.parent.document;
+    function applyQuickToolsGrid(list) {
+      if (!list) return;
+      var w = pdoc.defaultView ? pdoc.defaultView.innerWidth : 1200;
+      var cols = 'repeat(4, minmax(0, 1fr))';
+      if (w <= 390) cols = '1fr';
+      else if (w <= 1024) cols = 'repeat(2, minmax(0, 1fr))';
+      list.style.setProperty('grid-template-columns', cols, 'important');
+    }
+    function markQuickTools() {
+      var anchor = pdoc.querySelector('.tx-quick-tools-anchor');
+      if (!anchor) return;
+      var host = anchor.closest('.element-container');
+      if (!host) return;
+      var node = host.nextElementSibling;
+      for (var i = 0; i < 8 && node; i++) {
+        var list = node.querySelector && node.querySelector('[data-baseweb="tab-list"]');
+        if (list) {
+          list.classList.add('tx-quick-tools');
+          var tabsRoot = list.closest('[data-testid="stTabs"]') || list.parentElement;
+          if (tabsRoot) tabsRoot.classList.add('tx-quick-tools-root');
+          applyQuickToolsGrid(list);
+          return;
+        }
+        node = node.nextElementSibling;
+      }
+    }
+    markQuickTools();
+    setTimeout(markQuickTools, 80);
+    setTimeout(markQuickTools, 240);
+    if (pdoc.defaultView) {
+      pdoc.defaultView.addEventListener('resize', function () {
+        var list = pdoc.querySelector('.tx-quick-tools');
+        applyQuickToolsGrid(list);
+      });
+    }
+  } catch (e) {}
+})();
+</script>
+""".strip(),
+    height=0,
+    width=0,
+)
 
 
 # =========================================================
@@ -7246,7 +7813,7 @@ with tabs[8]:
                 st.rerun()
         with c4:
             st.markdown('<div class="btn-danger-marker"></div>', unsafe_allow_html=True)
-            if st.button(f"Törlés", key=f"delete_{idx}"):
+            if st.button("Törlés", key=f"delete_{idx}"):
                 st.session_state["basket"].pop(idx)
                 st.rerun()
 
@@ -7378,421 +7945,6 @@ with tabs[9]:
             st.success("Hozzáadva.")
             st.rerun()
 
-
-# =========================================================
-# BEÁLLÍTÁSOK
-# =========================================================
-
-with tabs[12]:
-    st.header("⚙️ Beállítások")
-
-    # ─── 0) Opcionális Google-bejelentkezés (nem kapu — vendégként is teljes app) ──
-    st.subheader("Fiók")
-    if _is_logged_in():
-        try:
-            _auth_name = (st.user.get("name") or "").strip()
-            _auth_email = (st.user.get("email") or "").strip()
-        except Exception:
-            _auth_name, _auth_email = "", ""
-        _auth_label = _auth_name or _auth_email or "Bejelentkezett felhasználó"
-        st.caption(f"Bejelentkezve: {_auth_label}")
-        if st.button("Kijelentkezés", key="settings_google_logout"):
-            if _is_project_dirty():
-                st.session_state["project_logout_confirm"] = True
-                st.session_state["project_new_work_confirm"] = False
-                st.session_state["project_open_confirm_id"] = None
-                st.rerun()
-            else:
-                st.logout()
-        if st.session_state.get("project_logout_confirm"):
-            st.caption(
-                "A kijelentkezés megerősítése a lap tetején, a Projekt sávnál jelenik meg."
-            )
-    elif not _auth_secrets_configured():
-        st.info(
-            "A Google-bejelentkezéshez add meg az `[auth]` beállításokat a Streamlit Cloud "
-            "**Secrets** felületén (`client_id`, `client_secret`, `cookie_secret`, "
-            "`redirect_uri` = `https://textus.streamlit.app/oauth2callback`). "
-            "Vendégként az app továbbra is használható."
-        )
-    else:
-        st.caption(
-            "A bejelentkezés opcionális. Vendégként is teljes mértékben használhatod a TEXTUS-t; "
-            "a Google-fiók csak a személyes azonosítást szolgálja."
-        )
-        if st.button("Bejelentkezés Google-fiókkal", key="settings_google_login"):
-            st.login()
-
-    # ─── 0b) Saját munkáim — részletes lista; napi mentés a fejlécsávon ──
-    st.subheader("Saját munkáim")
-    _owner = _owner_sub()
-    if not _owner:
-        st.info(
-            "A felhőbe mentéshez jelentkezz be Google-fiókkal. "
-            "Vendégként a TEXTUS minden funkciója továbbra is használható; "
-            "adatbázisba semmi nem kerül."
-        )
-    else:
-        from project_storage import get_user_projects
-
-        st.caption(
-            "A mentés, a **projektcím** és a projektváltás a lap tetején lévő **Projekt** sávon érhető el. "
-            "Megnyitott projektnél kb. 3 percenként automatikus mentés is fut, ha van nem mentett változás."
-        )
-
-        _cur_id = (st.session_state.get("current_project_id") or "").strip()
-        _cur_title = (st.session_state.get("current_project_title") or "").strip()
-        if _cur_id:
-            st.caption(f"Megnyitott felhőprojekt: **{_cur_title or 'Névtelen projekt'}**")
-        else:
-            st.caption("Nincs megnyitott felhőprojekt.")
-
-        st.markdown("##### Mentett projektek")
-        st.caption(
-            "Megnyitás és törlés: ugyanez a lista a lap tetején a **Projektek…** gombbal is elérhető."
-        )
-        try:
-            _projects = get_user_projects(_owner)
-        except Exception as _exc:
-            _projects = []
-            st.error(f"A projektlista nem tölthető be: {_exc}")
-
-        if not _projects:
-            st.caption("Még nincs mentett projekt. Használd a lap tetején a Mentés gombot.")
-        else:
-            for _proj in _projects:
-                _pid = str(_proj.get("id") or "")
-                _ptitle = (_proj.get("title") or "").strip() or "Névtelen projekt"
-                _ppassage = (_proj.get("passage") or "").strip() or "—"
-                _pupdated = (_proj.get("updated_at") or "")[:19].replace("T", " ")
-                _is_current = _pid and _pid == _cur_id
-                st.markdown(
-                    f"**{_ptitle}**"
-                    + (" · *megnyitva*" if _is_current else "")
-                    + f"  \n{_ppassage}"
-                    + (f" · {_pupdated}" if _pupdated else "")
-                )
-                _lc1, _lc2 = st.columns(2)
-                with _lc1:
-                    if st.button(
-                        "Megnyitás",
-                        key=f"settings_project_open_{_pid}",
-                        use_container_width=True,
-                        disabled=not _pid,
-                    ):
-                        _request_open_project(_pid)
-                with _lc2:
-                    if st.button(
-                        "Törlés",
-                        key=f"settings_project_delete_{_pid}",
-                        use_container_width=True,
-                        disabled=not _pid,
-                    ):
-                        st.session_state["project_delete_confirm_id"] = _pid
-                        st.session_state["project_open_confirm_id"] = None
-                        st.session_state["show_projects_panel"] = True
-                        st.rerun()
-
-    st.warning("Ha az API kulcs valaha megjelenik hibaüzenetben vagy képernyőképen, generálj újat a Google AI Studio-ban.")
-
-    # ─── 1) Beépített közös kulcs státusza ────────────────────────────
-    if BUILTIN_API_KEY:
-        if st.session_state.get("using_builtin_key", False):
-            st.success(
-                "✓ **Beépített közös kulcs aktív.** A TEXTUS azonnal használható, "
-                "nem kell saját kulcsot megadnod. Ha szeretnél, lent megadhatsz "
-                "saját kulcsot — az felülírja a közöset."
-            )
-        else:
-            st.info(
-                "🔑 **Saját API kulcsot használsz.** Ha szeretnéd, visszaválthatsz "
-                "a beépített közös kulcsra."
-            )
-            if st.button("Vissza a beépített közös kulcsra", key="restore_builtin_key"):
-                st.session_state["api_key"] = _load_builtin_api_key().strip()
-                st.session_state["using_builtin_key"] = True
-                st.session_state["user_model_choice"] = OWN_KEY_MODEL_AUTO
-                st.success("Visszaállítva a közös kulcsra.")
-                st.rerun()
-    else:
-        st.info(
-            "Még nincs beépített közös kulcs ezen a példányon. "
-            "Add meg a saját Gemini API kulcsodat lent a használathoz."
-        )
-
-    # ─── 2) Saját kulcs megadása (felülírja a beépítettet) ────────────
-    using_builtin = st.session_state.get("using_builtin_key", False)
-    api_input = st.text_input(
-        "Saját Gemini API kulcs (opcionális, felülírja a beépítettet)" if BUILTIN_API_KEY else "Gemini API kulcs",
-        type="password",
-        value="" if using_builtin else st.session_state["api_key"],
-        placeholder="Hagyd üresen a közös kulcs használatához…" if BUILTIN_API_KEY else "Illeszd be a Google AI Studio-ban generált kulcsot",
-        key="api_key_input",
-    )
-
-    if api_input and api_input.strip() and api_input.strip() != st.session_state.get("api_key", ""):
-        new_key = api_input.strip()
-        st.session_state["api_key"] = new_key
-        st.session_state["using_builtin_key"] = (new_key == _load_builtin_api_key().strip())
-        if st.session_state["using_builtin_key"]:
-            st.session_state["user_model_choice"] = OWN_KEY_MODEL_AUTO
-            st.success("Visszaállítva a közös kulcsra.")
-        else:
-            st.success("Saját API kulcs mentve.")
-
-    # ─── Modell — közös kulcs: rögzített; saját kulcs: választható ───
-    using_own_key = _is_using_own_api_key()
-
-    if using_own_key:
-        if st.session_state.get("user_model_choice") not in OWN_KEY_MODEL_OPTIONS:
-            st.session_state["user_model_choice"] = OWN_KEY_MODEL_AUTO
-        st.selectbox(
-            "Modell (saját kulccsal)",
-            options=list(OWN_KEY_MODEL_OPTIONS.keys()),
-            format_func=lambda model_id: OWN_KEY_MODEL_OPTIONS[model_id],
-            help=(
-                "Alapértelmezett: a fül szerint választ (Flash a mély szekciókhoz, "
-                "Flash Lite az összegzőkhöz). Ha konkrét modellt választasz, "
-                "az minden API-hívásra érvényes. A költség a saját Google AI Studio "
-                "számládon jelenik meg."
-            ),
-            key="user_model_choice",
-        )
-        choice = st.session_state.get("user_model_choice", OWN_KEY_MODEL_AUTO)
-        if choice == OWN_KEY_MODEL_AUTO:
-            model_summary = (
-                f"**Alapértelmezett** — **{LOCKED_MODEL_DISPLAY}** "
-                f"vagy **Gemini 2.5 Flash Lite** (fül szerint)"
-            )
-            pill = "saját kulcs · alap"
-        else:
-            display = OWN_KEY_MODEL_OPTIONS.get(choice, choice)
-            model_summary = f"**{display}** (`{choice}`) — minden hívásra"
-            pill = "saját kulcs · egyedi"
-    else:
-        st.session_state["user_model_choice"] = OWN_KEY_MODEL_AUTO
-        model_summary = (
-            f"**{LOCKED_MODEL_DISPLAY}** (`{LOCKED_MODEL}`) "
-            f"vagy **Gemini 2.5 Flash Lite** (`{GEMINI_MODEL_FLASH_LITE}`)"
-        )
-        pill = "közös kulcs · rögzített"
-
-    st.markdown(
-        f"""
-<div class="locked-model-row">
-    <span class="locked-model-label">Gemini modell</span>
-    <span class="locked-model-value">{model_summary}
-        <span class="locked-model-pill">{pill}</span>
-    </span>
-</div>
-""",
-        unsafe_allow_html=True,
-    )
-    if using_own_key:
-        st.caption(
-            "Saját API kulccsal választhatsz modellt. Az *Alapértelmezett* ugyanazt csinálja, "
-            "mint a közös kulcsnál. A Gemini Pro előfizetés (app) és az API számlázás külön."
-        )
-    else:
-        st.caption(
-            f"A közös kulcsnál a backend a fül szerint választ — **{LOCKED_MODEL_DISPLAY}** "
-            f"(`{LOCKED_MODEL}`) vagy **Gemini 2.5 Flash Lite** (`{GEMINI_MODEL_FLASH_LITE}`); "
-            "nincs kézi modellválasztás. A *Kreativitás* beállítás minden hívásra érvényes."
-        )
-
-    st.session_state["temperature"] = st.slider(
-        "Kreativitás",
-        0.0,
-        1.0,
-        float(st.session_state.get("temperature", 0.3)),
-        0.1
-    )
-
-    st.info(
-        "**Válaszhossz:** nincs alkalmazásszintű kimeneti tokenlimit beállítva. "
-        "A promptok tömör, strukturált, de a fontos információkat nem kihagyó válaszokat kérnek. "
-        "A *Kreativitás* csúszka továbbra is érvényes.",
-        icon="📝",
-    )
-
-    with st.expander("Aktív közös alap prompt"):
-        st.text_area(
-            "Ez kerül minden AI-hívás elé",
-            BASE_SYSTEM_PROMPT,
-            height=360,
-            disabled=True
-        )
-
-    # ─── Cache & cooldown ────────────────────────────────────────────
-    st.divider()
-    st.subheader("Cache és cooldown")
-    st.caption(
-        f"Globális cooldown két API-hívás közt: **{GEMINI_COOLDOWN_S} mp**. "
-        "Ha túl gyorsan kattintasz, az alkalmazás megvár, és figyelmeztet."
-    )
-
-    cache_col1, cache_col2 = st.columns([2, 1])
-    with cache_col1:
-        st.checkbox(
-            "Cache azonos kérésekre (igehely + tab + beállítások)",
-            value=bool(st.session_state.get("enable_cache", True)),
-            key="enable_cache",
-            help=(
-                "Ha be van kapcsolva, ugyanaz a kérés (azonos prompt és "
-                "kreativitás-beállítás) nem indít új API-hívást — a korábbi "
-                "választ adja vissza azonnal. Csak az aktuális munkamenetre érvényes."
-            ),
-        )
-    with cache_col2:
-        cache_size = len(st.session_state.get("_call_cache", {}))
-        st.metric("Cache-elt válaszok", cache_size)
-
-    if st.button("Cache törlése", key="clear_cache_btn", use_container_width=True):
-        st.session_state["_call_cache"] = {}
-        st.success("Cache kiürítve.")
-        st.rerun()
-
-    # ─── Debug log ───────────────────────────────────────────────────
-    debug_log = st.session_state.get("_debug_log", [])
-    with st.expander(
-        f"Gemini debug log — utolsó {len(debug_log)} bejegyzés",
-        expanded=False,
-    ):
-        st.caption(
-            "Minden Gemini-hívás előtt és után egy bejegyzés készül. "
-            "Egyetlen gombnyomás max. **1 logikai hívást** indít; ha "
-            "`attempt > 1` látható, az automatikus 429-retry történt."
-        )
-        _mid = st.session_state.get("model_name", LOCKED_MODEL)
-        _mdisp = GEMINI_MODEL_DISPLAY_BY_ID.get(_mid, _mid)
-        st.caption(
-            f"Session: `{_get_session_id()}` · "
-            f"Kulcs: `{_mask_api_key(_resolve_api_key())}` "
-            f"({_api_key_source_label()}) · "
-            f"Utolsó hívás modellje: **{_mdisp}** (`{_mid}`)"
-        )
-        if not debug_log:
-            st.info("Még nincs API-hívás ebben a munkamenetben.")
-        else:
-            rows = []
-            for e in reversed(debug_log[-30:]):
-                rows.append({
-                    "Idő": e.get("ts", ""),
-                    "Session": e.get("session_id", ""),
-                    "Kulcs": e.get("key_masked", ""),
-                    "Forrás": e.get("key_source", ""),
-                    "Tab": e.get("tab", ""),
-                    "Próba": e.get("attempt", ""),
-                    "Státusz": e.get("status", ""),
-                    "Modell": e.get("model", ""),
-                    "Prompt (kar.)": e.get("prompt_chars", ""),
-                    "Válasz (kar.)": e.get("response_chars", ""),
-                    "Latency (ms)": e.get("latency_ms", ""),
-                    "Auth": e.get("auth_ok", ""),
-                    "Hibaüzenet": e.get("error_message", ""),
-                })
-            st.dataframe(rows, hide_index=True, use_container_width=True)
-
-        if st.button("Debug log ürítése", key="clear_debug_log_btn"):
-            st.session_state["_debug_log"] = []
-            st.rerun()
-
-    if st.button("API kapcsolat tesztelése"):
-        test = generate_text(
-            "Válaszolj röviden magyarul: működik a kapcsolat?",
-            tab_label="API teszt",
-            use_cache=False,
-        )
-        if test.startswith("⚠️") or test.startswith("Hiba") or test.startswith("Nincs"):
-            st.error(test)
-        else:
-            st.success("Kapcsolat sikeres.")
-            st.write(test)
-
-    st.divider()
-    st.subheader("Munkamenet mentése és betöltése")
-    st.caption(
-        "A teljes műhely-állapot (igehely, elemzések, finomító beszélgetések, "
-        "vázlatkosár, vázlat, énekek) egyetlen fájlba menthető és visszatölthető. "
-        "Hasznos, ha napokon át dolgozol egy prédikáción, vagy másik gépen folytatnád."
-    )
-
-    _ws_payload = serialize_workspace()
-    _ws_verse = (st.session_state.get("last_igehely") or "munka").replace(" ", "_").replace("/", "-").replace(",", "").replace(":", "-")
-    _ws_filename = f"textus-munka-{_ws_verse}-{datetime.now().strftime('%Y%m%d-%H%M')}.json"
-
-    col_save, col_load = st.columns(2)
-    with col_save:
-        st.download_button(
-            label="Munkamenet mentése (.json)",
-            data=_ws_payload,
-            file_name=_ws_filename,
-            mime="application/json",
-            use_container_width=True,
-        )
-
-    with col_load:
-        uploaded_ws = st.file_uploader(
-            "Korábbi munkamenet betöltése",
-            type=["json"],
-            key="ws_uploader",
-            label_visibility="collapsed",
-        )
-        if uploaded_ws is not None:
-            ok, info = deserialize_workspace(uploaded_ws.read())
-            if ok:
-                st.success(f"Munkamenet betöltve. (Mentés időpontja: {info})")
-                st.rerun()
-            else:
-                st.error(info)
-
-    st.divider()
-    st.subheader("Munkamenet törlése")
-    st.caption("Csak a generált tartalmat, a kosarat és a beszélgetéseket törli — az API kulcsot és a modellbeállításokat megőrzi.")
-    st.markdown('<div class="btn-danger-marker"></div>', unsafe_allow_html=True)
-    if st.button("Munkamenet törlése"):
-        _clear_workspace_content()
-        _set_flash("A munkamenet törölve.", "info")
-        st.rerun()
-
-    st.divider()
-    st.subheader("Hogyan igényelhetsz saját Gemini API kulcsot?")
-    st.caption("Lépésről lépésre — a folyamat teljesen ingyenes, és csak egy Google-fiók (Gmail cím) szükséges hozzá.")
-
-    st.markdown(
-        """
-<div class="result-box api-guide-box">
-
-A saját kulcs használata biztosítja, hogy a **TEXTUS** hosszú távon is
-stabilan és korlátlanul rendelkezésedre álljon.
-
-1. **Lépj be a Google AI Studio oldalára.**
-   Kattints ide: <a href="https://aistudio.google.com/" target="_blank" rel="noopener">aistudio.google.com</a> — jelentkezz be a megszokott Google-fiókoddal.
-
-2. **Fogadd el a feltételeket.**
-   Az első belépéskor el kell fogadnod a felhasználási feltételeket.
-
-3. **Kulcs létrehozása.**
-   A bal oldali menüben válaszd a **„Get API key"** gombot.
-
-4. **Új projekt indítása.**
-   Kattints a **„Create API key in new project"** feliratú gombra.
-
-5. **Másold ki a kulcsot.**
-   A rendszer legenerál egy hosszú karaktersort — ez az API kulcsod.
-   Kattints a **Copy** gombra.
-
-6. **Illeszd be a TEXTUS-ba.**
-   Gyere vissza ide a **Beállításokhoz**, és illeszd be a kulcsot
-   a fenti **„Gemini API kulcs"** mezőbe.
-
-</div>
-""",
-        unsafe_allow_html=True,
-    )
-
-    st.divider()
-    st.caption(f"{APP_NAME} v{APP_VERSION} · {APP_SUBTITLE} · {APP_TAGLINE}")
 
 
 # =========================================================

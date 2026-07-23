@@ -12,25 +12,35 @@ def render_page_intro(
     title: str,
     body: str = "",
     eyebrow: str = "",
+    workspace_scope: bool = False,
 ) -> None:
-    """Egységes oldalbevezető: eyebrow + cím + rövid leírás."""
+    """Egységes oldalbevezető: opcionális eyebrow + cím + rövid leírás.
+
+    Ha `workspace_scope=True`, a tartalom a `workspace_intro` kulcsú
+    konténerbe kerül (kompakt tipográfia CSS-sel).
+    """
     eb = escape((eyebrow or "").strip())
     ttl = escape((title or "").strip())
     txt = escape((body or "").strip())
     if not ttl and not txt:
         return
+    # Workspace intros omit eyebrows even if a caller passes one.
+    if workspace_scope:
+        eb = ""
     eyebrow_html = f'<div class="tx-intro-eyebrow">{eb}</div>' if eb else ""
     body_html = f'<div class="tx-intro-body">{txt}</div>' if txt else ""
-    st.markdown(
-        (
-            '<section class="tx-page-intro">'
-            f"{eyebrow_html}"
-            f'<h1 class="tx-intro-title">{ttl}</h1>'
-            f"{body_html}"
-            "</section>"
-        ),
-        unsafe_allow_html=True,
+    markup = (
+        '<section class="tx-page-intro">'
+        f"{eyebrow_html}"
+        f'<h1 class="tx-intro-title">{ttl}</h1>'
+        f"{body_html}"
+        "</section>"
     )
+    if workspace_scope:
+        with st.container(key="workspace_intro"):
+            st.markdown(markup, unsafe_allow_html=True)
+    else:
+        st.markdown(markup, unsafe_allow_html=True)
 
 
 def render_status_badge(label: str, tone: str = "neutral") -> None:

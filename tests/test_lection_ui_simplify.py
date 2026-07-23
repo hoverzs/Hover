@@ -86,6 +86,7 @@ def test_ui_order_and_simplified_labels():
     assert "Lekciók javaslata" in section
     assert "_render_lection_connection_details_editor()" in section
     assert "_render_lection_selected_summary()" in section
+    assert "_render_lection_textus_link_card(" in section
 
     assert "**Lekcióbeállítások**" not in section
     assert "**Saját lekció**" not in section
@@ -96,9 +97,10 @@ def test_ui_order_and_simplified_labels():
     idx_suggest = section.find("Lekciók javaslata")
     idx_own = section.find("Már van saját lekcióötletem")
     idx_summary = section.find("_render_lection_selected_summary()")
+    idx_link = section.find("_render_lection_textus_link_card(")
     idx_details = section.find("_render_lection_connection_details_editor()")
     assert idx_focus < idx_settings < idx_suggest < idx_own
-    assert idx_own < idx_summary < idx_details
+    assert idx_own < idx_summary < idx_link < idx_details
 
 
 def test_suggest_from_free_text_focus_only(session):
