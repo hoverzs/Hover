@@ -183,13 +183,13 @@ def premium_overlay_css() -> str:
     .header-grid,
     .textus-header,
     .header-grid.textus-header {
-        grid-template-columns: 160px minmax(0, 1fr) !important;
-        gap: 28px !important;
+        grid-template-columns: 148px minmax(0, 1fr) !important;
+        gap: 22px !important;
     }
 }
 
 .header-logo {
-    width: 160px !important;
+    width: 148px !important;
     margin: 0 !important;
     padding: 0 !important;
     background: transparent !important;
@@ -203,23 +203,24 @@ def premium_overlay_css() -> str:
     margin: 0 !important;
     box-sizing: border-box !important;
     border-radius: 50% !important;
-    background: #f2ece1 !important;
-    border: 1px solid rgba(195, 161, 94, 0.52) !important;
+    background: #ffffff !important;
+    border: 1px solid rgba(195, 161, 94, 0.34) !important;
     box-shadow:
-        0 10px 24px rgba(42, 49, 60, 0.14),
-        inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+        0 0 0 1px rgba(255, 255, 255, 0.85),
+        0 4px 18px rgba(90, 62, 28, 0.08),
+        0 0 28px rgba(210, 180, 130, 0.14) !important;
     overflow: hidden !important;
 }
 
 @media (min-width: 1025px) {
     .header-logo {
-        width: 160px !important;
+        width: 148px !important;
     }
     .textus-logo-badge {
-        width: 160px !important;
-        height: 160px !important;
-        flex: 0 0 160px !important;
-        padding: 12px !important;
+        width: 142px !important;
+        height: 142px !important;
+        flex: 0 0 142px !important;
+        padding: 10px !important;
     }
     div.header-logo > div.textus-logo-badge > img.textus-logo-image,
     div.textus-logo-badge > img.textus-logo-image,
@@ -228,8 +229,8 @@ def premium_overlay_css() -> str:
     .textus-logo-badge .main-logo,
     .header-logo .textus-logo-image,
     .header-logo .main-logo {
-        max-width: 136px !important;
-        max-height: 136px !important;
+        max-width: 122px !important;
+        max-height: 122px !important;
     }
 }
 
@@ -258,33 +259,106 @@ div.header-logo img.textus-logo-image.main-logo,
     background-image: none !important;
     opacity: 1 !important;
     mix-blend-mode: normal !important;
-    filter: drop-shadow(0 3px 4px rgba(42, 49, 60, 0.14)) !important;
+    filter: drop-shadow(0 2px 6px rgba(90, 62, 28, 0.08)) !important;
+}
+
+.main-card.header-card {
+    /* tx-header-v2-marker */
+    padding: 18px 28px 16px !important;
+    margin-bottom: 1.35rem !important;
+    border-radius: 22px !important;
+    box-sizing: border-box !important;
+}
+
+@media (min-width: 1025px) {
+    .main-card.header-card {
+        min-height: 220px !important;
+        max-height: 240px !important;
+        padding: 20px 28px 18px !important;
+    }
+}
+
+.main-card.header-card:hover {
+    transform: none !important;
+}
+
+.header-text {
+    max-width: 740px !important;
+    gap: 0.22rem !important;
+}
+
+.brand-lockup {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: baseline !important;
+    gap: 0.55rem !important;
+    line-height: 1 !important;
 }
 
 .main-title {
-    font-size: clamp(2.35rem, 4.2vw, 3.3rem) !important;
-    letter-spacing: 0.09em !important;
+    font-family: "Cormorant Garamond", "Playfair Display", "Palatino Linotype", "Book Antiqua", Georgia, serif !important;
+    font-size: clamp(2.15rem, 3.2vw, 2.75rem) !important;
+    letter-spacing: 0.12em !important;
+    line-height: 1 !important;
+    margin: 0 !important;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+}
+
+.version-inline {
+    font-family: "Inter", "Segoe UI", system-ui, sans-serif !important;
+    font-size: 1.2rem !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.04em !important;
+    color: #7a8fad !important;
+    line-height: 1 !important;
+    white-space: nowrap !important;
 }
 
 .version-line {
-    letter-spacing: 0.08em !important;
-    font-size: 0.84rem !important;
+    display: none !important;
 }
 
 .header-caption {
-    letter-spacing: 0.03em !important;
+    margin-top: 0.12rem !important;
+    padding: 0 !important;
+    border: none !important;
+    background: none !important;
+    letter-spacing: 0.04em !important;
     text-transform: none !important;
-    font-weight: 600 !important;
+    font-weight: 500 !important;
+    font-size: 0.84rem !important;
+    color: #5a6f8c !important;
+    text-shadow: none !important;
 }
 
-.subtitle {
+.header-tagline {
+    font-size: 1.1rem !important;
+    letter-spacing: 0.03em !important;
+    line-height: 1.3 !important;
+    text-shadow: none !important;
+}
+
+.header-card .subtitle {
     margin-top: 0.35rem !important;
-    line-height: 1.48 !important;
-    max-width: 72ch !important;
+    font-size: 0.92rem !important;
+    line-height: 1.38 !important;
+    max-width: 46rem !important;
+    color: #6a5844 !important;
+    text-shadow: none !important;
+    border-left: 2px solid rgba(141, 113, 79, 0.28) !important;
+    padding-left: 0.7rem !important;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2 !important;
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
 }
 
-.scripture-ref {
-    margin-top: 0.25rem !important;
+.header-card .scripture-ref {
+    margin-top: 0.18rem !important;
+    font-size: 0.78rem !important;
+    font-weight: 500 !important;
+    padding-left: 0.7rem !important;
+    color: #7a6a56 !important;
 }
 
 /* Gyorseszközök kártyarács — scoped (.tx-quick-tools / anchor) */
@@ -524,14 +598,14 @@ div.header-logo img.textus-logo-image.main-logo,
         gap: 0.8rem !important;
     }
     .header-logo {
-        width: 112px !important;
+        width: 96px !important;
     }
     .textus-logo-badge {
-        width: 112px !important;
-        height: 112px !important;
-        flex: 0 0 112px !important;
-        flex-basis: 112px !important;
-        padding: 8px !important;
+        width: 90px !important;
+        height: 90px !important;
+        flex: 0 0 90px !important;
+        flex-basis: 90px !important;
+        padding: 7px !important;
         margin: 0 !important;
     }
     div.header-logo > div.textus-logo-badge > img.textus-logo-image,
@@ -542,12 +616,30 @@ div.header-logo img.textus-logo-image.main-logo,
     .header-logo .main-logo {
         width: 100% !important;
         height: 100% !important;
-        max-width: 94px !important;
-        max-height: 94px !important;
+        max-width: 76px !important;
+        max-height: 76px !important;
         transform: none !important;
         margin: 0 auto !important;
         left: auto !important;
         top: auto !important;
+    }
+    .header-text {
+        align-items: center !important;
+        max-width: 28rem !important;
+    }
+    .brand-lockup {
+        justify-content: center !important;
+    }
+    .main-title {
+        font-size: clamp(1.85rem, 5vw, 2.25rem) !important;
+    }
+    .version-inline {
+        font-size: 1.05rem !important;
+    }
+    .header-card .subtitle {
+        -webkit-line-clamp: 3 !important;
+        text-align: left !important;
+        font-size: 0.84rem !important;
     }
 }
 
@@ -556,8 +648,11 @@ div.header-logo img.textus-logo-image.main-logo,
         padding: 1rem 1rem 0.95rem !important;
         border-radius: 18px !important;
     }
+    .main-card.header-card {
+        padding: 14px 14px 12px !important;
+    }
     .main-title {
-        font-size: 2.1rem !important;
+        font-size: 2rem !important;
     }
 }
 

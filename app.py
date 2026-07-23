@@ -68,12 +68,12 @@ from passage_search_ui import (
 # =========================================================
 # VERZIÓ
 # =========================================================
-APP_VERSION = "1.0"
+APP_VERSION = "2.0"
 APP_NAME = "TEXTUS"
 APP_SUBTITLE = "Homiletikai műhely"
 APP_TAGLINE = "A szövegtől a szószékig"
 APP_SCRIPTURE = (
-    "„A teljes Írás Istentől ihletett és hasznos a tanításra, a feddésre, "
+    "„A teljes Írás Istentől ihletett és hasznos a tanításra, a fedésre, "
     "a megjobbításra és az igazságban való nevelésre.”"
 )
 APP_SCRIPTURE_REF = "— 2Timóteus 3,16"
@@ -610,15 +610,39 @@ section.main {{
 }}
 
 .header-card {{
-    margin-top: 0.4rem;
+    margin-top: 0.25rem;
+    margin-bottom: 1.35rem;
+    padding: 18px 28px 16px !important;
+    border-radius: 22px !important;
+    box-sizing: border-box;
+}}
+
+.main-card.header-card {{
+    padding: 18px 28px 16px !important;
+    margin-bottom: 1.35rem !important;
+    border-radius: 22px !important;
+    box-sizing: border-box !important;
+}}
+
+@media (min-width: 1025px) {{
+    .header-card,
+    .main-card.header-card {{
+        min-height: 220px !important;
+        max-height: 240px !important;
+        padding: 20px 28px 18px !important;
+    }}
+}}
+
+.main-card.header-card:hover {{
+    transform: none;
 }}
 
 @media (min-width: 721px) {{
     .header-grid.textus-header,
     div.header-grid.textus-header {{
         display: grid !important;
-        grid-template-columns: 160px minmax(0, 1fr) !important;
-        gap: 28px !important;
+        grid-template-columns: 148px minmax(0, 1fr) !important;
+        gap: 22px !important;
         align-items: center !important;
     }}
 }}
@@ -626,8 +650,8 @@ section.main {{
 .header-grid,
 .textus-header {{
     display: grid;
-    grid-template-columns: 160px minmax(0, 1fr);
-    gap: 28px;
+    grid-template-columns: 148px minmax(0, 1fr);
+    gap: 22px;
     align-items: center;
 }}
 
@@ -635,7 +659,7 @@ section.main {{
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 160px;
+    width: 148px;
     margin: 0;
     padding: 0;
     background: transparent !important;
@@ -644,21 +668,22 @@ section.main {{
 
 .textus-logo-badge {{
     position: relative;
-    width: 160px;
-    height: 160px;
-    flex: 0 0 160px;
+    width: 142px;
+    height: 142px;
+    flex: 0 0 142px;
     display: grid;
     place-items: center;
     place-content: center;
-    padding: 12px;
+    padding: 10px;
     margin: 0;
     box-sizing: border-box;
     border-radius: 50%;
-    background: #f2ece1;
-    border: 1px solid rgba(195, 161, 94, 0.52);
+    background: #ffffff;
+    border: 1px solid rgba(195, 161, 94, 0.34);
     box-shadow:
-        0 10px 24px rgba(42, 49, 60, 0.14),
-        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        0 0 0 1px rgba(255, 255, 255, 0.85),
+        0 4px 18px rgba(90, 62, 28, 0.08),
+        0 0 28px rgba(210, 180, 130, 0.14);
     overflow: hidden;
 }}
 
@@ -688,7 +713,7 @@ div.header-logo img.textus-logo-image.main-logo,
     background-image: none !important;
     opacity: 1 !important;
     mix-blend-mode: normal !important;
-    filter: drop-shadow(0 3px 4px rgba(42, 49, 60, 0.14));
+    filter: drop-shadow(0 2px 6px rgba(90, 62, 28, 0.08));
 }}
 
 @media (min-width: 721px) {{
@@ -699,48 +724,52 @@ div.header-logo img.textus-logo-image.main-logo,
     .textus-logo-badge .main-logo,
     .header-logo .textus-logo-image,
     .header-logo .main-logo {{
-        max-width: 136px !important;
-        max-height: 136px !important;
+        max-width: 122px !important;
+        max-height: 122px !important;
     }}
 }}
 
 .main-logo-fallback {{
-    font-family: "Cormorant Garamond", Georgia, serif;
-    font-size: 4.2rem;
+    font-family: "Cormorant Garamond", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+    font-size: 3.4rem;
     font-weight: 700;
     letter-spacing: 0.08em;
     color: #6b4f2e;
-    text-shadow: 0 6px 14px rgba(40, 28, 14, 0.28);
+    text-shadow: 0 2px 8px rgba(40, 28, 14, 0.12);
 }}
 
 .header-text {{
     display: flex;
     flex-direction: column;
-    gap: 0.45rem;
+    gap: 0.22rem;
     min-width: 0;
+    max-width: 740px;
+}}
+
+.brand-lockup {{
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: baseline;
+    gap: 0.55rem;
+    margin: 0;
+    line-height: 1;
 }}
 
 .header-caption {{
-    margin-top: 0.4rem;
-    display: inline-block;
-    width: max-content;
-    padding: 0.22rem 0.7rem;
-    border-left: 2px solid rgba(122, 145, 176, 0.6);
-    background: linear-gradient(
-        90deg,
-        rgba(232, 238, 247, 0.55),
-        rgba(232, 238, 247, 0)
-    );
-    border-radius: 4px;
-    font-family: "Inter", "Segoe UI", sans-serif;
-    font-size: 0.92rem;
-    font-weight: 700;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: #3d567a;
-    text-shadow:
-        0 1px 0 rgba(255, 255, 255, 0.65),
-        0 0 14px rgba(122, 145, 176, 0.18);
+    margin-top: 0.12rem;
+    display: block;
+    width: auto;
+    padding: 0;
+    border: none;
+    background: none;
+    border-radius: 0;
+    font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+    font-size: 0.84rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: none;
+    color: #5a6f8c;
+    text-shadow: none;
 }}
 
 @media (max-width: 720px) {{
@@ -750,17 +779,17 @@ div.header-logo img.textus-logo-image.main-logo,
     div.header-grid.textus-header {{
         grid-template-columns: 1fr !important;
         text-align: center;
-        gap: 0.8rem !important;
+        gap: 0.65rem !important;
         justify-items: center !important;
     }}
     .header-logo {{
-        width: 112px !important;
+        width: 96px !important;
     }}
     .textus-logo-badge {{
-        width: 112px !important;
-        height: 112px !important;
-        flex-basis: 112px !important;
-        padding: 8px !important;
+        width: 90px !important;
+        height: 90px !important;
+        flex-basis: 90px !important;
+        padding: 7px !important;
     }}
     div.header-logo > div.textus-logo-badge > img.textus-logo-image,
     div.textus-logo-badge > img.textus-logo-image,
@@ -770,12 +799,19 @@ div.header-logo img.textus-logo-image.main-logo,
     .header-logo .main-logo {{
         width: 100% !important;
         height: 100% !important;
-        max-width: 94px !important;
-        max-height: 94px !important;
+        max-width: 76px !important;
+        max-height: 76px !important;
         transform: none !important;
         margin: 0 auto !important;
         left: auto !important;
         top: auto !important;
+    }}
+    .header-text {{
+        align-items: center;
+        max-width: 28rem;
+    }}
+    .brand-lockup {{
+        justify-content: center;
     }}
     .header-caption {{
         margin-left: auto;
@@ -784,29 +820,30 @@ div.header-logo img.textus-logo-image.main-logo,
 }}
 
 .main-title {{
-    font-family: "Playfair Display", "Cormorant Garamond", Georgia, serif;
-    font-size: clamp(3rem, 5vw, 4.15rem);
+    font-family: "Cormorant Garamond", "Playfair Display", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+    font-size: clamp(2.15rem, 3.2vw, 2.75rem);
     font-weight: 700;
-    letter-spacing: 0.14em;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
     color: #2b2116;
-    line-height: 0.96;
-    margin-bottom: 6px;
-    text-shadow:
-        0 1px 0 rgba(255, 255, 255, 0.62),
-        0 8px 18px rgba(71, 52, 30, 0.16);
+    line-height: 1;
+    margin: 0;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+}}
+
+.version-inline {{
+    font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+    font-size: 1.2rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    color: #7a8fad;
+    line-height: 1;
+    white-space: nowrap;
+    flex-shrink: 0;
 }}
 
 .version-line {{
-    font-family: "Inter", "Helvetica Neue", system-ui, sans-serif;
-    font-size: 0.92rem;
-    font-weight: 600;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: #5d4830;
-    margin-top: 0.2rem;
-    margin-bottom: 0.15rem;
-    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
+    display: none !important;
 }}
 
 /* ===== Rögzített modell — read-only kijelzés a Beállításokon ===== */
@@ -863,38 +900,41 @@ div.header-logo img.textus-logo-image.main-logo,
 }}
 
 .header-tagline {{
-    font-family: "Cormorant Garamond", Georgia, serif;
-    font-size: 1.22rem;
+    font-family: "Cormorant Garamond", "Palatino Linotype", Georgia, serif;
+    font-size: 1.1rem;
     font-weight: 600;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.03em;
     color: #5a4630;
-    line-height: 1.35;
-    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.65);
+    line-height: 1.3;
+    margin-top: 0.08rem;
+    text-shadow: none;
 }}
 
-.subtitle {{
+.header-card .subtitle {{
     font-family: "Lora", "Cormorant Garamond", Georgia, serif;
-    font-size: 1.22rem;
-    color: #4f3f31;
+    font-size: 0.92rem;
+    color: #6a5844;
     font-style: italic;
-    line-height: 1.48;
-    max-width: 96ch;
+    line-height: 1.38;
+    max-width: 46rem;
     margin-top: 0.35rem;
-    padding-left: 0.85rem;
-    border-left: 2px solid rgba(141, 113, 79, 0.42);
-    text-shadow:
-        0 1px 0 rgba(255, 255, 255, 0.72),
-        0 2px 10px rgba(255, 252, 246, 0.55);
+    padding-left: 0.7rem;
+    border-left: 2px solid rgba(141, 113, 79, 0.28);
+    text-shadow: none;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }}
 
-.scripture-ref {{
+.header-card .scripture-ref {{
     font-family: "Inter", "Segoe UI", sans-serif;
-    font-size: 0.88rem;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    color: #6a5844;
-    margin-top: 0.35rem;
-    padding-left: 0.85rem;
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.03em;
+    color: #7a6a56;
+    margin-top: 0.18rem;
+    padding-left: 0.7rem;
 }}
 
 h1, h2, h3, h4, h5, h6 {{
@@ -2944,20 +2984,20 @@ div[data-testid="stForm"] {{
     .textus-header,
     .header-grid.textus-header {{
         grid-template-columns: 1fr !important;
-        gap: 0.8rem !important;
+        gap: 0.65rem !important;
         justify-items: center !important;
         text-align: center;
     }}
 
     .header-logo {{
-        width: 112px !important;
+        width: 96px !important;
     }}
 
     .textus-logo-badge {{
-        width: 112px !important;
-        height: 112px !important;
-        flex-basis: 112px !important;
-        padding: 8px !important;
+        width: 90px !important;
+        height: 90px !important;
+        flex-basis: 90px !important;
+        padding: 7px !important;
     }}
 
     div.header-logo > div.textus-logo-badge > img.textus-logo-image,
@@ -2965,8 +3005,8 @@ div[data-testid="stForm"] {{
     .textus-logo-badge .main-logo {{
         width: 100% !important;
         height: 100% !important;
-        max-width: 94px !important;
-        max-height: 94px !important;
+        max-width: 76px !important;
+        max-height: 76px !important;
     }}
 
     .main-card {{
@@ -3001,27 +3041,28 @@ div[data-testid="stForm"] {{
 
     /* Header: a logó kerüljön középre, a szöveg alá */
     .main-card.header-card {{
-        padding: 22px 18px !important;
+        padding: 14px 14px 12px !important;
+        margin-bottom: 1rem !important;
     }}
 
     .header-grid,
     .textus-header {{
         grid-template-columns: 1fr !important;
         text-align: center;
-        gap: 0.8rem !important;
+        gap: 0.55rem !important;
         justify-items: center;
     }}
 
     .header-logo {{
-        width: 112px;
+        width: 90px;
         justify-content: center;
     }}
 
     .textus-logo-badge {{
-        width: 112px;
-        height: 112px;
-        flex-basis: 112px;
-        padding: 8px;
+        width: 86px;
+        height: 86px;
+        flex-basis: 86px;
+        padding: 6px;
         margin: 0;
     }}
 
@@ -3031,37 +3072,52 @@ div[data-testid="stForm"] {{
     .header-logo .main-logo {{
         width: 100% !important;
         height: 100% !important;
-        max-width: 94px !important;
-        max-height: 94px !important;
+        max-width: 72px !important;
+        max-height: 72px !important;
         transform: none !important;
         margin: 0 auto !important;
         left: auto !important;
         top: auto !important;
     }}
 
+    .brand-lockup {{
+        justify-content: center;
+        gap: 0.45rem;
+    }}
+
     .main-title {{
-        font-size: clamp(2.1rem, 8vw, 2.8rem) !important;
+        font-size: clamp(1.85rem, 7.2vw, 2.25rem) !important;
         line-height: 1 !important;
+        letter-spacing: 0.1em !important;
     }}
 
-    .version-line {{
-        font-size: 0.78rem !important;
-        letter-spacing: 0.12em !important;
+    .version-inline {{
+        font-size: 1.05rem !important;
     }}
 
-    .subtitle {{
-        font-size: 1.02rem !important;
-        line-height: 1.4 !important;
+    .header-card .subtitle {{
+        font-size: 0.84rem !important;
+        line-height: 1.35 !important;
         max-width: 100% !important;
-        text-align: center;
+        text-align: left;
+        -webkit-line-clamp: 3;
+    }}
+
+    .header-card .scripture-ref {{
+        text-align: left;
+        font-size: 0.72rem !important;
     }}
 
     .header-caption {{
         margin-left: auto;
         margin-right: auto;
-        font-size: 0.78rem !important;
-        letter-spacing: 0.12em !important;
-        padding: 0.18rem 0.55rem !important;
+        font-size: 0.76rem !important;
+        letter-spacing: 0.03em !important;
+        padding: 0 !important;
+    }}
+
+    .header-tagline {{
+        font-size: 1rem !important;
     }}
 
     /* Kártyák — kompaktabb belső tér */
@@ -3205,32 +3261,32 @@ div[data-testid="stForm"] {{
     }}
 
     .textus-logo-badge {{
-        width: 112px;
-        height: 112px;
-        flex-basis: 112px;
-        padding: 8px;
+        width: 82px;
+        height: 82px;
+        flex-basis: 82px;
+        padding: 6px;
     }}
 
     .textus-logo-badge .textus-logo-image,
     .textus-logo-badge .main-logo {{
         width: 100% !important;
         height: 100% !important;
-        max-width: 94px !important;
-        max-height: 94px !important;
+        max-width: 68px !important;
+        max-height: 68px !important;
         transform: none !important;
         margin: 0 auto !important;
     }}
 
     .main-title {{
-        font-size: 1.95rem !important;
+        font-size: 1.75rem !important;
     }}
 
-    .version-line {{
-        margin: 0.25rem auto 0 !important;
+    .version-inline {{
+        font-size: 0.98rem !important;
     }}
 
-    .subtitle {{
-        font-size: 0.94rem !important;
+    .header-card .subtitle {{
+        font-size: 0.8rem !important;
     }}
 
     .stTabs [data-baseweb="tab"] {{
@@ -6334,8 +6390,10 @@ st.markdown(
     <div class="header-grid textus-header">
         <div class="header-logo">{logo_html}</div>
         <div class="header-text">
-            <div class="main-title">{APP_NAME}</div>
-            <div class="version-line">V{APP_VERSION}</div>
+            <div class="brand-lockup">
+                <span class="main-title">{APP_NAME}</span>
+                <span class="version-inline">{APP_VERSION}</span>
+            </div>
             <div class="header-caption">{APP_SUBTITLE}</div>
             <div class="header-tagline">{APP_TAGLINE}</div>
             <div class="subtitle">{APP_SCRIPTURE}</div>
