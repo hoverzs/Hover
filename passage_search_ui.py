@@ -6,7 +6,7 @@ Nem módosítja a felső navigációt, toolbart vagy globális CSS-t.
 
 from __future__ import annotations
 
-from typing import Any, Callable, MutableMapping
+from typing import Any, Callable, MutableMapping, cast
 
 import streamlit as st
 
@@ -209,7 +209,7 @@ def _resolve_history(
     return get_cached_used_passage_history(
         owner_sub=owner_sub,
         fetch_projects_fn=fetch_projects_fn,
-        session_state=st.session_state,
+        session_state=cast(MutableMapping[str, Any], st.session_state),
     )
 
 

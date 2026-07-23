@@ -45,12 +45,11 @@ from sermon_workshop_data import (
 from sermon_workshop_ui import flush_sermon_workshop_from_widgets, render_sermon_workshop_shell
 from workshop_nav_ui import (
     render_app_toolbar,
-    render_primary_view_switcher,
     render_workshop_workflow_nav,
     render_workspace_switcher,
     textus_completed_sections,
 )
-from ui_components import render_page_intro, render_status_badge
+from ui_components import render_page_intro
 from ui_theme import premium_overlay_css, premium_tokens_css
 from bible_text_ui import (
     KEY_PASSAGE_TEXT_INPUT as _BIBLE_PASSAGE_TEXT_INPUT,

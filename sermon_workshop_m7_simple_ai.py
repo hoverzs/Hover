@@ -18,10 +18,9 @@ from current_events_search_service import (
 )
 from sermon_workshop_data import (
     empty_illustration,
-    normalize_illustrations,
 )
 from sermon_workshop_m4_ai import extract_json_object
-from sermon_workshop_m5_ai import _as_str_list, _as_text, _is_api_error_text, _is_present
+from sermon_workshop_m5_ai import _as_text, _is_api_error_text
 from textus_workshop_data import TEXT_WORKSHOP_KEY, normalize_text_workshop
 
 TAB_ILL = "Illusztrációk"

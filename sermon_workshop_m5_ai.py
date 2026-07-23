@@ -7,7 +7,6 @@ A Gemini-hívást a hívó `generate_fn` paramétere végzi.
 from __future__ import annotations
 
 import json
-import re
 from dataclasses import asdict, dataclass, field
 from typing import Any, Callable, Mapping, Sequence
 

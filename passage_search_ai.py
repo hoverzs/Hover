@@ -289,7 +289,7 @@ def _is_common_for_occasion(reference: str, occasion: str) -> bool:
             pc = parse_bible_reference(c)
             pn = parse_bible_reference(norm)
             if pc.book.code == pn.book.code and pc.chapter == pn.chapter:
-                if pc.single_chapter or (
+                if pc.book.single_chapter or (
                     pc.verse_start is None and pc.verse_end is None
                 ):
                     return True

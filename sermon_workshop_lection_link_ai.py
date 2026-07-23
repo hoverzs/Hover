@@ -16,7 +16,6 @@ from typing import Any, Callable, Mapping
 from sermon_workshop_m4_ai import extract_json_object
 from sermon_workshop_m5_ai import (
     MISSING,
-    _as_str_list,
     _as_text,
     _display,
     _is_api_error_text,
@@ -374,18 +373,18 @@ def detect_passage_lection_overlap(
 ) -> str:
     """Azonos / jelentős átfedés rövid megjegyzése (heurisztika)."""
     p = _as_text(passage_reference).strip()
-    l = _as_text(lection_reference).strip()
-    if not p or not l:
+    lec = _as_text(lection_reference).strip()
+    if not p or not lec:
         return ""
-    if references_equivalent(p, l):
+    if references_equivalent(p, lec):
         return (
             "A lekció megegyezik vagy gyakorlatilag azonos az igehirdetési "
             "textussal — külön lekcióként kevésbé indokolt."
         )
     vp = validate_lection_reference(p)
-    vl = validate_lection_reference(l)
+    vl = validate_lection_reference(lec)
     if not (vp.get("ok") and vl.get("ok")):
-        if p.casefold() in l.casefold() or l.casefold() in p.casefold():
+        if p.casefold() in lec.casefold() or lec.casefold() in p.casefold():
             return (
                 "A lekció és a textus részben átfed — ellenőrizd, hogy a "
                 "felolvasás valóban kiegészíti-e a prédikációt."

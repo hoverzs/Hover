@@ -1675,11 +1675,12 @@ def _self_check() -> list[str]:
         errors.append("insufficient hc suggest should be empty")
 
     called["n"] = 0
-    ha = assess_human_condition(
+    _ha = assess_human_condition(
         passage="Jn 3,16",
         human_condition={},
         generate_fn=_should_not_run,
     )
+    del _ha
     if called["n"] != 0:
         errors.append("empty hc assess still called API")
 

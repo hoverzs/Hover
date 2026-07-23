@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Callable, Mapping, MutableMapping, Sequence
+from typing import Any, Callable, Mapping, MutableMapping, Sequence, cast
 
 from ruf_bible_service import ParsedReference, parse_bible_reference
 
@@ -259,14 +259,17 @@ def invalidate_used_passage_cache(
     session_state: MutableMapping[str, Any] | None = None,
 ) -> None:
     """Cache törlése mentés / törlés / login / logout után."""
+    ss: MutableMapping[str, Any]
     if session_state is None:
         try:
             import streamlit as st
 
-            session_state = st.session_state
+            ss = cast(MutableMapping[str, Any], st.session_state)
         except Exception:
             return
-    session_state.pop(CACHE_KEY, None)
+    else:
+        ss = session_state
+    ss.pop(CACHE_KEY, None)
 
 
 def get_cached_used_passage_history(
@@ -277,20 +280,23 @@ def get_cached_used_passage_history(
     force_refresh: bool = False,
 ) -> UsedPassageHistory:
     """Session-cache-elt korábbi textusok. Vendégnél üres, fetch nélkül."""
+    ss: MutableMapping[str, Any]
     if session_state is None:
         try:
             import streamlit as st
 
-            session_state = st.session_state
+            ss = cast(MutableMapping[str, Any], st.session_state)
         except Exception:
-            session_state = {}
+            ss = {}
+    else:
+        ss = session_state
 
     owner = _s(owner_sub)
     if not owner:
         return empty_used_passage_history()
 
     if not force_refresh:
-        cached = session_state.get(CACHE_KEY)
+        cached = ss.get(CACHE_KEY)
         if isinstance(cached, dict) and _s(cached.get("owner_sub")) == owner:
             return UsedPassageHistory(
                 normalized_references=list(cached.get("normalized_references") or []),
@@ -331,7 +337,7 @@ def get_cached_used_passage_history(
             ),
         )
 
-    session_state[CACHE_KEY] = {
+    ss[CACHE_KEY] = {
         "owner_sub": owner,
         **history.to_cache_dict(),
     }
