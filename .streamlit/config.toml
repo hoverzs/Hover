@@ -1,0 +1,10 @@
+[theme]
+# Textus bézs–kék paletta — a Streamlit default piros primary helyett
+primaryColor = "#5a7aa8"
+backgroundColor = "#f5eee2"
+secondaryBackgroundColor = "#fbf6ee"
+textColor = "#2f2a24"
+font = "sans serif"
+
+[client]
+toolbarMode = "minimal"

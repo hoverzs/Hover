@@ -1,0 +1,1686 @@
+"""Premium UX 2.0 design tokens és közös felületi stílusok.
+
+Csak vizuális finomhangolás: nem módosít üzleti logikát.
+"""
+
+from __future__ import annotations
+
+
+def premium_tokens_css() -> str:
+    """Központi UI-tokenek (színek, térközök, radiusok, árnyékok)."""
+    return """
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0&display=swap');
+
+:root {
+    /* Textus alap-paletta */
+    --tx-bg: #f5eee2;
+    --tx-surface: rgba(255, 251, 244, 0.88);
+    --tx-surface-strong: rgba(255, 252, 247, 0.94);
+    --tx-primary: #5a7aa8;
+    --tx-primary-deep: #1f334d;
+    --tx-primary-soft: rgba(232, 238, 247, 0.78);
+    --tx-gold: #8a6a3f;
+    --tx-text: #2f2a24;
+    --tx-text-muted: #5d5347;
+    --tx-border: rgba(170, 145, 112, 0.28);
+    --tx-success: #6f9a78;
+    --tx-warning: #b2853e;
+    --tx-danger: #a65d48;
+    --tx-neutral: #8d8378;
+
+    --tx-space-xs: 0.25rem;
+    --tx-space-sm: 0.5rem;
+    --tx-space-md: 0.75rem;
+    --tx-space-lg: 1rem;
+    --tx-space-xl: 1.5rem;
+
+    --tx-radius-sm: 8px;
+    --tx-radius-md: 12px;
+    --tx-radius-lg: 18px;
+
+    --tx-shadow-soft: 0 4px 12px rgba(58, 40, 22, 0.08);
+    --tx-shadow-float: 0 10px 24px rgba(38, 25, 10, 0.14);
+
+    /* Scoped navigáció / command bar — aliasok a meglévő palettára */
+    --ui-surface: rgba(255, 252, 247, 0.94);
+    --ui-surface-hover: rgba(90, 122, 168, 0.08);
+    --ui-surface-active: rgba(90, 122, 168, 0.14);
+    --ui-border: rgba(170, 145, 112, 0.3);
+    --ui-border-active: rgba(90, 122, 168, 0.4);
+    --ui-text: #2f2a24;
+    --ui-text-muted: #5d5347;
+    --ui-accent: #5a7aa8;
+    --ui-shadow-sm: 0 2px 8px rgba(52, 72, 98, 0.07);
+    --ui-radius-sm: 10px;
+    --ui-radius-md: 14px;
+    --ui-space-1: 4px;
+    --ui-space-2: 8px;
+    --ui-space-3: 12px;
+}
+""".strip()
+
+
+def premium_overlay_css() -> str:
+    """Globális, alkalmazásszintű finomhangolás a meglévő stílus fölött."""
+    return """
+/* ===== Premium UX 2.0 overlay ===== */
+.tx-page-intro {
+    margin: 0 0 0.95rem;
+    padding: 0 0 0.4rem;
+}
+
+.tx-shell-axis {
+    max-width: 1160px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+}
+
+.tx-intro-eyebrow {
+    font-family: "Inter", "Segoe UI", sans-serif;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: var(--tx-gold);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+}
+
+.tx-intro-title {
+    font-family: "Playfair Display", "Cormorant Garamond", Georgia, serif;
+    font-size: clamp(1.5rem, 2.8vw, 2rem);
+    line-height: 1.2;
+    margin: 0;
+    color: #2a2117;
+}
+
+.tx-intro-body {
+    margin-top: 12px;
+    margin-bottom: 0;
+    font-family: "Lora", Georgia, serif;
+    font-size: 1rem;
+    line-height: 1.55;
+    color: var(--tx-text-muted);
+    max-width: 74ch;
+}
+
+/* Gyorseszközök cím után a rács távolsága */
+.tx-page-intro + .element-container:has(.tx-quick-tools-anchor),
+.tx-page-intro ~ .element-container:has(.tx-quick-tools-anchor) {
+    margin-top: 24px !important;
+}
+
+.tx-status-badge {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 0.17rem 0.58rem;
+    margin: 0.15rem 0;
+    font-size: 0.78rem;
+    font-family: "Inter", "Segoe UI", sans-serif;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    border: 1px solid transparent;
+}
+
+.tx-status-neutral { background: rgba(140, 132, 120, 0.14); color: #5d5347; border-color: rgba(140,132,120,0.24); }
+.tx-status-info { background: rgba(90, 122, 168, 0.14); color: var(--tx-primary-deep); border-color: rgba(90,122,168,0.28); }
+.tx-status-success { background: rgba(111, 154, 120, 0.14); color: #3d5a45; border-color: rgba(111,154,120,0.28); }
+.tx-status-warning { background: rgba(178, 133, 62, 0.15); color: #6d4b1f; border-color: rgba(178,133,62,0.28); }
+.tx-status-danger { background: rgba(166, 93, 72, 0.14); color: #6e2e1f; border-color: rgba(166,93,72,0.3); }
+
+.tx-panel {
+    border-radius: var(--tx-radius-md);
+    border: 1px solid var(--tx-border);
+    background: var(--tx-surface);
+    box-shadow: var(--tx-shadow-soft);
+    padding: 0.62rem 0.82rem;
+    margin: 0.25rem 0 0.7rem;
+}
+.tx-panel-title {
+    font-family: "Inter", "Segoe UI", sans-serif;
+    font-size: 0.9rem;
+    font-weight: 650;
+    margin-bottom: 0.2rem;
+}
+.tx-panel-body {
+    font-family: "Lora", Georgia, serif;
+    font-size: 0.96rem;
+    line-height: 1.5;
+}
+.tx-panel-info { border-left: 3px solid var(--tx-primary); }
+.tx-panel-success { border-left: 3px solid var(--tx-success); }
+.tx-panel-warning { border-left: 3px solid var(--tx-warning); }
+.tx-panel-danger { border-left: 3px solid var(--tx-danger); }
+.tx-panel-neutral { border-left: 3px solid var(--tx-neutral); }
+
+.block-container {
+    max-width: 1160px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+
+.main-card {
+    border-radius: 24px !important;
+    padding: 1.6rem 1.9rem 1.35rem !important;
+    box-shadow: var(--tx-shadow-soft) !important;
+    border: 1px solid var(--tx-border) !important;
+}
+
+.main-card:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: var(--tx-shadow-float) !important;
+}
+
+.header-grid,
+.textus-header,
+.header-grid.textus-header {
+    display: grid !important;
+    align-items: center !important;
+}
+
+@media (min-width: 1025px) {
+    .header-grid,
+    .textus-header,
+    .header-grid.textus-header {
+        grid-template-columns: 160px minmax(0, 1fr) !important;
+        gap: 28px !important;
+    }
+}
+
+.header-logo {
+    width: 160px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    background-image: none !important;
+}
+
+.textus-logo-badge {
+    position: relative !important;
+    display: grid !important;
+    place-items: center !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+    border-radius: 50% !important;
+    background: #f2ece1 !important;
+    border: 1px solid rgba(195, 161, 94, 0.52) !important;
+    box-shadow:
+        0 10px 24px rgba(42, 49, 60, 0.14),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+    overflow: hidden !important;
+}
+
+@media (min-width: 1025px) {
+    .header-logo {
+        width: 160px !important;
+    }
+    .textus-logo-badge {
+        width: 160px !important;
+        height: 160px !important;
+        flex: 0 0 160px !important;
+        padding: 12px !important;
+    }
+    div.header-logo > div.textus-logo-badge > img.textus-logo-image,
+    div.textus-logo-badge > img.textus-logo-image,
+    div.header-logo img.textus-logo-image.main-logo,
+    .textus-logo-badge .textus-logo-image,
+    .textus-logo-badge .main-logo,
+    .header-logo .textus-logo-image,
+    .header-logo .main-logo {
+        max-width: 136px !important;
+        max-height: 136px !important;
+    }
+}
+
+div.header-logo > div.textus-logo-badge > img.textus-logo-image,
+div.textus-logo-badge > img.textus-logo-image,
+div.header-logo img.textus-logo-image.main-logo,
+.textus-logo-badge .textus-logo-image,
+.textus-logo-badge .main-logo,
+.header-logo .textus-logo-image,
+.header-logo .main-logo {
+    position: static !important;
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    inset: auto !important;
+    left: auto !important;
+    top: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    transform: none !important;
+    object-fit: contain !important;
+    object-position: center center !important;
+    background: transparent !important;
+    background-image: none !important;
+    opacity: 1 !important;
+    mix-blend-mode: normal !important;
+    filter: drop-shadow(0 3px 4px rgba(42, 49, 60, 0.14)) !important;
+}
+
+.main-title {
+    font-size: clamp(2.35rem, 4.2vw, 3.3rem) !important;
+    letter-spacing: 0.09em !important;
+}
+
+.version-line {
+    letter-spacing: 0.08em !important;
+    font-size: 0.84rem !important;
+}
+
+.header-caption {
+    letter-spacing: 0.03em !important;
+    text-transform: none !important;
+    font-weight: 600 !important;
+}
+
+.subtitle {
+    margin-top: 0.35rem !important;
+    line-height: 1.48 !important;
+    max-width: 72ch !important;
+}
+
+.scripture-ref {
+    margin-top: 0.25rem !important;
+}
+
+/* Gyorseszközök kártyarács — scoped (.tx-quick-tools / anchor) */
+.tx-quick-tools-anchor {
+    display: none !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.tx-quick-tools,
+.element-container:has(.tx-quick-tools-anchor) ~ * [data-baseweb="tab-list"].tx-quick-tools,
+.tx-quick-tools-root [data-baseweb="tab-list"] {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 9px !important;
+    border-bottom: none !important;
+    padding: var(--ui-space-2) !important;
+    background: var(--ui-surface) !important;
+    border: 1px solid var(--ui-border) !important;
+    border-radius: var(--ui-radius-md) !important;
+    box-shadow: var(--ui-shadow-sm) !important;
+}
+
+.tx-quick-tools-root [data-baseweb="tab-highlight"],
+.tx-quick-tools-root [data-baseweb="tab-border"] {
+    display: none !important;
+}
+
+.tx-quick-tools [data-baseweb="tab"],
+.tx-quick-tools-root [data-baseweb="tab"] {
+    min-height: 58px !important;
+    height: 60px !important;
+    max-height: 62px !important;
+    border-radius: var(--ui-radius-sm) !important;
+    border: 1px solid var(--ui-border) !important;
+    background: rgba(255, 253, 249, 0.96) !important;
+    display: inline-flex !important;
+    justify-content: flex-start !important;
+    text-align: left !important;
+    align-items: center !important;
+    padding: 0 12px !important;
+    box-shadow: none !important;
+    font-weight: 550 !important;
+    white-space: normal !important;
+    line-height: 1.2 !important;
+    gap: 9px !important;
+    transition: background 160ms ease, border-color 160ms ease !important;
+    transform: none !important;
+    position: relative !important;
+}
+
+/* Nincs második ikon / elválasztó — csak Streamlit Material */
+.tx-quick-tools [data-baseweb="tab"]::before,
+.tx-quick-tools [data-baseweb="tab"]::after,
+.tx-quick-tools-root [data-baseweb="tab"]::before,
+.tx-quick-tools-root [data-baseweb="tab"]::after,
+.tx-quick-tools [data-baseweb="tab"] p::before,
+.tx-quick-tools [data-baseweb="tab"] p::after,
+.tx-quick-tools [data-baseweb="tab"] span::before,
+.tx-quick-tools [data-baseweb="tab"] span::after,
+.tx-quick-tools-root [data-baseweb="tab"] p::before,
+.tx-quick-tools-root [data-baseweb="tab"] p::after,
+.tx-quick-tools-root [data-baseweb="tab"] span::before,
+.tx-quick-tools-root [data-baseweb="tab"] span::after {
+    content: none !important;
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    background: none !important;
+}
+
+.tx-quick-tools [data-baseweb="tab"]:hover,
+.tx-quick-tools-root [data-baseweb="tab"]:hover {
+    transform: none !important;
+    background: var(--ui-surface-hover) !important;
+    border-color: var(--ui-border-active) !important;
+    box-shadow: none !important;
+}
+
+.tx-quick-tools [data-baseweb="tab"] [data-testid="stMarkdownContainer"],
+.tx-quick-tools-root [data-baseweb="tab"] [data-testid="stMarkdownContainer"] {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 9px !important;
+    min-width: 0 !important;
+}
+
+.tx-quick-tools [data-baseweb="tab"] [data-testid="stMarkdownContainer"] p,
+.tx-quick-tools [data-baseweb="tab"] p,
+.tx-quick-tools-root [data-baseweb="tab"] p {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 9px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    font-size: 0.86rem !important;
+    line-height: 1.2 !important;
+    margin: 0 !important;
+    color: var(--ui-text) !important;
+}
+
+.tx-quick-tools [data-baseweb="tab"] [data-testid="stIconMaterial"],
+.tx-quick-tools-root [data-baseweb="tab"] [data-testid="stIconMaterial"] {
+    font-family: "Material Symbols Rounded", "Material Symbols Outlined", sans-serif !important;
+    font-feature-settings: "liga" 1 !important;
+    -webkit-font-feature-settings: "liga" 1 !important;
+    font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 20 !important;
+    font-size: 19px !important;
+    line-height: 1 !important;
+    color: var(--ui-accent) !important;
+    flex-shrink: 0 !important;
+    width: 19px !important;
+    height: 19px !important;
+    overflow: hidden !important;
+    text-overflow: clip !important;
+    white-space: nowrap !important;
+}
+
+.tx-quick-tools [aria-selected="true"][data-baseweb="tab"],
+.tx-quick-tools-root [aria-selected="true"][data-baseweb="tab"] {
+    background: var(--ui-surface-active) !important;
+    border-color: var(--ui-border-active) !important;
+    color: var(--tx-primary-deep) !important;
+    box-shadow: none !important;
+}
+
+@media (max-width: 1024px) {
+    .tx-quick-tools,
+    .element-container:has(.tx-quick-tools-anchor) ~ * [data-baseweb="tab-list"].tx-quick-tools,
+    .tx-quick-tools-root [data-baseweb="tab-list"] {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+}
+
+@media (max-width: 560px) {
+    .tx-quick-tools,
+    .element-container:has(.tx-quick-tools-anchor) ~ * [data-baseweb="tab-list"].tx-quick-tools,
+    .tx-quick-tools-root [data-baseweb="tab-list"] {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+    .tx-quick-tools [data-baseweb="tab"],
+    .tx-quick-tools-root [data-baseweb="tab"] {
+        min-height: 52px !important;
+        height: 56px !important;
+        max-height: none !important;
+    }
+}
+
+@media (max-width: 390px) {
+    .tx-quick-tools,
+    .element-container:has(.tx-quick-tools-anchor) ~ * [data-baseweb="tab-list"].tx-quick-tools,
+    .tx-quick-tools-root [data-baseweb="tab-list"] {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+[data-testid="stTextInput"] > label,
+[data-testid="stTextArea"] > label,
+[data-testid="stSelectbox"] > label {
+    margin-bottom: 0.25rem !important;
+}
+
+.stTextInput input,
+.stTextArea textarea,
+.stSelectbox [data-baseweb="select"] > div {
+    border-radius: var(--tx-radius-md) !important;
+}
+
+.stExpander {
+    border: 1px solid var(--tx-border) !important;
+    border-radius: var(--tx-radius-md) !important;
+    background: var(--tx-surface) !important;
+}
+
+/* ===== Egységes gombhierarchia (alap magasság; scoped nav felülírja) ===== */
+.stButton > button {
+    min-height: 2.75rem !important;
+    border-radius: var(--tx-radius-md) !important;
+    font-weight: 600 !important;
+    transition: transform 0.14s ease, box-shadow 0.14s ease, background 0.14s ease, border-color 0.14s ease;
+}
+.stButton > button:focus-visible {
+    outline: 2px solid rgba(90, 122, 168, 0.55) !important;
+    outline-offset: 2px !important;
+}
+
+/* ===== Tartalmi felületek és üzenetek ===== */
+/* Szakaszcím (H2/H3) egységes, visszafogott méret */
+.stMarkdown h2, [data-testid="stHeading"] h2 {
+    font-size: 1.55rem !important;
+    line-height: 1.25 !important;
+    letter-spacing: 0 !important;
+}
+.stMarkdown h3, [data-testid="stHeading"] h3 {
+    font-size: 1.2rem !important;
+    line-height: 1.3 !important;
+}
+
+/* Információs panelek: finom, bal kék sáv, nem csupa félkövér, nem harsány */
+[data-testid="stAlert"] {
+    border-radius: var(--tx-radius-md) !important;
+    border: 1px solid var(--tx-border) !important;
+    border-left: 3px solid var(--tx-primary) !important;
+    box-shadow: none !important;
+    padding: 0.65rem 0.9rem !important;
+}
+[data-testid="stAlertContentSuccess"] { }
+[data-testid="stAlert"]:has([data-testid="stAlertContentSuccess"]) { border-left-color: var(--tx-success) !important; }
+[data-testid="stAlert"]:has([data-testid="stAlertContentWarning"]) { border-left-color: var(--tx-warning) !important; }
+[data-testid="stAlert"]:has([data-testid="stAlertContentError"]) { border-left-color: var(--tx-danger) !important; }
+[data-testid="stAlert"] p {
+    font-weight: 500 !important;
+    text-transform: none !important;
+    letter-spacing: 0 !important;
+    font-size: 0.95rem !important;
+    line-height: 1.5 !important;
+}
+
+@media (max-width: 1024px) {
+    .block-container {
+        max-width: 100% !important;
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+    .header-grid,
+    .textus-header,
+    .header-grid.textus-header,
+    div.header-grid.textus-header {
+        grid-template-columns: 1fr !important;
+        text-align: center !important;
+        justify-items: center !important;
+        gap: 0.8rem !important;
+    }
+    .header-logo {
+        width: 112px !important;
+    }
+    .textus-logo-badge {
+        width: 112px !important;
+        height: 112px !important;
+        flex: 0 0 112px !important;
+        flex-basis: 112px !important;
+        padding: 8px !important;
+        margin: 0 !important;
+    }
+    div.header-logo > div.textus-logo-badge > img.textus-logo-image,
+    div.textus-logo-badge > img.textus-logo-image,
+    .textus-logo-badge .textus-logo-image,
+    .textus-logo-badge .main-logo,
+    .header-logo .textus-logo-image,
+    .header-logo .main-logo {
+        width: 100% !important;
+        height: 100% !important;
+        max-width: 94px !important;
+        max-height: 94px !important;
+        transform: none !important;
+        margin: 0 auto !important;
+        left: auto !important;
+        top: auto !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .main-card {
+        padding: 1rem 1rem 0.95rem !important;
+        border-radius: 18px !important;
+    }
+    .main-title {
+        font-size: 2.1rem !important;
+    }
+}
+
+/* ===== Unified app toolbar — key=textus_app_toolbar ===== */
+.st-key-textus_app_toolbar {
+    width: 100% !important;
+    max-width: 1160px !important;
+    margin: 0 0 12px !important;
+    padding: 10px 12px !important;
+    box-sizing: border-box !important;
+    border-radius: 12px !important;
+    border: 1px solid rgba(170, 145, 112, 0.22) !important;
+    background: rgba(255, 252, 247, 0.92) !important;
+    box-shadow: 0 1px 2px rgba(42, 49, 60, 0.04) !important;
+    min-height: 58px !important;
+}
+
+.st-key-textus_app_toolbar [data-testid="stHorizontalBlock"],
+.st-key-textus_app_toolbar [data-testid="stLayoutWrapper"] {
+    align-items: center !important;
+}
+
+.st-key-textus_app_toolbar > div {
+    display: flex !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important;
+    gap: 8px !important;
+    width: 100% !important;
+    min-height: 42px !important;
+}
+
+.st-key-tx_toolbar_main {
+    flex: 0 1 auto !important;
+    min-width: 0 !important;
+}
+
+.st-key-tx_toolbar_flex {
+    flex: 1 1 auto !important;
+    min-width: 8px !important;
+    max-width: none !important;
+}
+
+.st-key-tx_toolbar_account {
+    flex: 0 0 auto !important;
+}
+
+/* Streamlit wraps keyed horizontal children in LayoutWrapper — push account to the right edge */
+.st-key-textus_app_toolbar > [data-testid="stLayoutWrapper"]:has(.st-key-tx_toolbar_main) {
+    flex: 0 1 auto !important;
+    min-width: 0 !important;
+    width: auto !important;
+    max-width: none !important;
+}
+.st-key-textus_app_toolbar > [data-testid="stLayoutWrapper"]:has(.st-key-tx_toolbar_account) {
+    flex: 0 0 auto !important;
+    margin-left: auto !important;
+    width: auto !important;
+}
+
+.st-key-textus_app_toolbar .stButton,
+.st-key-textus_app_toolbar [data-testid="stPopover"] {
+    width: auto !important;
+    margin: 0 !important;
+    flex: 0 0 auto !important;
+}
+
+.st-key-textus_app_toolbar .stButton button,
+.st-key-textus_app_toolbar [data-testid="stPopover"] > button {
+    min-height: 42px !important;
+    height: 42px !important;
+    padding: 0 0.85rem !important;
+    border-radius: 10px !important;
+    font-weight: 600 !important;
+    gap: 8px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    white-space: nowrap !important;
+    width: auto !important;
+    box-shadow: none !important;
+}
+
+.st-key-textus_app_toolbar .stButton button[kind="secondary"],
+.st-key-textus_app_toolbar [data-testid="stPopover"] > button {
+    background: rgba(255, 253, 249, 0.98) !important;
+    border: 1px solid var(--ui-border) !important;
+    color: var(--tx-primary-deep) !important;
+}
+
+.st-key-textus_app_toolbar .stButton button[kind="secondary"]:hover,
+.st-key-textus_app_toolbar [data-testid="stPopover"] > button:hover {
+    background: var(--ui-surface-hover) !important;
+    border-color: var(--ui-border-active) !important;
+}
+
+.st-key-textus_app_toolbar .stButton button[kind="primary"] {
+    background: var(--ui-surface-active) !important;
+    border: 1px solid var(--ui-border-active) !important;
+    color: var(--tx-primary-deep) !important;
+}
+
+.st-key-textus_app_toolbar .stButton button[kind="primary"]:hover {
+    background: rgba(90, 122, 168, 0.2) !important;
+}
+
+.tx-toolbar-divider {
+    width: 1px;
+    align-self: stretch;
+    min-height: 28px;
+    height: 28px;
+    margin: 0 2px;
+    background: rgba(170, 145, 112, 0.45);
+    flex: 0 0 auto;
+}
+.st-key-textus_app_toolbar [data-testid="stElementContainer"]:has(.tx-toolbar-divider) {
+    width: auto !important;
+    flex: 0 0 auto !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+.tx-appbar-guest-inline {
+    display: inline-flex;
+    align-items: center;
+    margin-right: 0.35rem;
+}
+
+.tx-appbar-guest-label {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--ui-text-muted);
+    white-space: nowrap;
+    text-align: left;
+    padding: 0 0.15rem;
+}
+
+.tx-guest-strip {
+    margin: 0 0 10px;
+    padding: 0.35rem 0.7rem;
+    border-radius: 8px;
+    border: 1px solid rgba(170, 145, 112, 0.22);
+    background: rgba(255, 252, 247, 0.72);
+    color: var(--ui-text-muted);
+    font-size: 0.82rem;
+    line-height: 1.35;
+}
+
+.tx-project-name-row {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    max-width: 250px;
+    flex-wrap: nowrap;
+}
+
+.tx-project-name-text {
+    font-size: 0.95rem;
+    font-weight: 650;
+    color: var(--ui-text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 220px;
+}
+
+.tx-project-status-chip {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 0.15rem 0.55rem;
+    border-radius: 999px;
+    border: 1px solid rgba(170, 145, 112, 0.28);
+    background: rgba(255, 252, 247, 0.9);
+    color: var(--ui-text-muted);
+    white-space: nowrap;
+    flex: 0 0 auto;
+}
+
+.tx-project-status-chip.is-dirty {
+    border-color: rgba(178, 133, 62, 0.35);
+    background: rgba(178, 133, 62, 0.12);
+    color: #6d4b1f;
+}
+
+.tx-project-status-chip.is-saved {
+    border-color: rgba(111, 154, 120, 0.35);
+    background: rgba(111, 154, 120, 0.12);
+    color: #3d5a45;
+}
+
+.tx-project-status-chip.is-temp {
+    border-color: rgba(140, 132, 120, 0.3);
+    background: rgba(140, 132, 120, 0.12);
+    color: #5d5347;
+}
+
+/* Ceruzaikon: csak ikon látszik, a teljes a11y címke megmarad */
+.st-key-textus_app_toolbar .st-key-bar_title_edit button {
+    min-width: 42px !important;
+    width: 42px !important;
+    max-width: 42px !important;
+    padding: 0 !important;
+    justify-content: center !important;
+}
+.st-key-textus_app_toolbar .st-key-bar_title_edit button [data-testid="stMarkdownContainer"] {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    border: 0 !important;
+}
+
+.st-key-textus_app_toolbar .st-key-bar_save_more_popover > button,
+.st-key-textus_app_toolbar .st-key-bar_save_more_popover [data-testid="stPopover"] > button {
+    min-width: 42px !important;
+    width: 42px !important;
+    padding: 0 !important;
+    justify-content: center !important;
+}
+
+/* Projektek: soha ne törjön „Projekt”-re; min. 112px */
+.st-key-textus_app_toolbar .st-key-bar_projects_popover,
+.st-key-textus_app_toolbar .st-key-bar_projects_popover [data-testid="stPopover"] {
+    width: auto !important;
+    min-width: 112px !important;
+    flex: 0 0 auto !important;
+}
+.st-key-textus_app_toolbar .st-key-bar_projects_popover > button,
+.st-key-textus_app_toolbar .st-key-bar_projects_popover [data-testid="stPopover"] > button {
+    min-width: 112px !important;
+    width: auto !important;
+    white-space: nowrap !important;
+    justify-content: flex-start !important;
+}
+
+.tx-projects-empty {
+    padding: 0.55rem 0.15rem 0.35rem;
+    color: var(--ui-text-muted);
+    font-size: 0.88rem;
+    line-height: 1.45;
+}
+.tx-projects-empty p {
+    margin: 0 0 0.35rem;
+}
+
+/* Project picker panel — only BaseWeb popovers that contain project_picker_content */
+div[data-baseweb="popover"]:has(.st-key-project_picker_content) {
+    width: 520px !important;
+    min-width: 440px !important;
+    max-width: calc(100vw - 32px) !important;
+}
+div[data-baseweb="popover"]:has(.st-key-project_picker_content) > div,
+div[data-baseweb="popover"]:has(.st-key-project_picker_content) [data-testid="stVerticalBlock"],
+div[data-baseweb="popover"]:has(.st-key-project_picker_content) [data-testid="stLayoutWrapper"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+}
+div[data-baseweb="popover"]:has(.st-key-project_picker_content) [data-testid="stPopoverBody"] {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    max-height: 68vh !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    padding: 0.65rem 0.75rem 0.75rem !important;
+    box-sizing: border-box !important;
+}
+
+.st-key-project_picker_content {
+    width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+}
+
+.tx-project-picker-title {
+    font-size: 0.95rem;
+    font-weight: 650;
+    color: var(--ui-text);
+    margin: 0 0 0.55rem;
+}
+
+div[data-baseweb="popover"]:has(.st-key-project_picker_content) [class*="st-key-project_picker_row_"] {
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 0 0.55rem !important;
+    padding: 0.55rem 0.65rem !important;
+    box-sizing: border-box !important;
+}
+
+.tx-project-row-name {
+    font-size: 0.92rem;
+    font-weight: 650;
+    color: var(--ui-text);
+    line-height: 1.35;
+    max-width: 100%;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    word-break: normal;
+    overflow-wrap: break-word;
+    min-width: 0;
+}
+
+.tx-project-current-badge {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 0.4rem;
+    padding: 0.05rem 0.45rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 650;
+    border: 1px solid rgba(90, 122, 168, 0.35);
+    background: rgba(90, 122, 168, 0.12);
+    color: #1f334d;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+.tx-project-row-meta {
+    margin: 0.2rem 0 0.45rem;
+    font-size: 0.8rem;
+    color: var(--ui-text-muted);
+    line-height: 1.35;
+    word-break: normal;
+    overflow-wrap: break-word;
+    min-width: 0;
+}
+
+/* Reset stepmenu timeline styles inside project picker only */
+div[data-baseweb="popover"]:has(.st-key-project_picker_content) .stButton > button {
+    position: relative !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0.35rem !important;
+    text-align: center !important;
+    min-height: 38px !important;
+    height: 38px !important;
+    width: auto !important;
+    border-radius: 10px !important;
+    border: 1px solid var(--ui-border) !important;
+    background: rgba(255, 253, 249, 0.98) !important;
+    box-shadow: none !important;
+    white-space: nowrap !important;
+    font-weight: 600 !important;
+    color: var(--tx-primary-deep) !important;
+    padding: 0 0.85rem !important;
+    margin: 0 !important;
+}
+div[data-baseweb="popover"]:has(.st-key-project_picker_content) .stButton > button::before {
+    content: none !important;
+    display: none !important;
+}
+div[data-baseweb="popover"]:has(.st-key-project_picker_content) .stButton > button [data-testid="stIconMaterial"] {
+    position: static !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    width: auto !important;
+    height: auto !important;
+    margin-right: 0 !important;
+    font-size: 1rem !important;
+    line-height: 1 !important;
+}
+div[data-baseweb="popover"]:has(.st-key-project_picker_content) .stButton > button [data-testid="stMarkdownContainer"] p {
+    display: block !important;
+    margin: 0 !important;
+    width: auto !important;
+}
+div[data-baseweb="popover"]:has(.st-key-project_picker_content) .stButton > button [data-testid="stMarkdownContainer"] p span {
+    flex: none !important;
+    width: auto !important;
+    min-width: 0 !important;
+    text-align: inherit !important;
+    color: inherit !important;
+    font-size: inherit !important;
+    font-weight: inherit !important;
+    white-space: nowrap !important;
+}
+
+div[data-baseweb="popover"]:has(.st-key-project_picker_content) [class*="st-key-bar_project_open_"] button {
+    min-width: 96px !important;
+}
+div[data-baseweb="popover"]:has(.st-key-project_picker_content) [class*="st-key-bar_project_delete_"] button {
+    min-width: 80px !important;
+}
+
+@media (max-width: 1023px) {
+    .st-key-textus_app_toolbar > div,
+    .st-key-textus_app_toolbar[data-testid="stHorizontalBlock"] {
+        flex-wrap: wrap !important;
+        row-gap: 8px !important;
+    }
+    .st-key-tx_toolbar_flex {
+        display: none !important;
+    }
+    .st-key-tx_toolbar_account {
+        margin-left: 0 !important;
+    }
+    .st-key-textus_app_toolbar > [data-testid="stLayoutWrapper"]:has(.st-key-tx_toolbar_account) {
+        margin-left: 0 !important;
+    }
+    .tx-project-name-text {
+        max-width: min(180px, 42vw);
+    }
+}
+
+@media (max-width: 390px) {
+    .st-key-textus_app_toolbar {
+        padding: 8px !important;
+    }
+    .st-key-textus_app_toolbar .stButton button,
+    .st-key-textus_app_toolbar [data-testid="stPopover"] > button {
+        min-height: 40px !important;
+        height: 40px !important;
+        padding: 0 0.55rem !important;
+        font-size: 0.85rem !important;
+    }
+    .tx-project-name-text {
+        max-width: min(140px, 38vw);
+    }
+    div[data-baseweb="popover"]:has(.st-key-project_picker_content) {
+        width: calc(100vw - 24px) !important;
+        min-width: 0 !important;
+        max-width: calc(100vw - 24px) !important;
+    }
+    div[data-baseweb="popover"]:has(.st-key-project_picker_content) [data-testid="stPopoverBody"] {
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+    }
+}
+/* Segmented nav: Streamlit piros indikátor kiütése (theme primary mellett is) */
+[data-testid="stSegmentedControl"] button {
+    outline: none !important;
+}
+[data-testid="stSegmentedControl"] button[aria-checked="true"] {
+    color: #1f334d !important;
+}
+
+/* ===== Központi lépésválasztó (StepSelector) — scoped workshop_step_bar ===== */
+/* tx-stepbar-v2-marker */
+.tx-stepselect-anchor { display: none !important; height: 0 !important; margin: 0 !important; }
+
+.st-key-workshop_step_bar {
+    max-width: 780px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    width: 100% !important;
+}
+
+/* Zárt vezérlő — NINCS child combinator (>) : a Streamlit HTML sanitizer azt kiszűri.
+   display:contents a belső emotion wrappereken → badge | markdown | chevron egy flex sor. */
+.st-key-workshop_step_bar [data-testid="stPopoverButton"] {
+    width: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 0.35rem !important;
+    text-align: left !important;
+    min-height: 60px !important;
+    height: auto !important;
+    border-radius: 12px !important;
+    border: 1px solid rgba(170, 145, 112, 0.28) !important;
+    background: rgba(255, 253, 249, 0.97) !important;
+    box-shadow: 0 1px 3px rgba(58, 40, 22, 0.06) !important;
+    color: var(--tx-primary-deep) !important;
+    font-family: "Inter", "Segoe UI", sans-serif !important;
+    font-weight: 600 !important;
+    font-size: 0.97rem !important;
+    padding: 0.55rem 0.85rem 0.55rem 0.7rem !important;
+    transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease !important;
+}
+.st-key-workshop_step_bar [data-testid="stPopoverButton"] div {
+    display: contents !important;
+}
+.st-key-workshop_step_bar [data-testid="stPopoverButton"]:hover {
+    background: rgba(255, 252, 247, 1) !important;
+    border-color: rgba(90, 122, 168, 0.38) !important;
+    box-shadow: 0 1px 4px rgba(58, 40, 22, 0.08) !important;
+}
+.st-key-workshop_step_bar [data-testid="stPopoverButton"]:focus-visible {
+    outline: 2px solid var(--tx-primary) !important;
+    outline-offset: 2px !important;
+    box-shadow: 0 0 0 3px rgba(90, 122, 168, 0.18) !important;
+}
+/* Nyitott: a lépéslista fejlécét nézzük (:has), nem tetszőleges popover-t */
+body:has([data-testid="stPopoverBody"] .tx-stepmenu-head) .st-key-workshop_step_bar [data-testid="stPopoverButton"] {
+    background: rgba(90, 122, 168, 0.08) !important;
+    border-color: rgba(90, 122, 168, 0.36) !important;
+    box-shadow: inset 3px 0 0 0 var(--tx-primary), 0 1px 3px rgba(58, 40, 22, 0.05) !important;
+}
+/* Számjelvény (bal) */
+.st-key-workshop_step_bar [data-testid="stPopoverButton"]::before {
+    content: var(--tx-step-num, "1");
+    flex: 0 0 auto;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    margin-right: 0.45rem;
+    border-radius: 999px;
+    background: rgba(90, 122, 168, 0.12);
+    color: var(--tx-primary-deep);
+    font-size: 0.82rem;
+    font-weight: 650;
+    line-height: 1;
+}
+body:has([data-testid="stPopoverBody"] .tx-stepmenu-head) .st-key-workshop_step_bar [data-testid="stPopoverButton"]::before {
+    background: rgba(90, 122, 168, 0.2);
+}
+/* Címke: név balra, státusz jobbra — kitölti a középső sávot */
+.st-key-workshop_step_bar [data-testid="stPopoverButton"] [data-testid="stMarkdownContainer"] {
+    display: block !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    width: auto !important;
+    max-width: none !important;
+}
+.st-key-workshop_step_bar [data-testid="stPopoverButton"] [data-testid="stMarkdownContainer"] p {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 0.75rem !important;
+    width: 100% !important;
+    margin: 0 !important;
+    line-height: 1.3 !important;
+}
+.st-key-workshop_step_bar [data-testid="stPopoverButton"] [data-testid="stMarkdownContainer"] p strong {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    font-size: 15.5px !important;
+    font-weight: 600 !important;
+    color: var(--tx-primary-deep) !important;
+    display: -webkit-box !important;
+    -webkit-box-orient: vertical !important;
+    -webkit-line-clamp: 2 !important;
+    overflow: hidden !important;
+}
+.st-key-workshop_step_bar [data-testid="stPopoverButton"] [data-testid="stMarkdownContainer"] p span {
+    flex: 0 0 auto !important;
+    color: var(--tx-text-muted) !important;
+    font-weight: 500 !important;
+    font-size: 0.8rem !important;
+    white-space: nowrap !important;
+    line-height: 1.25 !important;
+}
+/* Egyetlen chevron */
+.st-key-workshop_step_bar [data-testid="stPopoverButton"] [data-testid="stIconMaterial"] {
+    display: none !important;
+}
+.st-key-workshop_step_bar [data-testid="stPopoverButton"] [data-testid="stIconMaterial"]:last-of-type {
+    display: inline-flex !important;
+    flex: 0 0 auto !important;
+    margin-left: 0.15rem !important;
+    color: #5a7aa8 !important;
+    font-size: 1.2rem !important;
+    transition: transform 0.18s ease !important;
+}
+body:has([data-testid="stPopoverBody"] .tx-stepmenu-head) .st-key-workshop_step_bar [data-testid="stPopoverButton"] [data-testid="stIconMaterial"]:last-of-type {
+    transform: rotate(180deg) !important;
+}
+.st-key-workshop_step_bar [data-testid="stPopoverButton"] svg:not([data-testid="stIconMaterial"] svg) {
+    display: none !important;
+}
+
+/* Progress sáv közvetlenül a zárt trigger alatt */
+.st-key-workshop_step_bar .tx-stepbar-track {
+    margin: 3px 2px 0;
+    padding: 0;
+}
+.st-key-workshop_step_bar .tx-stepbar-track .tx-wf-progress {
+    height: 3px;
+    background: rgba(160, 150, 135, 0.22);
+    border-radius: 999px;
+    overflow: hidden;
+}
+.st-key-workshop_step_bar .tx-stepbar-track .tx-wf-progress-fill {
+    height: 100%;
+    background: var(--tx-primary, #5a7aa8);
+    border-radius: 999px;
+    transition: width 0.3s ease;
+}
+
+/* ===== Lenyíló panel — összegző fejléc (görgetéskor ragadós) ===== */
+.tx-stepmenu-head {
+    font-family: "Inter", "Segoe UI", sans-serif;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    margin: 0 0 0.4rem;
+    padding: 0.35rem 0.15rem 0.55rem;
+    border-bottom: 1px solid var(--tx-border);
+    background: rgba(253, 251, 247, 0.97);
+}
+.tx-stepmenu-title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--tx-gold);
+}
+.tx-stepmenu-sub {
+    font-size: 0.8rem;
+    color: var(--tx-text-muted);
+    margin: 0.15rem 0 0.4rem;
+}
+.tx-stepmenu-head .tx-wf-progress { margin: 0; }
+
+/* ===== Idővonal sorok — kompakt, teljes szélességű flex (ikon | név | állapot) ===== */
+[data-testid="stPopover"] .stButton > button,
+div[data-baseweb="popover"] .stButton > button {
+    position: relative !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 0.45rem !important;
+    text-align: left !important;
+    min-height: 48px !important;
+    height: auto !important;
+    border-radius: 10px !important;
+    border: 1px solid transparent !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    white-space: normal !important;
+    font-weight: 500 !important;
+    color: #3d3228 !important;
+    padding: 0.25rem 0.5rem !important;
+    margin: 0.1rem 0 !important;
+    width: 100% !important;
+}
+/* Vékony függőleges összekötő vonal a státuszkör mögött (szín lépésenként). */
+[data-testid="stPopover"] .stButton > button::before,
+div[data-baseweb="popover"] .stButton > button::before {
+    content: "";
+    position: absolute;
+    left: 1.34rem;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: rgba(160, 150, 135, 0.45);
+    z-index: 0;
+}
+[data-testid="stPopover"] .stButton > button:hover,
+div[data-baseweb="popover"] .stButton > button:hover {
+    background: rgba(90, 122, 168, 0.07) !important;
+    border-color: transparent !important;
+}
+/* Aktív sor: halvány kék háttér, finom keret, kissé erősebb betű. */
+[data-testid="stPopover"] .stButton > button[kind="primary"],
+div[data-baseweb="popover"] .stButton > button[kind="primary"] {
+    background: rgba(90, 122, 168, 0.12) !important;
+    border-color: rgba(90, 122, 168, 0.3) !important;
+    color: #1f334d !important;
+    font-weight: 650 !important;
+}
+/* Státuszkör (material ikon) mint idővonal-csomópont; korong maszkolja a vonalat. */
+[data-testid="stPopover"] .stButton > button [data-testid="stIconMaterial"],
+div[data-baseweb="popover"] .stButton > button [data-testid="stIconMaterial"] {
+    position: relative !important;
+    z-index: 1 !important;
+    order: 0 !important;
+    flex: 0 0 auto !important;
+    margin-right: 0.6rem !important;
+    font-size: 1.35rem !important;
+    width: 1.65rem !important;
+    height: 1.65rem !important;
+    line-height: 1.65rem !important;
+    text-align: center !important;
+    background: #fdfbf7 !important;
+    border-radius: 50% !important;
+    color: #9c9384;
+    box-sizing: border-box !important;
+}
+/* Aktív csomópont: erősebb kék + finom külső gyűrű. */
+[data-testid="stPopover"] .stButton > button[kind="primary"] [data-testid="stIconMaterial"],
+div[data-baseweb="popover"] .stButton > button[kind="primary"] [data-testid="stIconMaterial"] {
+    color: #3f6699 !important;
+    box-shadow: 0 0 0 3px rgba(90, 122, 168, 0.28) !important;
+}
+/* Címke konténere és belső flex: szám + név balra, állapot jobbra. */
+[data-testid="stPopover"] .stButton > button [data-testid="stMarkdownContainer"],
+div[data-baseweb="popover"] .stButton > button [data-testid="stMarkdownContainer"] {
+    order: 1 !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    position: relative;
+    z-index: 1;
+}
+[data-testid="stPopover"] .stButton > button [data-testid="stMarkdownContainer"] p,
+div[data-baseweb="popover"] .stButton > button [data-testid="stMarkdownContainer"] p {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 0.6rem !important;
+    width: 100% !important;
+    margin: 0 !important;
+}
+/* Jobb oldali, minden soron azonos pozíciójú, visszafogott állapotszöveg. */
+[data-testid="stPopover"] .stButton > button [data-testid="stMarkdownContainer"] p span,
+div[data-baseweb="popover"] .stButton > button [data-testid="stMarkdownContainer"] p span {
+    flex: 0 0 110px !important;
+    width: 110px !important;
+    min-width: 110px !important;
+    text-align: right !important;
+    color: var(--tx-text-muted) !important;
+    font-size: 0.78rem !important;
+    font-weight: 500 !important;
+    white-space: nowrap !important;
+}
+/* Hosszú munkafolyamat: panelmagasság + belső görgetés, triggerhez igazított szélesség. */
+div[data-baseweb="popover"] [data-testid="stPopoverBody"] {
+    max-height: min(70vh, 540px) !important;
+    overflow-y: auto !important;
+    width: min(780px, 92vw) !important;
+    padding: 0.35rem 0.55rem 0.5rem 0.35rem !important;
+    background: rgba(253, 251, 247, 0.98) !important;
+    border: 1px solid rgba(186, 158, 122, 0.35) !important;
+    border-radius: 14px !important;
+    box-shadow: 0 10px 28px rgba(58, 40, 22, 0.1) !important;
+}
+div[data-baseweb="popover"] [data-testid="stPopoverBody"]::-webkit-scrollbar {
+    width: 8px;
+}
+div[data-baseweb="popover"] [data-testid="stPopoverBody"]::-webkit-scrollbar-thumb {
+    background: rgba(160, 140, 115, 0.35);
+    border-radius: 999px;
+}
+/* Nyitási animáció — mozgáscsökkentés esetén kikapcsol. */
+@media (prefers-reduced-motion: no-preference) {
+    div[data-baseweb="popover"] [data-testid="stPopoverBody"] {
+        animation: tx-stepmenu-in 180ms ease both;
+    }
+}
+@keyframes tx-stepmenu-in {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== Haladás (legacy / menüfej) ===== */
+.tx-progress-wrap { margin: 0.5rem 0 0.4rem; }
+.tx-progress-info {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    font-family: "Inter", "Segoe UI", sans-serif;
+    font-size: 0.78rem;
+    color: var(--tx-text-muted);
+    margin-bottom: 0.3rem;
+}
+.tx-wf-progress {
+    height: 4px;
+    width: 100%;
+    background: rgba(160, 140, 115, 0.22);
+    border-radius: 999px;
+    overflow: hidden;
+}
+.tx-wf-progress-fill {
+    height: 100%;
+    background: var(--tx-primary, #5a7aa8);
+    border-radius: 999px;
+    transition: width 0.3s ease;
+}
+
+/* ===== ContextSummary — kompakt kontextussor ===== */
+.tx-context {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.1rem;
+    align-items: baseline;
+    padding: 0.55rem 0.85rem;
+    margin: 0.2rem 0 0.6rem;
+    border: 1px solid var(--tx-border);
+    border-radius: 12px;
+    background: rgba(255, 252, 247, 0.7);
+    font-family: "Inter", "Segoe UI", sans-serif;
+}
+.tx-context-item { font-size: 0.86rem; color: #3d3228; }
+.tx-context-item .k { color: var(--tx-text-muted); margin-right: 0.3rem; }
+.tx-context-item .v { font-weight: 600; color: #1f334d; }
+
+/* ===== Munkakártya (StepWorkspace) ===== */
+.tx-workcard-anchor { display: none !important; height: 0 !important; margin: 0 !important; }
+.element-container:has(.tx-workcard-anchor) + [data-testid="stLayoutWrapper"] > [data-testid="stVerticalBlock"],
+.element-container:has(.tx-workcard-anchor) + [data-testid="stLayoutWrapper"] [data-testid="stVerticalBlockBorderWrapper"] {
+    max-width: 1040px !important;
+    margin: 0.4rem auto 0 !important;
+    border: 1px solid var(--tx-border) !important;
+    border-radius: 18px !important;
+    padding: clamp(1.1rem, 2.2vw, 1.75rem) !important;
+    background: rgba(255, 253, 249, 0.94) !important;
+    box-shadow: 0 8px 26px rgba(58, 40, 22, 0.07) !important;
+}
+
+/* ===== Workspace switcher — kompakt, címke-only szegmensek ===== */
+.st-key-workspace_switcher {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 0 14px !important;
+    padding: 0 !important;
+    gap: 0 !important;
+    row-gap: 0 !important;
+}
+
+.st-key-workspace_switcher [data-testid="stHorizontalBlock"] {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 4px !important;
+    margin: 0 !important;
+    align-items: stretch !important;
+    min-height: 48px !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    background: var(--ui-surface) !important;
+    border: 1px solid var(--ui-border) !important;
+    border-radius: var(--ui-radius-md) !important;
+    padding: 4px !important;
+    box-shadow: var(--ui-shadow-sm) !important;
+}
+
+.st-key-workspace_switcher [data-testid="stColumn"] {
+    display: flex !important;
+    align-items: stretch !important;
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    flex: unset !important;
+}
+
+.st-key-workspace_switcher .stButton {
+    width: 100% !important;
+    height: 100% !important;
+    margin: 0 !important;
+    display: flex !important;
+    align-items: stretch !important;
+}
+
+.st-key-workspace_switcher .stButton > div,
+.st-key-workspace_switcher .stButton .stTooltipIcon,
+.st-key-workspace_switcher .stButton .stTooltipHoverTarget,
+.st-key-workspace_switcher .stButton [class*="TooltipHoverTarget"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    display: flex !important;
+    flex: 1 1 auto !important;
+    align-self: stretch !important;
+    box-sizing: border-box !important;
+}
+
+.st-key-workspace_switcher .stButton button {
+    position: relative !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: 1 1 auto !important;
+    align-self: stretch !important;
+    height: 100% !important;
+    min-height: 46px !important;
+    max-height: 50px !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    padding: 0 0.65rem !important;
+    border-radius: var(--ui-radius-sm) !important;
+    border: 1px solid transparent !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    color: var(--ui-text) !important;
+    cursor: pointer !important;
+    transition:
+        background 170ms ease,
+        border-color 170ms ease,
+        box-shadow 170ms ease,
+        color 170ms ease !important;
+    transform: none !important;
+}
+
+.st-key-workspace_switcher .stButton button [data-testid="stMarkdownContainer"] {
+    flex: 0 1 auto !important;
+    min-width: 0 !important;
+}
+
+.st-key-workspace_switcher .stButton button [data-testid="stMarkdownContainer"] p {
+    margin: 0 !important;
+    display: block !important;
+    font-family: "Inter", "Segoe UI", sans-serif !important;
+    font-weight: 600 !important;
+    font-size: 0.92rem !important;
+    line-height: 1.2 !important;
+    letter-spacing: 0.01em !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    color: inherit !important;
+    text-align: center !important;
+}
+
+.st-key-workspace_switcher .stButton button [data-testid="stIconMaterial"] {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
+    width: 18px !important;
+    height: 18px !important;
+    min-width: 18px !important;
+    min-height: 18px !important;
+    border-radius: 0 !important;
+    font-size: 17px !important;
+    line-height: 1 !important;
+    color: var(--ui-accent) !important;
+    background: transparent !important;
+    transition: color 170ms ease !important;
+}
+
+.st-key-workspace_switcher .stButton button:hover {
+    background: var(--ui-surface-hover) !important;
+    border-color: rgba(90, 122, 168, 0.18) !important;
+    color: var(--tx-primary-deep) !important;
+}
+
+.st-key-workspace_switcher .stButton button:active {
+    transform: none !important;
+}
+
+.st-key-workspace_switcher .stButton button::after {
+    content: "" !important;
+    display: block !important;
+    position: absolute !important;
+    left: 12px !important;
+    right: 12px !important;
+    bottom: 0 !important;
+    height: 0 !important;
+    background: var(--ui-accent) !important;
+    border-radius: 2px 2px 0 0 !important;
+    transition: height 170ms ease !important;
+    pointer-events: none !important;
+}
+
+.st-key-workspace_switcher .stButton button:focus-visible {
+    outline: 2px solid rgba(90, 122, 168, 0.5) !important;
+    outline-offset: 2px !important;
+}
+
+/* ===== Workspace page intro — kompakt cím + egy mondat ===== */
+.st-key-workspace_intro {
+    margin: 0 0 8px !important;
+    padding: 0 !important;
+}
+
+.st-key-workspace_intro .tx-page-intro {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.st-key-workspace_intro .tx-intro-eyebrow {
+    display: none !important;
+}
+
+.st-key-workspace_intro .tx-intro-title {
+    font-family: "Playfair Display", "Cormorant Garamond", Georgia, serif !important;
+    font-size: 31px !important;
+    font-weight: 650 !important;
+    line-height: 1.2 !important;
+    margin: 0 !important;
+    color: #2a2117 !important;
+}
+
+.st-key-workspace_intro .tx-intro-body {
+    margin-top: 9px !important;
+    margin-bottom: 0 !important;
+    font-family: "Lora", Georgia, serif !important;
+    font-size: 15.5px !important;
+    line-height: 1.45 !important;
+    color: var(--tx-text-muted) !important;
+    max-width: 740px !important;
+}
+
+.st-key-workspace_intro + .element-container:has(.tx-quick-tools-anchor),
+.st-key-workspace_intro ~ .element-container:has(.tx-quick-tools-anchor) {
+    margin-top: 0 !important;
+}
+
+@media (max-width: 768px) {
+    .st-key-workspace_switcher [data-testid="stHorizontalBlock"] {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 2px !important;
+        padding: 3px !important;
+    }
+    .st-key-workspace_switcher .stButton button {
+        min-height: 44px !important;
+        max-height: 48px !important;
+        gap: 6px !important;
+        padding: 0 0.35rem !important;
+    }
+    .st-key-workspace_switcher .stButton button [data-testid="stMarkdownContainer"] p {
+        font-size: 0.72rem !important;
+    }
+    .st-key-workspace_switcher .stButton button [data-testid="stIconMaterial"] {
+        width: 16px !important;
+        height: 16px !important;
+        min-width: 16px !important;
+        min-height: 16px !important;
+        font-size: 15px !important;
+    }
+    .st-key-workspace_intro .tx-intro-title {
+        font-size: 26px !important;
+    }
+    .st-key-workspace_intro .tx-intro-body {
+        font-size: 14.5px !important;
+    }
+}
+
+@media (max-width: 390px) {
+    .st-key-workspace_switcher .stButton button [data-testid="stMarkdownContainer"] p {
+        font-size: 0.68rem !important;
+    }
+    .st-key-workspace_intro {
+        margin-bottom: 20px !important;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .st-key-workspace_switcher .stButton button {
+        transition: none !important;
+    }
+}
+
+/* ===== Imádság — gyors MI-sáv (munkakártyán belül) ===== */
+.tx-prayer-quick {
+    background: rgba(214, 228, 240, 0.42);
+    border: 1px solid rgba(90, 130, 168, 0.28);
+    border-radius: 12px;
+    padding: 0.7rem 0.85rem 0.75rem;
+    margin: 0.15rem 0 0.55rem;
+}
+.tx-prayer-quick-title {
+    font-size: 0.95rem;
+    font-weight: 650;
+    color: #1f334d;
+    margin: 0 0 0.25rem;
+}
+.tx-prayer-quick-help {
+    margin: 0;
+    font-size: 0.84rem;
+    line-height: 1.45;
+    color: #3d4f66;
+}
+.tx-prayer-or {
+    margin: 0.55rem 0 0.65rem;
+    text-align: center;
+    font-size: 0.82rem;
+    color: var(--tx-text-muted, #6b5e52);
+    letter-spacing: 0.01em;
+}
+
+@media (max-width: 768px) {
+    .st-key-workshop_step_bar {
+        max-width: 100% !important;
+    }
+    .st-key-workshop_step_bar [data-testid="stPopoverButton"] {
+        min-height: 52px !important;
+        padding: 0.5rem 0.65rem 0.5rem 0.55rem !important;
+        gap: 0.25rem !important;
+    }
+    .st-key-workshop_step_bar [data-testid="stPopoverButton"]::before {
+        width: 26px;
+        height: 26px;
+        min-width: 26px;
+        margin-right: 0.35rem;
+        font-size: 0.78rem;
+    }
+    /* Státusz a cím alá; rövidített szöveg CSS-változóból */
+    .st-key-workshop_step_bar [data-testid="stPopoverButton"] [data-testid="stMarkdownContainer"] p {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        justify-content: center !important;
+        gap: 0.12rem !important;
+    }
+    .st-key-workshop_step_bar [data-testid="stPopoverButton"] [data-testid="stMarkdownContainer"] p strong {
+        font-size: 14.5px !important;
+        width: 100% !important;
+    }
+    .st-key-workshop_step_bar [data-testid="stPopoverButton"] [data-testid="stMarkdownContainer"] p span {
+        font-size: 0 !important;
+        line-height: 0 !important;
+        white-space: normal !important;
+    }
+    .st-key-workshop_step_bar [data-testid="stPopoverButton"] [data-testid="stMarkdownContainer"] p span::after {
+        content: var(--tx-step-status-short, "");
+        font-size: 0.74rem !important;
+        font-weight: 500 !important;
+        color: var(--tx-text-muted) !important;
+        line-height: 1.25 !important;
+        white-space: nowrap !important;
+    }
+    div[data-baseweb="popover"] [data-testid="stPopoverBody"] { width: 94vw !important; }
+    /* Az állapotszöveg a cím alá törhet, ha nem fér ki egy sorba. */
+    [data-testid="stPopover"] .stButton [data-testid="stMarkdownContainer"] p,
+    div[data-baseweb="popover"] .stButton [data-testid="stMarkdownContainer"] p {
+        flex-wrap: wrap !important;
+    }
+    [data-testid="stPopover"] .stButton [data-testid="stMarkdownContainer"] p span,
+    div[data-baseweb="popover"] .stButton [data-testid="stMarkdownContainer"] p span {
+        flex: 1 1 100% !important;
+        width: auto !important;
+        min-width: 0 !important;
+        text-align: left !important;
+    }
+    .tx-prayer-quick {
+        padding: 0.65rem 0.75rem;
+    }
+}
+""".strip()
+
