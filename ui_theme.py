@@ -622,6 +622,157 @@ div.header-logo img.textus-logo-image.main-logo,
     border-radius: var(--tx-radius-md) !important;
 }
 
+/* ===== Igehely keresése — alkalomválasztó (scoped) =====
+   Csak .st-key-passage_search_occasion_field; más selectboxokat nem érint.
+   Nyitott lista: BaseWeb portal — body:has(combobox aria-expanded) + [role=option]. */
+.st-key-passage_search_occasion_field {
+    margin: 0.15rem 0 0.55rem !important;
+}
+.st-key-passage_search_occasion_field [data-testid="stSelectbox"] > label,
+.st-key-passage_search_occasion_field [data-testid="stWidgetLabel"] {
+    margin-bottom: 0.35rem !important;
+    font-size: 0.92rem !important;
+    font-weight: 600 !important;
+    color: var(--tx-text) !important;
+    letter-spacing: 0.01em !important;
+}
+.st-key-passage_search_occasion_field [data-testid="stCaption"],
+.st-key-passage_search_occasion_field [data-testid="stCaptionContainer"] {
+    margin-top: 0.35rem !important;
+    margin-bottom: 0 !important;
+}
+.st-key-passage_search_occasion_field [data-testid="stCaption"] p,
+.st-key-passage_search_occasion_field [data-testid="stCaptionContainer"] p {
+    font-size: 0.82rem !important;
+    line-height: 1.35 !important;
+    color: var(--tx-text-muted) !important;
+}
+.st-key-passage_search_occasion_field [data-baseweb="select"] {
+    cursor: pointer !important;
+}
+.st-key-passage_search_occasion_field [data-baseweb="select"] > div {
+    position: relative !important;
+    min-height: 50px !important;
+    height: 50px !important;
+    max-height: 52px !important;
+    padding: 0 0.15rem 0 2.55rem !important;
+    border-radius: 11px !important;
+    border: 1px solid rgba(155, 145, 132, 0.48) !important;
+    background: #fbf7f0 !important; /* egy árnyalattal világosabb a --tx-bg-nél */
+    box-shadow: 0 1px 2px rgba(58, 40, 22, 0.05) !important;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease !important;
+    cursor: pointer !important;
+}
+.st-key-passage_search_occasion_field [data-baseweb="select"] > div:hover {
+    border-color: rgba(90, 122, 168, 0.55) !important;
+    background: #fffcf7 !important;
+    box-shadow: 0 1px 3px rgba(90, 122, 168, 0.1) !important;
+}
+.st-key-passage_search_occasion_field [data-baseweb="select"] > div:focus-within {
+    border-color: rgba(90, 122, 168, 0.72) !important;
+    box-shadow: 0 0 0 2px rgba(90, 122, 168, 0.18) !important;
+    background: #fffcf7 !important;
+}
+/* Bal oldali alkalom / naptár ikon */
+.st-key-passage_search_occasion_field [data-baseweb="select"] > div::before {
+    content: "event" !important;
+    font-family: "Material Symbols Rounded", "Material Symbols Outlined", sans-serif !important;
+    font-size: 1.2rem !important;
+    font-weight: 400 !important;
+    line-height: 1 !important;
+    color: rgba(90, 122, 168, 0.78) !important;
+    position: absolute !important;
+    left: 0.85rem !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    pointer-events: none !important;
+    font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24 !important;
+}
+.st-key-passage_search_occasion_field [data-baseweb="select"] div[value] {
+    font-size: 15.5px !important;
+    font-weight: 500 !important;
+    color: var(--tx-text) !important;
+    line-height: 1.3 !important;
+}
+/* Jobb oldali chevron zóna — legalább 32×32, enyhén elválasztva */
+.st-key-passage_search_occasion_field [data-baseweb="select"] > div > div:last-child {
+    min-width: 36px !important;
+    min-height: 36px !important;
+    width: 36px !important;
+    height: 36px !important;
+    margin: 0 0.2rem 0 0.15rem !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-left: 1px solid rgba(170, 145, 112, 0.22) !important;
+    border-radius: 0 10px 10px 0 !important;
+    flex-shrink: 0 !important;
+}
+.st-key-passage_search_occasion_field [data-baseweb="select"] svg {
+    width: 18px !important;
+    height: 18px !important;
+    color: rgba(93, 83, 71, 0.72) !important;
+}
+/* Nyitott lista — Streamlit select UL-je gyakran role nélkül; option-ökön van role=option */
+body:has(.st-key-passage_search_occasion_field [aria-expanded="true"])
+    div[data-baseweb="popover"]:has([role="option"]) {
+    z-index: 10050 !important;
+    width: min(360px, 92vw) !important;
+    max-width: min(360px, 92vw) !important;
+}
+body:has(.st-key-passage_search_occasion_field [aria-expanded="true"])
+    div[data-baseweb="popover"]:has([role="option"]) > div {
+    border-radius: 12px !important;
+    border: 1px solid rgba(160, 150, 138, 0.4) !important;
+    background: #fffcf7 !important;
+    box-shadow: 0 8px 22px rgba(38, 25, 10, 0.14), 0 2px 6px rgba(58, 40, 22, 0.06) !important;
+    overflow: hidden !important;
+    width: 100% !important;
+    max-width: 100% !important;
+}
+body:has(.st-key-passage_search_occasion_field [aria-expanded="true"])
+    div[data-baseweb="popover"]:has([role="option"]) ul {
+    max-height: 320px !important;
+    overflow-y: auto !important;
+    padding: 0.25rem 0 !important;
+    background: #fffcf7 !important;
+    width: 100% !important;
+}
+body:has(.st-key-passage_search_occasion_field [aria-expanded="true"])
+    div[data-baseweb="popover"]:has([role="option"]) li[role="option"] {
+    /* BaseWeb virtualizált sor: inline height ~40px — ne törjük a top pozíciókat */
+    box-sizing: border-box !important;
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+    border-radius: 8px !important;
+    font-size: 0.95rem !important;
+    font-weight: 500 !important;
+    color: var(--tx-text) !important;
+    transition: background 0.12s ease !important;
+}
+body:has(.st-key-passage_search_occasion_field [aria-expanded="true"])
+    div[data-baseweb="popover"]:has([role="option"]) li[role="option"]:hover {
+    background: rgba(90, 122, 168, 0.1) !important;
+}
+body:has(.st-key-passage_search_occasion_field [aria-expanded="true"])
+    div[data-baseweb="popover"]:has([role="option"]) li[role="option"][aria-selected="true"] {
+    background: rgba(232, 238, 247, 0.95) !important; /* beige-blue */
+    color: var(--tx-primary-deep) !important;
+    font-weight: 600 !important;
+}
+@media (max-width: 640px) {
+    .st-key-passage_search_occasion_field [data-baseweb="select"] > div {
+        min-height: 48px !important;
+        height: 48px !important;
+        padding-left: 2.4rem !important;
+    }
+    body:has(.st-key-passage_search_occasion_field [aria-expanded="true"])
+        div[data-baseweb="popover"]:has([role="option"]) {
+        width: min(100vw - 1.5rem, 360px) !important;
+        max-width: min(100vw - 1.5rem, 360px) !important;
+    }
+}
+
 .stExpander {
     border: 1px solid var(--tx-border) !important;
     border-radius: var(--tx-radius-md) !important;

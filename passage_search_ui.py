@@ -359,11 +359,13 @@ def render_passage_search_expander(
             "szempont alapján kereshetsz prédikálható igeszakaszokat."
         )
 
-        occasion = st.selectbox(
-            "Milyen alkalomra keresel igét?",
-            list(OCCASION_OPTIONS),
-            key=WIDGET_OCCASION,
-        )
+        with st.container(key="passage_search_occasion_field"):
+            occasion = st.selectbox(
+                "Alkalom kiválasztása",
+                list(OCCASION_OPTIONS),
+                key=WIDGET_OCCASION,
+            )
+            st.caption("Az ajánlás ehhez igazodik.")
         context = st.text_area(
             "Az alkalom vagy a helyzet rövid leírása – opcionális",
             placeholder=(
