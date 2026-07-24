@@ -19,6 +19,10 @@ from sermon_workshop_data import (
     SERMON_WORKSHOP_KEY,
     normalize_sermon_workshop,
 )
+from occasion_context import (
+    OCCASION_CONTEXT_KEY,
+    normalize_occasion_context,
+)
 
 # Meglévő workspace-export kulcsok (app.py serialize_workspace).
 WORKSPACE_STR_KEYS: list[str] = [
@@ -78,6 +82,7 @@ PROJECT_EXTRA_INT_KEYS: list[str] = [
 PROJECT_NESTED_KEYS: list[str] = [
     TEXT_WORKSHOP_KEY,
     SERMON_WORKSHOP_KEY,
+    OCCASION_CONTEXT_KEY,
 ]
 
 PROJECT_DATA_STR_KEYS: list[str] = WORKSPACE_STR_KEYS + PROJECT_EXTRA_STR_KEYS
@@ -306,6 +311,9 @@ def build_project_data(
     payload[SERMON_WORKSHOP_KEY] = normalize_sermon_workshop(
         state.get(SERMON_WORKSHOP_KEY)
     )
+    payload[OCCASION_CONTEXT_KEY] = normalize_occasion_context(
+        state.get(OCCASION_CONTEXT_KEY)
+    )
 
     # Biztonsági szűrés: kizárt / titkos / futásidejű kulcsok soha ne maradjanak.
     for excluded in EXCLUDED_SESSION_KEYS:
@@ -329,6 +337,8 @@ def sanitize_project_data(project_data: Mapping[str, Any] | None) -> dict[str, A
             clean[key] = normalize_text_workshop(value)
         elif key == SERMON_WORKSHOP_KEY:
             clean[key] = normalize_sermon_workshop(value)
+        elif key == OCCASION_CONTEXT_KEY:
+            clean[key] = normalize_occasion_context(value)
         else:
             clean[key] = value
     # Régi projektek: hiányzó új string mezők biztonságos alapértéke
@@ -342,6 +352,8 @@ def sanitize_project_data(project_data: Mapping[str, Any] | None) -> dict[str, A
     ):
         if key not in clean:
             clean[key] = ""
+    if OCCASION_CONTEXT_KEY not in clean:
+        clean[OCCASION_CONTEXT_KEY] = normalize_occasion_context(None)
     return clean
 
 
@@ -362,6 +374,9 @@ def project_content_fingerprint(state: Mapping[str, Any]) -> str:
     payload[TEXT_WORKSHOP_KEY] = normalize_text_workshop(state.get(TEXT_WORKSHOP_KEY))
     payload[SERMON_WORKSHOP_KEY] = normalize_sermon_workshop(
         state.get(SERMON_WORKSHOP_KEY)
+    )
+    payload[OCCASION_CONTEXT_KEY] = normalize_occasion_context(
+        state.get(OCCASION_CONTEXT_KEY)
     )
     raw = json.dumps(payload, ensure_ascii=False, sort_keys=True, default=str)
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()

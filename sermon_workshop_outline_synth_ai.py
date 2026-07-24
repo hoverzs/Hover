@@ -186,7 +186,12 @@ def resolve_outline_occasion(
     """Alkalom a bundle / session mezőkből vagy a szövegből (Virrasztó stb.)."""
     raw = _s(occasion)
     if not raw and isinstance(bundle, Mapping):
-        raw = _s(bundle.get("occasion"))
+        # Preferáld a ceremoniális passage-search alkalmat, ha van
+        raw = _s(bundle.get("passage_search_occasion")) or _s(bundle.get("occasion"))
+        if not raw:
+            occ_ctx = bundle.get("occasion_context")
+            if isinstance(occ_ctx, Mapping):
+                raw = _s(occ_ctx.get("occasion_type"))
     blob = " ".join(
         [
             raw,
@@ -201,6 +206,10 @@ def resolve_outline_occasion(
         return "Virrasztó"
     if "temet" in blob:
         return "Temetés"
+    if "keresztel" in blob:
+        return "Keresztelés"
+    if "esket" in blob or "esküvő" in blob or "eskuvo" in blob:
+        return "Esketés"
     if "vasárnap" in blob or "vasarnap" in blob:
         return "Vasárnapi istentisztelet"
     return raw
@@ -260,7 +269,10 @@ def outline_length_profile(
         min_movements = 2
         guidance = (
             f"Temetés: tömör, világos, vigasztaló munkavázlat (~{target} szó irányadó). "
-            "2–3 egység; kerüld a túlírt szószéki kibontást és a moralizálást."
+            "2–3 egység; kerüld a túlírt szószéki kibontást és a moralizálást. "
+            "Ne bagatellizáld a veszteséget; ne ígérj üdvösséget az elhunytról adat nélkül; "
+            "ne találj ki életrajzi részleteket. A pásztori alkalmazási kontextus csak "
+            "hangnemet és érzékenységet adhat — személyes adatot ne másolj be automatikusan."
         )
         intro_hint = "40–80 szó"
         movement_hint = "2–3 egység (A textus állítása + Hallgatói irány)"
@@ -303,7 +315,7 @@ def _hard_quality_issues(issues: list[str] | tuple[str, ...] | None) -> list[str
 
 
 def _occasional_context_for_prompt(bundle: Mapping[str, Any] | None) -> str:
-    """Alkalmi kontextus a projektből (saját fókusz / megjegyzés), ha van."""
+    """Alkalmi kontextus a projektből (saját fókusz / megjegyzés / háttér)."""
     if not isinstance(bundle, Mapping):
         return ""
     parts: list[str] = []
@@ -311,6 +323,25 @@ def _occasional_context_for_prompt(bundle: Mapping[str, Any] | None) -> str:
         val = _usable_text(bundle.get(key))
         if val:
             parts.append(val)
+    # Strukturált ceremoniális háttér (pásztori alkalmazási kontextus)
+    try:
+        from occasion_context import (
+            format_occasion_context_for_prompt,
+            occasion_context_has_content,
+        )
+
+        raw_ctx = bundle.get("occasion_context")
+        if occasion_context_has_content(raw_ctx):
+            formatted = format_occasion_context_for_prompt(
+                raw_ctx,
+                occasion=bundle.get("passage_search_occasion")
+                or bundle.get("occasion"),
+                label="pásztori alkalmazási kontextus",
+            )
+            if formatted:
+                parts.append(formatted)
+    except Exception:  # noqa: BLE001
+        pass
     # Dedup similar snippets
     seen: set[str] = set()
     out: list[str] = []
@@ -319,7 +350,7 @@ def _occasional_context_for_prompt(bundle: Mapping[str, Any] | None) -> str:
         if n and n not in seen:
             seen.add(n)
             out.append(p)
-    return " | ".join(out[:2])
+    return " | ".join(out[:3])
 
 
 def _occasion_block_for_prompt(

@@ -24,6 +24,13 @@ from workspace_data import (
     build_workspace_payload,
     project_content_fingerprint,
 )
+from occasion_context import (
+    OCCASION_CONTEXT_KEY,
+    ensure_occasion_context_state,
+    format_occasion_context_for_prompt,
+    normalize_occasion_context,
+    sync_occasion_context_widgets_from_state,
+)
 from textus_workshop_data import (
     TEXT_WORKSHOP_KEY,
     ensure_text_workshop_state,
@@ -3833,8 +3840,13 @@ def _sync_inputs_to_last():
     flush_sermon_workshop_from_widgets()
 
 
-def build_alap_from_state():
-    """A `last_…` session-mezőkből építi vissza az elemzés kontextusát."""
+def build_alap_from_state(*, include_pastoral_context: bool = False):
+    """A `last_…` session-mezőkből építi vissza az elemzés kontextusát.
+
+    include_pastoral_context=True: ceremoniális alkalmi háttér a
+    „pásztori alkalmazási kontextus” címkével (áttekintés / alkalmazás /
+    illusztráció). Exegézis / kortörténet / teológia esetén False marad.
+    """
     passage = st.session_state.get("last_igehely", "") or ""
     translation = (st.session_state.get("bible_translation") or "").strip()
     passage_text = st.session_state.get("passage_text") or ""
@@ -3866,6 +3878,24 @@ def build_alap_from_state():
             ),
         ]
     )
+    if include_pastoral_context:
+        pastoral = format_occasion_context_for_prompt(
+            st.session_state.get(OCCASION_CONTEXT_KEY),
+            occasion=(
+                st.session_state.get("passage_search", {}) or {}
+            ).get("occasion")
+            if isinstance(st.session_state.get("passage_search"), dict)
+            else "",
+            label="pásztori alkalmazási kontextus",
+        )
+        if pastoral:
+            lines.append(pastoral)
+            lines.append(
+                "A pásztori alkalmazási kontextus CSAK a hangnemet, "
+                "alkalmazási irányt és illusztrációs érzékenységet segítheti. "
+                "Ne keverd a textus tényállásába, és ne másold be automatikusan "
+                "a személyes adatokat."
+            )
     return "\n".join(lines)
 
 # =========================================================
@@ -4023,8 +4053,15 @@ def generate_section(key: str) -> bool:
 
     label = SECTION_LABELS.get(key, key)
     use_search = key in SECTIONS_WITH_GOOGLE_SEARCH
+    # Exegézis / kortörténet / teológia: szövegközpontú — ne keverjük az
+    # életrajzi hátteret. Áttekintés / illusztráció / aktualizálás: igen.
+    pastoral_sections = {"overview", "illustrations", "actualization"}
     with st.spinner(f"{label} készítése…"):
-        prompt = SECTION_PROMPTS[key].format(alap=build_alap_from_state())
+        prompt = SECTION_PROMPTS[key].format(
+            alap=build_alap_from_state(
+                include_pastoral_context=key in pastoral_sections
+            )
+        )
         st.session_state[key] = generate_text(
             prompt,
             enable_google_search=use_search,
@@ -4244,6 +4281,11 @@ def _queue_project_widget_sync_from_state() -> None:
     # (ne maradjon bent az előző projekt szövege a Mentés flush előtt).
     tw = ensure_text_workshop_state(st.session_state)
     pending["tw_main_idea_input"] = tw.get("text_main_idea") or ""
+    pending.update(sync_occasion_context_widgets_from_state(st.session_state))
+    # Igehely-keresés alkalom select — ceremoniális háttér occasion_type-ja
+    occ_ctx = ensure_occasion_context_state(st.session_state)
+    if occ_ctx.get("occasion_type"):
+        pending["passage_search_occasion"] = occ_ctx["occasion_type"]
     st.session_state["_pending_project_widget_sync"] = pending
     st.session_state.pop("_pending_outline_draft_editor", None)
 
@@ -4289,6 +4331,18 @@ def _apply_project_data_to_session(project_data: dict) -> None:
     else:
         st.session_state[SERMON_WORKSHOP_KEY] = get_default_sermon_workshop()
     ensure_sermon_workshop_state(st.session_state)
+    # Opcionális alkalmi háttér (ceremoniális) — régi projekteknél üres alap
+    st.session_state[OCCASION_CONTEXT_KEY] = normalize_occasion_context(
+        project_data.get(OCCASION_CONTEXT_KEY)
+    )
+    ensure_occasion_context_state(st.session_state)
+    # Igehely-keresés alkalom típusa a háttérrel összhangban
+    _occ_type = str(
+        (st.session_state.get(OCCASION_CONTEXT_KEY) or {}).get("occasion_type") or ""
+    ).strip()
+    if _occ_type:
+        _ps = ensure_passage_search_state(st.session_state)
+        _ps["occasion"] = _occ_type
     # Widgetkulcsok újraszinkronja a következő Textusműhely- / sermon-render előtt
     st.session_state["_tw_ui_resync"] = True
     st.session_state["_sw_ui_resync"] = True
@@ -5074,6 +5128,7 @@ for key, value in defaults.items():
 ensure_text_workshop_state(st.session_state)
 ensure_sermon_workshop_state(st.session_state)
 ensure_passage_search_state(st.session_state)
+ensure_occasion_context_state(st.session_state)
 
 # Beépített módban a session kulcs másolatát szinkronban tartjuk a
 # Streamlit Secrets / env aktuális értékével (Cloud Secrets frissítés,

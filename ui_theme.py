@@ -804,6 +804,29 @@ body:has(.st-key-passage_search_occasion_field [aria-expanded="true"])
     }
 }
 
+/* ===== Igehely keresése — alkalom háttere (opcionális, ceremoniális) ===== */
+.st-key-passage_search_occasion_context {
+    margin: 0.35rem 0 0.75rem 0 !important;
+    padding: 0.55rem 0.8rem 0.65rem 0.8rem !important;
+    border: 1px solid var(--tx-border) !important;
+    border-radius: var(--tx-radius-md) !important;
+    background: var(--tx-surface) !important;
+    box-shadow: none !important;
+}
+.st-key-passage_search_occasion_context [data-testid="stWidgetLabel"] p,
+.st-key-passage_search_occasion_context label p {
+    font-size: 0.88rem !important;
+    font-weight: 500 !important;
+}
+.st-key-passage_search_occasion_context [data-testid="stCaption"] p,
+.st-key-passage_search_occasion_context [data-testid="stCaptionContainer"] p {
+    font-size: 0.82rem !important;
+    line-height: 1.35 !important;
+}
+.st-key-passage_search_occasion_context textarea {
+    min-height: 4.1rem !important;
+}
+
 .stExpander {
     border: 1px solid var(--tx-border) !important;
     border-radius: var(--tx-radius-md) !important;

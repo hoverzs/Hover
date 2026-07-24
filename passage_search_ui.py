@@ -11,6 +11,14 @@ from typing import Any, Callable, MutableMapping, cast
 import streamlit as st
 
 from bible_text_ui import _apply_ruf_fetch_success
+from occasion_context import (
+    ensure_occasion_context_state,
+    field_defs_for_occasion,
+    is_ceremonial_occasion,
+    merge_context_for_passage_search,
+    update_occasion_context_fields,
+    widget_key_for_field,
+)
 from passage_search_ai import (
     merge_exclude_list,
     normalize_passage_reference,
@@ -229,10 +237,17 @@ def _run_search(
     state["last_error"] = ""
     _save_state(state)
 
+    occ_ctx = ensure_occasion_context_state(
+        cast(MutableMapping[str, Any], st.session_state)
+    )
+    merged_context = merge_context_for_passage_search(
+        context, occ_ctx, occasion=occasion
+    )
+
     with st.spinner("Igehelyek keresése…"):
         result = suggest_passages_for_occasion(
             occasion=occasion,
-            context=context,
+            context=merged_context,
             exclude_references=exclude,
             history_exclude_references=history_exclude,
             generate_fn=generate_fn,
@@ -253,6 +268,61 @@ def _run_search(
         state["status"] = "error"
         state["last_error"] = result.error_message or _API_FAIL_MSG
     _save_state(state)
+
+
+def _render_occasion_background_card(occasion: str) -> None:
+    """Kompakt, opcionális háttérmezők ceremoniális alkalmakhoz."""
+    if not is_ceremonial_occasion(occasion):
+        return
+
+    occ_ctx = ensure_occasion_context_state(
+        cast(MutableMapping[str, Any], st.session_state)
+    )
+    fields = occ_ctx.get("fields") if isinstance(occ_ctx.get("fields"), dict) else {}
+
+    with st.container(key="passage_search_occasion_context", border=True):
+        st.markdown("**Az alkalom háttere (opcionális)**")
+        st.caption(
+            "Néhány személyes vagy helyzeti adat segíthet az igehely és a "
+            "megszólalás hangjának megválasztásában. Csak azt írd be, amit "
+            "valóban fel szeretnél használni."
+        )
+        collected: dict[str, str] = {}
+        for field_key, label, placeholder in field_defs_for_occasion(occasion):
+            wkey = widget_key_for_field(field_key)
+            if wkey not in st.session_state:
+                st.session_state[wkey] = str(fields.get(field_key) or "")
+            # Temetés/virrasztó: age rövid; többi text_area
+            if field_key == "age":
+                value = st.text_input(
+                    label,
+                    key=wkey,
+                    placeholder=placeholder,
+                )
+            elif field_key in (
+                "deceased_name",
+                "child_name",
+                "couple_names",
+            ):
+                value = st.text_input(
+                    label,
+                    key=wkey,
+                    placeholder=placeholder,
+                )
+            else:
+                value = st.text_area(
+                    label,
+                    key=wkey,
+                    placeholder=placeholder,
+                    height=68,
+                )
+            collected[field_key] = str(value or "").strip()
+
+        update_occasion_context_fields(
+            cast(MutableMapping[str, Any], st.session_state),
+            occasion_type=occasion,
+            fields=collected,
+        )
 
 
 def _render_history_controls(
@@ -367,6 +437,14 @@ def render_passage_search_expander(
                 key=WIDGET_OCCASION,
             )
             st.caption("Az ajánlás ehhez igazodik.")
+
+        # Ceremoniális alkalmak: opcionális strukturált háttér (adat megmarad, ha váltasz)
+        _render_occasion_background_card(str(occasion or ""))
+        update_occasion_context_fields(
+            cast(MutableMapping[str, Any], st.session_state),
+            occasion_type=str(occasion or ""),
+        )
+
         context = st.text_area(
             "Az alkalom vagy a helyzet rövid leírása – opcionális",
             placeholder=(

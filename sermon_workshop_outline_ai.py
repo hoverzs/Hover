@@ -31,6 +31,11 @@ from sermon_workshop_m6_ai import movement_role_label
 from sermon_workshop_m7_closing_ai import closing_tone_label
 from sermon_workshop_m7_simple_ai import illustration_card_to_legacy
 from textus_workshop_data import TEXT_WORKSHOP_KEY, normalize_text_workshop
+from occasion_context import (
+    OCCASION_CONTEXT_KEY,
+    normalize_occasion_context,
+    occasion_context_has_content,
+)
 
 TAB_OUTLINE = "Igehirdetési vázlat"
 MISSING_PART = "Ez a rész még nincs kidolgozva."
@@ -409,6 +414,15 @@ def collect_outline_context_bundle(
         else dict(session_state.get(SERMON_WORKSHOP_KEY) or {})
     )
     tw = normalize_text_workshop(session_state.get(TEXT_WORKSHOP_KEY))
+    occ_ctx = normalize_occasion_context(session_state.get(OCCASION_CONTEXT_KEY))
+    # Igehely-keresés alkalom (ceremoniális) — ha van, elsőbbséget élvez a
+    # „Felhasználási cél” selectboxzsal szemben a hangnemhez.
+    ps = session_state.get("passage_search")
+    ps_occasion = ""
+    if isinstance(ps, dict):
+        ps_occasion = _s(ps.get("occasion"))
+    if not ps_occasion:
+        ps_occasion = _s(occ_ctx.get("occasion_type"))
     bundle: dict[str, Any] = {
         "passage_reference": _session_str(
             session_state, "last_igehely", "igehely_input", "passage_reference"
@@ -422,7 +436,15 @@ def collect_outline_context_bundle(
         ),
         "source_keys": [],
     }
+    if ps_occasion:
+        bundle["passage_search_occasion"] = ps_occasion
+        # Ha a fő alkalom üres, a ceremoniális típus legyen az alkalom
+        if not bundle["occasion"]:
+            bundle["occasion"] = ps_occasion
     keys: list[str] = []
+    if occasion_context_has_content(occ_ctx) or _s(occ_ctx.get("occasion_type")):
+        bundle["occasion_context"] = occ_ctx
+        keys.append("occasion_context")
     if bundle["passage_reference"]:
         keys.append("passage_reference")
 
