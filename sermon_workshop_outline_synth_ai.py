@@ -30,6 +30,9 @@ from sermon_workshop_outline_ai import (
 
 GenerateFn = Callable[..., str]
 
+# Soft issues may hint a repair pass, but never discard an otherwise usable outline.
+SOFT_QUALITY_ISSUES = frozenset({"word_count_out_of_range"})
+
 HOMILETIC_SYSTEM_PROMPT = """\
 SZEREP
 
@@ -53,7 +56,8 @@ alkalmazási anyagok.
 
 A hiányzó műhelyadatok nem akadályozhatják meg egy teljes vázlat elkészítését. \
 A felhasználói anyag személyesebbé és pontosabbá tegye a vázlatot, ne annak \
-alapvető használhatóságát tegye lehetővé.
+alapvető használhatóságát tegye lehetővé. A meglévő műhelyanyag elsőbbséget élvez; \
+a hiányzó részeket a textusból óvatosan egészítsd ki.
 
 CSENDES ELŐKÉSZÍTÉS
 
@@ -63,8 +67,8 @@ A válasz megírása előtt belsőleg:
 egységet alkot-e. Ha a gondolati ív a következő versben zárul, jelezd a \
 text_boundary_note mezőben (nem blokkoló megjegyzés).
 3. Fogalmazz meg egyetlen, legfeljebb 25 szavas fókuszmondatot.
-4. A textus saját mozgásából alakíts ki három, indokolt esetben négy \
-prédikációs egységet.
+4. A textus saját mozgásából alakíts ki prédikációs egységeket (lásd alkalmi \
+útmutatót: tipikusan 3, Virrasztó/Temetés esetén 2–3).
 5. Építs fel hallgatói ívet: feszültség – megértés – evangéliumi felismerés – \
 válasz – reménység.
 6. Ellenőrizd minden történeti, nyelvi és teológiai állítás forrását és \
@@ -77,18 +81,18 @@ KIMENET (JSON)
 - text_reference: pontos igehely.
 - focus_sentence: egyetlen kijelentő mondat, legfeljebb 25 szó. Ne kezdődjön \
 így: „A textus arra szólít fel…”.
-- introduction.development: 80–120 szó; egy valós hallgatói feszültség; \
+- introduction.development: hallgatói feszültség (hossz: alkalomfüggő); \
 legfeljebb egy retorikai kérdés; ne közhelyes „rohanó világ / közösségi média” \
 nyitással. Ne ismételje a fókuszmondatot.
 - introduction.transition: rövid átvezetés.
-- movements (3–4): minden egységnek tartalomspecifikus címe, textual_anchor \
+- movements: minden egységnek tartalomspecifikus címe, textual_anchor \
 (versszakasz), development (folyamatós bekezdések — NINCS „Exegetikai \
-kibontás”, „Hallgatói kapcsolat”, „Kegyelmi kapcsolat” címke), transition. \
-Egy egység 150–220 szónál ne legyen hosszabb.
-- conclusion.development: 100–150 szó; térjen vissza a bevezetés feszültségéhez; \
-evangéliumi reménység.
+kibontás”, „Hallgatói kapcsolat”, „Kegyelmi kapcsolat” címke), transition.
+- conclusion.development: térjen vissza a bevezetés feszültségéhez; \
+evangéliumi reménység (hossz: alkalomfüggő).
 - conclusion.final_sentence: megjegyezhető zárómondat.
-- refinement_suggestions: legfeljebb két opcionális javaslat.
+- refinement_suggestions: legfeljebb két opcionális javaslat (Virrasztónál \
+legfeljebb 1–2 rövid).
 - text_boundary_note / suggested_text_boundary: csak ha a gondolati ív a \
 kijelölt textuson túl zárul (pl. „A gondolati ív a következő versben zárul \
 le. Javasolt textushatár: …”).
@@ -108,7 +112,12 @@ a lezárásban.
 - Ne használj háromnál több egymást követő retorikai kérdést.
 - A hallgatói alkalmazás legyen konkrét felismerés vagy válasz, ne csak kérdés.
 
-CÉLHOSSZ: a teljes vázlat 850–1150 szó (kibontott munkavázlat, nem kézirat).
+CÉLHOSSZ (útmutató, NEM merev elutasítási küszöb): alkalomfüggő — lásd a \
+felhasználói prompt ALKALOM / HOSSZÚTÁVÚ ÚTMUTATÁS részét. Vasárnapi \
+igehirdetés: közepes, szószéki munkavázlat. Virrasztó: rövidebb, intim \
+áhítat-vázlat. Temetés: tömör, világos, vigasztaló ív. Részleges műhelyanyag \
+esetén a rövidebb, de teljes szerkezet elfogadható. A szószám önmagában soha \
+nem indokolja a válasz elvetését — a használhatóság a döntő.
 
 TILOS A KIMENETBEN: kettős számozás („1. 1.”); üres cím/mező; „Hallgatói \
 felismerés:” tartalom nélkül; nyers Markdown ##; félbehagyott / …-dal levágott \
@@ -153,6 +162,137 @@ _SYNTH_JSON_SHAPE = """\
   ]
 }
 """
+
+
+def resolve_outline_occasion(
+    bundle: Mapping[str, Any] | None = None,
+    *,
+    occasion: Any = "",
+    extra_text: Any = "",
+) -> str:
+    """Alkalom a bundle / session mezőkből vagy a szövegből (Virrasztó stb.)."""
+    raw = _s(occasion)
+    if not raw and isinstance(bundle, Mapping):
+        raw = _s(bundle.get("occasion"))
+    blob = " ".join(
+        [
+            raw,
+            _s(extra_text),
+            _s((bundle or {}).get("user_focus")) if isinstance(bundle, Mapping) else "",
+            _s((bundle or {}).get("project_title"))
+            if isinstance(bundle, Mapping)
+            else "",
+        ]
+    ).casefold()
+    if "virraszt" in blob:
+        return "Virrasztó"
+    if "temet" in blob:
+        return "Temetés"
+    if "vasárnap" in blob or "vasarnap" in blob:
+        return "Vasárnapi istentisztelet"
+    return raw
+
+
+def _is_partial_workshop_bundle(bundle: Mapping[str, Any] | None) -> bool:
+    if not isinstance(bundle, Mapping):
+        return False
+    keys = {
+        _s(k)
+        for k in (bundle.get("source_keys") or [])
+        if _s(k)
+        and _s(k)
+        not in {
+            "passage_reference",
+            "passage_text",
+            "bible_translation",
+            "project_title",
+            "occasion",
+            "user_focus",
+        }
+    }
+    # Részleges: van valami tartalom, de nincs tele a műhely.
+    return 0 < len(keys) < 5
+
+
+def outline_length_profile(
+    occasion: Any = "",
+    *,
+    partial: bool = False,
+) -> dict[str, Any]:
+    """Alkalomfüggő hossz-/szerkezet-útmutató (prompt + soft szószámjelzés)."""
+    occ = resolve_outline_occasion(occasion=occasion)
+    occ_cf = occ.casefold()
+    if "virraszt" in occ_cf:
+        soft_min, soft_max = 220, 620
+        min_movements = 2
+        guidance = (
+            "Virrasztó: rövidebb, intim áhítat-vázlat (~250–500 szó irányadó). "
+            "Szerkezet: cím, textus, egyszavas fókusz, rövid bevezetés, "
+            "2–3 kidolgozott egymásutáni gondolatí egység, megérkezés/lezárás; "
+            "legfeljebb 1–2 rövid refinement. Ne írj teljes temetési prédikációt."
+        )
+        intro_hint = "40–80 szó"
+        movement_hint = "2–3 egység, egyenként rövid, megható bekezdés"
+        conclusion_hint = "50–90 szó"
+    elif "temet" in occ_cf:
+        soft_min, soft_max = 280, 700
+        min_movements = 2
+        guidance = (
+            "Temetés: tömör, világos, vigasztaló ív (~350–600 szó irányadó). "
+            "2–3 egység; kerüld a túlírt szószéki kibontást."
+        )
+        intro_hint = "50–90 szó"
+        movement_hint = "2–3 egység"
+        conclusion_hint = "60–100 szó"
+    else:
+        soft_min, soft_max = 500, 1200
+        min_movements = 3
+        guidance = (
+            "Vasárnapi / általános igehirdetés: közepes, szószéken használható "
+            "munkavázlat (~700–1100 szó irányadó). 3–4 textusspecifikus mozgás."
+        )
+        intro_hint = "80–120 szó"
+        movement_hint = "3–4 egység, egyenként legfeljebb ~150–220 szó"
+        conclusion_hint = "100–150 szó"
+    if partial:
+        soft_min = max(180, soft_min - 150)
+        guidance += (
+            " Részleges műhelyanyag: a meglévő adatok elsőbbséget élveznek; "
+            "a hiányzó részeket a textusból óvatosan egészítsd ki. "
+            "Rövidebb, de teljes szerkezet elfogadható."
+        )
+    return {
+        "occasion": occ or "Vasárnapi istentisztelet",
+        "soft_min": soft_min,
+        "soft_max": soft_max,
+        "min_movements": min_movements,
+        "guidance": guidance,
+        "intro_hint": intro_hint,
+        "movement_hint": movement_hint,
+        "conclusion_hint": conclusion_hint,
+        "partial": partial,
+    }
+
+
+def _hard_quality_issues(issues: list[str] | tuple[str, ...] | None) -> list[str]:
+    return [i for i in (issues or []) if i not in SOFT_QUALITY_ISSUES]
+
+
+def _occasion_block_for_prompt(
+    bundle: Mapping[str, Any] | None,
+) -> str:
+    profile = outline_length_profile(
+        resolve_outline_occasion(bundle),
+        partial=_is_partial_workshop_bundle(bundle),
+    )
+    return (
+        f"ALKALOM: {profile['occasion']}\n"
+        f"HOSSZÚTÁVÚ ÚTMUTATÁS: {profile['guidance']}\n"
+        f"Bevezetés irányadó hossza: {profile['intro_hint']}. "
+        f"Mozgások: {profile['movement_hint']}. "
+        f"Lezárás: {profile['conclusion_hint']}.\n"
+        "A szószám NEM merev elutasítási küszöb — használható vázlatot adj vissza.\n"
+    )
 
 
 def _call_generate(
@@ -440,14 +580,19 @@ def apply_synth_payload_to_outline(
                 built = _movement_from_obj(mv, index=i)
                 if built:
                     new_mvs.append(built)
-            if len(new_mvs) >= 3:
+            min_mvs = int(
+                outline_length_profile(
+                    resolve_outline_occasion(bundle),
+                    partial=_is_partial_workshop_bundle(bundle),
+                )["min_movements"]
+            )
+            if len(new_mvs) >= min_mvs:
                 merged["movements"] = new_mvs
                 merged["provisional_sections"] = [
                     p
                     for p in (merged.get("provisional_sections") or [])
                     if p != "sermon_movements"
                 ]
-
     conc_raw = (
         payload.get("conclusion")
         if isinstance(payload.get("conclusion"), dict)
@@ -619,16 +764,24 @@ def assess_outline_quality_issues(
     outline: Any,
     *,
     for_ai_output: bool = False,
+    occasion: Any = "",
+    bundle: Mapping[str, Any] | None = None,
 ) -> list[str]:
     """Determinisztikus minőségellenőrzés — csak ha van javítandó.
 
-    for_ai_output=True: szószám céltartomány (850–1150) is ellenőrzött.
+    for_ai_output=True: alkalomfüggő szószám soft jelzés (word_count_out_of_range)
+    kerülhet a listába, de SOFT_QUALITY_ISSUES — önmagában nem utasítható el.
     """
     import re
 
     safe = normalize_sermon_outline(outline)
     content = _s(safe.get("content")) or outline_to_readable_content(safe)
     issues: list[str] = []
+    profile = outline_length_profile(
+        resolve_outline_occasion(bundle, occasion=occasion),
+        partial=_is_partial_workshop_bundle(bundle),
+    )
+    min_movements = int(profile["min_movements"])
 
     for banned in OUTLINE_PLACEHOLDER_BANLIST:
         if banned in content or is_banned_outline_placeholder(
@@ -714,7 +867,7 @@ def assess_outline_quality_issues(
                 p,
             ):
                 issues.append("empty_section")
-    if len(usable_mvs) < 3:
+    if len(usable_mvs) < min_movements:
         issues.append("weak_movements")
 
     conclusion = (
@@ -738,9 +891,12 @@ def assess_outline_quality_issues(
     if _has_repeated_paragraphs(content):
         issues.append("repeated_paragraphs")
 
+    # Soft only: guide a repair pass; never a hard rejection by itself.
     if for_ai_output:
         words = _word_count(content)
-        if words and (words < 850 or words > 1150):
+        soft_min = int(profile["soft_min"])
+        soft_max = int(profile["soft_max"])
+        if words and (words < soft_min or words > soft_max):
             issues.append("word_count_out_of_range")
 
     return list(dict.fromkeys(issues))
@@ -774,11 +930,18 @@ def synthesize_homiletic_outline(
             "christ_connection",
         )
     }
+    occasion_block = _occasion_block_for_prompt(bundle)
+    profile = outline_length_profile(
+        resolve_outline_occasion(bundle),
+        partial=_is_partial_workshop_bundle(bundle),
+    )
     prompt = (
         "Készíts KOHERENS, szószéken is használható igehirdetési munkavázlatot "
         "a forrásanyagok SZINTÉZISÉVEL.\n"
-        "Ne fűzd egymás után a mezőket. 3–4 textusspecifikus mozgás kell "
-        "valódi tartalmi címmel és kibontott development bekezdésekkel.\n"
+        f"{occasion_block}"
+        "Ne fűzd egymás után a mezőket. Textusspecifikus mozgások kellenek "
+        f"({profile['movement_hint']}) valódi tartalmi címmel és kibontott "
+        "development bekezdésekkel.\n"
         "A bevezetés ne ismételje a fókuszmondatot. A megérkezés ne legyen "
         "puszta összefoglalás. Legfeljebb 2 refinement_suggestions.\n"
         f"ZÁROLT FÓKUSZMONDAT (ne gyengítsd): {locked or '(nincs — te állapítsd meg)'}\n\n"
@@ -848,10 +1011,16 @@ def repair_outline_as_lektor(
         return current, warnings
 
     ctx = _ctx_for_prompt(bundle)
+    occasion_block = _occasion_block_for_prompt(bundle)
+    # Soft szószámjelzés csak tipp a lektornak — ne dominálja a javítást.
+    issue_line = ", ".join(issues)
     prompt = (
         "Te homiletikai LEKTOR vagy. Írd újra a gyenge részeket; a kész vázlatot add vissza.\n"
         "Ne adj hibalista kimenetet a felhasználónak — csak a javított JSON vázlatot.\n"
-        f"JELZETT PROBLÉMÁK: {', '.join(issues)}\n"
+        f"{occasion_block}"
+        f"JELZETT PROBLÉMÁK: {issue_line}\n"
+        "Ha csak a szószám soft jelzés (word_count_out_of_range) szerepel, "
+        "ne dobd el a vázlatot: finomhangolj, de tartsd meg a használható tartalmat.\n"
         "Távolítsd el az ismétléseket, sablon címeket, placeholder-eket, moralizálást.\n"
         "Erősítsd a textushűséget, Krisztus-/kegyelemívet, hallgatói megszólítást, "
         "konkrét alkalmazásokat és a lezárás megérkezését.\n"
@@ -1064,7 +1233,9 @@ def run_two_phase_outline_synthesis(
             outline["content"] = outline_to_readable_content(outline)
 
     issues = assess_outline_quality_issues(
-        outline, for_ai_output=bool(generate_fn is not None)
+        outline,
+        for_ai_output=bool(generate_fn is not None),
+        bundle=bundle,
     )
     if issues and generate_fn is not None:
         outline, repair_warnings = repair_outline_as_lektor(
@@ -1072,36 +1243,44 @@ def run_two_phase_outline_synthesis(
         )
         warnings.extend(repair_warnings)
         remaining = assess_outline_quality_issues(
-            outline, for_ai_output=True
+            outline, for_ai_output=True, bundle=bundle
         )
-        if remaining:
+        hard_remaining = _hard_quality_issues(remaining)
+        if hard_remaining:
             warnings.append(
                 "A vázlat minőségellenőrzése nem ment át: "
-                + ", ".join(remaining)
+                + ", ".join(hard_remaining)
             )
             content = outline_to_readable_content(outline)
             for banned in OUTLINE_PLACEHOLDER_BANLIST:
                 content = content.replace(banned, "")
             outline["content"] = content
         else:
+            # Soft-only (pl. szószám) → megtartjuk a használható vázlatot.
             outline["provisional_sections"] = []
     elif generate_fn is not None and not issues:
         outline["provisional_sections"] = []
     outline = normalize_sermon_outline(outline)
     if generate_fn is not None:
-        remaining = assess_outline_quality_issues(outline, for_ai_output=True)
-        if remaining:
-            warnings.append("QUALITY_GATE_FAILED:" + ",".join(remaining))
+        remaining = assess_outline_quality_issues(
+            outline, for_ai_output=True, bundle=bundle
+        )
+        hard_remaining = _hard_quality_issues(remaining)
+        if hard_remaining:
+            warnings.append("QUALITY_GATE_FAILED:" + ",".join(hard_remaining))
     outline["content"] = outline_to_readable_content(outline)
     return outline, warnings
 
 
 __all__ = [
     "HOMILETIC_SYSTEM_PROMPT",
+    "SOFT_QUALITY_ISSUES",
     "assess_outline_quality_issues",
     "apply_synth_payload_to_outline",
+    "outline_length_profile",
     "regenerate_outline_part",
     "repair_outline_as_lektor",
+    "resolve_outline_occasion",
     "run_two_phase_outline_synthesis",
     "suggest_text_boundary_hint",
     "synthesize_homiletic_outline",

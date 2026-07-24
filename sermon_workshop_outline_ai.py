@@ -146,12 +146,15 @@ def _clean_source_text(text: Any) -> str:
     raw = re.sub(r"\n{3,}", "\n\n", raw).strip()
     # Félbehagyott / csonka vég („az útmu…”, „…”)
     if raw.endswith("…") or raw.endswith("..."):
-        # Ha az utolsó „mondat” túl rövid / szó közepén vágott, vágjuk le
+        stripped = raw.rstrip("….").rstrip()
+        # Nincs lezárt mondat → csonka AI-válasz, ne mentsük „kész” szövegként
+        if not re.search(r"[.!?]", stripped):
+            return ""
         parts = re.split(r"(?<=[.!?])\s+", raw)
         if len(parts) >= 2 and len(parts[-1]) < 18:
             raw = " ".join(parts[:-1]).rstrip()
         else:
-            raw = raw.rstrip("….").rstrip()
+            raw = stripped
     # Azonos mondat kétszer egymás után
     sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+", raw) if s.strip()]
     deduped: list[str] = []
@@ -2070,6 +2073,7 @@ def assemble_sermon_outline(
         # AI minőségi bukás esetén ne mentünk használhatatlan vázlatot „kész”-ként.
         try:
             from sermon_workshop_outline_synth_ai import (
+                SOFT_QUALITY_ISSUES,
                 assess_outline_quality_issues,
                 run_two_phase_outline_synthesis,
             )
@@ -2083,21 +2087,20 @@ def assemble_sermon_outline(
             quality_failed = any(
                 str(w).startswith("QUALITY_GATE_FAILED:") for w in synth_warnings
             )
-            remaining_ai = assess_outline_quality_issues(
-                outline, for_ai_output=True
-            )
+            remaining_ai = [
+                i
+                for i in assess_outline_quality_issues(
+                    outline, for_ai_output=True, bundle=bundle
+                )
+                if i not in SOFT_QUALITY_ISSUES
+            ]
             if generate_fn is not None and (quality_failed or remaining_ai):
                 return OutlineAssemblyResult(
                     outline=normalize_sermon_outline(sw.get("sermon_outline")),
                     ok=False,
                     error_message=(
                         "A vázlatgenerálás nem adott szószéken használható eredményt. "
-                        "Próbáld újra, vagy egészítsd ki a műhelyanyagot. "
-                        + (
-                            f"(Ellenőrzés: {', '.join(remaining_ai)})"
-                            if remaining_ai
-                            else ""
-                        )
+                        "Próbáld újra, vagy egészítsd ki a műhelyanyagot."
                     ),
                     warnings=warnings,
                 )

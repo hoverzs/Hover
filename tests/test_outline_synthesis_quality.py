@@ -27,9 +27,12 @@ from sermon_workshop_outline_ai import (
 )
 from sermon_workshop_outline_synth_ai import (
     HOMILETIC_SYSTEM_PROMPT,
+    SOFT_QUALITY_ISSUES,
     apply_synth_payload_to_outline,
     assess_outline_quality_issues,
+    outline_length_profile,
     regenerate_outline_part,
+    resolve_outline_occasion,
     run_two_phase_outline_synthesis,
 )
 from textus_workshop_data import TEXT_WORKSHOP_KEY, get_default_text_workshop
@@ -62,7 +65,9 @@ def test_system_prompt_contains_homiletic_core():
     assert "református" in HOMILETIC_SYSTEM_PROMPT.casefold()
     assert "Krisztus" in HOMILETIC_SYSTEM_PROMPT
     assert "Ne másold egymás után" in HOMILETIC_SYSTEM_PROMPT
-    assert "850" in HOMILETIC_SYSTEM_PROMPT and "1150" in HOMILETIC_SYSTEM_PROMPT
+    assert "alkalomfüggő" in HOMILETIC_SYSTEM_PROMPT.casefold()
+    assert "Virrasztó" in HOMILETIC_SYSTEM_PROMPT
+    assert "szószám önmagában soha" in HOMILETIC_SYSTEM_PROMPT.casefold()
     assert "text_boundary_note" in HOMILETIC_SYSTEM_PROMPT
     assert "25" in HOMILETIC_SYSTEM_PROMPT
 
@@ -155,7 +160,16 @@ def test_quality_gate_flags_technical_labels_and_repeated_paragraphs():
 
 def test_ai_failure_does_not_replace_with_mechanical_success():
     """Egy javító kör utáni minőségbukás → őszinte hiba, nem mechanikus „kész”."""
-    state = copy.deepcopy(build_jude_state())
+    state = {
+        "last_igehely": "Júd 17–20",
+        "passage_text": (
+            "17 Ti pedig, szeretteim, emlékezzetek… "
+            "20 Ti azonban, szeretteim, épüljetek… imádkozva a Szentlélek által."
+        ),
+        "last_sajat": "Hitben megmaradás a gúny közepette",
+        TEXT_WORKSHOP_KEY: get_default_text_workshop(),
+        SERMON_WORKSHOP_KEY: get_default_sermon_workshop(),
+    }
     ensure_sermon_workshop_state(state)
     previous = normalize_sermon_outline(
         (state.get(SERMON_WORKSHOP_KEY) or {}).get("sermon_outline")
@@ -165,7 +179,10 @@ def test_ai_failure_does_not_replace_with_mechanical_success():
         return json.dumps(
             {
                 "title": "Rossz vázlat",
-                "focus_sentence": "A textus arra szólít fel, hogy legyünk jók mindig és mindenütt a saját erőnkből mindenkivel szemben.",
+                "focus_sentence": (
+                    "A textus arra szólít fel, hogy legyünk jók mindig és mindenütt "
+                    "a saját erőnkből mindenkivel szemben."
+                ),
                 "introduction": {
                     "development": "A hallgató a textus világába lép.",
                     "transition": "",
@@ -190,6 +207,7 @@ def test_ai_failure_does_not_replace_with_mechanical_success():
     assert "szószéken használható" in (result.error_message or "").casefold() or (
         "nem adott" in (result.error_message or "").casefold()
     )
+    assert "word_count_out_of_range" not in (result.error_message or "")
     # Ne mentse felül a meglévő állapotot „kész” mechanikus vázlattal
     kept = normalize_sermon_outline(
         (state.get(SERMON_WORKSHOP_KEY) or {}).get("sermon_outline")
@@ -440,3 +458,318 @@ def test_deficiency_tips_not_required_workshop_message():
     )
     assert tip not in (merged.get("editorial_tips") or [])
     assert merged.get("editorial_tips")
+
+
+def _words(n: int, seed: str = "szó") -> str:
+    return " ".join([f"{seed}{i}" for i in range(max(1, n))])
+
+
+def _usable_ai_payload(
+    *,
+    focus: str = "Isten megtart a gúny közepette a Szentlélek által.",
+    intro_words: int = 70,
+    movement_words: int = 60,
+    conclusion_words: int = 70,
+    movement_count: int = 3,
+    title: str = "Megtartva a gúny között",
+) -> dict:
+    titles = [
+        "Apostoli emlékezet",
+        "A szakadás jelei",
+        "Épülés a Lélekben",
+        "Megmaradás a szeretetben",
+    ]
+    movements = []
+    for i in range(movement_count):
+        movements.append(
+            {
+                "title": titles[i % len(titles)],
+                "textual_anchor": f"Júd {17 + i}",
+                "development": [
+                    _words(movement_words, seed=f"mozg{i}a"),
+                    _words(max(20, movement_words // 2), seed=f"mozg{i}b"),
+                ],
+                "transition": "Tovább lépünk." if i + 1 < movement_count else "",
+            }
+        )
+    return {
+        "title": title,
+        "text_reference": "Júd 17–20",
+        "focus_sentence": focus,
+        "introduction": {
+            "development": _words(intro_words, seed="bevezet"),
+            "transition": "Először az emlékezethez fordulunk.",
+        },
+        "movements": movements,
+        "conclusion": {
+            "development": _words(conclusion_words, seed="zaras"),
+            "final_sentence": "Imádkozzatok a Szentlélekben.",
+        },
+        "refinement_suggestions": [
+            "Egy konkrét gyülekezeti helyzet tovább erősíthetné a megérkezést."
+        ],
+    }
+
+
+def test_resolve_virraszto_occasion_from_text_and_field():
+    assert resolve_outline_occasion({"occasion": "Virrasztó"}) == "Virrasztó"
+    assert (
+        resolve_outline_occasion(
+            {"occasion": "", "user_focus": "Rövid virrasztó áhítat a családnak"}
+        )
+        == "Virrasztó"
+    )
+    profile = outline_length_profile("Virrasztó")
+    assert profile["min_movements"] == 2
+    assert profile["soft_max"] < 850
+
+
+def test_word_count_alone_is_soft_not_hard_rejection():
+    """Slightly off word-count but otherwise good → soft only, assembly keeps it."""
+    payload = _usable_ai_payload(
+        intro_words=55, movement_words=45, conclusion_words=55, movement_count=3
+    )
+    calls = {"n": 0}
+
+    def gen(prompt, **kwargs):
+        calls["n"] += 1
+        return json.dumps(payload, ensure_ascii=False)
+
+    state = {
+        "last_igehely": "Júd 17–20",
+        "last_alkalom": "Vasárnapi istentisztelet",
+        "passage_text": (
+            "17 Ti pedig, szeretteim, emlékezzetek… "
+            "20 Ti azonban, szeretteim, épüljetek… imádkozva a Szentlélek által."
+        ),
+        "last_sajat": "Hitben megmaradás a gúny közepette",
+        "exegesis": "Júdás a gúnyolódók ellen figyelmeztet, majd a megmaradásra hív.",
+        TEXT_WORKSHOP_KEY: get_default_text_workshop(),
+        SERMON_WORKSHOP_KEY: get_default_sermon_workshop(),
+    }
+    ensure_sermon_workshop_state(state)
+    result = assemble_sermon_outline(
+        state, generate_fn=gen, synthesize=True, force_overwrite=True
+    )
+    assert result.ok, result.error_message
+    content = outline_to_readable_content(result.outline)
+    assert content.strip()
+    assert "word_count_out_of_range" not in (result.error_message or "")
+    assert "word_count_out_of_range" not in " ".join(result.warnings or [])
+    soft = assess_outline_quality_issues(
+        result.outline,
+        for_ai_output=True,
+        bundle={"occasion": "Vasárnapi istentisztelet", "source_keys": ["exegesis"]},
+    )
+    hard = [i for i in soft if i not in SOFT_QUALITY_ISSUES]
+    assert hard == []
+    # Soft szószámjelzés megengedett, de nem bukhat el miatta.
+    assert calls["n"] >= 1
+
+
+def test_partial_workshop_ai_outline_kept_despite_short_word_count():
+    """Részleges, de tartalmas műhelyanyag + rövidebb AI válasz → használható vázlat."""
+    payload = _usable_ai_payload(
+        intro_words=50, movement_words=40, conclusion_words=50, movement_count=3
+    )
+
+    def gen(prompt, **kwargs):
+        return json.dumps(payload, ensure_ascii=False)
+
+    state = {
+        "last_igehely": "Júd 17–20",
+        "last_alkalom": "Vasárnapi istentisztelet",
+        "passage_text": "Emlékezzetek… épüljetek… imádkozva a Szentlélek által.",
+        "exegesis": "Júdás a gúnyolódók ellen figyelmeztet, majd a megmaradásra hív.",
+        "theology": "A megtartás Isten szeretetéből fakad.",
+        TEXT_WORKSHOP_KEY: {
+            **get_default_text_workshop(),
+            "text_main_idea": (
+                "A hívők a Szentlélekben imádkozva őrizzék meg magukat "
+                "Isten szeretetében."
+            ),
+            "text_main_idea_status": "approved",
+        },
+        SERMON_WORKSHOP_KEY: {
+            **get_default_sermon_workshop(),
+            "sermon_main_idea": "Isten megtart a gúny közepette.",
+            "sermon_main_idea_status": "draft",
+        },
+    }
+    ensure_sermon_workshop_state(state)
+    result = assemble_sermon_outline(
+        state, generate_fn=gen, synthesize=True, force_overwrite=True
+    )
+    assert result.ok, result.error_message
+    assert result.outline.get("main_idea")
+    assert len(result.outline.get("movements") or []) >= 3
+    content = outline_to_readable_content(result.outline)
+    assert "Apostoli emlékezet" in content
+    assert "Fókuszmondat" in content or result.outline.get("main_idea")
+    assert MISSING_PART not in content
+
+
+def test_virraszto_produces_shorter_complete_usable_outline():
+    """Virrasztó: rövidebb, 2–3 egységes, teljes szerkezetű használható vázlat."""
+    payload = {
+        "title": "Otthon a pásztor mellett",
+        "text_reference": "Zsolt 23,1–4",
+        "focus_sentence": "Az Úr jelenléte vigasztal a gyász csendjében.",
+        "introduction": {
+            "development": (
+                "A család csendben ül össze. A hiány fáj, mégis keresünk "
+                "szavakat, amelyek nem magyaráznak túl sokat, csak hordoznak."
+            ),
+            "transition": "A zsoltáros a pásztor közelségéről beszél.",
+        },
+        "movements": [
+            {
+                "title": "A pásztor jelenléte",
+                "textual_anchor": "Zsolt 23,1–2",
+                "development": [
+                    "Az Úr mint pásztor nem távoli ígéret, hanem közelben járó gondoskodás. "
+                    "A virrasztóban ez a közelség ad tartást a fájdalomnak.",
+                    "Nem kell erőltetett magyarázat: elég, hogy Ő vezet zöldellő legelőre.",
+                ],
+                "transition": "A völgy is az Ő útján van.",
+            },
+            {
+                "title": "A völgyben sem magány",
+                "textual_anchor": "Zsolt 23,4",
+                "development": [
+                    "A halál árnyékának völgyében a félelem valós, de a bot és a pásztorbot "
+                    "vigasztal. Krisztus feltámadása adja a reménység talaját.",
+                    "A gyászoló közösség együtt hallja: nem vagyunk elhagyatva.",
+                ],
+            },
+        ],
+        "conclusion": {
+            "development": (
+                "A virrasztó nem oldja fel a veszteséget, de Isten közelségében "
+                "helyet kap a sírás és a hála. A pásztor tovább vezet."
+            ),
+            "final_sentence": "Az Úr veletek van ebben a csendben is.",
+        },
+        "refinement_suggestions": [
+            "Egy rövid személyes hálaemlék erősítheti az intim hangnemet."
+        ],
+    }
+
+    def gen(prompt, **kwargs):
+        assert "Virrasztó" in prompt or "virraszt" in prompt.casefold()
+        return json.dumps(payload, ensure_ascii=False)
+
+    state = {
+        "last_igehely": "Zsolt 23,1–4",
+        "last_alkalom": "Virrasztó",
+        "passage_text": (
+            "1 Az Úr az én pásztorom, nem szűkölködöm. "
+            "4 Még ha a halál árnyékának völgyében járok is, nem félek a bajtól."
+        ),
+        "last_sajat": "Intim virrasztó áhítat a családnak",
+        TEXT_WORKSHOP_KEY: get_default_text_workshop(),
+        SERMON_WORKSHOP_KEY: get_default_sermon_workshop(),
+    }
+    ensure_sermon_workshop_state(state)
+    result = assemble_sermon_outline(
+        state, generate_fn=gen, synthesize=True, force_overwrite=True
+    )
+    assert result.ok, result.error_message
+    outline = result.outline
+    content = outline_to_readable_content(outline)
+    mvs = outline.get("movements") or []
+    assert 2 <= len(mvs) <= 3
+    assert outline.get("sermon_title") == "Otthon a pásztor mellett"
+    # Meglévő felhasználói fókusz elsőbbséget élvezhet az AI focus_sentence felett.
+    assert outline.get("main_idea")
+    assert len(str(outline.get("main_idea")).split()) <= 25
+    opening = outline.get("opening_direction") or (
+        (outline.get("introduction") or {}).get("development") or ""
+    )
+    assert "család" in opening.casefold() or "hiány" in opening.casefold()
+    closing = (outline.get("closing") or {}).get("final_insight") or (
+        (outline.get("conclusion") or {}).get("development") or ""
+    )
+    assert "virrasztó" in closing.casefold() or "pásztor" in closing.casefold()
+    tips = outline.get("editorial_tips") or []
+    assert len(tips) <= 2
+    assert MISSING_PART not in content
+    for banned in OUTLINE_PLACEHOLDER_BANLIST:
+        assert banned not in content
+    issues = assess_outline_quality_issues(
+        outline,
+        for_ai_output=True,
+        occasion="Virrasztó",
+        bundle={"occasion": "Virrasztó"},
+    )
+    assert "weak_movements" not in issues
+    assert [i for i in issues if i not in SOFT_QUALITY_ISSUES] == []
+    assert "pásztor" in content.casefold() or "völgy" in content.casefold()
+    # Concrete structure fields for parent deliverable
+    assert {
+        "title": outline.get("sermon_title"),
+        "textus": outline.get("passage_reference") or "Zsolt 23,1–4",
+        "focus": outline.get("main_idea"),
+        "intro": bool(opening),
+        "movements": [m.get("title") for m in mvs],
+        "closing": bool(closing),
+        "refinements": tips,
+    }
+
+
+def test_truncated_or_empty_ai_outline_still_rejected():
+    def gen_empty(prompt, **kwargs):
+        return json.dumps(
+            {
+                "title": "",
+                "focus_sentence": "",
+                "introduction": {"development": ""},
+                "movements": [],
+                "conclusion": {"development": ""},
+            },
+            ensure_ascii=False,
+        )
+
+    state = {
+        "last_igehely": "Júd 17–20",
+        "passage_text": "Emlékezzetek… épüljetek…",
+        "last_sajat": "Hitben megmaradás",
+        TEXT_WORKSHOP_KEY: get_default_text_workshop(),
+        SERMON_WORKSHOP_KEY: get_default_sermon_workshop(),
+    }
+    ensure_sermon_workshop_state(state)
+    empty_result = assemble_sermon_outline(
+        state, generate_fn=gen_empty, synthesize=True, force_overwrite=True
+    )
+    assert not empty_result.ok
+    assert "word_count_out_of_range" not in (empty_result.error_message or "")
+
+    def gen_truncated(prompt, **kwargs):
+        return json.dumps(
+            {
+                "title": "Félbehagyott",
+                "focus_sentence": "Isten megtart a gúny közepette.",
+                "introduction": {
+                    "development": "A gúny hangja körülöttünk egyre hangosabb…"
+                },
+                "movements": [
+                    {
+                        "title": "Emlékezet",
+                        "development": ["Az apostolok szavaira…"],
+                    },
+                    {"title": "Gúny", "development": ["A szakadás jelei…"]},
+                    {
+                        "title": "Megmaradás",
+                        "development": ["Hitben épülés a Lélekben…"],
+                    },
+                ],
+                "conclusion": {"development": "Isten szeretete megtart…"},
+            },
+            ensure_ascii=False,
+        )
+
+    trunc_result = assemble_sermon_outline(
+        state, generate_fn=gen_truncated, synthesize=True, force_overwrite=True
+    )
+    assert not trunc_result.ok
+    assert "word_count_out_of_range" not in (trunc_result.error_message or "")
