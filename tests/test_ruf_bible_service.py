@@ -55,6 +55,11 @@ def test_parse_forms() -> None:
         "Zsolt 23": ("PSA", 23, None, None),
         "Fil 2,1–11": ("PHP", 2, 1, 11),
         "Mt 5,1–12": ("MAT", 5, 1, 12),
+        # Gemini gyakran teljes magyar könyvnevet ad
+        "Róma 8,31–37": ("ROM", 8, 31, 37),
+        "2 Timóteus 4,6–8": ("2TI", 4, 6, 8),
+        "Jelenések 21,1–5": ("REV", 21, 1, 5),
+        "1 Péter 1,3–9": ("1PE", 1, 3, 9),
     }
     for ref, expected in cases.items():
         p = parse_bible_reference(ref)

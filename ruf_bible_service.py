@@ -99,28 +99,56 @@ _BOOK_DEFS: list[tuple[BookInfo, tuple[str, ...]]] = [
     (BookInfo("LUK", "Lk"), ("Lk", "Luc", "Luk", "Luka", "Lukács")),
     (BookInfo("JHN", "Jn"), ("Jn", "Jan", "Janos", "János", "John", "Jhn")),
     (BookInfo("ACT", "ApCsel"), ("ApCsel", "Apcsel", "Act", "Csel", "Apostolok")),
-    (BookInfo("ROM", "Róm"), ("Rom", "Róm", "Romanus", "Romaiak", "Rómaiak")),
-    (BookInfo("1CO", "1Kor"), ("1Kor", "IKor", "1Cor", "1Korinthus")),
-    (BookInfo("2CO", "2Kor"), ("2Kor", "IIKor", "2Cor", "2Korinthus")),
-    (BookInfo("GAL", "Gal"), ("Gal", "Galata", "Galatak")),
-    (BookInfo("EPH", "Ef"), ("Ef", "Eph", "Efezus", "Efezusiak")),
-    (BookInfo("PHP", "Fil"), ("Fil", "Phil", "Filippi", "Philippiek")),
-    (BookInfo("COL", "Kol"), ("Kol", "Col", "Kolosse", "Kolossé")),
-    (BookInfo("1TH", "1Thess"), ("1Thess", "1Tess", "IThess", "1Thesszalonika")),
-    (BookInfo("2TH", "2Thess"), ("2Thess", "2Tess", "IIThess", "2Thesszalonika")),
-    (BookInfo("1TI", "1Tim"), ("1Tim", "ITim", "1Timothy")),
-    (BookInfo("2TI", "2Tim"), ("2Tim", "IITim", "2Timothy")),
+    # Gemini gyakran ad teljes magyar nevet (Róma, nem Róm / Rómaiak).
+    (
+        BookInfo("ROM", "Róm"),
+        ("Rom", "Róm", "Roma", "Róma", "Romanus", "Romaiak", "Rómaiak"),
+    ),
+    (
+        BookInfo("1CO", "1Kor"),
+        ("1Kor", "IKor", "1Cor", "1Korinthus", "1Korinthusiak"),
+    ),
+    (
+        BookInfo("2CO", "2Kor"),
+        ("2Kor", "IIKor", "2Cor", "2Korinthus", "2Korinthusiak"),
+    ),
+    (BookInfo("GAL", "Gal"), ("Gal", "Galata", "Galatak", "Galaták")),
+    (BookInfo("EPH", "Ef"), ("Ef", "Eph", "Efezus", "Efezusiak", "Efézusiak")),
+    (BookInfo("PHP", "Fil"), ("Fil", "Phil", "Filippi", "Philippiek", "Filippiek")),
+    (BookInfo("COL", "Kol"), ("Kol", "Col", "Kolosse", "Kolossé", "Kolosséiak")),
+    (
+        BookInfo("1TH", "1Thess"),
+        ("1Thess", "1Tess", "IThess", "1Thesszalonika", "1Thesszalonikaiak"),
+    ),
+    (
+        BookInfo("2TH", "2Thess"),
+        ("2Thess", "2Tess", "IIThess", "2Thesszalonika", "2Thesszalonikaiak"),
+    ),
+    (
+        BookInfo("1TI", "1Tim"),
+        ("1Tim", "ITim", "1Timothy", "1Timoteus", "1Timóteus"),
+    ),
+    (
+        BookInfo("2TI", "2Tim"),
+        ("2Tim", "IITim", "2Timothy", "2Timoteus", "2Timóteus"),
+    ),
     (BookInfo("TIT", "Tit"), ("Tit", "Titusz", "Titus")),
     (BookInfo("PHM", "Filem", True), ("Filem", "Phm", "Filemon", "Philemon")),
     (BookInfo("HEB", "Zsid"), ("Zsid", "Heb", "Zsidok", "Zsidók", "Hebrews")),
     (BookInfo("JAS", "Jak"), ("Jak", "James", "Jakob", "Jakab")),
-    (BookInfo("1PE", "1Pt"), ("1Pt", "1Pet", "IPt", "1Peter", "1Peter")),
-    (BookInfo("2PE", "2Pt"), ("2Pt", "2Pet", "IIPt", "2Peter")),
+    (
+        BookInfo("1PE", "1Pt"),
+        ("1Pt", "1Pet", "IPt", "1Peter", "1Péter"),
+    ),
+    (BookInfo("2PE", "2Pt"), ("2Pt", "2Pet", "IIPt", "2Peter", "2Péter")),
     (BookInfo("1JN", "1Jn"), ("1Jn", "1Jan", "IJn", "1Janos", "1János")),
     (BookInfo("2JN", "2Jn", True), ("2Jn", "2Jan", "IIJn", "2Janos", "2János")),
     (BookInfo("3JN", "3Jn", True), ("3Jn", "3Jan", "IIIJn", "3Janos", "3János")),
     (BookInfo("JUD", "Júd", True), ("Jud", "Júd", "Judas", "Júdás", "Jude")),
-    (BookInfo("REV", "Jel"), ("Jel", "Rev", "Apokalipszis", "Revelation")),
+    (
+        BookInfo("REV", "Jel"),
+        ("Jel", "Rev", "Apokalipszis", "Revelation", "Jelenesek", "Jelenések"),
+    ),
 ]
 
 

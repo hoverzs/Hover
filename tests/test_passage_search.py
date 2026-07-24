@@ -193,6 +193,93 @@ def test_funeral_empty_five_valid_varied():
     assert common_n <= 1
 
 
+def test_funeral_detailed_context_full_hu_book_names_and_history():
+    """Regresszió: Temetés + részletes kontextus + history exclude.
+
+    A modell gyakran teljes magyar könyvnevet ad (Róma, 2 Timóteus, Jelenések).
+    Korábban ezek elvetése + cooldown a fill híváson → generic hibaüzenet.
+    """
+    from passage_search_ai import MIN_ACCEPTABLE_COUNT
+
+    context = "egy 84 éves nő varrasztójára keresek igét"
+    history = [
+        "Zsolt 23",
+        "Jn 14,1-6",
+        "Job 19,23-27",
+        "1Thess 4,13-18",
+        "Róm 8,38-39",
+        "Jn 11,25-26",
+    ]
+    batch = [
+        _sug("Ézs 40,28-31", title="Az Orokkévalo Isten"),
+        _sug("Zsolt 71,1-9", title="Remenyseg idos korban"),
+        _sug("Jn 12,23-26", title="Mag a foldben"),
+        _sug("Róma 8,31-37", title="Semmi el nem valaszthat"),
+        _sug("2 Timóteus 4,6-8", title="A hit harca befejezve"),
+    ]
+    seen_kwargs: list[dict[str, Any]] = []
+
+    def gen(prompt, **kwargs):
+        seen_kwargs.append(dict(kwargs))
+        assert "84" in prompt or "varraszt" in prompt.casefold() or context[:10] in prompt
+        assert "Temetés" in prompt
+        return _payload("Temetés", batch, context=context)
+
+    result = suggest_passages_for_occasion(
+        occasion="Temetés",
+        context=context,
+        history_exclude_references=history,
+        generate_fn=gen,
+    )
+    assert result.ok, (result.warnings, result.error_message)
+    assert MIN_ACCEPTABLE_COUNT <= len(result.suggestions) <= REQUIRED_COUNT
+    refs = [s.reference for s in result.suggestions]
+    assert any(r.startswith("Róm") for r in refs)
+    assert any("2Tim" in r for r in refs)
+    # Fill/repair nem kell, ha az aliasok miatt megvan az 5.
+    assert len(seen_kwargs) == 1
+    assert seen_kwargs[0].get("bypass_cooldown") is True
+
+
+def test_funeral_accepts_four_when_fill_blocked_by_cooldown_message():
+    """Ha a fill cooldown-üzenetet kap, 4 érvényes javaslat mégis siker."""
+    from passage_search_ai import MIN_ACCEPTABLE_COUNT
+
+    context = "egy 84 éves nő varrasztójára keresek igét"
+    history = ["Zsolt 23", "Jn 14,1-6", "Job 19,23-27", "1Thess 4,13-18"]
+    # 4 valid + 1 invalid (ismeretlen könyv) → fill kellene
+    batch = [
+        _sug("Ézs 40,28-31"),
+        _sug("Zsolt 71,1-9"),
+        _sug("Jn 12,23-26"),
+        _sug("Kol 3,1-4"),
+        _sug("NemLetezoKonyv 9,1-3"),
+    ]
+    calls = {"n": 0}
+    seen_bypass: list[bool] = []
+
+    def gen(prompt, **kwargs):
+        calls["n"] += 1
+        seen_bypass.append(bool(kwargs.get("bypass_cooldown")))
+        if calls["n"] == 1:
+            return _payload("Temetés", batch, context=context)
+        return (
+            "⏳ **Kérlek várj néhány másodpercet az újabb generálás előtt.** "
+            "(Még kb. 8 másodperc.)"
+        )
+
+    result = suggest_passages_for_occasion(
+        occasion="Temetés",
+        context=context,
+        history_exclude_references=history,
+        generate_fn=gen,
+    )
+    assert calls["n"] == 2
+    assert result.ok, (result.warnings, result.error_message)
+    assert len(result.suggestions) == MIN_ACCEPTABLE_COUNT
+    assert all(seen_bypass)
+
+
 def test_funeral_sudden_sensitive_reasons():
     raw = _payload(
         "Temetés",

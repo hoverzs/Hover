@@ -5682,6 +5682,7 @@ def generate_text(
     truncation_message: str | None = None,
     truncation_notice_mode: str = "always",
     incomplete_response_message: str | None = None,
+    bypass_cooldown: bool = False,
 ):
     """EGYETLEN logikai Gemini-hívás — gomb-szintű egyediség garantált.
 
@@ -5693,6 +5694,7 @@ def generate_text(
       1. API-kulcs check
       2. Opcionális cache-hit (enable_cache + azonos prompt) → 0 hívás
       3. Globális cooldown (`GEMINI_COOLDOWN_S`) → blokkoló üzenet
+         (`bypass_cooldown=True`: ugyanazon gombnyomás fill/repair hívásai)
       4. HTTP hívás retry-jal (429/5xx → 10/20/40s backoff, max 3x)
 
     Minden HTTP-küldés ELŐTT és UTÁN debug-log bejegyzés készül
@@ -5750,22 +5752,23 @@ def generate_text(
         return cached_text
 
     # ─── 2. GLOBÁLIS COOLDOWN ────────────────────────────────────────
-    remaining = _cooldown_remaining()
-    if remaining > 0:
-        _debug_log_append({
-            "ts": _now_str(),
-            "tab": tab_label,
-            "attempt": 0,
-            "status": "COOLDOWN_BLOCK",
-            "model": model,
-            "prompt_chars": len(prompt),
-            "response_chars": 0,
-            "latency_ms": 0,
-        })
-        return (
-            "⏳ **Kérlek várj néhány másodpercet az újabb generálás előtt.** "
-            f"(Még kb. {int(remaining) + 1} másodperc.)"
-        )
+    if not bypass_cooldown:
+        remaining = _cooldown_remaining()
+        if remaining > 0:
+            _debug_log_append({
+                "ts": _now_str(),
+                "tab": tab_label,
+                "attempt": 0,
+                "status": "COOLDOWN_BLOCK",
+                "model": model,
+                "prompt_chars": len(prompt),
+                "response_chars": 0,
+                "latency_ms": 0,
+            })
+            return (
+                "⏳ **Kérlek várj néhány másodpercet az újabb generálás előtt.** "
+                f"(Még kb. {int(remaining) + 1} másodperc.)"
+            )
 
     # ─── 3. HTTP HÍVÁS (retry: 429 / 5xx — ugyanazon a modellen) ───────
     headers = {"Content-Type": "application/json", "x-goog-api-key": api_key}

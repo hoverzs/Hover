@@ -6,6 +6,7 @@ végzi. A modell csak referenciát és magyarázatot ad — bibliai idézetet ne
 
 from __future__ import annotations
 
+import logging
 import re
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
@@ -24,6 +25,10 @@ from sermon_workshop_m5_ai import _is_api_error_text
 TAB_LABEL = "Igehely keresése"
 DEFAULT_TEMPERATURE = 0.25
 REQUIRED_COUNT = 5
+# A modell 5-öt kérünk; history/alias szűrés után 4 is használható siker.
+MIN_ACCEPTABLE_COUNT = 4
+
+_LOG = logging.getLogger("textus.passage_search")
 
 GenerateFn = Callable[..., str]
 
@@ -152,6 +157,48 @@ _USER_API_FAIL = (
 
 def _s(value: Any) -> str:
     return str(value or "").strip()
+
+
+def _sanitize_log_fragment(text: str, *, max_len: int = 180) -> str:
+    """API-kulcs / hosszú szabad szöveg nélkül logolható töredék."""
+    raw = _s(text)
+    if not raw:
+        return ""
+    # Ne vigyünk session/kulcs-szerű tokeneket a logba.
+    cleaned = re.sub(
+        r"(?i)(api[_-]?key|bearer|AIza)[^\s,;]{0,80}",
+        "[redacted]",
+        raw,
+    )
+    cleaned = re.sub(r"\s+", " ", cleaned).strip()
+    if len(cleaned) > max_len:
+        return cleaned[: max_len - 1] + "…"
+    return cleaned
+
+
+def _log_stage(
+    stage: str,
+    *,
+    exc: BaseException | None = None,
+    mode: str = "",
+    suggestion_count: int | None = None,
+    warning_count: int | None = None,
+    detail: str = "",
+) -> None:
+    """Szerveroldali diagnosztika — stage + kivétel típus, PII nélkül."""
+    parts = [f"stage={stage}"]
+    if mode:
+        parts.append(f"mode={mode}")
+    if suggestion_count is not None:
+        parts.append(f"suggestions={suggestion_count}")
+    if warning_count is not None:
+        parts.append(f"warnings={warning_count}")
+    if exc is not None:
+        parts.append(f"exc_type={type(exc).__name__}")
+        parts.append(f"exc={_sanitize_log_fragment(str(exc))}")
+    if detail:
+        parts.append(f"detail={_sanitize_log_fragment(detail)}")
+    _LOG.warning("passage_search %s", " ".join(parts))
 
 
 def normalize_passage_reference(reference: str) -> str:
@@ -442,18 +489,25 @@ def _call_generate(
         touched_temp = True
     except Exception:
         touched_temp = False
+    # Egy gombnyomás alatt fill/repair több HTTP-t indíthat; a globális
+    # cooldown ne blokkolja az ugyanazon ajánláson belüli pótló hívást.
     kwargs: dict[str, Any] = {
         "enable_google_search": False,
         "tab_label": TAB_LABEL,
         "use_cache": False,
         "system_bundle": PASSAGE_SEARCH_SYSTEM,
         "include_brevity_directive": False,
+        "bypass_cooldown": True,
     }
     try:
         return generate_fn(prompt, **kwargs)
     except TypeError:
         kwargs.pop("include_brevity_directive", None)
-        return generate_fn(prompt, **kwargs)
+        try:
+            return generate_fn(prompt, **kwargs)
+        except TypeError:
+            kwargs.pop("bypass_cooldown", None)
+            return generate_fn(prompt, **kwargs)
     finally:
         if touched_temp:
             try:
@@ -540,6 +594,7 @@ def suggest_passages_for_occasion(
     commons = list(common_references_for(occ))
 
     if generate_fn is None:
+        _log_stage("missing_generate_fn", mode="api_error", suggestion_count=0)
         return PassageSearchResult(
             ok=False,
             mode="api_error",
@@ -560,6 +615,7 @@ def suggest_passages_for_occasion(
     try:
         raw = _call_generate(generate_fn, prompt)
     except Exception as exc:  # noqa: BLE001
+        _log_stage("generate_primary", exc=exc, mode="api_error")
         return PassageSearchResult(
             ok=False,
             mode="api_error",
@@ -571,6 +627,11 @@ def suggest_passages_for_occasion(
         )
 
     if _is_api_error_text(raw or ""):
+        _log_stage(
+            "generate_primary_api_error",
+            mode="api_error",
+            detail=_s(raw)[:120],
+        )
         return PassageSearchResult(
             ok=False,
             mode="api_error",
@@ -593,36 +654,60 @@ def suggest_passages_for_occasion(
         parsed.context_summary = ctx
     parsed.excluded_references = exclude
 
-    def _finalize(result: PassageSearchResult) -> PassageSearchResult:
+    def _finalize(result: PassageSearchResult, *, stage: str) -> PassageSearchResult:
         result.excluded_references = exclude
         if ctx and not result.context_summary:
             result.context_summary = ctx
-        if len(result.suggestions) >= REQUIRED_COUNT:
+        n = len(result.suggestions)
+        if n >= MIN_ACCEPTABLE_COUNT:
             result.ok = True
             result.error_message = ""
             result.suggestions = result.suggestions[:REQUIRED_COUNT]
+            if n < REQUIRED_COUNT:
+                result.warnings = list(result.warnings) + [
+                    f"Csak {n}/{REQUIRED_COUNT} érvényes javaslat — elfogadva."
+                ]
         else:
             result.ok = False
             if not result.error_message:
                 result.error_message = _USER_API_FAIL
+            _log_stage(
+                stage,
+                mode=result.mode or "incomplete",
+                suggestion_count=n,
+                warning_count=len(result.warnings or []),
+                detail="; ".join(result.warnings[:3]) if result.warnings else "",
+            )
         return result
 
     # Teljes parse-hiba (0 érvényes) → egyszeri általános javítás
     if not parsed.suggestions and not parsed.ok:
+        _log_stage(
+            "primary_empty_repair",
+            mode=parsed.mode,
+            suggestion_count=0,
+            warning_count=len(parsed.warnings or []),
+        )
         repair_prompt = (
             f"{prompt}\n\n{_REPAIR_HINT}\n\nElőző válasz:\n{_s(raw)[:2500]}"
         )
         try:
             raw2 = _call_generate(generate_fn, repair_prompt)
         except Exception as exc:  # noqa: BLE001
+            _log_stage("generate_repair", exc=exc, mode="api_error")
             parsed.warnings = list(parsed.warnings) + [f"Generálási hiba: {exc}"]
-            return _finalize(parsed)
+            return _finalize(parsed, stage="finalize_after_repair_exc")
 
         if _is_api_error_text(raw2 or ""):
+            _log_stage(
+                "generate_repair_api_error",
+                mode="api_error",
+                detail=_s(raw2)[:120],
+            )
             parsed.warnings = list(parsed.warnings) + [
                 f"Generálási hiba: {_s(raw2)[:400]}"
             ]
-            return _finalize(parsed)
+            return _finalize(parsed, stage="finalize_after_repair_api_error")
 
         repaired = parse_passage_search_response(
             raw2 or "",
@@ -631,13 +716,19 @@ def suggest_passages_for_occasion(
             history_exclude=history_for_prompt,
             require_full_count=False,
         )
-        return _finalize(repaired)
+        return _finalize(repaired, stage="finalize_after_repair")
 
     if len(parsed.suggestions) >= REQUIRED_COUNT:
-        return _finalize(parsed)
+        return _finalize(parsed, stage="finalize_primary_full")
 
-    # History / exclude miatt hiányzik → egyetlen pótló hívás
+    # History / exclude / alias-szűrés miatt hiányzik → egyetlen pótló hívás
     accepted = list(parsed.suggestions)
+    _log_stage(
+        "primary_partial_fill",
+        mode=parsed.mode,
+        suggestion_count=len(accepted),
+        warning_count=len(parsed.warnings or []),
+    )
     accepted_blob = "\n".join(
         f"- {s.reference}: {s.title}" for s in accepted
     ) or "(nincs)"
@@ -650,14 +741,20 @@ def suggest_passages_for_occasion(
     try:
         raw_fill = _call_generate(generate_fn, fill_prompt)
     except Exception as exc:  # noqa: BLE001
+        _log_stage("generate_fill", exc=exc, mode="api_error")
         parsed.warnings = list(parsed.warnings) + [f"Generálási hiba: {exc}"]
-        return _finalize(parsed)
+        return _finalize(parsed, stage="finalize_after_fill_exc")
 
     if _is_api_error_text(raw_fill or ""):
+        _log_stage(
+            "generate_fill_api_error",
+            mode="api_error",
+            detail=_s(raw_fill)[:120],
+        )
         parsed.warnings = list(parsed.warnings) + [
             f"Generálási hiba: {_s(raw_fill)[:400]}"
         ]
-        return _finalize(parsed)
+        return _finalize(parsed, stage="finalize_after_fill_api_error")
 
     filled = parse_passage_search_response(
         raw_fill or "",
@@ -678,7 +775,7 @@ def suggest_passages_for_occasion(
     parsed.raw_response = filled.raw_response or parsed.raw_response
     if filled.generated_at:
         parsed.generated_at = filled.generated_at
-    return _finalize(parsed)
+    return _finalize(parsed, stage="finalize_after_fill")
 
 
 def merge_exclude_list(
@@ -714,6 +811,7 @@ def merge_exclude_list(
 __all__ = [
     "TAB_LABEL",
     "REQUIRED_COUNT",
+    "MIN_ACCEPTABLE_COUNT",
     "OCCASION_OPTIONS",
     "PASSAGE_SEARCH_SYSTEM",
     "PassageSuggestion",
