@@ -2205,5 +2205,114 @@ div[data-baseweb="popover"] [data-testid="stPopoverBody"]::-webkit-scrollbar-thu
         padding: 0.65rem 0.75rem;
     }
 }
+/* ===== Hallgatói feszültség — átvételi döntéscsoport =====
+   A keyed container maga a stVerticalBlock — közvetlenül sorba rendezzük. */
+.st-key-tension_transfer_actions {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 0.35rem 0.45rem !important;
+    width: fit-content !important;
+    max-width: 100% !important;
+    margin: 0.4rem 0 0.1rem !important;
+    padding: 0 !important;
+}
+.st-key-tension_transfer_actions > [data-testid="stElementContainer"] {
+    width: auto !important;
+    flex: 0 0 auto !important;
+    min-width: 0 !important;
+}
+.st-key-tension_transfer_actions .stButton,
+.st-key-tension_transfer_actions [data-testid="stTooltipHoverTarget"] {
+    width: auto !important;
+}
+.st-key-tension_transfer_actions button[data-testid="stBaseButton-primary"],
+.st-key-tension_transfer_actions button[data-testid="stBaseButton-secondary"],
+.st-key-tension_transfer_actions .stButton > button {
+    min-height: 36px !important;
+    max-height: 40px !important;
+    height: 38px !important;
+    padding: 0.3rem 0.85rem !important;
+    font-size: 0.875rem !important;
+    font-weight: 550 !important;
+    line-height: 1.2 !important;
+    white-space: nowrap !important;
+    width: auto !important;
+    border-radius: 8px !important;
+}
+.st-key-tension_transfer_actions button[data-testid="stBaseButton-primary"] {
+    background: rgba(90, 122, 168, 0.16) !important;
+    border: 1px solid rgba(90, 122, 168, 0.42) !important;
+    color: var(--tx-primary-deep, #1f334d) !important;
+    box-shadow: none !important;
+}
+.st-key-tension_transfer_actions button[data-testid="stBaseButton-primary"]:hover {
+    background: rgba(90, 122, 168, 0.24) !important;
+    border-color: rgba(90, 122, 168, 0.55) !important;
+}
+.st-key-tension_transfer_actions button[data-testid="stBaseButton-secondary"] {
+    background: rgba(248, 246, 242, 0.92) !important;
+    border: 1px solid rgba(170, 145, 112, 0.28) !important;
+    color: var(--tx-text, #3a2816) !important;
+    padding: 0.28rem 0.7rem !important;
+}
+.st-key-tension_transfer_actions button[data-testid="stBaseButton-secondary"]:hover {
+    background: rgba(232, 238, 247, 0.72) !important;
+    border-color: rgba(90, 122, 168, 0.36) !important;
+    color: var(--tx-primary-deep, #1f334d) !important;
+}
+.st-key-tension_transfer_actions > [data-testid="stElementContainer"]:has(.tx-tt-sep) {
+    display: flex !important;
+    align-items: center !important;
+    align-self: center !important;
+    padding: 0 0.2rem !important;
+    margin: 0 !important;
+    width: auto !important;
+    flex: 0 0 auto !important;
+    min-height: 38px !important;
+}
+.st-key-tension_transfer_actions .tx-tt-sep {
+    width: 1px;
+    height: 1.4rem;
+    background: rgba(90, 122, 168, 0.38);
+    margin: 0;
+    border-radius: 1px;
+}
+
+@media (max-width: 640px) {
+    .st-key-tension_transfer_actions {
+        width: 100% !important;
+        max-width: 100% !important;
+        gap: 0.4rem !important;
+    }
+    .st-key-tension_transfer_actions > [data-testid="stElementContainer"]:has(button[data-testid="stBaseButton-primary"]) {
+        flex: 1 1 100% !important;
+        width: 100% !important;
+    }
+    .st-key-tension_transfer_actions > [data-testid="stElementContainer"]:has(button[data-testid="stBaseButton-primary"]) .stButton,
+    .st-key-tension_transfer_actions > [data-testid="stElementContainer"]:has(button[data-testid="stBaseButton-primary"]) button {
+        width: 100% !important;
+    }
+    .st-key-tension_transfer_actions > [data-testid="stElementContainer"]:has(.tx-tt-sep) {
+        display: none !important;
+    }
+    .st-key-tension_transfer_actions > [data-testid="stElementContainer"]:has(button[data-testid="stBaseButton-secondary"]) {
+        flex: 1 1 calc(33.333% - 0.3rem) !important;
+        min-width: 5.75rem !important;
+        max-width: 100% !important;
+    }
+    .st-key-tension_transfer_actions > [data-testid="stElementContainer"]:has(button[data-testid="stBaseButton-secondary"]) .stButton,
+    .st-key-tension_transfer_actions > [data-testid="stElementContainer"]:has(button[data-testid="stBaseButton-secondary"]) [data-testid="stTooltipHoverTarget"],
+    .st-key-tension_transfer_actions > [data-testid="stElementContainer"]:has(button[data-testid="stBaseButton-secondary"]) button {
+        width: 100% !important;
+    }
+    .st-key-tension_transfer_actions > [data-testid="stElementContainer"]:has(button[data-testid="stBaseButton-secondary"]) button {
+        padding-left: 0.45rem !important;
+        padding-right: 0.45rem !important;
+        font-size: 0.82rem !important;
+    }
+}
 """.strip()
 

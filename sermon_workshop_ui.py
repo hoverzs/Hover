@@ -8694,17 +8694,35 @@ def _render_lt_suggestion_results() -> None:
             "sermon_tension": t,
         }
         if any(ui_all.values()):
-            if st.button("Átveszem mindhármat", key="sw_mi_lt_adopt_all"):
-                _request_adopt_lt_block(ui_all)
-            c1, c2, c3 = st.columns(3)
-            with c1:
-                if q and st.button("Kérdés átvétele", key="sw_mi_lt_adopt_q"):
+            _tt_item_help = "Csak ezt az elemet veszem át."
+            with st.container(key="tension_transfer_actions"):
+                if st.button(
+                    "Mind átvétele",
+                    type="primary",
+                    key="sw_mi_lt_adopt_all",
+                ):
+                    _request_adopt_lt_block(ui_all)
+                st.markdown(
+                    '<div class="tx-tt-sep" aria-hidden="true"></div>',
+                    unsafe_allow_html=True,
+                )
+                if q and st.button(
+                    "Kérdés",
+                    key="sw_mi_lt_adopt_q",
+                    help=_tt_item_help,
+                ):
                     _request_adopt_lt_block({"listener_question": q})
-            with c2:
-                if r and st.button("Ellenállás átvétele", key="sw_mi_lt_adopt_r"):
+                if r and st.button(
+                    "Ellenállás",
+                    key="sw_mi_lt_adopt_r",
+                    help=_tt_item_help,
+                ):
                     _request_adopt_lt_block({"listener_resistance": r})
-            with c3:
-                if t and st.button("Feszültség átvétele", key="sw_mi_lt_adopt_t"):
+                if t and st.button(
+                    "Feszültség",
+                    key="sw_mi_lt_adopt_t",
+                    help=_tt_item_help,
+                ):
                     _request_adopt_lt_block({"sermon_tension": t})
         else:
             st.info(
