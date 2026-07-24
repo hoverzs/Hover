@@ -226,7 +226,7 @@ def empty_outline_movement() -> dict[str, Any]:
         "listener_discovery": "",
         "grace_application": "",
         "transition": "",
-        # Kibontott prédikációs bekezdések (munkavázlat főnézet).
+        # Kibontott prédikációs bulletök (homiletikai vázlat főnézet).
         "development": [],
         "images": [],
         "illustrations": [],

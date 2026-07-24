@@ -1002,12 +1002,13 @@ def build_outline_from_workshop(
 
 
 def _movement_development_paragraphs(mv: Mapping[str, Any]) -> list[str]:
-    """Mozgás kibontása: development lista, vagy legacy mezőkből összerakva."""
+    """Mozgás kibontása: development bulletök, vagy legacy mezőkből összerakva."""
     paras: list[str] = []
     seen: set[str] = set()
     anchor_n = _normalize_cmp(
         _usable_text(mv.get("textual_anchor")) or _usable_text(mv.get("textual_basis"))
     )
+    insight_n = _normalize_cmp(_usable_text(mv.get("listener_discovery")))
 
     def _push(text: Any) -> None:
         cleaned = _usable_text(text)
@@ -1016,8 +1017,10 @@ def _movement_development_paragraphs(mv: Mapping[str, Any]) -> list[str]:
         n = _normalize_cmp(cleaned)
         if n in seen:
             return
-        # Ne ismételjük a vershorgonyt bekezdésként
+        # Ne ismételjük a vershorgonyt / listener_insightet bulletként
         if anchor_n and n == anchor_n:
+            return
+        if insight_n and n == insight_n:
             return
         seen.add(n)
         paras.append(cleaned)
@@ -1028,15 +1031,14 @@ def _movement_development_paragraphs(mv: Mapping[str, Any]) -> list[str]:
         for key in ("images", "illustrations"):
             for item in mv.get(key) or []:
                 _push(item)
-        return paras[:8]
+        return paras[:3]
 
-    # Legacy → természetes bekezdések (technikai címkék nélkül)
+    # Legacy → természetes bulletök (technikai címkék nélkül)
     # textual_basis kihagyva — a vershorgony külön jelenik meg
     for key in (
         "exegetical_core",
         "theological_claim",
         "core_content",
-        "listener_discovery",
         "grace_application",
     ):
         _push(mv.get(key))
@@ -1045,14 +1047,15 @@ def _movement_development_paragraphs(mv: Mapping[str, Any]) -> list[str]:
     for key in ("images", "illustrations"):
         for item in mv.get(key) or []:
             _push(item)
-    return paras[:8]
+    return paras[:3]
 
 
 def outline_to_readable_content(outline: Any) -> str:
-    """Kanonikus szószéki munkavázlat — tiszta, emberi nyelvű szöveg.
+    """Kanonikus szószéki HOMILETIKAI VÁZLAT — tiszta, emberi nyelvű szöveg.
 
-    Főnézet mezői: cím, textus, fókuszmondat, bevezetés, 3–4 mozgás, megérkezés.
-    Nincs `##` fejléc, nincs technikai mezőnév, nincs üres adatlap-címke.
+    Főnézet mezői: cím, textus, fókuszmondat, bevezető irány, 2–4 főpont,
+    megérkezés. Nincs `##` fejléc, nincs technikai mezőnév, nincs üres
+    adatlap-címke. A Továbbgondolható tippek NEM részei a vázlat testének.
     """
     import re
 
@@ -1101,7 +1104,17 @@ def outline_to_readable_content(outline: Any) -> str:
         intro_parts.append(opening)
     transition = _usable_text(intro.get("transition"))
     if transition and _normalize_cmp(transition) != _normalize_cmp(opening):
-        intro_parts.append(transition)
+        # Kerüld az automatikus átvezető tölteléket a főnézetben
+        tr_cf = transition.casefold()
+        if not any(
+            m in tr_cf
+            for m in (
+                "de vajon mi következik",
+                "ez azonban",
+                "nem marad titokban",
+            )
+        ):
+            intro_parts.append(transition)
     _section("Bevezetés", "\n\n".join(intro_parts))
 
     movements = safe.get("movements") if isinstance(safe.get("movements"), list) else []
@@ -1121,30 +1134,35 @@ def outline_to_readable_content(outline: Any) -> str:
         anchor = _usable_text(mv.get("textual_anchor")) or _usable_text(
             mv.get("textual_basis")
         )
+        insight = _usable_text(mv.get("listener_discovery"))
+        if not insight:
+            apps = [
+                _usable_text(a)
+                for a in (mv.get("applications") or [])
+                if _usable_text(a)
+            ]
+            if apps:
+                insight = apps[0]
+        # Ne ismételjük az insightet a bulletök között
+        if insight:
+            insight_n = _normalize_cmp(insight)
+            paras = [p for p in paras if _normalize_cmp(p) != insight_n]
+        paras = paras[:3]
+        if not paras:
+            continue
+
         body_parts: list[str] = []
         if anchor:
             body_parts.append(f"*{anchor}*")
-        # Preferált forma: A textus állítása + Hallgatói irány (ha 2+ bekezdés)
-        claim_labels = ("a textus állítása", "hallgatói irány")
-        if len(paras) >= 2 and not any(
-            _normalize_cmp(p).startswith(lab) for p in paras for lab in claim_labels
-        ):
-            body_parts.append(f"**A textus állítása:** {paras[0]}")
-            body_parts.append(f"*Hallgatói irány:* {paras[1]}")
-            for p in paras[2:]:
-                if anchor and _normalize_cmp(p) == _normalize_cmp(anchor):
-                    continue
-                body_parts.append(p)
-        else:
-            for p in paras:
-                if anchor and _normalize_cmp(p) == _normalize_cmp(anchor):
-                    continue
-                body_parts.append(p)
-        mv_transition = _usable_text(mv.get("transition"))
-        if mv_transition and _normalize_cmp(mv_transition) not in {
-            _normalize_cmp(p) for p in paras
-        }:
-            body_parts.append(mv_transition)
+        # Bullet forma: fejlődő pontok, nem prédikációs bekezdések
+        for p in paras:
+            if anchor and _normalize_cmp(p) == _normalize_cmp(anchor):
+                continue
+            cleaned = re.sub(r"^[-•*]\s+", "", p).strip()
+            if cleaned:
+                body_parts.append(f"- {cleaned}")
+        if insight:
+            body_parts.append(f"*{insight}*")
         blocks.append(f"**{idx}. {mv_title}**\n\n" + "\n\n".join(body_parts))
 
     conclusion = (
