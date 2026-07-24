@@ -239,9 +239,10 @@ from sermon_outline_diagnostics_ai import (
 from textus_workshop_data import ensure_text_workshop_state
 from diagnostics_dashboard_ui import (
     ensure_dashboard_styles,
-    render_coverage_ring,
-    render_profile_diagram,
-    render_score_ring,
+    render_summary_card,
+    render_work_map,
+    segment_state_color,
+    segment_state_label,
 )
 from workshop_nav_ui import (
     render_workshop_workflow_nav,
@@ -2608,11 +2609,63 @@ _DIAG_STATUS_COLORS: dict[str, str] = {
 
 # Pastor-friendly UI labels (schema keys unchanged).
 _DIAG_STATUS_SOFT_LABELS: dict[str, str] = {
-    "strong": "Erős",
-    "stable": "Stabil",
-    "needs_attention": "Figyelmet igényel",
-    "critical_gap": "Javítandó",
-    "not_enough_information": "Nincs elég adat",
+    "strong": "Kirajzolódik",
+    "stable": "Alakul",
+    "needs_attention": "Figyelmet kér",
+    "critical_gap": "Figyelmet kér",
+    "not_enough_information": "Még nincs elég adat",
+}
+
+# 6 szegmenses homiletikai térkép — meglévő diagnostic_areas kulcsokból.
+_DIAG_WORK_MAP_SEGMENTS: tuple[dict[str, Any], ...] = (
+    {
+        "id": "text_fidelity",
+        "label": "Textushűség",
+        "keys": ("text_fidelity", "theological_accuracy"),
+    },
+    {
+        "id": "main_idea",
+        "label": "Fő gondolat",
+        "keys": ("unity_and_focus",),
+    },
+    {
+        "id": "sermon_arc",
+        "label": "Igehirdetési ív",
+        "keys": ("sermon_path", "hearability"),
+    },
+    {
+        "id": "christ",
+        "label": "Krisztus-központúság",
+        "keys": ("christ_centeredness",),
+    },
+    {
+        "id": "listener",
+        "label": "Hallgatói megszólítás",
+        "keys": ("listener_tension",),
+    },
+    {
+        "id": "arrival",
+        "label": "Megérkezés",
+        "keys": ("closing", "application"),
+    },
+)
+
+# Státusz → minőségi szegmensállapot (nincs pontszám).
+_DIAG_STATUS_TO_STATE: dict[str, str] = {
+    "strong": "emerged",
+    "stable": "forming",
+    "needs_attention": "attention",
+    "critical_gap": "attention",
+    "not_enough_information": "unknown",
+}
+
+# Rosszabb → jobb (aggregáláskor a legrosszabb értékelt státusz nyer).
+_DIAG_STATUS_SEVERITY: dict[str, int] = {
+    "critical_gap": 0,
+    "needs_attention": 1,
+    "stable": 2,
+    "strong": 3,
+    "not_enough_information": 9,
 }
 
 _DIAG_DETAIL_GROUPS: tuple[dict[str, Any], ...] = (
@@ -2866,6 +2919,12 @@ def _ensure_diag_styles() -> None:
 }
 @media (prefers-reduced-motion: reduce) {
   .tx-arow-fill { transition: none !important; }
+}
+/* Kompakt diagnosztikai munkatérkép — kiegészítő chip/státusz */
+.sw-diag-chip-strong { background: rgba(90,122,168,0.14); color: #3a5478; border-color: rgba(90,122,168,0.28); }
+.sw-diag-chip-stable { background: rgba(196,160,106,0.16); color: #7a5620; border-color: rgba(196,160,106,0.34); }
+.sw-diag-howto {
+  font-size: 0.86rem; color: #4a3e32; line-height: 1.45; margin: 0.2rem 0;
 }
 </style>
         """,
@@ -3494,37 +3553,102 @@ _DIAG_SECTION_CTA: dict[str, str] = {
 }
 
 
+def _diag_aggregate_status(statuses: list[str]) -> str:
+    """Több tengely → egy minőségi státusz (legrosszabb értékelt nyer)."""
+    evaluated = [
+        normalize_diagnostic_status(s)
+        for s in statuses
+        if normalize_diagnostic_status(s) != "not_enough_information"
+    ]
+    if not evaluated:
+        return "not_enough_information"
+    return min(evaluated, key=lambda s: _DIAG_STATUS_SEVERITY.get(s, 9))
+
+
+def _diag_status_to_state(status: str) -> str:
+    return _DIAG_STATUS_TO_STATE.get(
+        normalize_diagnostic_status(status), "unknown"
+    )
+
+
+def _diag_work_map_segments(
+    areas_by_key: dict[str, dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """6 szegmens a meglévő diagnostic_areas mezőkből — nincs kitalált pontszám."""
+    segs: list[dict[str, Any]] = []
+    for spec in _DIAG_WORK_MAP_SEGMENTS:
+        statuses: list[str] = []
+        summaries: list[str] = []
+        for key in spec["keys"]:
+            area = areas_by_key.get(key)
+            if not area:
+                continue
+            statuses.append(str(area.get("status") or "not_enough_information"))
+            summary = _diag_soften_text(str(area.get("summary") or "").strip())
+            if summary:
+                summaries.append(summary)
+        status = _diag_aggregate_status(statuses) if statuses else "not_enough_information"
+        state = _diag_status_to_state(status)
+        tip_parts = [
+            f"{spec['label']}: {segment_state_label(state)}",
+        ]
+        if summaries:
+            tip_parts.append(_diag_shorten(summaries[0], limit=160))
+        segs.append(
+            {
+                "key": spec["id"],
+                "label": spec["label"],
+                "status": status,
+                "state_key": state,
+                "tooltip": " — ".join(tip_parts),
+            }
+        )
+    return segs
+
+
+def _diag_center_qualifier(segments: list[dict[str, Any]]) -> str:
+    """Rövid középső minősítő — szöveges, nem számszerű."""
+    states = [str(s.get("state_key") or "unknown") for s in segments]
+    known = [s for s in states if s != "unknown"]
+    if not known:
+        return "Még alakuló kép"
+    if "attention" in known:
+        return "További fókusz szükséges"
+    if all(s == "emerged" for s in known) and len(known) >= 4:
+        return "Összeálló ív"
+    return "Kibontakozó ív"
+
+
 def _diag_score_model(rows: list[dict[str, Any]], *, ready: Any) -> dict[str, Any]:
-    """Összesített állapot — csak elegendő értékelt terület esetén ad számot."""
+    """Legacy helper — minőségi összkép, pontszám nélkül."""
+    _ = ready
     evaluated = [r for r in rows if isinstance(r.get("value"), int)]
     n = len(evaluated)
     if n < _MIN_AREAS_FOR_SCORE:
         return {
             "sufficient": False,
             "score": None,
-            "qualifier": "Nincs elég adat",
+            "qualifier": "Még nincs elég adat",
             "qualifier_key": "none",
             "summary": (
-                "A jelenlegi vázlatból még nincs elég értékelt terület "
-                "az összesített állapothoz."
+                "A jelenlegi vázlatból még nincs elég visszajelzés "
+                "a homiletikai összképhez."
             ),
         }
-    avg = sum(r["value"] for r in evaluated) / n  # 1–4 skála
-    score = int(round((avg / 4) * 100))
-    if score >= 78:
-        qkey, qual = "strong", "Erős"
-        summary = "A vázlat erős homiletikai alapokon áll."
-    elif score >= 60:
-        qkey, qual = "good", "Jó alap"
-        summary = "A vázlat jó alap, néhány ponton még finomítható."
+    # Qualitative only — never expose a numeric score to the UI.
+    avg = sum(r["value"] for r in evaluated) / n
+    if avg >= 3.2:
+        qkey, qual = "strong", "Kirajzolódik"
+        summary = "A vázlat homiletikai íve kirajzolódik."
+    elif avg >= 2.4:
+        qkey, qual = "good", "Alakul"
+        summary = "A vázlat íve alakul; néhány ponton még finomítható."
     else:
-        qkey, qual = "improve", "Fejlesztendő"
-        summary = "A vázlat több ponton is fejlesztésre szorul."
-    if ready is True and score >= 60:
-        summary += " A kézi kidolgozás elkezdhető."
+        qkey, qual = "improve", "Figyelmet kér"
+        summary = "A vázlat több ponton is figyelmet kér."
     return {
         "sufficient": True,
-        "score": score,
+        "score": None,
         "qualifier": qual,
         "qualifier_key": qkey,
         "summary": summary,
@@ -3540,10 +3664,10 @@ def _diag_state_badge(rows: list[dict[str, Any]], *, has_source: bool, error: bo
     total = len(rows)
     evaluated = sum(1 for r in rows if isinstance(r.get("value"), int))
     if evaluated == 0:
-        return "Vázlat alapján", "neutral"
+        return "Aktuális vázlat", "neutral"
     if evaluated < total:
-        return "Részleges diagnózis", "warning"
-    return "Teljes diagnózis", "success"
+        return "Aktuális vázlat", "neutral"
+    return "Aktuális vázlat", "success"
 
 
 def _diag_section_for_priority(item: dict[str, Any]) -> str | None:
@@ -3551,6 +3675,8 @@ def _diag_section_for_priority(item: dict[str, Any]) -> str | None:
     if not isinstance(item, dict):
         return None
     affected = item.get("affected_sections")
+    if not isinstance(affected, list):
+        affected = item.get("affected_outline_parts")
     if isinstance(affected, list):
         for raw in affected:
             token = str(raw or "").strip()
@@ -3561,58 +3687,154 @@ def _diag_section_for_priority(item: dict[str, Any]) -> str | None:
             for opt in _SW_SECTION_OPTIONS:
                 if token == opt or token.casefold() in opt.casefold():
                     return opt
+    # Cím / kulcsszó alapú heurisztika a 6 szegmenshez.
+    blob = " ".join(
+        str(item.get(k) or "")
+        for k in ("title", "suggested_action", "recommended_action", "explanation")
+    ).casefold()
+    heuristics = (
+        ("textus", "Igehirdetési vázlat"),
+        ("fő gondolat", "Az igehirdetés fő gondolata"),
+        ("fo gondolat", "Az igehirdetés fő gondolata"),
+        ("hallgat", "Hallgatói kérdés és feszültség"),
+        ("krisztus", "Krisztus-központú és evangéliumi ív"),
+        ("evangélium", "Krisztus-központú és evangéliumi ív"),
+        ("mozgás", "Az igehirdetés útja és mozgásai"),
+        ("ív", "Az igehirdetés útja és mozgásai"),
+        ("lezár", "Lezárás és megérkezés"),
+        ("megérkez", "Lezárás és megérkezés"),
+        ("alkalmaz", "Illusztrációk és aktualizálás"),
+    )
+    for needle, section in heuristics:
+        if needle in blob:
+            return section
     return None
 
 
 def _render_diag_overview_card(source: dict[str, Any], view: dict[str, Any]) -> None:
-    """DiagnosticOverview: score ring + lefedettség + homiletikai profil egy kártyán."""
+    """Homiletikai térkép + három kompakt összefoglaló egység."""
     ensure_dashboard_styles()
     areas_by_key = _diag_areas_index(source.get("diagnostic_areas"))
-    rows = _diag_profile_rows(areas_by_key)
-    total = len(rows)
-    evaluated = sum(1 for r in rows if isinstance(r.get("value"), int))
-    missing = [r["label"] for r in rows if not isinstance(r.get("value"), int)]
-    ready = view.get("ready_to_use")
-    score = _diag_score_model(rows, ready=ready)
+    segments = _diag_work_map_segments(areas_by_key)
+    qualifier = _diag_center_qualifier(segments)
+    has_any = any(s.get("state_key") != "unknown" for s in segments)
 
-    st.markdown(
-        '<div class="tx-workcard-anchor" aria-hidden="true"></div>',
-        unsafe_allow_html=True,
-    )
-    with st.container(border=True):
-        c1, c2, c3 = st.columns(3)
-        with c1:
-            st.markdown(
-                '<div class="tx-dcell-title">Általános állapot</div>',
-                unsafe_allow_html=True,
-            )
-            render_score_ring(
-                score=score["score"],
-                qualifier=score["qualifier"],
-                qualifier_key=score["qualifier_key"],
-                summary=score["summary"],
-                sufficient=score["sufficient"],
-            )
-        with c2:
-            st.markdown(
-                '<div class="tx-dcell-title">Lefedettség</div>',
-                unsafe_allow_html=True,
-            )
-            render_coverage_ring(
-                evaluated=evaluated, total=total, missing_labels=missing
-            )
-        with c3:
-            st.markdown(
-                '<div class="tx-dcell-title">Homiletikai profil</div>',
-                unsafe_allow_html=True,
-            )
-            render_profile_diagram(rows)
-
-    if evaluated == 0:
-        st.caption(
-            "A területenkénti profil a részletes MI-elemzés után jelenik meg; "
-            "az összegzés a vázlat szöveges értékelésén alapul."
+    map_col, sum_col = st.columns([1.05, 1.0])
+    with map_col:
+        st.markdown("**Homiletikai térkép**")
+        render_work_map(
+            segments,
+            center_title="Aktuális vázlat",
+            center_qualifier=qualifier,
+            faint=not has_any,
         )
+    with sum_col:
+        _render_diag_summary_units(view)
+
+
+def _render_diag_summary_units(view: dict[str, Any]) -> None:
+    """Három kompakt egység: erősségek / következő lépés / finomítható."""
+    strengths = [
+        _diag_soften_text(str(x or "").strip())
+        for x in (view.get("strengths") or [])
+        if str(x or "").strip()
+    ][:2]
+    refinements = [
+        r for r in (view.get("refinements") or []) if isinstance(r, dict)
+    ]
+    primary = refinements[0] if refinements else None
+    secondary = refinements[1:3]
+
+    # Ami már összeállt
+    if strengths:
+        items = "".join(
+            f'<div class="tx-wsum-item"><span class="tx-wsum-ico"></span>'
+            f"<span>{html.escape(_diag_shorten(s, limit=140))}</span></div>"
+            for s in strengths
+        )
+    else:
+        items = '<p style="margin:0;color:#6b5a48;font-size:0.86rem;">Még nincs kiemelt erősség.</p>'
+    render_summary_card(title="Ami már összeállt", body_html=items)
+
+    # Következő legerősebb lépés
+    if primary:
+        title = _diag_soften_text(str(primary.get("title") or "").strip())
+        action = _diag_soften_text(
+            str(
+                primary.get("suggested_action")
+                or primary.get("recommended_action")
+                or ""
+            ).strip()
+        )
+        explanation = _diag_soften_text(
+            str(
+                primary.get("explanation")
+                or primary.get("why_it_matters")
+                or ""
+            ).strip()
+        )
+        line = action or explanation or title
+        body = f"<p>{html.escape(_diag_shorten(line, limit=180))}</p>"
+        if title and action and title.casefold() not in action.casefold():
+            body = (
+                f"<p><strong>{html.escape(_diag_shorten(title, limit=80))}</strong> — "
+                f"{html.escape(_diag_shorten(action, limit=140))}</p>"
+            )
+        render_summary_card(
+            title="Következő legerősebb lépés",
+            body_html=body,
+            variant="next",
+        )
+        section = _diag_section_for_priority(primary)
+        if section:
+            cta = "Megnyitás"
+            if st.button(cta, key="sw_diag_jump_0", use_container_width=True):
+                st.session_state[_KEY_ACTIVE_SECTION] = section
+                st.rerun()
+    else:
+        render_summary_card(
+            title="Következő legerősebb lépés",
+            body_html='<p style="margin:0;color:#6b5a48;font-size:0.86rem;">'
+            "Most nincs kiemelt következő lépés.</p>",
+            variant="next",
+        )
+
+    # Finomítható — max 2 másodlagos tipp
+    if secondary:
+        tip_items = []
+        for item in secondary:
+            tip = _diag_soften_text(
+                str(
+                    item.get("suggested_action")
+                    or item.get("title")
+                    or item.get("explanation")
+                    or ""
+                ).strip()
+            )
+            if tip:
+                tip_items.append(
+                    f'<div class="tx-wsum-item"><span class="tx-wsum-ico"></span>'
+                    f"<span>{html.escape(_diag_shorten(tip, limit=120))}</span></div>"
+                )
+        if tip_items:
+            render_summary_card(
+                title="Finomítható",
+                body_html="".join(tip_items),
+                variant="tips",
+            )
+    elif not primary:
+        pass
+    else:
+        next_step = _diag_soften_text(str(view.get("next_step") or "").strip())
+        if next_step:
+            render_summary_card(
+                title="Finomítható",
+                body_html=(
+                    f'<div class="tx-wsum-item"><span class="tx-wsum-ico"></span>'
+                    f"<span>{html.escape(_diag_shorten(next_step, limit=120))}</span></div>"
+                ),
+                variant="tips",
+            )
 
 
 _DIAG_LAST_ERROR = "sermon_outline_diagnostics_error"
@@ -3659,44 +3881,26 @@ def _diag_is_heuristic(source: dict[str, Any]) -> bool:
 
 
 def _render_diag_profile_list(source: dict[str, Any]) -> None:
-    """Részletes homiletikai profil — kompakt sorok, semleges 'nincs adat' állapot."""
+    """Részletes területi megjegyzések — csak a details expanderben használt."""
     areas_by_key = _diag_areas_index(source.get("diagnostic_areas"))
-    rows = _diag_profile_rows(areas_by_key)
-    if not any(isinstance(r.get("value"), int) for r in rows):
+    segments = _diag_work_map_segments(areas_by_key)
+    if not any(s.get("state_key") != "unknown" for s in segments):
         return
-    st.markdown("**Homiletikai profil területenként**")
-    blocks: list[str] = ['<div class="tx-arealist">']
-    for r in rows:
-        val = r.get("value")
-        has = isinstance(val, int)
-        pct = int((val / 4) * 100) if has else 0
-        area = areas_by_key.get(r["key"]) or {}
-        expl = _diag_soften_text(str(area.get("summary") or "").strip())
-        expl = _diag_shorten(expl, limit=110) if expl else ""
-        num = f"{val}/4" if has else "—"
-        empty_cls = "" if has else " -empty"
-        fill = (
-            f'<div class="tx-arow-fill" style="width:{pct}%;'
-            f'background:{r.get("color", "#8a8580")};"></div>'
-            if has
-            else ""
+    st.markdown("**Homiletikai területek**")
+    for seg in segments:
+        state = str(seg.get("state_key") or "unknown")
+        color = segment_state_color(state)
+        st.markdown(
+            f"- **{html.escape(str(seg.get('label') or ''))}** — "
+            f'<span style="color:{color};font-weight:600;">'
+            f"{html.escape(segment_state_label(state))}</span>",
+            unsafe_allow_html=True,
         )
-        expl_html = (
-            f'<div class="tx-arow-expl">{html.escape(expl)}</div>' if expl else ""
-        )
-        blocks.append(
-            f'<div class="tx-arow{empty_cls}">'
-            '<div class="tx-arow-head">'
-            f'<span class="tx-arow-name">{html.escape(str(r.get("label", "")))}</span>'
-            f'<span class="tx-arow-val">{html.escape(num)} · '
-            f'{html.escape(str(r.get("status_label", "")))}</span>'
-            "</div>"
-            f'<div class="tx-arow-track">{fill}</div>'
-            f"{expl_html}"
-            "</div>"
-        )
-    blocks.append("</div>")
-    st.markdown("".join(blocks), unsafe_allow_html=True)
+        tip = str(seg.get("tooltip") or "")
+        if " — " in tip:
+            detail = tip.split(" — ", 1)[1].strip()
+            if detail:
+                st.caption(detail)
 
 
 def _render_diag_priority_card(item: dict[str, Any], *, index: int, primary: bool) -> None:
@@ -3737,6 +3941,7 @@ def _render_diagnostics_results() -> None:
         return
 
     _ensure_diag_styles()
+    ensure_dashboard_styles()
     view = _diag_view_model_simplified(source)
     heuristic = _diag_is_heuristic(source)
     areas_by_key = _diag_areas_index(source.get("diagnostic_areas"))
@@ -3745,59 +3950,27 @@ def _render_diagnostics_results() -> None:
         for a in areas_by_key.values()
     )
 
-    # Heurisztikus / helyi mód: ne mutassunk félrevezető 0/8-as teljes dashboardot.
-    if heuristic and not has_evaluable:
-        render_info_panel(
-            title="Gyors helyi ellenőrzés",
-            body=(
-                "Ez nem teljes MI-diagnosztika. A lentebbi erősségek és javaslatok "
-                "a vázlat egyszerű helyi áttekintéséből származnak."
-            ),
-            tone="neutral",
-        )
-    else:
-        # 2. Vizuális diagnosztikai összkép (rings + profil egy kártyán)
-        _render_diag_overview_card(source, view)
+    # Térkép + három összefoglaló egység (üres területekkel is — semleges szürke).
+    _render_diag_overview_card(source, view)
 
-    # Rövid összkép — egyetlen, tömör mondat/bekezdés
-    st.markdown("**Rövid összkép**")
-    overview = str(view.get("overview") or "").strip()
-    if overview:
-        st.markdown(_diag_soften_text(overview))
-    else:
-        st.caption("Még nincs rövid összkép.")
-
-    # 3. Részletes homiletikai profil (csak ha van értékelt terület)
-    if has_evaluable:
-        _render_diag_profile_list(source)
-
-    # 4. Erősségek és fejlesztési prioritások — egyszer, két blokkban
-    col_ok, col_focus = st.columns(2)
-    with col_ok:
-        st.markdown("**Ami már jól működik**")
-        strengths = view.get("strengths") or []
-        if strengths:
-            for item in strengths[:MAX_STRENGTHS]:
-                line = _diag_soften_text(str(item or "").strip())
-                if line:
-                    st.markdown(f"- {line}")
-        else:
-            st.caption("Még nincs kiemelt erősség.")
-    with col_focus:
-        st.markdown("**Amin most érdemes dolgozni**")
-        refinements = view.get("refinements") or []
-        if not refinements:
-            st.caption("Most nincs kiemelt fejlesztési javaslat.")
-        else:
-            for i, item in enumerate(refinements[:MAX_REFINEMENTS]):
-                if not isinstance(item, dict):
-                    continue
-                _render_diag_priority_card(item, index=i, primary=(i == 0))
-
-    with st.expander("Részletesebb homiletikai megjegyzések", expanded=False):
+    with st.expander("Részletes megjegyzések", expanded=False):
+        overview = str(view.get("overview") or "").strip()
+        if overview:
+            st.markdown("**Összkép**")
+            st.markdown(_diag_soften_text(overview))
+        if heuristic:
+            st.markdown(
+                '<p class="sw-diag-howto">Ez gyors helyi ellenőrzés, nem teljes '
+                "MI-diagnosztika. Az erősségek és javaslatok a vázlat egyszerű "
+                "helyi áttekintéséből származnak.</p>",
+                unsafe_allow_html=True,
+            )
+        if has_evaluable:
+            _render_diag_profile_list(source)
         notes = view.get("detailed_notes") or []
         warnings = view.get("warnings") or []
         if notes:
+            st.markdown("**Részletek**")
             for note in notes:
                 line = _diag_soften_text(str(note or "").strip())
                 if line:
@@ -3807,7 +3980,7 @@ def _render_diagnostics_results() -> None:
                 line = _diag_soften_text(str(warn or "").strip())
                 if line:
                     st.caption(line)
-        if not notes and not warnings:
+        if not overview and not notes and not warnings and not has_evaluable:
             st.caption("Nincs további részletes megjegyzés.")
         if generated:
             st.caption(f"Elemzés időpontja: {generated}")
@@ -3817,11 +3990,10 @@ def render_diagnostics_section(
     *,
     generate_fn: GenerateFn | None = None,
 ) -> None:
-    """Homiletikai diagnosztika — elsősorban a végső vázlat ellenőrzése."""
+    """Homiletikai diagnosztika — kompakt munkatükör az aktuális vázlatról."""
     _apply_pending_adopts_if_needed()
     _apply_sw_ui_resync_if_needed()
     ensure_sermon_workshop_state(st.session_state)
-    # setdefault: ne írjon felül már létrejött diagnózist üres alapértékkel
     sw0 = st.session_state.get("sermon_workshop")
     if isinstance(sw0, dict):
         sw0.setdefault("sermon_outline_diagnostics", {})
@@ -3829,29 +4001,45 @@ def render_diagnostics_section(
         sw0.setdefault("sermon_outline_diagnostics_status", "idle")
         sw0.setdefault("sermon_outline_diagnostics_error", "")
 
-    render_work_section(
-        title="Homiletikai diagnózis",
-        body=(
-            "Rövid, szöveges tükrözés az összeállított igehirdetési vázlatról — "
-            "pontszám és automatikus átírás nélkül. A diagnosztika a tényleges "
-            "vázlatot értékeli, nem a kitöltött műhelymodulok számát."
-        ),
-        context="Igehirdetési műhely",
-    )
-
     outline = _resolve_canonical_outline_for_diagnostics()
     has_outline = outline_has_content(outline)
+
+    ensure_dashboard_styles()
+    _ensure_diag_styles()
+
     if not has_outline:
         from sermon_workshop_outline_ai import assess_outline_readiness
 
         readiness = assess_outline_readiness(st.session_state)
         with work_surface("sw_diag_empty"):
+            st.markdown(
+                '<div class="tx-diag-head">'
+                '<div class="tx-diag-head-left">'
+                '<h2 class="tx-diag-head-title">Homiletikai diagnózis</h2>'
+                '<p class="tx-diag-head-sub">Rövid munkatükör az aktuális vázlatról.</p>'
+                "</div></div>",
+                unsafe_allow_html=True,
+            )
+            faint_segs = [
+                {
+                    "key": s["id"],
+                    "label": s["label"],
+                    "state_key": "unknown",
+                    "tooltip": f"{s['label']}: még nincs vázlat a diagnózishoz.",
+                }
+                for s in _DIAG_WORK_MAP_SEGMENTS
+            ]
+            render_work_map(
+                faint_segs,
+                center_title="Aktuális vázlat",
+                center_qualifier="Vázlatra vár",
+                faint=True,
+            )
             render_empty_state(
                 title="Előbb készíts igehirdetési vázlatot.",
                 body=(
                     "A diagnosztika csak olvasható vázlattartalom mellett fut. "
-                    "Nem kell minden műhelyszakaszt kitölteni, és a fő gondolat "
-                    "külön jóváhagyása sem előfeltétel."
+                    "Nem kell minden műhelyszakaszt kitölteni."
                 ),
             )
             with action_row("sw_diag_empty"):
@@ -3859,7 +4047,6 @@ def render_diagnostics_section(
                 with c1:
                     if st.button(
                         "Ugrás a vázlathoz",
-                        type="primary",
                         key="sw_diag_jump_outline",
                         use_container_width=True,
                     ):
@@ -3868,6 +4055,7 @@ def render_diagnostics_section(
                 with c2:
                     if readiness.ok and st.button(
                         "Vázlat összeállítása",
+                        type="primary",
                         key="sw_diag_assemble_only",
                         use_container_width=True,
                     ):
@@ -3882,6 +4070,13 @@ def render_diagnostics_section(
                 ):
                     _assemble_and_diagnose(generate_fn=generate_fn)
                     st.rerun()
+            with st.expander("Hogyan olvassa a diagnosztikát?", expanded=False):
+                st.markdown(
+                    '<p class="sw-diag-howto">A térkép hat homiletikai terület '
+                    "minőségi állapotát mutatja — pontszám és rangsor nélkül. "
+                    "A diagnosztika tükör, nem automatikus értékelő.</p>",
+                    unsafe_allow_html=True,
+                )
         return
 
     with work_surface("sw_diag"):
@@ -3890,58 +4085,56 @@ def render_diagnostics_section(
 
 
 def _render_diag_header(*, generate_fn: GenerateFn | None) -> None:
-    """Diagnosztikai fejléc: állapot-badge + időpont + frissítés / újrapróbálás."""
+    """Kompakt fejléc: cím + státusz + Vázlat elemzése."""
     _ensure_diag_styles()
+    ensure_dashboard_styles()
     source, generated, has_source = _diag_active_source()
     sw = ensure_sermon_workshop_state(st.session_state)
     err = str(sw.get(_DIAG_LAST_ERROR) or "").strip()
     error = bool(err) or str(sw.get("sermon_outline_diagnostics_status") or "") == "error"
-    heuristic = _diag_is_heuristic(source) if has_source else False
     stale = _diag_is_stale(source, generated) if has_source else False
-    areas_by_key = _diag_areas_index(source.get("diagnostic_areas"))
-    rows = _diag_profile_rows(areas_by_key)
     running = (
         bool(st.session_state.get("_sw_outline_diag_running"))
         or str(sw.get("sermon_outline_diagnostics_status") or "") == "running"
     )
 
     if running:
-        badge_label, badge_tone = "Elemzés folyamatban", "neutral"
-    elif error and not has_source:
-        badge_label, badge_tone = "Az automatikus elemzés nem érhető el", "warning"
-    elif heuristic:
-        badge_label, badge_tone = "Gyors helyi ellenőrzés", "neutral"
+        status_label, status_cls = "Elemzés folyamatban", ""
     elif stale:
-        badge_label, badge_tone = "Elavult diagnózis", "warning"
+        status_label, status_cls = "Frissítés ajánlott", " -stale"
+    elif has_source:
+        status_label, status_cls = "Aktuális vázlat", ""
     else:
-        badge_label, badge_tone = _diag_state_badge(
-            rows, has_source=has_source, error=error
-        )
+        status_label, status_cls = "Még nincs diagnózis", ""
 
-    info_col, action_col = st.columns(2)
-    with info_col:
-        render_status_badge(badge_label, badge_tone)
-        if generated:
-            st.caption(f"Utolsó elemzés: {generated}")
-        elif has_source:
-            st.caption("A jelenlegi vázlat alapján.")
-        else:
-            st.caption("Még nincs lefuttatott diagnosztika.")
-        outline = normalize_sermon_outline(sw.get("sermon_outline"))
-        outline_updated = str(
-            sw.get("sermon_outline_updated_at") or outline.get("updated_at") or ""
-        ).strip()
-        if outline_updated:
-            st.caption(f"Vázlat frissítve: {outline_updated}")
-    with action_col:
-        if has_source:
-            primary = (
-                "Aktuális vázlat elemzése" if stale else "Diagnosztika frissítése"
+    left, right = st.columns([1.4, 1.0])
+    with left:
+        st.markdown(
+            '<div class="tx-diag-head-left">'
+            '<h2 class="tx-diag-head-title">Homiletikai diagnózis</h2>'
+            '<p class="tx-diag-head-sub">Rövid munkatükör az aktuális vázlatról.</p>'
+            "</div>",
+            unsafe_allow_html=True,
+        )
+        with st.expander("Hogyan olvassa a diagnosztikát?", expanded=False):
+            st.markdown(
+                '<p class="sw-diag-howto">A hat szegmens a vázlatban érzékelhető '
+                "homiletikai területeket tükrözi: <em>Kirajzolódik</em>, "
+                "<em>Alakul</em>, <em>Figyelmet kér</em>, vagy "
+                "<em>Még nincs elég adat</em>. Nincs pontszám vagy rangsor — "
+                "a diagnosztika reflektív segédlet.</p>",
+                unsafe_allow_html=True,
             )
-        else:
-            primary = "Diagnosztika elkészítése"
+    with right:
+        st.markdown(
+            f'<div class="tx-diag-head-right">'
+            f'<span class="tx-diag-status-pill{status_cls}">'
+            f'<span class="dot"></span>{html.escape(status_label)}</span>'
+            f"</div>",
+            unsafe_allow_html=True,
+        )
         if st.button(
-            primary,
+            "Vázlat elemzése",
             type="primary",
             key="sw_diag_run",
             icon=":material/refresh:",
@@ -3954,16 +4147,6 @@ def _render_diag_header(*, generate_fn: GenerateFn | None) -> None:
 
     if running:
         st.info("A vázlat homiletikai elemzése folyamatban…")
-
-    if stale:
-        render_info_panel(
-            title="A vázlat az utolsó diagnózis óta megváltozott. Frissítés ajánlott.",
-            body=(
-                "A korábbi eredmény megmaradt. Futtasd újra az aktuális vázlat "
-                "elemzését, ha a friss tartalmat szeretnéd értékelni."
-            ),
-            tone="warning",
-        )
 
     if err:
         render_info_panel(
@@ -3994,6 +4177,11 @@ def _render_diag_header(*, generate_fn: GenerateFn | None) -> None:
                 )
                 st.rerun()
 
+    # generated időpont csak a részletekben / diszkréten
+    if generated and not stale:
+        st.caption(f"Utolsó elemzés: {generated}")
+    elif error and not has_source:
+        pass
 
 def _request_adopt_lection_block(block: dict[str, Any]) -> None:
     st.session_state[_ADOPT_LECTION_PENDING] = dict(block or {})

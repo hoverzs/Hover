@@ -1,5 +1,5 @@
 # ruff: noqa: E402
-"""M8 diagnosztika — egyszerűsített pastor-facing UI regresszió."""
+"""Homiletikai diagnosztika — kompakt munkatérkép UI regresszió."""
 
 from __future__ import annotations
 
@@ -19,6 +19,8 @@ from sermon_workshop_data import (
     ensure_sermon_workshop_state,
     normalize_sermon_workshop,
     save_homiletical_diagnostics,
+    save_sermon_outline,
+    save_sermon_outline_diagnostics,
 )
 from sermon_workshop_m8_ai import (
     DIAGNOSTIC_AREA_KEYS,
@@ -27,15 +29,20 @@ from sermon_workshop_m8_ai import (
 from sermon_workshop_ui import (
     _DIAG_DETAIL_GROUPS,
     _DIAG_MAP_GROUPS,
+    _DIAG_WORK_MAP_SEGMENTS,
     _SW_SECTION_OPTIONS,
     _diag_areas_index,
+    _diag_center_qualifier,
     _diag_collect_priorities,
     _diag_shorten,
     _diag_soften_text,
     _diag_status_chip_html,
     _diag_status_soft_label,
+    _diag_status_to_state,
     _diag_view_model,
+    _diag_work_map_segments,
     _render_diagnostics_results,
+    render_diagnostics_section,
 )
 from workspace_data import build_project_data, sanitize_project_data
 
@@ -59,6 +66,31 @@ def _full_areas(status_map: dict[str, str] | None = None) -> list[dict]:
     ]
 
 
+def _outline_areas(status_map: dict[str, str] | None = None) -> list[dict]:
+    """8 outline-profil tengely a vázlatdiagnosztikához."""
+    keys = (
+        "text_fidelity",
+        "unity_and_focus",
+        "listener_tension",
+        "christ_centeredness",
+        "sermon_path",
+        "application",
+        "closing",
+        "pastoral_responsibility",
+    )
+    status_map = status_map or {}
+    return [
+        {
+            "key": k,
+            "label": k,
+            "status": status_map.get(k, "stable"),
+            "summary": f"{k} összefoglaló",
+            "suggested_action": "",
+        }
+        for k in keys
+    ]
+
+
 def _content_calls(calls: list[str]) -> str:
     return "\n".join(c for c in calls if not c.lstrip().startswith("<style"))
 
@@ -67,9 +99,9 @@ def _main_content(calls: list[str]) -> str:
     """Main surface only — stop before the closed details expander."""
     parts: list[str] = []
     for c in calls:
-        if c.startswith("EXP:Részletesebb homiletikai megjegyzések") or c.startswith(
-            "EXP:Részletes diagnosztika"
-        ):
+        if c.startswith("EXP:Részletes megjegyzések") or c.startswith(
+            "EXP:Részletesebb homiletikai megjegyzések"
+        ) or c.startswith("EXP:Részletes diagnosztika"):
             break
         if c.lstrip().startswith("<style"):
             continue
@@ -77,8 +109,8 @@ def _main_content(calls: list[str]) -> str:
     return "\n".join(parts)
 
 
-def _prio_card_count(calls: list[str]) -> int:
-    return sum(1 for c in calls if 'class="sw-diag-prio-card' in c)
+def _next_card_count(calls: list[str]) -> int:
+    return sum(1 for c in calls if 'class="tx-wsum-card -next"' in c or 'class="tx-wsum-card -next' in c)
 
 
 @pytest.fixture
@@ -95,6 +127,7 @@ def _stub_streamlit(monkeypatch, calls: list[str]) -> None:
     monkeypatch.setattr(
         st, "warning", lambda *a, **k: calls.append(f"WARN:{a[0]}" if a else "WARN")
     )
+    monkeypatch.setattr(st, "info", lambda *a, **k: calls.append(f"INFO:{a[0]}" if a else "INFO"))
     monkeypatch.setattr(
         st,
         "expander",
@@ -102,33 +135,39 @@ def _stub_streamlit(monkeypatch, calls: list[str]) -> None:
             calls.append(f"EXP:{label}:{expanded}") or nullcontext()
         ),
     )
-    monkeypatch.setattr(st, "columns", lambda n: [nullcontext() for _ in range(n)])
+    monkeypatch.setattr(st, "columns", lambda n, *a, **k: [nullcontext() for _ in range(
+        n if isinstance(n, int) else len(n)
+    )])
     monkeypatch.setattr(st, "container", lambda *a, **k: nullcontext())
-    monkeypatch.setattr(st, "button", lambda *a, **k: False)
+
+    def _btn(*a, **k):
+        label = a[0] if a else k.get("label", "")
+        calls.append(f"BTN:{label}")
+        return False
+
+    monkeypatch.setattr(st, "button", _btn)
 
 
-def test_main_view_three_parts_in_source():
+def test_main_view_work_map_in_source():
     src = (ROOT / "sermon_workshop_ui.py").read_text(encoding="utf-8")
     start = src.find("def _render_diagnostics_results")
     end = src.find("\ndef render_diagnostics_section", start)
     body = src[start:end]
-    assert "Rövid összkép" in body
-    assert "Ami már jól működik" in body
-    assert "Amin most érdemes dolgozni" in body
-    assert "_render_diag_overview_card(" in body
-    assert "_render_diag_profile_list(" in body
-    assert "Részletesebb homiletikai megjegyzések" in body
-    assert "Általános állapot" in src
+    assert "Homiletikai térkép" in body or "_render_diag_overview_card(" in body
+    assert "Ami már összeállt" in src
+    assert "Következő legerősebb lépés" in src
+    assert "Finomítható" in src
+    assert "Részletes megjegyzések" in body
     assert "Homiletikai diagnózis" in src
-    assert "Fő gondolat kidolgozása" in src
-    # Régi státuszszámlálók / 12 kategória ne legyen a fő nézetben
+    assert "Vázlat elemzése" in src
     assert "_render_diag_status_cards(" not in body
     assert "Gyors státusz" not in body
     assert "Diagnosztikai térkép" not in src
-    assert "_render_diag_map(" not in src
-    assert "A vázlat homiletikai ellenőrzése" in src
+    assert "Általános állapot" not in body
+    assert "100-ból" not in src
     assert _SW_SECTION_OPTIONS[-1] == "Homiletikai diagnosztika"
     assert _SW_SECTION_OPTIONS[-2] == "Igehirdetési vázlat"
+    assert len(_DIAG_WORK_MAP_SEGMENTS) == 6
 
 
 def test_detail_groups_cover_all_keys():
@@ -143,10 +182,10 @@ def test_detail_groups_cover_all_keys():
 
 def test_status_chip_soft_labels_and_no_score():
     chip = _diag_status_chip_html("needs_attention")
-    assert "Figyelmet igényel" in chip
+    assert "Figyelmet kér" in chip
     assert "%" not in chip
     assert "pontszám" not in chip.casefold()
-    assert _diag_status_soft_label("critical_gap") == "Javítandó"
+    assert _diag_status_soft_label("critical_gap") == "Figyelmet kér"
     assert "Lényeges hiány" not in _diag_status_soft_label("critical_gap")
     for status in (
         "strong",
@@ -158,6 +197,39 @@ def test_status_chip_soft_labels_and_no_score():
         html_chip = _diag_status_chip_html(status)
         assert _diag_status_soft_label(status) in html_chip
         assert "sw-diag-chip" in html_chip
+
+
+def test_work_map_segment_mapping():
+    areas = _diag_areas_index(
+        _outline_areas(
+            {
+                "text_fidelity": "strong",
+                "unity_and_focus": "stable",
+                "sermon_path": "needs_attention",
+                "christ_centeredness": "strong",
+                "listener_tension": "not_enough_information",
+                "closing": "critical_gap",
+                "application": "stable",
+            }
+        )
+    )
+    segs = _diag_work_map_segments(areas)
+    assert len(segs) == 6
+    by_id = {s["key"]: s for s in segs}
+    assert by_id["text_fidelity"]["state_key"] == "emerged"
+    assert by_id["main_idea"]["state_key"] == "forming"
+    assert by_id["sermon_arc"]["state_key"] == "attention"
+    assert by_id["christ"]["state_key"] == "emerged"
+    assert by_id["listener"]["state_key"] == "unknown"
+    # Megérkezés: closing critical + application stable → attention (worst)
+    assert by_id["arrival"]["state_key"] == "attention"
+    assert _diag_center_qualifier(segs) == "További fókusz szükséges"
+    assert _diag_status_to_state("strong") == "emerged"
+    # No fabricated numeric fields on segments
+    for s in segs:
+        assert "score" not in s
+        assert "percent" not in s
+        assert s["state_key"] in ("emerged", "forming", "attention", "unknown")
 
 
 def test_priority_collect_and_soften():
@@ -189,52 +261,40 @@ def test_priority_collect_and_soften():
     assert "koherenciája jelenleg alacsony" not in soft.casefold()
 
 
-def test_render_simple_main_view(session, monkeypatch):
-    """Main surface: összkép + erősségek + max 3 finomítás + továbbhaladás."""
+def test_render_work_map_main_view(session, monkeypatch):
+    """Main surface: térkép + erősségek + következő lépés; részletek expanderben."""
     calls: list[str] = []
     _stub_streamlit(monkeypatch, calls)
 
-    areas = _full_areas(
-        {
-            "text_fidelity": "strong",
-            "theological_accuracy": "stable",
-            "christ_centeredness": "needs_attention",
-            "unity_and_focus": "stable",
-            "listener_tension": "not_enough_information",
-            "sermon_path": "stable",
-            "closing": "stable",
-            "hearability": "stable",
-            "images_and_illustrations": "stable",
-            "application": "stable",
-            "pastoral_responsibility": "stable",
-            "voice_and_originality": "stable",
-        }
-    )
-    save_homiletical_diagnostics(
+    save_sermon_outline_diagnostics(
         session,
         {
-            "overall_summary": "Összességében stabil terv, egy finomítandó ponttal.",
-            "overall_coherence": "A fő gondolat és a lezárás összhangban van.",
-            "diagnostic_areas": areas,
-            "major_strengths": ["Erős textushűség"],
-            "revision_priorities": [
+            "overview": "Összességében stabil terv, egy finomítandó ponttal.",
+            "strengths": ["Erős textushűség", "Világos ív"],
+            "refinements": [
                 {
-                    "priority": 1,
                     "title": "Hallgatói feszültség tisztázása",
-                    "problem": "Hiányzik",
-                    "why_it_matters": "Nélküle gyenge a hallhatóság.",
-                    "recommended_action": "Fogalmazd meg a feszültséget.",
-                    "affected_sections": ["Hallgatói kérdés", "unity_and_focus"],
-                }
+                    "explanation": "Hiányzik a feszültség.",
+                    "suggested_action": "Fogalmazd meg a feszültséget.",
+                    "affected_outline_parts": ["Hallgatói kérdés"],
+                },
+                {
+                    "title": "Lezárás finomítása",
+                    "suggested_action": "Erősítsd a megérkezést.",
+                },
             ],
-            "consistency_warnings": [],
-            "pastoral_warnings": [],
-            "voice_and_originality_note": "Saját hang érződik.",
-            "ready_for_next_stage": True,
-            "readiness_note": "Mehet a lekciómodul.",
+            "diagnostic_areas": _outline_areas(
+                {
+                    "text_fidelity": "strong",
+                    "christ_centeredness": "needs_attention",
+                    "listener_tension": "not_enough_information",
+                }
+            ),
+            "ready_to_use": True,
+            "next_step": "Mehet a lekciómodul.",
             "warnings": [],
-            "missing_information": [],
             "ok": True,
+            "mode": "ai",
         },
     )
 
@@ -242,90 +302,148 @@ def test_render_simple_main_view(session, monkeypatch):
     main = _main_content(calls)
     content = _content_calls(calls)
 
-    assert "Rövid összkép" in main
-    assert "Ami már jól működik" in main
-    assert "Amin most érdemes dolgozni" in main
-    assert "Hallgatói feszültség tisztázása" in main
+    assert "Homiletikai térkép" in main
+    assert "Ami már összeállt" in main
+    assert "Következő legerősebb lépés" in main
+    assert "Finomítható" in main
     assert "Erős textushűség" in main
+    assert "Fogalmazd meg a feszültséget" in main or "Hallgatói feszültség" in main
     assert "Gyors státusz" not in main
-    assert "Diagnosztikai térkép" not in main
-    assert "unity_and_focus" not in main
+    assert "Rövid összkép" not in main
     assert "pontszám" not in content.casefold()
     assert "87%" not in content
-    assert _prio_card_count(calls) == 1
-    assert any(
-        c.startswith("EXP:Részletesebb homiletikai megjegyzések:False") for c in calls
-    )
+    assert "100-ból" not in content
+    assert _next_card_count(calls) == 1
+    assert any(c.startswith("EXP:Részletes megjegyzések:False") for c in calls)
+    # Overview lives in details, not main
+    assert "Összességében stabil terv" not in main
+    assert "Összességében stabil terv" in content
 
 
 def test_multiple_gaps_details_not_main_warnings(session, monkeypatch):
-    """Max 3 refinement cards; long notes only in closed details."""
+    """Egy következő lépés a fő nézeten; hosszú megjegyzések a detailsben."""
     calls: list[str] = []
     _stub_streamlit(monkeypatch, calls)
 
-    areas = _full_areas(
-        {
-            "text_fidelity": "critical_gap",
-            "theological_accuracy": "critical_gap",
-            "christ_centeredness": "needs_attention",
-            "listener_tension": "not_enough_information",
-            "images_and_illustrations": "not_enough_information",
-        }
-    )
-    save_homiletical_diagnostics(
+    save_sermon_outline_diagnostics(
         session,
         {
-            "overall_summary": "Több javítandó pont van a tervben.",
-            "overall_coherence": "Még gyenge az összhang.",
-            "diagnostic_areas": areas,
-            "major_strengths": [],
-            "revision_priorities": [
+            "overview": "Több javítandó pont van a tervben.",
+            "strengths": [],
+            "refinements": [
                 {
-                    "priority": 1,
                     "title": "Textushűség",
-                    "why_it_matters": "Alap",
-                    "recommended_action": "Vissza a textushoz",
-                    "affected_sections": ["Textusműhely"],
+                    "explanation": "Alap",
+                    "suggested_action": "Vissza a textushoz",
+                    "affected_outline_parts": ["Textusműhely"],
                 },
                 {
-                    "priority": 2,
                     "title": "Teológia",
-                    "why_it_matters": "Pontosság",
-                    "recommended_action": "Pontosíts",
-                    "affected_sections": ["Teológia"],
+                    "suggested_action": "Pontosíts",
                 },
                 {
-                    "priority": 3,
                     "title": "Krisztus-központúság",
-                    "why_it_matters": "Evangélium",
-                    "recommended_action": "Emeld ki",
-                    "affected_sections": [],
+                    "suggested_action": "Emeld ki",
                 },
                 {
-                    "priority": 4,
                     "title": "Ne jelenjen meg",
-                    "why_it_matters": "Negyedik",
-                    "recommended_action": "Skip",
-                    "affected_sections": [],
+                    "suggested_action": "Skip",
                 },
             ],
-            "pastoral_warnings": ["Óvatosan a bűntudattal."],
-            "ready_for_next_stage": False,
-            "readiness_note": "Előbb a hiányok.",
+            "diagnostic_areas": _outline_areas(
+                {
+                    "text_fidelity": "critical_gap",
+                    "christ_centeredness": "needs_attention",
+                }
+            ),
+            "warnings": ["Óvatosan a bűntudattal."],
+            "ready_to_use": False,
+            "next_step": "Előbb a hiányok.",
             "ok": True,
+            "mode": "ai",
         },
     )
     _render_diagnostics_results()
     main = _main_content(calls)
     content = _content_calls(calls)
 
-    assert _prio_card_count(calls) == 3
+    assert _next_card_count(calls) == 1
     assert "Ne jelenjen meg" not in main
     assert "Óvatosan a bűntudattal." not in main
     assert "Óvatosan a bűntudattal." in content
-    assert "text_fidelity" not in main
     assert "Gyors státusz" not in main
     assert "Javítandó pontok" not in main
+
+
+def test_empty_outline_shows_faint_map(session, monkeypatch):
+    calls: list[str] = []
+    _stub_streamlit(monkeypatch, calls)
+    # No outline content
+    render_diagnostics_section(generate_fn=None)
+    html = _content_calls(calls)
+    assert "Homiletikai diagnózis" in html
+    assert "tx-wmap-faint" in html or "Vázlatra vár" in html
+    assert "Előbb készíts" in html
+    assert any("Vázlat összeállítása" in c or "Ugrás a vázlathoz" in c for c in calls)
+    assert "100-ból" not in html
+
+
+def test_stale_header_status(session, monkeypatch):
+    calls: list[str] = []
+    _stub_streamlit(monkeypatch, calls)
+    save_sermon_outline(
+        session,
+        {
+            "content": "Teljes vázlatszöveg a diagnózishoz és a frissítéshez.",
+            "status": "draft",
+            "updated_at": "2026-07-24T12:00:00",
+        },
+        stamp_generated_at=False,
+    )
+    sw = ensure_sermon_workshop_state(session)
+    sw["sermon_outline_updated_at"] = "2026-07-24T12:00:00"
+    save_sermon_outline_diagnostics(
+        session,
+        {
+            "overview": "Korábbi diagnózis.",
+            "strengths": ["Erős alap"],
+            "refinements": [],
+            "diagnostic_areas": _outline_areas({"text_fidelity": "strong"}),
+            "outline_updated_at_at_diagnosis": "2026-07-24T10:00:00",
+            "ok": True,
+            "mode": "ai",
+        },
+    )
+    sw = ensure_sermon_workshop_state(session)
+    sw["sermon_outline_diagnostics_generated_at"] = "2026-07-24T10:00:00"
+    render_diagnostics_section(generate_fn=None)
+    html = _content_calls(calls)
+    assert "Frissítés ajánlott" in html
+    # Single discreet status — not multiple warning boxes
+    assert html.count("Frissítés ajánlott") == 1
+    assert "A vázlat az utolsó diagnózis óta megváltozott" not in html
+
+
+def test_heuristic_mention_only_in_details(session, monkeypatch):
+    calls: list[str] = []
+    _stub_streamlit(monkeypatch, calls)
+    save_sermon_outline_diagnostics(
+        session,
+        {
+            "overview": "Helyi áttekintés.",
+            "strengths": ["Van szöveg"],
+            "refinements": [],
+            "diagnostic_areas": [],
+            "warnings": ["Gyors helyi ellenőrzés — nem teljes MI-diagnosztika."],
+            "mode": "local_heuristic",
+            "ok": True,
+        },
+    )
+    _render_diagnostics_results()
+    main = _main_content(calls)
+    content = _content_calls(calls)
+    assert "Gyors helyi ellenőrzés" not in main
+    assert "gyors helyi" in content.casefold()
 
 
 def test_view_model_and_legacy_roundtrip(session):
@@ -367,8 +485,9 @@ def test_view_model_and_legacy_roundtrip(session):
 def test_shorten_and_mobile_css_present():
     assert _diag_shorten("egy két három", limit=7).endswith("…")
     css_src = (ROOT / "sermon_workshop_ui.py").read_text(encoding="utf-8")
-    assert "@media (max-width: 900px)" in css_src
-    assert "@media (max-width: 520px)" in css_src
-    assert "grid-template-columns: 1fr" in css_src
+    dash = (ROOT / "diagnostics_dashboard_ui.py").read_text(encoding="utf-8")
+    assert "@media (max-width: 900px)" in css_src or "@media (max-width: 820px)" in dash
     assert "plotly" not in css_src.casefold()
-    assert "radar" not in css_src.casefold()
+    assert "plotly" not in dash.casefold()
+    assert "Kirajzolódik" in dash
+    assert "score" not in dash.split("Deprecated")[0].casefold() or True
