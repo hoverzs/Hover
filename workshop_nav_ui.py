@@ -652,7 +652,7 @@ def _render_account_controls(
     auth_configured: bool,
     user_label: str,
 ) -> str | None:
-    """Fiók / vendég vezérlők a toolbar jobb szélére. Visszatér: login|logout|settings|None."""
+    """Fiók / vendég vezérlők a toolbar jobb szélére. Visszatér: login|logout|None."""
     action: str | None = None
     if is_logged_in:
         label = (user_label or "Fiók").strip() or "Fiók"
@@ -660,19 +660,11 @@ def _render_account_controls(
         with st.popover(
             short,
             icon=":material/account_circle:",
-            help="Fiók és beállítások",
+            help="Fiók",
             use_container_width=False,
             key="tx_appbar_account_popover",
         ):
             st.caption(label)
-            if st.button(
-                "Beállítások",
-                key="tx_appbar_settings",
-                icon=":material/settings:",
-                type="secondary",
-                use_container_width=True,
-            ):
-                action = "settings"
             if st.button(
                 "Kijelentkezés",
                 key="tx_appbar_logout",
@@ -726,7 +718,7 @@ def render_app_toolbar(
     editing_title: bool = False,
     projects_renderer: Callable[[], None] | None = None,
 ) -> str | None:
-    """Egyetlen felső app-sáv: Főoldal → projekt → mentés → Projektek → Új munka | fiók.
+    """Egyetlen felső app-sáv: Főoldal → projekt → mentés → Projektek → Új munka | Beállítások → fiók.
 
     Visszatér: home | login | logout | settings | save | save_as_new |
     new_work | edit_title | done_edit | None
@@ -878,6 +870,17 @@ def render_app_toolbar(
             gap="small",
             width="content",
         ):
+            # Always on the bar (guest + logged-in) so API key settings stay reachable.
+            if st.button(
+                "Beállítások",
+                key="tx_appbar_settings",
+                icon=":material/settings:",
+                type="secondary",
+                use_container_width=False,
+                help="API kulcs és fiókbeállítások",
+            ):
+                action = "settings"
+
             account_action = _render_account_controls(
                 is_logged_in=is_logged_in,
                 auth_configured=auth_configured,
