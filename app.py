@@ -4741,7 +4741,7 @@ def _project_status_meta() -> tuple[str, str, str]:
     if not cur_id:
         return label, "Ideiglenes", "temp"
     if dirty:
-        return label, "Nem mentett változások", "dirty"
+        return label, "Nincs mentve", "dirty"
     return label, "Mentve", "saved"
 
 

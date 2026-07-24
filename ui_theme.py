@@ -933,13 +933,13 @@ body:has(.st-key-passage_search_occasion_field [aria-expanded="true"])
     width: 100% !important;
     max-width: 1160px !important;
     margin: 0 0 12px !important;
-    padding: 10px 12px !important;
+    padding: 6px 10px !important;
     box-sizing: border-box !important;
     border-radius: 12px !important;
     border: 1px solid rgba(170, 145, 112, 0.22) !important;
     background: rgba(255, 252, 247, 0.92) !important;
     box-shadow: 0 1px 2px rgba(42, 49, 60, 0.04) !important;
-    min-height: 58px !important;
+    min-height: 52px !important;
 }
 
 .st-key-textus_app_toolbar [data-testid="stHorizontalBlock"],
@@ -947,13 +947,49 @@ body:has(.st-key-passage_search_occasion_field [aria-expanded="true"])
     align-items: center !important;
 }
 
-.st-key-textus_app_toolbar > div {
+.st-key-textus_app_toolbar > div,
+.st-key-textus_app_toolbar[data-testid="stHorizontalBlock"],
+.st-key-tx_toolbar_main,
+.st-key-tx_toolbar_main[data-testid="stHorizontalBlock"],
+.st-key-tx_toolbar_actions,
+.st-key-tx_toolbar_actions[data-testid="stHorizontalBlock"],
+.st-key-tx_toolbar_main > div,
+.st-key-tx_toolbar_actions > div {
     display: flex !important;
+    flex-direction: row !important;
     align-items: center !important;
     flex-wrap: nowrap !important;
     gap: 8px !important;
-    width: 100% !important;
     min-height: 42px !important;
+}
+
+.st-key-textus_app_toolbar > div,
+.st-key-textus_app_toolbar[data-testid="stHorizontalBlock"] {
+    width: 100% !important;
+}
+
+.st-key-tx_toolbar_main,
+.st-key-tx_toolbar_actions {
+    width: auto !important;
+    max-width: 100% !important;
+}
+
+.st-key-tx_toolbar_main [data-testid="stElementContainer"],
+.st-key-tx_toolbar_actions [data-testid="stElementContainer"],
+.st-key-tx_toolbar_main [data-testid="stMarkdown"],
+.st-key-tx_toolbar_actions [data-testid="stMarkdown"],
+.st-key-tx_toolbar_main [data-testid="stLayoutWrapper"],
+.st-key-tx_toolbar_actions [data-testid="stLayoutWrapper"] {
+    width: auto !important;
+    max-width: max-content !important;
+    flex: 0 0 auto !important;
+    min-width: 0 !important;
+}
+
+.st-key-tx_toolbar_main [data-testid="stElementContainer"]:has(.tx-project-name-row) {
+    flex: 0 1 auto !important;
+    max-width: 220px !important;
+    min-width: 0 !important;
 }
 
 .st-key-tx_toolbar_main {
@@ -967,18 +1003,22 @@ body:has(.st-key-passage_search_occasion_field [aria-expanded="true"])
     max-width: none !important;
 }
 
-.st-key-tx_toolbar_account {
+.st-key-tx_toolbar_actions {
     flex: 0 0 auto !important;
 }
 
-/* Streamlit wraps keyed horizontal children in LayoutWrapper — push account to the right edge */
 .st-key-textus_app_toolbar > [data-testid="stLayoutWrapper"]:has(.st-key-tx_toolbar_main) {
     flex: 0 1 auto !important;
     min-width: 0 !important;
     width: auto !important;
     max-width: none !important;
 }
-.st-key-textus_app_toolbar > [data-testid="stLayoutWrapper"]:has(.st-key-tx_toolbar_account) {
+.st-key-textus_app_toolbar > [data-testid="stLayoutWrapper"]:has(.st-key-tx_toolbar_flex) {
+    flex: 1 1 auto !important;
+    min-width: 8px !important;
+    width: auto !important;
+}
+.st-key-textus_app_toolbar > [data-testid="stLayoutWrapper"]:has(.st-key-tx_toolbar_actions) {
     flex: 0 0 auto !important;
     margin-left: auto !important;
     width: auto !important;
@@ -993,12 +1033,12 @@ body:has(.st-key-passage_search_occasion_field [aria-expanded="true"])
 
 .st-key-textus_app_toolbar .stButton button,
 .st-key-textus_app_toolbar [data-testid="stPopover"] > button {
-    min-height: 42px !important;
-    height: 42px !important;
-    padding: 0 0.85rem !important;
+    min-height: 40px !important;
+    height: 40px !important;
+    padding: 0 0.55rem !important;
     border-radius: 10px !important;
     font-weight: 600 !important;
-    gap: 8px !important;
+    gap: 6px !important;
     display: inline-flex !important;
     align-items: center !important;
     white-space: nowrap !important;
@@ -1076,26 +1116,26 @@ body:has(.st-key-passage_search_occasion_field [aria-expanded="true"])
     align-items: center;
     gap: 8px;
     min-width: 0;
-    max-width: 250px;
+    max-width: 220px;
     flex-wrap: nowrap;
 }
 
 .tx-project-name-text {
-    font-size: 0.95rem;
+    font-size: 0.92rem;
     font-weight: 650;
     color: var(--ui-text);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    max-width: 220px;
+    max-width: 160px;
 }
 
 .tx-project-status-chip {
     display: inline-flex;
     align-items: center;
-    font-size: 0.78rem;
+    font-size: 0.74rem;
     font-weight: 600;
-    padding: 0.15rem 0.55rem;
+    padding: 0.12rem 0.45rem;
     border-radius: 999px;
     border: 1px solid rgba(170, 145, 112, 0.28);
     background: rgba(255, 252, 247, 0.9);
@@ -1122,15 +1162,18 @@ body:has(.st-key-passage_search_occasion_field [aria-expanded="true"])
     color: #5d5347;
 }
 
-/* Ceruzaikon: csak ikon látszik, a teljes a11y címke megmarad */
-.st-key-textus_app_toolbar .st-key-bar_title_edit button {
-    min-width: 42px !important;
-    width: 42px !important;
-    max-width: 42px !important;
+.st-key-textus_app_toolbar .st-key-tx_appbar_home button,
+.st-key-textus_app_toolbar .st-key-bar_title_edit button,
+.st-key-textus_app_toolbar .st-key-tx_appbar_settings button {
+    min-width: 40px !important;
+    width: 40px !important;
+    max-width: 44px !important;
     padding: 0 !important;
     justify-content: center !important;
 }
-.st-key-textus_app_toolbar .st-key-bar_title_edit button [data-testid="stMarkdownContainer"] {
+.st-key-textus_app_toolbar .st-key-tx_appbar_home button [data-testid="stMarkdownContainer"],
+.st-key-textus_app_toolbar .st-key-bar_title_edit button [data-testid="stMarkdownContainer"],
+.st-key-textus_app_toolbar .st-key-tx_appbar_settings button [data-testid="stMarkdownContainer"] {
     position: absolute !important;
     width: 1px !important;
     height: 1px !important;
@@ -1141,15 +1184,17 @@ body:has(.st-key-passage_search_occasion_field [aria-expanded="true"])
     border: 0 !important;
 }
 
-.st-key-textus_app_toolbar .st-key-bar_save_more_popover > button,
-.st-key-textus_app_toolbar .st-key-bar_save_more_popover [data-testid="stPopover"] > button {
-    min-width: 42px !important;
-    width: 42px !important;
+.st-key-textus_app_toolbar .st-key-bar_save_more_popover button {
+    min-width: 40px !important;
+    width: 40px !important;
     padding: 0 !important;
     justify-content: center !important;
 }
 
-/* Projektek: soha ne törjön „Projekt”-re; min. 112px */
+.st-key-textus_app_toolbar .st-key-bar_overflow_more {
+    display: none !important;
+}
+
 .st-key-textus_app_toolbar .st-key-bar_projects_popover,
 .st-key-textus_app_toolbar .st-key-bar_projects_popover [data-testid="stPopover"] {
     width: auto !important;
@@ -1174,7 +1219,6 @@ body:has(.st-key-passage_search_occasion_field [aria-expanded="true"])
     margin: 0 0 0.35rem;
 }
 
-/* Project picker panel — only BaseWeb popovers that contain project_picker_content */
 div[data-baseweb="popover"]:has(.st-key-project_picker_content) {
     width: 520px !important;
     min-width: 440px !important;
@@ -1260,7 +1304,6 @@ div[data-baseweb="popover"]:has(.st-key-project_picker_content) [class*="st-key-
     min-width: 0;
 }
 
-/* Reset stepmenu timeline styles inside project picker only */
 div[data-baseweb="popover"]:has(.st-key-project_picker_content) .stButton > button {
     position: relative !important;
     display: inline-flex !important;
@@ -1321,37 +1364,154 @@ div[data-baseweb="popover"]:has(.st-key-project_picker_content) [class*="st-key-
 
 @media (max-width: 1023px) {
     .st-key-textus_app_toolbar > div,
+    .st-key-textus_app_toolbar[data-testid="stHorizontalBlock"],
+    .st-key-tx_toolbar_main > div,
+    .st-key-tx_toolbar_actions > div {
+        flex-wrap: nowrap !important;
+    }
+    .st-key-tx_toolbar_flex,
+    .st-key-textus_app_toolbar > [data-testid="stLayoutWrapper"]:has(.st-key-tx_toolbar_flex) {
+        display: none !important;
+        min-width: 0 !important;
+        flex: 0 0 0 !important;
+    }
+    .st-key-textus_app_toolbar > [data-testid="stLayoutWrapper"]:has(.st-key-tx_toolbar_actions) {
+        margin-left: auto !important;
+    }
+    .tx-project-name-text {
+        max-width: min(120px, 28vw);
+    }
+    .tx-project-name-row {
+        max-width: min(180px, 40vw);
+    }
+    .st-key-textus_app_toolbar .st-key-bar_new_work button {
+        min-width: 40px !important;
+        width: 40px !important;
+        padding: 0 !important;
+        justify-content: center !important;
+        font-size: 0 !important;
+        gap: 0 !important;
+    }
+    .st-key-textus_app_toolbar .st-key-bar_new_work button [data-testid="stIconMaterial"] {
+        font-size: 1.25rem !important;
+    }
+    .st-key-textus_app_toolbar .st-key-bar_new_work button [data-testid="stMarkdownContainer"] {
+        display: none !important;
+    }
+    .st-key-textus_app_toolbar .st-key-bar_projects_popover,
+    .st-key-textus_app_toolbar .st-key-bar_projects_popover [data-testid="stPopover"] {
+        min-width: 0 !important;
+    }
+    .st-key-textus_app_toolbar .st-key-bar_projects_popover button {
+        min-width: 40px !important;
+        width: 40px !important;
+        max-width: 44px !important;
+        padding: 0 !important;
+        justify-content: center !important;
+        gap: 0 !important;
+        font-size: 0 !important;
+    }
+    .st-key-textus_app_toolbar .st-key-bar_projects_popover button [data-testid="stIconMaterial"] {
+        font-size: 1.25rem !important;
+    }
+    .st-key-textus_app_toolbar .st-key-bar_projects_popover button [data-testid="stMarkdownContainer"],
+    .st-key-textus_app_toolbar .st-key-bar_projects_popover button svg {
+        display: none !important;
+    }
+    .tx-appbar-guest-label {
+        display: none !important;
+    }
+}
+
+@media (max-width: 759px) {
+    .st-key-textus_app_toolbar > div,
     .st-key-textus_app_toolbar[data-testid="stHorizontalBlock"] {
         flex-wrap: wrap !important;
         row-gap: 8px !important;
+        align-items: stretch !important;
     }
-    .st-key-tx_toolbar_flex {
+    .st-key-textus_app_toolbar > [data-testid="stLayoutWrapper"]:has(.st-key-tx_toolbar_main),
+    .st-key-tx_toolbar_main {
+        flex: 1 1 100% !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+    }
+    .st-key-textus_app_toolbar > [data-testid="stLayoutWrapper"]:has(.st-key-tx_toolbar_actions),
+    .st-key-tx_toolbar_actions {
+        flex: 1 1 100% !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        margin-left: 0 !important;
+        min-width: 0 !important;
+    }
+    .st-key-tx_toolbar_main,
+    .st-key-tx_toolbar_actions,
+    .st-key-tx_toolbar_main[data-testid="stHorizontalBlock"],
+    .st-key-tx_toolbar_actions[data-testid="stHorizontalBlock"] {
+        flex-wrap: nowrap !important;
+        overflow-x: visible !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+    .st-key-textus_app_toolbar .st-key-bar_new_work,
+    .st-key-textus_app_toolbar .st-key-tx_appbar_settings,
+    .st-key-textus_app_toolbar .st-key-bar_save_more_popover {
         display: none !important;
     }
-    .st-key-tx_toolbar_account {
-        margin-left: 0 !important;
+    .st-key-textus_app_toolbar .st-key-bar_overflow_more {
+        display: flex !important;
+        align-items: center !important;
     }
-    .st-key-textus_app_toolbar > [data-testid="stLayoutWrapper"]:has(.st-key-tx_toolbar_account) {
-        margin-left: 0 !important;
+    .st-key-textus_app_toolbar .st-key-bar_project_save button,
+    .st-key-textus_app_toolbar .st-key-bar_project_save_as_new button,
+    .st-key-textus_app_toolbar .st-key-bar_projects_popover button,
+    .st-key-textus_app_toolbar .st-key-bar_overflow_more button,
+    .st-key-textus_app_toolbar .st-key-tx_appbar_login_popover button,
+    .st-key-textus_app_toolbar .st-key-tx_appbar_account_popover button {
+        min-width: 40px !important;
+        width: 40px !important;
+        max-width: 44px !important;
+        padding: 0 !important;
+        justify-content: center !important;
+        gap: 0 !important;
+        font-size: 0 !important;
+    }
+    .st-key-textus_app_toolbar .st-key-bar_project_save button [data-testid="stIconMaterial"],
+    .st-key-textus_app_toolbar .st-key-bar_project_save_as_new button [data-testid="stIconMaterial"],
+    .st-key-textus_app_toolbar .st-key-bar_projects_popover button [data-testid="stIconMaterial"],
+    .st-key-textus_app_toolbar .st-key-bar_overflow_more button [data-testid="stIconMaterial"],
+    .st-key-textus_app_toolbar .st-key-tx_appbar_login_popover button [data-testid="stIconMaterial"],
+    .st-key-textus_app_toolbar .st-key-tx_appbar_account_popover button [data-testid="stIconMaterial"] {
+        font-size: 1.25rem !important;
+        line-height: 1 !important;
+    }
+    .st-key-textus_app_toolbar .st-key-bar_project_save button [data-testid="stMarkdownContainer"],
+    .st-key-textus_app_toolbar .st-key-bar_project_save_as_new button [data-testid="stMarkdownContainer"],
+    .st-key-textus_app_toolbar .st-key-bar_projects_popover button [data-testid="stMarkdownContainer"],
+    .st-key-textus_app_toolbar .st-key-bar_overflow_more button [data-testid="stMarkdownContainer"],
+    .st-key-textus_app_toolbar .st-key-tx_appbar_login_popover button [data-testid="stMarkdownContainer"],
+    .st-key-textus_app_toolbar .st-key-tx_appbar_account_popover button [data-testid="stMarkdownContainer"],
+    .st-key-textus_app_toolbar .st-key-bar_projects_popover button svg,
+    .st-key-textus_app_toolbar .st-key-bar_overflow_more button svg,
+    .st-key-textus_app_toolbar .st-key-tx_appbar_login_popover button svg,
+    .st-key-textus_app_toolbar .st-key-tx_appbar_account_popover button svg {
+        display: none !important;
     }
     .tx-project-name-text {
-        max-width: min(180px, 42vw);
+        max-width: min(140px, 42vw);
+    }
+    .st-key-tx_toolbar_main [data-testid="stElementContainer"]:has(.tx-project-name-row) {
+        max-width: min(200px, 58vw) !important;
     }
 }
 
 @media (max-width: 390px) {
     .st-key-textus_app_toolbar {
-        padding: 8px !important;
-    }
-    .st-key-textus_app_toolbar .stButton button,
-    .st-key-textus_app_toolbar [data-testid="stPopover"] > button {
-        min-height: 40px !important;
-        height: 40px !important;
-        padding: 0 0.55rem !important;
-        font-size: 0.85rem !important;
+        padding: 6px 8px !important;
     }
     .tx-project-name-text {
-        max-width: min(140px, 38vw);
+        max-width: min(110px, 36vw);
     }
     div[data-baseweb="popover"]:has(.st-key-project_picker_content) {
         width: calc(100vw - 24px) !important;
@@ -2205,6 +2365,7 @@ div[data-baseweb="popover"] [data-testid="stPopoverBody"]::-webkit-scrollbar-thu
         padding: 0.65rem 0.75rem;
     }
 }
+
 /* ===== Hallgatói feszültség — átvételi döntéscsoport =====
    A keyed container maga a stVerticalBlock — közvetlenül sorba rendezzük. */
 .st-key-tension_transfer_actions {

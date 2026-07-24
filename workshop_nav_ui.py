@@ -718,7 +718,11 @@ def render_app_toolbar(
     editing_title: bool = False,
     projects_renderer: Callable[[], None] | None = None,
 ) -> str | None:
-    """Egyetlen felső app-sáv: Főoldal → projekt → mentés → Projektek → Új munka | Beállítások → fiók.
+    """Egyetlen felső app-sáv (egy sor desktopon).
+
+    Bal: Főoldal | projekt + státusz + szerkesztés
+    Jobb: Mentés | ··· | Projektek | Új munka | Beállítások | fiók
+    (<760 px: Új munka + Beállítások a Továbbiak menüben)
 
     Visszatér: home | login | logout | settings | save | save_as_new |
     new_work | edit_title | done_edit | None
@@ -733,12 +737,68 @@ def render_app_toolbar(
         "dirty": "is-dirty",
     }.get(kind, "is-temp")
 
+    def _projects_popover() -> None:
+        nonlocal action
+        with st.popover(
+            "Projektek",
+            icon=":material/folder:",
+            help="Mentett projektek megnyitása",
+            use_container_width=False,
+            width=520,
+            key="bar_projects_popover",
+        ):
+            with st.container(key="project_picker_content"):
+                if projects_renderer is not None:
+                    projects_renderer()
+                else:
+                    st.markdown(
+                        '<div class="tx-projects-empty">'
+                        "Nincs megjeleníthető projekt.</div>",
+                        unsafe_allow_html=True,
+                    )
+
+    def _save_controls() -> None:
+        nonlocal action
+        if has_active_project:
+            if st.button(
+                "Mentés",
+                key="bar_project_save",
+                type="primary",
+                icon=":material/save:",
+                use_container_width=False,
+            ):
+                action = "save"
+            with st.popover(
+                "···",
+                help="További mentési lehetőségek",
+                use_container_width=False,
+                key="bar_save_more_popover",
+            ):
+                if st.button(
+                    "Mentés másolatként",
+                    key="bar_project_save_as_new",
+                    type="secondary",
+                    icon=":material/save_as:",
+                    use_container_width=True,
+                ):
+                    action = "save_as_new"
+        else:
+            if st.button(
+                "Mentés újként",
+                key="bar_project_save_as_new",
+                type="primary",
+                icon=":material/save_as:",
+                use_container_width=False,
+            ):
+                action = "save_as_new"
+
     with st.container(
         key="textus_app_toolbar",
         horizontal=True,
         vertical_alignment="center",
         gap="small",
     ):
+        # Bal: kezdőlap + projekt azonosítók
         with st.container(
             key="tx_toolbar_main",
             horizontal=True,
@@ -749,10 +809,10 @@ def render_app_toolbar(
             home_help = (
                 "Aktuális nézet: Főoldal"
                 if home_active
-                else "Vissza a Főoldalra (a projekt megmarad)"
+                else "Vissza a főoldalra"
             )
             if st.button(
-                "Főoldal",
+                "Vissza a főoldalra",
                 key="tx_appbar_home",
                 icon=":material/home:",
                 type="secondary",
@@ -801,56 +861,18 @@ def render_app_toolbar(
                 ):
                     action = "edit_title"
 
-            if has_active_project:
-                if st.button(
-                    "Mentés",
-                    key="bar_project_save",
-                    type="primary",
-                    icon=":material/save:",
-                    use_container_width=False,
-                ):
-                    action = "save"
-                with st.popover(
-                    "···",
-                    help="További mentési lehetőségek",
-                    use_container_width=False,
-                    key="bar_save_more_popover",
-                ):
-                    if st.button(
-                        "Mentés másolatként",
-                        key="bar_project_save_as_new",
-                        type="secondary",
-                        icon=":material/save_as:",
-                        use_container_width=True,
-                    ):
-                        action = "save_as_new"
-            else:
-                if st.button(
-                    "Mentés újként",
-                    key="bar_project_save_as_new",
-                    type="primary",
-                    icon=":material/save_as:",
-                    use_container_width=False,
-                ):
-                    action = "save_as_new"
+        st.container(key="tx_toolbar_flex", width="stretch")
 
-            with st.popover(
-                "Projektek",
-                icon=":material/folder:",
-                help="Mentett projektek megnyitása",
-                use_container_width=False,
-                width=520,
-                key="bar_projects_popover",
-            ):
-                with st.container(key="project_picker_content"):
-                    if projects_renderer is not None:
-                        projects_renderer()
-                    else:
-                        st.markdown(
-                            '<div class="tx-projects-empty">'
-                            "Nincs megjeleníthető projekt.</div>",
-                            unsafe_allow_html=True,
-                        )
+        # Jobb: mentés / projektek / új munka / beállítások / fiók
+        with st.container(
+            key="tx_toolbar_actions",
+            horizontal=True,
+            vertical_alignment="center",
+            gap="small",
+            width="content",
+        ):
+            _save_controls()
+            _projects_popover()
 
             if st.button(
                 "Új munka",
@@ -861,25 +883,49 @@ def render_app_toolbar(
             ):
                 action = "new_work"
 
-        st.container(key="tx_toolbar_flex", width="stretch")
-
-        with st.container(
-            key="tx_toolbar_account",
-            horizontal=True,
-            vertical_alignment="center",
-            gap="small",
-            width="content",
-        ):
-            # Always on the bar (guest + logged-in) so API key settings stay reachable.
             if st.button(
                 "Beállítások",
                 key="tx_appbar_settings",
                 icon=":material/settings:",
                 type="secondary",
                 use_container_width=False,
-                help="API kulcs és fiókbeállítások",
+                help="Beállítások",
             ):
                 action = "settings"
+
+            # <760 px: másodlagos gombok a Továbbiak menüben (CSS váltja)
+            with st.popover(
+                "Továbbiak",
+                icon=":material/more_horiz:",
+                help="Továbbiak",
+                use_container_width=False,
+                key="bar_overflow_more",
+            ):
+                if st.button(
+                    "Új munka",
+                    key="bar_overflow_new_work",
+                    type="secondary",
+                    icon=":material/add:",
+                    use_container_width=True,
+                ):
+                    action = "new_work"
+                if st.button(
+                    "Beállítások",
+                    key="bar_overflow_settings",
+                    type="secondary",
+                    icon=":material/settings:",
+                    use_container_width=True,
+                ):
+                    action = "settings"
+                if has_active_project:
+                    if st.button(
+                        "Mentés másolatként",
+                        key="bar_overflow_save_as_new",
+                        type="secondary",
+                        icon=":material/save_as:",
+                        use_container_width=True,
+                    ):
+                        action = "save_as_new"
 
             account_action = _render_account_controls(
                 is_logged_in=is_logged_in,

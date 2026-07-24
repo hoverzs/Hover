@@ -235,6 +235,9 @@ def test_shell_components_use_keyed_containers():
         encoding="utf-8"
     )
     assert 'key="textus_app_toolbar"' in src
+    assert 'key="tx_toolbar_actions"' in src
+    assert 'key="bar_overflow_more"' in src
+    assert "Vissza a főoldalra" in src
     assert 'key="project_picker_content"' in src
     assert 'key="workspace_switcher"' in src
     assert 'key="workshop_step_bar"' in src
@@ -248,6 +251,7 @@ def test_shell_components_use_keyed_containers():
     assert 'key="bar_project_save_as_new"' in src
     assert "Mentés másolatként" in src
     assert 'help="Mentett projektek megnyitása"' in src
+    assert 'help="Beállítások"' in src
     # JS-es widget-mozgatás a shell komponensekből kikerült
     assert "tx-appbar-anchor" not in src
     assert "tx-project-toolbar-anchor" not in src or "no-op" in src.lower() or "Kompatibilitási" in src
