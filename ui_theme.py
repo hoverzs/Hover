@@ -34,12 +34,26 @@ def premium_tokens_css() -> str:
     --tx-space-lg: 1rem;
     --tx-space-xl: 1.5rem;
 
+    /* Hierarchia térközskála: 8 / 12 / 20 / 32 / 48 */
+    --tx-space-2: 8px;
+    --tx-space-3: 12px;
+    --tx-space-4: 20px;
+    --tx-space-5: 32px;
+    --tx-space-6: 48px;
+
     --tx-radius-sm: 8px;
     --tx-radius-md: 12px;
     --tx-radius-lg: 18px;
+    --tx-radius-surface: 12px;
 
     --tx-shadow-soft: 0 4px 12px rgba(58, 40, 22, 0.08);
     --tx-shadow-float: 0 10px 24px rgba(38, 25, 10, 0.14);
+    --tx-shadow-surface: 0 1px 2px rgba(58, 40, 22, 0.04), 0 4px 14px rgba(58, 40, 22, 0.05);
+
+    --tx-work-surface: rgba(255, 252, 247, 0.96);
+    --tx-helper-bg: rgba(236, 242, 248, 0.55);
+    --tx-helper-bg-warm: rgba(247, 241, 232, 0.72);
+    --tx-prose-width: 72ch;
 
     /* Scoped navigáció / command bar — aliasok a meglévő palettára */
     --ui-surface: rgba(255, 252, 247, 0.94);
@@ -56,6 +70,8 @@ def premium_tokens_css() -> str:
     --ui-space-1: 4px;
     --ui-space-2: 8px;
     --ui-space-3: 12px;
+    --ui-space-4: 20px;
+    --ui-space-5: 32px;
 }
 """.strip()
 
@@ -131,30 +147,45 @@ def premium_overlay_css() -> str:
 .tx-status-warning { background: rgba(178, 133, 62, 0.15); color: #6d4b1f; border-color: rgba(178,133,62,0.28); }
 .tx-status-danger { background: rgba(166, 93, 72, 0.14); color: #6e2e1f; border-color: rgba(166,93,72,0.3); }
 
-.tx-panel {
-    border-radius: var(--tx-radius-md);
-    border: 1px solid var(--tx-border);
-    background: var(--tx-surface);
-    box-shadow: var(--tx-shadow-soft);
-    padding: 0.62rem 0.82rem;
-    margin: 0.25rem 0 0.7rem;
+/* Helper / státusz — nem kártyarakás; bal oldali hangsúlycsík */
+.tx-panel,
+.tx-helper {
+    border-radius: 0 var(--tx-radius-sm) var(--tx-radius-sm) 0;
+    border: 1px solid rgba(170, 145, 112, 0.16);
+    border-left-width: 3px;
+    background: var(--tx-helper-bg);
+    box-shadow: none;
+    padding: 10px 14px 10px 12px;
+    margin: var(--tx-space-2) 0 var(--tx-space-3);
+    max-width: var(--tx-prose-width);
 }
-.tx-panel-title {
+.tx-panel-title,
+.tx-helper-title {
     font-family: "Inter", "Segoe UI", sans-serif;
-    font-size: 0.9rem;
+    font-size: 0.84rem;
     font-weight: 650;
-    margin-bottom: 0.2rem;
+    margin-bottom: 2px;
+    color: var(--tx-primary-deep);
+    letter-spacing: 0.01em;
 }
-.tx-panel-body {
+.tx-panel-body,
+.tx-helper-body {
     font-family: "Lora", Georgia, serif;
-    font-size: 0.96rem;
-    line-height: 1.5;
+    font-size: 0.9rem;
+    line-height: 1.45;
+    color: var(--tx-text-muted);
+    max-width: var(--tx-prose-width);
 }
-.tx-panel-info { border-left: 3px solid var(--tx-primary); }
-.tx-panel-success { border-left: 3px solid var(--tx-success); }
-.tx-panel-warning { border-left: 3px solid var(--tx-warning); }
-.tx-panel-danger { border-left: 3px solid var(--tx-danger); }
-.tx-panel-neutral { border-left: 3px solid var(--tx-neutral); }
+.tx-panel-info,
+.tx-helper-info { border-left-color: var(--tx-primary); background: var(--tx-helper-bg); }
+.tx-panel-success,
+.tx-helper-success { border-left-color: var(--tx-success); background: rgba(111, 154, 120, 0.1); }
+.tx-panel-warning,
+.tx-helper-warning { border-left-color: var(--tx-warning); background: rgba(178, 133, 62, 0.1); }
+.tx-panel-danger,
+.tx-helper-danger { border-left-color: var(--tx-danger); background: rgba(166, 93, 72, 0.1); }
+.tx-panel-neutral,
+.tx-helper-neutral { border-left-color: var(--tx-neutral); background: var(--tx-helper-bg-warm); }
 
 .block-container {
     max-width: 1160px !important;
@@ -1674,28 +1705,187 @@ div[data-baseweb="popover"] [data-testid="stPopoverBody"]::-webkit-scrollbar-thu
     flex-wrap: wrap;
     gap: 0.4rem 1.1rem;
     align-items: baseline;
-    padding: 0.55rem 0.85rem;
-    margin: 0.2rem 0 0.6rem;
-    border: 1px solid var(--tx-border);
-    border-radius: 12px;
-    background: rgba(255, 252, 247, 0.7);
+    padding: 10px 14px;
+    margin: var(--tx-space-2) 0 var(--tx-space-3);
+    border: 1px solid rgba(170, 145, 112, 0.18);
+    border-radius: var(--tx-radius-sm);
+    background: rgba(255, 252, 247, 0.55);
     font-family: "Inter", "Segoe UI", sans-serif;
 }
-.tx-context-item { font-size: 0.86rem; color: #3d3228; }
-.tx-context-item .k { color: var(--tx-text-muted); margin-right: 0.3rem; }
-.tx-context-item .v { font-weight: 600; color: #1f334d; }
+.tx-context-item { font-size: 0.84rem; color: #3d3228; }
+.tx-context-item .k { color: var(--tx-text-muted); margin-right: 0.3rem; font-weight: 500; }
+.tx-context-item .v { font-weight: 600; color: var(--tx-primary-deep); }
 
-/* ===== Munkakártya (StepWorkspace) ===== */
+/* ===== Munkaterület keret — nem egy folyamatos fehér dokumentumkártya ===== */
 .tx-workcard-anchor { display: none !important; height: 0 !important; margin: 0 !important; }
 .element-container:has(.tx-workcard-anchor) + [data-testid="stLayoutWrapper"] > [data-testid="stVerticalBlock"],
 .element-container:has(.tx-workcard-anchor) + [data-testid="stLayoutWrapper"] [data-testid="stVerticalBlockBorderWrapper"] {
     max-width: 1040px !important;
-    margin: 0.4rem auto 0 !important;
-    border: 1px solid var(--tx-border) !important;
-    border-radius: 18px !important;
-    padding: clamp(1.1rem, 2.2vw, 1.75rem) !important;
-    background: rgba(255, 253, 249, 0.94) !important;
-    box-shadow: 0 8px 26px rgba(58, 40, 22, 0.07) !important;
+    margin: var(--tx-space-3) auto 0 !important;
+    border: none !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+/* ===== 1. Munkaszakasz — cím + rövid leírás, NEM teljes kártya ===== */
+.tx-work-section {
+    margin: 0 0 var(--tx-space-5);
+    padding: 0;
+    max-width: 100%;
+}
+.tx-work-section-context {
+    font-family: "Inter", "Segoe UI", sans-serif;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--tx-gold);
+    margin: 0 0 var(--tx-space-2);
+}
+.tx-work-section-title {
+    font-family: "Playfair Display", "Cormorant Garamond", Georgia, serif;
+    font-size: clamp(22px, 2.2vw, 26px);
+    font-weight: 650;
+    line-height: 1.25;
+    margin: 0;
+    color: #2a2117;
+}
+.tx-work-section-body {
+    margin: var(--tx-space-2) 0 0;
+    font-family: "Lora", Georgia, serif;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: var(--tx-text-muted);
+    max-width: var(--tx-prose-width);
+}
+.tx-work-section-rule {
+    margin-top: var(--tx-space-4);
+    height: 1px;
+    max-width: 220px;
+    border: 0;
+    background: linear-gradient(
+        90deg,
+        rgba(90, 122, 168, 0.55) 0%,
+        rgba(138, 106, 63, 0.45) 55%,
+        rgba(138, 106, 63, 0) 100%
+    );
+}
+
+/* ===== 2. Munkafelület — egy feladat = egy emelt panel ===== */
+[class*="st-key-tx_work_surface"] {
+    background: var(--tx-work-surface) !important;
+    border: 1px solid rgba(170, 145, 112, 0.22) !important;
+    border-radius: var(--tx-radius-surface) !important;
+    box-shadow: var(--tx-shadow-surface) !important;
+    padding: var(--tx-space-4) !important;
+    margin: 0 0 var(--tx-space-4) !important;
+}
+[class*="st-key-tx_work_surface"] > div {
+    gap: var(--tx-space-3) !important;
+}
+
+/* Tipográfia a munkafelületen: címke / mező / meta */
+[class*="st-key-tx_work_surface"] [data-testid="stWidgetLabel"] p,
+[class*="st-key-tx_work_surface"] label p {
+    font-family: "Inter", "Segoe UI", sans-serif !important;
+    font-size: 0.88rem !important;
+    font-weight: 600 !important;
+    color: #3a3229 !important;
+}
+[class*="st-key-tx_work_surface"] [data-testid="stCaption"] p,
+[class*="st-key-tx_work_surface"] [data-testid="stCaptionContainer"] p {
+    font-family: "Inter", "Segoe UI", sans-serif !important;
+    font-size: 0.8rem !important;
+    color: var(--tx-text-muted) !important;
+    max-width: var(--tx-prose-width);
+}
+[class*="st-key-tx_work_surface"] [data-testid="stMarkdown"] p,
+[class*="st-key-tx_work_surface"] [data-testid="stMarkdownContainer"] p {
+    max-width: var(--tx-prose-width);
+}
+
+/* ===== 3. Helper / MI-zóna — halk, nem kártyarakás ===== */
+[class*="st-key-tx_mi_helper"] {
+    background: var(--tx-helper-bg) !important;
+    border: 1px solid rgba(90, 122, 168, 0.16) !important;
+    border-left: 3px solid rgba(90, 122, 168, 0.45) !important;
+    border-radius: 0 var(--tx-radius-sm) var(--tx-radius-sm) 0 !important;
+    box-shadow: none !important;
+    padding: var(--tx-space-3) var(--tx-space-4) !important;
+    margin: var(--tx-space-4) 0 var(--tx-space-3) !important;
+}
+[class*="st-key-tx_mi_helper"] .tx-mi-title {
+    font-family: "Inter", "Segoe UI", sans-serif;
+    font-size: 0.84rem;
+    font-weight: 650;
+    color: var(--tx-primary-deep);
+    margin: 0 0 4px;
+}
+[class*="st-key-tx_mi_helper"] .tx-mi-body {
+    font-family: "Inter", "Segoe UI", sans-serif;
+    font-size: 0.82rem;
+    line-height: 1.45;
+    color: var(--tx-text-muted);
+    margin: 0 0 var(--tx-space-3);
+    max-width: var(--tx-prose-width);
+}
+
+/* Műveleti sor — gombok a munkafelület alján, nem lebegve */
+[class*="st-key-tx_action_row"] {
+    margin-top: var(--tx-space-3) !important;
+    padding-top: var(--tx-space-3) !important;
+    border-top: 1px solid rgba(170, 145, 112, 0.14) !important;
+}
+[class*="st-key-tx_action_row"] [data-testid="stHorizontalBlock"] {
+    gap: var(--tx-space-3) !important;
+    align-items: stretch !important;
+}
+[class*="st-key-tx_mi_helper"] [data-testid="stHorizontalBlock"] {
+    gap: var(--tx-space-3) !important;
+}
+
+@media (max-width: 640px) {
+    [class*="st-key-tx_action_row"] [data-testid="stHorizontalBlock"],
+    [class*="st-key-tx_mi_helper"] [data-testid="stHorizontalBlock"] {
+        flex-direction: column !important;
+        gap: var(--tx-space-2) !important;
+    }
+    [class*="st-key-tx_action_row"] [data-testid="stColumn"],
+    [class*="st-key-tx_mi_helper"] [data-testid="stColumn"] {
+        width: 100% !important;
+        flex: 1 1 100% !important;
+        min-width: 100% !important;
+    }
+    [class*="st-key-tx_work_surface"] {
+        padding: var(--tx-space-3) !important;
+        border-radius: 10px !important;
+    }
+}
+
+/* Magyarázó próza olvasási szélesség */
+.tx-prose,
+.result-box {
+    max-width: var(--tx-prose-width);
+}
+.tx-prose p,
+.tx-intro-body,
+.tx-work-section-body {
+    max-width: var(--tx-prose-width);
+}
+
+/* Kék csak aktív / fókusz / elsődleges — ne minden keret */
+[class*="st-key-tx_work_surface"] [data-baseweb="input"] > div,
+[class*="st-key-tx_work_surface"] [data-baseweb="textarea"] > div,
+[class*="st-key-tx_work_surface"] [data-baseweb="select"] > div {
+    border-color: rgba(170, 145, 112, 0.28) !important;
+}
+[class*="st-key-tx_work_surface"] [data-baseweb="input"] > div:focus-within,
+[class*="st-key-tx_work_surface"] [data-baseweb="textarea"] > div:focus-within,
+[class*="st-key-tx_work_surface"] [data-baseweb="select"] > div:focus-within {
+    border-color: rgba(90, 122, 168, 0.55) !important;
+    box-shadow: 0 0 0 1px rgba(90, 122, 168, 0.22) !important;
 }
 
 /* ===== Workspace switcher — kompakt, címke-only szegmensek ===== */

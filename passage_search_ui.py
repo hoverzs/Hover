@@ -25,6 +25,7 @@ from passage_search_history import (
     get_cached_used_passage_history,
 )
 from ruf_bible_service import fetch_ruf_passage
+from ui_components import render_info_panel
 
 SESSION_KEY = "passage_search"
 PENDING_APPLY_KEY = "_pending_passage_search_apply"
@@ -322,11 +323,11 @@ def render_passage_search_expander(
             + (f" (korábbi: {from_ref})" if from_ref else "")
             + ". Nem töröltük őket — újraépítéshez indítsd újra a megfelelő generálást."
         )
-        st.warning(stale_note)
+        render_info_panel(title="Elavult anyagok", body=stale_note, tone="warning")
 
     pending_confirm = st.session_state.get(PENDING_CONFIRM_KEY)
     if isinstance(pending_confirm, dict) and pending_confirm.get("reference"):
-        st.warning(_CONFIRM_MSG)
+        render_info_panel(title="Megerősítés szükséges", body=_CONFIRM_MSG, tone="warning")
         c1, c2 = st.columns(2)
         with c1:
             if st.button(

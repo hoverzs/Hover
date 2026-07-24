@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+from contextlib import contextmanager
 from html import escape
+from typing import Iterator
 
 import streamlit as st
 
@@ -43,6 +45,73 @@ def render_page_intro(
         st.markdown(markup, unsafe_allow_html=True)
 
 
+def render_work_section(
+    *,
+    title: str,
+    body: str = "",
+    context: str = "",
+    show_rule: bool = True,
+) -> None:
+    """Munkaszakasz fejléc: kis kontextuscímke, 22–26 px cím, rövid leírás.
+
+    Nem teljes kártya — csak hierarchikus nyitóblokk a feladat előtt.
+    """
+    ctx = escape((context or "").strip())
+    ttl = escape((title or "").strip())
+    txt = escape((body or "").strip())
+    if not ttl and not txt:
+        return
+    ctx_html = f'<div class="tx-work-section-context">{ctx}</div>' if ctx else ""
+    body_html = f'<p class="tx-work-section-body">{txt}</p>' if txt else ""
+    rule_html = '<hr class="tx-work-section-rule" />' if show_rule else ""
+    st.markdown(
+        (
+            '<section class="tx-work-section">'
+            f"{ctx_html}"
+            f'<h2 class="tx-work-section-title">{ttl}</h2>'
+            f"{body_html}"
+            f"{rule_html}"
+            "</section>"
+        ),
+        unsafe_allow_html=True,
+    )
+
+
+@contextmanager
+def work_surface(key: str) -> Iterator[None]:
+    """Egy feladat = egy emelt munkafelület (keyed CSS panel)."""
+    safe = (key or "main").strip().replace(" ", "_")
+    with st.container(key=f"tx_work_surface_{safe}"):
+        yield
+
+
+@contextmanager
+def action_row(key: str) -> Iterator[None]:
+    """Elsődleges / másodlagos gombok a munkafelület alján."""
+    safe = (key or "actions").strip().replace(" ", "_")
+    with st.container(key=f"tx_action_row_{safe}"):
+        yield
+
+
+@contextmanager
+def mi_helper_zone(
+    key: str,
+    *,
+    title: str = "MI-segéd",
+    body: str = "",
+) -> Iterator[None]:
+    """Halk MI/helper zóna: rövid cím + leírás, alatta műveletek."""
+    safe = (key or "mi").strip().replace(" ", "_")
+    ttl = escape((title or "").strip())
+    txt = escape((body or "").strip())
+    with st.container(key=f"tx_mi_helper_{safe}"):
+        if ttl:
+            st.markdown(f'<div class="tx-mi-title">{ttl}</div>', unsafe_allow_html=True)
+        if txt:
+            st.markdown(f'<div class="tx-mi-body">{txt}</div>', unsafe_allow_html=True)
+        yield
+
+
 def render_status_badge(label: str, tone: str = "neutral") -> None:
     """Rövid státuszbadge (neutral/success/warning/danger/info)."""
     safe_label = escape((label or "").strip())
@@ -61,7 +130,7 @@ def render_info_panel(
     body: str = "",
     tone: str = "info",
 ) -> None:
-    """Egységes info/warn/success/error panel cím+törzs formában."""
+    """Egységes helper/státusz sáv: bal hangsúlycsík, rövid cím + max 2–3 sor."""
     safe_tone = tone if tone in {"info", "success", "warning", "danger", "neutral"} else "info"
     ttl = escape((title or "").strip())
     txt = escape((body or "").strip())
@@ -71,7 +140,7 @@ def render_info_panel(
     body_html = f'<div class="tx-panel-body">{txt}</div>' if txt else ""
     st.markdown(
         (
-            f'<section class="tx-panel tx-panel-{safe_tone}">'
+            f'<section class="tx-panel tx-helper tx-panel-{safe_tone} tx-helper-{safe_tone}">'
             f"{ttl_html}"
             f"{body_html}"
             "</section>"
@@ -109,3 +178,15 @@ def render_empty_state(
     """Rövid, emberi üres állapot."""
     render_info_panel(title=title, body=body, tone="neutral")
 
+
+__all__ = [
+    "action_row",
+    "mi_helper_zone",
+    "render_context_summary",
+    "render_empty_state",
+    "render_info_panel",
+    "render_page_intro",
+    "render_status_badge",
+    "render_work_section",
+    "work_surface",
+]

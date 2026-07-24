@@ -26,6 +26,12 @@ from textus_workshop_data import (
     save_main_idea_suggestions,
     update_text_main_idea,
 )
+from ui_components import (
+    action_row,
+    mi_helper_zone,
+    render_work_section,
+    work_surface,
+)
 
 GenerateFn = Callable[..., str]
 
@@ -450,73 +456,79 @@ def render_text_main_idea_section(
     _apply_tw_ui_resync_if_needed()
     ensure_text_workshop_state(st.session_state)
 
-    st.header("A textus fő gondolata")
-    st.markdown(
-        "Fogalmazd meg egyetlen világos mondatban, mit állít ez az "
-        "igeszakasz. Ne még a prédikáció témáját, hanem magának a "
-        "textusnak a központi állítását keresd."
+    render_work_section(
+        title="A textus fő gondolata",
+        body=(
+            "Fogalmazd meg egyetlen világos mondatban, mit állít ez az "
+            "igeszakasz. Ne még a prédikáció témáját, hanem magának a "
+            "textusnak a központi állítását keresd."
+        ),
+        context="Textusműhely",
     )
 
-    st.text_area(
-        "A textus fő gondolata",
-        key=_KEY_IDEA_INPUT,
-        height=120,
-        label_visibility="collapsed",
-        placeholder="Egyetlen, világos mondat…",
-    )
+    with work_surface("tw_main_idea"):
+        st.text_area(
+            "A textus fő gondolata",
+            key=_KEY_IDEA_INPUT,
+            height=120,
+            label_visibility="collapsed",
+            placeholder="Egyetlen, világos mondat…",
+        )
 
-    b1, b2 = st.columns(2)
-    with b1:
-        if st.button("Mentés vázlatként", key="tw_main_idea_save_draft_btn"):
-            _save_main_idea_as_draft()
-    with b2:
-        if st.button(
-            "Jóváhagyom és átadom",
-            type="primary",
-            key="tw_main_idea_approve_forward_btn",
-        ):
-            _approve_main_idea_and_forward()
+        with action_row("tw_main_idea"):
+            b1, b2 = st.columns(2)
+            with b1:
+                if st.button("Mentés vázlatként", key="tw_main_idea_save_draft_btn"):
+                    _save_main_idea_as_draft()
+            with b2:
+                if st.button(
+                    "Jóváhagyom és átadom",
+                    type="primary",
+                    key="tw_main_idea_approve_forward_btn",
+                ):
+                    _approve_main_idea_and_forward()
 
-    tw = ensure_text_workshop_state(st.session_state)
-    saved = (tw.get("text_main_idea") or "").strip()
-    saved_status = tw.get("text_main_idea_status") or ""
-    if saved or saved_status:
-        label = _STATUS_LABELS.get(saved_status, saved_status or "—")
-        st.caption(f"Elmentett állapot: **{label}**")
-
-    st.markdown("---")
-    st.caption(
-        "Az MI a már elkészült és jóváhagyott műhelyanyagok alapján "
-        "segít. A végső megfogalmazás és jóváhagyás továbbra is a "
-        "prédikátor döntése."
-    )
+        tw = ensure_text_workshop_state(st.session_state)
+        saved = (tw.get("text_main_idea") or "").strip()
+        saved_status = tw.get("text_main_idea_status") or ""
+        if saved or saved_status:
+            label = _STATUS_LABELS.get(saved_status, saved_status or "—")
+            st.caption(f"Elmentett állapot: **{label}**")
 
     idea_now = (st.session_state.get(_KEY_IDEA_INPUT) or "").strip()
     ai_ready = generate_fn is not None
-    c1, c2 = st.columns(2)
-    with c1:
-        if st.button(
-            "Javaslatok készítése",
-            key="tw_mi_suggest_btn",
-            disabled=not ai_ready,
-        ):
-            if generate_fn is None:
-                st.warning("A javaslatkészítés jelenleg nem érhető el.")
-            else:
-                _run_suggest(generate_fn)
-    with c2:
-        if st.button(
-            "Saját megfogalmazás értékelése",
-            key="tw_mi_assess_btn",
-            disabled=(not ai_ready) or (not idea_now),
-        ):
-            if generate_fn is None:
-                st.warning("Az értékelés jelenleg nem érhető el.")
-            else:
-                _run_assess(generate_fn)
+    with mi_helper_zone(
+        "tw_main_idea",
+        title="MI-segéd",
+        body=(
+            "Az MI a már elkészült és jóváhagyott műhelyanyagok alapján segít. "
+            "A végső megfogalmazás és jóváhagyás továbbra is a prédikátor döntése."
+        ),
+    ):
+        c1, c2 = st.columns(2)
+        with c1:
+            if st.button(
+                "Javaslatok készítése",
+                key="tw_mi_suggest_btn",
+                disabled=not ai_ready,
+            ):
+                if generate_fn is None:
+                    st.warning("A javaslatkészítés jelenleg nem érhető el.")
+                else:
+                    _run_suggest(generate_fn)
+        with c2:
+            if st.button(
+                "Saját megfogalmazás értékelése",
+                key="tw_mi_assess_btn",
+                disabled=(not ai_ready) or (not idea_now),
+            ):
+                if generate_fn is None:
+                    st.warning("Az értékelés jelenleg nem érhető el.")
+                else:
+                    _run_assess(generate_fn)
 
-    if not ai_ready:
-        st.caption("Az MI-segéd nincs bekötve ehhez a nézethez.")
+        if not ai_ready:
+            st.caption("Az MI-segéd nincs bekötve ehhez a nézethez.")
 
     _render_suggestion_results()
     _render_assessment_results()
@@ -638,48 +650,53 @@ def render_approved_insights_section() -> None:
     """Jóváhagyott, továbbvihető felismerések gyűjtése (Gemini nélkül)."""
     ensure_text_workshop_state(st.session_state)
 
-    st.header("Mit viszünk tovább?")
-    st.markdown(
-        "Itt gyűjtheted össze azokat a felismeréseket, amelyekre az "
-        "igehirdetés felépítésekor valóban támaszkodni szeretnél."
+    render_work_section(
+        title="Mit viszünk tovább?",
+        body=(
+            "Itt gyűjtheted össze azokat a felismeréseket, amelyekre az "
+            "igehirdetés felépítésekor valóban támaszkodni szeretnél."
+        ),
+        context="Textusműhely",
     )
 
-    st.subheader("Jóváhagyott felismerések")
-    _render_insight_cards()
+    with work_surface("tw_insights"):
+        st.markdown("**Jóváhagyott felismerések**")
+        _render_insight_cards()
 
-    with st.expander("Új felismerés hozzáadása", expanded=False):
-        with st.form("tw_add_insight_form", clear_on_submit=True):
-            source = st.selectbox("Forrás", options=_INSIGHT_SOURCES)
-            category = st.selectbox("Kategória", options=_INSIGHT_CATEGORIES)
-            content = st.text_area(
-                "Tartalom",
-                placeholder="Fogalmazd meg röviden a továbbvihető felismerést…",
-                height=100,
-            )
-            submitted = st.form_submit_button(
-                "Jóváhagyott felismerés hozzáadása",
-                type="primary",
-            )
+        with st.expander("Új felismerés hozzáadása", expanded=False):
+            with st.form("tw_add_insight_form", clear_on_submit=True):
+                source = st.selectbox("Forrás", options=_INSIGHT_SOURCES)
+                category = st.selectbox("Kategória", options=_INSIGHT_CATEGORIES)
+                content = st.text_area(
+                    "Tartalom",
+                    placeholder="Fogalmazd meg röviden a továbbvihető felismerést…",
+                    height=100,
+                )
+                submitted = st.form_submit_button(
+                    "Jóváhagyott felismerés hozzáadása",
+                    type="primary",
+                )
 
-        if submitted:
-            text = (content or "").strip()
-            if not text:
-                st.warning("Üres felismerést nem lehet hozzáadni.")
-            else:
-                add_approved_insight(st.session_state, source, category, text)
-                st.success("Felismerés hozzáadva.")
+            if submitted:
+                text = (content or "").strip()
+                if not text:
+                    st.warning("Üres felismerést nem lehet hozzáadni.")
+                else:
+                    add_approved_insight(st.session_state, source, category, text)
+                    st.success("Felismerés hozzáadva.")
+                    st.rerun()
+
+        st.caption(
+            "A jóváhagyott felismerésekkel folytathatod a munkát az "
+            "Igehirdetési műhelyben."
+        )
+        with action_row("tw_insights_next"):
+            if st.button(
+                "Tovább az Igehirdetési műhelybe",
+                key="tw_goto_sermon_workshop_btn",
+            ):
+                st.session_state["ui_mode"] = "sermon_workshop"
                 st.rerun()
-
-    st.caption(
-        "A jóváhagyott felismerésekkel folytathatod a munkát az "
-        "Igehirdetési műhelyben."
-    )
-    if st.button(
-        "Tovább az Igehirdetési műhelybe",
-        key="tw_goto_sermon_workshop_btn",
-    ):
-        st.session_state["ui_mode"] = "sermon_workshop"
-        st.rerun()
 
 
 __all__ = [

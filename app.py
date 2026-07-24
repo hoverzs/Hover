@@ -49,7 +49,14 @@ from workshop_nav_ui import (
     render_workspace_switcher,
     textus_completed_sections,
 )
-from ui_components import render_page_intro
+from ui_components import (
+    action_row,
+    mi_helper_zone,
+    render_info_panel,
+    render_page_intro,
+    render_work_section,
+    work_surface,
+)
 from ui_theme import premium_overlay_css, premium_tokens_css
 from auth_config import (
     DEFAULT_CLOUD_APP_URL,
@@ -4056,7 +4063,11 @@ def render_section_tab(
       - `regen_label`: a gomb felirata újrageneráláskor. Ha nincs megadva,
         a `regen_label = "Frissítés — " + action_label` automatikus.
     """
-    st.header(header)
+    render_work_section(
+        title=header,
+        body="Egy feladatra fókuszálva: generálás, finomítás, majd a megtartandó megjegyzés.",
+        context="Textusműhely",
+    )
 
     has_result = bool(st.session_state.get(key))
     running_flag = f"_{key}_running"
@@ -4067,40 +4078,47 @@ def render_section_tab(
     btn_label = _regen if has_result else _primary
     btn_type = "secondary" if has_result else "primary"
 
-    if st.button(
-        btn_label,
-        type=btn_type,
-        key=f"{key}_generate_btn",
-        disabled=is_running,
-    ):
-        st.session_state[running_flag] = True
-        try:
-            generate_section(key)
-        finally:
-            st.session_state[running_flag] = False
-        st.rerun()
+    with work_surface(f"section_{key}"):
+        with action_row(f"section_{key}_gen"):
+            if st.button(
+                btn_label,
+                type=btn_type,
+                key=f"{key}_generate_btn",
+                disabled=is_running,
+            ):
+                st.session_state[running_flag] = True
+                try:
+                    generate_section(key)
+                finally:
+                    st.session_state[running_flag] = False
+                st.rerun()
 
-    if has_result:
-        box_classes = f"result-box {extra_box_class}".strip()
-        st.markdown(f'<div class="{box_classes}">', unsafe_allow_html=True)
-        st.markdown(st.session_state[key])
-        st.markdown('</div>', unsafe_allow_html=True)
-    else:
-        st.info(empty_msg or "Még nincs tartalom — kattints a generálás gombra.")
+        if has_result:
+            box_classes = f"result-box {extra_box_class}".strip()
+            st.markdown(f'<div class="{box_classes}">', unsafe_allow_html=True)
+            st.markdown(st.session_state[key])
+            st.markdown('</div>', unsafe_allow_html=True)
+        else:
+            render_info_panel(
+                title="Még nincs tartalom",
+                body=empty_msg or "Kattints a generálás gombra.",
+                tone="neutral",
+            )
 
-    refinement_chat(chat_title or header, key, f"{key}_chat")
+        refinement_chat(chat_title or header, key, f"{key}_chat")
 
-    note_key = f"{key}_note"
-    add_btn_key = f"{key}_add"
-    _maybe_clear_note(note_key)
-    note = st.text_area("Mit szeretnél ebből megtartani a vázlathoz?", key=note_key)
+        note_key = f"{key}_note"
+        add_btn_key = f"{key}_add"
+        _maybe_clear_note(note_key)
+        note = st.text_area("Mit szeretnél ebből megtartani a vázlathoz?", key=note_key)
 
-    if st.button("Hozzáadás a vázlatkosárhoz", key=add_btn_key):
-        if note.strip():
-            st.session_state["basket"].append((basket_label, note.strip()))
-            _request_clear_note(note_key)
-            st.success("Hozzáadva.")
-            st.rerun()
+        with action_row(f"section_{key}_basket"):
+            if st.button("Hozzáadás a vázlatkosárhoz", key=add_btn_key):
+                if note.strip():
+                    st.session_state["basket"].append((basket_label, note.strip()))
+                    _request_clear_note(note_key)
+                    st.success("Hozzáadva.")
+                    st.rerun()
 
 
 # =========================================================
@@ -6505,193 +6523,212 @@ def render_igehely_panel() -> None:
     apply_bible_text_resync_if_needed(st.session_state)
     # Widget létrehozása előtt: igehely-keresésből érkező kiválasztás
     apply_pending_passage_search_before_widget()
-    st.header("Igeszakasz megadása")
-
-    st.text_input(
-        "Melyik igeszakaszt elemezzük?",
-        placeholder="Pl. Jn 3,16–21",
-        key="igehely_input",
+    render_work_section(
+        title="Igeszakasz megadása",
+        body="Add meg a textust, az alkalmat és a szempontokat — innen indul a műhelymunka.",
+        context="Textusműhely",
     )
 
-    _ps_owner = _owner_sub()
-    _ps_fetch = None
-    if _ps_owner:
-        from project_storage import get_user_projects as _ps_get_user_projects
-
-        _ps_fetch = _ps_get_user_projects
-    render_passage_search_expander(
-        generate_fn=generate_text,
-        owner_sub=_ps_owner,
-        fetch_projects_fn=_ps_fetch,
-    )
-
-    render_bible_text_editor()
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-        st.selectbox(
-            "Felhasználási cél",
-            [
-                "vasárnapi gyülekezeti igehirdetés",
-                "ifjúsági alkalom",
-                "bibliaóra",
-                "temetés",
-                "esküvő",
-                "konferencia",
-                "pasztorális beszélgetés",
-            ],
-            key="alkalom_input",
+    with work_surface("igehely_ref"):
+        st.text_input(
+            "Melyik igeszakaszt elemezzük?",
+            placeholder="Pl. Jn 3,16–21",
+            key="igehely_input",
         )
 
-    with col2:
-        st.selectbox(
-            "Homiletikai stílus",
-            [
-                "klasszikus református",
-                "narratív",
-                "tanító jellegű",
-                "pasztorális",
-                "ifjúsági",
-                "storytelling",
-                "induktív",
-            ],
-            key="stilus_input",
+        _ps_owner = _owner_sub()
+        _ps_fetch = None
+        if _ps_owner:
+            from project_storage import get_user_projects as _ps_get_user_projects
+
+            _ps_fetch = _ps_get_user_projects
+        render_passage_search_expander(
+            generate_fn=generate_text,
+            owner_sub=_ps_owner,
+            fetch_projects_fn=_ps_fetch,
         )
 
-    st.text_area(
-        "Saját szempont vagy kérdés",
-        placeholder="Pl. szeretném hangsúlyozni a kegyelem, hit vagy reménység témáját...",
-        key="sajat_input",
-    )
+        render_bible_text_editor()
 
-    if st.session_state.get("verse_history"):
-        with st.expander("Korábbi igehelyek (utolsó 5)", expanded=False):
-            for v_idx, v in enumerate(st.session_state["verse_history"][:5]):
-                if st.button(f"📜 {v}", key=f"verse_hist_{v_idx}", use_container_width=True):
-                    st.session_state["igehely_input"] = v
-                    st.rerun()
+    with work_surface("igehely_context"):
+        col1, col2 = st.columns(2)
 
-    st.info(
-        "**Tabonkénti generálás:** Itt csak az **Áttekintést** kéred le. "
-        "A többi szekciót (Eredeti szöveg tanulmányozása, Exegézis, Kortörténet, Teológia, "
-        "Illusztrációk, Aktualizálás, Vázlat, Énekajánló) az adott fülön, "
-        "külön gombbal indíthatod — így pontosan azt generálod, amire szükséged van. "
-        f"\n\n*Két API-hívás között legalább {GEMINI_COOLDOWN_S} másodperc vár; "
-        "a válaszok tömör, strukturált, de a fontos információkat nem kihagyó prompttal készülnek.*"
-    )
+        with col1:
+            st.selectbox(
+                "Felhasználási cél",
+                [
+                    "vasárnapi gyülekezeti igehirdetés",
+                    "ifjúsági alkalom",
+                    "bibliaóra",
+                    "temetés",
+                    "esküvő",
+                    "konferencia",
+                    "pasztorális beszélgetés",
+                ],
+                key="alkalom_input",
+            )
 
-    overview_disabled = bool(st.session_state.get("_overview_running"))
-    if st.button(
-        "Bibliai háttér összegzése",
-        type="primary",
-        key="overview_generate_btn",
-        disabled=overview_disabled,
-    ):
-        st.session_state["_overview_running"] = True
-        try:
-            if generate_section("overview"):
-                st.success("Bibliai háttér elkészült.")
-        finally:
-            st.session_state["_overview_running"] = False
+        with col2:
+            st.selectbox(
+                "Homiletikai stílus",
+                [
+                    "klasszikus református",
+                    "narratív",
+                    "tanító jellegű",
+                    "pasztorális",
+                    "ifjúsági",
+                    "storytelling",
+                    "induktív",
+                ],
+                key="stilus_input",
+            )
 
-    if st.session_state.get("overview"):
-        st.markdown('<div class="result-box">', unsafe_allow_html=True)
-        st.markdown(st.session_state["overview"])
-        st.markdown('</div>', unsafe_allow_html=True)
+        st.text_area(
+            "Saját szempont vagy kérdés",
+            placeholder="Pl. szeretném hangsúlyozni a kegyelem, hit vagy reménység témáját...",
+            key="sajat_input",
+        )
 
-        col_regen_o, _ = st.columns([1, 4])
-        with col_regen_o:
-            if st.button("Bibliai háttér újragenerálása", key="overview_regen"):
-                if generate_section("overview"):
-                    st.rerun()
+        if st.session_state.get("verse_history"):
+            with st.expander("Korábbi igehelyek (utolsó 5)", expanded=False):
+                for v_idx, v in enumerate(st.session_state["verse_history"][:5]):
+                    if st.button(f"📜 {v}", key=f"verse_hist_{v_idx}", use_container_width=True):
+                        st.session_state["igehely_input"] = v
+                        st.rerun()
+
+    with work_surface("igehely_overview"):
+        render_info_panel(
+            title="Tabonkénti generálás",
+            body=(
+                "Itt csak az Áttekintést kéred le. A többi szekciót az adott fülön, "
+                "külön gombbal indíthatod. "
+                f"Két API-hívás között legalább {GEMINI_COOLDOWN_S} másodperc várakozás van."
+            ),
+            tone="info",
+        )
+
+        overview_disabled = bool(st.session_state.get("_overview_running"))
+        with action_row("igehely_overview"):
+            if st.button(
+                "Bibliai háttér összegzése",
+                type="primary",
+                key="overview_generate_btn",
+                disabled=overview_disabled,
+            ):
+                st.session_state["_overview_running"] = True
+                try:
+                    if generate_section("overview"):
+                        st.success("Bibliai háttér elkészült.")
+                finally:
+                    st.session_state["_overview_running"] = False
+
+        if st.session_state.get("overview"):
+            st.markdown('<div class="result-box">', unsafe_allow_html=True)
+            st.markdown(st.session_state["overview"])
+            st.markdown('</div>', unsafe_allow_html=True)
+
+            with action_row("igehely_overview_regen"):
+                if st.button("Bibliai háttér újragenerálása", key="overview_regen"):
+                    if generate_section("overview"):
+                        st.rerun()
 
 
 def render_original_text_panel() -> None:
     """Eredeti héber/görög szöveg tanulmányozása, jegyzet és vázlatkosár."""
-    st.header("Eredeti szöveg tanulmányozása")
-    st.caption("Héber / görög kulcskifejezések, jelentésárnyalatok és prédikációs hozam")
+    render_work_section(
+        title="Eredeti szöveg tanulmányozása",
+        body="Héber / görög kulcskifejezések, jelentésárnyalatok és prédikációs hozam.",
+        context="Textusműhely",
+    )
 
     # Az igeszakaszt az "Igehely" fülről örököljük — ugyanaz a forrás,
     # mint a többi szekciónál (Exegézis, Kortörténet stb.). Itt csak
     # olvasható kijelzést mutatunk; a változtatás az "Igehely" fülön
     # történik, és a `_sync_inputs_to_last()` szinkronizálja minden
     # generálás-gombnyomáskor.
-    _igehely_orig = (
-        (st.session_state.get("igehely_input") or "").strip()
-        or (st.session_state.get("last_igehely") or "").strip()
-    )
-    if _igehely_orig:
-        st.markdown(
-            f"**Igeszakasz** *(az „Igehely” fülről):* `{_igehely_orig}`"
+    with work_surface("original_text"):
+        _igehely_orig = (
+            (st.session_state.get("igehely_input") or "").strip()
+            or (st.session_state.get("last_igehely") or "").strip()
         )
-    else:
-        st.info(
-            "Add meg az igeszakaszt az **Igehely** fülön — innen "
-            "automatikusan átvesszük."
-        )
-
-    _orig_running = bool(st.session_state.get("_original_running"))
-    if st.button(
-        "Eredeti szöveg tanulmányozása",
-        type="primary",
-        key="original_run",
-        disabled=_orig_running,
-    ):
-        _sync_inputs_to_last()
-        _igehely_now = (st.session_state.get("last_igehely") or "").strip()
-        if not _resolve_api_key().strip():
-            st.warning("Először add meg az API kulcsot a Beállítások fülön.")
-        elif not _igehely_now:
-            st.warning("Add meg az igeszakaszt az „Igehely” fülön, mielőtt itt generálsz.")
-        else:
-            st.session_state["_original_running"] = True
-            try:
-                with st.spinner("Eredeti nyelvi elemzés készül..."):
-                    st.session_state["original_text"] = generate_text(
-                        build_original_text_prompt(_igehely_now),
-                        tab_label="Eredeti szöveg tanulmányozása",
-                        use_cache=False,
-                        system_bundle=KEY_EXPRESSIONS_SYSTEM_PROMPT,
-                        include_brevity_directive=False,
-                        truncation_notice_mode="never",
-                        incomplete_response_message=(
-                            "⚠️ **Az eredeti nyelvi elemzés nem érkezett meg teljesen.** "
-                            "Nem jelenítek meg félbeszakadt szöveget. Kérlek, próbáld újra."
-                        ),
-                    )
-            finally:
-                st.session_state["_original_running"] = False
-            st.rerun()
-
-    if st.session_state.get("original_text"):
-        if st.session_state["original_text"].startswith(("⚠️", "⏳")):
-            st.warning(st.session_state["original_text"])
-        else:
+        if _igehely_orig:
             st.markdown(
-                '<div class="result-box original-text-result">',
-                unsafe_allow_html=True
+                f"**Igeszakasz** *(az „Igehely” fülről):* `{_igehely_orig}`"
             )
-            st.markdown(st.session_state["original_text"])
-            st.markdown('</div>', unsafe_allow_html=True)
+        else:
+            render_info_panel(
+                title="Igeszakasz hiányzik",
+                body="Add meg az igeszakaszt az Igehely fülön — innen automatikusan átvesszük.",
+                tone="info",
+            )
 
-    else:
-        st.info("Még nincs eredeti nyelvi elemzés.")
+        _orig_running = bool(st.session_state.get("_original_running"))
+        with action_row("original_run"):
+            if st.button(
+                "Eredeti szöveg tanulmányozása",
+                type="primary",
+                key="original_run",
+                disabled=_orig_running,
+            ):
+                _sync_inputs_to_last()
+                _igehely_now = (st.session_state.get("last_igehely") or "").strip()
+                if not _resolve_api_key().strip():
+                    st.warning("Először add meg az API kulcsot a Beállítások fülön.")
+                elif not _igehely_now:
+                    st.warning("Add meg az igeszakaszt az „Igehely” fülön, mielőtt itt generálsz.")
+                else:
+                    st.session_state["_original_running"] = True
+                    try:
+                        with st.spinner("Eredeti nyelvi elemzés készül..."):
+                            st.session_state["original_text"] = generate_text(
+                                build_original_text_prompt(_igehely_now),
+                                tab_label="Eredeti szöveg tanulmányozása",
+                                use_cache=False,
+                                system_bundle=KEY_EXPRESSIONS_SYSTEM_PROMPT,
+                                include_brevity_directive=False,
+                                truncation_notice_mode="never",
+                                incomplete_response_message=(
+                                    "⚠️ **Az eredeti nyelvi elemzés nem érkezett meg teljesen.** "
+                                    "Nem jelenítek meg félbeszakadt szöveget. Kérlek, próbáld újra."
+                                ),
+                            )
+                    finally:
+                        st.session_state["_original_running"] = False
+                    st.rerun()
 
-    refinement_chat("Eredeti szöveg tanulmányozása", "original_text", "original_text_chat")
+        if st.session_state.get("original_text"):
+            if st.session_state["original_text"].startswith(("⚠️", "⏳")):
+                st.warning(st.session_state["original_text"])
+            else:
+                st.markdown(
+                    '<div class="result-box original-text-result">',
+                    unsafe_allow_html=True
+                )
+                st.markdown(st.session_state["original_text"])
+                st.markdown('</div>', unsafe_allow_html=True)
 
-    _maybe_clear_note("original_note")
-    note = st.text_area(
-        "Mit szeretnél ebből megtartani a vázlathoz?",
-        key="original_note"
-    )
+        else:
+            render_info_panel(
+                title="Még nincs eredeti nyelvi elemzés",
+                body="A fenti gombbal indíthatod az első futtatást.",
+                tone="neutral",
+            )
 
-    if st.button("Hozzáadás a vázlatkosárhoz", key="original_add"):
-        if note.strip():
-            st.session_state["basket"].append(("Eredeti szöveg tanulmányozása", note.strip()))
-            _request_clear_note("original_note")
-            st.success("Hozzáadva.")
-            st.rerun()
+        refinement_chat("Eredeti szöveg tanulmányozása", "original_text", "original_text_chat")
+
+        _maybe_clear_note("original_note")
+        note = st.text_area(
+            "Mit szeretnél ebből megtartani a vázlathoz?",
+            key="original_note"
+        )
+
+        with action_row("original_basket"):
+            if st.button("Hozzáadás a vázlatkosárhoz", key="original_add"):
+                if note.strip():
+                    st.session_state["basket"].append(("Eredeti szöveg tanulmányozása", note.strip()))
+                    _request_clear_note("original_note")
+                    st.success("Hozzáadva.")
+                    st.rerun()
 
 
 def render_textus_workshop_shell() -> None:

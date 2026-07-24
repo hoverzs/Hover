@@ -12,11 +12,15 @@ from typing import Any, Callable
 
 import streamlit as st
 from ui_components import (
+    action_row,
+    mi_helper_zone,
     render_context_summary,
     render_empty_state,
     render_info_panel,
     render_page_intro,
     render_status_badge,
+    render_work_section,
+    work_surface,
 )
 
 from bible_text_ui import (
@@ -3246,14 +3250,14 @@ def render_outline_section(
     _apply_sw_ui_resync_if_needed()
     ensure_sermon_workshop_state(st.session_state)
 
-    render_page_intro(
-        eyebrow="Műhelyszakasz",
+    render_work_section(
         title="Igehirdetési vázlat",
         body=(
             "Nem szükséges minden műhelyszakaszt kitölteni. Az alkalmazás az "
             "aktuálisan rendelkezésre álló anyagból állít össze használható "
             "munkavázlatot."
         ),
+        context="Igehirdetési műhely",
     )
 
     sw = ensure_sermon_workshop_state(st.session_state)
@@ -3285,122 +3289,125 @@ def render_outline_section(
         if has_outline
         else "Vázlat összeállítása a meglévő anyagból"
     )
-    if st.button(primary_label, type="primary", key="sw_outline_assemble"):
-        if has_outline and manually_edited and not need_confirm:
-            st.session_state[_CONFIRM_OUTLINE_OVERWRITE] = True
-            st.warning(
-                "A vázlat kézzel szerkesztve van. "
-                "A frissítés felülírja a kézi módosításokat — "
-                "kattints újra a megerősítéshez."
-            )
-        else:
-            _assemble_and_save_outline(
-                generate_fn=generate_fn,
-                force_overwrite=bool(has_outline),
-            )
-
-    # Állapot + frissítési idő — csak valódi tartalom mellett „Elkészült”.
-    if has_outline:
-        if status == "approved":
-            st.success("Vázlat állapota: jóváhagyott")
-        else:
-            st.info("Vázlat állapota: vázlat (draft)")
-        generated = str(
-            sw.get("sermon_outline_updated_at") or outline.get("updated_at") or ""
-        )
-        if generated:
-            st.caption(f"Utolsó frissítés: {generated}")
-
-        st.markdown("### Vázlat előnézete")
-        render_compact_sermon_outline(outline)
-        with st.expander("Szószéki nézet", expanded=False):
-            st.caption(
-                "Nagyobb betűméret, tiszta háttér — ugyanaz a kanonikus vázlattartalom."
-            )
-            render_pulpit_outline_view(outline)
-        _render_outline_partial_regen(outline, generate_fn=generate_fn)
-
-        # Alsó műveleti terület: jóváhagyás + szerkesztés + következő lépés
-        st.markdown("---")
-        actions = st.container()
-        with actions:
-            b_ap, b_dr = st.columns(2)
-            with b_ap:
-                if status != "approved" and st.button(
-                    "Vázlat jóváhagyása", key="sw_outline_approve"
-                ):
-                    before = normalize_sermon_outline(
-                        ensure_sermon_workshop_state(st.session_state).get(
-                            "sermon_outline"
-                        )
+    with work_surface("sw_outline"):
+        with action_row("sw_outline_assemble"):
+            if st.button(primary_label, type="primary", key="sw_outline_assemble"):
+                if has_outline and manually_edited and not need_confirm:
+                    st.session_state[_CONFIRM_OUTLINE_OVERWRITE] = True
+                    st.warning(
+                        "A vázlat kézzel szerkesztve van. "
+                        "A frissítés felülírja a kézi módosításokat — "
+                        "kattints újra a megerősítéshez."
                     )
-                    if not outline_has_content(before):
-                        st.warning(
-                            "Üres vagy csak whitespace-t tartalmazó vázlat "
-                            "nem hagyható jóvá."
-                        )
-                    else:
-                        _persist_outline_from_widgets(mark_manual_edit=None)
-                        after = normalize_sermon_outline(
+                else:
+                    _assemble_and_save_outline(
+                        generate_fn=generate_fn,
+                        force_overwrite=bool(has_outline),
+                    )
+
+        # Állapot + frissítési idő — csak valódi tartalom mellett „Elkészült”.
+        if has_outline:
+            if status == "approved":
+                st.success("Vázlat állapota: jóváhagyott")
+            else:
+                render_info_panel(
+                    title="Vázlat állapota: vázlat (draft)",
+                    tone="info",
+                )
+            generated = str(
+                sw.get("sermon_outline_updated_at") or outline.get("updated_at") or ""
+            )
+            if generated:
+                st.caption(f"Utolsó frissítés: {generated}")
+
+            st.markdown("### Vázlat előnézete")
+            render_compact_sermon_outline(outline)
+            with st.expander("Szószéki nézet", expanded=False):
+                st.caption(
+                    "Nagyobb betűméret, tiszta háttér — ugyanaz a kanonikus vázlattartalom."
+                )
+                render_pulpit_outline_view(outline)
+            _render_outline_partial_regen(outline, generate_fn=generate_fn)
+
+            # Alsó műveleti terület: jóváhagyás + szerkesztés + következő lépés
+            with action_row("sw_outline_approve"):
+                b_ap, b_dr = st.columns(2)
+                with b_ap:
+                    if status != "approved" and st.button(
+                        "Vázlat jóváhagyása", key="sw_outline_approve"
+                    ):
+                        before = normalize_sermon_outline(
                             ensure_sermon_workshop_state(st.session_state).get(
                                 "sermon_outline"
                             )
                         )
-                        if not outline_has_content(after):
-                            save_sermon_outline(
-                                st.session_state,
-                                before,
-                                stamp_generated_at=False,
-                                mark_manual_edit=False,
-                            )
+                        if not outline_has_content(before):
                             st.warning(
-                                "A vázlat jóváhagyása megszakadt: "
-                                "a tartalom nem veszhet el."
+                                "Üres vagy csak whitespace-t tartalmazó vázlat "
+                                "nem hagyható jóvá."
                             )
                         else:
-                            update_sermon_workshop_section(
-                                st.session_state,
-                                "sermon_outline_status",
-                                "approved",
+                            _persist_outline_from_widgets(mark_manual_edit=None)
+                            after = normalize_sermon_outline(
+                                ensure_sermon_workshop_state(st.session_state).get(
+                                    "sermon_outline"
+                                )
                             )
-                            st.session_state[_RESYNC_FLAG] = True
-                            st.success("Vázlat jóváhagyva.")
-                            st.rerun()
-            with b_dr:
-                if status == "approved" and st.button(
-                    "Jóváhagyás visszavonása", key="sw_outline_unapprove"
-                ):
-                    update_sermon_workshop_section(
-                        st.session_state, "sermon_outline_status", "draft"
-                    )
-                    st.rerun()
+                            if not outline_has_content(after):
+                                save_sermon_outline(
+                                    st.session_state,
+                                    before,
+                                    stamp_generated_at=False,
+                                    mark_manual_edit=False,
+                                )
+                                st.warning(
+                                    "A vázlat jóváhagyása megszakadt: "
+                                    "a tartalom nem veszhet el."
+                                )
+                            else:
+                                update_sermon_workshop_section(
+                                    st.session_state,
+                                    "sermon_outline_status",
+                                    "approved",
+                                )
+                                st.session_state[_RESYNC_FLAG] = True
+                                st.success("Vázlat jóváhagyva.")
+                                st.rerun()
+                with b_dr:
+                    if status == "approved" and st.button(
+                        "Jóváhagyás visszavonása", key="sw_outline_unapprove"
+                    ):
+                        update_sermon_workshop_section(
+                            st.session_state, "sermon_outline_status", "draft"
+                        )
+                        st.rerun()
 
-            _render_outline_edit_expander(outline)
-    else:
-        st.caption("Még nincs olvasható vázlattartalom.")
-        if outline.get("needs_rebuild"):
-            st.warning("A vázlatot újra össze kell állítani.")
-        # Jegyzetek szerkeszthetők üres állapotban is, de nem helyettesítik a vázlatot.
-        with st.expander("Saját megjegyzéseim", expanded=False):
-            st.text_area(
-                "Saját megjegyzéseim",
-                key=_KEY_OUTLINE["manual_notes"],
-                height=80,
-                label_visibility="collapsed",
-                placeholder="Szószéki emlékeztetők… (ez nem a vázlat)",
-            )
-            if st.button("Megjegyzések mentése", key="sw_outline_save_notes_only"):
-                notes = str(st.session_state.get(_KEY_OUTLINE["manual_notes"]) or "")
-                current = normalize_sermon_outline(sw.get("sermon_outline"))
-                current["manual_notes"] = notes.strip()
-                save_sermon_outline(
-                    st.session_state,
-                    current,
-                    stamp_generated_at=False,
-                    mark_manual_edit=False,
+                _render_outline_edit_expander(outline)
+        else:
+            st.caption("Még nincs olvasható vázlattartalom.")
+            if outline.get("needs_rebuild"):
+                st.warning("A vázlatot újra össze kell állítani.")
+            # Jegyzetek szerkeszthetők üres állapotban is, de nem helyettesítik a vázlatot.
+            with st.expander("Saját megjegyzéseim", expanded=False):
+                st.text_area(
+                    "Saját megjegyzéseim",
+                    key=_KEY_OUTLINE["manual_notes"],
+                    height=80,
+                    label_visibility="collapsed",
+                    placeholder="Szószéki emlékeztetők… (ez nem a vázlat)",
                 )
-                st.success("Megjegyzések elmentve.")
-                st.rerun()
+                if st.button("Megjegyzések mentése", key="sw_outline_save_notes_only"):
+                    notes = str(st.session_state.get(_KEY_OUTLINE["manual_notes"]) or "")
+                    current = normalize_sermon_outline(sw.get("sermon_outline"))
+                    current["manual_notes"] = notes.strip()
+                    save_sermon_outline(
+                        st.session_state,
+                        current,
+                        stamp_generated_at=False,
+                        mark_manual_edit=False,
+                    )
+                    st.success("Megjegyzések elmentve.")
+                    st.rerun()
 
 
 # A homiletikai profil 8 tengelye (a prompt szerinti nevekkel), meglévő
@@ -3822,14 +3829,14 @@ def render_diagnostics_section(
         sw0.setdefault("sermon_outline_diagnostics_status", "idle")
         sw0.setdefault("sermon_outline_diagnostics_error", "")
 
-    render_page_intro(
-        eyebrow="Műhelyszakasz",
+    render_work_section(
         title="Homiletikai diagnózis",
         body=(
             "Rövid, szöveges tükrözés az összeállított igehirdetési vázlatról — "
             "pontszám és automatikus átírás nélkül. A diagnosztika a tényleges "
             "vázlatot értékeli, nem a kitöltött műhelymodulok számát."
         ),
+        context="Igehirdetési műhely",
     )
 
     outline = _resolve_canonical_outline_for_diagnostics()
@@ -3838,45 +3845,48 @@ def render_diagnostics_section(
         from sermon_workshop_outline_ai import assess_outline_readiness
 
         readiness = assess_outline_readiness(st.session_state)
-        render_empty_state(
-            title="Előbb készíts igehirdetési vázlatot.",
-            body=(
-                "A diagnosztika csak olvasható vázlattartalom mellett fut. "
-                "Nem kell minden műhelyszakaszt kitölteni, és a fő gondolat "
-                "külön jóváhagyása sem előfeltétel."
-            ),
-        )
-        c1, c2 = st.columns(2)
-        with c1:
-            if st.button(
-                "Ugrás a vázlathoz",
-                type="primary",
-                key="sw_diag_jump_outline",
-                use_container_width=True,
-            ):
-                st.session_state[_KEY_ACTIVE_SECTION] = "Igehirdetési vázlat"
-                st.rerun()
-        with c2:
-            if readiness.ok and st.button(
-                "Vázlat összeállítása",
-                key="sw_diag_assemble_only",
-                use_container_width=True,
-            ):
-                _assemble_and_save_outline(
-                    generate_fn=generate_fn, force_overwrite=False
-                )
-                st.rerun()
-        if readiness.ok:
-            if st.button(
-                "Vázlat összeállítása és elemzése",
-                key="sw_diag_assemble_and_run",
-            ):
-                _assemble_and_diagnose(generate_fn=generate_fn)
-                st.rerun()
+        with work_surface("sw_diag_empty"):
+            render_empty_state(
+                title="Előbb készíts igehirdetési vázlatot.",
+                body=(
+                    "A diagnosztika csak olvasható vázlattartalom mellett fut. "
+                    "Nem kell minden műhelyszakaszt kitölteni, és a fő gondolat "
+                    "külön jóváhagyása sem előfeltétel."
+                ),
+            )
+            with action_row("sw_diag_empty"):
+                c1, c2 = st.columns(2)
+                with c1:
+                    if st.button(
+                        "Ugrás a vázlathoz",
+                        type="primary",
+                        key="sw_diag_jump_outline",
+                        use_container_width=True,
+                    ):
+                        st.session_state[_KEY_ACTIVE_SECTION] = "Igehirdetési vázlat"
+                        st.rerun()
+                with c2:
+                    if readiness.ok and st.button(
+                        "Vázlat összeállítása",
+                        key="sw_diag_assemble_only",
+                        use_container_width=True,
+                    ):
+                        _assemble_and_save_outline(
+                            generate_fn=generate_fn, force_overwrite=False
+                        )
+                        st.rerun()
+            if readiness.ok:
+                if st.button(
+                    "Vázlat összeállítása és elemzése",
+                    key="sw_diag_assemble_and_run",
+                ):
+                    _assemble_and_diagnose(generate_fn=generate_fn)
+                    st.rerun()
         return
 
-    _render_diag_header(generate_fn=generate_fn)
-    _render_diagnostics_results()
+    with work_surface("sw_diag"):
+        _render_diag_header(generate_fn=generate_fn)
+        _render_diagnostics_results()
 
 
 def _render_diag_header(*, generate_fn: GenerateFn | None) -> None:
@@ -8293,11 +8303,14 @@ def render_sermon_main_idea_section(
     ensure_sermon_workshop_state(st.session_state)
     tw = ensure_text_workshop_state(st.session_state)
 
-    st.subheader("Az igehirdetés fő gondolata")
-    st.markdown(
-        "Fogalmazd meg egyetlen világos mondatban, mit szeretnél, hogy a "
-        "hallgató a textus alapján felismerjen. Ez még nem cím és nem "
-        "vázlat, hanem az egész igehirdetést összetartó állítás."
+    render_work_section(
+        title="Az igehirdetés fő gondolata",
+        body=(
+            "Fogalmazd meg egyetlen világos mondatban, mit szeretnél, hogy a "
+            "hallgató a textus alapján felismerjen. Ez még nem cím és nem "
+            "vázlat, hanem az egész igehirdetést összetartó állítás."
+        ),
+        context="Igehirdetési műhely",
     )
 
     passage = _session_str("last_igehely", "igehely_input") or "—"
@@ -8306,117 +8319,130 @@ def render_sermon_main_idea_section(
     insights = tw.get("approved_insights") or []
     insight_count = len(insights) if isinstance(insights, list) else 0
 
-    st.markdown(
-        f"**Igehely:** {passage}  \n"
-        f"**A textus fő gondolata:** {text_idea or '—'}  \n"
-        f"**Jóváhagyott felismerések:** {insight_count}"
+    render_context_summary(
+        [
+            ("Igehely", passage),
+            ("A textus fő gondolata", text_idea or "—"),
+            ("Jóváhagyott felismerések", str(insight_count)),
+        ]
     )
-    if text_status != "approved" or not text_idea:
-        st.info(
-            "A textus fő gondolata még nincs jóváhagyva. A szakasz használható, "
-            "de a homiletikai munka biztosabb alapokon áll, ha előbb a "
-            "Textusműhelyben jóváhagyod."
+
+    with work_surface("sw_sermon_idea"):
+        # Egyetlen figyelmeztetés — a döntési mező közelében.
+        if text_status != "approved" or not text_idea:
+            render_info_panel(
+                title="A textus fő gondolata még nincs jóváhagyva",
+                body=(
+                    "A szakasz használható, de a homiletikai munka biztosabb "
+                    "alapokon áll, ha előbb a Textusműhelyben jóváhagyod."
+                ),
+                tone="info",
+            )
+
+        st.text_area(
+            "Az igehirdetés fő gondolata",
+            key=_KEY_SERMON_IDEA,
+            height=120,
+            label_visibility="collapsed",
+            placeholder="Egyetlen, hallható állítás…",
         )
 
-    st.text_area(
-        "Az igehirdetés fő gondolata",
-        key=_KEY_SERMON_IDEA,
-        height=120,
-        label_visibility="collapsed",
-        placeholder="Egyetlen, hallható állítás…",
-    )
-
-    b1, b2 = st.columns(2)
-    with b1:
-        if st.button("Mentés vázlatként", key="sw_sermon_idea_save_draft"):
-            content = (st.session_state.get(_KEY_SERMON_IDEA) or "").strip()
-            if not content:
-                st.warning("Üres fő gondolatot nem lehet menteni. Írj egy mondatot.")
-            else:
-                update_sermon_workshop_section(
-                    st.session_state,
-                    "sermon_main_idea",
-                    {
-                        "sermon_main_idea": content,
-                        "sermon_main_idea_status": "draft",
-                    },
-                )
-                st.success("Vázlatként elmentve.")
-    with b2:
-        if st.button(
-            "Jóváhagyom és átadom",
-            type="primary",
-            key="sw_sermon_idea_approve",
-        ):
-            content = (st.session_state.get(_KEY_SERMON_IDEA) or "").strip()
-            if not content:
-                st.warning(
-                    "Üres fő gondolatot nem lehet jóváhagyni. Írj egy mondatot."
-                )
-            else:
-                update_sermon_workshop_section(
-                    st.session_state,
-                    "sermon_main_idea",
-                    {
-                        "sermon_main_idea": content,
-                        "sermon_main_idea_status": "approved",
-                    },
-                )
-                if _decision_is_duplicate(
-                    source_section=_SOURCE_SERMON_MAIN,
-                    category=_CAT_MAIN_IDEA,
-                    content=content,
+        with action_row("sw_sermon_idea"):
+            b1, b2 = st.columns(2)
+            with b1:
+                if st.button("Mentés vázlatként", key="sw_sermon_idea_save_draft"):
+                    content = (st.session_state.get(_KEY_SERMON_IDEA) or "").strip()
+                    if not content:
+                        st.warning("Üres fő gondolatot nem lehet menteni. Írj egy mondatot.")
+                    else:
+                        update_sermon_workshop_section(
+                            st.session_state,
+                            "sermon_main_idea",
+                            {
+                                "sermon_main_idea": content,
+                                "sermon_main_idea_status": "draft",
+                            },
+                        )
+                        st.success("Vázlatként elmentve.")
+            with b2:
+                if st.button(
+                    "Jóváhagyom és átadom",
+                    type="primary",
+                    key="sw_sermon_idea_approve",
                 ):
-                    st.success(
-                        "Jóváhagyva. Ez a fő gondolat már szerepel a "
-                        "homiletikai döntések között."
-                    )
-                else:
-                    add_approved_sermon_decision(
-                        st.session_state,
-                        _SOURCE_SERMON_MAIN,
-                        _CAT_MAIN_IDEA,
-                        content,
-                    )
-                    st.success("Jóváhagyva és továbbvíve a homiletikai döntésekhez.")
+                    content = (st.session_state.get(_KEY_SERMON_IDEA) or "").strip()
+                    if not content:
+                        st.warning(
+                            "Üres fő gondolatot nem lehet jóváhagyni. Írj egy mondatot."
+                        )
+                    else:
+                        update_sermon_workshop_section(
+                            st.session_state,
+                            "sermon_main_idea",
+                            {
+                                "sermon_main_idea": content,
+                                "sermon_main_idea_status": "approved",
+                            },
+                        )
+                        if _decision_is_duplicate(
+                            source_section=_SOURCE_SERMON_MAIN,
+                            category=_CAT_MAIN_IDEA,
+                            content=content,
+                        ):
+                            st.success(
+                                "Jóváhagyva. Ez a fő gondolat már szerepel a "
+                                "homiletikai döntések között."
+                            )
+                        else:
+                            add_approved_sermon_decision(
+                                st.session_state,
+                                _SOURCE_SERMON_MAIN,
+                                _CAT_MAIN_IDEA,
+                                content,
+                            )
+                            st.success(
+                                "Jóváhagyva és továbbvíve a homiletikai döntésekhez."
+                            )
 
-    sw = ensure_sermon_workshop_state(st.session_state)
-    saved = (sw.get("sermon_main_idea") or "").strip()
-    saved_status = sw.get("sermon_main_idea_status") or ""
-    if saved or saved_status:
-        label = _STATUS_LABELS.get(saved_status, saved_status or "—")
-        st.caption(f"Elmentett állapot: **{label}**")
+        sw = ensure_sermon_workshop_state(st.session_state)
+        saved = (sw.get("sermon_main_idea") or "").strip()
+        saved_status = sw.get("sermon_main_idea_status") or ""
+        if saved or saved_status:
+            label = _STATUS_LABELS.get(saved_status, saved_status or "—")
+            st.caption(f"Elmentett állapot: **{label}**")
 
-    st.markdown("---")
-    st.markdown("**MI-segéd**")
-    st.caption(
-        "Az MI a jóváhagyott textusműhelyi eredményekből segít "
-        "megfogalmazni és megvizsgálni az igehirdetés fő gondolatát. "
-        "A végső döntés továbbra is a prédikátoré."
-    )
     ai_ready = generate_fn is not None
     idea_draft = (st.session_state.get(_KEY_SERMON_IDEA) or "").strip()
-    a1, a2 = st.columns(2)
-    with a1:
-        if st.button(
-            "Javaslatok készítése",
-            key="sw_mi_sermon_suggest",
-            disabled=not ai_ready,
-        ):
-            if generate_fn is None:
-                st.warning("Az MI-segéd jelenleg nem elérhető.")
-            else:
-                _run_sermon_suggest(generate_fn)
-    with a2:
-        if st.button(
-            "Saját megfogalmazás értékelése",
-            key="sw_mi_sermon_assess",
-            disabled=not ai_ready or not idea_draft,
-        ):
-            if generate_fn is None:
-                st.warning("Az MI-segéd jelenleg nem elérhető.")
-            else:
-                _run_sermon_assess(generate_fn)
+    with mi_helper_zone(
+        "sw_sermon_idea",
+        title="MI-segéd",
+        body=(
+            "Az MI a jóváhagyott textusműhelyi eredményekből segít "
+            "megfogalmazni és megvizsgálni az igehirdetés fő gondolatát. "
+            "A végső döntés továbbra is a prédikátoré."
+        ),
+    ):
+        a1, a2 = st.columns(2)
+        with a1:
+            if st.button(
+                "Javaslatok készítése",
+                key="sw_mi_sermon_suggest",
+                disabled=not ai_ready,
+            ):
+                if generate_fn is None:
+                    st.warning("Az MI-segéd jelenleg nem elérhető.")
+                else:
+                    _run_sermon_suggest(generate_fn)
+        with a2:
+            if st.button(
+                "Saját megfogalmazás értékelése",
+                key="sw_mi_sermon_assess",
+                disabled=not ai_ready or not idea_draft,
+            ):
+                if generate_fn is None:
+                    st.warning("Az MI-segéd jelenleg nem elérhető.")
+                else:
+                    _run_sermon_assess(generate_fn)
 
     _render_sermon_suggestion_results()
     _render_sermon_assessment_results()
@@ -10373,19 +10399,7 @@ def render_sermon_workshop_shell(
 
     st.markdown('<div class="tx-workcard-anchor" aria-hidden="true"></div>', unsafe_allow_html=True)
     with st.container(border=True):
-        # Egyetlen, releváns figyelmeztetés a kapcsolódó munkarész fölött.
-        if not _sermon_main_idea_approved():
-            render_info_panel(
-                title="A textus fő gondolata még nincs jóváhagyva",
-                body=(
-                    "A műhely most is használható; a homiletikai munka biztosabb "
-                    "alapokon áll, ha előbb jóváhagyod a fő gondolatot a "
-                    "Textusműhelyben."
-                ),
-                tone="info",
-            )
-
-        # A bibliai szöveg a munkakártya szerkezetében, nem külön lebegve.
+        # A bibliai szöveg a munkaterület szerkezetében, nem külön lebegve.
         render_bible_text_preview(expanded=False)
 
         if active == "Az igehirdetés fő gondolata":
