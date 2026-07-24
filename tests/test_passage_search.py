@@ -171,13 +171,86 @@ _SUNDAY = [
     _sug("Jel 3,14-22", title="Kopogtatas a kapun"),
 ]
 
+_WAKE = [
+    _sug(
+        "Zsolt 139,1-12",
+        title="Isten kozelsege a gyaszban",
+        reason=(
+            "Az intim virraszto hangnemehez illik: Isten jelenlete "
+            "korulveszi a csaladot, anelkul hogy a gyaszt kisebbitene."
+        ),
+        direction=(
+            "A csendes bucsu Isten ismeresere es kozelsege re epulhet."
+        ),
+    ),
+    _sug(
+        "Ézs 43,1-3",
+        title="Ne felj, veled vagyok",
+        reason=(
+            "A hosszu elet utan elhunyt asszony emlekezeseben Isten "
+            "szemelyes igerete vigasztal, nem kozhelyes magyarzat."
+        ),
+        direction=(
+            "A csalad hala es a veszteseg egyutt allhat Isten "
+            "husege elott."
+        ),
+    ),
+    _sug(
+        "Jn 11,28-36",
+        title="Jesus egyutt sir",
+        reason=(
+            "A virraszto intim korehez illik: Jesus jelenlete elobb "
+            "egyutt sir, mielott remenysegét adna."
+        ),
+        direction=(
+            "A bucsu ahozzatartozok fajdalmat es Krisztus egyuttérzesét "
+            "egyszerre hallathatja."
+        ),
+    ),
+    _sug(
+        "2Kor 1,3-7",
+        title="A vigasztalo Isten",
+        reason=(
+            "A gyaszolo csalad es a kozosseg vigaszt kap, hogy aztan "
+            "egymasnak is adhasson — csendes, pasztori hangnem."
+        ),
+        direction=(
+            "A virraszto a vigasz fogadasara es megosztasara hivhat."
+        ),
+        familiarity="common",
+    ),
+    _sug(
+        "Fil 1,21-24",
+        title="Elni Krisztus, meghalni nyereseg",
+        reason=(
+            "A hosszu eletu varrono emlekezesenél a hala es a "
+            "feltamadasi remenyseg egyutt jelenhet meg, nem temetesi "
+            "szonoklatkent."
+        ),
+        direction=(
+            "Az ahitát a hálás emlékezetből a Krisztusban való "
+            "élet reménységébe vezethet."
+        ),
+    ),
+]
+
 
 def test_config_editable_and_not_banlist():
     cfg = get_passage_search_config()
     assert "Temetés" in cfg["common_references_by_occasion"]
+    assert "Virrasztó" in cfg["common_references_by_occasion"]
     assert cfg["max_common_in_batch"] == MAX_COMMON_IN_BATCH == 1
     assert any("Zsolt 23" in x for x in common_references_for("Temetés"))
+    assert any("Zsolt 23" in x for x in common_references_for("Virrasztó"))
     assert "Vasárnapi istentisztelet" in OCCASION_OPTIONS
+    assert "Virrasztó" in OCCASION_OPTIONS
+    # Virrasztó közvetlenül Temetés előtt áll a listában.
+    assert OCCASION_OPTIONS.index("Virrasztó") + 1 == OCCASION_OPTIONS.index(
+        "Temetés"
+    )
+    assert cfg["occasion_options"].index("Virrasztó") + 1 == cfg[
+        "occasion_options"
+    ].index("Temetés")
 
 
 def test_funeral_empty_five_valid_varied():
@@ -191,6 +264,53 @@ def test_funeral_empty_five_valid_varied():
         normalize_passage_reference(s.reference)
     common_n = sum(1 for s in parsed.suggestions if s.familiarity == "common")
     assert common_n <= 1
+
+
+def test_virraszto_thankful_elder_seamstress_context():
+    """Virrasztó + hálás emlékezés: 4–5 parseable javaslat, nem üres/hiba."""
+    from passage_search_ai import MIN_ACCEPTABLE_COUNT, PASSAGE_SEARCH_SYSTEM
+
+    context = "84 éves asszony, varrónő, a család hálával emlékezik rá"
+    assert "Virrasztó" in OCCASION_OPTIONS
+    assert OCCASION_OPTIONS.index("Virrasztó") + 1 == OCCASION_OPTIONS.index(
+        "Temetés"
+    )
+    assert "Virrasztó esetén" in PASSAGE_SEARCH_SYSTEM
+
+    seen_prompts: list[str] = []
+
+    def gen(prompt, **kwargs):
+        seen_prompts.append(prompt)
+        assert "Virrasztó" in prompt
+        assert "84" in prompt or "várrón" in prompt.casefold() or context[:12] in prompt
+        return _payload("Virrasztó", _WAKE, context=context)
+
+    result = suggest_passages_for_occasion(
+        occasion="Virrasztó",
+        context=context,
+        generate_fn=gen,
+    )
+    assert result.ok, (result.warnings, result.error_message)
+    assert not result.error_message
+    assert MIN_ACCEPTABLE_COUNT <= len(result.suggestions) <= REQUIRED_COUNT
+    refs = [s.reference for s in result.suggestions]
+    assert len(set(refs)) == len(refs)
+    for s in result.suggestions:
+        normalize_passage_reference(s.reference)
+        assert s.reason
+        assert s.homiletical_direction
+    # Validáció elfogadja az alkalmot (nem esik vissza default-ra).
+    state = normalize_passage_search_state(
+        {
+            "occasion": "Virrasztó",
+            "context": context,
+            "suggestions": [s.to_dict() for s in result.suggestions],
+            "status": "ready",
+        }
+    )
+    assert state["occasion"] == "Virrasztó"
+    assert len(state["suggestions"]) >= MIN_ACCEPTABLE_COUNT
+    assert seen_prompts
 
 
 def test_funeral_detailed_context_full_hu_book_names_and_history():

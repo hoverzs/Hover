@@ -12,6 +12,7 @@ from typing import Any
 OCCASION_OPTIONS: tuple[str, ...] = (
     "Vasárnapi istentisztelet",
     "Bűnbánati istentisztelet",
+    "Virrasztó",
     "Temetés",
     "Esketés",
     "Keresztelés",
@@ -24,6 +25,14 @@ OCCASION_OPTIONS: tuple[str, ...] = (
 # Alkalom → gyakran automatikusan felmerülő (elcsépelt) referenciák.
 # Normalizált / közeli alakok; az egyezés parse_bible_reference után történik.
 COMMON_REFERENCES_BY_OCCASION: dict[str, tuple[str, ...]] = {
+    "Virrasztó": (
+        "Zsolt 23",
+        "Zsolt 23,1–6",
+        "Jn 14,1–6",
+        "Jn 11,25–26",
+        "Róm 8,38–39",
+        "2Kor 1,3–7",
+    ),
     "Temetés": (
         "Zsolt 23",
         "Zsolt 23,1–6",
