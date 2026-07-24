@@ -31,100 +31,113 @@ from sermon_workshop_outline_ai import (
 GenerateFn = Callable[..., str]
 
 # Soft issues may hint a repair pass, but never discard an otherwise usable outline.
-SOFT_QUALITY_ISSUES = frozenset({"word_count_out_of_range"})
+SOFT_QUALITY_ISSUES = frozenset(
+    {
+        "word_count_out_of_range",
+        "stock_phrases",
+        "sermon_like_verbosity",
+    }
+)
+
+# Üres sablonfordulatok — csak ha a textus+kontextus nem indokolja őket.
+_STOCK_PHRASE_MARKERS = (
+    "a kegyelem abban van",
+    "nem a mi erőnkből",
+    "isten tervének része",
+    "isten tervének része volt",
+)
 
 HOMILETIC_SYSTEM_PROMPT = """\
 SZEREP
 
 Tapasztalt, textushű, református (reformátori) szemléletű homiletikai szerkesztő vagy. \
-Feladatod nem teológiai adatlap és nem kész prédikáció írása, hanem világos \
-homiletikai ívvel rendelkező, kibontott, mégis könnyen áttekinthető szószéki \
-vázlat készítése.
+Feladatod: a rendelkezésre álló műhelyanyagból koherens, teológiailag pontos, \
+hallható, röviden kibontott igehirdetési MUNKAVÁZLATOT készíteni.
 
-A vázlat legyen biblikusan felelős, krisztusközpontú, kegyelemközpontú, \
-gyülekezetszerű és hallható nyelven megfogalmazott. Krisztust és a kegyelmet \
-ne mesterségesen illeszd minden pont végére, hanem a textus, a közvetlen \
-kontextus és a kánoni összefüggés alapján jelenítsd meg.
+Ez NEM bullet-jegyzet, és NEM kész prédikáció / kézirat. A szószéken tovább \
+fejleszthető, áttekinthető munkavázlat legyen: világos ív, rövid kidolgozás, \
+kevés ismétlés.
 
-FORRÁSI SORREND
+A vázlat legyen biblikusan felelős, gyülekezetszerű és hallható nyelven \
+megfogalmazott. A krisztusközpontúság a textusból és a kánoni összefüggésből \
+emelkedjen ki — ne legyen automatikus zárójelszó minden pont végén.
 
-1. A kijelölt bibliai textus és annak közvetlen irodalmi kontextusa.
-2. A felhasználó által jóváhagyott gondolatok és döntések.
-3. A műhelyekben elkészült exegézis, kortörténet, teológiai felismerések és \
-alkalmazási anyagok.
-4. A még hiányzó elemekhez felelős, visszafogott MI-következtetés.
+KÖTELEZŐ FORRÁSOK (ebben a sorrendben)
 
-A hiányzó műhelyadatok nem akadályozhatják meg egy teljes vázlat elkészítését. \
-A felhasználói anyag személyesebbé és pontosabbá tegye a vázlatot, ne annak \
-alapvető használhatóságát tegye lehetővé. A meglévő műhelyanyag elsőbbséget élvez; \
-a hiányzó részeket a textusból óvatosan egészítsd ki.
+1. Textus + bibliai szöveg (és közvetlen irodalmi kontextusa).
+2. Jóváhagyott Textusműhely-felismerések.
+3. Meglévő homiletikai döntések (főgondolat, feszültség, Krisztus-ív, mozgások stb.).
+4. Alkalom típusa + alkalmi kontextus, ha a projektben jelen van.
+5. Saját megjegyzések / felhasználói fókusz.
+6. A még hiányzó elemekhez felelős, visszafogott MI-következtetés.
+
+A hiányzó műhelyadatok nem akadályozhatják meg egy teljes szerkezetű vázlat \
+elkészítését. A meglévő műhelyanyag elsőbbséget élvez; a hiányzó részeket a \
+textusból óvatosan egészítsd ki. Részleges anyag esetén is add vissza a teljes \
+szerkezetet — rövidebben.
 
 CSENDES ELŐKÉSZÍTÉS
 
-A válasz megírása előtt belsőleg:
 1. Határozd meg a textus műfaját, gondolati mozgását és természetes határait.
-2. Vizsgáld meg, hogy a kijelölt szakasz lezárt nyelvtani és retorikai \
-egységet alkot-e. Ha a gondolati ív a következő versben zárul, jelezd a \
-text_boundary_note mezőben (nem blokkoló megjegyzés).
-3. Fogalmazz meg egyetlen, legfeljebb 25 szavas fókuszmondatot.
-4. A textus saját mozgásából alakíts ki prédikációs egységeket (lásd alkalmi \
-útmutatót: tipikusan 3, Virrasztó/Temetés esetén 2–3).
-5. Építs fel hallgatói ívet: feszültség – megértés – evangéliumi felismerés – \
-válasz – reménység.
-6. Ellenőrizd minden történeti, nyelvi és teológiai állítás forrását és \
-bizonyosságát.
-7. Távolítsd el az ismétléseket, közhelyeket és a generikus MI-fordulatokat.
+2. Ha a gondolati ív a következő versben zárul, jelezd a text_boundary_note \
+mezőben (nem blokkoló).
+3. Fogalmazz meg egyetlen, hallható fókuszmondatot (legfeljebb 25 szó).
+4. Textusspecifikus egységek: tipikusan 2–3 (Virrasztó/Temetés: 2, max. 3; \
+vasárnapi: 2–3, csak ha a textus természetesen kívánja a harmadikat).
+5. Hallgatói ív: helyzet → textusállítások → megérkezés (Krisztusra mutató, \
+nem moralizáló).
+6. Távolítsd el az ismétléseket, közhelyeket és a generikus MI-fordulatokat.
+
+CÉLFORMA (a JSON mezők ezt a szerkezetet hordozzák)
+
+- Cím + Textus + egyetlen Fókuszmondat.
+- Bevezetés: rövid bekezdés konkrét hallgatói helyzetből; ne közhely, ne \
+kérdéslista.
+- 1–3 mozgás, mindegyik: rövid emlékezetes cím; development[0] = „A textus \
+állítása” (2–4 mondat); development[1] = „Hallgatói irány” (1–2 mondat, a \
+textusból). Ne használj „Exegetikai kibontás / Kegyelmi kapcsolat / Hallgatói \
+kapcsolat” technikai címkéket.
+- Megérkezés: rövid, Krisztusra mutató zárás; ne ismételd a bevezetést; ne \
+moralizálj.
+- Még finomítható: legfeljebb két rövid, hasznos tipp.
 
 KIMENET (JSON)
 
-- title: rövid, emlékezetes cím.
-- text_reference: pontos igehely.
-- focus_sentence: egyetlen kijelentő mondat, legfeljebb 25 szó. Ne kezdődjön \
-így: „A textus arra szólít fel…”.
-- introduction.development: hallgatói feszültség (hossz: alkalomfüggő); \
-legfeljebb egy retorikai kérdés; ne közhelyes „rohanó világ / közösségi média” \
-nyitással. Ne ismételje a fókuszmondatot.
-- introduction.transition: rövid átvezetés.
-- movements: minden egységnek tartalomspecifikus címe, textual_anchor \
-(versszakasz), development (folyamatós bekezdések — NINCS „Exegetikai \
-kibontás”, „Hallgatói kapcsolat”, „Kegyelmi kapcsolat” címke), transition.
-- conclusion.development: térjen vissza a bevezetés feszültségéhez; \
-evangéliumi reménység (hossz: alkalomfüggő).
-- conclusion.final_sentence: megjegyezhető zárómondat.
-- refinement_suggestions: legfeljebb két opcionális javaslat (Virrasztónál \
-legfeljebb 1–2 rövid).
-- text_boundary_note / suggested_text_boundary: csak ha a gondolati ív a \
-kijelölt textuson túl zárul (pl. „A gondolati ív a következő versben zárul \
-le. Javasolt textushatár: …”).
+- title, text_reference, focus_sentence (max. 25 szó; ne: „A textus arra szólít fel…”).
+- introduction.development + rövid transition.
+- movements[]: title, textual_anchor, development (2 bekezdés a fenti forma szerint), transition.
+- conclusion.development + final_sentence.
+- refinement_suggestions: max. 2 rövid tipp.
+- text_boundary_note / suggested_text_boundary: csak ha indokolt.
 
 TEOLÓGIAI ÉS STILÁRIS SZABÁLYOK
 
 - Ne állíts többet annál, mint amit a textus és a források alátámasztanak.
-- Vitatott szerzőséget / datálást ne közölj bizonyosságként.
-- Apostoli előrejelzést ne nevezd automatikusan a rombolás „isteni tervének”.
-- Görög/héber szót csak ha pontosítja az értelmezést; ellenőrizd az alakot.
-- Különböztesd: textus állítása / teológiai következtetés / mai alkalmazás.
-- Krisztusközpontú kapcsolat legyen textuálisan vagy kánonilag indokolható.
-- Felszólításokat hordozza Isten cselekvése és kegyelme; kerüld a moralizálást.
-- Ne használj egymással versengő metaforákat egy lezárásban.
-- Ne ismételd szó szerint a fókuszmondatot a bevezetésben, az első pontban és \
-a lezárásban.
-- Ne használj háromnál több egymást követő retorikai kérdést.
-- A hallgatói alkalmazás legyen konkrét felismerés vagy válasz, ne csak kérdés.
+- Ne ismételd pontonként a fókuszmondatot a bevezetésben, a pontokban és a lezárásban.
+- Kerüld az üres sablonfordulatokat, hacsak a textus+kontextus indokolja: \
+„a kegyelem abban van”, „nem a mi erőnkből”, „Isten tervének része”.
+- Ne sugalld, hogy bibliai szereplők szabadon választanak életet/halált, ha a \
+textus feszültség, várakozás vagy gondviselés (pl. Fil 1,21–24).
+- Gyász / Virrasztó: ne bagatellizáld a veszteséget; ne ígérj üdvösséget az \
+elhunytról adat nélkül; ne találj ki életrajzi részleteket a családnak.
+- Krisztusközpontúság a textusból jöjjön — ne automatikus zárójelszó.
+- Felszólításokat hordozza Isten cselekvése; kerüld a moralizálást.
+- Legfeljebb egy retorikai kérdés a bevezetésben; ne három egymást követő kérdés.
 
-CÉLHOSSZ (útmutató, NEM merev elutasítási küszöb): alkalomfüggő — lásd a \
-felhasználói prompt ALKALOM / HOSSZÚTÁVÚ ÚTMUTATÁS részét. Vasárnapi \
-igehirdetés: közepes, szószéki munkavázlat. Virrasztó: rövidebb, intim \
-áhítat-vázlat. Temetés: tömör, világos, vigasztaló ív. Részleges műhelyanyag \
-esetén a rövidebb, de teljes szerkezet elfogadható. A szószám önmagában soha \
-nem indokolja a válasz elvetését — a használhatóság a döntő.
+CÉLHOSSZ (irányadó, NEM merev elutasítás)
 
-TILOS A KIMENETBEN: kettős számozás („1. 1.”); üres cím/mező; „Hallgatói \
-felismerés:” tartalom nélkül; nyers Markdown ##; félbehagyott / …-dal levágott \
-mondatok; megismételt vershivatkozás a címsor alatt; belső sémanév; \
-fallback-összefűzés; kontextusvers a kijelölt textus részeként feltüntetve; \
-„Ez a rész még nincs kidolgozva”; „Nem állapítható meg felelősen”; „A hallgató \
-a textus világába lép”; „A textus magja elmélyül”; „A fő gondolat megérkezik”.
+- Vasárnapi / általános munkavázlat: ~450–700 szó.
+- Virrasztó / rövid áhítat: ~350–550 szó.
+- Temetés: tömör, vigasztaló (~350–600 szó).
+- Részleges műhelyanyag: teljes szerkezet, rövidebb OK.
+A szószám önmagában soha nem indokolja a válasz elvetését — a használhatóság a döntő.
+
+TILOS A KIMENETBEN: kettős számozás („1. 1.”); üres cím/mező; tartalom nélküli \
+címkék; nyers Markdown ##; félbehagyott / …-dal levágott mondatok; belső \
+sémanév; fallback-összefűzés; „Ez a rész még nincs kidolgozva”; „Nem \
+állapítható meg felelősen”; „A hallgató a textus világába lép”; „A textus \
+magja elmélyül”; „A fő gondolat megérkezik”; „Exegetikai kibontás”; \
+„Kegyelmi kapcsolat”; „Hallgatói kapcsolat”.
 
 Ne másold egymás után a forrásanyagokat — szintetizálj.
 
@@ -135,30 +148,30 @@ _SYNTH_JSON_SHAPE = """\
 {
   "title": "Textusspecifikus, rövid cím",
   "text_reference": "Igehely",
-  "focus_sentence": "Egyetlen világos központi állítás (max. 25 szó)",
+  "focus_sentence": "Egyetlen hallható központi állítás (max. 25 szó)",
   "text_boundary_note": "",
   "suggested_text_boundary": "",
   "introduction": {
-    "development": "80–120 szó: hallgatói feszültség — ne ismételje a fókuszt",
+    "development": "Rövid bekezdés konkrét hallgatói helyzetből — ne ismételje a fókuszt",
     "transition": "Átvezetés az első mozgásba"
   },
   "movements": [
     {
-      "title": "Tartalomspecifikus cím (számozás nélkül)",
+      "title": "Rövid, emlékezetes cím (számozás nélkül)",
       "textual_anchor": "Kapcsolódó versszakasz",
       "development": [
-        "Folyamatos, természetes bekezdés (exegezis+teológia+hallgató egybefonva)",
-        "Konkrét felismerés vagy válasz; ne technikai címkék"
+        "A textus állítása: 2–4 mondat a textus saját hangján",
+        "Hallgatói irány: 1–2 mondat a textusból — konkrét felismerés vagy válasz"
       ],
       "transition": "Rövid átvezetés"
     }
   ],
   "conclusion": {
-    "development": "100–150 szó: feszültség feloldása, evangéliumi reménység",
+    "development": "Rövid Megérkezés: Krisztusra mutató, nem moralizáló, ne ismételje a bevezetést",
     "final_sentence": "Megjegyezhető zárómondat"
   },
   "refinement_suggestions": [
-    "Legfeljebb két opcionális javaslat"
+    "Legfeljebb két rövid, hasznos tipp"
   ]
 }
 """
@@ -219,52 +232,63 @@ def outline_length_profile(
     *,
     partial: bool = False,
 ) -> dict[str, Any]:
-    """Alkalomfüggő hossz-/szerkezet-útmutató (prompt + soft szószámjelzés)."""
+    """Alkalomfüggő hossz-/szerkezet-útmutató (prompt + soft szószámjelzés).
+
+    Cél-tartományok (prompt): vasárnapi ~450–700; Virrasztó ~350–550.
+    Soft min/max enyhén tágabb — szószám önmagában soha nem hard reject.
+    """
     occ = resolve_outline_occasion(occasion=occasion)
     occ_cf = occ.casefold()
     if "virraszt" in occ_cf:
-        soft_min, soft_max = 220, 620
+        soft_min, soft_max = 300, 600
+        target = "350–550"
         min_movements = 2
         guidance = (
-            "Virrasztó: rövidebb, intim áhítat-vázlat (~250–500 szó irányadó). "
-            "Szerkezet: cím, textus, egyszavas fókusz, rövid bevezetés, "
-            "2–3 kidolgozott egymásutáni gondolatí egység, megérkezés/lezárás; "
-            "legfeljebb 1–2 rövid refinement. Ne írj teljes temetési prédikációt."
+            f"Virrasztó: rövidebb, intim áhítat-munkavázlat (~{target} szó irányadó). "
+            "Hangnem: csendes, gyászoló közösséghez illő — ne bagatellizáld a veszteséget; "
+            "ne ígérj üdvösséget az elhunytról adat nélkül; ne találj ki életrajzi részleteket. "
+            "Szerkezet: cím, textus, fókuszmondat, rövid bevezetés, 2 (max. 3) egység "
+            "(A textus állítása + Hallgatói irány), megérkezés; legfeljebb 1–2 rövid tipp. "
+            "Ne írj teljes temetési prédikációt vagy hosszú szószéki kéziratot."
+        )
+        intro_hint = "40–70 szó"
+        movement_hint = "2 egység (max. 3), egyenként: 2–4 mondat textusállítás + 1–2 mondat hallgatói irány"
+        conclusion_hint = "40–80 szó"
+    elif "temet" in occ_cf:
+        soft_min, soft_max = 300, 650
+        target = "350–600"
+        min_movements = 2
+        guidance = (
+            f"Temetés: tömör, világos, vigasztaló munkavázlat (~{target} szó irányadó). "
+            "2–3 egység; kerüld a túlírt szószéki kibontást és a moralizálást."
         )
         intro_hint = "40–80 szó"
-        movement_hint = "2–3 egység, egyenként rövid, megható bekezdés"
+        movement_hint = "2–3 egység (A textus állítása + Hallgatói irány)"
         conclusion_hint = "50–90 szó"
-    elif "temet" in occ_cf:
-        soft_min, soft_max = 280, 700
+    else:
+        soft_min, soft_max = 400, 800
+        target = "450–700"
         min_movements = 2
         guidance = (
-            "Temetés: tömör, világos, vigasztaló ív (~350–600 szó irányadó). "
-            "2–3 egység; kerüld a túlírt szószéki kibontást."
+            f"Vasárnapi / általános igehirdetés: szószéki munkavázlat (~{target} szó irányadó). "
+            "2–3 textusspecifikus mozgás (a harmadik csak ha a textus természetesen kívánja). "
+            "Röviden kibontott — ne kész prédikáció."
         )
         intro_hint = "50–90 szó"
-        movement_hint = "2–3 egység"
-        conclusion_hint = "60–100 szó"
-    else:
-        soft_min, soft_max = 500, 1200
-        min_movements = 3
-        guidance = (
-            "Vasárnapi / általános igehirdetés: közepes, szószéken használható "
-            "munkavázlat (~700–1100 szó irányadó). 3–4 textusspecifikus mozgás."
-        )
-        intro_hint = "80–120 szó"
-        movement_hint = "3–4 egység, egyenként legfeljebb ~150–220 szó"
-        conclusion_hint = "100–150 szó"
+        movement_hint = "2–3 egység, egyenként: 2–4 mondat textusállítás + 1–2 mondat hallgatói irány"
+        conclusion_hint = "50–100 szó"
     if partial:
-        soft_min = max(180, soft_min - 150)
+        soft_min = max(250, soft_min - 100)
         guidance += (
             " Részleges műhelyanyag: a meglévő adatok elsőbbséget élveznek; "
             "a hiányzó részeket a textusból óvatosan egészítsd ki. "
-            "Rövidebb, de teljes szerkezet elfogadható."
+            "Teljes szerkezet, rövidebb terjedelem elfogadható."
         )
     return {
         "occasion": occ or "Vasárnapi istentisztelet",
         "soft_min": soft_min,
         "soft_max": soft_max,
+        "target_range": target,
         "min_movements": min_movements,
         "guidance": guidance,
         "intro_hint": intro_hint,
@@ -278,21 +302,52 @@ def _hard_quality_issues(issues: list[str] | tuple[str, ...] | None) -> list[str
     return [i for i in (issues or []) if i not in SOFT_QUALITY_ISSUES]
 
 
+def _occasional_context_for_prompt(bundle: Mapping[str, Any] | None) -> str:
+    """Alkalmi kontextus a projektből (saját fókusz / megjegyzés), ha van."""
+    if not isinstance(bundle, Mapping):
+        return ""
+    parts: list[str] = []
+    for key in ("user_focus", "outline_manual_notes"):
+        val = _usable_text(bundle.get(key))
+        if val:
+            parts.append(val)
+    # Dedup similar snippets
+    seen: set[str] = set()
+    out: list[str] = []
+    for p in parts:
+        n = _normalize_cmp(p)
+        if n and n not in seen:
+            seen.add(n)
+            out.append(p)
+    return " | ".join(out[:2])
+
+
 def _occasion_block_for_prompt(
     bundle: Mapping[str, Any] | None,
 ) -> str:
+    """Alkalom típusa + hosszútávú útmutatás — kötelezően a generáló promptba."""
     profile = outline_length_profile(
         resolve_outline_occasion(bundle),
         partial=_is_partial_workshop_bundle(bundle),
     )
-    return (
-        f"ALKALOM: {profile['occasion']}\n"
-        f"HOSSZÚTÁVÚ ÚTMUTATÁS: {profile['guidance']}\n"
-        f"Bevezetés irányadó hossza: {profile['intro_hint']}. "
-        f"Mozgások: {profile['movement_hint']}. "
-        f"Lezárás: {profile['conclusion_hint']}.\n"
-        "A szószám NEM merev elutasítási küszöb — használható vázlatot adj vissza.\n"
-    )
+    occ_ctx = _occasional_context_for_prompt(bundle)
+    lines = [
+        f"ALKALOM: {profile['occasion']}",
+        f"CÉLHOSSZ: ~{profile['target_range']} szó (irányadó).",
+        f"HOSSZÚTÁVÚ ÚTMUTATÁS: {profile['guidance']}",
+        (
+            f"Bevezetés irányadó hossza: {profile['intro_hint']}. "
+            f"Mozgások: {profile['movement_hint']}. "
+            f"Lezárás / Megérkezés: {profile['conclusion_hint']}."
+        ),
+        "A szószám NEM merev elutasítási küszöb — használható munkavázlatot adj vissza.",
+    ]
+    if occ_ctx:
+        lines.insert(
+            1,
+            f"ALKALMI KONTEXTUS (projektből — hangnemet/struktúrát igazítsd ehhez): {occ_ctx}",
+        )
+    return "\n".join(lines) + "\n"
 
 
 def _call_generate(
@@ -769,8 +824,9 @@ def assess_outline_quality_issues(
 ) -> list[str]:
     """Determinisztikus minőségellenőrzés — csak ha van javítandó.
 
-    for_ai_output=True: alkalomfüggő szószám soft jelzés (word_count_out_of_range)
-    kerülhet a listába, de SOFT_QUALITY_ISSUES — önmagában nem utasítható el.
+    for_ai_output=True: alkalomfüggő soft jelzések (word_count_out_of_range,
+    stock_phrases, sermon_like_verbosity) kerülhetnek a listába, de
+    SOFT_QUALITY_ISSUES — önmagában nem utasítható el.
     """
     import re
 
@@ -899,6 +955,18 @@ def assess_outline_quality_issues(
         if words and (words < soft_min or words > soft_max):
             issues.append("word_count_out_of_range")
 
+        content_cf = content.casefold()
+        if any(marker in content_cf for marker in _STOCK_PHRASE_MARKERS):
+            issues.append("stock_phrases")
+
+        # Készprédikáció-szerű túlírás: hosszú bevezetés + hosszú lezárás egyszerre
+        if (
+            _word_count(opening) > 140
+            and _word_count(arrival) > 140
+            and words > int(profile["soft_max"])
+        ):
+            issues.append("sermon_like_verbosity")
+
     return list(dict.fromkeys(issues))
 
 
@@ -936,14 +1004,19 @@ def synthesize_homiletic_outline(
         partial=_is_partial_workshop_bundle(bundle),
     )
     prompt = (
-        "Készíts KOHERENS, szószéken is használható igehirdetési munkavázlatot "
-        "a forrásanyagok SZINTÉZISÉVEL.\n"
+        "Készíts KOHERENS, szószéken használható igehirdetési MUNKAVÁZLATOT "
+        "(nem bullet-jegyzetet, nem kész prédikációt) a forrásanyagok "
+        "SZINTÉZISÉVEL.\n"
         f"{occasion_block}"
-        "Ne fűzd egymás után a mezőket. Textusspecifikus mozgások kellenek "
-        f"({profile['movement_hint']}) valódi tartalmi címmel és kibontott "
-        "development bekezdésekkel.\n"
+        "Kötelező források a FORRÁS JSON-ból: textus+szöveg, jóváhagyott "
+        "Textusműhely-felismerések, meglévő homiletikai döntések, alkalom + "
+        "alkalmi kontextus, saját megjegyzések.\n"
+        "Mozgások formája: rövid emlékezetes cím; development[0]=A textus "
+        f"állítása (2–4 mondat); development[1]=Hallgatói irány (1–2 mondat). "
+        f"Egységek: {profile['movement_hint']}.\n"
         "A bevezetés ne ismételje a fókuszmondatot. A megérkezés ne legyen "
-        "puszta összefoglalás. Legfeljebb 2 refinement_suggestions.\n"
+        "puszta összefoglalás és ne moralizáljon. Legfeljebb 2 "
+        "refinement_suggestions.\n"
         f"ZÁROLT FÓKUSZMONDAT (ne gyengítsd): {locked or '(nincs — te állapítsd meg)'}\n\n"
         f"FORRÁS:\n{json.dumps(ctx, ensure_ascii=False)}\n\n"
         f"MAGVÁZLAT (seed, szintetizáld tovább):\n"
@@ -1019,11 +1092,13 @@ def repair_outline_as_lektor(
         "Ne adj hibalista kimenetet a felhasználónak — csak a javított JSON vázlatot.\n"
         f"{occasion_block}"
         f"JELZETT PROBLÉMÁK: {issue_line}\n"
-        "Ha csak a szószám soft jelzés (word_count_out_of_range) szerepel, "
-        "ne dobd el a vázlatot: finomhangolj, de tartsd meg a használható tartalmat.\n"
-        "Távolítsd el az ismétléseket, sablon címeket, placeholder-eket, moralizálást.\n"
-        "Erősítsd a textushűséget, Krisztus-/kegyelemívet, hallgatói megszólítást, "
-        "konkrét alkalmazásokat és a lezárás megérkezését.\n"
+        "Ha csak soft jelzés szerepel (word_count_out_of_range, stock_phrases, "
+        "sermon_like_verbosity), ne dobd el a vázlatot: tömöríts / tisztíts, "
+        "de tartsd meg a használható tartalmat.\n"
+        "Távolítsd el az ismétléseket, sablon címeket, placeholder-eket, moralizálást "
+        "és az üres sablonfordulatokat.\n"
+        "Mozgások: A textus állítása (2–4 mondat) + Hallgatói irány (1–2 mondat). "
+        "Erősítsd a textushűséget és a megérkezést — ne írj kész prédikációt.\n"
         f"ZÁROLT FŐGONDOLAT: {_locked_main_idea(bundle, current)}\n\n"
         f"FORRÁS:\n{json.dumps(ctx, ensure_ascii=False)}\n\n"
         f"JAVÍTANDÓ VÁZLAT:\n{json.dumps(current, ensure_ascii=False)}\n\n"
@@ -1082,6 +1157,7 @@ def regenerate_outline_part(
     }
     target = allowed.get(part_key.casefold(), part_key)
     ctx = _ctx_for_prompt(bundle)
+    occasion_block = _occasion_block_for_prompt(bundle)
     focus_map = {
         "introduction": current.get("introduction")
         or {"development": current.get("opening_direction"), "transition": ""},
@@ -1110,6 +1186,7 @@ def regenerate_outline_part(
         f"Írd újra CSAK a vázlat ezen részét: {target}.\n"
         "A többi mezőt NE módosítsd — csak a kért részt add vissza "
         "a teljes séma szerint, a változatlan mezőket másold át.\n"
+        f"{occasion_block}"
         f"FÓKUSZMONDAT (zárolt): {_locked_main_idea(bundle, current)}\n"
         f"CÉLZOTT RÉSZ MOST: {json.dumps(focus_map.get(target), ensure_ascii=False)}\n\n"
         f"FORRÁS:\n{json.dumps(ctx, ensure_ascii=False)}\n\n"

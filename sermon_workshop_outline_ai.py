@@ -1102,10 +1102,22 @@ def outline_to_readable_content(outline: Any) -> str:
         body_parts: list[str] = []
         if anchor:
             body_parts.append(f"*{anchor}*")
-        for p in paras:
-            if anchor and _normalize_cmp(p) == _normalize_cmp(anchor):
-                continue
-            body_parts.append(p)
+        # Preferált forma: A textus állítása + Hallgatói irány (ha 2+ bekezdés)
+        claim_labels = ("a textus állítása", "hallgatói irány")
+        if len(paras) >= 2 and not any(
+            _normalize_cmp(p).startswith(lab) for p in paras for lab in claim_labels
+        ):
+            body_parts.append(f"**A textus állítása:** {paras[0]}")
+            body_parts.append(f"*Hallgatói irány:* {paras[1]}")
+            for p in paras[2:]:
+                if anchor and _normalize_cmp(p) == _normalize_cmp(anchor):
+                    continue
+                body_parts.append(p)
+        else:
+            for p in paras:
+                if anchor and _normalize_cmp(p) == _normalize_cmp(anchor):
+                    continue
+                body_parts.append(p)
         mv_transition = _usable_text(mv.get("transition"))
         if mv_transition and _normalize_cmp(mv_transition) not in {
             _normalize_cmp(p) for p in paras
