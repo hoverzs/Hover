@@ -7373,488 +7373,111 @@ with tabs[6]:
 
 
 # =========================================================
-# VÁZLAT
+# VÁZLAT — közös motor (sermon_outline_engine)
 # =========================================================
 
 with tabs[7]:
-    st.header("Prédikációvázlat")
-
-    if st.session_state.pop("_clear_outline_workshop_editors", False):
-        st.session_state["_outline_draft_editor"] = ""
-        st.session_state["_outline_answers_editor"] = ""
-        st.session_state["_outline_reworked_editor"] = ""
-        st.session_state.pop("_pending_outline_draft_editor", None)
-
-    homiletikai_modell = st.selectbox(
-        "Homiletikai modell",
-        [
-            "klasszikus hárompontos református",
-            "narratív prédikáció",
-            "induktív modell",
-            "probléma–megoldás modell",
-            "egy főgondolatra épülő modell",
-            "10 pontos tanító vázlat"
-        ]
+    from sermon_outline_engine import (
+        REFRESH_NOTICE,
+        generate_sermon_outline,
+        outline_needs_refresh,
+    )
+    from sermon_workshop_data import (
+        SERMON_WORKSHOP_KEY,
+        ensure_sermon_workshop_state,
+        normalize_sermon_outline,
+        save_sermon_outline,
+    )
+    from sermon_workshop_outline_ai import (
+        EMPTY_PROJECT_MESSAGE,
+        assess_outline_readiness,
+        collect_available_sermon_material,
+        outline_canonical_text,
+        outline_has_content,
+        render_compact_sermon_outline,
+        sync_outline_content,
     )
 
-    # Régebbi munkamenetnél a korábban generált vázlatot induló vázlatként
-    # tesszük szerkeszthetővé, de csak akkor, ha még nincs külön műhely-vázlat.
-    if st.session_state.get("outline") and not st.session_state.get("outline_draft"):
-        st.session_state["outline_draft"] = st.session_state["outline"]
+    st.header("Gyors vázlat")
+    st.caption(
+        "Vázlat készítése a projektben jelenleg rendelkezésre álló anyagból."
+    )
 
-    if "_pending_outline_draft_editor" in st.session_state:
-        st.session_state["_outline_draft_editor"] = st.session_state.pop("_pending_outline_draft_editor")
-    elif "_outline_draft_editor" not in st.session_state:
-        st.session_state["_outline_draft_editor"] = st.session_state.get("outline_draft", "")
+    ensure_sermon_workshop_state(st.session_state)
+    sw = st.session_state[SERMON_WORKSHOP_KEY]
+    outline = normalize_sermon_outline(sw.get("sermon_outline"))
+    bundle = collect_available_sermon_material(st.session_state, sermon_workshop=sw)
+    readiness = assess_outline_readiness(st.session_state, sermon_workshop=sw)
 
-    if "_outline_reworked_editor" not in st.session_state:
-        st.session_state["_outline_reworked_editor"] = st.session_state.get("outline_reworked_draft", "")
+    if outline_has_content(outline) and outline_needs_refresh(outline, bundle):
+        if str(outline.get("status") or "") != "needs_refresh":
+            outline["status"] = "needs_refresh"
+            sw["sermon_outline"] = outline
+            sw["sermon_outline_status"] = "needs_refresh"
+        st.info(REFRESH_NOTICE)
 
-    if "_outline_answers_editor" not in st.session_state:
-        st.session_state["_outline_answers_editor"] = st.session_state.get("outline_workshop_answers", "")
-
-    _outline_running = bool(st.session_state.get("_outline_running"))
+    _qt_outline_running = bool(st.session_state.get("_outline_running"))
+    primary = (
+        "Vázlat frissítése"
+        if outline_has_content(outline)
+        else "Vázlat készítése"
+    )
     if st.button(
-        "Szerkeszthető vázlat készítése",
+        primary,
         type="primary",
-        disabled=_outline_running,
+        disabled=_qt_outline_running or not readiness.ok,
         key="outline_run",
     ):
-        basket_text = "\n".join([f"- {source}: {text}" for source, text in st.session_state["basket"]])
-
-        prompt = f"""
-# VÁZLAT — KOHERENS PRÉDIKÁCIÓS STRUKTÚRA
-
-Szakmai vízió:
-Készíts **szerkeszthető homiletikai vázlatot**, nem végleges prédikációt.
-Rendezd össze az eddigi fülekből és a vázlatkosárból származó gondolatokat
-egy **koherens prédikációs struktúrává**. Ne írj kimondásra kész prédikációs
-mondatokat; ne úgy fogalmazz, mintha már maga az igehirdetés szólalna meg.
-
-A cél: jól felépített, áttekinthető, tovább szerkeszthető vázlat,
-amely segíti a lelkipásztort a saját igehirdetése megformálásában.
-
-Homiletikai modell:
-{homiletikai_modell}
-
-Az eddigi elemzések, amelyekből építkezz:
-
-## Áttekintés
-{st.session_state["overview"]}
-
-## Exegézis
-{st.session_state["exegesis"]}
-
-## Kortörténet
-{st.session_state["history"]}
-
-## Teológia
-{st.session_state["theology"]}
-
-## Illusztrációk
-{st.session_state["illustrations"]}
-
-## Aktualizálás
-{st.session_state["actualization"]}
-
-## A vázlatba feltétlenül beépítendő, megőrzött gondolatok
-{basket_text if basket_text else "Nincs külön elem."}
-
-A vázlat legyen lelkipásztori használatra alkalmas, de NE legyen teljes prédikáció.
-Ne adj kész bevezető-, átvezető- vagy zárómondatokat. Inkább irányokat,
-logikai kapcsolódásokat, hangsúlyokat és szerkezeti pontokat adj.
-Hagyj benne olyan elemeket is, amelyeket a lelkipásztor tovább tud gondolni.
-
-A vázlatot pontosan az alábbi szerkezetben add (Markdown formátum):
-
-## Tételmondat (scopus)
-A prédikáció gerince egyetlen világos, teológiailag tartós állításban.
-
-## Az ív — diagnózis → evangéliumi fordulat → Isten válasza
-Mutasd meg, milyen **mozgás** rendezheti a vázlatot: honnan indul, hol van
-az **evangéliumi fordulat**, és hová érkezik meg a textus alapján.
-
-## Szerkezet
-A választott modell szerint **2–4 pontos vázlat**, mindegyik ponthoz:
-- pont címe (rövid, hangsúlyos),
-- rövid magyarázat arról, mit rendez ez a pont,
-- konkrét textuális vagy teológiai horgony.
-
-## Átvezetési logika
-Ne kész mondatokat írj, hanem jelezd, hogyan kapcsolódnak egymáshoz a pontok.
-
-## Bevezetési irány
-Adj egy lehetséges nyitási irányt: kép, kérdés, élethelyzet vagy feszültség,
-de ne fogalmazd meg kész prédikációs szövegként.
-
-## Lezárási irány
-Jelezd, milyen lelki vagy teológiai irányba fusson ki a vázlat; ne írj kész záróbeszédet.
-
-## Alkalmazási pontok
-2–3 konkrét, gyülekezeti életbe illesztett **alkalmazási irány**.
-"""
-
         st.session_state["_outline_running"] = True
         try:
-            with st.spinner("Szerkeszthető vázlat készül..."):
-                draft = generate_text(
-                    prompt,
-                    tab_label="Vázlat",
+            with st.spinner("Homiletikai vázlat készül…"):
+                result = generate_sermon_outline(
+                    st.session_state,
+                    mode="quick",
+                    generate_fn=generate_text,
+                    force_overwrite=True,
                 )
-                st.session_state["outline_draft"] = draft
-                st.session_state["_outline_draft_editor"] = draft
-                st.session_state["outline_workshop_questions"] = ""
-                st.session_state["outline_workshop_answers"] = ""
-                st.session_state["_outline_answers_editor"] = ""
-                st.session_state["outline_reworked_draft"] = ""
-                st.session_state["_outline_reworked_editor"] = ""
-                st.session_state["outline"] = ""
-                st.session_state["outline_title_suggestions"] = ""
+                if not result.ok:
+                    st.warning(result.error_message or EMPTY_PROJECT_MESSAGE)
+                else:
+                    outline = sync_outline_content(result.outline, force=True)
+                    save_sermon_outline(
+                        st.session_state, outline, mark_manual_edit=False
+                    )
+                    body = outline_canonical_text(outline)
+                    st.session_state["outline"] = body
+                    st.session_state["outline_draft"] = body
+                    st.success("A vázlat elkészült.")
+                    st.rerun()
         finally:
             st.session_state["_outline_running"] = False
-        st.rerun()
 
-    st.subheader("1. Szerkeszthető fő vázlat")
-    st.caption(
-        "Ez a fő műhelymező. A későbbi „Végleges vázlat készítése” mindig "
-        "ennek az aktuális tartalmából dolgozik."
+    if not readiness.ok:
+        st.info(readiness.message or EMPTY_PROJECT_MESSAGE)
+
+    outline = normalize_sermon_outline(
+        ensure_sermon_workshop_state(st.session_state).get("sermon_outline")
     )
-    outline_draft_current = st.text_area(
-        "Fő vázlat",
-        key="_outline_draft_editor",
-        height=420,
-        placeholder=(
-            "Írj vagy generálj egy első homiletikai vázlatot. "
-            "Ide kerülhet a tételmondat, az ív, a fő pontok, átvezetések, "
-            "képek, alkalmazási irányok."
-        ),
-    )
-    st.session_state["outline_draft"] = outline_draft_current
-
-    has_draft = bool(outline_draft_current.strip())
-
-    st.divider()
-    st.subheader("2. Iteratív homiletikai műhely")
-    st.caption(
-        "A kérdések nem kerülnek bele automatikusan a vázlatba. Előbb válaszolsz "
-        "rájuk, majd külön kérheted az átdolgozást."
-    )
-
-    question_running = bool(st.session_state.get("_outline_questions_running"))
-    if st.button(
-        "Segíts továbbgondolni",
-        key="outline_questions_btn",
-        disabled=question_running or not has_draft,
-    ):
-        question_prompt = f"""
-Egy prédikációs vázlatot műhelyezünk. Ne írd át a vázlatot.
-Csak tegyél fel **pontosan 4** egyszerű, gondolkodtató kérdést.
-
-A kérdések célja brainstorming: segítsék a lelkipásztort abban, hogy
-észrevegye, mit szeretne még jobban kiemelni, elmélyíteni vagy személyesebbé
-tenni a vázlatban és később az igehirdetésben.
-
-Jelenlegi fő vázlat:
-{outline_draft_current}
-
-Kérdésirányok:
-- Mit emelne ki a lelkipásztor leginkább ebből az igéből?
-- Melyik pontot lenne érdemes még elmélyíteni vagy konkrétabbá tenni?
-- Milyen kérdés, kép, tapasztalat vagy gyülekezeti helyzet kapcsolódhat ehhez?
-- Mi hiányzik még ahhoz, hogy a vázlat élőbb, személyesebb és prédikálhatóbb legyen?
-
-Válaszformátum:
-Csak **4 számozott kérdés** legyen, magyarul.
-Ne adj tanácsot, ne írj új vázlatot, ne fűzz hosszú magyarázatot.
-A kérdések legyenek közérthetőek, természetesek, nem túlbonyolított teológiai kérdések.
-"""
-        st.session_state["_outline_questions_running"] = True
-        try:
-            with st.spinner("Tisztázó kérdések készülnek..."):
-                st.session_state["outline_workshop_questions"] = generate_text(
-                    question_prompt,
-                    tab_label="Vázlat",
-                    use_cache=False,
-                )
-        finally:
-            st.session_state["_outline_questions_running"] = False
-        st.rerun()
-
-    if not has_draft:
-        st.info("Előbb írj vagy generálj egy fő vázlatot.")
-
-    if st.session_state.get("outline_workshop_questions"):
-        st.markdown("#### Tisztázó kérdések")
-        st.markdown('<div class="result-box">', unsafe_allow_html=True)
-        st.markdown(st.session_state["outline_workshop_questions"])
-        st.markdown('</div>', unsafe_allow_html=True)
-
-    answers_current = st.text_area(
-        "Válaszaid, új hangsúlyok, pontosítások, személyes megfigyelések",
-        key="_outline_answers_editor",
-        height=220,
-        placeholder=(
-            "Válaszolj a kérdésekre, vagy írd le, milyen hangsúlyt, személyes "
-            "megfigyelést, gyülekezeti helyzetet, textuális pontosítást szeretnél "
-            "beépíteni az átdolgozásba."
-        ),
-    )
-    st.session_state["outline_workshop_answers"] = answers_current
-
-    rework_running = bool(st.session_state.get("_outline_rework_running"))
-    if st.button(
-        "Vázlat átdolgozása a válaszok alapján",
-        key="outline_rework_btn",
-        disabled=rework_running or not has_draft or not answers_current.strip(),
-    ):
-        rework_prompt = f"""
-Egy prédikációs vázlatot kell **valóban átszerkesztened** a lelkipásztor
-válaszai és új hangsúlyai alapján.
-
-Fontos:
-- NE másold be a válaszokat a vázlat végére.
-- NE csak függeléket írj.
-- Szerkeszd át a teljes vázlatot úgy, hogy a válaszokból származó hangsúlyok
-  szervesen beépüljenek.
-- Tartsd meg a felhasználó saját gondolatait, hangját és eredeti jó meglátásait.
-- Pontosítsd a fő üzenetet (scopus).
-- Rendezd a szerkezetet.
-- Javítsd az átvezetéseket.
-- Szűrd ki a túl általános, moralizáló vagy textustól elszakadó részeket.
-- Ne készíts teljes prédikációt; maradjon műhelyben tovább szerkeszthető vázlat.
-- Ne adj kimondásra kész prédikációs mondatokat; a szöveg maradjon vázlat,
-  nem elmondandó igehirdetés.
-
-Aktuális fő vázlat:
-{outline_draft_current}
-
-AI által korábban feltett tisztázó kérdések:
-{st.session_state.get("outline_workshop_questions", "").strip() or "Nincs külön kérdéslista."}
-
-Felhasználói válaszok, hangsúlyok, pontosítások:
-{answers_current}
-
-Kimenet:
-Adj egy **átdolgozott, egységes prédikációs vázlatot** Markdown formátumban.
-Ne írj meta-kommentárt arról, mit változtattál; csak az átdolgozott vázlatot add.
-"""
-        st.session_state["_outline_rework_running"] = True
-        try:
-            with st.spinner("A vázlat átdolgozása folyamatban..."):
-                reworked = generate_text(
-                    rework_prompt,
-                    tab_label="Vázlat",
-                    use_cache=False,
-                )
-                st.session_state["outline_reworked_draft"] = reworked
-                st.session_state["_outline_reworked_editor"] = reworked
-        finally:
-            st.session_state["_outline_rework_running"] = False
-        st.rerun()
-
-    if st.session_state.get("outline_reworked_draft"):
-        st.markdown("#### Átdolgozott vázlat")
-        reworked_current = st.text_area(
-            "Átdolgozott vázlat (szerkeszthető)",
-            key="_outline_reworked_editor",
-            height=420,
-        )
-        st.session_state["outline_reworked_draft"] = reworked_current
-
-        if st.button(
-            "Átdolgozott vázlat használata",
-            key="outline_accept_reworked_btn",
-            disabled=not reworked_current.strip(),
-        ):
-            st.session_state["outline_draft"] = reworked_current
-            st.session_state["_pending_outline_draft_editor"] = reworked_current
-            st.success("Az átdolgozott vázlat lett a fő vázlat.")
-            st.rerun()
-
-    st.divider()
-    st.subheader("3. Végleges vázlat")
-    final_running = bool(st.session_state.get("_outline_final_running"))
-    if st.button(
-        "Végleges vázlat készítése",
-        type="primary",
-        key="outline_final_btn",
-        disabled=final_running or not has_draft,
-    ):
-        basket_text_final = "\n".join(
-            f"- {source}: {text}"
-            for source, text in st.session_state["basket"]
-        ) or "Nincs külön elem."
-
-        final_prompt = f"""
-Készíts végleges, lelkipásztori használatra alkalmas **prédikációvázlatot**.
-Ez ne legyen kimondásra kész prédikációszöveg: ne adj elmondandó mondatokat,
-ne írj kész bevezetést, átvezetést vagy záróbeszédet.
-
-A feladatod: strukturáld össze az összes eddig generált fül gondolatait,
-a vázlatkosár megtartott elemeit, valamint a Vázlat fülön született
-finomításokat egy szépen felépített, de nem túl bőbeszédű vázlattá.
-
-Nagyon fontos:
-- Ne írj kész prédikációt.
-- Ne adj címjavaslatokat; ez külön gombbal készül.
-- Ne másold be a kérdéseket vagy válaszokat függelékként.
-- A finomításokból származó hangsúlyokat szervesen építsd be a vázlatba.
-- Tartsd meg a felhasználó saját gondolatait és jó meglátásait.
-- Szűrd ki a túl általános, moralizáló vagy textustól elszakadó részeket.
-
-Homiletikai modell:
-{homiletikai_modell}
-
-Az eddigi fülek anyaga:
-
-## Áttekintés
-{st.session_state["overview"]}
-
-## Eredeti szöveg tanulmányozása
-{st.session_state["original_text"]}
-
-## Exegézis
-{st.session_state["exegesis"]}
-
-## Kortörténet
-{st.session_state["history"]}
-
-## Teológia
-{st.session_state["theology"]}
-
-## Illusztrációk
-{st.session_state["illustrations"]}
-
-## Aktualizálás
-{st.session_state["actualization"]}
-
-## Énekajánló
-{st.session_state["songs"]}
-
-## Vázlatkosár megtartott gondolatai
-{basket_text_final}
-
-Aktuális fő vázlat:
-{outline_draft_current}
-
-Vázlat műhely-kérdések:
-{st.session_state.get("outline_workshop_questions", "").strip() or "Nincs külön kérdéslista."}
-
-Felhasználói válaszok és finomítások:
-{st.session_state.get("outline_workshop_answers", "").strip() or "Nincs külön válasz."}
-
-Átdolgozott vázlat, ha készült:
-{st.session_state.get("outline_reworked_draft", "").strip() or "Nincs külön átdolgozott változat."}
-
-A végleges vázlatot pontosan az alábbi szerkezetben add (Markdown formátum):
-
-## Tételmondat (scopus)
-Egyetlen, lényegre törő, teológiailag tartós állítás — a vázlat gerince.
-
-## Az ív — diagnózis → evangéliumi fordulat → Isten válasza
-Mutasd meg, milyen logikai és teológiai mozgás rendezze a prédikációt:
-honnan indul, hol van az evangéliumi fordulat, és hová érkezik.
-
-## Szerkezet
-A választott modell szerint **2–4 pontos vázlat**, mindegyik ponthoz:
-- pont címe (rövid, hangsúlyos),
-- rövid magyarázat arról, mit rendez ez a pont,
-- konkrét textuális vagy teológiai horgony.
-
-## Átvezetési logika
-Ne kész átvezető mondatokat írj, hanem jelezd, hogyan kapcsolódnak a pontok.
-
-## Bevezetési irány
-Lehetséges nyitási irány: kép, kérdés, élethelyzet vagy feszültség.
-Ne fogalmazd meg kész prédikációs szövegként.
-
-## Lezárási irány
-Jelezd, milyen lelki vagy teológiai irányba fusson ki a vázlat.
-Ne írj kész záróbeszédet.
-
-## Alkalmazási pontok
-2–3 konkrét, gyülekezeti életbe illesztett **alkalmazási irány**.
-"""
-        st.session_state["_outline_final_running"] = True
-        try:
-            with st.spinner("Végleges vázlat készül az aktuális fő vázlatból..."):
-                st.session_state["outline"] = generate_text(
-                    final_prompt,
-                    tab_label="Vázlat",
-                    use_cache=False,
-                )
-                st.session_state["outline_title_suggestions"] = ""
-        finally:
-            st.session_state["_outline_final_running"] = False
-        st.rerun()
-
-    if st.session_state["outline"]:
-        st.markdown("#### Végleges vázlat")
-        st.markdown('<div class="result-box">', unsafe_allow_html=True)
-        st.markdown(st.session_state["outline"])
-        st.markdown('</div>', unsafe_allow_html=True)
-
-        title_running = bool(st.session_state.get("_outline_titles_running"))
-        if st.button(
-            "Címjavaslatok",
-            key="outline_title_suggestions_btn",
-            disabled=title_running,
-        ):
-            title_prompt = f"""
-Az alábbi prédikációvázlathoz adj **3–5 címjavaslatot**.
-
-Fontos:
-- Ne írj új vázlatot.
-- Ne bővítsd az igehirdetést.
-- Csak címeket adj, mindegyikhez legfeljebb egy rövid indoklással.
-- A címek legyenek beszédesek, igehirdetéshez használhatók, de ne hatásvadászok.
-- Legyen köztük visszafogottabb, biblikusabb és képszerűbb lehetőség is.
-
-Igeszakasz:
-{st.session_state.get("last_igehely", "")}
-
-Végleges vázlat:
-{st.session_state["outline"]}
-
-Válaszformátum:
-## Címjavaslatok
-1. **Cím** — rövid indoklás.
-2. **Cím** — rövid indoklás.
-"""
-            st.session_state["_outline_titles_running"] = True
-            try:
-                with st.spinner("Címjavaslatok készülnek..."):
-                    st.session_state["outline_title_suggestions"] = generate_text(
-                        title_prompt,
-                        tab_label="Vázlat",
-                        use_cache=False,
-                    )
-            finally:
-                st.session_state["_outline_titles_running"] = False
-            st.rerun()
-
-        if st.session_state.get("outline_title_suggestions"):
-            if st.session_state["outline_title_suggestions"].startswith(("⚠️", "⏳")):
-                st.warning(st.session_state["outline_title_suggestions"])
-            else:
-                st.markdown('<div class="result-box">', unsafe_allow_html=True)
-                st.markdown(st.session_state["outline_title_suggestions"])
-                st.markdown('</div>', unsafe_allow_html=True)
-
+    if outline_has_content(outline):
+        st.markdown("### Vázlat előnézete")
+        render_compact_sermon_outline(outline)
+        body = outline_canonical_text(outline)
+        if body and not str(st.session_state.get("outline") or "").strip():
+            st.session_state["outline"] = body
         st.divider()
-        st.subheader("Letöltés és megosztás")
-        st.caption(
-            "A vázlat, a vázlatkosár tartalma és (ha van) az énekajánlás "
-            "**Word (.docx)** formátumban tölthető le — címsor-stílusokkal, "
-            "kiemelt igehellyel, tagolt listákkal, UTF-8 ékezetekkel; "
-            "Word/LibreOffice-ban azonnal megnyitható, nyomtatható vagy telefonra küldhető."
+        st.subheader("Letöltés")
+        _verse_clean = (
+            (st.session_state.get("last_igehely") or "vazlat")
+            .replace(" ", "_")
+            .replace("/", "-")
+            .replace(",", "")
+            .replace(":", "-")
         )
-
-        _verse_clean = (st.session_state.get("last_igehely") or "vazlat").replace(" ", "_").replace("/", "-").replace(",", "").replace(":", "-")
         _ts = datetime.now().strftime("%Y%m%d-%H%M")
         _filename_docx = f"textus-vazlat-{_verse_clean}-{_ts}.docx"
-
         try:
+            if not str(st.session_state.get("outline") or "").strip():
+                st.session_state["outline"] = body
             _docx_bytes = build_outline_docx()
             st.download_button(
                 label="Vázlat letöltése (Word)",
@@ -7869,8 +7492,8 @@ Válaszformátum:
             st.error(
                 "A Word-export átmenetileg nem érhető el. Kérlek, próbáld újra később."
             )
-    else:
-        st.info("Még nincs végleges vázlat. A véglegesítés mindig a fenti fő vázlat aktuális tartalmából készül.")
+    elif readiness.ok:
+        st.caption("Még nincs összeállított vázlat — indítsd a készítést.")
 
 
 # =========================================================

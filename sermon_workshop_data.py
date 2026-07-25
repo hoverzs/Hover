@@ -278,6 +278,12 @@ def empty_sermon_outline() -> dict[str, Any]:
         "suggested_text_boundary": "",
         # Kanonikus, olvasható vázlatszöveg — előnézet / szerkesztés / diagnosztika.
         "content": "",
+        # Közös motor struktúrája (points / focus_sentence / …).
+        "structured": {},
+        # Belépési pont: quick | workshop
+        "source": "",
+        # Forrásanyag-hash a frissítési figyelmeztetéshez.
+        "context_hash": "",
         "movements": [],
         "extra_enrichment": {
             "images": [],
@@ -418,6 +424,8 @@ def normalize_sermon_outline(raw: Any) -> dict[str, Any]:
         "manual_notes",
         "text_boundary_note",
         "suggested_text_boundary",
+        "source",
+        "context_hash",
     ):
         if key in raw:
             out[key] = _as_str(raw.get(key))
@@ -428,6 +436,13 @@ def normalize_sermon_outline(raw: Any) -> dict[str, Any]:
         out["sermon_title"] = _as_str(raw.get("title"))
     if not out["passage_reference"] and raw.get("text_reference"):
         out["passage_reference"] = _as_str(raw.get("text_reference"))
+    if out["source"] not in ("quick", "workshop", ""):
+        out["source"] = ""
+    structured_raw = raw.get("structured")
+    out["structured"] = dict(structured_raw) if isinstance(structured_raw, dict) else {}
+    # Legacy freeform Markdown project outline → content-only shell
+    if not out["content"] and isinstance(raw.get("outline"), str) and raw.get("outline"):
+        out["content"] = _as_str(raw.get("outline"))
     out["title_suggestions"] = _normalize_str_list(
         raw.get("title_suggestions"), max_items=5
     )
@@ -440,7 +455,7 @@ def normalize_sermon_outline(raw: Any) -> dict[str, Any]:
             raw.get("refinement_suggestions"), max_items=2
         )
     status = _as_str(raw.get("status")) or "draft"
-    if status not in ("draft", "approved", "empty", ""):
+    if status not in ("draft", "approved", "empty", "needs_refresh", ""):
         status = "draft"
     out["status"] = status or "draft"
     out["manually_edited"] = bool(raw.get("manually_edited"))
@@ -1118,7 +1133,7 @@ def normalize_sermon_workshop(data: Any) -> dict[str, Any]:
     sermon_path_status = _norm_status(data.get("sermon_path_status"))
 
     outline_status = _as_str(data.get("sermon_outline_status")) or "draft"
-    if outline_status not in ("draft", "approved", "empty", ""):
+    if outline_status not in ("draft", "approved", "empty", "needs_refresh", ""):
         outline_status = "draft"
 
     return {
@@ -2043,7 +2058,7 @@ def save_sermon_outline(
     if mark_manual_edit:
         normalized["manually_edited"] = True
     status = _as_str(normalized.get("status")) or "draft"
-    if status not in ("draft", "approved", "empty", ""):
+    if status not in ("draft", "approved", "empty", "needs_refresh", ""):
         status = "draft"
     # Üres tartalom soha ne maradjon approved.
     try:

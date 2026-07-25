@@ -2753,6 +2753,7 @@ def _assemble_and_save_outline(
             generate_fn=generate_fn,
             force_overwrite=force_overwrite,
             polish=False,
+            mode="workshop",
         )
         if not result.ok:
             st.warning(result.error_message or "A vázlat összeállítása nem sikerült.")
@@ -3528,9 +3529,8 @@ def render_outline_section(
     render_work_section(
         title="Igehirdetési vázlat",
         body=(
-            "Nem szükséges minden műhelyszakaszt kitölteni. Az alkalmazás az "
-            "aktuálisan rendelkezésre álló anyagból állít össze használható "
-            "munkavázlatot."
+            "A teljes műhelyanyagból összeállított, szerkeszthető és "
+            "jóváhagyható vázlat."
         ),
         context="Igehirdetési műhely",
     )
@@ -3551,6 +3551,20 @@ def render_outline_section(
             st.warning("A vázlatot újra össze kell állítani.")
 
     outline = normalize_sermon_outline(sw.get("sermon_outline"))
+    try:
+        from sermon_outline_engine import REFRESH_NOTICE, outline_needs_refresh
+        from sermon_workshop_outline_ai import collect_available_sermon_material
+
+        bundle = collect_available_sermon_material(st.session_state, sermon_workshop=sw)
+        if outline_has_content(outline) and outline_needs_refresh(outline, bundle):
+            if str(outline.get("status") or "") != "needs_refresh":
+                outline["status"] = "needs_refresh"
+                sw["sermon_outline"] = outline
+                sw["sermon_outline_status"] = "needs_refresh"
+            st.info(REFRESH_NOTICE)
+    except Exception:  # noqa: BLE001
+        pass
+
     has_outline = outline_has_content(outline)
     manually_edited = bool(outline.get("manually_edited"))
     need_confirm = bool(st.session_state.get(_CONFIRM_OUTLINE_OVERWRITE))

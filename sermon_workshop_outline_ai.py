@@ -1118,13 +1118,23 @@ def _movement_development_paragraphs(mv: Mapping[str, Any]) -> list[str]:
 def outline_to_readable_content(outline: Any) -> str:
     """Kanonikus szószéki HOMILETIKAI VÁZLAT — tiszta, emberi nyelvű szöveg.
 
-    Főnézet mezői: cím, textus, fókuszmondat, bevezető irány, 2–4 főpont,
-    megérkezés. Nincs `##` fejléc, nincs technikai mezőnév, nincs üres
-    adatlap-címke. A Továbbgondolható tippek NEM részei a vázlat testének.
+    Ha van közös motor `structured` payload, abból renderel; különben a
+    legacy movements sémából. Nincs mezőnév, nincs meta-fejezet.
     """
     import re
 
     safe = outline if isinstance(outline, dict) else {}
+    structured = safe.get("structured") if isinstance(safe.get("structured"), dict) else {}
+    if structured.get("points") or structured.get("focus_sentence"):
+        try:
+            from sermon_outline_engine import render_structured_outline
+
+            text = render_structured_outline(structured)
+            if text.strip():
+                return text
+        except Exception:  # noqa: BLE001
+            pass
+
     blocks: list[str] = []
 
     def _section(label: str, body: str) -> None:
@@ -1194,8 +1204,16 @@ def outline_to_readable_content(outline: Any) -> str:
         if is_banned_outline_placeholder(mv_title):
             continue
         paras = _movement_development_paragraphs(mv)
+        core = _usable_text(mv.get("core_content"))
+        if not paras and core:
+            paras = [core]
         if not paras:
             continue
+        # Prefer thesis + short subpoints; avoid multi-paragraph expansion
+        if core and all(_normalize_cmp(p) != _normalize_cmp(core) for p in paras):
+            body_lead = [core]
+        else:
+            body_lead = []
         anchor = _usable_text(mv.get("textual_anchor")) or _usable_text(
             mv.get("textual_basis")
         )
@@ -1208,27 +1226,33 @@ def outline_to_readable_content(outline: Any) -> str:
             ]
             if apps:
                 insight = apps[0]
-        # Ne ismételjük az insightet a bulletök között
         if insight:
             insight_n = _normalize_cmp(insight)
             paras = [p for p in paras if _normalize_cmp(p) != insight_n]
         paras = paras[:3]
-        if not paras:
+        if not paras and not body_lead:
             continue
 
         body_parts: list[str] = []
         if anchor:
             body_parts.append(f"*{anchor}*")
-        # Bullet forma: fejlődő pontok, nem prédikációs bekezdések
+        for p in body_lead:
+            body_parts.append(p)
         for p in paras:
             if anchor and _normalize_cmp(p) == _normalize_cmp(anchor):
                 continue
             cleaned = re.sub(r"^[-•*]\s+", "", p).strip()
+            # One sentence max per bullet — trim multi-paragraph sermon prose
+            if "\n\n" in cleaned:
+                cleaned = cleaned.split("\n\n")[0].strip()
+            sentences = re.split(r"(?<=[.!?])\s+", cleaned)
+            if len(sentences) > 1 and len(cleaned.split()) > 35:
+                cleaned = sentences[0].strip()
             if cleaned:
                 body_parts.append(f"- {cleaned}")
         if insight:
             body_parts.append(f"*{insight}*")
-        blocks.append(f"**{idx}. {mv_title}**\n\n" + "\n\n".join(body_parts))
+        blocks.append(f"**{idx}. {mv_title}**\n\n" + "\n".join(body_parts))
 
     conclusion = (
         safe.get("conclusion") if isinstance(safe.get("conclusion"), dict) else {}
@@ -1258,7 +1282,6 @@ def outline_to_readable_content(outline: Any) -> str:
     _section("Megérkezés", "\n\n".join(arrival_parts))
 
     text = "\n\n".join(blocks).strip()
-    # Védőháló: sem ##, sem tiltott sablon
     if "##" in text:
         text = re.sub(r"(?m)^#{1,6}\s*", "", text)
     for banned in OUTLINE_PLACEHOLDER_BANLIST:
@@ -2143,131 +2166,41 @@ def assemble_sermon_outline(
     force_overwrite: bool = False,
     polish: bool = False,
     synthesize: bool = True,
+    mode: str = "workshop",
 ) -> OutlineAssemblyResult:
-    """Összeállítja a vázlatot a rendelkezésre álló anyagból.
+    """Összeállítja a vázlatot — egyetlen közös motor (`sermon_outline_engine`).
 
-    Nem módosítja a forrás műhelymezőket. Részleges munkafolyamat esetén
-    is működik — egyetlen összegző MI-hívással kiegészítheti a hiányzó
-    szerkezeti kapcsolatokat a vázlatban.
+    A `polish` / `synthesize` flag-ek visszafelé kompatibilisek; a generálás
+    mindig a közös JSON sémán és hard validáción megy keresztül.
     """
+    from sermon_outline_engine import generate_sermon_outline
+
     ensure_sermon_workshop_state(session_state)
-    sw = session_state[SERMON_WORKSHOP_KEY]
-    readiness = assess_outline_readiness(session_state, sermon_workshop=sw)
-    if not readiness.ok:
-        return OutlineAssemblyResult(
-            outline=normalize_sermon_outline(sw.get("sermon_outline")),
-            ok=False,
-            error_message=readiness.message or EMPTY_PROJECT_MESSAGE,
-        )
-
-    existing = normalize_sermon_outline(sw.get("sermon_outline"))
-    manually_edited = bool(
-        existing.get("manually_edited")
-        or _s(sw.get("sermon_outline_status")) == "approved"
+    # synthesize=False + generate_fn=None: deterministic heuristic only (tests)
+    use_fn = generate_fn if synthesize else None
+    if not synthesize and generate_fn is not None and polish:
+        use_fn = generate_fn
+    # When synthesize=False we still want heuristic structured outline without AI
+    result = generate_sermon_outline(
+        session_state,
+        mode=mode if mode in ("quick", "workshop", "standard") else "workshop",
+        generate_fn=use_fn if synthesize else None,
+        force_overwrite=force_overwrite,
     )
-    if (
-        outline_has_content(existing)
-        and manually_edited
-        and not force_overwrite
-    ):
-        return OutlineAssemblyResult(
-            outline=existing,
-            ok=False,
-            error_message=(
-                "A vázlat kézzel szerkesztve van. "
-                "Frissítéshez használd: „Vázlat frissítése a meglévő anyagból”."
-            ),
-            overwritten_manual_edit=False,
-        )
-
-    bundle = collect_available_sermon_material(session_state, sermon_workshop=sw)
-    outline = build_outline_from_workshop(session_state, sermon_workshop=sw)
-    warnings: list[str] = []
-
-    if synthesize:
-        # Kétfázisú homiletikai szintézis (szerkesztő + opcionális lektor).
-        # generate_fn nélkül a helyi seed marad (offline / teszt).
-        # AI minőségi bukás esetén ne mentünk használhatatlan vázlatot „kész”-ként.
-        try:
-            from sermon_workshop_outline_synth_ai import (
-                SOFT_QUALITY_ISSUES,
-                assess_outline_quality_issues,
-                run_two_phase_outline_synthesis,
-            )
-
-            outline, synth_warnings = run_two_phase_outline_synthesis(
-                outline, bundle, generate_fn=generate_fn
-            )
-            warnings.extend(
-                w for w in synth_warnings if not str(w).startswith("QUALITY_GATE_FAILED:")
-            )
-            quality_failed = any(
-                str(w).startswith("QUALITY_GATE_FAILED:") for w in synth_warnings
-            )
-            remaining_ai = [
-                i
-                for i in assess_outline_quality_issues(
-                    outline, for_ai_output=True, bundle=bundle
-                )
-                if i not in SOFT_QUALITY_ISSUES
-            ]
-            if generate_fn is not None and (quality_failed or remaining_ai):
-                return OutlineAssemblyResult(
-                    outline=normalize_sermon_outline(sw.get("sermon_outline")),
-                    ok=False,
-                    error_message=(
-                        "A vázlatgenerálás nem adott szószéken használható eredményt. "
-                        "Próbáld újra."
-                    ),
-                    warnings=warnings,
-                )
-        except Exception as exc:  # noqa: BLE001
-            if generate_fn is not None:
-                return OutlineAssemblyResult(
-                    outline=normalize_sermon_outline(sw.get("sermon_outline")),
-                    ok=False,
-                    error_message=(
-                        "A vázlat AI-szintézise sikertelen. "
-                        f"Próbáld újra. ({exc})"
-                    ),
-                    warnings=warnings,
-                )
-            warnings.append(f"Szintézis tartalék módra váltott: {exc}")
-            outline, synth_warnings = _synthesize_outline_gaps(
-                outline, bundle, generate_fn=generate_fn
-            )
-            warnings.extend(synth_warnings)
-
-    if polish:
+    # Optional legacy polish path unused by UI; keep no-op unless explicitly requested
+    outline = result.outline
+    warnings = list(result.warnings)
+    if polish and synthesize and generate_fn is not None and result.ok:
         outline, polish_warnings = _optional_polish(outline, generate_fn=generate_fn)
         warnings.extend(polish_warnings)
-
-    # Ne jelenjen meg „hiányos műhely” jellegű figyelmeztetés, ha van tipp.
-    if outline_has_provisional_bridges(outline) and not (
-        outline.get("editorial_tips") or []
-    ):
-        notice = PROVISIONAL_NOTICE
-        if notice not in warnings:
-            warnings.append(notice)
-
-    outline = sync_outline_content(outline, force=True)
-    outline["needs_rebuild"] = False
-    if not outline_has_content(outline):
-        return OutlineAssemblyResult(
-            outline=normalize_sermon_outline(sw.get("sermon_outline")),
-            ok=False,
-            error_message=(
-                "Nem jött létre olvasható vázlattartalom a rendelkezésre álló "
-                "anyagból. " + EMPTY_PROJECT_MESSAGE
-            ),
-            warnings=warnings,
-        )
+        outline = sync_outline_content(outline, force=True)
 
     return OutlineAssemblyResult(
         outline=outline,
-        ok=True,
+        ok=result.ok,
+        error_message=result.error_message,
         warnings=warnings,
-        overwritten_manual_edit=bool(manually_edited and force_overwrite),
+        overwritten_manual_edit=result.overwritten_manual_edit,
     )
 
 
