@@ -26,7 +26,10 @@ from occasion_context import (
 from passage_search_ai import suggest_passages_for_occasion
 from passage_search_config import OCCASION_OPTIONS
 from sermon_workshop_outline_ai import collect_outline_context_bundle
-from sermon_workshop_outline_synth_ai import _occasion_block_for_prompt
+from sermon_workshop_outline_synth_ai import (
+    outline_length_profile,
+    resolve_outline_occasion,
+)
 from workspace_data import build_project_data, sanitize_project_data
 
 
@@ -341,9 +344,14 @@ def test_outline_bundle_and_synth_prompt_get_occasion_context():
     assert bundle["occasion_context"]["fields"]["deceased_name"] == "Kovács János"
     assert bundle.get("passage_search_occasion") == "Temetés"
 
-    block = _occasion_block_for_prompt(bundle)
-    assert "pásztori alkalmazási kontextus" in block or "ALKALMI KONTEXTUS" in block
-    assert "Kovács" in block or "Temetés" in block
+    occ = resolve_outline_occasion(bundle)
+    profile = outline_length_profile(occ)
+    assert "Temetés" in str(profile.get("occasion") or occ) or "temetés" in str(
+        occ
+    ).casefold()
+    pastoral = format_occasion_context_for_prompt(bundle["occasion_context"])
+    assert "pásztori alkalmazási kontextus" in pastoral or "ALKALMI KONTEXTUS" in pastoral
+    assert "Kovács" in pastoral or "Temetés" in pastoral
 
 
 def test_virraszto_still_in_options_regression():

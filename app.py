@@ -7488,10 +7488,17 @@ with tabs[7]:
                 key="outline_download_docx",
                 type="primary",
             )
-        except ImportError:
-            st.error(
-                "A Word-export átmenetileg nem érhető el. Kérlek, próbáld újra később."
+        except ImportError as _docx_exc:
+            import logging as _logging
+
+            _logging.getLogger(__name__).exception(
+                "Word export unavailable (python-docx): %s", _docx_exc
             )
+            st.error(
+                "A Word-export jelenleg nem érhető el. Az alkalmazás egyik dokumentumkezelő összetevője hiányzik."
+            )
+            with st.expander("Technikai részletek", expanded=False):
+                st.caption("Hiányzó függőség: python-docx")
     elif readiness.ok:
         st.caption("Még nincs összeállított vázlat — indítsd a készítést.")
 
