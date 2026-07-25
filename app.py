@@ -226,6 +226,7 @@ GEMINI_MODEL_BY_TAB_LABEL: dict[str, str] = {
     "Illusztrációk": GEMINI_MODEL_FLASH_LITE,
     "Aktualizálás": GEMINI_MODEL_FLASH_LITE,
     "Vázlat": GEMINI_MODEL_FLASH_LITE,
+    "Igehirdetési vázlat": GEMINI_MODEL_FLASH_LITE,
     "Énekajánló": GEMINI_MODEL_FLASH_LITE,
     "Prédikációvázlat": GEMINI_MODEL_FLASH_LITE,
     "Igehirdetési sorozat tervező": GEMINI_MODEL_SERIES_PLANNER,
@@ -5702,6 +5703,7 @@ def _build_payload(
     *,
     system_bundle: str | None = None,
     include_brevity_directive: bool = True,
+    max_output_tokens: int | None = None,
 ) -> dict:
     """Összeállítja a Gemini REST kérés JSON body-ját (`model` = Flash vagy Flash Lite).
 
@@ -5710,8 +5712,8 @@ def _build_payload(
     (pl. sorozattervező saját rendszerpromptja). `include_brevity_directive=False`
     esetén a rövid válasz direktíva nem kerül a promptba.
 
-    Nem állítunk `generationConfig.maxOutputTokens` mezőt; a válaszhosszt
-    promptszinten szabályozzuk.
+    `max_output_tokens`: opcionális plafon (pl. vázlatmotor); egyébként nincs
+    alkalmazásszintű tokenlimit — a válaszhosszt promptszinten szabályozzuk.
     Google Search grounding: `google_search` tool, ha `enable_google_search`.
     """
     task_block = (
@@ -5733,11 +5735,14 @@ def _build_payload(
         body_parts.append(task_block)
         final_prompt = "\n\n".join(body_parts)
 
+    gen_cfg: dict = {
+        "temperature": st.session_state.get("temperature", 0.3),
+    }
+    if max_output_tokens is not None and int(max_output_tokens) > 0:
+        gen_cfg["maxOutputTokens"] = int(max_output_tokens)
     payload = {
         "contents": [{"parts": [{"text": final_prompt}]}],
-        "generationConfig": {
-            "temperature": st.session_state.get("temperature", 0.3),
-        },
+        "generationConfig": gen_cfg,
     }
     if enable_google_search:
         payload["tools"] = [_google_search_tool_for_model(model)]
@@ -5756,6 +5761,7 @@ def generate_text(
     truncation_notice_mode: str = "always",
     incomplete_response_message: str | None = None,
     bypass_cooldown: bool = False,
+    max_output_tokens: int | None = None,
 ):
     """EGYETLEN logikai Gemini-hívás — gomb-szintű egyediség garantált.
 
@@ -5779,6 +5785,7 @@ def generate_text(
 
     `system_bundle` / `include_brevity_directive`:
     speciális fülekhez (pl. sorozattervező) — lásd `_build_payload`.
+    `max_output_tokens`: opcionális (pl. vázlatmotor); None = nincs plafon.
     """
     api_key = _resolve_api_key().strip()
     if not api_key:
@@ -5796,6 +5803,7 @@ def generate_text(
     if system_bundle is not None:
         _sys_key = _hash_prompt(system_bundle)[:12]
     _brv = "1" if include_brevity_directive else "0"
+    _tok = str(int(max_output_tokens)) if max_output_tokens else "0"
     _trunc_key = _hash_prompt(
         f"{truncation_message or 'default'}|{truncation_notice_mode}|"
         f"{incomplete_response_message or 'allow_partial'}"
@@ -5804,7 +5812,7 @@ def generate_text(
         prompt,
         extra=(
             f"{model}|{st.session_state.get('temperature', 0.3)}|"
-            f"{_sys_key}|{_brv}|{_trunc_key}"
+            f"{_sys_key}|{_brv}|{_tok}|{_trunc_key}"
         ),
     )
 
@@ -5856,6 +5864,7 @@ def generate_text(
             model,
             system_bundle=system_bundle,
             include_brevity_directive=include_brevity_directive,
+            max_output_tokens=max_output_tokens,
         )
 
         # log: BEFORE (kulcsforrás + auth még függőben)

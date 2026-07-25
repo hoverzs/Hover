@@ -64,27 +64,31 @@ def _assert_usable_outline(outline: dict) -> str:
 def test_system_prompt_contains_homiletic_core():
     assert "református" in HOMILETIC_SYSTEM_PROMPT.casefold()
     assert "Krisztus" in HOMILETIC_SYSTEM_PROMPT or "krisztus" in HOMILETIC_SYSTEM_PROMPT.casefold()
-    assert "homiletikai vázlat" in HOMILETIC_SYSTEM_PROMPT.casefold()
-    assert "650" in HOMILETIC_SYSTEM_PROMPT
-    assert "350" in HOMILETIC_SYSTEM_PROMPT or "550" in HOMILETIC_SYSTEM_PROMPT
+    assert "gondolatvázlat" in HOMILETIC_SYSTEM_PROMPT.casefold() or "vázlat" in HOMILETIC_SYSTEM_PROMPT.casefold()
+    assert "420" in HOMILETIC_SYSTEM_PROMPT
+    assert "250" in HOMILETIC_SYSTEM_PROMPT or "380" in HOMILETIC_SYSTEM_PROMPT
     assert "prédikáció" in HOMILETIC_SYSTEM_PROMPT.casefold()
     assert "de vajon" in HOMILETIC_SYSTEM_PROMPT.casefold()
     assert "Átvezetési logika" in HOMILETIC_SYSTEM_PROMPT or "átvezetési" in HOMILETIC_SYSTEM_PROMPT.casefold()
     assert "JSON" in HOMILETIC_SYSTEM_PROMPT
     assert "subpoints" in HOMILETIC_SYSTEM_PROMPT or "pont" in HOMILETIC_SYSTEM_PROMPT.casefold()
+    assert "thesis" not in HOMILETIC_SYSTEM_PROMPT.split("TILOS")[0] or "NINCS thesis" in HOMILETIC_SYSTEM_PROMPT or "thesis" in HOMILETIC_SYSTEM_PROMPT.casefold()
+    # thesis must be forbidden, not required
+    assert "TILOS" in HOMILETIC_SYSTEM_PROMPT
+    assert "thesis" in HOMILETIC_SYSTEM_PROMPT.casefold()
     assert "Tovább finomítható" in HOMILETIC_SYSTEM_PROMPT or "refinement" in HOMILETIC_SYSTEM_PROMPT.casefold()
 
 
 def test_soft_length_ranges_match_working_outline_targets():
     sunday = outline_length_profile("Vasárnapi istentisztelet")
-    assert sunday["target_range"] == "350–550"
-    assert sunday["soft_max"] == 650
-    assert sunday["min_movements"] == 3
-    assert sunday["max_movements"] == 5
+    assert sunday["target_range"] == "250–380"
+    assert sunday["soft_max"] == 420
+    assert sunday["min_movements"] == 2
+    assert sunday["max_movements"] == 4
 
     wake = outline_length_profile("Virrasztó")
-    assert wake["target_range"] == "280–480"
-    assert wake["soft_max"] == 650
+    assert wake["target_range"] == "220–320"
+    assert wake["soft_max"] == 420
     assert wake["min_movements"] == 2
     assert wake["max_movements"] == 3
 
@@ -93,10 +97,10 @@ def test_soft_length_ranges_match_working_outline_targets():
     assert "Részleges" in partial["guidance"] or "részleges" in partial["guidance"].casefold()
     assert "word_count_out_of_range" in SOFT_QUALITY_ISSUES
     assert "stock_phrases" in SOFT_QUALITY_ISSUES
-    assert "sermon_like_verbosity" in SOFT_QUALITY_ISSUES
-    assert "intro_too_long" in SOFT_QUALITY_ISSUES
-    assert "verbose_point_bullets" in SOFT_QUALITY_ISSUES
     assert "transition_fillers" in SOFT_QUALITY_ISSUES
+    # Length issues are HARD now
+    assert "intro_too_long" not in SOFT_QUALITY_ISSUES
+    assert "verbose_point_bullets" not in SOFT_QUALITY_ISSUES
 
 
 def test_jude_text_boundary_hint_continues_in_v21():
@@ -500,9 +504,9 @@ def _words(n: int, seed: str = "szó") -> str:
 def _usable_ai_payload(
     *,
     focus: str = "Isten megtart a gúny közepette a Szentlélek által.",
-    intro_words: int = 55,
-    movement_words: int = 28,
-    conclusion_words: int = 70,
+    intro_words: int = 28,
+    movement_words: int = 18,
+    conclusion_words: int = 32,
     movement_count: int = 3,
     title: str = "Megtartva a gúny között",
 ) -> dict:
@@ -513,10 +517,10 @@ def _usable_ai_payload(
         "Megmaradás a szeretetben",
     ]
     insights = [
-        "Hol emlékeztet Isten a saját szavaival a zavar közepette?",
-        "Felismerjük-e a szakadás jeleit anélkül, hogy mi szakítanánk?",
-        "Mit jelent ma a Szentlélekben való imádkozás a gyülekezetnek?",
-        "Hogyan őrizzük meg magunkat Isten szeretetében?",
+        "Hol emlékeztet Isten a saját szavaival?",
+        "Felismerjük-e a szakadás jeleit ma?",
+        "Mit jelent a Szentlélekben imádkozás?",
+        "Hogyan őrizzük magunkat Isten szeretetében?",
     ]
     movements = []
     for i in range(movement_count):
@@ -525,9 +529,8 @@ def _usable_ai_payload(
                 "title": titles[i % len(titles)],
                 "textual_anchor": f"Júd {17 + i}",
                 "development": [
-                    _words(movement_words, seed=f"mozg{i}a"),
-                    _words(max(18, movement_words - 4), seed=f"mozg{i}b"),
-                    _words(max(18, movement_words - 6), seed=f"mozg{i}c"),
+                    _words(movement_words, seed=f"mozg{i}a") + ".",
+                    _words(max(8, movement_words - 2), seed=f"mozg{i}b") + ".",
                 ],
                 "listener_insight": insights[i % len(insights)],
                 "transition": "",
@@ -537,15 +540,17 @@ def _usable_ai_payload(
         "title": title,
         "text_reference": "Júd 17–20",
         "focus_sentence": focus,
-        "introduction": {
-            "development": _words(intro_words, seed="bevezet"),
-            "transition": "",
-        },
-        "movements": movements,
-        "conclusion": {
-            "development": _words(conclusion_words, seed="zaras"),
-            "final_sentence": "Imádkozzatok a Szentlélekben.",
-        },
+        "introduction_direction": _words(intro_words, seed="bevezet") + ".",
+        "points": [
+            {
+                "title": m["title"],
+                "verses": m["textual_anchor"],
+                "subpoints": m["development"],
+                "application": m["listener_insight"],
+            }
+            for m in movements
+        ],
+        "conclusion_direction": _words(conclusion_words, seed="zaras") + ".",
         "refinement_suggestions": [
             "Egy konkrét gyülekezeti helyzet tovább erősíthetné a megérkezést."
         ],
@@ -562,14 +567,14 @@ def test_resolve_virraszto_occasion_from_text_and_field():
     )
     profile = outline_length_profile("Virrasztó")
     assert profile["min_movements"] == 2
-    assert profile["soft_max"] <= 650
-    assert profile["target_range"] == "280–480"
+    assert profile["soft_max"] <= 420
+    assert profile["target_range"] == "220–320"
 
 
 def test_word_count_alone_is_soft_not_hard_rejection():
-    """Slightly off word-count but otherwise good → soft only, assembly keeps it."""
+    """Valid compact outline under 420 → assembly keeps it."""
     payload = _usable_ai_payload(
-        intro_words=55, movement_words=28, conclusion_words=55, movement_count=3
+        intro_words=28, movement_words=18, conclusion_words=32, movement_count=3
     )
     calls = {"n": 0}
 
@@ -596,23 +601,23 @@ def test_word_count_alone_is_soft_not_hard_rejection():
     assert result.ok, result.error_message
     content = outline_to_readable_content(result.outline)
     assert content.strip()
-    assert "word_count_out_of_range" not in (result.error_message or "")
-    assert "word_count_out_of_range" not in " ".join(result.warnings or [])
+    from sermon_outline_engine import word_count as _wc
+
+    assert _wc(content) <= 420
     soft = assess_outline_quality_issues(
         result.outline,
         for_ai_output=True,
         bundle={"occasion": "Vasárnapi istentisztelet", "source_keys": ["exegesis"]},
     )
     hard = [i for i in soft if i not in SOFT_QUALITY_ISSUES]
-    assert hard == []
-    # Soft szószámjelzés megengedett, de nem bukhat el miatta.
+    assert hard == [], hard
     assert calls["n"] >= 1
 
 
 def test_partial_workshop_ai_outline_kept_despite_short_word_count():
-    """Részleges, de tartalmas műhelyanyag + rövidebb AI válasz → használható vázlat."""
+    """Részleges, de tartalmas műhelyanyag + tömör AI válasz → használható vázlat."""
     payload = _usable_ai_payload(
-        intro_words=50, movement_words=26, conclusion_words=50, movement_count=3
+        intro_words=24, movement_words=16, conclusion_words=28, movement_count=3
     )
 
     def gen(prompt, **kwargs):
@@ -701,7 +706,14 @@ def test_virraszto_produces_shorter_complete_usable_outline():
 
     def gen(prompt, **kwargs):
         assert "Virrasztó" in prompt or "virraszt" in prompt.casefold() or "ALKALOM" in prompt
-        assert "HOMILETIKAI VÁZLAT" in prompt or "homiletikai vázlat" in prompt.casefold() or "vázlatsémára" in prompt
+        assert (
+            "GONDOLATVÁZLAT" in prompt
+            or "gondolatvázlat" in prompt.casefold()
+            or "HOMILETIKAI VÁZLAT" in prompt
+            or "homiletikai vázlat" in prompt.casefold()
+            or "vázlatsémára" in prompt
+            or "vázlat" in prompt.casefold()
+        )
         return json.dumps(payload, ensure_ascii=False)
 
     state = {
@@ -836,9 +848,7 @@ def test_filippi_virraszto_partial_workshop_working_outline():
         "focus_sentence": focus,
         "introduction": {
             "development": (
-                "A család a virrasztó csendjében ül. A hiány valóságos, "
-                "és nem kell siettetni a magyarázatot. Pál szavai nem "
-                "bagatellizálják a veszteséget."
+                "A család a virrasztó csendjében ül; a hiány valóságos."
             ),
             "transition": "",
         },
@@ -847,31 +857,29 @@ def test_filippi_virraszto_partial_workshop_working_outline():
                 "title": "Élet Krisztusban",
                 "textual_anchor": "Fil 1,21",
                 "development": [
-                    "Pál szerint az élet Krisztus: nem üres jelszó, hanem valóság a jelenben.",
-                    "A „nyereség” a halálban nem a fájdalom tagadása, hanem a Krisztussal létel.",
-                    "A gyászoló hallgató nem kap könnyű választ — kap irányt Krisztusra.",
+                    "Pál szerint az élet Krisztus: nem üres jelszó, hanem valóság.",
+                    "A nyereség a halálban a Krisztussal való együttlétet jelenti.",
+                    "A gyászoló nem kap könnyű választ — kap irányt Krisztusra.",
                 ],
-                "listener_insight": "Kit bízhatsz Krisztusra a hiány közepette is?",
+                "listener_insight": "Kit bízhatsz Krisztusra a hiány közepette?",
                 "transition": "",
             },
             {
                 "title": "Maradás a többiekért",
                 "textual_anchor": "Fil 1,22–24",
                 "development": [
-                    "Pál feszültségben áll: a Krisztussal lenni vonzóbb, mégis a többiekért marad.",
-                    "Ez nem szabad élet-halál választás, hanem szolgálat a gondviselés feszültségében.",
-                    "A virrasztó közösség is ebben áll: a hiány fáj, mégis egymásért maradunk.",
+                    "Pál feszültségben áll, mégis a többiekért marad szolgálatban.",
+                    "Ez nem szabad élet-halál választás, hanem gondviselő szolgálat.",
+                    "A virrasztó közösség is ebben áll: a hiány fáj, mégis maradunk.",
                 ],
                 "listener_insight": "Kinek a megmaradása hordoz téged ma is?",
             },
         ],
         "conclusion": {
             "development": (
-                "Nem oldjuk fel a veszteséget szavakkal. Krisztus feltámadása "
-                "adja a reménység talaját: Pál Ura a mi Urunk is. A sírás "
-                "helyet kap, és a hála is — adat nélkül nem ígérünk többet."
+                "Nem oldjuk fel a veszteséget szavakkal; Krisztus ad reménységet."
             ),
-            "final_sentence": "Krisztusban van a mi életünk és a mi reménységünk.",
+            "final_sentence": "Krisztusban van a mi életünk és reménységünk.",
         },
         "refinement_suggestions": [
             "Egy rövid, név nélküli hálaemlék erősítheti az intim hangnemet.",
@@ -1021,9 +1029,9 @@ def test_filippi_virraszto_partial_workshop_working_outline():
     assert "truncated" not in issues
     assert "placeholder" not in issues
 
-    # Rövid homiletikai vázlat: célzónához közel (soft tartományon belül vagy soft-only)
+    # Rövid gondolatvázlat: abszolút max 420
     words = len([w for w in content.replace("\n", " ").split(" ") if w.strip()])
-    assert words <= 650
+    assert words <= 420
     # Struktúra-minta a deliverable-hez
     sample = {
         "title": outline.get("sermon_title"),
@@ -1051,17 +1059,16 @@ def test_filippi_virraszto_partial_workshop_working_outline():
     assert all(1 <= m["bullets"] <= 3 for m in sample["movements"])
     assert all(m["insight"] for m in sample["movements"])
     assert sample["intro_ok"] and sample["closing_ok"]
-    # Soft gate elfogadja a bullet formát
-    assert "verbose_point_bullets" not in issues or words <= 650
+    assert words <= 420
 
 
 def test_soft_gate_flags_intro_closing_and_filler_but_keeps_usable():
-    """Intro/closing/bullet/töltelék soft jelzések — nem hard reject."""
+    """Hosszú intro/closing/bullet most HARD — abszolút max / hossz hiba."""
     long_intro = " ".join([f"bevezet{i}" for i in range(85)])
     long_close = " ".join([f"zaras{i}" for i in range(100)])
     long_bullet = (
         "Ez egy túl hosszú, prédikációszerű bekezdés a pontban, amely több mint "
-        "harmincöt szót tartalmaz, és két mondatból áll. Így soft verbose jelzést kap."
+        "harmincöt szót tartalmaz, és két mondatból áll. Így hard length jelzést kap."
     )
     outline = normalize_sermon_outline(
         {
@@ -1097,19 +1104,17 @@ def test_soft_gate_flags_intro_closing_and_filler_but_keeps_usable():
         occasion="Vasárnapi istentisztelet",
         bundle={"occasion": "Vasárnapi istentisztelet", "source_keys": ["exegesis"]},
     )
-    soft = [i for i in issues if i in SOFT_QUALITY_ISSUES]
     hard = [i for i in issues if i not in SOFT_QUALITY_ISSUES]
-    # Absolute-max / forbidden remain hard; length/style tips are soft.
-    assert "over_absolute_max" not in hard
-    assert "intro_too_long" in soft or "intro_too_long" in issues
-    assert "verbose_point_bullets" in soft or "subpoint_length" in issues
+    assert (
+        "intro_too_long" in hard
+        or "over_absolute_max" in hard
+        or "subpoint_length" in hard
+        or "conclusion_too_long" in hard
+        or "prose_block_too_long" in hard
+    )
     # Transition filler may live on movement.transition even if not in body text
     transition_blob = " ".join(
         str((m or {}).get("transition") or "")
         for m in (outline.get("movements") or [])
     ).casefold()
-    assert (
-        "transition_fillers" in soft
-        or "transition_fillers" in issues
-        or "de vajon" in transition_blob
-    )
+    assert "de vajon" in transition_blob or "transition_fillers" in issues

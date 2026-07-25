@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 import re
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -26,35 +27,58 @@ from sermon_workshop_m5_ai import _is_api_error_text
 
 GenerateFn = Callable[..., str]
 
+logger = logging.getLogger("textus.outline")
+
 TAB_OUTLINE = "Igehirdetési vázlat"
 DEFAULT_TEMPERATURE = 0.2
+SCHEMA_VERSION = "pulpit_outline_v3"
+# JSON vázlat: ~420 szó + séma overhead — ne legyen prédikáció-méretű budget.
+OUTLINE_MAX_OUTPUT_TOKENS = 2048
 
 # ---------------------------------------------------------------------------
-# Strict length limits (HARD)
+# Strict length limits (HARD) — szószéki gondolatvázlat, nem rövid prédikáció
 # ---------------------------------------------------------------------------
 
 LIMITS = {
     "title_words": 10,
-    "focus_words": 40,
-    "intro_words": 55,
+    "focus_words": 30,
+    "intro_words": 35,
     "intro_sentences_max": 2,
-    "point_title_words": 12,
-    "thesis_words": 35,
-    "subpoint_min_words": 12,
-    "subpoint_max_words": 30,
-    "application_words": 30,
-    "conclusion_words": 55,
+    "point_title_words": 10,
+    "subpoint_min_words": 4,
+    "subpoint_max_words": 24,
+    "application_words": 22,
+    "conclusion_words": 40,
     "conclusion_sentences_max": 2,
-    "min_points": 3,
-    "max_points": 5,
-    "min_points_exception": 2,  # text structure may require 2
+    "scope_note_words": 25,
+    "min_points": 2,
+    "max_points": 4,
+    "default_points": 3,
     "min_subpoints": 2,
     "max_subpoints": 3,
-    "target_min_words": 350,
-    "target_max_words": 550,
-    "absolute_max_words": 650,
+    "target_min_words": 250,
+    "target_max_words": 380,
+    "absolute_max_words": 420,
+    "max_prose_block_words": 50,
     "refinement_max": 2,
 }
+
+# Prose-bait / legacy fields — soha ne kérjük és ne jelenjenek meg elsődlegesen.
+FORBIDDEN_PAYLOAD_KEYS: frozenset[str] = frozenset(
+    {
+        "body",
+        "content",
+        "exegesis",
+        "theological_expansion",
+        "grace_connection",
+        "listener_connection",
+        "transition_logic",
+        "full_introduction",
+        "full_conclusion",
+        "thesis",
+        "outline_text",
+    }
+)
 
 FORBIDDEN_HEADINGS: tuple[str, ...] = (
     "Mit rendez ez a pont",
@@ -80,64 +104,75 @@ FORBIDDEN_FILLERS: tuple[str, ...] = (
 )
 
 COMPRESS_INSTRUCTION = (
-    "Tartsd meg a gondolati ívet és a textuális tartalmat, de alakítsd át "
-    "szigorúan a megadott vázlatsémára. Töröld az ismétléseket, a magyarázó "
-    "bekezdéseket és a metaszöveget. Ne adj hozzá új teológiai tartalmat."
+    "A vázlat túl hosszú vagy nem felel meg a szigorú sémának. "
+    "Alakítsd át szószéki GONDOLATVÁZLATTA — ne rövid prédikációvá. "
+    "Tartsd meg a gondolati ívet és a textuális tartalmat. "
+    "Töröld az ismétléseket, a magyarázó bekezdéseket és a metaszöveget. "
+    "Ne adj hozzá új teológiai tartalmat. "
+    "Korlátok: látható vázlat cél 250–380 szó, abszolút max 420; "
+    "bevezető irány ≤35 szó; fókusz ≤30; megérkezés ≤40; "
+    "2–4 pont; pontonként pontosan 2–3 alpont; alpont = egy mondat ≤24 szó; "
+    "pontonként legfeljebb 1 alkalmazás ≤22 szó; "
+    "NINCS többbekezdéses próza; NINCS thesis/body/content mező. "
+    "Add vissza CSAK a JSON sémát."
 )
 
-OUTLINE_SYSTEM_PROMPT = """\
+OUTLINE_SYSTEM_PROMPT = f"""\
 SZEREP
 Tapasztalt, textushű, református szemléletű homiletikai szerkesztő vagy.
-Feladatod: szószékre kész HOMILETIKAI VÁZLAT — nem teljes prédikáció,
-nem részletes kommentár, nem diagnosztika, nem metaszöveg a vázlat szerkezetéről.
+Feladatod: szószékre kész GONDOLATVÁZLAT a prédikátor kibontásához —
+NEM teljes prédikáció, NEM rövidített igehirdetés, NEM egzegézis-bekezdés.
+
+SÉMAVERZIÓ: {SCHEMA_VERSION}
 
 KÖTELEZŐ KIMENET
 KIZÁRÓLAG érvényes JSON az alábbi sémával (semmi Markdown, semmi magyarázat):
-{
+{{
   "title": "string",
   "text_reference": "string",
   "scope_note": "string or empty",
   "focus_sentence": "string",
   "introduction_direction": "string",
   "points": [
-    {
+    {{
       "title": "string",
       "verses": "string",
-      "thesis": "string",
-      "subpoints": ["string", "string"],
-      "application": "string or empty"
-    }
+      "subpoints": ["one full sentence", "one full sentence"],
+      "application": "one sentence or empty"
+    }}
   ],
   "conclusion_direction": "string",
-  "refinement_suggestions": ["string"]
-}
+  "refinement_suggestions": []
+}}
 
-HOSSZKORLÁTOK (KÖTELEZŐ)
+HOSSZKORLÁTOK (KÖTELEZŐ — hard fail ha túlléped)
 - title: ≤10 szó
-- focus_sentence: pontosan 1 mondat, ≤40 szó
-- introduction_direction: 1–2 mondat, ≤55 szó
-- points: 3–5 (kivételesen 2, ha a textus szerkezete indokolja)
-- point.title: ≤12 szó
-- point.thesis: ≤35 szó
-- point.subpoints: 2–3; mindegyik pontosan 1 mondat, 12–30 szó
-- point.application: legfeljebb 1 mondat, ≤30 szó (vagy üres)
-- conclusion_direction: 1–2 mondat, ≤55 szó
-- teljes vázlat cél: 350–550 szó; abszolút maximum 650 szó
-- refinement_suggestions: legfeljebb 2 opcionális tipp („Tovább finomítható”);
-  NEM a vázlat teste. Hiányzó műhelyszakaszokat NE említsd.
+- focus_sentence: pontosan 1 mondat, ≤30 szó
+- introduction_direction: ≤35 szó (irányjelzés, nem bevezető beszéd)
+- points: alapértelmezés 3; megengedett 2–4
+- point.title: ≤10 szó
+- point.subpoints: pontosan 2–3; mindegyik pontosan 1 teljes mondat, ≤24 szó
+- point.application: legfeljebb 1 mondat, ≤22 szó (vagy üres)
+- conclusion_direction: ≤40 szó
+- scope_note: csak valódi textushatár-probléma esetén, ≤25 szó; különben üres
+- teljes látható vázlat cél: 250–380 szó; ABSZOLÚT MAXIMUM 420 szó
+- refinement_suggestions: legfeljebb 2 opcionális tipp; NEM a vázlat teste
+
+TILOS A SÉMÁBAN / KIMENETBEN
+body, content, exegesis, theological_expansion, grace_connection,
+listener_connection, transition_logic, full_introduction, full_conclusion,
+thesis, outline_text — ezek prózacsapdák.
+Többbekezdéses folyó szöveg pontok alatt: TILOS.
+„Mit rendez ez a pont”, „Textuális/teológiai horgony”, „Átvezetési logika”,
+„Diagnózis → evangéliumi fordulat”, ismételt magyarázat+alkalmazás,
+retorikai töltelék („de vajon…”, „ez azonban…”, „itt felmerül a kérdés…”),
+kész bevezető/záróbeszéd.
 
 FORRÁSPRIORITÁS
 1 bibliai szöveg/határok → 2 jóváhagyott textus fő gondolat → 3 eredeti/exegetikai
 → 4 történeti/műfaj/szerkezet → 5 jóváhagyott homiletikai döntések → 6 alkalom/bio
 → 7 felhasználói jegyzetek → 8 óvatos MI-összekötés, ha kell.
 
-TILOS A KIMENETBEN
-„Mit rendez ez a pont”, „Textuális/teológiai horgony”, „Átvezetési logika”,
-„Diagnózis → evangéliumi fordulat → Isten válasza”, többbekezdéses egzegézis
-pontonként, ismételt átfogalmazások, retorikai töltelék („de vajon…”,
-„ez azonban…”, „itt felmerül a kérdés…”), hosszú dogmatikai kitérők,
-kész bevezető/záróbeszéd, külön „Alkalmazási pontok” fejezet.
-Versidézet: ne teljes szöveg — hivatkozás + rövid kulcskifejezés, ha kell.
 Krisztus-/kegyelemhorizont: ahol indokolt, de ne mechanikus bekezdés minden pont végén.
 
 A válasz CSAK a JSON objektum.\
@@ -154,12 +189,11 @@ _JSON_SHAPE = """\
     {
       "title": "Pontcím",
       "verses": "v. x–y",
-      "thesis": "Egy mondatos tétel.",
       "subpoints": [
-        "Egy teljes, tartalmas mondat (12–30 szó).",
-        "Második tartalmas mondat (12–30 szó)."
+        "Egy teljes mondat (≤24 szó).",
+        "Második teljes mondat (≤24 szó)."
       ],
-      "application": "Rövid alkalmazás vagy üres."
+      "application": ""
     }
   ],
   "conclusion_direction": "Rövid megérkezés.",
@@ -201,12 +235,48 @@ def _looks_multi_paragraph(text: Any) -> bool:
         return False
     if "\n\n" in raw:
         return True
-    # 3+ mondat egy mezőben → prédikációs bekezdés
     return sentence_count(raw) >= 3 and word_count(raw) > 40
+
+
+def _has_forbidden_keys(raw: Mapping[str, Any]) -> list[str]:
+    found: list[str] = []
+    for key in FORBIDDEN_PAYLOAD_KEYS:
+        if key not in raw:
+            continue
+        # points[].application ok; top-level content/body/thesis not
+        if key == "application":
+            continue
+        val = raw.get(key)
+        if val in (None, "", [], {}):
+            continue
+        if key == "content" and isinstance(val, str) and word_count(val) <= 5:
+            continue
+        found.append(key)
+    for pt in raw.get("points") or []:
+        if not isinstance(pt, dict):
+            continue
+        for key in FORBIDDEN_PAYLOAD_KEYS:
+            if key in ("application",):
+                continue
+            if key in pt and _s(pt.get(key)):
+                # thesis/body inside point is prose-bait
+                if key in {
+                    "body",
+                    "content",
+                    "exegesis",
+                    "theological_expansion",
+                    "grace_connection",
+                    "listener_connection",
+                    "transition_logic",
+                    "thesis",
+                }:
+                    found.append(f"point.{key}")
+    return list(dict.fromkeys(found))
 
 
 def empty_structured_outline() -> dict[str, Any]:
     return {
+        "schema_version": SCHEMA_VERSION,
         "title": "",
         "text_reference": "",
         "scope_note": "",
@@ -219,7 +289,7 @@ def empty_structured_outline() -> dict[str, Any]:
 
 
 def normalize_structured_outline(raw: Any) -> dict[str, Any]:
-    """AI / legacy payload → kanonikus struktúra."""
+    """AI / legacy payload → kanonikus struktúra (thesis nélkül)."""
     base = empty_structured_outline()
     if not isinstance(raw, dict):
         return base
@@ -271,14 +341,23 @@ def normalize_structured_outline(raw: Any) -> dict[str, Any]:
             or item.get("textual_anchor")
             or item.get("textual_basis")
         )
-        thesis = _s(item.get("thesis") or item.get("core_content"))
+        # Legacy thesis/core_content → fold into subpoints (never keep as thesis)
+        legacy_thesis = _s(
+            item.get("thesis") or item.get("core_content") or item.get("body")
+        )
         subs_raw = item.get("subpoints")
         if not isinstance(subs_raw, list) or not subs_raw:
-            subs_raw = item.get("development") if isinstance(item.get("development"), list) else []
-        subpoints = [_s(x) for x in subs_raw if _s(x)][: LIMITS["max_subpoints"]]
-        if not thesis and subpoints:
-            thesis = subpoints[0]
-            subpoints = subpoints[1:] if len(subpoints) > 1 else subpoints
+            subs_raw = (
+                item.get("development")
+                if isinstance(item.get("development"), list)
+                else []
+            )
+        subpoints = [_s(x) for x in subs_raw if _s(x)]
+        if legacy_thesis and all(
+            _normalize_cmp(legacy_thesis) != _normalize_cmp(sp) for sp in subpoints
+        ):
+            subpoints = [legacy_thesis] + subpoints
+        subpoints = subpoints[: LIMITS["max_subpoints"]]
         application = _s(item.get("application"))
         if not application:
             application = _s(item.get("listener_insight")) or _s(
@@ -287,18 +366,18 @@ def normalize_structured_outline(raw: Any) -> dict[str, Any]:
         if not application:
             apps = item.get("applications") if isinstance(item.get("applications"), list) else []
             application = _s(apps[0]) if apps else ""
-        if not title and not thesis and not subpoints:
+        if not title and not subpoints:
             continue
         points.append(
             {
                 "title": title or f"{i}. pont",
                 "verses": verses,
-                "thesis": thesis,
                 "subpoints": subpoints,
                 "application": application,
             }
         )
     out["points"] = points
+    out["schema_version"] = SCHEMA_VERSION
     return out
 
 
@@ -306,6 +385,11 @@ def validate_structured_outline(payload: Any) -> list[str]:
     """Hard validation — bármely találat → érvénytelen (compress / reject)."""
     data = normalize_structured_outline(payload)
     issues: list[str] = []
+
+    if isinstance(payload, dict):
+        forbidden = _has_forbidden_keys(payload)
+        if forbidden:
+            issues.append("forbidden_prose_fields")
 
     if not data["focus_sentence"]:
         issues.append("missing_focus")
@@ -316,6 +400,9 @@ def validate_structured_outline(payload: Any) -> list[str]:
 
     if data["title"] and word_count(data["title"]) > LIMITS["title_words"]:
         issues.append("title_too_long")
+
+    if data["scope_note"] and word_count(data["scope_note"]) > LIMITS["scope_note_words"]:
+        issues.append("scope_note_too_long")
 
     intro = data["introduction_direction"]
     if not intro:
@@ -330,23 +417,14 @@ def validate_structured_outline(payload: Any) -> list[str]:
 
     points = data["points"]
     n = len(points)
-    if n < LIMITS["min_points_exception"]:
+    if n < LIMITS["min_points"]:
         issues.append("too_few_points")
-    elif n < LIMITS["min_points"] and n != LIMITS["min_points_exception"]:
-        # 2 pont csak kivétel — soft jelzés helyett hard, ha 0–1
-        if n < 2:
-            issues.append("too_few_points")
-        elif n == 2:
-            pass  # allowed exception
-        else:
-            issues.append("too_few_points")
     if n > LIMITS["max_points"]:
         issues.append("too_many_points")
 
     titles_seen: set[str] = set()
     for pt in points:
         title = _s(pt.get("title"))
-        thesis = _s(pt.get("thesis"))
         subs = [_s(x) for x in (pt.get("subpoints") or []) if _s(x)]
         app = _s(pt.get("application"))
         tnorm = _normalize_cmp(title)
@@ -357,30 +435,34 @@ def validate_structured_outline(payload: Any) -> list[str]:
         if tnorm in titles_seen:
             issues.append("duplicate_points")
         titles_seen.add(tnorm)
-        if not thesis:
-            issues.append("missing_thesis")
-        elif word_count(thesis) > LIMITS["thesis_words"]:
-            issues.append("thesis_too_long")
+        # Near-duplicate titles
+        for prev in titles_seen - {tnorm}:
+            if prev and tnorm and (prev in tnorm or tnorm in prev):
+                if abs(len(prev) - len(tnorm)) <= 8:
+                    issues.append("duplicate_points")
         if len(subs) < LIMITS["min_subpoints"]:
             issues.append("too_few_subpoints")
         if len(subs) > LIMITS["max_subpoints"]:
             issues.append("too_many_subpoints")
         for sp in subs:
             wc = word_count(sp)
-            if wc < LIMITS["subpoint_min_words"] or wc > LIMITS["subpoint_max_words"]:
+            if wc < LIMITS["subpoint_min_words"]:
+                issues.append("stub_subpoint")
+            if wc > LIMITS["subpoint_max_words"]:
                 issues.append("subpoint_length")
             if sentence_count(sp) != 1:
                 issues.append("subpoint_not_one_sentence")
             if _looks_multi_paragraph(sp):
                 issues.append("multi_paragraph_point")
-            # one-word stubs
-            if wc <= 2:
-                issues.append("stub_subpoint")
+            if wc > LIMITS["max_prose_block_words"]:
+                issues.append("prose_block_too_long")
         if app:
             if word_count(app) > LIMITS["application_words"]:
                 issues.append("application_too_long")
             if sentence_count(app) > 1:
                 issues.append("application_too_many_sentences")
+            if _looks_multi_paragraph(app):
+                issues.append("multi_paragraph_point")
 
     conc = data["conclusion_direction"]
     if not conc:
@@ -397,8 +479,30 @@ def validate_structured_outline(payload: Any) -> list[str]:
     total = word_count(rendered)
     if total > LIMITS["absolute_max_words"]:
         issues.append("over_absolute_max")
-    if total and total < 120:
+    if total and total < 60:
         issues.append("too_thin")
+
+    # Contiguous prose block >50 words (paragraph without bullets)
+    for block in rendered.split("\n\n"):
+        plain = re.sub(r"^[-•*]\s+", "", block.strip(), flags=re.M)
+        plain = re.sub(r"\*\*?|[*_]", "", plain)
+        if word_count(plain) > LIMITS["max_prose_block_words"] and not plain.startswith(
+            ("1.", "2.", "3.", "4.")
+        ):
+            # Allow titled sections only if short; long blocks fail
+            if not plain.startswith("**") and "\n- " not in block and not block.strip().startswith("-"):
+                if not any(
+                    block.strip().startswith(f"**{lab}")
+                    for lab in (
+                        "Cím",
+                        "Textus",
+                        "Fókuszmondat",
+                        "Bevezetés",
+                        "Megérkezés",
+                        "Megjegyzés",
+                    )
+                ):
+                    issues.append("prose_block_too_long")
 
     blob = rendered.casefold()
     for heading in FORBIDDEN_HEADINGS:
@@ -410,16 +514,19 @@ def validate_structured_outline(payload: Any) -> list[str]:
             issues.append("forbidden_filler")
             break
 
-    # Full-sermon heuristics: many long paragraphs
+    # Raw Markdown chapter heuristics
+    if re.search(r"(?m)^#{1,3}\s+\S", rendered) or rendered.count("##") >= 2:
+        issues.append("raw_markdown_chapters")
+
     para_count = len([p for p in rendered.split("\n\n") if len(p) > 80])
-    if para_count >= 10 and total > LIMITS["target_max_words"]:
+    if para_count >= 8 and total > LIMITS["target_max_words"]:
         issues.append("full_sermon_like")
 
     return list(dict.fromkeys(issues))
 
 
 def render_structured_outline(payload: Any) -> str:
-    """Felhasználói megjelenés — mezőnevek nélkül, tiszta vázlat."""
+    """Felhasználói megjelenés — CSAK strukturált mezők, legacy próza nélkül."""
     data = normalize_structured_outline(payload)
     blocks: list[str] = []
 
@@ -441,13 +548,13 @@ def render_structured_outline(payload: Any) -> str:
             continue
         parts: list[str] = []
         verses = _s(pt.get("verses"))
-        thesis = _s(pt.get("thesis"))
         if verses:
             parts.append(f"*{verses}*")
-        if thesis:
-            parts.append(thesis)
         for sp in pt.get("subpoints") or []:
             cleaned = re.sub(r"^[-•*]\s+", "", _s(sp)).strip()
+            # Never render multi-paragraph under a point
+            if "\n\n" in cleaned:
+                cleaned = cleaned.split("\n\n")[0].strip()
             if cleaned:
                 parts.append(f"- {cleaned}")
         app = _s(pt.get("application"))
@@ -470,10 +577,21 @@ def structured_to_sermon_outline(
     source: str = "",
     context_hash: str = "",
 ) -> dict[str, Any]:
-    """Struktúra → tartós sermon_outline (legacy mezőkkel szinkronban)."""
+    """Struktúra → tartós sermon_outline."""
     data = normalize_structured_outline(payload)
     outline = normalize_sermon_outline(seed) if seed else empty_sermon_outline()
     stamp = _now()
+
+    # Preserve prior long freeform as migration data — never as primary content
+    prior_content = _s(outline.get("content"))
+    prior_legacy = _s(outline.get("legacy_outline_text"))
+    structured_preview = render_structured_outline(data)
+    if prior_content and word_count(prior_content) > LIMITS["absolute_max_words"]:
+        if _normalize_cmp(prior_content) != _normalize_cmp(structured_preview):
+            prior_legacy = prior_legacy or prior_content
+    if prior_legacy:
+        outline["legacy_outline_text"] = prior_legacy
+
     outline["sermon_title"] = data["title"]
     outline["passage_reference"] = data["text_reference"] or _s(
         outline.get("passage_reference")
@@ -493,7 +611,6 @@ def structured_to_sermon_outline(
     closing["final_insight"] = data["conclusion_direction"]
     outline["closing"] = closing
     outline["editorial_tips"] = list(data["refinement_suggestions"][:2])
-    # Textushatár hint
     try:
         from sermon_workshop_outline_synth_ai import suggest_text_boundary_hint
 
@@ -520,7 +637,6 @@ def structured_to_sermon_outline(
     for i, pt in enumerate(data["points"], start=1):
         item = empty_outline_movement()
         subs = [_s(x) for x in (pt.get("subpoints") or []) if _s(x)]
-        thesis = _s(pt.get("thesis"))
         app = _s(pt.get("application"))
         verses = _s(pt.get("verses"))
         item.update(
@@ -529,23 +645,18 @@ def structured_to_sermon_outline(
                 "title": _s(pt.get("title")),
                 "textual_basis": verses,
                 "textual_anchor": verses,
-                "core_content": thesis,
-                "development": ([thesis] + subs) if thesis else subs,
+                "core_content": "",
+                "development": subs[: LIMITS["max_subpoints"]],
                 "listener_discovery": app,
                 "applications": [app] if app else [],
                 "transition": "",
             }
         )
-        # Keep development as subpoints only for cleaner render when thesis separate
-        item["development"] = subs[: LIMITS["max_subpoints"]]
-        if thesis and thesis not in item["development"]:
-            # Renderer uses core_content + development; store thesis in core
-            pass
         movements.append(item)
     outline["movements"] = movements
     outline["structured"] = data
-    outline["content"] = render_structured_outline(data)
-    outline["structured"] = data
+    outline["content"] = structured_preview
+    outline["schema_version"] = SCHEMA_VERSION
     outline["source"] = source if source in ("quick", "workshop") else _s(
         outline.get("source")
     )
@@ -614,7 +725,8 @@ REFRESH_NOTICE = (
 )
 
 INVALID_OUTLINE_MESSAGE = (
-    "A vázlatgenerálás nem adott szószéken használható, tömör vázlatot. "
+    "A vázlatgenerálás nem adott szószéken használható, tömör gondolatvázlatot "
+    f"(max. {LIMITS['absolute_max_words']} szó). "
     "Próbáld újra — a hosszú prédikációs szöveg nem kerül mentésre."
 )
 
@@ -628,6 +740,10 @@ class OutlineGenerationResult:
     validation_issues: list[str] = field(default_factory=list)
     source: str = ""
     overwritten_manual_edit: bool = False
+    compressed: bool = False
+    schema_version: str = SCHEMA_VERSION
+    raw_word_count: int = 0
+    rendered_word_count: int = 0
 
     def to_assembly_dict(self) -> dict[str, Any]:
         return {
@@ -657,14 +773,26 @@ def _call_generate(
     except Exception:  # noqa: BLE001
         touched = False
     try:
-        return generate_fn(
-            prompt,
-            enable_google_search=False,
-            tab_label=TAB_OUTLINE,
-            use_cache=False,
-            system_bundle=system_bundle,
-            include_brevity_directive=False,
-        )
+        try:
+            return generate_fn(
+                prompt,
+                enable_google_search=False,
+                tab_label=TAB_OUTLINE,
+                use_cache=False,
+                system_bundle=system_bundle,
+                include_brevity_directive=False,
+                max_output_tokens=OUTLINE_MAX_OUTPUT_TOKENS,
+            )
+        except TypeError:
+            # Teszt / legacy generate_fn signature
+            return generate_fn(
+                prompt,
+                enable_google_search=False,
+                tab_label=TAB_OUTLINE,
+                use_cache=False,
+                system_bundle=system_bundle,
+                include_brevity_directive=False,
+            )
     finally:
         if touched:
             try:
@@ -710,9 +838,9 @@ def _heuristic_structured_from_bundle(
     intro = (
         _usable_text(path.get("starting_point"))
         or _usable_text(lt.get("listener_question"))
-        or "A hallgató a textus feszültségéből indul, mielőtt a fő állítást hallaná."
+        or "A hallgató a textus feszültségéből indul a fő állítás felé."
     )
-    data["introduction_direction"] = _truncate(intro, 280)
+    data["introduction_direction"] = _truncate(intro, 200)
     if word_count(data["introduction_direction"]) > LIMITS["intro_words"]:
         data["introduction_direction"] = " ".join(
             data["introduction_direction"].split()[: LIMITS["intro_words"]]
@@ -733,13 +861,18 @@ def _heuristic_structured_from_bundle(
     exe = _usable_text(bundle.get("exegesis"))
     original = _usable_text(bundle.get("original_text"))
 
-    def _one_sentence(text: str, *, fallback: str, min_w: int = 12, max_w: int = 30) -> str:
+    def _one_sentence(text: str, *, fallback: str, max_w: int | None = None) -> str:
+        max_w = max_w or LIMITS["subpoint_max_words"]
+        target_min = 12
         cleaned = _usable_text(text) or fallback
         words = cleaned.split()
-        if len(words) < min_w:
-            pad = fallback.split()
-            words = (words + pad)[: max(min_w, len(words))]
-            while len(words) < min_w:
+        if len(words) < target_min:
+            pad = (fallback + " " + data["focus_sentence"]).split()
+            for w in pad:
+                if len(words) >= target_min:
+                    break
+                words.append(w)
+            while len(words) < target_min:
                 words.append("szava")
         words = words[:max_w]
         sent = " ".join(words).rstrip(".,;:")
@@ -748,7 +881,7 @@ def _heuristic_structured_from_bundle(
         return sent
 
     if movements:
-        for i, mv in enumerate(movements[:5], start=1):
+        for i, mv in enumerate(movements[: LIMITS["max_points"]], start=1):
             if not isinstance(mv, dict):
                 continue
             core = _usable_text(mv.get("core_content")) or _usable_text(
@@ -757,39 +890,32 @@ def _heuristic_structured_from_bundle(
             title = _usable_text(mv.get("title")) or f"Pont {i}"
             if word_count(title) > LIMITS["point_title_words"]:
                 title = " ".join(title.split()[: LIMITS["point_title_words"]])
-            thesis = _one_sentence(
-                core or data["focus_sentence"],
-                fallback=data["focus_sentence"],
-                min_w=8,
-                max_w=LIMITS["thesis_words"],
-            )
             basis = _usable_text(mv.get("textual_basis"))
             sp1 = _one_sentence(
                 core
                 or exe
                 or (insights[0] if insights else data["focus_sentence"]),
-                fallback="A textus saját szavai rendezik ezt a gondolatot a hallgató előtt.",
+                fallback="A textus saját szavai rendezik ezt a gondolatot.",
             )
             sp2 = _one_sentence(
                 _usable_text(mv.get("listener_discovery"))
                 or (insights[1] if len(insights) > 1 else "")
                 or original
-                or "Isten cselekvése hív választ, nem csupán emberi erőfeszítés.",
-                fallback="Isten cselekvése hív választ, nem csupán emberi erőfeszítés.",
+                or "Isten cselekvése hív választ, nem emberi erőfeszítés.",
+                fallback="Isten cselekvése hív választ, nem emberi erőfeszítés.",
             )
             points.append(
                 {
                     "title": title,
                     "verses": basis or data["text_reference"],
-                    "thesis": thesis,
                     "subpoints": [sp1, sp2],
                     "application": "",
                 }
             )
     else:
         seeds = insights or decisions or [
-            exe[:180] if exe else "",
-            original[:180] if original else "",
+            exe[:120] if exe else "",
+            original[:120] if original else "",
             data["focus_sentence"],
         ]
         seeds = [s for s in seeds if s] or [data["focus_sentence"]]
@@ -802,27 +928,21 @@ def _heuristic_structured_from_bundle(
                 {
                     "title": titles[i],
                     "verses": data["text_reference"],
-                    "thesis": _one_sentence(
-                        body,
-                        fallback=data["focus_sentence"],
-                        min_w=8,
-                        max_w=LIMITS["thesis_words"],
-                    ),
                     "subpoints": [
                         _one_sentence(
                             body,
-                            fallback="A textus saját mozgása bontja ki ezt a pontot a hallgató előtt.",
+                            fallback="A textus saját mozgása bontja ki ezt a pontot.",
                         ),
                         _one_sentence(
                             exe or original or data["focus_sentence"],
-                            fallback="A hallgató Isten cselekvése felől látja meg a válasz útját.",
+                            fallback="A hallgató Isten cselekvése felől látja a választ.",
                         ),
                     ],
                     "application": "",
                 }
             )
 
-    data["points"] = points[:5]
+    data["points"] = points[: LIMITS["max_points"]]
     closing = bundle.get("closing") if isinstance(bundle.get("closing"), dict) else {}
     arc = (
         bundle.get("christ_centered_arc")
@@ -832,9 +952,9 @@ def _heuristic_structured_from_bundle(
     conc = (
         _usable_text(closing.get("final_discovery"))
         or _usable_text(arc.get("grace_enabled_response"))
-        or "A hallgató Isten megtartó szeretetében állhat meg a megnyitott kérdésre."
+        or "A hallgató Isten megtartó szeretetében állhat meg."
     )
-    data["conclusion_direction"] = _truncate(conc, 280)
+    data["conclusion_direction"] = _truncate(conc, 220)
     if word_count(data["conclusion_direction"]) > LIMITS["conclusion_words"]:
         data["conclusion_direction"] = " ".join(
             data["conclusion_direction"].split()[: LIMITS["conclusion_words"]]
@@ -849,7 +969,8 @@ def _ai_generate_structured(
     generate_fn: GenerateFn,
     seed_outline: Mapping[str, Any] | None = None,
     mode: str = "standard",
-) -> tuple[dict[str, Any] | None, list[str]]:
+) -> tuple[dict[str, Any] | None, list[str], int]:
+    """Returns (structured|None, warnings, raw_rendered_word_count)."""
     warnings: list[str] = []
     ctx = {k: v for k, v in bundle.items() if not str(k).startswith("_")}
     mode_note = (
@@ -870,13 +991,15 @@ def _ai_generate_structured(
         )
         occasion_block = (
             f"ALKALOM: {profile['occasion']}\n"
+            f"SÉMAVERZIÓ: {SCHEMA_VERSION}\n"
             f"CÉLHOSSZ: ~{profile['target_range']} szó "
             f"(abszolút max {LIMITS['absolute_max_words']}).\n"
             f"{profile['guidance']}\n"
         )
     except Exception:  # noqa: BLE001
         occasion_block = (
-            f"CÉLHOSSZ: 350–550 szó (abszolút max {LIMITS['absolute_max_words']}).\n"
+            f"SÉMAVERZIÓ: {SCHEMA_VERSION}\n"
+            f"CÉLHOSSZ: 250–380 szó (abszolút max {LIMITS['absolute_max_words']}).\n"
         )
     seed_slim = {}
     if seed_outline:
@@ -888,10 +1011,10 @@ def _ai_generate_structured(
     prompt = (
         f"{mode_note}\n"
         f"{occasion_block}"
-        "Készíts szószékre kész HOMILETIKAI VÁZLATOT a forrásból. "
-        "Ne írj teljes prédikációt. Tartsd a szigorú hosszkorlátokat.\n"
-        "Pontok: title, verses, thesis, subpoints (2–3; 12–30 szó; "
-        "egyenként egy mondat), application (opcionális; alias: listener_insight).\n\n"
+        "Készíts szószéki GONDOLATVÁZLATOT (nem prédikációt). "
+        "Tartsd a szigorú hosszkorlátokat. "
+        "Pontok: title, verses, subpoints (2–3; egyenként ≤24 szó), "
+        "application (opcionális). Nincs thesis/body/content mező.\n\n"
         f"FORRÁS:\n{json.dumps(ctx, ensure_ascii=False)}\n\n"
         f"MAG (opcionális):\n{json.dumps(seed_slim, ensure_ascii=False)}\n\n"
         f"Kimenet JSON séma:\n{_JSON_SHAPE}"
@@ -900,15 +1023,29 @@ def _ai_generate_structured(
         raw = _call_generate(generate_fn, prompt, temperature=0.3)
     except Exception as exc:  # noqa: BLE001
         warnings.append(f"Vázlat AI-hívás sikertelen: {exc}")
-        return None, warnings
+        return None, warnings, 0
     if _is_api_error_text(raw or ""):
         warnings.append("A vázlat AI-válasz hibát jelzett.")
-        return None, warnings
+        return None, warnings, 0
     obj = extract_json_object(raw or "")
     if not isinstance(obj, dict):
+        # Raw markdown / prose instead of JSON
         warnings.append("Érvénytelen JSON vázlatválasz.")
-        return None, warnings
-    return normalize_structured_outline(obj), warnings
+        logger.info(
+            "outline_invalid_json schema=%s raw_words=%s",
+            SCHEMA_VERSION,
+            word_count(raw or ""),
+        )
+        return None, warnings, word_count(raw or "")
+    structured = normalize_structured_outline(obj)
+    raw_wc = word_count(render_structured_outline(structured))
+    logger.info(
+        "outline_ai_raw schema=%s rendered_words=%s forbidden=%s",
+        SCHEMA_VERSION,
+        raw_wc,
+        _has_forbidden_keys(obj),
+    )
+    return structured, warnings, raw_wc
 
 
 def _compress_structured(
@@ -933,19 +1070,24 @@ def _compress_structured(
         )
         occasion_line = (
             f"ALKALOM: {profile['occasion']}. "
-            f"CÉL: ~{profile['target_range']} szó.\n"
+            f"CÉL: ~{profile['target_range']} szó "
+            f"(max {LIMITS['absolute_max_words']}).\n"
         )
         if profile.get("partial"):
             occasion_line += "Részleges műhelyanyag: tartsd a teljes szerkezetet, rövidebben.\n"
     except Exception:  # noqa: BLE001
         occasion_line = ""
+    # Strip prose-bait keys before sending to compress
+    slim = normalize_structured_outline(payload)
     prompt = (
         f"{COMPRESS_INSTRUCTION}\n"
         f"{occasion_line}"
+        f"SÉMAVERZIÓ: {SCHEMA_VERSION}\n"
         f"JELZETT PROBLÉMÁK: {', '.join(issues)}\n"
-        "Add vissza a teljes vázlatot a szigorú JSON sémában.\n\n"
+        "Add vissza a teljes vázlatot a szigorú JSON sémában "
+        "(thesis/body/content nélkül).\n\n"
         f"FORRÁS (csak támasz):\n{json.dumps(ctx, ensure_ascii=False)}\n\n"
-        f"JAVÍTANDÓ VÁZLAT:\n{json.dumps(dict(payload), ensure_ascii=False)}\n\n"
+        f"JAVÍTANDÓ VÁZLAT:\n{json.dumps(slim, ensure_ascii=False)}\n\n"
         f"Kimenet JSON séma:\n{_JSON_SHAPE}"
     )
     try:
@@ -960,6 +1102,11 @@ def _compress_structured(
     if not isinstance(obj, dict):
         warnings.append("Érvénytelen tömörítő válasz.")
         return None, warnings
+    logger.info(
+        "outline_compress schema=%s rendered_words=%s",
+        SCHEMA_VERSION,
+        word_count(render_structured_outline(normalize_structured_outline(obj))),
+    )
     return normalize_structured_outline(obj), warnings
 
 
@@ -984,6 +1131,7 @@ def _programmatic_trim(payload: Mapping[str, Any]) -> dict[str, Any]:
     data["conclusion_direction"] = _clip_words(
         data["conclusion_direction"], LIMITS["conclusion_words"]
     )
+    data["scope_note"] = _clip_words(data["scope_note"], LIMITS["scope_note_words"])
     trimmed_points: list[dict[str, Any]] = []
     for pt in data["points"][: LIMITS["max_points"]]:
         subs = []
@@ -991,18 +1139,18 @@ def _programmatic_trim(payload: Mapping[str, Any]) -> dict[str, Any]:
             words = _s(sp).split()
             if len(words) > LIMITS["subpoint_max_words"]:
                 sp = " ".join(words[: LIMITS["subpoint_max_words"]]).rstrip(".,;:") + "."
-            elif len(words) < LIMITS["subpoint_min_words"] and words:
-                # leave short ones for validator; don't invent theology
+            else:
                 sp = _s(sp)
             if sp:
-                # Keep only first sentence
                 first = re.split(r"(?<=[.!?])\s+", sp)[0].strip()
+                # Drop multi-paragraph residue
+                if "\n\n" in first:
+                    first = first.split("\n\n")[0].strip()
                 subs.append(first if first else sp)
         trimmed_points.append(
             {
                 "title": _clip_words(_s(pt.get("title")), LIMITS["point_title_words"]),
                 "verses": _s(pt.get("verses")),
-                "thesis": _clip_words(_s(pt.get("thesis")), LIMITS["thesis_words"]),
                 "subpoints": subs,
                 "application": _clip_words(
                     _s(pt.get("application")), LIMITS["application_words"]
@@ -1011,18 +1159,26 @@ def _programmatic_trim(payload: Mapping[str, Any]) -> dict[str, Any]:
         )
     data["points"] = trimmed_points
     data["refinement_suggestions"] = list(data["refinement_suggestions"][:2])
-    # Absolute total: drop trailing subpoints if still over
-    rendered = render_structured_outline(data)
-    if word_count(rendered) > LIMITS["absolute_max_words"]:
+
+    # Absolute total: drop applications, then 3rd subpoints, then clip harder
+    def _over() -> bool:
+        return word_count(render_structured_outline(data)) > LIMITS["absolute_max_words"]
+
+    if _over():
+        for pt in data["points"]:
+            pt["application"] = ""
+    if _over():
         for pt in data["points"]:
             if len(pt["subpoints"]) > 2:
                 pt["subpoints"] = pt["subpoints"][:2]
-        rendered = render_structured_outline(data)
-    if word_count(rendered) > LIMITS["absolute_max_words"]:
+    if _over():
         data["introduction_direction"] = _clip_words(
-            data["introduction_direction"], 40
+            data["introduction_direction"], 25
         )
-        data["conclusion_direction"] = _clip_words(data["conclusion_direction"], 40)
+        data["conclusion_direction"] = _clip_words(data["conclusion_direction"], 30)
+        data["focus_sentence"] = _clip_words(data["focus_sentence"], 24)
+    if _over() and len(data["points"]) > 3:
+        data["points"] = data["points"][:3]
     return normalize_structured_outline(data)
 
 
@@ -1050,9 +1206,7 @@ def generate_sermon_outline(
     if mode == "standard":
         source_tag = "workshop"
 
-    # Mutable session for ensure_*
     if not isinstance(session_state, MutableMapping):
-        # read-only path for tests — copy into local mutable
         session: MutableMapping[str, Any] = dict(session_state)
     else:
         session = session_state
@@ -1088,50 +1242,75 @@ def generate_sermon_outline(
     bundle = collect_available_sermon_material(session, sermon_workshop=sw)
     ctx_hash = compute_context_hash(bundle)
     warnings: list[str] = []
+    compressed = False
+    raw_wc = 0
 
-    # Seed from workshop fields (deterministic) — never shown until validated
     seed = build_outline_from_workshop(session, sermon_workshop=sw)
     structured: dict[str, Any] | None = None
 
     if generate_fn is not None:
-        structured, ai_warnings = _ai_generate_structured(
+        structured, ai_warnings, raw_wc = _ai_generate_structured(
             bundle, generate_fn=generate_fn, seed_outline=seed, mode=mode
         )
         warnings.extend(ai_warnings)
     if structured is None:
         structured = _heuristic_structured_from_bundle(bundle, seed_outline=seed)
 
-    structured = _programmatic_trim(structured)
+    # Validate BEFORE aggressive trim — trim must not hide a near-sermon.
     issues = validate_structured_outline(structured)
+    if raw_wc > LIMITS["absolute_max_words"] and "over_absolute_max" not in issues:
+        issues = list(issues) + ["over_absolute_max"]
 
     if issues and generate_fn is not None:
-        compressed, c_warn = _compress_structured(
+        repaired, c_warn = _compress_structured(
             structured, bundle, issues=issues, generate_fn=generate_fn
         )
         warnings.extend(c_warn)
-        if compressed is not None:
-            structured = _programmatic_trim(compressed)
+        compressed = True
+        if repaired is not None:
+            structured = repaired
             issues = validate_structured_outline(structured)
+        logger.info(
+            "outline_after_compress schema=%s issues=%s words=%s",
+            SCHEMA_VERSION,
+            issues,
+            word_count(render_structured_outline(structured)),
+        )
+        # After compress, remaining issues are final — trim must not salvage.
+        if issues:
+            rendered_wc = word_count(render_structured_outline(structured))
+            logger.info(
+                "outline_reject_after_compress schema=%s issues=%s words=%s",
+                SCHEMA_VERSION,
+                issues,
+                rendered_wc,
+            )
+            return OutlineGenerationResult(
+                outline=existing,
+                ok=False,
+                error_message=INVALID_OUTLINE_MESSAGE,
+                warnings=warnings,
+                validation_issues=issues,
+                source=source_tag,
+                compressed=True,
+                raw_word_count=raw_wc,
+                rendered_word_count=rendered_wc,
+            )
 
-    # Hard reject: never save long bad sermon as canonical
-    hard_blockers = [
-        i
-        for i in issues
-        if i
-        in {
-            "over_absolute_max",
-            "full_sermon_like",
-            "multi_paragraph_point",
-            "forbidden_heading",
-            "too_few_points",
-            "missing_focus",
-            "missing_intro",
-            "missing_conclusion",
-            "too_thin",
-        }
-    ]
-    # After compress, remaining length/structure issues still block save when AI was used
-    if generate_fn is not None and hard_blockers:
+    structured = _programmatic_trim(structured)
+    issues = validate_structured_outline(structured)
+
+    rendered_wc = word_count(render_structured_outline(structured))
+
+    # Hard reject: ANY remaining issue after AI path → do not overwrite
+    if generate_fn is not None and issues:
+        logger.info(
+            "outline_reject schema=%s issues=%s rendered_words=%s raw_words=%s",
+            SCHEMA_VERSION,
+            issues,
+            rendered_wc,
+            raw_wc,
+        )
         return OutlineGenerationResult(
             outline=existing,
             ok=False,
@@ -1139,26 +1318,31 @@ def generate_sermon_outline(
             warnings=warnings,
             validation_issues=issues,
             source=source_tag,
+            compressed=compressed,
+            raw_word_count=raw_wc,
+            rendered_word_count=rendered_wc,
         )
 
-    if generate_fn is not None and issues:
-        # Soft-ish remaining (subpoint length etc.) — one more programmatic trim;
-        # if still critically broken, reject.
+    # Offline heuristic: only hard-block catastrophic failures
+    if generate_fn is None and issues:
         structured = _programmatic_trim(structured)
         issues = validate_structured_outline(structured)
-        still_hard = [
+        fatal = [
             i
             for i in issues
             if i
             in {
                 "over_absolute_max",
-                "full_sermon_like",
-                "forbidden_heading",
                 "too_few_points",
                 "missing_focus",
+                "missing_intro",
+                "missing_conclusion",
+                "full_sermon_like",
             }
         ]
-        if still_hard:
+        if fatal or word_count(render_structured_outline(structured)) > LIMITS[
+            "absolute_max_words"
+        ]:
             return OutlineGenerationResult(
                 outline=existing,
                 ok=False,
@@ -1167,10 +1351,11 @@ def generate_sermon_outline(
                 validation_issues=issues,
                 source=source_tag,
             )
-
-    # Offline heuristic: ensure we don't exceed absolute max after trim
-    if word_count(render_structured_outline(structured)) > LIMITS["absolute_max_words"]:
-        structured = _programmatic_trim(structured)
+        # Non-fatal offline leftovers → warnings only (deterministic seed)
+        for issue in issues:
+            tip = f"Vázlat finomítható: {issue}"
+            if tip not in warnings:
+                warnings.append(tip)
 
     outline = structured_to_sermon_outline(
         structured,
@@ -1180,7 +1365,6 @@ def generate_sermon_outline(
     )
     outline["source_fingerprint"] = ctx_hash
     outline["source_sections"] = list(bundle.get("source_keys") or [])
-    # Heuristic / partial workshop → tip, not blocker
     if generate_fn is None and "sermon_movements" not in (bundle.get("source_keys") or []):
         outline["provisional_sections"] = ["sermon_movements"]
         from sermon_workshop_outline_ai import PROVISIONAL_NOTICE
@@ -1195,25 +1379,41 @@ def generate_sermon_outline(
             warnings=warnings,
             validation_issues=issues,
             source=source_tag,
+            compressed=compressed,
+            raw_word_count=raw_wc,
         )
 
+    final_wc = word_count(outline.get("content") or render_structured_outline(structured))
+    logger.info(
+        "outline_ok schema=%s source=%s rendered_words=%s compressed=%s",
+        SCHEMA_VERSION,
+        source_tag,
+        final_wc,
+        compressed,
+    )
     return OutlineGenerationResult(
         outline=outline,
         ok=True,
         warnings=warnings,
-        validation_issues=[i for i in issues if i not in hard_blockers],
+        validation_issues=[],
         source=source_tag or "workshop",
         overwritten_manual_edit=bool(manually_edited and force_overwrite),
+        compressed=compressed,
+        raw_word_count=raw_wc,
+        rendered_word_count=final_wc,
     )
 
 
 __all__ = [
     "COMPRESS_INSTRUCTION",
     "FORBIDDEN_HEADINGS",
+    "FORBIDDEN_PAYLOAD_KEYS",
     "INVALID_OUTLINE_MESSAGE",
     "LIMITS",
+    "OUTLINE_MAX_OUTPUT_TOKENS",
     "OUTLINE_SYSTEM_PROMPT",
     "REFRESH_NOTICE",
+    "SCHEMA_VERSION",
     "OutlineGenerationResult",
     "compute_context_hash",
     "generate_sermon_outline",

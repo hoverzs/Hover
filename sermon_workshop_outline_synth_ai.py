@@ -36,26 +36,12 @@ from sermon_workshop_outline_ai import (
 
 GenerateFn = Callable[..., str]
 
-# Soft = tip only after compress. Absolute max / forbidden headings stay hard in engine.
+# Soft = tip only after compress. Length / structure stay HARD in engine.
 SOFT_QUALITY_ISSUES = frozenset(
     {
         "stock_phrases",
         "transition_fillers",
-        "word_count_out_of_range",
-        "intro_too_long",
-        "closing_too_long",
-        "conclusion_too_long",
-        "verbose_point_bullets",
-        "sermon_like_verbosity",
-        "subpoint_length",
-        "subpoint_not_one_sentence",
-        "too_few_subpoints",
-        "application_too_long",
-        "application_too_many_sentences",
-        "intro_too_many_sentences",
-        "conclusion_too_many_sentences",
-        "focus_not_one_sentence",
-        "stub_subpoint",
+        "word_count_out_of_range",  # soft only below absolute max
     }
 )
 
@@ -85,10 +71,9 @@ _SYNTH_JSON_SHAPE = """\
     {
       "title": "Pontcím",
       "verses": "v. x–y",
-      "thesis": "Egy mondatos tétel.",
       "subpoints": [
-        "Egy teljes, tartalmas mondat (12–30 szó).",
-        "Második tartalmas mondat (12–30 szó)."
+        "Egy teljes mondat (≤24 szó).",
+        "Második teljes mondat (≤24 szó)."
       ],
       "application": ""
     }
@@ -161,33 +146,35 @@ def outline_length_profile(
     partial: bool = False,
 ) -> dict[str, Any]:
     """Alkalomfüggő útmutató — hard abszolút max a közös LIMITS-ből."""
+    from sermon_outline_engine import SCHEMA_VERSION
+
     occ = resolve_outline_occasion(occasion=occasion)
     occ_cf = occ.casefold()
     if "virraszt" in occ_cf:
-        target = "280–480"
+        target = "220–320"
         min_movements = 2
         max_movements = 3
     elif "temet" in occ_cf:
-        target = "300–500"
+        target = "230–340"
         min_movements = 2
         max_movements = 3
     else:
-        target = "350–550"
-        min_movements = 3
-        max_movements = 5
-    soft_min = LIMITS["target_min_words"] - (50 if partial else 0)
+        target = "250–380"
+        min_movements = 2
+        max_movements = 4
+    soft_min = LIMITS["target_min_words"] - (40 if partial else 0)
     soft_max = LIMITS["absolute_max_words"]
     guidance = (
-        f"HOMILETIKAI VÁZLAT (~{target} szó irányadó; abszolút max "
-        f"{LIMITS['absolute_max_words']} szó). "
-        "Pontok: rövid tétel + 2–3 tartalmas alpont (12–30 szó). "
-        "Ne írj teljes prédikációt."
+        f"GONDOLATVÁZLAT (~{target} szó irányadó; abszolút max "
+        f"{LIMITS['absolute_max_words']} szó; séma {SCHEMA_VERSION}). "
+        f"Pontok: 2–4; alpontok 2–3 (≤{LIMITS['subpoint_max_words']} szó). "
+        "Ne írj prédikációt; nincs thesis/body/content mező."
     )
     if partial:
         guidance += " Részleges anyag: teljes szerkezet, rövidebb OK."
     return {
         "occasion": occ or "Vasárnapi istentisztelet",
-        "soft_min": max(180, soft_min),
+        "soft_min": max(120, soft_min),
         "soft_max": soft_max,
         "target_range": target,
         "min_movements": min_movements,
@@ -195,10 +182,12 @@ def outline_length_profile(
         "guidance": guidance,
         "intro_hint": f"max. {LIMITS['intro_words']} szó",
         "movement_hint": (
-            f"{min_movements}–{max_movements} pont, 2–3 alpont (12–30 szó)"
+            f"{min_movements}–{max_movements} pont, 2–3 alpont "
+            f"(≤{LIMITS['subpoint_max_words']} szó)"
         ),
         "conclusion_hint": f"max. {LIMITS['conclusion_words']} szó",
         "partial": partial,
+        "schema_version": SCHEMA_VERSION,
     }
 
 

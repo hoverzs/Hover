@@ -278,8 +278,12 @@ def empty_sermon_outline() -> dict[str, Any]:
         "suggested_text_boundary": "",
         # Kanonikus, olvasható vázlatszöveg — előnézet / szerkesztés / diagnosztika.
         "content": "",
+        # Régi hosszú Markdown / szabad szöveg — csak „Korábbi vázlat” expanderben.
+        "legacy_outline_text": "",
         # Közös motor struktúrája (points / focus_sentence / …).
         "structured": {},
+        # pulpit_outline_v3 stb.
+        "schema_version": "",
         # Belépési pont: quick | workshop
         "source": "",
         # Forrásanyag-hash a frissítési figyelmeztetéshez.
@@ -421,6 +425,8 @@ def normalize_sermon_outline(raw: Any) -> dict[str, Any]:
         "grace_enabled_response",
         "opening_direction",
         "content",
+        "legacy_outline_text",
+        "schema_version",
         "manual_notes",
         "text_boundary_note",
         "suggested_text_boundary",

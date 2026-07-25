@@ -1116,10 +1116,11 @@ def _movement_development_paragraphs(mv: Mapping[str, Any]) -> list[str]:
 
 
 def outline_to_readable_content(outline: Any) -> str:
-    """Kanonikus szószéki HOMILETIKAI VÁZLAT — tiszta, emberi nyelvű szöveg.
+    """Kanonikus szószéki GONDOLATVÁZLAT — csak strukturált mezők.
 
     Ha van közös motor `structured` payload, abból renderel; különben a
-    legacy movements sémából. Nincs mezőnév, nincs meta-fejezet.
+    legacy movements sémából (rövid bulletök). Nyers `content` / Markdown
+    NEM elsődleges forrás. Nincs mezőnév, nincs meta-fejezet.
     """
     import re
 
@@ -1174,23 +1175,13 @@ def outline_to_readable_content(outline: Any) -> str:
     )
     if opening and focus and _normalize_cmp(opening) == _normalize_cmp(focus):
         opening = ""
-    intro_parts: list[str] = []
     if opening:
-        intro_parts.append(opening)
-    transition = _usable_text(intro.get("transition"))
-    if transition and _normalize_cmp(transition) != _normalize_cmp(opening):
-        # Kerüld az automatikus átvezető tölteléket a főnézetben
-        tr_cf = transition.casefold()
-        if not any(
-            m in tr_cf
-            for m in (
-                "de vajon mi következik",
-                "ez azonban",
-                "nem marad titokban",
-            )
-        ):
-            intro_parts.append(transition)
-    _section("Bevezetés", "\n\n".join(intro_parts))
+        if "\n\n" in opening:
+            opening = opening.split("\n\n")[0].strip()
+        owords = opening.split()
+        if len(owords) > 35:
+            opening = " ".join(owords[:35]).rstrip(".,;:") + "."
+        _section("Bevezetés", opening)
 
     movements = safe.get("movements") if isinstance(safe.get("movements"), list) else []
     for idx, mv in enumerate(
@@ -1204,16 +1195,9 @@ def outline_to_readable_content(outline: Any) -> str:
         if is_banned_outline_placeholder(mv_title):
             continue
         paras = _movement_development_paragraphs(mv)
-        core = _usable_text(mv.get("core_content"))
-        if not paras and core:
-            paras = [core]
+        # Ne emeld be a core_content/thesis prózát külön tételként
         if not paras:
             continue
-        # Prefer thesis + short subpoints; avoid multi-paragraph expansion
-        if core and all(_normalize_cmp(p) != _normalize_cmp(core) for p in paras):
-            body_lead = [core]
-        else:
-            body_lead = []
         anchor = _usable_text(mv.get("textual_anchor")) or _usable_text(
             mv.get("textual_basis")
         )
@@ -1230,14 +1214,12 @@ def outline_to_readable_content(outline: Any) -> str:
             insight_n = _normalize_cmp(insight)
             paras = [p for p in paras if _normalize_cmp(p) != insight_n]
         paras = paras[:3]
-        if not paras and not body_lead:
+        if not paras:
             continue
 
         body_parts: list[str] = []
         if anchor:
             body_parts.append(f"*{anchor}*")
-        for p in body_lead:
-            body_parts.append(p)
         for p in paras:
             if anchor and _normalize_cmp(p) == _normalize_cmp(anchor):
                 continue
@@ -1246,12 +1228,20 @@ def outline_to_readable_content(outline: Any) -> str:
             if "\n\n" in cleaned:
                 cleaned = cleaned.split("\n\n")[0].strip()
             sentences = re.split(r"(?<=[.!?])\s+", cleaned)
-            if len(sentences) > 1 and len(cleaned.split()) > 35:
+            if len(sentences) > 1:
                 cleaned = sentences[0].strip()
+            cwords = cleaned.split()
+            if len(cwords) > 24:
+                cleaned = " ".join(cwords[:24]).rstrip(".,;:") + "."
             if cleaned:
                 body_parts.append(f"- {cleaned}")
         if insight:
+            iwords = insight.split()
+            if len(iwords) > 22:
+                insight = " ".join(iwords[:22]).rstrip(".,;:") + "."
             body_parts.append(f"*{insight}*")
+        if not body_parts:
+            continue
         blocks.append(f"**{idx}. {mv_title}**\n\n" + "\n".join(body_parts))
 
     conclusion = (
@@ -1269,17 +1259,13 @@ def outline_to_readable_content(outline: Any) -> str:
             or _usable_text(closing.get("gospel_assurance"))
             or ""
         )
-    final_line = (
-        _usable_text(conclusion.get("final_sentence"))
-        or _usable_text(closing.get("image_or_line"))
-        or _usable_text(closing.get("invitation"))
-    )
-    arrival_parts: list[str] = []
     if arrival:
-        arrival_parts.append(arrival)
-    if final_line and _normalize_cmp(final_line) != _normalize_cmp(arrival):
-        arrival_parts.append(final_line)
-    _section("Megérkezés", "\n\n".join(arrival_parts))
+        if "\n\n" in arrival:
+            arrival = arrival.split("\n\n")[0].strip()
+        awords = arrival.split()
+        if len(awords) > 40:
+            arrival = " ".join(awords[:40]).rstrip(".,;:") + "."
+        _section("Megérkezés", arrival)
 
     text = "\n\n".join(blocks).strip()
     if "##" in text:
@@ -1447,12 +1433,37 @@ def repair_outline_integrity(outline: Any) -> tuple[dict[str, Any], bool]:
 
 
 def outline_canonical_text(outline: Any) -> str:
-    """A megjelenítéshez / diagnosztikához használt kanonikus szöveg."""
+    """A megjelenítéshez / diagnosztikához használt kanonikus szöveg.
+
+    Elsődleges: strukturált mezők. Legacy hosszú `content` / Markdown
+    NEM kerül ide — az a `legacy_outline_text` / Korábbi vázlat helye.
+    """
     safe = normalize_sermon_outline(outline)
-    if _s(safe.get("content")):
-        return _s(safe.get("content"))
+    structured = safe.get("structured") if isinstance(safe.get("structured"), dict) else {}
+    if structured.get("points") or structured.get("focus_sentence"):
+        try:
+            from sermon_outline_engine import render_structured_outline
+
+            text = render_structured_outline(structured)
+            if text.strip():
+                return text
+        except Exception:  # noqa: BLE001
+            pass
     if _structure_has_substantive_text(safe):
-        return outline_to_readable_content(safe)
+        rebuilt = outline_to_readable_content(safe)
+        if rebuilt.strip():
+            return rebuilt
+    # Csak akkor használd a content mezőt, ha rövid strukturált render
+    content = _s(safe.get("content"))
+    if content:
+        try:
+            from sermon_outline_engine import LIMITS, word_count
+
+            if word_count(content) <= LIMITS["absolute_max_words"]:
+                return content
+        except Exception:  # noqa: BLE001
+            if len(content.split()) <= 420:
+                return content
     return ""
 
 
@@ -1707,8 +1718,8 @@ def _strip_meta_section_from_content(text: str) -> str:
 def render_compact_sermon_outline(outline: Any) -> None:
     """Olvasó / dokumentumnézet — nem űrlap. Streamlit UI.
 
-    A kanonikus `content` mezőt jeleníti meg (ugyanaz, mint az előnézet /
-    diagnosztika). Ha a content üres, a struktúrából épít szöveget.
+    CSAK strukturált vázlatmezők. Legacy hosszú Markdown külön
+    „Korábbi vázlat” expanderben — soha nem a fő előnézet helyén.
     """
     import streamlit as st
 
@@ -1739,6 +1750,14 @@ def render_compact_sermon_outline(outline: Any) -> None:
     if text:
         with st.container(border=True):
             st.markdown(text)
+    legacy = _s(safe.get("legacy_outline_text"))
+    if legacy and _normalize_cmp(legacy) != _normalize_cmp(text):
+        with st.expander("Korábbi vázlat", expanded=False):
+            st.caption(
+                "Korábbi, hosszabb vagy szabad szöveges vázlat — "
+                "nem a jelenlegi strukturált előnézet."
+            )
+            st.markdown(legacy)
     notes = _s(safe.get("manual_notes"))
     if notes:
         st.markdown("#### Saját megjegyzéseim")
