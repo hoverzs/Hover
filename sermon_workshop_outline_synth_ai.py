@@ -151,15 +151,15 @@ def outline_length_profile(
     occ = resolve_outline_occasion(occasion=occasion)
     occ_cf = occ.casefold()
     if "virraszt" in occ_cf:
-        target = "220–320"
+        target = "160–240"
         min_movements = 2
         max_movements = 3
     elif "temet" in occ_cf:
-        target = "230–340"
+        target = "160–240"
         min_movements = 2
         max_movements = 3
     else:
-        target = "250–380"
+        target = "160–240"
         min_movements = 2
         max_movements = 4
     soft_min = LIMITS["target_min_words"] - (40 if partial else 0)

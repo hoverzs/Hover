@@ -14,6 +14,9 @@ if str(ROOT) not in sys.path:
 from sermon_outline_engine import (
     FORBIDDEN_HEADINGS,
     LIMITS,
+    OUTLINE_MAX_OUTPUT_TOKENS,
+    OUTLINE_RESPONSE_SCHEMA,
+    OUTLINE_SYSTEM_PROMPT,
     REFRESH_NOTICE,
     SCHEMA_VERSION,
     compute_context_hash,
@@ -255,13 +258,13 @@ def test_point_and_subpoint_counts_and_word_cap():
     assert word_count(rendered) <= LIMITS["absolute_max_words"]
     assert 2 <= len(data["points"]) <= 4
     for pt in data["points"]:
-        assert 2 <= len(pt["subpoints"]) <= 3
+        assert len(pt["subpoints"]) == 2
         assert "thesis" not in pt
         for sp in pt["subpoints"]:
-            assert word_count(sp) <= 24
+            assert word_count(sp) <= 18
 
 
-def test_rejects_over_420_words_and_multi_paragraph():
+def test_rejects_over_280_words_and_multi_paragraph():
     long_para = " ".join(["szó"] * 80) + "."
     bad = _valid_structured(
         points=[
@@ -383,15 +386,15 @@ def test_ezs46_valid_limits_on_rendered_outline():
     issues = validate_structured_outline(data)
     assert issues == [], issues
     rendered = render_structured_outline(data)
-    assert word_count(rendered) <= 420
-    assert word_count(data["introduction_direction"]) <= 35
-    assert word_count(data["conclusion_direction"]) <= 40
+    assert word_count(rendered) <= 280
+    assert word_count(data["introduction_direction"]) <= 25
+    assert word_count(data["conclusion_direction"]) <= 25
     assert 2 <= len(data["points"]) <= 4
     for pt in data["points"]:
-        assert 2 <= len(pt["subpoints"]) <= 3
+        assert len(pt["subpoints"]) == 2
         assert "body" not in pt and "content" not in pt and "thesis" not in pt
         for sp in pt["subpoints"]:
-            assert word_count(sp) <= 24
+            assert word_count(sp) <= 18
             assert "\n\n" not in sp
 
 
@@ -519,9 +522,148 @@ def test_assemble_uses_shared_engine():
     assert a.outline.get("schema_version") == SCHEMA_VERSION
 
 
-def test_absolute_max_is_420():
-    assert LIMITS["absolute_max_words"] == 420
-    assert LIMITS["target_max_words"] == 380
-    assert LIMITS["intro_words"] == 35
+def test_absolute_max_and_schema_are_compact():
+    assert OUTLINE_MAX_OUTPUT_TOKENS == 900
+    assert LIMITS["absolute_max_words"] == 280
+    assert LIMITS["target_min_words"] == 160
+    assert LIMITS["target_max_words"] == 240
+    assert LIMITS["intro_words"] == 25
     assert LIMITS["max_points"] == 4
+    assert LIMITS["max_subpoints"] == 2
+    assert OUTLINE_RESPONSE_SCHEMA["properties"]["points"]["minItems"] == 2
+    assert OUTLINE_RESPONSE_SCHEMA["properties"]["points"]["maxItems"] == 4
+    assert (
+        OUTLINE_RESPONSE_SCHEMA["properties"]["points"]["items"]["properties"][
+            "subpoints"
+        ]["minItems"]
+        == 2
+    )
+    assert (
+        OUTLINE_RESPONSE_SCHEMA["properties"]["points"]["items"]["properties"][
+            "subpoints"
+        ]["maxItems"]
+        == 2
+    )
     assert "thesis" not in LIMITS
+
+
+def test_outline_calls_request_structured_json_and_default_payload_does_not():
+    import app as app_mod
+    from unittest.mock import patch
+
+    state = _base_state()
+    captured: dict = {}
+
+    def gen(_prompt, **kwargs):
+        captured.update(kwargs)
+        return json.dumps(_valid_structured(), ensure_ascii=False)
+
+    result = generate_sermon_outline(
+        state, mode="quick", generate_fn=gen, force_overwrite=True
+    )
+    assert result.ok, result.error_message
+    assert captured["max_output_tokens"] == 900
+    assert captured["response_mime_type"] == "application/json"
+    assert captured["response_schema"] == OUTLINE_RESPONSE_SCHEMA
+
+    with patch.object(app_mod, "st") as st_mock:
+        st_mock.session_state = {"temperature": 0.3}
+        outline_payload = app_mod._build_payload(
+            "vázlat",
+            False,
+            "gemini-2.5-flash-lite",
+            response_mime_type="application/json",
+            response_schema=OUTLINE_RESPONSE_SCHEMA,
+        )
+        ordinary_payload = app_mod._build_payload(
+            "más funkció",
+            False,
+            "gemini-2.5-flash",
+        )
+    assert outline_payload["generationConfig"]["responseMimeType"] == "application/json"
+    assert outline_payload["generationConfig"]["responseSchema"] == OUTLINE_RESPONSE_SCHEMA
+    assert "responseMimeType" not in ordinary_payload["generationConfig"]
+    assert "responseSchema" not in ordinary_payload["generationConfig"]
+
+
+def test_validator_rejects_extra_subpoints_and_legacy_headings():
+    data = _valid_structured()
+    data["points"][0] = {
+        "title": "Problémafelvetés",
+        "verses": "v. 1",
+        "subpoints": [
+            "A textus Isten kezdeményező szeretetét állítja elénk.",
+            "A Fiú ajándéka nyitja meg a hit útját.",
+            "Ez nem maradhat harmadik alpont.",
+        ],
+        "application": "",
+    }
+    issues = validate_structured_outline(data)
+    assert "invalid_subpoint_count" in issues
+    assert "forbidden_heading" in issues
+
+
+def test_empty_outline_basket_generates_without_seed_anchor():
+    state = _base_state(basket=[])
+    captured: list[str] = []
+
+    def gen(prompt, **_kwargs):
+        captured.append(prompt)
+        return json.dumps(_valid_structured(), ensure_ascii=False)
+
+    result = generate_sermon_outline(
+        state, mode="quick", generate_fn=gen, force_overwrite=True
+    )
+    assert result.ok, result.error_message
+    assert len(captured) == 1
+    assert "VÁZLATKOSÁR – OPCIONÁLIS, SZELEKTÁLVA HASZNÁLHATÓ:\n[]" in captured[0]
+    assert "MAG (opcionális)" not in captured[0]
+    assert "Üres vázlatkosár esetén is készíts teljes értékű, konkrét vázlatot." in captured[0]
+
+
+def test_outline_basket_is_separate_optional_source_material():
+    state = _base_state(
+        basket=[
+            ("Exegézis", "A Fiú odaadása a textus középponti állítása."),
+            ("Alkalmazás", "A bizalom Isten kezdeményező szeretetére válaszol."),
+        ]
+    )
+    captured: list[str] = []
+
+    def gen(prompt, **_kwargs):
+        captured.append(prompt)
+        return json.dumps(_valid_structured(), ensure_ascii=False)
+
+    result = generate_sermon_outline(
+        state, mode="workshop", generate_fn=gen, force_overwrite=True
+    )
+    assert result.ok, result.error_message
+    prompt = captured[0]
+    assert '"outline_basket"' not in prompt.split("VÁZLATKOSÁR")[0]
+    assert '"source": "Exegézis"' in prompt
+    assert '"source": "Alkalmazás"' in prompt
+    assert "nem kell mindegyiket felhasználni." in prompt
+
+
+def test_conflicting_or_repetitive_basket_material_is_instructed_to_be_omitted():
+    state = _base_state(
+        basket=[
+            ("Jegyzet", "A textus szerint az üdvösség kizárólag emberi érdem."),
+            ("Jegyzet", "A Fiú ajándéka központi, központi, központi."),
+        ]
+    )
+    captured: list[str] = []
+
+    def gen(prompt, **_kwargs):
+        captured.append(prompt)
+        return json.dumps(_valid_structured(), ensure_ascii=False)
+
+    result = generate_sermon_outline(
+        state, mode="quick", generate_fn=gen, force_overwrite=True
+    )
+    assert result.ok, result.error_message
+    rendered = outline_canonical_text(result.outline)
+    assert "kizárólag emberi érdem" not in rendered
+    assert "A textus mindig elsőbbséget élvez." in OUTLINE_SYSTEM_PROMPT
+    assert "Hagyd el a textustól idegen, gyenge, ismétlődő, bizonytalan vagy" in OUTLINE_SYSTEM_PROMPT
+    assert "kizárólag emberi érdem" in captured[0]

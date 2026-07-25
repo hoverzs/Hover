@@ -32,35 +32,35 @@ logger = logging.getLogger("textus.outline")
 TAB_OUTLINE = "Igehirdetési vázlat"
 DEFAULT_TEMPERATURE = 0.2
 SCHEMA_VERSION = "pulpit_outline_v3"
-# JSON vázlat: ~420 szó + séma overhead — ne legyen prédikáció-méretű budget.
-OUTLINE_MAX_OUTPUT_TOKENS = 2048
+# JSON vázlat: tömör, szószéki gondolatvázlat; ne legyen prédikáció-méretű budget.
+OUTLINE_MAX_OUTPUT_TOKENS = 900
 
 # ---------------------------------------------------------------------------
 # Strict length limits (HARD) — szószéki gondolatvázlat, nem rövid prédikáció
 # ---------------------------------------------------------------------------
 
 LIMITS = {
-    "title_words": 10,
-    "focus_words": 30,
-    "intro_words": 35,
-    "intro_sentences_max": 2,
-    "point_title_words": 10,
+    "title_words": 8,
+    "focus_words": 22,
+    "intro_words": 25,
+    "intro_sentences_max": 1,
+    "point_title_words": 8,
     "subpoint_min_words": 4,
-    "subpoint_max_words": 24,
-    "application_words": 22,
-    "conclusion_words": 40,
-    "conclusion_sentences_max": 2,
+    "subpoint_max_words": 18,
+    "application_words": 16,
+    "conclusion_words": 25,
+    "conclusion_sentences_max": 1,
     "scope_note_words": 25,
     "min_points": 2,
     "max_points": 4,
     "default_points": 3,
     "min_subpoints": 2,
-    "max_subpoints": 3,
-    "target_min_words": 250,
-    "target_max_words": 380,
-    "absolute_max_words": 420,
-    "max_prose_block_words": 50,
-    "refinement_max": 2,
+    "max_subpoints": 2,
+    "target_min_words": 160,
+    "target_max_words": 240,
+    "absolute_max_words": 280,
+    "max_prose_block_words": 35,
+    "refinement_max": 0,
 }
 
 # Prose-bait / legacy fields — soha ne kérjük és ne jelenjenek meg elsődlegesen.
@@ -92,7 +92,11 @@ FORBIDDEN_HEADINGS: tuple[str, ...] = (
     "Kegyelmi kapcsolat",
     "Hallgatói kapcsolat",
     "Hallgatói felismerés",
+    "Hallgatói alkalmazás",
     "Alkalmazási pontok",
+    "Problémafelvetés",
+    "Magyarázat",
+    "Teológiai kibontás",
     "Tételmondat (scopus)",
 )
 
@@ -104,29 +108,154 @@ FORBIDDEN_FILLERS: tuple[str, ...] = (
 )
 
 COMPRESS_INSTRUCTION = (
-    "A vázlat túl hosszú vagy nem felel meg a szigorú sémának. "
-    "Alakítsd át szószéki GONDOLATVÁZLATTA — ne rövid prédikációvá. "
-    "Tartsd meg a gondolati ívet és a textuális tartalmat. "
-    "Töröld az ismétléseket, a magyarázó bekezdéseket és a metaszöveget. "
-    "Ne adj hozzá új teológiai tartalmat. "
-    "Korlátok: látható vázlat cél 250–380 szó, abszolút max 420; "
-    "bevezető irány ≤35 szó; fókusz ≤30; megérkezés ≤40; "
-    "2–4 pont; pontonként pontosan 2–3 alpont; alpont = egy mondat ≤24 szó; "
-    "pontonként legfeljebb 1 alkalmazás ≤22 szó; "
-    "NINCS többbekezdéses próza; NINCS thesis/body/content mező. "
-    "Add vissza CSAK a JSON sémát."
+    "FORMAI JAVÍTÁS. A kapott vázlat tartalmi és homiletikai ívét őrizd meg; "
+    "ne tervezz új vázlatot és ne adj hozzá új exegetikai vagy teológiai állítást. "
+    "Csak a jelzett séma-, mondat- és hosszhibákat javítsd. "
+    "Töröld az ismétlést, metaszöveget és fölösleges magyarázatot. "
+    "Korlátok: teljes látható vázlat 160–240 szó, abszolút maximum 280; "
+    "cím legfeljebb 8 szó; fókusz pontosan egy mondat és legfeljebb 22 szó; "
+    "bevezető irány pontosan egy mondat és legfeljebb 25 szó; "
+    "2–4 pont; pontcím legfeljebb 8 szó; pontonként pontosan két alpont; "
+    "minden alpont egy teljes mondat és legfeljebb 18 szó; "
+    "alkalmazás legfeljebb egy mondat és 16 szó, vagy üres; "
+    "megérkezés pontosan egy mondat és legfeljebb 25 szó; "
+    "refinement_suggestions mindig üres lista. "
+    "Ne használj thesis/body/content vagy más új mezőt. "
+    "Kizárólag a teljes, javított JSON objektumot add vissza."
 )
 
 OUTLINE_SYSTEM_PROMPT = f"""\
-SZEREP
-Tapasztalt, textushű, református szemléletű homiletikai szerkesztő vagy.
-Feladatod: szószékre kész GONDOLATVÁZLAT a prédikátor kibontásához —
-NEM teljes prédikáció, NEM rövidített igehirdetés, NEM egzegézis-bekezdés.
+SZEREP ÉS CÉL
+
+Tapasztalt, biblikus, református szemléletű homiletikai szerkesztő vagy.
+Feladatod egy tömör, szószéken kibontásra alkalmas GONDOLATVÁZLAT elkészítése.
+A vázlat segíti a prédikátor önálló munkáját: nem kész prédikáció, nem rövidített
+igehirdetés, nem egzegézis és nem a korábbi műhelyanyag mechanikus összefoglalása.
 
 SÉMAVERZIÓ: {SCHEMA_VERSION}
 
+BELSŐ MUNKAMENET
+
+A következő mérlegelést csendben végezd el; gondolatmenetet és magyarázatot ne
+írj a válaszba.
+
+1. Először közvetlenül a bibliai textust vizsgáld meg: központi állítás,
+   textushatár, belső szerkezet, feszültség, fordulat és megérkezés.
+2. Egyetlen mondatban fogalmazd meg, mit tesz, ígér, leplez le vagy kíván
+   Isten ebben a textusban.
+3. Keresd meg a textus természetes homiletikai mozgását. Ez lehet logikai
+   kibontás, ellentét, kérdés–válasz, probléma–fordulat–feloldás, narratív
+   mozgás vagy más, a textusból következő szerkezet.
+4. Ezután mérlegeld a lelkész döntéseit, az alkalmat, a hallgatói helyzetet,
+   a vázlatkosarat és a műhely háttéranyagát.
+5. Csak azokat az elemeket építsd be, amelyek pontosítják vagy erősítik a
+   textus saját állítását és homiletikai mozgását.
+
+FORRÁSKEZELÉS
+
+A források sorrendje:
+
+1. Bibliai textus és indokolt textushatár.
+2. A felhasználó kifejezett fókusza, alkalma, hallgatói helyzete és jóváhagyott
+   homiletikai döntései.
+3. A vázlatkosárba tudatosan kiválasztott anyagok.
+4. Egyéb exegetikai, teológiai, történeti és homiletikai műhelyanyag.
+5. Korábbi vagy gépileg előállított vázlat csak akkor, ha a feladat kifejezetten
+   annak javítása; új vázlat készítésekor nem tekinthető mintának.
+
+A textus mindig elsőbbséget élvez. A felhasználói és műhelyanyag iránymutatás,
+nem kötelező tartalomjegyzék. Ne próbálj minden rendelkezésre álló elemet
+beépíteni. Hagyd el a textustól idegen, gyenge, ismétlődő, bizonytalan vagy
+egymásnak ellentmondó elemeket.
+
+Az üres vázlatkosár nem hiányállapot. Ilyenkor is készíts teljes értékű,
+konkrét és professzionális vázlatot a textus alapján. Ne jelezd a vázlatban,
+hogy kevés adat állt rendelkezésre, és ne töltsd ki a hiányt általános vallásos
+közhelyekkel.
+
+Ne állíts olyasmit a textusról, amit a szöveg vagy annak biztos kontextusa nem
+támaszt alá. Bizonytalan történeti, nyelvi vagy teológiai részletet ne találj ki.
+A textushatárt ne bővítsd ki hallgatólagosan: ha a teljes gondolati ívhez valóban
+szükséges módosítás, azt kizárólag a `scope_note` mezőben jelezd.
+
+HOMILETIKAI MINŐSÉG
+
+- A fókuszmondat egyetlen világos, textusból következő állítás legyen.
+- Ne ragaszkodj három ponthoz. A textus természetes szerkezete szerint válassz
+  2–4 pontot.
+- A pontok egymás után valódi gondolati előrehaladást mutassanak. Egyik pont
+  se legyen a fókuszmondat vagy egy korábbi pont puszta átfogalmazása.
+- A pontcímek egymás után olvasva is tegyék láthatóvá a prédikáció útját.
+- Pontonként az első alpont rögzítse a textuális állítást vagy képet, a második
+  mutassa meg annak teológiai vagy homiletikai jelentőségét.
+- Az alkalmazás legyen konkrétan összekötve az adott ponttal és a hallgatói
+  helyzettel. Kerüld az önmagában álló közhelyeket, például: „Fontos
+  felismernünk”, „Bízzunk jobban Istenben”, „Ez kulcsfontosságú”.
+- A bevezető iránya nevezzen meg konkrét emberi helyzetet, tapasztalatot,
+  kérdést vagy feszültséget. Ne legyen metautasítás, például: „A bevezetés
+  teremtsen feszültséget”.
+- A megérkezés ne a vázlat pontjainak ismételt összefoglalása és ne
+  metautasítás legyen. Fogalmazza meg, hová érkezik a textus a hallgatóval:
+  Isten cselekvéséhez, ígéretéhez, kegyelméhez, vigasztalásához vagy a hit
+  konkrét válaszához.
+- A Krisztus- és kegyelemhorizont ott jelenjen meg, ahol azt a textus és a
+  kánoni összefüggés természetesen indokolja. Ne illessz minden ponthoz
+  mechanikus krisztológiai mondatot, de ne zárd le a vázlatot puszta
+  moralizálással sem.
+- Különleges alkalomnál a textus határozza meg az üzenetet. Életrajzi adatból,
+  gyászesetből vagy hallgatói helyzetből ne vezess le a textuson túlmenő
+  bizonyosságot.
+
+MEZŐK TARTALMA
+
+- `title`: rövid, megjegyezhető cím; ne puszta témamegjelölés legyen.
+- `text_reference`: a megadott igehely.
+- `scope_note`: csak valódi textushatár-probléma esetén; különben üres.
+- `focus_sentence`: a teljes vázlatot összetartó egyetlen állítás.
+- `introduction_direction`: konkrét, tartalmi nyitómondat; nem kész bevezető
+  beszéd és nem szerkesztői utasítás.
+- `points`: a textus természetes mozgásának 2–4 állomása.
+- `verses`: csak az adott ponthoz ténylegesen tartozó vers vagy versszakasz.
+- `subpoints`: két tömör, teljes mondat; ne bekezdés és ne prédikációs próza.
+- `application`: egy konkrét hallgatói következmény vagy üres érték.
+- `conclusion_direction`: konkrét tartalmi megérkezés; nem kész záróbeszéd és
+  nem szerkesztői utasítás.
+- `refinement_suggestions`: mindig üres lista.
+
+HOSSZKORLÁTOK – KÖTELEZŐ
+
+- `title`: legfeljebb 8 szó.
+- `focus_sentence`: pontosan 1 mondat, legfeljebb 22 szó.
+- `introduction_direction`: pontosan 1 mondat, legfeljebb 25 szó.
+- `points`: 2–4, kizárólag a textus természetes szerkezete szerint.
+- `point.title`: legfeljebb 8 szó.
+- `point.subpoints`: pontosan 2; mindkettő pontosan 1 teljes mondat,
+  egyenként legfeljebb 18 szó.
+- `point.application`: legfeljebb 1 mondat és 16 szó, vagy üres.
+- `conclusion_direction`: pontosan 1 mondat, legfeljebb 25 szó.
+- `scope_note`: legfeljebb 25 szó, vagy üres.
+- A teljes látható vázlat céltartománya 160–240 szó, abszolút maximuma 280 szó.
+- `refinement_suggestions`: mindig `[]`.
+
+TILOS
+
+Tilos teljes prédikációt, kidolgozott bevezetést vagy záróbeszédet írni.
+Tilos többbekezdéses prózát írni a pontok alatt.
+Tilos a megadott sémán kívüli mezőt létrehozni, különösen:
+`body`, `content`, `exegesis`, `theological_expansion`, `grace_connection`,
+`listener_connection`, `transition_logic`, `full_introduction`,
+`full_conclusion`, `thesis`, `outline_text`.
+Tilos szerkesztői fejezetcímeket létrehozni, például:
+„Problémafelvetés”, „Magyarázat”, „Teológiai kibontás”,
+„Kegyelmi kapcsolat”, „Hallgatói alkalmazás”, „Átvezetési logika”.
+Tilos metaszöveget, önértékelést, hiányjelzést vagy a választ magyarázó
+megjegyzést írni.
+
 KÖTELEZŐ KIMENET
-KIZÁRÓLAG érvényes JSON az alábbi sémával (semmi Markdown, semmi magyarázat):
+
+Kizárólag egy érvényes JSON objektumot adj vissza, Markdown és minden további
+magyarázat nélkül:
+
 {{
   "title": "string",
   "text_reference": "string",
@@ -145,37 +274,12 @@ KIZÁRÓLAG érvényes JSON az alábbi sémával (semmi Markdown, semmi magyará
   "refinement_suggestions": []
 }}
 
-HOSSZKORLÁTOK (KÖTELEZŐ — hard fail ha túlléped)
-- title: ≤10 szó
-- focus_sentence: pontosan 1 mondat, ≤30 szó
-- introduction_direction: ≤35 szó (irányjelzés, nem bevezető beszéd)
-- points: alapértelmezés 3; megengedett 2–4
-- point.title: ≤10 szó
-- point.subpoints: pontosan 2–3; mindegyik pontosan 1 teljes mondat, ≤24 szó
-- point.application: legfeljebb 1 mondat, ≤22 szó (vagy üres)
-- conclusion_direction: ≤40 szó
-- scope_note: csak valódi textushatár-probléma esetén, ≤25 szó; különben üres
-- teljes látható vázlat cél: 250–380 szó; ABSZOLÚT MAXIMUM 420 szó
-- refinement_suggestions: legfeljebb 2 opcionális tipp; NEM a vázlat teste
+VÉGSŐ ELLENŐRZÉS
 
-TILOS A SÉMÁBAN / KIMENETBEN
-body, content, exegesis, theological_expansion, grace_connection,
-listener_connection, transition_logic, full_introduction, full_conclusion,
-thesis, outline_text — ezek prózacsapdák.
-Többbekezdéses folyó szöveg pontok alatt: TILOS.
-„Mit rendez ez a pont”, „Textuális/teológiai horgony”, „Átvezetési logika”,
-„Diagnózis → evangéliumi fordulat”, ismételt magyarázat+alkalmazás,
-retorikai töltelék („de vajon…”, „ez azonban…”, „itt felmerül a kérdés…”),
-kész bevezető/záróbeszéd.
-
-FORRÁSPRIORITÁS
-1 bibliai szöveg/határok → 2 jóváhagyott textus fő gondolat → 3 eredeti/exegetikai
-→ 4 történeti/műfaj/szerkezet → 5 jóváhagyott homiletikai döntések → 6 alkalom/bio
-→ 7 felhasználói jegyzetek → 8 óvatos MI-összekötés, ha kell.
-
-Krisztus-/kegyelemhorizont: ahol indokolt, de ne mechanikus bekezdés minden pont végén.
-
-A válasz CSAK a JSON objektum.\
+Válaszadás előtt csendben ellenőrizd, hogy a vázlat a textusból indul-e,
+önállóan is teljes-e, a pontok előrehaladnak-e, nincs-e ismétlés vagy
+metaszöveg, és minden mező megfelel-e a sémának és a hosszkorlátoknak.
+A válasz kizárólag a JSON objektum.\
 """
 
 _JSON_SHAPE = """\
@@ -190,8 +294,8 @@ _JSON_SHAPE = """\
       "title": "Pontcím",
       "verses": "v. x–y",
       "subpoints": [
-        "Egy teljes mondat (≤24 szó).",
-        "Második teljes mondat (≤24 szó)."
+        "Egy teljes mondat (≤18 szó).",
+        "Második teljes mondat (≤18 szó)."
       ],
       "application": ""
     }
@@ -200,6 +304,55 @@ _JSON_SHAPE = """\
   "refinement_suggestions": []
 }
 """
+
+# Gemini `responseSchema` — ugyanaz a szerkezet, amelyet a prompt és a
+# helyi validátor is elvár. A szöveghosszokat a prompt + validátor kezeli.
+OUTLINE_RESPONSE_SCHEMA: dict[str, Any] = {
+    "type": "OBJECT",
+    "properties": {
+        "title": {"type": "STRING"},
+        "text_reference": {"type": "STRING"},
+        "scope_note": {"type": "STRING"},
+        "focus_sentence": {"type": "STRING"},
+        "introduction_direction": {"type": "STRING"},
+        "points": {
+            "type": "ARRAY",
+            "minItems": 2,
+            "maxItems": 4,
+            "items": {
+                "type": "OBJECT",
+                "properties": {
+                    "title": {"type": "STRING"},
+                    "verses": {"type": "STRING"},
+                    "subpoints": {
+                        "type": "ARRAY",
+                        "minItems": 2,
+                        "maxItems": 2,
+                        "items": {"type": "STRING"},
+                    },
+                    "application": {"type": "STRING"},
+                },
+                "required": ["title", "verses", "subpoints", "application"],
+            },
+        },
+        "conclusion_direction": {"type": "STRING"},
+        "refinement_suggestions": {
+            "type": "ARRAY",
+            "maxItems": 0,
+            "items": {"type": "STRING"},
+        },
+    },
+    "required": [
+        "title",
+        "text_reference",
+        "scope_note",
+        "focus_sentence",
+        "introduction_direction",
+        "points",
+        "conclusion_direction",
+        "refinement_suggestions",
+    ],
+}
 
 
 def _s(value: Any) -> str:
@@ -390,6 +543,38 @@ def validate_structured_outline(payload: Any) -> list[str]:
         forbidden = _has_forbidden_keys(payload)
         if forbidden:
             issues.append("forbidden_prose_fields")
+        for key in (
+            "title",
+            "text_reference",
+            "scope_note",
+            "focus_sentence",
+            "introduction_direction",
+            "conclusion_direction",
+        ):
+            if _looks_multi_paragraph(payload.get(key)):
+                issues.append("multi_paragraph_field")
+                break
+        raw_tips = payload.get("refinement_suggestions")
+        if raw_tips not in (None, [], ()):
+            issues.append("refinement_suggestions_not_empty")
+        raw_points = payload.get("points")
+        if isinstance(raw_points, list):
+            if not LIMITS["min_points"] <= len(raw_points) <= LIMITS["max_points"]:
+                issues.append("invalid_point_count")
+            for raw_point in raw_points:
+                if not isinstance(raw_point, dict):
+                    continue
+                if _looks_multi_paragraph(raw_point.get("title")) or _looks_multi_paragraph(
+                    raw_point.get("verses")
+                ):
+                    issues.append("multi_paragraph_field")
+                    break
+                raw_subpoints = raw_point.get("subpoints")
+                if isinstance(raw_subpoints, list) and len(raw_subpoints) != 2:
+                    issues.append("invalid_subpoint_count")
+                if _looks_multi_paragraph(raw_point.get("application")):
+                    issues.append("multi_paragraph_field")
+                    break
 
     if not data["focus_sentence"]:
         issues.append("missing_focus")
@@ -444,6 +629,8 @@ def validate_structured_outline(payload: Any) -> list[str]:
             issues.append("too_few_subpoints")
         if len(subs) > LIMITS["max_subpoints"]:
             issues.append("too_many_subpoints")
+        if len(subs) != 2:
+            issues.append("invalid_subpoint_count")
         for sp in subs:
             wc = word_count(sp)
             if wc < LIMITS["subpoint_min_words"]:
@@ -782,6 +969,8 @@ def _call_generate(
                 system_bundle=system_bundle,
                 include_brevity_directive=False,
                 max_output_tokens=OUTLINE_MAX_OUTPUT_TOKENS,
+                response_mime_type="application/json",
+                response_schema=OUTLINE_RESPONSE_SCHEMA,
             )
         except TypeError:
             # Teszt / legacy generate_fn signature
@@ -792,6 +981,7 @@ def _call_generate(
                 use_cache=False,
                 system_bundle=system_bundle,
                 include_brevity_directive=False,
+                max_output_tokens=OUTLINE_MAX_OUTPUT_TOKENS,
             )
     finally:
         if touched:
@@ -972,11 +1162,27 @@ def _ai_generate_structured(
 ) -> tuple[dict[str, Any] | None, list[str], int]:
     """Returns (structured|None, warnings, raw_rendered_word_count)."""
     warnings: list[str] = []
-    ctx = {k: v for k, v in bundle.items() if not str(k).startswith("_")}
-    mode_note = (
-        "Gyors vázlat: a projektben jelenleg rendelkezésre álló anyagból dolgozz."
+    ctx_without_basket_and_seed = {
+        k: v
+        for k, v in bundle.items()
+        if not str(k).startswith("_")
+        and k not in {"outline_basket", "sermon_outline", "outline_manual_notes"}
+    }
+    source_keys = ctx_without_basket_and_seed.get("source_keys")
+    if isinstance(source_keys, list):
+        ctx_without_basket_and_seed["source_keys"] = [
+            key
+            for key in source_keys
+            if key not in {"outline_basket", "outline_manual_notes"}
+        ]
+    outline_basket = bundle.get("outline_basket") or []
+    task_mode_note = (
+        "ÚJ GYORSVÁZLAT: készíts önálló vázlatot a textusból; "
+        "a rendelkezésre álló műhelyanyagot csak szelektív háttérként használd."
         if mode == "quick"
-        else "Műhelyvázlat: használd a jóváhagyott homiletikai döntéseket is, ha vannak."
+        else
+        "ÚJ MŰHELYVÁZLAT: készíts önálló vázlatot a textusból; "
+        "a lelkész jóváhagyott döntéseit mérlegeld, de ne másold mechanikusan."
     )
     try:
         from sermon_workshop_outline_synth_ai import (
@@ -999,25 +1205,26 @@ def _ai_generate_structured(
     except Exception:  # noqa: BLE001
         occasion_block = (
             f"SÉMAVERZIÓ: {SCHEMA_VERSION}\n"
-            f"CÉLHOSSZ: 250–380 szó (abszolút max {LIMITS['absolute_max_words']}).\n"
+            f"CÉLHOSSZ: 160–240 szó (abszolút max {LIMITS['absolute_max_words']}).\n"
         )
-    seed_slim = {}
-    if seed_outline:
-        seed_slim = {
-            "main_idea": _s(seed_outline.get("main_idea")),
-            "opening_direction": _s(seed_outline.get("opening_direction")),
-            "movements": seed_outline.get("movements") or [],
-        }
     prompt = (
-        f"{mode_note}\n"
+        f"{task_mode_note}\n"
         f"{occasion_block}"
-        "Készíts szószéki GONDOLATVÁZLATOT (nem prédikációt). "
-        "Tartsd a szigorú hosszkorlátokat. "
-        "Pontok: title, verses, subpoints (2–3; egyenként ≤24 szó), "
-        "application (opcionális). Nincs thesis/body/content mező.\n\n"
-        f"FORRÁS:\n{json.dumps(ctx, ensure_ascii=False)}\n\n"
-        f"MAG (opcionális):\n{json.dumps(seed_slim, ensure_ascii=False)}\n\n"
-        f"Kimenet JSON séma:\n{_JSON_SHAPE}"
+        "A feladat új vázlat készítése, nem egy korábbi vázlat javítása vagy "
+        "átszövegezése.\n"
+        "Először a textus központi állítását és természetes homiletikai mozgását "
+        "állapítsd meg. Csak ezután mérlegeld a többi anyagot.\n"
+        "Üres vázlatkosár esetén is készíts teljes értékű, konkrét vázlatot.\n"
+        "Ne ragaszkodj három ponthoz; a textus szerint válassz 2–4 pontot.\n"
+        "Pontonként pontosan két, egyenként legfeljebb 18 szavas alpontot adj.\n"
+        "A bevezető és a megérkezés tartalmi mondat legyen, ne szerkesztői "
+        "utasítás.\n\n"
+        f"FORRÁSCSOMAG:\n{json.dumps(ctx_without_basket_and_seed, ensure_ascii=False)}\n\n"
+        "A forráscsomag exegetikai, teológiai és homiletikai elemei háttéranyagok; "
+        "nem kell mindegyiket felhasználni.\n\n"
+        f"VÁZLATKOSÁR – OPCIONÁLIS, SZELEKTÁLVA HASZNÁLHATÓ:\n"
+        f"{json.dumps(outline_basket or [], ensure_ascii=False)}\n\n"
+        f"KIMENETI SÉMA:\n{_JSON_SHAPE}"
     )
     try:
         raw = _call_generate(generate_fn, prompt, temperature=0.3)
@@ -1056,7 +1263,11 @@ def _compress_structured(
     generate_fn: GenerateFn,
 ) -> tuple[dict[str, Any] | None, list[str]]:
     warnings: list[str] = []
-    ctx = {k: v for k, v in bundle.items() if not str(k).startswith("_")}
+    repair_context = {
+        "passage_reference": bundle.get("passage_reference", ""),
+        "passage_text": bundle.get("passage_text", ""),
+        "bible_translation": bundle.get("bible_translation", ""),
+    }
     try:
         from sermon_workshop_outline_synth_ai import (
             _is_partial_workshop_bundle,
@@ -1086,7 +1297,7 @@ def _compress_structured(
         f"JELZETT PROBLÉMÁK: {', '.join(issues)}\n"
         "Add vissza a teljes vázlatot a szigorú JSON sémában "
         "(thesis/body/content nélkül).\n\n"
-        f"FORRÁS (csak támasz):\n{json.dumps(ctx, ensure_ascii=False)}\n\n"
+        f"FORRÁS (csak támasz):\n{json.dumps(repair_context, ensure_ascii=False)}\n\n"
         f"JAVÍTANDÓ VÁZLAT:\n{json.dumps(slim, ensure_ascii=False)}\n\n"
         f"Kimenet JSON séma:\n{_JSON_SHAPE}"
     )
@@ -1223,6 +1434,11 @@ def generate_sermon_outline(
         )
 
     existing = normalize_sermon_outline(sw.get("sermon_outline"))
+    retained_outline_notice = (
+        " A korábbi mentett vázlat változatlanul maradt, és továbbra is az látható."
+        if outline_has_content(existing)
+        else ""
+    )
     manually_edited = bool(
         existing.get("manually_edited")
         or _s(sw.get("sermon_outline_status")) == "approved"
@@ -1288,7 +1504,7 @@ def generate_sermon_outline(
             return OutlineGenerationResult(
                 outline=existing,
                 ok=False,
-                error_message=INVALID_OUTLINE_MESSAGE,
+                error_message=INVALID_OUTLINE_MESSAGE + retained_outline_notice,
                 warnings=warnings,
                 validation_issues=issues,
                 source=source_tag,
@@ -1314,7 +1530,7 @@ def generate_sermon_outline(
         return OutlineGenerationResult(
             outline=existing,
             ok=False,
-            error_message=INVALID_OUTLINE_MESSAGE,
+            error_message=INVALID_OUTLINE_MESSAGE + retained_outline_notice,
             warnings=warnings,
             validation_issues=issues,
             source=source_tag,

@@ -45,6 +45,8 @@ MAX_EXEGESIS_CHARS = 1600
 MAX_THEOLOGY_CHARS = 1200
 MAX_HISTORY_CHARS = 800
 MAX_INSIGHTS = 8
+MAX_BASKET_ITEMS = 12
+MAX_BASKET_ITEM_CHARS = 700
 PROVISIONAL_NOTICE = (
     "A vázlat néhány összekötő eleme a rendelkezésre álló anyag alapján "
     "munkajavaslatként készült."
@@ -317,6 +319,32 @@ def _approved_sermon_decision_texts(sw: Mapping[str, Any]) -> list[str]:
     return out
 
 
+def _outline_basket_items(session_state: Mapping[str, Any]) -> list[dict[str, str]]:
+    """Opcionális vázlatkosár → tömör, címkézett homiletikai alapanyag."""
+    out: list[dict[str, str]] = []
+    raw_items = session_state.get("basket")
+    if not isinstance(raw_items, list):
+        return out
+    for item in raw_items:
+        source = ""
+        content = ""
+        if isinstance(item, (list, tuple)) and len(item) >= 2:
+            source = _s(item[0])
+            content = _s(item[1])
+        elif isinstance(item, dict):
+            source = _s(item.get("source") or item.get("label"))
+            content = _s(item.get("content") or item.get("text"))
+        elif isinstance(item, str):
+            content = _s(item)
+        content = _truncate(content, MAX_BASKET_ITEM_CHARS)
+        if not content:
+            continue
+        out.append({"source": source, "content": content})
+        if len(out) >= MAX_BASKET_ITEMS:
+            break
+    return out
+
+
 @dataclass
 class OutlineReadiness:
     ok: bool
@@ -522,6 +550,11 @@ def collect_outline_context_bundle(
     if decisions:
         bundle["approved_sermon_decisions"] = decisions
         keys.append("approved_sermon_decisions")
+
+    basket_items = _outline_basket_items(session_state)
+    if basket_items:
+        bundle["outline_basket"] = basket_items
+        keys.append("outline_basket")
 
     for field_name, limit, session_key in (
         ("exegesis", MAX_EXEGESIS_CHARS, "exegesis"),

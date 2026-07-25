@@ -5704,6 +5704,8 @@ def _build_payload(
     system_bundle: str | None = None,
     include_brevity_directive: bool = True,
     max_output_tokens: int | None = None,
+    response_mime_type: str | None = None,
+    response_schema: dict | None = None,
 ) -> dict:
     """Összeállítja a Gemini REST kérés JSON body-ját (`model` = Flash vagy Flash Lite).
 
@@ -5740,6 +5742,10 @@ def _build_payload(
     }
     if max_output_tokens is not None and int(max_output_tokens) > 0:
         gen_cfg["maxOutputTokens"] = int(max_output_tokens)
+    if response_mime_type:
+        gen_cfg["responseMimeType"] = str(response_mime_type)
+    if response_schema is not None:
+        gen_cfg["responseSchema"] = response_schema
     payload = {
         "contents": [{"parts": [{"text": final_prompt}]}],
         "generationConfig": gen_cfg,
@@ -5762,6 +5768,8 @@ def generate_text(
     incomplete_response_message: str | None = None,
     bypass_cooldown: bool = False,
     max_output_tokens: int | None = None,
+    response_mime_type: str | None = None,
+    response_schema: dict | None = None,
 ):
     """EGYETLEN logikai Gemini-hívás — gomb-szintű egyediség garantált.
 
@@ -5865,6 +5873,8 @@ def generate_text(
             system_bundle=system_bundle,
             include_brevity_directive=include_brevity_directive,
             max_output_tokens=max_output_tokens,
+            response_mime_type=response_mime_type,
+            response_schema=response_schema,
         )
 
         # log: BEFORE (kulcsforrás + auth még függőben)
@@ -7447,7 +7457,12 @@ with tabs[7]:
                     force_overwrite=True,
                 )
                 if not result.ok:
-                    st.warning(result.error_message or EMPTY_PROJECT_MESSAGE)
+                    retained = (
+                        " A korábbi mentett vázlat változatlanul látható."
+                        if outline_has_content(outline)
+                        else ""
+                    )
+                    st.warning((result.error_message or EMPTY_PROJECT_MESSAGE) + retained)
                 else:
                     outline = sync_outline_content(result.outline, force=True)
                     save_sermon_outline(
