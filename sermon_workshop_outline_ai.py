@@ -50,8 +50,8 @@ PROVISIONAL_NOTICE = (
     "munkajavaslatként készült."
 )
 EMPTY_PROJECT_MESSAGE = (
-    "A vázlathoz legalább a RÚF-szöveg betöltése vagy egy rövid saját "
-    "gondolat / fő gondolat szükséges. Az igehely önmagában nem elég."
+    "A vázlathoz szükség van az igehelyhez tartozó bibliai szövegre, "
+    "valamint legalább egy exegetikai megfigyelésre vagy egzegézisre."
 )
 
 # Előnézetben és generált szövegben tiltott sablon / technikai helykitöltők.
@@ -302,6 +302,21 @@ def _approved_insights_texts(tw: Mapping[str, Any]) -> list[str]:
     return out
 
 
+def _approved_sermon_decision_texts(sw: Mapping[str, Any]) -> list[str]:
+    out: list[str] = []
+    for item in sw.get("approved_sermon_decisions") or []:
+        if not isinstance(item, dict):
+            continue
+        if item.get("approved") is False:
+            continue
+        content = _s(item.get("content"))
+        if content:
+            out.append(content)
+        if len(out) >= MAX_INSIGHTS:
+            break
+    return out
+
+
 @dataclass
 class OutlineReadiness:
     ok: bool
@@ -329,7 +344,7 @@ def assess_outline_readiness(
     *,
     sermon_workshop: Mapping[str, Any] | None = None,
 ) -> OutlineReadiness:
-    """Minimális bemenet: igehely + legalább egy használható anyag."""
+    """Minimális bemenet: igehely + bibliai szöveg + exegetikai / műhelyanyag."""
     sw = (
         dict(sermon_workshop)
         if isinstance(sermon_workshop, dict)
@@ -350,8 +365,12 @@ def assess_outline_readiness(
         sources.append("text_main_idea")
     if _approved_insights_texts(tw):
         sources.append("approved_insights")
+    if _approved_sermon_decision_texts(sw):
+        sources.append("approved_sermon_decisions")
     if _session_str(session_state, "exegesis"):
         sources.append("exegesis")
+    if _session_str(session_state, "original_text"):
+        sources.append("original_text")
     if _session_str(session_state, "theology"):
         sources.append("theology")
     if _session_str(session_state, "history"):
@@ -386,14 +405,39 @@ def assess_outline_readiness(
     if _has_any_text(*closing.values()):
         sources.append("closing")
 
-    substantive = [k for k in sources if k != "passage_reference"]
     if not passage_ref:
         return OutlineReadiness(
             ok=False,
             message="Add meg az igehelyet, majd tölts be RÚF-szöveget vagy egy rövid gondolatot.",
             source_keys=sources,
         )
-    if not substantive:
+    if not passage_text:
+        return OutlineReadiness(
+            ok=False,
+            message=EMPTY_PROJECT_MESSAGE,
+            source_keys=sources,
+        )
+
+    has_exegetical = bool(
+        _session_str(session_state, "exegesis")
+        or _session_str(session_state, "original_text")
+    )
+    has_insight_or_idea = bool(
+        _approved_insights_texts(tw)
+        or _approved_sermon_decision_texts(sw)
+        or _s(tw.get("text_main_idea"))
+        or _s(sw.get("sermon_main_idea"))
+        or "human_condition" in sources
+        or "listener_tension" in sources
+        or "christ_centered_arc" in sources
+        or "sermon_path" in sources
+        or "sermon_movements" in sources
+        or "closing" in sources
+        or "theology" in sources
+        or "user_notes" in sources
+    )
+    # Részleges, de elegendő: bibliai szöveg + (exegézis/eredeti VAGY műhelyanyag)
+    if not has_exegetical and not has_insight_or_idea:
         return OutlineReadiness(
             ok=False,
             message=EMPTY_PROJECT_MESSAGE,
@@ -474,10 +518,16 @@ def collect_outline_context_bundle(
         bundle["approved_insights"] = insights
         keys.append("approved_insights")
 
+    decisions = _approved_sermon_decision_texts(sw)
+    if decisions:
+        bundle["approved_sermon_decisions"] = decisions
+        keys.append("approved_sermon_decisions")
+
     for field_name, limit, session_key in (
         ("exegesis", MAX_EXEGESIS_CHARS, "exegesis"),
         ("theology", MAX_THEOLOGY_CHARS, "theology"),
         ("history", MAX_HISTORY_CHARS, "history"),
+        ("original_text", MAX_EXEGESIS_CHARS, "original_text"),
     ):
         text = _truncate(_session_str(session_state, session_key), limit)
         if text:
@@ -581,6 +631,14 @@ def _prefer_main_idea(bundle: Mapping[str, Any]) -> str:
     insights = bundle.get("approved_insights") or []
     if isinstance(insights, list) and insights:
         return _s(insights[0])
+    decisions = bundle.get("approved_sermon_decisions") or []
+    if isinstance(decisions, list) and decisions:
+        return _s(decisions[0])
+    hc = bundle.get("human_condition") if isinstance(bundle.get("human_condition"), dict) else {}
+    for key in ("divine_action", "condition", "grace_response", "human_need"):
+        val = _s(hc.get(key))
+        if val:
+            return val
     # Minimális forrás: saját szempont / fókusz is elég a szintézis magjához
     focus = _s(bundle.get("user_focus"))
     if focus:
@@ -837,9 +895,16 @@ def build_outline_from_workshop(
                 extra["applications"].append(t)
 
     if not movements_out and idea:
+        insight_pool: list[str] = []
+        for src in (
+            bundle.get("approved_insights") or [],
+            bundle.get("approved_sermon_decisions") or [],
+        ):
+            if isinstance(src, list):
+                insight_pool.extend(_s(x) for x in src if _s(x))
         movements_out = _heuristic_provisional_movements(
             main_idea=idea,
-            insights=list(bundle.get("approved_insights") or []),
+            insights=insight_pool,
             exegesis=_s(bundle.get("exegesis")),
             christ=arc or hc,
             listener_question=question,
@@ -2152,7 +2217,7 @@ def assemble_sermon_outline(
                     ok=False,
                     error_message=(
                         "A vázlatgenerálás nem adott szószéken használható eredményt. "
-                        "Próbáld újra, vagy egészítsd ki a műhelyanyagot."
+                        "Próbáld újra."
                     ),
                     warnings=warnings,
                 )
@@ -2193,7 +2258,7 @@ def assemble_sermon_outline(
             ok=False,
             error_message=(
                 "Nem jött létre olvasható vázlattartalom a rendelkezésre álló "
-                "anyagból. Tölts ki legalább egy műhelyszakaszt, majd próbáld újra."
+                "anyagból. " + EMPTY_PROJECT_MESSAGE
             ),
             warnings=warnings,
         )

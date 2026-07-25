@@ -99,7 +99,10 @@ def test_c_textus_plus_sermon_main_idea_no_m5_m9():
 
 
 def test_d_own_idea_and_notes():
-    state = _base_state(last_sajat="A kereszt a szeretet jele a gyülekezetnek.")
+    state = _base_state(
+        passage_text="Rövid bibliai szöveg a keresztről.",
+        last_sajat="A kereszt a szeretet jele a gyülekezetnek.",
+    )
     state[SERMON_WORKSHOP_KEY]["sermon_main_idea"] = "Saját fő gondolat a keresztről"
     result = assemble_sermon_outline(state, generate_fn=None)
     assert result.ok
@@ -197,7 +200,7 @@ def test_l_empty_project_blocks_template_sermon():
     assert not ready.ok
     result = assemble_sermon_outline(state, generate_fn=None)
     assert not result.ok
-    assert "RÚF" in result.error_message or "gondolat" in result.error_message.casefold()
+    assert "bibliai szövegre" in result.error_message.casefold() or "exegetikai" in result.error_message.casefold()
 
 
 def test_m_save_reload_partial_outline():

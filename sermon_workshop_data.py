@@ -10,7 +10,7 @@ from __future__ import annotations
 import copy
 import uuid
 from datetime import datetime
-from typing import Any, MutableMapping
+from typing import Any, Mapping, MutableMapping
 
 SERMON_WORKSHOP_KEY = "sermon_workshop"
 
@@ -57,24 +57,28 @@ def get_default_sermon_workshop() -> dict[str, Any]:
             "divine_action": "",
             "grace_response": "",
         },
+        "human_condition_status": "draft",
         "listener_tension": {
             "listener_question": "",
             "listener_resistance": "",
             "sermon_tension": "",
             "promised_resolution": "",
         },
+        "listener_tension_status": "draft",
         "christ_centered_arc": {
             "divine_gracious_action": "",
             "christ_connection": "",
             "christ_connection_type": "",
             "grace_enabled_response": "",
         },
+        "christ_centered_arc_status": "draft",
         "sermon_path": {
             "type": "",
             "reason": "",
             "starting_point": "",
             "destination": "",
         },
+        "sermon_path_status": "draft",
         "sermon_movements": [],
         "selected_images": [],
         "illustrations": [],
@@ -1099,17 +1103,19 @@ def normalize_sermon_workshop(data: Any) -> dict[str, Any]:
     if status not in ("draft", "approved", ""):
         status = "draft"
 
-    enrichment_status = _as_str(data.get("enrichment_status")) or "draft"
-    if enrichment_status not in ("draft", "approved", ""):
-        enrichment_status = "draft"
+    def _norm_status(raw: Any) -> str:
+        val = _as_str(raw) or "draft"
+        if val not in ("draft", "approved", ""):
+            return "draft"
+        return val or "draft"
 
-    closing_status = _as_str(data.get("closing_status")) or "draft"
-    if closing_status not in ("draft", "approved", ""):
-        closing_status = "draft"
-
-    lection_status = _as_str(data.get("lection_status")) or "draft"
-    if lection_status not in ("draft", "approved", ""):
-        lection_status = "draft"
+    enrichment_status = _norm_status(data.get("enrichment_status"))
+    closing_status = _norm_status(data.get("closing_status"))
+    lection_status = _norm_status(data.get("lection_status"))
+    human_condition_status = _norm_status(data.get("human_condition_status"))
+    listener_tension_status = _norm_status(data.get("listener_tension_status"))
+    christ_centered_arc_status = _norm_status(data.get("christ_centered_arc_status"))
+    sermon_path_status = _norm_status(data.get("sermon_path_status"))
 
     outline_status = _as_str(data.get("sermon_outline_status")) or "draft"
     if outline_status not in ("draft", "approved", "empty", ""):
@@ -1121,15 +1127,19 @@ def normalize_sermon_workshop(data: Any) -> dict[str, Any]:
         "human_condition": _normalize_str_dict(
             data.get("human_condition"), base["human_condition"]
         ),
+        "human_condition_status": human_condition_status,
         "listener_tension": _normalize_str_dict(
             data.get("listener_tension"), base["listener_tension"]
         ),
+        "listener_tension_status": listener_tension_status,
         "christ_centered_arc": _normalize_str_dict(
             data.get("christ_centered_arc"), base["christ_centered_arc"]
         ),
+        "christ_centered_arc_status": christ_centered_arc_status,
         "sermon_path": _normalize_str_dict(
             data.get("sermon_path"), base["sermon_path"]
         ),
+        "sermon_path_status": sermon_path_status,
         "sermon_movements": normalize_sermon_movements(data.get("sermon_movements")),
         "selected_images": normalize_textual_images(data.get("selected_images")),
         "illustrations": normalize_illustrations(data.get("illustrations")),
@@ -1344,25 +1354,19 @@ def update_sermon_workshop_section(
         sw["sermon_main_idea_status"] = status or "draft"
         return sw
 
-    if key == "enrichment_status":
+    if key in (
+        "human_condition_status",
+        "listener_tension_status",
+        "christ_centered_arc_status",
+        "sermon_path_status",
+        "enrichment_status",
+        "closing_status",
+        "lection_status",
+    ):
         status = _as_str(data) or "draft"
         if status not in ("draft", "approved", ""):
             status = "draft"
-        sw["enrichment_status"] = status or "draft"
-        return sw
-
-    if key == "closing_status":
-        status = _as_str(data) or "draft"
-        if status not in ("draft", "approved", ""):
-            status = "draft"
-        sw["closing_status"] = status or "draft"
-        return sw
-
-    if key == "lection_status":
-        status = _as_str(data) or "draft"
-        if status not in ("draft", "approved", ""):
-            status = "draft"
-        sw["lection_status"] = status or "draft"
+        sw[key] = status or "draft"
         return sw
 
     if key == "sermon_outline_status":
@@ -1500,6 +1504,143 @@ def add_approved_sermon_decision(
     }
     sw["approved_sermon_decisions"].append(decision)
     return decision
+
+
+def _decision_duplicate_in_sw(
+    sw: Mapping[str, Any],
+    *,
+    source_section: str,
+    category: str,
+    content: str,
+) -> bool:
+    needle = _as_str(content)
+    if not needle:
+        return True
+    for item in sw.get("approved_sermon_decisions") or []:
+        if not isinstance(item, dict):
+            continue
+        if (
+            _as_str(item.get("source_section")) == source_section
+            and _as_str(item.get("category")) == category
+            and _as_str(item.get("content")) == needle
+        ):
+            return True
+    return False
+
+
+def accept_workshop_proposal(
+    session_state: MutableMapping[str, Any],
+    *,
+    section_key: str,
+    block: Mapping[str, Any] | str,
+    source_section: str,
+    field_categories: list[tuple[str, str]] | None = None,
+    status_key: str | None = None,
+    main_idea_category: str = "Fő gondolat",
+) -> dict[str, Any]:
+    """Javaslat átvétele = tartós műhelydöntés.
+
+    - szakasz tartalom mentése
+    - szakasz státusz ``approved``
+    - nem üres mezők → ``approved_sermon_decisions`` (duplikátum nélkül)
+
+    Vissza: ``{"added": int, "status_key": str, "section_key": str}``.
+    """
+    sw = ensure_sermon_workshop_state(session_state)
+    resolved_status = status_key
+    added = 0
+
+    if section_key in ("sermon_main_idea", "main_idea"):
+        text = (
+            _as_str(block.get("sermon_main_idea"))
+            if isinstance(block, Mapping)
+            else _as_str(block)
+        )
+        update_sermon_workshop_section(
+            session_state,
+            "sermon_main_idea",
+            {
+                "sermon_main_idea": text,
+                "sermon_main_idea_status": "approved",
+            },
+        )
+        resolved_status = "sermon_main_idea_status"
+        if text and not _decision_duplicate_in_sw(
+            sw,
+            source_section=source_section,
+            category=main_idea_category,
+            content=text,
+        ):
+            add_approved_sermon_decision(
+                session_state, source_section, main_idea_category, text
+            )
+            added = 1
+        return {
+            "added": added,
+            "status_key": resolved_status,
+            "section_key": "sermon_main_idea",
+        }
+
+    payload = dict(block) if isinstance(block, Mapping) else {}
+    update_sermon_workshop_section(session_state, section_key, payload)
+    if not resolved_status:
+        resolved_status = f"{section_key}_status"
+    if resolved_status in sw or resolved_status.endswith("_status"):
+        update_sermon_workshop_section(session_state, resolved_status, "approved")
+
+    cats = field_categories or [
+        (str(k), str(k)) for k in payload.keys() if _as_str(payload.get(k))
+    ]
+    for field, category in cats:
+        content = _as_str(payload.get(field))
+        if not content:
+            continue
+        if _decision_duplicate_in_sw(
+            sw,
+            source_section=source_section,
+            category=category,
+            content=content,
+        ):
+            continue
+        add_approved_sermon_decision(
+            session_state, source_section, category, content
+        )
+        added += 1
+
+    return {
+        "added": added,
+        "status_key": resolved_status or "",
+        "section_key": section_key,
+    }
+
+
+def section_has_accepted_content(
+    session_state: Mapping[str, Any],
+    *,
+    section_key: str,
+    status_key: str | None = None,
+    source_section: str | None = None,
+) -> bool:
+    """Van-e már jóváhagyott / átvett anyag a szakaszban."""
+    sw = normalize_sermon_workshop(session_state.get(SERMON_WORKSHOP_KEY))
+    sk = status_key or (
+        "sermon_main_idea_status"
+        if section_key in ("sermon_main_idea", "main_idea")
+        else f"{section_key}_status"
+    )
+    if _as_str(sw.get(sk)) == "approved":
+        return True
+    if source_section:
+        for item in sw.get("approved_sermon_decisions") or []:
+            if not isinstance(item, dict):
+                continue
+            if _as_str(item.get("source_section")) != source_section:
+                continue
+            if item.get("approved") is False:
+                continue
+            if _as_str(item.get("content")):
+                return True
+    return False
 
 
 def remove_approved_sermon_decision(
@@ -1975,6 +2116,8 @@ __all__ = [
     "ensure_sermon_workshop_state",
     "update_sermon_workshop_section",
     "add_approved_sermon_decision",
+    "accept_workshop_proposal",
+    "section_has_accepted_content",
     "remove_approved_sermon_decision",
     "deepcopy_sermon_workshop",
     "empty_sermon_movement",

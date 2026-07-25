@@ -1064,6 +1064,18 @@ def sermon_section_statuses(
             return str(status_of(key) or "").strip()
         return str(sw.get(key) or "").strip()
 
+    def _has_decision(source_section: str) -> bool:
+        for item in sw.get("approved_sermon_decisions") or []:
+            if not isinstance(item, dict):
+                continue
+            if str(item.get("source_section") or "").strip() != source_section:
+                continue
+            if item.get("approved") is False:
+                continue
+            if str(item.get("content") or "").strip():
+                return True
+        return False
+
     def _has_text(*keys: str) -> bool:
         for k in keys:
             val = sw.get(k)
@@ -1093,27 +1105,33 @@ def sermon_section_statuses(
 
     out: dict[str, str] = {}
     out["Az igehirdetés fő gondolata"] = _classify(
-        approved=_status("sermon_main_idea_status") == "approved",
+        approved=_status("sermon_main_idea_status") == "approved"
+        or _has_decision("Az igehirdetés fő gondolata"),
         own=_has_text("sermon_main_idea"),
         suggested=_suggestion_payload_nonempty(sw.get("sermon_main_idea_suggestions")),
     )
     out["Emberi helyzet és kegyelmi válasz"] = _classify(
-        approved=_status("human_condition_status") == "approved",
+        approved=_status("human_condition_status") == "approved"
+        or _has_decision("Emberi helyzet és kegyelmi válasz"),
         own=_has_text("human_condition"),
-        suggested=_suggestion_payload_nonempty(sw.get("human_condition_suggestions")),
+        suggested=_suggestion_payload_nonempty(sw.get("human_condition_suggestion"))
+        or _suggestion_payload_nonempty(sw.get("human_condition_suggestions")),
     )
     out["Hallgatói kérdés és feszültség"] = _classify(
-        approved=_status("listener_tension_status") == "approved",
+        approved=_status("listener_tension_status") == "approved"
+        or _has_decision("Hallgatói kérdés és feszültség"),
         own=_has_text("listener_tension"),
         suggested=_suggestion_payload_nonempty(sw.get("listener_tension_suggestions")),
     )
     out["Krisztus-központú és evangéliumi ív"] = _classify(
-        approved=_status("christ_centered_arc_status") == "approved",
+        approved=_status("christ_centered_arc_status") == "approved"
+        or _has_decision("Krisztus-központú és evangéliumi ív"),
         own=_has_text("christ_centered_arc"),
         suggested=_suggestion_payload_nonempty(sw.get("gospel_arc_suggestions")),
     )
     out["Az igehirdetés útja és mozgásai"] = _classify(
-        approved=_status("sermon_path_status") == "approved",
+        approved=_status("sermon_path_status") == "approved"
+        or _has_decision("Az igehirdetés útja és mozgásai"),
         own=_has_text("sermon_path", "sermon_movements"),
         suggested=_suggestion_payload_nonempty(sw.get("sermon_path_suggestions")),
     )

@@ -31,6 +31,7 @@ from bible_text_ui import (
 from bible_text_ui import _ensure_bible_text_styles
 from ruf_bible_service import SOURCE_NAME, fetch_ruf_passage
 from sermon_workshop_data import (
+    accept_workshop_proposal,
     add_approved_sermon_decision,
     empty_application,
     empty_illustration,
@@ -65,6 +66,7 @@ from sermon_workshop_data import (
     save_sermon_main_idea_suggestions,
     save_sermon_outline,
     save_sermon_outline_diagnostics,
+    section_has_accepted_content,
     set_sermon_outline_diagnostics_status,
     save_sermon_path_assessment,
     save_sermon_path_suggestions,
@@ -219,6 +221,7 @@ from sermon_workshop_m9_prayer_ai import (
     suggest_prayer_before,
 )
 from sermon_workshop_outline_ai import (
+    EMPTY_PROJECT_MESSAGE,
     assemble_sermon_outline,
     collect_available_sermon_material,
     editable_outline_snapshot,
@@ -494,12 +497,18 @@ _KEY_PATH = {
     "destination": "sw_path_destination",
 }
 _RESYNC_FLAG = "_sw_ui_resync"
+_ADOPT_FEEDBACK = "_sw_adopt_feedback"
 _ADOPT_SERMON_PENDING = "_sw_sermon_idea_adopt_pending"
 _ADOPT_HC_PENDING = "_sw_hc_adopt_pending"
 _ADOPT_LT_PENDING = "_sw_lt_adopt_pending"
 _ADOPT_GA_PENDING = "_sw_ga_adopt_pending"
 _ADOPT_PATH_PENDING = "_sw_path_adopt_pending"
 _ADOPT_MOVEMENTS_PENDING = "_sw_movements_adopt_pending"
+_ADOPT_HC_OVERWRITE_CONFIRM = "_sw_hc_adopt_overwrite_confirm"
+_ADOPT_SERMON_OVERWRITE_CONFIRM = "_sw_sermon_idea_adopt_overwrite_confirm"
+_ADOPT_LT_OVERWRITE_CONFIRM = "_sw_lt_adopt_overwrite_confirm"
+_ADOPT_GA_OVERWRITE_CONFIRM = "_sw_ga_adopt_overwrite_confirm"
+_ADOPT_PATH_OVERWRITE_CONFIRM = "_sw_path_adopt_overwrite_confirm"
 _MV_DELETE_PENDING = "_sw_mv_delete_pending"
 _MV_WIDGET_PREFIX = "sw_mv_"
 _IMG_WIDGET_PREFIX = "sw_en_img_"
@@ -717,20 +726,43 @@ def _session_passage_text() -> str:
     return ""
 
 
+def _show_adopt_feedback_if_any() -> None:
+    msg = st.session_state.pop(_ADOPT_FEEDBACK, None)
+    if msg:
+        st.success(str(msg))
+
+
+def _mark_adopt_feedback() -> None:
+    st.session_state[_ADOPT_FEEDBACK] = "A javaslat bekerült a műhelyanyagba."
+
+
+def _hc_field_categories() -> list[tuple[str, str]]:
+    return [(field, category) for field, _label, category, _opt in _HC_FIELDS]
+
+
+def _lt_field_categories() -> list[tuple[str, str]]:
+    return [(field, category) for field, _t, _h, _p, category in _LT_FIELDS]
+
+
+def _ga_field_categories() -> list[tuple[str, str]]:
+    cats = [(field, category) for field, _t, _h, _p, category in _GA_TEXT_FIELDS]
+    cats.append(("christ_connection_type", "Krisztus-kapcsolat típusa"))
+    return cats
+
+
 def _apply_pending_adopts_if_needed() -> None:
-    """Átvétel: widget ELŐTT (pending + rerun). Nem hagy jóvá automatikusan."""
+    """Átvétel: widget ELŐTT (pending + rerun). Tartós approved döntésként ment."""
     pending_idea = st.session_state.pop(_ADOPT_SERMON_PENDING, None)
     if pending_idea is not None:
         text = str(pending_idea).strip()
         st.session_state[_KEY_SERMON_IDEA] = text
-        update_sermon_workshop_section(
+        accept_workshop_proposal(
             st.session_state,
-            "sermon_main_idea",
-            {
-                "sermon_main_idea": text,
-                "sermon_main_idea_status": "draft",
-            },
+            section_key="sermon_main_idea",
+            block=text,
+            source_section=_SOURCE_SERMON_MAIN,
         )
+        _mark_adopt_feedback()
 
     pending_hc = st.session_state.pop(_ADOPT_HC_PENDING, None)
     if isinstance(pending_hc, dict):
@@ -743,7 +775,15 @@ def _apply_pending_adopts_if_needed() -> None:
             field: (st.session_state.get(wkey) or "").strip()
             for field, wkey in _KEY_HC.items()
         }
-        update_sermon_workshop_section(st.session_state, "human_condition", block)
+        accept_workshop_proposal(
+            st.session_state,
+            section_key="human_condition",
+            block=block,
+            source_section=_SOURCE_HUMAN,
+            field_categories=_hc_field_categories(),
+            status_key="human_condition_status",
+        )
+        _mark_adopt_feedback()
 
     pending_lt = st.session_state.pop(_ADOPT_LT_PENDING, None)
     if isinstance(pending_lt, dict):
@@ -759,7 +799,15 @@ def _apply_pending_adopts_if_needed() -> None:
             for field, wkey in _KEY_LT.items()
         }
         block["promised_resolution"] = str(current.get("promised_resolution") or "")
-        update_sermon_workshop_section(st.session_state, "listener_tension", block)
+        accept_workshop_proposal(
+            st.session_state,
+            section_key="listener_tension",
+            block=block,
+            source_section=_SOURCE_LISTENER,
+            field_categories=_lt_field_categories(),
+            status_key="listener_tension_status",
+        )
+        _mark_adopt_feedback()
 
     pending_ga = st.session_state.pop(_ADOPT_GA_PENDING, None)
     if isinstance(pending_ga, dict):
@@ -772,6 +820,43 @@ def _apply_pending_adopts_if_needed() -> None:
             else:
                 st.session_state[wkey] = suggested
         _persist_gospel_arc_from_widgets()
+        sw = ensure_sermon_workshop_state(st.session_state)
+        arc = (
+            sw.get("christ_centered_arc")
+            if isinstance(sw.get("christ_centered_arc"), dict)
+            else {}
+        )
+        lt = (
+            sw.get("listener_tension")
+            if isinstance(sw.get("listener_tension"), dict)
+            else {}
+        )
+        accept_workshop_proposal(
+            st.session_state,
+            section_key="christ_centered_arc",
+            block={
+                "divine_gracious_action": str(arc.get("divine_gracious_action") or ""),
+                "christ_connection": str(arc.get("christ_connection") or ""),
+                "christ_connection_type": str(arc.get("christ_connection_type") or ""),
+                "grace_enabled_response": str(arc.get("grace_enabled_response") or ""),
+            },
+            source_section=_SOURCE_GOSPEL,
+            field_categories=_ga_field_categories(),
+            status_key="christ_centered_arc_status",
+        )
+        promised = str(lt.get("promised_resolution") or "").strip()
+        if promised and not _decision_is_duplicate(
+            source_section=_SOURCE_GOSPEL,
+            category="Evangéliumi feloldás",
+            content=promised,
+        ):
+            add_approved_sermon_decision(
+                st.session_state,
+                _SOURCE_GOSPEL,
+                "Evangéliumi feloldás",
+                promised,
+            )
+        _mark_adopt_feedback()
 
     pending_path = st.session_state.pop(_ADOPT_PATH_PENDING, None)
     if isinstance(pending_path, dict):
@@ -784,6 +869,22 @@ def _apply_pending_adopts_if_needed() -> None:
             elif suggested:
                 st.session_state[wkey] = suggested
         _persist_sermon_path_from_widgets()
+        sw = ensure_sermon_workshop_state(st.session_state)
+        path = sw.get("sermon_path") if isinstance(sw.get("sermon_path"), dict) else {}
+        accept_workshop_proposal(
+            st.session_state,
+            section_key="sermon_path",
+            block=dict(path),
+            source_section=_SOURCE_PATH,
+            field_categories=[
+                ("type", "Út típusa"),
+                ("reason", "Indoklás"),
+                ("starting_point", "Kiindulópont"),
+                ("destination", "Cél"),
+            ],
+            status_key="sermon_path_status",
+        )
+        _mark_adopt_feedback()
 
     pending_mvs = st.session_state.pop(_ADOPT_MOVEMENTS_PENDING, None)
     if isinstance(pending_mvs, list):
@@ -791,8 +892,27 @@ def _apply_pending_adopts_if_needed() -> None:
         update_sermon_workshop_section(
             st.session_state, "sermon_movements", normalized
         )
+        update_sermon_workshop_section(
+            st.session_state, "sermon_path_status", "approved"
+        )
+        for mv in normalized:
+            title = str(mv.get("title") or "").strip()
+            core = str(mv.get("core_content") or "").strip()
+            content = title if not core else (f"{title}: {core}" if title else core)
+            if not content:
+                continue
+            if _decision_is_duplicate(
+                source_section=_SOURCE_PATH,
+                category="Mozgás",
+                content=content,
+            ):
+                continue
+            add_approved_sermon_decision(
+                st.session_state, _SOURCE_PATH, "Mozgás", content
+            )
         _clear_movement_widgets()
         st.session_state[_RESYNC_FLAG] = True
+        _mark_adopt_feedback()
 
     pending_en_all = st.session_state.pop(_ADOPT_EN_ALL_PENDING, None)
     if isinstance(pending_en_all, dict):
@@ -817,31 +937,47 @@ def _apply_pending_adopts_if_needed() -> None:
                 normalize_applications(pending_en_all.get("applications")),
             )
             _clear_enrichment_widgets("applications")
+        update_sermon_workshop_section(
+            st.session_state, "enrichment_status", "approved"
+        )
         st.session_state[_RESYNC_FLAG] = True
+        _mark_adopt_feedback()
 
     pending_en_imgs = st.session_state.pop(_ADOPT_EN_IMAGES_PENDING, None)
     if isinstance(pending_en_imgs, list):
         update_sermon_workshop_section(
             st.session_state, "selected_images", normalize_textual_images(pending_en_imgs)
         )
+        update_sermon_workshop_section(
+            st.session_state, "enrichment_status", "approved"
+        )
         _clear_enrichment_widgets("images")
         st.session_state[_RESYNC_FLAG] = True
+        _mark_adopt_feedback()
 
     pending_en_ills = st.session_state.pop(_ADOPT_EN_ILL_PENDING, None)
     if isinstance(pending_en_ills, list):
         update_sermon_workshop_section(
             st.session_state, "illustrations", normalize_illustrations(pending_en_ills)
         )
+        update_sermon_workshop_section(
+            st.session_state, "enrichment_status", "approved"
+        )
         _clear_enrichment_widgets("illustrations")
         st.session_state[_RESYNC_FLAG] = True
+        _mark_adopt_feedback()
 
     pending_en_apps = st.session_state.pop(_ADOPT_EN_APPS_PENDING, None)
     if isinstance(pending_en_apps, list):
         update_sermon_workshop_section(
             st.session_state, "applications", normalize_applications(pending_en_apps)
         )
+        update_sermon_workshop_section(
+            st.session_state, "enrichment_status", "approved"
+        )
         _clear_enrichment_widgets("applications")
         st.session_state[_RESYNC_FLAG] = True
+        _mark_adopt_feedback()
 
     pending_cl = st.session_state.pop(_ADOPT_CL_PENDING, None)
     if isinstance(pending_cl, dict):
@@ -856,6 +992,10 @@ def _apply_pending_adopts_if_needed() -> None:
             else:
                 st.session_state[wkey] = suggested
         _persist_closing_from_widgets()
+        update_sermon_workshop_section(
+            st.session_state, "closing_status", "approved"
+        )
+        _mark_adopt_feedback()
 
     pending_lection = st.session_state.pop(_ADOPT_LECTION_PENDING, None)
     if isinstance(pending_lection, dict):
@@ -889,6 +1029,9 @@ def _apply_pending_adopts_if_needed() -> None:
                     continue
                 st.session_state[wkey] = suggested
         _persist_lection_from_widgets(include_text=False)
+        update_sermon_workshop_section(
+            st.session_state, "lection_status", "approved"
+        )
         # Javaslat részeként elkészült kapcsolati elemzés átvétele
         if isinstance(pending_analysis, dict) and pending_analysis.get("ok") is not False:
             save_lection_connection_analysis(st.session_state, pending_analysis)
@@ -905,6 +1048,7 @@ def _apply_pending_adopts_if_needed() -> None:
                     not analysis_ref or references_equivalent(adopted_ref, analysis_ref)
                 ):
                     save_lection_connection_analysis(st.session_state, analysis)
+        _mark_adopt_feedback()
 
     pending_prayer = st.session_state.pop(_ADOPT_PRAYER_PENDING, None)
     if isinstance(pending_prayer, dict):
@@ -1618,28 +1762,100 @@ def _apply_sw_ui_resync_if_needed() -> None:
 
 
 def _request_adopt_sermon_sentence(sentence: str) -> None:
-    st.session_state[_ADOPT_SERMON_PENDING] = str(sentence or "").strip()
+    text = str(sentence or "").strip()
+    if section_has_accepted_content(
+        st.session_state,
+        section_key="sermon_main_idea",
+        status_key="sermon_main_idea_status",
+        source_section=_SOURCE_SERMON_MAIN,
+    ):
+        st.session_state[_ADOPT_SERMON_OVERWRITE_CONFIRM] = text
+        st.rerun()
+        return
+    st.session_state[_ADOPT_SERMON_PENDING] = text
     st.rerun()
 
 
 def _request_adopt_hc_block(block: dict[str, str]) -> None:
-    st.session_state[_ADOPT_HC_PENDING] = dict(block or {})
+    payload = dict(block or {})
+    if section_has_accepted_content(
+        st.session_state,
+        section_key="human_condition",
+        status_key="human_condition_status",
+        source_section=_SOURCE_HUMAN,
+    ):
+        st.session_state[_ADOPT_HC_OVERWRITE_CONFIRM] = payload
+        st.rerun()
+        return
+    st.session_state[_ADOPT_HC_PENDING] = payload
     st.rerun()
 
 
 def _request_adopt_lt_block(block: dict[str, str]) -> None:
-    st.session_state[_ADOPT_LT_PENDING] = dict(block or {})
+    payload = dict(block or {})
+    if section_has_accepted_content(
+        st.session_state,
+        section_key="listener_tension",
+        status_key="listener_tension_status",
+        source_section=_SOURCE_LISTENER,
+    ):
+        st.session_state[_ADOPT_LT_OVERWRITE_CONFIRM] = payload
+        st.rerun()
+        return
+    st.session_state[_ADOPT_LT_PENDING] = payload
     st.rerun()
 
 
 def _request_adopt_ga_block(block: dict[str, str]) -> None:
-    st.session_state[_ADOPT_GA_PENDING] = dict(block or {})
+    payload = dict(block or {})
+    if section_has_accepted_content(
+        st.session_state,
+        section_key="christ_centered_arc",
+        status_key="christ_centered_arc_status",
+        source_section=_SOURCE_GOSPEL,
+    ):
+        st.session_state[_ADOPT_GA_OVERWRITE_CONFIRM] = payload
+        st.rerun()
+        return
+    st.session_state[_ADOPT_GA_PENDING] = payload
     st.rerun()
 
 
 def _request_adopt_path_block(block: dict[str, str]) -> None:
-    st.session_state[_ADOPT_PATH_PENDING] = dict(block or {})
+    payload = dict(block or {})
+    if section_has_accepted_content(
+        st.session_state,
+        section_key="sermon_path",
+        status_key="sermon_path_status",
+        source_section=_SOURCE_PATH,
+    ):
+        st.session_state[_ADOPT_PATH_OVERWRITE_CONFIRM] = payload
+        st.rerun()
+        return
+    st.session_state[_ADOPT_PATH_PENDING] = payload
     st.rerun()
+
+
+def _render_overwrite_confirm(
+    *,
+    confirm_key: str,
+    pending_key: str,
+    label: str = "A szakaszban már van átvett / jóváhagyott anyag. Felülírod?",
+) -> None:
+    pending = st.session_state.get(confirm_key)
+    if pending is None:
+        return
+    st.warning(label)
+    c1, c2 = st.columns(2)
+    with c1:
+        if st.button("Igen, felülírom", key=f"{confirm_key}_yes", type="primary"):
+            st.session_state[pending_key] = pending
+            st.session_state.pop(confirm_key, None)
+            st.rerun()
+    with c2:
+        if st.button("Mégse", key=f"{confirm_key}_no"):
+            st.session_state.pop(confirm_key, None)
+            st.rerun()
 
 
 def _request_adopt_movements(movements: list[dict[str, str]]) -> None:
@@ -2546,7 +2762,7 @@ def _assemble_and_save_outline(
         if not outline_has_content(outline):
             st.error(
                 "Nem jött létre olvasható vázlattartalom — nincs sikerüzenet. "
-                "Tölts ki további műhelyanyagot, majd próbáld újra."
+                + EMPTY_PROJECT_MESSAGE
             )
             return
         save_sermon_outline(st.session_state, outline, mark_manual_edit=False)
@@ -3305,8 +3521,8 @@ def render_outline_section(
     generate_fn: GenerateFn | None = None,
 ) -> None:
     """Igehirdetési vázlat — kanonikus előnézet + szerkesztés + jóváhagyás."""
-    _apply_pending_adopts_if_needed()
     _apply_sw_ui_resync_if_needed()
+    _apply_pending_adopts_if_needed()
     ensure_sermon_workshop_state(st.session_state)
 
     render_work_section(
@@ -3991,8 +4207,8 @@ def render_diagnostics_section(
     generate_fn: GenerateFn | None = None,
 ) -> None:
     """Homiletikai diagnosztika — kompakt munkatükör az aktuális vázlatról."""
-    _apply_pending_adopts_if_needed()
     _apply_sw_ui_resync_if_needed()
+    _apply_pending_adopts_if_needed()
     ensure_sermon_workshop_state(st.session_state)
     sw0 = st.session_state.get("sermon_workshop")
     if isinstance(sw0, dict):
@@ -5184,8 +5400,8 @@ def render_lection_section(
     generate_fn: GenerateFn | None = None,
 ) -> None:
     """Lekciójavaslat — egyszerűsített lelkipásztori munkafolyamat."""
-    _apply_pending_adopts_if_needed()
     _apply_sw_ui_resync_if_needed()
+    _apply_pending_adopts_if_needed()
     ensure_sermon_workshop_state(st.session_state)
 
     st.subheader("Lekciójavaslat")
@@ -6185,8 +6401,8 @@ def render_prayer_section(
     generate_fn: GenerateFn | None = None,
 ) -> None:
     """Imádsági előkészítés — egyszerű saját gondolat + MI imaív."""
-    _apply_pending_adopts_if_needed()
     _apply_sw_ui_resync_if_needed()
+    _apply_pending_adopts_if_needed()
     ensure_sermon_workshop_state(st.session_state)
 
     st.subheader("Imádsági előkészítés")
@@ -7185,8 +7401,8 @@ def render_closing_section(
     generate_fn: GenerateFn | None = None,
 ) -> None:
     """Lezárás és megérkezés — kézi szerkesztő + MI-segéd."""
-    _apply_pending_adopts_if_needed()
     _apply_sw_ui_resync_if_needed()
+    _apply_pending_adopts_if_needed()
     ensure_sermon_workshop_state(st.session_state)
 
     st.subheader("Lezárás és megérkezés")
@@ -7554,8 +7770,8 @@ def render_enrichment_section(
     generate_fn: GenerateFn | None = None,
 ) -> None:
     """Illusztrációk és aktualizálás — egyszerű javaslat + megtartás."""
-    _apply_pending_adopts_if_needed()
     _apply_sw_ui_resync_if_needed()
+    _apply_pending_adopts_if_needed()
     ensure_sermon_workshop_state(st.session_state)
     sw = ensure_sermon_workshop_state(st.session_state)
     _ensure_enrichment_retained_from_legacy(sw)
@@ -8404,6 +8620,10 @@ def _render_hc_suggestion_results() -> None:
                 st.markdown(f"- {line}")
 
     ui_block = _prompt_block_to_ui(sugs)
+    _render_overwrite_confirm(
+        confirm_key=_ADOPT_HC_OVERWRITE_CONFIRM,
+        pending_key=_ADOPT_HC_PENDING,
+    )
     if any(ui_block.values()):
         if st.button("Javaslat átvétele", key="sw_mi_hc_adopt_suggestion"):
             _request_adopt_hc_block(ui_block)
@@ -8486,8 +8706,8 @@ def render_sermon_main_idea_section(
     generate_fn: GenerateFn | None = None,
 ) -> None:
     """Az igehirdetés fő gondolata — kézi szerkesztő + opcionális MI-segéd."""
-    _apply_pending_adopts_if_needed()
     _apply_sw_ui_resync_if_needed()
+    _apply_pending_adopts_if_needed()
     ensure_sermon_workshop_state(st.session_state)
     tw = ensure_text_workshop_state(st.session_state)
 
@@ -8643,9 +8863,10 @@ def render_human_condition_section(
     generate_fn: GenerateFn | None = None,
 ) -> None:
     """Emberi helyzet és kegyelmi válasz — kézi szerkesztő + opcionális MI-segéd."""
-    _apply_pending_adopts_if_needed()
     _apply_sw_ui_resync_if_needed()
+    _apply_pending_adopts_if_needed()
     ensure_sermon_workshop_state(st.session_state)
+    _show_adopt_feedback_if_any()
 
     st.subheader("Emberi helyzet és kegyelmi válasz")
     st.markdown(
@@ -8697,6 +8918,9 @@ def render_human_condition_section(
             else:
                 update_sermon_workshop_section(
                     st.session_state, "human_condition", block
+                )
+                update_sermon_workshop_section(
+                    st.session_state, "human_condition_status", "approved"
                 )
                 added = 0
                 skipped = 0
@@ -9055,8 +9279,8 @@ def render_listener_tension_section(
     generate_fn: GenerateFn | None = None,
 ) -> None:
     """Hallgatói kérdés és feszültség — kézi szerkesztő + opcionális MI-segéd."""
-    _apply_pending_adopts_if_needed()
     _apply_sw_ui_resync_if_needed()
+    _apply_pending_adopts_if_needed()
     ensure_sermon_workshop_state(st.session_state)
     tw = ensure_text_workshop_state(st.session_state)
 
@@ -9140,6 +9364,9 @@ def render_listener_tension_section(
             else:
                 update_sermon_workshop_section(
                     st.session_state, "listener_tension", block
+                )
+                update_sermon_workshop_section(
+                    st.session_state, "listener_tension_status", "approved"
                 )
                 added = 0
                 skipped = 0
@@ -9572,8 +9799,8 @@ def render_gospel_arc_section(
     generate_fn: GenerateFn | None = None,
 ) -> None:
     """Krisztus-központú és evangéliumi ív — kézi szerkesztő + MI-segéd."""
-    _apply_pending_adopts_if_needed()
     _apply_sw_ui_resync_if_needed()
+    _apply_pending_adopts_if_needed()
     ensure_sermon_workshop_state(st.session_state)
     tw = ensure_text_workshop_state(st.session_state)
 
@@ -9665,6 +9892,9 @@ def render_gospel_arc_section(
                 )
             else:
                 _persist_gospel_arc_from_widgets()
+                update_sermon_workshop_section(
+                    st.session_state, "christ_centered_arc_status", "approved"
+                )
                 text_items = [
                     (field, title, category)
                     for field, title, _help, _ph, category in _GA_TEXT_FIELDS
@@ -10215,8 +10445,8 @@ def render_sermon_path_section(
     generate_fn: GenerateFn | None = None,
 ) -> None:
     """Az igehirdetés útja és mozgásai — kézi szerkesztő + MI-segéd."""
-    _apply_pending_adopts_if_needed()
     _apply_sw_ui_resync_if_needed()
+    _apply_pending_adopts_if_needed()
     ensure_sermon_workshop_state(st.session_state)
 
     st.subheader("Az igehirdetés útja és mozgásai")
@@ -10564,8 +10794,8 @@ def render_sermon_workshop_shell(
     generate_fn: GenerateFn | None = None,
 ) -> None:
     """Igehirdetési műhely keret — működő szakaszok + helyőrzők."""
-    _apply_pending_adopts_if_needed()
     _apply_sw_ui_resync_if_needed()
+    _apply_pending_adopts_if_needed()
     ensure_sermon_workshop_state(st.session_state)
     ensure_text_workshop_state(st.session_state)
 

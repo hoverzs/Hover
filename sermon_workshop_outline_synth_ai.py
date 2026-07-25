@@ -498,6 +498,9 @@ def _locked_main_idea(bundle: Mapping[str, Any], seed: Mapping[str, Any]) -> str
     insights = bundle.get("approved_insights") or []
     if isinstance(insights, list) and insights:
         return _usable_text(insights[0])
+    decisions = bundle.get("approved_sermon_decisions") or []
+    if isinstance(decisions, list) and decisions:
+        return _usable_text(decisions[0])
     return text
 
 

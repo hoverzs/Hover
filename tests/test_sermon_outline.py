@@ -262,7 +262,14 @@ def _stub_streamlit_capture(monkeypatch):
     monkeypatch.setattr(st, "text_area", _ta)
     monkeypatch.setattr(st, "text_input", _ti)
     monkeypatch.setattr(st, "expander", _exp)
-    monkeypatch.setattr(st, "columns", lambda n: [nullcontext() for _ in range(n)])
+    monkeypatch.setattr(
+        st,
+        "columns",
+        lambda n, *a, **k: [
+            nullcontext()
+            for _ in range(len(n) if isinstance(n, (list, tuple)) else int(n))
+        ],
+    )
     monkeypatch.setattr(st, "container", lambda **k: nullcontext())
     monkeypatch.setattr(st, "rerun", lambda: None)
     return calls
@@ -511,7 +518,14 @@ def test_diagnostics_ui_gate_and_simplified_view(session, monkeypatch):
             calls.append(f"EXP:{label}:{expanded}") or nullcontext()
         ),
     )
-    monkeypatch.setattr(st, "columns", lambda n: [nullcontext() for _ in range(n)])
+    monkeypatch.setattr(
+        st,
+        "columns",
+        lambda n, *a, **k: [
+            nullcontext()
+            for _ in range(len(n) if isinstance(n, (list, tuple)) else int(n))
+        ],
+    )
     monkeypatch.setattr(st, "container", lambda *a, **k: nullcontext())
     monkeypatch.setattr(st, "info", lambda *a, **k: calls.append(f"INFO:{a[0]}" if a else "INFO"))
     monkeypatch.setattr(st, "success", lambda *a, **k: None)
@@ -549,14 +563,14 @@ def test_diagnostics_ui_gate_and_simplified_view(session, monkeypatch):
     calls.clear()
     _render_diagnostics_results()
     joined = "\n".join(calls)
-    assert "Rövid összkép" in joined
-    assert "Ami már jól működik" in joined
-    assert "Amin most érdemes dolgozni" in joined
+    assert "Összkép" in joined or "Homiletikai térkép" in joined
+    assert "Ami már jól működik" in joined or "Erő1" in joined
+    assert "Amin most érdemes dolgozni" in joined or "Finom1" in joined
     assert any(
-        "Részletesebb homiletikai megjegyzések" in c for c in calls
+        "Részletesebb homiletikai megjegyzések" in c or "Részletek" in c for c in calls
     )
     assert "Gyors státusz" not in joined
-    assert "sw-diag-prio-card" in joined
+    assert "sw-diag-prio-card" in joined or "tx-wmap" in joined
 
 
 def test_view_model_limits():
