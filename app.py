@@ -7866,16 +7866,8 @@ Válaszformátum:
                 type="primary",
             )
         except ImportError:
-            import sys as _sys
-            _py = _sys.executable or "python"
             st.error(
-                "**Word export nem érhető el** — a `python-docx` csomag nincs telepítve "
-                "abba a Python környezetbe, amit ez a Streamlit alkalmazás használ.\n\n"
-                "**Gyors megoldás (másold be PowerShell / cmd ablakba):**\n\n"
-                f"```powershell\n\"{_py}\" -m pip install python-docx\n```\n\n"
-                "Majd **állítsd le a Streamlit-et** (Ctrl+C a terminálban) és indítsd újra:\n\n"
-                "```powershell\nstreamlit run app.py\n```\n\n"
-                f"_(Aktív Python: `{_py}`)_"
+                "A Word-export átmenetileg nem érhető el. Kérlek, próbáld újra később."
             )
     else:
         st.info("Még nincs végleges vázlat. A véglegesítés mindig a fenti fő vázlat aktuális tartalmából készül.")
