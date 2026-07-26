@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Mapping
 
@@ -322,26 +323,149 @@ def build_project_data(
     return sanitize_project_data(payload)
 
 
-def sanitize_project_data(project_data: Mapping[str, Any] | None) -> dict[str, Any]:
-    """Csak a engedélyezett tartós kulcsokat (+ meta) hagyja meg."""
+# Import / mélység korlátok (memória és biztonság — nem API-kvóta).
+MAX_IMPORT_BYTES = 2_000_000
+MAX_IMPORT_STRING_CHARS = 100_000
+MAX_IMPORT_LIST_ITEMS = 200
+MAX_IMPORT_DICT_KEYS = 200
+MAX_IMPORT_DEPTH = 12
+
+_DANGEROUS_KEY_FRAGMENTS: frozenset[str] = frozenset(
+    {
+        "api_key",
+        "apikey",
+        "secret",
+        "token",
+        "password",
+        "authorization",
+        "cookie_secret",
+        "private_key",
+        "access_token",
+        "refresh_token",
+        "interpreter",
+        "pythonpath",
+        "system_prompt",
+    }
+)
+
+
+@dataclass
+class ProjectSanitizeReport:
+    data: dict[str, Any]
+    dropped_keys: list[str] = field(default_factory=list)
+    truncated_fields: list[str] = field(default_factory=list)
+    rejected: bool = False
+    reject_reason: str = ""
+
+
+def _key_is_dangerous(key: Any) -> bool:
+    k = str(key or "").strip().casefold().replace("-", "_")
+    if k in EXCLUDED_SESSION_KEYS:
+        return True
+    if k in _DANGEROUS_KEY_FRAGMENTS:
+        return True
+    return any(frag in k for frag in _DANGEROUS_KEY_FRAGMENTS)
+
+
+def _sanitize_value(
+    value: Any,
+    *,
+    path: str,
+    depth: int,
+    report: ProjectSanitizeReport,
+) -> Any:
+    if depth > MAX_IMPORT_DEPTH:
+        report.truncated_fields.append(path or "(root)")
+        return None
+    if isinstance(value, str):
+        if len(value) > MAX_IMPORT_STRING_CHARS:
+            report.truncated_fields.append(path)
+            return value[: MAX_IMPORT_STRING_CHARS - 1] + "…"
+        return value
+    if isinstance(value, bool) or value is None:
+        return value
+    if isinstance(value, int | float):
+        return value
+    if isinstance(value, list):
+        items = value[:MAX_IMPORT_LIST_ITEMS]
+        if len(value) > MAX_IMPORT_LIST_ITEMS:
+            report.truncated_fields.append(path)
+        out: list[Any] = []
+        for i, item in enumerate(items):
+            cleaned = _sanitize_value(
+                item, path=f"{path}[{i}]", depth=depth + 1, report=report
+            )
+            if cleaned is not None or item is None:
+                out.append(cleaned)
+        return out
+    if isinstance(value, Mapping):
+        out_map: dict[str, Any] = {}
+        for i, (raw_key, raw_val) in enumerate(value.items()):
+            if i >= MAX_IMPORT_DICT_KEYS:
+                report.truncated_fields.append(path)
+                break
+            key = str(raw_key)
+            child = f"{path}.{key}" if path else key
+            if _key_is_dangerous(key):
+                report.dropped_keys.append(child)
+                continue
+            cleaned = _sanitize_value(
+                raw_val, path=child, depth=depth + 1, report=report
+            )
+            out_map[key] = cleaned
+        return out_map
+    # bytes / egyéb — eldobás
+    report.dropped_keys.append(path or "(unsupported)")
+    return None
+
+
+def sanitize_project_data_report(
+    project_data: Mapping[str, Any] | None,
+) -> ProjectSanitizeReport:
+    """Allowlist + mélység/méret szűrés; részletes jelentéssel."""
+    report = ProjectSanitizeReport(data={})
     if not isinstance(project_data, Mapping):
-        return {}
+        return report
+
     allowed = set(PROJECT_DATA_KEYS) | {"_app", "_version", "_saved_at"}
     clean: dict[str, Any] = {}
     for key, value in project_data.items():
-        if key in EXCLUDED_SESSION_KEYS:
+        key_s = str(key)
+        if _key_is_dangerous(key_s) or key_s in EXCLUDED_SESSION_KEYS:
+            report.dropped_keys.append(key_s)
             continue
-        if key not in allowed:
+        if key_s not in allowed:
+            report.dropped_keys.append(key_s)
             continue
-        if key == TEXT_WORKSHOP_KEY:
-            clean[key] = normalize_text_workshop(value)
-        elif key == SERMON_WORKSHOP_KEY:
-            clean[key] = normalize_sermon_workshop(value)
-        elif key == OCCASION_CONTEXT_KEY:
-            clean[key] = normalize_occasion_context(value)
+        if key_s == TEXT_WORKSHOP_KEY:
+            nested = _sanitize_value(
+                value, path=key_s, depth=1, report=report
+            )
+            clean[key_s] = normalize_text_workshop(nested)
+        elif key_s == SERMON_WORKSHOP_KEY:
+            nested = _sanitize_value(
+                value, path=key_s, depth=1, report=report
+            )
+            clean[key_s] = normalize_sermon_workshop(nested)
+        elif key_s == OCCASION_CONTEXT_KEY:
+            nested = _sanitize_value(
+                value, path=key_s, depth=1, report=report
+            )
+            clean[key_s] = normalize_occasion_context(nested)
         else:
-            clean[key] = value
-    # Régi projektek: hiányzó új string mezők biztonságos alapértéke
+            cleaned = _sanitize_value(
+                value, path=key_s, depth=1, report=report
+            )
+            if key_s in PROJECT_DATA_LIST_KEYS:
+                clean[key_s] = cleaned if isinstance(cleaned, list) else []
+            elif key_s in PROJECT_DATA_INT_KEYS:
+                try:
+                    clean[key_s] = int(cleaned)
+                except (TypeError, ValueError):
+                    clean[key_s] = 4
+            else:
+                clean[key_s] = "" if cleaned is None else cleaned
+
     for key in (
         "bible_translation",
         "passage_text",
@@ -354,7 +478,75 @@ def sanitize_project_data(project_data: Mapping[str, Any] | None) -> dict[str, A
             clean[key] = ""
     if OCCASION_CONTEXT_KEY not in clean:
         clean[OCCASION_CONTEXT_KEY] = normalize_occasion_context(None)
-    return clean
+
+    # Titkok soha
+    for excluded in EXCLUDED_SESSION_KEYS:
+        clean.pop(excluded, None)
+
+    report.data = clean
+    # Egyedi dropped lista
+    report.dropped_keys = list(dict.fromkeys(report.dropped_keys))
+    report.truncated_fields = list(dict.fromkeys(report.truncated_fields))
+    return report
+
+
+def sanitize_project_data(project_data: Mapping[str, Any] | None) -> dict[str, Any]:
+    """Csak a engedélyezett tartós kulcsokat (+ meta) hagyja meg."""
+    return sanitize_project_data_report(project_data).data
+
+
+def sanitize_workspace_import_bytes(
+    raw_bytes: bytes | str,
+    *,
+    max_bytes: int = MAX_IMPORT_BYTES,
+) -> ProjectSanitizeReport:
+    """JSON workspace / projekt import: méretellenőrzés + sanitizálás."""
+    report = ProjectSanitizeReport(data={})
+    if isinstance(raw_bytes, bytes):
+        if len(raw_bytes) > max_bytes:
+            report.rejected = True
+            report.reject_reason = (
+                f"A fájl túl nagy ({len(raw_bytes)} bájt). "
+                f"A maximális méret {max_bytes} bájt."
+            )
+            return report
+        try:
+            text = raw_bytes.decode("utf-8")
+        except Exception as exc:  # noqa: BLE001
+            report.rejected = True
+            report.reject_reason = f"A fájl nem olvasható UTF-8 szövegként: {exc}"
+            return report
+    else:
+        text = str(raw_bytes)
+        if len(text.encode("utf-8", errors="ignore")) > max_bytes:
+            report.rejected = True
+            report.reject_reason = (
+                f"A fájl túl nagy. A maximális méret {max_bytes} bájt."
+            )
+            return report
+    try:
+        obj = json.loads(text)
+    except Exception as exc:  # noqa: BLE001
+        report.rejected = True
+        report.reject_reason = f"A fájl nem olvasható JSON: {exc}"
+        return report
+    if not isinstance(obj, dict) or obj.get("_app") not in ("Textus", "Emmaus"):
+        report.rejected = True
+        report.reject_reason = "Ez nem TEXTUS munkamenet-fájl."
+        return report
+    # Mélység / kulcsszám előellenőrzés a nyers fán
+    probe = ProjectSanitizeReport(data={})
+    _sanitize_value(obj, path="", depth=0, report=probe)
+    if any(p.count(".") >= MAX_IMPORT_DEPTH for p in probe.truncated_fields):
+        report.rejected = True
+        report.reject_reason = "A JSON túl mélyen beágyazott; az import elutasítva."
+        return report
+    inner = sanitize_project_data_report(obj)
+    # Meta megőrzése
+    for meta in ("_app", "_version", "_saved_at"):
+        if meta in obj and meta not in inner.data:
+            inner.data[meta] = obj.get(meta)
+    return inner
 
 
 def project_content_fingerprint(state: Mapping[str, Any]) -> str:
@@ -388,8 +580,13 @@ __all__ = [
     "WORKSPACE_KEYS",
     "PROJECT_DATA_KEYS",
     "PROJECT_NESTED_KEYS",
+    "EXCLUDED_SESSION_KEYS",
+    "MAX_IMPORT_BYTES",
+    "ProjectSanitizeReport",
     "build_workspace_payload",
     "build_project_data",
     "sanitize_project_data",
+    "sanitize_project_data_report",
+    "sanitize_workspace_import_bytes",
     "project_content_fingerprint",
 ]

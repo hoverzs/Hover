@@ -18,7 +18,6 @@ from ui_components import (
     render_empty_state,
     render_info_panel,
     render_page_intro,
-    render_status_badge,
     render_work_section,
     work_surface,
 )
