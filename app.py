@@ -1,7 +1,6 @@
 # ruff: noqa: E402
 import streamlit as st
 import requests
-import urllib3
 import base64
 import json
 import io
@@ -100,8 +99,6 @@ APP_SCRIPTURE_REF = "— 2Timóteus 3,16"
 APP_DOMAIN = "textus.ro"
 APP_STREAMLIT_URL = "https://emmaus.streamlit.app"
 FEEDBACK_TO_EMAIL = "hoverzsolt@gmail.com"
-
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 st.set_page_config(
     page_title=f"{APP_NAME} {APP_VERSION}",
@@ -5706,6 +5703,7 @@ def _build_payload(
     max_output_tokens: int | None = None,
     response_mime_type: str | None = None,
     response_schema: dict | None = None,
+    temperature: float | None = None,
 ) -> dict:
     """Összeállítja a Gemini REST kérés JSON body-ját (`model` = Flash vagy Flash Lite).
 
@@ -5717,6 +5715,8 @@ def _build_payload(
     `max_output_tokens`: opcionális plafon (pl. vázlatmotor); egyébként nincs
     alkalmazásszintű tokenlimit — a válaszhosszt promptszinten szabályozzuk.
     Google Search grounding: `google_search` tool, ha `enable_google_search`.
+    `temperature`: ha meg van adva, felülírja a session hőmérsékletét; különben
+    a `st.session_state["temperature"]` (alap 0.3) érvényesül.
     """
     task_block = (
         "==================================================\n"
@@ -5737,8 +5737,13 @@ def _build_payload(
         body_parts.append(task_block)
         final_prompt = "\n\n".join(body_parts)
 
+    effective_temperature = (
+        float(temperature)
+        if temperature is not None
+        else float(st.session_state.get("temperature", 0.3))
+    )
     gen_cfg: dict = {
-        "temperature": st.session_state.get("temperature", 0.3),
+        "temperature": effective_temperature,
     }
     if max_output_tokens is not None and int(max_output_tokens) > 0:
         gen_cfg["maxOutputTokens"] = int(max_output_tokens)
@@ -5770,6 +5775,7 @@ def generate_text(
     max_output_tokens: int | None = None,
     response_mime_type: str | None = None,
     response_schema: dict | None = None,
+    temperature: float | None = None,
 ):
     """EGYETLEN logikai Gemini-hívás — gomb-szintű egyediség garantált.
 
@@ -5794,6 +5800,8 @@ def generate_text(
     `system_bundle` / `include_brevity_directive`:
     speciális fülekhez (pl. sorozattervező) — lásd `_build_payload`.
     `max_output_tokens`: opcionális (pl. vázlatmotor); None = nincs plafon.
+    `temperature`: opcionális; ha meg van adva, felülírja a session értéket
+    (pl. vázlatdiagnosztika `DEFAULT_TEMPERATURE` hívása).
     """
     api_key = _resolve_api_key().strip()
     if not api_key:
@@ -5801,6 +5809,12 @@ def generate_text(
 
     model = resolve_gemini_model_for_tab(tab_label)
     st.session_state["model_name"] = model
+
+    effective_temperature = (
+        float(temperature)
+        if temperature is not None
+        else float(st.session_state.get("temperature", 0.3))
+    )
 
     cache_enabled = (
         use_cache
@@ -5819,7 +5833,7 @@ def generate_text(
     prompt_hash = _hash_prompt(
         prompt,
         extra=(
-            f"{model}|{st.session_state.get('temperature', 0.3)}|"
+            f"{model}|{effective_temperature}|"
             f"{_sys_key}|{_brv}|{_tok}|{_trunc_key}"
         ),
     )
@@ -5875,6 +5889,7 @@ def generate_text(
             max_output_tokens=max_output_tokens,
             response_mime_type=response_mime_type,
             response_schema=response_schema,
+            temperature=temperature,
         )
 
         # log: BEFORE (kulcsforrás + auth még függőben)
@@ -5894,7 +5909,7 @@ def generate_text(
         try:
             response = requests.post(
                 url, headers=headers, json=data,
-                verify=False, timeout=GEMINI_TIMEOUT_S, stream=False,
+                timeout=GEMINI_TIMEOUT_S, stream=False,
             )
         except requests.exceptions.Timeout:
             latency_ms = int((_time.time() - start_ts) * 1000)
