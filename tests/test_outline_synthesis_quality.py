@@ -65,8 +65,8 @@ def test_system_prompt_contains_homiletic_core():
     assert "református" in HOMILETIC_SYSTEM_PROMPT.casefold()
     assert "Krisztus" in HOMILETIC_SYSTEM_PROMPT or "krisztus" in HOMILETIC_SYSTEM_PROMPT.casefold()
     assert "gondolatvázlat" in HOMILETIC_SYSTEM_PROMPT.casefold() or "vázlat" in HOMILETIC_SYSTEM_PROMPT.casefold()
-    assert "420" in HOMILETIC_SYSTEM_PROMPT
-    assert "250" in HOMILETIC_SYSTEM_PROMPT or "380" in HOMILETIC_SYSTEM_PROMPT
+    assert "550" in HOMILETIC_SYSTEM_PROMPT or "480" in HOMILETIC_SYSTEM_PROMPT
+    assert "320" in HOMILETIC_SYSTEM_PROMPT or "480" in HOMILETIC_SYSTEM_PROMPT
     assert "prédikáció" in HOMILETIC_SYSTEM_PROMPT.casefold()
     assert "de vajon" in HOMILETIC_SYSTEM_PROMPT.casefold()
     assert "Átvezetési logika" in HOMILETIC_SYSTEM_PROMPT or "átvezetési" in HOMILETIC_SYSTEM_PROMPT.casefold()
@@ -81,14 +81,14 @@ def test_system_prompt_contains_homiletic_core():
 
 def test_soft_length_ranges_match_working_outline_targets():
     sunday = outline_length_profile("Vasárnapi istentisztelet")
-    assert sunday["target_range"] == "250–380"
-    assert sunday["soft_max"] == 420
+    assert sunday["target_range"] == "320–480"
+    assert sunday["soft_max"] == 550
     assert sunday["min_movements"] == 2
     assert sunday["max_movements"] == 4
 
     wake = outline_length_profile("Virrasztó")
-    assert wake["target_range"] == "220–320"
-    assert wake["soft_max"] == 420
+    assert wake["target_range"] == "320–480"
+    assert wake["soft_max"] == 550
     assert wake["min_movements"] == 2
     assert wake["max_movements"] == 3
 
@@ -387,11 +387,12 @@ def test_apply_synth_payload_locks_approved_idea():
     merged = apply_synth_payload_to_outline(seed, payload, bundle=bundle)
     assert merged["main_idea"] == locked
     assert merged["sermon_title"]
-    assert merged["editorial_tips"]
     content = outline_to_readable_content(merged)
+    # refinement_suggestions nem jelenhet meg a szószéki elsődleges nézetben
+    assert "Egy konkrét gyülekezeti helyzet" not in content
     assert "Apostoli emlékezet" in content
     assert "Fókuszmondat" in content
-    assert "Bevezetés" in content
+    assert "Bevezetési irány" in content or "Bevezetés" in content
     assert "Megérkezés" in content
     assert "- " in content
     assert "*Hol emlékeztet Isten" in content or "Hol emlékeztet Isten" in content
@@ -494,7 +495,9 @@ def test_deficiency_tips_not_required_workshop_message():
         bundle={"source_keys": []},
     )
     assert tip not in (merged.get("editorial_tips") or [])
-    assert merged.get("editorial_tips")
+    # A kötelező-műhely hiánylistázás tilos; egyéb tippek opcionálisak / üresek is lehetnek.
+    content = outline_to_readable_content(merged)
+    assert tip not in content
 
 
 def _words(n: int, seed: str = "szó") -> str:
@@ -503,10 +506,13 @@ def _words(n: int, seed: str = "szó") -> str:
 
 def _usable_ai_payload(
     *,
-    focus: str = "Isten megtart a gúny közepette a Szentlélek által.",
-    intro_words: int = 28,
-    movement_words: int = 18,
-    conclusion_words: int = 32,
+    focus: str = (
+        "Isten megtart a gúny közepette a Szentlélek által, "
+        "és a hitben való épülésre hívja a szeretteit."
+    ),
+    intro_words: int = 45,
+    movement_words: int = 28,
+    conclusion_words: int = 45,
     movement_count: int = 3,
     title: str = "Megtartva a gúny között",
 ) -> dict:
@@ -516,31 +522,49 @@ def _usable_ai_payload(
         "Épülés a Lélekben",
         "Megmaradás a szeretetben",
     ]
+    verse_labels = ["v. 17–18", "v. 19", "v. 20", "v. 20"]
     insights = [
-        "Hol emlékeztet Isten a saját szavaival?",
-        "Felismerjük-e a szakadás jeleit ma?",
-        "Mit jelent a Szentlélekben imádkozás?",
-        "Hogyan őrizzük magunkat Isten szeretetében?",
+        "Hol emlékeztet Isten a saját szavaival a gúny idején?",
+        "Felismerjük-e a szakadás jeleit a saját közösségünkben?",
+        "Hol tudsz ezen a héten hitben épülni és Lélekben imádkozni?",
+        "Hogyan őrizzük magunkat Isten szeretetében a megmaradásban?",
     ]
     movements = []
     for i in range(movement_count):
         movements.append(
             {
                 "title": titles[i % len(titles)],
-                "textual_anchor": f"Júd {17 + i}",
+                "textual_anchor": verse_labels[i % len(verse_labels)],
                 "development": [
                     _words(movement_words, seed=f"mozg{i}a") + ".",
-                    _words(max(8, movement_words - 2), seed=f"mozg{i}b") + ".",
+                    _words(max(16, movement_words - 2), seed=f"mozg{i}b") + ".",
                 ],
                 "listener_insight": insights[i % len(insights)],
                 "transition": "",
             }
         )
+    intro = (
+        _words(max(12, intro_words // 3), seed="bevezet1")
+        + ". "
+        + _words(max(12, intro_words // 3), seed="bevezet2")
+        + ". "
+        + _words(max(10, intro_words // 3), seed="bevezet3")
+        + "."
+    )
+    conclusion = (
+        _words(max(12, conclusion_words // 3), seed="zaras1")
+        + ". "
+        + _words(max(12, conclusion_words // 3), seed="zaras2")
+        + ". "
+        + _words(max(10, conclusion_words // 3), seed="zaras3")
+        + "."
+    )
     return {
         "title": title,
         "text_reference": "Júd 17–20",
+        "scope_note": "",
         "focus_sentence": focus,
-        "introduction_direction": _words(intro_words, seed="bevezet") + ".",
+        "introduction_direction": intro,
         "points": [
             {
                 "title": m["title"],
@@ -550,10 +574,8 @@ def _usable_ai_payload(
             }
             for m in movements
         ],
-        "conclusion_direction": _words(conclusion_words, seed="zaras") + ".",
-        "refinement_suggestions": [
-            "Egy konkrét gyülekezeti helyzet tovább erősíthetné a megérkezést."
-        ],
+        "conclusion_direction": conclusion,
+        "refinement_suggestions": [],
     }
 
 
@@ -567,14 +589,14 @@ def test_resolve_virraszto_occasion_from_text_and_field():
     )
     profile = outline_length_profile("Virrasztó")
     assert profile["min_movements"] == 2
-    assert profile["soft_max"] <= 420
-    assert profile["target_range"] == "220–320"
+    assert profile["soft_max"] <= 550
+    assert profile["target_range"] == "320–480"
 
 
 def test_word_count_alone_is_soft_not_hard_rejection():
-    """Valid compact outline under 420 → assembly keeps it."""
+    """Valid pulpit outline under 550 → assembly keeps it."""
     payload = _usable_ai_payload(
-        intro_words=28, movement_words=18, conclusion_words=32, movement_count=3
+        intro_words=45, movement_words=28, conclusion_words=45, movement_count=3
     )
     calls = {"n": 0}
 
@@ -603,7 +625,7 @@ def test_word_count_alone_is_soft_not_hard_rejection():
     assert content.strip()
     from sermon_outline_engine import word_count as _wc
 
-    assert _wc(content) <= 420
+    assert _wc(content) <= 550
     soft = assess_outline_quality_issues(
         result.outline,
         for_ai_output=True,
@@ -617,7 +639,7 @@ def test_word_count_alone_is_soft_not_hard_rejection():
 def test_partial_workshop_ai_outline_kept_despite_short_word_count():
     """Részleges, de tartalmas műhelyanyag + tömör AI válasz → használható vázlat."""
     payload = _usable_ai_payload(
-        intro_words=24, movement_words=16, conclusion_words=28, movement_count=3
+        intro_words=40, movement_words=24, conclusion_words=40, movement_count=3
     )
 
     def gen(prompt, **kwargs):
@@ -661,47 +683,54 @@ def test_virraszto_produces_shorter_complete_usable_outline():
     payload = {
         "title": "Otthon a pásztor mellett",
         "text_reference": "Zsolt 23,1–4",
-        "focus_sentence": "Az Úr jelenléte vigasztal a gyász csendjében.",
-        "introduction": {
-            "development": (
-                "A család csendben ül össze. A hiány fáj, mégis keresünk "
-                "szavakat, amelyek nem magyaráznak túl sokat, csak hordoznak."
-            ),
-            "transition": "",
-        },
-        "movements": [
+        "scope_note": "",
+        "focus_sentence": (
+            "Az Úr jelenléte vigasztal a gyász csendjében, és a pásztor "
+            "közelsége tartást ad a gyászoló közösségnek."
+        ),
+        "introduction_direction": (
+            "A család csendben ül össze, és a hiány fájdalma körülveszi őket. "
+            "Mégis keresünk szavakat, amelyek nem beszélnek túl sokat, csak hordoznak. "
+            "Innen nyílik meg a zsoltár pásztorképe a virrasztóban a gyülekezet előtt."
+        ),
+        "points": [
             {
                 "title": "A pásztor jelenléte",
-                "textual_anchor": "Zsolt 23,1–2",
-                "development": [
-                    "Az Úr mint pásztor nem távoli ígéret, hanem közelben járó gondoskodás a gyászban.",
-                    "A virrasztóban ez a közelség ad tartást a fájdalomnak anélkül, hogy magyarázna.",
-                    "Nem kell erőltetett magyarázat: elég, hogy Ő vezet zöldellő legelőre.",
+                "verses": "v. 1–2",
+                "subpoints": [
+                    "Az Úr mint pásztor nem távoli ígéret a gyászoló előtt, hanem közelben járó gondoskodás a fájdalom idején is.",
+                    "A virrasztóban ez a közelség ad tartást a fájdalomnak anélkül, hogy a textus saját szavát túlbeszélné vagy elnyomná.",
+                    "Elég, hogy Ő vezet zöldellő legelőre, és ez már homiletikai tartást ad a gyászoló közösség csendjében ma este.",
                 ],
-                "listener_insight": "Hol érzed ma a pásztor közelségét a csendben?",
-                "transition": "",
+                "application": "Hol érzed ma a pásztor közelségét a csendben a saját veszteséged közepette?",
             },
             {
                 "title": "A völgyben sem magány",
-                "textual_anchor": "Zsolt 23,4",
-                "development": [
-                    "A halál árnyékának völgyében a félelem valós, de a bot és a pásztorbot vigasztal.",
-                    "Krisztus feltámadása adja a reménység talaját a gyászoló közösségnek.",
-                    "A gyászoló közösség együtt hallja: nem vagyunk elhagyatva ebben a völgyben.",
+                "verses": "v. 4",
+                "subpoints": [
+                    "A halál árnyékának völgyében a félelem valós marad, de a bot és a pásztorbot vigasztalása a textus szerint jelen van.",
+                    "Krisztus feltámadása adja a reménység talaját a gyászoló közösségnek anélkül, hogy a fájdalmat elhallgattatná ma.",
+                    "A gyászoló közösség együtt hallja: nem vagyunk elhagyatva ebben a völgyben, mert a pásztor tovább vezet.",
                 ],
-                "listener_insight": "Kit bízhatsz a pásztorra a völgyben is?",
+                "application": "Kit bízhatsz a pásztorra a völgyben is ezen a héten?",
+            },
+            {
+                "title": "Asztal a gyász közepette",
+                "verses": "v. 1–4",
+                "subpoints": [
+                    "A zsoltár íve a pásztor gondoskodásától a völgyön át a megtartó jelenlétig vezet egyetlen mozgásban.",
+                    "A virrasztóban ez nem temetési szónoklat, hanem a textus saját ígérete a közösség csendjében.",
+                    "Így a hallgató nem új témánál, hanem az Úr hűséges közelségénél érkezik meg a gyászban.",
+                ],
+                "application": "Melyik ígéretet tudod ma hálával kimondani a hiány közepette is?",
             },
         ],
-        "conclusion": {
-            "development": (
-                "A virrasztó nem oldja fel a veszteséget, de Isten közelségében "
-                "helyet kap a sírás és a hála. A pásztor tovább vezet."
-            ),
-            "final_sentence": "Az Úr veletek van ebben a csendben is.",
-        },
-        "refinement_suggestions": [
-            "Egy rövid személyes hálaemlék erősítheti az intim hangnemet."
-        ],
+        "conclusion_direction": (
+            "A virrasztó nem oldja fel a veszteséget, de Isten közelségében "
+            "helyet kap a sírás és a hála. A pásztor tovább vezet a közösséggel. "
+            "Az Úr veletek van ebben a csendben is, és ez adja a megérkezést."
+        ),
+        "refinement_suggestions": [],
     }
 
     def gen(prompt, **kwargs):
@@ -709,6 +738,7 @@ def test_virraszto_produces_shorter_complete_usable_outline():
         assert (
             "GONDOLATVÁZLAT" in prompt
             or "gondolatvázlat" in prompt.casefold()
+            or "SZÓSZÉKI MUNKAVÁZLAT" in prompt
             or "HOMILETIKAI VÁZLAT" in prompt
             or "homiletikai vázlat" in prompt.casefold()
             or "vázlatsémára" in prompt
@@ -845,45 +875,54 @@ def test_filippi_virraszto_partial_workshop_working_outline():
     payload = {
         "title": "Élni is, meghalni is Krisztusé",
         "text_reference": "Filippi 1,21–24",
-        "focus_sentence": focus,
-        "introduction": {
-            "development": (
-                "A család a virrasztó csendjében ül; a hiány valóságos."
-            ),
-            "transition": "",
-        },
-        "movements": [
+        "scope_note": "",
+        "focus_sentence": (
+            "Krisztusban az élet is, a halál is Isten kezében van, "
+            "és a gyászoló közösséget ez a reménység tartja."
+        ),
+        "introduction_direction": (
+            "A család a virrasztó csendjében ül, és a hiány valóságos. "
+            "Nem keresünk olcsó választ, hanem irányt a textus felől. "
+            "Innen szólal meg Pál feszültsége az élet és a Krisztussal lét között."
+        ),
+        "points": [
             {
                 "title": "Élet Krisztusban",
-                "textual_anchor": "Fil 1,21",
-                "development": [
-                    "Pál szerint az élet Krisztus: nem üres jelszó, hanem valóság.",
-                    "A nyereség a halálban a Krisztussal való együttlétet jelenti.",
-                    "A gyászoló nem kap könnyű választ — kap irányt Krisztusra.",
+                "verses": "v. 21",
+                "subpoints": [
+                    "Pál szerint az élet Krisztus: nem üres jelszó, hanem a gyászoló előtt álló valóság ma is.",
+                    "A nyereség a halálban a Krisztussal való együttlétet jelenti, nem könnyű frázist a közösségnek.",
+                    "A gyászoló nem kap olcsó választ, hanem irányt Krisztusra a hiány és a csend közepette.",
                 ],
-                "listener_insight": "Kit bízhatsz Krisztusra a hiány közepette?",
-                "transition": "",
+                "application": "Kit bízhatsz Krisztusra a hiány közepette ebben a virrasztóban?",
             },
             {
                 "title": "Maradás a többiekért",
-                "textual_anchor": "Fil 1,22–24",
-                "development": [
-                    "Pál feszültségben áll, mégis a többiekért marad szolgálatban.",
-                    "Ez nem szabad élet-halál választás, hanem gondviselő szolgálat.",
-                    "A virrasztó közösség is ebben áll: a hiány fáj, mégis maradunk.",
+                "verses": "v. 22–24",
+                "subpoints": [
+                    "Pál feszültségben áll, mégis a többiekért marad szolgálatban a testben a gyülekezetért.",
+                    "Ez nem szabad élet-halál választás, hanem gondviselő szolgálat a közösségért ma is.",
+                    "A virrasztó közösség is ebben áll: a hiány fáj, mégis egymásért maradunk hálával együtt.",
                 ],
-                "listener_insight": "Kinek a megmaradása hordoz téged ma is?",
+                "application": "Kinek a megmaradása hordoz téged ma is a gyász idején?",
+            },
+            {
+                "title": "Reménység a csendben",
+                "verses": "v. 21–24",
+                "subpoints": [
+                    "A textus nem oldja fel a veszteséget, de Krisztus kezébe helyezi az életet és a halált a gyászoló előtt.",
+                    "A virrasztó ezért nem temetési szónoklat, hanem a megtartó reménység rövid, hűséges megszólalása ma este.",
+                    "Így a hallgató a megmaradás és a hála feszültségében állhat meg új téma nélkül a közösségben.",
+                ],
+                "application": "Melyik hálaadás tud megmaradni benned a hiány közepette is?",
             },
         ],
-        "conclusion": {
-            "development": (
-                "Nem oldjuk fel a veszteséget szavakkal; Krisztus ad reménységet."
-            ),
-            "final_sentence": "Krisztusban van a mi életünk és reménységünk.",
-        },
-        "refinement_suggestions": [
-            "Egy rövid, név nélküli hálaemlék erősítheti az intim hangnemet.",
-        ],
+        "conclusion_direction": (
+            "Nem oldjuk fel a veszteséget szavakkal; Krisztus ad reménységet a gyászolóknak. "
+            "A virrasztó közösség a megmaradás és a hála feszültségében állhat meg együtt. "
+            "Krisztusban van a mi életünk és reménységünk a csend közepette is ma."
+        ),
+        "refinement_suggestions": [],
     }
 
     def gen(prompt, **kwargs):
@@ -981,7 +1020,7 @@ def test_filippi_virraszto_partial_workshop_working_outline():
     assert "- " in content  # bullet forma
     assert "pásztor" in content.casefold() or "Krisztus" in content or "krisztus" in content.casefold()
     assert "Fókuszmondat" in content
-    assert "Bevezetés" in content
+    assert "Bevezetési irány" in content or "Bevezetés" in content
     assert "Megérkezés" in content
     assert MISSING_PART not in content
     for banned in OUTLINE_PLACEHOLDER_BANLIST:
@@ -1029,9 +1068,9 @@ def test_filippi_virraszto_partial_workshop_working_outline():
     assert "truncated" not in issues
     assert "placeholder" not in issues
 
-    # Rövid gondolatvázlat: abszolút max 420
+    # Szószéki munkavázlat: abszolút max 550
     words = len([w for w in content.replace("\n", " ").split(" ") if w.strip()])
-    assert words <= 420
+    assert words <= 550
     # Struktúra-minta a deliverable-hez
     sample = {
         "title": outline.get("sermon_title"),
@@ -1052,14 +1091,14 @@ def test_filippi_virraszto_partial_workshop_working_outline():
         "words": words,
         "hard_issues": hard,
     }
-    assert [m["title"] for m in sample["movements"]] == [
-        "Élet Krisztusban",
-        "Maradás a többiekért",
-    ]
+    titles = [m["title"] for m in sample["movements"]]
+    assert titles[0] == "Élet Krisztusban"
+    assert titles[1] == "Maradás a többiekért"
+    assert 2 <= len(titles) <= 3
     assert all(1 <= m["bullets"] <= 3 for m in sample["movements"])
     assert all(m["insight"] for m in sample["movements"])
     assert sample["intro_ok"] and sample["closing_ok"]
-    assert words <= 420
+    assert words <= 550
 
 
 def test_soft_gate_flags_intro_closing_and_filler_but_keeps_usable():

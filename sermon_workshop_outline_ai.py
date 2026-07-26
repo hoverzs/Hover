@@ -1211,10 +1211,15 @@ def outline_to_readable_content(outline: Any) -> str:
     if opening:
         if "\n\n" in opening:
             opening = opening.split("\n\n")[0].strip()
-        owords = opening.split()
-        if len(owords) > 35:
-            opening = " ".join(owords[:35]).rstrip(".,;:") + "."
-        _section("Bevezetés", opening)
+        try:
+            from sermon_outline_engine import LIMITS as _OL, _clip_to_full_sentences
+
+            opening = _clip_to_full_sentences(opening, _OL["intro_words"])
+        except Exception:  # noqa: BLE001
+            owords = opening.split()
+            if len(owords) > 60:
+                opening = " ".join(owords[:60]).rstrip(".,;:") + "."
+        _section("Bevezetési irány", opening)
 
     movements = safe.get("movements") if isinstance(safe.get("movements"), list) else []
     for idx, mv in enumerate(
@@ -1250,32 +1255,39 @@ def outline_to_readable_content(outline: Any) -> str:
         if not paras:
             continue
 
-        body_parts: list[str] = []
+        # Verse only in the heading (shared render contract)
+        heading = f"{idx}. {mv_title}"
         if anchor:
-            body_parts.append(f"*{anchor}*")
+            heading = f"{heading} ({anchor})"
+        body_parts: list[str] = []
         for p in paras:
             if anchor and _normalize_cmp(p) == _normalize_cmp(anchor):
                 continue
             cleaned = re.sub(r"^[-•*]\s+", "", p).strip()
-            # One sentence max per bullet — trim multi-paragraph sermon prose
             if "\n\n" in cleaned:
                 cleaned = cleaned.split("\n\n")[0].strip()
-            sentences = re.split(r"(?<=[.!?])\s+", cleaned)
-            if len(sentences) > 1:
-                cleaned = sentences[0].strip()
-            cwords = cleaned.split()
-            if len(cwords) > 24:
-                cleaned = " ".join(cwords[:24]).rstrip(".,;:") + "."
+            try:
+                from sermon_outline_engine import LIMITS as _OL, _clip_to_full_sentences
+
+                cleaned = _clip_to_full_sentences(cleaned, _OL["subpoint_max_words"])
+            except Exception:  # noqa: BLE001
+                sentences = re.split(r"(?<=[.!?])\s+", cleaned)
+                cleaned = " ".join(sentences[:2]).strip()
             if cleaned:
                 body_parts.append(f"- {cleaned}")
         if insight:
-            iwords = insight.split()
-            if len(iwords) > 22:
-                insight = " ".join(iwords[:22]).rstrip(".,;:") + "."
+            try:
+                from sermon_outline_engine import LIMITS as _OL, _clip_to_full_sentences
+
+                insight = _clip_to_full_sentences(insight, _OL["application_words"])
+            except Exception:  # noqa: BLE001
+                iwords = insight.split()
+                if len(iwords) > 28:
+                    insight = " ".join(iwords[:28]).rstrip(".,;:") + "."
             body_parts.append(f"*{insight}*")
         if not body_parts:
             continue
-        blocks.append(f"**{idx}. {mv_title}**\n\n" + "\n".join(body_parts))
+        blocks.append(f"**{heading}**\n\n" + "\n".join(body_parts))
 
     conclusion = (
         safe.get("conclusion") if isinstance(safe.get("conclusion"), dict) else {}
@@ -1295,9 +1307,14 @@ def outline_to_readable_content(outline: Any) -> str:
     if arrival:
         if "\n\n" in arrival:
             arrival = arrival.split("\n\n")[0].strip()
-        awords = arrival.split()
-        if len(awords) > 40:
-            arrival = " ".join(awords[:40]).rstrip(".,;:") + "."
+        try:
+            from sermon_outline_engine import LIMITS as _OL, _clip_to_full_sentences
+
+            arrival = _clip_to_full_sentences(arrival, _OL["conclusion_words"])
+        except Exception:  # noqa: BLE001
+            awords = arrival.split()
+            if len(awords) > 60:
+                arrival = " ".join(awords[:60]).rstrip(".,;:") + "."
         _section("Megérkezés", arrival)
 
     text = "\n\n".join(blocks).strip()

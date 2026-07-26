@@ -91,7 +91,7 @@ def test_jude_outline_preview_acceptance(session, monkeypatch):
     assert "##" not in content
     # Főnézet szerkezet
     assert "Fókuszmondat" in content
-    assert "Bevezetés" in content
+    assert "Bevezetési irány" in content or "Bevezetés" in content
     assert "Megérkezés" in content
 
     # Truncation artifact
@@ -135,6 +135,7 @@ def test_empty_sections_omitted_from_content():
     assert MISSING_PART not in content
     # Üres bevezetés ne jelenjen meg
     assert "**Bevezetés**" not in content
+    assert "**Bevezetési irány**" not in content
     assert "##" not in content
     assert "Hallgatói felismerés" not in content
     assert "Kapcsolat típusa" not in content

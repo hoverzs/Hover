@@ -31,35 +31,40 @@ logger = logging.getLogger("textus.outline")
 
 TAB_OUTLINE = "Igehirdetési vázlat"
 DEFAULT_TEMPERATURE = 0.2
-SCHEMA_VERSION = "pulpit_outline_v3"
-# JSON vázlat: tömör, szószéki gondolatvázlat; ne legyen prédikáció-méretű budget.
-OUTLINE_MAX_OUTPUT_TOKENS = 900
+SCHEMA_VERSION = "pulpit_outline_v4"
+# JSON vázlat: szószéki munkavázlat ≤550 szó; ~1600–1800 token biztonságos keret.
+OUTLINE_MAX_OUTPUT_TOKENS = 1700
 
 # ---------------------------------------------------------------------------
-# Strict length limits (HARD) — szószéki gondolatvázlat, nem rövid prédikáció
+# Strict length limits — szószéki munkavázlat (nem jegyzet, nem prédikáció)
 # ---------------------------------------------------------------------------
 
 LIMITS = {
-    "title_words": 8,
-    "focus_words": 22,
-    "intro_words": 25,
-    "intro_sentences_max": 1,
-    "point_title_words": 8,
-    "subpoint_min_words": 4,
-    "subpoint_max_words": 18,
-    "application_words": 16,
-    "conclusion_words": 25,
-    "conclusion_sentences_max": 1,
-    "scope_note_words": 25,
+    "title_words": 10,
+    "focus_words": 35,
+    "focus_min_words": 18,
+    "intro_words": 60,
+    "intro_min_words": 28,
+    "intro_sentences_max": 3,
+    "point_title_words": 10,
+    "subpoint_min_words": 12,
+    "subpoint_max_words": 45,
+    "subpoint_sentences_max": 2,
+    "application_words": 28,
+    "conclusion_words": 60,
+    "conclusion_min_words": 28,
+    "conclusion_sentences_max": 3,
+    "scope_note_words": 40,
     "min_points": 2,
     "max_points": 4,
     "default_points": 3,
     "min_subpoints": 2,
-    "max_subpoints": 2,
-    "target_min_words": 160,
-    "target_max_words": 240,
-    "absolute_max_words": 280,
-    "max_prose_block_words": 35,
+    "max_subpoints": 3,
+    "target_min_words": 320,
+    "target_max_words": 480,
+    "soft_floor_words": 280,
+    "absolute_max_words": 550,
+    "max_prose_block_words": 70,
     "refinement_max": 0,
 }
 
@@ -89,6 +94,8 @@ FORBIDDEN_HEADINGS: tuple[str, ...] = (
     "Diagnózis → evangéliumi fordulat → Isten válasza",
     "diagnózis → evangéliumi fordulat",
     "Exegetikai kibontás",
+    "Exegetikai és teológiai kibontás",
+    "Hallgatói és kegyelmi kapcsolat",
     "Kegyelmi kapcsolat",
     "Hallgatói kapcsolat",
     "Hallgatói felismerés",
@@ -111,14 +118,18 @@ COMPRESS_INSTRUCTION = (
     "FORMAI JAVÍTÁS. A kapott vázlat tartalmi és homiletikai ívét őrizd meg; "
     "ne tervezz új vázlatot és ne adj hozzá új exegetikai vagy teológiai állítást. "
     "Csak a jelzett séma-, mondat- és hosszhibákat javítsd. "
-    "Töröld az ismétlést, metaszöveget és fölösleges magyarázatot. "
-    "Korlátok: teljes látható vázlat 160–240 szó, abszolút maximum 280; "
-    "cím legfeljebb 8 szó; fókusz pontosan egy mondat és legfeljebb 22 szó; "
-    "bevezető irány pontosan egy mondat és legfeljebb 25 szó; "
-    "2–4 pont; pontcím legfeljebb 8 szó; pontonként pontosan két alpont; "
-    "minden alpont egy teljes mondat és legfeljebb 18 szó; "
-    "alkalmazás legfeljebb egy mondat és 16 szó, vagy üres; "
-    "megérkezés pontosan egy mondat és legfeljebb 25 szó; "
+    "Először töröld az ismétlést, metaszöveget és fölösleges magyarázatot; "
+    "azután rövidíts teljes mondatok megőrzésével; "
+    "csak ezután távolítsd el az opcionális alkalmazásokat. "
+    "Soha ne vágj félbe mondatot szószám alapján. "
+    "Korlátok: teljes látható vázlat 320–480 szó, abszolút maximum 550; "
+    "280 szó alatt a vázlat túl sovány; "
+    "cím legfeljebb 10 szó; fókusz egy mondat, kb. 20–35 szó; "
+    "bevezetési irány 2–3 teljes mondat, kb. 30–60 szó; "
+    "2–4 pont; pontcím legfeljebb 10 szó (igehely NÉLKÜL a címmezőben); "
+    "pontonként 2–3 alpont; minden alpont 1–2 teljes mondat, kb. 20–45 szó; "
+    "alkalmazás rövid, konkrét, vagy üres; "
+    "megérkezés 2–3 teljes mondat, kb. 30–60 szó; "
     "refinement_suggestions mindig üres lista. "
     "Ne használj thesis/body/content vagy más új mezőt. "
     "Kizárólag a teljes, javított JSON objektumot add vissza."
@@ -128,9 +139,9 @@ OUTLINE_SYSTEM_PROMPT = f"""\
 SZEREP ÉS CÉL
 
 Tapasztalt, biblikus, református szemléletű homiletikai szerkesztő vagy.
-Feladatod egy tömör, szószéken kibontásra alkalmas GONDOLATVÁZLAT elkészítése.
-A vázlat segíti a prédikátor önálló munkáját: nem kész prédikáció, nem rövidített
-igehirdetés, nem egzegézis és nem a korábbi műhelyanyag mechanikus összefoglalása.
+Feladatod egy tartalmas SZÓSZÉKI MUNKAVÁZLAT elkészítése: elég részletes a
+felkészüléshez és a szószéki használathoz, de nem kész prédikáció, nem teljes
+bevezető vagy záróbeszéd, és nem hosszú retorikai próza.
 
 SÉMAVERZIÓ: {SCHEMA_VERSION}
 
@@ -139,117 +150,123 @@ BELSŐ MUNKAMENET
 A következő mérlegelést csendben végezd el; gondolatmenetet és magyarázatot ne
 írj a válaszba.
 
-1. Először közvetlenül a bibliai textust vizsgáld meg: központi állítás,
-   textushatár, belső szerkezet, feszültség, fordulat és megérkezés.
-2. Egyetlen mondatban fogalmazd meg, mit tesz, ígér, leplez le vagy kíván
-   Isten ebben a textusban.
-3. Keresd meg a textus természetes homiletikai mozgását. Ez lehet logikai
-   kibontás, ellentét, kérdés–válasz, probléma–fordulat–feloldás, narratív
-   mozgás vagy más, a textusból következő szerkezet.
-4. Ezután mérlegeld a lelkész döntéseit, az alkalmat, a hallgatói helyzetet,
-   a vázlatkosarat és a műhely háttéranyagát.
-5. Csak azokat az elemeket építsd be, amelyek pontosítják vagy erősítik a
-   textus saját állítását és homiletikai mozgását.
+1. Először a betöltött bibliai szöveg belső szerkezetét vizsgáld: központi
+   állítás, természetes egységek, feszültség, fordulat és megérkezés.
+2. Fogalmazd meg, mit mond vagy tesz a textus, és milyen hitbeli válasz felé
+   vezeti a hallgatót.
+3. A textus természetes mozgása szerint válassz 2–4 főpontot. Ne ragaszkodj
+   automatikusan három ponthoz.
+4. Ezután mérlegeld az exegézist, az eredeti nyelvi megfigyeléseket, a releváns
+   kortörténetet, a lelkész fókuszát, az alkalmat, a vázlatkosarat és a többi
+   műhelyanyagot — csak szelektíven.
+5. Hagyd el az ismétlődő, gyenge, bizonytalan vagy a textusnak ellentmondó
+   elemeket. Ne próbálj minden mezőt beépíteni.
 
-FORRÁSKEZELÉS
+FORRÁSHIERARCHIA (kötelező sorrend)
 
-A források sorrendje:
+1. A ténylegesen betöltött bibliai szöveg és annak belső szerkezete.
+2. Az exegézis.
+3. Az eredeti héber vagy görög szöveggel kapcsolatos mentett munka.
+4. A kortörténeti háttér, de csak ahol valóban megvilágítja a textust.
+5. A lelkész saját, kifejezett fókusza és jóváhagyott döntései.
+6. Az alkalom és a hallgatói helyzet.
+7. A vázlatkosár tudatosan kiválasztott elemei.
+8. A többi rendelkezésre álló teológiai és homiletikai műhelyanyag.
 
-1. Bibliai textus és indokolt textushatár.
-2. A felhasználó kifejezett fókusza, alkalma, hallgatói helyzete és jóváhagyott
-   homiletikai döntései.
-3. A vázlatkosárba tudatosan kiválasztott anyagok.
-4. Egyéb exegetikai, teológiai, történeti és homiletikai műhelyanyag.
-5. Korábbi vagy gépileg előállított vázlat csak akkor, ha a feladat kifejezetten
-   annak javítása; új vázlat készítésekor nem tekinthető mintának.
+A bibliai szöveg, az exegézis, az eredeti nyelvi megfigyelések és a releváns
+kortörténet az értelmezési alap. A többi anyag csak szelektíven gazdagítson.
+Korábbi vagy gépileg előállított vázlat csak akkor minta, ha a feladat
+kifejezetten annak javítása.
 
-A textus mindig elsőbbséget élvez. A felhasználói és műhelyanyag iránymutatás,
-nem kötelező tartalomjegyzék. Ne próbálj minden rendelkezésre álló elemet
-beépíteni. Hagyd el a textustól idegen, gyenge, ismétlődő, bizonytalan vagy
-egymásnak ellentmondó elemeket.
+Az üres vázlatkosár nem hiányállapot. Teljes, konkrét és professzionális
+vázlatot készíts akkor is, ha a kosár üres, feltéve hogy van bibliai szöveg és
+legalább érdemi exegézis, eredeti nyelvi megfigyelés, jóváhagyott textusgondolat
+vagy saját exegetikai felismerés. A vázlathoz nem kötelező minden homiletikai
+műhelylépés. Ne jelezd a hiányt a vázlatban, és ne töltsd ki közhelyekkel.
 
-Az üres vázlatkosár nem hiányállapot. Ilyenkor is készíts teljes értékű,
-konkrét és professzionális vázlatot a textus alapján. Ne jelezd a vázlatban,
-hogy kevés adat állt rendelkezésre, és ne töltsd ki a hiányt általános vallásos
-közhelyekkel.
+Ne állíts olyasmit a textusról, amit a betöltött szöveg vagy biztos kontextusa
+nem támaszt alá. Versszámot ne találj ki. Egy vers tartalmát ne rendelj más
+vershivatkozás alá. Ugyanazt a verset ne bontsd automatikusan több főpontra;
+egyetlen versből csak akkor legyen több pont, ha valóban elkülönülő,
+homiletikailag indokolt mozgásai vannak. Párhuzamos vagy egymást kiegészítő
+felszólításokat alapértelmezetten egy pontban tarts (pl. Júd 20 épülés és
+imádság együtt).
 
-Ne állíts olyasmit a textusról, amit a szöveg vagy annak biztos kontextusa nem
-támaszt alá. Bizonytalan történeti, nyelvi vagy teológiai részletet ne találj ki.
-A textushatárt ne bővítsd ki hallgatólagosan: ha a teljes gondolati ívhez valóban
-szükséges módosítás, azt kizárólag a `scope_note` mezőben jelezd.
+A textushatárt ne bővítsd hallgatólagosan. Ha valódi és homiletikailag fontos
+határkérdés van, jelezd a `scope_note` mezőben. Ha a következő vers szövege
+nincs betöltve, ne használd fel annak tartalmát tényként — csak a lehetséges
+bővítést jelezd.
 
 HOMILETIKAI MINŐSÉG
 
-- A fókuszmondat egyetlen világos, textusból következő állítás legyen.
-- Ne ragaszkodj három ponthoz. A textus természetes szerkezete szerint válassz
-  2–4 pontot.
-- A pontok egymás után valódi gondolati előrehaladást mutassanak. Egyik pont
-  se legyen a fókuszmondat vagy egy korábbi pont puszta átfogalmazása.
-- A pontcímek egymás után olvasva is tegyék láthatóvá a prédikáció útját.
-- Pontonként az első alpont rögzítse a textuális állítást vagy képet, a második
-  mutassa meg annak teológiai vagy homiletikai jelentőségét.
-- Az alkalmazás legyen konkrétan összekötve az adott ponttal és a hallgatói
-  helyzettel. Kerüld az önmagában álló közhelyeket, például: „Fontos
-  felismernünk”, „Bízzunk jobban Istenben”, „Ez kulcsfontosságú”.
-- A bevezető iránya nevezzen meg konkrét emberi helyzetet, tapasztalatot,
-  kérdést vagy feszültséget. Ne legyen metautasítás, például: „A bevezetés
-  teremtsen feszültséget”.
-- A megérkezés ne a vázlat pontjainak ismételt összefoglalása és ne
-  metautasítás legyen. Fogalmazza meg, hová érkezik a textus a hallgatóval:
-  Isten cselekvéséhez, ígéretéhez, kegyelméhez, vigasztalásához vagy a hit
-  konkrét válaszához.
-- A Krisztus- és kegyelemhorizont ott jelenjen meg, ahol azt a textus és a
-  kánoni összefüggés természetesen indokolja. Ne illessz minden ponthoz
-  mechanikus krisztológiai mondatot, de ne zárd le a vázlatot puszta
-  moralizálással sem.
-- Különleges alkalomnál a textus határozza meg az üzenetet. Életrajzi adatból,
-  gyászesetből vagy hallgatói helyzetből ne vezess le a textuson túlmenő
-  bizonyosságot.
+- A fókuszmondat fogja össze a textus állítását és a hallgatói válasz irányát;
+  ne legyen puszta témamegjelölés vagy moralizáló felszólítás.
+- A pontok valódi gondolati előrehaladást mutassanak; egyik se ismételje a
+  fókuszt vagy egy korábbi pontot.
+- Pontonként: első alpont a textusbeli állítás/kép/fordulat; következő alpont
+  a teológiai és homiletikai jelentőség; opcionálisan rövid, konkrét hallgatói
+  irány vagy kérdés.
+- Kerüld az általános felszólításokat: „bízzunk jobban”, „fontos felismernünk”,
+  „törekedjünk mindennap”.
+- Eredeti nyelvi és kortörténeti megfigyelés csak akkor kerüljön a pontba, ha
+  tényleg segíti a megértést — ne legyen nyelvészeti vagy történeti előadás.
+- Ne ismételd külön pontokban ugyanazt a gondolatot (pl. Ézs 46 „hordoz /
+  megtart / megment” egyetlen ívként, ne háromszor).
+- A bevezetési irány konkrét emberi helyzet, kérdés vagy feszültség legyen
+  (2–3 mondat), nem kész bevezető beszéd és nem metautasítás.
+- A megérkezés mutassa, hová érkezik a textus a hallgatóval; ne ismételje a
+  pontokat, ne legyen záróprédikáció, és ne vezessen be új témát.
+- A Krisztus- és kegyelemhorizont ott jelenjen meg, ahol a textus és a kánoni
+  összefüggés indokolja — ne mechanikusan minden pontnál.
 
 MEZŐK TARTALMA
 
-- `title`: rövid, megjegyezhető cím; ne puszta témamegjelölés legyen.
-- `text_reference`: a megadott igehely.
+- `title`: rövid, megjegyezhető, a teljes textust összefogó cím.
+- `text_reference`: a megadott igehely (és fordítás, ha ismert).
 - `scope_note`: csak valódi textushatár-probléma esetén; különben üres.
-- `focus_sentence`: a teljes vázlatot összetartó egyetlen állítás.
-- `introduction_direction`: konkrét, tartalmi nyitómondat; nem kész bevezető
-  beszéd és nem szerkesztői utasítás.
-- `points`: a textus természetes mozgásának 2–4 állomása.
-- `verses`: csak az adott ponthoz ténylegesen tartozó vers vagy versszakasz.
-- `subpoints`: két tömör, teljes mondat; ne bekezdés és ne prédikációs próza.
-- `application`: egy konkrét hallgatói következmény vagy üres érték.
-- `conclusion_direction`: konkrét tartalmi megérkezés; nem kész záróbeszéd és
-  nem szerkesztői utasítás.
-- `refinement_suggestions`: mindig üres lista.
+- `focus_sentence`: egy világos, teljes mondat (kb. 20–35 szó).
+- `introduction_direction`: bevezetési irány, 2–3 teljes mondat (kb. 30–60 szó).
+- `points`: 2–4 főpont a textus természetes szerkezete szerint.
+- `point.title`: pontcím IGEHELY NÉLKÜL (a renderer a `verses` mezőből illeszti).
+- `verses`: csak az adott ponthoz tartozó, a betöltött szövegből származó egység.
+- `subpoints`: 2–3 alpont; mindegyik 1–2 teljes mondat, kb. 20–45 szó.
+- `application`: opcionális, rövid, konkrét hallgatói irány vagy üres.
+- `conclusion_direction`: megérkezés, 2–3 teljes mondat (kb. 30–60 szó).
+- `refinement_suggestions`: mindig üres lista (nem jelenik meg a szószéki nézetben).
 
 HOSSZKORLÁTOK – KÖTELEZŐ
 
-- `title`: legfeljebb 8 szó.
-- `focus_sentence`: pontosan 1 mondat, legfeljebb 22 szó.
-- `introduction_direction`: pontosan 1 mondat, legfeljebb 25 szó.
-- `points`: 2–4, kizárólag a textus természetes szerkezete szerint.
-- `point.title`: legfeljebb 8 szó.
-- `point.subpoints`: pontosan 2; mindkettő pontosan 1 teljes mondat,
-  egyenként legfeljebb 18 szó.
-- `point.application`: legfeljebb 1 mondat és 16 szó, vagy üres.
-- `conclusion_direction`: pontosan 1 mondat, legfeljebb 25 szó.
-- `scope_note`: legfeljebb 25 szó, vagy üres.
-- A teljes látható vázlat céltartománya 160–240 szó, abszolút maximuma 280 szó.
+- `title`: legfeljebb 10 szó.
+- `focus_sentence`: 1 mondat, kb. 20–35 szó.
+- `introduction_direction`: 2–3 mondat, kb. 30–60 szó.
+- `points`: 2–4.
+- `point.title`: legfeljebb 10 szó, verses nélkül.
+- `point.subpoints`: 2–3; egyenként 1–2 teljes mondat, kb. 20–45 szó.
+- `point.application`: legfeljebb 1–2 mondat / 28 szó, vagy üres.
+- `conclusion_direction`: 2–3 mondat, kb. 30–60 szó.
+- `scope_note`: legfeljebb 40 szó, vagy üres.
+- Teljes látható vázlat céltartomány: 320–480 szó; puha alsó határ ~280;
+  abszolút maximum 550 szó. A JSON mezőnevek nem számítanak a látható
+  szószámba.
 - `refinement_suggestions`: mindig `[]`.
 
 TILOS
 
 Tilos teljes prédikációt, kidolgozott bevezetést vagy záróbeszédet írni.
 Tilos többbekezdéses prózát írni a pontok alatt.
+Tilos félbemaradt mondatot visszaadni.
 Tilos a megadott sémán kívüli mezőt létrehozni, különösen:
 `body`, `content`, `exegesis`, `theological_expansion`, `grace_connection`,
 `listener_connection`, `transition_logic`, `full_introduction`,
 `full_conclusion`, `thesis`, `outline_text`.
 Tilos szerkesztői fejezetcímeket létrehozni, például:
 „Problémafelvetés”, „Magyarázat”, „Teológiai kibontás”,
+„Exegetikai és teológiai kibontás”, „Hallgatói és kegyelmi kapcsolat”,
 „Kegyelmi kapcsolat”, „Hallgatói alkalmazás”, „Átvezetési logika”.
 Tilos metaszöveget, önértékelést, hiányjelzést vagy a választ magyarázó
 megjegyzést írni.
+Tilos töltelékes fordulatokat használni, például: „de vajon”, „ez azonban”,
+„itt felmerül a kérdés”, „nem marad titokban”.
 
 KÖTELEZŐ KIMENET
 
@@ -264,10 +281,10 @@ magyarázat nélkül:
   "introduction_direction": "string",
   "points": [
     {{
-      "title": "string",
-      "verses": "string",
-      "subpoints": ["one full sentence", "one full sentence"],
-      "application": "one sentence or empty"
+      "title": "string without verse ref",
+      "verses": "v. x–y",
+      "subpoints": ["1–2 full sentences", "1–2 full sentences"],
+      "application": "short concrete direction or empty"
     }}
   ],
   "conclusion_direction": "string",
@@ -276,31 +293,31 @@ magyarázat nélkül:
 
 VÉGSŐ ELLENŐRZÉS
 
-Válaszadás előtt csendben ellenőrizd, hogy a vázlat a textusból indul-e,
-önállóan is teljes-e, a pontok előrehaladnak-e, nincs-e ismétlés vagy
-metaszöveg, és minden mező megfelel-e a sémának és a hosszkorlátoknak.
-A válasz kizárólag a JSON objektum.\
+Válaszadás előtt csendben ellenőrizd: textusközpontú-e, szószéki munkavázlat-e
+(nem prédikáció), a pontok a természetes egységeket követik-e, az igehelyek
+helyesek-e, nincs-e ismétlés vagy félmondat, és a hossz 320–480 szó körül van-e
+(max 550). A válasz kizárólag a JSON objektum.\
 """
 
 _JSON_SHAPE = """\
 {
-  "title": "Rövid cím",
+  "title": "Rövid, megjegyezhető cím",
   "text_reference": "Igehely",
   "scope_note": "",
-  "focus_sentence": "Egyetlen fókuszmondat.",
-  "introduction_direction": "Rövid bevezető irány.",
+  "focus_sentence": "Egy teljes fókuszmondat (kb. 20–35 szó).",
+  "introduction_direction": "2–3 teljes mondat bevezetési irány (kb. 30–60 szó).",
   "points": [
     {
-      "title": "Pontcím",
+      "title": "Pontcím igehely nélkül",
       "verses": "v. x–y",
       "subpoints": [
-        "Egy teljes mondat (≤18 szó).",
-        "Második teljes mondat (≤18 szó)."
+        "Textuális kibontás: 1–2 teljes mondat (kb. 20–45 szó).",
+        "Teológiai/homiletikai jelentőség: 1–2 teljes mondat (kb. 20–45 szó)."
       ],
       "application": ""
     }
   ],
-  "conclusion_direction": "Rövid megérkezés.",
+  "conclusion_direction": "2–3 teljes mondat megérkezés (kb. 30–60 szó).",
   "refinement_suggestions": []
 }
 """
@@ -327,7 +344,7 @@ OUTLINE_RESPONSE_SCHEMA: dict[str, Any] = {
                     "subpoints": {
                         "type": "ARRAY",
                         "minItems": 2,
-                        "maxItems": 2,
+                        "maxItems": 3,
                         "items": {"type": "STRING"},
                     },
                     "application": {"type": "STRING"},
@@ -378,8 +395,123 @@ def sentence_count(text: Any) -> int:
     raw = _s(text)
     if not raw:
         return 0
-    parts = [p.strip() for p in re.split(r"(?<=[.!?])\s+", raw) if p.strip()]
+    # Ne tördeljen versszám/ordinal pontnál: „17–18. vers”, „3. pont”
+    protected = re.sub(r"(?<=\d)\.(?=\s)", "⟪DOT⟫", raw)
+    parts = [
+        p.replace("⟪DOT⟫", ".").strip()
+        for p in re.split(r"(?<=[.!?])\s+", protected)
+        if p.strip()
+    ]
     return max(1, len(parts)) if raw else 0
+
+
+def _looks_truncated_sentence(text: Any) -> bool:
+    """Félbemaradt mondat: nincs záró írásjel, vagy nyilvánvalóan csonka."""
+    raw = _s(text)
+    if not raw:
+        return False
+    if raw.endswith((".", "!", "?", "…", '"', "”", "'")):
+        # Still flag obvious mid-clause stubs ending with period after tiny tail
+        low = raw.casefold()
+        if re.search(r"\b(és|vagy|hogy|mert|ha|de|majd)\s*\.$", low):
+            return True
+        return False
+    # Ends mid-thought without terminal punctuation
+    if re.search(r"\b(és|vagy|hogy|mert|ha|de|majd|két|egy)\s*$", raw.casefold()):
+        return True
+    if word_count(raw) >= 4 and not re.search(r"[.!?…]$", raw):
+        return True
+    return False
+
+
+def _split_sentences(text: str) -> list[str]:
+    raw = _s(text)
+    if not raw:
+        return []
+    protected = re.sub(r"(?<=\d)\.(?=\s)", "⟪DOT⟫", raw)
+    return [
+        p.replace("⟪DOT⟫", ".").strip()
+        for p in re.split(r"(?<=[.!?])\s+", protected)
+        if p.strip()
+    ]
+
+
+def _clip_to_full_sentences(text: str, max_w: int) -> str:
+    """Rövidít teljes mondatok mentén — soha nem vág félbe mondatot."""
+    raw = _s(text)
+    if not raw or word_count(raw) <= max_w:
+        return raw
+    sents = _split_sentences(raw)
+    # Ha nincs mondatzáró, ne vágjunk szóhatáron — hagyjuk a validátorra.
+    if len(sents) <= 1 and not re.search(r"[.!?…]$", raw):
+        return raw
+    kept: list[str] = []
+    for sent in sents:
+        trial = " ".join(kept + [sent]).strip()
+        if kept and word_count(trial) > max_w:
+            break
+        kept.append(sent)
+    if kept:
+        return " ".join(kept).strip()
+    # Első mondat önmagában túl hosszú: ne csonkítsuk szóhatáron.
+    return sents[0] if sents else raw
+
+
+def extract_verse_numbers(text: Any) -> set[int]:
+    """Versszámok kinyerése igehely-mezőből vagy bibliai szövegből."""
+    raw = _s(text)
+    if not raw:
+        return set()
+    found: set[int] = set()
+    # Ranges: 17–20 / 17-20 / 17–18
+    for a, b in re.findall(r"\b(\d{1,3})\s*[–\-]\s*(\d{1,3})\b", raw):
+        lo, hi = int(a), int(b)
+        if 1 <= lo <= hi <= 200:
+            found.update(range(lo, hi + 1))
+    # Standalone verse markers near v. / vers
+    for m in re.finditer(
+        r"(?:(?:^|[\s(,;:])v\.?\s*|vers(?:e[ks])?\s+)(\d{1,3})\b",
+        raw,
+        flags=re.I | re.M,
+    ):
+        n = int(m.group(1))
+        if 1 <= n <= 200:
+            found.add(n)
+    # Hungarian ordinal style: "21. vers"
+    for m in re.finditer(r"\b(\d{1,3})\.\s*vers", raw, flags=re.I):
+        n = int(m.group(1))
+        if 1 <= n <= 200:
+            found.add(n)
+    # Leading verse numbers in loaded biblical text: "17 Ti pedig"
+    for m in re.finditer(r"(?m)^\s*(\d{1,3})\s+\S", raw):
+        n = int(m.group(1))
+        if 1 <= n <= 200:
+            found.add(n)
+    return found
+
+
+def scope_note_uses_unloaded_verse(scope_note: Any, passage_text: Any) -> bool:
+    """True, ha a scope_note olyan verset említ tényként, ami nincs betöltve."""
+    note = _s(scope_note)
+    passage = _s(passage_text)
+    if not note or not passage:
+        return False
+    loaded = extract_verse_numbers(passage)
+    if not loaded:
+        return False
+    mentioned = extract_verse_numbers(note)
+    if not mentioned:
+        return False
+    # Pure boundary suggestion (e.g. "fontolható a 21. vers bevétele") is OK
+    # only if it does not assert content of the missing verse as fact.
+    missing = mentioned - loaded
+    if not missing:
+        return False
+    factual = re.search(
+        r"(állít|mondja|tanítja|ígéri|parancsol|hirdeti|tartalmazza|arról beszél)",
+        note.casefold(),
+    )
+    return bool(factual)
 
 
 def _looks_multi_paragraph(text: Any) -> bool:
@@ -388,7 +520,7 @@ def _looks_multi_paragraph(text: Any) -> bool:
         return False
     if "\n\n" in raw:
         return True
-    return sentence_count(raw) >= 3 and word_count(raw) > 40
+    return sentence_count(raw) >= 4 and word_count(raw) > 80
 
 
 def _has_forbidden_keys(raw: Mapping[str, Any]) -> list[str]:
@@ -534,7 +666,11 @@ def normalize_structured_outline(raw: Any) -> dict[str, Any]:
     return out
 
 
-def validate_structured_outline(payload: Any) -> list[str]:
+def validate_structured_outline(
+    payload: Any,
+    *,
+    passage_text: Any = "",
+) -> list[str]:
     """Hard validation — bármely találat → érvénytelen (compress / reject)."""
     data = normalize_structured_outline(payload)
     issues: list[str] = []
@@ -570,24 +706,33 @@ def validate_structured_outline(payload: Any) -> list[str]:
                     issues.append("multi_paragraph_field")
                     break
                 raw_subpoints = raw_point.get("subpoints")
-                if isinstance(raw_subpoints, list) and len(raw_subpoints) != 2:
-                    issues.append("invalid_subpoint_count")
+                if isinstance(raw_subpoints, list):
+                    n_sp = len(raw_subpoints)
+                    if n_sp < LIMITS["min_subpoints"] or n_sp > LIMITS["max_subpoints"]:
+                        issues.append("invalid_subpoint_count")
                 if _looks_multi_paragraph(raw_point.get("application")):
                     issues.append("multi_paragraph_field")
                     break
 
     if not data["focus_sentence"]:
         issues.append("missing_focus")
-    elif word_count(data["focus_sentence"]) > LIMITS["focus_words"]:
-        issues.append("focus_too_long")
-    elif sentence_count(data["focus_sentence"]) != 1:
-        issues.append("focus_not_one_sentence")
+    else:
+        if word_count(data["focus_sentence"]) > LIMITS["focus_words"]:
+            issues.append("focus_too_long")
+        if sentence_count(data["focus_sentence"]) != 1:
+            issues.append("focus_not_one_sentence")
+        if _looks_truncated_sentence(data["focus_sentence"]):
+            issues.append("truncated_sentence")
 
     if data["title"] and word_count(data["title"]) > LIMITS["title_words"]:
         issues.append("title_too_long")
 
     if data["scope_note"] and word_count(data["scope_note"]) > LIMITS["scope_note_words"]:
         issues.append("scope_note_too_long")
+    if passage_text and scope_note_uses_unloaded_verse(
+        data["scope_note"], passage_text
+    ):
+        issues.append("scope_note_unloaded_verse")
 
     intro = data["introduction_direction"]
     if not intro:
@@ -599,6 +744,8 @@ def validate_structured_outline(payload: Any) -> list[str]:
             issues.append("intro_too_many_sentences")
         if _looks_multi_paragraph(intro):
             issues.append("intro_multi_paragraph")
+        if _looks_truncated_sentence(intro):
+            issues.append("truncated_sentence")
 
     points = data["points"]
     n = len(points)
@@ -608,8 +755,11 @@ def validate_structured_outline(payload: Any) -> list[str]:
         issues.append("too_many_points")
 
     titles_seen: set[str] = set()
+    verse_sets: list[frozenset[int]] = []
+    verse_labels: list[str] = []
     for pt in points:
         title = _s(pt.get("title"))
+        verses = _s(pt.get("verses"))
         subs = [_s(x) for x in (pt.get("subpoints") or []) if _s(x)]
         app = _s(pt.get("application"))
         tnorm = _normalize_cmp(title)
@@ -617,19 +767,30 @@ def validate_structured_outline(payload: Any) -> list[str]:
             issues.append("empty_point_title")
         elif word_count(title) > LIMITS["point_title_words"]:
             issues.append("point_title_too_long")
+        if any(_normalize_cmp(title) == _normalize_cmp(h) for h in FORBIDDEN_HEADINGS):
+            issues.append("forbidden_heading")
+        # Title must not embed a hand-written verse ref (renderer owns that)
+        if re.search(r"\(\s*v\.?\s*\d", title.casefold()) or re.search(
+            r"\bv\.?\s*\d{1,3}\s*[–\-]\s*\d", title.casefold()
+        ):
+            issues.append("verse_in_point_title")
         if tnorm in titles_seen:
             issues.append("duplicate_points")
         titles_seen.add(tnorm)
-        # Near-duplicate titles
         for prev in titles_seen - {tnorm}:
             if prev and tnorm and (prev in tnorm or tnorm in prev):
                 if abs(len(prev) - len(tnorm)) <= 8:
                     issues.append("duplicate_points")
+        vset = frozenset(extract_verse_numbers(verses))
+        verse_sets.append(vset)
+        verse_labels.append(_normalize_cmp(verses))
         if len(subs) < LIMITS["min_subpoints"]:
             issues.append("too_few_subpoints")
         if len(subs) > LIMITS["max_subpoints"]:
             issues.append("too_many_subpoints")
-        if len(subs) != 2:
+        if not (
+            LIMITS["min_subpoints"] <= len(subs) <= LIMITS["max_subpoints"]
+        ):
             issues.append("invalid_subpoint_count")
         for sp in subs:
             wc = word_count(sp)
@@ -637,19 +798,58 @@ def validate_structured_outline(payload: Any) -> list[str]:
                 issues.append("stub_subpoint")
             if wc > LIMITS["subpoint_max_words"]:
                 issues.append("subpoint_length")
-            if sentence_count(sp) != 1:
-                issues.append("subpoint_not_one_sentence")
+            sc = sentence_count(sp)
+            if sc < 1 or sc > LIMITS["subpoint_sentences_max"]:
+                issues.append("subpoint_sentence_count")
             if _looks_multi_paragraph(sp):
                 issues.append("multi_paragraph_point")
+            if _looks_truncated_sentence(sp):
+                issues.append("truncated_sentence")
             if wc > LIMITS["max_prose_block_words"]:
                 issues.append("prose_block_too_long")
         if app:
             if word_count(app) > LIMITS["application_words"]:
                 issues.append("application_too_long")
-            if sentence_count(app) > 1:
+            if sentence_count(app) > 2:
                 issues.append("application_too_many_sentences")
             if _looks_multi_paragraph(app):
                 issues.append("multi_paragraph_point")
+            if _looks_truncated_sentence(app):
+                issues.append("truncated_sentence")
+
+    # Same verse label split into consecutive main points (e.g. two "v. 20")
+    for i in range(1, len(verse_labels)):
+        a, b = verse_labels[i - 1], verse_labels[i]
+        if a and b and a == b:
+            issues.append("split_same_verse")
+
+    # Loaded middle verse skipped while neighbors covered (e.g. Jude 19)
+    loaded_verses = extract_verse_numbers(passage_text) if passage_text else set()
+    covered: set[int] = set()
+    for vs in verse_sets:
+        covered |= set(vs)
+    if loaded_verses and covered:
+        for v in sorted(loaded_verses):
+            if v in covered:
+                continue
+            if (v - 1) in covered and (v + 1) in covered:
+                issues.append("missing_verse_unit")
+                break
+
+    # Ézs 46-style triad repeated as separate point cores
+    point_blobs = [
+        " ".join(
+            [
+                _s(pt.get("title")),
+                " ".join(_s(x) for x in (pt.get("subpoints") or [])),
+            ]
+        ).casefold()
+        for pt in points
+    ]
+    triad = ("hordoz", "megtart", "megment")
+    triad_hits = sum(1 for blob in point_blobs if sum(1 for t in triad if t in blob) >= 2)
+    if triad_hits >= 3:
+        issues.append("repeated_thematic_triad")
 
     conc = data["conclusion_direction"]
     if not conc:
@@ -661,22 +861,29 @@ def validate_structured_outline(payload: Any) -> list[str]:
             issues.append("conclusion_too_many_sentences")
         if _looks_multi_paragraph(conc):
             issues.append("conclusion_multi_paragraph")
+        if _looks_truncated_sentence(conc):
+            issues.append("truncated_sentence")
 
     rendered = render_structured_outline(data)
     total = word_count(rendered)
     if total > LIMITS["absolute_max_words"]:
         issues.append("over_absolute_max")
-    if total and total < 60:
+    if total and total < LIMITS["soft_floor_words"]:
         issues.append("too_thin")
 
-    # Contiguous prose block >50 words (paragraph without bullets)
+    # Standalone verse-only lines under point titles must not appear
+    for block in rendered.split("\n\n"):
+        plain = block.strip()
+        if re.fullmatch(r"\*?v\.?\s*\d{1,3}(?:\s*[–\-]\s*\d{1,3})?\*?", plain.casefold()):
+            issues.append("standalone_verse_line")
+            break
+
     for block in rendered.split("\n\n"):
         plain = re.sub(r"^[-•*]\s+", "", block.strip(), flags=re.M)
         plain = re.sub(r"\*\*?|[*_]", "", plain)
         if word_count(plain) > LIMITS["max_prose_block_words"] and not plain.startswith(
             ("1.", "2.", "3.", "4.")
         ):
-            # Allow titled sections only if short; long blocks fail
             if not plain.startswith("**") and "\n- " not in block and not block.strip().startswith("-"):
                 if not any(
                     block.strip().startswith(f"**{lab}")
@@ -684,6 +891,7 @@ def validate_structured_outline(payload: Any) -> list[str]:
                         "Cím",
                         "Textus",
                         "Fókuszmondat",
+                        "Bevezetési irány",
                         "Bevezetés",
                         "Megérkezés",
                         "Megjegyzés",
@@ -693,7 +901,12 @@ def validate_structured_outline(payload: Any) -> list[str]:
 
     blob = rendered.casefold()
     for heading in FORBIDDEN_HEADINGS:
-        if heading.casefold() in blob:
+        # Csak cím-/fejezetszerű előfordulás (ne a futó szöveg „magyarázat” szava)
+        h = re.escape(heading.casefold())
+        if re.search(
+            rf"(?m)^(?:\*\*|#{1,3}\s*)?{h}\**\s*$",
+            blob,
+        ) or re.search(rf"\*\*{h}\*\*", blob):
             issues.append("forbidden_heading")
             break
     for filler in FORBIDDEN_FILLERS:
@@ -701,15 +914,31 @@ def validate_structured_outline(payload: Any) -> list[str]:
             issues.append("forbidden_filler")
             break
 
-    # Raw Markdown chapter heuristics
     if re.search(r"(?m)^#{1,3}\s+\S", rendered) or rendered.count("##") >= 2:
         issues.append("raw_markdown_chapters")
 
-    para_count = len([p for p in rendered.split("\n\n") if len(p) > 80])
-    if para_count >= 8 and total > LIMITS["target_max_words"]:
+    para_count = len([p for p in rendered.split("\n\n") if len(p) > 120])
+    if para_count >= 8 and total > LIMITS["absolute_max_words"]:
         issues.append("full_sermon_like")
 
     return list(dict.fromkeys(issues))
+
+
+def _strip_trailing_verse_from_title(title: str) -> str:
+    cleaned = re.sub(r"^\s*\d+[.)]\s*", "", _s(title)).strip()
+    cleaned = re.sub(
+        r"\s*\(\s*v\.?\s*\d{1,3}(?:\s*[–\-]\s*\d{1,3})?\s*\)\s*$",
+        "",
+        cleaned,
+        flags=re.I,
+    ).strip()
+    cleaned = re.sub(
+        r"\s+v\.?\s*\d{1,3}(?:\s*[–\-]\s*\d{1,3})?\s*$",
+        "",
+        cleaned,
+        flags=re.I,
+    ).strip()
+    return cleaned
 
 
 def render_structured_outline(payload: Any) -> str:
@@ -727,19 +956,19 @@ def render_structured_outline(payload: Any) -> str:
     if data["scope_note"]:
         _sec("Megjegyzés a textushatárról", data["scope_note"])
     _sec("Fókuszmondat", data["focus_sentence"])
-    _sec("Bevezetés", data["introduction_direction"])
+    _sec("Bevezetési irány", data["introduction_direction"])
 
     for idx, pt in enumerate(data["points"], start=1):
-        title = re.sub(r"^\s*\d+[.)]\s*", "", _s(pt.get("title"))).strip()
+        title = _strip_trailing_verse_from_title(_s(pt.get("title")))
         if not title:
             continue
-        parts: list[str] = []
         verses = _s(pt.get("verses"))
+        heading = f"{idx}. {title}"
         if verses:
-            parts.append(f"*{verses}*")
+            heading = f"{heading} ({verses})"
+        parts: list[str] = []
         for sp in pt.get("subpoints") or []:
             cleaned = re.sub(r"^[-•*]\s+", "", _s(sp)).strip()
-            # Never render multi-paragraph under a point
             if "\n\n" in cleaned:
                 cleaned = cleaned.split("\n\n")[0].strip()
             if cleaned:
@@ -749,7 +978,7 @@ def render_structured_outline(payload: Any) -> str:
             parts.append(f"*{app}*")
         if not parts:
             continue
-        blocks.append(f"**{idx}. {title}**\n\n" + "\n".join(parts))
+        blocks.append(f"**{heading}**\n\n" + "\n".join(parts))
 
     _sec("Megérkezés", data["conclusion_direction"])
     text = "\n\n".join(blocks).strip()
@@ -912,9 +1141,10 @@ REFRESH_NOTICE = (
 )
 
 INVALID_OUTLINE_MESSAGE = (
-    "A vázlatgenerálás nem adott szószéken használható, tömör gondolatvázlatot "
-    f"(max. {LIMITS['absolute_max_words']} szó). "
-    "Próbáld újra — a hosszú prédikációs szöveg nem kerül mentésre."
+    "A vázlatgenerálás nem adott szószéken használható munkavázlatot "
+    f"(céltartomány {LIMITS['target_min_words']}–{LIMITS['target_max_words']} szó, "
+    f"abszolút max. {LIMITS['absolute_max_words']} szó). "
+    "Próbáld újra — a hosszú prédikációs szöveg vagy a csonka vázlat nem kerül mentésre."
 )
 
 
@@ -1001,7 +1231,7 @@ def _heuristic_structured_from_bundle(
     *,
     seed_outline: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """Offline / teszt: tömör struktúra a rendelkezésre álló anyagból."""
+    """Offline / teszt: szószéki munkavázlat a rendelkezésre álló anyagból."""
     from sermon_workshop_outline_ai import (
         _prefer_main_idea,
         _truncate,
@@ -1012,29 +1242,39 @@ def _heuristic_structured_from_bundle(
     data["text_reference"] = _s(bundle.get("passage_reference"))
     data["title"] = _s(bundle.get("project_title")) or data["text_reference"] or "Vázlat"
     if word_count(data["title"]) > LIMITS["title_words"]:
-        data["title"] = " ".join(data["title"].split()[: LIMITS["title_words"]])
+        data["title"] = _clip_to_full_sentences(data["title"], LIMITS["title_words"])
+        if word_count(data["title"]) > LIMITS["title_words"]:
+            data["title"] = " ".join(data["title"].split()[: LIMITS["title_words"]])
 
     focus = _prefer_main_idea(bundle)
     if not focus and seed_outline:
         focus = _s(seed_outline.get("main_idea"))
-    data["focus_sentence"] = _usable_text(focus) or "A textus Isten megtartó szavát hirdeti."
-    if word_count(data["focus_sentence"]) > LIMITS["focus_words"]:
-        data["focus_sentence"] = " ".join(
-            data["focus_sentence"].split()[: LIMITS["focus_words"]]
-        )
+    data["focus_sentence"] = (
+        _usable_text(focus)
+        or "A textus Isten megtartó szavát hirdeti, és a hallgatót hitbeli válaszra hívja."
+    )
+    if data["focus_sentence"] and not data["focus_sentence"].endswith((".", "!", "?")):
+        data["focus_sentence"] += "."
+    data["focus_sentence"] = _clip_to_full_sentences(
+        data["focus_sentence"], LIMITS["focus_words"]
+    )
+    if data["focus_sentence"] and not data["focus_sentence"].endswith((".", "!", "?")):
+        data["focus_sentence"] += "."
 
     lt = bundle.get("listener_tension") if isinstance(bundle.get("listener_tension"), dict) else {}
     path = bundle.get("sermon_path") if isinstance(bundle.get("sermon_path"), dict) else {}
     intro = (
         _usable_text(path.get("starting_point"))
         or _usable_text(lt.get("listener_question"))
-        or "A hallgató a textus feszültségéből indul a fő állítás felé."
-    )
-    data["introduction_direction"] = _truncate(intro, 200)
-    if word_count(data["introduction_direction"]) > LIMITS["intro_words"]:
-        data["introduction_direction"] = " ".join(
-            data["introduction_direction"].split()[: LIMITS["intro_words"]]
+        or (
+            "A hallgató gyakran a saját bizonytalanságából indul, amikor a textus "
+            "szava elé áll. A kérdés az, milyen feszültség nyitja meg természetesen "
+            "ezt az igeszakaszt. Innen vezet az út a textus saját állítása felé."
         )
+    )
+    data["introduction_direction"] = _clip_to_full_sentences(
+        _truncate(intro, 420), LIMITS["intro_words"]
+    )
 
     points: list[dict[str, Any]] = []
     movements = bundle.get("sermon_movements") if isinstance(bundle.get("sermon_movements"), list) else []
@@ -1050,25 +1290,29 @@ def _heuristic_structured_from_bundle(
     ]
     exe = _usable_text(bundle.get("exegesis"))
     original = _usable_text(bundle.get("original_text"))
+    history = _usable_text(bundle.get("history"))
 
-    def _one_sentence(text: str, *, fallback: str, max_w: int | None = None) -> str:
-        max_w = max_w or LIMITS["subpoint_max_words"]
-        target_min = 12
+    def _rich_bullet(text: str, *, fallback: str) -> str:
+        target_min = LIMITS["subpoint_min_words"]
+        max_w = LIMITS["subpoint_max_words"]
         cleaned = _usable_text(text) or fallback
-        words = cleaned.split()
-        if len(words) < target_min:
-            pad = (fallback + " " + data["focus_sentence"]).split()
-            for w in pad:
-                if len(words) >= target_min:
-                    break
-                words.append(w)
-            while len(words) < target_min:
-                words.append("szava")
-        words = words[:max_w]
-        sent = " ".join(words).rstrip(".,;:")
+        if cleaned and not cleaned.endswith((".", "!", "?")):
+            cleaned += "."
+        pad = (
+            f" {fallback} {data['focus_sentence']}"
+            if word_count(cleaned) < target_min
+            else ""
+        )
+        sent = (cleaned + pad).strip()
         if not sent.endswith((".", "!", "?")):
             sent += "."
-        return sent
+        # Ha még mindig sovány, egész mondatot toldunk, nem szótöredéket.
+        while word_count(sent) < target_min:
+            sent = (
+                sent.rstrip(".!?")
+                + ", és a textus saját mozgása tovább pontosítja ezt a pontot."
+            )
+        return _clip_to_full_sentences(sent, max_w)
 
     if movements:
         for i, mv in enumerate(movements[: LIMITS["max_points"]], start=1):
@@ -1077,55 +1321,101 @@ def _heuristic_structured_from_bundle(
             core = _usable_text(mv.get("core_content")) or _usable_text(
                 mv.get("listener_discovery")
             )
-            title = _usable_text(mv.get("title")) or f"Pont {i}"
+            title = _strip_trailing_verse_from_title(
+                _usable_text(mv.get("title")) or f"Pont {i}"
+            )
             if word_count(title) > LIMITS["point_title_words"]:
                 title = " ".join(title.split()[: LIMITS["point_title_words"]])
-            basis = _usable_text(mv.get("textual_basis"))
-            sp1 = _one_sentence(
+            basis = _usable_text(mv.get("textual_basis")) or _usable_text(
+                mv.get("textual_anchor")
+            )
+            # Prefer short verse refs over full passage labels
+            if basis and extract_verse_numbers(basis) and len(basis) > 24:
+                nums = sorted(extract_verse_numbers(basis))
+                if len(nums) == 1:
+                    basis = f"v. {nums[0]}"
+                elif nums:
+                    basis = f"v. {nums[0]}–{nums[-1]}"
+            sp1 = _rich_bullet(
                 core
                 or exe
                 or (insights[0] if insights else data["focus_sentence"]),
-                fallback="A textus saját szavai rendezik ezt a gondolatot.",
+                fallback=(
+                    "A textus saját szavai és szerkezete rendezik ezt a gondolatot "
+                    "a hallgató előtt."
+                ),
             )
-            sp2 = _one_sentence(
+            sp2 = _rich_bullet(
                 _usable_text(mv.get("listener_discovery"))
                 or (insights[1] if len(insights) > 1 else "")
                 or original
+                or exe
                 or "Isten cselekvése hív választ, nem emberi erőfeszítés.",
-                fallback="Isten cselekvése hív választ, nem emberi erőfeszítés.",
+                fallback=(
+                    "A teológiai és homiletikai jelentőség abban áll, hogy Isten "
+                    "cselekvése hív választ, nem az emberi erőfeszítés."
+                ),
             )
             points.append(
                 {
                     "title": title,
-                    "verses": basis or data["text_reference"],
+                    "verses": basis or "",
                     "subpoints": [sp1, sp2],
                     "application": "",
                 }
             )
     else:
         seeds = insights or decisions or [
-            exe[:120] if exe else "",
-            original[:120] if original else "",
+            exe[:180] if exe else "",
+            original[:180] if original else "",
             data["focus_sentence"],
         ]
         seeds = [s for s in seeds if s] or [data["focus_sentence"]]
         while len(seeds) < 3:
             seeds.append(data["focus_sentence"])
         titles = ("A textus megnyitása", "A központi állítás", "A kegyelmi megérkezés")
+        loaded = sorted(extract_verse_numbers(bundle.get("passage_text") or ""))
+        if len(loaded) >= 3:
+            verse_labels = [
+                f"v. {loaded[0]}–{loaded[1]}" if len(loaded) > 1 else f"v. {loaded[0]}",
+                f"v. {loaded[len(loaded)//2]}",
+                f"v. {loaded[-1]}",
+            ]
+        elif len(loaded) == 2:
+            verse_labels = [f"v. {loaded[0]}", f"v. {loaded[1]}", f"v. {loaded[1]}"]
+            # Avoid consecutive identical labels
+            verse_labels[2] = f"v. {loaded[0]}–{loaded[1]}"
+        elif len(loaded) == 1:
+            verse_labels = [f"v. {loaded[0]}a", f"v. {loaded[0]}b", f"v. {loaded[0]}c"]
+        else:
+            verse_labels = ["", "", ""]
         for i in range(3):
             body = seeds[i % len(seeds)]
             points.append(
                 {
                     "title": titles[i],
-                    "verses": data["text_reference"],
+                    "verses": verse_labels[i],
                     "subpoints": [
-                        _one_sentence(
+                        _rich_bullet(
                             body,
-                            fallback="A textus saját mozgása bontja ki ezt a pontot.",
+                            fallback=(
+                                "A textus saját mozgása bontja ki ezt a pontot a "
+                                "betöltött igeszakasz alapján a hallgató előtt."
+                            ),
                         ),
-                        _one_sentence(
+                        _rich_bullet(
                             exe or original or data["focus_sentence"],
-                            fallback="A hallgató Isten cselekvése felől látja a választ.",
+                            fallback=(
+                                "A hallgató Isten cselekvése felől látja a választ, "
+                                "és így a textus homiletikai súlya is kirajzolódik."
+                            ),
+                        ),
+                        _rich_bullet(
+                            history or data["focus_sentence"],
+                            fallback=(
+                                "Ez a pont előreviszi a prédikáció ívét anélkül, "
+                                "hogy ismételné a fókuszmondatot vagy a korábbi állítást."
+                            ),
                         ),
                     ],
                     "application": "",
@@ -1142,13 +1432,15 @@ def _heuristic_structured_from_bundle(
     conc = (
         _usable_text(closing.get("final_discovery"))
         or _usable_text(arc.get("grace_enabled_response"))
-        or "A hallgató Isten megtartó szeretetében állhat meg."
-    )
-    data["conclusion_direction"] = _truncate(conc, 220)
-    if word_count(data["conclusion_direction"]) > LIMITS["conclusion_words"]:
-        data["conclusion_direction"] = " ".join(
-            data["conclusion_direction"].split()[: LIMITS["conclusion_words"]]
+        or (
+            "A hallgató nem új témánál, hanem a textus megérkezésénél áll meg. "
+            "Isten megtartó szeretete hív válaszra. Innen vihető tovább a szószéki "
+            "kibontás a gyülekezet konkrét helyzetére."
         )
+    )
+    data["conclusion_direction"] = _clip_to_full_sentences(
+        _truncate(conc, 420), LIMITS["conclusion_words"]
+    )
     data["refinement_suggestions"] = []
     return normalize_structured_outline(data)
 
@@ -1205,20 +1497,29 @@ def _ai_generate_structured(
     except Exception:  # noqa: BLE001
         occasion_block = (
             f"SÉMAVERZIÓ: {SCHEMA_VERSION}\n"
-            f"CÉLHOSSZ: 160–240 szó (abszolút max {LIMITS['absolute_max_words']}).\n"
+            f"CÉLHOSSZ: {LIMITS['target_min_words']}–{LIMITS['target_max_words']} szó "
+            f"(abszolút max {LIMITS['absolute_max_words']}; "
+            f"puha alsó határ ~{LIMITS['soft_floor_words']}).\n"
         )
     prompt = (
         f"{task_mode_note}\n"
         f"{occasion_block}"
-        "A feladat új vázlat készítése, nem egy korábbi vázlat javítása vagy "
-        "átszövegezése.\n"
-        "Először a textus központi állítását és természetes homiletikai mozgását "
-        "állapítsd meg. Csak ezután mérlegeld a többi anyagot.\n"
+        "A feladat új szószéki munkavázlat készítése, nem egy korábbi vázlat "
+        "javítása vagy átszövegezése.\n"
+        "Forráshierarchia: betöltött bibliai szöveg → exegézis → eredeti nyelvi "
+        "munka → releváns kortörténet → lelkészi fókusz/döntések → alkalom/"
+        "hallgató → vázlatkosár → egyéb műhelyanyag.\n"
+        "Először a textus központi állítását és természetes egységeit állapítsd "
+        "meg. Csak ezután mérlegeld a többi anyagot szelektíven.\n"
         "Üres vázlatkosár esetén is készíts teljes értékű, konkrét vázlatot.\n"
         "Ne ragaszkodj három ponthoz; a textus szerint válassz 2–4 pontot.\n"
-        "Pontonként pontosan két, egyenként legfeljebb 18 szavas alpontot adj.\n"
-        "A bevezető és a megérkezés tartalmi mondat legyen, ne szerkesztői "
-        "utasítás.\n\n"
+        "Pontonként 2–3 alpontot adj (1–2 teljes mondat, kb. 20–45 szó).\n"
+        "Az igehelyet csak a `verses` mezőbe írd; a pont `title` mezője legyen "
+        "igehely nélküli.\n"
+        "Ugyanazt a verset ne bontsd több főpontra; párhuzamos felszólításokat "
+        "egy pontban tarts.\n"
+        "A bevezetési irány és a megérkezés 2–3 tartalmi mondat legyen, ne "
+        "szerkesztői utasítás és ne kész beszéd.\n\n"
         f"FORRÁSCSOMAG:\n{json.dumps(ctx_without_basket_and_seed, ensure_ascii=False)}\n\n"
         "A forráscsomag exegetikai, teológiai és homiletikai elemei háttéranyagok; "
         "nem kell mindegyiket felhasználni.\n\n"
@@ -1322,72 +1623,82 @@ def _compress_structured(
 
 
 def _programmatic_trim(payload: Mapping[str, Any]) -> dict[str, Any]:
-    """Deterministic length enforcement before/after AI."""
+    """Deterministic cleanup — teljes mondatok mentén, félmondat nélkül."""
     data = normalize_structured_outline(payload)
 
-    def _clip_words(text: str, max_w: int) -> str:
-        words = _s(text).split()
-        if len(words) <= max_w:
-            return _s(text)
-        clipped = " ".join(words[:max_w]).rstrip(".,;:")
-        if clipped and not clipped.endswith((".", "!", "?")):
-            clipped += "."
-        return clipped
-
-    data["title"] = _clip_words(data["title"], LIMITS["title_words"])
-    data["focus_sentence"] = _clip_words(data["focus_sentence"], LIMITS["focus_words"])
-    data["introduction_direction"] = _clip_words(
+    data["title"] = _strip_trailing_verse_from_title(data["title"])
+    if word_count(data["title"]) > LIMITS["title_words"]:
+        # Címnél a szóhatár elfogadható (nem mondat); ne hagyjunk üres címet.
+        data["title"] = " ".join(data["title"].split()[: LIMITS["title_words"]])
+    data["focus_sentence"] = _clip_to_full_sentences(
+        data["focus_sentence"], LIMITS["focus_words"]
+    )
+    data["introduction_direction"] = _clip_to_full_sentences(
         data["introduction_direction"], LIMITS["intro_words"]
     )
-    data["conclusion_direction"] = _clip_words(
+    data["conclusion_direction"] = _clip_to_full_sentences(
         data["conclusion_direction"], LIMITS["conclusion_words"]
     )
-    data["scope_note"] = _clip_words(data["scope_note"], LIMITS["scope_note_words"])
+    data["scope_note"] = _clip_to_full_sentences(
+        data["scope_note"], LIMITS["scope_note_words"]
+    )
     trimmed_points: list[dict[str, Any]] = []
     for pt in data["points"][: LIMITS["max_points"]]:
-        subs = []
+        title = _strip_trailing_verse_from_title(_s(pt.get("title")))
+        if word_count(title) > LIMITS["point_title_words"]:
+            title = " ".join(title.split()[: LIMITS["point_title_words"]])
+        subs: list[str] = []
         for sp in (pt.get("subpoints") or [])[: LIMITS["max_subpoints"]]:
-            words = _s(sp).split()
-            if len(words) > LIMITS["subpoint_max_words"]:
-                sp = " ".join(words[: LIMITS["subpoint_max_words"]]).rstrip(".,;:") + "."
-            else:
-                sp = _s(sp)
-            if sp:
-                first = re.split(r"(?<=[.!?])\s+", sp)[0].strip()
-                # Drop multi-paragraph residue
-                if "\n\n" in first:
-                    first = first.split("\n\n")[0].strip()
-                subs.append(first if first else sp)
+            cleaned = _s(sp)
+            if "\n\n" in cleaned:
+                cleaned = cleaned.split("\n\n")[0].strip()
+            cleaned = _clip_to_full_sentences(cleaned, LIMITS["subpoint_max_words"])
+            # Max 2 sentences per subpoint
+            sents = _split_sentences(cleaned)[: LIMITS["subpoint_sentences_max"]]
+            cleaned = " ".join(sents).strip()
+            if cleaned and not _looks_truncated_sentence(cleaned):
+                subs.append(cleaned)
+            elif cleaned and not _looks_truncated_sentence(
+                _split_sentences(cleaned)[0] if _split_sentences(cleaned) else ""
+            ):
+                first = _split_sentences(cleaned)[0]
+                if first:
+                    subs.append(first)
+        app = _clip_to_full_sentences(
+            _s(pt.get("application")), LIMITS["application_words"]
+        )
         trimmed_points.append(
             {
-                "title": _clip_words(_s(pt.get("title")), LIMITS["point_title_words"]),
+                "title": title,
                 "verses": _s(pt.get("verses")),
                 "subpoints": subs,
-                "application": _clip_words(
-                    _s(pt.get("application")), LIMITS["application_words"]
-                ),
+                "application": app,
             }
         )
     data["points"] = trimmed_points
-    data["refinement_suggestions"] = list(data["refinement_suggestions"][:2])
+    data["refinement_suggestions"] = []
 
-    # Absolute total: drop applications, then 3rd subpoints, then clip harder
     def _over() -> bool:
         return word_count(render_structured_outline(data)) > LIMITS["absolute_max_words"]
 
+    # 1) Drop optional applications
     if _over():
         for pt in data["points"]:
             pt["application"] = ""
+    # 2) Drop third subpoints
     if _over():
         for pt in data["points"]:
             if len(pt["subpoints"]) > 2:
                 pt["subpoints"] = pt["subpoints"][:2]
+    # 3) Shorten framing fields by whole sentences
     if _over():
-        data["introduction_direction"] = _clip_words(
-            data["introduction_direction"], 25
+        data["introduction_direction"] = _clip_to_full_sentences(
+            data["introduction_direction"], 40
         )
-        data["conclusion_direction"] = _clip_words(data["conclusion_direction"], 30)
-        data["focus_sentence"] = _clip_words(data["focus_sentence"], 24)
+        data["conclusion_direction"] = _clip_to_full_sentences(
+            data["conclusion_direction"], 40
+        )
+        data["focus_sentence"] = _clip_to_full_sentences(data["focus_sentence"], 30)
     if _over() and len(data["points"]) > 3:
         data["points"] = data["points"][:3]
     return normalize_structured_outline(data)
@@ -1472,12 +1783,21 @@ def generate_sermon_outline(
     if structured is None:
         structured = _heuristic_structured_from_bundle(bundle, seed_outline=seed)
 
+    passage_for_validation = bundle.get("passage_text") or ""
+
+    soft_quality_issues = frozenset({"too_thin"})
+
+    def _hard_issues(items: list[str]) -> list[str]:
+        return [i for i in items if i not in soft_quality_issues]
+
     # Validate BEFORE aggressive trim — trim must not hide a near-sermon.
-    issues = validate_structured_outline(structured)
+    issues = validate_structured_outline(
+        structured, passage_text=passage_for_validation
+    )
     if raw_wc > LIMITS["absolute_max_words"] and "over_absolute_max" not in issues:
         issues = list(issues) + ["over_absolute_max"]
 
-    if issues and generate_fn is not None:
+    if _hard_issues(issues) and generate_fn is not None:
         repaired, c_warn = _compress_structured(
             structured, bundle, issues=issues, generate_fn=generate_fn
         )
@@ -1485,15 +1805,17 @@ def generate_sermon_outline(
         compressed = True
         if repaired is not None:
             structured = repaired
-            issues = validate_structured_outline(structured)
+            issues = validate_structured_outline(
+                structured, passage_text=passage_for_validation
+            )
         logger.info(
             "outline_after_compress schema=%s issues=%s words=%s",
             SCHEMA_VERSION,
             issues,
             word_count(render_structured_outline(structured)),
         )
-        # After compress, remaining issues are final — trim must not salvage.
-        if issues:
+        # After compress, remaining HARD issues are final — trim must not salvage.
+        if _hard_issues(issues):
             rendered_wc = word_count(render_structured_outline(structured))
             logger.info(
                 "outline_reject_after_compress schema=%s issues=%s words=%s",
@@ -1514,12 +1836,21 @@ def generate_sermon_outline(
             )
 
     structured = _programmatic_trim(structured)
-    issues = validate_structured_outline(structured)
+    issues = validate_structured_outline(
+        structured, passage_text=passage_for_validation
+    )
 
     rendered_wc = word_count(render_structured_outline(structured))
 
-    # Hard reject: ANY remaining issue after AI path → do not overwrite
-    if generate_fn is not None and issues:
+    # Soft quality flags (e.g. too_thin) → warning, not silent overwrite of primary view
+    for soft in issues:
+        if soft in soft_quality_issues:
+            tip = f"Vázlat minőség: {soft}"
+            if tip not in warnings:
+                warnings.append(tip)
+
+    # Hard reject: remaining HARD issues after AI path → do not overwrite
+    if generate_fn is not None and _hard_issues(issues):
         logger.info(
             "outline_reject schema=%s issues=%s rendered_words=%s raw_words=%s",
             SCHEMA_VERSION,
@@ -1542,7 +1873,9 @@ def generate_sermon_outline(
     # Offline heuristic: only hard-block catastrophic failures
     if generate_fn is None and issues:
         structured = _programmatic_trim(structured)
-        issues = validate_structured_outline(structured)
+        issues = validate_structured_outline(
+            structured, passage_text=passage_for_validation
+        )
         fatal = [
             i
             for i in issues
@@ -1567,7 +1900,7 @@ def generate_sermon_outline(
                 validation_issues=issues,
                 source=source_tag,
             )
-        # Non-fatal offline leftovers → warnings only (deterministic seed)
+        # Non-fatal offline leftovers (incl. too_thin) → warnings only
         for issue in issues:
             tip = f"Vázlat finomítható: {issue}"
             if tip not in warnings:
@@ -1627,15 +1960,18 @@ __all__ = [
     "INVALID_OUTLINE_MESSAGE",
     "LIMITS",
     "OUTLINE_MAX_OUTPUT_TOKENS",
+    "OUTLINE_RESPONSE_SCHEMA",
     "OUTLINE_SYSTEM_PROMPT",
     "REFRESH_NOTICE",
     "SCHEMA_VERSION",
     "OutlineGenerationResult",
     "compute_context_hash",
+    "extract_verse_numbers",
     "generate_sermon_outline",
     "normalize_structured_outline",
     "outline_needs_refresh",
     "render_structured_outline",
+    "scope_note_uses_unloaded_verse",
     "sermon_outline_to_structured",
     "structured_to_sermon_outline",
     "validate_structured_outline",

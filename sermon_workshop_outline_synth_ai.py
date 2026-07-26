@@ -150,31 +150,30 @@ def outline_length_profile(
 
     occ = resolve_outline_occasion(occasion=occasion)
     occ_cf = occ.casefold()
+    target = f"{LIMITS['target_min_words']}–{LIMITS['target_max_words']}"
     if "virraszt" in occ_cf:
-        target = "160–240"
         min_movements = 2
         max_movements = 3
     elif "temet" in occ_cf:
-        target = "160–240"
         min_movements = 2
         max_movements = 3
     else:
-        target = "160–240"
         min_movements = 2
         max_movements = 4
-    soft_min = LIMITS["target_min_words"] - (40 if partial else 0)
+    soft_min = LIMITS["soft_floor_words"] - (20 if partial else 0)
     soft_max = LIMITS["absolute_max_words"]
     guidance = (
-        f"GONDOLATVÁZLAT (~{target} szó irányadó; abszolút max "
+        f"SZÓSZÉKI MUNKAVÁZLAT (~{target} szó irányadó; puha alsó határ "
+        f"~{LIMITS['soft_floor_words']}; abszolút max "
         f"{LIMITS['absolute_max_words']} szó; séma {SCHEMA_VERSION}). "
-        f"Pontok: 2–4; alpontok 2–3 (≤{LIMITS['subpoint_max_words']} szó). "
+        f"Pontok: 2–4; alpontok 2–3 (kb. 20–{LIMITS['subpoint_max_words']} szó). "
         "Ne írj prédikációt; nincs thesis/body/content mező."
     )
     if partial:
-        guidance += " Részleges anyag: teljes szerkezet, rövidebb OK."
+        guidance += " Részleges anyag: teljes szerkezet, kissé rövidebb OK."
     return {
         "occasion": occ or "Vasárnapi istentisztelet",
-        "soft_min": max(120, soft_min),
+        "soft_min": max(240, soft_min),
         "soft_max": soft_max,
         "target_range": target,
         "min_movements": min_movements,

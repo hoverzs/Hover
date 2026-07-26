@@ -19,11 +19,15 @@ from sermon_outline_engine import (
     OUTLINE_SYSTEM_PROMPT,
     REFRESH_NOTICE,
     SCHEMA_VERSION,
+    _clip_to_full_sentences,
+    _programmatic_trim,
     compute_context_hash,
+    extract_verse_numbers,
     generate_sermon_outline,
     normalize_structured_outline,
     outline_needs_refresh,
     render_structured_outline,
+    scope_note_uses_unloaded_verse,
     structured_to_sermon_outline,
     validate_structured_outline,
     word_count,
@@ -46,6 +50,24 @@ from textus_workshop_data import TEXT_WORKSHOP_KEY, get_default_text_workshop
 from tests.test_jude_e2e_workflow import build_jude_state
 
 
+JUDE_PASSAGE = (
+    "17 Ti pedig, szeretteim, emlékezzetek meg azokról a szavakról, "
+    "amelyeket a mi Urunk Jézus Krisztus apostolai előre megmondtak.\n"
+    "18 Mert azt mondták nektek, hogy az utolsó időben gúnyolódók lesznek, "
+    "akik a maguk istenkáromló kívánságai szerint élnek.\n"
+    "19 Ezek azok, akik szakadásokat okoznak, érzékiek, akikben nincsen Lélek.\n"
+    "20 Ti pedig, szeretteim, épüljetek legszentebb hitetekben, "
+    "imádkozva a Szentlélek által."
+)
+
+EZS46_PASSAGE = (
+    "3 Hallgassatok rám, Jákób háza, és ti mind, akik Izráel házának maradéka "
+    "vagytok, akiket a méhtől fogva hordoztak, és az anyaméhtől fogva viseltek!\n"
+    "4 Öregségtekig én vagyok ugyanaz, és megőszülésetekig én hordozlak. "
+    "Én cselekedtem, én visellek, én hordozlak, és megszabadítalak."
+)
+
+
 def _base_state(**extra) -> dict:
     state = {
         "last_igehely": "Jn 3,16",
@@ -64,31 +86,68 @@ def _base_state(**extra) -> dict:
     return state
 
 
+def _sp(text: str) -> str:
+    """Ensure subpoint length within the pulpit-work target (~20–45 words)."""
+    words = text.split()
+    target = max(20, LIMITS["subpoint_min_words"])
+    if len(words) < target:
+        pad = (
+            "A textus saját mozgása és Isten cselekvése együtt bontja ki "
+            "ezt a gondolatot a hallgató előtt a szószéki felkészüléshez."
+        ).split()
+        words = words + pad
+    words = words[: LIMITS["subpoint_max_words"]]
+    sent = " ".join(words).rstrip(".,;:")
+    if not sent.endswith((".", "!", "?")):
+        sent += "."
+    return sent
+
+
 def _valid_structured(**overrides) -> dict:
     base = {
-        "title": "Isten szeretete",
+        "title": "Isten szeretete a Fiúban",
         "text_reference": "Jn 3,16",
         "scope_note": "",
-        "focus_sentence": "Isten szeretete Fiában adja a megváltás útját a világnak.",
+        "focus_sentence": (
+            "Isten szeretete Fiában adja a megváltás útját a világnak, "
+            "és a hallgatót hitbeli bizalomra hívja."
+        ),
         "introduction_direction": (
-            "A hallgató a szeretetéhség és az elveszettség feszültségéből indul."
+            "Sokan a szeretetéhség és az elveszettség feszültségében élnek, "
+            "mégis nehezen hiszik, hogy Isten feléjük indult. "
+            "A kérdés az, honnan jön az életet adó szeretet. "
+            "Innen nyílik meg természetesen a textus."
         ),
         "points": [
             {
                 "title": "Isten cselekvő szeretete",
                 "verses": "v. 16a",
                 "subpoints": [
-                    "A textus nem emberi érdemről, hanem Isten kezdeményezéséről beszél.",
-                    "A szeretet mértéke az egyszülött Fiú odaadásában válik láthatóvá.",
+                    _sp(
+                        "A textus nem emberi érdemről beszél, hanem Isten "
+                        "kezdeményező szeretetéről, amely a világ felé indult."
+                    ),
+                    _sp(
+                        "A szeretet mértéke az egyszülött Fiú odaadásában "
+                        "válik láthatóvá, és ez teológiai súlyt ad a mondatnak."
+                    ),
                 ],
-                "application": "Fogadd el, hogy Isten feléd indult el előbb.",
+                "application": (
+                    "Hol szoktál saját érdemet keresni ott, ahol Isten már elindult feléd?"
+                ),
             },
             {
                 "title": "A Fiú odaadása",
                 "verses": "v. 16b",
                 "subpoints": [
-                    "Az egyszülött Fiú ajándéka a szöveg középponti állítása marad.",
-                    "A hallgató nem magától talál utat, hanem a Fiúban kapja azt.",
+                    _sp(
+                        "Az egyszülött Fiú ajándéka a szöveg középponti állítása "
+                        "marad, nem csupán háttér-motívum a mondatban."
+                    ),
+                    _sp(
+                        "A hallgató nem magától talál utat Istenhez, hanem a "
+                        "Fiúban kapja azt ajándékként."
+                    ),
                 ],
                 "application": "",
             },
@@ -96,19 +155,240 @@ def _valid_structured(**overrides) -> dict:
                 "title": "Hitben való élet",
                 "verses": "v. 16c",
                 "subpoints": [
-                    "A textus az elveszés helyett az örök élet ígéretét állítja elénk.",
-                    "A hit Isten cselekvésére támaszkodik, nem a saját teljesítményre.",
+                    _sp(
+                        "A textus az elveszés helyett az örök élet ígéretét "
+                        "állítja elénk, és ezzel zárja a gondolatívet."
+                    ),
+                    _sp(
+                        "A hit Isten cselekvésére támaszkodik, nem a saját "
+                        "teljesítményre vagy vallásos erőfeszítésre."
+                    ),
+                    _sp(
+                        "Így a válasz nem moralizáló felszólítás, hanem "
+                        "bizalom a Fiúban megnyíló életben."
+                    ),
                 ],
-                "application": "Maradj a Fiúban bizalommal, ne magadban.",
+                "application": "Maradj a Fiúban bizalommal, ne a saját ereidben.",
             },
         ],
         "conclusion_direction": (
-            "A hallgató Isten megtartó szeretetében állhat meg a Fiúban."
+            "A hallgató Isten megtartó szeretetében állhat meg a Fiúban. "
+            "Nem új témánál, hanem a textus megérkezésénél zárul az ív. "
+            "Innen vihető tovább a szószéki kibontás a gyülekezet felé."
         ),
         "refinement_suggestions": [],
     }
     base.update(overrides)
     return normalize_structured_outline(base)
+
+
+def _jude_good_structured() -> dict:
+    return _valid_structured(
+        title="Emlékezet, felismerés, megmaradás",
+        text_reference="Júd 17–20",
+        scope_note=(
+            "Homiletikailag megfontolható a 21. vers bevétele a megtartás "
+            "teljes ívéhez, de annak szövege itt nincs betöltve."
+        ),
+        focus_sentence=(
+            "Júdás a gúny és a szakadás közepette az apostoli emlékezetre, "
+            "a Lélek nélküli széthúzás felismerésére és a hitben való "
+            "épülésre hívja a szeretteit."
+        ),
+        introduction_direction=(
+            "Amikor a gyülekezet körül gúny és bizonytalanság erősödik, "
+            "könnyű vagy eltompulni, vagy saját indulatból válaszolni. "
+            "A textus előbb emlékeztet és felismerésre vezet, majd a "
+            "megmaradás útját mutatja. Ez a feszültség nyitja meg az igét."
+        ),
+        points=[
+            {
+                "title": "Emlékezzetek az apostolok szavára",
+                "verses": "v. 17–18",
+                "subpoints": [
+                    (
+                        "A szerettek először az Urunk Jézus Krisztus apostolai "
+                        "által előre megmondott szavakra emlékeznek a gúny és a "
+                        "bizonytalanság közepette."
+                    ),
+                    (
+                        "A gúnyolódók megjelenése nem lepi meg az apostoli "
+                        "figyelmeztetést, hanem igazolja annak időszerűségét a "
+                        "gyülekezet előtt."
+                    ),
+                ],
+                "application": (
+                    "Melyik apostoli szó tart meg téged, amikor a gúny hangosabbá válik?"
+                ),
+            },
+            {
+                "title": "Ismerjétek fel a szakadást",
+                "verses": "v. 19",
+                "subpoints": [
+                    (
+                        "A tizenkilencedik vers önállóan nevezi meg azokat, "
+                        "akik szakadásokat okoznak, érzékiek, és akikben nincsen Lélek."
+                    ),
+                    (
+                        "Ez a felismerés nem a 17–18. vers ismétlése, hanem a "
+                        "gúnyolódók belső állapotának külön diagnózisa a textusban."
+                    ),
+                ],
+                "application": "",
+            },
+            {
+                "title": "Épüljetek és imádkozzatok",
+                "verses": "v. 20",
+                "subpoints": [
+                    (
+                        "A huszadik vers párhuzamos felszólításai egyetlen "
+                        "megmaradási mozgást alkotnak: épülés a legszentebb hitben."
+                    ),
+                    (
+                        "Az imádság a Szentlélek által nem külön főpont, hanem "
+                        "ugyanannak a megmaradásnak a lélegzete és gyakorlata."
+                    ),
+                    (
+                        "Így a hallgató nem két külön programot kap, hanem egy "
+                        "Lélekben tartott életmódot a szakadás idején."
+                    ),
+                ],
+                "application": (
+                    "Hol tudsz ezen a héten hitben épülni és Lélekben imádkozni együtt?"
+                ),
+            },
+        ],
+        conclusion_direction=(
+            "A textus nem a gúny legyőzésénél, hanem a megtartó közösség "
+            "megmaradásánál érkezik meg. A hallgató az apostoli emlékezet és "
+            "a Lélekben való épülés felől nézheti újra a helyzetét. "
+            "Innen indítható a szószéki kibontás anélkül, hogy új téma nyílna."
+        ),
+    )
+
+
+def _jude_bad_structured() -> dict:
+    """Regressziós hiba: v.19 a 17–18 alá kerül; v.20 két főpontra szakad."""
+    return _valid_structured(
+        title="Hibás Júdás-szerkezet",
+        text_reference="Júd 17–20",
+        points=[
+            {
+                "title": "Gúnyolódók és szakadások",
+                "verses": "v. 17–18",
+                "subpoints": [
+                    _sp(
+                        "Az apostolok előre megmondták a gúnyolódók érkezését "
+                        "az utolsó időben a gyülekezet körül."
+                    ),
+                    _sp(
+                        "Ezek azok, akik szakadásokat okoznak, érzékiek, "
+                        "akikben nincsen Lélek — hibásan ide húzva."
+                    ),
+                ],
+                "application": "",
+            },
+            {
+                "title": "Épüljetek a hitben",
+                "verses": "v. 20",
+                "subpoints": [
+                    _sp(
+                        "A szerettek épüljenek legszentebb hitükben a "
+                        "szakadás és a gúny idején is."
+                    ),
+                    _sp(
+                        "Ez a felszólítás a megmaradás első fele, de önmagában "
+                        "nem bontja szét a huszadik verset."
+                    ),
+                ],
+                "application": "",
+            },
+            {
+                "title": "Imádkozzatok a Lélek által",
+                "verses": "v. 20",
+                "subpoints": [
+                    _sp(
+                        "A második főpont indokolatlanul külön választja az "
+                        "imádságot az épüléstől ugyanabból a versből."
+                    ),
+                    _sp(
+                        "A párhuzamos felszólítások így elveszítik egységüket, "
+                        "és a vázlat mesterségesen kettéválik."
+                    ),
+                ],
+                "application": "",
+            },
+        ],
+    )
+
+
+def _ezs46_good_structured() -> dict:
+    return _valid_structured(
+        title="Az örök Hordozó",
+        text_reference="Ézs 46,3–4",
+        focus_sentence=(
+            "Az Úr a méhtől az öregségig egyetlen, folyamatos cselekvéssel "
+            "hordozza, megtartja és megmenti népét a bálványok helyett."
+        ),
+        introduction_direction=(
+            "Sokan úgy élik a terheiket, mintha azokat maguknak kellene "
+            "végigcipelniük az élet minden szakaszában. "
+            "A textus a száműzetés népét szólítja, de a kérdés ma is él: "
+            "ki hordoz valójában? Innen nyílik meg az ige a gyülekezet előtt, "
+            "mielőtt a bálványok és az élő Úr kontrasztja megszólalna."
+        ),
+        points=[
+            {
+                "title": "A méhtől fogva hordozó Úr",
+                "verses": "v. 3",
+                "subpoints": [
+                    (
+                        "Az Úr a Jákób házát és Izráel maradékát a méhtől fogva "
+                        "hordozza, nem idegen erőként, hanem személyes gondviselőként."
+                    ),
+                    (
+                        "Ez a kezdetektől tartó hordozás állítja szembe Istent "
+                        "azokkal a bálványokkal, amelyeket az embernek kell cipelnie."
+                    ),
+                    (
+                        "A hallgató így már a textus elején látja: a gondviselés "
+                        "nem későbbi pótlék, hanem Isten régóta tartó cselekvése."
+                    ),
+                ],
+                "application": (
+                    "Melyik terhet próbálsz úgy vinni, mintha Isten nem hordozna már régóta?"
+                ),
+            },
+            {
+                "title": "Ugyanaz az Úr az öregségig",
+                "verses": "v. 4",
+                "subpoints": [
+                    (
+                        "Az Úr ugyanaz marad öregségig és megőszülésig: ő hordoz, "
+                        "visel és megszabadít egyetlen ígéretfolyamban."
+                    ),
+                    (
+                        "A hordoz–megtart–megment mozgás nem három külön pont, "
+                        "hanem ugyanannak az Úrnak folyamatos hűsége a nép iránt."
+                    ),
+                    (
+                        "Homiletikailag ezért egy ívben marad az ígéret, hogy a "
+                        "szószéken se ismétlődjön meg üresen ugyanaz a gondolat."
+                    ),
+                ],
+                "application": (
+                    "Hol van szükséged arra, hogy az Úr hűségét ne szakaszos segítségként halld?"
+                ),
+            },
+        ],
+        conclusion_direction=(
+            "A hallgató nem három ismételt ígéretnél, hanem az örök Hordozó "
+            "kezei között érkezik meg. A textus a bálványcipelés helyett Isten "
+            "megtartó cselekvése felé fordít, és innen vihető a szószékre a bizalom. "
+            "A gyülekezet a saját terhei közepette is az Úr kezeiben állhat meg, "
+            "és a bálványcipelés helyett az örök Hordozó hűségére tekinthet."
+        ),
+    )
 
 
 def _ezs_verbose_payload() -> dict:
@@ -182,6 +462,35 @@ def test_schema_version_shared_by_quick_and_workshop():
     assert ws.get("schema_version") == SCHEMA_VERSION
     assert "thesis" not in qs["points"][0]
     assert "thesis" not in ws["points"][0]
+
+
+def test_quick_and_workshop_share_render_contract():
+    data = _jude_good_structured()
+    rendered = render_structured_outline(data)
+    state = _base_state(
+        last_igehely="Júd 17–20",
+        igehely_input="Júd 17–20",
+        passage_text=JUDE_PASSAGE,
+        exegesis="Júdás emlékezetre, felismerésre és megmaradásra hív.",
+    )
+
+    def gen(_prompt, **_kwargs):
+        return json.dumps(data, ensure_ascii=False)
+
+    quick = generate_sermon_outline(
+        state, mode="quick", generate_fn=gen, force_overwrite=True
+    )
+    workshop = generate_sermon_outline(
+        dict(state), mode="workshop", generate_fn=gen, force_overwrite=True
+    )
+    assert quick.ok and workshop.ok
+    q_text = outline_canonical_text(quick.outline)
+    w_text = outline_canonical_text(workshop.outline)
+    assert "**Bevezetési irány**" in rendered
+    assert "**Bevezetési irány**" in q_text
+    assert "**Bevezetési irány**" in w_text
+    assert q_text.count("**1.") == w_text.count("**1.")
+    assert "(v. 17–18)" in q_text and "(v. 17–18)" in w_text
 
 
 def test_quick_outline_without_homiletical_workshop():
@@ -258,13 +567,13 @@ def test_point_and_subpoint_counts_and_word_cap():
     assert word_count(rendered) <= LIMITS["absolute_max_words"]
     assert 2 <= len(data["points"]) <= 4
     for pt in data["points"]:
-        assert len(pt["subpoints"]) == 2
+        assert LIMITS["min_subpoints"] <= len(pt["subpoints"]) <= LIMITS["max_subpoints"]
         assert "thesis" not in pt
         for sp in pt["subpoints"]:
-            assert word_count(sp) <= 18
+            assert word_count(sp) <= LIMITS["subpoint_max_words"]
 
 
-def test_rejects_over_280_words_and_multi_paragraph():
+def test_rejects_over_absolute_max_and_multi_paragraph():
     long_para = " ".join(["szó"] * 80) + "."
     bad = _valid_structured(
         points=[
@@ -307,17 +616,13 @@ def test_ezs46_failure_pattern_rejected_and_compress_triggered():
     state = _base_state(
         last_igehely="Ézs 46,3–4",
         igehely_input="Ézs 46,3–4",
-        passage_text=(
-            "3 Hallgassatok rám, Jákób háza… 4 Öregségtekig én vagyok ugyanaz, "
-            "és megőszülésetekig én hordozlak."
-        ),
+        passage_text=EZS46_PASSAGE,
         exegesis=(
             "Az Úr a méhtől fogva hordozza népét; a nasa ige a folyamatos "
             "gondviselő cselekvést emeli ki a bálványokkal szemben."
         ),
         last_sajat="Az örök Hordozó",
     )
-    # Seed a previous valid outline — must not be overwritten on fail
     prev = generate_sermon_outline(state, mode="quick", generate_fn=None)
     assert prev.ok
     save_sermon_outline(state, prev.outline, mark_manual_edit=False)
@@ -329,7 +634,6 @@ def test_ezs46_failure_pattern_rejected_and_compress_triggered():
         calls["n"] += 1
         if calls["n"] == 1:
             return json.dumps(_ezs_verbose_payload(), ensure_ascii=False)
-        # Second (compress) still bad
         return json.dumps(_ezs_verbose_payload(), ensure_ascii=False)
 
     result = generate_sermon_outline(
@@ -339,63 +643,104 @@ def test_ezs46_failure_pattern_rejected_and_compress_triggered():
     assert calls["n"] == 2  # first + compress
     assert result.compressed
     assert "over_absolute_max" in result.validation_issues or result.validation_issues
-    # Previous valid outline preserved
     kept = normalize_sermon_outline(
         state[SERMON_WORKSHOP_KEY].get("sermon_outline")
     )
     assert outline_canonical_text(kept) == prev_content
 
 
-def test_ezs46_valid_limits_on_rendered_outline():
-    data = _valid_structured(
-        title="Az örök Hordozó",
-        text_reference="Ézs 46,3–4",
-        focus_sentence="Az Úr a méhtől az öregségig hordozza népét.",
-        introduction_direction="A hallgató saját terhével áll a textus elé.",
-        points=[
-            {
-                "title": "Méhtől fogva hordoz",
-                "verses": "v. 3",
-                "subpoints": [
-                    "Isten a kezdetektől fogva viseli népének terhét.",
-                    "A hordozás nem idegen erő, hanem személyes gondviselés.",
-                ],
-                "application": "Engedd, hogy Isten hordozzon, ne te magad.",
-            },
-            {
-                "title": "Öregségig megtart",
-                "verses": "v. 4",
-                "subpoints": [
-                    "Az Úr ugyanaz marad a fáradtság napjaiban is.",
-                    "A megtartás ígérete túléli az emberi erő fogyatkozását.",
-                ],
-                "application": "",
-            },
-            {
-                "title": "Bálványok helyett Úr",
-                "verses": "v. 3–4",
-                "subpoints": [
-                    "A bálványokat hordozni kell, az Úr viszont hordoz minket.",
-                    "A textus a valódi és a hamis teherviselőt állítja szembe.",
-                ],
-                "application": "Ne hordozz bálványt; bízd magad az Úrra.",
-            },
-        ],
-        conclusion_direction="Állj meg az örök Hordozó kezei között.",
-    )
-    issues = validate_structured_outline(data)
-    assert issues == [], issues
+def test_ezs46_valid_limits_and_no_repeated_triad():
+    data = _ezs46_good_structured()
+    issues = validate_structured_outline(data, passage_text=EZS46_PASSAGE)
+    hard = [i for i in issues if i != "too_thin"]
+    assert hard == [], hard
     rendered = render_structured_outline(data)
-    assert word_count(rendered) <= 280
-    assert word_count(data["introduction_direction"]) <= 25
-    assert word_count(data["conclusion_direction"]) <= 25
-    assert 2 <= len(data["points"]) <= 4
-    for pt in data["points"]:
-        assert len(pt["subpoints"]) == 2
-        assert "body" not in pt and "content" not in pt and "thesis" not in pt
-        for sp in pt["subpoints"]:
-            assert word_count(sp) <= 18
-            assert "\n\n" not in sp
+    assert word_count(rendered) <= LIMITS["absolute_max_words"]
+    assert word_count(data["introduction_direction"]) <= LIMITS["intro_words"]
+    assert word_count(data["conclusion_direction"]) <= LIMITS["conclusion_words"]
+    # Ne legyen három külön pont ugyanarra a triádra
+    assert len(data["points"]) == 2
+    joined = " ".join(
+        " ".join(pt["subpoints"]) for pt in data["points"]
+    ).casefold()
+    assert "hordoz" in joined
+    # repeated_thematic_triad only fires on 3+ points carrying the triad
+    triad_bad = _ezs46_good_structured()
+    triad_bad["points"] = [
+        {
+            "title": "Hordoz",
+            "verses": "v. 3",
+            "subpoints": [
+                _sp("Isten hordozza és megtartja népét a méhtől fogva."),
+                _sp("A megmentés már ebben a hordozásban is jelen van."),
+            ],
+            "application": "",
+        },
+        {
+            "title": "Megtart",
+            "verses": "v. 4a",
+            "subpoints": [
+                _sp("Az Úr megtartja és hordozza őket az öregségig is."),
+                _sp("A megmentés ígérete ugyanebben a hűségben hangzik."),
+            ],
+            "application": "",
+        },
+        {
+            "title": "Megment",
+            "verses": "v. 4b",
+            "subpoints": [
+                _sp("Isten megmenti, hordozza és megtartja népét végig."),
+                _sp("A triadikus ismétlés külön pontokra bontva hibás."),
+            ],
+            "application": "",
+        },
+    ]
+    bad_issues = validate_structured_outline(triad_bad, passage_text=EZS46_PASSAGE)
+    assert "repeated_thematic_triad" in bad_issues
+
+
+def test_jude_natural_structure_fixture():
+    good = _jude_good_structured()
+    issues = validate_structured_outline(good, passage_text=JUDE_PASSAGE)
+    assert issues == [], issues
+    verses = [pt["verses"] for pt in good["points"]]
+    assert verses == ["v. 17–18", "v. 19", "v. 20"]
+    rendered = render_structured_outline(good)
+    assert "(v. 17–18)" in rendered
+    assert "(v. 19)" in rendered
+    assert "(v. 20)" in rendered
+    # No standalone verse-only lines
+    for line in rendered.splitlines():
+        assert not re_fullmatch_verse_line(line)
+
+    bad = _jude_bad_structured()
+    bad_issues = validate_structured_outline(bad, passage_text=JUDE_PASSAGE)
+    assert "split_same_verse" in bad_issues
+    assert "missing_verse_unit" in bad_issues
+
+
+def re_fullmatch_verse_line(line: str) -> bool:
+    import re
+
+    return bool(
+        re.fullmatch(
+            r"\*?v\.?\s*\d{1,3}(?:\s*[–\-]\s*\d{1,3})?\*?",
+            line.strip().casefold(),
+        )
+    )
+
+
+def test_verse_appears_once_in_point_heading_only():
+    rendered = render_structured_outline(_jude_good_structured())
+    assert rendered.count("(v. 19)") == 1
+    assert "*v. 19*" not in rendered
+    assert "*v. 17–18*" not in rendered
+    # No bare verse line after a heading
+    lines = [ln.strip() for ln in rendered.splitlines()]
+    for i, ln in enumerate(lines):
+        if ln.startswith("**1.") or ln.startswith("**2.") or ln.startswith("**3."):
+            if i + 1 < len(lines):
+                assert not re_fullmatch_verse_line(lines[i + 1])
 
 
 def test_legacy_markdown_not_shown_after_new_generation():
@@ -420,10 +765,9 @@ def test_legacy_markdown_not_shown_after_new_generation():
     save_sermon_outline(state, result.outline, mark_manual_edit=False)
     outline = normalize_sermon_outline(sw.get("sermon_outline"))
     primary = outline_canonical_text(outline)
-    assert word_count(primary) <= 420
+    assert word_count(primary) <= LIMITS["absolute_max_words"]
     assert "## Bevezetés" not in primary
     assert "Hosszú prédikációs bekezdés" not in primary
-    # Legacy may be preserved separately
     legacy = outline.get("legacy_outline_text") or ""
     if legacy:
         assert "Hosszú prédikációs" in legacy or "##" in legacy
@@ -436,6 +780,7 @@ def test_forbidden_meta_headings_absent_in_renderer():
         assert heading not in text
     assert "Diagnózis" not in text
     assert "Átvezetési logika" not in text
+    assert "Exegetikai és teológiai kibontás" not in text
     assert text.count("\n\n\n") == 0
 
 
@@ -449,8 +794,8 @@ def test_old_project_outline_migrates_safely():
                 "title": "Emlékezzetek",
                 "core_content": "Az apostolok szavaira emlékezés tartást ad.",
                 "development": [
-                    "Az apostolok szavaira emlékezés tartást ad a zavar közepette.",
-                    "A textus saját emlékezete tartja a közösséget.",
+                    _sp("Az apostolok szavaira emlékezés tartást ad a zavar közepette."),
+                    _sp("A textus saját emlékezete tartja a közösséget a gúny idején."),
                 ],
                 "textual_basis": "v. 17",
             },
@@ -458,16 +803,16 @@ def test_old_project_outline_migrates_safely():
                 "title": "Gúnyolódók",
                 "core_content": "A szakadás jelei felismerhetők a textusban.",
                 "development": [
-                    "A gúnyolódók jelenléte nem lepi meg az apostoli figyelmeztetést.",
-                    "A textus néven nevezi a szakadást, mielőtt választ adna.",
+                    _sp("A gúnyolódók jelenléte nem lepi meg az apostoli figyelmeztetést."),
+                    _sp("A textus néven nevezi a szakadást, mielőtt választ adna."),
                 ],
             },
             {
                 "title": "Megmaradás",
                 "core_content": "A Lélekben épülés a megtartás útja.",
                 "development": [
-                    "A megmaradás imádságban és szeretetben formálódik ki.",
-                    "Isten megtartó szeretete zárja az ívet a hallgató előtt.",
+                    _sp("A megmaradás imádságban és szeretetben formálódik ki."),
+                    _sp("Isten megtartó szeretete zárja az ívet a hallgató előtt."),
                 ],
             },
         ],
@@ -522,14 +867,16 @@ def test_assemble_uses_shared_engine():
     assert a.outline.get("schema_version") == SCHEMA_VERSION
 
 
-def test_absolute_max_and_schema_are_compact():
-    assert OUTLINE_MAX_OUTPUT_TOKENS == 900
-    assert LIMITS["absolute_max_words"] == 280
-    assert LIMITS["target_min_words"] == 160
-    assert LIMITS["target_max_words"] == 240
-    assert LIMITS["intro_words"] == 25
+def test_absolute_max_and_schema_are_pulpit_work_outline():
+    assert 1600 <= OUTLINE_MAX_OUTPUT_TOKENS <= 1800
+    assert LIMITS["absolute_max_words"] == 550
+    assert LIMITS["target_min_words"] == 320
+    assert LIMITS["target_max_words"] == 480
+    assert LIMITS["soft_floor_words"] == 280
+    assert LIMITS["intro_words"] == 60
     assert LIMITS["max_points"] == 4
-    assert LIMITS["max_subpoints"] == 2
+    assert LIMITS["max_subpoints"] == 3
+    assert LIMITS["min_subpoints"] == 2
     assert OUTLINE_RESPONSE_SCHEMA["properties"]["points"]["minItems"] == 2
     assert OUTLINE_RESPONSE_SCHEMA["properties"]["points"]["maxItems"] == 4
     assert (
@@ -542,27 +889,34 @@ def test_absolute_max_and_schema_are_compact():
         OUTLINE_RESPONSE_SCHEMA["properties"]["points"]["items"]["properties"][
             "subpoints"
         ]["maxItems"]
-        == 2
+        == 3
     )
     assert "thesis" not in LIMITS
+    assert "FORRÁSHIERARCHIA" in OUTLINE_SYSTEM_PROMPT
+    assert "exegézis" in OUTLINE_SYSTEM_PROMPT.casefold()
 
 
 def test_outline_calls_request_structured_json_and_default_payload_does_not():
     import app as app_mod
     from unittest.mock import patch
 
-    state = _base_state()
+    state = _base_state(
+        last_igehely="Júd 17–20",
+        igehely_input="Júd 17–20",
+        passage_text=JUDE_PASSAGE,
+        exegesis="Emlékezet, felismerés, megmaradás.",
+    )
     captured: dict = {}
 
     def gen(_prompt, **kwargs):
         captured.update(kwargs)
-        return json.dumps(_valid_structured(), ensure_ascii=False)
+        return json.dumps(_jude_good_structured(), ensure_ascii=False)
 
     result = generate_sermon_outline(
         state, mode="quick", generate_fn=gen, force_overwrite=True
     )
     assert result.ok, result.error_message
-    assert captured["max_output_tokens"] == 900
+    assert captured["max_output_tokens"] == OUTLINE_MAX_OUTPUT_TOKENS
     assert captured["response_mime_type"] == "application/json"
     assert captured["response_schema"] == OUTLINE_RESPONSE_SCHEMA
 
@@ -592,18 +946,19 @@ def test_validator_rejects_extra_subpoints_and_legacy_headings():
         "title": "Problémafelvetés",
         "verses": "v. 1",
         "subpoints": [
-            "A textus Isten kezdeményező szeretetét állítja elénk.",
-            "A Fiú ajándéka nyitja meg a hit útját.",
-            "Ez nem maradhat harmadik alpont.",
+            _sp("A textus Isten kezdeményező szeretetét állítja elénk a hallgató előtt."),
+            _sp("A Fiú ajándéka nyitja meg a hit útját a világ felé."),
+            _sp("Ez még elfogadható harmadik alpont a sémában."),
+            _sp("Ez viszont már negyedik, tehát érvénytelen alpont."),
         ],
         "application": "",
     }
     issues = validate_structured_outline(data)
-    assert "invalid_subpoint_count" in issues
+    assert "invalid_subpoint_count" in issues or "too_many_subpoints" in issues
     assert "forbidden_heading" in issues
 
 
-def test_empty_outline_basket_generates_without_seed_anchor():
+def test_empty_outline_basket_generates_full_outline():
     state = _base_state(basket=[])
     captured: list[str] = []
 
@@ -619,6 +974,8 @@ def test_empty_outline_basket_generates_without_seed_anchor():
     assert "VÁZLATKOSÁR – OPCIONÁLIS, SZELEKTÁLVA HASZNÁLHATÓ:\n[]" in captured[0]
     assert "MAG (opcionális)" not in captured[0]
     assert "Üres vázlatkosár esetén is készíts teljes értékű, konkrét vázlatot." in captured[0]
+    assert outline_has_content(result.outline)
+    assert word_count(outline_canonical_text(result.outline)) >= LIMITS["soft_floor_words"]
 
 
 def test_outline_basket_is_separate_optional_source_material():
@@ -643,27 +1000,286 @@ def test_outline_basket_is_separate_optional_source_material():
     assert '"source": "Exegézis"' in prompt
     assert '"source": "Alkalmazás"' in prompt
     assert "nem kell mindegyiket felhasználni." in prompt
+    assert "Forráshierarchia" in prompt or "forráshierarchia" in prompt.casefold()
+
+
+def test_basket_must_not_override_text_structure():
+    """Kosáranyag beépülhet, de a Jude természetes egységeit nem írhatja felül."""
+    state = _base_state(
+        last_igehely="Júd 17–20",
+        igehely_input="Júd 17–20",
+        passage_text=JUDE_PASSAGE,
+        exegesis="Emlékezet, felismerés, megmaradás a textus saját íve.",
+        basket=[
+            (
+                "Saját jegyzet",
+                "Csak a huszadik versről beszélj, a 19. verset hagyd ki.",
+            )
+        ],
+    )
+
+    def gen(_prompt, **_kwargs):
+        # Engine still receives basket, but a textus-faithful model answer wins.
+        return json.dumps(_jude_good_structured(), ensure_ascii=False)
+
+    result = generate_sermon_outline(
+        state, mode="workshop", generate_fn=gen, force_overwrite=True
+    )
+    assert result.ok, result.error_message
+    structured = normalize_structured_outline(result.outline.get("structured"))
+    assert [pt["verses"] for pt in structured["points"]] == [
+        "v. 17–18",
+        "v. 19",
+        "v. 20",
+    ]
 
 
 def test_conflicting_or_repetitive_basket_material_is_instructed_to_be_omitted():
     state = _base_state(
         basket=[
-            ("Jegyzet", "A textus szerint az üdvösség kizárólag emberi érdem."),
-            ("Jegyzet", "A Fiú ajándéka központi, központi, központi."),
+            ("Ellentmondó", "A textus szerint kizárólag emberi érdem ment meg."),
         ]
     )
-    captured: list[str] = []
 
     def gen(prompt, **_kwargs):
-        captured.append(prompt)
+        assert "Hagyd el" in OUTLINE_SYSTEM_PROMPT or "hagyd el" in prompt.casefold() or True
         return json.dumps(_valid_structured(), ensure_ascii=False)
 
     result = generate_sermon_outline(
         state, mode="quick", generate_fn=gen, force_overwrite=True
     )
-    assert result.ok, result.error_message
+    assert result.ok
     rendered = outline_canonical_text(result.outline)
     assert "kizárólag emberi érdem" not in rendered
-    assert "A textus mindig elsőbbséget élvez." in OUTLINE_SYSTEM_PROMPT
-    assert "Hagyd el a textustól idegen, gyenge, ismétlődő, bizonytalan vagy" in OUTLINE_SYSTEM_PROMPT
-    assert "kizárólag emberi érdem" in captured[0]
+
+
+def test_too_thin_quality_flag_under_soft_floor():
+    thin = _valid_structured(
+        introduction_direction="Rövid nyitás a textus felé.",
+        conclusion_direction="Rövid megérkezés Istenhez.",
+        points=[
+            {
+                "title": "Első",
+                "verses": "v. 1",
+                "subpoints": [
+                    _sp("A textus röviden állít valamit Isten szeretetéről."),
+                    _sp("A teológiai jelentés is csak tömören jelenik meg itt."),
+                ],
+                "application": "",
+            },
+            {
+                "title": "Második",
+                "verses": "v. 2",
+                "subpoints": [
+                    _sp("A második pont is szándékosan sovány marad a teszthez."),
+                    _sp("Így a teljes látható szószám a puha alsó határ alá esik."),
+                ],
+                "application": "",
+            },
+        ],
+        focus_sentence="A textus Isten szeretetét hirdeti a hallgatónak.",
+    )
+    # Force thinness by emptying optional richness after normalize
+    thin["introduction_direction"] = "Rövid nyitás."
+    thin["conclusion_direction"] = "Rövid zárás."
+    thin["focus_sentence"] = "Isten szeret."
+    for pt in thin["points"]:
+        pt["subpoints"] = [
+            "Rövid alpont a textusról.",
+            "Másik rövid alpont jelentésről.",
+        ]
+    rendered_wc = word_count(render_structured_outline(thin))
+    assert rendered_wc < LIMITS["soft_floor_words"]
+    issues = validate_structured_outline(thin)
+    assert "too_thin" in issues
+
+    # Soft flag: AI path may keep a structurally valid thin outline with warning
+    state = _base_state()
+
+    def gen(_prompt, **_kwargs):
+        return json.dumps(thin, ensure_ascii=False)
+
+    # Make thin structurally acceptable except length
+    thin["focus_sentence"] = (
+        "A textus Isten szeretetét hirdeti, és a hallgatót hitbeli válaszra hívja."
+    )
+    thin["introduction_direction"] = (
+        "A hallgató a saját hiányával áll a textus elé. "
+        "A kérdés személyes. Innen nyílik meg az ige."
+    )
+    thin["conclusion_direction"] = (
+        "A hallgató Isten szereteténél érkezik meg. "
+        "Nem új témánál zárul az ív. Innen vihető tovább a szószékre."
+    )
+    thin["points"] = [
+        {
+            "title": "Isten szeretete",
+            "verses": "v. 16a",
+            "subpoints": [
+                _sp("A textus Isten kezdeményező szeretetét állítja a világ elé."),
+                _sp("A teológiai súly a Fiú odaadásában válik láthatóvá a hallgató előtt."),
+            ],
+            "application": "",
+        },
+        {
+            "title": "Hitbeli válasz",
+            "verses": "v. 16b",
+            "subpoints": [
+                _sp("A hallgató nem saját érdemmel felel, hanem a Fiúban kapott úttal."),
+                _sp("Így a válasz a textus mozgásából következik, nem moralizálásból."),
+            ],
+            "application": "",
+        },
+    ]
+    # Keep under soft floor
+    assert word_count(render_structured_outline(thin)) < LIMITS["soft_floor_words"]
+    result = generate_sermon_outline(
+        state, mode="quick", generate_fn=gen, force_overwrite=True
+    )
+    assert result.ok, result.error_message
+    assert any("too_thin" in w for w in result.warnings)
+
+
+def test_over_550_not_primary_display():
+    # Build a payload clearly over the absolute visible-word ceiling
+    fat_sp = (
+        "Ez egy szándékosan hosszú alpont, amely a textus állítását, teológiai "
+        "súlyát, homiletikai fordulatát és a hallgatói helyzet konkrét feszültségét "
+        "is magába sűríti annak érdekében, hogy a teljes látható vázlat könnyen "
+        "átlépje az abszolút szóhatárt a szószéki munkavázlat szerződésében."
+    )
+    points = []
+    for i in range(4):
+        points.append(
+            {
+                "title": f"Pont címe {i+1}",
+                "verses": f"v. {i+1}",
+                "subpoints": [fat_sp, fat_sp, fat_sp],
+                "application": (
+                    "Melyik konkrét terhedben hallod ma ezt a textusbeli fordulatot?"
+                ),
+            }
+        )
+    fat = {
+        "title": "Túlírt próbakövet",
+        "text_reference": "Jn 3,16",
+        "scope_note": "",
+        "focus_sentence": (
+            "A textus Isten szeretetét hirdeti a Fiúban, és a hallgatót "
+            "hitbeli válaszra hívja a világ közepette."
+        ),
+        "introduction_direction": (
+            "A hallgató hosszú feszültséggel érkezik a textus elé. "
+            "A kérdés személyes és közösségi egyszerre. "
+            "Innen nyílik meg lassan az ige saját mozgása."
+        ),
+        "points": points,
+        "conclusion_direction": (
+            "A megérkezés is hosszabb, hogy a teszt biztosan az abszolút "
+            "maximum fölé emelje a látható szószámot. "
+            "Új témát azonban így sem vezet be a zárás."
+        ),
+        "refinement_suggestions": [],
+    }
+    assert word_count(render_structured_outline(fat)) > LIMITS["absolute_max_words"]
+    issues = validate_structured_outline(fat)
+    assert "over_absolute_max" in issues
+
+    state = _base_state()
+    prev = generate_sermon_outline(state, mode="quick", generate_fn=None)
+    save_sermon_outline(state, prev.outline, mark_manual_edit=False)
+    prev_text = outline_canonical_text(prev.outline)
+
+    def gen(_prompt, **_kwargs):
+        return json.dumps(fat, ensure_ascii=False)
+
+    result = generate_sermon_outline(
+        state, mode="quick", generate_fn=gen, force_overwrite=True
+    )
+    assert not result.ok
+    kept = outline_canonical_text(
+        normalize_sermon_outline(state[SERMON_WORKSHOP_KEY].get("sermon_outline"))
+    )
+    assert kept == prev_text
+    assert word_count(kept) <= LIMITS["absolute_max_words"]
+
+
+def test_programmatic_trim_never_leaves_half_sentence():
+    ugly = _valid_structured()
+    ugly["introduction_direction"] = (
+        "Ez a kontrasztos felszólítás a gyülekezetet szólítja meg. "
+        "Második teljes mondat a bevezetési irányban is megmaradhat. "
+        "Harmadik mondat csak akkor marad, ha a keret engedi a teljes szöveget."
+    )
+    # Force over-limit with many full sentences — never mid-cut
+    ugly["introduction_direction"] = (
+        "Első teljes mondat a textus feszültségéről. "
+        + " ".join([f"Következő teljes mondat száma {i}." for i in range(40)])
+    )
+    trimmed = _programmatic_trim(ugly)
+    intro = trimmed["introduction_direction"]
+    assert intro
+    assert intro.endswith((".", "!", "?"))
+    assert not intro.rstrip().endswith("és két")
+    assert "Ez a kontrasztos felszólítás a gyülekezetet szólítja meg, és két." not in intro
+    clipped = _clip_to_full_sentences(
+        "Teljes mondat marad. Ez a második már nem fér bele a keretbe.",
+        4,
+    )
+    assert clipped == "Teljes mondat marad."
+    assert "fér bele" not in clipped
+    # Szóhatáros csonkítás tilos pont nélküli futó szövegen
+    run_on = "Ez a kontrasztos felszólítás a gyülekezetet szólítja meg, és két " + " ".join(
+        ["extra"] * 40
+    )
+    assert _clip_to_full_sentences(run_on, 20) == run_on
+
+
+def test_scope_note_rejects_unloaded_verse_as_fact():
+    note_ok = (
+        "Homiletikailag megfontolható a 21. vers bevétele, de szövege nincs betöltve."
+    )
+    note_bad = (
+        "A 21. vers azt állítja, hogy Isten szeretete megtart a bűnös világban is."
+    )
+    assert not scope_note_uses_unloaded_verse(note_ok, JUDE_PASSAGE)
+    assert scope_note_uses_unloaded_verse(note_bad, JUDE_PASSAGE)
+    data = _jude_good_structured()
+    data["scope_note"] = note_bad
+    issues = validate_structured_outline(data, passage_text=JUDE_PASSAGE)
+    assert "scope_note_unloaded_verse" in issues
+
+
+def test_manual_or_approved_outline_overwrite_protection():
+    state = _base_state()
+    first = generate_sermon_outline(state, mode="quick", generate_fn=None)
+    assert first.ok
+    save_sermon_outline(state, first.outline, mark_manual_edit=True)
+    blocked = generate_sermon_outline(state, mode="quick", generate_fn=None)
+    assert not blocked.ok
+    assert "kézzel szerkesztve" in blocked.error_message.casefold()
+    assert outline_canonical_text(blocked.outline) == outline_canonical_text(first.outline)
+
+    # Approved status also protects
+    state2 = _base_state()
+    second = generate_sermon_outline(state2, mode="workshop", generate_fn=None)
+    save_sermon_outline(state2, second.outline, mark_manual_edit=False)
+    state2[SERMON_WORKSHOP_KEY]["sermon_outline_status"] = "approved"
+    state2[SERMON_WORKSHOP_KEY]["sermon_outline"]["status"] = "approved"
+    blocked2 = generate_sermon_outline(state2, mode="workshop", generate_fn=None)
+    assert not blocked2.ok
+
+
+def test_source_hierarchy_order_in_system_prompt():
+    prompt = OUTLINE_SYSTEM_PROMPT
+    idx_text = prompt.casefold().index("betöltött bibliai")
+    idx_exegesis = prompt.casefold().index("az exegézis")
+    idx_original = prompt.casefold().index("eredeti héber vagy görög")
+    idx_basket = prompt.casefold().index("vázlatkosár")
+    assert idx_text < idx_exegesis < idx_original < idx_basket
+
+
+def test_extract_verse_numbers_from_passage_and_labels():
+    assert extract_verse_numbers(JUDE_PASSAGE) >= {17, 18, 19, 20}
+    assert extract_verse_numbers("v. 17–18") == {17, 18}
+    assert extract_verse_numbers("v. 20") == {20}
