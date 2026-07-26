@@ -977,7 +977,8 @@ def test_empty_outline_basket_generates_full_outline():
     )
     assert result.ok, result.error_message
     assert len(captured) == 1
-    assert "VÁZLATKOSÁR – OPCIONÁLIS, SZELEKTÁLVA HASZNÁLHATÓ:\n[]" in captured[0]
+    assert 'label="vázlatkosár"' in captured[0]
+    assert "UNTRUSTED_DATA" in captured[0]
     assert "MAG (opcionális)" not in captured[0]
     assert "Üres vázlatkosár esetén is készíts teljes értékű, konkrét vázlatot." in captured[0]
     assert outline_has_content(result.outline)
@@ -1002,11 +1003,14 @@ def test_outline_basket_is_separate_optional_source_material():
     )
     assert result.ok, result.error_message
     prompt = captured[0]
-    assert '"outline_basket"' not in prompt.split("VÁZLATKOSÁR")[0]
+    # A kosár külön untrusted blokkban van, nem a forráscsomag aliasaként.
+    before_basket = prompt.split('label="vázlatkosár"')[0]
+    assert '"outline_basket"' not in before_basket
     assert '"source": "Exegézis"' in prompt
     assert '"source": "Alkalmazás"' in prompt
     assert "nem kell mindegyiket felhasználni." in prompt
     assert "Forráshierarchia" in prompt or "forráshierarchia" in prompt.casefold()
+    assert "UNTRUSTED_DATA" in prompt
 
 
 def test_basket_must_not_override_text_structure():

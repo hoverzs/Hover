@@ -25,6 +25,8 @@ from sermon_workshop_data import (
 )
 from sermon_workshop_m4_ai import extract_json_object
 from sermon_workshop_m5_ai import _is_api_error_text
+from prompt_safety import wrap_untrusted_content
+from ai_response_validation import sanitize_ai_json
 
 GenerateFn = Callable[..., str]
 
@@ -1582,11 +1584,11 @@ def _ai_generate_structured(
         "egy pontban tarts.\n"
         "A bevezetési irány és a megérkezés 2–3 tartalmi mondat legyen, ne "
         "szerkesztői utasítás és ne kész beszéd.\n\n"
-        f"FORRÁSCSOMAG:\n{json.dumps(ctx_without_basket_and_seed, ensure_ascii=False)}\n\n"
+        f"FORRÁSCSOMAG:\n"
+        f"{wrap_untrusted_content('forráscsomag', json.dumps(ctx_without_basket_and_seed, ensure_ascii=False), limit_name='prompt_context_total')}\n\n"
         "A forráscsomag exegetikai, teológiai és homiletikai elemei háttéranyagok; "
         "nem kell mindegyiket felhasználni.\n\n"
-        f"VÁZLATKOSÁR – OPCIONÁLIS, SZELEKTÁLVA HASZNÁLHATÓ:\n"
-        f"{json.dumps(outline_basket or [], ensure_ascii=False)}\n\n"
+        f"{wrap_untrusted_content('vázlatkosár', json.dumps(outline_basket or [], ensure_ascii=False), limit_name='basket_total')}\n\n"
         f"KIMENETI SÉMA:\n{_JSON_SHAPE}"
     )
     try:
@@ -1607,7 +1609,24 @@ def _ai_generate_structured(
             word_count(raw or ""),
         )
         return None, warnings, word_count(raw or "")
-    structured = normalize_structured_outline(obj)
+    cleaned = sanitize_ai_json(
+        obj,
+        allowed_keys={
+            "title",
+            "text_reference",
+            "scope_note",
+            "focus_sentence",
+            "introduction_direction",
+            "points",
+            "conclusion_direction",
+            "refinement_suggestions",
+            "schema_version",
+        },
+    )
+    if cleaned is None:
+        warnings.append("A vázlat JSON biztonsági szűrése sikertelen.")
+        return None, warnings, word_count(raw or "")
+    structured = normalize_structured_outline(cleaned)
     raw_wc = word_count(render_structured_outline(structured))
     logger.info(
         "outline_ai_raw schema=%s rendered_words=%s forbidden=%s",
