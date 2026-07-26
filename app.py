@@ -75,6 +75,13 @@ from auth_config import (
     oauth_redirect_uri_for,
     safe_streamlit_login,
 )
+from textus_analytics import (
+    begin_analytics_run,
+    feature_name_from_label,
+    init_analytics,
+    track_app_navigation,
+    track_event,
+)
 from bible_text_ui import (
     KEY_PASSAGE_TEXT_INPUT as _BIBLE_PASSAGE_TEXT_INPUT,
     RESYNC_FLAG as _BIBLE_TEXT_RESYNC_FLAG,
@@ -110,6 +117,13 @@ st.set_page_config(
     page_icon="📖",
     layout="wide"
 )
+
+# Google Analytics 4 — hibája soha ne állítsa le az appot
+try:
+    begin_analytics_run()
+    init_analytics()
+except Exception:
+    pass
 
 # OAuth redirect: élesen soha ne maradjon localhost a secretsből
 try:
@@ -4562,10 +4576,27 @@ def _cloud_save_project(*, as_new: bool = False, autosave: bool = False) -> None
             st.session_state["_pending_project_title_input"] = title
             _mark_project_clean()
             invalidate_used_passage_cache(st.session_state)
+            track_event(
+                "content_save",
+                {
+                    "method": "cloud_new",
+                    "feature_name": "project",
+                    "status": "ok",
+                },
+            )
             _set_flash(f"Új projekt mentve: {title}")
         else:
             updated = update_project(cur_id, owner, title, passage, pdata)
             if not updated:
+                track_event(
+                    "content_save",
+                    {
+                        "method": "cloud",
+                        "feature_name": "project",
+                        "status": "error",
+                        "error_code": "not_found",
+                    },
+                )
                 _set_flash(
                     "A projekt nem található, vagy nem a te fiókodhoz tartozik.",
                     "error",
@@ -4575,6 +4606,14 @@ def _cloud_save_project(*, as_new: bool = False, autosave: bool = False) -> None
                 st.session_state["_pending_project_title_input"] = title
                 _mark_project_clean()
                 invalidate_used_passage_cache(st.session_state)
+                track_event(
+                    "content_save",
+                    {
+                        "method": "cloud",
+                        "feature_name": "project",
+                        "status": "ok",
+                    },
+                )
                 _set_flash(f"Mentve: {title}")
         st.session_state["project_delete_confirm_id"] = None
         st.session_state["project_open_confirm_id"] = None
@@ -4582,6 +4621,15 @@ def _cloud_save_project(*, as_new: bool = False, autosave: bool = False) -> None
     except Exception as exc:
         if autosave:
             return
+        track_event(
+            "content_save",
+            {
+                "method": "cloud",
+                "feature_name": "project",
+                "status": "error",
+                "error_code": "exception",
+            },
+        )
         _set_flash(f"Mentési hiba: {exc}", "error")
         st.rerun()
 
@@ -4959,6 +5007,7 @@ def _render_project_status_bar() -> None:
         st.session_state["editing_project_title"] = False
         st.rerun()
     elif toolbar_action == "login":
+        track_event("login", {"method": "google"})
         safe_streamlit_login()
     elif toolbar_action == "settings":
         st.session_state["shell_panel"] = "settings"
@@ -6014,6 +6063,12 @@ def generate_text(
                 f"(Még kb. {int(remaining) + 1} másodperc.)"
             )
 
+    _ga_feature = feature_name_from_label(tab_label)
+    track_event(
+        "generation_start",
+        {"feature_name": _ga_feature, "method": "gemini"},
+    )
+
     # ─── 3. HTTP HÍVÁS (retry: 429 / 5xx — ugyanazon a modellen) ───────
     headers = {"Content-Type": "application/json", "x-goog-api-key": api_key}
     prompt_chars = len(prompt)
@@ -6187,6 +6242,10 @@ def generate_text(
                 })
                 if cache_enabled and not truncated:
                     cache[prompt_hash] = (text, _time.time())
+                track_event(
+                    "generation_complete",
+                    {"feature_name": _ga_feature, "status": "ok"},
+                )
                 return text
             except (KeyError, IndexError, ValueError):
                 err_msg = _log_http_error(model, sc, response)
@@ -6326,6 +6385,14 @@ def generate_text(
             )
         return f"⚠️ **Ismeretlen API válasz** (státusz: {sc}).\n\n```\n{snippet}\n```"
 
+    track_event(
+        "generation_failed",
+        {
+            "feature_name": _ga_feature,
+            "status": "error",
+            "error_code": "request_failed",
+        },
+    )
     return last_error_msg
 
 
@@ -6643,8 +6710,20 @@ def render_feedback_section() -> None:
                 )
                 if ok:
                     st.session_state["_feedback_last_sent"] = datetime.now().timestamp()
+                    track_event(
+                        "feedback_submit",
+                        {"method": "form", "status": "ok"},
+                    )
                     st.success(result_msg)
                 else:
+                    track_event(
+                        "feedback_submit",
+                        {
+                            "method": "form",
+                            "status": "error",
+                            "error_code": "send_failed",
+                        },
+                    )
                     st.error(result_msg)
 
 
@@ -7087,6 +7166,7 @@ def _render_settings_panel() -> None:
             "a Google-fiók csak a személyes azonosítást szolgálja."
         )
         if st.button("Bejelentkezés Google-fiókkal", key="settings_google_login"):
+            track_event("login", {"method": "google"})
             safe_streamlit_login()
 
     # ─── 0b) Saját munkáim — részletes lista; napi mentés a fejlécsávon ──
@@ -7390,13 +7470,21 @@ def _render_settings_panel() -> None:
 
     col_save, col_load = st.columns(2)
     with col_save:
-        st.download_button(
+        if st.download_button(
             label="Munkamenet mentése (.json)",
             data=_ws_payload,
             file_name=_ws_filename,
             mime="application/json",
             use_container_width=True,
-        )
+        ):
+            track_event(
+                "file_export",
+                {
+                    "feature_name": "workspace",
+                    "file_format": "json",
+                    "method": "download",
+                },
+            )
 
     with col_load:
         uploaded_ws = st.file_uploader(
@@ -7464,6 +7552,10 @@ def _render_settings_panel() -> None:
 
 # Beállítások panel (fiókmenüből) — projekt/nézet megmarad
 if st.session_state.get("shell_panel") == "settings":
+    try:
+        track_app_navigation()
+    except Exception:
+        pass
     render_page_intro(
         eyebrow="Fiók",
         title="Beállítások",
@@ -7480,11 +7572,19 @@ render_workspace_switcher(
 
 # Textusműhely: csak a műhelykeret; a régi 13 fül ne jöjjön létre
 if st.session_state.get("ui_mode") == "workshop":
+    try:
+        track_app_navigation()
+    except Exception:
+        pass
     render_textus_workshop_shell()
     st.stop()
 
 # Igehirdetési műhely: csak a műhelykeret; tabok és Textusműhely ne jöjjenek létre
 if st.session_state.get("ui_mode") == "sermon_workshop":
+    try:
+        track_app_navigation()
+    except Exception:
+        pass
     render_sermon_workshop_shell(generate_fn=generate_text)
     st.stop()
 
@@ -7495,6 +7595,11 @@ if st.session_state.get("ui_mode") == "sermon_workshop":
 
 # Felhőprojekt megnyitás után: widget-szinkron a tabok létrehozása előtt
 _apply_pending_project_widget_sync()
+
+try:
+    track_app_navigation()
+except Exception:
+    pass
 
 render_page_intro(
     title="Gyorseszközök",
@@ -7676,7 +7781,7 @@ with tabs[7]:
             if not str(st.session_state.get("outline") or "").strip():
                 st.session_state["outline"] = body
             _docx_bytes = build_outline_docx()
-            st.download_button(
+            if st.download_button(
                 label="Vázlat letöltése (Word)",
                 data=_docx_bytes,
                 file_name=_filename_docx,
@@ -7684,7 +7789,15 @@ with tabs[7]:
                 use_container_width=False,
                 key="outline_download_docx",
                 type="primary",
-            )
+            ):
+                track_event(
+                    "file_export",
+                    {
+                        "feature_name": "outline",
+                        "file_format": "docx",
+                        "method": "download",
+                    },
+                )
         except ImportError as _docx_exc:
             import logging as _logging
 
