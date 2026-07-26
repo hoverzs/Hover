@@ -222,10 +222,10 @@ GEMINI_MODEL_BY_TAB_LABEL: dict[str, str] = {
     "Kortörténet": GEMINI_MODEL_FLASH_LITE,
     "Illusztrációk": GEMINI_MODEL_FLASH_LITE,
     "Aktualizálás": GEMINI_MODEL_FLASH_LITE,
-    "Vázlat": GEMINI_MODEL_FLASH_LITE,
-    "Igehirdetési vázlat": GEMINI_MODEL_FLASH_LITE,
+    "Vázlat": LOCKED_MODEL,
+    "Igehirdetési vázlat": LOCKED_MODEL,
     "Énekajánló": GEMINI_MODEL_FLASH_LITE,
-    "Prédikációvázlat": GEMINI_MODEL_FLASH_LITE,
+    "Prédikációvázlat": LOCKED_MODEL,
     "Igehirdetési sorozat tervező": GEMINI_MODEL_SERIES_PLANNER,
 }
 

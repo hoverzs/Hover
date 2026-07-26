@@ -65,20 +65,20 @@ _SYNTH_JSON_SHAPE = """\
   "title": "Rövid cím",
   "text_reference": "Igehely",
   "scope_note": "",
-  "focus_sentence": "Egyetlen fókuszmondat.",
-  "introduction_direction": "Rövid bevezető irány.",
+  "focus_sentence": "Egy teljes fókuszmondat (kb. 20–35 szó).",
+  "introduction_direction": "2–3 teljes mondat bevezetési irány (kb. 30–60 szó).",
   "points": [
     {
       "title": "Pontcím",
       "verses": "v. x–y",
       "subpoints": [
-        "Egy teljes mondat (≤24 szó).",
-        "Második teljes mondat (≤24 szó)."
+        "Textuális kibontás: 1–2 teljes mondat (kb. 20–45 szó).",
+        "Teológiai/homiletikai jelentőség: 1–2 teljes mondat (kb. 20–45 szó)."
       ],
-      "application": ""
+      "application": "Rövid, konkrét hallgatói irány (vagy üres)."
     }
   ],
-  "conclusion_direction": "Rövid megérkezés.",
+  "conclusion_direction": "2–3 teljes mondat megérkezés (kb. 30–60 szó).",
   "refinement_suggestions": []
 }
 """

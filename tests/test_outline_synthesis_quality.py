@@ -39,6 +39,21 @@ from textus_workshop_data import TEXT_WORKSHOP_KEY, get_default_text_workshop
 from tests.test_jude_e2e_workflow import build_jude_state
 
 
+def _pad_sp(text: str, *, min_words: int = 22) -> str:
+    """Teszt-fixture: alpont ≥ subpoint_min_words, teljes mondat."""
+    words = str(text or "").split()
+    filler = (
+        "A textus saját mozgása és Isten cselekvése együtt pontosítja "
+        "ezt a gondolatot a hallgató előtt."
+    ).split()
+    while len(words) < min_words:
+        words.extend(filler)
+    sent = " ".join(words[:45]).rstrip(".,;:")
+    if not sent.endswith((".", "!", "?")):
+        sent += "."
+    return sent
+
+
 def _assert_usable_outline(outline: dict) -> str:
     content = outline_to_readable_content(outline)
     assert outline.get("main_idea")
@@ -508,7 +523,7 @@ def _usable_ai_payload(
     *,
     focus: str = (
         "Isten megtart a gúny közepette a Szentlélek által, "
-        "és a hitben való épülésre hívja a szeretteit."
+        "és a hitben való épülésre hívja ma a szeretett gyülekezetet."
     ),
     intro_words: int = 45,
     movement_words: int = 28,
@@ -686,7 +701,7 @@ def test_virraszto_produces_shorter_complete_usable_outline():
         "scope_note": "",
         "focus_sentence": (
             "Az Úr jelenléte vigasztal a gyász csendjében, és a pásztor "
-            "közelsége tartást ad a gyászoló közösségnek."
+            "közelsége tartást ad ma a gyászoló közösségnek a textus szerint."
         ),
         "introduction_direction": (
             "A család csendben ül össze, és a hiány fájdalma körülveszi őket. "
@@ -698,9 +713,18 @@ def test_virraszto_produces_shorter_complete_usable_outline():
                 "title": "A pásztor jelenléte",
                 "verses": "v. 1–2",
                 "subpoints": [
-                    "Az Úr mint pásztor nem távoli ígéret a gyászoló előtt, hanem közelben járó gondoskodás a fájdalom idején is.",
-                    "A virrasztóban ez a közelség ad tartást a fájdalomnak anélkül, hogy a textus saját szavát túlbeszélné vagy elnyomná.",
-                    "Elég, hogy Ő vezet zöldellő legelőre, és ez már homiletikai tartást ad a gyászoló közösség csendjében ma este.",
+                    _pad_sp(
+                        "Az Úr mint pásztor nem távoli ígéret a gyászoló előtt, "
+                        "hanem közelben járó gondoskodás a fájdalom idején is."
+                    ),
+                    _pad_sp(
+                        "A virrasztóban ez a közelség ad tartást a fájdalomnak "
+                        "anélkül, hogy a textus saját szavát túlbeszélné."
+                    ),
+                    _pad_sp(
+                        "Elég, hogy Ő vezet zöldellő legelőre, és ez már "
+                        "homiletikai tartást ad a gyászoló közösség csendjében."
+                    ),
                 ],
                 "application": "Hol érzed ma a pásztor közelségét a csendben a saját veszteséged közepette?",
             },
@@ -708,9 +732,18 @@ def test_virraszto_produces_shorter_complete_usable_outline():
                 "title": "A völgyben sem magány",
                 "verses": "v. 4",
                 "subpoints": [
-                    "A halál árnyékának völgyében a félelem valós marad, de a bot és a pásztorbot vigasztalása a textus szerint jelen van.",
-                    "Krisztus feltámadása adja a reménység talaját a gyászoló közösségnek anélkül, hogy a fájdalmat elhallgattatná ma.",
-                    "A gyászoló közösség együtt hallja: nem vagyunk elhagyatva ebben a völgyben, mert a pásztor tovább vezet.",
+                    _pad_sp(
+                        "A halál árnyékának völgyében a félelem valós marad, "
+                        "de a bot és a pásztorbot vigasztalása jelen van."
+                    ),
+                    _pad_sp(
+                        "Krisztus feltámadása adja a reménység talaját a "
+                        "gyászoló közösségnek anélkül, hogy a fájdalmat elhallgattatná."
+                    ),
+                    _pad_sp(
+                        "A gyászoló közösség együtt hallja: nem vagyunk "
+                        "elhagyatva ebben a völgyben, mert a pásztor tovább vezet."
+                    ),
                 ],
                 "application": "Kit bízhatsz a pásztorra a völgyben is ezen a héten?",
             },
@@ -718,9 +751,18 @@ def test_virraszto_produces_shorter_complete_usable_outline():
                 "title": "Asztal a gyász közepette",
                 "verses": "v. 1–4",
                 "subpoints": [
-                    "A zsoltár íve a pásztor gondoskodásától a völgyön át a megtartó jelenlétig vezet egyetlen mozgásban.",
-                    "A virrasztóban ez nem temetési szónoklat, hanem a textus saját ígérete a közösség csendjében.",
-                    "Így a hallgató nem új témánál, hanem az Úr hűséges közelségénél érkezik meg a gyászban.",
+                    _pad_sp(
+                        "A zsoltár íve a pásztor gondoskodásától a völgyön át "
+                        "a megtartó jelenlétig vezet egyetlen mozgásban."
+                    ),
+                    _pad_sp(
+                        "A virrasztóban ez nem temetési szónoklat, hanem a "
+                        "textus saját ígérete a közösség csendjében."
+                    ),
+                    _pad_sp(
+                        "Így a hallgató nem új témánál, hanem az Úr hűséges "
+                        "közelségénél érkezik meg a gyászban."
+                    ),
                 ],
                 "application": "Melyik ígéretet tudod ma hálával kimondani a hiány közepette is?",
             },
@@ -890,9 +932,18 @@ def test_filippi_virraszto_partial_workshop_working_outline():
                 "title": "Élet Krisztusban",
                 "verses": "v. 21",
                 "subpoints": [
-                    "Pál szerint az élet Krisztus: nem üres jelszó, hanem a gyászoló előtt álló valóság ma is.",
-                    "A nyereség a halálban a Krisztussal való együttlétet jelenti, nem könnyű frázist a közösségnek.",
-                    "A gyászoló nem kap olcsó választ, hanem irányt Krisztusra a hiány és a csend közepette.",
+                    _pad_sp(
+                        "Pál szerint az élet Krisztus: nem üres jelszó, "
+                        "hanem a gyászoló előtt álló valóság ma is."
+                    ),
+                    _pad_sp(
+                        "A nyereség a halálban a Krisztussal való együttlétet "
+                        "jelenti, nem könnyű frázist a közösségnek."
+                    ),
+                    _pad_sp(
+                        "A gyászoló nem kap olcsó választ, hanem irányt "
+                        "Krisztusra a hiány és a csend közepette."
+                    ),
                 ],
                 "application": "Kit bízhatsz Krisztusra a hiány közepette ebben a virrasztóban?",
             },
@@ -900,9 +951,18 @@ def test_filippi_virraszto_partial_workshop_working_outline():
                 "title": "Maradás a többiekért",
                 "verses": "v. 22–24",
                 "subpoints": [
-                    "Pál feszültségben áll, mégis a többiekért marad szolgálatban a testben a gyülekezetért.",
-                    "Ez nem szabad élet-halál választás, hanem gondviselő szolgálat a közösségért ma is.",
-                    "A virrasztó közösség is ebben áll: a hiány fáj, mégis egymásért maradunk hálával együtt.",
+                    _pad_sp(
+                        "Pál feszültségben áll, mégis a többiekért marad "
+                        "szolgálatban a testben a gyülekezetért."
+                    ),
+                    _pad_sp(
+                        "Ez nem szabad élet-halál választás, hanem "
+                        "gondviselő szolgálat a közösségért ma is."
+                    ),
+                    _pad_sp(
+                        "A virrasztó közösség is ebben áll: a hiány fáj, "
+                        "mégis egymásért maradunk hálával együtt."
+                    ),
                 ],
                 "application": "Kinek a megmaradása hordoz téged ma is a gyász idején?",
             },
@@ -910,9 +970,18 @@ def test_filippi_virraszto_partial_workshop_working_outline():
                 "title": "Reménység a csendben",
                 "verses": "v. 21–24",
                 "subpoints": [
-                    "A textus nem oldja fel a veszteséget, de Krisztus kezébe helyezi az életet és a halált a gyászoló előtt.",
-                    "A virrasztó ezért nem temetési szónoklat, hanem a megtartó reménység rövid, hűséges megszólalása ma este.",
-                    "Így a hallgató a megmaradás és a hála feszültségében állhat meg új téma nélkül a közösségben.",
+                    _pad_sp(
+                        "A textus nem oldja fel a veszteséget, de Krisztus "
+                        "kezébe helyezi az életet és a halált a gyászoló előtt."
+                    ),
+                    _pad_sp(
+                        "A virrasztó ezért nem temetési szónoklat, hanem a "
+                        "megtartó reménység rövid, hűséges megszólalása ma este."
+                    ),
+                    _pad_sp(
+                        "Így a hallgató a megmaradás és a hála feszültségében "
+                        "állhat meg új téma nélkül a közösségben."
+                    ),
                 ],
                 "application": "Melyik hálaadás tud megmaradni benned a hiány közepette is?",
             },

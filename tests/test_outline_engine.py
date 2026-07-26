@@ -110,7 +110,7 @@ def _valid_structured(**overrides) -> dict:
         "scope_note": "",
         "focus_sentence": (
             "Isten szeretete Fiában adja a megváltás útját a világnak, "
-            "és a hallgatót hitbeli bizalomra hívja."
+            "és a hallgatót hitbeli bizalomra hívja a textus szerint."
         ),
         "introduction_direction": (
             "Sokan a szeretetéhség és az elveszettség feszültségében élnek, "
@@ -206,12 +206,12 @@ def _jude_good_structured() -> dict:
                 "title": "Emlékezzetek az apostolok szavára",
                 "verses": "v. 17–18",
                 "subpoints": [
-                    (
+                    _sp(
                         "A szerettek először az Urunk Jézus Krisztus apostolai "
                         "által előre megmondott szavakra emlékeznek a gúny és a "
                         "bizonytalanság közepette."
                     ),
-                    (
+                    _sp(
                         "A gúnyolódók megjelenése nem lepi meg az apostoli "
                         "figyelmeztetést, hanem igazolja annak időszerűségét a "
                         "gyülekezet előtt."
@@ -225,11 +225,11 @@ def _jude_good_structured() -> dict:
                 "title": "Ismerjétek fel a szakadást",
                 "verses": "v. 19",
                 "subpoints": [
-                    (
+                    _sp(
                         "A tizenkilencedik vers önállóan nevezi meg azokat, "
                         "akik szakadásokat okoznak, érzékiek, és akikben nincsen Lélek."
                     ),
-                    (
+                    _sp(
                         "Ez a felismerés nem a 17–18. vers ismétlése, hanem a "
                         "gúnyolódók belső állapotának külön diagnózisa a textusban."
                     ),
@@ -240,15 +240,15 @@ def _jude_good_structured() -> dict:
                 "title": "Épüljetek és imádkozzatok",
                 "verses": "v. 20",
                 "subpoints": [
-                    (
+                    _sp(
                         "A huszadik vers párhuzamos felszólításai egyetlen "
                         "megmaradási mozgást alkotnak: épülés a legszentebb hitben."
                     ),
-                    (
+                    _sp(
                         "Az imádság a Szentlélek által nem külön főpont, hanem "
                         "ugyanannak a megmaradásnak a lélegzete és gyakorlata."
                     ),
-                    (
+                    _sp(
                         "Így a hallgató nem két külön programot kap, hanem egy "
                         "Lélekben tartott életmódot a szakadás idején."
                     ),
@@ -328,7 +328,7 @@ def _ezs46_good_structured() -> dict:
         text_reference="Ézs 46,3–4",
         focus_sentence=(
             "Az Úr a méhtől az öregségig egyetlen, folyamatos cselekvéssel "
-            "hordozza, megtartja és megmenti népét a bálványok helyett."
+            "hordozza, megtartja és megmenti népét a bálványok helyett ma is."
         ),
         introduction_direction=(
             "Sokan úgy élik a terheiket, mintha azokat maguknak kellene "
@@ -342,15 +342,15 @@ def _ezs46_good_structured() -> dict:
                 "title": "A méhtől fogva hordozó Úr",
                 "verses": "v. 3",
                 "subpoints": [
-                    (
+                    _sp(
                         "Az Úr a Jákób házát és Izráel maradékát a méhtől fogva "
                         "hordozza, nem idegen erőként, hanem személyes gondviselőként."
                     ),
-                    (
+                    _sp(
                         "Ez a kezdetektől tartó hordozás állítja szembe Istent "
                         "azokkal a bálványokkal, amelyeket az embernek kell cipelnie."
                     ),
-                    (
+                    _sp(
                         "A hallgató így már a textus elején látja: a gondviselés "
                         "nem későbbi pótlék, hanem Isten régóta tartó cselekvése."
                     ),
@@ -363,15 +363,15 @@ def _ezs46_good_structured() -> dict:
                 "title": "Ugyanaz az Úr az öregségig",
                 "verses": "v. 4",
                 "subpoints": [
-                    (
+                    _sp(
                         "Az Úr ugyanaz marad öregségig és megőszülésig: ő hordoz, "
                         "visel és megszabadít egyetlen ígéretfolyamban."
                     ),
-                    (
+                    _sp(
                         "A hordoz–megtart–megment mozgás nem három külön pont, "
                         "hanem ugyanannak az Úrnak folyamatos hűsége a nép iránt."
                     ),
-                    (
+                    _sp(
                         "Homiletikailag ezért egy ívben marad az ígéret, hogy a "
                         "szószéken se ismétlődjön meg üresen ugyanaz a gondolat."
                     ),
@@ -873,10 +873,12 @@ def test_absolute_max_and_schema_are_pulpit_work_outline():
     assert LIMITS["target_min_words"] == 320
     assert LIMITS["target_max_words"] == 480
     assert LIMITS["soft_floor_words"] == 280
+    assert LIMITS["subpoint_min_words"] == 20
     assert LIMITS["intro_words"] == 60
     assert LIMITS["max_points"] == 4
     assert LIMITS["max_subpoints"] == 3
     assert LIMITS["min_subpoints"] == 2
+    assert SCHEMA_VERSION == "pulpit_outline_v5"
     assert OUTLINE_RESPONSE_SCHEMA["properties"]["points"]["minItems"] == 2
     assert OUTLINE_RESPONSE_SCHEMA["properties"]["points"]["maxItems"] == 4
     assert (
@@ -894,6 +896,10 @@ def test_absolute_max_and_schema_are_pulpit_work_outline():
     assert "thesis" not in LIMITS
     assert "FORRÁSHIERARCHIA" in OUTLINE_SYSTEM_PROMPT
     assert "exegézis" in OUTLINE_SYSTEM_PROMPT.casefold()
+    assert "átfogalmazása" in OUTLINE_SYSTEM_PROMPT
+    from sermon_outline_engine import ENRICH_INSTRUCTION
+
+    assert "TARTALMI MÉLYÍTÉS" in ENRICH_INSTRUCTION
 
 
 def test_outline_calls_request_structured_json_and_default_payload_does_not():
@@ -1093,23 +1099,28 @@ def test_too_thin_quality_flag_under_soft_floor():
     issues = validate_structured_outline(thin)
     assert "too_thin" in issues
 
-    # Soft flag: AI path may keep a structurally valid thin outline with warning
+    # Soft flag after enrich: AI path may keep a structurally valid thin outline
     state = _base_state()
+    calls = {"n": 0}
 
     def gen(_prompt, **_kwargs):
+        calls["n"] += 1
         return json.dumps(thin, ensure_ascii=False)
 
     # Make thin structurally acceptable except length
     thin["focus_sentence"] = (
-        "A textus Isten szeretetét hirdeti, és a hallgatót hitbeli válaszra hívja."
+        "A textus Isten kezdeményező szeretetét hirdeti a világnak, "
+        "és a hallgatót hitbeli válaszra hívja a Fiúban kapott úton."
     )
     thin["introduction_direction"] = (
         "A hallgató a saját hiányával áll a textus elé. "
-        "A kérdés személyes. Innen nyílik meg az ige."
+        "A kérdés személyes, és a gyülekezet is érzi a feszültséget. "
+        "Innen nyílik meg az ige a szószéki ív számára."
     )
     thin["conclusion_direction"] = (
-        "A hallgató Isten szereteténél érkezik meg. "
-        "Nem új témánál zárul az ív. Innen vihető tovább a szószékre."
+        "A hallgató Isten szereteténél érkezik meg a textus szerint. "
+        "Nem új témánál zárul az ív, hanem a Fiúban kapott útnál. "
+        "Innen vihető tovább a szószékre a gyülekezet felé."
     )
     thin["points"] = [
         {
@@ -1137,7 +1148,73 @@ def test_too_thin_quality_flag_under_soft_floor():
         state, mode="quick", generate_fn=gen, force_overwrite=True
     )
     assert result.ok, result.error_message
+    assert result.enriched
+    assert calls["n"] == 2
     assert any("too_thin" in w for w in result.warnings)
+
+
+def test_enrich_pass_deepens_thin_outline_from_sources():
+    state = _base_state(
+        last_igehely="Júd 17–20",
+        igehely_input="Júd 17–20",
+        passage_text=JUDE_PASSAGE,
+        exegesis=(
+            "Júdás az apostoli emlékezetre, a Lélek nélküli szakadás felismerésére "
+            "és a hitben való épülésre hív. A 19. vers önálló diagnózis."
+        ),
+    )
+    thin = _jude_good_structured()
+    thin["introduction_direction"] = (
+        "A gúny és a bizonytalanság feszültségében áll a gyülekezet ma is. "
+        "Innen nyílik meg a textus az emlékezet felé a hallgató előtt."
+    )
+    thin["conclusion_direction"] = (
+        "A megérkezés a megtartó közösség megmaradásánál van a textus szerint. "
+        "A hallgató a Lélekben való épülés felől nézi újra a helyzetét."
+    )
+    thin["points"][2]["subpoints"] = thin["points"][2]["subpoints"][:2]
+    for pt in thin["points"]:
+        pt["application"] = ""
+    # Keep complete sentences; only drop applications / third bullets.
+    # Short intro/conclusion still trips enrichable min-field issues.
+    thin_issues = validate_structured_outline(thin)
+    assert "truncated_sentence" not in thin_issues
+    assert any(
+        i in thin_issues
+        for i in ("intro_too_short", "conclusion_too_short", "under_target", "too_thin")
+    )
+
+    rich = _jude_good_structured()
+    calls = {"n": 0}
+
+    def gen(prompt, **_kwargs):
+        calls["n"] += 1
+        if calls["n"] == 1:
+            return json.dumps(thin, ensure_ascii=False)
+        assert "TARTALMI MÉLYÍTÉS" in prompt or "MÉLYÍTENDŐ" in prompt
+        assert "exegesis" in prompt.casefold() or "Emlékezet" in prompt
+        return json.dumps(rich, ensure_ascii=False)
+
+    result = generate_sermon_outline(
+        state, mode="quick", generate_fn=gen, force_overwrite=True
+    )
+    assert result.ok, result.error_message
+    assert result.enriched
+    assert calls["n"] == 2
+    assert word_count(outline_canonical_text(result.outline)) >= LIMITS["soft_floor_words"]
+
+
+def test_outline_tabs_use_flash_not_lite():
+    import app as app_mod
+
+    assert app_mod.resolve_gemini_model_for_tab("Vázlat") == app_mod.LOCKED_MODEL
+    assert (
+        app_mod.resolve_gemini_model_for_tab("Igehirdetési vázlat")
+        == app_mod.LOCKED_MODEL
+    )
+    assert (
+        app_mod.resolve_gemini_model_for_tab("Prédikációvázlat") == app_mod.LOCKED_MODEL
+    )
 
 
 def test_over_550_not_primary_display():
