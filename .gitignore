@@ -56,3 +56,14 @@ htmlcov/
 *.log
 *.tmp
 ~$*
+
+# Local AI usage / runtime data (ha később bekapcsolnánk)
+data/ai_usage/
+
+# Local scratch / QA artifacts — ne kerüljenek a repo-ba
+_tmp_*/
+_tmp_*
+_qa_shell/
+*.phase_wip_bak
+*_wip_bak
+st_*.log
