@@ -20,7 +20,7 @@ from sermon_workshop_m5_ai import (
     _is_api_error_text,
     _is_present,
 )
-from sermon_workshop_m7_ai import M7_SYSTEM_BUNDLE, has_sufficient_enrichment_material
+from sermon_workshop_m7_ai import has_sufficient_enrichment_material
 from sermon_workshop_m7_closing_ai import build_closing_context
 
 TAB_DIAG = "Homiletikai diagnosztika"
@@ -29,6 +29,22 @@ MAX_REVISION_PRIORITIES = 3
 MAX_MAJOR_STRENGTHS = 3
 
 GenerateFn = Callable[..., str]
+
+# Saját diagnosztikai rendszerprompt — NEM az M7 képek/alkalmazások csomagja.
+M8_SYSTEM_BUNDLE = """\
+Te a TEXTUS homiletikai diagnoszta asszisztense vagy.
+Feladatod a rendelkezésre álló igehirdetési műhelyanyag értékelése:
+textushűség, fókusz, hallgatói feszültség, teológia, Krisztus-központúság,
+prédikációs út, hallhatóság, képek, alkalmazás, lezárás, pásztori felelősség
+és eredetiség.
+Csak a megadott műhelyanyagból dolgozz. Ne találj ki történetet, idézetet,
+demográfiát vagy új prédikációs tartalmat.
+Ne javasolj új képeket, illusztrációkat vagy alkalmazásokat generálásra;
+csak értékeld a meglévő anyagot.
+Ne módosítsd javaslatként az M4–M7 jóváhagyott tartalmakat; csak diagnosztizálj.
+Hiányzó adatnál jelöld: not_enough_information / missing_information.
+Válaszod KIZÁRÓLAG érvényes JSON legyen.\
+"""
 
 DIAGNOSTIC_AREA_KEYS = (
     "text_fidelity",
@@ -531,14 +547,26 @@ def _call_diagnostics_generate(
         except Exception:
             touched_temp = False
     try:
-        return generate_fn(
-            prompt,
-            enable_google_search=False,
-            tab_label=TAB_DIAG,
-            use_cache=False,
-            system_bundle=M7_SYSTEM_BUNDLE,
-            include_brevity_directive=False,
-        )
+        try:
+            return generate_fn(
+                prompt,
+                enable_google_search=False,
+                tab_label=TAB_DIAG,
+                use_cache=False,
+                system_bundle=M8_SYSTEM_BUNDLE,
+                include_brevity_directive=False,
+                temperature=temperature,
+            )
+        except TypeError:
+            # Régebbi / mock generate_fn: temperature nélkül
+            return generate_fn(
+                prompt,
+                enable_google_search=False,
+                tab_label=TAB_DIAG,
+                use_cache=False,
+                system_bundle=M8_SYSTEM_BUNDLE,
+                include_brevity_directive=False,
+            )
     finally:
         if touched_temp:
             try:
@@ -1132,6 +1160,7 @@ if __name__ == "__main__":
 
 
 __all__ = [
+    "M8_SYSTEM_BUNDLE",
     "DIAGNOSTIC_AREA_KEYS",
     "DIAGNOSTIC_AREA_LABELS_HU",
     "DIAGNOSTIC_STATUSES",
