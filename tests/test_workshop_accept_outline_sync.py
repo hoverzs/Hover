@@ -1,4 +1,4 @@
-"""Regression: Javaslat átvétele → save/reload → outline sees accepted material."""
+"""Regression: Javaslat átvétele → draft mentés; jóváhagyás → outline evidence."""
 
 from __future__ import annotations
 
@@ -46,8 +46,7 @@ def _base_state(**extra) -> dict:
     return state
 
 
-def test_accept_proposal_persists_as_approved_decision():
-    state = _base_state()
+def _hc_block(**overrides) -> dict:
     block = {
         "condition": "Az ember szeretetéhsége és elveszettsége.",
         "false_response": "",
@@ -55,23 +54,76 @@ def test_accept_proposal_persists_as_approved_decision():
         "divine_action": "Isten egyszülött Fiát adja.",
         "grace_response": "Hitben ragaszkodhatunk a Fiúhoz.",
     }
+    block.update(overrides)
+    return block
+
+
+def _hc_categories() -> list[tuple[str, str]]:
+    return [
+        ("condition", "Emberi helyzet"),
+        ("human_need", "Emberi szükség"),
+        ("divine_action", "Isten cselekvése"),
+        ("grace_response", "Kegyelmi válasz"),
+    ]
+
+
+def test_accept_proposal_persists_as_durable_draft():
+    """Javaslat átvétele → mezők + draft; nem automatikus jóváhagyás."""
+    state = _base_state()
+    block = _hc_block()
     result = accept_workshop_proposal(
         state,
         section_key="human_condition",
         block=block,
         source_section="Emberi helyzet és kegyelmi válasz",
-        field_categories=[
-            ("condition", "Emberi helyzet"),
-            ("human_need", "Emberi szükség"),
-            ("divine_action", "Isten cselekvése"),
-            ("grace_response", "Kegyelmi válasz"),
-        ],
+        field_categories=_hc_categories(),
         status_key="human_condition_status",
     )
+    assert result["status"] == "draft"
+    assert result["added"] == 0
+    sw = state[SERMON_WORKSHOP_KEY]
+    assert sw["human_condition_status"] == "draft"
+    assert sw["human_condition"]["condition"] == block["condition"]
+    assert not any(
+        d.get("content") == block["condition"]
+        for d in sw["approved_sermon_decisions"]
+    )
+    assert not section_has_accepted_content(
+        state,
+        section_key="human_condition",
+        status_key="human_condition_status",
+        source_section="Emberi helyzet és kegyelmi válasz",
+    )
+    statuses = sermon_section_statuses(state)
+    assert statuses["Emberi helyzet és kegyelmi válasz"] in ("draft", "own_emphasis")
+    assert statuses["Emberi helyzet és kegyelmi válasz"] != "approved"
+
+
+def test_finalize_proposal_marks_approved_and_feeds_decisions():
+    state = _base_state()
+    block = _hc_block()
+    accept_workshop_proposal(
+        state,
+        section_key="human_condition",
+        block=block,
+        source_section="Emberi helyzet és kegyelmi válasz",
+        field_categories=_hc_categories(),
+        status_key="human_condition_status",
+        finalize=False,
+    )
+    result = accept_workshop_proposal(
+        state,
+        section_key="human_condition",
+        block=block,
+        source_section="Emberi helyzet és kegyelmi válasz",
+        field_categories=_hc_categories(),
+        status_key="human_condition_status",
+        finalize=True,
+    )
+    assert result["status"] == "approved"
     assert result["added"] >= 3
     sw = state[SERMON_WORKSHOP_KEY]
     assert sw["human_condition_status"] == "approved"
-    assert sw["human_condition"]["condition"] == block["condition"]
     assert any(
         d.get("content") == block["condition"]
         for d in sw["approved_sermon_decisions"]
@@ -82,8 +134,6 @@ def test_accept_proposal_persists_as_approved_decision():
         status_key="human_condition_status",
         source_section="Emberi helyzet és kegyelmi válasz",
     )
-    statuses = sermon_section_statuses(state)
-    assert statuses["Emberi helyzet és kegyelmi válasz"] == "approved"
 
 
 def test_accept_survives_project_save_reload_and_feeds_outline():
@@ -92,21 +142,16 @@ def test_accept_survives_project_save_reload_and_feeds_outline():
     accept_workshop_proposal(
         state,
         section_key="human_condition",
-        block={
-            "condition": accepted,
-            "false_response": "",
-            "human_need": "Megváltó szeretet.",
-            "divine_action": "Isten odaadja Fiát.",
-            "grace_response": "Higgyünk benne.",
-        },
+        block=_hc_block(
+            condition=accepted,
+            human_need="Megváltó szeretet.",
+            divine_action="Isten odaadja Fiát.",
+            grace_response="Higgyünk benne.",
+        ),
         source_section="Emberi helyzet és kegyelmi válasz",
-        field_categories=[
-            ("condition", "Emberi helyzet"),
-            ("human_need", "Emberi szükség"),
-            ("divine_action", "Isten cselekvése"),
-            ("grace_response", "Kegyelmi válasz"),
-        ],
+        field_categories=_hc_categories(),
         status_key="human_condition_status",
+        finalize=True,
     )
 
     payload = sanitize_project_data(build_project_data(state))
@@ -158,6 +203,32 @@ def test_accept_survives_project_save_reload_and_feeds_outline():
     )
     assert accepted in outline_blob or accepted in joined
     assert result.outline.get("main_idea") or result.outline.get("movements")
+
+
+def test_draft_adopt_survives_rerun_without_approval():
+    """Streamlit-rerun után az átvett draft tartalom megmarad a mezőkben."""
+    state = _base_state()
+    text = "Átvett draft emberi helyzet."
+    accept_workshop_proposal(
+        state,
+        section_key="human_condition",
+        block=_hc_block(condition=text),
+        source_section="Emberi helyzet és kegyelmi válasz",
+        field_categories=_hc_categories(),
+        status_key="human_condition_status",
+    )
+    # Szimulált rerun: session → project → normalize
+    payload = sanitize_project_data(build_project_data(state))
+    reloaded = {
+        "last_igehely": state["last_igehely"],
+        "passage_text": state["passage_text"],
+        TEXT_WORKSHOP_KEY: payload[TEXT_WORKSHOP_KEY],
+        SERMON_WORKSHOP_KEY: normalize_sermon_workshop(payload[SERMON_WORKSHOP_KEY]),
+    }
+    sw = reloaded[SERMON_WORKSHOP_KEY]
+    assert sw["human_condition"]["condition"] == text
+    assert sw["human_condition_status"] == "draft"
+    assert not sw.get("approved_sermon_decisions")
 
 
 def test_insufficient_message_is_specific():

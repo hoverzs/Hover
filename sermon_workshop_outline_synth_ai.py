@@ -65,20 +65,18 @@ _SYNTH_JSON_SHAPE = """\
   "title": "Rövid cím",
   "text_reference": "Igehely",
   "scope_note": "",
-  "focus_sentence": "Egy teljes fókuszmondat (kb. 20–35 szó).",
-  "introduction_direction": "2–3 teljes mondat bevezetési irány (kb. 30–60 szó).",
+  "focus_sentence": "Egy teljes fókuszmondat (20–40 szó).",
+  "introduction_direction": "Bevezetési irány (45–80 szó).",
   "points": [
     {
       "title": "Pontcím",
       "verses": "v. x–y",
-      "subpoints": [
-        "Textuális kibontás: 1–2 teljes mondat (kb. 20–45 szó).",
-        "Teológiai/homiletikai jelentőség: 1–2 teljes mondat (kb. 20–45 szó)."
-      ],
-      "application": "Rövid, konkrét hallgatói irány (vagy üres)."
+      "textual_insight": "Egy teljes mondat: mit állít / milyen mozgást végez a textus.",
+      "theological_emphasis": "Egy teljes mondat: textusból levezethető teológiai jelentés.",
+      "listener_movement": "Egy teljes mondat: felismerés / kérdés / válasz a hallgató felé."
     }
   ],
-  "conclusion_direction": "2–3 teljes mondat megérkezés (kb. 30–60 szó).",
+  "conclusion_direction": "Megérkezés irány (45–80 szó).",
   "refinement_suggestions": []
 }
 """
@@ -150,7 +148,7 @@ def outline_length_profile(
 
     occ = resolve_outline_occasion(occasion=occasion)
     occ_cf = occ.casefold()
-    target = f"{LIMITS['target_min_words']}–{LIMITS['target_max_words']}"
+    target = f"{LIMITS['target_min_3_4']}–{LIMITS['target_max_3_4']}"
     if "virraszt" in occ_cf:
         min_movements = 2
         max_movements = 3
@@ -159,32 +157,34 @@ def outline_length_profile(
         max_movements = 3
     else:
         min_movements = 2
-        max_movements = 4
+        max_movements = 5
     soft_min = LIMITS["soft_floor_words"] - (20 if partial else 0)
     soft_max = LIMITS["absolute_max_words"]
     guidance = (
-        f"SZÓSZÉKI MUNKAVÁZLAT (~{target} szó irányadó; puha alsó határ "
-        f"~{LIMITS['soft_floor_words']}; abszolút max "
-        f"{LIMITS['absolute_max_words']} szó; séma {SCHEMA_VERSION}). "
-        f"Pontok: 2–4; alpontok 2–3 (kb. 20–{LIMITS['subpoint_max_words']} szó). "
-        "Ne írj prédikációt; nincs thesis/body/content mező."
+        f"KANONIKUS MOVEMENTS VÁZLAT (~{target} szó irányadó 3–4 mozgásnál; "
+        f"abszolút max 850; séma {SCHEMA_VERSION}). "
+        f"Mozgások: {min_movements}–{max_movements}; minden mozgásban "
+        "textual_insight + theological_emphasis + listener_movement. "
+        "Ne írj prédikációt; a kanonikus tömb neve `movements` (ne `points`)."
     )
     if partial:
         guidance += " Részleges anyag: teljes szerkezet, kissé rövidebb OK."
     return {
         "occasion": occ or "Vasárnapi istentisztelet",
-        "soft_min": max(240, soft_min),
+        "soft_min": max(300, soft_min),
         "soft_max": soft_max,
         "target_range": target,
         "min_movements": min_movements,
         "max_movements": max_movements,
         "guidance": guidance,
-        "intro_hint": f"max. {LIMITS['intro_words']} szó",
+        "intro_hint": f"{LIMITS['intro_min_words']}–{LIMITS['intro_words']} szó",
         "movement_hint": (
-            f"{min_movements}–{max_movements} pont, 2–3 alpont "
-            f"(≤{LIMITS['subpoint_max_words']} szó)"
+            f"{min_movements}–{max_movements} pont, három réteg "
+            f"({LIMITS['point_layers_min_words']}–{LIMITS['point_layers_max_words']} szó)"
         ),
-        "conclusion_hint": f"max. {LIMITS['conclusion_words']} szó",
+        "conclusion_hint": (
+            f"{LIMITS['conclusion_min_words']}–{LIMITS['conclusion_words']} szó"
+        ),
         "partial": partial,
         "schema_version": SCHEMA_VERSION,
     }
@@ -602,7 +602,10 @@ def regenerate_outline_part(
     elif target == "applications" and new_struct.get("points"):
         for i, pt in enumerate(structured.get("points") or []):
             if i < len(new_struct["points"]):
-                pt["application"] = _s(new_struct["points"][i].get("application"))
+                src = new_struct["points"][i]
+                pt["listener_movement"] = _s(
+                    src.get("listener_movement") or src.get("application")
+                )
     return apply_synth_payload_to_outline(
         current, structured, bundle=bundle, replace_movements=True
     ), warnings

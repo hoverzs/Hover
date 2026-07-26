@@ -464,6 +464,17 @@ def normalize_sermon_outline(raw: Any) -> dict[str, Any]:
     if status not in ("draft", "approved", "empty", "needs_refresh", ""):
         status = "draft"
     out["status"] = status or "draft"
+    # Régi / hiányzó séma → needs_refresh (tartalom megmarad).
+    schema = _as_str(out.get("schema_version"))
+    has_body = bool(
+        _as_str(out.get("content"))
+        or (isinstance(out.get("movements"), list) and out.get("movements"))
+        or (isinstance(out.get("structured"), dict) and out.get("structured"))
+    )
+    if has_body and schema != "pulpit_outline_v7":
+        # Üres schema vagy legacy → jelölés; ne írjuk felül a tartalmat.
+        if out["status"] != "needs_refresh":
+            out["status"] = "needs_refresh"
     out["manually_edited"] = bool(raw.get("manually_edited"))
     out["needs_rebuild"] = bool(raw.get("needs_rebuild"))
     movements_raw = raw.get("movements")
@@ -473,9 +484,8 @@ def normalize_sermon_outline(raw: Any) -> dict[str, Any]:
             if isinstance(item, dict):
                 movements.append(_normalize_outline_movement(item))
     out["movements"] = movements
-    intro_raw = (
-        raw.get("introduction") if isinstance(raw.get("introduction"), dict) else {}
-    )
+    intro_candidate = raw.get("introduction")
+    intro_raw = intro_candidate if isinstance(intro_candidate, dict) else {}
     introduction = dict(base["introduction"])
     for key in introduction:
         if key in intro_raw:
@@ -486,13 +496,15 @@ def normalize_sermon_outline(raw: Any) -> dict[str, Any]:
     out["introduction"] = introduction
     if introduction["development"] and not out.get("opening_direction"):
         out["opening_direction"] = introduction["development"]
-    conc_raw = raw.get("conclusion") if isinstance(raw.get("conclusion"), dict) else {}
+    conc_candidate = raw.get("conclusion")
+    conc_raw = conc_candidate if isinstance(conc_candidate, dict) else {}
     conclusion = dict(base["conclusion"])
     for key in conclusion:
         if key in conc_raw:
             conclusion[key] = _as_str(conc_raw.get(key))
     out["conclusion"] = conclusion
-    closing_raw = raw.get("closing") if isinstance(raw.get("closing"), dict) else {}
+    closing_candidate = raw.get("closing")
+    closing_raw = closing_candidate if isinstance(closing_candidate, dict) else {}
     closing = dict(base["closing"])
     for key in closing:
         if key in closing_raw:
@@ -508,15 +520,17 @@ def normalize_sermon_outline(raw: Any) -> dict[str, Any]:
         closing["image_or_line"] = conclusion["final_sentence"]
     out["conclusion"] = conclusion
     out["closing"] = closing
-    lection_raw = raw.get("lection") if isinstance(raw.get("lection"), dict) else {}
+    lection_candidate = raw.get("lection")
+    lection_raw = lection_candidate if isinstance(lection_candidate, dict) else {}
     lection = dict(base["lection"])
     for key in lection:
         if key in lection_raw:
             lection[key] = _as_str(lection_raw.get(key))
     out["lection"] = lection
+    extra_candidate = raw.get("extra_enrichment")
     extra_raw = (
-        raw.get("extra_enrichment")
-        if isinstance(raw.get("extra_enrichment"), dict)
+        extra_candidate
+        if isinstance(extra_candidate, dict)
         else {}
     )
     out["extra_enrichment"] = {
@@ -1558,18 +1572,20 @@ def accept_workshop_proposal(
     field_categories: list[tuple[str, str]] | None = None,
     status_key: str | None = None,
     main_idea_category: str = "Fő gondolat",
+    finalize: bool = False,
 ) -> dict[str, Any]:
-    """Javaslat átvétele = tartós műhelydöntés.
+    """Javaslat átvétele = tartós draft mentés a szerkeszthető mezőkbe.
 
-    - szakasz tartalom mentése
-    - szakasz státusz ``approved``
-    - nem üres mezők → ``approved_sermon_decisions`` (duplikátum nélkül)
+    - ``finalize=False`` (alapértelmezett): státusz ``draft``, nem kerül a
+      ``approved_sermon_decisions`` listába — a végleges jóváhagyás külön gomb.
+    - ``finalize=True``: státusz ``approved`` + döntések rögzítése.
 
-    Vissza: ``{"added": int, "status_key": str, "section_key": str}``.
+    Vissza: ``{"added": int, "status_key": str, "section_key": str, "status": str}``.
     """
     sw = ensure_sermon_workshop_state(session_state)
     resolved_status = status_key
     added = 0
+    target_status = "approved" if finalize else "draft"
 
     if section_key in ("sermon_main_idea", "main_idea"):
         text = (
@@ -1582,15 +1598,19 @@ def accept_workshop_proposal(
             "sermon_main_idea",
             {
                 "sermon_main_idea": text,
-                "sermon_main_idea_status": "approved",
+                "sermon_main_idea_status": target_status,
             },
         )
         resolved_status = "sermon_main_idea_status"
-        if text and not _decision_duplicate_in_sw(
-            sw,
-            source_section=source_section,
-            category=main_idea_category,
-            content=text,
+        if (
+            finalize
+            and text
+            and not _decision_duplicate_in_sw(
+                sw,
+                source_section=source_section,
+                category=main_idea_category,
+                content=text,
+            )
         ):
             add_approved_sermon_decision(
                 session_state, source_section, main_idea_category, text
@@ -1600,6 +1620,7 @@ def accept_workshop_proposal(
             "added": added,
             "status_key": resolved_status,
             "section_key": "sermon_main_idea",
+            "status": target_status,
         }
 
     payload = dict(block) if isinstance(block, Mapping) else {}
@@ -1607,7 +1628,15 @@ def accept_workshop_proposal(
     if not resolved_status:
         resolved_status = f"{section_key}_status"
     if resolved_status in sw or resolved_status.endswith("_status"):
-        update_sermon_workshop_section(session_state, resolved_status, "approved")
+        update_sermon_workshop_section(session_state, resolved_status, target_status)
+
+    if not finalize:
+        return {
+            "added": 0,
+            "status_key": resolved_status or "",
+            "section_key": section_key,
+            "status": target_status,
+        }
 
     cats = field_categories or [
         (str(k), str(k)) for k in payload.keys() if _as_str(payload.get(k))
@@ -1632,6 +1661,7 @@ def accept_workshop_proposal(
         "added": added,
         "status_key": resolved_status or "",
         "section_key": section_key,
+        "status": target_status,
     }
 
 
@@ -2086,6 +2116,16 @@ def save_sermon_outline(
     sw["sermon_outline_status"] = normalized["status"]
     sw["sermon_outline_generated_at"] = _as_str(normalized.get("generated_at"))
     sw["sermon_outline_updated_at"] = now
+    # Kanonikus szöveg tükrözése a legacy session kulcsokra (Word-export / gyorsnézet).
+    try:
+        from sermon_outline_engine import mirror_outline_to_session_strings
+
+        mirror_outline_to_session_strings(session_state, normalized)
+    except Exception:  # pragma: no cover
+        body = _as_str(normalized.get("content"))
+        if body:
+            session_state["outline"] = body
+            session_state["outline_draft"] = body
     return sw
 
 

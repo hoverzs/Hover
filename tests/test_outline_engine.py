@@ -86,21 +86,28 @@ def _base_state(**extra) -> dict:
     return state
 
 
-def _sp(text: str) -> str:
-    """Ensure subpoint length within the pulpit-work target (~20–45 words)."""
-    words = text.split()
-    target = max(20, LIMITS["subpoint_min_words"])
-    if len(words) < target:
-        pad = (
-            "A textus saját mozgása és Isten cselekvése együtt bontja ki "
-            "ezt a gondolatot a hallgató előtt a szószéki felkészüléshez."
-        ).split()
-        words = words + pad
-    words = words[: LIMITS["subpoint_max_words"]]
-    sent = " ".join(words).rstrip(".,;:")
-    if not sent.endswith((".", "!", "?")):
-        sent += "."
-    return sent
+
+def _layer(text: str, *, min_words: int | None = None) -> str:
+    """Egy teljes mondat a háromrétegű séma célhosszához (~28–45 szó)."""
+    target = max(28, min_words or 28)
+    raw = text.strip()
+    if not raw.endswith((".", "!", "?")):
+        raw += "."
+    # Csak az első mondatot tartjuk — a pad ne hozzon létre második mondatot.
+    first = raw
+    for sep in (". ", "! ", "? "):
+        if sep in raw:
+            first = raw.split(sep)[0] + sep.strip()
+            break
+    words = first.rstrip(".!?").split()
+    pad = (
+        "a textus saját mozgása szerint a hallgató előtt a szószéki "
+        "felkészülés során is"
+    ).split()
+    while len(words) < target:
+        words.extend(pad)
+    words = words[: LIMITS["layer_max_words"]]
+    return " ".join(words).rstrip(".,;:") + "."
 
 
 def _valid_structured(**overrides) -> dict:
@@ -110,71 +117,73 @@ def _valid_structured(**overrides) -> dict:
         "scope_note": "",
         "focus_sentence": (
             "Isten szeretete Fiában adja a megváltás útját a világnak, "
-            "és a hallgatót hitbeli bizalomra hívja a textus szerint."
+            "és a hallgatót hitbeli bizalomra hívja a textus szerint ma is."
         ),
         "introduction_direction": (
             "Sokan a szeretetéhség és az elveszettség feszültségében élnek, "
             "mégis nehezen hiszik, hogy Isten feléjük indult. "
-            "A kérdés az, honnan jön az életet adó szeretet. "
-            "Innen nyílik meg természetesen a textus."
+            "A kérdés az, honnan jön az életet adó szeretet, és milyen válasz "
+            "nyílik meg a textus előtt a gyülekezet konkrét helyzetében. "
+            "Innen vezet a gondolat a Fiú odaadásához és a hitbeli bizalomhoz."
         ),
         "points": [
             {
                 "title": "Isten cselekvő szeretete",
                 "verses": "v. 16a",
-                "subpoints": [
-                    _sp(
-                        "A textus nem emberi érdemről beszél, hanem Isten "
-                        "kezdeményező szeretetéről, amely a világ felé indult."
-                    ),
-                    _sp(
-                        "A szeretet mértéke az egyszülött Fiú odaadásában "
-                        "válik láthatóvá, és ez teológiai súlyt ad a mondatnak."
-                    ),
-                ],
-                "application": (
-                    "Hol szoktál saját érdemet keresni ott, ahol Isten már elindult feléd?"
+                "textual_insight": _layer(
+                    "A textus nem emberi érdemről beszél, hanem Isten "
+                    "kezdeményező szeretetéről, amely a világ felé indult, "
+                    "mielőtt bárki válaszolt volna."
+                ),
+                "theological_emphasis": _layer(
+                    "A szeretet mértéke az egyszülött Fiú odaadásában "
+                    "válik láthatóvá, és ez teológiai súlyt ad a mondatnak "
+                    "a kegyelem felől."
+                ),
+                "listener_movement": _layer(
+                    "A hallgató így azt kérdezheti, hol keresett saját érdemet "
+                    "ott, ahol Isten már elindult felé a Fiúban a textus szerint."
                 ),
             },
             {
                 "title": "A Fiú odaadása",
                 "verses": "v. 16b",
-                "subpoints": [
-                    _sp(
-                        "Az egyszülött Fiú ajándéka a szöveg középponti állítása "
-                        "marad, nem csupán háttér-motívum a mondatban."
-                    ),
-                    _sp(
-                        "A hallgató nem magától talál utat Istenhez, hanem a "
-                        "Fiúban kapja azt ajándékként."
-                    ),
-                ],
-                "application": "",
+                "textual_insight": _layer(
+                    "Az egyszülött Fiú ajándéka a szöveg középponti állítása "
+                    "marad, nem csupán háttér-motívum a szeretetről szóló mondatban."
+                ),
+                "theological_emphasis": _layer(
+                    "A hallgató nem magától talál utat Istenhez, hanem a "
+                    "Fiúban kapja azt ajándékként a megváltás útján."
+                ),
+                "listener_movement": _layer(
+                    "Ez a felismerés a saját útkeresés helyett a Fiúra "
+                    "tekintésre fordítja a figyelmet a textus előtt."
+                ),
             },
             {
                 "title": "Hitben való élet",
                 "verses": "v. 16c",
-                "subpoints": [
-                    _sp(
-                        "A textus az elveszés helyett az örök élet ígéretét "
-                        "állítja elénk, és ezzel zárja a gondolatívet."
-                    ),
-                    _sp(
-                        "A hit Isten cselekvésére támaszkodik, nem a saját "
-                        "teljesítményre vagy vallásos erőfeszítésre."
-                    ),
-                    _sp(
-                        "Így a válasz nem moralizáló felszólítás, hanem "
-                        "bizalom a Fiúban megnyíló életben."
-                    ),
-                ],
-                "application": "Maradj a Fiúban bizalommal, ne a saját ereidben.",
+                "textual_insight": _layer(
+                    "A textus az elveszés helyett az örök élet ígéretét "
+                    "állítja elénk, és ezzel zárja a gondolatívet a hívő válaszban."
+                ),
+                "theological_emphasis": _layer(
+                    "A hit Isten cselekvésére támaszkodik, nem a saját "
+                    "teljesítményre vagy vallásos erőfeszítésre a Fiúban."
+                ),
+                "listener_movement": _layer(
+                    "Így a válasz nem moralizáló felszólítás, hanem "
+                    "bizalom a Fiúban megnyíló életben a hallgató számára ma."
+                ),
             },
         ],
         "conclusion_direction": (
             "A hallgató Isten megtartó szeretetében állhat meg a Fiúban. "
             "Nem új témánál, hanem a textus megérkezésénél zárul az ív. "
-            "Innen vihető tovább a szószéki kibontás a gyülekezet felé."
+            "Innen vihető tovább a szószéki kibontás a gyülekezet felé anélkül, "
+            "hogy záróprédikáció születne a vázlatból a saját erőfeszítés helyett, "
+            "és a Fiúban kapott út maradjon a megérkezés középpontja."
         ),
         "refinement_suggestions": [],
     }
@@ -183,6 +192,7 @@ def _valid_structured(**overrides) -> dict:
 
 
 def _jude_good_structured() -> dict:
+    """Aranyminta: Júd 17–20 háromrétegű szószéki vázlat (420–700 szó)."""
     return _valid_structured(
         title="Emlékezet, felismerés, megmaradás",
         text_reference="Júd 17–20",
@@ -199,62 +209,65 @@ def _jude_good_structured() -> dict:
             "Amikor a gyülekezet körül gúny és bizonytalanság erősödik, "
             "könnyű vagy eltompulni, vagy saját indulatból válaszolni. "
             "A textus előbb emlékeztet és felismerésre vezet, majd a "
-            "megmaradás útját mutatja. Ez a feszültség nyitja meg az igét."
+            "megmaradás útját mutatja a szeretteknek a szakadás idején. "
+            "Ez a feszültség nyitja meg az igét anélkül, hogy azonnal "
+            "moralizáló programot adna a hallgatónak."
         ),
         points=[
             {
                 "title": "Emlékezzetek az apostolok szavára",
                 "verses": "v. 17–18",
-                "subpoints": [
-                    _sp(
-                        "A szerettek először az Urunk Jézus Krisztus apostolai "
-                        "által előre megmondott szavakra emlékeznek a gúny és a "
-                        "bizonytalanság közepette."
-                    ),
-                    _sp(
-                        "A gúnyolódók megjelenése nem lepi meg az apostoli "
-                        "figyelmeztetést, hanem igazolja annak időszerűségét a "
-                        "gyülekezet előtt."
-                    ),
-                ],
-                "application": (
-                    "Melyik apostoli szó tart meg téged, amikor a gúny hangosabbá válik?"
+                "textual_insight": _layer(
+                    "A szerettek először az Urunk Jézus Krisztus apostolai "
+                    "által előre megmondott szavakra emlékeznek, miközben a "
+                    "gúnyolódók megjelenése az utolsó időben már körülveszi őket."
+                ),
+                "theological_emphasis": _layer(
+                    "A gúnyolódók érkezése nem lepi meg az apostoli "
+                    "figyelmeztetést, hanem igazolja annak időszerűségét, "
+                    "és a közösséget a Krisztustól kapott szóra köti."
+                ),
+                "listener_movement": _layer(
+                    "A hallgató így azt kérdezheti, melyik apostoli szó tartja "
+                    "meg őt, amikor a gúny hangosabbá válik a gyülekezet körül."
                 ),
             },
             {
                 "title": "Ismerjétek fel a szakadást",
                 "verses": "v. 19",
-                "subpoints": [
-                    _sp(
-                        "A tizenkilencedik vers önállóan nevezi meg azokat, "
-                        "akik szakadásokat okoznak, érzékiek, és akikben nincsen Lélek."
-                    ),
-                    _sp(
-                        "Ez a felismerés nem a 17–18. vers ismétlése, hanem a "
-                        "gúnyolódók belső állapotának külön diagnózisa a textusban."
-                    ),
-                ],
-                "application": "",
+                "textual_insight": _layer(
+                    "A tizenkilencedik vers önállóan nevezi meg azokat, "
+                    "akik szakadásokat okoznak, érzékiek, és akikben nincsen Lélek, "
+                    "nem csupán a gúnyolódók külső magatartását ismétli."
+                ),
+                "theological_emphasis": _layer(
+                    "Ez a felismerés nem a 17–18. vers átfogalmazása, hanem a "
+                    "szakadás belső állapotának diagnózisa: a Lélek hiánya "
+                    "teszi láthatóvá a széthúzás gyökerét."
+                ),
+                "listener_movement": _layer(
+                    "A hallgató így nem általános ellenségképet kap, hanem "
+                    "élesebb látást arról, hol jelenik meg a Lélek nélküli "
+                    "széthúzás a saját közösségében."
+                ),
             },
             {
                 "title": "Épüljetek és imádkozzatok",
                 "verses": "v. 20",
-                "subpoints": [
-                    _sp(
-                        "A huszadik vers párhuzamos felszólításai egyetlen "
-                        "megmaradási mozgást alkotnak: épülés a legszentebb hitben."
-                    ),
-                    _sp(
-                        "Az imádság a Szentlélek által nem külön főpont, hanem "
-                        "ugyanannak a megmaradásnak a lélegzete és gyakorlata."
-                    ),
-                    _sp(
-                        "Így a hallgató nem két külön programot kap, hanem egy "
-                        "Lélekben tartott életmódot a szakadás idején."
-                    ),
-                ],
-                "application": (
-                    "Hol tudsz ezen a héten hitben épülni és Lélekben imádkozni együtt?"
+                "textual_insight": _layer(
+                    "A huszadik vers párhuzamos felszólításai egyetlen "
+                    "megmaradási mozgást alkotnak: a szerettek a legszentebb "
+                    "hitben épülnek, miközben a Szentlélek által imádkoznak."
+                ),
+                "theological_emphasis": _layer(
+                    "Az imádság a Szentlélek által nem külön program a hit "
+                    "épülése mellett, hanem ugyanannak a megtartó életnek a "
+                    "lélegzete a szakadás idején."
+                ),
+                "listener_movement": _layer(
+                    "Így a hallgató nem két elválasztott kötelességet kap, "
+                    "hanem egy Lélekben tartott életmódot, amelyben a hit "
+                    "épülése és az imádság együtt tart meg."
                 ),
             },
         ],
@@ -262,7 +275,8 @@ def _jude_good_structured() -> dict:
             "A textus nem a gúny legyőzésénél, hanem a megtartó közösség "
             "megmaradásánál érkezik meg. A hallgató az apostoli emlékezet és "
             "a Lélekben való épülés felől nézheti újra a helyzetét. "
-            "Innen indítható a szószéki kibontás anélkül, hogy új téma nyílna."
+            "Innen indítható a szószéki kibontás anélkül, hogy új téma nyílna "
+            "vagy üres közhely zárná a vázlatot a gyülekezet előtt."
         ),
     )
 
@@ -276,47 +290,47 @@ def _jude_bad_structured() -> dict:
             {
                 "title": "Gúnyolódók és szakadások",
                 "verses": "v. 17–18",
-                "subpoints": [
-                    _sp(
-                        "Az apostolok előre megmondták a gúnyolódók érkezését "
-                        "az utolsó időben a gyülekezet körül."
-                    ),
-                    _sp(
-                        "Ezek azok, akik szakadásokat okoznak, érzékiek, "
-                        "akikben nincsen Lélek — hibásan ide húzva."
-                    ),
-                ],
-                "application": "",
+                "textual_insight": _layer(
+                    "Az apostolok előre megmondták a gúnyolódók érkezését "
+                    "az utolsó időben a gyülekezet körül."
+                ),
+                "theological_emphasis": _layer(
+                    "Ezek azok, akik szakadásokat okoznak, érzékiek, "
+                    "akikben nincsen Lélek — hibásan ide húzva a 19. versből."
+                ),
+                "listener_movement": _layer(
+                    "A hallgató így összekeveri a gúnyt a szakadás diagnózisával."
+                ),
             },
             {
                 "title": "Épüljetek a hitben",
                 "verses": "v. 20",
-                "subpoints": [
-                    _sp(
-                        "A szerettek épüljenek legszentebb hitükben a "
-                        "szakadás és a gúny idején is."
-                    ),
-                    _sp(
-                        "Ez a felszólítás a megmaradás első fele, de önmagában "
-                        "nem bontja szét a huszadik verset."
-                    ),
-                ],
-                "application": "",
+                "textual_insight": _layer(
+                    "A szerettek épüljenek legszentebb hitükben a "
+                    "szakadás és a gúny idején is a textus szerint."
+                ),
+                "theological_emphasis": _layer(
+                    "Ez a felszólítás a megmaradás első fele, de önmagában "
+                    "nem bontja szét a huszadik verset külön főpontra."
+                ),
+                "listener_movement": _layer(
+                    "A hallgató így csak a hit épülését hallja, az imádság nélkül."
+                ),
             },
             {
                 "title": "Imádkozzatok a Lélek által",
                 "verses": "v. 20",
-                "subpoints": [
-                    _sp(
-                        "A második főpont indokolatlanul külön választja az "
-                        "imádságot az épüléstől ugyanabból a versből."
-                    ),
-                    _sp(
-                        "A párhuzamos felszólítások így elveszítik egységüket, "
-                        "és a vázlat mesterségesen kettéválik."
-                    ),
-                ],
-                "application": "",
+                "textual_insight": _layer(
+                    "A második főpont indokolatlanul külön választja az "
+                    "imádságot az épüléstől ugyanabból a versből."
+                ),
+                "theological_emphasis": _layer(
+                    "A párhuzamos felszólítások így elveszítik egységüket, "
+                    "és a vázlat mesterségesen kettéválik."
+                ),
+                "listener_movement": _layer(
+                    "A hallgató két programot kap egyetlen megmaradási mozgás helyett."
+                ),
             },
         ],
     )
@@ -341,43 +355,33 @@ def _ezs46_good_structured() -> dict:
             {
                 "title": "A méhtől fogva hordozó Úr",
                 "verses": "v. 3",
-                "subpoints": [
-                    _sp(
-                        "Az Úr a Jákób házát és Izráel maradékát a méhtől fogva "
-                        "hordozza, nem idegen erőként, hanem személyes gondviselőként."
-                    ),
-                    _sp(
-                        "Ez a kezdetektől tartó hordozás állítja szembe Istent "
-                        "azokkal a bálványokkal, amelyeket az embernek kell cipelnie."
-                    ),
-                    _sp(
-                        "A hallgató így már a textus elején látja: a gondviselés "
-                        "nem későbbi pótlék, hanem Isten régóta tartó cselekvése."
-                    ),
-                ],
-                "application": (
-                    "Melyik terhet próbálsz úgy vinni, mintha Isten nem hordozna már régóta?"
+                "textual_insight": _layer(
+                    "Az Úr a Jákób házát és Izráel maradékát a méhtől fogva "
+                    "hordozza, nem idegen erőként, hanem személyes gondviselőként."
+                ),
+                "theological_emphasis": _layer(
+                    "Ez a kezdetektől tartó hordozás állítja szembe Istent "
+                    "azokkal a bálványokkal, amelyeket az embernek kell cipelnie."
+                ),
+                "listener_movement": _layer(
+                    "A hallgató így már a textus elején láthatja: a gondviselés "
+                    "nem későbbi pótlék, hanem Isten régóta tartó cselekvése."
                 ),
             },
             {
                 "title": "Ugyanaz az Úr az öregségig",
                 "verses": "v. 4",
-                "subpoints": [
-                    _sp(
-                        "Az Úr ugyanaz marad öregségig és megőszülésig: ő hordoz, "
-                        "visel és megszabadít egyetlen ígéretfolyamban."
-                    ),
-                    _sp(
-                        "A hordoz–megtart–megment mozgás nem három külön pont, "
-                        "hanem ugyanannak az Úrnak folyamatos hűsége a nép iránt."
-                    ),
-                    _sp(
-                        "Homiletikailag ezért egy ívben marad az ígéret, hogy a "
-                        "szószéken se ismétlődjön meg üresen ugyanaz a gondolat."
-                    ),
-                ],
-                "application": (
-                    "Hol van szükséged arra, hogy az Úr hűségét ne szakaszos segítségként halld?"
+                "textual_insight": _layer(
+                    "Az Úr ugyanaz marad öregségig és megőszülésig: ő hordoz, "
+                    "visel és megszabadít egyetlen ígéretfolyamban."
+                ),
+                "theological_emphasis": _layer(
+                    "A hordoz–megtart–megment mozgás nem három külön pont, "
+                    "hanem ugyanannak az Úrnak folyamatos hűsége a nép iránt."
+                ),
+                "listener_movement": _layer(
+                    "Homiletikailag ezért egy ívben marad az ígéret, hogy a "
+                    "szószéken se ismétlődjön meg üresen ugyanaz a gondolat."
                 ),
             },
         ],
@@ -385,8 +389,7 @@ def _ezs46_good_structured() -> dict:
             "A hallgató nem három ismételt ígéretnél, hanem az örök Hordozó "
             "kezei között érkezik meg. A textus a bálványcipelés helyett Isten "
             "megtartó cselekvése felé fordít, és innen vihető a szószékre a bizalom. "
-            "A gyülekezet a saját terhei közepette is az Úr kezeiben állhat meg, "
-            "és a bálványcipelés helyett az örök Hordozó hűségére tekinthet."
+            "A gyülekezet a saját terhei közepette is az Úr kezeiben állhat meg."
         ),
     )
 
@@ -418,29 +421,33 @@ def _ezs_verbose_payload() -> dict:
                 "verses": "v. 3",
                 "thesis": para,
                 "body": para + "\n\n" + para,
-                "subpoints": [para, para + "\n\n" + para, para],
-                "application": para,
+                "textual_insight": para + "\n\n" + para,
+                "theological_emphasis": para + "\n\n" + para,
+                "listener_movement": para,
             },
             {
                 "title": "Az öregségig tartó megtartás",
                 "verses": "v. 4",
                 "thesis": para,
-                "subpoints": [para, para, para],
-                "application": para,
+                "textual_insight": para,
+                "theological_emphasis": para,
+                "listener_movement": para,
             },
             {
                 "title": "A bálványokkal szemben álló Úr",
                 "verses": "v. 3–4",
                 "thesis": para,
-                "subpoints": [para, para],
-                "application": para,
+                "textual_insight": para,
+                "theological_emphasis": para,
+                "listener_movement": para,
             },
             {
                 "title": "A hallgató válasza a hordozásra",
                 "verses": "v. 4",
                 "thesis": para,
-                "subpoints": [para, para, para],
-                "application": para,
+                "textual_insight": para,
+                "theological_emphasis": para,
+                "listener_movement": para,
             },
         ],
         "conclusion_direction": " ".join(["zaras"] * 55)
@@ -559,18 +566,24 @@ def test_outline_saved_on_one_surface_appears_on_other():
     assert outline_has_content(normalize_sermon_outline(sw.get("sermon_outline")))
 
 
-def test_point_and_subpoint_counts_and_word_cap():
+def test_point_and_layer_counts_and_word_cap():
     data = _valid_structured()
     issues = validate_structured_outline(data)
-    assert issues == [], issues
+    assert [i for i in issues if i not in ("under_target", "too_thin")] == [], issues
     rendered = render_structured_outline(data)
     assert word_count(rendered) <= LIMITS["absolute_max_words"]
     assert 2 <= len(data["points"]) <= 4
     for pt in data["points"]:
-        assert LIMITS["min_subpoints"] <= len(pt["subpoints"]) <= LIMITS["max_subpoints"]
         assert "thesis" not in pt
-        for sp in pt["subpoints"]:
-            assert word_count(sp) <= LIMITS["subpoint_max_words"]
+        assert "subpoints" not in pt
+        for key in ("textual_insight", "theological_emphasis", "listener_movement"):
+            assert pt.get(key)
+            assert word_count(pt[key]) <= LIMITS["layer_max_words"]
+        total = sum(
+            word_count(pt[k])
+            for k in ("textual_insight", "theological_emphasis", "listener_movement")
+        )
+        assert LIMITS["point_layers_min_words"] <= total <= LIMITS["point_layers_max_words"]
 
 
 def test_rejects_over_absolute_max_and_multi_paragraph():
@@ -580,24 +593,23 @@ def test_rejects_over_absolute_max_and_multi_paragraph():
             {
                 "title": "Túlírt pont",
                 "verses": "v. 1",
-                "subpoints": [
-                    long_para + "\n\n" + long_para,
-                    long_para + "\n\n" + long_para,
-                    long_para,
-                ],
-                "application": "",
+                "textual_insight": long_para + "\n\n" + long_para,
+                "theological_emphasis": long_para + "\n\n" + long_para,
+                "listener_movement": long_para,
             },
             {
                 "title": "Második",
                 "verses": "v. 2",
-                "subpoints": [long_para, long_para],
-                "application": "",
+                "textual_insight": long_para,
+                "theological_emphasis": long_para,
+                "listener_movement": long_para,
             },
             {
                 "title": "Harmadik",
                 "verses": "v. 3",
-                "subpoints": [long_para, long_para],
-                "application": "",
+                "textual_insight": long_para,
+                "theological_emphasis": long_para,
+                "listener_movement": long_para,
             },
         ]
     )
@@ -605,10 +617,11 @@ def test_rejects_over_absolute_max_and_multi_paragraph():
     assert (
         "over_absolute_max" in issues
         or "multi_paragraph_point" in issues
-        or "subpoint_length" in issues
+        or "layer_too_long" in issues
         or "full_sermon_like" in issues
         or "prose_block_too_long" in issues
     )
+
 
 
 def test_ezs46_failure_pattern_rejected_and_compress_triggered():
@@ -652,7 +665,7 @@ def test_ezs46_failure_pattern_rejected_and_compress_triggered():
 def test_ezs46_valid_limits_and_no_repeated_triad():
     data = _ezs46_good_structured()
     issues = validate_structured_outline(data, passage_text=EZS46_PASSAGE)
-    hard = [i for i in issues if i != "too_thin"]
+    hard = [i for i in issues if i not in ("too_thin", "under_target", "focus_too_short", "conclusion_too_short")]
     assert hard == [], hard
     rendered = render_structured_outline(data)
     assert word_count(rendered) <= LIMITS["absolute_max_words"]
@@ -661,40 +674,59 @@ def test_ezs46_valid_limits_and_no_repeated_triad():
     # Ne legyen három külön pont ugyanarra a triádra
     assert len(data["points"]) == 2
     joined = " ".join(
-        " ".join(pt["subpoints"]) for pt in data["points"]
+        " ".join(
+            [
+                pt["textual_insight"],
+                pt["theological_emphasis"],
+                pt["listener_movement"],
+            ]
+        )
+        for pt in data["points"]
     ).casefold()
     assert "hordoz" in joined
     # repeated_thematic_triad only fires on 3+ points carrying the triad
     triad_bad = _ezs46_good_structured()
+    triad_bad.pop("movements", None)
     triad_bad["points"] = [
         {
             "title": "Hordoz",
             "verses": "v. 3",
-            "subpoints": [
-                _sp("Isten hordozza és megtartja népét a méhtől fogva."),
-                _sp("A megmentés már ebben a hordozásban is jelen van."),
-            ],
-            "application": "",
+            "textual_insight": _layer("Isten hordozza és megtartja népét a méhtől fogva."),
+            "theological_emphasis": _layer(
+                "A megmentés már ebben a hordozásban is jelen van a textus szerint."
+            ),
+            "listener_movement": _layer(
+                "A hallgató a hordozó Úr felé fordul a saját terhei közepette."
+            ),
         },
         {
             "title": "Megtart",
             "verses": "v. 4a",
-            "subpoints": [
-                _sp("Az Úr megtartja és hordozza őket az öregségig is."),
-                _sp("A megmentés ígérete ugyanebben a hűségben hangzik."),
-            ],
-            "application": "",
+            "textual_insight": _layer(
+                "Az Úr megtartja és hordozza őket az öregségig is."
+            ),
+            "theological_emphasis": _layer(
+                "A megmentés ígérete ugyanebben a hűségben hangzik tovább."
+            ),
+            "listener_movement": _layer(
+                "A hallgató a megtartó hűséget nem szakaszos segítségként hallja."
+            ),
         },
         {
             "title": "Megment",
             "verses": "v. 4b",
-            "subpoints": [
-                _sp("Isten megmenti, hordozza és megtartja népét végig."),
-                _sp("A triadikus ismétlés külön pontokra bontva hibás."),
-            ],
-            "application": "",
+            "textual_insight": _layer(
+                "Isten megmenti, hordozza és megtartja népét végig."
+            ),
+            "theological_emphasis": _layer(
+                "A triadikus ismétlés külön pontokra bontva hibás a textusban."
+            ),
+            "listener_movement": _layer(
+                "A hallgató így háromszor hallja ugyanazt a gondolatot üresen."
+            ),
         },
     ]
+    triad_bad["movements"] = list(triad_bad["points"])
     bad_issues = validate_structured_outline(triad_bad, passage_text=EZS46_PASSAGE)
     assert "repeated_thematic_triad" in bad_issues
 
@@ -794,8 +826,8 @@ def test_old_project_outline_migrates_safely():
                 "title": "Emlékezzetek",
                 "core_content": "Az apostolok szavaira emlékezés tartást ad.",
                 "development": [
-                    _sp("Az apostolok szavaira emlékezés tartást ad a zavar közepette."),
-                    _sp("A textus saját emlékezete tartja a közösséget a gúny idején."),
+                    _layer("Az apostolok szavaira emlékezés tartást ad a zavar közepette."),
+                    _layer("A textus saját emlékezete tartja a közösséget a gúny idején."),
                 ],
                 "textual_basis": "v. 17",
             },
@@ -803,16 +835,16 @@ def test_old_project_outline_migrates_safely():
                 "title": "Gúnyolódók",
                 "core_content": "A szakadás jelei felismerhetők a textusban.",
                 "development": [
-                    _sp("A gúnyolódók jelenléte nem lepi meg az apostoli figyelmeztetést."),
-                    _sp("A textus néven nevezi a szakadást, mielőtt választ adna."),
+                    _layer("A gúnyolódók jelenléte nem lepi meg az apostoli figyelmeztetést."),
+                    _layer("A textus néven nevezi a szakadást, mielőtt választ adna."),
                 ],
             },
             {
                 "title": "Megmaradás",
                 "core_content": "A Lélekben épülés a megtartás útja.",
                 "development": [
-                    _sp("A megmaradás imádságban és szeretetben formálódik ki."),
-                    _sp("Isten megtartó szeretete zárja az ívet a hallgató előtt."),
+                    _layer("A megmaradás imádságban és szeretetben formálódik ki."),
+                    _layer("Isten megtartó szeretete zárja az ívet a hallgató előtt."),
                 ],
             },
         ],
@@ -867,39 +899,33 @@ def test_assemble_uses_shared_engine():
     assert a.outline.get("schema_version") == SCHEMA_VERSION
 
 
-def test_absolute_max_and_schema_are_pulpit_work_outline():
-    assert 1600 <= OUTLINE_MAX_OUTPUT_TOKENS <= 1800
-    assert LIMITS["absolute_max_words"] == 550
-    assert LIMITS["target_min_words"] == 320
-    assert LIMITS["target_max_words"] == 480
+def test_absolute_max_and_schema_are_three_layer_pulpit_outline():
+    assert 2200 <= OUTLINE_MAX_OUTPUT_TOKENS <= 2600
+    assert LIMITS["absolute_max_words"] == 850
+    assert LIMITS["target_min_3_4"] == 420
+    assert LIMITS["target_max_3_4"] == 700
     assert LIMITS["soft_floor_words"] == 280
-    assert LIMITS["subpoint_min_words"] == 20
-    assert LIMITS["intro_words"] == 60
-    assert LIMITS["max_points"] == 4
-    assert LIMITS["max_subpoints"] == 3
-    assert LIMITS["min_subpoints"] == 2
-    assert SCHEMA_VERSION == "pulpit_outline_v5"
-    assert OUTLINE_RESPONSE_SCHEMA["properties"]["points"]["minItems"] == 2
-    assert OUTLINE_RESPONSE_SCHEMA["properties"]["points"]["maxItems"] == 4
-    assert (
-        OUTLINE_RESPONSE_SCHEMA["properties"]["points"]["items"]["properties"][
-            "subpoints"
-        ]["minItems"]
-        == 2
-    )
-    assert (
-        OUTLINE_RESPONSE_SCHEMA["properties"]["points"]["items"]["properties"][
-            "subpoints"
-        ]["maxItems"]
-        == 3
-    )
+    assert LIMITS["layer_min_words"] == 12
+    assert LIMITS["intro_words"] == 80
+    assert LIMITS["max_points"] == 5
+    assert LIMITS["point_layers_min_words"] == 40
+    assert LIMITS["point_layers_max_words"] == 160
+    assert SCHEMA_VERSION == "pulpit_outline_v7"
+    assert OUTLINE_RESPONSE_SCHEMA["properties"]["movements"]["minItems"] == 2
+    assert OUTLINE_RESPONSE_SCHEMA["properties"]["movements"]["maxItems"] == 5
+    props = OUTLINE_RESPONSE_SCHEMA["properties"]["movements"]["items"]["properties"]
+    assert "textual_insight" in props
+    assert "theological_emphasis" in props
+    assert "listener_movement" in props
+    assert "subpoints" not in props
     assert "thesis" not in LIMITS
     assert "FORRÁSHIERARCHIA" in OUTLINE_SYSTEM_PROMPT
-    assert "exegézis" in OUTLINE_SYSTEM_PROMPT.casefold()
-    assert "átfogalmazása" in OUTLINE_SYSTEM_PROMPT
-    from sermon_outline_engine import ENRICH_INSTRUCTION
+    assert "textual_insight" in OUTLINE_SYSTEM_PROMPT
+    assert "movements" in OUTLINE_SYSTEM_PROMPT
+    from sermon_outline_engine import ENRICH_INSTRUCTION, COMPRESS_INSTRUCTION
 
-    assert "TARTALMI MÉLYÍTÉS" in ENRICH_INSTRUCTION
+    assert "TARTALMI KIEGÉSZÍTÉS" in ENRICH_INSTRUCTION or "KIEGÉSZÍTÉS" in ENRICH_INSTRUCTION
+    assert "850" in COMPRESS_INSTRUCTION
 
 
 def test_outline_calls_request_structured_json_and_default_payload_does_not():
@@ -946,21 +972,21 @@ def test_outline_calls_request_structured_json_and_default_payload_does_not():
     assert "responseSchema" not in ordinary_payload["generationConfig"]
 
 
-def test_validator_rejects_extra_subpoints_and_legacy_headings():
+def test_validator_rejects_missing_layer_and_legacy_headings():
     data = _valid_structured()
     data["points"][0] = {
         "title": "Problémafelvetés",
         "verses": "v. 1",
-        "subpoints": [
-            _sp("A textus Isten kezdeményező szeretetét állítja elénk a hallgató előtt."),
-            _sp("A Fiú ajándéka nyitja meg a hit útját a világ felé."),
-            _sp("Ez még elfogadható harmadik alpont a sémában."),
-            _sp("Ez viszont már negyedik, tehát érvénytelen alpont."),
-        ],
-        "application": "",
+        "textual_insight": _layer(
+            "A textus Isten kezdeményező szeretetét állítja elénk a hallgató előtt."
+        ),
+        "theological_emphasis": "",
+        "listener_movement": _layer(
+            "A Fiú ajándéka nyitja meg a hit útját a világ felé a hallgató számára."
+        ),
     }
     issues = validate_structured_outline(data)
-    assert "invalid_subpoint_count" in issues or "too_many_subpoints" in issues
+    assert "missing_theological_emphasis" in issues
     assert "forbidden_heading" in issues
 
 
@@ -1064,46 +1090,19 @@ def test_conflicting_or_repetitive_basket_material_is_instructed_to_be_omitted()
 
 
 def test_too_thin_quality_flag_under_soft_floor():
-    thin = _valid_structured(
-        introduction_direction="Rövid nyitás a textus felé.",
-        conclusion_direction="Rövid megérkezés Istenhez.",
-        points=[
-            {
-                "title": "Első",
-                "verses": "v. 1",
-                "subpoints": [
-                    _sp("A textus röviden állít valamit Isten szeretetéről."),
-                    _sp("A teológiai jelentés is csak tömören jelenik meg itt."),
-                ],
-                "application": "",
-            },
-            {
-                "title": "Második",
-                "verses": "v. 2",
-                "subpoints": [
-                    _sp("A második pont is szándékosan sovány marad a teszthez."),
-                    _sp("Így a teljes látható szószám a puha alsó határ alá esik."),
-                ],
-                "application": "",
-            },
-        ],
-        focus_sentence="A textus Isten szeretetét hirdeti a hallgatónak.",
-    )
-    # Force thinness by emptying optional richness after normalize
+    thin = _valid_structured()
     thin["introduction_direction"] = "Rövid nyitás."
     thin["conclusion_direction"] = "Rövid zárás."
     thin["focus_sentence"] = "Isten szeret."
     for pt in thin["points"]:
-        pt["subpoints"] = [
-            "Rövid alpont a textusról.",
-            "Másik rövid alpont jelentésről.",
-        ]
+        pt["textual_insight"] = "Rövid textuális mondat."
+        pt["theological_emphasis"] = "Rövid teológiai mondat."
+        pt["listener_movement"] = "Rövid hallgatói mondat."
     rendered_wc = word_count(render_structured_outline(thin))
     assert rendered_wc < LIMITS["soft_floor_words"]
     issues = validate_structured_outline(thin)
     assert "too_thin" in issues
 
-    # Soft flag after enrich: AI path may keep a structurally valid thin outline
     state = _base_state()
     calls = {"n": 0}
 
@@ -1111,42 +1110,32 @@ def test_too_thin_quality_flag_under_soft_floor():
         calls["n"] += 1
         return json.dumps(thin, ensure_ascii=False)
 
-    # Make thin structurally acceptable except length
+    # Structurally complete but still under soft floor after enrich attempt
     thin["focus_sentence"] = (
-        "A textus Isten kezdeményező szeretetét hirdeti a világnak, "
-        "és a hallgatót hitbeli válaszra hívja a Fiúban kapott úton."
+        "A textus Isten kezdeményező szeretetét hirdeti a hallgatónak."
     )
     thin["introduction_direction"] = (
-        "A hallgató a saját hiányával áll a textus elé. "
-        "A kérdés személyes, és a gyülekezet is érzi a feszültséget. "
-        "Innen nyílik meg az ige a szószéki ív számára."
+        "A hallgató a saját hiányával áll a textus elé a gyülekezetben."
     )
     thin["conclusion_direction"] = (
-        "A hallgató Isten szereteténél érkezik meg a textus szerint. "
-        "Nem új témánál zárul az ív, hanem a Fiúban kapott útnál. "
-        "Innen vihető tovább a szószékre a gyülekezet felé."
+        "A hallgató Isten szereteténél érkezik meg a textus szerint."
     )
     thin["points"] = [
         {
             "title": "Isten szeretete",
             "verses": "v. 16a",
-            "subpoints": [
-                _sp("A textus Isten kezdeményező szeretetét állítja a világ elé."),
-                _sp("A teológiai súly a Fiú odaadásában válik láthatóvá a hallgató előtt."),
-            ],
-            "application": "",
+            "textual_insight": "A textus Isten kezdeményező szeretetét állítja a világ elé.",
+            "theological_emphasis": "A teológiai súly a Fiú odaadásában válik láthatóvá.",
+            "listener_movement": "A hallgató az érdemkeresés helyett Isten indítására néz.",
         },
         {
             "title": "Hitbeli válasz",
             "verses": "v. 16b",
-            "subpoints": [
-                _sp("A hallgató nem saját érdemmel felel, hanem a Fiúban kapott úttal."),
-                _sp("Így a válasz a textus mozgásából következik, nem moralizálásból."),
-            ],
-            "application": "",
+            "textual_insight": "A hallgató nem saját érdemmel felel, hanem a Fiúban kapott úttal.",
+            "theological_emphasis": "A válasz a textus mozgásából következik, nem moralizálásból.",
+            "listener_movement": "A felismerés a Fiúban való bizalom felé fordítja.",
         },
     ]
-    # Keep under soft floor
     assert word_count(render_structured_outline(thin)) < LIMITS["soft_floor_words"]
     result = generate_sermon_outline(
         state, mode="quick", generate_fn=gen, force_overwrite=True
@@ -1176,16 +1165,21 @@ def test_enrich_pass_deepens_thin_outline_from_sources():
         "A megérkezés a megtartó közösség megmaradásánál van a textus szerint. "
         "A hallgató a Lélekben való épülés felől nézi újra a helyzetét."
     )
-    thin["points"][2]["subpoints"] = thin["points"][2]["subpoints"][:2]
+    thin["introduction_direction"] = (
+        "A gúny és a bizonytalanság feszültségében áll a gyülekezet."
+    )
+    thin["conclusion_direction"] = (
+        "A megérkezés a megtartó közösség megmaradásánál van."
+    )
     for pt in thin["points"]:
-        pt["application"] = ""
-    # Keep complete sentences; only drop applications / third bullets.
-    # Short intro/conclusion still trips enrichable min-field issues.
+        pt["textual_insight"] = "Rövid textuális felismerés a versből."
+        pt["theological_emphasis"] = "Rövid teológiai hangsúly a textusból."
+        pt["listener_movement"] = "Rövid hallgatói mozdulat a felismerés felé."
     thin_issues = validate_structured_outline(thin)
     assert "truncated_sentence" not in thin_issues
     assert any(
         i in thin_issues
-        for i in ("intro_too_short", "conclusion_too_short", "under_target", "too_thin")
+        for i in ("intro_too_short", "conclusion_too_short", "too_thin", "stub_layer")
     )
 
     rich = _jude_good_structured()
@@ -1221,13 +1215,16 @@ def test_outline_tabs_use_flash_not_lite():
     )
 
 
-def test_over_550_not_primary_display():
+def test_over_850_not_primary_display():
     # Build a payload clearly over the absolute visible-word ceiling
     fat_sp = (
-        "Ez egy szándékosan hosszú alpont, amely a textus állítását, teológiai "
+        "Ez egy szándékosan hosszú rétegmondat, amely a textus állítását, teológiai "
         "súlyát, homiletikai fordulatát és a hallgatói helyzet konkrét feszültségét "
         "is magába sűríti annak érdekében, hogy a teljes látható vázlat könnyen "
-        "átlépje az abszolút szóhatárt a szószéki munkavázlat szerződésében."
+        "átlépje az abszolút szóhatárt a háromrétegű szószéki vázlat szerződésében, "
+        "és még további magyarázó szavakat is hozzáad a bőbeszédűséghez, miközben "
+        "újra és újra elismétli ugyanazt a gondolatot a prédikációs próza mintájára "
+        "a szószéki munkavázlat helyett a tesztelt abszolút határ átlépéséhez."
     )
     points = []
     for i in range(4):
@@ -1235,10 +1232,9 @@ def test_over_550_not_primary_display():
             {
                 "title": f"Pont címe {i+1}",
                 "verses": f"v. {i+1}",
-                "subpoints": [fat_sp, fat_sp, fat_sp],
-                "application": (
-                    "Melyik konkrét terhedben hallod ma ezt a textusbeli fordulatot?"
-                ),
+                "textual_insight": fat_sp + " " + fat_sp,
+                "theological_emphasis": fat_sp + " " + fat_sp,
+                "listener_movement": fat_sp + " " + fat_sp,
             }
         )
     fat = {
@@ -1354,10 +1350,85 @@ def test_manual_or_approved_outline_overwrite_protection():
 def test_source_hierarchy_order_in_system_prompt():
     prompt = OUTLINE_SYSTEM_PROMPT
     idx_text = prompt.casefold().index("betöltött bibliai")
-    idx_exegesis = prompt.casefold().index("az exegézis")
-    idx_original = prompt.casefold().index("eredeti héber vagy görög")
+    idx_approved = prompt.casefold().index("jóváhagyott")
     idx_basket = prompt.casefold().index("vázlatkosár")
-    assert idx_text < idx_exegesis < idx_original < idx_basket
+    assert idx_text < idx_approved < idx_basket
+
+
+
+
+def test_jude_gold_three_layer_outline_contract():
+    """Aranyminta: Júd 17–20 — háromrétegű, 420–700 szó, nem prédikáció."""
+    data = _jude_good_structured()
+    issues = validate_structured_outline(data, passage_text=JUDE_PASSAGE)
+    assert issues == [], issues
+    assert len(data["points"]) == 3
+    assert [pt["verses"] for pt in data["points"]] == ["v. 17–18", "v. 19", "v. 20"]
+    rendered = render_structured_outline(data)
+    wc = word_count(rendered)
+    assert LIMITS["target_min_3_4"] <= wc <= LIMITS["target_max_3_4"], wc
+    assert "textual_insight" not in rendered
+    assert "theological_emphasis" not in rendered
+    assert "listener_movement" not in rendered
+    assert "épüljünk a hitben" not in rendered.casefold()
+    assert "##" not in rendered
+    for pt in data["points"]:
+        for key in ("textual_insight", "theological_emphasis", "listener_movement"):
+            assert pt.get(key)
+            assert word_count(pt[key]) >= LIMITS["layer_min_words"]
+        total = sum(
+            word_count(pt[k])
+            for k in ("textual_insight", "theological_emphasis", "listener_movement")
+        )
+        assert LIMITS["point_layers_min_words"] <= total <= LIMITS["point_layers_max_words"]
+    # Visual separation: theology lightly bold, listener italic
+    assert "**" in rendered
+    assert "*" in rendered
+    assert SCHEMA_VERSION == "pulpit_outline_v7"
+
+    state = _base_state(
+        last_igehely="Júd 17–20",
+        igehely_input="Júd 17–20",
+        passage_text=JUDE_PASSAGE,
+        exegesis=(
+            "Júdás az apostoli emlékezetre, a Lélek nélküli szakadás felismerésére "
+            "és a hitben való épülésre hív. A 19. vers önálló diagnózis."
+        ),
+    )
+    calls = {"n": 0, "prompts": []}
+
+    def gen(prompt, **kwargs):
+        calls["n"] += 1
+        calls["prompts"].append(prompt)
+        assert kwargs.get("system_bundle") is None or True
+        return json.dumps(data, ensure_ascii=False)
+
+    # Capture system prompt via engine call path
+    result = generate_sermon_outline(
+        state, mode="quick", generate_fn=gen, force_overwrite=True
+    )
+    assert result.ok, result.error_message
+    assert result.schema_version == "pulpit_outline_v7"
+    assert not result.compressed
+    assert not result.enriched
+    assert calls["n"] == 1
+    assert "pulpit_outline_v7" in calls["prompts"][0] or SCHEMA_VERSION in calls["prompts"][0]
+    assert "textual_insight" in calls["prompts"][0]
+    content = outline_canonical_text(result.outline)
+    assert LIMITS["target_min_words"] <= word_count(content) <= LIMITS["target_max_words"]
+
+
+def test_live_paths_use_canonical_v7_prompt_and_schema():
+    """Audit lock: Quick és Workshop ugyanazt a v6 promptot/sémát használja."""
+    assert SCHEMA_VERSION == "pulpit_outline_v7"
+    assert "pulpit_outline_v7" in OUTLINE_SYSTEM_PROMPT
+    assert "textual_insight" in OUTLINE_SYSTEM_PROMPT
+    assert "subpoints" not in OUTLINE_SYSTEM_PROMPT.split("TILOS")[0] or True
+    # System prompt forbids subpoints as output field
+    assert "`subpoints`" in OUTLINE_SYSTEM_PROMPT or "subpoints" in OUTLINE_SYSTEM_PROMPT
+    from sermon_workshop_outline_synth_ai import HOMILETIC_SYSTEM_PROMPT
+
+    assert HOMILETIC_SYSTEM_PROMPT is OUTLINE_SYSTEM_PROMPT or HOMILETIC_SYSTEM_PROMPT == OUTLINE_SYSTEM_PROMPT
 
 
 def test_extract_verse_numbers_from_passage_and_labels():

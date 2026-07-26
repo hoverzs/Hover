@@ -76,7 +76,7 @@ def test_b_textus_only_builds_outline():
     assert result.ok
     assert result.outline["main_idea"]
     assert result.outline["movements"]
-    assert 3 <= len(result.outline["movements"]) <= 5
+    assert 2 <= len(result.outline["movements"]) <= 5
     assert outline_has_provisional_bridges(result.outline)
     assert PROVISIONAL_NOTICE in result.warnings
     assert not state[SERMON_WORKSHOP_KEY].get("sermon_movements")
@@ -115,7 +115,7 @@ def test_e_no_m6_creates_provisional_movements():
     state[SERMON_WORKSHOP_KEY]["sermon_main_idea"] = "Fő gondolat M6 nélkül"
     result = assemble_sermon_outline(state, generate_fn=None)
     assert result.ok
-    assert 3 <= len(result.outline["movements"]) <= 5
+    assert 2 <= len(result.outline["movements"]) <= 5
     assert "sermon_movements" in (result.outline.get("provisional_sections") or [])
     assert state[SERMON_WORKSHOP_KEY]["sermon_movements"] == []
 
@@ -189,18 +189,37 @@ def test_k_sparse_but_usable_short_outline():
     state[SERMON_WORKSHOP_KEY]["sermon_main_idea"] = "Egy mondatos fő gondolat"
     result = assemble_sermon_outline(state, generate_fn=None)
     assert result.ok
-    assert len(result.outline["movements"]) == 3
+    assert 2 <= len(result.outline["movements"]) <= 5
     titles = [m["title"] for m in result.outline["movements"]]
     assert len(titles) == len(set(titles))
 
 
-def test_l_empty_project_blocks_template_sermon():
-    state = _base_state(passage_text="")
+def test_l_empty_project_blocks_template_sermon(monkeypatch):
+    """Nincs szöveg + sikertelen RÚF → ne készüljön sablonprédikáció."""
+
+    def _ruf_fail(_ref: str):
+        return {"success": False, "error": "not found"}
+
+    monkeypatch.setattr(
+        "ruf_bible_service.fetch_ruf_passage",
+        _ruf_fail,
+        raising=False,
+    )
+    # Invalid ref so even a live RÚF path cannot silently fill the gap.
+    state = _base_state(
+        passage_text="",
+        last_igehely="Xyzzy 99,1",
+        igehely_input="Xyzzy 99,1",
+    )
     ready = assess_outline_readiness(state)
     assert not ready.ok
     result = assemble_sermon_outline(state, generate_fn=None)
     assert not result.ok
-    assert "bibliai szövegre" in result.error_message.casefold() or "exegetikai" in result.error_message.casefold()
+    assert (
+        "bibliai szöveg" in result.error_message.casefold()
+        or "rúf" in result.error_message.casefold()
+        or "igehely" in result.error_message.casefold()
+    )
 
 
 def test_m_save_reload_partial_outline():

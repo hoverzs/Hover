@@ -750,7 +750,7 @@ def _ga_field_categories() -> list[tuple[str, str]]:
 
 
 def _apply_pending_adopts_if_needed() -> None:
-    """Átvétel: widget ELŐTT (pending + rerun). Tartós approved döntésként ment."""
+    """Átvétel: widget ELŐTT (pending + rerun). Tartós draft mentés; jóváhagyás külön."""
     pending_idea = st.session_state.pop(_ADOPT_SERMON_PENDING, None)
     if pending_idea is not None:
         text = str(pending_idea).strip()

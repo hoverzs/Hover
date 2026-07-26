@@ -52,8 +52,8 @@ PROVISIONAL_NOTICE = (
     "munkajavaslatként készült."
 )
 EMPTY_PROJECT_MESSAGE = (
-    "A vázlathoz szükség van az igehelyhez tartozó bibliai szövegre, "
-    "valamint legalább egy exegetikai megfigyelésre vagy egzegézisre."
+    "A vázlathoz szükség van az igehelyre és a hozzá tartozó bibliai szövegre. "
+    "Ha a szöveg még nincs betöltve, használd a RÚF-betöltőt, vagy illeszd be kézzel."
 )
 
 # Előnézetben és generált szövegben tiltott sablon / technikai helykitöltők.
@@ -372,7 +372,7 @@ def assess_outline_readiness(
     *,
     sermon_workshop: Mapping[str, Any] | None = None,
 ) -> OutlineReadiness:
-    """Minimális bemenet: igehely + bibliai szöveg + exegetikai / műhelyanyag."""
+    """Minimális bemenet: érvényes igehely + betöltött bibliai szöveg."""
     sw = (
         dict(sermon_workshop)
         if isinstance(sermon_workshop, dict)
@@ -387,6 +387,8 @@ def assess_outline_readiness(
         sources.append("passage_reference")
 
     passage_text = _session_str(session_state, "passage_text")
+    if not passage_text:
+        passage_text = _session_str(session_state, "passage_text_input")
     if passage_text:
         sources.append("passage_text")
     if _s(tw.get("text_main_idea")):
@@ -436,36 +438,13 @@ def assess_outline_readiness(
     if not passage_ref:
         return OutlineReadiness(
             ok=False,
-            message="Add meg az igehelyet, majd tölts be RÚF-szöveget vagy egy rövid gondolatot.",
+            message=(
+                "Add meg az igehelyet, majd tölts be RÚF-szöveget "
+                "(vagy engedd, hogy a rendszer betöltse)."
+            ),
             source_keys=sources,
         )
     if not passage_text:
-        return OutlineReadiness(
-            ok=False,
-            message=EMPTY_PROJECT_MESSAGE,
-            source_keys=sources,
-        )
-
-    has_exegetical = bool(
-        _session_str(session_state, "exegesis")
-        or _session_str(session_state, "original_text")
-    )
-    has_insight_or_idea = bool(
-        _approved_insights_texts(tw)
-        or _approved_sermon_decision_texts(sw)
-        or _s(tw.get("text_main_idea"))
-        or _s(sw.get("sermon_main_idea"))
-        or "human_condition" in sources
-        or "listener_tension" in sources
-        or "christ_centered_arc" in sources
-        or "sermon_path" in sources
-        or "sermon_movements" in sources
-        or "closing" in sources
-        or "theology" in sources
-        or "user_notes" in sources
-    )
-    # Részleges, de elegendő: bibliai szöveg + (exegézis/eredeti VAGY műhelyanyag)
-    if not has_exegetical and not has_insight_or_idea:
         return OutlineReadiness(
             ok=False,
             message=EMPTY_PROJECT_MESSAGE,
