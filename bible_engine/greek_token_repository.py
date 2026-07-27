@@ -4,13 +4,14 @@ import os
 from dataclasses import dataclass
 from pathlib import Path
 
+from bible_engine.tagnt_books import parse_tagnt_bible_reference
+from bible_engine.tagnt_books import tagnt_book_code_from_ruf_code
 from bible_engine.tagnt_parser import GreekToken
 from bible_engine.tagnt_sqlite import get_sqlite_verse_tokens
-from ruf_bible_service import parse_bible_reference
 
 
 ROOT = Path(__file__).parents[1]
-DEFAULT_TAGNT_DATABASE_PATH = ROOT / "data" / "generated" / "tagnt_john.sqlite3"
+DEFAULT_TAGNT_DATABASE_PATH = ROOT / "data" / "generated" / "tagnt_nt.sqlite3"
 TAGNT_DATABASE_ENV_VAR = "TEXTUS_TAGNT_DB_PATH"
 
 
@@ -38,16 +39,9 @@ def load_greek_verse_tokens(
     reference: str,
     database_path: str | Path | None = None,
 ) -> list[GreekToken]:
-    try:
-        verses = load_greek_passage_tokens(reference, database_path=database_path)
-    except ValueError as exc:
-        if "Only John verse references" in str(exc):
-            raise ValueError(
-                f"Only single John verses are supported: {reference!r}"
-            ) from exc
-        raise
+    verses = load_greek_passage_tokens(reference, database_path=database_path)
     if len(verses) != 1:
-        raise ValueError(f"Only single John verses are supported: {reference!r}")
+        raise ValueError(f"Only single verse references are supported: {reference!r}")
     return list(verses[0].tokens)
 
 
@@ -55,11 +49,14 @@ def load_greek_passage_tokens(
     reference: str,
     database_path: str | Path | None = None,
 ) -> list[GreekVerseTokens]:
-    parsed = parse_bible_reference(reference)
-    if parsed.book.code != "JHN":
-        raise ValueError(f"Only John is available in the local TAGNT database: {reference!r}")
+    parsed = parse_tagnt_bible_reference(reference)
+    tagnt_book = tagnt_book_code_from_ruf_code(parsed.book.code)
+    if tagnt_book is None:
+        raise ValueError(
+            f"Only New Testament books are available in the local TAGNT database: {reference!r}"
+        )
     if parsed.verse_start is None:
-        raise ValueError(f"Only John verse references are supported: {reference!r}")
+        raise ValueError(f"Only verse references are supported: {reference!r}")
 
     path = Path(database_path) if database_path is not None else resolve_tagnt_database_path()
     if path is None:
@@ -68,12 +65,12 @@ def load_greek_passage_tokens(
     verse_end = parsed.verse_end or parsed.verse_start
     verses: list[GreekVerseTokens] = []
     for verse in range(parsed.verse_start, verse_end + 1):
-        tokens = get_sqlite_verse_tokens(path, "Jhn", parsed.chapter, verse)
+        tokens = get_sqlite_verse_tokens(path, tagnt_book, parsed.chapter, verse)
         if not tokens:
             continue
         verses.append(
             GreekVerseTokens(
-                book="Jhn",
+                book=tagnt_book,
                 chapter=parsed.chapter,
                 verse=verse,
                 tokens=tuple(sorted(tokens, key=lambda token: token.word_index)),

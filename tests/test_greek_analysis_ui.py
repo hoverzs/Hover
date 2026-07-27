@@ -5,12 +5,11 @@ from pathlib import Path
 from streamlit.testing.v1 import AppTest
 
 from bible_engine.greek_analysis_ui import (
-    CROSS_CHAPTER_JOHN_MESSAGE,
+    CROSS_CHAPTER_GREEK_MESSAGE,
     GREEK_DATA_ERROR_MESSAGE,
     LEXICAL_SCOPE_NOTE,
     MISSING_GREEK_DATA_MESSAGE,
     MISSING_GREEK_DATABASE_MESSAGE,
-    MULTI_VERSE_JOHN_MESSAGE,
     OLD_TESTAMENT_MESSAGE,
     TAGNT_DATABASE_BUILD_HINT,
     greek_reference_status,
@@ -110,8 +109,43 @@ def _render_cross_chapter_john_block() -> None:
 
 def _render_other_new_testament_block() -> None:
     from bible_engine.greek_analysis_ui import render_greek_analysis_block
+    from bible_engine.greek_token_repository import GreekVerseTokens
+    from bible_engine.tagnt_parser import GreekToken
 
-    render_greek_analysis_block(reference="Róm 8,1", key_prefix="test_greek")
+    def token(
+        book: str,
+        chapter: int,
+        verse: int,
+        word_index: int,
+        greek_form: str,
+        lemma: str,
+        morph_code: str,
+        strong_id: str,
+    ) -> GreekToken:
+        return GreekToken(
+            book=book,
+            chapter=chapter,
+            verse=verse,
+            word_index=word_index,
+            greek_form=greek_form,
+            lemma=lemma,
+            morph_code=morph_code,
+            strong_id=strong_id,
+            edition_flags="NKO",
+        )
+
+    render_greek_analysis_block(
+        reference="Róm 8,1",
+        key_prefix="test_greek",
+        token_loader=lambda: [
+            GreekVerseTokens(
+                book="Rom",
+                chapter=8,
+                verse=1,
+                tokens=(token("Rom", 8, 1, 1, "Οὐδὲν", "οὐδείς", "A-NSN", "G3762"),),
+            )
+        ],
+    )
 
 
 def _render_old_testament_block() -> None:
@@ -139,6 +173,68 @@ def _render_token_load_failure_block() -> None:
     )
 
 
+def _render_reference_switch_block() -> None:
+    import streamlit as st
+    from bible_engine.greek_analysis_ui import render_greek_analysis_block
+    from bible_engine.greek_token_repository import GreekVerseTokens
+    from bible_engine.tagnt_parser import GreekToken
+
+    reference = st.session_state.get("active_reference", "Jn 3,16")
+
+    def token(
+        book: str,
+        chapter: int,
+        verse: int,
+        word_index: int,
+        greek_form: str,
+        lemma: str,
+        morph_code: str,
+        strong_id: str,
+    ) -> GreekToken:
+        return GreekToken(
+            book=book,
+            chapter=chapter,
+            verse=verse,
+            word_index=word_index,
+            greek_form=greek_form,
+            lemma=lemma,
+            morph_code=morph_code,
+            strong_id=strong_id,
+            edition_flags="NKO",
+        )
+
+    def passage_tokens() -> list[GreekVerseTokens]:
+        if reference.startswith("Róm"):
+            return [
+                GreekVerseTokens(
+                    book="Rom",
+                    chapter=8,
+                    verse=1,
+                    tokens=(
+                        token("Rom", 8, 1, 1, "Οὐδὲν", "οὐδείς", "A-NSN", "G3762"),
+                        token("Rom", 8, 1, 2, "ἄρα", "ἄρα", "PRT", "G0686"),
+                    ),
+                )
+            ]
+        return [
+            GreekVerseTokens(
+                book="Jhn",
+                chapter=3,
+                verse=16,
+                tokens=(
+                    token("Jhn", 3, 16, 1, "οὕτως", "οὕτω, οὕτως", "ADV", "G3779"),
+                    token("Jhn", 3, 16, 2, "γὰρ", "γάρ", "CONJ", "G1063"),
+                ),
+            )
+        ]
+
+    render_greek_analysis_block(
+        reference=reference,
+        key_prefix="test_greek",
+        token_loader=passage_tokens,
+    )
+
+
 def _render_bible_text_editor_with_john_text() -> None:
     import streamlit as st
     from bible_text_ui import render_bible_text_editor
@@ -158,11 +254,14 @@ def test_reference_status_distinguishes_supported_and_unsupported_references() -
     assert greek_reference_status("Jn 1,1") == "loaded"
     assert greek_reference_status("Jn 14,6") == "loaded"
     assert greek_reference_status("Jn 3,16-18") == "loaded"
-    assert greek_reference_status("Jn 3,16-4,2") == "cross_chapter_john"
+    assert greek_reference_status("Jn 3,16-4,2") == "cross_chapter"
     assert greek_reference_status("János 3,16") == "loaded"
-    assert greek_reference_status("Róm 8,1") == "not_loaded"
+    assert greek_reference_status("Róm 8,1") == "loaded"
+    assert greek_reference_status("Mt 5,1-3") == "loaded"
+    assert greek_reference_status("Júd 20-21") == "loaded"
     assert greek_reference_status("Zsolt 23,1") == "old_testament"
     assert greek_reference_status("") == "empty"
+    assert greek_reference_status("Jn 3") == "invalid"
     assert greek_reference_status("nem igehely") == "invalid"
 
 
@@ -204,12 +303,13 @@ def test_selected_word_analysis_updates_through_fallback_selectbox() -> None:
     assert any("Alapjelentés:** világ" in value for value in markdown_values)
 
 
-def test_other_new_testament_reference_shows_missing_local_data_message() -> None:
+def test_other_new_testament_reference_renders_greek_analysis() -> None:
     app = AppTest.from_function(_render_other_new_testament_block).run()
 
     assert not app.exception
-    assert any(MISSING_GREEK_DATA_MESSAGE in caption.value for caption in app.caption)
-    assert len(app.selectbox) == 0
+    assert app.subheader[0].value == "Οὐδὲν"
+    assert app.session_state["test_greek_selected_token_key"] == "Rom:8:1:1"
+    assert app.selectbox[0].value == 1
 
 
 def test_multi_verse_john_reference_renders_verse_rows_and_shared_panel() -> None:
@@ -221,15 +321,15 @@ def test_multi_verse_john_reference_renders_verse_rows_and_shared_panel() -> Non
     assert any("textus-greek-verse-marker\">17" in value for value in markdown_values)
     assert any("textus-greek-verse-marker\">18" in value for value in markdown_values)
     assert app.subheader[0].value == "οὕτως"
-    assert app.session_state["test_greek_selected_token_key"] == "3:16:1"
+    assert app.session_state["test_greek_selected_token_key"] == "Jhn:3:16:1"
     assert app.session_state["test_greek_selected_word_index"] == 1
-    assert app.selectbox[0].value == "3:16:1"
+    assert app.selectbox[0].value == "Jhn:3:16:1"
 
-    app.selectbox[0].set_value("3:17:1")
+    app.selectbox[0].set_value("Jhn:3:17:1")
     app.run()
 
     assert app.subheader[0].value == "οὐ"
-    assert app.session_state["test_greek_selected_token_key"] == "3:17:1"
+    assert app.session_state["test_greek_selected_token_key"] == "Jhn:3:17:1"
     assert app.session_state["test_greek_selected_word_index"] == 1
 
 
@@ -237,7 +337,7 @@ def test_cross_chapter_john_reference_shows_controlled_message() -> None:
     app = AppTest.from_function(_render_cross_chapter_john_block).run()
 
     assert not app.exception
-    assert any(CROSS_CHAPTER_JOHN_MESSAGE in caption.value for caption in app.caption)
+    assert any(CROSS_CHAPTER_GREEK_MESSAGE in caption.value for caption in app.caption)
     assert len(app.selectbox) == 0
 
 
@@ -255,10 +355,11 @@ def test_default_renderer_does_not_use_fixture_fallback_for_missing_database(
     assert any(MISSING_GREEK_DATABASE_MESSAGE in value for value in caption_values)
     assert any(TAGNT_DATABASE_BUILD_HINT in value for value in caption_values)
     page_text = "\n".join(caption_values)
-    assert "A görög szöveg helyi adatbázisa még nincs előkészítve." in page_text
+    assert "A teljes görög Újszövetség helyi adatbázisa még nincs előkészítve." in page_text
     assert (
-        "Előkészítés: python scripts/build_tagnt_john_db.py "
-        "--source ... --output data/generated/tagnt_john.sqlite3"
+        "Előkészítés: python scripts/build_tagnt_nt_db.py "
+        "--mat-jhn-source ... --act-rev-source ... "
+        "--output data/generated/tagnt_nt.sqlite3"
     ) in page_text
     assert "Ã" not in page_text
     assert "Å" not in page_text
@@ -292,6 +393,24 @@ def test_key_prefix_separates_session_state_keys() -> None:
     assert app.session_state["test_greek_fallback_selector"] == 1
     assert "greek_demo_selected_word_index" not in app.session_state
     assert "bible_text_ui_selected_word_index" not in app.session_state
+
+
+def test_book_switch_resets_selected_token_key() -> None:
+    app = AppTest.from_function(_render_reference_switch_block)
+    app.session_state["active_reference"] = "Jn 3,16"
+    app.run()
+
+    assert not app.exception
+    app.selectbox[0].set_value(2)
+    app.run()
+    assert app.session_state["test_greek_selected_token_key"] == "Jhn:3:16:2"
+
+    app.session_state["active_reference"] = "Róm 8,1"
+    app.run()
+
+    assert not app.exception
+    assert app.session_state["test_greek_selected_token_key"] == "Rom:8:1:1"
+    assert app.subheader[0].value == "Οὐδὲν"
 
 
 def test_token_loading_failure_is_contained() -> None:
@@ -355,8 +474,8 @@ def sample_passage_tokens() -> list[GreekVerseTokens]:
             chapter=3,
             verse=16,
             tokens=(
-                greek_token(3, 16, 1, "οὕτως", "οὕτω, οὕτως", "ADV", "G3779"),
-                greek_token(3, 16, 2, "γὰρ", "γάρ", "CONJ", "G1063"),
+                greek_token("Jhn", 3, 16, 1, "οὕτως", "οὕτω, οὕτως", "ADV", "G3779"),
+                greek_token("Jhn", 3, 16, 2, "γὰρ", "γάρ", "CONJ", "G1063"),
             ),
         ),
         GreekVerseTokens(
@@ -364,20 +483,21 @@ def sample_passage_tokens() -> list[GreekVerseTokens]:
             chapter=3,
             verse=17,
             tokens=(
-                greek_token(3, 17, 1, "οὐ", "οὐ", "PRT-N", "G3756"),
-                greek_token(3, 17, 2, "γὰρ", "γάρ", "CONJ", "G1063"),
+                greek_token("Jhn", 3, 17, 1, "οὐ", "οὐ", "PRT-N", "G3756"),
+                greek_token("Jhn", 3, 17, 2, "γὰρ", "γάρ", "CONJ", "G1063"),
             ),
         ),
         GreekVerseTokens(
             book="Jhn",
             chapter=3,
             verse=18,
-            tokens=(greek_token(3, 18, 1, "ὁ", "ὁ", "T-NSM", "G3588"),),
+            tokens=(greek_token("Jhn", 3, 18, 1, "ὁ", "ὁ", "T-NSM", "G3588"),),
         ),
     ]
 
 
 def greek_token(
+    book: str,
     chapter: int,
     verse: int,
     word_index: int,
@@ -387,7 +507,7 @@ def greek_token(
     strong_id: str,
 ) -> GreekToken:
     return GreekToken(
-        book="Jhn",
+        book=book,
         chapter=chapter,
         verse=verse,
         word_index=word_index,

@@ -109,7 +109,7 @@ def normalize_component_selection_key(value: Any, tokens: list[GreekToken]) -> s
 
 
 def _token_selection_key(token: GreekToken) -> str:
-    return f"{token.chapter}:{token.verse}:{token.word_index}"
+    return f"{token.book}:{token.chapter}:{token.verse}:{token.word_index}"
 
 
 def _word_index_from_selection_key(value: str | None) -> int | None:

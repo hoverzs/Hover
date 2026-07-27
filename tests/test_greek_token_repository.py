@@ -42,7 +42,7 @@ def test_resolve_database_path_uses_project_default(monkeypatch) -> None:
 
 
 def test_default_database_path_is_project_generated_sqlite() -> None:
-    assert DEFAULT_TAGNT_DATABASE_PATH == ROOT / "data" / "generated" / "tagnt_john.sqlite3"
+    assert DEFAULT_TAGNT_DATABASE_PATH == ROOT / "data" / "generated" / "tagnt_nt.sqlite3"
 
 
 def test_generated_database_and_raw_paths_are_gitignored() -> None:
@@ -50,7 +50,9 @@ def test_generated_database_and_raw_paths_are_gitignored() -> None:
         [
             "git",
             "check-ignore",
+            "data/generated/tagnt_nt.sqlite3",
             "data/generated/tagnt_john.sqlite3",
+            "data/raw/TAGNT_Act-Rev_raw.txt",
             "_qa_shell/TAGNT_Mat-Jhn_raw.txt",
         ],
         cwd=ROOT,
@@ -60,7 +62,9 @@ def test_generated_database_and_raw_paths_are_gitignored() -> None:
     )
 
     assert result.returncode == 0
+    assert "data/generated/tagnt_nt.sqlite3" in result.stdout
     assert "data/generated/tagnt_john.sqlite3" in result.stdout
+    assert "data/raw/TAGNT_Act-Rev_raw.txt" in result.stdout
     assert "_qa_shell/TAGNT_Mat-Jhn_raw.txt" in result.stdout
 
 
@@ -135,15 +139,56 @@ def test_load_john_10_7_10_and_14_1_6_passages(tmp_path: Path) -> None:
     assert [verse.verse for verse in john_14] == [1, 2, 3, 4, 5, 6]
 
 
-def test_non_john_or_multi_verse_references_are_rejected(tmp_path: Path) -> None:
+def test_single_verse_api_rejects_multi_verse_and_chapter_references(tmp_path: Path) -> None:
     database = build_sample_database(tmp_path)
 
-    with pytest.raises(ValueError, match="Only John"):
-        load_greek_verse_tokens("Róm 8,1", database_path=database)
-    with pytest.raises(ValueError, match="Only single John verses"):
+    assert load_greek_verse_tokens("Róm 8,1", database_path=database)[0].book == "Rom"
+    with pytest.raises(ValueError, match="Only single verse references"):
         load_greek_verse_tokens("Jn 3,16-18", database_path=database)
-    with pytest.raises(ValueError, match="Only single John verses"):
+    with pytest.raises(ValueError, match="Only verse references"):
         load_greek_verse_tokens("Jn 3", database_path=database)
+
+
+@pytest.mark.parametrize(
+    ("reference", "expected_book", "expected_verses"),
+    [
+        ("Mt 5,1-3", "Mat", [1, 2, 3]),
+        ("Mk 1,1", "Mrk", [1]),
+        ("Lk 15,11-13", "Luk", [11, 12, 13]),
+        ("Jn 3,16-18", "Jhn", [16, 17, 18]),
+        ("ApCsel 2,1-4", "Act", [1, 2, 3, 4]),
+        ("Róm 8,1-4", "Rom", [1, 2, 3, 4]),
+        ("1Kor 13,1-3", "1Co", [1, 2, 3]),
+        ("Gal 5,22-23", "Gal", [22, 23]),
+        ("Ef 2,8-10", "Eph", [8, 9, 10]),
+        ("Fil 2,5-7", "Php", [5, 6, 7]),
+        ("Zsid 11,1-3", "Heb", [1, 2, 3]),
+        ("Jak 1,2-4", "Jas", [2, 3, 4]),
+        ("1Pt 1,3-5", "1Pe", [3, 4, 5]),
+        ("1Jn 4,7-10", "1Jn", [7, 8, 9, 10]),
+        ("Júd 20-21", "Jud", [20, 21]),
+        ("Júd 1,20-21", "Jud", [20, 21]),
+        ("Jel 22,20-21", "Rev", [20, 21]),
+    ],
+)
+def test_load_new_testament_passages_from_sqlite(
+    tmp_path: Path,
+    reference: str,
+    expected_book: str,
+    expected_verses: list[int],
+) -> None:
+    database = build_sample_database(tmp_path)
+
+    verses = load_greek_passage_tokens(reference, database_path=database)
+
+    assert [verse.book for verse in verses] == [expected_book] * len(expected_verses)
+    assert [verse.verse for verse in verses] == expected_verses
+    assert all(
+        [token.word_index for token in verse.tokens]
+        == sorted(token.word_index for token in verse.tokens)
+        for verse in verses
+    )
+    assert all(verse.tokens[0].greek_form for verse in verses)
 
 
 def build_sample_database(tmp_path: Path) -> Path:
@@ -177,6 +222,49 @@ def build_sample_database(tmp_path: Path) -> Path:
             token_for("Jhn", 21, 17, 1, "λέγει", "λέγω", "V-PAI-3S", "G3004G"),
             token_for("Jhn", 21, 17, 2, "αὐτῷ", "αὐτός", "P-DSM", "G0846"),
             token_for("Jhn", 21, 17, 3, "τὸ", "ὁ", "T-ASN", "G3588"),
+            token_for("Mat", 5, 1, 1, "Ἰδὼν", "ὁράω", "V-2AAP-NSM", "G3708"),
+            token_for("Mat", 5, 2, 1, "καὶ", "καί", "CONJ", "G2532"),
+            token_for("Mat", 5, 3, 1, "μακάριοι", "μακάριος", "A-NPM", "G3107"),
+            token_for("Mrk", 1, 1, 1, "Ἀρχὴ", "ἀρχή", "N-NSF", "G0746"),
+            token_for("Luk", 15, 11, 1, "Εἶπεν", "λέγω", "V-2AAI-3S", "G3004G"),
+            token_for("Luk", 15, 12, 1, "καὶ", "καί", "CONJ", "G2532"),
+            token_for("Luk", 15, 13, 1, "καὶ", "καί", "CONJ", "G2532"),
+            token_for("Act", 2, 1, 1, "Καὶ", "καί", "CONJ", "G2532"),
+            token_for("Act", 2, 2, 1, "καὶ", "καί", "CONJ", "G2532"),
+            token_for("Act", 2, 3, 1, "καὶ", "καί", "CONJ", "G2532"),
+            token_for("Act", 2, 4, 1, "καὶ", "καί", "CONJ", "G2532"),
+            token_for("Rom", 8, 1, 1, "Οὐδὲν", "οὐδείς", "A-NSN", "G3762"),
+            token_for("Rom", 8, 2, 1, "ὁ", "ὁ", "T-NSM", "G3588"),
+            token_for("Rom", 8, 3, 1, "τὸ", "ὁ", "T-NSN", "G3588"),
+            token_for("Rom", 8, 4, 1, "ἵνα", "ἵνα", "CONJ", "G2443"),
+            token_for("1Co", 13, 1, 1, "Ἐὰν", "ἐάν", "COND", "G1437"),
+            token_for("1Co", 13, 2, 1, "καὶ", "καί", "CONJ", "G2532"),
+            token_for("1Co", 13, 3, 1, "κἂν", "καί ἐάν", "COND", "G2579"),
+            token_for("Gal", 5, 22, 1, "ὁ", "ὁ", "T-NSM", "G3588"),
+            token_for("Gal", 5, 23, 1, "πραΰτης", "πραΰτης", "N-NSF", "G4236"),
+            token_for("Eph", 2, 8, 1, "τῇ", "ὁ", "T-DSF", "G3588"),
+            token_for("Eph", 2, 9, 1, "οὐκ", "οὐ", "PRT-N", "G3756"),
+            token_for("Eph", 2, 10, 1, "αὐτοῦ", "αὐτός", "P-GSM", "G0846"),
+            token_for("Php", 2, 5, 1, "τοῦτο", "οὗτος", "D-ASN", "G3778"),
+            token_for("Php", 2, 6, 1, "ὃς", "ὅς", "R-NSM", "G3739"),
+            token_for("Php", 2, 7, 1, "ἀλλὰ", "ἀλλά", "CONJ", "G0235"),
+            token_for("Heb", 11, 1, 1, "Ἔστιν", "εἰμί", "V-PAI-3S", "G1510"),
+            token_for("Heb", 11, 2, 1, "ἐν", "ἐν", "PREP", "G1722"),
+            token_for("Heb", 11, 3, 1, "πίστει", "πίστις", "N-DSF", "G4102"),
+            token_for("Jas", 1, 2, 1, "πᾶσαν", "πᾶς", "A-ASF", "G3956"),
+            token_for("Jas", 1, 3, 1, "γινώσκοντες", "γινώσκω", "V-PAP-NPM", "G1097"),
+            token_for("Jas", 1, 4, 1, "ἡ", "ὁ", "T-NSF", "G3588"),
+            token_for("1Pe", 1, 3, 1, "Εὐλογητὸς", "εὐλογητός", "A-NSM", "G2128"),
+            token_for("1Pe", 1, 4, 1, "εἰς", "εἰς", "PREP", "G1519"),
+            token_for("1Pe", 1, 5, 1, "τοὺς", "ὁ", "T-APM", "G3588"),
+            token_for("1Jn", 4, 7, 1, "Ἀγαπητοί", "ἀγαπητός", "A-VPM", "G0027"),
+            token_for("1Jn", 4, 8, 1, "ὁ", "ὁ", "T-NSM", "G3588"),
+            token_for("1Jn", 4, 9, 1, "ἐν", "ἐν", "PREP", "G1722"),
+            token_for("1Jn", 4, 10, 1, "ἐν", "ἐν", "PREP", "G1722"),
+            token_for("Jud", 1, 20, 1, "ὑμεῖς", "σύ", "P-2NP", "G4771"),
+            token_for("Jud", 1, 21, 1, "ἑαυτοὺς", "ἑαυτοῦ", "F-2APM", "G1438"),
+            token_for("Rev", 22, 20, 1, "Λέγει", "λέγω", "V-PAI-3S", "G3004G"),
+            token_for("Rev", 22, 21, 1, "Ἡ", "ὁ", "T-NSF", "G3588"),
         ]:
             connection.execute(
                 """

@@ -13,6 +13,8 @@ from bible_engine.greek_token_repository import (
     GreekVerseTokens,
     load_greek_passage_tokens,
 )
+from bible_engine.tagnt_books import NEW_TESTAMENT_RUF_CODES
+from bible_engine.tagnt_books import parse_tagnt_bible_reference
 from bible_engine.lexicon_hu import (
     HungarianLexiconEntry,
     get_hungarian_lexicon_entry,
@@ -24,7 +26,6 @@ from components.greek_token_selector import (
     greek_token_selector,
     greek_token_selector_value,
 )
-from ruf_bible_service import parse_bible_reference
 
 
 ROOT = Path(__file__).parents[1]
@@ -35,7 +36,7 @@ OLD_TESTAMENT_MESSAGE = (
     "Az ószövetségi eredeti nyelvi modul későbbi fejlesztésben lesz elérhető."
 )
 MISSING_GREEK_DATA_MESSAGE = (
-    "Ehhez az igehelyhez a görög adat még nincs helyben betöltve."
+    "Ehhez az igehelyhez nem található görög szöveg a helyi adatbázisban."
 )
 GREEK_DATA_ERROR_MESSAGE = "A görög elemzés jelenleg nem tölthető be."
 LEXICON_HU_ERROR_MESSAGE = "A magyar lexikai adatok jelenleg nem érhetők el."
@@ -45,16 +46,14 @@ LEXICAL_SCOPE_NOTE = (
     "érvényes jelentést a szövegkörnyezet határozza meg."
 )
 MISSING_GREEK_DATABASE_MESSAGE = (
-    "A görög szöveg helyi adatbázisa még nincs előkészítve."
+    "A teljes görög Újszövetség helyi adatbázisa még nincs előkészítve."
 )
 TAGNT_DATABASE_BUILD_HINT = (
-    "Előkészítés: python scripts/build_tagnt_john_db.py "
-    "--source ... --output data/generated/tagnt_john.sqlite3"
+    "Előkészítés: python scripts/build_tagnt_nt_db.py "
+    "--mat-jhn-source ... --act-rev-source ... "
+    "--output data/generated/tagnt_nt.sqlite3"
 )
-MULTI_VERSE_JOHN_MESSAGE = (
-    "A többverses görög szakaszok megjelenítése jelenleg nem érhető el."
-)
-CROSS_CHAPTER_JOHN_MESSAGE = (
+CROSS_CHAPTER_GREEK_MESSAGE = (
     "A fejezeten átívelő görög szakaszok támogatása későbbi "
     "fejlesztésben lesz elérhető."
 )
@@ -63,58 +62,25 @@ REVIEW_STATUS_LABELS = {
     "reviewed": "ellenőrzött",
 }
 
-_NEW_TESTAMENT_CODES = frozenset(
-    {
-        "MAT",
-        "MRK",
-        "LUK",
-        "JHN",
-        "ACT",
-        "ROM",
-        "1CO",
-        "2CO",
-        "GAL",
-        "EPH",
-        "PHP",
-        "COL",
-        "1TH",
-        "2TH",
-        "1TI",
-        "2TI",
-        "TIT",
-        "PHM",
-        "HEB",
-        "JAS",
-        "1PE",
-        "2PE",
-        "1JN",
-        "2JN",
-        "3JN",
-        "JUD",
-        "REV",
-    }
-)
-
 GreekReferenceStatus = Literal[
     "empty",
     "invalid",
     "old_testament",
-    "cross_chapter_john",
-    "multi_verse_john",
-    "not_loaded",
+    "cross_chapter",
     "loaded",
 ]
 
 
 @dataclass(frozen=True)
 class TokenSelection:
+    book: str
     chapter: int
     verse: int
     word_index: int
 
     @property
     def key(self) -> str:
-        return f"{self.chapter}:{self.verse}:{self.word_index}"
+        return f"{self.book}:{self.chapter}:{self.verse}:{self.word_index}"
 
 
 def render_greek_analysis_block(
@@ -133,13 +99,8 @@ def render_greek_analysis_block(
     if status == "old_testament":
         st.caption(OLD_TESTAMENT_MESSAGE)
         return
-    if status == "cross_chapter_john":
-        st.caption(CROSS_CHAPTER_JOHN_MESSAGE)
-        return
-    if status == "multi_verse_john":
-        pass
-    if status == "not_loaded":
-        st.caption(MISSING_GREEK_DATA_MESSAGE)
+    if status == "cross_chapter":
+        st.caption(CROSS_CHAPTER_GREEK_MESSAGE)
         return
 
     passage_loader = token_loader or (lambda: load_greek_passage_tokens(reference))
@@ -158,7 +119,7 @@ def render_greek_analysis_block(
 
     verse_groups = _coerce_verse_groups(loaded)
     if not verse_groups:
-        st.caption(GREEK_DATA_ERROR_MESSAGE)
+        st.caption(MISSING_GREEK_DATA_MESSAGE)
         return
 
     try:
@@ -178,23 +139,20 @@ def greek_reference_status(reference: str) -> GreekReferenceStatus:
     raw = (reference or "").strip()
     if not raw:
         return "empty"
-    if _looks_like_cross_chapter_john_reference(raw):
-        return "cross_chapter_john"
+    if _looks_like_cross_chapter_reference(raw):
+        return "cross_chapter"
 
     try:
-        parsed = parse_bible_reference(raw)
+        parsed = parse_tagnt_bible_reference(raw)
     except ValueError:
         return "invalid"
 
-    if parsed.book.code not in _NEW_TESTAMENT_CODES:
+    if parsed.book.code not in NEW_TESTAMENT_RUF_CODES:
         return "old_testament"
+    if parsed.verse_start is None:
+        return "invalid"
 
-    if parsed.book.code == "JHN":
-        if parsed.verse_start is None:
-            return "multi_verse_john"
-        return "loaded"
-
-    return "not_loaded"
+    return "loaded"
 
 
 @st.cache_data(show_spinner=False)
@@ -696,6 +654,7 @@ def _flatten_tokens(verse_groups: list[GreekVerseTokens]) -> list[GreekToken]:
 
 def _token_selection(token: GreekToken) -> TokenSelection:
     return TokenSelection(
+        book=token.book,
         chapter=token.chapter,
         verse=token.verse,
         word_index=token.word_index,
@@ -755,12 +714,14 @@ def _selection_belongs_to_verse(
 ) -> bool:
     if selection_key is None:
         return False
-    return selection_key.startswith(f"{verse_group.chapter}:{verse_group.verse}:")
+    return selection_key.startswith(
+        f"{verse_group.book}:{verse_group.chapter}:{verse_group.verse}:"
+    )
 
 
 def _verse_groups_key(verse_groups: list[GreekVerseTokens]) -> str:
     return "|".join(
-        f"{verse_group.chapter}:{verse_group.verse}:{len(verse_group.tokens)}"
+        f"{verse_group.book}:{verse_group.chapter}:{verse_group.verse}:{len(verse_group.tokens)}"
         for verse_group in verse_groups
     )
 
@@ -820,11 +781,11 @@ def _token_by_selection_key(
     return tokens[0]
 
 
-def _looks_like_cross_chapter_john_reference(reference: str) -> bool:
+def _looks_like_cross_chapter_reference(reference: str) -> bool:
     cleaned = (reference or "").strip().replace("–", "-").replace("—", "-")
     return bool(
         re.match(
-            r"^(?:Jn|János|Janos|John|Jhn)\s+\d+\s*[,.:]\s*\d+\s*-\s*\d+\s*[,.:]\s*\d+\s*$",
+            r"^(?:\d\s*)?[^\d,.:]+\s+\d+\s*[,.:]\s*\d+\s*-\s*\d+\s*[,.:]\s*\d+\s*$",
             cleaned,
             flags=re.IGNORECASE,
         )
@@ -846,11 +807,11 @@ def _key(prefix: str, suffix: str) -> str:
 
 def _greek_reference_label(reference: str) -> str:
     try:
-        parsed = parse_bible_reference(reference)
+        parsed = parse_tagnt_bible_reference(reference)
     except ValueError:
         return ""
-    if parsed.book.code == "JHN" and parsed.verse_start is not None:
+    if parsed.book.code in NEW_TESTAMENT_RUF_CODES and parsed.verse_start is not None:
         if parsed.verse_end is not None and parsed.verse_end != parsed.verse_start:
-            return f"János {parsed.chapter},{parsed.verse_start}–{parsed.verse_end}"
-        return f"János {parsed.chapter},{parsed.verse_start}"
+            return parsed.normalized_reference
+        return parsed.normalized_reference
     return parsed.normalized_reference
