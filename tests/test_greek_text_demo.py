@@ -2,7 +2,10 @@ from pathlib import Path
 
 from streamlit.testing.v1 import AppTest
 
+from components.greek_token_selector import component_tokens, normalize_component_selection
 from greek_text_demo import (
+    apply_token_selection,
+    component_state_word_index,
     load_demo_tokens,
     selected_word_index,
     token_analysis,
@@ -40,6 +43,67 @@ def test_selected_word_index_defaults_and_preserves_valid_selection() -> None:
     assert selected_word_index([], 1) is None
 
 
+def test_component_payload_contains_26_inline_tokens_and_selected_state() -> None:
+    tokens = load_demo_tokens()
+    payload = component_tokens(tokens, selected_word_index=3)
+
+    assert len(payload) == 26
+    assert payload[0] == {
+        "word_index": 1,
+        "greek_form": "οὕτως",
+        "selected": False,
+    }
+    assert payload[2] == {
+        "word_index": 3,
+        "greek_form": "ἠγάπησεν",
+        "selected": True,
+    }
+    assert "lemma" not in payload[0]
+    assert "strong_id" not in payload[0]
+    assert "morph_code" not in payload[0]
+
+
+def test_component_selection_normalization_is_safe() -> None:
+    tokens = load_demo_tokens()
+
+    assert normalize_component_selection(3, tokens) == 3
+    assert normalize_component_selection("3", tokens) == 3
+    assert normalize_component_selection(999, tokens) is None
+    assert normalize_component_selection("bad", tokens) is None
+    assert normalize_component_selection(None, tokens) is None
+
+
+def test_component_state_word_index_reads_component_result_safely() -> None:
+    tokens = load_demo_tokens()
+
+    assert component_state_word_index({"selected_word_index": 3}, tokens) == 3
+    assert component_state_word_index({"selected_word_index": 999}, tokens) == 1
+    assert component_state_word_index({}, tokens) is None
+
+
+def test_component_returned_word_index_updates_selection_safely() -> None:
+    tokens = load_demo_tokens()
+
+    assert apply_token_selection(tokens, current=1, candidate=3) == 3
+    assert apply_token_selection(tokens, current=3, candidate=None) == 3
+    assert apply_token_selection(tokens, current=3, candidate=999) == 3
+    assert apply_token_selection(tokens, current=999, candidate=999) == 1
+
+
+def test_component_next_render_payload_receives_resolved_selection() -> None:
+    tokens = load_demo_tokens()
+    selected = apply_token_selection(tokens, current=1, candidate=3)
+    payload = component_tokens(tokens, selected_word_index=selected)
+
+    assert selected == 3
+    assert payload[2]["selected"] is True
+    assert all(
+        item["selected"] is False
+        for item in payload
+        if item["word_index"] != 3
+    )
+
+
 def test_streamlit_demo_renders_initial_view() -> None:
     app_path = Path(__file__).parents[1] / "greek_text_demo.py"
     app = AppTest.from_file(str(app_path)).run()
@@ -49,15 +113,12 @@ def test_streamlit_demo_renders_initial_view() -> None:
     assert any("János 3,16" in caption.value for caption in app.caption)
 
     markdown_values = [markdown.value for markdown in app.markdown]
-    assert any("οὕτως γὰρ ἠγάπησεν" in value for value in markdown_values)
-    assert any("αἰώνιον." in value for value in markdown_values)
     assert any("Válasszon egy görög szót" in value for value in markdown_values)
+    assert not any("greek-verse" in value for value in markdown_values)
+    assert not any("οὕτως γὰρ ἠγάπησεν" in value for value in markdown_values)
     assert not any("analysis-panel" in value for value in markdown_values)
 
-    assert len(app.button) == 26
-    assert app.button[0].label == "οὕτως"
-    assert app.button[1].label == "γὰρ"
-    assert app.button[2].label == "ἠγάπησεν"
+    assert len(app.button) == 0
 
     selectbox = app.selectbox[0]
     assert len(selectbox.options) == 26
@@ -71,23 +132,6 @@ def test_streamlit_demo_renders_initial_view() -> None:
     assert any("Kiadásjelölés:** NKO" in value for value in markdown_values)
 
 
-def test_streamlit_demo_button_selects_another_token() -> None:
-    app_path = Path(__file__).parents[1] / "greek_text_demo.py"
-    app = AppTest.from_file(str(app_path)).run()
-
-    app.button[2].click()
-    app.run()
-
-    markdown_values = [markdown.value for markdown in app.markdown]
-    assert app.subheader[0].value == "ἠγάπησεν"
-    assert any("Szótári alak / alakok:** ἀγαπάω" in value for value in markdown_values)
-    assert any(
-        "Magyar morfológia:** ige, aorisztosz, aktív, kijelentő, harmadik személy, egyes szám"
-        in value
-        for value in markdown_values
-    )
-
-
 def test_streamlit_demo_fallback_selectbox_updates_same_selection() -> None:
     app_path = Path(__file__).parents[1] / "greek_text_demo.py"
     app = AppTest.from_file(str(app_path)).run()
@@ -97,4 +141,5 @@ def test_streamlit_demo_fallback_selectbox_updates_same_selection() -> None:
 
     markdown_values = [markdown.value for markdown in app.markdown]
     assert app.subheader[0].value == "ἠγάπησεν"
+    assert app.selectbox[0].value == 3
     assert any("Szótári alak / alakok:** ἀγαπάω" in value for value in markdown_values)
