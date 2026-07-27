@@ -1,20 +1,29 @@
 from __future__ import annotations
 
+import html
+import re
 from collections.abc import Callable
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
 
 import streamlit as st
 
+from bible_engine.greek_token_repository import (
+    GreekVerseTokens,
+    load_greek_passage_tokens,
+)
 from bible_engine.lexicon_hu import (
     HungarianLexiconEntry,
     get_hungarian_lexicon_entry,
     load_hungarian_lexicon,
 )
-from bible_engine.greek_token_repository import load_greek_verse_tokens
 from bible_engine.morphology_hu import format_morphology_hu, parse_morphology_hu
 from bible_engine.tagnt_parser import GreekToken, get_verse_tokens
-from components.greek_token_selector import greek_token_selector
+from components.greek_token_selector import (
+    greek_token_selector,
+    greek_token_selector_value,
+)
 from ruf_bible_service import parse_bible_reference
 
 
@@ -43,8 +52,11 @@ TAGNT_DATABASE_BUILD_HINT = (
     "--source ... --output data/generated/tagnt_john.sqlite3"
 )
 MULTI_VERSE_JOHN_MESSAGE = (
-    "A többverses görög szakaszok megjelenítése a következő "
-    "fejlesztési lépésben lesz elérhető."
+    "A többverses görög szakaszok megjelenítése jelenleg nem érhető el."
+)
+CROSS_CHAPTER_JOHN_MESSAGE = (
+    "A fejezeten átívelő görög szakaszok támogatása későbbi "
+    "fejlesztésben lesz elérhető."
 )
 REVIEW_STATUS_LABELS = {
     "draft": "munkaváltozat",
@@ -87,10 +99,22 @@ GreekReferenceStatus = Literal[
     "empty",
     "invalid",
     "old_testament",
+    "cross_chapter_john",
     "multi_verse_john",
     "not_loaded",
     "loaded",
 ]
+
+
+@dataclass(frozen=True)
+class TokenSelection:
+    chapter: int
+    verse: int
+    word_index: int
+
+    @property
+    def key(self) -> str:
+        return f"{self.chapter}:{self.verse}:{self.word_index}"
 
 
 def render_greek_analysis_block(
@@ -109,19 +133,21 @@ def render_greek_analysis_block(
     if status == "old_testament":
         st.caption(OLD_TESTAMENT_MESSAGE)
         return
-    if status == "multi_verse_john":
-        st.caption(MULTI_VERSE_JOHN_MESSAGE)
+    if status == "cross_chapter_john":
+        st.caption(CROSS_CHAPTER_JOHN_MESSAGE)
         return
+    if status == "multi_verse_john":
+        pass
     if status == "not_loaded":
         st.caption(MISSING_GREEK_DATA_MESSAGE)
         return
 
-    token_loader = token_loader or (lambda: load_greek_verse_tokens(reference))
+    passage_loader = token_loader or (lambda: load_greek_passage_tokens(reference))
     lexicon_loader = lexicon_loader or load_demo_hungarian_lexicon
     _ensure_greek_analysis_styles()
 
     try:
-        tokens = token_loader()
+        loaded = passage_loader()
     except FileNotFoundError:
         st.caption(MISSING_GREEK_DATABASE_MESSAGE)
         st.caption(TAGNT_DATABASE_BUILD_HINT)
@@ -130,7 +156,8 @@ def render_greek_analysis_block(
         st.caption(GREEK_DATA_ERROR_MESSAGE)
         return
 
-    if not tokens:
+    verse_groups = _coerce_verse_groups(loaded)
+    if not verse_groups:
         st.caption(GREEK_DATA_ERROR_MESSAGE)
         return
 
@@ -139,8 +166,8 @@ def render_greek_analysis_block(
     except Exception:
         lexicon_entries = None
 
-    _render_loaded_greek_analysis(
-        tokens,
+    _render_loaded_greek_passage_analysis(
+        verse_groups,
         lexicon_entries,
         key_prefix=key_prefix,
         reference_label=_greek_reference_label(reference),
@@ -151,6 +178,8 @@ def greek_reference_status(reference: str) -> GreekReferenceStatus:
     raw = (reference or "").strip()
     if not raw:
         return "empty"
+    if _looks_like_cross_chapter_john_reference(raw):
+        return "cross_chapter_john"
 
     try:
         parsed = parse_bible_reference(raw)
@@ -162,8 +191,6 @@ def greek_reference_status(reference: str) -> GreekReferenceStatus:
 
     if parsed.book.code == "JHN":
         if parsed.verse_start is None:
-            return "multi_verse_john"
-        if parsed.verse_end is not None and parsed.verse_end != parsed.verse_start:
             return "multi_verse_john"
         return "loaded"
 
@@ -230,6 +257,110 @@ def component_state_word_index(component_state: object, tokens: list[GreekToken]
     except (TypeError, ValueError):
         candidate = None
     return apply_token_selection(tokens, None, candidate)
+
+
+def _render_loaded_greek_passage_analysis(
+    verse_groups: list[GreekVerseTokens],
+    lexicon_entries: dict[str, HungarianLexiconEntry] | None,
+    *,
+    key_prefix: str,
+    reference_label: str | None = None,
+) -> None:
+    all_tokens = _flatten_tokens(verse_groups)
+    selected_word_key = _key(key_prefix, "selected_word_index")
+    selected_token_key = _key(key_prefix, "selected_token_key")
+    reference_state_key = _key(key_prefix, "reference_key")
+    fallback_key = _key(key_prefix, "fallback_selector")
+    current_reference_key = _verse_groups_key(verse_groups)
+
+    current_selection = _selected_token_key(
+        all_tokens,
+        st.session_state.get(selected_token_key),
+    )
+    if st.session_state.get(reference_state_key) != current_reference_key:
+        current_selection = _first_token_key(all_tokens)
+        st.session_state[reference_state_key] = current_reference_key
+
+    st.session_state[selected_token_key] = current_selection
+    st.session_state[selected_word_key] = _word_index_from_token_key(current_selection)
+    st.session_state[fallback_key] = _fallback_value(verse_groups, current_selection)
+
+    def sync_component_selection(component_key: str) -> None:
+        selected = component_state_token_key(st.session_state.get(component_key), all_tokens)
+        st.session_state[selected_token_key] = _apply_token_key_selection(
+            all_tokens,
+            st.session_state.get(selected_token_key),
+            selected,
+        )
+        st.session_state[selected_word_key] = _word_index_from_token_key(
+            st.session_state.get(selected_token_key)
+        )
+
+    def sync_fallback_selection() -> None:
+        st.session_state[selected_token_key] = _selection_key_from_fallback_value(
+            verse_groups,
+            st.session_state.get(fallback_key),
+        )
+        st.session_state[selected_word_key] = _word_index_from_token_key(
+            st.session_state.get(selected_token_key)
+        )
+
+    st.markdown(
+        '<h3 class="textus-greek-analysis-title">Görög eredeti szöveg</h3>',
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        '<div class="textus-greek-analysis-label">Válasszon egy görög szót</div>',
+        unsafe_allow_html=True,
+    )
+    if reference_label:
+        st.caption(reference_label)
+
+    for verse_group in verse_groups:
+        component_key = _key(
+            key_prefix,
+            f"inline_token_selector_{verse_group.chapter}_{verse_group.verse}",
+        )
+        st.markdown(
+            f'<div class="textus-greek-verse-marker">{verse_group.verse}</div>',
+            unsafe_allow_html=True,
+        )
+        verse_selection = current_selection if _selection_belongs_to_verse(
+            current_selection,
+            verse_group,
+        ) else None
+        component_selection = greek_token_selector_value(
+            tokens=list(verse_group.tokens),
+            selected_token_key=verse_selection,
+            key=component_key,
+            on_selected_token_key_change=lambda component_key=component_key: sync_component_selection(
+                component_key
+            ),
+        )
+        next_selection = _apply_token_key_selection(
+            all_tokens,
+            current_selection,
+            component_selection,
+        )
+        if next_selection != current_selection:
+            st.session_state[selected_token_key] = next_selection
+            st.session_state[selected_word_key] = _word_index_from_token_key(next_selection)
+            st.session_state[fallback_key] = _fallback_value(verse_groups, next_selection)
+            st.rerun()
+
+    st.markdown('<div class="textus-greek-fallback-marker"></div>', unsafe_allow_html=True)
+    with st.expander("Alternatív szóválasztás", expanded=False):
+        st.selectbox(
+            "Token",
+            options=_fallback_options(verse_groups),
+            key=fallback_key,
+            format_func=lambda value: _fallback_label(verse_groups, value),
+            on_change=sync_fallback_selection,
+        )
+
+    current_selection = _selected_token_key(all_tokens, st.session_state.get(selected_token_key))
+    selected = _token_by_selection_key(all_tokens, current_selection)
+    _render_analysis_panel(selected, lexicon_entries)
 
 
 def _render_loaded_greek_analysis(
@@ -307,10 +438,8 @@ def _render_analysis_panel(
         st.subheader(_present(selected.greek_form))
         left, right = st.columns(2, gap="small")
         analysis_items = list(token_analysis(selected).items())
-        for label, value in analysis_items[:3]:
-            left.markdown(f"**{label}:** {value}")
-        for label, value in analysis_items[3:]:
-            right.markdown(f"**{label}:** {value}")
+        left.markdown(_compact_field_markup(analysis_items[:3]), unsafe_allow_html=True)
+        right.markdown(_compact_field_markup(analysis_items[3:]), unsafe_allow_html=True)
         _render_hungarian_lexicon_section(selected, lexicon_entries)
 
 
@@ -332,9 +461,7 @@ def _render_hungarian_lexicon_section(
         return
 
     st.markdown(f"**Alapjelentés:** {entry.primary_gloss}")
-    st.markdown("**Lehetséges jelentések:**")
-    for sense in entry.senses:
-        st.markdown(f"- {sense}")
+    st.markdown(f"**Lehetséges jelentések:** {' · '.join(entry.senses)}")
 
     if entry.note:
         st.markdown(f"**Lexikai megjegyzés:** {entry.note}")
@@ -342,6 +469,15 @@ def _render_hungarian_lexicon_section(
     review_status = REVIEW_STATUS_LABELS.get(entry.review_status, entry.review_status)
     st.markdown(f"**Ellenőrzési állapot:** {review_status}")
     st.caption(f"Forrás: {entry.source}")
+
+
+def _compact_field_markup(items: list[tuple[str, str]]) -> str:
+    rows = "\n".join(
+        f'<div class="textus-greek-field"><strong>{html.escape(label)}:</strong> '
+        f"{html.escape(value)}</div>"
+        for label, value in items
+    )
+    return f'<div class="textus-greek-field-list">{rows}</div>'
 
 
 def _hungarian_lexicon_entry_for_token(
@@ -359,22 +495,22 @@ def _ensure_greek_analysis_styles() -> None:
         """
         <style>
         .textus-greek-analysis-title {
-            margin: 0.16rem 0 0.01rem;
-            font-size: 1.02rem;
-            line-height: 1.18;
+            margin: 0.06rem 0 0;
+            font-size: 0.98rem;
+            line-height: 1.1;
             font-weight: 700;
         }
         .element-container:has(.textus-greek-analysis-title) {
-            margin-top: 0.05rem !important;
+            margin-top: 0 !important;
             margin-bottom: 0 !important;
             padding-top: 0 !important;
             padding-bottom: 0 !important;
         }
         .textus-greek-analysis-label {
-            margin: 0 0 0.02rem;
-            font-size: 0.92rem;
+            margin: 0;
+            font-size: 0.86rem;
             font-weight: 600;
-            line-height: 1.16;
+            line-height: 1.08;
         }
         .element-container:has(.textus-greek-analysis-label) {
             margin-top: 0 !important;
@@ -383,20 +519,42 @@ def _ensure_greek_analysis_styles() -> None:
             padding-bottom: 0 !important;
         }
         .greek-token-selector {
-            font-size: 1.28rem;
-            line-height: 1.26;
-            margin: 0 0 0.04rem;
+            font-size: 1.12rem;
+            line-height: 1.3;
+            margin: 0 0 0.02rem;
+        }
+        .textus-greek-verse-marker {
+            float: left;
+            min-width: 1.35rem;
+            margin: 0.01rem 0.28rem 0 0;
+            color: #7a6c5c;
+            font-size: 0.7rem;
+            font-weight: 700;
+            line-height: 1.28;
+            text-align: right;
+            user-select: none;
+        }
+        .element-container:has(.textus-greek-verse-marker) {
+            margin: 0 !important;
+            padding: 0 !important;
+            height: 0 !important;
         }
         .greek-token-selector .greek-token {
-            margin: 0 0.1rem 0.04rem 0;
-            padding: 0 0.12rem;
-            line-height: 1.05;
+            margin: 0 0.08rem 0.02rem 0;
+            padding: 0 0.06rem;
+            line-height: 1.08;
             vertical-align: baseline;
         }
         .greek-token-selector .greek-token[aria-pressed="true"] {
-            box-shadow: inset 0 -0.1em 0 var(--st-primary-color, #ff4b4b);
+            box-shadow: inset 0 -0.08em 0 var(--st-primary-color, #ff4b4b);
             outline: 1px solid rgba(115, 92, 62, 0.22);
             outline-offset: 0;
+        }
+        .element-container:has(.textus-greek-analysis-label) + .element-container [data-testid="stCaptionContainer"] {
+            margin-top: 0 !important;
+            margin-bottom: 0.08rem !important;
+            font-size: 0.78rem !important;
+            line-height: 1.08 !important;
         }
         .textus-greek-fallback-marker,
         .textus-greek-analysis-card-marker {
@@ -411,77 +569,265 @@ def _ensure_greek_analysis_styles() -> None:
         }
         .element-container:has(.textus-greek-fallback-marker) + .element-container {
             margin-top: 0 !important;
-            margin-bottom: 0.08rem !important;
+            margin-bottom: 0.03rem !important;
         }
         .element-container:has(.textus-greek-fallback-marker) + .element-container details {
             padding-top: 0 !important;
             padding-bottom: 0 !important;
         }
         .element-container:has(.textus-greek-fallback-marker) + .element-container summary {
-            padding-top: 0.1rem !important;
-            padding-bottom: 0.1rem !important;
+            padding-top: 0.04rem !important;
+            padding-bottom: 0.04rem !important;
             min-height: 0 !important;
-            line-height: 1.2 !important;
+            line-height: 1.08 !important;
+            font-size: 0.84rem !important;
         }
         .element-container:has(.textus-greek-analysis-card-marker) {
             margin: 0 !important;
             padding: 0 !important;
         }
         .element-container:has(.textus-greek-analysis-card-marker) + .element-container {
-            margin-top: 0.03rem !important;
+            margin-top: 0 !important;
             margin-bottom: 0 !important;
         }
         .element-container:has(.textus-greek-analysis-card-marker) + .element-container [data-testid="stVerticalBlockBorderWrapper"] {
-            padding: 0.42rem 0.55rem 0.48rem !important;
+            padding: 0.28rem 0.42rem 0.32rem !important;
         }
         .element-container:has(.textus-greek-analysis-card-marker) + .element-container [data-testid="stVerticalBlock"] {
-            gap: 0.08rem !important;
+            gap: 0.03rem !important;
         }
         .element-container:has(.textus-greek-analysis-card-marker) + .element-container h3 {
-            margin: 0 0 0.12rem !important;
+            margin: 0 0 0.04rem !important;
             padding: 0 !important;
-            line-height: 1.12 !important;
+            line-height: 1.05 !important;
+            font-size: 1rem !important;
         }
         .element-container:has(.textus-greek-analysis-card-marker) + .element-container h4 {
-            margin: 0.05rem 0 0.04rem !important;
+            margin: 0.02rem 0 0.02rem !important;
             padding: 0 !important;
-            line-height: 1.14 !important;
+            line-height: 1.08 !important;
+            font-size: 0.94rem !important;
+        }
+        .element-container:has(.textus-greek-analysis-card-marker) + .element-container .textus-greek-field-list {
+            margin: 0 !important;
+            line-height: 1.16 !important;
+        }
+        .element-container:has(.textus-greek-analysis-card-marker) + .element-container .textus-greek-field {
+            margin: 0 0 0.025rem !important;
+            line-height: 1.16 !important;
+            font-size: 0.9rem !important;
         }
         .element-container:has(.textus-greek-analysis-card-marker) + .element-container [data-testid="stMarkdownContainer"] p {
-            margin-bottom: 0.07rem !important;
-            line-height: 1.23 !important;
+            margin-bottom: 0.035rem !important;
+            line-height: 1.16 !important;
         }
         .element-container:has(.textus-greek-analysis-card-marker) + .element-container [data-testid="stMarkdownContainer"] ul {
             margin-top: 0 !important;
-            margin-bottom: 0.1rem !important;
-            padding-left: 1rem !important;
-            line-height: 1.18 !important;
+            margin-bottom: 0.04rem !important;
+            padding-left: 0.85rem !important;
+            line-height: 1.12 !important;
         }
         .element-container:has(.textus-greek-analysis-card-marker) + .element-container [data-testid="stMarkdownContainer"] li {
             margin-top: 0 !important;
             margin-bottom: 0 !important;
-            line-height: 1.18 !important;
+            line-height: 1.12 !important;
         }
         .element-container:has(.textus-greek-analysis-card-marker) + .element-container [data-testid="stDivider"] {
-            margin-top: 0.12rem !important;
-            margin-bottom: 0.08rem !important;
+            margin-top: 0.06rem !important;
+            margin-bottom: 0.04rem !important;
         }
         .element-container:has(.textus-greek-analysis-card-marker) + .element-container [data-testid="stCaptionContainer"] {
-            margin-bottom: 0.08rem !important;
-            line-height: 1.16 !important;
+            margin-bottom: 0.035rem !important;
+            line-height: 1.08 !important;
+            font-size: 0.78rem !important;
         }
         @media (max-width: 640px) {
             .greek-token-selector {
-                font-size: 1.16rem;
-                line-height: 1.24;
+                font-size: 1.06rem;
+                line-height: 1.28;
+            }
+            .textus-greek-verse-marker {
+                min-width: 1.18rem;
+                margin-right: 0.22rem;
+                font-size: 0.66rem;
             }
             .element-container:has(.textus-greek-analysis-card-marker) + .element-container [data-testid="stVerticalBlockBorderWrapper"] {
-                padding: 0.75rem 0.78rem !important;
+                padding: 0.55rem 0.65rem !important;
+            }
+            .element-container:has(.textus-greek-analysis-card-marker) + .element-container .textus-greek-field {
+                font-size: 0.88rem !important;
             }
         }
         </style>
         """,
         unsafe_allow_html=True,
+    )
+
+
+def _coerce_verse_groups(
+    loaded: list[GreekToken] | list[GreekVerseTokens],
+) -> list[GreekVerseTokens]:
+    if not loaded:
+        return []
+    first = loaded[0]
+    if isinstance(first, GreekVerseTokens):
+        return sorted(loaded, key=lambda item: (item.chapter, item.verse))  # type: ignore[arg-type]
+
+    grouped: dict[tuple[str, int, int], list[GreekToken]] = {}
+    for token in loaded:  # type: ignore[assignment]
+        grouped.setdefault((token.book, token.chapter, token.verse), []).append(token)
+    return [
+        GreekVerseTokens(
+            book=book,
+            chapter=chapter,
+            verse=verse,
+            tokens=tuple(sorted(tokens, key=lambda token: token.word_index)),
+        )
+        for (book, chapter, verse), tokens in sorted(grouped.items())
+    ]
+
+
+def _flatten_tokens(verse_groups: list[GreekVerseTokens]) -> list[GreekToken]:
+    tokens: list[GreekToken] = []
+    for verse_group in verse_groups:
+        tokens.extend(verse_group.tokens)
+    return tokens
+
+
+def _token_selection(token: GreekToken) -> TokenSelection:
+    return TokenSelection(
+        chapter=token.chapter,
+        verse=token.verse,
+        word_index=token.word_index,
+    )
+
+
+def _token_key(token: GreekToken) -> str:
+    return _token_selection(token).key
+
+
+def _first_token_key(tokens: list[GreekToken]) -> str | None:
+    return _token_key(tokens[0]) if tokens else None
+
+
+def _selected_token_key(tokens: list[GreekToken], current: object) -> str | None:
+    valid_keys = {_token_key(token) for token in tokens}
+    if current is not None and str(current) in valid_keys:
+        return str(current)
+    return _first_token_key(tokens)
+
+
+def _apply_token_key_selection(
+    tokens: list[GreekToken],
+    current: object,
+    candidate: object,
+) -> str | None:
+    if candidate is None:
+        return _selected_token_key(tokens, current)
+    valid_keys = {_token_key(token) for token in tokens}
+    if str(candidate) in valid_keys:
+        return str(candidate)
+    return _selected_token_key(tokens, current)
+
+
+def component_state_token_key(component_state: object, tokens: list[GreekToken]) -> str | None:
+    if component_state is None:
+        return None
+    if isinstance(component_state, dict):
+        value = component_state.get("selected_token_key")
+    else:
+        value = getattr(component_state, "selected_token_key", None)
+    return _apply_token_key_selection(tokens, None, value)
+
+
+def _word_index_from_token_key(value: object) -> int | None:
+    if value is None:
+        return None
+    try:
+        return int(str(value).split(":")[-1])
+    except ValueError:
+        return None
+
+
+def _selection_belongs_to_verse(
+    selection_key: str | None,
+    verse_group: GreekVerseTokens,
+) -> bool:
+    if selection_key is None:
+        return False
+    return selection_key.startswith(f"{verse_group.chapter}:{verse_group.verse}:")
+
+
+def _verse_groups_key(verse_groups: list[GreekVerseTokens]) -> str:
+    return "|".join(
+        f"{verse_group.chapter}:{verse_group.verse}:{len(verse_group.tokens)}"
+        for verse_group in verse_groups
+    )
+
+
+def _fallback_options(verse_groups: list[GreekVerseTokens]) -> list[int | str]:
+    if len(verse_groups) == 1:
+        return [token.word_index for token in verse_groups[0].tokens]
+    return [_token_key(token) for token in _flatten_tokens(verse_groups)]
+
+
+def _fallback_value(
+    verse_groups: list[GreekVerseTokens],
+    selection_key: str | None,
+) -> int | str | None:
+    if selection_key is None:
+        return None
+    if len(verse_groups) == 1:
+        return _word_index_from_token_key(selection_key)
+    return selection_key
+
+
+def _selection_key_from_fallback_value(
+    verse_groups: list[GreekVerseTokens],
+    value: object,
+) -> str | None:
+    if value is None:
+        return _first_token_key(_flatten_tokens(verse_groups))
+    if len(verse_groups) == 1:
+        verse_group = verse_groups[0]
+        try:
+            word_index = int(value)
+        except (TypeError, ValueError):
+            return _first_token_key(list(verse_group.tokens))
+        for token in verse_group.tokens:
+            if token.word_index == word_index:
+                return _token_key(token)
+        return _first_token_key(list(verse_group.tokens))
+    return _selected_token_key(_flatten_tokens(verse_groups), value)
+
+
+def _fallback_label(verse_groups: list[GreekVerseTokens], value: int | str) -> str:
+    selection_key = _selection_key_from_fallback_value(verse_groups, value)
+    token = _token_by_selection_key(_flatten_tokens(verse_groups), selection_key)
+    if len(verse_groups) == 1:
+        return token_option_label(token)
+    return f"{token.chapter},{token.verse} / {token.word_index}. {token.greek_form or 'nincs adat'}"
+
+
+def _token_by_selection_key(
+    tokens: list[GreekToken],
+    selection_key: str | None,
+) -> GreekToken:
+    resolved = _selected_token_key(tokens, selection_key)
+    for token in tokens:
+        if _token_key(token) == resolved:
+            return token
+    return tokens[0]
+
+
+def _looks_like_cross_chapter_john_reference(reference: str) -> bool:
+    cleaned = (reference or "").strip().replace("–", "-").replace("—", "-")
+    return bool(
+        re.match(
+            r"^(?:Jn|János|Janos|John|Jhn)\s+\d+\s*[,.:]\s*\d+\s*-\s*\d+\s*[,.:]\s*\d+\s*$",
+            cleaned,
+            flags=re.IGNORECASE,
+        )
     )
 
 
@@ -504,5 +850,7 @@ def _greek_reference_label(reference: str) -> str:
     except ValueError:
         return ""
     if parsed.book.code == "JHN" and parsed.verse_start is not None:
-        return f"JĂˇnos {parsed.chapter},{parsed.verse_start}"
+        if parsed.verse_end is not None and parsed.verse_end != parsed.verse_start:
+            return f"János {parsed.chapter},{parsed.verse_start}–{parsed.verse_end}"
+        return f"János {parsed.chapter},{parsed.verse_start}"
     return parsed.normalized_reference

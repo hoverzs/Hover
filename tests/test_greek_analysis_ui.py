@@ -5,6 +5,7 @@ from pathlib import Path
 from streamlit.testing.v1 import AppTest
 
 from bible_engine.greek_analysis_ui import (
+    CROSS_CHAPTER_JOHN_MESSAGE,
     GREEK_DATA_ERROR_MESSAGE,
     LEXICAL_SCOPE_NOTE,
     MISSING_GREEK_DATA_MESSAGE,
@@ -15,7 +16,9 @@ from bible_engine.greek_analysis_ui import (
     greek_reference_status,
     render_greek_analysis_block,
 )
+from bible_engine.greek_token_repository import GreekVerseTokens
 from bible_engine.greek_token_repository import TAGNT_DATABASE_ENV_VAR
+from bible_engine.tagnt_parser import GreekToken
 from bible_engine.tagnt_sqlite import import_tagnt_book
 
 
@@ -40,8 +43,69 @@ def _render_john_3_16_default_loader_block() -> None:
 
 def _render_multi_verse_john_block() -> None:
     from bible_engine.greek_analysis_ui import render_greek_analysis_block
+    from bible_engine.greek_token_repository import GreekVerseTokens
+    from bible_engine.tagnt_parser import GreekToken
 
-    render_greek_analysis_block(reference="Jn 3,16-18", key_prefix="test_greek")
+    def token(
+        chapter: int,
+        verse: int,
+        word_index: int,
+        greek_form: str,
+        lemma: str,
+        morph_code: str,
+        strong_id: str,
+    ) -> GreekToken:
+        return GreekToken(
+            book="Jhn",
+            chapter=chapter,
+            verse=verse,
+            word_index=word_index,
+            greek_form=greek_form,
+            lemma=lemma,
+            morph_code=morph_code,
+            strong_id=strong_id,
+            edition_flags="NKO",
+        )
+
+    def passage_tokens() -> list[GreekVerseTokens]:
+        return [
+            GreekVerseTokens(
+                book="Jhn",
+                chapter=3,
+                verse=16,
+                tokens=(
+                    token(3, 16, 1, "οὕτως", "οὕτω, οὕτως", "ADV", "G3779"),
+                    token(3, 16, 2, "γὰρ", "γάρ", "CONJ", "G1063"),
+                ),
+            ),
+            GreekVerseTokens(
+                book="Jhn",
+                chapter=3,
+                verse=17,
+                tokens=(
+                    token(3, 17, 1, "οὐ", "οὐ", "PRT-N", "G3756"),
+                    token(3, 17, 2, "γὰρ", "γάρ", "CONJ", "G1063"),
+                ),
+            ),
+            GreekVerseTokens(
+                book="Jhn",
+                chapter=3,
+                verse=18,
+                tokens=(token(3, 18, 1, "ὁ", "ὁ", "T-NSM", "G3588"),),
+            ),
+        ]
+
+    render_greek_analysis_block(
+        reference="Jn 3,16-18",
+        key_prefix="test_greek",
+        token_loader=passage_tokens,
+    )
+
+
+def _render_cross_chapter_john_block() -> None:
+    from bible_engine.greek_analysis_ui import render_greek_analysis_block
+
+    render_greek_analysis_block(reference="Jn 3,16-4,2", key_prefix="test_greek")
 
 
 def _render_other_new_testament_block() -> None:
@@ -93,7 +157,8 @@ def test_reference_status_distinguishes_supported_and_unsupported_references() -
     assert greek_reference_status("Jn 3,16") == "loaded"
     assert greek_reference_status("Jn 1,1") == "loaded"
     assert greek_reference_status("Jn 14,6") == "loaded"
-    assert greek_reference_status("Jn 3,16-18") == "multi_verse_john"
+    assert greek_reference_status("Jn 3,16-18") == "loaded"
+    assert greek_reference_status("Jn 3,16-4,2") == "cross_chapter_john"
     assert greek_reference_status("János 3,16") == "loaded"
     assert greek_reference_status("Róm 8,1") == "not_loaded"
     assert greek_reference_status("Zsolt 23,1") == "old_testament"
@@ -112,8 +177,8 @@ def test_john_3_16_renders_greek_block_and_analysis_panel() -> None:
     assert any("Válasszon egy görög szót" in value for value in markdown_values)
     assert app.selectbox[0].value == 1
     assert app.subheader[0].value == "οὕτως"
-    assert any("Szótári alak / alakok:** οὕτω, οὕτως" in value for value in markdown_values)
-    assert any("Magyar morfológia:** határozószó" in value for value in markdown_values)
+    assert any("<strong>Szótári alak / alakok:</strong> οὕτω, οὕτως" in value for value in markdown_values)
+    assert any("<strong>Magyar morfológia:</strong> határozószó" in value for value in markdown_values)
     assert any("Alapjelentés:** így" in value for value in markdown_values)
     assert any(LEXICAL_SCOPE_NOTE in value for value in caption_values)
 
@@ -126,16 +191,16 @@ def test_selected_word_analysis_updates_through_fallback_selectbox() -> None:
 
     markdown_values = [markdown.value for markdown in app.markdown]
     assert app.subheader[0].value == "ἠγάπησεν"
-    assert any("Strong/STEP:** G0025" in value for value in markdown_values)
+    assert any("<strong>Strong/STEP:</strong> G0025" in value for value in markdown_values)
     assert any("Alapjelentés:** szeret" in value for value in markdown_values)
-    assert any("- megbecsül" in value for value in markdown_values)
+    assert any("szeret · megbecsül" in value for value in markdown_values)
 
     app.selectbox[0].set_value(7)
     app.run()
 
     markdown_values = [markdown.value for markdown in app.markdown]
     assert app.subheader[0].value == "κόσμον,"
-    assert any("Strong/STEP:** G2889" in value for value in markdown_values)
+    assert any("<strong>Strong/STEP:</strong> G2889" in value for value in markdown_values)
     assert any("Alapjelentés:** világ" in value for value in markdown_values)
 
 
@@ -147,11 +212,32 @@ def test_other_new_testament_reference_shows_missing_local_data_message() -> Non
     assert len(app.selectbox) == 0
 
 
-def test_multi_verse_john_reference_shows_next_step_message() -> None:
+def test_multi_verse_john_reference_renders_verse_rows_and_shared_panel() -> None:
     app = AppTest.from_function(_render_multi_verse_john_block).run()
 
     assert not app.exception
-    assert any(MULTI_VERSE_JOHN_MESSAGE in caption.value for caption in app.caption)
+    markdown_values = [markdown.value for markdown in app.markdown]
+    assert any("textus-greek-verse-marker\">16" in value for value in markdown_values)
+    assert any("textus-greek-verse-marker\">17" in value for value in markdown_values)
+    assert any("textus-greek-verse-marker\">18" in value for value in markdown_values)
+    assert app.subheader[0].value == "οὕτως"
+    assert app.session_state["test_greek_selected_token_key"] == "3:16:1"
+    assert app.session_state["test_greek_selected_word_index"] == 1
+    assert app.selectbox[0].value == "3:16:1"
+
+    app.selectbox[0].set_value("3:17:1")
+    app.run()
+
+    assert app.subheader[0].value == "οὐ"
+    assert app.session_state["test_greek_selected_token_key"] == "3:17:1"
+    assert app.session_state["test_greek_selected_word_index"] == 1
+
+
+def test_cross_chapter_john_reference_shows_controlled_message() -> None:
+    app = AppTest.from_function(_render_cross_chapter_john_block).run()
+
+    assert not app.exception
+    assert any(CROSS_CHAPTER_JOHN_MESSAGE in caption.value for caption in app.caption)
     assert len(app.selectbox) == 0
 
 
@@ -260,3 +346,54 @@ def _build_john_3_16_database(tmp_path: Path) -> Path:
         "test",
     )
     return database
+
+
+def sample_passage_tokens() -> list[GreekVerseTokens]:
+    return [
+        GreekVerseTokens(
+            book="Jhn",
+            chapter=3,
+            verse=16,
+            tokens=(
+                greek_token(3, 16, 1, "οὕτως", "οὕτω, οὕτως", "ADV", "G3779"),
+                greek_token(3, 16, 2, "γὰρ", "γάρ", "CONJ", "G1063"),
+            ),
+        ),
+        GreekVerseTokens(
+            book="Jhn",
+            chapter=3,
+            verse=17,
+            tokens=(
+                greek_token(3, 17, 1, "οὐ", "οὐ", "PRT-N", "G3756"),
+                greek_token(3, 17, 2, "γὰρ", "γάρ", "CONJ", "G1063"),
+            ),
+        ),
+        GreekVerseTokens(
+            book="Jhn",
+            chapter=3,
+            verse=18,
+            tokens=(greek_token(3, 18, 1, "ὁ", "ὁ", "T-NSM", "G3588"),),
+        ),
+    ]
+
+
+def greek_token(
+    chapter: int,
+    verse: int,
+    word_index: int,
+    greek_form: str,
+    lemma: str,
+    morph_code: str,
+    strong_id: str,
+) -> GreekToken:
+    return GreekToken(
+        book="Jhn",
+        chapter=chapter,
+        verse=verse,
+        word_index=word_index,
+        greek_form=greek_form,
+        lemma=lemma,
+        morph_code=morph_code,
+        strong_id=strong_id,
+        edition_flags="NKO",
+    )

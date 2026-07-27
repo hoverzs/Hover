@@ -1,7 +1,7 @@
 .greek-token-selector {
   color: var(--st-text-color, #1f2937);
-  font-size: 1.65rem;
-  line-height: 1.8;
+  font-size: 1.12rem;
+  line-height: 1.3;
   max-width: 100%;
   overflow-wrap: anywhere;
 }
@@ -15,14 +15,14 @@
   cursor: pointer;
   display: inline;
   font: inherit;
-  line-height: inherit;
+  line-height: 1.16;
   margin: 0;
-  padding: 0 0.08em;
+  padding: 0 0.045em;
   text-align: inherit;
 }
 
 .greek-token + .greek-token {
-  margin-left: 0.25em;
+  margin-left: 0.18em;
 }
 
 .greek-token:hover {
@@ -30,17 +30,18 @@
 }
 
 .greek-token:focus-visible {
-  outline: 2px solid var(--st-primary-color, #ff4b4b);
-  outline-offset: 2px;
+  outline: 1px solid var(--st-primary-color, #ff4b4b);
+  outline-offset: 1px;
 }
 
 .greek-token[aria-pressed="true"] {
   background: color-mix(in srgb, var(--st-primary-color, #ff4b4b) 16%, transparent);
-  box-shadow: inset 0 -0.12em 0 var(--st-primary-color, #ff4b4b);
+  box-shadow: inset 0 -0.08em 0 var(--st-primary-color, #ff4b4b);
 }
 
 @media (max-width: 640px) {
   .greek-token-selector {
-    font-size: 1.45rem;
+    font-size: 1.06rem;
+    line-height: 1.28;
   }
 }

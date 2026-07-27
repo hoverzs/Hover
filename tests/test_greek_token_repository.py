@@ -8,7 +8,9 @@ import pytest
 
 from bible_engine.greek_token_repository import (
     DEFAULT_TAGNT_DATABASE_PATH,
+    GreekVerseTokens,
     TAGNT_DATABASE_ENV_VAR,
+    load_greek_passage_tokens,
     load_greek_verse_tokens,
     resolve_tagnt_database_path,
 )
@@ -108,6 +110,31 @@ def test_john_3_16_sqlite_tokens_match_existing_fixture(tmp_path: Path) -> None:
     assert tokens[6].strong_id == "G2889"
 
 
+def test_load_john_3_16_21_passage_returns_six_ordered_verses(tmp_path: Path) -> None:
+    database = build_sample_database(tmp_path)
+
+    verses = load_greek_passage_tokens("Jn 3,16-21", database_path=database)
+
+    assert [verse.verse for verse in verses] == [16, 17, 18, 19, 20, 21]
+    assert len(verses[0].tokens) == 26
+    assert all(isinstance(verse, GreekVerseTokens) for verse in verses)
+    assert all(
+        [token.word_index for token in verse.tokens]
+        == sorted(token.word_index for token in verse.tokens)
+        for verse in verses
+    )
+
+
+def test_load_john_10_7_10_and_14_1_6_passages(tmp_path: Path) -> None:
+    database = build_sample_database(tmp_path)
+
+    john_10 = load_greek_passage_tokens("Jn 10,7-10", database_path=database)
+    john_14 = load_greek_passage_tokens("Jn 14,1-6", database_path=database)
+
+    assert [verse.verse for verse in john_10] == [7, 8, 9, 10]
+    assert [verse.verse for verse in john_14] == [1, 2, 3, 4, 5, 6]
+
+
 def test_non_john_or_multi_verse_references_are_rejected(tmp_path: Path) -> None:
     database = build_sample_database(tmp_path)
 
@@ -131,6 +158,19 @@ def build_sample_database(tmp_path: Path) -> Path:
             token_for("Jhn", 10, 10, 1, "ὁ", "ὁ", "T-NSM", "G3588"),
             token_for("Jhn", 10, 10, 2, "κλέπτης", "κλέπτης", "N-NSM", "G2812"),
             token_for("Jhn", 10, 10, 3, "ἔρχεται", "ἔρχομαι", "V-PNI-3S", "G2064"),
+            token_for("Jhn", 3, 17, 1, "οὐ", "οὐ", "PRT-N", "G3756"),
+            token_for("Jhn", 3, 18, 1, "ὁ", "ὁ", "T-NSM", "G3588"),
+            token_for("Jhn", 3, 19, 1, "αὕτη", "οὗτος", "D-NSF", "G3778"),
+            token_for("Jhn", 3, 20, 1, "πᾶς", "πᾶς", "A-NSM", "G3956"),
+            token_for("Jhn", 3, 21, 1, "ὁ", "ὁ", "T-NSM", "G3588"),
+            token_for("Jhn", 10, 7, 1, "εἶπεν", "λέγω", "V-2AAI-3S", "G3004G"),
+            token_for("Jhn", 10, 8, 1, "πάντες", "πᾶς", "A-NPM", "G3956"),
+            token_for("Jhn", 10, 9, 1, "ἐγώ", "ἐγώ", "P-1NS", "G1473"),
+            token_for("Jhn", 14, 1, 1, "μὴ", "μή", "PRT-N", "G3361"),
+            token_for("Jhn", 14, 2, 1, "ἐν", "ἐν", "PREP", "G1722"),
+            token_for("Jhn", 14, 3, 1, "καὶ", "καί", "CONJ", "G2532"),
+            token_for("Jhn", 14, 4, 1, "καὶ", "καί", "CONJ", "G2532"),
+            token_for("Jhn", 14, 5, 1, "λέγει", "λέγω", "V-PAI-3S", "G3004G"),
             token_for("Jhn", 14, 6, 1, "λέγει", "λέγω", "V-PAI-3S", "G3004G"),
             token_for("Jhn", 14, 6, 2, "αὐτῷ", "αὐτός", "P-DSM", "G0846"),
             token_for("Jhn", 14, 6, 3, "Ἰησοῦς", "Ἰησοῦς", "N-NSM-P", "G2424G"),

@@ -194,7 +194,7 @@ def test_streamlit_demo_renders_initial_view() -> None:
     )
     assert ruf_title_index < ruf_text_index < selector_label_index
     assert any("Válasszon egy görög szót" in value for value in markdown_values)
-    assert not any("greek-verse" in value for value in markdown_values)
+    assert not any('class="greek-verse"' in value for value in markdown_values)
     assert not any("οὕτως γὰρ ἠγάπησεν" in value for value in markdown_values)
     assert not any("analysis-panel" in value for value in markdown_values)
 
@@ -205,11 +205,11 @@ def test_streamlit_demo_renders_initial_view() -> None:
     assert selectbox.value == 1
     assert selectbox.options[0] == "1. οὕτως"
     assert app.subheader[0].value == "οὕτως"
-    assert any("Szótári alak / alakok:** οὕτω, οὕτως" in value for value in markdown_values)
-    assert any("Magyar morfológia:** határozószó" in value for value in markdown_values)
-    assert any("Strong/STEP:** G3779" in value for value in markdown_values)
-    assert any("Morfológiai kód:** ADV" in value for value in markdown_values)
-    assert any("Kiadásjelölés:** NKO" in value for value in markdown_values)
+    assert any("<strong>Szótári alak / alakok:</strong> οὕτω, οὕτως" in value for value in markdown_values)
+    assert any("<strong>Magyar morfológia:</strong> határozószó" in value for value in markdown_values)
+    assert any("<strong>Strong/STEP:</strong> G3779" in value for value in markdown_values)
+    assert any("<strong>Morfológiai kód:</strong> ADV" in value for value in markdown_values)
+    assert any("<strong>Kiadásjelölés:</strong> NKO" in value for value in markdown_values)
     assert any("Magyar lexikai jelentések" in value for value in markdown_values)
     assert any("Alapjelentés:** így" in value for value in markdown_values)
     assert any("Ellenőrzési állapot:** munkaváltozat" in value for value in markdown_values)
@@ -229,16 +229,15 @@ def test_streamlit_demo_fallback_selectbox_updates_same_selection() -> None:
     markdown_values = [markdown.value for markdown in app.markdown]
     assert app.subheader[0].value == "ἠγάπησεν"
     assert app.selectbox[0].value == 3
-    assert any("Szótári alak / alakok:** ἀγαπάω" in value for value in markdown_values)
+    assert any("<strong>Szótári alak / alakok:</strong> ἀγαπάω" in value for value in markdown_values)
     assert any("Alapjelentés:** szeret" in value for value in markdown_values)
-    assert any("- szeret" in value for value in markdown_values)
-    assert any("- megbecsül" in value for value in markdown_values)
+    assert any("szeret · megbecsül" in value for value in markdown_values)
     assert any(
-        "- jóindulattal viszonyul valakihez" in value for value in markdown_values
+        "jóindulattal viszonyul valakihez" in value for value in markdown_values
     )
 
     morphology_values = [
-        value for value in markdown_values if "Magyar morfológia:**" in value
+        value for value in markdown_values if "<strong>Magyar morfológia:</strong>" in value
     ]
     assert morphology_values
     assert all("szeret" not in value for value in morphology_values)
@@ -252,16 +251,16 @@ def test_streamlit_demo_shows_hungarian_lexicon_for_kosmos_and_houtos() -> None:
     kosmos_values = [markdown.value for markdown in app.markdown]
     assert app.subheader[0].value == "κόσμον,"
     assert any("Alapjelentés:** világ" in value for value in kosmos_values)
-    assert any("- világegyetem" in value for value in kosmos_values)
-    assert any("- dísz vagy ékesség" in value for value in kosmos_values)
+    assert any("világegyetem" in value for value in kosmos_values)
+    assert any("dísz vagy ékesség" in value for value in kosmos_values)
 
     app.selectbox[0].set_value(1)
     app.run()
     houtos_values = [markdown.value for markdown in app.markdown]
     assert app.subheader[0].value == "οὕτως"
     assert any("Alapjelentés:** így" in value for value in houtos_values)
-    assert any("- ilyen módon" in value for value in houtos_values)
-    assert any("- ekképpen" in value for value in houtos_values)
+    assert any("ilyen módon" in value for value in houtos_values)
+    assert any("ekképpen" in value for value in houtos_values)
 
 
 def test_streamlit_demo_shows_normal_empty_lexicon_state_for_unsupported_token() -> None:
@@ -291,7 +290,7 @@ def test_streamlit_demo_ruf_failure_keeps_greek_analysis_available() -> None:
 
     markdown_values = [markdown.value for markdown in app.markdown]
     assert any("Válasszon egy görög szót" in value for value in markdown_values)
-    assert any("Szótári alak / alakok:** οὕτω, οὕτως" in value for value in markdown_values)
+    assert any("<strong>Szótári alak / alakok:</strong> οὕτω, οὕτως" in value for value in markdown_values)
 
 
 def test_streamlit_demo_lexicon_failure_keeps_greek_analysis_available() -> None:
@@ -302,8 +301,8 @@ def test_streamlit_demo_lexicon_failure_keeps_greek_analysis_available() -> None
 
     markdown_values = [markdown.value for markdown in app.markdown]
     assert any(LEXICON_HU_ERROR_MESSAGE in value for value in markdown_values)
-    assert any("Magyar morfológia:** határozószó" in value for value in markdown_values)
-    assert any("Strong/STEP:** G3779" in value for value in markdown_values)
+    assert any("<strong>Magyar morfológia:</strong> határozószó" in value for value in markdown_values)
+    assert any("<strong>Strong/STEP:</strong> G3779" in value for value in markdown_values)
 
 
 def test_streamlit_demo_does_not_show_contextual_or_exegetical_claims() -> None:

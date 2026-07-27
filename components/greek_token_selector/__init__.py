@@ -19,20 +19,40 @@ def greek_token_selector(
     key: str,
     on_selected_word_index_change: Callable[[], None] | None = None,
 ) -> int | None:
+    selected_key = str(selected_word_index)
+    result = greek_token_selector_value(
+        tokens=tokens,
+        selected_token_key=selected_key,
+        key=key,
+        on_selected_token_key_change=on_selected_word_index_change,
+    )
+    if result is None:
+        return None
+    return normalize_component_selection(_word_index_from_selection_key(result), tokens)
+
+
+def greek_token_selector_value(
+    tokens: list[GreekToken],
+    selected_token_key: str | None,
+    key: str,
+    on_selected_token_key_change: Callable[[], None] | None = None,
+) -> str | None:
     component = _component()
     result = component(
         data={
-            "tokens": component_tokens(tokens, selected_word_index),
-            "selected_word_index": selected_word_index,
+            "tokens": component_tokens(tokens, selected_token_key),
+            "selected_token_key": selected_token_key,
+            "selected_word_index": _word_index_from_selection_key(selected_token_key),
         },
         key=key,
-        on_selected_word_index_change=on_selected_word_index_change
-        if on_selected_word_index_change is not None
+        on_selected_token_key_change=on_selected_token_key_change
+        if on_selected_token_key_change is not None
         else lambda: None,
     )
-    return normalize_component_selection(
-        getattr(result, "selected_word_index", None), tokens
-    )
+    selected = getattr(result, "selected_token_key", None)
+    if selected is None:
+        selected = getattr(result, "selected_word_index", None)
+    return normalize_component_selection_key(selected, tokens)
 
 
 def _component():
@@ -45,16 +65,27 @@ def _component():
 
 
 def component_tokens(
-    tokens: list[GreekToken], selected_word_index: int
+    tokens: list[GreekToken],
+    selected_token_key: str | int | None = None,
+    *,
+    selected_word_index: int | None = None,
 ) -> list[dict[str, int | str | bool]]:
-    return [
-        {
+    if selected_token_key is None and selected_word_index is not None:
+        selected_token_key = selected_word_index
+    selected_key = str(selected_token_key) if selected_token_key is not None else None
+    use_composite_key = bool(selected_key and ":" in selected_key)
+    rendered = []
+    for token in sorted(tokens, key=lambda token: token.word_index):
+        item: dict[str, int | str | bool] = {
             "word_index": token.word_index,
             "greek_form": token.greek_form,
-            "selected": token.word_index == selected_word_index,
+            "selected": _token_selection_key(token) == selected_key
+            or str(token.word_index) == selected_key,
         }
-        for token in sorted(tokens, key=lambda token: token.word_index)
-    ]
+        if use_composite_key:
+            item["selection_key"] = _token_selection_key(token)
+        rendered.append(item)
+    return rendered
 
 
 def normalize_component_selection(value: Any, tokens: list[GreekToken]) -> int | None:
@@ -64,3 +95,27 @@ def normalize_component_selection(value: Any, tokens: list[GreekToken]) -> int |
     except (TypeError, ValueError):
         return None
     return selected if selected in valid_indexes else None
+
+
+def normalize_component_selection_key(value: Any, tokens: list[GreekToken]) -> str | None:
+    if value is None:
+        return None
+    candidate = str(value)
+    valid_keys = {_token_selection_key(token) for token in tokens}
+    if candidate in valid_keys:
+        return candidate
+    selected_word_index = normalize_component_selection(candidate, tokens)
+    return str(selected_word_index) if selected_word_index is not None else None
+
+
+def _token_selection_key(token: GreekToken) -> str:
+    return f"{token.chapter}:{token.verse}:{token.word_index}"
+
+
+def _word_index_from_selection_key(value: str | None) -> int | None:
+    if value is None:
+        return None
+    try:
+        return int(str(value).split(":")[-1])
+    except ValueError:
+        return None
