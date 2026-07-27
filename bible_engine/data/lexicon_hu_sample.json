@@ -1,0 +1,44 @@
+[
+  {
+    "strong_id": "G0025",
+    "lemma": "ἀγαπάω",
+    "primary_gloss": "szeret",
+    "senses": [
+      "szeret",
+      "megbecsül",
+      "jóindulattal viszonyul valakihez"
+    ],
+    "note": "A pontos magyar jelentés a tárgytól és a szövegkörnyezettől függ.",
+    "source": "STEPBible TBESG alapján készített magyar munkaváltozat",
+    "review_status": "draft"
+  },
+  {
+    "strong_id": "G2889",
+    "lemma": "κόσμος",
+    "primary_gloss": "világ",
+    "senses": [
+      "világ",
+      "világegyetem",
+      "emberi világ",
+      "rend vagy rendezett egész",
+      "dísz vagy ékesség"
+    ],
+    "note": "A szó jelentése a kontextustól függően a teremtett világra, az emberiségre, a rendezett rendre vagy díszre is utalhat.",
+    "source": "STEPBible TBESG alapján készített magyar munkaváltozat",
+    "review_status": "draft"
+  },
+  {
+    "strong_id": "G3779",
+    "lemma": "οὕτως",
+    "primary_gloss": "így",
+    "senses": [
+      "így",
+      "ilyen módon",
+      "ekképpen",
+      "ennyire vagy ilyen mértékben"
+    ],
+    "note": "Határozószó; jelentése módot vagy esetenként mértéket fejezhet ki.",
+    "source": "STEPBible TBESG alapján készített magyar munkaváltozat",
+    "review_status": "draft"
+  }
+]
