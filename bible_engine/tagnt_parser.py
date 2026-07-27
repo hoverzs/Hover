@@ -4,6 +4,7 @@ import csv
 import re
 import unicodedata
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Mapping, Sequence
 
 
@@ -81,6 +82,31 @@ def parse_tagnt_row(
         strong_id=strong_id.strip(),
         edition_flags=reference["edition_flags"],
     )
+
+
+def get_verse_tokens(
+    source_path: str | Path,
+    book: str,
+    chapter: int,
+    verse: int,
+) -> list[GreekToken]:
+    path = Path(source_path)
+    if not path.exists():
+        raise FileNotFoundError(f"TAGNT source file not found: {path}")
+
+    tokens: list[GreekToken] = []
+    prefix = f"{book}.{chapter}.{verse}#"
+
+    with path.open("r", encoding="utf-8") as source:
+        for raw_line in source:
+            line = raw_line.strip()
+            if not line or line.startswith("#") or line.startswith("Word & Type"):
+                continue
+            if not line.startswith(prefix):
+                continue
+            tokens.append(parse_tagnt_row(line))
+
+    return sorted(tokens, key=lambda token: token.word_index)
 
 
 def _indexed_headers(headers: Sequence[str]) -> Mapping[str, int]:
