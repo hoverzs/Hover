@@ -2,10 +2,13 @@ from streamlit.testing.v1 import AppTest
 
 from components.greek_token_selector import component_tokens, normalize_component_selection
 from greek_text_demo import (
+    LEXICAL_SCOPE_NOTE,
+    LEXICON_HU_ERROR_MESSAGE,
     RUF_ERROR_MESSAGE,
     RUF_REFERENCE,
     apply_token_selection,
     component_state_word_index,
+    load_demo_hungarian_lexicon,
     load_demo_tokens,
     load_ruf_demo_text,
     selected_word_index,
@@ -30,6 +33,21 @@ def _demo_with_mocked_ruf_failure() -> None:
         raise TimeoutError("mock timeout")
 
     render_demo(ruf_text_loader=load_failing_ruf_text)
+
+
+def _demo_with_mocked_ruf_success_and_lexicon_failure() -> None:
+    from greek_text_demo import render_demo
+
+    def load_mock_ruf_text() -> str:
+        return "16 Mert úgy szerette Isten a világot, hogy egyszülött Fiát adta."
+
+    def load_failing_lexicon() -> None:
+        raise OSError("mock lexicon failure")
+
+    render_demo(
+        ruf_text_loader=load_mock_ruf_text,
+        lexicon_loader=load_failing_lexicon,
+    )
 
 
 def test_demo_helpers_load_john_3_16_tokens() -> None:
@@ -57,6 +75,17 @@ def test_load_ruf_demo_text_uses_existing_ruf_service(monkeypatch) -> None:
     assert calls == [RUF_REFERENCE]
 
     load_ruf_demo_text.clear()
+
+
+def test_load_demo_hungarian_lexicon_loads_three_sample_entries() -> None:
+    load_demo_hungarian_lexicon.clear()
+    entries = load_demo_hungarian_lexicon()
+
+    assert entries is not None
+    assert set(entries) == {"G0025", "G2889", "G3779"}
+    assert entries["G0025"].primary_gloss == "szeret"
+
+    load_demo_hungarian_lexicon.clear()
 
 
 def test_demo_token_analysis_uses_hungarian_morphology() -> None:
@@ -181,6 +210,14 @@ def test_streamlit_demo_renders_initial_view() -> None:
     assert any("Strong/STEP:** G3779" in value for value in markdown_values)
     assert any("Morfológiai kód:** ADV" in value for value in markdown_values)
     assert any("Kiadásjelölés:** NKO" in value for value in markdown_values)
+    assert any("Magyar lexikai jelentések" in value for value in markdown_values)
+    assert any("Alapjelentés:** így" in value for value in markdown_values)
+    assert any("Ellenőrzési állapot:** munkaváltozat" in value for value in markdown_values)
+    assert any(
+        "STEPBible TBESG alapján készített magyar munkaváltozat" in caption.value
+        for caption in app.caption
+    )
+    assert any(LEXICAL_SCOPE_NOTE in caption.value for caption in app.caption)
 
 
 def test_streamlit_demo_fallback_selectbox_updates_same_selection() -> None:
@@ -193,6 +230,56 @@ def test_streamlit_demo_fallback_selectbox_updates_same_selection() -> None:
     assert app.subheader[0].value == "ἠγάπησεν"
     assert app.selectbox[0].value == 3
     assert any("Szótári alak / alakok:** ἀγαπάω" in value for value in markdown_values)
+    assert any("Alapjelentés:** szeret" in value for value in markdown_values)
+    assert any("- szeret" in value for value in markdown_values)
+    assert any("- megbecsül" in value for value in markdown_values)
+    assert any(
+        "- jóindulattal viszonyul valakihez" in value for value in markdown_values
+    )
+
+    morphology_values = [
+        value for value in markdown_values if "Magyar morfológia:**" in value
+    ]
+    assert morphology_values
+    assert all("szeret" not in value for value in morphology_values)
+
+
+def test_streamlit_demo_shows_hungarian_lexicon_for_kosmos_and_houtos() -> None:
+    app = AppTest.from_function(_demo_with_mocked_ruf_success).run()
+
+    app.selectbox[0].set_value(7)
+    app.run()
+    kosmos_values = [markdown.value for markdown in app.markdown]
+    assert app.subheader[0].value == "κόσμον,"
+    assert any("Alapjelentés:** világ" in value for value in kosmos_values)
+    assert any("- világegyetem" in value for value in kosmos_values)
+    assert any("- dísz vagy ékesség" in value for value in kosmos_values)
+
+    app.selectbox[0].set_value(1)
+    app.run()
+    houtos_values = [markdown.value for markdown in app.markdown]
+    assert app.subheader[0].value == "οὕτως"
+    assert any("Alapjelentés:** így" in value for value in houtos_values)
+    assert any("- ilyen módon" in value for value in houtos_values)
+    assert any("- ekképpen" in value for value in houtos_values)
+
+
+def test_streamlit_demo_shows_normal_empty_lexicon_state_for_unsupported_token() -> None:
+    app = AppTest.from_function(_demo_with_mocked_ruf_success).run()
+
+    app.selectbox[0].set_value(2)
+    app.run()
+
+    markdown_values = [markdown.value for markdown in app.markdown]
+    assert app.subheader[0].value == "γὰρ"
+    assert any(
+        "Ehhez a szóhoz még nincs magyar lexikai adat." in value
+        for value in markdown_values
+    )
+    assert not any(
+        "Alapjelentés:**" in value
+        for value in markdown_values
+    )
 
 
 def test_streamlit_demo_ruf_failure_keeps_greek_analysis_available() -> None:
@@ -205,3 +292,28 @@ def test_streamlit_demo_ruf_failure_keeps_greek_analysis_available() -> None:
     markdown_values = [markdown.value for markdown in app.markdown]
     assert any("Válasszon egy görög szót" in value for value in markdown_values)
     assert any("Szótári alak / alakok:** οὕτω, οὕτως" in value for value in markdown_values)
+
+
+def test_streamlit_demo_lexicon_failure_keeps_greek_analysis_available() -> None:
+    app = AppTest.from_function(_demo_with_mocked_ruf_success_and_lexicon_failure).run()
+
+    assert not app.exception
+    assert app.subheader[0].value == "οὕτως"
+
+    markdown_values = [markdown.value for markdown in app.markdown]
+    assert any(LEXICON_HU_ERROR_MESSAGE in value for value in markdown_values)
+    assert any("Magyar morfológia:** határozószó" in value for value in markdown_values)
+    assert any("Strong/STEP:** G3779" in value for value in markdown_values)
+
+
+def test_streamlit_demo_does_not_show_contextual_or_exegetical_claims() -> None:
+    app = AppTest.from_function(_demo_with_mocked_ruf_success).run()
+
+    app.selectbox[0].set_value(3)
+    app.run()
+
+    page_text = "\n".join(markdown.value for markdown in app.markdown)
+    assert "Ebben a versben ezt jelenti" not in page_text
+    assert "Exegetikai jelentőség" not in page_text
+    assert "AI magyarázat" not in page_text
+    assert "angol TBESG" not in page_text

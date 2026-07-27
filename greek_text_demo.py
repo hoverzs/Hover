@@ -8,16 +8,31 @@ import streamlit as st
 
 from bible_engine.morphology_hu import format_morphology_hu, parse_morphology_hu
 from bible_engine.tagnt_parser import GreekToken, get_verse_tokens
+from bible_engine.lexicon_hu import (
+    HungarianLexiconEntry,
+    get_hungarian_lexicon_entry,
+    load_hungarian_lexicon,
+)
 from components.greek_token_selector import greek_token_selector
 from ruf_bible_service import fetch_ruf_passage
 
 
 FIXTURE_PATH = Path(__file__).parent / "tests" / "fixtures" / "tagnt_jhn_3_16_sample.tsv"
+LEXICON_HU_PATH = Path(__file__).parent / "bible_engine" / "data" / "lexicon_hu_sample.json"
 RUF_REFERENCE = "Jn 3,16"
 RUF_ERROR_MESSAGE = (
     "A magyar bibliai szöveg jelenleg nem tölthető be. "
     "A görög szövegelemzés továbbra is használható."
 )
+LEXICON_HU_ERROR_MESSAGE = "A magyar lexikai adatok jelenleg nem érhetők el."
+LEXICAL_SCOPE_NOTE = (
+    "A felsorolt jelentések lexikai lehetőségek. Az adott versben "
+    "érvényes jelentést a szövegkörnyezet határozza meg."
+)
+REVIEW_STATUS_LABELS = {
+    "draft": "munkaváltozat",
+    "reviewed": "ellenőrzött",
+}
 SELECTED_TOKEN_KEY = "greek_text_demo_selected_word_index"
 TOKEN_SELECTOR_COMPONENT_KEY = "greek_text_demo_inline_token_selector"
 FALLBACK_SELECTOR_KEY = "greek_text_demo_fallback_selector"
@@ -25,6 +40,14 @@ FALLBACK_SELECTOR_KEY = "greek_text_demo_fallback_selector"
 
 def load_demo_tokens() -> list[GreekToken]:
     return get_verse_tokens(FIXTURE_PATH, book="Jhn", chapter=3, verse=16)
+
+
+@st.cache_data(show_spinner=False)
+def load_demo_hungarian_lexicon() -> dict[str, HungarianLexiconEntry] | None:
+    try:
+        return load_hungarian_lexicon(LEXICON_HU_PATH)
+    except Exception:
+        return None
 
 
 @st.cache_data(show_spinner=False)
@@ -94,7 +117,12 @@ def main() -> None:
     render_demo()
 
 
-def render_demo(ruf_text_loader: Callable[[], str | None] = load_ruf_demo_text) -> None:
+def render_demo(
+    ruf_text_loader: Callable[[], str | None] = load_ruf_demo_text,
+    lexicon_loader: Callable[
+        [], dict[str, HungarianLexiconEntry] | None
+    ] = load_demo_hungarian_lexicon,
+) -> None:
     st.set_page_config(page_title="Görög szövegelemzés - prototípus")
 
     st.markdown(
@@ -121,6 +149,10 @@ def render_demo(ruf_text_loader: Callable[[], str | None] = load_ruf_demo_text) 
     st.caption("János 3,16")
 
     tokens = load_demo_tokens()
+    try:
+        lexicon_entries = lexicon_loader()
+    except Exception:
+        lexicon_entries = None
     render_ruf_text_block(ruf_text_loader)
 
     if not tokens:
@@ -180,6 +212,47 @@ def render_demo(ruf_text_loader: Callable[[], str | None] = load_ruf_demo_text) 
             left.markdown(f"**{label}:** {value}")
         for label, value in analysis_items[3:]:
             right.markdown(f"**{label}:** {value}")
+        render_hungarian_lexicon_section(selected, lexicon_entries)
+
+
+def render_hungarian_lexicon_section(
+    token: GreekToken,
+    entries: dict[str, HungarianLexiconEntry] | None,
+) -> None:
+    st.divider()
+    st.markdown("#### Magyar lexikai jelentések")
+    st.caption(LEXICAL_SCOPE_NOTE)
+
+    if entries is None:
+        st.markdown(LEXICON_HU_ERROR_MESSAGE)
+        return
+
+    entry = _hungarian_lexicon_entry_for_token(entries, token)
+    if entry is None:
+        st.markdown("Ehhez a szóhoz még nincs magyar lexikai adat.")
+        return
+
+    st.markdown(f"**Alapjelentés:** {entry.primary_gloss}")
+    st.markdown("**Lehetséges jelentések:**")
+    for sense in entry.senses:
+        st.markdown(f"- {sense}")
+
+    if entry.note:
+        st.markdown(f"**Lexikai megjegyzés:** {entry.note}")
+
+    review_status = REVIEW_STATUS_LABELS.get(entry.review_status, entry.review_status)
+    st.markdown(f"**Ellenőrzési állapot:** {review_status}")
+    st.caption(f"Forrás: {entry.source}")
+
+
+def _hungarian_lexicon_entry_for_token(
+    entries: dict[str, HungarianLexiconEntry],
+    token: GreekToken,
+) -> HungarianLexiconEntry | None:
+    try:
+        return get_hungarian_lexicon_entry(entries, token.strong_id)
+    except ValueError:
+        return None
 
 
 def render_ruf_text_block(ruf_text_loader: Callable[[], str | None]) -> None:
