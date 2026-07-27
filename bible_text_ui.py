@@ -19,6 +19,7 @@ from typing import Any, MutableMapping
 
 import streamlit as st
 
+from bible_engine.greek_analysis_ui import render_greek_analysis_block
 from ruf_bible_service import (
     COPYRIGHT_NOTICE,
     SOURCE_NAME,
@@ -521,11 +522,19 @@ def render_bible_text_editor() -> None:
     if has_text:
         render_formatted_bible_text(display_text)
         _render_source_caption(st.session_state)
+        render_greek_analysis_block(
+            reference=_current_reference(st.session_state),
+            key_prefix="bible_text_ui",
+        )
         with st.expander("Bibliai szöveg szerkesztése", expanded=False):
             _render_editor_fields()
     else:
         _render_editor_fields()
         _render_source_caption(st.session_state)
+        render_greek_analysis_block(
+            reference=_current_reference(st.session_state),
+            key_prefix="bible_text_ui",
+        )
 
 
 def render_bible_text_preview(*, expanded: bool = False) -> None:

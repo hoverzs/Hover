@@ -2,52 +2,29 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from html import escape
-from pathlib import Path
 
 import streamlit as st
 
-from bible_engine.morphology_hu import format_morphology_hu, parse_morphology_hu
-from bible_engine.tagnt_parser import GreekToken, get_verse_tokens
-from bible_engine.lexicon_hu import (
-    HungarianLexiconEntry,
-    get_hungarian_lexicon_entry,
-    load_hungarian_lexicon,
+from bible_engine.greek_analysis_ui import (
+    LEXICAL_SCOPE_NOTE,
+    LEXICON_HU_ERROR_MESSAGE,
+    apply_token_selection,
+    component_state_word_index,
+    load_demo_hungarian_lexicon,
+    load_john_3_16_tokens as load_demo_tokens,
+    render_greek_analysis_block,
+    selected_word_index,
+    token_analysis,
+    token_option_label,
 )
-from components.greek_token_selector import greek_token_selector
 from ruf_bible_service import fetch_ruf_passage
 
 
-FIXTURE_PATH = Path(__file__).parent / "tests" / "fixtures" / "tagnt_jhn_3_16_sample.tsv"
-LEXICON_HU_PATH = Path(__file__).parent / "bible_engine" / "data" / "lexicon_hu_sample.json"
 RUF_REFERENCE = "Jn 3,16"
 RUF_ERROR_MESSAGE = (
     "A magyar bibliai szöveg jelenleg nem tölthető be. "
     "A görög szövegelemzés továbbra is használható."
 )
-LEXICON_HU_ERROR_MESSAGE = "A magyar lexikai adatok jelenleg nem érhetők el."
-LEXICAL_SCOPE_NOTE = (
-    "A felsorolt jelentések lexikai lehetőségek. Az adott versben "
-    "érvényes jelentést a szövegkörnyezet határozza meg."
-)
-REVIEW_STATUS_LABELS = {
-    "draft": "munkaváltozat",
-    "reviewed": "ellenőrzött",
-}
-SELECTED_TOKEN_KEY = "greek_text_demo_selected_word_index"
-TOKEN_SELECTOR_COMPONENT_KEY = "greek_text_demo_inline_token_selector"
-FALLBACK_SELECTOR_KEY = "greek_text_demo_fallback_selector"
-
-
-def load_demo_tokens() -> list[GreekToken]:
-    return get_verse_tokens(FIXTURE_PATH, book="Jhn", chapter=3, verse=16)
-
-
-@st.cache_data(show_spinner=False)
-def load_demo_hungarian_lexicon() -> dict[str, HungarianLexiconEntry] | None:
-    try:
-        return load_hungarian_lexicon(LEXICON_HU_PATH)
-    except Exception:
-        return None
 
 
 @st.cache_data(show_spinner=False)
@@ -64,75 +41,19 @@ def load_ruf_demo_text() -> str | None:
     return text or None
 
 
-def token_option_label(token: GreekToken) -> str:
-    return f"{token.word_index}. {token.greek_form or 'nincs adat'}"
-
-
-def token_analysis(token: GreekToken) -> dict[str, str]:
-    morphology = parse_morphology_hu(token.morph_code or "")
-    return {
-        "Szótári alak / alakok": _present(token.lemma),
-        "Strong/STEP": _present(token.strong_id),
-        "Morfológiai kód": _present(token.morph_code),
-        "Magyar morfológia": _present(format_morphology_hu(morphology)),
-        "Kiadásjelölés": _present(token.edition_flags),
-    }
-
-
-def selected_word_index(tokens: list[GreekToken], current: int | None) -> int | None:
-    indexes = {token.word_index for token in tokens}
-    if current in indexes:
-        return current
-    return tokens[0].word_index if tokens else None
-
-
-def apply_token_selection(
-    tokens: list[GreekToken], current: int | None, candidate: int | None
-) -> int | None:
-    if candidate is None:
-        return selected_word_index(tokens, current)
-    indexes = {token.word_index for token in tokens}
-    if candidate in indexes:
-        return candidate
-    return selected_word_index(tokens, current)
-
-
-def component_state_word_index(component_state: object, tokens: list[GreekToken]) -> int | None:
-    if component_state is None:
-        return None
-    if isinstance(component_state, dict):
-        value = component_state.get("selected_word_index")
-    else:
-        value = getattr(component_state, "selected_word_index", None)
-    if value is None:
-        return None
-    try:
-        candidate = int(value)
-    except (TypeError, ValueError):
-        candidate = None
-    return apply_token_selection(tokens, None, candidate)
-
-
 def main() -> None:
     render_demo()
 
 
 def render_demo(
     ruf_text_loader: Callable[[], str | None] = load_ruf_demo_text,
-    lexicon_loader: Callable[
-        [], dict[str, HungarianLexiconEntry] | None
-    ] = load_demo_hungarian_lexicon,
+    lexicon_loader: Callable[[], object] | None = None,
 ) -> None:
     st.set_page_config(page_title="Görög szövegelemzés - prototípus")
 
     st.markdown(
         """
         <style>
-        .token-selector-label {
-            margin-top: 1rem;
-            margin-bottom: 0.35rem;
-            font-weight: 600;
-        }
         .ruf-text {
             margin: 0.25rem 0 1.1rem;
             padding: 0.85rem 1rem;
@@ -147,112 +68,12 @@ def render_demo(
 
     st.title("Görög szövegelemzés – prototípus")
     st.caption("János 3,16")
-
-    tokens = load_demo_tokens()
-    try:
-        lexicon_entries = lexicon_loader()
-    except Exception:
-        lexicon_entries = None
     render_ruf_text_block(ruf_text_loader)
-
-    if not tokens:
-        st.warning("nincs adat")
-        return
-
-    current_index = selected_word_index(tokens, st.session_state.get(SELECTED_TOKEN_KEY))
-    st.session_state[SELECTED_TOKEN_KEY] = current_index
-    st.session_state[FALLBACK_SELECTOR_KEY] = current_index
-
-    def sync_component_selection() -> None:
-        selected = component_state_word_index(
-            st.session_state.get(TOKEN_SELECTOR_COMPONENT_KEY), tokens
-        )
-        st.session_state[SELECTED_TOKEN_KEY] = apply_token_selection(
-            tokens, st.session_state.get(SELECTED_TOKEN_KEY), selected
-        )
-
-    def sync_fallback_selection() -> None:
-        st.session_state[SELECTED_TOKEN_KEY] = apply_token_selection(
-            tokens,
-            st.session_state.get(SELECTED_TOKEN_KEY),
-            st.session_state.get(FALLBACK_SELECTOR_KEY),
-        )
-
-    st.markdown('<div class="token-selector-label">Válasszon egy görög szót</div>', unsafe_allow_html=True)
-    component_selection = greek_token_selector(
-        tokens=tokens,
-        selected_word_index=current_index,
-        key=TOKEN_SELECTOR_COMPONENT_KEY,
-        on_selected_word_index_change=sync_component_selection,
+    render_greek_analysis_block(
+        reference=RUF_REFERENCE,
+        key_prefix="greek_demo",
+        lexicon_loader=lexicon_loader or load_demo_hungarian_lexicon,
     )
-    next_index = apply_token_selection(tokens, current_index, component_selection)
-    if next_index != current_index:
-        st.session_state[SELECTED_TOKEN_KEY] = next_index
-        st.session_state[FALLBACK_SELECTOR_KEY] = next_index
-        st.rerun()
-
-    with st.expander("Alternatív szóválasztás", expanded=False):
-        st.selectbox(
-            "Token",
-            options=[token.word_index for token in tokens],
-            key=FALLBACK_SELECTOR_KEY,
-            format_func=lambda index: token_option_label(_token_by_index(tokens, index)),
-            on_change=sync_fallback_selection,
-        )
-
-    current_index = selected_word_index(tokens, st.session_state.get(SELECTED_TOKEN_KEY))
-    selected_index = current_index if current_index is not None else tokens[0].word_index
-    selected = _token_by_index(tokens, selected_index)
-
-    with st.container(border=True):
-        st.subheader(_present(selected.greek_form))
-        left, right = st.columns(2)
-        analysis_items = list(token_analysis(selected).items())
-        for label, value in analysis_items[:3]:
-            left.markdown(f"**{label}:** {value}")
-        for label, value in analysis_items[3:]:
-            right.markdown(f"**{label}:** {value}")
-        render_hungarian_lexicon_section(selected, lexicon_entries)
-
-
-def render_hungarian_lexicon_section(
-    token: GreekToken,
-    entries: dict[str, HungarianLexiconEntry] | None,
-) -> None:
-    st.divider()
-    st.markdown("#### Magyar lexikai jelentések")
-    st.caption(LEXICAL_SCOPE_NOTE)
-
-    if entries is None:
-        st.markdown(LEXICON_HU_ERROR_MESSAGE)
-        return
-
-    entry = _hungarian_lexicon_entry_for_token(entries, token)
-    if entry is None:
-        st.markdown("Ehhez a szóhoz még nincs magyar lexikai adat.")
-        return
-
-    st.markdown(f"**Alapjelentés:** {entry.primary_gloss}")
-    st.markdown("**Lehetséges jelentések:**")
-    for sense in entry.senses:
-        st.markdown(f"- {sense}")
-
-    if entry.note:
-        st.markdown(f"**Lexikai megjegyzés:** {entry.note}")
-
-    review_status = REVIEW_STATUS_LABELS.get(entry.review_status, entry.review_status)
-    st.markdown(f"**Ellenőrzési állapot:** {review_status}")
-    st.caption(f"Forrás: {entry.source}")
-
-
-def _hungarian_lexicon_entry_for_token(
-    entries: dict[str, HungarianLexiconEntry],
-    token: GreekToken,
-) -> HungarianLexiconEntry | None:
-    try:
-        return get_hungarian_lexicon_entry(entries, token.strong_id)
-    except ValueError:
-        return None
 
 
 def render_ruf_text_block(ruf_text_loader: Callable[[], str | None]) -> None:
@@ -269,14 +90,6 @@ def render_ruf_text_block(ruf_text_loader: Callable[[], str | None]) -> None:
         )
     else:
         st.warning(RUF_ERROR_MESSAGE)
-
-
-def _token_by_index(tokens: list[GreekToken], word_index: int) -> GreekToken:
-    return next(token for token in tokens if token.word_index == word_index)
-
-
-def _present(value: str | None) -> str:
-    return value if value else "nincs adat"
 
 
 if __name__ == "__main__":
