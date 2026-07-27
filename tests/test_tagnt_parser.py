@@ -2,7 +2,12 @@ from pathlib import Path
 
 import pytest
 
-from bible_engine.tagnt_parser import GreekToken, get_verse_tokens, parse_tagnt_row
+from bible_engine.tagnt_parser import (
+    GreekToken,
+    get_verse_tokens,
+    parse_tagnt_row,
+    render_greek_text,
+)
 
 
 FIXTURE_DIR = Path(__file__).parent / "fixtures"
@@ -66,6 +71,20 @@ def test_get_verse_tokens_accepts_string_path_and_returns_empty_for_missing_vers
 
     assert len(tokens) == 26
     assert missing == []
+
+
+def test_render_greek_text_from_john_3_16_fixture() -> None:
+    tokens = get_verse_tokens(JHN_FIXTURE, book="Jhn", chapter=3, verse=16)
+    text = render_greek_text(tokens)
+
+    assert text
+    assert text.startswith("οὕτως γὰρ ἠγάπησεν")
+    assert "ὁ θεὸς τὸν κόσμον, ὥστε" in text
+    assert "  " not in text
+    assert " ," not in text
+    assert " ." not in text
+    assert "οὕτως" in text
+    assert "αἰώνιον." in text
 
 
 def test_john_3_16_preserves_variant_edition_flags() -> None:
@@ -143,3 +162,53 @@ def test_get_verse_tokens_missing_file_has_clear_error() -> None:
 
     with pytest.raises(FileNotFoundError, match="TAGNT source file not found"):
         get_verse_tokens(missing_file, book="Jhn", chapter=3, verse=16)
+
+
+def test_render_greek_text_empty_list() -> None:
+    assert render_greek_text([]) == ""
+
+
+def test_render_greek_text_handles_comma_and_period() -> None:
+    tokens = [
+        token(1, "λόγος"),
+        token(2, ","),
+        token(3, "θεός"),
+        token(4, "."),
+    ]
+
+    assert render_greek_text(tokens) == "λόγος, θεός."
+
+
+def test_render_greek_text_handles_opening_and_closing_punctuation() -> None:
+    tokens = [
+        token(1, "("),
+        token(2, "λόγος"),
+        token(3, ")"),
+        token(4, "θεός"),
+    ]
+
+    assert render_greek_text(tokens) == "(λόγος) θεός"
+
+
+def test_render_greek_text_sorts_unordered_tokens() -> None:
+    tokens = [
+        token(3, "ἦν"),
+        token(1, "Ἐν"),
+        token(2, "ἀρχῇ"),
+    ]
+
+    assert render_greek_text(tokens) == "Ἐν ἀρχῇ ἦν"
+
+
+def token(word_index: int, greek_form: str) -> GreekToken:
+    return GreekToken(
+        book="Tst",
+        chapter=1,
+        verse=1,
+        word_index=word_index,
+        greek_form=greek_form,
+        lemma="lemma",
+        morph_code="MORPH",
+        strong_id="G0000",
+        edition_flags="NKO",
+    )

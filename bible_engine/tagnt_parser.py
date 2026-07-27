@@ -37,6 +37,8 @@ _WORD_AND_TYPE_RE = re.compile(
     r"(?P<edition_flags>.+)$"
 )
 _TRAILING_TRANSLITERATION_RE = re.compile(r"\s+\([^)]*\)\s*$")
+_CLOSING_PUNCTUATION = {",", ".", ";", ":", "·", "!", "?", ")", "]", "}", "»", "”", "’"}
+_OPENING_PUNCTUATION = {"(", "[", "{", "«", "“", "‘"}
 
 
 @dataclass(frozen=True)
@@ -107,6 +109,23 @@ def get_verse_tokens(
             tokens.append(parse_tagnt_row(line))
 
     return sorted(tokens, key=lambda token: token.word_index)
+
+
+def render_greek_text(tokens: list[GreekToken]) -> str:
+    rendered = ""
+    for token in sorted(tokens, key=lambda token: token.word_index):
+        form = token.greek_form
+        if not form:
+            continue
+        if (
+            not rendered
+            or form[0] in _CLOSING_PUNCTUATION
+            or rendered[-1] in _OPENING_PUNCTUATION
+        ):
+            rendered += form
+        else:
+            rendered += f" {form}"
+    return rendered
 
 
 def _indexed_headers(headers: Sequence[str]) -> Mapping[str, int]:
