@@ -67,3 +67,9 @@ _qa_shell/
 *.phase_wip_bak
 *_wip_bak
 st_*.log
+
+# Generated Bible data artifacts
+*.db
+*.sqlite
+*.sqlite3
+data/raw/

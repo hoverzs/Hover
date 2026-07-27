@@ -32,7 +32,8 @@ TAGNT_ACT_REV_HEADERS = TAGNT_HEADERS
 _WORD_AND_TYPE_RE = re.compile(
     r"^(?P<book>[1-3]?[A-Za-z]{3})\."
     r"(?P<chapter>\d+)\."
-    r"(?P<verse>\d+)#"
+    r"(?P<verse>\d+)"
+    r"(?:[\[\(\{][^#]+[\]\)\}])?#"
     r"(?P<word_index>\d+)="
     r"(?P<edition_flags>.+)$"
 )
