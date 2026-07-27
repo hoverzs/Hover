@@ -11,6 +11,7 @@ from bible_engine.lexicon_hu import (
     get_hungarian_lexicon_entry,
     load_hungarian_lexicon,
 )
+from bible_engine.greek_token_repository import load_greek_verse_tokens
 from bible_engine.morphology_hu import format_morphology_hu, parse_morphology_hu
 from bible_engine.tagnt_parser import GreekToken, get_verse_tokens
 from components.greek_token_selector import greek_token_selector
@@ -33,6 +34,17 @@ NO_HUNGARIAN_LEXICON_ENTRY_MESSAGE = "Ehhez a szóhoz még nincs magyar lexikai 
 LEXICAL_SCOPE_NOTE = (
     "A felsorolt jelentések lexikai lehetőségek. Az adott versben "
     "érvényes jelentést a szövegkörnyezet határozza meg."
+)
+MISSING_GREEK_DATABASE_MESSAGE = (
+    "A görög szöveg helyi adatbázisa még nincs előkészítve."
+)
+TAGNT_DATABASE_BUILD_HINT = (
+    "Előkészítés: python scripts/build_tagnt_john_db.py "
+    "--source ... --output data/generated/tagnt_john.sqlite3"
+)
+MULTI_VERSE_JOHN_MESSAGE = (
+    "A többverses görög szakaszok megjelenítése a következő "
+    "fejlesztési lépésben lesz elérhető."
 )
 REVIEW_STATUS_LABELS = {
     "draft": "munkaváltozat",
@@ -71,7 +83,14 @@ _NEW_TESTAMENT_CODES = frozenset(
     }
 )
 
-GreekReferenceStatus = Literal["empty", "invalid", "old_testament", "not_loaded", "loaded"]
+GreekReferenceStatus = Literal[
+    "empty",
+    "invalid",
+    "old_testament",
+    "multi_verse_john",
+    "not_loaded",
+    "loaded",
+]
 
 
 def render_greek_analysis_block(
@@ -90,16 +109,23 @@ def render_greek_analysis_block(
     if status == "old_testament":
         st.caption(OLD_TESTAMENT_MESSAGE)
         return
+    if status == "multi_verse_john":
+        st.caption(MULTI_VERSE_JOHN_MESSAGE)
+        return
     if status == "not_loaded":
         st.caption(MISSING_GREEK_DATA_MESSAGE)
         return
 
-    token_loader = token_loader or load_john_3_16_tokens
+    token_loader = token_loader or (lambda: load_greek_verse_tokens(reference))
     lexicon_loader = lexicon_loader or load_demo_hungarian_lexicon
     _ensure_greek_analysis_styles()
 
     try:
         tokens = token_loader()
+    except FileNotFoundError:
+        st.caption(MISSING_GREEK_DATABASE_MESSAGE)
+        st.caption(TAGNT_DATABASE_BUILD_HINT)
+        return
     except Exception:
         st.caption(GREEK_DATA_ERROR_MESSAGE)
         return
@@ -113,7 +139,12 @@ def render_greek_analysis_block(
     except Exception:
         lexicon_entries = None
 
-    _render_loaded_greek_analysis(tokens, lexicon_entries, key_prefix=key_prefix)
+    _render_loaded_greek_analysis(
+        tokens,
+        lexicon_entries,
+        key_prefix=key_prefix,
+        reference_label=_greek_reference_label(reference),
+    )
 
 
 def greek_reference_status(reference: str) -> GreekReferenceStatus:
@@ -129,12 +160,11 @@ def greek_reference_status(reference: str) -> GreekReferenceStatus:
     if parsed.book.code not in _NEW_TESTAMENT_CODES:
         return "old_testament"
 
-    if (
-        parsed.book.code == "JHN"
-        and parsed.chapter == 3
-        and parsed.verse_start == 16
-        and (parsed.verse_end is None or parsed.verse_end == 16)
-    ):
+    if parsed.book.code == "JHN":
+        if parsed.verse_start is None:
+            return "multi_verse_john"
+        if parsed.verse_end is not None and parsed.verse_end != parsed.verse_start:
+            return "multi_verse_john"
         return "loaded"
 
     return "not_loaded"
@@ -207,6 +237,7 @@ def _render_loaded_greek_analysis(
     lexicon_entries: dict[str, HungarianLexiconEntry] | None,
     *,
     key_prefix: str,
+    reference_label: str | None = None,
 ) -> None:
     selected_key = _key(key_prefix, "selected_word_index")
     component_key = _key(key_prefix, "inline_token_selector")
@@ -237,6 +268,8 @@ def _render_loaded_greek_analysis(
         '<div class="textus-greek-analysis-label">Válasszon egy görög szót</div>',
         unsafe_allow_html=True,
     )
+    if reference_label:
+        st.caption(reference_label)
     component_selection = greek_token_selector(
         tokens=tokens,
         selected_word_index=current_index,
@@ -463,3 +496,13 @@ def _present(value: str | None) -> str:
 def _key(prefix: str, suffix: str) -> str:
     clean_prefix = (prefix or "greek_analysis").strip().replace(" ", "_")
     return f"{clean_prefix}_{suffix}"
+
+
+def _greek_reference_label(reference: str) -> str:
+    try:
+        parsed = parse_bible_reference(reference)
+    except ValueError:
+        return ""
+    if parsed.book.code == "JHN" and parsed.verse_start is not None:
+        return f"JĂˇnos {parsed.chapter},{parsed.verse_start}"
+    return parsed.normalized_reference

@@ -72,6 +72,7 @@ def render_demo(
     render_greek_analysis_block(
         reference=RUF_REFERENCE,
         key_prefix="greek_demo",
+        token_loader=load_demo_tokens,
         lexicon_loader=lexicon_loader or load_demo_hungarian_lexicon,
     )
 

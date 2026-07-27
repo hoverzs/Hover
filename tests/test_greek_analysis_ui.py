@@ -8,19 +8,40 @@ from bible_engine.greek_analysis_ui import (
     GREEK_DATA_ERROR_MESSAGE,
     LEXICAL_SCOPE_NOTE,
     MISSING_GREEK_DATA_MESSAGE,
+    MISSING_GREEK_DATABASE_MESSAGE,
+    MULTI_VERSE_JOHN_MESSAGE,
     OLD_TESTAMENT_MESSAGE,
+    TAGNT_DATABASE_BUILD_HINT,
     greek_reference_status,
     render_greek_analysis_block,
 )
+from bible_engine.greek_token_repository import TAGNT_DATABASE_ENV_VAR
+from bible_engine.tagnt_sqlite import import_tagnt_book
 
 
 ROOT = Path(__file__).parents[1]
 
 
 def _render_john_3_16_block() -> None:
+    from bible_engine.greek_analysis_ui import load_john_3_16_tokens, render_greek_analysis_block
+
+    render_greek_analysis_block(
+        reference="Jn 3,16",
+        key_prefix="test_greek",
+        token_loader=load_john_3_16_tokens,
+    )
+
+
+def _render_john_3_16_default_loader_block() -> None:
     from bible_engine.greek_analysis_ui import render_greek_analysis_block
 
     render_greek_analysis_block(reference="Jn 3,16", key_prefix="test_greek")
+
+
+def _render_multi_verse_john_block() -> None:
+    from bible_engine.greek_analysis_ui import render_greek_analysis_block
+
+    render_greek_analysis_block(reference="Jn 3,16-18", key_prefix="test_greek")
 
 
 def _render_other_new_testament_block() -> None:
@@ -70,6 +91,9 @@ def _render_bible_text_editor_with_john_text() -> None:
 
 def test_reference_status_distinguishes_supported_and_unsupported_references() -> None:
     assert greek_reference_status("Jn 3,16") == "loaded"
+    assert greek_reference_status("Jn 1,1") == "loaded"
+    assert greek_reference_status("Jn 14,6") == "loaded"
+    assert greek_reference_status("Jn 3,16-18") == "multi_verse_john"
     assert greek_reference_status("János 3,16") == "loaded"
     assert greek_reference_status("Róm 8,1") == "not_loaded"
     assert greek_reference_status("Zsolt 23,1") == "old_testament"
@@ -123,6 +147,39 @@ def test_other_new_testament_reference_shows_missing_local_data_message() -> Non
     assert len(app.selectbox) == 0
 
 
+def test_multi_verse_john_reference_shows_next_step_message() -> None:
+    app = AppTest.from_function(_render_multi_verse_john_block).run()
+
+    assert not app.exception
+    assert any(MULTI_VERSE_JOHN_MESSAGE in caption.value for caption in app.caption)
+    assert len(app.selectbox) == 0
+
+
+def test_default_renderer_does_not_use_fixture_fallback_for_missing_database(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    missing_database = tmp_path / "missing.sqlite3"
+    monkeypatch.setenv(TAGNT_DATABASE_ENV_VAR, str(missing_database))
+
+    app = AppTest.from_function(_render_john_3_16_default_loader_block).run()
+
+    assert not app.exception
+    caption_values = [caption.value for caption in app.caption]
+    assert any(MISSING_GREEK_DATABASE_MESSAGE in value for value in caption_values)
+    assert any(TAGNT_DATABASE_BUILD_HINT in value for value in caption_values)
+    page_text = "\n".join(caption_values)
+    assert "A görög szöveg helyi adatbázisa még nincs előkészítve." in page_text
+    assert (
+        "Előkészítés: python scripts/build_tagnt_john_db.py "
+        "--source ... --output data/generated/tagnt_john.sqlite3"
+    ) in page_text
+    assert "Ã" not in page_text
+    assert "Å" not in page_text
+    assert "Â" not in page_text
+    assert len(app.selectbox) == 0
+
+
 def test_old_testament_reference_shows_future_module_message() -> None:
     app = AppTest.from_function(_render_old_testament_block).run()
 
@@ -158,7 +215,12 @@ def test_token_loading_failure_is_contained() -> None:
     assert any(GREEK_DATA_ERROR_MESSAGE in caption.value for caption in app.caption)
 
 
-def test_bible_text_editor_renders_greek_block_after_hungarian_text() -> None:
+def test_bible_text_editor_renders_greek_block_after_hungarian_text(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setenv(TAGNT_DATABASE_ENV_VAR, str(_build_john_3_16_database(tmp_path)))
+
     app = AppTest.from_function(_render_bible_text_editor_with_john_text).run()
 
     assert not app.exception
@@ -186,3 +248,15 @@ def test_demo_and_bible_text_ui_use_shared_renderer() -> None:
     assert "render_greek_analysis_block" in bible_text_source
     assert "from bible_engine.greek_analysis_ui import" in demo_source
     assert "from bible_engine.greek_analysis_ui import render_greek_analysis_block" in bible_text_source
+
+
+def _build_john_3_16_database(tmp_path: Path) -> Path:
+    database = tmp_path / "tagnt_john.sqlite3"
+    import_tagnt_book(
+        ROOT / "tests" / "fixtures" / "tagnt_jhn_3_16_sample.tsv",
+        database,
+        "Jhn",
+        "fixture",
+        "test",
+    )
+    return database

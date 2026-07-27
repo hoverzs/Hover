@@ -10,13 +10,31 @@ if str(ROOT) not in sys.path:
 
 from bible_engine.tagnt_sqlite import import_tagnt_book
 
+DEFAULT_OUTPUT = ROOT / "data" / "generated" / "tagnt_john.sqlite3"
+
 
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Build a local SQLite database for TAGNT John tokens."
     )
-    parser.add_argument("source", type=Path, help="Path to the TAGNT Mat-Jhn TSV file")
-    parser.add_argument("output", type=Path, help="Path to the output SQLite database")
+    parser.add_argument(
+        "source",
+        nargs="?",
+        type=Path,
+        help="Path to the TAGNT Mat-Jhn TSV file",
+    )
+    parser.add_argument(
+        "--source",
+        dest="source_option",
+        type=Path,
+        help="Path to the TAGNT Mat-Jhn TSV file",
+    )
+    parser.add_argument(
+        "--output",
+        type=Path,
+        default=DEFAULT_OUTPUT,
+        help="Path to the output SQLite database",
+    )
     parser.add_argument("--book", default="Jhn", help="TAGNT book code to import")
     parser.add_argument(
         "--source-name",
@@ -30,8 +48,12 @@ def main() -> None:
     )
 
     args = parser.parse_args()
+    source_path = args.source_option or args.source
+    if source_path is None:
+        parser.error("Provide a TAGNT source path as SOURCE or with --source.")
+
     report = import_tagnt_book(
-        source_path=args.source,
+        source_path=source_path,
         database_path=args.output,
         book=args.book,
         source_name=args.source_name,
