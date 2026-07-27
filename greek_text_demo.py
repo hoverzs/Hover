@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from collections.abc import Callable
+from html import escape
 from pathlib import Path
 
 import streamlit as st
@@ -7,9 +9,15 @@ import streamlit as st
 from bible_engine.morphology_hu import format_morphology_hu, parse_morphology_hu
 from bible_engine.tagnt_parser import GreekToken, get_verse_tokens
 from components.greek_token_selector import greek_token_selector
+from ruf_bible_service import fetch_ruf_passage
 
 
 FIXTURE_PATH = Path(__file__).parent / "tests" / "fixtures" / "tagnt_jhn_3_16_sample.tsv"
+RUF_REFERENCE = "Jn 3,16"
+RUF_ERROR_MESSAGE = (
+    "A magyar bibliai szöveg jelenleg nem tölthető be. "
+    "A görög szövegelemzés továbbra is használható."
+)
 SELECTED_TOKEN_KEY = "greek_text_demo_selected_word_index"
 TOKEN_SELECTOR_COMPONENT_KEY = "greek_text_demo_inline_token_selector"
 FALLBACK_SELECTOR_KEY = "greek_text_demo_fallback_selector"
@@ -17,6 +25,20 @@ FALLBACK_SELECTOR_KEY = "greek_text_demo_fallback_selector"
 
 def load_demo_tokens() -> list[GreekToken]:
     return get_verse_tokens(FIXTURE_PATH, book="Jhn", chapter=3, verse=16)
+
+
+@st.cache_data(show_spinner=False)
+def load_ruf_demo_text() -> str | None:
+    try:
+        result = fetch_ruf_passage(RUF_REFERENCE)
+    except Exception:
+        return None
+
+    if not result.get("success"):
+        return None
+
+    text = str(result.get("text") or "").strip()
+    return text or None
 
 
 def token_option_label(token: GreekToken) -> str:
@@ -69,6 +91,10 @@ def component_state_word_index(component_state: object, tokens: list[GreekToken]
 
 
 def main() -> None:
+    render_demo()
+
+
+def render_demo(ruf_text_loader: Callable[[], str | None] = load_ruf_demo_text) -> None:
     st.set_page_config(page_title="Görög szövegelemzés - prototípus")
 
     st.markdown(
@@ -79,6 +105,13 @@ def main() -> None:
             margin-bottom: 0.35rem;
             font-weight: 600;
         }
+        .ruf-text {
+            margin: 0.25rem 0 1.1rem;
+            padding: 0.85rem 1rem;
+            border-left: 3px solid #8b7355;
+            background: rgba(139, 115, 85, 0.08);
+            line-height: 1.65;
+        }
         </style>
         """,
         unsafe_allow_html=True,
@@ -88,6 +121,7 @@ def main() -> None:
     st.caption("János 3,16")
 
     tokens = load_demo_tokens()
+    render_ruf_text_block(ruf_text_loader)
 
     if not tokens:
         st.warning("nincs adat")
@@ -146,6 +180,22 @@ def main() -> None:
             left.markdown(f"**{label}:** {value}")
         for label, value in analysis_items[3:]:
             right.markdown(f"**{label}:** {value}")
+
+
+def render_ruf_text_block(ruf_text_loader: Callable[[], str | None]) -> None:
+    st.markdown("### RÚF 2014")
+    try:
+        ruf_text = ruf_text_loader()
+    except Exception:
+        ruf_text = None
+
+    if ruf_text:
+        st.markdown(
+            f'<div class="ruf-text">{escape(ruf_text)}</div>',
+            unsafe_allow_html=True,
+        )
+    else:
+        st.warning(RUF_ERROR_MESSAGE)
 
 
 def _token_by_index(tokens: list[GreekToken], word_index: int) -> GreekToken:

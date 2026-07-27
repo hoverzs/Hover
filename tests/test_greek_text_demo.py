@@ -1,16 +1,35 @@
-from pathlib import Path
-
 from streamlit.testing.v1 import AppTest
 
 from components.greek_token_selector import component_tokens, normalize_component_selection
 from greek_text_demo import (
+    RUF_ERROR_MESSAGE,
+    RUF_REFERENCE,
     apply_token_selection,
     component_state_word_index,
     load_demo_tokens,
+    load_ruf_demo_text,
     selected_word_index,
     token_analysis,
     token_option_label,
 )
+
+
+def _demo_with_mocked_ruf_success() -> None:
+    from greek_text_demo import render_demo
+
+    def load_mock_ruf_text() -> str:
+        return "16 Mert úgy szerette Isten a világot, hogy egyszülött Fiát adta."
+
+    render_demo(ruf_text_loader=load_mock_ruf_text)
+
+
+def _demo_with_mocked_ruf_failure() -> None:
+    from greek_text_demo import render_demo
+
+    def load_failing_ruf_text() -> str:
+        raise TimeoutError("mock timeout")
+
+    render_demo(ruf_text_loader=load_failing_ruf_text)
 
 
 def test_demo_helpers_load_john_3_16_tokens() -> None:
@@ -19,6 +38,25 @@ def test_demo_helpers_load_john_3_16_tokens() -> None:
     assert len(tokens) == 26
     assert token_option_label(tokens[0]) == "1. οὕτως"
     assert token_option_label(tokens[2]) == "3. ἠγάπησεν"
+
+
+def test_load_ruf_demo_text_uses_existing_ruf_service(monkeypatch) -> None:
+    calls = []
+
+    def fake_fetch_ruf_passage(reference: str) -> dict[str, object]:
+        calls.append(reference)
+        return {"success": True, "text": "16 magyar próbaszöveg"}
+
+    monkeypatch.setattr(
+        "greek_text_demo.fetch_ruf_passage",
+        fake_fetch_ruf_passage,
+    )
+    load_ruf_demo_text.clear()
+
+    assert load_ruf_demo_text() == "16 magyar próbaszöveg"
+    assert calls == [RUF_REFERENCE]
+
+    load_ruf_demo_text.clear()
 
 
 def test_demo_token_analysis_uses_hungarian_morphology() -> None:
@@ -105,14 +143,27 @@ def test_component_next_render_payload_receives_resolved_selection() -> None:
 
 
 def test_streamlit_demo_renders_initial_view() -> None:
-    app_path = Path(__file__).parents[1] / "greek_text_demo.py"
-    app = AppTest.from_file(str(app_path)).run()
+    app = AppTest.from_function(_demo_with_mocked_ruf_success).run()
 
     assert not app.exception
     assert app.title[0].value == "Görög szövegelemzés – prototípus"
     assert any("János 3,16" in caption.value for caption in app.caption)
 
     markdown_values = [markdown.value for markdown in app.markdown]
+    ruf_title_index = next(
+        index for index, value in enumerate(markdown_values) if "RÚF 2014" in value
+    )
+    ruf_text_index = next(
+        index
+        for index, value in enumerate(markdown_values)
+        if "Mert úgy szerette Isten" in value
+    )
+    selector_label_index = next(
+        index
+        for index, value in enumerate(markdown_values)
+        if "Válasszon egy görög szót" in value
+    )
+    assert ruf_title_index < ruf_text_index < selector_label_index
     assert any("Válasszon egy görög szót" in value for value in markdown_values)
     assert not any("greek-verse" in value for value in markdown_values)
     assert not any("οὕτως γὰρ ἠγάπησεν" in value for value in markdown_values)
@@ -133,8 +184,7 @@ def test_streamlit_demo_renders_initial_view() -> None:
 
 
 def test_streamlit_demo_fallback_selectbox_updates_same_selection() -> None:
-    app_path = Path(__file__).parents[1] / "greek_text_demo.py"
-    app = AppTest.from_file(str(app_path)).run()
+    app = AppTest.from_function(_demo_with_mocked_ruf_success).run()
 
     app.selectbox[0].set_value(3)
     app.run()
@@ -143,3 +193,15 @@ def test_streamlit_demo_fallback_selectbox_updates_same_selection() -> None:
     assert app.subheader[0].value == "ἠγάπησεν"
     assert app.selectbox[0].value == 3
     assert any("Szótári alak / alakok:** ἀγαπάω" in value for value in markdown_values)
+
+
+def test_streamlit_demo_ruf_failure_keeps_greek_analysis_available() -> None:
+    app = AppTest.from_function(_demo_with_mocked_ruf_failure).run()
+
+    assert not app.exception
+    assert any(RUF_ERROR_MESSAGE in warning.value for warning in app.warning)
+    assert app.subheader[0].value == "οὕτως"
+
+    markdown_values = [markdown.value for markdown in app.markdown]
+    assert any("Válasszon egy görög szót" in value for value in markdown_values)
+    assert any("Szótári alak / alakok:** οὕτω, οὕτως" in value for value in markdown_values)
