@@ -7,7 +7,7 @@ import unicodedata
 
 _FIELD_COUNT = 8
 _GREEK_STRONG_RE = re.compile(r"^G(?P<number>\d{1,5})(?P<suffix>[A-Z]?)$")
-_MAX_GREEK_STRONG_NUMBER = 20199
+_MAX_GREEK_STRONG_NUMBER = 21502
 
 
 @dataclass(frozen=True)
@@ -43,9 +43,6 @@ def parse_tbesg_line(line: str) -> GreekLexiconEntry:
 
     if not strong_id.strip():
         raise ValueError("Invalid TBESG record: missing eStrong value.")
-    if not greek.strip():
-        raise ValueError("Invalid TBESG record: missing Greek lexical form.")
-
     return GreekLexiconEntry(
         strong_id=normalize_greek_strong_id(strong_id),
         dstrong_id=_optional(dstrong_id),

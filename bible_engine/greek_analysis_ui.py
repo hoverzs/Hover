@@ -13,8 +13,13 @@ from bible_engine.greek_token_repository import (
     GreekVerseTokens,
     load_greek_passage_tokens,
 )
+from bible_engine.greek_lexicon_repository import (
+    TBESGDatabaseUnavailableError,
+    get_tbesg_lexicon_entry,
+)
 from bible_engine.tagnt_books import NEW_TESTAMENT_RUF_CODES
 from bible_engine.tagnt_books import parse_tagnt_bible_reference
+from bible_engine.tbesg_sqlite import SQLiteGreekLexiconEntry
 from bible_engine.lexicon_hu import (
     HungarianLexiconEntry,
     get_hungarian_lexicon_entry,
@@ -41,6 +46,13 @@ MISSING_GREEK_DATA_MESSAGE = (
 GREEK_DATA_ERROR_MESSAGE = "A görög elemzés jelenleg nem tölthető be."
 LEXICON_HU_ERROR_MESSAGE = "A magyar lexikai adatok jelenleg nem érhetők el."
 NO_HUNGARIAN_LEXICON_ENTRY_MESSAGE = "Ehhez a szóhoz még nincs magyar lexikai adat."
+NO_LEXICON_ENTRY_MESSAGE = "Ehhez a szóhoz még nincs lexikai adat."
+TBESG_DATABASE_MISSING_MESSAGE = "Az angol lexikai adatbázis még nincs előkészítve."
+TBESG_SCOPE_NOTE = (
+    "Ehhez a szóhoz még nincs ellenőrzött magyar lexikai adat. "
+    "Az alábbi angol szócikk a STEPBible TBESG lexikonból származik."
+)
+TBESG_SOURCE_NOTE = "Lexikai adat: STEPBible TBESG, CC BY 4.0."
 LEXICAL_SCOPE_NOTE = (
     "A felsorolt jelentések lexikai lehetőségek. Az adott versben "
     "érvényes jelentést a szövegkörnyezet határozza meg."
@@ -92,6 +104,8 @@ def render_greek_analysis_block(
         [], dict[str, HungarianLexiconEntry] | None
     ]
     | None = None,
+    tbesg_lexicon_loader: Callable[[str], SQLiteGreekLexiconEntry | None]
+    | None = None,
 ) -> None:
     status = greek_reference_status(reference)
     if status in {"empty", "invalid"}:
@@ -105,6 +119,7 @@ def render_greek_analysis_block(
 
     passage_loader = token_loader or (lambda: load_greek_passage_tokens(reference))
     lexicon_loader = lexicon_loader or load_demo_hungarian_lexicon
+    tbesg_lexicon_loader = tbesg_lexicon_loader or load_tbesg_lexicon_entry
     _ensure_greek_analysis_styles()
 
     try:
@@ -130,6 +145,7 @@ def render_greek_analysis_block(
     _render_loaded_greek_passage_analysis(
         verse_groups,
         lexicon_entries,
+        tbesg_lexicon_loader,
         key_prefix=key_prefix,
         reference_label=_greek_reference_label(reference),
     )
@@ -166,6 +182,11 @@ def load_demo_hungarian_lexicon() -> dict[str, HungarianLexiconEntry] | None:
         return load_hungarian_lexicon(LEXICON_HU_PATH)
     except Exception:
         return None
+
+
+@st.cache_data(show_spinner=False)
+def load_tbesg_lexicon_entry(strong_id: str) -> SQLiteGreekLexiconEntry | None:
+    return get_tbesg_lexicon_entry(strong_id)
 
 
 def token_option_label(token: GreekToken) -> str:
@@ -220,6 +241,7 @@ def component_state_word_index(component_state: object, tokens: list[GreekToken]
 def _render_loaded_greek_passage_analysis(
     verse_groups: list[GreekVerseTokens],
     lexicon_entries: dict[str, HungarianLexiconEntry] | None,
+    tbesg_lexicon_loader: Callable[[str], SQLiteGreekLexiconEntry | None],
     *,
     key_prefix: str,
     reference_label: str | None = None,
@@ -318,12 +340,13 @@ def _render_loaded_greek_passage_analysis(
 
     current_selection = _selected_token_key(all_tokens, st.session_state.get(selected_token_key))
     selected = _token_by_selection_key(all_tokens, current_selection)
-    _render_analysis_panel(selected, lexicon_entries)
+    _render_analysis_panel(selected, lexicon_entries, tbesg_lexicon_loader)
 
 
 def _render_loaded_greek_analysis(
     tokens: list[GreekToken],
     lexicon_entries: dict[str, HungarianLexiconEntry] | None,
+    tbesg_lexicon_loader: Callable[[str], SQLiteGreekLexiconEntry | None],
     *,
     key_prefix: str,
     reference_label: str | None = None,
@@ -384,12 +407,13 @@ def _render_loaded_greek_analysis(
     current_index = selected_word_index(tokens, st.session_state.get(selected_key))
     selected_index = current_index if current_index is not None else tokens[0].word_index
     selected = _token_by_index(tokens, selected_index)
-    _render_analysis_panel(selected, lexicon_entries)
+    _render_analysis_panel(selected, lexicon_entries, tbesg_lexicon_loader)
 
 
 def _render_analysis_panel(
     selected: GreekToken,
     lexicon_entries: dict[str, HungarianLexiconEntry] | None,
+    tbesg_lexicon_loader: Callable[[str], SQLiteGreekLexiconEntry | None],
 ) -> None:
     st.markdown('<div class="textus-greek-analysis-card-marker"></div>', unsafe_allow_html=True)
     with st.container(border=True):
@@ -398,26 +422,38 @@ def _render_analysis_panel(
         analysis_items = list(token_analysis(selected).items())
         left.markdown(_compact_field_markup(analysis_items[:3]), unsafe_allow_html=True)
         right.markdown(_compact_field_markup(analysis_items[3:]), unsafe_allow_html=True)
-        _render_hungarian_lexicon_section(selected, lexicon_entries)
+        _render_lexicon_section(selected, lexicon_entries, tbesg_lexicon_loader)
 
 
-def _render_hungarian_lexicon_section(
+def _render_lexicon_section(
     token: GreekToken,
     entries: dict[str, HungarianLexiconEntry] | None,
+    tbesg_lexicon_loader: Callable[[str], SQLiteGreekLexiconEntry | None],
 ) -> None:
     st.divider()
+
+    if entries is not None:
+        entry = _hungarian_lexicon_entry_for_token(entries, token)
+        if entry is not None:
+            _render_hungarian_lexicon_section(entry)
+            return
+    else:
+        st.markdown(LEXICON_HU_ERROR_MESSAGE)
+
+    tbesg_entry = _tbesg_lexicon_entry_for_token(tbesg_lexicon_loader, token)
+    if isinstance(tbesg_entry, TBESGDatabaseUnavailableError):
+        st.markdown(TBESG_DATABASE_MISSING_MESSAGE)
+        return
+    if tbesg_entry is not None:
+        _render_tbesg_lexicon_section(tbesg_entry)
+        return
+
+    st.markdown(NO_LEXICON_ENTRY_MESSAGE)
+
+
+def _render_hungarian_lexicon_section(entry: HungarianLexiconEntry) -> None:
     st.markdown("#### Magyar lexikai jelentések")
     st.caption(LEXICAL_SCOPE_NOTE)
-
-    if entries is None:
-        st.markdown(LEXICON_HU_ERROR_MESSAGE)
-        return
-
-    entry = _hungarian_lexicon_entry_for_token(entries, token)
-    if entry is None:
-        st.markdown(NO_HUNGARIAN_LEXICON_ENTRY_MESSAGE)
-        return
-
     st.markdown(f"**Alapjelentés:** {entry.primary_gloss}")
     st.markdown(f"**Lehetséges jelentések:** {' · '.join(entry.senses)}")
 
@@ -427,6 +463,28 @@ def _render_hungarian_lexicon_section(
     review_status = REVIEW_STATUS_LABELS.get(entry.review_status, entry.review_status)
     st.markdown(f"**Ellenőrzési állapot:** {review_status}")
     st.caption(f"Forrás: {entry.source}")
+
+
+def _render_tbesg_lexicon_section(entry: SQLiteGreekLexiconEntry) -> None:
+    st.markdown("#### Angol lexikai alapadat")
+    st.caption(TBESG_SCOPE_NOTE)
+    st.markdown(f"**Alapjelentés:** {_present(entry.gloss)}")
+
+    if entry.lemma:
+        st.markdown(f"**Szótári alak:** {entry.lemma}")
+    if entry.morph:
+        st.markdown(f"**Szófaji jelölés:** {entry.morph}")
+    if entry.meaning_plain:
+        preview, has_more = _short_lexicon_preview(entry.meaning_plain)
+        st.markdown(f"**Részletes leírás:** {preview}")
+        if has_more:
+            with st.expander("Részletes angol szócikk", expanded=False):
+                st.markdown(entry.meaning_plain)
+    if entry.references:
+        with st.expander("Hivatkozások", expanded=False):
+            st.markdown(", ".join(entry.references[:60]))
+
+    st.caption(TBESG_SOURCE_NOTE)
 
 
 def _compact_field_markup(items: list[tuple[str, str]]) -> str:
@@ -446,6 +504,32 @@ def _hungarian_lexicon_entry_for_token(
         return get_hungarian_lexicon_entry(entries, token.strong_id)
     except ValueError:
         return None
+
+
+def _tbesg_lexicon_entry_for_token(
+    loader: Callable[[str], SQLiteGreekLexiconEntry | None],
+    token: GreekToken,
+) -> SQLiteGreekLexiconEntry | TBESGDatabaseUnavailableError | None:
+    try:
+        return loader(token.strong_id)
+    except TBESGDatabaseUnavailableError as error:
+        return error
+    except (ValueError, FileNotFoundError):
+        return None
+
+
+def _short_lexicon_preview(text: str, limit: int = 700) -> tuple[str, bool]:
+    compact = re.sub(r"\s+", " ", text).strip()
+    if len(compact) <= limit:
+        return compact, False
+
+    truncated = compact[:limit].rstrip()
+    last_sentence = max(truncated.rfind("."), truncated.rfind(";"), truncated.rfind(":"))
+    if last_sentence >= 240:
+        truncated = truncated[: last_sentence + 1]
+    else:
+        truncated = truncated.rstrip(" ,;:")
+    return f"{truncated}...", True
 
 
 def _ensure_greek_analysis_styles() -> None:

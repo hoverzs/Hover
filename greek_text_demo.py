@@ -8,6 +8,7 @@ import streamlit as st
 from bible_engine.greek_analysis_ui import (
     LEXICAL_SCOPE_NOTE,
     LEXICON_HU_ERROR_MESSAGE,
+    NO_LEXICON_ENTRY_MESSAGE,
     apply_token_selection,
     component_state_word_index,
     load_demo_hungarian_lexicon,
@@ -48,6 +49,7 @@ def main() -> None:
 def render_demo(
     ruf_text_loader: Callable[[], str | None] = load_ruf_demo_text,
     lexicon_loader: Callable[[], object] | None = None,
+    tbesg_lexicon_loader: Callable[[str], object | None] | None = None,
 ) -> None:
     st.set_page_config(page_title="Görög szövegelemzés - prototípus")
 
@@ -74,6 +76,7 @@ def render_demo(
         key_prefix="greek_demo",
         token_loader=load_demo_tokens,
         lexicon_loader=lexicon_loader or load_demo_hungarian_lexicon,
+        tbesg_lexicon_loader=tbesg_lexicon_loader,
     )
 
 

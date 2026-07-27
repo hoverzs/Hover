@@ -110,6 +110,7 @@ def test_normalize_greek_strong_id_pads_and_preserves_suffixes() -> None:
     assert normalize_greek_strong_id("G0025") == "G0025"
     assert normalize_greek_strong_id("G2264G") == "G2264G"
     assert normalize_greek_strong_id("G10005") == "G10005"
+    assert normalize_greek_strong_id("G20200") == "G20200"
 
 
 def test_normalize_greek_strong_id_rejects_invalid_values() -> None:
@@ -129,8 +130,18 @@ def test_parse_tbesg_line_rejects_bad_or_incomplete_records() -> None:
     with pytest.raises(ValueError, match="expected 8 tab-separated fields"):
         parse_tbesg_line("G0025\tG0025")
 
-    with pytest.raises(ValueError, match="missing Greek lexical form"):
-        parse_tbesg_line("G0025\tG0025 =\tG0025\t\tagapaō\tG:V\tto love\tmeaning")
+    with pytest.raises(ValueError, match="missing eStrong"):
+        parse_tbesg_line("\tG0025 =\tG0025\tἀγαπάω\tagapaō\tG:V\tto love\tmeaning")
+
+
+def test_parse_tbesg_line_preserves_record_with_missing_greek_lemma() -> None:
+    entry = parse_tbesg_line(
+        "G2199\tG2199H =\tG2199H\t\tZebedaios\tN:N-M-P\t[wife of Zebedee]\tmeaning"
+    )
+
+    assert entry.strong_id == "G2199"
+    assert entry.greek == ""
+    assert entry.transliteration == "Zebedaios"
 
 
 def test_john_3_16_tagnt_strong_ids_match_sample_lexicon_entries() -> None:

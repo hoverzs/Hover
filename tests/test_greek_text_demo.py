@@ -4,6 +4,7 @@ from components.greek_token_selector import component_tokens, normalize_componen
 from greek_text_demo import (
     LEXICAL_SCOPE_NOTE,
     LEXICON_HU_ERROR_MESSAGE,
+    NO_LEXICON_ENTRY_MESSAGE,
     RUF_ERROR_MESSAGE,
     RUF_REFERENCE,
     apply_token_selection,
@@ -23,7 +24,10 @@ def _demo_with_mocked_ruf_success() -> None:
     def load_mock_ruf_text() -> str:
         return "16 Mert úgy szerette Isten a világot, hogy egyszülött Fiát adta."
 
-    render_demo(ruf_text_loader=load_mock_ruf_text)
+    render_demo(
+        ruf_text_loader=load_mock_ruf_text,
+        tbesg_lexicon_loader=lambda _strong_id: None,
+    )
 
 
 def _demo_with_mocked_ruf_failure() -> None:
@@ -32,7 +36,10 @@ def _demo_with_mocked_ruf_failure() -> None:
     def load_failing_ruf_text() -> str:
         raise TimeoutError("mock timeout")
 
-    render_demo(ruf_text_loader=load_failing_ruf_text)
+    render_demo(
+        ruf_text_loader=load_failing_ruf_text,
+        tbesg_lexicon_loader=lambda _strong_id: None,
+    )
 
 
 def _demo_with_mocked_ruf_success_and_lexicon_failure() -> None:
@@ -47,6 +54,7 @@ def _demo_with_mocked_ruf_success_and_lexicon_failure() -> None:
     render_demo(
         ruf_text_loader=load_mock_ruf_text,
         lexicon_loader=load_failing_lexicon,
+        tbesg_lexicon_loader=lambda _strong_id: None,
     )
 
 
@@ -271,10 +279,7 @@ def test_streamlit_demo_shows_normal_empty_lexicon_state_for_unsupported_token()
 
     markdown_values = [markdown.value for markdown in app.markdown]
     assert app.subheader[0].value == "γὰρ"
-    assert any(
-        "Ehhez a szóhoz még nincs magyar lexikai adat." in value
-        for value in markdown_values
-    )
+    assert any(NO_LEXICON_ENTRY_MESSAGE in value for value in markdown_values)
     assert not any(
         "Alapjelentés:**" in value
         for value in markdown_values

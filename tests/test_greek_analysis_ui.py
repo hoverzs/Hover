@@ -10,8 +10,12 @@ from bible_engine.greek_analysis_ui import (
     LEXICAL_SCOPE_NOTE,
     MISSING_GREEK_DATA_MESSAGE,
     MISSING_GREEK_DATABASE_MESSAGE,
+    NO_LEXICON_ENTRY_MESSAGE,
     OLD_TESTAMENT_MESSAGE,
     TAGNT_DATABASE_BUILD_HINT,
+    TBESG_DATABASE_MISSING_MESSAGE,
+    TBESG_SCOPE_NOTE,
+    TBESG_SOURCE_NOTE,
     greek_reference_status,
     render_greek_analysis_block,
 )
@@ -31,6 +35,7 @@ def _render_john_3_16_block() -> None:
         reference="Jn 3,16",
         key_prefix="test_greek",
         token_loader=load_john_3_16_tokens,
+        tbesg_lexicon_loader=lambda _strong_id: None,
     )
 
 
@@ -98,6 +103,7 @@ def _render_multi_verse_john_block() -> None:
         reference="Jn 3,16-18",
         key_prefix="test_greek",
         token_loader=passage_tokens,
+        tbesg_lexicon_loader=lambda _strong_id: None,
     )
 
 
@@ -145,6 +151,7 @@ def _render_other_new_testament_block() -> None:
                 tokens=(token("Rom", 8, 1, 1, "Οὐδὲν", "οὐδείς", "A-NSN", "G3762"),),
             )
         ],
+        tbesg_lexicon_loader=lambda _strong_id: None,
     )
 
 
@@ -170,6 +177,7 @@ def _render_token_load_failure_block() -> None:
         reference="Jn 3,16",
         key_prefix="test_greek",
         token_loader=fail_tokens,
+        tbesg_lexicon_loader=lambda _strong_id: None,
     )
 
 
@@ -232,6 +240,161 @@ def _render_reference_switch_block() -> None:
         reference=reference,
         key_prefix="test_greek",
         token_loader=passage_tokens,
+        tbesg_lexicon_loader=lambda _strong_id: None,
+    )
+
+
+def _render_english_tbesg_fallback_block() -> None:
+    from bible_engine.greek_analysis_ui import render_greek_analysis_block
+    from bible_engine.greek_token_repository import GreekVerseTokens
+    from bible_engine.tagnt_parser import GreekToken
+    from bible_engine.tbesg_sqlite import SQLiteGreekLexiconEntry
+
+    token = GreekToken(
+        book="Rom",
+        chapter=8,
+        verse=1,
+        word_index=1,
+        greek_form="Οὐδὲν",
+        lemma="οὐδείς",
+        morph_code="A-NSN",
+        strong_id="G3762",
+        edition_flags="NKO",
+    )
+    entry = SQLiteGreekLexiconEntry(
+        strong_id="G3762",
+        dstrong_id="G3762 =",
+        ustrong_id="G3762",
+        lemma="οὐδείς",
+        transliteration="oudeis",
+        morph="G:A",
+        gloss="no one, nothing",
+        meaning_raw="<b>οὐδείς</b>, no one, nothing",
+        meaning_plain="οὐδείς, no one, none, nothing; used as a negative substantive.",
+        meaning_paragraphs=("οὐδείς, no one, none, nothing; used as a negative substantive.",),
+        references=("Rom.8.1",),
+        source_name="STEPBible TBESG",
+        source_version="test",
+    )
+
+    render_greek_analysis_block(
+        reference="Róm 8,1",
+        key_prefix="test_greek",
+        token_loader=lambda: [
+            GreekVerseTokens(book="Rom", chapter=8, verse=1, tokens=(token,))
+        ],
+        lexicon_loader=lambda: {},
+        tbesg_lexicon_loader=lambda _strong_id: entry,
+    )
+
+
+def _render_missing_tbesg_database_block() -> None:
+    from bible_engine.greek_analysis_ui import render_greek_analysis_block
+    from bible_engine.greek_lexicon_repository import TBESGDatabaseUnavailableError
+    from bible_engine.greek_token_repository import GreekVerseTokens
+    from bible_engine.tagnt_parser import GreekToken
+
+    token = GreekToken(
+        book="Rom",
+        chapter=8,
+        verse=1,
+        word_index=1,
+        greek_form="Οὐδὲν",
+        lemma="οὐδείς",
+        morph_code="A-NSN",
+        strong_id="G3762",
+        edition_flags="NKO",
+    )
+
+    def missing(_strong_id: str):
+        raise TBESGDatabaseUnavailableError("missing test DB")
+
+    render_greek_analysis_block(
+        reference="Róm 8,1",
+        key_prefix="test_greek",
+        token_loader=lambda: [
+            GreekVerseTokens(book="Rom", chapter=8, verse=1, tokens=(token,))
+        ],
+        lexicon_loader=lambda: {},
+        tbesg_lexicon_loader=missing,
+    )
+
+
+def _render_no_lexicon_data_block() -> None:
+    from bible_engine.greek_analysis_ui import render_greek_analysis_block
+    from bible_engine.greek_token_repository import GreekVerseTokens
+    from bible_engine.tagnt_parser import GreekToken
+
+    token = GreekToken(
+        book="Rom",
+        chapter=8,
+        verse=1,
+        word_index=1,
+        greek_form="Οὐδὲν",
+        lemma="οὐδείς",
+        morph_code="A-NSN",
+        strong_id="G3762",
+        edition_flags="NKO",
+    )
+
+    render_greek_analysis_block(
+        reference="Róm 8,1",
+        key_prefix="test_greek",
+        token_loader=lambda: [
+            GreekVerseTokens(book="Rom", chapter=8, verse=1, tokens=(token,))
+        ],
+        lexicon_loader=lambda: {},
+        tbesg_lexicon_loader=lambda _strong_id: None,
+    )
+
+
+def _render_long_tbesg_meaning_block() -> None:
+    from bible_engine.greek_analysis_ui import render_greek_analysis_block
+    from bible_engine.greek_token_repository import GreekVerseTokens
+    from bible_engine.tagnt_parser import GreekToken
+    from bible_engine.tbesg_sqlite import SQLiteGreekLexiconEntry
+
+    token = GreekToken(
+        book="Rom",
+        chapter=8,
+        verse=1,
+        word_index=1,
+        greek_form="Οὐδὲν",
+        lemma="οὐδείς",
+        morph_code="A-NSN",
+        strong_id="G3762",
+        edition_flags="NKO",
+    )
+    long_meaning = " ".join(
+        [
+            "A long English lexicon article about the term, preserving readable detail."
+            for _ in range(25)
+        ]
+    )
+    entry = SQLiteGreekLexiconEntry(
+        strong_id="G3762",
+        dstrong_id=None,
+        ustrong_id="G3762",
+        lemma="οὐδείς",
+        transliteration="oudeis",
+        morph="G:A",
+        gloss="no one, nothing",
+        meaning_raw=long_meaning,
+        meaning_plain=long_meaning,
+        meaning_paragraphs=(long_meaning,),
+        references=("Rom.8.1",),
+        source_name="STEPBible TBESG",
+        source_version="test",
+    )
+
+    render_greek_analysis_block(
+        reference="Róm 8,1",
+        key_prefix="test_greek",
+        token_loader=lambda: [
+            GreekVerseTokens(book="Rom", chapter=8, verse=1, tokens=(token,))
+        ],
+        lexicon_loader=lambda: {},
+        tbesg_lexicon_loader=lambda _strong_id: entry,
     )
 
 
@@ -301,6 +464,73 @@ def test_selected_word_analysis_updates_through_fallback_selectbox() -> None:
     assert app.subheader[0].value == "κόσμον,"
     assert any("<strong>Strong/STEP:</strong> G2889" in value for value in markdown_values)
     assert any("Alapjelentés:** világ" in value for value in markdown_values)
+
+
+def test_hungarian_lexicon_has_priority_over_english_tbesg_fallback() -> None:
+    app = AppTest.from_function(_render_john_3_16_block).run()
+
+    app.selectbox[0].set_value(3)
+    app.run()
+
+    page_text = "\n".join(markdown.value for markdown in app.markdown)
+    page_text += "\n".join(caption.value for caption in app.caption)
+    assert "Magyar lexikai jelentések" in page_text
+    assert "Alapjelentés:** szeret" in page_text
+    assert "Angol lexikai alapadat" not in page_text
+    assert TBESG_SCOPE_NOTE not in page_text
+
+
+def test_english_tbesg_fallback_renders_when_hungarian_entry_is_missing() -> None:
+    app = AppTest.from_function(_render_english_tbesg_fallback_block).run()
+
+    assert not app.exception
+    page_text = "\n".join(markdown.value for markdown in app.markdown)
+    page_text += "\n".join(caption.value for caption in app.caption)
+    assert "Angol lexikai alapadat" in page_text
+    assert "**Alapjelentés:** no one, nothing" in page_text
+    assert "**Szótári alak:** οὐδείς" in page_text
+    assert "**Szófaji jelölés:** G:A" in page_text
+    assert "Részletes leírás" in page_text
+    assert TBESG_SCOPE_NOTE in page_text
+    assert TBESG_SOURCE_NOTE in page_text
+    assert "Magyar lexikai jelentések" not in page_text
+
+
+def test_missing_english_tbesg_database_is_controlled() -> None:
+    app = AppTest.from_function(_render_missing_tbesg_database_block).run()
+
+    assert not app.exception
+    page_text = "\n".join(markdown.value for markdown in app.markdown)
+    page_text += "\n".join(caption.value for caption in app.caption)
+    assert TBESG_DATABASE_MISSING_MESSAGE in page_text
+    assert "Traceback" not in page_text
+    assert app.subheader[0].value == "Οὐδὲν"
+
+
+def test_no_lexicon_data_message_when_no_hungarian_or_tbesg_entry_exists() -> None:
+    app = AppTest.from_function(_render_no_lexicon_data_block).run()
+
+    assert not app.exception
+    page_text = "\n".join(markdown.value for markdown in app.markdown)
+    assert NO_LEXICON_ENTRY_MESSAGE in page_text
+
+
+def test_long_tbesg_meaning_is_collapsed_behind_expander() -> None:
+    app = AppTest.from_function(_render_long_tbesg_meaning_block).run()
+
+    assert not app.exception
+    page_text = "\n".join(markdown.value for markdown in app.markdown)
+    assert "Részletes leírás" in page_text
+    assert len(app.expander) >= 2
+    assert any(expander.label == "Részletes angol szócikk" for expander in app.expander)
+
+
+def test_greek_analysis_ui_text_has_no_mojibake_markers() -> None:
+    source = (ROOT / "bible_engine" / "greek_analysis_ui.py").read_text(encoding="utf-8")
+
+    assert "Ã" not in source
+    assert "Å" not in source
+    assert "Â" not in source
 
 
 def test_other_new_testament_reference_renders_greek_analysis() -> None:
