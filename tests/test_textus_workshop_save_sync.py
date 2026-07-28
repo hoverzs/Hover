@@ -146,7 +146,7 @@ def test_text_input_selectbox_passage_sync_and_reload(session):
     assert session["last_alkalom"] == "vasárnapi gyülekezeti igehirdetés"
     assert session["last_stilus"] == "klasszikus református"
     assert session["last_sajat"] == "Hitben megmaradás"
-    assert session["passage_text"].startswith("17 ")
+    assert session["passage_text"].startswith("17. ")
     assert session["bible_translation"] == "RÚF 2014"
     assert (
         session[TEXT_WORKSHOP_KEY]["text_main_idea"]
@@ -161,7 +161,7 @@ def test_text_input_selectbox_passage_sync_and_reload(session):
         assert excluded not in payload
 
     assert payload["last_igehely"] == "Júd 17–20"
-    assert payload["passage_text"].startswith("17 ")
+    assert payload["passage_text"].startswith("17. ")
     assert (
         payload[TEXT_WORKSHOP_KEY]["text_main_idea"]
         == "Őrizzétek meg magatokat Isten szeretetében."
@@ -180,7 +180,7 @@ def test_text_input_selectbox_passage_sync_and_reload(session):
     )
     assert reloaded_tw["approved_insights"][0]["content"] == "Megőrzött felismerés"
     assert cleaned["last_igehely"] == "Júd 17–20"
-    assert cleaned["passage_text"].startswith("17 ")
+    assert cleaned["passage_text"].startswith("17. ")
 
 
 def test_project_b_switch_then_back(session):

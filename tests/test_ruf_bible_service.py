@@ -10,6 +10,8 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from ruf_bible_service import (
+    RufHttpError,
+    STALE_CACHE_WARNING,
     clear_ruf_cache,
     extract_verse_data_json,
     fetch_ruf_passage,
@@ -39,6 +41,23 @@ def http_from_fixture(name: str):
         return html
 
     return _get
+
+
+def html_from_verses(chapter: int, verses: list[tuple[int, str]]) -> str:
+    payload = {
+        "chapter": str(chapter),
+        "verses": [
+            {"verse_number": str(number), "verse": text}
+            for number, text in verses
+        ],
+    }
+    import json
+
+    return (
+        '<script id="verse-data" type="application/json">'
+        + json.dumps(payload, ensure_ascii=False)
+        + "</script>"
+    )
 
 
 def test_parse_forms() -> None:
@@ -85,11 +104,11 @@ def test_jude_fixture() -> None:
     r = fetch_ruf_passage("Júd 17–20", http_get=http_from_fixture("jud_1.html"))
     ok(r["success"], f"Jude success: {r.get('error')}")
     text = r["text"]
-    ok(text.startswith("17 "), "Jude starts with 17")
+    ok(text.startswith("17. "), "Jude starts with 17")
     lines = text.splitlines()
     ok(len(lines) == 4, f"Jude line count {len(lines)}")
     for n in (17, 18, 19, 20):
-        ok(any(line.startswith(f"{n} ") for line in lines), f"missing verse {n}")
+        ok(any(line.startswith(f"{n}. ") for line in lines), f"missing verse {n}")
     # Keresztutalás / navigáció ne legyen a szövegben
     lowered = text.casefold()
     for bad in ("2pt", "előző", "következő", "lábjegyzet", "szentiras", "copyright"):
@@ -97,6 +116,7 @@ def test_jude_fixture() -> None:
     ok("csúfolódók" in text or "csufolodok" in text.casefold(), "Jude 18 body")
     ok(r["source_url"].endswith("/JUD/1"), f"url {r['source_url']}")
     ok(r["translation"] == "RÚF 2014", "translation")
+    ok(r["verses"][0] == {"number": 17, "text": lines[0].removeprefix("17. ")}, "structured Jude verse")
 
 
 def test_ranges_and_full_chapter() -> None:
@@ -104,7 +124,8 @@ def test_ranges_and_full_chapter() -> None:
     # B Jn 3,16
     r = fetch_ruf_passage("Jn 3,16", http_get=http_from_fixture("jhn_3.html"))
     ok(r["success"], f"Jn 3,16: {r.get('error')}")
-    ok(r["text"].startswith("16 "), "Jn 16 prefix")
+    ok(r["text"].startswith("16. "), "Jn 16 prefix")
+    ok(r["verses"] == [{"number": 16, "text": r["text"].removeprefix("16. ")}], "Jn structured verse")
     ok("\n" not in r["text"].strip(), "single verse one line")
 
     # C Jn 3,16-18
@@ -145,6 +166,45 @@ def test_ranges_and_full_chapter() -> None:
     ok(len(r["text"].splitlines()) == 36, f"Jn full {len(r['text'].splitlines())}")
 
 
+def test_romans_multi_verse_structured_text() -> None:
+    clear_ruf_cache()
+    html = html_from_verses(
+        8,
+        [
+            (1, "Nincsen azért most már semmiféle kárhoztató ítélet."),
+            (2, "Mert az élet Lelkének törvénye megszabadított."),
+            (3, "Amire ugyanis képtelen volt a törvény."),
+            (4, "Hogy a törvény követelése teljesüljön bennünk."),
+        ],
+    )
+
+    r = fetch_ruf_passage("Róm 8,1-4", http_get=lambda _url, timeout=None: html)
+
+    assert r["success"]
+    assert r["text"].splitlines() == [
+        "1. Nincsen azért most már semmiféle kárhoztató ítélet.",
+        "2. Mert az élet Lelkének törvénye megszabadított.",
+        "3. Amire ugyanis képtelen volt a törvény.",
+        "4. Hogy a törvény követelése teljesüljön bennünk.",
+    ]
+    assert r["verses"][0] == {
+        "number": 1,
+        "text": "Nincsen azért most már semmiféle kárhoztató ítélet.",
+    }
+
+
+def test_raw_html_extracts_three_digit_verse_number_and_text() -> None:
+    data = extract_verse_data_json(
+        html_from_verses(119, [(100, "Parancsolataidból értelmesebb lettem.")])
+    )
+    verses = verses_dict_from_verse_data(data)
+    text, warnings, structured = select_verse_range(verses, 100, 100)
+
+    assert warnings == []
+    assert structured == [{"number": 100, "text": "Parancsolataidból értelmesebb lettem."}]
+    assert text == "100. Parancsolataidból értelmesebb lettem."
+
+
 def test_error_paths() -> None:
     clear_ruf_cache()
     r = fetch_ruf_passage("Xyyzz 1,1", http_get=http_from_fixture("jud_1.html"))
@@ -181,7 +241,12 @@ def test_network_errors() -> None:
     def boom_timeout(url: str, timeout: float = 15.0) -> str:  # noqa: ARG001
         raise TimeoutError("Időtúllépés a szentiras.hu elérésekor. Próbáld újra később.")
 
-    r = fetch_ruf_passage("Jn 3,16", http_get=boom_timeout)
+    r = fetch_ruf_passage(
+        "Jn 3,16",
+        http_get=boom_timeout,
+        retry_delays_s=(),
+        sleep=lambda _delay: None,
+    )
     ok(not r["success"], "timeout fail")
     ok("Időtúllépés" in r["error"] or "timeout" in r["error"].casefold(), r["error"])
 
@@ -190,9 +255,193 @@ def test_network_errors() -> None:
     def boom_conn(url: str, timeout: float = 15.0) -> str:  # noqa: ARG001
         raise ConnectionError("Nincs elérhető kapcsolat a szentiras.hu-hoz")
 
-    r = fetch_ruf_passage("Jn 3,16", http_get=boom_conn)
+    r = fetch_ruf_passage(
+        "Jn 3,16",
+        http_get=boom_conn,
+        retry_delays_s=(),
+        sleep=lambda _delay: None,
+    )
     ok(not r["success"], "conn fail")
     ok("kapcsolat" in r["error"].casefold() or "Nincs" in r["error"], r["error"])
+
+
+def test_retry_success_after_initial_timeout() -> None:
+    clear_ruf_cache()
+    calls: list[str] = []
+
+    def flaky(url: str, timeout: object = None) -> str:  # noqa: ARG001
+        calls.append(url)
+        if len(calls) == 1:
+            raise TimeoutError("mock timeout")
+        return load_fixture("jhn_3.html")
+
+    sleeps: list[float] = []
+    r = fetch_ruf_passage(
+        "Jn 3,16",
+        http_get=flaky,
+        retry_delays_s=(0.5, 1.5),
+        sleep=sleeps.append,
+    )
+
+    assert r["success"]
+    assert len(calls) == 2
+    assert sleeps == [0.5]
+    assert "Mert úgy szerette" in r["text"]
+
+
+def test_three_timeouts_return_controlled_error() -> None:
+    clear_ruf_cache()
+    calls = 0
+
+    def timeout(url: str, timeout: object = None) -> str:  # noqa: ARG001
+        nonlocal calls
+        calls += 1
+        raise TimeoutError("mock timeout")
+
+    sleeps: list[float] = []
+    r = fetch_ruf_passage(
+        "Jn 3,16",
+        http_get=timeout,
+        retry_delays_s=(0.5, 1.5),
+        sleep=sleeps.append,
+    )
+
+    assert not r["success"]
+    assert calls == 3
+    assert sleeps == [0.5, 1.5]
+    assert "Külső szolgáltatási kapcsolat hibája" in r["error"]
+    assert "Traceback" not in r["error"]
+
+
+def test_http_503_retries_then_succeeds() -> None:
+    clear_ruf_cache()
+    calls = 0
+
+    def flaky_503(url: str, timeout: object = None) -> str:  # noqa: ARG001
+        nonlocal calls
+        calls += 1
+        if calls == 1:
+            raise RufHttpError(503, "Service Unavailable", transient=True)
+        return load_fixture("jhn_3.html")
+
+    r = fetch_ruf_passage(
+        "Jn 3,16",
+        http_get=flaky_503,
+        retry_delays_s=(),
+        sleep=lambda _delay: None,
+    )
+
+    assert r["success"]
+    assert calls == 2
+
+
+def test_http_404_does_not_retry() -> None:
+    clear_ruf_cache()
+    calls = 0
+
+    def not_found(url: str, timeout: object = None) -> str:  # noqa: ARG001
+        nonlocal calls
+        calls += 1
+        raise RufHttpError(404, "Not Found", transient=False)
+
+    r = fetch_ruf_passage(
+        "Jn 3,16",
+        http_get=not_found,
+        retry_delays_s=(),
+        sleep=lambda _delay: None,
+    )
+
+    assert not r["success"]
+    assert calls == 1
+    assert "HTTP 404" in r["error"]
+
+
+def test_cache_hit_skips_network_request() -> None:
+    clear_ruf_cache()
+    calls = 0
+
+    def success(url: str, timeout: object = None) -> str:  # noqa: ARG001
+        nonlocal calls
+        calls += 1
+        return load_fixture("jhn_3.html")
+
+    first = fetch_ruf_passage("Jn 3,16", http_get=success)
+    second = fetch_ruf_passage("Jn 3,16", http_get=success)
+
+    assert first["success"]
+    assert second["success"]
+    assert calls == 1
+    assert second["cache_status"] == "fresh"
+
+
+def test_live_failure_uses_previous_cached_passage() -> None:
+    clear_ruf_cache()
+    first = fetch_ruf_passage("Jn 3,16", http_get=http_from_fixture("jhn_3.html"))
+    assert first["success"]
+
+    def timeout(url: str, timeout: object = None) -> str:  # noqa: ARG001
+        raise TimeoutError("mock timeout")
+
+    second = fetch_ruf_passage(
+        "Jn 3,16",
+        http_get=timeout,
+        cache_ttl_s=0,
+        retry_delays_s=(),
+        sleep=lambda _delay: None,
+    )
+
+    assert second["success"]
+    assert second["text"] == first["text"]
+    assert STALE_CACHE_WARNING in second["warnings"]
+    assert second["cache_status"] == "stale_fallback"
+
+
+def test_cache_key_keeps_distinct_verse_ranges() -> None:
+    clear_ruf_cache()
+    calls = 0
+
+    def success(url: str, timeout: object = None) -> str:  # noqa: ARG001
+        nonlocal calls
+        calls += 1
+        return load_fixture("jhn_3.html")
+
+    single = fetch_ruf_passage("Jn 3,16", http_get=success)
+    ranged = fetch_ruf_passage("Jn 3,16-18", http_get=success)
+
+    assert single["success"]
+    assert ranged["success"]
+    assert len(single["text"].splitlines()) == 1
+    assert len(ranged["text"].splitlines()) == 3
+    assert calls == 1
+
+
+def test_cache_without_live_or_stale_returns_manual_fallback_state() -> None:
+    clear_ruf_cache()
+
+    def timeout(url: str, timeout: object = None) -> str:  # noqa: ARG001
+        raise TimeoutError("mock timeout")
+
+    r = fetch_ruf_passage(
+        "Jn 3,16",
+        http_get=timeout,
+        retry_delays_s=(),
+        sleep=lambda _delay: None,
+    )
+
+    assert not r["success"]
+    assert r["text"] == ""
+    assert r["source_name"] == "szentiras.hu"
+    assert "Külső szolgáltatási kapcsolat hibája" in r["error"]
+
+
+def test_unicode_hungarian_text_survives_retry_and_cache() -> None:
+    clear_ruf_cache()
+    r = fetch_ruf_passage("Jn 3,16", http_get=http_from_fixture("jhn_3.html"))
+    cached = fetch_ruf_passage("Jn 3,16", http_get=lambda _url, timeout=None: "")
+
+    assert r["success"]
+    assert cached["success"]
+    assert "Mert úgy szerette Isten a világot" in cached["text"]
 
 
 def test_project_persist() -> None:
@@ -227,8 +476,19 @@ def main() -> None:
     test_bad_references()
     test_jude_fixture()
     test_ranges_and_full_chapter()
+    test_romans_multi_verse_structured_text()
+    test_raw_html_extracts_three_digit_verse_number_and_text()
     test_error_paths()
     test_network_errors()
+    test_retry_success_after_initial_timeout()
+    test_three_timeouts_return_controlled_error()
+    test_http_503_retries_then_succeeds()
+    test_http_404_does_not_retry()
+    test_cache_hit_skips_network_request()
+    test_live_failure_uses_previous_cached_passage()
+    test_cache_key_keeps_distinct_verse_ranges()
+    test_cache_without_live_or_stale_returns_manual_fallback_state()
+    test_unicode_hungarian_text_survives_retry_and_cache()
     test_project_persist()
     test_error_keeps_existing_text_contract()
     if errors:

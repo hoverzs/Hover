@@ -4703,7 +4703,7 @@ def _request_lection_ruf_load(reference: str) -> None:
             str(validation.get("error") or "Az igehely nem érvényes a RÚF-betöltéshez.")
         )
         return
-    with st.spinner("RÚF szöveg betöltése a szentiras.hu-ról…"):
+    with st.spinner("RÚF-szöveg lekérése…"):
         result = fetch_ruf_passage(ref)
     if not result.get("success"):
         err = str(result.get("error") or "A RÚF-szöveg betöltése nem sikerült.")
@@ -4726,7 +4726,11 @@ def _request_lection_ruf_load(reference: str) -> None:
         )
         return
     _apply_lection_ruf_result(result)
-    st.success("A lekció RÚF-szövege betöltődött.")
+    warnings = [str(w).strip() for w in result.get("warnings", []) if str(w).strip()]
+    if warnings:
+        st.warning(warnings[0])
+    else:
+        st.success("A lekció RÚF-szövege betöltődött.")
     st.rerun()
 
 

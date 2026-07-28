@@ -16,15 +16,25 @@ import time
 import unicodedata
 from dataclasses import dataclass
 from typing import Any, Callable
-from urllib.error import HTTPError, URLError
-from urllib.request import Request, urlopen
+
+import requests
 
 TRANSLATION_NAME = "RÚF 2014"
 SOURCE_NAME = "szentiras.hu"
 COPYRIGHT_NOTICE = "© Magyar Bibliatársulat, 2014"
 BASE_URL = "https://szentiras.hu/biblia/ruf"
-USER_AGENT = "TextusHomiletics/2.0 (+https://textus.ro; RUF passage loader)"
-DEFAULT_TIMEOUT_S = 15.0
+USER_AGENT = "TextusHomiletics/2.1 (+https://textus.ro; RUF passage loader)"
+DEFAULT_CONNECT_TIMEOUT_S = 6.0
+DEFAULT_READ_TIMEOUT_S = 20.0
+DEFAULT_TIMEOUT_S = DEFAULT_READ_TIMEOUT_S
+DEFAULT_TIMEOUT = (DEFAULT_CONNECT_TIMEOUT_S, DEFAULT_READ_TIMEOUT_S)
+DEFAULT_MAX_ATTEMPTS = 3
+DEFAULT_RETRY_DELAYS_S = (0.5, 1.5)
+CACHE_TTL_S = 24 * 60 * 60
+STALE_CACHE_WARNING = (
+    "A szentiras.hu jelenleg nem érhető el; a korábban eltárolt szöveget jelenítjük meg."
+)
+RETRYABLE_HTTP_STATUS = {429, 500, 502, 503, 504}
 
 _VERSE_DATA_RE = re.compile(
     r'<script\s+id="verse-data"\s+type="application/json"\s*>(.*?)</script>',
@@ -34,12 +44,45 @@ _VERSE_DATA_RE = re.compile(
 # Fejezet-cache: (book_code, chapter) -> {"fetched_at": float, "url": str, "verses": {n: text}}
 _CHAPTER_CACHE: dict[tuple[str, int], dict[str, Any]] = {}
 
+# Passage-cache: (translation, book_code, chapter, verse_start, verse_end) -> result dict
+_PASSAGE_CACHE: dict[tuple[str, str, int, int | None, int | None], dict[str, Any]] = {}
+
 
 @dataclass(frozen=True)
 class BookInfo:
     code: str  # USFM / szentiras.hu kód (pl. JHN, 1CO, JUD)
     abbr: str  # elsődleges magyar rövidítés megjelenítéshez
     single_chapter: bool = False
+
+
+@dataclass(frozen=True)
+class RufHttpError(ConnectionError):
+    status_code: int
+    reason: str
+    transient: bool = False
+
+    def __str__(self) -> str:
+        if self.transient:
+            return (
+                "Átmeneti külső szolgáltatási hiba a szentiras.hu válaszában: "
+                f"HTTP {self.status_code} {self.reason}".strip()
+            )
+        return (
+            "A szentiras.hu nem tudta kiszolgálni ezt az igehelyet: "
+            f"HTTP {self.status_code} {self.reason}".strip()
+        )
+
+
+@dataclass(frozen=True)
+class ChapterFetchResult:
+    verses: dict[int, str]
+    url: str
+    warnings: list[str]
+    cache_status: str
+
+
+class RufPermanentFetchFailure(ValueError):
+    pass
 
 
 def _fold(text: str) -> str:
@@ -200,6 +243,7 @@ def _empty_result(
     warnings: list[str] | None = None,
     source_url: str = "",
     normalized_reference: str = "",
+    cache_status: str = "miss",
 ) -> dict[str, Any]:
     return {
         "success": False,
@@ -207,11 +251,13 @@ def _empty_result(
         "normalized_reference": normalized_reference,
         "translation": TRANSLATION_NAME,
         "text": "",
+        "verses": [],
         "source_name": SOURCE_NAME,
         "source_url": source_url,
         "copyright_notice": COPYRIGHT_NOTICE,
         "warnings": list(warnings or []),
         "error": error,
+        "cache_status": cache_status,
     }
 
 
@@ -220,8 +266,10 @@ def _ok_result(
     requested_reference: str,
     normalized_reference: str,
     text: str,
+    verses: list[dict[str, Any]] | None = None,
     source_url: str,
     warnings: list[str] | None = None,
+    cache_status: str = "live",
 ) -> dict[str, Any]:
     return {
         "success": True,
@@ -229,16 +277,19 @@ def _ok_result(
         "normalized_reference": normalized_reference,
         "translation": TRANSLATION_NAME,
         "text": text,
+        "verses": list(verses or []),
         "source_name": SOURCE_NAME,
         "source_url": source_url,
         "copyright_notice": COPYRIGHT_NOTICE,
         "warnings": list(warnings or []),
         "error": "",
+        "cache_status": cache_status,
     }
 
 
 def clear_ruf_cache() -> None:
     _CHAPTER_CACHE.clear()
+    _PASSAGE_CACHE.clear()
 
 
 def parse_bible_reference(reference: str) -> ParsedReference:
@@ -443,7 +494,17 @@ def format_passage_text(verses: dict[int, str], start: int, end: int) -> str:
     for n in range(start, end + 1):
         if n not in verses:
             raise KeyError(n)
-        lines.append(f"{n} {verses[n]}")
+        lines.append(f"{n}. {verses[n]}")
+    return "\n".join(lines)
+
+
+def format_structured_verses(verses: list[dict[str, Any]]) -> str:
+    lines: list[str] = []
+    for item in verses:
+        number = str(item.get("number") or "").strip()
+        text = _clean_verse_text(str(item.get("text") or ""))
+        if number and text:
+            lines.append(f"{number}. {text}")
     return "\n".join(lines)
 
 
@@ -451,7 +512,7 @@ def select_verse_range(
     verses: dict[int, str],
     verse_start: int | None,
     verse_end: int | None,
-) -> tuple[str, list[str]]:
+) -> tuple[str, list[str], list[dict[str, Any]]]:
     """Szűrés a kért tartományra. Részleges találat → ValueError."""
     if not verses:
         raise ValueError("Üres verslista.")
@@ -474,58 +535,181 @@ def select_verse_range(
             + ", ".join(str(n) for n in missing)
             + ". A betöltés nem sikerült teljesen."
         )
-    text = format_passage_text(verses, start, end)
-    return text, []
+    selected = [{"number": n, "text": verses[n]} for n in range(start, end + 1)]
+    text = format_structured_verses(selected)
+    return text, [], selected
 
 
-def _default_http_get(url: str, *, timeout: float) -> str:
-    req = Request(url, headers={"User-Agent": USER_AGENT, "Accept": "text/html"})
+def _normalize_timeout(timeout: Any) -> tuple[float, float]:
+    if isinstance(timeout, tuple) and len(timeout) == 2:
+        return (float(timeout[0]), float(timeout[1]))
+    if isinstance(timeout, list) and len(timeout) == 2:
+        return (float(timeout[0]), float(timeout[1]))
+    if timeout is None:
+        return DEFAULT_TIMEOUT
+    value = float(timeout)
+    return (min(value, DEFAULT_CONNECT_TIMEOUT_S), value)
+
+
+def _cache_is_fresh(entry: dict[str, Any], *, ttl_s: float) -> bool:
+    if ttl_s <= 0:
+        return False
     try:
-        with urlopen(req, timeout=timeout) as resp:
-            charset = resp.headers.get_content_charset() or "utf-8"
-            return resp.read().decode(charset, errors="replace")
-    except HTTPError as exc:
-        raise ConnectionError(
-            f"HTTP-hiba a szentiras.hu-tól: {exc.code} {exc.reason}"
-        ) from exc
-    except URLError as exc:
-        reason = getattr(exc, "reason", exc)
-        msg = str(reason)
-        if "timed out" in msg.lower() or "timeout" in msg.lower():
-            raise TimeoutError(
-                "Időtúllépés a szentiras.hu elérésekor. Próbáld újra később."
-            ) from exc
-        raise ConnectionError(
-            "Nincs elérhető kapcsolat a szentiras.hu-hoz "
-            f"({reason}). Ellenőrizd az internetkapcsolatot."
-        ) from exc
-    except TimeoutError as exc:
-        raise TimeoutError(
-            "Időtúllépés a szentiras.hu elérésekor. Próbáld újra később."
-        ) from exc
+        fetched_at = float(entry.get("fetched_at") or 0.0)
+    except (TypeError, ValueError):
+        return False
+    return (time.time() - fetched_at) <= ttl_s
+
+
+def _is_transient_error(exc: BaseException) -> bool:
+    if isinstance(exc, RufHttpError):
+        return exc.transient
+    if isinstance(exc, (TimeoutError, ConnectionError)):
+        return True
+    if isinstance(exc, (requests.Timeout, requests.ConnectionError)):
+        return True
+    return False
+
+
+def _format_fetch_error(exc: BaseException, *, attempts: int) -> str:
+    prefix = "Külső szolgáltatási kapcsolat hibája: "
+    if isinstance(exc, RufHttpError):
+        return prefix + str(exc)
+    if isinstance(exc, TimeoutError):
+        return (
+            prefix
+            + "a szentiras.hu nem válaszolt időben "
+            + f"({attempts} próbálkozás után)."
+        )
+    if isinstance(exc, ConnectionError):
+        return prefix + f"nem sikerült kapcsolódni a szentiras.hu-hoz ({exc})."
+    return prefix + str(exc)
+
+
+def _default_http_get(url: str, *, timeout: Any = DEFAULT_TIMEOUT) -> str:
+    connect_timeout, read_timeout = _normalize_timeout(timeout)
+    try:
+        response = requests.get(
+            url,
+            headers={"User-Agent": USER_AGENT, "Accept": "text/html"},
+            timeout=(connect_timeout, read_timeout),
+        )
+    except requests.Timeout as exc:
+        raise TimeoutError("A szentiras.hu nem válaszolt időben.") from exc
+    except requests.ConnectionError as exc:
+        raise ConnectionError("Nincs elérhető kapcsolat a szentiras.hu-hoz.") from exc
+    status = int(response.status_code)
+    if status in RETRYABLE_HTTP_STATUS:
+        raise RufHttpError(status, response.reason or "", transient=True)
+    if 400 <= status < 500:
+        raise RufHttpError(status, response.reason or "", transient=False)
+    try:
+        response.raise_for_status()
+    except requests.HTTPError as exc:
+        raise ConnectionError(f"HTTP-hiba a szentiras.hu-tól: {status}") from exc
+    response.encoding = response.encoding or "utf-8"
+    return response.text
+
+
+def _call_http_get(
+    getter: Callable[..., str],
+    url: str,
+    *,
+    timeout: Any,
+) -> str:
+    try:
+        return getter(url, timeout=timeout)
+    except TypeError:
+        return getter(url)  # type: ignore[call-arg, misc]
 
 
 def fetch_chapter_verses(
     book_code: str,
     chapter: int,
     *,
-    timeout: float = DEFAULT_TIMEOUT_S,
+    timeout: Any = DEFAULT_TIMEOUT,
     http_get: Callable[..., str] | None = None,
     use_cache: bool = True,
+    cache_ttl_s: float = CACHE_TTL_S,
+    max_attempts: int = DEFAULT_MAX_ATTEMPTS,
+    retry_delays_s: tuple[float, ...] = DEFAULT_RETRY_DELAYS_S,
+    sleep: Callable[[float], None] = time.sleep,
 ) -> tuple[dict[int, str], str]:
     """Egy fejezet versei + forrás URL. Cache-eli a fejezetet."""
+    result = _fetch_chapter_verses_with_meta(
+        book_code,
+        chapter,
+        timeout=timeout,
+        http_get=http_get,
+        use_cache=use_cache,
+        cache_ttl_s=cache_ttl_s,
+        max_attempts=max_attempts,
+        retry_delays_s=retry_delays_s,
+        sleep=sleep,
+    )
+    return result.verses, result.url
+
+
+def _fetch_chapter_verses_with_meta(
+    book_code: str,
+    chapter: int,
+    *,
+    timeout: Any = DEFAULT_TIMEOUT,
+    http_get: Callable[..., str] | None = None,
+    use_cache: bool = True,
+    cache_ttl_s: float = CACHE_TTL_S,
+    max_attempts: int = DEFAULT_MAX_ATTEMPTS,
+    retry_delays_s: tuple[float, ...] = DEFAULT_RETRY_DELAYS_S,
+    sleep: Callable[[float], None] = time.sleep,
+) -> ChapterFetchResult:
     key = (book_code.upper(), int(chapter))
     url = build_chapter_url(key[0], key[1])
-    if use_cache and key in _CHAPTER_CACHE:
+    if use_cache and key in _CHAPTER_CACHE and _cache_is_fresh(
+        _CHAPTER_CACHE[key], ttl_s=cache_ttl_s
+    ):
         cached = _CHAPTER_CACHE[key]
-        return dict(cached["verses"]), str(cached["url"])
+        return ChapterFetchResult(
+            verses=dict(cached["verses"]),
+            url=str(cached["url"]),
+            warnings=[],
+            cache_status="fresh",
+        )
 
     getter = http_get or _default_http_get
-    try:
-        html = getter(url, timeout=timeout)
-    except TypeError:
-        # egyszerű stub: http_get(url) timeout nélkül
-        html = getter(url)  # type: ignore[call-arg, misc]
+    attempts = max(1, int(max_attempts))
+    last_exc: BaseException | None = None
+    for attempt in range(1, attempts + 1):
+        try:
+            html = _call_http_get(getter, url, timeout=_normalize_timeout(timeout))
+            break
+        except Exception as exc:
+            last_exc = exc
+            if not _is_transient_error(exc) or attempt >= attempts:
+                is_transient = _is_transient_error(exc)
+                if is_transient and use_cache and key in _CHAPTER_CACHE:
+                    cached = _CHAPTER_CACHE[key]
+                    return ChapterFetchResult(
+                        verses=dict(cached["verses"]),
+                        url=str(cached["url"]),
+                        warnings=[STALE_CACHE_WARNING],
+                        cache_status="stale_fallback",
+                    )
+                message = _format_fetch_error(exc, attempts=attempt)
+                if not is_transient:
+                    raise RufPermanentFetchFailure(message) from exc
+                if isinstance(exc, TimeoutError):
+                    raise TimeoutError(message) from exc
+                raise ConnectionError(message) from exc
+            delay = (
+                retry_delays_s[min(attempt - 1, len(retry_delays_s) - 1)]
+                if retry_delays_s
+                else 0.0
+            )
+            if delay > 0:
+                sleep(delay)
+    else:
+        assert last_exc is not None
+        raise last_exc
 
     data = extract_verse_data_json(html)
     # Fejezet-egyezés ellenőrzése, ha van
@@ -546,15 +730,19 @@ def fetch_chapter_verses(
         "url": url,
         "verses": dict(verses),
     }
-    return verses, url
+    return ChapterFetchResult(verses=verses, url=url, warnings=[], cache_status="live")
 
 
 def fetch_ruf_passage(
     reference: str,
     *,
-    timeout: float = DEFAULT_TIMEOUT_S,
+    timeout: Any = DEFAULT_TIMEOUT,
     http_get: Callable[..., str] | None = None,
     use_cache: bool = True,
+    cache_ttl_s: float = CACHE_TTL_S,
+    max_attempts: int = DEFAULT_MAX_ATTEMPTS,
+    retry_delays_s: tuple[float, ...] = DEFAULT_RETRY_DELAYS_S,
+    sleep: Callable[[float], None] = time.sleep,
 ) -> dict[str, Any]:
     """Központi belépési pont: igehely → RÚF szöveg eredménydict."""
     requested = (reference or "").strip()
@@ -563,21 +751,51 @@ def fetch_ruf_passage(
     except ValueError as exc:
         return _empty_result(requested_reference=requested, error=str(exc))
 
+    passage_key = (
+        TRANSLATION_NAME,
+        parsed.book.code.upper(),
+        int(parsed.chapter),
+        parsed.verse_start,
+        parsed.verse_end,
+    )
+    if use_cache and passage_key in _PASSAGE_CACHE and _cache_is_fresh(
+        _PASSAGE_CACHE[passage_key], ttl_s=cache_ttl_s
+    ):
+        cached_result = dict(_PASSAGE_CACHE[passage_key]["result"])
+        cached_result["cache_status"] = "fresh"
+        return cached_result
+
     try:
-        verses, url = fetch_chapter_verses(
+        chapter_result = _fetch_chapter_verses_with_meta(
             parsed.book.code,
             parsed.chapter,
             timeout=timeout,
             http_get=http_get,
             use_cache=use_cache,
+            cache_ttl_s=cache_ttl_s,
+            max_attempts=max_attempts,
+            retry_delays_s=retry_delays_s,
+            sleep=sleep,
         )
     except TimeoutError as exc:
+        stale = _PASSAGE_CACHE.get(passage_key) if use_cache else None
+        if stale:
+            stale_result = dict(stale["result"])
+            stale_result["warnings"] = [*stale_result.get("warnings", []), STALE_CACHE_WARNING]
+            stale_result["cache_status"] = "stale_fallback"
+            return stale_result
         return _empty_result(
             requested_reference=requested,
             normalized_reference=parsed.normalized_reference,
             error=str(exc),
         )
     except ConnectionError as exc:
+        stale = _PASSAGE_CACHE.get(passage_key) if use_cache else None
+        if stale:
+            stale_result = dict(stale["result"])
+            stale_result["warnings"] = [*stale_result.get("warnings", []), STALE_CACHE_WARNING]
+            stale_result["cache_status"] = "stale_fallback"
+            return stale_result
         return _empty_result(
             requested_reference=requested,
             normalized_reference=parsed.normalized_reference,
@@ -598,14 +816,14 @@ def fetch_ruf_passage(
         )
 
     try:
-        text, warnings = select_verse_range(
-            verses, parsed.verse_start, parsed.verse_end
+        text, warnings, selected_verses = select_verse_range(
+            chapter_result.verses, parsed.verse_start, parsed.verse_end
         )
     except ValueError as exc:
         return _empty_result(
             requested_reference=requested,
             normalized_reference=parsed.normalized_reference,
-            source_url=url,
+            source_url=chapter_result.url,
             error=str(exc),
         )
 
@@ -613,17 +831,25 @@ def fetch_ruf_passage(
         return _empty_result(
             requested_reference=requested,
             normalized_reference=parsed.normalized_reference,
-            source_url=url,
+            source_url=chapter_result.url,
             error="Üres találat: a kért szakasz szövege üres.",
         )
 
-    return _ok_result(
+    result = _ok_result(
         requested_reference=requested,
         normalized_reference=parsed.normalized_reference,
         text=text,
-        source_url=url,
-        warnings=warnings,
+        verses=selected_verses,
+        source_url=chapter_result.url,
+        warnings=[*chapter_result.warnings, *warnings],
+        cache_status=chapter_result.cache_status,
     )
+    if use_cache and chapter_result.cache_status != "stale_fallback":
+        _PASSAGE_CACHE[passage_key] = {
+            "fetched_at": time.time(),
+            "result": dict(result),
+        }
+    return result
 
 
 __all__ = [
@@ -631,6 +857,14 @@ __all__ = [
     "SOURCE_NAME",
     "COPYRIGHT_NOTICE",
     "BASE_URL",
+    "USER_AGENT",
+    "DEFAULT_CONNECT_TIMEOUT_S",
+    "DEFAULT_READ_TIMEOUT_S",
+    "DEFAULT_MAX_ATTEMPTS",
+    "DEFAULT_RETRY_DELAYS_S",
+    "CACHE_TTL_S",
+    "STALE_CACHE_WARNING",
+    "RufHttpError",
     "ParsedReference",
     "BookInfo",
     "parse_bible_reference",
@@ -639,6 +873,7 @@ __all__ = [
     "verses_dict_from_verse_data",
     "select_verse_range",
     "format_passage_text",
+    "format_structured_verses",
     "fetch_chapter_verses",
     "fetch_ruf_passage",
     "clear_ruf_cache",

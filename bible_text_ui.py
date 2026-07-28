@@ -25,6 +25,7 @@ from ruf_bible_service import (
     SOURCE_NAME,
     TRANSLATION_NAME,
     fetch_ruf_passage,
+    format_structured_verses,
     parse_bible_reference,
 )
 
@@ -45,13 +46,16 @@ KEY_TRANSLATION_OTHER = "bible_translation_other"
 RESYNC_FLAG = "_bible_text_ui_resync"
 FLASH_KEY = "_bible_text_flash"
 STYLES_FLAG = "_bible_text_styles_injected"
+RUF_LAST_ERROR_KEY = "_bible_text_ruf_last_error"
+RUF_LAST_ERROR_REF_KEY = "_bible_text_ruf_last_error_ref"
+BIBLE_TEXT_VIEW_KEY = "_bible_text_view_mode"
 
 SOURCE_CAPTION = (
     f"Forrás: {SOURCE_NAME} — Revideált új fordítás, {COPYRIGHT_NOTICE}."
 )
 
-# „17 Ti…”, „17. Ti…”, „17  Ti…” — versszám a sor elején
-_VERSE_LINE_RE = re.compile(r"^(\d+)\.?\s+(.*)$")
+# „17Ti…”, „17 Ti…”, „17. Ti…”, „100. Ti…” — versszám csak a sor elején.
+_VERSE_LINE_RE = re.compile(r"^(\d{1,3})(?:\.\s*|\s+)?(\D.*)$")
 
 # A RÚF betöltő gomb saját, kék primary stílusa (ne örökölje a Streamlit
 # alapértelmezett piros primary színét; ne érintse a többi gombot).
@@ -129,28 +133,20 @@ _BIBLE_TEXT_CSS = """
 }
 
 .bible-reader {
-  margin: 0.35rem 0 0.75rem 0;
-  padding: 0.85rem 1rem 0.95rem 1rem;
-  max-width: 100%;
+  margin: 0.35rem 0 0.85rem 0;
+  padding: 0.25rem 0 0.25rem 0;
+  max-width: 74ch;
   max-height: min(58vh, 520px);
   overflow-y: auto;
-  border-radius: 14px;
-  border: 1px solid rgba(160, 145, 120, 0.35);
-  background:
-    linear-gradient(
-      165deg,
-      rgba(255, 252, 246, 0.92),
-      rgba(246, 240, 228, 0.72)
-    );
   box-sizing: border-box;
 }
 
 .bible-verse {
   display: flex;
   align-items: flex-start;
-  gap: 0.7rem;
-  margin: 0 0 0.72rem 0;
-  line-height: 1.68;
+  gap: 0.8rem;
+  margin: 0 0 0.48rem 0;
+  line-height: 1.78;
 }
 
 .bible-verse:last-child,
@@ -160,35 +156,58 @@ _BIBLE_TEXT_CSS = """
 
 .bible-verse-num {
   flex: 0 0 auto;
-  min-width: 1.55em;
-  font-size: 0.8em;
-  font-weight: 400;
+  width: 2.4rem;
+  font-size: 0.9rem;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
-  color: #8a7a68;
-  line-height: 1.68;
-  padding-top: 0.08em;
+  color: #746a5e;
+  line-height: 1.78;
+  padding-top: 0.03em;
   user-select: none;
+  text-align: right;
 }
 
 .bible-verse-text {
   flex: 1 1 auto;
   min-width: 0;
-  font-size: 1.05rem;
-  font-weight: 500;
+  font-size: 1.08rem;
+  font-weight: 450;
   color: #2a241c;
-  line-height: 1.68;
+  line-height: 1.78;
   overflow-wrap: anywhere;
   word-break: break-word;
 }
 
 .bible-para {
   margin: 0 0 0.72rem 0;
-  font-size: 1.05rem;
-  font-weight: 500;
+  font-size: 1.08rem;
+  font-weight: 450;
   color: #2a241c;
-  line-height: 1.68;
+  line-height: 1.78;
   overflow-wrap: anywhere;
   word-break: break-word;
+}
+
+.bible-reader-continuous {
+  font-size: 1.08rem;
+  font-weight: 450;
+  line-height: 1.78;
+  color: #2a241c;
+}
+
+.bible-reader-continuous .bible-inline-verse {
+  margin-right: 0.26rem;
+}
+
+.bible-reader-continuous .bible-inline-num {
+  display: inline-block;
+  min-width: 1.65rem;
+  margin-right: 0.16rem;
+  color: #746a5e;
+  font-size: 0.82em;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  vertical-align: 0.06em;
 }
 
 .bible-source-note {
@@ -206,7 +225,7 @@ _BIBLE_TEXT_CSS = """
 
 @media (max-width: 640px) {
   .bible-reader {
-    padding: 0.75rem 0.8rem;
+    padding: 0.2rem 0;
     max-height: min(52vh, 440px);
   }
   .bible-verse {
@@ -250,12 +269,53 @@ def parse_passage_text_blocks(passage_text: str) -> list[tuple[str | None, str]]
     return blocks
 
 
-def build_formatted_bible_text_html(passage_text: str) -> str:
+def format_passage_text_blocks(blocks: list[tuple[str | None, str]]) -> str:
+    lines: list[str] = []
+    for num, body in blocks:
+        clean_body = normalize_passage_text(body).strip()
+        if not clean_body:
+            continue
+        if num is None:
+            lines.append(clean_body)
+        else:
+            lines.append(f"{num}. {clean_body}")
+    return "\n".join(lines)
+
+
+def normalize_verse_number_spacing(passage_text: str) -> str:
+    return format_passage_text_blocks(parse_passage_text_blocks(passage_text))
+
+
+def build_formatted_bible_text_html(
+    passage_text: str,
+    *,
+    view_mode: str = "Versenkénti nézet",
+) -> str:
     """Biztonságos HTML a formázott olvasónézethez (escape-elt tartalom)."""
     blocks = parse_passage_text_blocks(passage_text)
     if not blocks:
         return ""
-    parts: list[str] = ['<div class="bible-reader">']
+
+    if view_mode == "Folyamatos nézet":
+        inline_parts: list[str] = []
+        for num, body in blocks:
+            safe_body = html.escape(body, quote=True)
+            if num is None:
+                inline_parts.append(html.escape(body, quote=True))
+            else:
+                safe_num = html.escape(num, quote=True)
+                inline_parts.append(
+                    '<span class="bible-inline-verse">'
+                    f'<span class="bible-inline-num">{safe_num}.</span>'
+                    f'{safe_body}</span>'
+                )
+        return (
+            '<div class="bible-reader bible-reader-continuous">'
+            + " ".join(inline_parts)
+            + "</div>"
+        )
+
+    parts: list[str] = ['<div class="bible-reader bible-reader-lines">']
     for num, body in blocks:
         safe_body = html.escape(body, quote=True)
         if num is None:
@@ -264,7 +324,7 @@ def build_formatted_bible_text_html(passage_text: str) -> str:
             safe_num = html.escape(num, quote=True)
             parts.append(
                 '<div class="bible-verse">'
-                f'<span class="bible-verse-num">{safe_num}</span>'
+                f'<span class="bible-verse-num">{safe_num}.</span>'
                 f'<span class="bible-verse-text">{safe_body}</span>'
                 "</div>"
             )
@@ -274,7 +334,14 @@ def build_formatted_bible_text_html(passage_text: str) -> str:
 
 def render_formatted_bible_text(passage_text: str) -> None:
     """Formázott, csak olvasható Bibliai szöveg előnézet."""
-    markup = build_formatted_bible_text_html(passage_text)
+    view_mode = st.radio(
+        "Bibliai szöveg nézete",
+        ("Versenkénti nézet", "Folyamatos nézet"),
+        key=BIBLE_TEXT_VIEW_KEY,
+        horizontal=True,
+        label_visibility="collapsed",
+    )
+    markup = build_formatted_bible_text_html(passage_text, view_mode=view_mode)
     if not markup:
         return
     st.markdown(markup, unsafe_allow_html=True)
@@ -301,7 +368,7 @@ def save_bible_text_from_widgets(session_state: MutableMapping[str, Any]) -> dic
     if ige:
         session_state[DURABLE_PASSAGE] = ige
 
-    text = normalize_passage_text(session_state.get(KEY_PASSAGE_TEXT_INPUT))
+    text = normalize_verse_number_spacing(session_state.get(KEY_PASSAGE_TEXT_INPUT))
     session_state[DURABLE_PASSAGE_TEXT] = text
 
     # A központi blokk RÚF 2014-re van szabva (automatikus + kézi).
@@ -396,7 +463,11 @@ def _render_flash() -> None:
 
 
 def _apply_ruf_fetch_success(result: dict[str, Any]) -> None:
-    text = normalize_passage_text(result.get("text"))
+    verses = result.get("verses")
+    if isinstance(verses, list) and verses:
+        text = format_structured_verses(verses)
+    else:
+        text = normalize_verse_number_spacing(result.get("text"))
     st.session_state[DURABLE_PASSAGE_TEXT] = text
     st.session_state[DURABLE_TRANSLATION] = TRANSLATION_NAME
     st.session_state[DURABLE_SOURCE] = SOURCE_NAME
@@ -411,10 +482,46 @@ def _apply_ruf_fetch_success(result: dict[str, Any]) -> None:
     if ige:
         st.session_state[DURABLE_PASSAGE] = ige
     st.session_state[RESYNC_FLAG] = True
-    _set_flash(
-        "success",
-        "A RÚF 2014 szövege betöltődött. Mentés előtt ellenőrizd az igehelyet és a szöveget.",
+    warnings = [str(w).strip() for w in result.get("warnings", []) if str(w).strip()]
+    if warnings:
+        _set_flash("warning", warnings[0])
+    else:
+        _set_flash(
+            "success",
+            "A RÚF 2014 szövege betöltődött. Mentés előtt ellenőrizd az igehelyet és a szöveget.",
+        )
+
+
+def _fetch_ruf_for_current_reference(ref: str) -> bool:
+    with st.spinner("RÚF-szöveg lekérése…"):
+        result = fetch_ruf_passage(ref)
+    if result.get("success"):
+        st.session_state.pop(RUF_LAST_ERROR_KEY, None)
+        st.session_state.pop(RUF_LAST_ERROR_REF_KEY, None)
+        _apply_ruf_fetch_success(result)
+        st.rerun()
+        return True
+
+    err = str(
+        result.get("error")
+        or "Külső szolgáltatási kapcsolat hibája: a RÚF-szöveg betöltése nem sikerült."
     )
+    st.session_state[RUF_LAST_ERROR_KEY] = err
+    st.session_state[RUF_LAST_ERROR_REF_KEY] = ref
+    return False
+
+
+def _render_ruf_error_retry() -> None:
+    err = str(st.session_state.get(RUF_LAST_ERROR_KEY) or "").strip()
+    ref = str(st.session_state.get(RUF_LAST_ERROR_REF_KEY) or "").strip()
+    if not err:
+        return
+    st.error(err)
+    st.info("A kézi beillesztés továbbra is elérhető; a már megadott igehely és szöveg megmarad.")
+    if st.button("Újrapróbálás", key="bible_text_ruf_retry_btn"):
+        retry_ref = _current_reference(st.session_state) or ref
+        if retry_ref:
+            _fetch_ruf_for_current_reference(retry_ref)
 
 
 def _render_source_caption(session_state: MutableMapping[str, Any]) -> None:
@@ -466,15 +573,8 @@ def _render_ruf_load_button() -> None:
         if not ref:
             st.error("Előbb add meg az igehelyet (pl. Júd 17–20).")
         else:
-            with st.spinner("RÚF szöveg betöltése a szentiras.hu-ról…"):
-                result = fetch_ruf_passage(ref)
-            if result.get("success"):
-                _apply_ruf_fetch_success(result)
-                st.rerun()
-            else:
-                err = str(result.get("error") or "A RÚF-szöveg betöltése nem sikerült.")
-                st.error(err)
-                st.info("A kézi beillesztés továbbra is elérhető.")
+            _fetch_ruf_for_current_reference(ref)
+    _render_ruf_error_retry()
 
 
 def _render_editor_fields(*, save_label: str = "Bibliai szöveg mentése") -> None:
@@ -573,6 +673,8 @@ __all__ = [
     "TRANSLATION_NAME",
     "normalize_passage_text",
     "parse_passage_text_blocks",
+    "format_passage_text_blocks",
+    "normalize_verse_number_spacing",
     "build_formatted_bible_text_html",
     "render_formatted_bible_text",
     "apply_bible_text_resync_if_needed",

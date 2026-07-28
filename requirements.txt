@@ -3,6 +3,7 @@
 streamlit>=1.42.0
 Authlib>=1.3.2
 supabase
+requests>=2.31.0
 # Homiletikai profil radar chart (opcionális; hiánya esetén natív sáv-fallback)
 plotly>=5.18.0
 # Vázlat Word (.docx) export
