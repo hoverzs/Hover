@@ -11,7 +11,11 @@ from typing import Any
 
 from bible_engine.greek_lexicon_repository import resolve_tbesg_database_path
 from bible_engine.greek_token_repository import resolve_tagnt_database_path
-from bible_engine.lexicon_hu import load_hungarian_lexicon
+from bible_engine.lexicon_hu import (
+    DEFAULT_STRONG_ALIASES_PATH,
+    load_hungarian_lexicon,
+    load_strong_aliases,
+)
 from bible_engine.tbesg_parser import normalize_greek_strong_id
 from bible_engine.tbesg_sqlite import SQLiteGreekLexiconEntry, get_sqlite_lexicon_entry
 
@@ -21,6 +25,12 @@ LEXICON_HU_SAMPLE_PATH = ROOT / "bible_engine" / "data" / "lexicon_hu_sample.jso
 DEFAULT_LEXICON_HU_PATH = ROOT / "bible_engine" / "data" / "lexicon_hu.json"
 SCHEMA_VERSION = "1.0"
 SOURCE_NAME = "STEPBible TBESG"
+TAGNT_UNRESOLVED_SOURCE_NAME = "TAGNT unresolved lexeme audit"
+ALIAS_TARGET_SOURCE_NAME = "STEPBible TBESG via TAGNT alias targets"
+FINAL_UNRESOLVED_SOURCE_NAME = "STEPBible TBESG via final unresolved TAGNT audit"
+DEFAULT_MISSING_ALIAS_TARGET_BATCH_PATH = (
+    ROOT / "data" / "translation_batches" / "lexicon_missing_alias_targets_0001.json"
+)
 DEFAULT_TRANSLATION_METHOD = "ai_assisted"
 DEFAULT_REVIEW_STATUS = "draft"
 ALLOWED_REVIEW_STATUSES = frozenset({"draft", "reviewed"})
@@ -43,6 +53,7 @@ EXPORT_RECORD_FIELDS = frozenset(
         "source_version",
     }
 )
+OPTIONAL_EXPORT_RECORD_FIELDS = frozenset({"sample_references"})
 PLACEHOLDER_RE = re.compile(r"\b(?:TODO|TBD|fordítandó|forditando)\b", re.IGNORECASE)
 
 
@@ -67,6 +78,22 @@ class LexiconImportReport:
     records_skipped: int
     errors: tuple[str, ...]
     warnings: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class MissingAliasTargetExportReport:
+    output_path: str
+    unique_alias_targets: int
+    targets_already_in_hungarian: int
+    targets_missing_hungarian: int
+    targets_exportable_from_tbesg: int
+    targets_missing_from_tbesg: int
+    records_exported: int
+    limit: int
+    offset: int
+    first_strong_id: str | None
+    last_strong_id: str | None
+    exported_token_frequency: int
 
 
 def export_untranslated_lexicon_batch(
@@ -150,6 +177,93 @@ def export_untranslated_lexicon_batch(
         warnings=tuple(warnings),
         first_strong_id=records[0]["strong_id"] if records else None,
         last_strong_id=records[-1]["strong_id"] if records else None,
+    )
+
+
+def export_missing_alias_target_lexicon_batch(
+    output_path: str | Path = DEFAULT_MISSING_ALIAS_TARGET_BATCH_PATH,
+    *,
+    limit: int = 1000,
+    offset: int = 0,
+    strong_aliases_path: str | Path = DEFAULT_STRONG_ALIASES_PATH,
+    hungarian_lexicon_path: str | Path = DEFAULT_LEXICON_HU_PATH,
+    tbesg_database_path: str | Path | None = None,
+) -> MissingAliasTargetExportReport:
+    if limit < 1:
+        raise ValueError("limit must be at least 1.")
+    if offset < 0:
+        raise ValueError("offset must not be negative.")
+
+    tbesg_database = (
+        Path(tbesg_database_path)
+        if tbesg_database_path is not None
+        else resolve_tbesg_database_path()
+    )
+    if not tbesg_database.exists():
+        raise FileNotFoundError(f"TBESG SQLite database not found: {tbesg_database}")
+
+    aliases = load_strong_aliases(strong_aliases_path)
+    target_frequencies: dict[str, int] = {}
+    for alias in aliases.values():
+        target_frequencies[alias.target_strong_id] = (
+            target_frequencies.get(alias.target_strong_id, 0) + alias.token_frequency
+        )
+
+    hungarian_strong_ids = _hungarian_strong_ids_from_path(hungarian_lexicon_path)
+    missing_hungarian_targets = sorted(set(target_frequencies) - hungarian_strong_ids)
+
+    exportable: list[tuple[SQLiteGreekLexiconEntry, int]] = []
+    missing_tbesg_targets: list[str] = []
+    for strong_id in missing_hungarian_targets:
+        entry = get_sqlite_lexicon_entry(tbesg_database, strong_id)
+        if entry is None:
+            missing_tbesg_targets.append(strong_id)
+            continue
+        exportable.append((entry, target_frequencies[strong_id]))
+
+    exportable.sort(key=lambda item: (-item[1], item[0].strong_id))
+    selected = exportable[offset : offset + limit]
+    records = [
+        _export_record(entry, frequency, source_name=ALIAS_TARGET_SOURCE_NAME)
+        for entry, frequency in selected
+    ]
+    data = {
+        "schema_version": SCHEMA_VERSION,
+        "created_at": datetime.now(UTC).isoformat(),
+        "source": ALIAS_TARGET_SOURCE_NAME,
+        "batch": {
+            "limit": limit,
+            "offset": offset,
+            "order_by": "alias_target_frequency",
+            "unique_alias_targets": len(target_frequencies),
+            "targets_already_in_hungarian": len(set(target_frequencies) & hungarian_strong_ids),
+            "targets_missing_hungarian": len(missing_hungarian_targets),
+            "targets_exportable_from_tbesg": len(exportable),
+            "targets_missing_from_tbesg": len(missing_tbesg_targets),
+        },
+        "records": records,
+    }
+
+    output = Path(output_path)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(
+        json.dumps(data, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+
+    return MissingAliasTargetExportReport(
+        output_path=str(output),
+        unique_alias_targets=len(target_frequencies),
+        targets_already_in_hungarian=len(set(target_frequencies) & hungarian_strong_ids),
+        targets_missing_hungarian=len(missing_hungarian_targets),
+        targets_exportable_from_tbesg=len(exportable),
+        targets_missing_from_tbesg=len(missing_tbesg_targets),
+        records_exported=len(records),
+        limit=limit,
+        offset=offset,
+        first_strong_id=records[0]["strong_id"] if records else None,
+        last_strong_id=records[-1]["strong_id"] if records else None,
+        exported_token_frequency=sum(int(record["nt_frequency"]) for record in records),
     )
 
 
@@ -264,7 +378,19 @@ def _existing_hungarian_strong_ids() -> set[str]:
     return set(load_hungarian_lexicon(path))
 
 
-def _export_record(entry: SQLiteGreekLexiconEntry, nt_frequency: int) -> dict[str, object]:
+def _hungarian_strong_ids_from_path(path: str | Path) -> set[str]:
+    source = Path(path)
+    if not source.exists():
+        return set()
+    return set(load_hungarian_lexicon(source))
+
+
+def _export_record(
+    entry: SQLiteGreekLexiconEntry,
+    nt_frequency: int,
+    *,
+    source_name: str = SOURCE_NAME,
+) -> dict[str, object]:
     return {
         "strong_id": entry.strong_id,
         "lemma": entry.lemma,
@@ -278,7 +404,7 @@ def _export_record(entry: SQLiteGreekLexiconEntry, nt_frequency: int) -> dict[st
         "note_hu": "",
         "review_status": DEFAULT_REVIEW_STATUS,
         "translation_method": DEFAULT_TRANSLATION_METHOD,
-        "source_name": SOURCE_NAME,
+        "source_name": source_name,
         "source_version": entry.source_version,
     }
 
@@ -322,7 +448,7 @@ def _load_output_entries(output_path: Path) -> list[dict[str, Any]]:
 def _validated_translation_record(raw_record: Any, index: int) -> dict[str, Any]:
     if not isinstance(raw_record, dict):
         raise ValueError("record must be an object")
-    unknown = set(raw_record) - EXPORT_RECORD_FIELDS
+    unknown = set(raw_record) - EXPORT_RECORD_FIELDS - OPTIONAL_EXPORT_RECORD_FIELDS
     missing = EXPORT_RECORD_FIELDS - set(raw_record)
     if unknown:
         raise ValueError(f"unknown fields: {', '.join(sorted(unknown))}")
@@ -350,8 +476,17 @@ def _validated_translation_record(raw_record: Any, index: int) -> dict[str, Any]
     if translation_method not in ALLOWED_TRANSLATION_METHODS:
         raise ValueError("translation_method must be 'ai_assisted' or 'human'")
     source_name = str(raw_record["source_name"]).strip()
-    if source_name != SOURCE_NAME:
-        raise ValueError("source_name must be STEPBible TBESG")
+    if source_name not in {
+        SOURCE_NAME,
+        TAGNT_UNRESOLVED_SOURCE_NAME,
+        ALIAS_TARGET_SOURCE_NAME,
+        FINAL_UNRESOLVED_SOURCE_NAME,
+    }:
+        raise ValueError(
+            "source_name must be STEPBible TBESG, TAGNT unresolved lexeme audit, "
+            "STEPBible TBESG via TAGNT alias targets, "
+            "or STEPBible TBESG via final unresolved TAGNT audit"
+        )
 
     return {
         **raw_record,
@@ -378,6 +513,8 @@ def _reject_placeholders(value: str, field_name: str) -> None:
 
 
 def _validate_against_tbesg(record: dict[str, Any], index: int) -> None:
+    if record["source_name"] == TAGNT_UNRESOLVED_SOURCE_NAME:
+        return
     tbesg_entry = get_sqlite_lexicon_entry(resolve_tbesg_database_path(), record["strong_id"])
     if tbesg_entry is None:
         raise ValueError(f"TBESG source record not found: {record['strong_id']}")

@@ -11,6 +11,10 @@ from bible_engine.greek_lexicon_repository import TBESG_DATABASE_ENV_VAR
 from bible_engine.greek_token_repository import TAGNT_DATABASE_ENV_VAR
 from bible_engine.lexicon_hu import load_hungarian_lexicon
 from bible_engine.lexicon_translation_workflow import (
+    ALIAS_TARGET_SOURCE_NAME,
+    EXPORT_RECORD_FIELDS,
+    FINAL_UNRESOLVED_SOURCE_NAME,
+    export_missing_alias_target_lexicon_batch,
     export_untranslated_lexicon_batch,
     import_hungarian_lexicon_batch,
 )
@@ -270,6 +274,163 @@ def test_workflow_does_not_use_network(
     )
 
 
+def test_missing_alias_target_export_skips_existing_hungarian_targets(
+    tmp_path: Path,
+) -> None:
+    tbesg_db = _build_tbesg_db(tmp_path)
+    aliases = _write_aliases(
+        tmp_path,
+        [
+            ("G9001G", "G0001", 7),
+            ("G9002G", "G0002", 11),
+        ],
+    )
+    hungarian = _write_hungarian_lexicon(tmp_path, ("G0002",))
+    output = tmp_path / "alias_targets.json"
+
+    report = export_missing_alias_target_lexicon_batch(
+        output_path=output,
+        strong_aliases_path=aliases,
+        hungarian_lexicon_path=hungarian,
+        tbesg_database_path=tbesg_db,
+    )
+    data = json.loads(output.read_text(encoding="utf-8"))
+
+    assert report.unique_alias_targets == 2
+    assert report.targets_already_in_hungarian == 1
+    assert [record["strong_id"] for record in data["records"]] == ["G0001"]
+
+
+def test_missing_alias_target_export_sums_source_frequencies_and_orders_descending(
+    tmp_path: Path,
+) -> None:
+    tbesg_db = _build_tbesg_db(tmp_path)
+    aliases = _write_aliases(
+        tmp_path,
+        [
+            ("G9001G", "G0001", 7),
+            ("G9001H", "G0001", 5),
+            ("G9003G", "G0003", 30),
+            ("G9004G", "G0004", 2),
+        ],
+    )
+    hungarian = _write_hungarian_lexicon(tmp_path, ())
+    output = tmp_path / "alias_targets.json"
+
+    report = export_missing_alias_target_lexicon_batch(
+        output_path=output,
+        strong_aliases_path=aliases,
+        hungarian_lexicon_path=hungarian,
+        tbesg_database_path=tbesg_db,
+    )
+    records = json.loads(output.read_text(encoding="utf-8"))["records"]
+
+    assert [record["strong_id"] for record in records] == ["G0003", "G0001", "G0004"]
+    assert [record["nt_frequency"] for record in records] == [30, 12, 2]
+    assert report.exported_token_frequency == 44
+
+
+def test_missing_alias_target_export_omits_duplicates_and_missing_tbesg_targets(
+    tmp_path: Path,
+) -> None:
+    tbesg_db = _build_tbesg_db(tmp_path)
+    aliases = _write_aliases(
+        tmp_path,
+        [
+            ("G9001G", "G0001", 7),
+            ("G9001H", "G0001", 5),
+            ("G9999G", "G9999", 13),
+        ],
+    )
+    hungarian = _write_hungarian_lexicon(tmp_path, ())
+    output = tmp_path / "alias_targets.json"
+
+    report = export_missing_alias_target_lexicon_batch(
+        output_path=output,
+        strong_aliases_path=aliases,
+        hungarian_lexicon_path=hungarian,
+        tbesg_database_path=tbesg_db,
+    )
+    records = json.loads(output.read_text(encoding="utf-8"))["records"]
+
+    assert [record["strong_id"] for record in records] == ["G0001"]
+    assert records[0]["nt_frequency"] == 12
+    assert report.targets_missing_from_tbesg == 1
+    assert len(records) == len({record["strong_id"] for record in records})
+
+
+def test_missing_alias_target_export_schema_is_translation_import_compatible(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    tbesg_db = _build_tbesg_db(tmp_path)
+    monkeypatch.setenv(TBESG_DATABASE_ENV_VAR, str(tbesg_db))
+    aliases = _write_aliases(tmp_path, [("G9001G", "G0001", 7)])
+    hungarian = _write_hungarian_lexicon(tmp_path, ())
+    output = tmp_path / "alias_targets.json"
+
+    export_missing_alias_target_lexicon_batch(
+        output_path=output,
+        strong_aliases_path=aliases,
+        hungarian_lexicon_path=hungarian,
+        tbesg_database_path=tbesg_db,
+    )
+    data = json.loads(output.read_text(encoding="utf-8"))
+    record = data["records"][0]
+
+    assert set(record) == EXPORT_RECORD_FIELDS
+    assert record["source_name"] == ALIAS_TARGET_SOURCE_NAME
+    assert record["primary_gloss_hu"] == ""
+    assert record["senses_hu"] == []
+    assert record["note_hu"] == ""
+    assert record["review_status"] == "draft"
+    assert record["translation_method"] == "ai_assisted"
+
+    translated = dict(record)
+    translated["primary_gloss_hu"] = "első"
+    translated["senses_hu"] = ["első"]
+    translated_batch = dict(data)
+    translated_batch["records"] = [translated]
+    translated_path = tmp_path / "translated_alias_target.json"
+    translated_path.write_text(
+        json.dumps(translated_batch, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+
+    report = import_hungarian_lexicon_batch(
+        translated_path,
+        output_path=tmp_path / "lexicon_hu_out.json",
+    )
+
+    assert report.errors == ()
+    assert report.records_imported == 1
+
+
+def test_final_unresolved_source_name_is_translation_import_compatible(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    tbesg_db = _build_tbesg_db(tmp_path)
+    monkeypatch.setenv(TBESG_DATABASE_ENV_VAR, str(tbesg_db))
+    with sqlite3.connect(tbesg_db) as connection:
+        lemma = connection.execute(
+            "SELECT lemma FROM greek_lexicon WHERE strong_id = ?",
+            ("G0001",),
+        ).fetchone()[0]
+    record = _translated_record("G0001", str(lemma), "elsĹ‘", ["elsĹ‘"])
+    record["source_name"] = FINAL_UNRESOLVED_SOURCE_NAME
+    batch = tmp_path / "final_unresolved.json"
+    batch.write_text(
+        json.dumps(_batch_data([record]), ensure_ascii=False),
+        encoding="utf-8",
+    )
+
+    report = import_hungarian_lexicon_batch(batch, output_path=tmp_path / "out.json")
+
+    assert report.errors == ()
+    assert report.records_imported == 1
+
+
 def _build_tbesg_db(tmp_path: Path) -> Path:
     database = tmp_path / "tbesg.sqlite3"
     with sqlite3.connect(database) as connection:
@@ -394,6 +555,53 @@ def _patch_hungarian_sources(
     sample.write_text(json.dumps(entries, ensure_ascii=False), encoding="utf-8")
     monkeypatch.setattr(workflow, "LEXICON_HU_SAMPLE_PATH", sample)
     monkeypatch.setattr(workflow, "DEFAULT_LEXICON_HU_PATH", tmp_path / "missing_hu.json")
+
+
+def _write_hungarian_lexicon(tmp_path: Path, strong_ids: tuple[str, ...]) -> Path:
+    output = tmp_path / "lexicon_hu.json"
+    output.write_text(
+        json.dumps(
+            [
+                {
+                    "strong_id": strong_id,
+                    "lemma": "lemma",
+                    "primary_gloss": "magyar",
+                    "senses": ["magyar"],
+                    "note": None,
+                    "source": "teszt",
+                    "review_status": "draft",
+                }
+                for strong_id in strong_ids
+            ],
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+    return output
+
+
+def _write_aliases(
+    tmp_path: Path,
+    aliases: list[tuple[str, str, int]],
+) -> Path:
+    output = tmp_path / "strong_aliases.json"
+    output.write_text(
+        json.dumps(
+            [
+                {
+                    "source_strong_id": source,
+                    "target_strong_id": target,
+                    "confidence": 0.99,
+                    "evidence": "test alias",
+                    "token_frequency": frequency,
+                }
+                for source, target, frequency in aliases
+            ],
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+    return output
 
 
 def _batch_data(records: list[dict[str, object]]) -> dict[str, object]:
