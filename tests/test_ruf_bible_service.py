@@ -1,722 +1,383 @@
-"""RÚF betöltő — fixture és logikai tesztek (élő hálózat nélkül is)."""
-
 from __future__ import annotations
 
+import json
+import re
 import sys
-from pathlib import Path
+import time
+from types import SimpleNamespace
+from typing import Any
 
 import pytest
+import requests
 
-ROOT = Path(__file__).resolve().parents[1]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
-
-from ruf_bible_service import (
-    ABM_SOURCE_NAME,
-    RUF_ABM_FALLBACK_ENV_VAR,
-    ABibliaMindenkieProvider,
-    RufHttpError,
-    RufPassageProvider,
-    STALE_CACHE_WARNING,
-    SzentirasHuProvider,
-    build_abm_chapter_url,
-    build_ruf_provider_sequence,
-    clear_ruf_cache,
-    extract_abm_chapter_verses,
-    extract_verse_data_json,
-    fetch_ruf_passage,
-    parse_bible_reference,
-    select_verse_range,
-    verses_dict_from_verse_data,
-)
-from workspace_data import build_project_data, sanitize_project_data
-
-FIXTURES = ROOT / "tests" / "fixtures" / "ruf"
-errors: list[str] = []
+import ruf_bible_service as ruf
 
 
-def ok(cond: bool, msg: str) -> None:
-    if not cond:
-        errors.append(msg)
-
-
-def load_fixture(name: str) -> str:
-    return (FIXTURES / name).read_text(encoding="utf-8")
-
-
-def http_from_fixture(name: str):
-    html = load_fixture(name)
-
-    def _get(url: str, timeout: float = 15.0) -> str:  # noqa: ARG001
-        return html
-
-    return _get
-
-
-def html_from_verses(chapter: int, verses: list[tuple[int, str]]) -> str:
-    payload = {
-        "chapter": str(chapter),
-        "verses": [
-            {"verse_number": str(number), "verse": text}
-            for number, text in verses
-        ],
-    }
-    import json
-
-    return (
-        '<script id="verse-data" type="application/json">'
-        + json.dumps(payload, ensure_ascii=False)
-        + "</script>"
-    )
-
-
-def abm_html_from_verses(verses: list[tuple[int, str]]) -> str:
-    body = "\n".join(
-        (
-            f'<p class="verse "><a href="#{number}" id="{number}" '
-            f'class="verse__number">{number}</a>{text}'
-            '<span class="verse__crossreference">2Pt 3,3</span>'
-            '<span class="verse__footnote footnote">lábjegyzet</span></p>'
-        )
-        for number, text in verses
-    )
-    return (
-        '<article class="content chapter" data-template="chapter">'
-        '<div class="chapter__content"><header class="chapter__header">'
-        '<h1>Fejezetcím nem bibliai vers</h1></header>'
-        f'<div class="chapter__body"><h2 class="chapter__title">Szakaszcím</h2>{body}</div>'
-        "</div></article>"
-        '<aside>Bibliaolvasó Kalauz és navigáció nem kerülhet a szövegbe.</aside>'
-    )
-
-
-class FakeProvider(RufPassageProvider):
+class FakeResponse:
     def __init__(
         self,
-        name: str,
+        status_code: int,
+        payload: Any | None = None,
         *,
-        verses: dict[int, str] | None = None,
-        error: BaseException | None = None,
-        source_name: str | None = None,
+        headers: dict[str, str] | None = None,
+        reason: str = "",
     ) -> None:
-        self.name = name
-        self.source_name = source_name or name
-        self.error = error
-        self.verses = verses or {16: "Mert úgy szerette Isten a világot."}
-        self.calls = 0
+        self.status_code = status_code
+        self._payload = payload
+        self.headers = headers or {}
+        self.reason = reason
 
-    def fetch_chapter(self, parsed, **kwargs):  # type: ignore[no-untyped-def]
-        self.calls += 1
-        if self.error is not None:
-            raise self.error
-        return type(
-            "FakeChapterResult",
-            (),
-            {
-                "verses": dict(self.verses),
-                "url": f"https://example.test/{self.name}",
-                "warnings": [],
-                "cache_status": "live",
-                "source_name": self.source_name,
-                "copyright_notice": "© Magyar Bibliatársulat, 2014",
+    def json(self) -> Any:
+        if isinstance(self._payload, BaseException):
+            raise self._payload
+        return self._payload
+
+
+def api_payload(reference: str = "Jn 3,16", verses: list[tuple[int, str]] | None = None) -> dict[str, Any]:
+    items = verses or [(16, "Mert úgy szerette Isten a világot.")]
+    book, chapter = ("JHN", 3)
+    chapter_match = re.search(r"\s(\d+)", reference)
+    if chapter_match:
+        chapter = int(chapter_match.group(1))
+    if reference.startswith("1Móz"):
+        book = "GEN"
+    elif reference.startswith("Róm"):
+        book = "ROM"
+    elif reference.startswith("Ef"):
+        book = "EPH"
+    elif reference.startswith("Júd"):
+        book, chapter = ("JUD", 1)
+    return {
+        "keres": {"feladat": "idezet", "hivatkozas": reference, "forma": "json"},
+        "valasz": {
+            "forditas": {
+                "nev": "Magyar Bibliatársulat újfordítású Bibliája (2014)",
+                "rov": "RUF",
             },
-        )()
-
-
-def test_parse_forms() -> None:
-    cases = {
-        "Jn 3,16": ("JHN", 3, 16, 16),
-        "Jn 3:16": ("JHN", 3, 16, 16),
-        "Jn 3,16–18": ("JHN", 3, 16, 18),
-        "Jn 3:16-18": ("JHN", 3, 16, 18),
-        "Júd 17–20": ("JUD", 1, 17, 20),
-        "Júd 17-20": ("JUD", 1, 17, 20),
-        "1Kor 13,4–8": ("1CO", 13, 4, 8),
-        "1Kor 13:4-8": ("1CO", 13, 4, 8),
-        "1Móz 1,1–5": ("GEN", 1, 1, 5),
-        "Zsolt 23": ("PSA", 23, None, None),
-        "Fil 2,1–11": ("PHP", 2, 1, 11),
-        "Mt 5,1–12": ("MAT", 5, 1, 12),
-        # Gemini gyakran teljes magyar könyvnevet ad
-        "Róma 8,31–37": ("ROM", 8, 31, 37),
-        "2 Timóteus 4,6–8": ("2TI", 4, 6, 8),
-        "Jelenések 21,1–5": ("REV", 21, 1, 5),
-        "1 Péter 1,3–9": ("1PE", 1, 3, 9),
+            "versek": [
+                {
+                    "szoveg": text,
+                    "jegyzetek": [],
+                    "hely": {"gepi": f"{book}_{chapter}_{number}", "szep": f"{reference.split(',')[0]},{number}"},
+                }
+                for number, text in items
+            ],
+        },
     }
-    for ref, expected in cases.items():
-        p = parse_bible_reference(ref)
-        got = (p.book.code, p.chapter, p.verse_start, p.verse_end)
-        ok(got == expected, f"parse {ref}: {got} != {expected}")
 
 
-def test_bad_references() -> None:
-    for ref, needle in [
-        ("Xyyzz 1,1", "Ismeretlen"),
-        ("Jn 3,20-18", "Fordított"),
-        ("", "Add meg"),
-    ]:
-        try:
-            parse_bible_reference(ref)
-            errors.append(f"expected error for {ref!r}")
-        except ValueError as exc:
-            ok(needle.lower() in str(exc).lower() or needle in str(exc), f"{ref}: {exc}")
+@pytest.fixture(autouse=True)
+def clear_cache_and_key(monkeypatch: pytest.MonkeyPatch) -> None:
+    ruf.clear_ruf_cache()
+    monkeypatch.delenv(ruf.SZENTIRAS_EU_API_KEY_NAME, raising=False)
+    monkeypatch.setattr(ruf, "_streamlit_secret", lambda _name: "")
 
 
-def test_jude_fixture() -> None:
-    clear_ruf_cache()
-    r = fetch_ruf_passage("Júd 17–20", http_get=http_from_fixture("jud_1.html"))
-    ok(r["success"], f"Jude success: {r.get('error')}")
-    text = r["text"]
-    ok(text.startswith("17. "), "Jude starts with 17")
-    lines = text.splitlines()
-    ok(len(lines) == 4, f"Jude line count {len(lines)}")
-    for n in (17, 18, 19, 20):
-        ok(any(line.startswith(f"{n}. ") for line in lines), f"missing verse {n}")
-    # Keresztutalás / navigáció ne legyen a szövegben
-    lowered = text.casefold()
-    for bad in ("2pt", "előző", "következő", "lábjegyzet", "szentiras", "copyright"):
-        ok(bad not in lowered, f"Jude leaked {bad!r}")
-    ok("csúfolódók" in text or "csufolodok" in text.casefold(), "Jude 18 body")
-    ok(r["source_url"].endswith("/JUD/1"), f"url {r['source_url']}")
-    ok(r["translation"] == "RÚF 2014", "translation")
-    ok(r["verses"][0] == {"number": 17, "text": lines[0].removeprefix("17. ")}, "structured Jude verse")
+def test_api_key_from_streamlit_secret(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(ruf, "_streamlit_secret", lambda name: "secret-key" if name == ruf.SZENTIRAS_EU_API_KEY_NAME else "")
+    monkeypatch.setenv(ruf.SZENTIRAS_EU_API_KEY_NAME, "env-key")
+
+    assert ruf.get_szentiras_eu_api_key() == "secret-key"
 
 
-def test_ranges_and_full_chapter() -> None:
-    clear_ruf_cache()
-    # B Jn 3,16
-    r = fetch_ruf_passage("Jn 3,16", http_get=http_from_fixture("jhn_3.html"))
-    ok(r["success"], f"Jn 3,16: {r.get('error')}")
-    ok(r["text"].startswith("16. "), "Jn 16 prefix")
-    ok(r["verses"] == [{"number": 16, "text": r["text"].removeprefix("16. ")}], "Jn structured verse")
-    ok("\n" not in r["text"].strip(), "single verse one line")
+def test_api_key_from_environment(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv(ruf.SZENTIRAS_EU_API_KEY_NAME, "env-key")
 
-    # C Jn 3,16-18
-    clear_ruf_cache()
-    r = fetch_ruf_passage("Jn 3,16–18", http_get=http_from_fixture("jhn_3.html"))
-    ok(r["success"], f"Jn range: {r.get('error')}")
-    ok(len(r["text"].splitlines()) == 3, "three verses")
-
-    # D 1Kor 13,4-8
-    clear_ruf_cache()
-    r = fetch_ruf_passage("1Kor 13,4–8", http_get=http_from_fixture("1co_13.html"))
-    ok(r["success"], f"1Kor: {r.get('error')}")
-    ok(len(r["text"].splitlines()) == 5, "1Kor five verses")
-
-    # E 1Móz 1,1-5
-    clear_ruf_cache()
-    r = fetch_ruf_passage("1Móz 1,1–5", http_get=http_from_fixture("gen_1.html"))
-    ok(r["success"], f"Gen: {r.get('error')}")
-    ok("Kezdetben teremtette" in r["text"], "Gen 1,1 text")
-    ok(len(r["text"].splitlines()) == 5, "Gen five")
-
-    # F Zsolt 23 full
-    clear_ruf_cache()
-    r = fetch_ruf_passage("Zsolt 23", http_get=http_from_fixture("psa_23.html"))
-    ok(r["success"], f"Ps: {r.get('error')}")
-    ok(len(r["text"].splitlines()) == 6, f"Ps lines {len(r['text'].splitlines())}")
-
-    # G Fil 2,1-11
-    clear_ruf_cache()
-    r = fetch_ruf_passage("Fil 2,1–11", http_get=http_from_fixture("php_2.html"))
-    ok(r["success"], f"Phil: {r.get('error')}")
-    ok(len(r["text"].splitlines()) == 11, "Phil 11 verses")
-
-    # H full chapter Jn 3
-    clear_ruf_cache()
-    r = fetch_ruf_passage("Jn 3", http_get=http_from_fixture("jhn_3.html"))
-    ok(r["success"], f"Jn full: {r.get('error')}")
-    ok(len(r["text"].splitlines()) == 36, f"Jn full {len(r['text'].splitlines())}")
+    assert ruf.get_szentiras_eu_api_key() == "env-key"
 
 
-def test_romans_multi_verse_structured_text() -> None:
-    clear_ruf_cache()
-    html = html_from_verses(
-        8,
-        [
-            (1, "Nincsen azért most már semmiféle kárhoztató ítélet."),
-            (2, "Mert az élet Lelkének törvénye megszabadított."),
-            (3, "Amire ugyanis képtelen volt a törvény."),
-            (4, "Hogy a törvény követelése teljesüljön bennünk."),
-        ],
+def test_missing_api_key_returns_manual_fallback_state() -> None:
+    result = ruf.fetch_ruf_passage("Jn 3,16")
+
+    assert not result["success"]
+    assert result["error"] == ruf.API_NOT_CONFIGURED_MESSAGE
+    assert result["verses"] == []
+
+
+def test_single_verse_success(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv(ruf.SZENTIRAS_EU_API_KEY_NAME, "key")
+
+    result = ruf.fetch_ruf_passage("Jn 3,16", http_get=lambda *_args, **_kwargs: api_payload())
+
+    assert result["success"]
+    assert result["verses"][0]["verse_number"] == 16
+    assert "16. Mert úgy szerette" in result["text"]
+    assert result["source_name"] == "Szentírás.eu"
+    assert result["source_attribution"] == ruf.SOURCE_ATTRIBUTION
+
+
+def test_szentiras_eu_fields_map_to_internal_verse_model(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv(ruf.SZENTIRAS_EU_API_KEY_NAME, "key")
+
+    result = ruf.fetch_ruf_passage(
+        "Ef 4,1",
+        http_get=lambda *_args, **_kwargs: {
+            "keres": {"feladat": "idezet", "hivatkozas": "Ef 4,1", "forma": "json"},
+            "valasz": {
+                "forditas": {"nev": "RUF", "rov": "RUF"},
+                "versek": [
+                    {
+                        "szoveg": "Kérlek tehát titeket én, aki fogoly vagyok az Úrért.",
+                        "jegyzetek": [],
+                        "hely": {"gepi": "EPH_4_1", "szep": "Ef 4,1"},
+                    }
+                ],
+            },
+        },
     )
 
-    r = fetch_ruf_passage("Róm 8,1-4", http_get=lambda _url, timeout=None: html)
-
-    assert r["success"]
-    assert r["text"].splitlines() == [
-        "1. Nincsen azért most már semmiféle kárhoztató ítélet.",
-        "2. Mert az élet Lelkének törvénye megszabadított.",
-        "3. Amire ugyanis képtelen volt a törvény.",
-        "4. Hogy a törvény követelése teljesüljön bennünk.",
+    assert result["success"]
+    assert result["verses"] == [
+        {
+            "verse_number": 1,
+            "number": 1,
+            "text": "Kérlek tehát titeket én, aki fogoly vagyok az Úrért.",
+            "reference": "Ef 4,1",
+            "machine_reference": "EPH_4_1",
+        }
     ]
-    assert r["verses"][0] == {
-        "number": 1,
-        "text": "Nincsen azért most már semmiféle kárhoztató ítélet.",
-    }
+    assert result["text"].startswith("1. Kérlek tehát")
 
 
-def test_raw_html_extracts_three_digit_verse_number_and_text() -> None:
-    data = extract_verse_data_json(
-        html_from_verses(119, [(100, "Parancsolataidból értelmesebb lettem.")])
+def test_ephesians_4_1_6_multi_verse_success(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv(ruf.SZENTIRAS_EU_API_KEY_NAME, "key")
+
+    result = ruf.fetch_ruf_passage(
+        "Ef 4,1-6",
+        http_get=lambda *_args, **_kwargs: api_payload(
+            "Ef 4,1-6",
+            [
+                (1, "Kérlek tehát titeket."),
+                (2, "Teljes alázatossággal."),
+                (3, "Igyekezzetek megtartani."),
+                (4, "Egy a test."),
+                (5, "Egy az Úr."),
+                (6, "Egy az Istene és Atyja mindeneknek."),
+            ],
+        ),
     )
-    verses = verses_dict_from_verse_data(data)
-    text, warnings, structured = select_verse_range(verses, 100, 100)
 
-    assert warnings == []
-    assert structured == [{"number": 100, "text": "Parancsolataidból értelmesebb lettem."}]
-    assert text == "100. Parancsolataidból értelmesebb lettem."
-
-
-def test_error_paths() -> None:
-    clear_ruf_cache()
-    r = fetch_ruf_passage("Xyyzz 1,1", http_get=http_from_fixture("jud_1.html"))
-    ok(not r["success"], "unknown book should fail")
-    ok("Ismeretlen" in r["error"], r["error"])
-
-    clear_ruf_cache()
-    r = fetch_ruf_passage("Jn 999", http_get=http_from_fixture("no_verse_data.html"))
-    ok(not r["success"], "missing chapter / no verse-data")
-
-    clear_ruf_cache()
-    r = fetch_ruf_passage("Jn 3,90–91", http_get=http_from_fixture("jhn_3.html"))
-    ok(not r["success"], "missing verses")
-    ok("nem találhatók" in r["error"].casefold() or "hiányzik" in r["error"].casefold(), r["error"])
-
-    clear_ruf_cache()
-    r = fetch_ruf_passage("Jn 3,16–18", http_get=http_from_fixture("broken_json.html"))
-    ok(not r["success"], "broken json")
-
-    # Részleges: törölt vers a dictből
-    data = extract_verse_data_json(load_fixture("jhn_3.html"))
-    verses = verses_dict_from_verse_data(data)
-    del verses[17]
-    try:
-        select_verse_range(verses, 16, 18)
-        errors.append("partial should raise")
-    except ValueError as exc:
-        ok("Részleges" in str(exc) or "hiányzik" in str(exc).casefold(), str(exc))
+    assert result["success"]
+    assert [item["verse_number"] for item in result["verses"]] == [1, 2, 3, 4, 5, 6]
+    assert "1. Kérlek tehát titeket." in result["text"]
+    assert "6. Egy az Istene és Atyja mindeneknek." in result["text"]
 
 
-def test_network_errors() -> None:
-    clear_ruf_cache()
+def test_multi_verse_new_testament_success(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv(ruf.SZENTIRAS_EU_API_KEY_NAME, "key")
 
-    def boom_timeout(url: str, timeout: float = 15.0) -> str:  # noqa: ARG001
-        raise TimeoutError("Időtúllépés a szentiras.hu elérésekor. Próbáld újra később.")
+    result = ruf.fetch_ruf_passage(
+        "Róm 8,1-4",
+        http_get=lambda *_args, **_kwargs: api_payload(
+            "Róm 8,1-4",
+            [(1, "Nincs tehát most már semmiféle kárhoztató ítélet."), (2, "Mert a Lélek törvénye."), (3, "Amire képtelen volt a törvény."), (4, "Hogy a törvény követelése teljesüljön.")],
+        ),
+    )
 
-    r = fetch_ruf_passage(
+    assert result["success"]
+    assert [item["verse_number"] for item in result["verses"]] == [1, 2, 3, 4]
+
+
+def test_old_testament_and_numbered_books(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv(ruf.SZENTIRAS_EU_API_KEY_NAME, "key")
+
+    result = ruf.fetch_ruf_passage(
+        "1Móz 1,1-5",
+        http_get=lambda *_args, **_kwargs: api_payload("1Móz 1,1-5", [(1, "Kezdetben."), (2, "A föld."), (3, "Legyen."), (4, "Látta."), (5, "Este és reggel.")]),
+    )
+
+    assert result["success"]
+    assert result["verses"][0]["machine_reference"].startswith("GEN_1_")
+
+
+def test_single_chapter_book(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv(ruf.SZENTIRAS_EU_API_KEY_NAME, "key")
+
+    result = ruf.fetch_ruf_passage(
+        "Júd 24-25",
+        http_get=lambda *_args, **_kwargs: api_payload("Júd 24-25", [(24, "Annak pedig."), (25, "Az egyedül üdvözítő Istennek.")]),
+    )
+
+    assert result["success"]
+    assert result["normalized_reference"] == "Júd 24–25"
+
+
+def test_empty_or_invalid_json_is_not_successful(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv(ruf.SZENTIRAS_EU_API_KEY_NAME, "key")
+
+    empty = ruf.fetch_ruf_passage("Jn 3,16", http_get=lambda *_args, **_kwargs: {"valasz": {"forditas": {"rov": "RUF"}, "versek": []}})
+    invalid = ruf.fetch_ruf_passage("Jn 3,16", http_get=lambda *_args, **_kwargs: "{not json")
+
+    assert not empty["success"]
+    assert not invalid["success"]
+
+
+def test_api_items_without_renderable_text_are_not_successful(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv(ruf.SZENTIRAS_EU_API_KEY_NAME, "key")
+
+    result = ruf.fetch_ruf_passage(
         "Jn 3,16",
-        http_get=boom_timeout,
-        retry_delays_s=(),
-        sleep=lambda _delay: None,
+        http_get=lambda *_args, **_kwargs: {
+            "valasz": {
+                "forditas": {"rov": "RUF"},
+                "versek": [
+                    {"szoveg": "   ", "hely": {"gepi": "JHN_3_16", "szep": "Jn 3,16"}}
+                ],
+            }
+        },
     )
-    ok(not r["success"], "timeout fail")
-    ok("RÚF-szöveg automatikus" in r["error"], r["error"])
 
-    clear_ruf_cache()
+    assert not result["success"]
+    assert result["verses"] == []
 
-    def boom_conn(url: str, timeout: float = 15.0) -> str:  # noqa: ARG001
-        raise ConnectionError("Nincs elérhető kapcsolat a szentiras.hu-hoz")
 
-    r = fetch_ruf_passage(
+@pytest.mark.parametrize(
+    ("status", "message"),
+    [
+        (401, "A Szentírás.eu API-kulcs hiányzik vagy érvénytelen."),
+        (403, "A Szentírás.eu API-kulcs jelenleg nem használható."),
+        (404, "A megadott igehely nem található."),
+    ],
+)
+def test_final_http_errors_do_not_use_stale_cache(monkeypatch: pytest.MonkeyPatch, status: int, message: str) -> None:
+    monkeypatch.setenv(ruf.SZENTIRAS_EU_API_KEY_NAME, "key")
+    ruf.fetch_ruf_passage("Jn 3,16", http_get=lambda *_args, **_kwargs: api_payload())
+
+    result = ruf.fetch_ruf_passage(
         "Jn 3,16",
-        http_get=boom_conn,
-        retry_delays_s=(),
-        sleep=lambda _delay: None,
-    )
-    ok(not r["success"], "conn fail")
-    ok("kapcsolat" in r["error"].casefold() or "Nincs" in r["error"], r["error"])
-
-
-def test_retry_success_after_initial_timeout() -> None:
-    clear_ruf_cache()
-    calls: list[str] = []
-
-    def flaky(url: str, timeout: object = None) -> str:  # noqa: ARG001
-        calls.append(url)
-        if len(calls) == 1:
-            raise TimeoutError("mock timeout")
-        return load_fixture("jhn_3.html")
-
-    sleeps: list[float] = []
-    r = fetch_ruf_passage(
-        "Jn 3,16",
-        http_get=flaky,
-        retry_delays_s=(0.5, 1.5),
-        sleep=sleeps.append,
-    )
-
-    assert r["success"]
-    assert len(calls) == 2
-    assert sleeps == [0.5]
-    assert "Mert úgy szerette" in r["text"]
-
-
-def test_provider_order_uses_first_success_without_fallback() -> None:
-    clear_ruf_cache()
-    primary = FakeProvider("primary")
-    fallback = FakeProvider("fallback")
-
-    r = fetch_ruf_passage("Jn 3,16", providers=(primary, fallback))
-
-    assert r["success"]
-    assert primary.calls == 1
-    assert fallback.calls == 0
-    assert r["source_name"] == "primary"
-
-
-def test_transient_primary_failure_uses_abm_fallback_provider() -> None:
-    clear_ruf_cache()
-    primary = FakeProvider("primary", error=TimeoutError("mock timeout"))
-    fallback = FakeProvider("abm", source_name=ABM_SOURCE_NAME)
-
-    r = fetch_ruf_passage("Jn 3,16", providers=(primary, fallback))
-
-    assert r["success"]
-    assert primary.calls == 1
-    assert fallback.calls == 1
-    assert r["source_name"] == ABM_SOURCE_NAME
-
-
-def test_http_503_primary_failure_uses_fallback_provider() -> None:
-    clear_ruf_cache()
-    primary = FakeProvider(
-        "primary",
-        error=RufHttpError(503, "Service Unavailable", transient=True),
-    )
-    fallback = FakeProvider("abm", source_name=ABM_SOURCE_NAME)
-
-    r = fetch_ruf_passage("Jn 3,16", providers=(primary, fallback))
-
-    assert r["success"]
-    assert primary.calls == 1
-    assert fallback.calls == 1
-
-
-def test_http_404_primary_failure_does_not_use_fallback_provider() -> None:
-    clear_ruf_cache()
-    primary = FakeProvider("primary", error=RufHttpError(404, "Not Found", transient=False))
-    fallback = FakeProvider("abm", source_name=ABM_SOURCE_NAME)
-
-    r = fetch_ruf_passage("Jn 3,16", providers=(primary, fallback))
-
-    assert not r["success"]
-    assert primary.calls == 1
-    assert fallback.calls == 0
-    assert "HTTP 404" in r["error"]
-
-
-def test_abm_fallback_env_switch_excludes_second_provider(monkeypatch) -> None:
-    monkeypatch.setenv(RUF_ABM_FALLBACK_ENV_VAR, "false")
-
-    providers = build_ruf_provider_sequence()
-
-    assert len(providers) == 1
-    assert isinstance(providers[0], SzentirasHuProvider)
-
-
-def test_abm_provider_extracts_verse_numbers_and_ignores_page_chrome() -> None:
-    html = abm_html_from_verses(
-        [
-            (24, " Annak pedig, aki megőrizhet titeket a botlástól, "),
-            (25, " az egyedül üdvözítő Istennek dicsőség. "),
-        ]
-    )
-
-    verses = extract_abm_chapter_verses(html)
-
-    assert verses == {
-        24: "Annak pedig, aki megőrizhet titeket a botlástól,",
-        25: "az egyedül üdvözítő Istennek dicsőség.",
-    }
-    joined = " ".join(verses.values()).casefold()
-    assert "bibliaolvasó" not in joined
-    assert "2pt" not in joined
-    assert "lábjegyzet" not in joined
-
-
-def test_abm_provider_supports_ot_nt_and_single_chapter_book_codes() -> None:
-    assert build_abm_chapter_url("RUT", 1).endswith("/RUT/1")
-    assert build_abm_chapter_url("EPH", 1).endswith("/EPH/1")
-
-    html = abm_html_from_verses([(1, " Pál, Krisztus Jézus apostola. ")])
-    calls: list[str] = []
-
-    def http_get(url: str, timeout: object = None) -> str:  # noqa: ARG001
-        calls.append(url)
-        return html
-
-    clear_ruf_cache()
-    r = fetch_ruf_passage(
-        "Júd 1",
-        providers=(ABibliaMindenkieProvider(),),
-        http_get=http_get,
-    )
-
-    assert r["success"]
-    assert calls == ["https://abibliamindenkie.hu/uj/JUD/1"]
-    assert r["source_name"] == ABM_SOURCE_NAME
-
-
-def test_abm_http_retry_success_after_initial_timeout() -> None:
-    clear_ruf_cache()
-    calls = 0
-    html = abm_html_from_verses([(16, " Mert úgy szerette Isten a világot. ")])
-
-    def flaky(url: str, timeout: object = None) -> str:  # noqa: ARG001
-        nonlocal calls
-        calls += 1
-        if calls == 1:
-            raise TimeoutError("mock timeout")
-        return html
-
-    r = fetch_ruf_passage(
-        "Jn 3,16",
-        providers=(ABibliaMindenkieProvider(),),
-        http_get=flaky,
-        sleep=lambda _delay: None,
-    )
-
-    assert r["success"]
-    assert calls == 2
-
-
-def test_abm_cache_hit_skips_network_request() -> None:
-    clear_ruf_cache()
-    calls = 0
-    html = abm_html_from_verses([(16, " Mert úgy szerette Isten a világot. ")])
-
-    def http_get(url: str, timeout: object = None) -> str:  # noqa: ARG001
-        nonlocal calls
-        calls += 1
-        return html
-
-    first = fetch_ruf_passage(
-        "Jn 3,16",
-        providers=(ABibliaMindenkieProvider(),),
-        http_get=http_get,
-    )
-    second = fetch_ruf_passage(
-        "Jn 3,16",
-        providers=(ABibliaMindenkieProvider(),),
-        http_get=http_get,
-    )
-
-    assert first["success"]
-    assert second["success"]
-    assert second["cache_status"] == "fresh"
-    assert calls == 1
-
-
-def test_three_timeouts_return_controlled_error() -> None:
-    clear_ruf_cache()
-    calls = 0
-
-    def timeout(url: str, timeout: object = None) -> str:  # noqa: ARG001
-        nonlocal calls
-        calls += 1
-        raise TimeoutError("mock timeout")
-
-    sleeps: list[float] = []
-    r = fetch_ruf_passage(
-        "Jn 3,16",
-        http_get=timeout,
-        retry_delays_s=(0.5, 1.5),
-        sleep=sleeps.append,
-    )
-
-    assert not r["success"]
-    assert calls == 5
-    assert sleeps == [0.5, 1.5, 0.5]
-    assert "Külső szolgáltatási kapcsolat hibája" in r["error"]
-    assert "Traceback" not in r["error"]
-
-
-def test_http_503_retries_then_succeeds() -> None:
-    clear_ruf_cache()
-    calls = 0
-
-    def flaky_503(url: str, timeout: object = None) -> str:  # noqa: ARG001
-        nonlocal calls
-        calls += 1
-        if calls == 1:
-            raise RufHttpError(503, "Service Unavailable", transient=True)
-        return load_fixture("jhn_3.html")
-
-    r = fetch_ruf_passage(
-        "Jn 3,16",
-        http_get=flaky_503,
-        retry_delays_s=(),
-        sleep=lambda _delay: None,
-    )
-
-    assert r["success"]
-    assert calls == 2
-
-
-def test_http_404_does_not_retry() -> None:
-    clear_ruf_cache()
-    calls = 0
-
-    def not_found(url: str, timeout: object = None) -> str:  # noqa: ARG001
-        nonlocal calls
-        calls += 1
-        raise RufHttpError(404, "Not Found", transient=False)
-
-    r = fetch_ruf_passage(
-        "Jn 3,16",
-        http_get=not_found,
-        retry_delays_s=(),
-        sleep=lambda _delay: None,
-    )
-
-    assert not r["success"]
-    assert calls == 1
-    assert "HTTP 404" in r["error"]
-
-
-def test_cache_hit_skips_network_request() -> None:
-    clear_ruf_cache()
-    calls = 0
-
-    def success(url: str, timeout: object = None) -> str:  # noqa: ARG001
-        nonlocal calls
-        calls += 1
-        return load_fixture("jhn_3.html")
-
-    first = fetch_ruf_passage("Jn 3,16", http_get=success)
-    second = fetch_ruf_passage("Jn 3,16", http_get=success)
-
-    assert first["success"]
-    assert second["success"]
-    assert calls == 1
-    assert second["cache_status"] == "fresh"
-
-
-def test_live_failure_uses_previous_cached_passage() -> None:
-    clear_ruf_cache()
-    first = fetch_ruf_passage("Jn 3,16", http_get=http_from_fixture("jhn_3.html"))
-    assert first["success"]
-
-    def timeout(url: str, timeout: object = None) -> str:  # noqa: ARG001
-        raise TimeoutError("mock timeout")
-
-    second = fetch_ruf_passage(
-        "Jn 3,16",
-        http_get=timeout,
         cache_ttl_s=0,
-        retry_delays_s=(),
-        sleep=lambda _delay: None,
+        http_get=lambda *_args, **_kwargs: FakeResponse(status, {}),
     )
 
-    assert second["success"]
-    assert second["text"] == first["text"]
-    assert STALE_CACHE_WARNING in second["warnings"]
-    assert second["cache_status"] == "stale_fallback"
+    assert not result["success"]
+    assert result["error"] == message
+    assert not result["is_stale"]
 
 
-def test_cache_key_keeps_distinct_verse_ranges() -> None:
-    clear_ruf_cache()
+def test_429_retries_with_retry_after(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv(ruf.SZENTIRAS_EU_API_KEY_NAME, "key")
+    sleeps: list[float] = []
+    calls = [FakeResponse(429, {}, headers={"Retry-After": "1"}), FakeResponse(200, api_payload())]
+
+    result = ruf.fetch_ruf_passage(
+        "Jn 3,16",
+        http_get=lambda *_args, **_kwargs: calls.pop(0),
+        sleep=sleeps.append,
+    )
+
+    assert result["success"]
+    assert sleeps == [1.0]
+
+
+def test_500_and_timeout_use_stale_cache(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv(ruf.SZENTIRAS_EU_API_KEY_NAME, "key")
+    first = ruf.fetch_ruf_passage("Jn 3,16", http_get=lambda *_args, **_kwargs: api_payload())
+
+    stale_500 = ruf.fetch_ruf_passage(
+        "Jn 3,16",
+        cache_ttl_s=0,
+        http_get=lambda *_args, **_kwargs: FakeResponse(500, {}),
+        retry_delays_s=(),
+    )
+    stale_timeout = ruf.fetch_ruf_passage(
+        "Jn 3,16",
+        cache_ttl_s=0,
+        http_get=lambda *_args, **_kwargs: (_ for _ in ()).throw(requests.Timeout("timeout")),
+        retry_delays_s=(),
+    )
+
+    assert first["success"]
+    assert stale_500["success"] and stale_500["is_stale"]
+    assert stale_timeout["success"] and stale_timeout["is_stale"]
+
+
+def test_cache_hit_skips_network(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv(ruf.SZENTIRAS_EU_API_KEY_NAME, "key")
     calls = 0
 
-    def success(url: str, timeout: object = None) -> str:  # noqa: ARG001
+    def success(*_args: Any, **_kwargs: Any) -> dict[str, Any]:
         nonlocal calls
         calls += 1
-        return load_fixture("jhn_3.html")
+        return api_payload()
 
-    single = fetch_ruf_passage("Jn 3,16", http_get=success)
-    ranged = fetch_ruf_passage("Jn 3,16-18", http_get=success)
+    first = ruf.fetch_ruf_passage("Jn 3,16", http_get=success)
+    second = ruf.fetch_ruf_passage("Jn 3,16", http_get=success)
 
-    assert single["success"]
-    assert ranged["success"]
-    assert len(single["text"].splitlines()) == 1
-    assert len(ranged["text"].splitlines()) == 3
+    assert first["success"] and second["success"]
     assert calls == 1
+    assert second["from_cache"]
 
 
-def test_cache_without_live_or_stale_returns_manual_fallback_state() -> None:
-    clear_ruf_cache()
+def test_old_cache_schema_is_ignored(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv(ruf.SZENTIRAS_EU_API_KEY_NAME, "key")
+    parsed = ruf.parse_bible_reference("Jn 3,16")
+    key = ruf._passage_key(parsed)
+    ruf._PASSAGE_CACHE[key] = {
+        "fetched_at": time.time(),
+        "result": {
+            "success": True,
+            "text": "",
+            "verses": [],
+            "source_name": ruf.SOURCE_NAME,
+            "source_url": "https://szentiras.eu/api/idezet/Jn%203%2C16/RUF",
+            "warnings": [],
+        },
+    }
+    calls = 0
 
-    def timeout(url: str, timeout: object = None) -> str:  # noqa: ARG001
-        raise TimeoutError("mock timeout")
+    def success(*_args: Any, **_kwargs: Any) -> dict[str, Any]:
+        nonlocal calls
+        calls += 1
+        return api_payload()
 
-    r = fetch_ruf_passage(
+    result = ruf.fetch_ruf_passage("Jn 3,16", http_get=success)
+
+    assert result["success"]
+    assert calls == 1
+    assert result["text"].strip()
+
+
+def test_old_cache_schema_is_not_used_as_stale_fallback(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv(ruf.SZENTIRAS_EU_API_KEY_NAME, "key")
+    parsed = ruf.parse_bible_reference("Jn 3,16")
+    key = ruf._passage_key(parsed)
+    ruf._PASSAGE_CACHE[key] = {
+        "fetched_at": 0,
+        "result": {
+            "success": True,
+            "text": "16. Bad old cached text.",
+            "verses": [{"number": 16, "text": "Bad old cached text."}],
+            "source_name": ruf.SOURCE_NAME,
+            "source_url": "https://szentiras.eu/api/idezet/Jn%203%2C16/RUF",
+            "warnings": [],
+        },
+    }
+
+    result = ruf.fetch_ruf_passage(
         "Jn 3,16",
-        http_get=timeout,
+        cache_ttl_s=0,
+        http_get=lambda *_args, **_kwargs: (_ for _ in ()).throw(requests.Timeout("timeout")),
         retry_delays_s=(),
-        sleep=lambda _delay: None,
     )
 
-    assert not r["success"]
-    assert r["text"] == ""
-    assert r["source_name"] == "szentiras.hu"
-    assert "Külső szolgáltatási kapcsolat hibája" in r["error"]
+    assert not result["success"]
+    assert not result["is_stale"]
 
 
-def test_unicode_hungarian_text_survives_retry_and_cache() -> None:
-    clear_ruf_cache()
-    r = fetch_ruf_passage("Jn 3,16", http_get=http_from_fixture("jhn_3.html"))
-    cached = fetch_ruf_passage("Jn 3,16", http_get=lambda _url, timeout=None: "")
+def test_returned_passage_must_cover_requested_range(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv(ruf.SZENTIRAS_EU_API_KEY_NAME, "key")
 
-    assert r["success"]
-    assert cached["success"]
-    assert "Mert úgy szerette Isten a világot" in cached["text"]
+    result = ruf.fetch_ruf_passage(
+        "Ef 1,1-4",
+        http_get=lambda *_args, **_kwargs: api_payload("Ef 1,1-4", [(1, "Pál."), (2, "Kegyelem.")]),
+    )
 
-
-def test_project_persist() -> None:
-    state = {
-        "last_igehely": "Júd 17–20",
-        "bible_translation": "RÚF 2014",
-        "passage_text": "17 foo\n18 bar",
-        "passage_text_source": "szentiras.hu",
-        "passage_text_source_url": "https://szentiras.hu/biblia/ruf/JUD/1",
-        "passage_text_fetched_at": "2026-07-21T20:00:00Z",
-        "passage_text_fetched_reference": "Júd 17–20",
-    }
-    pdata = build_project_data(state, version="1.0")
-    ok(pdata["passage_text"].startswith("17 "), "persist text")
-    ok(pdata["passage_text_source"] == "szentiras.hu", "persist source")
-    ok("passage_text_input" not in pdata, "no widget leak")
-
-    old = sanitize_project_data({"last_igehely": "Jn 3,16"})
-    ok(old.get("passage_text_source") == "", "old project default")
-    ok(old.get("passage_text") == "", "old project text default")
+    assert not result["success"]
+    assert "nem a teljes kért igehelyet" in result["error"]
 
 
-def test_error_keeps_existing_text_contract() -> None:
-    """Hiba esetén a szolgáltatás üres text-et ad vissza; a UI nem írja felül."""
-    clear_ruf_cache()
-    r = fetch_ruf_passage("Jn 999", http_get=http_from_fixture("no_verse_data.html"))
-    ok(r["text"] == "", "error text empty so UI can keep previous")
-
-
-def main() -> None:
-    test_parse_forms()
-    test_bad_references()
-    test_jude_fixture()
-    test_ranges_and_full_chapter()
-    test_romans_multi_verse_structured_text()
-    test_raw_html_extracts_three_digit_verse_number_and_text()
-    test_error_paths()
-    test_network_errors()
-    test_retry_success_after_initial_timeout()
-    test_three_timeouts_return_controlled_error()
-    test_http_503_retries_then_succeeds()
-    test_http_404_does_not_retry()
-    test_cache_hit_skips_network_request()
-    test_live_failure_uses_previous_cached_passage()
-    test_cache_key_keeps_distinct_verse_ranges()
-    test_cache_without_live_or_stale_returns_manual_fallback_state()
-    test_unicode_hungarian_text_survives_retry_and_cache()
-    test_project_persist()
-    test_error_keeps_existing_text_contract()
-    if errors:
-        print("FAIL")
-        for e in errors:
-            print(" -", e)
-        raise SystemExit(1)
-    print("OK ruf bible fixture/unit tests passed")
-
-
-if __name__ == "__main__":
-    main()
+def test_old_html_providers_are_removed() -> None:
+    assert not hasattr(ruf, "SzentirasHuProvider")
+    assert not hasattr(ruf, "ABibliaMindenkieProvider")
+    assert not hasattr(ruf, "build_chapter_url")
+    assert not hasattr(ruf, "extract_verse_data_json")

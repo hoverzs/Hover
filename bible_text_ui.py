@@ -21,9 +21,8 @@ import streamlit as st
 
 from bible_engine.greek_analysis_ui import render_greek_analysis_block
 from ruf_bible_service import (
-    COPYRIGHT_NOTICE,
-    ABM_SOURCE_NAME,
     SOURCE_NAME,
+    SOURCE_ATTRIBUTION,
     TRANSLATION_NAME,
     fetch_ruf_passage,
     format_structured_verses,
@@ -362,6 +361,8 @@ def queue_bible_widget_sync_values(session_state: MutableMapping[str, Any]) -> d
 
 def save_bible_text_from_widgets(session_state: MutableMapping[str, Any]) -> dict[str, str]:
     """Widgetek → tartós passage_text / bible_translation (és last_igehely szinkron)."""
+    apply_bible_text_resync_if_needed(session_state)
+
     ige = str(session_state.get("igehely_input") or "").strip()
     if ige:
         session_state[DURABLE_PASSAGE] = ige
@@ -460,12 +461,14 @@ def _render_flash() -> None:
         st.info(text)
 
 
-def _apply_ruf_fetch_success(result: dict[str, Any]) -> None:
+def _apply_ruf_fetch_success(result: dict[str, Any]) -> bool:
     verses = result.get("verses")
     if isinstance(verses, list) and verses:
         text = format_structured_verses(verses)
     else:
         text = normalize_verse_number_spacing(result.get("text"))
+    if not normalize_passage_text(text).strip():
+        return False
     st.session_state[DURABLE_PASSAGE_TEXT] = text
     st.session_state[DURABLE_TRANSLATION] = TRANSLATION_NAME
     st.session_state[DURABLE_SOURCE] = str(result.get("source_name") or SOURCE_NAME)
@@ -488,15 +491,21 @@ def _apply_ruf_fetch_success(result: dict[str, Any]) -> None:
             "success",
             "A RÚF 2014 szövege betöltődött. Mentés előtt ellenőrizd az igehelyet és a szöveget.",
         )
+    return True
 
 
 def _fetch_ruf_for_current_reference(ref: str) -> bool:
     with st.spinner("RÚF-szöveg lekérése…"):
         result = fetch_ruf_passage(ref)
     if result.get("success"):
+        if not _apply_ruf_fetch_success(result):
+            st.session_state[RUF_LAST_ERROR_KEY] = (
+                "A Szentírás.eu válasza nem tartalmazott megjeleníthető RÚF-szöveget."
+            )
+            st.session_state[RUF_LAST_ERROR_REF_KEY] = ref
+            return False
         st.session_state.pop(RUF_LAST_ERROR_KEY, None)
         st.session_state.pop(RUF_LAST_ERROR_REF_KEY, None)
-        _apply_ruf_fetch_success(result)
         st.rerun()
         return True
 
@@ -524,13 +533,14 @@ def _render_ruf_error_retry() -> None:
 
 def _render_source_caption(session_state: MutableMapping[str, Any]) -> None:
     snap = get_bible_text_snapshot(session_state)
+    if not normalize_passage_text(snap["passage_text"]).strip():
+        return
     source = snap["passage_text_source"] or SOURCE_NAME
     if not source and not snap["passage_text_source_url"]:
         return
     url = snap["passage_text_source_url"]
-    source_label = ABM_SOURCE_NAME if source == ABM_SOURCE_NAME else source
     caption = html.escape(
-        f"Forrás: {source_label} — Revideált új fordítás, {COPYRIGHT_NOTICE}.",
+        SOURCE_ATTRIBUTION,
         quote=True,
     )
     if url:
