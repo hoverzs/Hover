@@ -16,6 +16,7 @@ from bible_text_ui import (
     format_passage_text_blocks,
     normalize_verse_number_spacing,
     parse_passage_text_blocks,
+    save_bible_text_from_widgets,
 )
 
 errors: list[str] = []
@@ -24,6 +25,38 @@ errors: list[str] = []
 def ok(cond: bool, msg: str) -> None:
     if not cond:
         errors.append(msg)
+
+
+def _render_empty_bible_text_editor() -> None:
+    import streamlit as st
+
+    import bible_text_ui
+
+    st.session_state["igehely_input"] = "Jn 3,16"
+    bible_text_ui.render_bible_text_editor()
+
+
+def _render_editor_with_greek_text() -> None:
+    import streamlit as st
+
+    import bible_text_ui
+
+    st.session_state["igehely_input"] = "Jn 3,16"
+    st.session_state["passage_text"] = "16. Mert úgy szerette Isten a világot."
+    bible_text_ui.render_bible_text_editor()
+
+
+def _render_editor_with_ruf_error() -> None:
+    import streamlit as st
+
+    import bible_text_ui
+
+    st.session_state["igehely_input"] = "Jn 3,16"
+    st.session_state["_bible_text_ruf_last_error"] = (
+        "Külső szolgáltatási kapcsolat hibája: mock hiba."
+    )
+    st.session_state["_bible_text_ruf_last_error_ref"] = "Jn 3,16"
+    bible_text_ui.render_bible_text_editor()
 
 
 def test_ruf_button_click_does_not_refetch_on_plain_rerun() -> None:
@@ -67,6 +100,102 @@ def test_ruf_button_click_does_not_refetch_on_plain_rerun() -> None:
         assert app.session_state["passage_text"].startswith("16. Mert úgy szerette")
     finally:
         bible_text_ui.fetch_ruf_passage = original_fetch
+
+
+def test_manual_text_area_is_hidden_by_default() -> None:
+    app = AppTest.from_function(_render_empty_bible_text_editor).run()
+
+    assert not app.exception
+    assert len(app.text_area) == 0
+    assert all(button.label != "Bibliai szöveg mentése" for button in app.button)
+    assert any(
+        expander.label == "Bibliai szöveg kézi beillesztése"
+        for expander in app.expander
+    )
+
+
+def test_manual_text_area_renders_when_expander_is_open() -> None:
+    app = AppTest.from_function(_render_empty_bible_text_editor).run()
+
+    app.session_state["_bible_text_manual_paste_expander"] = True
+    app.run()
+
+    assert len(app.text_area) == 1
+    assert app.text_area[0].label == "Teljes bibliai szöveg"
+    assert any(button.label == "Bibliai szöveg mentése" for button in app.button)
+
+
+def test_manual_text_save_still_works_and_survives_rerun() -> None:
+    state = {
+        "igehely_input": "Jn 3,16",
+        "passage_text_input": "16Mert úgy szerette Isten a világot.",
+    }
+
+    saved = save_bible_text_from_widgets(state)
+
+    assert saved["passage_text"] == "16. Mert úgy szerette Isten a világot."
+    assert state["passage_text"] == "16. Mert úgy szerette Isten a világot."
+    assert state["passage_text_input"] == "16Mert úgy szerette Isten a világot."
+
+    app = AppTest.from_function(_render_empty_bible_text_editor).run()
+    app.session_state["_bible_text_manual_paste_expander"] = True
+    app.session_state["passage_text_input"] = "16Mert úgy szerette Isten a világot."
+    app.run()
+
+    assert app.text_area[0].value == "16Mert úgy szerette Isten a világot."
+    app.run()
+    assert app.session_state["passage_text_input"] == "16Mert úgy szerette Isten a világot."
+
+
+def test_successful_ruf_load_does_not_open_manual_section() -> None:
+    import bible_text_ui
+
+    original_fetch = bible_text_ui.fetch_ruf_passage
+
+    def fake_fetch(reference: str) -> dict[str, object]:
+        return {
+            "success": True,
+            "requested_reference": reference,
+            "normalized_reference": "Jn 3,16",
+            "translation": "RÚF 2014",
+            "text": "16. Mert úgy szerette Isten a világot.",
+            "verses": [{"number": 16, "text": "Mert úgy szerette Isten a világot."}],
+            "source_name": "szentiras.hu",
+            "source_url": "https://szentiras.hu/biblia/ruf/JHN/3",
+            "copyright_notice": "",
+            "warnings": [],
+            "error": "",
+        }
+
+    bible_text_ui.fetch_ruf_passage = fake_fetch
+    try:
+        app = AppTest.from_function(_render_empty_bible_text_editor).run()
+        app.button[0].click().run()
+
+        assert len(app.text_area) == 0
+        assert app.session_state["passage_text"].startswith("16. Mert")
+    finally:
+        bible_text_ui.fetch_ruf_passage = original_fetch
+
+
+def test_ruf_error_does_not_open_manual_section() -> None:
+    app = AppTest.from_function(_render_editor_with_ruf_error).run()
+
+    assert not app.exception
+    assert len(app.text_area) == 0
+    assert any(button.label == "Újrapróbálás" for button in app.button)
+    assert any(
+        expander.label == "Bibliai szöveg kézi beillesztése"
+        for expander in app.expander
+    )
+
+
+def test_greek_text_rendering_remains_available_with_manual_section_closed() -> None:
+    app = AppTest.from_function(_render_editor_with_greek_text).run()
+
+    assert not app.exception
+    assert len(app.text_area) == 0
+    assert any("Görög eredeti szöveg" in value for value in [m.value for m in app.markdown])
 
 
 def test_missing_space_after_verse_number_is_normalized() -> None:

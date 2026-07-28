@@ -49,6 +49,7 @@ STYLES_FLAG = "_bible_text_styles_injected"
 RUF_LAST_ERROR_KEY = "_bible_text_ruf_last_error"
 RUF_LAST_ERROR_REF_KEY = "_bible_text_ruf_last_error_ref"
 BIBLE_TEXT_VIEW_KEY = "_bible_text_view_mode"
+MANUAL_PASTE_EXPANDER_KEY = "_bible_text_manual_paste_expander"
 
 SOURCE_CAPTION = (
     f"Forrás: {SOURCE_NAME} — Revideált új fordítás, {COPYRIGHT_NOTICE}."
@@ -583,6 +584,7 @@ def _render_editor_fields(*, save_label: str = "Bibliai szöveg mentése") -> No
         key=KEY_PASSAGE_TEXT_INPUT,
         height=220,
         placeholder="Töltsd be a RÚF szöveget, vagy illeszd be ide kézzel…",
+        persist_state="session",
     )
     if st.button(save_label, key="bible_text_save_btn", use_container_width=True):
         saved = save_bible_text_from_widgets(st.session_state)
@@ -593,6 +595,18 @@ def _render_editor_fields(*, save_label: str = "Bibliai szöveg mentése") -> No
             )
         else:
             st.success("Bibliai szöveg mező elmentve (üres).")
+
+
+def _render_manual_paste_fallback() -> None:
+    expander = st.expander(
+        "Bibliai szöveg kézi beillesztése",
+        expanded=False,
+        key=MANUAL_PASTE_EXPANDER_KEY,
+        on_change="rerun",
+    )
+    if expander.open:
+        with expander:
+            _render_editor_fields()
 
 
 def render_bible_text_editor() -> None:
@@ -626,15 +640,14 @@ def render_bible_text_editor() -> None:
             reference=_current_reference(st.session_state),
             key_prefix="bible_text_ui",
         )
-        with st.expander("Bibliai szöveg szerkesztése", expanded=False):
-            _render_editor_fields()
+        _render_manual_paste_fallback()
     else:
-        _render_editor_fields()
         _render_source_caption(st.session_state)
         render_greek_analysis_block(
             reference=_current_reference(st.session_state),
             key_prefix="bible_text_ui",
         )
+        _render_manual_paste_fallback()
 
 
 def render_bible_text_preview(*, expanded: bool = False) -> None:
