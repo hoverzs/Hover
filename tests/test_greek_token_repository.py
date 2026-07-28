@@ -10,10 +10,12 @@ from bible_engine.greek_token_repository import (
     DEFAULT_TAGNT_DATABASE_PATH,
     GreekVerseTokens,
     TAGNT_DATABASE_ENV_VAR,
+    inspect_tagnt_database_path,
     load_greek_passage_tokens,
     load_greek_verse_tokens,
     resolve_tagnt_database_path,
 )
+from bible_engine.paths import PROJECT_ROOT
 from bible_engine.tagnt_parser import GreekToken, render_greek_text
 from bible_engine.tagnt_sqlite import create_schema, import_tagnt_book
 
@@ -31,6 +33,28 @@ def test_resolve_database_path_from_environment(monkeypatch, tmp_path: Path) -> 
     assert resolve_tagnt_database_path() == database
 
 
+def test_relative_environment_path_resolves_from_project_root(monkeypatch) -> None:
+    monkeypatch.setenv(TAGNT_DATABASE_ENV_VAR, "data/generated/tagnt_nt.sqlite3")
+
+    assert resolve_tagnt_database_path() == DEFAULT_TAGNT_DATABASE_PATH
+
+
+def test_default_database_path_is_stable_from_different_cwd(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.delenv(TAGNT_DATABASE_ENV_VAR, raising=False)
+    monkeypatch.setattr(
+        "bible_engine.greek_token_repository._tagnt_database_path_from_streamlit_secrets",
+        lambda: None,
+    )
+    monkeypatch.chdir(tmp_path)
+
+    assert resolve_tagnt_database_path() == DEFAULT_TAGNT_DATABASE_PATH
+    assert DEFAULT_TAGNT_DATABASE_PATH.is_absolute()
+    assert DEFAULT_TAGNT_DATABASE_PATH.is_file()
+
+
 def test_resolve_database_path_uses_project_default(monkeypatch) -> None:
     monkeypatch.delenv(TAGNT_DATABASE_ENV_VAR, raising=False)
     monkeypatch.setattr(
@@ -43,14 +67,25 @@ def test_resolve_database_path_uses_project_default(monkeypatch) -> None:
 
 def test_default_database_path_is_project_generated_sqlite() -> None:
     assert DEFAULT_TAGNT_DATABASE_PATH == ROOT / "data" / "generated" / "tagnt_nt.sqlite3"
+    assert DEFAULT_TAGNT_DATABASE_PATH == PROJECT_ROOT / "data" / "generated" / "tagnt_nt.sqlite3"
 
 
-def test_generated_database_and_raw_paths_are_gitignored() -> None:
+def test_production_database_diagnostics() -> None:
+    diagnostics = inspect_tagnt_database_path(DEFAULT_TAGNT_DATABASE_PATH)
+
+    assert diagnostics.path == DEFAULT_TAGNT_DATABASE_PATH
+    assert diagnostics.exists
+    assert diagnostics.is_file
+    assert diagnostics.size_bytes and diagnostics.size_bytes > 30_000_000
+    assert diagnostics.sqlite_openable
+    assert diagnostics.required_tables_present
+
+
+def test_auxiliary_generated_database_and_raw_paths_are_gitignored() -> None:
     result = subprocess.run(
         [
             "git",
             "check-ignore",
-            "data/generated/tagnt_nt.sqlite3",
             "data/generated/tagnt_john.sqlite3",
             "data/raw/TAGNT_Act-Rev_raw.txt",
             "_qa_shell/TAGNT_Mat-Jhn_raw.txt",
@@ -62,10 +97,21 @@ def test_generated_database_and_raw_paths_are_gitignored() -> None:
     )
 
     assert result.returncode == 0
-    assert "data/generated/tagnt_nt.sqlite3" in result.stdout
     assert "data/generated/tagnt_john.sqlite3" in result.stdout
     assert "data/raw/TAGNT_Act-Rev_raw.txt" in result.stdout
     assert "_qa_shell/TAGNT_Mat-Jhn_raw.txt" in result.stdout
+
+
+def test_production_tagnt_database_is_tracked() -> None:
+    result = subprocess.run(
+        ["git", "ls-files", "data/generated/tagnt_nt.sqlite3"],
+        cwd=ROOT,
+        text=True,
+        capture_output=True,
+        check=True,
+    )
+
+    assert result.stdout.strip() == "data/generated/tagnt_nt.sqlite3"
 
 
 def test_missing_database_has_clear_error(tmp_path: Path) -> None:
@@ -73,6 +119,38 @@ def test_missing_database_has_clear_error(tmp_path: Path) -> None:
 
     with pytest.raises(FileNotFoundError, match="TAGNT SQLite database not found"):
         load_greek_verse_tokens("Jn 3,16", database_path=missing)
+
+
+def test_existing_invalid_sqlite_has_separate_error(tmp_path: Path) -> None:
+    invalid = tmp_path / "invalid.sqlite3"
+    invalid.write_text("not sqlite", encoding="utf-8")
+
+    diagnostics = inspect_tagnt_database_path(invalid)
+
+    assert diagnostics.exists
+    assert diagnostics.is_file
+    assert diagnostics.size_bytes == len("not sqlite")
+    assert not diagnostics.sqlite_openable
+    with pytest.raises(ValueError, match="Invalid TAGNT SQLite database schema"):
+        load_greek_verse_tokens("Jn 3,16", database_path=invalid)
+
+
+def test_existing_database_initializes_repository(tmp_path: Path) -> None:
+    database = build_sample_database(tmp_path)
+
+    diagnostics = inspect_tagnt_database_path(database)
+    tokens = load_greek_verse_tokens("Jn 3,16", database_path=database)
+
+    assert diagnostics.exists
+    assert diagnostics.sqlite_openable
+    assert diagnostics.required_tables_present
+    assert len(tokens) == 26
+
+
+def test_tagnt_production_filename_is_consistent() -> None:
+    assert DEFAULT_TAGNT_DATABASE_PATH.name == "tagnt_nt.sqlite3"
+    assert DEFAULT_TAGNT_DATABASE_PATH.name != "tagnt_nt.db"
+    assert DEFAULT_TAGNT_DATABASE_PATH.name != "tagnt_nt.sqlite"
 
 
 @pytest.mark.parametrize(

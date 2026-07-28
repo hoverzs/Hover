@@ -236,12 +236,11 @@ def test_legacy_john_build_script_remains_compatible(tmp_path: Path) -> None:
     assert len(get_sqlite_verse_tokens(database, "Jhn", 3, 16)) == 2
 
 
-def test_generated_databases_and_raw_sources_are_gitignored() -> None:
+def test_auxiliary_generated_databases_and_raw_sources_are_gitignored() -> None:
     result = subprocess.run(
         [
             "git",
             "check-ignore",
-            "data/generated/tagnt_nt.sqlite3",
             "data/generated/tagnt_john.sqlite3",
             "data/raw/TAGNT_Mat-Jhn_raw.txt",
             "data/raw/TAGNT_Act-Rev_raw.txt",
@@ -254,9 +253,21 @@ def test_generated_databases_and_raw_sources_are_gitignored() -> None:
         text=True,
     )
 
-    assert "data/generated/tagnt_nt.sqlite3" in result.stdout
+    assert "data/generated/tagnt_john.sqlite3" in result.stdout
     assert "data/raw/TAGNT_Act-Rev_raw.txt" in result.stdout
     assert "_qa_shell/TAGNT_Act-Rev_raw.txt" in result.stdout
+
+
+def test_production_tagnt_database_is_tracked() -> None:
+    result = subprocess.run(
+        ["git", "ls-files", "data/generated/tagnt_nt.sqlite3"],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.stdout.strip() == "data/generated/tagnt_nt.sqlite3"
 
 
 def _import_fixture_database(tmp_path: Path) -> Path:

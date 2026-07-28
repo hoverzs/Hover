@@ -9,6 +9,7 @@ from streamlit.testing.v1 import AppTest
 from bible_engine.greek_analysis_ui import (
     CROSS_CHAPTER_GREEK_MESSAGE,
     GREEK_DATA_ERROR_MESSAGE,
+    INVALID_GREEK_DATABASE_MESSAGE,
     LEXICON_HU_PATH,
     LEXICAL_SCOPE_NOTE,
     MISSING_GREEK_DATA_MESSAGE,
@@ -1046,6 +1047,23 @@ def test_default_renderer_does_not_use_fixture_fallback_for_missing_database(
     assert "Ã" not in page_text
     assert "Å" not in page_text
     assert "Â" not in page_text
+    assert len(app.selectbox) == 0
+
+
+def test_default_renderer_shows_invalid_database_message(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    invalid_database = tmp_path / "invalid.sqlite3"
+    invalid_database.write_text("not sqlite", encoding="utf-8")
+    monkeypatch.setenv(TAGNT_DATABASE_ENV_VAR, str(invalid_database))
+
+    app = AppTest.from_function(_render_john_3_16_default_loader_block).run()
+
+    assert not app.exception
+    caption_values = [caption.value for caption in app.caption]
+    assert any(INVALID_GREEK_DATABASE_MESSAGE in value for value in caption_values)
+    assert not any(MISSING_GREEK_DATABASE_MESSAGE in value for value in caption_values)
     assert len(app.selectbox) == 0
 
 

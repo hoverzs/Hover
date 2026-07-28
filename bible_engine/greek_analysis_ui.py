@@ -66,6 +66,9 @@ LEXICAL_SCOPE_NOTE = (
 MISSING_GREEK_DATABASE_MESSAGE = (
     "A teljes görög Újszövetség helyi adatbázisa még nincs előkészítve."
 )
+INVALID_GREEK_DATABASE_MESSAGE = (
+    "A görög Újszövetség helyi adatbázisa megtalálható, de nem nyitható meg vagy hibás."
+)
 TAGNT_DATABASE_BUILD_HINT = (
     "Előkészítés: python scripts/build_tagnt_nt_db.py "
     "--mat-jhn-source ... --act-rev-source ... "
@@ -133,6 +136,9 @@ def render_greek_analysis_block(
     except FileNotFoundError:
         st.caption(MISSING_GREEK_DATABASE_MESSAGE)
         st.caption(TAGNT_DATABASE_BUILD_HINT)
+        return
+    except ValueError:
+        st.caption(INVALID_GREEK_DATABASE_MESSAGE)
         return
     except Exception:
         st.caption(GREEK_DATA_ERROR_MESSAGE)
