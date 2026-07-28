@@ -5,14 +5,24 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from ruf_bible_service import (
+    ABM_SOURCE_NAME,
+    RUF_ABM_FALLBACK_ENV_VAR,
+    ABibliaMindenkieProvider,
     RufHttpError,
+    RufPassageProvider,
     STALE_CACHE_WARNING,
+    SzentirasHuProvider,
+    build_abm_chapter_url,
+    build_ruf_provider_sequence,
     clear_ruf_cache,
+    extract_abm_chapter_verses,
     extract_verse_data_json,
     fetch_ruf_passage,
     parse_bible_reference,
@@ -58,6 +68,59 @@ def html_from_verses(chapter: int, verses: list[tuple[int, str]]) -> str:
         + json.dumps(payload, ensure_ascii=False)
         + "</script>"
     )
+
+
+def abm_html_from_verses(verses: list[tuple[int, str]]) -> str:
+    body = "\n".join(
+        (
+            f'<p class="verse "><a href="#{number}" id="{number}" '
+            f'class="verse__number">{number}</a>{text}'
+            '<span class="verse__crossreference">2Pt 3,3</span>'
+            '<span class="verse__footnote footnote">lábjegyzet</span></p>'
+        )
+        for number, text in verses
+    )
+    return (
+        '<article class="content chapter" data-template="chapter">'
+        '<div class="chapter__content"><header class="chapter__header">'
+        '<h1>Fejezetcím nem bibliai vers</h1></header>'
+        f'<div class="chapter__body"><h2 class="chapter__title">Szakaszcím</h2>{body}</div>'
+        "</div></article>"
+        '<aside>Bibliaolvasó Kalauz és navigáció nem kerülhet a szövegbe.</aside>'
+    )
+
+
+class FakeProvider(RufPassageProvider):
+    def __init__(
+        self,
+        name: str,
+        *,
+        verses: dict[int, str] | None = None,
+        error: BaseException | None = None,
+        source_name: str | None = None,
+    ) -> None:
+        self.name = name
+        self.source_name = source_name or name
+        self.error = error
+        self.verses = verses or {16: "Mert úgy szerette Isten a világot."}
+        self.calls = 0
+
+    def fetch_chapter(self, parsed, **kwargs):  # type: ignore[no-untyped-def]
+        self.calls += 1
+        if self.error is not None:
+            raise self.error
+        return type(
+            "FakeChapterResult",
+            (),
+            {
+                "verses": dict(self.verses),
+                "url": f"https://example.test/{self.name}",
+                "warnings": [],
+                "cache_status": "live",
+                "source_name": self.source_name,
+                "copyright_notice": "© Magyar Bibliatársulat, 2014",
+            },
+        )()
 
 
 def test_parse_forms() -> None:
@@ -248,7 +311,7 @@ def test_network_errors() -> None:
         sleep=lambda _delay: None,
     )
     ok(not r["success"], "timeout fail")
-    ok("Időtúllépés" in r["error"] or "timeout" in r["error"].casefold(), r["error"])
+    ok("RÚF-szöveg automatikus" in r["error"], r["error"])
 
     clear_ruf_cache()
 
@@ -289,6 +352,162 @@ def test_retry_success_after_initial_timeout() -> None:
     assert "Mert úgy szerette" in r["text"]
 
 
+def test_provider_order_uses_first_success_without_fallback() -> None:
+    clear_ruf_cache()
+    primary = FakeProvider("primary")
+    fallback = FakeProvider("fallback")
+
+    r = fetch_ruf_passage("Jn 3,16", providers=(primary, fallback))
+
+    assert r["success"]
+    assert primary.calls == 1
+    assert fallback.calls == 0
+    assert r["source_name"] == "primary"
+
+
+def test_transient_primary_failure_uses_abm_fallback_provider() -> None:
+    clear_ruf_cache()
+    primary = FakeProvider("primary", error=TimeoutError("mock timeout"))
+    fallback = FakeProvider("abm", source_name=ABM_SOURCE_NAME)
+
+    r = fetch_ruf_passage("Jn 3,16", providers=(primary, fallback))
+
+    assert r["success"]
+    assert primary.calls == 1
+    assert fallback.calls == 1
+    assert r["source_name"] == ABM_SOURCE_NAME
+
+
+def test_http_503_primary_failure_uses_fallback_provider() -> None:
+    clear_ruf_cache()
+    primary = FakeProvider(
+        "primary",
+        error=RufHttpError(503, "Service Unavailable", transient=True),
+    )
+    fallback = FakeProvider("abm", source_name=ABM_SOURCE_NAME)
+
+    r = fetch_ruf_passage("Jn 3,16", providers=(primary, fallback))
+
+    assert r["success"]
+    assert primary.calls == 1
+    assert fallback.calls == 1
+
+
+def test_http_404_primary_failure_does_not_use_fallback_provider() -> None:
+    clear_ruf_cache()
+    primary = FakeProvider("primary", error=RufHttpError(404, "Not Found", transient=False))
+    fallback = FakeProvider("abm", source_name=ABM_SOURCE_NAME)
+
+    r = fetch_ruf_passage("Jn 3,16", providers=(primary, fallback))
+
+    assert not r["success"]
+    assert primary.calls == 1
+    assert fallback.calls == 0
+    assert "HTTP 404" in r["error"]
+
+
+def test_abm_fallback_env_switch_excludes_second_provider(monkeypatch) -> None:
+    monkeypatch.setenv(RUF_ABM_FALLBACK_ENV_VAR, "false")
+
+    providers = build_ruf_provider_sequence()
+
+    assert len(providers) == 1
+    assert isinstance(providers[0], SzentirasHuProvider)
+
+
+def test_abm_provider_extracts_verse_numbers_and_ignores_page_chrome() -> None:
+    html = abm_html_from_verses(
+        [
+            (24, " Annak pedig, aki megőrizhet titeket a botlástól, "),
+            (25, " az egyedül üdvözítő Istennek dicsőség. "),
+        ]
+    )
+
+    verses = extract_abm_chapter_verses(html)
+
+    assert verses == {
+        24: "Annak pedig, aki megőrizhet titeket a botlástól,",
+        25: "az egyedül üdvözítő Istennek dicsőség.",
+    }
+    joined = " ".join(verses.values()).casefold()
+    assert "bibliaolvasó" not in joined
+    assert "2pt" not in joined
+    assert "lábjegyzet" not in joined
+
+
+def test_abm_provider_supports_ot_nt_and_single_chapter_book_codes() -> None:
+    assert build_abm_chapter_url("RUT", 1).endswith("/RUT/1")
+    assert build_abm_chapter_url("EPH", 1).endswith("/EPH/1")
+
+    html = abm_html_from_verses([(1, " Pál, Krisztus Jézus apostola. ")])
+    calls: list[str] = []
+
+    def http_get(url: str, timeout: object = None) -> str:  # noqa: ARG001
+        calls.append(url)
+        return html
+
+    clear_ruf_cache()
+    r = fetch_ruf_passage(
+        "Júd 1",
+        providers=(ABibliaMindenkieProvider(),),
+        http_get=http_get,
+    )
+
+    assert r["success"]
+    assert calls == ["https://abibliamindenkie.hu/uj/JUD/1"]
+    assert r["source_name"] == ABM_SOURCE_NAME
+
+
+def test_abm_http_retry_success_after_initial_timeout() -> None:
+    clear_ruf_cache()
+    calls = 0
+    html = abm_html_from_verses([(16, " Mert úgy szerette Isten a világot. ")])
+
+    def flaky(url: str, timeout: object = None) -> str:  # noqa: ARG001
+        nonlocal calls
+        calls += 1
+        if calls == 1:
+            raise TimeoutError("mock timeout")
+        return html
+
+    r = fetch_ruf_passage(
+        "Jn 3,16",
+        providers=(ABibliaMindenkieProvider(),),
+        http_get=flaky,
+        sleep=lambda _delay: None,
+    )
+
+    assert r["success"]
+    assert calls == 2
+
+
+def test_abm_cache_hit_skips_network_request() -> None:
+    clear_ruf_cache()
+    calls = 0
+    html = abm_html_from_verses([(16, " Mert úgy szerette Isten a világot. ")])
+
+    def http_get(url: str, timeout: object = None) -> str:  # noqa: ARG001
+        nonlocal calls
+        calls += 1
+        return html
+
+    first = fetch_ruf_passage(
+        "Jn 3,16",
+        providers=(ABibliaMindenkieProvider(),),
+        http_get=http_get,
+    )
+    second = fetch_ruf_passage(
+        "Jn 3,16",
+        providers=(ABibliaMindenkieProvider(),),
+        http_get=http_get,
+    )
+
+    assert first["success"]
+    assert second["success"]
+    assert second["cache_status"] == "fresh"
+    assert calls == 1
+
+
 def test_three_timeouts_return_controlled_error() -> None:
     clear_ruf_cache()
     calls = 0
@@ -307,8 +526,8 @@ def test_three_timeouts_return_controlled_error() -> None:
     )
 
     assert not r["success"]
-    assert calls == 3
-    assert sleeps == [0.5, 1.5]
+    assert calls == 5
+    assert sleeps == [0.5, 1.5, 0.5]
     assert "Külső szolgáltatási kapcsolat hibája" in r["error"]
     assert "Traceback" not in r["error"]
 

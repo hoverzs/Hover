@@ -22,6 +22,7 @@ import streamlit as st
 from bible_engine.greek_analysis_ui import render_greek_analysis_block
 from ruf_bible_service import (
     COPYRIGHT_NOTICE,
+    ABM_SOURCE_NAME,
     SOURCE_NAME,
     TRANSLATION_NAME,
     fetch_ruf_passage,
@@ -50,10 +51,6 @@ RUF_LAST_ERROR_KEY = "_bible_text_ruf_last_error"
 RUF_LAST_ERROR_REF_KEY = "_bible_text_ruf_last_error_ref"
 BIBLE_TEXT_VIEW_KEY = "_bible_text_view_mode"
 MANUAL_PASTE_EXPANDER_KEY = "_bible_text_manual_paste_expander"
-
-SOURCE_CAPTION = (
-    f"Forrás: {SOURCE_NAME} — Revideált új fordítás, {COPYRIGHT_NOTICE}."
-)
 
 # „17Ti…”, „17 Ti…”, „17. Ti…”, „100. Ti…” — versszám csak a sor elején.
 _VERSE_LINE_RE = re.compile(r"^(\d{1,3})(?:\.\s*|\s+)?(\D.*)$")
@@ -471,7 +468,7 @@ def _apply_ruf_fetch_success(result: dict[str, Any]) -> None:
         text = normalize_verse_number_spacing(result.get("text"))
     st.session_state[DURABLE_PASSAGE_TEXT] = text
     st.session_state[DURABLE_TRANSLATION] = TRANSLATION_NAME
-    st.session_state[DURABLE_SOURCE] = SOURCE_NAME
+    st.session_state[DURABLE_SOURCE] = str(result.get("source_name") or SOURCE_NAME)
     st.session_state[DURABLE_SOURCE_URL] = str(result.get("source_url") or "")
     st.session_state[DURABLE_FETCHED_AT] = datetime.now(timezone.utc).strftime(
         "%Y-%m-%dT%H:%M:%SZ"
@@ -527,10 +524,15 @@ def _render_ruf_error_retry() -> None:
 
 def _render_source_caption(session_state: MutableMapping[str, Any]) -> None:
     snap = get_bible_text_snapshot(session_state)
-    if snap["passage_text_source"] != SOURCE_NAME and not snap["passage_text_source_url"]:
+    source = snap["passage_text_source"] or SOURCE_NAME
+    if not source and not snap["passage_text_source_url"]:
         return
     url = snap["passage_text_source_url"]
-    caption = html.escape(SOURCE_CAPTION, quote=True)
+    source_label = ABM_SOURCE_NAME if source == ABM_SOURCE_NAME else source
+    caption = html.escape(
+        f"Forrás: {source_label} — Revideált új fordítás, {COPYRIGHT_NOTICE}.",
+        quote=True,
+    )
     if url:
         safe_url = html.escape(url, quote=True)
         st.markdown(
@@ -568,7 +570,7 @@ def _render_ruf_load_button() -> None:
         key="bible_text_ruf_load_btn",
         type="primary",
         use_container_width=True,
-        help="A megadott igehely RÚF 2014 szövegét a szentiras.hu-ról tölti be.",
+        help="A megadott igehely RÚF 2014 szövegét tölti be.",
     ):
         ref = _current_reference(st.session_state)
         if not ref:

@@ -18,6 +18,7 @@ from bible_text_ui import (
     parse_passage_text_blocks,
     save_bible_text_from_widgets,
 )
+from ruf_bible_service import ABM_SOURCE_NAME
 
 errors: list[str] = []
 
@@ -174,6 +175,47 @@ def test_successful_ruf_load_does_not_open_manual_section() -> None:
 
         assert len(app.text_area) == 0
         assert app.session_state["passage_text"].startswith("16. Mert")
+    finally:
+        bible_text_ui.fetch_ruf_passage = original_fetch
+
+
+def test_abm_ruf_load_preserves_source_attribution() -> None:
+    import bible_text_ui
+
+    original_fetch = bible_text_ui.fetch_ruf_passage
+
+    def fake_fetch(reference: str) -> dict[str, object]:
+        return {
+            "success": True,
+            "requested_reference": reference,
+            "normalized_reference": "Ef 1,1–4",
+            "translation": "RÚF 2014",
+            "text": "1. Pál, Krisztus Jézus apostola.",
+            "verses": [{"number": 1, "text": "Pál, Krisztus Jézus apostola."}],
+            "source_name": ABM_SOURCE_NAME,
+            "source_url": "https://abibliamindenkie.hu/uj/EPH/1",
+            "copyright_notice": "© Magyar Bibliatársulat, 2014",
+            "warnings": [],
+            "error": "",
+        }
+
+    def render_editor() -> None:
+        import streamlit as st
+
+        import bible_text_ui
+
+        st.session_state["igehely_input"] = "Ef 1,1–4"
+        bible_text_ui.render_bible_text_editor()
+
+    bible_text_ui.fetch_ruf_passage = fake_fetch
+    try:
+        app = AppTest.from_function(render_editor).run()
+        app.button[0].click().run()
+
+        assert app.session_state["passage_text_source"] == ABM_SOURCE_NAME
+        markdown_values = [markdown.value for markdown in app.markdown]
+        assert any("A Biblia mindenkinek" in value for value in markdown_values)
+        assert any("abibliamindenkie.hu/uj/EPH/1" in value for value in markdown_values)
     finally:
         bible_text_ui.fetch_ruf_passage = original_fetch
 

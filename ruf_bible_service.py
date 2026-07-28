@@ -11,19 +11,24 @@ URL-forma: https://szentiras.hu/biblia/ruf/{BOOK}/{chapter}
 from __future__ import annotations
 
 import json
+import os
 import re
 import time
 import unicodedata
 from dataclasses import dataclass
+from html.parser import HTMLParser
 from typing import Any, Callable
 
 import requests
 
 TRANSLATION_NAME = "RÚF 2014"
 SOURCE_NAME = "szentiras.hu"
+ABM_SOURCE_NAME = "A Biblia mindenkinek"
 COPYRIGHT_NOTICE = "© Magyar Bibliatársulat, 2014"
 BASE_URL = "https://szentiras.hu/biblia/ruf"
+ABM_BASE_URL = "https://abibliamindenkie.hu/uj"
 USER_AGENT = "TextusHomiletics/2.1 (+https://textus.ro; RUF passage loader)"
+RUF_ABM_FALLBACK_ENV_VAR = "RUF_ABM_FALLBACK_ENABLED"
 DEFAULT_CONNECT_TIMEOUT_S = 6.0
 DEFAULT_READ_TIMEOUT_S = 20.0
 DEFAULT_TIMEOUT_S = DEFAULT_READ_TIMEOUT_S
@@ -46,6 +51,10 @@ _CHAPTER_CACHE: dict[tuple[str, int], dict[str, Any]] = {}
 
 # Passage-cache: (translation, book_code, chapter, verse_start, verse_end) -> result dict
 _PASSAGE_CACHE: dict[tuple[str, str, int, int | None, int | None], dict[str, Any]] = {}
+
+# Providerenkénti fejezet-cache. A passage-cache providerfüggetlen, hogy ugyanazt
+# a RÚF szakaszt ne kérjük újra másik forrásból, ha már sikeresen megvan.
+_ABM_CHAPTER_CACHE: dict[tuple[str, int], dict[str, Any]] = {}
 
 
 @dataclass(frozen=True)
@@ -79,6 +88,15 @@ class ChapterFetchResult:
     url: str
     warnings: list[str]
     cache_status: str
+    source_name: str = SOURCE_NAME
+    copyright_notice: str = COPYRIGHT_NOTICE
+
+
+@dataclass(frozen=True)
+class RufProviderFailure:
+    provider_name: str
+    error: BaseException
+    transient: bool
 
 
 class RufPermanentFetchFailure(ValueError):
@@ -242,6 +260,7 @@ def _empty_result(
     error: str,
     warnings: list[str] | None = None,
     source_url: str = "",
+    source_name: str = SOURCE_NAME,
     normalized_reference: str = "",
     cache_status: str = "miss",
 ) -> dict[str, Any]:
@@ -252,9 +271,12 @@ def _empty_result(
         "translation": TRANSLATION_NAME,
         "text": "",
         "verses": [],
-        "source_name": SOURCE_NAME,
+        "source_name": source_name,
         "source_url": source_url,
         "copyright_notice": COPYRIGHT_NOTICE,
+        "fetched_at": "",
+        "from_cache": False,
+        "is_stale": False,
         "warnings": list(warnings or []),
         "error": error,
         "cache_status": cache_status,
@@ -268,9 +290,15 @@ def _ok_result(
     text: str,
     verses: list[dict[str, Any]] | None = None,
     source_url: str,
+    source_name: str = SOURCE_NAME,
+    copyright_notice: str = COPYRIGHT_NOTICE,
     warnings: list[str] | None = None,
     cache_status: str = "live",
+    fetched_at: float | None = None,
+    from_cache: bool | None = None,
+    is_stale: bool | None = None,
 ) -> dict[str, Any]:
+    ts = time.time() if fetched_at is None else float(fetched_at)
     return {
         "success": True,
         "requested_reference": requested_reference,
@@ -278,9 +306,12 @@ def _ok_result(
         "translation": TRANSLATION_NAME,
         "text": text,
         "verses": list(verses or []),
-        "source_name": SOURCE_NAME,
+        "source_name": source_name,
         "source_url": source_url,
-        "copyright_notice": COPYRIGHT_NOTICE,
+        "copyright_notice": copyright_notice,
+        "fetched_at": ts,
+        "from_cache": bool(cache_status != "live" if from_cache is None else from_cache),
+        "is_stale": bool(cache_status == "stale_fallback" if is_stale is None else is_stale),
         "warnings": list(warnings or []),
         "error": "",
         "cache_status": cache_status,
@@ -289,6 +320,7 @@ def _ok_result(
 
 def clear_ruf_cache() -> None:
     _CHAPTER_CACHE.clear()
+    _ABM_CHAPTER_CACHE.clear()
     _PASSAGE_CACHE.clear()
 
 
@@ -425,6 +457,17 @@ def build_chapter_url(book_code: str, chapter: int) -> str:
     return f"{BASE_URL}/{book_code}/{int(chapter)}"
 
 
+def build_abm_chapter_url(book_code: str, chapter: int) -> str:
+    return f"{ABM_BASE_URL}/{book_code.upper()}/{int(chapter)}"
+
+
+def _env_bool(name: str, *, default: bool = True) -> bool:
+    raw = os.getenv(name)
+    if raw is None:
+        return default
+    return raw.strip().casefold() not in {"0", "false", "no", "off", "disabled"}
+
+
 def extract_verse_data_json(html: str) -> dict[str, Any]:
     """HTML → verse-data objektum. Hiány / sérült struktúra → ValueError."""
     if not html or not html.strip():
@@ -487,6 +530,131 @@ def _clean_verse_text(text: str) -> str:
     t = re.sub(r"[ \t]+", " ", t)
     t = re.sub(r"\n{3,}", "\n\n", t)
     return t.strip()
+
+
+class _ABibliaMindenkieChapterParser(HTMLParser):
+    """Kinyeri a bibliai verseket az ABM fejezet-HTML-ből.
+
+    Ideiglenes, konfigurálható fallback az official permission / stabilabb
+    partnerintegráció elkészültéig. Nem crawlol, csak a felhasználó által kért
+    fejezetet olvassa, és a forrás/copyright metaadatot megőrzi.
+    """
+
+    _SKIP_CLASSES = {"verse__crossreference", "verse__footnote", "footnote"}
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.verses: dict[int, str] = {}
+        self._article_depth = 0
+        self._body_depth = 0
+        self._verse_depth = 0
+        self._skip_depth = 0
+        self._number_depth = 0
+        self._current_number: int | None = None
+        self._current_text: list[str] = []
+        self._number_text: list[str] = []
+
+    @staticmethod
+    def _classes(attrs: list[tuple[str, str | None]]) -> set[str]:
+        for key, value in attrs:
+            if key == "class" and value:
+                return {part.strip() for part in value.split() if part.strip()}
+        return set()
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        classes = self._classes(attrs)
+        if self._article_depth:
+            self._article_depth += 1
+        elif tag == "article" and {"content", "chapter"}.issubset(classes):
+            self._article_depth = 1
+
+        if not self._article_depth:
+            return
+
+        if self._body_depth:
+            self._body_depth += 1
+        elif tag == "div" and "chapter__body" in classes:
+            self._body_depth = 1
+
+        if not self._body_depth:
+            return
+
+        if self._verse_depth:
+            self._verse_depth += 1
+        elif tag == "p" and "verse" in classes:
+            self._verse_depth = 1
+            self._skip_depth = 0
+            self._number_depth = 0
+            self._current_number = None
+            self._current_text = []
+            self._number_text = []
+            return
+
+        if not self._verse_depth:
+            return
+
+        if self._skip_depth:
+            self._skip_depth += 1
+        elif self._SKIP_CLASSES.intersection(classes):
+            self._skip_depth = 1
+
+        if self._number_depth:
+            self._number_depth += 1
+        elif tag == "a" and "verse__number" in classes:
+            self._number_depth = 1
+
+    def handle_endtag(self, tag: str) -> None:
+        if self._number_depth:
+            self._number_depth -= 1
+            if self._number_depth == 0 and self._current_number is None:
+                raw = "".join(self._number_text).strip()
+                if raw.isdigit():
+                    self._current_number = int(raw)
+
+        if self._skip_depth:
+            self._skip_depth -= 1
+
+        if self._verse_depth:
+            self._verse_depth -= 1
+            if self._verse_depth == 0:
+                if self._current_number is not None:
+                    text = _clean_verse_text("".join(self._current_text))
+                    if text:
+                        self.verses[self._current_number] = text
+                self._current_number = None
+                self._current_text = []
+            return
+
+        if self._body_depth:
+            self._body_depth -= 1
+            return
+
+        if self._article_depth:
+            self._article_depth -= 1
+
+    def handle_data(self, data: str) -> None:
+        if not self._verse_depth:
+            return
+        if self._number_depth:
+            self._number_text.append(data)
+            return
+        if self._skip_depth:
+            return
+        self._current_text.append(data)
+
+
+def extract_abm_chapter_verses(html: str) -> dict[int, str]:
+    if not html or not html.strip():
+        raise ValueError("Üres HTML válasz az ABibliaMindenkie.hu-tól.")
+    parser = _ABibliaMindenkieChapterParser()
+    parser.feed(html)
+    parser.close()
+    if not parser.verses:
+        raise ValueError(
+            "Az ABibliaMindenkie.hu oldalon nem találhatók a várt vers elemek. "
+            "Lehet, hogy az oldal HTML-struktúrája megváltozott."
+        )
+    return dict(parser.verses)
 
 
 def format_passage_text(verses: dict[int, str], start: int, end: int) -> str:
@@ -578,11 +746,11 @@ def _format_fetch_error(exc: BaseException, *, attempts: int) -> str:
     if isinstance(exc, TimeoutError):
         return (
             prefix
-            + "a szentiras.hu nem válaszolt időben "
+            + "a RÚF-forrás nem válaszolt időben "
             + f"({attempts} próbálkozás után)."
         )
     if isinstance(exc, ConnectionError):
-        return prefix + f"nem sikerült kapcsolódni a szentiras.hu-hoz ({exc})."
+        return prefix + f"nem sikerült kapcsolódni a RÚF-forráshoz ({exc})."
     return prefix + str(exc)
 
 
@@ -733,6 +901,158 @@ def _fetch_chapter_verses_with_meta(
     return ChapterFetchResult(verses=verses, url=url, warnings=[], cache_status="live")
 
 
+class RufPassageProvider:
+    name = "ruf-provider"
+    source_name = SOURCE_NAME
+    copyright_notice = COPYRIGHT_NOTICE
+    max_attempts = DEFAULT_MAX_ATTEMPTS
+    retry_delays_s = DEFAULT_RETRY_DELAYS_S
+
+    def fetch_chapter(
+        self,
+        parsed: ParsedReference,
+        *,
+        timeout: Any = DEFAULT_TIMEOUT,
+        http_get: Callable[..., str] | None = None,
+        cache_ttl_s: float = CACHE_TTL_S,
+        sleep: Callable[[float], None] = time.sleep,
+    ) -> ChapterFetchResult:
+        raise NotImplementedError
+
+
+class SzentirasHuProvider(RufPassageProvider):
+    name = "szentiras.hu"
+    source_name = SOURCE_NAME
+    max_attempts = DEFAULT_MAX_ATTEMPTS
+    retry_delays_s = DEFAULT_RETRY_DELAYS_S
+
+    def fetch_chapter(
+        self,
+        parsed: ParsedReference,
+        *,
+        timeout: Any = DEFAULT_TIMEOUT,
+        http_get: Callable[..., str] | None = None,
+        cache_ttl_s: float = CACHE_TTL_S,
+        sleep: Callable[[float], None] = time.sleep,
+    ) -> ChapterFetchResult:
+        key = (parsed.book.code.upper(), int(parsed.chapter))
+        if key in _CHAPTER_CACHE and _cache_is_fresh(
+            _CHAPTER_CACHE[key], ttl_s=cache_ttl_s
+        ):
+            cached = _CHAPTER_CACHE[key]
+            return ChapterFetchResult(
+                verses=dict(cached["verses"]),
+                url=str(cached["url"]),
+                warnings=[],
+                cache_status="fresh",
+                source_name=self.source_name,
+                copyright_notice=self.copyright_notice,
+            )
+        result = _fetch_chapter_verses_with_meta(
+            parsed.book.code,
+            parsed.chapter,
+            timeout=timeout,
+            http_get=http_get,
+            use_cache=False,
+            cache_ttl_s=cache_ttl_s,
+            max_attempts=self.max_attempts,
+            retry_delays_s=self.retry_delays_s,
+            sleep=sleep,
+        )
+        return ChapterFetchResult(
+            verses=result.verses,
+            url=result.url,
+            warnings=result.warnings,
+            cache_status=result.cache_status,
+            source_name=self.source_name,
+            copyright_notice=self.copyright_notice,
+        )
+
+
+class ABibliaMindenkieProvider(RufPassageProvider):
+    name = "abibliamindenkie.hu"
+    source_name = ABM_SOURCE_NAME
+    max_attempts = 2
+    retry_delays_s = (0.5,)
+
+    def build_url(self, parsed: ParsedReference) -> str:
+        return build_abm_chapter_url(parsed.book.code, parsed.chapter)
+
+    def fetch_chapter(
+        self,
+        parsed: ParsedReference,
+        *,
+        timeout: Any = DEFAULT_TIMEOUT,
+        http_get: Callable[..., str] | None = None,
+        cache_ttl_s: float = CACHE_TTL_S,
+        sleep: Callable[[float], None] = time.sleep,
+    ) -> ChapterFetchResult:
+        key = (parsed.book.code.upper(), int(parsed.chapter))
+        url = self.build_url(parsed)
+        if key in _ABM_CHAPTER_CACHE and _cache_is_fresh(
+            _ABM_CHAPTER_CACHE[key], ttl_s=cache_ttl_s
+        ):
+            cached = _ABM_CHAPTER_CACHE[key]
+            return ChapterFetchResult(
+                verses=dict(cached["verses"]),
+                url=str(cached["url"]),
+                warnings=[],
+                cache_status="fresh",
+                source_name=self.source_name,
+                copyright_notice=self.copyright_notice,
+            )
+
+        getter = http_get or _default_http_get
+        attempts = max(1, int(self.max_attempts))
+        html = ""
+        for attempt in range(1, attempts + 1):
+            try:
+                html = _call_http_get(getter, url, timeout=_normalize_timeout(timeout))
+                break
+            except Exception as exc:
+                transient = _is_transient_error(exc)
+                if not transient or attempt >= attempts:
+                    message = _format_fetch_error(exc, attempts=attempt)
+                    if not transient:
+                        raise RufPermanentFetchFailure(message) from exc
+                    if isinstance(exc, TimeoutError):
+                        raise TimeoutError(message) from exc
+                    raise ConnectionError(message) from exc
+                delay = (
+                    self.retry_delays_s[min(attempt - 1, len(self.retry_delays_s) - 1)]
+                    if self.retry_delays_s
+                    else 0.0
+                )
+                if delay > 0:
+                    sleep(delay)
+
+        verses = extract_abm_chapter_verses(html)
+        _ABM_CHAPTER_CACHE[key] = {
+            "fetched_at": time.time(),
+            "url": url,
+            "verses": dict(verses),
+        }
+        return ChapterFetchResult(
+            verses=verses,
+            url=url,
+            warnings=[],
+            cache_status="live",
+            source_name=self.source_name,
+            copyright_notice=self.copyright_notice,
+        )
+
+
+def abm_fallback_enabled() -> bool:
+    return _env_bool(RUF_ABM_FALLBACK_ENV_VAR, default=True)
+
+
+def build_ruf_provider_sequence(*, include_abm: bool | None = None) -> tuple[RufPassageProvider, ...]:
+    providers: list[RufPassageProvider] = [SzentirasHuProvider()]
+    if abm_fallback_enabled() if include_abm is None else include_abm:
+        providers.append(ABibliaMindenkieProvider())
+    return tuple(providers)
+
+
 def fetch_ruf_passage(
     reference: str,
     *,
@@ -740,11 +1060,13 @@ def fetch_ruf_passage(
     http_get: Callable[..., str] | None = None,
     use_cache: bool = True,
     cache_ttl_s: float = CACHE_TTL_S,
-    max_attempts: int = DEFAULT_MAX_ATTEMPTS,
-    retry_delays_s: tuple[float, ...] = DEFAULT_RETRY_DELAYS_S,
+    max_attempts: int = DEFAULT_MAX_ATTEMPTS,  # megtartva visszafelé kompatibilisen
+    retry_delays_s: tuple[float, ...] = DEFAULT_RETRY_DELAYS_S,  # kompatibilitás
     sleep: Callable[[float], None] = time.sleep,
+    providers: tuple[RufPassageProvider, ...] | None = None,
 ) -> dict[str, Any]:
     """Központi belépési pont: igehely → RÚF szöveg eredménydict."""
+    _ = (max_attempts, retry_delays_s)
     requested = (reference or "").strip()
     try:
         parsed = parse_bible_reference(requested)
@@ -763,56 +1085,62 @@ def fetch_ruf_passage(
     ):
         cached_result = dict(_PASSAGE_CACHE[passage_key]["result"])
         cached_result["cache_status"] = "fresh"
+        cached_result["from_cache"] = True
+        cached_result["is_stale"] = False
         return cached_result
 
-    try:
-        chapter_result = _fetch_chapter_verses_with_meta(
-            parsed.book.code,
-            parsed.chapter,
-            timeout=timeout,
-            http_get=http_get,
-            use_cache=use_cache,
-            cache_ttl_s=cache_ttl_s,
-            max_attempts=max_attempts,
-            retry_delays_s=retry_delays_s,
-            sleep=sleep,
-        )
-    except TimeoutError as exc:
+    failures: list[RufProviderFailure] = []
+    provider_sequence = providers if providers is not None else build_ruf_provider_sequence()
+    if providers is None:
+        for provider in provider_sequence:
+            if isinstance(provider, SzentirasHuProvider):
+                provider.max_attempts = max(1, int(max_attempts))
+                provider.retry_delays_s = tuple(retry_delays_s)
+            elif isinstance(provider, ABibliaMindenkieProvider) and retry_delays_s == ():
+                provider.retry_delays_s = ()
+    chapter_result: ChapterFetchResult | None = None
+    for provider in provider_sequence:
+        try:
+            chapter_result = provider.fetch_chapter(
+                parsed,
+                timeout=timeout,
+                http_get=http_get,
+                cache_ttl_s=cache_ttl_s,
+                sleep=sleep,
+            )
+            break
+        except RufPermanentFetchFailure as exc:
+            failures.append(RufProviderFailure(provider.name, exc, False))
+            break
+        except ValueError as exc:
+            failures.append(RufProviderFailure(provider.name, exc, False))
+            break
+        except (TimeoutError, ConnectionError, OSError) as exc:
+            failures.append(RufProviderFailure(provider.name, exc, _is_transient_error(exc)))
+            if not _is_transient_error(exc):
+                break
+
+    if chapter_result is None:
         stale = _PASSAGE_CACHE.get(passage_key) if use_cache else None
         if stale:
             stale_result = dict(stale["result"])
             stale_result["warnings"] = [*stale_result.get("warnings", []), STALE_CACHE_WARNING]
             stale_result["cache_status"] = "stale_fallback"
+            stale_result["from_cache"] = True
+            stale_result["is_stale"] = True
             return stale_result
-        return _empty_result(
-            requested_reference=requested,
-            normalized_reference=parsed.normalized_reference,
-            error=str(exc),
+        last_failure = failures[-1] if failures else None
+        error = (
+            "Külső szolgáltatási kapcsolat hibája: a RÚF-szöveg automatikus "
+            "betöltése most nem sikerült. A kézi beillesztés továbbra is elérhető."
         )
-    except ConnectionError as exc:
-        stale = _PASSAGE_CACHE.get(passage_key) if use_cache else None
-        if stale:
-            stale_result = dict(stale["result"])
-            stale_result["warnings"] = [*stale_result.get("warnings", []), STALE_CACHE_WARNING]
-            stale_result["cache_status"] = "stale_fallback"
-            return stale_result
-        return _empty_result(
-            requested_reference=requested,
-            normalized_reference=parsed.normalized_reference,
-            error=str(exc),
-        )
-    except ValueError as exc:
+        if last_failure and not last_failure.transient:
+            error = str(last_failure.error)
         return _empty_result(
             requested_reference=requested,
             normalized_reference=parsed.normalized_reference,
             source_url=build_chapter_url(parsed.book.code, parsed.chapter),
-            error=str(exc),
-        )
-    except OSError as exc:
-        return _empty_result(
-            requested_reference=requested,
-            normalized_reference=parsed.normalized_reference,
-            error=f"Hálózati hiba: {exc}",
+            error=error,
         )
 
     try:
@@ -824,6 +1152,7 @@ def fetch_ruf_passage(
             requested_reference=requested,
             normalized_reference=parsed.normalized_reference,
             source_url=chapter_result.url,
+            source_name=chapter_result.source_name,
             error=str(exc),
         )
 
@@ -832,6 +1161,7 @@ def fetch_ruf_passage(
             requested_reference=requested,
             normalized_reference=parsed.normalized_reference,
             source_url=chapter_result.url,
+            source_name=chapter_result.source_name,
             error="Üres találat: a kért szakasz szövege üres.",
         )
 
@@ -841,6 +1171,8 @@ def fetch_ruf_passage(
         text=text,
         verses=selected_verses,
         source_url=chapter_result.url,
+        source_name=chapter_result.source_name,
+        copyright_notice=chapter_result.copyright_notice,
         warnings=[*chapter_result.warnings, *warnings],
         cache_status=chapter_result.cache_status,
     )
@@ -855,9 +1187,12 @@ def fetch_ruf_passage(
 __all__ = [
     "TRANSLATION_NAME",
     "SOURCE_NAME",
+    "ABM_SOURCE_NAME",
     "COPYRIGHT_NOTICE",
     "BASE_URL",
+    "ABM_BASE_URL",
     "USER_AGENT",
+    "RUF_ABM_FALLBACK_ENV_VAR",
     "DEFAULT_CONNECT_TIMEOUT_S",
     "DEFAULT_READ_TIMEOUT_S",
     "DEFAULT_MAX_ATTEMPTS",
@@ -865,16 +1200,23 @@ __all__ = [
     "CACHE_TTL_S",
     "STALE_CACHE_WARNING",
     "RufHttpError",
+    "RufPassageProvider",
+    "SzentirasHuProvider",
+    "ABibliaMindenkieProvider",
     "ParsedReference",
     "BookInfo",
     "parse_bible_reference",
     "build_chapter_url",
+    "build_abm_chapter_url",
     "extract_verse_data_json",
+    "extract_abm_chapter_verses",
     "verses_dict_from_verse_data",
     "select_verse_range",
     "format_passage_text",
     "format_structured_verses",
     "fetch_chapter_verses",
+    "abm_fallback_enabled",
+    "build_ruf_provider_sequence",
     "fetch_ruf_passage",
     "clear_ruf_cache",
 ]

@@ -4659,7 +4659,7 @@ def _apply_lection_ruf_result(result: dict[str, Any]) -> None:
     current = sw.get("lection") if isinstance(sw.get("lection"), dict) else {}
     block = dict(current)
     block["text"] = text
-    block["text_source"] = SOURCE_NAME
+    block["text_source"] = str(result.get("source_name") or SOURCE_NAME)
     block["text_source_url"] = str(result.get("source_url") or "")
     block["text_fetched_at"] = datetime.now(timezone.utc).strftime(
         "%Y-%m-%dT%H:%M:%SZ"
