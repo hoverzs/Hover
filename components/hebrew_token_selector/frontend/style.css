@@ -1,0 +1,46 @@
+.hebrew-token-selector {
+  direction: rtl;
+  unicode-bidi: isolate;
+  display: block;
+  max-width: 72ch;
+  padding: 0.35rem 0;
+  font-family: "SBL Hebrew", "Ezra SIL", "Noto Sans Hebrew", "Times New Roman", serif;
+  font-size: 1.45rem;
+  line-height: 2.15;
+  color: var(--st-text-color);
+}
+
+.hebrew-verse-marker {
+  direction: ltr;
+  unicode-bidi: isolate;
+  display: inline-block;
+  min-width: 1.75rem;
+  margin-left: 0.55rem;
+  color: var(--st-color-gray-60, #766f64);
+  font-family: var(--st-font, "Inter", "Segoe UI", sans-serif);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.hebrew-token {
+  direction: rtl;
+  unicode-bidi: isolate;
+  border: 0;
+  border-radius: 0.25rem;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  margin: 0 0.03rem;
+  padding: 0.05rem 0.13rem;
+}
+
+.hebrew-token:hover {
+  background: color-mix(in srgb, var(--st-primary-color) 13%, transparent);
+}
+
+.hebrew-token[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--st-primary-color) 22%, transparent);
+  box-shadow: inset 0 -0.12rem 0 var(--st-primary-color);
+}
