@@ -118,8 +118,8 @@ def test_demo_token_analysis_uses_hungarian_morphology() -> None:
     assert analysis["Szótári alak / alakok"] == "ἀγαπάω"
     assert analysis["Strong/STEP"] == "G0025"
     assert analysis["Morfológiai kód"] == "V-AAI-3S"
-    assert analysis["Magyar morfológia"] == (
-        "ige, aorisztosz, aktív, kijelentő, harmadik személy, egyes szám"
+    assert analysis["Nyelvtani alak"] == (
+        "ige, aorisztoszi, kijelentő mód, aktív igenem, egyes szám harmadik személy"
     )
     assert analysis["Kiadásjelölés"] == "NKO"
 
@@ -237,7 +237,7 @@ def test_streamlit_demo_renders_initial_view() -> None:
     assert selectbox.options[0] == "1. οὕτως"
     assert app.subheader[0].value == "οὕτως"
     assert any("<strong>Szótári alak / alakok:</strong> οὕτω, οὕτως" in value for value in markdown_values)
-    assert any("<strong>Magyar morfológia:</strong> határozószó" in value for value in markdown_values)
+    assert any("<strong>Nyelvtani alak:</strong> határozószó" in value for value in markdown_values)
     assert any("<strong>Strong/STEP:</strong> G3779" in value for value in markdown_values)
     assert any("<strong>Morfológiai kód:</strong> ADV" in value for value in markdown_values)
     assert any("<strong>Kiadásjelölés:</strong> NKO" in value for value in markdown_values)
@@ -268,7 +268,7 @@ def test_streamlit_demo_fallback_selectbox_updates_same_selection() -> None:
     )
 
     morphology_values = [
-        value for value in markdown_values if "<strong>Magyar morfológia:</strong>" in value
+        value for value in markdown_values if "<strong>Nyelvtani alak:</strong>" in value
     ]
     assert morphology_values
     assert all("szeret" not in value for value in morphology_values)
@@ -329,7 +329,7 @@ def test_streamlit_demo_lexicon_failure_keeps_greek_analysis_available() -> None
 
     markdown_values = [markdown.value for markdown in app.markdown]
     assert any(LEXICON_HU_ERROR_MESSAGE in value for value in markdown_values)
-    assert any("<strong>Magyar morfológia:</strong> határozószó" in value for value in markdown_values)
+    assert any("<strong>Nyelvtani alak:</strong> határozószó" in value for value in markdown_values)
     assert any("<strong>Strong/STEP:</strong> G3779" in value for value in markdown_values)
 
 

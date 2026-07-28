@@ -702,7 +702,7 @@ def test_john_3_16_renders_greek_block_and_analysis_panel() -> None:
     assert app.selectbox[0].value == 1
     assert app.subheader[0].value == "οὕτως"
     assert any("<strong>Szótári alak / alakok:</strong> οὕτω, οὕτως" in value for value in markdown_values)
-    assert any("<strong>Magyar morfológia:</strong> határozószó" in value for value in markdown_values)
+    assert any("<strong>Nyelvtani alak:</strong> határozószó" in value for value in markdown_values)
     assert any("Alapjelentés:** így" in value for value in markdown_values)
     assert any(LEXICAL_SCOPE_NOTE in value for value in caption_values)
 

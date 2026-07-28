@@ -242,8 +242,8 @@ def token_analysis(token: GreekToken) -> dict[str, str]:
     return {
         "Szótári alak / alakok": _present(token.lemma),
         "Strong/STEP": _present(token.strong_id),
+        "Nyelvtani alak": _present(format_morphology_hu(morphology)),
         "Morfológiai kód": _present(token.morph_code),
-        "Magyar morfológia": _present(format_morphology_hu(morphology)),
         "Kiadásjelölés": _present(token.edition_flags),
     }
 

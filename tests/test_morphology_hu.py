@@ -11,108 +11,139 @@ from bible_engine.tagnt_parser import get_verse_tokens
 JHN_FIXTURE = Path(__file__).parent / "fixtures" / "tagnt_jhn_3_16_sample.tsv"
 
 
-def test_verb_aorist_active_indicative_third_singular() -> None:
-    morphology = parse_morphology_hu("V-AAI-3S")
+def rendered(code: str) -> str:
+    return format_morphology_hu(parse_morphology_hu(code))
 
-    assert morphology == HungarianMorphology(
-        raw_code="V-AAI-3S",
-        part_of_speech="ige",
-        tense="aorisztosz",
-        voice="aktív",
-        mood="kijelentő",
+
+def test_present_indicative_active_third_singular() -> None:
+    assert rendered("V-PAI-3S") == (
+        "ige, jelen idő, kijelentő mód, aktív igenem, egyes szám harmadik személy"
+    )
+
+
+def test_aorist_indicative_active_and_second_aorist() -> None:
+    assert rendered("V-AAI-3S") == (
+        "ige, aorisztoszi, kijelentő mód, aktív igenem, egyes szám harmadik személy"
+    )
+    assert rendered("V-2AAI-3S") == (
+        "ige, második aorisztoszi, kijelentő mód, aktív igenem, egyes szám harmadik személy"
+    )
+
+
+def test_perfect_middle_passive_and_passive_verb_forms() -> None:
+    assert rendered("V-RAI-3S") == (
+        "ige, perfectum, kijelentő mód, aktív igenem, egyes szám harmadik személy"
+    )
+    assert "mediális vagy passzív igenem" in rendered("V-PEI-3S")
+    assert "passzív igenem" in rendered("V-API-3S")
+
+
+def test_middle_imperative_and_subjunctive_forms() -> None:
+    assert rendered("V-AMI-3S") == (
+        "ige, aorisztoszi, kijelentő mód, mediális igenem, egyes szám harmadik személy"
+    )
+    assert "felszólító mód" in rendered("V-PAM-2S")
+    assert "kötőmód" in rendered("V-PAS-3S")
+
+
+def test_infinitive_and_participle_are_named_as_verb_forms() -> None:
+    assert rendered("V-AAN") == "főnévi igenév, aorisztoszi, aktív igenem"
+    assert rendered("V-PAP-NSM") == (
+        "igei melléknévi igenév, jelen idejű, aktív igenem, hímnem, "
+        "egyes szám, alanyeset"
+    )
+
+
+def test_nominal_categories() -> None:
+    assert rendered("N-NSM") == "főnév, hímnem, egyes szám, alanyeset"
+    assert rendered("N-ASF") == "főnév, nőnem, egyes szám, tárgyeset"
+    assert rendered("N-NSN") == "főnév, semlegesnem, egyes szám, alanyeset"
+    assert rendered("N-NSM-P") == "tulajdonnév, hímnem, egyes szám, alanyeset"
+    assert rendered("A-NSM-C") == "melléknév, hímnem, egyes szám, alanyeset, középfok"
+    assert rendered("T-NSF") == "határozott névelő, nőnem, egyes szám, alanyeset"
+
+
+def test_pronouns_prepositions_conjunctions_adverbs_and_indeclinable() -> None:
+    assert rendered("P-2GS") == "személyes névmás, egyes szám második személy, birtokos eset"
+    assert rendered("R-NSM") == "vonatkozó névmás, hímnem, egyes szám, alanyeset"
+    assert rendered("PREP") == "elöljárószó"
+    assert rendered("CONJ") == "kötőszó"
+    assert rendered("ADV") == "határozószó"
+    assert rendered("A-NUI") == "melléknév, ragozhatatlan számnév"
+
+
+def test_special_pronouns_and_particles() -> None:
+    assert rendered("D-NSM").startswith("mutató névmás")
+    assert rendered("I-NSM").startswith("kérdő névmás")
+    assert rendered("X-ASN").startswith("határozatlan névmás")
+    assert rendered("F-3ASM").startswith("visszaható névmás")
+    assert rendered("S-1SGSN").startswith("birtokos névmás")
+    assert rendered("PRT-N") == "partikula, tagadó jelölés"
+    assert rendered("INJ-HEB") == "indulatszó, héberből átírt alak"
+
+
+def test_documented_rare_production_codes_are_fully_resolved() -> None:
+    assert rendered("N-NSN-LI") == (
+        "főnév, semlegesnem, egyes szám, alanyeset, ragozhatatlan betűnév"
+    )
+    assert rendered("V-2PAN") == "főnévi igenév, jelen idő, aktív igenem"
+    assert "arámi eredetű alak" in rendered("V-AAI-2S-ARAM")
+    assert "attikai görög alak" in rendered("V-AOI-2P-ATT")
+
+
+def test_compound_morphology_decodes_each_documented_component() -> None:
+    text = rendered("CONJ + G1565=D-NSM")
+
+    assert text == "kötőszó + mutató névmás, hímnem, egyes szám, alanyeset"
+    assert "G1565" not in text
+    assert "egyéb" not in text
+
+
+def test_unknown_and_empty_codes_are_controlled() -> None:
+    unknown = parse_morphology_hu("ZZ-QQ-9")
+
+    assert unknown == HungarianMorphology(
+        raw_code="ZZ-QQ-9",
+        part_of_speech=None,
+        tense=None,
+        voice=None,
+        mood=None,
         verb_form=None,
-        person="harmadik",
-        number="egyes",
+        person=None,
+        number=None,
         case=None,
         gender=None,
         degree=None,
         extra=(),
+        unresolved=("ZZ", "QQ", "9"),
     )
-
-
-def test_pronoun_from_john_fixture() -> None:
-    morphology = parse_morphology_hu("P-GSM")
-
-    assert morphology.part_of_speech == "személyes névmás"
-    assert morphology.case == "birtokos eset"
-    assert morphology.number == "egyes"
-    assert morphology.gender == "hímnem"
-
-
-def test_participle_from_john_fixture() -> None:
-    morphology = parse_morphology_hu("V-PAP-NSM")
-
-    assert morphology.part_of_speech == "ige"
-    assert morphology.tense == "jelen idő"
-    assert morphology.voice == "aktív igenem"
-    assert morphology.verb_form == "participium"
-    assert morphology.case == "alanyeset"
-    assert morphology.number == "egyes"
-    assert morphology.gender == "hímnem"
-    assert morphology.extra == ()
-
-
-def test_infinitive_uses_verb_form_when_documented() -> None:
-    morphology = parse_morphology_hu("V-AAN")
-
-    assert morphology.part_of_speech == "ige"
-    assert morphology.tense == "aorisztosz"
-    assert morphology.voice == "aktív"
-    assert morphology.verb_form == "infinitivus"
-    assert morphology.mood is None
-    assert morphology.extra == ()
-
-
-def test_incomplete_code_keeps_unknown_remainder() -> None:
-    morphology = parse_morphology_hu("V-AAI")
-
-    assert morphology.raw_code == "V-AAI"
-    assert morphology.part_of_speech == "ige"
-    assert morphology.extra == ("AAI",)
-
-
-def test_unknown_code_keeps_all_unknown_parts() -> None:
-    morphology = parse_morphology_hu("ZZ-QQ-9")
-
-    assert morphology.raw_code == "ZZ-QQ-9"
-    assert morphology.part_of_speech is None
-    assert morphology.extra == ("ZZ", "QQ", "9")
-
-
-def test_empty_code_is_safe() -> None:
-    morphology = parse_morphology_hu("")
-
-    assert morphology.raw_code == ""
-    assert morphology.part_of_speech is None
-    assert morphology.extra == ()
-    assert format_morphology_hu(morphology) == ""
-
-
-def test_formatter_uses_natural_hungarian_terms() -> None:
-    morphology = parse_morphology_hu("V-AAI-3S")
-
-    assert (
-        format_morphology_hu(morphology)
-        == "ige, aorisztosz, aktív, kijelentő, harmadik személy, egyes szám"
+    assert rendered("ZZ-QQ-9") == (
+        "nem feloldott morfológiai jelölés: ZZ, "
+        "nem feloldott morfológiai jelölés: QQ, "
+        "nem feloldott morfológiai jelölés: 9"
     )
+    assert rendered("") == ""
 
 
-def test_formatter_places_participle_as_verb_form_not_extra() -> None:
-    morphology = parse_morphology_hu("V-PAP-NSM")
+def test_no_technical_remainder_for_documented_examples() -> None:
+    for code in ("V-PNI-3S", "N-NSM-P", "V-AMI-3S"):
+        text = rendered(code)
+        assert "egyéb" not in text
+        assert "nem feloldott" not in text
+        assert "PNI" not in text
+        assert "NSM" not in text
+        assert "3S" not in text
 
-    assert (
-        format_morphology_hu(morphology)
-        == "ige, jelen idő, aktív igenem, participium, egyes szám, alanyeset, hímnem"
+
+def test_production_regression_examples_use_actual_codes() -> None:
+    assert rendered("V-PNI-3S") == (
+        "ige, jelen idő, kijelentő mód, mediális vagy passzív deponens, "
+        "egyes szám harmadik személy"
     )
-    assert "egyéb" not in format_morphology_hu(morphology)
-
-
-def test_unknown_subcode_is_not_lost() -> None:
-    morphology = parse_morphology_hu("N-NSM-X")
-
-    assert morphology.part_of_speech == "főnév"
-    assert morphology.extra == ("NSM", "X")
-    assert "X" in format_morphology_hu(morphology)
+    assert rendered("N-NSM-P") == "tulajdonnév, hímnem, egyes szám, alanyeset"
+    assert rendered("V-AMI-3S") == (
+        "ige, aorisztoszi, kijelentő mód, mediális igenem, egyes szám harmadik személy"
+    )
 
 
 def test_john_3_16_morph_codes_parse_without_crashing() -> None:
@@ -128,6 +159,6 @@ def test_john_3_16_morph_codes_parse_without_crashing() -> None:
         token.morph_code for token in tokens
     ]
     assert all(
-        morphology.part_of_speech or morphology.extra
+        morphology.part_of_speech or morphology.components or morphology.unresolved
         for morphology in morphologies
     )
