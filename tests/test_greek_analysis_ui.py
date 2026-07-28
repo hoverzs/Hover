@@ -16,6 +16,7 @@ from bible_engine.greek_analysis_ui import (
     TBESG_DATABASE_MISSING_MESSAGE,
     TBESG_SCOPE_NOTE,
     TBESG_SOURCE_NOTE,
+    component_state_token_key,
     greek_reference_status,
     render_greek_analysis_block,
 )
@@ -23,6 +24,7 @@ from bible_engine.greek_token_repository import GreekVerseTokens
 from bible_engine.greek_token_repository import TAGNT_DATABASE_ENV_VAR
 from bible_engine.tagnt_parser import GreekToken
 from bible_engine.tagnt_sqlite import import_tagnt_book
+from components.greek_token_selector import component_tokens, normalize_component_selection_key
 
 
 ROOT = Path(__file__).parents[1]
@@ -103,6 +105,46 @@ def _render_multi_verse_john_block() -> None:
         reference="Jn 3,16-18",
         key_prefix="test_greek",
         token_loader=passage_tokens,
+        tbesg_lexicon_loader=lambda _strong_id: None,
+    )
+
+
+def _render_first_corinthians_13_1_3_block() -> None:
+    import sys
+    from pathlib import Path
+
+    from bible_engine.greek_analysis_ui import render_greek_analysis_block
+
+    tests_dir = Path.cwd() / "tests"
+    if str(tests_dir) not in sys.path:
+        sys.path.insert(0, str(tests_dir))
+    from test_greek_analysis_ui import _first_corinthians_13_1_3_tokens
+
+    render_greek_analysis_block(
+        reference="1Kor 13,1-3",
+        key_prefix="test_greek",
+        token_loader=_first_corinthians_13_1_3_tokens,
+        lexicon_loader=lambda: {},
+        tbesg_lexicon_loader=lambda _strong_id: None,
+    )
+
+
+def _render_romans_8_1_2_block() -> None:
+    import sys
+    from pathlib import Path
+
+    from bible_engine.greek_analysis_ui import render_greek_analysis_block
+
+    tests_dir = Path.cwd() / "tests"
+    if str(tests_dir) not in sys.path:
+        sys.path.insert(0, str(tests_dir))
+    from test_greek_analysis_ui import _romans_8_1_2_tokens
+
+    render_greek_analysis_block(
+        reference="Róm 8,1-2",
+        key_prefix="test_greek",
+        token_loader=_romans_8_1_2_tokens,
+        lexicon_loader=lambda: {},
         tbesg_lexicon_loader=lambda _strong_id: None,
     )
 
@@ -398,6 +440,183 @@ def _render_long_tbesg_meaning_block() -> None:
     )
 
 
+def _render_revelation_22_20_21_block() -> None:
+    import sys
+    from pathlib import Path
+
+    from bible_engine.greek_analysis_ui import render_greek_analysis_block
+    from bible_engine.tbesg_sqlite import SQLiteGreekLexiconEntry
+
+    tests_dir = Path.cwd() / "tests"
+    if str(tests_dir) not in sys.path:
+        sys.path.insert(0, str(tests_dir))
+    from test_greek_analysis_ui import _revelation_22_20_21_tokens
+
+    tbesg_entry = SQLiteGreekLexiconEntry(
+        strong_id="G3140",
+        dstrong_id="G3140 =",
+        ustrong_id="G3140",
+        lemma="μαρτυρέω",
+        transliteration="martureō",
+        morph="G:V",
+        gloss="to testify",
+        meaning_raw="to testify",
+        meaning_plain="μαρτυρέω, to testify, bear witness.",
+        meaning_paragraphs=("μαρτυρέω, to testify, bear witness.",),
+        references=("Rev.22.20",),
+        source_name="STEPBible TBESG",
+        source_version="test",
+    )
+
+    def lexicon_loader(strong_id: str):
+        if strong_id == "G3140":
+            return tbesg_entry
+        return None
+
+    render_greek_analysis_block(
+        reference="Jel 22,20-21",
+        key_prefix="test_greek",
+        token_loader=_revelation_22_20_21_tokens,
+        lexicon_loader=lambda: {},
+        tbesg_lexicon_loader=lexicon_loader,
+    )
+
+
+def _first_corinthians_13_1_3_tokens() -> list[GreekVerseTokens]:
+    return [
+        GreekVerseTokens(
+            book="1Co",
+            chapter=13,
+            verse=1,
+            tokens=(
+                _token("1Co", 13, 1, 1, "Ἐὰν", "ἐάν", "COND", "G1437"),
+                _token("1Co", 13, 1, 2, "ταῖς", "ὁ", "T-DPF", "G3588"),
+                _token("1Co", 13, 1, 3, "γλώσσαις", "γλῶσσα", "N-DPF", "G1100"),
+                _token("1Co", 13, 1, 4, "λαλῶ", "λαλέω", "V-PAS-1S", "G2980"),
+            ),
+        ),
+        GreekVerseTokens(
+            book="1Co",
+            chapter=13,
+            verse=2,
+            tokens=(
+                _token("1Co", 13, 2, 1, "καὶ", "καί", "CONJ", "G2532"),
+                _token("1Co", 13, 2, 2, "ἐὰν", "ἐάν", "COND", "G1437"),
+                _token("1Co", 13, 2, 3, "ἔχω", "ἔχω", "V-PAS-1S", "G2192"),
+                _token("1Co", 13, 2, 4, "προφητείαν", "προφητεία", "N-ASF", "G4394"),
+            ),
+        ),
+        GreekVerseTokens(
+            book="1Co",
+            chapter=13,
+            verse=3,
+            tokens=(
+                _token("1Co", 13, 3, 1, "κἂν", "καί ἐάν", "COND", "G2579"),
+                _token("1Co", 13, 3, 2, "ψωμίσω", "ψωμίζω", "V-AAS-1S", "G5595"),
+                _token("1Co", 13, 3, 3, "πάντα", "πᾶς", "A-APN", "G3956"),
+                _token("1Co", 13, 3, 4, "τὰ", "ὁ", "T-APN", "G3588"),
+            ),
+        ),
+    ]
+
+
+def _romans_8_1_2_tokens() -> list[GreekVerseTokens]:
+    return [
+        GreekVerseTokens(
+            book="Rom",
+            chapter=8,
+            verse=1,
+            tokens=(
+                _token("Rom", 8, 1, 1, "Οὐδὲν", "οὐδείς", "A-NSN", "G3762"),
+                _token("Rom", 8, 1, 2, "ἄρα", "ἄρα", "PRT", "G0686"),
+                _token("Rom", 8, 1, 3, "νῦν", "νῦν", "ADV", "G3568"),
+            ),
+        ),
+        GreekVerseTokens(
+            book="Rom",
+            chapter=8,
+            verse=2,
+            tokens=(
+                _token("Rom", 8, 2, 1, "ὁ", "ὁ", "T-NSM", "G3588"),
+                _token("Rom", 8, 2, 2, "γὰρ", "γάρ", "CONJ", "G1063"),
+                _token("Rom", 8, 2, 3, "νόμος", "νόμος", "N-NSM", "G3551"),
+            ),
+        ),
+    ]
+
+
+def _revelation_22_20_21_tokens() -> list[GreekVerseTokens]:
+    return [
+        GreekVerseTokens(
+            book="Rev",
+            chapter=22,
+            verse=20,
+            tokens=tuple(
+                _token("Rev", 22, 20, index, form, lemma, morph, strong)
+                for index, form, lemma, morph, strong in (
+                    (1, "Λέγει", "λέγω", "V-PAI-3S", "G3004G"),
+                    (2, "ὁ", "ὁ", "T-NSM", "G3588"),
+                    (3, "μαρτυρῶν", "μαρτυρέω", "V-PAP-NSM", "G3140"),
+                    (4, "ταῦτα·", "οὗτος", "D-APN", "G3778"),
+                    (5, "ναὶ", "ναί", "PRT", "G3483"),
+                    (6, "ἔρχομαι", "ἔρχομαι", "V-PNI-1S", "G2064"),
+                    (7, "ταχύ·", "ταχύ", "ADV", "G5035"),
+                    (8, "ἀμήν.", "ἀμήν", "INJ-HEB", "G0281"),
+                    (9, "ναί", "ναί", "PRT", "G3483"),
+                    (10, "ἔρχου,", "ἔρχομαι", "V-PNM-2S", "G2064"),
+                    (11, "κύριε", "κύριος", "N-VSM-T", "G2962G"),
+                    (12, "Ἰησοῦ.¶", "Ἰησοῦς", "N-VSM-P", "G2424G"),
+                )
+            ),
+        ),
+        GreekVerseTokens(
+            book="Rev",
+            chapter=22,
+            verse=21,
+            tokens=tuple(
+                _token("Rev", 22, 21, index, form, lemma, morph, strong)
+                for index, form, lemma, morph, strong in (
+                    (1, "Ἡ", "ὁ", "T-NSF", "G3588"),
+                    (2, "χάρις", "χάρις", "N-NSF", "G5485"),
+                    (3, "τοῦ", "ὁ", "T-GSM", "G3588"),
+                    (4, "κυρίου", "κύριος", "N-GSM-T", "G2962G"),
+                    (5, "ημῶν", "ἐγώ", "P-1GP", "G3165"),
+                    (6, "Ἰησοῦ", "Ἰησοῦς", "N-GSM-P", "G2424G"),
+                    (7, "Χριστοῦ", "Χριστός", "N-GSM-T", "G5547"),
+                    (8, "μετὰ", "μετά", "PREP", "G3326"),
+                    (9, "πάντων", "πᾶς", "A-GPM", "G3956"),
+                    (10, "τῶν", "ὁ", "T-GPM", "G3588"),
+                    (11, "ὑμῶν.", "σύ", "P-2GP", "G4771"),
+                    (12, "ἀμήν.", "ἀμήν", "INJ-HEB", "G0281"),
+                )
+            ),
+        ),
+    ]
+
+
+def _token(
+    book: str,
+    chapter: int,
+    verse: int,
+    word_index: int,
+    greek_form: str,
+    lemma: str,
+    morph_code: str,
+    strong_id: str,
+) -> GreekToken:
+    return GreekToken(
+        book=book,
+        chapter=chapter,
+        verse=verse,
+        word_index=word_index,
+        greek_form=greek_form,
+        lemma=lemma,
+        morph_code=morph_code,
+        strong_id=strong_id,
+        edition_flags="NKO",
+    )
+
+
 def _render_bible_text_editor_with_john_text() -> None:
     import streamlit as st
     from bible_text_ui import render_bible_text_editor
@@ -525,6 +744,188 @@ def test_long_tbesg_meaning_is_collapsed_behind_expander() -> None:
     assert any(expander.label == "Részletes angol szócikk" for expander in app.expander)
 
 
+def test_revelation_22_tokens_all_have_unique_clickable_selection_keys() -> None:
+    verse_groups = _revelation_22_20_21_tokens()
+    all_tokens = [token for group in verse_groups for token in group.tokens]
+    payloads = [
+        payload
+        for group in verse_groups
+        for payload in component_tokens(
+            list(group.tokens),
+            selected_token_key=f"{group.book}:{group.chapter}:{group.verse}:1",
+        )
+    ]
+
+    assert len(all_tokens) == 24
+    assert len(payloads) == 24
+    selection_keys = [payload["selection_key"] for payload in payloads]
+    assert len(selection_keys) == len(set(selection_keys))
+    assert all(key.startswith("Rev:22:") for key in selection_keys)
+    assert [payload["greek_form"] for payload in payloads[:8]] == [
+        "Λέγει",
+        "ὁ",
+        "μαρτυρῶν",
+        "ταῦτα·",
+        "ναὶ",
+        "ἔρχομαι",
+        "ταχύ·",
+        "ἀμήν.",
+    ]
+
+
+def test_first_corinthians_13_payload_keeps_three_verses_distinct() -> None:
+    verse_groups = _first_corinthians_13_1_3_tokens()
+    all_tokens = [token for group in verse_groups for token in group.tokens]
+    payloads = component_tokens(all_tokens, selected_token_key="1Co:13:2:4")
+
+    assert len(payloads) == 12
+    assert {payload["verse"] for payload in payloads} == {1, 2, 3}
+    assert {"1Co:13:1:4", "1Co:13:2:4", "1Co:13:3:4"}.issubset(
+        {payload["selection_key"] for payload in payloads}
+    )
+    assert [
+        payload["selection_key"]
+        for payload in payloads
+        if payload["word_index"] == 4
+    ] == ["1Co:13:1:4", "1Co:13:2:4", "1Co:13:3:4"]
+    assert [payload["selected"] for payload in payloads].count(True) == 1
+    assert next(
+        payload for payload in payloads if payload["selected"] is True
+    )["greek_form"] == "προφητείαν"
+
+
+def test_first_corinthians_13_selection_survives_rerun_by_token_key() -> None:
+    app = AppTest.from_function(_render_first_corinthians_13_1_3_block).run()
+
+    assert not app.exception
+    assert app.selectbox[0].value == "1Co:13:1:1"
+
+    for selection_key, greek_form in (
+        ("1Co:13:1:4", "λαλῶ"),
+        ("1Co:13:2:4", "προφητείαν"),
+        ("1Co:13:3:4", "τὰ"),
+        ("1Co:13:1:1", "Ἐὰν"),
+        ("1Co:13:2:1", "καὶ"),
+    ):
+        app.selectbox[0].set_value(selection_key)
+        app.run()
+        assert not app.exception
+        assert app.session_state["test_greek_selected_token_key"] == selection_key
+        assert app.subheader[0].value == greek_form
+
+
+def test_john_3_17_component_selection_is_not_plain_word_index() -> None:
+    verse_groups = sample_passage_tokens()[:2]
+    all_tokens = [token for group in verse_groups for token in group.tokens]
+
+    assert normalize_component_selection_key("Jhn:3:17:2", all_tokens) == "Jhn:3:17:2"
+    assert component_state_token_key(
+        {"selected_token_key": "Jhn:3:17:2", "selected_word_index": 2},
+        all_tokens,
+    ) == "Jhn:3:17:2"
+
+
+def test_romans_8_1_2_second_verse_tokens_do_not_collide_by_word_index() -> None:
+    verse_groups = _romans_8_1_2_tokens()
+    all_tokens = [token for group in verse_groups for token in group.tokens]
+    payloads = component_tokens(all_tokens, selected_token_key="Rom:8:2:2")
+
+    assert [payload["selection_key"] for payload in payloads if payload["word_index"] == 2] == [
+        "Rom:8:1:2",
+        "Rom:8:2:2",
+    ]
+    assert [payload["selected"] for payload in payloads].count(True) == 1
+    assert next(payload for payload in payloads if payload["selected"])["verse"] == 2
+
+    app = AppTest.from_function(_render_romans_8_1_2_block).run()
+    app.selectbox[0].set_value("Rom:8:2:3")
+    app.run()
+
+    assert not app.exception
+    assert app.session_state["test_greek_selected_token_key"] == "Rom:8:2:3"
+    assert app.subheader[0].value == "νόμος"
+
+
+def test_revelation_22_second_verse_payload_has_independent_clickable_tokens() -> None:
+    verse_groups = _revelation_22_20_21_tokens()
+    verse_20, verse_21 = verse_groups
+
+    verse_20_payload = component_tokens(list(verse_20.tokens), selected_token_key=None)
+    verse_21_payload = component_tokens(list(verse_21.tokens), selected_token_key=None)
+
+    assert len(verse_20_payload) == 12
+    assert len(verse_21_payload) == 12
+    assert all(payload["book"] == "Rev" for payload in verse_21_payload)
+    assert all(payload["chapter"] == 22 for payload in verse_21_payload)
+    assert all(payload["verse"] == 21 for payload in verse_21_payload)
+    assert all(payload["selection_key"].startswith("Rev:22:20:") for payload in verse_20_payload)
+    assert all(payload["selection_key"].startswith("Rev:22:21:") for payload in verse_21_payload)
+    assert {payload["word_index"] for payload in verse_20_payload} == {
+        payload["word_index"] for payload in verse_21_payload
+    }
+    assert {
+        payload["selection_key"] for payload in verse_20_payload
+    }.isdisjoint({payload["selection_key"] for payload in verse_21_payload})
+    assert [payload["greek_form"] for payload in verse_21_payload] == [
+        "Ἡ",
+        "χάρις",
+        "τοῦ",
+        "κυρίου",
+        "ημῶν",
+        "Ἰησοῦ",
+        "Χριστοῦ",
+        "μετὰ",
+        "πάντων",
+        "τῶν",
+        "ὑμῶν.",
+        "ἀμήν.",
+    ]
+
+
+def test_revelation_22_tokens_can_be_selected_with_and_without_lexicon_data() -> None:
+    app = AppTest.from_function(_render_revelation_22_20_21_block).run()
+
+    assert not app.exception
+    assert app.selectbox[0].value == "Rev:22:20:1"
+    assert app.subheader[0].value == "Λέγει"
+
+    selectable = {
+        "Rev:22:20:1": "Λέγει",
+        "Rev:22:20:2": "ὁ",
+        "Rev:22:20:3": "μαρτυρῶν",
+        "Rev:22:20:4": "ταῦτα·",
+        "Rev:22:20:5": "ναὶ",
+        "Rev:22:20:6": "ἔρχομαι",
+        "Rev:22:20:7": "ταχύ·",
+        "Rev:22:20:8": "ἀμήν.",
+        "Rev:22:21:2": "χάρις",
+        "Rev:22:21:4": "κυρίου",
+        "Rev:22:21:6": "Ἰησοῦ",
+        "Rev:22:21:7": "Χριστοῦ",
+        "Rev:22:21:9": "πάντων",
+        "Rev:22:21:11": "ὑμῶν.",
+        "Rev:22:21:12": "ἀμήν.",
+    }
+    for selection_key, greek_form in selectable.items():
+        app.selectbox[0].set_value(selection_key)
+        app.run()
+        assert not app.exception
+        assert app.session_state["test_greek_selected_token_key"] == selection_key
+        assert app.subheader[0].value == greek_form
+
+    app.selectbox[0].set_value("Rev:22:20:3")
+    app.run()
+    english_text = "\n".join(markdown.value for markdown in app.markdown)
+    assert "Angol lexikai alapadat" in english_text
+    assert "**Alapjelentés:** to testify" in english_text
+
+    app.selectbox[0].set_value("Rev:22:20:4")
+    app.run()
+    no_lexicon_text = "\n".join(markdown.value for markdown in app.markdown)
+    assert NO_LEXICON_ENTRY_MESSAGE in no_lexicon_text
+    assert app.subheader[0].value == "ταῦτα·"
+
+
 def test_greek_analysis_ui_text_has_no_mojibake_markers() -> None:
     source = (ROOT / "bible_engine" / "greek_analysis_ui.py").read_text(encoding="utf-8")
 
@@ -546,10 +947,6 @@ def test_multi_verse_john_reference_renders_verse_rows_and_shared_panel() -> Non
     app = AppTest.from_function(_render_multi_verse_john_block).run()
 
     assert not app.exception
-    markdown_values = [markdown.value for markdown in app.markdown]
-    assert any("textus-greek-verse-marker\">16" in value for value in markdown_values)
-    assert any("textus-greek-verse-marker\">17" in value for value in markdown_values)
-    assert any("textus-greek-verse-marker\">18" in value for value in markdown_values)
     assert app.subheader[0].value == "οὕτως"
     assert app.session_state["test_greek_selected_token_key"] == "Jhn:3:16:1"
     assert app.session_state["test_greek_selected_word_index"] == 1

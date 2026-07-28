@@ -265,7 +265,7 @@ def _render_loaded_greek_passage_analysis(
     st.session_state[selected_word_key] = _word_index_from_token_key(current_selection)
     st.session_state[fallback_key] = _fallback_value(verse_groups, current_selection)
 
-    def sync_component_selection(component_key: str) -> None:
+    def sync_component_selection() -> None:
         selected = component_state_token_key(st.session_state.get(component_key), all_tokens)
         st.session_state[selected_token_key] = _apply_token_key_selection(
             all_tokens,
@@ -296,37 +296,23 @@ def _render_loaded_greek_passage_analysis(
     if reference_label:
         st.caption(reference_label)
 
-    for verse_group in verse_groups:
-        component_key = _key(
-            key_prefix,
-            f"inline_token_selector_{verse_group.chapter}_{verse_group.verse}",
-        )
-        st.markdown(
-            f'<div class="textus-greek-verse-marker">{verse_group.verse}</div>',
-            unsafe_allow_html=True,
-        )
-        verse_selection = current_selection if _selection_belongs_to_verse(
-            current_selection,
-            verse_group,
-        ) else None
-        component_selection = greek_token_selector_value(
-            tokens=list(verse_group.tokens),
-            selected_token_key=verse_selection,
-            key=component_key,
-            on_selected_token_key_change=lambda component_key=component_key: sync_component_selection(
-                component_key
-            ),
-        )
-        next_selection = _apply_token_key_selection(
-            all_tokens,
-            current_selection,
-            component_selection,
-        )
-        if next_selection != current_selection:
-            st.session_state[selected_token_key] = next_selection
-            st.session_state[selected_word_key] = _word_index_from_token_key(next_selection)
-            st.session_state[fallback_key] = _fallback_value(verse_groups, next_selection)
-            st.rerun()
+    component_key = _key(key_prefix, "inline_token_selector")
+    component_selection = greek_token_selector_value(
+        tokens=all_tokens,
+        selected_token_key=current_selection,
+        key=component_key,
+        on_selected_token_key_change=sync_component_selection,
+    )
+    next_selection = _apply_token_key_selection(
+        all_tokens,
+        current_selection,
+        component_selection,
+    )
+    if next_selection != current_selection:
+        st.session_state[selected_token_key] = next_selection
+        st.session_state[selected_word_key] = _word_index_from_token_key(next_selection)
+        st.session_state[fallback_key] = _fallback_value(verse_groups, next_selection)
+        st.rerun()
 
     st.markdown('<div class="textus-greek-fallback-marker"></div>', unsafe_allow_html=True)
     with st.expander("Alternatív szóválasztás", expanded=False):

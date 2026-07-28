@@ -73,17 +73,25 @@ def component_tokens(
     if selected_token_key is None and selected_word_index is not None:
         selected_token_key = selected_word_index
     selected_key = str(selected_token_key) if selected_token_key is not None else None
-    use_composite_key = bool(selected_key and ":" in selected_key)
     rendered = []
-    for token in sorted(tokens, key=lambda token: token.word_index):
+    for token in sorted(
+        tokens,
+        key=lambda token: (token.book, token.chapter, token.verse, token.word_index),
+    ):
         item: dict[str, int | str | bool] = {
+            "book": token.book,
+            "chapter": token.chapter,
+            "verse": token.verse,
             "word_index": token.word_index,
             "greek_form": token.greek_form,
+            "selection_key": _token_selection_key(token),
             "selected": _token_selection_key(token) == selected_key
-            or str(token.word_index) == selected_key,
+            or (
+                selected_key is not None
+                and ":" not in selected_key
+                and str(token.word_index) == selected_key
+            ),
         }
-        if use_composite_key:
-            item["selection_key"] = _token_selection_key(token)
         rendered.append(item)
     return rendered
 

@@ -124,13 +124,21 @@ def test_component_payload_contains_26_inline_tokens_and_selected_state() -> Non
 
     assert len(payload) == 26
     assert payload[0] == {
+        "book": "Jhn",
+        "chapter": 3,
+        "verse": 16,
         "word_index": 1,
         "greek_form": "οὕτως",
+        "selection_key": "Jhn:3:16:1",
         "selected": False,
     }
     assert payload[2] == {
+        "book": "Jhn",
+        "chapter": 3,
+        "verse": 16,
         "word_index": 3,
         "greek_form": "ἠγάπησεν",
+        "selection_key": "Jhn:3:16:3",
         "selected": True,
     }
     assert "lemma" not in payload[0]

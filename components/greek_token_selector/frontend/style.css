@@ -13,12 +13,29 @@
   border-radius: 0.25rem;
   color: inherit;
   cursor: pointer;
-  display: inline;
+  display: inline-block;
   font: inherit;
   line-height: 1.16;
   margin: 0;
   padding: 0 0.045em;
   text-align: inherit;
+}
+
+.greek-verse-marker {
+  color: var(--st-gray, #7a6c5c);
+  display: inline-block;
+  font-size: 0.7em;
+  font-weight: 700;
+  line-height: 1;
+  margin: 0 0.28rem 0 0;
+  min-width: 1.35rem;
+  text-align: right;
+  user-select: none;
+  vertical-align: baseline;
+}
+
+.greek-token + .greek-verse-marker {
+  margin-left: 0.32rem;
 }
 
 .greek-token + .greek-token {
