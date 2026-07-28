@@ -21,9 +21,14 @@ from bible_engine.tagnt_books import NEW_TESTAMENT_RUF_CODES
 from bible_engine.tagnt_books import parse_tagnt_bible_reference
 from bible_engine.tbesg_sqlite import SQLiteGreekLexiconEntry
 from bible_engine.lexicon_hu import (
+    DEFAULT_HUNGARIAN_LEXICON_PATH,
+    DEFAULT_STRONG_ALIASES_PATH,
     HungarianLexiconEntry,
-    get_hungarian_lexicon_entry,
-    load_hungarian_lexicon,
+    HungarianLexiconResolution,
+    StrongAlias,
+    load_default_hungarian_lexicon,
+    load_strong_aliases,
+    resolve_hungarian_lexicon_entry,
 )
 from bible_engine.morphology_hu import format_morphology_hu, parse_morphology_hu
 from bible_engine.tagnt_parser import GreekToken, get_verse_tokens
@@ -35,7 +40,8 @@ from components.greek_token_selector import (
 
 ROOT = Path(__file__).parents[1]
 JHN_3_16_FIXTURE_PATH = ROOT / "tests" / "fixtures" / "tagnt_jhn_3_16_sample.tsv"
-LEXICON_HU_PATH = ROOT / "bible_engine" / "data" / "lexicon_hu_sample.json"
+LEXICON_HU_PATH = DEFAULT_HUNGARIAN_LEXICON_PATH
+STRONG_ALIASES_PATH = DEFAULT_STRONG_ALIASES_PATH
 
 OLD_TESTAMENT_MESSAGE = (
     "Az ószövetségi eredeti nyelvi modul későbbi fejlesztésben lesz elérhető."
@@ -176,12 +182,44 @@ def load_john_3_16_tokens() -> list[GreekToken]:
     return get_verse_tokens(JHN_3_16_FIXTURE_PATH, book="Jhn", chapter=3, verse=16)
 
 
-@st.cache_data(show_spinner=False)
 def load_demo_hungarian_lexicon() -> dict[str, HungarianLexiconEntry] | None:
+    path = LEXICON_HU_PATH
+    mtime_ns = path.stat().st_mtime_ns if path.exists() else None
+    return _load_cached_hungarian_lexicon(str(path), mtime_ns)
+
+
+@st.cache_data(show_spinner=False)
+def _load_cached_hungarian_lexicon(
+    path: str,
+    mtime_ns: int | None,
+) -> dict[str, HungarianLexiconEntry] | None:
     try:
-        return load_hungarian_lexicon(LEXICON_HU_PATH)
+        return load_default_hungarian_lexicon(path)
     except Exception:
         return None
+
+
+load_demo_hungarian_lexicon.clear = _load_cached_hungarian_lexicon.clear  # type: ignore[attr-defined]
+
+
+def load_demo_strong_aliases() -> dict[str, StrongAlias]:
+    path = STRONG_ALIASES_PATH
+    mtime_ns = path.stat().st_mtime_ns if path.exists() else None
+    return _load_cached_strong_aliases(str(path), mtime_ns)
+
+
+@st.cache_data(show_spinner=False)
+def _load_cached_strong_aliases(
+    path: str,
+    mtime_ns: int | None,
+) -> dict[str, StrongAlias]:
+    try:
+        return load_strong_aliases(path)
+    except Exception:
+        return {}
+
+
+load_demo_strong_aliases.clear = _load_cached_strong_aliases.clear  # type: ignore[attr-defined]
 
 
 @st.cache_data(show_spinner=False)
@@ -419,9 +457,9 @@ def _render_lexicon_section(
     st.divider()
 
     if entries is not None:
-        entry = _hungarian_lexicon_entry_for_token(entries, token)
-        if entry is not None:
-            _render_hungarian_lexicon_section(entry)
+        resolution = _hungarian_lexicon_resolution_for_token(entries, token)
+        if resolution is not None:
+            _render_hungarian_lexicon_section(resolution)
             return
     else:
         st.markdown(LEXICON_HU_ERROR_MESSAGE)
@@ -437,9 +475,15 @@ def _render_lexicon_section(
     st.markdown(NO_LEXICON_ENTRY_MESSAGE)
 
 
-def _render_hungarian_lexicon_section(entry: HungarianLexiconEntry) -> None:
+def _render_hungarian_lexicon_section(resolution: HungarianLexiconResolution) -> None:
+    entry = resolution.entry
     st.markdown("#### Magyar lexikai jelentések")
     st.caption(LEXICAL_SCOPE_NOTE)
+    if resolution.alias is not None:
+        st.caption(
+            "Magyar lexikai rekord alias alapján: "
+            f"{resolution.requested_strong_id} → {resolution.resolved_strong_id}"
+        )
     st.markdown(f"**Alapjelentés:** {entry.primary_gloss}")
     st.markdown(f"**Lehetséges jelentések:** {' · '.join(entry.senses)}")
 
@@ -482,12 +526,16 @@ def _compact_field_markup(items: list[tuple[str, str]]) -> str:
     return f'<div class="textus-greek-field-list">{rows}</div>'
 
 
-def _hungarian_lexicon_entry_for_token(
+def _hungarian_lexicon_resolution_for_token(
     entries: dict[str, HungarianLexiconEntry],
     token: GreekToken,
-) -> HungarianLexiconEntry | None:
+) -> HungarianLexiconResolution | None:
     try:
-        return get_hungarian_lexicon_entry(entries, token.strong_id)
+        return resolve_hungarian_lexicon_entry(
+            entries,
+            token.strong_id,
+            load_demo_strong_aliases(),
+        )
     except ValueError:
         return None
 

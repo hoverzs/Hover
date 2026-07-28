@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+import os
 from pathlib import Path
 
 from streamlit.testing.v1 import AppTest
@@ -7,6 +9,7 @@ from streamlit.testing.v1 import AppTest
 from bible_engine.greek_analysis_ui import (
     CROSS_CHAPTER_GREEK_MESSAGE,
     GREEK_DATA_ERROR_MESSAGE,
+    LEXICON_HU_PATH,
     LEXICAL_SCOPE_NOTE,
     MISSING_GREEK_DATA_MESSAGE,
     MISSING_GREEK_DATABASE_MESSAGE,
@@ -18,6 +21,7 @@ from bible_engine.greek_analysis_ui import (
     TBESG_SOURCE_NOTE,
     component_state_token_key,
     greek_reference_status,
+    load_demo_hungarian_lexicon,
     render_greek_analysis_block,
 )
 from bible_engine.greek_token_repository import GreekVerseTokens
@@ -390,6 +394,44 @@ def _render_no_lexicon_data_block() -> None:
     )
 
 
+def _render_alias_hungarian_lexicon_block() -> None:
+    from bible_engine.greek_analysis_ui import render_greek_analysis_block
+    from bible_engine.greek_token_repository import GreekVerseTokens
+    from bible_engine.lexicon_hu import HungarianLexiconEntry
+    from bible_engine.tagnt_parser import GreekToken
+
+    token = GreekToken(
+        book="Mat",
+        chapter=1,
+        verse=20,
+        word_index=6,
+        greek_form="ἄγγελος",
+        lemma="ἄγγελος",
+        morph_code="N-NSM",
+        strong_id="G0032G",
+        edition_flags="NKO",
+    )
+    entry = HungarianLexiconEntry(
+        strong_id="G0032",
+        lemma="ἄγγελος",
+        primary_gloss="angyal",
+        senses=("angyal", "küldött"),
+        note=None,
+        source="teszt",
+        review_status="draft",
+    )
+
+    render_greek_analysis_block(
+        reference="Mt 1,20",
+        key_prefix="test_greek",
+        token_loader=lambda: [
+            GreekVerseTokens(book="Mat", chapter=1, verse=20, tokens=(token,))
+        ],
+        lexicon_loader=lambda: {"G0032": entry},
+        tbesg_lexicon_loader=lambda _strong_id: None,
+    )
+
+
 def _render_long_tbesg_meaning_block() -> None:
     from bible_engine.greek_analysis_ui import render_greek_analysis_block
     from bible_engine.greek_token_repository import GreekVerseTokens
@@ -734,6 +776,19 @@ def test_no_lexicon_data_message_when_no_hungarian_or_tbesg_entry_exists() -> No
     assert NO_LEXICON_ENTRY_MESSAGE in page_text
 
 
+def test_alias_hungarian_lexicon_record_marks_source_and_preserves_token_strong() -> None:
+    app = AppTest.from_function(_render_alias_hungarian_lexicon_block).run()
+
+    assert not app.exception
+    page_text = "\n".join(markdown.value for markdown in app.markdown)
+    page_text += "\n".join(caption.value for caption in app.caption)
+    assert app.subheader[0].value == "ἄγγελος"
+    assert "<strong>Strong/STEP:</strong> G0032G" in page_text
+    assert "Magyar lexikai rekord alias alapján: G0032G → G0032" in page_text
+    assert "Alapjelentés:** angyal" in page_text
+    assert "Angol lexikai alapadat" not in page_text
+
+
 def test_long_tbesg_meaning_is_collapsed_behind_expander() -> None:
     app = AppTest.from_function(_render_long_tbesg_meaning_block).run()
 
@@ -1022,6 +1077,49 @@ def test_key_prefix_separates_session_state_keys() -> None:
     assert "bible_text_ui_selected_word_index" not in app.session_state
 
 
+def test_runtime_hungarian_lexicon_uses_full_json_by_default() -> None:
+    assert LEXICON_HU_PATH == ROOT / "bible_engine" / "data" / "lexicon_hu.json"
+
+
+def test_missing_runtime_hungarian_lexicon_returns_none_without_sample_fallback(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    import bible_engine.greek_analysis_ui as greek_analysis_ui
+
+    missing = tmp_path / "missing_lexicon_hu.json"
+    monkeypatch.setattr(greek_analysis_ui, "LEXICON_HU_PATH", missing)
+    load_demo_hungarian_lexicon.clear()
+
+    assert load_demo_hungarian_lexicon() is None
+
+    load_demo_hungarian_lexicon.clear()
+
+
+def test_runtime_hungarian_lexicon_cache_refreshes_after_file_update(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    import bible_engine.greek_analysis_ui as greek_analysis_ui
+
+    lexicon_path = tmp_path / "lexicon_hu.json"
+    _write_runtime_lexicon(lexicon_path, primary_gloss="első")
+    monkeypatch.setattr(greek_analysis_ui, "LEXICON_HU_PATH", lexicon_path)
+    load_demo_hungarian_lexicon.clear()
+
+    first = load_demo_hungarian_lexicon()
+    assert first["G2316"].primary_gloss == "első"
+
+    _write_runtime_lexicon(lexicon_path, primary_gloss="második")
+    current_ns = lexicon_path.stat().st_mtime_ns
+    os.utime(lexicon_path, ns=(current_ns + 1_000_000_000, current_ns + 1_000_000_000))
+
+    second = load_demo_hungarian_lexicon()
+    assert second["G2316"].primary_gloss == "második"
+
+    load_demo_hungarian_lexicon.clear()
+
+
 def test_book_switch_resets_selected_token_key() -> None:
     app = AppTest.from_function(_render_reference_switch_block)
     app.session_state["active_reference"] = "Jn 3,16"
@@ -1092,6 +1190,26 @@ def _build_john_3_16_database(tmp_path: Path) -> Path:
         "test",
     )
     return database
+
+
+def _write_runtime_lexicon(path: Path, *, primary_gloss: str) -> None:
+    path.write_text(
+        json.dumps(
+            [
+                {
+                    "strong_id": "G2316",
+                    "lemma": "θεός",
+                    "primary_gloss": primary_gloss,
+                    "senses": [primary_gloss],
+                    "note": None,
+                    "source": "teszt",
+                    "review_status": "draft",
+                }
+            ],
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
 
 
 def sample_passage_tokens() -> list[GreekVerseTokens]:

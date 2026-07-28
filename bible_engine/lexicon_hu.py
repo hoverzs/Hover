@@ -9,6 +9,10 @@ from bible_engine.tbesg_parser import normalize_greek_strong_id
 
 
 VALID_REVIEW_STATUSES = frozenset({"draft", "reviewed"})
+DATA_DIR = Path(__file__).parent / "data"
+DEFAULT_HUNGARIAN_LEXICON_PATH = DATA_DIR / "lexicon_hu.json"
+SAMPLE_HUNGARIAN_LEXICON_PATH = DATA_DIR / "lexicon_hu_sample.json"
+DEFAULT_STRONG_ALIASES_PATH = DATA_DIR / "strong_aliases.json"
 
 
 @dataclass(frozen=True)
@@ -20,6 +24,23 @@ class HungarianLexiconEntry:
     note: str | None
     source: str
     review_status: str
+
+
+@dataclass(frozen=True)
+class StrongAlias:
+    source_strong_id: str
+    target_strong_id: str
+    confidence: float
+    evidence: str
+    token_frequency: int
+
+
+@dataclass(frozen=True)
+class HungarianLexiconResolution:
+    entry: HungarianLexiconEntry
+    requested_strong_id: str
+    resolved_strong_id: str
+    alias: StrongAlias | None = None
 
 
 def validate_hungarian_lexicon_entry(entry: HungarianLexiconEntry) -> None:
@@ -72,12 +93,77 @@ def load_hungarian_lexicon(path: str | Path) -> dict[str, HungarianLexiconEntry]
     return entries
 
 
+def load_default_hungarian_lexicon(
+    path: str | Path = DEFAULT_HUNGARIAN_LEXICON_PATH,
+) -> dict[str, HungarianLexiconEntry] | None:
+    source_path = Path(path)
+    if not source_path.exists():
+        return None
+    return load_hungarian_lexicon(source_path)
+
+
+def load_strong_aliases(path: str | Path = DEFAULT_STRONG_ALIASES_PATH) -> dict[str, StrongAlias]:
+    source_path = Path(path)
+    if not source_path.exists():
+        return {}
+    try:
+        raw_data = json.loads(source_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"Invalid Strong aliases JSON: {exc.msg}.") from exc
+
+    if not isinstance(raw_data, list):
+        raise ValueError("Invalid Strong aliases JSON: root value must be a list.")
+
+    aliases: dict[str, StrongAlias] = {}
+    for index, raw_alias in enumerate(raw_data, start=1):
+        alias = _alias_from_json(raw_alias, index)
+        if alias.source_strong_id in aliases:
+            raise ValueError(f"Duplicate Strong alias source: {alias.source_strong_id!r}.")
+        aliases[alias.source_strong_id] = alias
+    return aliases
+
+
 def get_hungarian_lexicon_entry(
     entries: dict[str, HungarianLexiconEntry],
     strong_id: str,
+    aliases: dict[str, StrongAlias] | None = None,
 ) -> HungarianLexiconEntry | None:
+    resolution = resolve_hungarian_lexicon_entry(entries, strong_id, aliases)
+    return resolution.entry if resolution is not None else None
+
+
+def resolve_hungarian_lexicon_entry(
+    entries: dict[str, HungarianLexiconEntry],
+    strong_id: str,
+    aliases: dict[str, StrongAlias] | None = None,
+) -> HungarianLexiconResolution | None:
     normalized = normalize_greek_strong_id(strong_id)
-    return entries.get(normalized)
+    direct = entries.get(normalized)
+    if direct is not None:
+        return HungarianLexiconResolution(
+            entry=direct,
+            requested_strong_id=normalized,
+            resolved_strong_id=normalized,
+        )
+
+    alias = (aliases or {}).get(normalized)
+    if alias is None:
+        return None
+    if alias.target_strong_id == normalized:
+        return None
+    target_alias = (aliases or {}).get(alias.target_strong_id)
+    if target_alias is not None and target_alias.target_strong_id == normalized:
+        return None
+
+    target = entries.get(alias.target_strong_id)
+    if target is None:
+        return None
+    return HungarianLexiconResolution(
+        entry=target,
+        requested_strong_id=normalized,
+        resolved_strong_id=alias.target_strong_id,
+        alias=alias,
+    )
 
 
 def _entry_from_json(raw_entry: Any, index: int) -> HungarianLexiconEntry:
@@ -106,3 +192,36 @@ def _entry_from_json(raw_entry: Any, index: int) -> HungarianLexiconEntry:
         ) from exc
 
     return entry
+
+
+def _alias_from_json(raw_alias: Any, index: int) -> StrongAlias:
+    if not isinstance(raw_alias, dict):
+        raise ValueError(f"Invalid Strong alias record #{index}: expected object.")
+    try:
+        source = normalize_greek_strong_id(str(raw_alias["source_strong_id"]))
+        target = normalize_greek_strong_id(str(raw_alias["target_strong_id"]))
+        confidence = float(raw_alias["confidence"])
+        evidence = str(raw_alias["evidence"]).strip()
+        token_frequency = int(raw_alias["token_frequency"])
+    except KeyError as exc:
+        raise ValueError(
+            f"Invalid Strong alias record #{index}: missing field {exc.args[0]!r}."
+        ) from exc
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"Invalid Strong alias record #{index}.") from exc
+
+    if not evidence:
+        raise ValueError(f"Invalid Strong alias record #{index}: evidence must not be empty.")
+    if confidence < 0 or confidence > 1:
+        raise ValueError(f"Invalid Strong alias record #{index}: confidence must be 0..1.")
+    if token_frequency < 0:
+        raise ValueError(
+            f"Invalid Strong alias record #{index}: token_frequency must not be negative."
+        )
+    return StrongAlias(
+        source_strong_id=source,
+        target_strong_id=target,
+        confidence=confidence,
+        evidence=evidence,
+        token_frequency=token_frequency,
+    )

@@ -6,9 +6,15 @@ from pathlib import Path
 import pytest
 
 from bible_engine.lexicon_hu import (
+    DEFAULT_HUNGARIAN_LEXICON_PATH,
     HungarianLexiconEntry,
+    SAMPLE_HUNGARIAN_LEXICON_PATH,
+    StrongAlias,
     get_hungarian_lexicon_entry,
+    load_default_hungarian_lexicon,
     load_hungarian_lexicon,
+    load_strong_aliases,
+    resolve_hungarian_lexicon_entry,
     validate_hungarian_lexicon_entry,
 )
 from bible_engine.tagnt_parser import get_verse_tokens
@@ -16,6 +22,7 @@ from bible_engine.tagnt_parser import get_verse_tokens
 
 ROOT = Path(__file__).parents[1]
 LEXICON_FIXTURE = ROOT / "bible_engine" / "data" / "lexicon_hu_sample.json"
+FULL_LEXICON = ROOT / "bible_engine" / "data" / "lexicon_hu.json"
 JHN_FIXTURE = ROOT / "tests" / "fixtures" / "tagnt_jhn_3_16_sample.tsv"
 
 
@@ -24,6 +31,27 @@ def test_loads_three_sample_hungarian_lexicon_entries() -> None:
 
     assert set(entries) == {"G0025", "G2889", "G3779"}
     assert all(entry.review_status == "draft" for entry in entries.values())
+
+
+def test_default_hungarian_lexicon_path_is_full_json() -> None:
+    assert DEFAULT_HUNGARIAN_LEXICON_PATH == FULL_LEXICON
+    assert SAMPLE_HUNGARIAN_LEXICON_PATH == LEXICON_FIXTURE
+
+
+def test_missing_default_hungarian_lexicon_returns_none(tmp_path: Path) -> None:
+    assert load_default_hungarian_lexicon(tmp_path / "missing.json") is None
+
+
+def test_full_hungarian_lexicon_loads_imported_records_when_available() -> None:
+    if not FULL_LEXICON.exists():
+        pytest.skip("The full Hungarian lexicon has not been imported locally.")
+
+    entries = load_default_hungarian_lexicon(FULL_LEXICON)
+
+    assert entries is not None
+    assert get_hungarian_lexicon_entry(entries, "G2316").primary_gloss == "Isten"
+    assert get_hungarian_lexicon_entry(entries, "G1063").primary_gloss == "mert"
+    assert get_hungarian_lexicon_entry(entries, "G3779").primary_gloss == "így"
 
 
 def test_get_g0025_entry_by_normalized_and_short_strong_id() -> None:
@@ -77,6 +105,112 @@ def test_unknown_strong_id_returns_none() -> None:
     entries = load_hungarian_lexicon(LEXICON_FIXTURE)
 
     assert get_hungarian_lexicon_entry(entries, "G9999") is None
+
+
+def test_direct_hungarian_entry_has_priority_over_alias() -> None:
+    entries = {
+        "G0032G": _valid_entry(strong_id="G0032G", lemma="direct", primary_gloss="direct"),
+        "G0032": _valid_entry(strong_id="G0032", lemma="target", primary_gloss="target"),
+    }
+    aliases = {
+        "G0032G": StrongAlias("G0032G", "G0032", 0.99, "test", 1),
+    }
+
+    resolution = resolve_hungarian_lexicon_entry(entries, "G0032G", aliases)
+
+    assert resolution is not None
+    assert resolution.entry.strong_id == "G0032G"
+    assert resolution.alias is None
+
+
+def test_alias_resolves_suffix_id_to_target_hungarian_entry() -> None:
+    entries = {"G0032": _valid_entry(strong_id="G0032", lemma="ἄγγελος")}
+    aliases = {
+        "G0032G": StrongAlias("G0032G", "G0032", 0.99, "same lemma", 176),
+        "G0032H": StrongAlias("G0032H", "G0032", 0.99, "same lemma", 8),
+    }
+
+    g_variant = resolve_hungarian_lexicon_entry(entries, "G32G", aliases)
+    h_variant = resolve_hungarian_lexicon_entry(entries, "G0032H", aliases)
+
+    assert g_variant is not None
+    assert g_variant.entry.strong_id == "G0032"
+    assert g_variant.requested_strong_id == "G0032G"
+    assert g_variant.resolved_strong_id == "G0032"
+    assert g_variant.alias.token_frequency == 176
+    assert h_variant is not None
+    assert h_variant.alias.source_strong_id == "G0032H"
+
+
+def test_manual_final_suffix_aliases_resolve_to_base_entries() -> None:
+    entries = {
+        "G0001": _valid_entry(strong_id="G0001", lemma="α, Ἀλφα"),
+        "G1086": _valid_entry(strong_id="G1086", lemma="Γερασηνός"),
+        "G2857": _valid_entry(strong_id="G2857", lemma="Κολοσσαί"),
+    }
+    aliases = {
+        "G0001G": StrongAlias(
+            "G0001G",
+            "G0001",
+            0.98,
+            "manual Alpha letter/name variant",
+            4,
+        ),
+        "G1086G": StrongAlias(
+            "G1086G",
+            "G1086",
+            0.97,
+            "manual Gerasene spelling variant",
+            3,
+        ),
+        "G2857G": StrongAlias(
+            "G2857G",
+            "G2857",
+            0.97,
+            "manual Colossae spelling variant",
+            1,
+        ),
+    }
+
+    assert resolve_hungarian_lexicon_entry(entries, "G0001G", aliases).resolved_strong_id == "G0001"
+    assert resolve_hungarian_lexicon_entry(entries, "G1086G", aliases).resolved_strong_id == "G1086"
+    assert resolve_hungarian_lexicon_entry(entries, "G2857G", aliases).resolved_strong_id == "G2857"
+
+
+def test_bad_alias_target_and_alias_cycle_return_none_without_traceback() -> None:
+    entries = {"G0032": _valid_entry(strong_id="G0032", lemma="ἄγγελος")}
+    bad_target = {"G0032G": StrongAlias("G0032G", "G9999", 0.99, "bad", 1)}
+    cycle = {
+        "G0032G": StrongAlias("G0032G", "G0032H", 0.99, "cycle", 1),
+        "G0032H": StrongAlias("G0032H", "G0032G", 0.99, "cycle", 1),
+    }
+
+    assert resolve_hungarian_lexicon_entry(entries, "G0032G", bad_target) is None
+    assert resolve_hungarian_lexicon_entry(entries, "G0032G", cycle) is None
+
+
+def test_load_strong_aliases_normalizes_source_and_target(tmp_path: Path) -> None:
+    path = tmp_path / "aliases.json"
+    path.write_text(
+        json.dumps(
+            [
+                {
+                    "source_strong_id": "G32G",
+                    "target_strong_id": "G32",
+                    "confidence": 0.99,
+                    "evidence": "same lemma",
+                    "token_frequency": 3,
+                }
+            ],
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+
+    aliases = load_strong_aliases(path)
+
+    assert set(aliases) == {"G0032G"}
+    assert aliases["G0032G"].target_strong_id == "G0032"
 
 
 def test_duplicate_strong_id_is_rejected(tmp_path: Path) -> None:

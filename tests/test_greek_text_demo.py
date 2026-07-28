@@ -30,6 +30,19 @@ def _demo_with_mocked_ruf_success() -> None:
     )
 
 
+def _demo_with_mocked_ruf_success_and_empty_lexicon() -> None:
+    from greek_text_demo import render_demo
+
+    def load_mock_ruf_text() -> str:
+        return "16 Mert úgy szerette Isten a világot, hogy egyszülött Fiát adta."
+
+    render_demo(
+        ruf_text_loader=load_mock_ruf_text,
+        lexicon_loader=lambda: {},
+        tbesg_lexicon_loader=lambda _strong_id: None,
+    )
+
+
 def _demo_with_mocked_ruf_failure() -> None:
     from greek_text_demo import render_demo
 
@@ -85,12 +98,14 @@ def test_load_ruf_demo_text_uses_existing_ruf_service(monkeypatch) -> None:
     load_ruf_demo_text.clear()
 
 
-def test_load_demo_hungarian_lexicon_loads_three_sample_entries() -> None:
+def test_load_demo_hungarian_lexicon_loads_full_runtime_entries() -> None:
     load_demo_hungarian_lexicon.clear()
     entries = load_demo_hungarian_lexicon()
 
     assert entries is not None
-    assert set(entries) == {"G0025", "G2889", "G3779"}
+    assert "G2316" in entries
+    assert "G1063" in entries
+    assert "G3779" in entries
     assert entries["G0025"].primary_gloss == "szeret"
 
     load_demo_hungarian_lexicon.clear()
@@ -280,13 +295,13 @@ def test_streamlit_demo_shows_hungarian_lexicon_for_kosmos_and_houtos() -> None:
 
 
 def test_streamlit_demo_shows_normal_empty_lexicon_state_for_unsupported_token() -> None:
-    app = AppTest.from_function(_demo_with_mocked_ruf_success).run()
+    app = AppTest.from_function(_demo_with_mocked_ruf_success_and_empty_lexicon).run()
 
-    app.selectbox[0].set_value(2)
+    app.selectbox[0].set_value(8)
     app.run()
 
     markdown_values = [markdown.value for markdown in app.markdown]
-    assert app.subheader[0].value == "γὰρ"
+    assert app.subheader[0].value == "ὥστε"
     assert any(NO_LEXICON_ENTRY_MESSAGE in value for value in markdown_values)
     assert not any(
         "Alapjelentés:**" in value

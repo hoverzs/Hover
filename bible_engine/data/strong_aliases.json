@@ -1,0 +1,1885 @@
+[
+  {
+    "source_strong_id": "G0007G",
+    "target_strong_id": "G0007",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 2
+  },
+  {
+    "source_strong_id": "G0007H",
+    "target_strong_id": "G0007",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G0032G",
+    "target_strong_id": "G0032",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 176
+  },
+  {
+    "source_strong_id": "G0032H",
+    "target_strong_id": "G0032",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 8
+  },
+  {
+    "source_strong_id": "G0039G",
+    "target_strong_id": "G0040",
+    "confidence": 0.94,
+    "evidence": "one TBESG record has the same lemma and compatible morphology",
+    "token_frequency": 9
+  },
+  {
+    "source_strong_id": "G0039H",
+    "target_strong_id": "G0040",
+    "confidence": 0.94,
+    "evidence": "one TBESG record has the same lemma and compatible morphology",
+    "token_frequency": 2
+  },
+  {
+    "source_strong_id": "G0040G",
+    "target_strong_id": "G0040",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 167
+  },
+  {
+    "source_strong_id": "G0040H",
+    "target_strong_id": "G0040",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 63
+  },
+  {
+    "source_strong_id": "G0068G",
+    "target_strong_id": "G0068",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 35
+  },
+  {
+    "source_strong_id": "G0068H",
+    "target_strong_id": "G0068",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 2
+  },
+  {
+    "source_strong_id": "G0129G",
+    "target_strong_id": "G0129",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 98
+  },
+  {
+    "source_strong_id": "G0129H",
+    "target_strong_id": "G0129",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 2
+  },
+  {
+    "source_strong_id": "G0165G",
+    "target_strong_id": "G0165",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 38
+  },
+  {
+    "source_strong_id": "G0165H",
+    "target_strong_id": "G0165",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 91
+  },
+  {
+    "source_strong_id": "G0223G",
+    "target_strong_id": "G0223",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G0223H",
+    "target_strong_id": "G0223",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G0223I",
+    "target_strong_id": "G0223",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 2
+  },
+  {
+    "source_strong_id": "G0223J",
+    "target_strong_id": "G0223",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 2
+  },
+  {
+    "source_strong_id": "G0301G",
+    "target_strong_id": "G0301",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G0301H",
+    "target_strong_id": "G0301",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 2
+  },
+  {
+    "source_strong_id": "G0367G",
+    "target_strong_id": "G0367",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 3
+  },
+  {
+    "source_strong_id": "G0367H",
+    "target_strong_id": "G0367",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 6
+  },
+  {
+    "source_strong_id": "G0367I",
+    "target_strong_id": "G0367",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 2
+  },
+  {
+    "source_strong_id": "G0435G",
+    "target_strong_id": "G0435",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 162
+  },
+  {
+    "source_strong_id": "G0435H",
+    "target_strong_id": "G0435",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 55
+  },
+  {
+    "source_strong_id": "G0490G",
+    "target_strong_id": "G0490",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 14
+  },
+  {
+    "source_strong_id": "G0490H",
+    "target_strong_id": "G0490",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 4
+  },
+  {
+    "source_strong_id": "G0630G",
+    "target_strong_id": "G0630",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 54
+  },
+  {
+    "source_strong_id": "G0630H",
+    "target_strong_id": "G0630",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 13
+  },
+  {
+    "source_strong_id": "G0769G",
+    "target_strong_id": "G0769",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 15
+  },
+  {
+    "source_strong_id": "G0769H",
+    "target_strong_id": "G0769",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 9
+  },
+  {
+    "source_strong_id": "G0770G",
+    "target_strong_id": "G0770",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 15
+  },
+  {
+    "source_strong_id": "G0770H",
+    "target_strong_id": "G0770",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 20
+  },
+  {
+    "source_strong_id": "G0772G",
+    "target_strong_id": "G0772",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 20
+  },
+  {
+    "source_strong_id": "G0772H",
+    "target_strong_id": "G0772",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 6
+  },
+  {
+    "source_strong_id": "G0863G",
+    "target_strong_id": "G0863",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 73
+  },
+  {
+    "source_strong_id": "G0863H",
+    "target_strong_id": "G0863",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 49
+  },
+  {
+    "source_strong_id": "G0863I",
+    "target_strong_id": "G0863",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 24
+  },
+  {
+    "source_strong_id": "G0906G",
+    "target_strong_id": "G0906",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 74
+  },
+  {
+    "source_strong_id": "G0906H",
+    "target_strong_id": "G0906",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 42
+  },
+  {
+    "source_strong_id": "G0906I",
+    "target_strong_id": "G0906",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 2
+  },
+  {
+    "source_strong_id": "G0906J",
+    "target_strong_id": "G0906",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 5
+  },
+  {
+    "source_strong_id": "G0921G",
+    "target_strong_id": "G0921",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 29
+  },
+  {
+    "source_strong_id": "G0923G",
+    "target_strong_id": "G0923",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G0923H",
+    "target_strong_id": "G0923",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G0928G",
+    "target_strong_id": "G0928",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 8
+  },
+  {
+    "source_strong_id": "G0928H",
+    "target_strong_id": "G0928",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 4
+  },
+  {
+    "source_strong_id": "G0938G",
+    "target_strong_id": "G0938",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G0938H",
+    "target_strong_id": "G0938",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 3
+  },
+  {
+    "source_strong_id": "G1050G",
+    "target_strong_id": "G1050",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G1050H",
+    "target_strong_id": "G1050",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G1050I",
+    "target_strong_id": "G1050",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 2
+  },
+  {
+    "source_strong_id": "G1050J",
+    "target_strong_id": "G1050",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G1056G",
+    "target_strong_id": "G1056",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 57
+  },
+  {
+    "source_strong_id": "G1056H",
+    "target_strong_id": "G1056",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 5
+  },
+  {
+    "source_strong_id": "G1081G",
+    "target_strong_id": "G1081",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 4
+  },
+  {
+    "source_strong_id": "G1085G",
+    "target_strong_id": "G1085",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 15
+  },
+  {
+    "source_strong_id": "G1085H",
+    "target_strong_id": "G1085",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 6
+  },
+  {
+    "source_strong_id": "G1093G",
+    "target_strong_id": "G1093",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 171
+  },
+  {
+    "source_strong_id": "G1093H",
+    "target_strong_id": "G1093",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 52
+  },
+  {
+    "source_strong_id": "G1093I",
+    "target_strong_id": "G1093",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 32
+  },
+  {
+    "source_strong_id": "G1135G",
+    "target_strong_id": "G1135",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 123
+  },
+  {
+    "source_strong_id": "G1135H",
+    "target_strong_id": "G1135",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 98
+  },
+  {
+    "source_strong_id": "G1487G",
+    "target_strong_id": "G1487",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 390
+  },
+  {
+    "source_strong_id": "G1487H",
+    "target_strong_id": "G1487",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 87
+  },
+  {
+    "source_strong_id": "G1487I",
+    "target_strong_id": "G1487",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 13
+  },
+  {
+    "source_strong_id": "G1487J",
+    "target_strong_id": "G1487",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 4
+  },
+  {
+    "source_strong_id": "G1487K",
+    "target_strong_id": "G1487",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 4
+  },
+  {
+    "source_strong_id": "G1487L",
+    "target_strong_id": "G1487",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 9
+  },
+  {
+    "source_strong_id": "G1487M",
+    "target_strong_id": "G1487",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 17
+  },
+  {
+    "source_strong_id": "G1492G",
+    "target_strong_id": "G1492",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 3
+  },
+  {
+    "source_strong_id": "G1492H",
+    "target_strong_id": "G1492",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 347
+  },
+  {
+    "source_strong_id": "G1492I",
+    "target_strong_id": "G1492",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 31
+  },
+  {
+    "source_strong_id": "G1662G",
+    "target_strong_id": "G1662",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 2
+  },
+  {
+    "source_strong_id": "G1662H",
+    "target_strong_id": "G1662",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G2060G",
+    "target_strong_id": "G2060",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G2060H",
+    "target_strong_id": "G2060",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G2197G",
+    "target_strong_id": "G2197",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 2
+  },
+  {
+    "source_strong_id": "G2197H",
+    "target_strong_id": "G2197",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 9
+  },
+  {
+    "source_strong_id": "G2199G",
+    "target_strong_id": "G2199",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 12
+  },
+  {
+    "source_strong_id": "G2216G",
+    "target_strong_id": "G2216",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G2216H",
+    "target_strong_id": "G2216",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 2
+  },
+  {
+    "source_strong_id": "G2264G",
+    "target_strong_id": "G2264",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 11
+  },
+  {
+    "source_strong_id": "G2264H",
+    "target_strong_id": "G2264",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 27
+  },
+  {
+    "source_strong_id": "G2264I",
+    "target_strong_id": "G2264",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 6
+  },
+  {
+    "source_strong_id": "G2266G",
+    "target_strong_id": "G2266",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 6
+  },
+  {
+    "source_strong_id": "G2269G",
+    "target_strong_id": "G2269",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 2
+  },
+  {
+    "source_strong_id": "G2269H",
+    "target_strong_id": "G2269",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G2384G",
+    "target_strong_id": "G2384",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 2
+  },
+  {
+    "source_strong_id": "G2384H",
+    "target_strong_id": "G2384",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 25
+  },
+  {
+    "source_strong_id": "G2385G",
+    "target_strong_id": "G2385",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 21
+  },
+  {
+    "source_strong_id": "G2385H",
+    "target_strong_id": "G2385",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 4
+  },
+  {
+    "source_strong_id": "G2385I",
+    "target_strong_id": "G2385",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 15
+  },
+  {
+    "source_strong_id": "G2385J",
+    "target_strong_id": "G2385",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 2
+  },
+  {
+    "source_strong_id": "G2424G",
+    "target_strong_id": "G2424",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 987
+  },
+  {
+    "source_strong_id": "G2424H",
+    "target_strong_id": "G2424",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G2424I",
+    "target_strong_id": "G2424",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 2
+  },
+  {
+    "source_strong_id": "G2424J",
+    "target_strong_id": "G2424",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G2424K",
+    "target_strong_id": "G2424",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G2455G",
+    "target_strong_id": "G2455",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 3
+  },
+  {
+    "source_strong_id": "G2455H",
+    "target_strong_id": "G2455",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 22
+  },
+  {
+    "source_strong_id": "G2455I",
+    "target_strong_id": "G2455",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 3
+  },
+  {
+    "source_strong_id": "G2455J",
+    "target_strong_id": "G2455",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G2455K",
+    "target_strong_id": "G2455",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G2455L",
+    "target_strong_id": "G2455",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G2455M",
+    "target_strong_id": "G2455",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 3
+  },
+  {
+    "source_strong_id": "G2455N",
+    "target_strong_id": "G2455",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 7
+  },
+  {
+    "source_strong_id": "G2459G",
+    "target_strong_id": "G2459",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G2459H",
+    "target_strong_id": "G2459",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G2459I",
+    "target_strong_id": "G2459",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G2491G",
+    "target_strong_id": "G2491",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 91
+  },
+  {
+    "source_strong_id": "G2491H",
+    "target_strong_id": "G2491",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 36
+  },
+  {
+    "source_strong_id": "G2491I",
+    "target_strong_id": "G2491",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G2491J",
+    "target_strong_id": "G2491",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 5
+  },
+  {
+    "source_strong_id": "G2491K",
+    "target_strong_id": "G2491",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 4
+  },
+  {
+    "source_strong_id": "G2495H",
+    "target_strong_id": "G2495",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 9
+  },
+  {
+    "source_strong_id": "G2500G",
+    "target_strong_id": "G2500",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 3
+  },
+  {
+    "source_strong_id": "G2501G",
+    "target_strong_id": "G2501",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 15
+  },
+  {
+    "source_strong_id": "G2501H",
+    "target_strong_id": "G2501",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 2
+  },
+  {
+    "source_strong_id": "G2501I",
+    "target_strong_id": "G2501",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 6
+  },
+  {
+    "source_strong_id": "G2501J",
+    "target_strong_id": "G2501",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G2501L",
+    "target_strong_id": "G2501",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G2501M",
+    "target_strong_id": "G2501",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G2501N",
+    "target_strong_id": "G2501",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 9
+  },
+  {
+    "source_strong_id": "G2501O",
+    "target_strong_id": "G2501",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G2533G",
+    "target_strong_id": "G2533",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 9
+  },
+  {
+    "source_strong_id": "G2536G",
+    "target_strong_id": "G2536",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G2536H",
+    "target_strong_id": "G2536",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G2541G",
+    "target_strong_id": "G2541",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 2
+  },
+  {
+    "source_strong_id": "G2541H",
+    "target_strong_id": "G2541",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 11
+  },
+  {
+    "source_strong_id": "G2541I",
+    "target_strong_id": "G2541",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 2
+  },
+  {
+    "source_strong_id": "G2541J",
+    "target_strong_id": "G2541",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 16
+  },
+  {
+    "source_strong_id": "G2542G",
+    "target_strong_id": "G2542",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 2
+  },
+  {
+    "source_strong_id": "G2542H",
+    "target_strong_id": "G2542",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 15
+  },
+  {
+    "source_strong_id": "G2556G",
+    "target_strong_id": "G2556",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 44
+  },
+  {
+    "source_strong_id": "G2556H",
+    "target_strong_id": "G2556",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 6
+  },
+  {
+    "source_strong_id": "G2564G",
+    "target_strong_id": "G2564",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 140
+  },
+  {
+    "source_strong_id": "G2564H",
+    "target_strong_id": "G2564",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 8
+  },
+  {
+    "source_strong_id": "G2570G",
+    "target_strong_id": "G2570",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 101
+  },
+  {
+    "source_strong_id": "G2570H",
+    "target_strong_id": "G2570",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G2577G",
+    "target_strong_id": "G2577",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 2
+  },
+  {
+    "source_strong_id": "G2577H",
+    "target_strong_id": "G2577",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G2763G",
+    "target_strong_id": "G2763",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G2763H",
+    "target_strong_id": "G2763",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 2
+  },
+  {
+    "source_strong_id": "G2787G",
+    "target_strong_id": "G2787",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 3
+  },
+  {
+    "source_strong_id": "G2787H",
+    "target_strong_id": "G2787",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 3
+  },
+  {
+    "source_strong_id": "G2804G",
+    "target_strong_id": "G2804",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 2
+  },
+  {
+    "source_strong_id": "G2804H",
+    "target_strong_id": "G2804",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G2839G",
+    "target_strong_id": "G2839",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 10
+  },
+  {
+    "source_strong_id": "G2839H",
+    "target_strong_id": "G2839",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 4
+  },
+  {
+    "source_strong_id": "G2962G",
+    "target_strong_id": "G2962",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 667
+  },
+  {
+    "source_strong_id": "G2962H",
+    "target_strong_id": "G2962",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 89
+  },
+  {
+    "source_strong_id": "G2976G",
+    "target_strong_id": "G2976",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 4
+  },
+  {
+    "source_strong_id": "G2976H",
+    "target_strong_id": "G2976",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 11
+  },
+  {
+    "source_strong_id": "G3004G",
+    "target_strong_id": "G3004",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1311
+  },
+  {
+    "source_strong_id": "G3004H",
+    "target_strong_id": "G3004",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 47
+  },
+  {
+    "source_strong_id": "G3017G",
+    "target_strong_id": "G3017",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G3017H",
+    "target_strong_id": "G3017",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G3017I",
+    "target_strong_id": "G3017",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 3
+  },
+  {
+    "source_strong_id": "G3017J",
+    "target_strong_id": "G3017",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 3
+  },
+  {
+    "source_strong_id": "G3123G",
+    "target_strong_id": "G3123",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 51
+  },
+  {
+    "source_strong_id": "G3123H",
+    "target_strong_id": "G3123",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 32
+  },
+  {
+    "source_strong_id": "G3128G",
+    "target_strong_id": "G3128",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G3128H",
+    "target_strong_id": "G3128",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 2
+  },
+  {
+    "source_strong_id": "G3137G",
+    "target_strong_id": "G3137",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 26
+  },
+  {
+    "source_strong_id": "G3137I",
+    "target_strong_id": "G3137",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 14
+  },
+  {
+    "source_strong_id": "G3137J",
+    "target_strong_id": "G3137",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 11
+  },
+  {
+    "source_strong_id": "G3137K",
+    "target_strong_id": "G3137",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G3137L",
+    "target_strong_id": "G3137",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G3137M",
+    "target_strong_id": "G3137",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G3158G",
+    "target_strong_id": "G3158",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G3158H",
+    "target_strong_id": "G3158",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G3161G",
+    "target_strong_id": "G3161",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G3161H",
+    "target_strong_id": "G3161",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G3197G",
+    "target_strong_id": "G3197",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G3197H",
+    "target_strong_id": "G3197",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G3558G",
+    "target_strong_id": "G3558",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 5
+  },
+  {
+    "source_strong_id": "G3558H",
+    "target_strong_id": "G3558",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 2
+  },
+  {
+    "source_strong_id": "G3614G",
+    "target_strong_id": "G3614",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 85
+  },
+  {
+    "source_strong_id": "G3614H",
+    "target_strong_id": "G3614",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 10
+  },
+  {
+    "source_strong_id": "G3624G",
+    "target_strong_id": "G3624",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 79
+  },
+  {
+    "source_strong_id": "G3624H",
+    "target_strong_id": "G3624",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 36
+  },
+  {
+    "source_strong_id": "G3700G",
+    "target_strong_id": "G3708",
+    "confidence": 0.94,
+    "evidence": "one TBESG record has the same lemma and compatible morphology",
+    "token_frequency": 29
+  },
+  {
+    "source_strong_id": "G3754G",
+    "target_strong_id": "G3754",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 863
+  },
+  {
+    "source_strong_id": "G3754H",
+    "target_strong_id": "G3754",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 468
+  },
+  {
+    "source_strong_id": "G3972G",
+    "target_strong_id": "G3972",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 163
+  },
+  {
+    "source_strong_id": "G3972H",
+    "target_strong_id": "G3972",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G3985G",
+    "target_strong_id": "G3985",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 16
+  },
+  {
+    "source_strong_id": "G3985H",
+    "target_strong_id": "G3985",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 23
+  },
+  {
+    "source_strong_id": "G3985I",
+    "target_strong_id": "G3985",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 2
+  },
+  {
+    "source_strong_id": "G3986G",
+    "target_strong_id": "G3986",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 10
+  },
+  {
+    "source_strong_id": "G3986H",
+    "target_strong_id": "G3986",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 11
+  },
+  {
+    "source_strong_id": "G4074G",
+    "target_strong_id": "G4074",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 159
+  },
+  {
+    "source_strong_id": "G4102G",
+    "target_strong_id": "G4102",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 240
+  },
+  {
+    "source_strong_id": "G4102H",
+    "target_strong_id": "G4102",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 3
+  },
+  {
+    "source_strong_id": "G4151G",
+    "target_strong_id": "G4151",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 380
+  },
+  {
+    "source_strong_id": "G4151H",
+    "target_strong_id": "G4151",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 6
+  },
+  {
+    "source_strong_id": "G4160G",
+    "target_strong_id": "G4160",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 566
+  },
+  {
+    "source_strong_id": "G4160H",
+    "target_strong_id": "G4160",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G4160I",
+    "target_strong_id": "G4160",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 7
+  },
+  {
+    "source_strong_id": "G4160J",
+    "target_strong_id": "G4160",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 5
+  },
+  {
+    "source_strong_id": "G4245G",
+    "target_strong_id": "G4245",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 60
+  },
+  {
+    "source_strong_id": "G4245H",
+    "target_strong_id": "G4245",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 7
+  },
+  {
+    "source_strong_id": "G4413G",
+    "target_strong_id": "G4413",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 143
+  },
+  {
+    "source_strong_id": "G4413H",
+    "target_strong_id": "G4413",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 8
+  },
+  {
+    "source_strong_id": "G4413I",
+    "target_strong_id": "G4413",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 5
+  },
+  {
+    "source_strong_id": "G4413J",
+    "target_strong_id": "G4413",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 9
+  },
+  {
+    "source_strong_id": "G4504G",
+    "target_strong_id": "G4504",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G4504H",
+    "target_strong_id": "G4504",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G4527G",
+    "target_strong_id": "G4527",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G4527H",
+    "target_strong_id": "G4527",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G4528G",
+    "target_strong_id": "G4528",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G4528H",
+    "target_strong_id": "G4528",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 2
+  },
+  {
+    "source_strong_id": "G4549G",
+    "target_strong_id": "G4549",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 8
+  },
+  {
+    "source_strong_id": "G4549H",
+    "target_strong_id": "G4549",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G4569G",
+    "target_strong_id": "G4569",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 15
+  },
+  {
+    "source_strong_id": "G4569H",
+    "target_strong_id": "G4549",
+    "confidence": 0.94,
+    "evidence": "one TBESG record has the same lemma and compatible morphology",
+    "token_frequency": 2
+  },
+  {
+    "source_strong_id": "G4613G",
+    "target_strong_id": "G4613",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 4
+  },
+  {
+    "source_strong_id": "G4613H",
+    "target_strong_id": "G4613",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 2
+  },
+  {
+    "source_strong_id": "G4613I",
+    "target_strong_id": "G4613",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 5
+  },
+  {
+    "source_strong_id": "G4613J",
+    "target_strong_id": "G4613",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 3
+  },
+  {
+    "source_strong_id": "G4613L",
+    "target_strong_id": "G4613",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 4
+  },
+  {
+    "source_strong_id": "G4613M",
+    "target_strong_id": "G4613",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 3
+  },
+  {
+    "source_strong_id": "G4613N",
+    "target_strong_id": "G4613",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 5
+  },
+  {
+    "source_strong_id": "G4613O",
+    "target_strong_id": "G4613",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 50
+  },
+  {
+    "source_strong_id": "G4672G",
+    "target_strong_id": "G4672",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 10
+  },
+  {
+    "source_strong_id": "G4672H",
+    "target_strong_id": "G4672",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 2
+  },
+  {
+    "source_strong_id": "G4690G",
+    "target_strong_id": "G4690",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 36
+  },
+  {
+    "source_strong_id": "G4690H",
+    "target_strong_id": "G4690",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 7
+  },
+  {
+    "source_strong_id": "G4826G",
+    "target_strong_id": "G4826",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 2
+  },
+  {
+    "source_strong_id": "G4826H",
+    "target_strong_id": "G4826",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G4826I",
+    "target_strong_id": "G4826",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G4826J",
+    "target_strong_id": "G4826",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G4826K",
+    "target_strong_id": "G4826",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 2
+  },
+  {
+    "source_strong_id": "G5083G",
+    "target_strong_id": "G5083",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 38
+  },
+  {
+    "source_strong_id": "G5083H",
+    "target_strong_id": "G5083",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 17
+  },
+  {
+    "source_strong_id": "G5083I",
+    "target_strong_id": "G5083",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 18
+  },
+  {
+    "source_strong_id": "G5085G",
+    "target_strong_id": "G5085",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 2
+  },
+  {
+    "source_strong_id": "G5085H",
+    "target_strong_id": "G5085",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G5259G",
+    "target_strong_id": "G5259",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 179
+  },
+  {
+    "source_strong_id": "G5259H",
+    "target_strong_id": "G5259",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 48
+  },
+  {
+    "source_strong_id": "G5328G",
+    "target_strong_id": "G5328",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 2
+  },
+  {
+    "source_strong_id": "G5328H",
+    "target_strong_id": "G5328",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 2
+  },
+  {
+    "source_strong_id": "G5328I",
+    "target_strong_id": "G5328",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G5376G",
+    "target_strong_id": "G5376",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 16
+  },
+  {
+    "source_strong_id": "G5376H",
+    "target_strong_id": "G5376",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 3
+  },
+  {
+    "source_strong_id": "G5376I",
+    "target_strong_id": "G5376",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G5376J",
+    "target_strong_id": "G5376",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 16
+  },
+  {
+    "source_strong_id": "G5376K",
+    "target_strong_id": "G5376",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 2
+  },
+  {
+    "source_strong_id": "G5438G",
+    "target_strong_id": "G5438",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 42
+  },
+  {
+    "source_strong_id": "G5438H",
+    "target_strong_id": "G5438",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 6
+  },
+  {
+    "source_strong_id": "G5442G",
+    "target_strong_id": "G5442",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 11
+  },
+  {
+    "source_strong_id": "G5442H",
+    "target_strong_id": "G5442",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 5
+  },
+  {
+    "source_strong_id": "G5442I",
+    "target_strong_id": "G5442",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 15
+  },
+  {
+    "source_strong_id": "G5456G",
+    "target_strong_id": "G5456",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 123
+  },
+  {
+    "source_strong_id": "G5456H",
+    "target_strong_id": "G5456",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 18
+  },
+  {
+    "source_strong_id": "G5514G",
+    "target_strong_id": "G5514",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G5564G",
+    "target_strong_id": "G5564",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 9
+  },
+  {
+    "source_strong_id": "G5564H",
+    "target_strong_id": "G5564",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G5586G",
+    "target_strong_id": "G5586",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 2
+  },
+  {
+    "source_strong_id": "G5586H",
+    "target_strong_id": "G5586",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G5590G",
+    "target_strong_id": "G5590",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 49
+  },
+  {
+    "source_strong_id": "G5590H",
+    "target_strong_id": "G5590",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 41
+  },
+  {
+    "source_strong_id": "G5590I",
+    "target_strong_id": "G5590",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 6
+  },
+  {
+    "source_strong_id": "G5590J",
+    "target_strong_id": "G5590",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 9
+  },
+  {
+    "source_strong_id": "G5590K",
+    "target_strong_id": "G5590",
+    "confidence": 0.99,
+    "evidence": "suffix Strong ID has same lemma and compatible morphology as numeric base",
+    "token_frequency": 1
+  },
+  {
+    "source_strong_id": "G0001G",
+    "target_strong_id": "G0001",
+    "confidence": 0.98,
+    "evidence": "manual audit: suffix form is Alpha letter/name variant of numeric base with compatible nominal morphology",
+    "token_frequency": 4
+  },
+  {
+    "source_strong_id": "G1086G",
+    "target_strong_id": "G1086",
+    "confidence": 0.97,
+    "evidence": "manual audit: Gerasene/Gergesene textual spelling variant with compatible place-name morphology",
+    "token_frequency": 3
+  },
+  {
+    "source_strong_id": "G2857G",
+    "target_strong_id": "G2857",
+    "confidence": 0.97,
+    "evidence": "manual audit: Colossae spelling variant with compatible place-name morphology",
+    "token_frequency": 1
+  }
+]
