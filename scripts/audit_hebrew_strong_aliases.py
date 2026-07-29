@@ -61,12 +61,13 @@ def audit_hebrew_strong_aliases(
     tbesh_source: Path | None = None,
 ) -> dict[str, object]:
     with sqlite3.connect(tahot_database) as tahot, sqlite3.connect(tbesh_database) as tbesh:
+        join_column = _token_strong_join_column(tahot)
         token_counts = Counter(
             {
                 row[0]: int(row[1])
                 for row in tahot.execute(
-                    """
-                    SELECT strong_id, COUNT(DISTINCT stable_token_key)
+                    f"""
+                    SELECT strong_id, COUNT(DISTINCT {join_column})
                     FROM token_strong_ids
                     GROUP BY strong_id
                     """
@@ -109,6 +110,7 @@ def audit_hebrew_strong_aliases(
 
 
 def _metadata_by_strong(connection: sqlite3.Connection) -> dict[str, dict[str, object]]:
+    join_column = _token_strong_join_column(connection)
     data: dict[str, dict[str, object]] = defaultdict(
         lambda: {
             "lemmas": Counter(),
@@ -118,11 +120,11 @@ def _metadata_by_strong(connection: sqlite3.Connection) -> dict[str, dict[str, o
         }
     )
     for row in connection.execute(
-        """
+        f"""
         SELECT s.strong_id, t.stable_token_key, t.book, t.chapter, t.verse, t.surface,
                t.lemma, t.language, t.morphology_code
         FROM token_strong_ids s
-        JOIN tokens t ON t.stable_token_key = s.stable_token_key
+        JOIN tokens t ON t.{join_column} = s.{join_column}
         ORDER BY t.token_index
         """
     ):
@@ -141,6 +143,11 @@ def _metadata_by_strong(connection: sqlite3.Connection) -> dict[str, dict[str, o
                 }
             )
     return data
+
+
+def _token_strong_join_column(connection: sqlite3.Connection) -> str:
+    columns = {row[1] for row in connection.execute("PRAGMA table_info(token_strong_ids)")}
+    return "token_id" if "token_id" in columns else "stable_token_key"
 
 
 def _tbesh_entries(connection: sqlite3.Connection) -> dict[str, dict[str, str]]:
