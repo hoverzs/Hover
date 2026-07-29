@@ -72,4 +72,6 @@ st_*.log
 *.db
 *.sqlite
 *.sqlite3
+!data/generated/tahot_ot_runtime.sqlite3
+!data/generated/tbesh_lexicon_runtime.sqlite3
 data/raw/

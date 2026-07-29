@@ -16,8 +16,8 @@ from bible_engine.paths import GENERATED_DATA_DIR
 from bible_engine.tbesh_parser import HebrewLexiconEntry, parse_tbesh_row
 
 
-TAHOT_DATABASE_NAME = "tahot_ot.sqlite3"
-TBESH_DATABASE_NAME = "tbesh_lexicon.sqlite3"
+TAHOT_DATABASE_NAME = "tahot_ot_runtime.sqlite3"
+TBESH_DATABASE_NAME = "tbesh_lexicon_runtime.sqlite3"
 DEFAULT_TAHOT_DATABASE_PATH = GENERATED_DATA_DIR / TAHOT_DATABASE_NAME
 DEFAULT_TBESH_DATABASE_PATH = GENERATED_DATA_DIR / TBESH_DATABASE_NAME
 
@@ -420,7 +420,7 @@ def inspect_hebrew_database_path(database_path: str | Path | None = None) -> Heb
         with sqlite3.connect(path) as connection:
             integrity = connection.execute("PRAGMA integrity_check").fetchone()[0]
             tables = set(_read_scalar_list_from_connection(connection, "SELECT name FROM sqlite_master WHERE type='table'"))
-        required = {"metadata", "books", "tokens", "token_components", "token_strong_ids"}
+        required = {"metadata", "books", "tokens", "token_strong_ids"}
         return HebrewDatabaseDiagnostics(str(path), exists, is_file, size, integrity, required <= tables)
     except sqlite3.Error as exc:
         return HebrewDatabaseDiagnostics(str(path), exists, is_file, size, "", False, str(exc))
@@ -435,9 +435,10 @@ def get_hebrew_passage_tokens(
 ) -> list[HebrewToken]:
     end = verse_end or verse_start
     with sqlite3.connect(database_path) as connection:
+        connection.row_factory = sqlite3.Row
         rows = connection.execute(
             """
-            SELECT raw_fields_json, token_index
+            SELECT *
             FROM tokens
             WHERE book = ? AND chapter = ? AND verse BETWEEN ? AND ?
             ORDER BY chapter, verse, word_index
@@ -447,49 +448,140 @@ def get_hebrew_passage_tokens(
         if not rows and _table_exists(connection, "hebrew_tokens"):
             rows = connection.execute(
                 """
-                SELECT raw_fields_json, token_index
+                SELECT *
                 FROM hebrew_tokens
                 WHERE book = ? AND chapter = ? AND verse BETWEEN ? AND ?
                 ORDER BY chapter, verse, word_index
                 """,
                 (book, chapter, verse_start, end),
             ).fetchall()
-    return [parse_tahot_row("\t".join(json.loads(row[0])), token_index=row[1]) for row in rows]
+        return _tokens_from_database_rows(connection, rows)
 
 
 def get_hebrew_token(database_path: str | Path, stable_token_key: str) -> HebrewToken | None:
     with sqlite3.connect(database_path) as connection:
+        connection.row_factory = sqlite3.Row
         row = connection.execute(
-            "SELECT raw_fields_json, token_index FROM tokens WHERE stable_token_key = ?",
+            "SELECT * FROM tokens WHERE stable_token_key = ?",
             (stable_token_key,),
         ).fetchone()
-    if row is None:
-        return None
-    return parse_tahot_row("\t".join(json.loads(row[0])), token_index=row[1])
+        tokens = _tokens_from_database_rows(connection, [row] if row else [])
+    return tokens[0] if tokens else None
 
 
 def find_hebrew_tokens_by_lemma(database_path: str | Path, lemma: str) -> list[HebrewToken]:
     with sqlite3.connect(database_path) as connection:
+        connection.row_factory = sqlite3.Row
         rows = connection.execute(
-            "SELECT raw_fields_json, token_index FROM tokens WHERE lemma = ? ORDER BY book, chapter, verse, word_index",
+            "SELECT * FROM tokens WHERE lemma = ? ORDER BY book, chapter, verse, word_index",
             (lemma,),
         ).fetchall()
-    return [parse_tahot_row("\t".join(json.loads(row[0])), token_index=row[1]) for row in rows]
+        return _tokens_from_database_rows(connection, rows)
 
 
 def find_hebrew_tokens_by_strong_id(database_path: str | Path, strong_id: str) -> list[HebrewToken]:
     with sqlite3.connect(database_path) as connection:
+        connection.row_factory = sqlite3.Row
+        join_column = _token_strong_join_column(connection)
         rows = connection.execute(
-            """
-            SELECT t.raw_fields_json, t.token_index
+            f"""
+            SELECT t.*
             FROM tokens t
-            JOIN token_strong_ids s ON s.stable_token_key = t.stable_token_key
+            JOIN token_strong_ids s ON s.{join_column} = t.{join_column}
             WHERE s.strong_id = ?
             ORDER BY t.book, t.chapter, t.verse, t.word_index
             """,
             (strong_id,),
         ).fetchall()
-    return [parse_tahot_row("\t".join(json.loads(row[0])), token_index=row[1]) for row in rows]
+        return _tokens_from_database_rows(connection, rows)
+
+
+def _tokens_from_database_rows(connection: sqlite3.Connection, rows: list[sqlite3.Row]) -> list[HebrewToken]:
+    if not rows:
+        return []
+    if "raw_fields_json" in rows[0].keys():
+        return [
+            parse_tahot_row("\t".join(json.loads(row["raw_fields_json"])), token_index=row["token_index"])
+            for row in rows
+        ]
+    join_column = _token_strong_join_column(connection)
+    strong_rows = _load_token_strong_rows(connection, rows, join_column)
+    return [_token_from_normalized_row(row, strong_rows.get(row[join_column], ())) for row in rows]
+
+
+def _load_token_strong_rows(
+    connection: sqlite3.Connection,
+    token_rows: list[sqlite3.Row],
+    join_column: str,
+) -> dict[object, tuple[sqlite3.Row, ...]]:
+    grouped: dict[object, list[sqlite3.Row]] = defaultdict(list)
+    token_keys = [row[join_column] for row in token_rows]
+    for chunk in _chunks(token_keys, 500):
+        placeholders = ",".join("?" for _ in chunk)
+        rows = connection.execute(
+            f"""
+            SELECT {join_column}, strong_id, role
+            FROM token_strong_ids
+            WHERE {join_column} IN ({placeholders})
+            ORDER BY rowid
+            """,
+            chunk,
+        ).fetchall()
+        for row in rows:
+            grouped[row[join_column]].append(row)
+    return {key: tuple(value) for key, value in grouped.items()}
+
+
+def _token_strong_join_column(connection: sqlite3.Connection) -> str:
+    columns = {row[1] for row in connection.execute("PRAGMA table_info(token_strong_ids)")}
+    return "token_id" if "token_id" in columns else "stable_token_key"
+
+
+def _chunks(items: list[object], size: int) -> list[list[object]]:
+    return [items[index : index + size] for index in range(0, len(items), size)]
+
+
+def _token_from_normalized_row(row: sqlite3.Row, strong_rows: tuple[sqlite3.Row, ...]) -> HebrewToken:
+    strong_ids = tuple(dict.fromkeys(item["strong_id"] for item in strong_rows if item["role"] == "token"))
+    components = tuple(
+        HebrewComponent(
+            surface=row["surface"] if item["role"] == "core" else "",
+            strong_id=item["strong_id"],
+            morphology_code=row["morphology_code"] or "",
+            role=item["role"],
+        )
+        for item in strong_rows
+        if item["role"] != "token"
+    )
+    core_component = next((item for item in components if item.role == "core"), None)
+    return HebrewToken(
+        book=row["book"],
+        chapter=int(row["chapter"]),
+        verse=int(row["verse"]),
+        word_index=int(row["word_index"]),
+        token_index=int(row["token_index"]),
+        surface=row["surface"] or "",
+        surface_without_accents=row["surface_without_accents"] or "",
+        transliteration=row["transliteration"] or "",
+        english_gloss=row["english_gloss"] or "",
+        lemma=row["lemma"] or "",
+        strong_ids=strong_ids,
+        morphology_code=row["morphology_code"] or "",
+        language=row["language"] or "",
+        prefix_components=tuple(item for item in components if item.role == "prefix"),
+        core_component=core_component,
+        suffix_components=tuple(item for item in components if item.role == "suffix"),
+        ketiv=row["ketiv"] or "",
+        qere=row["qere"] or "",
+        punctuation=row["punctuation"] or "",
+        maqaf=bool(row["maqaf"]),
+        source_token_id=row["source_token_id"] or "",
+        source_edition=row["source_edition"] or "",
+        meaning_variant=row["meaning_variant"] or "",
+        spelling_variant=row["spelling_variant"] or "",
+        expanded_strong_tags=row["expanded_strong_tags"] or "",
+        raw_fields=(),
+    )
 
 
 def get_hebrew_books(database_path: str | Path) -> list[tuple[str, int, int, int]]:
