@@ -173,11 +173,21 @@ def _load_aliases(path: Path) -> dict[str, dict[str, str]]:
         return {}
     data = json.loads(path.read_text(encoding="utf-8"))
     aliases: dict[str, dict[str, str]] = {}
-    for item in data:
+    if isinstance(data, dict):
+        items = [
+            {"source_id": source, "target_id": target, "confidence": "high"}
+            for source, target in data.items()
+        ]
+    elif isinstance(data, list):
+        items = data
+    else:
+        raise ValueError("Hebrew Strong alias JSON must be an object map or a list.")
+
+    for item in items:
         source = normalize_hebrew_strong_id(item["source_id"])
         target = normalize_hebrew_strong_id(item["target_id"])
         if source == target:
-            continue
+            raise ValueError(f"Self-referential Hebrew Strong alias: {source}")
         if source in aliases:
             raise ValueError(f"Duplicate Hebrew Strong alias source: {source}")
         aliases[source] = {"target_id": target, "confidence": item.get("confidence", "")}

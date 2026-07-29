@@ -208,6 +208,18 @@ def _render_old_testament_block() -> None:
     render_greek_analysis_block(reference="Zsolt 23,1", key_prefix="test_greek")
 
 
+def _render_unknown_old_testament_like_block() -> None:
+    from bible_engine.greek_analysis_ui import render_greek_analysis_block
+
+    render_greek_analysis_block(reference="Ismeretlen 1,1", key_prefix="test_greek")
+
+
+def _render_missing_old_testament_passage_block() -> None:
+    from bible_engine.greek_analysis_ui import render_greek_analysis_block
+
+    render_greek_analysis_block(reference="Mal 99,1", key_prefix="test_greek")
+
+
 def _render_invalid_reference_block() -> None:
     from bible_engine.greek_analysis_ui import render_greek_analysis_block
 
@@ -1067,12 +1079,41 @@ def test_default_renderer_shows_invalid_database_message(
     assert len(app.selectbox) == 0
 
 
-def test_old_testament_reference_shows_future_module_message() -> None:
+def test_old_testament_reference_renders_hebrew_panel() -> None:
     app = AppTest.from_function(_render_old_testament_block).run()
 
     assert not app.exception
-    assert any(OLD_TESTAMENT_MESSAGE in caption.value for caption in app.caption)
-    assert len(app.selectbox) == 0
+    page_text = "\n".join(markdown.value for markdown in app.markdown)
+    page_text += "\n".join(caption.value for caption in app.caption)
+    assert "H\u00e9ber-ar\u00e1mi eredeti sz\u00f6veg" in page_text
+    assert "V\u00e1lasszon egy h\u00e9ber vagy ar\u00e1mi sz\u00f3t" in page_text
+    assert OLD_TESTAMENT_MESSAGE not in page_text
+    assert app.selectbox
+
+
+def test_unknown_old_testament_like_reference_shows_friendly_error() -> None:
+    app = AppTest.from_function(_render_unknown_old_testament_like_block).run()
+
+    assert not app.exception
+    warning_values = [warning.value for warning in app.warning]
+    assert any(
+        "Az \u00f3sz\u00f6vets\u00e9gi k\u00f6nyv r\u00f6vid\u00edt\u00e9se nem azonos\u00edthat\u00f3: Ismeretlen"
+        in value
+        for value in warning_values
+    )
+
+
+def test_missing_old_testament_passage_shows_friendly_error() -> None:
+    app = AppTest.from_function(_render_missing_old_testament_passage_block).run()
+
+    assert not app.exception
+    warning_values = [warning.value for warning in app.warning]
+    assert any(
+        "A k\u00e9rt \u00f3sz\u00f6vets\u00e9gi szakasz nem tal\u00e1lhat\u00f3 a helyi TAHOT adatb\u00e1zisban."
+        in value
+        for value in warning_values
+    )
+    assert any("Fejleszt\u0151i r\u00e9szletek" in expander.label for expander in app.expander)
 
 
 def test_invalid_reference_renders_no_greek_block() -> None:
@@ -1191,9 +1232,13 @@ def test_bible_text_editor_renders_greek_block_after_hungarian_text(
 def test_demo_and_bible_text_ui_use_shared_renderer() -> None:
     demo_source = (ROOT / "greek_text_demo.py").read_text(encoding="utf-8")
     bible_text_source = (ROOT / "bible_text_ui.py").read_text(encoding="utf-8")
+    hebrew_demo_source = (ROOT / "hebrew_text_demo.py").read_text(encoding="utf-8")
+    app_source = (ROOT / "app.py").read_text(encoding="utf-8")
 
     assert "render_greek_analysis_block" in demo_source
     assert "render_greek_analysis_block" in bible_text_source
+    assert "render_hebrew_original_language_panel" in hebrew_demo_source
+    assert "render_greek_analysis_block" in app_source
     assert "from bible_engine.greek_analysis_ui import" in demo_source
     assert "from bible_engine.greek_analysis_ui import render_greek_analysis_block" in bible_text_source
 

@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
+from bible_engine.hebrew_morphology import HebrewMorphology, decode_hebrew_morphology
 from bible_engine.hebrew_parser import HebrewToken
 from bible_engine.hebrew_sqlite import (
     DEFAULT_TAHOT_DATABASE_PATH,
@@ -65,6 +66,13 @@ class HebrewTokenRepository:
         if self._database_status() != "ok":
             return []
         return get_hebrew_books(self.database_path)
+
+    def morphology(
+        self,
+        token: HebrewToken,
+        expansions: dict[str, str] | None = None,
+    ) -> HebrewMorphology:
+        return decode_hebrew_morphology(token.morphology_code, expansions or {})
 
     def _database_status(self) -> str:
         diagnostics = self.diagnostics()

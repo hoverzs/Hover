@@ -9,11 +9,16 @@ from pathlib import Path
 @dataclass(frozen=True)
 class HebrewMorphology:
     code: str
+    original_code: str = ""
     language: str = ""
     part_of_speech: str = ""
+    component_type: str = ""
+    components: tuple[dict[str, object], ...] = ()
     noun_type: str = ""
     adjective_type: str = ""
     pronoun_type: str = ""
+    proper_name_type: str = ""
+    particle_type: str = ""
     preposition_type: str = ""
     conjunction_type: str = ""
     verb_stem: str = ""
@@ -53,6 +58,17 @@ FUNCTION = {
     "m": "Interrogative",
     "r": "Relative",
 }
+PARTICLE_FORMS = {
+    "a": "Article",
+    "d": "Article",
+    "o": "Object marker",
+    "n": "Negative",
+    "m": "Interrogative",
+    "r": "Relative",
+    "c": "Conjunction",
+    "i": "Interrogative",
+    "j": "Interjection",
+}
 STEMS = {
     "q": "Qal",
     "N": "Niphal",
@@ -66,9 +82,14 @@ STEMS = {
     "A": "Haphel",
     "e": "Peal",
     "E": "Peil",
+    "Q": "Peil",
     "i": "Ithpeel",
     "r": "Hithpaal",
     "s": "Shaphel",
+    "c": "Tiphil",
+    "u": "Hitpael",
+    "M": "Hitpaal",
+    "D": "Nithpael",
 }
 VERB_FORMS = {
     "p": "Perfect",
@@ -80,6 +101,10 @@ VERB_FORMS = {
     "a": "Infinitive Absolute",
     "r": "Participle",
     "s": "Passive Participle",
+    "q": "Consecutive Perfect",
+    "j": "Jussive",
+    "n": "Imperfect",
+    "u": "Conjunction Imperfect",
 }
 PERSON = {"1": "First", "2": "Second", "3": "Third"}
 GENDER = {"m": "Masculine", "f": "Feminine", "b": "Either gender", "c": "Common"}
@@ -105,14 +130,38 @@ def decode_hebrew_morphology(code: str, expansions: dict[str, str] | None = None
     if not clean:
         return HebrewMorphology(code=clean, unresolved_parts=("empty",), status="malformed")
     parts = _split_morphology_components(clean)
-    decoded = [_decode_single(part, expansions or {}) for part in parts]
+    decoded = [
+        _decode_single(
+            part,
+            expansions or {},
+            original_code=raw_part,
+            component_type=_component_type(part, index, len(parts)),
+        )
+        for index, (raw_part, part) in enumerate(parts)
+    ]
     if len(decoded) == 1:
         return decoded[0]
     unresolved = tuple(item for morph in decoded for item in morph.unresolved_parts)
+    primary = _primary_component(decoded)
     return HebrewMorphology(
         code=clean,
+        original_code=clean,
         language=", ".join(dict.fromkeys(m.language for m in decoded if m.language)),
         part_of_speech=" + ".join(m.part_of_speech for m in decoded if m.part_of_speech),
+        component_type="composite",
+        components=tuple(_component_payload(morph) for morph in decoded),
+        proper_name_type=primary.proper_name_type,
+        particle_type=primary.particle_type,
+        verb_stem=primary.verb_stem,
+        verb_conjugation=primary.verb_conjugation,
+        person=primary.person,
+        gender=primary.gender,
+        number=primary.number,
+        state=primary.state,
+        suffix_type=primary.suffix_type,
+        suffix_person=primary.suffix_person,
+        suffix_gender=primary.suffix_gender,
+        suffix_number=primary.suffix_number,
         english_expansion=" / ".join(m.english_expansion for m in decoded if m.english_expansion),
         unresolved_parts=unresolved,
         status=_combined_status(decoded, unresolved),
@@ -149,19 +198,32 @@ def audit_morphology_codes(codes: list[str], expansions: dict[str, str]) -> dict
     }
 
 
-def _decode_single(code: str, expansions: dict[str, str]) -> HebrewMorphology:
+def _decode_single(
+    code: str,
+    expansions: dict[str, str],
+    *,
+    original_code: str | None = None,
+    component_type: str = "",
+) -> HebrewMorphology:
     expansion = expansions.get(code, "")
     unresolved: list[str] = []
     if code.startswith("S"):
         values: dict[str, str | tuple[str, ...]] = {
             "code": code,
+            "original_code": original_code or code,
+            "component_type": component_type or "suffix",
             "part_of_speech": "Suffix",
             "english_expansion": expansion,
-            "suffix_type": {"p": "Pronominal", "o": "Object"}.get(code[1:2], ""),
+            "suffix_type": {
+                "p": "Pronominal",
+                "o": "Object",
+                "d": "Directional",
+                "n": "Emphatic",
+            }.get(code[1:2], ""),
         }
         _decode_person_gender_number(code[2:], values, unresolved, prefix="suffix_")
         values["unresolved_parts"] = tuple(unresolved)
-        values["status"] = _status(code, expansion, unresolved)
+        values["status"] = _status(code, expansion, unresolved, values)
         return HebrewMorphology(**values)  # type: ignore[arg-type]
     language = LANGUAGE.get(code[:1], "")
     if not language:
@@ -172,8 +234,10 @@ def _decode_single(code: str, expansions: dict[str, str]) -> HebrewMorphology:
         unresolved.append(function_code or "missing-function")
     values: dict[str, str | tuple[str, ...]] = {
         "code": code,
+        "original_code": original_code or code,
         "language": language,
         "part_of_speech": pos,
+        "component_type": component_type,
         "english_expansion": expansion,
     }
     tail = code[2:]
@@ -186,21 +250,50 @@ def _decode_single(code: str, expansions: dict[str, str]) -> HebrewMorphology:
             values["verb_conjugation"] = VERB_FORMS[tail[1:2]]
         else:
             unresolved.append(tail[1:2] or "missing-verb-form")
-        _decode_person_gender_number(tail[2:], values, unresolved)
+        _decode_verb_ending(tail[2:], values, unresolved)
     elif function_code in {"N", "A", "P"}:
         if tail[:1]:
             if function_code == "N":
-                values["noun_type"] = {"c": "Common", "p": "Proper"}.get(tail[:1], "")
+                values["noun_type"] = {
+                    "c": "Common",
+                    "p": "Proper",
+                    "g": "Gentilic",
+                    "t": "Title",
+                }.get(tail[:1], "")
             elif function_code == "A":
-                values["adjective_type"] = {"a": "Adjective", "c": "Cardinal", "o": "Ordinal"}.get(tail[:1], "")
+                values["adjective_type"] = {
+                    "a": "Adjective",
+                    "c": "Numerical",
+                    "o": "Numerical position",
+                }.get(tail[:1], "")
             else:
                 values["pronoun_type"] = {"p": "Personal", "d": "Demonstrative", "i": "Interrogative"}.get(tail[:1], "")
+            if function_code == "N" and values.get("noun_type") == "Proper":
+                values["proper_name_type"] = {"l": "Location", "t": "Title"}.get(tail[1:2], "")
             if not values.get("noun_type") and not values.get("adjective_type") and not values.get("pronoun_type"):
                 unresolved.append(tail[:1])
-        _decode_gender_number_state(tail[1:], values, unresolved)
+        tail = tail[1:]
+        if function_code == "N" and values.get("proper_name_type"):
+            tail = tail[1:]
+        if function_code == "P" and tail[:1] in PERSON:
+            _decode_person_gender_number(tail, values, unresolved)
+        else:
+            _decode_gender_number_state(tail, values, unresolved)
     elif function_code == "S":
-        values["suffix_type"] = {"p": "Pronominal", "o": "Object"}.get(tail[:1], "")
+        values["suffix_type"] = {
+            "p": "Pronominal",
+            "o": "Object",
+            "d": "Directional",
+            "n": "Emphatic",
+        }.get(tail[:1], "")
         _decode_person_gender_number(tail[1:], values, unresolved, prefix="suffix_")
+    elif function_code == "T":
+        if tail[:1] in PARTICLE_FORMS:
+            values["part_of_speech"] = PARTICLE_FORMS[tail[:1]]
+            values["particle_type"] = PARTICLE_FORMS[tail[:1]]
+            tail = tail[1:]
+        if tail:
+            unresolved.append(tail)
     elif function_code == "R":
         values["preposition_type"] = tail or ""
     elif function_code in {"C", "c"}:
@@ -209,43 +302,131 @@ def _decode_single(code: str, expansions: dict[str, str]) -> HebrewMorphology:
         pass
     elif tail:
         unresolved.append(tail)
-    if expansion:
-        unresolved = [item for item in unresolved if item.startswith("missing-")]
     values["unresolved_parts"] = tuple(unresolved)
-    values["status"] = _status(code, expansion, unresolved)
+    values["status"] = _status(code, expansion, unresolved, values)
     return HebrewMorphology(**values)  # type: ignore[arg-type]
 
 
-def _split_morphology_components(code: str) -> list[str]:
+def _split_morphology_components(code: str) -> list[tuple[str, str]]:
     raw_parts = [part for part in code.split("/") if part]
-    parts: list[str] = []
+    parts: list[tuple[str, str]] = []
     current_language = ""
     for part in raw_parts:
-        if part[:1] in LANGUAGE or part.startswith("S"):
+        if current_language and part[:1] == "A" and part[1:2] in {"a", "c", "o"} and part[2:3] in GENDER:
+            normalized = current_language + part
+        elif part[:1] in LANGUAGE or part.startswith("S"):
             normalized = part
         elif current_language:
             normalized = current_language + part
         else:
             normalized = part
+        if normalized[:1] == "A" and normalized[1:2] in {"a", "c", "o"} and normalized[2:3] in GENDER:
+            normalized = "A" + normalized
+        elif normalized[:1] == "A" and normalized[1:2] not in FUNCTION:
+            normalized = "A" + normalized
         if normalized[:1] in LANGUAGE:
             current_language = normalized[:1]
-        parts.append(normalized)
+        parts.append((part, normalized))
     return parts
 
 
-def _status(code: str, expansion: str, unresolved: list[str]) -> str:
+def _component_type(code: str, index: int, total: int) -> str:
+    function_code = code[1:2] if code[:1] in LANGUAGE else code[:1]
+    if function_code in {"C", "c", "R", "T", "D", "d", "o", "n", "m", "r"} and index < total - 1:
+        return "prefix"
+    if function_code == "S" or code.startswith("S"):
+        return "suffix"
+    return "core"
+
+
+def _primary_component(decoded: list[HebrewMorphology]) -> HebrewMorphology:
+    for morph in decoded:
+        if morph.part_of_speech == "Verb":
+            return morph
+    for morph in decoded:
+        if morph.component_type == "core":
+            return morph
+    return decoded[0]
+
+
+def _component_payload(morph: HebrewMorphology) -> dict[str, object]:
+    return {
+        "code": morph.code,
+        "original_code": morph.original_code or morph.code,
+        "language": morph.language,
+        "component_type": morph.component_type,
+        "part_of_speech": morph.part_of_speech,
+        "noun_type": morph.noun_type,
+        "adjective_type": morph.adjective_type,
+        "pronoun_type": morph.pronoun_type,
+        "proper_name_type": morph.proper_name_type,
+        "particle_type": morph.particle_type,
+        "preposition_type": morph.preposition_type,
+        "conjunction_type": morph.conjunction_type,
+        "verb_stem": morph.verb_stem,
+        "verb_conjugation": morph.verb_conjugation,
+        "person": morph.person,
+        "gender": morph.gender,
+        "number": morph.number,
+        "state": morph.state,
+        "suffix_type": morph.suffix_type,
+        "suffix_person": morph.suffix_person,
+        "suffix_gender": morph.suffix_gender,
+        "suffix_number": morph.suffix_number,
+        "english_expansion": morph.english_expansion,
+        "unresolved_parts": morph.unresolved_parts,
+        "status": morph.status,
+    }
+
+
+def _status(
+    code: str,
+    expansion: str,
+    unresolved: list[str],
+    values: dict[str, str | tuple[str, ...]],
+) -> str:
     if not code or any(item.startswith("missing-") for item in unresolved):
         return "malformed"
     if unresolved:
-        return "partially_decoded" if expansion else "unresolved"
+        return "partially_decoded" if expansion or _has_decoded_morphology(values) else "unresolved"
     return "fully_decoded" if expansion or code[:1] in LANGUAGE or code.startswith("S") else "unresolved"
+
+
+def _has_decoded_morphology(values: dict[str, str | tuple[str, ...]]) -> bool:
+    for field in (
+        "part_of_speech",
+        "noun_type",
+        "adjective_type",
+        "pronoun_type",
+        "proper_name_type",
+        "particle_type",
+        "preposition_type",
+        "conjunction_type",
+        "verb_stem",
+        "verb_conjugation",
+        "person",
+        "gender",
+        "number",
+        "state",
+        "suffix_type",
+        "suffix_person",
+        "suffix_gender",
+        "suffix_number",
+    ):
+        if values.get(field):
+            return True
+    return False
 
 
 def _combined_status(decoded: list[HebrewMorphology], unresolved: tuple[str, ...]) -> str:
     if any(item.status == "malformed" for item in decoded):
         return "malformed"
     if unresolved:
-        return "partially_decoded" if any(item.english_expansion for item in decoded) else "unresolved"
+        return (
+            "partially_decoded"
+            if any(item.status in {"fully_decoded", "partially_decoded"} for item in decoded)
+            else "unresolved"
+        )
     if all(item.status == "fully_decoded" for item in decoded):
         return "fully_decoded"
     return "partially_decoded"
@@ -311,6 +492,28 @@ def _decode_person_gender_number(
         tail = tail[1:]
     if tail:
         unresolved.append(tail)
+
+
+def _decode_verb_ending(
+    tail: str,
+    values: dict[str, str | tuple[str, ...]],
+    unresolved: list[str],
+) -> None:
+    if values.get("verb_conjugation") in {"Infinitive Construct", "Infinitive Absolute"} and len(tail) <= 1:
+        if not tail:
+            return
+        if tail in STATE:
+            values["state"] = STATE[tail]
+        else:
+            unresolved.append(tail)
+        return
+    if values.get("verb_conjugation") in {
+        "Participle",
+        "Passive Participle",
+    }:
+        _decode_gender_number_state(tail, values, unresolved)
+        return
+    _decode_person_gender_number(tail, values, unresolved)
 
 
 def _decode_gender_number_state(
