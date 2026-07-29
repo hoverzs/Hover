@@ -9,14 +9,16 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from scripts.build_biblical_places_hu_review_queue import BATCH_SIZE, build_queue
+from scripts.build_biblical_places_hu_review_queue import BATCH_SIZE, build_batch_002, build_queue
 
 
 DATA_DIR = ROOT / "data" / "biblical_places"
 QUEUE_PATH = DATA_DIR / "hungarian_review_queue.json"
 BATCH_PATH = DATA_DIR / "hungarian_review_batch_001.json"
+BATCH_002_PATH = DATA_DIR / "hungarian_review_batch_002.json"
 CATALOG_PATH = DATA_DIR / "biblical_places_catalog.json"
 DRAFT_PATH = DATA_DIR / "hungarian_review_batch_001_hu_draft.json"
+DRAFT_002_PATH = DATA_DIR / "hungarian_review_batch_002_hu_draft.json"
 
 
 def read_json(path: Path):
@@ -37,9 +39,11 @@ def test_hungarian_review_queue_covers_full_catalog_once() -> None:
 def test_hungarian_review_queue_is_deterministic() -> None:
     queue = read_json(QUEUE_PATH)
     rebuilt_queue, rebuilt_batch = build_queue()
+    rebuilt_batch_002 = build_batch_002(rebuilt_queue)
 
     assert rebuilt_queue == queue
     assert rebuilt_batch == read_json(BATCH_PATH)
+    assert rebuilt_batch_002 == read_json(BATCH_002_PATH)
 
 
 def test_first_hungarian_review_batch_shape_and_applied_proposals() -> None:
@@ -72,6 +76,33 @@ def test_corinth_and_ephesus_manual_content_is_carried_into_queue() -> None:
         assert queue[place_id]["current_name_hu"] == catalog[place_id]["name_hu"]
         assert queue[place_id]["current_card_summary_hu"] == catalog[place_id]["card_summary_hu"]
         assert "pilot" in (queue[place_id]["review_notes_hu"] or "")
+
+
+def test_second_hungarian_review_batch_shape_and_applied_proposals() -> None:
+    queue = read_json(QUEUE_PATH)
+    batch_001 = read_json(BATCH_PATH)
+    batch_002 = read_json(BATCH_002_PATH)
+    draft = read_json(DRAFT_002_PATH)
+    catalog = {item["place_id"]: item for item in read_json(CATALOG_PATH)}
+    draft_by_id = {item["place_id"]: item for item in draft}
+    batch_001_ids = {item["place_id"] for item in batch_001}
+    batch_002_ids = [item["place_id"] for item in batch_002]
+
+    assert len(batch_002) == BATCH_SIZE == 100
+    assert len(draft) == BATCH_SIZE
+    assert len({item["place_id"] for item in draft}) == BATCH_SIZE
+    assert batch_002 == queue[BATCH_SIZE : BATCH_SIZE * 2]
+    assert len(batch_002_ids) == len(set(batch_002_ids))
+    assert not batch_001_ids.intersection(batch_002_ids)
+    for item in batch_002:
+        place_id = item["place_id"]
+        draft_item = draft_by_id[place_id]
+        assert item["review_status"] == "draft"
+        assert item["proposed_name_hu"] == draft_item["proposed_name_hu"]
+        assert item["proposed_card_summary_hu"] == draft_item["proposed_card_summary_hu"]
+        assert catalog[place_id]["name_hu"] == draft_item["proposed_name_hu"]
+        assert catalog[place_id]["card_summary_hu"] == draft_item["proposed_card_summary_hu"]
+        assert catalog[place_id]["review_status"] == "draft"
 
 
 def test_uncertain_or_duplicate_records_keep_review_warning() -> None:

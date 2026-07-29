@@ -244,7 +244,7 @@ def test_corinth_pilot_record_contains_source_marked_details() -> None:
     assert corinth.pleiades_id == "570182"
     assert corinth.translation_status == "not_required"
     assert corinth.translation_method == "human_authored_source_synthesis"
-    assert corinth.review_status == "needs_review"
+    assert corinth.review_status == "draft"
     assert set(corinth.source_ids) >= {
         "pleiades_corinth_570182",
         "ascsa_ancient_corinth_history",
@@ -945,6 +945,44 @@ def test_first_hungarian_review_batch_names_are_searchable() -> None:
 
 def test_first_hungarian_review_batch_card_summaries_are_compact() -> None:
     draft_path = ROOT / "data" / "biblical_places" / "hungarian_review_batch_001_hu_draft.json"
+    draft_ids = {
+        item["place_id"]
+        for item in json.loads(draft_path.read_text(encoding="utf-8"))
+    }
+
+    for place_id in draft_ids:
+        place = get_biblical_place(place_id)
+        assert place is not None
+        summary = fallback_place_description(place)
+        assert summary
+        assert summary.count(".") + summary.count("?") + summary.count("!") <= 2
+
+
+def test_second_hungarian_review_batch_names_are_searchable() -> None:
+    expected_hits = {
+        "Geba": "geba_1",
+        "Tircá": "tirzah",
+        "Ciklág": "ziklag",
+        "Betánia": "bethany_1",
+        "Ciprus": "cyprus",
+        "Hárán": "haran",
+        "Megiddó": "megiddo",
+        "Askelón": "ashkelon",
+        "Kréta": "crete",
+        "Galácia": "galatia",
+    }
+
+    for query, expected_place_id in expected_hits.items():
+        hits = search_biblical_places(query, limit=10)
+        assert any(place.place_id == expected_place_id for place in hits)
+        assert all(place.place_id not in display_place_name(place) for place in hits)
+
+    assert search_biblical_places("Tirzah")
+    assert search_biblical_places("Ziklag")
+
+
+def test_second_hungarian_review_batch_card_summaries_are_compact() -> None:
+    draft_path = ROOT / "data" / "biblical_places" / "hungarian_review_batch_002_hu_draft.json"
     draft_ids = {
         item["place_id"]
         for item in json.loads(draft_path.read_text(encoding="utf-8"))

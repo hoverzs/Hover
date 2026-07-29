@@ -10,29 +10,33 @@
 - Katalógus rekordok száma: 1309
 - Forrásrekordok száma: 16
 - Passage-place kapcsolatok száma: 8658
-- Szakmai ellenőrzést igénylő tételek: 2822
+- Szakmai ellenőrzést igénylő tételek: 2696
 - Large passage-list találatok: 118
 - Biztosan összevont duplikátumok: 0
 - Bizonytalan duplikátumok: 201
 - Invalid external ID találatok: 0
 - Mixed manual demo source találatok: 0
-- UI fallback nevet igénylő rekordok: 1205
-- Biztonságos rövid fallback leírás előállítható: 1205
+- UI fallback nevet igénylő rekordok: 1108
+- Biztonságos rövid fallback leírás előállítható: 1108
 - Idempotencia státusz: sikeres
 
 ## Hibakategóriák
-- `certain_status_without_review`: 83
-- `empty_card_summary_hu`: 1205
+- `certain_status_without_review`: 148
+- `empty_card_summary_hu`: 1108
 - `hungarian_name_review`: 1
 - `large_place_list_for_passage`: 118
-- `missing_hungarian_name`: 1205
+- `missing_hungarian_name`: 1108
 - `probable_duplicate_place`: 201
+- `same_hungarian_name`: 3
 - `summary_repeats_name`: 9
 
 ## Automatikusan javított tételek
 - Nem volt automatikusan javítható eltérés.
 
 ## Legfontosabb problémák
+- [review] `same_hungarian_name` `babylon_1, babylon_3`: Same normalized Hungarian name is used by multiple records: babilon.
+- [review] `same_hungarian_name` `beersheba_1, beersheba_2`: Same normalized Hungarian name is used by multiple records: beérseba.
+- [review] `same_hungarian_name` `ramah_1, ramah_4`: Same normalized Hungarian name is used by multiple records: ráma.
 - [review] `probable_duplicate_place` `abdon / ebron`: Records share a name variant and have very close coordinates.
 - [review] `probable_duplicate_place` `ai_1 / ai_3`: Records share a name variant and have very close coordinates.
 - [review] `probable_duplicate_place` `aija / ayyah`: Records share a name variant and have very close coordinates.
@@ -60,9 +64,6 @@
 - [review] `probable_duplicate_place` `baal_peor / peor`: Records share a name variant and have very close coordinates.
 - [review] `probable_duplicate_place` `baalath_1 / baalath_2`: Records share a name variant and have very close coordinates.
 - [review] `probable_duplicate_place` `babel / babylon_1`: Records share a name variant and have very close coordinates.
-- [review] `probable_duplicate_place` `babel / babylonia`: Records share a name variant and have very close coordinates.
-- [review] `probable_duplicate_place` `babel / sheshach`: Records share a name variant and have very close coordinates.
-- [review] `probable_duplicate_place` `babel / shinar`: Records share a name variant and have very close coordinates.
 
 ## Magyar névellenőrzésre vár
 - `abana`: name_hu is missing.
@@ -80,7 +81,6 @@
 - `abronah`: name_hu is missing.
 - `accad`: name_hu is missing.
 - `acco`: name_hu is missing.
-- `achaia`: name_hu is missing.
 - `achshaph`: name_hu is missing.
 - `achzib_1`: name_hu is missing.
 - `achzib_2`: name_hu is missing.
@@ -97,7 +97,6 @@
 - `adramyttium`: name_hu is missing.
 - `adriatic_sea`: name_hu is missing.
 - `adulis`: name_hu is missing.
-- `adullam`: name_hu is missing.
 - `adummim`: name_hu is missing.
 - `aenon`: name_hu is missing.
 - `ahava`: name_hu is missing.
@@ -105,7 +104,6 @@
 - `ai_3`: name_hu is missing.
 - `aiath`: name_hu is missing.
 - `aija`: name_hu is missing.
-- `aijalon_1`: name_hu is missing.
 - `aijalon_2`: name_hu is missing.
 - `ain_1`: name_hu is missing.
 - `ain_2`: name_hu is missing.
@@ -143,13 +141,10 @@
 - `aphekah`: name_hu is missing.
 - `aphik`: name_hu is missing.
 - `apollonia`: name_hu is missing.
-- `ar`: name_hu is missing.
 - `arab`: name_hu is missing.
-- `arabia_1`: name_hu is missing.
 - `arabia_2`: name_hu is missing.
 - `arad_1`: name_hu is missing.
 - `arad_2`: name_hu is missing.
-- `aram`: name_hu is missing.
 - `aram_naharaim`: name_hu is missing.
 - `ararat`: name_hu is missing.
 - `arbela`: name_hu is missing.
@@ -158,8 +153,6 @@
 - `ariel`: name_hu is missing.
 - `arimathea`: name_hu is missing.
 - `armageddon`: name_hu is missing.
-- `arnon`: name_hu is missing.
-- `aroer_1`: name_hu is missing.
 - `aroer_2`: name_hu is missing.
 - `aroer_3`: name_hu is missing.
 - `aroer_4`: name_hu is missing.
@@ -169,11 +162,9 @@
 - `arumah`: name_hu is missing.
 - `arvad`: name_hu is missing.
 - `ashan`: name_hu is missing.
-- `ashkelon`: name_hu is missing.
 - `ashkenaz`: name_hu is missing.
 - `ashnah_1`: name_hu is missing.
 - `ashnah_2`: name_hu is missing.
-- `ashtaroth`: name_hu is missing.
 - `ashteroth_karnaim`: name_hu is missing.
 - `asshur`: name_hu is missing.
 - `assos`: name_hu is missing.
@@ -193,7 +184,6 @@
 - `avvim`: name_hu is missing.
 - `ayyah`: name_hu is missing.
 - `azal`: name_hu is missing.
-- `azekah`: name_hu is missing.
 - `azmaveth`: name_hu is missing.
 - `azmon`: name_hu is missing.
 - `aznoth_tabor`: name_hu is missing.
@@ -214,8 +204,6 @@
 - `baale_judah`: name_hu is missing.
 - `babel`: name_hu is missing.
 - `babylon_2`: name_hu is missing.
-- `babylon_3`: name_hu is missing.
-- `bahurim`: name_hu is missing.
 - `balah`: name_hu is missing.
 - `bamoth`: name_hu is missing.
 - `bamoth_baal`: name_hu is missing.
@@ -228,16 +216,13 @@
 - `beer_2`: name_hu is missing.
 - `beer_elim`: name_hu is missing.
 - `beer_lahai_roi`: name_hu is missing.
-- `beeroth`: name_hu is missing.
 - `beeroth_bene_jaakan`: name_hu is missing.
-- `beersheba_2`: name_hu is missing.
 - `beeshterah`: name_hu is missing.
 - `belamon`: name_hu is missing.
 - `bene_berak`: name_hu is missing.
 - `bene_jaakan`: name_hu is missing.
 - `benjamin_gate`: name_hu is missing.
 - `beon`: name_hu is missing.
-- `berea`: name_hu is missing.
 - `bered`: name_hu is missing.
 - `berothah`: name_hu is missing.
 - `berothai`: name_hu is missing.
@@ -267,7 +252,6 @@
 - `beth_haggan`: name_hu is missing.
 - `beth_haram`: name_hu is missing.
 - `beth_hoglah`: name_hu is missing.
-- `beth_horon`: name_hu is missing.
 - `beth_jeshimoth`: name_hu is missing.
 - `beth_le_aphrah`: name_hu is missing.
 - `beth_lebaoth`: name_hu is missing.
@@ -279,14 +263,12 @@
 - `beth_pelet`: name_hu is missing.
 - `beth_peor`: name_hu is missing.
 - `beth_rehob`: name_hu is missing.
-- `beth_shan`: name_hu is missing.
 - `beth_shemesh_2`: name_hu is missing.
 - `beth_shemesh_3`: name_hu is missing.
 - `beth_shittah`: name_hu is missing.
 - `beth_tappuah`: name_hu is missing.
 - `beth_togarmah`: name_hu is missing.
 - `beth_zur`: name_hu is missing.
-- `bethany_1`: name_hu is missing.
 - `bethany_2`: name_hu is missing.
 - `bethel_2`: name_hu is missing.
 - `bethel_3`: name_hu is missing.
@@ -310,10 +292,8 @@
 - `bor_ashan`: name_hu is missing.
 - `bozez`: name_hu is missing.
 - `bozkath`: name_hu is missing.
-- `bozrah_1`: name_hu is missing.
 - `bozrah_2`: name_hu is missing.
 - `broad_wall`: name_hu is missing.
-- `brook_of_egypt`: name_hu is missing.
 - `brook_of_the_arabah`: name_hu is missing.
 - `brook_of_the_willows`: name_hu is missing.
 - `buz`: name_hu is missing.
@@ -335,7 +315,6 @@
 - `cenchreae`: name_hu is missing.
 - `chalcis`: name_hu is missing.
 - `charmande`: name_hu is missing.
-- `chebar`: name_hu is missing.
 - `chephar_ammoni`: name_hu is missing.
 - `chephirah`: name_hu is missing.
 - `cherith`: name_hu is missing.
@@ -350,7 +329,6 @@
 - `chisloth_tabor`: name_hu is missing.
 - `chitlish`: name_hu is missing.
 - `chorazin`: name_hu is missing.
-- `cilicia`: name_hu is missing.
 - `city_of_destruction`: name_hu is missing.
 - `city_of_palms_1`: name_hu is missing.
 - `city_of_palms_2`: name_hu is missing.
@@ -360,25 +338,19 @@
 - `corner_gate`: name_hu is missing.
 - `cos`: name_hu is missing.
 - `cozeba`: name_hu is missing.
-- `crete`: name_hu is missing.
 - `cun`: name_hu is missing.
 - `cush_2`: name_hu is missing.
 - `cushan`: name_hu is missing.
 - `cuth`: name_hu is missing.
-- `cyprus`: name_hu is missing.
-- `cyrene`: name_hu is missing.
 - `dabbesheth`: name_hu is missing.
 - `daberath`: name_hu is missing.
 - `dalmanutha`: name_hu is missing.
 - `dalmatia`: name_hu is missing.
 - `dannah`: name_hu is missing.
-- `debir_1`: name_hu is missing.
 - `debir_2`: name_hu is missing.
 - `debir_3`: name_hu is missing.
 - `decapolis`: name_hu is missing.
-- `dedan`: name_hu is missing.
 - `derbe`: name_hu is missing.
-- `dibon_1`: name_hu is missing.
 - `dibon_2`: name_hu is missing.
 - `dibon_3`: name_hu is missing.
 - `dilean`: name_hu is missing.
@@ -405,11 +377,9 @@
 - `eden_2`: name_hu is missing.
 - `eder_1`: name_hu is missing.
 - `eder_2`: name_hu is missing.
-- `edrei_1`: name_hu is missing.
 - `edrei_2`: name_hu is missing.
 - `eglaim`: name_hu is missing.
 - `eglath_shelishiyah`: name_hu is missing.
-- `eglon`: name_hu is missing.
 - `el_bethel`: name_hu is missing.
 - `el_paran`: name_hu is missing.
 - `elath`: name_hu is missing.
@@ -438,7 +408,6 @@
 - `enaim`: name_hu is missing.
 - `enam`: name_hu is missing.
 - `eneglaim`: name_hu is missing.
-- `engedi`: name_hu is missing.
 - `ephah`: name_hu is missing.
 - `ephes_dammim`: name_hu is missing.
 - `ephraim_1`: name_hu is missing.
@@ -453,7 +422,6 @@
 - `eridu`: name_hu is missing.
 - `esek`: name_hu is missing.
 - `eshan`: name_hu is missing.
-- `eshtaol`: name_hu is missing.
 - `eshtemoa`: name_hu is missing.
 - `etam_1`: name_hu is missing.
 - `etam_2`: name_hu is missing.
@@ -462,10 +430,8 @@
 - `etham`: name_hu is missing.
 - `ether_1`: name_hu is missing.
 - `ether_2`: name_hu is missing.
-- `ethiopia`: name_hu is missing.
 - `etruria`: name_hu is missing.
 - `ezem`: name_hu is missing.
-- `ezion_geber`: name_hu is missing.
 - `fair_havens`: name_hu is missing.
 - `fish_gate`: name_hu is missing.
 - `forum_of_appius`: name_hu is missing.
@@ -473,7 +439,6 @@
 - `gaash`: name_hu is missing.
 - `gabbatha`: name_hu is missing.
 - `gadara`: name_hu is missing.
-- `galatia`: name_hu is missing.
 - `galilee_2`: name_hu is missing.
 - `gallim`: name_hu is missing.
 - `gamad`: name_hu is missing.
@@ -488,7 +453,6 @@
 - `gath_rimmon_1`: name_hu is missing.
 - `gath_rimmon_2`: name_hu is missing.
 - `ge_harashim`: name_hu is missing.
-- `geba_1`: name_hu is missing.
 - `geba_2`: name_hu is missing.
 - `geba_3`: name_hu is missing.
 - `geba_4`: name_hu is missing.
@@ -507,11 +471,9 @@
 - `gedor_4`: name_hu is missing.
 - `geliloth`: name_hu is missing.
 - `gennesaret`: name_hu is missing.
-- `gerar`: name_hu is missing.
 - `gerasa`: name_hu is missing.
 - `gergesa`: name_hu is missing.
 - `geruth_chimham`: name_hu is missing.
-- `geshur`: name_hu is missing.
 - `gethsemane`: name_hu is missing.
 - `giah`: name_hu is missing.
 - `gibbethon`: name_hu is missing.
@@ -537,11 +499,9 @@
 - `golan`: name_hu is missing.
 - `golgotha`: name_hu is missing.
 - `gomer`: name_hu is missing.
-- `goshen_1`: name_hu is missing.
 - `goshen_2`: name_hu is missing.
 - `goshen_3`: name_hu is missing.
 - `gozan`: name_hu is missing.
-- `greece`: name_hu is missing.
 - `gulloth_mayim`: name_hu is missing.
 - `gur`: name_hu is missing.
 - `gurbaal`: name_hu is missing.
@@ -573,7 +533,6 @@
 - `hannathon`: name_hu is missing.
 - `hapharaim`: name_hu is missing.
 - `haradah`: name_hu is missing.
-- `haran`: name_hu is missing.
 - `harhar`: name_hu is missing.
 - `harmon`: name_hu is missing.
 - `harod_1`: name_hu is missing.
@@ -594,7 +553,6 @@
 - `hazazon_tamar_2`: name_hu is missing.
 - `hazer_hatticon`: name_hu is missing.
 - `hazeroth`: name_hu is missing.
-- `hazor_1`: name_hu is missing.
 - `hazor_2`: name_hu is missing.
 - `hazor_3`: name_hu is missing.
 - `hazor_4`: name_hu is missing.
@@ -625,7 +583,6 @@
 - `hor_haggidgad`: name_hu is missing.
 - `horem`: name_hu is missing.
 - `horesh`: name_hu is missing.
-- `hormah`: name_hu is missing.
 - `horonaim_1`: name_hu is missing.
 - `horonaim_2`: name_hu is missing.
 - `horse_gate`: name_hu is missing.
@@ -656,12 +613,10 @@
 - `ivvah`: name_hu is missing.
 - `iye_abarim`: name_hu is missing.
 - `jaar`: name_hu is missing.
-- `jabbok`: name_hu is missing.
 - `jabez`: name_hu is missing.
 - `jabneel_1`: name_hu is missing.
 - `jabneel_2`: name_hu is missing.
 - `jagur`: name_hu is missing.
-- `jahaz`: name_hu is missing.
 - `janim`: name_hu is missing.
 - `janoah_1`: name_hu is missing.
 - `janoah_2`: name_hu is missing.
@@ -671,8 +626,6 @@
 - `jarmuth_2`: name_hu is missing.
 - `jattir`: name_hu is missing.
 - `javan`: name_hu is missing.
-- `jazer`: name_hu is missing.
-- `jebus`: name_hu is missing.
 - `jehud`: name_hu is missing.
 - `jericho_2`: name_hu is missing.
 - `jeruel`: name_hu is missing.
@@ -687,7 +640,6 @@
 - `jokmeam_2`: name_hu is missing.
 - `jokneam`: name_hu is missing.
 - `joktheel_1`: name_hu is missing.
-- `jordan_valley`: name_hu is missing.
 - `jorkeam`: name_hu is missing.
 - `jotbah`: name_hu is missing.
 - `jotbathah`: name_hu is missing.
@@ -705,7 +657,6 @@
 - `kartah`: name_hu is missing.
 - `kartan`: name_hu is missing.
 - `kattath`: name_hu is missing.
-- `kedar`: name_hu is missing.
 - `kedemoth`: name_hu is missing.
 - `kedesh_1`: name_hu is missing.
 - `kedesh_2`: name_hu is missing.
@@ -746,13 +697,11 @@
 - `lasharon`: name_hu is missing.
 - `leb_kamai`: name_hu is missing.
 - `lebaoth`: name_hu is missing.
-- `lebo_hamath`: name_hu is missing.
 - `lebonah`: name_hu is missing.
 - `lehi`: name_hu is missing.
 - `libnah_2`: name_hu is missing.
 - `libya`: name_hu is missing.
 - `lo_debar`: name_hu is missing.
-- `lod`: name_hu is missing.
 - `lower_beth_horon`: name_hu is missing.
 - `lower_gulloth`: name_hu is missing.
 - `lower_pool`: name_hu is missing.
@@ -765,7 +714,6 @@
 - `lycia`: name_hu is missing.
 - `lydia`: name_hu is missing.
 - `lystra`: name_hu is missing.
-- `maacah`: name_hu is missing.
 - `maarath`: name_hu is missing.
 - `maareh_geba`: name_hu is missing.
 - `machbenah`: name_hu is missing.
@@ -787,7 +735,6 @@
 - `mahaneh_dan_2`: name_hu is missing.
 - `makaz`: name_hu is missing.
 - `makheloth`: name_hu is missing.
-- `makkedah`: name_hu is missing.
 - `malta`: name_hu is missing.
 - `mamre`: name_hu is missing.
 - `manahath`: name_hu is missing.
@@ -803,21 +750,14 @@
 - `mearah`: name_hu is missing.
 - `meconah`: name_hu is missing.
 - `medeba`: name_hu is missing.
-- `media`: name_hu is missing.
-- `megiddo`: name_hu is missing.
-- `memphis`: name_hu is missing.
 - `mephaath`: name_hu is missing.
 - `merathaim`: name_hu is missing.
-- `meribah_1`: name_hu is missing.
 - `meribah_2`: name_hu is missing.
 - `merom`: name_hu is missing.
 - `meronoth`: name_hu is missing.
 - `meroz`: name_hu is missing.
 - `mesha`: name_hu is missing.
-- `meshech`: name_hu is missing.
-- `mesopotamia`: name_hu is missing.
 - `metheg_ammah`: name_hu is missing.
-- `michmash`: name_hu is missing.
 - `michmethath`: name_hu is missing.
 - `middin`: name_hu is missing.
 - `middle_gate`: name_hu is missing.
@@ -842,7 +782,6 @@
 - `mizpeh_1`: name_hu is missing.
 - `mizpeh_2`: name_hu is missing.
 - `mizpeh_3`: name_hu is missing.
-- `moab_2`: name_hu is missing.
 - `moladah`: name_hu is missing.
 - `moreh_1`: name_hu is missing.
 - `moreh_2`: name_hu is missing.
@@ -858,11 +797,9 @@
 - `mount_ephron`: name_hu is missing.
 - `mount_esau`: name_hu is missing.
 - `mount_gerizim`: name_hu is missing.
-- `mount_gilboa`: name_hu is missing.
 - `mount_gilead`: name_hu is missing.
 - `mount_halak`: name_hu is missing.
 - `mount_heres`: name_hu is missing.
-- `mount_hor_1`: name_hu is missing.
 - `mount_hor_2`: name_hu is missing.
 - `mount_jearim`: name_hu is missing.
 - `mount_lebanon`: name_hu is missing.
@@ -873,7 +810,6 @@
 - `mount_perazim`: name_hu is missing.
 - `mount_seir_2`: name_hu is missing.
 - `mount_shepher`: name_hu is missing.
-- `mount_tabor`: name_hu is missing.
 - `mount_zalmon`: name_hu is missing.
 - `mount_zemaraim`: name_hu is missing.
 - `mozah`: name_hu is missing.
@@ -894,12 +830,10 @@
 - `neah`: name_hu is missing.
 - `neapolis`: name_hu is missing.
 - `neballat`: name_hu is missing.
-- `nebo_1`: name_hu is missing.
 - `nebo_2`: name_hu is missing.
 - `neiel`: name_hu is missing.
 - `nephtoah`: name_hu is missing.
 - `netaim`: name_hu is missing.
-- `netophah`: name_hu is missing.
 - `new_gate`: name_hu is missing.
 - `nezib`: name_hu is missing.
 - `nibshan`: name_hu is missing.
@@ -907,26 +841,21 @@
 - `nimrah`: name_hu is missing.
 - `nimrim`: name_hu is missing.
 - `nimrod`: name_hu is missing.
-- `nob`: name_hu is missing.
 - `nobah_1`: name_hu is missing.
 - `nobah_2`: name_hu is missing.
 - `nophah`: name_hu is missing.
-- `north`: name_hu is missing.
 - `north_gate`: name_hu is missing.
 - `nuhashe`: name_hu is missing.
 - `oboth`: name_hu is missing.
 - `old_pool`: name_hu is missing.
 - `ono`: name_hu is missing.
 - `ophel`: name_hu is missing.
-- `ophir`: name_hu is missing.
 - `ophni`: name_hu is missing.
 - `ophrah_1`: name_hu is missing.
 - `ophrah_2`: name_hu is missing.
-- `paddan_aram`: name_hu is missing.
 - `pamphylia`: name_hu is missing.
 - `paphos`: name_hu is missing.
 - `parah`: name_hu is missing.
-- `paran`: name_hu is missing.
 - `parbar`: name_hu is missing.
 - `parvaim`: name_hu is missing.
 - `patara`: name_hu is missing.
@@ -937,7 +866,6 @@
 - `pelusium`: name_hu is missing.
 - `penuel`: name_hu is missing.
 - `peoples_gate`: name_hu is missing.
-- `peor`: name_hu is missing.
 - `perez_uzzah`: name_hu is missing.
 - `perga`: name_hu is missing.
 - `pergamum`: name_hu is missing.
@@ -950,7 +878,6 @@
 - `pi_beseth`: name_hu is missing.
 - `pi_hahiroth`: name_hu is missing.
 - `pirathon`: name_hu is missing.
-- `pisgah`: name_hu is missing.
 - `pishon`: name_hu is missing.
 - `pisidia`: name_hu is missing.
 - `pithom`: name_hu is missing.
@@ -971,7 +898,6 @@
 - `rakkon`: name_hu is missing.
 - `ramah_2`: name_hu is missing.
 - `ramah_3`: name_hu is missing.
-- `ramah_4`: name_hu is missing.
 - `ramah_5`: name_hu is missing.
 - `ramah_6`: name_hu is missing.
 - `ramah_7`: name_hu is missing.
@@ -1000,7 +926,6 @@
 - `rhegium`: name_hu is missing.
 - `rhodes_1`: name_hu is missing.
 - `rhodes_2`: name_hu is missing.
-- `riblah_1`: name_hu is missing.
 - `riblah_2`: name_hu is missing.
 - `rimmon_1`: name_hu is missing.
 - `rimmon_2`: name_hu is missing.
@@ -1021,7 +946,6 @@
 - `salim`: name_hu is missing.
 - `salmone`: name_hu is missing.
 - `salona`: name_hu is missing.
-- `samaria_2`: name_hu is missing.
 - `samos`: name_hu is missing.
 - `samothrace`: name_hu is missing.
 - `sansannah`: name_hu is missing.
@@ -1031,7 +955,6 @@
 - `sarid`: name_hu is missing.
 - `scythia`: name_hu is missing.
 - `sea_of_egypt`: name_hu is missing.
-- `sea_of_galilee`: name_hu is missing.
 - `sea_of_jazer`: name_hu is missing.
 - `secacah`: name_hu is missing.
 - `second_quarter`: name_hu is missing.
@@ -1077,12 +1000,10 @@
 - `shiloah`: name_hu is missing.
 - `shimron`: name_hu is missing.
 - `shimron_meron`: name_hu is missing.
-- `shinar`: name_hu is missing.
 - `shion`: name_hu is missing.
 - `shittim`: name_hu is missing.
 - `shoa`: name_hu is missing.
 - `shual`: name_hu is missing.
-- `shunem`: name_hu is missing.
 - `shur`: name_hu is missing.
 - `sibmah`: name_hu is missing.
 - `sibraim`: name_hu is missing.
@@ -1099,12 +1020,10 @@
 - `solomons_portico`: name_hu is missing.
 - `south_1`: name_hu is missing.
 - `south_2`: name_hu is missing.
-- `south_3`: name_hu is missing.
 - `south_gate`: name_hu is missing.
 - `spain`: name_hu is missing.
 - `sparta`: name_hu is missing.
 - `straight_street`: name_hu is missing.
-- `succoth_1`: name_hu is missing.
 - `succoth_2`: name_hu is missing.
 - `suph`: name_hu is missing.
 - `suphah`: name_hu is missing.
@@ -1113,9 +1032,7 @@
 - `sychar`: name_hu is missing.
 - `syene`: name_hu is missing.
 - `syracuse`: name_hu is missing.
-- `syria_2`: name_hu is missing.
 - `syrtis`: name_hu is missing.
-- `taanach`: name_hu is missing.
 - `taanath_shiloh`: name_hu is missing.
 - `tabbath`: name_hu is missing.
 - `tabbur_erez`: name_hu is missing.
@@ -1124,7 +1041,6 @@
 - `tabor_3`: name_hu is missing.
 - `tadmor`: name_hu is missing.
 - `tahath`: name_hu is missing.
-- `tahpanhes`: name_hu is missing.
 - `tamar_1`: name_hu is missing.
 - `tamar_2`: name_hu is missing.
 - `tappuah_1`: name_hu is missing.
@@ -1153,18 +1069,15 @@
 - `tiberias`: name_hu is missing.
 - `tibhath`: name_hu is missing.
 - `tigris`: name_hu is missing.
-- `timnah_1`: name_hu is missing.
 - `timnah_2`: name_hu is missing.
 - `timnah_3`: name_hu is missing.
 - `timnath_heres`: name_hu is missing.
 - `tiphsah_1`: name_hu is missing.
 - `tiphsah_2`: name_hu is missing.
-- `tirzah`: name_hu is missing.
 - `tjaru`: name_hu is missing.
 - `tob`: name_hu is missing.
 - `tochen`: name_hu is missing.
 - `tophel`: name_hu is missing.
-- `topheth`: name_hu is missing.
 - `tower_of_hananel`: name_hu is missing.
 - `tower_of_shechem`: name_hu is missing.
 - `tower_of_the_hundred`: name_hu is missing.
@@ -1201,21 +1114,18 @@
 - `valley_of_gibeon`: name_hu is missing.
 - `valley_of_hamon_gog`: name_hu is missing.
 - `valley_of_hebron`: name_hu is missing.
-- `valley_of_hinnom`: name_hu is missing.
 - `valley_of_iphtahel`: name_hu is missing.
 - `valley_of_jehoshaphat`: name_hu is missing.
 - `valley_of_jericho`: name_hu is missing.
 - `valley_of_jezreel`: name_hu is missing.
 - `valley_of_lebanon`: name_hu is missing.
 - `valley_of_mizpeh`: name_hu is missing.
-- `valley_of_rephaim`: name_hu is missing.
 - `valley_of_salt`: name_hu is missing.
 - `valley_of_shaveh`: name_hu is missing.
 - `valley_of_shittim`: name_hu is missing.
 - `valley_of_siddim`: name_hu is missing.
 - `valley_of_sorek`: name_hu is missing.
 - `valley_of_succoth`: name_hu is missing.
-- `valley_of_the_arnon`: name_hu is missing.
 - `valley_of_zeboim`: name_hu is missing.
 - `valley_of_zephathah`: name_hu is missing.
 - `valley_of_zered`: name_hu is missing.
@@ -1228,7 +1138,6 @@
 - `way_of_the_red_sea`: name_hu is missing.
 - `west_gate`: name_hu is missing.
 - `wilderness_of_maon`: name_hu is missing.
-- `wilderness_of_sinai`: name_hu is missing.
 - `wilderness_of_ziph`: name_hu is missing.
 - `wildgoats_rocks`: name_hu is missing.
 - `yiron`: name_hu is missing.
@@ -1257,22 +1166,20 @@
 - `zererah`: name_hu is missing.
 - `zereth_shahar`: name_hu is missing.
 - `ziddim`: name_hu is missing.
-- `ziklag`: name_hu is missing.
 - `zimri`: name_hu is missing.
-- `zin_1`: name_hu is missing.
 - `zin_2`: name_hu is missing.
 - `zior`: name_hu is missing.
 - `ziph_1`: name_hu is missing.
 - `ziph_2`: name_hu is missing.
 - `ziphron`: name_hu is missing.
 - `ziz`: name_hu is missing.
-- `zoan`: name_hu is missing.
-- `zoar`: name_hu is missing.
 - `zophim`: name_hu is missing.
-- `zorah`: name_hu is missing.
 - `zuph`: name_hu is missing.
 
 ## Vitatott vagy többes helyazonosítás
+- `babylon_1, babylon_3`: Same normalized Hungarian name is used by multiple records: babilon.
+- `beersheba_1, beersheba_2`: Same normalized Hungarian name is used by multiple records: beérseba.
+- `ramah_1, ramah_4`: Same normalized Hungarian name is used by multiple records: ráma.
 - `abdon / ebron`: Records share a name variant and have very close coordinates.
 - `ai_1 / ai_3`: Records share a name variant and have very close coordinates.
 - `aija / ayyah`: Records share a name variant and have very close coordinates.
@@ -1474,89 +1381,154 @@
 - `wilderness_of_ziph / ziph_1`: Records share a name variant and have very close coordinates.
 - `zarethan / zeredah_2`: Records share a name variant and have very close coordinates.
 - `zin_1 / zin_2`: Records share a name variant and have very close coordinates.
+- `achaia`: Place is marked certain while still prototype/draft.
 - `amalek`: Place is marked certain while still prototype/draft.
 - `ammon`: Place is marked certain while still prototype/draft.
 - `arabah`: Place is marked certain while still prototype/draft.
+- `arabia_1`: Place is marked certain while still prototype/draft.
+- `aram`: Place is marked certain while still prototype/draft.
+- `arnon`: Place is marked certain while still prototype/draft.
+- `aroer_1`: Place is marked certain while still prototype/draft.
 - `ashdod`: Place is marked certain while still prototype/draft.
+- `ashkelon`: Place is marked certain while still prototype/draft.
 - `asia`: Place is marked certain while still prototype/draft.
 - `assyria`: Place is marked certain while still prototype/draft.
 - `babylon_1`: Place is marked certain while still prototype/draft.
+- `babylon_3`: Place is marked certain while still prototype/draft.
 - `babylonia`: Place is marked certain while still prototype/draft.
 - `bashan`: Place is marked certain while still prototype/draft.
 - `beersheba_1`: Place is marked certain while still prototype/draft.
+- `berea`: Place is marked certain while still prototype/draft.
+- `beth_horon`: Place is marked certain while still prototype/draft.
+- `beth_shan`: Place is marked certain while still prototype/draft.
 - `beth_shemesh_1`: Place is marked certain while still prototype/draft.
+- `bethany_1`: Place is marked certain while still prototype/draft.
 - `bethel_1`: Place is marked certain while still prototype/draft.
 - `bethlehem_1`: Place is marked certain while still prototype/draft.
 - `beyond_the_river`: Place is marked certain while still prototype/draft.
+- `bozrah_1`: Place is marked certain while still prototype/draft.
 - `caesarea`: Place is marked certain while still prototype/draft.
 - `canaan`: Place is marked certain while still prototype/draft.
 - `capernaum`: Place is marked certain while still prototype/draft.
 - `carmel_1`: Place is marked certain while still prototype/draft.
 - `chaldea`: Place is marked certain while still prototype/draft.
+- `cilicia`: Place is marked certain while still prototype/draft.
 - `city_of_david`: Place is marked certain while still prototype/draft.
+- `corinth`: Place is marked certain while still prototype/draft.
+- `crete`: Place is marked certain while still prototype/draft.
 - `cush_1`: Place is marked certain while still prototype/draft.
+- `cyprus`: Place is marked certain while still prototype/draft.
+- `cyrene`: Place is marked certain while still prototype/draft.
 - `damascus`: Place is marked certain while still prototype/draft.
 - `dan`: Place is marked certain while still prototype/draft.
+- `dedan`: Place is marked certain while still prototype/draft.
+- `dibon_1`: Place is marked certain while still prototype/draft.
 - `east`: Place is marked certain while still prototype/draft.
 - `edom`: Place is marked certain while still prototype/draft.
+- `edrei_1`: Place is marked certain while still prototype/draft.
 - `egypt`: Place is marked certain while still prototype/draft.
 - `ekron`: Place is marked certain while still prototype/draft.
 - `elam`: Place is marked certain while still prototype/draft.
+- `engedi`: Place is marked certain while still prototype/draft.
 - `ephesus`: Place is marked certain while still prototype/draft.
+- `ethiopia`: Place is marked certain while still prototype/draft.
 - `euphrates`: Place is marked certain while still prototype/draft.
+- `galatia`: Place is marked certain while still prototype/draft.
 - `galilee_1`: Place is marked certain while still prototype/draft.
 - `gath_1`: Place is marked certain while still prototype/draft.
 - `gaza`: Place is marked certain while still prototype/draft.
+- `geshur`: Place is marked certain while still prototype/draft.
 - `gezer`: Place is marked certain while still prototype/draft.
 - `gibeah_1`: Place is marked certain while still prototype/draft.
 - `gibeon`: Place is marked certain while still prototype/draft.
 - `gilead_1`: Place is marked certain while still prototype/draft.
+- `goshen_1`: Place is marked certain while still prototype/draft.
 - `great_sea`: Place is marked certain while still prototype/draft.
+- `greece`: Place is marked certain while still prototype/draft.
 - `hamath_1`: Place is marked certain while still prototype/draft.
+- `haran`: Place is marked certain while still prototype/draft.
+- `hazor_1`: Place is marked certain while still prototype/draft.
 - `hebron`: Place is marked certain while still prototype/draft.
 - `holy_place_2`: Place is marked certain while still prototype/draft.
+- `jabbok`: Place is marked certain while still prototype/draft.
+- `jebus`: Place is marked certain while still prototype/draft.
 - `jericho_1`: Place is marked certain while still prototype/draft.
 - `jezreel_2`: Place is marked certain while still prototype/draft.
 - `joppa`: Place is marked certain while still prototype/draft.
 - `jordan`: Place is marked certain while still prototype/draft.
+- `jordan_valley`: Place is marked certain while still prototype/draft.
 - `judea_1`: Place is marked certain while still prototype/draft.
 - `kadesh_barnea`: Place is marked certain while still prototype/draft.
+- `kedar`: Place is marked certain while still prototype/draft.
 - `keilah`: Place is marked certain while still prototype/draft.
 - `kidron`: Place is marked certain while still prototype/draft.
 - `kiriath_jearim`: Place is marked certain while still prototype/draft.
 - `lachish`: Place is marked certain while still prototype/draft.
 - `lebanon`: Place is marked certain while still prototype/draft.
+- `lod`: Place is marked certain while still prototype/draft.
+- `maacah`: Place is marked certain while still prototype/draft.
 - `macedonia`: Place is marked certain while still prototype/draft.
+- `media`: Place is marked certain while still prototype/draft.
+- `megiddo`: Place is marked certain while still prototype/draft.
+- `memphis`: Place is marked certain while still prototype/draft.
+- `meribah_1`: Place is marked certain while still prototype/draft.
+- `meshech`: Place is marked certain while still prototype/draft.
+- `mesopotamia`: Place is marked certain while still prototype/draft.
 - `midian`: Place is marked certain while still prototype/draft.
 - `mizpah_3`: Place is marked certain while still prototype/draft.
 - `moab_1`: Place is marked certain while still prototype/draft.
+- `moab_2`: Place is marked certain while still prototype/draft.
 - `most_holy_place_2`: Place is marked certain while still prototype/draft.
 - `mount_carmel`: Place is marked certain while still prototype/draft.
+- `mount_gilboa`: Place is marked certain while still prototype/draft.
 - `mount_hermon`: Place is marked certain while still prototype/draft.
 - `mount_horeb`: Place is marked certain while still prototype/draft.
 - `mount_of_olives`: Place is marked certain while still prototype/draft.
+- `mount_tabor`: Place is marked certain while still prototype/draft.
 - `mount_zion`: Place is marked certain while still prototype/draft.
 - `negeb`: Place is marked certain while still prototype/draft.
 - `nile`: Place is marked certain while still prototype/draft.
 - `nineveh`: Place is marked certain while still prototype/draft.
+- `north`: Place is marked certain while still prototype/draft.
+- `paran`: Place is marked certain while still prototype/draft.
+- `peor`: Place is marked certain while still prototype/draft.
 - `persia`: Place is marked certain while still prototype/draft.
 - `philistia`: Place is marked certain while still prototype/draft.
 - `rabbah_1`: Place is marked certain while still prototype/draft.
 - `ramah_1`: Place is marked certain while still prototype/draft.
 - `ramoth_gilead`: Place is marked certain while still prototype/draft.
+- `riblah_1`: Place is marked certain while still prototype/draft.
 - `salt_sea`: Place is marked certain while still prototype/draft.
 - `samaria_1`: Place is marked certain while still prototype/draft.
+- `samaria_2`: Place is marked certain while still prototype/draft.
+- `sea_of_galilee`: Place is marked certain while still prototype/draft.
 - `sheba_1`: Place is marked certain while still prototype/draft.
 - `shechem`: Place is marked certain while still prototype/draft.
 - `shephelah`: Place is marked certain while still prototype/draft.
 - `shiloh`: Place is marked certain while still prototype/draft.
+- `shinar`: Place is marked certain while still prototype/draft.
+- `shunem`: Place is marked certain while still prototype/draft.
 - `sidon`: Place is marked certain while still prototype/draft.
+- `south_3`: Place is marked certain while still prototype/draft.
 - `susa`: Place is marked certain while still prototype/draft.
 - `syria_1`: Place is marked certain while still prototype/draft.
+- `syria_2`: Place is marked certain while still prototype/draft.
+- `taanach`: Place is marked certain while still prototype/draft.
+- `tahpanhes`: Place is marked certain while still prototype/draft.
 - `tekoa`: Place is marked certain while still prototype/draft.
+- `timnah_1`: Place is marked certain while still prototype/draft.
+- `tirzah`: Place is marked certain while still prototype/draft.
+- `topheth`: Place is marked certain while still prototype/draft.
 - `tyre`: Place is marked certain while still prototype/draft.
+- `valley_of_hinnom`: Place is marked certain while still prototype/draft.
+- `valley_of_rephaim`: Place is marked certain while still prototype/draft.
+- `valley_of_the_arnon`: Place is marked certain while still prototype/draft.
+- `wilderness_of_sinai`: Place is marked certain while still prototype/draft.
+- `zin_1`: Place is marked certain while still prototype/draft.
 - `zion`: Place is marked certain while still prototype/draft.
+- `zoan`: Place is marked certain while still prototype/draft.
 - `zobah`: Place is marked certain while still prototype/draft.
+- `zorah`: Place is marked certain while still prototype/draft.
 
 ## Megjegyzés
 Az audit nem végez történeti, régészeti vagy exegetikai tartalmi döntést. A bizonytalan találatok szakmai ellenőrzésre maradnak.

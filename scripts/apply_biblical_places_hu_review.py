@@ -47,7 +47,7 @@ def validate_draft(
     if len(set(draft_ids)) != len(draft_ids):
         raise ValueError("Draft review file contains duplicate place_id values.")
     if set(draft_ids) != set(batch_ids):
-        raise ValueError("Draft review place_id set must match hungarian_review_batch_001.json.")
+        raise ValueError("Draft review place_id set must match the selected batch file.")
     missing = sorted(place_id for place_id in draft_ids if place_id not in catalog_ids)
     if missing:
         raise ValueError(f"Draft review references unknown place_id values: {', '.join(missing[:10])}")
@@ -119,10 +119,10 @@ def apply_to_review_items(
     return result
 
 
-def apply_review(draft_path: Path, *, dry_run: bool) -> dict[str, Any]:
+def apply_review(draft_path: Path, *, batch_path: Path, dry_run: bool) -> dict[str, Any]:
     catalog = read_json(CATALOG_PATH)
     queue = read_json(QUEUE_PATH)
-    batch = read_json(BATCH_PATH)
+    batch = read_json(batch_path)
     draft = validate_draft(read_json(draft_path), catalog=catalog, batch=batch)
 
     updated_catalog, changed, unchanged = apply_to_catalog(catalog, draft)
@@ -132,10 +132,11 @@ def apply_review(draft_path: Path, *, dry_run: bool) -> dict[str, Any]:
     if not dry_run:
         write_json(CATALOG_PATH, updated_catalog)
         write_json(QUEUE_PATH, updated_queue)
-        write_json(BATCH_PATH, updated_batch)
+        write_json(batch_path, updated_batch)
 
     return {
         "draft_path": str(draft_path),
+        "batch_path": str(batch_path),
         "validated_records": len(draft),
         "catalog_records_changed": changed,
         "catalog_records_unchanged": unchanged,
@@ -146,10 +147,11 @@ def apply_review(draft_path: Path, *, dry_run: bool) -> dict[str, Any]:
 def main() -> int:
     parser = argparse.ArgumentParser(description="Apply a Hungarian biblical place review batch.")
     parser.add_argument("--draft", type=Path, default=DEFAULT_DRAFT_PATH)
+    parser.add_argument("--batch", type=Path, default=BATCH_PATH)
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
-    result = apply_review(args.draft, dry_run=args.dry_run)
+    result = apply_review(args.draft, batch_path=args.batch, dry_run=args.dry_run)
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0
 

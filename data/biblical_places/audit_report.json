@@ -3,25 +3,26 @@
   "catalog_record_count": 1309,
   "source_record_count": 16,
   "passage_place_link_count": 8658,
-  "hash_before_fix": "65fa72223f2f94b6b377a6a0ced4098aa610c1ebdb782dc0075f35f5c9d733fd",
-  "hash_after_fix": "65fa72223f2f94b6b377a6a0ced4098aa610c1ebdb782dc0075f35f5c9d733fd",
+  "hash_before_fix": "6e84cdb39e490f22edc8017f12cb2fdc4d6387bd10cedac19939c1924ec7e5a0",
+  "hash_after_fix": "6e84cdb39e490f22edc8017f12cb2fdc4d6387bd10cedac19939c1924ec7e5a0",
   "idempotent_after_fix": true,
   "summary": {
     "by_category": {
-      "certain_status_without_review": 83,
-      "empty_card_summary_hu": 1205,
+      "certain_status_without_review": 148,
+      "empty_card_summary_hu": 1108,
       "hungarian_name_review": 1,
       "large_place_list_for_passage": 118,
-      "missing_hungarian_name": 1205,
+      "missing_hungarian_name": 1108,
       "probable_duplicate_place": 201,
+      "same_hungarian_name": 3,
       "summary_repeats_name": 9
     },
     "by_severity": {
-      "review": 2822
+      "review": 2696
     }
   },
   "auto_fixed_items": [],
-  "review_required_count": 2822,
+  "review_required_count": 2696,
   "large_place_list_for_passage_count": 118,
   "definite_duplicate_merge_count": 0,
   "uncertain_duplicate_count": 201,
@@ -29,9 +30,33 @@
   "invalid_external_ids_fixed": true,
   "mixed_manual_demo_source_count": 0,
   "mixed_manual_demo_source_resolved": true,
-  "ui_fallback_name_count": 1205,
-  "safe_fallback_description_count": 1205,
+  "ui_fallback_name_count": 1108,
+  "safe_fallback_description_count": 1108,
   "top_findings": [
+    {
+      "category": "same_hungarian_name",
+      "severity": "review",
+      "object_type": "place",
+      "object_id": "babylon_1, babylon_3",
+      "message": "Same normalized Hungarian name is used by multiple records: babilon.",
+      "auto_fixable": false
+    },
+    {
+      "category": "same_hungarian_name",
+      "severity": "review",
+      "object_type": "place",
+      "object_id": "beersheba_1, beersheba_2",
+      "message": "Same normalized Hungarian name is used by multiple records: beérseba.",
+      "auto_fixable": false
+    },
+    {
+      "category": "same_hungarian_name",
+      "severity": "review",
+      "object_type": "place",
+      "object_id": "ramah_1, ramah_4",
+      "message": "Same normalized Hungarian name is used by multiple records: ráma.",
+      "auto_fixable": false
+    },
     {
       "category": "probable_duplicate_place",
       "severity": "review",
@@ -247,30 +272,6 @@
       "object_id": "babel / babylon_1",
       "message": "Records share a name variant and have very close coordinates.",
       "auto_fixable": false
-    },
-    {
-      "category": "probable_duplicate_place",
-      "severity": "review",
-      "object_type": "place_pair",
-      "object_id": "babel / babylonia",
-      "message": "Records share a name variant and have very close coordinates.",
-      "auto_fixable": false
-    },
-    {
-      "category": "probable_duplicate_place",
-      "severity": "review",
-      "object_type": "place_pair",
-      "object_id": "babel / sheshach",
-      "message": "Records share a name variant and have very close coordinates.",
-      "auto_fixable": false
-    },
-    {
-      "category": "probable_duplicate_place",
-      "severity": "review",
-      "object_type": "place_pair",
-      "object_id": "babel / shinar",
-      "message": "Records share a name variant and have very close coordinates.",
-      "auto_fixable": false
     }
   ],
   "hungarian_name_review": [
@@ -391,14 +392,6 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "acco",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "achaia",
       "message": "name_hu is missing.",
       "auto_fixable": false
     },
@@ -534,14 +527,6 @@
       "category": "missing_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "adullam",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "adummim",
       "message": "name_hu is missing.",
       "auto_fixable": false
@@ -591,14 +576,6 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "aija",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "aijalon_1",
       "message": "name_hu is missing.",
       "auto_fixable": false
     },
@@ -902,23 +879,7 @@
       "category": "missing_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "ar",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "arab",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "arabia_1",
       "message": "name_hu is missing.",
       "auto_fixable": false
     },
@@ -943,14 +904,6 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "arad_2",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "aram",
       "message": "name_hu is missing.",
       "auto_fixable": false
     },
@@ -1015,22 +968,6 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "armageddon",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "arnon",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "aroer_1",
       "message": "name_hu is missing.",
       "auto_fixable": false
     },
@@ -1110,14 +1047,6 @@
       "category": "missing_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "ashkelon",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "ashkenaz",
       "message": "name_hu is missing.",
       "auto_fixable": false
@@ -1135,14 +1064,6 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "ashnah_2",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "ashtaroth",
       "message": "name_hu is missing.",
       "auto_fixable": false
     },
@@ -1295,14 +1216,6 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "azal",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "azekah",
       "message": "name_hu is missing.",
       "auto_fixable": false
     },
@@ -1470,22 +1383,6 @@
       "category": "missing_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "babylon_3",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "bahurim",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "balah",
       "message": "name_hu is missing.",
       "auto_fixable": false
@@ -1582,23 +1479,7 @@
       "category": "missing_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "beeroth",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "beeroth_bene_jaakan",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "beersheba_2",
       "message": "name_hu is missing.",
       "auto_fixable": false
     },
@@ -1647,14 +1528,6 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "beon",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "berea",
       "message": "name_hu is missing.",
       "auto_fixable": false
     },
@@ -1894,14 +1767,6 @@
       "category": "missing_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "beth_horon",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "beth_jeshimoth",
       "message": "name_hu is missing.",
       "auto_fixable": false
@@ -1990,14 +1855,6 @@
       "category": "missing_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "beth_shan",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "beth_shemesh_2",
       "message": "name_hu is missing.",
       "auto_fixable": false
@@ -2039,14 +1896,6 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "beth_zur",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "bethany_1",
       "message": "name_hu is missing.",
       "auto_fixable": false
     },
@@ -2238,14 +2087,6 @@
       "category": "missing_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "bozrah_1",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "bozrah_2",
       "message": "name_hu is missing.",
       "auto_fixable": false
@@ -2255,14 +2096,6 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "broad_wall",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "brook_of_egypt",
       "message": "name_hu is missing.",
       "auto_fixable": false
     },
@@ -2438,14 +2271,6 @@
       "category": "missing_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "chebar",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "chephar_ammoni",
       "message": "name_hu is missing.",
       "auto_fixable": false
@@ -2558,14 +2383,6 @@
       "category": "missing_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "cilicia",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "city_of_destruction",
       "message": "name_hu is missing.",
       "auto_fixable": false
@@ -2638,14 +2455,6 @@
       "category": "missing_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "crete",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "cun",
       "message": "name_hu is missing.",
       "auto_fixable": false
@@ -2671,22 +2480,6 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "cuth",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "cyprus",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "cyrene",
       "message": "name_hu is missing.",
       "auto_fixable": false
     },
@@ -2734,14 +2527,6 @@
       "category": "missing_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "debir_1",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "debir_2",
       "message": "name_hu is missing.",
       "auto_fixable": false
@@ -2766,23 +2551,7 @@
       "category": "missing_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "dedan",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "derbe",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "dibon_1",
       "message": "name_hu is missing.",
       "auto_fixable": false
     },
@@ -2998,14 +2767,6 @@
       "category": "missing_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "edrei_1",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "edrei_2",
       "message": "name_hu is missing.",
       "auto_fixable": false
@@ -3023,14 +2784,6 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "eglath_shelishiyah",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "eglon",
       "message": "name_hu is missing.",
       "auto_fixable": false
     },
@@ -3262,14 +3015,6 @@
       "category": "missing_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "engedi",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "ephah",
       "message": "name_hu is missing.",
       "auto_fixable": false
@@ -3382,14 +3127,6 @@
       "category": "missing_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "eshtaol",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "eshtemoa",
       "message": "name_hu is missing.",
       "auto_fixable": false
@@ -3454,14 +3191,6 @@
       "category": "missing_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "ethiopia",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "etruria",
       "message": "name_hu is missing.",
       "auto_fixable": false
@@ -3471,14 +3200,6 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "ezem",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "ezion_geber",
       "message": "name_hu is missing.",
       "auto_fixable": false
     },
@@ -3535,14 +3256,6 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "gadara",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "galatia",
       "message": "name_hu is missing.",
       "auto_fixable": false
     },
@@ -3655,14 +3368,6 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "ge_harashim",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "geba_1",
       "message": "name_hu is missing.",
       "auto_fixable": false
     },
@@ -3814,14 +3519,6 @@
       "category": "missing_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "gerar",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "gerasa",
       "message": "name_hu is missing.",
       "auto_fixable": false
@@ -3839,14 +3536,6 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "geruth_chimham",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "geshur",
       "message": "name_hu is missing.",
       "auto_fixable": false
     },
@@ -4054,14 +3743,6 @@
       "category": "missing_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "goshen_1",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "goshen_2",
       "message": "name_hu is missing.",
       "auto_fixable": false
@@ -4079,14 +3760,6 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "gozan",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "greece",
       "message": "name_hu is missing.",
       "auto_fixable": false
     },
@@ -4342,14 +4015,6 @@
       "category": "missing_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "haran",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "harhar",
       "message": "name_hu is missing.",
       "auto_fixable": false
@@ -4503,14 +4168,6 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "hazeroth",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "hazor_1",
       "message": "name_hu is missing.",
       "auto_fixable": false
     },
@@ -4758,14 +4415,6 @@
       "category": "missing_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "hormah",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "horonaim_1",
       "message": "name_hu is missing.",
       "auto_fixable": false
@@ -5006,14 +4655,6 @@
       "category": "missing_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "jabbok",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "jabez",
       "message": "name_hu is missing.",
       "auto_fixable": false
@@ -5039,14 +4680,6 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "jagur",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "jahaz",
       "message": "name_hu is missing.",
       "auto_fixable": false
     },
@@ -5119,22 +4752,6 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "javan",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "jazer",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "jebus",
       "message": "name_hu is missing.",
       "auto_fixable": false
     },
@@ -5247,14 +4864,6 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "joktheel_1",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "jordan_valley",
       "message": "name_hu is missing.",
       "auto_fixable": false
     },
@@ -5391,14 +5000,6 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "kattath",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "kedar",
       "message": "name_hu is missing.",
       "auto_fixable": false
     },
@@ -5726,14 +5327,6 @@
       "category": "missing_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "lebo_hamath",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "lebonah",
       "message": "name_hu is missing.",
       "auto_fixable": false
@@ -5767,14 +5360,6 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "lo_debar",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "lod",
       "message": "name_hu is missing.",
       "auto_fixable": false
     },
@@ -5871,14 +5456,6 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "lystra",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "maacah",
       "message": "name_hu is missing.",
       "auto_fixable": false
     },
@@ -6054,14 +5631,6 @@
       "category": "missing_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "makkedah",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "malta",
       "message": "name_hu is missing.",
       "auto_fixable": false
@@ -6182,30 +5751,6 @@
       "category": "missing_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "media",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "megiddo",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "memphis",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "mephaath",
       "message": "name_hu is missing.",
       "auto_fixable": false
@@ -6215,14 +5760,6 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "merathaim",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "meribah_1",
       "message": "name_hu is missing.",
       "auto_fixable": false
     },
@@ -6270,31 +5807,7 @@
       "category": "missing_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "meshech",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "mesopotamia",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "metheg_ammah",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "michmash",
       "message": "name_hu is missing.",
       "auto_fixable": false
     },
@@ -6494,14 +6007,6 @@
       "category": "missing_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "moab_2",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "moladah",
       "message": "name_hu is missing.",
       "auto_fixable": false
@@ -6622,14 +6127,6 @@
       "category": "missing_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "mount_gilboa",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "mount_gilead",
       "message": "name_hu is missing.",
       "auto_fixable": false
@@ -6647,14 +6144,6 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "mount_heres",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "mount_hor_1",
       "message": "name_hu is missing.",
       "auto_fixable": false
     },
@@ -6735,14 +6224,6 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "mount_shepher",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "mount_tabor",
       "message": "name_hu is missing.",
       "auto_fixable": false
     },
@@ -6910,14 +6391,6 @@
       "category": "missing_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "nebo_1",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "nebo_2",
       "message": "name_hu is missing.",
       "auto_fixable": false
@@ -6943,14 +6416,6 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "netaim",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "netophah",
       "message": "name_hu is missing.",
       "auto_fixable": false
     },
@@ -7014,14 +6479,6 @@
       "category": "missing_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "nob",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "nobah_1",
       "message": "name_hu is missing.",
       "auto_fixable": false
@@ -7039,14 +6496,6 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "nophah",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "north",
       "message": "name_hu is missing.",
       "auto_fixable": false
     },
@@ -7102,14 +6551,6 @@
       "category": "missing_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "ophir",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "ophni",
       "message": "name_hu is missing.",
       "auto_fixable": false
@@ -7134,14 +6575,6 @@
       "category": "missing_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "paddan_aram",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "pamphylia",
       "message": "name_hu is missing.",
       "auto_fixable": false
@@ -7159,14 +6592,6 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "parah",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "paran",
       "message": "name_hu is missing.",
       "auto_fixable": false
     },
@@ -7247,14 +6672,6 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "peoples_gate",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "peor",
       "message": "name_hu is missing.",
       "auto_fixable": false
     },
@@ -7351,14 +6768,6 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "pirathon",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "pisgah",
       "message": "name_hu is missing.",
       "auto_fixable": false
     },
@@ -7519,14 +6928,6 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "ramah_3",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "ramah_4",
       "message": "name_hu is missing.",
       "auto_fixable": false
     },
@@ -7758,14 +7159,6 @@
       "category": "missing_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "riblah_1",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "riblah_2",
       "message": "name_hu is missing.",
       "auto_fixable": false
@@ -7926,14 +7319,6 @@
       "category": "missing_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "samaria_2",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "samos",
       "message": "name_hu is missing.",
       "auto_fixable": false
@@ -7999,14 +7384,6 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "sea_of_egypt",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "sea_of_galilee",
       "message": "name_hu is missing.",
       "auto_fixable": false
     },
@@ -8374,14 +7751,6 @@
       "category": "missing_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "shinar",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "shion",
       "message": "name_hu is missing.",
       "auto_fixable": false
@@ -8407,14 +7776,6 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "shual",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "shunem",
       "message": "name_hu is missing.",
       "auto_fixable": false
     },
@@ -8550,14 +7911,6 @@
       "category": "missing_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "south_3",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "south_gate",
       "message": "name_hu is missing.",
       "auto_fixable": false
@@ -8583,14 +7936,6 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "straight_street",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "succoth_1",
       "message": "name_hu is missing.",
       "auto_fixable": false
     },
@@ -8662,23 +8007,7 @@
       "category": "missing_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "syria_2",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "syrtis",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "taanach",
       "message": "name_hu is missing.",
       "auto_fixable": false
     },
@@ -8743,14 +8072,6 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "tahath",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "tahpanhes",
       "message": "name_hu is missing.",
       "auto_fixable": false
     },
@@ -8982,14 +8303,6 @@
       "category": "missing_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "timnah_1",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "timnah_2",
       "message": "name_hu is missing.",
       "auto_fixable": false
@@ -9030,14 +8343,6 @@
       "category": "missing_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "tirzah",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "tjaru",
       "message": "name_hu is missing.",
       "auto_fixable": false
@@ -9063,14 +8368,6 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "tophel",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "topheth",
       "message": "name_hu is missing.",
       "auto_fixable": false
     },
@@ -9366,14 +8663,6 @@
       "category": "missing_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "valley_of_hinnom",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "valley_of_iphtahel",
       "message": "name_hu is missing.",
       "auto_fixable": false
@@ -9422,14 +8711,6 @@
       "category": "missing_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "valley_of_rephaim",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "valley_of_salt",
       "message": "name_hu is missing.",
       "auto_fixable": false
@@ -9471,14 +8752,6 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "valley_of_succoth",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "valley_of_the_arnon",
       "message": "name_hu is missing.",
       "auto_fixable": false
     },
@@ -9575,14 +8848,6 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "wilderness_of_maon",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "wilderness_of_sinai",
       "message": "name_hu is missing.",
       "auto_fixable": false
     },
@@ -9814,23 +9079,7 @@
       "category": "missing_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "ziklag",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "zimri",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "zin_1",
       "message": "name_hu is missing.",
       "auto_fixable": false
     },
@@ -9886,31 +9135,7 @@
       "category": "missing_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "zoan",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "zoar",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "zophim",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "zorah",
       "message": "name_hu is missing.",
       "auto_fixable": false
     },
@@ -9924,6 +9149,30 @@
     }
   ],
   "disputed_or_multiple_identification_review": [
+    {
+      "category": "same_hungarian_name",
+      "severity": "review",
+      "object_type": "place",
+      "object_id": "babylon_1, babylon_3",
+      "message": "Same normalized Hungarian name is used by multiple records: babilon.",
+      "auto_fixable": false
+    },
+    {
+      "category": "same_hungarian_name",
+      "severity": "review",
+      "object_type": "place",
+      "object_id": "beersheba_1, beersheba_2",
+      "message": "Same normalized Hungarian name is used by multiple records: beérseba.",
+      "auto_fixable": false
+    },
+    {
+      "category": "same_hungarian_name",
+      "severity": "review",
+      "object_type": "place",
+      "object_id": "ramah_1, ramah_4",
+      "message": "Same normalized Hungarian name is used by multiple records: ráma.",
+      "auto_fixable": false
+    },
     {
       "category": "probable_duplicate_place",
       "severity": "review",
@@ -11536,6 +10785,14 @@
       "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
+      "object_id": "achaia",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
       "object_id": "amalek",
       "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
@@ -11560,7 +10817,47 @@
       "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
+      "object_id": "arabia_1",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
+      "object_id": "aram",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
+      "object_id": "arnon",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
+      "object_id": "aroer_1",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
       "object_id": "ashdod",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
+      "object_id": "ashkelon",
       "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
@@ -11592,6 +10889,14 @@
       "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
+      "object_id": "babylon_3",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
       "object_id": "babylonia",
       "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
@@ -11616,7 +10921,39 @@
       "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
+      "object_id": "berea",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
+      "object_id": "beth_horon",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
+      "object_id": "beth_shan",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
       "object_id": "beth_shemesh_1",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
+      "object_id": "bethany_1",
       "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
@@ -11641,6 +10978,14 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "beyond_the_river",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
+      "object_id": "bozrah_1",
       "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
@@ -11688,6 +11033,14 @@
       "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
+      "object_id": "cilicia",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
       "object_id": "city_of_david",
       "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
@@ -11696,7 +11049,39 @@
       "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
+      "object_id": "corinth",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
+      "object_id": "crete",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
       "object_id": "cush_1",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
+      "object_id": "cyprus",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
+      "object_id": "cyrene",
       "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
@@ -11720,6 +11105,22 @@
       "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
+      "object_id": "dedan",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
+      "object_id": "dibon_1",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
       "object_id": "east",
       "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
@@ -11729,6 +11130,14 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "edom",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
+      "object_id": "edrei_1",
       "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
@@ -11760,6 +11169,14 @@
       "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
+      "object_id": "engedi",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
       "object_id": "ephesus",
       "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
@@ -11768,7 +11185,23 @@
       "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
+      "object_id": "ethiopia",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
       "object_id": "euphrates",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
+      "object_id": "galatia",
       "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
@@ -11793,6 +11226,14 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "gaza",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
+      "object_id": "geshur",
       "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
@@ -11832,6 +11273,14 @@
       "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
+      "object_id": "goshen_1",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
       "object_id": "great_sea",
       "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
@@ -11840,7 +11289,31 @@
       "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
+      "object_id": "greece",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
       "object_id": "hamath_1",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
+      "object_id": "haran",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
+      "object_id": "hazor_1",
       "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
@@ -11857,6 +11330,22 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "holy_place_2",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
+      "object_id": "jabbok",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
+      "object_id": "jebus",
       "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
@@ -11896,6 +11385,14 @@
       "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
+      "object_id": "jordan_valley",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
       "object_id": "judea_1",
       "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
@@ -11905,6 +11402,14 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "kadesh_barnea",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
+      "object_id": "kedar",
       "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
@@ -11952,7 +11457,71 @@
       "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
+      "object_id": "lod",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
+      "object_id": "maacah",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
       "object_id": "macedonia",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
+      "object_id": "media",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
+      "object_id": "megiddo",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
+      "object_id": "memphis",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
+      "object_id": "meribah_1",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
+      "object_id": "meshech",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
+      "object_id": "mesopotamia",
       "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
@@ -11984,6 +11553,14 @@
       "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
+      "object_id": "moab_2",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
       "object_id": "most_holy_place_2",
       "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
@@ -11993,6 +11570,14 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "mount_carmel",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
+      "object_id": "mount_gilboa",
       "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
@@ -12017,6 +11602,14 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "mount_of_olives",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
+      "object_id": "mount_tabor",
       "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
@@ -12049,6 +11642,30 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "nineveh",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
+      "object_id": "north",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
+      "object_id": "paran",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
+      "object_id": "peor",
       "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
@@ -12096,6 +11713,14 @@
       "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
+      "object_id": "riblah_1",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
       "object_id": "salt_sea",
       "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
@@ -12105,6 +11730,22 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "samaria_1",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
+      "object_id": "samaria_2",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
+      "object_id": "sea_of_galilee",
       "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
@@ -12144,7 +11785,31 @@
       "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
+      "object_id": "shinar",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
+      "object_id": "shunem",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
       "object_id": "sidon",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
+      "object_id": "south_3",
       "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
@@ -12168,7 +11833,55 @@
       "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
+      "object_id": "syria_2",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
+      "object_id": "taanach",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
+      "object_id": "tahpanhes",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
       "object_id": "tekoa",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
+      "object_id": "timnah_1",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
+      "object_id": "tirzah",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
+      "object_id": "topheth",
       "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
@@ -12184,7 +11897,55 @@
       "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
+      "object_id": "valley_of_hinnom",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
+      "object_id": "valley_of_rephaim",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
+      "object_id": "valley_of_the_arnon",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
+      "object_id": "wilderness_of_sinai",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
+      "object_id": "zin_1",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
       "object_id": "zion",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
+      "object_id": "zoan",
       "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
@@ -12195,9 +11956,41 @@
       "object_id": "zobah",
       "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
+    },
+    {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
+      "object_id": "zorah",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
     }
   ],
   "findings": [
+    {
+      "category": "same_hungarian_name",
+      "severity": "review",
+      "object_type": "place",
+      "object_id": "babylon_1, babylon_3",
+      "message": "Same normalized Hungarian name is used by multiple records: babilon.",
+      "auto_fixable": false
+    },
+    {
+      "category": "same_hungarian_name",
+      "severity": "review",
+      "object_type": "place",
+      "object_id": "beersheba_1, beersheba_2",
+      "message": "Same normalized Hungarian name is used by multiple records: beérseba.",
+      "auto_fixable": false
+    },
+    {
+      "category": "same_hungarian_name",
+      "severity": "review",
+      "object_type": "place",
+      "object_id": "ramah_1, ramah_4",
+      "message": "Same normalized Hungarian name is used by multiple records: ráma.",
+      "auto_fixable": false
+    },
     {
       "category": "probable_duplicate_place",
       "severity": "review",
@@ -14047,19 +13840,11 @@
       "auto_fixable": false
     },
     {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "achaia",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "achaia",
-      "message": "card_summary_hu is empty.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
@@ -14322,22 +14107,6 @@
       "category": "missing_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "adullam",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "adullam",
-      "message": "card_summary_hu is empty.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "adummim",
       "message": "name_hu is missing.",
       "auto_fixable": false
@@ -14443,22 +14212,6 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "aija",
-      "message": "card_summary_hu is empty.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "aijalon_1",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "aijalon_1",
       "message": "card_summary_hu is empty.",
       "auto_fixable": false
     },
@@ -15074,22 +14827,6 @@
       "category": "missing_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "ar",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "ar",
-      "message": "card_summary_hu is empty.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "arab",
       "message": "name_hu is missing.",
       "auto_fixable": false
@@ -15111,19 +14848,11 @@
       "auto_fixable": false
     },
     {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "arabia_1",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "arabia_1",
-      "message": "card_summary_hu is empty.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
@@ -15175,19 +14904,11 @@
       "auto_fixable": false
     },
     {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "aram",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "aram",
-      "message": "card_summary_hu is empty.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
@@ -15319,35 +15040,19 @@
       "auto_fixable": false
     },
     {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "arnon",
-      "message": "name_hu is missing.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "arnon",
-      "message": "card_summary_hu is empty.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "aroer_1",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "aroer_1",
-      "message": "card_summary_hu is empty.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
@@ -15503,19 +15208,11 @@
       "auto_fixable": false
     },
     {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "ashkelon",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "ashkelon",
-      "message": "card_summary_hu is empty.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
@@ -15563,22 +15260,6 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "ashnah_2",
-      "message": "card_summary_hu is empty.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "ashtaroth",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "ashtaroth",
       "message": "card_summary_hu is empty.",
       "auto_fixable": false
     },
@@ -15914,22 +15595,6 @@
       "category": "missing_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "azekah",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "azekah",
-      "message": "card_summary_hu is empty.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "azmaveth",
       "message": "name_hu is missing.",
       "auto_fixable": false
@@ -16255,19 +15920,11 @@
       "auto_fixable": false
     },
     {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "babylon_3",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "babylon_3",
-      "message": "card_summary_hu is empty.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
@@ -16276,22 +15933,6 @@
       "object_type": "place",
       "object_id": "babylonia",
       "message": "Place is marked certain while still prototype/draft.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "bahurim",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "bahurim",
-      "message": "card_summary_hu is empty.",
       "auto_fixable": false
     },
     {
@@ -16498,22 +16139,6 @@
       "category": "missing_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "beeroth",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "beeroth",
-      "message": "card_summary_hu is empty.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "beeroth_bene_jaakan",
       "message": "name_hu is missing.",
       "auto_fixable": false
@@ -16538,22 +16163,6 @@
       "category": "missing_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "beersheba_2",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "beersheba_2",
-      "message": "card_summary_hu is empty.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "beeshterah",
       "message": "name_hu is missing.",
       "auto_fixable": false
@@ -16647,19 +16256,11 @@
       "auto_fixable": false
     },
     {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "berea",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "berea",
-      "message": "card_summary_hu is empty.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
@@ -17127,19 +16728,11 @@
       "auto_fixable": false
     },
     {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "beth_horon",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "beth_horon",
-      "message": "card_summary_hu is empty.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
@@ -17319,19 +16912,11 @@
       "auto_fixable": false
     },
     {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "beth_shan",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "beth_shan",
-      "message": "card_summary_hu is empty.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
@@ -17439,19 +17024,11 @@
       "auto_fixable": false
     },
     {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "bethany_1",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "bethany_1",
-      "message": "card_summary_hu is empty.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
@@ -17847,19 +17424,11 @@
       "auto_fixable": false
     },
     {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "bozrah_1",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "bozrah_1",
-      "message": "card_summary_hu is empty.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
@@ -17891,22 +17460,6 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "broad_wall",
-      "message": "card_summary_hu is empty.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "brook_of_egypt",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "brook_of_egypt",
       "message": "card_summary_hu is empty.",
       "auto_fixable": false
     },
@@ -18298,22 +17851,6 @@
       "category": "missing_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "chebar",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "chebar",
-      "message": "card_summary_hu is empty.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "chephar_ammoni",
       "message": "name_hu is missing.",
       "auto_fixable": false
@@ -18535,19 +18072,11 @@
       "auto_fixable": false
     },
     {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "cilicia",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "cilicia",
-      "message": "card_summary_hu is empty.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
@@ -18663,6 +18192,14 @@
       "auto_fixable": false
     },
     {
+      "category": "certain_status_without_review",
+      "severity": "review",
+      "object_type": "place",
+      "object_id": "corinth",
+      "message": "Place is marked certain while still prototype/draft.",
+      "auto_fixable": false
+    },
+    {
       "category": "missing_hungarian_name",
       "severity": "review",
       "object_type": "place",
@@ -18711,19 +18248,11 @@
       "auto_fixable": false
     },
     {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "crete",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "crete",
-      "message": "card_summary_hu is empty.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
@@ -18799,35 +18328,19 @@
       "auto_fixable": false
     },
     {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "cyprus",
-      "message": "name_hu is missing.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "cyprus",
-      "message": "card_summary_hu is empty.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "cyrene",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "cyrene",
-      "message": "card_summary_hu is empty.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
@@ -18930,22 +18443,6 @@
       "category": "missing_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "debir_1",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "debir_1",
-      "message": "card_summary_hu is empty.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "debir_2",
       "message": "name_hu is missing.",
       "auto_fixable": false
@@ -18991,19 +18488,11 @@
       "auto_fixable": false
     },
     {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "dedan",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "dedan",
-      "message": "card_summary_hu is empty.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
@@ -19023,19 +18512,11 @@
       "auto_fixable": false
     },
     {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "dibon_1",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "dibon_1",
-      "message": "card_summary_hu is empty.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
@@ -19471,19 +18952,11 @@
       "auto_fixable": false
     },
     {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "edrei_1",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "edrei_1",
-      "message": "card_summary_hu is empty.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
@@ -19531,22 +19004,6 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "eglath_shelishiyah",
-      "message": "card_summary_hu is empty.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "eglon",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "eglon",
       "message": "card_summary_hu is empty.",
       "auto_fixable": false
     },
@@ -20023,19 +19480,11 @@
       "auto_fixable": false
     },
     {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "engedi",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "engedi",
-      "message": "card_summary_hu is empty.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
@@ -20282,22 +19731,6 @@
       "category": "missing_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "eshtaol",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "eshtaol",
-      "message": "card_summary_hu is empty.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "eshtemoa",
       "message": "name_hu is missing.",
       "auto_fixable": false
@@ -20423,19 +19856,11 @@
       "auto_fixable": false
     },
     {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "ethiopia",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "ethiopia",
-      "message": "card_summary_hu is empty.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
@@ -20482,22 +19907,6 @@
       "category": "missing_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "ezion_geber",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "ezion_geber",
-      "message": "card_summary_hu is empty.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "fair_havens",
       "message": "name_hu is missing.",
       "auto_fixable": false
@@ -20607,19 +20016,11 @@
       "auto_fixable": false
     },
     {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "galatia",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "galatia",
-      "message": "card_summary_hu is empty.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
@@ -20874,22 +20275,6 @@
       "category": "missing_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "geba_1",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "geba_1",
-      "message": "card_summary_hu is empty.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "geba_2",
       "message": "name_hu is missing.",
       "auto_fixable": false
@@ -21178,22 +20563,6 @@
       "category": "missing_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "gerar",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "gerar",
-      "message": "card_summary_hu is empty.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "gerasa",
       "message": "name_hu is missing.",
       "auto_fixable": false
@@ -21239,19 +20608,11 @@
       "auto_fixable": false
     },
     {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "geshur",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "geshur",
-      "message": "card_summary_hu is empty.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
@@ -21687,19 +21048,11 @@
       "auto_fixable": false
     },
     {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "goshen_1",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "goshen_1",
-      "message": "card_summary_hu is empty.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
@@ -21759,19 +21112,11 @@
       "auto_fixable": false
     },
     {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "greece",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "greece",
-      "message": "card_summary_hu is empty.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
@@ -22279,19 +21624,11 @@
       "auto_fixable": false
     },
     {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "haran",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "haran",
-      "message": "card_summary_hu is empty.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
@@ -22615,19 +21952,11 @@
       "auto_fixable": false
     },
     {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "hazor_1",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "hazor_1",
-      "message": "card_summary_hu is empty.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
@@ -23130,22 +22459,6 @@
       "category": "missing_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "hormah",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "hormah",
-      "message": "card_summary_hu is empty.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "horonaim_1",
       "message": "name_hu is missing.",
       "auto_fixable": false
@@ -23623,19 +22936,11 @@
       "auto_fixable": false
     },
     {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "jabbok",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "jabbok",
-      "message": "card_summary_hu is empty.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
@@ -23699,22 +23004,6 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "jagur",
-      "message": "card_summary_hu is empty.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "jahaz",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "jahaz",
       "message": "card_summary_hu is empty.",
       "auto_fixable": false
     },
@@ -23863,35 +23152,11 @@
       "auto_fixable": false
     },
     {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "jazer",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "jazer",
-      "message": "card_summary_hu is empty.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "jebus",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "jebus",
-      "message": "card_summary_hu is empty.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
@@ -24159,19 +23424,11 @@
       "auto_fixable": false
     },
     {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "jordan_valley",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "jordan_valley",
-      "message": "card_summary_hu is empty.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
@@ -24463,19 +23720,11 @@
       "auto_fixable": false
     },
     {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "kedar",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "kedar",
-      "message": "card_summary_hu is empty.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
@@ -25162,22 +24411,6 @@
       "category": "missing_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "lebo_hamath",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "lebo_hamath",
-      "message": "card_summary_hu is empty.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "lebonah",
       "message": "name_hu is missing.",
       "auto_fixable": false
@@ -25255,19 +24488,11 @@
       "auto_fixable": false
     },
     {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "lod",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "lod",
-      "message": "card_summary_hu is empty.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
@@ -25463,19 +24688,11 @@
       "auto_fixable": false
     },
     {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "maacah",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "maacah",
-      "message": "card_summary_hu is empty.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
@@ -25818,22 +25035,6 @@
       "category": "missing_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "makkedah",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "makkedah",
-      "message": "card_summary_hu is empty.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "malta",
       "message": "name_hu is missing.",
       "auto_fixable": false
@@ -26071,51 +25272,27 @@
       "auto_fixable": false
     },
     {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "media",
-      "message": "name_hu is missing.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "media",
-      "message": "card_summary_hu is empty.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "megiddo",
-      "message": "name_hu is missing.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "megiddo",
-      "message": "card_summary_hu is empty.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "memphis",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "memphis",
-      "message": "card_summary_hu is empty.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
@@ -26151,19 +25328,11 @@
       "auto_fixable": false
     },
     {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "meribah_1",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "meribah_1",
-      "message": "card_summary_hu is empty.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
@@ -26247,35 +25416,19 @@
       "auto_fixable": false
     },
     {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "meshech",
-      "message": "name_hu is missing.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "meshech",
-      "message": "card_summary_hu is empty.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "mesopotamia",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "mesopotamia",
-      "message": "card_summary_hu is empty.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
@@ -26291,22 +25444,6 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "metheg_ammah",
-      "message": "card_summary_hu is empty.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "michmash",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "michmash",
       "message": "card_summary_hu is empty.",
       "auto_fixable": false
     },
@@ -26719,19 +25856,11 @@
       "auto_fixable": false
     },
     {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "moab_2",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "moab_2",
-      "message": "card_summary_hu is empty.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
@@ -26991,19 +26120,11 @@
       "auto_fixable": false
     },
     {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "mount_gilboa",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "mount_gilboa",
-      "message": "card_summary_hu is empty.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
@@ -27060,22 +26181,6 @@
       "object_type": "place",
       "object_id": "mount_hermon",
       "message": "Place is marked certain while still prototype/draft.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "mount_hor_1",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "mount_hor_1",
-      "message": "card_summary_hu is empty.",
       "auto_fixable": false
     },
     {
@@ -27255,19 +26360,11 @@
       "auto_fixable": false
     },
     {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "mount_tabor",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "mount_tabor",
-      "message": "card_summary_hu is empty.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
@@ -27610,22 +26707,6 @@
       "category": "missing_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "nebo_1",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "nebo_1",
-      "message": "card_summary_hu is empty.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "nebo_2",
       "message": "name_hu is missing.",
       "auto_fixable": false
@@ -27691,22 +26772,6 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "netaim",
-      "message": "card_summary_hu is empty.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "netophah",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "netophah",
       "message": "card_summary_hu is empty.",
       "auto_fixable": false
     },
@@ -27842,22 +26907,6 @@
       "category": "missing_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "nob",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "nob",
-      "message": "card_summary_hu is empty.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "nobah_1",
       "message": "name_hu is missing.",
       "auto_fixable": false
@@ -27903,19 +26952,11 @@
       "auto_fixable": false
     },
     {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "north",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "north",
-      "message": "card_summary_hu is empty.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
@@ -28018,22 +27059,6 @@
       "category": "missing_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "ophir",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "ophir",
-      "message": "card_summary_hu is empty.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "ophni",
       "message": "name_hu is missing.",
       "auto_fixable": false
@@ -28075,22 +27100,6 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "ophrah_2",
-      "message": "card_summary_hu is empty.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "paddan_aram",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "paddan_aram",
       "message": "card_summary_hu is empty.",
       "auto_fixable": false
     },
@@ -28143,19 +27152,11 @@
       "auto_fixable": false
     },
     {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "paran",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "paran",
-      "message": "card_summary_hu is empty.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
@@ -28319,19 +27320,11 @@
       "auto_fixable": false
     },
     {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "peor",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "peor",
-      "message": "card_summary_hu is empty.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
@@ -28547,22 +27540,6 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "pirathon",
-      "message": "card_summary_hu is empty.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "pisgah",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "pisgah",
       "message": "card_summary_hu is empty.",
       "auto_fixable": false
     },
@@ -28899,22 +27876,6 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "ramah_3",
-      "message": "card_summary_hu is empty.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "ramah_4",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "ramah_4",
       "message": "card_summary_hu is empty.",
       "auto_fixable": false
     },
@@ -29375,19 +28336,11 @@
       "auto_fixable": false
     },
     {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "riblah_1",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "riblah_1",
-      "message": "card_summary_hu is empty.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
@@ -29735,19 +28688,11 @@
       "auto_fixable": false
     },
     {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "samaria_2",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "samaria_2",
-      "message": "card_summary_hu is empty.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
@@ -29895,19 +28840,11 @@
       "auto_fixable": false
     },
     {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "sea_of_galilee",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "sea_of_galilee",
-      "message": "card_summary_hu is empty.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
@@ -30663,19 +29600,11 @@
       "auto_fixable": false
     },
     {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "shinar",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "shinar",
-      "message": "card_summary_hu is empty.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
@@ -30743,19 +29672,11 @@
       "auto_fixable": false
     },
     {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "shunem",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "shunem",
-      "message": "card_summary_hu is empty.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
@@ -31023,19 +29944,11 @@
       "auto_fixable": false
     },
     {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "south_3",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "south_3",
-      "message": "card_summary_hu is empty.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
@@ -31099,22 +30012,6 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "straight_street",
-      "message": "card_summary_hu is empty.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "succoth_1",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "succoth_1",
       "message": "card_summary_hu is empty.",
       "auto_fixable": false
     },
@@ -31263,19 +30160,11 @@
       "auto_fixable": false
     },
     {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "syria_2",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "syria_2",
-      "message": "card_summary_hu is empty.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
@@ -31295,19 +30184,11 @@
       "auto_fixable": false
     },
     {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "taanach",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "taanach",
-      "message": "card_summary_hu is empty.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
@@ -31439,19 +30320,11 @@
       "auto_fixable": false
     },
     {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "tahpanhes",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "tahpanhes",
-      "message": "card_summary_hu is empty.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
@@ -31919,19 +30792,11 @@
       "auto_fixable": false
     },
     {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "timnah_1",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "timnah_1",
-      "message": "card_summary_hu is empty.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
@@ -32015,19 +30880,11 @@
       "auto_fixable": false
     },
     {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "tirzah",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "tirzah",
-      "message": "card_summary_hu is empty.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
@@ -32095,19 +30952,11 @@
       "auto_fixable": false
     },
     {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "topheth",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "topheth",
-      "message": "card_summary_hu is empty.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
@@ -32695,19 +31544,11 @@
       "auto_fixable": false
     },
     {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "valley_of_hinnom",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "valley_of_hinnom",
-      "message": "card_summary_hu is empty.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
@@ -32807,19 +31648,11 @@
       "auto_fixable": false
     },
     {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "valley_of_rephaim",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "valley_of_rephaim",
-      "message": "card_summary_hu is empty.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
@@ -32919,19 +31752,11 @@
       "auto_fixable": false
     },
     {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "valley_of_the_arnon",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "valley_of_the_arnon",
-      "message": "card_summary_hu is empty.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
@@ -33127,19 +31952,11 @@
       "auto_fixable": false
     },
     {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "wilderness_of_sinai",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "wilderness_of_sinai",
-      "message": "card_summary_hu is empty.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
@@ -33594,22 +32411,6 @@
       "category": "missing_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "ziklag",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "ziklag",
-      "message": "card_summary_hu is empty.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "zimri",
       "message": "name_hu is missing.",
       "auto_fixable": false
@@ -33623,19 +32424,11 @@
       "auto_fixable": false
     },
     {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "zin_1",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "zin_1",
-      "message": "card_summary_hu is empty.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
@@ -33743,35 +32536,11 @@
       "auto_fixable": false
     },
     {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "zoan",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "zoan",
-      "message": "card_summary_hu is empty.",
-      "auto_fixable": false
-    },
-    {
-      "category": "missing_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "zoar",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "zoar",
-      "message": "card_summary_hu is empty.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
@@ -33799,19 +32568,11 @@
       "auto_fixable": false
     },
     {
-      "category": "missing_hungarian_name",
+      "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
       "object_id": "zorah",
-      "message": "name_hu is missing.",
-      "auto_fixable": false
-    },
-    {
-      "category": "empty_card_summary_hu",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "zorah",
-      "message": "card_summary_hu is empty.",
+      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {

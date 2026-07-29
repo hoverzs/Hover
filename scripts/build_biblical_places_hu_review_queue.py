@@ -15,6 +15,7 @@ PASSAGE_LINKS_PATH = DATA_DIR / "passage_place_links.json"
 AUDIT_REPORT_PATH = DATA_DIR / "audit_report.json"
 QUEUE_PATH = DATA_DIR / "hungarian_review_queue.json"
 BATCH_001_PATH = DATA_DIR / "hungarian_review_batch_001.json"
+BATCH_002_PATH = DATA_DIR / "hungarian_review_batch_002.json"
 DOC_PATH = ROOT / "docs" / "biblical_places_hungarian_review.md"
 
 BATCH_SIZE = 100
@@ -176,6 +177,10 @@ def build_queue() -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     return queue, queue[:BATCH_SIZE]
 
 
+def build_batch_002(queue: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    return queue[BATCH_SIZE : BATCH_SIZE * 2]
+
+
 def write_documentation(queue_count: int, batch_count: int) -> None:
     DOC_PATH.write_text(
         "\n".join(
@@ -212,9 +217,11 @@ def main() -> int:
     args = parser.parse_args()
 
     queue, batch = build_queue()
+    batch_002 = build_batch_002(queue)
     outputs = {
         QUEUE_PATH: queue,
         BATCH_001_PATH: batch,
+        BATCH_002_PATH: batch_002,
     }
     if args.check:
         changed = [
@@ -239,6 +246,7 @@ def main() -> int:
             {
                 "queue_count": len(queue),
                 "batch_001_count": len(batch),
+                "batch_002_count": len(batch_002),
             },
             ensure_ascii=False,
             indent=2,
