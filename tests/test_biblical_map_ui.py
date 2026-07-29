@@ -997,14 +997,14 @@ def test_second_hungarian_review_batch_card_summaries_are_compact() -> None:
 
 
 def test_missing_hungarian_name_and_summary_use_safe_ui_fallbacks() -> None:
-    abana = get_biblical_place("abana")
+    abana = get_biblical_place("abel_keramim")
 
     assert abana is not None
-    assert abana.name_en == "Abana"
-    assert display_place_name(abana) == "Abana"
-    assert "abana" not in display_place_name(abana)
+    assert abana.name_en == "Abel-keramim"
+    assert display_place_name(abana) == "Abel-keramim"
+    assert "abel_keramim" not in display_place_name(abana)
     assert fallback_place_description(abana) == (
-        "Bibliai helyszín; mai azonosítása: Barada River."
+        "Bizonytalan azonosítású bibliai helyszín; mai azonosítása: Sahab."
     )
 
 
