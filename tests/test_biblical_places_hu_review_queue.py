@@ -9,7 +9,12 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from scripts.build_biblical_places_hu_review_queue import BATCH_SIZE, build_batch_002, build_queue
+from scripts.build_biblical_places_hu_review_queue import (
+    BATCH_SIZE,
+    build_batch_002,
+    build_queue,
+    build_unprocessed_batch,
+)
 
 
 DATA_DIR = ROOT / "data" / "biblical_places"
@@ -103,6 +108,28 @@ def test_second_hungarian_review_batch_shape_and_applied_proposals() -> None:
         assert catalog[place_id]["name_hu"] == draft_item["proposed_name_hu"]
         assert catalog[place_id]["card_summary_hu"] == draft_item["proposed_card_summary_hu"]
         assert catalog[place_id]["review_status"] == "draft"
+
+
+def test_unprocessed_batch_uses_current_catalog_state() -> None:
+    queue = read_json(QUEUE_PATH)
+    catalog = {item["place_id"]: item for item in read_json(CATALOG_PATH)}
+    batch = build_unprocessed_batch(queue, limit=25)
+    expected = [
+        item
+        for item in queue
+        if not (item.get("current_name_hu") and item.get("current_card_summary_hu"))
+    ][:25]
+    batch_ids = [item["place_id"] for item in batch]
+
+    assert batch == expected
+    assert len(batch) == 25
+    assert len(batch_ids) == len(set(batch_ids))
+    for item in batch:
+        place = catalog[item["place_id"]]
+        assert not (place.get("name_hu") and place.get("card_summary_hu"))
+        assert item["review_status"] == "pending"
+        assert item["proposed_name_hu"] is None
+        assert item["proposed_card_summary_hu"] is None
 
 
 def test_uncertain_or_duplicate_records_keep_review_warning() -> None:

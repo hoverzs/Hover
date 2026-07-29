@@ -181,6 +181,21 @@ def build_batch_002(queue: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return queue[BATCH_SIZE : BATCH_SIZE * 2]
 
 
+def build_unprocessed_batch(queue: list[dict[str, Any]], *, limit: int) -> list[dict[str, Any]]:
+    batch: list[dict[str, Any]] = []
+    for item in queue:
+        if item.get("current_name_hu") and item.get("current_card_summary_hu"):
+            continue
+        candidate = dict(item)
+        candidate["proposed_name_hu"] = None
+        candidate["proposed_card_summary_hu"] = None
+        candidate["review_status"] = "pending"
+        batch.append(candidate)
+        if len(batch) == limit:
+            break
+    return batch
+
+
 def write_documentation(queue_count: int, batch_count: int) -> None:
     DOC_PATH.write_text(
         "\n".join(
@@ -214,9 +229,36 @@ def write_documentation(queue_count: int, batch_count: int) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser(description="Build a Hungarian review queue for biblical places.")
     parser.add_argument("--check", action="store_true", help="Fail if generated files would change.")
+    parser.add_argument("--limit", type=int, default=BATCH_SIZE, help="Record limit for a custom output batch.")
+    parser.add_argument("--output", type=Path, help="Write a custom unprocessed review batch to this path.")
     args = parser.parse_args()
 
     queue, batch = build_queue()
+    if args.output:
+        if args.limit <= 0:
+            raise ValueError("--limit must be a positive integer.")
+        custom_batch = build_unprocessed_batch(queue, limit=args.limit)
+        expected_text = json.dumps(custom_batch, ensure_ascii=False, indent=2) + "\n"
+        if args.check:
+            if not args.output.exists() or args.output.read_text(encoding="utf-8") != expected_text:
+                print(json.dumps({"changed": [str(args.output)]}, ensure_ascii=False, indent=2))
+                return 2
+            print("Hungarian review batch output idempotency check passed.")
+            return 0
+        write_json(args.output, custom_batch)
+        print(
+            json.dumps(
+                {
+                    "output": str(args.output),
+                    "batch_count": len(custom_batch),
+                    "limit": args.limit,
+                },
+                ensure_ascii=False,
+                indent=2,
+            )
+        )
+        return 0
+
     batch_002 = build_batch_002(queue)
     outputs = {
         QUEUE_PATH: queue,
