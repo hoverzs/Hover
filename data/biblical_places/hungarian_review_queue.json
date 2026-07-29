@@ -60,10 +60,10 @@
     ],
     "current_name_hu": "Jeruzsálem",
     "current_card_summary_hu": "Jeruzsálem a bibliai elbeszélés központi városa, a Templom és több újszövetségi esemény helyszíne.",
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": "Meglévő pilot/kézi magyar tartalom; csak ellenőrzés után módosítsd. Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást."
+    "proposed_name_hu": "Jeruzsálem",
+    "proposed_card_summary_hu": "Jeruzsálem a bibliai elbeszélés központi városa, a Templom és több újszövetségi esemény helyszíne.",
+    "review_status": "draft",
+    "review_notes_hu": "Meglévő pilot/kézi magyar tartalom; csak ellenőrzés után módosítsd. Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "egypt",
@@ -104,12 +104,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást."
+    "current_name_hu": "Egyiptom",
+    "current_card_summary_hu": "A Nílus menti ókori királyság és térség, amely Izráel történetében menedékhelyként, szolgaság helyeként és nagyhatalomként is szerepel. Területe nagyrészt a mai Egyiptomhoz tartozik.",
+    "proposed_name_hu": "Egyiptom",
+    "proposed_card_summary_hu": "A Nílus menti ókori királyság és térség, amely Izráel történetében menedékhelyként, szolgaság helyeként és nagyhatalomként is szerepel. Területe nagyrészt a mai Egyiptomhoz tartozik.",
+    "review_status": "draft",
+    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "babylon_1",
@@ -145,12 +145,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást."
+    "current_name_hu": "Babilon",
+    "current_card_summary_hu": "Mezopotámia egyik legjelentősebb ókori városa és a babiloni birodalom központja. Romjai a mai Irakban, Hillah közelében találhatók.",
+    "proposed_name_hu": "Babilon",
+    "proposed_card_summary_hu": "Mezopotámia egyik legjelentősebb ókori városa és a babiloni birodalom központja. Romjai a mai Irakban, Hillah közelében találhatók.",
+    "review_status": "draft",
+    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "jordan",
@@ -182,12 +182,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást."
+    "current_name_hu": "Jordán",
+    "current_card_summary_hu": "A Jordán folyó a Galileai-tengerből a Holt-tengerbe tart, és számos bibliai határ- és átkeléstörténet helyszíne. Ma Izrael, Jordánia és a palesztin területek térségében húzódik.",
+    "proposed_name_hu": "Jordán",
+    "proposed_card_summary_hu": "A Jordán folyó a Galileai-tengerből a Holt-tengerbe tart, és számos bibliai határ- és átkeléstörténet helyszíne. Ma Izrael, Jordánia és a palesztin területek térségében húzódik.",
+    "review_status": "draft",
+    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "moab_1",
@@ -219,12 +219,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": null
+    "current_name_hu": "Moáb",
+    "current_card_summary_hu": "A Holt-tengertől keletre fekvő ókori terület és nép, amely több bibliai történetben Izráel szomszédjaként jelenik meg. Fő területe a mai Jordánia középső részén feküdt.",
+    "proposed_name_hu": "Moáb",
+    "proposed_card_summary_hu": "A Holt-tengertől keletre fekvő ókori terület és nép, amely több bibliai történetben Izráel szomszédjaként jelenik meg. Fő területe a mai Jordánia középső részén feküdt.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "zion",
@@ -256,12 +256,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást."
+    "current_name_hu": "Sion",
+    "current_card_summary_hu": "Eredetileg Jeruzsálem egyik erődített magaslatának neve, később Jeruzsálem és Isten népének jelképes megnevezése is lett. Földrajzilag a mai Jeruzsálemhez kapcsolódik.",
+    "proposed_name_hu": "Sion",
+    "proposed_card_summary_hu": "Eredetileg Jeruzsálem egyik erődített magaslatának neve, később Jeruzsálem és Isten népének jelképes megnevezése is lett. Földrajzilag a mai Jeruzsálemhez kapcsolódik.",
+    "review_status": "draft",
+    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "assyria",
@@ -294,12 +294,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": null
+    "current_name_hu": "Asszíria",
+    "current_card_summary_hu": "Az ókori Közel-Kelet nagyhatalma, amelynek központja Észak-Mezopotámiában volt. Fő területe ma Irak északi részéhez, valamint a környező vidékekhez tartozik.",
+    "proposed_name_hu": "Asszíria",
+    "proposed_card_summary_hu": "Az ókori Közel-Kelet nagyhatalma, amelynek központja Észak-Mezopotámiában volt. Fő területe ma Irak északi részéhez, valamint a környező vidékekhez tartozik.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "samaria_1",
@@ -331,12 +331,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást."
+    "current_name_hu": "Samária",
+    "current_card_summary_hu": "Az északi királyság fővárosa, később tágabb tartomány neve is. Az ókori város maradványai a mai Sebastia közelében találhatók.",
+    "proposed_name_hu": "Samária",
+    "proposed_card_summary_hu": "Az északi királyság fővárosa, később tágabb tartomány neve is. Az ókori város maradványai a mai Sebastia közelében találhatók.",
+    "review_status": "draft",
+    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "edom",
@@ -374,12 +374,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást."
+    "current_name_hu": "Edóm",
+    "current_card_summary_hu": "A Holt-tengertől délre és délkeletre fekvő ókori terület, amely Ézsau leszármazottainak hazájaként szerepel. Főként a mai Jordánia déli részéhez kapcsolható.",
+    "proposed_name_hu": "Edóm",
+    "proposed_card_summary_hu": "A Holt-tengertől délre és délkeletre fekvő ókori terület, amely Ézsau leszármazottainak hazájaként szerepel. Főként a mai Jordánia déli részéhez kapcsolható.",
+    "review_status": "draft",
+    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "ammon",
@@ -410,12 +410,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": null
+    "current_name_hu": "Ammón",
+    "current_card_summary_hu": "A Jordántól keletre fekvő ókori királyság, központja Rabbá volt. Területe nagyjából a mai Ammán és környéke vidékén helyezkedett el.",
+    "proposed_name_hu": "Ammón",
+    "proposed_card_summary_hu": "A Jordántól keletre fekvő ókori királyság, központja Rabbá volt. Területe nagyjából a mai Ammán és környéke vidékén helyezkedett el.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "canaan",
@@ -451,12 +451,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": null
+    "current_name_hu": "Kánaán",
+    "current_card_summary_hu": "A bibliai elbeszélésben a Jordántól nyugatra és részben északra fekvő tágabb ókori terület neve. A térség ma Izrael, a palesztin területek, Libanon és Jordánia egyes részeihez tartozik.",
+    "proposed_name_hu": "Kánaán",
+    "proposed_card_summary_hu": "A bibliai elbeszélésben a Jordántól nyugatra és részben északra fekvő tágabb ókori terület neve. A térség ma Izrael, a palesztin területek, Libanon és Jordánia egyes részeihez tartozik.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "syria_1",
@@ -494,12 +494,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást."
+    "current_name_hu": "Arám–Szíria",
+    "current_card_summary_hu": "Az Izráeltől északra fekvő arám királyságok és későbbi szíriai térség összefoglaló megnevezése. Központi városa Damaszkusz volt, a mai Szíria területén.",
+    "proposed_name_hu": "Arám–Szíria",
+    "proposed_card_summary_hu": "Az Izráeltől északra fekvő arám királyságok és későbbi szíriai térség összefoglaló megnevezése. Központi városa Damaszkusz volt, a mai Szíria területén.",
+    "review_status": "draft",
+    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "gilead_1",
@@ -531,12 +531,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást."
+    "current_name_hu": "Gileád",
+    "current_card_summary_hu": "A Jordántól keletre fekvő hegyvidéki táj, amely több izráeli törzs és bibliai esemény helyszíne. Területe főként a mai Jordánia északnyugati részére esik.",
+    "proposed_name_hu": "Gileád",
+    "proposed_card_summary_hu": "A Jordántól keletre fekvő hegyvidéki táj, amely több izráeli törzs és bibliai esemény helyszíne. Területe főként a mai Jordánia északnyugati részére esik.",
+    "review_status": "draft",
+    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "chaldea",
@@ -572,12 +572,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást."
+    "current_name_hu": "Káldea",
+    "current_card_summary_hu": "Dél-Babilónia történeti térsége, amely a káldeusokhoz és később a babiloni birodalomhoz kapcsolódott. Területe a mai Irak déli részén feküdt.",
+    "proposed_name_hu": "Káldea",
+    "proposed_card_summary_hu": "Dél-Babilónia történeti térsége, amely a káldeusokhoz és később a babiloni birodalomhoz kapcsolódott. Területe a mai Irak déli részén feküdt.",
+    "review_status": "draft",
+    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "galilee_1",
@@ -610,12 +610,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást."
+    "current_name_hu": "Galilea",
+    "current_card_summary_hu": "Észak-Izrael történeti régiója, Jézus szolgálatának számos fontos helyszínével. A terület ma Izrael északi részén fekszik.",
+    "proposed_name_hu": "Galilea",
+    "proposed_card_summary_hu": "Észak-Izrael történeti régiója, Jézus szolgálatának számos fontos helyszínével. A terület ma Izrael északi részén fekszik.",
+    "review_status": "draft",
+    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "bethel_1",
@@ -647,12 +647,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást."
+    "current_name_hu": "Bétel",
+    "current_card_summary_hu": "Fontos ókori település Jeruzsálemtől északra, amely pátriárkai történetekhez és az északi királyság kultuszához is kapcsolódik. Általában a mai Beitinnel azonosítják.",
+    "proposed_name_hu": "Bétel",
+    "proposed_card_summary_hu": "Fontos ókori település Jeruzsálemtől északra, amely pátriárkai történetekhez és az északi királyság kultuszához is kapcsolódik. Általában a mai Beitinnel azonosítják.",
+    "review_status": "draft",
+    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "tyre",
@@ -684,12 +684,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": null
+    "current_name_hu": "Tírusz",
+    "current_card_summary_hu": "Jelentős föníciai kikötőváros a Földközi-tenger partján, kereskedelmi és politikai kapcsolatokkal Izráel felé. A helyén ma a libanoni Szúr városa áll.",
+    "proposed_name_hu": "Tírusz",
+    "proposed_card_summary_hu": "Jelentős föníciai kikötőváros a Földközi-tenger partján, kereskedelmi és politikai kapcsolatokkal Izráel felé. A helyén ma a libanoni Szúr városa áll.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "jericho_1",
@@ -718,12 +718,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást."
+    "current_name_hu": "Jerikó",
+    "current_card_summary_hu": "A Jordán-völgy ősi városa, Izráel honfoglalásának és több újszövetségi történetnek helyszíne. Az ókori településmag Tell es-Szultánnál, a mai Jerikó mellett található.",
+    "proposed_name_hu": "Jerikó",
+    "proposed_card_summary_hu": "A Jordán-völgy ősi városa, Izráel honfoglalásának és több újszövetségi történetnek helyszíne. Az ókori településmag Tell es-Szultánnál, a mai Jerikó mellett található.",
+    "review_status": "draft",
+    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "hebron",
@@ -758,12 +758,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást."
+    "current_name_hu": "Hebrón",
+    "current_card_summary_hu": "Ősi júdai város, Ábrahám történetéhez és Dávid korai királyságához is kapcsolódik. Az ókori település területe a mai Hebrónban és Tel Rumeida környékén fekszik.",
+    "proposed_name_hu": "Hebrón",
+    "proposed_card_summary_hu": "Ősi júdai város, Ábrahám történetéhez és Dávid korai királyságához is kapcsolódik. Az ókori település területe a mai Hebrónban és Tel Rumeida környékén fekszik.",
+    "review_status": "draft",
+    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "damascus",
@@ -794,12 +794,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást."
+    "current_name_hu": "Damaszkusz",
+    "current_card_summary_hu": "A Közel-Kelet egyik legrégebbi folyamatosan lakott városa, az arám királyságok és Pál megtérésének fontos helyszíne. A mai Damaszkusz Szíria fővárosa.",
+    "proposed_name_hu": "Damaszkusz",
+    "proposed_card_summary_hu": "A Közel-Kelet egyik legrégebbi folyamatosan lakott városa, az arám királyságok és Pál megtérésének fontos helyszíne. A mai Damaszkusz Szíria fővárosa.",
+    "review_status": "draft",
+    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "lebanon",
@@ -827,12 +827,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": null
+    "current_name_hu": "Libanon",
+    "current_card_summary_hu": "A Földközi-tenger keleti partvidékének hegyvidéki térsége, amely cédrusairól és északi kapcsolatairól ismert a Bibliában. Nagyrészt a mai Libanon területével esik egybe.",
+    "proposed_name_hu": "Libanon",
+    "proposed_card_summary_hu": "A Földközi-tenger keleti partvidékének hegyvidéki térsége, amely cédrusairól és északi kapcsolatairól ismert a Bibliában. Nagyrészt a mai Libanon területével esik egybe.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "bashan",
@@ -860,12 +860,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": null
+    "current_name_hu": "Básán",
+    "current_card_summary_hu": "A Jordántól keletre, a Galileai-tengertől északkeletre fekvő termékeny fennsík. Területe a mai Golán-fennsík és Haurán vidékéhez kapcsolódik.",
+    "proposed_name_hu": "Básán",
+    "proposed_card_summary_hu": "A Jordántól keletre, a Galileai-tengertől északkeletre fekvő termékeny fennsík. Területe a mai Golán-fennsík és Haurán vidékéhez kapcsolódik.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "bethlehem_1",
@@ -901,12 +901,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": null
+    "current_name_hu": "Betlehem",
+    "current_card_summary_hu": "Júdai város, Dávid szülőhelye és az evangéliumi hagyomány szerint Jézus születésének helyszíne. A mai Betlehem Jeruzsálemtől délre fekszik.",
+    "proposed_name_hu": "Betlehem",
+    "proposed_card_summary_hu": "Júdai város, Dávid szülőhelye és az evangéliumi hagyomány szerint Jézus születésének helyszíne. A mai Betlehem Jeruzsálemtől délre fekszik.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "judea_1",
@@ -945,12 +945,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást."
+    "current_name_hu": "Júdea",
+    "current_card_summary_hu": "Jeruzsálem körüli történeti tartomány, amely a júdai királyság és később a római közigazgatás fontos területe volt. Ma Izrael és a palesztin területek részeit foglalja magában.",
+    "proposed_name_hu": "Júdea",
+    "proposed_card_summary_hu": "Jeruzsálem körüli történeti tartomány, amely a júdai királyság és később a római közigazgatás fontos területe volt. Ma Izrael és a palesztin területek részeit foglalja magában.",
+    "review_status": "draft",
+    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "midian",
@@ -981,12 +981,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": null
+    "current_name_hu": "Midján",
+    "current_card_summary_hu": "A Vörös-tenger keleti partvidékéhez és Északnyugat-Arábiához kapcsolódó ókori törzsi terület. Mózes menekülésének és pusztai éveinek egyik fontos háttere.",
+    "proposed_name_hu": "Midján",
+    "proposed_card_summary_hu": "A Vörös-tenger keleti partvidékéhez és Északnyugat-Arábiához kapcsolódó ókori törzsi terület. Mózes menekülésének és pusztai éveinek egyik fontos háttere.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "sodom",
@@ -1015,12 +1015,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": null
+    "current_name_hu": "Sodoma",
+    "current_card_summary_hu": "A Holt-tenger vidékéhez kapcsolt ókori város, amelynek pontos helye vitatott. Lehetséges azonosításai a Holt-tenger déli térségében találhatók.",
+    "proposed_name_hu": "Sodoma",
+    "proposed_card_summary_hu": "A Holt-tenger vidékéhez kapcsolt ókori város, amelynek pontos helye vitatott. Lehetséges azonosításai a Holt-tenger déli térségében találhatók.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "city_of_david",
@@ -1060,12 +1060,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást."
+    "current_name_hu": "Dávid városa",
+    "current_card_summary_hu": "Jeruzsálem legkorábbi erődített településmagja, amelyet Dávid király foglalt el és tett fővárosává. Régészeti területe az Óvárostól délre fekvő gerincen található.",
+    "proposed_name_hu": "Dávid városa",
+    "proposed_card_summary_hu": "Jeruzsálem legkorábbi erődített településmagja, amelyet Dávid király foglalt el és tett fővárosává. Régészeti területe az Óvárostól délre fekvő gerincen található.",
+    "review_status": "draft",
+    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "gibeah_1",
@@ -1098,12 +1098,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást."
+    "current_name_hu": "Gibea",
+    "current_card_summary_hu": "Benjamin területének városa, különösen Saul király történetéhez kapcsolódik. Általában a Jeruzsálemtől északra fekvő Tell el-Fullal azonosítják.",
+    "proposed_name_hu": "Gibea",
+    "proposed_card_summary_hu": "Benjamin területének városa, különösen Saul király történetéhez kapcsolódik. Általában a Jeruzsálemtől északra fekvő Tell el-Fullal azonosítják.",
+    "review_status": "draft",
+    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "nile",
@@ -1135,12 +1135,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": null
+    "current_name_hu": "Nílus",
+    "current_card_summary_hu": "Egyiptom meghatározó folyója, amely az ország életének és több bibliai történetnek alapvető földrajzi háttere. Ma is Egyiptom fő vízfolyása.",
+    "proposed_name_hu": "Nílus",
+    "proposed_card_summary_hu": "Egyiptom meghatározó folyója, amely az ország életének és több bibliai történetnek alapvető földrajzi háttere. Ma is Egyiptom fő vízfolyása.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "shechem",
@@ -1171,12 +1171,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": null
+    "current_name_hu": "Sikem",
+    "current_card_summary_hu": "Központi fekvésű kánaáni és izráeli város, pátriárkai történetek és szövetségi események helyszíne. Az ókori települést Tell Balatával, a mai Náblusz közelében azonosítják.",
+    "proposed_name_hu": "Sikem",
+    "proposed_card_summary_hu": "Központi fekvésű kánaáni és izráeli város, pátriárkai történetek és szövetségi események helyszíne. Az ókori települést Tell Balatával, a mai Náblusz közelében azonosítják.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "euphrates",
@@ -1209,12 +1209,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást."
+    "current_name_hu": "Eufrátesz",
+    "current_card_summary_hu": "Mezopotámia egyik nagy folyója, amely több bibliai határleírásban és birodalmi összefüggésben szerepel. Ma Törökországon, Szírián és Irakon folyik keresztül.",
+    "proposed_name_hu": "Eufrátesz",
+    "proposed_card_summary_hu": "Mezopotámia egyik nagy folyója, amely több bibliai határleírásban és birodalmi összefüggésben szerepel. Ma Törökországon, Szírián és Irakon folyik keresztül.",
+    "review_status": "draft",
+    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "negeb",
@@ -1247,12 +1247,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást."
+    "current_name_hu": "Negev",
+    "current_card_summary_hu": "Júda déli, félsivatagos vidéke, amely több pátriárkai és királyságtörténet helyszíne. Ma Izrael déli részének nagy kiterjedésű tájegysége.",
+    "proposed_name_hu": "Negev",
+    "proposed_card_summary_hu": "Júda déli, félsivatagos vidéke, amely több pátriárkai és királyságtörténet helyszíne. Ma Izrael déli részének nagy kiterjedésű tájegysége.",
+    "review_status": "draft",
+    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "gibeon",
@@ -1284,12 +1284,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást."
+    "current_name_hu": "Gibeón",
+    "current_card_summary_hu": "Jeruzsálemtől északnyugatra fekvő ókori város, a gibeóniak történetének és több királyságkori eseménynek helyszíne. Általában a mai el-Dzsíbbbel azonosítják.",
+    "proposed_name_hu": "Gibeón",
+    "proposed_card_summary_hu": "Jeruzsálemtől északnyugatra fekvő ókori város, a gibeóniak történetének és több királyságkori eseménynek helyszíne. Általában a mai el-Dzsíbbbel azonosítják.",
+    "review_status": "draft",
+    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "gath_1",
@@ -1320,12 +1320,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást."
+    "current_name_hu": "Gát",
+    "current_card_summary_hu": "Az öt jelentős filiszteus város egyike, Góliát és több dávidi történet háttere. Leggyakrabban Tell esz-Száfival azonosítják.",
+    "proposed_name_hu": "Gát",
+    "proposed_card_summary_hu": "Az öt jelentős filiszteus város egyike, Góliát és több dávidi történet háttere. Leggyakrabban Tell esz-Száfival azonosítják.",
+    "review_status": "draft",
+    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "shiloh",
@@ -1354,12 +1354,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": null
+    "current_name_hu": "Siló",
+    "current_card_summary_hu": "Izráel korai kultuszi központja, ahol a szent sátor és a szövetség ládája is állt. Az ókori helyet Khirbet Szeilunnal azonosítják.",
+    "proposed_name_hu": "Siló",
+    "proposed_card_summary_hu": "Izráel korai kultuszi központja, ahol a szent sátor és a szövetség ládája is állt. Az ókori helyet Khirbet Szeilunnal azonosítják.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "sidon",
@@ -1396,12 +1396,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": null
+    "current_name_hu": "Szidón",
+    "current_card_summary_hu": "Ősi föníciai kikötőváros a Földközi-tenger partján, kereskedelmi és vallási kapcsolatokkal Izráel felé. A helyén ma a libanoni Szaida városa található.",
+    "proposed_name_hu": "Szidón",
+    "proposed_card_summary_hu": "Ősi föníciai kikötőváros a Földközi-tenger partján, kereskedelmi és vallási kapcsolatokkal Izráel felé. A helyén ma a libanoni Szaida városa található.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "heshbon",
@@ -1429,12 +1429,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": null
+    "current_name_hu": "Hesbón",
+    "current_card_summary_hu": "A Jordántól keletre fekvő ókori város, amely Szíhón királyságához és később Moábhoz kapcsolódott. Valószínűleg Tell Heszbánnal azonosítható.",
+    "proposed_name_hu": "Hesbón",
+    "proposed_card_summary_hu": "A Jordántól keletre fekvő ókori város, amely Szíhón királyságához és később Moábhoz kapcsolódott. Valószínűleg Tell Heszbánnal azonosítható.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "great_sea",
@@ -1469,12 +1469,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": null
+    "current_name_hu": "Nagy-tenger",
+    "current_card_summary_hu": "A Biblia „Nagy-tenger” megnevezése rendszerint a Földközi-tengerre utal. Ez alkotta Kánaán és Izráel nyugati tengeri határát.",
+    "proposed_name_hu": "Nagy-tenger",
+    "proposed_card_summary_hu": "A Biblia „Nagy-tenger” megnevezése rendszerint a Földközi-tengerre utal. Ez alkotta Kánaán és Izráel nyugati tengeri határát.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "mount_seir_1",
@@ -1509,12 +1509,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": null
+    "current_name_hu": "Széír hegye",
+    "current_card_summary_hu": "Edóm hegyvidéki területe a Holt-tengertől délre. Leggyakrabban a mai Jordánia déli részének es-Sará hegységével hozzák kapcsolatba.",
+    "proposed_name_hu": "Széír hegye",
+    "proposed_card_summary_hu": "Edóm hegyvidéki területe a Holt-tengertől délre. Leggyakrabban a mai Jordánia déli részének es-Sará hegységével hozzák kapcsolatba.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "nazareth",
@@ -1544,10 +1544,10 @@
     ],
     "current_name_hu": "Názáret",
     "current_card_summary_hu": "Názáret galileai település, a keresztyén hagyomány szerint Jézus felnevelkedésének helye.",
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": "Meglévő pilot/kézi magyar tartalom; csak ellenőrzés után módosítsd."
+    "proposed_name_hu": "Názáret",
+    "proposed_card_summary_hu": "Názáret galileai település, a keresztyén hagyomány szerint Jézus felnevelkedésének helye.",
+    "review_status": "draft",
+    "review_notes_hu": "Meglévő pilot/kézi magyar tartalom; csak ellenőrzés után módosítsd. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "gilgal_1",
@@ -1576,12 +1576,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást."
+    "current_name_hu": "Gilgál",
+    "current_card_summary_hu": "A Jordán átkelése utáni első izráeli táborhely és több korai királyságtörténet helyszíne. Pontos azonosítása bizonytalan; egyik javasolt helye Jerikó közelében van.",
+    "proposed_name_hu": "Gilgál",
+    "proposed_card_summary_hu": "A Jordán átkelése utáni első izráeli táborhely és több korai királyságtörténet helyszíne. Pontos azonosítása bizonytalan; egyik javasolt helye Jerikó közelében van.",
+    "review_status": "draft",
+    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "mizpah_3",
@@ -1611,12 +1611,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást."
+    "current_name_hu": "Micpa",
+    "current_card_summary_hu": "Benjamin területének gyülekezési és igazgatási központja, több bírák- és királyságkori esemény helyszíne. Általában Tell en-Naszbével azonosítják.",
+    "proposed_name_hu": "Micpa",
+    "proposed_card_summary_hu": "Benjamin területének gyülekezési és igazgatási központja, több bírák- és királyságkori esemény helyszíne. Általában Tell en-Naszbével azonosítják.",
+    "review_status": "draft",
+    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "ai_1",
@@ -1646,12 +1646,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást."
+    "current_name_hu": "Aj",
+    "current_card_summary_hu": "Bétel közelében fekvő kánaáni város, Izráel honfoglalási történetének fontos helyszíne. Et-Tell-lel való azonosítása elterjedt, de régészetileg vitatott.",
+    "proposed_name_hu": "Aj",
+    "proposed_card_summary_hu": "Bétel közelében fekvő kánaáni város, Izráel honfoglalási történetének fontos helyszíne. Et-Tell-lel való azonosítása elterjedt, de régészetileg vitatott.",
+    "review_status": "draft",
+    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "nineveh",
@@ -1682,12 +1682,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": null
+    "current_name_hu": "Ninive",
+    "current_card_summary_hu": "Az asszír birodalom egyik fővárosa, Jónás könyvének központi helyszíne. Romjai a mai Moszul mellett, Irakban találhatók.",
+    "proposed_name_hu": "Ninive",
+    "proposed_card_summary_hu": "Az asszír birodalom egyik fővárosa, Jónás könyvének központi helyszíne. Romjai a mai Moszul mellett, Irakban találhatók.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "mount_sinai",
@@ -1718,12 +1718,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást."
+    "current_name_hu": "Sínai-hegy",
+    "current_card_summary_hu": "A bibliai hagyomány szerint a szövetségkötés és a törvényadás hegye. Hagyományosan a Sínai-félszigeti Dzsebel Múszával azonosítják, de a pontos hely vitatott.",
+    "proposed_name_hu": "Sínai-hegy",
+    "proposed_card_summary_hu": "A bibliai hagyomány szerint a szövetségkötés és a törvényadás hegye. Hagyományosan a Sínai-félszigeti Dzsebel Múszával azonosítják, de a pontos hely vitatott.",
+    "review_status": "draft",
+    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "jezreel_2",
@@ -1753,12 +1753,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": null
+    "current_name_hu": "Jezréel",
+    "current_card_summary_hu": "Az északi királyság fontos városa és királyi központja, különösen Aháb és Jézabel történetéhez kapcsolódik. Az ókori települést Tel Jizreellel azonosítják.",
+    "proposed_name_hu": "Jezréel",
+    "proposed_card_summary_hu": "Az északi királyság fontos városa és királyi központja, különösen Aháb és Jézabel történetéhez kapcsolódik. Az ókori települést Tel Jizreellel azonosítják.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "amalek",
@@ -1788,12 +1788,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": null
+    "current_name_hu": "Amálék",
+    "current_card_summary_hu": "A Biblia egy déli nomád népet és annak tágabb működési területét jelöli e névvel. Nem egyetlen biztosan azonosítható településről van szó.",
+    "proposed_name_hu": "Amálék",
+    "proposed_card_summary_hu": "A Biblia egy déli nomád népet és annak tágabb működési területét jelöli e névvel. Nem egyetlen biztosan azonosítható településről van szó.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "persia",
@@ -1825,12 +1825,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": null
+    "current_name_hu": "Perzsia",
+    "current_card_summary_hu": "Az iráni fennsíkról kiinduló ókori birodalom, amely a babiloni fogság utáni zsidó történelemben meghatározó szerepet játszott. Területe messze túlnyúlt a mai Irán határain.",
+    "proposed_name_hu": "Perzsia",
+    "proposed_card_summary_hu": "Az iráni fennsíkról kiinduló ókori birodalom, amely a babiloni fogság utáni zsidó történelemben meghatározó szerepet játszott. Területe messze túlnyúlt a mai Irán határain.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "arabah",
@@ -1864,12 +1864,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": null
+    "current_name_hu": "Arábá",
+    "current_card_summary_hu": "A Jordán-völgy déli folytatása a Holt-tenger és az Akabai-öböl között. Ma Izrael és Jordánia határvidékének hosszú, száraz völgye.",
+    "proposed_name_hu": "Arábá",
+    "proposed_card_summary_hu": "A Jordán-völgy déli folytatása a Holt-tenger és az Akabai-öböl között. Ma Izrael és Jordánia határvidékének hosszú, száraz völgye.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "dan",
@@ -1902,12 +1902,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": null
+    "current_name_hu": "Dán",
+    "current_card_summary_hu": "Izráel északi határvidékének városa, korábban Lais néven ismert. Az ókori helyet Tel Dánnal azonosítják.",
+    "proposed_name_hu": "Dán",
+    "proposed_card_summary_hu": "Izráel északi határvidékének városa, korábban Lais néven ismert. Az ókori helyet Tel Dánnal azonosítják.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "mount_zion",
@@ -1945,12 +1945,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást."
+    "current_name_hu": "Sion hegye",
+    "current_card_summary_hu": "Jeruzsálemhez kapcsolódó szent hegy megnevezése, amelynek jelentése a bibliai hagyományban idővel bővült. A mai Sion-hegy Jeruzsálem Óvárosától délnyugatra található.",
+    "proposed_name_hu": "Sion hegye",
+    "proposed_card_summary_hu": "Jeruzsálemhez kapcsolódó szent hegy megnevezése, amelynek jelentése a bibliai hagyományban idővel bővült. A mai Sion-hegy Jeruzsálem Óvárosától délnyugatra található.",
+    "review_status": "draft",
+    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "kadesh_barnea",
@@ -1987,12 +1987,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást."
+    "current_name_hu": "Kádés-Barnea",
+    "current_card_summary_hu": "Fontos pusztai táborhely Izráel vándorlásának és a kémek kiküldésének történetében. Leggyakrabban Ain el-Kudeirattal azonosítják.",
+    "proposed_name_hu": "Kádés-Barnea",
+    "proposed_card_summary_hu": "Fontos pusztai táborhely Izráel vándorlásának és a kémek kiküldésének történetében. Leggyakrabban Ain el-Kudeirattal azonosítják.",
+    "review_status": "draft",
+    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "macedonia",
@@ -2022,12 +2022,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": null
+    "current_name_hu": "Macedónia",
+    "current_card_summary_hu": "A Balkán északi görög térségének római tartománya, Pál több missziói útjának fontos területe. Ma főként Görögország és Észak-Macedónia részeihez kapcsolódik.",
+    "proposed_name_hu": "Macedónia",
+    "proposed_card_summary_hu": "A Balkán északi görög térségének római tartománya, Pál több missziói útjának fontos területe. Ma főként Görögország és Észak-Macedónia részeihez kapcsolódik.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "most_holy_place_2",
@@ -2063,12 +2063,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást."
+    "current_name_hu": "Szentek szentje",
+    "current_card_summary_hu": "A szent sátor, majd a jeruzsálemi templom legbelső és legszentebb tere. Nem önálló település, hanem a templom szentélyének része.",
+    "proposed_name_hu": "Szentek szentje",
+    "proposed_card_summary_hu": "A szent sátor, majd a jeruzsálemi templom legbelső és legszentebb tere. Nem önálló település, hanem a templom szentélyének része.",
+    "review_status": "draft",
+    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "gomorrah",
@@ -2097,12 +2097,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": null
+    "current_name_hu": "Gomora",
+    "current_card_summary_hu": "Sodomával együtt említett, a Holt-tenger vidékéhez kapcsolt ókori város. Pontos helye bizonytalan, lehetséges azonosításai a Holt-tenger déli térségében találhatók.",
+    "proposed_name_hu": "Gomora",
+    "proposed_card_summary_hu": "Sodomával együtt említett, a Holt-tenger vidékéhez kapcsolt ókori város. Pontos helye bizonytalan, lehetséges azonosításai a Holt-tenger déli térségében találhatók.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "beersheba_1",
@@ -2133,12 +2133,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást."
+    "current_name_hu": "Beérseba",
+    "current_card_summary_hu": "A Negev északi peremének ősi városa, pátriárkai történetek és Júda déli határvidékének fontos helyszíne. Az ókori települést Tel Beér-Sevával azonosítják.",
+    "proposed_name_hu": "Beérseba",
+    "proposed_card_summary_hu": "A Negev északi peremének ősi városa, pátriárkai történetek és Júda déli határvidékének fontos helyszíne. Az ókori települést Tel Beér-Sevával azonosítják.",
+    "review_status": "draft",
+    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "holy_place_2",
@@ -2168,12 +2168,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást."
+    "current_name_hu": "Szenthely",
+    "current_card_summary_hu": "A szent sátor és később a jeruzsálemi templom elkülönített szent tere. Nem önálló földrajzi hely, hanem a templomi szentély része.",
+    "proposed_name_hu": "Szenthely",
+    "proposed_card_summary_hu": "A szent sátor és később a jeruzsálemi templom elkülönített szent tere. Nem önálló földrajzi hely, hanem a templomi szentély része.",
+    "review_status": "draft",
+    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "ephesus",
@@ -2214,10 +2214,10 @@
     ],
     "current_name_hu": "Efezus",
     "current_card_summary_hu": "Efezus Kis-Ázsia egyik legjelentősebb görög–római városa, kikötője és vallási központja volt. Pál apostol hosszabb ideig szolgált itt, és a város az őskeresztény misszió, az efezusi gyülekezet, valamint az Artemisz-kultusszal való találkozás fontos helyszínévé vált.",
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": "Meglévő pilot/kézi magyar tartalom; csak ellenőrzés után módosítsd."
+    "proposed_name_hu": "Efezus",
+    "proposed_card_summary_hu": "Efezus Kis-Ázsia egyik legjelentősebb görög–római városa, kikötője és vallási központja volt. Pál apostol hosszabb ideig szolgált itt, és a város az őskeresztény misszió, az efezusi gyülekezet, valamint az Artemisz-kultusszal való találkozás fontos helyszínévé vált.",
+    "review_status": "draft",
+    "review_notes_hu": "Meglévő pilot/kézi magyar tartalom; csak ellenőrzés után módosítsd. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "gaza",
@@ -2249,12 +2249,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": null
+    "current_name_hu": "Gáza",
+    "current_card_summary_hu": "Az öt jelentős filiszteus város egyike, fontos tengerparti és kereskedelmi központ. Az ókori település a mai Gáza térségében feküdt.",
+    "proposed_name_hu": "Gáza",
+    "proposed_card_summary_hu": "Az öt jelentős filiszteus város egyike, fontos tengerparti és kereskedelmi központ. Az ókori település a mai Gáza térségében feküdt.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "lachish",
@@ -2282,12 +2282,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": null
+    "current_name_hu": "Lákis",
+    "current_card_summary_hu": "Júda jelentős erődített városa, amely több asszír és babiloni hadjáratban szerepet kapott. Az ókori helyet Tell ed-Duveirrel azonosítják.",
+    "proposed_name_hu": "Lákis",
+    "proposed_card_summary_hu": "Júda jelentős erődített városa, amely több asszír és babiloni hadjáratban szerepet kapott. Az ókori helyet Tell ed-Duveirrel azonosítják.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "philistia",
@@ -2319,12 +2319,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást."
+    "current_name_hu": "Filisztea",
+    "current_card_summary_hu": "A Földközi-tenger délkeleti partvidékének öt nagy filiszteus város köré szerveződő térsége. Területe nagyjából a mai Izrael déli partvidékéhez és a Gázai övezethez kapcsolódik.",
+    "proposed_name_hu": "Filisztea",
+    "proposed_card_summary_hu": "A Földközi-tenger délkeleti partvidékének öt nagy filiszteus város köré szerveződő térsége. Területe nagyjából a mai Izrael déli partvidékéhez és a Gázai övezethez kapcsolódik.",
+    "review_status": "draft",
+    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "ashdod",
@@ -2357,12 +2357,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást."
+    "current_name_hu": "Asdód",
+    "current_card_summary_hu": "Az öt jelentős filiszteus város egyike, kikötői és szárazföldi kapcsolatokkal. Az ókori települést Tel Asdóddal azonosítják.",
+    "proposed_name_hu": "Asdód",
+    "proposed_card_summary_hu": "Az öt jelentős filiszteus város egyike, kikötői és szárazföldi kapcsolatokkal. Az ókori települést Tel Asdóddal azonosítják.",
+    "review_status": "draft",
+    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "asia",
@@ -2393,12 +2393,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": null
+    "current_name_hu": "Ázsia provincia",
+    "current_card_summary_hu": "A Római Birodalom nyugat-kis-ázsiai tartománya, amelyhez Efezus és több újszövetségi gyülekezet tartozott. Területe a mai Törökország nyugati részén feküdt.",
+    "proposed_name_hu": "Ázsia provincia",
+    "proposed_card_summary_hu": "A Római Birodalom nyugat-kis-ázsiai tartománya, amelyhez Efezus és több újszövetségi gyülekezet tartozott. Területe a mai Törökország nyugati részén feküdt.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "hamath_1",
@@ -2429,12 +2429,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást."
+    "current_name_hu": "Hamát",
+    "current_card_summary_hu": "Az Orontész folyó mentén fekvő észak-szíriai város és királyság. Az ókori hely a mai szíriai Hama városával azonosítható.",
+    "proposed_name_hu": "Hamát",
+    "proposed_card_summary_hu": "Az Orontész folyó mentén fekvő észak-szíriai város és királyság. Az ókori hely a mai szíriai Hama városával azonosítható.",
+    "review_status": "draft",
+    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "salt_sea",
@@ -2469,12 +2469,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": null
+    "current_name_hu": "Sós-tenger",
+    "current_card_summary_hu": "A Biblia Sós-tenger megnevezése a Holt-tengerre utal. Ma Izrael, Jordánia és a palesztin területek határvidékén fekszik.",
+    "proposed_name_hu": "Sós-tenger",
+    "proposed_card_summary_hu": "A Biblia Sós-tenger megnevezése a Holt-tengerre utal. Ma Izrael, Jordánia és a palesztin területek határvidékén fekszik.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "red_sea_1",
@@ -2504,12 +2504,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": "Bizonytalan vagy vitatott azonosítás; a magyar név és leírás szakmai ellenőrzést igényel. Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást."
+    "current_name_hu": "Vörös-tenger",
+    "current_card_summary_hu": "Az Egyiptom és Arábia közötti tengervidék, amely a kivonulás történetében kiemelt szerepet kap. A konkrét átkelési hely és a bibliai megnevezés pontos földrajzi értelmezése vitatott.",
+    "proposed_name_hu": "Vörös-tenger",
+    "proposed_card_summary_hu": "Az Egyiptom és Arábia közötti tengervidék, amely a kivonulás történetében kiemelt szerepet kap. A konkrét átkelési hely és a bibliai megnevezés pontos földrajzi értelmezése vitatott.",
+    "review_status": "draft",
+    "review_notes_hu": "Bizonytalan vagy vitatott azonosítás; a magyar név és leírás szakmai ellenőrzést igényel. Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "ekron",
@@ -2537,12 +2537,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": null
+    "current_name_hu": "Ekrón",
+    "current_card_summary_hu": "Az öt jelentős filiszteus város egyike, Júda nyugati határvidékének közelében. Az ókori helyet Tel Miknével azonosítják.",
+    "proposed_name_hu": "Ekrón",
+    "proposed_card_summary_hu": "Az öt jelentős filiszteus város egyike, Júda nyugati határvidékének közelében. Az ókori helyet Tel Miknével azonosítják.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "ramoth_gilead",
@@ -2573,12 +2573,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást."
+    "current_name_hu": "Rámót-Gileád",
+    "current_card_summary_hu": "Fontos erődváros a Jordántól keletre, amelyért Izráel és Arám többször harcolt. Leggyakrabban Tall er-Rumeithtel azonosítják.",
+    "proposed_name_hu": "Rámót-Gileád",
+    "proposed_card_summary_hu": "Fontos erődváros a Jordántól keletre, amelyért Izráel és Arám többször harcolt. Leggyakrabban Tall er-Rumeithtel azonosítják.",
+    "review_status": "draft",
+    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "susa",
@@ -2609,12 +2609,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": null
+    "current_name_hu": "Súsán",
+    "current_card_summary_hu": "Az elámi és perzsa birodalmak egyik fővárosa, Eszter és Dániel könyvének fontos helyszíne. Romjai a mai iráni Sús városánál találhatók.",
+    "proposed_name_hu": "Súsán",
+    "proposed_card_summary_hu": "Az elámi és perzsa birodalmak egyik fővárosa, Eszter és Dániel könyvének fontos helyszíne. Romjai a mai iráni Sús városánál találhatók.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "jabesh_gilead",
@@ -2645,12 +2645,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": null
+    "current_name_hu": "Jábés-Gileád",
+    "current_card_summary_hu": "Gileád egyik városa, amely Saul és Benjámin törzsének történetéhez kapcsolódik. Pontos helye bizonytalan; Tell el-Maklub az egyik javasolt azonosítás.",
+    "proposed_name_hu": "Jábés-Gileád",
+    "proposed_card_summary_hu": "Gileád egyik városa, amely Saul és Benjámin törzsének történetéhez kapcsolódik. Pontos helye bizonytalan; Tell el-Maklub az egyik javasolt azonosítás.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "antioch_syria",
@@ -2706,10 +2706,10 @@
     ],
     "current_name_hu": "Antiókhia",
     "current_card_summary_hu": "A szíriai Antiókhia (Orontész menti) az őskeresztyén misszió egyik fontos központja; nem azonos a pisidiai Antiókhiával.",
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": "Meglévő pilot/kézi magyar tartalom; csak ellenőrzés után módosítsd."
+    "proposed_name_hu": "Antiókhia",
+    "proposed_card_summary_hu": "A szíriai Antiókhia (Orontész menti) az őskeresztyén misszió egyik fontos központja; nem azonos a pisidiai Antiókhiával.",
+    "review_status": "draft",
+    "review_notes_hu": "Meglévő pilot/kézi magyar tartalom; csak ellenőrzés után módosítsd. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "capernaum",
@@ -2743,10 +2743,10 @@
     ],
     "current_name_hu": "Kapernaum",
     "current_card_summary_hu": "Kapernaum a Genezáreti-tó partján fekvő település, Jézus galileai szolgálatának egyik fontos helyszíne.",
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": "Meglévő pilot/kézi magyar tartalom; csak ellenőrzés után módosítsd."
+    "proposed_name_hu": "Kapernaum",
+    "proposed_card_summary_hu": "Kapernaum a Genezáreti-tó partján fekvő település, Jézus galileai szolgálatának egyik fontos helyszíne.",
+    "review_status": "draft",
+    "review_notes_hu": "Meglévő pilot/kézi magyar tartalom; csak ellenőrzés után módosítsd. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "cush_1",
@@ -2778,12 +2778,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást."
+    "current_name_hu": "Kús",
+    "current_card_summary_hu": "Egyiptomtól délre fekvő núbiai–északkelet-afrikai térség bibliai megnevezése. Területe főként a mai Szudán és Dél-Egyiptom vidékéhez kapcsolódik.",
+    "proposed_name_hu": "Kús",
+    "proposed_card_summary_hu": "Egyiptomtól délre fekvő núbiai–északkelet-afrikai térség bibliai megnevezése. Területe főként a mai Szudán és Dél-Egyiptom vidékéhez kapcsolódik.",
+    "review_status": "draft",
+    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "kiriath_jearim",
@@ -2826,12 +2826,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": null
+    "current_name_hu": "Kirjat-Jeárim",
+    "current_card_summary_hu": "Júdai város, ahol a szövetség ládáját egy ideig őrizték. Leggyakrabban Deir el-Azar és Abu Gós környékével azonosítják.",
+    "proposed_name_hu": "Kirjat-Jeárim",
+    "proposed_card_summary_hu": "Júdai város, ahol a szövetség ládáját egy ideig őrizték. Leggyakrabban Deir el-Azar és Abu Gós környékével azonosítják.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "shephelah",
@@ -2862,12 +2862,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": null
+    "current_name_hu": "Sefélá",
+    "current_card_summary_hu": "Júda nyugati dombvidéke a hegyvidék és a filiszteus parti síkság között. Ma Izrael középső részének alacsony dombsága.",
+    "proposed_name_hu": "Sefélá",
+    "proposed_card_summary_hu": "Júda nyugati dombvidéke a hegyvidék és a filiszteus parti síkság között. Ma Izrael középső részének alacsony dombsága.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "caesarea",
@@ -2895,12 +2895,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": null
+    "current_name_hu": "Cézárea",
+    "current_card_summary_hu": "Heródes által kiépített római kikötőváros és Júdea közigazgatási központja. Romjai a mai izraeli Caesarea Maritima régészeti területén találhatók.",
+    "proposed_name_hu": "Cézárea",
+    "proposed_card_summary_hu": "Heródes által kiépített római kikötőváros és Júdea közigazgatási központja. Romjai a mai izraeli Caesarea Maritima régészeti területén találhatók.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "east",
@@ -2929,12 +2929,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": null
+    "current_name_hu": "Kelet vidéke",
+    "current_card_summary_hu": "Tág és szövegfüggő bibliai földrajzi megjelölés a Jordántól, illetve Izráeltől keletre fekvő területekre. Nem egyetlen, biztosan körülhatárolható helyszín.",
+    "proposed_name_hu": "Kelet vidéke",
+    "proposed_card_summary_hu": "Tág és szövegfüggő bibliai földrajzi megjelölés a Jordántól, illetve Izráeltől keletre fekvő területekre. Nem egyetlen, biztosan körülhatárolható helyszín.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "mount_carmel",
@@ -2963,12 +2963,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": null
+    "current_name_hu": "Kármel-hegy",
+    "current_card_summary_hu": "A Földközi-tenger fölé emelkedő hegyvonulat, Illés és a Baal-próféták történetének helyszíne. Ma Haifa környékén, Izrael északi partvidékén található.",
+    "proposed_name_hu": "Kármel-hegy",
+    "proposed_card_summary_hu": "A Földközi-tenger fölé emelkedő hegyvonulat, Illés és a Baal-próféták történetének helyszíne. Ma Haifa környékén, Izrael északi partvidékén található.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "mount_of_olives",
@@ -3007,12 +3007,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást."
+    "current_name_hu": "Olajfák hegye",
+    "current_card_summary_hu": "Jeruzsálemtől keletre fekvő magaslat, több ószövetségi és újszövetségi esemény helyszíne. Ma is közvetlenül az Óvárossal szemben emelkedik.",
+    "proposed_name_hu": "Olajfák hegye",
+    "proposed_card_summary_hu": "Jeruzsálemtől keletre fekvő magaslat, több ószövetségi és újszövetségi esemény helyszíne. Ma is közvetlenül az Óvárossal szemben emelkedik.",
+    "review_status": "draft",
+    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "sheba_1",
@@ -3044,12 +3044,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást."
+    "current_name_hu": "Sába",
+    "current_card_summary_hu": "Dél-Arábiához kapcsolódó ókori királyság, amelynek uralkodója Salamon történetében szerepel. Központját többnyire a mai Jemen területére, Marib vidékére helyezik.",
+    "proposed_name_hu": "Sába",
+    "proposed_card_summary_hu": "Dél-Arábiához kapcsolódó ókori királyság, amelynek uralkodója Salamon történetében szerepel. Központját többnyire a mai Jemen területére, Marib vidékére helyezik.",
+    "review_status": "draft",
+    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "anathoth",
@@ -3081,12 +3081,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": null
+    "current_name_hu": "Anátót",
+    "current_card_summary_hu": "Jeruzsálemtől északkeletre fekvő papi város, Jeremiás próféta szülőhelye. Általában a mai Anáta közelében keresik.",
+    "proposed_name_hu": "Anátót",
+    "proposed_card_summary_hu": "Jeruzsálemtől északkeletre fekvő papi város, Jeremiás próféta szülőhelye. Általában a mai Anáta közelében keresik.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "beth_shemesh_1",
@@ -3118,12 +3118,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": null
+    "current_name_hu": "Bét-Semes",
+    "current_card_summary_hu": "Júda nyugati határvidékének városa, a szövetség ládájának történetében is szerepel. Az ókori helyet Tel Bét-Semessel azonosítják.",
+    "proposed_name_hu": "Bét-Semes",
+    "proposed_card_summary_hu": "Júda nyugati határvidékének városa, a szövetség ládájának történetében is szerepel. Az ókori helyet Tel Bét-Semessel azonosítják.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "mount_horeb",
@@ -3155,12 +3155,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást."
+    "current_name_hu": "Hóreb hegye",
+    "current_card_summary_hu": "A törvényadás és Mózes istenélményeinek bibliai hegye, gyakran a Sínai-heggyel azonosítva. Hagyományosan a Dzsebel Múszához kapcsolják, de a pontos hely vitatott.",
+    "proposed_name_hu": "Hóreb hegye",
+    "proposed_card_summary_hu": "A törvényadás és Mózes istenélményeinek bibliai hegye, gyakran a Sínai-heggyel azonosítva. Hagyományosan a Dzsebel Múszához kapcsolják, de a pontos hely vitatott.",
+    "review_status": "draft",
+    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "rabbah_1",
@@ -3190,12 +3190,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": null
+    "current_name_hu": "Rabbá",
+    "current_card_summary_hu": "Az ammóni királyság fővárosa és Dávid hadjáratainak egyik fontos helyszíne. Az ókori város a mai jordániai Ammán területén feküdt.",
+    "proposed_name_hu": "Rabbá",
+    "proposed_card_summary_hu": "Az ammóni királyság fővárosa és Dávid hadjáratainak egyik fontos helyszíne. Az ókori város a mai jordániai Ammán területén feküdt.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "rome",
@@ -3240,10 +3240,10 @@
     ],
     "current_name_hu": "Róma",
     "current_card_summary_hu": "Róma a Római Birodalom fővárosa; az ApCsel 28 szerint Pál itt töltött házi őrizetet és hirdette az evangéliumot.",
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": "Meglévő pilot/kézi magyar tartalom; csak ellenőrzés után módosítsd."
+    "proposed_name_hu": "Róma",
+    "proposed_card_summary_hu": "Róma a Római Birodalom fővárosa; az ApCsel 28 szerint Pál itt töltött házi őrizetet és hirdette az evangéliumot.",
+    "review_status": "draft",
+    "review_notes_hu": "Meglévő pilot/kézi magyar tartalom; csak ellenőrzés után módosítsd. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "beyond_the_river",
@@ -3276,12 +3276,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": null
+    "current_name_hu": "A Folyamon túli tartomány",
+    "current_card_summary_hu": "Perzsa kori közigazgatási megnevezés az Eufrátesztől nyugatra fekvő területekre. Nem egyetlen várost, hanem tág tartományt jelöl.",
+    "proposed_name_hu": "A Folyamon túli tartomány",
+    "proposed_card_summary_hu": "Perzsa kori közigazgatási megnevezés az Eufrátesztől nyugatra fekvő területekre. Nem egyetlen várost, hanem tág tartományt jelöl.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "elam",
@@ -3310,12 +3310,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": null
+    "current_name_hu": "Élám",
+    "current_card_summary_hu": "Az ókori Irán délnyugati részén fekvő királyság és térség, központjai között Súsán is szerepelt. Területe a mai Huzesztán és környékére esik.",
+    "proposed_name_hu": "Élám",
+    "proposed_card_summary_hu": "Az ókori Irán délnyugati részén fekvő királyság és térség, központjai között Súsán is szerepelt. Területe a mai Huzesztán és környékére esik.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "mount_hermon",
@@ -3351,12 +3351,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": null
+    "current_name_hu": "Hermón-hegy",
+    "current_card_summary_hu": "A Jordán forrásvidéke fölé emelkedő magas hegytömb Izráel északi határán. Ma Libanon, Szíria és Izrael határvidékén található.",
+    "proposed_name_hu": "Hermón-hegy",
+    "proposed_card_summary_hu": "A Jordán forrásvidéke fölé emelkedő magas hegytömb Izráel északi határán. Ma Libanon, Szíria és Izrael határvidékén található.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "ramah_1",
@@ -3386,12 +3386,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást."
+    "current_name_hu": "Ráma",
+    "current_card_summary_hu": "Benjamin területének városa Jeruzsálemtől északra, több prófétai és királyságkori történet helyszíne. Általában a mai er-Rámmal azonosítják.",
+    "proposed_name_hu": "Ráma",
+    "proposed_card_summary_hu": "Benjamin területének városa Jeruzsálemtől északra, több prófétai és királyságkori történet helyszíne. Általában a mai er-Rámmal azonosítják.",
+    "review_status": "draft",
+    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "mahanaim",
@@ -3419,12 +3419,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": null
+    "current_name_hu": "Mahanaim",
+    "current_card_summary_hu": "A Jordántól keletre fekvő város, Jákób történetéhez és Dávid meneküléséhez kapcsolódik. Pontos helye bizonytalan; Tell ed-Dahab el-Garbi az egyik javasolt azonosítás.",
+    "proposed_name_hu": "Mahanaim",
+    "proposed_card_summary_hu": "A Jordántól keletre fekvő város, Jákób történetéhez és Dávid meneküléséhez kapcsolódik. Pontos helye bizonytalan; Tell ed-Dahab el-Garbi az egyik javasolt azonosítás.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "tarshish_1",
@@ -3453,12 +3453,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": null
+    "current_name_hu": "Tarsís",
+    "current_card_summary_hu": "Távoli tengeri kereskedelmi hely vagy térség, amely több bibliai szövegben szerepel. Azonosítása vitatott; a dél-spanyolországi térség csak az egyik javaslat.",
+    "proposed_name_hu": "Tarsís",
+    "proposed_card_summary_hu": "Távoli tengeri kereskedelmi hely vagy térség, amely több bibliai szövegben szerepel. Azonosítása vitatott; a dél-spanyolországi térség csak az egyik javaslat.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "libnah_1",
@@ -3487,12 +3487,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": "Bizonytalan vagy vitatott azonosítás; a magyar név és leírás szakmai ellenőrzést igényel."
+    "current_name_hu": "Libna",
+    "current_card_summary_hu": "Júda alföldi területének városa, honfoglalási és királyságkori történetek helyszíne. Tell Bornattal való azonosítása lehetséges, de nem biztos.",
+    "proposed_name_hu": "Libna",
+    "proposed_card_summary_hu": "Júda alföldi területének városa, honfoglalási és királyságkori történetek helyszíne. Tell Bornattal való azonosítása lehetséges, de nem biztos.",
+    "review_status": "draft",
+    "review_notes_hu": "Bizonytalan vagy vitatott azonosítás; a magyar név és leírás szakmai ellenőrzést igényel. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "babylonia",
@@ -3522,12 +3522,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást."
+    "current_name_hu": "Babilónia",
+    "current_card_summary_hu": "Dél-Mezopotámia történeti régiója, amelynek központja Babilon volt. Területe a mai Irak középső és déli részéhez kapcsolódik.",
+    "proposed_name_hu": "Babilónia",
+    "proposed_card_summary_hu": "Dél-Mezopotámia történeti régiója, amelynek központja Babilon volt. Területe a mai Irak középső és déli részéhez kapcsolódik.",
+    "review_status": "draft",
+    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "keilah",
@@ -3555,12 +3555,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": null
+    "current_name_hu": "Keila",
+    "current_card_summary_hu": "Júda nyugati dombvidékének erődített városa, ahol Dávid megmentette a lakosságot a filiszteusoktól. Az ókori helyet Khirbet Kilával azonosítják.",
+    "proposed_name_hu": "Keila",
+    "proposed_card_summary_hu": "Júda nyugati dombvidékének erődített városa, ahol Dávid megmentette a lakosságot a filiszteusoktól. Az ókori helyet Khirbet Kilával azonosítják.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "carmel_1",
@@ -3591,12 +3591,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": null
+    "current_name_hu": "Kármel",
+    "current_card_summary_hu": "Júda hegyvidékének települése, amely Dávid és Nábál történetéhez kapcsolódik. Az ókori helyet Khirbet el-Kirmillel azonosítják; nem azonos a Kármel-heggyel.",
+    "proposed_name_hu": "Kármel",
+    "proposed_card_summary_hu": "Júda hegyvidékének települése, amely Dávid és Nábál történetéhez kapcsolódik. Az ókori helyet Khirbet el-Kirmillel azonosítják; nem azonos a Kármel-heggyel.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "gezer",
@@ -3625,12 +3625,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": null
+    "current_name_hu": "Gézer",
+    "current_card_summary_hu": "Stratégiai fekvésű kánaáni és izráeli város a parti síkság és a hegyvidék közötti útvonalon. Az ókori helyet Tel Gézerrel azonosítják.",
+    "proposed_name_hu": "Gézer",
+    "proposed_card_summary_hu": "Stratégiai fekvésű kánaáni és izráeli város a parti síkság és a hegyvidék közötti útvonalon. Az ókori helyet Tel Gézerrel azonosítják.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "joppa",
@@ -3659,12 +3659,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": null
+    "current_name_hu": "Joppé",
+    "current_card_summary_hu": "Ősi földközi-tengeri kikötőváros, Jónás történetének és Péter szolgálatának fontos helyszíne. A helyén ma Tel-Aviv–Jaffa részeként Jaffa található.",
+    "proposed_name_hu": "Joppé",
+    "proposed_card_summary_hu": "Ősi földközi-tengeri kikötőváros, Jónás történetének és Péter szolgálatának fontos helyszíne. A helyén ma Tel-Aviv–Jaffa részeként Jaffa található.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "kidron",
@@ -3697,12 +3697,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": null
+    "current_name_hu": "Kidron-völgy",
+    "current_card_summary_hu": "Jeruzsálem keleti oldalán húzódó völgy és időszakos vízfolyás az Óváros és az Olajfák hegye között. Több királyságkori és újszövetségi esemény földrajzi háttere.",
+    "proposed_name_hu": "Kidron-völgy",
+    "proposed_card_summary_hu": "Jeruzsálem keleti oldalán húzódó völgy és időszakos vízfolyás az Óváros és az Olajfák hegye között. Több királyságkori és újszövetségi esemény földrajzi háttere.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "tekoa",
@@ -3736,12 +3736,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": null
+    "current_name_hu": "Tekóa",
+    "current_card_summary_hu": "Júda hegyvidékének települése, Ámós próféta szülőhelye és több királyságkori esemény helyszíne. Az ókori helyet Khirbet Tekúával azonosítják.",
+    "proposed_name_hu": "Tekóa",
+    "proposed_card_summary_hu": "Júda hegyvidékének települése, Ámós próféta szülőhelye és több királyságkori esemény helyszíne. Az ókori helyet Khirbet Tekúával azonosítják.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "zobah",
@@ -3779,12 +3779,12 @@
     "source_ids": [
       "openbible_geocoding_cc_by_4_0"
     ],
-    "current_name_hu": null,
-    "current_card_summary_hu": null,
-    "proposed_name_hu": null,
-    "proposed_card_summary_hu": null,
-    "review_status": "pending",
-    "review_notes_hu": null
+    "current_name_hu": "Cóba",
+    "current_card_summary_hu": "Damaszkusztól északra fekvő arám királyság, amely Dávid hadjárataiban szerepel. Pontos területi központja bizonytalan; Brital vidéke az egyik javasolt azonosítás.",
+    "proposed_name_hu": "Cóba",
+    "proposed_card_summary_hu": "Damaszkusztól északra fekvő arám királyság, amely Dávid hadjárataiban szerepel. Pontos területi központja bizonytalan; Brital vidéke az egyik javasolt azonosítás.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "geba_1",

@@ -17,6 +17,7 @@ CATALOG_PATH = DATA_DIR / "biblical_places_catalog.json"
 PASSAGE_CATALOG_PATH = DATA_DIR / "passage_place_catalog.json"
 PASSAGE_LINKS_PATH = DATA_DIR / "passage_place_links.json"
 IMPORT_REPORT_PATH = DATA_DIR / "full_catalog_import_report.json"
+HU_REVIEW_QUEUE_PATH = DATA_DIR / "hungarian_review_queue.json"
 
 OPENBIBLE_SOURCE_ID = "openbible_geocoding_cc_by_4_0"
 MANUAL_LOCKED_PLACE_IDS = {"corinth", "ephesus"}
@@ -387,6 +388,35 @@ def remove_mixed_manual_demo_source(record: dict[str, Any]) -> dict[str, Any]:
     return record
 
 
+def apply_hungarian_review_overrides(catalog: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    review_queue = read_json(HU_REVIEW_QUEUE_PATH, [])
+    if not isinstance(review_queue, list):
+        return catalog
+    review_by_id = {
+        str(item.get("place_id") or ""): item
+        for item in review_queue
+        if isinstance(item, dict)
+        and item.get("review_status") == "draft"
+        and str(item.get("proposed_name_hu") or "").strip()
+        and str(item.get("proposed_card_summary_hu") or "").strip()
+    }
+    if not review_by_id:
+        return catalog
+    merged: list[dict[str, Any]] = []
+    for record in catalog:
+        place_id = str(record.get("place_id") or "")
+        review_item = review_by_id.get(place_id)
+        if review_item is None:
+            merged.append(record)
+            continue
+        updated = deepcopy(record)
+        updated["name_hu"] = str(review_item["proposed_name_hu"]).strip()
+        updated["card_summary_hu"] = str(review_item["proposed_card_summary_hu"]).strip()
+        updated["review_status"] = "draft"
+        merged.append(updated)
+    return merged
+
+
 def load_openbible_raw() -> list[dict[str, Any]]:
     records: list[dict[str, Any]] = []
     with RAW_OPENBIBLE_ANCIENT_PATH.open(encoding="utf-8") as handle:
@@ -514,6 +544,7 @@ def build_catalog() -> dict[str, Any]:
         manual_overrides += 1
 
     catalog = sorted(by_place_id.values(), key=lambda item: str(item.get("place_id") or ""))
+    catalog = apply_hungarian_review_overrides(catalog)
     importable_openbible_ids = set(catalog_by_openbible)
     passage_catalog, passage_skipped = build_passage_catalog(raw_records, place_id_by_openbible, importable_openbible_ids)
     manual_links = read_json(PASSAGE_LINKS_PATH, [])

@@ -85,6 +85,20 @@ def review_notes_for(place: dict[str, Any], *, pilot_ids: set[str], probable_dup
     return " ".join(notes) or None
 
 
+def existing_draft_reviews() -> dict[str, dict[str, Any]]:
+    existing_queue = read_json(QUEUE_PATH, [])
+    if not isinstance(existing_queue, list):
+        return {}
+    return {
+        str(item.get("place_id") or ""): item
+        for item in existing_queue
+        if isinstance(item, dict)
+        and item.get("review_status") == "draft"
+        and str(item.get("proposed_name_hu") or "").strip()
+        and str(item.get("proposed_card_summary_hu") or "").strip()
+    }
+
+
 def priority_key(item: dict[str, Any], *, pilot_order: dict[str, int]) -> tuple[Any, ...]:
     place_id = str(item.get("place_id") or "")
     status = str(item.get("identification_status") or "")
@@ -114,6 +128,7 @@ def build_queue() -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     }
     counts, representative_refs = passage_stats(links)
     probable_duplicates = audit_duplicate_place_ids(audit_report)
+    draft_reviews = existing_draft_reviews()
 
     by_place_id: dict[str, dict[str, Any]] = {}
     for place in catalog:
@@ -147,6 +162,14 @@ def build_queue() -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
                 probable_duplicates=probable_duplicates,
             ),
         }
+        draft_review = draft_reviews.get(place_id)
+        if draft_review is not None:
+            item["proposed_name_hu"] = str(draft_review["proposed_name_hu"]).strip()
+            item["proposed_card_summary_hu"] = str(
+                draft_review["proposed_card_summary_hu"]
+            ).strip()
+            item["review_status"] = "draft"
+            item["review_notes_hu"] = draft_review.get("review_notes_hu")
         by_place_id[place_id] = item
 
     queue = sorted(by_place_id.values(), key=lambda item: priority_key(item, pilot_order=pilot_order))

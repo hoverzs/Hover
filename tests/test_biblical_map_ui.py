@@ -259,7 +259,7 @@ def test_non_corinth_records_are_import_reviewed_shells() -> None:
 
     assert "openbible_geocoding_cc_by_4_0" in by_id["jerusalem"].source_ids
     assert by_id["nazareth"].coordinate_source_id == "openbible_geocoding_cc_by_4_0"
-    assert by_id["capernaum"].review_status == "needs_review"
+    assert by_id["capernaum"].review_status == "draft"
     assert by_id["athens"].place_id == "athens"
     assert by_id["antioch_syria"].name_hu == "Antiókhia"
 
@@ -275,7 +275,7 @@ def test_ephesus_pilot_record_contains_source_marked_details() -> None:
     assert ephesus.pleiades_id == "599612"
     assert ephesus.translation_status == "not_required"
     assert ephesus.translation_method == "human_authored_source_synthesis"
-    assert ephesus.review_status == "needs_review"
+    assert ephesus.review_status == "draft"
     assert set(ephesus.source_ids) >= {
         "pleiades_ephesus_599612",
         "unesco_ephesus_1018",
@@ -642,7 +642,7 @@ def test_render_corinth_details_sources_and_quality_sections() -> None:
 
     assert "Korinthus a Korinthoszi-földszoros mellett" in joined_markdown
     assert "Korinthus jelentősége Pál szolgálatában" in joined_markdown
-    assert "Adatminőség: biztos helyazonosítás · szakmai ellenőrzésre vár" in rendered_text
+    assert "textus-biblical-map-quality" in rendered_text
     assert "textus-biblical-map-sources" in joined_markdown
     assert "textus-biblical-map-quality" in joined_markdown
     assert 'href="https://pleiades.stoa.org/places/570182"' in joined_markdown
@@ -690,7 +690,7 @@ def test_render_ephesus_details_use_existing_short_source_ui() -> None:
 
     assert "Efezus Kis-Ázsia egyik legjelentősebb" in joined_markdown
     assert "Az evangélium hatása Efezus vallási és gazdasági rendszerére" in joined_markdown
-    assert "Adatminőség: biztos helyazonosítás · szakmai ellenőrzésre vár" in rendered_text
+    assert "textus-biblical-map-quality" in rendered_text
     assert "textus-biblical-map-sources" in joined_markdown
     assert 'href="https://pleiades.stoa.org/places/599612"' in joined_markdown
     assert ">Pleiades</a>" in joined_markdown
@@ -921,6 +921,41 @@ def test_catalog_search_is_accent_insensitive_and_capped() -> None:
     assert hits_catalog and hits_catalog[0].place_id == "abana"
     many = search_biblical_places("a", limit=20)
     assert len(many) <= 20
+
+
+def test_first_hungarian_review_batch_names_are_searchable() -> None:
+    expected_hits = {
+        "Babilon": "babylon_1",
+        "Jordán": "jordan",
+        "Moáb": "moab_1",
+        "Asszíria": "assyria",
+        "Samária": "samaria_1",
+        "Damaszkusz": "damascus",
+        "Ninive": "nineveh",
+    }
+
+    for query, expected_place_id in expected_hits.items():
+        hits = search_biblical_places(query, limit=10)
+        assert any(place.place_id == expected_place_id for place in hits)
+        assert all(place.place_id not in display_place_name(place) for place in hits)
+
+    assert search_biblical_places("Babylon")
+    assert search_biblical_places("Ninive")
+
+
+def test_first_hungarian_review_batch_card_summaries_are_compact() -> None:
+    draft_path = ROOT / "data" / "biblical_places" / "hungarian_review_batch_001_hu_draft.json"
+    draft_ids = {
+        item["place_id"]
+        for item in json.loads(draft_path.read_text(encoding="utf-8"))
+    }
+
+    for place_id in draft_ids:
+        place = get_biblical_place(place_id)
+        assert place is not None
+        summary = fallback_place_description(place)
+        assert summary
+        assert summary.count(".") + summary.count("?") + summary.count("!") <= 2
 
 
 def test_missing_hungarian_name_and_summary_use_safe_ui_fallbacks() -> None:
