@@ -36,11 +36,19 @@ def test_duplicate_review_queue_shape_and_references() -> None:
         candidate_ids = group["candidate_place_ids"]
         assert len(candidate_ids) >= 2
         assert len(candidate_ids) == len(set(candidate_ids))
-        assert set(candidate_ids).issubset(catalog_ids)
+        if group["review_status"] == "pending":
+            assert set(candidate_ids).issubset(catalog_ids)
+        else:
+            assert group["review_status"] == "reviewed"
+            if group.get("final_action") == "keep_separate":
+                assert set(candidate_ids).issubset(catalog_ids)
+            if group.get("final_action") == "merge":
+                assert group.get("proposed_canonical_place_id") in catalog_ids
         assert group["recommended_action"] in ALLOWED_RECOMMENDED_ACTIONS
         assert group["confidence"] in ALLOWED_CONFIDENCE
-        assert group["review_status"] == "pending"
-        assert group["reviewer_notes_hu"] is None
+        assert group["review_status"] in {"pending", "reviewed"}
+        if group["review_status"] == "pending":
+            assert group["reviewer_notes_hu"] is None
         assert isinstance(group["match_reasons"], list)
         assert isinstance(group["shared_passages"], list)
         assert isinstance(group["distinct_passages"], dict)

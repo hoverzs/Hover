@@ -1,0 +1,156 @@
+[
+  {
+    "group_id": "dup_abdon__ebron",
+    "final_action": "merge",
+    "canonical_place_id": "abdon",
+    "removed_place_ids": [
+      "ebron"
+    ],
+    "candidate_place_ids": [
+      "abdon",
+      "ebron"
+    ],
+    "proposed_merged_name_hu": "Abdón",
+    "proposed_merged_summary_hu": "Áser területén fekvő lévita város. Az Ebrón névalak szövegváltozatként vagy alternatív helynévként őrzendő meg.",
+    "proposed_passage_strategy": "A két rekord összes passage-kapcsolatának egyesítése.",
+    "proposed_coordinate_strategy": "Az abdon rekord koordinátáinak megtartása.",
+    "proposed_alias_strategy": "Ebron, Ebrón és Hebron csak ennél a rekordnál, forrásjelöléssel kerüljön az aliasok közé.",
+    "proposed_record_type": "settlement",
+    "expert_decision_hu": "Azonos koordináta, modern név és névváltozati kapcsolat alapján egyesíthető.",
+    "merge_risks_hu": [
+      "A Hebron névalak könnyen összekeverhető a nagy júdai Hebrón városával; ezt külön alias-megjegyzéssel kell kezelni."
+    ]
+  },
+  {
+    "group_id": "dup_ai_1__ai_3",
+    "final_action": "merge",
+    "canonical_place_id": "ai_1",
+    "removed_place_ids": [
+      "ai_3"
+    ],
+    "candidate_place_ids": [
+      "ai_1",
+      "ai_3"
+    ],
+    "proposed_merged_name_hu": "Aj",
+    "proposed_merged_summary_hu": "Bétel közelében fekvő bibliai város, amely Ábrahám történetében, Józsué honfoglalásában és a fogság utáni felsorolásokban is szerepel.",
+    "proposed_passage_strategy": "A hódításkori és fogság utáni passage-ek egyesítése ugyanazon kanonikus rekord alatt.",
+    "proposed_coordinate_strategy": "Az ai_1 koordinátáinak megtartása.",
+    "proposed_alias_strategy": "Ai, Hai és a számozott technikai névalakok egyesítése.",
+    "proposed_record_type": "settlement",
+    "expert_decision_hu": "Ugyanazon település külön szövegcsoportokból létrejött technikai rekordjai; egyesíthetők.",
+    "merge_risks_hu": [
+      "A korszakok eltérnek, de ez nem indokol külön helyrekordot; az időbeli különbség a passage-ekből követhető."
+    ]
+  },
+  {
+    "group_id": "dup_aija__ayyah",
+    "final_action": "merge",
+    "canonical_place_id": "aija",
+    "removed_place_ids": [
+      "ayyah"
+    ],
+    "candidate_place_ids": [
+      "aija",
+      "ayyah"
+    ],
+    "proposed_merged_name_hu": "Ajjá",
+    "proposed_merged_summary_hu": "Benjámin területéhez kapcsolódó településnév, amely Aj/Ajja névváltozataként jelenik meg. Az Ayyah alak aliaszként őrzendő.",
+    "proposed_passage_strategy": "A két passage egyesítése az aija rekord alatt.",
+    "proposed_coordinate_strategy": "Az aija koordinátáinak megtartása.",
+    "proposed_alias_strategy": "Aija, Ayyah és Ajjá névalakok megőrzése.",
+    "proposed_record_type": "settlement",
+    "expert_decision_hu": "A névalakok és azonos koordináta alapján valószínűleg ugyanazon hely; egyesíthető, de a Gaza alias kihagyandó vagy külön ellenőrzendő.",
+    "merge_risks_hu": [
+      "Az Ayyah rekord Gaza aliasa félrevezető lehet; ezt nem szabad automatikusan továbbörökíteni ellenőrzés nélkül."
+    ]
+  },
+  {
+    "group_id": "dup_aphek_1__aphik",
+    "final_action": "merge",
+    "canonical_place_id": "aphek_1",
+    "removed_place_ids": [
+      "aphik"
+    ],
+    "candidate_place_ids": [
+      "aphek_1",
+      "aphik"
+    ],
+    "proposed_merged_name_hu": "Afék",
+    "proposed_merged_summary_hu": "Áser területén fekvő bibliai település. Az Aphik névalak ugyanennek a helynek alternatív átírása.",
+    "proposed_passage_strategy": "A Józsué és Bírák passage-ek egyesítése.",
+    "proposed_coordinate_strategy": "Az azonos koordináta megtartása.",
+    "proposed_alias_strategy": "Aphek, Aphik és Afék névalakok egyesítése.",
+    "proposed_record_type": "settlement",
+    "expert_decision_hu": "Ugyanazon áseri település két átírása; egyesíthető.",
+    "merge_risks_hu": [
+      "A Bibliában több Afék nevű hely van; csak ezt a két, azonos koordinátájú rekordot szabad összevonni."
+    ]
+  },
+  {
+    "group_id": "dup_arad_1__arad_2",
+    "final_action": "merge",
+    "canonical_place_id": "arad_1",
+    "removed_place_ids": [
+      "arad_2"
+    ],
+    "candidate_place_ids": [
+      "arad_1",
+      "arad_2"
+    ],
+    "proposed_merged_name_hu": "Arád",
+    "proposed_merged_summary_hu": "A Negev északi részén fekvő kánaáni város, amely a pusztai vándorlás és a honfoglalás történeteiben szerepel.",
+    "proposed_passage_strategy": "A négy passage-kapcsolat egyesítése.",
+    "proposed_coordinate_strategy": "A közös Tel Arad koordináta megtartása.",
+    "proposed_alias_strategy": "A számozott technikai névalakok eltávolítása, Arad/Arád aliasok megtartása.",
+    "proposed_record_type": "settlement",
+    "expert_decision_hu": "Azonos név, koordináta és modern azonosítás alapján technikai duplikátum; egyesíthető.",
+    "merge_risks_hu": [
+      "Az azonosítás státusza eltér; a kanonikus rekordban a bizonytalanságot óvatosan kell megfogalmazni."
+    ]
+  },
+  {
+    "group_id": "dup_aroer_3__aroer_4",
+    "final_action": "merge",
+    "canonical_place_id": "aroer_3",
+    "removed_place_ids": [
+      "aroer_4"
+    ],
+    "candidate_place_ids": [
+      "aroer_3",
+      "aroer_4"
+    ],
+    "proposed_merged_name_hu": "Aróér",
+    "proposed_merged_summary_hu": "Júda déli vidékén fekvő Aróér, amely Dávid történetéhez és az aróéri származásmegjelöléshez kapcsolódik.",
+    "proposed_passage_strategy": "A két passage-kapcsolat egyesítése.",
+    "proposed_coordinate_strategy": "A közös Khirbet Aro’er koordináta megtartása.",
+    "proposed_alias_strategy": "Aroer, Aróér és Aroerite/aróéri névalakok megőrzése.",
+    "proposed_record_type": "settlement",
+    "expert_decision_hu": "Azonos helyhez kapcsolódó település- és származásmegjelölés; egyesíthető.",
+    "merge_risks_hu": [
+      "Több Aróér nevű bibliai település létezik; csak ezt a két azonos koordinátájú déli rekordot szabad összevonni."
+    ]
+  },
+  {
+    "group_id": "dup_egypt__ham_2",
+    "final_action": "merge",
+    "canonical_place_id": "egypt",
+    "removed_place_ids": [
+      "ham_2"
+    ],
+    "candidate_place_ids": [
+      "egypt",
+      "ham_2"
+    ],
+    "proposed_merged_name_hu": "Egyiptom",
+    "proposed_merged_summary_hu": "Az ókori Egyiptom bibliai földrajzi egysége. A „Hám földje” költői megnevezést és az összes kapcsolódó igehelyet aliaszként, illetve passage-kapcsolatként meg kell őrizni.",
+    "proposed_passage_strategy": "A két rekord összes passage-kapcsolatának egyesítése, duplikációk eltávolításával.",
+    "proposed_coordinate_strategy": "Az egypt rekord koordinátáinak megtartása.",
+    "proposed_alias_strategy": "A Ham, Hám, land of Ham / Hám földje alakok kerüljenek az ancient_names/alias mezőbe.",
+    "proposed_record_type": "region_country",
+    "expert_decision_hu": "A ham_2 itt földrajzi, költői megnevezésként Egyiptomra utal; egyesíthető az egypt rekorddal.",
+    "merge_risks_hu": [
+      "A „Hám” személynév más rekordokban nem vonható automatikusan Egyiptomhoz."
+    ]
+  }
+]

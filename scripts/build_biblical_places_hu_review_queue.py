@@ -164,7 +164,7 @@ def build_queue() -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
             ),
         }
         draft_review = draft_reviews.get(place_id)
-        if draft_review is not None:
+        if draft_review is not None and place.get("review_status") == "draft":
             item["proposed_name_hu"] = str(draft_review["proposed_name_hu"]).strip()
             item["proposed_card_summary_hu"] = str(
                 draft_review["proposed_card_summary_hu"]

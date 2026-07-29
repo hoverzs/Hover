@@ -6,6 +6,7 @@ import math
 import re
 import unicodedata
 from collections import Counter, defaultdict, deque
+from copy import deepcopy
 from pathlib import Path
 from typing import Any
 
@@ -215,7 +216,9 @@ def group_priority(group: dict[str, Any]) -> tuple[Any, ...]:
     }
     confidence_rank = {"high": 0, "medium": 1, "low": 2}
     distance = group.get("coordinate_distance_km")
+    review_rank = {"pending": 0, "reviewed": 1}
     return (
+        review_rank.get(str(group.get("review_status") or "pending"), 0),
         action_rank.get(group["recommended_action"], 99),
         confidence_rank.get(group["confidence"], 99),
         999999 if distance is None else float(distance),
@@ -245,6 +248,7 @@ def build_queue() -> list[dict[str, Any]]:
     audit_report = read_json(AUDIT_REPORT_PATH, {})
     links = read_json(PASSAGE_LINKS_PATH, [])
     hu_queue = read_json(HU_REVIEW_QUEUE_PATH, [])
+    previous_queue = read_json(OUTPUT_PATH, [])
     catalog_by_id = {str(place.get("place_id") or ""): place for place in catalog}
     review_notes_by_id = {
         str(item.get("place_id") or ""): item.get("review_notes_hu")
@@ -262,7 +266,12 @@ def build_queue() -> list[dict[str, Any]]:
             continue
         pair_messages[tuple(sorted(pair))].append(str(finding.get("message") or "Audit duplicate finding."))
 
-    groups: list[dict[str, Any]] = []
+    reviewed_groups = {
+        str(group.get("group_id") or ""): group
+        for group in previous_queue
+        if isinstance(group, dict) and group.get("review_status") == "reviewed"
+    }
+    groups_by_id: dict[str, dict[str, Any]] = {}
     for component in build_components(pairs):
         records = [catalog_by_id[place_id] for place_id in component if place_id in catalog_by_id]
         if len(records) < 2:
@@ -329,9 +338,13 @@ def build_queue() -> list[dict[str, Any]]:
             "reviewer_notes_hu": None,
             "review_status": "pending",
         }
-        groups.append(group)
+        group_id = str(group["group_id"])
+        groups_by_id[group_id] = deepcopy(reviewed_groups.get(group_id, group))
 
-    return sorted(groups, key=group_priority)
+    for group_id, reviewed_group in reviewed_groups.items():
+        groups_by_id.setdefault(group_id, deepcopy(reviewed_group))
+
+    return sorted(groups_by_id.values(), key=group_priority)
 
 
 def write_documentation(queue: list[dict[str, Any]]) -> None:

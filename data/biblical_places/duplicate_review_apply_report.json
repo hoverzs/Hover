@@ -1,0 +1,58 @@
+{
+  "valid_groups": 10,
+  "merge_decision_count": 7,
+  "keep_separate_count": 3,
+  "catalog_count_before": 1309,
+  "catalog_count_after": 1302,
+  "removed_place_ids": [
+    "ai_3",
+    "aphik",
+    "arad_2",
+    "aroer_4",
+    "ayyah",
+    "ebron",
+    "ham_2"
+  ],
+  "canonical_place_ids": [
+    "abdon",
+    "ai_1",
+    "aija",
+    "aphek_1",
+    "arad_1",
+    "aroer_3",
+    "egypt"
+  ],
+  "redirected_passage_link_count": 11,
+  "deduped_passage_link_count": 2,
+  "lost_passage_link_count": 0,
+  "bad_passage_reference_count": 0,
+  "bad_passage_references": [],
+  "duplicate_queue_changed_groups": 10,
+  "protected_missing_place_ids": [],
+  "would_write": true,
+  "idempotency_check_report": {
+    "valid_groups": 10,
+    "merge_decision_count": 7,
+    "keep_separate_count": 3,
+    "catalog_count_before": 1302,
+    "catalog_count_after": 1302,
+    "removed_place_ids": [],
+    "canonical_place_ids": [
+      "abdon",
+      "ai_1",
+      "aija",
+      "aphek_1",
+      "arad_1",
+      "aroer_3",
+      "egypt"
+    ],
+    "redirected_passage_link_count": 0,
+    "deduped_passage_link_count": 0,
+    "lost_passage_link_count": 0,
+    "bad_passage_reference_count": 0,
+    "bad_passage_references": [],
+    "duplicate_queue_changed_groups": 0,
+    "protected_missing_place_ids": [],
+    "would_write": true
+  }
+}

@@ -443,7 +443,7 @@
   },
   {
     "reference": "1CH 11,44",
-    "place_id": "aroer_4",
+    "place_id": "aroer_3",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "a620b14",
@@ -2771,7 +2771,7 @@
   },
   {
     "reference": "1CH 7,28",
-    "place_id": "ayyah",
+    "place_id": "aija",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "aba3717",
@@ -29843,7 +29843,7 @@
   },
   {
     "reference": "EZR 2,28",
-    "place_id": "ai_3",
+    "place_id": "ai_1",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "a63c70b",
@@ -39075,7 +39075,7 @@
   },
   {
     "reference": "JDG 1,16",
-    "place_id": "arad_2",
+    "place_id": "arad_1",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "a4cea2a",
@@ -39283,7 +39283,7 @@
   },
   {
     "reference": "JDG 1,31",
-    "place_id": "aphik",
+    "place_id": "aphek_1",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "a012133",
@@ -54579,7 +54579,7 @@
   },
   {
     "reference": "JOS 19,28",
-    "place_id": "ebron",
+    "place_id": "abdon",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "a728e07",
@@ -62059,7 +62059,7 @@
   },
   {
     "reference": "NEH 7,32",
-    "place_id": "ai_3",
+    "place_id": "ai_1",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "a63c70b",
@@ -65786,16 +65786,8 @@
     "osis": "Ps.105.23"
   },
   {
-    "reference": "PSA 105,23",
-    "place_id": "ham_2",
-    "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
-    "source_note": "OpenBible Bible Geocoding Data verses",
-    "openbible_id": "a2f3001",
-    "osis": "Ps.105.23"
-  },
-  {
     "reference": "PSA 105,27",
-    "place_id": "ham_2",
+    "place_id": "egypt",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "a2f3001",
@@ -65859,7 +65851,7 @@
   },
   {
     "reference": "PSA 106,22",
-    "place_id": "ham_2",
+    "place_id": "egypt",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "a2f3001",
@@ -67015,14 +67007,6 @@
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "af301ca",
-    "osis": "Ps.78.51"
-  },
-  {
-    "reference": "PSA 78,51",
-    "place_id": "ham_2",
-    "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
-    "source_note": "OpenBible Bible Geocoding Data verses",
-    "openbible_id": "a2f3001",
     "osis": "Ps.78.51"
   },
   {

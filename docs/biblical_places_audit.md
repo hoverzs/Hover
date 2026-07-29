@@ -6,14 +6,14 @@
 - Kihagyott helyek száma: 33
 - Kihagyási okok: `{'missing_or_invalid_coordinates': 33}`
 - Kézi override-ok száma: 10
-- Merged katalógus mérete: 1309
-- Katalógus rekordok száma: 1309
+- Merged katalógus mérete: 1302
+- Katalógus rekordok száma: 1302
 - Forrásrekordok száma: 16
-- Passage-place kapcsolatok száma: 8658
-- Szakmai ellenőrzést igénylő tételek: 1150
+- Passage-place kapcsolatok száma: 8656
+- Szakmai ellenőrzést igénylő tételek: 1134
 - Large passage-list találatok: 118
 - Biztosan összevont duplikátumok: 0
-- Bizonytalan duplikátumok: 204
+- Bizonytalan duplikátumok: 197
 - Invalid external ID találatok: 0
 - Mixed manual demo source találatok: 0
 - UI fallback nevet igénylő rekordok: 0
@@ -21,11 +21,11 @@
 - Idempotencia státusz: sikeres
 
 ## Hibakategóriák
-- `certain_status_without_review`: 528
-- `hungarian_name_review`: 206
+- `certain_status_without_review`: 522
+- `hungarian_name_review`: 205
 - `large_place_list_for_passage`: 118
-- `probable_duplicate_place`: 204
-- `same_hungarian_name`: 85
+- `probable_duplicate_place`: 197
+- `same_hungarian_name`: 83
 - `summary_repeats_name`: 9
 
 ## Automatikusan javított tételek
@@ -33,12 +33,10 @@
 
 ## Legfontosabb problémák
 - [review] `same_hungarian_name` `achzib_1, achzib_2`: Same normalized Hungarian name is used by multiple records: akzíb.
-- [review] `same_hungarian_name` `ai_1, ai_3`: Same normalized Hungarian name is used by multiple records: aj.
 - [review] `same_hungarian_name` `ain_1, ain_3`: Same normalized Hungarian name is used by multiple records: ain.
-- [review] `same_hungarian_name` `aphek_1, aphek_2, aphek_3, aphek_4, aphik`: Same normalized Hungarian name is used by multiple records: afék.
+- [review] `same_hungarian_name` `aphek_1, aphek_2, aphek_3, aphek_4`: Same normalized Hungarian name is used by multiple records: afék.
 - [review] `same_hungarian_name` `arabia_1, arabia_2`: Same normalized Hungarian name is used by multiple records: arábia.
-- [review] `same_hungarian_name` `arad_1, arad_2`: Same normalized Hungarian name is used by multiple records: arád.
-- [review] `same_hungarian_name` `aroer_1, aroer_2, aroer_3, aroer_4`: Same normalized Hungarian name is used by multiple records: aróér.
+- [review] `same_hungarian_name` `aroer_1, aroer_2, aroer_3`: Same normalized Hungarian name is used by multiple records: aróér.
 - [review] `same_hungarian_name` `ataroth_1, ataroth_3`: Same normalized Hungarian name is used by multiple records: atárót.
 - [review] `same_hungarian_name` `babylon_1, babylon_2, babylon_3`: Same normalized Hungarian name is used by multiple records: babilon.
 - [review] `same_hungarian_name` `bealoth_1, bealoth_2`: Same normalized Hungarian name is used by multiple records: bealoth.
@@ -62,6 +60,8 @@
 - [review] `same_hungarian_name` `ephrath, ephrathah`: Same normalized Hungarian name is used by multiple records: efráta.
 - [review] `same_hungarian_name` `ephron_1, ephron_2`: Same normalized Hungarian name is used by multiple records: efrón.
 - [review] `same_hungarian_name` `etam_1, etam_3, etham`: Same normalized Hungarian name is used by multiple records: étám.
+- [review] `same_hungarian_name` `ether_1, ether_2`: Same normalized Hungarian name is used by multiple records: éter.
+- [review] `same_hungarian_name` `euphrates, river_2`: Same normalized Hungarian name is used by multiple records: eufrátesz.
 
 ## Magyar névellenőrzésre vár
 - `abel_keramim`: name_hu is identical to name_en and has no Hungarian diacritic signal.
@@ -90,7 +90,6 @@
 - `atroth_beth_joab`: name_hu is identical to name_en and has no Hungarian diacritic signal.
 - `atroth_shophan`: name_hu is identical to name_en and has no Hungarian diacritic signal.
 - `avvim`: name_hu is identical to name_en and has no Hungarian diacritic signal.
-- `ayyah`: name_hu is identical to name_en and has no Hungarian diacritic signal.
 - `azal`: name_hu is identical to name_en and has no Hungarian diacritic signal.
 - `aznoth_tabor`: name_hu is identical to name_en and has no Hungarian diacritic signal.
 - `baal_hamon`: name_hu is identical to name_en and has no Hungarian diacritic signal.
@@ -273,12 +272,10 @@
 
 ## Vitatott vagy többes helyazonosítás
 - `achzib_1, achzib_2`: Same normalized Hungarian name is used by multiple records: akzíb.
-- `ai_1, ai_3`: Same normalized Hungarian name is used by multiple records: aj.
 - `ain_1, ain_3`: Same normalized Hungarian name is used by multiple records: ain.
-- `aphek_1, aphek_2, aphek_3, aphek_4, aphik`: Same normalized Hungarian name is used by multiple records: afék.
+- `aphek_1, aphek_2, aphek_3, aphek_4`: Same normalized Hungarian name is used by multiple records: afék.
 - `arabia_1, arabia_2`: Same normalized Hungarian name is used by multiple records: arábia.
-- `arad_1, arad_2`: Same normalized Hungarian name is used by multiple records: arád.
-- `aroer_1, aroer_2, aroer_3, aroer_4`: Same normalized Hungarian name is used by multiple records: aróér.
+- `aroer_1, aroer_2, aroer_3`: Same normalized Hungarian name is used by multiple records: aróér.
 - `ataroth_1, ataroth_3`: Same normalized Hungarian name is used by multiple records: atárót.
 - `babylon_1, babylon_2, babylon_3`: Same normalized Hungarian name is used by multiple records: babilon.
 - `bealoth_1, bealoth_2`: Same normalized Hungarian name is used by multiple records: bealoth.
@@ -357,15 +354,10 @@
 - `zaphon_1, zaphon_2`: Same normalized Hungarian name is used by multiple records: cáfón.
 - `zeredah_1, zeredah_2`: Same normalized Hungarian name is used by multiple records: zeredah.
 - `zin_1, zin_2`: Same normalized Hungarian name is used by multiple records: cin pusztája.
-- `abdon / ebron`: Records share a name variant and have very close coordinates.
-- `ai_1 / ai_3`: Records share a name variant and have very close coordinates.
-- `aija / ayyah`: Records share a name variant and have very close coordinates.
 - `aijalon_1 / valley_of_aijalon`: Records share a name variant and have very close coordinates.
 - `ain_2 / ain_3`: Records share a name variant and have very close coordinates.
 - `ain_2 / ashan`: Records share a name variant and have very close coordinates.
 - `ain_3 / ashan`: Records share a name variant and have very close coordinates.
-- `aphek_1 / aphik`: Records share a name variant and have very close coordinates.
-- `arad_1 / arad_2`: Records share a name variant and have very close coordinates.
 - `aram / syria_1`: Records share a name variant and have very close coordinates.
 - `aram / syria_2`: Records share a name variant and have very close coordinates.
 - `aram_naharaim / mesopotamia`: Records share a name variant and have very close coordinates.
@@ -375,7 +367,6 @@
 - `ariel / salem`: Records share a name variant and have very close coordinates.
 - `ariel / zion`: Records share a name variant and have very close coordinates.
 - `arnon / valley_of_the_arnon`: Records share a name variant and have very close coordinates.
-- `aroer_3 / aroer_4`: Records share a name variant and have very close coordinates.
 - `ashdod / philistia`: Records share a name variant and have very close coordinates.
 - `ataroth_2 / ataroth_3`: Records share a name variant and have very close coordinates.
 - `ataroth_2 / atroth_beth_joab`: Records share a name variant and have very close coordinates.
@@ -427,7 +418,6 @@
 - `dumah_2 / edom`: Records share a name variant and have very close coordinates.
 - `dumah_2 / teman`: Records share a name variant and have very close coordinates.
 - `edom / teman`: Records share a name variant and have very close coordinates.
-- `egypt / ham_2`: Records share a name variant and have very close coordinates.
 - `elishah / kittim`: Records share a name variant and have very close coordinates.
 - `ephraim_1 / ephraim_2`: Records share a name variant and have very close coordinates.
 - `ephraim_1 / mount_ephraim`: Records share a name variant and have very close coordinates.
@@ -563,7 +553,6 @@
 - `zin_1 / zin_2`: Records share a name variant and have very close coordinates.
 - `abana`: Place is marked certain while still prototype/draft.
 - `abarim`: Place is marked certain while still prototype/draft.
-- `abdon`: Place is marked certain while still prototype/draft.
 - `abiezer`: Place is marked certain while still prototype/draft.
 - `abila_lysaniou`: Place is marked certain while still prototype/draft.
 - `abilene`: Place is marked certain while still prototype/draft.
@@ -575,7 +564,6 @@
 - `adriatic_sea`: Place is marked certain while still prototype/draft.
 - `adulis`: Place is marked certain while still prototype/draft.
 - `adummim`: Place is marked certain while still prototype/draft.
-- `aija`: Place is marked certain while still prototype/draft.
 - `alemeth`: Place is marked certain while still prototype/draft.
 - `alexandria`: Place is marked certain while still prototype/draft.
 - `allon`: Place is marked certain while still prototype/draft.
@@ -588,7 +576,6 @@
 - `angle`: Place is marked certain while still prototype/draft.
 - `antioch_2`: Place is marked certain while still prototype/draft.
 - `aphek_2`: Place is marked certain while still prototype/draft.
-- `aphik`: Place is marked certain while still prototype/draft.
 - `apollonia`: Place is marked certain while still prototype/draft.
 - `arabah`: Place is marked certain while still prototype/draft.
 - `arabia_1`: Place is marked certain while still prototype/draft.
@@ -602,7 +589,6 @@
 - `ariel`: Place is marked certain while still prototype/draft.
 - `arnon`: Place is marked certain while still prototype/draft.
 - `aroer_1`: Place is marked certain while still prototype/draft.
-- `aroer_4`: Place is marked certain while still prototype/draft.
 - `arvad`: Place is marked certain while still prototype/draft.
 - `ashdod`: Place is marked certain while still prototype/draft.
 - `ashkelon`: Place is marked certain while still prototype/draft.
@@ -705,7 +691,6 @@
 - `eden_2`: Place is marked certain while still prototype/draft.
 - `edom`: Place is marked certain while still prototype/draft.
 - `edrei_1`: Place is marked certain while still prototype/draft.
-- `egypt`: Place is marked certain while still prototype/draft.
 - `ekron`: Place is marked certain while still prototype/draft.
 - `el_bethel`: Place is marked certain while still prototype/draft.
 - `elam`: Place is marked certain while still prototype/draft.
@@ -768,7 +753,6 @@
 - `hall_of_judgment`: Place is marked certain while still prototype/draft.
 - `hall_of_pillars`: Place is marked certain while still prototype/draft.
 - `hall_of_the_throne`: Place is marked certain while still prototype/draft.
-- `ham_2`: Place is marked certain while still prototype/draft.
 - `hamath_1`: Place is marked certain while still prototype/draft.
 - `hamath_2`: Place is marked certain while still prototype/draft.
 - `hammoth_dor`: Place is marked certain while still prototype/draft.

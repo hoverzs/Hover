@@ -18,6 +18,7 @@ PASSAGE_CATALOG_PATH = DATA_DIR / "passage_place_catalog.json"
 PASSAGE_LINKS_PATH = DATA_DIR / "passage_place_links.json"
 IMPORT_REPORT_PATH = DATA_DIR / "full_catalog_import_report.json"
 HU_REVIEW_QUEUE_PATH = DATA_DIR / "hungarian_review_queue.json"
+DUPLICATE_PLACE_MERGES_PATH = DATA_DIR / "duplicate_place_merges.json"
 
 OPENBIBLE_SOURCE_ID = "openbible_geocoding_cc_by_4_0"
 MANUAL_LOCKED_PLACE_IDS = {"corinth", "ephesus"}
@@ -65,6 +66,9 @@ REQUIRED_PLACE_KEYS = [
     "pleiades_id",
     "step_id",
     "wikidata_id",
+    "legacy_place_ids",
+    "merge_review_notes_hu",
+    "rejected_aliases_hu",
 ]
 
 PROTECTED_PILOT_FIELDS = {
@@ -304,6 +308,9 @@ def empty_place_record() -> dict[str, Any]:
         "pleiades_id": None,
         "step_id": None,
         "wikidata_id": None,
+        "legacy_place_ids": [],
+        "merge_review_notes_hu": None,
+        "rejected_aliases_hu": [],
     }
 
 
@@ -415,6 +422,136 @@ def apply_hungarian_review_overrides(catalog: list[dict[str, Any]]) -> list[dict
         updated["review_status"] = "draft"
         merged.append(updated)
     return merged
+
+
+def stable_unique_json(values: list[Any]) -> list[Any]:
+    seen: set[str] = set()
+    result: list[Any] = []
+    for value in values:
+        marker = json.dumps(value, ensure_ascii=False, sort_keys=True)
+        if marker in seen:
+            continue
+        seen.add(marker)
+        result.append(value)
+    return result
+
+
+IDENTIFICATION_STATUS_RANK = {
+    "unknown": 0,
+    "disputed": 1,
+    "possible": 2,
+    "probable": 3,
+    "certain": 4,
+}
+
+
+def least_certain_status(values: list[Any]) -> str:
+    statuses = [str(value or "unknown") for value in values]
+    return min(statuses, key=lambda item: IDENTIFICATION_STATUS_RANK.get(item, 0)) if statuses else "unknown"
+
+
+def alias_filter(group_id: str, value: Any) -> bool:
+    text = str(value or "").strip().casefold()
+    if not text:
+        return False
+    if group_id == "dup_egypt__ham_2" and text in {"ham", "hám", "ham 2"}:
+        return False
+    if group_id == "dup_abdon__ebron" and text == "hebron":
+        return False
+    if group_id == "dup_aija__ayyah" and text == "gaza":
+        return False
+    return True
+
+
+def apply_duplicate_place_merges_to_catalog(
+    catalog: list[dict[str, Any]],
+    decisions: list[dict[str, Any]],
+) -> tuple[list[dict[str, Any]], dict[str, str]]:
+    by_id = {str(record.get("place_id") or ""): deepcopy(record) for record in catalog}
+    redirects: dict[str, str] = {}
+    for decision in decisions:
+        if decision.get("final_action") != "merge":
+            continue
+        group_id = str(decision.get("group_id") or "")
+        canonical_id = str(decision.get("canonical_place_id") or decision.get("proposed_canonical_place_id") or "")
+        removed_ids = [
+            str(place_id)
+            for place_id in decision.get("removed_place_ids", [])
+            if str(place_id) and str(place_id) != canonical_id
+        ]
+        if not canonical_id or canonical_id not in by_id:
+            continue
+        candidates = [by_id[canonical_id], *[by_id[place_id] for place_id in removed_ids if place_id in by_id]]
+        if len(candidates) < 2:
+            for removed_id in removed_ids:
+                redirects[removed_id] = canonical_id
+            continue
+
+        canonical = by_id[canonical_id]
+        canonical["name_hu"] = str(decision.get("proposed_merged_name_hu") or canonical.get("name_hu") or "").strip()
+        canonical["card_summary_hu"] = str(
+            decision.get("proposed_merged_summary_hu") or canonical.get("card_summary_hu") or ""
+        ).strip()
+        canonical["review_status"] = "reviewed"
+        canonical["identification_status"] = least_certain_status(
+            [record.get("identification_status") for record in candidates]
+        )
+        for key in ("ancient_names", "original_names", "transliterations", "source_ids", "exegetical_notes"):
+            values: list[Any] = []
+            for record in candidates:
+                record_values = record.get(key) or []
+                if key in {"ancient_names", "original_names", "transliterations"}:
+                    values.extend(value for value in record_values if alias_filter(group_id, value))
+                else:
+                    values.extend(record_values)
+            canonical[key] = stable_unique_json(values)
+
+        legacy_ids: list[str] = []
+        rejected_aliases: list[str] = []
+        for record in candidates:
+            place_id = str(record.get("place_id") or "")
+            if place_id != canonical_id:
+                legacy_ids.append(place_id)
+            legacy_ids.extend(str(value) for value in record.get("legacy_place_ids") or [] if str(value))
+        if group_id == "dup_egypt__ham_2":
+            rejected_aliases.extend(["Ham", "Hám"])
+        if group_id == "dup_abdon__ebron":
+            rejected_aliases.append("Hebron")
+        if group_id == "dup_aija__ayyah":
+            rejected_aliases.append("Gaza")
+        canonical["legacy_place_ids"] = stable_unique_json([*(canonical.get("legacy_place_ids") or []), *legacy_ids])
+        canonical["rejected_aliases_hu"] = stable_unique_json(
+            [*(canonical.get("rejected_aliases_hu") or []), *rejected_aliases]
+        )
+        note = (
+            f"Duplikációs review alapján összevont rekord ({group_id}); "
+            f"korábbi place_id-k: {', '.join(removed_ids)}."
+        )
+        existing_note = str(canonical.get("merge_review_notes_hu") or "").strip()
+        canonical["merge_review_notes_hu"] = existing_note if note in existing_note else (existing_note + "\n" + note).strip()
+        by_id[canonical_id] = ensure_shape(canonical)
+        for removed_id in removed_ids:
+            redirects[removed_id] = canonical_id
+            by_id.pop(removed_id, None)
+    return sorted(by_id.values(), key=lambda item: str(item.get("place_id") or "")), redirects
+
+
+def apply_duplicate_place_merges_to_links(
+    links: list[dict[str, Any]],
+    redirects: dict[str, str],
+) -> list[dict[str, Any]]:
+    merged: list[dict[str, Any]] = []
+    seen: set[tuple[str, str]] = set()
+    for link in links:
+        updated = deepcopy(link)
+        place_id = str(updated.get("place_id") or "")
+        updated["place_id"] = redirects.get(place_id, place_id)
+        key = (str(updated.get("reference") or ""), str(updated.get("place_id") or ""))
+        if not key[0] or not key[1] or key in seen:
+            continue
+        seen.add(key)
+        merged.append(updated)
+    return sorted(merged, key=passage_link_sort_key)
 
 
 def load_openbible_raw() -> list[dict[str, Any]]:
@@ -545,6 +682,8 @@ def build_catalog() -> dict[str, Any]:
 
     catalog = sorted(by_place_id.values(), key=lambda item: str(item.get("place_id") or ""))
     catalog = apply_hungarian_review_overrides(catalog)
+    duplicate_merge_decisions = read_json(DUPLICATE_PLACE_MERGES_PATH, [])
+    catalog, duplicate_redirects = apply_duplicate_place_merges_to_catalog(catalog, duplicate_merge_decisions)
     importable_openbible_ids = set(catalog_by_openbible)
     passage_catalog, passage_skipped = build_passage_catalog(raw_records, place_id_by_openbible, importable_openbible_ids)
     manual_links = read_json(PASSAGE_LINKS_PATH, [])
@@ -556,6 +695,7 @@ def build_catalog() -> dict[str, Any]:
             continue
         seen_links.add(key)
         merged_links.append(link)
+    merged_links = apply_duplicate_place_merges_to_links(merged_links, duplicate_redirects)
 
     sources = ensure_openbible_source(read_json(SOURCES_PATH, []))
     return {
@@ -564,6 +704,10 @@ def build_catalog() -> dict[str, Any]:
         "skipped_place_count": sum(skipped.values()),
         "skipped_places_by_reason": dict(sorted(skipped.items())),
         "manual_override_count": manual_overrides,
+        "duplicate_merge_count": len(
+            [decision for decision in duplicate_merge_decisions if decision.get("final_action") == "merge"]
+        ),
+        "duplicate_redirect_count": len(duplicate_redirects),
         "merged_catalog_count": len(catalog),
         "passage_catalog_count": len(passage_catalog),
         "merged_passage_link_count": len(merged_links),

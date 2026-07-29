@@ -35,7 +35,7 @@ def test_hungarian_review_queue_covers_full_catalog_once() -> None:
     catalog = read_json(CATALOG_PATH)
     queue_ids = [item["place_id"] for item in queue]
 
-    assert len(catalog) == 1309
+    assert len(catalog) == 1302
     assert len(queue) == len(catalog)
     assert len(queue_ids) == len(set(queue_ids))
     assert {item["place_id"] for item in queue} == {item["place_id"] for item in catalog}
@@ -63,13 +63,16 @@ def test_first_hungarian_review_batch_shape_and_applied_proposals() -> None:
     assert batch == read_json(QUEUE_PATH)[: len(batch)]
     for item in batch:
         place_id = item["place_id"]
-        draft_item = draft_by_id[place_id]
-        assert item["review_status"] == "draft"
-        assert item["proposed_name_hu"] == draft_item["proposed_name_hu"]
-        assert item["proposed_card_summary_hu"] == draft_item["proposed_card_summary_hu"]
-        assert catalog[place_id]["name_hu"] == draft_item["proposed_name_hu"]
-        assert catalog[place_id]["card_summary_hu"] == draft_item["proposed_card_summary_hu"]
-        assert catalog[place_id]["review_status"] == "draft"
+        if place_id in draft_by_id and catalog[place_id]["review_status"] == "draft":
+            draft_item = draft_by_id[place_id]
+            assert item["review_status"] == "draft"
+            assert item["proposed_name_hu"] == draft_item["proposed_name_hu"]
+            assert item["proposed_card_summary_hu"] == draft_item["proposed_card_summary_hu"]
+            assert catalog[place_id]["name_hu"] == draft_item["proposed_name_hu"]
+            assert catalog[place_id]["card_summary_hu"] == draft_item["proposed_card_summary_hu"]
+        else:
+            assert item["current_name_hu"] == catalog[place_id]["name_hu"]
+            assert item["current_card_summary_hu"] == catalog[place_id]["card_summary_hu"]
         assert len(item["representative_passages"]) <= 5
 
 
@@ -101,13 +104,16 @@ def test_second_hungarian_review_batch_shape_and_applied_proposals() -> None:
     assert not batch_001_ids.intersection(batch_002_ids)
     for item in batch_002:
         place_id = item["place_id"]
-        draft_item = draft_by_id[place_id]
-        assert item["review_status"] == "draft"
-        assert item["proposed_name_hu"] == draft_item["proposed_name_hu"]
-        assert item["proposed_card_summary_hu"] == draft_item["proposed_card_summary_hu"]
-        assert catalog[place_id]["name_hu"] == draft_item["proposed_name_hu"]
-        assert catalog[place_id]["card_summary_hu"] == draft_item["proposed_card_summary_hu"]
-        assert catalog[place_id]["review_status"] == "draft"
+        if place_id in draft_by_id and catalog[place_id]["review_status"] == "draft":
+            draft_item = draft_by_id[place_id]
+            assert item["review_status"] == "draft"
+            assert item["proposed_name_hu"] == draft_item["proposed_name_hu"]
+            assert item["proposed_card_summary_hu"] == draft_item["proposed_card_summary_hu"]
+            assert catalog[place_id]["name_hu"] == draft_item["proposed_name_hu"]
+            assert catalog[place_id]["card_summary_hu"] == draft_item["proposed_card_summary_hu"]
+        else:
+            assert item["current_name_hu"] == catalog[place_id]["name_hu"]
+            assert item["current_card_summary_hu"] == catalog[place_id]["card_summary_hu"]
 
 
 def test_unprocessed_batch_uses_current_catalog_state() -> None:

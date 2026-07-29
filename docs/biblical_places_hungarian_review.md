@@ -1,6 +1,6 @@
 # Bibliai helyek magyarítási munkalistája
 
-- Teljes munkalista: `data\biblical_places\hungarian_review_queue.json` (1309 rekord)
+- Teljes munkalista: `data\biblical_places\hungarian_review_queue.json` (1302 rekord)
 - Első feldolgozási köteg: `data\biblical_places\hungarian_review_batch_001.json` (100 rekord)
 
 ## Prioritási szabály

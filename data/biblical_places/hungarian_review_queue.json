@@ -93,7 +93,7 @@
     "identification_status": "certain",
     "latitude": 30.129444,
     "longitude": 31.3075,
-    "passage_count": 658,
+    "passage_count": 660,
     "representative_passages": [
       "1CH 13,5",
       "1CH 17,21",
@@ -105,11 +105,11 @@
       "openbible_geocoding_cc_by_4_0"
     ],
     "current_name_hu": "Egyiptom",
-    "current_card_summary_hu": "A Nílus menti ókori királyság és térség, amely Izráel történetében menedékhelyként, szolgaság helyeként és nagyhatalomként is szerepel. Területe nagyrészt a mai Egyiptomhoz tartozik.",
-    "proposed_name_hu": "Egyiptom",
-    "proposed_card_summary_hu": "A Nílus menti ókori királyság és térség, amely Izráel történetében menedékhelyként, szolgaság helyeként és nagyhatalomként is szerepel. Területe nagyrészt a mai Egyiptomhoz tartozik.",
-    "review_status": "draft",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+    "current_card_summary_hu": "Az ókori Egyiptom bibliai földrajzi egysége. A „Hám földje” költői megnevezést és az összes kapcsolódó igehelyet aliaszként, illetve passage-kapcsolatként meg kell őrizni.",
+    "proposed_name_hu": null,
+    "proposed_card_summary_hu": null,
+    "review_status": "pending",
+    "review_notes_hu": null
   },
   {
     "place_id": "babylon_1",
@@ -1477,6 +1477,42 @@
     "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
+    "place_id": "ai_1",
+    "name_en": "Ai 1",
+    "ancient_names": [
+      "Ai 1",
+      "Ai",
+      "Hai",
+      "Ai 3"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Et Tell",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "probable",
+    "latitude": 31.916944,
+    "longitude": 35.261111,
+    "passage_count": 34,
+    "representative_passages": [
+      "EZR 2,28",
+      "GEN 12,8",
+      "GEN 13,3",
+      "JOS 10,1",
+      "JOS 10,2"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Aj",
+    "current_card_summary_hu": "Bétel közelében fekvő bibliai város, amely Ábrahám történetében, Józsué honfoglalásában és a fogság utáni felsorolásokban is szerepel.",
+    "proposed_name_hu": null,
+    "proposed_card_summary_hu": null,
+    "review_status": "pending",
+    "review_notes_hu": null
+  },
+  {
     "place_id": "mount_seir_1",
     "name_en": "Mount Seir 1",
     "ancient_names": [
@@ -1615,41 +1651,6 @@
     "current_card_summary_hu": "Benjamin területének gyülekezési és igazgatási központja, több bírák- és királyságkori esemény helyszíne. Általában Tell en-Naszbével azonosítják.",
     "proposed_name_hu": "Micpa",
     "proposed_card_summary_hu": "Benjamin területének gyülekezési és igazgatási központja, több bírák- és királyságkori esemény helyszíne. Általában Tell en-Naszbével azonosítják.",
-    "review_status": "draft",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
-  },
-  {
-    "place_id": "ai_1",
-    "name_en": "Ai 1",
-    "ancient_names": [
-      "Ai 1",
-      "Ai",
-      "Hai"
-    ],
-    "original_names": [],
-    "transliterations": [],
-    "modern_name": "Et Tell",
-    "modern_country": null,
-    "region_hu": null,
-    "ancient_region": null,
-    "identification_status": "probable",
-    "latitude": 31.916944,
-    "longitude": 35.261111,
-    "passage_count": 32,
-    "representative_passages": [
-      "GEN 12,8",
-      "GEN 13,3",
-      "JOS 10,1",
-      "JOS 10,2",
-      "JOS 12,9"
-    ],
-    "source_ids": [
-      "openbible_geocoding_cc_by_4_0"
-    ],
-    "current_name_hu": "Aj",
-    "current_card_summary_hu": "Bétel közelében fekvő kánaáni város, Izráel honfoglalási történetének fontos helyszíne. Et-Tell-lel való azonosítása elterjedt, de régészetileg vitatott.",
-    "proposed_name_hu": "Aj",
-    "proposed_card_summary_hu": "Bétel közelében fekvő kánaáni város, Izráel honfoglalási történetének fontos helyszíne. Et-Tell-lel való azonosítása elterjedt, de régészetileg vitatott.",
     "review_status": "draft",
     "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
@@ -10472,40 +10473,6 @@
     "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
-    "place_id": "ham_2",
-    "name_en": "Ham 2",
-    "ancient_names": [
-      "Ham 2",
-      "Egyptian",
-      "Ham"
-    ],
-    "original_names": [],
-    "transliterations": [],
-    "modern_name": "Ain Shams",
-    "modern_country": null,
-    "region_hu": null,
-    "ancient_region": null,
-    "identification_status": "certain",
-    "latitude": 30.129444,
-    "longitude": 31.3075,
-    "passage_count": 4,
-    "representative_passages": [
-      "PSA 105,23",
-      "PSA 105,27",
-      "PSA 106,22",
-      "PSA 78,51"
-    ],
-    "source_ids": [
-      "openbible_geocoding_cc_by_4_0"
-    ],
-    "current_name_hu": "Hám",
-    "current_card_summary_hu": "Bibliai település vagy történeti helyszín, amely több szöveg földrajzi hátteréhez tartozik. Az ókori helyet a mai Ain Shams térségével azonosítják.",
-    "proposed_name_hu": "Hám",
-    "proposed_card_summary_hu": "Bibliai település vagy történeti helyszín, amely több szöveg földrajzi hátteréhez tartozik. Az ókori helyet a mai Ain Shams térségével azonosítják.",
-    "review_status": "draft",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
-  },
-  {
     "place_id": "ibleam",
     "name_en": "Ibleam",
     "ancient_names": [
@@ -11977,6 +11944,40 @@
     "proposed_card_summary_hu": "Bibliai völgy vagy tájegység, amely több történeti és földrajzi összefüggésben szerepel. Mai megfelelője Tel Rumeida térségével valószínűleg azonosítható.",
     "review_status": "draft",
     "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "arad_1",
+    "name_en": "Arad 1",
+    "ancient_names": [
+      "Arad 1",
+      "Arad",
+      "Arad 2"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Tel Arad",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "possible",
+    "latitude": 31.280833,
+    "longitude": 35.125,
+    "passage_count": 4,
+    "representative_passages": [
+      "JDG 1,16",
+      "JOS 12,14",
+      "NUM 21,1",
+      "NUM 33,40"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Arád",
+    "current_card_summary_hu": "A Negev északi részén fekvő kánaáni város, amely a pusztai vándorlás és a honfoglalás történeteiben szerepel.",
+    "proposed_name_hu": null,
+    "proposed_card_summary_hu": null,
+    "review_status": "pending",
+    "review_notes_hu": "Bizonytalan vagy vitatott azonosítás; a magyar név és leírás szakmai ellenőrzést igényel."
   },
   {
     "place_id": "arimathea",
@@ -13704,6 +13705,38 @@
     "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
+    "place_id": "abdon",
+    "name_en": "Abdon",
+    "ancient_names": [
+      "Abdon",
+      "Ebron"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Tel Avdon",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "probable",
+    "latitude": 33.047692,
+    "longitude": 35.161916,
+    "passage_count": 3,
+    "representative_passages": [
+      "1CH 6,74",
+      "JOS 19,28",
+      "JOS 21,30"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Abdón",
+    "current_card_summary_hu": "Áser területén fekvő lévita város. Az Ebrón névalak szövegváltozatként vagy alternatív helynévként őrzendő meg.",
+    "proposed_name_hu": null,
+    "proposed_card_summary_hu": null,
+    "review_status": "pending",
+    "review_notes_hu": null
+  },
+  {
     "place_id": "abel_meholah",
     "name_en": "Abel-meholah",
     "ancient_names": [
@@ -14893,38 +14926,6 @@
     "review_notes_hu": "Bizonytalan vagy vitatott azonosítás; a magyar név és leírás szakmai ellenőrzést igényel. Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
-    "place_id": "arad_1",
-    "name_en": "Arad 1",
-    "ancient_names": [
-      "Arad 1",
-      "Arad"
-    ],
-    "original_names": [],
-    "transliterations": [],
-    "modern_name": "Tel Arad",
-    "modern_country": null,
-    "region_hu": null,
-    "ancient_region": null,
-    "identification_status": "possible",
-    "latitude": 31.280833,
-    "longitude": 35.125,
-    "passage_count": 3,
-    "representative_passages": [
-      "JOS 12,14",
-      "NUM 21,1",
-      "NUM 33,40"
-    ],
-    "source_ids": [
-      "openbible_geocoding_cc_by_4_0"
-    ],
-    "current_name_hu": "Arád",
-    "current_card_summary_hu": "Bibliai helyszín, amelynek pontos földrajzi azonosítása bizonytalan vagy vitatott. A Tel Arad térsége az egyik lehetséges javaslat.",
-    "proposed_name_hu": "Arád",
-    "proposed_card_summary_hu": "Bibliai helyszín, amelynek pontos földrajzi azonosítása bizonytalan vagy vitatott. A Tel Arad térsége az egyik lehetséges javaslat.",
-    "review_status": "draft",
-    "review_notes_hu": "Bizonytalan vagy vitatott azonosítás; a magyar név és leírás szakmai ellenőrzést igényel. Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
-  },
-  {
     "place_id": "baal_gad",
     "name_en": "Baal-gad",
     "ancient_names": [
@@ -15441,36 +15442,6 @@
     "proposed_card_summary_hu": "Bibliai hely vagy térség, amelynek pontos földrajzi azonosítása vitatott. A Buseira csak az egyik lehetséges javaslat.",
     "review_status": "draft",
     "review_notes_hu": "Bizonytalan vagy vitatott azonosítás; a magyar név és leírás szakmai ellenőrzést igényel. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
-  },
-  {
-    "place_id": "abdon",
-    "name_en": "Abdon",
-    "ancient_names": [
-      "Abdon"
-    ],
-    "original_names": [],
-    "transliterations": [],
-    "modern_name": "Tel Avdon",
-    "modern_country": null,
-    "region_hu": null,
-    "ancient_region": null,
-    "identification_status": "certain",
-    "latitude": 33.047692,
-    "longitude": 35.161916,
-    "passage_count": 2,
-    "representative_passages": [
-      "1CH 6,74",
-      "JOS 21,30"
-    ],
-    "source_ids": [
-      "openbible_geocoding_cc_by_4_0"
-    ],
-    "current_name_hu": "Abdón",
-    "current_card_summary_hu": "Bibliai település vagy történeti helyszín, amely a kapcsolódó szövegek földrajzi hátteréhez tartozik. Az ókori helyet a mai Tel Avdon térségével azonosítják.",
-    "proposed_name_hu": "Abdón",
-    "proposed_card_summary_hu": "Bibliai település vagy történeti helyszín, amely a kapcsolódó szövegek földrajzi hátteréhez tartozik. Az ókori helyet a mai Tel Avdon térségével azonosítják.",
-    "review_status": "draft",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "adummim",
@@ -17789,37 +17760,6 @@
     "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
-    "place_id": "ai_3",
-    "name_en": "Ai 3",
-    "ancient_names": [
-      "Ai 3",
-      "Ai"
-    ],
-    "original_names": [],
-    "transliterations": [],
-    "modern_name": "Et Tell",
-    "modern_country": null,
-    "region_hu": null,
-    "ancient_region": null,
-    "identification_status": "probable",
-    "latitude": 31.916944,
-    "longitude": 35.261111,
-    "passage_count": 2,
-    "representative_passages": [
-      "EZR 2,28",
-      "NEH 7,32"
-    ],
-    "source_ids": [
-      "openbible_geocoding_cc_by_4_0"
-    ],
-    "current_name_hu": "Aj",
-    "current_card_summary_hu": "Bibliai település vagy történeti helyszín. Valószínű azonosítása a mai Et Tell térségéhez kapcsolódik, de a meghatározás nem teljesen bizonyos.",
-    "proposed_name_hu": "Aj",
-    "proposed_card_summary_hu": "Bibliai település vagy történeti helyszín. Valószínű azonosítása a mai Et Tell térségéhez kapcsolódik, de a meghatározás nem teljesen bizonyos.",
-    "review_status": "draft",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
-  },
-  {
     "place_id": "akeldama",
     "name_en": "Akeldama",
     "ancient_names": [
@@ -17915,6 +17855,71 @@
     "proposed_card_summary_hu": "Bibliai település vagy történeti helyszín. Valószínű azonosítása a mai Khirbet Anab es Seghireh térségéhez kapcsolódik, de a meghatározás nem teljesen bizonyos.",
     "review_status": "draft",
     "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "aphek_1",
+    "name_en": "Aphek 1",
+    "ancient_names": [
+      "Aphek 1",
+      "Aphek",
+      "Aphik"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Tel Afek",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "probable",
+    "latitude": 32.8461,
+    "longitude": 35.1119,
+    "passage_count": 2,
+    "representative_passages": [
+      "JDG 1,31",
+      "JOS 19,30"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Afék",
+    "current_card_summary_hu": "Áser területén fekvő bibliai település. Az Aphik névalak ugyanennek a helynek alternatív átírása.",
+    "proposed_name_hu": null,
+    "proposed_card_summary_hu": null,
+    "review_status": "pending",
+    "review_notes_hu": null
+  },
+  {
+    "place_id": "aroer_3",
+    "name_en": "Aroer 3",
+    "ancient_names": [
+      "Aroer 3",
+      "Aroer",
+      "Aroer 4",
+      "Aroerite"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Khirbet Aro’er",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "probable",
+    "latitude": 31.15214,
+    "longitude": 34.97907,
+    "passage_count": 2,
+    "representative_passages": [
+      "1CH 11,44",
+      "1SA 30,28"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Aróér",
+    "current_card_summary_hu": "Júda déli vidékén fekvő Aróér, amely Dávid történetéhez és az aróéri származásmegjelöléshez kapcsolódik.",
+    "proposed_name_hu": null,
+    "proposed_card_summary_hu": null,
+    "review_status": "pending",
+    "review_notes_hu": null
   },
   {
     "place_id": "arumah",
@@ -20604,6 +20609,37 @@
     "review_notes_hu": "Bizonytalan vagy vitatott azonosítás; a magyar név és leírás szakmai ellenőrzést igényel. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
+    "place_id": "aija",
+    "name_en": "Aija",
+    "ancient_names": [
+      "Aija",
+      "Ayyah"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Et Tell",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "possible",
+    "latitude": 31.916944,
+    "longitude": 35.261111,
+    "passage_count": 2,
+    "representative_passages": [
+      "1CH 7,28",
+      "NEH 11,31"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Ajjá",
+    "current_card_summary_hu": "Benjámin területéhez kapcsolódó településnév, amely Aj/Ajja névváltozataként jelenik meg. Az Ayyah alak aliaszként őrzendő.",
+    "proposed_name_hu": null,
+    "proposed_card_summary_hu": null,
+    "review_status": "pending",
+    "review_notes_hu": "Bizonytalan vagy vitatott azonosítás; a magyar név és leírás szakmai ellenőrzést igényel."
+  },
+  {
     "place_id": "alush",
     "name_en": "Alush",
     "ancient_names": [
@@ -22380,35 +22416,6 @@
     "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
-    "place_id": "aija",
-    "name_en": "Aija",
-    "ancient_names": [
-      "Aija"
-    ],
-    "original_names": [],
-    "transliterations": [],
-    "modern_name": "Et Tell",
-    "modern_country": null,
-    "region_hu": null,
-    "ancient_region": null,
-    "identification_status": "certain",
-    "latitude": 31.916944,
-    "longitude": 35.261111,
-    "passage_count": 1,
-    "representative_passages": [
-      "NEH 11,31"
-    ],
-    "source_ids": [
-      "openbible_geocoding_cc_by_4_0"
-    ],
-    "current_name_hu": "Ajjá",
-    "current_card_summary_hu": "Bibliai település vagy történeti helyszín, amely a kapcsolódó szövegek földrajzi hátteréhez tartozik. Az ókori helyet a mai Et Tell térségével azonosítják.",
-    "proposed_name_hu": "Ajjá",
-    "proposed_card_summary_hu": "Bibliai település vagy történeti helyszín, amely a kapcsolódó szövegek földrajzi hátteréhez tartozik. Az ókori helyet a mai Et Tell térségével azonosítják.",
-    "review_status": "draft",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
-  },
-  {
     "place_id": "alemeth",
     "name_en": "Alemeth",
     "ancient_names": [
@@ -22560,36 +22567,6 @@
     "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
-    "place_id": "aphik",
-    "name_en": "Aphik",
-    "ancient_names": [
-      "Aphik",
-      "Aphek"
-    ],
-    "original_names": [],
-    "transliterations": [],
-    "modern_name": "Tel Afek",
-    "modern_country": null,
-    "region_hu": null,
-    "ancient_region": null,
-    "identification_status": "certain",
-    "latitude": 32.8461,
-    "longitude": 35.1119,
-    "passage_count": 1,
-    "representative_passages": [
-      "JDG 1,31"
-    ],
-    "source_ids": [
-      "openbible_geocoding_cc_by_4_0"
-    ],
-    "current_name_hu": "Afék",
-    "current_card_summary_hu": "Bibliai település vagy történeti helyszín, amely a kapcsolódó szövegek földrajzi hátteréhez tartozik. Az ókori helyet a mai Tel Afek térségével azonosítják.",
-    "proposed_name_hu": "Afék",
-    "proposed_card_summary_hu": "Bibliai település vagy történeti helyszín, amely a kapcsolódó szövegek földrajzi hátteréhez tartozik. Az ókori helyet a mai Tel Afek térségével azonosítják.",
-    "review_status": "draft",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
-  },
-  {
     "place_id": "apollonia",
     "name_en": "Apollonia",
     "ancient_names": [
@@ -22646,37 +22623,6 @@
     "current_card_summary_hu": "Bibliai település vagy történeti helyszín, amely a kapcsolódó szövegek földrajzi hátteréhez tartozik. Az ókori helyet a mai Harran térségével azonosítják.",
     "proposed_name_hu": "Arám-Naharaim",
     "proposed_card_summary_hu": "Bibliai település vagy történeti helyszín, amely a kapcsolódó szövegek földrajzi hátteréhez tartozik. Az ókori helyet a mai Harran térségével azonosítják.",
-    "review_status": "draft",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
-  },
-  {
-    "place_id": "aroer_4",
-    "name_en": "Aroer 4",
-    "ancient_names": [
-      "Aroer 4",
-      "Aroer",
-      "Aroerite"
-    ],
-    "original_names": [],
-    "transliterations": [],
-    "modern_name": "Khirbet Aro’er",
-    "modern_country": null,
-    "region_hu": null,
-    "ancient_region": null,
-    "identification_status": "certain",
-    "latitude": 31.15214,
-    "longitude": 34.97907,
-    "passage_count": 1,
-    "representative_passages": [
-      "1CH 11,44"
-    ],
-    "source_ids": [
-      "openbible_geocoding_cc_by_4_0"
-    ],
-    "current_name_hu": "Aróér",
-    "current_card_summary_hu": "Bibliai település vagy történeti helyszín, amely a kapcsolódó szövegek földrajzi hátteréhez tartozik. Az ókori helyet a mai Khirbet Aro’er térségével azonosítják.",
-    "proposed_name_hu": "Aróér",
-    "proposed_card_summary_hu": "Bibliai település vagy történeti helyszín, amely a kapcsolódó szövegek földrajzi hátteréhez tartozik. Az ókori helyet a mai Khirbet Aro’er térségével azonosítják.",
     "review_status": "draft",
     "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
@@ -27722,36 +27668,6 @@
     "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
-    "place_id": "aphek_1",
-    "name_en": "Aphek 1",
-    "ancient_names": [
-      "Aphek 1",
-      "Aphek"
-    ],
-    "original_names": [],
-    "transliterations": [],
-    "modern_name": "Tel Afek",
-    "modern_country": null,
-    "region_hu": null,
-    "ancient_region": null,
-    "identification_status": "probable",
-    "latitude": 32.8461,
-    "longitude": 35.1119,
-    "passage_count": 1,
-    "representative_passages": [
-      "JOS 19,30"
-    ],
-    "source_ids": [
-      "openbible_geocoding_cc_by_4_0"
-    ],
-    "current_name_hu": "Afék",
-    "current_card_summary_hu": "Bibliai település vagy földrajzi hely. Valószínű azonosítása a mai Tel Afek térségéhez kapcsolódik, de a meghatározás nem teljesen bizonyos.",
-    "proposed_name_hu": "Afék",
-    "proposed_card_summary_hu": "Bibliai település vagy földrajzi hely. Valószínű azonosítása a mai Tel Afek térségéhez kapcsolódik, de a meghatározás nem teljesen bizonyos.",
-    "review_status": "draft",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
-  },
-  {
     "place_id": "aphek_4",
     "name_en": "Aphek 4",
     "ancient_names": [
@@ -27840,36 +27756,6 @@
     "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
-    "place_id": "arad_2",
-    "name_en": "Arad 2",
-    "ancient_names": [
-      "Arad 2",
-      "Arad"
-    ],
-    "original_names": [],
-    "transliterations": [],
-    "modern_name": "Tel Arad",
-    "modern_country": null,
-    "region_hu": null,
-    "ancient_region": null,
-    "identification_status": "probable",
-    "latitude": 31.280833,
-    "longitude": 35.125,
-    "passage_count": 1,
-    "representative_passages": [
-      "JDG 1,16"
-    ],
-    "source_ids": [
-      "openbible_geocoding_cc_by_4_0"
-    ],
-    "current_name_hu": "Arád",
-    "current_card_summary_hu": "Bibliai település vagy földrajzi hely. Valószínű azonosítása a mai Tel Arad térségéhez kapcsolódik, de a meghatározás nem teljesen bizonyos.",
-    "proposed_name_hu": "Arád",
-    "proposed_card_summary_hu": "Bibliai település vagy földrajzi hely. Valószínű azonosítása a mai Tel Arad térségéhez kapcsolódik, de a meghatározás nem teljesen bizonyos.",
-    "review_status": "draft",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
-  },
-  {
     "place_id": "armageddon",
     "name_en": "Armageddon",
     "ancient_names": [
@@ -27899,36 +27785,6 @@
     "proposed_card_summary_hu": "A Jelenések könyvének jelképes csatahelye, neve Megiddó hegyéhez kapcsolódik. Földrajzi háttere a Jezréel-síkság, de szerepe elsősorban apokaliptikus.",
     "review_status": "draft",
     "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
-  },
-  {
-    "place_id": "aroer_3",
-    "name_en": "Aroer 3",
-    "ancient_names": [
-      "Aroer 3",
-      "Aroer"
-    ],
-    "original_names": [],
-    "transliterations": [],
-    "modern_name": "Khirbet Aro’er",
-    "modern_country": null,
-    "region_hu": null,
-    "ancient_region": null,
-    "identification_status": "probable",
-    "latitude": 31.15214,
-    "longitude": 34.97907,
-    "passage_count": 1,
-    "representative_passages": [
-      "1SA 30,28"
-    ],
-    "source_ids": [
-      "openbible_geocoding_cc_by_4_0"
-    ],
-    "current_name_hu": "Aróér",
-    "current_card_summary_hu": "Bibliai település vagy földrajzi hely. Valószínű azonosítása a mai Khirbet Aro’er térségéhez kapcsolódik, de a meghatározás nem teljesen bizonyos.",
-    "proposed_name_hu": "Aróér",
-    "proposed_card_summary_hu": "Bibliai település vagy földrajzi hely. Valószínű azonosítása a mai Khirbet Aro’er térségéhez kapcsolódik, de a meghatározás nem teljesen bizonyos.",
-    "review_status": "draft",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "arubboth",
@@ -29488,37 +29344,6 @@
     "proposed_card_summary_hu": "Bibliai település vagy földrajzi hely. Valószínű azonosítása a mai Tulul Dura térségéhez kapcsolódik, de a meghatározás nem teljesen bizonyos.",
     "review_status": "draft",
     "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
-  },
-  {
-    "place_id": "ebron",
-    "name_en": "Ebron",
-    "ancient_names": [
-      "Ebron",
-      "Abdon",
-      "Hebron"
-    ],
-    "original_names": [],
-    "transliterations": [],
-    "modern_name": "Tel Avdon",
-    "modern_country": null,
-    "region_hu": null,
-    "ancient_region": null,
-    "identification_status": "probable",
-    "latitude": 33.047692,
-    "longitude": 35.161916,
-    "passage_count": 1,
-    "representative_passages": [
-      "JOS 19,28"
-    ],
-    "source_ids": [
-      "openbible_geocoding_cc_by_4_0"
-    ],
-    "current_name_hu": "Ebrón",
-    "current_card_summary_hu": "Bibliai település vagy földrajzi hely. Valószínű azonosítása a mai Tel Avdon térségéhez kapcsolódik, de a meghatározás nem teljesen bizonyos.",
-    "proposed_name_hu": "Ebrón",
-    "proposed_card_summary_hu": "Bibliai település vagy földrajzi hely. Valószínű azonosítása a mai Tel Avdon térségéhez kapcsolódik, de a meghatározás nem teljesen bizonyos.",
-    "review_status": "draft",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "eder_1",
@@ -35597,37 +35422,6 @@
     "proposed_card_summary_hu": "Bibliai helynév, amelynek pontos földrajzi azonosítása vitatott. A mai Et Tell térsége az egyik javasolt lehetőség.",
     "review_status": "draft",
     "review_notes_hu": "Bizonytalan vagy vitatott azonosítás; a magyar név és leírás szakmai ellenőrzést igényel. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
-  },
-  {
-    "place_id": "ayyah",
-    "name_en": "Ayyah",
-    "ancient_names": [
-      "Ayyah",
-      "Aija",
-      "Gaza"
-    ],
-    "original_names": [],
-    "transliterations": [],
-    "modern_name": "Et Tell",
-    "modern_country": null,
-    "region_hu": null,
-    "ancient_region": null,
-    "identification_status": "possible",
-    "latitude": 31.916944,
-    "longitude": 35.261111,
-    "passage_count": 1,
-    "representative_passages": [
-      "1CH 7,28"
-    ],
-    "source_ids": [
-      "openbible_geocoding_cc_by_4_0"
-    ],
-    "current_name_hu": "Ayyah",
-    "current_card_summary_hu": "Bibliai helynév, amelynek pontos földrajzi azonosítása vitatott. A mai Et Tell térsége az egyik javasolt lehetőség.",
-    "proposed_name_hu": "Ayyah",
-    "proposed_card_summary_hu": "Bibliai helynév, amelynek pontos földrajzi azonosítása vitatott. A mai Et Tell térsége az egyik javasolt lehetőség.",
-    "review_status": "draft",
-    "review_notes_hu": "Bizonytalan vagy vitatott azonosítás; a magyar név és leírás szakmai ellenőrzést igényel. Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "azal",
