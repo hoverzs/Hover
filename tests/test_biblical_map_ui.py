@@ -29,8 +29,15 @@ from biblical_map_data import (
     validate_place_record,
 )
 from biblical_map_ui import (
+    ACTIVE_MAP_VIEW_KEY,
     CATALOG_SEARCH_PICK_KEY,
     CATALOG_SEARCH_QUERY_KEY,
+    HIGHLIGHTED_ROUTE_STOP_IDS_KEY,
+    MAP_VIEW_PLACES,
+    MAP_VIEW_ROUTES,
+    ROUTE_VIEW_WARNING_HU,
+    SELECTED_ROUTE_ID_KEY,
+    SELECTED_ROUTE_STOP_ID_KEY,
     SELECTED_PLACE_SELECTBOX_KEY,
     SELECTED_PLACE_ID_KEY,
     _render_place_card,
@@ -47,9 +54,15 @@ from biblical_map_ui import (
     place_selectbox_options,
     render_biblical_map_prototype,
     resolve_selected_place_id,
+    route_matches_for_passage,
+    route_segment_rows,
+    route_stop_rows,
+    route_viewport,
     search_biblical_places,
     selected_place_for_session,
+    switch_to_route_view_for_passage,
 )
+from biblical_routes import load_biblical_routes
 from biblical_map_passages import (
     BIBLICAL_PASSAGE_PLACE_LINKS,
     MAP_LAST_PROCESSED_REFERENCE_KEY,
@@ -88,10 +101,12 @@ class _FakeStreamlit:
         self.infos = []
         self.markdowns = []
         self.maps = []
+        self.pydeck_charts = []
         self.radios = []
         self.selectboxes = []
         self.text_inputs = []
         self.warnings = []
+        self.buttons = []
 
     def expander(self, label, expanded=False):
         self.expanders.append((label, expanded))
@@ -120,9 +135,24 @@ class _FakeStreamlit:
             raise TypeError("unsupported st.map parameter")
         self.maps.append((rows, kwargs))
 
+    def pydeck_chart(self, deck, **kwargs):
+        if self.fail_map:
+            raise TypeError("unsupported st.pydeck_chart parameter")
+        self.pydeck_charts.append((deck, kwargs))
+
     def radio(self, label, options, index=0, **kwargs):
         self.radios.append((label, options, index, kwargs))
-        return options[index]
+        key = kwargs.get("key")
+        chosen = self.session_state.get(key) if key else None
+        if chosen not in options:
+            chosen = options[index]
+        if key:
+            self.session_state[key] = chosen
+        return chosen
+
+    def button(self, label, **kwargs):
+        self.buttons.append((label, kwargs))
+        return False
 
     def text_input(self, label, **kwargs):
         self.text_inputs.append((label, kwargs))
@@ -528,7 +558,7 @@ def test_exactly_one_active_ui_map_render_call() -> None:
     assert "SMART-MAP RENDERFÜGGVÉNY ELINDULT" not in map_ui_source
     assert "Első izolált prototípus" not in map_ui_source
     assert "Még nincs automatikus kapcsolat" not in map_ui_source
-    assert "st.radio(" not in map_ui_source
+    assert 'st.radio(\n            "Térkép nézet",' in map_ui_source
     assert "SELECTED_PLACE_RADIO_KEY" not in map_ui_source
     assert "st.selectbox(" in map_ui_source
     assert map_ui_source.count("Bibliai térkép – prototípus") == 1
@@ -551,7 +581,7 @@ def test_render_accepts_missing_passage_reference_without_early_return() -> None
     assert fake_st.text_inputs
     assert fake_st.text_inputs[0][0] == "Másik bibliai hely keresése"
     assert not any(label == "Aktuális igerész helyszínei" for label, *_ in fake_st.selectboxes)
-    assert fake_st.radios == []
+    assert [label for label, *_ in fake_st.radios] == ["Térkép nézet"]
     assert any(
         "A térkép az aktuális igerészhez kapcsolódó bibliai helyszíneket jeleníti meg."
         in body
@@ -580,7 +610,7 @@ def test_render_auto_selects_linked_place_and_shows_status() -> None:
     assert passage_boxes
     assert passage_boxes[0][1][0] == "corinth"
     assert fake_st.text_inputs[0][0] == "Másik bibliai hely keresése"
-    assert fake_st.radios == []
+    assert [label for label, *_ in fake_st.radios] == ["Térkép nézet"]
     assert any("Korinthus" in body for body in fake_st.markdowns)
 
 
@@ -1165,7 +1195,7 @@ def test_selectbox_uses_place_ids_internally_and_hungarian_labels_in_ui() -> Non
     assert kwargs["format_func"]("athens") == "Athén"
     assert "athens" not in kwargs["format_func"]("athens")
     assert fake_st.text_inputs[0][0] == "Másik bibliai hely keresése"
-    assert fake_st.radios == []
+    assert [label for label, *_ in fake_st.radios] == ["Térkép nézet"]
 
 
 def test_map_failure_keeps_selector_and_place_card_visible() -> None:
@@ -1181,6 +1211,121 @@ def test_map_failure_keeps_selector_and_place_card_visible() -> None:
         "A térképi nézet nem érhető el, de a helyválasztó és az adatlap használható."
     ]
     assert fake_st.text_inputs
-    assert fake_st.radios == []
+    assert [label for label, *_ in fake_st.radios] == ["Térkép nézet"]
     assert fake_st.session_state[SELECTED_PLACE_ID_KEY] == "ephesus"
     assert any("Efezus" in body for body in fake_st.markdowns)
+
+
+def test_route_view_helpers_build_first_missionary_journey_rows() -> None:
+    route = load_biblical_routes()[0]
+    stop_rows = route_stop_rows(route)
+    segment_rows = route_segment_rows(route)
+
+    assert len(stop_rows) == 15
+    assert len(segment_rows) == 14
+    assert sum(1 for row in segment_rows if row["segment_type"] == "land") == 11
+    assert sum(1 for row in segment_rows if row["segment_type"] == "sea") == 3
+    assert [row["place_id"] for row in stop_rows].count("perga") == 2
+    assert [row["order"] for row in stop_rows] == list(range(1, 16))
+    assert all("lat" in row and "lon" in row for row in stop_rows)
+
+
+def test_route_viewport_is_calculated_from_all_stops() -> None:
+    route = load_biblical_routes()[0]
+    viewport = route_viewport(route_stop_rows(route))
+
+    assert 33 <= viewport["latitude"] <= 39
+    assert 30 <= viewport["longitude"] <= 37
+    assert viewport["zoom"] >= 3
+
+
+def test_passage_to_route_index_matches_acts_13_and_14() -> None:
+    acts_13 = route_matches_for_passage("ApCsel 13")
+    acts_14 = route_matches_for_passage("ApCsel 14")
+    unrelated = route_matches_for_passage("Jn 3,16")
+
+    assert "paul_first_missionary_journey" in acts_13
+    assert "paul_first_missionary_journey" in acts_14
+    assert any(stop.stop_id == "seleucia_departure" for stop in acts_13["paul_first_missionary_journey"])
+    assert any(stop.stop_id == "lystra_return" for stop in acts_14["paul_first_missionary_journey"])
+    assert unrelated == {}
+
+
+def test_partial_passage_overlap_links_to_route_stop() -> None:
+    matches = route_matches_for_passage("ApCsel 13,4")
+
+    assert [stop.stop_id for stop in matches["paul_first_missionary_journey"]] == [
+        "seleucia_departure"
+    ]
+
+
+def test_switch_to_route_view_state_sets_route_and_highlight_once() -> None:
+    state = {}
+
+    switch_to_route_view_for_passage(
+        state,
+        "paul_first_missionary_journey",
+        ["seleucia_departure", "seleucia_departure", "salamis_arrival"],
+    )
+
+    assert state[ACTIVE_MAP_VIEW_KEY] == MAP_VIEW_ROUTES
+    assert state[SELECTED_ROUTE_ID_KEY] == "paul_first_missionary_journey"
+    assert state[HIGHLIGHTED_ROUTE_STOP_IDS_KEY] == [
+        "seleucia_departure",
+        "salamis_arrival",
+    ]
+    assert state[SELECTED_ROUTE_STOP_ID_KEY] == "seleucia_departure"
+
+
+def test_render_default_places_view_does_not_force_route_map() -> None:
+    fake_st = _FakeStreamlit()
+
+    render_biblical_map_prototype(passage_reference="ApCsel 18,1-18", st_module=fake_st)
+
+    assert fake_st.radios[-1][0] == "Térkép nézet"
+    assert fake_st.session_state[ACTIVE_MAP_VIEW_KEY] == MAP_VIEW_PLACES
+    assert fake_st.maps
+    assert fake_st.session_state[SELECTED_PLACE_ID_KEY] == "corinth"
+
+
+def test_render_route_view_loads_first_missionary_journey() -> None:
+    fake_st = _FakeStreamlit()
+    fake_st.session_state[ACTIVE_MAP_VIEW_KEY] = MAP_VIEW_ROUTES
+
+    render_biblical_map_prototype(st_module=fake_st)
+
+    assert fake_st.session_state[SELECTED_ROUTE_ID_KEY] == "paul_first_missionary_journey"
+    assert fake_st.session_state[SELECTED_ROUTE_STOP_ID_KEY] == "antioch_syria_departure"
+    assert any("Pál első missziói útja" in body for body in fake_st.markdowns)
+    assert ROUTE_VIEW_WARNING_HU in fake_st.warnings
+    assert fake_st.pydeck_charts or fake_st.maps
+    assert any(label == "Állomás kiválasztása" for label, *_ in fake_st.selectboxes)
+
+
+def test_route_view_handles_missing_route_data_gracefully() -> None:
+    import biblical_map_ui
+
+    original_loader = biblical_map_ui.load_biblical_routes
+    try:
+        biblical_map_ui.load_biblical_routes = lambda: (_ for _ in ()).throw(
+            biblical_map_ui.BiblicalRouteDataError("broken")
+        )  # type: ignore[assignment]
+        fake_st = _FakeStreamlit()
+        fake_st.session_state[ACTIVE_MAP_VIEW_KEY] = MAP_VIEW_ROUTES
+        render_biblical_map_prototype(st_module=fake_st)
+    finally:
+        biblical_map_ui.load_biblical_routes = original_loader  # type: ignore[assignment]
+
+    assert fake_st.errors == []
+    assert fake_st.warnings
+
+
+def test_route_map_failure_keeps_station_list_visible() -> None:
+    fake_st = _FakeStreamlit(fail_map=True)
+    fake_st.session_state[ACTIVE_MAP_VIEW_KEY] = MAP_VIEW_ROUTES
+
+    render_biblical_map_prototype(st_module=fake_st)
+
+    assert fake_st.errors == []
+    assert "Az útvonal térképi megjelenítése most nem érhető el." in fake_st.warnings
+    assert any("Állomások" in body for body in fake_st.markdowns)
