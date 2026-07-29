@@ -25,6 +25,10 @@ def test_decodes_common_stems_and_nonverbs() -> None:
     assert decode_hebrew_morphology("HVhp3ms").verb_stem == "Hiphil"
     assert decode_hebrew_morphology("HVHp3ms").verb_stem == "Hophal"
     assert decode_hebrew_morphology("HVtp3ms").verb_stem == "Hithpael"
+    assert decode_hebrew_morphology("HVcp1cs").verb_stem == "Tiphil"
+    assert decode_hebrew_morphology("HVDq3cp").verb_stem == "Nithpael"
+    assert decode_hebrew_morphology("AVui2mp").verb_stem == "Hitpael"
+    assert decode_hebrew_morphology("AVMi3fs").verb_stem == "Hitpaal"
     noun = decode_hebrew_morphology("HNcmsc")
     assert noun.part_of_speech == "Noun"
     assert noun.noun_type == "Common"
@@ -34,17 +38,47 @@ def test_decodes_common_stems_and_nonverbs() -> None:
 
 def test_decodes_suffix_and_aramaic_without_inventing_unknowns() -> None:
     suffix = decode_hebrew_morphology("Sp3ms")
+    directional = decode_hebrew_morphology("Sd")
+    emphatic = decode_hebrew_morphology("Sn")
     aramaic = decode_hebrew_morphology("AVqp3ms")
     unknown = decode_hebrew_morphology("HZzzz")
+    pronoun = decode_hebrew_morphology("HPp1bs")
 
     assert suffix.part_of_speech == "Suffix"
     assert suffix.suffix_person == "Third"
     assert suffix.suffix_gender == "Masculine"
     assert suffix.suffix_number == "Singular"
+    assert directional.suffix_type == "Directional"
+    assert emphatic.suffix_type == "Emphatic"
+    assert pronoun.pronoun_type == "Personal"
+    assert pronoun.person == "First"
+    assert pronoun.gender == "Either gender"
+    assert pronoun.number == "Singular"
+    assert pronoun.status == "fully_decoded"
     assert aramaic.language == "Aramaic"
     assert aramaic.status == "fully_decoded"
     assert unknown.unresolved_parts
     assert unknown.status in {"partially_decoded", "unresolved"}
+
+
+def test_decodes_documented_proper_gentilic_and_particle_types() -> None:
+    location = decode_hebrew_morphology("HNpl")
+    title = decode_hebrew_morphology("HNtmsa")
+    gentilic = decode_hebrew_morphology("HNgmsa")
+    interrogative = decode_hebrew_morphology("HTi")
+    interjection = decode_hebrew_morphology("ATj")
+
+    assert location.noun_type == "Proper"
+    assert location.proper_name_type == "Location"
+    assert title.noun_type == "Title"
+    assert title.gender == "Masculine"
+    assert gentilic.noun_type == "Gentilic"
+    assert gentilic.state == "Absolute"
+    assert interrogative.part_of_speech == "Interrogative"
+    assert interrogative.particle_type == "Interrogative"
+    assert interjection.part_of_speech == "Interjection"
+    assert interjection.particle_type == "Interjection"
+    assert all(item.status == "fully_decoded" for item in (location, title, gentilic, interrogative, interjection))
 
 
 def test_decodes_slash_components_with_inherited_language() -> None:
@@ -58,8 +92,77 @@ def test_decodes_slash_components_with_inherited_language() -> None:
 
     assert decoded.language == "Hebrew"
     assert decoded.part_of_speech == "Conjunction + Verb"
+    assert decoded.verb_stem == "Qal"
+    assert decoded.verb_conjugation == "Consecutive Imperfect"
+    assert decoded.person == "Third"
+    assert decoded.gender == "Masculine"
+    assert decoded.number == "Singular"
+    assert len(decoded.components) == 2
+    assert decoded.components[0]["original_code"] == "Hc"
+    assert decoded.components[0]["component_type"] == "prefix"
+    assert decoded.components[1]["original_code"] == "Vqw3ms"
+    assert decoded.components[1]["code"] == "HVqw3ms"
+    assert decoded.components[1]["component_type"] == "core"
+    assert decoded.components[1]["verb_stem"] == "Qal"
     assert decoded.status == "fully_decoded"
     assert not decoded.unresolved_parts
+
+
+def test_decodes_multiple_prefixes_and_core_component() -> None:
+    decoded = decode_hebrew_morphology("HC/R/Vpcc")
+
+    assert decoded.part_of_speech == "Conjunction + Preposition + Verb"
+    assert decoded.components[0]["component_type"] == "prefix"
+    assert decoded.components[1]["component_type"] == "prefix"
+    assert decoded.components[2]["component_type"] == "core"
+    assert decoded.verb_stem == "Piel"
+    assert decoded.verb_conjugation == "Infinitive Construct"
+
+
+def test_decodes_core_with_pronominal_suffix() -> None:
+    decoded = decode_hebrew_morphology("HNcmpc/Sp3ms")
+
+    assert decoded.part_of_speech == "Noun + Suffix"
+    assert decoded.state == "Construct"
+    assert decoded.components[0]["component_type"] == "core"
+    assert decoded.components[1]["component_type"] == "suffix"
+    assert decoded.components[1]["suffix_person"] == "Third"
+    assert decoded.components[1]["suffix_gender"] == "Masculine"
+    assert decoded.components[1]["suffix_number"] == "Singular"
+
+
+def test_decodes_aramaic_slash_components() -> None:
+    decoded = decode_hebrew_morphology("AC/Vqp3ms")
+
+    assert decoded.language == "Aramaic"
+    assert decoded.part_of_speech == "Conjunction + Verb"
+    assert decoded.verb_stem == "Qal"
+    assert decoded.person == "Third"
+    assert decoded.gender == "Masculine"
+    assert decoded.number == "Singular"
+
+
+def test_aramaic_partial_slash_component_is_partially_decoded() -> None:
+    decoded = decode_hebrew_morphology("ANcbsd/Ta")
+
+    assert decoded.language == "Aramaic"
+    assert decoded.part_of_speech == "Noun + Article"
+    assert decoded.gender == "Either gender"
+    assert decoded.number == "Singular"
+    assert decoded.state == "Definite"
+    assert decoded.status == "fully_decoded"
+    assert not decoded.unresolved_parts
+
+
+def test_partial_code_keeps_decoded_fields() -> None:
+    decoded = decode_hebrew_morphology("HVqz3ms", {"HVqz3ms": "Function=Verb ; Stem=Qal"})
+
+    assert decoded.status == "partially_decoded"
+    assert decoded.verb_stem == "Qal"
+    assert decoded.person == "Third"
+    assert decoded.gender == "Masculine"
+    assert decoded.number == "Singular"
+    assert decoded.unresolved_parts
 
 
 def test_common_previously_unresolved_patterns_are_consumed() -> None:
