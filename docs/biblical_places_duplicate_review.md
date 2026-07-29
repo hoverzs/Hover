@@ -4,8 +4,8 @@
 - Review csoportok száma: 106
 - `merge_probable`: 35
 - `keep_separate_probable`: 1
-- `same_place_different_record_type`: 39
-- `needs_expert_review`: 31
+- `same_place_different_record_type`: 8
+- `needs_expert_review`: 62
 - `insufficient_evidence`: 0
 - `high` confidence: 53
 - `medium` confidence: 53
@@ -15,25 +15,25 @@
 
 | group_id | action | confidence | rekordok | távolság km |
 |---|---|---|---|---|
-| dup_dumah_2__edom__teman | same_place_different_record_type | medium | dumah_2, edom, teman | 0.0 |
-| dup_ephron_1__mount_ephron | same_place_different_record_type | medium | ephron_1, mount_ephron | 0.0 |
-| dup_gath_1__gath_3__metheg_ammah | same_place_different_record_type | medium | gath_1, gath_3, metheg_ammah | 0.0 |
-| dup_gedor_1__gedor_3__gedor_4 | same_place_different_record_type | medium | gedor_1, gedor_3, gedor_4 | 0.0 |
-| dup_gilead_1__gilead_2 | same_place_different_record_type | medium | gilead_1, gilead_2 | 0.0 |
-| dup_goshen_2__goshen_3 | same_place_different_record_type | medium | goshen_2, goshen_3 | 0.0 |
-| dup_hamath_1__hamath_2__hamath_zobah | same_place_different_record_type | medium | hamath_1, hamath_2, hamath_zobah | 0.0 |
-| dup_havilah_2__havilah_3 | same_place_different_record_type | medium | havilah_2, havilah_3 | 0.0 |
-| dup_hebron__valley_of_hebron | same_place_different_record_type | medium | hebron, valley_of_hebron | 0.0 |
-| dup_holy_place_2__most_holy_place_2 | same_place_different_record_type | medium | holy_place_2, most_holy_place_2 | 0.0 |
-| dup_jeshanah__shen | same_place_different_record_type | medium | jeshanah, shen | 0.0 |
-| dup_migron_1__migron_2 | same_place_different_record_type | medium | migron_1, migron_2 | 0.0 |
-| dup_mizpah_1__mizpah_4 | same_place_different_record_type | medium | mizpah_1, mizpah_4 | 0.0 |
-| dup_moriah__mount_moriah | same_place_different_record_type | medium | moriah, mount_moriah | 0.0 |
-| dup_mount_zemaraim__zemaraim | same_place_different_record_type | medium | mount_zemaraim, zemaraim | 0.0 |
-| dup_red_sea_2__suph | same_place_different_record_type | medium | red_sea_2, suph | 0.0 |
-| dup_rhodes_1__rhodes_2 | same_place_different_record_type | medium | rhodes_1, rhodes_2 | 0.0 |
-| dup_samaria_1__samaria_2 | same_place_different_record_type | medium | samaria_1, samaria_2 | 0.0 |
-| dup_ur_1__ur_2 | same_place_different_record_type | medium | ur_1, ur_2 | 0.0 |
-| dup_wilderness_of_ziph__ziph_1 | same_place_different_record_type | medium | wilderness_of_ziph, ziph_1 | 0.0 |
+| dup_egypt__ham_2 | merge_probable | high | egypt, ham_2 | 0.0 |
+| dup_kadesh_barnea__meribah_1 | merge_probable | high | kadesh_barnea, meribah_1 | 0.0 |
+| dup_abdon__ebron | merge_probable | high | abdon, ebron | 0.0 |
+| dup_ai_1__ai_3 | merge_probable | high | ai_1, ai_3 | 0.0 |
+| dup_aija__ayyah | merge_probable | high | aija, ayyah | 0.0 |
+| dup_aphek_1__aphik | merge_probable | high | aphek_1, aphik | 0.0 |
+| dup_arad_1__arad_2 | merge_probable | high | arad_1, arad_2 | 0.0 |
+| dup_aram_naharaim__mesopotamia | merge_probable | high | aram_naharaim, mesopotamia | 0.0 |
+| dup_arnon__valley_of_the_arnon | merge_probable | high | arnon, valley_of_the_arnon | 0.0 |
+| dup_aroer_3__aroer_4 | merge_probable | high | aroer_3, aroer_4 | 0.0 |
+| dup_beersheba_1__beersheba_2__sheba_2 | merge_probable | high | beersheba_1, beersheba_2, sheba_2 | 0.0 |
+| dup_beth_eden__eden_2 | merge_probable | high | beth_eden, eden_2 | 0.0 |
+| dup_bethlehem_2__bethlehem_3 | merge_probable | high | bethlehem_2, bethlehem_3 | 0.0 |
+| dup_bethsaida_1__bethsaida_2 | merge_probable | high | bethsaida_1, bethsaida_2 | 0.0 |
+| dup_chaldea__leb_kamai | merge_probable | high | chaldea, leb_kamai | 0.0 |
+| dup_city_of_palms_1__city_of_palms_2 | merge_probable | high | city_of_palms_1, city_of_palms_2 | 0.0 |
+| dup_dibon_1__dibon_3 | merge_probable | high | dibon_1, dibon_3 | 0.0 |
+| dup_ephrath__ephrathah | merge_probable | high | ephrath, ephrathah | 0.0 |
+| dup_euphrates__river_2 | merge_probable | high | euphrates, river_2 | 0.0 |
+| dup_gate_of_the_foundation__sur | merge_probable | high | gate_of_the_foundation, sur | 0.0 |
 
 A queue csak szakmai ellenőrzési munkalista; nem hajt végre merge-et, törlést vagy place_id módosítást.

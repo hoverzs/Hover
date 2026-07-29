@@ -5099,6 +5099,46 @@
     "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
+    "place_id": "zin_1",
+    "name_en": "Zin 1",
+    "ancient_names": [
+      "Zin 1",
+      "Desert of Kadesh",
+      "Desert of Zin",
+      "Wilderness of Kadesh",
+      "Wilderness of Zin",
+      "Zin",
+      "wilderness of Kadesh",
+      "Zin 2"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Zin Desert",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 30.971,
+    "longitude": 35.325,
+    "passage_count": 10,
+    "representative_passages": [
+      "DEU 32,51",
+      "JOS 15,1",
+      "JOS 15,3",
+      "NUM 13,21",
+      "NUM 20,1"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Cin pusztája",
+    "current_card_summary_hu": "Izráel déli határvidékének bibliai pusztasága, Kádés térségéhez kapcsolódó tájegység. A két rekord ugyanazon régió eltérő passage-csoportjait tartalmazza.",
+    "proposed_name_hu": null,
+    "proposed_card_summary_hu": null,
+    "review_status": "pending",
+    "review_notes_hu": null
+  },
+  {
     "place_id": "succoth_1",
     "name_en": "Succoth 1",
     "ancient_names": [
@@ -6146,45 +6186,6 @@
     "proposed_card_summary_hu": "Jeruzsálemtől délnyugatra fekvő tágas völgy, Dávid és a filiszteusok több összecsapásának helyszíne. Ma Jeruzsálem beépített térségéhez tartozik.",
     "review_status": "draft",
     "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
-  },
-  {
-    "place_id": "zin_1",
-    "name_en": "Zin 1",
-    "ancient_names": [
-      "Zin 1",
-      "Desert of Kadesh",
-      "Desert of Zin",
-      "Wilderness of Kadesh",
-      "Wilderness of Zin",
-      "Zin",
-      "wilderness of Kadesh"
-    ],
-    "original_names": [],
-    "transliterations": [],
-    "modern_name": "Zin Desert",
-    "modern_country": null,
-    "region_hu": null,
-    "ancient_region": null,
-    "identification_status": "certain",
-    "latitude": 30.971,
-    "longitude": 35.325,
-    "passage_count": 8,
-    "representative_passages": [
-      "DEU 32,51",
-      "JOS 15,1",
-      "NUM 13,21",
-      "NUM 20,1",
-      "NUM 27,14"
-    ],
-    "source_ids": [
-      "openbible_geocoding_cc_by_4_0"
-    ],
-    "current_name_hu": "Cin pusztája",
-    "current_card_summary_hu": "Kánaán déli határvidékének pusztai térsége, Kádés és Izráel vándorlásának környezetében. Pontos kiterjedése bizonytalan.",
-    "proposed_name_hu": "Cin pusztája",
-    "proposed_card_summary_hu": "Kánaán déli határvidékének pusztai térsége, Kádés és Izráel vándorlásának környezetében. Pontos kiterjedése bizonytalan.",
-    "review_status": "draft",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "aijalon_1",
@@ -11045,7 +11046,8 @@
     "name_en": "Ur 1",
     "ancient_names": [
       "Ur 1",
-      "Ur"
+      "Ur",
+      "Ur 2"
     ],
     "original_names": [],
     "transliterations": [],
@@ -11067,11 +11069,11 @@
       "openbible_geocoding_cc_by_4_0"
     ],
     "current_name_hu": "Úr",
-    "current_card_summary_hu": "Bibliai település vagy történeti helyszín, amely több szöveg földrajzi hátteréhez tartozik. Az ókori helyet a mai Tell el Muqayyar térségével azonosítják.",
-    "proposed_name_hu": "Úr",
-    "proposed_card_summary_hu": "Bibliai település vagy történeti helyszín, amely több szöveg földrajzi hátteréhez tartozik. Az ókori helyet a mai Tell el Muqayyar térségével azonosítják.",
-    "review_status": "draft",
-    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+    "current_card_summary_hu": "A káldeusok Úr városa, Ábrahám családjának kiindulóhelye. A második rekord passage nélküli technikai duplikátum.",
+    "proposed_name_hu": null,
+    "proposed_card_summary_hu": null,
+    "review_status": "pending",
+    "review_notes_hu": null
   },
   {
     "place_id": "way_of_the_red_sea",
@@ -11449,6 +11451,41 @@
     "proposed_card_summary_hu": "Bibliai település vagy történeti helyszín. Valószínű azonosítása a mai As Samu térségéhez kapcsolódik, de a meghatározás nem teljesen bizonyos.",
     "review_status": "draft",
     "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "gedor_1",
+    "name_en": "Gedor 1",
+    "ancient_names": [
+      "Gedor 1",
+      "Gedor",
+      "Gedor 3",
+      "Gedor 4"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Khirbet Jedur",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "probable",
+    "latitude": 31.632629,
+    "longitude": 35.092145,
+    "passage_count": 4,
+    "representative_passages": [
+      "1CH 12,7",
+      "1CH 4,18",
+      "1CH 4,4",
+      "JOS 15,58"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Gedór",
+    "current_card_summary_hu": "Júda hegyvidékének bibliai települése. A három technikai rekord azonos néven, azonos koordinátával és egymást kiegészítő passage-kapcsolatokkal ugyanahhoz a helyhez köthető.",
+    "proposed_name_hu": null,
+    "proposed_card_summary_hu": null,
+    "review_status": "pending",
+    "review_notes_hu": null
   },
   {
     "place_id": "golan",
@@ -16216,37 +16253,6 @@
     "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
-    "place_id": "gedor_1",
-    "name_en": "Gedor 1",
-    "ancient_names": [
-      "Gedor 1",
-      "Gedor"
-    ],
-    "original_names": [],
-    "transliterations": [],
-    "modern_name": "Khirbet Jedur",
-    "modern_country": null,
-    "region_hu": null,
-    "ancient_region": null,
-    "identification_status": "certain",
-    "latitude": 31.632629,
-    "longitude": 35.092145,
-    "passage_count": 2,
-    "representative_passages": [
-      "1CH 4,4",
-      "JOS 15,58"
-    ],
-    "source_ids": [
-      "openbible_geocoding_cc_by_4_0"
-    ],
-    "current_name_hu": "Gedór",
-    "current_card_summary_hu": "Bibliai település vagy történeti helyszín, amely a kapcsolódó szövegek földrajzi hátteréhez tartozik. Az ókori helyet a mai Khirbet Jedur térségével azonosítják.",
-    "proposed_name_hu": "Gedór",
-    "proposed_card_summary_hu": "Bibliai település vagy történeti helyszín, amely a kapcsolódó szövegek földrajzi hátteréhez tartozik. Az ókori helyet a mai Khirbet Jedur térségével azonosítják.",
-    "review_status": "draft",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
-  },
-  {
     "place_id": "gethsemane",
     "name_en": "Gethsemane",
     "ancient_names": [
@@ -17583,37 +17589,6 @@
     "proposed_card_summary_hu": "Bibliai pusztai tájegység, amely vándorlási, menekülési vagy határleírási összefüggésekben szerepel. Mai elhelyezése Tel Main térségéhez kapcsolódik.",
     "review_status": "draft",
     "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
-  },
-  {
-    "place_id": "zin_2",
-    "name_en": "Zin 2",
-    "ancient_names": [
-      "Zin 2",
-      "Zin"
-    ],
-    "original_names": [],
-    "transliterations": [],
-    "modern_name": "Zin Desert",
-    "modern_country": null,
-    "region_hu": null,
-    "ancient_region": null,
-    "identification_status": "certain",
-    "latitude": 30.971,
-    "longitude": 35.325,
-    "passage_count": 2,
-    "representative_passages": [
-      "JOS 15,3",
-      "NUM 34,4"
-    ],
-    "source_ids": [
-      "openbible_geocoding_cc_by_4_0"
-    ],
-    "current_name_hu": "Cin pusztája",
-    "current_card_summary_hu": "Bibliai település vagy történeti helyszín, amely a kapcsolódó szövegek földrajzi hátteréhez tartozik. Az ókori helyet a mai Zin Desert térségével azonosítják.",
-    "proposed_name_hu": "Cin pusztája",
-    "proposed_card_summary_hu": "Bibliai település vagy történeti helyszín, amely a kapcsolódó szövegek földrajzi hátteréhez tartozik. Az ókori helyet a mai Zin Desert térségével azonosítják.",
-    "review_status": "draft",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "achzib_1",
@@ -19024,6 +18999,38 @@
     "proposed_card_summary_hu": "Bibliai település vagy történeti helyszín. Valószínű azonosítása a mai Khirbet el Harazan térségéhez kapcsolódik, de a meghatározás nem teljesen bizonyos.",
     "review_status": "draft",
     "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "havilah_3",
+    "name_en": "Havilah 3",
+    "ancient_names": [
+      "Havilah 3",
+      "Havilah",
+      "Havilah 2"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Arabian Peninsula",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "probable",
+    "latitude": 23.0,
+    "longitude": 46.0,
+    "passage_count": 2,
+    "representative_passages": [
+      "1SA 15,7",
+      "GEN 25,18"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Havilá",
+    "current_card_summary_hu": "Az Arab-félszigethez kapcsolódó bibliai régió, amely az izmaelita és amáléki határleírásokban szerepel. A két rekord ugyanazt a térséget jelöli.",
+    "proposed_name_hu": null,
+    "proposed_card_summary_hu": null,
+    "review_status": "pending",
+    "review_notes_hu": null
   },
   {
     "place_id": "hazar_susah",
@@ -24068,36 +24075,6 @@
     "proposed_card_summary_hu": "Bibliai település, tájegység vagy történeti helyszín. Az adatbázis a mai Tel Hanaton térségével azonosítja.",
     "review_status": "draft",
     "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
-  },
-  {
-    "place_id": "havilah_3",
-    "name_en": "Havilah 3",
-    "ancient_names": [
-      "Havilah 3",
-      "Havilah"
-    ],
-    "original_names": [],
-    "transliterations": [],
-    "modern_name": "Arabian Peninsula",
-    "modern_country": null,
-    "region_hu": null,
-    "ancient_region": null,
-    "identification_status": "certain",
-    "latitude": 23.0,
-    "longitude": 46.0,
-    "passage_count": 1,
-    "representative_passages": [
-      "1SA 15,7"
-    ],
-    "source_ids": [
-      "openbible_geocoding_cc_by_4_0"
-    ],
-    "current_name_hu": "Havilá",
-    "current_card_summary_hu": "Bibliai település, tájegység vagy történeti helyszín. Az adatbázis a mai Arabian Peninsula térségével azonosítja.",
-    "proposed_name_hu": "Havilá",
-    "proposed_card_summary_hu": "Bibliai település, tájegység vagy történeti helyszín. Az adatbázis a mai Arabian Peninsula térségével azonosítja.",
-    "review_status": "draft",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "hazazon_tamar_2",
@@ -29586,66 +29563,6 @@
     "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
-    "place_id": "gedor_3",
-    "name_en": "Gedor 3",
-    "ancient_names": [
-      "Gedor 3",
-      "Gedor"
-    ],
-    "original_names": [],
-    "transliterations": [],
-    "modern_name": "Khirbet Jedur",
-    "modern_country": null,
-    "region_hu": null,
-    "ancient_region": null,
-    "identification_status": "probable",
-    "latitude": 31.632629,
-    "longitude": 35.092145,
-    "passage_count": 1,
-    "representative_passages": [
-      "1CH 4,18"
-    ],
-    "source_ids": [
-      "openbible_geocoding_cc_by_4_0"
-    ],
-    "current_name_hu": "Gedór",
-    "current_card_summary_hu": "Bibliai település vagy földrajzi hely. Valószínű azonosítása a mai Khirbet Jedur térségéhez kapcsolódik, de a meghatározás nem teljesen bizonyos.",
-    "proposed_name_hu": "Gedór",
-    "proposed_card_summary_hu": "Bibliai település vagy földrajzi hely. Valószínű azonosítása a mai Khirbet Jedur térségéhez kapcsolódik, de a meghatározás nem teljesen bizonyos.",
-    "review_status": "draft",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
-  },
-  {
-    "place_id": "gedor_4",
-    "name_en": "Gedor 4",
-    "ancient_names": [
-      "Gedor 4",
-      "Gedor"
-    ],
-    "original_names": [],
-    "transliterations": [],
-    "modern_name": "Khirbet Jedur",
-    "modern_country": null,
-    "region_hu": null,
-    "ancient_region": null,
-    "identification_status": "probable",
-    "latitude": 31.632629,
-    "longitude": 35.092145,
-    "passage_count": 1,
-    "representative_passages": [
-      "1CH 12,7"
-    ],
-    "source_ids": [
-      "openbible_geocoding_cc_by_4_0"
-    ],
-    "current_name_hu": "Gedór",
-    "current_card_summary_hu": "Bibliai település vagy földrajzi hely. Valószínű azonosítása a mai Khirbet Jedur térségéhez kapcsolódik, de a meghatározás nem teljesen bizonyos.",
-    "proposed_name_hu": "Gedór",
-    "proposed_card_summary_hu": "Bibliai település vagy földrajzi hely. Valószínű azonosítása a mai Khirbet Jedur térségéhez kapcsolódik, de a meghatározás nem teljesen bizonyos.",
-    "review_status": "draft",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
-  },
-  {
     "place_id": "giah",
     "name_en": "Giah",
     "ancient_names": [
@@ -30127,36 +30044,6 @@
     "proposed_card_summary_hu": "Bibliai település vagy földrajzi hely. Valószínű azonosítása a mai Well of Harod térségéhez kapcsolódik, de a meghatározás nem teljesen bizonyos.",
     "review_status": "draft",
     "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
-  },
-  {
-    "place_id": "havilah_2",
-    "name_en": "Havilah 2",
-    "ancient_names": [
-      "Havilah 2",
-      "Havilah"
-    ],
-    "original_names": [],
-    "transliterations": [],
-    "modern_name": "Arabian Peninsula",
-    "modern_country": null,
-    "region_hu": null,
-    "ancient_region": null,
-    "identification_status": "probable",
-    "latitude": 23.0,
-    "longitude": 46.0,
-    "passage_count": 1,
-    "representative_passages": [
-      "GEN 25,18"
-    ],
-    "source_ids": [
-      "openbible_geocoding_cc_by_4_0"
-    ],
-    "current_name_hu": "Havilá",
-    "current_card_summary_hu": "Bibliai település vagy földrajzi hely. Valószínű azonosítása a mai Arabian Peninsula térségéhez kapcsolódik, de a meghatározás nem teljesen bizonyos.",
-    "proposed_name_hu": "Havilá",
-    "proposed_card_summary_hu": "Bibliai település vagy földrajzi hely. Valószínű azonosítása a mai Arabian Peninsula térségéhez kapcsolódik, de a meghatározás nem teljesen bizonyos.",
-    "review_status": "draft",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "hazar_addar",
@@ -40116,33 +40003,6 @@
     "current_card_summary_hu": "Bibliai település, tájegység vagy történeti helyszín. Az adatbázis a mai Damascus térségével azonosítja.",
     "proposed_name_hu": "Upu",
     "proposed_card_summary_hu": "Bibliai település, tájegység vagy történeti helyszín. Az adatbázis a mai Damascus térségével azonosítja.",
-    "review_status": "draft",
-    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
-  },
-  {
-    "place_id": "ur_2",
-    "name_en": "Ur 2",
-    "ancient_names": [
-      "Ur 2"
-    ],
-    "original_names": [],
-    "transliterations": [],
-    "modern_name": "Tell el Muqayyar",
-    "modern_country": null,
-    "region_hu": null,
-    "ancient_region": null,
-    "identification_status": "certain",
-    "latitude": 30.962222,
-    "longitude": 46.104444,
-    "passage_count": 0,
-    "representative_passages": [],
-    "source_ids": [
-      "openbible_geocoding_cc_by_4_0"
-    ],
-    "current_name_hu": "Ur",
-    "current_card_summary_hu": "Bibliai település, tájegység vagy történeti helyszín. Az adatbázis a mai Tell el Muqayyar térségével azonosítja.",
-    "proposed_name_hu": "Ur",
-    "proposed_card_summary_hu": "Bibliai település, tájegység vagy történeti helyszín. Az adatbázis a mai Tell el Muqayyar térségével azonosítja.",
     "review_status": "draft",
     "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },

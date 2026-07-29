@@ -23,6 +23,7 @@ PASSAGE_LINKS_PATH = DATA_DIR / "passage_place_links.json"
 DUPLICATE_QUEUE_PATH = DATA_DIR / "duplicate_review_queue.json"
 BATCH_002_REVIEWED_PATH = DATA_DIR / "duplicate_review_batch_002_reviewed.json"
 BATCH_003_REVIEWED_PATH = DATA_DIR / "duplicate_review_batch_003_reviewed.json"
+BATCH_004_REVIEWED_PATH = DATA_DIR / "duplicate_review_batch_004_reviewed.json"
 
 
 def read_json(path: Path):
@@ -204,11 +205,42 @@ def test_third_reviewed_duplicate_merges_are_applied_when_present() -> None:
     links = read_json(PASSAGE_LINKS_PATH)
     queue = {group["group_id"]: group for group in read_json(DUPLICATE_QUEUE_PATH)}
 
-    assert len(catalog) == 1272
+    assert len(catalog) <= 1272
     assert removed_ids.isdisjoint(ids)
     assert canonical_ids.issubset(ids)
     assert all(link["place_id"] not in removed_ids for link in links)
     for group in read_json(BATCH_003_REVIEWED_PATH):
+        assert queue[group["group_id"]]["review_status"] == "reviewed"
+        assert queue[group["group_id"]]["final_action"] == group["final_action"]
+
+
+def test_fourth_reviewed_duplicate_batch_is_valid_when_present() -> None:
+    if not BATCH_004_REVIEWED_PATH.exists():
+        return
+    catalog = read_json(CATALOG_PATH)
+    batch = validate_batch(BATCH_004_REVIEWED_PATH, catalog)
+
+    assert len(batch) == 41
+    assert len([group for group in batch if group["final_action"] == "merge"]) == 4
+    assert len([group for group in batch if group["final_action"] == "keep_separate"]) == 37
+
+
+def test_fourth_reviewed_duplicate_merges_are_applied_when_present() -> None:
+    if not BATCH_004_REVIEWED_PATH.exists():
+        return
+    catalog = read_json(CATALOG_PATH)
+    ids = {record["place_id"] for record in catalog}
+    removed_ids = {"gedor_3", "gedor_4", "havilah_2", "ur_2", "zin_2"}
+    canonical_ids = {"gedor_1", "havilah_3", "ur_1", "zin_1"}
+    links = read_json(PASSAGE_LINKS_PATH)
+    queue = {group["group_id"]: group for group in read_json(DUPLICATE_QUEUE_PATH)}
+
+    assert len(catalog) == 1267
+    assert removed_ids.isdisjoint(ids)
+    assert canonical_ids.issubset(ids)
+    assert all(link["place_id"] not in removed_ids for link in links)
+    assert not [group for group in queue.values() if group.get("review_status") == "pending"]
+    for group in read_json(BATCH_004_REVIEWED_PATH):
         assert queue[group["group_id"]]["review_status"] == "reviewed"
         assert queue[group["group_id"]]["final_action"] == group["final_action"]
 

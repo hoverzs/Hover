@@ -56,6 +56,17 @@ EXPECTED_GROUPS_BY_BATCH = {
         "merge_count": 22,
         "keep_separate_count": 23,
     },
+    "duplicate_review_batch_004_reviewed.json": {
+        "count": 41,
+        "merge": {
+            "dup_gedor_1__gedor_3__gedor_4",
+            "dup_havilah_2__havilah_3",
+            "dup_ur_1__ur_2",
+            "dup_zin_1__zin_2",
+        },
+        "merge_count": 4,
+        "keep_separate_count": 37,
+    },
 }
 REQUIRED_STRATEGY_FIELDS = {
     "proposed_passage_strategy",

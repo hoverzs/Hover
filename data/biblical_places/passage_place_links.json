@@ -611,7 +611,7 @@
   },
   {
     "reference": "1CH 12,7",
-    "place_id": "gedor_4",
+    "place_id": "gedor_1",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "a47678a",
@@ -1859,7 +1859,7 @@
   },
   {
     "reference": "1CH 4,18",
-    "place_id": "gedor_3",
+    "place_id": "gedor_1",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "aa9be2b",
@@ -32227,7 +32227,7 @@
   },
   {
     "reference": "GEN 25,18",
-    "place_id": "havilah_2",
+    "place_id": "havilah_3",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "ac5e5c4",
@@ -52283,7 +52283,7 @@
   },
   {
     "reference": "JOS 15,3",
-    "place_id": "zin_2",
+    "place_id": "zin_1",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "a190097",
@@ -65259,7 +65259,7 @@
   },
   {
     "reference": "NUM 34,4",
-    "place_id": "zin_2",
+    "place_id": "zin_1",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "a190097",

@@ -472,6 +472,54 @@
     ]
   },
   {
+    "group_id": "dup_gedor_1__gedor_3__gedor_4",
+    "final_action": "merge",
+    "canonical_place_id": "gedor_1",
+    "removed_place_ids": [
+      "gedor_3",
+      "gedor_4"
+    ],
+    "candidate_place_ids": [
+      "gedor_1",
+      "gedor_3",
+      "gedor_4"
+    ],
+    "proposed_merged_name_hu": "Gedór",
+    "proposed_merged_summary_hu": "Júda hegyvidékének bibliai települése. A három technikai rekord azonos néven, azonos koordinátával és egymást kiegészítő passage-kapcsolatokkal ugyanahhoz a helyhez köthető.",
+    "proposed_passage_strategy": "Minden passage-kapcsolat átirányítása a kanonikus rekordra, duplikációk eltávolításával és adatvesztés nélkül.",
+    "proposed_coordinate_strategy": "A gedor_1 rekord koordinátáinak megtartása; az azonosítási bizonyosság nem növelhető automatikusan.",
+    "proposed_alias_strategy": "Az összes valódi névváltozat és kivezetett place_id megőrzése alias/legacy mezőben; a technikai számozott nevek ne jelenjenek meg felhasználói aliaszként.",
+    "proposed_record_type": "settlement",
+    "expert_decision_hu": "A három Gedór-rekord azonos település technikai szétválasztásának tűnik; egyesíthetők.",
+    "merge_risks_hu": [
+      "A csoporton kívüli, azonos nevű bibliai helyekhez nem szabad hozzányúlni.",
+      "Minden passage-, forrás-, név- és review-adatot meg kell őrizni."
+    ]
+  },
+  {
+    "group_id": "dup_havilah_2__havilah_3",
+    "final_action": "merge",
+    "canonical_place_id": "havilah_3",
+    "removed_place_ids": [
+      "havilah_2"
+    ],
+    "candidate_place_ids": [
+      "havilah_2",
+      "havilah_3"
+    ],
+    "proposed_merged_name_hu": "Havilá",
+    "proposed_merged_summary_hu": "Az Arab-félszigethez kapcsolódó bibliai régió, amely az izmaelita és amáléki határleírásokban szerepel. A két rekord ugyanazt a térséget jelöli.",
+    "proposed_passage_strategy": "Minden passage-kapcsolat átirányítása a kanonikus rekordra, duplikációk eltávolításával és adatvesztés nélkül.",
+    "proposed_coordinate_strategy": "A havilah_3 rekord koordinátáinak megtartása; az azonosítási bizonyosság nem növelhető automatikusan.",
+    "proposed_alias_strategy": "Az összes valódi névváltozat és kivezetett place_id megőrzése alias/legacy mezőben; a technikai számozott nevek ne jelenjenek meg felhasználói aliaszként.",
+    "proposed_record_type": "region",
+    "expert_decision_hu": "Azonos név, koordináta és földrajzi kontextus alapján a két Havilá-rekord egyesíthető.",
+    "merge_risks_hu": [
+      "A csoporton kívüli, azonos nevű bibliai helyekhez nem szabad hozzányúlni.",
+      "Minden passage-, forrás-, név- és review-adatot meg kell őrizni."
+    ]
+  },
+  {
     "group_id": "dup_jezreel_1__jezreel_3",
     "final_action": "merge",
     "canonical_place_id": "jezreel_3",
@@ -750,6 +798,29 @@
     ]
   },
   {
+    "group_id": "dup_ur_1__ur_2",
+    "final_action": "merge",
+    "canonical_place_id": "ur_1",
+    "removed_place_ids": [
+      "ur_2"
+    ],
+    "candidate_place_ids": [
+      "ur_1",
+      "ur_2"
+    ],
+    "proposed_merged_name_hu": "Úr",
+    "proposed_merged_summary_hu": "A káldeusok Úr városa, Ábrahám családjának kiindulóhelye. A második rekord passage nélküli technikai duplikátum.",
+    "proposed_passage_strategy": "Minden passage-kapcsolat átirányítása a kanonikus rekordra, duplikációk eltávolításával és adatvesztés nélkül.",
+    "proposed_coordinate_strategy": "A ur_1 rekord koordinátáinak megtartása; az azonosítási bizonyosság nem növelhető automatikusan.",
+    "proposed_alias_strategy": "Az összes valódi névváltozat és kivezetett place_id megőrzése alias/legacy mezőben; a technikai számozott nevek ne jelenjenek meg felhasználói aliaszként.",
+    "proposed_record_type": "settlement",
+    "expert_decision_hu": "A passage nélküli ur_2 rekord az ur_1 technikai duplikátuma; biztonságosan egyesíthető.",
+    "merge_risks_hu": [
+      "A csoporton kívüli, azonos nevű bibliai helyekhez nem szabad hozzányúlni.",
+      "Minden passage-, forrás-, név- és review-adatot meg kell őrizni."
+    ]
+  },
+  {
     "group_id": "dup_valley_of_zered__zered",
     "final_action": "merge",
     "canonical_place_id": "zered",
@@ -793,6 +864,29 @@
     "merge_risks_hu": [
       "Más, azonos nevű bibliai helyekkel nem szabad automatikusan összevonni.",
       "Minden passage-, alias- és forráskapcsolatot meg kell őrizni."
+    ]
+  },
+  {
+    "group_id": "dup_zin_1__zin_2",
+    "final_action": "merge",
+    "canonical_place_id": "zin_1",
+    "removed_place_ids": [
+      "zin_2"
+    ],
+    "candidate_place_ids": [
+      "zin_1",
+      "zin_2"
+    ],
+    "proposed_merged_name_hu": "Cin pusztája",
+    "proposed_merged_summary_hu": "Izráel déli határvidékének bibliai pusztasága, Kádés térségéhez kapcsolódó tájegység. A két rekord ugyanazon régió eltérő passage-csoportjait tartalmazza.",
+    "proposed_passage_strategy": "Minden passage-kapcsolat átirányítása a kanonikus rekordra, duplikációk eltávolításával és adatvesztés nélkül.",
+    "proposed_coordinate_strategy": "A zin_1 rekord koordinátáinak megtartása; az azonosítási bizonyosság nem növelhető automatikusan.",
+    "proposed_alias_strategy": "Az összes valódi névváltozat és kivezetett place_id megőrzése alias/legacy mezőben; a technikai számozott nevek ne jelenjenek meg felhasználói aliaszként.",
+    "proposed_record_type": "wilderness_region",
+    "expert_decision_hu": "A két Cin-rekord azonos pusztaságot jelöli, azonos koordinátával és egymást kiegészítő passage-ekkel; egyesíthetők.",
+    "merge_risks_hu": [
+      "A csoporton kívüli, azonos nevű bibliai helyekhez nem szabad hozzányúlni.",
+      "Minden passage-, forrás-, név- és review-adatot meg kell őrizni."
     ]
   }
 ]

@@ -1293,6 +1293,46 @@
     "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
+    "place_id": "zin_1",
+    "name_en": "Zin 1",
+    "ancient_names": [
+      "Zin 1",
+      "Desert of Kadesh",
+      "Desert of Zin",
+      "Wilderness of Kadesh",
+      "Wilderness of Zin",
+      "Zin",
+      "wilderness of Kadesh",
+      "Zin 2"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Zin Desert",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 30.971,
+    "longitude": 35.325,
+    "passage_count": 10,
+    "representative_passages": [
+      "DEU 32,51",
+      "JOS 15,1",
+      "JOS 15,3",
+      "NUM 13,21",
+      "NUM 20,1"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Cin pusztája",
+    "current_card_summary_hu": "Izráel déli határvidékének bibliai pusztasága, Kádés térségéhez kapcsolódó tájegység. A két rekord ugyanazon régió eltérő passage-csoportjait tartalmazza.",
+    "proposed_name_hu": null,
+    "proposed_card_summary_hu": null,
+    "review_status": "pending",
+    "review_notes_hu": null
+  },
+  {
     "place_id": "succoth_1",
     "name_en": "Succoth 1",
     "ancient_names": [
@@ -2340,45 +2380,6 @@
     "proposed_card_summary_hu": "Jeruzsálemtől délnyugatra fekvő tágas völgy, Dávid és a filiszteusok több összecsapásának helyszíne. Ma Jeruzsálem beépített térségéhez tartozik.",
     "review_status": "draft",
     "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
-  },
-  {
-    "place_id": "zin_1",
-    "name_en": "Zin 1",
-    "ancient_names": [
-      "Zin 1",
-      "Desert of Kadesh",
-      "Desert of Zin",
-      "Wilderness of Kadesh",
-      "Wilderness of Zin",
-      "Zin",
-      "wilderness of Kadesh"
-    ],
-    "original_names": [],
-    "transliterations": [],
-    "modern_name": "Zin Desert",
-    "modern_country": null,
-    "region_hu": null,
-    "ancient_region": null,
-    "identification_status": "certain",
-    "latitude": 30.971,
-    "longitude": 35.325,
-    "passage_count": 8,
-    "representative_passages": [
-      "DEU 32,51",
-      "JOS 15,1",
-      "NUM 13,21",
-      "NUM 20,1",
-      "NUM 27,14"
-    ],
-    "source_ids": [
-      "openbible_geocoding_cc_by_4_0"
-    ],
-    "current_name_hu": "Cin pusztája",
-    "current_card_summary_hu": "Kánaán déli határvidékének pusztai térsége, Kádés és Izráel vándorlásának környezetében. Pontos kiterjedése bizonytalan.",
-    "proposed_name_hu": "Cin pusztája",
-    "proposed_card_summary_hu": "Kánaán déli határvidékének pusztai térsége, Kádés és Izráel vándorlásának környezetében. Pontos kiterjedése bizonytalan.",
-    "review_status": "draft",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "aijalon_1",
