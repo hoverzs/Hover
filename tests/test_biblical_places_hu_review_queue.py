@@ -122,7 +122,7 @@ def test_unprocessed_batch_uses_current_catalog_state() -> None:
     batch_ids = [item["place_id"] for item in batch]
 
     assert batch == expected
-    assert len(batch) == 25
+    assert len(batch) == min(25, len(expected))
     assert len(batch_ids) == len(set(batch_ids))
     for item in batch:
         place = catalog[item["place_id"]]

@@ -17,6 +17,7 @@ from biblical_map_data import (
     BIBLICAL_MAP_PLACES,
     BIBLICAL_PLACES_CATALOG_PATH,
     BiblicalMapDataError,
+    BiblicalPlace,
     BiblicalMapSource,
     PILOT_PLACES_PATH,
     SOURCES_PATH,
@@ -997,14 +998,56 @@ def test_second_hungarian_review_batch_card_summaries_are_compact() -> None:
 
 
 def test_missing_hungarian_name_and_summary_use_safe_ui_fallbacks() -> None:
-    abana = get_biblical_place("abel_keramim")
+    place = BiblicalPlace(
+        place_id="synthetic_missing_hu",
+        name_hu=None,
+        name_en="Synthetic Place",
+        ancient_names=(),
+        original_names=(),
+        transliterations=(),
+        modern_name="Modern Site",
+        modern_country="Testland",
+        place_type="settlement",
+        identification_status="possible",
+        confidence_note_hu=None,
+        latitude=1.0,
+        longitude=2.0,
+        region_hu=None,
+        ancient_region=None,
+        geometry_type="point",
+        coordinate_source_id="test_source",
+        card_summary_hu=None,
+        card_summary_en=None,
+        is_primary_demo_place=False,
+        geography_hu=None,
+        history_hu=None,
+        political_context_hu=None,
+        economic_context_hu=None,
+        social_context_hu=None,
+        religious_context_hu=None,
+        archaeology_hu=None,
+        biblical_significance_hu=None,
+        modern_context_hu=None,
+        exegetical_notes=(),
+        source_ids=(),
+        translation_status="not_translated",
+        translation_method=None,
+        translation_model=None,
+        translated_at=None,
+        review_status="needs_review",
+        reviewed_by=None,
+        reviewed_at=None,
+        openbible_id=None,
+        pleiades_id=None,
+        step_id=None,
+        wikidata_id=None,
+    )
 
-    assert abana is not None
-    assert abana.name_en == "Abel-keramim"
-    assert display_place_name(abana) == "Abel-keramim"
-    assert "abel_keramim" not in display_place_name(abana)
-    assert fallback_place_description(abana) == (
-        "Bizonytalan azonosítású bibliai helyszín; mai azonosítása: Sahab."
+    assert display_place_name(place) == "Synthetic Place"
+    assert "synthetic_missing_hu" not in display_place_name(place)
+    assert fallback_place_description(place) == (
+        "Bizonytalan azonosítású bibliai helyszín az ókori Testland területén; "
+        "mai azonosítása: Modern Site."
     )
 
 
