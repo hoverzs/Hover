@@ -1,0 +1,15 @@
+{
+  "raw_place_count": 1342,
+  "imported_place_count": 1309,
+  "skipped_place_count": 33,
+  "skipped_places_by_reason": {
+    "missing_or_invalid_coordinates": 33
+  },
+  "manual_override_count": 10,
+  "merged_catalog_count": 1309,
+  "passage_catalog_count": 8647,
+  "merged_passage_link_count": 8658,
+  "passage_skipped_by_reason": {
+    "missing_verses": 57
+  }
+}

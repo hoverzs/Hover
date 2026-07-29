@@ -75,3 +75,4 @@ st_*.log
 !data/generated/tahot_ot_runtime.sqlite3
 !data/generated/tbesh_lexicon_runtime.sqlite3
 data/raw/
+data/biblical_places/raw/

@@ -90,6 +90,7 @@ from bible_text_ui import (
     render_bible_text_editor,
     save_bible_text_from_widgets,
 )
+from biblical_map_ui import render_biblical_map_prototype
 from bible_engine.greek_analysis_ui import render_greek_analysis_block
 from passage_search_history import invalidate_used_passage_cache
 from passage_search_ui import (
@@ -6728,6 +6729,60 @@ def render_feedback_section() -> None:
                     st.error(result_msg)
 
 
+def render_footer_and_feedback() -> None:
+    """Render the shared TEXTUS footer and feedback section."""
+    footer_html = """
+<div class="ars-section ars-footer">
+    <div class="ars-poetica">
+        <strong>{app_name} v{app_version}</strong><br>
+        A TEXTUS jelenleg ingyenesen használható, a legújabb
+        <em>{locked_model_display}</em> nyelvi modell támogatásával.<br>
+        <a href="https://{app_domain}" target="_blank" rel="noopener">{app_domain}</a>
+        ·
+        <a href="{app_streamlit_url}" target="_blank" rel="noopener">textus.streamlit.app</a>
+    </div>
+    <div class="ars-divider"></div>
+    <div class="ars-stations">
+        <div class="ars-station">
+            <div class="ars-numeral">I &middot; Saját API kulcs</div>
+            <div class="ars-station-title">Beállítások fülön</div>
+            <div class="ars-station-text">
+                Ha rendelkezel saját Google API kulccsal, a
+                <strong>Beállítások</strong> fülön bármikor megadhatod.
+            </div>
+        </div>
+        <div class="ars-station">
+            <div class="ars-numeral">II &middot; Nincs még kulcsod?</div>
+            <div class="ars-station-title">Ingyen igényelhető</div>
+            <div class="ars-station-text">
+                A Google fiókoddal pár kattintással igényelhetsz egyet — a pontos
+                leírást és segítséget szintén a <strong>Beállítások</strong> fül
+                alatt találod.
+            </div>
+        </div>
+        <div class="ars-station">
+            <div class="ars-numeral">III &middot; Visszajelzés</div>
+            <div class="ars-station-title">Írj közvetlenül az oldalon</div>
+            <div class="ars-station-text">
+                Görgess az oldal legaljára, és küldd el véleményed az űrlapon —
+                ötlet, hiba, tapasztalat egy helyen.<br>
+                <a href="#visszajelzes">Ugrás a visszajelzéshez ↓</a>
+            </div>
+        </div>
+    </div>
+</div>
+""".format(
+        app_name=APP_NAME,
+        app_version=APP_VERSION,
+        locked_model_display=LOCKED_MODEL_DISPLAY,
+        app_domain=APP_DOMAIN,
+        app_streamlit_url=APP_STREAMLIT_URL,
+    )
+
+    st.markdown(footer_html, unsafe_allow_html=True)
+    render_feedback_section()
+
+
 # =========================================================
 # FEJLÉC
 # =========================================================
@@ -6839,6 +6894,15 @@ _UI_MODE_LABELS = {
 }
 
 
+def render_current_biblical_map_prototype() -> None:
+    passage_reference = (
+        (st.session_state.get("last_igehely") or "").strip()
+        or (st.session_state.get("igehely_input") or "").strip()
+        or None
+    )
+    render_biblical_map_prototype(passage_reference=passage_reference)
+
+
 def render_igehely_panel() -> None:
     """Igehely, alkalom, stílus, saját szempont + Áttekintés (bibliai háttér)."""
     apply_bible_text_resync_if_needed(st.session_state)
@@ -6942,6 +7006,8 @@ def render_igehely_panel() -> None:
                         st.success("Bibliai háttér elkészült.")
                 finally:
                     st.session_state["_overview_running"] = False
+
+        render_current_biblical_map_prototype()
 
         if st.session_state.get("overview"):
             st.markdown('<div class="result-box">', unsafe_allow_html=True)
@@ -7129,6 +7195,8 @@ def render_textus_workshop_shell() -> None:
         next_hint = _TW_NEXT_STEP_HINTS.get(active)
         if next_hint:
             st.caption(next_hint)
+
+    render_footer_and_feedback()
 
 
 if st.session_state.get("ui_mode") not in ("quick", "workshop", "sermon_workshop"):
@@ -8267,54 +8335,4 @@ with tabs[10]:
 # LÁBLÉC — ARS POETICA / MŰHELYREND
 # =========================================================
 
-footer_html = """
-<div class="ars-section ars-footer">
-    <div class="ars-poetica">
-        <strong>{app_name} v{app_version}</strong><br>
-        A TEXTUS jelenleg ingyenesen használható, a legújabb
-        <em>{locked_model_display}</em> nyelvi modell támogatásával.<br>
-        <a href="https://{app_domain}" target="_blank" rel="noopener">{app_domain}</a>
-        ·
-        <a href="{app_streamlit_url}" target="_blank" rel="noopener">textus.streamlit.app</a>
-    </div>
-    <div class="ars-divider"></div>
-    <div class="ars-stations">
-        <div class="ars-station">
-            <div class="ars-numeral">I &middot; Saját API kulcs</div>
-            <div class="ars-station-title">Beállítások fülön</div>
-            <div class="ars-station-text">
-                Ha rendelkezel saját Google API kulccsal, a
-                <strong>Beállítások</strong> fülön bármikor megadhatod.
-            </div>
-        </div>
-        <div class="ars-station">
-            <div class="ars-numeral">II &middot; Nincs még kulcsod?</div>
-            <div class="ars-station-title">Ingyen igényelhető</div>
-            <div class="ars-station-text">
-                A Google fiókoddal pár kattintással igényelhetsz egyet — a pontos
-                leírást és segítséget szintén a <strong>Beállítások</strong> fül
-                alatt találod.
-            </div>
-        </div>
-        <div class="ars-station">
-            <div class="ars-numeral">III &middot; Visszajelzés</div>
-            <div class="ars-station-title">Írj közvetlenül az oldalon</div>
-            <div class="ars-station-text">
-                Görgess az oldal legaljára, és küldd el véleményed az űrlapon —
-                ötlet, hiba, tapasztalat egy helyen.<br>
-                <a href="#visszajelzes">Ugrás a visszajelzéshez ↓</a>
-            </div>
-        </div>
-    </div>
-</div>
-""".format(
-    app_name=APP_NAME,
-    app_version=APP_VERSION,
-    locked_model_display=LOCKED_MODEL_DISPLAY,
-    app_domain=APP_DOMAIN,
-    app_streamlit_url=APP_STREAMLIT_URL,
-)
-
-st.markdown(footer_html, unsafe_allow_html=True)
-
-render_feedback_section()
+render_footer_and_feedback()
