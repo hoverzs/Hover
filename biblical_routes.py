@@ -3,11 +3,15 @@ from __future__ import annotations
 from dataclasses import dataclass
 import json
 from pathlib import Path
-import re
 from typing import Any
 
 from biblical_map_data import BIBLICAL_PLACES_CATALOG_PATH, DATA_DIR, SOURCES_PATH
-from biblical_map_passages import parse_bible_reference
+from biblical_passage_refs import (
+    is_valid_cross_chapter_reference,
+    parse_bible_reference,
+    passage_refs_overlap,
+    passage_span,
+)
 
 
 ROUTES_DIR = DATA_DIR.parent / "biblical_routes"
@@ -103,15 +107,6 @@ class BiblicalRouteStopMatch:
     stop: BiblicalRouteStop
 
 
-@dataclass(frozen=True)
-class _PassageSpan:
-    book_code: str
-    start_chapter: int
-    start_verse: int
-    end_chapter: int
-    end_verse: int
-
-
 def _load_json(path: Path) -> Any:
     try:
         return json.loads(path.read_text(encoding="utf-8"))
@@ -177,65 +172,7 @@ def _validate_passage_refs(refs: tuple[str, ...], field_name: str) -> None:
 
 
 def _is_valid_cross_chapter_reference(reference: str) -> bool:
-    match = re.fullmatch(r"\s*(.+?)\s+(\d+),(\d+)-(\d+),(\d+)\s*", reference)
-    if not match:
-        return False
-    book, start_chapter, start_verse, end_chapter, end_verse = match.groups()
-    if int(end_chapter) < int(start_chapter):
-        return False
-    try:
-        parse_bible_reference(f"{book} {start_chapter},{start_verse}")
-        parse_bible_reference(f"{book} {end_chapter},{end_verse}")
-    except ValueError:
-        return False
-    return True
-
-
-def _passage_span(reference: str | None) -> _PassageSpan | None:
-    raw = str(reference or "").strip()
-    if not raw:
-        return None
-    cross_chapter = re.fullmatch(r"\s*(.+?)\s+(\d+),(\d+)-(\d+),(\d+)\s*", raw)
-    if cross_chapter:
-        book, start_chapter, start_verse, end_chapter, end_verse = cross_chapter.groups()
-        start = parse_bible_reference(f"{book} {start_chapter},{start_verse}")
-        end = parse_bible_reference(f"{book} {end_chapter},{end_verse}")
-        if start.book.code != end.book.code:
-            return None
-        return _PassageSpan(
-            book_code=start.book.code,
-            start_chapter=int(start_chapter),
-            start_verse=int(start_verse),
-            end_chapter=int(end_chapter),
-            end_verse=int(end_verse),
-        )
-    try:
-        parsed = parse_bible_reference(raw)
-    except ValueError:
-        return None
-    start_verse = parsed.verse_start or 1
-    end_verse = parsed.verse_end or parsed.verse_start or 999
-    return _PassageSpan(
-        book_code=parsed.book.code,
-        start_chapter=parsed.chapter,
-        start_verse=start_verse,
-        end_chapter=parsed.chapter,
-        end_verse=end_verse,
-    )
-
-
-def passage_refs_overlap(left: str | None, right: str | None) -> bool:
-    left_span = _passage_span(left)
-    right_span = _passage_span(right)
-    if left_span is None or right_span is None:
-        return False
-    if left_span.book_code != right_span.book_code:
-        return False
-    left_start = (left_span.start_chapter, left_span.start_verse)
-    left_end = (left_span.end_chapter, left_span.end_verse)
-    right_start = (right_span.start_chapter, right_span.start_verse)
-    right_end = (right_span.end_chapter, right_span.end_verse)
-    return left_start <= right_end and right_start <= left_end
+    return is_valid_cross_chapter_reference(reference)
 
 
 def _catalog_place_ids(path: Path) -> tuple[set[str], dict[str, str]]:
@@ -449,7 +386,7 @@ def find_route_stop_matches_for_passage(
     reference: str | None,
     routes: tuple[BiblicalRoute, ...] | None = None,
 ) -> tuple[BiblicalRouteStopMatch, ...]:
-    if _passage_span(reference) is None:
+    if passage_span(reference) is None:
         return ()
     resolved_routes = routes if routes is not None else load_biblical_routes()
     matches: list[BiblicalRouteStopMatch] = []

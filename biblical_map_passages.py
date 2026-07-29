@@ -11,6 +11,7 @@ import sys
 from typing import Any, MutableMapping
 
 from biblical_map_data import BIBLICAL_MAP_PLACES, DATA_DIR
+from biblical_passage_refs import passage_refs_overlap
 
 if "requests" not in sys.modules:
     try:
@@ -155,24 +156,6 @@ def _parse_reference(reference: str | None) -> ParsedReference | None:
         return None
 
 
-def _verse_span(parsed: ParsedReference) -> tuple[int, int] | None:
-    if parsed.verse_start is None:
-        return None
-    return parsed.verse_start, parsed.verse_end or parsed.verse_start
-
-
-def _references_overlap(left: ParsedReference, right: ParsedReference) -> bool:
-    if left.book.code != right.book.code or left.chapter != right.chapter:
-        return False
-    left_span = _verse_span(left)
-    right_span = _verse_span(right)
-    if left_span is None or right_span is None:
-        return False
-    left_start, left_end = left_span
-    right_start, right_end = right_span
-    return left_start <= right_end and right_start <= left_end
-
-
 def find_primary_place_link_for_passage(
     reference: str | None,
     links: tuple[BiblicalPassagePlaceLink, ...] | None = None,
@@ -196,7 +179,7 @@ def find_place_links_for_passage(
     for link in resolved_links:
         if link.place_id not in valid_ids:
             continue
-        if not _references_overlap(parsed, link.parsed_reference):
+        if not passage_refs_overlap(parsed.normalized_reference, link.normalized_reference):
             continue
         if link.place_id in seen_place_ids:
             continue

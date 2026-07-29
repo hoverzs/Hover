@@ -122,7 +122,7 @@ Stoplista:
 
 ## Ismert korlátok
 
-- Nincs még térképi útvonalrajzolás.
+- A térképi útvonalrajzolás sematikus: a stopok közvetlen összekötése, nem rekonstruált ókori nyomvonal.
 - A pilot segmentek sematikusak, nem rekonstruált ókori utak.
 - Nincs távolságszámítás vagy útvonal-optimalizálás.
 - A legacy `place_id` feloldás csak kompatibilitási mód; új adatokban aktív `place_id` használata kötelező.
@@ -145,7 +145,7 @@ A passage-route kapcsolat nem külön kézi mapping. A UI a route stopok `passag
 3. a meglévő bibliai hivatkozásparserrel ellenőrzi az átfedést;
 4. visszaadja a kapcsolódó route és stop párokat.
 
-Ez kezeli az azonos verset, a versszakasz-átfedést és a fejezet-szintű lekérdezést is. Példa: `ApCsel 13` több induló állomást ad vissza, `ApCsel 14` pedig a visszaúti állomásokkal is összekapcsolódik.
+Ez ugyanazt a közös passage-normalizálási és átfedéslogikát használja, mint a Helyszínek nézet passage-place keresése. Kezeli az azonos verset, a versszakasz-átfedést, a fejezet-szintű lekérdezést és az `ApCsel` / `ACT` könyvkód-alakokat is. Példa: `ApCsel 13` több induló állomást és kapcsolódó helyet ad vissza, `ApCsel 14` pedig a visszaúti állomásokkal is összekapcsolódik.
 
 ## Stopkiemelés
 
@@ -164,12 +164,12 @@ A gomb a `Bibliai útvonalak` nézetre vált, kiválasztja az érintett route-ot
 
 ## Sematikus route-vonalak
 
-A route-nézetben a segmentek közvetlenül az egymás utáni stopok koordinátáit kötik össze. Ez nem modern útvonaltervezés, nem Google Maps route, és nem pontos ókori nyomvonalrekonstrukció. A tengeri és szárazföldi szakaszok visszafogottan eltérő színnel jelennek meg:
+A route-nézetben a segmentek közvetlenül az egymás utáni stopok eredeti koordinátáit kötik össze. Ez nem modern útvonaltervezés, nem Google Maps route, és nem pontos ókori nyomvonalrekonstrukció. A tengeri és szárazföldi szakaszok visszafogottan eltérő színnel jelennek meg:
 
 - `land`: szárazföldi, barna árnyalatú sematikus vonal;
 - `sea`: tengeri, kék árnyalatú sematikus vonal.
 
-A viewport az útvonal összes stopja alapján számolódik.
+A visszaúti szakaszok külön vonalstílus-adatot kapnak, és a UI jelmagyarázata elkülöníti az odaút, visszaút, tengeri és szárazföldi szakaszokat. Az azonos koordinátájú oda- és visszaúti stopok kis, determinisztikus vizuális eltolást kapnak a markerhez; a tárolt helykoordináta ettől nem változik. A viewport az útvonal összes stopja alapján számolódik.
 
 ## Új útvonal UI-ba kerülésének feltételei
 

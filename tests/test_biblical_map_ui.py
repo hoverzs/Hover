@@ -32,16 +32,22 @@ from biblical_map_ui import (
     ACTIVE_MAP_VIEW_KEY,
     CATALOG_SEARCH_PICK_KEY,
     CATALOG_SEARCH_QUERY_KEY,
+    CERTAINTY_LABELS,
+    GEOMETRY_STATUS_LABELS,
     HIGHLIGHTED_ROUTE_STOP_IDS_KEY,
     MAP_VIEW_PLACES,
     MAP_VIEW_ROUTES,
     ROUTE_VIEW_WARNING_HU,
+    SEGMENT_TYPE_LABELS,
     SELECTED_ROUTE_ID_KEY,
     SELECTED_ROUTE_STOP_ID_KEY,
+    STOP_TYPE_LABELS,
     SELECTED_PLACE_SELECTBOX_KEY,
     SELECTED_PLACE_ID_KEY,
+    _display_status,
     _render_place_card,
     _render_short_sources,
+    compact_ancient_name_options,
     compact_sources_html,
     compact_sources_markdown,
     dedupe_sources,
@@ -107,12 +113,14 @@ class _FakeStreamlit:
         self.text_inputs = []
         self.warnings = []
         self.buttons = []
+        self.columns_calls = []
 
     def expander(self, label, expanded=False):
         self.expanders.append((label, expanded))
         return _FakeContext(self)
 
     def columns(self, spec, gap=None):
+        self.columns_calls.append((spec, gap))
         return [_FakeContext(self), _FakeContext(self)]
 
     def markdown(self, body, **kwargs):
@@ -395,7 +403,7 @@ def test_demo_passages_resolve_to_expected_places() -> None:
     assert find_primary_place_for_passage("ApCsel 19,1–41") == "ephesus"
     assert find_primary_place_for_passage("ApCsel 19,1–10") == "ephesus"
     assert find_primary_place_for_passage("ApCsel 19,21–41") == "ephesus"
-    assert find_primary_place_for_passage("ApCsel 19") is None
+    assert find_primary_place_for_passage("ApCsel 19") == "ephesus"
     assert find_primary_place_for_passage("Mt 2,23") == "nazareth"
     assert find_primary_place_for_passage("Mk 1,21–28") == "capernaum"
     assert find_primary_place_for_passage("ApCsel 2,1–13") == "jerusalem"
@@ -411,14 +419,15 @@ def test_unknown_empty_and_invalid_passages_do_not_resolve() -> None:
     assert find_primary_place_for_passage("") is None
     assert find_primary_place_for_passage("not a reference") is None
     assert find_primary_place_for_passage("Jn 3,16") is None
-    assert find_primary_place_for_passage("ApCsel 18") is None
+    assert find_primary_place_for_passage("ApCsel 18") == "corinth"
 
 
 def test_all_resolved_place_ids_exist_in_prototype_places() -> None:
     valid_ids = {place.place_id for place in BIBLICAL_MAP_PLACES}
 
     for link in BIBLICAL_PASSAGE_PLACE_LINKS:
-        assert find_primary_place_for_passage(link.normalized_reference) in valid_ids
+        assert link.place_id in valid_ids
+    assert validate_passage_place_links() == BIBLICAL_PASSAGE_PLACE_LINKS
 
 
 def test_auto_selection_updates_for_new_supported_reference() -> None:
@@ -549,7 +558,7 @@ def test_exactly_one_active_ui_map_render_call() -> None:
     map_ui_source = (ROOT / "biblical_map_ui.py").read_text(encoding="utf-8")
     render_fn_start = map_ui_source.index("def render_biblical_map_prototype(")
     expander_index = map_ui_source.index(
-        'with st.expander("Bibliai térkép – prototípus", expanded=False):',
+        'with st.expander("Bibliai térkép", expanded=False):',
         render_fn_start,
     )
     before_expander = map_ui_source[render_fn_start:expander_index]
@@ -561,7 +570,7 @@ def test_exactly_one_active_ui_map_render_call() -> None:
     assert 'st.radio(\n            "Térkép nézet",' in map_ui_source
     assert "SELECTED_PLACE_RADIO_KEY" not in map_ui_source
     assert "st.selectbox(" in map_ui_source
-    assert map_ui_source.count("Bibliai térkép – prototípus") == 1
+    assert map_ui_source.count("Bibliai térkép") == 1
     assert "return" not in before_expander
     assert "passage_reference" not in before_expander.split("st_module", 1)[-1]
     assert "if not places" not in before_expander
@@ -574,7 +583,7 @@ def test_render_accepts_missing_passage_reference_without_early_return() -> None
     render_biblical_map_prototype(passage_reference=None, st_module=fake_st)
 
     assert fake_st.errors == []
-    assert ("Bibliai térkép – prototípus", False) in fake_st.expanders
+    assert ("Bibliai térkép", False) in fake_st.expanders
     assert "A térképes prototípus renderelése aktív." not in fake_st.captions
     assert "Aktuális igerész még nincs megadva." in fake_st.captions
     assert fake_st.maps
@@ -640,6 +649,18 @@ def test_passage_place_selector_only_lists_linked_places() -> None:
         for _, options, *_ in fake_st.selectboxes
         if _ != "Keresési találatok"
     )
+
+
+def test_acts_13_and_14_chapter_queries_resolve_place_links() -> None:
+    acts_13 = [place.place_id for place in passage_linked_places("ApCsel 13")]
+    acts_14 = [place.place_id for place in passage_linked_places("ApCsel 14")]
+    acts_13_internal = [place.place_id for place in passage_linked_places("ACT 13")]
+
+    assert acts_13 == acts_13_internal
+    assert {"seleucia", "salamis", "paphos", "perga", "antioch_2"}.issubset(acts_13)
+    assert {"iconium", "lystra", "derbe", "perga", "attalia"}.issubset(acts_14)
+    assert route_matches_for_passage("ApCsel 13")
+    assert route_matches_for_passage("ApCsel 14")
 
 
 def test_specific_verse_does_not_inherit_whole_passage_place_list() -> None:
@@ -1106,6 +1127,22 @@ def test_missing_hungarian_name_and_summary_use_safe_ui_fallbacks() -> None:
     )
 
 
+def test_compact_ancient_names_remove_duplicates_without_losing_full_data() -> None:
+    ephesus = get_biblical_place("ephesus")
+    assert ephesus is not None
+    place = replace(
+        ephesus,
+        ancient_names=("Ephesus", "Ephesus", "Ephesus 2", "Efezus"),
+        original_names=("Ephesus", "Ἔφεσος"),
+        transliterations=("Efezus", "Ephesos"),
+    )
+
+    compact_names = compact_ancient_name_options(place, limit=6)
+
+    assert compact_names == ("Ephesus", "Efezus", "Ἔφεσος", "Ephesos")
+    assert "Ephesus 2" in place.ancient_names
+
+
 def test_catalog_search_pick_updates_selected_place_without_query_alone() -> None:
     fake_st = _FakeStreamlit()
     fake_st.session_state[CATALOG_SEARCH_QUERY_KEY] = "efe"
@@ -1228,6 +1265,20 @@ def test_route_view_helpers_build_first_missionary_journey_rows() -> None:
     assert [row["place_id"] for row in stop_rows].count("perga") == 2
     assert [row["order"] for row in stop_rows] == list(range(1, 16))
     assert all("lat" in row and "lon" in row for row in stop_rows)
+    assert all("display_lat" in row and "display_lon" in row for row in stop_rows)
+
+    perga_rows = [row for row in stop_rows if row["place_id"] == "perga"]
+    assert perga_rows[0]["lat"] == perga_rows[1]["lat"]
+    assert perga_rows[0]["lon"] == perga_rows[1]["lon"]
+    assert {
+        (row["display_lat"], row["display_lon"])
+        for row in perga_rows
+    } != {(perga_rows[0]["lat"], perga_rows[0]["lon"])}
+    assert route_stop_rows(route) == stop_rows
+
+    assert {row["line_style"] for row in segment_rows} == {"solid", "dashed"}
+    assert {row["segment_type_label"] for row in segment_rows} >= {"szárazföldi", "tengeri"}
+    assert all(row["geometry_status_label"] == "sematikus" for row in segment_rows)
 
 
 def test_route_viewport_is_calculated_from_all_stops() -> None:
@@ -1237,6 +1288,14 @@ def test_route_viewport_is_calculated_from_all_stops() -> None:
     assert 33 <= viewport["latitude"] <= 39
     assert 30 <= viewport["longitude"] <= 37
     assert viewport["zoom"] >= 3
+
+
+def test_route_ui_enum_labels_and_unknown_fallback_are_hungarian() -> None:
+    assert _display_status("certain", CERTAINTY_LABELS) == "biztos"
+    assert _display_status("schematic", GEOMETRY_STATUS_LABELS) == "sematikus"
+    assert _display_status("return_stop", STOP_TYPE_LABELS) == "visszaúti állomás"
+    assert _display_status("sea", SEGMENT_TYPE_LABELS) == "tengeri"
+    assert _display_status("future_value", STOP_TYPE_LABELS) == "future value"
 
 
 def test_passage_to_route_index_matches_acts_13_and_14() -> None:
@@ -1297,9 +1356,10 @@ def test_render_route_view_loads_first_missionary_journey() -> None:
     assert fake_st.session_state[SELECTED_ROUTE_ID_KEY] == "paul_first_missionary_journey"
     assert fake_st.session_state[SELECTED_ROUTE_STOP_ID_KEY] == "antioch_syria_departure"
     assert any("Pál első missziói útja" in body for body in fake_st.markdowns)
-    assert ROUTE_VIEW_WARNING_HU in fake_st.warnings
+    assert fake_st.warnings.count(ROUTE_VIEW_WARNING_HU) == 1
     assert fake_st.pydeck_charts or fake_st.maps
     assert any(label == "Állomás kiválasztása" for label, *_ in fake_st.selectboxes)
+    assert fake_st.columns_calls == [([0.36, 0.64], "medium")]
 
 
 def test_route_view_handles_missing_route_data_gracefully() -> None:

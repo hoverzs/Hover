@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import html
+import math
 import re
 import unicodedata
 from typing import Any, Mapping
@@ -67,6 +68,40 @@ REVIEW_STATUS_LABELS = {
     "needs_review": "szakmai ellenőrzésre vár",
     "reviewed": "ellenőrzött",
     "approved": "jóváhagyott",
+}
+CERTAINTY_LABELS = {
+    "certain": "biztos",
+    "probable": "valószínű",
+    "possible": "lehetséges",
+    "disputed": "vitatott",
+    "unknown": "ismeretlen",
+    "mixed": "vegyes",
+}
+GEOMETRY_STATUS_LABELS = {
+    "schematic": "sematikus",
+    "reconstructed": "rekonstruált",
+    "approximate": "hozzávetőleges",
+    "exact": "pontos",
+    "unavailable": "nem áll rendelkezésre",
+}
+STOP_TYPE_LABELS = {
+    "embarkation": "behajózás",
+    "disembarkation": "partraszállás",
+    "transit": "áthaladás",
+    "destination": "célállomás",
+    "return_stop": "visszaúti állomás",
+    "explicit_place": "a szövegben megnevezett hely",
+    "inferred_stop": "kikövetkeztetett állomás",
+    "region": "régió",
+    "uncertain_place": "bizonytalan hely",
+}
+SEGMENT_TYPE_LABELS = {
+    "land": "szárazföldi",
+    "sea": "tengeri",
+    "river": "folyami",
+    "mixed": "vegyes",
+    "schematic": "sematikus",
+    "unknown": "ismeretlen",
 }
 
 
@@ -293,17 +328,35 @@ def route_stop_rows(
             {
                 "lat": place.latitude,
                 "lon": place.longitude,
+                "display_lat": place.latitude,
+                "display_lon": place.longitude,
                 "name": route_stop_display_name(stop, place),
                 "place_id": place.place_id,
                 "stop_id": stop.stop_id,
                 "order": stop.order,
                 "label": str(stop.order),
                 "stop_type": stop.stop_type,
+                "stop_type_label": _display_status(stop.stop_type, STOP_TYPE_LABELS),
                 "certainty": stop.certainty,
+                "certainty_label": _display_status(stop.certainty, CERTAINTY_LABELS),
+                "direction": route_direction_label(stop),
+                "passage_refs": ", ".join(stop.passage_refs),
                 "size": 680 if is_selected else 560 if is_highlighted else 420,
                 "color": "#2f6f8f" if is_selected or is_highlighted else "#6f6a5f",
             }
         )
+    coordinate_groups: dict[tuple[float, float], list[dict[str, Any]]] = {}
+    for row in rows:
+        key = (round(float(row["lat"]), 6), round(float(row["lon"]), 6))
+        coordinate_groups.setdefault(key, []).append(row)
+    for group in coordinate_groups.values():
+        if len(group) < 2:
+            continue
+        radius = 0.035
+        for index, row in enumerate(sorted(group, key=lambda item: int(item["order"]))):
+            angle = (2 * math.pi * index) / len(group)
+            row["display_lat"] = float(row["lat"]) + math.sin(angle) * radius
+            row["display_lon"] = float(row["lon"]) + math.cos(angle) * radius
     return rows
 
 
@@ -323,21 +376,44 @@ def route_segment_rows(
         to_place = by_place_id.get(to_stop.place_id)
         if from_place is None or to_place is None:
             continue
+        direction = (
+            "return"
+            if (
+                from_stop.stop_type == "return_stop"
+                or to_stop.stop_type == "return_stop"
+                or from_stop.stop_id.endswith("_return")
+                or to_stop.stop_id.endswith("_return")
+            )
+            else "outbound"
+        )
         rows.append(
             {
                 "from_stop_id": segment.from_stop_id,
                 "to_stop_id": segment.to_stop_id,
                 "segment_type": segment.segment_type,
+                "segment_type_label": _display_status(segment.segment_type, SEGMENT_TYPE_LABELS),
                 "certainty": segment.certainty,
+                "certainty_label": _display_status(segment.certainty, CERTAINTY_LABELS),
                 "geometry_status": segment.geometry_status,
+                "geometry_status_label": _display_status(segment.geometry_status, GEOMETRY_STATUS_LABELS),
+                "direction": direction,
+                "line_style": "dashed" if direction == "return" else "solid",
                 "path": [
                     [from_place.longitude, from_place.latitude],
                     [to_place.longitude, to_place.latitude],
                 ],
-                "color": [62, 93, 116, 175]
-                if segment.segment_type == "sea"
-                else [129, 103, 66, 175],
-                "width": 3 if segment.segment_type == "sea" else 2,
+                "color": (
+                    [53, 101, 132, 190]
+                    if segment.segment_type == "sea"
+                    else [132, 101, 61, 190]
+                )
+                if direction == "outbound"
+                else (
+                    [53, 101, 132, 125]
+                    if segment.segment_type == "sea"
+                    else [132, 101, 61, 125]
+                ),
+                "width": 4 if segment.segment_type == "sea" else 3,
             }
         )
     return rows
@@ -445,7 +521,10 @@ def _render_styles(st: Any) -> None:
 
 
 def _display_status(value: str | None, labels: Mapping[str, str]) -> str:
-    return labels.get(str(value or "").strip(), str(value or "").strip() or "—")
+    raw = str(value or "").strip()
+    if not raw:
+        return "—"
+    return labels.get(raw, raw.replace("_", " "))
 
 
 def _source_index() -> dict[str, BiblicalMapSource]:
@@ -794,6 +873,90 @@ def _route_labels(routes: tuple[BiblicalRoute, ...]) -> dict[str, str]:
     return {route.route_id: route.name_hu for route in routes}
 
 
+def compact_ancient_name_options(place: BiblicalPlace, *, limit: int = 6) -> tuple[str, ...]:
+    values = [
+        *place.ancient_names,
+        *place.original_names,
+        *place.transliterations,
+    ]
+    compact: list[str] = []
+    seen: set[str] = set()
+    for value in values:
+        text = _usable_text(value)
+        if not text:
+            continue
+        if re.search(r"\s+\d+$", text):
+            continue
+        normalized = normalize_place_search_text(text)
+        if normalized in seen:
+            continue
+        seen.add(normalized)
+        compact.append(text)
+        if len(compact) >= limit:
+            break
+    return tuple(compact)
+
+
+def _all_route_place_name_options(place: BiblicalPlace) -> tuple[str, ...]:
+    values = [
+        *place.ancient_names,
+        *place.original_names,
+        *place.transliterations,
+    ]
+    names: list[str] = []
+    seen: set[str] = set()
+    for value in values:
+        text = _usable_text(value)
+        normalized = normalize_place_search_text(text)
+        if not text or normalized in seen:
+            continue
+        seen.add(normalized)
+        names.append(text)
+    return tuple(names)
+
+
+def _render_compact_route_place_card(
+    st: Any,
+    place: BiblicalPlace,
+    passage_reference: str,
+) -> None:
+    display_name = display_place_name(place)
+    ancient_names = compact_ancient_name_options(place)
+    all_names = _all_route_place_name_options(place)
+    modern_location = " · ".join(
+        part for part in (place.modern_name, place.modern_country) if _usable_text(part)
+    ) or "—"
+    description = fallback_place_description(place)
+    st.markdown(
+        f"""
+<div class="textus-biblical-map-card">
+  <h4>{html.escape(display_name)}</h4>
+  <div class="textus-biblical-map-meta">
+    <div><strong>Ókori / alternatív név:</strong> {html.escape(", ".join(ancient_names) if ancient_names else "—")}</div>
+    <div><strong>Angol név:</strong> {html.escape(place.name_en or "—")}</div>
+    <div><strong>Mai hely:</strong> {html.escape(modern_location)}</div>
+    <div><strong>Helytípus:</strong> {html.escape(place.place_type or "—")}</div>
+    <div><strong>Bizonyosság:</strong> {html.escape(_display_status(place.identification_status, IDENTIFICATION_STATUS_LABELS))}</div>
+    <div><strong>Kapcsolódó igehely:</strong> {html.escape(passage_reference or "—")}</div>
+  </div>
+  {f"<p>{html.escape(description)}</p>" if description else ""}
+</div>
+""",
+        unsafe_allow_html=True,
+    )
+    if len(all_names) > len(ancient_names):
+        hidden_names = [name for name in all_names if name not in ancient_names]
+        with st.expander("További névváltozatok", expanded=False):
+            st.markdown(", ".join(html.escape(name) for name in hidden_names))
+
+
+def _render_route_legend(st: Any, segment_rows: list[dict[str, Any]]) -> None:
+    items = ["szárazföldi út", "tengeri út", "visszaút"]
+    if any(row.get("certainty") in {"possible", "disputed", "unknown"} for row in segment_rows):
+        items.append("bizonytalan szakasz")
+    st.caption("Jelmagyarázat: " + " · ".join(items))
+
+
 def _render_route_map(
     st: Any,
     route: BiblicalRoute,
@@ -804,6 +967,7 @@ def _render_route_map(
         st.warning("Ehhez az útvonalhoz nincs megjeleníthető állomás.")
         return
     viewport = route_viewport(stop_rows)
+    _render_route_legend(st, segment_rows)
     try:
         import pydeck as pdk  # type: ignore
 
@@ -825,20 +989,20 @@ def _render_route_map(
                 pdk.Layer(
                     "ScatterplotLayer",
                     data=stop_rows,
-                    get_position="[lon, lat]",
+                    get_position="[display_lon, display_lat]",
                     get_radius="size",
-                    get_fill_color="[90, 122, 168, 180]",
+                    get_fill_color="[245, 239, 224, 230]",
                     get_line_color="[45, 55, 65, 220]",
-                    line_width_min_pixels=1,
+                    line_width_min_pixels=2,
                     pickable=True,
                 ),
                 pdk.Layer(
                     "TextLayer",
                     data=stop_rows,
-                    get_position="[lon, lat]",
+                    get_position="[display_lon, display_lat]",
                     get_text="label",
                     get_size=14,
-                    get_color="[35, 35, 35, 255]",
+                    get_color="[30, 42, 56, 255]",
                     get_alignment_baseline="'center'",
                     pickable=False,
                 ),
@@ -853,9 +1017,12 @@ def _render_route_map(
                     zoom=viewport["zoom"],
                 ),
                 layers=layers,
-                tooltip={"text": "{order}. {name}\n{stop_type} · {certainty}"},
+                tooltip={
+                    "text": "{order}. {name}\n{direction} · {passage_refs}\n{stop_type_label} · {certainty_label}"
+                },
             ),
             use_container_width=True,
+            height=520,
         )
     except Exception:
         st.warning(
@@ -864,8 +1031,8 @@ def _render_route_map(
         try:
             st.map(
                 stop_rows,
-                latitude="lat",
-                longitude="lon",
+                latitude="display_lat",
+                longitude="display_lon",
                 size="size",
                 color="color",
                 zoom=int(viewport["zoom"]),
@@ -908,15 +1075,14 @@ def _render_route_view(st: Any) -> None:
         st.session_state[SELECTED_ROUTE_STOP_ID_KEY] = selected_stop_id
 
     st.markdown(f"**{route.name_hu}**")
-    st.markdown(route.short_description_hu)
     st.caption(
         "Elsődleges szakasz: "
         + ", ".join(route.primary_passage_refs)
         + (f" · {route.chronology_label_hu}" if route.chronology_label_hu else "")
     )
     st.caption(
-        f"Bizonyosság: {_display_status(route.certainty, IDENTIFICATION_STATUS_LABELS)} · "
-        f"Geometria: {route.geometry_status}"
+        f"Bizonyosság: {_display_status(route.certainty, CERTAINTY_LABELS)} · "
+        f"Geometria: {_display_status(route.geometry_status, GEOMETRY_STATUS_LABELS)}"
     )
     st.warning(ROUTE_VIEW_WARNING_HU)
 
@@ -926,9 +1092,7 @@ def _render_route_view(st: Any) -> None:
         highlighted_stop_ids=highlighted_stop_ids,
     )
     segment_rows = route_segment_rows(route)
-    left, right = st.columns([1.25, 0.75], gap="medium")
-    with left:
-        _render_route_map(st, route, stop_rows, segment_rows)
+    _render_route_map(st, route, stop_rows, segment_rows)
 
     stop_labels = {
         stop.stop_id: (
@@ -938,7 +1102,8 @@ def _render_route_view(st: Any) -> None:
         )
         for stop in route.stops
     }
-    with right:
+    selector_col, detail_col = st.columns([0.36, 0.64], gap="medium")
+    with selector_col:
         chosen_stop_id = st.selectbox(
             "Állomás kiválasztása",
             valid_stop_ids,
@@ -946,6 +1111,7 @@ def _render_route_view(st: Any) -> None:
             format_func=lambda stop_id: stop_labels.get(stop_id, stop_id),
             key=SELECTED_ROUTE_STOP_ID_KEY,
         )
+    with detail_col:
         selected_stop = next(stop for stop in route.stops if stop.stop_id == chosen_stop_id)
         selected_place = places_by_id(BIBLICAL_MAP_PLACES).get(selected_stop.place_id)
         st.markdown(
@@ -954,11 +1120,16 @@ def _render_route_view(st: Any) -> None:
         )
         st.caption(
             f"Igehely: {', '.join(selected_stop.passage_refs)} · "
-            f"{selected_stop.stop_type} · {selected_stop.certainty}"
+            f"{_display_status(selected_stop.stop_type, STOP_TYPE_LABELS)} · "
+            f"{_display_status(selected_stop.certainty, CERTAINTY_LABELS)}"
         )
         st.markdown(selected_stop.event_summary_hu)
         if selected_place is not None:
-            _render_place_card(st, selected_place, ", ".join(selected_stop.passage_refs))
+            _render_compact_route_place_card(
+                st,
+                selected_place,
+                ", ".join(selected_stop.passage_refs),
+            )
 
     st.markdown("#### Állomások")
     for stop in route.stops:
@@ -968,7 +1139,9 @@ def _render_route_view(st: Any) -> None:
             f"{emphasis}{stop.order}. {route_stop_display_name(stop, place)} – "
             f"{route_direction_label(stop)}{emphasis}  \n"
             f"{stop.event_summary_hu}  \n"
-            f"`{', '.join(stop.passage_refs)}` · `{stop.stop_type}` · `{stop.certainty}`"
+            f"`{', '.join(stop.passage_refs)}` · "
+            f"{_display_status(stop.stop_type, STOP_TYPE_LABELS)} · "
+            f"{_display_status(stop.certainty, CERTAINTY_LABELS)}"
         )
 
 
@@ -1091,7 +1264,7 @@ def render_biblical_map_prototype(
     places = BIBLICAL_MAP_PLACES
 
     _render_styles(st)
-    with st.expander("Bibliai térkép – prototípus", expanded=False):
+    with st.expander("Bibliai térkép", expanded=False):
         view_options = [MAP_VIEW_PLACES, MAP_VIEW_ROUTES]
         current_view = str(st.session_state.get(ACTIVE_MAP_VIEW_KEY) or MAP_VIEW_PLACES)
         if current_view not in view_options:
@@ -1114,6 +1287,8 @@ __all__ = [
     "CATALOG_SEARCH_LIMIT",
     "CATALOG_SEARCH_PICK_KEY",
     "CATALOG_SEARCH_QUERY_KEY",
+    "CERTAINTY_LABELS",
+    "GEOMETRY_STATUS_LABELS",
     "HIGHLIGHTED_ROUTE_STOP_IDS_KEY",
     "MAP_VIEW_PLACES",
     "MAP_VIEW_ROUTES",
@@ -1122,6 +1297,9 @@ __all__ = [
     "SELECTED_ROUTE_ID_KEY",
     "SELECTED_ROUTE_STOP_ID_KEY",
     "ROUTE_VIEW_WARNING_HU",
+    "SEGMENT_TYPE_LABELS",
+    "STOP_TYPE_LABELS",
+    "compact_ancient_name_options",
     "compact_sources_html",
     "compact_sources_markdown",
     "dedupe_sources",

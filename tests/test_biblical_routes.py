@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from biblical_routes import BiblicalRouteDataError, load_biblical_routes
+from biblical_routes import BiblicalRouteDataError, load_biblical_routes, passage_refs_overlap
 
 
 ROUTES_PATH = ROOT / "data" / "biblical_routes" / "biblical_routes.json"
@@ -145,6 +145,13 @@ def test_invalid_passage_reference_is_rejected() -> None:
 def test_cross_chapter_primary_reference_is_accepted() -> None:
     route = load_biblical_routes()[0]
     assert route.primary_passage_refs == ("ApCsel 13,1-14,28",)
+
+
+def test_shared_passage_overlap_handles_chapter_and_book_code_aliases() -> None:
+    assert passage_refs_overlap("ApCsel 13", "ACT 13,4")
+    assert passage_refs_overlap("ACT 14", "ApCsel 14,21-23")
+    assert passage_refs_overlap("ApCsel 13,1-14,28", "ACT 14,8")
+    assert not passage_refs_overlap("ApCsel 13", "ACT 14,8")
 
 
 def test_loader_runs_without_streamlit_dependency() -> None:
