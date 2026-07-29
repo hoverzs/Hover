@@ -24,6 +24,7 @@ def hebrew_token_selector(
         data={
             "tokens": component_tokens(tokens, selected_token_key),
             "selected_token_key": selected_token_key,
+            "selected_word_index": _word_index_from_selection_key(selected_token_key),
         },
         key=key,
         on_selected_token_key_change=on_selected_token_key_change
@@ -31,6 +32,8 @@ def hebrew_token_selector(
         else lambda: None,
     )
     selected = getattr(result, "selected_token_key", None)
+    if selected is None:
+        selected = getattr(result, "selected_word_index", None)
     return normalize_hebrew_component_selection_key(selected, tokens)
 
 
@@ -49,6 +52,8 @@ def component_tokens(
                 "surface": token.surface,
                 "language": token.language,
                 "morphology_code": token.morphology_code,
+                "strong_id": token.core_component.strong_id if token.core_component else "",
+                "selected_word_index": token.word_index,
                 "selection_key": token.stable_key,
                 "selected": token.stable_key == selected_token_key,
             }
@@ -61,7 +66,23 @@ def normalize_hebrew_component_selection_key(value: Any, tokens: list[HebrewToke
         return None
     candidate = str(value)
     valid_keys = {token.stable_key for token in tokens}
-    return candidate if candidate in valid_keys else None
+    if candidate in valid_keys:
+        return candidate
+    try:
+        word_index = int(candidate)
+    except ValueError:
+        return None
+    matches = [token.stable_key for token in tokens if token.word_index == word_index]
+    return matches[0] if len(matches) == 1 else None
+
+
+def _word_index_from_selection_key(value: str | None) -> int | None:
+    if value is None:
+        return None
+    try:
+        return int(str(value).split(":")[-1])
+    except ValueError:
+        return None
 
 
 def _component():
