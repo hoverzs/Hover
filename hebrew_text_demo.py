@@ -10,6 +10,10 @@ from typing import Any
 
 import streamlit as st
 
+from bible_engine.hebrew_books import (
+    parse_hebrew_reference,
+    tahot_book_code_from_ruf_code,
+)
 from bible_engine.hebrew_lexicon_repository import HebrewLexiconRepository
 from bible_engine.hebrew_lexicon_hu import HebrewHungarianLexiconRepository
 from bible_engine.hebrew_morphology import HebrewMorphology
@@ -485,6 +489,126 @@ def _reference_label(book: str, chapter: int, start: int, end: int) -> str:
     return f"{book} {chapter},{start}-{end}"
 
 
+def parse_hebrew_original_reference(reference: str) -> tuple[str, int, int, int]:
+    return parse_hebrew_reference(reference)
+
+
+def render_hebrew_original_language_panel(
+    book: str,
+    chapter: int,
+    verse_start: int,
+    verse_end: int | None = None,
+    *,
+    key_prefix: str = "hebrew_original",
+    database_path: Path = DEFAULT_TAHOT_DATABASE_PATH,
+    reference_label: str | None = None,
+) -> None:
+    _ensure_hebrew_analysis_styles()
+
+    token_repository = HebrewTokenRepository(database_path)
+    diagnostics = token_repository.diagnostics()
+    if not diagnostics.exists:
+        st.warning("A h\u00e9ber-ar\u00e1mi eredeti sz\u00f6veg adatb\u00e1zisa m\u00e9g nincs el\u0151k\u00e9sz\u00edtve.")
+        st.code(str(database_path))
+        return
+    if diagnostics.integrity_check != "ok" or not diagnostics.required_tables_present:
+        st.error("A h\u00e9ber-ar\u00e1mi adatb\u00e1zis l\u00e9tezik, de nem \u00e9rv\u00e9nyes vagy nem teljes.")
+        st.json(diagnostics.__dict__)
+        return
+
+    end = verse_end or verse_start
+    result = token_repository.passage(book, chapter, verse_start, end)
+    if result.status != "ok":
+        st.warning("A kért ószövetségi szakasz nem található a helyi TAHOT adatbázisban.")
+        with st.expander("Fejlesztői részletek", expanded=False):
+            st.code(f"{book} {chapter},{verse_start}-{end}: {result.status}")
+        return
+    tokens = list(result.tokens)
+    if not tokens:
+        return
+
+    selected_state_key = f"{key_prefix}_selected_key"
+    reference_state_key = f"{key_prefix}_reference_key"
+    fallback_key = f"{key_prefix}_fallback_selector"
+    reference_key = f"{book}:{chapter}:{verse_start}:{end}:{len(tokens)}"
+    if st.session_state.get(reference_state_key) != reference_key:
+        st.session_state[selected_state_key] = tokens[0].stable_key
+        st.session_state[reference_state_key] = reference_key
+
+    current_key = _selected_token_key(tokens, st.session_state.get(selected_state_key))
+    st.session_state[selected_state_key] = current_key
+
+    st.markdown(
+        '<h3 class="textus-hebrew-analysis-title">H\u00e9ber-ar\u00e1mi eredeti sz\u00f6veg</h3>',
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        '<div class="textus-hebrew-analysis-label">V\u00e1lasszon egy h\u00e9ber vagy ar\u00e1mi sz\u00f3t</div>',
+        unsafe_allow_html=True,
+    )
+    st.caption(reference_label or _reference_label(book, chapter, verse_start, end))
+    selected = hebrew_token_selector(
+        tokens,
+        current_key,
+        key=f"{key_prefix}_inline_token_selector",
+    )
+    selected_key = _selected_token_key(tokens, selected or current_key)
+    if selected_key != current_key:
+        st.session_state[selected_state_key] = selected_key
+        st.rerun()
+    selected_token = next((token for token in tokens if token.stable_key == selected_key), tokens[0])
+    st.session_state[fallback_key] = selected_token.stable_key
+    st.markdown('<div class="textus-hebrew-fallback-marker"></div>', unsafe_allow_html=True)
+
+    def sync_fallback_selection() -> None:
+        st.session_state[selected_state_key] = _selected_token_key(
+            tokens,
+            st.session_state.get(fallback_key),
+        )
+
+    with st.expander("Alternat\u00edv sz\u00f3v\u00e1laszt\u00e1s", expanded=False):
+        st.selectbox(
+            "Token",
+            [token.stable_key for token in tokens],
+            index=[token.stable_key for token in tokens].index(selected_token.stable_key),
+            key=fallback_key,
+            format_func=lambda key: _fallback_label(tokens, key),
+            on_change=sync_fallback_selection,
+        )
+
+    lexicon = HebrewLexiconRepository(DEFAULT_TBESH_DATABASE_PATH)
+    hungarian_lexicon = HebrewHungarianLexiconRepository(tbesh_database_path=DEFAULT_TBESH_DATABASE_PATH)
+    expansions = load_tehmc_expansions(TEHMC_SOURCE) if TEHMC_SOURCE.exists() else {}
+    morphology = token_repository.morphology(selected_token, expansions)
+    lookup = lexicon.lookup_token(selected_token)
+    hu_lookup = (
+        hungarian_lexicon.lookup(selected_token.core_component.strong_id)
+        if selected_token.core_component
+        else None
+    )
+    view_model = build_hebrew_token_view_model(selected_token, morphology, lookup)
+    render_hebrew_analysis_card(selected_token, view_model, hu_lookup, lookup)
+    st.caption("Forr\u00e1s \u00e9s licenc: STEP Bible / STEPBible-Data, CC BY 4.0, www.STEPBible.org.")
+
+
+def render_hebrew_original_language_reference(
+    reference: str,
+    *,
+    key_prefix: str = "hebrew_original",
+    database_path: Path = DEFAULT_TAHOT_DATABASE_PATH,
+) -> None:
+    book, chapter, verse_start, verse_end = parse_hebrew_original_reference(reference)
+    render_hebrew_original_language_panel(
+        book,
+        chapter,
+        verse_start,
+        verse_end,
+        key_prefix=key_prefix,
+        database_path=database_path,
+        reference_label=reference,
+    )
+
+
 def _ensure_hebrew_analysis_styles() -> None:
     st.markdown(
         """
@@ -570,86 +694,19 @@ def _ensure_hebrew_analysis_styles() -> None:
 
 
 def render_hebrew_demo(database_path: Path = DEFAULT_TAHOT_DATABASE_PATH) -> None:
-    st.title("Héber Ószövetség prototípus")
-    st.caption("Fejlesztői TAHOT/TBESH prototípus. Forrás: STEP Bible, CC BY 4.0.")
-
-    _ensure_hebrew_analysis_styles()
-
-    token_repository = HebrewTokenRepository(database_path)
-    diagnostics = token_repository.diagnostics()
-    if not diagnostics.exists:
-        st.warning(
-            "A héber prototípus adatbázis még nincs elkészítve. "
-            "Futtasd: .venv\\Scripts\\python.exe scripts\\build_hebrew_prototype_db.py"
-        )
-        st.code(str(database_path))
-        return
-    if diagnostics.integrity_check != "ok" or not diagnostics.required_tables_present:
-        st.error("A héber adatbázis létezik, de nem érvényes vagy nem teljes.")
-        st.json(diagnostics.__dict__)
-        return
+    st.title("H\u00e9ber \u00d3sz\u00f6vets\u00e9g protot\u00edpus")
+    st.caption("Fejleszt\u0151i TAHOT/TBESH protot\u00edpus. Forr\u00e1s: STEP Bible, CC BY 4.0.")
 
     label = st.selectbox("Szakasz", tuple(PASSAGES))
     book, chapter, start, end = PASSAGES[label]
-    result = token_repository.passage(book, chapter, start, end)
-    if result.status != "ok":
-        st.warning(f"A szakasz nem található: {result.status}")
-        return
-    tokens = list(result.tokens)
-    if not tokens:
-        return
-
-    reference_key = f"{book}:{chapter}:{start}:{end}:{len(tokens)}"
-    if st.session_state.get("hebrew_demo_reference_key") != reference_key:
-        st.session_state["hebrew_demo_selected_key"] = tokens[0].stable_key
-        st.session_state["hebrew_demo_reference_key"] = reference_key
-
-    current_key = _selected_token_key(tokens, st.session_state.get("hebrew_demo_selected_key"))
-    st.session_state["hebrew_demo_selected_key"] = current_key
-
-    st.markdown(
-        '<h3 class="textus-hebrew-analysis-title">Héber–arámi eredeti szöveg</h3>',
-        unsafe_allow_html=True,
+    render_hebrew_original_language_panel(
+        book,
+        chapter,
+        start,
+        end,
+        key_prefix="hebrew_demo",
+        database_path=database_path,
     )
-    st.markdown(
-        '<div class="textus-hebrew-analysis-label">Válasszon egy héber vagy arámi szót</div>',
-        unsafe_allow_html=True,
-    )
-    st.caption(_reference_label(book, chapter, start, end))
-    selected = hebrew_token_selector(
-        tokens,
-        current_key,
-        key=f"hebrew-selector-{book}-{chapter}-{start}-{end}",
-    )
-    selected_key = _selected_token_key(tokens, selected or current_key)
-    if selected_key != current_key:
-        st.session_state["hebrew_demo_selected_key"] = selected_key
-        st.rerun()
-    selected_token = next((token for token in tokens if token.stable_key == selected_key), tokens[0])
-    st.markdown('<div class="textus-hebrew-fallback-marker"></div>', unsafe_allow_html=True)
-
-    with st.expander("Alternatív szóválasztás", expanded=False):
-        st.selectbox(
-            "Token",
-            [token.stable_key for token in tokens],
-            index=[token.stable_key for token in tokens].index(selected_token.stable_key),
-            key="hebrew_demo_selected_key",
-            format_func=lambda key: _fallback_label(tokens, key),
-        )
-
-    lexicon = HebrewLexiconRepository(DEFAULT_TBESH_DATABASE_PATH)
-    hungarian_lexicon = HebrewHungarianLexiconRepository(tbesh_database_path=DEFAULT_TBESH_DATABASE_PATH)
-    expansions = load_tehmc_expansions(TEHMC_SOURCE) if TEHMC_SOURCE.exists() else {}
-    morphology = token_repository.morphology(selected_token, expansions)
-    lookup = lexicon.lookup_token(selected_token)
-    hu_lookup = (
-        hungarian_lexicon.lookup(selected_token.core_component.strong_id)
-        if selected_token.core_component
-        else None
-    )
-    view_model = build_hebrew_token_view_model(selected_token, morphology, lookup)
-    render_hebrew_analysis_card(selected_token, view_model, hu_lookup, lookup)
-    st.caption("Forrás és licenc: STEP Bible / STEPBible-Data, CC BY 4.0, www.STEPBible.org.")
 
 
 if __name__ == "__main__":

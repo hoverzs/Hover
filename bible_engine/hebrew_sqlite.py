@@ -12,6 +12,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from bible_engine.hebrew_parser import HebrewComponent, HebrewToken, parse_tahot_row
+from bible_engine.hebrew_books import OT_BOOK_ORDER
 from bible_engine.paths import GENERATED_DATA_DIR
 from bible_engine.tbesh_parser import HebrewLexiconEntry, parse_tbesh_row
 
@@ -20,49 +21,6 @@ TAHOT_DATABASE_NAME = "tahot_ot_runtime.sqlite3"
 TBESH_DATABASE_NAME = "tbesh_lexicon_runtime.sqlite3"
 DEFAULT_TAHOT_DATABASE_PATH = GENERATED_DATA_DIR / TAHOT_DATABASE_NAME
 DEFAULT_TBESH_DATABASE_PATH = GENERATED_DATA_DIR / TBESH_DATABASE_NAME
-
-OT_BOOK_ORDER = (
-    "Gen",
-    "Exo",
-    "Lev",
-    "Num",
-    "Deu",
-    "Jos",
-    "Jdg",
-    "Rut",
-    "1Sa",
-    "2Sa",
-    "1Ki",
-    "2Ki",
-    "1Ch",
-    "2Ch",
-    "Ezr",
-    "Neh",
-    "Est",
-    "Job",
-    "Psa",
-    "Pro",
-    "Ecc",
-    "Sng",
-    "Isa",
-    "Jer",
-    "Lam",
-    "Ezk",
-    "Dan",
-    "Hos",
-    "Jol",
-    "Amo",
-    "Oba",
-    "Jon",
-    "Mic",
-    "Nam",
-    "Hab",
-    "Zep",
-    "Hag",
-    "Zec",
-    "Mal",
-)
-
 
 @dataclass(frozen=True)
 class HebrewImportReport:

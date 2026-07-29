@@ -90,6 +90,7 @@ from bible_text_ui import (
     render_bible_text_editor,
     save_bible_text_from_widgets,
 )
+from bible_engine.greek_analysis_ui import render_greek_analysis_block
 from passage_search_history import invalidate_used_passage_cache
 from passage_search_ui import (
     apply_pending_passage_search_before_widget,
@@ -6980,6 +6981,12 @@ def render_original_text_panel() -> None:
                 title="Igeszakasz hiányzik",
                 body="Add meg az igeszakaszt az Igehely fülön — innen automatikusan átvesszük.",
                 tone="info",
+            )
+
+        if _igehely_orig:
+            render_greek_analysis_block(
+                reference=_igehely_orig,
+                key_prefix="textus_original_language",
             )
 
         _orig_running = bool(st.session_state.get("_original_running"))

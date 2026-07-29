@@ -117,10 +117,21 @@ def render_greek_analysis_block(
     | None = None,
 ) -> None:
     status = greek_reference_status(reference)
-    if status in {"empty", "invalid"}:
+    if status == "empty":
+        return
+    if status == "invalid":
+        _render_possible_hebrew_reference_error(reference)
         return
     if status == "old_testament":
-        st.caption(OLD_TESTAMENT_MESSAGE)
+        from bible_engine.hebrew_books import HebrewReferenceError
+        from hebrew_text_demo import render_hebrew_original_language_reference
+
+        try:
+            render_hebrew_original_language_reference(reference, key_prefix=key_prefix)
+        except HebrewReferenceError as exc:
+            st.warning(str(exc))
+            with st.expander("Fejlesztői részletek", expanded=False):
+                st.code(exc.technical_detail)
         return
     if status == "cross_chapter":
         st.caption(CROSS_CHAPTER_GREEK_MESSAGE)
@@ -161,6 +172,19 @@ def render_greek_analysis_block(
         key_prefix=key_prefix,
         reference_label=_greek_reference_label(reference),
     )
+
+
+def _render_possible_hebrew_reference_error(reference: str) -> None:
+    if not re.search(r"\d", reference or ""):
+        return
+    from bible_engine.hebrew_books import HebrewReferenceError, parse_hebrew_reference
+
+    try:
+        parse_hebrew_reference(reference)
+    except HebrewReferenceError as exc:
+        st.warning(str(exc))
+        with st.expander("Fejlesztői részletek", expanded=False):
+            st.code(exc.technical_detail)
 
 
 def greek_reference_status(reference: str) -> GreekReferenceStatus:

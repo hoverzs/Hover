@@ -9,7 +9,14 @@ from bible_engine.hebrew_lexicon_hu import HebrewHungarianLexiconRepository
 from bible_engine.hebrew_lexicon_repository import HebrewLexiconRepository
 from bible_engine.hebrew_sqlite import DEFAULT_TAHOT_DATABASE_PATH, DEFAULT_TBESH_DATABASE_PATH, import_hebrew_fixture_database
 from bible_engine.hebrew_token_repository import HebrewTokenRepository
-from hebrew_text_demo import _component_value, _display_lexical_note, build_hebrew_token_view_model
+from bible_engine.hebrew_books import OT_BOOKS
+from hebrew_text_demo import (
+    _component_value,
+    _display_lexical_note,
+    build_hebrew_token_view_model,
+    parse_hebrew_original_reference,
+    tahot_book_code_from_ruf_code,
+)
 
 
 FIXTURES = Path(__file__).parent / "fixtures"
@@ -28,6 +35,106 @@ def test_token_repository_statuses_and_passage_query(tmp_path: Path) -> None:
     assert result.status == "ok"
     assert result.tokens[0].stable_key == "Rut:1:1:1"
     assert missing.status == "database_missing"
+
+
+def test_ruf_old_testament_references_map_to_tahot_codes() -> None:
+    assert len(OT_BOOKS) == 39
+    assert tahot_book_code_from_ruf_code("GEN") == "Gen"
+    assert tahot_book_code_from_ruf_code("PSA") == "Psa"
+    assert tahot_book_code_from_ruf_code("RUT") == "Rut"
+    assert tahot_book_code_from_ruf_code("DAN") == "Dan"
+    assert tahot_book_code_from_ruf_code("EZR") == "Ezr"
+
+    assert parse_hebrew_original_reference("1M\u00f3z 1,1-4") == ("Gen", 1, 1, 4)
+    assert parse_hebrew_original_reference("Zsolt 23,1-4") == ("Psa", 23, 1, 4)
+    assert parse_hebrew_original_reference("Ruth 4,13-17") == ("Rut", 4, 13, 17)
+    assert parse_hebrew_original_reference("D\u00e1niel 2,4") == ("Dan", 2, 4, 4)
+    assert parse_hebrew_original_reference("Ezsdr\u00e1s 6,16") == ("Ezr", 6, 16, 16)
+
+
+def test_hebrew_reference_parser_handles_zechariah_variants() -> None:
+    assert parse_hebrew_original_reference("Zak 1,1-4") == ("Zec", 1, 1, 4)
+    assert parse_hebrew_original_reference("Zak 1:1-4") == ("Zec", 1, 1, 4)
+    assert parse_hebrew_original_reference("Zakari\u00e1s 1,1\u20134") == ("Zec", 1, 1, 4)
+
+
+def test_hebrew_reference_parser_covers_ot_book_categories() -> None:
+    assert parse_hebrew_original_reference("1S\u00e1m 1,1") == ("1Sa", 1, 1, 1)
+    assert parse_hebrew_original_reference("P\u00e9ld 1,1") == ("Pro", 1, 1, 1)
+    assert parse_hebrew_original_reference("\u00c9zs 1,1") == ("Isa", 1, 1, 1)
+    assert parse_hebrew_original_reference("Mal 1,1") == ("Mal", 1, 1, 1)
+
+
+def test_hebrew_reference_parser_accepts_standard_hungarian_ot_abbreviations() -> None:
+    cases = [
+        ("1M\u00f3z 1,1", "Gen"),
+        ("2M\u00f3z 1,1", "Exo"),
+        ("3M\u00f3z 1,1", "Lev"),
+        ("4M\u00f3z 1,1", "Num"),
+        ("5M\u00f3z 1,1", "Deu"),
+        ("J\u00f3zs 1,1", "Jos"),
+        ("B\u00edr 1,1", "Jdg"),
+        ("Ruth 1,1", "Rut"),
+        ("1S\u00e1m 1,1", "1Sa"),
+        ("2S\u00e1m 1,1", "2Sa"),
+        ("1Kir 1,1", "1Ki"),
+        ("2Kir 1,1", "2Ki"),
+        ("1Kr\u00f3n 1,1", "1Ch"),
+        ("2Kr\u00f3n 1,1", "2Ch"),
+        ("Ezsd 1,1", "Ezr"),
+        ("Neh 1,1", "Neh"),
+        ("Eszt 1,1", "Est"),
+        ("J\u00f3b 1,1", "Job"),
+        ("Zsolt 1,1", "Psa"),
+        ("P\u00e9ld 1,1", "Pro"),
+        ("Pr\u00e9d 1,1", "Ecc"),
+        ("\u00c9nekek 1,1", "Sng"),
+        ("\u00c9zs 1,1", "Isa"),
+        ("Jer 1,1", "Jer"),
+        ("JSir 1,1", "Lam"),
+        ("Ez 1,1", "Ezk"),
+        ("D\u00e1n 1,1", "Dan"),
+        ("H\u00f3s 1,1", "Hos"),
+        ("J\u00f3el 1,1", "Jol"),
+        ("\u00c1m 1,1", "Amo"),
+        ("Abd 1,1", "Oba"),
+        ("J\u00f3n 1,1", "Jon"),
+        ("Mik 1,1", "Mic"),
+        ("N\u00e1h 1,1", "Nam"),
+        ("Hab 1,1", "Hab"),
+        ("Zof 1,1", "Zep"),
+        ("Hag 1,1", "Hag"),
+        ("Zak 1,1", "Zec"),
+        ("Mal 1,1", "Mal"),
+    ]
+    assert len(cases) == 39
+    for reference, expected_book in cases:
+        assert parse_hebrew_original_reference(reference) == (expected_book, 1, 1, 1)
+
+
+def test_standard_old_testament_references_have_runtime_passages() -> None:
+    cases = [
+        ("Zak 1,1-4", "Zec"),
+        ("Hag 1,1-3", "Hag"),
+        ("Mal 1,1-3", "Mal"),
+        ("1Kr\u00f3n 1,1-4", "1Ch"),
+        ("\u00c9nekek 1,1-3", "Sng"),
+        ("1M\u00f3z 1,1-4", "Gen"),
+        ("Zsolt 23,1-4", "Psa"),
+        ("Ruth 4,13-17", "Rut"),
+        ("D\u00e1n 2,4", "Dan"),
+        ("Ezsdr\u00e1s 6,16", "Ezr"),
+    ]
+    repository = HebrewTokenRepository(DEFAULT_TAHOT_DATABASE_PATH)
+
+    for reference, expected_book in cases:
+        book, chapter, verse_start, verse_end = parse_hebrew_original_reference(reference)
+        result = repository.passage(book, chapter, verse_start, verse_end)
+
+        assert book == expected_book
+        assert result.status == "ok", reference
+        assert result.tokens
+        assert result.tokens[0].book == expected_book
 
 
 def test_repository_exposes_full_slash_morphology_fields(tmp_path: Path) -> None:
