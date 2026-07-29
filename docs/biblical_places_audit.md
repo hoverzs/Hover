@@ -10,24 +10,24 @@
 - Katalógus rekordok száma: 1309
 - Forrásrekordok száma: 16
 - Passage-place kapcsolatok száma: 8658
-- Szakmai ellenőrzést igénylő tételek: 1975
+- Szakmai ellenőrzést igénylő tételek: 1548
 - Large passage-list találatok: 118
 - Biztosan összevont duplikátumok: 0
-- Bizonytalan duplikátumok: 202
+- Bizonytalan duplikátumok: 203
 - Invalid external ID találatok: 0
 - Mixed manual demo source találatok: 0
-- UI fallback nevet igénylő rekordok: 608
-- Biztonságos rövid fallback leírás előállítható: 608
+- UI fallback nevet igénylő rekordok: 308
+- Biztonságos rövid fallback leírás előállítható: 308
 - Idempotencia státusz: sikeres
 
 ## Hibakategóriák
-- `certain_status_without_review`: 378
-- `empty_card_summary_hu`: 608
-- `hungarian_name_review`: 13
+- `certain_status_without_review`: 494
+- `empty_card_summary_hu`: 308
+- `hungarian_name_review`: 42
 - `large_place_list_for_passage`: 118
-- `missing_hungarian_name`: 608
-- `probable_duplicate_place`: 202
-- `same_hungarian_name`: 39
+- `missing_hungarian_name`: 308
+- `probable_duplicate_place`: 203
+- `same_hungarian_name`: 66
 - `summary_repeats_name`: 9
 
 ## Automatikusan javított tételek
@@ -36,9 +36,11 @@
 ## Legfontosabb problémák
 - [review] `same_hungarian_name` `achzib_1, achzib_2`: Same normalized Hungarian name is used by multiple records: akzíb.
 - [review] `same_hungarian_name` `ai_1, ai_3`: Same normalized Hungarian name is used by multiple records: aj.
-- [review] `same_hungarian_name` `aphek_2, aphek_3, aphik`: Same normalized Hungarian name is used by multiple records: afék.
+- [review] `same_hungarian_name` `aphek_1, aphek_2, aphek_3, aphek_4, aphik`: Same normalized Hungarian name is used by multiple records: afék.
 - [review] `same_hungarian_name` `arabia_1, arabia_2`: Same normalized Hungarian name is used by multiple records: arábia.
-- [review] `same_hungarian_name` `aroer_1, aroer_2, aroer_4`: Same normalized Hungarian name is used by multiple records: aróér.
+- [review] `same_hungarian_name` `arad_1, arad_2`: Same normalized Hungarian name is used by multiple records: arád.
+- [review] `same_hungarian_name` `aroer_1, aroer_2, aroer_3, aroer_4`: Same normalized Hungarian name is used by multiple records: aróér.
+- [review] `same_hungarian_name` `ataroth_1, ataroth_3`: Same normalized Hungarian name is used by multiple records: atárót.
 - [review] `same_hungarian_name` `babylon_1, babylon_2, babylon_3`: Same normalized Hungarian name is used by multiple records: babilon.
 - [review] `same_hungarian_name` `beersheba_1, beersheba_2`: Same normalized Hungarian name is used by multiple records: beérseba.
 - [review] `same_hungarian_name` `beth_aven_1, beth_aven_2`: Same normalized Hungarian name is used by multiple records: bét-áven.
@@ -46,473 +48,243 @@
 - [review] `same_hungarian_name` `bethel_1, bethel_3`: Same normalized Hungarian name is used by multiple records: bétel.
 - [review] `same_hungarian_name` `bethlehem_1, bethlehem_2, bethlehem_3`: Same normalized Hungarian name is used by multiple records: betlehem.
 - [review] `same_hungarian_name` `bethsaida_1, bethsaida_2`: Same normalized Hungarian name is used by multiple records: bétsaida.
+- [review] `same_hungarian_name` `bezek_1, bezek_2`: Same normalized Hungarian name is used by multiple records: bezek.
+- [review] `same_hungarian_name` `bozrah_1, bozrah_2`: Same normalized Hungarian name is used by multiple records: bocrá.
 - [review] `same_hungarian_name` `cana, kanah_1`: Same normalized Hungarian name is used by multiple records: kána.
 - [review] `same_hungarian_name` `city_of_palms_1, city_of_palms_2`: Same normalized Hungarian name is used by multiple records: pálmák városa.
+- [review] `same_hungarian_name` `cush_1, cush_2`: Same normalized Hungarian name is used by multiple records: kús.
+- [review] `same_hungarian_name` `debir_1, debir_3`: Same normalized Hungarian name is used by multiple records: debír.
+- [review] `same_hungarian_name` `dibon_1, dibon_3`: Same normalized Hungarian name is used by multiple records: díbón.
+- [review] `same_hungarian_name` `dumah_1, dumah_2`: Same normalized Hungarian name is used by multiple records: dúmá.
+- [review] `same_hungarian_name` `ephraim_1, ephraim_2, ephraim_3`: Same normalized Hungarian name is used by multiple records: efraim.
 - [review] `same_hungarian_name` `ephrath, ephrathah`: Same normalized Hungarian name is used by multiple records: efráta.
-- [review] `same_hungarian_name` `etam_1, etham`: Same normalized Hungarian name is used by multiple records: étám.
+- [review] `same_hungarian_name` `ephron_1, ephron_2`: Same normalized Hungarian name is used by multiple records: efrón.
+- [review] `same_hungarian_name` `etam_1, etam_3, etham`: Same normalized Hungarian name is used by multiple records: étám.
+- [review] `same_hungarian_name` `ether_1, ether_2`: Same normalized Hungarian name is used by multiple records: éter.
+- [review] `same_hungarian_name` `galilee_1, galilee_2`: Same normalized Hungarian name is used by multiple records: galilea.
 - [review] `same_hungarian_name` `gath_1, gath_2, gath_3`: Same normalized Hungarian name is used by multiple records: gát.
-- [review] `same_hungarian_name` `geba_1, geba_3`: Same normalized Hungarian name is used by multiple records: geba.
-- [review] `same_hungarian_name` `gibeah_1, gibeah_2`: Same normalized Hungarian name is used by multiple records: gibea.
-- [review] `same_hungarian_name` `gilgal_1, gilgal_2`: Same normalized Hungarian name is used by multiple records: gilgál.
-- [review] `same_hungarian_name` `hamath_1, hamath_2`: Same normalized Hungarian name is used by multiple records: hamát.
-- [review] `same_hungarian_name` `hazor_1, hazor_5`: Same normalized Hungarian name is used by multiple records: hácór.
-- [review] `same_hungarian_name` `jericho_1, jericho_2`: Same normalized Hungarian name is used by multiple records: jerikó.
-- [review] `same_hungarian_name` `jezreel_2, jezreel_3`: Same normalized Hungarian name is used by multiple records: jezréel.
-- [review] `same_hungarian_name` `judea_1, judea_2`: Same normalized Hungarian name is used by multiple records: júdea.
-- [review] `same_hungarian_name` `kedesh_1, kedesh_4, kedesh_5`: Same normalized Hungarian name is used by multiple records: kedes.
-- [review] `same_hungarian_name` `lud_1, lud_2`: Same normalized Hungarian name is used by multiple records: lúd.
-- [review] `same_hungarian_name` `meribah_1, meribah_2`: Same normalized Hungarian name is used by multiple records: meríbá.
-- [review] `same_hungarian_name` `migdol_1, migdol_2, migdol_3`: Same normalized Hungarian name is used by multiple records: migdól.
-- [review] `same_hungarian_name` `mizpah_1, mizpah_3, mizpah_4`: Same normalized Hungarian name is used by multiple records: micpa.
+- [review] `same_hungarian_name` `geba_1, geba_2, geba_3, geba_4`: Same normalized Hungarian name is used by multiple records: geba.
 
 ## Magyar névellenőrzésre vár
 - `abel_keramim`: name_hu is missing.
-- `abel_mizraim`: name_hu is missing.
-- `abel_shittim`: name_hu is missing.
 - `abila`: name_hu is missing.
 - `abila_lysaniou`: name_hu is missing.
 - `accad`: name_hu is missing.
-- `adadah`: name_hu is missing.
 - `adamah`: name_hu is missing.
-- `adami_nekeb`: name_hu is missing.
 - `adasa`: name_hu is missing.
-- `addar`: name_hu is missing.
+- `addar`: name_hu is identical to name_en and has no Hungarian diacritic signal.
 - `adithaim`: name_hu is missing.
 - `adulis`: name_hu is missing.
 - `aenon`: name_hu is missing.
-- `ahlab`: name_hu is missing.
-- `aiath`: name_hu is missing.
 - `aijalon_2`: name_hu is missing.
 - `ain_1`: name_hu is missing.
-- `ain_3`: name_hu is missing.
 - `akeldama`: name_hu is identical to name_en and has no Hungarian diacritic signal.
 - `alexandria`: name_hu is identical to name_en and has no Hungarian diacritic signal.
-- `allammelech`: name_hu is missing.
 - `ama`: name_hu is missing.
-- `amad`: name_hu is missing.
+- `amad`: name_hu is identical to name_en and has no Hungarian diacritic signal.
 - `amam`: name_hu is missing.
-- `amana`: name_hu is missing.
 - `amate`: name_hu is missing.
-- `amaw`: name_hu is missing.
-- `ammah`: name_hu is missing.
-- `anaharath`: name_hu is missing.
-- `ananiah`: name_hu is missing.
-- `anem`: name_hu is missing.
-- `aner`: name_hu is missing.
-- `anim`: name_hu is missing.
-- `aphek_1`: name_hu is missing.
-- `aphek_4`: name_hu is missing.
-- `aphekah`: name_hu is missing.
-- `arab`: name_hu is missing.
-- `arad_2`: name_hu is missing.
+- `amaw`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `ammah`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `arab`: name_hu is identical to name_en and has no Hungarian diacritic signal.
 - `arbela`: name_hu is missing.
-- `armageddon`: name_hu is missing.
-- `aroer_3`: name_hu is missing.
+- `armageddon`: name_hu is identical to name_en and has no Hungarian diacritic signal.
 - `arsinoe`: name_hu is missing.
-- `arubboth`: name_hu is missing.
 - `ashnah_1`: name_hu is missing.
-- `ashnah_2`: name_hu is missing.
 - `ataroth_2`: name_hu is missing.
-- `ataroth_3`: name_hu is missing.
-- `athach`: name_hu is missing.
 - `atharim`: name_hu is missing.
-- `atroth_beth_joab`: name_hu is missing.
+- `atroth_beth_joab`: name_hu is identical to name_en and has no Hungarian diacritic signal.
 - `atroth_shophan`: name_hu is missing.
-- `avva`: name_hu is missing.
 - `avvim`: name_hu is missing.
 - `ayyah`: name_hu is missing.
 - `azal`: name_hu is missing.
 - `aznoth_tabor`: name_hu is missing.
 - `baal_hamon`: name_hu is missing.
-- `baal_hazor`: name_hu is missing.
-- `baal_hermon`: name_hu is missing.
+- `baal_hazor`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `baal_hermon`: name_hu is identical to name_en and has no Hungarian diacritic signal.
 - `baal_shalishah`: name_hu is missing.
 - `baal_tamar`: name_hu is missing.
-- `baalath_1`: name_hu is missing.
-- `balah`: name_hu is missing.
 - `batanea`: name_hu is missing.
 - `bealoth_1`: name_hu is missing.
 - `bealoth_2`: name_hu is missing.
-- `beer_1`: name_hu is missing.
 - `beer_2`: name_hu is missing.
 - `beer_elim`: name_hu is missing.
-- `beeshterah`: name_hu is missing.
 - `belamon`: name_hu is missing.
-- `bered`: name_hu is missing.
+- `bered`: name_hu is identical to name_en and has no Hungarian diacritic signal.
 - `berothah`: name_hu is missing.
-- `berothai`: name_hu is missing.
 - `beten`: name_hu is missing.
-- `beth_anoth`: name_hu is missing.
-- `beth_arbel`: name_hu is missing.
 - `beth_ashbea`: name_hu is missing.
 - `beth_barah`: name_hu is missing.
-- `beth_biri`: name_hu is missing.
 - `beth_car`: name_hu is missing.
 - `beth_dagon_1`: name_hu is missing.
-- `beth_dagon_2`: name_hu is missing.
 - `beth_diblathaim`: name_hu is missing.
-- `beth_emek`: name_hu is missing.
 - `beth_ezel`: name_hu is missing.
 - `beth_gader`: name_hu is missing.
-- `beth_gamul`: name_hu is missing.
-- `beth_gilgal`: name_hu is missing.
-- `beth_haggan`: name_hu is missing.
 - `beth_le_aphrah`: name_hu is missing.
-- `beth_lebaoth`: name_hu is missing.
-- `beth_pazzez`: name_hu is missing.
-- `beth_shemesh_2`: name_hu is missing.
 - `beth_shittah`: name_hu is missing.
 - `bethany_2`: name_hu is missing.
 - `bethel_2`: name_hu is missing.
 - `bether_2`: name_hu is missing.
 - `bethuel`: name_hu is missing.
-- `betonim`: name_hu is missing.
-- `bezek_2`: name_hu is missing.
-- `bileam`: name_hu is missing.
-- `bozrah_2`: name_hu is missing.
 - `brook_of_the_arabah`: name_hu is missing.
-- `brook_of_the_willows`: name_hu is missing.
 - `buz`: name_hu is missing.
-- `cabbon`: name_hu is missing.
-- `cabul_1`: name_hu is missing.
 - `calneh_1`: name_hu is missing.
-- `canneh`: name_hu is missing.
 - `carthage`: name_hu is missing.
-- `casiphia`: name_hu is missing.
 - `chalcis`: name_hu is missing.
 - `charmande`: name_hu is missing.
 - `chephar_ammoni`: name_hu is missing.
-- `chesalon`: name_hu is missing.
-- `chesil`: name_hu is missing.
 - `chilmad`: name_hu is missing.
-- `chisloth_tabor`: name_hu is missing.
 - `chitlish`: name_hu is missing.
-- `city_of_destruction`: name_hu is missing.
-- `city_of_salt`: name_hu is missing.
-- `cozeba`: name_hu is missing.
 - `cun`: name_hu is missing.
-- `cush_2`: name_hu is missing.
-- `cushan`: name_hu is missing.
-- `dabbesheth`: name_hu is missing.
-- `dalmanutha`: name_hu is missing.
 - `dannah`: name_hu is missing.
 - `debir_2`: name_hu is missing.
-- `debir_3`: name_hu is missing.
 - `dibon_2`: name_hu is missing.
-- `dibon_3`: name_hu is missing.
 - `dilean`: name_hu is missing.
-- `dimnah`: name_hu is missing.
 - `dimonah`: name_hu is missing.
 - `dizahab`: name_hu is missing.
-- `dragon_spring`: name_hu is missing.
-- `dumah_1`: name_hu is missing.
-- `dumah_2`: name_hu is missing.
-- `dura`: name_hu is missing.
 - `ebenezer_2`: name_hu is missing.
 - `ebez`: name_hu is missing.
-- `ebron`: name_hu is missing.
-- `eder_1`: name_hu is missing.
 - `eder_2`: name_hu is missing.
 - `edrei_2`: name_hu is missing.
 - `eglaim`: name_hu is missing.
-- `el_paran`: name_hu is missing.
 - `elishah`: name_hu is missing.
 - `elkosh`: name_hu is missing.
 - `elon`: name_hu is missing.
-- `elonbeth_hanan`: name_hu is missing.
-- `eltekon`: name_hu is missing.
-- `emek_keziz`: name_hu is missing.
+- `elonbeth_hanan`: name_hu is identical to name_en and has no Hungarian diacritic signal.
 - `emmaus`: name_hu is identical to name_en and has no Hungarian diacritic signal.
 - `en_gannim_1`: name_hu is missing.
-- `en_haddah`: name_hu is missing.
-- `en_hakkore`: name_hu is missing.
 - `en_hazor`: name_hu is missing.
-- `en_rimmon`: name_hu is missing.
 - `enam`: name_hu is missing.
 - `eneglaim`: name_hu is missing.
-- `ephraim_1`: name_hu is missing.
-- `ephraim_2`: name_hu is missing.
-- `ephraim_3`: name_hu is missing.
-- `ephron_1`: name_hu is missing.
-- `ephron_2`: name_hu is missing.
 - `eridu`: name_hu is missing.
-- `esek`: name_hu is missing.
 - `eshan`: name_hu is missing.
 - `etam_2`: name_hu is missing.
-- `etam_3`: name_hu is missing.
 - `eth_kazin`: name_hu is missing.
-- `ether_1`: name_hu is missing.
-- `ether_2`: name_hu is missing.
 - `etruria`: name_hu is missing.
-- `forum_of_appius`: name_hu is missing.
-- `gabbatha`: name_hu is missing.
-- `gadara`: name_hu is missing.
-- `galilee_2`: name_hu is missing.
-- `gamad`: name_hu is missing.
-- `gareb`: name_hu is missing.
-- `gate_of_the_foundation`: name_hu is missing.
-- `gate_of_the_guard`: name_hu is missing.
+- `gadara`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `gamad`: name_hu is identical to name_en and has no Hungarian diacritic signal.
 - `gath_padalla`: name_hu is missing.
-- `gath_rimmon_2`: name_hu is missing.
-- `geba_2`: name_hu is missing.
-- `geba_4`: name_hu is missing.
-- `gebal_2`: name_hu is missing.
-- `gebim`: name_hu is missing.
 - `geder`: name_hu is identical to name_en and has no Hungarian diacritic signal.
-- `gederah_1`: name_hu is missing.
 - `gederah_2`: name_hu is missing.
-- `gederah_3`: name_hu is missing.
-- `gederothaim`: name_hu is missing.
+- `gederothaim`: name_hu is identical to name_en and has no Hungarian diacritic signal.
 - `gedor_2`: name_hu is missing.
-- `gedor_3`: name_hu is missing.
-- `gedor_4`: name_hu is missing.
 - `gerasa`: name_hu is identical to name_en and has no Hungarian diacritic signal.
 - `gergesa`: name_hu is missing.
-- `geruth_chimham`: name_hu is missing.
-- `giah`: name_hu is missing.
 - `gibeah_3`: name_hu is missing.
-- `gibeah_4`: name_hu is missing.
 - `gibeath_elohim`: name_hu is missing.
-- `gibeath_haaraloth`: name_hu is missing.
+- `gibeath_haaraloth`: name_hu is identical to name_en and has no Hungarian diacritic signal.
 - `gidom`: name_hu is missing.
 - `gihon_1`: name_hu is missing.
 - `gilead_2`: name_hu is missing.
-- `gilgal_3`: name_hu is missing.
 - `gilgal_4`: name_hu is missing.
-- `gimzo`: name_hu is missing.
 - `gittaim`: name_hu is identical to name_en and has no Hungarian diacritic signal.
-- `goah`: name_hu is missing.
-- `gog`: name_hu is missing.
 - `goiim_2`: name_hu is missing.
-- `gomer`: name_hu is missing.
 - `goshen_3`: name_hu is missing.
-- `gur`: name_hu is missing.
-- `gurbaal`: name_hu is missing.
+- `gur`: name_hu is identical to name_en and has no Hungarian diacritic signal.
 - `gutium`: name_hu is missing.
-- `hadashah`: name_hu is missing.
-- `hadrach`: name_hu is missing.
 - `haeleph`: name_hu is missing.
-- `hakkephirim`: name_hu is missing.
 - `halahha`: name_hu is missing.
-- `halhul`: name_hu is missing.
-- `hali`: name_hu is missing.
-- `hall_of_judgment`: name_hu is missing.
-- `hall_of_pillars`: name_hu is missing.
-- `hall_of_the_throne`: name_hu is missing.
-- `ham_1`: name_hu is missing.
-- `hammath_1`: name_hu is missing.
-- `hammon_1`: name_hu is missing.
-- `hammon_2`: name_hu is missing.
-- `hammoth_dor`: name_hu is missing.
-- `hamonah`: name_hu is missing.
-- `hanes`: name_hu is missing.
-- `hannathon`: name_hu is missing.
-- `hapharaim`: name_hu is missing.
 - `harhar`: name_hu is missing.
 - `harmon`: name_hu is missing.
-- `harod_1`: name_hu is missing.
 - `hatti`: name_hu is missing.
 - `havilah_1`: name_hu is missing.
-- `havilah_2`: name_hu is missing.
-- `havilah_3`: name_hu is missing.
-- `hazar_addar`: name_hu is missing.
-- `hazar_gaddah`: name_hu is missing.
-- `hazazon_tamar_1`: name_hu is missing.
-- `hazazon_tamar_2`: name_hu is missing.
-- `hazer_hatticon`: name_hu is missing.
+- `hazer_hatticon`: name_hu is identical to name_en and has no Hungarian diacritic signal.
 - `hazor_2`: name_hu is missing.
-- `hazor_3`: name_hu is missing.
-- `hazor_4`: name_hu is missing.
 - `hazor_hadattah`: name_hu is missing.
-- `helbah`: name_hu is missing.
-- `helbon`: name_hu is missing.
-- `helech`: name_hu is missing.
-- `helkath_hazzurim`: name_hu is missing.
 - `heracleopolis_magna`: name_hu is missing.
 - `heracleopolis_parva`: name_hu is missing.
 - `hereth`: name_hu is missing.
 - `herods_palace`: name_hu is missing.
-- `heshmon`: name_hu is missing.
-- `hezron`: name_hu is missing.
-- `hierapolis`: name_hu is missing.
 - `hilakku`: name_hu is missing.
 - `hobah`: name_hu is missing.
-- `holon_2`: name_hu is missing.
 - `horem`: name_hu is missing.
-- `horonaim_2`: name_hu is missing.
-- `hosah`: name_hu is missing.
 - `hukkok`: name_hu is missing.
-- `hukok`: name_hu is missing.
-- `humtah`: name_hu is missing.
-- `idalah`: name_hu is missing.
-- `idumea`: name_hu is missing.
-- `iim`: name_hu is missing.
-- `illyricum`: name_hu is missing.
+- `idumea`: name_hu is identical to name_en and has no Hungarian diacritic signal.
 - `india`: name_hu is identical to name_en and has no Hungarian diacritic signal.
 - `iphtah`: name_hu is missing.
-- `ir_moab`: name_hu is missing.
 - `ir_nahash`: name_hu is missing.
-- `ir_shemesh`: name_hu is missing.
 - `irpeel`: name_hu is missing.
-- `ithlah`: name_hu is missing.
 - `ithnan`: name_hu is missing.
-- `ituraea`: name_hu is missing.
-- `jaar`: name_hu is missing.
 - `jabez`: name_hu is missing.
-- `jabneel_2`: name_hu is missing.
-- `jagur`: name_hu is missing.
-- `janim`: name_hu is missing.
 - `janoah_2`: name_hu is missing.
 - `janua`: name_hu is missing.
-- `japhia`: name_hu is missing.
-- `jarmuth_2`: name_hu is missing.
-- `jehud`: name_hu is missing.
-- `jeruel`: name_hu is missing.
-- `jeshanah`: name_hu is missing.
-- `jeshua`: name_hu is missing.
-- `jezreel_1`: name_hu is missing.
-- `jokdeam`: name_hu is missing.
 - `jokmeam_1`: name_hu is missing.
 - `jokmeam_2`: name_hu is missing.
-- `joktheel_1`: name_hu is missing.
 - `jorkeam`: name_hu is missing.
-- `jotbah`: name_hu is missing.
-- `kadesh_2`: name_hu is missing.
 - `kamon`: name_hu is missing.
-- `kanah_2`: name_hu is missing.
-- `karka`: name_hu is missing.
 - `karkor`: name_hu is missing.
-- `karnaim`: name_hu is missing.
 - `kartan`: name_hu is missing.
-- `kattath`: name_hu is missing.
-- `kedesh_2`: name_hu is missing.
-- `kedesh_3`: name_hu is missing.
 - `kedesh_naphtali`: name_hu is missing.
 - `kerioth_hezron`: name_hu is missing.
-- `kibzaim`: name_hu is missing.
 - `kinah`: name_hu is missing.
-- `kir_2`: name_hu is missing.
 - `kiriath_huzoth`: name_hu is missing.
-- `kiriathaim_2`: name_hu is missing.
 - `kitron`: name_hu is missing.
-- `koa`: name_hu is missing.
 - `kumidi`: name_hu is missing.
 - `laash`: name_hu is missing.
 - `laban`: name_hu is missing.
 - `lahmam`: name_hu is missing.
 - `laishah`: name_hu is missing.
-- `lakkum`: name_hu is missing.
 - `laodicea`: name_hu is identical to name_en and has no Hungarian diacritic signal.
-- `lasea`: name_hu is missing.
+- `lasea`: name_hu is identical to name_en and has no Hungarian diacritic signal.
 - `lasha`: name_hu is missing.
-- `lasharon`: name_hu is missing.
-- `leb_kamai`: name_hu is missing.
-- `lebaoth`: name_hu is missing.
-- `lebonah`: name_hu is missing.
 - `lehi`: name_hu is identical to name_en and has no Hungarian diacritic signal.
-- `lower_pool`: name_hu is missing.
 - `luz_2`: name_hu is missing.
-- `lycia`: name_hu is missing.
 - `lydia`: name_hu is missing.
-- `maarath`: name_hu is missing.
-- `maareh_geba`: name_hu is missing.
+- `maareh_geba`: name_hu is identical to name_en and has no Hungarian diacritic signal.
 - `machbenah`: name_hu is missing.
 - `madiama`: name_hu is missing.
 - `madmen`: name_hu is missing.
 - `madmenah`: name_hu is missing.
-- `magadan`: name_hu is missing.
 - `magbish`: name_hu is missing.
 - `magdala`: name_hu is missing.
 - `magdalsenna`: name_hu is missing.
 - `magdolum`: name_hu is missing.
-- `mahalab`: name_hu is missing.
 - `mahanaim`: name_hu is identical to name_en and has no Hungarian diacritic signal.
-- `mahaneh_dan_1`: name_hu is missing.
-- `mahaneh_dan_2`: name_hu is missing.
 - `makaz`: name_hu is missing.
-- `malta`: name_hu is missing.
-- `manahath`: name_hu is missing.
-- `mareal`: name_hu is missing.
 - `maroth`: name_hu is missing.
-- `me_jarkon`: name_hu is missing.
 - `mearah`: name_hu is missing.
 - `meconah`: name_hu is missing.
-- `merathaim`: name_hu is missing.
 - `merom`: name_hu is missing.
 - `meroz`: name_hu is missing.
 - `mesha`: name_hu is missing.
-- `metheg_ammah`: name_hu is missing.
-- `middin`: name_hu is missing.
-- `middle_gate`: name_hu is missing.
+- `metheg_ammah`: name_hu is identical to name_en and has no Hungarian diacritic signal.
 - `migdal_el`: name_hu is missing.
 - `migdal_gad`: name_hu is missing.
 - `migron_1`: name_hu is missing.
-- `migron_2`: name_hu is missing.
-- `minni`: name_hu is missing.
-- `mitylene`: name_hu is missing.
-- `mizpah_2`: name_hu is missing.
-- `mizpeh_1`: name_hu is missing.
+- `minni`: name_hu is identical to name_en and has no Hungarian diacritic signal.
 - `mizpeh_2`: name_hu is missing.
 - `mizpeh_3`: name_hu is missing.
-- `moreh_2`: name_hu is missing.
 - `moriah`: name_hu is missing.
-- `mortar`: name_hu is missing.
-- `mount_baal_hermon`: name_hu is missing.
-- `mount_baalah`: name_hu is missing.
-- `mount_bashan`: name_hu is missing.
-- `mount_ephron`: name_hu is missing.
 - `mount_gilead`: name_hu is missing.
-- `mount_heres`: name_hu is missing.
-- `mount_jearim`: name_hu is missing.
-- `mount_lebanon`: name_hu is missing.
 - `mount_mizar`: name_hu is missing.
-- `mount_moriah`: name_hu is missing.
-- `mount_perazim`: name_hu is missing.
-- `mount_seir_2`: name_hu is missing.
 - `mount_zalmon`: name_hu is missing.
-- `mount_zemaraim`: name_hu is missing.
 - `mozah`: name_hu is missing.
-- `muster_gate`: name_hu is missing.
-- `myra`: name_hu is missing.
 - `naamah_1`: name_hu is missing.
 - `naarah`: name_hu is missing.
 - `naaran`: name_hu is missing.
 - `nahaliel`: name_hu is missing.
 - `nahor`: name_hu is missing.
 - `nahuru`: name_hu is missing.
-- `nain`: name_hu is missing.
-- `neapolis`: name_hu is missing.
-- `neballat`: name_hu is missing.
+- `nain`: name_hu is identical to name_en and has no Hungarian diacritic signal.
 - `neiel`: name_hu is missing.
 - `netaim`: name_hu is missing.
 - `nezib`: name_hu is missing.
 - `nibshan`: name_hu is missing.
-- `nicopolis`: name_hu is missing.
-- `nimrah`: name_hu is missing.
-- `nimrod`: name_hu is missing.
-- `nobah_1`: name_hu is missing.
 - `nobah_2`: name_hu is missing.
 - `nophah`: name_hu is missing.
-- `north_gate`: name_hu is missing.
 - `nuhashe`: name_hu is missing.
-- `old_pool`: name_hu is missing.
 - `ophni`: name_hu is missing.
 - `parah`: name_hu is missing.
-- `parbar`: name_hu is missing.
 - `parvaim`: name_hu is missing.
-- `patara`: name_hu is missing.
-- `patmos`: name_hu is missing.
-- `peoples_gate`: name_hu is missing.
+- `patara`: name_hu is identical to name_en and has no Hungarian diacritic signal.
 - `pharpar`: name_hu is missing.
 - `phoenix`: name_hu is missing.
-- `pi_beseth`: name_hu is missing.
 - `pishon`: name_hu is missing.
 - `pithom`: name_hu is missing.
 - `pitru`: name_hu is missing.
 - `potsherd_gate`: name_hu is missing.
-- `ptolemais`: name_hu is missing.
 - `punt`: name_hu is missing.
-- `puteoli`: name_hu is missing.
+- `puteoli`: name_hu is identical to name_en and has no Hungarian diacritic signal.
 - `raamah`: name_hu is missing.
 - `rabbah_2`: name_hu is missing.
 - `rabbith`: name_hu is missing.
@@ -523,36 +295,27 @@
 - `ramah_2`: name_hu is missing.
 - `ramah_3`: name_hu is missing.
 - `ramah_6`: name_hu is missing.
-- `ramah_7`: name_hu is missing.
-- `ramah_8`: name_hu is missing.
 - `ramah_9`: name_hu is missing.
-- `ramath_lehi`: name_hu is missing.
 - `ramath_mizpeh`: name_hu is missing.
 - `ramathaim_zophim`: name_hu is missing.
 - `ramoth_1`: name_hu is missing.
-- `ramoth_2`: name_hu is missing.
 - `recah`: name_hu is missing.
 - `rehob_2`: name_hu is missing.
 - `rehoboth_1`: name_hu is missing.
 - `rehoboth_ir`: name_hu is missing.
 - `rekem`: name_hu is missing.
 - `remeth`: name_hu is missing.
-- `rhegium`: name_hu is missing.
 - `rhodes_1`: name_hu is missing.
 - `rhodes_2`: name_hu is missing.
 - `riblah_2`: name_hu is missing.
 - `rimmon_3`: name_hu is missing.
-- `rimmono`: name_hu is missing.
 - `river_2`: name_hu is missing.
 - `rock_of_escape`: name_hu is missing.
 - `rumah`: name_hu is missing.
 - `sahar`: name_hu is missing.
-- `salamis`: name_hu is missing.
 - `salim`: name_hu is missing.
-- `salmone`: name_hu is missing.
+- `salmone`: name_hu is identical to name_en and has no Hungarian diacritic signal.
 - `salona`: name_hu is missing.
-- `samos`: name_hu is missing.
-- `samothrace`: name_hu is missing.
 - `sansannah`: name_hu is missing.
 - `saparda`: name_hu is missing.
 - `saparre`: name_hu is missing.
@@ -560,23 +323,17 @@
 - `sea_of_egypt`: name_hu is missing.
 - `sea_of_jazer`: name_hu is missing.
 - `secacah`: name_hu is missing.
-- `secu`: name_hu is missing.
 - `sela_3`: name_hu is missing.
-- `seleucia`: name_hu is missing.
-- `seneh`: name_hu is missing.
 - `sephar`: name_hu is missing.
 - `sepharad`: name_hu is missing.
-- `serpents_stone`: name_hu is missing.
 - `shaalim`: name_hu is missing.
 - `shaaraim_2`: name_hu is missing.
 - `shahazumah`: name_hu is missing.
 - `shalishah`: name_hu is missing.
-- `shallecheth`: name_hu is missing.
 - `shamir_1`: name_hu is missing.
 - `shaphir`: name_hu is missing.
 - `sharon_2`: name_hu is missing.
 - `sharuhen`: name_hu is missing.
-- `shaveh_kiriathaim`: name_hu is missing.
 - `sheba_2`: name_hu is missing.
 - `shebarim`: name_hu is missing.
 - `shema`: name_hu is missing.
@@ -585,35 +342,25 @@
 - `shihor_libnath`: name_hu is missing.
 - `shikkeron`: name_hu is missing.
 - `shilhim`: name_hu is missing.
-- `shiloah`: name_hu is missing.
 - `shimron_meron`: name_hu is missing.
 - `shion`: name_hu is missing.
 - `shoa`: name_hu is missing.
 - `shual`: name_hu is missing.
-- `sibraim`: name_hu is missing.
-- `silla`: name_hu is missing.
-- `siphmoth`: name_hu is missing.
+- `silla`: name_hu is identical to name_en and has no Hungarian diacritic signal.
 - `sirah`: name_hu is missing.
 - `sitnah`: name_hu is missing.
-- `socoh_2`: name_hu is missing.
 - `socoh_3`: name_hu is missing.
-- `south_1`: name_hu is missing.
-- `south_gate`: name_hu is missing.
 - `sparta`: name_hu is missing.
-- `straight_street`: name_hu is missing.
 - `suph`: name_hu is missing.
 - `suphah`: name_hu is missing.
-- `sur`: name_hu is missing.
+- `sur`: name_hu is identical to name_en and has no Hungarian diacritic signal.
 - `sutu`: name_hu is missing.
 - `sychar`: name_hu is missing.
-- `syracuse`: name_hu is missing.
-- `syrtis`: name_hu is missing.
 - `taanath_shiloh`: name_hu is missing.
 - `tabbath`: name_hu is missing.
-- `tabbur_erez`: name_hu is missing.
+- `tabbur_erez`: name_hu is identical to name_en and has no Hungarian diacritic signal.
 - `tabor_2`: name_hu is missing.
 - `tabor_3`: name_hu is missing.
-- `tadmor`: name_hu is missing.
 - `tamar_1`: name_hu is missing.
 - `tappuah_2`: name_hu is missing.
 - `taralah`: name_hu is missing.
@@ -623,12 +370,9 @@
 - `telem`: name_hu is identical to name_en and has no Hungarian diacritic signal.
 - `terah`: name_hu is identical to name_en and has no Hungarian diacritic signal.
 - `thapsacus`: name_hu is missing.
-- `the_lord_is_there`: name_hu is missing.
 - `the_lord_will_provide`: name_hu is missing.
 - `thelme`: name_hu is missing.
 - `thisbe`: name_hu is missing.
-- `three_taverns`: name_hu is missing.
-- `tiberias`: name_hu is missing.
 - `tigris`: name_hu is identical to name_en and has no Hungarian diacritic signal.
 - `timnah_2`: name_hu is missing.
 - `tiphsah_1`: name_hu is missing.
@@ -636,8 +380,6 @@
 - `tjaru`: name_hu is missing.
 - `tochen`: name_hu is missing.
 - `tophel`: name_hu is missing.
-- `trachonitis`: name_hu is missing.
-- `trogyllium`: name_hu is missing.
 - `ummah`: name_hu is missing.
 - `umman_manda`: name_hu is missing.
 - `upu`: name_hu is missing.
@@ -646,25 +388,13 @@
 - `ura`: name_hu is missing.
 - `uzal`: name_hu is missing.
 - `uzzen_sheerah`: name_hu is missing.
-- `valley_of_aijalon`: name_hu is missing.
 - `valley_of_aven`: name_hu is missing.
 - `valley_of_beracah`: name_hu is missing.
-- `valley_of_decision`: name_hu is missing.
-- `valley_of_gibeon`: name_hu is missing.
-- `valley_of_hebron`: name_hu is missing.
-- `valley_of_jericho`: name_hu is missing.
-- `valley_of_mizpeh`: name_hu is missing.
-- `valley_of_shaveh`: name_hu is missing.
 - `valley_of_shittim`: name_hu is missing.
-- `valley_of_sorek`: name_hu is missing.
 - `valley_of_zeboim`: name_hu is missing.
 - `valley_of_zephathah`: name_hu is missing.
-- `valley_of_zered`: name_hu is missing.
-- `waheb`: name_hu is missing.
 - `waters_of_jericho`: name_hu is missing.
-- `way_of_holiness`: name_hu is missing.
 - `west_gate`: name_hu is missing.
-- `wildgoats_rocks`: name_hu is missing.
 - `yiron`: name_hu is missing.
 - `zaanan`: name_hu is missing.
 - `zair`: name_hu is missing.
@@ -673,7 +403,6 @@
 - `zeboim`: name_hu is missing.
 - `zemaraim`: name_hu is missing.
 - `zenan`: name_hu is missing.
-- `zephath`: name_hu is missing.
 - `zer`: name_hu is missing.
 - `zeredah_1`: name_hu is missing.
 - `zeredah_2`: name_hu is missing.
@@ -691,9 +420,11 @@
 ## Vitatott vagy többes helyazonosítás
 - `achzib_1, achzib_2`: Same normalized Hungarian name is used by multiple records: akzíb.
 - `ai_1, ai_3`: Same normalized Hungarian name is used by multiple records: aj.
-- `aphek_2, aphek_3, aphik`: Same normalized Hungarian name is used by multiple records: afék.
+- `aphek_1, aphek_2, aphek_3, aphek_4, aphik`: Same normalized Hungarian name is used by multiple records: afék.
 - `arabia_1, arabia_2`: Same normalized Hungarian name is used by multiple records: arábia.
-- `aroer_1, aroer_2, aroer_4`: Same normalized Hungarian name is used by multiple records: aróér.
+- `arad_1, arad_2`: Same normalized Hungarian name is used by multiple records: arád.
+- `aroer_1, aroer_2, aroer_3, aroer_4`: Same normalized Hungarian name is used by multiple records: aróér.
+- `ataroth_1, ataroth_3`: Same normalized Hungarian name is used by multiple records: atárót.
 - `babylon_1, babylon_2, babylon_3`: Same normalized Hungarian name is used by multiple records: babilon.
 - `beersheba_1, beersheba_2`: Same normalized Hungarian name is used by multiple records: beérseba.
 - `beth_aven_1, beth_aven_2`: Same normalized Hungarian name is used by multiple records: bét-áven.
@@ -701,30 +432,55 @@
 - `bethel_1, bethel_3`: Same normalized Hungarian name is used by multiple records: bétel.
 - `bethlehem_1, bethlehem_2, bethlehem_3`: Same normalized Hungarian name is used by multiple records: betlehem.
 - `bethsaida_1, bethsaida_2`: Same normalized Hungarian name is used by multiple records: bétsaida.
+- `bezek_1, bezek_2`: Same normalized Hungarian name is used by multiple records: bezek.
+- `bozrah_1, bozrah_2`: Same normalized Hungarian name is used by multiple records: bocrá.
 - `cana, kanah_1`: Same normalized Hungarian name is used by multiple records: kána.
 - `city_of_palms_1, city_of_palms_2`: Same normalized Hungarian name is used by multiple records: pálmák városa.
+- `cush_1, cush_2`: Same normalized Hungarian name is used by multiple records: kús.
+- `debir_1, debir_3`: Same normalized Hungarian name is used by multiple records: debír.
+- `dibon_1, dibon_3`: Same normalized Hungarian name is used by multiple records: díbón.
+- `dumah_1, dumah_2`: Same normalized Hungarian name is used by multiple records: dúmá.
+- `ephraim_1, ephraim_2, ephraim_3`: Same normalized Hungarian name is used by multiple records: efraim.
 - `ephrath, ephrathah`: Same normalized Hungarian name is used by multiple records: efráta.
-- `etam_1, etham`: Same normalized Hungarian name is used by multiple records: étám.
+- `ephron_1, ephron_2`: Same normalized Hungarian name is used by multiple records: efrón.
+- `etam_1, etam_3, etham`: Same normalized Hungarian name is used by multiple records: étám.
+- `ether_1, ether_2`: Same normalized Hungarian name is used by multiple records: éter.
+- `galilee_1, galilee_2`: Same normalized Hungarian name is used by multiple records: galilea.
 - `gath_1, gath_2, gath_3`: Same normalized Hungarian name is used by multiple records: gát.
-- `geba_1, geba_3`: Same normalized Hungarian name is used by multiple records: geba.
+- `geba_1, geba_2, geba_3, geba_4`: Same normalized Hungarian name is used by multiple records: geba.
+- `gebal_1, gebal_2`: Same normalized Hungarian name is used by multiple records: gebál.
+- `gederah_1, gederah_3`: Same normalized Hungarian name is used by multiple records: gedérá.
+- `gedor_1, gedor_3, gedor_4`: Same normalized Hungarian name is used by multiple records: gedór.
 - `gibeah_1, gibeah_2`: Same normalized Hungarian name is used by multiple records: gibea.
-- `gilgal_1, gilgal_2`: Same normalized Hungarian name is used by multiple records: gilgál.
+- `gilgal_1, gilgal_2, gilgal_3`: Same normalized Hungarian name is used by multiple records: gilgál.
 - `hamath_1, hamath_2`: Same normalized Hungarian name is used by multiple records: hamát.
-- `hazor_1, hazor_5`: Same normalized Hungarian name is used by multiple records: hácór.
+- `hammon_1, hammon_2`: Same normalized Hungarian name is used by multiple records: hammón.
+- `harod_1, harod_2`: Same normalized Hungarian name is used by multiple records: haród.
+- `havilah_2, havilah_3`: Same normalized Hungarian name is used by multiple records: havilá.
+- `hazazon_tamar_1, hazazon_tamar_2`: Same normalized Hungarian name is used by multiple records: hacacón-tamar.
+- `hazor_1, hazor_3, hazor_4, hazor_5`: Same normalized Hungarian name is used by multiple records: hácór.
+- `horonaim_1, horonaim_2`: Same normalized Hungarian name is used by multiple records: hórónaim.
+- `jabneel_1, jabneel_2`: Same normalized Hungarian name is used by multiple records: jabneél.
+- `jarmuth_1, jarmuth_2`: Same normalized Hungarian name is used by multiple records: jarmút.
 - `jericho_1, jericho_2`: Same normalized Hungarian name is used by multiple records: jerikó.
-- `jezreel_2, jezreel_3`: Same normalized Hungarian name is used by multiple records: jezréel.
+- `jezreel_1, jezreel_2, jezreel_3`: Same normalized Hungarian name is used by multiple records: jezréel.
 - `judea_1, judea_2`: Same normalized Hungarian name is used by multiple records: júdea.
-- `kedesh_1, kedesh_4, kedesh_5`: Same normalized Hungarian name is used by multiple records: kedes.
+- `kedesh_1, kedesh_2, kedesh_3, kedesh_4, kedesh_5`: Same normalized Hungarian name is used by multiple records: kedes.
+- `kir_1, kir_2`: Same normalized Hungarian name is used by multiple records: kír.
 - `lud_1, lud_2`: Same normalized Hungarian name is used by multiple records: lúd.
+- `mahaneh_dan_1, mahaneh_dan_2`: Same normalized Hungarian name is used by multiple records: mahané-dan.
 - `meribah_1, meribah_2`: Same normalized Hungarian name is used by multiple records: meríbá.
 - `migdol_1, migdol_2, migdol_3`: Same normalized Hungarian name is used by multiple records: migdól.
-- `mizpah_1, mizpah_3, mizpah_4`: Same normalized Hungarian name is used by multiple records: micpa.
+- `mizpah_1, mizpah_2, mizpah_3, mizpah_4`: Same normalized Hungarian name is used by multiple records: micpa.
 - `mount_hor_1, mount_hor_2`: Same normalized Hungarian name is used by multiple records: hór hegye.
+- `mount_seir_1, mount_seir_2`: Same normalized Hungarian name is used by multiple records: széír hegye.
 - `ophrah_1, ophrah_2`: Same normalized Hungarian name is used by multiple records: ofrá.
-- `ramah_1, ramah_4, ramah_5`: Same normalized Hungarian name is used by multiple records: ráma.
+- `ramah_1, ramah_4, ramah_5, ramah_7, ramah_8`: Same normalized Hungarian name is used by multiple records: ráma.
+- `ramoth_2, ramoth_3`: Same normalized Hungarian name is used by multiple records: rámót.
 - `rehob_1, rehob_3`: Same normalized Hungarian name is used by multiple records: rehób.
 - `rimmon_1, rimmon_2`: Same normalized Hungarian name is used by multiple records: rimmón.
 - `sela_1, sela_2`: Same normalized Hungarian name is used by multiple records: szela.
+- `socoh_1, socoh_2`: Same normalized Hungarian name is used by multiple records: szókó.
 - `succoth_1, succoth_2`: Same normalized Hungarian name is used by multiple records: szukkót.
 - `zaphon_1, zaphon_2`: Same normalized Hungarian name is used by multiple records: cáfón.
 - `zin_1, zin_2`: Same normalized Hungarian name is used by multiple records: cin pusztája.
@@ -922,6 +678,7 @@
 - `sheba_1 / south_2`: Records share a name variant and have very close coordinates.
 - `sheshach / shinar`: Records share a name variant and have very close coordinates.
 - `shihor_1 / shihor_2`: Records share a name variant and have very close coordinates.
+- `shiloah / siloam`: Records share a name variant and have very close coordinates.
 - `syria_1 / syria_2`: Records share a name variant and have very close coordinates.
 - `tamar_1 / tamar_2`: Records share a name variant and have very close coordinates.
 - `tappuah_1 / tiphsah_2`: Records share a name variant and have very close coordinates.
@@ -1074,6 +831,8 @@
 - `engedi`: Place is marked certain while still prototype/draft.
 - `ephah`: Place is marked certain while still prototype/draft.
 - `ephesus`: Place is marked certain while still prototype/draft.
+- `ephraim_2`: Place is marked certain while still prototype/draft.
+- `ephraim_3`: Place is marked certain while still prototype/draft.
 - `ephraim_gate`: Place is marked certain while still prototype/draft.
 - `ephrath`: Place is marked certain while still prototype/draft.
 - `ephrathah`: Place is marked certain while still prototype/draft.
@@ -1083,17 +842,24 @@
 - `euphrates`: Place is marked certain while still prototype/draft.
 - `fair_havens`: Place is marked certain while still prototype/draft.
 - `fish_gate`: Place is marked certain while still prototype/draft.
+- `forum_of_appius`: Place is marked certain while still prototype/draft.
 - `fountain_gate`: Place is marked certain while still prototype/draft.
 - `gaash`: Place is marked certain while still prototype/draft.
+- `gadara`: Place is marked certain while still prototype/draft.
 - `galatia`: Place is marked certain while still prototype/draft.
 - `galilee_1`: Place is marked certain while still prototype/draft.
+- `gareb`: Place is marked certain while still prototype/draft.
+- `gate_of_the_foundation`: Place is marked certain while still prototype/draft.
+- `gate_of_the_guard`: Place is marked certain while still prototype/draft.
 - `gate_of_yeshanah`: Place is marked certain while still prototype/draft.
 - `gath_1`: Place is marked certain while still prototype/draft.
 - `gaza`: Place is marked certain while still prototype/draft.
 - `gebal_1`: Place is marked certain while still prototype/draft.
+- `gederah_3`: Place is marked certain while still prototype/draft.
 - `gedor_1`: Place is marked certain while still prototype/draft.
 - `gennesaret`: Place is marked certain while still prototype/draft.
 - `gerasa`: Place is marked certain while still prototype/draft.
+- `geruth_chimham`: Place is marked certain while still prototype/draft.
 - `geshur`: Place is marked certain while still prototype/draft.
 - `gethsemane`: Place is marked certain while still prototype/draft.
 - `gezer`: Place is marked certain while still prototype/draft.
@@ -1101,6 +867,10 @@
 - `gibeon`: Place is marked certain while still prototype/draft.
 - `gihon_2`: Place is marked certain while still prototype/draft.
 - `gilead_1`: Place is marked certain while still prototype/draft.
+- `gimzo`: Place is marked certain while still prototype/draft.
+- `goah`: Place is marked certain while still prototype/draft.
+- `gog`: Place is marked certain while still prototype/draft.
+- `gomer`: Place is marked certain while still prototype/draft.
 - `goshen_1`: Place is marked certain while still prototype/draft.
 - `gozan`: Place is marked certain while still prototype/draft.
 - `great_sea`: Place is marked certain while still prototype/draft.
@@ -1108,30 +878,50 @@
 - `gulloth_mayim`: Place is marked certain while still prototype/draft.
 - `habor`: Place is marked certain while still prototype/draft.
 - `hadid`: Place is marked certain while still prototype/draft.
+- `hakkephirim`: Place is marked certain while still prototype/draft.
+- `halhul`: Place is marked certain while still prototype/draft.
+- `hall_of_judgment`: Place is marked certain while still prototype/draft.
+- `hall_of_pillars`: Place is marked certain while still prototype/draft.
+- `hall_of_the_throne`: Place is marked certain while still prototype/draft.
 - `ham_2`: Place is marked certain while still prototype/draft.
 - `hamath_1`: Place is marked certain while still prototype/draft.
 - `hamath_2`: Place is marked certain while still prototype/draft.
+- `hammoth_dor`: Place is marked certain while still prototype/draft.
+- `hamonah`: Place is marked certain while still prototype/draft.
+- `hannathon`: Place is marked certain while still prototype/draft.
 - `haran`: Place is marked certain while still prototype/draft.
 - `hauran`: Place is marked certain while still prototype/draft.
+- `havilah_3`: Place is marked certain while still prototype/draft.
 - `havvoth_jair`: Place is marked certain while still prototype/draft.
+- `hazazon_tamar_2`: Place is marked certain while still prototype/draft.
 - `hazor_1`: Place is marked certain while still prototype/draft.
 - `hebron`: Place is marked certain while still prototype/draft.
 - `heliopolis`: Place is marked certain while still prototype/draft.
+- `helkath_hazzurim`: Place is marked certain while still prototype/draft.
+- `hierapolis`: Place is marked certain while still prototype/draft.
 - `holy_place_2`: Place is marked certain while still prototype/draft.
 - `horse_gate`: Place is marked certain while still prototype/draft.
 - `house_of_the_forest_of_lebanon`: Place is marked certain while still prototype/draft.
 - `ibleam`: Place is marked certain while still prototype/draft.
 - `iconium`: Place is marked certain while still prototype/draft.
+- `idumea`: Place is marked certain while still prototype/draft.
+- `illyricum`: Place is marked certain while still prototype/draft.
 - `immer`: Place is marked certain while still prototype/draft.
 - `india`: Place is marked certain while still prototype/draft.
+- `ir_shemesh`: Place is marked certain while still prototype/draft.
 - `italy`: Place is marked certain while still prototype/draft.
+- `ituraea`: Place is marked certain while still prototype/draft.
 - `jabbok`: Place is marked certain while still prototype/draft.
 - `jarmuth_1`: Place is marked certain while still prototype/draft.
+- `jarmuth_2`: Place is marked certain while still prototype/draft.
 - `jattir`: Place is marked certain while still prototype/draft.
 - `javan`: Place is marked certain while still prototype/draft.
 - `jebus`: Place is marked certain while still prototype/draft.
+- `jehud`: Place is marked certain while still prototype/draft.
 - `jericho_1`: Place is marked certain while still prototype/draft.
 - `jericho_2`: Place is marked certain while still prototype/draft.
+- `jeruel`: Place is marked certain while still prototype/draft.
+- `jeshanah`: Place is marked certain while still prototype/draft.
 - `jeshimon`: Place is marked certain while still prototype/draft.
 - `jezreel_2`: Place is marked certain while still prototype/draft.
 - `jokneam`: Place is marked certain while still prototype/draft.
@@ -1141,6 +931,7 @@
 - `judea_1`: Place is marked certain while still prototype/draft.
 - `judea_2`: Place is marked certain while still prototype/draft.
 - `kadesh_barnea`: Place is marked certain while still prototype/draft.
+- `kanah_2`: Place is marked certain while still prototype/draft.
 - `kedar`: Place is marked certain while still prototype/draft.
 - `kedesh_5`: Place is marked certain while still prototype/draft.
 - `keilah`: Place is marked certain while still prototype/draft.
@@ -1153,18 +944,24 @@
 - `kue`: Place is marked certain while still prototype/draft.
 - `lachish`: Place is marked certain while still prototype/draft.
 - `laodicea`: Place is marked certain while still prototype/draft.
+- `lasea`: Place is marked certain while still prototype/draft.
+- `leb_kamai`: Place is marked certain while still prototype/draft.
 - `lebanon`: Place is marked certain while still prototype/draft.
 - `libya`: Place is marked certain while still prototype/draft.
 - `lod`: Place is marked certain while still prototype/draft.
 - `lower_beth_horon`: Place is marked certain while still prototype/draft.
 - `lower_gulloth`: Place is marked certain while still prototype/draft.
+- `lower_pool`: Place is marked certain while still prototype/draft.
 - `lud_1`: Place is marked certain while still prototype/draft.
 - `luz_1`: Place is marked certain while still prototype/draft.
 - `lycaonia`: Place is marked certain while still prototype/draft.
+- `lycia`: Place is marked certain while still prototype/draft.
 - `lystra`: Place is marked certain while still prototype/draft.
 - `maacah`: Place is marked certain while still prototype/draft.
+- `maareh_geba`: Place is marked certain while still prototype/draft.
 - `macedonia`: Place is marked certain while still prototype/draft.
 - `machpelah`: Place is marked certain while still prototype/draft.
+- `malta`: Place is marked certain while still prototype/draft.
 - `maon`: Place is marked certain while still prototype/draft.
 - `mareshah`: Place is marked certain while still prototype/draft.
 - `massah`: Place is marked certain while still prototype/draft.
@@ -1172,18 +969,26 @@
 - `media`: Place is marked certain while still prototype/draft.
 - `megiddo`: Place is marked certain while still prototype/draft.
 - `memphis`: Place is marked certain while still prototype/draft.
+- `merathaim`: Place is marked certain while still prototype/draft.
 - `meribah_1`: Place is marked certain while still prototype/draft.
 - `meribah_2`: Place is marked certain while still prototype/draft.
 - `meshech`: Place is marked certain while still prototype/draft.
 - `mesopotamia`: Place is marked certain while still prototype/draft.
+- `middle_gate`: Place is marked certain while still prototype/draft.
 - `midian`: Place is marked certain while still prototype/draft.
 - `miletus`: Place is marked certain while still prototype/draft.
+- `minni`: Place is marked certain while still prototype/draft.
 - `mithkah`: Place is marked certain while still prototype/draft.
+- `mitylene`: Place is marked certain while still prototype/draft.
 - `mizpah_3`: Place is marked certain while still prototype/draft.
+- `mizpeh_1`: Place is marked certain while still prototype/draft.
 - `moab_1`: Place is marked certain while still prototype/draft.
 - `moab_2`: Place is marked certain while still prototype/draft.
 - `moreh_1`: Place is marked certain while still prototype/draft.
+- `mortar`: Place is marked certain while still prototype/draft.
 - `most_holy_place_2`: Place is marked certain while still prototype/draft.
+- `mount_baal_hermon`: Place is marked certain while still prototype/draft.
+- `mount_bashan`: Place is marked certain while still prototype/draft.
 - `mount_carmel`: Place is marked certain while still prototype/draft.
 - `mount_ebal`: Place is marked certain while still prototype/draft.
 - `mount_ephraim`: Place is marked certain while still prototype/draft.
@@ -1192,23 +997,41 @@
 - `mount_gilboa`: Place is marked certain while still prototype/draft.
 - `mount_hermon`: Place is marked certain while still prototype/draft.
 - `mount_horeb`: Place is marked certain while still prototype/draft.
+- `mount_jearim`: Place is marked certain while still prototype/draft.
+- `mount_lebanon`: Place is marked certain while still prototype/draft.
+- `mount_moriah`: Place is marked certain while still prototype/draft.
 - `mount_of_olives`: Place is marked certain while still prototype/draft.
 - `mount_shepher`: Place is marked certain while still prototype/draft.
 - `mount_tabor`: Place is marked certain while still prototype/draft.
 - `mount_zion`: Place is marked certain while still prototype/draft.
+- `muster_gate`: Place is marked certain while still prototype/draft.
+- `myra`: Place is marked certain while still prototype/draft.
 - `mysia`: Place is marked certain while still prototype/draft.
+- `nain`: Place is marked certain while still prototype/draft.
+- `neapolis`: Place is marked certain while still prototype/draft.
+- `neballat`: Place is marked certain while still prototype/draft.
 - `negeb`: Place is marked certain while still prototype/draft.
 - `new_gate`: Place is marked certain while still prototype/draft.
+- `nicopolis`: Place is marked certain while still prototype/draft.
 - `nile`: Place is marked certain while still prototype/draft.
+- `nimrah`: Place is marked certain while still prototype/draft.
+- `nimrod`: Place is marked certain while still prototype/draft.
 - `nineveh`: Place is marked certain while still prototype/draft.
+- `nobah_1`: Place is marked certain while still prototype/draft.
 - `north`: Place is marked certain while still prototype/draft.
+- `north_gate`: Place is marked certain while still prototype/draft.
+- `old_pool`: Place is marked certain while still prototype/draft.
 - `ophel`: Place is marked certain while still prototype/draft.
 - `pamphylia`: Place is marked certain while still prototype/draft.
 - `paphos`: Place is marked certain while still prototype/draft.
 - `paran`: Place is marked certain while still prototype/draft.
+- `parbar`: Place is marked certain while still prototype/draft.
+- `patara`: Place is marked certain while still prototype/draft.
 - `pathros`: Place is marked certain while still prototype/draft.
+- `patmos`: Place is marked certain while still prototype/draft.
 - `pekod`: Place is marked certain while still prototype/draft.
 - `pelusium`: Place is marked certain while still prototype/draft.
+- `peoples_gate`: Place is marked certain while still prototype/draft.
 - `peor`: Place is marked certain while still prototype/draft.
 - `perez_uzzah`: Place is marked certain while still prototype/draft.
 - `perga`: Place is marked certain while still prototype/draft.
@@ -1219,55 +1042,90 @@
 - `philistia`: Place is marked certain while still prototype/draft.
 - `phoenicia`: Place is marked certain while still prototype/draft.
 - `phrygia`: Place is marked certain while still prototype/draft.
+- `pi_beseth`: Place is marked certain while still prototype/draft.
 - `pisidia`: Place is marked certain while still prototype/draft.
 - `pontus`: Place is marked certain while still prototype/draft.
+- `ptolemais`: Place is marked certain while still prototype/draft.
+- `puteoli`: Place is marked certain while still prototype/draft.
 - `rabbah_1`: Place is marked certain while still prototype/draft.
 - `ramah_1`: Place is marked certain while still prototype/draft.
 - `ramah_5`: Place is marked certain while still prototype/draft.
+- `ramah_7`: Place is marked certain while still prototype/draft.
+- `ramah_8`: Place is marked certain while still prototype/draft.
+- `ramath_lehi`: Place is marked certain while still prototype/draft.
+- `ramoth_2`: Place is marked certain while still prototype/draft.
 - `ramoth_3`: Place is marked certain while still prototype/draft.
 - `ramoth_gilead`: Place is marked certain while still prototype/draft.
 - `red_sea_2`: Place is marked certain while still prototype/draft.
+- `rhegium`: Place is marked certain while still prototype/draft.
 - `riblah_1`: Place is marked certain while still prototype/draft.
+- `rimmono`: Place is marked certain while still prototype/draft.
+- `salamis`: Place is marked certain while still prototype/draft.
 - `salem`: Place is marked certain while still prototype/draft.
+- `salmone`: Place is marked certain while still prototype/draft.
 - `salt_sea`: Place is marked certain while still prototype/draft.
 - `samaria_1`: Place is marked certain while still prototype/draft.
 - `samaria_2`: Place is marked certain while still prototype/draft.
+- `samos`: Place is marked certain while still prototype/draft.
+- `samothrace`: Place is marked certain while still prototype/draft.
 - `sardis`: Place is marked certain while still prototype/draft.
 - `sea_of_galilee`: Place is marked certain while still prototype/draft.
 - `second_quarter`: Place is marked certain while still prototype/draft.
+- `secu`: Place is marked certain while still prototype/draft.
+- `seleucia`: Place is marked certain while still prototype/draft.
+- `seneh`: Place is marked certain while still prototype/draft.
 - `senir`: Place is marked certain while still prototype/draft.
+- `serpents_stone`: Place is marked certain while still prototype/draft.
 - `shaalbon`: Place is marked certain while still prototype/draft.
+- `shallecheth`: Place is marked certain while still prototype/draft.
 - `sharon_1`: Place is marked certain while still prototype/draft.
+- `shaveh_kiriathaim`: Place is marked certain while still prototype/draft.
 - `sheba_1`: Place is marked certain while still prototype/draft.
 - `shechem`: Place is marked certain while still prototype/draft.
 - `sheep_gate`: Place is marked certain while still prototype/draft.
 - `shepham`: Place is marked certain while still prototype/draft.
 - `shephelah`: Place is marked certain while still prototype/draft.
 - `sheshach`: Place is marked certain while still prototype/draft.
+- `shiloah`: Place is marked certain while still prototype/draft.
 - `shiloh`: Place is marked certain while still prototype/draft.
 - `shimron`: Place is marked certain while still prototype/draft.
 - `shinar`: Place is marked certain while still prototype/draft.
 - `shunem`: Place is marked certain while still prototype/draft.
+- `sibraim`: Place is marked certain while still prototype/draft.
 - `sidon`: Place is marked certain while still prototype/draft.
+- `silla`: Place is marked certain while still prototype/draft.
 - `siloam`: Place is marked certain while still prototype/draft.
+- `siphmoth`: Place is marked certain while still prototype/draft.
 - `smyrna`: Place is marked certain while still prototype/draft.
 - `socoh_1`: Place is marked certain while still prototype/draft.
+- `socoh_2`: Place is marked certain while still prototype/draft.
 - `solomons_portico`: Place is marked certain while still prototype/draft.
+- `south_1`: Place is marked certain while still prototype/draft.
 - `south_2`: Place is marked certain while still prototype/draft.
 - `south_3`: Place is marked certain while still prototype/draft.
+- `south_gate`: Place is marked certain while still prototype/draft.
 - `spain`: Place is marked certain while still prototype/draft.
+- `straight_street`: Place is marked certain while still prototype/draft.
+- `sur`: Place is marked certain while still prototype/draft.
 - `susa`: Place is marked certain while still prototype/draft.
 - `syene`: Place is marked certain while still prototype/draft.
+- `syracuse`: Place is marked certain while still prototype/draft.
 - `syria_1`: Place is marked certain while still prototype/draft.
 - `syria_2`: Place is marked certain while still prototype/draft.
+- `syrtis`: Place is marked certain while still prototype/draft.
 - `taanach`: Place is marked certain while still prototype/draft.
+- `tabbur_erez`: Place is marked certain while still prototype/draft.
+- `tadmor`: Place is marked certain while still prototype/draft.
 - `tahpanhes`: Place is marked certain while still prototype/draft.
 - `tarsus`: Place is marked certain while still prototype/draft.
 - `tekoa`: Place is marked certain while still prototype/draft.
 - `tema`: Place is marked certain while still prototype/draft.
 - `terah`: Place is marked certain while still prototype/draft.
+- `the_lord_is_there`: Place is marked certain while still prototype/draft.
 - `thebes`: Place is marked certain while still prototype/draft.
+- `three_taverns`: Place is marked certain while still prototype/draft.
 - `thyatira`: Place is marked certain while still prototype/draft.
+- `tiberias`: Place is marked certain while still prototype/draft.
 - `tigris`: Place is marked certain while still prototype/draft.
 - `timnah_1`: Place is marked certain while still prototype/draft.
 - `timnath_heres`: Place is marked certain while still prototype/draft.
@@ -1277,7 +1135,9 @@
 - `tower_of_shechem`: Place is marked certain while still prototype/draft.
 - `tower_of_the_hundred`: Place is marked certain while still prototype/draft.
 - `tower_of_the_ovens`: Place is marked certain while still prototype/draft.
+- `trachonitis`: Place is marked certain while still prototype/draft.
 - `troas`: Place is marked certain while still prototype/draft.
+- `trogyllium`: Place is marked certain while still prototype/draft.
 - `tubal`: Place is marked certain while still prototype/draft.
 - `tyre`: Place is marked certain while still prototype/draft.
 - `upper_beth_horon`: Place is marked certain while still prototype/draft.
@@ -1285,22 +1145,35 @@
 - `upper_pool`: Place is marked certain while still prototype/draft.
 - `ur_1`: Place is marked certain while still prototype/draft.
 - `uzza`: Place is marked certain while still prototype/draft.
+- `valley_of_aijalon`: Place is marked certain while still prototype/draft.
+- `valley_of_decision`: Place is marked certain while still prototype/draft.
 - `valley_of_elah`: Place is marked certain while still prototype/draft.
 - `valley_of_gerar`: Place is marked certain while still prototype/draft.
+- `valley_of_gibeon`: Place is marked certain while still prototype/draft.
+- `valley_of_hebron`: Place is marked certain while still prototype/draft.
 - `valley_of_hinnom`: Place is marked certain while still prototype/draft.
 - `valley_of_jehoshaphat`: Place is marked certain while still prototype/draft.
+- `valley_of_jericho`: Place is marked certain while still prototype/draft.
 - `valley_of_jezreel`: Place is marked certain while still prototype/draft.
 - `valley_of_lebanon`: Place is marked certain while still prototype/draft.
+- `valley_of_mizpeh`: Place is marked certain while still prototype/draft.
 - `valley_of_rephaim`: Place is marked certain while still prototype/draft.
+- `valley_of_shaveh`: Place is marked certain while still prototype/draft.
+- `valley_of_sorek`: Place is marked certain while still prototype/draft.
 - `valley_of_succoth`: Place is marked certain while still prototype/draft.
 - `valley_of_the_arnon`: Place is marked certain while still prototype/draft.
+- `valley_of_zered`: Place is marked certain while still prototype/draft.
+- `waheb`: Place is marked certain while still prototype/draft.
 - `water_gate`: Place is marked certain while still prototype/draft.
+- `way_of_holiness`: Place is marked certain while still prototype/draft.
 - `way_of_the_red_sea`: Place is marked certain while still prototype/draft.
 - `wilderness_of_maon`: Place is marked certain while still prototype/draft.
 - `wilderness_of_sinai`: Place is marked certain while still prototype/draft.
 - `wilderness_of_ziph`: Place is marked certain while still prototype/draft.
+- `wildgoats_rocks`: Place is marked certain while still prototype/draft.
 - `zaphon_2`: Place is marked certain while still prototype/draft.
 - `zarephath`: Place is marked certain while still prototype/draft.
+- `zephath`: Place is marked certain while still prototype/draft.
 - `zered`: Place is marked certain while still prototype/draft.
 - `zin_1`: Place is marked certain while still prototype/draft.
 - `zin_2`: Place is marked certain while still prototype/draft.
