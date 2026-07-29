@@ -13,7 +13,6 @@ CATALOG_PATH = DATA_DIR / "biblical_places_catalog.json"
 QUEUE_PATH = DATA_DIR / "hungarian_review_queue.json"
 BATCH_PATH = DATA_DIR / "hungarian_review_batch_001.json"
 DEFAULT_DRAFT_PATH = DATA_DIR / "hungarian_review_batch_001_hu_draft.json"
-BATCH_SIZE = 100
 
 
 def read_json(path: Path) -> Any:
@@ -39,8 +38,10 @@ def validate_draft(
 ) -> list[dict[str, Any]]:
     if not isinstance(draft, list):
         raise ValueError("Draft review file must contain a JSON list.")
-    if len(draft) != BATCH_SIZE:
-        raise ValueError(f"Draft review file must contain exactly {BATCH_SIZE} records.")
+    if len(draft) != len(batch):
+        raise ValueError(
+            f"Draft review file must contain exactly {len(batch)} records."
+        )
     catalog_ids = {str(item.get("place_id") or "") for item in catalog}
     batch_ids = [str(item.get("place_id") or "") for item in batch]
     draft_ids = [str(item.get("place_id") or "") for item in draft]
