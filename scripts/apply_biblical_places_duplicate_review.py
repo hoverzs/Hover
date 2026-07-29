@@ -51,6 +51,11 @@ EXPECTED_GROUPS_BY_BATCH = {
             "dup_cush_1__ethiopia",
         },
     },
+    "duplicate_review_batch_003_reviewed.json": {
+        "count": 45,
+        "merge_count": 22,
+        "keep_separate_count": 23,
+    },
 }
 REQUIRED_STRATEGY_FIELDS = {
     "proposed_passage_strategy",
@@ -103,8 +108,10 @@ def validate_batch(batch_path: Path, catalog: list[dict[str, Any]]) -> list[dict
     batch = read_json(batch_path, None)
     if not isinstance(batch, list):
         raise ValueError("The reviewed duplicate batch must be a JSON list.")
-    if len(batch) != 10:
-        raise ValueError(f"Expected exactly 10 groups, got {len(batch)}.")
+    expected = EXPECTED_GROUPS_BY_BATCH.get(batch_path.name)
+    expected_count = int((expected or {}).get("count", 10))
+    if len(batch) != expected_count:
+        raise ValueError(f"Expected exactly {expected_count} groups, got {len(batch)}.")
 
     catalog_ids = {text(place.get("place_id")) for place in catalog}
     catalog_by_id = {text(place.get("place_id")): place for place in catalog}
@@ -114,12 +121,17 @@ def validate_batch(batch_path: Path, catalog: list[dict[str, Any]]) -> list[dict
 
     merge_groups = {text(group.get("group_id")) for group in batch if group.get("final_action") == "merge"}
     keep_groups = {text(group.get("group_id")) for group in batch if group.get("final_action") == "keep_separate"}
-    expected = EXPECTED_GROUPS_BY_BATCH.get(batch_path.name)
     if expected is not None:
-        if merge_groups != expected["merge"]:
+        if "merge" in expected and merge_groups != expected["merge"]:
             raise ValueError(f"Merge group mismatch: {sorted(merge_groups)}")
-        if keep_groups != expected["keep_separate"]:
+        if "keep_separate" in expected and keep_groups != expected["keep_separate"]:
             raise ValueError(f"Keep-separate group mismatch: {sorted(keep_groups)}")
+        if "merge_count" in expected and len(merge_groups) != expected["merge_count"]:
+            raise ValueError(f"Expected {expected['merge_count']} merge groups, got {len(merge_groups)}.")
+        if "keep_separate_count" in expected and len(keep_groups) != expected["keep_separate_count"]:
+            raise ValueError(
+                f"Expected {expected['keep_separate_count']} keep-separate groups, got {len(keep_groups)}."
+            )
 
     for group in batch:
         group_id = text(group.get("group_id"))
@@ -133,6 +145,8 @@ def validate_batch(batch_path: Path, catalog: list[dict[str, Any]]) -> list[dict
         for field in REQUIRED_STRATEGY_FIELDS:
             if not has_text(group.get(field)):
                 raise ValueError(f"{group_id}: missing {field}.")
+        if group.get("final_action") == "keep_separate" and not has_text(group.get("expert_decision_hu")):
+            raise ValueError(f"{group_id}: expert_decision_hu is required for keep_separate.")
         if group.get("final_action") == "merge":
             canonical_id = text(group.get("proposed_canonical_place_id"))
             if canonical_id not in candidate_ids:
@@ -175,6 +189,8 @@ def alias_allowed(group_id: str, value: Any) -> bool:
         return False
     if group_id == "dup_aija__ayyah" and normalized == "gaza":
         return False
+    if group_id == "dup_judea_1__judea_2" and normalized in {"galilee", "galilean", "galileans"}:
+        return False
     return True
 
 
@@ -185,6 +201,8 @@ def rejected_aliases_for(group_id: str) -> list[str]:
         return ["Hebron"]
     if group_id == "dup_aija__ayyah":
         return ["Gaza"]
+    if group_id == "dup_judea_1__judea_2":
+        return ["Galilee"]
     return []
 
 
@@ -231,6 +249,12 @@ def merge_record(canonical: dict[str, Any], removed_records: list[dict[str, Any]
         f"Duplikációs review alapján összevont rekord ({group_id}); "
         f"korábbi place_id-k: {', '.join(legacy_ids[: len(removed_records)])}."
     )
+    decision_note = text(group.get("expert_decision_hu"))
+    risk_values = [text(value) for value in group.get("merge_risks_hu") or [] if text(value)]
+    if decision_note:
+        note += f" Szakmai döntés: {decision_note}"
+    if risk_values:
+        note += " Kockázatok: " + " ".join(risk_values)
     existing_note = text(updated.get("merge_review_notes_hu"))
     updated["merge_review_notes_hu"] = existing_note if note in existing_note else (existing_note + "\n" + note).strip()
 
@@ -314,11 +338,14 @@ def update_duplicate_queue(queue: list[dict[str, Any]], batch: list[dict[str, An
             }:
                 updated[key] = deepcopy(value)
         if reviewed.get("final_action") == "keep_separate":
+            updated["reviewer_notes_hu"] = deepcopy(reviewed.get("expert_decision_hu"))
             record_type = text(reviewed.get("proposed_record_type"))
             if record_type == "same_place_different_record_type":
                 updated["recommended_action"] = "same_place_different_record_type"
             elif record_type in {"keep_separate_probable", "possibly_distinct_settlements"}:
                 updated["recommended_action"] = "keep_separate_probable"
+            elif record_type == "insufficient_evidence":
+                updated["recommended_action"] = "insufficient_evidence"
             else:
                 updated["recommended_action"] = "needs_expert_review"
         result.append(updated)

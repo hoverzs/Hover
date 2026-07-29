@@ -2,10 +2,10 @@
 
 - Duplikációgyanús rekordok száma: 252
 - Review csoportok száma: 106
-- `merge_probable`: 49
+- `merge_probable`: 35
 - `keep_separate_probable`: 1
-- `same_place_different_record_type`: 48
-- `needs_expert_review`: 8
+- `same_place_different_record_type`: 39
+- `needs_expert_review`: 31
 - `insufficient_evidence`: 0
 - `high` confidence: 53
 - `medium` confidence: 53
@@ -15,25 +15,25 @@
 
 | group_id | action | confidence | rekordok | távolság km |
 |---|---|---|---|---|
-| dup_dibon_1__dibon_3 | merge_probable | high | dibon_1, dibon_3 | 0.0 |
-| dup_ephrath__ephrathah | merge_probable | high | ephrath, ephrathah | 0.0 |
-| dup_ether_1__ether_2 | merge_probable | high | ether_1, ether_2 | 0.0 |
-| dup_euphrates__river_2 | merge_probable | high | euphrates, river_2 | 0.0 |
-| dup_gate_of_the_foundation__sur | merge_probable | high | gate_of_the_foundation, sur | 0.0 |
-| dup_gederah_1__gederah_3 | merge_probable | high | gederah_1, gederah_3 | 0.0 |
-| dup_gedor_2__gerar | merge_probable | high | gedor_2, gerar | 0.0 |
-| dup_jezreel_1__jezreel_3 | merge_probable | high | jezreel_1, jezreel_3 | 0.0 |
-| dup_jokmeam_1__jokmeam_2 | merge_probable | high | jokmeam_1, jokmeam_2 | 0.0 |
-| dup_judea_1__judea_2 | merge_probable | high | judea_1, judea_2 | 0.0 |
-| dup_kedesh_1__kedesh_5 | merge_probable | high | kedesh_1, kedesh_5 | 0.0 |
-| dup_lud_1__lud_2__lydia | merge_probable | high | lud_1, lud_2, lydia | 0.0 |
-| dup_magadan__magdala | merge_probable | high | magadan, magdala | 0.0 |
-| dup_mahaneh_dan_1__mahaneh_dan_2 | merge_probable | high | mahaneh_dan_1, mahaneh_dan_2 | 0.0 |
-| dup_migdol_1__migdol_2__migdol_3 | merge_probable | high | migdol_1, migdol_2, migdol_3 | 0.0 |
-| dup_mizpah_3__mizpeh_1 | merge_probable | high | mizpah_3, mizpeh_1 | 0.0 |
-| dup_mount_horeb__mount_sinai | merge_probable | high | mount_horeb, mount_sinai | 0.0 |
-| dup_negeb__south_1 | merge_probable | high | negeb, south_1 | 0.0 |
-| dup_nobah_1__nobah_2 | merge_probable | high | nobah_1, nobah_2 | 0.0 |
-| dup_ramah_5__ramoth_3__ramoth_gilead | merge_probable | high | ramah_5, ramoth_3, ramoth_gilead | 0.0 |
+| dup_dumah_2__edom__teman | same_place_different_record_type | medium | dumah_2, edom, teman | 0.0 |
+| dup_ephron_1__mount_ephron | same_place_different_record_type | medium | ephron_1, mount_ephron | 0.0 |
+| dup_gath_1__gath_3__metheg_ammah | same_place_different_record_type | medium | gath_1, gath_3, metheg_ammah | 0.0 |
+| dup_gedor_1__gedor_3__gedor_4 | same_place_different_record_type | medium | gedor_1, gedor_3, gedor_4 | 0.0 |
+| dup_gilead_1__gilead_2 | same_place_different_record_type | medium | gilead_1, gilead_2 | 0.0 |
+| dup_goshen_2__goshen_3 | same_place_different_record_type | medium | goshen_2, goshen_3 | 0.0 |
+| dup_hamath_1__hamath_2__hamath_zobah | same_place_different_record_type | medium | hamath_1, hamath_2, hamath_zobah | 0.0 |
+| dup_havilah_2__havilah_3 | same_place_different_record_type | medium | havilah_2, havilah_3 | 0.0 |
+| dup_hebron__valley_of_hebron | same_place_different_record_type | medium | hebron, valley_of_hebron | 0.0 |
+| dup_holy_place_2__most_holy_place_2 | same_place_different_record_type | medium | holy_place_2, most_holy_place_2 | 0.0 |
+| dup_jeshanah__shen | same_place_different_record_type | medium | jeshanah, shen | 0.0 |
+| dup_migron_1__migron_2 | same_place_different_record_type | medium | migron_1, migron_2 | 0.0 |
+| dup_mizpah_1__mizpah_4 | same_place_different_record_type | medium | mizpah_1, mizpah_4 | 0.0 |
+| dup_moriah__mount_moriah | same_place_different_record_type | medium | moriah, mount_moriah | 0.0 |
+| dup_mount_zemaraim__zemaraim | same_place_different_record_type | medium | mount_zemaraim, zemaraim | 0.0 |
+| dup_red_sea_2__suph | same_place_different_record_type | medium | red_sea_2, suph | 0.0 |
+| dup_rhodes_1__rhodes_2 | same_place_different_record_type | medium | rhodes_1, rhodes_2 | 0.0 |
+| dup_samaria_1__samaria_2 | same_place_different_record_type | medium | samaria_1, samaria_2 | 0.0 |
+| dup_ur_1__ur_2 | same_place_different_record_type | medium | ur_1, ur_2 | 0.0 |
+| dup_wilderness_of_ziph__ziph_1 | same_place_different_record_type | medium | wilderness_of_ziph, ziph_1 | 0.0 |
 
 A queue csak szakmai ellenőrzési munkalista; nem hajt végre merge-et, törlést vagy place_id módosítást.

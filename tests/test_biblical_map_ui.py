@@ -625,8 +625,11 @@ def test_specific_verse_does_not_inherit_whole_passage_place_list() -> None:
 def test_same_named_distinct_places_are_not_merged() -> None:
     bethel_hits = search_biblical_places("bethel", limit=10)
     bethel_ids = {place.place_id for place in bethel_hits}
+    raw_catalog = json.loads(BIBLICAL_PLACES_CATALOG_PATH.read_text(encoding="utf-8"))
+    bethel_1 = next(item for item in raw_catalog if item["place_id"] == "bethel_1")
 
-    assert {"bethel_1", "bethel_2", "bethel_3"}.issubset(bethel_ids)
+    assert {"bethel_1", "bethel_2"}.issubset(bethel_ids)
+    assert "bethel_3" in (bethel_1.get("legacy_place_ids") or [])
 
 
 def test_render_corinth_details_sources_and_quality_sections() -> None:

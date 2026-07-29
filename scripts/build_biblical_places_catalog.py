@@ -460,6 +460,8 @@ def alias_filter(group_id: str, value: Any) -> bool:
         return False
     if group_id == "dup_aija__ayyah" and text == "gaza":
         return False
+    if group_id == "dup_judea_1__judea_2" and text in {"galilee", "galilean", "galileans"}:
+        return False
     return True
 
 
@@ -519,6 +521,8 @@ def apply_duplicate_place_merges_to_catalog(
             rejected_aliases.append("Hebron")
         if group_id == "dup_aija__ayyah":
             rejected_aliases.append("Gaza")
+        if group_id == "dup_judea_1__judea_2":
+            rejected_aliases.append("Galilee")
         canonical["legacy_place_ids"] = stable_unique_json([*(canonical.get("legacy_place_ids") or []), *legacy_ids])
         canonical["rejected_aliases_hu"] = stable_unique_json(
             [*(canonical.get("rejected_aliases_hu") or []), *rejected_aliases]

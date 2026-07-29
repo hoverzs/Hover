@@ -22,6 +22,7 @@ CATALOG_PATH = DATA_DIR / "biblical_places_catalog.json"
 PASSAGE_LINKS_PATH = DATA_DIR / "passage_place_links.json"
 DUPLICATE_QUEUE_PATH = DATA_DIR / "duplicate_review_queue.json"
 BATCH_002_REVIEWED_PATH = DATA_DIR / "duplicate_review_batch_002_reviewed.json"
+BATCH_003_REVIEWED_PATH = DATA_DIR / "duplicate_review_batch_003_reviewed.json"
 
 
 def read_json(path: Path):
@@ -121,7 +122,7 @@ def test_second_reviewed_duplicate_merges_are_applied_when_present() -> None:
     queue = {group["group_id"]: group for group in read_json(DUPLICATE_QUEUE_PATH)}
     expected = EXPECTED_GROUPS_BY_BATCH[BATCH_002_REVIEWED_PATH.name]
 
-    assert len(catalog) == 1295
+    assert len(catalog) <= 1295
     assert removed_ids.isdisjoint(ids)
     assert canonical_ids.issubset(ids)
     assert keep_separate_ids.issubset(ids)
@@ -133,6 +134,83 @@ def test_second_reviewed_duplicate_merges_are_applied_when_present() -> None:
     for group_id in expected["keep_separate"]:
         assert queue[group_id]["final_action"] == "keep_separate"
         assert queue[group_id]["recommended_action"] != "merge_probable"
+
+
+def test_third_reviewed_duplicate_batch_is_valid_when_present() -> None:
+    if not BATCH_003_REVIEWED_PATH.exists():
+        return
+    catalog = read_json(CATALOG_PATH)
+    batch = validate_batch(BATCH_003_REVIEWED_PATH, catalog)
+
+    assert len(batch) == 45
+    assert len([group for group in batch if group["final_action"] == "merge"]) == 22
+    assert len([group for group in batch if group["final_action"] == "keep_separate"]) == 23
+
+
+def test_third_reviewed_duplicate_merges_are_applied_when_present() -> None:
+    if not BATCH_003_REVIEWED_PATH.exists():
+        return
+    catalog = read_json(CATALOG_PATH)
+    ids = {record["place_id"] for record in catalog}
+    removed_ids = {
+        "baalath_2",
+        "bethel_3",
+        "cabul_2",
+        "dibon_3",
+        "ephrathah",
+        "gederah_1",
+        "jezreel_1",
+        "judea_2",
+        "kedesh_1",
+        "magadan",
+        "mahaneh_dan_2",
+        "mizpeh_1",
+        "nobah_2",
+        "ramah_5",
+        "ramoth_3",
+        "rimmon_3",
+        "river_2",
+        "shihor_2",
+        "shiloah",
+        "sur",
+        "tamar_2",
+        "valley_of_zered",
+        "zeredah_2",
+    }
+    canonical_ids = {
+        "baalath_1",
+        "bethel_1",
+        "cabul_1",
+        "dibon_1",
+        "ephrath",
+        "euphrates",
+        "gate_of_the_foundation",
+        "gederah_3",
+        "jezreel_3",
+        "judea_1",
+        "kedesh_5",
+        "magdala",
+        "mahaneh_dan_1",
+        "mizpah_3",
+        "nobah_1",
+        "ramoth_gilead",
+        "rimmono",
+        "shihor_1",
+        "siloam",
+        "tamar_1",
+        "zarethan",
+        "zered",
+    }
+    links = read_json(PASSAGE_LINKS_PATH)
+    queue = {group["group_id"]: group for group in read_json(DUPLICATE_QUEUE_PATH)}
+
+    assert len(catalog) == 1272
+    assert removed_ids.isdisjoint(ids)
+    assert canonical_ids.issubset(ids)
+    assert all(link["place_id"] not in removed_ids for link in links)
+    for group in read_json(BATCH_003_REVIEWED_PATH):
+        assert queue[group["group_id"]]["review_status"] == "reviewed"
+        assert queue[group["group_id"]]["final_action"] == group["final_action"]
 
 
 def test_special_alias_risks_are_not_promoted_globally() -> None:

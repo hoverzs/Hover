@@ -35,7 +35,7 @@ def test_hungarian_review_queue_covers_full_catalog_once() -> None:
     catalog = read_json(CATALOG_PATH)
     queue_ids = [item["place_id"] for item in queue]
 
-    assert len(catalog) == 1295
+    assert len(catalog) == 1272
     assert len(queue) == len(catalog)
     assert len(queue_ids) == len(set(queue_ids))
     assert {item["place_id"] for item in queue} == {item["place_id"] for item in catalog}

@@ -1029,6 +1029,45 @@
     "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
+    "place_id": "dibon_1",
+    "name_en": "Dibon 1",
+    "ancient_names": [
+      "Dibon 1",
+      "Dibon",
+      "Dibon Gad",
+      "Dibon-gad",
+      "Dibon 3",
+      "Dimon",
+      "Waters of Dibon"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Tall Dhiban",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "probable",
+    "latitude": 31.502236,
+    "longitude": 35.776574,
+    "passage_count": 11,
+    "representative_passages": [
+      "ISA 15,2",
+      "ISA 15,9",
+      "JER 48,18",
+      "JER 48,22",
+      "JOS 13,17"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Díbón",
+    "current_card_summary_hu": "Moáb jelentős bibliai városa, amely Díbón, Díbón-Gád és Dimón névváltozatokkal szerepel.",
+    "proposed_name_hu": null,
+    "proposed_card_summary_hu": null,
+    "review_status": "pending",
+    "review_notes_hu": null
+  },
+  {
     "place_id": "michmash",
     "name_en": "Michmash",
     "ancient_names": [
@@ -1176,42 +1215,6 @@
     "proposed_card_summary_hu": "A Római Birodalom dél-görögországi tartománya, amelyhez Korinthus és Athén is tartozott. Területe a mai Görögország középső és déli részét foglalta magában.",
     "review_status": "draft",
     "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
-  },
-  {
-    "place_id": "dibon_1",
-    "name_en": "Dibon 1",
-    "ancient_names": [
-      "Dibon 1",
-      "Dibon",
-      "Dibon Gad",
-      "Dibon-gad"
-    ],
-    "original_names": [],
-    "transliterations": [],
-    "modern_name": "Tall Dhiban",
-    "modern_country": null,
-    "region_hu": null,
-    "ancient_region": null,
-    "identification_status": "certain",
-    "latitude": 31.502236,
-    "longitude": 35.776574,
-    "passage_count": 10,
-    "representative_passages": [
-      "ISA 15,2",
-      "JER 48,18",
-      "JER 48,22",
-      "JOS 13,17",
-      "JOS 13,9"
-    ],
-    "source_ids": [
-      "openbible_geocoding_cc_by_4_0"
-    ],
-    "current_name_hu": "Díbón",
-    "current_card_summary_hu": "Moáb egyik jelentős városa az Arnóntól északra. Az ókori települést a mai jordániai Dhibánnal azonosítják.",
-    "proposed_name_hu": "Díbón",
-    "proposed_card_summary_hu": "Moáb egyik jelentős városa az Arnóntól északra. Az ókori települést a mai jordániai Dhibánnal azonosítják.",
-    "review_status": "draft",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "north",
@@ -3349,6 +3352,43 @@
     "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
+    "place_id": "jezreel_3",
+    "name_en": "Jezreel 3",
+    "ancient_names": [
+      "Jezreel 3",
+      "Jezreel",
+      "Jezreelite",
+      "Jezreelitess",
+      "Jezreel 1"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Yatta",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "probable",
+    "latitude": 31.447778,
+    "longitude": 35.09,
+    "passage_count": 7,
+    "representative_passages": [
+      "1CH 3,1",
+      "1SA 25,43",
+      "1SA 27,3",
+      "1SA 30,5",
+      "2SA 2,2"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Jezréel (Júda)",
+    "current_card_summary_hu": "Júda területén fekvő Jezréel, amely nem azonos az északi Jezréel városával vagy völgyével.",
+    "proposed_name_hu": null,
+    "proposed_card_summary_hu": null,
+    "review_status": "pending",
+    "review_notes_hu": null
+  },
+  {
     "place_id": "nebo_1",
     "name_en": "Nebo 1",
     "ancient_names": [
@@ -3589,40 +3629,6 @@
     "current_card_summary_hu": "Oázis a Holt-tenger nyugati partján, Dávid menedékhelye és költői képek forrása. Ma izraeli természetvédelmi és régészeti terület.",
     "proposed_name_hu": "Én-Gedi",
     "proposed_card_summary_hu": "Oázis a Holt-tenger nyugati partján, Dávid menedékhelye és költői képek forrása. Ma izraeli természetvédelmi és régészeti terület.",
-    "review_status": "draft",
-    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
-  },
-  {
-    "place_id": "galatia",
-    "name_en": "Galatia",
-    "ancient_names": [
-      "Galatia",
-      "Galatian"
-    ],
-    "original_names": [],
-    "transliterations": [],
-    "modern_name": "Galatia",
-    "modern_country": null,
-    "region_hu": null,
-    "ancient_region": null,
-    "identification_status": "certain",
-    "latitude": 39.266667,
-    "longitude": 32.983333,
-    "passage_count": 6,
-    "representative_passages": [
-      "1CO 16,1",
-      "1PE 1,1",
-      "2TI 4,10",
-      "ACT 16,6",
-      "ACT 18,23"
-    ],
-    "source_ids": [
-      "openbible_geocoding_cc_by_4_0"
-    ],
-    "current_name_hu": "Galácia",
-    "current_card_summary_hu": "Kis-Ázsia belső részének római tartománya vagy tágabb etnikai térsége, amelyhez Pál gyülekezetei kapcsolódtak. Területe a mai Törökország középső részén feküdt.",
-    "proposed_name_hu": "Galácia",
-    "proposed_card_summary_hu": "Kis-Ázsia belső részének római tartománya vagy tágabb etnikai térsége, amelyhez Pál gyülekezetei kapcsolódtak. Területe a mai Törökország középső részén feküdt.",
     "review_status": "draft",
     "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   }

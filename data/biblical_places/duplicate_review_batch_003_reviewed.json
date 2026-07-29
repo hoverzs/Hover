@@ -1,0 +1,5162 @@
+[
+  {
+    "group_id": "dup_dibon_1__dibon_3",
+    "candidate_place_ids": [
+      "dibon_1",
+      "dibon_3"
+    ],
+    "candidate_names_en": {
+      "dibon_1": "Dibon 1",
+      "dibon_3": "Dibon 3"
+    },
+    "candidate_names_hu": {
+      "dibon_1": "Díbón",
+      "dibon_3": "Díbón"
+    },
+    "ancient_names": {
+      "dibon_1": [
+        "Dibon 1",
+        "Dibon",
+        "Dibon Gad",
+        "Dibon-gad"
+      ],
+      "dibon_3": [
+        "Dibon 3",
+        "Dibon",
+        "Dimon",
+        "Waters of Dibon"
+      ]
+    },
+    "modern_names": {
+      "dibon_1": "Tall Dhiban",
+      "dibon_3": "Tall Dhiban"
+    },
+    "coordinates": {
+      "dibon_1": {
+        "latitude": 31.502236,
+        "longitude": 35.776574
+      },
+      "dibon_3": {
+        "latitude": 31.502236,
+        "longitude": 35.776574
+      }
+    },
+    "identification_statuses": {
+      "dibon_1": "certain",
+      "dibon_3": "probable"
+    },
+    "representative_passages": [
+      "ISA 15,2",
+      "ISA 15,9",
+      "JER 48,18",
+      "JER 48,22",
+      "JOS 13,17",
+      "JOS 13,9",
+      "NUM 21,30",
+      "NUM 32,3",
+      "NUM 32,34",
+      "NUM 33,45"
+    ],
+    "passage_counts": {
+      "dibon_1": 10,
+      "dibon_3": 1
+    },
+    "source_ids": {
+      "dibon_1": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "dibon_3": [
+        "openbible_geocoding_cc_by_4_0"
+      ]
+    },
+    "current_review_notes_hu": {
+      "dibon_1": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges.",
+      "dibon_3": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+    },
+    "match_reasons": [
+      "Records share a name variant and have very close coordinates.",
+      "Records share the same modern_name.",
+      "Records share at least one normalized name variant.",
+      "Records appear to be numbered variants of the same base place_id."
+    ],
+    "coordinate_distance_km": 0.0,
+    "shared_passages": [],
+    "distinct_passages": {
+      "dibon_1": [
+        "ISA 15,2",
+        "JER 48,18",
+        "JER 48,22",
+        "JOS 13,17",
+        "JOS 13,9",
+        "NUM 21,30",
+        "NUM 32,3",
+        "NUM 32,34",
+        "NUM 33,45",
+        "NUM 33,46"
+      ],
+      "dibon_3": [
+        "ISA 15,9"
+      ]
+    },
+    "recommended_action": "merge_probable",
+    "confidence": "high",
+    "reviewer_notes_hu": "Szakmai előszűrés elkészült; alkalmazás előtt gépi validáció, dry-run és integritásellenőrzés szükséges.",
+    "review_status": "reviewed",
+    "proposed_canonical_place_id": "dibon_1",
+    "proposed_merged_name_hu": "Díbón",
+    "proposed_merged_summary_hu": "Moáb jelentős bibliai városa, amely Díbón, Díbón-Gád és Dimón névváltozatokkal szerepel.",
+    "proposed_passage_strategy": "Az összes passage-kapcsolat egyesítése a kanonikus rekord alatt, duplikációk eltávolításával.",
+    "proposed_coordinate_strategy": "A dibon_1 rekord koordinátáinak megtartása; az identification_status nem válhat indokolatlanul bizonyosabbá.",
+    "proposed_alias_strategy": "Minden névváltozat és korábbi place_id megőrzése alias/legacy mezőben, technikai számozások nélkül.",
+    "proposed_record_type": "merged_place",
+    "merge_risks_hu": [
+      "Más, azonos nevű bibliai helyekkel nem szabad automatikusan összevonni.",
+      "Minden passage-, alias- és forráskapcsolatot meg kell őrizni."
+    ],
+    "expert_decision_hu": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható.",
+    "final_action": "merge",
+    "human_readable_comparison": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható."
+  },
+  {
+    "group_id": "dup_ephrath__ephrathah",
+    "candidate_place_ids": [
+      "ephrath",
+      "ephrathah"
+    ],
+    "candidate_names_en": {
+      "ephrath": "Ephrath",
+      "ephrathah": "Ephrathah"
+    },
+    "candidate_names_hu": {
+      "ephrath": "Efráta",
+      "ephrathah": "Efráta"
+    },
+    "ancient_names": {
+      "ephrath": [
+        "Ephrath"
+      ],
+      "ephrathah": [
+        "Ephrathah",
+        "Ephratah"
+      ]
+    },
+    "modern_names": {
+      "ephrath": "Bethlehem",
+      "ephrathah": "Bethlehem"
+    },
+    "coordinates": {
+      "ephrath": {
+        "latitude": 31.704306,
+        "longitude": 35.207639
+      },
+      "ephrathah": {
+        "latitude": 31.704306,
+        "longitude": 35.207639
+      }
+    },
+    "identification_statuses": {
+      "ephrath": "certain",
+      "ephrathah": "certain"
+    },
+    "representative_passages": [
+      "GEN 35,16",
+      "GEN 35,19",
+      "GEN 48,7",
+      "PSA 132,6",
+      "RUT 4,11"
+    ],
+    "passage_counts": {
+      "ephrath": 3,
+      "ephrathah": 2
+    },
+    "source_ids": {
+      "ephrath": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "ephrathah": [
+        "openbible_geocoding_cc_by_4_0"
+      ]
+    },
+    "current_review_notes_hu": {
+      "ephrath": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges.",
+      "ephrathah": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+    },
+    "match_reasons": [
+      "Records share a name variant and have very close coordinates.",
+      "Records share the same modern_name.",
+      "Records share at least one normalized name variant."
+    ],
+    "coordinate_distance_km": 0.0,
+    "shared_passages": [],
+    "distinct_passages": {
+      "ephrath": [
+        "GEN 35,16",
+        "GEN 35,19",
+        "GEN 48,7"
+      ],
+      "ephrathah": [
+        "PSA 132,6",
+        "RUT 4,11"
+      ]
+    },
+    "recommended_action": "merge_probable",
+    "confidence": "high",
+    "reviewer_notes_hu": "Szakmai előszűrés elkészült; alkalmazás előtt gépi validáció, dry-run és integritásellenőrzés szükséges.",
+    "review_status": "reviewed",
+    "proposed_canonical_place_id": "ephrath",
+    "proposed_merged_name_hu": "Efráta",
+    "proposed_merged_summary_hu": "Betlehemhez kapcsolódó bibliai helynév és tájnév; az Efrát és Efráta alakok ugyanahhoz a földrajzi hagyományhoz tartoznak.",
+    "proposed_passage_strategy": "Az összes passage-kapcsolat egyesítése a kanonikus rekord alatt, duplikációk eltávolításával.",
+    "proposed_coordinate_strategy": "A ephrath rekord koordinátáinak megtartása; az identification_status nem válhat indokolatlanul bizonyosabbá.",
+    "proposed_alias_strategy": "Minden névváltozat és korábbi place_id megőrzése alias/legacy mezőben, technikai számozások nélkül.",
+    "proposed_record_type": "merged_place",
+    "merge_risks_hu": [
+      "Más, azonos nevű bibliai helyekkel nem szabad automatikusan összevonni.",
+      "Minden passage-, alias- és forráskapcsolatot meg kell őrizni."
+    ],
+    "expert_decision_hu": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható.",
+    "final_action": "merge",
+    "human_readable_comparison": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható."
+  },
+  {
+    "group_id": "dup_ether_1__ether_2",
+    "candidate_place_ids": [
+      "ether_1",
+      "ether_2"
+    ],
+    "candidate_names_en": {
+      "ether_1": "Ether 1",
+      "ether_2": "Ether 2"
+    },
+    "candidate_names_hu": {
+      "ether_1": "Éter",
+      "ether_2": "Éter"
+    },
+    "ancient_names": {
+      "ether_1": [
+        "Ether 1",
+        "Ether"
+      ],
+      "ether_2": [
+        "Ether 2",
+        "Ether"
+      ]
+    },
+    "modern_names": {
+      "ether_1": "Khirbet el Ater",
+      "ether_2": "Khirbet el Ater"
+    },
+    "coordinates": {
+      "ether_1": {
+        "latitude": 31.61593,
+        "longitude": 34.8783
+      },
+      "ether_2": {
+        "latitude": 31.61593,
+        "longitude": 34.8783
+      }
+    },
+    "identification_statuses": {
+      "ether_1": "probable",
+      "ether_2": "probable"
+    },
+    "representative_passages": [
+      "JOS 15,42",
+      "JOS 19,7"
+    ],
+    "passage_counts": {
+      "ether_1": 1,
+      "ether_2": 1
+    },
+    "source_ids": {
+      "ether_1": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "ether_2": [
+        "openbible_geocoding_cc_by_4_0"
+      ]
+    },
+    "current_review_notes_hu": {
+      "ether_1": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges.",
+      "ether_2": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+    },
+    "match_reasons": [
+      "Records share a name variant and have very close coordinates.",
+      "Records share the same modern_name.",
+      "Records share at least one normalized name variant.",
+      "Records appear to be numbered variants of the same base place_id."
+    ],
+    "coordinate_distance_km": 0.0,
+    "shared_passages": [],
+    "distinct_passages": {
+      "ether_1": [
+        "JOS 15,42"
+      ],
+      "ether_2": [
+        "JOS 19,7"
+      ]
+    },
+    "recommended_action": "merge_probable",
+    "confidence": "high",
+    "reviewer_notes_hu": "Szakmai előszűrés elkészült; alkalmazás előtt gépi validáció, dry-run és integritásellenőrzés szükséges.",
+    "review_status": "reviewed",
+    "proposed_canonical_place_id": null,
+    "proposed_merged_name_hu": null,
+    "proposed_merged_summary_hu": null,
+    "proposed_passage_strategy": "A passage-kapcsolatok maradjanak külön rekordokon.",
+    "proposed_coordinate_strategy": "A jelenlegi koordináták maradjanak meg; az azonos koordináta önmagában nem bizonyít rekordazonosságot.",
+    "proposed_alias_strategy": "A névkapcsolat megjegyzésként megőrizhető, de ne legyen automatikus alias-összevonás.",
+    "proposed_record_type": "keep_separate",
+    "merge_risks_hu": [
+      "Az összevonás eltérő földrajzi objektumokat, korszakokat vagy bibliai jelentéseket mosna össze."
+    ],
+    "expert_decision_hu": "A Józs 15 és Józs 19 határlistái eltérő törzsi összefüggésben szerepelnek; az azonosság nem elég biztos.",
+    "final_action": "keep_separate",
+    "human_readable_comparison": "A Józs 15 és Józs 19 határlistái eltérő törzsi összefüggésben szerepelnek; az azonosság nem elég biztos."
+  },
+  {
+    "group_id": "dup_euphrates__river_2",
+    "candidate_place_ids": [
+      "euphrates",
+      "river_2"
+    ],
+    "candidate_names_en": {
+      "euphrates": "Euphrates",
+      "river_2": "River 2"
+    },
+    "candidate_names_hu": {
+      "euphrates": "Eufrátesz",
+      "river_2": "Eufrátesz"
+    },
+    "ancient_names": {
+      "euphrates": [
+        "Euphrates",
+        "Euphrates River",
+        "Great River",
+        "Perath",
+        "River",
+        "River Euphrates"
+      ],
+      "river_2": [
+        "River 2",
+        "Euphrates",
+        "Euphrates River",
+        "River"
+      ]
+    },
+    "modern_names": {
+      "euphrates": "Euphrates River",
+      "river_2": "Euphrates River"
+    },
+    "coordinates": {
+      "euphrates": {
+        "latitude": 31.0043,
+        "longitude": 47.442
+      },
+      "river_2": {
+        "latitude": 31.0043,
+        "longitude": 47.442
+      }
+    },
+    "identification_statuses": {
+      "euphrates": "certain",
+      "river_2": "probable"
+    },
+    "representative_passages": [
+      "1CH 18,3",
+      "1CH 19,16",
+      "1CH 5,9",
+      "1KI 14,15",
+      "1KI 4,21",
+      "1KI 4,24",
+      "2CH 35,20",
+      "2CH 9,26",
+      "2KI 23,29",
+      "2KI 24,7"
+    ],
+    "passage_counts": {
+      "euphrates": 44,
+      "river_2": 1
+    },
+    "source_ids": {
+      "euphrates": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "river_2": [
+        "openbible_geocoding_cc_by_4_0"
+      ]
+    },
+    "current_review_notes_hu": {
+      "euphrates": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges.",
+      "river_2": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+    },
+    "match_reasons": [
+      "Records share a name variant and have very close coordinates.",
+      "Records share the same modern_name.",
+      "Records share at least one normalized name variant."
+    ],
+    "coordinate_distance_km": 0.0,
+    "shared_passages": [],
+    "distinct_passages": {
+      "euphrates": [
+        "1CH 18,3",
+        "1CH 19,16",
+        "1CH 5,9",
+        "1KI 14,15",
+        "1KI 4,21",
+        "1KI 4,24",
+        "2CH 35,20",
+        "2CH 9,26",
+        "2KI 23,29",
+        "2KI 24,7"
+      ],
+      "river_2": [
+        "NUM 22,5"
+      ]
+    },
+    "recommended_action": "merge_probable",
+    "confidence": "high",
+    "reviewer_notes_hu": "Szakmai előszűrés elkészült; alkalmazás előtt gépi validáció, dry-run és integritásellenőrzés szükséges.",
+    "review_status": "reviewed",
+    "proposed_canonical_place_id": "euphrates",
+    "proposed_merged_name_hu": "Eufrátesz",
+    "proposed_merged_summary_hu": "A Biblia nagy folyója, amelyet Eufrátesz, Perát és egyszerűen „a Folyó” néven is említenek.",
+    "proposed_passage_strategy": "Az összes passage-kapcsolat egyesítése a kanonikus rekord alatt, duplikációk eltávolításával.",
+    "proposed_coordinate_strategy": "A euphrates rekord koordinátáinak megtartása; az identification_status nem válhat indokolatlanul bizonyosabbá.",
+    "proposed_alias_strategy": "Minden névváltozat és korábbi place_id megőrzése alias/legacy mezőben, technikai számozások nélkül.",
+    "proposed_record_type": "merged_place",
+    "merge_risks_hu": [
+      "Más, azonos nevű bibliai helyekkel nem szabad automatikusan összevonni.",
+      "Minden passage-, alias- és forráskapcsolatot meg kell őrizni."
+    ],
+    "expert_decision_hu": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható.",
+    "final_action": "merge",
+    "human_readable_comparison": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható."
+  },
+  {
+    "group_id": "dup_gate_of_the_foundation__sur",
+    "candidate_place_ids": [
+      "gate_of_the_foundation",
+      "sur"
+    ],
+    "candidate_names_en": {
+      "gate_of_the_foundation": "Gate of the Foundation",
+      "sur": "Sur"
+    },
+    "candidate_names_hu": {
+      "gate_of_the_foundation": "Alap-kapu",
+      "sur": "Sur"
+    },
+    "ancient_names": {
+      "gate_of_the_foundation": [
+        "Gate of the Foundation",
+        "Foundation Gate"
+      ],
+      "sur": [
+        "Sur",
+        "Foundation Gate",
+        "Sur Gate"
+      ]
+    },
+    "modern_names": {
+      "gate_of_the_foundation": "Jerusalem",
+      "sur": "Jerusalem"
+    },
+    "coordinates": {
+      "gate_of_the_foundation": {
+        "latitude": 31.776667,
+        "longitude": 35.234167
+      },
+      "sur": {
+        "latitude": 31.776667,
+        "longitude": 35.234167
+      }
+    },
+    "identification_statuses": {
+      "gate_of_the_foundation": "certain",
+      "sur": "certain"
+    },
+    "representative_passages": [
+      "2CH 23,5",
+      "2KI 11,6"
+    ],
+    "passage_counts": {
+      "gate_of_the_foundation": 1,
+      "sur": 1
+    },
+    "source_ids": {
+      "gate_of_the_foundation": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "sur": [
+        "openbible_geocoding_cc_by_4_0"
+      ]
+    },
+    "current_review_notes_hu": {
+      "gate_of_the_foundation": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges.",
+      "sur": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+    },
+    "match_reasons": [
+      "Records share a name variant and have very close coordinates.",
+      "Records share the same modern_name.",
+      "Records share at least one normalized name variant."
+    ],
+    "coordinate_distance_km": 0.0,
+    "shared_passages": [],
+    "distinct_passages": {
+      "gate_of_the_foundation": [
+        "2CH 23,5"
+      ],
+      "sur": [
+        "2KI 11,6"
+      ]
+    },
+    "recommended_action": "merge_probable",
+    "confidence": "high",
+    "reviewer_notes_hu": "Szakmai előszűrés elkészült; alkalmazás előtt gépi validáció, dry-run és integritásellenőrzés szükséges.",
+    "review_status": "reviewed",
+    "proposed_canonical_place_id": "gate_of_the_foundation",
+    "proposed_merged_name_hu": "Alap-kapu",
+    "proposed_merged_summary_hu": "Jeruzsálem egyik bibliai kapuja, amelyet Alap-kapu és Súr-kapu néven említenek.",
+    "proposed_passage_strategy": "Az összes passage-kapcsolat egyesítése a kanonikus rekord alatt, duplikációk eltávolításával.",
+    "proposed_coordinate_strategy": "A gate_of_the_foundation rekord koordinátáinak megtartása; az identification_status nem válhat indokolatlanul bizonyosabbá.",
+    "proposed_alias_strategy": "Minden névváltozat és korábbi place_id megőrzése alias/legacy mezőben, technikai számozások nélkül.",
+    "proposed_record_type": "merged_place",
+    "merge_risks_hu": [
+      "Más, azonos nevű bibliai helyekkel nem szabad automatikusan összevonni.",
+      "Minden passage-, alias- és forráskapcsolatot meg kell őrizni."
+    ],
+    "expert_decision_hu": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható.",
+    "final_action": "merge",
+    "human_readable_comparison": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható."
+  },
+  {
+    "group_id": "dup_gederah_1__gederah_3",
+    "candidate_place_ids": [
+      "gederah_1",
+      "gederah_3"
+    ],
+    "candidate_names_en": {
+      "gederah_1": "Gederah 1",
+      "gederah_3": "Gederah 3"
+    },
+    "candidate_names_hu": {
+      "gederah_1": "Gedérá",
+      "gederah_3": "Gedérá"
+    },
+    "ancient_names": {
+      "gederah_1": [
+        "Gederah 1",
+        "Gederah"
+      ],
+      "gederah_3": [
+        "Gederah 3",
+        "Gederah"
+      ]
+    },
+    "modern_names": {
+      "gederah_1": "Khirbet Judraya",
+      "gederah_3": "Khirbet Judraya"
+    },
+    "coordinates": {
+      "gederah_1": {
+        "latitude": 31.688903,
+        "longitude": 34.996117
+      },
+      "gederah_3": {
+        "latitude": 31.688903,
+        "longitude": 34.996117
+      }
+    },
+    "identification_statuses": {
+      "gederah_1": "probable",
+      "gederah_3": "certain"
+    },
+    "representative_passages": [
+      "1CH 4,23",
+      "JOS 15,36"
+    ],
+    "passage_counts": {
+      "gederah_1": 1,
+      "gederah_3": 1
+    },
+    "source_ids": {
+      "gederah_1": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "gederah_3": [
+        "openbible_geocoding_cc_by_4_0"
+      ]
+    },
+    "current_review_notes_hu": {
+      "gederah_1": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges.",
+      "gederah_3": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+    },
+    "match_reasons": [
+      "Records share a name variant and have very close coordinates.",
+      "Records share the same modern_name.",
+      "Records share at least one normalized name variant.",
+      "Records appear to be numbered variants of the same base place_id."
+    ],
+    "coordinate_distance_km": 0.0,
+    "shared_passages": [],
+    "distinct_passages": {
+      "gederah_1": [
+        "JOS 15,36"
+      ],
+      "gederah_3": [
+        "1CH 4,23"
+      ]
+    },
+    "recommended_action": "merge_probable",
+    "confidence": "high",
+    "reviewer_notes_hu": "Szakmai előszűrés elkészült; alkalmazás előtt gépi validáció, dry-run és integritásellenőrzés szükséges.",
+    "review_status": "reviewed",
+    "proposed_canonical_place_id": "gederah_3",
+    "proposed_merged_name_hu": "Gedérá",
+    "proposed_merged_summary_hu": "Júda területén fekvő bibliai település; a két rekord ugyanazon hely külön szövegcsoportjait őrzi.",
+    "proposed_passage_strategy": "Az összes passage-kapcsolat egyesítése a kanonikus rekord alatt, duplikációk eltávolításával.",
+    "proposed_coordinate_strategy": "A gederah_3 rekord koordinátáinak megtartása; az identification_status nem válhat indokolatlanul bizonyosabbá.",
+    "proposed_alias_strategy": "Minden névváltozat és korábbi place_id megőrzése alias/legacy mezőben, technikai számozások nélkül.",
+    "proposed_record_type": "merged_place",
+    "merge_risks_hu": [
+      "Más, azonos nevű bibliai helyekkel nem szabad automatikusan összevonni.",
+      "Minden passage-, alias- és forráskapcsolatot meg kell őrizni."
+    ],
+    "expert_decision_hu": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható.",
+    "final_action": "merge",
+    "human_readable_comparison": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható."
+  },
+  {
+    "group_id": "dup_gedor_2__gerar",
+    "candidate_place_ids": [
+      "gedor_2",
+      "gerar"
+    ],
+    "candidate_names_en": {
+      "gedor_2": "Gedor 2",
+      "gerar": "Gerar"
+    },
+    "candidate_names_hu": {
+      "gedor_2": "Gedór",
+      "gerar": "Gerár"
+    },
+    "ancient_names": {
+      "gedor_2": [
+        "Gedor 2",
+        "Gedor",
+        "Gerar"
+      ],
+      "gerar": [
+        "Gerar"
+      ]
+    },
+    "modern_names": {
+      "gedor_2": "Tel Haror",
+      "gerar": "Tel Haror"
+    },
+    "coordinates": {
+      "gedor_2": {
+        "latitude": 31.3821,
+        "longitude": 34.6065
+      },
+      "gerar": {
+        "latitude": 31.3821,
+        "longitude": 34.6065
+      }
+    },
+    "identification_statuses": {
+      "gedor_2": "possible",
+      "gerar": "probable"
+    },
+    "representative_passages": [
+      "1CH 4,39",
+      "2CH 14,13",
+      "2CH 14,14",
+      "GEN 10,19",
+      "GEN 20,1",
+      "GEN 20,2",
+      "GEN 26,1",
+      "GEN 26,20",
+      "GEN 26,26",
+      "GEN 26,6"
+    ],
+    "passage_counts": {
+      "gedor_2": 1,
+      "gerar": 9
+    },
+    "source_ids": {
+      "gedor_2": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "gerar": [
+        "openbible_geocoding_cc_by_4_0"
+      ]
+    },
+    "current_review_notes_hu": {
+      "gedor_2": "Bizonytalan vagy vitatott azonosítás; a magyar név és leírás szakmai ellenőrzést igényel. Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges.",
+      "gerar": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+    },
+    "match_reasons": [
+      "Records share a name variant and have very close coordinates.",
+      "Records share the same modern_name.",
+      "Records share at least one normalized name variant."
+    ],
+    "coordinate_distance_km": 0.0,
+    "shared_passages": [],
+    "distinct_passages": {
+      "gedor_2": [
+        "1CH 4,39"
+      ],
+      "gerar": [
+        "2CH 14,13",
+        "2CH 14,14",
+        "GEN 10,19",
+        "GEN 20,1",
+        "GEN 20,2",
+        "GEN 26,1",
+        "GEN 26,20",
+        "GEN 26,26",
+        "GEN 26,6"
+      ]
+    },
+    "recommended_action": "merge_probable",
+    "confidence": "high",
+    "reviewer_notes_hu": "Szakmai előszűrés elkészült; alkalmazás előtt gépi validáció, dry-run és integritásellenőrzés szükséges.",
+    "review_status": "reviewed",
+    "proposed_canonical_place_id": null,
+    "proposed_merged_name_hu": null,
+    "proposed_merged_summary_hu": null,
+    "proposed_passage_strategy": "A passage-kapcsolatok maradjanak külön rekordokon.",
+    "proposed_coordinate_strategy": "A jelenlegi koordináták maradjanak meg; az azonos koordináta önmagában nem bizonyít rekordazonosságot.",
+    "proposed_alias_strategy": "A névkapcsolat megjegyzésként megőrizhető, de ne legyen automatikus alias-összevonás.",
+    "proposed_record_type": "keep_separate",
+    "merge_risks_hu": [
+      "Az összevonás eltérő földrajzi objektumokat, korszakokat vagy bibliai jelentéseket mosna össze."
+    ],
+    "expert_decision_hu": "Gedór és Gerár név- és hagyománytörténetileg nem azonosítható biztonsággal, még azonos modern javaslat mellett sem.",
+    "final_action": "keep_separate",
+    "human_readable_comparison": "Gedór és Gerár név- és hagyománytörténetileg nem azonosítható biztonsággal, még azonos modern javaslat mellett sem."
+  },
+  {
+    "group_id": "dup_jezreel_1__jezreel_3",
+    "candidate_place_ids": [
+      "jezreel_1",
+      "jezreel_3"
+    ],
+    "candidate_names_en": {
+      "jezreel_1": "Jezreel 1",
+      "jezreel_3": "Jezreel 3"
+    },
+    "candidate_names_hu": {
+      "jezreel_1": "Jezréel",
+      "jezreel_3": "Jezréel"
+    },
+    "ancient_names": {
+      "jezreel_1": [
+        "Jezreel 1",
+        "Jezreel"
+      ],
+      "jezreel_3": [
+        "Jezreel 3",
+        "Jezreel",
+        "Jezreelite",
+        "Jezreelitess"
+      ]
+    },
+    "modern_names": {
+      "jezreel_1": "Yatta",
+      "jezreel_3": "Yatta"
+    },
+    "coordinates": {
+      "jezreel_1": {
+        "latitude": 31.447778,
+        "longitude": 35.09
+      },
+      "jezreel_3": {
+        "latitude": 31.447778,
+        "longitude": 35.09
+      }
+    },
+    "identification_statuses": {
+      "jezreel_1": "probable",
+      "jezreel_3": "probable"
+    },
+    "representative_passages": [
+      "1CH 3,1",
+      "1SA 25,43",
+      "1SA 27,3",
+      "1SA 30,5",
+      "2SA 2,2",
+      "2SA 3,2",
+      "JOS 15,56"
+    ],
+    "passage_counts": {
+      "jezreel_1": 1,
+      "jezreel_3": 6
+    },
+    "source_ids": {
+      "jezreel_1": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "jezreel_3": [
+        "openbible_geocoding_cc_by_4_0"
+      ]
+    },
+    "current_review_notes_hu": {
+      "jezreel_1": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges.",
+      "jezreel_3": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+    },
+    "match_reasons": [
+      "Records share a name variant and have very close coordinates.",
+      "Records share the same modern_name.",
+      "Records share at least one normalized name variant.",
+      "Records appear to be numbered variants of the same base place_id."
+    ],
+    "coordinate_distance_km": 0.0,
+    "shared_passages": [],
+    "distinct_passages": {
+      "jezreel_1": [
+        "JOS 15,56"
+      ],
+      "jezreel_3": [
+        "1CH 3,1",
+        "1SA 25,43",
+        "1SA 27,3",
+        "1SA 30,5",
+        "2SA 2,2",
+        "2SA 3,2"
+      ]
+    },
+    "recommended_action": "merge_probable",
+    "confidence": "high",
+    "reviewer_notes_hu": "Szakmai előszűrés elkészült; alkalmazás előtt gépi validáció, dry-run és integritásellenőrzés szükséges.",
+    "review_status": "reviewed",
+    "proposed_canonical_place_id": "jezreel_3",
+    "proposed_merged_name_hu": "Jezréel (Júda)",
+    "proposed_merged_summary_hu": "Júda területén fekvő Jezréel, amely nem azonos az északi Jezréel városával vagy völgyével.",
+    "proposed_passage_strategy": "Az összes passage-kapcsolat egyesítése a kanonikus rekord alatt, duplikációk eltávolításával.",
+    "proposed_coordinate_strategy": "A jezreel_3 rekord koordinátáinak megtartása; az identification_status nem válhat indokolatlanul bizonyosabbá.",
+    "proposed_alias_strategy": "Minden névváltozat és korábbi place_id megőrzése alias/legacy mezőben, technikai számozások nélkül.",
+    "proposed_record_type": "merged_place",
+    "merge_risks_hu": [
+      "Más, azonos nevű bibliai helyekkel nem szabad automatikusan összevonni.",
+      "Minden passage-, alias- és forráskapcsolatot meg kell őrizni."
+    ],
+    "expert_decision_hu": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható.",
+    "final_action": "merge",
+    "human_readable_comparison": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható."
+  },
+  {
+    "group_id": "dup_jokmeam_1__jokmeam_2",
+    "candidate_place_ids": [
+      "jokmeam_1",
+      "jokmeam_2"
+    ],
+    "candidate_names_en": {
+      "jokmeam_1": "Jokmeam 1",
+      "jokmeam_2": "Jokmeam 2"
+    },
+    "candidate_names_hu": {
+      "jokmeam_1": "Jokmeam",
+      "jokmeam_2": "Jokmeam"
+    },
+    "ancient_names": {
+      "jokmeam_1": [
+        "Jokmeam 1",
+        "Jokmeam",
+        "Jokneam"
+      ],
+      "jokmeam_2": [
+        "Jokmeam 2",
+        "Jokmeam"
+      ]
+    },
+    "modern_names": {
+      "jokmeam_1": "Tel al Mazar",
+      "jokmeam_2": "Tel al Mazar"
+    },
+    "coordinates": {
+      "jokmeam_1": {
+        "latitude": 32.13993,
+        "longitude": 35.48497
+      },
+      "jokmeam_2": {
+        "latitude": 32.13993,
+        "longitude": 35.48497
+      }
+    },
+    "identification_statuses": {
+      "jokmeam_1": "possible",
+      "jokmeam_2": "possible"
+    },
+    "representative_passages": [
+      "1CH 6,68",
+      "1KI 4,12"
+    ],
+    "passage_counts": {
+      "jokmeam_1": 1,
+      "jokmeam_2": 1
+    },
+    "source_ids": {
+      "jokmeam_1": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "jokmeam_2": [
+        "openbible_geocoding_cc_by_4_0"
+      ]
+    },
+    "current_review_notes_hu": {
+      "jokmeam_1": "Bizonytalan vagy vitatott azonosítás; a magyar név és leírás szakmai ellenőrzést igényel. Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges.",
+      "jokmeam_2": "Bizonytalan vagy vitatott azonosítás; a magyar név és leírás szakmai ellenőrzést igényel. Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+    },
+    "match_reasons": [
+      "Records share a name variant and have very close coordinates.",
+      "Records share the same modern_name.",
+      "Records share at least one normalized name variant.",
+      "Records appear to be numbered variants of the same base place_id."
+    ],
+    "coordinate_distance_km": 0.0,
+    "shared_passages": [],
+    "distinct_passages": {
+      "jokmeam_1": [
+        "1KI 4,12"
+      ],
+      "jokmeam_2": [
+        "1CH 6,68"
+      ]
+    },
+    "recommended_action": "merge_probable",
+    "confidence": "high",
+    "reviewer_notes_hu": "Szakmai előszűrés elkészült; alkalmazás előtt gépi validáció, dry-run és integritásellenőrzés szükséges.",
+    "review_status": "reviewed",
+    "proposed_canonical_place_id": null,
+    "proposed_merged_name_hu": null,
+    "proposed_merged_summary_hu": null,
+    "proposed_passage_strategy": "A passage-kapcsolatok maradjanak külön rekordokon.",
+    "proposed_coordinate_strategy": "A jelenlegi koordináták maradjanak meg; az azonos koordináta önmagában nem bizonyít rekordazonosságot.",
+    "proposed_alias_strategy": "A névkapcsolat megjegyzésként megőrizhető, de ne legyen automatikus alias-összevonás.",
+    "proposed_record_type": "keep_separate",
+    "merge_risks_hu": [
+      "Az összevonás eltérő földrajzi objektumokat, korszakokat vagy bibliai jelentéseket mosna össze."
+    ],
+    "expert_decision_hu": "A két előfordulás azonosítása bizonytalan; szakértői ellenőrzés nélkül ne legyen merge.",
+    "final_action": "keep_separate",
+    "human_readable_comparison": "A két előfordulás azonosítása bizonytalan; szakértői ellenőrzés nélkül ne legyen merge."
+  },
+  {
+    "group_id": "dup_judea_1__judea_2",
+    "candidate_place_ids": [
+      "judea_1",
+      "judea_2"
+    ],
+    "candidate_names_en": {
+      "judea_1": "Judea 1",
+      "judea_2": "Judea 2"
+    },
+    "candidate_names_hu": {
+      "judea_1": "Júdea",
+      "judea_2": "Júdea"
+    },
+    "ancient_names": {
+      "judea_1": [
+        "Judea 1",
+        "Galilee",
+        "Jewish",
+        "Jewish leaders",
+        "Jewry",
+        "Jews",
+        "Juda",
+        "Judaea",
+        "Judah",
+        "Judea",
+        "Judean",
+        "Judeans"
+      ],
+      "judea_2": [
+        "Judea 2",
+        "Judah",
+        "Judea"
+      ]
+    },
+    "modern_names": {
+      "judea_1": "Jerusalem",
+      "judea_2": "Jerusalem"
+    },
+    "coordinates": {
+      "judea_1": {
+        "latitude": 31.776667,
+        "longitude": 35.234167
+      },
+      "judea_2": {
+        "latitude": 31.776667,
+        "longitude": 35.234167
+      }
+    },
+    "identification_statuses": {
+      "judea_1": "certain",
+      "judea_2": "certain"
+    },
+    "representative_passages": [
+      "1TH 2,14",
+      "2CO 1,16",
+      "ACT 1,8",
+      "ACT 10,37",
+      "ACT 10,39",
+      "ACT 11,1",
+      "ACT 11,29",
+      "ACT 12,19",
+      "ACT 15,1",
+      "ACT 2,14"
+    ],
+    "passage_counts": {
+      "judea_1": 52,
+      "judea_2": 2
+    },
+    "source_ids": {
+      "judea_1": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "judea_2": [
+        "openbible_geocoding_cc_by_4_0"
+      ]
+    },
+    "current_review_notes_hu": {
+      "judea_1": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges.",
+      "judea_2": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+    },
+    "match_reasons": [
+      "Records share a name variant and have very close coordinates.",
+      "Records share the same modern_name.",
+      "Records share at least one normalized name variant.",
+      "Records appear to be numbered variants of the same base place_id."
+    ],
+    "coordinate_distance_km": 0.0,
+    "shared_passages": [],
+    "distinct_passages": {
+      "judea_1": [
+        "1TH 2,14",
+        "2CO 1,16",
+        "ACT 1,8",
+        "ACT 10,37",
+        "ACT 10,39",
+        "ACT 11,1",
+        "ACT 11,29",
+        "ACT 12,19",
+        "ACT 15,1",
+        "ACT 2,14"
+      ],
+      "judea_2": [
+        "EZR 5,8",
+        "EZR 9,9"
+      ]
+    },
+    "recommended_action": "merge_probable",
+    "confidence": "high",
+    "reviewer_notes_hu": "Szakmai előszűrés elkészült; alkalmazás előtt gépi validáció, dry-run és integritásellenőrzés szükséges.",
+    "review_status": "reviewed",
+    "proposed_canonical_place_id": "judea_1",
+    "proposed_merged_name_hu": "Júdea",
+    "proposed_merged_summary_hu": "A júdai tartomány bibliai és történeti régiója, amely az ószövetségi és újszövetségi szövegekben is szerepel.",
+    "proposed_passage_strategy": "Az összes passage-kapcsolat egyesítése a kanonikus rekord alatt, duplikációk eltávolításával.",
+    "proposed_coordinate_strategy": "A judea_1 rekord koordinátáinak megtartása; az identification_status nem válhat indokolatlanul bizonyosabbá.",
+    "proposed_alias_strategy": "Minden névváltozat és korábbi place_id megőrzése alias/legacy mezőben, technikai számozások nélkül.",
+    "proposed_record_type": "merged_place",
+    "merge_risks_hu": [
+      "Más, azonos nevű bibliai helyekkel nem szabad automatikusan összevonni.",
+      "Minden passage-, alias- és forráskapcsolatot meg kell őrizni."
+    ],
+    "expert_decision_hu": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható.",
+    "final_action": "merge",
+    "human_readable_comparison": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható."
+  },
+  {
+    "group_id": "dup_kedesh_1__kedesh_5",
+    "candidate_place_ids": [
+      "kedesh_1",
+      "kedesh_5"
+    ],
+    "candidate_names_en": {
+      "kedesh_1": "Kedesh 1",
+      "kedesh_5": "Kedesh 5"
+    },
+    "candidate_names_hu": {
+      "kedesh_1": "Kedes",
+      "kedesh_5": "Kedes"
+    },
+    "ancient_names": {
+      "kedesh_1": [
+        "Kedesh 1",
+        "Kedesh"
+      ],
+      "kedesh_5": [
+        "Kedesh 5",
+        "Kedesh"
+      ]
+    },
+    "modern_names": {
+      "kedesh_1": "Tel Kedesh",
+      "kedesh_5": "Tel Kedesh"
+    },
+    "coordinates": {
+      "kedesh_1": {
+        "latitude": 33.111638,
+        "longitude": 35.529517
+      },
+      "kedesh_5": {
+        "latitude": 33.111638,
+        "longitude": 35.529517
+      }
+    },
+    "identification_statuses": {
+      "kedesh_1": "probable",
+      "kedesh_5": "certain"
+    },
+    "representative_passages": [
+      "1CH 6,76",
+      "2KI 15,29",
+      "JOS 12,22",
+      "JOS 19,37",
+      "JOS 20,7",
+      "JOS 21,32"
+    ],
+    "passage_counts": {
+      "kedesh_1": 4,
+      "kedesh_5": 2
+    },
+    "source_ids": {
+      "kedesh_1": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "kedesh_5": [
+        "openbible_geocoding_cc_by_4_0"
+      ]
+    },
+    "current_review_notes_hu": {
+      "kedesh_1": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges.",
+      "kedesh_5": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+    },
+    "match_reasons": [
+      "Records share a name variant and have very close coordinates.",
+      "Records share the same modern_name.",
+      "Records share at least one normalized name variant.",
+      "Records appear to be numbered variants of the same base place_id."
+    ],
+    "coordinate_distance_km": 0.0,
+    "shared_passages": [],
+    "distinct_passages": {
+      "kedesh_1": [
+        "1CH 6,76",
+        "2KI 15,29",
+        "JOS 12,22",
+        "JOS 21,32"
+      ],
+      "kedesh_5": [
+        "JOS 19,37",
+        "JOS 20,7"
+      ]
+    },
+    "recommended_action": "merge_probable",
+    "confidence": "high",
+    "reviewer_notes_hu": "Szakmai előszűrés elkészült; alkalmazás előtt gépi validáció, dry-run és integritásellenőrzés szükséges.",
+    "review_status": "reviewed",
+    "proposed_canonical_place_id": "kedesh_5",
+    "proposed_merged_name_hu": "Kedes (Naftáli)",
+    "proposed_merged_summary_hu": "Naftáli területén fekvő Kedes, menedékváros és lévita város.",
+    "proposed_passage_strategy": "Az összes passage-kapcsolat egyesítése a kanonikus rekord alatt, duplikációk eltávolításával.",
+    "proposed_coordinate_strategy": "A kedesh_5 rekord koordinátáinak megtartása; az identification_status nem válhat indokolatlanul bizonyosabbá.",
+    "proposed_alias_strategy": "Minden névváltozat és korábbi place_id megőrzése alias/legacy mezőben, technikai számozások nélkül.",
+    "proposed_record_type": "merged_place",
+    "merge_risks_hu": [
+      "Más, azonos nevű bibliai helyekkel nem szabad automatikusan összevonni.",
+      "Minden passage-, alias- és forráskapcsolatot meg kell őrizni."
+    ],
+    "expert_decision_hu": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható.",
+    "final_action": "merge",
+    "human_readable_comparison": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható."
+  },
+  {
+    "group_id": "dup_lud_1__lud_2__lydia",
+    "candidate_place_ids": [
+      "lud_1",
+      "lud_2",
+      "lydia"
+    ],
+    "candidate_names_en": {
+      "lud_1": "Lud 1",
+      "lud_2": "Lud 2",
+      "lydia": "Lydia"
+    },
+    "candidate_names_hu": {
+      "lud_1": "Lúd",
+      "lud_2": "Lúd",
+      "lydia": "Lydia"
+    },
+    "ancient_names": {
+      "lud_1": [
+        "Lud 1",
+        "Lud",
+        "Lydia",
+        "Lydians"
+      ],
+      "lud_2": [
+        "Lud 2",
+        "Lud",
+        "Ludim",
+        "Lydia",
+        "Lydians"
+      ],
+      "lydia": [
+        "Lydia"
+      ]
+    },
+    "modern_names": {
+      "lud_1": "Sardis",
+      "lud_2": "Sardis",
+      "lydia": "Sardis"
+    },
+    "coordinates": {
+      "lud_1": {
+        "latitude": 38.488333,
+        "longitude": 28.040278
+      },
+      "lud_2": {
+        "latitude": 38.488333,
+        "longitude": 28.040278
+      },
+      "lydia": {
+        "latitude": 38.488333,
+        "longitude": 28.040278
+      }
+    },
+    "identification_statuses": {
+      "lud_1": "certain",
+      "lud_2": "probable",
+      "lydia": "certain"
+    },
+    "representative_passages": [
+      "EZK 27,10",
+      "EZK 30,5",
+      "ISA 66,19",
+      "JER 46,9"
+    ],
+    "passage_counts": {
+      "lud_1": 2,
+      "lud_2": 2,
+      "lydia": 0
+    },
+    "source_ids": {
+      "lud_1": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "lud_2": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "lydia": [
+        "openbible_geocoding_cc_by_4_0"
+      ]
+    },
+    "current_review_notes_hu": {
+      "lud_1": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges.",
+      "lud_2": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges.",
+      "lydia": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+    },
+    "match_reasons": [
+      "Records share a name variant and have very close coordinates.",
+      "Records share the same modern_name.",
+      "Records share at least one normalized name variant.",
+      "Records appear to be numbered variants of the same base place_id."
+    ],
+    "coordinate_distance_km": 0.0,
+    "shared_passages": [],
+    "distinct_passages": {
+      "lud_1": [
+        "EZK 27,10",
+        "ISA 66,19"
+      ],
+      "lud_2": [
+        "EZK 30,5",
+        "JER 46,9"
+      ],
+      "lydia": []
+    },
+    "recommended_action": "merge_probable",
+    "confidence": "high",
+    "reviewer_notes_hu": "Szakmai előszűrés elkészült; alkalmazás előtt gépi validáció, dry-run és integritásellenőrzés szükséges.",
+    "review_status": "reviewed",
+    "proposed_canonical_place_id": null,
+    "proposed_merged_name_hu": null,
+    "proposed_merged_summary_hu": null,
+    "proposed_passage_strategy": "A passage-kapcsolatok maradjanak külön rekordokon.",
+    "proposed_coordinate_strategy": "A jelenlegi koordináták maradjanak meg; az azonos koordináta önmagában nem bizonyít rekordazonosságot.",
+    "proposed_alias_strategy": "A névkapcsolat megjegyzésként megőrizhető, de ne legyen automatikus alias-összevonás.",
+    "proposed_record_type": "keep_separate",
+    "merge_risks_hu": [
+      "Az összevonás eltérő földrajzi objektumokat, korszakokat vagy bibliai jelentéseket mosna össze."
+    ],
+    "expert_decision_hu": "Lúd, Ludím és Lüdia történeti-földrajzi azonosítása vitatott; nem minden szövegben ugyanazt a régiót jelentik.",
+    "final_action": "keep_separate",
+    "human_readable_comparison": "Lúd, Ludím és Lüdia történeti-földrajzi azonosítása vitatott; nem minden szövegben ugyanazt a régiót jelentik."
+  },
+  {
+    "group_id": "dup_magadan__magdala",
+    "candidate_place_ids": [
+      "magadan",
+      "magdala"
+    ],
+    "candidate_names_en": {
+      "magadan": "Magadan",
+      "magdala": "Magdala"
+    },
+    "candidate_names_hu": {
+      "magadan": "Magadán",
+      "magdala": "Magdala"
+    },
+    "ancient_names": {
+      "magadan": [
+        "Magadan",
+        "Magdala"
+      ],
+      "magdala": [
+        "Magdala"
+      ]
+    },
+    "modern_names": {
+      "magadan": "Majdal",
+      "magdala": "Majdal"
+    },
+    "coordinates": {
+      "magadan": {
+        "latitude": 32.827069,
+        "longitude": 35.513552
+      },
+      "magdala": {
+        "latitude": 32.827069,
+        "longitude": 35.513552
+      }
+    },
+    "identification_statuses": {
+      "magadan": "probable",
+      "magdala": "certain"
+    },
+    "representative_passages": [
+      "MAT 15,39"
+    ],
+    "passage_counts": {
+      "magadan": 1,
+      "magdala": 0
+    },
+    "source_ids": {
+      "magadan": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "magdala": [
+        "openbible_geocoding_cc_by_4_0"
+      ]
+    },
+    "current_review_notes_hu": {
+      "magadan": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges.",
+      "magdala": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+    },
+    "match_reasons": [
+      "Records share a name variant and have very close coordinates.",
+      "Records share the same modern_name.",
+      "Records share at least one normalized name variant."
+    ],
+    "coordinate_distance_km": 0.0,
+    "shared_passages": [],
+    "distinct_passages": {
+      "magadan": [
+        "MAT 15,39"
+      ],
+      "magdala": []
+    },
+    "recommended_action": "merge_probable",
+    "confidence": "high",
+    "reviewer_notes_hu": "Szakmai előszűrés elkészült; alkalmazás előtt gépi validáció, dry-run és integritásellenőrzés szükséges.",
+    "review_status": "reviewed",
+    "proposed_canonical_place_id": "magdala",
+    "proposed_merged_name_hu": "Magdala / Magadán",
+    "proposed_merged_summary_hu": "A Galileai-tenger nyugati partján fekvő település, amely Magdala és Magadán névalakban jelenik meg.",
+    "proposed_passage_strategy": "Az összes passage-kapcsolat egyesítése a kanonikus rekord alatt, duplikációk eltávolításával.",
+    "proposed_coordinate_strategy": "A magdala rekord koordinátáinak megtartása; az identification_status nem válhat indokolatlanul bizonyosabbá.",
+    "proposed_alias_strategy": "Minden névváltozat és korábbi place_id megőrzése alias/legacy mezőben, technikai számozások nélkül.",
+    "proposed_record_type": "merged_place",
+    "merge_risks_hu": [
+      "Más, azonos nevű bibliai helyekkel nem szabad automatikusan összevonni.",
+      "Minden passage-, alias- és forráskapcsolatot meg kell őrizni."
+    ],
+    "expert_decision_hu": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható.",
+    "final_action": "merge",
+    "human_readable_comparison": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható."
+  },
+  {
+    "group_id": "dup_mahaneh_dan_1__mahaneh_dan_2",
+    "candidate_place_ids": [
+      "mahaneh_dan_1",
+      "mahaneh_dan_2"
+    ],
+    "candidate_names_en": {
+      "mahaneh_dan_1": "Mahaneh-dan 1",
+      "mahaneh_dan_2": "Mahaneh-dan 2"
+    },
+    "candidate_names_hu": {
+      "mahaneh_dan_1": "Mahané-dan",
+      "mahaneh_dan_2": "Mahané-dan"
+    },
+    "ancient_names": {
+      "mahaneh_dan_1": [
+        "Mahaneh-dan 1",
+        "Camp of Dan",
+        "Mahaneh Dan",
+        "Mahaneh-dan",
+        "camp of Dan"
+      ],
+      "mahaneh_dan_2": [
+        "Mahaneh-dan 2",
+        "Camp of Dan",
+        "Mahaneh Dan",
+        "Mahaneh-dan"
+      ]
+    },
+    "modern_names": {
+      "mahaneh_dan_1": "between Eshtaol and Zorah",
+      "mahaneh_dan_2": "between Eshtaol and Zorah"
+    },
+    "coordinates": {
+      "mahaneh_dan_1": {
+        "latitude": 31.778023,
+        "longitude": 34.998916
+      },
+      "mahaneh_dan_2": {
+        "latitude": 31.778023,
+        "longitude": 34.998916
+      }
+    },
+    "identification_statuses": {
+      "mahaneh_dan_1": "probable",
+      "mahaneh_dan_2": "probable"
+    },
+    "representative_passages": [
+      "JDG 13,25",
+      "JDG 18,12"
+    ],
+    "passage_counts": {
+      "mahaneh_dan_1": 1,
+      "mahaneh_dan_2": 1
+    },
+    "source_ids": {
+      "mahaneh_dan_1": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "mahaneh_dan_2": [
+        "openbible_geocoding_cc_by_4_0"
+      ]
+    },
+    "current_review_notes_hu": {
+      "mahaneh_dan_1": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges.",
+      "mahaneh_dan_2": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+    },
+    "match_reasons": [
+      "Records share a name variant and have very close coordinates.",
+      "Records share the same modern_name.",
+      "Records share at least one normalized name variant.",
+      "Records appear to be numbered variants of the same base place_id."
+    ],
+    "coordinate_distance_km": 0.0,
+    "shared_passages": [],
+    "distinct_passages": {
+      "mahaneh_dan_1": [
+        "JDG 13,25"
+      ],
+      "mahaneh_dan_2": [
+        "JDG 18,12"
+      ]
+    },
+    "recommended_action": "merge_probable",
+    "confidence": "high",
+    "reviewer_notes_hu": "Szakmai előszűrés elkészült; alkalmazás előtt gépi validáció, dry-run és integritásellenőrzés szükséges.",
+    "review_status": "reviewed",
+    "proposed_canonical_place_id": "mahaneh_dan_1",
+    "proposed_merged_name_hu": "Mahané-Dán",
+    "proposed_merged_summary_hu": "Dán táborhelye Córeá és Estáól között; a két bírák könyvi előfordulás ugyanahhoz a helyhez kapcsolódik.",
+    "proposed_passage_strategy": "Az összes passage-kapcsolat egyesítése a kanonikus rekord alatt, duplikációk eltávolításával.",
+    "proposed_coordinate_strategy": "A mahaneh_dan_1 rekord koordinátáinak megtartása; az identification_status nem válhat indokolatlanul bizonyosabbá.",
+    "proposed_alias_strategy": "Minden névváltozat és korábbi place_id megőrzése alias/legacy mezőben, technikai számozások nélkül.",
+    "proposed_record_type": "merged_place",
+    "merge_risks_hu": [
+      "Más, azonos nevű bibliai helyekkel nem szabad automatikusan összevonni.",
+      "Minden passage-, alias- és forráskapcsolatot meg kell őrizni."
+    ],
+    "expert_decision_hu": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható.",
+    "final_action": "merge",
+    "human_readable_comparison": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható."
+  },
+  {
+    "group_id": "dup_migdol_1__migdol_2__migdol_3",
+    "candidate_place_ids": [
+      "migdol_1",
+      "migdol_2",
+      "migdol_3"
+    ],
+    "candidate_names_en": {
+      "migdol_1": "Migdol 1",
+      "migdol_2": "Migdol 2",
+      "migdol_3": "Migdol 3"
+    },
+    "candidate_names_hu": {
+      "migdol_1": "Migdól",
+      "migdol_2": "Migdól",
+      "migdol_3": "Migdól"
+    },
+    "ancient_names": {
+      "migdol_1": [
+        "Migdol 1",
+        "Migdal",
+        "Migdol"
+      ],
+      "migdol_2": [
+        "Migdol 2",
+        "Migdol"
+      ],
+      "migdol_3": [
+        "Migdol 3",
+        "Migdol"
+      ]
+    },
+    "modern_names": {
+      "migdol_1": "Tell el Herr",
+      "migdol_2": "Tell el Herr",
+      "migdol_3": "Tell el Herr"
+    },
+    "coordinates": {
+      "migdol_1": {
+        "latitude": 30.96478,
+        "longitude": 32.49286
+      },
+      "migdol_2": {
+        "latitude": 30.96478,
+        "longitude": 32.49286
+      },
+      "migdol_3": {
+        "latitude": 30.96478,
+        "longitude": 32.49286
+      }
+    },
+    "identification_statuses": {
+      "migdol_1": "possible",
+      "migdol_2": "possible",
+      "migdol_3": "probable"
+    },
+    "representative_passages": [
+      "EXO 14,2",
+      "EZK 29,10",
+      "EZK 30,6",
+      "JER 44,1",
+      "JER 46,14",
+      "NUM 33,7"
+    ],
+    "passage_counts": {
+      "migdol_1": 2,
+      "migdol_2": 2,
+      "migdol_3": 2
+    },
+    "source_ids": {
+      "migdol_1": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "migdol_2": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "migdol_3": [
+        "openbible_geocoding_cc_by_4_0"
+      ]
+    },
+    "current_review_notes_hu": {
+      "migdol_1": "Bizonytalan vagy vitatott azonosítás; a magyar név és leírás szakmai ellenőrzést igényel. Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges.",
+      "migdol_2": "Bizonytalan vagy vitatott azonosítás; a magyar név és leírás szakmai ellenőrzést igényel. Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges.",
+      "migdol_3": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+    },
+    "match_reasons": [
+      "Records share a name variant and have very close coordinates.",
+      "Records share the same modern_name.",
+      "Records share at least one normalized name variant.",
+      "Records appear to be numbered variants of the same base place_id."
+    ],
+    "coordinate_distance_km": 0.0,
+    "shared_passages": [],
+    "distinct_passages": {
+      "migdol_1": [
+        "EXO 14,2",
+        "NUM 33,7"
+      ],
+      "migdol_2": [
+        "JER 44,1",
+        "JER 46,14"
+      ],
+      "migdol_3": [
+        "EZK 29,10",
+        "EZK 30,6"
+      ]
+    },
+    "recommended_action": "merge_probable",
+    "confidence": "high",
+    "reviewer_notes_hu": "Szakmai előszűrés elkészült; alkalmazás előtt gépi validáció, dry-run és integritásellenőrzés szükséges.",
+    "review_status": "reviewed",
+    "proposed_canonical_place_id": null,
+    "proposed_merged_name_hu": null,
+    "proposed_merged_summary_hu": null,
+    "proposed_passage_strategy": "A passage-kapcsolatok maradjanak külön rekordokon.",
+    "proposed_coordinate_strategy": "A jelenlegi koordináták maradjanak meg; az azonos koordináta önmagában nem bizonyít rekordazonosságot.",
+    "proposed_alias_strategy": "A névkapcsolat megjegyzésként megőrizhető, de ne legyen automatikus alias-összevonás.",
+    "proposed_record_type": "keep_separate",
+    "merge_risks_hu": [
+      "Az összevonás eltérő földrajzi objektumokat, korszakokat vagy bibliai jelentéseket mosna össze."
+    ],
+    "expert_decision_hu": "A Migdól köznévi eredetű helynév, és több egyiptomi erőd vagy térség neve lehet.",
+    "final_action": "keep_separate",
+    "human_readable_comparison": "A Migdól köznévi eredetű helynév, és több egyiptomi erőd vagy térség neve lehet."
+  },
+  {
+    "group_id": "dup_mizpah_3__mizpeh_1",
+    "candidate_place_ids": [
+      "mizpah_3",
+      "mizpeh_1"
+    ],
+    "candidate_names_en": {
+      "mizpah_3": "Mizpah 3",
+      "mizpeh_1": "Mizpeh 1"
+    },
+    "candidate_names_hu": {
+      "mizpah_3": "Micpa",
+      "mizpeh_1": "Micpe"
+    },
+    "ancient_names": {
+      "mizpah_3": [
+        "Mizpah 3",
+        "Mizpah",
+        "Mizpeh"
+      ],
+      "mizpeh_1": [
+        "Mizpeh 1",
+        "Mizpah",
+        "Mizpeh"
+      ]
+    },
+    "modern_names": {
+      "mizpah_3": "Tell en Nasbeh",
+      "mizpeh_1": "Tell en Nasbeh"
+    },
+    "coordinates": {
+      "mizpah_3": {
+        "latitude": 31.885136,
+        "longitude": 35.216417
+      },
+      "mizpeh_1": {
+        "latitude": 31.885136,
+        "longitude": 35.216417
+      }
+    },
+    "identification_statuses": {
+      "mizpah_3": "certain",
+      "mizpeh_1": "certain"
+    },
+    "representative_passages": [
+      "1KI 15,22",
+      "1SA 10,17",
+      "1SA 7,11",
+      "1SA 7,12",
+      "1SA 7,16",
+      "1SA 7,5",
+      "1SA 7,6",
+      "1SA 7,7",
+      "2CH 16,6",
+      "2KI 25,23"
+    ],
+    "passage_counts": {
+      "mizpah_3": 32,
+      "mizpeh_1": 1
+    },
+    "source_ids": {
+      "mizpah_3": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "mizpeh_1": [
+        "openbible_geocoding_cc_by_4_0"
+      ]
+    },
+    "current_review_notes_hu": {
+      "mizpah_3": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges.",
+      "mizpeh_1": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+    },
+    "match_reasons": [
+      "Records share a name variant and have very close coordinates.",
+      "Records share the same modern_name.",
+      "Records share at least one normalized name variant."
+    ],
+    "coordinate_distance_km": 0.0,
+    "shared_passages": [],
+    "distinct_passages": {
+      "mizpah_3": [
+        "1KI 15,22",
+        "1SA 10,17",
+        "1SA 7,11",
+        "1SA 7,12",
+        "1SA 7,16",
+        "1SA 7,5",
+        "1SA 7,6",
+        "1SA 7,7",
+        "2CH 16,6",
+        "2KI 25,23"
+      ],
+      "mizpeh_1": [
+        "JOS 18,26"
+      ]
+    },
+    "recommended_action": "merge_probable",
+    "confidence": "high",
+    "reviewer_notes_hu": "Szakmai előszűrés elkészült; alkalmazás előtt gépi validáció, dry-run és integritásellenőrzés szükséges.",
+    "review_status": "reviewed",
+    "proposed_canonical_place_id": "mizpah_3",
+    "proposed_merged_name_hu": "Micpa (Benjámin)",
+    "proposed_merged_summary_hu": "Benjámin területének fontos bibliai települése és gyülekezési helye.",
+    "proposed_passage_strategy": "Az összes passage-kapcsolat egyesítése a kanonikus rekord alatt, duplikációk eltávolításával.",
+    "proposed_coordinate_strategy": "A mizpah_3 rekord koordinátáinak megtartása; az identification_status nem válhat indokolatlanul bizonyosabbá.",
+    "proposed_alias_strategy": "Minden névváltozat és korábbi place_id megőrzése alias/legacy mezőben, technikai számozások nélkül.",
+    "proposed_record_type": "merged_place",
+    "merge_risks_hu": [
+      "Más, azonos nevű bibliai helyekkel nem szabad automatikusan összevonni.",
+      "Minden passage-, alias- és forráskapcsolatot meg kell őrizni."
+    ],
+    "expert_decision_hu": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható.",
+    "final_action": "merge",
+    "human_readable_comparison": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható."
+  },
+  {
+    "group_id": "dup_mount_horeb__mount_sinai",
+    "candidate_place_ids": [
+      "mount_horeb",
+      "mount_sinai"
+    ],
+    "candidate_names_en": {
+      "mount_horeb": "Mount Horeb",
+      "mount_sinai": "Mount Sinai"
+    },
+    "candidate_names_hu": {
+      "mount_horeb": "Hóreb hegye",
+      "mount_sinai": "Sínai-hegy"
+    },
+    "ancient_names": {
+      "mount_horeb": [
+        "Mount Horeb",
+        "Herob",
+        "Horeb",
+        "Mount Sinai",
+        "Sinai"
+      ],
+      "mount_sinai": [
+        "Mount Sinai",
+        "Sina",
+        "Sinai",
+        "mount Sinai"
+      ]
+    },
+    "modern_names": {
+      "mount_horeb": "Jebel Musa",
+      "mount_sinai": "Jebel Musa"
+    },
+    "coordinates": {
+      "mount_horeb": {
+        "latitude": 28.539722,
+        "longitude": 33.973333
+      },
+      "mount_sinai": {
+        "latitude": 28.539722,
+        "longitude": 33.973333
+      }
+    },
+    "identification_statuses": {
+      "mount_horeb": "certain",
+      "mount_sinai": "probable"
+    },
+    "representative_passages": [
+      "1KI 19,8",
+      "1KI 8,9",
+      "2CH 5,10",
+      "ACT 7,30",
+      "ACT 7,38",
+      "DEU 1,19",
+      "DEU 1,2",
+      "DEU 1,6",
+      "DEU 18,16",
+      "DEU 29,1"
+    ],
+    "passage_counts": {
+      "mount_horeb": 17,
+      "mount_sinai": 30
+    },
+    "source_ids": {
+      "mount_horeb": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "mount_sinai": [
+        "openbible_geocoding_cc_by_4_0"
+      ]
+    },
+    "current_review_notes_hu": {
+      "mount_horeb": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges.",
+      "mount_sinai": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+    },
+    "match_reasons": [
+      "Records share a name variant and have very close coordinates.",
+      "Records share the same modern_name.",
+      "Records share at least one normalized name variant."
+    ],
+    "coordinate_distance_km": 0.0,
+    "shared_passages": [],
+    "distinct_passages": {
+      "mount_horeb": [
+        "1KI 19,8",
+        "1KI 8,9",
+        "2CH 5,10",
+        "DEU 1,19",
+        "DEU 1,2",
+        "DEU 1,6",
+        "DEU 18,16",
+        "DEU 29,1",
+        "DEU 4,10",
+        "DEU 4,15"
+      ],
+      "mount_sinai": [
+        "ACT 7,30",
+        "ACT 7,38",
+        "DEU 33,16",
+        "DEU 33,2",
+        "EXO 16,1",
+        "EXO 19,11",
+        "EXO 19,18",
+        "EXO 19,2",
+        "EXO 19,20",
+        "EXO 19,23"
+      ]
+    },
+    "recommended_action": "merge_probable",
+    "confidence": "high",
+    "reviewer_notes_hu": "Szakmai előszűrés elkészült; alkalmazás előtt gépi validáció, dry-run és integritásellenőrzés szükséges.",
+    "review_status": "reviewed",
+    "proposed_canonical_place_id": null,
+    "proposed_merged_name_hu": null,
+    "proposed_merged_summary_hu": null,
+    "proposed_passage_strategy": "A passage-kapcsolatok maradjanak külön rekordokon.",
+    "proposed_coordinate_strategy": "A jelenlegi koordináták maradjanak meg; az azonos koordináta önmagában nem bizonyít rekordazonosságot.",
+    "proposed_alias_strategy": "A névkapcsolat megjegyzésként megőrizhető, de ne legyen automatikus alias-összevonás.",
+    "proposed_record_type": "keep_separate",
+    "merge_risks_hu": [
+      "Az összevonás eltérő földrajzi objektumokat, korszakokat vagy bibliai jelentéseket mosna össze."
+    ],
+    "expert_decision_hu": "Hóreb és Sínai hagyományosan szorosan kapcsolódik, de a két megnevezés teológiai és hagyománytörténeti különbsége miatt külön rekordként hasznos.",
+    "final_action": "keep_separate",
+    "human_readable_comparison": "Hóreb és Sínai hagyományosan szorosan kapcsolódik, de a két megnevezés teológiai és hagyománytörténeti különbsége miatt külön rekordként hasznos."
+  },
+  {
+    "group_id": "dup_negeb__south_1",
+    "candidate_place_ids": [
+      "negeb",
+      "south_1"
+    ],
+    "candidate_names_en": {
+      "negeb": "Negeb",
+      "south_1": "South 1"
+    },
+    "candidate_names_hu": {
+      "negeb": "Negev",
+      "south_1": "South"
+    },
+    "ancient_names": {
+      "negeb": [
+        "Negeb",
+        "Negev",
+        "Ramoth-negev",
+        "South",
+        "southern Judah",
+        "southern part of Judah"
+      ],
+      "south_1": [
+        "South 1",
+        "Negeb",
+        "Negev",
+        "South"
+      ]
+    },
+    "modern_names": {
+      "negeb": "Tel Beer Sheva",
+      "south_1": "Tel Beer Sheva"
+    },
+    "coordinates": {
+      "negeb": {
+        "latitude": 31.244722,
+        "longitude": 34.840833
+      },
+      "south_1": {
+        "latitude": 31.244722,
+        "longitude": 34.840833
+      }
+    },
+    "identification_statuses": {
+      "negeb": "certain",
+      "south_1": "certain"
+    },
+    "representative_passages": [
+      "1SA 27,10",
+      "1SA 30,1",
+      "1SA 30,14",
+      "1SA 30,27",
+      "2CH 28,18",
+      "2SA 24,7",
+      "DEU 1,7",
+      "DEU 34,3",
+      "EZK 20,46",
+      "EZK 20,47"
+    ],
+    "passage_counts": {
+      "negeb": 43,
+      "south_1": 1
+    },
+    "source_ids": {
+      "negeb": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "south_1": [
+        "openbible_geocoding_cc_by_4_0"
+      ]
+    },
+    "current_review_notes_hu": {
+      "negeb": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges.",
+      "south_1": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+    },
+    "match_reasons": [
+      "Records share a name variant and have very close coordinates.",
+      "Records share the same modern_name.",
+      "Records share at least one normalized name variant."
+    ],
+    "coordinate_distance_km": 0.0,
+    "shared_passages": [],
+    "distinct_passages": {
+      "negeb": [
+        "1SA 27,10",
+        "1SA 30,1",
+        "1SA 30,14",
+        "1SA 30,27",
+        "2CH 28,18",
+        "2SA 24,7",
+        "DEU 1,7",
+        "DEU 34,3",
+        "EZK 20,46",
+        "EZK 20,47"
+      ],
+      "south_1": [
+        "ZEC 7,7"
+      ]
+    },
+    "recommended_action": "merge_probable",
+    "confidence": "high",
+    "reviewer_notes_hu": "Szakmai előszűrés elkészült; alkalmazás előtt gépi validáció, dry-run és integritásellenőrzés szükséges.",
+    "review_status": "reviewed",
+    "proposed_canonical_place_id": null,
+    "proposed_merged_name_hu": null,
+    "proposed_merged_summary_hu": null,
+    "proposed_passage_strategy": "A passage-kapcsolatok maradjanak külön rekordokon.",
+    "proposed_coordinate_strategy": "A jelenlegi koordináták maradjanak meg; az azonos koordináta önmagában nem bizonyít rekordazonosságot.",
+    "proposed_alias_strategy": "A névkapcsolat megjegyzésként megőrizhető, de ne legyen automatikus alias-összevonás.",
+    "proposed_record_type": "keep_separate",
+    "merge_risks_hu": [
+      "Az összevonás eltérő földrajzi objektumokat, korszakokat vagy bibliai jelentéseket mosna össze."
+    ],
+    "expert_decision_hu": "A Negev konkrét régió, míg a „dél” általános irány- vagy tájmegjelölés is lehet.",
+    "final_action": "keep_separate",
+    "human_readable_comparison": "A Negev konkrét régió, míg a „dél” általános irány- vagy tájmegjelölés is lehet."
+  },
+  {
+    "group_id": "dup_nobah_1__nobah_2",
+    "candidate_place_ids": [
+      "nobah_1",
+      "nobah_2"
+    ],
+    "candidate_names_en": {
+      "nobah_1": "Nobah 1",
+      "nobah_2": "Nobah 2"
+    },
+    "candidate_names_hu": {
+      "nobah_1": "Nóbá",
+      "nobah_2": "Nóbá"
+    },
+    "ancient_names": {
+      "nobah_1": [
+        "Nobah 1",
+        "Nobah"
+      ],
+      "nobah_2": [
+        "Nobah 2",
+        "Nobah"
+      ]
+    },
+    "modern_names": {
+      "nobah_1": "Qanawat",
+      "nobah_2": "Qanawat"
+    },
+    "coordinates": {
+      "nobah_1": {
+        "latitude": 32.75616,
+        "longitude": 36.61899
+      },
+      "nobah_2": {
+        "latitude": 32.75616,
+        "longitude": 36.61899
+      }
+    },
+    "identification_statuses": {
+      "nobah_1": "certain",
+      "nobah_2": "probable"
+    },
+    "representative_passages": [
+      "JDG 8,11",
+      "NUM 32,42"
+    ],
+    "passage_counts": {
+      "nobah_1": 1,
+      "nobah_2": 1
+    },
+    "source_ids": {
+      "nobah_1": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "nobah_2": [
+        "openbible_geocoding_cc_by_4_0"
+      ]
+    },
+    "current_review_notes_hu": {
+      "nobah_1": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges.",
+      "nobah_2": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+    },
+    "match_reasons": [
+      "Records share a name variant and have very close coordinates.",
+      "Records share the same modern_name.",
+      "Records share at least one normalized name variant.",
+      "Records appear to be numbered variants of the same base place_id."
+    ],
+    "coordinate_distance_km": 0.0,
+    "shared_passages": [],
+    "distinct_passages": {
+      "nobah_1": [
+        "NUM 32,42"
+      ],
+      "nobah_2": [
+        "JDG 8,11"
+      ]
+    },
+    "recommended_action": "merge_probable",
+    "confidence": "high",
+    "reviewer_notes_hu": "Szakmai előszűrés elkészült; alkalmazás előtt gépi validáció, dry-run és integritásellenőrzés szükséges.",
+    "review_status": "reviewed",
+    "proposed_canonical_place_id": "nobah_1",
+    "proposed_merged_name_hu": "Nóbá",
+    "proposed_merged_summary_hu": "Gileád keleti térségéhez kapcsolódó bibliai település; a két rekord ugyanazon hely névváltozatait őrzi.",
+    "proposed_passage_strategy": "Az összes passage-kapcsolat egyesítése a kanonikus rekord alatt, duplikációk eltávolításával.",
+    "proposed_coordinate_strategy": "A nobah_1 rekord koordinátáinak megtartása; az identification_status nem válhat indokolatlanul bizonyosabbá.",
+    "proposed_alias_strategy": "Minden névváltozat és korábbi place_id megőrzése alias/legacy mezőben, technikai számozások nélkül.",
+    "proposed_record_type": "merged_place",
+    "merge_risks_hu": [
+      "Más, azonos nevű bibliai helyekkel nem szabad automatikusan összevonni.",
+      "Minden passage-, alias- és forráskapcsolatot meg kell őrizni."
+    ],
+    "expert_decision_hu": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható.",
+    "final_action": "merge",
+    "human_readable_comparison": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható."
+  },
+  {
+    "group_id": "dup_ramah_5__ramoth_3__ramoth_gilead",
+    "candidate_place_ids": [
+      "ramah_5",
+      "ramoth_3",
+      "ramoth_gilead"
+    ],
+    "candidate_names_en": {
+      "ramah_5": "Ramah 5",
+      "ramoth_3": "Ramoth 3",
+      "ramoth_gilead": "Ramoth-gilead"
+    },
+    "candidate_names_hu": {
+      "ramah_5": "Ráma",
+      "ramoth_3": "Rámót",
+      "ramoth_gilead": "Rámót-Gileád"
+    },
+    "ancient_names": {
+      "ramah_5": [
+        "Ramah 5",
+        "Ramah",
+        "Ramoth",
+        "Ramoth-gilead"
+      ],
+      "ramoth_3": [
+        "Ramoth 3",
+        "Ramoth"
+      ],
+      "ramoth_gilead": [
+        "Ramoth-gilead",
+        "Ramoth Gilead",
+        "Ramoth in Gilead",
+        "Ramoth-Gilead"
+      ]
+    },
+    "modern_names": {
+      "ramah_5": "Tall er Rumeith",
+      "ramoth_3": "Tall er Rumeith",
+      "ramoth_gilead": "Tall er Rumeith"
+    },
+    "coordinates": {
+      "ramah_5": {
+        "latitude": 32.499852,
+        "longitude": 36.014988
+      },
+      "ramoth_3": {
+        "latitude": 32.499852,
+        "longitude": 36.014988
+      },
+      "ramoth_gilead": {
+        "latitude": 32.499852,
+        "longitude": 36.014988
+      }
+    },
+    "identification_statuses": {
+      "ramah_5": "certain",
+      "ramoth_3": "certain",
+      "ramoth_gilead": "certain"
+    },
+    "representative_passages": [
+      "1CH 6,80",
+      "1KI 22,12",
+      "1KI 22,15",
+      "1KI 22,20",
+      "1KI 22,29",
+      "1KI 22,3",
+      "1KI 22,4",
+      "1KI 22,6",
+      "1KI 4,13",
+      "2CH 18,11"
+    ],
+    "passage_counts": {
+      "ramah_5": 2,
+      "ramoth_3": 4,
+      "ramoth_gilead": 20
+    },
+    "source_ids": {
+      "ramah_5": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "ramoth_3": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "ramoth_gilead": [
+        "openbible_geocoding_cc_by_4_0"
+      ]
+    },
+    "current_review_notes_hu": {
+      "ramah_5": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges.",
+      "ramoth_3": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges.",
+      "ramoth_gilead": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+    },
+    "match_reasons": [
+      "Records share a name variant and have very close coordinates.",
+      "Records share the same modern_name.",
+      "Records share at least one normalized name variant."
+    ],
+    "coordinate_distance_km": 0.0,
+    "shared_passages": [],
+    "distinct_passages": {
+      "ramah_5": [
+        "2CH 22,6",
+        "2KI 8,29"
+      ],
+      "ramoth_3": [
+        "1CH 6,80",
+        "DEU 4,43",
+        "JOS 20,8",
+        "JOS 21,38"
+      ],
+      "ramoth_gilead": [
+        "1KI 22,12",
+        "1KI 22,15",
+        "1KI 22,20",
+        "1KI 22,29",
+        "1KI 22,3",
+        "1KI 22,4",
+        "1KI 22,6",
+        "1KI 4,13",
+        "2CH 18,11",
+        "2CH 18,14"
+      ]
+    },
+    "recommended_action": "merge_probable",
+    "confidence": "high",
+    "reviewer_notes_hu": "Szakmai előszűrés elkészült; alkalmazás előtt gépi validáció, dry-run és integritásellenőrzés szükséges.",
+    "review_status": "reviewed",
+    "proposed_canonical_place_id": "ramoth_gilead",
+    "proposed_merged_name_hu": "Rámót-Gileád",
+    "proposed_merged_summary_hu": "Gileád jelentős városa, menedékváros és több királyi hadjárat helyszíne.",
+    "proposed_passage_strategy": "Az összes passage-kapcsolat egyesítése a kanonikus rekord alatt, duplikációk eltávolításával.",
+    "proposed_coordinate_strategy": "A ramoth_gilead rekord koordinátáinak megtartása; az identification_status nem válhat indokolatlanul bizonyosabbá.",
+    "proposed_alias_strategy": "Minden névváltozat és korábbi place_id megőrzése alias/legacy mezőben, technikai számozások nélkül.",
+    "proposed_record_type": "merged_place",
+    "merge_risks_hu": [
+      "Más, azonos nevű bibliai helyekkel nem szabad automatikusan összevonni.",
+      "Minden passage-, alias- és forráskapcsolatot meg kell őrizni."
+    ],
+    "expert_decision_hu": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható.",
+    "final_action": "merge",
+    "human_readable_comparison": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható."
+  },
+  {
+    "group_id": "dup_red_sea_1__red_sea_3",
+    "candidate_place_ids": [
+      "red_sea_1",
+      "red_sea_3"
+    ],
+    "candidate_names_en": {
+      "red_sea_1": "Red Sea 1",
+      "red_sea_3": "Red Sea 3"
+    },
+    "candidate_names_hu": {
+      "red_sea_1": "Vörös-tenger",
+      "red_sea_3": "Szuezi-öböl"
+    },
+    "ancient_names": {
+      "red_sea_1": [
+        "Red Sea 1",
+        "Red Sea",
+        "Red sea"
+      ],
+      "red_sea_3": [
+        "Red Sea 3",
+        "Red Sea",
+        "Red sea"
+      ]
+    },
+    "modern_names": {
+      "red_sea_1": "Gulf of Suez",
+      "red_sea_3": "Gulf of Suez"
+    },
+    "coordinates": {
+      "red_sea_1": {
+        "latitude": 28.75,
+        "longitude": 33.0
+      },
+      "red_sea_3": {
+        "latitude": 28.75,
+        "longitude": 33.0
+      }
+    },
+    "identification_statuses": {
+      "red_sea_1": "possible",
+      "red_sea_3": "probable"
+    },
+    "representative_passages": [
+      "ACT 7,36",
+      "DEU 11,4",
+      "EXO 10,19",
+      "EXO 13,18",
+      "EXO 15,22",
+      "EXO 15,4",
+      "HEB 11,29",
+      "ISA 63,11",
+      "JOS 2,10",
+      "JOS 24,6"
+    ],
+    "passage_counts": {
+      "red_sea_1": 21,
+      "red_sea_3": 3
+    },
+    "source_ids": {
+      "red_sea_1": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "red_sea_3": [
+        "openbible_geocoding_cc_by_4_0"
+      ]
+    },
+    "current_review_notes_hu": {
+      "red_sea_1": "Bizonytalan vagy vitatott azonosítás; a magyar név és leírás szakmai ellenőrzést igényel. Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges.",
+      "red_sea_3": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+    },
+    "match_reasons": [
+      "Records share a name variant and have very close coordinates.",
+      "Records share the same modern_name.",
+      "Records share at least one normalized name variant.",
+      "Records appear to be numbered variants of the same base place_id."
+    ],
+    "coordinate_distance_km": 0.0,
+    "shared_passages": [],
+    "distinct_passages": {
+      "red_sea_1": [
+        "ACT 7,36",
+        "DEU 11,4",
+        "EXO 13,18",
+        "EXO 15,22",
+        "EXO 15,4",
+        "HEB 11,29",
+        "ISA 63,11",
+        "JOS 2,10",
+        "JOS 24,6",
+        "JOS 4,23"
+      ],
+      "red_sea_3": [
+        "EXO 10,19",
+        "NUM 33,10",
+        "NUM 33,11"
+      ]
+    },
+    "recommended_action": "merge_probable",
+    "confidence": "high",
+    "reviewer_notes_hu": "Szakmai előszűrés elkészült; alkalmazás előtt gépi validáció, dry-run és integritásellenőrzés szükséges.",
+    "review_status": "reviewed",
+    "proposed_canonical_place_id": null,
+    "proposed_merged_name_hu": null,
+    "proposed_merged_summary_hu": null,
+    "proposed_passage_strategy": "A passage-kapcsolatok maradjanak külön rekordokon.",
+    "proposed_coordinate_strategy": "A jelenlegi koordináták maradjanak meg; az azonos koordináta önmagában nem bizonyít rekordazonosságot.",
+    "proposed_alias_strategy": "A névkapcsolat megjegyzésként megőrizhető, de ne legyen automatikus alias-összevonás.",
+    "proposed_record_type": "keep_separate",
+    "merge_risks_hu": [
+      "Az összevonás eltérő földrajzi objektumokat, korszakokat vagy bibliai jelentéseket mosna össze."
+    ],
+    "expert_decision_hu": "A Vörös-tenger és a Szuezi-öböl kapcsolódó, de nem teljesen azonos földrajzi objektum.",
+    "final_action": "keep_separate",
+    "human_readable_comparison": "A Vörös-tenger és a Szuezi-öböl kapcsolódó, de nem teljesen azonos földrajzi objektum."
+  },
+  {
+    "group_id": "dup_rimmon_3__rimmono",
+    "candidate_place_ids": [
+      "rimmon_3",
+      "rimmono"
+    ],
+    "candidate_names_en": {
+      "rimmon_3": "Rimmon 3",
+      "rimmono": "Rimmono"
+    },
+    "candidate_names_hu": {
+      "rimmon_3": "Rimmón",
+      "rimmono": "Rimmóno"
+    },
+    "ancient_names": {
+      "rimmon_3": [
+        "Rimmon 3",
+        "Remmon-methoar",
+        "Rimmon"
+      ],
+      "rimmono": [
+        "Rimmono",
+        "Rimmon"
+      ]
+    },
+    "modern_names": {
+      "rimmon_3": "Rumana",
+      "rimmono": "Rumana"
+    },
+    "coordinates": {
+      "rimmon_3": {
+        "latitude": 32.788056,
+        "longitude": 35.310556
+      },
+      "rimmono": {
+        "latitude": 32.788056,
+        "longitude": 35.310556
+      }
+    },
+    "identification_statuses": {
+      "rimmon_3": "probable",
+      "rimmono": "certain"
+    },
+    "representative_passages": [
+      "1CH 6,77",
+      "JOS 19,13"
+    ],
+    "passage_counts": {
+      "rimmon_3": 1,
+      "rimmono": 1
+    },
+    "source_ids": {
+      "rimmon_3": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "rimmono": [
+        "openbible_geocoding_cc_by_4_0"
+      ]
+    },
+    "current_review_notes_hu": {
+      "rimmon_3": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges.",
+      "rimmono": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+    },
+    "match_reasons": [
+      "Records share a name variant and have very close coordinates.",
+      "Records share the same modern_name.",
+      "Records share at least one normalized name variant."
+    ],
+    "coordinate_distance_km": 0.0,
+    "shared_passages": [],
+    "distinct_passages": {
+      "rimmon_3": [
+        "JOS 19,13"
+      ],
+      "rimmono": [
+        "1CH 6,77"
+      ]
+    },
+    "recommended_action": "merge_probable",
+    "confidence": "high",
+    "reviewer_notes_hu": "Szakmai előszűrés elkészült; alkalmazás előtt gépi validáció, dry-run és integritásellenőrzés szükséges.",
+    "review_status": "reviewed",
+    "proposed_canonical_place_id": "rimmono",
+    "proposed_merged_name_hu": "Rimmón / Rimmóno",
+    "proposed_merged_summary_hu": "Naftáli területén fekvő bibliai település, amely Rimmón és Rimmóno névalakban szerepel.",
+    "proposed_passage_strategy": "Az összes passage-kapcsolat egyesítése a kanonikus rekord alatt, duplikációk eltávolításával.",
+    "proposed_coordinate_strategy": "A rimmono rekord koordinátáinak megtartása; az identification_status nem válhat indokolatlanul bizonyosabbá.",
+    "proposed_alias_strategy": "Minden névváltozat és korábbi place_id megőrzése alias/legacy mezőben, technikai számozások nélkül.",
+    "proposed_record_type": "merged_place",
+    "merge_risks_hu": [
+      "Más, azonos nevű bibliai helyekkel nem szabad automatikusan összevonni.",
+      "Minden passage-, alias- és forráskapcsolatot meg kell őrizni."
+    ],
+    "expert_decision_hu": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható.",
+    "final_action": "merge",
+    "human_readable_comparison": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható."
+  },
+  {
+    "group_id": "dup_sela_1__sela_2__sela_3",
+    "candidate_place_ids": [
+      "sela_1",
+      "sela_2",
+      "sela_3"
+    ],
+    "candidate_names_en": {
+      "sela_1": "Sela 1",
+      "sela_2": "Sela 2",
+      "sela_3": "Sela 3"
+    },
+    "candidate_names_hu": {
+      "sela_1": "Szela",
+      "sela_2": "Szela",
+      "sela_3": "Sela"
+    },
+    "ancient_names": {
+      "sela_1": [
+        "Sela 1",
+        "Sela"
+      ],
+      "sela_2": [
+        "Sela 2",
+        "Jokteel",
+        "Jokthe-el",
+        "Joktheel",
+        "Sela",
+        "Selah"
+      ],
+      "sela_3": [
+        "Sela 3",
+        "Sela"
+      ]
+    },
+    "modern_names": {
+      "sela_1": "Sela",
+      "sela_2": "Sela",
+      "sela_3": "Sela"
+    },
+    "coordinates": {
+      "sela_1": {
+        "latitude": 30.78087,
+        "longitude": 35.574455
+      },
+      "sela_2": {
+        "latitude": 30.78087,
+        "longitude": 35.574455
+      },
+      "sela_3": {
+        "latitude": 30.78087,
+        "longitude": 35.574455
+      }
+    },
+    "identification_statuses": {
+      "sela_1": "possible",
+      "sela_2": "probable",
+      "sela_3": "possible"
+    },
+    "representative_passages": [
+      "2CH 25,12",
+      "2KI 14,7",
+      "ISA 16,1",
+      "ISA 42,11",
+      "JDG 1,36"
+    ],
+    "passage_counts": {
+      "sela_1": 2,
+      "sela_2": 2,
+      "sela_3": 1
+    },
+    "source_ids": {
+      "sela_1": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "sela_2": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "sela_3": [
+        "openbible_geocoding_cc_by_4_0"
+      ]
+    },
+    "current_review_notes_hu": {
+      "sela_1": "Bizonytalan vagy vitatott azonosítás; a magyar név és leírás szakmai ellenőrzést igényel. Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges.",
+      "sela_2": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges.",
+      "sela_3": "Bizonytalan vagy vitatott azonosítás; a magyar név és leírás szakmai ellenőrzést igényel. Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+    },
+    "match_reasons": [
+      "Records share a name variant and have very close coordinates.",
+      "Records share the same modern_name.",
+      "Records share at least one normalized name variant.",
+      "Records appear to be numbered variants of the same base place_id."
+    ],
+    "coordinate_distance_km": 0.0,
+    "shared_passages": [],
+    "distinct_passages": {
+      "sela_1": [
+        "2CH 25,12",
+        "JDG 1,36"
+      ],
+      "sela_2": [
+        "2KI 14,7",
+        "ISA 42,11"
+      ],
+      "sela_3": [
+        "ISA 16,1"
+      ]
+    },
+    "recommended_action": "merge_probable",
+    "confidence": "high",
+    "reviewer_notes_hu": "Szakmai előszűrés elkészült; alkalmazás előtt gépi validáció, dry-run és integritásellenőrzés szükséges.",
+    "review_status": "reviewed",
+    "proposed_canonical_place_id": null,
+    "proposed_merged_name_hu": null,
+    "proposed_merged_summary_hu": null,
+    "proposed_passage_strategy": "A passage-kapcsolatok maradjanak külön rekordokon.",
+    "proposed_coordinate_strategy": "A jelenlegi koordináták maradjanak meg; az azonos koordináta önmagában nem bizonyít rekordazonosságot.",
+    "proposed_alias_strategy": "A névkapcsolat megjegyzésként megőrizhető, de ne legyen automatikus alias-összevonás.",
+    "proposed_record_type": "keep_separate",
+    "merge_risks_hu": [
+      "Az összevonás eltérő földrajzi objektumokat, korszakokat vagy bibliai jelentéseket mosna össze."
+    ],
+    "expert_decision_hu": "A Szela/Sela név több eltérő szövegi és földrajzi azonosítást takarhat; szakértői ellenőrzés szükséges.",
+    "final_action": "keep_separate",
+    "human_readable_comparison": "A Szela/Sela név több eltérő szövegi és földrajzi azonosítást takarhat; szakértői ellenőrzés szükséges."
+  },
+  {
+    "group_id": "dup_sheba_1__south_2",
+    "candidate_place_ids": [
+      "sheba_1",
+      "south_2"
+    ],
+    "candidate_names_en": {
+      "sheba_1": "Sheba 1",
+      "south_2": "South 2"
+    },
+    "candidate_names_hu": {
+      "sheba_1": "Sába",
+      "south_2": "Dél"
+    },
+    "ancient_names": {
+      "sheba_1": [
+        "Sheba 1",
+        "Arabia",
+        "Sabeans",
+        "Seba",
+        "Sheba"
+      ],
+      "south_2": [
+        "South 2",
+        "Sheba",
+        "South"
+      ]
+    },
+    "modern_names": {
+      "sheba_1": "Sheba",
+      "south_2": "Sheba"
+    },
+    "coordinates": {
+      "sheba_1": {
+        "latitude": 15.348333,
+        "longitude": 44.206389
+      },
+      "south_2": {
+        "latitude": 15.348333,
+        "longitude": 44.206389
+      }
+    },
+    "identification_statuses": {
+      "sheba_1": "certain",
+      "south_2": "certain"
+    },
+    "representative_passages": [
+      "1KI 10,1",
+      "1KI 10,10",
+      "1KI 10,13",
+      "1KI 10,4",
+      "2CH 9,1",
+      "2CH 9,12",
+      "2CH 9,3",
+      "2CH 9,9",
+      "EZK 27,22",
+      "EZK 27,23"
+    ],
+    "passage_counts": {
+      "sheba_1": 18,
+      "south_2": 2
+    },
+    "source_ids": {
+      "sheba_1": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "south_2": [
+        "openbible_geocoding_cc_by_4_0"
+      ]
+    },
+    "current_review_notes_hu": {
+      "sheba_1": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges.",
+      "south_2": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+    },
+    "match_reasons": [
+      "Records share a name variant and have very close coordinates.",
+      "Records share the same modern_name.",
+      "Records share at least one normalized name variant."
+    ],
+    "coordinate_distance_km": 0.0,
+    "shared_passages": [],
+    "distinct_passages": {
+      "sheba_1": [
+        "1KI 10,1",
+        "1KI 10,10",
+        "1KI 10,13",
+        "1KI 10,4",
+        "2CH 9,1",
+        "2CH 9,12",
+        "2CH 9,3",
+        "2CH 9,9",
+        "EZK 27,22",
+        "EZK 27,23"
+      ],
+      "south_2": [
+        "LUK 11,31",
+        "MAT 12,42"
+      ]
+    },
+    "recommended_action": "merge_probable",
+    "confidence": "high",
+    "reviewer_notes_hu": "Szakmai előszűrés elkészült; alkalmazás előtt gépi validáció, dry-run és integritásellenőrzés szükséges.",
+    "review_status": "reviewed",
+    "proposed_canonical_place_id": null,
+    "proposed_merged_name_hu": null,
+    "proposed_merged_summary_hu": null,
+    "proposed_passage_strategy": "A passage-kapcsolatok maradjanak külön rekordokon.",
+    "proposed_coordinate_strategy": "A jelenlegi koordináták maradjanak meg; az azonos koordináta önmagában nem bizonyít rekordazonosságot.",
+    "proposed_alias_strategy": "A névkapcsolat megjegyzésként megőrizhető, de ne legyen automatikus alias-összevonás.",
+    "proposed_record_type": "keep_separate",
+    "merge_risks_hu": [
+      "Az összevonás eltérő földrajzi objektumokat, korszakokat vagy bibliai jelentéseket mosna össze."
+    ],
+    "expert_decision_hu": "Sába földrajzi királyság, míg a „Dél királynője” irodalmi megnevezés; azonos hagyomány, eltérő rekordfunkció.",
+    "final_action": "keep_separate",
+    "human_readable_comparison": "Sába földrajzi királyság, míg a „Dél királynője” irodalmi megnevezés; azonos hagyomány, eltérő rekordfunkció."
+  },
+  {
+    "group_id": "dup_shihor_1__shihor_2",
+    "candidate_place_ids": [
+      "shihor_1",
+      "shihor_2"
+    ],
+    "candidate_names_en": {
+      "shihor_1": "Shihor 1",
+      "shihor_2": "Shihor 2"
+    },
+    "candidate_names_hu": {
+      "shihor_1": "Sihór",
+      "shihor_2": "Sihór"
+    },
+    "ancient_names": {
+      "shihor_1": [
+        "Shihor 1",
+        "Nile",
+        "Shihor",
+        "Shihor Brook",
+        "Shihor River",
+        "Sihor"
+      ],
+      "shihor_2": [
+        "Shihor 2",
+        "Egypt",
+        "River",
+        "Shihor",
+        "Sihor"
+      ]
+    },
+    "modern_names": {
+      "shihor_1": "Pelusiac branch of the Nile",
+      "shihor_2": "Pelusiac branch of the Nile"
+    },
+    "coordinates": {
+      "shihor_1": {
+        "latitude": 31.042512,
+        "longitude": 32.546139
+      },
+      "shihor_2": {
+        "latitude": 31.042512,
+        "longitude": 32.546139
+      }
+    },
+    "identification_statuses": {
+      "shihor_1": "probable",
+      "shihor_2": "probable"
+    },
+    "representative_passages": [
+      "1CH 13,5",
+      "ISA 23,3",
+      "JOS 13,3"
+    ],
+    "passage_counts": {
+      "shihor_1": 2,
+      "shihor_2": 1
+    },
+    "source_ids": {
+      "shihor_1": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "shihor_2": [
+        "openbible_geocoding_cc_by_4_0"
+      ]
+    },
+    "current_review_notes_hu": {
+      "shihor_1": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges.",
+      "shihor_2": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+    },
+    "match_reasons": [
+      "Records share a name variant and have very close coordinates.",
+      "Records share the same modern_name.",
+      "Records share at least one normalized name variant.",
+      "Records appear to be numbered variants of the same base place_id."
+    ],
+    "coordinate_distance_km": 0.0,
+    "shared_passages": [],
+    "distinct_passages": {
+      "shihor_1": [
+        "1CH 13,5",
+        "JOS 13,3"
+      ],
+      "shihor_2": [
+        "ISA 23,3"
+      ]
+    },
+    "recommended_action": "merge_probable",
+    "confidence": "high",
+    "reviewer_notes_hu": "Szakmai előszűrés elkészült; alkalmazás előtt gépi validáció, dry-run és integritásellenőrzés szükséges.",
+    "review_status": "reviewed",
+    "proposed_canonical_place_id": "shihor_1",
+    "proposed_merged_name_hu": "Sihór",
+    "proposed_merged_summary_hu": "Egyiptomhoz kapcsolódó vízrajzi név, amelyet rendszerint a Nílus egyik keleti ágával azonosítanak.",
+    "proposed_passage_strategy": "Az összes passage-kapcsolat egyesítése a kanonikus rekord alatt, duplikációk eltávolításával.",
+    "proposed_coordinate_strategy": "A shihor_1 rekord koordinátáinak megtartása; az identification_status nem válhat indokolatlanul bizonyosabbá.",
+    "proposed_alias_strategy": "Minden névváltozat és korábbi place_id megőrzése alias/legacy mezőben, technikai számozások nélkül.",
+    "proposed_record_type": "merged_place",
+    "merge_risks_hu": [
+      "Más, azonos nevű bibliai helyekkel nem szabad automatikusan összevonni.",
+      "Minden passage-, alias- és forráskapcsolatot meg kell őrizni."
+    ],
+    "expert_decision_hu": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható.",
+    "final_action": "merge",
+    "human_readable_comparison": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható."
+  },
+  {
+    "group_id": "dup_shiloah__siloam",
+    "candidate_place_ids": [
+      "shiloah",
+      "siloam"
+    ],
+    "candidate_names_en": {
+      "shiloah": "Shiloah",
+      "siloam": "Siloam"
+    },
+    "candidate_names_hu": {
+      "shiloah": "Siloah",
+      "siloam": "Siloám"
+    },
+    "ancient_names": {
+      "shiloah": [
+        "Shiloah"
+      ],
+      "siloam": [
+        "Siloam",
+        "King’s Pool",
+        "Pool of Shelah",
+        "Pool of Siloam",
+        "Siloah",
+        "pool of Siloam"
+      ]
+    },
+    "modern_names": {
+      "shiloah": "Pool of Siloam",
+      "siloam": "Pool of Siloam"
+    },
+    "coordinates": {
+      "shiloah": {
+        "latitude": 31.770556,
+        "longitude": 35.235
+      },
+      "siloam": {
+        "latitude": 31.770556,
+        "longitude": 35.235
+      }
+    },
+    "identification_statuses": {
+      "shiloah": "certain",
+      "siloam": "certain"
+    },
+    "representative_passages": [
+      "ISA 8,6",
+      "JHN 9,11",
+      "JHN 9,7",
+      "LUK 13,4",
+      "NEH 2,14",
+      "NEH 3,15"
+    ],
+    "passage_counts": {
+      "shiloah": 1,
+      "siloam": 5
+    },
+    "source_ids": {
+      "shiloah": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "siloam": [
+        "openbible_geocoding_cc_by_4_0"
+      ]
+    },
+    "current_review_notes_hu": {
+      "shiloah": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges.",
+      "siloam": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+    },
+    "match_reasons": [
+      "Records share a name variant and have very close coordinates.",
+      "Records share the same modern_name.",
+      "Records share at least one normalized name variant."
+    ],
+    "coordinate_distance_km": 0.0,
+    "shared_passages": [],
+    "distinct_passages": {
+      "shiloah": [
+        "ISA 8,6"
+      ],
+      "siloam": [
+        "JHN 9,11",
+        "JHN 9,7",
+        "LUK 13,4",
+        "NEH 2,14",
+        "NEH 3,15"
+      ]
+    },
+    "recommended_action": "merge_probable",
+    "confidence": "high",
+    "reviewer_notes_hu": "Szakmai előszűrés elkészült; alkalmazás előtt gépi validáció, dry-run és integritásellenőrzés szükséges.",
+    "review_status": "reviewed",
+    "proposed_canonical_place_id": "siloam",
+    "proposed_merged_name_hu": "Siloám",
+    "proposed_merged_summary_hu": "Jeruzsálem déli vízrendszerének forrása és medencéje, amely Siloah és Siloám néven szerepel.",
+    "proposed_passage_strategy": "Az összes passage-kapcsolat egyesítése a kanonikus rekord alatt, duplikációk eltávolításával.",
+    "proposed_coordinate_strategy": "A siloam rekord koordinátáinak megtartása; az identification_status nem válhat indokolatlanul bizonyosabbá.",
+    "proposed_alias_strategy": "Minden névváltozat és korábbi place_id megőrzése alias/legacy mezőben, technikai számozások nélkül.",
+    "proposed_record_type": "merged_place",
+    "merge_risks_hu": [
+      "Más, azonos nevű bibliai helyekkel nem szabad automatikusan összevonni.",
+      "Minden passage-, alias- és forráskapcsolatot meg kell őrizni."
+    ],
+    "expert_decision_hu": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható.",
+    "final_action": "merge",
+    "human_readable_comparison": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható."
+  },
+  {
+    "group_id": "dup_tamar_1__tamar_2",
+    "candidate_place_ids": [
+      "tamar_1",
+      "tamar_2"
+    ],
+    "candidate_names_en": {
+      "tamar_1": "Tamar 1",
+      "tamar_2": "Tamar 2"
+    },
+    "candidate_names_hu": {
+      "tamar_1": "Támár",
+      "tamar_2": "Támár"
+    },
+    "ancient_names": {
+      "tamar_1": [
+        "Tamar 1",
+        "Tadmor",
+        "Tamar"
+      ],
+      "tamar_2": [
+        "Tamar 2",
+        "Tamar"
+      ]
+    },
+    "modern_names": {
+      "tamar_1": "En Hazeva",
+      "tamar_2": "En Hazeva"
+    },
+    "coordinates": {
+      "tamar_1": {
+        "latitude": 30.8087,
+        "longitude": 35.2459
+      },
+      "tamar_2": {
+        "latitude": 30.8087,
+        "longitude": 35.2459
+      }
+    },
+    "identification_statuses": {
+      "tamar_1": "probable",
+      "tamar_2": "probable"
+    },
+    "representative_passages": [
+      "1KI 9,18",
+      "EZK 47,18",
+      "EZK 47,19",
+      "EZK 48,28"
+    ],
+    "passage_counts": {
+      "tamar_1": 1,
+      "tamar_2": 3
+    },
+    "source_ids": {
+      "tamar_1": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "tamar_2": [
+        "openbible_geocoding_cc_by_4_0"
+      ]
+    },
+    "current_review_notes_hu": {
+      "tamar_1": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges.",
+      "tamar_2": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+    },
+    "match_reasons": [
+      "Records share a name variant and have very close coordinates.",
+      "Records share the same modern_name.",
+      "Records share at least one normalized name variant.",
+      "Records appear to be numbered variants of the same base place_id."
+    ],
+    "coordinate_distance_km": 0.0,
+    "shared_passages": [],
+    "distinct_passages": {
+      "tamar_1": [
+        "1KI 9,18"
+      ],
+      "tamar_2": [
+        "EZK 47,18",
+        "EZK 47,19",
+        "EZK 48,28"
+      ]
+    },
+    "recommended_action": "merge_probable",
+    "confidence": "high",
+    "reviewer_notes_hu": "Szakmai előszűrés elkészült; alkalmazás előtt gépi validáció, dry-run és integritásellenőrzés szükséges.",
+    "review_status": "reviewed",
+    "proposed_canonical_place_id": "tamar_1",
+    "proposed_merged_name_hu": "Támár",
+    "proposed_merged_summary_hu": "Júda délkeleti határvidékének bibliai települése és határpontja.",
+    "proposed_passage_strategy": "Az összes passage-kapcsolat egyesítése a kanonikus rekord alatt, duplikációk eltávolításával.",
+    "proposed_coordinate_strategy": "A tamar_1 rekord koordinátáinak megtartása; az identification_status nem válhat indokolatlanul bizonyosabbá.",
+    "proposed_alias_strategy": "Minden névváltozat és korábbi place_id megőrzése alias/legacy mezőben, technikai számozások nélkül.",
+    "proposed_record_type": "merged_place",
+    "merge_risks_hu": [
+      "Más, azonos nevű bibliai helyekkel nem szabad automatikusan összevonni.",
+      "Minden passage-, alias- és forráskapcsolatot meg kell őrizni."
+    ],
+    "expert_decision_hu": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható.",
+    "final_action": "merge",
+    "human_readable_comparison": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható."
+  },
+  {
+    "group_id": "dup_tappuah_1__tiphsah_2",
+    "candidate_place_ids": [
+      "tappuah_1",
+      "tiphsah_2"
+    ],
+    "candidate_names_en": {
+      "tappuah_1": "Tappuah 1",
+      "tiphsah_2": "Tiphsah 2"
+    },
+    "candidate_names_hu": {
+      "tappuah_1": "Tappúah",
+      "tiphsah_2": "Tifsza"
+    },
+    "ancient_names": {
+      "tappuah_1": [
+        "Tappuah 1",
+        "Tappuah"
+      ],
+      "tiphsah_2": [
+        "Tiphsah 2",
+        "Tappuah",
+        "Tiphsah"
+      ]
+    },
+    "modern_names": {
+      "tappuah_1": "Tell Abu Zarad",
+      "tiphsah_2": "Tell Abu Zarad"
+    },
+    "coordinates": {
+      "tappuah_1": {
+        "latitude": 32.10415,
+        "longitude": 35.23007
+      },
+      "tiphsah_2": {
+        "latitude": 32.10415,
+        "longitude": 35.23007
+      }
+    },
+    "identification_statuses": {
+      "tappuah_1": "probable",
+      "tiphsah_2": "probable"
+    },
+    "representative_passages": [
+      "2KI 15,16",
+      "JOS 12,17",
+      "JOS 16,8",
+      "JOS 17,8"
+    ],
+    "passage_counts": {
+      "tappuah_1": 3,
+      "tiphsah_2": 1
+    },
+    "source_ids": {
+      "tappuah_1": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "tiphsah_2": [
+        "openbible_geocoding_cc_by_4_0"
+      ]
+    },
+    "current_review_notes_hu": {
+      "tappuah_1": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges.",
+      "tiphsah_2": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+    },
+    "match_reasons": [
+      "Records share a name variant and have very close coordinates.",
+      "Records share the same modern_name.",
+      "Records share at least one normalized name variant."
+    ],
+    "coordinate_distance_km": 0.0,
+    "shared_passages": [],
+    "distinct_passages": {
+      "tappuah_1": [
+        "JOS 12,17",
+        "JOS 16,8",
+        "JOS 17,8"
+      ],
+      "tiphsah_2": [
+        "2KI 15,16"
+      ]
+    },
+    "recommended_action": "merge_probable",
+    "confidence": "high",
+    "reviewer_notes_hu": "Szakmai előszűrés elkészült; alkalmazás előtt gépi validáció, dry-run és integritásellenőrzés szükséges.",
+    "review_status": "reviewed",
+    "proposed_canonical_place_id": null,
+    "proposed_merged_name_hu": null,
+    "proposed_merged_summary_hu": null,
+    "proposed_passage_strategy": "A passage-kapcsolatok maradjanak külön rekordokon.",
+    "proposed_coordinate_strategy": "A jelenlegi koordináták maradjanak meg; az azonos koordináta önmagában nem bizonyít rekordazonosságot.",
+    "proposed_alias_strategy": "A névkapcsolat megjegyzésként megőrizhető, de ne legyen automatikus alias-összevonás.",
+    "proposed_record_type": "keep_separate",
+    "merge_risks_hu": [
+      "Az összevonás eltérő földrajzi objektumokat, korszakokat vagy bibliai jelentéseket mosna össze."
+    ],
+    "expert_decision_hu": "Tappúah és Tifsza eltérő héber helynevek; az azonos modern koordináta nem elegendő az összevonáshoz.",
+    "final_action": "keep_separate",
+    "human_readable_comparison": "Tappúah és Tifsza eltérő héber helynevek; az azonos modern koordináta nem elegendő az összevonáshoz."
+  },
+  {
+    "group_id": "dup_timnah_2__timnah_3",
+    "candidate_place_ids": [
+      "timnah_2",
+      "timnah_3"
+    ],
+    "candidate_names_en": {
+      "timnah_2": "Timnah 2",
+      "timnah_3": "Timnah 3"
+    },
+    "candidate_names_hu": {
+      "timnah_2": "Timná",
+      "timnah_3": "Timná"
+    },
+    "ancient_names": {
+      "timnah_2": [
+        "Timnah 2",
+        "Timnah"
+      ],
+      "timnah_3": [
+        "Timnah 3",
+        "Timnah",
+        "Timnath"
+      ]
+    },
+    "modern_names": {
+      "timnah_2": "Tel Main",
+      "timnah_3": "Tel Main"
+    },
+    "coordinates": {
+      "timnah_2": {
+        "latitude": 31.409448,
+        "longitude": 35.133839
+      },
+      "timnah_3": {
+        "latitude": 31.409448,
+        "longitude": 35.133839
+      }
+    },
+    "identification_statuses": {
+      "timnah_2": "probable",
+      "timnah_3": "possible"
+    },
+    "representative_passages": [
+      "GEN 38,12",
+      "GEN 38,13",
+      "GEN 38,14",
+      "JOS 15,57"
+    ],
+    "passage_counts": {
+      "timnah_2": 1,
+      "timnah_3": 3
+    },
+    "source_ids": {
+      "timnah_2": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "timnah_3": [
+        "openbible_geocoding_cc_by_4_0"
+      ]
+    },
+    "current_review_notes_hu": {
+      "timnah_2": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges.",
+      "timnah_3": "Bizonytalan vagy vitatott azonosítás; a magyar név és leírás szakmai ellenőrzést igényel. Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+    },
+    "match_reasons": [
+      "Records share a name variant and have very close coordinates.",
+      "Records share the same modern_name.",
+      "Records share at least one normalized name variant.",
+      "Records appear to be numbered variants of the same base place_id."
+    ],
+    "coordinate_distance_km": 0.0,
+    "shared_passages": [],
+    "distinct_passages": {
+      "timnah_2": [
+        "JOS 15,57"
+      ],
+      "timnah_3": [
+        "GEN 38,12",
+        "GEN 38,13",
+        "GEN 38,14"
+      ]
+    },
+    "recommended_action": "merge_probable",
+    "confidence": "high",
+    "reviewer_notes_hu": "Szakmai előszűrés elkészült; alkalmazás előtt gépi validáció, dry-run és integritásellenőrzés szükséges.",
+    "review_status": "reviewed",
+    "proposed_canonical_place_id": null,
+    "proposed_merged_name_hu": null,
+    "proposed_merged_summary_hu": null,
+    "proposed_passage_strategy": "A passage-kapcsolatok maradjanak külön rekordokon.",
+    "proposed_coordinate_strategy": "A jelenlegi koordináták maradjanak meg; az azonos koordináta önmagában nem bizonyít rekordazonosságot.",
+    "proposed_alias_strategy": "A névkapcsolat megjegyzésként megőrizhető, de ne legyen automatikus alias-összevonás.",
+    "proposed_record_type": "keep_separate",
+    "merge_risks_hu": [
+      "Az összevonás eltérő földrajzi objektumokat, korszakokat vagy bibliai jelentéseket mosna össze."
+    ],
+    "expert_decision_hu": "A júdai Timná-azonosítások vitatottak, és a két szövegcsoport nem feltétlenül ugyanazt a helyet jelöli.",
+    "final_action": "keep_separate",
+    "human_readable_comparison": "A júdai Timná-azonosítások vitatottak, és a két szövegcsoport nem feltétlenül ugyanazt a helyet jelöli."
+  },
+  {
+    "group_id": "dup_valley_of_zered__zered",
+    "candidate_place_ids": [
+      "valley_of_zered",
+      "zered"
+    ],
+    "candidate_names_en": {
+      "valley_of_zered": "Valley of Zered",
+      "zered": "Zered"
+    },
+    "candidate_names_hu": {
+      "valley_of_zered": "Zered-völgy",
+      "zered": "Zered-patak"
+    },
+    "ancient_names": {
+      "valley_of_zered": [
+        "Valley of Zered",
+        "Wadi Zered",
+        "Zered Valley",
+        "valley of Zared",
+        "valley of Zered",
+        "valley of Zered Brook"
+      ],
+      "zered": [
+        "Zered",
+        "Valley of the Zered",
+        "Wadi Zered",
+        "Zered Brook",
+        "Zered Valley"
+      ]
+    },
+    "modern_names": {
+      "valley_of_zered": "Wadi al Hasa",
+      "zered": "Wadi al Hasa"
+    },
+    "coordinates": {
+      "valley_of_zered": {
+        "latitude": 31.02701,
+        "longitude": 35.48533
+      },
+      "zered": {
+        "latitude": 31.02701,
+        "longitude": 35.48533
+      }
+    },
+    "identification_statuses": {
+      "valley_of_zered": "certain",
+      "zered": "certain"
+    },
+    "representative_passages": [
+      "DEU 2,13",
+      "DEU 2,14",
+      "NUM 21,12"
+    ],
+    "passage_counts": {
+      "valley_of_zered": 1,
+      "zered": 2
+    },
+    "source_ids": {
+      "valley_of_zered": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "zered": [
+        "openbible_geocoding_cc_by_4_0"
+      ]
+    },
+    "current_review_notes_hu": {
+      "valley_of_zered": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges.",
+      "zered": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+    },
+    "match_reasons": [
+      "Records share a name variant and have very close coordinates.",
+      "Records share the same modern_name.",
+      "Records share at least one normalized name variant."
+    ],
+    "coordinate_distance_km": 0.0,
+    "shared_passages": [],
+    "distinct_passages": {
+      "valley_of_zered": [
+        "NUM 21,12"
+      ],
+      "zered": [
+        "DEU 2,13",
+        "DEU 2,14"
+      ]
+    },
+    "recommended_action": "merge_probable",
+    "confidence": "high",
+    "reviewer_notes_hu": "Szakmai előszűrés elkészült; alkalmazás előtt gépi validáció, dry-run és integritásellenőrzés szükséges.",
+    "review_status": "reviewed",
+    "proposed_canonical_place_id": "zered",
+    "proposed_merged_name_hu": "Zered-patak és völgye",
+    "proposed_merged_summary_hu": "A Zered vízfolyása és völgye ugyanannak a bibliai tájegységnek két megnevezése.",
+    "proposed_passage_strategy": "Az összes passage-kapcsolat egyesítése a kanonikus rekord alatt, duplikációk eltávolításával.",
+    "proposed_coordinate_strategy": "A zered rekord koordinátáinak megtartása; az identification_status nem válhat indokolatlanul bizonyosabbá.",
+    "proposed_alias_strategy": "Minden névváltozat és korábbi place_id megőrzése alias/legacy mezőben, technikai számozások nélkül.",
+    "proposed_record_type": "merged_place",
+    "merge_risks_hu": [
+      "Más, azonos nevű bibliai helyekkel nem szabad automatikusan összevonni.",
+      "Minden passage-, alias- és forráskapcsolatot meg kell őrizni."
+    ],
+    "expert_decision_hu": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható.",
+    "final_action": "merge",
+    "human_readable_comparison": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható."
+  },
+  {
+    "group_id": "dup_zarethan__zeredah_2",
+    "candidate_place_ids": [
+      "zarethan",
+      "zeredah_2"
+    ],
+    "candidate_names_en": {
+      "zarethan": "Zarethan",
+      "zeredah_2": "Zeredah 2"
+    },
+    "candidate_names_hu": {
+      "zarethan": "Cáretán",
+      "zeredah_2": "Zeredah"
+    },
+    "ancient_names": {
+      "zarethan": [
+        "Zarethan",
+        "Zaretan",
+        "Zartanah",
+        "Zarthan"
+      ],
+      "zeredah_2": [
+        "Zeredah 2",
+        "Zarethan",
+        "Zeredah",
+        "Zeredathah"
+      ]
+    },
+    "modern_names": {
+      "zarethan": "Tell es Sa’idiyeh",
+      "zeredah_2": "Tell es Sa’idiyeh"
+    },
+    "coordinates": {
+      "zarethan": {
+        "latitude": 32.26769,
+        "longitude": 35.577241
+      },
+      "zeredah_2": {
+        "latitude": 32.26769,
+        "longitude": 35.577241
+      }
+    },
+    "identification_statuses": {
+      "zarethan": "probable",
+      "zeredah_2": "probable"
+    },
+    "representative_passages": [
+      "1KI 4,12",
+      "1KI 7,46",
+      "2CH 4,17",
+      "JOS 3,16"
+    ],
+    "passage_counts": {
+      "zarethan": 3,
+      "zeredah_2": 1
+    },
+    "source_ids": {
+      "zarethan": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "zeredah_2": [
+        "openbible_geocoding_cc_by_4_0"
+      ]
+    },
+    "current_review_notes_hu": {
+      "zarethan": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges.",
+      "zeredah_2": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+    },
+    "match_reasons": [
+      "Records share a name variant and have very close coordinates.",
+      "Records share the same modern_name.",
+      "Records share at least one normalized name variant."
+    ],
+    "coordinate_distance_km": 0.0,
+    "shared_passages": [],
+    "distinct_passages": {
+      "zarethan": [
+        "1KI 4,12",
+        "1KI 7,46",
+        "JOS 3,16"
+      ],
+      "zeredah_2": [
+        "2CH 4,17"
+      ]
+    },
+    "recommended_action": "merge_probable",
+    "confidence": "high",
+    "reviewer_notes_hu": "Szakmai előszűrés elkészült; alkalmazás előtt gépi validáció, dry-run és integritásellenőrzés szükséges.",
+    "review_status": "reviewed",
+    "proposed_canonical_place_id": "zarethan",
+    "proposed_merged_name_hu": "Cáretán / Cerédá",
+    "proposed_merged_summary_hu": "A Jordán-völgyben fekvő bibliai hely, amelyhez Salamon bronzmunkáinak környezete is kapcsolódik.",
+    "proposed_passage_strategy": "Az összes passage-kapcsolat egyesítése a kanonikus rekord alatt, duplikációk eltávolításával.",
+    "proposed_coordinate_strategy": "A zarethan rekord koordinátáinak megtartása; az identification_status nem válhat indokolatlanul bizonyosabbá.",
+    "proposed_alias_strategy": "Minden névváltozat és korábbi place_id megőrzése alias/legacy mezőben, technikai számozások nélkül.",
+    "proposed_record_type": "merged_place",
+    "merge_risks_hu": [
+      "Más, azonos nevű bibliai helyekkel nem szabad automatikusan összevonni.",
+      "Minden passage-, alias- és forráskapcsolatot meg kell őrizni."
+    ],
+    "expert_decision_hu": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható.",
+    "final_action": "merge",
+    "human_readable_comparison": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható."
+  },
+  {
+    "group_id": "dup_ain_2__ain_3__ashan",
+    "candidate_place_ids": [
+      "ain_2",
+      "ain_3",
+      "ashan"
+    ],
+    "candidate_names_en": {
+      "ain_2": "Ain 2",
+      "ain_3": "Ain 3",
+      "ashan": "Ashan"
+    },
+    "candidate_names_hu": {
+      "ain_2": "Ajin",
+      "ain_3": "Ain",
+      "ashan": "Ásán"
+    },
+    "ancient_names": {
+      "ain_2": [
+        "Ain 2",
+        "Ain"
+      ],
+      "ain_3": [
+        "Ain 3",
+        "Ain"
+      ],
+      "ashan": [
+        "Ashan",
+        "Ain"
+      ]
+    },
+    "modern_names": {
+      "ain_2": "Tel Halif",
+      "ain_3": "Tel Halif",
+      "ashan": "Khirbet Asan"
+    },
+    "coordinates": {
+      "ain_2": {
+        "latitude": 31.38333,
+        "longitude": 34.86564
+      },
+      "ain_3": {
+        "latitude": 31.38333,
+        "longitude": 34.86564
+      },
+      "ashan": {
+        "latitude": 31.281372,
+        "longitude": 34.797404
+      }
+    },
+    "identification_statuses": {
+      "ain_2": "possible",
+      "ain_3": "probable",
+      "ashan": "probable"
+    },
+    "representative_passages": [
+      "1CH 4,32",
+      "1CH 6,59",
+      "JOS 15,32",
+      "JOS 15,42",
+      "JOS 19,7",
+      "JOS 21,16"
+    ],
+    "passage_counts": {
+      "ain_2": 3,
+      "ain_3": 1,
+      "ashan": 4
+    },
+    "source_ids": {
+      "ain_2": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "ain_3": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "ashan": [
+        "openbible_geocoding_cc_by_4_0"
+      ]
+    },
+    "current_review_notes_hu": {
+      "ain_2": "Bizonytalan vagy vitatott azonosítás; a magyar név és leírás szakmai ellenőrzést igényel. Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges.",
+      "ain_3": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges.",
+      "ashan": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+    },
+    "match_reasons": [
+      "Records share a name variant and have very close coordinates.",
+      "Records share at least one normalized name variant.",
+      "Records appear to be numbered variants of the same base place_id."
+    ],
+    "coordinate_distance_km": 13.059,
+    "shared_passages": [],
+    "distinct_passages": {
+      "ain_2": [
+        "1CH 4,32",
+        "JOS 15,32",
+        "JOS 19,7"
+      ],
+      "ain_3": [
+        "JOS 21,16"
+      ],
+      "ashan": [
+        "1CH 4,32",
+        "1CH 6,59",
+        "JOS 15,42",
+        "JOS 19,7"
+      ]
+    },
+    "recommended_action": "merge_probable",
+    "confidence": "high",
+    "reviewer_notes_hu": "Szakmai előszűrés elkészült; alkalmazás előtt gépi validáció, dry-run és integritásellenőrzés szükséges.",
+    "review_status": "reviewed",
+    "proposed_canonical_place_id": null,
+    "proposed_merged_name_hu": null,
+    "proposed_merged_summary_hu": null,
+    "proposed_passage_strategy": "A passage-kapcsolatok maradjanak külön rekordokon.",
+    "proposed_coordinate_strategy": "A jelenlegi koordináták maradjanak meg; az azonos koordináta önmagában nem bizonyít rekordazonosságot.",
+    "proposed_alias_strategy": "A névkapcsolat megjegyzésként megőrizhető, de ne legyen automatikus alias-összevonás.",
+    "proposed_record_type": "keep_separate",
+    "merge_risks_hu": [
+      "Az összevonás eltérő földrajzi objektumokat, korszakokat vagy bibliai jelentéseket mosna össze."
+    ],
+    "expert_decision_hu": "Ajin és Ásán részben szövegvariánsok lehetnek, de az eltérő koordináták és törzsi listák miatt egyelőre külön maradjanak.",
+    "final_action": "keep_separate",
+    "human_readable_comparison": "Ajin és Ásán részben szövegvariánsok lehetnek, de az eltérő koordináták és törzsi listák miatt egyelőre külön maradjanak."
+  },
+  {
+    "group_id": "dup_etam_1__etam_2__etam_3",
+    "candidate_place_ids": [
+      "etam_1",
+      "etam_2",
+      "etam_3"
+    ],
+    "candidate_names_en": {
+      "etam_1": "Etam 1",
+      "etam_2": "Etam 2",
+      "etam_3": "Etam 3"
+    },
+    "candidate_names_hu": {
+      "etam_1": "Étám",
+      "etam_2": "Etam",
+      "etam_3": "Étám"
+    },
+    "ancient_names": {
+      "etam_1": [
+        "Etam 1",
+        "Etam"
+      ],
+      "etam_2": [
+        "Etam 2",
+        "Etam"
+      ],
+      "etam_3": [
+        "Etam 3",
+        "Etah",
+        "Etam"
+      ]
+    },
+    "modern_names": {
+      "etam_1": "Arak Ismain",
+      "etam_2": "Khirbet el Khokh",
+      "etam_3": "Khirbet el Khokh"
+    },
+    "coordinates": {
+      "etam_1": {
+        "latitude": 31.763715,
+        "longitude": 35.025793
+      },
+      "etam_2": {
+        "latitude": 31.68478,
+        "longitude": 35.17884
+      },
+      "etam_3": {
+        "latitude": 31.68478,
+        "longitude": 35.17884
+      }
+    },
+    "identification_statuses": {
+      "etam_1": "certain",
+      "etam_2": "possible",
+      "etam_3": "probable"
+    },
+    "representative_passages": [
+      "1CH 4,32",
+      "2CH 11,6",
+      "JDG 15,11",
+      "JDG 15,8"
+    ],
+    "passage_counts": {
+      "etam_1": 2,
+      "etam_2": 1,
+      "etam_3": 1
+    },
+    "source_ids": {
+      "etam_1": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "etam_2": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "etam_3": [
+        "openbible_geocoding_cc_by_4_0"
+      ]
+    },
+    "current_review_notes_hu": {
+      "etam_1": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges.",
+      "etam_2": "Bizonytalan vagy vitatott azonosítás; a magyar név és leírás szakmai ellenőrzést igényel. Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges.",
+      "etam_3": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+    },
+    "match_reasons": [
+      "Records share a name variant and have very close coordinates.",
+      "Records share at least one normalized name variant.",
+      "Records appear to be numbered variants of the same base place_id."
+    ],
+    "coordinate_distance_km": 16.929,
+    "shared_passages": [],
+    "distinct_passages": {
+      "etam_1": [
+        "JDG 15,11",
+        "JDG 15,8"
+      ],
+      "etam_2": [
+        "1CH 4,32"
+      ],
+      "etam_3": [
+        "2CH 11,6"
+      ]
+    },
+    "recommended_action": "merge_probable",
+    "confidence": "high",
+    "reviewer_notes_hu": "Szakmai előszűrés elkészült; alkalmazás előtt gépi validáció, dry-run és integritásellenőrzés szükséges.",
+    "review_status": "reviewed",
+    "proposed_canonical_place_id": null,
+    "proposed_merged_name_hu": null,
+    "proposed_merged_summary_hu": null,
+    "proposed_passage_strategy": "A passage-kapcsolatok maradjanak külön rekordokon.",
+    "proposed_coordinate_strategy": "A jelenlegi koordináták maradjanak meg; az azonos koordináta önmagában nem bizonyít rekordazonosságot.",
+    "proposed_alias_strategy": "A névkapcsolat megjegyzésként megőrizhető, de ne legyen automatikus alias-összevonás.",
+    "proposed_record_type": "keep_separate",
+    "merge_risks_hu": [
+      "Az összevonás eltérő földrajzi objektumokat, korszakokat vagy bibliai jelentéseket mosna össze."
+    ],
+    "expert_decision_hu": "Az Étám név több külön helyet jelöl a Bírák, Krónikák és királyi erődítések összefüggésében.",
+    "final_action": "keep_separate",
+    "human_readable_comparison": "Az Étám név több külön helyet jelöl a Bírák, Krónikák és királyi erődítések összefüggésében."
+  },
+  {
+    "group_id": "dup_libya__put",
+    "candidate_place_ids": [
+      "libya",
+      "put"
+    ],
+    "candidate_names_en": {
+      "libya": "Libya",
+      "put": "Put"
+    },
+    "candidate_names_hu": {
+      "libya": "Líbia",
+      "put": "Pút"
+    },
+    "ancient_names": {
+      "libya": [
+        "Libya",
+        "Kub",
+        "Libyans",
+        "Lubim"
+      ],
+      "put": [
+        "Put",
+        "Libya",
+        "Libyans",
+        "Phut",
+        "Pul"
+      ]
+    },
+    "modern_names": {
+      "libya": "Cyrene",
+      "put": "Cyrene"
+    },
+    "coordinates": {
+      "libya": {
+        "latitude": 32.820946,
+        "longitude": 21.851229
+      },
+      "put": {
+        "latitude": 32.820946,
+        "longitude": 21.851229
+      }
+    },
+    "identification_statuses": {
+      "libya": "certain",
+      "put": "probable"
+    },
+    "representative_passages": [
+      "ACT 2,10",
+      "EZK 27,10",
+      "EZK 30,5",
+      "EZK 38,5",
+      "ISA 66,19",
+      "JER 46,9",
+      "NAM 3,9"
+    ],
+    "passage_counts": {
+      "libya": 3,
+      "put": 6
+    },
+    "source_ids": {
+      "libya": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "put": [
+        "openbible_geocoding_cc_by_4_0"
+      ]
+    },
+    "current_review_notes_hu": {
+      "libya": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges.",
+      "put": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+    },
+    "match_reasons": [
+      "Records share a name variant and have very close coordinates.",
+      "Records share the same modern_name.",
+      "Records share at least one normalized name variant."
+    ],
+    "coordinate_distance_km": 0.0,
+    "shared_passages": [
+      "EZK 30,5",
+      "NAM 3,9"
+    ],
+    "distinct_passages": {
+      "libya": [
+        "ACT 2,10"
+      ],
+      "put": [
+        "EZK 27,10",
+        "EZK 38,5",
+        "ISA 66,19",
+        "JER 46,9"
+      ]
+    },
+    "recommended_action": "same_place_different_record_type",
+    "confidence": "medium",
+    "reviewer_notes_hu": "Szakmai előszűrés elkészült; alkalmazás előtt gépi validáció, dry-run és integritásellenőrzés szükséges.",
+    "review_status": "reviewed",
+    "proposed_canonical_place_id": null,
+    "proposed_merged_name_hu": null,
+    "proposed_merged_summary_hu": null,
+    "proposed_passage_strategy": "A passage-kapcsolatok maradjanak külön rekordokon.",
+    "proposed_coordinate_strategy": "A jelenlegi koordináták maradjanak meg; az azonos koordináta önmagában nem bizonyít rekordazonosságot.",
+    "proposed_alias_strategy": "A névkapcsolat megjegyzésként megőrizhető, de ne legyen automatikus alias-összevonás.",
+    "proposed_record_type": "keep_separate",
+    "merge_risks_hu": [
+      "Az összevonás eltérő földrajzi objektumokat, korszakokat vagy bibliai jelentéseket mosna össze."
+    ],
+    "expert_decision_hu": "Pút és Líbia történeti fogalmai átfedhetnek, de nem minden korban és szövegben azonosak.",
+    "final_action": "keep_separate",
+    "human_readable_comparison": "Pút és Líbia történeti fogalmai átfedhetnek, de nem minden korban és szövegben azonosak."
+  },
+  {
+    "group_id": "dup_baal_peor__peor",
+    "candidate_place_ids": [
+      "baal_peor",
+      "peor"
+    ],
+    "candidate_names_en": {
+      "baal_peor": "Baal-peor",
+      "peor": "Peor"
+    },
+    "candidate_names_hu": {
+      "baal_peor": "Baal-Peór",
+      "peor": "Peór"
+    },
+    "ancient_names": {
+      "baal_peor": [
+        "Baal-peor",
+        "Baal Peor",
+        "Baal of Peor"
+      ],
+      "peor": [
+        "Peor",
+        "Baal-peor",
+        "Mount Peor"
+      ]
+    },
+    "modern_names": {
+      "baal_peor": "Khirbet Ayun Musa",
+      "peor": "Khirbet Ayun Musa"
+    },
+    "coordinates": {
+      "baal_peor": {
+        "latitude": 31.777021,
+        "longitude": 35.738498
+      },
+      "peor": {
+        "latitude": 31.777021,
+        "longitude": 35.738498
+      }
+    },
+    "identification_statuses": {
+      "baal_peor": "probable",
+      "peor": "certain"
+    },
+    "representative_passages": [
+      "DEU 4,3",
+      "HOS 9,10",
+      "JOS 22,17",
+      "NUM 23,28",
+      "NUM 25,18",
+      "NUM 25,3",
+      "NUM 25,5",
+      "NUM 31,16",
+      "PSA 106,28"
+    ],
+    "passage_counts": {
+      "baal_peor": 2,
+      "peor": 8
+    },
+    "source_ids": {
+      "baal_peor": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "peor": [
+        "openbible_geocoding_cc_by_4_0"
+      ]
+    },
+    "current_review_notes_hu": {
+      "baal_peor": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges.",
+      "peor": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+    },
+    "match_reasons": [
+      "Records share a name variant and have very close coordinates.",
+      "Records share the same modern_name.",
+      "Records share at least one normalized name variant."
+    ],
+    "coordinate_distance_km": 0.0,
+    "shared_passages": [
+      "DEU 4,3"
+    ],
+    "distinct_passages": {
+      "baal_peor": [
+        "HOS 9,10"
+      ],
+      "peor": [
+        "JOS 22,17",
+        "NUM 23,28",
+        "NUM 25,18",
+        "NUM 25,3",
+        "NUM 25,5",
+        "NUM 31,16",
+        "PSA 106,28"
+      ]
+    },
+    "recommended_action": "same_place_different_record_type",
+    "confidence": "medium",
+    "reviewer_notes_hu": "Szakmai előszűrés elkészült; alkalmazás előtt gépi validáció, dry-run és integritásellenőrzés szükséges.",
+    "review_status": "reviewed",
+    "proposed_canonical_place_id": null,
+    "proposed_merged_name_hu": null,
+    "proposed_merged_summary_hu": null,
+    "proposed_passage_strategy": "A passage-kapcsolatok maradjanak külön rekordokon.",
+    "proposed_coordinate_strategy": "A jelenlegi koordináták maradjanak meg; az azonos koordináta önmagában nem bizonyít rekordazonosságot.",
+    "proposed_alias_strategy": "A névkapcsolat megjegyzésként megőrizhető, de ne legyen automatikus alias-összevonás.",
+    "proposed_record_type": "keep_separate",
+    "merge_risks_hu": [
+      "Az összevonás eltérő földrajzi objektumokat, korszakokat vagy bibliai jelentéseket mosna össze."
+    ],
+    "expert_decision_hu": "Peór hegyvidéki hely, Baal-Peór pedig kultuszhely vagy eseményhez kötött megnevezés; eltérő rekordtípus.",
+    "final_action": "keep_separate",
+    "human_readable_comparison": "Peór hegyvidéki hely, Baal-Peór pedig kultuszhely vagy eseményhez kötött megnevezés; eltérő rekordtípus."
+  },
+  {
+    "group_id": "dup_jazer__sea_of_jazer",
+    "candidate_place_ids": [
+      "jazer",
+      "sea_of_jazer"
+    ],
+    "candidate_names_en": {
+      "jazer": "Jazer",
+      "sea_of_jazer": "Sea of Jazer"
+    },
+    "candidate_names_hu": {
+      "jazer": "Jazér",
+      "sea_of_jazer": "Jazer-tenger"
+    },
+    "ancient_names": {
+      "jazer": [
+        "Jazer",
+        "Jaazer"
+      ],
+      "sea_of_jazer": [
+        "Sea of Jazer",
+        "Jazer",
+        "sea of Jazer"
+      ]
+    },
+    "modern_names": {
+      "jazer": "Khirbet Jazzir",
+      "sea_of_jazer": "Khirbet Jazzir"
+    },
+    "coordinates": {
+      "jazer": {
+        "latitude": 32.006398,
+        "longitude": 35.734976
+      },
+      "sea_of_jazer": {
+        "latitude": 32.006398,
+        "longitude": 35.734976
+      }
+    },
+    "identification_statuses": {
+      "jazer": "possible",
+      "sea_of_jazer": "possible"
+    },
+    "representative_passages": [
+      "1CH 26,31",
+      "1CH 6,81",
+      "2SA 24,5",
+      "ISA 16,8",
+      "ISA 16,9",
+      "JER 48,32",
+      "JOS 13,25",
+      "JOS 21,39",
+      "NUM 21,24",
+      "NUM 21,32"
+    ],
+    "passage_counts": {
+      "jazer": 13,
+      "sea_of_jazer": 1
+    },
+    "source_ids": {
+      "jazer": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "sea_of_jazer": [
+        "openbible_geocoding_cc_by_4_0"
+      ]
+    },
+    "current_review_notes_hu": {
+      "jazer": "Bizonytalan vagy vitatott azonosítás; a magyar név és leírás szakmai ellenőrzést igényel. Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges.",
+      "sea_of_jazer": "Bizonytalan vagy vitatott azonosítás; a magyar név és leírás szakmai ellenőrzést igényel. Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+    },
+    "match_reasons": [
+      "Records share a name variant and have very close coordinates.",
+      "Records share the same modern_name.",
+      "Records share at least one normalized name variant."
+    ],
+    "coordinate_distance_km": 0.0,
+    "shared_passages": [
+      "JER 48,32"
+    ],
+    "distinct_passages": {
+      "jazer": [
+        "1CH 26,31",
+        "1CH 6,81",
+        "2SA 24,5",
+        "ISA 16,8",
+        "ISA 16,9",
+        "JOS 13,25",
+        "JOS 21,39",
+        "NUM 21,24",
+        "NUM 21,32",
+        "NUM 32,1"
+      ],
+      "sea_of_jazer": []
+    },
+    "recommended_action": "same_place_different_record_type",
+    "confidence": "medium",
+    "reviewer_notes_hu": "Szakmai előszűrés elkészült; alkalmazás előtt gépi validáció, dry-run és integritásellenőrzés szükséges.",
+    "review_status": "reviewed",
+    "proposed_canonical_place_id": null,
+    "proposed_merged_name_hu": null,
+    "proposed_merged_summary_hu": null,
+    "proposed_passage_strategy": "A passage-kapcsolatok maradjanak külön rekordokon.",
+    "proposed_coordinate_strategy": "A jelenlegi koordináták maradjanak meg; az azonos koordináta önmagában nem bizonyít rekordazonosságot.",
+    "proposed_alias_strategy": "A névkapcsolat megjegyzésként megőrizhető, de ne legyen automatikus alias-összevonás.",
+    "proposed_record_type": "keep_separate",
+    "merge_risks_hu": [
+      "Az összevonás eltérő földrajzi objektumokat, korszakokat vagy bibliai jelentéseket mosna össze."
+    ],
+    "expert_decision_hu": "Jazér település, a „Jazér tengere” pedig vízrajzi vagy költői megnevezés; külön rekordtípus.",
+    "final_action": "keep_separate",
+    "human_readable_comparison": "Jazér település, a „Jazér tengere” pedig vízrajzi vagy költői megnevezés; külön rekordtípus."
+  },
+  {
+    "group_id": "dup_aram__damascus__syria_1__syria_2",
+    "candidate_place_ids": [
+      "aram",
+      "damascus",
+      "syria_1",
+      "syria_2"
+    ],
+    "candidate_names_en": {
+      "aram": "Aram",
+      "damascus": "Damascus",
+      "syria_1": "Syria 1",
+      "syria_2": "Syria 2"
+    },
+    "candidate_names_hu": {
+      "aram": "Arám",
+      "damascus": "Damaszkusz",
+      "syria_1": "Arám–Szíria",
+      "syria_2": "Szíria"
+    },
+    "ancient_names": {
+      "aram": [
+        "Aram",
+        "Aramean",
+        "Arameans",
+        "Syria"
+      ],
+      "damascus": [
+        "Damascus",
+        "Desert of Damascus",
+        "Syria-damascus",
+        "Wilderness of Damascus"
+      ],
+      "syria_1": [
+        "Syria 1",
+        "Aram",
+        "Aramean",
+        "Arameans",
+        "Edom",
+        "Hittite country",
+        "Syria",
+        "Syria-damascus",
+        "Syrian",
+        "Syrians",
+        "land of the Hittites"
+      ],
+      "syria_2": [
+        "Syria 2",
+        "Syria"
+      ]
+    },
+    "modern_names": {
+      "aram": "Damascus",
+      "damascus": "Damascus",
+      "syria_1": "Damascus",
+      "syria_2": "Damascus"
+    },
+    "coordinates": {
+      "aram": {
+        "latitude": 33.511112,
+        "longitude": 36.30639
+      },
+      "damascus": {
+        "latitude": 33.511112,
+        "longitude": 36.30639
+      },
+      "syria_1": {
+        "latitude": 33.511112,
+        "longitude": 36.30639
+      },
+      "syria_2": {
+        "latitude": 33.511112,
+        "longitude": 36.30639
+      }
+    },
+    "identification_statuses": {
+      "aram": "certain",
+      "damascus": "certain",
+      "syria_1": "certain",
+      "syria_2": "certain"
+    },
+    "representative_passages": [
+      "1CH 18,5",
+      "1CH 18,6",
+      "1CH 19,10",
+      "1CH 19,12",
+      "1CH 19,14",
+      "1CH 19,15",
+      "1CH 19,16",
+      "1CH 19,17",
+      "1CH 19,18",
+      "1CH 19,19"
+    ],
+    "passage_counts": {
+      "aram": 11,
+      "damascus": 58,
+      "syria_1": 89,
+      "syria_2": 8
+    },
+    "source_ids": {
+      "aram": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "damascus": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "syria_1": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "syria_2": [
+        "openbible_geocoding_cc_by_4_0"
+      ]
+    },
+    "current_review_notes_hu": {
+      "aram": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges.",
+      "damascus": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges.",
+      "syria_1": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges.",
+      "syria_2": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+    },
+    "match_reasons": [
+      "Records share a name variant and have very close coordinates.",
+      "Records share the same modern_name.",
+      "Records share at least one normalized name variant.",
+      "Records appear to be numbered variants of the same base place_id."
+    ],
+    "coordinate_distance_km": 0.0,
+    "shared_passages": [],
+    "distinct_passages": {
+      "aram": [
+        "1CH 2,23",
+        "2KI 5,18",
+        "2KI 6,14",
+        "2KI 8,15",
+        "2SA 15,8",
+        "2SA 8,6",
+        "HOS 12,12",
+        "JDG 18,28",
+        "JDG 18,7",
+        "NUM 23,7"
+      ],
+      "damascus": [
+        "1CH 18,5",
+        "1CH 18,6",
+        "1KI 11,24",
+        "1KI 15,18",
+        "1KI 19,15",
+        "1KI 20,34",
+        "2CH 16,2",
+        "2CH 24,23",
+        "2CH 28,23",
+        "2CH 28,5"
+      ],
+      "syria_1": [
+        "1CH 18,5",
+        "1CH 18,6",
+        "1CH 19,10",
+        "1CH 19,12",
+        "1CH 19,14",
+        "1CH 19,15",
+        "1CH 19,16",
+        "1CH 19,17",
+        "1CH 19,18",
+        "1CH 19,19"
+      ],
+      "syria_2": [
+        "ACT 15,23",
+        "ACT 15,41",
+        "ACT 18,18",
+        "ACT 20,3",
+        "ACT 21,3",
+        "GAL 1,21",
+        "LUK 2,2",
+        "MAT 4,24"
+      ]
+    },
+    "recommended_action": "same_place_different_record_type",
+    "confidence": "medium",
+    "reviewer_notes_hu": "Szakmai előszűrés elkészült; alkalmazás előtt gépi validáció, dry-run és integritásellenőrzés szükséges.",
+    "review_status": "reviewed",
+    "proposed_canonical_place_id": null,
+    "proposed_merged_name_hu": null,
+    "proposed_merged_summary_hu": null,
+    "proposed_passage_strategy": "A passage-kapcsolatok maradjanak külön rekordokon.",
+    "proposed_coordinate_strategy": "A jelenlegi koordináták maradjanak meg; az azonos koordináta önmagában nem bizonyít rekordazonosságot.",
+    "proposed_alias_strategy": "A névkapcsolat megjegyzésként megőrizhető, de ne legyen automatikus alias-összevonás.",
+    "proposed_record_type": "keep_separate",
+    "merge_risks_hu": [
+      "Az összevonás eltérő földrajzi objektumokat, korszakokat vagy bibliai jelentéseket mosna össze."
+    ],
+    "expert_decision_hu": "Arám, Damaszkusz és Szíria eltérő kiterjedésű régiók, városok és korszakos megnevezések.",
+    "final_action": "keep_separate",
+    "human_readable_comparison": "Arám, Damaszkusz és Szíria eltérő kiterjedésű régiók, városok és korszakos megnevezések."
+  },
+  {
+    "group_id": "dup_baal_hermon__mount_baal_hermon",
+    "candidate_place_ids": [
+      "baal_hermon",
+      "mount_baal_hermon"
+    ],
+    "candidate_names_en": {
+      "baal_hermon": "Baal-hermon",
+      "mount_baal_hermon": "Mount Baal-hermon"
+    },
+    "candidate_names_hu": {
+      "baal_hermon": "Baal-hermon",
+      "mount_baal_hermon": "Baal-Hermón hegye"
+    },
+    "ancient_names": {
+      "baal_hermon": [
+        "Baal-hermon",
+        "Baal Hermon",
+        "Baal-Hermon"
+      ],
+      "mount_baal_hermon": [
+        "Mount Baal-hermon",
+        "Baal-hermon",
+        "Mount Baal Hermon"
+      ]
+    },
+    "modern_names": {
+      "baal_hermon": "Mount Hermon",
+      "mount_baal_hermon": "Mount Hermon"
+    },
+    "coordinates": {
+      "baal_hermon": {
+        "latitude": 33.4,
+        "longitude": 35.85
+      },
+      "mount_baal_hermon": {
+        "latitude": 33.4,
+        "longitude": 35.85
+      }
+    },
+    "identification_statuses": {
+      "baal_hermon": "probable",
+      "mount_baal_hermon": "certain"
+    },
+    "representative_passages": [
+      "1CH 5,23",
+      "JDG 3,3"
+    ],
+    "passage_counts": {
+      "baal_hermon": 1,
+      "mount_baal_hermon": 1
+    },
+    "source_ids": {
+      "baal_hermon": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "mount_baal_hermon": [
+        "openbible_geocoding_cc_by_4_0"
+      ]
+    },
+    "current_review_notes_hu": {
+      "baal_hermon": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges.",
+      "mount_baal_hermon": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+    },
+    "match_reasons": [
+      "Records share a name variant and have very close coordinates.",
+      "Records share the same modern_name.",
+      "Records share at least one normalized name variant."
+    ],
+    "coordinate_distance_km": 0.0,
+    "shared_passages": [],
+    "distinct_passages": {
+      "baal_hermon": [
+        "1CH 5,23"
+      ],
+      "mount_baal_hermon": [
+        "JDG 3,3"
+      ]
+    },
+    "recommended_action": "same_place_different_record_type",
+    "confidence": "medium",
+    "reviewer_notes_hu": "Szakmai előszűrés elkészült; alkalmazás előtt gépi validáció, dry-run és integritásellenőrzés szükséges.",
+    "review_status": "reviewed",
+    "proposed_canonical_place_id": null,
+    "proposed_merged_name_hu": null,
+    "proposed_merged_summary_hu": null,
+    "proposed_passage_strategy": "A passage-kapcsolatok maradjanak külön rekordokon.",
+    "proposed_coordinate_strategy": "A jelenlegi koordináták maradjanak meg; az azonos koordináta önmagában nem bizonyít rekordazonosságot.",
+    "proposed_alias_strategy": "A névkapcsolat megjegyzésként megőrizhető, de ne legyen automatikus alias-összevonás.",
+    "proposed_record_type": "keep_separate",
+    "merge_risks_hu": [
+      "Az összevonás eltérő földrajzi objektumokat, korszakokat vagy bibliai jelentéseket mosna össze."
+    ],
+    "expert_decision_hu": "Baal-Hermón település/térség és Baal-Hermón hegye eltérő rekordtípus.",
+    "final_action": "keep_separate",
+    "human_readable_comparison": "Baal-Hermón település/térség és Baal-Hermón hegye eltérő rekordtípus."
+  },
+  {
+    "group_id": "dup_baalath_1__baalath_2",
+    "candidate_place_ids": [
+      "baalath_1",
+      "baalath_2"
+    ],
+    "candidate_names_en": {
+      "baalath_1": "Baalath 1",
+      "baalath_2": "Baalath 2"
+    },
+    "candidate_names_hu": {
+      "baalath_1": "Baalath",
+      "baalath_2": "Baalát"
+    },
+    "ancient_names": {
+      "baalath_1": [
+        "Baalath 1",
+        "Baalath"
+      ],
+      "baalath_2": [
+        "Baalath 2",
+        "Baalath"
+      ]
+    },
+    "modern_names": {
+      "baalath_1": "Al Maghar",
+      "baalath_2": "Al Maghar"
+    },
+    "coordinates": {
+      "baalath_1": {
+        "latitude": 31.838514,
+        "longitude": 34.78225
+      },
+      "baalath_2": {
+        "latitude": 31.838514,
+        "longitude": 34.78225
+      }
+    },
+    "identification_statuses": {
+      "baalath_1": "probable",
+      "baalath_2": "probable"
+    },
+    "representative_passages": [
+      "1KI 9,18",
+      "2CH 8,6",
+      "JOS 19,44"
+    ],
+    "passage_counts": {
+      "baalath_1": 1,
+      "baalath_2": 2
+    },
+    "source_ids": {
+      "baalath_1": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "baalath_2": [
+        "openbible_geocoding_cc_by_4_0"
+      ]
+    },
+    "current_review_notes_hu": {
+      "baalath_1": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges.",
+      "baalath_2": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+    },
+    "match_reasons": [
+      "Records share a name variant and have very close coordinates.",
+      "Records share the same modern_name.",
+      "Records share at least one normalized name variant.",
+      "Records appear to be numbered variants of the same base place_id."
+    ],
+    "coordinate_distance_km": 0.0,
+    "shared_passages": [],
+    "distinct_passages": {
+      "baalath_1": [
+        "JOS 19,44"
+      ],
+      "baalath_2": [
+        "1KI 9,18",
+        "2CH 8,6"
+      ]
+    },
+    "recommended_action": "same_place_different_record_type",
+    "confidence": "medium",
+    "reviewer_notes_hu": "Szakmai előszűrés elkészült; alkalmazás előtt gépi validáció, dry-run és integritásellenőrzés szükséges.",
+    "review_status": "reviewed",
+    "proposed_canonical_place_id": "baalath_1",
+    "proposed_merged_name_hu": "Baalát",
+    "proposed_merged_summary_hu": "Dán területéhez kapcsolódó bibliai település; a két rekord valószínűleg ugyanazon helyet jelöli.",
+    "proposed_passage_strategy": "Az összes passage-kapcsolat egyesítése a kanonikus rekord alatt, duplikációk eltávolításával.",
+    "proposed_coordinate_strategy": "A baalath_1 rekord koordinátáinak megtartása; az identification_status nem válhat indokolatlanul bizonyosabbá.",
+    "proposed_alias_strategy": "Minden névváltozat és korábbi place_id megőrzése alias/legacy mezőben, technikai számozások nélkül.",
+    "proposed_record_type": "merged_place",
+    "merge_risks_hu": [
+      "Más, azonos nevű bibliai helyekkel nem szabad automatikusan összevonni.",
+      "Minden passage-, alias- és forráskapcsolatot meg kell őrizni."
+    ],
+    "expert_decision_hu": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható.",
+    "final_action": "merge",
+    "human_readable_comparison": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható."
+  },
+  {
+    "group_id": "dup_babel__babylon_1__babylonia__sheshach__shinar",
+    "candidate_place_ids": [
+      "babel",
+      "babylon_1",
+      "babylonia",
+      "sheshach",
+      "shinar"
+    ],
+    "candidate_names_en": {
+      "babel": "Babel",
+      "babylon_1": "Babylon 1",
+      "babylonia": "Babylonia",
+      "sheshach": "Sheshach",
+      "shinar": "Shinar"
+    },
+    "candidate_names_hu": {
+      "babel": "Bábel",
+      "babylon_1": "Babilon",
+      "babylonia": "Babilónia",
+      "sheshach": "Sésák",
+      "shinar": "Sineár"
+    },
+    "ancient_names": {
+      "babel": [
+        "Babel",
+        "Babylon"
+      ],
+      "babylon_1": [
+        "Babylon 1",
+        "Babylon",
+        "Babylonia",
+        "Babylonian",
+        "Babylonians",
+        "Desert by the Sea",
+        "Tyre",
+        "Wilderness of the Sea",
+        "wilderness by the Sea"
+      ],
+      "babylonia": [
+        "Babylonia",
+        "Babylon",
+        "Babylonian"
+      ],
+      "sheshach": [
+        "Sheshach",
+        "Babylon",
+        "Sheshak"
+      ],
+      "shinar": [
+        "Shinar",
+        "Babylon",
+        "Babylonia",
+        "Babylonian",
+        "Babylonish"
+      ]
+    },
+    "modern_names": {
+      "babel": "Babylon",
+      "babylon_1": "Babylon",
+      "babylonia": "Babylon",
+      "sheshach": "Babylon",
+      "shinar": "Babylon"
+    },
+    "coordinates": {
+      "babel": {
+        "latitude": 32.543333,
+        "longitude": 44.422222
+      },
+      "babylon_1": {
+        "latitude": 32.543333,
+        "longitude": 44.422222
+      },
+      "babylonia": {
+        "latitude": 32.543333,
+        "longitude": 44.422222
+      },
+      "sheshach": {
+        "latitude": 32.543333,
+        "longitude": 44.422222
+      },
+      "shinar": {
+        "latitude": 32.543333,
+        "longitude": 44.422222
+      }
+    },
+    "identification_statuses": {
+      "babel": "certain",
+      "babylon_1": "certain",
+      "babylonia": "certain",
+      "sheshach": "certain",
+      "shinar": "certain"
+    },
+    "representative_passages": [
+      "1CH 9,1",
+      "2CH 32,31",
+      "2CH 33,11",
+      "2CH 36,10",
+      "2CH 36,17",
+      "2CH 36,18",
+      "2CH 36,20",
+      "2CH 36,6",
+      "2CH 36,7",
+      "2KI 17,24"
+    ],
+    "passage_counts": {
+      "babel": 2,
+      "babylon_1": 296,
+      "babylonia": 15,
+      "sheshach": 2,
+      "shinar": 8
+    },
+    "source_ids": {
+      "babel": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "babylon_1": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "babylonia": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "sheshach": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "shinar": [
+        "openbible_geocoding_cc_by_4_0"
+      ]
+    },
+    "current_review_notes_hu": {
+      "babel": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges.",
+      "babylon_1": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges.",
+      "babylonia": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges.",
+      "sheshach": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges.",
+      "shinar": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+    },
+    "match_reasons": [
+      "Records share a name variant and have very close coordinates.",
+      "Records share the same modern_name.",
+      "Records share at least one normalized name variant."
+    ],
+    "coordinate_distance_km": 0.0,
+    "shared_passages": [],
+    "distinct_passages": {
+      "babel": [
+        "GEN 10,10",
+        "GEN 11,9"
+      ],
+      "babylon_1": [
+        "1CH 9,1",
+        "2CH 32,31",
+        "2CH 33,11",
+        "2CH 36,10",
+        "2CH 36,17",
+        "2CH 36,18",
+        "2CH 36,20",
+        "2CH 36,6",
+        "2CH 36,7",
+        "2KI 17,24"
+      ],
+      "babylonia": [
+        "EZR 1,11",
+        "EZR 2,1",
+        "EZR 5,12",
+        "EZR 6,1",
+        "EZR 7,16",
+        "EZR 7,6",
+        "EZR 7,9",
+        "EZR 8,1",
+        "JER 50,11",
+        "JER 50,12"
+      ],
+      "sheshach": [
+        "JER 25,26",
+        "JER 51,41"
+      ],
+      "shinar": [
+        "DAN 1,2",
+        "GEN 10,10",
+        "GEN 11,2",
+        "GEN 14,1",
+        "GEN 14,9",
+        "ISA 11,11",
+        "JOS 7,21",
+        "ZEC 5,11"
+      ]
+    },
+    "recommended_action": "same_place_different_record_type",
+    "confidence": "medium",
+    "reviewer_notes_hu": "Szakmai előszűrés elkészült; alkalmazás előtt gépi validáció, dry-run és integritásellenőrzés szükséges.",
+    "review_status": "reviewed",
+    "proposed_canonical_place_id": null,
+    "proposed_merged_name_hu": null,
+    "proposed_merged_summary_hu": null,
+    "proposed_passage_strategy": "A passage-kapcsolatok maradjanak külön rekordokon.",
+    "proposed_coordinate_strategy": "A jelenlegi koordináták maradjanak meg; az azonos koordináta önmagában nem bizonyít rekordazonosságot.",
+    "proposed_alias_strategy": "A névkapcsolat megjegyzésként megőrizhető, de ne legyen automatikus alias-összevonás.",
+    "proposed_record_type": "keep_separate",
+    "merge_risks_hu": [
+      "Az összevonás eltérő földrajzi objektumokat, korszakokat vagy bibliai jelentéseket mosna össze."
+    ],
+    "expert_decision_hu": "Bábel/Babilon város, Babilónia régió, Sineár történeti táj és Sésák rejtjeles név; nem egy rekordtípus.",
+    "final_action": "keep_separate",
+    "human_readable_comparison": "Bábel/Babilon város, Babilónia régió, Sineár történeti táj és Sésák rejtjeles név; nem egy rekordtípus."
+  },
+  {
+    "group_id": "dup_bethel_1__bethel_3",
+    "candidate_place_ids": [
+      "bethel_1",
+      "bethel_3"
+    ],
+    "candidate_names_en": {
+      "bethel_1": "Bethel 1",
+      "bethel_3": "Bethel 3"
+    },
+    "candidate_names_hu": {
+      "bethel_1": "Bétel",
+      "bethel_3": "Bétel"
+    },
+    "ancient_names": {
+      "bethel_1": [
+        "Bethel 1",
+        "Beth-el",
+        "Beth-elite",
+        "Bethel",
+        "Bethelite"
+      ],
+      "bethel_3": [
+        "Bethel 3",
+        "Beth-el",
+        "Bethel"
+      ]
+    },
+    "modern_names": {
+      "bethel_1": "Beitin",
+      "bethel_3": "Beitin"
+    },
+    "coordinates": {
+      "bethel_1": {
+        "latitude": 31.922778,
+        "longitude": 35.241389
+      },
+      "bethel_3": {
+        "latitude": 31.922778,
+        "longitude": 35.241389
+      }
+    },
+    "identification_statuses": {
+      "bethel_1": "certain",
+      "bethel_3": "probable"
+    },
+    "representative_passages": [
+      "1CH 7,28",
+      "1KI 12,29",
+      "1KI 12,30",
+      "1KI 12,32",
+      "1KI 12,33",
+      "1KI 13,1",
+      "1KI 13,10",
+      "1KI 13,11",
+      "1KI 13,25",
+      "1KI 13,32"
+    ],
+    "passage_counts": {
+      "bethel_1": 69,
+      "bethel_3": 2
+    },
+    "source_ids": {
+      "bethel_1": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "bethel_3": [
+        "openbible_geocoding_cc_by_4_0"
+      ]
+    },
+    "current_review_notes_hu": {
+      "bethel_1": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges.",
+      "bethel_3": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+    },
+    "match_reasons": [
+      "Records share a name variant and have very close coordinates.",
+      "Records share the same modern_name.",
+      "Records share at least one normalized name variant.",
+      "Records appear to be numbered variants of the same base place_id."
+    ],
+    "coordinate_distance_km": 0.0,
+    "shared_passages": [],
+    "distinct_passages": {
+      "bethel_1": [
+        "1CH 7,28",
+        "1KI 12,29",
+        "1KI 12,30",
+        "1KI 12,32",
+        "1KI 12,33",
+        "1KI 13,1",
+        "1KI 13,10",
+        "1KI 13,11",
+        "1KI 13,25",
+        "1KI 13,32"
+      ],
+      "bethel_3": [
+        "JER 48,13",
+        "ZEC 7,2"
+      ]
+    },
+    "recommended_action": "same_place_different_record_type",
+    "confidence": "medium",
+    "reviewer_notes_hu": "Szakmai előszűrés elkészült; alkalmazás előtt gépi validáció, dry-run és integritásellenőrzés szükséges.",
+    "review_status": "reviewed",
+    "proposed_canonical_place_id": "bethel_1",
+    "proposed_merged_name_hu": "Bétel",
+    "proposed_merged_summary_hu": "Efraim hegyvidékének jelentős bibliai városa; a két rekord ugyanazon település eltérő szövegcsoportjait tartalmazza.",
+    "proposed_passage_strategy": "Az összes passage-kapcsolat egyesítése a kanonikus rekord alatt, duplikációk eltávolításával.",
+    "proposed_coordinate_strategy": "A bethel_1 rekord koordinátáinak megtartása; az identification_status nem válhat indokolatlanul bizonyosabbá.",
+    "proposed_alias_strategy": "Minden névváltozat és korábbi place_id megőrzése alias/legacy mezőben, technikai számozások nélkül.",
+    "proposed_record_type": "merged_place",
+    "merge_risks_hu": [
+      "Más, azonos nevű bibliai helyekkel nem szabad automatikusan összevonni.",
+      "Minden passage-, alias- és forráskapcsolatot meg kell őrizni."
+    ],
+    "expert_decision_hu": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható.",
+    "final_action": "merge",
+    "human_readable_comparison": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható."
+  },
+  {
+    "group_id": "dup_cabul_1__cabul_2",
+    "candidate_place_ids": [
+      "cabul_1",
+      "cabul_2"
+    ],
+    "candidate_names_en": {
+      "cabul_1": "Cabul 1",
+      "cabul_2": "Cabul 2"
+    },
+    "candidate_names_hu": {
+      "cabul_1": "Kábúl",
+      "cabul_2": "Kábul"
+    },
+    "ancient_names": {
+      "cabul_1": [
+        "Cabul 1",
+        "Cabul",
+        "Kabul"
+      ],
+      "cabul_2": [
+        "Cabul 2",
+        "Cabul",
+        "Land of Cabul",
+        "Land of Kabul"
+      ]
+    },
+    "modern_names": {
+      "cabul_1": "Kabul",
+      "cabul_2": "Kabul"
+    },
+    "coordinates": {
+      "cabul_1": {
+        "latitude": 32.868333,
+        "longitude": 35.211389
+      },
+      "cabul_2": {
+        "latitude": 32.868333,
+        "longitude": 35.211389
+      }
+    },
+    "identification_statuses": {
+      "cabul_1": "probable",
+      "cabul_2": "certain"
+    },
+    "representative_passages": [
+      "1KI 9,13",
+      "JOS 19,27"
+    ],
+    "passage_counts": {
+      "cabul_1": 1,
+      "cabul_2": 1
+    },
+    "source_ids": {
+      "cabul_1": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "cabul_2": [
+        "openbible_geocoding_cc_by_4_0"
+      ]
+    },
+    "current_review_notes_hu": {
+      "cabul_1": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges.",
+      "cabul_2": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+    },
+    "match_reasons": [
+      "Records share a name variant and have very close coordinates.",
+      "Records share the same modern_name.",
+      "Records share at least one normalized name variant.",
+      "Records appear to be numbered variants of the same base place_id."
+    ],
+    "coordinate_distance_km": 0.0,
+    "shared_passages": [],
+    "distinct_passages": {
+      "cabul_1": [
+        "JOS 19,27"
+      ],
+      "cabul_2": [
+        "1KI 9,13"
+      ]
+    },
+    "recommended_action": "same_place_different_record_type",
+    "confidence": "medium",
+    "reviewer_notes_hu": "Szakmai előszűrés elkészült; alkalmazás előtt gépi validáció, dry-run és integritásellenőrzés szükséges.",
+    "review_status": "reviewed",
+    "proposed_canonical_place_id": "cabul_1",
+    "proposed_merged_name_hu": "Kábúl",
+    "proposed_merged_summary_hu": "Áser területén fekvő bibliai település vagy körzet; a két rekord név- és helyazonossága alapján egyesíthető.",
+    "proposed_passage_strategy": "Az összes passage-kapcsolat egyesítése a kanonikus rekord alatt, duplikációk eltávolításával.",
+    "proposed_coordinate_strategy": "A cabul_1 rekord koordinátáinak megtartása; az identification_status nem válhat indokolatlanul bizonyosabbá.",
+    "proposed_alias_strategy": "Minden névváltozat és korábbi place_id megőrzése alias/legacy mezőben, technikai számozások nélkül.",
+    "proposed_record_type": "merged_place",
+    "merge_risks_hu": [
+      "Más, azonos nevű bibliai helyekkel nem szabad automatikusan összevonni.",
+      "Minden passage-, alias- és forráskapcsolatot meg kell őrizni."
+    ],
+    "expert_decision_hu": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható.",
+    "final_action": "merge",
+    "human_readable_comparison": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható."
+  },
+  {
+    "group_id": "dup_caphtor__crete",
+    "candidate_place_ids": [
+      "caphtor",
+      "crete"
+    ],
+    "candidate_names_en": {
+      "caphtor": "Caphtor",
+      "crete": "Crete"
+    },
+    "candidate_names_hu": {
+      "caphtor": "Kaftór",
+      "crete": "Kréta"
+    },
+    "ancient_names": {
+      "caphtor": [
+        "Caphtor",
+        "Caphthorim",
+        "Caphtorim",
+        "Caphtorims",
+        "Caphtorites",
+        "Crete"
+      ],
+      "crete": [
+        "Crete",
+        "Cherethites",
+        "Cretans",
+        "Kerethite",
+        "Kerethites",
+        "Philistines"
+      ]
+    },
+    "modern_names": {
+      "caphtor": "Crete",
+      "crete": "Crete"
+    },
+    "coordinates": {
+      "caphtor": {
+        "latitude": 35.309722,
+        "longitude": 24.893333
+      },
+      "crete": {
+        "latitude": 35.309722,
+        "longitude": 24.893333
+      }
+    },
+    "identification_statuses": {
+      "caphtor": "probable",
+      "crete": "certain"
+    },
+    "representative_passages": [
+      "1CH 1,12",
+      "ACT 27,12",
+      "ACT 27,13",
+      "ACT 27,14",
+      "ACT 27,21",
+      "ACT 27,7",
+      "ACT 27,8",
+      "AMO 9,7",
+      "DEU 2,23",
+      "GEN 10,14"
+    ],
+    "passage_counts": {
+      "caphtor": 5,
+      "crete": 9
+    },
+    "source_ids": {
+      "caphtor": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "crete": [
+        "openbible_geocoding_cc_by_4_0"
+      ]
+    },
+    "current_review_notes_hu": {
+      "caphtor": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges.",
+      "crete": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+    },
+    "match_reasons": [
+      "Records share a name variant and have very close coordinates.",
+      "Records share the same modern_name.",
+      "Records share at least one normalized name variant."
+    ],
+    "coordinate_distance_km": 0.0,
+    "shared_passages": [],
+    "distinct_passages": {
+      "caphtor": [
+        "1CH 1,12",
+        "AMO 9,7",
+        "DEU 2,23",
+        "GEN 10,14",
+        "JER 47,4"
+      ],
+      "crete": [
+        "ACT 27,12",
+        "ACT 27,13",
+        "ACT 27,14",
+        "ACT 27,21",
+        "ACT 27,7",
+        "ACT 27,8",
+        "TIT 1,12",
+        "TIT 1,5",
+        "ZEP 2,5"
+      ]
+    },
+    "recommended_action": "same_place_different_record_type",
+    "confidence": "medium",
+    "reviewer_notes_hu": "Szakmai előszűrés elkészült; alkalmazás előtt gépi validáció, dry-run és integritásellenőrzés szükséges.",
+    "review_status": "reviewed",
+    "proposed_canonical_place_id": null,
+    "proposed_merged_name_hu": null,
+    "proposed_merged_summary_hu": null,
+    "proposed_passage_strategy": "A passage-kapcsolatok maradjanak külön rekordokon.",
+    "proposed_coordinate_strategy": "A jelenlegi koordináták maradjanak meg; az azonos koordináta önmagában nem bizonyít rekordazonosságot.",
+    "proposed_alias_strategy": "A névkapcsolat megjegyzésként megőrizhető, de ne legyen automatikus alias-összevonás.",
+    "proposed_record_type": "keep_separate",
+    "merge_risks_hu": [
+      "Az összevonás eltérő földrajzi objektumokat, korszakokat vagy bibliai jelentéseket mosna össze."
+    ],
+    "expert_decision_hu": "Kaftór és Kréta kapcsolatát gyakran feltételezik, de az azonosítás nem teljesen bizonyos és eltérő történeti fogalmakról van szó.",
+    "final_action": "keep_separate",
+    "human_readable_comparison": "Kaftór és Kréta kapcsolatát gyakran feltételezik, de az azonosítás nem teljesen bizonyos és eltérő történeti fogalmakról van szó."
+  },
+  {
+    "group_id": "dup_city_of_destruction__heliopolis",
+    "candidate_place_ids": [
+      "city_of_destruction",
+      "heliopolis"
+    ],
+    "candidate_names_en": {
+      "city_of_destruction": "City of Destruction",
+      "heliopolis": "Heliopolis"
+    },
+    "candidate_names_hu": {
+      "city_of_destruction": "Pusztulás városa",
+      "heliopolis": "Héliopolisz (Ón)"
+    },
+    "ancient_names": {
+      "city_of_destruction": [
+        "City of Destruction",
+        "City of the Sun",
+        "Heliopolis",
+        "The city of destruction"
+      ],
+      "heliopolis": [
+        "Heliopolis",
+        "Aven",
+        "Beth Shemesh",
+        "Beth-shemesh",
+        "On"
+      ]
+    },
+    "modern_names": {
+      "city_of_destruction": "Ain Shams",
+      "heliopolis": "Ain Shams"
+    },
+    "coordinates": {
+      "city_of_destruction": {
+        "latitude": 30.129444,
+        "longitude": 31.3075
+      },
+      "heliopolis": {
+        "latitude": 30.129444,
+        "longitude": 31.3075
+      }
+    },
+    "identification_statuses": {
+      "city_of_destruction": "probable",
+      "heliopolis": "certain"
+    },
+    "representative_passages": [
+      "EZK 30,17",
+      "GEN 41,45",
+      "GEN 41,50",
+      "GEN 46,20",
+      "ISA 19,18",
+      "JER 43,13"
+    ],
+    "passage_counts": {
+      "city_of_destruction": 1,
+      "heliopolis": 5
+    },
+    "source_ids": {
+      "city_of_destruction": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "heliopolis": [
+        "openbible_geocoding_cc_by_4_0"
+      ]
+    },
+    "current_review_notes_hu": {
+      "city_of_destruction": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges.",
+      "heliopolis": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+    },
+    "match_reasons": [
+      "Records share a name variant and have very close coordinates.",
+      "Records share the same modern_name.",
+      "Records share at least one normalized name variant."
+    ],
+    "coordinate_distance_km": 0.0,
+    "shared_passages": [],
+    "distinct_passages": {
+      "city_of_destruction": [
+        "ISA 19,18"
+      ],
+      "heliopolis": [
+        "EZK 30,17",
+        "GEN 41,45",
+        "GEN 41,50",
+        "GEN 46,20",
+        "JER 43,13"
+      ]
+    },
+    "recommended_action": "same_place_different_record_type",
+    "confidence": "medium",
+    "reviewer_notes_hu": "Szakmai előszűrés elkészült; alkalmazás előtt gépi validáció, dry-run és integritásellenőrzés szükséges.",
+    "review_status": "reviewed",
+    "proposed_canonical_place_id": null,
+    "proposed_merged_name_hu": null,
+    "proposed_merged_summary_hu": null,
+    "proposed_passage_strategy": "A passage-kapcsolatok maradjanak külön rekordokon.",
+    "proposed_coordinate_strategy": "A jelenlegi koordináták maradjanak meg; az azonos koordináta önmagában nem bizonyít rekordazonosságot.",
+    "proposed_alias_strategy": "A névkapcsolat megjegyzésként megőrizhető, de ne legyen automatikus alias-összevonás.",
+    "proposed_record_type": "keep_separate",
+    "merge_risks_hu": [
+      "Az összevonás eltérő földrajzi objektumokat, korszakokat vagy bibliai jelentéseket mosna össze."
+    ],
+    "expert_decision_hu": "A „Pusztulás városa” szövegkritikailag vitatott prófétai megnevezés; Héliopolisszal való azonosítása nem elég biztos.",
+    "final_action": "keep_separate",
+    "human_readable_comparison": "A „Pusztulás városa” szövegkritikailag vitatott prófétai megnevezés; Héliopolisszal való azonosítása nem elég biztos."
+  },
+  {
+    "group_id": "dup_cyprus__elishah__kittim",
+    "candidate_place_ids": [
+      "cyprus",
+      "elishah",
+      "kittim"
+    ],
+    "candidate_names_en": {
+      "cyprus": "Cyprus",
+      "elishah": "Elishah",
+      "kittim": "Kittim"
+    },
+    "candidate_names_hu": {
+      "cyprus": "Ciprus",
+      "elishah": "Elishah",
+      "kittim": "Kittím"
+    },
+    "ancient_names": {
+      "cyprus": [
+        "Cyprus",
+        "Chittim",
+        "Cyprian",
+        "Kittim"
+      ],
+      "elishah": [
+        "Elishah",
+        "Cyprus"
+      ],
+      "kittim": [
+        "Kittim",
+        "Chittim",
+        "Cyprus"
+      ]
+    },
+    "modern_names": {
+      "cyprus": "Cyprus",
+      "elishah": "Cyprus",
+      "kittim": "Cyprus"
+    },
+    "coordinates": {
+      "cyprus": {
+        "latitude": 35.0,
+        "longitude": 33.0
+      },
+      "elishah": {
+        "latitude": 35.0,
+        "longitude": 33.0
+      },
+      "kittim": {
+        "latitude": 35.0,
+        "longitude": 33.0
+      }
+    },
+    "identification_statuses": {
+      "cyprus": "certain",
+      "elishah": "possible",
+      "kittim": "certain"
+    },
+    "representative_passages": [
+      "ACT 11,19",
+      "ACT 11,20",
+      "ACT 13,4",
+      "ACT 15,39",
+      "ACT 21,16",
+      "ACT 21,3",
+      "ACT 27,4",
+      "ACT 4,36",
+      "DAN 11,30",
+      "EZK 27,6"
+    ],
+    "passage_counts": {
+      "cyprus": 12,
+      "elishah": 1,
+      "kittim": 2
+    },
+    "source_ids": {
+      "cyprus": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "elishah": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "kittim": [
+        "openbible_geocoding_cc_by_4_0"
+      ]
+    },
+    "current_review_notes_hu": {
+      "cyprus": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges.",
+      "elishah": "Bizonytalan vagy vitatott azonosítás; a magyar név és leírás szakmai ellenőrzést igényel. Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges.",
+      "kittim": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+    },
+    "match_reasons": [
+      "Records share a name variant and have very close coordinates.",
+      "Records share the same modern_name.",
+      "Records share at least one normalized name variant."
+    ],
+    "coordinate_distance_km": 0.0,
+    "shared_passages": [],
+    "distinct_passages": {
+      "cyprus": [
+        "ACT 11,19",
+        "ACT 11,20",
+        "ACT 13,4",
+        "ACT 15,39",
+        "ACT 21,16",
+        "ACT 21,3",
+        "ACT 27,4",
+        "ACT 4,36",
+        "EZK 27,6",
+        "ISA 23,1"
+      ],
+      "elishah": [
+        "EZK 27,7"
+      ],
+      "kittim": [
+        "DAN 11,30",
+        "NUM 24,24"
+      ]
+    },
+    "recommended_action": "same_place_different_record_type",
+    "confidence": "medium",
+    "reviewer_notes_hu": "Szakmai előszűrés elkészült; alkalmazás előtt gépi validáció, dry-run és integritásellenőrzés szükséges.",
+    "review_status": "reviewed",
+    "proposed_canonical_place_id": null,
+    "proposed_merged_name_hu": null,
+    "proposed_merged_summary_hu": null,
+    "proposed_passage_strategy": "A passage-kapcsolatok maradjanak külön rekordokon.",
+    "proposed_coordinate_strategy": "A jelenlegi koordináták maradjanak meg; az azonos koordináta önmagában nem bizonyít rekordazonosságot.",
+    "proposed_alias_strategy": "A névkapcsolat megjegyzésként megőrizhető, de ne legyen automatikus alias-összevonás.",
+    "proposed_record_type": "keep_separate",
+    "merge_risks_hu": [
+      "Az összevonás eltérő földrajzi objektumokat, korszakokat vagy bibliai jelentéseket mosna össze."
+    ],
+    "expert_decision_hu": "Ciprus, Elisá és Kittím részben átfedő ókori földrajzi-etnikai fogalmak, de nem minden szövegben azonosak.",
+    "final_action": "keep_separate",
+    "human_readable_comparison": "Ciprus, Elisá és Kittím részben átfedő ókori földrajzi-etnikai fogalmak, de nem minden szövegben azonosak."
+  }
+]

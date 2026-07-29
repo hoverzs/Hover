@@ -628,7 +628,8 @@
       "Beth-el",
       "Beth-elite",
       "Bethel",
-      "Bethelite"
+      "Bethelite",
+      "Bethel 3"
     ],
     "original_names": [],
     "transliterations": [],
@@ -636,10 +637,10 @@
     "modern_country": null,
     "region_hu": null,
     "ancient_region": null,
-    "identification_status": "certain",
+    "identification_status": "probable",
     "latitude": 31.922778,
     "longitude": 35.241389,
-    "passage_count": 69,
+    "passage_count": 71,
     "representative_passages": [
       "1CH 7,28",
       "1KI 12,29",
@@ -651,11 +652,11 @@
       "openbible_geocoding_cc_by_4_0"
     ],
     "current_name_hu": "Bétel",
-    "current_card_summary_hu": "Fontos ókori település Jeruzsálemtől északra, amely pátriárkai történetekhez és az északi királyság kultuszához is kapcsolódik. Általában a mai Beitinnel azonosítják.",
-    "proposed_name_hu": "Bétel",
-    "proposed_card_summary_hu": "Fontos ókori település Jeruzsálemtől északra, amely pátriárkai történetekhez és az északi királyság kultuszához is kapcsolódik. Általában a mai Beitinnel azonosítják.",
-    "review_status": "draft",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+    "current_card_summary_hu": "Efraim hegyvidékének jelentős bibliai városa; a két rekord ugyanazon település eltérő szövegcsoportjait tartalmazza.",
+    "proposed_name_hu": null,
+    "proposed_card_summary_hu": null,
+    "review_status": "pending",
+    "review_notes_hu": null
   },
   {
     "place_id": "tyre",
@@ -838,6 +839,50 @@
     "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
+    "place_id": "judea_1",
+    "name_en": "Judea 1",
+    "ancient_names": [
+      "Judea 1",
+      "Jewish",
+      "Jewish leaders",
+      "Jewry",
+      "Jews",
+      "Juda",
+      "Judaea",
+      "Judah",
+      "Judea",
+      "Judean",
+      "Judeans",
+      "Judea 2"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Jerusalem",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 31.776667,
+    "longitude": 35.234167,
+    "passage_count": 54,
+    "representative_passages": [
+      "1TH 2,14",
+      "2CO 1,16",
+      "ACT 1,8",
+      "ACT 10,37",
+      "ACT 10,39"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Júdea",
+    "current_card_summary_hu": "A júdai tartomány bibliai és történeti régiója, amely az ószövetségi és újszövetségi szövegekben is szerepel.",
+    "proposed_name_hu": null,
+    "proposed_card_summary_hu": null,
+    "review_status": "pending",
+    "review_notes_hu": null
+  },
+  {
     "place_id": "bashan",
     "name_en": "Bashan",
     "ancient_names": [
@@ -910,50 +955,6 @@
     "proposed_card_summary_hu": "Júdai város, Dávid szülőhelye és az evangéliumi hagyomány szerint Jézus születésének helyszíne. A mai Betlehem Jeruzsálemtől délre fekszik.",
     "review_status": "draft",
     "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
-  },
-  {
-    "place_id": "judea_1",
-    "name_en": "Judea 1",
-    "ancient_names": [
-      "Judea 1",
-      "Galilee",
-      "Jewish",
-      "Jewish leaders",
-      "Jewry",
-      "Jews",
-      "Juda",
-      "Judaea",
-      "Judah",
-      "Judea",
-      "Judean",
-      "Judeans"
-    ],
-    "original_names": [],
-    "transliterations": [],
-    "modern_name": "Jerusalem",
-    "modern_country": null,
-    "region_hu": null,
-    "ancient_region": null,
-    "identification_status": "certain",
-    "latitude": 31.776667,
-    "longitude": 35.234167,
-    "passage_count": 52,
-    "representative_passages": [
-      "1TH 2,14",
-      "2CO 1,16",
-      "ACT 1,8",
-      "ACT 10,37",
-      "ACT 10,39"
-    ],
-    "source_ids": [
-      "openbible_geocoding_cc_by_4_0"
-    ],
-    "current_name_hu": "Júdea",
-    "current_card_summary_hu": "Jeruzsálem körüli történeti tartomány, amely a júdai királyság és később a római közigazgatás fontos területe volt. Ma Izrael és a palesztin területek részeit foglalja magában.",
-    "proposed_name_hu": "Júdea",
-    "proposed_card_summary_hu": "Jeruzsálem körüli történeti tartomány, amely a júdai királyság és később a római közigazgatás fontos területe volt. Ma Izrael és a palesztin területek részeit foglalja magában.",
-    "review_status": "draft",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "midian",
@@ -1190,7 +1191,8 @@
       "Great River",
       "Perath",
       "River",
-      "River Euphrates"
+      "River Euphrates",
+      "River 2"
     ],
     "original_names": [],
     "transliterations": [],
@@ -1198,10 +1200,10 @@
     "modern_country": null,
     "region_hu": null,
     "ancient_region": null,
-    "identification_status": "certain",
+    "identification_status": "probable",
     "latitude": 31.0043,
     "longitude": 47.442,
-    "passage_count": 44,
+    "passage_count": 45,
     "representative_passages": [
       "1CH 18,3",
       "1CH 19,16",
@@ -1213,11 +1215,11 @@
       "openbible_geocoding_cc_by_4_0"
     ],
     "current_name_hu": "Eufrátesz",
-    "current_card_summary_hu": "Mezopotámia egyik nagy folyója, amely több bibliai határleírásban és birodalmi összefüggésben szerepel. Ma Törökországon, Szírián és Irakon folyik keresztül.",
-    "proposed_name_hu": "Eufrátesz",
-    "proposed_card_summary_hu": "Mezopotámia egyik nagy folyója, amely több bibliai határleírásban és birodalmi összefüggésben szerepel. Ma Törökországon, Szírián és Irakon folyik keresztül.",
-    "review_status": "draft",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+    "current_card_summary_hu": "A Biblia nagy folyója, amelyet Eufrátesz, Perát és egyszerűen „a Folyó” néven is említenek.",
+    "proposed_name_hu": null,
+    "proposed_card_summary_hu": null,
+    "review_status": "pending",
+    "review_notes_hu": null
   },
   {
     "place_id": "negeb",
@@ -1589,6 +1591,42 @@
     "review_notes_hu": "Meglévő pilot/kézi magyar tartalom; csak ellenőrzés után módosítsd. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
+    "place_id": "mizpah_3",
+    "name_en": "Mizpah 3",
+    "ancient_names": [
+      "Mizpah 3",
+      "Mizpah",
+      "Mizpeh",
+      "Mizpeh 1"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Tell en Nasbeh",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 31.885136,
+    "longitude": 35.216417,
+    "passage_count": 33,
+    "representative_passages": [
+      "1KI 15,22",
+      "1SA 10,17",
+      "1SA 7,11",
+      "1SA 7,12",
+      "1SA 7,16"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Micpa (Benjámin)",
+    "current_card_summary_hu": "Benjámin területének fontos bibliai települése és gyülekezési helye.",
+    "proposed_name_hu": null,
+    "proposed_card_summary_hu": null,
+    "review_status": "pending",
+    "review_notes_hu": null
+  },
+  {
     "place_id": "beersheba_1",
     "name_en": "Beersheba 1",
     "ancient_names": [
@@ -1663,41 +1701,6 @@
     "current_card_summary_hu": "A Jordán átkelése utáni első izráeli táborhely és több korai királyságtörténet helyszíne. Pontos azonosítása bizonytalan; egyik javasolt helye Jerikó közelében van.",
     "proposed_name_hu": "Gilgál",
     "proposed_card_summary_hu": "A Jordán átkelése utáni első izráeli táborhely és több korai királyságtörténet helyszíne. Pontos azonosítása bizonytalan; egyik javasolt helye Jerikó közelében van.",
-    "review_status": "draft",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
-  },
-  {
-    "place_id": "mizpah_3",
-    "name_en": "Mizpah 3",
-    "ancient_names": [
-      "Mizpah 3",
-      "Mizpah",
-      "Mizpeh"
-    ],
-    "original_names": [],
-    "transliterations": [],
-    "modern_name": "Tell en Nasbeh",
-    "modern_country": null,
-    "region_hu": null,
-    "ancient_region": null,
-    "identification_status": "certain",
-    "latitude": 31.885136,
-    "longitude": 35.216417,
-    "passage_count": 32,
-    "representative_passages": [
-      "1KI 15,22",
-      "1SA 10,17",
-      "1SA 7,11",
-      "1SA 7,12",
-      "1SA 7,16"
-    ],
-    "source_ids": [
-      "openbible_geocoding_cc_by_4_0"
-    ],
-    "current_name_hu": "Micpa",
-    "current_card_summary_hu": "Benjamin területének gyülekezési és igazgatási központja, több bírák- és királyságkori esemény helyszíne. Általában Tell en-Naszbével azonosítják.",
-    "proposed_name_hu": "Micpa",
-    "proposed_card_summary_hu": "Benjamin területének gyülekezési és igazgatási központja, több bírák- és királyságkori esemény helyszíne. Általában Tell en-Naszbével azonosítják.",
     "review_status": "draft",
     "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
@@ -1918,6 +1921,46 @@
     "proposed_card_summary_hu": "A Jordán-völgy déli folytatása a Holt-tenger és az Akabai-öböl között. Ma Izrael és Jordánia határvidékének hosszú, száraz völgye.",
     "review_status": "draft",
     "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "ramoth_gilead",
+    "name_en": "Ramoth-gilead",
+    "ancient_names": [
+      "Ramoth-gilead",
+      "Ramoth Gilead",
+      "Ramoth in Gilead",
+      "Ramoth-Gilead",
+      "Ramah 5",
+      "Ramah",
+      "Ramoth",
+      "Ramoth 3"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Tall er Rumeith",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 32.499852,
+    "longitude": 36.014988,
+    "passage_count": 26,
+    "representative_passages": [
+      "1CH 6,80",
+      "1KI 22,12",
+      "1KI 22,15",
+      "1KI 22,20",
+      "1KI 22,29"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Rámót-Gileád",
+    "current_card_summary_hu": "Gileád jelentős városa, menedékváros és több királyi hadjárat helyszíne.",
+    "proposed_name_hu": null,
+    "proposed_card_summary_hu": null,
+    "review_status": "pending",
+    "review_notes_hu": null
   },
   {
     "place_id": "dan",
@@ -2555,42 +2598,6 @@
     "proposed_card_summary_hu": "Az öt jelentős filiszteus város egyike, Júda nyugati határvidékének közelében. Az ókori helyet Tel Miknével azonosítják.",
     "review_status": "draft",
     "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
-  },
-  {
-    "place_id": "ramoth_gilead",
-    "name_en": "Ramoth-gilead",
-    "ancient_names": [
-      "Ramoth-gilead",
-      "Ramoth Gilead",
-      "Ramoth in Gilead",
-      "Ramoth-Gilead"
-    ],
-    "original_names": [],
-    "transliterations": [],
-    "modern_name": "Tall er Rumeith",
-    "modern_country": null,
-    "region_hu": null,
-    "ancient_region": null,
-    "identification_status": "certain",
-    "latitude": 32.499852,
-    "longitude": 36.014988,
-    "passage_count": 20,
-    "representative_passages": [
-      "1KI 22,12",
-      "1KI 22,15",
-      "1KI 22,20",
-      "1KI 22,29",
-      "1KI 22,3"
-    ],
-    "source_ids": [
-      "openbible_geocoding_cc_by_4_0"
-    ],
-    "current_name_hu": "Rámót-Gileád",
-    "current_card_summary_hu": "Fontos erődváros a Jordántól keletre, amelyért Izráel és Arám többször harcolt. Leggyakrabban Tall er-Rumeithtel azonosítják.",
-    "proposed_name_hu": "Rámót-Gileád",
-    "proposed_card_summary_hu": "Fontos erődváros a Jordántól keletre, amelyért Izráel és Arám többször harcolt. Leggyakrabban Tall er-Rumeithtel azonosítják.",
-    "review_status": "draft",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "susa",

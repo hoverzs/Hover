@@ -2603,7 +2603,7 @@
   },
   {
     "reference": "1CH 6,76",
-    "place_id": "kedesh_1",
+    "place_id": "kedesh_5",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "a321cb8",
@@ -2715,7 +2715,7 @@
   },
   {
     "reference": "1CH 6,80",
-    "place_id": "ramoth_3",
+    "place_id": "ramoth_gilead",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "a95147f",
@@ -5315,7 +5315,7 @@
   },
   {
     "reference": "1KI 9,13",
-    "place_id": "cabul_2",
+    "place_id": "cabul_1",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "a08144e",
@@ -5395,7 +5395,7 @@
   },
   {
     "reference": "1KI 9,18",
-    "place_id": "baalath_2",
+    "place_id": "baalath_1",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "a99875b",
@@ -9179,7 +9179,7 @@
   },
   {
     "reference": "2CH 22,6",
-    "place_id": "ramah_5",
+    "place_id": "ramoth_gilead",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "ad27541",
@@ -10747,7 +10747,7 @@
   },
   {
     "reference": "2CH 4,17",
-    "place_id": "zeredah_2",
+    "place_id": "zarethan",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "a6dc035",
@@ -10963,7 +10963,7 @@
   },
   {
     "reference": "2CH 8,6",
-    "place_id": "baalath_2",
+    "place_id": "baalath_1",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "a99875b",
@@ -11515,7 +11515,7 @@
   },
   {
     "reference": "2KI 11,6",
-    "place_id": "sur",
+    "place_id": "gate_of_the_foundation",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "aadfb8f",
@@ -12091,7 +12091,7 @@
   },
   {
     "reference": "2KI 15,29",
-    "place_id": "kedesh_1",
+    "place_id": "kedesh_5",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "a321cb8",
@@ -14771,7 +14771,7 @@
   },
   {
     "reference": "2KI 8,29",
-    "place_id": "ramah_5",
+    "place_id": "ramoth_gilead",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "ad27541",
@@ -24267,7 +24267,7 @@
   },
   {
     "reference": "DEU 4,43",
-    "place_id": "ramoth_3",
+    "place_id": "ramoth_gilead",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "a95147f",
@@ -29379,7 +29379,7 @@
   },
   {
     "reference": "EZK 47,18",
-    "place_id": "tamar_2",
+    "place_id": "tamar_1",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "a5947d7",
@@ -29419,7 +29419,7 @@
   },
   {
     "reference": "EZK 47,19",
-    "place_id": "tamar_2",
+    "place_id": "tamar_1",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "a5947d7",
@@ -29547,7 +29547,7 @@
   },
   {
     "reference": "EZK 48,28",
-    "place_id": "tamar_2",
+    "place_id": "tamar_1",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "a5947d7",
@@ -30355,7 +30355,7 @@
   },
   {
     "reference": "EZR 5,8",
-    "place_id": "judea_2",
+    "place_id": "judea_1",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "ab86a69",
@@ -30739,7 +30739,7 @@
   },
   {
     "reference": "EZR 9,9",
-    "place_id": "judea_2",
+    "place_id": "judea_1",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "ab86a69",
@@ -35843,7 +35843,7 @@
   },
   {
     "reference": "ISA 15,9",
-    "place_id": "dibon_3",
+    "place_id": "dibon_1",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "ae8badb",
@@ -36835,7 +36835,7 @@
   },
   {
     "reference": "ISA 23,3",
-    "place_id": "shihor_2",
+    "place_id": "shihor_1",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "a475518",
@@ -38947,7 +38947,7 @@
   },
   {
     "reference": "ISA 8,6",
-    "place_id": "shiloah",
+    "place_id": "siloam",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "ae71673",
@@ -40427,7 +40427,7 @@
   },
   {
     "reference": "JDG 18,12",
-    "place_id": "mahaneh_dan_2",
+    "place_id": "mahaneh_dan_1",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "a67325d",
@@ -41923,7 +41923,7 @@
   },
   {
     "reference": "JDG 8,11",
-    "place_id": "nobah_2",
+    "place_id": "nobah_1",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "a9bf50d",
@@ -46195,7 +46195,7 @@
   },
   {
     "reference": "JER 48,13",
-    "place_id": "bethel_3",
+    "place_id": "bethel_1",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "abcc0cf",
@@ -50843,7 +50843,7 @@
   },
   {
     "reference": "JOS 12,22",
-    "place_id": "kedesh_1",
+    "place_id": "kedesh_5",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "a321cb8",
@@ -52475,7 +52475,7 @@
   },
   {
     "reference": "JOS 15,36",
-    "place_id": "gederah_1",
+    "place_id": "gederah_3",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "a12012d",
@@ -52987,7 +52987,7 @@
   },
   {
     "reference": "JOS 15,56",
-    "place_id": "jezreel_1",
+    "place_id": "jezreel_3",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "ad94cc9",
@@ -54035,7 +54035,7 @@
   },
   {
     "reference": "JOS 18,26",
-    "place_id": "mizpeh_1",
+    "place_id": "mizpah_3",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "afc2466",
@@ -54235,7 +54235,7 @@
   },
   {
     "reference": "JOS 19,13",
-    "place_id": "rimmon_3",
+    "place_id": "rimmono",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "a813f22",
@@ -55387,7 +55387,7 @@
   },
   {
     "reference": "JOS 20,8",
-    "place_id": "ramoth_3",
+    "place_id": "ramoth_gilead",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "a95147f",
@@ -55715,7 +55715,7 @@
   },
   {
     "reference": "JOS 21,32",
-    "place_id": "kedesh_1",
+    "place_id": "kedesh_5",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "a321cb8",
@@ -55803,7 +55803,7 @@
   },
   {
     "reference": "JOS 21,38",
-    "place_id": "ramoth_3",
+    "place_id": "ramoth_gilead",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "a95147f",
@@ -58843,7 +58843,7 @@
   },
   {
     "reference": "MAT 15,39",
-    "place_id": "magadan",
+    "place_id": "magdala",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "ad14067",
@@ -62891,7 +62891,7 @@
   },
   {
     "reference": "NUM 21,12",
-    "place_id": "valley_of_zered",
+    "place_id": "zered",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "aaa2177",
@@ -63387,18 +63387,18 @@
   },
   {
     "reference": "NUM 22,5",
-    "place_id": "pethor",
+    "place_id": "euphrates",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
-    "openbible_id": "aa9e754",
+    "openbible_id": "a669096",
     "osis": "Num.22.5"
   },
   {
     "reference": "NUM 22,5",
-    "place_id": "river_2",
+    "place_id": "pethor",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
-    "openbible_id": "a669096",
+    "openbible_id": "aa9e754",
     "osis": "Num.22.5"
   },
   {
@@ -66235,7 +66235,7 @@
   },
   {
     "reference": "PSA 132,6",
-    "place_id": "ephrathah",
+    "place_id": "ephrath",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "af6c09e",
@@ -67915,7 +67915,7 @@
   },
   {
     "reference": "RUT 4,11",
-    "place_id": "ephrathah",
+    "place_id": "ephrath",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "af6c09e",
@@ -68691,7 +68691,7 @@
   },
   {
     "reference": "ZEC 7,2",
-    "place_id": "bethel_3",
+    "place_id": "bethel_1",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "abcc0cf",
