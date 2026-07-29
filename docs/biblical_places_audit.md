@@ -9,7 +9,7 @@
 - Merged katalógus mérete: 1267
 - Katalógus rekordok száma: 1267
 - Forrásrekordok száma: 16
-- Passage-place kapcsolatok száma: 8655
+- Passage-place kapcsolatok száma: 8654
 - Szakmai ellenőrzést igénylő tételek: 1042
 - Large passage-list találatok: 118
 - Biztosan összevont duplikátumok: 0

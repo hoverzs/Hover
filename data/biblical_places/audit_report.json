@@ -2,9 +2,9 @@
   "generated_at": "2026-07-29",
   "catalog_record_count": 1267,
   "source_record_count": 16,
-  "passage_place_link_count": 8655,
-  "hash_before_fix": "44dfb1e36420d7863e2fc858adea413751d4d0f675e6afad72568944de346ba9",
-  "hash_after_fix": "44dfb1e36420d7863e2fc858adea413751d4d0f675e6afad72568944de346ba9",
+  "passage_place_link_count": 8654,
+  "hash_before_fix": "9560ca90228501552cc988cb8b293bc662f769c410999e2f1c7f5f608dee05cf",
+  "hash_after_fix": "9560ca90228501552cc988cb8b293bc662f769c410999e2f1c7f5f608dee05cf",
   "idempotent_after_fix": true,
   "summary": {
     "by_category": {

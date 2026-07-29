@@ -59010,14 +59010,6 @@
     "osis": "Matt.2.22"
   },
   {
-    "reference": "MAT 2,23",
-    "place_id": "nazareth",
-    "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
-    "source_note": "OpenBible Bible Geocoding Data verses",
-    "openbible_id": "af5884f",
-    "osis": "Matt.2.23"
-  },
-  {
     "reference": "MAT 2,3",
     "place_id": "jerusalem",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",

@@ -436,6 +436,30 @@ def stable_unique_json(values: list[Any]) -> list[Any]:
     return result
 
 
+REFERENCE_BOOK_ALIASES = {
+    "MT": "MAT",
+    "MATT": "MAT",
+    "MK": "MRK",
+    "MARK": "MRK",
+    "LK": "LUK",
+    "LUKE": "LUK",
+    "JN": "JHN",
+    "JOHN": "JHN",
+}
+
+
+def normalized_passage_link_key(link: dict[str, Any]) -> tuple[str, str]:
+    reference = str(link.get("reference") or "").strip()
+    place_id = str(link.get("place_id") or "").strip()
+    match = re.fullmatch(r"([1-3]?\s*[A-Za-z]+)\s+(\d+),(\d+(?:-\d+)?)", reference)
+    if not match:
+        return reference, place_id
+    book, chapter, verse = match.groups()
+    book_key = book.replace(" ", "").upper()
+    normalized_book = REFERENCE_BOOK_ALIASES.get(book_key, book_key)
+    return f"{normalized_book} {chapter},{verse}", place_id
+
+
 IDENTIFICATION_STATUS_RANK = {
     "unknown": 0,
     "disputed": 1,
@@ -550,7 +574,7 @@ def apply_duplicate_place_merges_to_links(
         updated = deepcopy(link)
         place_id = str(updated.get("place_id") or "")
         updated["place_id"] = redirects.get(place_id, place_id)
-        key = (str(updated.get("reference") or ""), str(updated.get("place_id") or ""))
+        key = normalized_passage_link_key(updated)
         if not key[0] or not key[1] or key in seen:
             continue
         seen.add(key)
@@ -694,7 +718,7 @@ def build_catalog() -> dict[str, Any]:
     merged_links: list[dict[str, Any]] = []
     seen_links: set[tuple[str, str]] = set()
     for link in [*manual_links, *passage_catalog]:
-        key = (str(link.get("reference") or ""), str(link.get("place_id") or ""))
+        key = normalized_passage_link_key(link)
         if not key[0] or not key[1] or key in seen_links:
             continue
         seen_links.add(key)

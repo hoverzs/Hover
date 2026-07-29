@@ -1,0 +1,457 @@
+{
+  "audit_date": "2026-07-29",
+  "active_record_count": 1267,
+  "records_with_name_hu": 1267,
+  "records_with_summary_hu": 1267,
+  "missing_hungarian_field_count": 0,
+  "passage_place_link_count": 8654,
+  "legacy_place_id_count": 42,
+  "unresolved_legacy_link_count": 0,
+  "pending_duplicate_review_count": 0,
+  "resolved_merge_group_count": 39,
+  "resolved_keep_separate_group_count": 67,
+  "bad_place_link_count": 0,
+  "duplicate_place_id_count": 0,
+  "missing_coordinate_count": 0,
+  "uncertain_identification_record_count": 281,
+  "probable_duplicate_audit_finding_count": 161,
+  "unresolved_probable_duplicate_finding_count": 0,
+  "same_hungarian_name_finding_count": 67,
+  "large_place_list_finding_count": 118,
+  "catalog_integrity": {
+    "missing_required_fields": [],
+    "mojibake_place_ids": [],
+    "technical_hungarian_name_place_ids": [],
+    "legacy_multi_canonical": {},
+    "legacy_cycles": []
+  },
+  "passage_integrity": {
+    "bad_links": [],
+    "legacy_links": [],
+    "duplicate_link_count": 0,
+    "validated_link_count": 8654
+  },
+  "duplicate_review_state": {
+    "queue_status_counts": {
+      "reviewed": 106
+    },
+    "queue_final_action_counts": {
+      "merge": 39,
+      "keep_separate": 67
+    },
+    "pending_group_ids": [],
+    "invalid_final_action_group_ids": []
+  },
+  "smoke_tests": {
+    "load_biblical_places_count": 1267,
+    "get_all_biblical_places_count": 1267,
+    "loaded_ids_match_catalog": true,
+    "hungarian_search": {
+      "Jeruzs\u00e1lem": {
+        "expected": "jerusalem",
+        "found": true,
+        "hit_ids": [
+          "jerusalem"
+        ]
+      },
+      "Betlehem": {
+        "expected": "bethlehem_1",
+        "found": true,
+        "hit_ids": [
+          "bethlehem_1",
+          "bethlehem_2"
+        ]
+      },
+      "N\u00e1z\u00e1ret": {
+        "expected": "nazareth",
+        "found": true,
+        "hit_ids": [
+          "nazareth"
+        ]
+      },
+      "Korinthus": {
+        "expected": "corinth",
+        "found": true,
+        "hit_ids": [
+          "corinth"
+        ]
+      },
+      "Efezus": {
+        "expected": "ephesus",
+        "found": true,
+        "hit_ids": [
+          "ephesus"
+        ]
+      },
+      "Thesszalonika": {
+        "expected": "thessalonica",
+        "found": true,
+        "hit_ids": [
+          "thessalonica"
+        ]
+      },
+      "B\u00e9tsaida": {
+        "expected": "bethsaida_1",
+        "found": true,
+        "hit_ids": [
+          "bethsaida_1"
+        ]
+      },
+      "Be\u00e9rseba": {
+        "expected": "beersheba_1",
+        "found": true,
+        "hit_ids": [
+          "beersheba_1"
+        ]
+      },
+      "Eufr\u00e1tesz": {
+        "expected": "euphrates",
+        "found": true,
+        "hit_ids": [
+          "euphrates"
+        ]
+      },
+      "R\u00e1m\u00f3t-Gile\u00e1d": {
+        "expected": "ramoth_gilead",
+        "found": true,
+        "hit_ids": [
+          "ramoth_gilead"
+        ]
+      },
+      "Silo\u00e1m": {
+        "expected": "siloam",
+        "found": true,
+        "hit_ids": [
+          "siloam"
+        ]
+      },
+      "Kedes": {
+        "expected": "kedesh_5",
+        "found": true,
+        "hit_ids": [
+          "kedesh_2",
+          "kedesh_3",
+          "kedesh_4",
+          "kedesh_5",
+          "kedesh_naphtali",
+          "thisbe"
+        ]
+      },
+      "D\u00edb\u00f3n": {
+        "expected": "dibon_1",
+        "found": true,
+        "hit_ids": [
+          "dibon_1",
+          "dibon_2"
+        ]
+      },
+      "Ged\u00f3r": {
+        "expected": "gedor_1",
+        "found": true,
+        "hit_ids": [
+          "gedor_1",
+          "gedor_2"
+        ]
+      },
+      "Havil\u00e1": {
+        "expected": "havilah_3",
+        "found": true,
+        "hit_ids": [
+          "havilah_1",
+          "havilah_3"
+        ]
+      },
+      "\u00dar": {
+        "expected": "ur_1",
+        "found": true,
+        "hit_ids": [
+          "ur_1",
+          "ararat",
+          "erech",
+          "jerusalem",
+          "ura",
+          "adullam",
+          "adoraim",
+          "gate_of_the_foundation",
+          "lower_beth_horon",
+          "arumah",
+          "assyria",
+          "asshur"
+        ]
+      },
+      "Cin puszt\u00e1ja": {
+        "expected": "zin_1",
+        "found": true,
+        "hit_ids": [
+          "zin_1"
+        ]
+      }
+    },
+    "english_or_ancient_search": {
+      "Corinth": {
+        "expected": "corinth",
+        "found": true,
+        "hit_ids": [
+          "corinth"
+        ]
+      },
+      "Ephesus": {
+        "expected": "ephesus",
+        "found": true,
+        "hit_ids": [
+          "ephesus"
+        ]
+      },
+      "Beersheba": {
+        "expected": "beersheba_1",
+        "found": true,
+        "hit_ids": [
+          "beersheba_1",
+          "esek"
+        ]
+      },
+      "Siloam": {
+        "expected": "siloam",
+        "found": true,
+        "hit_ids": [
+          "siloam"
+        ]
+      },
+      "Ramoth": {
+        "expected": "ramoth_gilead",
+        "found": true,
+        "hit_ids": [
+          "ramoth_1",
+          "ramoth_2",
+          "ramoth_gilead",
+          "negeb"
+        ]
+      }
+    },
+    "legacy_resolution_sample": {
+      "ebron": false,
+      "ai_3": false,
+      "ayyah": false,
+      "aphik": false,
+      "arad_2": false,
+      "aroer_4": false,
+      "baalath_2": false,
+      "beersheba_2": false,
+      "sheba_2": false,
+      "eden_2": false,
+      "bethel_3": false,
+      "bethlehem_3": false,
+      "bethsaida_2": false,
+      "cabul_2": false,
+      "leb_kamai": false,
+      "city_of_palms_2": false,
+      "dibon_3": false,
+      "ham_2": false,
+      "ephrathah": false,
+      "river_2": false,
+      "sur": false,
+      "gederah_1": false,
+      "gedor_3": false,
+      "gedor_4": false,
+      "havilah_2": false,
+      "jezreel_1": false,
+      "judea_2": false,
+      "kedesh_1": false,
+      "magadan": false,
+      "mahaneh_dan_2": false,
+      "mizpeh_1": false,
+      "nobah_2": false,
+      "ramah_5": false,
+      "ramoth_3": false,
+      "rimmon_3": false,
+      "shihor_2": false,
+      "shiloah": false,
+      "tamar_2": false,
+      "ur_2": false,
+      "zeredah_2": false,
+      "valley_of_zered": false,
+      "zin_2": false
+    },
+    "passage_selection": {
+      "ACT 13,4": {
+        "count": 2,
+        "place_ids": [
+          "cyprus",
+          "seleucia"
+        ],
+        "primary": "cyprus"
+      },
+      "ACT 16,12": {
+        "count": 2,
+        "place_ids": [
+          "philippi",
+          "macedonia"
+        ],
+        "primary": "philippi"
+      },
+      "GEN 12,6": {
+        "count": 2,
+        "place_ids": [
+          "moreh_1",
+          "shechem"
+        ],
+        "primary": "moreh_1"
+      },
+      "EXO 13,18": {
+        "count": 2,
+        "place_ids": [
+          "egypt",
+          "red_sea_1"
+        ],
+        "primary": "egypt"
+      },
+      "JOS 20,7": {
+        "count": 4,
+        "place_ids": [
+          "galilee_1",
+          "hebron",
+          "kedesh_5",
+          "shechem"
+        ],
+        "primary": "galilee_1"
+      }
+    },
+    "card_checks": {
+      "jerusalem": {
+        "exists": true,
+        "name_hu": true,
+        "description": true,
+        "identification_status": true,
+        "passage_link_count": 956
+      },
+      "bethlehem_1": {
+        "exists": true,
+        "name_hu": true,
+        "description": true,
+        "identification_status": true,
+        "passage_link_count": 52
+      },
+      "nazareth": {
+        "exists": true,
+        "name_hu": true,
+        "description": true,
+        "identification_status": true,
+        "passage_link_count": 32
+      },
+      "corinth": {
+        "exists": true,
+        "name_hu": true,
+        "description": true,
+        "identification_status": true,
+        "passage_link_count": 12
+      },
+      "ephesus": {
+        "exists": true,
+        "name_hu": true,
+        "description": true,
+        "identification_status": true,
+        "passage_link_count": 22
+      },
+      "thessalonica": {
+        "exists": true,
+        "name_hu": true,
+        "description": true,
+        "identification_status": true,
+        "passage_link_count": 10
+      },
+      "bethsaida_1": {
+        "exists": true,
+        "name_hu": true,
+        "description": true,
+        "identification_status": true,
+        "passage_link_count": 7
+      },
+      "beersheba_1": {
+        "exists": true,
+        "name_hu": true,
+        "description": true,
+        "identification_status": true,
+        "passage_link_count": 33
+      },
+      "euphrates": {
+        "exists": true,
+        "name_hu": true,
+        "description": true,
+        "identification_status": true,
+        "passage_link_count": 45
+      },
+      "ramoth_gilead": {
+        "exists": true,
+        "name_hu": true,
+        "description": true,
+        "identification_status": true,
+        "passage_link_count": 26
+      },
+      "siloam": {
+        "exists": true,
+        "name_hu": true,
+        "description": true,
+        "identification_status": true,
+        "passage_link_count": 6
+      },
+      "kedesh_5": {
+        "exists": true,
+        "name_hu": true,
+        "description": true,
+        "identification_status": true,
+        "passage_link_count": 6
+      },
+      "dibon_1": {
+        "exists": true,
+        "name_hu": true,
+        "description": true,
+        "identification_status": true,
+        "passage_link_count": 11
+      },
+      "havilah_3": {
+        "exists": true,
+        "name_hu": true,
+        "description": true,
+        "identification_status": true,
+        "passage_link_count": 2
+      },
+      "ur_1": {
+        "exists": true,
+        "name_hu": true,
+        "description": true,
+        "identification_status": true,
+        "passage_link_count": 4
+      },
+      "zin_1": {
+        "exists": true,
+        "name_hu": true,
+        "description": true,
+        "identification_status": true,
+        "passage_link_count": 10
+      }
+    },
+    "keep_separate_surface": {
+      "babylon_2_babylon_3": true,
+      "jericho_1_jericho_2": true,
+      "kedesh_3_kedesh_4": true
+    }
+  },
+  "tests_run": {
+    "json_validation": "passed",
+    "python_py_compile": "passed",
+    "catalog_build_check": "passed",
+    "duplicate_review_queue_check": "passed",
+    "hungarian_review_queue_check": "passed",
+    "full_audit": "passed_with_review_findings",
+    "direct_assert_runner": "passed_72_tests",
+    "pytest": "not_available_in_system_python_used_direct_assert_runner",
+    "git_diff_check": "passed"
+  },
+  "mandatory_errors": [],
+  "non_blocking_professional_notes": [
+    "Az audit_report tovabbra is tartalmaz review sulyossagu szakmai jelzeseket, peldaul bizonytalan azonositasokat es azonos magyar neveket; ezek nem technikai integritasi hibak.",
+    "A probable_duplicate_place audit findingok szama 161, de a duplicate review queue minden csoportja reviewed allapotu; nincs pending batch tetel.",
+    "A normalizalt Mt 2,23 / MAT 2,23 Nazaret passage-link duplikacio technikailag javitva lett.",
+    "A route-adatmodell fejlesztesehez nincs tovabbi kotelezo katalogus-integritasi javitas."
+  ]
+}

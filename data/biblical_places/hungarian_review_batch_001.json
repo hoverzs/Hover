@@ -1558,39 +1558,6 @@
     "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
-    "place_id": "nazareth",
-    "name_en": "Nazareth",
-    "ancient_names": [
-      "Nazareth"
-    ],
-    "original_names": [],
-    "transliterations": [],
-    "modern_name": "Nazareth",
-    "modern_country": "Izrael",
-    "region_hu": "Galilea",
-    "ancient_region": "Galilee",
-    "identification_status": "probable",
-    "latitude": 32.70214,
-    "longitude": 35.29769,
-    "passage_count": 33,
-    "representative_passages": [
-      "Mt 2,23",
-      "ACT 10,38",
-      "ACT 2,22",
-      "ACT 22,8",
-      "ACT 26,9"
-    ],
-    "source_ids": [
-      "openbible_geocoding_cc_by_4_0"
-    ],
-    "current_name_hu": "Názáret",
-    "current_card_summary_hu": "Názáret galileai település, a keresztyén hagyomány szerint Jézus felnevelkedésének helye.",
-    "proposed_name_hu": "Názáret",
-    "proposed_card_summary_hu": "Názáret galileai település, a keresztyén hagyomány szerint Jézus felnevelkedésének helye.",
-    "review_status": "draft",
-    "review_notes_hu": "Meglévő pilot/kézi magyar tartalom; csak ellenőrzés után módosítsd. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
-  },
-  {
     "place_id": "mizpah_3",
     "name_en": "Mizpah 3",
     "ancient_names": [
@@ -1703,6 +1670,39 @@
     "proposed_card_summary_hu": "A Jordán átkelése utáni első izráeli táborhely és több korai királyságtörténet helyszíne. Pontos azonosítása bizonytalan; egyik javasolt helye Jerikó közelében van.",
     "review_status": "draft",
     "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "nazareth",
+    "name_en": "Nazareth",
+    "ancient_names": [
+      "Nazareth"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Nazareth",
+    "modern_country": "Izrael",
+    "region_hu": "Galilea",
+    "ancient_region": "Galilee",
+    "identification_status": "probable",
+    "latitude": 32.70214,
+    "longitude": 35.29769,
+    "passage_count": 32,
+    "representative_passages": [
+      "Mt 2,23",
+      "ACT 10,38",
+      "ACT 2,22",
+      "ACT 22,8",
+      "ACT 26,9"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Názáret",
+    "current_card_summary_hu": "Názáret galileai település, a keresztyén hagyomány szerint Jézus felnevelkedésének helye.",
+    "proposed_name_hu": "Názáret",
+    "proposed_card_summary_hu": "Názáret galileai település, a keresztyén hagyomány szerint Jézus felnevelkedésének helye.",
+    "review_status": "draft",
+    "review_notes_hu": "Meglévő pilot/kézi magyar tartalom; csak ellenőrzés után módosítsd. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "nineveh",
