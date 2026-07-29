@@ -502,6 +502,50 @@
     "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
+    "place_id": "chaldea",
+    "name_en": "Chaldea",
+    "ancient_names": [
+      "Chaldea",
+      "Babylon",
+      "Babylonia",
+      "Babylonian",
+      "Babylonians",
+      "Chaldaeans",
+      "Chaldean",
+      "Chaldeans",
+      "Chaldees",
+      "Leb-kamai",
+      "Leb Kamai",
+      "Leb-qamai"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Tell el Muqayyar",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 30.962222,
+    "longitude": 46.104444,
+    "passage_count": 86,
+    "representative_passages": [
+      "2CH 36,17",
+      "2KI 24,2",
+      "2KI 25,10",
+      "2KI 25,13",
+      "2KI 25,25"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Káldea",
+    "current_card_summary_hu": "Dél-Mezopotámia, illetve Babilónia bibliai térsége. A Léb-Kamaj Jeremiás könyvének rejtjeles megnevezése, amely Káldeára/Babilóniára utal.",
+    "proposed_name_hu": null,
+    "proposed_card_summary_hu": null,
+    "review_status": "pending",
+    "review_notes_hu": null
+  },
+  {
     "place_id": "gilead_1",
     "name_en": "Gilead 1",
     "ancient_names": [
@@ -535,47 +579,6 @@
     "current_card_summary_hu": "A Jordántól keletre fekvő hegyvidéki táj, amely több izráeli törzs és bibliai esemény helyszíne. Területe főként a mai Jordánia északnyugati részére esik.",
     "proposed_name_hu": "Gileád",
     "proposed_card_summary_hu": "A Jordántól keletre fekvő hegyvidéki táj, amely több izráeli törzs és bibliai esemény helyszíne. Területe főként a mai Jordánia északnyugati részére esik.",
-    "review_status": "draft",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
-  },
-  {
-    "place_id": "chaldea",
-    "name_en": "Chaldea",
-    "ancient_names": [
-      "Chaldea",
-      "Babylon",
-      "Babylonia",
-      "Babylonian",
-      "Babylonians",
-      "Chaldaeans",
-      "Chaldean",
-      "Chaldeans",
-      "Chaldees"
-    ],
-    "original_names": [],
-    "transliterations": [],
-    "modern_name": "Tell el Muqayyar",
-    "modern_country": null,
-    "region_hu": null,
-    "ancient_region": null,
-    "identification_status": "certain",
-    "latitude": 30.962222,
-    "longitude": 46.104444,
-    "passage_count": 85,
-    "representative_passages": [
-      "2CH 36,17",
-      "2KI 24,2",
-      "2KI 25,10",
-      "2KI 25,13",
-      "2KI 25,25"
-    ],
-    "source_ids": [
-      "openbible_geocoding_cc_by_4_0"
-    ],
-    "current_name_hu": "Káldea",
-    "current_card_summary_hu": "Dél-Babilónia történeti térsége, amely a káldeusokhoz és később a babiloni birodalomhoz kapcsolódott. Területe a mai Irak déli részén feküdt.",
-    "proposed_name_hu": "Káldea",
-    "proposed_card_summary_hu": "Dél-Babilónia történeti térsége, amely a káldeusokhoz és később a babiloni birodalomhoz kapcsolódott. Területe a mai Irak déli részén feküdt.",
     "review_status": "draft",
     "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
@@ -1586,6 +1589,50 @@
     "review_notes_hu": "Meglévő pilot/kézi magyar tartalom; csak ellenőrzés után módosítsd. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
+    "place_id": "beersheba_1",
+    "name_en": "Beersheba 1",
+    "ancient_names": [
+      "Beersheba 1",
+      "Beer Sheba",
+      "Beer-sheba",
+      "Beersheba",
+      "Beersheba 2",
+      "Desert of Beersheba",
+      "Sheba",
+      "Shebah",
+      "Shibah",
+      "Wilderness of Beer-sheba",
+      "Wilderness of Beersheba",
+      "Sheba 2"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Tel Beer Sheva",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "probable",
+    "latitude": 31.244722,
+    "longitude": 34.840833,
+    "passage_count": 33,
+    "representative_passages": [
+      "1CH 21,2",
+      "1CH 4,28",
+      "1KI 19,3",
+      "1KI 4,25",
+      "1SA 3,20"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Beérseba",
+    "current_card_summary_hu": "A Negev északi részének jelentős bibliai városa, a pátriárkai történetek és Izráel déli határának fontos helye. A Beérseba, Beér-Seba, Seba és kapcsolódó névalakok egy rekordban őrzendők.",
+    "proposed_name_hu": null,
+    "proposed_card_summary_hu": null,
+    "review_status": "pending",
+    "review_notes_hu": null
+  },
+  {
     "place_id": "gilgal_1",
     "name_en": "Gilgal 1",
     "ancient_names": [
@@ -2104,42 +2151,6 @@
     "proposed_card_summary_hu": "Sodomával együtt említett, a Holt-tenger vidékéhez kapcsolt ókori város. Pontos helye bizonytalan, lehetséges azonosításai a Holt-tenger déli térségében találhatók.",
     "review_status": "draft",
     "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
-  },
-  {
-    "place_id": "beersheba_1",
-    "name_en": "Beersheba 1",
-    "ancient_names": [
-      "Beersheba 1",
-      "Beer Sheba",
-      "Beer-sheba",
-      "Beersheba"
-    ],
-    "original_names": [],
-    "transliterations": [],
-    "modern_name": "Tel Beer Sheva",
-    "modern_country": null,
-    "region_hu": null,
-    "ancient_region": null,
-    "identification_status": "certain",
-    "latitude": 31.244722,
-    "longitude": 34.840833,
-    "passage_count": 23,
-    "representative_passages": [
-      "1CH 21,2",
-      "1CH 4,28",
-      "1KI 19,3",
-      "1KI 4,25",
-      "1SA 3,20"
-    ],
-    "source_ids": [
-      "openbible_geocoding_cc_by_4_0"
-    ],
-    "current_name_hu": "Beérseba",
-    "current_card_summary_hu": "A Negev északi peremének ősi városa, pátriárkai történetek és Júda déli határvidékének fontos helyszíne. Az ókori települést Tel Beér-Sevával azonosítják.",
-    "proposed_name_hu": "Beérseba",
-    "proposed_card_summary_hu": "A Negev északi peremének ősi városa, pátriárkai történetek és Júda déli határvidékének fontos helyszíne. Az ókori települést Tel Beér-Sevával azonosítják.",
-    "review_status": "draft",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "holy_place_2",
@@ -5078,48 +5089,6 @@
     "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
-    "place_id": "beersheba_2",
-    "name_en": "Beersheba 2",
-    "ancient_names": [
-      "Beersheba 2",
-      "Beer Sheba",
-      "Beer-sheba",
-      "Beersheba",
-      "Desert of Beersheba",
-      "Sheba",
-      "Shebah",
-      "Shibah",
-      "Wilderness of Beer-sheba",
-      "Wilderness of Beersheba"
-    ],
-    "original_names": [],
-    "transliterations": [],
-    "modern_name": "Tel Beer Sheva",
-    "modern_country": null,
-    "region_hu": null,
-    "ancient_region": null,
-    "identification_status": "probable",
-    "latitude": 31.244722,
-    "longitude": 34.840833,
-    "passage_count": 10,
-    "representative_passages": [
-      "GEN 21,14",
-      "GEN 21,31",
-      "GEN 21,32",
-      "GEN 21,33",
-      "GEN 22,19"
-    ],
-    "source_ids": [
-      "openbible_geocoding_cc_by_4_0"
-    ],
-    "current_name_hu": "Beérseba",
-    "current_card_summary_hu": "A Negev északi peremének ősi városa, a pátriárkai történetek és Júda déli határvidékének fontos helyszíne. Az ókori települést Tel Beér-Sevával azonosítják.",
-    "proposed_name_hu": "Beérseba",
-    "proposed_card_summary_hu": "A Negev északi peremének ősi városa, a pátriárkai történetek és Júda déli határvidékének fontos helyszíne. Az ókori települést Tel Beér-Sevával azonosítják.",
-    "review_status": "draft",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
-  },
-  {
     "place_id": "succoth_1",
     "name_en": "Succoth 1",
     "ancient_names": [
@@ -7106,6 +7075,41 @@
     "proposed_card_summary_hu": "Jeruzsálemtől keletre fekvő benjámini település, Dávid menekülésének történetében szerepel. Pontos helye bizonytalan.",
     "review_status": "draft",
     "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "bethsaida_1",
+    "name_en": "Bethsaida 1",
+    "ancient_names": [
+      "Bethsaida 1",
+      "Bethsaida",
+      "Bethsaida 2"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "At Tell",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "probable",
+    "latitude": 32.91038,
+    "longitude": 35.63096,
+    "passage_count": 7,
+    "representative_passages": [
+      "JHN 1,44",
+      "JHN 12,21",
+      "LUK 10,13",
+      "LUK 9,10",
+      "MAT 11,21"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Bétsaida",
+    "current_card_summary_hu": "A Galileai-tenger északi térségének újszövetségi települése, amely Jézus szolgálatához és több tanítványhoz kapcsolódik. Az azonosítás At-Tell térségével valószínű, de vitatott.",
+    "proposed_name_hu": null,
+    "proposed_card_summary_hu": null,
+    "review_status": "pending",
+    "review_notes_hu": null
   },
   {
     "place_id": "ezion_geber",
@@ -10207,6 +10211,42 @@
     "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
+    "place_id": "beth_eden",
+    "name_en": "Beth-eden",
+    "ancient_names": [
+      "Beth-eden",
+      "Beth Eden",
+      "Eden",
+      "Eden 2",
+      "Edenites"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Til Barsip",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 36.7014,
+    "longitude": 38.0865,
+    "passage_count": 4,
+    "representative_passages": [
+      "2KI 19,12",
+      "AMO 1,5",
+      "EZK 27,23",
+      "ISA 37,12"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Bét-Éden",
+    "current_card_summary_hu": "Arám térségéhez kapcsolódó bibliai hely vagy régió, amely Bét-Éden és Éden néven is szerepel. Nem azonos az 1Mózes Édenkertjével.",
+    "proposed_name_hu": null,
+    "proposed_card_summary_hu": null,
+    "review_status": "pending",
+    "review_notes_hu": null
+  },
+  {
     "place_id": "beth_zur",
     "name_en": "Beth-zur",
     "ancient_names": [
@@ -10273,6 +10313,40 @@
     "proposed_card_summary_hu": "Bibliai település vagy történeti helyszín, amely több szöveg földrajzi hátteréhez tartozik. Az ókori helyet a mai Khirbet el Kefireh térségével azonosítják.",
     "review_status": "draft",
     "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "city_of_palms_1",
+    "name_en": "City of Palms 1",
+    "ancient_names": [
+      "City of Palms 1",
+      "City of Palms",
+      "City of Palms 2"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Tell es Sultan",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 31.871719,
+    "longitude": 35.444564,
+    "passage_count": 4,
+    "representative_passages": [
+      "2CH 28,15",
+      "DEU 34,3",
+      "JDG 1,16",
+      "JDG 3,13"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Pálmák városa",
+    "current_card_summary_hu": "Jerikó bibliai körülíró neve, amely több ószövetségi szövegben jelenik meg. A rekord Jerikóhoz kapcsolódó névváltozatként kezelendő.",
+    "proposed_name_hu": null,
+    "proposed_card_summary_hu": null,
+    "review_status": "pending",
+    "review_notes_hu": null
   },
   {
     "place_id": "dor",
@@ -11159,39 +11233,6 @@
     "proposed_card_summary_hu": "Bibliai település vagy történeti helyszín. Valószínű azonosítása a mai Tell Azeimeh térségéhez kapcsolódik, de a meghatározás nem teljesen bizonyos.",
     "review_status": "draft",
     "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
-  },
-  {
-    "place_id": "bethsaida_1",
-    "name_en": "Bethsaida 1",
-    "ancient_names": [
-      "Bethsaida 1",
-      "Bethsaida"
-    ],
-    "original_names": [],
-    "transliterations": [],
-    "modern_name": "At Tell",
-    "modern_country": null,
-    "region_hu": null,
-    "ancient_region": null,
-    "identification_status": "probable",
-    "latitude": 32.91038,
-    "longitude": 35.63096,
-    "passage_count": 4,
-    "representative_passages": [
-      "JHN 1,44",
-      "JHN 12,21",
-      "LUK 10,13",
-      "MAT 11,21"
-    ],
-    "source_ids": [
-      "openbible_geocoding_cc_by_4_0"
-    ],
-    "current_name_hu": "Bétsaida",
-    "current_card_summary_hu": "Bibliai település vagy történeti helyszín. Valószínű azonosítása a mai At Tell térségéhez kapcsolódik, de a meghatározás nem teljesen bizonyos.",
-    "proposed_name_hu": "Bétsaida",
-    "proposed_card_summary_hu": "Bibliai település vagy történeti helyszín. Valószínű azonosítása a mai At Tell térségéhez kapcsolódik, de a meghatározás nem teljesen bizonyos.",
-    "review_status": "draft",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "bezer",
@@ -12677,38 +12718,6 @@
     "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
-    "place_id": "city_of_palms_1",
-    "name_en": "City of Palms 1",
-    "ancient_names": [
-      "City of Palms 1",
-      "City of Palms"
-    ],
-    "original_names": [],
-    "transliterations": [],
-    "modern_name": "Tell es Sultan",
-    "modern_country": null,
-    "region_hu": null,
-    "ancient_region": null,
-    "identification_status": "certain",
-    "latitude": 31.871719,
-    "longitude": 35.444564,
-    "passage_count": 3,
-    "representative_passages": [
-      "2CH 28,15",
-      "DEU 34,3",
-      "JDG 3,13"
-    ],
-    "source_ids": [
-      "openbible_geocoding_cc_by_4_0"
-    ],
-    "current_name_hu": "Pálmák városa",
-    "current_card_summary_hu": "Bibliai település vagy történeti helyszín, amely több szöveg földrajzi hátteréhez tartozik. Az ókori helyet a mai Tell es Sultan térségével azonosítják.",
-    "proposed_name_hu": "Pálmák városa",
-    "proposed_card_summary_hu": "Bibliai település vagy történeti helyszín, amely több szöveg földrajzi hátteréhez tartozik. Az ókori helyet a mai Tell es Sultan térségével azonosítják.",
-    "review_status": "draft",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
-  },
-  {
     "place_id": "decapolis",
     "name_en": "Decapolis",
     "ancient_names": [
@@ -12739,39 +12748,6 @@
     "proposed_card_summary_hu": "Bibliai település vagy történeti helyszín, amely több szöveg földrajzi hátteréhez tartozik. Az ókori helyet a mai Decapolis térségével azonosítják.",
     "review_status": "draft",
     "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
-  },
-  {
-    "place_id": "eden_2",
-    "name_en": "Eden 2",
-    "ancient_names": [
-      "Eden 2",
-      "Eden",
-      "Edenites"
-    ],
-    "original_names": [],
-    "transliterations": [],
-    "modern_name": "Til Barsip",
-    "modern_country": null,
-    "region_hu": null,
-    "ancient_region": null,
-    "identification_status": "certain",
-    "latitude": 36.7014,
-    "longitude": 38.0865,
-    "passage_count": 3,
-    "representative_passages": [
-      "2KI 19,12",
-      "EZK 27,23",
-      "ISA 37,12"
-    ],
-    "source_ids": [
-      "openbible_geocoding_cc_by_4_0"
-    ],
-    "current_name_hu": "Éden",
-    "current_card_summary_hu": "Bibliai település vagy történeti helyszín, amely több szöveg földrajzi hátteréhez tartozik. Az ókori helyet a mai Til Barsip térségével azonosítják.",
-    "proposed_name_hu": "Éden",
-    "proposed_card_summary_hu": "Bibliai település vagy történeti helyszín, amely több szöveg földrajzi hátteréhez tartozik. Az ókori helyet a mai Til Barsip térségével azonosítják.",
-    "review_status": "draft",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "ephrath",
@@ -14004,6 +13980,40 @@
     "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
+    "place_id": "bethlehem_2",
+    "name_en": "Bethlehem 2",
+    "ancient_names": [
+      "Bethlehem 2",
+      "Beth-lehem",
+      "Bethlehem",
+      "Bethlehem 3"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Beit Lahm",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "probable",
+    "latitude": 32.734812,
+    "longitude": 35.185563,
+    "passage_count": 3,
+    "representative_passages": [
+      "JDG 12,10",
+      "JDG 12,8",
+      "JOS 19,15"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Betlehem (Zebulon)",
+    "current_card_summary_hu": "Zebulon területén fekvő Betlehem, amely nem azonos a júdai Betlehemmel. Józsué és a Bírák könyve ugyanahhoz a galileai településhez kapcsolja.",
+    "proposed_name_hu": null,
+    "proposed_card_summary_hu": null,
+    "review_status": "pending",
+    "review_notes_hu": null
+  },
+  {
     "place_id": "bethphage",
     "name_en": "Bethphage",
     "ancient_names": [
@@ -14033,38 +14043,6 @@
     "proposed_card_summary_hu": "Jeruzsálem közelében, az Olajfák hegyén fekvő falu, Jézus bevonulásának kiindulópontja. Pontos ókori helye nem teljesen bizonyos.",
     "review_status": "draft",
     "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
-  },
-  {
-    "place_id": "bethsaida_2",
-    "name_en": "Bethsaida 2",
-    "ancient_names": [
-      "Bethsaida 2",
-      "Bethsaida"
-    ],
-    "original_names": [],
-    "transliterations": [],
-    "modern_name": "At Tell",
-    "modern_country": null,
-    "region_hu": null,
-    "ancient_region": null,
-    "identification_status": "probable",
-    "latitude": 32.91038,
-    "longitude": 35.63096,
-    "passage_count": 3,
-    "representative_passages": [
-      "LUK 9,10",
-      "MRK 6,45",
-      "MRK 8,22"
-    ],
-    "source_ids": [
-      "openbible_geocoding_cc_by_4_0"
-    ],
-    "current_name_hu": "Bétsaida",
-    "current_card_summary_hu": "Bibliai település vagy történeti helyszín. Valószínű azonosítása a mai At Tell térségéhez kapcsolódik, de a meghatározás nem teljesen bizonyos.",
-    "proposed_name_hu": "Bétsaida",
-    "proposed_card_summary_hu": "Bibliai település vagy történeti helyszín. Valószínű azonosítása a mai At Tell térségéhez kapcsolódik, de a meghatározás nem teljesen bizonyos.",
-    "review_status": "draft",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "daberath",
@@ -18334,38 +18312,6 @@
     "current_card_summary_hu": "Bibliai település vagy történeti helyszín. Valószínű azonosítása a mai Beitin térségéhez kapcsolódik, de a meghatározás nem teljesen bizonyos.",
     "proposed_name_hu": "Bétel",
     "proposed_card_summary_hu": "Bibliai település vagy történeti helyszín. Valószínű azonosítása a mai Beitin térségéhez kapcsolódik, de a meghatározás nem teljesen bizonyos.",
-    "review_status": "draft",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
-  },
-  {
-    "place_id": "bethlehem_3",
-    "name_en": "Bethlehem 3",
-    "ancient_names": [
-      "Bethlehem 3",
-      "Beth-lehem",
-      "Bethlehem"
-    ],
-    "original_names": [],
-    "transliterations": [],
-    "modern_name": "Beit Lahm",
-    "modern_country": null,
-    "region_hu": null,
-    "ancient_region": null,
-    "identification_status": "probable",
-    "latitude": 32.734812,
-    "longitude": 35.185563,
-    "passage_count": 2,
-    "representative_passages": [
-      "JDG 12,10",
-      "JDG 12,8"
-    ],
-    "source_ids": [
-      "openbible_geocoding_cc_by_4_0"
-    ],
-    "current_name_hu": "Betlehem",
-    "current_card_summary_hu": "Bibliai település vagy történeti helyszín. Valószínű azonosítása a mai Beit Lahm térségéhez kapcsolódik, de a meghatározás nem teljesen bizonyos.",
-    "proposed_name_hu": "Betlehem",
-    "proposed_card_summary_hu": "Bibliai település vagy történeti helyszín. Valószínű azonosítása a mai Beit Lahm térségéhez kapcsolódik, de a meghatározás nem teljesen bizonyos.",
     "review_status": "draft",
     "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
@@ -22905,37 +22851,6 @@
     "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
-    "place_id": "beth_eden",
-    "name_en": "Beth-eden",
-    "ancient_names": [
-      "Beth-eden",
-      "Beth Eden",
-      "Eden"
-    ],
-    "original_names": [],
-    "transliterations": [],
-    "modern_name": "Til Barsip",
-    "modern_country": null,
-    "region_hu": null,
-    "ancient_region": null,
-    "identification_status": "certain",
-    "latitude": 36.7014,
-    "longitude": 38.0865,
-    "passage_count": 1,
-    "representative_passages": [
-      "AMO 1,5"
-    ],
-    "source_ids": [
-      "openbible_geocoding_cc_by_4_0"
-    ],
-    "current_name_hu": "Bét-Éden",
-    "current_card_summary_hu": "Bibliai település vagy történeti helyszín, amely a kapcsolódó szövegek földrajzi hátteréhez tartozik. Az ókori helyet a mai Til Barsip térségével azonosítják.",
-    "proposed_name_hu": "Bét-Éden",
-    "proposed_card_summary_hu": "Bibliai település vagy történeti helyszín, amely a kapcsolódó szövegek földrajzi hátteréhez tartozik. Az ókori helyet a mai Til Barsip térségével azonosítják.",
-    "review_status": "draft",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
-  },
-  {
     "place_id": "beth_meon",
     "name_en": "Beth-meon",
     "ancient_names": [
@@ -23025,37 +22940,6 @@
     "proposed_card_summary_hu": "Bibliai település vagy történeti helyszín, amely a kapcsolódó szövegek földrajzi hátteréhez tartozik. Az ókori helyet a mai Pool of Bethesda térségével azonosítják.",
     "review_status": "draft",
     "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
-  },
-  {
-    "place_id": "bethlehem_2",
-    "name_en": "Bethlehem 2",
-    "ancient_names": [
-      "Bethlehem 2",
-      "Beth-lehem",
-      "Bethlehem"
-    ],
-    "original_names": [],
-    "transliterations": [],
-    "modern_name": "Beit Lahm",
-    "modern_country": null,
-    "region_hu": null,
-    "ancient_region": null,
-    "identification_status": "certain",
-    "latitude": 32.734812,
-    "longitude": 35.185563,
-    "passage_count": 1,
-    "representative_passages": [
-      "JOS 19,15"
-    ],
-    "source_ids": [
-      "openbible_geocoding_cc_by_4_0"
-    ],
-    "current_name_hu": "Betlehem",
-    "current_card_summary_hu": "Bibliai település vagy történeti helyszín, amely a kapcsolódó szövegek földrajzi hátteréhez tartozik. Az ókori helyet a mai Beit Lahm térségével azonosítják.",
-    "proposed_name_hu": "Betlehem",
-    "proposed_card_summary_hu": "Bibliai település vagy történeti helyszín, amely a kapcsolódó szövegek földrajzi hátteréhez tartozik. Az ókori helyet a mai Beit Lahm térségével azonosítják.",
-    "review_status": "draft",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "bethul",
@@ -23327,36 +23211,6 @@
     "proposed_card_summary_hu": "Bibliai település vagy történeti helyszín, amely a kapcsolódó szövegek földrajzi hátteréhez tartozik. Az ókori helyet a mai Chios térségével azonosítják.",
     "review_status": "draft",
     "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
-  },
-  {
-    "place_id": "city_of_palms_2",
-    "name_en": "City of Palms 2",
-    "ancient_names": [
-      "City of Palms 2",
-      "City of Palms"
-    ],
-    "original_names": [],
-    "transliterations": [],
-    "modern_name": "Tell es Sultan",
-    "modern_country": null,
-    "region_hu": null,
-    "ancient_region": null,
-    "identification_status": "certain",
-    "latitude": 31.871719,
-    "longitude": 35.444564,
-    "passage_count": 1,
-    "representative_passages": [
-      "JDG 1,16"
-    ],
-    "source_ids": [
-      "openbible_geocoding_cc_by_4_0"
-    ],
-    "current_name_hu": "Pálmák városa",
-    "current_card_summary_hu": "Bibliai település vagy történeti helyszín, amely a kapcsolódó szövegek földrajzi hátteréhez tartozik. Az ókori helyet a mai Tell es Sultan térségével azonosítják.",
-    "proposed_name_hu": "Pálmák városa",
-    "proposed_card_summary_hu": "Bibliai település vagy történeti helyszín, amely a kapcsolódó szövegek földrajzi hátteréhez tartozik. Az ókori helyet a mai Tell es Sultan térségével azonosítják.",
-    "review_status": "draft",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "cnidus",
@@ -24684,38 +24538,6 @@
     "proposed_card_summary_hu": "Bibliai település, tájegység vagy történeti helyszín. Az adatbázis a mai Lasaea térségével azonosítja.",
     "review_status": "draft",
     "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
-  },
-  {
-    "place_id": "leb_kamai",
-    "name_en": "Leb-kamai",
-    "ancient_names": [
-      "Leb-kamai",
-      "Babylonia",
-      "Leb Kamai",
-      "Leb-qamai"
-    ],
-    "original_names": [],
-    "transliterations": [],
-    "modern_name": "Tell el Muqayyar",
-    "modern_country": null,
-    "region_hu": null,
-    "ancient_region": null,
-    "identification_status": "certain",
-    "latitude": 30.962222,
-    "longitude": 46.104444,
-    "passage_count": 1,
-    "representative_passages": [
-      "JER 51,1"
-    ],
-    "source_ids": [
-      "openbible_geocoding_cc_by_4_0"
-    ],
-    "current_name_hu": "Léb-Kamaj",
-    "current_card_summary_hu": "Bibliai település, tájegység vagy történeti helyszín. Az adatbázis a mai Tell el Muqayyar térségével azonosítja.",
-    "proposed_name_hu": "Léb-Kamaj",
-    "proposed_card_summary_hu": "Bibliai település, tájegység vagy történeti helyszín. Az adatbázis a mai Tell el Muqayyar térségével azonosítja.",
-    "review_status": "draft",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "lower_pool",
@@ -33757,36 +33579,6 @@
     "proposed_card_summary_hu": "Bibliai település vagy földrajzi hely. Valószínű azonosítása a mai Tall al Ajjul térségéhez kapcsolódik, de a meghatározás nem teljesen bizonyos.",
     "review_status": "draft",
     "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
-  },
-  {
-    "place_id": "sheba_2",
-    "name_en": "Sheba 2",
-    "ancient_names": [
-      "Sheba 2",
-      "Sheba"
-    ],
-    "original_names": [],
-    "transliterations": [],
-    "modern_name": "Tel Beer Sheva",
-    "modern_country": null,
-    "region_hu": null,
-    "ancient_region": null,
-    "identification_status": "probable",
-    "latitude": 31.244722,
-    "longitude": 34.840833,
-    "passage_count": 1,
-    "representative_passages": [
-      "JOS 19,2"
-    ],
-    "source_ids": [
-      "openbible_geocoding_cc_by_4_0"
-    ],
-    "current_name_hu": "Seba",
-    "current_card_summary_hu": "Bibliai település vagy földrajzi hely. Valószínű azonosítása a mai Tel Beer Sheva térségéhez kapcsolódik, de a meghatározás nem teljesen bizonyos.",
-    "proposed_name_hu": "Seba",
-    "proposed_card_summary_hu": "Bibliai település vagy földrajzi hely. Valószínű azonosítása a mai Tel Beer Sheva térségéhez kapcsolódik, de a meghatározás nem teljesen bizonyos.",
-    "review_status": "draft",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
     "place_id": "shema",

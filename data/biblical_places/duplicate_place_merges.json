@@ -132,6 +132,140 @@
     ]
   },
   {
+    "group_id": "dup_beersheba_1__beersheba_2__sheba_2",
+    "final_action": "merge",
+    "canonical_place_id": "beersheba_1",
+    "removed_place_ids": [
+      "beersheba_2",
+      "sheba_2"
+    ],
+    "candidate_place_ids": [
+      "beersheba_1",
+      "beersheba_2",
+      "sheba_2"
+    ],
+    "proposed_merged_name_hu": "Beérseba",
+    "proposed_merged_summary_hu": "A Negev északi részének jelentős bibliai városa, a pátriárkai történetek és Izráel déli határának fontos helye. A Beérseba, Beér-Seba, Seba és kapcsolódó névalakok egy rekordban őrzendők.",
+    "proposed_passage_strategy": "Mindhárom rekord összes passage-kapcsolatának egyesítése, duplikációk eltávolításával.",
+    "proposed_coordinate_strategy": "A közös Tel Beer Sheva koordináta megtartása.",
+    "proposed_alias_strategy": "Beer Sheba, Beer-sheba, Beersheba, Sheba, Shebah, Shibah és Seba aliasok megőrzése; a pusztára utaló alakokat jelölt alias/kapcsolt tájnévként kezelni.",
+    "proposed_record_type": "settlement",
+    "expert_decision_hu": "Azonos koordináta, névváltozat és földrajzi kontextus alapján a három rekord egyesíthető a beersheba_1 alatt.",
+    "merge_risks_hu": [
+      "A Beérseba pusztája nem teljesen azonos a várossal; ezt alias- vagy kapcsolt tájnévként, nem külön településként kell megőrizni."
+    ]
+  },
+  {
+    "group_id": "dup_beth_eden__eden_2",
+    "final_action": "merge",
+    "canonical_place_id": "beth_eden",
+    "removed_place_ids": [
+      "eden_2"
+    ],
+    "candidate_place_ids": [
+      "beth_eden",
+      "eden_2"
+    ],
+    "proposed_merged_name_hu": "Bét-Éden",
+    "proposed_merged_summary_hu": "Arám térségéhez kapcsolódó bibliai hely vagy régió, amely Bét-Éden és Éden néven is szerepel. Nem azonos az 1Mózes Édenkertjével.",
+    "proposed_passage_strategy": "A négy passage-kapcsolat egyesítése a beth_eden rekord alatt.",
+    "proposed_coordinate_strategy": "A közös Til Barsip koordináta megtartása.",
+    "proposed_alias_strategy": "Beth-eden, Beth Eden, Eden és Edenites aliasok megőrzése, egyértelmű elkülönítéssel az Édenkert rekordjától.",
+    "proposed_record_type": "region_settlement",
+    "expert_decision_hu": "Ugyanazon észak-szíriai térség névváltozatai; egyesíthetők.",
+    "merge_risks_hu": [
+      "Az Éden név összetéveszthető az Édenkerttel; a rekordleírásban ezt kifejezetten tisztázni kell."
+    ]
+  },
+  {
+    "group_id": "dup_bethlehem_2__bethlehem_3",
+    "final_action": "merge",
+    "canonical_place_id": "bethlehem_2",
+    "removed_place_ids": [
+      "bethlehem_3"
+    ],
+    "candidate_place_ids": [
+      "bethlehem_2",
+      "bethlehem_3"
+    ],
+    "proposed_merged_name_hu": "Betlehem (Zebulon)",
+    "proposed_merged_summary_hu": "Zebulon területén fekvő Betlehem, amely nem azonos a júdai Betlehemmel. Józsué és a Bírák könyve ugyanahhoz a galileai településhez kapcsolja.",
+    "proposed_passage_strategy": "A Józs 19,15 és Bír 12,8.10 passage-ek egyesítése.",
+    "proposed_coordinate_strategy": "A közös Beit Lahm koordináta megtartása.",
+    "proposed_alias_strategy": "Bethlehem, Beth-lehem és a technikai számozott alakok egyesítése; a júdai Betlehem rekordjától külön tartani.",
+    "proposed_record_type": "settlement",
+    "expert_decision_hu": "Azonos galileai település két technikai rekordja; egyesíthetők.",
+    "merge_risks_hu": [
+      "A név könnyen összekeverhető a júdai Betlehemmel; a magyar névben vagy leírásban mindig jelezni kell a zebuloni helyet."
+    ]
+  },
+  {
+    "group_id": "dup_bethsaida_1__bethsaida_2",
+    "final_action": "merge",
+    "canonical_place_id": "bethsaida_1",
+    "removed_place_ids": [
+      "bethsaida_2"
+    ],
+    "candidate_place_ids": [
+      "bethsaida_1",
+      "bethsaida_2"
+    ],
+    "proposed_merged_name_hu": "Bétsaida",
+    "proposed_merged_summary_hu": "A Galileai-tenger északi térségének újszövetségi települése, amely Jézus szolgálatához és több tanítványhoz kapcsolódik. Az azonosítás At-Tell térségével valószínű, de vitatott.",
+    "proposed_passage_strategy": "A hét újszövetségi passage-kapcsolat egyesítése.",
+    "proposed_coordinate_strategy": "A közös At Tell koordináta megtartása, az azonosítás bizonytalanságának megőrzésével.",
+    "proposed_alias_strategy": "Bethsaida és Bétsaida névalakok egyesítése.",
+    "proposed_record_type": "settlement",
+    "expert_decision_hu": "A passage-ek ugyanahhoz az újszövetségi településhez tartoznak; a két technikai rekord egyesíthető.",
+    "merge_risks_hu": [
+      "Bétsaida pontos régészeti azonosítása vitatott; az egyesítés nem emelheti certain szintre az identification_status mezőt."
+    ]
+  },
+  {
+    "group_id": "dup_chaldea__leb_kamai",
+    "final_action": "merge",
+    "canonical_place_id": "chaldea",
+    "removed_place_ids": [
+      "leb_kamai"
+    ],
+    "candidate_place_ids": [
+      "chaldea",
+      "leb_kamai"
+    ],
+    "proposed_merged_name_hu": "Káldea",
+    "proposed_merged_summary_hu": "Dél-Mezopotámia, illetve Babilónia bibliai térsége. A Léb-Kamaj Jeremiás könyvének rejtjeles megnevezése, amely Káldeára/Babilóniára utal.",
+    "proposed_passage_strategy": "A Jer 51,1 passage-kapcsolat hozzáadása a chaldea rekordhoz.",
+    "proposed_coordinate_strategy": "A chaldea rekord koordinátáinak megtartása.",
+    "proposed_alias_strategy": "Leb-kamai, Leb Kamai és Leb-qamai aliasok megőrzése, rejtjeles/irodalmi névként jelölve.",
+    "proposed_record_type": "region",
+    "expert_decision_hu": "A Léb-Kamaj Jeremiás rejtjeles neve Káldeára/Babilóniára; egyesíthető a chaldea rekorddal.",
+    "merge_risks_hu": [
+      "A Léb-Kamaj nem hétköznapi földrajzi név, hanem atbas-rejtjel; ezt a leírásban és alias-típusban jelezni kell."
+    ]
+  },
+  {
+    "group_id": "dup_city_of_palms_1__city_of_palms_2",
+    "final_action": "merge",
+    "canonical_place_id": "city_of_palms_1",
+    "removed_place_ids": [
+      "city_of_palms_2"
+    ],
+    "candidate_place_ids": [
+      "city_of_palms_1",
+      "city_of_palms_2"
+    ],
+    "proposed_merged_name_hu": "Pálmák városa",
+    "proposed_merged_summary_hu": "Jerikó bibliai körülíró neve, amely több ószövetségi szövegben jelenik meg. A rekord Jerikóhoz kapcsolódó névváltozatként kezelendő.",
+    "proposed_passage_strategy": "A négy passage-kapcsolat egyesítése.",
+    "proposed_coordinate_strategy": "A közös Tell es-Sultan koordináta megtartása.",
+    "proposed_alias_strategy": "City of Palms és Pálmák városa névalakok egyesítése; Jerikóhoz való kapcsolat megőrzése.",
+    "proposed_record_type": "settlement_alias",
+    "expert_decision_hu": "Ugyanazon jerikói körülíró helynév két technikai rekordja; egyesíthetők.",
+    "merge_risks_hu": [
+      "A későbbi tisztításnál megfontolandó, hogy önálló rekord helyett Jerikó aliasa legyen; most csak a két technikai duplikátum egyesüljön."
+    ]
+  },
+  {
     "group_id": "dup_egypt__ham_2",
     "final_action": "merge",
     "canonical_place_id": "egypt",

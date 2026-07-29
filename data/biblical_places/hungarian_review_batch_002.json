@@ -1290,48 +1290,6 @@
     "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
   },
   {
-    "place_id": "beersheba_2",
-    "name_en": "Beersheba 2",
-    "ancient_names": [
-      "Beersheba 2",
-      "Beer Sheba",
-      "Beer-sheba",
-      "Beersheba",
-      "Desert of Beersheba",
-      "Sheba",
-      "Shebah",
-      "Shibah",
-      "Wilderness of Beer-sheba",
-      "Wilderness of Beersheba"
-    ],
-    "original_names": [],
-    "transliterations": [],
-    "modern_name": "Tel Beer Sheva",
-    "modern_country": null,
-    "region_hu": null,
-    "ancient_region": null,
-    "identification_status": "probable",
-    "latitude": 31.244722,
-    "longitude": 34.840833,
-    "passage_count": 10,
-    "representative_passages": [
-      "GEN 21,14",
-      "GEN 21,31",
-      "GEN 21,32",
-      "GEN 21,33",
-      "GEN 22,19"
-    ],
-    "source_ids": [
-      "openbible_geocoding_cc_by_4_0"
-    ],
-    "current_name_hu": "Beérseba",
-    "current_card_summary_hu": "A Negev északi peremének ősi városa, a pátriárkai történetek és Júda déli határvidékének fontos helyszíne. Az ókori települést Tel Beér-Sevával azonosítják.",
-    "proposed_name_hu": "Beérseba",
-    "proposed_card_summary_hu": "A Negev északi peremének ősi városa, a pátriárkai történetek és Júda déli határvidékének fontos helyszíne. Az ókori települést Tel Beér-Sevával azonosítják.",
-    "review_status": "draft",
-    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
-  },
-  {
     "place_id": "succoth_1",
     "name_en": "Succoth 1",
     "ancient_names": [
@@ -3318,6 +3276,41 @@
     "proposed_card_summary_hu": "Jeruzsálemtől keletre fekvő benjámini település, Dávid menekülésének történetében szerepel. Pontos helye bizonytalan.",
     "review_status": "draft",
     "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "bethsaida_1",
+    "name_en": "Bethsaida 1",
+    "ancient_names": [
+      "Bethsaida 1",
+      "Bethsaida",
+      "Bethsaida 2"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "At Tell",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "probable",
+    "latitude": 32.91038,
+    "longitude": 35.63096,
+    "passage_count": 7,
+    "representative_passages": [
+      "JHN 1,44",
+      "JHN 12,21",
+      "LUK 10,13",
+      "LUK 9,10",
+      "MAT 11,21"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Bétsaida",
+    "current_card_summary_hu": "A Galileai-tenger északi térségének újszövetségi települése, amely Jézus szolgálatához és több tanítványhoz kapcsolódik. Az azonosítás At-Tell térségével valószínű, de vitatott.",
+    "proposed_name_hu": null,
+    "proposed_card_summary_hu": null,
+    "review_status": "pending",
+    "review_notes_hu": null
   },
   {
     "place_id": "ezion_geber",

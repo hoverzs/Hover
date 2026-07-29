@@ -1,29 +1,29 @@
 {
   "generated_at": "2026-07-29",
-  "catalog_record_count": 1302,
+  "catalog_record_count": 1295,
   "source_record_count": 16,
-  "passage_place_link_count": 8656,
-  "hash_before_fix": "5834be7ad5053c8f0514a0092221a1e2aefcf1aba7709fad650c2fa889f1e119",
-  "hash_after_fix": "5834be7ad5053c8f0514a0092221a1e2aefcf1aba7709fad650c2fa889f1e119",
+  "passage_place_link_count": 8655,
+  "hash_before_fix": "b3e7df4b1f33ffca4e63f265b3d393133aecc48295a7dc5226298a0ddb7b028c",
+  "hash_after_fix": "b3e7df4b1f33ffca4e63f265b3d393133aecc48295a7dc5226298a0ddb7b028c",
   "idempotent_after_fix": true,
   "summary": {
     "by_category": {
-      "certain_status_without_review": 522,
+      "certain_status_without_review": 514,
       "hungarian_name_review": 205,
       "large_place_list_for_passage": 118,
-      "probable_duplicate_place": 197,
-      "same_hungarian_name": 83,
+      "probable_duplicate_place": 190,
+      "same_hungarian_name": 79,
       "summary_repeats_name": 9
     },
     "by_severity": {
-      "review": 1134
+      "review": 1115
     }
   },
   "auto_fixed_items": [],
-  "review_required_count": 1134,
+  "review_required_count": 1115,
   "large_place_list_for_passage_count": 118,
   "definite_duplicate_merge_count": 0,
-  "uncertain_duplicate_count": 197,
+  "uncertain_duplicate_count": 190,
   "invalid_external_id_count": 0,
   "invalid_external_ids_fixed": true,
   "mixed_manual_demo_source_count": 0,
@@ -99,14 +99,6 @@
       "category": "same_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "beersheba_1, beersheba_2",
-      "message": "Same normalized Hungarian name is used by multiple records: beérseba.",
-      "auto_fixable": false
-    },
-    {
-      "category": "same_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "beth_aven_1, beth_aven_2",
       "message": "Same normalized Hungarian name is used by multiple records: bét-áven.",
       "auto_fixable": false
@@ -139,22 +131,6 @@
       "category": "same_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "bethlehem_1, bethlehem_2, bethlehem_3",
-      "message": "Same normalized Hungarian name is used by multiple records: betlehem.",
-      "auto_fixable": false
-    },
-    {
-      "category": "same_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "bethsaida_1, bethsaida_2",
-      "message": "Same normalized Hungarian name is used by multiple records: bétsaida.",
-      "auto_fixable": false
-    },
-    {
-      "category": "same_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "bezek_1, bezek_2",
       "message": "Same normalized Hungarian name is used by multiple records: bezek.",
       "auto_fixable": false
@@ -173,14 +149,6 @@
       "object_type": "place",
       "object_id": "cana, kanah_1",
       "message": "Same normalized Hungarian name is used by multiple records: kána.",
-      "auto_fixable": false
-    },
-    {
-      "category": "same_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "city_of_palms_1, city_of_palms_2",
-      "message": "Same normalized Hungarian name is used by multiple records: pálmák városa.",
       "auto_fixable": false
     },
     {
@@ -269,6 +237,38 @@
       "object_type": "place",
       "object_id": "euphrates, river_2",
       "message": "Same normalized Hungarian name is used by multiple records: eufrátesz.",
+      "auto_fixable": false
+    },
+    {
+      "category": "same_hungarian_name",
+      "severity": "review",
+      "object_type": "place",
+      "object_id": "galilee_1, galilee_2",
+      "message": "Same normalized Hungarian name is used by multiple records: galilea.",
+      "auto_fixable": false
+    },
+    {
+      "category": "same_hungarian_name",
+      "severity": "review",
+      "object_type": "place",
+      "object_id": "gath_1, gath_2, gath_3",
+      "message": "Same normalized Hungarian name is used by multiple records: gát.",
+      "auto_fixable": false
+    },
+    {
+      "category": "same_hungarian_name",
+      "severity": "review",
+      "object_type": "place",
+      "object_id": "geba_1, geba_2, geba_3, geba_4",
+      "message": "Same normalized Hungarian name is used by multiple records: geba.",
+      "auto_fixable": false
+    },
+    {
+      "category": "same_hungarian_name",
+      "severity": "review",
+      "object_type": "place",
+      "object_id": "gebal_1, gebal_2",
+      "message": "Same normalized Hungarian name is used by multiple records: gebál.",
       "auto_fixable": false
     }
   ],
@@ -1983,14 +1983,6 @@
       "category": "same_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "beersheba_1, beersheba_2",
-      "message": "Same normalized Hungarian name is used by multiple records: beérseba.",
-      "auto_fixable": false
-    },
-    {
-      "category": "same_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "beth_aven_1, beth_aven_2",
       "message": "Same normalized Hungarian name is used by multiple records: bét-áven.",
       "auto_fixable": false
@@ -2023,22 +2015,6 @@
       "category": "same_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "bethlehem_1, bethlehem_2, bethlehem_3",
-      "message": "Same normalized Hungarian name is used by multiple records: betlehem.",
-      "auto_fixable": false
-    },
-    {
-      "category": "same_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "bethsaida_1, bethsaida_2",
-      "message": "Same normalized Hungarian name is used by multiple records: bétsaida.",
-      "auto_fixable": false
-    },
-    {
-      "category": "same_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "bezek_1, bezek_2",
       "message": "Same normalized Hungarian name is used by multiple records: bezek.",
       "auto_fixable": false
@@ -2057,14 +2033,6 @@
       "object_type": "place",
       "object_id": "cana, kanah_1",
       "message": "Same normalized Hungarian name is used by multiple records: kána.",
-      "auto_fixable": false
-    },
-    {
-      "category": "same_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "city_of_palms_1, city_of_palms_2",
-      "message": "Same normalized Hungarian name is used by multiple records: pálmák városa.",
       "auto_fixable": false
     },
     {
@@ -2831,31 +2799,7 @@
       "category": "probable_duplicate_place",
       "severity": "review",
       "object_type": "place_pair",
-      "object_id": "beersheba_1 / beersheba_2",
-      "message": "Records share a name variant and have very close coordinates.",
-      "auto_fixable": false
-    },
-    {
-      "category": "probable_duplicate_place",
-      "severity": "review",
-      "object_type": "place_pair",
-      "object_id": "beersheba_2 / sheba_2",
-      "message": "Records share a name variant and have very close coordinates.",
-      "auto_fixable": false
-    },
-    {
-      "category": "probable_duplicate_place",
-      "severity": "review",
-      "object_type": "place_pair",
       "object_id": "beth_aven_1 / beth_aven_2",
-      "message": "Records share a name variant and have very close coordinates.",
-      "auto_fixable": false
-    },
-    {
-      "category": "probable_duplicate_place",
-      "severity": "review",
-      "object_type": "place_pair",
-      "object_id": "beth_eden / eden_2",
       "message": "Records share a name variant and have very close coordinates.",
       "auto_fixable": false
     },
@@ -2895,22 +2839,6 @@
       "category": "probable_duplicate_place",
       "severity": "review",
       "object_type": "place_pair",
-      "object_id": "bethlehem_2 / bethlehem_3",
-      "message": "Records share a name variant and have very close coordinates.",
-      "auto_fixable": false
-    },
-    {
-      "category": "probable_duplicate_place",
-      "severity": "review",
-      "object_type": "place_pair",
-      "object_id": "bethsaida_1 / bethsaida_2",
-      "message": "Records share a name variant and have very close coordinates.",
-      "auto_fixable": false
-    },
-    {
-      "category": "probable_duplicate_place",
-      "severity": "review",
-      "object_type": "place_pair",
       "object_id": "bezek_1 / bezek_2",
       "message": "Records share a name variant and have very close coordinates.",
       "auto_fixable": false
@@ -2928,14 +2856,6 @@
       "severity": "review",
       "object_type": "place_pair",
       "object_id": "caphtor / crete",
-      "message": "Records share a name variant and have very close coordinates.",
-      "auto_fixable": false
-    },
-    {
-      "category": "probable_duplicate_place",
-      "severity": "review",
-      "object_type": "place_pair",
-      "object_id": "chaldea / leb_kamai",
       "message": "Records share a name variant and have very close coordinates.",
       "auto_fixable": false
     },
@@ -3008,14 +2928,6 @@
       "severity": "review",
       "object_type": "place_pair",
       "object_id": "city_of_destruction / heliopolis",
-      "message": "Records share a name variant and have very close coordinates.",
-      "auto_fixable": false
-    },
-    {
-      "category": "probable_duplicate_place",
-      "severity": "review",
-      "object_type": "place_pair",
-      "object_id": "city_of_palms_1 / city_of_palms_2",
       "message": "Records share a name variant and have very close coordinates.",
       "auto_fixable": false
     },
@@ -4663,14 +4575,6 @@
       "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
-      "object_id": "beersheba_1",
-      "message": "Place is marked certain while still prototype/draft.",
-      "auto_fixable": false
-    },
-    {
-      "category": "certain_status_without_review",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "bene_berak",
       "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
@@ -4712,14 +4616,6 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "beth_aven_2",
-      "message": "Place is marked certain while still prototype/draft.",
-      "auto_fixable": false
-    },
-    {
-      "category": "certain_status_without_review",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "beth_eden",
       "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
@@ -4808,14 +4704,6 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "bethlehem_1",
-      "message": "Place is marked certain while still prototype/draft.",
-      "auto_fixable": false
-    },
-    {
-      "category": "certain_status_without_review",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "bethlehem_2",
       "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
@@ -4983,14 +4871,6 @@
       "category": "certain_status_without_review",
       "severity": "review",
       "object_type": "place",
-      "object_id": "chaldea",
-      "message": "Place is marked certain while still prototype/draft.",
-      "auto_fixable": false
-    },
-    {
-      "category": "certain_status_without_review",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "chephirah",
       "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
@@ -5032,22 +4912,6 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "city_of_david",
-      "message": "Place is marked certain while still prototype/draft.",
-      "auto_fixable": false
-    },
-    {
-      "category": "certain_status_without_review",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "city_of_palms_1",
-      "message": "Place is marked certain while still prototype/draft.",
-      "auto_fixable": false
-    },
-    {
-      "category": "certain_status_without_review",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "city_of_palms_2",
       "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
@@ -5248,14 +5112,6 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "ecbatana",
-      "message": "Place is marked certain while still prototype/draft.",
-      "auto_fixable": false
-    },
-    {
-      "category": "certain_status_without_review",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "eden_2",
       "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
@@ -6312,14 +6168,6 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "lasea",
-      "message": "Place is marked certain while still prototype/draft.",
-      "auto_fixable": false
-    },
-    {
-      "category": "certain_status_without_review",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "leb_kamai",
       "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
@@ -8401,14 +8249,6 @@
       "category": "same_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "beersheba_1, beersheba_2",
-      "message": "Same normalized Hungarian name is used by multiple records: beérseba.",
-      "auto_fixable": false
-    },
-    {
-      "category": "same_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "beth_aven_1, beth_aven_2",
       "message": "Same normalized Hungarian name is used by multiple records: bét-áven.",
       "auto_fixable": false
@@ -8441,22 +8281,6 @@
       "category": "same_hungarian_name",
       "severity": "review",
       "object_type": "place",
-      "object_id": "bethlehem_1, bethlehem_2, bethlehem_3",
-      "message": "Same normalized Hungarian name is used by multiple records: betlehem.",
-      "auto_fixable": false
-    },
-    {
-      "category": "same_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "bethsaida_1, bethsaida_2",
-      "message": "Same normalized Hungarian name is used by multiple records: bétsaida.",
-      "auto_fixable": false
-    },
-    {
-      "category": "same_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
       "object_id": "bezek_1, bezek_2",
       "message": "Same normalized Hungarian name is used by multiple records: bezek.",
       "auto_fixable": false
@@ -8475,14 +8299,6 @@
       "object_type": "place",
       "object_id": "cana, kanah_1",
       "message": "Same normalized Hungarian name is used by multiple records: kána.",
-      "auto_fixable": false
-    },
-    {
-      "category": "same_hungarian_name",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "city_of_palms_1, city_of_palms_2",
-      "message": "Same normalized Hungarian name is used by multiple records: pálmák városa.",
       "auto_fixable": false
     },
     {
@@ -9249,31 +9065,7 @@
       "category": "probable_duplicate_place",
       "severity": "review",
       "object_type": "place_pair",
-      "object_id": "beersheba_1 / beersheba_2",
-      "message": "Records share a name variant and have very close coordinates.",
-      "auto_fixable": false
-    },
-    {
-      "category": "probable_duplicate_place",
-      "severity": "review",
-      "object_type": "place_pair",
-      "object_id": "beersheba_2 / sheba_2",
-      "message": "Records share a name variant and have very close coordinates.",
-      "auto_fixable": false
-    },
-    {
-      "category": "probable_duplicate_place",
-      "severity": "review",
-      "object_type": "place_pair",
       "object_id": "beth_aven_1 / beth_aven_2",
-      "message": "Records share a name variant and have very close coordinates.",
-      "auto_fixable": false
-    },
-    {
-      "category": "probable_duplicate_place",
-      "severity": "review",
-      "object_type": "place_pair",
-      "object_id": "beth_eden / eden_2",
       "message": "Records share a name variant and have very close coordinates.",
       "auto_fixable": false
     },
@@ -9313,22 +9105,6 @@
       "category": "probable_duplicate_place",
       "severity": "review",
       "object_type": "place_pair",
-      "object_id": "bethlehem_2 / bethlehem_3",
-      "message": "Records share a name variant and have very close coordinates.",
-      "auto_fixable": false
-    },
-    {
-      "category": "probable_duplicate_place",
-      "severity": "review",
-      "object_type": "place_pair",
-      "object_id": "bethsaida_1 / bethsaida_2",
-      "message": "Records share a name variant and have very close coordinates.",
-      "auto_fixable": false
-    },
-    {
-      "category": "probable_duplicate_place",
-      "severity": "review",
-      "object_type": "place_pair",
       "object_id": "bezek_1 / bezek_2",
       "message": "Records share a name variant and have very close coordinates.",
       "auto_fixable": false
@@ -9346,14 +9122,6 @@
       "severity": "review",
       "object_type": "place_pair",
       "object_id": "caphtor / crete",
-      "message": "Records share a name variant and have very close coordinates.",
-      "auto_fixable": false
-    },
-    {
-      "category": "probable_duplicate_place",
-      "severity": "review",
-      "object_type": "place_pair",
-      "object_id": "chaldea / leb_kamai",
       "message": "Records share a name variant and have very close coordinates.",
       "auto_fixable": false
     },
@@ -9426,14 +9194,6 @@
       "severity": "review",
       "object_type": "place_pair",
       "object_id": "city_of_destruction / heliopolis",
-      "message": "Records share a name variant and have very close coordinates.",
-      "auto_fixable": false
-    },
-    {
-      "category": "probable_duplicate_place",
-      "severity": "review",
-      "object_type": "place_pair",
-      "object_id": "city_of_palms_1 / city_of_palms_2",
       "message": "Records share a name variant and have very close coordinates.",
       "auto_fixable": false
     },
@@ -11358,14 +11118,6 @@
       "auto_fixable": false
     },
     {
-      "category": "certain_status_without_review",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "beersheba_1",
-      "message": "Place is marked certain while still prototype/draft.",
-      "auto_fixable": false
-    },
-    {
       "category": "hungarian_name_review",
       "severity": "review",
       "object_type": "place",
@@ -11442,14 +11194,6 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "beth_aven_2",
-      "message": "Place is marked certain while still prototype/draft.",
-      "auto_fixable": false
-    },
-    {
-      "category": "certain_status_without_review",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "beth_eden",
       "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
@@ -11538,14 +11282,6 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "bethlehem_1",
-      "message": "Place is marked certain while still prototype/draft.",
-      "auto_fixable": false
-    },
-    {
-      "category": "certain_status_without_review",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "bethlehem_2",
       "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
@@ -11758,14 +11494,6 @@
       "auto_fixable": false
     },
     {
-      "category": "certain_status_without_review",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "chaldea",
-      "message": "Place is marked certain while still prototype/draft.",
-      "auto_fixable": false
-    },
-    {
       "category": "hungarian_name_review",
       "severity": "review",
       "object_type": "place",
@@ -11842,22 +11570,6 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "city_of_david",
-      "message": "Place is marked certain while still prototype/draft.",
-      "auto_fixable": false
-    },
-    {
-      "category": "certain_status_without_review",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "city_of_palms_1",
-      "message": "Place is marked certain while still prototype/draft.",
-      "auto_fixable": false
-    },
-    {
-      "category": "certain_status_without_review",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "city_of_palms_2",
       "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
@@ -12114,14 +11826,6 @@
       "severity": "review",
       "object_type": "place",
       "object_id": "ecbatana",
-      "message": "Place is marked certain while still prototype/draft.",
-      "auto_fixable": false
-    },
-    {
-      "category": "certain_status_without_review",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "eden_2",
       "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
@@ -13683,14 +13387,6 @@
       "object_type": "place",
       "object_id": "lasha",
       "message": "name_hu is identical to name_en and has no Hungarian diacritic signal.",
-      "auto_fixable": false
-    },
-    {
-      "category": "certain_status_without_review",
-      "severity": "review",
-      "object_type": "place",
-      "object_id": "leb_kamai",
-      "message": "Place is marked certain while still prototype/draft.",
       "auto_fixable": false
     },
     {
@@ -17414,6 +17110,6 @@
     "missing_or_invalid_coordinates": 33
   },
   "manual_override_count": 10,
-  "merged_catalog_count": 1302,
+  "merged_catalog_count": 1295,
   "generated_passage_catalog_count": 8647
 }

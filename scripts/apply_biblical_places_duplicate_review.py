@@ -18,19 +18,39 @@ MERGE_DECISIONS_PATH = DATA_DIR / "duplicate_place_merges.json"
 DEFAULT_BATCH_PATH = DATA_DIR / "duplicate_review_batch_001_reviewed.json"
 DEFAULT_REPORT_PATH = DATA_DIR / "duplicate_review_apply_report.json"
 
-EXPECTED_MERGE_GROUPS = {
-    "dup_egypt__ham_2",
-    "dup_abdon__ebron",
-    "dup_ai_1__ai_3",
-    "dup_aija__ayyah",
-    "dup_aphek_1__aphik",
-    "dup_arad_1__arad_2",
-    "dup_aroer_3__aroer_4",
-}
-EXPECTED_KEEP_SEPARATE_GROUPS = {
-    "dup_kadesh_barnea__meribah_1",
-    "dup_aram_naharaim__mesopotamia",
-    "dup_arnon__valley_of_the_arnon",
+EXPECTED_GROUPS_BY_BATCH = {
+    "duplicate_review_batch_001_reviewed.json": {
+        "merge": {
+            "dup_egypt__ham_2",
+            "dup_abdon__ebron",
+            "dup_ai_1__ai_3",
+            "dup_aija__ayyah",
+            "dup_aphek_1__aphik",
+            "dup_arad_1__arad_2",
+            "dup_aroer_3__aroer_4",
+        },
+        "keep_separate": {
+            "dup_kadesh_barnea__meribah_1",
+            "dup_aram_naharaim__mesopotamia",
+            "dup_arnon__valley_of_the_arnon",
+        },
+    },
+    "duplicate_review_batch_002_reviewed.json": {
+        "merge": {
+            "dup_beersheba_1__beersheba_2__sheba_2",
+            "dup_beth_eden__eden_2",
+            "dup_bethlehem_2__bethlehem_3",
+            "dup_bethsaida_1__bethsaida_2",
+            "dup_chaldea__leb_kamai",
+            "dup_city_of_palms_1__city_of_palms_2",
+        },
+        "keep_separate": {
+            "dup_babylon_2__babylon_3",
+            "dup_bealoth_1__bealoth_2",
+            "dup_bezek_1__bezek_2",
+            "dup_cush_1__ethiopia",
+        },
+    },
 }
 REQUIRED_STRATEGY_FIELDS = {
     "proposed_passage_strategy",
@@ -94,10 +114,12 @@ def validate_batch(batch_path: Path, catalog: list[dict[str, Any]]) -> list[dict
 
     merge_groups = {text(group.get("group_id")) for group in batch if group.get("final_action") == "merge"}
     keep_groups = {text(group.get("group_id")) for group in batch if group.get("final_action") == "keep_separate"}
-    if merge_groups != EXPECTED_MERGE_GROUPS:
-        raise ValueError(f"Merge group mismatch: {sorted(merge_groups)}")
-    if keep_groups != EXPECTED_KEEP_SEPARATE_GROUPS:
-        raise ValueError(f"Keep-separate group mismatch: {sorted(keep_groups)}")
+    expected = EXPECTED_GROUPS_BY_BATCH.get(batch_path.name)
+    if expected is not None:
+        if merge_groups != expected["merge"]:
+            raise ValueError(f"Merge group mismatch: {sorted(merge_groups)}")
+        if keep_groups != expected["keep_separate"]:
+            raise ValueError(f"Keep-separate group mismatch: {sorted(keep_groups)}")
 
     for group in batch:
         group_id = text(group.get("group_id"))
@@ -291,6 +313,14 @@ def update_duplicate_queue(queue: list[dict[str, Any]], batch: list[dict[str, An
                 "reviewer_notes_hu",
             }:
                 updated[key] = deepcopy(value)
+        if reviewed.get("final_action") == "keep_separate":
+            record_type = text(reviewed.get("proposed_record_type"))
+            if record_type == "same_place_different_record_type":
+                updated["recommended_action"] = "same_place_different_record_type"
+            elif record_type in {"keep_separate_probable", "possibly_distinct_settlements"}:
+                updated["recommended_action"] = "keep_separate_probable"
+            else:
+                updated["recommended_action"] = "needs_expert_review"
         result.append(updated)
         seen.add(group_id)
         if updated != group:

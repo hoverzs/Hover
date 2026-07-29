@@ -12843,7 +12843,7 @@
   },
   {
     "reference": "2KI 19,12",
-    "place_id": "eden_2",
+    "place_id": "beth_eden",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "a7409b9",
@@ -27891,6 +27891,14 @@
   },
   {
     "reference": "EZK 27,23",
+    "place_id": "beth_eden",
+    "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
+    "source_note": "OpenBible Bible Geocoding Data verses",
+    "openbible_id": "a7409b9",
+    "osis": "Ezek.27.23"
+  },
+  {
+    "reference": "EZK 27,23",
     "place_id": "canneh",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
@@ -27903,14 +27911,6 @@
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "a961693",
-    "osis": "Ezek.27.23"
-  },
-  {
-    "reference": "EZK 27,23",
-    "place_id": "eden_2",
-    "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
-    "source_note": "OpenBible Bible Geocoding Data verses",
-    "openbible_id": "a7409b9",
     "osis": "Ezek.27.23"
   },
   {
@@ -32019,7 +32019,7 @@
   },
   {
     "reference": "GEN 21,14",
-    "place_id": "beersheba_2",
+    "place_id": "beersheba_1",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "a075d61",
@@ -32043,7 +32043,7 @@
   },
   {
     "reference": "GEN 21,31",
-    "place_id": "beersheba_2",
+    "place_id": "beersheba_1",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "a075d61",
@@ -32051,7 +32051,7 @@
   },
   {
     "reference": "GEN 21,32",
-    "place_id": "beersheba_2",
+    "place_id": "beersheba_1",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "a075d61",
@@ -32059,7 +32059,7 @@
   },
   {
     "reference": "GEN 21,33",
-    "place_id": "beersheba_2",
+    "place_id": "beersheba_1",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "a075d61",
@@ -32075,7 +32075,7 @@
   },
   {
     "reference": "GEN 22,19",
-    "place_id": "beersheba_2",
+    "place_id": "beersheba_1",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "a075d61",
@@ -32339,7 +32339,7 @@
   },
   {
     "reference": "GEN 26,23",
-    "place_id": "beersheba_2",
+    "place_id": "beersheba_1",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "a075d61",
@@ -32355,7 +32355,7 @@
   },
   {
     "reference": "GEN 26,33",
-    "place_id": "beersheba_2",
+    "place_id": "beersheba_1",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "a075d61",
@@ -32387,7 +32387,7 @@
   },
   {
     "reference": "GEN 28,10",
-    "place_id": "beersheba_2",
+    "place_id": "beersheba_1",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "a075d61",
@@ -33627,7 +33627,7 @@
   },
   {
     "reference": "GEN 46,1",
-    "place_id": "beersheba_2",
+    "place_id": "beersheba_1",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "a075d61",
@@ -33739,7 +33739,7 @@
   },
   {
     "reference": "GEN 46,5",
-    "place_id": "beersheba_2",
+    "place_id": "beersheba_1",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "a075d61",
@@ -37691,7 +37691,7 @@
   },
   {
     "reference": "ISA 37,12",
-    "place_id": "eden_2",
+    "place_id": "beth_eden",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "a7409b9",
@@ -39083,7 +39083,7 @@
   },
   {
     "reference": "JDG 1,16",
-    "place_id": "city_of_palms_2",
+    "place_id": "city_of_palms_1",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "ac4ff01",
@@ -40083,7 +40083,7 @@
   },
   {
     "reference": "JDG 12,10",
-    "place_id": "bethlehem_3",
+    "place_id": "bethlehem_2",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "ab1a343",
@@ -40171,7 +40171,7 @@
   },
   {
     "reference": "JDG 12,8",
-    "place_id": "bethlehem_3",
+    "place_id": "bethlehem_2",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "ab1a343",
@@ -47523,7 +47523,7 @@
   },
   {
     "reference": "JER 51,1",
-    "place_id": "leb_kamai",
+    "place_id": "chaldea",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "a9de8b7",
@@ -54370,14 +54370,6 @@
     "osis": "Josh.19.2"
   },
   {
-    "reference": "JOS 19,2",
-    "place_id": "sheba_2",
-    "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
-    "source_note": "OpenBible Bible Geocoding Data verses",
-    "openbible_id": "ae44746",
-    "osis": "Josh.19.2"
-  },
-  {
     "reference": "JOS 19,20",
     "place_id": "ebez",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
@@ -58571,7 +58563,7 @@
   },
   {
     "reference": "LUK 9,10",
-    "place_id": "bethsaida_2",
+    "place_id": "bethsaida_1",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "a9fc13a",
@@ -60475,7 +60467,7 @@
   },
   {
     "reference": "MRK 6,45",
-    "place_id": "bethsaida_2",
+    "place_id": "bethsaida_1",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "a9fc13a",
@@ -60571,7 +60563,7 @@
   },
   {
     "reference": "MRK 8,22",
-    "place_id": "bethsaida_2",
+    "place_id": "bethsaida_1",
     "reason_hu": "OpenBible vers-hivatkozásból generált helykapcsolat.",
     "source_note": "OpenBible Bible Geocoding Data verses",
     "openbible_id": "a9fc13a",

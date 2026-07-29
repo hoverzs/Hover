@@ -11,8 +11,7 @@ if str(ROOT) not in sys.path:
 
 from scripts.apply_biblical_places_duplicate_review import (
     DEFAULT_BATCH_PATH,
-    EXPECTED_KEEP_SEPARATE_GROUPS,
-    EXPECTED_MERGE_GROUPS,
+    EXPECTED_GROUPS_BY_BATCH,
     apply_reviews,
     validate_batch,
 )
@@ -22,6 +21,7 @@ DATA_DIR = ROOT / "data" / "biblical_places"
 CATALOG_PATH = DATA_DIR / "biblical_places_catalog.json"
 PASSAGE_LINKS_PATH = DATA_DIR / "passage_place_links.json"
 DUPLICATE_QUEUE_PATH = DATA_DIR / "duplicate_review_queue.json"
+BATCH_002_REVIEWED_PATH = DATA_DIR / "duplicate_review_batch_002_reviewed.json"
 
 
 def read_json(path: Path):
@@ -35,8 +35,8 @@ def test_reviewed_duplicate_batch_is_valid() -> None:
     keep_groups = {group["group_id"] for group in batch if group["final_action"] == "keep_separate"}
 
     assert len(batch) == 10
-    assert merge_groups == EXPECTED_MERGE_GROUPS
-    assert keep_groups == EXPECTED_KEEP_SEPARATE_GROUPS
+    assert merge_groups == EXPECTED_GROUPS_BY_BATCH[DEFAULT_BATCH_PATH.name]["merge"]
+    assert keep_groups == EXPECTED_GROUPS_BY_BATCH[DEFAULT_BATCH_PATH.name]["keep_separate"]
 
 
 def test_duplicate_review_apply_dry_run_is_safe() -> None:
@@ -59,17 +59,80 @@ def test_reviewed_duplicate_merges_are_applied_to_catalog_and_links() -> None:
     links = read_json(PASSAGE_LINKS_PATH)
     queue = {group["group_id"]: group for group in read_json(DUPLICATE_QUEUE_PATH)}
 
-    assert len(catalog) == 1302
+    assert len(catalog) <= 1302
     assert removed_ids.isdisjoint(ids)
     assert canonical_ids.issubset(ids)
     assert all(link["place_id"] not in removed_ids for link in links)
     assert len({(link["reference"], link["place_id"]) for link in links}) == len(links)
-    for group_id in EXPECTED_MERGE_GROUPS | EXPECTED_KEEP_SEPARATE_GROUPS:
+    expected = EXPECTED_GROUPS_BY_BATCH[DEFAULT_BATCH_PATH.name]
+    for group_id in expected["merge"] | expected["keep_separate"]:
         assert queue[group_id]["review_status"] == "reviewed"
-    for group_id in EXPECTED_MERGE_GROUPS:
+    for group_id in expected["merge"]:
         assert queue[group_id]["final_action"] == "merge"
-    for group_id in EXPECTED_KEEP_SEPARATE_GROUPS:
+    for group_id in expected["keep_separate"]:
         assert queue[group_id]["final_action"] == "keep_separate"
+
+
+def test_second_reviewed_duplicate_batch_is_valid_when_present() -> None:
+    if not BATCH_002_REVIEWED_PATH.exists():
+        return
+    catalog = read_json(CATALOG_PATH)
+    batch = validate_batch(BATCH_002_REVIEWED_PATH, catalog)
+    expected = EXPECTED_GROUPS_BY_BATCH[BATCH_002_REVIEWED_PATH.name]
+
+    assert len(batch) == 10
+    assert {group["group_id"] for group in batch if group["final_action"] == "merge"} == expected["merge"]
+    assert {group["group_id"] for group in batch if group["final_action"] == "keep_separate"} == expected["keep_separate"]
+
+
+def test_second_reviewed_duplicate_merges_are_applied_when_present() -> None:
+    if not BATCH_002_REVIEWED_PATH.exists():
+        return
+    catalog = read_json(CATALOG_PATH)
+    ids = {record["place_id"] for record in catalog}
+    removed_ids = {
+        "beersheba_2",
+        "sheba_2",
+        "eden_2",
+        "bethlehem_3",
+        "bethsaida_2",
+        "leb_kamai",
+        "city_of_palms_2",
+    }
+    canonical_ids = {
+        "beersheba_1",
+        "beth_eden",
+        "bethlehem_2",
+        "bethsaida_1",
+        "chaldea",
+        "city_of_palms_1",
+    }
+    keep_separate_ids = {
+        "babylon_2",
+        "babylon_3",
+        "bealoth_1",
+        "bealoth_2",
+        "bezek_1",
+        "bezek_2",
+        "cush_1",
+        "ethiopia",
+    }
+    links = read_json(PASSAGE_LINKS_PATH)
+    queue = {group["group_id"]: group for group in read_json(DUPLICATE_QUEUE_PATH)}
+    expected = EXPECTED_GROUPS_BY_BATCH[BATCH_002_REVIEWED_PATH.name]
+
+    assert len(catalog) == 1295
+    assert removed_ids.isdisjoint(ids)
+    assert canonical_ids.issubset(ids)
+    assert keep_separate_ids.issubset(ids)
+    assert all(link["place_id"] not in removed_ids for link in links)
+    for group_id in expected["merge"] | expected["keep_separate"]:
+        assert queue[group_id]["review_status"] == "reviewed"
+    for group_id in expected["merge"]:
+        assert queue[group_id]["final_action"] == "merge"
+    for group_id in expected["keep_separate"]:
+        assert queue[group_id]["final_action"] == "keep_separate"
+        assert queue[group_id]["recommended_action"] != "merge_probable"
 
 
 def test_special_alias_risks_are_not_promoted_globally() -> None:

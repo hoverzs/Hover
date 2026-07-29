@@ -953,6 +953,17 @@ def test_first_hungarian_review_batch_card_summaries_are_compact() -> None:
 
     for place_id in draft_ids:
         place = get_biblical_place(place_id)
+        if place is None:
+            raw_catalog = json.loads(BIBLICAL_PLACES_CATALOG_PATH.read_text(encoding="utf-8"))
+            canonical_id = next(
+                (
+                    item["place_id"]
+                    for item in raw_catalog
+                    if place_id in (item.get("legacy_place_ids") or [])
+                ),
+                None,
+            )
+            place = get_biblical_place(canonical_id) if canonical_id else None
         assert place is not None
         summary = fallback_place_description(place)
         assert summary
@@ -991,6 +1002,17 @@ def test_second_hungarian_review_batch_card_summaries_are_compact() -> None:
 
     for place_id in draft_ids:
         place = get_biblical_place(place_id)
+        if place is None:
+            raw_catalog = json.loads(BIBLICAL_PLACES_CATALOG_PATH.read_text(encoding="utf-8"))
+            canonical_id = next(
+                (
+                    item["place_id"]
+                    for item in raw_catalog
+                    if place_id in (item.get("legacy_place_ids") or [])
+                ),
+                None,
+            )
+            place = get_biblical_place(canonical_id) if canonical_id else None
         assert place is not None
         summary = fallback_place_description(place)
         assert summary
