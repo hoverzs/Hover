@@ -1,0 +1,366 @@
+[
+  {
+    "route_id": "paul_first_missionary_journey",
+    "name_hu": "Pál első missziói útja",
+    "name_en": "Paul's first missionary journey",
+    "short_description_hu": "Az útvonal a bibliai szövegben megnevezett állomások sorrendjét mutatja. A vonalak sematikusak, nem a pontos ókori nyomvonalat jelölik.",
+    "route_category": "missionary_journey",
+    "primary_passage_refs": [
+      "ApCsel 13,1-14,28"
+    ],
+    "chronology_label_hu": "Pál első missziói útja",
+    "chronology_sort_key": 1,
+    "certainty": "certain",
+    "geometry_status": "schematic",
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "review_status": "draft",
+    "review_notes_hu": "Pilot route-rekord. Az állomások sorrendje az ApCsel 13,1-14,28 szövegében megnevezett helyeket követi; a segmentek sematikusak.",
+    "evidence_model": {
+      "station_order_basis": "biblical_text_named_stops",
+      "historical_route_status": "not_reconstructed",
+      "map_geometry_status": "schematic",
+      "precision_note_hu": "Az állomássorrend bibliai szövegből igazolt, de a két állomás közötti vonal nem állít pontos ókori útvonalat."
+    },
+    "stops": [
+      {
+        "order": 1,
+        "stop_id": "antioch_syria_departure",
+        "place_id": "antioch_syria",
+        "place_name_override_hu": "szíriai Antiókhia",
+        "passage_refs": [
+          "ApCsel 13,1-3"
+        ],
+        "event_summary_hu": "A gyülekezet kiküldi Barnabást és Sault.",
+        "certainty": "certain",
+        "stop_type": "embarkation",
+        "source_notes_hu": "Az állomás a bibliai szövegben megnevezett kiindulópont."
+      },
+      {
+        "order": 2,
+        "stop_id": "seleucia_departure",
+        "place_id": "seleucia",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 13,4"
+        ],
+        "event_summary_hu": "Szeleukiából Ciprus felé hajóznak.",
+        "certainty": "certain",
+        "stop_type": "embarkation",
+        "source_notes_hu": "Az állomás a bibliai szövegben megnevezett kikötő."
+      },
+      {
+        "order": 3,
+        "stop_id": "salamis_arrival",
+        "place_id": "salamis",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 13,5"
+        ],
+        "event_summary_hu": "Szalamiszban hirdetik Isten igéjét.",
+        "certainty": "certain",
+        "stop_type": "disembarkation",
+        "source_notes_hu": "Az állomás a bibliai szövegben megnevezett ciprusi hely."
+      },
+      {
+        "order": 4,
+        "stop_id": "paphos",
+        "place_id": "paphos",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 13,6-12"
+        ],
+        "event_summary_hu": "Páfoszban találkoznak Barjézussal és Szergiusz Paulusszal.",
+        "certainty": "certain",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "Az állomás a bibliai szövegben megnevezett ciprusi hely."
+      },
+      {
+        "order": 5,
+        "stop_id": "perga_outbound",
+        "place_id": "perga",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 13,13"
+        ],
+        "event_summary_hu": "Páfoszból Pergébe érkeznek.",
+        "certainty": "certain",
+        "stop_type": "disembarkation",
+        "source_notes_hu": "Az állomás a bibliai szövegben megnevezett pamfiliai hely."
+      },
+      {
+        "order": 6,
+        "stop_id": "antioch_pisidia_outbound",
+        "place_id": "antioch_2",
+        "place_name_override_hu": "pisidiai Antiókhia",
+        "passage_refs": [
+          "ApCsel 13,14-52"
+        ],
+        "event_summary_hu": "A pisidiai Antiókhiában a zsinagógában szólnak, majd ellenállással találkoznak.",
+        "certainty": "certain",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "Az állomás a bibliai szövegben megnevezett hely."
+      },
+      {
+        "order": 7,
+        "stop_id": "iconium_outbound",
+        "place_id": "iconium",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 14,1-7"
+        ],
+        "event_summary_hu": "Ikóniumban tanítanak, majd a fenyegetés miatt továbbmennek.",
+        "certainty": "certain",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "Az állomás a bibliai szövegben megnevezett hely."
+      },
+      {
+        "order": 8,
+        "stop_id": "lystra_outbound",
+        "place_id": "lystra",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 14,8-20"
+        ],
+        "event_summary_hu": "Lisztrában gyógyítás és konfliktus történik.",
+        "certainty": "certain",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "Az állomás a bibliai szövegben megnevezett hely."
+      },
+      {
+        "order": 9,
+        "stop_id": "derbe",
+        "place_id": "derbe",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 14,20-21"
+        ],
+        "event_summary_hu": "Derbében hirdetik az evangéliumot és tanítványokat nyernek.",
+        "certainty": "certain",
+        "stop_type": "destination",
+        "source_notes_hu": "Az állomás a bibliai szövegben megnevezett hely."
+      },
+      {
+        "order": 10,
+        "stop_id": "lystra_return",
+        "place_id": "lystra",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 14,21-23"
+        ],
+        "event_summary_hu": "Visszatérnek Lisztrába, és erősítik a tanítványokat.",
+        "certainty": "certain",
+        "stop_type": "return_stop",
+        "source_notes_hu": "Az ismétlődő állomás a visszaút külön stopja."
+      },
+      {
+        "order": 11,
+        "stop_id": "iconium_return",
+        "place_id": "iconium",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 14,21-23"
+        ],
+        "event_summary_hu": "Visszatérnek Ikóniumba, és erősítik a tanítványokat.",
+        "certainty": "certain",
+        "stop_type": "return_stop",
+        "source_notes_hu": "Az ismétlődő állomás a visszaút külön stopja."
+      },
+      {
+        "order": 12,
+        "stop_id": "antioch_pisidia_return",
+        "place_id": "antioch_2",
+        "place_name_override_hu": "pisidiai Antiókhia",
+        "passage_refs": [
+          "ApCsel 14,21-24"
+        ],
+        "event_summary_hu": "Visszatérnek a pisidiai Antiókhiába, majd Pisidián áthaladva továbbmennek.",
+        "certainty": "certain",
+        "stop_type": "return_stop",
+        "source_notes_hu": "Az ismétlődő állomás a visszaút külön stopja."
+      },
+      {
+        "order": 13,
+        "stop_id": "perga_return",
+        "place_id": "perga",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 14,24-25"
+        ],
+        "event_summary_hu": "Pergében hirdetik az igét.",
+        "certainty": "certain",
+        "stop_type": "return_stop",
+        "source_notes_hu": "Az ismétlődő állomás a visszaút külön stopja."
+      },
+      {
+        "order": 14,
+        "stop_id": "attalia_return",
+        "place_id": "attalia",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 14,25"
+        ],
+        "event_summary_hu": "Attáliába mennek.",
+        "certainty": "certain",
+        "stop_type": "embarkation",
+        "source_notes_hu": "Az állomás a bibliai szövegben megnevezett hely."
+      },
+      {
+        "order": 15,
+        "stop_id": "antioch_syria_return",
+        "place_id": "antioch_syria",
+        "place_name_override_hu": "szíriai Antiókhia",
+        "passage_refs": [
+          "ApCsel 14,26-28"
+        ],
+        "event_summary_hu": "Visszatérnek Antiókhiába, és beszámolnak az útról.",
+        "certainty": "certain",
+        "stop_type": "return_stop",
+        "source_notes_hu": "Az ismétlődő állomás a visszatérés külön stopja."
+      }
+    ],
+    "segments": [
+      {
+        "from_stop_id": "antioch_syria_departure",
+        "to_stop_id": "seleucia_departure",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus kapcsolat két megnevezett állomás között; nem rekonstruált ókori útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "seleucia_departure",
+        "to_stop_id": "salamis_arrival",
+        "certainty": "probable",
+        "segment_type": "sea",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus tengeri kapcsolat két megnevezett állomás között.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "salamis_arrival",
+        "to_stop_id": "paphos",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus szárazföldi kapcsolat Cipruson belül.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "paphos",
+        "to_stop_id": "perga_outbound",
+        "certainty": "probable",
+        "segment_type": "sea",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus tengeri kapcsolat két megnevezett állomás között.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "perga_outbound",
+        "to_stop_id": "antioch_pisidia_outbound",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus szárazföldi kapcsolat; pontos útvonal nincs rekonstruálva.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "antioch_pisidia_outbound",
+        "to_stop_id": "iconium_outbound",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus szárazföldi kapcsolat; pontos útvonal nincs rekonstruálva.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "iconium_outbound",
+        "to_stop_id": "lystra_outbound",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus szárazföldi kapcsolat; pontos útvonal nincs rekonstruálva.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "lystra_outbound",
+        "to_stop_id": "derbe",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus szárazföldi kapcsolat; pontos útvonal nincs rekonstruálva.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "derbe",
+        "to_stop_id": "lystra_return",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus visszaúti kapcsolat; pontos útvonal nincs rekonstruálva.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "lystra_return",
+        "to_stop_id": "iconium_return",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus visszaúti kapcsolat; pontos útvonal nincs rekonstruálva.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "iconium_return",
+        "to_stop_id": "antioch_pisidia_return",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus visszaúti kapcsolat; pontos útvonal nincs rekonstruálva.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "antioch_pisidia_return",
+        "to_stop_id": "perga_return",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus visszaúti kapcsolat; pontos útvonal nincs rekonstruálva.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "perga_return",
+        "to_stop_id": "attalia_return",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus szárazföldi kapcsolat; pontos útvonal nincs rekonstruálva.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "attalia_return",
+        "to_stop_id": "antioch_syria_return",
+        "certainty": "probable",
+        "segment_type": "sea",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus tengeri kapcsolat két megnevezett állomás között.",
+        "waypoints": [],
+        "geometry": null
+      }
+    ]
+  }
+]
