@@ -48,6 +48,7 @@ ROUTE_VIEW_WARNING_HU = (
     "Az útvonal a bibliai szövegben megnevezett állomások sorrendjét mutatja. "
     "A vonalak sematikusak, nem a pontos ókori nyomvonalat jelölik."
 )
+MAP_BLOCK_HEIGHT_PX = 520
 
 IDENTIFICATION_STATUS_LABELS = {
     "certain": "biztos",
@@ -509,6 +510,12 @@ def _render_styles(st: Any) -> None:
   line-height: 1.3;
   margin: 0.45rem 0 0;
 }
+.textus-biblical-map-block {
+  margin: 0.35rem 0 0.85rem;
+}
+.textus-biblical-map-section {
+  margin: 0.55rem 0 0.35rem;
+}
 @media (max-width: 768px) {
   .textus-biblical-map-card {
     margin-top: 0.75rem;
@@ -518,6 +525,53 @@ def _render_styles(st: Any) -> None:
 """,
         unsafe_allow_html=True,
     )
+
+
+def _render_map_block_open(st: Any) -> None:
+    st.markdown('<div class="textus-biblical-map-block">', unsafe_allow_html=True)
+
+
+def _render_map_block_close(st: Any) -> None:
+    st.markdown("</div>", unsafe_allow_html=True)
+
+
+def _render_section_heading(st: Any, title: str) -> None:
+    st.markdown('<div class="textus-biblical-map-section"></div>', unsafe_allow_html=True)
+    st.markdown(f"#### {title}")
+
+
+def _render_places_map_block(
+    st: Any,
+    *,
+    map_focus_id: str,
+    map_places: tuple[BiblicalPlace, ...],
+) -> None:
+    _render_map_block_open(st)
+    map_kwargs: dict[str, Any] = {
+        "latitude": "lat",
+        "longitude": "lon",
+        "size": "size",
+        "color": "color",
+        "zoom": 4,
+        "use_container_width": True,
+    }
+    try:
+        try:
+            st.map(
+                map_rows(map_focus_id, map_places),
+                height=MAP_BLOCK_HEIGHT_PX,
+                **map_kwargs,
+            )
+        except TypeError:
+            # Older Streamlit builds may not accept height on st.map.
+            st.map(map_rows(map_focus_id, map_places), **map_kwargs)
+    except Exception as exc:  # pragma: no cover - depends on Streamlit runtime
+        st.warning(
+            "A térképi nézet nem érhető el, de a helyválasztó és az adatlap használható."
+        )
+        with st.expander("Technikai részletek", expanded=False):
+            st.caption(type(exc).__name__)
+    _render_map_block_close(st)
 
 
 def _display_status(value: str | None, labels: Mapping[str, str]) -> str:
@@ -1022,7 +1076,7 @@ def _render_route_map(
                 },
             ),
             use_container_width=True,
-            height=520,
+            height=MAP_BLOCK_HEIGHT_PX,
         )
     except Exception:
         st.warning(
@@ -1037,6 +1091,7 @@ def _render_route_map(
                 color="color",
                 zoom=int(viewport["zoom"]),
                 use_container_width=True,
+                height=MAP_BLOCK_HEIGHT_PX,
             )
         except Exception:
             st.warning("Az útvonal térképi megjelenítése most nem érhető el.")
@@ -1092,7 +1147,9 @@ def _render_route_view(st: Any) -> None:
         highlighted_stop_ids=highlighted_stop_ids,
     )
     segment_rows = route_segment_rows(route)
+    _render_map_block_open(st)
     _render_route_map(st, route, stop_rows, segment_rows)
+    _render_map_block_close(st)
 
     stop_labels = {
         stop.stop_id: (
@@ -1102,36 +1159,34 @@ def _render_route_view(st: Any) -> None:
         )
         for stop in route.stops
     }
-    selector_col, detail_col = st.columns([0.36, 0.64], gap="medium")
-    with selector_col:
-        chosen_stop_id = st.selectbox(
-            "Állomás kiválasztása",
-            valid_stop_ids,
-            index=valid_stop_ids.index(selected_stop_id),
-            format_func=lambda stop_id: stop_labels.get(stop_id, stop_id),
-            key=SELECTED_ROUTE_STOP_ID_KEY,
+    _render_section_heading(st, "Állomás részletei")
+    chosen_stop_id = st.selectbox(
+        "Állomás kiválasztása",
+        valid_stop_ids,
+        index=valid_stop_ids.index(selected_stop_id),
+        format_func=lambda stop_id: stop_labels.get(stop_id, stop_id),
+        key=SELECTED_ROUTE_STOP_ID_KEY,
+    )
+    selected_stop = next(stop for stop in route.stops if stop.stop_id == chosen_stop_id)
+    selected_place = places_by_id(BIBLICAL_MAP_PLACES).get(selected_stop.place_id)
+    st.markdown(
+        f"**{selected_stop.order}. {route_stop_display_name(selected_stop, selected_place)} – "
+        f"{route_direction_label(selected_stop)}**"
+    )
+    st.caption(
+        f"Igehely: {', '.join(selected_stop.passage_refs)} · "
+        f"{_display_status(selected_stop.stop_type, STOP_TYPE_LABELS)} · "
+        f"{_display_status(selected_stop.certainty, CERTAINTY_LABELS)}"
+    )
+    st.markdown(selected_stop.event_summary_hu)
+    if selected_place is not None:
+        _render_compact_route_place_card(
+            st,
+            selected_place,
+            ", ".join(selected_stop.passage_refs),
         )
-    with detail_col:
-        selected_stop = next(stop for stop in route.stops if stop.stop_id == chosen_stop_id)
-        selected_place = places_by_id(BIBLICAL_MAP_PLACES).get(selected_stop.place_id)
-        st.markdown(
-            f"**{selected_stop.order}. {route_stop_display_name(selected_stop, selected_place)} – "
-            f"{route_direction_label(selected_stop)}**"
-        )
-        st.caption(
-            f"Igehely: {', '.join(selected_stop.passage_refs)} · "
-            f"{_display_status(selected_stop.stop_type, STOP_TYPE_LABELS)} · "
-            f"{_display_status(selected_stop.certainty, CERTAINTY_LABELS)}"
-        )
-        st.markdown(selected_stop.event_summary_hu)
-        if selected_place is not None:
-            _render_compact_route_place_card(
-                st,
-                selected_place,
-                ", ".join(selected_stop.passage_refs),
-            )
 
-    st.markdown("#### Állomások")
+    _render_section_heading(st, "Állomások")
     for stop in route.stops:
         place = places_by_id(BIBLICAL_MAP_PLACES).get(stop.place_id)
         emphasis = "**" if stop.stop_id in highlighted_stop_ids else ""
@@ -1178,42 +1233,26 @@ def _render_places_view(
     if current_ref:
         _render_passage_route_prompt(st, current_ref)
 
-    left, right = st.columns([1.18, 0.82], gap="medium")
-    with left:
-        map_focus_id = selected_id or (
-            auto_link.place_id if auto_link is not None else primary_place(places).place_id
-        )
-        map_places = linked_places or (
-            (by_id[map_focus_id],) if map_focus_id in by_id else ()
-        )
-        try:
-            st.map(
-                map_rows(map_focus_id, map_places),
-                latitude="lat",
-                longitude="lon",
-                size="size",
-                color="color",
-                zoom=4,
-                use_container_width=True,
-            )
-        except Exception as exc:  # pragma: no cover - depends on Streamlit runtime
-            st.warning(
-                "A térképi nézet nem érhető el, de a helyválasztó és az adatlap használható."
-            )
-            with st.expander("Technikai részletek", expanded=False):
-                st.caption(type(exc).__name__)
+    map_focus_id = selected_id or (
+        auto_link.place_id if auto_link is not None else primary_place(places).place_id
+    )
+    map_places = linked_places or (
+        (by_id[map_focus_id],) if map_focus_id in by_id else ()
+    )
+    _render_places_map_block(st, map_focus_id=map_focus_id, map_places=map_places)
 
-        selected_id = _render_passage_place_selector(
-            st,
-            linked_places=linked_places,
-            selected_id=selected_id,
-            auto_place_id=auto_link.place_id if auto_link is not None else None,
-        )
-        selected_id = _render_catalog_search(
-            st,
-            places=places,
-            selected_id=selected_id,
-        )
+    _render_section_heading(st, "Helyszín kiválasztása")
+    selected_id = _render_passage_place_selector(
+        st,
+        linked_places=linked_places,
+        selected_id=selected_id,
+        auto_place_id=auto_link.place_id if auto_link is not None else None,
+    )
+    selected_id = _render_catalog_search(
+        st,
+        places=places,
+        selected_id=selected_id,
+    )
 
     selection_source = str(st.session_state.get(MAP_SELECTION_SOURCE_KEY) or "")
     if selected_id:
@@ -1244,14 +1283,14 @@ def _render_places_view(
             "Ehhez az igerészhez a prototípus még nem tartalmaz automatikus helykapcsolatot."
         )
 
-    with right:
-        if selected_place is not None:
-            _render_place_card(st, selected_place, passage_reference or "")
-        else:
-            st.caption(
-                "Válassz helyszínt a keresőből, vagy adj meg olyan igerészt, "
-                "amelyhez van helykapcsolat."
-            )
+    _render_section_heading(st, "Kiválasztott hely")
+    if selected_place is not None:
+        _render_place_card(st, selected_place, passage_reference or "")
+    else:
+        st.caption(
+            "Válassz helyszínt a keresőből, vagy adj meg olyan igerészt, "
+            "amelyhez van helykapcsolat."
+        )
 
 
 def render_biblical_map_prototype(

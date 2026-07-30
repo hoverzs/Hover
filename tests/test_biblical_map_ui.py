@@ -587,6 +587,8 @@ def test_render_accepts_missing_passage_reference_without_early_return() -> None
     assert "A térképes prototípus renderelése aktív." not in fake_st.captions
     assert "Aktuális igerész még nincs megadva." in fake_st.captions
     assert fake_st.maps
+    assert fake_st.maps[-1][1]["use_container_width"] is True
+    assert fake_st.maps[-1][1]["height"] == 520
     assert fake_st.text_inputs
     assert fake_st.text_inputs[0][0] == "Másik bibliai hely keresése"
     assert not any(label == "Aktuális igerész helyszínei" for label, *_ in fake_st.selectboxes)
@@ -599,6 +601,7 @@ def test_render_accepts_missing_passage_reference_without_early_return() -> None
     assert any(
         "Válassz helyszínt a keresőből" in caption for caption in fake_st.captions
     )
+    assert fake_st.columns_calls == []
 
 
 def test_render_auto_selects_linked_place_and_shows_status() -> None:
@@ -621,6 +624,9 @@ def test_render_auto_selects_linked_place_and_shows_status() -> None:
     assert fake_st.text_inputs[0][0] == "Másik bibliai hely keresése"
     assert [label for label, *_ in fake_st.radios] == ["Térkép nézet"]
     assert any("Korinthus" in body for body in fake_st.markdowns)
+    assert fake_st.maps[-1][1]["use_container_width"] is True
+    assert fake_st.maps[-1][1]["height"] == 520
+    assert fake_st.columns_calls == []
 
 
 def test_passage_place_selector_only_lists_linked_places() -> None:
@@ -661,6 +667,20 @@ def test_acts_13_and_14_chapter_queries_resolve_place_links() -> None:
     assert {"iconium", "lystra", "derbe", "perga", "attalia"}.issubset(acts_14)
     assert route_matches_for_passage("ApCsel 13")
     assert route_matches_for_passage("ApCsel 14")
+
+
+def test_places_view_with_route_match_uses_full_width_map_layout() -> None:
+    fake_st = _FakeStreamlit()
+
+    render_biblical_map_prototype(passage_reference="ApCsel 13", st_module=fake_st)
+
+    assert fake_st.maps
+    assert fake_st.maps[-1][1]["use_container_width"] is True
+    assert fake_st.maps[-1][1]["height"] == 520
+    assert fake_st.columns_calls == []
+    assert any("Kapcsolódó útvonal:" in info for info in fake_st.infos)
+    assert any(label == "Aktuális igerész helyszínei" for label, *_ in fake_st.selectboxes)
+    assert any(label == "Másik bibliai hely keresése" for label, _ in fake_st.text_inputs)
 
 
 def test_specific_verse_does_not_inherit_whole_passage_place_list() -> None:
@@ -1359,7 +1379,13 @@ def test_render_route_view_loads_first_missionary_journey() -> None:
     assert fake_st.warnings.count(ROUTE_VIEW_WARNING_HU) == 1
     assert fake_st.pydeck_charts or fake_st.maps
     assert any(label == "Állomás kiválasztása" for label, *_ in fake_st.selectboxes)
-    assert fake_st.columns_calls == [([0.36, 0.64], "medium")]
+    if fake_st.maps:
+        assert fake_st.maps[-1][1]["use_container_width"] is True
+        assert fake_st.maps[-1][1]["height"] == 520
+    if fake_st.pydeck_charts:
+        assert fake_st.pydeck_charts[-1][1]["use_container_width"] is True
+        assert fake_st.pydeck_charts[-1][1]["height"] == 520
+    assert fake_st.columns_calls == []
 
 
 def test_route_view_handles_missing_route_data_gracefully() -> None:
