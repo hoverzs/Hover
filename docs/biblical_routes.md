@@ -83,14 +83,23 @@ Ugyanaz a `place_id` több stopban is szerepelhet, ha a bibliai út oda- és vis
 
 A modell külön kezeli a bibliai szövegben megnevezett állomások sorrendjét, a történeti útvonalrekonstrukciót és a térképi vonal geometriai státuszát. A `schematic` segment nem állítja, hogy két hely között pontos ókori útvonal ismert; csak azt jelzi, hogy a két megnevezett állomás között a felhasználói térképen összekötés rajzolható.
 
+## Jelenlegi páli útvonalak
+
+A route-katalógus jelenleg négy páli útvonalat tartalmaz. Mindegyik az Apostolok cselekedeteiben megnevezett állomások és régiók sorrendjét követi, a vonalak pedig sematikusak.
+
+- `paul_first_missionary_journey`: Pál első missziói útja, `ApCsel 13,1-14,28`, 15 stop, 14 segment.
+- `paul_second_missionary_journey`: Pál második missziói útja, `ApCsel 15,36-18,22`, 23 stop, 22 segment.
+- `paul_third_missionary_journey`: Pál harmadik missziói útja, `ApCsel 18,23-21,17`, 21 stop, 20 segment.
+- `paul_journey_to_rome`: Pál útja Jeruzsálemből Rómába, `ApCsel 21,17-28,31`, 19 stop, 18 segment.
+
+Segmentmegoszlás:
+
+- első út: 11 szárazföldi, 3 tengeri segment;
+- második út: 18 szárazföldi, 4 tengeri segment;
+- harmadik út: 9 szárazföldi, 11 tengeri segment;
+- római út: 5 szárazföldi, 13 tengeri segment.
+
 ## Pilot: Pál első missziói útja
-
-Pilot route:
-
-- `route_id`: `paul_first_missionary_journey`
-- elsődleges szakasz: `ApCsel 13,1-14,28`
-- állomásszám: 15
-- segmentszám: 14
 
 Stoplista:
 
@@ -110,6 +119,16 @@ Stoplista:
 14. `attalia_return` -> `attalia`
 15. `antioch_syria_return` -> `antioch_syria`
 
+## További páli útvonalak
+
+Pál második missziói útja a szíriai Antiókhiából indul és ugyanoda tér vissza. Régiós stopként szerepel Szíria, Kilikia, Frígia, Galácia és Müszia. Az ApCsel 18,22 felmenetelét a route Jeruzsálem valószínű értelmezéseként kezeli, ezért az érintett stop `probable` bizonyosságú és külön `review_notes_hu` / `source_notes_hu` magyarázatot kap.
+
+Pál harmadik missziói útja szintén a szíriai Antiókhiából indul, és Jeruzsálemben zárul. Makedónia és Görögország / Akhája region stopként szerepel. Az ApCsel 21,3 Ciprust transit jellegű tengeri tájékozódási pontként kezeli, nem partraszállási állomásként.
+
+Pál Jeruzsálemből Rómába vezető útja Jeruzsálemből indul, Antipatrisz és Caesarea érintésével halad a tengeri szakaszok felé, majd Rómában zárul. Antipatrisz a katalógus aktív `aphek_2` rekordjára mutat megjelenítési override-dal. Az Adriai-tenger `region` / `transit` stop, nem modern pontos koordinátára épített helymeghatározás.
+
+Region és transit stopok esetén a `place_id` továbbra is aktív katalógusrekordra mutat. A UI ugyanúgy meg tudja jeleníteni őket, de a stop `stop_type` és `source_notes_hu` mezője jelzi, ha a szöveg régiót vagy tengeri tájékozódási pontot nevez meg.
+
 ## Új route hozzáadása
 
 1. Csak aktív `place_id`-ket használj a teljes katalógusból.
@@ -123,7 +142,7 @@ Stoplista:
 ## Ismert korlátok
 
 - A térképi útvonalrajzolás sematikus: a stopok közvetlen összekötése, nem rekonstruált ókori nyomvonal.
-- A pilot segmentek sematikusak, nem rekonstruált ókori utak.
+- Minden jelenlegi segment sematikus, nem rekonstruált ókori út vagy hajózási nyomvonal.
 - Nincs távolságszámítás vagy útvonal-optimalizálás.
 - A legacy `place_id` feloldás csak kompatibilitási mód; új adatokban aktív `place_id` használata kötelező.
 

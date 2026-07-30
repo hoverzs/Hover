@@ -9,10 +9,16 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from biblical_routes import BiblicalRouteDataError, load_biblical_routes, passage_refs_overlap
+from biblical_routes import (
+    BiblicalRouteDataError,
+    load_biblical_routes,
+    passage_refs_overlap,
+    route_options,
+)
 
 
 ROUTES_PATH = ROOT / "data" / "biblical_routes" / "biblical_routes.json"
+VALIDATION_REPORT_PATH = ROOT / "data" / "biblical_routes" / "pauline_routes_validation_report.json"
 
 
 def _route_payload() -> list[dict]:
@@ -35,7 +41,7 @@ def _assert_raises(expected: type[Exception], callback, *args, **kwargs) -> Exce
 
 def test_valid_pilot_route_loads() -> None:
     routes = load_biblical_routes()
-    assert len(routes) == 1
+    assert len(routes) == 4
     route = routes[0]
     assert route.route_id == "paul_first_missionary_journey"
     assert route.name_hu == "Pál első missziói útja"
@@ -43,6 +49,69 @@ def test_valid_pilot_route_loads() -> None:
     assert route.primary_passage_refs == ("ApCsel 13,1-14,28",)
     assert len(route.stops) == 15
     assert len(route.segments) == 14
+
+
+def test_all_pauline_routes_load_in_chronological_order() -> None:
+    routes = load_biblical_routes()
+
+    assert [route.route_id for route in routes] == [
+        "paul_first_missionary_journey",
+        "paul_second_missionary_journey",
+        "paul_third_missionary_journey",
+        "paul_journey_to_rome",
+    ]
+    assert route_options(routes) == [route.route_id for route in routes]
+    assert len({route.route_id for route in routes}) == 4
+
+
+def test_new_pauline_routes_have_expected_boundaries_and_counts() -> None:
+    routes = {route.route_id: route for route in load_biblical_routes()}
+
+    second = routes["paul_second_missionary_journey"]
+    assert second.primary_passage_refs == ("ApCsel 15,36-18,22",)
+    assert second.stops[0].place_id == "antioch_syria"
+    assert second.stops[-1].place_id == "antioch_syria"
+    assert len(second.stops) == 23
+    assert len(second.segments) == 22
+
+    third = routes["paul_third_missionary_journey"]
+    assert third.primary_passage_refs == ("ApCsel 18,23-21,17",)
+    assert third.stops[0].place_id == "antioch_syria"
+    assert third.stops[-1].place_id == "jerusalem"
+    assert len(third.stops) == 21
+    assert len(third.segments) == 20
+
+    rome = routes["paul_journey_to_rome"]
+    assert rome.primary_passage_refs == ("ApCsel 21,17-28,31",)
+    assert rome.stops[0].place_id == "jerusalem"
+    assert rome.stops[-1].place_id == "rome"
+    assert len(rome.stops) == 19
+    assert len(rome.segments) == 18
+
+
+def test_all_route_stops_and_segments_are_valid() -> None:
+    for route in load_biblical_routes():
+        stop_ids = [stop.stop_id for stop in route.stops]
+        orders = [stop.order for stop in route.stops]
+        assert len(stop_ids) == len(set(stop_ids))
+        assert orders == list(range(1, len(route.stops) + 1))
+        assert all(stop.place_id for stop in route.stops)
+        assert all(stop.event_summary_hu.strip() for stop in route.stops)
+        assert all(segment.geometry_status == "schematic" for segment in route.segments)
+        assert all(segment.segment_type in {"land", "sea"} for segment in route.segments)
+        assert all(segment.from_stop_id in stop_ids for segment in route.segments)
+        assert all(segment.to_stop_id in stop_ids for segment in route.segments)
+
+
+def test_new_route_segment_type_counts() -> None:
+    routes = {route.route_id: route for route in load_biblical_routes()}
+
+    assert [segment.segment_type for segment in routes["paul_second_missionary_journey"].segments].count("sea") == 4
+    assert [segment.segment_type for segment in routes["paul_second_missionary_journey"].segments].count("land") == 18
+    assert [segment.segment_type for segment in routes["paul_third_missionary_journey"].segments].count("sea") == 11
+    assert [segment.segment_type for segment in routes["paul_third_missionary_journey"].segments].count("land") == 9
+    assert [segment.segment_type for segment in routes["paul_journey_to_rome"].segments].count("sea") == 13
+    assert [segment.segment_type for segment in routes["paul_journey_to_rome"].segments].count("land") == 5
 
 
 def test_pilot_stop_place_ids_exist_and_repeat_places_are_allowed() -> None:
@@ -152,6 +221,64 @@ def test_shared_passage_overlap_handles_chapter_and_book_code_aliases() -> None:
     assert passage_refs_overlap("ACT 14", "ApCsel 14,21-23")
     assert passage_refs_overlap("ApCsel 13,1-14,28", "ACT 14,8")
     assert not passage_refs_overlap("ApCsel 13", "ACT 14,8")
+
+
+def test_pauline_route_passage_windows_overlap_expected_chapters() -> None:
+    routes = {route.route_id: route for route in load_biblical_routes()}
+
+    assert any(
+        passage_refs_overlap("ApCsel 16", reference)
+        for stop in routes["paul_second_missionary_journey"].stops
+        for reference in stop.passage_refs
+    )
+    assert any(
+        passage_refs_overlap("ApCsel 19", reference)
+        for stop in routes["paul_third_missionary_journey"].stops
+        for reference in stop.passage_refs
+    )
+    assert any(
+        passage_refs_overlap("ApCsel 27", reference)
+        for stop in routes["paul_journey_to_rome"].stops
+        for reference in stop.passage_refs
+    )
+    assert any(
+        passage_refs_overlap("ApCsel 28", reference)
+        for stop in routes["paul_journey_to_rome"].stops
+        for reference in stop.passage_refs
+    )
+    assert any(
+        passage_refs_overlap("ApCsel 18,1-18", reference)
+        for stop in routes["paul_second_missionary_journey"].stops
+        for reference in stop.passage_refs
+    )
+    assert not any(
+        passage_refs_overlap("ApCsel 18,1-18", reference)
+        for stop in routes["paul_third_missionary_journey"].stops
+        for reference in stop.passage_refs
+    )
+    assert any(
+        passage_refs_overlap("ApCsel 21,1-16", reference)
+        for stop in routes["paul_third_missionary_journey"].stops
+        for reference in stop.passage_refs
+    )
+    assert not any(
+        passage_refs_overlap("ApCsel 21,1-16", reference)
+        for stop in routes["paul_journey_to_rome"].stops
+        for reference in stop.passage_refs
+    )
+
+
+def test_pauline_routes_validation_report_matches_loader() -> None:
+    report = json.loads(VALIDATION_REPORT_PATH.read_text(encoding="utf-8"))
+    report_by_id = {route["route_id"]: route for route in report["routes"]}
+
+    for route in load_biblical_routes():
+        item = report_by_id[route.route_id]
+        assert item["stop_count"] == len(route.stops)
+        assert item["segment_count"] == len(route.segments)
+        assert item["unresolved_place_ids"] == []
+        assert item["passage_errors"] == []
+        assert len(item["place_resolution"]) == len(route.stops)
 
 
 def test_loader_runs_without_streamlit_dependency() -> None:

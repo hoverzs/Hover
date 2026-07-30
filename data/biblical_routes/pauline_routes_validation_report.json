@@ -1,0 +1,985 @@
+{
+  "routes": [
+    {
+      "route_id": "paul_first_missionary_journey",
+      "name_hu": "Pál első missziói útja",
+      "stop_count": 15,
+      "segment_count": 14,
+      "segment_type_counts": {
+        "land": 11,
+        "sea": 3
+      },
+      "stop_certainty_counts": {
+        "certain": 15
+      },
+      "unresolved_place_ids": [],
+      "passage_errors": [],
+      "review_points": [],
+      "place_resolution": [
+        {
+          "biblical_name_hu": "szíriai Antiókhia",
+          "place_id": "antioch_syria",
+          "name_hu": "Antiókhia",
+          "identification_status": "probable",
+          "passage_refs": [
+            "ApCsel 13,1-3"
+          ]
+        },
+        {
+          "biblical_name_hu": "Szeleukia",
+          "place_id": "seleucia",
+          "name_hu": "Szeleukia",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 13,4"
+          ]
+        },
+        {
+          "biblical_name_hu": "Szalamisz",
+          "place_id": "salamis",
+          "name_hu": "Szalamisz",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 13,5"
+          ]
+        },
+        {
+          "biblical_name_hu": "Páfosz",
+          "place_id": "paphos",
+          "name_hu": "Páfosz",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 13,6-12"
+          ]
+        },
+        {
+          "biblical_name_hu": "Pergé",
+          "place_id": "perga",
+          "name_hu": "Pergé",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 13,13"
+          ]
+        },
+        {
+          "biblical_name_hu": "pisidiai Antiókhia",
+          "place_id": "antioch_2",
+          "name_hu": "Pizidiai Antiókhia",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 13,14-52"
+          ]
+        },
+        {
+          "biblical_name_hu": "Ikónium",
+          "place_id": "iconium",
+          "name_hu": "Ikónium",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 14,1-7"
+          ]
+        },
+        {
+          "biblical_name_hu": "Lisztra",
+          "place_id": "lystra",
+          "name_hu": "Lisztra",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 14,8-20"
+          ]
+        },
+        {
+          "biblical_name_hu": "Derbé",
+          "place_id": "derbe",
+          "name_hu": "Derbé",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 14,20-21"
+          ]
+        },
+        {
+          "biblical_name_hu": "Lisztra",
+          "place_id": "lystra",
+          "name_hu": "Lisztra",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 14,21-23"
+          ]
+        },
+        {
+          "biblical_name_hu": "Ikónium",
+          "place_id": "iconium",
+          "name_hu": "Ikónium",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 14,21-23"
+          ]
+        },
+        {
+          "biblical_name_hu": "pisidiai Antiókhia",
+          "place_id": "antioch_2",
+          "name_hu": "Pizidiai Antiókhia",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 14,21-24"
+          ]
+        },
+        {
+          "biblical_name_hu": "Pergé",
+          "place_id": "perga",
+          "name_hu": "Pergé",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 14,24-25"
+          ]
+        },
+        {
+          "biblical_name_hu": "Attália",
+          "place_id": "attalia",
+          "name_hu": "Attália",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 14,25"
+          ]
+        },
+        {
+          "biblical_name_hu": "szíriai Antiókhia",
+          "place_id": "antioch_syria",
+          "name_hu": "Antiókhia",
+          "identification_status": "probable",
+          "passage_refs": [
+            "ApCsel 14,26-28"
+          ]
+        }
+      ]
+    },
+    {
+      "route_id": "paul_second_missionary_journey",
+      "name_hu": "P?l m?sodik misszi?i ?tja",
+      "stop_count": 23,
+      "segment_count": 22,
+      "segment_type_counts": {
+        "land": 18,
+        "sea": 4
+      },
+      "stop_certainty_counts": {
+        "certain": 22,
+        "probable": 1
+      },
+      "unresolved_place_ids": [],
+      "passage_errors": [],
+      "review_points": [
+        {
+          "stop_id": "syria_second_transit",
+          "place_id": "syria_2",
+          "certainty": "certain",
+          "stop_type": "region",
+          "note_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+        },
+        {
+          "stop_id": "cilicia_second_transit",
+          "place_id": "cilicia",
+          "certainty": "certain",
+          "stop_type": "region",
+          "note_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+        },
+        {
+          "stop_id": "phrygia_second_transit",
+          "place_id": "phrygia",
+          "certainty": "certain",
+          "stop_type": "region",
+          "note_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+        },
+        {
+          "stop_id": "galatia_second_transit",
+          "place_id": "galatia",
+          "certainty": "certain",
+          "stop_type": "region",
+          "note_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+        },
+        {
+          "stop_id": "mysia_second_transit",
+          "place_id": "mysia",
+          "certainty": "certain",
+          "stop_type": "region",
+          "note_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+        },
+        {
+          "stop_id": "samothrace_second",
+          "place_id": "samothrace",
+          "certainty": "certain",
+          "stop_type": "transit",
+          "note_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+        },
+        {
+          "stop_id": "amphipolis_second",
+          "place_id": "amphipolis",
+          "certainty": "certain",
+          "stop_type": "transit",
+          "note_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+        },
+        {
+          "stop_id": "apollonia_second",
+          "place_id": "apollonia",
+          "certainty": "certain",
+          "stop_type": "transit",
+          "note_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+        },
+        {
+          "stop_id": "jerusalem_second_probable",
+          "place_id": "jerusalem",
+          "certainty": "probable",
+          "stop_type": "inferred_stop",
+          "note_hu": "Az ApCsel 18,22 nem nevezi meg k?zvetlen?l Jeruzs?lemet; a felmenetel ?s a gy?lekezet k?sz?nt?se alapj?n val?sz?n? ?rtelmez?s."
+        }
+      ],
+      "place_resolution": [
+        {
+          "biblical_name_hu": "sz?riai Anti?khia",
+          "place_id": "antioch_syria",
+          "name_hu": "Antiókhia",
+          "identification_status": "probable",
+          "passage_refs": [
+            "ApCsel 15,36-40"
+          ]
+        },
+        {
+          "biblical_name_hu": "Sz?ria",
+          "place_id": "syria_2",
+          "name_hu": "Szíria",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 15,41"
+          ]
+        },
+        {
+          "biblical_name_hu": "Kilikia",
+          "place_id": "cilicia",
+          "name_hu": "Kilikia",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 15,41"
+          ]
+        },
+        {
+          "biblical_name_hu": "Derbé",
+          "place_id": "derbe",
+          "name_hu": "Derbé",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 16,1"
+          ]
+        },
+        {
+          "biblical_name_hu": "Lisztra",
+          "place_id": "lystra",
+          "name_hu": "Lisztra",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 16,1-5"
+          ]
+        },
+        {
+          "biblical_name_hu": "Frígia",
+          "place_id": "phrygia",
+          "name_hu": "Frígia",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 16,6"
+          ]
+        },
+        {
+          "biblical_name_hu": "Galácia",
+          "place_id": "galatia",
+          "name_hu": "Galácia",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 16,6"
+          ]
+        },
+        {
+          "biblical_name_hu": "Müszia",
+          "place_id": "mysia",
+          "name_hu": "Müszia",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 16,7-8"
+          ]
+        },
+        {
+          "biblical_name_hu": "Tróász",
+          "place_id": "troas",
+          "name_hu": "Tróász",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 16,8-10"
+          ]
+        },
+        {
+          "biblical_name_hu": "Szamothraké",
+          "place_id": "samothrace",
+          "name_hu": "Szamothraké",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 16,11"
+          ]
+        },
+        {
+          "biblical_name_hu": "Neapolisz",
+          "place_id": "neapolis",
+          "name_hu": "Neapolisz",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 16,11"
+          ]
+        },
+        {
+          "biblical_name_hu": "Filippi",
+          "place_id": "philippi",
+          "name_hu": "Filippi",
+          "identification_status": "probable",
+          "passage_refs": [
+            "ApCsel 16,12-40"
+          ]
+        },
+        {
+          "biblical_name_hu": "Amfipolisz",
+          "place_id": "amphipolis",
+          "name_hu": "Amfipolisz",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 17,1"
+          ]
+        },
+        {
+          "biblical_name_hu": "Apollónia",
+          "place_id": "apollonia",
+          "name_hu": "Apollónia",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 17,1"
+          ]
+        },
+        {
+          "biblical_name_hu": "Thesszalonika",
+          "place_id": "thessalonica",
+          "name_hu": "Thesszalonika",
+          "identification_status": "probable",
+          "passage_refs": [
+            "ApCsel 17,1-9"
+          ]
+        },
+        {
+          "biblical_name_hu": "Beroia",
+          "place_id": "berea",
+          "name_hu": "Beroia",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 17,10-14"
+          ]
+        },
+        {
+          "biblical_name_hu": "Athén",
+          "place_id": "athens",
+          "name_hu": "Athén",
+          "identification_status": "probable",
+          "passage_refs": [
+            "ApCsel 17,15-34"
+          ]
+        },
+        {
+          "biblical_name_hu": "Korinthus",
+          "place_id": "corinth",
+          "name_hu": "Korinthus",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 18,1-18"
+          ]
+        },
+        {
+          "biblical_name_hu": "Kenkreá",
+          "place_id": "cenchreae",
+          "name_hu": "Kenkreá",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 18,18"
+          ]
+        },
+        {
+          "biblical_name_hu": "Efezus",
+          "place_id": "ephesus",
+          "name_hu": "Efezus",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 18,19-21"
+          ]
+        },
+        {
+          "biblical_name_hu": "Cézárea",
+          "place_id": "caesarea",
+          "name_hu": "Cézárea",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 18,22"
+          ]
+        },
+        {
+          "biblical_name_hu": "Jeruzsálem",
+          "place_id": "jerusalem",
+          "name_hu": "Jeruzsálem",
+          "identification_status": "probable",
+          "passage_refs": [
+            "ApCsel 18,22"
+          ]
+        },
+        {
+          "biblical_name_hu": "sz?riai Anti?khia",
+          "place_id": "antioch_syria",
+          "name_hu": "Antiókhia",
+          "identification_status": "probable",
+          "passage_refs": [
+            "ApCsel 18,22"
+          ]
+        }
+      ]
+    },
+    {
+      "route_id": "paul_third_missionary_journey",
+      "name_hu": "P?l harmadik misszi?i ?tja",
+      "stop_count": 21,
+      "segment_count": 20,
+      "segment_type_counts": {
+        "land": 9,
+        "sea": 11
+      },
+      "stop_certainty_counts": {
+        "certain": 21
+      },
+      "unresolved_place_ids": [],
+      "passage_errors": [],
+      "review_points": [
+        {
+          "stop_id": "galatia_third_transit",
+          "place_id": "galatia",
+          "certainty": "certain",
+          "stop_type": "region",
+          "note_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+        },
+        {
+          "stop_id": "phrygia_third_transit",
+          "place_id": "phrygia",
+          "certainty": "certain",
+          "stop_type": "region",
+          "note_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+        },
+        {
+          "stop_id": "macedonia_third_region",
+          "place_id": "macedonia",
+          "certainty": "certain",
+          "stop_type": "region",
+          "note_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+        },
+        {
+          "stop_id": "greece_third_region",
+          "place_id": "achaia",
+          "certainty": "certain",
+          "stop_type": "region",
+          "note_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+        },
+        {
+          "stop_id": "mitylene_third",
+          "place_id": "mitylene",
+          "certainty": "certain",
+          "stop_type": "transit",
+          "note_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+        },
+        {
+          "stop_id": "chios_third",
+          "place_id": "chios",
+          "certainty": "certain",
+          "stop_type": "transit",
+          "note_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+        },
+        {
+          "stop_id": "samos_third",
+          "place_id": "samos",
+          "certainty": "certain",
+          "stop_type": "transit",
+          "note_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+        },
+        {
+          "stop_id": "cos_third",
+          "place_id": "cos",
+          "certainty": "certain",
+          "stop_type": "transit",
+          "note_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+        },
+        {
+          "stop_id": "rhodes_third",
+          "place_id": "rhodes_1",
+          "certainty": "certain",
+          "stop_type": "transit",
+          "note_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+        },
+        {
+          "stop_id": "cyprus_third_transit",
+          "place_id": "cyprus",
+          "certainty": "certain",
+          "stop_type": "transit",
+          "note_hu": "A sz?veg Ciprust l?t?t?vols?gi/tengeri t?j?koz?d?si pontk?nt eml?ti, nem partrasz?ll?si ?llom?sk?nt."
+        }
+      ],
+      "place_resolution": [
+        {
+          "biblical_name_hu": "sz?riai Anti?khia",
+          "place_id": "antioch_syria",
+          "name_hu": "Antiókhia",
+          "identification_status": "probable",
+          "passage_refs": [
+            "ApCsel 18,23"
+          ]
+        },
+        {
+          "biblical_name_hu": "Galácia",
+          "place_id": "galatia",
+          "name_hu": "Galácia",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 18,23"
+          ]
+        },
+        {
+          "biblical_name_hu": "Frígia",
+          "place_id": "phrygia",
+          "name_hu": "Frígia",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 18,23"
+          ]
+        },
+        {
+          "biblical_name_hu": "Efezus",
+          "place_id": "ephesus",
+          "name_hu": "Efezus",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 19,1-41"
+          ]
+        },
+        {
+          "biblical_name_hu": "Macedónia",
+          "place_id": "macedonia",
+          "name_hu": "Macedónia",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 20,1-2"
+          ]
+        },
+        {
+          "biblical_name_hu": "G?r?gorsz?g / Akh?ja",
+          "place_id": "achaia",
+          "name_hu": "Akhája",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 20,2-3"
+          ]
+        },
+        {
+          "biblical_name_hu": "Filippi",
+          "place_id": "philippi",
+          "name_hu": "Filippi",
+          "identification_status": "probable",
+          "passage_refs": [
+            "ApCsel 20,6"
+          ]
+        },
+        {
+          "biblical_name_hu": "Tróász",
+          "place_id": "troas",
+          "name_hu": "Tróász",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 20,6-12"
+          ]
+        },
+        {
+          "biblical_name_hu": "Asszosz",
+          "place_id": "assos",
+          "name_hu": "Asszosz",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 20,13-14"
+          ]
+        },
+        {
+          "biblical_name_hu": "Mitiléné",
+          "place_id": "mitylene",
+          "name_hu": "Mitiléné",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 20,14"
+          ]
+        },
+        {
+          "biblical_name_hu": "Khiosz",
+          "place_id": "chios",
+          "name_hu": "Khiosz",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 20,15"
+          ]
+        },
+        {
+          "biblical_name_hu": "Számosz",
+          "place_id": "samos",
+          "name_hu": "Számosz",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 20,15"
+          ]
+        },
+        {
+          "biblical_name_hu": "Milétosz",
+          "place_id": "miletus",
+          "name_hu": "Milétosz",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 20,15-38"
+          ]
+        },
+        {
+          "biblical_name_hu": "Kósz",
+          "place_id": "cos",
+          "name_hu": "Kósz",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 21,1"
+          ]
+        },
+        {
+          "biblical_name_hu": "Rodosz",
+          "place_id": "rhodes_1",
+          "name_hu": "Rodosz",
+          "identification_status": "probable",
+          "passage_refs": [
+            "ApCsel 21,1"
+          ]
+        },
+        {
+          "biblical_name_hu": "Patara",
+          "place_id": "patara",
+          "name_hu": "Patara",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 21,1-2"
+          ]
+        },
+        {
+          "biblical_name_hu": "Ciprus",
+          "place_id": "cyprus",
+          "name_hu": "Ciprus",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 21,3"
+          ]
+        },
+        {
+          "biblical_name_hu": "Tírusz",
+          "place_id": "tyre",
+          "name_hu": "Tírusz",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 21,3-6"
+          ]
+        },
+        {
+          "biblical_name_hu": "Ptolemaisz",
+          "place_id": "ptolemais",
+          "name_hu": "Ptolemaisz",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 21,7"
+          ]
+        },
+        {
+          "biblical_name_hu": "Cézárea",
+          "place_id": "caesarea",
+          "name_hu": "Cézárea",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 21,8-14"
+          ]
+        },
+        {
+          "biblical_name_hu": "Jeruzsálem",
+          "place_id": "jerusalem",
+          "name_hu": "Jeruzsálem",
+          "identification_status": "probable",
+          "passage_refs": [
+            "ApCsel 21,15-17"
+          ]
+        }
+      ]
+    },
+    {
+      "route_id": "paul_journey_to_rome",
+      "name_hu": "P?l ?tja Jeruzs?lemb?l R?m?ba",
+      "stop_count": 19,
+      "segment_count": 18,
+      "segment_type_counts": {
+        "land": 5,
+        "sea": 13
+      },
+      "stop_certainty_counts": {
+        "certain": 19
+      },
+      "unresolved_place_ids": [],
+      "passage_errors": [],
+      "review_points": [
+        {
+          "stop_id": "antipatris_rome",
+          "place_id": "aphek_2",
+          "certainty": "certain",
+          "stop_type": "transit",
+          "note_hu": "A katal?gus akt?v rekordja Af?k/Aphek 2; a route megjelen?t?si n?vk?nt Antipatriszt haszn?l."
+        },
+        {
+          "stop_id": "cyprus_rome_transit",
+          "place_id": "cyprus",
+          "certainty": "certain",
+          "stop_type": "transit",
+          "note_hu": "Transit jelleg? tengeri t?j?koz?d?si pont; nem partrasz?ll?si ?llom?s."
+        },
+        {
+          "stop_id": "cnidus_rome",
+          "place_id": "cnidus",
+          "certainty": "certain",
+          "stop_type": "transit",
+          "note_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+        },
+        {
+          "stop_id": "crete_rome_transit",
+          "place_id": "crete",
+          "certainty": "certain",
+          "stop_type": "transit",
+          "note_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+        },
+        {
+          "stop_id": "cauda_rome",
+          "place_id": "cauda",
+          "certainty": "certain",
+          "stop_type": "transit",
+          "note_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+        },
+        {
+          "stop_id": "adriatic_sea_rome",
+          "place_id": "adriatic_sea",
+          "certainty": "certain",
+          "stop_type": "region",
+          "note_hu": "Region/transit stop: az ?kori f?ldrajzi fogalmat jel?li, nem modern pontos koordin?t?t."
+        },
+        {
+          "stop_id": "syracuse_rome",
+          "place_id": "syracuse",
+          "certainty": "certain",
+          "stop_type": "transit",
+          "note_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+        },
+        {
+          "stop_id": "rhegium_rome",
+          "place_id": "rhegium",
+          "certainty": "certain",
+          "stop_type": "transit",
+          "note_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+        },
+        {
+          "stop_id": "forum_of_appius_rome",
+          "place_id": "forum_of_appius",
+          "certainty": "certain",
+          "stop_type": "transit",
+          "note_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+        },
+        {
+          "stop_id": "three_taverns_rome",
+          "place_id": "three_taverns",
+          "certainty": "certain",
+          "stop_type": "transit",
+          "note_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+        }
+      ],
+      "place_resolution": [
+        {
+          "biblical_name_hu": "Jeruzsálem",
+          "place_id": "jerusalem",
+          "name_hu": "Jeruzsálem",
+          "identification_status": "probable",
+          "passage_refs": [
+            "ApCsel 21,17-23,22"
+          ]
+        },
+        {
+          "biblical_name_hu": "Antipatrisz",
+          "place_id": "aphek_2",
+          "name_hu": "Afék",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 23,23-31"
+          ]
+        },
+        {
+          "biblical_name_hu": "Cézárea",
+          "place_id": "caesarea",
+          "name_hu": "Cézárea",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 23,33-26,32"
+          ]
+        },
+        {
+          "biblical_name_hu": "Szidón",
+          "place_id": "sidon",
+          "name_hu": "Szidón",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 27,3"
+          ]
+        },
+        {
+          "biblical_name_hu": "Ciprus",
+          "place_id": "cyprus",
+          "name_hu": "Ciprus",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 27,4"
+          ]
+        },
+        {
+          "biblical_name_hu": "Müra",
+          "place_id": "myra",
+          "name_hu": "Müra",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 27,5-6"
+          ]
+        },
+        {
+          "biblical_name_hu": "Knidosz",
+          "place_id": "cnidus",
+          "name_hu": "Knidosz",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 27,7"
+          ]
+        },
+        {
+          "biblical_name_hu": "Kréta",
+          "place_id": "crete",
+          "name_hu": "Kréta",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 27,7"
+          ]
+        },
+        {
+          "biblical_name_hu": "Szép Kikötők",
+          "place_id": "fair_havens",
+          "name_hu": "Szép Kikötők",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 27,8-12"
+          ]
+        },
+        {
+          "biblical_name_hu": "Lasea",
+          "place_id": "lasea",
+          "name_hu": "Lasea",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 27,8"
+          ]
+        },
+        {
+          "biblical_name_hu": "Kauda",
+          "place_id": "cauda",
+          "name_hu": "Kauda",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 27,16"
+          ]
+        },
+        {
+          "biblical_name_hu": "Adriai-tenger",
+          "place_id": "adriatic_sea",
+          "name_hu": "Adriai-tenger",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 27,27"
+          ]
+        },
+        {
+          "biblical_name_hu": "Málta",
+          "place_id": "malta",
+          "name_hu": "Málta",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 28,1-10"
+          ]
+        },
+        {
+          "biblical_name_hu": "Szirakúza",
+          "place_id": "syracuse",
+          "name_hu": "Szirakúza",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 28,12"
+          ]
+        },
+        {
+          "biblical_name_hu": "Régium",
+          "place_id": "rhegium",
+          "name_hu": "Régium",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 28,13"
+          ]
+        },
+        {
+          "biblical_name_hu": "Puteoli",
+          "place_id": "puteoli",
+          "name_hu": "Puteoli",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 28,13-14"
+          ]
+        },
+        {
+          "biblical_name_hu": "Appius fóruma",
+          "place_id": "forum_of_appius",
+          "name_hu": "Appius fóruma",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 28,15"
+          ]
+        },
+        {
+          "biblical_name_hu": "Három fogadó",
+          "place_id": "three_taverns",
+          "name_hu": "Három fogadó",
+          "identification_status": "certain",
+          "passage_refs": [
+            "ApCsel 28,15"
+          ]
+        },
+        {
+          "biblical_name_hu": "Róma",
+          "place_id": "rome",
+          "name_hu": "Róma",
+          "identification_status": "probable",
+          "passage_refs": [
+            "ApCsel 28,16-31"
+          ]
+        }
+      ]
+    }
+  ]
+}

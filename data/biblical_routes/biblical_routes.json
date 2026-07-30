@@ -362,5 +362,1511 @@
         "geometry": null
       }
     ]
+  },
+  {
+    "route_id": "paul_second_missionary_journey",
+    "name_hu": "P?l m?sodik misszi?i ?tja",
+    "name_en": "Paul's second missionary journey",
+    "short_description_hu": "Az ?tvonal a bibliai sz?vegben megnevezett ?llom?sok sorrendj?t mutatja. A vonalak sematikusak, nem a pontos ?kori nyomvonalat jel?lik.",
+    "route_category": "missionary_journey",
+    "primary_passage_refs": [
+      "ApCsel 15,36-18,22"
+    ],
+    "chronology_label_hu": "P?l m?sodik misszi?i ?tja",
+    "chronology_sort_key": 2,
+    "certainty": "mixed",
+    "geometry_status": "schematic",
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "review_status": "draft",
+    "review_notes_hu": "Az ?llom?ssorrend az ApCsel 15,36-18,22 megnevezett helyeit ?s r?gi?it k?veti. Az ApCsel 18,22 jeruzs?lemi ?rtelmez?se val?sz?n?, nem explicit megnevez?s.",
+    "evidence_model": {
+      "station_order_basis": "biblical_text_named_stops",
+      "historical_route_status": "not_reconstructed",
+      "map_geometry_status": "schematic",
+      "precision_note_hu": "A vonalak sematikusak; a sz?vegben megnevezett ?llom?sokat k?tik ?ssze, nem pontos ?kori ?tvonalat."
+    },
+    "stops": [
+      {
+        "order": 1,
+        "stop_id": "antioch_syria_second_departure",
+        "place_id": "antioch_syria",
+        "place_name_override_hu": "sz?riai Anti?khia",
+        "passage_refs": [
+          "ApCsel 15,36-40"
+        ],
+        "event_summary_hu": "P?l ?s Szil?sz a sz?riai Anti?khi?b?l indulnak el a gy?lekezetek meger?s?t?s?re.",
+        "certainty": "certain",
+        "stop_type": "embarkation",
+        "source_notes_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+      },
+      {
+        "order": 2,
+        "stop_id": "syria_second_transit",
+        "place_id": "syria_2",
+        "place_name_override_hu": "Sz?ria",
+        "passage_refs": [
+          "ApCsel 15,41"
+        ],
+        "event_summary_hu": "Sz?ri?n ?thaladva er?s?tik a gy?lekezeteket.",
+        "certainty": "certain",
+        "stop_type": "region",
+        "source_notes_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+      },
+      {
+        "order": 3,
+        "stop_id": "cilicia_second_transit",
+        "place_id": "cilicia",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 15,41"
+        ],
+        "event_summary_hu": "Kilikia vid?k?n is er?s?tik a gy?lekezeteket.",
+        "certainty": "certain",
+        "stop_type": "region",
+        "source_notes_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+      },
+      {
+        "order": 4,
+        "stop_id": "derbe_second",
+        "place_id": "derbe",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 16,1"
+        ],
+        "event_summary_hu": "P?l Derb?be ?rkezik a m?sodik ?ton.",
+        "certainty": "certain",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+      },
+      {
+        "order": 5,
+        "stop_id": "lystra_second",
+        "place_id": "lystra",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 16,1-5"
+        ],
+        "event_summary_hu": "Lisztr?ban Tim?teus csatlakozik P?lhoz ?s Szil?szhoz.",
+        "certainty": "certain",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+      },
+      {
+        "order": 6,
+        "stop_id": "phrygia_second_transit",
+        "place_id": "phrygia",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 16,6"
+        ],
+        "event_summary_hu": "Fr?gia vid?k?n haladnak ?t.",
+        "certainty": "certain",
+        "stop_type": "region",
+        "source_notes_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+      },
+      {
+        "order": 7,
+        "stop_id": "galatia_second_transit",
+        "place_id": "galatia",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 16,6"
+        ],
+        "event_summary_hu": "Gal?cia vid?k?n haladnak ?t.",
+        "certainty": "certain",
+        "stop_type": "region",
+        "source_notes_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+      },
+      {
+        "order": 8,
+        "stop_id": "mysia_second_transit",
+        "place_id": "mysia",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 16,7-8"
+        ],
+        "event_summary_hu": "M?szia fel? jutnak, majd tov?bbmennek Tr??szba.",
+        "certainty": "certain",
+        "stop_type": "region",
+        "source_notes_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+      },
+      {
+        "order": 9,
+        "stop_id": "troas_second_departure",
+        "place_id": "troas",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 16,8-10"
+        ],
+        "event_summary_hu": "Tr??szban P?l l?tom?st kap a maked?niai seg?ts?gk?r?sr?l.",
+        "certainty": "certain",
+        "stop_type": "embarkation",
+        "source_notes_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+      },
+      {
+        "order": 10,
+        "stop_id": "samothrace_second",
+        "place_id": "samothrace",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 16,11"
+        ],
+        "event_summary_hu": "Tr??szb?l elhaj?zva Szamothrak?ig jutnak.",
+        "certainty": "certain",
+        "stop_type": "transit",
+        "source_notes_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+      },
+      {
+        "order": 11,
+        "stop_id": "neapolis_second",
+        "place_id": "neapolis",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 16,11"
+        ],
+        "event_summary_hu": "M?snap Ne?poliszba ?rkeznek.",
+        "certainty": "certain",
+        "stop_type": "disembarkation",
+        "source_notes_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+      },
+      {
+        "order": 12,
+        "stop_id": "philippi_second",
+        "place_id": "philippi",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 16,12-40"
+        ],
+        "event_summary_hu": "Filippiben P?l ?s t?rsai szolg?lnak, majd a v?rosb?l t?voznak.",
+        "certainty": "certain",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+      },
+      {
+        "order": 13,
+        "stop_id": "amphipolis_second",
+        "place_id": "amphipolis",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 17,1"
+        ],
+        "event_summary_hu": "Amfipoliszon ?thaladnak.",
+        "certainty": "certain",
+        "stop_type": "transit",
+        "source_notes_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+      },
+      {
+        "order": 14,
+        "stop_id": "apollonia_second",
+        "place_id": "apollonia",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 17,1"
+        ],
+        "event_summary_hu": "Apoll?ni?n ?thaladnak.",
+        "certainty": "certain",
+        "stop_type": "transit",
+        "source_notes_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+      },
+      {
+        "order": 15,
+        "stop_id": "thessalonica_second",
+        "place_id": "thessalonica",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 17,1-9"
+        ],
+        "event_summary_hu": "Thesszalonik?ban P?l a zsinag?g?ban tan?t.",
+        "certainty": "certain",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+      },
+      {
+        "order": 16,
+        "stop_id": "berea_second",
+        "place_id": "berea",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 17,10-14"
+        ],
+        "event_summary_hu": "B?re?ban k?szs?ggel fogadj?k az ig?t, majd P?lt tov?bbk?s?rik.",
+        "certainty": "certain",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+      },
+      {
+        "order": 17,
+        "stop_id": "athens_second",
+        "place_id": "athens",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 17,15-34"
+        ],
+        "event_summary_hu": "Ath?nban P?l az Areop?goszon sz?l.",
+        "certainty": "certain",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+      },
+      {
+        "order": 18,
+        "stop_id": "corinth_second",
+        "place_id": "corinth",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 18,1-18"
+        ],
+        "event_summary_hu": "Korinthusban P?l hosszabb ideig szolg?l.",
+        "certainty": "certain",
+        "stop_type": "destination",
+        "source_notes_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+      },
+      {
+        "order": 19,
+        "stop_id": "cenchreae_second_departure",
+        "place_id": "cenchreae",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 18,18"
+        ],
+        "event_summary_hu": "Kenkre?ban P?l haj?ra sz?ll Sz?ria fel?.",
+        "certainty": "certain",
+        "stop_type": "embarkation",
+        "source_notes_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+      },
+      {
+        "order": 20,
+        "stop_id": "ephesus_second",
+        "place_id": "ephesus",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 18,19-21"
+        ],
+        "event_summary_hu": "Efezusban r?vid ideig vitatkozik a zsinag?g?ban, majd tov?bbindul.",
+        "certainty": "certain",
+        "stop_type": "disembarkation",
+        "source_notes_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+      },
+      {
+        "order": 21,
+        "stop_id": "caesarea_second_arrival",
+        "place_id": "caesarea",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 18,22"
+        ],
+        "event_summary_hu": "Caesare?ba ?rkezik a tengeri ?t v?g?n.",
+        "certainty": "certain",
+        "stop_type": "disembarkation",
+        "source_notes_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+      },
+      {
+        "order": 22,
+        "stop_id": "jerusalem_second_probable",
+        "place_id": "jerusalem",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 18,22"
+        ],
+        "event_summary_hu": "Felmegy ?s k?sz?nti a gy?lekezetet; a route ezt Jeruzs?lem val?sz?n? ?rtelmez?sek?nt jel?li.",
+        "certainty": "probable",
+        "stop_type": "inferred_stop",
+        "source_notes_hu": "Az ApCsel 18,22 nem nevezi meg k?zvetlen?l Jeruzs?lemet; a felmenetel ?s a gy?lekezet k?sz?nt?se alapj?n val?sz?n? ?rtelmez?s."
+      },
+      {
+        "order": 23,
+        "stop_id": "antioch_syria_second_return",
+        "place_id": "antioch_syria",
+        "place_name_override_hu": "sz?riai Anti?khia",
+        "passage_refs": [
+          "ApCsel 18,22"
+        ],
+        "event_summary_hu": "Ezut?n lemegy a sz?riai Anti?khi?ba.",
+        "certainty": "certain",
+        "stop_type": "return_stop",
+        "source_notes_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+      }
+    ],
+    "segments": [
+      {
+        "from_stop_id": "antioch_syria_second_departure",
+        "to_stop_id": "syria_second_transit",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus sz?razf?ldi kapcsolat k?t megnevezett ?llom?s vagy r?gi? k?z?tt; nem rekonstru?lt ?kori ?tvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "syria_second_transit",
+        "to_stop_id": "cilicia_second_transit",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus sz?razf?ldi kapcsolat k?t megnevezett ?llom?s vagy r?gi? k?z?tt; nem rekonstru?lt ?kori ?tvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "cilicia_second_transit",
+        "to_stop_id": "derbe_second",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus sz?razf?ldi kapcsolat k?t megnevezett ?llom?s vagy r?gi? k?z?tt; nem rekonstru?lt ?kori ?tvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "derbe_second",
+        "to_stop_id": "lystra_second",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus sz?razf?ldi kapcsolat k?t megnevezett ?llom?s vagy r?gi? k?z?tt; nem rekonstru?lt ?kori ?tvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "lystra_second",
+        "to_stop_id": "phrygia_second_transit",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus sz?razf?ldi kapcsolat k?t megnevezett ?llom?s vagy r?gi? k?z?tt; nem rekonstru?lt ?kori ?tvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "phrygia_second_transit",
+        "to_stop_id": "galatia_second_transit",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus sz?razf?ldi kapcsolat k?t megnevezett ?llom?s vagy r?gi? k?z?tt; nem rekonstru?lt ?kori ?tvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "galatia_second_transit",
+        "to_stop_id": "mysia_second_transit",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus sz?razf?ldi kapcsolat k?t megnevezett ?llom?s vagy r?gi? k?z?tt; nem rekonstru?lt ?kori ?tvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "mysia_second_transit",
+        "to_stop_id": "troas_second_departure",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus sz?razf?ldi kapcsolat k?t megnevezett ?llom?s vagy r?gi? k?z?tt; nem rekonstru?lt ?kori ?tvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "troas_second_departure",
+        "to_stop_id": "samothrace_second",
+        "certainty": "probable",
+        "segment_type": "sea",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus tengeri kapcsolat k?t megnevezett ?llom?s vagy r?gi? k?z?tt; nem rekonstru?lt ?kori haj?z?si ?tvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "samothrace_second",
+        "to_stop_id": "neapolis_second",
+        "certainty": "probable",
+        "segment_type": "sea",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus tengeri kapcsolat k?t megnevezett ?llom?s vagy r?gi? k?z?tt; nem rekonstru?lt ?kori haj?z?si ?tvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "neapolis_second",
+        "to_stop_id": "philippi_second",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus sz?razf?ldi kapcsolat k?t megnevezett ?llom?s vagy r?gi? k?z?tt; nem rekonstru?lt ?kori ?tvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "philippi_second",
+        "to_stop_id": "amphipolis_second",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus sz?razf?ldi kapcsolat k?t megnevezett ?llom?s vagy r?gi? k?z?tt; nem rekonstru?lt ?kori ?tvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "amphipolis_second",
+        "to_stop_id": "apollonia_second",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus sz?razf?ldi kapcsolat k?t megnevezett ?llom?s vagy r?gi? k?z?tt; nem rekonstru?lt ?kori ?tvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "apollonia_second",
+        "to_stop_id": "thessalonica_second",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus sz?razf?ldi kapcsolat k?t megnevezett ?llom?s vagy r?gi? k?z?tt; nem rekonstru?lt ?kori ?tvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "thessalonica_second",
+        "to_stop_id": "berea_second",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus sz?razf?ldi kapcsolat k?t megnevezett ?llom?s vagy r?gi? k?z?tt; nem rekonstru?lt ?kori ?tvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "berea_second",
+        "to_stop_id": "athens_second",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus sz?razf?ldi kapcsolat k?t megnevezett ?llom?s vagy r?gi? k?z?tt; nem rekonstru?lt ?kori ?tvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "athens_second",
+        "to_stop_id": "corinth_second",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus sz?razf?ldi kapcsolat k?t megnevezett ?llom?s vagy r?gi? k?z?tt; nem rekonstru?lt ?kori ?tvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "corinth_second",
+        "to_stop_id": "cenchreae_second_departure",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus sz?razf?ldi kapcsolat k?t megnevezett ?llom?s vagy r?gi? k?z?tt; nem rekonstru?lt ?kori ?tvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "cenchreae_second_departure",
+        "to_stop_id": "ephesus_second",
+        "certainty": "probable",
+        "segment_type": "sea",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus tengeri kapcsolat k?t megnevezett ?llom?s vagy r?gi? k?z?tt; nem rekonstru?lt ?kori haj?z?si ?tvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "ephesus_second",
+        "to_stop_id": "caesarea_second_arrival",
+        "certainty": "probable",
+        "segment_type": "sea",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus tengeri kapcsolat k?t megnevezett ?llom?s vagy r?gi? k?z?tt; nem rekonstru?lt ?kori haj?z?si ?tvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "caesarea_second_arrival",
+        "to_stop_id": "jerusalem_second_probable",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus sz?razf?ldi kapcsolat k?t megnevezett ?llom?s vagy r?gi? k?z?tt; nem rekonstru?lt ?kori ?tvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "jerusalem_second_probable",
+        "to_stop_id": "antioch_syria_second_return",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus sz?razf?ldi kapcsolat k?t megnevezett ?llom?s vagy r?gi? k?z?tt; nem rekonstru?lt ?kori ?tvonal.",
+        "waypoints": [],
+        "geometry": null
+      }
+    ]
+  },
+  {
+    "route_id": "paul_third_missionary_journey",
+    "name_hu": "P?l harmadik misszi?i ?tja",
+    "name_en": "Paul's third missionary journey",
+    "short_description_hu": "Az ?tvonal a bibliai sz?vegben megnevezett ?llom?sok sorrendj?t mutatja. A vonalak sematikusak, nem a pontos ?kori nyomvonalat jel?lik.",
+    "route_category": "missionary_journey",
+    "primary_passage_refs": [
+      "ApCsel 18,23-21,17"
+    ],
+    "chronology_label_hu": "P?l harmadik misszi?i ?tja",
+    "chronology_sort_key": 3,
+    "certainty": "mixed",
+    "geometry_status": "schematic",
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "review_status": "draft",
+    "review_notes_hu": "Az ?tvonal a megnevezett r?gi?kat ?s kik?t?ket k?veti. Maked?nia ?s Akh?ja region stopk?nt szerepel; Ciprus transit jelleg? t?j?koz?d?si pont.",
+    "evidence_model": {
+      "station_order_basis": "biblical_text_named_stops",
+      "historical_route_status": "not_reconstructed",
+      "map_geometry_status": "schematic",
+      "precision_note_hu": "A tengeri ?s sz?razf?ldi szakaszok sematikusak, nem rekonstru?lt ?kori ?tvonalak."
+    },
+    "stops": [
+      {
+        "order": 1,
+        "stop_id": "antioch_syria_third_departure",
+        "place_id": "antioch_syria",
+        "place_name_override_hu": "sz?riai Anti?khia",
+        "passage_refs": [
+          "ApCsel 18,23"
+        ],
+        "event_summary_hu": "P?l Anti?khi?b?l indul el, hogy sorra j?rja a tan?tv?nyokat.",
+        "certainty": "certain",
+        "stop_type": "embarkation",
+        "source_notes_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+      },
+      {
+        "order": 2,
+        "stop_id": "galatia_third_transit",
+        "place_id": "galatia",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 18,23"
+        ],
+        "event_summary_hu": "Gal?cia vid?k?n er?s?ti a tan?tv?nyokat.",
+        "certainty": "certain",
+        "stop_type": "region",
+        "source_notes_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+      },
+      {
+        "order": 3,
+        "stop_id": "phrygia_third_transit",
+        "place_id": "phrygia",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 18,23"
+        ],
+        "event_summary_hu": "Fr?gia vid?k?n is er?s?ti a tan?tv?nyokat.",
+        "certainty": "certain",
+        "stop_type": "region",
+        "source_notes_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+      },
+      {
+        "order": 4,
+        "stop_id": "ephesus_third",
+        "place_id": "ephesus",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 19,1-41"
+        ],
+        "event_summary_hu": "Efezusban P?l hosszabb ideig tan?t ?s szolg?l.",
+        "certainty": "certain",
+        "stop_type": "destination",
+        "source_notes_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+      },
+      {
+        "order": 5,
+        "stop_id": "macedonia_third_region",
+        "place_id": "macedonia",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 20,1-2"
+        ],
+        "event_summary_hu": "P?l Maked?ni?n ?tmegy, ?s b?tor?tja a tan?tv?nyokat.",
+        "certainty": "certain",
+        "stop_type": "region",
+        "source_notes_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+      },
+      {
+        "order": 6,
+        "stop_id": "greece_third_region",
+        "place_id": "achaia",
+        "place_name_override_hu": "G?r?gorsz?g / Akh?ja",
+        "passage_refs": [
+          "ApCsel 20,2-3"
+        ],
+        "event_summary_hu": "G?r?gorsz?gban, Akh?ja vid?k?n h?rom h?napot t?lt.",
+        "certainty": "certain",
+        "stop_type": "region",
+        "source_notes_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+      },
+      {
+        "order": 7,
+        "stop_id": "philippi_third_departure",
+        "place_id": "philippi",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 20,6"
+        ],
+        "event_summary_hu": "A kov?sztalan kenyerek napjai ut?n Filippib?l haj?znak el.",
+        "certainty": "certain",
+        "stop_type": "embarkation",
+        "source_notes_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+      },
+      {
+        "order": 8,
+        "stop_id": "troas_third",
+        "place_id": "troas",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 20,6-12"
+        ],
+        "event_summary_hu": "Tr??szban h?t napot t?ltenek, ?s P?l tan?tja a gy?lekezetet.",
+        "certainty": "certain",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+      },
+      {
+        "order": 9,
+        "stop_id": "assos_third",
+        "place_id": "assos",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 20,13-14"
+        ],
+        "event_summary_hu": "P?l gyalog megy Asszoszig, ahol t?rsai felveszik.",
+        "certainty": "certain",
+        "stop_type": "embarkation",
+        "source_notes_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+      },
+      {
+        "order": 10,
+        "stop_id": "mitylene_third",
+        "place_id": "mitylene",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 20,14"
+        ],
+        "event_summary_hu": "Mitil?n?be ?rkeznek.",
+        "certainty": "certain",
+        "stop_type": "transit",
+        "source_notes_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+      },
+      {
+        "order": 11,
+        "stop_id": "chios_third",
+        "place_id": "chios",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 20,15"
+        ],
+        "event_summary_hu": "Khiosz el?tt haladnak el.",
+        "certainty": "certain",
+        "stop_type": "transit",
+        "source_notes_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+      },
+      {
+        "order": 12,
+        "stop_id": "samos_third",
+        "place_id": "samos",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 20,15"
+        ],
+        "event_summary_hu": "Sz?moszhoz ?rnek.",
+        "certainty": "certain",
+        "stop_type": "transit",
+        "source_notes_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+      },
+      {
+        "order": 13,
+        "stop_id": "miletus_third",
+        "place_id": "miletus",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 20,15-38"
+        ],
+        "event_summary_hu": "Mil?toszban P?l mag?hoz h?vatja az efezusi v?neket.",
+        "certainty": "certain",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+      },
+      {
+        "order": 14,
+        "stop_id": "cos_third",
+        "place_id": "cos",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 21,1"
+        ],
+        "event_summary_hu": "K?szba ?rkeznek.",
+        "certainty": "certain",
+        "stop_type": "transit",
+        "source_notes_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+      },
+      {
+        "order": 15,
+        "stop_id": "rhodes_third",
+        "place_id": "rhodes_1",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 21,1"
+        ],
+        "event_summary_hu": "Rodoszra ?rkeznek.",
+        "certainty": "certain",
+        "stop_type": "transit",
+        "source_notes_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+      },
+      {
+        "order": 16,
+        "stop_id": "patara_third",
+        "place_id": "patara",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 21,1-2"
+        ],
+        "event_summary_hu": "Patar?ban f?n?ciai haj?t tal?lnak.",
+        "certainty": "certain",
+        "stop_type": "embarkation",
+        "source_notes_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+      },
+      {
+        "order": 17,
+        "stop_id": "cyprus_third_transit",
+        "place_id": "cyprus",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 21,3"
+        ],
+        "event_summary_hu": "Ciprust megl?tj?k, de bal k?z fel?l elhagyj?k; transit jelleg? ?llom?s.",
+        "certainty": "certain",
+        "stop_type": "transit",
+        "source_notes_hu": "A sz?veg Ciprust l?t?t?vols?gi/tengeri t?j?koz?d?si pontk?nt eml?ti, nem partrasz?ll?si ?llom?sk?nt."
+      },
+      {
+        "order": 18,
+        "stop_id": "tyre_third",
+        "place_id": "tyre",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 21,3-6"
+        ],
+        "event_summary_hu": "T?ruszban kirakj?k a haj? rakom?ny?t, ?s P?l tan?tv?nyokkal tal?lkozik.",
+        "certainty": "certain",
+        "stop_type": "disembarkation",
+        "source_notes_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+      },
+      {
+        "order": 19,
+        "stop_id": "ptolemais_third",
+        "place_id": "ptolemais",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 21,7"
+        ],
+        "event_summary_hu": "Ptolemaiszba ?rkeznek, ?s k?sz?ntik a testv?reket.",
+        "certainty": "certain",
+        "stop_type": "disembarkation",
+        "source_notes_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+      },
+      {
+        "order": 20,
+        "stop_id": "caesarea_third",
+        "place_id": "caesarea",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 21,8-14"
+        ],
+        "event_summary_hu": "Caesare?ban F?l?p h?z?ban tart?zkodnak.",
+        "certainty": "certain",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+      },
+      {
+        "order": 21,
+        "stop_id": "jerusalem_third_arrival",
+        "place_id": "jerusalem",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 21,15-17"
+        ],
+        "event_summary_hu": "Felmennek Jeruzs?lembe, ahol a testv?rek fogadj?k ?ket.",
+        "certainty": "certain",
+        "stop_type": "destination",
+        "source_notes_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+      }
+    ],
+    "segments": [
+      {
+        "from_stop_id": "antioch_syria_third_departure",
+        "to_stop_id": "galatia_third_transit",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus sz?razf?ldi kapcsolat k?t megnevezett ?llom?s vagy r?gi? k?z?tt; nem rekonstru?lt ?kori ?tvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "galatia_third_transit",
+        "to_stop_id": "phrygia_third_transit",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus sz?razf?ldi kapcsolat k?t megnevezett ?llom?s vagy r?gi? k?z?tt; nem rekonstru?lt ?kori ?tvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "phrygia_third_transit",
+        "to_stop_id": "ephesus_third",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus sz?razf?ldi kapcsolat k?t megnevezett ?llom?s vagy r?gi? k?z?tt; nem rekonstru?lt ?kori ?tvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "ephesus_third",
+        "to_stop_id": "macedonia_third_region",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus sz?razf?ldi kapcsolat k?t megnevezett ?llom?s vagy r?gi? k?z?tt; nem rekonstru?lt ?kori ?tvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "macedonia_third_region",
+        "to_stop_id": "greece_third_region",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus sz?razf?ldi kapcsolat k?t megnevezett ?llom?s vagy r?gi? k?z?tt; nem rekonstru?lt ?kori ?tvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "greece_third_region",
+        "to_stop_id": "philippi_third_departure",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus sz?razf?ldi kapcsolat k?t megnevezett ?llom?s vagy r?gi? k?z?tt; nem rekonstru?lt ?kori ?tvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "philippi_third_departure",
+        "to_stop_id": "troas_third",
+        "certainty": "probable",
+        "segment_type": "sea",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus tengeri kapcsolat k?t megnevezett ?llom?s vagy r?gi? k?z?tt; nem rekonstru?lt ?kori haj?z?si ?tvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "troas_third",
+        "to_stop_id": "assos_third",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus sz?razf?ldi kapcsolat k?t megnevezett ?llom?s vagy r?gi? k?z?tt; nem rekonstru?lt ?kori ?tvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "assos_third",
+        "to_stop_id": "mitylene_third",
+        "certainty": "probable",
+        "segment_type": "sea",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus tengeri kapcsolat k?t megnevezett ?llom?s vagy r?gi? k?z?tt; nem rekonstru?lt ?kori haj?z?si ?tvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "mitylene_third",
+        "to_stop_id": "chios_third",
+        "certainty": "probable",
+        "segment_type": "sea",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus tengeri kapcsolat k?t megnevezett ?llom?s vagy r?gi? k?z?tt; nem rekonstru?lt ?kori haj?z?si ?tvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "chios_third",
+        "to_stop_id": "samos_third",
+        "certainty": "probable",
+        "segment_type": "sea",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus tengeri kapcsolat k?t megnevezett ?llom?s vagy r?gi? k?z?tt; nem rekonstru?lt ?kori haj?z?si ?tvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "samos_third",
+        "to_stop_id": "miletus_third",
+        "certainty": "probable",
+        "segment_type": "sea",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus tengeri kapcsolat k?t megnevezett ?llom?s vagy r?gi? k?z?tt; nem rekonstru?lt ?kori haj?z?si ?tvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "miletus_third",
+        "to_stop_id": "cos_third",
+        "certainty": "probable",
+        "segment_type": "sea",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus tengeri kapcsolat k?t megnevezett ?llom?s vagy r?gi? k?z?tt; nem rekonstru?lt ?kori haj?z?si ?tvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "cos_third",
+        "to_stop_id": "rhodes_third",
+        "certainty": "probable",
+        "segment_type": "sea",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus tengeri kapcsolat k?t megnevezett ?llom?s vagy r?gi? k?z?tt; nem rekonstru?lt ?kori haj?z?si ?tvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "rhodes_third",
+        "to_stop_id": "patara_third",
+        "certainty": "probable",
+        "segment_type": "sea",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus tengeri kapcsolat k?t megnevezett ?llom?s vagy r?gi? k?z?tt; nem rekonstru?lt ?kori haj?z?si ?tvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "patara_third",
+        "to_stop_id": "cyprus_third_transit",
+        "certainty": "probable",
+        "segment_type": "sea",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus tengeri kapcsolat k?t megnevezett ?llom?s vagy r?gi? k?z?tt; nem rekonstru?lt ?kori haj?z?si ?tvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "cyprus_third_transit",
+        "to_stop_id": "tyre_third",
+        "certainty": "probable",
+        "segment_type": "sea",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus tengeri kapcsolat k?t megnevezett ?llom?s vagy r?gi? k?z?tt; nem rekonstru?lt ?kori haj?z?si ?tvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "tyre_third",
+        "to_stop_id": "ptolemais_third",
+        "certainty": "probable",
+        "segment_type": "sea",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus tengeri kapcsolat k?t megnevezett ?llom?s vagy r?gi? k?z?tt; nem rekonstru?lt ?kori haj?z?si ?tvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "ptolemais_third",
+        "to_stop_id": "caesarea_third",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus sz?razf?ldi kapcsolat k?t megnevezett ?llom?s vagy r?gi? k?z?tt; nem rekonstru?lt ?kori ?tvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "caesarea_third",
+        "to_stop_id": "jerusalem_third_arrival",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus sz?razf?ldi kapcsolat k?t megnevezett ?llom?s vagy r?gi? k?z?tt; nem rekonstru?lt ?kori ?tvonal.",
+        "waypoints": [],
+        "geometry": null
+      }
+    ]
+  },
+  {
+    "route_id": "paul_journey_to_rome",
+    "name_hu": "P?l ?tja Jeruzs?lemb?l R?m?ba",
+    "name_en": "Paul's journey from Jerusalem to Rome",
+    "short_description_hu": "Az ?tvonal a bibliai sz?vegben megnevezett ?llom?sok sorrendj?t mutatja. A vonalak sematikusak, nem a pontos ?kori nyomvonalat jel?lik.",
+    "route_category": "other",
+    "primary_passage_refs": [
+      "ApCsel 21,17-28,31"
+    ],
+    "chronology_label_hu": "P?l ?tja Jeruzs?lemb?l R?m?ba",
+    "chronology_sort_key": 4,
+    "certainty": "mixed",
+    "geometry_status": "schematic",
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "review_status": "draft",
+    "review_notes_hu": "A t?nyleges utaz?si ?llom?sok f?k?nt az ApCsel 23,23-28,16 szakasz?b?l sz?rmaznak. Antipatrisz az akt?v Af?k/Aphek 2 rekord megjelen?t?si override-ja; Adria region/transit stop.",
+    "evidence_model": {
+      "station_order_basis": "biblical_text_named_stops",
+      "historical_route_status": "not_reconstructed",
+      "map_geometry_status": "schematic",
+      "precision_note_hu": "A haj??t ?s a sz?razf?ldi szakaszok vonalai sematikusak; nem modern ?tvonaltervez?st vagy pontos ?kori nyomvonalat jelentenek."
+    },
+    "stops": [
+      {
+        "order": 1,
+        "stop_id": "jerusalem_rome_departure",
+        "place_id": "jerusalem",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 21,17-23,22"
+        ],
+        "event_summary_hu": "P?l Jeruzs?lemben ker?l ?rizetbe, majd a tov?bbsz?ll?t?s el?k?sz?t?se megt?rt?nik.",
+        "certainty": "certain",
+        "stop_type": "embarkation",
+        "source_notes_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+      },
+      {
+        "order": 2,
+        "stop_id": "antipatris_rome",
+        "place_id": "aphek_2",
+        "place_name_override_hu": "Antipatrisz",
+        "passage_refs": [
+          "ApCsel 23,23-31"
+        ],
+        "event_summary_hu": "Az ?jszakai k?s?ret Antipatriszig viszi P?lt.",
+        "certainty": "certain",
+        "stop_type": "transit",
+        "source_notes_hu": "A katal?gus akt?v rekordja Af?k/Aphek 2; a route megjelen?t?si n?vk?nt Antipatriszt haszn?l."
+      },
+      {
+        "order": 3,
+        "stop_id": "caesarea_rome",
+        "place_id": "caesarea",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 23,33-26,32"
+        ],
+        "event_summary_hu": "Caesare?ban P?l helytart?i kihallgat?sok ?s fogs?g alatt marad.",
+        "certainty": "certain",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+      },
+      {
+        "order": 4,
+        "stop_id": "sidon_rome",
+        "place_id": "sidon",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 27,3"
+        ],
+        "event_summary_hu": "Szid?nban P?l megl?togathatja bar?tait.",
+        "certainty": "certain",
+        "stop_type": "disembarkation",
+        "source_notes_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+      },
+      {
+        "order": 5,
+        "stop_id": "cyprus_rome_transit",
+        "place_id": "cyprus",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 27,4"
+        ],
+        "event_summary_hu": "Ciprus alatt haj?znak el az ellensz?l miatt.",
+        "certainty": "certain",
+        "stop_type": "transit",
+        "source_notes_hu": "Transit jelleg? tengeri t?j?koz?d?si pont; nem partrasz?ll?si ?llom?s."
+      },
+      {
+        "order": 6,
+        "stop_id": "myra_rome",
+        "place_id": "myra",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 27,5-6"
+        ],
+        "event_summary_hu": "M?r?ban a sz?zados alexandriai haj?ra ?lteti P?lt.",
+        "certainty": "certain",
+        "stop_type": "embarkation",
+        "source_notes_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+      },
+      {
+        "order": 7,
+        "stop_id": "cnidus_rome",
+        "place_id": "cnidus",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 27,7"
+        ],
+        "event_summary_hu": "Knidosz k?zel?be ?rnek neh?z haj?z?ssal.",
+        "certainty": "certain",
+        "stop_type": "transit",
+        "source_notes_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+      },
+      {
+        "order": 8,
+        "stop_id": "crete_rome_transit",
+        "place_id": "crete",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 27,7"
+        ],
+        "event_summary_hu": "Kr?ta alatt haj?znak el Szalm?n? mellett.",
+        "certainty": "certain",
+        "stop_type": "transit",
+        "source_notes_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+      },
+      {
+        "order": 9,
+        "stop_id": "fair_havens_rome",
+        "place_id": "fair_havens",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 27,8-12"
+        ],
+        "event_summary_hu": "Sz?p Kik?t?kbe jutnak, L?szea k?zel?be.",
+        "certainty": "certain",
+        "stop_type": "disembarkation",
+        "source_notes_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+      },
+      {
+        "order": 10,
+        "stop_id": "lasea_rome",
+        "place_id": "lasea",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 27,8"
+        ],
+        "event_summary_hu": "L?szea a Sz?p Kik?t?k k?zeli helyek?nt szerepel.",
+        "certainty": "certain",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+      },
+      {
+        "order": 11,
+        "stop_id": "cauda_rome",
+        "place_id": "cauda",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 27,16"
+        ],
+        "event_summary_hu": "Kauda alatt futva nehezen tudj?k megtartani a cs?nakot.",
+        "certainty": "certain",
+        "stop_type": "transit",
+        "source_notes_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+      },
+      {
+        "order": 12,
+        "stop_id": "adriatic_sea_rome",
+        "place_id": "adriatic_sea",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 27,27"
+        ],
+        "event_summary_hu": "Az ?kori Adria t?rs?g?ben h?ny?dnak a tengeren.",
+        "certainty": "certain",
+        "stop_type": "region",
+        "source_notes_hu": "Region/transit stop: az ?kori f?ldrajzi fogalmat jel?li, nem modern pontos koordin?t?t."
+      },
+      {
+        "order": 13,
+        "stop_id": "malta_rome",
+        "place_id": "malta",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 28,1-10"
+        ],
+        "event_summary_hu": "A haj?t?r?s ut?n M?lt?n fogadj?k ?ket.",
+        "certainty": "certain",
+        "stop_type": "disembarkation",
+        "source_notes_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+      },
+      {
+        "order": 14,
+        "stop_id": "syracuse_rome",
+        "place_id": "syracuse",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 28,12"
+        ],
+        "event_summary_hu": "Szirak?z?ban h?rom napig maradnak.",
+        "certainty": "certain",
+        "stop_type": "transit",
+        "source_notes_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+      },
+      {
+        "order": 15,
+        "stop_id": "rhegium_rome",
+        "place_id": "rhegium",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 28,13"
+        ],
+        "event_summary_hu": "R?giumba jutnak.",
+        "certainty": "certain",
+        "stop_type": "transit",
+        "source_notes_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+      },
+      {
+        "order": 16,
+        "stop_id": "puteoli_rome",
+        "place_id": "puteoli",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 28,13-14"
+        ],
+        "event_summary_hu": "Puteoliban testv?reket tal?lnak, ?s h?t napig maradnak.",
+        "certainty": "certain",
+        "stop_type": "disembarkation",
+        "source_notes_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+      },
+      {
+        "order": 17,
+        "stop_id": "forum_of_appius_rome",
+        "place_id": "forum_of_appius",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 28,15"
+        ],
+        "event_summary_hu": "A r?mai testv?rek Appius f?rum?ig el?j?k j?nnek.",
+        "certainty": "certain",
+        "stop_type": "transit",
+        "source_notes_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+      },
+      {
+        "order": 18,
+        "stop_id": "three_taverns_rome",
+        "place_id": "three_taverns",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 28,15"
+        ],
+        "event_summary_hu": "M?sok a H?rom fogad?ig mennek el?j?k.",
+        "certainty": "certain",
+        "stop_type": "transit",
+        "source_notes_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+      },
+      {
+        "order": 19,
+        "stop_id": "rome_destination",
+        "place_id": "rome",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "ApCsel 28,16-31"
+        ],
+        "event_summary_hu": "R?m?ba ?rkeznek, ahol P?l ?rizet alatt, de szolg?lati lehet?s?ggel marad.",
+        "certainty": "certain",
+        "stop_type": "destination",
+        "source_notes_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+      }
+    ],
+    "segments": [
+      {
+        "from_stop_id": "jerusalem_rome_departure",
+        "to_stop_id": "antipatris_rome",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus sz?razf?ldi kapcsolat k?t megnevezett ?llom?s vagy r?gi? k?z?tt; nem rekonstru?lt ?kori ?tvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "antipatris_rome",
+        "to_stop_id": "caesarea_rome",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus sz?razf?ldi kapcsolat k?t megnevezett ?llom?s vagy r?gi? k?z?tt; nem rekonstru?lt ?kori ?tvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "caesarea_rome",
+        "to_stop_id": "sidon_rome",
+        "certainty": "probable",
+        "segment_type": "sea",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus tengeri kapcsolat k?t megnevezett ?llom?s vagy r?gi? k?z?tt; nem rekonstru?lt ?kori haj?z?si ?tvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "sidon_rome",
+        "to_stop_id": "cyprus_rome_transit",
+        "certainty": "probable",
+        "segment_type": "sea",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus tengeri kapcsolat k?t megnevezett ?llom?s vagy r?gi? k?z?tt; nem rekonstru?lt ?kori haj?z?si ?tvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "cyprus_rome_transit",
+        "to_stop_id": "myra_rome",
+        "certainty": "probable",
+        "segment_type": "sea",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus tengeri kapcsolat k?t megnevezett ?llom?s vagy r?gi? k?z?tt; nem rekonstru?lt ?kori haj?z?si ?tvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "myra_rome",
+        "to_stop_id": "cnidus_rome",
+        "certainty": "probable",
+        "segment_type": "sea",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus tengeri kapcsolat k?t megnevezett ?llom?s vagy r?gi? k?z?tt; nem rekonstru?lt ?kori haj?z?si ?tvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "cnidus_rome",
+        "to_stop_id": "crete_rome_transit",
+        "certainty": "probable",
+        "segment_type": "sea",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus tengeri kapcsolat k?t megnevezett ?llom?s vagy r?gi? k?z?tt; nem rekonstru?lt ?kori haj?z?si ?tvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "crete_rome_transit",
+        "to_stop_id": "fair_havens_rome",
+        "certainty": "probable",
+        "segment_type": "sea",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus tengeri kapcsolat k?t megnevezett ?llom?s vagy r?gi? k?z?tt; nem rekonstru?lt ?kori haj?z?si ?tvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "fair_havens_rome",
+        "to_stop_id": "lasea_rome",
+        "certainty": "probable",
+        "segment_type": "sea",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus tengeri kapcsolat k?t megnevezett ?llom?s vagy r?gi? k?z?tt; nem rekonstru?lt ?kori haj?z?si ?tvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "lasea_rome",
+        "to_stop_id": "cauda_rome",
+        "certainty": "probable",
+        "segment_type": "sea",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus tengeri kapcsolat k?t megnevezett ?llom?s vagy r?gi? k?z?tt; nem rekonstru?lt ?kori haj?z?si ?tvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "cauda_rome",
+        "to_stop_id": "adriatic_sea_rome",
+        "certainty": "probable",
+        "segment_type": "sea",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus tengeri kapcsolat k?t megnevezett ?llom?s vagy r?gi? k?z?tt; nem rekonstru?lt ?kori haj?z?si ?tvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "adriatic_sea_rome",
+        "to_stop_id": "malta_rome",
+        "certainty": "probable",
+        "segment_type": "sea",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus tengeri kapcsolat k?t megnevezett ?llom?s vagy r?gi? k?z?tt; nem rekonstru?lt ?kori haj?z?si ?tvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "malta_rome",
+        "to_stop_id": "syracuse_rome",
+        "certainty": "probable",
+        "segment_type": "sea",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus tengeri kapcsolat k?t megnevezett ?llom?s vagy r?gi? k?z?tt; nem rekonstru?lt ?kori haj?z?si ?tvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "syracuse_rome",
+        "to_stop_id": "rhegium_rome",
+        "certainty": "probable",
+        "segment_type": "sea",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus tengeri kapcsolat k?t megnevezett ?llom?s vagy r?gi? k?z?tt; nem rekonstru?lt ?kori haj?z?si ?tvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "rhegium_rome",
+        "to_stop_id": "puteoli_rome",
+        "certainty": "probable",
+        "segment_type": "sea",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus tengeri kapcsolat k?t megnevezett ?llom?s vagy r?gi? k?z?tt; nem rekonstru?lt ?kori haj?z?si ?tvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "puteoli_rome",
+        "to_stop_id": "forum_of_appius_rome",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus sz?razf?ldi kapcsolat k?t megnevezett ?llom?s vagy r?gi? k?z?tt; nem rekonstru?lt ?kori ?tvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "forum_of_appius_rome",
+        "to_stop_id": "three_taverns_rome",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus sz?razf?ldi kapcsolat k?t megnevezett ?llom?s vagy r?gi? k?z?tt; nem rekonstru?lt ?kori ?tvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "three_taverns_rome",
+        "to_stop_id": "rome_destination",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus sz?razf?ldi kapcsolat k?t megnevezett ?llom?s vagy r?gi? k?z?tt; nem rekonstru?lt ?kori ?tvonal.",
+        "waypoints": [],
+        "geometry": null
+      }
+    ]
   }
 ]

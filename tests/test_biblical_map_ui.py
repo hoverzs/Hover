@@ -68,7 +68,7 @@ from biblical_map_ui import (
     selected_place_for_session,
     switch_to_route_view_for_passage,
 )
-from biblical_routes import load_biblical_routes
+from biblical_routes import load_biblical_routes, route_options
 from biblical_map_passages import (
     BIBLICAL_PASSAGE_PLACE_LINKS,
     MAP_LAST_PROCESSED_REFERENCE_KEY,
@@ -611,9 +611,10 @@ def test_render_auto_selects_linked_place_and_shows_status() -> None:
 
     assert fake_st.session_state[SELECTED_PLACE_ID_KEY] == "corinth"
     assert fake_st.session_state[MAP_SELECTION_SOURCE_KEY] == MAP_SELECTION_SOURCE_AUTO
-    assert fake_st.infos == [
+    assert (
         "A helyszín a megadott igerész alapján automatikusan lett kiválasztva: Korinthus."
-    ]
+        in fake_st.infos
+    )
     passage_boxes = [
         (label, options)
         for label, options, *_ in fake_st.selectboxes
@@ -1330,6 +1331,32 @@ def test_passage_to_route_index_matches_acts_13_and_14() -> None:
     assert unrelated == {}
 
 
+def test_passage_to_route_index_matches_new_pauline_routes() -> None:
+    acts_16 = route_matches_for_passage("ApCsel 16")
+    acts_17 = route_matches_for_passage("ApCsel 17")
+    acts_18_early = route_matches_for_passage("ApCsel 18,1-18")
+    acts_18_late = route_matches_for_passage("ApCsel 18,23")
+    acts_19 = route_matches_for_passage("ApCsel 19")
+    acts_20 = route_matches_for_passage("ApCsel 20")
+    acts_21_early = route_matches_for_passage("ApCsel 21,1-16")
+    acts_21_late = route_matches_for_passage("ApCsel 21,18-40")
+    acts_27 = route_matches_for_passage("ApCsel 27")
+    acts_28 = route_matches_for_passage("ApCsel 28")
+
+    assert "paul_second_missionary_journey" in acts_16
+    assert "paul_second_missionary_journey" in acts_17
+    assert "paul_second_missionary_journey" in acts_18_early
+    assert "paul_third_missionary_journey" not in acts_18_early
+    assert "paul_third_missionary_journey" in acts_18_late
+    assert "paul_third_missionary_journey" in acts_19
+    assert "paul_third_missionary_journey" in acts_20
+    assert "paul_third_missionary_journey" in acts_21_early
+    assert "paul_journey_to_rome" not in acts_21_early
+    assert "paul_journey_to_rome" in acts_21_late
+    assert "paul_journey_to_rome" in acts_27
+    assert "paul_journey_to_rome" in acts_28
+
+
 def test_partial_passage_overlap_links_to_route_stop() -> None:
     matches = route_matches_for_passage("ApCsel 13,4")
 
@@ -1386,6 +1413,40 @@ def test_render_route_view_loads_first_missionary_journey() -> None:
         assert fake_st.pydeck_charts[-1][1]["use_container_width"] is True
         assert fake_st.pydeck_charts[-1][1]["height"] == 520
     assert fake_st.columns_calls == []
+
+
+def test_route_selector_lists_all_pauline_routes() -> None:
+    assert route_options() == [
+        "paul_first_missionary_journey",
+        "paul_second_missionary_journey",
+        "paul_third_missionary_journey",
+        "paul_journey_to_rome",
+    ]
+
+    fake_st = _FakeStreamlit()
+    fake_st.session_state[ACTIVE_MAP_VIEW_KEY] = MAP_VIEW_ROUTES
+
+    render_biblical_map_prototype(st_module=fake_st)
+
+    route_box = next(
+        (box for box in fake_st.selectboxes if box[0] == "Útvonal kiválasztása"),
+        None,
+    )
+    assert route_box is not None
+    assert route_box[1] == route_options()
+
+
+def test_route_switch_resets_station_selection_to_new_route() -> None:
+    fake_st = _FakeStreamlit()
+    fake_st.session_state[ACTIVE_MAP_VIEW_KEY] = MAP_VIEW_ROUTES
+    fake_st.session_state[SELECTED_ROUTE_ID_KEY] = "paul_journey_to_rome"
+    fake_st.session_state[SELECTED_ROUTE_STOP_ID_KEY] = "lystra_return"
+
+    render_biblical_map_prototype(st_module=fake_st)
+
+    assert fake_st.session_state[SELECTED_ROUTE_ID_KEY] == "paul_journey_to_rome"
+    assert fake_st.session_state[SELECTED_ROUTE_STOP_ID_KEY] == "jerusalem_rome_departure"
+    assert fake_st.pydeck_charts or fake_st.maps
 
 
 def test_route_view_handles_missing_route_data_gracefully() -> None:
