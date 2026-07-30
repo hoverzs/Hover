@@ -503,6 +503,44 @@ def route_segment_rows(
     return rows
 
 
+def _valid_route_path(value: Any) -> bool:
+    return (
+        isinstance(value, list)
+        and len(value) >= 2
+        and all(
+            isinstance(point, list)
+            and len(point) == 2
+            and all(isinstance(coordinate, (int, float)) for coordinate in point)
+            for point in value
+        )
+    )
+
+
+def route_line_rows(segment_rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for segment in segment_rows:
+        curved_path = segment.get("path")
+        straight_path = segment.get("straight_path")
+        if _valid_route_path(curved_path):
+            render_path = curved_path
+            geometry_source = "curved"
+        elif _valid_route_path(straight_path):
+            render_path = straight_path
+            geometry_source = "fallback_straight"
+        else:
+            continue
+        rows.append(
+            {
+                key: value
+                for key, value in segment.items()
+                if key not in {"path", "straight_path"}
+            }
+        )
+        rows[-1]["render_path"] = render_path
+        rows[-1]["geometry_source"] = geometry_source
+    return rows
+
+
 def route_viewport(rows: list[dict[str, Any]]) -> dict[str, float]:
     if not rows:
         return {"latitude": 0.0, "longitude": 0.0, "zoom": 1.0}
@@ -1109,12 +1147,13 @@ def _render_route_map(
         import pydeck as pdk  # type: ignore
 
         layers = []
-        if segment_rows:
+        line_rows = route_line_rows(segment_rows)
+        if line_rows:
             layers.append(
                 pdk.Layer(
                     "PathLayer",
-                    data=segment_rows,
-                    get_path="path",
+                    data=line_rows,
+                    get_path="render_path",
                     get_color="color",
                     get_width="width",
                     width_min_pixels=2,
@@ -1434,6 +1473,7 @@ __all__ = [
     "resolve_selected_place_id",
     "route_matches_for_passage",
     "route_curve_profile",
+    "route_line_rows",
     "route_segment_rows",
     "schematic_segment_path",
     "route_stop_display_name",

@@ -61,6 +61,7 @@ from biblical_map_ui import (
     render_biblical_map_prototype,
     resolve_selected_place_id,
     route_curve_profile,
+    route_line_rows,
     route_matches_for_passage,
     route_segment_rows,
     route_stop_rows,
@@ -1319,6 +1320,46 @@ def test_route_segment_paths_are_deterministic_curves_without_mutating_stop_coor
     assert any(row["path"] != row["straight_path"] for row in segment_rows)
     assert all(row["straight_path"][0] == row["path"][0] for row in segment_rows)
     assert all(row["straight_path"][-1] == row["path"][-1] for row in segment_rows)
+
+
+def test_route_line_rows_render_exactly_one_geometry_per_segment() -> None:
+    route = load_biblical_routes()[0]
+    segment_rows = route_segment_rows(route)
+    line_rows = route_line_rows(segment_rows)
+
+    assert len(segment_rows) == 14
+    assert len(line_rows) == 14
+    assert all("render_path" in row for row in line_rows)
+    assert all("path" not in row and "straight_path" not in row for row in line_rows)
+    assert all(row["geometry_source"] == "curved" for row in line_rows)
+    assert all(row["render_path"][0] == source["straight_path"][0] for row, source in zip(line_rows, segment_rows))
+    assert all(row["render_path"][-1] == source["straight_path"][-1] for row, source in zip(line_rows, segment_rows))
+
+
+def test_route_line_rows_use_single_straight_fallback_when_curved_path_is_unavailable() -> None:
+    route = load_biblical_routes()[0]
+    segment_rows = route_segment_rows(route)
+    broken = [dict(row) for row in segment_rows]
+    broken[0]["path"] = None
+    line_rows = route_line_rows(broken)
+
+    assert len(line_rows) == len(segment_rows)
+    assert line_rows[0]["geometry_source"] == "fallback_straight"
+    assert line_rows[0]["render_path"] == segment_rows[0]["straight_path"]
+    assert "path" not in line_rows[0] and "straight_path" not in line_rows[0]
+    assert all(row["geometry_source"] == "curved" for row in line_rows[1:])
+
+
+def test_all_pauline_routes_produce_one_route_line_per_segment() -> None:
+    for route in load_biblical_routes():
+        segment_rows = route_segment_rows(route)
+        line_rows = route_line_rows(segment_rows)
+
+        assert len(line_rows) == len(route.segments)
+        assert len(line_rows) == len(segment_rows)
+        assert {row["segment_type"] for row in line_rows} <= {"land", "sea"}
+        assert {row["line_style"] for row in line_rows} <= {"solid", "dashed"}
+        assert all(row["render_path"][0] != row["render_path"][-1] for row in line_rows)
 
 
 def test_route_segment_curve_profiles_separate_land_sea_and_return_paths() -> None:
