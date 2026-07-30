@@ -11,7 +11,10 @@ if str(ROOT) not in sys.path:
 from scripts.build_place_enrichment_research import (  # noqa: E402
     ALL_SECTIONS,
     ACCEPTED_SOURCE_CATEGORIES,
+    SOURCE_STRENGTH_CLASSES,
     build_packets,
+    section_meets_threshold,
+    section_source_backed,
 )
 
 DATA_DIR = ROOT / "data" / "biblical_places"
@@ -27,6 +30,15 @@ COVERAGE_REPORT_PATH = RESEARCH_DIR / "batch_001_coverage_report.json"
 READY_FOR_DRAFTING_PATH = RESEARCH_DIR / "batch_001_ready_for_drafting.json"
 RESEARCH_BLOCKED_PATH = RESEARCH_DIR / "batch_001_research_blocked.json"
 CACHE_PATH = RESEARCH_DIR / "cache" / "batch_001_research_cache.json"
+INTEGRITY_AUDIT_PATH = RESEARCH_DIR / "batch_001_evidence_integrity_audit.json"
+SOURCE_VALIDATION_PATH = RESEARCH_DIR / "batch_001_source_validation_report.json"
+ACQUISITION_QUEUE_PATH = RESEARCH_DIR / "batch_001_source_acquisition_queue.json"
+STRICT_COVERAGE_PATH = RESEARCH_DIR / "batch_001_strict_coverage_report.json"
+BIBLICAL_DRAFT_READY_PATH = RESEARCH_DIR / "batch_001_biblical_draft_ready.json"
+PARTIAL_PROFILE_READY_PATH = RESEARCH_DIR / "batch_001_partial_profile_ready.json"
+SOURCE_BACKED_READY_PATH = RESEARCH_DIR / "batch_001_source_backed_ready.json"
+FEATURED_CANDIDATES_PATH = RESEARCH_DIR / "batch_001_featured_candidates.json"
+PLACE_ENRICHMENTS_PATH = DATA_DIR / "place_enrichments.json"
 
 REUSE_STATUSES = {"approved", "citation_only", "blocked"}
 RELIABILITY_STATUSES = {"high", "medium", "low", "unknown"}
@@ -38,6 +50,13 @@ EVIDENCE_TYPES = {
     "structured_metadata",
 }
 CONFIDENCE_VALUES = {"high", "medium", "low"}
+VALIDATION_STATUSES = {
+    "approved",
+    "citation_only",
+    "metadata_only",
+    "unclear",
+    "rejected",
+}
 
 
 def _read(path: Path):
@@ -49,6 +68,7 @@ def test_research_outputs_match_first_batch_manifest() -> None:
     packets = _read(EVIDENCE_PACKETS_PATH)
     report = _read(COVERAGE_REPORT_PATH)
     ready = _read(READY_FOR_DRAFTING_PATH)
+    biblical = _read(BIBLICAL_DRAFT_READY_PATH)
 
     manifest_ids = [row["place_id"] for row in manifest]
     packet_ids = [packet["place_id"] for packet in packets]
@@ -57,7 +77,10 @@ def test_research_outputs_match_first_batch_manifest() -> None:
     assert len(packets) == 50
     assert packet_ids == manifest_ids
     assert report["summary"]["place_count"] == 50
-    assert report["summary"]["ready_for_drafting_count"] == 50
+    assert report["summary"]["biblical_draft_ready_count"] == 50
+    assert report["summary"]["ready_for_source_backed_count"] == 0
+    assert report["summary"]["source_backed_profile_ready_count"] == 0
+    assert len(biblical) == 50
     assert len(ready) <= 20
 
 
@@ -84,7 +107,7 @@ def test_source_candidates_are_unique_reviewable_sources() -> None:
             assert candidate["url_or_identifier"].startswith("https://")
 
 
-def test_evidence_packets_have_valid_references_and_no_final_enrichment_text() -> None:
+def test_evidence_packets_have_strength_classes_and_valid_references() -> None:
     candidates = _read(SOURCE_CANDIDATES_PATH)
     packets = _read(EVIDENCE_PACKETS_PATH)
     registry = _read(SOURCE_REGISTRY_PATH)
@@ -93,18 +116,112 @@ def test_evidence_packets_have_valid_references_and_no_final_enrichment_text() -
 
     for packet in packets:
         assert set(packet["section_evidence"]) == set(ALL_SECTIONS)
-        assert packet["ready_for_drafting"] is True
+        assert packet["biblical_draft_ready"] is True
+        assert packet["source_backed_profile_ready"] is False
         assert "profile_group_id" in packet["record_context"]
         for section_items in packet["section_evidence"].values():
             for item in section_items:
                 assert item["evidence_type"] in EVIDENCE_TYPES
                 assert item["confidence"] in CONFIDENCE_VALUES
+                assert item["source_strength_class"] in SOURCE_STRENGTH_CLASSES
                 assert isinstance(item["usable_for_drafting"], bool)
+                if item["source_strength_class"] == "G_unsupported":
+                    assert item["usable_for_drafting"] is False
                 assert item["candidate_id"] is None or item["candidate_id"] in candidate_ids
                 assert item["approved_source_id"] is None or item["approved_source_id"] in approved_source_ids
                 assert item["candidate_id"] or item["approved_source_id"]
                 assert item["claim_hu"]
                 assert "kész adatlap" not in item["claim_hu"].casefold()
+                assert "mi gener" not in item["claim_hu"].casefold()
+
+
+def test_ab_only_profiles_cannot_be_source_backed_or_featured() -> None:
+    packets = _read(EVIDENCE_PACKETS_PATH)
+    strict = _read(STRICT_COVERAGE_PATH)["summary"]
+
+    for place_id in strict["places_only_a_plus_b_evidence"]:
+        packet = next(item for item in packets if item["place_id"] == place_id)
+        assert packet["source_backed_profile_ready"] is False
+        assert packet["featured_candidate"] is False
+
+    assert strict["source_backed_profile_ready_count"] == 0
+    assert strict["featured_candidate_count"] == 0
+    assert len(strict["places_only_a_plus_b_evidence"]) >= 40
+
+
+def test_section_thresholds_reject_openbible_for_history_and_archaeology() -> None:
+    openbible_only = [
+        {
+            "usable_for_drafting": True,
+            "source_strength_class": "A_biblical_primary",
+            "passage_refs": ["ApCsel 1,1"],
+            "record_specific": True,
+        }
+    ]
+    gazetteer_only = [
+        {
+            "usable_for_drafting": True,
+            "source_strength_class": "B_structured_gazetteer",
+            "passage_refs": [],
+            "record_specific": True,
+        }
+    ]
+    institutional = [
+        {
+            "usable_for_drafting": True,
+            "source_strength_class": "C_external_institutional",
+            "passage_refs": [],
+            "record_specific": True,
+        }
+    ]
+
+    ok_hist, _ = section_meets_threshold("historical_context", openbible_only)
+    ok_arch, _ = section_meets_threshold("archaeology", gazetteer_only)
+    ok_arch_c, _ = section_meets_threshold("archaeology", institutional)
+    assert ok_hist is False
+    assert ok_arch is False
+    assert ok_arch_c is True
+    assert section_source_backed("historical_context", openbible_only) is False
+    assert section_source_backed("archaeology", institutional) is True
+
+
+def test_source_validation_and_promotion_rules() -> None:
+    validations = _read(SOURCE_VALIDATION_PATH)
+    registry = _read(SOURCE_REGISTRY_PATH)
+    report = _read(COVERAGE_REPORT_PATH)
+    registry_ids = {source["source_id"] for source in registry}
+
+    assert validations
+    for row in validations:
+        assert row["validation_status"] in VALIDATION_STATUSES
+        if row.get("url_or_identifier"):
+            assert row["url_format_ok"] is True
+            assert str(row["url_or_identifier"]).startswith("https://")
+
+    assert "unesco_tyre_299" in registry_ids
+    assert "unesco_ancient_thebes_87" in registry_ids
+    assert "unesco_jerusalem_148" in registry_ids
+    assert "unesco_petra_326" in registry_ids
+    assert report["summary"]["approved_registry_source_promotions"] == 4
+    assert report["summary"]["ready_for_source_backed_count"] != 50
+
+
+def test_integrity_audit_and_acquisition_queue_exist() -> None:
+    audit = _read(INTEGRITY_AUDIT_PATH)
+    queue = _read(ACQUISITION_QUEUE_PATH)
+    strict = _read(STRICT_COVERAGE_PATH)
+    partial = _read(PARTIAL_PROFILE_READY_PATH)
+    source_backed = _read(SOURCE_BACKED_READY_PATH)
+    featured = _read(FEATURED_CANDIDATES_PATH)
+
+    assert audit["summary"]["section_audit_rows"] == 50 * len(ALL_SECTIONS)
+    assert queue
+    task_keys = {(row["place_id"], row["section_name"], row["missing_source_strength"]) for row in queue}
+    assert len(task_keys) == len(queue)
+    assert strict["summary"]["total_places"] == 50
+    assert len(partial) >= 1
+    assert source_backed == []
+    assert featured == []
 
 
 def test_coverage_ready_and_blocked_reports_are_consistent() -> None:
@@ -122,16 +239,26 @@ def test_coverage_ready_and_blocked_reports_are_consistent() -> None:
     assert all(coverage_by_id[place_id]["ready_for_drafting"] for place_id in ready_ids)
     assert batch_blocked_ids.issubset(blocked_ids)
     assert report["summary"]["research_blocked_count"] == len(blocked)
-    assert report["summary"]["approved_registry_source_promotions"] == 0
-    assert report["summary"]["internet_research_status"] == "limited_web_discovery_plus_existing_registry"
+    assert report["summary"]["internet_research_status"] == (
+        "limited_validated_web_discovery_plus_existing_registry"
+    )
     assert report["summary"]["largest_source_gaps"]["historical_context"] > 0
     assert report["summary"]["largest_source_gaps"]["archaeology"] > 0
+
+
+def test_place_enrichments_and_routes_untouched_by_research_outputs() -> None:
+    enrichments_before = PLACE_ENRICHMENTS_PATH.read_bytes()
+    routes_path = ROOT / "data" / "biblical_routes" / "biblical_routes.json"
+    routes_before = routes_path.read_bytes()
+    build_packets()
+    assert PLACE_ENRICHMENTS_PATH.read_bytes() == enrichments_before
+    assert routes_path.read_bytes() == routes_before
 
 
 def test_research_cache_matches_generated_outputs() -> None:
     cache = _read(CACHE_PATH)
 
-    assert cache["cache_version"] == 1
+    assert cache["cache_version"] == 2
     assert len(cache["candidate_hash"]) == 40
     assert len(cache["packet_hash"]) == 40
     assert cache["status"] == "metadata_only_cache"
@@ -145,12 +272,33 @@ def test_research_builder_rewrites_outputs_idempotently() -> None:
         READY_FOR_DRAFTING_PATH,
         RESEARCH_BLOCKED_PATH,
         CACHE_PATH,
+        INTEGRITY_AUDIT_PATH,
+        SOURCE_VALIDATION_PATH,
+        ACQUISITION_QUEUE_PATH,
+        STRICT_COVERAGE_PATH,
+        BIBLICAL_DRAFT_READY_PATH,
+        PARTIAL_PROFILE_READY_PATH,
+        SOURCE_BACKED_READY_PATH,
+        FEATURED_CANDIDATES_PATH,
+        SOURCE_REGISTRY_PATH,
     ]
     before = {path: path.read_text(encoding="utf-8") for path in paths}
     build_packets()
     after = {path: path.read_text(encoding="utf-8") for path in paths}
 
     assert after == before
+
+
+def test_utf8_research_outputs_have_no_mojibake_markers() -> None:
+    for path in [
+        EVIDENCE_PACKETS_PATH,
+        BIBLICAL_DRAFT_READY_PATH,
+        STRICT_COVERAGE_PATH,
+        SOURCE_VALIDATION_PATH,
+    ]:
+        text = path.read_text(encoding="utf-8")
+        assert "Ã" not in text
+        assert "�" not in text
 
 
 if __name__ == "__main__":

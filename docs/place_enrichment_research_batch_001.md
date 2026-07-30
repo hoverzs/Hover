@@ -1,9 +1,9 @@
 # Place enrichment research batch 001
 
-Ez a dokumentum az első, 50 helyes enrichment batch forráskutatási kimeneteit
-rögzíti. A munka nem végleges adatlapimport: nem módosítja a
-`place_enrichments.json` fájlt, nem ír kész történeti vagy homiletikai
-szöveget, és nem hoz létre útvonaladatot.
+Ez a dokumentum az első, 50 helyes enrichment batch **szigorú**
+forráskutatási és evidence-integritási szabályait rögzíti. A munka nem
+végleges adatlapimport: nem módosítja a `place_enrichments.json` fájlt, nem
+ír kész történeti vagy homiletikai szöveget, és nem hoz létre útvonaladatot.
 
 ## Bemenetek
 
@@ -21,87 +21,132 @@ A kutatási builder a következő helyi adatrétegekből dolgozik:
 
 ## Kimenetek
 
-A kutatási kimenetek:
+- `batch_001_source_candidates.json`
+- `batch_001_evidence_packets.json`
+- `batch_001_evidence_integrity_audit.json`
+- `batch_001_source_validation_report.json`
+- `batch_001_source_acquisition_queue.json`
+- `batch_001_coverage_report.json`
+- `batch_001_strict_coverage_report.json`
+- `batch_001_biblical_draft_ready.json`
+- `batch_001_partial_profile_ready.json`
+- `batch_001_source_backed_ready.json`
+- `batch_001_featured_candidates.json`
+- `batch_001_ready_for_drafting.json` (legacy, max. 20, szigorú readiness szerint)
+- `batch_001_research_blocked.json`
+- `cache/batch_001_research_cache.json`
 
-- `data/biblical_places/enrichment_research/batch_001_source_candidates.json`
-- `data/biblical_places/enrichment_research/batch_001_evidence_packets.json`
-- `data/biblical_places/enrichment_research/batch_001_coverage_report.json`
-- `data/biblical_places/enrichment_research/batch_001_ready_for_drafting.json`
-- `data/biblical_places/enrichment_research/batch_001_research_blocked.json`
-- `data/biblical_places/enrichment_research/cache/batch_001_research_cache.json`
+## Source strength osztályok
 
-## Source candidate szabály
+Minden evidence item kap `source_strength_class` mezőt:
 
-A `batch_001_source_candidates.json` nem végleges forrásregiszter. A jelöltek
-két forrásból származnak:
+| Osztály | Jelentés | Tipikus használat |
+|---|---|---|
+| `A_biblical_primary` | bibliai szöveg / passage-place | `biblical_significance`, `key_events` |
+| `B_structured_gazetteer` | OpenBible / Pleiades / koordináta / névváltozat | azonosítás, basic geography |
+| `C_external_institutional` | UNESCO, múzeum, hatóság, ásatás | history / archaeology / modern |
+| `D_external_scholarly` | lektorált / tudományos publikáció | history / archaeology |
+| `E_contextual_secondary` | ellenőrizhető, de kontextuális másodlagos | részleges támogatás |
+| `F_inference` | világosan jelölt következtetés | ritka |
+| `G_unsupported` | nincs levezethető forrás | **nem** `usable_for_drafting` |
 
-- a már meglévő, helyi `place_enrichment_sources.json` regiszterből;
-- korlátozott webes forrásfelderítésből, ahol csak intézményi vagy szakmai
-  jellegű forrásjelölt került be.
+A `G_unsupported` item:
 
-Új központi source rekord ebben a körben nem lett automatikusan promózva. A
-coverage report ezért `approved_registry_source_promotions: 0` értéket rögzít.
+- nem számít section coverage-nek;
+- nem draftolható;
+- az integrity auditban megjelenik.
 
-## Evidence packet szabály
+## Sectionönkénti forrásküszöb
 
-Az `batch_001_evidence_packets.json` helyenként tartalmaz bizonyítékblokkokat a
-következő enrichment szakaszokhoz:
+- **biblical_significance**: legalább egy `A` pontos `passage_refs`-szel; puszta előfordulásszám nem elég.
+- **key_events**: minden eseményhez `A` + konkrét refs.
+- **ancient_geography**: `B` szükséges; részletes állításhoz `C`/`D`/`E` is. Csak koordináta/`place_type` → basic/partial, nem source-backed.
+- **historical_context**: csak `C` / `D` / erős `E`. Bibliai hivatkozás vagy OpenBible önmagában nem elég.
+- **archaeology**: kizárólag `C` vagy `D`.
+- **modern_context**: hivatalos / örökségi / intézményi / ellenőrizhető modern gazetteer.
+- **identification_notes**: `B`/`C`/`D` vagy ezek összevetése.
+- **homiletical_context**: helyspecifikus megfigyelés + `C`/`D`/erős `E`; nem route-lista és nem általános mondat.
 
-- `biblical_significance`
-- `key_events`
-- `ancient_geography`
-- `historical_context`
-- `archaeology`
-- `modern_context`
-- `identification_notes`
-- `homiletical_context`
+## Readiness osztályok
 
-Az evidence itemek csak kontrollált állításokat tartalmaznak: passage-place
-kapcsolatot, strukturált katalógusadatot, route-stop kapcsolatot vagy
-forrásjelöltre mutató metaadatot. Ezekből később lehet szövegtervezetet írni,
-de ez még nem publikálható enrichment tartalom.
+A `ready_for_drafting` **nem** jelent automatikus source-backed státuszt.
 
-## Batch 001 állapota
+- `biblical_draft_ready`: bibliai significance vagy key events megbízható; ≥2 `A`; nincs record-resolution blokk.
+- `partial_profile_ready`: ≥2 érdemi section; ≥1 section `C`/`D`/`E` támogatással; nincs unsupported claim.
+- `source_backed_profile_ready`: ≥3 érdemi section; ≥2 független külső `C/D/E`; közülük ≥1 `C` vagy `D`; biblical ellenőrzött; nincs `G`.
+- `featured_candidate`: ≥4 érdemi section; ≥2 helyspecifikus `C`/`D`; history vagy archaeology helyspecifikus; nincs needs_review / record-resolution blokk.
 
-A generált coverage report szerint:
+Csak `A+B` evidence:
 
-- aktív evidence packet: 50;
-- source candidate: 5;
-- evidence item: 621;
-- draftingre előkészített rekord: 50;
-- source-backed előkészített rekord: 50;
+- lehet `biblical_draft_ready`;
+- **nem** lehet `source_backed_profile_ready` vagy `featured_candidate`.
+
+## Candidate validáció és registry-promóció
+
+A `batch_001_source_validation_report.json` minden jelöltnél rögzíti:
+
+- URL státusz;
+- identity / institution / relevance / claim support;
+- license;
+- `validation_status`: `approved` | `citation_only` | `metadata_only` | `unclear` | `rejected`.
+
+Promóció a `place_enrichment_sources.json` fájlba **csak** `approved` vagy `citation_only` státusz után történik.
+Nem promótálunk forrást a forrásszám növelése érdekében.
+
+Ebben a körben citation-only promócióra került:
+
+- UNESCO Ancient Thebes (`unesco_ancient_thebes_87`)
+- UNESCO Tyre (`unesco_tyre_299`)
+- UNESCO Old City of Jerusalem (`unesco_jerusalem_148`)
+- UNESCO Petra (`unesco_petra_326`)
+
+Nem promótált:
+
+- Pleiades index oldal (`metadata_only`);
+- COGAT archaeology unit (`unclear`, live fetch blokkolva);
+- katalógus Pleiades ID-k live tartalmi ellenőrzés nélkül (`unclear`).
+
+## Acquisition queue
+
+A `batch_001_source_acquisition_queue.json` a tényleges hiányokra épül.
+A batch research queue feladatait `(place_id, section, missing_strength)` szerint
+deduplikálja. Régió-jellegű rekordoknál az archaeology nem erőltetett
+településspecifikus állításként, de a hiány taskként megmaradhat.
+
+## Korlátozott internetelérés
+
+Ha egy intézményi URL nem érhető el (botvédelem, Cloudflare), a builder:
+
+- nem jelent sikeres külső kutatást arra a forrásra;
+- `unclear` / `rejected` validációt ír;
+- acquisition taskot hagy nyitva;
+- a readiness státuszt a ténylegesen ellenőrzött evidence alapján csökkenti.
+
+## Drafting fázis belépési feltétele
+
+- Biblical draft: a hely szerepel a `batch_001_biblical_draft_ready.json` listán.
+- Részleges profil: `batch_001_partial_profile_ready.json`.
+- Source-backed / featured: a megfelelő lista nem üres, és minden használt
+  forrás registryben van érvényes licenc-/citation mezővel.
+- Végleges enrichment próza és `place_enrichments.json` módosítás csak a
+  következő, külön drafting fázisban történhet.
+
+## Batch 001 szigorú állapot (audit után)
+
+- evidence packet: 50;
+- biblical_draft_ready: 50;
+- partial_profile_ready: kis számú, intézményi C/E támogatással rendelkező hely;
+- source_backed_profile_ready: 0;
 - featured candidate: 0;
-- kutatási vagy record-resolution blocked tétel: 8.
-
-A legnagyobb fennmaradó forráshiány a történeti háttér és a régészet. Ez azért
-marad nyitva, mert a meglévő strukturált katalógusadat és az OpenBible
-geokódolás nem helyettesít szakmai történeti vagy régészeti forrást.
-
-## Webes forrásfelderítés
-
-A körben korlátozott webes forrásfelderítés történt. A felvett jelöltek:
-
-- UNESCO World Heritage Centre: Ancient Thebes with its Necropolis
-- Pleiades: Ancient Places gazetteer
-- Israel Civil Administration Archaeology Unit
-
-Ezek jelöltként vagy citation-only kontextusként szerepelnek. A szövegírási
-fázisban minden rekordnál külön ellenőrizni kell, hogy az adott forrás közvetlen
-vagy csak kontextuális bizonyítéknak használható-e.
-
-## Blokkolt tételek
-
-A `batch_001_research_blocked.json` a batchből kizárt record-resolution és
-profile-group problémákat is tartalmazza. Ezeket nem oldja fel a kutatási
-builder, és nem von össze rekordokat.
+- kutatási / record-resolution blocked: 8;
+- a korábbi „50/50 source-backed” állítás visszavonva.
 
 ## Újragenerálás
-
-Parancs:
 
 ```powershell
 python scripts\build_place_enrichment_research.py --batch-number 1
 ```
 
-A builder determinisztikus: ugyanazon bemenetek mellett ugyanazokat a JSON
-kimeneteket írja vissza.
+A builder determinisztikus és idempotens: ugyanazon bemenetek mellett ugyanazokat
+a JSON kimeneteket írja vissza, és a már promótált registry-forrásokat nem
+duplikálja.
