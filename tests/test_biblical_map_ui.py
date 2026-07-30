@@ -60,10 +60,12 @@ from biblical_map_ui import (
     place_selectbox_options,
     render_biblical_map_prototype,
     resolve_selected_place_id,
+    route_curve_profile,
     route_matches_for_passage,
     route_segment_rows,
     route_stop_rows,
     route_viewport,
+    schematic_segment_path,
     search_biblical_places,
     selected_place_for_session,
     switch_to_route_view_for_passage,
@@ -1300,6 +1302,55 @@ def test_route_view_helpers_build_first_missionary_journey_rows() -> None:
     assert {row["line_style"] for row in segment_rows} == {"solid", "dashed"}
     assert {row["segment_type_label"] for row in segment_rows} >= {"szárazföldi", "tengeri"}
     assert all(row["geometry_status_label"] == "sematikus" for row in segment_rows)
+    assert all(len(row["path"]) == 13 for row in segment_rows)
+    assert all(row["path"][0] == row["straight_path"][0] for row in segment_rows)
+    assert all(row["path"][-1] == row["straight_path"][-1] for row in segment_rows)
+    assert route_segment_rows(route) == segment_rows
+
+
+def test_route_segment_paths_are_deterministic_curves_without_mutating_stop_coordinates() -> None:
+    route = load_biblical_routes()[0]
+    stop_rows_before = route_stop_rows(route)
+    segment_rows = route_segment_rows(route)
+
+    assert route_segment_rows(route) == segment_rows
+    assert route_stop_rows(route) == stop_rows_before
+    assert any(row["path"][1:-1] for row in segment_rows)
+    assert any(row["path"] != row["straight_path"] for row in segment_rows)
+    assert all(row["straight_path"][0] == row["path"][0] for row in segment_rows)
+    assert all(row["straight_path"][-1] == row["path"][-1] for row in segment_rows)
+
+
+def test_route_segment_curve_profiles_separate_land_sea_and_return_paths() -> None:
+    land_profile, land_strength = route_curve_profile("land")
+    sea_profile, sea_strength = route_curve_profile("sea")
+
+    assert land_profile == "subtle_land_curve"
+    assert sea_profile == "soft_sea_curve"
+    assert sea_strength > land_strength
+
+    outbound = schematic_segment_path(
+        (1.0, 1.0),
+        (4.0, 2.0),
+        segment_type="land",
+        direction="outbound",
+        from_stop_id="out_a",
+        to_stop_id="out_b",
+    )
+    returning = schematic_segment_path(
+        (4.0, 2.0),
+        (1.0, 1.0),
+        segment_type="land",
+        direction="return",
+        from_stop_id="out_b_return",
+        to_stop_id="out_a_return",
+    )
+
+    assert outbound[0] == [1.0, 1.0]
+    assert outbound[-1] == [4.0, 2.0]
+    assert returning[0] == [4.0, 2.0]
+    assert returning[-1] == [1.0, 1.0]
+    assert outbound[6] != returning[6]
 
 
 def test_route_viewport_is_calculated_from_all_stops() -> None:

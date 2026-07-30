@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import json
 from pathlib import Path
+import re
 from typing import Any
 
 from biblical_map_data import BIBLICAL_PLACES_CATALOG_PATH, DATA_DIR, SOURCES_PATH
@@ -50,6 +51,23 @@ ALLOWED_STOP_TYPES = {
     "uncertain_place",
 }
 ALLOWED_SEGMENT_TYPES = {"land", "sea", "river", "mixed", "schematic", "unknown"}
+ROUTE_USER_TEXT_FIELDS = (
+    "name_hu",
+    "short_description_hu",
+    "chronology_label_hu",
+    "review_notes_hu",
+)
+STOP_USER_TEXT_FIELDS = (
+    "place_name_override_hu",
+    "event_summary_hu",
+    "source_notes_hu",
+)
+SEGMENT_USER_TEXT_FIELDS = ("source_notes_hu",)
+MOJIBAKE_MARKERS = ("\ufffd", "Ă", "Â", "ďż˝", "â€", "Å")
+CORRUPTED_QUESTION_MARK_RE = re.compile(
+    r"(?:(?<=[A-Za-zÁÉÍÓÖŐÚÜŰáéíóöőúüű])\?(?=[A-Za-zÁÉÍÓÖŐÚÜŰáéíóöőúüű])|"
+    r"(?:^|[\s(])\?(?=[A-Za-zÁÉÍÓÖŐÚÜŰáéíóöőúüű]))"
+)
 
 
 class BiblicalRouteDataError(ValueError):
@@ -127,6 +145,33 @@ def _as_str(value: Any, field_name: str, *, required: bool = False) -> str | Non
     if required and not text:
         raise BiblicalRouteDataError(f"Field {field_name} must not be empty.")
     return text or None
+
+
+def validate_route_user_text(value: Any, field_path: str) -> None:
+    if not isinstance(value, str) or not value:
+        return
+    if any(marker in value for marker in MOJIBAKE_MARKERS) or CORRUPTED_QUESTION_MARK_RE.search(value):
+        raise BiblicalRouteDataError(f"Corrupted user-facing route text in {field_path}: {value!r}")
+
+
+def _validate_user_text_fields(raw: dict[str, Any], fields: tuple[str, ...], prefix: str) -> None:
+    for field in fields:
+        value = raw.get(field)
+        if value is not None:
+            validate_route_user_text(value, f"{prefix}.{field}")
+
+
+def _validate_user_text_tree(value: Any, field_path: str) -> None:
+    if isinstance(value, str):
+        validate_route_user_text(value, field_path)
+        return
+    if isinstance(value, list):
+        for index, item in enumerate(value):
+            _validate_user_text_tree(item, f"{field_path}[{index}]")
+        return
+    if isinstance(value, dict):
+        for key, item in value.items():
+            _validate_user_text_tree(item, f"{field_path}.{key}")
 
 
 def _as_str_tuple(value: Any, field_name: str, *, required: bool = False) -> tuple[str, ...]:
@@ -233,6 +278,7 @@ def _stop_from_raw(
 ) -> BiblicalRouteStop:
     if not isinstance(raw, dict):
         raise BiblicalRouteDataError("Route stops must be objects.")
+    _validate_user_text_fields(raw, STOP_USER_TEXT_FIELDS, "stops")
     passage_refs = _as_str_tuple(raw.get("passage_refs"), "stops.passage_refs", required=True)
     _validate_passage_refs(passage_refs, "stops.passage_refs")
     place_id = _resolve_place_id(
@@ -257,6 +303,7 @@ def _stop_from_raw(
 def _segment_from_raw(raw: Any, stop_ids: set[str]) -> BiblicalRouteSegment:
     if not isinstance(raw, dict):
         raise BiblicalRouteDataError("Route segments must be objects.")
+    _validate_user_text_fields(raw, SEGMENT_USER_TEXT_FIELDS, "segments")
     from_stop_id = _as_str(raw.get("from_stop_id"), "segments.from_stop_id", required=True) or ""
     to_stop_id = _as_str(raw.get("to_stop_id"), "segments.to_stop_id", required=True) or ""
     if from_stop_id not in stop_ids:
@@ -291,6 +338,9 @@ def _route_from_raw(
 ) -> BiblicalRoute:
     if not isinstance(raw, dict):
         raise BiblicalRouteDataError("Route records must be objects.")
+    _validate_user_text_fields(raw, ROUTE_USER_TEXT_FIELDS, "routes")
+    if isinstance(raw.get("evidence_model"), dict):
+        _validate_user_text_tree(raw["evidence_model"], "routes.evidence_model")
     source_ids = _as_str_tuple(raw.get("source_ids"), "source_ids", required=True)
     missing_sources = [source_id for source_id in source_ids if source_id not in known_source_ids]
     if missing_sources:
@@ -419,4 +469,5 @@ __all__ = [
     "load_biblical_routes",
     "passage_refs_overlap",
     "route_options",
+    "validate_route_user_text",
 ]

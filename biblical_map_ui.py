@@ -361,6 +361,85 @@ def route_stop_rows(
     return rows
 
 
+def _route_segment_direction(from_stop: BiblicalRouteStop, to_stop: BiblicalRouteStop) -> str:
+    if (
+        from_stop.stop_type == "return_stop"
+        or to_stop.stop_type == "return_stop"
+        or from_stop.stop_id.endswith("_return")
+        or to_stop.stop_id.endswith("_return")
+    ):
+        return "return"
+    return "outbound"
+
+
+def route_curve_profile(segment_type: str) -> tuple[str, float]:
+    if segment_type == "sea":
+        return "soft_sea_curve", 0.11
+    return "subtle_land_curve", 0.055
+
+
+def _curve_seed_key(from_stop_id: str, to_stop_id: str, segment_type: str) -> str:
+    normalized = sorted(
+        stop_id.removesuffix("_return")
+        for stop_id in (from_stop_id, to_stop_id)
+    )
+    return "|".join([*normalized, segment_type])
+
+
+def schematic_segment_path(
+    start: tuple[float, float],
+    end: tuple[float, float],
+    *,
+    segment_type: str,
+    direction: str,
+    from_stop_id: str,
+    to_stop_id: str,
+    steps: int = 12,
+) -> list[list[float]]:
+    from_lon, from_lat = start
+    to_lon, to_lat = end
+    if steps < 2 or (from_lon == to_lon and from_lat == to_lat):
+        return [[from_lon, from_lat], [to_lon, to_lat]]
+
+    dx = to_lon - from_lon
+    dy = to_lat - from_lat
+    distance = math.hypot(dx, dy)
+    if distance == 0:
+        return [[from_lon, from_lat], [to_lon, to_lat]]
+
+    _profile, strength = route_curve_profile(segment_type)
+    from_seed_id = from_stop_id.removesuffix("_return")
+    to_seed_id = to_stop_id.removesuffix("_return")
+    stable_seed = sum(ord(char) for char in _curve_seed_key(from_stop_id, to_stop_id, segment_type))
+    sign = -1.0 if stable_seed % 2 else 1.0
+    if direction == "return" and from_seed_id <= to_seed_id:
+        sign *= -1.0
+    offset = min(max(distance * strength, 0.035), 0.55) * sign
+    perp_lon = -dy / distance
+    perp_lat = dx / distance
+    control_lon = (from_lon + to_lon) / 2 + perp_lon * offset
+    control_lat = (from_lat + to_lat) / 2 + perp_lat * offset
+
+    path: list[list[float]] = []
+    for index in range(steps + 1):
+        t = index / steps
+        one_minus_t = 1 - t
+        lon = (
+            one_minus_t * one_minus_t * from_lon
+            + 2 * one_minus_t * t * control_lon
+            + t * t * to_lon
+        )
+        lat = (
+            one_minus_t * one_minus_t * from_lat
+            + 2 * one_minus_t * t * control_lat
+            + t * t * to_lat
+        )
+        path.append([lon, lat])
+    path[0] = [from_lon, from_lat]
+    path[-1] = [to_lon, to_lat]
+    return path
+
+
 def route_segment_rows(
     route: BiblicalRoute,
     places: tuple[BiblicalPlace, ...] = BIBLICAL_MAP_PLACES,
@@ -377,15 +456,19 @@ def route_segment_rows(
         to_place = by_place_id.get(to_stop.place_id)
         if from_place is None or to_place is None:
             continue
-        direction = (
-            "return"
-            if (
-                from_stop.stop_type == "return_stop"
-                or to_stop.stop_type == "return_stop"
-                or from_stop.stop_id.endswith("_return")
-                or to_stop.stop_id.endswith("_return")
-            )
-            else "outbound"
+        direction = _route_segment_direction(from_stop, to_stop)
+        straight_path = [
+            [from_place.longitude, from_place.latitude],
+            [to_place.longitude, to_place.latitude],
+        ]
+        curve_profile, curve_strength = route_curve_profile(segment.segment_type)
+        path = schematic_segment_path(
+            (from_place.longitude, from_place.latitude),
+            (to_place.longitude, to_place.latitude),
+            segment_type=segment.segment_type,
+            direction=direction,
+            from_stop_id=segment.from_stop_id,
+            to_stop_id=segment.to_stop_id,
         )
         rows.append(
             {
@@ -399,10 +482,10 @@ def route_segment_rows(
                 "geometry_status_label": _display_status(segment.geometry_status, GEOMETRY_STATUS_LABELS),
                 "direction": direction,
                 "line_style": "dashed" if direction == "return" else "solid",
-                "path": [
-                    [from_place.longitude, from_place.latitude],
-                    [to_place.longitude, to_place.latitude],
-                ],
+                "path": path,
+                "straight_path": straight_path,
+                "curve_profile": curve_profile,
+                "curve_strength": curve_strength,
                 "color": (
                     [53, 101, 132, 190]
                     if segment.segment_type == "sea"
@@ -1350,7 +1433,9 @@ __all__ = [
     "render_biblical_map_prototype",
     "resolve_selected_place_id",
     "route_matches_for_passage",
+    "route_curve_profile",
     "route_segment_rows",
+    "schematic_segment_path",
     "route_stop_display_name",
     "route_stop_rows",
     "route_viewport",

@@ -155,7 +155,7 @@
     },
     {
       "route_id": "paul_second_missionary_journey",
-      "name_hu": "P?l m?sodik misszi?i ?tja",
+      "name_hu": "Pál második missziói útja",
       "stop_count": 23,
       "segment_count": 22,
       "segment_type_counts": {
@@ -174,68 +174,68 @@
           "place_id": "syria_2",
           "certainty": "certain",
           "stop_type": "region",
-          "note_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+          "note_hu": "Az állomás az Apostolok cselekedetei szövegében megnevezett hely vagy régió."
         },
         {
           "stop_id": "cilicia_second_transit",
           "place_id": "cilicia",
           "certainty": "certain",
           "stop_type": "region",
-          "note_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+          "note_hu": "Az állomás az Apostolok cselekedetei szövegében megnevezett hely vagy régió."
         },
         {
           "stop_id": "phrygia_second_transit",
           "place_id": "phrygia",
           "certainty": "certain",
           "stop_type": "region",
-          "note_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+          "note_hu": "Az állomás az Apostolok cselekedetei szövegében megnevezett hely vagy régió."
         },
         {
           "stop_id": "galatia_second_transit",
           "place_id": "galatia",
           "certainty": "certain",
           "stop_type": "region",
-          "note_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+          "note_hu": "Az állomás az Apostolok cselekedetei szövegében megnevezett hely vagy régió."
         },
         {
           "stop_id": "mysia_second_transit",
           "place_id": "mysia",
           "certainty": "certain",
           "stop_type": "region",
-          "note_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+          "note_hu": "Az állomás az Apostolok cselekedetei szövegében megnevezett hely vagy régió."
         },
         {
           "stop_id": "samothrace_second",
           "place_id": "samothrace",
           "certainty": "certain",
           "stop_type": "transit",
-          "note_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+          "note_hu": "Az állomás az Apostolok cselekedetei szövegében megnevezett hely vagy régió."
         },
         {
           "stop_id": "amphipolis_second",
           "place_id": "amphipolis",
           "certainty": "certain",
           "stop_type": "transit",
-          "note_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+          "note_hu": "Az állomás az Apostolok cselekedetei szövegében megnevezett hely vagy régió."
         },
         {
           "stop_id": "apollonia_second",
           "place_id": "apollonia",
           "certainty": "certain",
           "stop_type": "transit",
-          "note_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+          "note_hu": "Az állomás az Apostolok cselekedetei szövegében megnevezett hely vagy régió."
         },
         {
           "stop_id": "jerusalem_second_probable",
           "place_id": "jerusalem",
           "certainty": "probable",
           "stop_type": "inferred_stop",
-          "note_hu": "Az ApCsel 18,22 nem nevezi meg k?zvetlen?l Jeruzs?lemet; a felmenetel ?s a gy?lekezet k?sz?nt?se alapj?n val?sz?n? ?rtelmez?s."
+          "note_hu": "Az ApCsel 18,22 nem nevezi meg közvetlenül Jeruzsálemet; a felmenetel és a gyülekezet köszöntése alapján valószínű értelmezés."
         }
       ],
       "place_resolution": [
         {
-          "biblical_name_hu": "sz?riai Anti?khia",
+          "biblical_name_hu": "szíriai Antiókhia",
           "place_id": "antioch_syria",
           "name_hu": "Antiókhia",
           "identification_status": "probable",
@@ -244,7 +244,7 @@
           ]
         },
         {
-          "biblical_name_hu": "Sz?ria",
+          "biblical_name_hu": "Szíria",
           "place_id": "syria_2",
           "name_hu": "Szíria",
           "identification_status": "certain",
@@ -433,7 +433,7 @@
           ]
         },
         {
-          "biblical_name_hu": "sz?riai Anti?khia",
+          "biblical_name_hu": "szíriai Antiókhia",
           "place_id": "antioch_syria",
           "name_hu": "Antiókhia",
           "identification_status": "probable",
@@ -445,7 +445,7 @@
     },
     {
       "route_id": "paul_third_missionary_journey",
-      "name_hu": "P?l harmadik misszi?i ?tja",
+      "name_hu": "Pál harmadik missziói útja",
       "stop_count": 21,
       "segment_count": 20,
       "segment_type_counts": {
@@ -463,75 +463,75 @@
           "place_id": "galatia",
           "certainty": "certain",
           "stop_type": "region",
-          "note_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+          "note_hu": "Az állomás az Apostolok cselekedetei szövegében megnevezett hely vagy régió."
         },
         {
           "stop_id": "phrygia_third_transit",
           "place_id": "phrygia",
           "certainty": "certain",
           "stop_type": "region",
-          "note_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+          "note_hu": "Az állomás az Apostolok cselekedetei szövegében megnevezett hely vagy régió."
         },
         {
           "stop_id": "macedonia_third_region",
           "place_id": "macedonia",
           "certainty": "certain",
           "stop_type": "region",
-          "note_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+          "note_hu": "Az állomás az Apostolok cselekedetei szövegében megnevezett hely vagy régió."
         },
         {
           "stop_id": "greece_third_region",
           "place_id": "achaia",
           "certainty": "certain",
           "stop_type": "region",
-          "note_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+          "note_hu": "Az állomás az Apostolok cselekedetei szövegében megnevezett hely vagy régió."
         },
         {
           "stop_id": "mitylene_third",
           "place_id": "mitylene",
           "certainty": "certain",
           "stop_type": "transit",
-          "note_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+          "note_hu": "Az állomás az Apostolok cselekedetei szövegében megnevezett hely vagy régió."
         },
         {
           "stop_id": "chios_third",
           "place_id": "chios",
           "certainty": "certain",
           "stop_type": "transit",
-          "note_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+          "note_hu": "Az állomás az Apostolok cselekedetei szövegében megnevezett hely vagy régió."
         },
         {
           "stop_id": "samos_third",
           "place_id": "samos",
           "certainty": "certain",
           "stop_type": "transit",
-          "note_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+          "note_hu": "Az állomás az Apostolok cselekedetei szövegében megnevezett hely vagy régió."
         },
         {
           "stop_id": "cos_third",
           "place_id": "cos",
           "certainty": "certain",
           "stop_type": "transit",
-          "note_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+          "note_hu": "Az állomás az Apostolok cselekedetei szövegében megnevezett hely vagy régió."
         },
         {
           "stop_id": "rhodes_third",
           "place_id": "rhodes_1",
           "certainty": "certain",
           "stop_type": "transit",
-          "note_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+          "note_hu": "Az állomás az Apostolok cselekedetei szövegében megnevezett hely vagy régió."
         },
         {
           "stop_id": "cyprus_third_transit",
           "place_id": "cyprus",
           "certainty": "certain",
           "stop_type": "transit",
-          "note_hu": "A sz?veg Ciprust l?t?t?vols?gi/tengeri t?j?koz?d?si pontk?nt eml?ti, nem partrasz?ll?si ?llom?sk?nt."
+          "note_hu": "A szöveg Ciprust látótávolsági/tengeri tájékozódási pontként említi, nem partraszállási állomásként."
         }
       ],
       "place_resolution": [
         {
-          "biblical_name_hu": "sz?riai Anti?khia",
+          "biblical_name_hu": "szíriai Antiókhia",
           "place_id": "antioch_syria",
           "name_hu": "Antiókhia",
           "identification_status": "probable",
@@ -576,7 +576,7 @@
           ]
         },
         {
-          "biblical_name_hu": "G?r?gorsz?g / Akh?ja",
+          "biblical_name_hu": "Görögország / Akhája",
           "place_id": "achaia",
           "name_hu": "Akhája",
           "identification_status": "certain",
@@ -723,7 +723,7 @@
     },
     {
       "route_id": "paul_journey_to_rome",
-      "name_hu": "P?l ?tja Jeruzs?lemb?l R?m?ba",
+      "name_hu": "Pál útja Jeruzsálemből Rómába",
       "stop_count": 19,
       "segment_count": 18,
       "segment_type_counts": {
@@ -741,70 +741,70 @@
           "place_id": "aphek_2",
           "certainty": "certain",
           "stop_type": "transit",
-          "note_hu": "A katal?gus akt?v rekordja Af?k/Aphek 2; a route megjelen?t?si n?vk?nt Antipatriszt haszn?l."
+          "note_hu": "A katalógus aktív rekordja Afék/Aphek 2; a route megjelenítési névként Antipatriszt használ."
         },
         {
           "stop_id": "cyprus_rome_transit",
           "place_id": "cyprus",
           "certainty": "certain",
           "stop_type": "transit",
-          "note_hu": "Transit jelleg? tengeri t?j?koz?d?si pont; nem partrasz?ll?si ?llom?s."
+          "note_hu": "Transit jellegű tengeri tájékozódási pont; nem partraszállási állomás."
         },
         {
           "stop_id": "cnidus_rome",
           "place_id": "cnidus",
           "certainty": "certain",
           "stop_type": "transit",
-          "note_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+          "note_hu": "Az állomás az Apostolok cselekedetei szövegében megnevezett hely vagy régió."
         },
         {
           "stop_id": "crete_rome_transit",
           "place_id": "crete",
           "certainty": "certain",
           "stop_type": "transit",
-          "note_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+          "note_hu": "Az állomás az Apostolok cselekedetei szövegében megnevezett hely vagy régió."
         },
         {
           "stop_id": "cauda_rome",
           "place_id": "cauda",
           "certainty": "certain",
           "stop_type": "transit",
-          "note_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+          "note_hu": "Az állomás az Apostolok cselekedetei szövegében megnevezett hely vagy régió."
         },
         {
           "stop_id": "adriatic_sea_rome",
           "place_id": "adriatic_sea",
           "certainty": "certain",
           "stop_type": "region",
-          "note_hu": "Region/transit stop: az ?kori f?ldrajzi fogalmat jel?li, nem modern pontos koordin?t?t."
+          "note_hu": "Region/transit stop: az ókori földrajzi fogalmat jelöli, nem modern pontos koordinátát."
         },
         {
           "stop_id": "syracuse_rome",
           "place_id": "syracuse",
           "certainty": "certain",
           "stop_type": "transit",
-          "note_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+          "note_hu": "Az állomás az Apostolok cselekedetei szövegében megnevezett hely vagy régió."
         },
         {
           "stop_id": "rhegium_rome",
           "place_id": "rhegium",
           "certainty": "certain",
           "stop_type": "transit",
-          "note_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+          "note_hu": "Az állomás az Apostolok cselekedetei szövegében megnevezett hely vagy régió."
         },
         {
           "stop_id": "forum_of_appius_rome",
           "place_id": "forum_of_appius",
           "certainty": "certain",
           "stop_type": "transit",
-          "note_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+          "note_hu": "Az állomás az Apostolok cselekedetei szövegében megnevezett hely vagy régió."
         },
         {
           "stop_id": "three_taverns_rome",
           "place_id": "three_taverns",
           "certainty": "certain",
           "stop_type": "transit",
-          "note_hu": "Az ?llom?s az Apostolok cselekedetei sz?veg?ben megnevezett hely vagy r?gi?."
+          "note_hu": "Az állomás az Apostolok cselekedetei szövegében megnevezett hely vagy régió."
         }
       ],
       "place_resolution": [

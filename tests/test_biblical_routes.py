@@ -14,11 +14,19 @@ from biblical_routes import (
     load_biblical_routes,
     passage_refs_overlap,
     route_options,
+    validate_route_user_text,
 )
 
 
 ROUTES_PATH = ROOT / "data" / "biblical_routes" / "biblical_routes.json"
 VALIDATION_REPORT_PATH = ROOT / "data" / "biblical_routes" / "pauline_routes_validation_report.json"
+EXPECTED_ROUTE_NAMES_HU = [
+    "P\u00e1l els\u0151 misszi\u00f3i \u00fatja",
+    "P\u00e1l m\u00e1sodik misszi\u00f3i \u00fatja",
+    "P\u00e1l harmadik misszi\u00f3i \u00fatja",
+    "P\u00e1l \u00fatja Jeruzs\u00e1lemb\u0151l R\u00f3m\u00e1ba",
+]
+CORRUPTED_TEXT_MARKERS = ("\ufffd", "\u0102", "\u00c2", "\u010f", "ďż˝")
 
 
 def _route_payload() -> list[dict]:
@@ -44,7 +52,7 @@ def test_valid_pilot_route_loads() -> None:
     assert len(routes) == 4
     route = routes[0]
     assert route.route_id == "paul_first_missionary_journey"
-    assert route.name_hu == "Pál első missziói útja"
+    assert route.name_hu == EXPECTED_ROUTE_NAMES_HU[0]
     assert route.route_category == "missionary_journey"
     assert route.primary_passage_refs == ("ApCsel 13,1-14,28",)
     assert len(route.stops) == 15
@@ -62,6 +70,47 @@ def test_all_pauline_routes_load_in_chronological_order() -> None:
     ]
     assert route_options(routes) == [route.route_id for route in routes]
     assert len({route.route_id for route in routes}) == 4
+    assert [route.name_hu for route in routes] == EXPECTED_ROUTE_NAMES_HU
+
+
+def test_route_json_and_report_are_clean_utf8() -> None:
+    for path in (ROUTES_PATH, VALIDATION_REPORT_PATH):
+        text = path.read_text(encoding="utf-8")
+        assert not any(marker in text for marker in CORRUPTED_TEXT_MARKERS)
+        assert "P?l" not in text
+        assert "?tja" not in text
+        assert json.loads(text)
+
+
+def test_route_json_utf8_roundtrip_preserves_hungarian_names() -> None:
+    payload = _route_payload()
+    encoded = json.dumps(payload, ensure_ascii=False)
+    decoded = json.loads(encoded)
+
+    assert [route["name_hu"] for route in decoded] == EXPECTED_ROUTE_NAMES_HU
+
+
+def test_route_loader_rejects_corrupted_user_facing_text() -> None:
+    payload = _route_payload()
+    payload[1]["name_hu"] = "P?l m?sodik misszi?i ?tja"
+    path = _write_temp_routes(payload)
+
+    exc = _assert_raises(BiblicalRouteDataError, load_biblical_routes, routes_path=path)
+
+    assert "Corrupted user-facing route text" in str(exc)
+    assert "routes.name_hu" in str(exc)
+
+
+def test_user_text_validator_rejects_mojibake_and_allows_normal_question_marks() -> None:
+    validate_route_user_text("Mi t\u00f6rt\u00e9nt itt?", "routes.review_notes_hu")
+
+    exc = _assert_raises(
+        BiblicalRouteDataError,
+        validate_route_user_text,
+        "P\u0102\u2030l els\u0105\u2018 misszi\u0102\u0142i",
+        "routes.name_hu",
+    )
+    assert "routes.name_hu" in str(exc)
 
 
 def test_new_pauline_routes_have_expected_boundaries_and_counts() -> None:
