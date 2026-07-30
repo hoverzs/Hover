@@ -1,0 +1,316 @@
+{
+  "report_version": 1,
+  "generated_from": [
+    "C:/Users/Hover/Textus-smart-map/data/biblical_places/sources.json",
+    "C:/Users/Hover/Textus-smart-map/data/biblical_routes/biblical_routes.json",
+    "C:/Users/Hover/Textus-smart-map/data/biblical_places/biblical_places_catalog.json"
+  ],
+  "accepted_sources": [
+    {
+      "source_id": "ascsa_ancient_corinth_history",
+      "title": "Ancient Corinth: History and archaeological overview",
+      "institution": "American School of Classical Studies at Athens",
+      "source_type": "scholarly_archaeological_reference",
+      "allowed_content_scope_hu": [
+        "régészet",
+        "történeti háttér",
+        "modern helyzet"
+      ],
+      "license": "all_rights_reserved_reference_only",
+      "attribution_required": true,
+      "attribution": "American School of Classical Studies at Athens, Corinth Excavations",
+      "bulk_processable": false,
+      "technical_access": "local_registry_with_url",
+      "reliability_scope": "institutional_scholarly",
+      "limitations_hu": "Csak saját, rövid magyar összefoglalásban használható; hosszú szövegátvétel nincs.",
+      "usable_as_pilot_source": true
+    },
+    {
+      "source_id": "hellenic_ministry_ancient_corinth",
+      "title": "Ancient Corinth archaeological site",
+      "institution": "Hellenic Ministry of Culture",
+      "source_type": "official_archaeological_site",
+      "allowed_content_scope_hu": [
+        "régészet",
+        "történeti háttér",
+        "modern helyzet"
+      ],
+      "license": "all_rights_reserved_reference_only",
+      "attribution_required": true,
+      "attribution": "Hellenic Ministry of Culture",
+      "bulk_processable": false,
+      "technical_access": "local_registry_with_url",
+      "reliability_scope": "official_institutional",
+      "limitations_hu": "Csak saját, rövid magyar összefoglalásban használható; hosszú szövegátvétel nincs.",
+      "usable_as_pilot_source": true
+    },
+    {
+      "source_id": "openbible_geocoding_cc_by_4_0",
+      "title": "Bible Geocoding Data (ancient/modern place catalog)",
+      "institution": "OpenBible.info Bible Geocoding Data",
+      "source_type": "open_geocoding_dataset",
+      "allowed_content_scope_hu": [
+        "bibliai hivatkozás",
+        "földrajzi azonosítás",
+        "névváltozat",
+        "modern helyzet"
+      ],
+      "license": "CC-BY-4.0",
+      "attribution_required": true,
+      "attribution": "Stephen Smith / OpenBible.info Bible Geocoding Data",
+      "bulk_processable": true,
+      "technical_access": "local_registry_with_url",
+      "reliability_scope": "aggregated_open_scholarship",
+      "limitations_hu": "Attribution megőrzése szükséges; a tartalom nem helyettesíti a szakmai review-t.",
+      "usable_as_pilot_source": true
+    },
+    {
+      "source_id": "pleiades_corinth_570182",
+      "title": "Corinthus/Korinthos: a Pleiades place resource",
+      "institution": "Pleiades",
+      "source_type": "scholarly_gazetteer",
+      "allowed_content_scope_hu": [
+        "földrajzi azonosítás",
+        "névváltozat",
+        "ókori földrajz"
+      ],
+      "license": "CC BY 3.0",
+      "attribution_required": true,
+      "attribution": "Pleiades contributors; Ancient World Mapping Center and Institute for the Study of the Ancient World",
+      "bulk_processable": true,
+      "technical_access": "local_registry_with_url",
+      "reliability_scope": "scholarly_curated",
+      "limitations_hu": "Attribution megőrzése szükséges; a tartalom nem helyettesíti a szakmai review-t.",
+      "usable_as_pilot_source": true
+    },
+    {
+      "source_id": "pleiades_ephesus_599612",
+      "title": "Ephesus/Arsinoe(ia): a Pleiades place resource",
+      "institution": "Pleiades",
+      "source_type": "scholarly_gazetteer",
+      "allowed_content_scope_hu": [
+        "földrajzi azonosítás",
+        "névváltozat",
+        "ókori földrajz"
+      ],
+      "license": "CC BY 3.0",
+      "attribution_required": true,
+      "attribution": "Pleiades contributors; Ancient World Mapping Center and Institute for the Study of the Ancient World",
+      "bulk_processable": true,
+      "technical_access": "local_registry_with_url",
+      "reliability_scope": "scholarly_curated",
+      "limitations_hu": "Attribution megőrzése szükséges; a tartalom nem helyettesíti a szakmai review-t.",
+      "usable_as_pilot_source": true
+    },
+    {
+      "source_id": "pleiades_place_423025",
+      "title": "Pleiades place 423025",
+      "institution": "Pleiades",
+      "source_type": "scholarly_gazetteer",
+      "allowed_content_scope_hu": [
+        "földrajzi azonosítás",
+        "névváltozat",
+        "ókori földrajz"
+      ],
+      "license": "CC-BY-3.0",
+      "attribution_required": true,
+      "attribution": "Pleiades contributors; Ancient World Mapping Center and Institute for the Study of the Ancient World",
+      "bulk_processable": true,
+      "technical_access": "local_registry_with_url",
+      "reliability_scope": "scholarly_curated",
+      "limitations_hu": "Attribution megőrzése szükséges; a tartalom nem helyettesíti a szakmai review-t.",
+      "usable_as_pilot_source": true
+    },
+    {
+      "source_id": "pleiades_place_491741",
+      "title": "Pleiades place 491741",
+      "institution": "Pleiades",
+      "source_type": "scholarly_gazetteer",
+      "allowed_content_scope_hu": [
+        "földrajzi azonosítás",
+        "névváltozat",
+        "ókori földrajz"
+      ],
+      "license": "CC-BY-3.0",
+      "attribution_required": true,
+      "attribution": "Pleiades contributors; Ancient World Mapping Center and Institute for the Study of the Ancient World",
+      "bulk_processable": true,
+      "technical_access": "local_registry_with_url",
+      "reliability_scope": "scholarly_curated",
+      "limitations_hu": "Attribution megőrzése szükséges; a tartalom nem helyettesíti a szakmai review-t.",
+      "usable_as_pilot_source": true
+    },
+    {
+      "source_id": "pleiades_place_570182",
+      "title": "Pleiades place 570182",
+      "institution": "Pleiades",
+      "source_type": "scholarly_gazetteer",
+      "allowed_content_scope_hu": [
+        "földrajzi azonosítás",
+        "névváltozat",
+        "ókori földrajz"
+      ],
+      "license": "CC-BY-3.0",
+      "attribution_required": true,
+      "attribution": "Pleiades contributors; Ancient World Mapping Center and Institute for the Study of the Ancient World",
+      "bulk_processable": true,
+      "technical_access": "local_registry_with_url",
+      "reliability_scope": "scholarly_curated",
+      "limitations_hu": "Attribution megőrzése szükséges; a tartalom nem helyettesíti a szakmai review-t.",
+      "usable_as_pilot_source": true
+    },
+    {
+      "source_id": "pleiades_place_579885",
+      "title": "Pleiades place 579885",
+      "institution": "Pleiades",
+      "source_type": "scholarly_gazetteer",
+      "allowed_content_scope_hu": [
+        "földrajzi azonosítás",
+        "névváltozat",
+        "ókori földrajz"
+      ],
+      "license": "CC-BY-3.0",
+      "attribution_required": true,
+      "attribution": "Pleiades contributors; Ancient World Mapping Center and Institute for the Study of the Ancient World",
+      "bulk_processable": true,
+      "technical_access": "local_registry_with_url",
+      "reliability_scope": "scholarly_curated",
+      "limitations_hu": "Attribution megőrzése szükséges; a tartalom nem helyettesíti a szakmai review-t.",
+      "usable_as_pilot_source": true
+    },
+    {
+      "source_id": "pleiades_place_599612",
+      "title": "Pleiades place 599612",
+      "institution": "Pleiades",
+      "source_type": "scholarly_gazetteer",
+      "allowed_content_scope_hu": [
+        "földrajzi azonosítás",
+        "névváltozat",
+        "ókori földrajz"
+      ],
+      "license": "CC-BY-3.0",
+      "attribution_required": true,
+      "attribution": "Pleiades contributors; Ancient World Mapping Center and Institute for the Study of the Ancient World",
+      "bulk_processable": true,
+      "technical_access": "local_registry_with_url",
+      "reliability_scope": "scholarly_curated",
+      "limitations_hu": "Attribution megőrzése szükséges; a tartalom nem helyettesíti a szakmai review-t.",
+      "usable_as_pilot_source": true
+    },
+    {
+      "source_id": "pleiades_place_658381",
+      "title": "Pleiades place 658381",
+      "institution": "Pleiades",
+      "source_type": "scholarly_gazetteer",
+      "allowed_content_scope_hu": [
+        "földrajzi azonosítás",
+        "névváltozat",
+        "ókori földrajz"
+      ],
+      "license": "CC-BY-3.0",
+      "attribution_required": true,
+      "attribution": "Pleiades contributors; Ancient World Mapping Center and Institute for the Study of the Ancient World",
+      "bulk_processable": true,
+      "technical_access": "local_registry_with_url",
+      "reliability_scope": "scholarly_curated",
+      "limitations_hu": "Attribution megőrzése szükséges; a tartalom nem helyettesíti a szakmai review-t.",
+      "usable_as_pilot_source": true
+    },
+    {
+      "source_id": "pleiades_place_678231",
+      "title": "Pleiades place 678231",
+      "institution": "Pleiades",
+      "source_type": "scholarly_gazetteer",
+      "allowed_content_scope_hu": [
+        "földrajzi azonosítás",
+        "névváltozat",
+        "ókori földrajz"
+      ],
+      "license": "CC-BY-3.0",
+      "attribution_required": true,
+      "attribution": "Pleiades contributors; Ancient World Mapping Center and Institute for the Study of the Ancient World",
+      "bulk_processable": true,
+      "technical_access": "local_registry_with_url",
+      "reliability_scope": "scholarly_curated",
+      "limitations_hu": "Attribution megőrzése szükséges; a tartalom nem helyettesíti a szakmai review-t.",
+      "usable_as_pilot_source": true
+    },
+    {
+      "source_id": "pleiades_place_687928",
+      "title": "Pleiades place 687928",
+      "institution": "Pleiades",
+      "source_type": "scholarly_gazetteer",
+      "allowed_content_scope_hu": [
+        "földrajzi azonosítás",
+        "névváltozat",
+        "ókori földrajz"
+      ],
+      "license": "CC-BY-3.0",
+      "attribution_required": true,
+      "attribution": "Pleiades contributors; Ancient World Mapping Center and Institute for the Study of the Ancient World",
+      "bulk_processable": true,
+      "technical_access": "local_registry_with_url",
+      "reliability_scope": "scholarly_curated",
+      "limitations_hu": "Attribution megőrzése szükséges; a tartalom nem helyettesíti a szakmai review-t.",
+      "usable_as_pilot_source": true
+    },
+    {
+      "source_id": "turkiye_ephesus_archaeological_site",
+      "title": "Ephesus Archaeological Site",
+      "institution": "Republic of Türkiye Ministry of Culture and Tourism",
+      "source_type": "official_archaeological_site",
+      "allowed_content_scope_hu": [
+        "régészet",
+        "történeti háttér",
+        "modern helyzet"
+      ],
+      "license": "all_rights_reserved_reference_only",
+      "attribution_required": true,
+      "attribution": "Republic of Türkiye Ministry of Culture and Tourism",
+      "bulk_processable": false,
+      "technical_access": "local_registry_with_url",
+      "reliability_scope": "official_institutional",
+      "limitations_hu": "Csak saját, rövid magyar összefoglalásban használható; hosszú szövegátvétel nincs.",
+      "usable_as_pilot_source": true
+    },
+    {
+      "source_id": "unesco_ephesus_1018",
+      "title": "Ephesus",
+      "institution": "UNESCO World Heritage Centre",
+      "source_type": "international_heritage_reference",
+      "allowed_content_scope_hu": [
+        "régészet",
+        "történeti háttér",
+        "modern helyzet"
+      ],
+      "license": "all_rights_reserved_reference_only",
+      "attribution_required": true,
+      "attribution": "UNESCO World Heritage Centre",
+      "bulk_processable": false,
+      "technical_access": "local_registry_with_url",
+      "reliability_scope": "official_institutional",
+      "limitations_hu": "Csak saját, rövid magyar összefoglalásban használható; hosszú szövegátvétel nincs.",
+      "usable_as_pilot_source": true
+    }
+  ],
+  "rejected_or_limited_sources": [
+    {
+      "source_id": "manual_demo_v1",
+      "title": "Kézzel definiált demonstrációs helyadatok",
+      "institution": "Textus development prototype",
+      "source_type": "manual_demo",
+      "allowed_content_scope_hu": [
+        "felületi prototípus"
+      ],
+      "license": "internal_prototype",
+      "attribution_required": true,
+      "attribution": "Textus development prototype",
+      "bulk_processable": false,
+      "technical_access": "local_registry_only",
+      "reliability_scope": "prototype_only",
+      "limitations_hu": "Attribution megőrzése szükséges; a tartalom nem helyettesíti a szakmai review-t.",
+      "usable_as_pilot_source": false
+    }
+  ],
+  "source_count": 16
+}
