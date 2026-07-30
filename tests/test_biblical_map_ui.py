@@ -35,6 +35,12 @@ from biblical_map_ui import (
     CERTAINTY_LABELS,
     GEOMETRY_STATUS_LABELS,
     HIGHLIGHTED_ROUTE_STOP_IDS_KEY,
+    MAP_STYLE_CLEAN,
+    MAP_STYLE_CONFIGS,
+    MAP_STYLE_HISTORICAL_MOOD,
+    MAP_STYLE_KEY,
+    MAP_STYLE_OPTIONS,
+    MAP_STYLE_TERRAIN,
     MAP_VIEW_PLACES,
     MAP_VIEW_ROUTES,
     ROUTE_VIEW_WARNING_HU,
@@ -59,7 +65,9 @@ from biblical_map_ui import (
     place_option_labels,
     place_selectbox_options,
     render_biblical_map_prototype,
+    render_map_style_selector,
     resolve_selected_place_id,
+    resolve_map_style_id,
     route_curve_profile,
     route_line_rows,
     route_matches_for_passage,
@@ -1484,6 +1492,67 @@ def test_render_default_places_view_does_not_force_route_map() -> None:
     assert fake_st.session_state[ACTIVE_MAP_VIEW_KEY] == MAP_VIEW_PLACES
     assert fake_st.maps
     assert fake_st.session_state[SELECTED_PLACE_ID_KEY] == "corinth"
+
+
+def test_map_styles_are_available_and_default_to_clean() -> None:
+    assert MAP_STYLE_OPTIONS == (
+        MAP_STYLE_CLEAN,
+        MAP_STYLE_TERRAIN,
+        MAP_STYLE_HISTORICAL_MOOD,
+    )
+    assert [MAP_STYLE_CONFIGS[style_id].label_hu for style_id in MAP_STYLE_OPTIONS] == [
+        "Letisztult",
+        "Domborzati",
+        "Történeti hangulat",
+    ]
+
+    fake_st = _FakeStreamlit()
+    assert resolve_map_style_id(fake_st.session_state) == MAP_STYLE_CLEAN
+    selected = render_map_style_selector(fake_st)
+
+    assert selected == MAP_STYLE_CLEAN
+    assert fake_st.session_state[MAP_STYLE_KEY] == MAP_STYLE_CLEAN
+
+
+def test_invalid_map_style_falls_back_to_clean() -> None:
+    fake_st = _FakeStreamlit()
+    fake_st.session_state[MAP_STYLE_KEY] = "missing_style"
+
+    assert resolve_map_style_id(fake_st.session_state) == MAP_STYLE_CLEAN
+    assert fake_st.session_state[MAP_STYLE_KEY] == MAP_STYLE_CLEAN
+
+
+def test_map_style_state_is_shared_by_places_and_route_views() -> None:
+    fake_st = _FakeStreamlit(selectbox_choice=MAP_STYLE_HISTORICAL_MOOD)
+    render_biblical_map_prototype(passage_reference="ApCsel 18,1-18", st_module=fake_st)
+
+    assert fake_st.session_state[MAP_STYLE_KEY] == MAP_STYLE_HISTORICAL_MOOD
+    assert any(box[0] == "Térképstílus" for box in fake_st.selectboxes)
+    assert any("nem korabeli térképi rekonstrukció" in caption for caption in fake_st.captions)
+
+    fake_st.session_state[ACTIVE_MAP_VIEW_KEY] = MAP_VIEW_ROUTES
+    fake_st.selectbox_choice = None
+    render_biblical_map_prototype(st_module=fake_st)
+
+    assert fake_st.session_state[MAP_STYLE_KEY] == MAP_STYLE_HISTORICAL_MOOD
+    style_boxes = [box for box in fake_st.selectboxes if box[0] == "Térképstílus"]
+    assert len(style_boxes) >= 2
+
+
+def test_map_style_switch_does_not_change_route_or_place_render_data() -> None:
+    route = load_biblical_routes()[0]
+    clean_stops = route_stop_rows(route)
+    clean_segments = route_segment_rows(route)
+    clean_lines = route_line_rows(clean_segments)
+
+    fake_st = _FakeStreamlit(selectbox_choice=MAP_STYLE_TERRAIN)
+    render_biblical_map_prototype(passage_reference="ApCsel 13", st_module=fake_st)
+
+    assert fake_st.session_state[MAP_STYLE_KEY] == MAP_STYLE_TERRAIN
+    assert route_stop_rows(route) == clean_stops
+    assert route_segment_rows(route) == clean_segments
+    assert route_line_rows(route_segment_rows(route)) == clean_lines
+    assert any("letisztult alaptérképre áll vissza" in caption for caption in fake_st.captions)
 
 
 def test_render_route_view_loads_first_missionary_journey() -> None:

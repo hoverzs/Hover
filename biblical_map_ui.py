@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 import html
 import math
 import re
@@ -41,6 +42,10 @@ CATALOG_SEARCH_LIMIT = 20
 ACTIVE_MAP_VIEW_KEY = "_biblical_map_active_view"
 MAP_VIEW_PLACES = "Helyszínek"
 MAP_VIEW_ROUTES = "Bibliai útvonalak"
+MAP_STYLE_KEY = "_biblical_map_style"
+MAP_STYLE_CLEAN = "clean"
+MAP_STYLE_TERRAIN = "terrain"
+MAP_STYLE_HISTORICAL_MOOD = "historical_mood"
 SELECTED_ROUTE_ID_KEY = "_biblical_map_selected_route_id"
 SELECTED_ROUTE_STOP_ID_KEY = "_biblical_map_selected_route_stop_id"
 HIGHLIGHTED_ROUTE_STOP_IDS_KEY = "_biblical_map_highlighted_route_stop_ids"
@@ -49,6 +54,46 @@ ROUTE_VIEW_WARNING_HU = (
     "A vonalak sematikusak, nem a pontos ókori nyomvonalat jelölik."
 )
 MAP_BLOCK_HEIGHT_PX = 520
+
+
+@dataclass(frozen=True)
+class BiblicalMapStyle:
+    style_id: str
+    label_hu: str
+    pydeck_style: str | None
+    attribution_hu: str | None
+    note_hu: str | None = None
+    fallback_style_id: str | None = None
+
+
+MAP_STYLE_CONFIGS: dict[str, BiblicalMapStyle] = {
+    MAP_STYLE_CLEAN: BiblicalMapStyle(
+        style_id=MAP_STYLE_CLEAN,
+        label_hu="Letisztult",
+        pydeck_style=None,
+        attribution_hu=None,
+    ),
+    MAP_STYLE_TERRAIN: BiblicalMapStyle(
+        style_id=MAP_STYLE_TERRAIN,
+        label_hu="Domborzati",
+        pydeck_style=None,
+        attribution_hu=None,
+        note_hu=(
+            "A domborzati alaptérképhez még nincs biztonságosan konfigurált, kulcs nélküli "
+            "tile-forrás; a megjelenítés jelenleg a letisztult alaptérképre áll vissza."
+        ),
+        fallback_style_id=MAP_STYLE_CLEAN,
+    ),
+    MAP_STYLE_HISTORICAL_MOOD: BiblicalMapStyle(
+        style_id=MAP_STYLE_HISTORICAL_MOOD,
+        label_hu="Történeti hangulat",
+        pydeck_style=None,
+        attribution_hu=None,
+        note_hu="A történeti megjelenés vizuális hangulatot ad; nem korabeli térképi rekonstrukció.",
+        fallback_style_id=MAP_STYLE_CLEAN,
+    ),
+}
+MAP_STYLE_OPTIONS = tuple(MAP_STYLE_CONFIGS)
 
 IDENTIFICATION_STATUS_LABELS = {
     "certain": "biztos",
@@ -661,13 +706,56 @@ def _render_section_heading(st: Any, title: str) -> None:
     st.markdown(f"#### {title}")
 
 
+def resolve_map_style_id(session_state: Any) -> str:
+    style_id = str(session_state.get(MAP_STYLE_KEY) or MAP_STYLE_CLEAN)
+    if style_id not in MAP_STYLE_CONFIGS:
+        style_id = MAP_STYLE_CLEAN
+        session_state[MAP_STYLE_KEY] = style_id
+    return style_id
+
+
+def effective_map_style(style_id: str) -> BiblicalMapStyle:
+    style = MAP_STYLE_CONFIGS.get(style_id) or MAP_STYLE_CONFIGS[MAP_STYLE_CLEAN]
+    if style.pydeck_style is None and style.fallback_style_id:
+        fallback = MAP_STYLE_CONFIGS.get(style.fallback_style_id)
+        if fallback:
+            return BiblicalMapStyle(
+                style_id=style.style_id,
+                label_hu=style.label_hu,
+                pydeck_style=fallback.pydeck_style,
+                attribution_hu=fallback.attribution_hu,
+                note_hu=style.note_hu,
+                fallback_style_id=style.fallback_style_id,
+            )
+    return style
+
+
+def render_map_style_selector(st: Any) -> str:
+    selected_style_id = resolve_map_style_id(st.session_state)
+    selected_style_id = st.selectbox(
+        "Térképstílus",
+        list(MAP_STYLE_OPTIONS),
+        index=list(MAP_STYLE_OPTIONS).index(selected_style_id),
+        format_func=lambda style_id: MAP_STYLE_CONFIGS[style_id].label_hu,
+        key=MAP_STYLE_KEY,
+    )
+    style = MAP_STYLE_CONFIGS.get(selected_style_id, MAP_STYLE_CONFIGS[MAP_STYLE_CLEAN])
+    if style.note_hu:
+        st.caption(style.note_hu)
+    if style.attribution_hu:
+        st.caption(style.attribution_hu)
+    return selected_style_id
+
+
 def _render_places_map_block(
     st: Any,
     *,
     map_focus_id: str,
     map_places: tuple[BiblicalPlace, ...],
+    map_style_id: str | None = None,
 ) -> None:
     _render_map_block_open(st)
+    _style = effective_map_style(map_style_id or resolve_map_style_id(st.session_state))
     map_kwargs: dict[str, Any] = {
         "latitude": "lat",
         "longitude": "lon",
@@ -1137,11 +1225,13 @@ def _render_route_map(
     route: BiblicalRoute,
     stop_rows: list[dict[str, Any]],
     segment_rows: list[dict[str, Any]],
+    map_style_id: str | None = None,
 ) -> None:
     if not stop_rows:
         st.warning("Ehhez az útvonalhoz nincs megjeleníthető állomás.")
         return
     viewport = route_viewport(stop_rows)
+    style = effective_map_style(map_style_id or resolve_map_style_id(st.session_state))
     _render_route_legend(st, segment_rows)
     try:
         import pydeck as pdk  # type: ignore
@@ -1186,7 +1276,7 @@ def _render_route_map(
         )
         st.pydeck_chart(
             pdk.Deck(
-                map_style=None,
+                map_style=style.pydeck_style,
                 initial_view_state=pdk.ViewState(
                     latitude=viewport["latitude"],
                     longitude=viewport["longitude"],
@@ -1262,6 +1352,7 @@ def _render_route_view(st: Any) -> None:
         f"Geometria: {_display_status(route.geometry_status, GEOMETRY_STATUS_LABELS)}"
     )
     st.warning(ROUTE_VIEW_WARNING_HU)
+    map_style_id = render_map_style_selector(st)
 
     stop_rows = route_stop_rows(
         route,
@@ -1270,7 +1361,7 @@ def _render_route_view(st: Any) -> None:
     )
     segment_rows = route_segment_rows(route)
     _render_map_block_open(st)
-    _render_route_map(st, route, stop_rows, segment_rows)
+    _render_route_map(st, route, stop_rows, segment_rows, map_style_id=map_style_id)
     _render_map_block_close(st)
 
     stop_labels = {
@@ -1361,7 +1452,13 @@ def _render_places_view(
     map_places = linked_places or (
         (by_id[map_focus_id],) if map_focus_id in by_id else ()
     )
-    _render_places_map_block(st, map_focus_id=map_focus_id, map_places=map_places)
+    map_style_id = render_map_style_selector(st)
+    _render_places_map_block(
+        st,
+        map_focus_id=map_focus_id,
+        map_places=map_places,
+        map_style_id=map_style_id,
+    )
 
     _render_section_heading(st, "Helyszín kiválasztása")
     selected_id = _render_passage_place_selector(
@@ -1451,6 +1548,12 @@ __all__ = [
     "CERTAINTY_LABELS",
     "GEOMETRY_STATUS_LABELS",
     "HIGHLIGHTED_ROUTE_STOP_IDS_KEY",
+    "MAP_STYLE_CLEAN",
+    "MAP_STYLE_CONFIGS",
+    "MAP_STYLE_HISTORICAL_MOOD",
+    "MAP_STYLE_KEY",
+    "MAP_STYLE_OPTIONS",
+    "MAP_STYLE_TERRAIN",
     "MAP_VIEW_PLACES",
     "MAP_VIEW_ROUTES",
     "SELECTED_PLACE_ID_KEY",
@@ -1470,7 +1573,9 @@ __all__ = [
     "place_option_labels",
     "place_selectbox_options",
     "render_biblical_map_prototype",
+    "render_map_style_selector",
     "resolve_selected_place_id",
+    "resolve_map_style_id",
     "route_matches_for_passage",
     "route_curve_profile",
     "route_line_rows",
