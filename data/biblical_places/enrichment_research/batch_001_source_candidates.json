@@ -1,0 +1,207 @@
+[
+  {
+    "candidate_id": "existing_openbible_geocoding_cc_by_4_0",
+    "place_id": "multiple",
+    "place_ids": [
+      "achaia",
+      "ai_1",
+      "ammon",
+      "ashdod",
+      "ashkelon",
+      "asia",
+      "assyria",
+      "canaan",
+      "chaldea",
+      "cush_1",
+      "cyprus",
+      "derbe",
+      "east",
+      "edom",
+      "egypt",
+      "ekron",
+      "elam",
+      "galatia",
+      "gaza",
+      "gilead_1",
+      "gilgal_1",
+      "gomorrah",
+      "great_sea",
+      "haran",
+      "jezreel_2",
+      "jordan",
+      "judea_1",
+      "lachish",
+      "lebanon",
+      "lystra",
+      "macedonia",
+      "mizpah_3",
+      "moab_1",
+      "moab_2",
+      "mount_of_olives",
+      "mount_zion",
+      "negeb",
+      "nile",
+      "persia",
+      "ramah_1",
+      "red_sea_1",
+      "salt_sea",
+      "samaria_1",
+      "shiloh",
+      "sodom",
+      "syria_2",
+      "thessalonica",
+      "troas",
+      "tyre",
+      "zion"
+    ],
+    "name_hu": "több hely",
+    "section_names": [
+      "biblical_significance",
+      "key_events",
+      "modern_context",
+      "identification_notes"
+    ],
+    "title": "Bible Geocoding Data (ancient/modern place catalog)",
+    "institution_or_author": "OpenBible.info Bible Geocoding Data",
+    "source_type": "biblical_text_dataset",
+    "url_or_identifier": "https://github.com/openbibleinfo/Bible-Geocoding-Data",
+    "publication_date": null,
+    "access_date": "2026-07-30",
+    "language": "en",
+    "license": "CC-BY-4.0",
+    "attribution": "Stephen Smith / OpenBible.info Bible Geocoding Data",
+    "reuse_status": "approved",
+    "reliability_status": "medium",
+    "relevance_status": "direct",
+    "supported_topics": [
+      "bibliai hivatkozás; földrajzi azonosítás; névváltozat; modern helyzet"
+    ],
+    "limitations_hu": "Helynevek, koordináták és bibliai vershivatkozások forrása. A Textus nem másol át hosszú forrásszöveget.",
+    "discovery_method": "existing_registry",
+    "duplicate_of_candidate_id": null,
+    "review_status": "accepted_existing_source"
+  },
+  {
+    "candidate_id": "existing_pleiades_place_491741",
+    "place_id": "multiple",
+    "place_ids": [
+      "thessalonica"
+    ],
+    "name_hu": "több hely",
+    "section_names": [
+      "ancient_geography",
+      "identification_notes",
+      "modern_context"
+    ],
+    "title": "Pleiades place 491741",
+    "institution_or_author": "Pleiades",
+    "source_type": "academic_gazetteer",
+    "url_or_identifier": "https://pleiades.stoa.org/places/491741",
+    "publication_date": null,
+    "access_date": "2026-07-30",
+    "language": "en",
+    "license": "CC-BY-3.0",
+    "attribution": "Pleiades contributors; Ancient World Mapping Center and Institute for the Study of the Ancient World",
+    "reuse_status": "approved",
+    "reliability_status": "high",
+    "relevance_status": "direct",
+    "supported_topics": [
+      "földrajzi azonosítás; névváltozat; ókori földrajz"
+    ],
+    "limitations_hu": "Ókori helyazonosítás és névváltozatok kiegészítő forrása.",
+    "discovery_method": "existing_registry",
+    "duplicate_of_candidate_id": null,
+    "review_status": "accepted_existing_source"
+  },
+  {
+    "candidate_id": "web_cogat_archaeology_unit",
+    "place_ids": [
+      "samaria_1",
+      "judea_1"
+    ],
+    "section_names": [
+      "archaeology",
+      "historical_context"
+    ],
+    "title": "Archaeology Unit",
+    "institution_or_author": "Coordination of Government Activities in the Territories",
+    "source_type": "official_archaeological_site",
+    "url_or_identifier": "https://www.gov.il/en/departments/units/archeology_unit",
+    "publication_date": null,
+    "access_date": "2026-07-30",
+    "language": "en",
+    "license": "citation_only_review_required",
+    "attribution": "Coordination of Government Activities in the Territories",
+    "reuse_status": "citation_only",
+    "reliability_status": "medium",
+    "relevance_status": "contextual",
+    "supported_topics": [
+      "Archaeological responsibility in Judea and Samaria",
+      "Site preservation context"
+    ],
+    "limitations_hu": "Intézményi, de nem minden konkrét bibliai helyhez közvetlen lelőhelylap.",
+    "discovery_method": "web_search",
+    "duplicate_of_candidate_id": null,
+    "review_status": "candidate_only"
+  },
+  {
+    "candidate_id": "web_pleiades_ancient_places",
+    "place_ids": [
+      "multiple"
+    ],
+    "section_names": [
+      "ancient_geography",
+      "identification_notes"
+    ],
+    "title": "Ancient Places in Pleiades",
+    "institution_or_author": "Pleiades contributors",
+    "source_type": "academic_gazetteer",
+    "url_or_identifier": "https://pleiades.stoa.org/places",
+    "publication_date": "2024-07-11",
+    "access_date": "2026-07-30",
+    "language": "en",
+    "license": "CC-BY-3.0",
+    "attribution": "Pleiades contributors; Ancient World Mapping Center and Institute for the Study of the Ancient World",
+    "reuse_status": "approved",
+    "reliability_status": "high",
+    "relevance_status": "contextual",
+    "supported_topics": [
+      "Ancient gazetteer methodology",
+      "Place identity and names"
+    ],
+    "limitations_hu": "A batchben csak azoknál a helyeknél közvetlen, ahol konkrét Pleiades rekord is fel van oldva.",
+    "discovery_method": "web_search",
+    "duplicate_of_candidate_id": null,
+    "review_status": "candidate_only"
+  },
+  {
+    "candidate_id": "web_unesco_ancient_thebes_87",
+    "place_ids": [
+      "egypt"
+    ],
+    "section_names": [
+      "historical_context",
+      "archaeology"
+    ],
+    "title": "Ancient Thebes with its Necropolis",
+    "institution_or_author": "UNESCO World Heritage Centre",
+    "source_type": "heritage_authority",
+    "url_or_identifier": "https://whc.unesco.org/en/list/87",
+    "publication_date": "1979",
+    "access_date": "2026-07-30",
+    "language": "en",
+    "license": "citation_only_review_required",
+    "attribution": "UNESCO World Heritage Centre",
+    "reuse_status": "citation_only",
+    "reliability_status": "high",
+    "relevance_status": "contextual",
+    "supported_topics": [
+      "Ancient Egypt heritage context",
+      "Thebes and Nile Valley setting"
+    ],
+    "limitations_hu": "Egyiptom egészére csak kontextuális forrás; nem minden egyiptomi bibliai helyre közvetlen.",
+    "discovery_method": "web_search",
+    "duplicate_of_candidate_id": null,
+    "review_status": "candidate_only"
+  }
+]

@@ -1,0 +1,1776 @@
+{
+  "summary": {
+    "internet_research_status": "limited_web_discovery_plus_existing_registry",
+    "place_count": 50,
+    "source_candidate_count": 5,
+    "approved_registry_source_promotions": 0,
+    "institutional_or_scholarly_candidate_count": 4,
+    "evidence_item_count": 621,
+    "section_coverage": {
+      "biblical_significance": 50,
+      "key_events": 50,
+      "ancient_geography": 50,
+      "historical_context": 3,
+      "archaeology": 3,
+      "modern_context": 50,
+      "identification_notes": 50
+    },
+    "confidence_distribution": {
+      "medium": 615,
+      "high": 5,
+      "low": 1
+    },
+    "ready_for_drafting_count": 50,
+    "ready_for_source_backed_count": 50,
+    "featured_candidate_count": 0,
+    "research_blocked_count": 8,
+    "largest_source_gaps": {
+      "historical_context": 47,
+      "archaeology": 47
+    }
+  },
+  "places": [
+    {
+      "place_id": "egypt",
+      "name_hu": "Egyiptom",
+      "candidate_source_count": 2,
+      "approved_source_count": 2,
+      "institutional_source_count": 1,
+      "section_coverage": {
+        "biblical_significance": true,
+        "key_events": true,
+        "ancient_geography": true,
+        "historical_context": true,
+        "archaeology": true,
+        "modern_context": true,
+        "identification_notes": true,
+        "homiletical_context": false
+      },
+      "evidence_item_count": 14,
+      "confidence_distribution": {
+        "medium": 12,
+        "high": 2
+      },
+      "archaeology_coverage": true,
+      "historical_context_coverage": true,
+      "identification_coverage": true,
+      "remaining_source_gaps": [],
+      "ready_for_drafting": true,
+      "ready_for_source_backed": true,
+      "possible_featured_candidate": false,
+      "blocking_issues": [
+        "source_gap"
+      ],
+      "coverage_status": "source_backed_candidate"
+    },
+    {
+      "place_id": "jordan",
+      "name_hu": "Jordán",
+      "candidate_source_count": 1,
+      "approved_source_count": 2,
+      "institutional_source_count": 0,
+      "section_coverage": {
+        "biblical_significance": true,
+        "key_events": true,
+        "ancient_geography": true,
+        "historical_context": false,
+        "archaeology": false,
+        "modern_context": true,
+        "identification_notes": true,
+        "homiletical_context": false
+      },
+      "evidence_item_count": 9,
+      "confidence_distribution": {
+        "medium": 9
+      },
+      "archaeology_coverage": false,
+      "historical_context_coverage": false,
+      "identification_coverage": true,
+      "remaining_source_gaps": [
+        "historical_context",
+        "archaeology"
+      ],
+      "ready_for_drafting": true,
+      "ready_for_source_backed": true,
+      "possible_featured_candidate": false,
+      "blocking_issues": [
+        "source_gap"
+      ],
+      "coverage_status": "source_backed_candidate"
+    },
+    {
+      "place_id": "moab_1",
+      "name_hu": "Moáb",
+      "candidate_source_count": 1,
+      "approved_source_count": 2,
+      "institutional_source_count": 0,
+      "section_coverage": {
+        "biblical_significance": true,
+        "key_events": true,
+        "ancient_geography": true,
+        "historical_context": false,
+        "archaeology": false,
+        "modern_context": true,
+        "identification_notes": true,
+        "homiletical_context": false
+      },
+      "evidence_item_count": 14,
+      "confidence_distribution": {
+        "medium": 14
+      },
+      "archaeology_coverage": false,
+      "historical_context_coverage": false,
+      "identification_coverage": true,
+      "remaining_source_gaps": [
+        "historical_context",
+        "archaeology"
+      ],
+      "ready_for_drafting": true,
+      "ready_for_source_backed": true,
+      "possible_featured_candidate": false,
+      "blocking_issues": [
+        "source_gap"
+      ],
+      "coverage_status": "source_backed_candidate"
+    },
+    {
+      "place_id": "zion",
+      "name_hu": "Sion",
+      "candidate_source_count": 1,
+      "approved_source_count": 2,
+      "institutional_source_count": 0,
+      "section_coverage": {
+        "biblical_significance": true,
+        "key_events": true,
+        "ancient_geography": true,
+        "historical_context": false,
+        "archaeology": false,
+        "modern_context": true,
+        "identification_notes": true,
+        "homiletical_context": false
+      },
+      "evidence_item_count": 14,
+      "confidence_distribution": {
+        "medium": 14
+      },
+      "archaeology_coverage": false,
+      "historical_context_coverage": false,
+      "identification_coverage": true,
+      "remaining_source_gaps": [
+        "historical_context",
+        "archaeology"
+      ],
+      "ready_for_drafting": true,
+      "ready_for_source_backed": true,
+      "possible_featured_candidate": false,
+      "blocking_issues": [
+        "source_gap"
+      ],
+      "coverage_status": "source_backed_candidate"
+    },
+    {
+      "place_id": "assyria",
+      "name_hu": "Asszíria",
+      "candidate_source_count": 1,
+      "approved_source_count": 2,
+      "institutional_source_count": 0,
+      "section_coverage": {
+        "biblical_significance": true,
+        "key_events": true,
+        "ancient_geography": true,
+        "historical_context": false,
+        "archaeology": false,
+        "modern_context": true,
+        "identification_notes": true,
+        "homiletical_context": false
+      },
+      "evidence_item_count": 14,
+      "confidence_distribution": {
+        "medium": 14
+      },
+      "archaeology_coverage": false,
+      "historical_context_coverage": false,
+      "identification_coverage": true,
+      "remaining_source_gaps": [
+        "historical_context",
+        "archaeology"
+      ],
+      "ready_for_drafting": true,
+      "ready_for_source_backed": true,
+      "possible_featured_candidate": false,
+      "blocking_issues": [
+        "source_gap"
+      ],
+      "coverage_status": "source_backed_candidate"
+    },
+    {
+      "place_id": "edom",
+      "name_hu": "Edóm",
+      "candidate_source_count": 1,
+      "approved_source_count": 2,
+      "institutional_source_count": 0,
+      "section_coverage": {
+        "biblical_significance": true,
+        "key_events": true,
+        "ancient_geography": true,
+        "historical_context": false,
+        "archaeology": false,
+        "modern_context": true,
+        "identification_notes": true,
+        "homiletical_context": false
+      },
+      "evidence_item_count": 14,
+      "confidence_distribution": {
+        "medium": 14
+      },
+      "archaeology_coverage": false,
+      "historical_context_coverage": false,
+      "identification_coverage": true,
+      "remaining_source_gaps": [
+        "historical_context",
+        "archaeology"
+      ],
+      "ready_for_drafting": true,
+      "ready_for_source_backed": true,
+      "possible_featured_candidate": false,
+      "blocking_issues": [
+        "source_gap"
+      ],
+      "coverage_status": "source_backed_candidate"
+    },
+    {
+      "place_id": "gilead_1",
+      "name_hu": "Gileád",
+      "candidate_source_count": 1,
+      "approved_source_count": 2,
+      "institutional_source_count": 0,
+      "section_coverage": {
+        "biblical_significance": true,
+        "key_events": true,
+        "ancient_geography": true,
+        "historical_context": false,
+        "archaeology": false,
+        "modern_context": true,
+        "identification_notes": true,
+        "homiletical_context": false
+      },
+      "evidence_item_count": 9,
+      "confidence_distribution": {
+        "medium": 9
+      },
+      "archaeology_coverage": false,
+      "historical_context_coverage": false,
+      "identification_coverage": true,
+      "remaining_source_gaps": [
+        "historical_context",
+        "archaeology"
+      ],
+      "ready_for_drafting": true,
+      "ready_for_source_backed": true,
+      "possible_featured_candidate": false,
+      "blocking_issues": [
+        "source_gap"
+      ],
+      "coverage_status": "source_backed_candidate"
+    },
+    {
+      "place_id": "canaan",
+      "name_hu": "Kánaán",
+      "candidate_source_count": 1,
+      "approved_source_count": 2,
+      "institutional_source_count": 0,
+      "section_coverage": {
+        "biblical_significance": true,
+        "key_events": true,
+        "ancient_geography": true,
+        "historical_context": false,
+        "archaeology": false,
+        "modern_context": true,
+        "identification_notes": true,
+        "homiletical_context": false
+      },
+      "evidence_item_count": 10,
+      "confidence_distribution": {
+        "medium": 10
+      },
+      "archaeology_coverage": false,
+      "historical_context_coverage": false,
+      "identification_coverage": true,
+      "remaining_source_gaps": [
+        "historical_context",
+        "archaeology"
+      ],
+      "ready_for_drafting": true,
+      "ready_for_source_backed": true,
+      "possible_featured_candidate": false,
+      "blocking_issues": [
+        "source_gap"
+      ],
+      "coverage_status": "source_backed_candidate"
+    },
+    {
+      "place_id": "ammon",
+      "name_hu": "Ammón",
+      "candidate_source_count": 1,
+      "approved_source_count": 2,
+      "institutional_source_count": 0,
+      "section_coverage": {
+        "biblical_significance": true,
+        "key_events": true,
+        "ancient_geography": true,
+        "historical_context": false,
+        "archaeology": false,
+        "modern_context": true,
+        "identification_notes": true,
+        "homiletical_context": false
+      },
+      "evidence_item_count": 14,
+      "confidence_distribution": {
+        "medium": 14
+      },
+      "archaeology_coverage": false,
+      "historical_context_coverage": false,
+      "identification_coverage": true,
+      "remaining_source_gaps": [
+        "historical_context",
+        "archaeology"
+      ],
+      "ready_for_drafting": true,
+      "ready_for_source_backed": true,
+      "possible_featured_candidate": false,
+      "blocking_issues": [
+        "source_gap"
+      ],
+      "coverage_status": "source_backed_candidate"
+    },
+    {
+      "place_id": "tyre",
+      "name_hu": "Tírusz",
+      "candidate_source_count": 1,
+      "approved_source_count": 2,
+      "institutional_source_count": 0,
+      "section_coverage": {
+        "biblical_significance": true,
+        "key_events": true,
+        "ancient_geography": true,
+        "historical_context": false,
+        "archaeology": false,
+        "modern_context": true,
+        "identification_notes": true,
+        "homiletical_context": false
+      },
+      "evidence_item_count": 9,
+      "confidence_distribution": {
+        "medium": 9
+      },
+      "archaeology_coverage": false,
+      "historical_context_coverage": false,
+      "identification_coverage": true,
+      "remaining_source_gaps": [
+        "historical_context",
+        "archaeology"
+      ],
+      "ready_for_drafting": true,
+      "ready_for_source_backed": true,
+      "possible_featured_candidate": false,
+      "blocking_issues": [
+        "source_gap"
+      ],
+      "coverage_status": "source_backed_candidate"
+    },
+    {
+      "place_id": "samaria_1",
+      "name_hu": "Samária",
+      "candidate_source_count": 2,
+      "approved_source_count": 2,
+      "institutional_source_count": 1,
+      "section_coverage": {
+        "biblical_significance": true,
+        "key_events": true,
+        "ancient_geography": true,
+        "historical_context": true,
+        "archaeology": true,
+        "modern_context": true,
+        "identification_notes": true,
+        "homiletical_context": false
+      },
+      "evidence_item_count": 16,
+      "confidence_distribution": {
+        "medium": 16
+      },
+      "archaeology_coverage": true,
+      "historical_context_coverage": true,
+      "identification_coverage": true,
+      "remaining_source_gaps": [],
+      "ready_for_drafting": true,
+      "ready_for_source_backed": true,
+      "possible_featured_candidate": false,
+      "blocking_issues": [
+        "source_gap"
+      ],
+      "coverage_status": "source_backed_candidate"
+    },
+    {
+      "place_id": "negeb",
+      "name_hu": "Negev",
+      "candidate_source_count": 1,
+      "approved_source_count": 2,
+      "institutional_source_count": 0,
+      "section_coverage": {
+        "biblical_significance": true,
+        "key_events": true,
+        "ancient_geography": true,
+        "historical_context": false,
+        "archaeology": false,
+        "modern_context": true,
+        "identification_notes": true,
+        "homiletical_context": false
+      },
+      "evidence_item_count": 11,
+      "confidence_distribution": {
+        "medium": 11
+      },
+      "archaeology_coverage": false,
+      "historical_context_coverage": false,
+      "identification_coverage": true,
+      "remaining_source_gaps": [
+        "historical_context",
+        "archaeology"
+      ],
+      "ready_for_drafting": true,
+      "ready_for_source_backed": true,
+      "possible_featured_candidate": false,
+      "blocking_issues": [
+        "source_gap"
+      ],
+      "coverage_status": "source_backed_candidate"
+    },
+    {
+      "place_id": "chaldea",
+      "name_hu": "Káldea",
+      "candidate_source_count": 1,
+      "approved_source_count": 2,
+      "institutional_source_count": 0,
+      "section_coverage": {
+        "biblical_significance": true,
+        "key_events": true,
+        "ancient_geography": true,
+        "historical_context": false,
+        "archaeology": false,
+        "modern_context": true,
+        "identification_notes": true,
+        "homiletical_context": false
+      },
+      "evidence_item_count": 14,
+      "confidence_distribution": {
+        "medium": 14
+      },
+      "archaeology_coverage": false,
+      "historical_context_coverage": false,
+      "identification_coverage": true,
+      "remaining_source_gaps": [
+        "historical_context",
+        "archaeology"
+      ],
+      "ready_for_drafting": true,
+      "ready_for_source_backed": true,
+      "possible_featured_candidate": false,
+      "blocking_issues": [
+        "source_gap"
+      ],
+      "coverage_status": "source_backed_candidate"
+    },
+    {
+      "place_id": "lebanon",
+      "name_hu": "Libanon",
+      "candidate_source_count": 1,
+      "approved_source_count": 2,
+      "institutional_source_count": 0,
+      "section_coverage": {
+        "biblical_significance": true,
+        "key_events": true,
+        "ancient_geography": true,
+        "historical_context": false,
+        "archaeology": false,
+        "modern_context": true,
+        "identification_notes": true,
+        "homiletical_context": false
+      },
+      "evidence_item_count": 14,
+      "confidence_distribution": {
+        "medium": 14
+      },
+      "archaeology_coverage": false,
+      "historical_context_coverage": false,
+      "identification_coverage": true,
+      "remaining_source_gaps": [
+        "historical_context",
+        "archaeology"
+      ],
+      "ready_for_drafting": true,
+      "ready_for_source_backed": true,
+      "possible_featured_candidate": false,
+      "blocking_issues": [
+        "source_gap"
+      ],
+      "coverage_status": "source_backed_candidate"
+    },
+    {
+      "place_id": "gilgal_1",
+      "name_hu": "Gilgál",
+      "candidate_source_count": 1,
+      "approved_source_count": 2,
+      "institutional_source_count": 0,
+      "section_coverage": {
+        "biblical_significance": true,
+        "key_events": true,
+        "ancient_geography": true,
+        "historical_context": false,
+        "archaeology": false,
+        "modern_context": true,
+        "identification_notes": true,
+        "homiletical_context": false
+      },
+      "evidence_item_count": 13,
+      "confidence_distribution": {
+        "medium": 13
+      },
+      "archaeology_coverage": false,
+      "historical_context_coverage": false,
+      "identification_coverage": true,
+      "remaining_source_gaps": [
+        "historical_context",
+        "archaeology"
+      ],
+      "ready_for_drafting": true,
+      "ready_for_source_backed": true,
+      "possible_featured_candidate": false,
+      "blocking_issues": [
+        "source_gap"
+      ],
+      "coverage_status": "source_backed_candidate"
+    },
+    {
+      "place_id": "sodom",
+      "name_hu": "Sodoma",
+      "candidate_source_count": 1,
+      "approved_source_count": 2,
+      "institutional_source_count": 0,
+      "section_coverage": {
+        "biblical_significance": true,
+        "key_events": true,
+        "ancient_geography": true,
+        "historical_context": false,
+        "archaeology": false,
+        "modern_context": true,
+        "identification_notes": true,
+        "homiletical_context": false
+      },
+      "evidence_item_count": 14,
+      "confidence_distribution": {
+        "medium": 14
+      },
+      "archaeology_coverage": false,
+      "historical_context_coverage": false,
+      "identification_coverage": true,
+      "remaining_source_gaps": [
+        "historical_context",
+        "archaeology"
+      ],
+      "ready_for_drafting": true,
+      "ready_for_source_backed": true,
+      "possible_featured_candidate": false,
+      "blocking_issues": [
+        "source_gap"
+      ],
+      "coverage_status": "source_backed_candidate"
+    },
+    {
+      "place_id": "great_sea",
+      "name_hu": "Nagy-tenger",
+      "candidate_source_count": 1,
+      "approved_source_count": 2,
+      "institutional_source_count": 0,
+      "section_coverage": {
+        "biblical_significance": true,
+        "key_events": true,
+        "ancient_geography": true,
+        "historical_context": false,
+        "archaeology": false,
+        "modern_context": true,
+        "identification_notes": true,
+        "homiletical_context": false
+      },
+      "evidence_item_count": 14,
+      "confidence_distribution": {
+        "medium": 14
+      },
+      "archaeology_coverage": false,
+      "historical_context_coverage": false,
+      "identification_coverage": true,
+      "remaining_source_gaps": [
+        "historical_context",
+        "archaeology"
+      ],
+      "ready_for_drafting": true,
+      "ready_for_source_backed": true,
+      "possible_featured_candidate": false,
+      "blocking_issues": [
+        "source_gap"
+      ],
+      "coverage_status": "source_backed_candidate"
+    },
+    {
+      "place_id": "judea_1",
+      "name_hu": "Júdea",
+      "candidate_source_count": 2,
+      "approved_source_count": 2,
+      "institutional_source_count": 1,
+      "section_coverage": {
+        "biblical_significance": true,
+        "key_events": true,
+        "ancient_geography": true,
+        "historical_context": true,
+        "archaeology": true,
+        "modern_context": true,
+        "identification_notes": true,
+        "homiletical_context": false
+      },
+      "evidence_item_count": 16,
+      "confidence_distribution": {
+        "medium": 16
+      },
+      "archaeology_coverage": true,
+      "historical_context_coverage": true,
+      "identification_coverage": true,
+      "remaining_source_gaps": [],
+      "ready_for_drafting": true,
+      "ready_for_source_backed": true,
+      "possible_featured_candidate": false,
+      "blocking_issues": [
+        "source_gap"
+      ],
+      "coverage_status": "source_backed_candidate"
+    },
+    {
+      "place_id": "nile",
+      "name_hu": "Nílus",
+      "candidate_source_count": 1,
+      "approved_source_count": 2,
+      "institutional_source_count": 0,
+      "section_coverage": {
+        "biblical_significance": true,
+        "key_events": true,
+        "ancient_geography": true,
+        "historical_context": false,
+        "archaeology": false,
+        "modern_context": true,
+        "identification_notes": true,
+        "homiletical_context": false
+      },
+      "evidence_item_count": 14,
+      "confidence_distribution": {
+        "medium": 14
+      },
+      "archaeology_coverage": false,
+      "historical_context_coverage": false,
+      "identification_coverage": true,
+      "remaining_source_gaps": [
+        "historical_context",
+        "archaeology"
+      ],
+      "ready_for_drafting": true,
+      "ready_for_source_backed": true,
+      "possible_featured_candidate": false,
+      "blocking_issues": [
+        "source_gap"
+      ],
+      "coverage_status": "source_backed_candidate"
+    },
+    {
+      "place_id": "gaza",
+      "name_hu": "Gáza",
+      "candidate_source_count": 1,
+      "approved_source_count": 2,
+      "institutional_source_count": 0,
+      "section_coverage": {
+        "biblical_significance": true,
+        "key_events": true,
+        "ancient_geography": true,
+        "historical_context": false,
+        "archaeology": false,
+        "modern_context": true,
+        "identification_notes": true,
+        "homiletical_context": false
+      },
+      "evidence_item_count": 14,
+      "confidence_distribution": {
+        "medium": 14
+      },
+      "archaeology_coverage": false,
+      "historical_context_coverage": false,
+      "identification_coverage": true,
+      "remaining_source_gaps": [
+        "historical_context",
+        "archaeology"
+      ],
+      "ready_for_drafting": true,
+      "ready_for_source_backed": true,
+      "possible_featured_candidate": false,
+      "blocking_issues": [
+        "source_gap"
+      ],
+      "coverage_status": "source_backed_candidate"
+    },
+    {
+      "place_id": "shiloh",
+      "name_hu": "Siló",
+      "candidate_source_count": 1,
+      "approved_source_count": 2,
+      "institutional_source_count": 0,
+      "section_coverage": {
+        "biblical_significance": true,
+        "key_events": true,
+        "ancient_geography": true,
+        "historical_context": false,
+        "archaeology": false,
+        "modern_context": true,
+        "identification_notes": true,
+        "homiletical_context": false
+      },
+      "evidence_item_count": 14,
+      "confidence_distribution": {
+        "medium": 14
+      },
+      "archaeology_coverage": false,
+      "historical_context_coverage": false,
+      "identification_coverage": true,
+      "remaining_source_gaps": [
+        "historical_context",
+        "archaeology"
+      ],
+      "ready_for_drafting": true,
+      "ready_for_source_backed": true,
+      "possible_featured_candidate": false,
+      "blocking_issues": [
+        "source_gap"
+      ],
+      "coverage_status": "source_backed_candidate"
+    },
+    {
+      "place_id": "macedonia",
+      "name_hu": "Macedónia",
+      "candidate_source_count": 1,
+      "approved_source_count": 2,
+      "institutional_source_count": 0,
+      "section_coverage": {
+        "biblical_significance": true,
+        "key_events": true,
+        "ancient_geography": true,
+        "historical_context": false,
+        "archaeology": false,
+        "modern_context": true,
+        "identification_notes": true,
+        "homiletical_context": false
+      },
+      "evidence_item_count": 9,
+      "confidence_distribution": {
+        "medium": 9
+      },
+      "archaeology_coverage": false,
+      "historical_context_coverage": false,
+      "identification_coverage": true,
+      "remaining_source_gaps": [
+        "historical_context",
+        "archaeology"
+      ],
+      "ready_for_drafting": true,
+      "ready_for_source_backed": true,
+      "possible_featured_candidate": false,
+      "blocking_issues": [
+        "source_gap"
+      ],
+      "coverage_status": "source_backed_candidate"
+    },
+    {
+      "place_id": "lachish",
+      "name_hu": "Lákis",
+      "candidate_source_count": 1,
+      "approved_source_count": 2,
+      "institutional_source_count": 0,
+      "section_coverage": {
+        "biblical_significance": true,
+        "key_events": true,
+        "ancient_geography": true,
+        "historical_context": false,
+        "archaeology": false,
+        "modern_context": true,
+        "identification_notes": true,
+        "homiletical_context": false
+      },
+      "evidence_item_count": 9,
+      "confidence_distribution": {
+        "medium": 9
+      },
+      "archaeology_coverage": false,
+      "historical_context_coverage": false,
+      "identification_coverage": true,
+      "remaining_source_gaps": [
+        "historical_context",
+        "archaeology"
+      ],
+      "ready_for_drafting": true,
+      "ready_for_source_backed": true,
+      "possible_featured_candidate": false,
+      "blocking_issues": [
+        "source_gap"
+      ],
+      "coverage_status": "source_backed_candidate"
+    },
+    {
+      "place_id": "salt_sea",
+      "name_hu": "Sós-tenger",
+      "candidate_source_count": 1,
+      "approved_source_count": 2,
+      "institutional_source_count": 0,
+      "section_coverage": {
+        "biblical_significance": true,
+        "key_events": true,
+        "ancient_geography": true,
+        "historical_context": false,
+        "archaeology": false,
+        "modern_context": true,
+        "identification_notes": true,
+        "homiletical_context": false
+      },
+      "evidence_item_count": 14,
+      "confidence_distribution": {
+        "medium": 14
+      },
+      "archaeology_coverage": false,
+      "historical_context_coverage": false,
+      "identification_coverage": true,
+      "remaining_source_gaps": [
+        "historical_context",
+        "archaeology"
+      ],
+      "ready_for_drafting": true,
+      "ready_for_source_backed": true,
+      "possible_featured_candidate": false,
+      "blocking_issues": [
+        "source_gap"
+      ],
+      "coverage_status": "source_backed_candidate"
+    },
+    {
+      "place_id": "ai_1",
+      "name_hu": "Aj",
+      "candidate_source_count": 1,
+      "approved_source_count": 2,
+      "institutional_source_count": 0,
+      "section_coverage": {
+        "biblical_significance": true,
+        "key_events": true,
+        "ancient_geography": true,
+        "historical_context": false,
+        "archaeology": false,
+        "modern_context": true,
+        "identification_notes": true,
+        "homiletical_context": false
+      },
+      "evidence_item_count": 10,
+      "confidence_distribution": {
+        "medium": 10
+      },
+      "archaeology_coverage": false,
+      "historical_context_coverage": false,
+      "identification_coverage": true,
+      "remaining_source_gaps": [
+        "historical_context",
+        "archaeology"
+      ],
+      "ready_for_drafting": true,
+      "ready_for_source_backed": true,
+      "possible_featured_candidate": false,
+      "blocking_issues": [
+        "source_gap"
+      ],
+      "coverage_status": "source_backed_candidate"
+    },
+    {
+      "place_id": "mount_zion",
+      "name_hu": "Sion hegye",
+      "candidate_source_count": 1,
+      "approved_source_count": 2,
+      "institutional_source_count": 0,
+      "section_coverage": {
+        "biblical_significance": true,
+        "key_events": true,
+        "ancient_geography": true,
+        "historical_context": false,
+        "archaeology": false,
+        "modern_context": true,
+        "identification_notes": true,
+        "homiletical_context": false
+      },
+      "evidence_item_count": 14,
+      "confidence_distribution": {
+        "medium": 14
+      },
+      "archaeology_coverage": false,
+      "historical_context_coverage": false,
+      "identification_coverage": true,
+      "remaining_source_gaps": [
+        "historical_context",
+        "archaeology"
+      ],
+      "ready_for_drafting": true,
+      "ready_for_source_backed": true,
+      "possible_featured_candidate": false,
+      "blocking_issues": [
+        "source_gap"
+      ],
+      "coverage_status": "source_backed_candidate"
+    },
+    {
+      "place_id": "mizpah_3",
+      "name_hu": "Micpa (Benjámin)",
+      "candidate_source_count": 1,
+      "approved_source_count": 2,
+      "institutional_source_count": 0,
+      "section_coverage": {
+        "biblical_significance": true,
+        "key_events": true,
+        "ancient_geography": true,
+        "historical_context": false,
+        "archaeology": false,
+        "modern_context": true,
+        "identification_notes": true,
+        "homiletical_context": false
+      },
+      "evidence_item_count": 14,
+      "confidence_distribution": {
+        "medium": 14
+      },
+      "archaeology_coverage": false,
+      "historical_context_coverage": false,
+      "identification_coverage": true,
+      "remaining_source_gaps": [
+        "historical_context",
+        "archaeology"
+      ],
+      "ready_for_drafting": true,
+      "ready_for_source_backed": true,
+      "possible_featured_candidate": false,
+      "blocking_issues": [
+        "source_gap"
+      ],
+      "coverage_status": "source_backed_candidate"
+    },
+    {
+      "place_id": "gomorrah",
+      "name_hu": "Gomora",
+      "candidate_source_count": 1,
+      "approved_source_count": 2,
+      "institutional_source_count": 0,
+      "section_coverage": {
+        "biblical_significance": true,
+        "key_events": true,
+        "ancient_geography": true,
+        "historical_context": false,
+        "archaeology": false,
+        "modern_context": true,
+        "identification_notes": true,
+        "homiletical_context": false
+      },
+      "evidence_item_count": 14,
+      "confidence_distribution": {
+        "medium": 14
+      },
+      "archaeology_coverage": false,
+      "historical_context_coverage": false,
+      "identification_coverage": true,
+      "remaining_source_gaps": [
+        "historical_context",
+        "archaeology"
+      ],
+      "ready_for_drafting": true,
+      "ready_for_source_backed": true,
+      "possible_featured_candidate": false,
+      "blocking_issues": [
+        "source_gap"
+      ],
+      "coverage_status": "source_backed_candidate"
+    },
+    {
+      "place_id": "ashdod",
+      "name_hu": "Asdód",
+      "candidate_source_count": 1,
+      "approved_source_count": 2,
+      "institutional_source_count": 0,
+      "section_coverage": {
+        "biblical_significance": true,
+        "key_events": true,
+        "ancient_geography": true,
+        "historical_context": false,
+        "archaeology": false,
+        "modern_context": true,
+        "identification_notes": true,
+        "homiletical_context": false
+      },
+      "evidence_item_count": 14,
+      "confidence_distribution": {
+        "medium": 14
+      },
+      "archaeology_coverage": false,
+      "historical_context_coverage": false,
+      "identification_coverage": true,
+      "remaining_source_gaps": [
+        "historical_context",
+        "archaeology"
+      ],
+      "ready_for_drafting": true,
+      "ready_for_source_backed": true,
+      "possible_featured_candidate": false,
+      "blocking_issues": [
+        "source_gap"
+      ],
+      "coverage_status": "source_backed_candidate"
+    },
+    {
+      "place_id": "red_sea_1",
+      "name_hu": "Vörös-tenger",
+      "candidate_source_count": 1,
+      "approved_source_count": 2,
+      "institutional_source_count": 0,
+      "section_coverage": {
+        "biblical_significance": true,
+        "key_events": true,
+        "ancient_geography": true,
+        "historical_context": false,
+        "archaeology": false,
+        "modern_context": true,
+        "identification_notes": true,
+        "homiletical_context": false
+      },
+      "evidence_item_count": 9,
+      "confidence_distribution": {
+        "medium": 8,
+        "low": 1
+      },
+      "archaeology_coverage": false,
+      "historical_context_coverage": false,
+      "identification_coverage": true,
+      "remaining_source_gaps": [
+        "historical_context",
+        "archaeology"
+      ],
+      "ready_for_drafting": true,
+      "ready_for_source_backed": true,
+      "possible_featured_candidate": false,
+      "blocking_issues": [
+        "source_gap"
+      ],
+      "coverage_status": "source_backed_candidate"
+    },
+    {
+      "place_id": "cyprus",
+      "name_hu": "Ciprus",
+      "candidate_source_count": 1,
+      "approved_source_count": 2,
+      "institutional_source_count": 0,
+      "section_coverage": {
+        "biblical_significance": true,
+        "key_events": true,
+        "ancient_geography": true,
+        "historical_context": false,
+        "archaeology": false,
+        "modern_context": true,
+        "identification_notes": true,
+        "homiletical_context": false
+      },
+      "evidence_item_count": 10,
+      "confidence_distribution": {
+        "medium": 10
+      },
+      "archaeology_coverage": false,
+      "historical_context_coverage": false,
+      "identification_coverage": true,
+      "remaining_source_gaps": [
+        "historical_context",
+        "archaeology"
+      ],
+      "ready_for_drafting": true,
+      "ready_for_source_backed": true,
+      "possible_featured_candidate": false,
+      "blocking_issues": [
+        "source_gap"
+      ],
+      "coverage_status": "source_backed_candidate"
+    },
+    {
+      "place_id": "east",
+      "name_hu": "Kelet vidéke",
+      "candidate_source_count": 1,
+      "approved_source_count": 2,
+      "institutional_source_count": 0,
+      "section_coverage": {
+        "biblical_significance": true,
+        "key_events": true,
+        "ancient_geography": true,
+        "historical_context": false,
+        "archaeology": false,
+        "modern_context": true,
+        "identification_notes": true,
+        "homiletical_context": false
+      },
+      "evidence_item_count": 14,
+      "confidence_distribution": {
+        "medium": 14
+      },
+      "archaeology_coverage": false,
+      "historical_context_coverage": false,
+      "identification_coverage": true,
+      "remaining_source_gaps": [
+        "historical_context",
+        "archaeology"
+      ],
+      "ready_for_drafting": true,
+      "ready_for_source_backed": true,
+      "possible_featured_candidate": false,
+      "blocking_issues": [
+        "source_gap"
+      ],
+      "coverage_status": "source_backed_candidate"
+    },
+    {
+      "place_id": "galatia",
+      "name_hu": "Galácia",
+      "candidate_source_count": 1,
+      "approved_source_count": 2,
+      "institutional_source_count": 0,
+      "section_coverage": {
+        "biblical_significance": true,
+        "key_events": true,
+        "ancient_geography": true,
+        "historical_context": false,
+        "archaeology": false,
+        "modern_context": true,
+        "identification_notes": true,
+        "homiletical_context": false
+      },
+      "evidence_item_count": 10,
+      "confidence_distribution": {
+        "medium": 10
+      },
+      "archaeology_coverage": false,
+      "historical_context_coverage": false,
+      "identification_coverage": true,
+      "remaining_source_gaps": [
+        "historical_context",
+        "archaeology"
+      ],
+      "ready_for_drafting": true,
+      "ready_for_source_backed": true,
+      "possible_featured_candidate": false,
+      "blocking_issues": [
+        "source_gap"
+      ],
+      "coverage_status": "source_backed_candidate"
+    },
+    {
+      "place_id": "ramah_1",
+      "name_hu": "Ráma",
+      "candidate_source_count": 1,
+      "approved_source_count": 2,
+      "institutional_source_count": 0,
+      "section_coverage": {
+        "biblical_significance": true,
+        "key_events": true,
+        "ancient_geography": true,
+        "historical_context": false,
+        "archaeology": false,
+        "modern_context": true,
+        "identification_notes": true,
+        "homiletical_context": false
+      },
+      "evidence_item_count": 14,
+      "confidence_distribution": {
+        "medium": 14
+      },
+      "archaeology_coverage": false,
+      "historical_context_coverage": false,
+      "identification_coverage": true,
+      "remaining_source_gaps": [
+        "historical_context",
+        "archaeology"
+      ],
+      "ready_for_drafting": true,
+      "ready_for_source_backed": true,
+      "possible_featured_candidate": false,
+      "blocking_issues": [
+        "source_gap"
+      ],
+      "coverage_status": "source_backed_candidate"
+    },
+    {
+      "place_id": "jezreel_2",
+      "name_hu": "Jezréel",
+      "candidate_source_count": 1,
+      "approved_source_count": 2,
+      "institutional_source_count": 0,
+      "section_coverage": {
+        "biblical_significance": true,
+        "key_events": true,
+        "ancient_geography": true,
+        "historical_context": false,
+        "archaeology": false,
+        "modern_context": true,
+        "identification_notes": true,
+        "homiletical_context": false
+      },
+      "evidence_item_count": 14,
+      "confidence_distribution": {
+        "medium": 14
+      },
+      "archaeology_coverage": false,
+      "historical_context_coverage": false,
+      "identification_coverage": true,
+      "remaining_source_gaps": [
+        "historical_context",
+        "archaeology"
+      ],
+      "ready_for_drafting": true,
+      "ready_for_source_backed": true,
+      "possible_featured_candidate": false,
+      "blocking_issues": [
+        "source_gap"
+      ],
+      "coverage_status": "source_backed_candidate"
+    },
+    {
+      "place_id": "mount_of_olives",
+      "name_hu": "Olajfák hegye",
+      "candidate_source_count": 1,
+      "approved_source_count": 2,
+      "institutional_source_count": 0,
+      "section_coverage": {
+        "biblical_significance": true,
+        "key_events": true,
+        "ancient_geography": true,
+        "historical_context": false,
+        "archaeology": false,
+        "modern_context": true,
+        "identification_notes": true,
+        "homiletical_context": false
+      },
+      "evidence_item_count": 14,
+      "confidence_distribution": {
+        "medium": 14
+      },
+      "archaeology_coverage": false,
+      "historical_context_coverage": false,
+      "identification_coverage": true,
+      "remaining_source_gaps": [
+        "historical_context",
+        "archaeology"
+      ],
+      "ready_for_drafting": true,
+      "ready_for_source_backed": true,
+      "possible_featured_candidate": false,
+      "blocking_issues": [
+        "source_gap"
+      ],
+      "coverage_status": "source_backed_candidate"
+    },
+    {
+      "place_id": "lystra",
+      "name_hu": "Lisztra",
+      "candidate_source_count": 1,
+      "approved_source_count": 2,
+      "institutional_source_count": 0,
+      "section_coverage": {
+        "biblical_significance": true,
+        "key_events": true,
+        "ancient_geography": true,
+        "historical_context": false,
+        "archaeology": false,
+        "modern_context": true,
+        "identification_notes": true,
+        "homiletical_context": false
+      },
+      "evidence_item_count": 11,
+      "confidence_distribution": {
+        "medium": 11
+      },
+      "archaeology_coverage": false,
+      "historical_context_coverage": false,
+      "identification_coverage": true,
+      "remaining_source_gaps": [
+        "historical_context",
+        "archaeology"
+      ],
+      "ready_for_drafting": true,
+      "ready_for_source_backed": true,
+      "possible_featured_candidate": false,
+      "blocking_issues": [
+        "source_gap"
+      ],
+      "coverage_status": "source_backed_candidate"
+    },
+    {
+      "place_id": "ekron",
+      "name_hu": "Ekrón",
+      "candidate_source_count": 1,
+      "approved_source_count": 2,
+      "institutional_source_count": 0,
+      "section_coverage": {
+        "biblical_significance": true,
+        "key_events": true,
+        "ancient_geography": true,
+        "historical_context": false,
+        "archaeology": false,
+        "modern_context": true,
+        "identification_notes": true,
+        "homiletical_context": false
+      },
+      "evidence_item_count": 14,
+      "confidence_distribution": {
+        "medium": 14
+      },
+      "archaeology_coverage": false,
+      "historical_context_coverage": false,
+      "identification_coverage": true,
+      "remaining_source_gaps": [
+        "historical_context",
+        "archaeology"
+      ],
+      "ready_for_drafting": true,
+      "ready_for_source_backed": true,
+      "possible_featured_candidate": false,
+      "blocking_issues": [
+        "source_gap"
+      ],
+      "coverage_status": "source_backed_candidate"
+    },
+    {
+      "place_id": "troas",
+      "name_hu": "Tróász",
+      "candidate_source_count": 1,
+      "approved_source_count": 2,
+      "institutional_source_count": 0,
+      "section_coverage": {
+        "biblical_significance": true,
+        "key_events": true,
+        "ancient_geography": true,
+        "historical_context": false,
+        "archaeology": false,
+        "modern_context": true,
+        "identification_notes": true,
+        "homiletical_context": false
+      },
+      "evidence_item_count": 10,
+      "confidence_distribution": {
+        "medium": 10
+      },
+      "archaeology_coverage": false,
+      "historical_context_coverage": false,
+      "identification_coverage": true,
+      "remaining_source_gaps": [
+        "historical_context",
+        "archaeology"
+      ],
+      "ready_for_drafting": true,
+      "ready_for_source_backed": true,
+      "possible_featured_candidate": false,
+      "blocking_issues": [
+        "source_gap"
+      ],
+      "coverage_status": "source_backed_candidate"
+    },
+    {
+      "place_id": "asia",
+      "name_hu": "Ázsia provincia",
+      "candidate_source_count": 1,
+      "approved_source_count": 2,
+      "institutional_source_count": 0,
+      "section_coverage": {
+        "biblical_significance": true,
+        "key_events": true,
+        "ancient_geography": true,
+        "historical_context": false,
+        "archaeology": false,
+        "modern_context": true,
+        "identification_notes": true,
+        "homiletical_context": false
+      },
+      "evidence_item_count": 14,
+      "confidence_distribution": {
+        "medium": 14
+      },
+      "archaeology_coverage": false,
+      "historical_context_coverage": false,
+      "identification_coverage": true,
+      "remaining_source_gaps": [
+        "historical_context",
+        "archaeology"
+      ],
+      "ready_for_drafting": true,
+      "ready_for_source_backed": true,
+      "possible_featured_candidate": false,
+      "blocking_issues": [
+        "source_gap"
+      ],
+      "coverage_status": "source_backed_candidate"
+    },
+    {
+      "place_id": "thessalonica",
+      "name_hu": "Thesszalonika",
+      "candidate_source_count": 2,
+      "approved_source_count": 4,
+      "institutional_source_count": 0,
+      "section_coverage": {
+        "biblical_significance": true,
+        "key_events": true,
+        "ancient_geography": true,
+        "historical_context": false,
+        "archaeology": false,
+        "modern_context": true,
+        "identification_notes": true,
+        "homiletical_context": false
+      },
+      "evidence_item_count": 12,
+      "confidence_distribution": {
+        "medium": 9,
+        "high": 3
+      },
+      "archaeology_coverage": false,
+      "historical_context_coverage": false,
+      "identification_coverage": true,
+      "remaining_source_gaps": [
+        "historical_context",
+        "archaeology"
+      ],
+      "ready_for_drafting": true,
+      "ready_for_source_backed": true,
+      "possible_featured_candidate": false,
+      "blocking_issues": [],
+      "coverage_status": "source_backed_candidate"
+    },
+    {
+      "place_id": "haran",
+      "name_hu": "Hárán",
+      "candidate_source_count": 1,
+      "approved_source_count": 2,
+      "institutional_source_count": 0,
+      "section_coverage": {
+        "biblical_significance": true,
+        "key_events": true,
+        "ancient_geography": true,
+        "historical_context": false,
+        "archaeology": false,
+        "modern_context": true,
+        "identification_notes": true,
+        "homiletical_context": false
+      },
+      "evidence_item_count": 9,
+      "confidence_distribution": {
+        "medium": 9
+      },
+      "archaeology_coverage": false,
+      "historical_context_coverage": false,
+      "identification_coverage": true,
+      "remaining_source_gaps": [
+        "historical_context",
+        "archaeology"
+      ],
+      "ready_for_drafting": true,
+      "ready_for_source_backed": true,
+      "possible_featured_candidate": false,
+      "blocking_issues": [
+        "source_gap"
+      ],
+      "coverage_status": "source_backed_candidate"
+    },
+    {
+      "place_id": "cush_1",
+      "name_hu": "Kús",
+      "candidate_source_count": 1,
+      "approved_source_count": 2,
+      "institutional_source_count": 0,
+      "section_coverage": {
+        "biblical_significance": true,
+        "key_events": true,
+        "ancient_geography": true,
+        "historical_context": false,
+        "archaeology": false,
+        "modern_context": true,
+        "identification_notes": true,
+        "homiletical_context": false
+      },
+      "evidence_item_count": 14,
+      "confidence_distribution": {
+        "medium": 14
+      },
+      "archaeology_coverage": false,
+      "historical_context_coverage": false,
+      "identification_coverage": true,
+      "remaining_source_gaps": [
+        "historical_context",
+        "archaeology"
+      ],
+      "ready_for_drafting": true,
+      "ready_for_source_backed": true,
+      "possible_featured_candidate": false,
+      "blocking_issues": [
+        "source_gap"
+      ],
+      "coverage_status": "source_backed_candidate"
+    },
+    {
+      "place_id": "achaia",
+      "name_hu": "Akhája",
+      "candidate_source_count": 1,
+      "approved_source_count": 2,
+      "institutional_source_count": 0,
+      "section_coverage": {
+        "biblical_significance": true,
+        "key_events": true,
+        "ancient_geography": true,
+        "historical_context": false,
+        "archaeology": false,
+        "modern_context": true,
+        "identification_notes": true,
+        "homiletical_context": false
+      },
+      "evidence_item_count": 9,
+      "confidence_distribution": {
+        "medium": 9
+      },
+      "archaeology_coverage": false,
+      "historical_context_coverage": false,
+      "identification_coverage": true,
+      "remaining_source_gaps": [
+        "historical_context",
+        "archaeology"
+      ],
+      "ready_for_drafting": true,
+      "ready_for_source_backed": true,
+      "possible_featured_candidate": false,
+      "blocking_issues": [
+        "source_gap"
+      ],
+      "coverage_status": "source_backed_candidate"
+    },
+    {
+      "place_id": "persia",
+      "name_hu": "Perzsia",
+      "candidate_source_count": 1,
+      "approved_source_count": 2,
+      "institutional_source_count": 0,
+      "section_coverage": {
+        "biblical_significance": true,
+        "key_events": true,
+        "ancient_geography": true,
+        "historical_context": false,
+        "archaeology": false,
+        "modern_context": true,
+        "identification_notes": true,
+        "homiletical_context": false
+      },
+      "evidence_item_count": 14,
+      "confidence_distribution": {
+        "medium": 14
+      },
+      "archaeology_coverage": false,
+      "historical_context_coverage": false,
+      "identification_coverage": true,
+      "remaining_source_gaps": [
+        "historical_context",
+        "archaeology"
+      ],
+      "ready_for_drafting": true,
+      "ready_for_source_backed": true,
+      "possible_featured_candidate": false,
+      "blocking_issues": [
+        "source_gap"
+      ],
+      "coverage_status": "source_backed_candidate"
+    },
+    {
+      "place_id": "ashkelon",
+      "name_hu": "Askelón",
+      "candidate_source_count": 1,
+      "approved_source_count": 2,
+      "institutional_source_count": 0,
+      "section_coverage": {
+        "biblical_significance": true,
+        "key_events": true,
+        "ancient_geography": true,
+        "historical_context": false,
+        "archaeology": false,
+        "modern_context": true,
+        "identification_notes": true,
+        "homiletical_context": false
+      },
+      "evidence_item_count": 14,
+      "confidence_distribution": {
+        "medium": 14
+      },
+      "archaeology_coverage": false,
+      "historical_context_coverage": false,
+      "identification_coverage": true,
+      "remaining_source_gaps": [
+        "historical_context",
+        "archaeology"
+      ],
+      "ready_for_drafting": true,
+      "ready_for_source_backed": true,
+      "possible_featured_candidate": false,
+      "blocking_issues": [
+        "source_gap"
+      ],
+      "coverage_status": "source_backed_candidate"
+    },
+    {
+      "place_id": "derbe",
+      "name_hu": "Derbé",
+      "candidate_source_count": 1,
+      "approved_source_count": 2,
+      "institutional_source_count": 0,
+      "section_coverage": {
+        "biblical_significance": true,
+        "key_events": true,
+        "ancient_geography": true,
+        "historical_context": false,
+        "archaeology": false,
+        "modern_context": true,
+        "identification_notes": true,
+        "homiletical_context": false
+      },
+      "evidence_item_count": 10,
+      "confidence_distribution": {
+        "medium": 10
+      },
+      "archaeology_coverage": false,
+      "historical_context_coverage": false,
+      "identification_coverage": true,
+      "remaining_source_gaps": [
+        "historical_context",
+        "archaeology"
+      ],
+      "ready_for_drafting": true,
+      "ready_for_source_backed": true,
+      "possible_featured_candidate": false,
+      "blocking_issues": [
+        "source_gap"
+      ],
+      "coverage_status": "source_backed_candidate"
+    },
+    {
+      "place_id": "syria_2",
+      "name_hu": "Szíria",
+      "candidate_source_count": 1,
+      "approved_source_count": 2,
+      "institutional_source_count": 0,
+      "section_coverage": {
+        "biblical_significance": true,
+        "key_events": true,
+        "ancient_geography": true,
+        "historical_context": false,
+        "archaeology": false,
+        "modern_context": true,
+        "identification_notes": true,
+        "homiletical_context": false
+      },
+      "evidence_item_count": 9,
+      "confidence_distribution": {
+        "medium": 9
+      },
+      "archaeology_coverage": false,
+      "historical_context_coverage": false,
+      "identification_coverage": true,
+      "remaining_source_gaps": [
+        "historical_context",
+        "archaeology"
+      ],
+      "ready_for_drafting": true,
+      "ready_for_source_backed": true,
+      "possible_featured_candidate": false,
+      "blocking_issues": [
+        "source_gap"
+      ],
+      "coverage_status": "source_backed_candidate"
+    },
+    {
+      "place_id": "elam",
+      "name_hu": "Élám",
+      "candidate_source_count": 1,
+      "approved_source_count": 2,
+      "institutional_source_count": 0,
+      "section_coverage": {
+        "biblical_significance": true,
+        "key_events": true,
+        "ancient_geography": true,
+        "historical_context": false,
+        "archaeology": false,
+        "modern_context": true,
+        "identification_notes": true,
+        "homiletical_context": false
+      },
+      "evidence_item_count": 14,
+      "confidence_distribution": {
+        "medium": 14
+      },
+      "archaeology_coverage": false,
+      "historical_context_coverage": false,
+      "identification_coverage": true,
+      "remaining_source_gaps": [
+        "historical_context",
+        "archaeology"
+      ],
+      "ready_for_drafting": true,
+      "ready_for_source_backed": true,
+      "possible_featured_candidate": false,
+      "blocking_issues": [
+        "source_gap"
+      ],
+      "coverage_status": "source_backed_candidate"
+    },
+    {
+      "place_id": "moab_2",
+      "name_hu": "Moáb síksága",
+      "candidate_source_count": 1,
+      "approved_source_count": 2,
+      "institutional_source_count": 0,
+      "section_coverage": {
+        "biblical_significance": true,
+        "key_events": true,
+        "ancient_geography": true,
+        "historical_context": false,
+        "archaeology": false,
+        "modern_context": true,
+        "identification_notes": true,
+        "homiletical_context": false
+      },
+      "evidence_item_count": 9,
+      "confidence_distribution": {
+        "medium": 9
+      },
+      "archaeology_coverage": false,
+      "historical_context_coverage": false,
+      "identification_coverage": true,
+      "remaining_source_gaps": [
+        "historical_context",
+        "archaeology"
+      ],
+      "ready_for_drafting": true,
+      "ready_for_source_backed": true,
+      "possible_featured_candidate": false,
+      "blocking_issues": [
+        "source_gap"
+      ],
+      "coverage_status": "source_backed_candidate"
+    }
+  ]
+}
