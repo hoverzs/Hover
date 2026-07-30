@@ -1,0 +1,518 @@
+{
+  "report_id": "exodus_wilderness_validation_report",
+  "route_count": 2,
+  "routes": [
+    {
+      "route_id": "exodus_egypt_to_sinai",
+      "total_textual_stops": 14,
+      "mapped_stop_count": 0,
+      "approximate_stop_count": 13,
+      "textual_only_stop_count": 1,
+      "map_segment_count": 11,
+      "interrupted_map_section_count": 2,
+      "journey_phase_counts": {
+        "nincs fázis": 14
+      },
+      "certainty_counts": {
+        "probable": 5,
+        "possible": 8,
+        "disputed": 1
+      },
+      "place_resolution": [
+        {
+          "stop_id": "rameses_exodus",
+          "place_id": "rameses",
+          "mapping_status": "approximate",
+          "display_on_map": true,
+          "name_hu": "Ramszesz"
+        },
+        {
+          "stop_id": "succoth_exodus",
+          "place_id": "succoth_2",
+          "mapping_status": "approximate",
+          "display_on_map": true,
+          "name_hu": "Szukkót"
+        },
+        {
+          "stop_id": "etham_exodus",
+          "place_id": "etham",
+          "mapping_status": "approximate",
+          "display_on_map": true,
+          "name_hu": "Étám"
+        },
+        {
+          "stop_id": "pi_hahiroth_exodus",
+          "place_id": "pi_hahiroth",
+          "mapping_status": "approximate",
+          "display_on_map": true,
+          "name_hu": "Pi-Hahirót"
+        },
+        {
+          "stop_id": "sea_crossing_textual",
+          "place_id": null,
+          "mapping_status": "textual_only",
+          "display_on_map": false,
+          "name_hu": "A tengeren való átkelés helye"
+        },
+        {
+          "stop_id": "shur_exodus",
+          "place_id": "shur",
+          "mapping_status": "approximate",
+          "display_on_map": true,
+          "name_hu": "Súr pusztája"
+        },
+        {
+          "stop_id": "marah_exodus",
+          "place_id": "marah",
+          "mapping_status": "approximate",
+          "display_on_map": true,
+          "name_hu": "Márá"
+        },
+        {
+          "stop_id": "elim_exodus",
+          "place_id": "elim",
+          "mapping_status": "approximate",
+          "display_on_map": true,
+          "name_hu": "Élim"
+        },
+        {
+          "stop_id": "red_sea_camp_exodus",
+          "place_id": "red_sea_1",
+          "mapping_status": "approximate",
+          "display_on_map": true,
+          "name_hu": "Tábor a Vörös-tenger mellett"
+        },
+        {
+          "stop_id": "sin_exodus",
+          "place_id": "sin",
+          "mapping_status": "approximate",
+          "display_on_map": true,
+          "name_hu": "Szín pusztája"
+        },
+        {
+          "stop_id": "dophkah_exodus",
+          "place_id": "dophkah",
+          "mapping_status": "approximate",
+          "display_on_map": true,
+          "name_hu": "Dofká"
+        },
+        {
+          "stop_id": "alush_exodus",
+          "place_id": "alush",
+          "mapping_status": "approximate",
+          "display_on_map": true,
+          "name_hu": "Alús"
+        },
+        {
+          "stop_id": "rephidim_exodus",
+          "place_id": "rephidim",
+          "mapping_status": "approximate",
+          "display_on_map": true,
+          "name_hu": "Refidím"
+        },
+        {
+          "stop_id": "sinai_exodus",
+          "place_id": "wilderness_of_sinai",
+          "mapping_status": "approximate",
+          "display_on_map": true,
+          "name_hu": "Sínai pusztája / Sínai-hegy"
+        }
+      ],
+      "unresolved_place_names": [
+        "A tengeren való átkelés helye"
+      ],
+      "disputed_or_review_needed": [
+        {
+          "stop_id": "succoth_exodus",
+          "name_hu": "Szukkót",
+          "certainty": "possible",
+          "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés."
+        },
+        {
+          "stop_id": "etham_exodus",
+          "name_hu": "Étám",
+          "certainty": "possible",
+          "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés."
+        },
+        {
+          "stop_id": "pi_hahiroth_exodus",
+          "name_hu": "Pi-Hahirót",
+          "certainty": "possible",
+          "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés."
+        },
+        {
+          "stop_id": "sea_crossing_textual",
+          "name_hu": "A tengeren való átkelés helye",
+          "certainty": "disputed",
+          "mapping_notes_hu": "A hely pontos földrajzi azonosítása nem ismert."
+        },
+        {
+          "stop_id": "marah_exodus",
+          "name_hu": "Márá",
+          "certainty": "possible",
+          "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés."
+        },
+        {
+          "stop_id": "red_sea_camp_exodus",
+          "name_hu": "Tábor a Vörös-tenger mellett",
+          "certainty": "possible",
+          "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés."
+        },
+        {
+          "stop_id": "sin_exodus",
+          "name_hu": "Szín pusztája",
+          "certainty": "possible",
+          "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés."
+        },
+        {
+          "stop_id": "alush_exodus",
+          "name_hu": "Alús",
+          "certainty": "possible",
+          "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés."
+        },
+        {
+          "stop_id": "rephidim_exodus",
+          "name_hu": "Refidím",
+          "certainty": "possible",
+          "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés."
+        }
+      ],
+      "passage_coverage": [
+        "2Móz 12,37-19,2",
+        "4Móz 33,1-15"
+      ],
+      "mojibake_utf8_check": "passed",
+      "duplicate_geometry_check": "one_render_geometry_per_segment_expected",
+      "zero_length_segments": [],
+      "legacy_place_ids": []
+    },
+    {
+      "route_id": "wilderness_sinai_to_moab",
+      "total_textual_stops": 31,
+      "mapped_stop_count": 0,
+      "approximate_stop_count": 31,
+      "textual_only_stop_count": 0,
+      "map_segment_count": 27,
+      "interrupted_map_section_count": 0,
+      "journey_phase_counts": {
+        "Elindulás a Sínaitól": 3,
+        "Út Kádés felé": 1,
+        "A pusztai vándorlás évei": 17,
+        "Kádéstől Móábig": 10
+      },
+      "certainty_counts": {
+        "probable": 18,
+        "possible": 13
+      },
+      "place_resolution": [
+        {
+          "stop_id": "sinai_wilderness_departure",
+          "place_id": "wilderness_of_sinai",
+          "mapping_status": "approximate",
+          "display_on_map": true,
+          "name_hu": "Sínai pusztája"
+        },
+        {
+          "stop_id": "kibroth_wilderness",
+          "place_id": "kibroth_hattaavah",
+          "mapping_status": "approximate",
+          "display_on_map": true,
+          "name_hu": "Kibrót-Hattaavá"
+        },
+        {
+          "stop_id": "hazeroth_wilderness",
+          "place_id": "hazeroth",
+          "mapping_status": "approximate",
+          "display_on_map": true,
+          "name_hu": "Hacérót"
+        },
+        {
+          "stop_id": "rithmah_wilderness",
+          "place_id": "rithmah",
+          "mapping_status": "approximate",
+          "display_on_map": true,
+          "name_hu": "Ritmá"
+        },
+        {
+          "stop_id": "rimmon_perez_wilderness",
+          "place_id": "rimmon_perez",
+          "mapping_status": "approximate",
+          "display_on_map": true,
+          "name_hu": "Rimmón-Perec"
+        },
+        {
+          "stop_id": "libnah_wilderness",
+          "place_id": "libnah_2",
+          "mapping_status": "approximate",
+          "display_on_map": true,
+          "name_hu": "Libná"
+        },
+        {
+          "stop_id": "rissah_wilderness",
+          "place_id": "rissah",
+          "mapping_status": "approximate",
+          "display_on_map": true,
+          "name_hu": "Risszá"
+        },
+        {
+          "stop_id": "kehelathah_wilderness",
+          "place_id": "kehelathah",
+          "mapping_status": "approximate",
+          "display_on_map": true,
+          "name_hu": "Kehélátá"
+        },
+        {
+          "stop_id": "mount_shepher_wilderness",
+          "place_id": "mount_shepher",
+          "mapping_status": "approximate",
+          "display_on_map": true,
+          "name_hu": "Séfer-hegy"
+        },
+        {
+          "stop_id": "haradah_wilderness",
+          "place_id": "haradah",
+          "mapping_status": "approximate",
+          "display_on_map": true,
+          "name_hu": "Haradá"
+        },
+        {
+          "stop_id": "makheloth_wilderness",
+          "place_id": "makheloth",
+          "mapping_status": "approximate",
+          "display_on_map": true,
+          "name_hu": "Makhelót"
+        },
+        {
+          "stop_id": "tahath_wilderness",
+          "place_id": "tahath",
+          "mapping_status": "approximate",
+          "display_on_map": true,
+          "name_hu": "Táhat"
+        },
+        {
+          "stop_id": "terah_wilderness",
+          "place_id": "terah",
+          "mapping_status": "approximate",
+          "display_on_map": true,
+          "name_hu": "Terah"
+        },
+        {
+          "stop_id": "mithkah_wilderness",
+          "place_id": "mithkah",
+          "mapping_status": "approximate",
+          "display_on_map": true,
+          "name_hu": "Mitká"
+        },
+        {
+          "stop_id": "hashmonah_wilderness",
+          "place_id": "hashmonah",
+          "mapping_status": "approximate",
+          "display_on_map": true,
+          "name_hu": "Hasmóná"
+        },
+        {
+          "stop_id": "moseroth_wilderness",
+          "place_id": "moseroth",
+          "mapping_status": "approximate",
+          "display_on_map": true,
+          "name_hu": "Mószerót"
+        },
+        {
+          "stop_id": "bene_jaakan_wilderness",
+          "place_id": "bene_jaakan",
+          "mapping_status": "approximate",
+          "display_on_map": true,
+          "name_hu": "Bené-Jaakán"
+        },
+        {
+          "stop_id": "hor_haggidgad_wilderness",
+          "place_id": "hor_haggidgad",
+          "mapping_status": "approximate",
+          "display_on_map": true,
+          "name_hu": "Hór-Haggidgád"
+        },
+        {
+          "stop_id": "jotbathah_wilderness",
+          "place_id": "jotbathah",
+          "mapping_status": "approximate",
+          "display_on_map": true,
+          "name_hu": "Jotbátá"
+        },
+        {
+          "stop_id": "abronah_wilderness",
+          "place_id": "abronah",
+          "mapping_status": "approximate",
+          "display_on_map": true,
+          "name_hu": "Abróná"
+        },
+        {
+          "stop_id": "ezion_geber_wilderness",
+          "place_id": "ezion_geber",
+          "mapping_status": "approximate",
+          "display_on_map": true,
+          "name_hu": "Ecjón-Geber"
+        },
+        {
+          "stop_id": "kadesh_wilderness",
+          "place_id": "kadesh_barnea",
+          "mapping_status": "approximate",
+          "display_on_map": true,
+          "name_hu": "Kádés"
+        },
+        {
+          "stop_id": "mount_hor_wilderness",
+          "place_id": "mount_hor_1",
+          "mapping_status": "approximate",
+          "display_on_map": true,
+          "name_hu": "Hór hegye"
+        },
+        {
+          "stop_id": "zalmonah_wilderness",
+          "place_id": "zalmonah",
+          "mapping_status": "approximate",
+          "display_on_map": true,
+          "name_hu": "Calmóná"
+        },
+        {
+          "stop_id": "punon_wilderness",
+          "place_id": "punon",
+          "mapping_status": "approximate",
+          "display_on_map": true,
+          "name_hu": "Púnón"
+        },
+        {
+          "stop_id": "oboth_wilderness",
+          "place_id": "oboth",
+          "mapping_status": "approximate",
+          "display_on_map": true,
+          "name_hu": "Óbót"
+        },
+        {
+          "stop_id": "iye_abarim_wilderness",
+          "place_id": "iye_abarim",
+          "mapping_status": "approximate",
+          "display_on_map": true,
+          "name_hu": "Ijé-Abárim"
+        },
+        {
+          "stop_id": "dibon_gad_wilderness",
+          "place_id": "dibon_1",
+          "mapping_status": "approximate",
+          "display_on_map": true,
+          "name_hu": "Díbón-Gád"
+        },
+        {
+          "stop_id": "almon_diblathaim_wilderness",
+          "place_id": "almon_diblathaim",
+          "mapping_status": "approximate",
+          "display_on_map": true,
+          "name_hu": "Almón-Diblátajim"
+        },
+        {
+          "stop_id": "abarim_wilderness",
+          "place_id": "abarim",
+          "mapping_status": "approximate",
+          "display_on_map": true,
+          "name_hu": "Abárim-hegység"
+        },
+        {
+          "stop_id": "moab_plains_wilderness",
+          "place_id": "moab_2",
+          "mapping_status": "approximate",
+          "display_on_map": true,
+          "name_hu": "Moáb síksága"
+        }
+      ],
+      "unresolved_place_names": [],
+      "disputed_or_review_needed": [
+        {
+          "stop_id": "rithmah_wilderness",
+          "name_hu": "Ritmá",
+          "certainty": "possible",
+          "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés."
+        },
+        {
+          "stop_id": "rimmon_perez_wilderness",
+          "name_hu": "Rimmón-Perec",
+          "certainty": "possible",
+          "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés."
+        },
+        {
+          "stop_id": "libnah_wilderness",
+          "name_hu": "Libná",
+          "certainty": "possible",
+          "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés."
+        },
+        {
+          "stop_id": "haradah_wilderness",
+          "name_hu": "Haradá",
+          "certainty": "possible",
+          "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés."
+        },
+        {
+          "stop_id": "makheloth_wilderness",
+          "name_hu": "Makhelót",
+          "certainty": "possible",
+          "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés."
+        },
+        {
+          "stop_id": "hashmonah_wilderness",
+          "name_hu": "Hasmóná",
+          "certainty": "possible",
+          "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés."
+        },
+        {
+          "stop_id": "bene_jaakan_wilderness",
+          "name_hu": "Bené-Jaakán",
+          "certainty": "possible",
+          "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés."
+        },
+        {
+          "stop_id": "hor_haggidgad_wilderness",
+          "name_hu": "Hór-Haggidgád",
+          "certainty": "possible",
+          "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés."
+        },
+        {
+          "stop_id": "jotbathah_wilderness",
+          "name_hu": "Jotbátá",
+          "certainty": "possible",
+          "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés."
+        },
+        {
+          "stop_id": "abronah_wilderness",
+          "name_hu": "Abróná",
+          "certainty": "possible",
+          "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés."
+        },
+        {
+          "stop_id": "mount_hor_wilderness",
+          "name_hu": "Hór hegye",
+          "certainty": "possible",
+          "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés."
+        },
+        {
+          "stop_id": "zalmonah_wilderness",
+          "name_hu": "Calmóná",
+          "certainty": "possible",
+          "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés."
+        },
+        {
+          "stop_id": "oboth_wilderness",
+          "name_hu": "Óbót",
+          "certainty": "possible",
+          "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés."
+        }
+      ],
+      "passage_coverage": [
+        "4Móz 10,11-22,1",
+        "4Móz 33,16-49",
+        "5Móz 1-2"
+      ],
+      "mojibake_utf8_check": "passed",
+      "duplicate_geometry_check": "one_render_geometry_per_segment_expected",
+      "zero_length_segments": [],
+      "legacy_place_ids": []
+    }
+  ]
+}

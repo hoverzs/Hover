@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 import html
 import math
 import re
@@ -49,6 +49,7 @@ MAP_STYLE_HISTORICAL_MOOD = "historical_mood"
 SELECTED_ROUTE_ID_KEY = "_biblical_map_selected_route_id"
 SELECTED_ROUTE_STOP_ID_KEY = "_biblical_map_selected_route_stop_id"
 HIGHLIGHTED_ROUTE_STOP_IDS_KEY = "_biblical_map_highlighted_route_stop_ids"
+SELECTED_ROUTE_PHASE_KEY = "_biblical_map_selected_route_phase"
 ROUTE_VIEW_WARNING_HU = (
     "Az útvonal a bibliai szövegben megnevezett állomások sorrendjét mutatja. "
     "A vonalak sematikusak, nem a pontos ókori nyomvonalat jelölik."
@@ -1140,6 +1141,30 @@ def _route_labels(routes: tuple[BiblicalRoute, ...]) -> dict[str, str]:
     return {route.route_id: route.name_hu for route in routes}
 
 
+def route_phase_options(route: BiblicalRoute) -> list[str]:
+    phases = []
+    for stop in route.stops:
+        phase = str(getattr(stop, "journey_phase", "") or "").strip()
+        if phase and phase not in phases:
+            phases.append(phase)
+    return ["Teljes útvonal", *phases] if phases else []
+
+
+def filtered_route_stops(route: BiblicalRoute, phase: str | None) -> tuple[BiblicalRouteStop, ...]:
+    if not phase or phase == "Teljes útvonal":
+        return route.stops
+    return tuple(stop for stop in route.stops if str(getattr(stop, "journey_phase", "") or "") == phase)
+
+
+def filtered_route_segments(route: BiblicalRoute, stops: tuple[BiblicalRouteStop, ...]) -> tuple:
+    stop_ids = {stop.stop_id for stop in stops}
+    return tuple(
+        segment
+        for segment in route.segments
+        if segment.from_stop_id in stop_ids and segment.to_stop_id in stop_ids
+    )
+
+
 def compact_ancient_name_options(place: BiblicalPlace, *, limit: int = 6) -> tuple[str, ...]:
     values = [
         *place.ancient_names,
@@ -1338,14 +1363,38 @@ def _render_route_view(st: Any) -> None:
         key=SELECTED_ROUTE_ID_KEY,
     )
     route = next(route for route in routes if route.route_id == selected_route_id)
+    phase_options = route_phase_options(route)
+    selected_phase = ""
+    if phase_options:
+        phase_key = f"{SELECTED_ROUTE_PHASE_KEY}_{route.route_id}"
+        selected_phase = str(st.session_state.get(phase_key) or phase_options[0])
+        if selected_phase not in phase_options:
+            selected_phase = phase_options[0]
+            st.session_state[phase_key] = selected_phase
+        selected_phase = st.selectbox(
+            "Útvonalfázis",
+            phase_options,
+            index=phase_options.index(selected_phase),
+            key=phase_key,
+        )
+    visible_stops = filtered_route_stops(route, selected_phase)
+    visible_segments = filtered_route_segments(route, visible_stops)
+    render_route = replace(route, stops=visible_stops, segments=visible_segments)
     highlighted_stop_ids = tuple(st.session_state.get(HIGHLIGHTED_ROUTE_STOP_IDS_KEY) or ())
     selected_stop_id = str(st.session_state.get(SELECTED_ROUTE_STOP_ID_KEY) or "")
-    valid_stop_ids = [stop.stop_id for stop in route.stops]
+    valid_stop_ids = [stop.stop_id for stop in render_route.stops]
     if selected_stop_id not in valid_stop_ids:
         selected_stop_id = highlighted_stop_ids[0] if highlighted_stop_ids else valid_stop_ids[0]
         st.session_state[SELECTED_ROUTE_STOP_ID_KEY] = selected_stop_id
 
     st.markdown(f"**{route.name_hu}**")
+    if route.family_name_hu:
+        sequence_label = ""
+        if route.route_family_id:
+            family_routes = [item for item in routes if item.route_family_id == route.route_family_id]
+            if route.route_sequence_order:
+                sequence_label = f" · {route.route_sequence_order}/{len(family_routes)}"
+        st.caption(f"Útvonalcsalád: {route.family_name_hu}{sequence_label}")
     st.caption(
         "Elsődleges szakasz: "
         + ", ".join(route.primary_passage_refs)
@@ -1366,11 +1415,11 @@ def _render_route_view(st: Any) -> None:
     map_style_id = render_map_style_selector(st)
 
     stop_rows = route_stop_rows(
-        route,
+        render_route,
         selected_stop_id=selected_stop_id,
         highlighted_stop_ids=highlighted_stop_ids,
     )
-    segment_rows = route_segment_rows(route)
+    segment_rows = route_segment_rows(render_route)
     _render_map_block_open(st)
     _render_route_map(st, route, stop_rows, segment_rows, map_style_id=map_style_id)
     _render_map_block_close(st)
@@ -1391,7 +1440,7 @@ def _render_route_view(st: Any) -> None:
         format_func=lambda stop_id: stop_labels.get(stop_id, stop_id),
         key=SELECTED_ROUTE_STOP_ID_KEY,
     )
-    selected_stop = next(stop for stop in route.stops if stop.stop_id == chosen_stop_id)
+    selected_stop = next(stop for stop in render_route.stops if stop.stop_id == chosen_stop_id)
     selected_place = places_by_id(BIBLICAL_MAP_PLACES).get(selected_stop.place_id)
     st.markdown(
         f"**{selected_stop.order}. {route_stop_display_name(selected_stop, selected_place)} – "
@@ -1414,8 +1463,20 @@ def _render_route_view(st: Any) -> None:
             ", ".join(selected_stop.passage_refs),
         )
 
+    if route.previous_route_id or route.next_route_id:
+        if route.previous_route_id and st.button("Előző szakasz"):
+            st.session_state[SELECTED_ROUTE_ID_KEY] = route.previous_route_id
+            st.session_state.pop(SELECTED_ROUTE_STOP_ID_KEY, None)
+            if hasattr(st, "rerun"):
+                st.rerun()
+        if route.next_route_id and st.button("Következő szakasz"):
+            st.session_state[SELECTED_ROUTE_ID_KEY] = route.next_route_id
+            st.session_state.pop(SELECTED_ROUTE_STOP_ID_KEY, None)
+            if hasattr(st, "rerun"):
+                st.rerun()
+
     _render_section_heading(st, "Állomások")
-    for stop in route.stops:
+    for stop in render_route.stops:
         place = places_by_id(BIBLICAL_MAP_PLACES).get(stop.place_id)
         emphasis = "**" if stop.stop_id in highlighted_stop_ids else ""
         textual_note = (
@@ -1589,6 +1650,8 @@ __all__ = [
     "compact_sources_markdown",
     "dedupe_sources",
     "map_rows",
+    "filtered_route_segments",
+    "filtered_route_stops",
     "normalize_place_search_text",
     "passage_linked_places",
     "place_option_labels",
@@ -1601,6 +1664,7 @@ __all__ = [
     "route_curve_profile",
     "route_line_rows",
     "route_segment_rows",
+    "route_phase_options",
     "schematic_segment_path",
     "route_stop_display_name",
     "route_stop_rows",

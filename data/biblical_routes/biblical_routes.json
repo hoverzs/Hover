@@ -2742,5 +2742,1272 @@
         "geometry": null
       }
     ]
+  },
+  {
+    "route_id": "exodus_egypt_to_sinai",
+    "route_family_id": "exodus_and_wilderness",
+    "family_name_hu": "A kivonulás és a pusztai vándorlás",
+    "route_sequence_order": 1,
+    "previous_route_id": null,
+    "next_route_id": "wilderness_sinai_to_moab",
+    "name_hu": "A kivonulás Egyiptomtól a Sínai-hegyig",
+    "name_en": "The Exodus from Egypt to Mount Sinai",
+    "short_description_hu": "Az útvonal a bibliai szövegben megnevezett állomások sorrendjét mutatja. Több hely azonosítása vitatott vagy ismeretlen. A vonalak sematikusak, nem a pontos történeti nyomvonalat jelölik.",
+    "route_category": "exodus",
+    "primary_passage_refs": [
+      "2Móz 12,37-19,2",
+      "4Móz 33,1-15"
+    ],
+    "chronology_label_hu": "A kivonulás első szakasza",
+    "chronology_sort_key": 8,
+    "certainty": "mixed",
+    "geometry_status": "schematic",
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "review_status": "draft",
+    "review_notes_hu": "Több állomás azonosítása vitatott vagy ismeretlen; a vonalak sematikusak.",
+    "evidence_model": {
+      "station_order_basis": "biblical_text_named_stops",
+      "historical_route_status": "not_reconstructed",
+      "map_geometry_status": "schematic",
+      "precision_note_hu": "A vonalak nem pontos történeti nyomvonalat jelölnek."
+    },
+    "stops": [
+      {
+        "order": 1,
+        "stop_id": "rameses_exodus",
+        "place_id": "rameses",
+        "place_name_override_hu": "Ramszesz",
+        "passage_refs": [
+          "2Móz 12,37",
+          "4Móz 33,3"
+        ],
+        "event_summary_hu": "Izráel fiai Ramszeszből indulnak el.",
+        "certainty": "probable",
+        "stop_type": "embarkation",
+        "source_notes_hu": "A sorrend a megadott bibliai szakaszok állomáslistáját követi.",
+        "mapping_status": "approximate",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés.",
+        "sequence_status": "explicit"
+      },
+      {
+        "order": 2,
+        "stop_id": "succoth_exodus",
+        "place_id": "succoth_2",
+        "place_name_override_hu": "Szukkót",
+        "passage_refs": [
+          "2Móz 12,37",
+          "4Móz 33,5"
+        ],
+        "event_summary_hu": "Ramszesz után Szukkótnál táboroznak.",
+        "certainty": "possible",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "A sorrend a megadott bibliai szakaszok állomáslistáját követi.",
+        "mapping_status": "approximate",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés.",
+        "sequence_status": "explicit"
+      },
+      {
+        "order": 3,
+        "stop_id": "etham_exodus",
+        "place_id": "etham",
+        "place_name_override_hu": "Étám",
+        "passage_refs": [
+          "2Móz 13,20",
+          "4Móz 33,6"
+        ],
+        "event_summary_hu": "Étámnál táboroznak a puszta szélén.",
+        "certainty": "possible",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "A sorrend a megadott bibliai szakaszok állomáslistáját követi.",
+        "mapping_status": "approximate",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés.",
+        "sequence_status": "explicit"
+      },
+      {
+        "order": 4,
+        "stop_id": "pi_hahiroth_exodus",
+        "place_id": "pi_hahiroth",
+        "place_name_override_hu": "Pi-Hahirót",
+        "passage_refs": [
+          "2Móz 14,2",
+          "4Móz 33,7"
+        ],
+        "event_summary_hu": "A tenger előtt, Pi-Hahirót közelében táboroznak.",
+        "certainty": "possible",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "A sorrend a megadott bibliai szakaszok állomáslistáját követi.",
+        "mapping_status": "approximate",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés.",
+        "sequence_status": "explicit"
+      },
+      {
+        "order": 5,
+        "stop_id": "sea_crossing_textual",
+        "place_id": null,
+        "place_name_override_hu": "A tengeren való átkelés helye",
+        "passage_refs": [
+          "2Móz 14,21-31",
+          "4Móz 33,8"
+        ],
+        "event_summary_hu": "A nép átkel a tengeren.",
+        "certainty": "disputed",
+        "stop_type": "uncertain_place",
+        "source_notes_hu": "A sorrend a megadott bibliai szakaszok állomáslistáját követi.",
+        "mapping_status": "textual_only",
+        "display_on_map": false,
+        "mapping_notes_hu": "A hely pontos földrajzi azonosítása nem ismert.",
+        "sequence_status": "explicit"
+      },
+      {
+        "order": 6,
+        "stop_id": "shur_exodus",
+        "place_id": "shur",
+        "place_name_override_hu": "Súr pusztája",
+        "passage_refs": [
+          "2Móz 15,22"
+        ],
+        "event_summary_hu": "Három napig mennek Súr pusztájában.",
+        "certainty": "probable",
+        "stop_type": "region",
+        "source_notes_hu": "A sorrend a megadott bibliai szakaszok állomáslistáját követi.",
+        "mapping_status": "approximate",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés.",
+        "sequence_status": "explicit"
+      },
+      {
+        "order": 7,
+        "stop_id": "marah_exodus",
+        "place_id": "marah",
+        "place_name_override_hu": "Márá",
+        "passage_refs": [
+          "2Móz 15,23",
+          "4Móz 33,8"
+        ],
+        "event_summary_hu": "Máránál keserű vizet találnak.",
+        "certainty": "possible",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "A sorrend a megadott bibliai szakaszok állomáslistáját követi.",
+        "mapping_status": "approximate",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés.",
+        "sequence_status": "explicit"
+      },
+      {
+        "order": 8,
+        "stop_id": "elim_exodus",
+        "place_id": "elim",
+        "place_name_override_hu": "Élim",
+        "passage_refs": [
+          "2Móz 15,27",
+          "4Móz 33,9"
+        ],
+        "event_summary_hu": "Élimnél források és pálmák mellett táboroznak.",
+        "certainty": "probable",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "A sorrend a megadott bibliai szakaszok állomáslistáját követi.",
+        "mapping_status": "approximate",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés.",
+        "sequence_status": "explicit"
+      },
+      {
+        "order": 9,
+        "stop_id": "red_sea_camp_exodus",
+        "place_id": "red_sea_1",
+        "place_name_override_hu": "Tábor a Vörös-tenger mellett",
+        "passage_refs": [
+          "4Móz 33,10"
+        ],
+        "event_summary_hu": "A Vörös-tenger mellett táboroznak.",
+        "certainty": "possible",
+        "stop_type": "transit",
+        "source_notes_hu": "A sorrend a megadott bibliai szakaszok állomáslistáját követi.",
+        "mapping_status": "approximate",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés.",
+        "sequence_status": "explicit"
+      },
+      {
+        "order": 10,
+        "stop_id": "sin_exodus",
+        "place_id": "sin",
+        "place_name_override_hu": "Szín pusztája",
+        "passage_refs": [
+          "2Móz 16,1",
+          "4Móz 33,11"
+        ],
+        "event_summary_hu": "A Szín pusztájában manna adatik.",
+        "certainty": "possible",
+        "stop_type": "region",
+        "source_notes_hu": "A sorrend a megadott bibliai szakaszok állomáslistáját követi.",
+        "mapping_status": "approximate",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés.",
+        "sequence_status": "explicit"
+      },
+      {
+        "order": 11,
+        "stop_id": "dophkah_exodus",
+        "place_id": "dophkah",
+        "place_name_override_hu": "Dofká",
+        "passage_refs": [
+          "4Móz 33,12"
+        ],
+        "event_summary_hu": "Dofkánál táboroznak.",
+        "certainty": "probable",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "A sorrend a megadott bibliai szakaszok állomáslistáját követi.",
+        "mapping_status": "approximate",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés.",
+        "sequence_status": "explicit"
+      },
+      {
+        "order": 12,
+        "stop_id": "alush_exodus",
+        "place_id": "alush",
+        "place_name_override_hu": "Alús",
+        "passage_refs": [
+          "4Móz 33,13"
+        ],
+        "event_summary_hu": "Alúsnál táboroznak.",
+        "certainty": "possible",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "A sorrend a megadott bibliai szakaszok állomáslistáját követi.",
+        "mapping_status": "approximate",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés.",
+        "sequence_status": "explicit"
+      },
+      {
+        "order": 13,
+        "stop_id": "rephidim_exodus",
+        "place_id": "rephidim",
+        "place_name_override_hu": "Refidím",
+        "passage_refs": [
+          "2Móz 17,1-16",
+          "4Móz 33,14"
+        ],
+        "event_summary_hu": "Refidímnél víz fakad a sziklából, és Amálék támad.",
+        "certainty": "possible",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "A sorrend a megadott bibliai szakaszok állomáslistáját követi.",
+        "mapping_status": "approximate",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés.",
+        "sequence_status": "explicit"
+      },
+      {
+        "order": 14,
+        "stop_id": "sinai_exodus",
+        "place_id": "wilderness_of_sinai",
+        "place_name_override_hu": "Sínai pusztája / Sínai-hegy",
+        "passage_refs": [
+          "2Móz 19,1-2",
+          "4Móz 33,15"
+        ],
+        "event_summary_hu": "Megérkeznek a Sínai pusztájába.",
+        "certainty": "probable",
+        "stop_type": "region",
+        "source_notes_hu": "A sorrend a megadott bibliai szakaszok állomáslistáját követi.",
+        "mapping_status": "approximate",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés.",
+        "sequence_status": "explicit"
+      }
+    ],
+    "segments": [
+      {
+        "from_stop_id": "rameses_exodus",
+        "to_stop_id": "succoth_exodus",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus szakasz; nem pontos történeti nyomvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "succoth_exodus",
+        "to_stop_id": "etham_exodus",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus szakasz; nem pontos történeti nyomvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "etham_exodus",
+        "to_stop_id": "pi_hahiroth_exodus",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus szakasz; nem pontos történeti nyomvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "shur_exodus",
+        "to_stop_id": "marah_exodus",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus szakasz; nem pontos történeti nyomvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "marah_exodus",
+        "to_stop_id": "elim_exodus",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus szakasz; nem pontos történeti nyomvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "elim_exodus",
+        "to_stop_id": "red_sea_camp_exodus",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus szakasz; nem pontos történeti nyomvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "red_sea_camp_exodus",
+        "to_stop_id": "sin_exodus",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus szakasz; nem pontos történeti nyomvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "sin_exodus",
+        "to_stop_id": "dophkah_exodus",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus szakasz; nem pontos történeti nyomvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "dophkah_exodus",
+        "to_stop_id": "alush_exodus",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus szakasz; nem pontos történeti nyomvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "alush_exodus",
+        "to_stop_id": "rephidim_exodus",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus szakasz; nem pontos történeti nyomvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "rephidim_exodus",
+        "to_stop_id": "sinai_exodus",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus szakasz; nem pontos történeti nyomvonal.",
+        "waypoints": [],
+        "geometry": null
+      }
+    ]
+  },
+  {
+    "route_id": "wilderness_sinai_to_moab",
+    "route_family_id": "exodus_and_wilderness",
+    "family_name_hu": "A kivonulás és a pusztai vándorlás",
+    "route_sequence_order": 2,
+    "previous_route_id": "exodus_egypt_to_sinai",
+    "next_route_id": null,
+    "name_hu": "A pusztai vándorlás a Sínaitól a móábi síkságig",
+    "name_en": "The Wilderness Journey from Sinai to the Plains of Moab",
+    "short_description_hu": "A 4Móz 33 állomáslistáját és a 4Móz 10-22 fő narratív pontjait követő sematikus útvonal.",
+    "route_category": "wilderness_journey",
+    "primary_passage_refs": [
+      "4Móz 10,11-22,1",
+      "4Móz 33,16-49",
+      "5Móz 1-2"
+    ],
+    "chronology_label_hu": "A pusztai vándorlás",
+    "chronology_sort_key": 9,
+    "certainty": "mixed",
+    "geometry_status": "schematic",
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "review_status": "draft",
+    "review_notes_hu": "Több állomás azonosítása vitatott vagy ismeretlen; a vonalak sematikusak.",
+    "evidence_model": {
+      "station_order_basis": "biblical_text_named_stops",
+      "historical_route_status": "not_reconstructed",
+      "map_geometry_status": "schematic",
+      "precision_note_hu": "A vonalak nem pontos történeti nyomvonalat jelölnek."
+    },
+    "stops": [
+      {
+        "order": 1,
+        "stop_id": "sinai_wilderness_departure",
+        "place_id": "wilderness_of_sinai",
+        "place_name_override_hu": "Sínai pusztája",
+        "passage_refs": [
+          "4Móz 10,11-12",
+          "4Móz 33,16"
+        ],
+        "event_summary_hu": "Elindulnak a Sínaitól.",
+        "certainty": "probable",
+        "stop_type": "region",
+        "source_notes_hu": "A sorrend a megadott bibliai szakaszok állomáslistáját követi.",
+        "mapping_status": "approximate",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés.",
+        "sequence_status": "explicit",
+        "journey_phase": "Elindulás a Sínaitól"
+      },
+      {
+        "order": 2,
+        "stop_id": "kibroth_wilderness",
+        "place_id": "kibroth_hattaavah",
+        "place_name_override_hu": "Kibrót-Hattaavá",
+        "passage_refs": [
+          "4Móz 11,34-35",
+          "4Móz 33,16"
+        ],
+        "event_summary_hu": "Kibrót-Hattaavánál táboroznak.",
+        "certainty": "probable",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "A sorrend a megadott bibliai szakaszok állomáslistáját követi.",
+        "mapping_status": "approximate",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés.",
+        "sequence_status": "explicit",
+        "journey_phase": "Elindulás a Sínaitól"
+      },
+      {
+        "order": 3,
+        "stop_id": "hazeroth_wilderness",
+        "place_id": "hazeroth",
+        "place_name_override_hu": "Hacérót",
+        "passage_refs": [
+          "4Móz 11,35",
+          "4Móz 12,16",
+          "4Móz 33,17"
+        ],
+        "event_summary_hu": "Hacérótnál táboroznak.",
+        "certainty": "probable",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "A sorrend a megadott bibliai szakaszok állomáslistáját követi.",
+        "mapping_status": "approximate",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés.",
+        "sequence_status": "explicit",
+        "journey_phase": "Elindulás a Sínaitól"
+      },
+      {
+        "order": 4,
+        "stop_id": "rithmah_wilderness",
+        "place_id": "rithmah",
+        "place_name_override_hu": "Ritmá",
+        "passage_refs": [
+          "4Móz 13,1-14,45",
+          "4Móz 33,18"
+        ],
+        "event_summary_hu": "Ritmánál táboroznak; a kémküldés narratív szakasza ehhez az úti fázishoz kapcsolódik.",
+        "certainty": "possible",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "A sorrend a megadott bibliai szakaszok állomáslistáját követi.",
+        "mapping_status": "approximate",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés.",
+        "sequence_status": "explicit",
+        "journey_phase": "Út Kádés felé"
+      },
+      {
+        "order": 5,
+        "stop_id": "rimmon_perez_wilderness",
+        "place_id": "rimmon_perez",
+        "place_name_override_hu": "Rimmón-Perec",
+        "passage_refs": [
+          "4Móz 33,19"
+        ],
+        "event_summary_hu": "Rimmón-Perecnél táboroznak.",
+        "certainty": "possible",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "A sorrend a megadott bibliai szakaszok állomáslistáját követi.",
+        "mapping_status": "approximate",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés.",
+        "sequence_status": "explicit",
+        "journey_phase": "A pusztai vándorlás évei"
+      },
+      {
+        "order": 6,
+        "stop_id": "libnah_wilderness",
+        "place_id": "libnah_2",
+        "place_name_override_hu": "Libná",
+        "passage_refs": [
+          "4Móz 33,20"
+        ],
+        "event_summary_hu": "Libnánál táboroznak.",
+        "certainty": "possible",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "A sorrend a megadott bibliai szakaszok állomáslistáját követi.",
+        "mapping_status": "approximate",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés.",
+        "sequence_status": "explicit",
+        "journey_phase": "A pusztai vándorlás évei"
+      },
+      {
+        "order": 7,
+        "stop_id": "rissah_wilderness",
+        "place_id": "rissah",
+        "place_name_override_hu": "Risszá",
+        "passage_refs": [
+          "4Móz 33,21"
+        ],
+        "event_summary_hu": "Risszánál táboroznak.",
+        "certainty": "probable",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "A sorrend a megadott bibliai szakaszok állomáslistáját követi.",
+        "mapping_status": "approximate",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés.",
+        "sequence_status": "explicit",
+        "journey_phase": "A pusztai vándorlás évei"
+      },
+      {
+        "order": 8,
+        "stop_id": "kehelathah_wilderness",
+        "place_id": "kehelathah",
+        "place_name_override_hu": "Kehélátá",
+        "passage_refs": [
+          "4Móz 33,22"
+        ],
+        "event_summary_hu": "Kehélátánál táboroznak.",
+        "certainty": "probable",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "A sorrend a megadott bibliai szakaszok állomáslistáját követi.",
+        "mapping_status": "approximate",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés.",
+        "sequence_status": "explicit",
+        "journey_phase": "A pusztai vándorlás évei"
+      },
+      {
+        "order": 9,
+        "stop_id": "mount_shepher_wilderness",
+        "place_id": "mount_shepher",
+        "place_name_override_hu": "Séfer-hegy",
+        "passage_refs": [
+          "4Móz 33,23"
+        ],
+        "event_summary_hu": "A Séfer-hegynél táboroznak.",
+        "certainty": "probable",
+        "stop_type": "region",
+        "source_notes_hu": "A sorrend a megadott bibliai szakaszok állomáslistáját követi.",
+        "mapping_status": "approximate",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés.",
+        "sequence_status": "explicit",
+        "journey_phase": "A pusztai vándorlás évei"
+      },
+      {
+        "order": 10,
+        "stop_id": "haradah_wilderness",
+        "place_id": "haradah",
+        "place_name_override_hu": "Haradá",
+        "passage_refs": [
+          "4Móz 33,24"
+        ],
+        "event_summary_hu": "Haradánál táboroznak.",
+        "certainty": "possible",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "A sorrend a megadott bibliai szakaszok állomáslistáját követi.",
+        "mapping_status": "approximate",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés.",
+        "sequence_status": "explicit",
+        "journey_phase": "A pusztai vándorlás évei"
+      },
+      {
+        "order": 11,
+        "stop_id": "makheloth_wilderness",
+        "place_id": "makheloth",
+        "place_name_override_hu": "Makhelót",
+        "passage_refs": [
+          "4Móz 33,25"
+        ],
+        "event_summary_hu": "Makhelótnál táboroznak.",
+        "certainty": "possible",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "A sorrend a megadott bibliai szakaszok állomáslistáját követi.",
+        "mapping_status": "approximate",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés.",
+        "sequence_status": "explicit",
+        "journey_phase": "A pusztai vándorlás évei"
+      },
+      {
+        "order": 12,
+        "stop_id": "tahath_wilderness",
+        "place_id": "tahath",
+        "place_name_override_hu": "Táhat",
+        "passage_refs": [
+          "4Móz 33,26"
+        ],
+        "event_summary_hu": "Táhatnál táboroznak.",
+        "certainty": "probable",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "A sorrend a megadott bibliai szakaszok állomáslistáját követi.",
+        "mapping_status": "approximate",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés.",
+        "sequence_status": "explicit",
+        "journey_phase": "A pusztai vándorlás évei"
+      },
+      {
+        "order": 13,
+        "stop_id": "terah_wilderness",
+        "place_id": "terah",
+        "place_name_override_hu": "Terah",
+        "passage_refs": [
+          "4Móz 33,27"
+        ],
+        "event_summary_hu": "Terahnál táboroznak.",
+        "certainty": "probable",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "A sorrend a megadott bibliai szakaszok állomáslistáját követi.",
+        "mapping_status": "approximate",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés.",
+        "sequence_status": "explicit",
+        "journey_phase": "A pusztai vándorlás évei"
+      },
+      {
+        "order": 14,
+        "stop_id": "mithkah_wilderness",
+        "place_id": "mithkah",
+        "place_name_override_hu": "Mitká",
+        "passage_refs": [
+          "4Móz 33,28"
+        ],
+        "event_summary_hu": "Mitkánál táboroznak.",
+        "certainty": "probable",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "A sorrend a megadott bibliai szakaszok állomáslistáját követi.",
+        "mapping_status": "approximate",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés.",
+        "sequence_status": "explicit",
+        "journey_phase": "A pusztai vándorlás évei"
+      },
+      {
+        "order": 15,
+        "stop_id": "hashmonah_wilderness",
+        "place_id": "hashmonah",
+        "place_name_override_hu": "Hasmóná",
+        "passage_refs": [
+          "4Móz 33,29"
+        ],
+        "event_summary_hu": "Hasmónánál táboroznak.",
+        "certainty": "possible",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "A sorrend a megadott bibliai szakaszok állomáslistáját követi.",
+        "mapping_status": "approximate",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés.",
+        "sequence_status": "explicit",
+        "journey_phase": "A pusztai vándorlás évei"
+      },
+      {
+        "order": 16,
+        "stop_id": "moseroth_wilderness",
+        "place_id": "moseroth",
+        "place_name_override_hu": "Mószerót",
+        "passage_refs": [
+          "4Móz 33,30"
+        ],
+        "event_summary_hu": "Mószerótnál táboroznak.",
+        "certainty": "probable",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "A sorrend a megadott bibliai szakaszok állomáslistáját követi.",
+        "mapping_status": "approximate",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés.",
+        "sequence_status": "explicit",
+        "journey_phase": "A pusztai vándorlás évei"
+      },
+      {
+        "order": 17,
+        "stop_id": "bene_jaakan_wilderness",
+        "place_id": "bene_jaakan",
+        "place_name_override_hu": "Bené-Jaakán",
+        "passage_refs": [
+          "4Móz 33,31"
+        ],
+        "event_summary_hu": "Bené-Jaakánnál táboroznak.",
+        "certainty": "possible",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "A sorrend a megadott bibliai szakaszok állomáslistáját követi.",
+        "mapping_status": "approximate",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés.",
+        "sequence_status": "explicit",
+        "journey_phase": "A pusztai vándorlás évei"
+      },
+      {
+        "order": 18,
+        "stop_id": "hor_haggidgad_wilderness",
+        "place_id": "hor_haggidgad",
+        "place_name_override_hu": "Hór-Haggidgád",
+        "passage_refs": [
+          "4Móz 33,32"
+        ],
+        "event_summary_hu": "Hór-Haggidgádnál táboroznak.",
+        "certainty": "possible",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "A sorrend a megadott bibliai szakaszok állomáslistáját követi.",
+        "mapping_status": "approximate",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés.",
+        "sequence_status": "explicit",
+        "journey_phase": "A pusztai vándorlás évei"
+      },
+      {
+        "order": 19,
+        "stop_id": "jotbathah_wilderness",
+        "place_id": "jotbathah",
+        "place_name_override_hu": "Jotbátá",
+        "passage_refs": [
+          "4Móz 33,33"
+        ],
+        "event_summary_hu": "Jotbátánál táboroznak.",
+        "certainty": "possible",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "A sorrend a megadott bibliai szakaszok állomáslistáját követi.",
+        "mapping_status": "approximate",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés.",
+        "sequence_status": "explicit",
+        "journey_phase": "A pusztai vándorlás évei"
+      },
+      {
+        "order": 20,
+        "stop_id": "abronah_wilderness",
+        "place_id": "abronah",
+        "place_name_override_hu": "Abróná",
+        "passage_refs": [
+          "4Móz 33,34"
+        ],
+        "event_summary_hu": "Abrónánál táboroznak.",
+        "certainty": "possible",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "A sorrend a megadott bibliai szakaszok állomáslistáját követi.",
+        "mapping_status": "approximate",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés.",
+        "sequence_status": "explicit",
+        "journey_phase": "A pusztai vándorlás évei"
+      },
+      {
+        "order": 21,
+        "stop_id": "ezion_geber_wilderness",
+        "place_id": "ezion_geber",
+        "place_name_override_hu": "Ecjón-Geber",
+        "passage_refs": [
+          "4Móz 33,35"
+        ],
+        "event_summary_hu": "Ecjón-Gebernél táboroznak.",
+        "certainty": "probable",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "A sorrend a megadott bibliai szakaszok állomáslistáját követi.",
+        "mapping_status": "approximate",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés.",
+        "sequence_status": "explicit",
+        "journey_phase": "A pusztai vándorlás évei"
+      },
+      {
+        "order": 22,
+        "stop_id": "kadesh_wilderness",
+        "place_id": "kadesh_barnea",
+        "place_name_override_hu": "Kádés",
+        "passage_refs": [
+          "4Móz 20,1",
+          "4Móz 33,36"
+        ],
+        "event_summary_hu": "Kádésben, Cin pusztájában táboroznak.",
+        "certainty": "probable",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "A sorrend a megadott bibliai szakaszok állomáslistáját követi.",
+        "mapping_status": "approximate",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés.",
+        "sequence_status": "explicit",
+        "journey_phase": "Kádéstől Móábig"
+      },
+      {
+        "order": 23,
+        "stop_id": "mount_hor_wilderness",
+        "place_id": "mount_hor_1",
+        "place_name_override_hu": "Hór hegye",
+        "passage_refs": [
+          "4Móz 20,22-29",
+          "4Móz 33,37-39"
+        ],
+        "event_summary_hu": "Áron a Hór hegyén hal meg.",
+        "certainty": "possible",
+        "stop_type": "region",
+        "source_notes_hu": "A sorrend a megadott bibliai szakaszok állomáslistáját követi.",
+        "mapping_status": "approximate",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés.",
+        "sequence_status": "explicit",
+        "journey_phase": "Kádéstől Móábig"
+      },
+      {
+        "order": 24,
+        "stop_id": "zalmonah_wilderness",
+        "place_id": "zalmonah",
+        "place_name_override_hu": "Calmóná",
+        "passage_refs": [
+          "4Móz 33,41"
+        ],
+        "event_summary_hu": "Calmónánál táboroznak.",
+        "certainty": "possible",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "A sorrend a megadott bibliai szakaszok állomáslistáját követi.",
+        "mapping_status": "approximate",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés.",
+        "sequence_status": "explicit",
+        "journey_phase": "Kádéstől Móábig"
+      },
+      {
+        "order": 25,
+        "stop_id": "punon_wilderness",
+        "place_id": "punon",
+        "place_name_override_hu": "Púnón",
+        "passage_refs": [
+          "4Móz 33,42"
+        ],
+        "event_summary_hu": "Púnónnál táboroznak.",
+        "certainty": "probable",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "A sorrend a megadott bibliai szakaszok állomáslistáját követi.",
+        "mapping_status": "approximate",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés.",
+        "sequence_status": "explicit",
+        "journey_phase": "Kádéstől Móábig"
+      },
+      {
+        "order": 26,
+        "stop_id": "oboth_wilderness",
+        "place_id": "oboth",
+        "place_name_override_hu": "Óbót",
+        "passage_refs": [
+          "4Móz 21,10",
+          "4Móz 33,43"
+        ],
+        "event_summary_hu": "Óbótnál táboroznak.",
+        "certainty": "possible",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "A sorrend a megadott bibliai szakaszok állomáslistáját követi.",
+        "mapping_status": "approximate",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés.",
+        "sequence_status": "explicit",
+        "journey_phase": "Kádéstől Móábig"
+      },
+      {
+        "order": 27,
+        "stop_id": "iye_abarim_wilderness",
+        "place_id": "iye_abarim",
+        "place_name_override_hu": "Ijé-Abárim",
+        "passage_refs": [
+          "4Móz 21,11",
+          "4Móz 33,44"
+        ],
+        "event_summary_hu": "Ijé-Abárimnál táboroznak.",
+        "certainty": "probable",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "A sorrend a megadott bibliai szakaszok állomáslistáját követi.",
+        "mapping_status": "approximate",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés.",
+        "sequence_status": "explicit",
+        "journey_phase": "Kádéstől Móábig"
+      },
+      {
+        "order": 28,
+        "stop_id": "dibon_gad_wilderness",
+        "place_id": "dibon_1",
+        "place_name_override_hu": "Díbón-Gád",
+        "passage_refs": [
+          "4Móz 33,45"
+        ],
+        "event_summary_hu": "Díbón-Gádnál táboroznak.",
+        "certainty": "probable",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "A sorrend a megadott bibliai szakaszok állomáslistáját követi.",
+        "mapping_status": "approximate",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés.",
+        "sequence_status": "explicit",
+        "journey_phase": "Kádéstől Móábig"
+      },
+      {
+        "order": 29,
+        "stop_id": "almon_diblathaim_wilderness",
+        "place_id": "almon_diblathaim",
+        "place_name_override_hu": "Almón-Diblátajim",
+        "passage_refs": [
+          "4Móz 33,46"
+        ],
+        "event_summary_hu": "Almón-Diblátajimnál táboroznak.",
+        "certainty": "probable",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "A sorrend a megadott bibliai szakaszok állomáslistáját követi.",
+        "mapping_status": "approximate",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés.",
+        "sequence_status": "explicit",
+        "journey_phase": "Kádéstől Móábig"
+      },
+      {
+        "order": 30,
+        "stop_id": "abarim_wilderness",
+        "place_id": "abarim",
+        "place_name_override_hu": "Abárim-hegység",
+        "passage_refs": [
+          "4Móz 33,47"
+        ],
+        "event_summary_hu": "Az Abárim hegységénél táboroznak.",
+        "certainty": "probable",
+        "stop_type": "region",
+        "source_notes_hu": "A sorrend a megadott bibliai szakaszok állomáslistáját követi.",
+        "mapping_status": "approximate",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés.",
+        "sequence_status": "explicit",
+        "journey_phase": "Kádéstől Móábig"
+      },
+      {
+        "order": 31,
+        "stop_id": "moab_plains_wilderness",
+        "place_id": "moab_2",
+        "place_name_override_hu": "Moáb síksága",
+        "passage_refs": [
+          "4Móz 22,1",
+          "4Móz 33,48-49"
+        ],
+        "event_summary_hu": "Megérkeznek Moáb síkságára, a Jordán mellé.",
+        "certainty": "probable",
+        "stop_type": "destination",
+        "source_notes_hu": "A sorrend a megadott bibliai szakaszok állomáslistáját követi.",
+        "mapping_status": "approximate",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, sematikus megjelenítés.",
+        "sequence_status": "explicit",
+        "journey_phase": "Kádéstől Móábig"
+      }
+    ],
+    "segments": [
+      {
+        "from_stop_id": "sinai_wilderness_departure",
+        "to_stop_id": "kibroth_wilderness",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus szakasz; nem pontos történeti nyomvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "kibroth_wilderness",
+        "to_stop_id": "hazeroth_wilderness",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus szakasz; nem pontos történeti nyomvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "hazeroth_wilderness",
+        "to_stop_id": "rithmah_wilderness",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus szakasz; nem pontos történeti nyomvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "rithmah_wilderness",
+        "to_stop_id": "rimmon_perez_wilderness",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus szakasz; nem pontos történeti nyomvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "rimmon_perez_wilderness",
+        "to_stop_id": "libnah_wilderness",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus szakasz; nem pontos történeti nyomvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "libnah_wilderness",
+        "to_stop_id": "rissah_wilderness",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus szakasz; nem pontos történeti nyomvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "rissah_wilderness",
+        "to_stop_id": "kehelathah_wilderness",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus szakasz; nem pontos történeti nyomvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "kehelathah_wilderness",
+        "to_stop_id": "mount_shepher_wilderness",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus szakasz; nem pontos történeti nyomvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "haradah_wilderness",
+        "to_stop_id": "makheloth_wilderness",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus szakasz; nem pontos történeti nyomvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "makheloth_wilderness",
+        "to_stop_id": "tahath_wilderness",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus szakasz; nem pontos történeti nyomvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "mithkah_wilderness",
+        "to_stop_id": "hashmonah_wilderness",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus szakasz; nem pontos történeti nyomvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "hashmonah_wilderness",
+        "to_stop_id": "moseroth_wilderness",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus szakasz; nem pontos történeti nyomvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "moseroth_wilderness",
+        "to_stop_id": "bene_jaakan_wilderness",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus szakasz; nem pontos történeti nyomvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "bene_jaakan_wilderness",
+        "to_stop_id": "hor_haggidgad_wilderness",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus szakasz; nem pontos történeti nyomvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "hor_haggidgad_wilderness",
+        "to_stop_id": "jotbathah_wilderness",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus szakasz; nem pontos történeti nyomvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "jotbathah_wilderness",
+        "to_stop_id": "abronah_wilderness",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus szakasz; nem pontos történeti nyomvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "abronah_wilderness",
+        "to_stop_id": "ezion_geber_wilderness",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus szakasz; nem pontos történeti nyomvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "ezion_geber_wilderness",
+        "to_stop_id": "kadesh_wilderness",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus szakasz; nem pontos történeti nyomvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "kadesh_wilderness",
+        "to_stop_id": "mount_hor_wilderness",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus szakasz; nem pontos történeti nyomvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "mount_hor_wilderness",
+        "to_stop_id": "zalmonah_wilderness",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus szakasz; nem pontos történeti nyomvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "zalmonah_wilderness",
+        "to_stop_id": "punon_wilderness",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus szakasz; nem pontos történeti nyomvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "punon_wilderness",
+        "to_stop_id": "oboth_wilderness",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus szakasz; nem pontos történeti nyomvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "oboth_wilderness",
+        "to_stop_id": "iye_abarim_wilderness",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus szakasz; nem pontos történeti nyomvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "iye_abarim_wilderness",
+        "to_stop_id": "dibon_gad_wilderness",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus szakasz; nem pontos történeti nyomvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "dibon_gad_wilderness",
+        "to_stop_id": "almon_diblathaim_wilderness",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus szakasz; nem pontos történeti nyomvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "almon_diblathaim_wilderness",
+        "to_stop_id": "abarim_wilderness",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus szakasz; nem pontos történeti nyomvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "abarim_wilderness",
+        "to_stop_id": "moab_plains_wilderness",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus szakasz; nem pontos történeti nyomvonal.",
+        "waypoints": [],
+        "geometry": null
+      }
+    ]
   }
 ]

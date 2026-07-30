@@ -63,6 +63,7 @@ ROUTE_USER_TEXT_FIELDS = (
 STOP_USER_TEXT_FIELDS = (
     "place_name_override_hu",
     "event_summary_hu",
+    "journey_phase",
     "mapping_notes_hu",
     "source_notes_hu",
 )
@@ -93,6 +94,7 @@ class BiblicalRouteStop:
     display_on_map: bool
     mapping_notes_hu: str | None
     sequence_status: str
+    journey_phase: str | None = None
 
 
 @dataclass(frozen=True)
@@ -125,6 +127,11 @@ class BiblicalRoute:
     stops: tuple[BiblicalRouteStop, ...]
     segments: tuple[BiblicalRouteSegment, ...]
     evidence_model: dict[str, Any]
+    route_family_id: str | None = None
+    family_name_hu: str | None = None
+    route_sequence_order: int | None = None
+    previous_route_id: str | None = None
+    next_route_id: str | None = None
 
 
 @dataclass(frozen=True)
@@ -356,6 +363,7 @@ def _stop_from_raw(
         display_on_map=display_on_map,
         mapping_notes_hu=mapping_notes_hu,
         sequence_status=sequence_status,
+        journey_phase=_as_str(raw.get("journey_phase"), "stops.journey_phase"),
     )
 
 
@@ -453,6 +461,15 @@ def _route_from_raw(
         stops=stops,
         segments=segments,
         evidence_model=raw.get("evidence_model") if isinstance(raw.get("evidence_model"), dict) else {},
+        route_family_id=_as_str(raw.get("route_family_id"), "route_family_id"),
+        family_name_hu=_as_str(raw.get("family_name_hu"), "family_name_hu"),
+        route_sequence_order=(
+            _as_int(raw.get("route_sequence_order"), "route_sequence_order")
+            if raw.get("route_sequence_order") is not None
+            else None
+        ),
+        previous_route_id=_as_str(raw.get("previous_route_id"), "previous_route_id"),
+        next_route_id=_as_str(raw.get("next_route_id"), "next_route_id"),
     )
 
 

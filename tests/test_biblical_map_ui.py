@@ -69,8 +69,11 @@ from biblical_map_ui import (
     resolve_selected_place_id,
     resolve_map_style_id,
     route_curve_profile,
+    filtered_route_segments,
+    filtered_route_stops,
     route_line_rows,
     route_matches_for_passage,
+    route_phase_options,
     route_segment_rows,
     route_stop_rows,
     route_viewport,
@@ -1534,6 +1537,51 @@ def test_passage_to_route_index_matches_patriarchal_routes() -> None:
     assert "joseph_geographical_arc" in gen_42_46
 
 
+def test_passage_to_route_index_matches_exodus_and_wilderness_routes() -> None:
+    for reference in ["2Móz 12", "2Móz 13", "2Móz 14", "2Móz 15", "2Móz 16", "2Móz 17", "2Móz 19", "4Móz 33,1-15"]:
+        assert "exodus_egypt_to_sinai" in route_matches_for_passage(reference)
+    for reference in ["4Móz 10", "4Móz 11", "4Móz 12", "4Móz 13-14", "4Móz 20", "4Móz 21", "4Móz 22,1", "4Móz 33,16-49"]:
+        assert "wilderness_sinai_to_moab" in route_matches_for_passage(reference)
+    numbers_33 = route_matches_for_passage("4Móz 33")
+    assert "exodus_egypt_to_sinai" in numbers_33
+    assert "wilderness_sinai_to_moab" in numbers_33
+
+
+def test_wilderness_route_phase_options_and_filtering() -> None:
+    route = {route.route_id: route for route in load_biblical_routes()}["wilderness_sinai_to_moab"]
+    assert route_phase_options(route) == [
+        "Teljes útvonal",
+        "Elindulás a Sínaitól",
+        "Út Kádés felé",
+        "A pusztai vándorlás évei",
+        "Kádéstől Móábig",
+    ]
+    filtered = filtered_route_stops(route, "Kádéstől Móábig")
+    assert filtered[0].stop_id == "kadesh_wilderness"
+    assert filtered_route_segments(route, filtered)
+
+
+def test_route_family_navigation_buttons_render_for_exodus_routes() -> None:
+    fake_st = _FakeStreamlit()
+    fake_st.session_state[ACTIVE_MAP_VIEW_KEY] = MAP_VIEW_ROUTES
+    fake_st.session_state[SELECTED_ROUTE_ID_KEY] = "exodus_egypt_to_sinai"
+
+    render_biblical_map_prototype(st_module=fake_st)
+
+    assert any("Útvonalcsalád: A kivonulás és a pusztai vándorlás · 1/2" in caption for caption in fake_st.captions)
+    assert any(label == "Következő szakasz" for label, _kwargs in fake_st.buttons)
+
+    fake_st = _FakeStreamlit()
+    fake_st.session_state[ACTIVE_MAP_VIEW_KEY] = MAP_VIEW_ROUTES
+    fake_st.session_state[SELECTED_ROUTE_ID_KEY] = "wilderness_sinai_to_moab"
+
+    render_biblical_map_prototype(st_module=fake_st)
+
+    assert any("Útvonalcsalád: A kivonulás és a pusztai vándorlás · 2/2" in caption for caption in fake_st.captions)
+    assert any(label == "Előző szakasz" for label, _kwargs in fake_st.buttons)
+    assert any(box[0] == "Útvonalfázis" for box in fake_st.selectboxes)
+
+
 def test_partial_passage_overlap_links_to_route_stop() -> None:
     matches = route_matches_for_passage("ApCsel 13,4")
 
@@ -1662,6 +1710,8 @@ def test_route_selector_lists_all_biblical_routes() -> None:
         "abraham_journey",
         "jacob_journeys",
         "joseph_geographical_arc",
+        "exodus_egypt_to_sinai",
+        "wilderness_sinai_to_moab",
     ]
 
     fake_st = _FakeStreamlit()

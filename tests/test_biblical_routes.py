@@ -28,6 +28,8 @@ EXPECTED_ROUTE_NAMES_HU = [
     "\u00c1brah\u00e1m v\u00e1ndorl\u00e1sa",
     "J\u00e1k\u00f3b \u00fatjai",
     "J\u00f3zsef t\u00f6rt\u00e9net\u00e9nek f\u00f6ldrajzi \u00edve",
+    "A kivonul\u00e1s Egyiptomt\u00f3l a S\u00ednai-hegyig",
+    "A pusztai v\u00e1ndorl\u00e1s a S\u00ednait\u00f3l a m\u00f3\u00e1bi s\u00edks\u00e1gig",
 ]
 CORRUPTED_TEXT_MARKERS = ("\ufffd", "\u0102", "\u00c2", "\u010f", "ďż˝")
 
@@ -52,7 +54,7 @@ def _assert_raises(expected: type[Exception], callback, *args, **kwargs) -> Exce
 
 def test_valid_pilot_route_loads() -> None:
     routes = load_biblical_routes()
-    assert len(routes) == 7
+    assert len(routes) == 9
     route = routes[0]
     assert route.route_id == "paul_first_missionary_journey"
     assert route.name_hu == EXPECTED_ROUTE_NAMES_HU[0]
@@ -73,9 +75,11 @@ def test_all_pauline_routes_load_in_chronological_order() -> None:
         "abraham_journey",
         "jacob_journeys",
         "joseph_geographical_arc",
+        "exodus_egypt_to_sinai",
+        "wilderness_sinai_to_moab",
     ]
     assert route_options(routes) == [route.route_id for route in routes]
-    assert len({route.route_id for route in routes}) == 7
+    assert len({route.route_id for route in routes}) == 9
     assert [route.name_hu for route in routes] == EXPECTED_ROUTE_NAMES_HU
 
 
@@ -182,7 +186,8 @@ def test_all_route_stops_and_segments_are_valid() -> None:
         orders = [stop.order for stop in route.stops]
         assert len(stop_ids) == len(set(stop_ids))
         assert orders == list(range(1, len(route.stops) + 1))
-        assert all(stop.place_id for stop in route.stops)
+        assert all(stop.place_id for stop in route.stops if stop.display_on_map)
+        assert all(stop.place_id is None for stop in route.stops if stop.mapping_status == "textual_only")
         assert all(stop.event_summary_hu.strip() for stop in route.stops)
         assert all(segment.geometry_status == "schematic" for segment in route.segments)
         assert all(segment.segment_type in {"land", "sea"} for segment in route.segments)
@@ -448,3 +453,49 @@ def test_patriarchal_routes_validation_report_matches_loader() -> None:
         assert item["unresolved_or_skipped_places"] == []
         assert item["mojibake_utf8_check"] == "passed"
         assert item["duplicate_geometry_check"] == "one_render_geometry_per_segment_expected"
+
+
+def test_exodus_and_wilderness_routes_have_expected_counts_and_family_links() -> None:
+    routes = {route.route_id: route for route in load_biblical_routes()}
+    exodus = routes["exodus_egypt_to_sinai"]
+    wilderness = routes["wilderness_sinai_to_moab"]
+
+    assert exodus.route_family_id == "exodus_and_wilderness"
+    assert exodus.family_name_hu == "A kivonulás és a pusztai vándorlás"
+    assert exodus.route_sequence_order == 1
+    assert exodus.previous_route_id is None
+    assert exodus.next_route_id == "wilderness_sinai_to_moab"
+    assert len(exodus.stops) == 14
+    assert len(exodus.segments) == 11
+    assert sum(1 for stop in exodus.stops if stop.mapping_status == "textual_only") == 1
+    assert next(stop for stop in exodus.stops if stop.mapping_status == "textual_only").stop_id == "sea_crossing_textual"
+
+    assert wilderness.route_family_id == "exodus_and_wilderness"
+    assert wilderness.route_sequence_order == 2
+    assert wilderness.previous_route_id == "exodus_egypt_to_sinai"
+    assert wilderness.next_route_id is None
+    assert len(wilderness.stops) == 31
+    assert len(wilderness.segments) == 27
+    assert {stop.journey_phase for stop in wilderness.stops} == {
+        "Elindulás a Sínaitól",
+        "Út Kádés felé",
+        "A pusztai vándorlás évei",
+        "Kádéstől Móábig",
+    }
+
+
+def test_exodus_wilderness_validation_report_matches_loader() -> None:
+    report_path = ROOT / "data" / "biblical_routes" / "exodus_wilderness_validation_report.json"
+    report = json.loads(report_path.read_text(encoding="utf-8"))
+    by_id = {route["route_id"]: route for route in report["routes"]}
+    routes = {route.route_id: route for route in load_biblical_routes()}
+
+    assert set(by_id) == {"exodus_egypt_to_sinai", "wilderness_sinai_to_moab"}
+    for route_id, item in by_id.items():
+        route = routes[route_id]
+        assert item["total_textual_stops"] == len(route.stops)
+        assert item["map_segment_count"] == len(route.segments)
+        assert item["mojibake_utf8_check"] == "passed"
+        assert item["duplicate_geometry_check"] == "one_render_geometry_per_segment_expected"
+        assert item["legacy_place_ids"] == []
+        assert item["zero_length_segments"] == []
