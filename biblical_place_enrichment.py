@@ -58,11 +58,23 @@ SECTION_REVIEW_LABELS_HU = {
 }
 
 PROFILE_STATUS_LABELS_HU = {
-    "basic": "Alapadatlap",
-    "partial": "Részben bővített",
-    "source_backed": "Forrásolt bővített adatlap",
-    "featured": "Kiemelt helyszínprofil",
+    "basic": "Alapadatlap (katalógus)",
+    "partial": "Részben bővített (bibliai / gazetteer szint)",
+    "source_backed": "Forrásolt bővített adatlap (intézményi vagy tudományos háttér)",
+    "featured": "Kiemelt helyszínprofil (történeti/régészeti forrásokkal)",
     "needs_review": "Szakmai ellenőrzés alatt",
+}
+
+# Source types that can justify history/archaeology depth beyond OpenBible/gazetteer shells.
+DEEP_ENRICHMENT_SOURCE_TYPES = {
+    "official_archaeological_site",
+    "international_heritage_reference",
+    "scholarly_archaeological_reference",
+    "heritage_authority",
+    "university_project",
+    "museum",
+    "excavation_project",
+    "peer_reviewed_publication",
 }
 
 MOJIBAKE_MARKERS = ("Ă", "Ĺ", "Ĺ‘", "Ĺ±", "â€", "Â", "\ufffd")
@@ -471,7 +483,40 @@ def enrichment_has_needs_review(enrichment: PlaceEnrichment | None) -> bool:
     return any(section.review_status == "needs_review" for section in enrichment.sections.values())
 
 
+def enrichment_section_source_ids(section: EnrichmentTextSection | EnrichmentKeyEventsSection) -> tuple[str, ...]:
+    if isinstance(section, EnrichmentTextSection):
+        return section.source_ids
+    ids: list[str] = []
+    for item in section.items:
+        ids.extend(item.source_ids)
+    return tuple(ids)
+
+
+def enrichment_has_deep_source(enrichment: PlaceEnrichment | None) -> bool:
+    if enrichment is None:
+        return False
+    lookup = place_enrichment_sources_by_id()
+    for section in enrichment.sections.values():
+        for source_id in enrichment_section_source_ids(section):
+            source = lookup.get(source_id)
+            if source is not None and source.source_type in DEEP_ENRICHMENT_SOURCE_TYPES:
+                return True
+    return False
+
+
+def enrichment_has_history_or_archaeology(enrichment: PlaceEnrichment | None) -> bool:
+    if enrichment is None:
+        return False
+    return "historical_context" in enrichment.sections or "archaeology" in enrichment.sections
+
+
 def enrichment_profile_status(enrichment: PlaceEnrichment | None) -> str:
+    """Return honest UI/profile status from enrichment depth and source types.
+
+    OpenBible/gazetteer-only shells stay at most ``partial``, even if several
+    text sections exist. ``source_backed`` / ``featured`` require institutional
+    or scholarly depth plus history/archaeology content.
+    """
     if enrichment is None or not enrichment.sections:
         return "basic"
     if enrichment_has_needs_review(enrichment):
@@ -482,11 +527,21 @@ def enrichment_profile_status(enrichment: PlaceEnrichment | None) -> str:
         "key_events" in enrichment.sections
         and enrichment.sections["key_events"].review_status == "source_backed"
     )
-    if section_count >= 4 and source_count >= 2 and has_checked_key_events:
+    deep = enrichment_has_deep_source(enrichment)
+    deep_context = enrichment_has_history_or_archaeology(enrichment)
+    if (
+        section_count >= 4
+        and source_count >= 2
+        and has_checked_key_events
+        and deep
+        and deep_context
+    ):
         return "featured"
-    if section_count >= 3:
+    if section_count >= 3 and deep and deep_context:
         return "source_backed"
-    return "partial"
+    if section_count >= 1:
+        return "partial"
+    return "basic"
 
 
 def related_route_ids_for_place(place_id: str) -> tuple[str, ...]:
@@ -521,8 +576,12 @@ __all__ = [
     "SECTION_REVIEW_LABELS_HU",
     "TEXT_SECTION_KEYS",
     "enrichment_has_needs_review",
+    "enrichment_has_deep_source",
+    "enrichment_has_history_or_archaeology",
     "enrichment_profile_status",
+    "enrichment_section_source_ids",
     "enrichment_source_count",
+    "DEEP_ENRICHMENT_SOURCE_TYPES",
     "get_place_enrichment",
     "load_place_enrichment_sources",
     "load_place_enrichments",

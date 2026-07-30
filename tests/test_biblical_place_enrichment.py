@@ -191,7 +191,9 @@ def test_profile_groups_load_and_keep_distinct_records() -> None:
 def test_enrichment_profile_status_is_computed_from_quality() -> None:
     assert enrichment_profile_status(get_place_enrichment("corinth")) == "featured"
     assert enrichment_profile_status(get_place_enrichment("ephesus")) == "featured"
-    assert enrichment_profile_status(get_place_enrichment("jericho_1")) == "source_backed"
+    # OpenBible/gazetteer-only pilots are partial, not institutionally source-backed.
+    assert enrichment_profile_status(get_place_enrichment("jericho_1")) == "partial"
+    assert enrichment_profile_status(get_place_enrichment("jerusalem")) == "partial"
     assert enrichment_profile_status(get_place_enrichment("abana")) == "basic"
 
 

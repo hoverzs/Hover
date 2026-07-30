@@ -24,11 +24,13 @@ def test_full_catalog_import_report_matches_outputs() -> None:
     passage_catalog = read_json(ROOT / "data" / "biblical_places" / "passage_place_catalog.json")
 
     assert report["raw_place_count"] == 1342
-    assert report["imported_place_count"] == len(catalog) > 100
+    assert report["imported_place_count"] == 1309
+    assert report["merged_catalog_count"] == len(catalog) == 1267
     assert report["skipped_place_count"] == 33
     assert report["skipped_places_by_reason"] == {"missing_or_invalid_coordinates": 33}
     assert report["manual_override_count"] == 10
     assert len(passage_catalog) > 11
+    assert len(catalog) > 100
 
 
 def test_full_catalog_builder_is_idempotent_in_memory() -> None:
@@ -48,22 +50,23 @@ def test_audit_report_files_have_expected_shape() -> None:
     catalog = json.loads((ROOT / "data" / "biblical_places" / "biblical_places_catalog.json").read_text(encoding="utf-8"))
 
     assert markdown_path.exists()
-    assert report["catalog_record_count"] == len(catalog) > 100
+    assert report["catalog_record_count"] == len(catalog) == 1267
     assert report["merged_catalog_count"] == len(catalog)
     assert report["openbible_raw_place_count"] == 1342
-    assert report["successfully_imported_place_count"] > 100
+    assert report["successfully_imported_place_count"] == 1309
     assert report["skipped_place_count"] == 33
     assert report["manual_override_count"] == 10
-    assert report["passage_place_link_count"] > 11
+    assert report["passage_place_link_count"] == 8654
     assert report["large_place_list_for_passage_count"] == 118
     assert report["definite_duplicate_merge_count"] == 0
-    assert report["uncertain_duplicate_count"] == 201
+    assert report["uncertain_duplicate_count"] == 161
     assert report["invalid_external_id_count"] == 0
     assert report["invalid_external_ids_fixed"] is True
     assert report["mixed_manual_demo_source_count"] == 0
     assert report["mixed_manual_demo_source_resolved"] is True
-    assert report["ui_fallback_name_count"] == 1299
-    assert report["safe_fallback_description_count"] > 100
+    # Hungarian review completed: no UI fallback names remain in the latest audit.
+    assert report["ui_fallback_name_count"] == 0
+    assert report["safe_fallback_description_count"] == 0
     assert "summary" in report
     assert "auto_fixed_items" in report
     assert "top_findings" in report
@@ -79,7 +82,9 @@ def test_audit_catalog_flags_review_items_without_missing_references() -> None:
     findings = audit_catalog(places, sources, links)
     categories = {finding.category for finding in findings}
 
-    assert "missing_hungarian_name" in categories
+    # Hungarian names are complete after the review batches.
+    assert "missing_hungarian_name" not in categories
+    assert "hungarian_name_review" in categories or "summary_repeats_name" in categories
     assert "summary_repeats_name" in categories
     assert "mixed_manual_demo_source" not in categories
     assert "invalid_external_id" not in categories

@@ -457,3 +457,28 @@ Közös szigorú küszöb (builder DoD): ≥3 érvényes section, ≥2 függetle
 ## Audit záradék
 
 Ez a jelentés kizárólag `docs/biblical_map_status_audit.md` létrehozását/módosítását célozza. A többi working-tree fájl érintetlenül hagyandó; a záró `git status` ezt visszaigazolja.
+
+---
+
+## 11. Automatizált MVP-lezárás után (2026-07-30, későbbi kör)
+
+A következő technikai lépések **elkészültek** a kézi béta-smoke előtt:
+
+1. Feature ág push + working tree tisztítás.
+2. Elavult `test_biblical_places_audit` asszertek igazítva a 1267 / 161 állapothoz.
+3. Őszinte profilstátusz: OpenBible/gazetteer-only profilok legfeljebb `partial`; `featured` csak Corinth/Ephesus mélységnél.
+4. Térkép expander scope-figyelmeztetés + kutatási readiness caption a helykártyán.
+
+### Kézi UI-smoke checklist (béta előtt — nálad)
+
+Futtasd a Streamlit appot, nyisd ki a **Bibliai térkép** expandert, és ellenőrizd:
+
+1. Látszik-e a prototípus / vázlatos útvonal figyelmeztetés.
+2. **ApCsel 18,1–18** → Korinthus / több hely, teljes szélességű térkép.
+3. **ApCsel 13** → route prompt / Pál első út átváltás.
+4. **Bibliai útvonalak** → Pál első missziói út, állomások a térkép alatt.
+5. Kereső: `Korinthus`, `Efézus` → featured státusz szöveg.
+6. Egy shell hely (pl. katalógusból) → alap / részleges státusz, nem „forrásolt” túlzás.
+7. Ismeretlen igehely (pl. Jn 3,16) → nincs véletlen helyválasztás.
+
+Ha ez a checklist zöld, a modul **belső MVP kész**; a nyilvános béta továbbra is tartalmi forrásmunkát igényel (lásd §9).

@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
+from functools import lru_cache
 import html
+import json
 import math
 import re
 import unicodedata
+from pathlib import Path
 from typing import Any, Mapping
 
 from biblical_map_data import (
@@ -77,6 +80,44 @@ ROUTE_VIEW_WARNING_HU = (
     "A vonalak sematikusak, nem a pontos ókori nyomvonalat jelölik."
 )
 MAP_BLOCK_HEIGHT_PX = 520
+_RESEARCH_DIR = Path(__file__).resolve().parent / "data" / "biblical_places" / "enrichment_research"
+MAP_SCOPE_NOTE_HU = (
+    "Ez a térképmodul belső / béta előtti prototípus. A legtöbb helyszín egyelőre "
+    "katalógus- és bibliai kapcsolati adatot mutat; részletes történeti vagy régészeti "
+    "háttér csak a kiemelten forrásolt helyeken érhető el."
+)
+
+
+@lru_cache(maxsize=1)
+def _research_readiness_index() -> dict[str, str]:
+    """Map place_id -> highest research readiness class available on disk."""
+    # Apply from lowest to highest so stronger classes overwrite weaker ones.
+    ranking = (
+        ("batch_001_biblical_draft_ready.json", "biblical_draft_ready"),
+        ("batch_001_partial_profile_ready.json", "partial_profile_ready"),
+        ("batch_001_source_backed_ready.json", "source_backed_profile_ready"),
+        ("batch_001_featured_candidates.json", "featured_candidate"),
+    )
+    index: dict[str, str] = {}
+    for filename, label in ranking:
+        path = _RESEARCH_DIR / filename
+        if not path.exists():
+            continue
+        try:
+            rows = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        if not isinstance(rows, list):
+            continue
+        for row in rows:
+            place_id = str(row.get("place_id") or "").strip()
+            if place_id:
+                index[place_id] = label
+    return index
+
+
+def research_readiness_class(place_id: str) -> str | None:
+    return _research_readiness_index().get(place_id)
 
 
 @dataclass(frozen=True)
@@ -1262,14 +1303,28 @@ def _render_profile_status_note(
     status: str,
     *,
     has_enrichment: bool,
+    research_class: str | None = None,
 ) -> None:
     label = PROFILE_STATUS_LABELS_HU.get(status, status)
     st.caption(f"Helyszínprofil állapota: {label}")
+    if research_class:
+        research_labels = {
+            "biblical_draft_ready": "kutatási szinten: bibliai vázlat készíthető",
+            "partial_profile_ready": "kutatási szinten: részleges profil (külső forrás van)",
+            "source_backed_profile_ready": "kutatási szinten: source-backed profil",
+            "featured_candidate": "kutatási szinten: featured jelölt",
+        }
+        st.caption(research_labels.get(research_class, f"kutatási szint: {research_class}"))
     if not has_enrichment or status in {"basic", "partial", "needs_review"}:
         st.caption(
             "A helyszínadatlapok bővítése fokozatosan történik. A rövidebb adatlap nem "
             "jelent adathiányt a bibliai helyazonosításban; csak azt, hogy még nem készült "
-            "hozzá részletes, forrásolt háttéranyag."
+            "hozzá részletes, intézményi/tudományos forrású háttéranyag."
+        )
+    elif status == "source_backed":
+        st.caption(
+            "Ez a bővített adatlap intézményi vagy tudományos forrást is használ "
+            "történeti/régészeti háttérhez."
         )
 
 
@@ -1307,14 +1362,25 @@ def _render_related_profile_records(st: Any, place: BiblicalPlace) -> None:
 
 def _render_place_enrichment(st: Any, place: BiblicalPlace) -> None:
     enrichment = get_place_enrichment(place.place_id)
+    research_class = research_readiness_class(place.place_id)
     if enrichment is None:
-        _render_profile_status_note(st, "basic", has_enrichment=False)
+        _render_profile_status_note(
+            st,
+            "basic",
+            has_enrichment=False,
+            research_class=research_class,
+        )
         _render_related_profile_records(st, place)
         return
     source_lookup = place_enrichment_sources_by_id()
     status = enrichment_profile_status(enrichment)
     st.markdown("#### Bővített helyszínadatlap")
-    _render_profile_status_note(st, status, has_enrichment=True)
+    _render_profile_status_note(
+        st,
+        status,
+        has_enrichment=True,
+        research_class=research_class,
+    )
     if status == "needs_review":
         st.warning("A bővített adatlap egy vagy több része szakmai ellenőrzésre vár.")
 
@@ -2017,6 +2083,10 @@ def render_biblical_map_prototype(
 
     _render_styles(st)
     with st.expander("Bibliai térkép", expanded=False):
+        st.caption(MAP_SCOPE_NOTE_HU)
+        st.caption(
+            "Az útvonalnézet vázlatos (draft/schematic): a vonalak nem pontos ókori nyomvonalak."
+        )
         apply_pending_route_navigation_state(st.session_state)
         view_options = [MAP_VIEW_PLACES, MAP_VIEW_ROUTES]
         current_view = str(st.session_state.get(ACTIVE_MAP_VIEW_KEY) or MAP_VIEW_PLACES)
@@ -2080,11 +2150,13 @@ __all__ = [
     "place_selectbox_options",
     "render_biblical_map_prototype",
     "render_map_style_selector",
+    "research_readiness_class",
     "prepare_route_widget_state",
     "queue_route_navigation",
     "queue_place_navigation",
     "resolve_selected_place_id",
     "resolve_map_style_id",
+    "MAP_SCOPE_NOTE_HU",
     "route_viewport_for_selection",
     "route_matches_for_passage",
     "route_curve_profile",

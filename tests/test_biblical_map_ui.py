@@ -37,6 +37,7 @@ from biblical_map_ui import (
     HIGHLIGHTED_ROUTE_STOP_IDS_KEY,
     LAST_FOCUSED_ROUTE_STOP_ID_KEY,
     LAST_RENDERED_ROUTE_ID_KEY,
+    MAP_SCOPE_NOTE_HU,
     MAP_STYLE_CLEAN,
     MAP_STYLE_CONFIGS,
     MAP_STYLE_HISTORICAL_MOOD,
@@ -57,6 +58,7 @@ from biblical_map_ui import (
     STOP_TYPE_LABELS,
     SELECTED_PLACE_SELECTBOX_KEY,
     SELECTED_PLACE_ID_KEY,
+    research_readiness_class,
     _display_status,
     _render_place_card,
     _render_short_sources,
@@ -646,6 +648,9 @@ def test_render_accepts_missing_passage_reference_without_early_return() -> None
     assert ("Bibliai térkép", False) in fake_st.expanders
     assert "A térképes prototípus renderelése aktív." not in fake_st.captions
     assert "Aktuális igerész még nincs megadva." in fake_st.captions
+    assert any(
+        "belső / béta előtti prototípus" in caption for caption in fake_st.captions
+    )
     assert fake_st.maps
     assert fake_st.maps[-1][1]["use_container_width"] is True
     assert fake_st.maps[-1][1]["height"] == 520
@@ -2199,7 +2204,11 @@ def test_enriched_place_card_renders_extended_profile() -> None:
     assert any("Bővített helyszínadatlap" in body for body in fake_st.markdowns)
     assert ("Bibliai jelentőség", True) in fake_st.expanders
     assert any(label == "Források" for label, _ in fake_st.expanders)
-    assert any("Helyszínprofil állapota: Kiemelt helyszínprofil" in body for body in fake_st.captions)
+    assert any(
+        "Helyszínprofil állapota: Kiemelt helyszínprofil (történeti/régészeti forrásokkal)"
+        in body
+        for body in fake_st.captions
+    )
 
 
 def test_non_enriched_place_card_keeps_compact_profile_only() -> None:
@@ -2211,7 +2220,9 @@ def test_non_enriched_place_card_keeps_compact_profile_only() -> None:
 
     assert not any("Bővített helyszínadatlap" in body for body in fake_st.markdowns)
     assert not any(label == "Kapcsolódó bibliai útvonalak" for label, _ in fake_st.expanders)
-    assert any("Helyszínprofil állapota: Alapadatlap" in body for body in fake_st.captions)
+    assert any(
+        "Helyszínprofil állapota: Alapadatlap (katalógus)" in body for body in fake_st.captions
+    )
 
 
 def test_enrichment_route_button_uses_pending_navigation_state() -> None:
@@ -2253,3 +2264,9 @@ def test_search_prefers_enriched_primary_record_for_duplicate_name() -> None:
 
     assert results
     assert results[0].place_id == "jericho_1"
+
+
+def test_research_readiness_and_scope_note_are_honest() -> None:
+    assert "béta előtti prototípus" in MAP_SCOPE_NOTE_HU
+    assert research_readiness_class("egypt") == "partial_profile_ready"
+    assert research_readiness_class("corinth") is None
