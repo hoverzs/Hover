@@ -35,6 +35,7 @@ from biblical_map_ui import (
     CERTAINTY_LABELS,
     GEOMETRY_STATUS_LABELS,
     HIGHLIGHTED_ROUTE_STOP_IDS_KEY,
+    LAST_FOCUSED_ROUTE_STOP_ID_KEY,
     LAST_RENDERED_ROUTE_ID_KEY,
     MAP_STYLE_CLEAN,
     MAP_STYLE_CONFIGS,
@@ -48,6 +49,7 @@ from biblical_map_ui import (
     PENDING_ROUTE_ID_KEY,
     PENDING_ROUTE_STOP_IDS_KEY,
     ROUTE_VIEW_WARNING_HU,
+    ROUTE_VIEWPORT_STATE_KEY,
     SEGMENT_TYPE_LABELS,
     SELECTED_ROUTE_ID_KEY,
     SELECTED_ROUTE_STOP_ID_KEY,
@@ -75,6 +77,7 @@ from biblical_map_ui import (
     queue_route_navigation,
     resolve_selected_place_id,
     resolve_map_style_id,
+    route_viewport_for_selection,
     route_curve_profile,
     filtered_route_segments,
     filtered_route_stops,
@@ -85,6 +88,8 @@ from biblical_map_ui import (
     route_segment_rows,
     route_stop_rows,
     route_viewport,
+    selected_route_stop_focus_viewport,
+    selected_route_stop_row,
     schematic_segment_path,
     search_biblical_places,
     selected_place_for_session,
@@ -1356,6 +1361,189 @@ def test_route_view_helpers_build_first_missionary_journey_rows() -> None:
     assert all(row["path"][0] == row["straight_path"][0] for row in segment_rows)
     assert all(row["path"][-1] == row["straight_path"][-1] for row in segment_rows)
     assert route_segment_rows(route) == segment_rows
+
+
+def test_selected_mapped_route_stop_gets_focus_viewport_and_marker_highlight() -> None:
+    route = load_biblical_routes()[0]
+    stop_rows = route_stop_rows(route, selected_stop_id="perga_outbound")
+    selected = selected_route_stop_row(stop_rows, "perga_outbound")
+    other_perga = selected_route_stop_row(stop_rows, "perga_return")
+    viewport = selected_route_stop_focus_viewport(stop_rows, "perga_outbound")
+    full_viewport = route_viewport(stop_rows)
+
+    assert selected is not None
+    assert other_perga is not None
+    assert selected["is_selected"] is True
+    assert other_perga["is_selected"] is False
+    assert selected["size"] > other_perga["size"]
+    assert selected["line_width"] > other_perga["line_width"]
+    assert (
+        selected["display_lat"],
+        selected["display_lon"],
+    ) != (
+        other_perga["display_lat"],
+        other_perga["display_lon"],
+    )
+    assert viewport["latitude"] == selected["display_lat"]
+    assert viewport["longitude"] == selected["display_lon"]
+    assert 5.0 <= viewport["zoom"] <= 6.5
+    assert viewport["zoom"] >= full_viewport["zoom"]
+
+
+def test_selected_approximate_route_stop_gets_focus_viewport() -> None:
+    route = {route.route_id: route for route in load_biblical_routes()}[
+        "joshua_jordan_crossing_central_campaign"
+    ]
+    stop_rows = route_stop_rows(route, selected_stop_id="jordan_crossing")
+    selected = selected_route_stop_row(stop_rows, "jordan_crossing")
+    viewport = selected_route_stop_focus_viewport(stop_rows, "jordan_crossing")
+
+    assert selected is not None
+    assert selected["place_id"] == "jordan"
+    assert selected["is_selected"] is True
+    assert viewport["latitude"] == selected["display_lat"]
+    assert viewport["longitude"] == selected["display_lon"]
+    assert 5.0 <= viewport["zoom"] <= 6.5
+
+
+def test_textual_only_route_stop_keeps_previous_viewport_without_marker_focus() -> None:
+    route = {route.route_id: route for route in load_biblical_routes()}["exodus_egypt_to_sinai"]
+    stop_rows = route_stop_rows(route, selected_stop_id="sea_crossing_textual")
+    previous = {"latitude": 31.5, "longitude": 35.2, "zoom": 5.5}
+    viewport = selected_route_stop_focus_viewport(
+        stop_rows,
+        "sea_crossing_textual",
+        previous_viewport=previous,
+    )
+    state = {ROUTE_VIEWPORT_STATE_KEY: previous}
+    state_viewport = route_viewport_for_selection(
+        state,
+        stop_rows,
+        route_id=route.route_id,
+        selected_stop_id="sea_crossing_textual",
+    )
+
+    assert selected_route_stop_row(stop_rows, "sea_crossing_textual") is None
+    assert viewport == previous
+    assert state_viewport == previous
+    assert LAST_FOCUSED_ROUTE_STOP_ID_KEY not in state
+
+
+def test_route_focus_state_updates_only_when_selected_stop_changes() -> None:
+    route = load_biblical_routes()[0]
+    rows = route_stop_rows(route, selected_stop_id="perga_outbound")
+    state: dict[str, object] = {}
+
+    first = route_viewport_for_selection(
+        state,
+        rows,
+        route_id=route.route_id,
+        selected_stop_id="perga_outbound",
+    )
+    state[ROUTE_VIEWPORT_STATE_KEY] = {"latitude": 99.0, "longitude": 88.0, "zoom": 4.0}
+    second = route_viewport_for_selection(
+        state,
+        rows,
+        route_id=route.route_id,
+        selected_stop_id="perga_outbound",
+    )
+    rows = route_stop_rows(route, selected_stop_id="lystra_outbound")
+    third = route_viewport_for_selection(
+        state,
+        rows,
+        route_id=route.route_id,
+        selected_stop_id="lystra_outbound",
+    )
+
+    assert first["latitude"] != 99.0
+    assert second == {"latitude": 99.0, "longitude": 88.0, "zoom": 4.0}
+    assert third != second
+    assert state[LAST_FOCUSED_ROUTE_STOP_ID_KEY] == f"{route.route_id}:lystra_outbound"
+
+
+def test_route_change_and_passage_navigation_focus_first_relevant_stop() -> None:
+    routes = load_biblical_routes()
+    state = {
+        PENDING_MAP_VIEW_KEY: MAP_VIEW_ROUTES,
+        PENDING_ROUTE_ID_KEY: "joshua_southern_campaign",
+        PENDING_ROUTE_STOP_IDS_KEY: ["gezer_intervention", "lachish_southern"],
+        ROUTE_VIEWPORT_STATE_KEY: {"latitude": 0.0, "longitude": 0.0, "zoom": 1.0},
+    }
+
+    selected_route_id, _phase, selected_stop_id, route, visible_stops, _segments = (
+        prepare_route_widget_state(state, routes)
+    )
+    rows = route_stop_rows(
+        replace(route, stops=visible_stops),
+        selected_stop_id=selected_stop_id,
+        highlighted_stop_ids=tuple(state[HIGHLIGHTED_ROUTE_STOP_IDS_KEY]),
+    )
+    viewport = route_viewport_for_selection(
+        state,
+        rows,
+        route_id=selected_route_id,
+        selected_stop_id=selected_stop_id,
+    )
+
+    assert selected_route_id == "joshua_southern_campaign"
+    assert selected_stop_id == "gezer_intervention"
+    assert state[HIGHLIGHTED_ROUTE_STOP_IDS_KEY] == ["gezer_intervention", "lachish_southern"]
+    assert state[LAST_FOCUSED_ROUTE_STOP_ID_KEY] == "joshua_southern_campaign:gezer_intervention"
+    assert viewport["latitude"] == selected_route_stop_row(rows, "gezer_intervention")["display_lat"]
+
+
+def test_phase_change_normalizes_stop_and_focuses_first_visible_stop() -> None:
+    routes = load_biblical_routes()
+    route_id = "joshua_northern_campaign"
+    state = {
+        SELECTED_ROUTE_ID_KEY: route_id,
+        SELECTED_ROUTE_STOP_ID_KEY: "sidon_pursuit",
+        route_phase_state_key(route_id): "Hácór elfoglalása",
+    }
+
+    selected_route_id, selected_phase, selected_stop_id, route, visible_stops, _segments = (
+        prepare_route_widget_state(state, routes)
+    )
+    rows = route_stop_rows(replace(route, stops=visible_stops), selected_stop_id=selected_stop_id)
+    viewport = route_viewport_for_selection(
+        state,
+        rows,
+        route_id=selected_route_id,
+        selected_stop_id=selected_stop_id,
+    )
+
+    assert selected_phase == "Hácór elfoglalása"
+    assert selected_stop_id == "hazor_capture"
+    assert state[SELECTED_ROUTE_STOP_ID_KEY] == "hazor_capture"
+    assert viewport["latitude"] == selected_route_stop_row(rows, "hazor_capture")["display_lat"]
+
+
+def test_map_style_switch_preserves_selected_stop_focus_state() -> None:
+    route = load_biblical_routes()[0]
+    state = {
+        MAP_STYLE_KEY: MAP_STYLE_HISTORICAL_MOOD,
+        SELECTED_ROUTE_ID_KEY: route.route_id,
+        SELECTED_ROUTE_STOP_ID_KEY: "perga_outbound",
+    }
+    rows = route_stop_rows(route, selected_stop_id="perga_outbound")
+
+    before = route_viewport_for_selection(
+        state,
+        rows,
+        route_id=route.route_id,
+        selected_stop_id="perga_outbound",
+    )
+    state[MAP_STYLE_KEY] = MAP_STYLE_TERRAIN
+    after = route_viewport_for_selection(
+        state,
+        rows,
+        route_id=route.route_id,
+        selected_stop_id="perga_outbound",
+    )
+
+    assert state[SELECTED_ROUTE_STOP_ID_KEY] == "perga_outbound"
+    assert state[MAP_STYLE_KEY] == MAP_STYLE_TERRAIN
+    assert after == before
 
 
 def test_route_segment_paths_are_deterministic_curves_without_mutating_stop_coordinates() -> None:

@@ -55,6 +55,8 @@ PENDING_ROUTE_ID_KEY = "_biblical_map_pending_route_id"
 PENDING_ROUTE_STOP_IDS_KEY = "_biblical_map_pending_route_stop_ids"
 PENDING_MAP_VIEW_KEY = "_biblical_map_pending_view"
 LAST_RENDERED_ROUTE_ID_KEY = "_biblical_map_last_rendered_route_id"
+LAST_FOCUSED_ROUTE_STOP_ID_KEY = "_biblical_map_last_focused_route_stop_id"
+ROUTE_VIEWPORT_STATE_KEY = "_biblical_map_route_viewport"
 ROUTE_VIEW_WARNING_HU = (
     "Az útvonal a bibliai szövegben megnevezett állomások sorrendjét mutatja. "
     "A vonalak sematikusak, nem a pontos ókori nyomvonalat jelölik."
@@ -378,6 +380,9 @@ def route_stop_rows(
             continue
         is_selected = stop.stop_id == selected_stop_id
         is_highlighted = stop.stop_id in highlighted
+        marker_size = 780 if is_selected else 560 if is_highlighted else 420
+        marker_fill = [255, 246, 213, 245] if is_selected else [232, 241, 245, 230] if is_highlighted else [245, 239, 224, 220]
+        marker_line = [31, 94, 128, 255] if is_selected else [54, 112, 140, 235] if is_highlighted else [70, 78, 84, 220]
         rows.append(
             {
                 "lat": place.latitude,
@@ -395,8 +400,15 @@ def route_stop_rows(
                 "certainty_label": _display_status(stop.certainty, CERTAINTY_LABELS),
                 "direction": route_direction_label(stop),
                 "passage_refs": ", ".join(stop.passage_refs),
-                "size": 680 if is_selected else 560 if is_highlighted else 420,
-                "color": "#2f6f8f" if is_selected or is_highlighted else "#6f6a5f",
+                "is_selected": is_selected,
+                "is_highlighted": is_highlighted,
+                "size": marker_size,
+                "color": "#1f5e80" if is_selected else "#36708c" if is_highlighted else "#6f6a5f",
+                "fill_color": marker_fill,
+                "line_color": marker_line,
+                "line_width": 5 if is_selected else 3 if is_highlighted else 2,
+                "label_size": 16 if is_selected else 14,
+                "label_color": [20, 32, 46, 255] if is_selected else [30, 42, 56, 245],
             }
         )
     coordinate_groups: dict[tuple[float, float], list[dict[str, Any]]] = {}
@@ -612,6 +624,75 @@ def route_viewport(rows: list[dict[str, Any]]) -> dict[str, float]:
     }
 
 
+def _coerce_viewport(value: Any) -> dict[str, float] | None:
+    if not isinstance(value, Mapping):
+        return None
+    try:
+        latitude = float(value["latitude"])
+        longitude = float(value["longitude"])
+        zoom = float(value["zoom"])
+    except (KeyError, TypeError, ValueError):
+        return None
+    return {"latitude": latitude, "longitude": longitude, "zoom": zoom}
+
+
+def selected_route_stop_row(
+    rows: list[dict[str, Any]],
+    selected_stop_id: str | None,
+) -> dict[str, Any] | None:
+    if not selected_stop_id:
+        return None
+    return next((row for row in rows if row.get("stop_id") == selected_stop_id), None)
+
+
+def selected_route_stop_focus_viewport(
+    rows: list[dict[str, Any]],
+    selected_stop_id: str | None,
+    *,
+    previous_viewport: Mapping[str, Any] | None = None,
+) -> dict[str, float]:
+    selected_row = selected_route_stop_row(rows, selected_stop_id)
+    if selected_row is None:
+        previous = _coerce_viewport(previous_viewport)
+        return previous if previous is not None else route_viewport(rows)
+
+    base_viewport = route_viewport(rows)
+    base_zoom = float(base_viewport["zoom"])
+    focus_zoom = min(max(base_zoom + 1.0, 5.0), 6.5)
+    return {
+        "latitude": float(selected_row["display_lat"]),
+        "longitude": float(selected_row["display_lon"]),
+        "zoom": focus_zoom,
+    }
+
+
+def route_viewport_for_selection(
+    session_state: Any,
+    rows: list[dict[str, Any]],
+    *,
+    route_id: str,
+    selected_stop_id: str | None,
+) -> dict[str, float]:
+    previous_viewport = _coerce_viewport(session_state.get(ROUTE_VIEWPORT_STATE_KEY))
+    focus_key = f"{route_id}:{selected_stop_id or ''}"
+    last_focus_key = str(session_state.get(LAST_FOCUSED_ROUTE_STOP_ID_KEY) or "")
+    selected_row = selected_route_stop_row(rows, selected_stop_id)
+
+    if selected_row is None:
+        viewport = previous_viewport if previous_viewport is not None else route_viewport(rows)
+    elif focus_key != last_focus_key:
+        viewport = selected_route_stop_focus_viewport(rows, selected_stop_id)
+        session_state[LAST_FOCUSED_ROUTE_STOP_ID_KEY] = focus_key
+    else:
+        viewport = previous_viewport if previous_viewport is not None else selected_route_stop_focus_viewport(
+            rows,
+            selected_stop_id,
+        )
+
+    session_state[ROUTE_VIEWPORT_STATE_KEY] = dict(viewport)
+    return viewport
+
+
 def route_matches_for_passage(
     reference: str | None,
 ) -> dict[str, list[BiblicalRouteStop]]:
@@ -697,11 +778,15 @@ def prepare_route_widget_state(
     selected_stop_id = str(session_state.get(SELECTED_ROUTE_STOP_ID_KEY) or "")
     previous_route_id = str(session_state.get(LAST_RENDERED_ROUTE_ID_KEY) or "")
     highlighted_valid = [stop_id for stop_id in highlighted_stop_ids if stop_id in valid_stop_ids]
+    first_mappable_stop_id = next(
+        (stop.stop_id for stop in visible_stops if stop.display_on_map),
+        valid_stop_ids[0],
+    )
     if (
         previous_route_id != selected_route_id
         or selected_stop_id not in valid_stop_ids
     ):
-        selected_stop_id = highlighted_valid[0] if highlighted_valid else valid_stop_ids[0]
+        selected_stop_id = highlighted_valid[0] if highlighted_valid else first_mappable_stop_id
         session_state[SELECTED_ROUTE_STOP_ID_KEY] = selected_stop_id
     session_state[LAST_RENDERED_ROUTE_ID_KEY] = selected_route_id
 
@@ -1322,7 +1407,7 @@ def _render_compact_route_place_card(
 
 
 def _render_route_legend(st: Any, segment_rows: list[dict[str, Any]]) -> None:
-    items = ["szárazföldi út", "tengeri út", "visszaút"]
+    items = ["szárazföldi út", "tengeri út", "visszaút", "kiválasztott állomás"]
     if any(row.get("certainty") in {"possible", "disputed", "unknown"} for row in segment_rows):
         items.append("bizonytalan szakasz")
     st.caption("Jelmagyarázat: " + " · ".join(items))
@@ -1333,12 +1418,18 @@ def _render_route_map(
     route: BiblicalRoute,
     stop_rows: list[dict[str, Any]],
     segment_rows: list[dict[str, Any]],
+    selected_stop_id: str | None = None,
     map_style_id: str | None = None,
 ) -> None:
     if not stop_rows:
         st.warning("Ehhez az útvonalhoz nincs megjeleníthető állomás.")
         return
-    viewport = route_viewport(stop_rows)
+    viewport = route_viewport_for_selection(
+        st.session_state,
+        stop_rows,
+        route_id=route.route_id,
+        selected_stop_id=selected_stop_id,
+    )
     style = effective_map_style(map_style_id or resolve_map_style_id(st.session_state))
     _render_route_legend(st, segment_rows)
     try:
@@ -1365,9 +1456,12 @@ def _render_route_map(
                     data=stop_rows,
                     get_position="[display_lon, display_lat]",
                     get_radius="size",
-                    get_fill_color="[245, 239, 224, 230]",
-                    get_line_color="[45, 55, 65, 220]",
+                    get_fill_color="fill_color",
+                    get_line_color="line_color",
+                    get_line_width="line_width",
                     line_width_min_pixels=2,
+                    line_width_max_pixels=7,
+                    stroked=True,
                     pickable=True,
                 ),
                 pdk.Layer(
@@ -1375,8 +1469,8 @@ def _render_route_map(
                     data=stop_rows,
                     get_position="[display_lon, display_lat]",
                     get_text="label",
-                    get_size=14,
-                    get_color="[30, 42, 56, 255]",
+                    get_size="label_size",
+                    get_color="label_color",
                     get_alignment_baseline="'center'",
                     pickable=False,
                 ),
@@ -1498,7 +1592,14 @@ def _render_route_view(st: Any) -> None:
     )
     segment_rows = route_segment_rows(render_route)
     _render_map_block_open(st)
-    _render_route_map(st, route, stop_rows, segment_rows, map_style_id=map_style_id)
+    _render_route_map(
+        st,
+        route,
+        stop_rows,
+        segment_rows,
+        selected_stop_id=selected_stop_id,
+        map_style_id=map_style_id,
+    )
     _render_map_block_close(st)
 
     stop_labels = {
@@ -1706,6 +1807,7 @@ __all__ = [
     "CERTAINTY_LABELS",
     "GEOMETRY_STATUS_LABELS",
     "HIGHLIGHTED_ROUTE_STOP_IDS_KEY",
+    "LAST_FOCUSED_ROUTE_STOP_ID_KEY",
     "LAST_RENDERED_ROUTE_ID_KEY",
     "MAP_STYLE_CLEAN",
     "MAP_STYLE_CONFIGS",
@@ -1718,6 +1820,7 @@ __all__ = [
     "PENDING_MAP_VIEW_KEY",
     "PENDING_ROUTE_ID_KEY",
     "PENDING_ROUTE_STOP_IDS_KEY",
+    "ROUTE_VIEWPORT_STATE_KEY",
     "SELECTED_PLACE_ID_KEY",
     "SELECTED_PLACE_SELECTBOX_KEY",
     "SELECTED_ROUTE_ID_KEY",
@@ -1743,6 +1846,7 @@ __all__ = [
     "queue_route_navigation",
     "resolve_selected_place_id",
     "resolve_map_style_id",
+    "route_viewport_for_selection",
     "route_matches_for_passage",
     "route_curve_profile",
     "route_line_rows",
@@ -1753,6 +1857,8 @@ __all__ = [
     "route_stop_display_name",
     "route_stop_rows",
     "route_viewport",
+    "selected_route_stop_focus_viewport",
+    "selected_route_stop_row",
     "search_biblical_places",
     "selected_place_for_session",
     "switch_to_route_view_for_passage",
