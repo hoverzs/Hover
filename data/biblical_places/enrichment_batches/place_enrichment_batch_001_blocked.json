@@ -1,0 +1,143 @@
+[
+  {
+    "place_id": "mount_sinai",
+    "name_hu": "Sínai-hegy",
+    "blocking_reason": "needs_record_resolution",
+    "related_place_ids": [
+      "abarim",
+      "hachilah",
+      "mount_baal_hermon",
+      "mount_baalah",
+      "mount_bashan",
+      "mount_carmel",
+      "mount_ebal",
+      "mount_ephraim",
+      "mount_ephron",
+      "mount_esau",
+      "mount_gerizim",
+      "mount_gilboa",
+      "mount_gilead",
+      "mount_halak",
+      "mount_heres",
+      "mount_hermon",
+      "mount_hor_1",
+      "mount_hor_2",
+      "mount_horeb",
+      "mount_jearim",
+      "mount_lebanon",
+      "mount_mizar",
+      "mount_moriah",
+      "mount_nebo",
+      "mount_of_olives",
+      "mount_paran",
+      "mount_perazim",
+      "mount_seir_1",
+      "mount_seir_2",
+      "mount_shepher",
+      "mount_sinai",
+      "mount_tabor",
+      "mount_zalmon",
+      "mount_zemaraim",
+      "mount_zion",
+      "wilderness_of_sinai"
+    ],
+    "profile_group_id": "sinai_area",
+    "required_resolution": "canonical_record_review",
+    "recommended_next_action": "review_before_batch_selection",
+    "priority_if_resolved": 364
+  },
+  {
+    "place_id": "antioch_syria",
+    "name_hu": "Antiókhia",
+    "blocking_reason": "needs_record_resolution",
+    "related_place_ids": [
+      "antioch_2",
+      "antioch_syria"
+    ],
+    "profile_group_id": null,
+    "required_resolution": "canonical_record_review",
+    "recommended_next_action": "review_before_batch_selection",
+    "priority_if_resolved": 326
+  },
+  {
+    "place_id": "caesarea",
+    "name_hu": "Cézárea",
+    "blocking_reason": "needs_record_resolution",
+    "related_place_ids": [
+      "caesarea",
+      "caesarea_philippi"
+    ],
+    "profile_group_id": null,
+    "required_resolution": "canonical_record_review",
+    "recommended_next_action": "review_before_batch_selection",
+    "priority_if_resolved": 284
+  },
+  {
+    "place_id": "mount_horeb",
+    "name_hu": "Hóreb hegye",
+    "blocking_reason": "non_primary_profile_group_member",
+    "related_place_ids": [
+      "mount_sinai",
+      "wilderness_of_sinai"
+    ],
+    "profile_group_id": "sinai_area",
+    "required_resolution": "canonical_record_review",
+    "recommended_next_action": "review_before_batch_selection",
+    "priority_if_resolved": 174
+  },
+  {
+    "place_id": "wilderness_of_sinai",
+    "name_hu": "Sínai-puszta",
+    "blocking_reason": "non_primary_profile_group_member",
+    "related_place_ids": [
+      "mount_sinai",
+      "mount_horeb"
+    ],
+    "profile_group_id": "sinai_area",
+    "required_resolution": "canonical_record_review",
+    "recommended_next_action": "review_before_batch_selection",
+    "priority_if_resolved": 166
+  },
+  {
+    "place_id": "jericho_2",
+    "name_hu": "Jerikó",
+    "blocking_reason": "non_primary_profile_group_member",
+    "related_place_ids": [
+      "jericho_1",
+      "valley_of_jericho",
+      "waters_of_jericho"
+    ],
+    "profile_group_id": "jericho_site",
+    "required_resolution": "canonical_record_review",
+    "recommended_next_action": "review_before_batch_selection",
+    "priority_if_resolved": 90
+  },
+  {
+    "place_id": "valley_of_jericho",
+    "name_hu": "Jerikó-völgy",
+    "blocking_reason": "non_primary_profile_group_member",
+    "related_place_ids": [
+      "jericho_1",
+      "jericho_2",
+      "waters_of_jericho"
+    ],
+    "profile_group_id": "jericho_site",
+    "required_resolution": "canonical_record_review",
+    "recommended_next_action": "review_before_batch_selection",
+    "priority_if_resolved": 50
+  },
+  {
+    "place_id": "waters_of_jericho",
+    "name_hu": "Jerikó vizei",
+    "blocking_reason": "non_primary_profile_group_member",
+    "related_place_ids": [
+      "jericho_1",
+      "jericho_2",
+      "valley_of_jericho"
+    ],
+    "profile_group_id": "jericho_site",
+    "required_resolution": "canonical_record_review",
+    "recommended_next_action": "review_before_batch_selection",
+    "priority_if_resolved": 40
+  }
+]

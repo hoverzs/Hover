@@ -1,0 +1,2615 @@
+[
+  {
+    "batch_position": 1,
+    "place_id": "egypt",
+    "name_hu": "Egyiptom",
+    "name_en": "Egypt",
+    "place_type": "region",
+    "modern_country": null,
+    "identification_status": "certain",
+    "profile_group_id": null,
+    "current_enrichment_status": "basic",
+    "passage_count": 660,
+    "biblical_book_count": 33,
+    "route_stop_count": 4,
+    "route_count": 2,
+    "related_route_ids": [
+      "abraham_journey",
+      "joseph_geographical_arc"
+    ],
+    "existing_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "source_count": 1,
+    "source_gap_count": 2,
+    "research_priority": 0,
+    "total_score": 3134,
+    "selection_reason_hu": "magas prioritási pontszám (3134); 660 passage-kapcsolat; 2 route-kapcsolat; forráskutatási hiány dokumentálva.",
+    "required_sections": [
+      "biblical_significance",
+      "key_events",
+      "identification_notes",
+      "modern_context",
+      "ancient_geography",
+      "historical_context",
+      "archaeology"
+    ],
+    "optional_sections": [
+      "homiletical_context"
+    ],
+    "required_source_types": [
+      "academic_gazetteer",
+      "biblical_text_dataset",
+      "excavation_project",
+      "heritage_authority",
+      "museum",
+      "official_archaeological_site",
+      "official_geographical_source",
+      "peer_reviewed_publication",
+      "university_project"
+    ],
+    "blocking_issues": [
+      "source_gap"
+    ],
+    "ready_for_research": true,
+    "ready_for_content": false,
+    "notes_hu": "Automatikus előkészítő batch; új tartalmi szöveg nem készült."
+  },
+  {
+    "batch_position": 2,
+    "place_id": "jordan",
+    "name_hu": "Jordán",
+    "name_en": "Jordan",
+    "place_type": "river",
+    "modern_country": null,
+    "identification_status": "certain",
+    "profile_group_id": null,
+    "current_enrichment_status": "basic",
+    "passage_count": 202,
+    "biblical_book_count": 21,
+    "route_stop_count": 1,
+    "route_count": 1,
+    "related_route_ids": [
+      "joshua_jordan_crossing_central_campaign"
+    ],
+    "existing_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "source_count": 1,
+    "source_gap_count": 2,
+    "research_priority": 0,
+    "total_score": 1116,
+    "selection_reason_hu": "magas prioritási pontszám (1116); 202 passage-kapcsolat; 1 route-kapcsolat; forráskutatási hiány dokumentálva.",
+    "required_sections": [
+      "biblical_significance",
+      "key_events",
+      "identification_notes",
+      "modern_context",
+      "ancient_geography",
+      "historical_context",
+      "archaeology"
+    ],
+    "optional_sections": [
+      "homiletical_context"
+    ],
+    "required_source_types": [
+      "academic_gazetteer",
+      "biblical_text_dataset",
+      "excavation_project",
+      "heritage_authority",
+      "museum",
+      "official_archaeological_site",
+      "official_geographical_source",
+      "peer_reviewed_publication",
+      "university_project"
+    ],
+    "blocking_issues": [
+      "source_gap"
+    ],
+    "ready_for_research": true,
+    "ready_for_content": false,
+    "notes_hu": "Automatikus előkészítő batch; új tartalmi szöveg nem készült."
+  },
+  {
+    "batch_position": 3,
+    "place_id": "moab_1",
+    "name_hu": "Moáb",
+    "name_en": "Moab 1",
+    "place_type": "region",
+    "modern_country": null,
+    "identification_status": "certain",
+    "profile_group_id": null,
+    "current_enrichment_status": "basic",
+    "passage_count": 162,
+    "biblical_book_count": 22,
+    "route_stop_count": 0,
+    "route_count": 0,
+    "related_route_ids": [],
+    "existing_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "source_count": 1,
+    "source_gap_count": 2,
+    "research_priority": 0,
+    "total_score": 946,
+    "selection_reason_hu": "magas prioritási pontszám (946); 162 passage-kapcsolat; forráskutatási hiány dokumentálva.",
+    "required_sections": [
+      "biblical_significance",
+      "key_events",
+      "identification_notes",
+      "modern_context",
+      "historical_context",
+      "archaeology"
+    ],
+    "optional_sections": [],
+    "required_source_types": [
+      "academic_gazetteer",
+      "biblical_text_dataset",
+      "excavation_project",
+      "heritage_authority",
+      "museum",
+      "official_archaeological_site",
+      "official_geographical_source",
+      "peer_reviewed_publication",
+      "university_project"
+    ],
+    "blocking_issues": [
+      "source_gap"
+    ],
+    "ready_for_research": true,
+    "ready_for_content": false,
+    "notes_hu": "Automatikus előkészítő batch; új tartalmi szöveg nem készült."
+  },
+  {
+    "batch_position": 4,
+    "place_id": "zion",
+    "name_hu": "Sion",
+    "name_en": "Zion",
+    "place_type": "settlement",
+    "modern_country": null,
+    "identification_status": "certain",
+    "profile_group_id": null,
+    "current_enrichment_status": "basic",
+    "passage_count": 148,
+    "biblical_book_count": 19,
+    "route_stop_count": 0,
+    "route_count": 0,
+    "related_route_ids": [],
+    "existing_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "source_count": 1,
+    "source_gap_count": 2,
+    "research_priority": 0,
+    "total_score": 854,
+    "selection_reason_hu": "magas prioritási pontszám (854); 148 passage-kapcsolat; forráskutatási hiány dokumentálva.",
+    "required_sections": [
+      "biblical_significance",
+      "key_events",
+      "identification_notes",
+      "modern_context",
+      "historical_context",
+      "archaeology"
+    ],
+    "optional_sections": [],
+    "required_source_types": [
+      "academic_gazetteer",
+      "biblical_text_dataset",
+      "excavation_project",
+      "heritage_authority",
+      "museum",
+      "official_archaeological_site",
+      "official_geographical_source",
+      "peer_reviewed_publication",
+      "university_project"
+    ],
+    "blocking_issues": [
+      "source_gap"
+    ],
+    "ready_for_research": true,
+    "ready_for_content": false,
+    "notes_hu": "Automatikus előkészítő batch; új tartalmi szöveg nem készült."
+  },
+  {
+    "batch_position": 5,
+    "place_id": "assyria",
+    "name_hu": "Asszíria",
+    "name_en": "Assyria",
+    "place_type": "region",
+    "modern_country": null,
+    "identification_status": "certain",
+    "profile_group_id": null,
+    "current_enrichment_status": "basic",
+    "passage_count": 141,
+    "biblical_book_count": 15,
+    "route_stop_count": 0,
+    "route_count": 0,
+    "related_route_ids": [],
+    "existing_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "source_count": 1,
+    "source_gap_count": 2,
+    "research_priority": 0,
+    "total_score": 778,
+    "selection_reason_hu": "magas prioritási pontszám (778); 141 passage-kapcsolat; forráskutatási hiány dokumentálva.",
+    "required_sections": [
+      "biblical_significance",
+      "key_events",
+      "identification_notes",
+      "modern_context",
+      "historical_context",
+      "archaeology"
+    ],
+    "optional_sections": [],
+    "required_source_types": [
+      "academic_gazetteer",
+      "biblical_text_dataset",
+      "excavation_project",
+      "heritage_authority",
+      "museum",
+      "official_archaeological_site",
+      "official_geographical_source",
+      "peer_reviewed_publication",
+      "university_project"
+    ],
+    "blocking_issues": [
+      "source_gap"
+    ],
+    "ready_for_research": true,
+    "ready_for_content": false,
+    "notes_hu": "Automatikus előkészítő batch; új tartalmi szöveg nem készült."
+  },
+  {
+    "batch_position": 6,
+    "place_id": "edom",
+    "name_hu": "Edóm",
+    "name_en": "Edom",
+    "place_type": "region",
+    "modern_country": null,
+    "identification_status": "certain",
+    "profile_group_id": null,
+    "current_enrichment_status": "basic",
+    "passage_count": 111,
+    "biblical_book_count": 21,
+    "route_stop_count": 0,
+    "route_count": 0,
+    "related_route_ids": [],
+    "existing_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "source_count": 1,
+    "source_gap_count": 2,
+    "research_priority": 0,
+    "total_score": 730,
+    "selection_reason_hu": "magas prioritási pontszám (730); 111 passage-kapcsolat; forráskutatási hiány dokumentálva.",
+    "required_sections": [
+      "biblical_significance",
+      "key_events",
+      "identification_notes",
+      "modern_context",
+      "historical_context",
+      "archaeology"
+    ],
+    "optional_sections": [],
+    "required_source_types": [
+      "academic_gazetteer",
+      "biblical_text_dataset",
+      "excavation_project",
+      "heritage_authority",
+      "museum",
+      "official_archaeological_site",
+      "official_geographical_source",
+      "peer_reviewed_publication",
+      "university_project"
+    ],
+    "blocking_issues": [
+      "source_gap"
+    ],
+    "ready_for_research": true,
+    "ready_for_content": false,
+    "notes_hu": "Automatikus előkészítő batch; új tartalmi szöveg nem készült."
+  },
+  {
+    "batch_position": 7,
+    "place_id": "gilead_1",
+    "name_hu": "Gileád",
+    "name_en": "Gilead 1",
+    "place_type": "region",
+    "modern_country": null,
+    "identification_status": "certain",
+    "profile_group_id": null,
+    "current_enrichment_status": "basic",
+    "passage_count": 86,
+    "biblical_book_count": 21,
+    "route_stop_count": 1,
+    "route_count": 1,
+    "related_route_ids": [
+      "jacob_journeys"
+    ],
+    "existing_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "source_count": 1,
+    "source_gap_count": 2,
+    "research_priority": 0,
+    "total_score": 652,
+    "selection_reason_hu": "magas prioritási pontszám (652); 86 passage-kapcsolat; 1 route-kapcsolat; forráskutatási hiány dokumentálva.",
+    "required_sections": [
+      "biblical_significance",
+      "key_events",
+      "identification_notes",
+      "modern_context",
+      "ancient_geography",
+      "historical_context",
+      "archaeology"
+    ],
+    "optional_sections": [
+      "homiletical_context"
+    ],
+    "required_source_types": [
+      "academic_gazetteer",
+      "biblical_text_dataset",
+      "excavation_project",
+      "heritage_authority",
+      "museum",
+      "official_archaeological_site",
+      "official_geographical_source",
+      "peer_reviewed_publication",
+      "university_project"
+    ],
+    "blocking_issues": [
+      "source_gap"
+    ],
+    "ready_for_research": true,
+    "ready_for_content": false,
+    "notes_hu": "Automatikus előkészítő batch; új tartalmi szöveg nem készült."
+  },
+  {
+    "batch_position": 8,
+    "place_id": "canaan",
+    "name_hu": "Kánaán",
+    "name_en": "Canaan",
+    "place_type": "region",
+    "modern_country": null,
+    "identification_status": "certain",
+    "profile_group_id": null,
+    "current_enrichment_status": "basic",
+    "passage_count": 101,
+    "biblical_book_count": 16,
+    "route_stop_count": 2,
+    "route_count": 1,
+    "related_route_ids": [
+      "joseph_geographical_arc"
+    ],
+    "existing_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "source_count": 1,
+    "source_gap_count": 2,
+    "research_priority": 0,
+    "total_score": 662,
+    "selection_reason_hu": "magas prioritási pontszám (662); 101 passage-kapcsolat; 1 route-kapcsolat; forráskutatási hiány dokumentálva.",
+    "required_sections": [
+      "biblical_significance",
+      "key_events",
+      "identification_notes",
+      "modern_context",
+      "ancient_geography",
+      "historical_context",
+      "archaeology"
+    ],
+    "optional_sections": [
+      "homiletical_context"
+    ],
+    "required_source_types": [
+      "academic_gazetteer",
+      "biblical_text_dataset",
+      "excavation_project",
+      "heritage_authority",
+      "museum",
+      "official_archaeological_site",
+      "official_geographical_source",
+      "peer_reviewed_publication",
+      "university_project"
+    ],
+    "blocking_issues": [
+      "source_gap"
+    ],
+    "ready_for_research": true,
+    "ready_for_content": false,
+    "notes_hu": "Automatikus előkészítő batch; új tartalmi szöveg nem készült."
+  },
+  {
+    "batch_position": 9,
+    "place_id": "ammon",
+    "name_hu": "Ammón",
+    "name_en": "Ammon",
+    "place_type": "region",
+    "modern_country": null,
+    "identification_status": "certain",
+    "profile_group_id": null,
+    "current_enrichment_status": "basic",
+    "passage_count": 106,
+    "biblical_book_count": 19,
+    "route_stop_count": 0,
+    "route_count": 0,
+    "related_route_ids": [],
+    "existing_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "source_count": 1,
+    "source_gap_count": 2,
+    "research_priority": 0,
+    "total_score": 686,
+    "selection_reason_hu": "magas prioritási pontszám (686); 106 passage-kapcsolat; forráskutatási hiány dokumentálva.",
+    "required_sections": [
+      "biblical_significance",
+      "key_events",
+      "identification_notes",
+      "modern_context",
+      "historical_context",
+      "archaeology"
+    ],
+    "optional_sections": [],
+    "required_source_types": [
+      "academic_gazetteer",
+      "biblical_text_dataset",
+      "excavation_project",
+      "heritage_authority",
+      "museum",
+      "official_archaeological_site",
+      "official_geographical_source",
+      "peer_reviewed_publication",
+      "university_project"
+    ],
+    "blocking_issues": [
+      "source_gap"
+    ],
+    "ready_for_research": true,
+    "ready_for_content": false,
+    "notes_hu": "Automatikus előkészítő batch; új tartalmi szöveg nem készült."
+  },
+  {
+    "batch_position": 10,
+    "place_id": "tyre",
+    "name_hu": "Tírusz",
+    "name_en": "Tyre",
+    "place_type": "settlement",
+    "modern_country": null,
+    "identification_status": "certain",
+    "profile_group_id": null,
+    "current_enrichment_status": "basic",
+    "passage_count": 64,
+    "biblical_book_count": 19,
+    "route_stop_count": 1,
+    "route_count": 1,
+    "related_route_ids": [
+      "paul_third_missionary_journey"
+    ],
+    "existing_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "source_count": 1,
+    "source_gap_count": 2,
+    "research_priority": 0,
+    "total_score": 540,
+    "selection_reason_hu": "magas prioritási pontszám (540); 64 passage-kapcsolat; 1 route-kapcsolat; forráskutatási hiány dokumentálva.",
+    "required_sections": [
+      "biblical_significance",
+      "key_events",
+      "identification_notes",
+      "modern_context",
+      "ancient_geography",
+      "historical_context",
+      "archaeology"
+    ],
+    "optional_sections": [
+      "homiletical_context"
+    ],
+    "required_source_types": [
+      "academic_gazetteer",
+      "biblical_text_dataset",
+      "excavation_project",
+      "heritage_authority",
+      "museum",
+      "official_archaeological_site",
+      "official_geographical_source",
+      "peer_reviewed_publication",
+      "university_project"
+    ],
+    "blocking_issues": [
+      "source_gap"
+    ],
+    "ready_for_research": true,
+    "ready_for_content": false,
+    "notes_hu": "Automatikus előkészítő batch; új tartalmi szöveg nem készült."
+  },
+  {
+    "batch_position": 11,
+    "place_id": "samaria_1",
+    "name_hu": "Samária",
+    "name_en": "Samaria 1",
+    "place_type": "settlement",
+    "modern_country": null,
+    "identification_status": "certain",
+    "profile_group_id": null,
+    "current_enrichment_status": "basic",
+    "passage_count": 113,
+    "biblical_book_count": 12,
+    "route_stop_count": 0,
+    "route_count": 0,
+    "related_route_ids": [],
+    "existing_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "source_count": 1,
+    "source_gap_count": 2,
+    "research_priority": 0,
+    "total_score": 630,
+    "selection_reason_hu": "magas prioritási pontszám (630); 113 passage-kapcsolat; forráskutatási hiány dokumentálva.",
+    "required_sections": [
+      "biblical_significance",
+      "key_events",
+      "identification_notes",
+      "modern_context",
+      "historical_context",
+      "archaeology"
+    ],
+    "optional_sections": [],
+    "required_source_types": [
+      "academic_gazetteer",
+      "biblical_text_dataset",
+      "excavation_project",
+      "heritage_authority",
+      "museum",
+      "official_archaeological_site",
+      "official_geographical_source",
+      "peer_reviewed_publication",
+      "university_project"
+    ],
+    "blocking_issues": [
+      "source_gap"
+    ],
+    "ready_for_research": true,
+    "ready_for_content": false,
+    "notes_hu": "Automatikus előkészítő batch; új tartalmi szöveg nem készült."
+  },
+  {
+    "batch_position": 12,
+    "place_id": "negeb",
+    "name_hu": "Negev",
+    "name_en": "Negeb",
+    "place_type": "region",
+    "modern_country": null,
+    "identification_status": "certain",
+    "profile_group_id": null,
+    "current_enrichment_status": "basic",
+    "passage_count": 43,
+    "biblical_book_count": 13,
+    "route_stop_count": 3,
+    "route_count": 2,
+    "related_route_ids": [
+      "abraham_journey",
+      "joshua_southern_campaign"
+    ],
+    "existing_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "source_count": 1,
+    "source_gap_count": 2,
+    "research_priority": 0,
+    "total_score": 416,
+    "selection_reason_hu": "magas prioritási pontszám (416); 43 passage-kapcsolat; 2 route-kapcsolat; forráskutatási hiány dokumentálva.",
+    "required_sections": [
+      "biblical_significance",
+      "key_events",
+      "identification_notes",
+      "modern_context",
+      "ancient_geography",
+      "historical_context",
+      "archaeology"
+    ],
+    "optional_sections": [
+      "homiletical_context"
+    ],
+    "required_source_types": [
+      "academic_gazetteer",
+      "biblical_text_dataset",
+      "excavation_project",
+      "heritage_authority",
+      "museum",
+      "official_archaeological_site",
+      "official_geographical_source",
+      "peer_reviewed_publication",
+      "university_project"
+    ],
+    "blocking_issues": [
+      "source_gap"
+    ],
+    "ready_for_research": true,
+    "ready_for_content": false,
+    "notes_hu": "Automatikus előkészítő batch; új tartalmi szöveg nem készült."
+  },
+  {
+    "batch_position": 13,
+    "place_id": "chaldea",
+    "name_hu": "Káldea",
+    "name_en": "Chaldea",
+    "place_type": "region",
+    "modern_country": null,
+    "identification_status": "certain",
+    "profile_group_id": null,
+    "current_enrichment_status": "basic",
+    "passage_count": 86,
+    "biblical_book_count": 11,
+    "route_stop_count": 0,
+    "route_count": 0,
+    "related_route_ids": [],
+    "existing_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "source_count": 1,
+    "source_gap_count": 2,
+    "research_priority": 0,
+    "total_score": 510,
+    "selection_reason_hu": "magas prioritási pontszám (510); 86 passage-kapcsolat; forráskutatási hiány dokumentálva.",
+    "required_sections": [
+      "biblical_significance",
+      "key_events",
+      "identification_notes",
+      "modern_context",
+      "historical_context",
+      "archaeology"
+    ],
+    "optional_sections": [],
+    "required_source_types": [
+      "academic_gazetteer",
+      "biblical_text_dataset",
+      "excavation_project",
+      "heritage_authority",
+      "museum",
+      "official_archaeological_site",
+      "official_geographical_source",
+      "peer_reviewed_publication",
+      "university_project"
+    ],
+    "blocking_issues": [
+      "source_gap"
+    ],
+    "ready_for_research": true,
+    "ready_for_content": false,
+    "notes_hu": "Automatikus előkészítő batch; új tartalmi szöveg nem készült."
+  },
+  {
+    "batch_position": 14,
+    "place_id": "lebanon",
+    "name_hu": "Libanon",
+    "name_en": "Lebanon",
+    "place_type": "region",
+    "modern_country": null,
+    "identification_status": "certain",
+    "profile_group_id": null,
+    "current_enrichment_status": "basic",
+    "passage_count": 57,
+    "biblical_book_count": 16,
+    "route_stop_count": 0,
+    "route_count": 0,
+    "related_route_ids": [],
+    "existing_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "source_count": 1,
+    "source_gap_count": 2,
+    "research_priority": 0,
+    "total_score": 454,
+    "selection_reason_hu": "magas prioritási pontszám (454); 57 passage-kapcsolat; forráskutatási hiány dokumentálva.",
+    "required_sections": [
+      "biblical_significance",
+      "key_events",
+      "identification_notes",
+      "modern_context",
+      "historical_context",
+      "archaeology"
+    ],
+    "optional_sections": [],
+    "required_source_types": [
+      "academic_gazetteer",
+      "biblical_text_dataset",
+      "excavation_project",
+      "heritage_authority",
+      "museum",
+      "official_archaeological_site",
+      "official_geographical_source",
+      "peer_reviewed_publication",
+      "university_project"
+    ],
+    "blocking_issues": [
+      "source_gap"
+    ],
+    "ready_for_research": true,
+    "ready_for_content": false,
+    "notes_hu": "Automatikus előkészítő batch; új tartalmi szöveg nem készült."
+  },
+  {
+    "batch_position": 15,
+    "place_id": "gilgal_1",
+    "name_hu": "Gilgál",
+    "name_en": "Gilgal 1",
+    "place_type": "settlement",
+    "modern_country": null,
+    "identification_status": "probable",
+    "profile_group_id": null,
+    "current_enrichment_status": "basic",
+    "passage_count": 33,
+    "biblical_book_count": 7,
+    "route_stop_count": 5,
+    "route_count": 3,
+    "related_route_ids": [
+      "joshua_jordan_crossing_central_campaign",
+      "joshua_northern_campaign",
+      "joshua_southern_campaign"
+    ],
+    "existing_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "source_count": 1,
+    "source_gap_count": 2,
+    "research_priority": 0,
+    "total_score": 326,
+    "selection_reason_hu": "magas prioritási pontszám (326); 33 passage-kapcsolat; 3 route-kapcsolat; forráskutatási hiány dokumentálva.",
+    "required_sections": [
+      "biblical_significance",
+      "key_events",
+      "identification_notes",
+      "modern_context",
+      "ancient_geography",
+      "historical_context",
+      "archaeology"
+    ],
+    "optional_sections": [
+      "homiletical_context"
+    ],
+    "required_source_types": [
+      "academic_gazetteer",
+      "biblical_text_dataset",
+      "excavation_project",
+      "heritage_authority",
+      "museum",
+      "official_archaeological_site",
+      "official_geographical_source",
+      "peer_reviewed_publication",
+      "university_project"
+    ],
+    "blocking_issues": [
+      "source_gap"
+    ],
+    "ready_for_research": true,
+    "ready_for_content": false,
+    "notes_hu": "Automatikus előkészítő batch; új tartalmi szöveg nem készült."
+  },
+  {
+    "batch_position": 16,
+    "place_id": "sodom",
+    "name_hu": "Sodoma",
+    "name_en": "Sodom",
+    "place_type": "settlement",
+    "modern_country": null,
+    "identification_status": "probable",
+    "profile_group_id": null,
+    "current_enrichment_status": "basic",
+    "passage_count": 50,
+    "biblical_book_count": 15,
+    "route_stop_count": 0,
+    "route_count": 0,
+    "related_route_ids": [],
+    "existing_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "source_count": 1,
+    "source_gap_count": 2,
+    "research_priority": 0,
+    "total_score": 404,
+    "selection_reason_hu": "magas prioritási pontszám (404); 50 passage-kapcsolat; forráskutatási hiány dokumentálva.",
+    "required_sections": [
+      "biblical_significance",
+      "key_events",
+      "identification_notes",
+      "modern_context",
+      "historical_context",
+      "archaeology"
+    ],
+    "optional_sections": [],
+    "required_source_types": [
+      "academic_gazetteer",
+      "biblical_text_dataset",
+      "excavation_project",
+      "heritage_authority",
+      "museum",
+      "official_archaeological_site",
+      "official_geographical_source",
+      "peer_reviewed_publication",
+      "university_project"
+    ],
+    "blocking_issues": [
+      "source_gap"
+    ],
+    "ready_for_research": true,
+    "ready_for_content": false,
+    "notes_hu": "Automatikus előkészítő batch; új tartalmi szöveg nem készült."
+  },
+  {
+    "batch_position": 17,
+    "place_id": "great_sea",
+    "name_hu": "Nagy-tenger",
+    "name_en": "Great Sea",
+    "place_type": "body of water",
+    "modern_country": null,
+    "identification_status": "certain",
+    "profile_group_id": null,
+    "current_enrichment_status": "basic",
+    "passage_count": 36,
+    "biblical_book_count": 14,
+    "route_stop_count": 0,
+    "route_count": 0,
+    "related_route_ids": [],
+    "existing_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "source_count": 1,
+    "source_gap_count": 2,
+    "research_priority": 0,
+    "total_score": 346,
+    "selection_reason_hu": "magas prioritási pontszám (346); 36 passage-kapcsolat; forráskutatási hiány dokumentálva.",
+    "required_sections": [
+      "biblical_significance",
+      "key_events",
+      "identification_notes",
+      "modern_context",
+      "historical_context",
+      "archaeology"
+    ],
+    "optional_sections": [],
+    "required_source_types": [
+      "academic_gazetteer",
+      "biblical_text_dataset",
+      "excavation_project",
+      "heritage_authority",
+      "museum",
+      "official_archaeological_site",
+      "official_geographical_source",
+      "peer_reviewed_publication",
+      "university_project"
+    ],
+    "blocking_issues": [
+      "source_gap"
+    ],
+    "ready_for_research": true,
+    "ready_for_content": false,
+    "notes_hu": "Automatikus előkészítő batch; új tartalmi szöveg nem készült."
+  },
+  {
+    "batch_position": 18,
+    "place_id": "judea_1",
+    "name_hu": "Júdea",
+    "name_en": "Judea 1",
+    "place_type": "region",
+    "modern_country": null,
+    "identification_status": "certain",
+    "profile_group_id": null,
+    "current_enrichment_status": "basic",
+    "passage_count": 54,
+    "biblical_book_count": 10,
+    "route_stop_count": 0,
+    "route_count": 0,
+    "related_route_ids": [],
+    "existing_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "source_count": 1,
+    "source_gap_count": 2,
+    "research_priority": 0,
+    "total_score": 370,
+    "selection_reason_hu": "magas prioritási pontszám (370); 54 passage-kapcsolat; forráskutatási hiány dokumentálva.",
+    "required_sections": [
+      "biblical_significance",
+      "key_events",
+      "identification_notes",
+      "modern_context",
+      "historical_context",
+      "archaeology"
+    ],
+    "optional_sections": [],
+    "required_source_types": [
+      "academic_gazetteer",
+      "biblical_text_dataset",
+      "excavation_project",
+      "heritage_authority",
+      "museum",
+      "official_archaeological_site",
+      "official_geographical_source",
+      "peer_reviewed_publication",
+      "university_project"
+    ],
+    "blocking_issues": [
+      "source_gap"
+    ],
+    "ready_for_research": true,
+    "ready_for_content": false,
+    "notes_hu": "Automatikus előkészítő batch; új tartalmi szöveg nem készült."
+  },
+  {
+    "batch_position": 19,
+    "place_id": "nile",
+    "name_hu": "Nílus",
+    "name_en": "Nile",
+    "place_type": "river",
+    "modern_country": null,
+    "identification_status": "certain",
+    "profile_group_id": null,
+    "current_enrichment_status": "basic",
+    "passage_count": 45,
+    "biblical_book_count": 9,
+    "route_stop_count": 0,
+    "route_count": 0,
+    "related_route_ids": [],
+    "existing_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "source_count": 1,
+    "source_gap_count": 2,
+    "research_priority": 0,
+    "total_score": 322,
+    "selection_reason_hu": "magas prioritási pontszám (322); 45 passage-kapcsolat; forráskutatási hiány dokumentálva.",
+    "required_sections": [
+      "biblical_significance",
+      "key_events",
+      "identification_notes",
+      "modern_context",
+      "historical_context",
+      "archaeology"
+    ],
+    "optional_sections": [],
+    "required_source_types": [
+      "academic_gazetteer",
+      "biblical_text_dataset",
+      "excavation_project",
+      "heritage_authority",
+      "museum",
+      "official_archaeological_site",
+      "official_geographical_source",
+      "peer_reviewed_publication",
+      "university_project"
+    ],
+    "blocking_issues": [
+      "source_gap"
+    ],
+    "ready_for_research": true,
+    "ready_for_content": false,
+    "notes_hu": "Automatikus előkészítő batch; új tartalmi szöveg nem készült."
+  },
+  {
+    "batch_position": 20,
+    "place_id": "gaza",
+    "name_hu": "Gáza",
+    "name_en": "Gaza",
+    "place_type": "settlement",
+    "modern_country": null,
+    "identification_status": "certain",
+    "profile_group_id": null,
+    "current_enrichment_status": "basic",
+    "passage_count": 22,
+    "biblical_book_count": 12,
+    "route_stop_count": 0,
+    "route_count": 0,
+    "related_route_ids": [],
+    "existing_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "source_count": 1,
+    "source_gap_count": 2,
+    "research_priority": 0,
+    "total_score": 266,
+    "selection_reason_hu": "magas prioritási pontszám (266); 22 passage-kapcsolat; forráskutatási hiány dokumentálva.",
+    "required_sections": [
+      "biblical_significance",
+      "key_events",
+      "identification_notes",
+      "modern_context",
+      "historical_context",
+      "archaeology"
+    ],
+    "optional_sections": [],
+    "required_source_types": [
+      "academic_gazetteer",
+      "biblical_text_dataset",
+      "excavation_project",
+      "heritage_authority",
+      "museum",
+      "official_archaeological_site",
+      "official_geographical_source",
+      "peer_reviewed_publication",
+      "university_project"
+    ],
+    "blocking_issues": [
+      "source_gap"
+    ],
+    "ready_for_research": true,
+    "ready_for_content": false,
+    "notes_hu": "Automatikus előkészítő batch; új tartalmi szöveg nem készült."
+  },
+  {
+    "batch_position": 21,
+    "place_id": "shiloh",
+    "name_hu": "Siló",
+    "name_en": "Shiloh",
+    "place_type": "settlement",
+    "modern_country": null,
+    "identification_status": "certain",
+    "profile_group_id": null,
+    "current_enrichment_status": "basic",
+    "passage_count": 37,
+    "biblical_book_count": 8,
+    "route_stop_count": 0,
+    "route_count": 0,
+    "related_route_ids": [],
+    "existing_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "source_count": 1,
+    "source_gap_count": 2,
+    "research_priority": 0,
+    "total_score": 278,
+    "selection_reason_hu": "magas prioritási pontszám (278); 37 passage-kapcsolat; forráskutatási hiány dokumentálva.",
+    "required_sections": [
+      "biblical_significance",
+      "key_events",
+      "identification_notes",
+      "modern_context",
+      "historical_context",
+      "archaeology"
+    ],
+    "optional_sections": [],
+    "required_source_types": [
+      "academic_gazetteer",
+      "biblical_text_dataset",
+      "excavation_project",
+      "heritage_authority",
+      "museum",
+      "official_archaeological_site",
+      "official_geographical_source",
+      "peer_reviewed_publication",
+      "university_project"
+    ],
+    "blocking_issues": [
+      "source_gap"
+    ],
+    "ready_for_research": true,
+    "ready_for_content": false,
+    "notes_hu": "Automatikus előkészítő batch; új tartalmi szöveg nem készült."
+  },
+  {
+    "batch_position": 22,
+    "place_id": "macedonia",
+    "name_hu": "Macedónia",
+    "name_en": "Macedonia",
+    "place_type": "region",
+    "modern_country": null,
+    "identification_status": "certain",
+    "profile_group_id": null,
+    "current_enrichment_status": "basic",
+    "passage_count": 24,
+    "biblical_book_count": 7,
+    "route_stop_count": 1,
+    "route_count": 1,
+    "related_route_ids": [
+      "paul_third_missionary_journey"
+    ],
+    "existing_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "source_count": 1,
+    "source_gap_count": 2,
+    "research_priority": 0,
+    "total_score": 236,
+    "selection_reason_hu": "magas prioritási pontszám (236); 24 passage-kapcsolat; 1 route-kapcsolat; forráskutatási hiány dokumentálva.",
+    "required_sections": [
+      "biblical_significance",
+      "key_events",
+      "identification_notes",
+      "modern_context",
+      "ancient_geography",
+      "historical_context",
+      "archaeology"
+    ],
+    "optional_sections": [
+      "homiletical_context"
+    ],
+    "required_source_types": [
+      "academic_gazetteer",
+      "biblical_text_dataset",
+      "excavation_project",
+      "heritage_authority",
+      "museum",
+      "official_archaeological_site",
+      "official_geographical_source",
+      "peer_reviewed_publication",
+      "university_project"
+    ],
+    "blocking_issues": [
+      "source_gap"
+    ],
+    "ready_for_research": true,
+    "ready_for_content": false,
+    "notes_hu": "Automatikus előkészítő batch; új tartalmi szöveg nem készült."
+  },
+  {
+    "batch_position": 23,
+    "place_id": "lachish",
+    "name_hu": "Lákis",
+    "name_en": "Lachish",
+    "place_type": "settlement",
+    "modern_country": null,
+    "identification_status": "certain",
+    "profile_group_id": null,
+    "current_enrichment_status": "basic",
+    "passage_count": 22,
+    "biblical_book_count": 7,
+    "route_stop_count": 1,
+    "route_count": 1,
+    "related_route_ids": [
+      "joshua_southern_campaign"
+    ],
+    "existing_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "source_count": 1,
+    "source_gap_count": 2,
+    "research_priority": 0,
+    "total_score": 228,
+    "selection_reason_hu": "magas prioritási pontszám (228); 22 passage-kapcsolat; 1 route-kapcsolat; forráskutatási hiány dokumentálva.",
+    "required_sections": [
+      "biblical_significance",
+      "key_events",
+      "identification_notes",
+      "modern_context",
+      "ancient_geography",
+      "historical_context",
+      "archaeology"
+    ],
+    "optional_sections": [
+      "homiletical_context"
+    ],
+    "required_source_types": [
+      "academic_gazetteer",
+      "biblical_text_dataset",
+      "excavation_project",
+      "heritage_authority",
+      "museum",
+      "official_archaeological_site",
+      "official_geographical_source",
+      "peer_reviewed_publication",
+      "university_project"
+    ],
+    "blocking_issues": [
+      "source_gap"
+    ],
+    "ready_for_research": true,
+    "ready_for_content": false,
+    "notes_hu": "Automatikus előkészítő batch; új tartalmi szöveg nem készült."
+  },
+  {
+    "batch_position": 24,
+    "place_id": "salt_sea",
+    "name_hu": "Sós-tenger",
+    "name_en": "Salt Sea",
+    "place_type": "body of water",
+    "modern_country": null,
+    "identification_status": "certain",
+    "profile_group_id": null,
+    "current_enrichment_status": "basic",
+    "passage_count": 21,
+    "biblical_book_count": 11,
+    "route_stop_count": 0,
+    "route_count": 0,
+    "related_route_ids": [],
+    "existing_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "source_count": 1,
+    "source_gap_count": 2,
+    "research_priority": 0,
+    "total_score": 250,
+    "selection_reason_hu": "magas prioritási pontszám (250); 21 passage-kapcsolat; forráskutatási hiány dokumentálva.",
+    "required_sections": [
+      "biblical_significance",
+      "key_events",
+      "identification_notes",
+      "modern_context",
+      "historical_context",
+      "archaeology"
+    ],
+    "optional_sections": [],
+    "required_source_types": [
+      "academic_gazetteer",
+      "biblical_text_dataset",
+      "excavation_project",
+      "heritage_authority",
+      "museum",
+      "official_archaeological_site",
+      "official_geographical_source",
+      "peer_reviewed_publication",
+      "university_project"
+    ],
+    "blocking_issues": [
+      "source_gap"
+    ],
+    "ready_for_research": true,
+    "ready_for_content": false,
+    "notes_hu": "Automatikus előkészítő batch; új tartalmi szöveg nem készült."
+  },
+  {
+    "batch_position": 25,
+    "place_id": "ai_1",
+    "name_hu": "Aj",
+    "name_en": "Ai 1",
+    "place_type": "settlement",
+    "modern_country": null,
+    "identification_status": "probable",
+    "profile_group_id": null,
+    "current_enrichment_status": "basic",
+    "passage_count": 34,
+    "biblical_book_count": 4,
+    "route_stop_count": 2,
+    "route_count": 1,
+    "related_route_ids": [
+      "joshua_jordan_crossing_central_campaign"
+    ],
+    "existing_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "source_count": 1,
+    "source_gap_count": 2,
+    "research_priority": 0,
+    "total_score": 240,
+    "selection_reason_hu": "magas prioritási pontszám (240); 34 passage-kapcsolat; 1 route-kapcsolat; forráskutatási hiány dokumentálva.",
+    "required_sections": [
+      "biblical_significance",
+      "key_events",
+      "identification_notes",
+      "modern_context",
+      "ancient_geography",
+      "historical_context",
+      "archaeology"
+    ],
+    "optional_sections": [
+      "homiletical_context"
+    ],
+    "required_source_types": [
+      "academic_gazetteer",
+      "biblical_text_dataset",
+      "excavation_project",
+      "heritage_authority",
+      "museum",
+      "official_archaeological_site",
+      "official_geographical_source",
+      "peer_reviewed_publication",
+      "university_project"
+    ],
+    "blocking_issues": [
+      "source_gap"
+    ],
+    "ready_for_research": true,
+    "ready_for_content": false,
+    "notes_hu": "Automatikus előkészítő batch; új tartalmi szöveg nem készült."
+  },
+  {
+    "batch_position": 26,
+    "place_id": "mount_zion",
+    "name_hu": "Sion hegye",
+    "name_en": "Mount Zion",
+    "place_type": "hill",
+    "modern_country": null,
+    "identification_status": "certain",
+    "profile_group_id": null,
+    "current_enrichment_status": "basic",
+    "passage_count": 25,
+    "biblical_book_count": 10,
+    "route_stop_count": 0,
+    "route_count": 0,
+    "related_route_ids": [],
+    "existing_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "source_count": 1,
+    "source_gap_count": 2,
+    "research_priority": 0,
+    "total_score": 254,
+    "selection_reason_hu": "magas prioritási pontszám (254); 25 passage-kapcsolat; forráskutatási hiány dokumentálva.",
+    "required_sections": [
+      "biblical_significance",
+      "key_events",
+      "identification_notes",
+      "modern_context",
+      "historical_context",
+      "archaeology"
+    ],
+    "optional_sections": [],
+    "required_source_types": [
+      "academic_gazetteer",
+      "biblical_text_dataset",
+      "excavation_project",
+      "heritage_authority",
+      "museum",
+      "official_archaeological_site",
+      "official_geographical_source",
+      "peer_reviewed_publication",
+      "university_project"
+    ],
+    "blocking_issues": [
+      "source_gap"
+    ],
+    "ready_for_research": true,
+    "ready_for_content": false,
+    "notes_hu": "Automatikus előkészítő batch; új tartalmi szöveg nem készült."
+  },
+  {
+    "batch_position": 27,
+    "place_id": "mizpah_3",
+    "name_hu": "Micpa (Benjámin)",
+    "name_en": "Mizpah 3",
+    "place_type": "settlement",
+    "modern_country": null,
+    "identification_status": "certain",
+    "profile_group_id": null,
+    "current_enrichment_status": "basic",
+    "passage_count": 33,
+    "biblical_book_count": 8,
+    "route_stop_count": 0,
+    "route_count": 0,
+    "related_route_ids": [],
+    "existing_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "source_count": 1,
+    "source_gap_count": 2,
+    "research_priority": 0,
+    "total_score": 262,
+    "selection_reason_hu": "magas prioritási pontszám (262); 33 passage-kapcsolat; forráskutatási hiány dokumentálva.",
+    "required_sections": [
+      "biblical_significance",
+      "key_events",
+      "identification_notes",
+      "modern_context",
+      "historical_context",
+      "archaeology"
+    ],
+    "optional_sections": [],
+    "required_source_types": [
+      "academic_gazetteer",
+      "biblical_text_dataset",
+      "excavation_project",
+      "heritage_authority",
+      "museum",
+      "official_archaeological_site",
+      "official_geographical_source",
+      "peer_reviewed_publication",
+      "university_project"
+    ],
+    "blocking_issues": [
+      "source_gap"
+    ],
+    "ready_for_research": true,
+    "ready_for_content": false,
+    "notes_hu": "Automatikus előkészítő batch; új tartalmi szöveg nem készült."
+  },
+  {
+    "batch_position": 28,
+    "place_id": "gomorrah",
+    "name_hu": "Gomora",
+    "name_en": "Gomorrah",
+    "place_type": "settlement",
+    "modern_country": null,
+    "identification_status": "probable",
+    "profile_group_id": null,
+    "current_enrichment_status": "basic",
+    "passage_count": 24,
+    "biblical_book_count": 11,
+    "route_stop_count": 0,
+    "route_count": 0,
+    "related_route_ids": [],
+    "existing_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "source_count": 1,
+    "source_gap_count": 2,
+    "research_priority": 0,
+    "total_score": 252,
+    "selection_reason_hu": "magas prioritási pontszám (252); 24 passage-kapcsolat; forráskutatási hiány dokumentálva.",
+    "required_sections": [
+      "biblical_significance",
+      "key_events",
+      "identification_notes",
+      "modern_context",
+      "historical_context",
+      "archaeology"
+    ],
+    "optional_sections": [],
+    "required_source_types": [
+      "academic_gazetteer",
+      "biblical_text_dataset",
+      "excavation_project",
+      "heritage_authority",
+      "museum",
+      "official_archaeological_site",
+      "official_geographical_source",
+      "peer_reviewed_publication",
+      "university_project"
+    ],
+    "blocking_issues": [
+      "source_gap"
+    ],
+    "ready_for_research": true,
+    "ready_for_content": false,
+    "notes_hu": "Automatikus előkészítő batch; új tartalmi szöveg nem készült."
+  },
+  {
+    "batch_position": 29,
+    "place_id": "ashdod",
+    "name_hu": "Asdód",
+    "name_en": "Ashdod",
+    "place_type": "settlement",
+    "modern_country": null,
+    "identification_status": "certain",
+    "profile_group_id": null,
+    "current_enrichment_status": "basic",
+    "passage_count": 21,
+    "biblical_book_count": 10,
+    "route_stop_count": 0,
+    "route_count": 0,
+    "related_route_ids": [],
+    "existing_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "source_count": 1,
+    "source_gap_count": 2,
+    "research_priority": 0,
+    "total_score": 238,
+    "selection_reason_hu": "magas prioritási pontszám (238); 21 passage-kapcsolat; forráskutatási hiány dokumentálva.",
+    "required_sections": [
+      "biblical_significance",
+      "key_events",
+      "identification_notes",
+      "modern_context",
+      "historical_context",
+      "archaeology"
+    ],
+    "optional_sections": [],
+    "required_source_types": [
+      "academic_gazetteer",
+      "biblical_text_dataset",
+      "excavation_project",
+      "heritage_authority",
+      "museum",
+      "official_archaeological_site",
+      "official_geographical_source",
+      "peer_reviewed_publication",
+      "university_project"
+    ],
+    "blocking_issues": [
+      "source_gap"
+    ],
+    "ready_for_research": true,
+    "ready_for_content": false,
+    "notes_hu": "Automatikus előkészítő batch; új tartalmi szöveg nem készült."
+  },
+  {
+    "batch_position": 30,
+    "place_id": "red_sea_1",
+    "name_hu": "Vörös-tenger",
+    "name_en": "Red Sea 1",
+    "place_type": "body of water, river",
+    "modern_country": null,
+    "identification_status": "possible",
+    "profile_group_id": null,
+    "current_enrichment_status": "basic",
+    "passage_count": 21,
+    "biblical_book_count": 9,
+    "route_stop_count": 1,
+    "route_count": 1,
+    "related_route_ids": [
+      "exodus_egypt_to_sinai"
+    ],
+    "existing_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "source_count": 1,
+    "source_gap_count": 2,
+    "research_priority": 0,
+    "total_score": 226,
+    "selection_reason_hu": "magas prioritási pontszám (226); 21 passage-kapcsolat; 1 route-kapcsolat; forráskutatási hiány dokumentálva.",
+    "required_sections": [
+      "biblical_significance",
+      "key_events",
+      "identification_notes",
+      "modern_context",
+      "ancient_geography",
+      "historical_context",
+      "archaeology"
+    ],
+    "optional_sections": [
+      "homiletical_context"
+    ],
+    "required_source_types": [
+      "academic_gazetteer",
+      "biblical_text_dataset",
+      "excavation_project",
+      "heritage_authority",
+      "museum",
+      "official_archaeological_site",
+      "official_geographical_source",
+      "peer_reviewed_publication",
+      "university_project"
+    ],
+    "blocking_issues": [
+      "source_gap"
+    ],
+    "ready_for_research": true,
+    "ready_for_content": false,
+    "notes_hu": "Automatikus előkészítő batch; új tartalmi szöveg nem készült."
+  },
+  {
+    "batch_position": 31,
+    "place_id": "cyprus",
+    "name_hu": "Ciprus",
+    "name_en": "Cyprus",
+    "place_type": "island",
+    "modern_country": null,
+    "identification_status": "certain",
+    "profile_group_id": null,
+    "current_enrichment_status": "basic",
+    "passage_count": 12,
+    "biblical_book_count": 4,
+    "route_stop_count": 2,
+    "route_count": 2,
+    "related_route_ids": [
+      "paul_journey_to_rome",
+      "paul_third_missionary_journey"
+    ],
+    "existing_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "source_count": 1,
+    "source_gap_count": 2,
+    "research_priority": 0,
+    "total_score": 174,
+    "selection_reason_hu": "magas prioritási pontszám (174); 12 passage-kapcsolat; 2 route-kapcsolat; forráskutatási hiány dokumentálva.",
+    "required_sections": [
+      "biblical_significance",
+      "key_events",
+      "identification_notes",
+      "modern_context",
+      "ancient_geography",
+      "historical_context",
+      "archaeology"
+    ],
+    "optional_sections": [
+      "homiletical_context"
+    ],
+    "required_source_types": [
+      "academic_gazetteer",
+      "biblical_text_dataset",
+      "excavation_project",
+      "heritage_authority",
+      "museum",
+      "official_archaeological_site",
+      "official_geographical_source",
+      "peer_reviewed_publication",
+      "university_project"
+    ],
+    "blocking_issues": [
+      "source_gap"
+    ],
+    "ready_for_research": true,
+    "ready_for_content": false,
+    "notes_hu": "Automatikus előkészítő batch; új tartalmi szöveg nem készült."
+  },
+  {
+    "batch_position": 32,
+    "place_id": "east",
+    "name_hu": "Kelet vidéke",
+    "name_en": "East",
+    "place_type": "region",
+    "modern_country": null,
+    "identification_status": "certain",
+    "profile_group_id": null,
+    "current_enrichment_status": "basic",
+    "passage_count": 18,
+    "biblical_book_count": 10,
+    "route_stop_count": 0,
+    "route_count": 0,
+    "related_route_ids": [],
+    "existing_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "source_count": 1,
+    "source_gap_count": 2,
+    "research_priority": 0,
+    "total_score": 226,
+    "selection_reason_hu": "magas prioritási pontszám (226); 18 passage-kapcsolat; forráskutatási hiány dokumentálva.",
+    "required_sections": [
+      "biblical_significance",
+      "key_events",
+      "identification_notes",
+      "modern_context",
+      "historical_context",
+      "archaeology"
+    ],
+    "optional_sections": [],
+    "required_source_types": [
+      "academic_gazetteer",
+      "biblical_text_dataset",
+      "excavation_project",
+      "heritage_authority",
+      "museum",
+      "official_archaeological_site",
+      "official_geographical_source",
+      "peer_reviewed_publication",
+      "university_project"
+    ],
+    "blocking_issues": [
+      "source_gap"
+    ],
+    "ready_for_research": true,
+    "ready_for_content": false,
+    "notes_hu": "Automatikus előkészítő batch; új tartalmi szöveg nem készült."
+  },
+  {
+    "batch_position": 33,
+    "place_id": "galatia",
+    "name_hu": "Galácia",
+    "name_en": "Galatia",
+    "place_type": "region",
+    "modern_country": null,
+    "identification_status": "certain",
+    "profile_group_id": null,
+    "current_enrichment_status": "basic",
+    "passage_count": 6,
+    "biblical_book_count": 5,
+    "route_stop_count": 2,
+    "route_count": 2,
+    "related_route_ids": [
+      "paul_second_missionary_journey",
+      "paul_third_missionary_journey"
+    ],
+    "existing_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "source_count": 1,
+    "source_gap_count": 2,
+    "research_priority": 0,
+    "total_score": 162,
+    "selection_reason_hu": "magas prioritási pontszám (162); 6 passage-kapcsolat; 2 route-kapcsolat; forráskutatási hiány dokumentálva.",
+    "required_sections": [
+      "biblical_significance",
+      "key_events",
+      "identification_notes",
+      "modern_context",
+      "ancient_geography",
+      "historical_context",
+      "archaeology"
+    ],
+    "optional_sections": [
+      "homiletical_context"
+    ],
+    "required_source_types": [
+      "academic_gazetteer",
+      "biblical_text_dataset",
+      "excavation_project",
+      "heritage_authority",
+      "museum",
+      "official_archaeological_site",
+      "official_geographical_source",
+      "peer_reviewed_publication",
+      "university_project"
+    ],
+    "blocking_issues": [
+      "source_gap"
+    ],
+    "ready_for_research": true,
+    "ready_for_content": false,
+    "notes_hu": "Automatikus előkészítő batch; új tartalmi szöveg nem készült."
+  },
+  {
+    "batch_position": 34,
+    "place_id": "ramah_1",
+    "name_hu": "Ráma",
+    "name_en": "Ramah 1",
+    "place_type": "settlement",
+    "modern_country": null,
+    "identification_status": "certain",
+    "profile_group_id": null,
+    "current_enrichment_status": "basic",
+    "passage_count": 16,
+    "biblical_book_count": 10,
+    "route_stop_count": 0,
+    "route_count": 0,
+    "related_route_ids": [],
+    "existing_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "source_count": 1,
+    "source_gap_count": 2,
+    "research_priority": 0,
+    "total_score": 218,
+    "selection_reason_hu": "magas prioritási pontszám (218); 16 passage-kapcsolat; forráskutatási hiány dokumentálva.",
+    "required_sections": [
+      "biblical_significance",
+      "key_events",
+      "identification_notes",
+      "modern_context",
+      "historical_context",
+      "archaeology"
+    ],
+    "optional_sections": [],
+    "required_source_types": [
+      "academic_gazetteer",
+      "biblical_text_dataset",
+      "excavation_project",
+      "heritage_authority",
+      "museum",
+      "official_archaeological_site",
+      "official_geographical_source",
+      "peer_reviewed_publication",
+      "university_project"
+    ],
+    "blocking_issues": [
+      "source_gap"
+    ],
+    "ready_for_research": true,
+    "ready_for_content": false,
+    "notes_hu": "Automatikus előkészítő batch; új tartalmi szöveg nem készült."
+  },
+  {
+    "batch_position": 35,
+    "place_id": "jezreel_2",
+    "name_hu": "Jezréel",
+    "name_en": "Jezreel 2",
+    "place_type": "settlement",
+    "modern_country": null,
+    "identification_status": "certain",
+    "profile_group_id": null,
+    "current_enrichment_status": "basic",
+    "passage_count": 29,
+    "biblical_book_count": 7,
+    "route_stop_count": 0,
+    "route_count": 0,
+    "related_route_ids": [],
+    "existing_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "source_count": 1,
+    "source_gap_count": 2,
+    "research_priority": 0,
+    "total_score": 234,
+    "selection_reason_hu": "magas prioritási pontszám (234); 29 passage-kapcsolat; forráskutatási hiány dokumentálva.",
+    "required_sections": [
+      "biblical_significance",
+      "key_events",
+      "identification_notes",
+      "modern_context",
+      "historical_context",
+      "archaeology"
+    ],
+    "optional_sections": [],
+    "required_source_types": [
+      "academic_gazetteer",
+      "biblical_text_dataset",
+      "excavation_project",
+      "heritage_authority",
+      "museum",
+      "official_archaeological_site",
+      "official_geographical_source",
+      "peer_reviewed_publication",
+      "university_project"
+    ],
+    "blocking_issues": [
+      "source_gap"
+    ],
+    "ready_for_research": true,
+    "ready_for_content": false,
+    "notes_hu": "Automatikus előkészítő batch; új tartalmi szöveg nem készült."
+  },
+  {
+    "batch_position": 36,
+    "place_id": "mount_of_olives",
+    "name_hu": "Olajfák hegye",
+    "name_en": "Mount of Olives",
+    "place_type": "hill",
+    "modern_country": null,
+    "identification_status": "certain",
+    "profile_group_id": null,
+    "current_enrichment_status": "basic",
+    "passage_count": 18,
+    "biblical_book_count": 9,
+    "route_stop_count": 0,
+    "route_count": 0,
+    "related_route_ids": [],
+    "existing_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "source_count": 1,
+    "source_gap_count": 2,
+    "research_priority": 0,
+    "total_score": 214,
+    "selection_reason_hu": "magas prioritási pontszám (214); 18 passage-kapcsolat; forráskutatási hiány dokumentálva.",
+    "required_sections": [
+      "biblical_significance",
+      "key_events",
+      "identification_notes",
+      "modern_context",
+      "historical_context",
+      "archaeology"
+    ],
+    "optional_sections": [],
+    "required_source_types": [
+      "academic_gazetteer",
+      "biblical_text_dataset",
+      "excavation_project",
+      "heritage_authority",
+      "museum",
+      "official_archaeological_site",
+      "official_geographical_source",
+      "peer_reviewed_publication",
+      "university_project"
+    ],
+    "blocking_issues": [
+      "source_gap"
+    ],
+    "ready_for_research": true,
+    "ready_for_content": false,
+    "notes_hu": "Automatikus előkészítő batch; új tartalmi szöveg nem készült."
+  },
+  {
+    "batch_position": 37,
+    "place_id": "lystra",
+    "name_hu": "Lisztra",
+    "name_en": "Lystra",
+    "place_type": "settlement",
+    "modern_country": null,
+    "identification_status": "certain",
+    "profile_group_id": null,
+    "current_enrichment_status": "basic",
+    "passage_count": 6,
+    "biblical_book_count": 2,
+    "route_stop_count": 3,
+    "route_count": 2,
+    "related_route_ids": [
+      "paul_first_missionary_journey",
+      "paul_second_missionary_journey"
+    ],
+    "existing_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "source_count": 1,
+    "source_gap_count": 2,
+    "research_priority": 0,
+    "total_score": 136,
+    "selection_reason_hu": "magas prioritási pontszám (136); 6 passage-kapcsolat; 2 route-kapcsolat; forráskutatási hiány dokumentálva.",
+    "required_sections": [
+      "biblical_significance",
+      "key_events",
+      "identification_notes",
+      "modern_context",
+      "ancient_geography",
+      "historical_context",
+      "archaeology"
+    ],
+    "optional_sections": [
+      "homiletical_context"
+    ],
+    "required_source_types": [
+      "academic_gazetteer",
+      "biblical_text_dataset",
+      "excavation_project",
+      "heritage_authority",
+      "museum",
+      "official_archaeological_site",
+      "official_geographical_source",
+      "peer_reviewed_publication",
+      "university_project"
+    ],
+    "blocking_issues": [
+      "source_gap"
+    ],
+    "ready_for_research": true,
+    "ready_for_content": false,
+    "notes_hu": "Automatikus előkészítő batch; új tartalmi szöveg nem készült."
+  },
+  {
+    "batch_position": 38,
+    "place_id": "ekron",
+    "name_hu": "Ekrón",
+    "name_en": "Ekron",
+    "place_type": "settlement",
+    "modern_country": null,
+    "identification_status": "certain",
+    "profile_group_id": null,
+    "current_enrichment_status": "basic",
+    "passage_count": 20,
+    "biblical_book_count": 8,
+    "route_stop_count": 0,
+    "route_count": 0,
+    "related_route_ids": [],
+    "existing_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "source_count": 1,
+    "source_gap_count": 2,
+    "research_priority": 0,
+    "total_score": 210,
+    "selection_reason_hu": "magas prioritási pontszám (210); 20 passage-kapcsolat; forráskutatási hiány dokumentálva.",
+    "required_sections": [
+      "biblical_significance",
+      "key_events",
+      "identification_notes",
+      "modern_context",
+      "historical_context",
+      "archaeology"
+    ],
+    "optional_sections": [],
+    "required_source_types": [
+      "academic_gazetteer",
+      "biblical_text_dataset",
+      "excavation_project",
+      "heritage_authority",
+      "museum",
+      "official_archaeological_site",
+      "official_geographical_source",
+      "peer_reviewed_publication",
+      "university_project"
+    ],
+    "blocking_issues": [
+      "source_gap"
+    ],
+    "ready_for_research": true,
+    "ready_for_content": false,
+    "notes_hu": "Automatikus előkészítő batch; új tartalmi szöveg nem készült."
+  },
+  {
+    "batch_position": 39,
+    "place_id": "troas",
+    "name_hu": "Tróász",
+    "name_en": "Troas",
+    "place_type": "settlement",
+    "modern_country": null,
+    "identification_status": "certain",
+    "profile_group_id": null,
+    "current_enrichment_status": "basic",
+    "passage_count": 6,
+    "biblical_book_count": 3,
+    "route_stop_count": 2,
+    "route_count": 2,
+    "related_route_ids": [
+      "paul_second_missionary_journey",
+      "paul_third_missionary_journey"
+    ],
+    "existing_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "source_count": 1,
+    "source_gap_count": 2,
+    "research_priority": 0,
+    "total_score": 138,
+    "selection_reason_hu": "magas prioritási pontszám (138); 6 passage-kapcsolat; 2 route-kapcsolat; forráskutatási hiány dokumentálva.",
+    "required_sections": [
+      "biblical_significance",
+      "key_events",
+      "identification_notes",
+      "modern_context",
+      "ancient_geography",
+      "historical_context",
+      "archaeology"
+    ],
+    "optional_sections": [
+      "homiletical_context"
+    ],
+    "required_source_types": [
+      "academic_gazetteer",
+      "biblical_text_dataset",
+      "excavation_project",
+      "heritage_authority",
+      "museum",
+      "official_archaeological_site",
+      "official_geographical_source",
+      "peer_reviewed_publication",
+      "university_project"
+    ],
+    "blocking_issues": [
+      "source_gap"
+    ],
+    "ready_for_research": true,
+    "ready_for_content": false,
+    "notes_hu": "Automatikus előkészítő batch; új tartalmi szöveg nem készült."
+  },
+  {
+    "batch_position": 40,
+    "place_id": "asia",
+    "name_hu": "Ázsia provincia",
+    "name_en": "Asia",
+    "place_type": "region",
+    "modern_country": null,
+    "identification_status": "certain",
+    "profile_group_id": null,
+    "current_enrichment_status": "basic",
+    "passage_count": 21,
+    "biblical_book_count": 7,
+    "route_stop_count": 0,
+    "route_count": 0,
+    "related_route_ids": [],
+    "existing_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "source_count": 1,
+    "source_gap_count": 2,
+    "research_priority": 0,
+    "total_score": 202,
+    "selection_reason_hu": "magas prioritási pontszám (202); 21 passage-kapcsolat; forráskutatási hiány dokumentálva.",
+    "required_sections": [
+      "biblical_significance",
+      "key_events",
+      "identification_notes",
+      "modern_context",
+      "historical_context",
+      "archaeology"
+    ],
+    "optional_sections": [],
+    "required_source_types": [
+      "academic_gazetteer",
+      "biblical_text_dataset",
+      "excavation_project",
+      "heritage_authority",
+      "museum",
+      "official_archaeological_site",
+      "official_geographical_source",
+      "peer_reviewed_publication",
+      "university_project"
+    ],
+    "blocking_issues": [
+      "source_gap"
+    ],
+    "ready_for_research": true,
+    "ready_for_content": false,
+    "notes_hu": "Automatikus előkészítő batch; új tartalmi szöveg nem készült."
+  },
+  {
+    "batch_position": 41,
+    "place_id": "thessalonica",
+    "name_hu": "Thesszalonika",
+    "name_en": "Thessalonica",
+    "place_type": "ókori város, tartományi központ",
+    "modern_country": "Görögország",
+    "identification_status": "probable",
+    "profile_group_id": null,
+    "current_enrichment_status": "basic",
+    "passage_count": 10,
+    "biblical_book_count": 6,
+    "route_stop_count": 1,
+    "route_count": 1,
+    "related_route_ids": [
+      "paul_second_missionary_journey"
+    ],
+    "existing_source_ids": [
+      "openbible_geocoding_cc_by_4_0",
+      "pleiades_place_491741"
+    ],
+    "source_count": 2,
+    "source_gap_count": 0,
+    "research_priority": 0,
+    "total_score": 162,
+    "selection_reason_hu": "magas prioritási pontszám (162); 10 passage-kapcsolat; 1 route-kapcsolat.",
+    "required_sections": [
+      "biblical_significance",
+      "key_events",
+      "identification_notes",
+      "modern_context",
+      "ancient_geography",
+      "historical_context",
+      "archaeology"
+    ],
+    "optional_sections": [
+      "homiletical_context"
+    ],
+    "required_source_types": [
+      "academic_gazetteer",
+      "biblical_text_dataset",
+      "excavation_project",
+      "heritage_authority",
+      "museum",
+      "official_archaeological_site",
+      "official_geographical_source",
+      "peer_reviewed_publication",
+      "university_project"
+    ],
+    "blocking_issues": [],
+    "ready_for_research": true,
+    "ready_for_content": true,
+    "notes_hu": "Automatikus előkészítő batch; új tartalmi szöveg nem készült."
+  },
+  {
+    "batch_position": 42,
+    "place_id": "haran",
+    "name_hu": "Hárán",
+    "name_en": "Haran",
+    "place_type": "settlement",
+    "modern_country": null,
+    "identification_status": "certain",
+    "profile_group_id": null,
+    "current_enrichment_status": "basic",
+    "passage_count": 12,
+    "biblical_book_count": 5,
+    "route_stop_count": 1,
+    "route_count": 1,
+    "related_route_ids": [
+      "abraham_journey"
+    ],
+    "existing_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "source_count": 1,
+    "source_gap_count": 2,
+    "research_priority": 0,
+    "total_score": 164,
+    "selection_reason_hu": "magas prioritási pontszám (164); 12 passage-kapcsolat; 1 route-kapcsolat; forráskutatási hiány dokumentálva.",
+    "required_sections": [
+      "biblical_significance",
+      "key_events",
+      "identification_notes",
+      "modern_context",
+      "ancient_geography",
+      "historical_context",
+      "archaeology"
+    ],
+    "optional_sections": [
+      "homiletical_context"
+    ],
+    "required_source_types": [
+      "academic_gazetteer",
+      "biblical_text_dataset",
+      "excavation_project",
+      "heritage_authority",
+      "museum",
+      "official_archaeological_site",
+      "official_geographical_source",
+      "peer_reviewed_publication",
+      "university_project"
+    ],
+    "blocking_issues": [
+      "source_gap"
+    ],
+    "ready_for_research": true,
+    "ready_for_content": false,
+    "notes_hu": "Automatikus előkészítő batch; új tartalmi szöveg nem készült."
+  },
+  {
+    "batch_position": 43,
+    "place_id": "cush_1",
+    "name_hu": "Kús",
+    "name_en": "Cush 1",
+    "place_type": "region",
+    "modern_country": null,
+    "identification_status": "certain",
+    "profile_group_id": null,
+    "current_enrichment_status": "basic",
+    "passage_count": 19,
+    "biblical_book_count": 7,
+    "route_stop_count": 0,
+    "route_count": 0,
+    "related_route_ids": [],
+    "existing_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "source_count": 1,
+    "source_gap_count": 2,
+    "research_priority": 0,
+    "total_score": 194,
+    "selection_reason_hu": "magas prioritási pontszám (194); 19 passage-kapcsolat; forráskutatási hiány dokumentálva.",
+    "required_sections": [
+      "biblical_significance",
+      "key_events",
+      "identification_notes",
+      "modern_context",
+      "historical_context",
+      "archaeology"
+    ],
+    "optional_sections": [],
+    "required_source_types": [
+      "academic_gazetteer",
+      "biblical_text_dataset",
+      "excavation_project",
+      "heritage_authority",
+      "museum",
+      "official_archaeological_site",
+      "official_geographical_source",
+      "peer_reviewed_publication",
+      "university_project"
+    ],
+    "blocking_issues": [
+      "source_gap"
+    ],
+    "ready_for_research": true,
+    "ready_for_content": false,
+    "notes_hu": "Automatikus előkészítő batch; új tartalmi szöveg nem készült."
+  },
+  {
+    "batch_position": 44,
+    "place_id": "achaia",
+    "name_hu": "Akhája",
+    "name_en": "Achaia",
+    "place_type": "region",
+    "modern_country": null,
+    "identification_status": "certain",
+    "profile_group_id": null,
+    "current_enrichment_status": "basic",
+    "passage_count": 10,
+    "biblical_book_count": 5,
+    "route_stop_count": 1,
+    "route_count": 1,
+    "related_route_ids": [
+      "paul_third_missionary_journey"
+    ],
+    "existing_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "source_count": 1,
+    "source_gap_count": 2,
+    "research_priority": 0,
+    "total_score": 156,
+    "selection_reason_hu": "magas prioritási pontszám (156); 10 passage-kapcsolat; 1 route-kapcsolat; forráskutatási hiány dokumentálva.",
+    "required_sections": [
+      "biblical_significance",
+      "key_events",
+      "identification_notes",
+      "modern_context",
+      "ancient_geography",
+      "historical_context",
+      "archaeology"
+    ],
+    "optional_sections": [
+      "homiletical_context"
+    ],
+    "required_source_types": [
+      "academic_gazetteer",
+      "biblical_text_dataset",
+      "excavation_project",
+      "heritage_authority",
+      "museum",
+      "official_archaeological_site",
+      "official_geographical_source",
+      "peer_reviewed_publication",
+      "university_project"
+    ],
+    "blocking_issues": [
+      "source_gap"
+    ],
+    "ready_for_research": true,
+    "ready_for_content": false,
+    "notes_hu": "Automatikus előkészítő batch; új tartalmi szöveg nem készült."
+  },
+  {
+    "batch_position": 45,
+    "place_id": "persia",
+    "name_hu": "Perzsia",
+    "name_en": "Persia",
+    "place_type": "region",
+    "modern_country": null,
+    "identification_status": "certain",
+    "profile_group_id": null,
+    "current_enrichment_status": "basic",
+    "passage_count": 27,
+    "biblical_book_count": 5,
+    "route_stop_count": 0,
+    "route_count": 0,
+    "related_route_ids": [],
+    "existing_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "source_count": 1,
+    "source_gap_count": 2,
+    "research_priority": 0,
+    "total_score": 202,
+    "selection_reason_hu": "magas prioritási pontszám (202); 27 passage-kapcsolat; forráskutatási hiány dokumentálva.",
+    "required_sections": [
+      "biblical_significance",
+      "key_events",
+      "identification_notes",
+      "modern_context",
+      "historical_context",
+      "archaeology"
+    ],
+    "optional_sections": [],
+    "required_source_types": [
+      "academic_gazetteer",
+      "biblical_text_dataset",
+      "excavation_project",
+      "heritage_authority",
+      "museum",
+      "official_archaeological_site",
+      "official_geographical_source",
+      "peer_reviewed_publication",
+      "university_project"
+    ],
+    "blocking_issues": [
+      "source_gap"
+    ],
+    "ready_for_research": true,
+    "ready_for_content": false,
+    "notes_hu": "Automatikus előkészítő batch; új tartalmi szöveg nem készült."
+  },
+  {
+    "batch_position": 46,
+    "place_id": "ashkelon",
+    "name_hu": "Askelón",
+    "name_en": "Ashkelon",
+    "place_type": "settlement",
+    "modern_country": null,
+    "identification_status": "certain",
+    "profile_group_id": null,
+    "current_enrichment_status": "basic",
+    "passage_count": 12,
+    "biblical_book_count": 8,
+    "route_stop_count": 0,
+    "route_count": 0,
+    "related_route_ids": [],
+    "existing_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "source_count": 1,
+    "source_gap_count": 2,
+    "research_priority": 0,
+    "total_score": 178,
+    "selection_reason_hu": "magas prioritási pontszám (178); 12 passage-kapcsolat; forráskutatási hiány dokumentálva.",
+    "required_sections": [
+      "biblical_significance",
+      "key_events",
+      "identification_notes",
+      "modern_context",
+      "historical_context",
+      "archaeology"
+    ],
+    "optional_sections": [],
+    "required_source_types": [
+      "academic_gazetteer",
+      "biblical_text_dataset",
+      "excavation_project",
+      "heritage_authority",
+      "museum",
+      "official_archaeological_site",
+      "official_geographical_source",
+      "peer_reviewed_publication",
+      "university_project"
+    ],
+    "blocking_issues": [
+      "source_gap"
+    ],
+    "ready_for_research": true,
+    "ready_for_content": false,
+    "notes_hu": "Automatikus előkészítő batch; új tartalmi szöveg nem készült."
+  },
+  {
+    "batch_position": 47,
+    "place_id": "derbe",
+    "name_hu": "Derbé",
+    "name_en": "Derbe",
+    "place_type": "settlement",
+    "modern_country": null,
+    "identification_status": "certain",
+    "profile_group_id": null,
+    "current_enrichment_status": "basic",
+    "passage_count": 5,
+    "biblical_book_count": 1,
+    "route_stop_count": 2,
+    "route_count": 2,
+    "related_route_ids": [
+      "paul_first_missionary_journey",
+      "paul_second_missionary_journey"
+    ],
+    "existing_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "source_count": 1,
+    "source_gap_count": 2,
+    "research_priority": 0,
+    "total_score": 110,
+    "selection_reason_hu": "magas prioritási pontszám (110); 5 passage-kapcsolat; 2 route-kapcsolat; forráskutatási hiány dokumentálva.",
+    "required_sections": [
+      "biblical_significance",
+      "key_events",
+      "identification_notes",
+      "modern_context",
+      "ancient_geography",
+      "historical_context",
+      "archaeology"
+    ],
+    "optional_sections": [
+      "homiletical_context"
+    ],
+    "required_source_types": [
+      "academic_gazetteer",
+      "biblical_text_dataset",
+      "excavation_project",
+      "heritage_authority",
+      "museum",
+      "official_archaeological_site",
+      "official_geographical_source",
+      "peer_reviewed_publication",
+      "university_project"
+    ],
+    "blocking_issues": [
+      "source_gap"
+    ],
+    "ready_for_research": true,
+    "ready_for_content": false,
+    "notes_hu": "Automatikus előkészítő batch; új tartalmi szöveg nem készült."
+  },
+  {
+    "batch_position": 48,
+    "place_id": "syria_2",
+    "name_hu": "Szíria",
+    "name_en": "Syria 2",
+    "place_type": "region",
+    "modern_country": null,
+    "identification_status": "certain",
+    "profile_group_id": null,
+    "current_enrichment_status": "basic",
+    "passage_count": 8,
+    "biblical_book_count": 4,
+    "route_stop_count": 1,
+    "route_count": 1,
+    "related_route_ids": [
+      "paul_second_missionary_journey"
+    ],
+    "existing_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "source_count": 1,
+    "source_gap_count": 2,
+    "research_priority": 0,
+    "total_score": 136,
+    "selection_reason_hu": "magas prioritási pontszám (136); 8 passage-kapcsolat; 1 route-kapcsolat; forráskutatási hiány dokumentálva.",
+    "required_sections": [
+      "biblical_significance",
+      "key_events",
+      "identification_notes",
+      "modern_context",
+      "ancient_geography",
+      "historical_context",
+      "archaeology"
+    ],
+    "optional_sections": [
+      "homiletical_context"
+    ],
+    "required_source_types": [
+      "academic_gazetteer",
+      "biblical_text_dataset",
+      "excavation_project",
+      "heritage_authority",
+      "museum",
+      "official_archaeological_site",
+      "official_geographical_source",
+      "peer_reviewed_publication",
+      "university_project"
+    ],
+    "blocking_issues": [
+      "source_gap"
+    ],
+    "ready_for_research": true,
+    "ready_for_content": false,
+    "notes_hu": "Automatikus előkészítő batch; új tartalmi szöveg nem készült."
+  },
+  {
+    "batch_position": 49,
+    "place_id": "elam",
+    "name_hu": "Élám",
+    "name_en": "Elam",
+    "place_type": "region",
+    "modern_country": null,
+    "identification_status": "certain",
+    "profile_group_id": null,
+    "current_enrichment_status": "basic",
+    "passage_count": 16,
+    "biblical_book_count": 6,
+    "route_stop_count": 0,
+    "route_count": 0,
+    "related_route_ids": [],
+    "existing_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "source_count": 1,
+    "source_gap_count": 2,
+    "research_priority": 0,
+    "total_score": 170,
+    "selection_reason_hu": "magas prioritási pontszám (170); 16 passage-kapcsolat; forráskutatási hiány dokumentálva.",
+    "required_sections": [
+      "biblical_significance",
+      "key_events",
+      "identification_notes",
+      "modern_context",
+      "historical_context",
+      "archaeology"
+    ],
+    "optional_sections": [],
+    "required_source_types": [
+      "academic_gazetteer",
+      "biblical_text_dataset",
+      "excavation_project",
+      "heritage_authority",
+      "museum",
+      "official_archaeological_site",
+      "official_geographical_source",
+      "peer_reviewed_publication",
+      "university_project"
+    ],
+    "blocking_issues": [
+      "source_gap"
+    ],
+    "ready_for_research": true,
+    "ready_for_content": false,
+    "notes_hu": "Automatikus előkészítő batch; új tartalmi szöveg nem készült."
+  },
+  {
+    "batch_position": 50,
+    "place_id": "moab_2",
+    "name_hu": "Moáb síksága",
+    "name_en": "Moab 2",
+    "place_type": "region",
+    "modern_country": null,
+    "identification_status": "certain",
+    "profile_group_id": null,
+    "current_enrichment_status": "basic",
+    "passage_count": 12,
+    "biblical_book_count": 3,
+    "route_stop_count": 1,
+    "route_count": 1,
+    "related_route_ids": [
+      "wilderness_sinai_to_moab"
+    ],
+    "existing_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "source_count": 1,
+    "source_gap_count": 2,
+    "research_priority": 0,
+    "total_score": 140,
+    "selection_reason_hu": "magas prioritási pontszám (140); 12 passage-kapcsolat; 1 route-kapcsolat; forráskutatási hiány dokumentálva.",
+    "required_sections": [
+      "biblical_significance",
+      "key_events",
+      "identification_notes",
+      "modern_context",
+      "ancient_geography",
+      "historical_context",
+      "archaeology"
+    ],
+    "optional_sections": [
+      "homiletical_context"
+    ],
+    "required_source_types": [
+      "academic_gazetteer",
+      "biblical_text_dataset",
+      "excavation_project",
+      "heritage_authority",
+      "museum",
+      "official_archaeological_site",
+      "official_geographical_source",
+      "peer_reviewed_publication",
+      "university_project"
+    ],
+    "blocking_issues": [
+      "source_gap"
+    ],
+    "ready_for_research": true,
+    "ready_for_content": false,
+    "notes_hu": "Automatikus előkészítő batch; új tartalmi szöveg nem készült."
+  }
+]
