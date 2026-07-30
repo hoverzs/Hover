@@ -25,6 +25,9 @@ EXPECTED_ROUTE_NAMES_HU = [
     "P\u00e1l m\u00e1sodik misszi\u00f3i \u00fatja",
     "P\u00e1l harmadik misszi\u00f3i \u00fatja",
     "P\u00e1l \u00fatja Jeruzs\u00e1lemb\u0151l R\u00f3m\u00e1ba",
+    "\u00c1brah\u00e1m v\u00e1ndorl\u00e1sa",
+    "J\u00e1k\u00f3b \u00fatjai",
+    "J\u00f3zsef t\u00f6rt\u00e9net\u00e9nek f\u00f6ldrajzi \u00edve",
 ]
 CORRUPTED_TEXT_MARKERS = ("\ufffd", "\u0102", "\u00c2", "\u010f", "ďż˝")
 
@@ -49,7 +52,7 @@ def _assert_raises(expected: type[Exception], callback, *args, **kwargs) -> Exce
 
 def test_valid_pilot_route_loads() -> None:
     routes = load_biblical_routes()
-    assert len(routes) == 4
+    assert len(routes) == 7
     route = routes[0]
     assert route.route_id == "paul_first_missionary_journey"
     assert route.name_hu == EXPECTED_ROUTE_NAMES_HU[0]
@@ -67,9 +70,12 @@ def test_all_pauline_routes_load_in_chronological_order() -> None:
         "paul_second_missionary_journey",
         "paul_third_missionary_journey",
         "paul_journey_to_rome",
+        "abraham_journey",
+        "jacob_journeys",
+        "joseph_geographical_arc",
     ]
     assert route_options(routes) == [route.route_id for route in routes]
-    assert len({route.route_id for route in routes}) == 4
+    assert len({route.route_id for route in routes}) == 7
     assert [route.name_hu for route in routes] == EXPECTED_ROUTE_NAMES_HU
 
 
@@ -136,6 +142,38 @@ def test_new_pauline_routes_have_expected_boundaries_and_counts() -> None:
     assert rome.stops[-1].place_id == "rome"
     assert len(rome.stops) == 19
     assert len(rome.segments) == 18
+
+
+def test_patriarchal_routes_have_expected_boundaries_and_counts() -> None:
+    routes = {route.route_id: route for route in load_biblical_routes()}
+
+    abraham = routes["abraham_journey"]
+    assert abraham.primary_passage_refs == ("1M\u00f3z 11,27-13,18", "1M\u00f3z 20-22")
+    assert abraham.route_category == "patriarchal_journey"
+    assert abraham.stops[0].place_id == "ur_1"
+    assert abraham.stops[-1].place_id == "beersheba_1"
+    assert len(abraham.stops) == 13
+    assert len(abraham.segments) == 12
+
+    jacob = routes["jacob_journeys"]
+    assert jacob.primary_passage_refs == ("1M\u00f3z 27,41-35,29",)
+    assert jacob.stops[0].place_id == "beersheba_1"
+    assert jacob.stops[-1].place_id == "hebron"
+    assert len(jacob.stops) == 12
+    assert len(jacob.segments) == 11
+
+    joseph = routes["joseph_geographical_arc"]
+    assert joseph.primary_passage_refs == ("1M\u00f3z 37-47",)
+    assert joseph.stops[0].place_id == "valley_of_hebron"
+    assert joseph.stops[-1].place_id == "goshen_1"
+    assert len(joseph.stops) == 10
+    assert len(joseph.segments) == 9
+    raw = {route["route_id"]: route for route in _route_payload()}
+    assert {stop["journey_phase"] for stop in raw["joseph_geographical_arc"]["stops"]} == {
+        "J\u00f3zsef elhurcol\u00e1sa",
+        "A testv\u00e9rek egyiptomi \u00fatjai",
+        "J\u00e1k\u00f3b csal\u00e1dj\u00e1nak Egyiptomba k\u00f6lt\u00f6z\u00e9se",
+    }
 
 
 def test_all_route_stops_and_segments_are_valid() -> None:
@@ -322,6 +360,8 @@ def test_pauline_routes_validation_report_matches_loader() -> None:
     report_by_id = {route["route_id"]: route for route in report["routes"]}
 
     for route in load_biblical_routes():
+        if route.route_id not in report_by_id:
+            continue
         item = report_by_id[route.route_id]
         assert item["stop_count"] == len(route.stops)
         assert item["segment_count"] == len(route.segments)
@@ -335,3 +375,19 @@ def test_loader_runs_without_streamlit_dependency() -> None:
     routes = load_biblical_routes()
     assert routes
     assert "streamlit" not in sys.modules
+
+
+def test_patriarchal_routes_validation_report_matches_loader() -> None:
+    report_path = ROOT / "data" / "biblical_routes" / "patriarchal_routes_validation_report.json"
+    report = json.loads(report_path.read_text(encoding="utf-8"))
+    report_by_id = {route["route_id"]: route for route in report["routes"]}
+    routes = {route.route_id: route for route in load_biblical_routes()}
+
+    assert set(report_by_id) == {"abraham_journey", "jacob_journeys", "joseph_geographical_arc"}
+    for route_id, item in report_by_id.items():
+        route = routes[route_id]
+        assert item["stop_count"] == len(route.stops)
+        assert item["segment_count"] == len(route.segments)
+        assert item["unresolved_or_skipped_places"] == []
+        assert item["mojibake_utf8_check"] == "passed"
+        assert item["duplicate_geometry_check"] == "one_render_geometry_per_segment_expected"

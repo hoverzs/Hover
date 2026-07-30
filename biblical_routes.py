@@ -8,6 +8,7 @@ from typing import Any
 
 from biblical_map_data import BIBLICAL_PLACES_CATALOG_PATH, DATA_DIR, SOURCES_PATH
 from biblical_passage_refs import (
+    is_valid_chapter_range_reference,
     is_valid_cross_chapter_reference,
     parse_bible_reference,
     passage_refs_overlap,
@@ -212,6 +213,8 @@ def _validate_passage_refs(refs: tuple[str, ...], field_name: str) -> None:
             parse_bible_reference(reference)
         except ValueError as exc:
             if _is_valid_cross_chapter_reference(reference):
+                continue
+            if is_valid_chapter_range_reference(reference):
                 continue
             raise BiblicalRouteDataError(f"Invalid passage reference in {field_name}: {reference}") from exc
 

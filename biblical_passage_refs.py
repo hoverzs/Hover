@@ -46,6 +46,12 @@ def is_valid_cross_chapter_reference(reference: str) -> bool:
     return start.book.code == end.book.code
 
 
+def is_valid_chapter_range_reference(reference: str) -> bool:
+    return passage_span(reference) is not None and bool(
+        re.fullmatch(r"\s*(.+?)\s+(\d+)-(\d+)\s*", str(reference or "").strip())
+    )
+
+
 def passage_span(reference: str | None) -> PassageSpan | None:
     raw = str(reference or "").strip()
     if not raw:
@@ -63,6 +69,25 @@ def passage_span(reference: str | None) -> PassageSpan | None:
             start_verse=int(start_verse),
             end_chapter=int(end_chapter),
             end_verse=int(end_verse),
+        )
+    chapter_range = re.fullmatch(r"\s*(.+?)\s+(\d+)-(\d+)\s*", raw)
+    if chapter_range:
+        book, start_chapter, end_chapter = chapter_range.groups()
+        if int(end_chapter) < int(start_chapter):
+            return None
+        try:
+            start = parse_bible_reference(f"{book} {start_chapter}")
+            end = parse_bible_reference(f"{book} {end_chapter}")
+        except ValueError:
+            return None
+        if start.book.code != end.book.code:
+            return None
+        return PassageSpan(
+            book_code=start.book.code,
+            start_chapter=int(start_chapter),
+            start_verse=1,
+            end_chapter=int(end_chapter),
+            end_verse=999,
         )
     try:
         parsed = parse_bible_reference(raw)
@@ -97,6 +122,7 @@ __all__ = [
     "ParsedReference",
     "PassageSpan",
     "is_valid_cross_chapter_reference",
+    "is_valid_chapter_range_reference",
     "parse_bible_reference",
     "passage_refs_overlap",
     "passage_span",

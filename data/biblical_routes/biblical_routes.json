@@ -1868,5 +1868,879 @@
         "geometry": null
       }
     ]
+  },
+  {
+    "route_id": "abraham_journey",
+    "name_hu": "Ábrahám vándorlása",
+    "name_en": "Abraham's journey",
+    "short_description_hu": "Ábrahám főbb bibliai helyváltoztatásait mutató sematikus útvonal.",
+    "route_category": "patriarchal_journey",
+    "primary_passage_refs": [
+      "1Móz 11,27-13,18",
+      "1Móz 20-22"
+    ],
+    "chronology_label_hu": "Ábrahám vándorlása",
+    "chronology_sort_key": 5,
+    "certainty": "mixed",
+    "geometry_status": "schematic",
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "review_status": "draft",
+    "review_notes_hu": "Mórijjá és néhány régiós állomás szakmai ellenőrzést igényel.",
+    "evidence_model": {
+      "station_order_basis": "biblical_text_named_stops",
+      "historical_route_status": "not_reconstructed",
+      "map_geometry_status": "schematic",
+      "precision_note_hu": "A vonalak nem pontos ókori nyomvonalat, hanem bibliai állomássorrendet jelzik."
+    },
+    "stops": [
+      {
+        "order": 1,
+        "stop_id": "ur_departure",
+        "place_id": "ur_1",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "1Móz 11,28-31"
+        ],
+        "event_summary_hu": "Ábrám családja Úrból indul el Hárán felé.",
+        "certainty": "certain",
+        "stop_type": "embarkation",
+        "source_notes_hu": "Bibliai szöveghez kötött állomás; a vonal sematikus."
+      },
+      {
+        "order": 2,
+        "stop_id": "haran_abraham",
+        "place_id": "haran",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "1Móz 11,31-12,5"
+        ],
+        "event_summary_hu": "Ábrám Háránból indul tovább Kánaán földje felé.",
+        "certainty": "certain",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "Bibliai szöveghez kötött állomás; a vonal sematikus."
+      },
+      {
+        "order": 3,
+        "stop_id": "shechem_abraham",
+        "place_id": "shechem",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "1Móz 12,6-7"
+        ],
+        "event_summary_hu": "Ábrám Sikem vidékére érkezik.",
+        "certainty": "certain",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "Bibliai szöveghez kötött állomás; a vonal sematikus."
+      },
+      {
+        "order": 4,
+        "stop_id": "bethel_ai_abraham",
+        "place_id": "bethel_1",
+        "place_name_override_hu": "Bétel és Aj vidéke",
+        "passage_refs": [
+          "1Móz 12,8"
+        ],
+        "event_summary_hu": "Ábrám Bétel és Aj között üti fel sátrát.",
+        "certainty": "probable",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "Bibliai szöveghez kötött állomás; a vonal sematikus."
+      },
+      {
+        "order": 5,
+        "stop_id": "negev_abraham",
+        "place_id": "negeb",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "1Móz 12,9"
+        ],
+        "event_summary_hu": "Ábrám továbbvonul a Negev felé.",
+        "certainty": "certain",
+        "stop_type": "region",
+        "source_notes_hu": "Regionális vagy bizonytalanabb állomás; nem pontos ókori útvonalrekonstrukció."
+      },
+      {
+        "order": 6,
+        "stop_id": "egypt_abraham",
+        "place_id": "egypt",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "1Móz 12,10-20"
+        ],
+        "event_summary_hu": "Éhínség miatt Ábrám Egyiptomba megy.",
+        "certainty": "certain",
+        "stop_type": "region",
+        "source_notes_hu": "Regionális vagy bizonytalanabb állomás; nem pontos ókori útvonalrekonstrukció."
+      },
+      {
+        "order": 7,
+        "stop_id": "negev_abraham_return",
+        "place_id": "negeb",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "1Móz 13,1"
+        ],
+        "event_summary_hu": "Ábrám Egyiptomból visszatér a Negevbe.",
+        "certainty": "certain",
+        "stop_type": "return_stop",
+        "source_notes_hu": "Regionális vagy bizonytalanabb állomás; nem pontos ókori útvonalrekonstrukció."
+      },
+      {
+        "order": 8,
+        "stop_id": "bethel_abraham_return",
+        "place_id": "bethel_1",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "1Móz 13,3-4"
+        ],
+        "event_summary_hu": "Ábrám visszatér Bétel vidékére.",
+        "certainty": "probable",
+        "stop_type": "return_stop",
+        "source_notes_hu": "Bibliai szöveghez kötött állomás; a vonal sematikus."
+      },
+      {
+        "order": 9,
+        "stop_id": "mamre_abraham",
+        "place_id": "mamre",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "1Móz 13,18"
+        ],
+        "event_summary_hu": "Ábrám Mamré tölgyesénél telepszik le.",
+        "certainty": "probable",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "Bibliai szöveghez kötött állomás; a vonal sematikus."
+      },
+      {
+        "order": 10,
+        "stop_id": "gerar_abraham",
+        "place_id": "gerar",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "1Móz 20,1"
+        ],
+        "event_summary_hu": "Ábrahám Gerár környékén tartózkodik.",
+        "certainty": "probable",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "Bibliai szöveghez kötött állomás; a vonal sematikus."
+      },
+      {
+        "order": 11,
+        "stop_id": "beersheba_abraham",
+        "place_id": "beersheba_1",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "1Móz 21,31-34"
+        ],
+        "event_summary_hu": "Ábrahám Beérsebánál köt szövetséget.",
+        "certainty": "probable",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "Bibliai szöveghez kötött állomás; a vonal sematikus."
+      },
+      {
+        "order": 12,
+        "stop_id": "moriah_abraham",
+        "place_id": "moriah",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "1Móz 22,2-14"
+        ],
+        "event_summary_hu": "Mórijjá földje bizonytalanabb állomásként szerepel.",
+        "certainty": "possible",
+        "stop_type": "uncertain_place",
+        "source_notes_hu": "A szöveg Mórijjá földjét említi; a bizonytalanság megmarad."
+      },
+      {
+        "order": 13,
+        "stop_id": "beersheba_abraham_return",
+        "place_id": "beersheba_1",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "1Móz 22,19"
+        ],
+        "event_summary_hu": "Ábrahám visszatér Beérsebába.",
+        "certainty": "probable",
+        "stop_type": "return_stop",
+        "source_notes_hu": "Bibliai szöveghez kötött állomás; a vonal sematikus."
+      }
+    ],
+    "segments": [
+      {
+        "from_stop_id": "ur_departure",
+        "to_stop_id": "haran_abraham",
+        "certainty": "certain",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált történeti útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "haran_abraham",
+        "to_stop_id": "shechem_abraham",
+        "certainty": "certain",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált történeti útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "shechem_abraham",
+        "to_stop_id": "bethel_ai_abraham",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált történeti útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "bethel_ai_abraham",
+        "to_stop_id": "negev_abraham",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált történeti útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "negev_abraham",
+        "to_stop_id": "egypt_abraham",
+        "certainty": "certain",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált történeti útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "egypt_abraham",
+        "to_stop_id": "negev_abraham_return",
+        "certainty": "certain",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált történeti útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "negev_abraham_return",
+        "to_stop_id": "bethel_abraham_return",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált történeti útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "bethel_abraham_return",
+        "to_stop_id": "mamre_abraham",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált történeti útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "mamre_abraham",
+        "to_stop_id": "gerar_abraham",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált történeti útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "gerar_abraham",
+        "to_stop_id": "beersheba_abraham",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált történeti útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "beersheba_abraham",
+        "to_stop_id": "moriah_abraham",
+        "certainty": "mixed",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált történeti útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "moriah_abraham",
+        "to_stop_id": "beersheba_abraham_return",
+        "certainty": "mixed",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált történeti útvonal.",
+        "waypoints": [],
+        "geometry": null
+      }
+    ]
+  },
+  {
+    "route_id": "jacob_journeys",
+    "name_hu": "Jákób útjai",
+    "name_en": "Jacob's journeys",
+    "short_description_hu": "Jákób Beérsebától Paddan-Arámig, majd Kánaánba visszatérő útjának főbb állomásai.",
+    "route_category": "patriarchal_journey",
+    "primary_passage_refs": [
+      "1Móz 27,41-35,29"
+    ],
+    "chronology_label_hu": "Jákób útjai",
+    "chronology_sort_key": 6,
+    "certainty": "mixed",
+    "geometry_status": "schematic",
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "review_status": "draft",
+    "review_notes_hu": "A Gileád/Micpa határpont külön rekordtípusként, bizonytalansággal marad.",
+    "evidence_model": {
+      "station_order_basis": "biblical_text_named_stops",
+      "historical_route_status": "not_reconstructed",
+      "map_geometry_status": "schematic",
+      "precision_note_hu": "A vonalak sematikus összekötések; a határpont nem olvad össze más Micpa-rekordokkal."
+    },
+    "stops": [
+      {
+        "order": 1,
+        "stop_id": "beersheba_jacob_departure",
+        "place_id": "beersheba_1",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "1Móz 28,10"
+        ],
+        "event_summary_hu": "Jákób Beérsebából indul Hárán felé.",
+        "certainty": "probable",
+        "stop_type": "embarkation",
+        "source_notes_hu": "Bibliai szöveghez kötött állomás; a vonal sematikus."
+      },
+      {
+        "order": 2,
+        "stop_id": "bethel_jacob",
+        "place_id": "bethel_1",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "1Móz 28,11-22"
+        ],
+        "event_summary_hu": "Jákób Bételnél álmot lát.",
+        "certainty": "probable",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "Bibliai szöveghez kötött állomás; a vonal sematikus."
+      },
+      {
+        "order": 3,
+        "stop_id": "paddan_aram_jacob",
+        "place_id": "paddan_aram",
+        "place_name_override_hu": "Paddan-Arám / Hárán vidéke",
+        "passage_refs": [
+          "1Móz 28,5",
+          "1Móz 29,1-30,43"
+        ],
+        "event_summary_hu": "Jákób Paddan-Arám/Hárán vidékén él.",
+        "certainty": "probable",
+        "stop_type": "region",
+        "source_notes_hu": "Regionális vagy bizonytalanabb állomás; nem pontos ókori útvonalrekonstrukció."
+      },
+      {
+        "order": 4,
+        "stop_id": "gilead_jacob",
+        "place_id": "gilead_1",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "1Móz 31,21-25"
+        ],
+        "event_summary_hu": "Jákób Gileád felé menekül.",
+        "certainty": "certain",
+        "stop_type": "region",
+        "source_notes_hu": "Regionális vagy bizonytalanabb állomás; nem pontos ókori útvonalrekonstrukció."
+      },
+      {
+        "order": 5,
+        "stop_id": "mizpah_jacob",
+        "place_id": "mizpah_4",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "1Móz 31,45-49"
+        ],
+        "event_summary_hu": "Jákób és Lábán határjelként kőrakást állítanak.",
+        "certainty": "probable",
+        "stop_type": "uncertain_place",
+        "source_notes_hu": "A Jákób-Lábán határpont külön rekordtípusként marad."
+      },
+      {
+        "order": 6,
+        "stop_id": "mahanaim_jacob",
+        "place_id": "mahanaim",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "1Móz 32,1-2"
+        ],
+        "event_summary_hu": "Jákób Mahanaimnál Isten seregével találkozik.",
+        "certainty": "probable",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "Bibliai szöveghez kötött állomás; a vonal sematikus."
+      },
+      {
+        "order": 7,
+        "stop_id": "penuel_jacob",
+        "place_id": "penuel",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "1Móz 32,24-31"
+        ],
+        "event_summary_hu": "Jákób Penuélnél tusakodik.",
+        "certainty": "probable",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "Bibliai szöveghez kötött állomás; a vonal sematikus."
+      },
+      {
+        "order": 8,
+        "stop_id": "succoth_jacob",
+        "place_id": "succoth_1",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "1Móz 33,17"
+        ],
+        "event_summary_hu": "Jákób Szukkótnál hajlékokat készít.",
+        "certainty": "probable",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "Bibliai szöveghez kötött állomás; a vonal sematikus."
+      },
+      {
+        "order": 9,
+        "stop_id": "shechem_jacob",
+        "place_id": "shechem",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "1Móz 33,18-20"
+        ],
+        "event_summary_hu": "Jákób Sikem városához érkezik.",
+        "certainty": "certain",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "Bibliai szöveghez kötött állomás; a vonal sematikus."
+      },
+      {
+        "order": 10,
+        "stop_id": "bethel_jacob_return",
+        "place_id": "bethel_1",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "1Móz 35,1-15"
+        ],
+        "event_summary_hu": "Jákób visszatér Bételbe.",
+        "certainty": "probable",
+        "stop_type": "return_stop",
+        "source_notes_hu": "Bibliai szöveghez kötött állomás; a vonal sematikus."
+      },
+      {
+        "order": 11,
+        "stop_id": "ephrath_jacob",
+        "place_id": "ephrath",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "1Móz 35,16-20"
+        ],
+        "event_summary_hu": "Ráhel Efráta, vagyis Betlehem felé vezető úton hal meg.",
+        "certainty": "certain",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "Bibliai szöveghez kötött állomás; a vonal sematikus."
+      },
+      {
+        "order": 12,
+        "stop_id": "hebron_jacob",
+        "place_id": "hebron",
+        "place_name_override_hu": "Hebrón / Mamré vidéke",
+        "passage_refs": [
+          "1Móz 35,27-29"
+        ],
+        "event_summary_hu": "Jákób Hebrón/Mamré vidékére érkezik.",
+        "certainty": "certain",
+        "stop_type": "destination",
+        "source_notes_hu": "Bibliai szöveghez kötött állomás; a vonal sematikus."
+      }
+    ],
+    "segments": [
+      {
+        "from_stop_id": "beersheba_jacob_departure",
+        "to_stop_id": "bethel_jacob",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált történeti útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "bethel_jacob",
+        "to_stop_id": "paddan_aram_jacob",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált történeti útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "paddan_aram_jacob",
+        "to_stop_id": "gilead_jacob",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált történeti útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "gilead_jacob",
+        "to_stop_id": "mizpah_jacob",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált történeti útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "mizpah_jacob",
+        "to_stop_id": "mahanaim_jacob",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált történeti útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "mahanaim_jacob",
+        "to_stop_id": "penuel_jacob",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált történeti útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "penuel_jacob",
+        "to_stop_id": "succoth_jacob",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált történeti útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "succoth_jacob",
+        "to_stop_id": "shechem_jacob",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált történeti útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "shechem_jacob",
+        "to_stop_id": "bethel_jacob_return",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált történeti útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "bethel_jacob_return",
+        "to_stop_id": "ephrath_jacob",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált történeti útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "ephrath_jacob",
+        "to_stop_id": "hebron_jacob",
+        "certainty": "certain",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált történeti útvonal.",
+        "waypoints": [],
+        "geometry": null
+      }
+    ]
+  },
+  {
+    "route_id": "joseph_geographical_arc",
+    "name_hu": "József történetének földrajzi íve",
+    "name_en": "The geographical arc of Joseph's story",
+    "short_description_hu": "József elhurcolását, a testvérek útjait és Jákób családjának költözését összefogó sematikus ív.",
+    "route_category": "patriarchal_journey",
+    "primary_passage_refs": [
+      "1Móz 37-47"
+    ],
+    "chronology_label_hu": "József történetének földrajzi íve",
+    "chronology_sort_key": 7,
+    "certainty": "mixed",
+    "geometry_status": "schematic",
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "review_status": "draft",
+    "review_notes_hu": "Ez nem egyetlen folyamatos személyes út, hanem több bibliai mozgás fázisait összegzi.",
+    "evidence_model": {
+      "station_order_basis": "biblical_text_named_stops",
+      "historical_route_status": "not_reconstructed",
+      "map_geometry_status": "schematic",
+      "precision_note_hu": "A journey_phase mezők a történet belső fázisait jelzik; karavánmegállókat nem ad hozzá."
+    },
+    "stops": [
+      {
+        "order": 1,
+        "stop_id": "valley_hebron_joseph",
+        "place_id": "valley_of_hebron",
+        "place_name_override_hu": "Hebrón völgye",
+        "passage_refs": [
+          "1Móz 37,14"
+        ],
+        "event_summary_hu": "József Hebrón völgyéből indul.",
+        "certainty": "certain",
+        "stop_type": "embarkation",
+        "source_notes_hu": "Bibliai szöveghez kötött állomás; a vonal sematikus.",
+        "journey_phase": "József elhurcolása"
+      },
+      {
+        "order": 2,
+        "stop_id": "shechem_joseph",
+        "place_id": "shechem",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "1Móz 37,12-14"
+        ],
+        "event_summary_hu": "József Sikem felé megy.",
+        "certainty": "certain",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "Bibliai szöveghez kötött állomás; a vonal sematikus.",
+        "journey_phase": "József elhurcolása"
+      },
+      {
+        "order": 3,
+        "stop_id": "dothan_joseph",
+        "place_id": "dothan",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "1Móz 37,17"
+        ],
+        "event_summary_hu": "József Dótánnál találja meg testvéreit.",
+        "certainty": "certain",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "Bibliai szöveghez kötött állomás; a vonal sematikus.",
+        "journey_phase": "József elhurcolása"
+      },
+      {
+        "order": 4,
+        "stop_id": "egypt_joseph",
+        "place_id": "egypt",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "1Móz 37,28-36"
+        ],
+        "event_summary_hu": "Józsefet Egyiptomba viszik.",
+        "certainty": "certain",
+        "stop_type": "region",
+        "source_notes_hu": "Regionális vagy bizonytalanabb állomás; nem pontos ókori útvonalrekonstrukció.",
+        "journey_phase": "József elhurcolása"
+      },
+      {
+        "order": 5,
+        "stop_id": "canaan_brothers_first",
+        "place_id": "canaan",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "1Móz 42,1-5"
+        ],
+        "event_summary_hu": "Jákób fiai Kánaánból Egyiptomba indulnak.",
+        "certainty": "certain",
+        "stop_type": "region",
+        "source_notes_hu": "Regionális vagy bizonytalanabb állomás; nem pontos ókori útvonalrekonstrukció.",
+        "journey_phase": "A testvérek egyiptomi útjai"
+      },
+      {
+        "order": 6,
+        "stop_id": "egypt_brothers_first",
+        "place_id": "egypt",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "1Móz 42,6-38"
+        ],
+        "event_summary_hu": "A testvérek Egyiptomban találkoznak Józseffel.",
+        "certainty": "certain",
+        "stop_type": "region",
+        "source_notes_hu": "Regionális vagy bizonytalanabb állomás; nem pontos ókori útvonalrekonstrukció.",
+        "journey_phase": "A testvérek egyiptomi útjai"
+      },
+      {
+        "order": 7,
+        "stop_id": "canaan_brothers_second",
+        "place_id": "canaan",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "1Móz 43,1-15"
+        ],
+        "event_summary_hu": "A testvérek másodszor is Egyiptomba indulnak.",
+        "certainty": "certain",
+        "stop_type": "return_stop",
+        "source_notes_hu": "Regionális vagy bizonytalanabb állomás; nem pontos ókori útvonalrekonstrukció.",
+        "journey_phase": "A testvérek egyiptomi útjai"
+      },
+      {
+        "order": 8,
+        "stop_id": "egypt_brothers_second",
+        "place_id": "egypt",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "1Móz 43,15-45,28"
+        ],
+        "event_summary_hu": "József felfedi magát testvérei előtt.",
+        "certainty": "certain",
+        "stop_type": "destination",
+        "source_notes_hu": "Regionális vagy bizonytalanabb állomás; nem pontos ókori útvonalrekonstrukció.",
+        "journey_phase": "A testvérek egyiptomi útjai"
+      },
+      {
+        "order": 9,
+        "stop_id": "beersheba_jacob_to_egypt",
+        "place_id": "beersheba_1",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "1Móz 46,1-5"
+        ],
+        "event_summary_hu": "Jákób Beérsebánál áldozatot mutat be.",
+        "certainty": "probable",
+        "stop_type": "embarkation",
+        "source_notes_hu": "Bibliai szöveghez kötött állomás; a vonal sematikus.",
+        "journey_phase": "Jákób családjának Egyiptomba költözése"
+      },
+      {
+        "order": 10,
+        "stop_id": "goshen_jacob_family",
+        "place_id": "goshen_1",
+        "place_name_override_hu": null,
+        "passage_refs": [
+          "1Móz 46,28-47,11"
+        ],
+        "event_summary_hu": "Jákób családja Gósen földjén telepedik le; Ramszesz földje ugyanitt, regionális megjegyzésként marad.",
+        "certainty": "certain",
+        "stop_type": "destination",
+        "source_notes_hu": "Regionális vagy bizonytalanabb állomás; nem pontos ókori útvonalrekonstrukció.",
+        "journey_phase": "Jákób családjának Egyiptomba költözése"
+      }
+    ],
+    "segments": [
+      {
+        "from_stop_id": "valley_hebron_joseph",
+        "to_stop_id": "shechem_joseph",
+        "certainty": "certain",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált történeti útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "shechem_joseph",
+        "to_stop_id": "dothan_joseph",
+        "certainty": "certain",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált történeti útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "dothan_joseph",
+        "to_stop_id": "egypt_joseph",
+        "certainty": "certain",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált történeti útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "egypt_joseph",
+        "to_stop_id": "canaan_brothers_first",
+        "certainty": "certain",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált történeti útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "canaan_brothers_first",
+        "to_stop_id": "egypt_brothers_first",
+        "certainty": "certain",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált történeti útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "egypt_brothers_first",
+        "to_stop_id": "canaan_brothers_second",
+        "certainty": "certain",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált történeti útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "canaan_brothers_second",
+        "to_stop_id": "egypt_brothers_second",
+        "certainty": "certain",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált történeti útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "egypt_brothers_second",
+        "to_stop_id": "beersheba_jacob_to_egypt",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált történeti útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "beersheba_jacob_to_egypt",
+        "to_stop_id": "goshen_jacob_family",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált történeti útvonal.",
+        "waypoints": [],
+        "geometry": null
+      }
+    ]
   }
 ]

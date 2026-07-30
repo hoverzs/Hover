@@ -1457,6 +1457,26 @@ def test_passage_to_route_index_matches_new_pauline_routes() -> None:
     assert "paul_journey_to_rome" in acts_28
 
 
+def test_passage_to_route_index_matches_patriarchal_routes() -> None:
+    gen_12 = route_matches_for_passage("1M\u00f3z 12")
+    gen_13 = route_matches_for_passage("1M\u00f3z 13")
+    gen_22 = route_matches_for_passage("1M\u00f3z 22")
+    gen_28 = route_matches_for_passage("1M\u00f3z 28")
+    gen_31_33 = route_matches_for_passage("1M\u00f3z 31-33")
+    gen_35 = route_matches_for_passage("1M\u00f3z 35")
+    gen_37 = route_matches_for_passage("1M\u00f3z 37")
+    gen_42_46 = route_matches_for_passage("1M\u00f3z 42-46")
+
+    assert "abraham_journey" in gen_12
+    assert "abraham_journey" in gen_13
+    assert "abraham_journey" in gen_22
+    assert "jacob_journeys" in gen_28
+    assert "jacob_journeys" in gen_31_33
+    assert "jacob_journeys" in gen_35
+    assert "joseph_geographical_arc" in gen_37
+    assert "joseph_geographical_arc" in gen_42_46
+
+
 def test_partial_passage_overlap_links_to_route_stop() -> None:
     matches = route_matches_for_passage("ApCsel 13,4")
 
@@ -1576,12 +1596,15 @@ def test_render_route_view_loads_first_missionary_journey() -> None:
     assert fake_st.columns_calls == []
 
 
-def test_route_selector_lists_all_pauline_routes() -> None:
+def test_route_selector_lists_all_biblical_routes() -> None:
     assert route_options() == [
         "paul_first_missionary_journey",
         "paul_second_missionary_journey",
         "paul_third_missionary_journey",
         "paul_journey_to_rome",
+        "abraham_journey",
+        "jacob_journeys",
+        "joseph_geographical_arc",
     ]
 
     fake_st = _FakeStreamlit()
