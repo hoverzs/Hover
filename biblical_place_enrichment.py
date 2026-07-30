@@ -16,11 +16,14 @@ from biblical_routes import load_biblical_routes
 PLACE_ENRICHMENT_SOURCES_PATH = DATA_DIR / "place_enrichment_sources.json"
 PLACE_ENRICHMENTS_PATH = DATA_DIR / "place_enrichments.json"
 PLACE_ENRICHMENT_PRIORITY_PATH = DATA_DIR / "place_enrichment_priority.json"
+PLACE_PROFILE_GROUPS_PATH = DATA_DIR / "place_profile_groups.json"
 
 ALLOWED_CONFIDENCE_VALUES = {"high", "medium", "low"}
 ALLOWED_SECTION_REVIEW_STATUSES = {"source_backed", "needs_review"}
 ALLOWED_OVERALL_REVIEW_STATUSES = {"source_backed", "needs_review"}
 ALLOWED_PROFILE_TIERS = {"featured", "high", "medium", "basic"}
+ALLOWED_PROFILE_STATUSES = {"basic", "partial", "source_backed", "featured", "needs_review"}
+ALLOWED_PROFILE_GROUP_REVIEW_STATUSES = {"draft", "reviewed", "needs_review"}
 
 TEXT_SECTION_KEYS = (
     "biblical_significance",
@@ -52,6 +55,14 @@ CONFIDENCE_LABELS_HU = {
 SECTION_REVIEW_LABELS_HU = {
     "source_backed": "forrásolt",
     "needs_review": "szakmai ellenőrzésre vár",
+}
+
+PROFILE_STATUS_LABELS_HU = {
+    "basic": "Alapadatlap",
+    "partial": "Részben bővített",
+    "source_backed": "Forrásolt bővített adatlap",
+    "featured": "Kiemelt helyszínprofil",
+    "needs_review": "Szakmai ellenőrzés alatt",
 }
 
 MOJIBAKE_MARKERS = ("Ă", "Ĺ", "Ĺ‘", "Ĺ±", "â€", "Â", "\ufffd")
@@ -107,6 +118,19 @@ class PlaceEnrichment:
     related_route_ids: tuple[str, ...]
     editorial_notes_hu: str | None
     overall_review_status: str
+
+
+@dataclass(frozen=True)
+class PlaceProfileGroup:
+    profile_id: str
+    name_hu: str
+    primary_place_id: str
+    member_place_ids: tuple[str, ...]
+    relationship_type: str
+    shared_sections: tuple[str, ...]
+    record_specific_sections: tuple[str, ...]
+    review_status: str
+    notes_hu: str | None
 
 
 def _load_json(path: Path, default: Any) -> Any:
@@ -351,6 +375,39 @@ def _enrichment_from_raw(raw: Any, known_source_ids: set[str]) -> PlaceEnrichmen
     )
 
 
+def _profile_group_from_raw(raw: Any) -> PlaceProfileGroup:
+    if not isinstance(raw, dict):
+        raise PlaceEnrichmentDataError("Profile group records must be objects.")
+    canonical_ids = set(place_ids())
+    profile_id = _as_str(raw.get("profile_id"), "profile_id", required=True) or ""
+    primary_place_id = _as_str(raw.get("primary_place_id"), f"{profile_id}.primary_place_id", required=True) or ""
+    member_place_ids = _as_str_tuple(raw.get("member_place_ids"), f"{profile_id}.member_place_ids", required=True)
+    if primary_place_id not in canonical_ids:
+        raise PlaceEnrichmentDataError(f"Profile group {profile_id} references unknown primary_place_id: {primary_place_id}")
+    missing = [place_id for place_id in member_place_ids if place_id not in canonical_ids]
+    if missing:
+        raise PlaceEnrichmentDataError(
+            f"Profile group {profile_id} references unknown member_place_ids: {', '.join(missing)}"
+        )
+    if primary_place_id not in member_place_ids:
+        raise PlaceEnrichmentDataError(f"Profile group {profile_id} must include primary_place_id in member_place_ids.")
+    return PlaceProfileGroup(
+        profile_id=profile_id,
+        name_hu=_as_str(raw.get("name_hu"), f"{profile_id}.name_hu", required=True) or "",
+        primary_place_id=primary_place_id,
+        member_place_ids=member_place_ids,
+        relationship_type=_as_str(raw.get("relationship_type"), f"{profile_id}.relationship_type", required=True) or "",
+        shared_sections=_as_str_tuple(raw.get("shared_sections"), f"{profile_id}.shared_sections"),
+        record_specific_sections=_as_str_tuple(raw.get("record_specific_sections"), f"{profile_id}.record_specific_sections"),
+        review_status=_enum(
+            raw.get("review_status"),
+            f"{profile_id}.review_status",
+            ALLOWED_PROFILE_GROUP_REVIEW_STATUSES,
+        ),
+        notes_hu=_as_str(raw.get("notes_hu"), f"{profile_id}.notes_hu"),
+    )
+
+
 @lru_cache(maxsize=1)
 def load_place_enrichments(path: Path = PLACE_ENRICHMENTS_PATH) -> tuple[PlaceEnrichment, ...]:
     raw = _load_json(path, [])
@@ -364,6 +421,25 @@ def load_place_enrichments(path: Path = PLACE_ENRICHMENTS_PATH) -> tuple[PlaceEn
     return enrichments
 
 
+@lru_cache(maxsize=1)
+def load_place_profile_groups(path: Path = PLACE_PROFILE_GROUPS_PATH) -> tuple[PlaceProfileGroup, ...]:
+    raw = _load_json(path, [])
+    if not isinstance(raw, list):
+        raise PlaceEnrichmentDataError("Place profile groups JSON must contain a list.")
+    groups = tuple(_profile_group_from_raw(item) for item in raw)
+    ids = [group.profile_id for group in groups]
+    if len(ids) != len(set(ids)):
+        raise PlaceEnrichmentDataError("Duplicate profile_id found.")
+    return groups
+
+
+def place_profile_group_for_place(place_id: str) -> PlaceProfileGroup | None:
+    for group in load_place_profile_groups():
+        if place_id in group.member_place_ids:
+            return group
+    return None
+
+
 def place_enrichments_by_id(
     enrichments: tuple[PlaceEnrichment, ...] | None = None,
 ) -> dict[str, PlaceEnrichment]:
@@ -372,6 +448,45 @@ def place_enrichments_by_id(
 
 def get_place_enrichment(place_id: str) -> PlaceEnrichment | None:
     return place_enrichments_by_id().get(place_id)
+
+
+def enrichment_source_count(enrichment: PlaceEnrichment | None) -> int:
+    if enrichment is None:
+        return 0
+    source_ids: set[str] = set()
+    for section in enrichment.sections.values():
+        if isinstance(section, EnrichmentTextSection):
+            source_ids.update(section.source_ids)
+        elif isinstance(section, EnrichmentKeyEventsSection):
+            for item in section.items:
+                source_ids.update(item.source_ids)
+    return len(source_ids)
+
+
+def enrichment_has_needs_review(enrichment: PlaceEnrichment | None) -> bool:
+    if enrichment is None:
+        return False
+    if enrichment.overall_review_status == "needs_review":
+        return True
+    return any(section.review_status == "needs_review" for section in enrichment.sections.values())
+
+
+def enrichment_profile_status(enrichment: PlaceEnrichment | None) -> str:
+    if enrichment is None or not enrichment.sections:
+        return "basic"
+    if enrichment_has_needs_review(enrichment):
+        return "needs_review"
+    section_count = len(enrichment.sections)
+    source_count = enrichment_source_count(enrichment)
+    has_checked_key_events = (
+        "key_events" in enrichment.sections
+        and enrichment.sections["key_events"].review_status == "source_backed"
+    )
+    if section_count >= 4 and source_count >= 2 and has_checked_key_events:
+        return "featured"
+    if section_count >= 3:
+        return "source_backed"
+    return "partial"
 
 
 def related_route_ids_for_place(place_id: str) -> tuple[str, ...]:
@@ -385,6 +500,8 @@ def related_route_ids_for_place(place_id: str) -> tuple[str, ...]:
 __all__ = [
     "ALLOWED_CONFIDENCE_VALUES",
     "ALLOWED_OVERALL_REVIEW_STATUSES",
+    "ALLOWED_PROFILE_GROUP_REVIEW_STATUSES",
+    "ALLOWED_PROFILE_STATUSES",
     "ALLOWED_PROFILE_TIERS",
     "ALLOWED_SECTION_REVIEW_STATUSES",
     "CONFIDENCE_LABELS_HU",
@@ -394,16 +511,24 @@ __all__ = [
     "PLACE_ENRICHMENT_PRIORITY_PATH",
     "PLACE_ENRICHMENT_SOURCES_PATH",
     "PLACE_ENRICHMENTS_PATH",
+    "PLACE_PROFILE_GROUPS_PATH",
     "PlaceEnrichment",
     "PlaceEnrichmentDataError",
     "PlaceEnrichmentSource",
+    "PlaceProfileGroup",
+    "PROFILE_STATUS_LABELS_HU",
     "SECTION_LABELS_HU",
     "SECTION_REVIEW_LABELS_HU",
     "TEXT_SECTION_KEYS",
+    "enrichment_has_needs_review",
+    "enrichment_profile_status",
+    "enrichment_source_count",
     "get_place_enrichment",
     "load_place_enrichment_sources",
     "load_place_enrichments",
+    "load_place_profile_groups",
     "place_enrichment_sources_by_id",
     "place_enrichments_by_id",
+    "place_profile_group_for_place",
     "related_route_ids_for_place",
 ]

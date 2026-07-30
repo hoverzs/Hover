@@ -1,0 +1,1602 @@
+[
+  {
+    "place_id": "jerusalem",
+    "section_name": "biblical_significance",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "jerusalem",
+    "section_name": "key_events",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "jerusalem",
+    "section_name": "ancient_geography",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "jerusalem",
+    "section_name": "historical_context",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "jerusalem",
+    "section_name": "archaeology",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "jerusalem",
+    "section_name": "modern_context",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "jerusalem",
+    "section_name": "identification_notes",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "jerusalem",
+    "section_name": "homiletical_context",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "bethlehem_1",
+    "section_name": "biblical_significance",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "bethlehem_1",
+    "section_name": "key_events",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "bethlehem_1",
+    "section_name": "ancient_geography",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "bethlehem_1",
+    "section_name": "historical_context",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "bethlehem_1",
+    "section_name": "archaeology",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "bethlehem_1",
+    "section_name": "modern_context",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "bethlehem_1",
+    "section_name": "identification_notes",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "bethlehem_1",
+    "section_name": "homiletical_context",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "nazareth",
+    "section_name": "biblical_significance",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "nazareth",
+    "section_name": "key_events",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "nazareth",
+    "section_name": "ancient_geography",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "nazareth",
+    "section_name": "historical_context",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "nazareth",
+    "section_name": "archaeology",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "nazareth",
+    "section_name": "modern_context",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "nazareth",
+    "section_name": "identification_notes",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "nazareth",
+    "section_name": "homiletical_context",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "capernaum",
+    "section_name": "biblical_significance",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "capernaum",
+    "section_name": "key_events",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "capernaum",
+    "section_name": "ancient_geography",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "capernaum",
+    "section_name": "historical_context",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "capernaum",
+    "section_name": "archaeology",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "capernaum",
+    "section_name": "modern_context",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "capernaum",
+    "section_name": "identification_notes",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "capernaum",
+    "section_name": "homiletical_context",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "jericho_1",
+    "section_name": "biblical_significance",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "jericho_1",
+    "section_name": "key_events",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "jericho_1",
+    "section_name": "ancient_geography",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "jericho_1",
+    "section_name": "historical_context",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "jericho_1",
+    "section_name": "archaeology",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "jericho_1",
+    "section_name": "modern_context",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "jericho_1",
+    "section_name": "identification_notes",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "jericho_1",
+    "section_name": "homiletical_context",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "shechem",
+    "section_name": "biblical_significance",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "shechem",
+    "section_name": "key_events",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "shechem",
+    "section_name": "ancient_geography",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "shechem",
+    "section_name": "historical_context",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "shechem",
+    "section_name": "archaeology",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "shechem",
+    "section_name": "modern_context",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "shechem",
+    "section_name": "identification_notes",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "shechem",
+    "section_name": "homiletical_context",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "bethel_1",
+    "section_name": "biblical_significance",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "bethel_1",
+    "section_name": "key_events",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "bethel_1",
+    "section_name": "ancient_geography",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "bethel_1",
+    "section_name": "historical_context",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "bethel_1",
+    "section_name": "archaeology",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "bethel_1",
+    "section_name": "modern_context",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "bethel_1",
+    "section_name": "identification_notes",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "bethel_1",
+    "section_name": "homiletical_context",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "hebron",
+    "section_name": "biblical_significance",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "hebron",
+    "section_name": "key_events",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "hebron",
+    "section_name": "ancient_geography",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "hebron",
+    "section_name": "historical_context",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "hebron",
+    "section_name": "archaeology",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "hebron",
+    "section_name": "modern_context",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "hebron",
+    "section_name": "identification_notes",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "hebron",
+    "section_name": "homiletical_context",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "beersheba_1",
+    "section_name": "biblical_significance",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "beersheba_1",
+    "section_name": "key_events",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "beersheba_1",
+    "section_name": "ancient_geography",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "beersheba_1",
+    "section_name": "historical_context",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "beersheba_1",
+    "section_name": "archaeology",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "beersheba_1",
+    "section_name": "modern_context",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "beersheba_1",
+    "section_name": "identification_notes",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "beersheba_1",
+    "section_name": "homiletical_context",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "mount_sinai",
+    "section_name": "biblical_significance",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "mount_sinai",
+    "section_name": "key_events",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "mount_sinai",
+    "section_name": "ancient_geography",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "mount_sinai",
+    "section_name": "historical_context",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "mount_sinai",
+    "section_name": "archaeology",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "mount_sinai",
+    "section_name": "modern_context",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "mount_sinai",
+    "section_name": "identification_notes",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "mount_sinai",
+    "section_name": "homiletical_context",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "kadesh_barnea",
+    "section_name": "biblical_significance",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "kadesh_barnea",
+    "section_name": "key_events",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "kadesh_barnea",
+    "section_name": "ancient_geography",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "kadesh_barnea",
+    "section_name": "historical_context",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "kadesh_barnea",
+    "section_name": "archaeology",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "kadesh_barnea",
+    "section_name": "modern_context",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "kadesh_barnea",
+    "section_name": "identification_notes",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "kadesh_barnea",
+    "section_name": "homiletical_context",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "babylon_1",
+    "section_name": "biblical_significance",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "babylon_1",
+    "section_name": "key_events",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "babylon_1",
+    "section_name": "ancient_geography",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "babylon_1",
+    "section_name": "historical_context",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "babylon_1",
+    "section_name": "archaeology",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "babylon_1",
+    "section_name": "modern_context",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "babylon_1",
+    "section_name": "identification_notes",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "babylon_1",
+    "section_name": "homiletical_context",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "nineveh",
+    "section_name": "biblical_significance",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "nineveh",
+    "section_name": "key_events",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "nineveh",
+    "section_name": "ancient_geography",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "nineveh",
+    "section_name": "historical_context",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "nineveh",
+    "section_name": "archaeology",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "nineveh",
+    "section_name": "modern_context",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "nineveh",
+    "section_name": "identification_notes",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "nineveh",
+    "section_name": "homiletical_context",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "antioch_syria",
+    "section_name": "biblical_significance",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "antioch_syria",
+    "section_name": "key_events",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "antioch_syria",
+    "section_name": "ancient_geography",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "antioch_syria",
+    "section_name": "historical_context",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "antioch_syria",
+    "section_name": "archaeology",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "antioch_syria",
+    "section_name": "modern_context",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "antioch_syria",
+    "section_name": "identification_notes",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "antioch_syria",
+    "section_name": "homiletical_context",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "ephesus",
+    "section_name": "biblical_significance",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "ephesus",
+    "section_name": "key_events",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "ephesus",
+    "section_name": "ancient_geography",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "ephesus",
+    "section_name": "historical_context",
+    "quality_status": "strong",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "ephesus",
+    "section_name": "archaeology",
+    "quality_status": "strong",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "ephesus",
+    "section_name": "modern_context",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "ephesus",
+    "section_name": "identification_notes",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "ephesus",
+    "section_name": "homiletical_context",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "corinth",
+    "section_name": "biblical_significance",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "corinth",
+    "section_name": "key_events",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "corinth",
+    "section_name": "ancient_geography",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "corinth",
+    "section_name": "historical_context",
+    "quality_status": "strong",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "corinth",
+    "section_name": "archaeology",
+    "quality_status": "strong",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "corinth",
+    "section_name": "modern_context",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "corinth",
+    "section_name": "identification_notes",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "corinth",
+    "section_name": "homiletical_context",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "philippi",
+    "section_name": "biblical_significance",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "philippi",
+    "section_name": "key_events",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "philippi",
+    "section_name": "ancient_geography",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "philippi",
+    "section_name": "historical_context",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "philippi",
+    "section_name": "archaeology",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "philippi",
+    "section_name": "modern_context",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "philippi",
+    "section_name": "identification_notes",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "philippi",
+    "section_name": "homiletical_context",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "athens",
+    "section_name": "biblical_significance",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "athens",
+    "section_name": "key_events",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "athens",
+    "section_name": "ancient_geography",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "athens",
+    "section_name": "historical_context",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "athens",
+    "section_name": "archaeology",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "athens",
+    "section_name": "modern_context",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "athens",
+    "section_name": "identification_notes",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "athens",
+    "section_name": "homiletical_context",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "caesarea",
+    "section_name": "biblical_significance",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "caesarea",
+    "section_name": "key_events",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "caesarea",
+    "section_name": "ancient_geography",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "caesarea",
+    "section_name": "historical_context",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "caesarea",
+    "section_name": "archaeology",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "caesarea",
+    "section_name": "modern_context",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "caesarea",
+    "section_name": "identification_notes",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "caesarea",
+    "section_name": "homiletical_context",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "rome",
+    "section_name": "biblical_significance",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "rome",
+    "section_name": "key_events",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "rome",
+    "section_name": "ancient_geography",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "rome",
+    "section_name": "historical_context",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "rome",
+    "section_name": "archaeology",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  },
+  {
+    "place_id": "rome",
+    "section_name": "modern_context",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "rome",
+    "section_name": "identification_notes",
+    "quality_status": "acceptable",
+    "generic_pattern": null,
+    "source_support_status": "source_backed",
+    "recommended_action": "keep",
+    "replacement_required": false,
+    "review_notes_hu": "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+  },
+  {
+    "place_id": "rome",
+    "section_name": "homiletical_context",
+    "quality_status": "missing",
+    "generic_pattern": null,
+    "source_support_status": "not_applicable",
+    "recommended_action": "leave_missing_until_source_research",
+    "replacement_required": false,
+    "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni."
+  }
+]

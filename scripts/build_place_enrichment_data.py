@@ -15,6 +15,7 @@ from biblical_place_enrichment import (  # noqa: E402
     PLACE_ENRICHMENT_PRIORITY_PATH,
     PLACE_ENRICHMENT_SOURCES_PATH,
     PLACE_ENRICHMENTS_PATH,
+    PLACE_PROFILE_GROUPS_PATH,
     related_route_ids_for_place,
 )
 
@@ -26,6 +27,9 @@ PASSAGE_LINKS_PATH = DATA_DIR / "passage_place_links.json"
 SOURCE_AUDIT_PATH = DATA_DIR / "place_enrichment_source_audit.json"
 PILOT_RESOLUTION_PATH = DATA_DIR / "place_enrichment_pilot_resolution.json"
 PILOT_REPORT_PATH = DATA_DIR / "place_enrichment_pilot_report.json"
+PILOT_QUALITY_AUDIT_PATH = DATA_DIR / "place_enrichment_pilot_quality_audit.json"
+CONTENT_QUALITY_REPORT_PATH = DATA_DIR / "place_enrichment_content_quality_report.json"
+RESEARCH_QUEUE_PATH = DATA_DIR / "place_enrichment_research_queue.json"
 
 OPENBIBLE_SOURCE_ID = "openbible_geocoding_cc_by_4_0"
 
@@ -53,6 +57,12 @@ PILOT_TARGETS = [
 ]
 
 MANUAL_PRIORITY = {place_id: 100 for _, place_id, _ in PILOT_TARGETS}
+INSTITUTIONAL_SOURCE_TYPES = {
+    "scholarly_archaeological_reference",
+    "official_archaeological_site",
+    "international_heritage_reference",
+}
+PROFILE_STATUS_LABELS = {"partial", "source_backed", "featured", "needs_review", "basic_only"}
 
 
 def read_json(path: Path) -> Any:
@@ -171,6 +181,10 @@ def build_priority() -> None:
     places = read_json(CATALOG_PATH)
     links = read_json(PASSAGE_LINKS_PATH)
     routes = read_json(ROUTES_PATH)
+    quality_audit = read_json(PILOT_QUALITY_AUDIT_PATH) if PILOT_QUALITY_AUDIT_PATH.exists() else []
+    quality_by_place = {item["resolved_place_id"]: item for item in quality_audit}
+    research_queue = read_json(RESEARCH_QUEUE_PATH) if RESEARCH_QUEUE_PATH.exists() else []
+    research_counts = Counter(item["place_id"] for item in research_queue)
     passage_counts = Counter(link["place_id"] for link in links)
     books_by_place: dict[str, set[str]] = defaultdict(set)
     for link in links:
@@ -208,6 +222,21 @@ def build_priority() -> None:
             tier = "medium"
         else:
             tier = "basic"
+        quality = quality_by_place.get(place_id, {})
+        enrichment_status = quality.get("profile_status", "basic")
+        source_gap_count = research_counts[place_id]
+        record_resolution_needed = enrichment_status == "needs_record_resolution"
+        research_priority = source_gap_count * 10 + (25 if manual_priority and source_gap_count else 0)
+        if record_resolution_needed:
+            next_action = "resolve_record_profile_group"
+        elif source_gap_count:
+            next_action = "research_sources"
+        elif enrichment_status in {"featured", "source_backed"}:
+            next_action = "ready_for_reviewed_use"
+        elif enrichment_status == "partial":
+            next_action = "expand_when_sources_available"
+        else:
+            next_action = "basic_catalog_only"
         rows.append(
             {
                 "place_id": place_id,
@@ -221,6 +250,12 @@ def build_priority() -> None:
                 "manual_priority": manual_priority,
                 "total_score": total_score,
                 "priority_tier": tier,
+                "enrichment_status": enrichment_status,
+                "content_quality_score": quality.get("content_quality_score", 0),
+                "source_gap_count": source_gap_count,
+                "record_resolution_needed": record_resolution_needed,
+                "research_priority": research_priority,
+                "next_action": next_action,
             }
         )
     rows.sort(key=lambda item: (-item["total_score"], item["place_id"]))
@@ -239,19 +274,6 @@ def event_items(place_id: str, links: list[dict[str, Any]], route_index: dict[st
             {
                 "summary_hu": route_stop["event_summary_hu"],
                 "passage_refs": refs,
-                "source_ids": [OPENBIBLE_SOURCE_ID],
-            }
-        )
-        if len(items) >= 6:
-            return items
-    for link in links:
-        if link["place_id"] != place_id or link["reference"] in seen_refs:
-            continue
-        seen_refs.add(link["reference"])
-        items.append(
-            {
-                "summary_hu": f"A hely ehhez a bibliai hivatkozáshoz kapcsolódik: {link['reference']}.",
-                "passage_refs": [link["reference"]],
                 "source_ids": [OPENBIBLE_SOURCE_ID],
             }
         )
@@ -280,6 +302,37 @@ def geography_text(place: dict[str, Any]) -> str:
     if modern:
         return f"A rekord mai azonosításként ezt adja meg: {modern}."
     return f"A rekord koordinátái: {place['latitude']:.4f}, {place['longitude']:.4f}."
+
+
+def profile_status_for_enrichment(enrichment: dict[str, Any]) -> str:
+    sections = enrichment.get("sections") or {}
+    if not sections:
+        return "basic_only"
+    if any(section.get("review_status") == "needs_review" for section in sections.values() if isinstance(section, dict)):
+        return "needs_review"
+    source_ids = {
+        source_id
+        for section in sections.values()
+        for source_id in (
+            section.get("source_ids")
+            if "source_ids" in section
+            else [
+                event_source
+                for event in section.get("items", [])
+                for event_source in event.get("source_ids", [])
+            ]
+        )
+    }
+    if (
+        len(sections) >= 4
+        and len(source_ids) >= 2
+        and "key_events" in sections
+        and any(source_id in source_ids for source_id in ("ascsa_ancient_corinth_history", "hellenic_ministry_ancient_corinth", "turkiye_ephesus_archaeological_site", "unesco_ephesus_1018"))
+    ):
+        return "featured"
+    if len(sections) >= 3:
+        return "source_backed"
+    return "partial"
 
 
 def significance_text(place: dict[str, Any], passage_count: int, route_count: int) -> str:
@@ -343,7 +396,7 @@ def build_pilot_enrichments() -> None:
                 "review_status": "source_backed",
             }
         sections["ancient_geography"] = text_section(
-            place.get("geography_hu") or geography_text(place),
+            place.get("geography_hu"),
             source_ids,
             "high" if place.get("identification_status") == "certain" else "medium",
         )
@@ -356,22 +409,18 @@ def build_pilot_enrichments() -> None:
             "high" if place.get("identification_status") in {"certain", "probable"} else "medium",
             "source_backed" if place.get("identification_status") in {"certain", "probable"} else "needs_review",
         )
-        if route_ids:
-            route_names = [route["name_hu"] for route in routes if route["route_id"] in route_ids]
-            sections["homiletical_context"] = text_section(
-                "A hely értelmezési szempontból azért jelentős, mert a jelenlegi route-adatokban "
-                f"kapcsolódik ezekhez az útvonalakhoz: {', '.join(route_names)}. Ez útvonal- és szövegösszefüggést jelez, nem kész alkalmazást.",
-                [OPENBIBLE_SOURCE_ID],
-                "medium",
-            )
         sections = {key: value for key, value in sections.items() if value}
+        draft_enrichment = {
+            "sections": sections,
+        }
+        status = profile_status_for_enrichment(draft_enrichment)
         enrichment = {
             "place_id": place_id,
-            "profile_tier": "featured",
+            "profile_tier": "featured" if status == "featured" else "high" if status == "source_backed" else "basic",
             "content_version": 1,
             "sections": sections,
             "related_route_ids": route_ids,
-            "editorial_notes_hu": "Pilot bővített adatlap; rövid, forrásolt, ellenőrizhető összefoglaló.",
+            "editorial_notes_hu": "Pilot bővített adatlap; sablonos töltelékszakaszok nélkül, a jelenlegi jóváhagyott forrásokra korlátozva.",
             "overall_review_status": "needs_review"
             if any(value.get("review_status") == "needs_review" for value in sections.values() if isinstance(value, dict))
             else "source_backed",
@@ -466,10 +515,345 @@ def duplicate_risk_note(place_id: str) -> str | None:
     return notes.get(place_id)
 
 
+def build_profile_groups() -> None:
+    groups = [
+        {
+            "profile_id": "jericho_site",
+            "name_hu": "Jerikó",
+            "primary_place_id": "jericho_1",
+            "member_place_ids": ["jericho_1", "jericho_2", "valley_of_jericho", "waters_of_jericho"],
+            "relationship_type": "same_site_different_period_or_feature",
+            "shared_sections": ["modern_context", "identification_notes"],
+            "record_specific_sections": [
+                "biblical_significance",
+                "key_events",
+                "historical_context",
+                "archaeology",
+                "homiletical_context",
+            ],
+            "review_status": "reviewed",
+            "notes_hu": "A rekordok Jerikó tágabb helycsoportjához tartoznak, de korszak, funkció vagy földrajzi részlet szerint külön canonical rekordok maradnak.",
+        },
+        {
+            "profile_id": "sinai_area",
+            "name_hu": "Sínai térsége",
+            "primary_place_id": "mount_sinai",
+            "member_place_ids": ["mount_sinai", "mount_horeb", "wilderness_of_sinai"],
+            "relationship_type": "related_mountain_and_region_records",
+            "shared_sections": ["modern_context", "identification_notes"],
+            "record_specific_sections": [
+                "biblical_significance",
+                "key_events",
+                "historical_context",
+                "archaeology",
+                "homiletical_context",
+            ],
+            "review_status": "needs_review",
+            "notes_hu": "A hegy- és pusztarekordok kapcsolódnak, de nem azonos rekordtípusok; a pontos azonosítási hagyományok szakmai forráskutatást igényelnek.",
+        },
+    ]
+    write_json(PLACE_PROFILE_GROUPS_PATH, groups)
+
+
+def search_default_place_id(requested_name: str, places: list[dict[str, Any]]) -> str | None:
+    needle = normalize_search(requested_name)
+    ranked = []
+    for place in places:
+        values = [
+            place.get("name_hu"),
+            place.get("name_en"),
+            place.get("modern_name"),
+            place.get("place_id"),
+            *(place.get("ancient_names") or []),
+            *(place.get("transliterations") or []),
+        ]
+        haystacks = [normalize_search(value) for value in values if value]
+        if not haystacks:
+            continue
+        score = 0
+        if any(item == needle for item in haystacks):
+            score = 300
+        elif any(item.startswith(needle) for item in haystacks):
+            score = 200
+        elif any(needle in item for item in haystacks):
+            score = 100
+        if score:
+            ranked.append((score, str(place.get("name_hu") or place.get("name_en") or "").casefold(), place["place_id"]))
+    ranked.sort(key=lambda item: (-item[0], item[1], item[2]))
+    return ranked[0][2] if ranked else None
+
+
+def normalize_search(value: Any) -> str:
+    text = str(value or "").casefold()
+    replacements = {
+        "á": "a",
+        "é": "e",
+        "í": "i",
+        "ó": "o",
+        "ö": "o",
+        "ő": "o",
+        "ú": "u",
+        "ü": "u",
+        "ű": "u",
+    }
+    for old, new in replacements.items():
+        text = text.replace(old, new)
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def related_places_for_requested_name(requested_name: str, places: list[dict[str, Any]]) -> list[str]:
+    tokens = [token for token in re.split(r"[\s/-]+", normalize_search(requested_name)) if len(token) >= 4]
+    if not tokens:
+        return []
+    result = []
+    for place in places:
+        values = " ".join(
+            str(value or "")
+            for value in [
+                place.get("place_id"),
+                place.get("name_hu"),
+                place.get("name_en"),
+                place.get("modern_name"),
+                *(place.get("ancient_names") or []),
+            ]
+        )
+        normalized = normalize_search(values)
+        if any(token in normalized for token in tokens):
+            result.append(place["place_id"])
+    return result
+
+
+def source_stats(enrichment: dict[str, Any], sources_by_id: dict[str, dict[str, Any]]) -> tuple[int, list[str], int]:
+    source_ids = sorted_unique(
+        [
+            source_id
+            for section in enrichment.get("sections", {}).values()
+            for source_id in (
+                section.get("source_ids")
+                if "source_ids" in section
+                else [
+                    event_source
+                    for event in section.get("items", [])
+                    for event_source in event.get("source_ids", [])
+                ]
+            )
+        ]
+    )
+    source_types = sorted_unique([sources_by_id.get(source_id, {}).get("source_type") for source_id in source_ids])
+    institutional_count = sum(
+        1
+        for source_id in source_ids
+        if sources_by_id.get(source_id, {}).get("source_type") in INSTITUTIONAL_SOURCE_TYPES
+    )
+    return len(source_ids), source_types, institutional_count
+
+
+def generic_findings_for_section(section_name: str, section: dict[str, Any]) -> list[str]:
+    findings: list[str] = []
+    if section_name == "key_events":
+        for event in section.get("items", []):
+            text = event.get("summary_hu") or ""
+            if "A hely ehhez a bibliai hivatkozáshoz kapcsolódik" in text:
+                findings.append("generic_passage_link_event")
+        return findings
+    text = section.get("text_hu") or ""
+    if "A rekord szerint a hely típusa" in text or "A rekord mai azonosításként" in text:
+        findings.append("catalog_field_sentence")
+    if "A hely értelmezési szempontból azért jelentős" in text or "jelenlegi route-adatokban" in text:
+        findings.append("route_list_homiletical_context")
+    return findings
+
+
+def build_content_quality_report() -> list[dict[str, Any]]:
+    enrichments = read_json(PLACE_ENRICHMENTS_PATH)
+    rows: list[dict[str, Any]] = []
+    expected_sections = [
+        "biblical_significance",
+        "key_events",
+        "ancient_geography",
+        "historical_context",
+        "archaeology",
+        "modern_context",
+        "identification_notes",
+        "homiletical_context",
+    ]
+    for enrichment in enrichments:
+        place_id = enrichment["place_id"]
+        for section_name in expected_sections:
+            section = (enrichment.get("sections") or {}).get(section_name)
+            if section is None:
+                rows.append(
+                    {
+                        "place_id": place_id,
+                        "section_name": section_name,
+                        "quality_status": "missing",
+                        "generic_pattern": None,
+                        "source_support_status": "not_applicable",
+                        "recommended_action": "leave_missing_until_source_research",
+                        "replacement_required": False,
+                        "review_notes_hu": "A hiányzó szakasz nem technikai hiba; csak jóváhagyott forrással érdemes pótolni.",
+                    }
+                )
+                continue
+            findings = generic_findings_for_section(section_name, section)
+            status = "generic" if findings else "acceptable"
+            if section_name in {"archaeology", "historical_context"} and findings:
+                status = "unsupported"
+            if section_name in {"archaeology", "historical_context"} and place_id in {"corinth", "ephesus"} and not findings:
+                status = "strong"
+            if section_name == "homiletical_context" and not findings:
+                status = "acceptable"
+            rows.append(
+                {
+                    "place_id": place_id,
+                    "section_name": section_name,
+                    "quality_status": status,
+                    "generic_pattern": findings[0] if findings else None,
+                    "source_support_status": "needs_review" if findings else "source_backed",
+                    "recommended_action": "remove_or_rewrite_with_sources" if findings else "keep",
+                    "replacement_required": bool(findings),
+                    "review_notes_hu": (
+                        "A szakasz sablonos vagy túl általános; a pilot tisztított adataiból eltávolítandó."
+                        if findings
+                        else "A szakasz a jelenlegi forráskeretek között megjeleníthető."
+                    ),
+                }
+            )
+    write_json(CONTENT_QUALITY_REPORT_PATH, rows)
+    return rows
+
+
+def build_research_queue() -> list[dict[str, Any]]:
+    enrichments = read_json(PLACE_ENRICHMENTS_PATH)
+    places = {place["place_id"]: place for place in read_json(CATALOG_PATH)}
+    groups = read_json(PLACE_PROFILE_GROUPS_PATH) if PLACE_PROFILE_GROUPS_PATH.exists() else []
+    group_by_place = {
+        place_id: group["profile_id"]
+        for group in groups
+        for place_id in group.get("member_place_ids", [])
+    }
+    queue: list[dict[str, Any]] = []
+    for enrichment in enrichments:
+        place_id = enrichment["place_id"]
+        place = places[place_id]
+        sections = enrichment.get("sections") or {}
+        needs_archaeology = "archaeology" not in sections
+        needs_history = "historical_context" not in sections
+        if needs_archaeology:
+            queue.append(
+                {
+                    "place_id": place_id,
+                    "name_hu": place.get("name_hu"),
+                    "profile_id": group_by_place.get(place_id),
+                    "missing_section": "archaeology",
+                    "current_status": profile_status_for_enrichment(enrichment),
+                    "required_source_type": "official_archaeological_site_or_scholarly_archaeological_reference",
+                    "suggested_institution_type": "ásatási, múzeumi, örökségvédelmi vagy egyetemi forrás",
+                    "research_question_hu": "Van-e ellenőrizhető, helyspecifikus régészeti forrás, amely rövid háttérszakaszt támaszthat alá?",
+                    "priority": "high" if place_id in {"jerusalem", "jericho_1", "capernaum", "philippi", "babylon_1", "mount_sinai"} else "medium",
+                    "blocking_for_featured": True,
+                    "notes_hu": "OpenBible vagy puszta koordinátaadat önmagában nem elegendő régészeti szakaszhoz.",
+                }
+            )
+        if needs_history:
+            queue.append(
+                {
+                    "place_id": place_id,
+                    "name_hu": place.get("name_hu"),
+                    "profile_id": group_by_place.get(place_id),
+                    "missing_section": "historical_context",
+                    "current_status": profile_status_for_enrichment(enrichment),
+                    "required_source_type": "scholarly_or_institutional_historical_reference",
+                    "suggested_institution_type": "egyetemi, múzeumi, tudományos vagy intézményi forrás",
+                    "research_question_hu": "Van-e helyspecifikus történeti háttérforrás, amely nem általános korszakleírás?",
+                    "priority": "high" if place_id in {"jerusalem", "jericho_1", "babylon_1", "mount_sinai"} else "medium",
+                    "blocking_for_featured": place_id not in {"corinth", "ephesus"},
+                    "notes_hu": "Új történeti állítás csak jóváhagyott forrás alapján kerülhet be.",
+                }
+            )
+    write_json(RESEARCH_QUEUE_PATH, queue)
+    return queue
+
+
+def build_pilot_quality_audit() -> list[dict[str, Any]]:
+    places = read_json(CATALOG_PATH)
+    places_by_id = {place["place_id"]: place for place in places}
+    enrichments = {item["place_id"]: item for item in read_json(PLACE_ENRICHMENTS_PATH)}
+    sources_by_id = {source["source_id"]: source for source in read_json(PLACE_ENRICHMENT_SOURCES_PATH)}
+    groups = read_json(PLACE_PROFILE_GROUPS_PATH) if PLACE_PROFILE_GROUPS_PATH.exists() else []
+    group_members_by_place = {
+        place_id: group.get("member_place_ids", [])
+        for group in groups
+        for place_id in group.get("member_place_ids", [])
+    }
+    rows = []
+    for requested_name, resolved_place_id, rationale in PILOT_TARGETS:
+        enrichment = enrichments.get(resolved_place_id)
+        related_ids = related_places_for_requested_name(requested_name, places)
+        group_members = group_members_by_place.get(resolved_place_id, [])
+        if group_members:
+            related_ids = sorted_unique([*related_ids, *group_members])
+        ui_default = search_default_place_id(requested_name, places)
+        source_count, source_diversity, institutional_count = source_stats(enrichment or {"sections": {}}, sources_by_id)
+        generic_findings = [
+            finding
+            for section_name, section in (enrichment.get("sections") if enrichment else {}).items()
+            for finding in generic_findings_for_section(section_name, section)
+        ]
+        profile_status = "basic_only"
+        if enrichment:
+            profile_status = profile_status_for_enrichment(enrichment)
+            if related_ids and ui_default != resolved_place_id and resolved_place_id in related_ids:
+                profile_status = "needs_record_resolution"
+            elif institutional_count == 0 and profile_status == "featured":
+                profile_status = "needs_source_research"
+        rows.append(
+            {
+                "requested_name_hu": requested_name,
+                "resolved_place_id": resolved_place_id,
+                "ui_default_place_id": ui_default,
+                "related_canonical_place_ids": related_ids,
+                "same_physical_site": bool(group_members),
+                "distinct_record_reason": duplicate_risk_note(resolved_place_id) or rationale,
+                "enrichment_available": enrichment is not None,
+                "rendered_in_ui": enrichment is not None and ui_default == resolved_place_id,
+                "filled_sections": sorted((enrichment.get("sections") or {}).keys()) if enrichment else [],
+                "source_count": source_count,
+                "source_diversity": source_diversity,
+                "institutional_source_count": institutional_count,
+                "generic_content_findings": sorted_unique(generic_findings),
+                "profile_status": profile_status,
+                "content_quality_score": max(0, len((enrichment.get("sections") or {})) * 20 - len(generic_findings) * 25) if enrichment else 0,
+                "recommended_action": recommended_action(profile_status, generic_findings, institutional_count),
+                "review_notes_hu": "A rekordkapcsolat és a tartalmi lefedettség dokumentálva; a hiányzó részek research queue-ba kerülnek.",
+            }
+        )
+    write_json(PILOT_QUALITY_AUDIT_PATH, rows)
+    return rows
+
+
+def recommended_action(profile_status: str, generic_findings: list[str], institutional_count: int) -> str:
+    if generic_findings:
+        return "remove_generic_content"
+    if profile_status == "needs_record_resolution":
+        return "review_profile_group_and_ui_default"
+    if profile_status == "needs_source_research" or institutional_count == 0:
+        return "research_additional_sources"
+    if profile_status == "featured":
+        return "ready_for_public_pilot"
+    if profile_status in {"source_backed", "partial"}:
+        return "usable_but_expand_later"
+    return "keep_basic_until_sources_exist"
+
+
 def main() -> None:
     build_source_audit_and_registry()
-    build_priority()
+    build_profile_groups()
     build_pilot_enrichments()
+    build_content_quality_report()
+    build_research_queue()
+    build_pilot_quality_audit()
+    build_priority()
 
 
 if __name__ == "__main__":
