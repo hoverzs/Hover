@@ -24,6 +24,7 @@ ALLOWED_ROUTE_CATEGORIES = {
     "patriarchal_journey",
     "exodus",
     "wilderness_journey",
+    "conquest_campaign",
     "royal_campaign",
     "prophetic_journey",
     "deportation",

@@ -72,6 +72,7 @@ Ugyanaz a `place_id` több stopban is szerepelhet, ha a bibliai út oda- és vis
 - `patriarchal_journey`
 - `exodus`
 - `wilderness_journey`
+- `conquest_campaign`
 - `royal_campaign`
 - `prophetic_journey`
 - `deportation`
@@ -128,6 +129,36 @@ Pál harmadik missziói útja szintén a szíriai Antiókhiából indul, és Jer
 Pál Jeruzsálemből Rómába vezető útja Jeruzsálemből indul, Antipatrisz és Caesarea érintésével halad a tengeri szakaszok felé, majd Rómában zárul. Antipatrisz a katalógus aktív `aphek_2` rekordjára mutat megjelenítési override-dal. Az Adriai-tenger `region` / `transit` stop, nem modern pontos koordinátára épített helymeghatározás.
 
 Region és transit stopok esetén a `place_id` továbbra is aktív katalógusrekordra mutat. A UI ugyanúgy meg tudja jeleníteni őket, de a stop `stop_type` és `source_notes_hu` mezője jelzi, ha a szöveg régiót vagy tengeri tájékozódási pontot nevez meg.
+
+## Józsué honfoglalási hadjáratai
+
+A `joshua_conquest_campaigns` route-family három egymásra épülő, sematikus hadjárati route-ot tartalmaz. A route-ok Józsué könyvének megnevezett helyeit és eseményhelyszíneit követik; nem rekonstruálnak modern közúti útvonalat, katonai mellékutat vagy törzsi területfelosztást. A törzsi területfelosztás későbbi területi rétegként készülhet, nem route-ként.
+
+- `joshua_jordan_crossing_central_campaign`: A Jordán átkelése és a középső hadjárat, `Jozs 2,1-8,35`, 10 stop, 9 segment.
+- `joshua_southern_campaign`: Józsué déli hadjárata, `Jozs 9,1-10,43`, 15 stop, 14 segment.
+- `joshua_northern_campaign`: Józsué északi hadjárata, `Jozs 11,1-23`, 10 stop, 8 segment.
+
+Route-family sorrend:
+
+- 1/3: `joshua_jordan_crossing_central_campaign`
+- 2/3: `joshua_southern_campaign`
+- 3/3: `joshua_northern_campaign`
+
+Journey phase-ek:
+
+- középső route: Felderítés és előkészület; Átkelés a Jordánon; Jerikó elfoglalása; Aj hadjárata; Szövetségmegújítás Sikem térségében.
+- déli route: A gibeóni szövetség; Gibeón megsegítése; Üldözés és Makkédá; A déli városok hadjárata; Visszatérés Gilgálba.
+- északi route: Az északi szövetség; Ütközet Mérom vizeinél; Az ellenség üldözése; Hácór elfoglalása; Az északi hadjárat lezárása.
+
+Szakmailag bizonytalan vagy óvatosan kezelt pontok:
+
+- Gilgál az északi hadjáratnál csak a `Jozs 10,43` és `Jozs 11` narratív folytonossága alapján szerepel, `possible` bizonyossággal.
+- A Jordán átkelésének pontos pontja nem kap hamis pontosságot; a `jordan` folyórekordhoz kötött approximate stop.
+- Mérom vizei és Miszrefót-Majim azonosítása `possible`, ezért approximate stopként szerepel.
+- Bét-Hórón emelkedője topográfiai eseménypont, de a katalógus aktív települési rekordjához kapcsolódik approximate megjegyzéssel.
+- Az északi üldözés többirányú: Mérom vizeitől külön sematikus segmentek vezetnek Szidón, Miszrefót-Majim és a Micpe-völgy felé. A route nem kényszeríti ezt egyetlen lineáris láncba.
+
+A validációs riport helye: `data/biblical_routes/joshua_conquest_validation_report.json`.
 
 ## Új route hozzáadása
 

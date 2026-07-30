@@ -4009,5 +4009,1053 @@
         "geometry": null
       }
     ]
+  },
+  {
+    "route_id": "joshua_jordan_crossing_central_campaign",
+    "route_family_id": "joshua_conquest_campaigns",
+    "family_name_hu": "Józsué honfoglalási hadjáratai",
+    "route_sequence_order": 1,
+    "previous_route_id": null,
+    "next_route_id": "joshua_southern_campaign",
+    "name_hu": "A Jordán átkelése és a középső hadjárat",
+    "name_en": "The Jordan Crossing and Central Campaign",
+    "short_description_hu": "Az útvonal a bibliai szövegben megnevezett állomások és eseményhelyszínek sorrendjét mutatja. A vonalak sematikusak, nem a pontos történeti vagy katonai nyomvonalat jelölik.",
+    "route_category": "conquest_campaign",
+    "primary_passage_refs": [
+      "Jozs 2,1-8,35"
+    ],
+    "chronology_label_hu": "A honfoglalás kezdete és a középső hadjárat",
+    "chronology_sort_key": 10,
+    "certainty": "mixed",
+    "geometry_status": "schematic",
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "review_status": "draft",
+    "review_notes_hu": "A Jordán átkelésének pontos pontja és Aj/Bétel térségi stopja szakmai review-t igényel.",
+    "evidence_model": {
+      "station_order_basis": "biblical_text_named_stops",
+      "historical_route_status": "not_reconstructed",
+      "map_geometry_status": "schematic",
+      "precision_note_hu": "A vonalak a narratív sorrendet segítik látni; nem modern útvonalat és nem rekonstruált hadjárati mozgást jelölnek.",
+      "skipped_named_context_hu": [
+        "Sikem nem kap külön stopot, mert Jozs 8,30-35 nem nevezi meg külön városként."
+      ]
+    },
+    "stops": [
+      {
+        "order": 1,
+        "stop_id": "shittim_spies_departure",
+        "place_id": "shittim",
+        "place_name_override_hu": "Sittím",
+        "passage_refs": [
+          "Jozs 2,1"
+        ],
+        "event_summary_hu": "Józsué kémeket küld Jerikóba.",
+        "certainty": "probable",
+        "stop_type": "embarkation",
+        "source_notes_hu": "A sorrend a megadott Józsué-szakasz megnevezett helyeit követi.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció.",
+        "sequence_status": "explicit",
+        "journey_phase": "Felderítés és előkészület"
+      },
+      {
+        "order": 2,
+        "stop_id": "jericho_spies",
+        "place_id": "jericho_1",
+        "place_name_override_hu": "Jerikó",
+        "passage_refs": [
+          "Jozs 2,1-24"
+        ],
+        "event_summary_hu": "A kémek Jerikóban járnak.",
+        "certainty": "certain",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "A sorrend a megadott Józsué-szakasz megnevezett helyeit követi.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció.",
+        "sequence_status": "explicit",
+        "journey_phase": "Felderítés és előkészület"
+      },
+      {
+        "order": 3,
+        "stop_id": "jordan_crossing",
+        "place_id": "jordan",
+        "place_name_override_hu": "A Jordán átkelésének térsége",
+        "passage_refs": [
+          "Jozs 3,1-17",
+          "Jozs 4,1-18"
+        ],
+        "event_summary_hu": "Izráel átkel a Jordánon.",
+        "certainty": "possible",
+        "stop_type": "uncertain_place",
+        "source_notes_hu": "A sorrend a megadott Józsué-szakasz megnevezett helyeit követi.",
+        "mapping_status": "approximate",
+        "display_on_map": true,
+        "mapping_notes_hu": "A pontos átkelési pont nem azonosítható teljes bizonyossággal; a Jordán aktív folyórekordja csak sematikus tájékozódási pont.",
+        "sequence_status": "explicit",
+        "journey_phase": "Átkelés a Jordánon"
+      },
+      {
+        "order": 4,
+        "stop_id": "gilgal_camp_central",
+        "place_id": "gilgal_1",
+        "place_name_override_hu": "Gilgál",
+        "passage_refs": [
+          "Jozs 4,19-5,12"
+        ],
+        "event_summary_hu": "A nép Gilgálnál tábort ver.",
+        "certainty": "probable",
+        "stop_type": "region",
+        "source_notes_hu": "A sorrend a megadott Józsué-szakasz megnevezett helyeit követi.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció.",
+        "sequence_status": "explicit",
+        "journey_phase": "Átkelés a Jordánon"
+      },
+      {
+        "order": 5,
+        "stop_id": "jericho_capture",
+        "place_id": "jericho_1",
+        "place_name_override_hu": "Jerikó",
+        "passage_refs": [
+          "Jozs 6,1-27"
+        ],
+        "event_summary_hu": "Jerikó városa elesik.",
+        "certainty": "certain",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "A sorrend a megadott Józsué-szakasz megnevezett helyeit követi.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció.",
+        "sequence_status": "explicit",
+        "journey_phase": "Jerikó elfoglalása"
+      },
+      {
+        "order": 6,
+        "stop_id": "ai_first_defeat",
+        "place_id": "ai_1",
+        "place_name_override_hu": "Aj",
+        "passage_refs": [
+          "Jozs 7,2-5"
+        ],
+        "event_summary_hu": "Az első Aj elleni támadás kudarcot vall.",
+        "certainty": "probable",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "A sorrend a megadott Józsué-szakasz megnevezett helyeit követi.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció.",
+        "sequence_status": "explicit",
+        "journey_phase": "Aj hadjárata"
+      },
+      {
+        "order": 7,
+        "stop_id": "between_ai_and_bethel",
+        "place_id": "bethel_1",
+        "place_name_override_hu": "Aj és Bétel közötti térség",
+        "passage_refs": [
+          "Jozs 8,9-12"
+        ],
+        "event_summary_hu": "A lesben álló csapat Aj és Bétel között helyezkedik el.",
+        "certainty": "probable",
+        "stop_type": "region",
+        "source_notes_hu": "A sorrend a megadott Józsué-szakasz megnevezett helyeit követi.",
+        "mapping_status": "approximate",
+        "display_on_map": true,
+        "mapping_notes_hu": "A szöveg Aj és Bétel közötti térséget említ; a Bétel-rekord sematikus tájékozódási pont.",
+        "sequence_status": "explicit",
+        "journey_phase": "Aj hadjárata"
+      },
+      {
+        "order": 8,
+        "stop_id": "ai_capture",
+        "place_id": "ai_1",
+        "place_name_override_hu": "Aj",
+        "passage_refs": [
+          "Jozs 8,1-29"
+        ],
+        "event_summary_hu": "Aj városát a második támadás során elfoglalják.",
+        "certainty": "probable",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "A sorrend a megadott Józsué-szakasz megnevezett helyeit követi.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció.",
+        "sequence_status": "explicit",
+        "journey_phase": "Aj hadjárata"
+      },
+      {
+        "order": 9,
+        "stop_id": "mount_ebal_covenant",
+        "place_id": "mount_ebal",
+        "place_name_override_hu": "Ébál-hegy",
+        "passage_refs": [
+          "Jozs 8,30-35"
+        ],
+        "event_summary_hu": "Az Ébál hegyén oltárt építenek.",
+        "certainty": "certain",
+        "stop_type": "region",
+        "source_notes_hu": "A sorrend a megadott Józsué-szakasz megnevezett helyeit követi.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció.",
+        "sequence_status": "explicit",
+        "journey_phase": "Szövetségmegújítás Sikem térségében"
+      },
+      {
+        "order": 10,
+        "stop_id": "mount_gerizim_covenant",
+        "place_id": "mount_gerizim",
+        "place_name_override_hu": "Garizim-hegy",
+        "passage_refs": [
+          "Jozs 8,33-35"
+        ],
+        "event_summary_hu": "Az Ébál és Garizim hegye mellett felolvassák a törvényt.",
+        "certainty": "certain",
+        "stop_type": "region",
+        "source_notes_hu": "A sorrend a megadott Józsué-szakasz megnevezett helyeit követi.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció.",
+        "sequence_status": "explicit",
+        "journey_phase": "Szövetségmegújítás Sikem térségében"
+      }
+    ],
+    "segments": [
+      {
+        "from_stop_id": "shittim_spies_departure",
+        "to_stop_id": "jericho_spies",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált hadjárati útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "jericho_spies",
+        "to_stop_id": "jordan_crossing",
+        "certainty": "mixed",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált hadjárati útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "jordan_crossing",
+        "to_stop_id": "gilgal_camp_central",
+        "certainty": "mixed",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált hadjárati útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "gilgal_camp_central",
+        "to_stop_id": "jericho_capture",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált hadjárati útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "jericho_capture",
+        "to_stop_id": "ai_first_defeat",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált hadjárati útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "ai_first_defeat",
+        "to_stop_id": "between_ai_and_bethel",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált hadjárati útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "between_ai_and_bethel",
+        "to_stop_id": "ai_capture",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált hadjárati útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "ai_capture",
+        "to_stop_id": "mount_ebal_covenant",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált hadjárati útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "mount_ebal_covenant",
+        "to_stop_id": "mount_gerizim_covenant",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált hadjárati útvonal.",
+        "waypoints": [],
+        "geometry": null
+      }
+    ]
+  },
+  {
+    "route_id": "joshua_southern_campaign",
+    "route_family_id": "joshua_conquest_campaigns",
+    "family_name_hu": "Józsué honfoglalási hadjáratai",
+    "route_sequence_order": 2,
+    "previous_route_id": "joshua_jordan_crossing_central_campaign",
+    "next_route_id": "joshua_northern_campaign",
+    "name_hu": "Józsué déli hadjárata",
+    "name_en": "Joshua's Southern Campaign",
+    "short_description_hu": "Az útvonal a bibliai szövegben megnevezett állomások és eseményhelyszínek sorrendjét mutatja. A vonalak sematikusak, nem a pontos történeti vagy katonai nyomvonalat jelölik.",
+    "route_category": "conquest_campaign",
+    "primary_passage_refs": [
+      "Jozs 9,1-10,43"
+    ],
+    "chronology_label_hu": "A déli hadjárat",
+    "chronology_sort_key": 11,
+    "certainty": "mixed",
+    "geometry_status": "schematic",
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "review_status": "draft",
+    "review_notes_hu": "Bét-Hórón emelkedője települési rekordhoz kapcsolt topográfiai stop; Gézer csak a király beavatkozásaként szerepel.",
+    "evidence_model": {
+      "station_order_basis": "biblical_text_named_stops",
+      "historical_route_status": "not_reconstructed",
+      "map_geometry_status": "schematic",
+      "precision_note_hu": "A vonalak a narratív sorrendet segítik látni; nem modern útvonalat és nem rekonstruált hadjárati mozgást jelölnek."
+    },
+    "stops": [
+      {
+        "order": 1,
+        "stop_id": "gilgal_gibeonite_treaty",
+        "place_id": "gilgal_1",
+        "place_name_override_hu": "Gilgál",
+        "passage_refs": [
+          "Jozs 9,6"
+        ],
+        "event_summary_hu": "A gibeóni küldöttek Gilgálban találkoznak Józsuéval.",
+        "certainty": "probable",
+        "stop_type": "region",
+        "source_notes_hu": "A sorrend a megadott Józsué-szakasz megnevezett helyeit követi.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció.",
+        "sequence_status": "explicit",
+        "journey_phase": "A gibeóni szövetség"
+      },
+      {
+        "order": 2,
+        "stop_id": "gibeon_treaty",
+        "place_id": "gibeon",
+        "place_name_override_hu": "Gibeón",
+        "passage_refs": [
+          "Jozs 9,3-27"
+        ],
+        "event_summary_hu": "Gibeón szövetséget köt Izráellel.",
+        "certainty": "certain",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "A sorrend a megadott Józsué-szakasz megnevezett helyeit követi.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció.",
+        "sequence_status": "explicit",
+        "journey_phase": "A gibeóni szövetség"
+      },
+      {
+        "order": 3,
+        "stop_id": "gilgal_defense_departure",
+        "place_id": "gilgal_1",
+        "place_name_override_hu": "Gilgál",
+        "passage_refs": [
+          "Jozs 10,6-9"
+        ],
+        "event_summary_hu": "Józsué Gilgálból indul Gibeón megsegítésére.",
+        "certainty": "probable",
+        "stop_type": "embarkation",
+        "source_notes_hu": "A sorrend a megadott Józsué-szakasz megnevezett helyeit követi.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció.",
+        "sequence_status": "explicit",
+        "journey_phase": "Gibeón megsegítése"
+      },
+      {
+        "order": 4,
+        "stop_id": "gibeon_defense",
+        "place_id": "gibeon",
+        "place_name_override_hu": "Gibeón",
+        "passage_refs": [
+          "Jozs 10,6-10"
+        ],
+        "event_summary_hu": "Izráel Gibeónnál megsegíti a várost.",
+        "certainty": "certain",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "A sorrend a megadott Józsué-szakasz megnevezett helyeit követi.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció.",
+        "sequence_status": "explicit",
+        "journey_phase": "Gibeón megsegítése"
+      },
+      {
+        "order": 5,
+        "stop_id": "beth_horon_pursuit",
+        "place_id": "upper_beth_horon",
+        "place_name_override_hu": "Bét-Hórón emelkedője",
+        "passage_refs": [
+          "Jozs 10,10-11"
+        ],
+        "event_summary_hu": "Az üldözés Bét-Hórón felé halad.",
+        "certainty": "probable",
+        "stop_type": "transit",
+        "source_notes_hu": "A sorrend a megadott Józsué-szakasz megnevezett helyeit követi.",
+        "mapping_status": "approximate",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógusban települési rekord szerepel; a stop a Jozs 10-ben említett emelkedő/út sematikus jelzése.",
+        "sequence_status": "explicit",
+        "journey_phase": "Üldözés és Makkédá"
+      },
+      {
+        "order": 6,
+        "stop_id": "azekah_pursuit",
+        "place_id": "azekah",
+        "place_name_override_hu": "Azéká",
+        "passage_refs": [
+          "Jozs 10,10-11"
+        ],
+        "event_summary_hu": "Az üldözés Azékáig tart.",
+        "certainty": "probable",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "A sorrend a megadott Józsué-szakasz megnevezett helyeit követi.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció.",
+        "sequence_status": "explicit",
+        "journey_phase": "Üldözés és Makkédá"
+      },
+      {
+        "order": 7,
+        "stop_id": "makkedah_cave",
+        "place_id": "makkedah",
+        "place_name_override_hu": "Makkéda",
+        "passage_refs": [
+          "Jozs 10,16-28"
+        ],
+        "event_summary_hu": "A királyokat Makkédánál találják meg.",
+        "certainty": "probable",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "A sorrend a megadott Józsué-szakasz megnevezett helyeit követi.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció.",
+        "sequence_status": "explicit",
+        "journey_phase": "Üldözés és Makkédá"
+      },
+      {
+        "order": 8,
+        "stop_id": "libnah_southern",
+        "place_id": "libnah_1",
+        "place_name_override_hu": "Libna",
+        "passage_refs": [
+          "Jozs 10,29-30"
+        ],
+        "event_summary_hu": "Libna városát elfoglalják.",
+        "certainty": "possible",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "A sorrend a megadott Józsué-szakasz megnevezett helyeit követi.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció.",
+        "sequence_status": "explicit",
+        "journey_phase": "A déli városok hadjárata"
+      },
+      {
+        "order": 9,
+        "stop_id": "lachish_southern",
+        "place_id": "lachish",
+        "place_name_override_hu": "Lákis",
+        "passage_refs": [
+          "Jozs 10,31-32"
+        ],
+        "event_summary_hu": "Lákis ellen vonulnak.",
+        "certainty": "certain",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "A sorrend a megadott Józsué-szakasz megnevezett helyeit követi.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció.",
+        "sequence_status": "explicit",
+        "journey_phase": "A déli városok hadjárata"
+      },
+      {
+        "order": 10,
+        "stop_id": "gezer_intervention",
+        "place_id": "gezer",
+        "place_name_override_hu": "Gézer",
+        "passage_refs": [
+          "Jozs 10,33"
+        ],
+        "event_summary_hu": "Gézer királya Lákis megsegítésére vonul.",
+        "certainty": "certain",
+        "stop_type": "transit",
+        "source_notes_hu": "A szöveg Gézer királyának beavatkozását említi; nem állítja, hogy Gézer városa hadjárati állomás lett.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció.",
+        "sequence_status": "explicit",
+        "journey_phase": "A déli városok hadjárata"
+      },
+      {
+        "order": 11,
+        "stop_id": "eglon_southern",
+        "place_id": "eglon",
+        "place_name_override_hu": "Eglón",
+        "passage_refs": [
+          "Jozs 10,34-35"
+        ],
+        "event_summary_hu": "Eglón városát elfoglalják.",
+        "certainty": "probable",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "A sorrend a megadott Józsué-szakasz megnevezett helyeit követi.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció.",
+        "sequence_status": "explicit",
+        "journey_phase": "A déli városok hadjárata"
+      },
+      {
+        "order": 12,
+        "stop_id": "hebron_southern",
+        "place_id": "hebron",
+        "place_name_override_hu": "Hebrón",
+        "passage_refs": [
+          "Jozs 10,36-37"
+        ],
+        "event_summary_hu": "Hebrón ellen vonulnak.",
+        "certainty": "certain",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "A sorrend a megadott Józsué-szakasz megnevezett helyeit követi.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció.",
+        "sequence_status": "explicit",
+        "journey_phase": "A déli városok hadjárata"
+      },
+      {
+        "order": 13,
+        "stop_id": "debir_southern",
+        "place_id": "debir_1",
+        "place_name_override_hu": "Debír",
+        "passage_refs": [
+          "Jozs 10,38-39"
+        ],
+        "event_summary_hu": "Debír városát elfoglalják.",
+        "certainty": "probable",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "A sorrend a megadott Józsué-szakasz megnevezett helyeit követi.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció.",
+        "sequence_status": "explicit",
+        "journey_phase": "A déli városok hadjárata"
+      },
+      {
+        "order": 14,
+        "stop_id": "negeb_summary",
+        "place_id": "negeb",
+        "place_name_override_hu": "Negev",
+        "passage_refs": [
+          "Jozs 10,40-42"
+        ],
+        "event_summary_hu": "A déli hadjárat összegzése a déli vidéket is említi.",
+        "certainty": "certain",
+        "stop_type": "region",
+        "source_notes_hu": "Regionális összegző stop; nem külön rekonstruált menetirány.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció.",
+        "sequence_status": "explicit",
+        "journey_phase": "A déli városok hadjárata"
+      },
+      {
+        "order": 15,
+        "stop_id": "gilgal_southern_return",
+        "place_id": "gilgal_1",
+        "place_name_override_hu": "Gilgál",
+        "passage_refs": [
+          "Jozs 10,43"
+        ],
+        "event_summary_hu": "Józsué és Izráel visszatér Gilgálba.",
+        "certainty": "probable",
+        "stop_type": "return_stop",
+        "source_notes_hu": "A sorrend a megadott Józsué-szakasz megnevezett helyeit követi.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció.",
+        "sequence_status": "explicit",
+        "journey_phase": "Visszatérés Gilgálba"
+      }
+    ],
+    "segments": [
+      {
+        "from_stop_id": "gilgal_gibeonite_treaty",
+        "to_stop_id": "gibeon_treaty",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált hadjárati útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "gibeon_treaty",
+        "to_stop_id": "gilgal_defense_departure",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált hadjárati útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "gilgal_defense_departure",
+        "to_stop_id": "gibeon_defense",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált hadjárati útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "gibeon_defense",
+        "to_stop_id": "beth_horon_pursuit",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált hadjárati útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "beth_horon_pursuit",
+        "to_stop_id": "azekah_pursuit",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált hadjárati útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "azekah_pursuit",
+        "to_stop_id": "makkedah_cave",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált hadjárati útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "makkedah_cave",
+        "to_stop_id": "libnah_southern",
+        "certainty": "mixed",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált hadjárati útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "libnah_southern",
+        "to_stop_id": "lachish_southern",
+        "certainty": "mixed",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált hadjárati útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "lachish_southern",
+        "to_stop_id": "gezer_intervention",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált hadjárati útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "gezer_intervention",
+        "to_stop_id": "eglon_southern",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált hadjárati útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "eglon_southern",
+        "to_stop_id": "hebron_southern",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált hadjárati útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "hebron_southern",
+        "to_stop_id": "debir_southern",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált hadjárati útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "debir_southern",
+        "to_stop_id": "negeb_summary",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált hadjárati útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "negeb_summary",
+        "to_stop_id": "gilgal_southern_return",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált hadjárati útvonal.",
+        "waypoints": [],
+        "geometry": null
+      }
+    ]
+  },
+  {
+    "route_id": "joshua_northern_campaign",
+    "route_family_id": "joshua_conquest_campaigns",
+    "family_name_hu": "Józsué honfoglalási hadjáratai",
+    "route_sequence_order": 3,
+    "previous_route_id": "joshua_southern_campaign",
+    "next_route_id": null,
+    "name_hu": "Józsué északi hadjárata",
+    "name_en": "Joshua's Northern Campaign",
+    "short_description_hu": "Az útvonal a bibliai szövegben megnevezett állomások és eseményhelyszínek sorrendjét mutatja. A vonalak sematikusak, nem a pontos történeti vagy katonai nyomvonalat jelölik.",
+    "route_category": "conquest_campaign",
+    "primary_passage_refs": [
+      "Jozs 11,1-23"
+    ],
+    "chronology_label_hu": "Az északi hadjárat",
+    "chronology_sort_key": 12,
+    "certainty": "mixed",
+    "geometry_status": "schematic",
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "review_status": "draft",
+    "review_notes_hu": "Az északi üldözés többirányú; a segmentek ágakat jelölnek, nem egyetlen lineáris hadjáratot.",
+    "evidence_model": {
+      "station_order_basis": "biblical_text_named_stops",
+      "historical_route_status": "not_reconstructed",
+      "map_geometry_status": "schematic",
+      "precision_note_hu": "A vonalak a narratív sorrendet segítik látni; nem modern útvonalat és nem rekonstruált hadjárati mozgást jelölnek.",
+      "campaign_branch_model_hu": "A Jozs 11,8-ban említett üldözési irányok külön sematikus segmentekként indulnak Mérom vizeitől."
+    },
+    "stops": [
+      {
+        "order": 1,
+        "stop_id": "gilgal_northern_continuity",
+        "place_id": "gilgal_1",
+        "place_name_override_hu": "Gilgál",
+        "passage_refs": [
+          "Jozs 10,43",
+          "Jozs 11,1"
+        ],
+        "event_summary_hu": "Az előző hadjárat Gilgálban zárul; az északi szakasz kiindulópontja csak narratív folytonosság alapján szerepel.",
+        "certainty": "possible",
+        "stop_type": "inferred_stop",
+        "source_notes_hu": "Jozs 11 nem nevez meg külön indulási helyet; Gilgál szerepe szakmai review-t igényel.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció.",
+        "sequence_status": "reconstructed_order",
+        "journey_phase": "Az északi szövetség"
+      },
+      {
+        "order": 2,
+        "stop_id": "hazor_coalition",
+        "place_id": "hazor_1",
+        "place_name_override_hu": "Hácór",
+        "passage_refs": [
+          "Jozs 11,1"
+        ],
+        "event_summary_hu": "Hácór királya északi szövetséget szervez.",
+        "certainty": "certain",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "A sorrend a megadott Józsué-szakasz megnevezett helyeit követi.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció.",
+        "sequence_status": "explicit",
+        "journey_phase": "Az északi szövetség"
+      },
+      {
+        "order": 3,
+        "stop_id": "waters_merom_battle",
+        "place_id": "waters_of_merom",
+        "place_name_override_hu": "Mérom vizei",
+        "passage_refs": [
+          "Jozs 11,5-7"
+        ],
+        "event_summary_hu": "Az ötközet Mérom vizeinél történik.",
+        "certainty": "possible",
+        "stop_type": "uncertain_place",
+        "source_notes_hu": "A sorrend a megadott Józsué-szakasz megnevezett helyeit követi.",
+        "mapping_status": "approximate",
+        "display_on_map": true,
+        "mapping_notes_hu": "Mérom vizeinek azonosítása a katalógusban possible; a pont sematikus.",
+        "sequence_status": "explicit",
+        "journey_phase": "Ütközet Mérom vizeinél"
+      },
+      {
+        "order": 4,
+        "stop_id": "sidon_pursuit",
+        "place_id": "sidon",
+        "place_name_override_hu": "Nagy-Szidón",
+        "passage_refs": [
+          "Jozs 11,8"
+        ],
+        "event_summary_hu": "Az üldözés egyik iránya Nagy-Szidónig tart.",
+        "certainty": "certain",
+        "stop_type": "destination",
+        "source_notes_hu": "A sorrend a megadott Józsué-szakasz megnevezett helyeit követi.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció.",
+        "sequence_status": "explicit",
+        "journey_phase": "Az ellenség üldözése"
+      },
+      {
+        "order": 5,
+        "stop_id": "misrephoth_maim_pursuit",
+        "place_id": "misrephoth_maim",
+        "place_name_override_hu": "Miszrefót-Majim",
+        "passage_refs": [
+          "Jozs 11,8"
+        ],
+        "event_summary_hu": "Az üldözés Miszrefót-Majim felé is tart.",
+        "certainty": "possible",
+        "stop_type": "destination",
+        "source_notes_hu": "A sorrend a megadott Józsué-szakasz megnevezett helyeit követi.",
+        "mapping_status": "approximate",
+        "display_on_map": true,
+        "mapping_notes_hu": "Miszrefót-Majim azonosítása possible; a stop nem pontos útirány-rekonstrukció.",
+        "sequence_status": "explicit",
+        "journey_phase": "Az ellenség üldözése"
+      },
+      {
+        "order": 6,
+        "stop_id": "valley_mizpeh_pursuit",
+        "place_id": "valley_of_mizpeh",
+        "place_name_override_hu": "Micpe-völgy",
+        "passage_refs": [
+          "Jozs 11,8"
+        ],
+        "event_summary_hu": "Az üldözés a Micpe-völgy felé is kiterjed.",
+        "certainty": "certain",
+        "stop_type": "destination",
+        "source_notes_hu": "A sorrend a megadott Józsué-szakasz megnevezett helyeit követi.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció.",
+        "sequence_status": "explicit",
+        "journey_phase": "Az ellenség üldözése"
+      },
+      {
+        "order": 7,
+        "stop_id": "hazor_capture",
+        "place_id": "hazor_1",
+        "place_name_override_hu": "Hácór",
+        "passage_refs": [
+          "Jozs 11,10-11"
+        ],
+        "event_summary_hu": "Hácórt elfoglalják.",
+        "certainty": "certain",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "A sorrend a megadott Józsué-szakasz megnevezett helyeit követi.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció.",
+        "sequence_status": "explicit",
+        "journey_phase": "Hácór elfoglalása"
+      },
+      {
+        "order": 8,
+        "stop_id": "anab_summary",
+        "place_id": "anab",
+        "place_name_override_hu": "Anáb",
+        "passage_refs": [
+          "Jozs 11,21"
+        ],
+        "event_summary_hu": "Az összegző hadműveleti szakasz Anábot is említi.",
+        "certainty": "probable",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "A sorrend a megadott Józsué-szakasz megnevezett helyeit követi.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció.",
+        "sequence_status": "explicit",
+        "journey_phase": "Az északi hadjárat lezárása"
+      },
+      {
+        "order": 9,
+        "stop_id": "mount_halak_summary",
+        "place_id": "mount_halak",
+        "place_name_override_hu": "Halák-hegy",
+        "passage_refs": [
+          "Jozs 11,17"
+        ],
+        "event_summary_hu": "A hadjárat összegzése a Halák-hegytől induló térségi határt említi.",
+        "certainty": "probable",
+        "stop_type": "region",
+        "source_notes_hu": "Regionális összegző pont; nem lineáris menetállomás.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció.",
+        "sequence_status": "explicit",
+        "journey_phase": "Az északi hadjárat lezárása"
+      },
+      {
+        "order": 10,
+        "stop_id": "valley_lebanon_summary",
+        "place_id": "valley_of_lebanon",
+        "place_name_override_hu": "Libanon völgye",
+        "passage_refs": [
+          "Jozs 11,17"
+        ],
+        "event_summary_hu": "A hadjárat összegzése a Libanon völgyét is említi.",
+        "certainty": "certain",
+        "stop_type": "region",
+        "source_notes_hu": "Regionális összegző pont; nem lineáris menetállomás.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció.",
+        "sequence_status": "explicit",
+        "journey_phase": "Az északi hadjárat lezárása"
+      }
+    ],
+    "segments": [
+      {
+        "from_stop_id": "gilgal_northern_continuity",
+        "to_stop_id": "hazor_coalition",
+        "certainty": "mixed",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált hadjárati útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "hazor_coalition",
+        "to_stop_id": "waters_merom_battle",
+        "certainty": "mixed",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált hadjárati útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "waters_merom_battle",
+        "to_stop_id": "sidon_pursuit",
+        "certainty": "mixed",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált hadjárati útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "waters_merom_battle",
+        "to_stop_id": "misrephoth_maim_pursuit",
+        "certainty": "mixed",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált hadjárati útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "waters_merom_battle",
+        "to_stop_id": "valley_mizpeh_pursuit",
+        "certainty": "mixed",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált hadjárati útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "waters_merom_battle",
+        "to_stop_id": "hazor_capture",
+        "certainty": "mixed",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált hadjárati útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "hazor_capture",
+        "to_stop_id": "anab_summary",
+        "certainty": "mixed",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált hadjárati útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "mount_halak_summary",
+        "to_stop_id": "valley_lebanon_summary",
+        "certainty": "mixed",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált hadjárati útvonal.",
+        "waypoints": [],
+        "geometry": null
+      }
+    ]
   }
 ]

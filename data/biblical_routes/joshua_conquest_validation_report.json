@@ -1,0 +1,771 @@
+{
+  "report_id": "joshua_conquest_validation_report",
+  "route_count": 3,
+  "route_ids": [
+    "joshua_jordan_crossing_central_campaign",
+    "joshua_northern_campaign",
+    "joshua_southern_campaign"
+  ],
+  "special_notes_hu": [
+    "Gilgál az északi hadjáratnál csak narratív folytonosság alapján szerepel.",
+    "Mérom vizei és Miszrefót-Majim azonosítása possible státuszú.",
+    "Bét-Hórón topográfiai stopja települési rekordhoz kapcsolt approximate jelzéssel.",
+    "Az északi üldözés többirányú, nem lineáris route-ként jelenik meg."
+  ],
+  "routes": [
+    {
+      "route_id": "joshua_jordan_crossing_central_campaign",
+      "route_family_id": "joshua_conquest_campaigns",
+      "family_sequence": 1,
+      "stop_count": 10,
+      "mapped_stop_count": 8,
+      "approximate_stop_count": 2,
+      "textual_only_stop_count": 0,
+      "segment_count": 9,
+      "journey_phase_counts": {
+        "Felderítés és előkészület": 2,
+        "Átkelés a Jordánon": 2,
+        "Jerikó elfoglalása": 1,
+        "Aj hadjárata": 3,
+        "Szövetségmegújítás Sikem térségében": 2
+      },
+      "certainty_counts": {
+        "probable": 5,
+        "certain": 4,
+        "possible": 1
+      },
+      "place_resolution": [
+        {
+          "biblical_name_hu": "Sittím",
+          "canonical_place_id": "shittim",
+          "catalog_name_hu": "Sittím",
+          "record_type": "campsite",
+          "identification_status": "probable",
+          "passage_refs": [
+            "Jozs 2,1"
+          ],
+          "uncertainty_note_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció.",
+          "mapping_status": "mapped"
+        },
+        {
+          "biblical_name_hu": "Jerikó",
+          "canonical_place_id": "jericho_1",
+          "catalog_name_hu": "Jerikó",
+          "record_type": "settlement",
+          "identification_status": "certain",
+          "passage_refs": [
+            "Jozs 2,1-24"
+          ],
+          "uncertainty_note_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció.",
+          "mapping_status": "mapped"
+        },
+        {
+          "biblical_name_hu": "A Jordán átkelésének térsége",
+          "canonical_place_id": "jordan",
+          "catalog_name_hu": "Jordán",
+          "record_type": "river",
+          "identification_status": "certain",
+          "passage_refs": [
+            "Jozs 3,1-17",
+            "Jozs 4,1-18"
+          ],
+          "uncertainty_note_hu": "A pontos átkelési pont nem azonosítható teljes bizonyossággal; a Jordán aktív folyórekordja csak sematikus tájékozódási pont.",
+          "mapping_status": "approximate"
+        },
+        {
+          "biblical_name_hu": "Gilgál",
+          "canonical_place_id": "gilgal_1",
+          "catalog_name_hu": "Gilgál",
+          "record_type": "settlement",
+          "identification_status": "probable",
+          "passage_refs": [
+            "Jozs 4,19-5,12"
+          ],
+          "uncertainty_note_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció.",
+          "mapping_status": "mapped"
+        },
+        {
+          "biblical_name_hu": "Jerikó",
+          "canonical_place_id": "jericho_1",
+          "catalog_name_hu": "Jerikó",
+          "record_type": "settlement",
+          "identification_status": "certain",
+          "passage_refs": [
+            "Jozs 6,1-27"
+          ],
+          "uncertainty_note_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció.",
+          "mapping_status": "mapped"
+        },
+        {
+          "biblical_name_hu": "Aj",
+          "canonical_place_id": "ai_1",
+          "catalog_name_hu": "Aj",
+          "record_type": "settlement",
+          "identification_status": "probable",
+          "passage_refs": [
+            "Jozs 7,2-5"
+          ],
+          "uncertainty_note_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció.",
+          "mapping_status": "mapped"
+        },
+        {
+          "biblical_name_hu": "Aj és Bétel közötti térség",
+          "canonical_place_id": "bethel_1",
+          "catalog_name_hu": "Bétel",
+          "record_type": "settlement",
+          "identification_status": "probable",
+          "passage_refs": [
+            "Jozs 8,9-12"
+          ],
+          "uncertainty_note_hu": "A szöveg Aj és Bétel közötti térséget említ; a Bétel-rekord sematikus tájékozódási pont.",
+          "mapping_status": "approximate"
+        },
+        {
+          "biblical_name_hu": "Aj",
+          "canonical_place_id": "ai_1",
+          "catalog_name_hu": "Aj",
+          "record_type": "settlement",
+          "identification_status": "probable",
+          "passage_refs": [
+            "Jozs 8,1-29"
+          ],
+          "uncertainty_note_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció.",
+          "mapping_status": "mapped"
+        },
+        {
+          "biblical_name_hu": "Ébál-hegy",
+          "canonical_place_id": "mount_ebal",
+          "catalog_name_hu": "Ébál-hegy",
+          "record_type": "mountain",
+          "identification_status": "certain",
+          "passage_refs": [
+            "Jozs 8,30-35"
+          ],
+          "uncertainty_note_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció.",
+          "mapping_status": "mapped"
+        },
+        {
+          "biblical_name_hu": "Garizim-hegy",
+          "canonical_place_id": "mount_gerizim",
+          "catalog_name_hu": "Garizim-hegy",
+          "record_type": "mountain",
+          "identification_status": "certain",
+          "passage_refs": [
+            "Jozs 8,33-35"
+          ],
+          "uncertainty_note_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció.",
+          "mapping_status": "mapped"
+        }
+      ],
+      "region_stops": [
+        {
+          "stop_id": "gilgal_camp_central",
+          "place_id": "gilgal_1",
+          "name_hu": "Gilgál"
+        },
+        {
+          "stop_id": "between_ai_and_bethel",
+          "place_id": "bethel_1",
+          "name_hu": "Aj és Bétel közötti térség"
+        },
+        {
+          "stop_id": "mount_ebal_covenant",
+          "place_id": "mount_ebal",
+          "name_hu": "Ébál-hegy"
+        },
+        {
+          "stop_id": "mount_gerizim_covenant",
+          "place_id": "mount_gerizim",
+          "name_hu": "Garizim-hegy"
+        }
+      ],
+      "unresolved_or_skipped_places": [
+        "Sikem: Jozs 8,30-35 alapján nem kapott külön városi stopot."
+      ],
+      "disputed_identifications": [
+        {
+          "stop_id": "jordan_crossing",
+          "place_id": "jordan",
+          "name_hu": "A Jordán átkelésének térsége",
+          "reason_hu": "A pontos átkelési pont nem azonosítható teljes bizonyossággal; a Jordán aktív folyórekordja csak sematikus tájékozódási pont."
+        },
+        {
+          "stop_id": "gilgal_camp_central",
+          "place_id": "gilgal_1",
+          "name_hu": "Gilgál",
+          "reason_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció."
+        },
+        {
+          "stop_id": "between_ai_and_bethel",
+          "place_id": "bethel_1",
+          "name_hu": "Aj és Bétel közötti térség",
+          "reason_hu": "A szöveg Aj és Bétel közötti térséget említ; a Bétel-rekord sematikus tájékozódási pont."
+        },
+        {
+          "stop_id": "mount_ebal_covenant",
+          "place_id": "mount_ebal",
+          "name_hu": "Ébál-hegy",
+          "reason_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció."
+        },
+        {
+          "stop_id": "mount_gerizim_covenant",
+          "place_id": "mount_gerizim",
+          "name_hu": "Garizim-hegy",
+          "reason_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció."
+        }
+      ],
+      "multi_branch_campaign_points": [],
+      "passage_coverage": [
+        "Jozs 2,1-8,35"
+      ],
+      "passage_format_errors": [],
+      "mojibake_utf8_check": "passed",
+      "duplicate_geometry_check": "one_render_geometry_per_segment_expected",
+      "zero_length_segments": [],
+      "legacy_place_ids": [],
+      "needs_expert_review": [
+        {
+          "stop_id": "jordan_crossing",
+          "place_id": "jordan",
+          "name_hu": "A Jordán átkelésének térsége",
+          "reason_hu": "A pontos átkelési pont nem azonosítható teljes bizonyossággal; a Jordán aktív folyórekordja csak sematikus tájékozódási pont."
+        },
+        {
+          "stop_id": "gilgal_camp_central",
+          "place_id": "gilgal_1",
+          "name_hu": "Gilgál",
+          "reason_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció."
+        },
+        {
+          "stop_id": "between_ai_and_bethel",
+          "place_id": "bethel_1",
+          "name_hu": "Aj és Bétel közötti térség",
+          "reason_hu": "A szöveg Aj és Bétel közötti térséget említ; a Bétel-rekord sematikus tájékozódási pont."
+        },
+        {
+          "stop_id": "mount_ebal_covenant",
+          "place_id": "mount_ebal",
+          "name_hu": "Ébál-hegy",
+          "reason_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció."
+        },
+        {
+          "stop_id": "mount_gerizim_covenant",
+          "place_id": "mount_gerizim",
+          "name_hu": "Garizim-hegy",
+          "reason_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció."
+        }
+      ]
+    },
+    {
+      "route_id": "joshua_southern_campaign",
+      "route_family_id": "joshua_conquest_campaigns",
+      "family_sequence": 2,
+      "stop_count": 15,
+      "mapped_stop_count": 14,
+      "approximate_stop_count": 1,
+      "textual_only_stop_count": 0,
+      "segment_count": 14,
+      "journey_phase_counts": {
+        "A gibeóni szövetség": 2,
+        "Gibeón megsegítése": 2,
+        "Üldözés és Makkédá": 3,
+        "A déli városok hadjárata": 7,
+        "Visszatérés Gilgálba": 1
+      },
+      "certainty_counts": {
+        "probable": 8,
+        "certain": 6,
+        "possible": 1
+      },
+      "place_resolution": [
+        {
+          "biblical_name_hu": "Gilgál",
+          "canonical_place_id": "gilgal_1",
+          "catalog_name_hu": "Gilgál",
+          "record_type": "settlement",
+          "identification_status": "probable",
+          "passage_refs": [
+            "Jozs 9,6"
+          ],
+          "uncertainty_note_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció.",
+          "mapping_status": "mapped"
+        },
+        {
+          "biblical_name_hu": "Gibeón",
+          "canonical_place_id": "gibeon",
+          "catalog_name_hu": "Gibeón",
+          "record_type": "settlement",
+          "identification_status": "certain",
+          "passage_refs": [
+            "Jozs 9,3-27"
+          ],
+          "uncertainty_note_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció.",
+          "mapping_status": "mapped"
+        },
+        {
+          "biblical_name_hu": "Gilgál",
+          "canonical_place_id": "gilgal_1",
+          "catalog_name_hu": "Gilgál",
+          "record_type": "settlement",
+          "identification_status": "probable",
+          "passage_refs": [
+            "Jozs 10,6-9"
+          ],
+          "uncertainty_note_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció.",
+          "mapping_status": "mapped"
+        },
+        {
+          "biblical_name_hu": "Gibeón",
+          "canonical_place_id": "gibeon",
+          "catalog_name_hu": "Gibeón",
+          "record_type": "settlement",
+          "identification_status": "certain",
+          "passage_refs": [
+            "Jozs 10,6-10"
+          ],
+          "uncertainty_note_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció.",
+          "mapping_status": "mapped"
+        },
+        {
+          "biblical_name_hu": "Bét-Hórón emelkedője",
+          "canonical_place_id": "upper_beth_horon",
+          "catalog_name_hu": "Felső-Bét-Hórón",
+          "record_type": "settlement",
+          "identification_status": "certain",
+          "passage_refs": [
+            "Jozs 10,10-11"
+          ],
+          "uncertainty_note_hu": "A katalógusban települési rekord szerepel; a stop a Jozs 10-ben említett emelkedő/út sematikus jelzése.",
+          "mapping_status": "approximate"
+        },
+        {
+          "biblical_name_hu": "Azéká",
+          "canonical_place_id": "azekah",
+          "catalog_name_hu": "Azéká",
+          "record_type": "settlement",
+          "identification_status": "probable",
+          "passage_refs": [
+            "Jozs 10,10-11"
+          ],
+          "uncertainty_note_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció.",
+          "mapping_status": "mapped"
+        },
+        {
+          "biblical_name_hu": "Makkéda",
+          "canonical_place_id": "makkedah",
+          "catalog_name_hu": "Makkéda",
+          "record_type": "settlement",
+          "identification_status": "probable",
+          "passage_refs": [
+            "Jozs 10,16-28"
+          ],
+          "uncertainty_note_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció.",
+          "mapping_status": "mapped"
+        },
+        {
+          "biblical_name_hu": "Libna",
+          "canonical_place_id": "libnah_1",
+          "catalog_name_hu": "Libna",
+          "record_type": "settlement",
+          "identification_status": "possible",
+          "passage_refs": [
+            "Jozs 10,29-30"
+          ],
+          "uncertainty_note_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció.",
+          "mapping_status": "mapped"
+        },
+        {
+          "biblical_name_hu": "Lákis",
+          "canonical_place_id": "lachish",
+          "catalog_name_hu": "Lákis",
+          "record_type": "settlement",
+          "identification_status": "certain",
+          "passage_refs": [
+            "Jozs 10,31-32"
+          ],
+          "uncertainty_note_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció.",
+          "mapping_status": "mapped"
+        },
+        {
+          "biblical_name_hu": "Gézer",
+          "canonical_place_id": "gezer",
+          "catalog_name_hu": "Gézer",
+          "record_type": "settlement",
+          "identification_status": "certain",
+          "passage_refs": [
+            "Jozs 10,33"
+          ],
+          "uncertainty_note_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció.",
+          "mapping_status": "mapped"
+        },
+        {
+          "biblical_name_hu": "Eglón",
+          "canonical_place_id": "eglon",
+          "catalog_name_hu": "Eglón",
+          "record_type": "settlement",
+          "identification_status": "probable",
+          "passage_refs": [
+            "Jozs 10,34-35"
+          ],
+          "uncertainty_note_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció.",
+          "mapping_status": "mapped"
+        },
+        {
+          "biblical_name_hu": "Hebrón",
+          "canonical_place_id": "hebron",
+          "catalog_name_hu": "Hebrón",
+          "record_type": "settlement",
+          "identification_status": "certain",
+          "passage_refs": [
+            "Jozs 10,36-37"
+          ],
+          "uncertainty_note_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció.",
+          "mapping_status": "mapped"
+        },
+        {
+          "biblical_name_hu": "Debír",
+          "canonical_place_id": "debir_1",
+          "catalog_name_hu": "Debír",
+          "record_type": "settlement",
+          "identification_status": "probable",
+          "passage_refs": [
+            "Jozs 10,38-39"
+          ],
+          "uncertainty_note_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció.",
+          "mapping_status": "mapped"
+        },
+        {
+          "biblical_name_hu": "Negev",
+          "canonical_place_id": "negeb",
+          "catalog_name_hu": "Negev",
+          "record_type": "region",
+          "identification_status": "certain",
+          "passage_refs": [
+            "Jozs 10,40-42"
+          ],
+          "uncertainty_note_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció.",
+          "mapping_status": "mapped"
+        },
+        {
+          "biblical_name_hu": "Gilgál",
+          "canonical_place_id": "gilgal_1",
+          "catalog_name_hu": "Gilgál",
+          "record_type": "settlement",
+          "identification_status": "probable",
+          "passage_refs": [
+            "Jozs 10,43"
+          ],
+          "uncertainty_note_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció.",
+          "mapping_status": "mapped"
+        }
+      ],
+      "region_stops": [
+        {
+          "stop_id": "gilgal_gibeonite_treaty",
+          "place_id": "gilgal_1",
+          "name_hu": "Gilgál"
+        },
+        {
+          "stop_id": "negeb_summary",
+          "place_id": "negeb",
+          "name_hu": "Negev"
+        }
+      ],
+      "unresolved_or_skipped_places": [],
+      "disputed_identifications": [
+        {
+          "stop_id": "gilgal_gibeonite_treaty",
+          "place_id": "gilgal_1",
+          "name_hu": "Gilgál",
+          "reason_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció."
+        },
+        {
+          "stop_id": "beth_horon_pursuit",
+          "place_id": "upper_beth_horon",
+          "name_hu": "Bét-Hórón emelkedője",
+          "reason_hu": "A katalógusban települési rekord szerepel; a stop a Jozs 10-ben említett emelkedő/út sematikus jelzése."
+        },
+        {
+          "stop_id": "libnah_southern",
+          "place_id": "libnah_1",
+          "name_hu": "Libna",
+          "reason_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció."
+        },
+        {
+          "stop_id": "negeb_summary",
+          "place_id": "negeb",
+          "name_hu": "Negev",
+          "reason_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció."
+        }
+      ],
+      "multi_branch_campaign_points": [],
+      "passage_coverage": [
+        "Jozs 9,1-10,43"
+      ],
+      "passage_format_errors": [],
+      "mojibake_utf8_check": "passed",
+      "duplicate_geometry_check": "one_render_geometry_per_segment_expected",
+      "zero_length_segments": [],
+      "legacy_place_ids": [],
+      "needs_expert_review": [
+        {
+          "stop_id": "gilgal_gibeonite_treaty",
+          "place_id": "gilgal_1",
+          "name_hu": "Gilgál",
+          "reason_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció."
+        },
+        {
+          "stop_id": "beth_horon_pursuit",
+          "place_id": "upper_beth_horon",
+          "name_hu": "Bét-Hórón emelkedője",
+          "reason_hu": "A katalógusban települési rekord szerepel; a stop a Jozs 10-ben említett emelkedő/út sematikus jelzése."
+        },
+        {
+          "stop_id": "libnah_southern",
+          "place_id": "libnah_1",
+          "name_hu": "Libna",
+          "reason_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció."
+        },
+        {
+          "stop_id": "negeb_summary",
+          "place_id": "negeb",
+          "name_hu": "Negev",
+          "reason_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció."
+        }
+      ]
+    },
+    {
+      "route_id": "joshua_northern_campaign",
+      "route_family_id": "joshua_conquest_campaigns",
+      "family_sequence": 3,
+      "stop_count": 10,
+      "mapped_stop_count": 8,
+      "approximate_stop_count": 2,
+      "textual_only_stop_count": 0,
+      "segment_count": 8,
+      "journey_phase_counts": {
+        "Az északi szövetség": 2,
+        "Ütközet Mérom vizeinél": 1,
+        "Az ellenség üldözése": 3,
+        "Hácór elfoglalása": 1,
+        "Az északi hadjárat lezárása": 3
+      },
+      "certainty_counts": {
+        "possible": 3,
+        "certain": 5,
+        "probable": 2
+      },
+      "place_resolution": [
+        {
+          "biblical_name_hu": "Gilgál",
+          "canonical_place_id": "gilgal_1",
+          "catalog_name_hu": "Gilgál",
+          "record_type": "settlement",
+          "identification_status": "probable",
+          "passage_refs": [
+            "Jozs 10,43",
+            "Jozs 11,1"
+          ],
+          "uncertainty_note_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció.",
+          "mapping_status": "mapped"
+        },
+        {
+          "biblical_name_hu": "Hácór",
+          "canonical_place_id": "hazor_1",
+          "catalog_name_hu": "Hácór",
+          "record_type": "settlement",
+          "identification_status": "certain",
+          "passage_refs": [
+            "Jozs 11,1"
+          ],
+          "uncertainty_note_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció.",
+          "mapping_status": "mapped"
+        },
+        {
+          "biblical_name_hu": "Mérom vizei",
+          "canonical_place_id": "waters_of_merom",
+          "catalog_name_hu": "Méróm vizei",
+          "record_type": "body of water, pool, spring, wadi",
+          "identification_status": "possible",
+          "passage_refs": [
+            "Jozs 11,5-7"
+          ],
+          "uncertainty_note_hu": "Mérom vizeinek azonosítása a katalógusban possible; a pont sematikus.",
+          "mapping_status": "approximate"
+        },
+        {
+          "biblical_name_hu": "Nagy-Szidón",
+          "canonical_place_id": "sidon",
+          "catalog_name_hu": "Szidón",
+          "record_type": "settlement",
+          "identification_status": "certain",
+          "passage_refs": [
+            "Jozs 11,8"
+          ],
+          "uncertainty_note_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció.",
+          "mapping_status": "mapped"
+        },
+        {
+          "biblical_name_hu": "Miszrefót-Majim",
+          "canonical_place_id": "misrephoth_maim",
+          "catalog_name_hu": "Miszrefót-Majim",
+          "record_type": "hill, river, settlement, spring",
+          "identification_status": "possible",
+          "passage_refs": [
+            "Jozs 11,8"
+          ],
+          "uncertainty_note_hu": "Miszrefót-Majim azonosítása possible; a stop nem pontos útirány-rekonstrukció.",
+          "mapping_status": "approximate"
+        },
+        {
+          "biblical_name_hu": "Micpe-völgy",
+          "canonical_place_id": "valley_of_mizpeh",
+          "catalog_name_hu": "Micpe-völgy",
+          "record_type": "valley",
+          "identification_status": "certain",
+          "passage_refs": [
+            "Jozs 11,8"
+          ],
+          "uncertainty_note_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció.",
+          "mapping_status": "mapped"
+        },
+        {
+          "biblical_name_hu": "Hácór",
+          "canonical_place_id": "hazor_1",
+          "catalog_name_hu": "Hácór",
+          "record_type": "settlement",
+          "identification_status": "certain",
+          "passage_refs": [
+            "Jozs 11,10-11"
+          ],
+          "uncertainty_note_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció.",
+          "mapping_status": "mapped"
+        },
+        {
+          "biblical_name_hu": "Anáb",
+          "canonical_place_id": "anab",
+          "catalog_name_hu": "Anáb",
+          "record_type": "settlement",
+          "identification_status": "probable",
+          "passage_refs": [
+            "Jozs 11,21"
+          ],
+          "uncertainty_note_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció.",
+          "mapping_status": "mapped"
+        },
+        {
+          "biblical_name_hu": "Halák-hegy",
+          "canonical_place_id": "mount_halak",
+          "catalog_name_hu": "Halák-hegy",
+          "record_type": "mountain",
+          "identification_status": "probable",
+          "passage_refs": [
+            "Jozs 11,17"
+          ],
+          "uncertainty_note_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció.",
+          "mapping_status": "mapped"
+        },
+        {
+          "biblical_name_hu": "Libanon völgye",
+          "canonical_place_id": "valley_of_lebanon",
+          "catalog_name_hu": "Libanon völgye",
+          "record_type": "valley",
+          "identification_status": "certain",
+          "passage_refs": [
+            "Jozs 11,17"
+          ],
+          "uncertainty_note_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció.",
+          "mapping_status": "mapped"
+        }
+      ],
+      "region_stops": [
+        {
+          "stop_id": "mount_halak_summary",
+          "place_id": "mount_halak",
+          "name_hu": "Halák-hegy"
+        },
+        {
+          "stop_id": "valley_lebanon_summary",
+          "place_id": "valley_of_lebanon",
+          "name_hu": "Libanon völgye"
+        }
+      ],
+      "unresolved_or_skipped_places": [],
+      "disputed_identifications": [
+        {
+          "stop_id": "gilgal_northern_continuity",
+          "place_id": "gilgal_1",
+          "name_hu": "Gilgál",
+          "reason_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció."
+        },
+        {
+          "stop_id": "waters_merom_battle",
+          "place_id": "waters_of_merom",
+          "name_hu": "Mérom vizei",
+          "reason_hu": "Mérom vizeinek azonosítása a katalógusban possible; a pont sematikus."
+        },
+        {
+          "stop_id": "misrephoth_maim_pursuit",
+          "place_id": "misrephoth_maim",
+          "name_hu": "Miszrefót-Majim",
+          "reason_hu": "Miszrefót-Majim azonosítása possible; a stop nem pontos útirány-rekonstrukció."
+        },
+        {
+          "stop_id": "mount_halak_summary",
+          "place_id": "mount_halak",
+          "name_hu": "Halák-hegy",
+          "reason_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció."
+        },
+        {
+          "stop_id": "valley_lebanon_summary",
+          "place_id": "valley_of_lebanon",
+          "name_hu": "Libanon völgye",
+          "reason_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció."
+        }
+      ],
+      "multi_branch_campaign_points": [
+        "Mérom vizeitől külön ág vezet Szidón, Miszrefót-Majim és a Micpe-völgy felé."
+      ],
+      "passage_coverage": [
+        "Jozs 11,1-23"
+      ],
+      "passage_format_errors": [],
+      "mojibake_utf8_check": "passed",
+      "duplicate_geometry_check": "one_render_geometry_per_segment_expected",
+      "zero_length_segments": [],
+      "legacy_place_ids": [],
+      "needs_expert_review": [
+        {
+          "stop_id": "gilgal_northern_continuity",
+          "place_id": "gilgal_1",
+          "name_hu": "Gilgál",
+          "reason_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció."
+        },
+        {
+          "stop_id": "waters_merom_battle",
+          "place_id": "waters_of_merom",
+          "name_hu": "Mérom vizei",
+          "reason_hu": "Mérom vizeinek azonosítása a katalógusban possible; a pont sematikus."
+        },
+        {
+          "stop_id": "misrephoth_maim_pursuit",
+          "place_id": "misrephoth_maim",
+          "name_hu": "Miszrefót-Majim",
+          "reason_hu": "Miszrefót-Majim azonosítása possible; a stop nem pontos útirány-rekonstrukció."
+        },
+        {
+          "stop_id": "mount_halak_summary",
+          "place_id": "mount_halak",
+          "name_hu": "Halák-hegy",
+          "reason_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció."
+        },
+        {
+          "stop_id": "valley_lebanon_summary",
+          "place_id": "valley_of_lebanon",
+          "name_hu": "Libanon völgye",
+          "reason_hu": "A katalógus aktív rekordjához kapcsolt, de nem pontos katonai útvonalrekonstrukció."
+        }
+      ]
+    }
+  ]
+}

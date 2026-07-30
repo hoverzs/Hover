@@ -1585,6 +1585,33 @@ def test_passage_to_route_index_matches_exodus_and_wilderness_routes() -> None:
     assert "wilderness_sinai_to_moab" in numbers_33
 
 
+def test_passage_to_route_index_matches_joshua_conquest_routes() -> None:
+    for reference in ["Jozs 2", "Jozs 3", "Jozs 4", "Jozs 5-6", "Jozs 7-8"]:
+        assert "joshua_jordan_crossing_central_campaign" in route_matches_for_passage(reference)
+    for reference in ["Jozs 9", "Jozs 10"]:
+        assert "joshua_southern_campaign" in route_matches_for_passage(reference)
+    assert "joshua_northern_campaign" in route_matches_for_passage("Jozs 11")
+
+    assert route_matches_for_passage("Jozs 12") == {}
+    whole_section = route_matches_for_passage("Jozs 1-11")
+    assert "joshua_jordan_crossing_central_campaign" in whole_section
+    assert "joshua_southern_campaign" in whole_section
+    assert "joshua_northern_campaign" in whole_section
+
+
+def test_joshua_partial_passage_overlap_highlights_expected_stops() -> None:
+    joshua_2 = route_matches_for_passage("Jozs 2")
+    assert [stop.stop_id for stop in joshua_2["joshua_jordan_crossing_central_campaign"]] == [
+        "shittim_spies_departure",
+        "jericho_spies",
+    ]
+
+    joshua_10_33 = route_matches_for_passage("Jozs 10,33")
+    assert [stop.stop_id for stop in joshua_10_33["joshua_southern_campaign"]] == [
+        "gezer_intervention"
+    ]
+
+
 def test_wilderness_route_phase_options_and_filtering() -> None:
     route = {route.route_id: route for route in load_biblical_routes()}["wilderness_sinai_to_moab"]
     assert route_phase_options(route) == [
@@ -1597,6 +1624,50 @@ def test_wilderness_route_phase_options_and_filtering() -> None:
     filtered = filtered_route_stops(route, "Kádéstől Móábig")
     assert filtered[0].stop_id == "kadesh_wilderness"
     assert filtered_route_segments(route, filtered)
+
+
+def test_joshua_route_phase_options_and_branch_filtering() -> None:
+    routes = {route.route_id: route for route in load_biblical_routes()}
+    central = routes["joshua_jordan_crossing_central_campaign"]
+    northern = routes["joshua_northern_campaign"]
+
+    assert route_phase_options(central) == [
+        "Teljes \u00fatvonal",
+        "Felder\u00edt\u00e9s \u00e9s el\u0151k\u00e9sz\u00fclet",
+        "\u00c1tkel\u00e9s a Jord\u00e1non",
+        "Jerik\u00f3 elfoglal\u00e1sa",
+        "Aj hadj\u00e1rata",
+        "Sz\u00f6vets\u00e9gmeg\u00faj\u00edt\u00e1s Sikem t\u00e9rs\u00e9g\u00e9ben",
+    ]
+    pursuit_stops = filtered_route_stops(northern, "Az ellens\u00e9g \u00fcld\u00f6z\u00e9se")
+    pursuit_segments = filtered_route_segments(northern, pursuit_stops)
+    assert [stop.stop_id for stop in pursuit_stops] == [
+        "sidon_pursuit",
+        "misrephoth_maim_pursuit",
+        "valley_mizpeh_pursuit",
+    ]
+    assert pursuit_segments == ()
+
+
+def test_joshua_route_family_navigation_buttons_render() -> None:
+    fake_st = _FakeStreamlit()
+    fake_st.session_state[ACTIVE_MAP_VIEW_KEY] = MAP_VIEW_ROUTES
+    fake_st.session_state[SELECTED_ROUTE_ID_KEY] = "joshua_jordan_crossing_central_campaign"
+
+    render_biblical_map_prototype(st_module=fake_st)
+
+    assert any("J\u00f3zsu\u00e9 honfoglal\u00e1si hadj\u00e1ratai" in caption for caption in fake_st.captions)
+    assert any("1/3" in caption for caption in fake_st.captions)
+    assert any(label == "K\u00f6vetkez\u0151 szakasz" for label, _kwargs in fake_st.buttons)
+
+    fake_st = _FakeStreamlit()
+    fake_st.session_state[ACTIVE_MAP_VIEW_KEY] = MAP_VIEW_ROUTES
+    fake_st.session_state[SELECTED_ROUTE_ID_KEY] = "joshua_northern_campaign"
+
+    render_biblical_map_prototype(st_module=fake_st)
+
+    assert any("3/3" in caption for caption in fake_st.captions)
+    assert any(label == "El\u0151z\u0151 szakasz" for label, _kwargs in fake_st.buttons)
 
 
 def test_route_family_navigation_buttons_render_for_exodus_routes() -> None:
@@ -1867,6 +1938,9 @@ def test_route_selector_lists_all_biblical_routes() -> None:
         "joseph_geographical_arc",
         "exodus_egypt_to_sinai",
         "wilderness_sinai_to_moab",
+        "joshua_jordan_crossing_central_campaign",
+        "joshua_southern_campaign",
+        "joshua_northern_campaign",
     ]
 
     fake_st = _FakeStreamlit()

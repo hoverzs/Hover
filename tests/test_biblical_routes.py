@@ -20,6 +20,7 @@ from biblical_routes import (
 
 ROUTES_PATH = ROOT / "data" / "biblical_routes" / "biblical_routes.json"
 VALIDATION_REPORT_PATH = ROOT / "data" / "biblical_routes" / "pauline_routes_validation_report.json"
+JOSHUA_VALIDATION_REPORT_PATH = ROOT / "data" / "biblical_routes" / "joshua_conquest_validation_report.json"
 EXPECTED_ROUTE_NAMES_HU = [
     "P\u00e1l els\u0151 misszi\u00f3i \u00fatja",
     "P\u00e1l m\u00e1sodik misszi\u00f3i \u00fatja",
@@ -30,6 +31,9 @@ EXPECTED_ROUTE_NAMES_HU = [
     "J\u00f3zsef t\u00f6rt\u00e9net\u00e9nek f\u00f6ldrajzi \u00edve",
     "A kivonul\u00e1s Egyiptomt\u00f3l a S\u00ednai-hegyig",
     "A pusztai v\u00e1ndorl\u00e1s a S\u00ednait\u00f3l a m\u00f3\u00e1bi s\u00edks\u00e1gig",
+    "A Jord\u00e1n \u00e1tkel\u00e9se \u00e9s a k\u00f6z\u00e9ps\u0151 hadj\u00e1rat",
+    "J\u00f3zsu\u00e9 d\u00e9li hadj\u00e1rata",
+    "J\u00f3zsu\u00e9 \u00e9szaki hadj\u00e1rata",
 ]
 CORRUPTED_TEXT_MARKERS = ("\ufffd", "\u0102", "\u00c2", "\u010f", "ďż˝")
 
@@ -54,7 +58,7 @@ def _assert_raises(expected: type[Exception], callback, *args, **kwargs) -> Exce
 
 def test_valid_pilot_route_loads() -> None:
     routes = load_biblical_routes()
-    assert len(routes) == 9
+    assert len(routes) == 12
     route = routes[0]
     assert route.route_id == "paul_first_missionary_journey"
     assert route.name_hu == EXPECTED_ROUTE_NAMES_HU[0]
@@ -77,14 +81,17 @@ def test_all_pauline_routes_load_in_chronological_order() -> None:
         "joseph_geographical_arc",
         "exodus_egypt_to_sinai",
         "wilderness_sinai_to_moab",
+        "joshua_jordan_crossing_central_campaign",
+        "joshua_southern_campaign",
+        "joshua_northern_campaign",
     ]
     assert route_options(routes) == [route.route_id for route in routes]
-    assert len({route.route_id for route in routes}) == 9
+    assert len({route.route_id for route in routes}) == 12
     assert [route.name_hu for route in routes] == EXPECTED_ROUTE_NAMES_HU
 
 
 def test_route_json_and_report_are_clean_utf8() -> None:
-    for path in (ROUTES_PATH, VALIDATION_REPORT_PATH):
+    for path in (ROUTES_PATH, VALIDATION_REPORT_PATH, JOSHUA_VALIDATION_REPORT_PATH):
         text = path.read_text(encoding="utf-8")
         assert not any(marker in text for marker in CORRUPTED_TEXT_MARKERS)
         assert "P?l" not in text
@@ -499,3 +506,84 @@ def test_exodus_wilderness_validation_report_matches_loader() -> None:
         assert item["duplicate_geometry_check"] == "one_render_geometry_per_segment_expected"
         assert item["legacy_place_ids"] == []
         assert item["zero_length_segments"] == []
+
+
+def test_joshua_conquest_routes_have_expected_counts_and_family_links() -> None:
+    routes = {route.route_id: route for route in load_biblical_routes()}
+    central = routes["joshua_jordan_crossing_central_campaign"]
+    southern = routes["joshua_southern_campaign"]
+    northern = routes["joshua_northern_campaign"]
+
+    assert central.route_category == "conquest_campaign"
+    assert central.route_family_id == "joshua_conquest_campaigns"
+    assert central.family_name_hu == "J\u00f3zsu\u00e9 honfoglal\u00e1si hadj\u00e1ratai"
+    assert central.route_sequence_order == 1
+    assert central.previous_route_id is None
+    assert central.next_route_id == "joshua_southern_campaign"
+    assert len(central.stops) == 10
+    assert len(central.segments) == 9
+    assert [stop.place_id for stop in central.stops] == [
+        "shittim",
+        "jericho_1",
+        "jordan",
+        "gilgal_1",
+        "jericho_1",
+        "ai_1",
+        "bethel_1",
+        "ai_1",
+        "mount_ebal",
+        "mount_gerizim",
+    ]
+    assert sum(1 for stop in central.stops if stop.mapping_status == "approximate") == 2
+
+    assert southern.route_family_id == "joshua_conquest_campaigns"
+    assert southern.route_sequence_order == 2
+    assert southern.previous_route_id == "joshua_jordan_crossing_central_campaign"
+    assert southern.next_route_id == "joshua_northern_campaign"
+    assert len(southern.stops) == 15
+    assert len(southern.segments) == 14
+    assert southern.stops[9].place_id == "gezer"
+    assert "kir\u00e1ly\u00e1nak beavatkoz\u00e1s\u00e1t" in (southern.stops[9].source_notes_hu or "")
+
+    assert northern.route_family_id == "joshua_conquest_campaigns"
+    assert northern.route_sequence_order == 3
+    assert northern.previous_route_id == "joshua_southern_campaign"
+    assert northern.next_route_id is None
+    assert len(northern.stops) == 10
+    assert len(northern.segments) == 8
+    assert northern.stops[0].stop_id == "gilgal_northern_continuity"
+    assert northern.stops[0].certainty == "possible"
+    assert sum(1 for stop in northern.stops if stop.mapping_status == "approximate") == 2
+
+
+def test_joshua_northern_route_uses_branch_segments_without_forced_linear_pursuit() -> None:
+    route = {route.route_id: route for route in load_biblical_routes()}["joshua_northern_campaign"]
+    pairs = {(segment.from_stop_id, segment.to_stop_id) for segment in route.segments}
+
+    assert ("waters_merom_battle", "sidon_pursuit") in pairs
+    assert ("waters_merom_battle", "misrephoth_maim_pursuit") in pairs
+    assert ("waters_merom_battle", "valley_mizpeh_pursuit") in pairs
+    assert ("sidon_pursuit", "misrephoth_maim_pursuit") not in pairs
+    assert ("misrephoth_maim_pursuit", "valley_mizpeh_pursuit") not in pairs
+
+
+def test_joshua_conquest_validation_report_matches_loader() -> None:
+    report = json.loads(JOSHUA_VALIDATION_REPORT_PATH.read_text(encoding="utf-8"))
+    by_id = {route["route_id"]: route for route in report["routes"]}
+    routes = {route.route_id: route for route in load_biblical_routes()}
+
+    assert set(by_id) == {
+        "joshua_jordan_crossing_central_campaign",
+        "joshua_southern_campaign",
+        "joshua_northern_campaign",
+    }
+    assert any("Gilg\u00e1l" in note for note in report["special_notes_hu"])
+    for route_id, item in by_id.items():
+        route = routes[route_id]
+        assert item["stop_count"] == len(route.stops)
+        assert item["segment_count"] == len(route.segments)
+        assert item["mojibake_utf8_check"] == "passed"
+        assert item["duplicate_geometry_check"] == "one_render_geometry_per_segment_expected"
+        assert item["legacy_place_ids"] == []
+        assert item["zero_length_segments"] == []
+        assert len(item["place_resolution"]) == len(route.stops)
