@@ -168,6 +168,18 @@
     "notes_hu": "A mai efezusi régészeti lelőhely hivatalos intézményi forrása."
   },
   {
+    "source_id": "unesco_ancient_thebes_87",
+    "title": "Ancient Thebes with its Necropolis",
+    "institution": "UNESCO World Heritage Centre",
+    "source_type": "international_heritage_reference",
+    "identifier": "https://whc.unesco.org/en/list/87",
+    "license": "all_rights_reserved_reference_only",
+    "attribution": "UNESCO World Heritage Centre",
+    "allowed_use": "régészet; történeti háttér; modern helyzet",
+    "reliability_scope": "official_institutional",
+    "notes_hu": "Egyiptom kontextuális örökségvédelmi forrása (Théba WHC). Citation-only; nem településspecifikus minden egyiptomi helyre."
+  },
+  {
     "source_id": "unesco_ephesus_1018",
     "title": "Ephesus",
     "institution": "UNESCO World Heritage Centre",
@@ -178,5 +190,41 @@
     "allowed_use": "régészet; történeti háttér; modern helyzet",
     "reliability_scope": "official_institutional",
     "notes_hu": "Efezus hellenisztikus, római császárkori és korai keresztyén kulturális jelentőségének intézményi forrása."
+  },
+  {
+    "source_id": "unesco_jerusalem_148",
+    "title": "Old City of Jerusalem and its Walls",
+    "institution": "UNESCO World Heritage Centre",
+    "source_type": "international_heritage_reference",
+    "identifier": "https://whc.unesco.org/en/list/148",
+    "license": "all_rights_reserved_reference_only",
+    "attribution": "UNESCO World Heritage Centre",
+    "allowed_use": "történeti háttér; modern helyzet; azonosítási kontextus",
+    "reliability_scope": "official_institutional",
+    "notes_hu": "Jeruzsálem óváros WHC lap; Sion/Júdea rekordoknál kontextuális citation-only forrás."
+  },
+  {
+    "source_id": "unesco_petra_326",
+    "title": "Petra",
+    "institution": "UNESCO World Heritage Centre",
+    "source_type": "international_heritage_reference",
+    "identifier": "https://whc.unesco.org/en/list/326",
+    "license": "all_rights_reserved_reference_only",
+    "attribution": "UNESCO World Heritage Centre",
+    "allowed_use": "történeti háttér; modern helyzet",
+    "reliability_scope": "official_institutional",
+    "notes_hu": "Petra WHC lap; Edómra kontextuális. Nem indokol teljes Edóm archaeology sectiont."
+  },
+  {
+    "source_id": "unesco_tyre_299",
+    "title": "Tyre",
+    "institution": "UNESCO World Heritage Centre",
+    "source_type": "international_heritage_reference",
+    "identifier": "https://whc.unesco.org/en/list/299",
+    "license": "all_rights_reserved_reference_only",
+    "attribution": "UNESCO World Heritage Centre",
+    "allowed_use": "régészet; történeti háttér; modern helyzet",
+    "reliability_scope": "official_institutional",
+    "notes_hu": "Tírusz helyspecifikus UNESCO WHC forrása; citation-only."
   }
 ]

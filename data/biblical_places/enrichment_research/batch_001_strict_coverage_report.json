@@ -1,46 +1,194 @@
 {
   "summary": {
-    "internet_research_status": "limited_validated_web_discovery_plus_existing_registry",
-    "place_count": 50,
-    "source_candidate_count": 23,
-    "approved_registry_source_promotions": 4,
-    "institutional_or_scholarly_candidate_count": 22,
-    "evidence_item_count": 514,
-    "valid_evidence_item_count": 514,
-    "evidence_strength_totals": {
-      "A_biblical_primary": 312,
-      "B_structured_gazetteer": 185,
-      "C_external_institutional": 4,
-      "D_external_scholarly": 0,
-      "E_contextual_secondary": 13,
-      "F_inference": 0,
-      "G_unsupported": 0
-    },
-    "section_coverage": {
-      "biblical_significance": 50,
-      "key_events": 50,
-      "ancient_geography": 50,
-      "historical_context": 6,
-      "archaeology": 2,
-      "modern_context": 50,
-      "identification_notes": 50
-    },
-    "confidence_distribution": {
-      "medium": 493,
-      "high": 20,
-      "low": 1
-    },
-    "ready_for_drafting_count": 50,
-    "ready_for_source_backed_count": 0,
+    "total_places": 50,
     "biblical_draft_ready_count": 50,
     "partial_profile_ready_count": 6,
     "source_backed_profile_ready_count": 0,
     "featured_candidate_count": 0,
-    "research_blocked_count": 8,
+    "unsupported_places": [],
+    "places_without_external_cde": [
+      "jordan",
+      "moab_1",
+      "assyria",
+      "gilead_1",
+      "canaan",
+      "ammon",
+      "samaria_1",
+      "negeb",
+      "chaldea",
+      "lebanon",
+      "gilgal_1",
+      "sodom",
+      "great_sea",
+      "nile",
+      "gaza",
+      "shiloh",
+      "macedonia",
+      "lachish",
+      "salt_sea",
+      "ai_1",
+      "mizpah_3",
+      "gomorrah",
+      "ashdod",
+      "red_sea_1",
+      "cyprus",
+      "east",
+      "galatia",
+      "ramah_1",
+      "jezreel_2",
+      "mount_of_olives",
+      "lystra",
+      "ekron",
+      "troas",
+      "asia",
+      "thessalonica",
+      "haran",
+      "cush_1",
+      "achaia",
+      "persia",
+      "ashkelon",
+      "derbe",
+      "syria_2",
+      "elam",
+      "moab_2"
+    ],
+    "places_only_a_evidence": [],
+    "places_only_a_plus_b_evidence": [
+      "jordan",
+      "moab_1",
+      "assyria",
+      "gilead_1",
+      "canaan",
+      "ammon",
+      "samaria_1",
+      "negeb",
+      "chaldea",
+      "lebanon",
+      "gilgal_1",
+      "sodom",
+      "great_sea",
+      "nile",
+      "gaza",
+      "shiloh",
+      "macedonia",
+      "lachish",
+      "salt_sea",
+      "ai_1",
+      "mizpah_3",
+      "gomorrah",
+      "ashdod",
+      "red_sea_1",
+      "cyprus",
+      "east",
+      "galatia",
+      "ramah_1",
+      "jezreel_2",
+      "mount_of_olives",
+      "lystra",
+      "ekron",
+      "troas",
+      "asia",
+      "thessalonica",
+      "haran",
+      "cush_1",
+      "achaia",
+      "persia",
+      "ashkelon",
+      "derbe",
+      "syria_2",
+      "elam",
+      "moab_2"
+    ],
+    "places_with_c_or_d": [
+      "egypt",
+      "tyre"
+    ],
+    "section_coverage_by_strength": {
+      "biblical_significance": {
+        "A_biblical_primary": 100
+      },
+      "key_events": {
+        "A_biblical_primary": 212
+      },
+      "ancient_geography": {
+        "B_structured_gazetteer": 67
+      },
+      "historical_context": {
+        "E_contextual_secondary": 5,
+        "C_external_institutional": 1
+      },
+      "archaeology": {
+        "C_external_institutional": 2
+      },
+      "modern_context": {
+        "B_structured_gazetteer": 51,
+        "E_contextual_secondary": 5,
+        "C_external_institutional": 1
+      },
+      "identification_notes": {
+        "B_structured_gazetteer": 67,
+        "E_contextual_secondary": 3
+      },
+      "homiletical_context": {}
+    },
+    "evidence_strength_totals": {
+      "A_biblical_primary": 312,
+      "B_structured_gazetteer": 185,
+      "E_contextual_secondary": 13,
+      "C_external_institutional": 4
+    },
+    "promoted_registry_sources": [
+      {
+        "candidate_id": "web_unesco_ancient_thebes_87",
+        "source_id": "unesco_ancient_thebes_87",
+        "validation_status": "citation_only"
+      },
+      {
+        "candidate_id": "web_unesco_jerusalem_148",
+        "source_id": "unesco_jerusalem_148",
+        "validation_status": "citation_only"
+      },
+      {
+        "candidate_id": "web_unesco_petra_326",
+        "source_id": "unesco_petra_326",
+        "validation_status": "citation_only"
+      },
+      {
+        "candidate_id": "web_unesco_tyre_299",
+        "source_id": "unesco_tyre_299",
+        "validation_status": "citation_only"
+      }
+    ],
+    "rejected_candidates": [],
+    "unclear_license_or_validation_candidates": [
+      "catalog_pleiades_1043",
+      "catalog_pleiades_658427",
+      "catalog_pleiades_678369",
+      "catalog_pleiades_687932",
+      "catalog_pleiades_687985",
+      "catalog_pleiades_697709",
+      "catalog_pleiades_707498",
+      "catalog_pleiades_727172",
+      "catalog_pleiades_857932176",
+      "catalog_pleiades_912842",
+      "catalog_pleiades_981502",
+      "catalog_pleiades_981509",
+      "catalog_pleiades_981527",
+      "catalog_pleiades_981531",
+      "catalog_pleiades_991393",
+      "web_cogat_archaeology_unit",
+      "web_pleiades_ancient_places"
+    ],
+    "deduplicated_evidence_count": 514,
+    "removed_or_disabled_unsupported_evidence_count": 0,
+    "remaining_source_acquisition_tasks": 92,
+    "blocked_records": 8,
     "largest_source_gaps": {
       "archaeology": 48,
       "historical_context": 44
-    }
+    },
+    "internet_research_status": "limited_validated_web_discovery_plus_existing_registry",
+    "notes_hu": "A bibliai textuskapcsolat, a koordináta-metaadat, a történeti szakirodalom és a régészeti intézményi forrás nem egyenértékű."
   },
   "places": [
     {

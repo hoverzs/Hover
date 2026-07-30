@@ -1,0 +1,1788 @@
+[
+  {
+    "task_id": "acq_1174d93293",
+    "place_id": "achaia",
+    "name_hu": "Akhája",
+    "section_name": "archaeology",
+    "current_source_status": "missing_archaeology_cd",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "official_archaeological_site or excavation_project or heritage_authority or museum",
+    "suggested_institution_category": "official_archaeological_site",
+    "exact_research_question_hu": "Van-e intézményi vagy szakmai régészeti forrás Akhája helyéhez?",
+    "current_candidates": [
+      "catalog_pleiades_981502",
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_0cf3f7086f",
+    "place_id": "achaia",
+    "name_hu": "Akhája",
+    "section_name": "historical_context",
+    "current_source_status": "missing_historical_external",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "university_project or museum or peer_reviewed_publication",
+    "suggested_institution_category": "university_project",
+    "exact_research_question_hu": "Van-e helyspecifikus történeti háttérforrás Akhája rövid adatlapjához?",
+    "current_candidates": [
+      "catalog_pleiades_981502",
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_ed93177cfe",
+    "place_id": "ai_1",
+    "name_hu": "Aj",
+    "section_name": "archaeology",
+    "current_source_status": "missing_archaeology_cd",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "official_archaeological_site or excavation_project or heritage_authority or museum",
+    "suggested_institution_category": "official_archaeological_site",
+    "exact_research_question_hu": "Van-e intézményi vagy szakmai régészeti forrás Aj helyéhez?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_dfe05708a8",
+    "place_id": "ai_1",
+    "name_hu": "Aj",
+    "section_name": "historical_context",
+    "current_source_status": "missing_historical_external",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "university_project or museum or peer_reviewed_publication",
+    "suggested_institution_category": "university_project",
+    "exact_research_question_hu": "Van-e helyspecifikus történeti háttérforrás Aj rövid adatlapjához?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_0f20c5126f",
+    "place_id": "ammon",
+    "name_hu": "Ammón",
+    "section_name": "archaeology",
+    "current_source_status": "missing_archaeology_cd",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "official_archaeological_site or excavation_project or heritage_authority or museum",
+    "suggested_institution_category": "official_archaeological_site",
+    "exact_research_question_hu": "Van-e intézményi vagy szakmai régészeti forrás Ammón helyéhez?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_0521619aac",
+    "place_id": "ammon",
+    "name_hu": "Ammón",
+    "section_name": "historical_context",
+    "current_source_status": "missing_historical_external",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "university_project or museum or peer_reviewed_publication",
+    "suggested_institution_category": "university_project",
+    "exact_research_question_hu": "Van-e helyspecifikus történeti háttérforrás Ammón rövid adatlapjához?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_466071a040",
+    "place_id": "ashdod",
+    "name_hu": "Asdód",
+    "section_name": "archaeology",
+    "current_source_status": "missing_archaeology_cd",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "official_archaeological_site or excavation_project or heritage_authority or museum",
+    "suggested_institution_category": "official_archaeological_site",
+    "exact_research_question_hu": "Van-e intézményi vagy szakmai régészeti forrás Asdód helyéhez?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_4c926346ed",
+    "place_id": "ashdod",
+    "name_hu": "Asdód",
+    "section_name": "historical_context",
+    "current_source_status": "missing_historical_external",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "university_project or museum or peer_reviewed_publication",
+    "suggested_institution_category": "university_project",
+    "exact_research_question_hu": "Van-e helyspecifikus történeti háttérforrás Asdód rövid adatlapjához?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_e3697922e1",
+    "place_id": "ashkelon",
+    "name_hu": "Askelón",
+    "section_name": "archaeology",
+    "current_source_status": "missing_archaeology_cd",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "official_archaeological_site or excavation_project or heritage_authority or museum",
+    "suggested_institution_category": "official_archaeological_site",
+    "exact_research_question_hu": "Van-e intézményi vagy szakmai régészeti forrás Askelón helyéhez?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_0c8b1f8b37",
+    "place_id": "ashkelon",
+    "name_hu": "Askelón",
+    "section_name": "historical_context",
+    "current_source_status": "missing_historical_external",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "university_project or museum or peer_reviewed_publication",
+    "suggested_institution_category": "university_project",
+    "exact_research_question_hu": "Van-e helyspecifikus történeti háttérforrás Askelón rövid adatlapjához?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_b878ddaee0",
+    "place_id": "asia",
+    "name_hu": "Ázsia provincia",
+    "section_name": "archaeology",
+    "current_source_status": "missing_archaeology_cd",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "official_archaeological_site or excavation_project or heritage_authority or museum",
+    "suggested_institution_category": "official_archaeological_site",
+    "exact_research_question_hu": "Van-e intézményi vagy szakmai régészeti forrás Ázsia provincia helyéhez?",
+    "current_candidates": [
+      "catalog_pleiades_981509",
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_7c08a54114",
+    "place_id": "asia",
+    "name_hu": "Ázsia provincia",
+    "section_name": "historical_context",
+    "current_source_status": "missing_historical_external",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "university_project or museum or peer_reviewed_publication",
+    "suggested_institution_category": "university_project",
+    "exact_research_question_hu": "Van-e helyspecifikus történeti háttérforrás Ázsia provincia rövid adatlapjához?",
+    "current_candidates": [
+      "catalog_pleiades_981509",
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_34ae87137f",
+    "place_id": "assyria",
+    "name_hu": "Asszíria",
+    "section_name": "archaeology",
+    "current_source_status": "missing_archaeology_cd",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "official_archaeological_site or excavation_project or heritage_authority or museum",
+    "suggested_institution_category": "official_archaeological_site",
+    "exact_research_question_hu": "Van-e intézményi vagy szakmai régészeti forrás Asszíria helyéhez?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_db728f2cf8",
+    "place_id": "assyria",
+    "name_hu": "Asszíria",
+    "section_name": "historical_context",
+    "current_source_status": "missing_historical_external",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "university_project or museum or peer_reviewed_publication",
+    "suggested_institution_category": "university_project",
+    "exact_research_question_hu": "Van-e helyspecifikus történeti háttérforrás Asszíria rövid adatlapjához?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_ca5ebb81ca",
+    "place_id": "canaan",
+    "name_hu": "Kánaán",
+    "section_name": "archaeology",
+    "current_source_status": "missing_archaeology_cd",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "official_archaeological_site or excavation_project or heritage_authority or museum",
+    "suggested_institution_category": "official_archaeological_site",
+    "exact_research_question_hu": "Van-e intézményi vagy szakmai régészeti forrás Kánaán helyéhez?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_efdd47f0fa",
+    "place_id": "canaan",
+    "name_hu": "Kánaán",
+    "section_name": "historical_context",
+    "current_source_status": "missing_historical_external",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "university_project or museum or peer_reviewed_publication",
+    "suggested_institution_category": "university_project",
+    "exact_research_question_hu": "Van-e helyspecifikus történeti háttérforrás Kánaán rövid adatlapjához?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_9b86409d38",
+    "place_id": "chaldea",
+    "name_hu": "Káldea",
+    "section_name": "archaeology",
+    "current_source_status": "missing_archaeology_cd",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "official_archaeological_site or excavation_project or heritage_authority or museum",
+    "suggested_institution_category": "official_archaeological_site",
+    "exact_research_question_hu": "Van-e intézményi vagy szakmai régészeti forrás Káldea helyéhez?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_087ed7a09d",
+    "place_id": "chaldea",
+    "name_hu": "Káldea",
+    "section_name": "historical_context",
+    "current_source_status": "missing_historical_external",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "university_project or museum or peer_reviewed_publication",
+    "suggested_institution_category": "university_project",
+    "exact_research_question_hu": "Van-e helyspecifikus történeti háttérforrás Káldea rövid adatlapjához?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_ef70a4b273",
+    "place_id": "cush_1",
+    "name_hu": "Kús",
+    "section_name": "archaeology",
+    "current_source_status": "missing_archaeology_cd",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "official_archaeological_site or excavation_project or heritage_authority or museum",
+    "suggested_institution_category": "official_archaeological_site",
+    "exact_research_question_hu": "Van-e intézményi vagy szakmai régészeti forrás Kús helyéhez?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_b350173c49",
+    "place_id": "cush_1",
+    "name_hu": "Kús",
+    "section_name": "historical_context",
+    "current_source_status": "missing_historical_external",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "university_project or museum or peer_reviewed_publication",
+    "suggested_institution_category": "university_project",
+    "exact_research_question_hu": "Van-e helyspecifikus történeti háttérforrás Kús rövid adatlapjához?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_b2eefef067",
+    "place_id": "cyprus",
+    "name_hu": "Ciprus",
+    "section_name": "archaeology",
+    "current_source_status": "missing_archaeology_cd",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "official_archaeological_site or excavation_project or heritage_authority or museum",
+    "suggested_institution_category": "official_archaeological_site",
+    "exact_research_question_hu": "Van-e intézményi vagy szakmai régészeti forrás Ciprus helyéhez?",
+    "current_candidates": [
+      "catalog_pleiades_707498",
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_fb0058cb2a",
+    "place_id": "cyprus",
+    "name_hu": "Ciprus",
+    "section_name": "historical_context",
+    "current_source_status": "missing_historical_external",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "university_project or museum or peer_reviewed_publication",
+    "suggested_institution_category": "university_project",
+    "exact_research_question_hu": "Van-e helyspecifikus történeti háttérforrás Ciprus rövid adatlapjához?",
+    "current_candidates": [
+      "catalog_pleiades_707498",
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_556d25f605",
+    "place_id": "derbe",
+    "name_hu": "Derbé",
+    "section_name": "archaeology",
+    "current_source_status": "missing_archaeology_cd",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "official_archaeological_site or excavation_project or heritage_authority or museum",
+    "suggested_institution_category": "official_archaeological_site",
+    "exact_research_question_hu": "Van-e intézményi vagy szakmai régészeti forrás Derbé helyéhez?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_1409d1e2a0",
+    "place_id": "derbe",
+    "name_hu": "Derbé",
+    "section_name": "historical_context",
+    "current_source_status": "missing_historical_external",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "university_project or museum or peer_reviewed_publication",
+    "suggested_institution_category": "university_project",
+    "exact_research_question_hu": "Van-e helyspecifikus történeti háttérforrás Derbé rövid adatlapjához?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_bc58136fea",
+    "place_id": "east",
+    "name_hu": "Kelet vidéke",
+    "section_name": "archaeology",
+    "current_source_status": "missing_archaeology_cd",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "official_archaeological_site or excavation_project or heritage_authority or museum",
+    "suggested_institution_category": "official_archaeological_site",
+    "exact_research_question_hu": "Van-e intézményi vagy szakmai régészeti forrás Kelet vidéke helyéhez?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_7b1f3b7c80",
+    "place_id": "east",
+    "name_hu": "Kelet vidéke",
+    "section_name": "historical_context",
+    "current_source_status": "missing_historical_external",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "university_project or museum or peer_reviewed_publication",
+    "suggested_institution_category": "university_project",
+    "exact_research_question_hu": "Van-e helyspecifikus történeti háttérforrás Kelet vidéke rövid adatlapjához?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_1eeb078be9",
+    "place_id": "edom",
+    "name_hu": "Edóm",
+    "section_name": "archaeology",
+    "current_source_status": "missing_archaeology_cd",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "official_archaeological_site or excavation_project or heritage_authority or museum",
+    "suggested_institution_category": "official_archaeological_site",
+    "exact_research_question_hu": "Van-e intézményi vagy szakmai régészeti forrás Edóm helyéhez?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0",
+      "web_unesco_petra_326"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_d53c780447",
+    "place_id": "ekron",
+    "name_hu": "Ekrón",
+    "section_name": "archaeology",
+    "current_source_status": "missing_archaeology_cd",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "official_archaeological_site or excavation_project or heritage_authority or museum",
+    "suggested_institution_category": "official_archaeological_site",
+    "exact_research_question_hu": "Van-e intézményi vagy szakmai régészeti forrás Ekrón helyéhez?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_5979342c86",
+    "place_id": "ekron",
+    "name_hu": "Ekrón",
+    "section_name": "historical_context",
+    "current_source_status": "missing_historical_external",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "university_project or museum or peer_reviewed_publication",
+    "suggested_institution_category": "university_project",
+    "exact_research_question_hu": "Van-e helyspecifikus történeti háttérforrás Ekrón rövid adatlapjához?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_6d7dce3f0d",
+    "place_id": "elam",
+    "name_hu": "Élám",
+    "section_name": "archaeology",
+    "current_source_status": "missing_archaeology_cd",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "official_archaeological_site or excavation_project or heritage_authority or museum",
+    "suggested_institution_category": "official_archaeological_site",
+    "exact_research_question_hu": "Van-e intézményi vagy szakmai régészeti forrás Élám helyéhez?",
+    "current_candidates": [
+      "catalog_pleiades_912842",
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_52e89a9204",
+    "place_id": "elam",
+    "name_hu": "Élám",
+    "section_name": "historical_context",
+    "current_source_status": "missing_historical_external",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "university_project or museum or peer_reviewed_publication",
+    "suggested_institution_category": "university_project",
+    "exact_research_question_hu": "Van-e helyspecifikus történeti háttérforrás Élám rövid adatlapjához?",
+    "current_candidates": [
+      "catalog_pleiades_912842",
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_7120a72efe",
+    "place_id": "galatia",
+    "name_hu": "Galácia",
+    "section_name": "archaeology",
+    "current_source_status": "missing_archaeology_cd",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "official_archaeological_site or excavation_project or heritage_authority or museum",
+    "suggested_institution_category": "official_archaeological_site",
+    "exact_research_question_hu": "Van-e intézményi vagy szakmai régészeti forrás Galácia helyéhez?",
+    "current_candidates": [
+      "catalog_pleiades_991393",
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_bf7fc79192",
+    "place_id": "galatia",
+    "name_hu": "Galácia",
+    "section_name": "historical_context",
+    "current_source_status": "missing_historical_external",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "university_project or museum or peer_reviewed_publication",
+    "suggested_institution_category": "university_project",
+    "exact_research_question_hu": "Van-e helyspecifikus történeti háttérforrás Galácia rövid adatlapjához?",
+    "current_candidates": [
+      "catalog_pleiades_991393",
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_f768e7c612",
+    "place_id": "gaza",
+    "name_hu": "Gáza",
+    "section_name": "archaeology",
+    "current_source_status": "missing_archaeology_cd",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "official_archaeological_site or excavation_project or heritage_authority or museum",
+    "suggested_institution_category": "official_archaeological_site",
+    "exact_research_question_hu": "Van-e intézményi vagy szakmai régészeti forrás Gáza helyéhez?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_f74c0024d6",
+    "place_id": "gaza",
+    "name_hu": "Gáza",
+    "section_name": "historical_context",
+    "current_source_status": "missing_historical_external",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "university_project or museum or peer_reviewed_publication",
+    "suggested_institution_category": "university_project",
+    "exact_research_question_hu": "Van-e helyspecifikus történeti háttérforrás Gáza rövid adatlapjához?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_cf6c9ca1a2",
+    "place_id": "gilead_1",
+    "name_hu": "Gileád",
+    "section_name": "archaeology",
+    "current_source_status": "missing_archaeology_cd",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "official_archaeological_site or excavation_project or heritage_authority or museum",
+    "suggested_institution_category": "official_archaeological_site",
+    "exact_research_question_hu": "Van-e intézményi vagy szakmai régészeti forrás Gileád helyéhez?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_6b93fec365",
+    "place_id": "gilead_1",
+    "name_hu": "Gileád",
+    "section_name": "historical_context",
+    "current_source_status": "missing_historical_external",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "university_project or museum or peer_reviewed_publication",
+    "suggested_institution_category": "university_project",
+    "exact_research_question_hu": "Van-e helyspecifikus történeti háttérforrás Gileád rövid adatlapjához?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_f3ca3e2c21",
+    "place_id": "gilgal_1",
+    "name_hu": "Gilgál",
+    "section_name": "archaeology",
+    "current_source_status": "missing_archaeology_cd",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "official_archaeological_site or excavation_project or heritage_authority or museum",
+    "suggested_institution_category": "official_archaeological_site",
+    "exact_research_question_hu": "Van-e intézményi vagy szakmai régészeti forrás Gilgál helyéhez?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_c2ce1b7c45",
+    "place_id": "gilgal_1",
+    "name_hu": "Gilgál",
+    "section_name": "historical_context",
+    "current_source_status": "missing_historical_external",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "university_project or museum or peer_reviewed_publication",
+    "suggested_institution_category": "university_project",
+    "exact_research_question_hu": "Van-e helyspecifikus történeti háttérforrás Gilgál rövid adatlapjához?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_d79209334d",
+    "place_id": "gomorrah",
+    "name_hu": "Gomora",
+    "section_name": "archaeology",
+    "current_source_status": "missing_archaeology_cd",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "official_archaeological_site or excavation_project or heritage_authority or museum",
+    "suggested_institution_category": "official_archaeological_site",
+    "exact_research_question_hu": "Van-e intézményi vagy szakmai régészeti forrás Gomora helyéhez?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_43177a1037",
+    "place_id": "gomorrah",
+    "name_hu": "Gomora",
+    "section_name": "historical_context",
+    "current_source_status": "missing_historical_external",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "university_project or museum or peer_reviewed_publication",
+    "suggested_institution_category": "university_project",
+    "exact_research_question_hu": "Van-e helyspecifikus történeti háttérforrás Gomora rövid adatlapjához?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_e5654ee5dc",
+    "place_id": "great_sea",
+    "name_hu": "Nagy-tenger",
+    "section_name": "archaeology",
+    "current_source_status": "missing_archaeology_cd",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "official_archaeological_site or excavation_project or heritage_authority or museum",
+    "suggested_institution_category": "official_archaeological_site",
+    "exact_research_question_hu": "Van-e intézményi vagy szakmai régészeti forrás Nagy-tenger helyéhez?",
+    "current_candidates": [
+      "catalog_pleiades_1043",
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_3a1f606fd6",
+    "place_id": "great_sea",
+    "name_hu": "Nagy-tenger",
+    "section_name": "historical_context",
+    "current_source_status": "missing_historical_external",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "university_project or museum or peer_reviewed_publication",
+    "suggested_institution_category": "university_project",
+    "exact_research_question_hu": "Van-e helyspecifikus történeti háttérforrás Nagy-tenger rövid adatlapjához?",
+    "current_candidates": [
+      "catalog_pleiades_1043",
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_0fe95e66f7",
+    "place_id": "haran",
+    "name_hu": "Hárán",
+    "section_name": "archaeology",
+    "current_source_status": "missing_archaeology_cd",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "official_archaeological_site or excavation_project or heritage_authority or museum",
+    "suggested_institution_category": "official_archaeological_site",
+    "exact_research_question_hu": "Van-e intézményi vagy szakmai régészeti forrás Hárán helyéhez?",
+    "current_candidates": [
+      "catalog_pleiades_658427",
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_837eecfcf3",
+    "place_id": "haran",
+    "name_hu": "Hárán",
+    "section_name": "historical_context",
+    "current_source_status": "missing_historical_external",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "university_project or museum or peer_reviewed_publication",
+    "suggested_institution_category": "university_project",
+    "exact_research_question_hu": "Van-e helyspecifikus történeti háttérforrás Hárán rövid adatlapjához?",
+    "current_candidates": [
+      "catalog_pleiades_658427",
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_75d7a0a61d",
+    "place_id": "jezreel_2",
+    "name_hu": "Jezréel",
+    "section_name": "archaeology",
+    "current_source_status": "missing_archaeology_cd",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "official_archaeological_site or excavation_project or heritage_authority or museum",
+    "suggested_institution_category": "official_archaeological_site",
+    "exact_research_question_hu": "Van-e intézményi vagy szakmai régészeti forrás Jezréel helyéhez?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_22d1e119ef",
+    "place_id": "jezreel_2",
+    "name_hu": "Jezréel",
+    "section_name": "historical_context",
+    "current_source_status": "missing_historical_external",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "university_project or museum or peer_reviewed_publication",
+    "suggested_institution_category": "university_project",
+    "exact_research_question_hu": "Van-e helyspecifikus történeti háttérforrás Jezréel rövid adatlapjához?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_4d2e1e6fa7",
+    "place_id": "jordan",
+    "name_hu": "Jordán",
+    "section_name": "archaeology",
+    "current_source_status": "missing_archaeology_cd",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "official_archaeological_site or excavation_project or heritage_authority or museum",
+    "suggested_institution_category": "official_archaeological_site",
+    "exact_research_question_hu": "Van-e intézményi vagy szakmai régészeti forrás Jordán helyéhez?",
+    "current_candidates": [
+      "catalog_pleiades_687932",
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_472d991208",
+    "place_id": "jordan",
+    "name_hu": "Jordán",
+    "section_name": "historical_context",
+    "current_source_status": "missing_historical_external",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "university_project or museum or peer_reviewed_publication",
+    "suggested_institution_category": "university_project",
+    "exact_research_question_hu": "Van-e helyspecifikus történeti háttérforrás Jordán rövid adatlapjához?",
+    "current_candidates": [
+      "catalog_pleiades_687932",
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_57c647008e",
+    "place_id": "judea_1",
+    "name_hu": "Júdea",
+    "section_name": "archaeology",
+    "current_source_status": "missing_archaeology_cd",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "official_archaeological_site or excavation_project or heritage_authority or museum",
+    "suggested_institution_category": "official_archaeological_site",
+    "exact_research_question_hu": "Van-e intézményi vagy szakmai régészeti forrás Júdea helyéhez?",
+    "current_candidates": [
+      "catalog_pleiades_981527",
+      "existing_openbible_geocoding_cc_by_4_0",
+      "web_cogat_archaeology_unit",
+      "web_unesco_jerusalem_148"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_5bee15e909",
+    "place_id": "lachish",
+    "name_hu": "Lákis",
+    "section_name": "archaeology",
+    "current_source_status": "missing_archaeology_cd",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "official_archaeological_site or excavation_project or heritage_authority or museum",
+    "suggested_institution_category": "official_archaeological_site",
+    "exact_research_question_hu": "Van-e intézményi vagy szakmai régészeti forrás Lákis helyéhez?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_055b981a6e",
+    "place_id": "lachish",
+    "name_hu": "Lákis",
+    "section_name": "historical_context",
+    "current_source_status": "missing_historical_external",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "university_project or museum or peer_reviewed_publication",
+    "suggested_institution_category": "university_project",
+    "exact_research_question_hu": "Van-e helyspecifikus történeti háttérforrás Lákis rövid adatlapjához?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_9f1c812eb7",
+    "place_id": "lebanon",
+    "name_hu": "Libanon",
+    "section_name": "archaeology",
+    "current_source_status": "missing_archaeology_cd",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "official_archaeological_site or excavation_project or heritage_authority or museum",
+    "suggested_institution_category": "official_archaeological_site",
+    "exact_research_question_hu": "Van-e intézményi vagy szakmai régészeti forrás Libanon helyéhez?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_772f2ffe67",
+    "place_id": "lebanon",
+    "name_hu": "Libanon",
+    "section_name": "historical_context",
+    "current_source_status": "missing_historical_external",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "university_project or museum or peer_reviewed_publication",
+    "suggested_institution_category": "university_project",
+    "exact_research_question_hu": "Van-e helyspecifikus történeti háttérforrás Libanon rövid adatlapjához?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_e6ec0950ae",
+    "place_id": "lystra",
+    "name_hu": "Lisztra",
+    "section_name": "archaeology",
+    "current_source_status": "missing_archaeology_cd",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "official_archaeological_site or excavation_project or heritage_authority or museum",
+    "suggested_institution_category": "official_archaeological_site",
+    "exact_research_question_hu": "Van-e intézményi vagy szakmai régészeti forrás Lisztra helyéhez?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_e4553a7142",
+    "place_id": "lystra",
+    "name_hu": "Lisztra",
+    "section_name": "historical_context",
+    "current_source_status": "missing_historical_external",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "university_project or museum or peer_reviewed_publication",
+    "suggested_institution_category": "university_project",
+    "exact_research_question_hu": "Van-e helyspecifikus történeti háttérforrás Lisztra rövid adatlapjához?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_ae870d477a",
+    "place_id": "macedonia",
+    "name_hu": "Macedónia",
+    "section_name": "archaeology",
+    "current_source_status": "missing_archaeology_cd",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "official_archaeological_site or excavation_project or heritage_authority or museum",
+    "suggested_institution_category": "official_archaeological_site",
+    "exact_research_question_hu": "Van-e intézményi vagy szakmai régészeti forrás Macedónia helyéhez?",
+    "current_candidates": [
+      "catalog_pleiades_981531",
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_6ae6ace9ec",
+    "place_id": "macedonia",
+    "name_hu": "Macedónia",
+    "section_name": "historical_context",
+    "current_source_status": "missing_historical_external",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "university_project or museum or peer_reviewed_publication",
+    "suggested_institution_category": "university_project",
+    "exact_research_question_hu": "Van-e helyspecifikus történeti háttérforrás Macedónia rövid adatlapjához?",
+    "current_candidates": [
+      "catalog_pleiades_981531",
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_a6ccc5b820",
+    "place_id": "mizpah_3",
+    "name_hu": "Micpa (Benjámin)",
+    "section_name": "archaeology",
+    "current_source_status": "missing_archaeology_cd",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "official_archaeological_site or excavation_project or heritage_authority or museum",
+    "suggested_institution_category": "official_archaeological_site",
+    "exact_research_question_hu": "Van-e intézményi vagy szakmai régészeti forrás Micpa (Benjámin) helyéhez?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_d49c7ea3f7",
+    "place_id": "mizpah_3",
+    "name_hu": "Micpa (Benjámin)",
+    "section_name": "historical_context",
+    "current_source_status": "missing_historical_external",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "university_project or museum or peer_reviewed_publication",
+    "suggested_institution_category": "university_project",
+    "exact_research_question_hu": "Van-e helyspecifikus történeti háttérforrás Micpa (Benjámin) rövid adatlapjához?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_041ef2cf68",
+    "place_id": "moab_1",
+    "name_hu": "Moáb",
+    "section_name": "archaeology",
+    "current_source_status": "missing_archaeology_cd",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "official_archaeological_site or excavation_project or heritage_authority or museum",
+    "suggested_institution_category": "official_archaeological_site",
+    "exact_research_question_hu": "Van-e intézményi vagy szakmai régészeti forrás Moáb helyéhez?",
+    "current_candidates": [
+      "catalog_pleiades_857932176",
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_30b66eaa07",
+    "place_id": "moab_1",
+    "name_hu": "Moáb",
+    "section_name": "historical_context",
+    "current_source_status": "missing_historical_external",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "university_project or museum or peer_reviewed_publication",
+    "suggested_institution_category": "university_project",
+    "exact_research_question_hu": "Van-e helyspecifikus történeti háttérforrás Moáb rövid adatlapjához?",
+    "current_candidates": [
+      "catalog_pleiades_857932176",
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_6bfbe558f3",
+    "place_id": "moab_2",
+    "name_hu": "Moáb síksága",
+    "section_name": "archaeology",
+    "current_source_status": "missing_archaeology_cd",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "official_archaeological_site or excavation_project or heritage_authority or museum",
+    "suggested_institution_category": "official_archaeological_site",
+    "exact_research_question_hu": "Van-e intézményi vagy szakmai régészeti forrás Moáb síksága helyéhez?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_f11c220679",
+    "place_id": "moab_2",
+    "name_hu": "Moáb síksága",
+    "section_name": "historical_context",
+    "current_source_status": "missing_historical_external",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "university_project or museum or peer_reviewed_publication",
+    "suggested_institution_category": "university_project",
+    "exact_research_question_hu": "Van-e helyspecifikus történeti háttérforrás Moáb síksága rövid adatlapjához?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_5dac09a2ae",
+    "place_id": "mount_of_olives",
+    "name_hu": "Olajfák hegye",
+    "section_name": "archaeology",
+    "current_source_status": "missing_archaeology_cd",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "official_archaeological_site or excavation_project or heritage_authority or museum",
+    "suggested_institution_category": "official_archaeological_site",
+    "exact_research_question_hu": "Van-e intézményi vagy szakmai régészeti forrás Olajfák hegye helyéhez?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_8124c09b5c",
+    "place_id": "mount_of_olives",
+    "name_hu": "Olajfák hegye",
+    "section_name": "historical_context",
+    "current_source_status": "missing_historical_external",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "university_project or museum or peer_reviewed_publication",
+    "suggested_institution_category": "university_project",
+    "exact_research_question_hu": "Van-e helyspecifikus történeti háttérforrás Olajfák hegye rövid adatlapjához?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_9651cc1a5f",
+    "place_id": "mount_zion",
+    "name_hu": "Sion hegye",
+    "section_name": "archaeology",
+    "current_source_status": "missing_archaeology_cd",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "official_archaeological_site or excavation_project or heritage_authority or museum",
+    "suggested_institution_category": "official_archaeological_site",
+    "exact_research_question_hu": "Van-e intézményi vagy szakmai régészeti forrás Sion hegye helyéhez?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0",
+      "web_unesco_jerusalem_148"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_d2a696f3bb",
+    "place_id": "negeb",
+    "name_hu": "Negev",
+    "section_name": "archaeology",
+    "current_source_status": "missing_archaeology_cd",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "official_archaeological_site or excavation_project or heritage_authority or museum",
+    "suggested_institution_category": "official_archaeological_site",
+    "exact_research_question_hu": "Van-e intézményi vagy szakmai régészeti forrás Negev helyéhez?",
+    "current_candidates": [
+      "catalog_pleiades_687985",
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_99b4b60431",
+    "place_id": "negeb",
+    "name_hu": "Negev",
+    "section_name": "historical_context",
+    "current_source_status": "missing_historical_external",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "university_project or museum or peer_reviewed_publication",
+    "suggested_institution_category": "university_project",
+    "exact_research_question_hu": "Van-e helyspecifikus történeti háttérforrás Negev rövid adatlapjához?",
+    "current_candidates": [
+      "catalog_pleiades_687985",
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_ecefd8da86",
+    "place_id": "nile",
+    "name_hu": "Nílus",
+    "section_name": "archaeology",
+    "current_source_status": "missing_archaeology_cd",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "official_archaeological_site or excavation_project or heritage_authority or museum",
+    "suggested_institution_category": "official_archaeological_site",
+    "exact_research_question_hu": "Van-e intézményi vagy szakmai régészeti forrás Nílus helyéhez?",
+    "current_candidates": [
+      "catalog_pleiades_727172",
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_30a18eef63",
+    "place_id": "nile",
+    "name_hu": "Nílus",
+    "section_name": "historical_context",
+    "current_source_status": "missing_historical_external",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "university_project or museum or peer_reviewed_publication",
+    "suggested_institution_category": "university_project",
+    "exact_research_question_hu": "Van-e helyspecifikus történeti háttérforrás Nílus rövid adatlapjához?",
+    "current_candidates": [
+      "catalog_pleiades_727172",
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_bc3576cf8a",
+    "place_id": "persia",
+    "name_hu": "Perzsia",
+    "section_name": "archaeology",
+    "current_source_status": "missing_archaeology_cd",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "official_archaeological_site or excavation_project or heritage_authority or museum",
+    "suggested_institution_category": "official_archaeological_site",
+    "exact_research_question_hu": "Van-e intézményi vagy szakmai régészeti forrás Perzsia helyéhez?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_9531f6ee87",
+    "place_id": "persia",
+    "name_hu": "Perzsia",
+    "section_name": "historical_context",
+    "current_source_status": "missing_historical_external",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "university_project or museum or peer_reviewed_publication",
+    "suggested_institution_category": "university_project",
+    "exact_research_question_hu": "Van-e helyspecifikus történeti háttérforrás Perzsia rövid adatlapjához?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_0c406476f3",
+    "place_id": "ramah_1",
+    "name_hu": "Ráma",
+    "section_name": "archaeology",
+    "current_source_status": "missing_archaeology_cd",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "official_archaeological_site or excavation_project or heritage_authority or museum",
+    "suggested_institution_category": "official_archaeological_site",
+    "exact_research_question_hu": "Van-e intézményi vagy szakmai régészeti forrás Ráma helyéhez?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_7d1b3e77c0",
+    "place_id": "ramah_1",
+    "name_hu": "Ráma",
+    "section_name": "historical_context",
+    "current_source_status": "missing_historical_external",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "university_project or museum or peer_reviewed_publication",
+    "suggested_institution_category": "university_project",
+    "exact_research_question_hu": "Van-e helyspecifikus történeti háttérforrás Ráma rövid adatlapjához?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_27a21d8b95",
+    "place_id": "red_sea_1",
+    "name_hu": "Vörös-tenger",
+    "section_name": "archaeology",
+    "current_source_status": "missing_archaeology_cd",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "official_archaeological_site or excavation_project or heritage_authority or museum",
+    "suggested_institution_category": "official_archaeological_site",
+    "exact_research_question_hu": "Van-e intézményi vagy szakmai régészeti forrás Vörös-tenger helyéhez?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_ee5f8aa79e",
+    "place_id": "red_sea_1",
+    "name_hu": "Vörös-tenger",
+    "section_name": "historical_context",
+    "current_source_status": "missing_historical_external",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "university_project or museum or peer_reviewed_publication",
+    "suggested_institution_category": "university_project",
+    "exact_research_question_hu": "Van-e helyspecifikus történeti háttérforrás Vörös-tenger rövid adatlapjához?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_d504d3e774",
+    "place_id": "salt_sea",
+    "name_hu": "Sós-tenger",
+    "section_name": "archaeology",
+    "current_source_status": "missing_archaeology_cd",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "official_archaeological_site or excavation_project or heritage_authority or museum",
+    "suggested_institution_category": "official_archaeological_site",
+    "exact_research_question_hu": "Van-e intézményi vagy szakmai régészeti forrás Sós-tenger helyéhez?",
+    "current_candidates": [
+      "catalog_pleiades_697709",
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_aae7598091",
+    "place_id": "salt_sea",
+    "name_hu": "Sós-tenger",
+    "section_name": "historical_context",
+    "current_source_status": "missing_historical_external",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "university_project or museum or peer_reviewed_publication",
+    "suggested_institution_category": "university_project",
+    "exact_research_question_hu": "Van-e helyspecifikus történeti háttérforrás Sós-tenger rövid adatlapjához?",
+    "current_candidates": [
+      "catalog_pleiades_697709",
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_dddcf21218",
+    "place_id": "samaria_1",
+    "name_hu": "Samária",
+    "section_name": "archaeology",
+    "current_source_status": "missing_archaeology_cd",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "official_archaeological_site or excavation_project or heritage_authority or museum",
+    "suggested_institution_category": "official_archaeological_site",
+    "exact_research_question_hu": "Van-e intézményi vagy szakmai régészeti forrás Samária helyéhez?",
+    "current_candidates": [
+      "catalog_pleiades_678369",
+      "existing_openbible_geocoding_cc_by_4_0",
+      "web_cogat_archaeology_unit"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_07e7e4b0b2",
+    "place_id": "samaria_1",
+    "name_hu": "Samária",
+    "section_name": "historical_context",
+    "current_source_status": "missing_historical_external",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "university_project or museum or peer_reviewed_publication",
+    "suggested_institution_category": "university_project",
+    "exact_research_question_hu": "Van-e helyspecifikus történeti háttérforrás Samária rövid adatlapjához?",
+    "current_candidates": [
+      "catalog_pleiades_678369",
+      "existing_openbible_geocoding_cc_by_4_0",
+      "web_cogat_archaeology_unit"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_87bd24f372",
+    "place_id": "shiloh",
+    "name_hu": "Siló",
+    "section_name": "archaeology",
+    "current_source_status": "missing_archaeology_cd",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "official_archaeological_site or excavation_project or heritage_authority or museum",
+    "suggested_institution_category": "official_archaeological_site",
+    "exact_research_question_hu": "Van-e intézményi vagy szakmai régészeti forrás Siló helyéhez?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_4c2f7563e8",
+    "place_id": "shiloh",
+    "name_hu": "Siló",
+    "section_name": "historical_context",
+    "current_source_status": "missing_historical_external",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "university_project or museum or peer_reviewed_publication",
+    "suggested_institution_category": "university_project",
+    "exact_research_question_hu": "Van-e helyspecifikus történeti háttérforrás Siló rövid adatlapjához?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_a2df17c8f9",
+    "place_id": "sodom",
+    "name_hu": "Sodoma",
+    "section_name": "archaeology",
+    "current_source_status": "missing_archaeology_cd",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "official_archaeological_site or excavation_project or heritage_authority or museum",
+    "suggested_institution_category": "official_archaeological_site",
+    "exact_research_question_hu": "Van-e intézményi vagy szakmai régészeti forrás Sodoma helyéhez?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_88621a8bda",
+    "place_id": "sodom",
+    "name_hu": "Sodoma",
+    "section_name": "historical_context",
+    "current_source_status": "missing_historical_external",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "university_project or museum or peer_reviewed_publication",
+    "suggested_institution_category": "university_project",
+    "exact_research_question_hu": "Van-e helyspecifikus történeti háttérforrás Sodoma rövid adatlapjához?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_a82e2edd4f",
+    "place_id": "syria_2",
+    "name_hu": "Szíria",
+    "section_name": "archaeology",
+    "current_source_status": "missing_archaeology_cd",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "official_archaeological_site or excavation_project or heritage_authority or museum",
+    "suggested_institution_category": "official_archaeological_site",
+    "exact_research_question_hu": "Van-e intézményi vagy szakmai régészeti forrás Szíria helyéhez?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_96638f8713",
+    "place_id": "syria_2",
+    "name_hu": "Szíria",
+    "section_name": "historical_context",
+    "current_source_status": "missing_historical_external",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "university_project or museum or peer_reviewed_publication",
+    "suggested_institution_category": "university_project",
+    "exact_research_question_hu": "Van-e helyspecifikus történeti háttérforrás Szíria rövid adatlapjához?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_8e85459429",
+    "place_id": "thessalonica",
+    "name_hu": "Thesszalonika",
+    "section_name": "archaeology",
+    "current_source_status": "missing_archaeology_cd",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "official_archaeological_site or excavation_project or heritage_authority or museum",
+    "suggested_institution_category": "official_archaeological_site",
+    "exact_research_question_hu": "Van-e intézményi vagy szakmai régészeti forrás Thesszalonika helyéhez?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0",
+      "existing_pleiades_place_491741"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_939ed2dde4",
+    "place_id": "thessalonica",
+    "name_hu": "Thesszalonika",
+    "section_name": "historical_context",
+    "current_source_status": "missing_historical_external",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "university_project or museum or peer_reviewed_publication",
+    "suggested_institution_category": "university_project",
+    "exact_research_question_hu": "Van-e helyspecifikus történeti háttérforrás Thesszalonika rövid adatlapjához?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0",
+      "existing_pleiades_place_491741"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_c112f8710b",
+    "place_id": "troas",
+    "name_hu": "Tróász",
+    "section_name": "archaeology",
+    "current_source_status": "missing_archaeology_cd",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "official_archaeological_site or excavation_project or heritage_authority or museum",
+    "suggested_institution_category": "official_archaeological_site",
+    "exact_research_question_hu": "Van-e intézményi vagy szakmai régészeti forrás Tróász helyéhez?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_995c7e11b4",
+    "place_id": "troas",
+    "name_hu": "Tróász",
+    "section_name": "historical_context",
+    "current_source_status": "missing_historical_external",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "university_project or museum or peer_reviewed_publication",
+    "suggested_institution_category": "university_project",
+    "exact_research_question_hu": "Van-e helyspecifikus történeti háttérforrás Tróász rövid adatlapjához?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  },
+  {
+    "task_id": "acq_2b5c7d653a",
+    "place_id": "zion",
+    "name_hu": "Sion",
+    "section_name": "archaeology",
+    "current_source_status": "missing_archaeology_cd",
+    "missing_source_strength": "C_or_D",
+    "required_source_type": "official_archaeological_site or excavation_project or heritage_authority or museum",
+    "suggested_institution_category": "official_archaeological_site",
+    "exact_research_question_hu": "Van-e intézményi vagy szakmai régészeti forrás Sion helyéhez?",
+    "current_candidates": [
+      "existing_openbible_geocoding_cc_by_4_0",
+      "web_unesco_jerusalem_148"
+    ],
+    "priority": "high",
+    "blocks_partial_profile": true,
+    "blocks_source_backed": true,
+    "blocks_featured": true,
+    "status": "open"
+  }
+]
