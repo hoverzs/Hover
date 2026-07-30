@@ -27,6 +27,7 @@ from biblical_map_passages import (
 from biblical_routes import (
     BiblicalRoute,
     BiblicalRouteDataError,
+    BiblicalRouteSegment,
     BiblicalRouteStop,
     find_route_stop_matches_for_passage,
     load_biblical_routes,
@@ -50,6 +51,10 @@ SELECTED_ROUTE_ID_KEY = "_biblical_map_selected_route_id"
 SELECTED_ROUTE_STOP_ID_KEY = "_biblical_map_selected_route_stop_id"
 HIGHLIGHTED_ROUTE_STOP_IDS_KEY = "_biblical_map_highlighted_route_stop_ids"
 SELECTED_ROUTE_PHASE_KEY = "_biblical_map_selected_route_phase"
+PENDING_ROUTE_ID_KEY = "_biblical_map_pending_route_id"
+PENDING_ROUTE_STOP_IDS_KEY = "_biblical_map_pending_route_stop_ids"
+PENDING_MAP_VIEW_KEY = "_biblical_map_pending_view"
+LAST_RENDERED_ROUTE_ID_KEY = "_biblical_map_last_rendered_route_id"
 ROUTE_VIEW_WARNING_HU = (
     "Az útvonal a bibliai szövegben megnevezett állomások sorrendjét mutatja. "
     "A vonalak sematikusak, nem a pontos ókori nyomvonalat jelölik."
@@ -621,12 +626,86 @@ def switch_to_route_view_for_passage(
     route_id: str,
     stop_ids: list[str] | tuple[str, ...],
 ) -> None:
+    queue_route_navigation(session_state, route_id, stop_ids)
+
+
+def queue_route_navigation(
+    session_state: Any,
+    route_id: str,
+    stop_ids: list[str] | tuple[str, ...] = (),
+) -> None:
     unique_stop_ids = list(dict.fromkeys(str(stop_id) for stop_id in stop_ids if stop_id))
-    session_state[ACTIVE_MAP_VIEW_KEY] = MAP_VIEW_ROUTES
-    session_state[SELECTED_ROUTE_ID_KEY] = route_id
-    session_state[HIGHLIGHTED_ROUTE_STOP_IDS_KEY] = unique_stop_ids
-    if unique_stop_ids:
-        session_state[SELECTED_ROUTE_STOP_ID_KEY] = unique_stop_ids[0]
+    session_state[PENDING_MAP_VIEW_KEY] = MAP_VIEW_ROUTES
+    session_state[PENDING_ROUTE_ID_KEY] = route_id
+    session_state[PENDING_ROUTE_STOP_IDS_KEY] = unique_stop_ids
+
+
+def apply_pending_route_navigation_state(
+    session_state: Any,
+    valid_route_ids: list[str] | tuple[str, ...] | None = None,
+) -> None:
+    pending_view = str(session_state.get(PENDING_MAP_VIEW_KEY) or "").strip()
+    if pending_view in {MAP_VIEW_PLACES, MAP_VIEW_ROUTES}:
+        session_state[ACTIVE_MAP_VIEW_KEY] = pending_view
+    session_state.pop(PENDING_MAP_VIEW_KEY, None)
+
+    pending_route_id = str(session_state.get(PENDING_ROUTE_ID_KEY) or "").strip()
+    if pending_route_id:
+        if valid_route_ids is None or pending_route_id in valid_route_ids:
+            session_state[SELECTED_ROUTE_ID_KEY] = pending_route_id
+            stop_ids = list(session_state.get(PENDING_ROUTE_STOP_IDS_KEY) or ())
+            unique_stop_ids = list(dict.fromkeys(str(stop_id) for stop_id in stop_ids if stop_id))
+            session_state[HIGHLIGHTED_ROUTE_STOP_IDS_KEY] = unique_stop_ids
+            if unique_stop_ids:
+                session_state[SELECTED_ROUTE_STOP_ID_KEY] = unique_stop_ids[0]
+            else:
+                session_state.pop(SELECTED_ROUTE_STOP_ID_KEY, None)
+        session_state.pop(PENDING_ROUTE_ID_KEY, None)
+        session_state.pop(PENDING_ROUTE_STOP_IDS_KEY, None)
+
+
+def route_phase_state_key(route_id: str) -> str:
+    return f"{SELECTED_ROUTE_PHASE_KEY}_{route_id}"
+
+
+def prepare_route_widget_state(
+    session_state: Any,
+    routes: tuple[BiblicalRoute, ...],
+) -> tuple[str, str, str, BiblicalRoute, tuple[BiblicalRouteStop, ...], tuple[BiblicalRouteSegment, ...]]:
+    options = route_options(routes)
+    apply_pending_route_navigation_state(session_state, options)
+
+    selected_route_id = str(session_state.get(SELECTED_ROUTE_ID_KEY) or "")
+    if selected_route_id not in options:
+        selected_route_id = options[0]
+        session_state[SELECTED_ROUTE_ID_KEY] = selected_route_id
+
+    route = next(route for route in routes if route.route_id == selected_route_id)
+    phase_options = route_phase_options(route)
+    selected_phase = ""
+    if phase_options:
+        phase_key = route_phase_state_key(route.route_id)
+        selected_phase = str(session_state.get(phase_key) or phase_options[0])
+        if selected_phase not in phase_options:
+            selected_phase = phase_options[0]
+            session_state[phase_key] = selected_phase
+
+    visible_stops = filtered_route_stops(route, selected_phase)
+    visible_segments = filtered_route_segments(route, visible_stops)
+    valid_stop_ids = [stop.stop_id for stop in visible_stops]
+    highlighted_stop_ids = tuple(session_state.get(HIGHLIGHTED_ROUTE_STOP_IDS_KEY) or ())
+    selected_stop_id = str(session_state.get(SELECTED_ROUTE_STOP_ID_KEY) or "")
+    previous_route_id = str(session_state.get(LAST_RENDERED_ROUTE_ID_KEY) or "")
+    highlighted_valid = [stop_id for stop_id in highlighted_stop_ids if stop_id in valid_stop_ids]
+    if (
+        previous_route_id != selected_route_id
+        or selected_stop_id not in valid_stop_ids
+    ):
+        selected_stop_id = highlighted_valid[0] if highlighted_valid else valid_stop_ids[0]
+        session_state[SELECTED_ROUTE_STOP_ID_KEY] = selected_stop_id
+    session_state[LAST_RENDERED_ROUTE_ID_KEY] = selected_route_id
+
+    return selected_route_id, selected_phase, selected_stop_id, route, visible_stops, visible_segments
 
 
 def _streamlit():
@@ -1351,10 +1430,14 @@ def _render_route_view(st: Any) -> None:
 
     options = route_options(routes)
     labels = _route_labels(routes)
-    selected_route_id = str(st.session_state.get(SELECTED_ROUTE_ID_KEY) or "")
-    if selected_route_id not in options:
-        selected_route_id = options[0]
-        st.session_state[SELECTED_ROUTE_ID_KEY] = selected_route_id
+    (
+        selected_route_id,
+        selected_phase,
+        selected_stop_id,
+        route,
+        visible_stops,
+        visible_segments,
+    ) = prepare_route_widget_state(st.session_state, routes)
     selected_route_id = st.selectbox(
         "Útvonal kiválasztása",
         options,
@@ -1364,24 +1447,18 @@ def _render_route_view(st: Any) -> None:
     )
     route = next(route for route in routes if route.route_id == selected_route_id)
     phase_options = route_phase_options(route)
-    selected_phase = ""
     if phase_options:
-        phase_key = f"{SELECTED_ROUTE_PHASE_KEY}_{route.route_id}"
-        selected_phase = str(st.session_state.get(phase_key) or phase_options[0])
-        if selected_phase not in phase_options:
-            selected_phase = phase_options[0]
-            st.session_state[phase_key] = selected_phase
+        phase_key = route_phase_state_key(route.route_id)
         selected_phase = st.selectbox(
             "Útvonalfázis",
             phase_options,
             index=phase_options.index(selected_phase),
             key=phase_key,
         )
-    visible_stops = filtered_route_stops(route, selected_phase)
-    visible_segments = filtered_route_segments(route, visible_stops)
+        visible_stops = filtered_route_stops(route, selected_phase)
+        visible_segments = filtered_route_segments(route, visible_stops)
     render_route = replace(route, stops=visible_stops, segments=visible_segments)
     highlighted_stop_ids = tuple(st.session_state.get(HIGHLIGHTED_ROUTE_STOP_IDS_KEY) or ())
-    selected_stop_id = str(st.session_state.get(SELECTED_ROUTE_STOP_ID_KEY) or "")
     valid_stop_ids = [stop.stop_id for stop in render_route.stops]
     if selected_stop_id not in valid_stop_ids:
         selected_stop_id = highlighted_stop_ids[0] if highlighted_stop_ids else valid_stop_ids[0]
@@ -1465,13 +1542,11 @@ def _render_route_view(st: Any) -> None:
 
     if route.previous_route_id or route.next_route_id:
         if route.previous_route_id and st.button("Előző szakasz"):
-            st.session_state[SELECTED_ROUTE_ID_KEY] = route.previous_route_id
-            st.session_state.pop(SELECTED_ROUTE_STOP_ID_KEY, None)
+            queue_route_navigation(st.session_state, route.previous_route_id)
             if hasattr(st, "rerun"):
                 st.rerun()
         if route.next_route_id and st.button("Következő szakasz"):
-            st.session_state[SELECTED_ROUTE_ID_KEY] = route.next_route_id
-            st.session_state.pop(SELECTED_ROUTE_STOP_ID_KEY, None)
+            queue_route_navigation(st.session_state, route.next_route_id)
             if hasattr(st, "rerun"):
                 st.rerun()
 
@@ -1605,6 +1680,7 @@ def render_biblical_map_prototype(
 
     _render_styles(st)
     with st.expander("Bibliai térkép", expanded=False):
+        apply_pending_route_navigation_state(st.session_state)
         view_options = [MAP_VIEW_PLACES, MAP_VIEW_ROUTES]
         current_view = str(st.session_state.get(ACTIVE_MAP_VIEW_KEY) or MAP_VIEW_PLACES)
         if current_view not in view_options:
@@ -1630,6 +1706,7 @@ __all__ = [
     "CERTAINTY_LABELS",
     "GEOMETRY_STATUS_LABELS",
     "HIGHLIGHTED_ROUTE_STOP_IDS_KEY",
+    "LAST_RENDERED_ROUTE_ID_KEY",
     "MAP_STYLE_CLEAN",
     "MAP_STYLE_CONFIGS",
     "MAP_STYLE_HISTORICAL_MOOD",
@@ -1638,6 +1715,9 @@ __all__ = [
     "MAP_STYLE_TERRAIN",
     "MAP_VIEW_PLACES",
     "MAP_VIEW_ROUTES",
+    "PENDING_MAP_VIEW_KEY",
+    "PENDING_ROUTE_ID_KEY",
+    "PENDING_ROUTE_STOP_IDS_KEY",
     "SELECTED_PLACE_ID_KEY",
     "SELECTED_PLACE_SELECTBOX_KEY",
     "SELECTED_ROUTE_ID_KEY",
@@ -1649,6 +1729,7 @@ __all__ = [
     "compact_sources_html",
     "compact_sources_markdown",
     "dedupe_sources",
+    "apply_pending_route_navigation_state",
     "map_rows",
     "filtered_route_segments",
     "filtered_route_stops",
@@ -1658,6 +1739,8 @@ __all__ = [
     "place_selectbox_options",
     "render_biblical_map_prototype",
     "render_map_style_selector",
+    "prepare_route_widget_state",
+    "queue_route_navigation",
     "resolve_selected_place_id",
     "resolve_map_style_id",
     "route_matches_for_passage",
@@ -1665,6 +1748,7 @@ __all__ = [
     "route_line_rows",
     "route_segment_rows",
     "route_phase_options",
+    "route_phase_state_key",
     "schematic_segment_path",
     "route_stop_display_name",
     "route_stop_rows",

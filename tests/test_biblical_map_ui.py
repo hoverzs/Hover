@@ -35,6 +35,7 @@ from biblical_map_ui import (
     CERTAINTY_LABELS,
     GEOMETRY_STATUS_LABELS,
     HIGHLIGHTED_ROUTE_STOP_IDS_KEY,
+    LAST_RENDERED_ROUTE_ID_KEY,
     MAP_STYLE_CLEAN,
     MAP_STYLE_CONFIGS,
     MAP_STYLE_HISTORICAL_MOOD,
@@ -43,6 +44,9 @@ from biblical_map_ui import (
     MAP_STYLE_TERRAIN,
     MAP_VIEW_PLACES,
     MAP_VIEW_ROUTES,
+    PENDING_MAP_VIEW_KEY,
+    PENDING_ROUTE_ID_KEY,
+    PENDING_ROUTE_STOP_IDS_KEY,
     ROUTE_VIEW_WARNING_HU,
     SEGMENT_TYPE_LABELS,
     SELECTED_ROUTE_ID_KEY,
@@ -59,6 +63,7 @@ from biblical_map_ui import (
     dedupe_sources,
     display_place_name,
     fallback_place_description,
+    apply_pending_route_navigation_state,
     map_rows,
     normalize_place_search_text,
     passage_linked_places,
@@ -66,6 +71,8 @@ from biblical_map_ui import (
     place_selectbox_options,
     render_biblical_map_prototype,
     render_map_style_selector,
+    prepare_route_widget_state,
+    queue_route_navigation,
     resolve_selected_place_id,
     resolve_map_style_id,
     route_curve_profile,
@@ -74,6 +81,7 @@ from biblical_map_ui import (
     route_line_rows,
     route_matches_for_passage,
     route_phase_options,
+    route_phase_state_key,
     route_segment_rows,
     route_stop_rows,
     route_viewport,
@@ -110,11 +118,37 @@ class _FakeContext:
         return False
 
 
+class _FakeSessionState(dict):
+    def __init__(self, *, enforce_widget_lock: bool = False):
+        super().__init__()
+        self.enforce_widget_lock = enforce_widget_lock
+        self.locked_keys = set()
+
+    def __setitem__(self, key, value):
+        if self.enforce_widget_lock and key in self.locked_keys:
+            current = self.get(key)
+            if current != value:
+                raise RuntimeError(f"widget-backed key modified after widget creation: {key}")
+        super().__setitem__(key, value)
+
+    def lock_widget_key(self, key):
+        if key:
+            self.locked_keys.add(key)
+
+
 class _FakeStreamlit:
-    def __init__(self, *, fail_map: bool = False, selectbox_choice: str | None = None):
-        self.session_state = {}
+    def __init__(
+        self,
+        *,
+        fail_map: bool = False,
+        selectbox_choice: str | None = None,
+        clicked_buttons: set[str] | None = None,
+        enforce_widget_lock: bool = False,
+    ):
+        self.session_state = _FakeSessionState(enforce_widget_lock=enforce_widget_lock)
         self.fail_map = fail_map
         self.selectbox_choice = selectbox_choice
+        self.clicked_buttons = clicked_buttons or set()
         self.captions = []
         self.errors = []
         self.expanders = []
@@ -170,17 +204,20 @@ class _FakeStreamlit:
             chosen = options[index]
         if key:
             self.session_state[key] = chosen
+            self.session_state.lock_widget_key(key)
         return chosen
 
     def button(self, label, **kwargs):
         self.buttons.append((label, kwargs))
-        return False
+        return label in self.clicked_buttons
 
     def text_input(self, label, **kwargs):
         self.text_inputs.append((label, kwargs))
         key = kwargs.get("key")
         if key and key not in self.session_state:
             self.session_state[key] = ""
+        if key:
+            self.session_state.lock_widget_key(key)
         return self.session_state.get(key, "")
 
     def selectbox(self, label, options, index=0, **kwargs):
@@ -194,6 +231,7 @@ class _FakeStreamlit:
                 chosen = options[index]
         if key:
             self.session_state[key] = chosen
+            self.session_state.lock_widget_key(key)
         return chosen
 
 
@@ -1599,13 +1637,130 @@ def test_switch_to_route_view_state_sets_route_and_highlight_once() -> None:
         ["seleucia_departure", "seleucia_departure", "salamis_arrival"],
     )
 
-    assert state[ACTIVE_MAP_VIEW_KEY] == MAP_VIEW_ROUTES
-    assert state[SELECTED_ROUTE_ID_KEY] == "paul_first_missionary_journey"
-    assert state[HIGHLIGHTED_ROUTE_STOP_IDS_KEY] == [
+    assert state[PENDING_MAP_VIEW_KEY] == MAP_VIEW_ROUTES
+    assert state[PENDING_ROUTE_ID_KEY] == "paul_first_missionary_journey"
+    assert state[PENDING_ROUTE_STOP_IDS_KEY] == [
         "seleucia_departure",
         "salamis_arrival",
     ]
+
+
+def test_pending_route_state_is_applied_before_widgets_and_then_cleared() -> None:
+    routes = load_biblical_routes()
+    state = {
+        PENDING_MAP_VIEW_KEY: MAP_VIEW_ROUTES,
+        PENDING_ROUTE_ID_KEY: "paul_first_missionary_journey",
+        PENDING_ROUTE_STOP_IDS_KEY: ["seleucia_departure", "seleucia_departure"],
+    }
+
+    selected_route_id, _phase, selected_stop_id, _route, _stops, _segments = (
+        prepare_route_widget_state(state, routes)
+    )
+
+    assert state[ACTIVE_MAP_VIEW_KEY] == MAP_VIEW_ROUTES
+    assert selected_route_id == "paul_first_missionary_journey"
+    assert selected_stop_id == "seleucia_departure"
+    assert state[SELECTED_ROUTE_ID_KEY] == "paul_first_missionary_journey"
     assert state[SELECTED_ROUTE_STOP_ID_KEY] == "seleucia_departure"
+    assert state[HIGHLIGHTED_ROUTE_STOP_IDS_KEY] == ["seleucia_departure"]
+    assert PENDING_MAP_VIEW_KEY not in state
+    assert PENDING_ROUTE_ID_KEY not in state
+    assert PENDING_ROUTE_STOP_IDS_KEY not in state
+
+
+def test_route_family_next_navigation_queues_route_without_widget_key_mutation() -> None:
+    fake_st = _FakeStreamlit(
+        clicked_buttons={"Következő szakasz"},
+        enforce_widget_lock=True,
+    )
+    fake_st.session_state[ACTIVE_MAP_VIEW_KEY] = MAP_VIEW_ROUTES
+    fake_st.session_state[SELECTED_ROUTE_ID_KEY] = "exodus_egypt_to_sinai"
+
+    render_biblical_map_prototype(st_module=fake_st)
+
+    assert fake_st.session_state[SELECTED_ROUTE_ID_KEY] == "exodus_egypt_to_sinai"
+    assert fake_st.session_state[PENDING_ROUTE_ID_KEY] == "wilderness_sinai_to_moab"
+    assert fake_st.session_state[PENDING_MAP_VIEW_KEY] == MAP_VIEW_ROUTES
+
+
+def test_route_family_previous_navigation_queues_route_without_widget_key_mutation() -> None:
+    fake_st = _FakeStreamlit(
+        clicked_buttons={"Előző szakasz"},
+        enforce_widget_lock=True,
+    )
+    fake_st.session_state[ACTIVE_MAP_VIEW_KEY] = MAP_VIEW_ROUTES
+    fake_st.session_state[SELECTED_ROUTE_ID_KEY] = "wilderness_sinai_to_moab"
+
+    render_biblical_map_prototype(st_module=fake_st)
+
+    assert fake_st.session_state[SELECTED_ROUTE_ID_KEY] == "wilderness_sinai_to_moab"
+    assert fake_st.session_state[PENDING_ROUTE_ID_KEY] == "exodus_egypt_to_sinai"
+    assert fake_st.session_state[PENDING_MAP_VIEW_KEY] == MAP_VIEW_ROUTES
+
+
+def test_pending_next_route_sets_first_valid_stop_on_following_render() -> None:
+    fake_st = _FakeStreamlit(enforce_widget_lock=True)
+    fake_st.session_state[ACTIVE_MAP_VIEW_KEY] = MAP_VIEW_ROUTES
+    fake_st.session_state[PENDING_ROUTE_ID_KEY] = "wilderness_sinai_to_moab"
+    fake_st.session_state[PENDING_MAP_VIEW_KEY] = MAP_VIEW_ROUTES
+    fake_st.session_state[SELECTED_ROUTE_STOP_ID_KEY] = "antioch_syria_departure"
+
+    render_biblical_map_prototype(st_module=fake_st)
+
+    assert fake_st.session_state[SELECTED_ROUTE_ID_KEY] == "wilderness_sinai_to_moab"
+    assert fake_st.session_state[SELECTED_ROUTE_STOP_ID_KEY] == "sinai_wilderness_departure"
+    assert PENDING_ROUTE_ID_KEY not in fake_st.session_state
+
+
+def test_pending_previous_route_sets_first_valid_stop_on_following_render() -> None:
+    fake_st = _FakeStreamlit(enforce_widget_lock=True)
+    fake_st.session_state[ACTIVE_MAP_VIEW_KEY] = MAP_VIEW_ROUTES
+    fake_st.session_state[PENDING_ROUTE_ID_KEY] = "exodus_egypt_to_sinai"
+    fake_st.session_state[PENDING_MAP_VIEW_KEY] = MAP_VIEW_ROUTES
+    fake_st.session_state[SELECTED_ROUTE_STOP_ID_KEY] = "sinai_wilderness_departure"
+
+    render_biblical_map_prototype(st_module=fake_st)
+
+    assert fake_st.session_state[SELECTED_ROUTE_ID_KEY] == "exodus_egypt_to_sinai"
+    assert fake_st.session_state[SELECTED_ROUTE_STOP_ID_KEY] == "rameses_exodus"
+    assert PENDING_ROUTE_ID_KEY not in fake_st.session_state
+
+
+def test_route_phase_state_is_kept_when_still_valid_and_normalized_when_invalid() -> None:
+    routes = load_biblical_routes()
+    state = {
+        SELECTED_ROUTE_ID_KEY: "wilderness_sinai_to_moab",
+        route_phase_state_key("wilderness_sinai_to_moab"): "Kádéstől Móábig",
+    }
+
+    selected_route_id, selected_phase, selected_stop_id, _route, _stops, _segments = (
+        prepare_route_widget_state(state, routes)
+    )
+
+    assert selected_route_id == "wilderness_sinai_to_moab"
+    assert selected_phase == "Kádéstől Móábig"
+    assert selected_stop_id == "kadesh_wilderness"
+
+    state[route_phase_state_key("wilderness_sinai_to_moab")] = "nem létező fázis"
+    _selected_route_id, selected_phase, _selected_stop_id, _route, _stops, _segments = (
+        prepare_route_widget_state(state, routes)
+    )
+
+    assert selected_phase == "Teljes útvonal"
+    assert state[route_phase_state_key("wilderness_sinai_to_moab")] == "Teljes útvonal"
+
+
+def test_route_navigation_preserves_map_style_state() -> None:
+    fake_st = _FakeStreamlit(enforce_widget_lock=True)
+    fake_st.session_state[ACTIVE_MAP_VIEW_KEY] = MAP_VIEW_ROUTES
+    fake_st.session_state[PENDING_ROUTE_ID_KEY] = "wilderness_sinai_to_moab"
+    fake_st.session_state[PENDING_MAP_VIEW_KEY] = MAP_VIEW_ROUTES
+    fake_st.session_state[MAP_STYLE_KEY] = MAP_STYLE_HISTORICAL_MOOD
+
+    render_biblical_map_prototype(st_module=fake_st)
+
+    assert fake_st.session_state[SELECTED_ROUTE_ID_KEY] == "wilderness_sinai_to_moab"
+    assert fake_st.session_state[MAP_STYLE_KEY] == MAP_STYLE_HISTORICAL_MOOD
 
 
 def test_render_default_places_view_does_not_force_route_map() -> None:
