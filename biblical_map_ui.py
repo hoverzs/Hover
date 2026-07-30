@@ -35,19 +35,23 @@ from biblical_routes import (
 )
 from biblical_place_enrichment import (
     CONFIDENCE_LABELS_HU,
+    PROFILE_STATUS_LABELS_HU,
     SECTION_LABELS_HU,
     SECTION_REVIEW_LABELS_HU,
     EnrichmentKeyEventsSection,
     EnrichmentTextSection,
     PlaceEnrichment,
     PlaceEnrichmentSource,
+    enrichment_profile_status,
     get_place_enrichment,
+    place_profile_group_for_place,
     place_enrichment_sources_by_id,
 )
 
 
 SELECTED_PLACE_ID_KEY = "_biblical_map_selected_place_id"
 SELECTED_PLACE_SELECTBOX_KEY = f"{SELECTED_PLACE_ID_KEY}_selectbox"
+PENDING_PLACE_ID_KEY = "_biblical_map_pending_place_id"
 CATALOG_SEARCH_QUERY_KEY = "_biblical_map_catalog_search_query"
 CATALOG_SEARCH_PICK_KEY = "_biblical_map_catalog_search_pick"
 CATALOG_SEARCH_LIMIT = 20
@@ -194,6 +198,27 @@ def selected_place_for_session(
     return primary_place(places)
 
 
+def queue_place_navigation(session_state: dict[str, Any], place_id: str) -> None:
+    """Queue a place-card switch without mutating widget-backed state immediately."""
+    session_state[PENDING_PLACE_ID_KEY] = place_id
+
+
+def apply_pending_place_navigation_state(
+    session_state: dict[str, Any],
+    places: tuple[BiblicalPlace, ...] = BIBLICAL_MAP_PLACES,
+) -> str | None:
+    pending_place_id = str(session_state.get(PENDING_PLACE_ID_KEY) or "").strip()
+    if not pending_place_id:
+        return None
+    if pending_place_id not in {place.place_id for place in places}:
+        session_state.pop(PENDING_PLACE_ID_KEY, None)
+        return None
+    session_state[SELECTED_PLACE_ID_KEY] = pending_place_id
+    session_state[MAP_SELECTION_SOURCE_KEY] = MAP_SELECTION_SOURCE_MANUAL
+    session_state.pop(PENDING_PLACE_ID_KEY, None)
+    return pending_place_id
+
+
 def place_option_labels(
     places: tuple[BiblicalPlace, ...] = BIBLICAL_MAP_PLACES,
 ) -> dict[str, str]:
@@ -331,6 +356,11 @@ def search_biblical_places(
         elif any(needle in item for item in haystacks):
             score = 100
         if score:
+            if get_place_enrichment(place.place_id) is not None:
+                score += 20
+            group = place_profile_group_for_place(place.place_id)
+            if group is not None and group.primary_place_id == place.place_id:
+                score += 10
             ranked.append((score, display_place_name(place).casefold(), place))
 
     ranked.sort(key=lambda item: (-item[0], item[1], item[2].place_id))
@@ -1227,18 +1257,65 @@ def _render_enrichment_routes(st: Any, enrichment: PlaceEnrichment) -> None:
             st.caption(route.short_description_hu)
 
 
+def _render_profile_status_note(
+    st: Any,
+    status: str,
+    *,
+    has_enrichment: bool,
+) -> None:
+    label = PROFILE_STATUS_LABELS_HU.get(status, status)
+    st.caption(f"Helyszínprofil állapota: {label}")
+    if not has_enrichment or status in {"basic", "partial", "needs_review"}:
+        st.caption(
+            "A helyszínadatlapok bővítése fokozatosan történik. A rövidebb adatlap nem "
+            "jelent adathiányt a bibliai helyazonosításban; csak azt, hogy még nem készült "
+            "hozzá részletes, forrásolt háttéranyag."
+        )
+
+
+def _render_related_profile_records(st: Any, place: BiblicalPlace) -> None:
+    group = place_profile_group_for_place(place.place_id)
+    if group is None or len(group.member_place_ids) <= 1:
+        return
+    by_id = places_by_id(BIBLICAL_MAP_PLACES)
+    related_places = [
+        candidate
+        for place_id in group.member_place_ids
+        if place_id != place.place_id and (candidate := by_id.get(place_id)) is not None
+    ]
+    if not related_places:
+        return
+    with st.expander("Kapcsolódó korszakok vagy helyrekordok", expanded=False):
+        st.caption(group.notes_hu or "Kapcsolódó, de külön canonical rekordok.")
+        for related_place in related_places:
+            label = display_place_name(related_place)
+            meta = " · ".join(
+                part
+                for part in [
+                    related_place.place_type,
+                    _display_status(related_place.identification_status, IDENTIFICATION_STATUS_LABELS),
+                ]
+                if part
+            )
+            if st.button(label, key=f"_biblical_map_related_place_{place.place_id}_{related_place.place_id}"):
+                queue_place_navigation(st.session_state, related_place.place_id)
+                if hasattr(st, "rerun"):
+                    st.rerun()
+            if meta:
+                st.caption(meta)
+
+
 def _render_place_enrichment(st: Any, place: BiblicalPlace) -> None:
     enrichment = get_place_enrichment(place.place_id)
     if enrichment is None:
+        _render_profile_status_note(st, "basic", has_enrichment=False)
+        _render_related_profile_records(st, place)
         return
     source_lookup = place_enrichment_sources_by_id()
+    status = enrichment_profile_status(enrichment)
     st.markdown("#### Bővített helyszínadatlap")
-    st.caption(
-        "Állapot: "
-        + SECTION_REVIEW_LABELS_HU.get(enrichment.overall_review_status, enrichment.overall_review_status)
-        + f" · szint: {enrichment.profile_tier}"
-    )
-    if enrichment.overall_review_status == "needs_review":
+    _render_profile_status_note(st, status, has_enrichment=True)
+    if status == "needs_review":
         st.warning("A bővített adatlap egy vagy több része szakmai ellenőrzésre vár.")
 
     section_order = [
@@ -1275,6 +1352,7 @@ def _render_place_enrichment(st: Any, place: BiblicalPlace) -> None:
     if all_source_ids:
         with st.expander("Források", expanded=False):
             _render_enrichment_sources(st, tuple(all_source_ids), source_lookup)
+    _render_related_profile_records(st, place)
 
 
 def _render_place_card(st: Any, place: BiblicalPlace, passage_reference: str) -> None:
@@ -1848,6 +1926,7 @@ def _render_places_view(
         current_ref,
         selected_place_key=SELECTED_PLACE_ID_KEY,
     )
+    apply_pending_place_navigation_state(st.session_state, places)
     linked_places = passage_linked_places(current_ref, places)
     selected_id = resolve_selected_place_id(st.session_state, places)
     by_id = places_by_id(places)
@@ -1975,6 +2054,7 @@ __all__ = [
     "MAP_VIEW_PLACES",
     "MAP_VIEW_ROUTES",
     "PENDING_MAP_VIEW_KEY",
+    "PENDING_PLACE_ID_KEY",
     "PENDING_ROUTE_ID_KEY",
     "PENDING_ROUTE_STOP_IDS_KEY",
     "ROUTE_VIEWPORT_STATE_KEY",
@@ -1990,6 +2070,7 @@ __all__ = [
     "compact_sources_markdown",
     "dedupe_sources",
     "apply_pending_route_navigation_state",
+    "apply_pending_place_navigation_state",
     "map_rows",
     "filtered_route_segments",
     "filtered_route_stops",
@@ -2001,6 +2082,7 @@ __all__ = [
     "render_map_style_selector",
     "prepare_route_widget_state",
     "queue_route_navigation",
+    "queue_place_navigation",
     "resolve_selected_place_id",
     "resolve_map_style_id",
     "route_viewport_for_selection",

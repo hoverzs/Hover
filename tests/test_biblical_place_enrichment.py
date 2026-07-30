@@ -14,16 +14,23 @@ from biblical_place_enrichment import (
     PLACE_ENRICHMENT_PRIORITY_PATH,
     PLACE_ENRICHMENT_SOURCES_PATH,
     PLACE_ENRICHMENTS_PATH,
+    PLACE_PROFILE_GROUPS_PATH,
     PlaceEnrichmentDataError,
+    enrichment_profile_status,
     get_place_enrichment,
     load_place_enrichment_sources,
     load_place_enrichments,
+    load_place_profile_groups,
+    place_profile_group_for_place,
     related_route_ids_for_place,
 )
 
 SOURCE_AUDIT_PATH = ROOT / "data" / "biblical_places" / "place_enrichment_source_audit.json"
 PILOT_RESOLUTION_PATH = ROOT / "data" / "biblical_places" / "place_enrichment_pilot_resolution.json"
 PILOT_REPORT_PATH = ROOT / "data" / "biblical_places" / "place_enrichment_pilot_report.json"
+PILOT_QUALITY_AUDIT_PATH = ROOT / "data" / "biblical_places" / "place_enrichment_pilot_quality_audit.json"
+CONTENT_QUALITY_REPORT_PATH = ROOT / "data" / "biblical_places" / "place_enrichment_content_quality_report.json"
+RESEARCH_QUEUE_PATH = ROOT / "data" / "biblical_places" / "place_enrichment_research_queue.json"
 
 
 def _read(path: Path):
@@ -166,3 +173,78 @@ def test_related_route_ids_are_computed_from_route_stops() -> None:
     enrichment = get_place_enrichment("corinth")
     assert enrichment is not None
     assert enrichment.related_route_ids == related_route_ids_for_place("corinth")
+
+
+def test_profile_groups_load_and_keep_distinct_records() -> None:
+    groups = load_place_profile_groups()
+    assert len(groups) == 2
+    jericho = place_profile_group_for_place("jericho_2")
+    assert jericho is not None
+    assert jericho.profile_id == "jericho_site"
+    assert jericho.primary_place_id == "jericho_1"
+    assert "jericho_1" in jericho.member_place_ids
+    assert "jericho_2" in jericho.member_place_ids
+    assert place_profile_group_for_place("antioch_2") is None
+    assert place_profile_group_for_place("caesarea_philippi") is None
+
+
+def test_enrichment_profile_status_is_computed_from_quality() -> None:
+    assert enrichment_profile_status(get_place_enrichment("corinth")) == "featured"
+    assert enrichment_profile_status(get_place_enrichment("ephesus")) == "featured"
+    assert enrichment_profile_status(get_place_enrichment("jericho_1")) == "source_backed"
+    assert enrichment_profile_status(get_place_enrichment("abana")) == "basic"
+
+
+def test_generic_passage_link_events_were_removed() -> None:
+    for enrichment in _read(PLACE_ENRICHMENTS_PATH):
+        key_events = enrichment["sections"].get("key_events")
+        if not key_events:
+            continue
+        for item in key_events["items"]:
+            assert "A hely ehhez a bibliai hivatkozáshoz kapcsolódik" not in item["summary_hu"]
+
+
+def test_generic_geography_and_route_list_homiletics_were_removed() -> None:
+    for enrichment in _read(PLACE_ENRICHMENTS_PATH):
+        sections = enrichment["sections"]
+        if "ancient_geography" in sections:
+            assert "A rekord szerint a hely típusa" not in sections["ancient_geography"]["text_hu"]
+        assert "homiletical_context" not in sections
+
+
+def test_quality_audit_covers_twenty_pilot_places() -> None:
+    rows = _read(PILOT_QUALITY_AUDIT_PATH)
+    assert len(rows) == 20
+    statuses = {row["profile_status"] for row in rows}
+    assert "featured" in statuses
+    assert "source_backed" in statuses
+    assert any(row["resolved_place_id"] == "jericho_1" and row["same_physical_site"] for row in rows)
+
+
+def test_content_quality_report_has_no_remaining_generic_rendered_sections() -> None:
+    rows = _read(CONTENT_QUALITY_REPORT_PATH)
+    assert len(rows) == 20 * 8
+    rendered_generic = [
+        row
+        for row in rows
+        if row["quality_status"] == "generic" and row["recommended_action"] != "remove_or_rewrite_with_sources"
+    ]
+    assert rendered_generic == []
+
+
+def test_research_queue_tracks_source_gaps_without_urls() -> None:
+    rows = _read(RESEARCH_QUEUE_PATH)
+    assert rows
+    assert any(row["place_id"] == "jerusalem" and row["missing_section"] == "archaeology" for row in rows)
+    assert any(row["place_id"] == "jericho_1" for row in rows)
+    assert all("http" not in json.dumps(row, ensure_ascii=False).casefold() for row in rows)
+
+
+def test_priority_file_includes_quality_and_research_fields() -> None:
+    row = next(item for item in _read(PLACE_ENRICHMENT_PRIORITY_PATH) if item["place_id"] == "corinth")
+    assert row["enrichment_status"] == "featured"
+    assert "content_quality_score" in row
+    assert "source_gap_count" in row
+    assert "record_resolution_needed" in row
+    assert "research_priority" in row
+    assert "next_action" in row

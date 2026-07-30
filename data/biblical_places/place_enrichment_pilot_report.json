@@ -4,107 +4,79 @@
   "skipped_or_ambiguous_places": [],
   "sections_by_place": {
     "jerusalem": [
-      "ancient_geography",
       "biblical_significance",
-      "homiletical_context",
       "identification_notes",
       "key_events",
       "modern_context"
     ],
     "bethlehem_1": [
-      "ancient_geography",
       "biblical_significance",
       "identification_notes",
-      "key_events",
       "modern_context"
     ],
     "nazareth": [
-      "ancient_geography",
       "biblical_significance",
       "identification_notes",
-      "key_events",
       "modern_context"
     ],
     "capernaum": [
-      "ancient_geography",
       "biblical_significance",
       "identification_notes",
-      "key_events",
       "modern_context"
     ],
     "jericho_1": [
-      "ancient_geography",
       "biblical_significance",
-      "homiletical_context",
       "identification_notes",
       "key_events",
       "modern_context"
     ],
     "shechem": [
-      "ancient_geography",
       "biblical_significance",
-      "homiletical_context",
       "identification_notes",
       "key_events",
       "modern_context"
     ],
     "bethel_1": [
-      "ancient_geography",
       "biblical_significance",
-      "homiletical_context",
       "identification_notes",
       "key_events",
       "modern_context"
     ],
     "hebron": [
-      "ancient_geography",
       "biblical_significance",
-      "homiletical_context",
       "identification_notes",
       "key_events",
       "modern_context"
     ],
     "beersheba_1": [
-      "ancient_geography",
       "biblical_significance",
-      "homiletical_context",
       "identification_notes",
       "key_events",
       "modern_context"
     ],
     "mount_sinai": [
-      "ancient_geography",
       "biblical_significance",
       "identification_notes",
-      "key_events",
       "modern_context"
     ],
     "kadesh_barnea": [
-      "ancient_geography",
       "biblical_significance",
-      "homiletical_context",
       "identification_notes",
       "key_events",
       "modern_context"
     ],
     "babylon_1": [
-      "ancient_geography",
       "biblical_significance",
       "identification_notes",
-      "key_events",
       "modern_context"
     ],
     "nineveh": [
-      "ancient_geography",
       "biblical_significance",
       "identification_notes",
-      "key_events",
       "modern_context"
     ],
     "antioch_syria": [
-      "ancient_geography",
       "biblical_significance",
-      "homiletical_context",
       "identification_notes",
       "key_events",
       "modern_context"
@@ -114,7 +86,6 @@
       "archaeology",
       "biblical_significance",
       "historical_context",
-      "homiletical_context",
       "identification_notes",
       "key_events",
       "modern_context"
@@ -124,39 +95,30 @@
       "archaeology",
       "biblical_significance",
       "historical_context",
-      "homiletical_context",
       "identification_notes",
       "key_events",
       "modern_context"
     ],
     "philippi": [
-      "ancient_geography",
       "biblical_significance",
-      "homiletical_context",
       "identification_notes",
       "key_events",
       "modern_context"
     ],
     "athens": [
-      "ancient_geography",
       "biblical_significance",
-      "homiletical_context",
       "identification_notes",
       "key_events",
       "modern_context"
     ],
     "caesarea": [
-      "ancient_geography",
       "biblical_significance",
-      "homiletical_context",
       "identification_notes",
       "key_events",
       "modern_context"
     ],
     "rome": [
-      "ancient_geography",
       "biblical_significance",
-      "homiletical_context",
       "identification_notes",
       "key_events",
       "modern_context"

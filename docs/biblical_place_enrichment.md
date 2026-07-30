@@ -62,6 +62,62 @@ A szakaszok `review_status` értéke: `source_backed`, `needs_review`.
 
 A teljes profil `profile_tier` értéke: `featured`, `high`, `medium`, `basic`.
 
+## Számított profilállapot
+
+A felület nem csak a kézzel tárolt `profile_tier` értéket mutatja, hanem
+számított profilállapotot:
+
+- `basic`: nincs enrichment vagy nincs érdemi tartalmi szakasz;
+- `partial`: legalább egy érdemi, forrásolt szakasz van;
+- `source_backed`: legalább három forrásolt szakasz van, szakmai review blokk nélkül;
+- `featured`: legalább négy szakasz, legalább két külön forrás és ellenőrzött key events;
+- `needs_review`: van megjelenített, de szakmai ellenőrzésre váró szakasz.
+
+A magyar UI-címkék: Alapadatlap, Részben bővített, Forrásolt bővített adatlap,
+Kiemelt helyszínprofil, Szakmai ellenőrzés alatt.
+
+## Generic-content tilalmak
+
+Nem maradhat bővített szakaszban:
+
+- puszta "A hely ehhez a bibliai hivatkozáshoz kapcsolódik..." eseménymondat;
+- place_type és modern_name mezőkből képzett álföldrajzi háttér;
+- kizárólag route-neveket felsoroló homiletikai kontextus;
+- olyan történeti vagy régészeti állítás, amelyhez nincs jóváhagyott forrás;
+- más helyeknél szó szerint ismétlődő sablon.
+
+Ha egy szakaszhoz nincs megfelelő forrás, a szakasz hiányozzon. A hiányzó szakasz
+nem adatmodell-hiba.
+
+## Profile-group réteg
+
+Több canonical rekord kapcsolódhat ugyanahhoz a tágabb fizikai vagy történeti
+helyprofilhoz anélkül, hogy a rekordokat összevonnánk. Ezt a
+`data/biblical_places/place_profile_groups.json` rögzíti.
+
+A profile-group mezői:
+
+- `profile_id`
+- `name_hu`
+- `primary_place_id`
+- `member_place_ids`
+- `relationship_type`
+- `shared_sections`
+- `record_specific_sections`
+- `review_status`
+- `notes_hu`
+
+A közös szakaszok csak olyan háttérre vonatkozhatnak, amely valóban megosztható.
+A bibliai események, korszakok és homiletikai megfigyelések alapértelmezésben
+rekordspecifikusak.
+
+Jerikó ószövetségi, újszövetségi/heródesi, völgyi és vízrajzi rekordjai külön
+canonical rekordok maradnak. A Sínai-hegy, Hóreb és Sínai-puszta szintén külön
+rekordtípus, csak dokumentált kapcsolatként jelenik meg.
+
+Szíriai és pisidiai Antiókhia, tengeri Cézárea és Cézárea Filippi, valamint
+Babilon város és Babilónia régió nem kerül automatikus közös profilba.
+
 ## Prioritási pontszám
 
 A `data/biblical_places/place_enrichment_priority.json` újragenerálható lista.
@@ -110,6 +166,39 @@ földrajzi háttere hogyan segíti a bibliai szöveg értelmezését.
 
 Nem tartalmazhat forrás nélküli lelki tanulságot, erkölcsi következtetést vagy
 kitalált szimbolikát.
+
+Puszta útvonallista nem homiletikai kontextus. A szakasz csak konkrét,
+helyspecifikus és forrásolt háttérrel jelenhet meg.
+
+## Key events szerkesztési szabályai
+
+A key_events nem a passage-place index első találataiból készül. Csak konkrét,
+helyhez kötött esemény szerepelhet benne, pontos `passage_refs` mezővel. Ha a
+fontos események automatikusan nem választhatók ki biztonságosan, a szakasz
+hiányzik vagy `needs_review` státuszt kap.
+
+## Régészeti forráskövetelmény
+
+Régészeti szakaszhoz intézményi, ásatási, múzeumi, örökségvédelmi, egyetemi vagy
+tudományos forrás szükséges. OpenBible, koordinátaadat vagy általános
+helyazonosítás önmagában nem elég.
+
+## Research queue
+
+A `data/biblical_places/place_enrichment_research_queue.json` gyűjti azokat a
+pilothelyeket és szakaszokat, amelyekhez még nincs elegendő jóváhagyott forrás.
+Nem tartalmaz kitalált URL-eket, csak a szükséges forrástípust, kutatási kérdést
+és prioritást.
+
+## Következő batch belépési feltételei
+
+Az első 50 helyes, valóban forrásolt enrichment batch csak akkor induljon, ha:
+
+- a pilot rekordfeloldási problémái dokumentáltak;
+- nincs featured státuszú generikus profil;
+- forrás nélküli szakasz nem jelenik meg;
+- a profilállapot megbízhatóan számítható;
+- a valós UI-ban a basic és enriched helyek megkülönböztetése egyértelmű.
 
 ## Új hely hozzáadása
 

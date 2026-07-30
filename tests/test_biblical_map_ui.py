@@ -46,6 +46,7 @@ from biblical_map_ui import (
     MAP_VIEW_PLACES,
     MAP_VIEW_ROUTES,
     PENDING_MAP_VIEW_KEY,
+    PENDING_PLACE_ID_KEY,
     PENDING_ROUTE_ID_KEY,
     PENDING_ROUTE_STOP_IDS_KEY,
     ROUTE_VIEW_WARNING_HU,
@@ -66,6 +67,7 @@ from biblical_map_ui import (
     display_place_name,
     fallback_place_description,
     apply_pending_route_navigation_state,
+    apply_pending_place_navigation_state,
     map_rows,
     normalize_place_search_text,
     passage_linked_places,
@@ -75,6 +77,7 @@ from biblical_map_ui import (
     render_map_style_selector,
     prepare_route_widget_state,
     queue_route_navigation,
+    queue_place_navigation,
     resolve_selected_place_id,
     resolve_map_style_id,
     route_viewport_for_selection,
@@ -2196,7 +2199,7 @@ def test_enriched_place_card_renders_extended_profile() -> None:
     assert any("Bővített helyszínadatlap" in body for body in fake_st.markdowns)
     assert ("Bibliai jelentőség", True) in fake_st.expanders
     assert any(label == "Források" for label, _ in fake_st.expanders)
-    assert any("forrásolt" in body or "szakmai ellenőrzésre vár" in body for body in fake_st.captions)
+    assert any("Helyszínprofil állapota: Kiemelt helyszínprofil" in body for body in fake_st.captions)
 
 
 def test_non_enriched_place_card_keeps_compact_profile_only() -> None:
@@ -2208,6 +2211,7 @@ def test_non_enriched_place_card_keeps_compact_profile_only() -> None:
 
     assert not any("Bővített helyszínadatlap" in body for body in fake_st.markdowns)
     assert not any(label == "Kapcsolódó bibliai útvonalak" for label, _ in fake_st.expanders)
+    assert any("Helyszínprofil állapota: Alapadatlap" in body for body in fake_st.captions)
 
 
 def test_enrichment_route_button_uses_pending_navigation_state() -> None:
@@ -2220,3 +2224,32 @@ def test_enrichment_route_button_uses_pending_navigation_state() -> None:
 
     assert fake_st.session_state[PENDING_ROUTE_ID_KEY] == "paul_second_missionary_journey"
     assert fake_st.session_state[PENDING_MAP_VIEW_KEY] == MAP_VIEW_ROUTES
+
+
+def test_related_profile_record_button_uses_pending_place_navigation() -> None:
+    fake_st = _FakeStreamlit(clicked_buttons={"Jerikó"})
+    place = get_biblical_place("jericho_1")
+    assert place is not None
+
+    _render_place_card(fake_st, place, "Jozs 6,1-27")
+
+    assert any(label == "Kapcsolódó korszakok vagy helyrekordok" for label, _ in fake_st.expanders)
+    assert fake_st.session_state[PENDING_PLACE_ID_KEY] == "jericho_2"
+
+
+def test_pending_place_navigation_applies_before_widgets() -> None:
+    fake_st = _FakeStreamlit(enforce_widget_lock=True)
+    queue_place_navigation(fake_st.session_state, "jericho_2")
+
+    applied = apply_pending_place_navigation_state(fake_st.session_state)
+
+    assert applied == "jericho_2"
+    assert fake_st.session_state[SELECTED_PLACE_ID_KEY] == "jericho_2"
+    assert PENDING_PLACE_ID_KEY not in fake_st.session_state
+
+
+def test_search_prefers_enriched_primary_record_for_duplicate_name() -> None:
+    results = search_biblical_places("Jerikó")
+
+    assert results
+    assert results[0].place_id == "jericho_1"
