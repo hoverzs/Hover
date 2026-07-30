@@ -1358,6 +1358,63 @@ def test_route_line_rows_use_single_straight_fallback_when_curved_path_is_unavai
     assert all(row["geometry_source"] == "curved" for row in line_rows[1:])
 
 
+def test_textual_only_stop_is_listed_but_not_rendered_on_map() -> None:
+    payload = json.loads((ROOT / "data" / "biblical_routes" / "biblical_routes.json").read_text(encoding="utf-8"))
+    route = payload[0]
+    route["stops"].insert(
+        1,
+        {
+            "order": 2,
+            "stop_id": "unknown_textual_stop",
+            "place_id": None,
+            "place_name_override_hu": "Ismeretlen állomás",
+            "passage_refs": ["2Móz 15,22"],
+            "event_summary_hu": "A hely szövegileg ismert, de nem térképezhető.",
+            "certainty": "possible",
+            "stop_type": "uncertain_place",
+            "source_notes_hu": "Szövegileg igazolt állomás.",
+            "mapping_status": "textual_only",
+            "display_on_map": False,
+            "mapping_notes_hu": "Nincs biztonságosan feloldható aktív helyrekord.",
+            "sequence_status": "explicit",
+        },
+    )
+    for index, stop in enumerate(route["stops"], start=1):
+        stop["order"] = index
+    route["segments"] = [
+        {
+            "from_stop_id": "antioch_syria_departure",
+            "to_stop_id": "unknown_textual_stop",
+            "certainty": "possible",
+            "segment_type": "land",
+            "geometry_status": "schematic",
+            "source_notes_hu": "Nem jeleníthető meg térképi vonalként.",
+            "waypoints": [],
+            "geometry": None,
+        },
+        {
+            "from_stop_id": "unknown_textual_stop",
+            "to_stop_id": "seleucia_departure",
+            "certainty": "possible",
+            "segment_type": "land",
+            "geometry_status": "schematic",
+            "source_notes_hu": "Nem jeleníthető meg térképi vonalként.",
+            "waypoints": [],
+            "geometry": None,
+        },
+    ]
+    path = Path(tempfile.mkdtemp()) / "routes.json"
+    path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+    loaded = load_biblical_routes(routes_path=path)[0]
+
+    stop_rows = route_stop_rows(loaded)
+    segment_rows = route_segment_rows(loaded)
+
+    assert any(stop.stop_id == "unknown_textual_stop" for stop in loaded.stops)
+    assert all(row["stop_id"] != "unknown_textual_stop" for row in stop_rows)
+    assert segment_rows == []
+
+
 def test_all_pauline_routes_produce_one_route_line_per_segment() -> None:
     for route in load_biblical_routes():
         segment_rows = route_segment_rows(route)

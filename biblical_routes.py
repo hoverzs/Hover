@@ -52,6 +52,8 @@ ALLOWED_STOP_TYPES = {
     "uncertain_place",
 }
 ALLOWED_SEGMENT_TYPES = {"land", "sea", "river", "mixed", "schematic", "unknown"}
+ALLOWED_MAPPING_STATUSES = {"mapped", "approximate", "textual_only"}
+ALLOWED_SEQUENCE_STATUSES = {"explicit", "reconstructed_order", "uncertain_order"}
 ROUTE_USER_TEXT_FIELDS = (
     "name_hu",
     "short_description_hu",
@@ -61,6 +63,7 @@ ROUTE_USER_TEXT_FIELDS = (
 STOP_USER_TEXT_FIELDS = (
     "place_name_override_hu",
     "event_summary_hu",
+    "mapping_notes_hu",
     "source_notes_hu",
 )
 SEGMENT_USER_TEXT_FIELDS = ("source_notes_hu",)
@@ -79,13 +82,17 @@ class BiblicalRouteDataError(ValueError):
 class BiblicalRouteStop:
     order: int
     stop_id: str
-    place_id: str
+    place_id: str | None
     place_name_override_hu: str | None
     passage_refs: tuple[str, ...]
     event_summary_hu: str
     certainty: str
     stop_type: str
     source_notes_hu: str | None
+    mapping_status: str
+    display_on_map: bool
+    mapping_notes_hu: str | None
+    sequence_status: str
 
 
 @dataclass(frozen=True)
@@ -198,6 +205,20 @@ def _as_int(value: Any, field_name: str) -> int:
     return value
 
 
+def _as_bool(value: Any, field_name: str, *, default: bool) -> bool:
+    if value is None:
+        return default
+    if not isinstance(value, bool):
+        raise BiblicalRouteDataError(f"Field {field_name} must be a boolean.")
+    return value
+
+
+def _optional_enum(value: Any, field_name: str, allowed: set[str], *, default: str) -> str:
+    if value is None:
+        return default
+    return _enum(value, field_name, allowed)
+
+
 def _enum(value: Any, field_name: str, allowed: set[str]) -> str:
     text = _as_str(value, field_name, required=True) or ""
     if text not in allowed:
@@ -284,22 +305,57 @@ def _stop_from_raw(
     _validate_user_text_fields(raw, STOP_USER_TEXT_FIELDS, "stops")
     passage_refs = _as_str_tuple(raw.get("passage_refs"), "stops.passage_refs", required=True)
     _validate_passage_refs(passage_refs, "stops.passage_refs")
-    place_id = _resolve_place_id(
-        _as_str(raw.get("place_id"), "stops.place_id", required=True) or "",
-        active_place_ids=active_place_ids,
-        legacy_to_canonical=legacy_to_canonical,
-        allow_legacy_place_ids=allow_legacy_place_ids,
+    mapping_status = _optional_enum(
+        raw.get("mapping_status"),
+        "stops.mapping_status",
+        ALLOWED_MAPPING_STATUSES,
+        default="mapped",
     )
+    display_on_map = _as_bool(raw.get("display_on_map"), "stops.display_on_map", default=True)
+    sequence_status = _optional_enum(
+        raw.get("sequence_status"),
+        "stops.sequence_status",
+        ALLOWED_SEQUENCE_STATUSES,
+        default="explicit",
+    )
+    raw_place_id = _as_str(raw.get("place_id"), "stops.place_id")
+    place_name_override_hu = _as_str(raw.get("place_name_override_hu"), "stops.place_name_override_hu")
+    mapping_notes_hu = _as_str(raw.get("mapping_notes_hu"), "stops.mapping_notes_hu")
+    if mapping_status == "textual_only":
+        if raw_place_id is not None:
+            raise BiblicalRouteDataError("textual_only stop must not define place_id.")
+        if not place_name_override_hu:
+            raise BiblicalRouteDataError("textual_only stop must define place_name_override_hu.")
+        if display_on_map:
+            raise BiblicalRouteDataError("textual_only stop must use display_on_map=false.")
+        if not mapping_notes_hu:
+            raise BiblicalRouteDataError("textual_only stop must define mapping_notes_hu.")
+        place_id = None
+    else:
+        if raw_place_id is None:
+            raise BiblicalRouteDataError(f"{mapping_status} stop must define place_id.")
+        if not display_on_map:
+            raise BiblicalRouteDataError(f"{mapping_status} stop must use display_on_map=true.")
+        place_id = _resolve_place_id(
+            raw_place_id,
+            active_place_ids=active_place_ids,
+            legacy_to_canonical=legacy_to_canonical,
+            allow_legacy_place_ids=allow_legacy_place_ids,
+        )
     return BiblicalRouteStop(
         order=_as_int(raw.get("order"), "stops.order"),
         stop_id=_as_str(raw.get("stop_id"), "stops.stop_id", required=True) or "",
         place_id=place_id,
-        place_name_override_hu=_as_str(raw.get("place_name_override_hu"), "stops.place_name_override_hu"),
+        place_name_override_hu=place_name_override_hu,
         passage_refs=passage_refs,
         event_summary_hu=_as_str(raw.get("event_summary_hu"), "stops.event_summary_hu", required=True) or "",
         certainty=_enum(raw.get("certainty"), "stops.certainty", ALLOWED_CERTAINTIES),
         stop_type=_enum(raw.get("stop_type"), "stops.stop_type", ALLOWED_STOP_TYPES),
         source_notes_hu=_as_str(raw.get("source_notes_hu"), "stops.source_notes_hu"),
+        mapping_status=mapping_status,
+        display_on_map=display_on_map,
+        mapping_notes_hu=mapping_notes_hu,
+        sequence_status=sequence_status,
     )
 
 
@@ -458,8 +514,10 @@ def route_options(routes: tuple[BiblicalRoute, ...] | None = None) -> list[str]:
 __all__ = [
     "ALLOWED_CERTAINTIES",
     "ALLOWED_GEOMETRY_STATUSES",
+    "ALLOWED_MAPPING_STATUSES",
     "ALLOWED_ROUTE_CATEGORIES",
     "ALLOWED_SEGMENT_TYPES",
+    "ALLOWED_SEQUENCE_STATUSES",
     "ALLOWED_STOP_TYPES",
     "BIBLICAL_ROUTES_PATH",
     "BiblicalRoute",

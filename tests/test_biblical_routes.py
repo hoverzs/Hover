@@ -255,6 +255,63 @@ def test_invalid_place_id_is_rejected() -> None:
     assert "unknown place_id" in str(exc)
 
 
+def test_textual_only_stop_loads_without_place_id() -> None:
+    payload = _route_payload()
+    route = payload[0]
+    route["stops"].insert(
+        1,
+        {
+            "order": 2,
+            "stop_id": "unknown_textual_stop",
+            "place_id": None,
+            "place_name_override_hu": "Ismeretlen állomás",
+            "passage_refs": ["2Móz 15,22"],
+            "event_summary_hu": "A szöveg név szerint említi, de nem térképezhető biztonságosan.",
+            "certainty": "possible",
+            "stop_type": "uncertain_place",
+            "source_notes_hu": "Szövegileg igazolt állomás.",
+            "mapping_status": "textual_only",
+            "display_on_map": False,
+            "mapping_notes_hu": "Nincs biztonságosan feloldható aktív helyrekord.",
+            "sequence_status": "explicit",
+        },
+    )
+    for index, stop in enumerate(route["stops"], start=1):
+        stop["order"] = index
+    route["segments"] = []
+    path = _write_temp_routes(payload)
+
+    loaded = load_biblical_routes(routes_path=path)[0]
+    textual_stop = loaded.stops[1]
+
+    assert textual_stop.place_id is None
+    assert textual_stop.mapping_status == "textual_only"
+    assert textual_stop.display_on_map is False
+    assert textual_stop.mapping_notes_hu
+
+
+def test_textual_only_stop_validation_rejects_bad_mapping_contract() -> None:
+    payload = _route_payload()
+    payload[0]["stops"][0]["mapping_status"] = "textual_only"
+    payload[0]["stops"][0]["display_on_map"] = True
+    payload[0]["stops"][0]["place_id"] = None
+    path = _write_temp_routes(payload)
+
+    exc = _assert_raises(BiblicalRouteDataError, load_biblical_routes, routes_path=path)
+
+    assert "textual_only stop" in str(exc)
+
+
+def test_mapped_stop_without_place_id_is_rejected() -> None:
+    payload = _route_payload()
+    payload[0]["stops"][0]["place_id"] = None
+    path = _write_temp_routes(payload)
+
+    exc = _assert_raises(BiblicalRouteDataError, load_biblical_routes, routes_path=path)
+
+    assert "mapped stop must define place_id" in str(exc)
+
+
 def test_invalid_segment_stop_reference_is_rejected() -> None:
     payload = _route_payload()
     payload[0]["segments"][0]["to_stop_id"] = "missing_stop"

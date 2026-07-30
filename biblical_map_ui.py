@@ -345,7 +345,7 @@ def route_stop_display_name(stop: BiblicalRouteStop, place: BiblicalPlace | None
         return override
     if place is not None:
         return display_place_name(place)
-    return stop.place_id
+    return stop.place_id or stop.stop_id
 
 
 def route_direction_label(stop: BiblicalRouteStop) -> str:
@@ -365,6 +365,8 @@ def route_stop_rows(
     highlighted = set(highlighted_stop_ids)
     rows: list[dict[str, Any]] = []
     for stop in route.stops:
+        if not stop.display_on_map:
+            continue
         place = by_id.get(stop.place_id)
         if place is None:
             continue
@@ -496,6 +498,8 @@ def route_segment_rows(
         from_stop = stop_by_id.get(segment.from_stop_id)
         to_stop = stop_by_id.get(segment.to_stop_id)
         if from_stop is None or to_stop is None:
+            continue
+        if not from_stop.display_on_map or not to_stop.display_on_map:
             continue
         from_place = by_place_id.get(from_stop.place_id)
         to_place = by_place_id.get(to_stop.place_id)
@@ -1351,6 +1355,13 @@ def _render_route_view(st: Any) -> None:
         f"Bizonyosság: {_display_status(route.certainty, CERTAINTY_LABELS)} · "
         f"Geometria: {_display_status(route.geometry_status, GEOMETRY_STATUS_LABELS)}"
     )
+    mapped_stop_count = sum(1 for stop in route.stops if stop.display_on_map)
+    textual_stop_count = len(route.stops) - mapped_stop_count
+    st.caption(
+        f"Állomások: {len(route.stops)} · "
+        f"térképen: {mapped_stop_count} · "
+        f"csak szövegben ismert: {textual_stop_count}"
+    )
     st.warning(ROUTE_VIEW_WARNING_HU)
     map_style_id = render_map_style_selector(st)
 
@@ -1391,6 +1402,10 @@ def _render_route_view(st: Any) -> None:
         f"{_display_status(selected_stop.stop_type, STOP_TYPE_LABELS)} · "
         f"{_display_status(selected_stop.certainty, CERTAINTY_LABELS)}"
     )
+    if selected_stop.mapping_status == "textual_only":
+        st.warning("A hely pontos földrajzi azonosítása nem ismert.")
+        if selected_stop.mapping_notes_hu:
+            st.caption(selected_stop.mapping_notes_hu)
     st.markdown(selected_stop.event_summary_hu)
     if selected_place is not None:
         _render_compact_route_place_card(
@@ -1403,6 +1418,11 @@ def _render_route_view(st: Any) -> None:
     for stop in route.stops:
         place = places_by_id(BIBLICAL_MAP_PLACES).get(stop.place_id)
         emphasis = "**" if stop.stop_id in highlighted_stop_ids else ""
+        textual_note = (
+            "  \nA hely pontos földrajzi azonosítása nem ismert."
+            if stop.mapping_status == "textual_only"
+            else ""
+        )
         st.markdown(
             f"{emphasis}{stop.order}. {route_stop_display_name(stop, place)} – "
             f"{route_direction_label(stop)}{emphasis}  \n"
@@ -1410,6 +1430,7 @@ def _render_route_view(st: Any) -> None:
             f"`{', '.join(stop.passage_refs)}` · "
             f"{_display_status(stop.stop_type, STOP_TYPE_LABELS)} · "
             f"{_display_status(stop.certainty, CERTAINTY_LABELS)}"
+            f"{textual_note}"
         )
 
 
