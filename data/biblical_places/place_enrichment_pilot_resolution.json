@@ -1,0 +1,381 @@
+{
+  "requested_count": 20,
+  "resolved_count": 20,
+  "skipped_count": 0,
+  "resolved": [
+    {
+      "requested_name_hu": "Jeruzsálem",
+      "canonical_place_id": "jerusalem",
+      "catalog_name_hu": "Jeruzsálem",
+      "record_type": "város, templomi és királyi központ",
+      "identification_status": "probable",
+      "external_ids": {
+        "openbible_id": "a15257a",
+        "pleiades_id": "687928",
+        "step_id": null,
+        "wikidata_id": "Q1218"
+      },
+      "source_ids": [
+        "openbible_geocoding_cc_by_4_0",
+        "pleiades_place_687928"
+      ],
+      "resolution_rationale_hu": "A fő jeruzsálemi városrekordot választjuk, nem a kapu-, templom- vagy városrészi rekordokat.",
+      "name_identity_risk_hu": null
+    },
+    {
+      "requested_name_hu": "Betlehem",
+      "canonical_place_id": "bethlehem_1",
+      "catalog_name_hu": "Betlehem",
+      "record_type": "settlement",
+      "identification_status": "certain",
+      "external_ids": {
+        "openbible_id": "a112427",
+        "pleiades_id": null,
+        "step_id": null,
+        "wikidata_id": "Q5776"
+      },
+      "source_ids": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "resolution_rationale_hu": "A júdai Betlehem rekordját választjuk; a zebuloni Betlehem külön hely marad.",
+      "name_identity_risk_hu": "A zebuloni Betlehem külön rekord; nem került összevonásra."
+    },
+    {
+      "requested_name_hu": "Názáret",
+      "canonical_place_id": "nazareth",
+      "catalog_name_hu": "Názáret",
+      "record_type": "galileai település",
+      "identification_status": "probable",
+      "external_ids": {
+        "openbible_id": "af5884f",
+        "pleiades_id": null,
+        "step_id": null,
+        "wikidata_id": "Q430776"
+      },
+      "source_ids": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "resolution_rationale_hu": "Egyetlen aktív Názáret-rekord szerepel a katalógusban.",
+      "name_identity_risk_hu": null
+    },
+    {
+      "requested_name_hu": "Kapernaum",
+      "canonical_place_id": "capernaum",
+      "catalog_name_hu": "Kapernaum",
+      "record_type": "tó menti település",
+      "identification_status": "certain",
+      "external_ids": {
+        "openbible_id": "af2161c",
+        "pleiades_id": "678231",
+        "step_id": null,
+        "wikidata_id": "Q59174"
+      },
+      "source_ids": [
+        "openbible_geocoding_cc_by_4_0",
+        "pleiades_place_678231"
+      ],
+      "resolution_rationale_hu": "Egyetlen aktív Kapernaum-rekord szerepel a katalógusban.",
+      "name_identity_risk_hu": null
+    },
+    {
+      "requested_name_hu": "Jerikó",
+      "canonical_place_id": "jericho_1",
+      "catalog_name_hu": "Jerikó",
+      "record_type": "settlement",
+      "identification_status": "certain",
+      "external_ids": {
+        "openbible_id": "a231f80",
+        "pleiades_id": null,
+        "step_id": null,
+        "wikidata_id": "Q5687"
+      },
+      "source_ids": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "resolution_rationale_hu": "Az elsődleges, tell-es-Sultanhoz kötött Jerikó-rekordot választjuk; a más korszakú Jerikó-rekord külön marad.",
+      "name_identity_risk_hu": "Jerikó más korszakú és vízrajzi rekordjai külön maradnak."
+    },
+    {
+      "requested_name_hu": "Sikem",
+      "canonical_place_id": "shechem",
+      "catalog_name_hu": "Sikem",
+      "record_type": "settlement",
+      "identification_status": "certain",
+      "external_ids": {
+        "openbible_id": "adf74d4",
+        "pleiades_id": "678403",
+        "step_id": null,
+        "wikidata_id": "Q7951237"
+      },
+      "source_ids": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "resolution_rationale_hu": "A településrekordot választjuk; Sikem tornya külön objektum marad.",
+      "name_identity_risk_hu": null
+    },
+    {
+      "requested_name_hu": "Bétel",
+      "canonical_place_id": "bethel_1",
+      "catalog_name_hu": "Bétel",
+      "record_type": "settlement",
+      "identification_status": "probable",
+      "external_ids": {
+        "openbible_id": "a64f355",
+        "pleiades_id": null,
+        "step_id": null,
+        "wikidata_id": "Q3876767"
+      },
+      "source_ids": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "resolution_rationale_hu": "Az elsődleges Bétel-rekordot választjuk; Bétel 2 és Él-Bétel külön rekord marad.",
+      "name_identity_risk_hu": "Bétel, Bétel 2, Él-Bétel és Aj környéki rekordjai nem automatikusan összevontak."
+    },
+    {
+      "requested_name_hu": "Hebrón",
+      "canonical_place_id": "hebron",
+      "catalog_name_hu": "Hebrón",
+      "record_type": "settlement",
+      "identification_status": "certain",
+      "external_ids": {
+        "openbible_id": "a85151a",
+        "pleiades_id": "687915",
+        "step_id": null,
+        "wikidata_id": "Q168225"
+      },
+      "source_ids": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "resolution_rationale_hu": "A fő Hebrón településrekordot választjuk.",
+      "name_identity_risk_hu": null
+    },
+    {
+      "requested_name_hu": "Beérseba",
+      "canonical_place_id": "beersheba_1",
+      "catalog_name_hu": "Beérseba",
+      "record_type": "settlement",
+      "identification_status": "probable",
+      "external_ids": {
+        "openbible_id": "ad2f6c2",
+        "pleiades_id": "687846",
+        "step_id": null,
+        "wikidata_id": "Q534596"
+      },
+      "source_ids": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "resolution_rationale_hu": "A fő Beérseba településrekordot választjuk.",
+      "name_identity_risk_hu": null
+    },
+    {
+      "requested_name_hu": "Sínai-hegy vagy Sínai térsége",
+      "canonical_place_id": "mount_sinai",
+      "catalog_name_hu": "Sínai-hegy",
+      "record_type": "mountain",
+      "identification_status": "probable",
+      "external_ids": {
+        "openbible_id": "abfba2a",
+        "pleiades_id": null,
+        "step_id": null,
+        "wikidata_id": "Q377485"
+      },
+      "source_ids": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "resolution_rationale_hu": "A kért pilot a hegyre utal, ezért a Sínai-hegy rekordot választjuk; a Sínai-puszta külön régiórekord marad.",
+      "name_identity_risk_hu": "A Sínai-hegy és a Sínai-puszta külön rekordtípus."
+    },
+    {
+      "requested_name_hu": "Kádés-Barnea",
+      "canonical_place_id": "kadesh_barnea",
+      "catalog_name_hu": "Kádés-Barnea",
+      "record_type": "settlement",
+      "identification_status": "certain",
+      "external_ids": {
+        "openbible_id": "ac2cef0",
+        "pleiades_id": "687868",
+        "step_id": null,
+        "wikidata_id": "Q954599"
+      },
+      "source_ids": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "resolution_rationale_hu": "A Kádés-Barnea településrekordot választjuk.",
+      "name_identity_risk_hu": null
+    },
+    {
+      "requested_name_hu": "Babilon",
+      "canonical_place_id": "babylon_1",
+      "catalog_name_hu": "Babilon",
+      "record_type": "settlement",
+      "identification_status": "certain",
+      "external_ids": {
+        "openbible_id": "a217d18",
+        "pleiades_id": null,
+        "step_id": null,
+        "wikidata_id": "Q5684"
+      },
+      "source_ids": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "resolution_rationale_hu": "A történeti városrekordot választjuk; Babilónia régió és a szimbolikus római Babilon-rekordok külön maradnak.",
+      "name_identity_risk_hu": "Babilon város, Babilónia régió és a szimbolikus római Babilon külön rekord."
+    },
+    {
+      "requested_name_hu": "Ninive",
+      "canonical_place_id": "nineveh",
+      "catalog_name_hu": "Ninive",
+      "record_type": "settlement",
+      "identification_status": "certain",
+      "external_ids": {
+        "openbible_id": "a70fd5d",
+        "pleiades_id": "874621",
+        "step_id": null,
+        "wikidata_id": "Q5680"
+      },
+      "source_ids": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "resolution_rationale_hu": "A fő Ninive településrekordot választjuk.",
+      "name_identity_risk_hu": null
+    },
+    {
+      "requested_name_hu": "szíriai Antiókhia",
+      "canonical_place_id": "antioch_syria",
+      "catalog_name_hu": "Antiókhia",
+      "record_type": "ókori nagyváros, missziói központ",
+      "identification_status": "probable",
+      "external_ids": {
+        "openbible_id": "ae41ab4",
+        "pleiades_id": "658381",
+        "step_id": null,
+        "wikidata_id": "Q200441"
+      },
+      "source_ids": [
+        "openbible_geocoding_cc_by_4_0",
+        "pleiades_place_658381"
+      ],
+      "resolution_rationale_hu": "A szíriai Antiókhia rekordját választjuk; a pisidiai Antiókhia külön rekord marad.",
+      "name_identity_risk_hu": "A szíriai és a pisidiai Antiókhia külön hely."
+    },
+    {
+      "requested_name_hu": "Efezus",
+      "canonical_place_id": "ephesus",
+      "catalog_name_hu": "Efezus",
+      "record_type": "ókori görög–római város, kikötőváros és tartományi metropolisz",
+      "identification_status": "certain",
+      "external_ids": {
+        "openbible_id": "a5feb15",
+        "pleiades_id": "599612",
+        "step_id": null,
+        "wikidata_id": "Q47611"
+      },
+      "source_ids": [
+        "openbible_geocoding_cc_by_4_0",
+        "pleiades_ephesus_599612",
+        "unesco_ephesus_1018",
+        "turkiye_ephesus_archaeological_site",
+        "pleiades_place_599612"
+      ],
+      "resolution_rationale_hu": "A kézi, részletes Efezus-rekordot használjuk.",
+      "name_identity_risk_hu": null
+    },
+    {
+      "requested_name_hu": "Korinthus",
+      "canonical_place_id": "corinth",
+      "catalog_name_hu": "Korinthus",
+      "record_type": "ókori görög–római város, római kolónia és tartományi központ",
+      "identification_status": "certain",
+      "external_ids": {
+        "openbible_id": "a6f437a",
+        "pleiades_id": "570182",
+        "step_id": null,
+        "wikidata_id": "Q1363688"
+      },
+      "source_ids": [
+        "openbible_geocoding_cc_by_4_0",
+        "pleiades_corinth_570182",
+        "ascsa_ancient_corinth_history",
+        "hellenic_ministry_ancient_corinth",
+        "pleiades_place_570182"
+      ],
+      "resolution_rationale_hu": "A kézi, részletes Korinthus-rekordot használjuk.",
+      "name_identity_risk_hu": null
+    },
+    {
+      "requested_name_hu": "Filippi",
+      "canonical_place_id": "philippi",
+      "catalog_name_hu": "Filippi",
+      "record_type": "római kolónia",
+      "identification_status": "probable",
+      "external_ids": {
+        "openbible_id": "a49e1d0",
+        "pleiades_id": null,
+        "step_id": null,
+        "wikidata_id": "Q379652"
+      },
+      "source_ids": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "resolution_rationale_hu": "A fő Filippi-rekordot választjuk; Cézárea Filippi külön hely marad.",
+      "name_identity_risk_hu": null
+    },
+    {
+      "requested_name_hu": "Athén",
+      "canonical_place_id": "athens",
+      "catalog_name_hu": "Athén",
+      "record_type": "ókori görög város",
+      "identification_status": "probable",
+      "external_ids": {
+        "openbible_id": "a1fe6e7",
+        "pleiades_id": "579885",
+        "step_id": null,
+        "wikidata_id": "Q1524"
+      },
+      "source_ids": [
+        "openbible_geocoding_cc_by_4_0",
+        "pleiades_place_579885"
+      ],
+      "resolution_rationale_hu": "A fő Athén városrekordot választjuk.",
+      "name_identity_risk_hu": null
+    },
+    {
+      "requested_name_hu": "tengeri Cézárea",
+      "canonical_place_id": "caesarea",
+      "catalog_name_hu": "Cézárea",
+      "record_type": "settlement",
+      "identification_status": "certain",
+      "external_ids": {
+        "openbible_id": "a58735e",
+        "pleiades_id": null,
+        "step_id": null,
+        "wikidata_id": "Q319242"
+      },
+      "source_ids": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "resolution_rationale_hu": "A Caesarea Maritima rekordot választjuk; Cézárea Filippi külön hely marad.",
+      "name_identity_risk_hu": "Cézárea Maritima és Cézárea Filippi külön hely."
+    },
+    {
+      "requested_name_hu": "Róma",
+      "canonical_place_id": "rome",
+      "catalog_name_hu": "Róma",
+      "record_type": "birodalmi főváros",
+      "identification_status": "probable",
+      "external_ids": {
+        "openbible_id": "afc8e7a",
+        "pleiades_id": "423025",
+        "step_id": null,
+        "wikidata_id": "Q220"
+      },
+      "source_ids": [
+        "openbible_geocoding_cc_by_4_0",
+        "pleiades_place_423025"
+      ],
+      "resolution_rationale_hu": "A fő Róma városrekordot választjuk.",
+      "name_identity_risk_hu": null
+    }
+  ],
+  "skipped": []
+}

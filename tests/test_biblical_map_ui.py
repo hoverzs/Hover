@@ -2184,3 +2184,39 @@ def test_route_map_failure_keeps_station_list_visible() -> None:
     assert fake_st.errors == []
     assert "Az útvonal térképi megjelenítése most nem érhető el." in fake_st.warnings
     assert any("Állomások" in body for body in fake_st.markdowns)
+
+
+def test_enriched_place_card_renders_extended_profile() -> None:
+    fake_st = _FakeStreamlit()
+    place = get_biblical_place("corinth")
+    assert place is not None
+
+    _render_place_card(fake_st, place, "ApCsel 18,1-18")
+
+    assert any("Bővített helyszínadatlap" in body for body in fake_st.markdowns)
+    assert ("Bibliai jelentőség", True) in fake_st.expanders
+    assert any(label == "Források" for label, _ in fake_st.expanders)
+    assert any("forrásolt" in body or "szakmai ellenőrzésre vár" in body for body in fake_st.captions)
+
+
+def test_non_enriched_place_card_keeps_compact_profile_only() -> None:
+    fake_st = _FakeStreamlit()
+    place = get_biblical_place("abana")
+    assert place is not None
+
+    _render_place_card(fake_st, place, "")
+
+    assert not any("Bővített helyszínadatlap" in body for body in fake_st.markdowns)
+    assert not any(label == "Kapcsolódó bibliai útvonalak" for label, _ in fake_st.expanders)
+
+
+def test_enrichment_route_button_uses_pending_navigation_state() -> None:
+    route_label = "Pál második missziói útja"
+    fake_st = _FakeStreamlit(clicked_buttons={route_label}, enforce_widget_lock=True)
+    place = get_biblical_place("corinth")
+    assert place is not None
+
+    _render_place_card(fake_st, place, "ApCsel 18,1-18")
+
+    assert fake_st.session_state[PENDING_ROUTE_ID_KEY] == "paul_second_missionary_journey"
+    assert fake_st.session_state[PENDING_MAP_VIEW_KEY] == MAP_VIEW_ROUTES

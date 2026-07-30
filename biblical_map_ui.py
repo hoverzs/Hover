@@ -33,6 +33,17 @@ from biblical_routes import (
     load_biblical_routes,
     route_options,
 )
+from biblical_place_enrichment import (
+    CONFIDENCE_LABELS_HU,
+    SECTION_LABELS_HU,
+    SECTION_REVIEW_LABELS_HU,
+    EnrichmentKeyEventsSection,
+    EnrichmentTextSection,
+    PlaceEnrichment,
+    PlaceEnrichmentSource,
+    get_place_enrichment,
+    place_enrichment_sources_by_id,
+)
 
 
 SELECTED_PLACE_ID_KEY = "_biblical_map_selected_place_id"
@@ -1122,6 +1133,150 @@ def _render_detail_expanders(st: Any, place: BiblicalPlace) -> None:
                 _render_short_sources(st, resolved)
 
 
+def _enrichment_source_label(source: PlaceEnrichmentSource) -> str:
+    return _usable_text(source.institution) or _usable_text(source.title) or "Forrás"
+
+
+def _enrichment_source_markdown(source: PlaceEnrichmentSource) -> str:
+    label = _enrichment_source_label(source)
+    if source.identifier:
+        return f"[{label}]({source.identifier})"
+    return label
+
+
+def _section_status_line(section: EnrichmentTextSection | EnrichmentKeyEventsSection) -> str:
+    parts = [
+        CONFIDENCE_LABELS_HU.get(section.confidence, section.confidence),
+        SECTION_REVIEW_LABELS_HU.get(section.review_status, section.review_status),
+    ]
+    return " · ".join(part for part in parts if part)
+
+
+def _render_enrichment_sources(
+    st: Any,
+    source_ids: list[str] | tuple[str, ...],
+    source_lookup: Mapping[str, PlaceEnrichmentSource],
+) -> None:
+    items: list[str] = []
+    seen: set[str] = set()
+    for source_id in source_ids:
+        source = source_lookup.get(source_id)
+        if source is None or source.source_id in seen:
+            continue
+        seen.add(source.source_id)
+        items.append(_enrichment_source_markdown(source))
+    if items:
+        st.caption("Források: " + " · ".join(items))
+
+
+def _render_enrichment_text_section(
+    st: Any,
+    section_key: str,
+    section: EnrichmentTextSection,
+    source_lookup: Mapping[str, PlaceEnrichmentSource],
+    *,
+    expanded: bool = False,
+) -> None:
+    with st.expander(SECTION_LABELS_HU.get(section_key, section_key), expanded=expanded):
+        if section.review_status == "needs_review":
+            st.warning("Ez a szakasz szakmai ellenőrzésre vár.")
+        if section_key == "homiletical_context":
+            st.caption(
+                "Ez a rész a hely történeti, társadalmi és földrajzi hátterének "
+                "szövegértelmezési jelentőségét foglalja össze; nem kész prédikációs alkalmazás."
+            )
+        st.markdown(section.text_hu)
+        st.caption(_section_status_line(section))
+        _render_enrichment_sources(st, section.source_ids, source_lookup)
+
+
+def _render_enrichment_key_events(
+    st: Any,
+    section: EnrichmentKeyEventsSection,
+    source_lookup: Mapping[str, PlaceEnrichmentSource],
+) -> None:
+    with st.expander(SECTION_LABELS_HU["key_events"], expanded=False):
+        if section.review_status == "needs_review":
+            st.warning("Ez a szakasz szakmai ellenőrzésre vár.")
+        for item in section.items:
+            refs = ", ".join(item.passage_refs)
+            st.markdown(f"- **{refs}:** {item.summary_hu}")
+        st.caption(_section_status_line(section))
+        section_source_ids = [
+            source_id
+            for item in section.items
+            for source_id in item.source_ids
+        ]
+        _render_enrichment_sources(st, section_source_ids, source_lookup)
+
+
+def _render_enrichment_routes(st: Any, enrichment: PlaceEnrichment) -> None:
+    if not enrichment.related_route_ids:
+        return
+    routes_by_id = {route.route_id: route for route in load_biblical_routes()}
+    available_route_ids = [route_id for route_id in enrichment.related_route_ids if route_id in routes_by_id]
+    if not available_route_ids:
+        return
+    with st.expander("Kapcsolódó bibliai útvonalak", expanded=False):
+        for route_id in available_route_ids:
+            route = routes_by_id[route_id]
+            if st.button(route.name_hu, key=f"_biblical_map_enrichment_route_{enrichment.place_id}_{route_id}"):
+                queue_route_navigation(st.session_state, route_id)
+                if hasattr(st, "rerun"):
+                    st.rerun()
+            st.caption(route.short_description_hu)
+
+
+def _render_place_enrichment(st: Any, place: BiblicalPlace) -> None:
+    enrichment = get_place_enrichment(place.place_id)
+    if enrichment is None:
+        return
+    source_lookup = place_enrichment_sources_by_id()
+    st.markdown("#### Bővített helyszínadatlap")
+    st.caption(
+        "Állapot: "
+        + SECTION_REVIEW_LABELS_HU.get(enrichment.overall_review_status, enrichment.overall_review_status)
+        + f" · szint: {enrichment.profile_tier}"
+    )
+    if enrichment.overall_review_status == "needs_review":
+        st.warning("A bővített adatlap egy vagy több része szakmai ellenőrzésre vár.")
+
+    section_order = [
+        "biblical_significance",
+        "key_events",
+        "ancient_geography",
+        "historical_context",
+        "archaeology",
+        "modern_context",
+        "identification_notes",
+        "homiletical_context",
+    ]
+    for section_key in section_order:
+        section = enrichment.sections.get(section_key)
+        if isinstance(section, EnrichmentTextSection):
+            _render_enrichment_text_section(
+                st,
+                section_key,
+                section,
+                source_lookup,
+                expanded=section_key == "biblical_significance",
+            )
+        elif isinstance(section, EnrichmentKeyEventsSection):
+            _render_enrichment_key_events(st, section, source_lookup)
+    _render_enrichment_routes(st, enrichment)
+
+    all_source_ids: list[str] = []
+    for section in enrichment.sections.values():
+        if isinstance(section, EnrichmentTextSection):
+            all_source_ids.extend(section.source_ids)
+        elif isinstance(section, EnrichmentKeyEventsSection):
+            for item in section.items:
+                all_source_ids.extend(item.source_ids)
+    if all_source_ids:
+        with st.expander("Források", expanded=False):
+            _render_enrichment_sources(st, tuple(all_source_ids), source_lookup)
+
+
 def _render_place_card(st: Any, place: BiblicalPlace, passage_reference: str) -> None:
     current_ref = passage_reference.strip()
     primary_badge = " · elsődleges helyszín" if place.is_primary else ""
@@ -1168,6 +1323,8 @@ def _render_place_card(st: Any, place: BiblicalPlace, passage_reference: str) ->
         unsafe_allow_html=True,
     )
     _render_detail_expanders(st, place)
+    _render_place_enrichment(st, place)
+
 
 
 def _render_passage_place_selector(

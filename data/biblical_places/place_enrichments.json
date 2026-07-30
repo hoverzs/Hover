@@ -1,0 +1,2272 @@
+[
+  {
+    "place_id": "jerusalem",
+    "profile_tier": "featured",
+    "content_version": 1,
+    "sections": {
+      "biblical_significance": {
+        "text_hu": "Jeruzsálem a passage-indexben 956 bibliai hivatkozáshoz kapcsolódik. A route-adatok 3 bibliai útvonalhoz kötik. Jeruzsálem a bibliai elbeszélés központi városa, a Templom és több újszövetségi esemény helyszíne.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "key_events": {
+        "items": [
+          {
+            "summary_hu": "Felmegy és köszönti a gyülekezetet; a route ezt Jeruzsálem valószínű értelmezéseként jelöli.",
+            "passage_refs": [
+              "ApCsel 18,22"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "Felmennek Jeruzsálembe, ahol a testvérek fogadják őket.",
+            "passage_refs": [
+              "ApCsel 21,15-17"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "Pál Jeruzsálemben kerül őrizetbe, majd a továbbszállítás előkészítése megtörténik.",
+            "passage_refs": [
+              "ApCsel 21,17-23,22"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: ApCsel 2,1-13.",
+            "passage_refs": [
+              "ApCsel 2,1-13"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: 1CH 11,4.",
+            "passage_refs": [
+              "1CH 11,4"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: 1CH 11,8.",
+            "passage_refs": [
+              "1CH 11,8"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          }
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "ancient_geography": {
+        "text_hu": "A rekord szerint a hely típusa: város, templomi és királyi központ, Judea; mai azonosítása: Jerusalem, Izrael.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0",
+          "pleiades_place_687928"
+        ],
+        "confidence": "medium",
+        "review_status": "source_backed"
+      },
+      "modern_context": {
+        "text_hu": "A katalógus jelenlegi mai azonosítása: Jerusalem, Izrael.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0",
+          "pleiades_place_687928"
+        ],
+        "confidence": "medium",
+        "review_status": "source_backed"
+      },
+      "identification_notes": {
+        "text_hu": "Azonosítási státusz: probable. OpenBible azonosítás (score=500). Az importált rekord szakmai ellenőrzésre vár; részletes háttérszöveg nincs generálva.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "homiletical_context": {
+        "text_hu": "A hely értelmezési szempontból azért jelentős, mert a jelenlegi route-adatokban kapcsolódik ezekhez az útvonalakhoz: Pál második missziói útja, Pál harmadik missziói útja, Pál útja Jeruzsálemből Rómába. Ez útvonal- és szövegösszefüggést jelez, nem kész alkalmazást.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "medium",
+        "review_status": "source_backed"
+      }
+    },
+    "related_route_ids": [
+      "paul_second_missionary_journey",
+      "paul_third_missionary_journey",
+      "paul_journey_to_rome"
+    ],
+    "editorial_notes_hu": "Pilot bővített adatlap; rövid, forrásolt, ellenőrizhető összefoglaló.",
+    "overall_review_status": "source_backed"
+  },
+  {
+    "place_id": "bethlehem_1",
+    "profile_tier": "featured",
+    "content_version": 1,
+    "sections": {
+      "biblical_significance": {
+        "text_hu": "Betlehem a passage-indexben 52 bibliai hivatkozáshoz kapcsolódik. Júdai város, Dávid szülőhelye és az evangéliumi hagyomány szerint Jézus születésének helyszíne. A mai Betlehem Jeruzsálemtől délre fekszik.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "key_events": {
+        "items": [
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: 1CH 11,16.",
+            "passage_refs": [
+              "1CH 11,16"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: 1CH 11,17.",
+            "passage_refs": [
+              "1CH 11,17"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: 1CH 11,18.",
+            "passage_refs": [
+              "1CH 11,18"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: 1CH 11,26.",
+            "passage_refs": [
+              "1CH 11,26"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: 1CH 2,51.",
+            "passage_refs": [
+              "1CH 2,51"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: 1CH 2,54.",
+            "passage_refs": [
+              "1CH 2,54"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          }
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "ancient_geography": {
+        "text_hu": "A rekord szerint a hely típusa: settlement; mai azonosítása: Bethlehem.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "modern_context": {
+        "text_hu": "A katalógus jelenlegi mai azonosítása: Bethlehem.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "medium",
+        "review_status": "source_backed"
+      },
+      "identification_notes": {
+        "text_hu": "Azonosítási státusz: certain. OpenBible azonosítás (score=1000). Importált rekord; magyar név és részletes háttér szakmai ellenőrzésre vár.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      }
+    },
+    "related_route_ids": [],
+    "editorial_notes_hu": "Pilot bővített adatlap; rövid, forrásolt, ellenőrizhető összefoglaló.",
+    "overall_review_status": "source_backed"
+  },
+  {
+    "place_id": "nazareth",
+    "profile_tier": "featured",
+    "content_version": 1,
+    "sections": {
+      "biblical_significance": {
+        "text_hu": "Názáret a passage-indexben 32 bibliai hivatkozáshoz kapcsolódik. Názáret galileai település, a keresztyén hagyomány szerint Jézus felnevelkedésének helye.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "key_events": {
+        "items": [
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: Mt 2,23.",
+            "passage_refs": [
+              "Mt 2,23"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: ACT 10,38.",
+            "passage_refs": [
+              "ACT 10,38"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: ACT 2,22.",
+            "passage_refs": [
+              "ACT 2,22"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: ACT 22,8.",
+            "passage_refs": [
+              "ACT 22,8"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: ACT 26,9.",
+            "passage_refs": [
+              "ACT 26,9"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: ACT 3,6.",
+            "passage_refs": [
+              "ACT 3,6"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          }
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "ancient_geography": {
+        "text_hu": "A rekord szerint a hely típusa: galileai település, Galilee; mai azonosítása: Nazareth, Izrael.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "medium",
+        "review_status": "source_backed"
+      },
+      "modern_context": {
+        "text_hu": "A katalógus jelenlegi mai azonosítása: Nazareth, Izrael.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "medium",
+        "review_status": "source_backed"
+      },
+      "identification_notes": {
+        "text_hu": "Azonosítási státusz: probable. OpenBible azonosítás (score=500). Az importált rekord szakmai ellenőrzésre vár; részletes háttérszöveg nincs generálva.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      }
+    },
+    "related_route_ids": [],
+    "editorial_notes_hu": "Pilot bővített adatlap; rövid, forrásolt, ellenőrizhető összefoglaló.",
+    "overall_review_status": "source_backed"
+  },
+  {
+    "place_id": "capernaum",
+    "profile_tier": "featured",
+    "content_version": 1,
+    "sections": {
+      "biblical_significance": {
+        "text_hu": "Kapernaum a passage-indexben 19 bibliai hivatkozáshoz kapcsolódik. Kapernaum a Genezáreti-tó partján fekvő település, Jézus galileai szolgálatának egyik fontos helyszíne.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "key_events": {
+        "items": [
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: Mk 1,21-28.",
+            "passage_refs": [
+              "Mk 1,21-28"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: JHN 2,12.",
+            "passage_refs": [
+              "JHN 2,12"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: JHN 4,46.",
+            "passage_refs": [
+              "JHN 4,46"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: JHN 4,47.",
+            "passage_refs": [
+              "JHN 4,47"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: JHN 6,17.",
+            "passage_refs": [
+              "JHN 6,17"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: JHN 6,24.",
+            "passage_refs": [
+              "JHN 6,24"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          }
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "ancient_geography": {
+        "text_hu": "A rekord szerint a hely típusa: tó menti település, Galilee; mai azonosítása: Tell Hum, Izrael.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0",
+          "pleiades_place_678231"
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "modern_context": {
+        "text_hu": "A katalógus jelenlegi mai azonosítása: Tell Hum, Izrael.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0",
+          "pleiades_place_678231"
+        ],
+        "confidence": "medium",
+        "review_status": "source_backed"
+      },
+      "identification_notes": {
+        "text_hu": "Azonosítási státusz: certain. OpenBible azonosítás (score=860). Az importált rekord szakmai ellenőrzésre vár; részletes háttérszöveg nincs generálva.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      }
+    },
+    "related_route_ids": [],
+    "editorial_notes_hu": "Pilot bővített adatlap; rövid, forrásolt, ellenőrizhető összefoglaló.",
+    "overall_review_status": "source_backed"
+  },
+  {
+    "place_id": "jericho_1",
+    "profile_tier": "featured",
+    "content_version": 1,
+    "sections": {
+      "biblical_significance": {
+        "text_hu": "Jerikó a passage-indexben 63 bibliai hivatkozáshoz kapcsolódik. A route-adatok 1 bibliai útvonalhoz kötik. A Jordán-völgy ősi városa, Izráel honfoglalásának és több újszövetségi történetnek helyszíne. Az ókori településmag Tell es-Szultánnál, a mai Jerikó mellett található.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "key_events": {
+        "items": [
+          {
+            "summary_hu": "A kémek Jerikóban járnak.",
+            "passage_refs": [
+              "Jozs 2,1-24"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "Jerikó városa elesik.",
+            "passage_refs": [
+              "Jozs 6,1-27"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: 1CH 19,5.",
+            "passage_refs": [
+              "1CH 19,5"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: 1CH 6,78.",
+            "passage_refs": [
+              "1CH 6,78"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: 1KI 16,34.",
+            "passage_refs": [
+              "1KI 16,34"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: 2CH 28,15.",
+            "passage_refs": [
+              "2CH 28,15"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          }
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "ancient_geography": {
+        "text_hu": "A rekord szerint a hely típusa: settlement; mai azonosítása: Tell es Sultan.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "modern_context": {
+        "text_hu": "A katalógus jelenlegi mai azonosítása: Tell es Sultan.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "medium",
+        "review_status": "source_backed"
+      },
+      "identification_notes": {
+        "text_hu": "Azonosítási státusz: certain. OpenBible azonosítás (score=1000). Importált rekord; magyar név és részletes háttér szakmai ellenőrzésre vár.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "homiletical_context": {
+        "text_hu": "A hely értelmezési szempontból azért jelentős, mert a jelenlegi route-adatokban kapcsolódik ezekhez az útvonalakhoz: A Jordán átkelése és a középső hadjárat. Ez útvonal- és szövegösszefüggést jelez, nem kész alkalmazást.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "medium",
+        "review_status": "source_backed"
+      }
+    },
+    "related_route_ids": [
+      "joshua_jordan_crossing_central_campaign"
+    ],
+    "editorial_notes_hu": "Pilot bővített adatlap; rövid, forrásolt, ellenőrizhető összefoglaló.",
+    "overall_review_status": "source_backed"
+  },
+  {
+    "place_id": "shechem",
+    "profile_tier": "featured",
+    "content_version": 1,
+    "sections": {
+      "biblical_significance": {
+        "text_hu": "Sikem a passage-indexben 45 bibliai hivatkozáshoz kapcsolódik. A route-adatok 3 bibliai útvonalhoz kötik. Központi fekvésű kánaáni és izráeli város, pátriárkai történetek és szövetségi események helyszíne. Az ókori települést Tell Balatával, a mai Náblusz közelében azonosítják.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "key_events": {
+        "items": [
+          {
+            "summary_hu": "Ábrám Sikem vidékére érkezik.",
+            "passage_refs": [
+              "1Móz 12,6-7"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "Jákób Sikem városához érkezik.",
+            "passage_refs": [
+              "1Móz 33,18-20"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "József Sikem felé megy.",
+            "passage_refs": [
+              "1Móz 37,12-14"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: 1CH 6,67.",
+            "passage_refs": [
+              "1CH 6,67"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: 1CH 7,28.",
+            "passage_refs": [
+              "1CH 7,28"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: 1KI 12,1.",
+            "passage_refs": [
+              "1KI 12,1"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          }
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "ancient_geography": {
+        "text_hu": "A rekord szerint a hely típusa: settlement; mai azonosítása: Tell Balatah.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "modern_context": {
+        "text_hu": "A katalógus jelenlegi mai azonosítása: Tell Balatah.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "medium",
+        "review_status": "source_backed"
+      },
+      "identification_notes": {
+        "text_hu": "Azonosítási státusz: certain. OpenBible azonosítás (score=1000). Importált rekord; magyar név és részletes háttér szakmai ellenőrzésre vár.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "homiletical_context": {
+        "text_hu": "A hely értelmezési szempontból azért jelentős, mert a jelenlegi route-adatokban kapcsolódik ezekhez az útvonalakhoz: Ábrahám vándorlása, Jákób útjai, József történetének földrajzi íve. Ez útvonal- és szövegösszefüggést jelez, nem kész alkalmazást.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "medium",
+        "review_status": "source_backed"
+      }
+    },
+    "related_route_ids": [
+      "abraham_journey",
+      "jacob_journeys",
+      "joseph_geographical_arc"
+    ],
+    "editorial_notes_hu": "Pilot bővített adatlap; rövid, forrásolt, ellenőrizhető összefoglaló.",
+    "overall_review_status": "source_backed"
+  },
+  {
+    "place_id": "bethel_1",
+    "profile_tier": "featured",
+    "content_version": 1,
+    "sections": {
+      "biblical_significance": {
+        "text_hu": "Bétel a passage-indexben 71 bibliai hivatkozáshoz kapcsolódik. A route-adatok 3 bibliai útvonalhoz kötik. Efraim hegyvidékének jelentős bibliai városa; a két rekord ugyanazon település eltérő szövegcsoportjait tartalmazza.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "key_events": {
+        "items": [
+          {
+            "summary_hu": "Ábrám Bétel és Aj között üti fel sátrát.",
+            "passage_refs": [
+              "1Móz 12,8"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "Ábrám visszatér Bétel vidékére.",
+            "passage_refs": [
+              "1Móz 13,3-4"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "Jákób Bételnél álmot lát.",
+            "passage_refs": [
+              "1Móz 28,11-22"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "Jákób visszatér Bételbe.",
+            "passage_refs": [
+              "1Móz 35,1-15"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A lesben álló csapat Aj és Bétel között helyezkedik el.",
+            "passage_refs": [
+              "Jozs 8,9-12"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: 1CH 7,28.",
+            "passage_refs": [
+              "1CH 7,28"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          }
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "ancient_geography": {
+        "text_hu": "A rekord szerint a hely típusa: settlement; mai azonosítása: Beitin.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "medium",
+        "review_status": "source_backed"
+      },
+      "modern_context": {
+        "text_hu": "A katalógus jelenlegi mai azonosítása: Beitin.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "medium",
+        "review_status": "source_backed"
+      },
+      "identification_notes": {
+        "text_hu": "Azonosítási státusz: probable. OpenBible azonosítás (score=965). Importált rekord; magyar név és részletes háttér szakmai ellenőrzésre vár.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "homiletical_context": {
+        "text_hu": "A hely értelmezési szempontból azért jelentős, mert a jelenlegi route-adatokban kapcsolódik ezekhez az útvonalakhoz: Ábrahám vándorlása, Jákób útjai, A Jordán átkelése és a középső hadjárat. Ez útvonal- és szövegösszefüggést jelez, nem kész alkalmazást.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "medium",
+        "review_status": "source_backed"
+      }
+    },
+    "related_route_ids": [
+      "abraham_journey",
+      "jacob_journeys",
+      "joshua_jordan_crossing_central_campaign"
+    ],
+    "editorial_notes_hu": "Pilot bővített adatlap; rövid, forrásolt, ellenőrizhető összefoglaló.",
+    "overall_review_status": "source_backed"
+  },
+  {
+    "place_id": "hebron",
+    "profile_tier": "featured",
+    "content_version": 1,
+    "sections": {
+      "biblical_significance": {
+        "text_hu": "Hebrón a passage-indexben 62 bibliai hivatkozáshoz kapcsolódik. A route-adatok 2 bibliai útvonalhoz kötik. Ősi júdai város, Ábrahám történetéhez és Dávid korai királyságához is kapcsolódik. Az ókori település területe a mai Hebrónban és Tel Rumeida környékén fekszik.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "key_events": {
+        "items": [
+          {
+            "summary_hu": "Jákób Hebrón/Mamré vidékére érkezik.",
+            "passage_refs": [
+              "1Móz 35,27-29"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "Hebrón ellen vonulnak.",
+            "passage_refs": [
+              "Jozs 10,36-37"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: 1CH 11,1.",
+            "passage_refs": [
+              "1CH 11,1"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: 1CH 11,3.",
+            "passage_refs": [
+              "1CH 11,3"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: 1CH 12,23.",
+            "passage_refs": [
+              "1CH 12,23"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: 1CH 12,38.",
+            "passage_refs": [
+              "1CH 12,38"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          }
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "ancient_geography": {
+        "text_hu": "A rekord szerint a hely típusa: settlement; mai azonosítása: Tel Rumeida.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "modern_context": {
+        "text_hu": "A katalógus jelenlegi mai azonosítása: Tel Rumeida.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "medium",
+        "review_status": "source_backed"
+      },
+      "identification_notes": {
+        "text_hu": "Azonosítási státusz: certain. OpenBible azonosítás (score=1000). Importált rekord; magyar név és részletes háttér szakmai ellenőrzésre vár.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "homiletical_context": {
+        "text_hu": "A hely értelmezési szempontból azért jelentős, mert a jelenlegi route-adatokban kapcsolódik ezekhez az útvonalakhoz: Jákób útjai, Józsué déli hadjárata. Ez útvonal- és szövegösszefüggést jelez, nem kész alkalmazást.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "medium",
+        "review_status": "source_backed"
+      }
+    },
+    "related_route_ids": [
+      "jacob_journeys",
+      "joshua_southern_campaign"
+    ],
+    "editorial_notes_hu": "Pilot bővített adatlap; rövid, forrásolt, ellenőrizhető összefoglaló.",
+    "overall_review_status": "source_backed"
+  },
+  {
+    "place_id": "beersheba_1",
+    "profile_tier": "featured",
+    "content_version": 1,
+    "sections": {
+      "biblical_significance": {
+        "text_hu": "Beérseba a passage-indexben 33 bibliai hivatkozáshoz kapcsolódik. A route-adatok 3 bibliai útvonalhoz kötik. A Negev északi részének jelentős bibliai városa, a pátriárkai történetek és Izráel déli határának fontos helye. A Beérseba, Beér-Seba, Seba és kapcsolódó névalakok egy rekordban őrzendők.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "key_events": {
+        "items": [
+          {
+            "summary_hu": "Ábrahám Beérsebánál köt szövetséget.",
+            "passage_refs": [
+              "1Móz 21,31-34"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "Ábrahám visszatér Beérsebába.",
+            "passage_refs": [
+              "1Móz 22,19"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "Jákób Beérsebából indul Hárán felé.",
+            "passage_refs": [
+              "1Móz 28,10"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "Jákób Beérsebánál áldozatot mutat be.",
+            "passage_refs": [
+              "1Móz 46,1-5"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: 1CH 21,2.",
+            "passage_refs": [
+              "1CH 21,2"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: 1CH 4,28.",
+            "passage_refs": [
+              "1CH 4,28"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          }
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "ancient_geography": {
+        "text_hu": "A rekord szerint a hely típusa: settlement; mai azonosítása: Tel Beer Sheva.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "medium",
+        "review_status": "source_backed"
+      },
+      "modern_context": {
+        "text_hu": "A katalógus jelenlegi mai azonosítása: Tel Beer Sheva.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "medium",
+        "review_status": "source_backed"
+      },
+      "identification_notes": {
+        "text_hu": "Azonosítási státusz: probable. OpenBible azonosítás (score=833). Importált rekord; magyar név és részletes háttér szakmai ellenőrzésre vár.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "homiletical_context": {
+        "text_hu": "A hely értelmezési szempontból azért jelentős, mert a jelenlegi route-adatokban kapcsolódik ezekhez az útvonalakhoz: Ábrahám vándorlása, Jákób útjai, József történetének földrajzi íve. Ez útvonal- és szövegösszefüggést jelez, nem kész alkalmazást.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "medium",
+        "review_status": "source_backed"
+      }
+    },
+    "related_route_ids": [
+      "abraham_journey",
+      "jacob_journeys",
+      "joseph_geographical_arc"
+    ],
+    "editorial_notes_hu": "Pilot bővített adatlap; rövid, forrásolt, ellenőrizhető összefoglaló.",
+    "overall_review_status": "source_backed"
+  },
+  {
+    "place_id": "mount_sinai",
+    "profile_tier": "featured",
+    "content_version": 1,
+    "sections": {
+      "biblical_significance": {
+        "text_hu": "Sínai-hegy a passage-indexben 30 bibliai hivatkozáshoz kapcsolódik. A bibliai hagyomány szerint a szövetségkötés és a törvényadás hegye. Hagyományosan a Sínai-félszigeti Dzsebel Múszával azonosítják, de a pontos hely vitatott.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "key_events": {
+        "items": [
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: ACT 7,30.",
+            "passage_refs": [
+              "ACT 7,30"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: ACT 7,38.",
+            "passage_refs": [
+              "ACT 7,38"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: DEU 33,16.",
+            "passage_refs": [
+              "DEU 33,16"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: DEU 33,2.",
+            "passage_refs": [
+              "DEU 33,2"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: EXO 16,1.",
+            "passage_refs": [
+              "EXO 16,1"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: EXO 19,11.",
+            "passage_refs": [
+              "EXO 19,11"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          }
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "ancient_geography": {
+        "text_hu": "A rekord szerint a hely típusa: mountain; mai azonosítása: Jebel Musa.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "medium",
+        "review_status": "source_backed"
+      },
+      "modern_context": {
+        "text_hu": "A katalógus jelenlegi mai azonosítása: Jebel Musa.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "medium",
+        "review_status": "source_backed"
+      },
+      "identification_notes": {
+        "text_hu": "Azonosítási státusz: probable. OpenBible azonosítás (score=465). Importált rekord; magyar név és részletes háttér szakmai ellenőrzésre vár.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      }
+    },
+    "related_route_ids": [],
+    "editorial_notes_hu": "Pilot bővített adatlap; rövid, forrásolt, ellenőrizhető összefoglaló.",
+    "overall_review_status": "source_backed"
+  },
+  {
+    "place_id": "kadesh_barnea",
+    "profile_tier": "featured",
+    "content_version": 1,
+    "sections": {
+      "biblical_significance": {
+        "text_hu": "Kádés-Barnea a passage-indexben 24 bibliai hivatkozáshoz kapcsolódik. A route-adatok 1 bibliai útvonalhoz kötik. Fontos pusztai táborhely Izráel vándorlásának és a kémek kiküldésének történetében. Leggyakrabban Ain el-Kudeirattal azonosítják.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "key_events": {
+        "items": [
+          {
+            "summary_hu": "Kádésben, Cin pusztájában táboroznak.",
+            "passage_refs": [
+              "4Móz 20,1",
+              "4Móz 33,36"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: DEU 1,19.",
+            "passage_refs": [
+              "DEU 1,19"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: DEU 1,2.",
+            "passage_refs": [
+              "DEU 1,2"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: DEU 1,46.",
+            "passage_refs": [
+              "DEU 1,46"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: DEU 2,14.",
+            "passage_refs": [
+              "DEU 2,14"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: DEU 9,23.",
+            "passage_refs": [
+              "DEU 9,23"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          }
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "ancient_geography": {
+        "text_hu": "A rekord szerint a hely típusa: settlement; mai azonosítása: Ain el Qudeirat.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "modern_context": {
+        "text_hu": "A katalógus jelenlegi mai azonosítása: Ain el Qudeirat.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "medium",
+        "review_status": "source_backed"
+      },
+      "identification_notes": {
+        "text_hu": "Azonosítási státusz: certain. OpenBible azonosítás (score=864). Importált rekord; magyar név és részletes háttér szakmai ellenőrzésre vár.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "homiletical_context": {
+        "text_hu": "A hely értelmezési szempontból azért jelentős, mert a jelenlegi route-adatokban kapcsolódik ezekhez az útvonalakhoz: A pusztai vándorlás a Sínaitól a móábi síkságig. Ez útvonal- és szövegösszefüggést jelez, nem kész alkalmazást.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "medium",
+        "review_status": "source_backed"
+      }
+    },
+    "related_route_ids": [
+      "wilderness_sinai_to_moab"
+    ],
+    "editorial_notes_hu": "Pilot bővített adatlap; rövid, forrásolt, ellenőrizhető összefoglaló.",
+    "overall_review_status": "source_backed"
+  },
+  {
+    "place_id": "babylon_1",
+    "profile_tier": "featured",
+    "content_version": 1,
+    "sections": {
+      "biblical_significance": {
+        "text_hu": "Babilon a passage-indexben 296 bibliai hivatkozáshoz kapcsolódik. Mezopotámia egyik legjelentősebb ókori városa és a babiloni birodalom központja. Romjai a mai Irakban, Hillah közelében találhatók.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "key_events": {
+        "items": [
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: 1CH 9,1.",
+            "passage_refs": [
+              "1CH 9,1"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: 2CH 32,31.",
+            "passage_refs": [
+              "2CH 32,31"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: 2CH 33,11.",
+            "passage_refs": [
+              "2CH 33,11"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: 2CH 36,10.",
+            "passage_refs": [
+              "2CH 36,10"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: 2CH 36,17.",
+            "passage_refs": [
+              "2CH 36,17"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: 2CH 36,18.",
+            "passage_refs": [
+              "2CH 36,18"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          }
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "ancient_geography": {
+        "text_hu": "A rekord szerint a hely típusa: settlement; mai azonosítása: Babylon.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "modern_context": {
+        "text_hu": "A katalógus jelenlegi mai azonosítása: Babylon.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "medium",
+        "review_status": "source_backed"
+      },
+      "identification_notes": {
+        "text_hu": "Azonosítási státusz: certain. OpenBible azonosítás (score=1000). Importált rekord; magyar név és részletes háttér szakmai ellenőrzésre vár.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      }
+    },
+    "related_route_ids": [],
+    "editorial_notes_hu": "Pilot bővített adatlap; rövid, forrásolt, ellenőrizhető összefoglaló.",
+    "overall_review_status": "source_backed"
+  },
+  {
+    "place_id": "nineveh",
+    "profile_tier": "featured",
+    "content_version": 1,
+    "sections": {
+      "biblical_significance": {
+        "text_hu": "Ninive a passage-indexben 30 bibliai hivatkozáshoz kapcsolódik. Az asszír birodalom egyik fővárosa, Jónás könyvének központi helyszíne. Romjai a mai Moszul mellett, Irakban találhatók.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "key_events": {
+        "items": [
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: 2KI 19,36.",
+            "passage_refs": [
+              "2KI 19,36"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: GEN 10,11.",
+            "passage_refs": [
+              "GEN 10,11"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: GEN 10,12.",
+            "passage_refs": [
+              "GEN 10,12"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: ISA 37,37.",
+            "passage_refs": [
+              "ISA 37,37"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: JON 1,2.",
+            "passage_refs": [
+              "JON 1,2"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: JON 3,2.",
+            "passage_refs": [
+              "JON 3,2"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          }
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "ancient_geography": {
+        "text_hu": "A rekord szerint a hely típusa: settlement; mai azonosítása: Nineveh.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "modern_context": {
+        "text_hu": "A katalógus jelenlegi mai azonosítása: Nineveh.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "medium",
+        "review_status": "source_backed"
+      },
+      "identification_notes": {
+        "text_hu": "Azonosítási státusz: certain. OpenBible azonosítás (score=1000). Importált rekord; magyar név és részletes háttér szakmai ellenőrzésre vár.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      }
+    },
+    "related_route_ids": [],
+    "editorial_notes_hu": "Pilot bővített adatlap; rövid, forrásolt, ellenőrizhető összefoglaló.",
+    "overall_review_status": "source_backed"
+  },
+  {
+    "place_id": "antioch_syria",
+    "profile_tier": "featured",
+    "content_version": 1,
+    "sections": {
+      "biblical_significance": {
+        "text_hu": "Antiókhia a passage-indexben 19 bibliai hivatkozáshoz kapcsolódik. A route-adatok 3 bibliai útvonalhoz kötik. A szíriai Antiókhia (Orontész menti) az őskeresztyén misszió egyik fontos központja; nem azonos a pisidiai Antiókhiával.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "key_events": {
+        "items": [
+          {
+            "summary_hu": "A gyülekezet kiküldi Barnabást és Sault.",
+            "passage_refs": [
+              "ApCsel 13,1-3"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "Visszatérnek Antiókhiába, és beszámolnak az útról.",
+            "passage_refs": [
+              "ApCsel 14,26-28"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "Pál és Szilász a szíriai Antiókhiából indulnak el a gyülekezetek megerősítésére.",
+            "passage_refs": [
+              "ApCsel 15,36-40"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "Ezután lemegy a szíriai Antiókhiába.",
+            "passage_refs": [
+              "ApCsel 18,22"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "Pál Antiókhiából indul el, hogy sorra járja a tanítványokat.",
+            "passage_refs": [
+              "ApCsel 18,23"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: ApCsel 11,19-30.",
+            "passage_refs": [
+              "ApCsel 11,19-30"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          }
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "ancient_geography": {
+        "text_hu": "A rekord szerint a hely típusa: ókori nagyváros, missziói központ, Syria; mai azonosítása: Antioch on the Orontes, Törökország.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0",
+          "pleiades_place_658381"
+        ],
+        "confidence": "medium",
+        "review_status": "source_backed"
+      },
+      "modern_context": {
+        "text_hu": "A katalógus jelenlegi mai azonosítása: Antioch on the Orontes, Törökország.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0",
+          "pleiades_place_658381"
+        ],
+        "confidence": "medium",
+        "review_status": "source_backed"
+      },
+      "identification_notes": {
+        "text_hu": "Azonosítási státusz: probable. OpenBible azonosítás (score=500). Az importált rekord szakmai ellenőrzésre vár; részletes háttérszöveg nincs generálva. Ez a szíriai (Orontész menti) Antiókhia, nem a pisidiai.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "homiletical_context": {
+        "text_hu": "A hely értelmezési szempontból azért jelentős, mert a jelenlegi route-adatokban kapcsolódik ezekhez az útvonalakhoz: Pál első missziói útja, Pál második missziói útja, Pál harmadik missziói útja. Ez útvonal- és szövegösszefüggést jelez, nem kész alkalmazást.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "medium",
+        "review_status": "source_backed"
+      }
+    },
+    "related_route_ids": [
+      "paul_first_missionary_journey",
+      "paul_second_missionary_journey",
+      "paul_third_missionary_journey"
+    ],
+    "editorial_notes_hu": "Pilot bővített adatlap; rövid, forrásolt, ellenőrizhető összefoglaló.",
+    "overall_review_status": "source_backed"
+  },
+  {
+    "place_id": "ephesus",
+    "profile_tier": "featured",
+    "content_version": 1,
+    "sections": {
+      "biblical_significance": {
+        "text_hu": "Efezus a passage-indexben 22 bibliai hivatkozáshoz kapcsolódik. A route-adatok 2 bibliai útvonalhoz kötik. Efezus Kis-Ázsia egyik legjelentősebb görög–római városa, kikötője és vallási központja volt. Pál apostol hosszabb ideig szolgált itt, és a város az őskeresztény misszió, az efezusi gyülekezet, valamint az Artemisz-kultusszal való találkozás fontos helyszínévé vált.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "key_events": {
+        "items": [
+          {
+            "summary_hu": "Efezusban rövid ideig vitatkozik a zsinagógában, majd továbbindul.",
+            "passage_refs": [
+              "ApCsel 18,19-21"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "Efezusban Pál hosszabb ideig tanít és szolgál.",
+            "passage_refs": [
+              "ApCsel 19,1-41"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: Ef 1,1-14.",
+            "passage_refs": [
+              "Ef 1,1-14"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: 1CO 15,32.",
+            "passage_refs": [
+              "1CO 15,32"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: 1CO 16,8.",
+            "passage_refs": [
+              "1CO 16,8"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: 1TI 1,3.",
+            "passage_refs": [
+              "1TI 1,3"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          }
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "ancient_geography": {
+        "text_hu": "Efezus Kis-Ázsia nyugati partvidékén, a Kaystros folyó egykori torkolatvidékén feküdt. Földrajzi helyzete összekapcsolta az Égei-tenger tengeri útvonalait Anatólia belső területeivel. A partvonal, a folyó hordaléka és a kikötő fokozatos feltöltődése hosszú távon jelentősen alakította a város történetét.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0",
+          "pleiades_ephesus_599612",
+          "unesco_ephesus_1018",
+          "turkiye_ephesus_archaeological_site",
+          "pleiades_place_599612"
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "historical_context": {
+        "text_hu": "Efezus több egymást követő települési központból fejlődött ki. A hellenisztikus korban Lysimakhosz idején új városi központ épült, majd a római uralom alatt Asia provincia egyik legfontosabb városává vált. Monumentális középületei, utcái, színháza, fürdői és szentélyei a város politikai, gazdasági és kulturális jelentőségét tükrözik.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0",
+          "pleiades_ephesus_599612",
+          "unesco_ephesus_1018",
+          "turkiye_ephesus_archaeological_site",
+          "pleiades_place_599612"
+        ],
+        "confidence": "medium",
+        "review_status": "source_backed"
+      },
+      "archaeology": {
+        "text_hu": "Efezus régészeti területe monumentális városi szerkezetet őrzött meg. Jelentős emlékei közé tartozik a nagy színház, a Celsus-könyvtár, a Curetes utca, a kereskedelmi agora, fürdők, lakóházak és templomok. Az Artemisz-templom maradványai és az Ayasuluk-domb korai keresztyén emlékei a város vallástörténetének különböző korszakait képviselik.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0",
+          "pleiades_ephesus_599612",
+          "unesco_ephesus_1018",
+          "turkiye_ephesus_archaeological_site",
+          "pleiades_place_599612"
+        ],
+        "confidence": "medium",
+        "review_status": "source_backed"
+      },
+      "modern_context": {
+        "text_hu": "A katalógus jelenlegi mai azonosítása: Efes, Selçuk, Törökország.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0",
+          "pleiades_ephesus_599612",
+          "unesco_ephesus_1018",
+          "turkiye_ephesus_archaeological_site",
+          "pleiades_place_599612"
+        ],
+        "confidence": "medium",
+        "review_status": "source_backed"
+      },
+      "identification_notes": {
+        "text_hu": "Azonosítási státusz: certain. Az ókori Efezus helye biztosan azonosítható a mai Selçuk közelében fekvő efezusi régészeti területtel.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "homiletical_context": {
+        "text_hu": "A hely értelmezési szempontból azért jelentős, mert a jelenlegi route-adatokban kapcsolódik ezekhez az útvonalakhoz: Pál második missziói útja, Pál harmadik missziói útja. Ez útvonal- és szövegösszefüggést jelez, nem kész alkalmazást.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "medium",
+        "review_status": "source_backed"
+      }
+    },
+    "related_route_ids": [
+      "paul_second_missionary_journey",
+      "paul_third_missionary_journey"
+    ],
+    "editorial_notes_hu": "Pilot bővített adatlap; rövid, forrásolt, ellenőrizhető összefoglaló.",
+    "overall_review_status": "source_backed"
+  },
+  {
+    "place_id": "corinth",
+    "profile_tier": "featured",
+    "content_version": 1,
+    "sections": {
+      "biblical_significance": {
+        "text_hu": "Korinthus a passage-indexben 12 bibliai hivatkozáshoz kapcsolódik. A route-adatok 1 bibliai útvonalhoz kötik. Korinthus a Korinthoszi-földszoros mellett fekvő jelentős görög–római város, római kolónia és Achaia tartományi központja volt. Pál apostol az ApCsel 18 szerint hosszabb ideig szolgált itt, és a város az őskeresztény misszió egyik fontos gyülekezeti központjává vált.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "key_events": {
+        "items": [
+          {
+            "summary_hu": "Korinthusban Pál hosszabb ideig szolgál.",
+            "passage_refs": [
+              "ApCsel 18,1-18"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: 1CO 1,2.",
+            "passage_refs": [
+              "1CO 1,2"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: 2CO 1,1.",
+            "passage_refs": [
+              "2CO 1,1"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: 2CO 1,23.",
+            "passage_refs": [
+              "2CO 1,23"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: 2CO 10,14.",
+            "passage_refs": [
+              "2CO 10,14"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: 2TI 4,20.",
+            "passage_refs": [
+              "2TI 4,20"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          }
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "ancient_geography": {
+        "text_hu": "Az ókori Korinthus a Peloponnészosz északkeleti részén, a Korinthoszi-földszoros déli oldalán, az Akrokorinthosz északi lábánál feküdt. A keskeny földhíd a Peloponnészoszt kötötte össze a görög szárazfölddel, miközben a város a Korinthoszi-öböl és a Szaróni-öböl irányába is hozzáférést biztosított. Stratégiai fekvése szárazföldi és tengeri útvonalak találkozási pontjává tette.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0",
+          "pleiades_corinth_570182",
+          "ascsa_ancient_corinth_history",
+          "hellenic_ministry_ancient_corinth",
+          "pleiades_place_570182"
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "historical_context": {
+        "text_hu": "Korinthus térségében már a neolitikus korban megjelent az emberi megtelepedés. A klasszikus görög Korinthust a rómaiak Kr. e. 146-ban elpusztították. Julius Caesar Kr. e. 44-ben római kolóniaként alapította újra. A római korban a város Achaia provincia fővárosaként is működött.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0",
+          "pleiades_corinth_570182",
+          "ascsa_ancient_corinth_history",
+          "hellenic_ministry_ancient_corinth",
+          "pleiades_place_570182"
+        ],
+        "confidence": "medium",
+        "review_status": "source_backed"
+      },
+      "archaeology": {
+        "text_hu": "Az ókori Korinthus régészeti kutatása a görög, római és bizánci város számos épületét és emlékét feltárta. A lelőhely központi részei között megtalálható a fórum, az Apollón-templom maradványa, középületek, utak és vízellátási létesítmények.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0",
+          "pleiades_corinth_570182",
+          "ascsa_ancient_corinth_history",
+          "hellenic_ministry_ancient_corinth",
+          "pleiades_place_570182"
+        ],
+        "confidence": "medium",
+        "review_status": "source_backed"
+      },
+      "modern_context": {
+        "text_hu": "A katalógus jelenlegi mai azonosítása: Archaia Korinthos, Görögország.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0",
+          "pleiades_corinth_570182",
+          "ascsa_ancient_corinth_history",
+          "hellenic_ministry_ancient_corinth",
+          "pleiades_place_570182"
+        ],
+        "confidence": "medium",
+        "review_status": "source_backed"
+      },
+      "identification_notes": {
+        "text_hu": "Azonosítási státusz: certain. Az ókori Korinthus helye biztosan azonosítható a mai Archaia Korinthos régészeti területével. Nem azonos a közeli modern Korinthosz városával.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "homiletical_context": {
+        "text_hu": "A hely értelmezési szempontból azért jelentős, mert a jelenlegi route-adatokban kapcsolódik ezekhez az útvonalakhoz: Pál második missziói útja. Ez útvonal- és szövegösszefüggést jelez, nem kész alkalmazást.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "medium",
+        "review_status": "source_backed"
+      }
+    },
+    "related_route_ids": [
+      "paul_second_missionary_journey"
+    ],
+    "editorial_notes_hu": "Pilot bővített adatlap; rövid, forrásolt, ellenőrizhető összefoglaló.",
+    "overall_review_status": "source_backed"
+  },
+  {
+    "place_id": "philippi",
+    "profile_tier": "featured",
+    "content_version": 1,
+    "sections": {
+      "biblical_significance": {
+        "text_hu": "Filippi a passage-indexben 5 bibliai hivatkozáshoz kapcsolódik. A route-adatok 2 bibliai útvonalhoz kötik. Filippi makedóniai római kolónia; az ApCsel 16 szerint Pál európai szolgálatának egyik első állomása.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "key_events": {
+        "items": [
+          {
+            "summary_hu": "Filippiben Pál és társai szolgálnak, majd a városból távoznak.",
+            "passage_refs": [
+              "ApCsel 16,12-40"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A kovásztalan kenyerek napjai után Filippiből hajóznak el.",
+            "passage_refs": [
+              "ApCsel 20,6"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: ApCsel 16,11-40.",
+            "passage_refs": [
+              "ApCsel 16,11-40"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: 1TH 2,2.",
+            "passage_refs": [
+              "1TH 2,2"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: ACT 16,12.",
+            "passage_refs": [
+              "ACT 16,12"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: ACT 20,6.",
+            "passage_refs": [
+              "ACT 20,6"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          }
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "ancient_geography": {
+        "text_hu": "A rekord szerint a hely típusa: római kolónia, Macedonia; mai azonosítása: Philippi, Görögország.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "medium",
+        "review_status": "source_backed"
+      },
+      "modern_context": {
+        "text_hu": "A katalógus jelenlegi mai azonosítása: Philippi, Görögország.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "medium",
+        "review_status": "source_backed"
+      },
+      "identification_notes": {
+        "text_hu": "Azonosítási státusz: probable. OpenBible azonosítás (score=500). Az importált rekord szakmai ellenőrzésre vár; részletes háttérszöveg nincs generálva.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "homiletical_context": {
+        "text_hu": "A hely értelmezési szempontból azért jelentős, mert a jelenlegi route-adatokban kapcsolódik ezekhez az útvonalakhoz: Pál második missziói útja, Pál harmadik missziói útja. Ez útvonal- és szövegösszefüggést jelez, nem kész alkalmazást.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "medium",
+        "review_status": "source_backed"
+      }
+    },
+    "related_route_ids": [
+      "paul_second_missionary_journey",
+      "paul_third_missionary_journey"
+    ],
+    "editorial_notes_hu": "Pilot bővített adatlap; rövid, forrásolt, ellenőrizhető összefoglaló.",
+    "overall_review_status": "source_backed"
+  },
+  {
+    "place_id": "athens",
+    "profile_tier": "featured",
+    "content_version": 1,
+    "sections": {
+      "biblical_significance": {
+        "text_hu": "Athén a passage-indexben 7 bibliai hivatkozáshoz kapcsolódik. A route-adatok 1 bibliai útvonalhoz kötik. Athén ókori görög város; az ApCsel 17 szerint Pál itt hirdette az evangéliumot az Areopágosznál.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "key_events": {
+        "items": [
+          {
+            "summary_hu": "Athénban Pál az Areopágoszon szól.",
+            "passage_refs": [
+              "ApCsel 17,15-34"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: ApCsel 17,16-34.",
+            "passage_refs": [
+              "ApCsel 17,16-34"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: 1TH 3,1.",
+            "passage_refs": [
+              "1TH 3,1"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: ACT 17,15.",
+            "passage_refs": [
+              "ACT 17,15"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: ACT 17,16.",
+            "passage_refs": [
+              "ACT 17,16"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: ACT 17,21.",
+            "passage_refs": [
+              "ACT 17,21"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          }
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "ancient_geography": {
+        "text_hu": "A rekord szerint a hely típusa: ókori görög város, Attica; mai azonosítása: Athens, Görögország.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0",
+          "pleiades_place_579885"
+        ],
+        "confidence": "medium",
+        "review_status": "source_backed"
+      },
+      "modern_context": {
+        "text_hu": "A katalógus jelenlegi mai azonosítása: Athens, Görögország.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0",
+          "pleiades_place_579885"
+        ],
+        "confidence": "medium",
+        "review_status": "source_backed"
+      },
+      "identification_notes": {
+        "text_hu": "Azonosítási státusz: probable. OpenBible azonosítás (score=500). Az importált rekord szakmai ellenőrzésre vár; részletes háttérszöveg nincs generálva.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "homiletical_context": {
+        "text_hu": "A hely értelmezési szempontból azért jelentős, mert a jelenlegi route-adatokban kapcsolódik ezekhez az útvonalakhoz: Pál második missziói útja. Ez útvonal- és szövegösszefüggést jelez, nem kész alkalmazást.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "medium",
+        "review_status": "source_backed"
+      }
+    },
+    "related_route_ids": [
+      "paul_second_missionary_journey"
+    ],
+    "editorial_notes_hu": "Pilot bővített adatlap; rövid, forrásolt, ellenőrizhető összefoglaló.",
+    "overall_review_status": "source_backed"
+  },
+  {
+    "place_id": "caesarea",
+    "profile_tier": "featured",
+    "content_version": 1,
+    "sections": {
+      "biblical_significance": {
+        "text_hu": "Cézárea a passage-indexben 18 bibliai hivatkozáshoz kapcsolódik. A route-adatok 3 bibliai útvonalhoz kötik. Heródes által kiépített római kikötőváros és Júdea közigazgatási központja. Romjai a mai izraeli Caesarea Maritima régészeti területén találhatók.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "key_events": {
+        "items": [
+          {
+            "summary_hu": "Caesareába érkezik a tengeri út végén.",
+            "passage_refs": [
+              "ApCsel 18,22"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "Caesareában Fülöp házában tartózkodnak.",
+            "passage_refs": [
+              "ApCsel 21,8-14"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "Caesareában Pál helytartói kihallgatások és fogság alatt marad.",
+            "passage_refs": [
+              "ApCsel 23,33-26,32"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: ACT 10,1.",
+            "passage_refs": [
+              "ACT 10,1"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: ACT 10,24.",
+            "passage_refs": [
+              "ACT 10,24"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: ACT 11,11.",
+            "passage_refs": [
+              "ACT 11,11"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          }
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "ancient_geography": {
+        "text_hu": "A rekord szerint a hely típusa: settlement; mai azonosítása: Caesarea Maritima.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "modern_context": {
+        "text_hu": "A katalógus jelenlegi mai azonosítása: Caesarea Maritima.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "medium",
+        "review_status": "source_backed"
+      },
+      "identification_notes": {
+        "text_hu": "Azonosítási státusz: certain. OpenBible azonosítás (score=1000). Importált rekord; magyar név és részletes háttér szakmai ellenőrzésre vár.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "homiletical_context": {
+        "text_hu": "A hely értelmezési szempontból azért jelentős, mert a jelenlegi route-adatokban kapcsolódik ezekhez az útvonalakhoz: Pál második missziói útja, Pál harmadik missziói útja, Pál útja Jeruzsálemből Rómába. Ez útvonal- és szövegösszefüggést jelez, nem kész alkalmazást.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "medium",
+        "review_status": "source_backed"
+      }
+    },
+    "related_route_ids": [
+      "paul_second_missionary_journey",
+      "paul_third_missionary_journey",
+      "paul_journey_to_rome"
+    ],
+    "editorial_notes_hu": "Pilot bővített adatlap; rövid, forrásolt, ellenőrizhető összefoglaló.",
+    "overall_review_status": "source_backed"
+  },
+  {
+    "place_id": "rome",
+    "profile_tier": "featured",
+    "content_version": 1,
+    "sections": {
+      "biblical_significance": {
+        "text_hu": "Róma a passage-indexben 16 bibliai hivatkozáshoz kapcsolódik. A route-adatok 1 bibliai útvonalhoz kötik. Róma a Római Birodalom fővárosa; az ApCsel 28 szerint Pál itt töltött házi őrizetet és hirdette az evangéliumot.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "key_events": {
+        "items": [
+          {
+            "summary_hu": "Rómába érkeznek, ahol Pál őrizet alatt, de szolgálati lehetőséggel marad.",
+            "passage_refs": [
+              "ApCsel 28,16-31"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: ApCsel 28,11-31.",
+            "passage_refs": [
+              "ApCsel 28,11-31"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: 2TI 1,17.",
+            "passage_refs": [
+              "2TI 1,17"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: ACT 18,2.",
+            "passage_refs": [
+              "ACT 18,2"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: ACT 19,21.",
+            "passage_refs": [
+              "ACT 19,21"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          },
+          {
+            "summary_hu": "A hely ehhez a bibliai hivatkozáshoz kapcsolódik: ACT 19,40.",
+            "passage_refs": [
+              "ACT 19,40"
+            ],
+            "source_ids": [
+              "openbible_geocoding_cc_by_4_0"
+            ]
+          }
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "ancient_geography": {
+        "text_hu": "A rekord szerint a hely típusa: birodalmi főváros, Italia; mai azonosítása: Rome, Olaszország.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0",
+          "pleiades_place_423025"
+        ],
+        "confidence": "medium",
+        "review_status": "source_backed"
+      },
+      "modern_context": {
+        "text_hu": "A katalógus jelenlegi mai azonosítása: Rome, Olaszország.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0",
+          "pleiades_place_423025"
+        ],
+        "confidence": "medium",
+        "review_status": "source_backed"
+      },
+      "identification_notes": {
+        "text_hu": "Azonosítási státusz: probable. OpenBible azonosítás (score=500). Az importált rekord szakmai ellenőrzésre vár; részletes háttérszöveg nincs generálva.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "high",
+        "review_status": "source_backed"
+      },
+      "homiletical_context": {
+        "text_hu": "A hely értelmezési szempontból azért jelentős, mert a jelenlegi route-adatokban kapcsolódik ezekhez az útvonalakhoz: Pál útja Jeruzsálemből Rómába. Ez útvonal- és szövegösszefüggést jelez, nem kész alkalmazást.",
+        "source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "confidence": "medium",
+        "review_status": "source_backed"
+      }
+    },
+    "related_route_ids": [
+      "paul_journey_to_rome"
+    ],
+    "editorial_notes_hu": "Pilot bővített adatlap; rövid, forrásolt, ellenőrizhető összefoglaló.",
+    "overall_review_status": "source_backed"
+  }
+]
