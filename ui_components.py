@@ -52,9 +52,10 @@ def render_work_section(
     context: str = "",
     show_rule: bool = True,
 ) -> None:
-    """Munkaszakasz fejléc: kis kontextuscímke, 22–26 px cím, rövid leírás.
+    """Munkaszakasz fejléc: kis kontextuscímke, kompakt cím + magyarázat egy sorban.
 
     Nem teljes kártya — csak hierarchikus nyitóblokk a feladat előtt.
+    A cím és a rövid leírás egy lead-sorban ül (szűk képernyőn tördelve).
     """
     ctx = escape((context or "").strip())
     ttl = escape((title or "").strip())
@@ -62,14 +63,19 @@ def render_work_section(
     if not ttl and not txt:
         return
     ctx_html = f'<div class="tx-work-section-context">{ctx}</div>' if ctx else ""
+    title_html = f'<h2 class="tx-work-section-title">{ttl}</h2>' if ttl else ""
     body_html = f'<p class="tx-work-section-body">{txt}</p>' if txt else ""
+    lead_html = (
+        f'<div class="tx-work-section-lead">{title_html}{body_html}</div>'
+        if title_html or body_html
+        else ""
+    )
     rule_html = '<hr class="tx-work-section-rule" />' if show_rule else ""
     st.markdown(
         (
             '<section class="tx-work-section">'
             f"{ctx_html}"
-            f'<h2 class="tx-work-section-title">{ttl}</h2>'
-            f"{body_html}"
+            f"{lead_html}"
             f"{rule_html}"
             "</section>"
         ),

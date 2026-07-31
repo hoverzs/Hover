@@ -181,6 +181,9 @@ class _FakeStreamlit:
         self.expanders.append((label, expanded))
         return _FakeContext(self)
 
+    def container(self, *args, **kwargs):
+        return _FakeContext(self)
+
     def columns(self, spec, gap=None):
         self.columns_calls.append((spec, gap))
         return [_FakeContext(self), _FakeContext(self)]
@@ -633,7 +636,7 @@ def test_exactly_one_active_ui_map_render_call() -> None:
     assert "SMART-MAP RENDERFÜGGVÉNY ELINDULT" not in map_ui_source
     assert "Első izolált prototípus" not in map_ui_source
     assert "Még nincs automatikus kapcsolat" not in map_ui_source
-    assert 'st.radio(\n            "Térkép nézet",' in map_ui_source
+    assert 'st.radio(\n                "Térkép nézet",' in map_ui_source
     assert "SELECTED_PLACE_RADIO_KEY" not in map_ui_source
     assert "st.selectbox(" in map_ui_source
     assert map_ui_source.count("Bibliai térkép") == 1

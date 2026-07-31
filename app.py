@@ -4668,6 +4668,17 @@ def _project_autosave_fragment() -> None:
     _maybe_autosave_project()
 
 
+def _close_projects_popover() -> None:
+    """A Projektek popover bezárása (Streamlit gomb után nyitva tartja).
+
+    Widgetkulcs-epoch növelésével újrarendereljük a popovert, így a
+    megnyitás / megerősítés után nem marad lebegő panel a felületen.
+    """
+    st.session_state["_projects_popover_epoch"] = (
+        int(st.session_state.get("_projects_popover_epoch") or 0) + 1
+    )
+
+
 def _cloud_open_project(project_id: str) -> None:
     owner = _owner_sub()
     if not owner:
@@ -4682,6 +4693,7 @@ def _cloud_open_project(project_id: str) -> None:
         if not row:
             _set_flash("A projekt nem található, vagy nem a tied.", "error")
             st.session_state["project_open_confirm_id"] = None
+            _close_projects_popover()
             st.rerun()
             return
         _apply_project_data_to_session(row.get("project_data") or {})
@@ -4693,10 +4705,12 @@ def _cloud_open_project(project_id: str) -> None:
         st.session_state["project_delete_confirm_id"] = None
         st.session_state["show_projects_panel"] = False
         _mark_project_clean()
+        _close_projects_popover()
         _set_flash(f"Betöltve: {title}")
         st.rerun()
     except Exception as exc:
         _set_flash(f"Betöltési hiba: {exc}", "error")
+        _close_projects_popover()
         st.rerun()
 
 
@@ -4714,6 +4728,7 @@ def _request_open_project(project_id: str) -> None:
         st.session_state["project_delete_confirm_id"] = None
         st.session_state["project_logout_confirm"] = False
         st.session_state["project_new_work_confirm"] = False
+        _close_projects_popover()
         st.rerun()
         return
     _cloud_open_project(pid)
@@ -6910,7 +6925,7 @@ def render_igehely_panel() -> None:
     apply_pending_passage_search_before_widget()
     render_work_section(
         title="Igeszakasz megadása",
-        body="Add meg a textust, az alkalmat és a szempontokat — innen indul a műhelymunka.",
+        body="Textus, alkalom és szempontok — innen indul a műhelymunka.",
         context="Textusműhely",
     )
 
