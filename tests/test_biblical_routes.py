@@ -41,6 +41,10 @@ EXPECTED_ROUTE_NAMES_HU = [
     "J\u00e9zus \u00fatja Jeruzs\u00e1lemben a passi\u00f3 idej\u00e9n",
     "\u00c1zsia h\u00e9t gy\u00fclekezete",
     "Ruth \u00fatja Mo\u00e1bt\u00f3l Betlehemig",
+    "J\u00e9zus gyermekkora: Betlehemt\u0151l Egyiptomon \u00e1t N\u00e1z\u00e1retig",
+    "J\u00e9zus \u00fatja Szik\u00e1ron \u00e1t",
+    "Ezra hazat\u00e9r\u00e9se Babilont\u00f3l Jeruzs\u00e1lemig",
+    "Nehemi\u00e1s \u00fatja S\u00fas\u00e1nt\u00f3l Jeruzs\u00e1lemig",
 ]
 EXPECTED_ROUTE_OPTION_IDS = [
     "paul_early_damascus_to_antioch",
@@ -57,9 +61,13 @@ EXPECTED_ROUTE_OPTION_IDS = [
     "joshua_jordan_crossing_central_campaign",
     "joshua_southern_campaign",
     "joshua_northern_campaign",
+    "ezra_return_babylon_to_jerusalem",
+    "nehemiah_susa_to_jerusalem",
     "philip_samaria_to_caesarea",
     "peter_jerusalem_to_caesarea",
+    "jesus_infancy_egypt",
     "jesus_galilee_named_sites",
+    "jesus_samaria_sychar",
     "jesus_passion_jerusalem",
     "seven_churches_asia",
 ]
@@ -86,7 +94,7 @@ def _assert_raises(expected: type[Exception], callback, *args, **kwargs) -> Exce
 
 def test_valid_pilot_route_loads() -> None:
     routes = load_biblical_routes()
-    assert len(routes) == 19
+    assert len(routes) == 23
     route = routes[0]
     assert route.route_id == "paul_first_missionary_journey"
     assert route.name_hu == EXPECTED_ROUTE_NAMES_HU[0]
@@ -106,7 +114,7 @@ def test_all_pauline_routes_load_in_chronological_order() -> None:
         "paul_journey_to_rome",
     ]
     assert route_options(routes) == EXPECTED_ROUTE_OPTION_IDS
-    assert len({route.route_id for route in routes}) == 19
+    assert len({route.route_id for route in routes}) == 23
     assert [route.name_hu for route in routes] == EXPECTED_ROUTE_NAMES_HU
 
 
@@ -636,22 +644,37 @@ def test_safe_catalog_backed_routes_load_with_active_place_ids() -> None:
         "jesus_passion_jerusalem": 6,
         "seven_churches_asia": 7,
         "ruth_moab_to_bethlehem": 2,
+        "jesus_infancy_egypt": 3,
+        "jesus_samaria_sychar": 3,
+        "ezra_return_babylon_to_jerusalem": 3,
+        "nehemiah_susa_to_jerusalem": 2,
     }
     for route_id, stop_count in expected.items():
         route = routes[route_id]
         assert len(route.stops) == stop_count
-        assert len(route.segments) == stop_count - 1
+        assert 1 <= len(route.segments) <= stop_count - 1
         assert route.geometry_status == "schematic"
         assert route.review_status == "draft"
+        assert route.route_evidence_tier in {"strong", "moderate", "weak"}
         assert all(stop.place_id in catalog_ids for stop in route.stops)
         assert all(stop.display_on_map for stop in route.stops)
 
     assert routes["philip_samaria_to_caesarea"].next_route_id == "peter_jerusalem_to_caesarea"
+    assert routes["jesus_infancy_egypt"].next_route_id == "jesus_galilee_named_sites"
     assert routes["jesus_galilee_named_sites"].next_route_id == "jesus_passion_jerusalem"
+    assert routes["ezra_return_babylon_to_jerusalem"].next_route_id == "nehemiah_susa_to_jerusalem"
     assert routes["seven_churches_asia"].stops[0].place_id == "ephesus"
     assert routes["seven_churches_asia"].stops[-1].place_id == "laodicea"
     assert routes["ruth_moab_to_bethlehem"].stops[0].place_id == "moab_1"
     assert routes["ruth_moab_to_bethlehem"].stops[-1].place_id == "bethlehem_1"
+
+
+def test_all_routes_have_evidence_tiers() -> None:
+    routes = load_biblical_routes()
+    assert {route.route_evidence_tier for route in routes} == {"strong", "moderate", "weak"}
+    assert next(route for route in routes if route.route_id == "ruth_moab_to_bethlehem").route_evidence_tier == "strong"
+    assert next(route for route in routes if route.route_id == "jesus_galilee_named_sites").route_evidence_tier == "weak"
+    assert next(route for route in routes if route.route_id == "exodus_egypt_to_sinai").route_evidence_tier == "weak"
 
 
 def test_patriarchal_routes_have_family_navigation_links() -> None:

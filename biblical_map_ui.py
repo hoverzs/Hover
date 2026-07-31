@@ -169,6 +169,33 @@ CERTAINTY_LABELS = {
     "unknown": "ismeretlen",
     "mixed": "vegyes",
 }
+ROUTE_EVIDENCE_TIER_LABELS = {
+    "strong": "erős",
+    "moderate": "közepes",
+    "weak": "gyenge",
+}
+ROUTE_EVIDENCE_TIER_MARKERS = {
+    "strong": "●",
+    "moderate": "◐",
+    "weak": "○",
+}
+ROUTE_EVIDENCE_TIER_NOTES_HU = {
+    "strong": (
+        "Állomásbizonyosság: erős — a megnevezett állomások sorrendje a bibliai szövegből "
+        "jól követhető."
+    ),
+    "moderate": (
+        "Állomásbizonyosság: közepes — a fő állomások szövegből követhetők, de van régió, "
+        "átmenet vagy értelmezési pont."
+    ),
+    "weak": (
+        "Állomásbizonyosság: gyenge — sematikus helycsoport vagy több bizonytalan azonosítás; "
+        "nem rekonstruált itinerárium."
+    ),
+}
+ROUTE_EVIDENCE_LEGEND_HU = (
+    "● erős · ◐ közepes · ○ gyenge — a vonal minden esetben vázlatos"
+)
 GEOMETRY_STATUS_LABELS = {
     "schematic": "sematikus",
     "reconstructed": "rekonstruált",
@@ -1622,7 +1649,22 @@ def _render_passage_route_prompt(st: Any, current_ref: str) -> None:
 
 
 def _route_labels(routes: tuple[BiblicalRoute, ...]) -> dict[str, str]:
-    return {route.route_id: route.name_hu for route in routes}
+    return {
+        route.route_id: route_option_label(route)
+        for route in routes
+    }
+
+
+def route_evidence_tier(route: BiblicalRoute) -> str:
+    tier = str(getattr(route, "route_evidence_tier", "") or "moderate")
+    return tier if tier in ROUTE_EVIDENCE_TIER_MARKERS else "moderate"
+
+
+def route_option_label(route: BiblicalRoute) -> str:
+    tier = route_evidence_tier(route)
+    marker = ROUTE_EVIDENCE_TIER_MARKERS[tier]
+    label = ROUTE_EVIDENCE_TIER_LABELS[tier]
+    return f"{marker} {label.capitalize()} — {route.name_hu}"
 
 
 def route_phase_options(route: BiblicalRoute) -> list[str]:
@@ -1891,8 +1933,9 @@ def _render_route_view(st: Any) -> None:
         + ", ".join(route.primary_passage_refs)
         + (f" · {route.chronology_label_hu}" if route.chronology_label_hu else "")
     )
+    evidence_tier = route_evidence_tier(route)
+    st.caption(ROUTE_EVIDENCE_TIER_NOTES_HU[evidence_tier])
     st.caption(
-        f"Bizonyosság: {_display_status(route.certainty, CERTAINTY_LABELS)} · "
         f"Geometria: {_display_status(route.geometry_status, GEOMETRY_STATUS_LABELS)}"
     )
     mapped_stop_count = sum(1 for stop in route.stops if stop.display_on_map)
@@ -1921,6 +1964,7 @@ def _render_route_view(st: Any) -> None:
         map_style_id=map_style_id,
     )
     _render_map_block_close(st)
+    st.caption(ROUTE_EVIDENCE_LEGEND_HU)
 
     stop_labels = {
         stop.stop_id: (
@@ -2152,6 +2196,10 @@ __all__ = [
     "SELECTED_ROUTE_ID_KEY",
     "SELECTED_ROUTE_STOP_ID_KEY",
     "ROUTE_VIEW_WARNING_HU",
+    "ROUTE_EVIDENCE_LEGEND_HU",
+    "ROUTE_EVIDENCE_TIER_LABELS",
+    "ROUTE_EVIDENCE_TIER_MARKERS",
+    "ROUTE_EVIDENCE_TIER_NOTES_HU",
     "SEGMENT_TYPE_LABELS",
     "STOP_TYPE_LABELS",
     "compact_ancient_name_options",
@@ -2179,7 +2227,9 @@ __all__ = [
     "route_viewport_for_selection",
     "route_matches_for_passage",
     "route_curve_profile",
+    "route_evidence_tier",
     "route_line_rows",
+    "route_option_label",
     "route_segment_rows",
     "route_phase_options",
     "route_phase_state_key",

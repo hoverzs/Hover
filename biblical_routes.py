@@ -41,6 +41,7 @@ ALLOWED_GEOMETRY_STATUSES = {
     "unavailable",
 }
 ALLOWED_REVIEW_STATUSES = {"prototype", "draft", "needs_review", "reviewed", "approved"}
+ALLOWED_ROUTE_EVIDENCE_TIERS = {"strong", "moderate", "weak"}
 ALLOWED_STOP_TYPES = {
     "explicit_place",
     "inferred_stop",
@@ -128,6 +129,7 @@ class BiblicalRoute:
     stops: tuple[BiblicalRouteStop, ...]
     segments: tuple[BiblicalRouteSegment, ...]
     evidence_model: dict[str, Any]
+    route_evidence_tier: str = "moderate"
     route_family_id: str | None = None
     family_name_hu: str | None = None
     route_sequence_order: int | None = None
@@ -462,6 +464,12 @@ def _route_from_raw(
         stops=stops,
         segments=segments,
         evidence_model=raw.get("evidence_model") if isinstance(raw.get("evidence_model"), dict) else {},
+        route_evidence_tier=_optional_enum(
+            raw.get("route_evidence_tier"),
+            "route_evidence_tier",
+            ALLOWED_ROUTE_EVIDENCE_TIERS,
+            default="moderate",
+        ),
         route_family_id=_as_str(raw.get("route_family_id"), "route_family_id"),
         family_name_hu=_as_str(raw.get("family_name_hu"), "family_name_hu"),
         route_sequence_order=(
@@ -533,7 +541,9 @@ __all__ = [
     "ALLOWED_CERTAINTIES",
     "ALLOWED_GEOMETRY_STATUSES",
     "ALLOWED_MAPPING_STATUSES",
+    "ALLOWED_REVIEW_STATUSES",
     "ALLOWED_ROUTE_CATEGORIES",
+    "ALLOWED_ROUTE_EVIDENCE_TIERS",
     "ALLOWED_SEGMENT_TYPES",
     "ALLOWED_SEQUENCE_STATUSES",
     "ALLOWED_STOP_TYPES",

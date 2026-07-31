@@ -366,7 +366,8 @@
         "waypoints": [],
         "geometry": null
       }
-    ]
+    ],
+    "route_evidence_tier": "strong"
   },
   {
     "route_id": "paul_second_missionary_journey",
@@ -919,7 +920,8 @@
         "waypoints": [],
         "geometry": null
       }
-    ]
+    ],
+    "route_evidence_tier": "moderate"
   },
   {
     "route_id": "paul_third_missionary_journey",
@@ -1426,7 +1428,8 @@
         "waypoints": [],
         "geometry": null
       }
-    ]
+    ],
+    "route_evidence_tier": "moderate"
   },
   {
     "route_id": "paul_journey_to_rome",
@@ -1887,7 +1890,8 @@
         "waypoints": [],
         "geometry": null
       }
-    ]
+    ],
+    "route_evidence_tier": "moderate"
   },
   {
     "route_id": "abraham_journey",
@@ -2211,7 +2215,8 @@
         "waypoints": [],
         "geometry": null
       }
-    ]
+    ],
+    "route_evidence_tier": "moderate"
   },
   {
     "route_id": "jacob_journeys",
@@ -2512,7 +2517,8 @@
         "waypoints": [],
         "geometry": null
       }
-    ]
+    ],
+    "route_evidence_tier": "moderate"
   },
   {
     "route_id": "joseph_geographical_arc",
@@ -2776,7 +2782,8 @@
         "waypoints": [],
         "geometry": null
       }
-    ]
+    ],
+    "route_evidence_tier": "moderate"
   },
   {
     "route_id": "exodus_egypt_to_sinai",
@@ -3169,7 +3176,8 @@
         "waypoints": [],
         "geometry": null
       }
-    ]
+    ],
+    "route_evidence_tier": "weak"
   },
   {
     "route_id": "wilderness_sinai_to_moab",
@@ -4043,7 +4051,8 @@
         "waypoints": [],
         "geometry": null
       }
-    ]
+    ],
+    "route_evidence_tier": "weak"
   },
   {
     "route_id": "joshua_jordan_crossing_central_campaign",
@@ -4351,7 +4360,8 @@
         "waypoints": [],
         "geometry": null
       }
-    ]
+    ],
+    "route_evidence_tier": "moderate"
   },
   {
     "route_id": "joshua_southern_campaign",
@@ -4795,7 +4805,8 @@
         "waypoints": [],
         "geometry": null
       }
-    ]
+    ],
+    "route_evidence_tier": "moderate"
   },
   {
     "route_id": "joshua_northern_campaign",
@@ -5091,7 +5102,8 @@
         "waypoints": [],
         "geometry": null
       }
-    ]
+    ],
+    "route_evidence_tier": "moderate"
   },
   {
     "route_id": "paul_early_damascus_to_antioch",
@@ -5257,7 +5269,8 @@
         "waypoints": [],
         "geometry": null
       }
-    ]
+    ],
+    "route_evidence_tier": "moderate"
   },
   {
     "route_id": "philip_samaria_to_caesarea",
@@ -5393,7 +5406,8 @@
         "waypoints": [],
         "geometry": null
       }
-    ]
+    ],
+    "route_evidence_tier": "moderate"
   },
   {
     "route_id": "peter_jerusalem_to_caesarea",
@@ -5558,14 +5572,15 @@
         "waypoints": [],
         "geometry": null
       }
-    ]
+    ],
+    "route_evidence_tier": "moderate"
   },
   {
     "route_id": "jesus_galilee_named_sites",
     "route_family_id": "jesus_ministry_routes",
     "family_name_hu": "Jézus szolgálatának helyszínei",
-    "route_sequence_order": 1,
-    "previous_route_id": null,
+    "route_sequence_order": 2,
+    "previous_route_id": "jesus_infancy_egypt",
     "next_route_id": "jesus_passion_jerusalem",
     "name_hu": "Jézus galileai helyszínei",
     "name_en": "Jesus' named sites in Galilee",
@@ -5898,13 +5913,14 @@
         "waypoints": [],
         "geometry": null
       }
-    ]
+    ],
+    "route_evidence_tier": "weak"
   },
   {
     "route_id": "jesus_passion_jerusalem",
     "route_family_id": "jesus_ministry_routes",
     "family_name_hu": "Jézus szolgálatának helyszínei",
-    "route_sequence_order": 2,
+    "route_sequence_order": 3,
     "previous_route_id": "jesus_galilee_named_sites",
     "next_route_id": null,
     "name_hu": "Jézus útja Jeruzsálemben a passió idején",
@@ -6099,7 +6115,8 @@
         "waypoints": [],
         "geometry": null
       }
-    ]
+    ],
+    "route_evidence_tier": "strong"
   },
   {
     "route_id": "seven_churches_asia",
@@ -6308,7 +6325,8 @@
         "waypoints": [],
         "geometry": null
       }
-    ]
+    ],
+    "route_evidence_tier": "strong"
   },
   {
     "route_id": "ruth_moab_to_bethlehem",
@@ -6376,6 +6394,400 @@
       {
         "from_stop_id": "moab_ruth",
         "to_stop_id": "bethlehem_ruth",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal két megnevezett állomás között; nem rekonstruált ókori útvonal.",
+        "waypoints": [],
+        "geometry": null
+      }
+    ],
+    "route_evidence_tier": "strong"
+  },
+  {
+    "route_id": "jesus_infancy_egypt",
+    "route_family_id": "jesus_ministry_routes",
+    "family_name_hu": "Jézus szolgálatának helyszínei",
+    "route_sequence_order": 1,
+    "previous_route_id": null,
+    "next_route_id": "jesus_galilee_named_sites",
+    "name_hu": "Jézus gyermekkora: Betlehemtől Egyiptomon át Názáretig",
+    "name_en": "Jesus' infancy: Bethlehem via Egypt to Nazareth",
+    "short_description_hu": "Az útvonal a bibliai szövegben megnevezett állomások sorrendjét mutatja. A vonalak sematikusak, nem a pontos ókori nyomvonalat jelölik.",
+    "route_category": "ministry_journey",
+    "primary_passage_refs": [
+      "Mt 2,1-23"
+    ],
+    "chronology_label_hu": "Jézus gyermekkora",
+    "chronology_sort_key": 14.5,
+    "certainty": "mixed",
+    "route_evidence_tier": "moderate",
+    "geometry_status": "schematic",
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "review_status": "draft",
+    "review_notes_hu": "Mt 2 megnevezett állomásai. Egyiptom régióként szerepel, nem konkrét város; ezért a tier közepes.",
+    "evidence_model": {
+      "station_order_basis": "biblical_text_named_stops",
+      "historical_route_status": "not_reconstructed",
+      "map_geometry_status": "schematic",
+      "precision_note_hu": "Az állomássorrend a bibliai szöveg megnevezett helyeit követi; a vonalak sematikusak."
+    },
+    "stops": [
+      {
+        "order": 1,
+        "stop_id": "bethlehem_infancy",
+        "place_id": "bethlehem_1",
+        "place_name_override_hu": "Betlehem",
+        "passage_refs": [
+          "Mt 2,1-12"
+        ],
+        "event_summary_hu": "Jézus Betlehemben születik.",
+        "certainty": "certain",
+        "stop_type": "embarkation",
+        "source_notes_hu": "Az állomás a bibliai szövegben megnevezett hely.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "Aktív katalógusrekord; a térképi vonal sematikus.",
+        "sequence_status": "explicit",
+        "journey_phase": "Betlehem"
+      },
+      {
+        "order": 2,
+        "stop_id": "egypt_refuge",
+        "place_id": "egypt",
+        "place_name_override_hu": "Egyiptom",
+        "passage_refs": [
+          "Mt 2,13-15"
+        ],
+        "event_summary_hu": "A család Egyiptomba menekül.",
+        "certainty": "certain",
+        "stop_type": "region",
+        "source_notes_hu": "Az állomás a bibliai szövegben megnevezett hely.",
+        "mapping_status": "approximate",
+        "display_on_map": true,
+        "mapping_notes_hu": "A szöveg Egyiptomot mint országot/régiót nevezi meg; nem egyetlen városrekonstrukció.",
+        "sequence_status": "explicit",
+        "journey_phase": "Egyiptom"
+      },
+      {
+        "order": 3,
+        "stop_id": "nazareth_settlement",
+        "place_id": "nazareth",
+        "place_name_override_hu": "Názáret",
+        "passage_refs": [
+          "Mt 2,19-23"
+        ],
+        "event_summary_hu": "A család Názáretben telepszik le.",
+        "certainty": "probable",
+        "stop_type": "destination",
+        "source_notes_hu": "Az állomás a bibliai szövegben megnevezett hely.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "Aktív katalógusrekord; a térképi vonal sematikus.",
+        "sequence_status": "explicit",
+        "journey_phase": "Názáret"
+      }
+    ],
+    "segments": [
+      {
+        "from_stop_id": "bethlehem_infancy",
+        "to_stop_id": "egypt_refuge",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal két megnevezett állomás között; nem rekonstruált ókori útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "egypt_refuge",
+        "to_stop_id": "nazareth_settlement",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal két megnevezett állomás között; nem rekonstruált ókori útvonal.",
+        "waypoints": [],
+        "geometry": null
+      }
+    ]
+  },
+  {
+    "route_id": "jesus_samaria_sychar",
+    "name_hu": "Jézus útja Szikáron át",
+    "name_en": "Jesus' journey through Sychar",
+    "short_description_hu": "Az útvonal a bibliai szövegben megnevezett állomások sorrendjét mutatja. A vonalak sematikusak, nem a pontos ókori nyomvonalat jelölik.",
+    "route_category": "ministry_journey",
+    "primary_passage_refs": [
+      "Jn 4,1-45"
+    ],
+    "chronology_label_hu": "Szikár",
+    "chronology_sort_key": 15.5,
+    "certainty": "probable",
+    "route_evidence_tier": "strong",
+    "geometry_status": "schematic",
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "review_status": "draft",
+    "review_notes_hu": "Jn 4 rövid, szövegesen egyértelmű útvonala Júdeából Szikáron át Galileába.",
+    "evidence_model": {
+      "station_order_basis": "biblical_text_named_stops",
+      "historical_route_status": "not_reconstructed",
+      "map_geometry_status": "schematic",
+      "precision_note_hu": "Az állomássorrend a bibliai szöveg megnevezett helyeit követi; a vonalak sematikusak."
+    },
+    "stops": [
+      {
+        "order": 1,
+        "stop_id": "judea_departure_sychar",
+        "place_id": "judea_1",
+        "place_name_override_hu": "Júdea",
+        "passage_refs": [
+          "Jn 4,1-3"
+        ],
+        "event_summary_hu": "Jézus elhagyja Júdeát.",
+        "certainty": "certain",
+        "stop_type": "region",
+        "source_notes_hu": "Az állomás a bibliai szövegben megnevezett hely.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "Aktív katalógusrekord; a térképi vonal sematikus.",
+        "sequence_status": "explicit",
+        "journey_phase": "Júdeából"
+      },
+      {
+        "order": 2,
+        "stop_id": "sychar_well",
+        "place_id": "sychar",
+        "place_name_override_hu": "Szikár",
+        "passage_refs": [
+          "Jn 4,4-42"
+        ],
+        "event_summary_hu": "Találkozás a szamáriai asszonnyal Szikárnál.",
+        "certainty": "probable",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "Az állomás a bibliai szövegben megnevezett hely.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "Aktív katalógusrekord; a térképi vonal sematikus.",
+        "sequence_status": "explicit",
+        "journey_phase": "Szikár"
+      },
+      {
+        "order": 3,
+        "stop_id": "galilee_arrival_sychar",
+        "place_id": "galilee_1",
+        "place_name_override_hu": "Galilea",
+        "passage_refs": [
+          "Jn 4,43-45"
+        ],
+        "event_summary_hu": "Jézus Galileába megy.",
+        "certainty": "certain",
+        "stop_type": "destination",
+        "source_notes_hu": "Az állomás a bibliai szövegben megnevezett hely.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "Aktív katalógusrekord; a térképi vonal sematikus.",
+        "sequence_status": "explicit",
+        "journey_phase": "Galilea"
+      }
+    ],
+    "segments": [
+      {
+        "from_stop_id": "judea_departure_sychar",
+        "to_stop_id": "sychar_well",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal két megnevezett állomás között; nem rekonstruált ókori útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "sychar_well",
+        "to_stop_id": "galilee_arrival_sychar",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal két megnevezett állomás között; nem rekonstruált ókori útvonal.",
+        "waypoints": [],
+        "geometry": null
+      }
+    ]
+  },
+  {
+    "route_id": "ezra_return_babylon_to_jerusalem",
+    "route_family_id": "return_from_exile_routes",
+    "family_name_hu": "Hazatérés a fogságból",
+    "route_sequence_order": 1,
+    "previous_route_id": null,
+    "next_route_id": "nehemiah_susa_to_jerusalem",
+    "name_hu": "Ezra hazatérése Babilontól Jeruzsálemig",
+    "name_en": "Ezra's return from Babylon to Jerusalem",
+    "short_description_hu": "Az útvonal a bibliai szövegben megnevezett állomások sorrendjét mutatja. A vonalak sematikusak, nem a pontos ókori nyomvonalat jelölik.",
+    "route_category": "return_from_exile",
+    "primary_passage_refs": [
+      "Ezd 7,1-8,36"
+    ],
+    "chronology_label_hu": "Ezra hazatérése",
+    "chronology_sort_key": 12.5,
+    "certainty": "mixed",
+    "route_evidence_tier": "moderate",
+    "geometry_status": "schematic",
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "review_status": "draft",
+    "review_notes_hu": "Ezd 7–8 megnevezett állomásai. A babiloni kiindulópont a katalógus babylon_1 rekordjára mutat. Az Ahava a jelenlegi katalógusban azonos koordinátán van Babilonnal, ezért a térképi összekötés csak Jeruzsálem felé rajzolódik.",
+    "evidence_model": {
+      "station_order_basis": "biblical_text_named_stops",
+      "historical_route_status": "not_reconstructed",
+      "map_geometry_status": "schematic",
+      "precision_note_hu": "Az állomássorrend a bibliai szöveg megnevezett helyeit követi; a vonalak sematikusak."
+    },
+    "stops": [
+      {
+        "order": 1,
+        "stop_id": "babylon_ezra",
+        "place_id": "babylon_1",
+        "place_name_override_hu": "Babilon",
+        "passage_refs": [
+          "Ezd 7,6-9"
+        ],
+        "event_summary_hu": "Ezra Babilonból indul.",
+        "certainty": "certain",
+        "stop_type": "embarkation",
+        "source_notes_hu": "Az állomás a bibliai szövegben megnevezett hely.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "Aktív katalógusrekord; a térképi vonal sematikus.",
+        "sequence_status": "explicit",
+        "journey_phase": "Babilon"
+      },
+      {
+        "order": 2,
+        "stop_id": "ahava_ezra",
+        "place_id": "ahava",
+        "place_name_override_hu": "Ahava",
+        "passage_refs": [
+          "Ezd 8,15-31"
+        ],
+        "event_summary_hu": "Az Ahava folyónál tábort vernek és böjtölnek.",
+        "certainty": "probable",
+        "stop_type": "region",
+        "source_notes_hu": "Az állomás a bibliai szövegben megnevezett hely.",
+        "mapping_status": "approximate",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógusban az Ahava jelenleg azonos koordinátával szerepel, mint Babilon; a stop szövegbeli állomás, nem külön térképi elmozdulás.",
+        "sequence_status": "explicit",
+        "journey_phase": "Ahava"
+      },
+      {
+        "order": 3,
+        "stop_id": "jerusalem_ezra",
+        "place_id": "jerusalem",
+        "place_name_override_hu": "Jeruzsálem",
+        "passage_refs": [
+          "Ezd 8,31-36"
+        ],
+        "event_summary_hu": "Megérkeznek Jeruzsálembe.",
+        "certainty": "probable",
+        "stop_type": "destination",
+        "source_notes_hu": "Az állomás a bibliai szövegben megnevezett hely.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "Aktív katalógusrekord; a térképi vonal sematikus.",
+        "sequence_status": "explicit",
+        "journey_phase": "Jeruzsálem"
+      }
+    ],
+    "segments": [
+      {
+        "from_stop_id": "ahava_ezra",
+        "to_stop_id": "jerusalem_ezra",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal két megnevezett állomás között; nem rekonstruált ókori útvonal.",
+        "waypoints": [],
+        "geometry": null
+      }
+    ]
+  },
+  {
+    "route_id": "nehemiah_susa_to_jerusalem",
+    "route_family_id": "return_from_exile_routes",
+    "family_name_hu": "Hazatérés a fogságból",
+    "route_sequence_order": 2,
+    "previous_route_id": "ezra_return_babylon_to_jerusalem",
+    "next_route_id": null,
+    "name_hu": "Nehemiás útja Súsántól Jeruzsálemig",
+    "name_en": "Nehemiah's journey from Susa to Jerusalem",
+    "short_description_hu": "Az útvonal a bibliai szövegben megnevezett állomások sorrendjét mutatja. A vonalak sematikusak, nem a pontos ókori nyomvonalat jelölik.",
+    "route_category": "return_from_exile",
+    "primary_passage_refs": [
+      "Neh 1,1-2,11"
+    ],
+    "chronology_label_hu": "Nehemiás útja",
+    "chronology_sort_key": 12.6,
+    "certainty": "certain",
+    "route_evidence_tier": "strong",
+    "geometry_status": "schematic",
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "review_status": "draft",
+    "review_notes_hu": "Neh 1–2 rövid, szövegesen egyértelmű útvonala Súsántól Jeruzsálemig.",
+    "evidence_model": {
+      "station_order_basis": "biblical_text_named_stops",
+      "historical_route_status": "not_reconstructed",
+      "map_geometry_status": "schematic",
+      "precision_note_hu": "Az állomássorrend a bibliai szöveg megnevezett helyeit követi; a vonalak sematikusak."
+    },
+    "stops": [
+      {
+        "order": 1,
+        "stop_id": "susa_nehemiah",
+        "place_id": "susa",
+        "place_name_override_hu": "Súsán",
+        "passage_refs": [
+          "Neh 1,1-2,8"
+        ],
+        "event_summary_hu": "Nehemiás Súsánban szolgál, majd engedélyt kap az útra.",
+        "certainty": "certain",
+        "stop_type": "embarkation",
+        "source_notes_hu": "Az állomás a bibliai szövegben megnevezett hely.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "Aktív katalógusrekord; a térképi vonal sematikus.",
+        "sequence_status": "explicit",
+        "journey_phase": "Súsán"
+      },
+      {
+        "order": 2,
+        "stop_id": "jerusalem_nehemiah",
+        "place_id": "jerusalem",
+        "place_name_override_hu": "Jeruzsálem",
+        "passage_refs": [
+          "Neh 2,9-11"
+        ],
+        "event_summary_hu": "Nehemiás megérkezik Jeruzsálembe.",
+        "certainty": "probable",
+        "stop_type": "destination",
+        "source_notes_hu": "Az állomás a bibliai szövegben megnevezett hely.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "Aktív katalógusrekord; a térképi vonal sematikus.",
+        "sequence_status": "explicit",
+        "journey_phase": "Jeruzsálem"
+      }
+    ],
+    "segments": [
+      {
+        "from_stop_id": "susa_nehemiah",
+        "to_stop_id": "jerusalem_nehemiah",
         "certainty": "probable",
         "segment_type": "land",
         "geometry_status": "schematic",

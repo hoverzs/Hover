@@ -50,6 +50,8 @@ from biblical_map_ui import (
     PENDING_PLACE_ID_KEY,
     PENDING_ROUTE_ID_KEY,
     PENDING_ROUTE_STOP_IDS_KEY,
+    ROUTE_EVIDENCE_LEGEND_HU,
+    ROUTE_EVIDENCE_TIER_NOTES_HU,
     ROUTE_VIEW_WARNING_HU,
     ROUTE_VIEWPORT_STATE_KEY,
     SEGMENT_TYPE_LABELS,
@@ -59,6 +61,8 @@ from biblical_map_ui import (
     SELECTED_PLACE_SELECTBOX_KEY,
     SELECTED_PLACE_ID_KEY,
     research_readiness_class,
+    route_evidence_tier,
+    route_option_label,
     _display_status,
     _render_place_card,
     _render_short_sources,
@@ -2166,9 +2170,13 @@ def test_route_selector_lists_all_biblical_routes() -> None:
         "joshua_jordan_crossing_central_campaign",
         "joshua_southern_campaign",
         "joshua_northern_campaign",
+        "ezra_return_babylon_to_jerusalem",
+        "nehemiah_susa_to_jerusalem",
         "philip_samaria_to_caesarea",
         "peter_jerusalem_to_caesarea",
+        "jesus_infancy_egypt",
         "jesus_galilee_named_sites",
+        "jesus_samaria_sychar",
         "jesus_passion_jerusalem",
         "seven_churches_asia",
     ]
@@ -2184,6 +2192,21 @@ def test_route_selector_lists_all_biblical_routes() -> None:
     )
     assert route_box is not None
     assert route_box[1] == route_options()
+    labels = route_box[3]["format_func"]
+    assert labels("ruth_moab_to_bethlehem").startswith("● Erős — ")
+    assert labels("jesus_galilee_named_sites").startswith("○ Gyenge — ")
+    assert labels("paul_second_missionary_journey").startswith("◐ Közepes — ")
+    assert any(ROUTE_EVIDENCE_LEGEND_HU in caption for caption in fake_st.captions)
+    assert any(
+        ROUTE_EVIDENCE_TIER_NOTES_HU["moderate"] in caption for caption in fake_st.captions
+    )
+
+
+def test_route_option_label_includes_evidence_marker() -> None:
+    routes = {route.route_id: route for route in load_biblical_routes()}
+    assert route_evidence_tier(routes["seven_churches_asia"]) == "strong"
+    assert "Erős —" in route_option_label(routes["seven_churches_asia"])
+    assert "Gyenge —" in route_option_label(routes["wilderness_sinai_to_moab"])
 
 
 def test_route_switch_resets_station_selection_to_new_route() -> None:
