@@ -1,0 +1,3636 @@
+[
+  {
+    "place_id": "geba_1",
+    "name_en": "Geba 1",
+    "ancient_names": [
+      "Geba 1",
+      "Geba",
+      "Gibeah"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Jaba",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "probable",
+    "latitude": 31.8575,
+    "longitude": 35.261111,
+    "passage_count": 14,
+    "representative_passages": [
+      "1CH 6,60",
+      "1CH 8,6",
+      "1KI 15,22",
+      "1SA 13,16",
+      "1SA 13,3"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Geba",
+    "current_card_summary_hu": "Benjamin területének városa Jeruzsálemtől északra, több királyságkori esemény helyszíne. Valószínűleg a mai Dzseba környékével azonosítható.",
+    "proposed_name_hu": "Geba",
+    "proposed_card_summary_hu": "Benjamin területének városa Jeruzsálemtől északra, több királyságkori esemény helyszíne. Valószínűleg a mai Dzseba környékével azonosítható.",
+    "review_status": "draft",
+    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "aroer_1",
+    "name_en": "Aroer 1",
+    "ancient_names": [
+      "Aroer 1",
+      "Aroer"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Arair",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 31.4708,
+    "longitude": 35.819389,
+    "passage_count": 13,
+    "representative_passages": [
+      "1CH 5,8",
+      "2KI 10,33",
+      "2SA 24,5",
+      "DEU 2,36",
+      "DEU 3,12"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Aróér",
+    "current_card_summary_hu": "Az Arnón völgyének közelében fekvő határváros a Jordántól keletre. Az ókori helyet általában Arair térségével azonosítják.",
+    "proposed_name_hu": "Aróér",
+    "proposed_card_summary_hu": "Az Arnón völgyének közelében fekvő határváros a Jordántól keletre. Az ókori helyet általában Arair térségével azonosítják.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "samaria_2",
+    "name_en": "Samaria 2",
+    "ancient_names": [
+      "Samaria 2",
+      "Samaria",
+      "Samaritan",
+      "Samaritans"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Samaria",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 32.276111,
+    "longitude": 35.195,
+    "passage_count": 13,
+    "representative_passages": [
+      "ACT 1,8",
+      "ACT 15,3",
+      "ACT 8,1",
+      "ACT 8,14",
+      "ACT 8,25"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Samária vidéke",
+    "current_card_summary_hu": "Az északi országrész és későbbi tartomány neve, amely az Apostolok cselekedeteiben a jeruzsálemi misszió egyik első terjeszkedési területe. Központi térsége a mai Szamária vidékén található.",
+    "proposed_name_hu": "Samária vidéke",
+    "proposed_card_summary_hu": "Az északi országrész és későbbi tartomány neve, amely az Apostolok cselekedeteiben a jeruzsálemi misszió egyik első terjeszkedési területe. Központi térsége a mai Szamária vidékén található.",
+    "review_status": "draft",
+    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "tirzah",
+    "name_en": "Tirzah",
+    "ancient_names": [
+      "Tirzah"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Tell el Farah",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 32.2874,
+    "longitude": 35.3378,
+    "passage_count": 13,
+    "representative_passages": [
+      "1KI 14,17",
+      "1KI 15,21",
+      "1KI 15,33",
+      "1KI 16,15",
+      "1KI 16,17"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Tircá",
+    "current_card_summary_hu": "Az északi királyság korai fővárosa Samária felépítése előtt. Az ókori várost Tell el-Farával azonosítják.",
+    "proposed_name_hu": "Tircá",
+    "proposed_card_summary_hu": "Az északi királyság korai fővárosa Samária felépítése előtt. Az ókori várost Tell el-Farával azonosítják.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "wilderness_of_sinai",
+    "name_en": "Wilderness of Sinai",
+    "ancient_names": [
+      "Wilderness of Sinai",
+      "Desert of Sinai",
+      "Sinai Wilderness",
+      "Sinai desert",
+      "desert of Sinai",
+      "wilderness of Sinai"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Jebel Musa",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 28.539722,
+    "longitude": 33.973333,
+    "passage_count": 13,
+    "representative_passages": [
+      "EXO 19,1",
+      "EXO 19,2",
+      "LEV 7,38",
+      "NUM 1,1",
+      "NUM 1,19"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Sínai-puszta",
+    "current_card_summary_hu": "A Sínai-hegy körüli pusztai térség, ahol Izráel a kivonulás után hosszabb időt töltött. Hagyományosan a Sínai-félsziget déli részéhez kapcsolják.",
+    "proposed_name_hu": "Sínai-puszta",
+    "proposed_card_summary_hu": "A Sínai-hegy körüli pusztai térség, ahol Izráel a kivonulás után hosszabb időt töltött. Hagyományosan a Sínai-félsziget déli részéhez kapcsolják.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "ramah_4",
+    "name_en": "Ramah 4",
+    "ancient_names": [
+      "Ramah 4",
+      "Ramah",
+      "Ramathaim"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Al Ram",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "probable",
+    "latitude": 31.85434,
+    "longitude": 35.23161,
+    "passage_count": 13,
+    "representative_passages": [
+      "1SA 1,19",
+      "1SA 15,34",
+      "1SA 16,13",
+      "1SA 19,18",
+      "1SA 19,19"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Ráma",
+    "current_card_summary_hu": "Sámuel próféta lakóhelye és több korai királyságkori esemény helyszíne. Valószínű azonosítása Jeruzsálemtől északra, er-Rám környékén keresendő.",
+    "proposed_name_hu": "Ráma",
+    "proposed_card_summary_hu": "Sámuel próféta lakóhelye és több korai királyságkori esemény helyszíne. Valószínű azonosítása Jeruzsálemtől északra, er-Rám környékén keresendő.",
+    "review_status": "draft",
+    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "ziklag",
+    "name_en": "Ziklag",
+    "ancient_names": [
+      "Ziklag",
+      "Ziklad"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Tell esh Sharia",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "probable",
+    "latitude": 31.3912,
+    "longitude": 34.6816,
+    "passage_count": 13,
+    "representative_passages": [
+      "1CH 12,1",
+      "1CH 12,20",
+      "1CH 4,30",
+      "1SA 27,6",
+      "1SA 30,1"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Ciklág",
+    "current_card_summary_hu": "Dél-júdai város, amelyet Ákis Dávidnak adott, és amely Dávid egyik központja lett Saul uralkodásának végén. Pontos helye vitatott; Tell es-Saria az egyik javasolt azonosítás.",
+    "proposed_name_hu": "Ciklág",
+    "proposed_card_summary_hu": "Dél-júdai város, amelyet Ákis Dávidnak adott, és amely Dávid egyik központja lett Saul uralkodásának végén. Pontos helye vitatott; Tell es-Saria az egyik javasolt azonosítás.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "jazer",
+    "name_en": "Jazer",
+    "ancient_names": [
+      "Jazer",
+      "Jaazer"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Khirbet Jazzir",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "possible",
+    "latitude": 32.006398,
+    "longitude": 35.734976,
+    "passage_count": 13,
+    "representative_passages": [
+      "1CH 26,31",
+      "1CH 6,81",
+      "2SA 24,5",
+      "ISA 16,8",
+      "ISA 16,9"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Jazér",
+    "current_card_summary_hu": "A Jordántól keletre fekvő város és környék, amely Gileád és Ammón határvidékéhez kapcsolódott. Azonosítása bizonytalan; Khirbet Jasszir az egyik lehetséges hely.",
+    "proposed_name_hu": "Jazér",
+    "proposed_card_summary_hu": "A Jordántól keletre fekvő város és környék, amely Gileád és Ammón határvidékéhez kapcsolódott. Azonosítása bizonytalan; Khirbet Jasszir az egyik lehetséges hely.",
+    "review_status": "draft",
+    "review_notes_hu": "Bizonytalan vagy vitatott azonosítás; a magyar név és leírás szakmai ellenőrzést igényel. Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "corinth",
+    "name_en": "Corinth",
+    "ancient_names": [
+      "Korinthos",
+      "Corinthus"
+    ],
+    "original_names": [
+      "Κόρινθος"
+    ],
+    "transliterations": [
+      "Korinthos",
+      "Corinthus",
+      "Corinth"
+    ],
+    "modern_name": "Archaia Korinthos",
+    "modern_country": "Görögország",
+    "region_hu": "Korinthia, Peloponnészosz",
+    "ancient_region": "Achaia",
+    "identification_status": "certain",
+    "latitude": 37.9386,
+    "longitude": 22.9322,
+    "passage_count": 12,
+    "representative_passages": [
+      "ApCsel 18,1-18",
+      "1CO 1,2",
+      "2CO 1,1",
+      "2CO 1,23",
+      "2CO 10,14"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0",
+      "pleiades_corinth_570182",
+      "ascsa_ancient_corinth_history",
+      "hellenic_ministry_ancient_corinth",
+      "pleiades_place_570182"
+    ],
+    "current_name_hu": "Korinthus",
+    "current_card_summary_hu": "Korinthus a Korinthoszi-földszoros mellett fekvő jelentős görög–római város, római kolónia és Achaia tartományi központja volt. Pál apostol az ApCsel 18 szerint hosszabb ideig szolgált itt, és a város az őskeresztény misszió egyik fontos gyülekezeti központjává vált.",
+    "proposed_name_hu": "Korinthus",
+    "proposed_card_summary_hu": "Korinthus a Korinthoszi-földszoros mellett fekvő jelentős görög–római város, római kolónia és Achaia tartományi központja volt. Pál apostol az ApCsel 18 szerint hosszabb ideig szolgált itt, és a város az őskeresztény misszió egyik fontos gyülekezeti központjává vált.",
+    "review_status": "draft",
+    "review_notes_hu": "Meglévő pilot/kézi magyar tartalom; csak ellenőrzés után módosítsd. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "arnon",
+    "name_en": "Arnon",
+    "ancient_names": [
+      "Arnon",
+      "Aaron",
+      "Arnon River"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Wadi Mujib",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 31.465833,
+    "longitude": 35.573333,
+    "passage_count": 12,
+    "representative_passages": [
+      "ISA 16,2",
+      "JDG 11,13",
+      "JDG 11,18",
+      "JDG 11,22",
+      "JDG 11,26"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Arnón",
+    "current_card_summary_hu": "A Holt-tenger keleti oldalán húzódó folyó és szurdok, amely Moáb egyik fontos természetes határát alkotta. Ma Vádi Mudzsib néven ismert Jordániában.",
+    "proposed_name_hu": "Arnón",
+    "proposed_card_summary_hu": "A Holt-tenger keleti oldalán húzódó folyó és szurdok, amely Moáb egyik fontos természetes határát alkotta. Ma Vádi Mudzsib néven ismert Jordániában.",
+    "review_status": "draft",
+    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "ashkelon",
+    "name_en": "Ashkelon",
+    "ancient_names": [
+      "Ashkelon",
+      "Ashkelonite",
+      "Ashkelonites",
+      "Askelon",
+      "Eshkalonites"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Tel Ashkelon",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 31.663889,
+    "longitude": 34.545833,
+    "passage_count": 12,
+    "representative_passages": [
+      "1SA 6,17",
+      "2SA 1,20",
+      "AMO 1,8",
+      "JDG 1,18",
+      "JDG 14,19"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Askelón",
+    "current_card_summary_hu": "Az öt jelentős filiszteus város egyike a Földközi-tenger partján. Az ókori település Tel Askelónnál, a mai Askelón közelében található.",
+    "proposed_name_hu": "Askelón",
+    "proposed_card_summary_hu": "Az öt jelentős filiszteus város egyike a Földközi-tenger partján. Az ókori település Tel Askelónnál, a mai Askelón közelében található.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "bethany_1",
+    "name_en": "Bethany 1",
+    "ancient_names": [
+      "Bethany 1",
+      "Bethany"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Al Eizariya",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 31.771661,
+    "longitude": 35.255903,
+    "passage_count": 12,
+    "representative_passages": [
+      "JHN 11,1",
+      "JHN 11,17",
+      "JHN 11,18",
+      "JHN 12,1",
+      "LUK 19,29"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Betánia",
+    "current_card_summary_hu": "Jeruzsálemtől keletre, az Olajfák hegye mögött fekvő falu, Lázár, Márta és Mária otthona. A mai el-Azaríjával azonosítható.",
+    "proposed_name_hu": "Betánia",
+    "proposed_card_summary_hu": "Jeruzsálemtől keletre, az Olajfák hegye mögött fekvő falu, Lázár, Márta és Mária otthona. A mai el-Azaríjával azonosítható.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "cyprus",
+    "name_en": "Cyprus",
+    "ancient_names": [
+      "Cyprus",
+      "Chittim",
+      "Cyprian",
+      "Kittim"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Cyprus",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 35.0,
+    "longitude": 33.0,
+    "passage_count": 12,
+    "representative_passages": [
+      "ACT 11,19",
+      "ACT 11,20",
+      "ACT 13,4",
+      "ACT 15,39",
+      "ACT 21,16"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Ciprus",
+    "current_card_summary_hu": "A Földközi-tenger keleti medencéjének nagy szigete, Barnabás szülőföldje és Pál első missziói útjának fontos állomása. Ma önálló szigetország.",
+    "proposed_name_hu": "Ciprus",
+    "proposed_card_summary_hu": "A Földközi-tenger keleti medencéjének nagy szigete, Barnabás szülőföldje és Pál első missziói útjának fontos állomása. Ma önálló szigetország.",
+    "review_status": "draft",
+    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "haran",
+    "name_en": "Haran",
+    "ancient_names": [
+      "Haran",
+      "Charran",
+      "Harran"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Harran",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 36.864444,
+    "longitude": 39.032778,
+    "passage_count": 12,
+    "representative_passages": [
+      "2KI 19,12",
+      "ACT 7,2",
+      "ACT 7,4",
+      "EZK 27,23",
+      "GEN 11,31"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Hárán",
+    "current_card_summary_hu": "Felső-Mezopotámia ősi városa, Ábrahám családjának egyik fontos állomása. Romjai a mai törökországi Harránban találhatók.",
+    "proposed_name_hu": "Hárán",
+    "proposed_card_summary_hu": "Felső-Mezopotámia ősi városa, Ábrahám családjának egyik fontos állomása. Romjai a mai törökországi Harránban találhatók.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "megiddo",
+    "name_en": "Megiddo",
+    "ancient_names": [
+      "Megiddo",
+      "Megiddon",
+      "Plain of Megiddo",
+      "Valley of Megiddo",
+      "Waters of Megiddo"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Tel Megiddo",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 32.585278,
+    "longitude": 35.184444,
+    "passage_count": 12,
+    "representative_passages": [
+      "1CH 7,29",
+      "1KI 4,12",
+      "1KI 9,15",
+      "2CH 35,22",
+      "2KI 23,29"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Megiddó",
+    "current_card_summary_hu": "Stratégiai város a Jezréel-síkság szélén, fontos kereskedelmi és katonai útvonalak találkozásánál. Az ókori helyet Tel Megiddóval azonosítják.",
+    "proposed_name_hu": "Megiddó",
+    "proposed_card_summary_hu": "Stratégiai város a Jezréel-síkság szélén, fontos kereskedelmi és katonai útvonalak találkozásánál. Az ókori helyet Tel Megiddóval azonosítják.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "moab_2",
+    "name_en": "Moab 2",
+    "ancient_names": [
+      "Moab 2",
+      "desert plateau of Moab",
+      "desert-plateau of Moab",
+      "desert-plateaus of Moab",
+      "plains of Moab",
+      "rift valley plains by Moab"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Tall el Hammam",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 31.84018,
+    "longitude": 35.67368,
+    "passage_count": 12,
+    "representative_passages": [
+      "DEU 34,1",
+      "DEU 34,8",
+      "JOS 13,32",
+      "NUM 22,1",
+      "NUM 26,3"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Moáb síksága",
+    "current_card_summary_hu": "A Jordán alsó folyásától keletre fekvő sík vidék, ahol Izráel a honfoglalás előtt táborozott. A terület a mai Jordánia nyugati részén található.",
+    "proposed_name_hu": "Moáb síksága",
+    "proposed_card_summary_hu": "A Jordán alsó folyásától keletre fekvő sík vidék, ahol Izráel a honfoglalás előtt táborozott. A terület a mai Jordánia nyugati részén található.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "south_3",
+    "name_en": "South 3",
+    "ancient_names": [
+      "South 3",
+      "South"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Alexandria",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 31.1825,
+    "longitude": 29.8965,
+    "passage_count": 12,
+    "representative_passages": [
+      "DAN 11,11",
+      "DAN 11,12",
+      "DAN 11,14",
+      "DAN 11,15",
+      "DAN 11,17"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Déli királyság",
+    "current_card_summary_hu": "Dániel könyvének összefüggésében a „dél” rendszerint a ptolemaioszi Egyiptomot jelöli. Nem önálló település, hanem politikai földrajzi iránymegjelölés.",
+    "proposed_name_hu": "Déli királyság",
+    "proposed_card_summary_hu": "Dániel könyvének összefüggésében a „dél” rendszerint a ptolemaioszi Egyiptomot jelöli. Nem önálló település, hanem politikai földrajzi iránymegjelölés.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "valley_of_hinnom",
+    "name_en": "Valley of Hinnom",
+    "ancient_names": [
+      "Valley of Hinnom",
+      "Ben Hinnom Valley",
+      "Hinnom Valley",
+      "Slaughter Valley",
+      "The valley of slaughter",
+      "Valley of Ben Hinnom",
+      "Valley of Ben-Hinnom",
+      "Valley of Ben-hinnom",
+      "Valley of Slaughter",
+      "Valley of the Slaughter",
+      "Valley of the Son of Hinnom",
+      "valley of Ben-Hinnom",
+      "valley of Ben-hinnom",
+      "valley of Hinnom",
+      "valley of Slaughter",
+      "valley of the children of Hinnom",
+      "valley of the son of Hinnom"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Hinnom Valley",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 31.769167,
+    "longitude": 35.228056,
+    "passage_count": 12,
+    "representative_passages": [
+      "2CH 28,3",
+      "2CH 33,6",
+      "2KI 23,10",
+      "JER 19,2",
+      "JER 19,6"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Hinnóm-völgy",
+    "current_card_summary_hu": "Jeruzsálem déli és nyugati oldalán húzódó völgy, amely ítéleti és kultusztörténeti összefüggésekben szerepel. Ma is jól azonosítható Jeruzsálem mellett.",
+    "proposed_name_hu": "Hinnóm-völgy",
+    "proposed_card_summary_hu": "Jeruzsálem déli és nyugati oldalán húzódó völgy, amely ítéleti és kultusztörténeti összefüggésekben szerepel. Ma is jól azonosítható Jeruzsálem mellett.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "lebo_hamath",
+    "name_en": "Lebo-hamath",
+    "ancient_names": [
+      "Lebo-hamath",
+      "Hamath",
+      "Hemath",
+      "Lebo Hamath",
+      "Lebo-Hamath",
+      "entrance of Hamath",
+      "entrance to Hamath"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Labweh",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "probable",
+    "latitude": 34.19491,
+    "longitude": 36.34956,
+    "passage_count": 12,
+    "representative_passages": [
+      "1CH 13,5",
+      "1KI 8,65",
+      "2CH 7,8",
+      "2KI 14,25",
+      "AMO 6,14"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Hamát bejárata",
+    "current_card_summary_hu": "Izráel északi határának hagyományos megjelölése, valószínűleg a Libanon és Szíria közötti átjáró térségében. Gyakran Labve környékével hozzák kapcsolatba.",
+    "proposed_name_hu": "Hamát bejárata",
+    "proposed_card_summary_hu": "Izráel északi határának hagyományos megjelölése, valószínűleg a Libanon és Szíria közötti átjáró térségében. Gyakran Labve környékével hozzák kapcsolatba.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "aram",
+    "name_en": "Aram",
+    "ancient_names": [
+      "Aram",
+      "Aramean",
+      "Arameans",
+      "Syria"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Damascus",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 33.511112,
+    "longitude": 36.30639,
+    "passage_count": 11,
+    "representative_passages": [
+      "1CH 2,23",
+      "2KI 5,18",
+      "2KI 6,14",
+      "2KI 8,15",
+      "2SA 15,8"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Arám",
+    "current_card_summary_hu": "Az Izráeltől északra fekvő arám királyságok és népek összefoglaló neve. Központi területe Damaszkusz és a mai Szíria térsége volt.",
+    "proposed_name_hu": "Arám",
+    "proposed_card_summary_hu": "Az Izráeltől északra fekvő arám királyságok és népek összefoglaló neve. Központi területe Damaszkusz és a mai Szíria térsége volt.",
+    "review_status": "draft",
+    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "geshur",
+    "name_en": "Geshur",
+    "ancient_names": [
+      "Geshur",
+      "Geshurite",
+      "Geshurites"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Fiq",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 32.766667,
+    "longitude": 35.7,
+    "passage_count": 11,
+    "representative_passages": [
+      "1CH 2,23",
+      "1CH 3,2",
+      "2SA 13,37",
+      "2SA 13,38",
+      "2SA 14,23"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Gesúr",
+    "current_card_summary_hu": "Kis arám királyság a Galileai-tengertől keletre, amely Dávid családi történetéhez is kapcsolódik. Területe a mai Golán-fennsík déli részére eshetett.",
+    "proposed_name_hu": "Gesúr",
+    "proposed_card_summary_hu": "Kis arám királyság a Galileai-tengertől keletre, amely Dávid családi történetéhez is kapcsolódik. Területe a mai Golán-fennsík déli részére eshetett.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "goshen_1",
+    "name_en": "Goshen 1",
+    "ancient_names": [
+      "Goshen 1",
+      "Goshen"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Qantir",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 30.79937,
+    "longitude": 31.834217,
+    "passage_count": 11,
+    "representative_passages": [
+      "EXO 8,22",
+      "EXO 9,26",
+      "GEN 45,10",
+      "GEN 46,28",
+      "GEN 46,29"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Gósen földje",
+    "current_card_summary_hu": "A Nílus-delta keleti részének térsége, ahol Jákób családja Egyiptomban letelepedett. Pontos kiterjedése vitatott, de többnyire a mai északkelet-egyiptomi deltavidékhez kötik.",
+    "proposed_name_hu": "Gósen földje",
+    "proposed_card_summary_hu": "A Nílus-delta keleti részének térsége, ahol Jákób családja Egyiptomban letelepedett. Pontos kiterjedése vitatott, de többnyire a mai északkelet-egyiptomi deltavidékhez kötik.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "hazor_1",
+    "name_en": "Hazor 1",
+    "ancient_names": [
+      "Hazor 1",
+      "Hazor"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Tel Hazor",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 33.018333,
+    "longitude": 35.569167,
+    "passage_count": 11,
+    "representative_passages": [
+      "1KI 9,15",
+      "1SA 12,9",
+      "2KI 15,29",
+      "JDG 4,17",
+      "JDG 4,2"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Hácór",
+    "current_card_summary_hu": "Észak-Kánaán egyik legjelentősebb városa, amely a honfoglalás és a bírák korának történeteiben szerepel. Az ókori helyet Tel Hácórral azonosítják.",
+    "proposed_name_hu": "Hácór",
+    "proposed_card_summary_hu": "Észak-Kánaán egyik legjelentősebb városa, amely a honfoglalás és a bírák korának történeteiben szerepel. Az ókori helyet Tel Hácórral azonosítják.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "media",
+    "name_en": "Media",
+    "ancient_names": [
+      "Media",
+      "Medes",
+      "Median"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Tell Hagmatana",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 34.8065,
+    "longitude": 48.516247,
+    "passage_count": 11,
+    "representative_passages": [
+      "DAN 8,20",
+      "EST 1,14",
+      "EST 1,18",
+      "EST 1,19",
+      "EST 1,3"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Média",
+    "current_card_summary_hu": "Az iráni fennsík északnyugati részének ókori királysága, amely a perzsa birodalom történetéhez kapcsolódott. Fő területe a mai Irán nyugati részén feküdt.",
+    "proposed_name_hu": "Média",
+    "proposed_card_summary_hu": "Az iráni fennsík északnyugati részének ókori királysága, amely a perzsa birodalom történetéhez kapcsolódott. Fő területe a mai Irán nyugati részén feküdt.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "riblah_1",
+    "name_en": "Riblah 1",
+    "ancient_names": [
+      "Riblah 1",
+      "Diblah",
+      "Diblath",
+      "Riblah"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Rableh",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 34.459547,
+    "longitude": 36.572623,
+    "passage_count": 11,
+    "representative_passages": [
+      "2KI 23,33",
+      "2KI 25,20",
+      "2KI 25,21",
+      "2KI 25,6",
+      "EZK 6,14"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Riblá",
+    "current_card_summary_hu": "Az Orontész völgyében fekvő stratégiai város, ahol egyiptomi és babiloni uralkodók katonai főhadiszállást tartottak. A mai Rableh környékével azonosítható.",
+    "proposed_name_hu": "Riblá",
+    "proposed_card_summary_hu": "Az Orontész völgyében fekvő stratégiai város, ahol egyiptomi és babiloni uralkodók katonai főhadiszállást tartottak. A mai Rableh környékével azonosítható.",
+    "review_status": "draft",
+    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "valley_of_the_arnon",
+    "name_en": "Valley of the Arnon",
+    "ancient_names": [
+      "Valley of the Arnon",
+      "Arnon",
+      "Arnon Gorge",
+      "Arnon River",
+      "Arnon Valley",
+      "Arnon valley",
+      "River Arnon",
+      "Valley of Arnon",
+      "Wadi Arnon",
+      "wadi of Arnon"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Wadi Mujib",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 31.465833,
+    "longitude": 35.573333,
+    "passage_count": 11,
+    "representative_passages": [
+      "2KI 10,33",
+      "DEU 2,24",
+      "DEU 2,36",
+      "DEU 3,12",
+      "DEU 3,16"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Arnón völgye",
+    "current_card_summary_hu": "A Holt-tenger keleti oldalán mélyen bevágódó folyóvölgy, amely Moáb és az északi területek természetes határa volt. Ma Vádi Mudzsib néven ismert.",
+    "proposed_name_hu": "Arnón völgye",
+    "proposed_card_summary_hu": "A Holt-tenger keleti oldalán mélyen bevágódó folyóvölgy, amely Moáb és az északi területek természetes határa volt. Ma Vádi Mudzsib néven ismert.",
+    "review_status": "draft",
+    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "zorah",
+    "name_en": "Zorah",
+    "ancient_names": [
+      "Zorah",
+      "Zareah",
+      "Zareathites",
+      "Zorathites",
+      "Zoreah"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Tel Tzora",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 31.773992,
+    "longitude": 34.985289,
+    "passage_count": 11,
+    "representative_passages": [
+      "1CH 2,53",
+      "2CH 11,10",
+      "JDG 13,2",
+      "JDG 13,25",
+      "JDG 16,31"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Corá",
+    "current_card_summary_hu": "Júda nyugati dombvidékének városa, Sámson szülőhelyének térsége. Az ókori települést Tel Corával azonosítják.",
+    "proposed_name_hu": "Corá",
+    "proposed_card_summary_hu": "Júda nyugati dombvidékének városa, Sámson szülőhelyének térsége. Az ókori települést Tel Corával azonosítják.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "debir_1",
+    "name_en": "Debir 1",
+    "ancient_names": [
+      "Debir 1",
+      "Debir",
+      "Kiriath Sanna",
+      "Kiriath Sannah",
+      "Kiriath Sepher",
+      "Kiriath-sannah",
+      "Kiriath-sepher",
+      "Kirjath Sannah",
+      "Kirjath Sepher",
+      "Kirjath-sannah",
+      "Kirjath-sepher"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Khirbet Rabud",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "probable",
+    "latitude": 31.43209,
+    "longitude": 35.01485,
+    "passage_count": 11,
+    "representative_passages": [
+      "1CH 6,58",
+      "JDG 1,11",
+      "JDG 1,12",
+      "JOS 10,38",
+      "JOS 10,39"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Debír",
+    "current_card_summary_hu": "Júda déli hegyvidékének kánaáni városa, korábbi neve Kirjat-Széfer volt. Valószínűleg Khirbet Rabuddal azonosítható.",
+    "proposed_name_hu": "Debír",
+    "proposed_card_summary_hu": "Júda déli hegyvidékének kánaáni városa, korábbi neve Kirjat-Széfer volt. Valószínűleg Khirbet Rabuddal azonosítható.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "dibon_1",
+    "name_en": "Dibon 1",
+    "ancient_names": [
+      "Dibon 1",
+      "Dibon",
+      "Dibon Gad",
+      "Dibon-gad",
+      "Dibon 3",
+      "Dimon",
+      "Waters of Dibon"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Tall Dhiban",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "probable",
+    "latitude": 31.502236,
+    "longitude": 35.776574,
+    "passage_count": 11,
+    "representative_passages": [
+      "ISA 15,2",
+      "ISA 15,9",
+      "JER 48,18",
+      "JER 48,22",
+      "JOS 13,17"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Díbón",
+    "current_card_summary_hu": "Moáb jelentős bibliai városa, amely Díbón, Díbón-Gád és Dimón névváltozatokkal szerepel.",
+    "proposed_name_hu": null,
+    "proposed_card_summary_hu": null,
+    "review_status": "pending",
+    "review_notes_hu": null
+  },
+  {
+    "place_id": "michmash",
+    "name_en": "Michmash",
+    "ancient_names": [
+      "Michmash",
+      "Michmas",
+      "Micmash",
+      "Mikmash"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Mukhmas",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "probable",
+    "latitude": 31.872817,
+    "longitude": 35.276858,
+    "passage_count": 11,
+    "representative_passages": [
+      "1SA 13,11",
+      "1SA 13,16",
+      "1SA 13,2",
+      "1SA 13,23",
+      "1SA 13,5"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Mikmás",
+    "current_card_summary_hu": "Benjamin területének stratégiai települése és hágója, Saul és Jónátán filiszteusok elleni harcának helyszíne. A mai Mukhmasz közelében feküdt.",
+    "proposed_name_hu": "Mikmás",
+    "proposed_card_summary_hu": "Benjamin területének stratégiai települése és hágója, Saul és Jónátán filiszteusok elleni harcának helyszíne. A mai Mukhmasz közelében feküdt.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "paddan_aram",
+    "name_en": "Paddan-aram",
+    "ancient_names": [
+      "Paddan-aram",
+      "Padan",
+      "Padan Aram",
+      "Padan-aram",
+      "Paddan",
+      "Paddan Aram",
+      "Paddan-Aram"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Harran",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "probable",
+    "latitude": 36.864444,
+    "longitude": 39.032778,
+    "passage_count": 11,
+    "representative_passages": [
+      "GEN 25,20",
+      "GEN 28,2",
+      "GEN 28,5",
+      "GEN 28,6",
+      "GEN 28,7"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Paddan-Arám",
+    "current_card_summary_hu": "Felső-Mezopotámia arám területe, ahová Jákób Lábánhoz menekült. Központi vidéke Hárán és környéke volt a mai Délkelet-Törökországban.",
+    "proposed_name_hu": "Paddan-Arám",
+    "proposed_card_summary_hu": "Felső-Mezopotámia arám területe, ahová Jákób Lábánhoz menekült. Központi vidéke Hárán és környéke volt a mai Délkelet-Törökországban.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "thessalonica",
+    "name_en": "Thessalonica",
+    "ancient_names": [
+      "Thessalonica",
+      "Thessaloniki",
+      "Selānik",
+      "Saloniki"
+    ],
+    "original_names": [],
+    "transliterations": [
+      "Thessaloniki",
+      "Saloniki"
+    ],
+    "modern_name": "Thessaloniki",
+    "modern_country": "Görögország",
+    "region_hu": "Közép-Makedónia",
+    "ancient_region": "Macedonia",
+    "identification_status": "probable",
+    "latitude": 40.637771,
+    "longitude": 22.945767,
+    "passage_count": 10,
+    "representative_passages": [
+      "ApCsel 17,1-9",
+      "1TH 1,1",
+      "2TH 1,1",
+      "2TI 4,10",
+      "ACT 17,1"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0",
+      "pleiades_place_491741"
+    ],
+    "current_name_hu": "Thesszalonika",
+    "current_card_summary_hu": "Thesszalonika makedóniai város; az ApCsel 17 szerint Pál rövid ideig itt szolgált, mielőtt Beroiába ment.",
+    "proposed_name_hu": "Thesszalonika",
+    "proposed_card_summary_hu": "Thesszalonika makedóniai város; az ApCsel 17 szerint Pál rövid ideig itt szolgált, mielőtt Beroiába ment.",
+    "review_status": "draft",
+    "review_notes_hu": "Meglévő pilot/kézi magyar tartalom; csak ellenőrzés után módosítsd. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "achaia",
+    "name_en": "Achaia",
+    "ancient_names": [
+      "Achaia",
+      "Greece"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Achaia",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 38.72,
+    "longitude": 22.54,
+    "passage_count": 10,
+    "representative_passages": [
+      "1CO 16,15",
+      "1TH 1,7",
+      "1TH 1,8",
+      "2CO 1,1",
+      "2CO 11,10"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Akhája",
+    "current_card_summary_hu": "A Római Birodalom dél-görögországi tartománya, amelyhez Korinthus és Athén is tartozott. Területe a mai Görögország középső és déli részét foglalta magában.",
+    "proposed_name_hu": "Akhája",
+    "proposed_card_summary_hu": "A Római Birodalom dél-görögországi tartománya, amelyhez Korinthus és Athén is tartozott. Területe a mai Görögország középső és déli részét foglalta magában.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "north",
+    "name_en": "North",
+    "ancient_names": [
+      "North"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Antioch on the Orontes",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 36.226691,
+    "longitude": 36.171743,
+    "passage_count": 10,
+    "representative_passages": [
+      "DAN 11,11",
+      "DAN 11,13",
+      "DAN 11,15",
+      "DAN 11,16",
+      "DAN 11,28"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Északi királyság",
+    "current_card_summary_hu": "Dániel könyvének összefüggésében az „észak” rendszerint a szeleukida birodalmat jelöli. Nem önálló település, hanem politikai földrajzi megjelölés.",
+    "proposed_name_hu": "Északi királyság",
+    "proposed_card_summary_hu": "Dániel könyvének összefüggésében az „észak” rendszerint a szeleukida birodalmat jelöli. Nem önálló település, hanem politikai földrajzi megjelölés.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "sea_of_galilee",
+    "name_en": "Sea of Galilee",
+    "ancient_names": [
+      "Sea of Galilee",
+      "Chinneroth",
+      "Kinnereth Sea",
+      "Sea of Chinnereth",
+      "Sea of Chinneroth",
+      "Sea of Kinnereth",
+      "Sea of Tiberias",
+      "Tiberias",
+      "sea of Chinnereth",
+      "sea of Galilee",
+      "sea of Tiberias"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Sea of Galilee",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 32.818906,
+    "longitude": 35.590033,
+    "passage_count": 10,
+    "representative_passages": [
+      "JHN 21,1",
+      "JHN 6,1",
+      "JOS 12,3",
+      "JOS 13,27",
+      "MAT 15,29"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Galileai-tenger",
+    "current_card_summary_hu": "Édesvizű tó Galilea keleti határán, Jézus szolgálatának számos eseményével. Ma Kinneret-tó néven ismert Izrael északi részén.",
+    "proposed_name_hu": "Galileai-tenger",
+    "proposed_card_summary_hu": "Édesvizű tó Galilea keleti határán, Jézus szolgálatának számos eseményével. Ma Kinneret-tó néven ismert Izrael északi részén.",
+    "review_status": "draft",
+    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "zin_1",
+    "name_en": "Zin 1",
+    "ancient_names": [
+      "Zin 1",
+      "Desert of Kadesh",
+      "Desert of Zin",
+      "Wilderness of Kadesh",
+      "Wilderness of Zin",
+      "Zin",
+      "wilderness of Kadesh",
+      "Zin 2"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Zin Desert",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 30.971,
+    "longitude": 35.325,
+    "passage_count": 10,
+    "representative_passages": [
+      "DEU 32,51",
+      "JOS 15,1",
+      "JOS 15,3",
+      "NUM 13,21",
+      "NUM 20,1"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Cin pusztája",
+    "current_card_summary_hu": "Izráel déli határvidékének bibliai pusztasága, Kádés térségéhez kapcsolódó tájegység. A két rekord ugyanazon régió eltérő passage-csoportjait tartalmazza.",
+    "proposed_name_hu": null,
+    "proposed_card_summary_hu": null,
+    "review_status": "pending",
+    "review_notes_hu": null
+  },
+  {
+    "place_id": "succoth_1",
+    "name_en": "Succoth 1",
+    "ancient_names": [
+      "Succoth 1",
+      "Succoth",
+      "Sukkoth"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Tell Deir Alla",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "probable",
+    "latitude": 32.1966,
+    "longitude": 35.62118,
+    "passage_count": 10,
+    "representative_passages": [
+      "1KI 7,46",
+      "2CH 4,17",
+      "GEN 33,17",
+      "JDG 8,14",
+      "JDG 8,15"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Szukkót",
+    "current_card_summary_hu": "A Jordántól keletre fekvő település, amely Jákób történetéhez és Gedeon hadjáratához kapcsolódik. Valószínűleg Tell Deir Alla környékén feküdt.",
+    "proposed_name_hu": "Szukkót",
+    "proposed_card_summary_hu": "A Jordántól keletre fekvő település, amely Jákób történetéhez és Gedeon hadjáratához kapcsolódik. Valószínűleg Tell Deir Alla környékén feküdt.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "mount_hor_1",
+    "name_en": "Mount Hor 1",
+    "ancient_names": [
+      "Mount Hor 1",
+      "Hor",
+      "Mount Hor"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Har Zin",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "possible",
+    "latitude": 30.832057,
+    "longitude": 35.056872,
+    "passage_count": 10,
+    "representative_passages": [
+      "DEU 32,50",
+      "NUM 20,22",
+      "NUM 20,23",
+      "NUM 20,25",
+      "NUM 20,27"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Hór hegye",
+    "current_card_summary_hu": "A pusztai vándorlás hagyománya szerint Áron halálának helyszíne. Pontos azonosítása bizonytalan, és több hegyet is javasoltak.",
+    "proposed_name_hu": "Hór hegye",
+    "proposed_card_summary_hu": "A pusztai vándorlás hagyománya szerint Áron halálának helyszíne. Pontos azonosítása bizonytalan, és több hegyet is javasoltak.",
+    "review_status": "draft",
+    "review_notes_hu": "Bizonytalan vagy vitatott azonosítás; a magyar név és leírás szakmai ellenőrzést igényel. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "ophir",
+    "name_en": "Ophir",
+    "ancient_names": [
+      "Ophir"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "southwestern Arabia",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "possible",
+    "latitude": 18.216667,
+    "longitude": 42.5,
+    "passage_count": 10,
+    "representative_passages": [
+      "1CH 29,4",
+      "1KI 10,11",
+      "1KI 22,48",
+      "1KI 9,28",
+      "2CH 8,18"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Ófír",
+    "current_card_summary_hu": "Távoli arany- és értékesáru-forrásként említett vidék Salamon korában. Pontos helye vitatott; Dél-Arábia csak az egyik lehetséges azonosítás.",
+    "proposed_name_hu": "Ófír",
+    "proposed_card_summary_hu": "Távoli arany- és értékesáru-forrásként említett vidék Salamon korában. Pontos helye vitatott; Dél-Arábia csak az egyik lehetséges azonosítás.",
+    "review_status": "draft",
+    "review_notes_hu": "Bizonytalan vagy vitatott azonosítás; a magyar név és leírás szakmai ellenőrzést igényel. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "crete",
+    "name_en": "Crete",
+    "ancient_names": [
+      "Crete",
+      "Cherethites",
+      "Cretans",
+      "Kerethite",
+      "Kerethites",
+      "Philistines"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Crete",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 35.309722,
+    "longitude": 24.893333,
+    "passage_count": 9,
+    "representative_passages": [
+      "ACT 27,12",
+      "ACT 27,13",
+      "ACT 27,14",
+      "ACT 27,21",
+      "ACT 27,7"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Kréta",
+    "current_card_summary_hu": "A Földközi-tenger nagy görög szigete, amely Pál római útján és Titusz szolgálatában is szerepel. Ma Görögország része.",
+    "proposed_name_hu": "Kréta",
+    "proposed_card_summary_hu": "A Földközi-tenger nagy görög szigete, amely Pál római útján és Titusz szolgálatában is szerepel. Ma Görögország része.",
+    "review_status": "draft",
+    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "kedar",
+    "name_en": "Kedar",
+    "ancient_names": [
+      "Kedar",
+      "Kedarite",
+      "Qedar"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Dumat al Jandal",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 29.811417,
+    "longitude": 39.868306,
+    "passage_count": 9,
+    "representative_passages": [
+      "EZK 27,21",
+      "ISA 21,16",
+      "ISA 21,17",
+      "ISA 42,11",
+      "ISA 60,7"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Kédár",
+    "current_card_summary_hu": "Észak-arábiai nomád törzs és terület, amelyet kereskedelmi és pásztori összefüggésekben említ a Biblia. Központi vidéke Dúmat al-Dzsandal környékéhez köthető.",
+    "proposed_name_hu": "Kédár",
+    "proposed_card_summary_hu": "Észak-arábiai nomád törzs és terület, amelyet kereskedelmi és pásztori összefüggésekben említ a Biblia. Központi vidéke Dúmat al-Dzsandal környékéhez köthető.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "meribah_1",
+    "name_en": "Meribah 1",
+    "ancient_names": [
+      "Meribah 1",
+      "Meribah",
+      "Meribah Kadesh",
+      "Meribah at Kadesh",
+      "Meribah by Kadesh",
+      "Meribah-Kadesh",
+      "Meribah-kadesh",
+      "Meribath Kadesh",
+      "Meribath-kadesh",
+      "Meribot Kadesh",
+      "Waters of Meribah",
+      "Waters of Meribah-kadesh",
+      "Waters of Meribath-kadesh",
+      "waters of strife in Kadesh"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Ain el Qudeirat",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 30.648333,
+    "longitude": 34.422222,
+    "passage_count": 9,
+    "representative_passages": [
+      "DEU 32,51",
+      "DEU 33,2",
+      "EZK 47,19",
+      "EZK 48,28",
+      "NUM 20,13"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Meríbá",
+    "current_card_summary_hu": "A pusztai vándorlás egyik vízfakadási és zúgolódási helye, gyakran Kádéshez kapcsolódik. Leggyakrabban Ain el-Kudeirat térségével hozzák kapcsolatba.",
+    "proposed_name_hu": "Meríbá",
+    "proposed_card_summary_hu": "A pusztai vándorlás egyik vízfakadási és zúgolódási helye, gyakran Kádéshez kapcsolódik. Leggyakrabban Ain el-Kudeirat térségével hozzák kapcsolatba.",
+    "review_status": "draft",
+    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "mount_tabor",
+    "name_en": "Mount Tabor",
+    "ancient_names": [
+      "Mount Tabor",
+      "Tabor"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Jebel et Tur",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 32.68625,
+    "longitude": 35.392917,
+    "passage_count": 9,
+    "representative_passages": [
+      "HOS 5,1",
+      "JDG 4,12",
+      "JDG 4,14",
+      "JDG 4,6",
+      "JDG 5,13"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Tábor-hegy",
+    "current_card_summary_hu": "Magányosan emelkedő hegy a Jezréel-síkság keleti részén, Bárák és Debóra történetének helyszíne. Ma is jól azonosítható Galileában.",
+    "proposed_name_hu": "Tábor-hegy",
+    "proposed_card_summary_hu": "Magányosan emelkedő hegy a Jezréel-síkság keleti részén, Bárák és Debóra történetének helyszíne. Ma is jól azonosítható Galileában.",
+    "review_status": "draft",
+    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "shunem",
+    "name_en": "Shunem",
+    "ancient_names": [
+      "Shunem",
+      "Shunammite",
+      "Shunnamite"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Sulam",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 32.605633,
+    "longitude": 35.334306,
+    "passage_count": 9,
+    "representative_passages": [
+      "1KI 1,3",
+      "1KI 2,17",
+      "1KI 2,21",
+      "1SA 28,4",
+      "2KI 4,11"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Súném",
+    "current_card_summary_hu": "A Jezréel-síkság szélén fekvő város, az abisági és az elizeusi történetek helyszíne. A mai Szulammal azonosítható.",
+    "proposed_name_hu": "Súném",
+    "proposed_card_summary_hu": "A Jezréel-síkság szélén fekvő város, az abisági és az elizeusi történetek helyszíne. A mai Szulammal azonosítható.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "timnah_1",
+    "name_en": "Timnah 1",
+    "ancient_names": [
+      "Timnah 1",
+      "Thimnathah",
+      "Timnah",
+      "Timnath",
+      "Timnite"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Tel Batash",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 31.784831,
+    "longitude": 34.910297,
+    "passage_count": 9,
+    "representative_passages": [
+      "2CH 28,18",
+      "JDG 14,1",
+      "JDG 14,2",
+      "JDG 14,5",
+      "JDG 14,7"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Timna",
+    "current_card_summary_hu": "A Júda és Filisztea határvidékén fekvő város, Sámson történetének fontos helyszíne. Az ókori települést Tel Batassal azonosítják.",
+    "proposed_name_hu": "Timna",
+    "proposed_card_summary_hu": "A Júda és Filisztea határvidékén fekvő város, Sámson történetének fontos helyszíne. Az ókori települést Tel Batassal azonosítják.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "topheth",
+    "name_en": "Topheth",
+    "ancient_names": [
+      "Topheth",
+      "Tophet"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Hinnom Valley",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 31.769167,
+    "longitude": 35.228056,
+    "passage_count": 9,
+    "representative_passages": [
+      "2KI 23,10",
+      "ISA 30,33",
+      "JER 19,11",
+      "JER 19,12",
+      "JER 19,13"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Tófet",
+    "current_card_summary_hu": "A Hinnóm-völgy kultuszhelye Jeruzsálem mellett, amely gyermekáldozati és ítéleti összefüggésekben szerepel. Pontos helye a völgyön belül nem ismert biztosan.",
+    "proposed_name_hu": "Tófet",
+    "proposed_card_summary_hu": "A Hinnóm-völgy kultuszhelye Jeruzsálem mellett, amely gyermekáldozati és ítéleti összefüggésekben szerepel. Pontos helye a völgyön belül nem ismert biztosan.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "adullam",
+    "name_en": "Adullam",
+    "ancient_names": [
+      "Adullam",
+      "Adullamite"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Khirbet esh Sheikh Madhkur",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "probable",
+    "latitude": 31.651667,
+    "longitude": 35.001667,
+    "passage_count": 9,
+    "representative_passages": [
+      "1CH 11,15",
+      "1SA 22,1",
+      "2CH 11,7",
+      "2SA 23,13",
+      "GEN 38,1"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Adullám",
+    "current_card_summary_hu": "Júda nyugati dombvidékének városa és barlangvidéke, ahol Dávid Saul elől menedéket talált. Valószínűleg Khirbet es-Sejk Madhkurral azonosítható.",
+    "proposed_name_hu": "Adullám",
+    "proposed_card_summary_hu": "Júda nyugati dombvidékének városa és barlangvidéke, ahol Dávid Saul elől menedéket talált. Valószínűleg Khirbet es-Sejk Madhkurral azonosítható.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "brook_of_egypt",
+    "name_en": "Brook of Egypt",
+    "ancient_names": [
+      "Brook of Egypt",
+      "Egypt",
+      "Stream of Egypt",
+      "Wadi of Egypt",
+      "brook of Egypt",
+      "river of Egypt",
+      "valley of Egypt",
+      "wadi of Egypt"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Wadi al Arish",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "probable",
+    "latitude": 31.145708,
+    "longitude": 33.80649,
+    "passage_count": 9,
+    "representative_passages": [
+      "1KI 8,65",
+      "2CH 7,8",
+      "2KI 24,7",
+      "EZK 47,19",
+      "EZK 48,28"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Egyiptom patakja",
+    "current_card_summary_hu": "Kánaán délnyugati határfolyása, amelyet többnyire a mai Vádi el-Aríssal azonosítanak. Nem azonos a Nílus főágával.",
+    "proposed_name_hu": "Egyiptom patakja",
+    "proposed_card_summary_hu": "Kánaán délnyugati határfolyása, amelyet többnyire a mai Vádi el-Aríssal azonosítanak. Nem azonos a Nílus főágával.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "gerar",
+    "name_en": "Gerar",
+    "ancient_names": [
+      "Gerar"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Tel Haror",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "probable",
+    "latitude": 31.3821,
+    "longitude": 34.6065,
+    "passage_count": 9,
+    "representative_passages": [
+      "2CH 14,13",
+      "2CH 14,14",
+      "GEN 10,19",
+      "GEN 20,1",
+      "GEN 20,2"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Gerár",
+    "current_card_summary_hu": "A Negev és a filiszteus partvidék közötti térség városa, Ábrahám és Izsák történeteinek helyszíne. Valószínűleg Tel Harórral azonosítható.",
+    "proposed_name_hu": "Gerár",
+    "proposed_card_summary_hu": "A Negev és a filiszteus partvidék közötti térség városa, Ábrahám és Izsák történeteinek helyszíne. Valószínűleg Tel Harórral azonosítható.",
+    "review_status": "draft",
+    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "hormah",
+    "name_en": "Hormah",
+    "ancient_names": [
+      "Hormah"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Tel Masos",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "probable",
+    "latitude": 31.212285,
+    "longitude": 34.958277,
+    "passage_count": 9,
+    "representative_passages": [
+      "1CH 4,30",
+      "1SA 30,30",
+      "DEU 1,44",
+      "JDG 1,17",
+      "JOS 12,14"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Hormá",
+    "current_card_summary_hu": "Dél-Kánaán városa, amely a pusztai vándorlás és a honfoglalás történeteiben szerepel. Pontos azonosítása bizonytalan; Tel Maszósz az egyik javasolt hely.",
+    "proposed_name_hu": "Hormá",
+    "proposed_card_summary_hu": "Dél-Kánaán városa, amely a pusztai vándorlás és a honfoglalás történeteiben szerepel. Pontos azonosítása bizonytalan; Tel Maszósz az egyik javasolt hely.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "jahaz",
+    "name_en": "Jahaz",
+    "ancient_names": [
+      "Jahaz",
+      "Jahaza",
+      "Jahazah",
+      "Jahzah"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Khirbet el Medeiyineh",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "probable",
+    "latitude": 31.588347,
+    "longitude": 35.907928,
+    "passage_count": 9,
+    "representative_passages": [
+      "1CH 6,78",
+      "DEU 2,32",
+      "ISA 15,4",
+      "JDG 11,20",
+      "JER 48,21"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Jahac",
+    "current_card_summary_hu": "A Jordántól keletre fekvő város, ahol Izráel legyőzte Szíhón emóri királyt. Valószínű azonosítása Khirbet el-Medeijine környékén keresendő.",
+    "proposed_name_hu": "Jahac",
+    "proposed_card_summary_hu": "A Jordántól keletre fekvő város, ahol Izráel legyőzte Szíhón emóri királyt. Valószínű azonosítása Khirbet el-Medeijine környékén keresendő.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "zoar",
+    "name_en": "Zoar",
+    "ancient_names": [
+      "Zoar",
+      "Bela"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "south of the Lisan",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "probable",
+    "latitude": 31.20849,
+    "longitude": 35.449223,
+    "passage_count": 9,
+    "representative_passages": [
+      "DEU 34,3",
+      "GEN 13,10",
+      "GEN 14,2",
+      "GEN 14,8",
+      "GEN 19,22"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Cóár",
+    "current_card_summary_hu": "A Holt-tenger déli vidékének kis városa, ahová Lót Sodoma pusztulásakor menekült. Pontos helye bizonytalan.",
+    "proposed_name_hu": "Cóár",
+    "proposed_card_summary_hu": "A Holt-tenger déli vidékének kis városa, ahová Lót Sodoma pusztulásakor menekült. Pontos helye bizonytalan.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "beeroth",
+    "name_en": "Beeroth",
+    "ancient_names": [
+      "Beeroth",
+      "Beerothite",
+      "Beerothites",
+      "Berothite"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Al Bira",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "possible",
+    "latitude": 31.905142,
+    "longitude": 35.214958,
+    "passage_count": 9,
+    "representative_passages": [
+      "1CH 11,39",
+      "2SA 23,37",
+      "2SA 4,2",
+      "2SA 4,3",
+      "2SA 4,5"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Beérót",
+    "current_card_summary_hu": "A gibeóni városszövetség egyik települése Benjamin területén. Lehetséges azonosítása a mai el-Bíra, de ez nem biztos.",
+    "proposed_name_hu": "Beérót",
+    "proposed_card_summary_hu": "A gibeóni városszövetség egyik települése Benjamin területén. Lehetséges azonosítása a mai el-Bíra, de ez nem biztos.",
+    "review_status": "draft",
+    "review_notes_hu": "Bizonytalan vagy vitatott azonosítás; a magyar név és leírás szakmai ellenőrzést igényel. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "beth_shan",
+    "name_en": "Beth-shan",
+    "ancient_names": [
+      "Beth-shan",
+      "Beth Shan",
+      "Beth Shean",
+      "Beth-Sean",
+      "Beth-Shean",
+      "Beth-shean"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Tel Bet Shean",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 32.503611,
+    "longitude": 35.503056,
+    "passage_count": 8,
+    "representative_passages": [
+      "1CH 7,29",
+      "1KI 4,12",
+      "1SA 31,10",
+      "1SA 31,12",
+      "2SA 21,12"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Bét-Seán",
+    "current_card_summary_hu": "A Jordán-völgy fontos városa, ahol Saul holttestét a falra függesztették. Az ókori települést Tel Bét-Seánnal azonosítják.",
+    "proposed_name_hu": "Bét-Seán",
+    "proposed_card_summary_hu": "A Jordán-völgy fontos városa, ahol Saul holttestét a falra függesztették. Az ókori települést Tel Bét-Seánnal azonosítják.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "bozrah_1",
+    "name_en": "Bozrah 1",
+    "ancient_names": [
+      "Bozrah 1",
+      "Bozrah"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Buseira",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 30.745843,
+    "longitude": 35.603919,
+    "passage_count": 8,
+    "representative_passages": [
+      "1CH 1,44",
+      "AMO 1,12",
+      "GEN 36,33",
+      "ISA 34,6",
+      "ISA 63,1"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Bocrá",
+    "current_card_summary_hu": "Edóm egyik jelentős városa és királyi központja. Az ókori helyet a mai jordániai Buseirával azonosítják.",
+    "proposed_name_hu": "Bocrá",
+    "proposed_card_summary_hu": "Edóm egyik jelentős városa és királyi központja. Az ókori helyet a mai jordániai Buseirával azonosítják.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "cilicia",
+    "name_en": "Cilicia",
+    "ancient_names": [
+      "Cilicia"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Tarsus",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 36.913028,
+    "longitude": 34.892056,
+    "passage_count": 8,
+    "representative_passages": [
+      "ACT 15,23",
+      "ACT 15,41",
+      "ACT 21,39",
+      "ACT 22,3",
+      "ACT 23,34"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Kilikia",
+    "current_card_summary_hu": "Kis-Ázsia délkeleti partvidékének római tartománya, Tarszusz és Pál szülőföldjének térsége. Ma Törökország déli részéhez tartozik.",
+    "proposed_name_hu": "Kilikia",
+    "proposed_card_summary_hu": "Kis-Ázsia délkeleti partvidékének római tartománya, Tarszusz és Pál szülőföldjének térsége. Ma Törökország déli részéhez tartozik.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "jordan_valley",
+    "name_en": "Jordan Valley",
+    "ancient_names": [
+      "Jordan Valley",
+      "Jordan",
+      "Jordan plain",
+      "Plain",
+      "plain of Jordan",
+      "plain of the Jordan",
+      "region of the Jordan",
+      "vicinity of the Jordan"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Jordan Valley",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 32.317222,
+    "longitude": 35.57,
+    "passage_count": 8,
+    "representative_passages": [
+      "2SA 18,23",
+      "GEN 13,10",
+      "GEN 13,11",
+      "GEN 13,12",
+      "GEN 19,17"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Jordán-völgy",
+    "current_card_summary_hu": "A Jordán folyó mentén húzódó mély fekvésű völgy a Galileai-tengertől a Holt-tengerig. Ma Izrael, Jordánia és a palesztin területek határvidékének része.",
+    "proposed_name_hu": "Jordán-völgy",
+    "proposed_card_summary_hu": "A Jordán folyó mentén húzódó mély fekvésű völgy a Galileai-tengertől a Holt-tengerig. Ma Izrael, Jordánia és a palesztin területek határvidékének része.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "maacah",
+    "name_en": "Maacah",
+    "ancient_names": [
+      "Maacah",
+      "Aram Maacah",
+      "Aram Maakah",
+      "Aram-Maacah",
+      "Aram-maacah",
+      "Maacath",
+      "Maacathite",
+      "Maacathites",
+      "Maachah",
+      "Maachathite",
+      "Maachathites",
+      "Maakah",
+      "Maakathite",
+      "Syria-maachah",
+      "Syrian Maacah"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Tel Abel Beth Maacah",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 33.258051,
+    "longitude": 35.581007,
+    "passage_count": 8,
+    "representative_passages": [
+      "1CH 19,6",
+      "1CH 19,7",
+      "2SA 10,6",
+      "2SA 10,8",
+      "2SA 23,34"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Maaká",
+    "current_card_summary_hu": "Kis arám királyság és népcsoport Izráel északi határvidékén, a Hermón és Básán térségében. Pontos kiterjedése bizonytalan.",
+    "proposed_name_hu": "Maaká",
+    "proposed_card_summary_hu": "Kis arám királyság és népcsoport Izráel északi határvidékén, a Hermón és Básán térségében. Pontos kiterjedése bizonytalan.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "memphis",
+    "name_en": "Memphis",
+    "ancient_names": [
+      "Memphis",
+      "Noph"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Memphis",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 29.8488,
+    "longitude": 31.253,
+    "passage_count": 8,
+    "representative_passages": [
+      "EZK 30,13",
+      "EZK 30,16",
+      "HOS 9,6",
+      "ISA 19,13",
+      "JER 2,16"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Memfisz",
+    "current_card_summary_hu": "Alsó-Egyiptom egyik legfontosabb ókori fővárosa a Nílus-delta déli peremén. Romjai a mai Mit Rahina közelében találhatók.",
+    "proposed_name_hu": "Memfisz",
+    "proposed_card_summary_hu": "Alsó-Egyiptom egyik legfontosabb ókori fővárosa a Nílus-delta déli peremén. Romjai a mai Mit Rahina közelében találhatók.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "mount_gilboa",
+    "name_en": "Mount Gilboa",
+    "ancient_names": [
+      "Mount Gilboa",
+      "Gilboa",
+      "Mountains of Gilboa"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Mount Gilboa",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 32.433889,
+    "longitude": 35.414444,
+    "passage_count": 8,
+    "representative_passages": [
+      "1CH 10,1",
+      "1CH 10,8",
+      "1SA 28,4",
+      "1SA 31,1",
+      "1SA 31,8"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Gilbóa-hegy",
+    "current_card_summary_hu": "A Jezréel-síkság fölé emelkedő hegyvidék, Saul és fiai halálának helyszíne. Ma Izrael északi részén található.",
+    "proposed_name_hu": "Gilbóa-hegy",
+    "proposed_card_summary_hu": "A Jezréel-síkság fölé emelkedő hegyvidék, Saul és fiai halálának helyszíne. Ma Izrael északi részén található.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "paran",
+    "name_en": "Paran",
+    "ancient_names": [
+      "Paran",
+      "Desert of Paran",
+      "Maon",
+      "Wilderness of Paran"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Paran",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 30.303218,
+    "longitude": 34.776667,
+    "passage_count": 8,
+    "representative_passages": [
+      "1KI 11,18",
+      "1SA 25,1",
+      "DEU 1,1",
+      "GEN 21,21",
+      "NUM 10,12"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Párán pusztája",
+    "current_card_summary_hu": "A Sínai-félsziget északi részéhez kapcsolt pusztai térség, Izráel vándorlásának és Izmael történetének helyszíne. Pontos határai bizonytalanok.",
+    "proposed_name_hu": "Párán pusztája",
+    "proposed_card_summary_hu": "A Sínai-félsziget északi részéhez kapcsolt pusztai térség, Izráel vándorlásának és Izmael történetének helyszíne. Pontos határai bizonytalanok.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "peor",
+    "name_en": "Peor",
+    "ancient_names": [
+      "Peor",
+      "Baal-peor",
+      "Mount Peor"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Khirbet Ayun Musa",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 31.777021,
+    "longitude": 35.738498,
+    "passage_count": 8,
+    "representative_passages": [
+      "DEU 4,3",
+      "JOS 22,17",
+      "NUM 23,28",
+      "NUM 25,18",
+      "NUM 25,3"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Peór",
+    "current_card_summary_hu": "Moáb területének hegyvidéki kultuszhelye, amely Bálám és Baal-Peór történetéhez kapcsolódik. Pontos azonosítása bizonytalan.",
+    "proposed_name_hu": "Peór",
+    "proposed_card_summary_hu": "Moáb területének hegyvidéki kultuszhelye, amely Bálám és Baal-Peór történetéhez kapcsolódik. Pontos azonosítása bizonytalan.",
+    "review_status": "draft",
+    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "shinar",
+    "name_en": "Shinar",
+    "ancient_names": [
+      "Shinar",
+      "Babylon",
+      "Babylonia",
+      "Babylonian",
+      "Babylonish"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Babylon",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 32.543333,
+    "longitude": 44.422222,
+    "passage_count": 8,
+    "representative_passages": [
+      "DAN 1,2",
+      "GEN 10,10",
+      "GEN 11,2",
+      "GEN 14,1",
+      "GEN 14,9"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Sineár",
+    "current_card_summary_hu": "Dél-Mezopotámia bibliai megnevezése, amely Bábelhez és a korai városkultúrákhoz kapcsolódik. Területe nagyjából Babilónia vidékével esik egybe.",
+    "proposed_name_hu": "Sineár",
+    "proposed_card_summary_hu": "Dél-Mezopotámia bibliai megnevezése, amely Bábelhez és a korai városkultúrákhoz kapcsolódik. Területe nagyjából Babilónia vidékével esik egybe.",
+    "review_status": "draft",
+    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "syria_2",
+    "name_en": "Syria 2",
+    "ancient_names": [
+      "Syria 2",
+      "Syria"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Damascus",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 33.511112,
+    "longitude": 36.30639,
+    "passage_count": 8,
+    "representative_passages": [
+      "ACT 15,23",
+      "ACT 15,41",
+      "ACT 18,18",
+      "ACT 20,3",
+      "ACT 21,3"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Szíria",
+    "current_card_summary_hu": "A római korban a Földközi-tenger keleti partvidékének és belső területeinek nagy tartománya. Központja Antiókhia volt, területe ma több modern országra terjed.",
+    "proposed_name_hu": "Szíria",
+    "proposed_card_summary_hu": "A római korban a Földközi-tenger keleti partvidékének és belső területeinek nagy tartománya. Központja Antiókhia volt, területe ma több modern országra terjed.",
+    "review_status": "draft",
+    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "valley_of_rephaim",
+    "name_en": "Valley of Rephaim",
+    "ancient_names": [
+      "Valley of Rephaim",
+      "Rephaim Valley",
+      "Valley of the Rephaim",
+      "Valley of the Rephaites",
+      "valley of Rephaim",
+      "valley of the Rephaim"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Valley of Rephaim",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 31.763203,
+    "longitude": 35.219122,
+    "passage_count": 8,
+    "representative_passages": [
+      "1CH 11,15",
+      "1CH 14,9",
+      "2SA 23,13",
+      "2SA 5,18",
+      "2SA 5,22"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Refáim-völgy",
+    "current_card_summary_hu": "Jeruzsálemtől délnyugatra fekvő tágas völgy, Dávid és a filiszteusok több összecsapásának helyszíne. Ma Jeruzsálem beépített térségéhez tartozik.",
+    "proposed_name_hu": "Refáim-völgy",
+    "proposed_card_summary_hu": "Jeruzsálemtől délnyugatra fekvő tágas völgy, Dávid és a filiszteusok több összecsapásának helyszíne. Ma Jeruzsálem beépített térségéhez tartozik.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "aijalon_1",
+    "name_en": "Aijalon 1",
+    "ancient_names": [
+      "Aijalon 1",
+      "Aijalon",
+      "Ajalon"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Yalo",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "probable",
+    "latitude": 31.841111,
+    "longitude": 35.023611,
+    "passage_count": 8,
+    "representative_passages": [
+      "1CH 6,69",
+      "1CH 8,13",
+      "1SA 14,31",
+      "2CH 11,10",
+      "2CH 28,18"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Ajjálón",
+    "current_card_summary_hu": "A Júda hegyvidéke és a parti síkság közötti stratégiai völgy és város. Az ókori helyet Jáló környékével azonosítják.",
+    "proposed_name_hu": "Ajjálón",
+    "proposed_card_summary_hu": "A Júda hegyvidéke és a parti síkság közötti stratégiai völgy és város. Az ókori helyet Jáló környékével azonosítják.",
+    "review_status": "draft",
+    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "chebar",
+    "name_en": "Chebar",
+    "ancient_names": [
+      "Chebar",
+      "Chebar Canal",
+      "Kebar",
+      "Kebar River",
+      "River Chebar"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Shatt en Nil",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "probable",
+    "latitude": 32.126944,
+    "longitude": 45.230833,
+    "passage_count": 8,
+    "representative_passages": [
+      "EZK 1,1",
+      "EZK 1,3",
+      "EZK 10,15",
+      "EZK 10,20",
+      "EZK 10,22"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Kebár folyó",
+    "current_card_summary_hu": "Babilóniai csatorna vagy vízfolyás, amely mellett Ezékiel próféta látomásait kapta a száműzetésben. Pontos helye Mezopotámiában keresendő.",
+    "proposed_name_hu": "Kebár folyó",
+    "proposed_card_summary_hu": "Babilóniai csatorna vagy vízfolyás, amely mellett Ezékiel próféta látomásait kapta a száműzetésben. Pontos helye Mezopotámiában keresendő.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "eglon",
+    "name_en": "Eglon",
+    "ancient_names": [
+      "Eglon"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Tell Eton",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "probable",
+    "latitude": 31.491813,
+    "longitude": 34.928055,
+    "passage_count": 8,
+    "representative_passages": [
+      "JOS 10,23",
+      "JOS 10,3",
+      "JOS 10,34",
+      "JOS 10,36",
+      "JOS 10,37"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Eglón",
+    "current_card_summary_hu": "Júda déli alföldjének kánaáni városa, amely a honfoglalási történetekben szerepel. Valószínűleg Tell Eitunnal azonosítható.",
+    "proposed_name_hu": "Eglón",
+    "proposed_card_summary_hu": "Júda déli alföldjének kánaáni városa, amely a honfoglalási történetekben szerepel. Valószínűleg Tell Eitunnal azonosítható.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "makkedah",
+    "name_en": "Makkedah",
+    "ancient_names": [
+      "Makkedah"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Khirbet el Qom",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "probable",
+    "latitude": 31.534716,
+    "longitude": 34.966564,
+    "passage_count": 8,
+    "representative_passages": [
+      "JOS 10,10",
+      "JOS 10,16",
+      "JOS 10,17",
+      "JOS 10,21",
+      "JOS 10,28"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Makkéda",
+    "current_card_summary_hu": "Júda alföldjének városa és a déli kánaáni királyok legyőzésének helyszíne. Pontos azonosítása bizonytalan.",
+    "proposed_name_hu": "Makkéda",
+    "proposed_card_summary_hu": "Júda alföldjének városa és a déli kánaáni királyok legyőzésének helyszíne. Pontos azonosítása bizonytalan.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "netophah",
+    "name_en": "Netophah",
+    "ancient_names": [
+      "Netophah",
+      "Netophathite",
+      "Netophathites"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Khirbet Badd Faluh",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "probable",
+    "latitude": 31.66765,
+    "longitude": 35.22103,
+    "passage_count": 8,
+    "representative_passages": [
+      "1CH 11,30",
+      "1CH 27,13",
+      "1CH 27,15",
+      "1CH 9,16",
+      "2SA 23,28"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Netófa",
+    "current_card_summary_hu": "Betlehem közelében fekvő júdai település, amelynek lakói Dávid korában és a fogság után is szerepelnek. Valószínűleg Khirbet Bedd Faluh környékén feküdt.",
+    "proposed_name_hu": "Netófa",
+    "proposed_card_summary_hu": "Betlehem közelében fekvő júdai település, amelynek lakói Dávid korában és a fogság után is szerepelnek. Valószínűleg Khirbet Bedd Faluh környékén feküdt.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "pisgah",
+    "name_en": "Pisgah",
+    "ancient_names": [
+      "Pisgah",
+      "Ashdoth-pisgah",
+      "Pisgah Peak"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Rujm Siyaghah",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "probable",
+    "latitude": 31.767778,
+    "longitude": 35.725556,
+    "passage_count": 8,
+    "representative_passages": [
+      "DEU 3,17",
+      "DEU 3,27",
+      "DEU 34,1",
+      "DEU 4,49",
+      "JOS 12,3"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Piszga",
+    "current_card_summary_hu": "Moáb hegyvidékének magaslata, ahonnan Mózes megtekintette az ígéret földjét. Pontos csúcsa vitatott, gyakran a Nebó-hegy térségéhez kapcsolják.",
+    "proposed_name_hu": "Piszga",
+    "proposed_card_summary_hu": "Moáb hegyvidékének magaslata, ahonnan Mózes megtekintette az ígéret földjét. Pontos csúcsa vitatott, gyakran a Nebó-hegy térségéhez kapcsolják.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "eshtaol",
+    "name_en": "Eshtaol",
+    "ancient_names": [
+      "Eshtaol",
+      "Eshtaolites",
+      "Eshtaulites"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Khirbet Deir Shubeib",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "possible",
+    "latitude": 31.797726,
+    "longitude": 34.985967,
+    "passage_count": 8,
+    "representative_passages": [
+      "1CH 2,53",
+      "JDG 13,25",
+      "JDG 16,31",
+      "JDG 18,11",
+      "JDG 18,2"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Estaól",
+    "current_card_summary_hu": "Júda nyugati dombvidékének települése, Sámson családjának és Dán törzsének történetéhez kapcsolódik. Valószínűleg Esua környékén feküdt.",
+    "proposed_name_hu": "Estaól",
+    "proposed_card_summary_hu": "Júda nyugati dombvidékének települése, Sámson családjának és Dán törzsének történetéhez kapcsolódik. Valószínűleg Esua környékén feküdt.",
+    "review_status": "draft",
+    "review_notes_hu": "Bizonytalan vagy vitatott azonosítás; a magyar név és leírás szakmai ellenőrzést igényel. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "athens",
+    "name_en": "Athens",
+    "ancient_names": [
+      "Athens",
+      "Athenae",
+      "Athina, Athína",
+      "Athēnai, Athenai",
+      "Athen",
+      "Athenas",
+      "Ays̱ina,Aythina",
+      "Ays̱inās̱",
+      "Atina"
+    ],
+    "original_names": [
+      "Αθήνα",
+      "Ἀθῆναι"
+    ],
+    "transliterations": [
+      "Athenae",
+      "Athens",
+      "Athen",
+      "Athenas"
+    ],
+    "modern_name": "Athens",
+    "modern_country": "Görögország",
+    "region_hu": "Attika",
+    "ancient_region": "Attica",
+    "identification_status": "probable",
+    "latitude": 37.971851,
+    "longitude": 23.726738,
+    "passage_count": 7,
+    "representative_passages": [
+      "ApCsel 17,16-34",
+      "1TH 3,1",
+      "ACT 17,15",
+      "ACT 17,16",
+      "ACT 17,21"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0",
+      "pleiades_place_579885"
+    ],
+    "current_name_hu": "Athén",
+    "current_card_summary_hu": "Athén ókori görög város; az ApCsel 17 szerint Pál itt hirdette az evangéliumot az Areopágosznál.",
+    "proposed_name_hu": "Athén",
+    "proposed_card_summary_hu": "Athén ókori görög város; az ApCsel 17 szerint Pál itt hirdette az evangéliumot az Areopágosznál.",
+    "review_status": "draft",
+    "review_notes_hu": "Meglévő pilot/kézi magyar tartalom; csak ellenőrzés után módosítsd. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "beth_horon",
+    "name_en": "Beth-horon",
+    "ancient_names": [
+      "Beth-horon",
+      "Beth Horon",
+      "Beth-Horon"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Beit Ur al Tahta",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 31.895,
+    "longitude": 35.083611,
+    "passage_count": 7,
+    "representative_passages": [
+      "1CH 6,68",
+      "1SA 13,18",
+      "2CH 25,13",
+      "JOS 10,10",
+      "JOS 10,11"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Bét-Hórón",
+    "current_card_summary_hu": "Két település és a köztük húzódó stratégiai hágó Jeruzsálemtől északnyugatra. Az ókori helyeket a mai Beit Ur el-Fóka és Beit Ur et-Tahta falvakkal azonosítják.",
+    "proposed_name_hu": "Bét-Hórón",
+    "proposed_card_summary_hu": "Két település és a köztük húzódó stratégiai hágó Jeruzsálemtől északnyugatra. Az ókori helyeket a mai Beit Ur el-Fóka és Beit Ur et-Tahta falvakkal azonosítják.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "cyrene",
+    "name_en": "Cyrene",
+    "ancient_names": [
+      "Cyrene",
+      "Cyrenian",
+      "Cyrenians"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Cyrene",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 32.820946,
+    "longitude": 21.851229,
+    "passage_count": 7,
+    "representative_passages": [
+      "ACT 11,20",
+      "ACT 13,1",
+      "ACT 2,10",
+      "ACT 6,9",
+      "LUK 23,26"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Küréné",
+    "current_card_summary_hu": "Észak-afrikai görög város, amelynek zsidó és keresztyén lakói az Újszövetségben is szerepelnek. Romjai a mai líbiai Shahhat közelében találhatók.",
+    "proposed_name_hu": "Küréné",
+    "proposed_card_summary_hu": "Észak-afrikai görög város, amelynek zsidó és keresztyén lakói az Újszövetségben is szerepelnek. Romjai a mai líbiai Shahhat közelében találhatók.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "dedan",
+    "name_en": "Dedan",
+    "ancient_names": [
+      "Dedan",
+      "Dedanim",
+      "Dedanite",
+      "Dedanites",
+      "Rhodes",
+      "Rhodians"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Al Khuraybah",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 26.65,
+    "longitude": 37.91667,
+    "passage_count": 7,
+    "representative_passages": [
+      "EZK 25,13",
+      "EZK 27,15",
+      "EZK 27,20",
+      "EZK 38,13",
+      "ISA 21,13"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Dedán",
+    "current_card_summary_hu": "Északnyugat-Arábia kereskedővárosa és népe, több prófétai szövegben szerepel. Általában a mai al-Ulá térségével azonosítják.",
+    "proposed_name_hu": "Dedán",
+    "proposed_card_summary_hu": "Északnyugat-Arábia kereskedővárosa és népe, több prófétai szövegben szerepel. Általában a mai al-Ulá térségével azonosítják.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "edrei_1",
+    "name_en": "Edrei 1",
+    "ancient_names": [
+      "Edrei 1",
+      "Edrei"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Daraa",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 32.625278,
+    "longitude": 36.106111,
+    "passage_count": 7,
+    "representative_passages": [
+      "DEU 1,4",
+      "DEU 3,1",
+      "DEU 3,10",
+      "JOS 12,4",
+      "JOS 13,12"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Edrei",
+    "current_card_summary_hu": "Básán egyik királyi városa, ahol Izráel legyőzte Óg királyt. Az ókori helyet a mai szíriai Dará közelében keresik.",
+    "proposed_name_hu": "Edrei",
+    "proposed_card_summary_hu": "Básán egyik királyi városa, ahol Izráel legyőzte Óg királyt. Az ókori helyet a mai szíriai Dará közelében keresik.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "ethiopia",
+    "name_en": "Ethiopia",
+    "ancient_names": [
+      "Ethiopia",
+      "Cush",
+      "Cushite",
+      "Cushites",
+      "Ethiopian",
+      "Ethiopians"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Meroe",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 16.935139,
+    "longitude": 33.75075,
+    "passage_count": 7,
+    "representative_passages": [
+      "2SA 18,21",
+      "2SA 18,31",
+      "ACT 8,27",
+      "AMO 9,7",
+      "EST 1,1"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Etiópia",
+    "current_card_summary_hu": "A bibliai szövegekben gyakran Kús afrikai térségére utaló tág megnevezés. Nem minden esetben azonos a mai Etiópia területével.",
+    "proposed_name_hu": "Etiópia",
+    "proposed_card_summary_hu": "A bibliai szövegekben gyakran Kús afrikai térségére utaló tág megnevezés. Nem minden esetben azonos a mai Etiópia területével.",
+    "review_status": "draft",
+    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "greece",
+    "name_en": "Greece",
+    "ancient_names": [
+      "Greece",
+      "Grecia",
+      "Greeks",
+      "Javan"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Athens",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 37.971851,
+    "longitude": 23.726738,
+    "passage_count": 7,
+    "representative_passages": [
+      "1TH 1,7",
+      "ACT 16,9",
+      "ACT 20,2",
+      "DAN 10,20",
+      "DAN 11,2"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Görögország",
+    "current_card_summary_hu": "A hellenisztikus és római kori görög világ tág földrajzi megnevezése, amely Pál misszióinak fontos térsége. A bibliai használat nem mindig esik egybe a mai államhatárokkal.",
+    "proposed_name_hu": "Görögország",
+    "proposed_card_summary_hu": "A hellenisztikus és római kori görög világ tág földrajzi megnevezése, amely Pál misszióinak fontos térsége. A bibliai használat nem mindig esik egybe a mai államhatárokkal.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "jabbok",
+    "name_en": "Jabbok",
+    "ancient_names": [
+      "Jabbok",
+      "Jabbok River",
+      "Jabbok Valley",
+      "River Jabbok",
+      "Wadi Jabbok"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Zarqa River",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 32.11525,
+    "longitude": 35.543056,
+    "passage_count": 7,
+    "representative_passages": [
+      "DEU 2,37",
+      "DEU 3,16",
+      "GEN 32,22",
+      "JDG 11,13",
+      "JDG 11,22"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Jabbók",
+    "current_card_summary_hu": "A Jordán keleti mellékfolyója, amely Jákób küzdelmének és több határleírásnak helyszíne. Ma Nahr ez-Zarka néven folyik Jordániában.",
+    "proposed_name_hu": "Jabbók",
+    "proposed_card_summary_hu": "A Jordán keleti mellékfolyója, amely Jákób küzdelmének és több határleírásnak helyszíne. Ma Nahr ez-Zarka néven folyik Jordániában.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "jebus",
+    "name_en": "Jebus",
+    "ancient_names": [
+      "Jebus",
+      "Jebusi",
+      "Jebusite",
+      "Jebusites"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Jerusalem",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 31.776667,
+    "longitude": 35.234167,
+    "passage_count": 7,
+    "representative_passages": [
+      "1CH 11,4",
+      "1CH 11,5",
+      "JDG 19,10",
+      "JDG 19,11",
+      "JOS 15,8"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Jebúsz",
+    "current_card_summary_hu": "Jeruzsálem kánaáni–jebúszi neve Dávid hódítása előtt. A település magja a későbbi Dávid városának területén feküdt.",
+    "proposed_name_hu": "Jebúsz",
+    "proposed_card_summary_hu": "Jeruzsálem kánaáni–jebúszi neve Dávid hódítása előtt. A település magja a későbbi Dávid városának területén feküdt.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "lod",
+    "name_en": "Lod",
+    "ancient_names": [
+      "Lod",
+      "Lydda"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Lod",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 31.95,
+    "longitude": 34.9,
+    "passage_count": 7,
+    "representative_passages": [
+      "1CH 8,12",
+      "ACT 9,32",
+      "ACT 9,35",
+      "ACT 9,38",
+      "EZR 2,33"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Lód",
+    "current_card_summary_hu": "Júdea síkságának városa, amely az újszövetségi Liddával azonos. A helyén ma az izraeli Lod városa található.",
+    "proposed_name_hu": "Lód",
+    "proposed_card_summary_hu": "Júdea síkságának városa, amely az újszövetségi Liddával azonos. A helyén ma az izraeli Lod városa található.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "meshech",
+    "name_en": "Meshech",
+    "ancient_names": [
+      "Meshech",
+      "Mesech",
+      "Meshach",
+      "Meshech Tubal",
+      "Meshech-Tubal",
+      "Meshek",
+      "Tubal"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Gordion",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 39.655,
+    "longitude": 31.994167,
+    "passage_count": 7,
+    "representative_passages": [
+      "EZK 27,13",
+      "EZK 32,26",
+      "EZK 38,2",
+      "EZK 38,3",
+      "EZK 39,1"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Mesek",
+    "current_card_summary_hu": "Kis-Ázsia vagy a Kaukázus térségéhez kapcsolt ókori nép és terület. Pontos földrajzi azonosítása vitatott.",
+    "proposed_name_hu": "Mesek",
+    "proposed_card_summary_hu": "Kis-Ázsia vagy a Kaukázus térségéhez kapcsolt ókori nép és terület. Pontos földrajzi azonosítása vitatott.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "mesopotamia",
+    "name_en": "Mesopotamia",
+    "ancient_names": [
+      "Mesopotamia",
+      "Aram",
+      "Aram Naharaim",
+      "Aram-Naharaim",
+      "Aram-naharaim",
+      "Armon",
+      "Armon Haraim"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Harran",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 36.864444,
+    "longitude": 39.032778,
+    "passage_count": 7,
+    "representative_passages": [
+      "1CH 19,6",
+      "ACT 2,9",
+      "ACT 7,2",
+      "DEU 23,4",
+      "GEN 24,10"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Mezopotámia",
+    "current_card_summary_hu": "A Tigris és az Eufrátesz közötti tág történeti térség, több pátriárkai és száműzetéstörténet háttere. Ma főként Irak, Szíria és Törökország részeire terjed.",
+    "proposed_name_hu": "Mezopotámia",
+    "proposed_card_summary_hu": "A Tigris és az Eufrátesz közötti tág történeti térség, több pátriárkai és száműzetéstörténet háttere. Ma főként Irak, Szíria és Törökország részeire terjed.",
+    "review_status": "draft",
+    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "taanach",
+    "name_en": "Taanach",
+    "ancient_names": [
+      "Taanach",
+      "Tanach"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Tell Ta’anakh",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 32.521526,
+    "longitude": 35.219122,
+    "passage_count": 7,
+    "representative_passages": [
+      "1CH 7,29",
+      "1KI 4,12",
+      "JDG 1,27",
+      "JDG 5,19",
+      "JOS 12,21"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Taanak",
+    "current_card_summary_hu": "Kánaáni város a Jezréel-síkság délnyugati szélén, Megiddó közelében. Az ókori helyet Tel Taanakkal azonosítják.",
+    "proposed_name_hu": "Taanak",
+    "proposed_card_summary_hu": "Kánaáni város a Jezréel-síkság délnyugati szélén, Megiddó közelében. Az ókori helyet Tel Taanakkal azonosítják.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "tahpanhes",
+    "name_en": "Tahpanhes",
+    "ancient_names": [
+      "Tahpanhes",
+      "Tahapanes",
+      "Tehaphnehes"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Tell Defenneh",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 30.860556,
+    "longitude": 32.171389,
+    "passage_count": 7,
+    "representative_passages": [
+      "EZK 30,18",
+      "JER 2,16",
+      "JER 43,7",
+      "JER 43,8",
+      "JER 43,9"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Tahpanhész",
+    "current_card_summary_hu": "A Nílus-delta keleti részének egyiptomi városa, ahová júdai menekültek érkeztek Jeremiás korában. Általában Tell Defennével azonosítják.",
+    "proposed_name_hu": "Tahpanhész",
+    "proposed_card_summary_hu": "A Nílus-delta keleti részének egyiptomi városa, ahová júdai menekültek érkeztek Jeremiás korában. Általában Tell Defennével azonosítják.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "zoan",
+    "name_en": "Zoan",
+    "ancient_names": [
+      "Zoan"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Tanis",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 30.976944,
+    "longitude": 31.88,
+    "passage_count": 7,
+    "representative_passages": [
+      "EZK 30,14",
+      "ISA 19,11",
+      "ISA 19,13",
+      "ISA 30,4",
+      "NUM 13,22"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Cóan",
+    "current_card_summary_hu": "Alsó-Egyiptom jelentős városa, a bibliai szövegekben Egyiptom hatalmának jelképes központja. Az ókori helyet Tanisszal azonosítják.",
+    "proposed_name_hu": "Cóan",
+    "proposed_card_summary_hu": "Alsó-Egyiptom jelentős városa, a bibliai szövegekben Egyiptom hatalmának jelképes központja. Az ókori helyet Tanisszal azonosítják.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "ashtaroth",
+    "name_en": "Ashtaroth",
+    "ancient_names": [
+      "Ashtaroth",
+      "Ashterathite",
+      "Astaroth"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Tell Ashtara",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "probable",
+    "latitude": 32.804167,
+    "longitude": 36.015833,
+    "passage_count": 7,
+    "representative_passages": [
+      "1CH 11,44",
+      "1CH 6,71",
+      "DEU 1,4",
+      "JOS 12,4",
+      "JOS 13,12"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Astárót",
+    "current_card_summary_hu": "Básán egyik királyi városa és kultuszközpontja. Valószínűleg Tell Astarát vagy annak környékét jelölte.",
+    "proposed_name_hu": "Astárót",
+    "proposed_card_summary_hu": "Básán egyik királyi városa és kultuszközpontja. Valószínűleg Tell Astarát vagy annak környékét jelölte.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "azekah",
+    "name_en": "Azekah",
+    "ancient_names": [
+      "Azekah"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Tel Azekah",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "probable",
+    "latitude": 31.700226,
+    "longitude": 34.935696,
+    "passage_count": 7,
+    "representative_passages": [
+      "1SA 17,1",
+      "2CH 11,9",
+      "JER 34,7",
+      "JOS 10,10",
+      "JOS 10,11"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Azéká",
+    "current_card_summary_hu": "Júda alföldjének erődített városa, több filiszteus és babiloni hadjárat helyszíne. Az ókori helyet Tel Azékával azonosítják.",
+    "proposed_name_hu": "Azéká",
+    "proposed_card_summary_hu": "Júda alföldjének erődített városa, több filiszteus és babiloni hadjárat helyszíne. Az ókori helyet Tel Azékával azonosítják.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "bahurim",
+    "name_en": "Bahurim",
+    "ancient_names": [
+      "Bahurim",
+      "Baharum",
+      "Baharumite",
+      "Barhumite"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Ras Tumeim",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "probable",
+    "latitude": 31.7912,
+    "longitude": 35.25694,
+    "passage_count": 7,
+    "representative_passages": [
+      "1CH 11,33",
+      "1KI 2,8",
+      "2SA 16,5",
+      "2SA 17,18",
+      "2SA 19,16"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Bahúrim",
+    "current_card_summary_hu": "Jeruzsálemtől keletre fekvő benjámini település, Dávid menekülésének történetében szerepel. Pontos helye bizonytalan.",
+    "proposed_name_hu": "Bahúrim",
+    "proposed_card_summary_hu": "Jeruzsálemtől keletre fekvő benjámini település, Dávid menekülésének történetében szerepel. Pontos helye bizonytalan.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "bethsaida_1",
+    "name_en": "Bethsaida 1",
+    "ancient_names": [
+      "Bethsaida 1",
+      "Bethsaida",
+      "Bethsaida 2"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "At Tell",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "probable",
+    "latitude": 32.91038,
+    "longitude": 35.63096,
+    "passage_count": 7,
+    "representative_passages": [
+      "JHN 1,44",
+      "JHN 12,21",
+      "LUK 10,13",
+      "LUK 9,10",
+      "MAT 11,21"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Bétsaida",
+    "current_card_summary_hu": "A Galileai-tenger északi térségének újszövetségi települése, amely Jézus szolgálatához és több tanítványhoz kapcsolódik. Az azonosítás At-Tell térségével valószínű, de vitatott.",
+    "proposed_name_hu": null,
+    "proposed_card_summary_hu": null,
+    "review_status": "pending",
+    "review_notes_hu": null
+  },
+  {
+    "place_id": "ezion_geber",
+    "name_en": "Ezion-geber",
+    "ancient_names": [
+      "Ezion-geber",
+      "Ezion Geber",
+      "Ezion-Geber",
+      "Ezion-gaber"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Tell el Kheleifeh",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "probable",
+    "latitude": 29.547181,
+    "longitude": 34.980258,
+    "passage_count": 7,
+    "representative_passages": [
+      "1KI 22,48",
+      "1KI 9,26",
+      "2CH 20,36",
+      "2CH 8,17",
+      "DEU 2,8"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Ecjón-Geber",
+    "current_card_summary_hu": "Az Akabai-öböl északi végén fekvő kikötő és ipari központ Salamon korában. Pontos azonosítása vitatott.",
+    "proposed_name_hu": "Ecjón-Geber",
+    "proposed_card_summary_hu": "Az Akabai-öböl északi végén fekvő kikötő és ipari központ Salamon korában. Pontos azonosítása vitatott.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "jezreel_3",
+    "name_en": "Jezreel 3",
+    "ancient_names": [
+      "Jezreel 3",
+      "Jezreel",
+      "Jezreelite",
+      "Jezreelitess",
+      "Jezreel 1"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Yatta",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "probable",
+    "latitude": 31.447778,
+    "longitude": 35.09,
+    "passage_count": 7,
+    "representative_passages": [
+      "1CH 3,1",
+      "1SA 25,43",
+      "1SA 27,3",
+      "1SA 30,5",
+      "2SA 2,2"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Jezréel (Júda)",
+    "current_card_summary_hu": "Júda területén fekvő Jezréel, amely nem azonos az északi Jezréel városával vagy völgyével.",
+    "proposed_name_hu": null,
+    "proposed_card_summary_hu": null,
+    "review_status": "pending",
+    "review_notes_hu": null
+  },
+  {
+    "place_id": "nebo_1",
+    "name_en": "Nebo 1",
+    "ancient_names": [
+      "Nebo 1",
+      "Mount Nebo",
+      "Nebo"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Khirbet al Mukhayyat",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "probable",
+    "latitude": 31.749127,
+    "longitude": 35.74386,
+    "passage_count": 7,
+    "representative_passages": [
+      "1CH 5,8",
+      "ISA 15,2",
+      "JER 48,1",
+      "JER 48,22",
+      "NUM 32,3"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Nebó",
+    "current_card_summary_hu": "Moáb területének városa, amely több prófétai és honfoglalási szövegben szerepel. Valószínűleg Khirbet el-Mukhajjat térségéhez kapcsolódik.",
+    "proposed_name_hu": "Nebó",
+    "proposed_card_summary_hu": "Moáb területének városa, amely több prófétai és honfoglalási szövegben szerepel. Valószínűleg Khirbet el-Mukhajjat térségéhez kapcsolódik.",
+    "review_status": "draft",
+    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "ar",
+    "name_en": "Ar",
+    "ancient_names": [
+      "Ar"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Khirbet al Balua",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "possible",
+    "latitude": 31.359913,
+    "longitude": 35.782764,
+    "passage_count": 7,
+    "representative_passages": [
+      "DEU 2,10",
+      "DEU 2,18",
+      "DEU 2,29",
+      "DEU 2,9",
+      "ISA 15,1"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Ár",
+    "current_card_summary_hu": "Moáb egyik ősi városa vagy központi területe az Arnón vidékén. Pontos helye nem ismert biztosan.",
+    "proposed_name_hu": "Ár",
+    "proposed_card_summary_hu": "Moáb egyik ősi városa vagy központi területe az Arnón vidékén. Pontos helye nem ismert biztosan.",
+    "review_status": "draft",
+    "review_notes_hu": "Bizonytalan vagy vitatott azonosítás; a magyar név és leírás szakmai ellenőrzést igényel. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "nob",
+    "name_en": "Nob",
+    "ancient_names": [
+      "Nob"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Ras el Mesharif",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "possible",
+    "latitude": 31.7925,
+    "longitude": 35.244167,
+    "passage_count": 7,
+    "representative_passages": [
+      "1SA 21,1",
+      "1SA 22,11",
+      "1SA 22,19",
+      "1SA 22,9",
+      "2SA 21,16"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Nób",
+    "current_card_summary_hu": "Jeruzsálem közelében fekvő papi város, ahol Dávid Ahimelektől segítséget kapott. Pontos helye bizonytalan.",
+    "proposed_name_hu": "Nób",
+    "proposed_card_summary_hu": "Jeruzsálem közelében fekvő papi város, ahol Dávid Ahimelektől segítséget kapott. Pontos helye bizonytalan.",
+    "review_status": "draft",
+    "review_notes_hu": "Bizonytalan vagy vitatott azonosítás; a magyar név és leírás szakmai ellenőrzést igényel. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "arabia_1",
+    "name_en": "Arabia 1",
+    "ancient_names": [
+      "Arabia 1",
+      "Arabia",
+      "Arabian",
+      "Arabians",
+      "Arabs"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Arabian Peninsula",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 23.0,
+    "longitude": 46.0,
+    "passage_count": 6,
+    "representative_passages": [
+      "1KI 10,15",
+      "2CH 9,14",
+      "EZK 27,21",
+      "EZK 30,5",
+      "ISA 21,13"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Arábia",
+    "current_card_summary_hu": "Az Izráeltől délre és keletre fekvő tág félszigeti térség bibliai megnevezése. Nem egyetlen országot vagy települést jelöl.",
+    "proposed_name_hu": "Arábia",
+    "proposed_card_summary_hu": "Az Izráeltől délre és keletre fekvő tág félszigeti térség bibliai megnevezése. Nem egyetlen országot vagy települést jelöl.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "babylon_3",
+    "name_en": "Babylon 3",
+    "ancient_names": [
+      "Babylon 3",
+      "Babylon"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Rome",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 41.8922,
+    "longitude": 12.4852,
+    "passage_count": 6,
+    "representative_passages": [
+      "REV 14,8",
+      "REV 16,19",
+      "REV 17,5",
+      "REV 18,10",
+      "REV 18,2"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Babilon",
+    "current_card_summary_hu": "Mezopotámia jelentős ókori városa és a babiloni birodalom központja. Romjai a mai Irakban, Hillah közelében találhatók.",
+    "proposed_name_hu": "Babilon",
+    "proposed_card_summary_hu": "Mezopotámia jelentős ókori városa és a babiloni birodalom központja. Romjai a mai Irakban, Hillah közelében találhatók.",
+    "review_status": "draft",
+    "review_notes_hu": "Valószínű duplikátumként jelölte az audit; összevonás előtt ellenőrizd az azonosítást. Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "berea",
+    "name_en": "Berea",
+    "ancient_names": [
+      "Berea",
+      "Berean",
+      "Beroea"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Veria",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 40.518333,
+    "longitude": 22.2,
+    "passage_count": 6,
+    "representative_passages": [
+      "ACT 17,10",
+      "ACT 17,11",
+      "ACT 17,13",
+      "ACT 17,14",
+      "ACT 17,15"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Beroia",
+    "current_card_summary_hu": "Makedóniai város, ahol Pál hallgatói készségesen vizsgálták az Írásokat. Az ókori város a mai görögországi Véria területén feküdt.",
+    "proposed_name_hu": "Beroia",
+    "proposed_card_summary_hu": "Makedóniai város, ahol Pál hallgatói készségesen vizsgálták az Írásokat. Az ókori város a mai görögországi Véria területén feküdt.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  },
+  {
+    "place_id": "engedi",
+    "name_en": "Engedi",
+    "ancient_names": [
+      "Engedi",
+      "Desert of En Gedi",
+      "En Gedi",
+      "En-gedi",
+      "Wilderness of En Gedi"
+    ],
+    "original_names": [],
+    "transliterations": [],
+    "modern_name": "Ein Gedi",
+    "modern_country": null,
+    "region_hu": null,
+    "ancient_region": null,
+    "identification_status": "certain",
+    "latitude": 31.45,
+    "longitude": 35.383333,
+    "passage_count": 6,
+    "representative_passages": [
+      "1SA 23,29",
+      "1SA 24,1",
+      "2CH 20,2",
+      "EZK 47,10",
+      "JOS 15,62"
+    ],
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "current_name_hu": "Én-Gedi",
+    "current_card_summary_hu": "Oázis a Holt-tenger nyugati partján, Dávid menedékhelye és költői képek forrása. Ma izraeli természetvédelmi és régészeti terület.",
+    "proposed_name_hu": "Én-Gedi",
+    "proposed_card_summary_hu": "Oázis a Holt-tenger nyugati partján, Dávid menedékhelye és költői képek forrása. Ma izraeli természetvédelmi és régészeti terület.",
+    "review_status": "draft",
+    "review_notes_hu": "Magyar név- és rövidleírás-javaslat; szakmai ellenőrzés szükséges."
+  }
+]

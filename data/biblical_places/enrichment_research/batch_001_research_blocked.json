@@ -1,0 +1,90 @@
+[
+  {
+    "place_id": "antioch_syria",
+    "section_name": "record_resolution",
+    "blocking_reason": "needs_record_resolution",
+    "attempted_sources": [],
+    "required_source_type": "",
+    "next_action": "review_before_batch_selection",
+    "blocks_drafting": true,
+    "blocks_source_backed": true,
+    "notes_hu": "canonical_record_review"
+  },
+  {
+    "place_id": "caesarea",
+    "section_name": "record_resolution",
+    "blocking_reason": "needs_record_resolution",
+    "attempted_sources": [],
+    "required_source_type": "",
+    "next_action": "review_before_batch_selection",
+    "blocks_drafting": true,
+    "blocks_source_backed": true,
+    "notes_hu": "canonical_record_review"
+  },
+  {
+    "place_id": "jericho_2",
+    "section_name": "record_resolution",
+    "blocking_reason": "non_primary_profile_group_member",
+    "attempted_sources": [],
+    "required_source_type": "",
+    "next_action": "review_before_batch_selection",
+    "blocks_drafting": true,
+    "blocks_source_backed": true,
+    "notes_hu": "canonical_record_review"
+  },
+  {
+    "place_id": "mount_horeb",
+    "section_name": "record_resolution",
+    "blocking_reason": "non_primary_profile_group_member",
+    "attempted_sources": [],
+    "required_source_type": "",
+    "next_action": "review_before_batch_selection",
+    "blocks_drafting": true,
+    "blocks_source_backed": true,
+    "notes_hu": "canonical_record_review"
+  },
+  {
+    "place_id": "mount_sinai",
+    "section_name": "record_resolution",
+    "blocking_reason": "needs_record_resolution",
+    "attempted_sources": [],
+    "required_source_type": "",
+    "next_action": "review_before_batch_selection",
+    "blocks_drafting": true,
+    "blocks_source_backed": true,
+    "notes_hu": "canonical_record_review"
+  },
+  {
+    "place_id": "valley_of_jericho",
+    "section_name": "record_resolution",
+    "blocking_reason": "non_primary_profile_group_member",
+    "attempted_sources": [],
+    "required_source_type": "",
+    "next_action": "review_before_batch_selection",
+    "blocks_drafting": true,
+    "blocks_source_backed": true,
+    "notes_hu": "canonical_record_review"
+  },
+  {
+    "place_id": "waters_of_jericho",
+    "section_name": "record_resolution",
+    "blocking_reason": "non_primary_profile_group_member",
+    "attempted_sources": [],
+    "required_source_type": "",
+    "next_action": "review_before_batch_selection",
+    "blocks_drafting": true,
+    "blocks_source_backed": true,
+    "notes_hu": "canonical_record_review"
+  },
+  {
+    "place_id": "wilderness_of_sinai",
+    "section_name": "record_resolution",
+    "blocking_reason": "non_primary_profile_group_member",
+    "attempted_sources": [],
+    "required_source_type": "",
+    "next_action": "review_before_batch_selection",
+    "blocks_drafting": true,
+    "blocks_source_backed": true,
+    "notes_hu": "canonical_record_review"
+  }
+]

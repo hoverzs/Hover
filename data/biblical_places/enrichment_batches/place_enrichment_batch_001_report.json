@@ -1,0 +1,175 @@
+{
+  "batch_size_requested": 50,
+  "batch_size_created": 50,
+  "eligible_candidates": 1242,
+  "excluded_existing_pilot": 17,
+  "excluded_legacy_ids": 0,
+  "excluded_record_resolution": 3,
+  "excluded_profile_group_conflicts": 5,
+  "blocked_count": 8,
+  "old_testament_place_count": 11,
+  "new_testament_place_count": 10,
+  "multi_period_place_count": 11,
+  "unknown_period_place_count": 18,
+  "route_linked_place_count": 21,
+  "passage_count_distribution": {
+    "0-9": 5,
+    "10-49": 30,
+    "50-99": 6,
+    "100+": 9
+  },
+  "identification_status_distribution": {
+    "certain": 44,
+    "probable": 5,
+    "possible": 1
+  },
+  "required_source_type_distribution": {
+    "academic_gazetteer": 50,
+    "biblical_text_dataset": 50,
+    "excavation_project": 50,
+    "heritage_authority": 50,
+    "museum": 50,
+    "official_archaeological_site": 50,
+    "official_geographical_source": 50,
+    "peer_reviewed_publication": 50,
+    "university_project": 50
+  },
+  "required_section_distribution": {
+    "biblical_significance": 50,
+    "key_events": 50,
+    "identification_notes": 50,
+    "modern_context": 50,
+    "ancient_geography": 21,
+    "historical_context": 50,
+    "archaeology": 50
+  },
+  "source_gap_distribution": {
+    "2": 49,
+    "0": 1
+  },
+  "top_20_selection_reasons": [
+    {
+      "batch_position": 1,
+      "place_id": "egypt",
+      "name_hu": "Egyiptom",
+      "selection_reason_hu": "magas prioritási pontszám (3134); 660 passage-kapcsolat; 2 route-kapcsolat; forráskutatási hiány dokumentálva."
+    },
+    {
+      "batch_position": 2,
+      "place_id": "jordan",
+      "name_hu": "Jordán",
+      "selection_reason_hu": "magas prioritási pontszám (1116); 202 passage-kapcsolat; 1 route-kapcsolat; forráskutatási hiány dokumentálva."
+    },
+    {
+      "batch_position": 3,
+      "place_id": "moab_1",
+      "name_hu": "Moáb",
+      "selection_reason_hu": "magas prioritási pontszám (946); 162 passage-kapcsolat; forráskutatási hiány dokumentálva."
+    },
+    {
+      "batch_position": 4,
+      "place_id": "zion",
+      "name_hu": "Sion",
+      "selection_reason_hu": "magas prioritási pontszám (854); 148 passage-kapcsolat; forráskutatási hiány dokumentálva."
+    },
+    {
+      "batch_position": 5,
+      "place_id": "assyria",
+      "name_hu": "Asszíria",
+      "selection_reason_hu": "magas prioritási pontszám (778); 141 passage-kapcsolat; forráskutatási hiány dokumentálva."
+    },
+    {
+      "batch_position": 6,
+      "place_id": "edom",
+      "name_hu": "Edóm",
+      "selection_reason_hu": "magas prioritási pontszám (730); 111 passage-kapcsolat; forráskutatási hiány dokumentálva."
+    },
+    {
+      "batch_position": 7,
+      "place_id": "gilead_1",
+      "name_hu": "Gileád",
+      "selection_reason_hu": "magas prioritási pontszám (652); 86 passage-kapcsolat; 1 route-kapcsolat; forráskutatási hiány dokumentálva."
+    },
+    {
+      "batch_position": 8,
+      "place_id": "canaan",
+      "name_hu": "Kánaán",
+      "selection_reason_hu": "magas prioritási pontszám (662); 101 passage-kapcsolat; 1 route-kapcsolat; forráskutatási hiány dokumentálva."
+    },
+    {
+      "batch_position": 9,
+      "place_id": "ammon",
+      "name_hu": "Ammón",
+      "selection_reason_hu": "magas prioritási pontszám (686); 106 passage-kapcsolat; forráskutatási hiány dokumentálva."
+    },
+    {
+      "batch_position": 10,
+      "place_id": "tyre",
+      "name_hu": "Tírusz",
+      "selection_reason_hu": "magas prioritási pontszám (540); 64 passage-kapcsolat; 1 route-kapcsolat; forráskutatási hiány dokumentálva."
+    },
+    {
+      "batch_position": 11,
+      "place_id": "samaria_1",
+      "name_hu": "Samária",
+      "selection_reason_hu": "magas prioritási pontszám (630); 113 passage-kapcsolat; forráskutatási hiány dokumentálva."
+    },
+    {
+      "batch_position": 12,
+      "place_id": "negeb",
+      "name_hu": "Negev",
+      "selection_reason_hu": "magas prioritási pontszám (416); 43 passage-kapcsolat; 2 route-kapcsolat; forráskutatási hiány dokumentálva."
+    },
+    {
+      "batch_position": 13,
+      "place_id": "chaldea",
+      "name_hu": "Káldea",
+      "selection_reason_hu": "magas prioritási pontszám (510); 86 passage-kapcsolat; forráskutatási hiány dokumentálva."
+    },
+    {
+      "batch_position": 14,
+      "place_id": "lebanon",
+      "name_hu": "Libanon",
+      "selection_reason_hu": "magas prioritási pontszám (454); 57 passage-kapcsolat; forráskutatási hiány dokumentálva."
+    },
+    {
+      "batch_position": 15,
+      "place_id": "gilgal_1",
+      "name_hu": "Gilgál",
+      "selection_reason_hu": "magas prioritási pontszám (326); 33 passage-kapcsolat; 3 route-kapcsolat; forráskutatási hiány dokumentálva."
+    },
+    {
+      "batch_position": 16,
+      "place_id": "sodom",
+      "name_hu": "Sodoma",
+      "selection_reason_hu": "magas prioritási pontszám (404); 50 passage-kapcsolat; forráskutatási hiány dokumentálva."
+    },
+    {
+      "batch_position": 17,
+      "place_id": "great_sea",
+      "name_hu": "Nagy-tenger",
+      "selection_reason_hu": "magas prioritási pontszám (346); 36 passage-kapcsolat; forráskutatási hiány dokumentálva."
+    },
+    {
+      "batch_position": 18,
+      "place_id": "judea_1",
+      "name_hu": "Júdea",
+      "selection_reason_hu": "magas prioritási pontszám (370); 54 passage-kapcsolat; forráskutatási hiány dokumentálva."
+    },
+    {
+      "batch_position": 19,
+      "place_id": "nile",
+      "name_hu": "Nílus",
+      "selection_reason_hu": "magas prioritási pontszám (322); 45 passage-kapcsolat; forráskutatási hiány dokumentálva."
+    },
+    {
+      "batch_position": 20,
+      "place_id": "gaza",
+      "name_hu": "Gáza",
+      "selection_reason_hu": "magas prioritási pontszám (266); 22 passage-kapcsolat; forráskutatási hiány dokumentálva."
+    }
+  ],
+  "warnings": [],
+  "idempotency_result": "deterministic_builder_rewrite_expected_identical",
+  "research_task_count": 321
+}

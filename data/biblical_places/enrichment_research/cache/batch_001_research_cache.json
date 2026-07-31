@@ -1,0 +1,13 @@
+{
+  "cache_version": 2,
+  "generated_from": [
+    "C:/Users/Hover/Textus-smart-map/data/biblical_places/enrichment_batches/place_enrichment_batch_001.json",
+    "C:/Users/Hover/Textus-smart-map/data/biblical_places/enrichment_batches/place_enrichment_batch_001_research_queue.json",
+    "C:/Users/Hover/Textus-smart-map/data/biblical_places/place_enrichment_sources.json"
+  ],
+  "candidate_hash": "506851b5a255974e87644ea39cdc1bbc2596923b",
+  "packet_hash": "cc5259554a1d862d931528343fb5e1fb2ecbb42e",
+  "status": "metadata_only_cache",
+  "raw_evidence_count_before_dedupe": 514,
+  "deduplicated_evidence_count": 514
+}

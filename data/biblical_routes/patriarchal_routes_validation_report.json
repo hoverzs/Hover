@@ -1,0 +1,631 @@
+{
+  "report_id": "patriarchal_routes_validation_report",
+  "route_count": 3,
+  "routes": [
+    {
+      "route_id": "abraham_journey",
+      "name_hu": "Ábrahám vándorlása",
+      "stop_count": 13,
+      "segment_count": 12,
+      "segment_type_counts": {
+        "land": 12
+      },
+      "certainty_counts": {
+        "certain": 6,
+        "probable": 6,
+        "possible": 1
+      },
+      "unresolved_or_skipped_places": [],
+      "region_or_transit_stops": [
+        {
+          "stop_id": "negev_abraham",
+          "place_id": "negeb",
+          "stop_type": "region",
+          "certainty": "certain"
+        },
+        {
+          "stop_id": "egypt_abraham",
+          "place_id": "egypt",
+          "stop_type": "region",
+          "certainty": "certain"
+        },
+        {
+          "stop_id": "moriah_abraham",
+          "place_id": "moriah",
+          "stop_type": "uncertain_place",
+          "certainty": "possible"
+        }
+      ],
+      "needs_expert_review": [
+        {
+          "stop_id": "bethel_ai_abraham",
+          "place_id": "bethel_1",
+          "note_hu": "Bibliai szöveghez kötött állomás; a vonal sematikus."
+        },
+        {
+          "stop_id": "bethel_abraham_return",
+          "place_id": "bethel_1",
+          "note_hu": "Bibliai szöveghez kötött állomás; a vonal sematikus."
+        },
+        {
+          "stop_id": "mamre_abraham",
+          "place_id": "mamre",
+          "note_hu": "Bibliai szöveghez kötött állomás; a vonal sematikus."
+        },
+        {
+          "stop_id": "gerar_abraham",
+          "place_id": "gerar",
+          "note_hu": "Bibliai szöveghez kötött állomás; a vonal sematikus."
+        },
+        {
+          "stop_id": "beersheba_abraham",
+          "place_id": "beersheba_1",
+          "note_hu": "Bibliai szöveghez kötött állomás; a vonal sematikus."
+        },
+        {
+          "stop_id": "moriah_abraham",
+          "place_id": "moriah",
+          "note_hu": "A szöveg Mórijjá földjét említi; a bizonytalanság megmarad."
+        },
+        {
+          "stop_id": "beersheba_abraham_return",
+          "place_id": "beersheba_1",
+          "note_hu": "Bibliai szöveghez kötött állomás; a vonal sematikus."
+        }
+      ],
+      "passage_errors": [],
+      "mojibake_utf8_check": "passed",
+      "duplicate_geometry_check": "one_render_geometry_per_segment_expected",
+      "place_resolution": [
+        {
+          "biblical_name_hu": "Úr",
+          "place_id": "ur_1",
+          "name_hu": "Úr",
+          "place_type": "region, settlement",
+          "identification_status": "certain",
+          "passage_refs": [
+            "1Móz 11,28-31"
+          ],
+          "certainty": "certain",
+          "uncertainty_note_hu": "Bibliai szöveghez kötött állomás; a vonal sematikus."
+        },
+        {
+          "biblical_name_hu": "Hárán",
+          "place_id": "haran",
+          "name_hu": "Hárán",
+          "place_type": "settlement",
+          "identification_status": "certain",
+          "passage_refs": [
+            "1Móz 11,31-12,5"
+          ],
+          "certainty": "certain",
+          "uncertainty_note_hu": "Bibliai szöveghez kötött állomás; a vonal sematikus."
+        },
+        {
+          "biblical_name_hu": "Sikem",
+          "place_id": "shechem",
+          "name_hu": "Sikem",
+          "place_type": "settlement",
+          "identification_status": "certain",
+          "passage_refs": [
+            "1Móz 12,6-7"
+          ],
+          "certainty": "certain",
+          "uncertainty_note_hu": "Bibliai szöveghez kötött állomás; a vonal sematikus."
+        },
+        {
+          "biblical_name_hu": "Bétel és Aj vidéke",
+          "place_id": "bethel_1",
+          "name_hu": "Bétel",
+          "place_type": "settlement",
+          "identification_status": "probable",
+          "passage_refs": [
+            "1Móz 12,8"
+          ],
+          "certainty": "probable",
+          "uncertainty_note_hu": "Bibliai szöveghez kötött állomás; a vonal sematikus."
+        },
+        {
+          "biblical_name_hu": "Negev",
+          "place_id": "negeb",
+          "name_hu": "Negev",
+          "place_type": "region",
+          "identification_status": "certain",
+          "passage_refs": [
+            "1Móz 12,9"
+          ],
+          "certainty": "certain",
+          "uncertainty_note_hu": "Regionális vagy bizonytalanabb állomás; nem pontos ókori útvonalrekonstrukció."
+        },
+        {
+          "biblical_name_hu": "Egyiptom",
+          "place_id": "egypt",
+          "name_hu": "Egyiptom",
+          "place_type": "region",
+          "identification_status": "certain",
+          "passage_refs": [
+            "1Móz 12,10-20"
+          ],
+          "certainty": "certain",
+          "uncertainty_note_hu": "Regionális vagy bizonytalanabb állomás; nem pontos ókori útvonalrekonstrukció."
+        },
+        {
+          "biblical_name_hu": "Negev",
+          "place_id": "negeb",
+          "name_hu": "Negev",
+          "place_type": "region",
+          "identification_status": "certain",
+          "passage_refs": [
+            "1Móz 13,1"
+          ],
+          "certainty": "certain",
+          "uncertainty_note_hu": "Regionális vagy bizonytalanabb állomás; nem pontos ókori útvonalrekonstrukció."
+        },
+        {
+          "biblical_name_hu": "Bétel",
+          "place_id": "bethel_1",
+          "name_hu": "Bétel",
+          "place_type": "settlement",
+          "identification_status": "probable",
+          "passage_refs": [
+            "1Móz 13,3-4"
+          ],
+          "certainty": "probable",
+          "uncertainty_note_hu": "Bibliai szöveghez kötött állomás; a vonal sematikus."
+        },
+        {
+          "biblical_name_hu": "Mamré",
+          "place_id": "mamre",
+          "name_hu": "Mamré",
+          "place_type": "settlement",
+          "identification_status": "probable",
+          "passage_refs": [
+            "1Móz 13,18"
+          ],
+          "certainty": "probable",
+          "uncertainty_note_hu": "Bibliai szöveghez kötött állomás; a vonal sematikus."
+        },
+        {
+          "biblical_name_hu": "Gerár",
+          "place_id": "gerar",
+          "name_hu": "Gerár",
+          "place_type": "settlement",
+          "identification_status": "probable",
+          "passage_refs": [
+            "1Móz 20,1"
+          ],
+          "certainty": "probable",
+          "uncertainty_note_hu": "Bibliai szöveghez kötött állomás; a vonal sematikus."
+        },
+        {
+          "biblical_name_hu": "Beérseba",
+          "place_id": "beersheba_1",
+          "name_hu": "Beérseba",
+          "place_type": "settlement",
+          "identification_status": "probable",
+          "passage_refs": [
+            "1Móz 21,31-34"
+          ],
+          "certainty": "probable",
+          "uncertainty_note_hu": "Bibliai szöveghez kötött állomás; a vonal sematikus."
+        },
+        {
+          "biblical_name_hu": "Moriah",
+          "place_id": "moriah",
+          "name_hu": "Moriah",
+          "place_type": "region",
+          "identification_status": "possible",
+          "passage_refs": [
+            "1Móz 22,2-14"
+          ],
+          "certainty": "possible",
+          "uncertainty_note_hu": "A szöveg Mórijjá földjét említi; a bizonytalanság megmarad."
+        },
+        {
+          "biblical_name_hu": "Beérseba",
+          "place_id": "beersheba_1",
+          "name_hu": "Beérseba",
+          "place_type": "settlement",
+          "identification_status": "probable",
+          "passage_refs": [
+            "1Móz 22,19"
+          ],
+          "certainty": "probable",
+          "uncertainty_note_hu": "Bibliai szöveghez kötött állomás; a vonal sematikus."
+        }
+      ]
+    },
+    {
+      "route_id": "jacob_journeys",
+      "name_hu": "Jákób útjai",
+      "stop_count": 12,
+      "segment_count": 11,
+      "segment_type_counts": {
+        "land": 11
+      },
+      "certainty_counts": {
+        "probable": 8,
+        "certain": 4
+      },
+      "unresolved_or_skipped_places": [],
+      "region_or_transit_stops": [
+        {
+          "stop_id": "paddan_aram_jacob",
+          "place_id": "paddan_aram",
+          "stop_type": "region",
+          "certainty": "probable"
+        },
+        {
+          "stop_id": "gilead_jacob",
+          "place_id": "gilead_1",
+          "stop_type": "region",
+          "certainty": "certain"
+        },
+        {
+          "stop_id": "mizpah_jacob",
+          "place_id": "mizpah_4",
+          "stop_type": "uncertain_place",
+          "certainty": "probable"
+        }
+      ],
+      "needs_expert_review": [
+        {
+          "stop_id": "beersheba_jacob_departure",
+          "place_id": "beersheba_1",
+          "note_hu": "Bibliai szöveghez kötött állomás; a vonal sematikus."
+        },
+        {
+          "stop_id": "bethel_jacob",
+          "place_id": "bethel_1",
+          "note_hu": "Bibliai szöveghez kötött állomás; a vonal sematikus."
+        },
+        {
+          "stop_id": "paddan_aram_jacob",
+          "place_id": "paddan_aram",
+          "note_hu": "Regionális vagy bizonytalanabb állomás; nem pontos ókori útvonalrekonstrukció."
+        },
+        {
+          "stop_id": "mizpah_jacob",
+          "place_id": "mizpah_4",
+          "note_hu": "A Jákób-Lábán határpont külön rekordtípusként marad."
+        },
+        {
+          "stop_id": "mahanaim_jacob",
+          "place_id": "mahanaim",
+          "note_hu": "Bibliai szöveghez kötött állomás; a vonal sematikus."
+        },
+        {
+          "stop_id": "penuel_jacob",
+          "place_id": "penuel",
+          "note_hu": "Bibliai szöveghez kötött állomás; a vonal sematikus."
+        },
+        {
+          "stop_id": "succoth_jacob",
+          "place_id": "succoth_1",
+          "note_hu": "Bibliai szöveghez kötött állomás; a vonal sematikus."
+        },
+        {
+          "stop_id": "bethel_jacob_return",
+          "place_id": "bethel_1",
+          "note_hu": "Bibliai szöveghez kötött állomás; a vonal sematikus."
+        }
+      ],
+      "passage_errors": [],
+      "mojibake_utf8_check": "passed",
+      "duplicate_geometry_check": "one_render_geometry_per_segment_expected",
+      "place_resolution": [
+        {
+          "biblical_name_hu": "Beérseba",
+          "place_id": "beersheba_1",
+          "name_hu": "Beérseba",
+          "place_type": "settlement",
+          "identification_status": "probable",
+          "passage_refs": [
+            "1Móz 28,10"
+          ],
+          "certainty": "probable",
+          "uncertainty_note_hu": "Bibliai szöveghez kötött állomás; a vonal sematikus."
+        },
+        {
+          "biblical_name_hu": "Bétel",
+          "place_id": "bethel_1",
+          "name_hu": "Bétel",
+          "place_type": "settlement",
+          "identification_status": "probable",
+          "passage_refs": [
+            "1Móz 28,11-22"
+          ],
+          "certainty": "probable",
+          "uncertainty_note_hu": "Bibliai szöveghez kötött állomás; a vonal sematikus."
+        },
+        {
+          "biblical_name_hu": "Paddan-Arám / Hárán vidéke",
+          "place_id": "paddan_aram",
+          "name_hu": "Paddan-Arám",
+          "place_type": "region, settlement",
+          "identification_status": "probable",
+          "passage_refs": [
+            "1Móz 28,5",
+            "1Móz 29,1-30,43"
+          ],
+          "certainty": "probable",
+          "uncertainty_note_hu": "Regionális vagy bizonytalanabb állomás; nem pontos ókori útvonalrekonstrukció."
+        },
+        {
+          "biblical_name_hu": "Gileád",
+          "place_id": "gilead_1",
+          "name_hu": "Gileád",
+          "place_type": "region",
+          "identification_status": "certain",
+          "passage_refs": [
+            "1Móz 31,21-25"
+          ],
+          "certainty": "certain",
+          "uncertainty_note_hu": "Regionális vagy bizonytalanabb állomás; nem pontos ókori útvonalrekonstrukció."
+        },
+        {
+          "biblical_name_hu": "Micpa",
+          "place_id": "mizpah_4",
+          "name_hu": "Micpa",
+          "place_type": "stone heap",
+          "identification_status": "probable",
+          "passage_refs": [
+            "1Móz 31,45-49"
+          ],
+          "certainty": "probable",
+          "uncertainty_note_hu": "A Jákób-Lábán határpont külön rekordtípusként marad."
+        },
+        {
+          "biblical_name_hu": "Mahanaim",
+          "place_id": "mahanaim",
+          "name_hu": "Mahanaim",
+          "place_type": "settlement",
+          "identification_status": "probable",
+          "passage_refs": [
+            "1Móz 32,1-2"
+          ],
+          "certainty": "probable",
+          "uncertainty_note_hu": "Bibliai szöveghez kötött állomás; a vonal sematikus."
+        },
+        {
+          "biblical_name_hu": "Penuél",
+          "place_id": "penuel",
+          "name_hu": "Penuél",
+          "place_type": "settlement",
+          "identification_status": "probable",
+          "passage_refs": [
+            "1Móz 32,24-31"
+          ],
+          "certainty": "probable",
+          "uncertainty_note_hu": "Bibliai szöveghez kötött állomás; a vonal sematikus."
+        },
+        {
+          "biblical_name_hu": "Szukkót",
+          "place_id": "succoth_1",
+          "name_hu": "Szukkót",
+          "place_type": "settlement",
+          "identification_status": "probable",
+          "passage_refs": [
+            "1Móz 33,17"
+          ],
+          "certainty": "probable",
+          "uncertainty_note_hu": "Bibliai szöveghez kötött állomás; a vonal sematikus."
+        },
+        {
+          "biblical_name_hu": "Sikem",
+          "place_id": "shechem",
+          "name_hu": "Sikem",
+          "place_type": "settlement",
+          "identification_status": "certain",
+          "passage_refs": [
+            "1Móz 33,18-20"
+          ],
+          "certainty": "certain",
+          "uncertainty_note_hu": "Bibliai szöveghez kötött állomás; a vonal sematikus."
+        },
+        {
+          "biblical_name_hu": "Bétel",
+          "place_id": "bethel_1",
+          "name_hu": "Bétel",
+          "place_type": "settlement",
+          "identification_status": "probable",
+          "passage_refs": [
+            "1Móz 35,1-15"
+          ],
+          "certainty": "probable",
+          "uncertainty_note_hu": "Bibliai szöveghez kötött állomás; a vonal sematikus."
+        },
+        {
+          "biblical_name_hu": "Efráta",
+          "place_id": "ephrath",
+          "name_hu": "Efráta",
+          "place_type": "settlement",
+          "identification_status": "certain",
+          "passage_refs": [
+            "1Móz 35,16-20"
+          ],
+          "certainty": "certain",
+          "uncertainty_note_hu": "Bibliai szöveghez kötött állomás; a vonal sematikus."
+        },
+        {
+          "biblical_name_hu": "Hebrón / Mamré vidéke",
+          "place_id": "hebron",
+          "name_hu": "Hebrón",
+          "place_type": "settlement",
+          "identification_status": "certain",
+          "passage_refs": [
+            "1Móz 35,27-29"
+          ],
+          "certainty": "certain",
+          "uncertainty_note_hu": "Bibliai szöveghez kötött állomás; a vonal sematikus."
+        }
+      ]
+    },
+    {
+      "route_id": "joseph_geographical_arc",
+      "name_hu": "József történetének földrajzi íve",
+      "stop_count": 10,
+      "segment_count": 9,
+      "segment_type_counts": {
+        "land": 9
+      },
+      "certainty_counts": {
+        "certain": 9,
+        "probable": 1
+      },
+      "unresolved_or_skipped_places": [],
+      "region_or_transit_stops": [
+        {
+          "stop_id": "egypt_joseph",
+          "place_id": "egypt",
+          "stop_type": "region",
+          "certainty": "certain"
+        },
+        {
+          "stop_id": "canaan_brothers_first",
+          "place_id": "canaan",
+          "stop_type": "region",
+          "certainty": "certain"
+        },
+        {
+          "stop_id": "egypt_brothers_first",
+          "place_id": "egypt",
+          "stop_type": "region",
+          "certainty": "certain"
+        }
+      ],
+      "needs_expert_review": [
+        {
+          "stop_id": "beersheba_jacob_to_egypt",
+          "place_id": "beersheba_1",
+          "note_hu": "Bibliai szöveghez kötött állomás; a vonal sematikus."
+        }
+      ],
+      "passage_errors": [],
+      "mojibake_utf8_check": "passed",
+      "duplicate_geometry_check": "one_render_geometry_per_segment_expected",
+      "place_resolution": [
+        {
+          "biblical_name_hu": "Hebrón völgye",
+          "place_id": "valley_of_hebron",
+          "name_hu": "Hebrón-völgy",
+          "place_type": "valley",
+          "identification_status": "certain",
+          "passage_refs": [
+            "1Móz 37,14"
+          ],
+          "certainty": "certain",
+          "uncertainty_note_hu": "Bibliai szöveghez kötött állomás; a vonal sematikus."
+        },
+        {
+          "biblical_name_hu": "Sikem",
+          "place_id": "shechem",
+          "name_hu": "Sikem",
+          "place_type": "settlement",
+          "identification_status": "certain",
+          "passage_refs": [
+            "1Móz 37,12-14"
+          ],
+          "certainty": "certain",
+          "uncertainty_note_hu": "Bibliai szöveghez kötött állomás; a vonal sematikus."
+        },
+        {
+          "biblical_name_hu": "Dótán",
+          "place_id": "dothan",
+          "name_hu": "Dótán",
+          "place_type": "settlement",
+          "identification_status": "certain",
+          "passage_refs": [
+            "1Móz 37,17"
+          ],
+          "certainty": "certain",
+          "uncertainty_note_hu": "Bibliai szöveghez kötött állomás; a vonal sematikus."
+        },
+        {
+          "biblical_name_hu": "Egyiptom",
+          "place_id": "egypt",
+          "name_hu": "Egyiptom",
+          "place_type": "region",
+          "identification_status": "certain",
+          "passage_refs": [
+            "1Móz 37,28-36"
+          ],
+          "certainty": "certain",
+          "uncertainty_note_hu": "Regionális vagy bizonytalanabb állomás; nem pontos ókori útvonalrekonstrukció."
+        },
+        {
+          "biblical_name_hu": "Kánaán",
+          "place_id": "canaan",
+          "name_hu": "Kánaán",
+          "place_type": "region",
+          "identification_status": "certain",
+          "passage_refs": [
+            "1Móz 42,1-5"
+          ],
+          "certainty": "certain",
+          "uncertainty_note_hu": "Regionális vagy bizonytalanabb állomás; nem pontos ókori útvonalrekonstrukció."
+        },
+        {
+          "biblical_name_hu": "Egyiptom",
+          "place_id": "egypt",
+          "name_hu": "Egyiptom",
+          "place_type": "region",
+          "identification_status": "certain",
+          "passage_refs": [
+            "1Móz 42,6-38"
+          ],
+          "certainty": "certain",
+          "uncertainty_note_hu": "Regionális vagy bizonytalanabb állomás; nem pontos ókori útvonalrekonstrukció."
+        },
+        {
+          "biblical_name_hu": "Kánaán",
+          "place_id": "canaan",
+          "name_hu": "Kánaán",
+          "place_type": "region",
+          "identification_status": "certain",
+          "passage_refs": [
+            "1Móz 43,1-15"
+          ],
+          "certainty": "certain",
+          "uncertainty_note_hu": "Regionális vagy bizonytalanabb állomás; nem pontos ókori útvonalrekonstrukció."
+        },
+        {
+          "biblical_name_hu": "Egyiptom",
+          "place_id": "egypt",
+          "name_hu": "Egyiptom",
+          "place_type": "region",
+          "identification_status": "certain",
+          "passage_refs": [
+            "1Móz 43,15-45,28"
+          ],
+          "certainty": "certain",
+          "uncertainty_note_hu": "Regionális vagy bizonytalanabb állomás; nem pontos ókori útvonalrekonstrukció."
+        },
+        {
+          "biblical_name_hu": "Beérseba",
+          "place_id": "beersheba_1",
+          "name_hu": "Beérseba",
+          "place_type": "settlement",
+          "identification_status": "probable",
+          "passage_refs": [
+            "1Móz 46,1-5"
+          ],
+          "certainty": "probable",
+          "uncertainty_note_hu": "Bibliai szöveghez kötött állomás; a vonal sematikus."
+        },
+        {
+          "biblical_name_hu": "Gósen földje",
+          "place_id": "goshen_1",
+          "name_hu": "Gósen földje",
+          "place_type": "region",
+          "identification_status": "certain",
+          "passage_refs": [
+            "1Móz 46,28-47,11"
+          ],
+          "certainty": "certain",
+          "uncertainty_note_hu": "Regionális vagy bizonytalanabb állomás; nem pontos ókori útvonalrekonstrukció."
+        }
+      ]
+    }
+  ]
+}

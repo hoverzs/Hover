@@ -1,0 +1,1892 @@
+[
+  {
+    "place_id": "achaia",
+    "name_hu": "Akhája",
+    "valid_sections": [
+      "biblical_significance",
+      "key_events",
+      "ancient_geography",
+      "modern_context",
+      "identification_notes"
+    ],
+    "evidence_count_by_strength": {
+      "A_biblical_primary": 3,
+      "B_structured_gazetteer": 5,
+      "C_external_institutional": 0,
+      "D_external_scholarly": 0,
+      "E_contextual_secondary": 0,
+      "F_inference": 0,
+      "G_unsupported": 0
+    },
+    "approved_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "candidate_source_ids": [
+      "catalog_pleiades_981502"
+    ],
+    "independent_external_source_count": 0,
+    "readiness_class": "biblical_draft_ready",
+    "unresolved_gaps": [
+      "historical_context",
+      "archaeology"
+    ],
+    "blocked_sections": [
+      "historical_context",
+      "archaeology",
+      "homiletical_context"
+    ],
+    "drafting_scope": "csak biblical_significance + key_events + identification_notes",
+    "drafting_notes_hu": "Draft csak az auditált evidence packet alapján készülhet; ez még nem végleges enrichment szöveg."
+  },
+  {
+    "place_id": "ai_1",
+    "name_hu": "Aj",
+    "valid_sections": [
+      "biblical_significance",
+      "key_events",
+      "ancient_geography",
+      "modern_context",
+      "identification_notes"
+    ],
+    "evidence_count_by_strength": {
+      "A_biblical_primary": 4,
+      "B_structured_gazetteer": 3,
+      "C_external_institutional": 0,
+      "D_external_scholarly": 0,
+      "E_contextual_secondary": 0,
+      "F_inference": 0,
+      "G_unsupported": 0
+    },
+    "approved_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "candidate_source_ids": [],
+    "independent_external_source_count": 0,
+    "readiness_class": "biblical_draft_ready",
+    "unresolved_gaps": [
+      "historical_context",
+      "archaeology"
+    ],
+    "blocked_sections": [
+      "historical_context",
+      "archaeology",
+      "homiletical_context"
+    ],
+    "drafting_scope": "csak biblical_significance + key_events + identification_notes",
+    "drafting_notes_hu": "Draft csak az auditált evidence packet alapján készülhet; ez még nem végleges enrichment szöveg."
+  },
+  {
+    "place_id": "ammon",
+    "name_hu": "Ammón",
+    "valid_sections": [
+      "biblical_significance",
+      "key_events",
+      "ancient_geography",
+      "modern_context",
+      "identification_notes"
+    ],
+    "evidence_count_by_strength": {
+      "A_biblical_primary": 8,
+      "B_structured_gazetteer": 3,
+      "C_external_institutional": 0,
+      "D_external_scholarly": 0,
+      "E_contextual_secondary": 0,
+      "F_inference": 0,
+      "G_unsupported": 0
+    },
+    "approved_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "candidate_source_ids": [],
+    "independent_external_source_count": 0,
+    "readiness_class": "biblical_draft_ready",
+    "unresolved_gaps": [
+      "historical_context",
+      "archaeology"
+    ],
+    "blocked_sections": [
+      "historical_context",
+      "archaeology",
+      "homiletical_context"
+    ],
+    "drafting_scope": "csak biblical_significance + key_events + identification_notes",
+    "drafting_notes_hu": "Draft csak az auditált evidence packet alapján készülhet; ez még nem végleges enrichment szöveg."
+  },
+  {
+    "place_id": "ashdod",
+    "name_hu": "Asdód",
+    "valid_sections": [
+      "biblical_significance",
+      "key_events",
+      "ancient_geography",
+      "modern_context",
+      "identification_notes"
+    ],
+    "evidence_count_by_strength": {
+      "A_biblical_primary": 8,
+      "B_structured_gazetteer": 3,
+      "C_external_institutional": 0,
+      "D_external_scholarly": 0,
+      "E_contextual_secondary": 0,
+      "F_inference": 0,
+      "G_unsupported": 0
+    },
+    "approved_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "candidate_source_ids": [],
+    "independent_external_source_count": 0,
+    "readiness_class": "biblical_draft_ready",
+    "unresolved_gaps": [
+      "historical_context",
+      "archaeology"
+    ],
+    "blocked_sections": [
+      "historical_context",
+      "archaeology",
+      "homiletical_context"
+    ],
+    "drafting_scope": "csak biblical_significance + key_events + identification_notes",
+    "drafting_notes_hu": "Draft csak az auditált evidence packet alapján készülhet; ez még nem végleges enrichment szöveg."
+  },
+  {
+    "place_id": "ashkelon",
+    "name_hu": "Askelón",
+    "valid_sections": [
+      "biblical_significance",
+      "key_events",
+      "ancient_geography",
+      "modern_context",
+      "identification_notes"
+    ],
+    "evidence_count_by_strength": {
+      "A_biblical_primary": 8,
+      "B_structured_gazetteer": 3,
+      "C_external_institutional": 0,
+      "D_external_scholarly": 0,
+      "E_contextual_secondary": 0,
+      "F_inference": 0,
+      "G_unsupported": 0
+    },
+    "approved_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "candidate_source_ids": [],
+    "independent_external_source_count": 0,
+    "readiness_class": "biblical_draft_ready",
+    "unresolved_gaps": [
+      "historical_context",
+      "archaeology"
+    ],
+    "blocked_sections": [
+      "historical_context",
+      "archaeology",
+      "homiletical_context"
+    ],
+    "drafting_scope": "csak biblical_significance + key_events + identification_notes",
+    "drafting_notes_hu": "Draft csak az auditált evidence packet alapján készülhet; ez még nem végleges enrichment szöveg."
+  },
+  {
+    "place_id": "asia",
+    "name_hu": "Ázsia provincia",
+    "valid_sections": [
+      "biblical_significance",
+      "key_events",
+      "ancient_geography",
+      "modern_context",
+      "identification_notes"
+    ],
+    "evidence_count_by_strength": {
+      "A_biblical_primary": 8,
+      "B_structured_gazetteer": 5,
+      "C_external_institutional": 0,
+      "D_external_scholarly": 0,
+      "E_contextual_secondary": 0,
+      "F_inference": 0,
+      "G_unsupported": 0
+    },
+    "approved_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "candidate_source_ids": [
+      "catalog_pleiades_981509"
+    ],
+    "independent_external_source_count": 0,
+    "readiness_class": "biblical_draft_ready",
+    "unresolved_gaps": [
+      "historical_context",
+      "archaeology"
+    ],
+    "blocked_sections": [
+      "historical_context",
+      "archaeology",
+      "homiletical_context"
+    ],
+    "drafting_scope": "csak biblical_significance + key_events + identification_notes",
+    "drafting_notes_hu": "Draft csak az auditált evidence packet alapján készülhet; ez még nem végleges enrichment szöveg."
+  },
+  {
+    "place_id": "assyria",
+    "name_hu": "Asszíria",
+    "valid_sections": [
+      "biblical_significance",
+      "key_events",
+      "ancient_geography",
+      "modern_context",
+      "identification_notes"
+    ],
+    "evidence_count_by_strength": {
+      "A_biblical_primary": 8,
+      "B_structured_gazetteer": 3,
+      "C_external_institutional": 0,
+      "D_external_scholarly": 0,
+      "E_contextual_secondary": 0,
+      "F_inference": 0,
+      "G_unsupported": 0
+    },
+    "approved_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "candidate_source_ids": [],
+    "independent_external_source_count": 0,
+    "readiness_class": "biblical_draft_ready",
+    "unresolved_gaps": [
+      "historical_context",
+      "archaeology"
+    ],
+    "blocked_sections": [
+      "historical_context",
+      "archaeology",
+      "homiletical_context"
+    ],
+    "drafting_scope": "csak biblical_significance + key_events + identification_notes",
+    "drafting_notes_hu": "Draft csak az auditált evidence packet alapján készülhet; ez még nem végleges enrichment szöveg."
+  },
+  {
+    "place_id": "canaan",
+    "name_hu": "Kánaán",
+    "valid_sections": [
+      "biblical_significance",
+      "key_events",
+      "ancient_geography",
+      "modern_context",
+      "identification_notes"
+    ],
+    "evidence_count_by_strength": {
+      "A_biblical_primary": 4,
+      "B_structured_gazetteer": 3,
+      "C_external_institutional": 0,
+      "D_external_scholarly": 0,
+      "E_contextual_secondary": 0,
+      "F_inference": 0,
+      "G_unsupported": 0
+    },
+    "approved_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "candidate_source_ids": [],
+    "independent_external_source_count": 0,
+    "readiness_class": "biblical_draft_ready",
+    "unresolved_gaps": [
+      "historical_context",
+      "archaeology"
+    ],
+    "blocked_sections": [
+      "historical_context",
+      "archaeology",
+      "homiletical_context"
+    ],
+    "drafting_scope": "csak biblical_significance + key_events + identification_notes",
+    "drafting_notes_hu": "Draft csak az auditált evidence packet alapján készülhet; ez még nem végleges enrichment szöveg."
+  },
+  {
+    "place_id": "chaldea",
+    "name_hu": "Káldea",
+    "valid_sections": [
+      "biblical_significance",
+      "key_events",
+      "ancient_geography",
+      "modern_context",
+      "identification_notes"
+    ],
+    "evidence_count_by_strength": {
+      "A_biblical_primary": 8,
+      "B_structured_gazetteer": 3,
+      "C_external_institutional": 0,
+      "D_external_scholarly": 0,
+      "E_contextual_secondary": 0,
+      "F_inference": 0,
+      "G_unsupported": 0
+    },
+    "approved_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "candidate_source_ids": [],
+    "independent_external_source_count": 0,
+    "readiness_class": "biblical_draft_ready",
+    "unresolved_gaps": [
+      "historical_context",
+      "archaeology"
+    ],
+    "blocked_sections": [
+      "historical_context",
+      "archaeology",
+      "homiletical_context"
+    ],
+    "drafting_scope": "csak biblical_significance + key_events + identification_notes",
+    "drafting_notes_hu": "Draft csak az auditált evidence packet alapján készülhet; ez még nem végleges enrichment szöveg."
+  },
+  {
+    "place_id": "cush_1",
+    "name_hu": "Kús",
+    "valid_sections": [
+      "biblical_significance",
+      "key_events",
+      "ancient_geography",
+      "modern_context",
+      "identification_notes"
+    ],
+    "evidence_count_by_strength": {
+      "A_biblical_primary": 8,
+      "B_structured_gazetteer": 3,
+      "C_external_institutional": 0,
+      "D_external_scholarly": 0,
+      "E_contextual_secondary": 0,
+      "F_inference": 0,
+      "G_unsupported": 0
+    },
+    "approved_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "candidate_source_ids": [],
+    "independent_external_source_count": 0,
+    "readiness_class": "biblical_draft_ready",
+    "unresolved_gaps": [
+      "historical_context",
+      "archaeology"
+    ],
+    "blocked_sections": [
+      "historical_context",
+      "archaeology",
+      "homiletical_context"
+    ],
+    "drafting_scope": "csak biblical_significance + key_events + identification_notes",
+    "drafting_notes_hu": "Draft csak az auditált evidence packet alapján készülhet; ez még nem végleges enrichment szöveg."
+  },
+  {
+    "place_id": "cyprus",
+    "name_hu": "Ciprus",
+    "valid_sections": [
+      "biblical_significance",
+      "key_events",
+      "ancient_geography",
+      "modern_context",
+      "identification_notes"
+    ],
+    "evidence_count_by_strength": {
+      "A_biblical_primary": 4,
+      "B_structured_gazetteer": 5,
+      "C_external_institutional": 0,
+      "D_external_scholarly": 0,
+      "E_contextual_secondary": 0,
+      "F_inference": 0,
+      "G_unsupported": 0
+    },
+    "approved_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "candidate_source_ids": [
+      "catalog_pleiades_707498"
+    ],
+    "independent_external_source_count": 0,
+    "readiness_class": "biblical_draft_ready",
+    "unresolved_gaps": [
+      "historical_context",
+      "archaeology"
+    ],
+    "blocked_sections": [
+      "historical_context",
+      "archaeology",
+      "homiletical_context"
+    ],
+    "drafting_scope": "csak biblical_significance + key_events + identification_notes",
+    "drafting_notes_hu": "Draft csak az auditált evidence packet alapján készülhet; ez még nem végleges enrichment szöveg."
+  },
+  {
+    "place_id": "derbe",
+    "name_hu": "Derbé",
+    "valid_sections": [
+      "biblical_significance",
+      "key_events",
+      "ancient_geography",
+      "modern_context",
+      "identification_notes"
+    ],
+    "evidence_count_by_strength": {
+      "A_biblical_primary": 4,
+      "B_structured_gazetteer": 3,
+      "C_external_institutional": 0,
+      "D_external_scholarly": 0,
+      "E_contextual_secondary": 0,
+      "F_inference": 0,
+      "G_unsupported": 0
+    },
+    "approved_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "candidate_source_ids": [],
+    "independent_external_source_count": 0,
+    "readiness_class": "biblical_draft_ready",
+    "unresolved_gaps": [
+      "historical_context",
+      "archaeology"
+    ],
+    "blocked_sections": [
+      "historical_context",
+      "archaeology",
+      "homiletical_context"
+    ],
+    "drafting_scope": "csak biblical_significance + key_events + identification_notes",
+    "drafting_notes_hu": "Draft csak az auditált evidence packet alapján készülhet; ez még nem végleges enrichment szöveg."
+  },
+  {
+    "place_id": "east",
+    "name_hu": "Kelet vidéke",
+    "valid_sections": [
+      "biblical_significance",
+      "key_events",
+      "ancient_geography",
+      "modern_context",
+      "identification_notes"
+    ],
+    "evidence_count_by_strength": {
+      "A_biblical_primary": 8,
+      "B_structured_gazetteer": 3,
+      "C_external_institutional": 0,
+      "D_external_scholarly": 0,
+      "E_contextual_secondary": 0,
+      "F_inference": 0,
+      "G_unsupported": 0
+    },
+    "approved_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "candidate_source_ids": [],
+    "independent_external_source_count": 0,
+    "readiness_class": "biblical_draft_ready",
+    "unresolved_gaps": [
+      "historical_context",
+      "archaeology"
+    ],
+    "blocked_sections": [
+      "historical_context",
+      "archaeology",
+      "homiletical_context"
+    ],
+    "drafting_scope": "csak biblical_significance + key_events + identification_notes",
+    "drafting_notes_hu": "Draft csak az auditált evidence packet alapján készülhet; ez még nem végleges enrichment szöveg."
+  },
+  {
+    "place_id": "edom",
+    "name_hu": "Edóm",
+    "valid_sections": [
+      "biblical_significance",
+      "key_events",
+      "ancient_geography",
+      "historical_context",
+      "modern_context",
+      "identification_notes"
+    ],
+    "evidence_count_by_strength": {
+      "A_biblical_primary": 8,
+      "B_structured_gazetteer": 3,
+      "C_external_institutional": 0,
+      "D_external_scholarly": 0,
+      "E_contextual_secondary": 2,
+      "F_inference": 0,
+      "G_unsupported": 0
+    },
+    "approved_source_ids": [
+      "openbible_geocoding_cc_by_4_0",
+      "unesco_petra_326"
+    ],
+    "candidate_source_ids": [
+      "web_unesco_petra_326"
+    ],
+    "independent_external_source_count": 1,
+    "readiness_class": "partial_profile_ready",
+    "unresolved_gaps": [
+      "archaeology"
+    ],
+    "blocked_sections": [
+      "archaeology",
+      "homiletical_context"
+    ],
+    "drafting_scope": "részleges profil; történeti/régészeti szakaszok csak a támogatott körben",
+    "drafting_notes_hu": "Draft csak az auditált evidence packet alapján készülhet; ez még nem végleges enrichment szöveg."
+  },
+  {
+    "place_id": "egypt",
+    "name_hu": "Egyiptom",
+    "valid_sections": [
+      "biblical_significance",
+      "key_events",
+      "ancient_geography",
+      "historical_context",
+      "archaeology",
+      "modern_context",
+      "identification_notes"
+    ],
+    "evidence_count_by_strength": {
+      "A_biblical_primary": 6,
+      "B_structured_gazetteer": 3,
+      "C_external_institutional": 1,
+      "D_external_scholarly": 0,
+      "E_contextual_secondary": 2,
+      "F_inference": 0,
+      "G_unsupported": 0
+    },
+    "approved_source_ids": [
+      "openbible_geocoding_cc_by_4_0",
+      "unesco_ancient_thebes_87"
+    ],
+    "candidate_source_ids": [
+      "web_unesco_ancient_thebes_87"
+    ],
+    "independent_external_source_count": 1,
+    "readiness_class": "partial_profile_ready",
+    "unresolved_gaps": [],
+    "blocked_sections": [
+      "homiletical_context"
+    ],
+    "drafting_scope": "részleges profil; történeti/régészeti szakaszok csak a támogatott körben",
+    "drafting_notes_hu": "Draft csak az auditált evidence packet alapján készülhet; ez még nem végleges enrichment szöveg."
+  },
+  {
+    "place_id": "ekron",
+    "name_hu": "Ekrón",
+    "valid_sections": [
+      "biblical_significance",
+      "key_events",
+      "ancient_geography",
+      "modern_context",
+      "identification_notes"
+    ],
+    "evidence_count_by_strength": {
+      "A_biblical_primary": 8,
+      "B_structured_gazetteer": 3,
+      "C_external_institutional": 0,
+      "D_external_scholarly": 0,
+      "E_contextual_secondary": 0,
+      "F_inference": 0,
+      "G_unsupported": 0
+    },
+    "approved_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "candidate_source_ids": [],
+    "independent_external_source_count": 0,
+    "readiness_class": "biblical_draft_ready",
+    "unresolved_gaps": [
+      "historical_context",
+      "archaeology"
+    ],
+    "blocked_sections": [
+      "historical_context",
+      "archaeology",
+      "homiletical_context"
+    ],
+    "drafting_scope": "csak biblical_significance + key_events + identification_notes",
+    "drafting_notes_hu": "Draft csak az auditált evidence packet alapján készülhet; ez még nem végleges enrichment szöveg."
+  },
+  {
+    "place_id": "elam",
+    "name_hu": "Élám",
+    "valid_sections": [
+      "biblical_significance",
+      "key_events",
+      "ancient_geography",
+      "modern_context",
+      "identification_notes"
+    ],
+    "evidence_count_by_strength": {
+      "A_biblical_primary": 8,
+      "B_structured_gazetteer": 5,
+      "C_external_institutional": 0,
+      "D_external_scholarly": 0,
+      "E_contextual_secondary": 0,
+      "F_inference": 0,
+      "G_unsupported": 0
+    },
+    "approved_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "candidate_source_ids": [
+      "catalog_pleiades_912842"
+    ],
+    "independent_external_source_count": 0,
+    "readiness_class": "biblical_draft_ready",
+    "unresolved_gaps": [
+      "historical_context",
+      "archaeology"
+    ],
+    "blocked_sections": [
+      "historical_context",
+      "archaeology",
+      "homiletical_context"
+    ],
+    "drafting_scope": "csak biblical_significance + key_events + identification_notes",
+    "drafting_notes_hu": "Draft csak az auditált evidence packet alapján készülhet; ez még nem végleges enrichment szöveg."
+  },
+  {
+    "place_id": "galatia",
+    "name_hu": "Galácia",
+    "valid_sections": [
+      "biblical_significance",
+      "key_events",
+      "ancient_geography",
+      "modern_context",
+      "identification_notes"
+    ],
+    "evidence_count_by_strength": {
+      "A_biblical_primary": 4,
+      "B_structured_gazetteer": 5,
+      "C_external_institutional": 0,
+      "D_external_scholarly": 0,
+      "E_contextual_secondary": 0,
+      "F_inference": 0,
+      "G_unsupported": 0
+    },
+    "approved_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "candidate_source_ids": [
+      "catalog_pleiades_991393"
+    ],
+    "independent_external_source_count": 0,
+    "readiness_class": "biblical_draft_ready",
+    "unresolved_gaps": [
+      "historical_context",
+      "archaeology"
+    ],
+    "blocked_sections": [
+      "historical_context",
+      "archaeology",
+      "homiletical_context"
+    ],
+    "drafting_scope": "csak biblical_significance + key_events + identification_notes",
+    "drafting_notes_hu": "Draft csak az auditált evidence packet alapján készülhet; ez még nem végleges enrichment szöveg."
+  },
+  {
+    "place_id": "gaza",
+    "name_hu": "Gáza",
+    "valid_sections": [
+      "biblical_significance",
+      "key_events",
+      "ancient_geography",
+      "modern_context",
+      "identification_notes"
+    ],
+    "evidence_count_by_strength": {
+      "A_biblical_primary": 8,
+      "B_structured_gazetteer": 3,
+      "C_external_institutional": 0,
+      "D_external_scholarly": 0,
+      "E_contextual_secondary": 0,
+      "F_inference": 0,
+      "G_unsupported": 0
+    },
+    "approved_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "candidate_source_ids": [],
+    "independent_external_source_count": 0,
+    "readiness_class": "biblical_draft_ready",
+    "unresolved_gaps": [
+      "historical_context",
+      "archaeology"
+    ],
+    "blocked_sections": [
+      "historical_context",
+      "archaeology",
+      "homiletical_context"
+    ],
+    "drafting_scope": "csak biblical_significance + key_events + identification_notes",
+    "drafting_notes_hu": "Draft csak az auditált evidence packet alapján készülhet; ez még nem végleges enrichment szöveg."
+  },
+  {
+    "place_id": "gilead_1",
+    "name_hu": "Gileád",
+    "valid_sections": [
+      "biblical_significance",
+      "key_events",
+      "ancient_geography",
+      "modern_context",
+      "identification_notes"
+    ],
+    "evidence_count_by_strength": {
+      "A_biblical_primary": 3,
+      "B_structured_gazetteer": 3,
+      "C_external_institutional": 0,
+      "D_external_scholarly": 0,
+      "E_contextual_secondary": 0,
+      "F_inference": 0,
+      "G_unsupported": 0
+    },
+    "approved_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "candidate_source_ids": [],
+    "independent_external_source_count": 0,
+    "readiness_class": "biblical_draft_ready",
+    "unresolved_gaps": [
+      "historical_context",
+      "archaeology"
+    ],
+    "blocked_sections": [
+      "historical_context",
+      "archaeology",
+      "homiletical_context"
+    ],
+    "drafting_scope": "csak biblical_significance + key_events + identification_notes",
+    "drafting_notes_hu": "Draft csak az auditált evidence packet alapján készülhet; ez még nem végleges enrichment szöveg."
+  },
+  {
+    "place_id": "gilgal_1",
+    "name_hu": "Gilgál",
+    "valid_sections": [
+      "biblical_significance",
+      "key_events",
+      "ancient_geography",
+      "modern_context",
+      "identification_notes"
+    ],
+    "evidence_count_by_strength": {
+      "A_biblical_primary": 7,
+      "B_structured_gazetteer": 3,
+      "C_external_institutional": 0,
+      "D_external_scholarly": 0,
+      "E_contextual_secondary": 0,
+      "F_inference": 0,
+      "G_unsupported": 0
+    },
+    "approved_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "candidate_source_ids": [],
+    "independent_external_source_count": 0,
+    "readiness_class": "biblical_draft_ready",
+    "unresolved_gaps": [
+      "historical_context",
+      "archaeology"
+    ],
+    "blocked_sections": [
+      "historical_context",
+      "archaeology",
+      "homiletical_context"
+    ],
+    "drafting_scope": "csak biblical_significance + key_events + identification_notes",
+    "drafting_notes_hu": "Draft csak az auditált evidence packet alapján készülhet; ez még nem végleges enrichment szöveg."
+  },
+  {
+    "place_id": "gomorrah",
+    "name_hu": "Gomora",
+    "valid_sections": [
+      "biblical_significance",
+      "key_events",
+      "ancient_geography",
+      "modern_context",
+      "identification_notes"
+    ],
+    "evidence_count_by_strength": {
+      "A_biblical_primary": 8,
+      "B_structured_gazetteer": 3,
+      "C_external_institutional": 0,
+      "D_external_scholarly": 0,
+      "E_contextual_secondary": 0,
+      "F_inference": 0,
+      "G_unsupported": 0
+    },
+    "approved_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "candidate_source_ids": [],
+    "independent_external_source_count": 0,
+    "readiness_class": "biblical_draft_ready",
+    "unresolved_gaps": [
+      "historical_context",
+      "archaeology"
+    ],
+    "blocked_sections": [
+      "historical_context",
+      "archaeology",
+      "homiletical_context"
+    ],
+    "drafting_scope": "csak biblical_significance + key_events + identification_notes",
+    "drafting_notes_hu": "Draft csak az auditált evidence packet alapján készülhet; ez még nem végleges enrichment szöveg."
+  },
+  {
+    "place_id": "great_sea",
+    "name_hu": "Nagy-tenger",
+    "valid_sections": [
+      "biblical_significance",
+      "key_events",
+      "ancient_geography",
+      "modern_context",
+      "identification_notes"
+    ],
+    "evidence_count_by_strength": {
+      "A_biblical_primary": 8,
+      "B_structured_gazetteer": 5,
+      "C_external_institutional": 0,
+      "D_external_scholarly": 0,
+      "E_contextual_secondary": 0,
+      "F_inference": 0,
+      "G_unsupported": 0
+    },
+    "approved_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "candidate_source_ids": [
+      "catalog_pleiades_1043"
+    ],
+    "independent_external_source_count": 0,
+    "readiness_class": "biblical_draft_ready",
+    "unresolved_gaps": [
+      "historical_context",
+      "archaeology"
+    ],
+    "blocked_sections": [
+      "historical_context",
+      "archaeology",
+      "homiletical_context"
+    ],
+    "drafting_scope": "csak biblical_significance + key_events + identification_notes",
+    "drafting_notes_hu": "Draft csak az auditált evidence packet alapján készülhet; ez még nem végleges enrichment szöveg."
+  },
+  {
+    "place_id": "haran",
+    "name_hu": "Hárán",
+    "valid_sections": [
+      "biblical_significance",
+      "key_events",
+      "ancient_geography",
+      "modern_context",
+      "identification_notes"
+    ],
+    "evidence_count_by_strength": {
+      "A_biblical_primary": 3,
+      "B_structured_gazetteer": 5,
+      "C_external_institutional": 0,
+      "D_external_scholarly": 0,
+      "E_contextual_secondary": 0,
+      "F_inference": 0,
+      "G_unsupported": 0
+    },
+    "approved_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "candidate_source_ids": [
+      "catalog_pleiades_658427"
+    ],
+    "independent_external_source_count": 0,
+    "readiness_class": "biblical_draft_ready",
+    "unresolved_gaps": [
+      "historical_context",
+      "archaeology"
+    ],
+    "blocked_sections": [
+      "historical_context",
+      "archaeology",
+      "homiletical_context"
+    ],
+    "drafting_scope": "csak biblical_significance + key_events + identification_notes",
+    "drafting_notes_hu": "Draft csak az auditált evidence packet alapján készülhet; ez még nem végleges enrichment szöveg."
+  },
+  {
+    "place_id": "jezreel_2",
+    "name_hu": "Jezréel",
+    "valid_sections": [
+      "biblical_significance",
+      "key_events",
+      "ancient_geography",
+      "modern_context",
+      "identification_notes"
+    ],
+    "evidence_count_by_strength": {
+      "A_biblical_primary": 8,
+      "B_structured_gazetteer": 3,
+      "C_external_institutional": 0,
+      "D_external_scholarly": 0,
+      "E_contextual_secondary": 0,
+      "F_inference": 0,
+      "G_unsupported": 0
+    },
+    "approved_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "candidate_source_ids": [],
+    "independent_external_source_count": 0,
+    "readiness_class": "biblical_draft_ready",
+    "unresolved_gaps": [
+      "historical_context",
+      "archaeology"
+    ],
+    "blocked_sections": [
+      "historical_context",
+      "archaeology",
+      "homiletical_context"
+    ],
+    "drafting_scope": "csak biblical_significance + key_events + identification_notes",
+    "drafting_notes_hu": "Draft csak az auditált evidence packet alapján készülhet; ez még nem végleges enrichment szöveg."
+  },
+  {
+    "place_id": "jordan",
+    "name_hu": "Jordán",
+    "valid_sections": [
+      "biblical_significance",
+      "key_events",
+      "ancient_geography",
+      "modern_context",
+      "identification_notes"
+    ],
+    "evidence_count_by_strength": {
+      "A_biblical_primary": 3,
+      "B_structured_gazetteer": 5,
+      "C_external_institutional": 0,
+      "D_external_scholarly": 0,
+      "E_contextual_secondary": 0,
+      "F_inference": 0,
+      "G_unsupported": 0
+    },
+    "approved_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "candidate_source_ids": [
+      "catalog_pleiades_687932"
+    ],
+    "independent_external_source_count": 0,
+    "readiness_class": "biblical_draft_ready",
+    "unresolved_gaps": [
+      "historical_context",
+      "archaeology"
+    ],
+    "blocked_sections": [
+      "historical_context",
+      "archaeology",
+      "homiletical_context"
+    ],
+    "drafting_scope": "csak biblical_significance + key_events + identification_notes",
+    "drafting_notes_hu": "Draft csak az auditált evidence packet alapján készülhet; ez még nem végleges enrichment szöveg."
+  },
+  {
+    "place_id": "judea_1",
+    "name_hu": "Júdea",
+    "valid_sections": [
+      "biblical_significance",
+      "key_events",
+      "ancient_geography",
+      "historical_context",
+      "modern_context",
+      "identification_notes"
+    ],
+    "evidence_count_by_strength": {
+      "A_biblical_primary": 8,
+      "B_structured_gazetteer": 5,
+      "C_external_institutional": 0,
+      "D_external_scholarly": 0,
+      "E_contextual_secondary": 3,
+      "F_inference": 0,
+      "G_unsupported": 0
+    },
+    "approved_source_ids": [
+      "openbible_geocoding_cc_by_4_0",
+      "unesco_jerusalem_148"
+    ],
+    "candidate_source_ids": [
+      "catalog_pleiades_981527",
+      "web_unesco_jerusalem_148"
+    ],
+    "independent_external_source_count": 1,
+    "readiness_class": "partial_profile_ready",
+    "unresolved_gaps": [
+      "archaeology"
+    ],
+    "blocked_sections": [
+      "archaeology",
+      "homiletical_context"
+    ],
+    "drafting_scope": "részleges profil; történeti/régészeti szakaszok csak a támogatott körben",
+    "drafting_notes_hu": "Draft csak az auditált evidence packet alapján készülhet; ez még nem végleges enrichment szöveg."
+  },
+  {
+    "place_id": "lachish",
+    "name_hu": "Lákis",
+    "valid_sections": [
+      "biblical_significance",
+      "key_events",
+      "ancient_geography",
+      "modern_context",
+      "identification_notes"
+    ],
+    "evidence_count_by_strength": {
+      "A_biblical_primary": 3,
+      "B_structured_gazetteer": 3,
+      "C_external_institutional": 0,
+      "D_external_scholarly": 0,
+      "E_contextual_secondary": 0,
+      "F_inference": 0,
+      "G_unsupported": 0
+    },
+    "approved_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "candidate_source_ids": [],
+    "independent_external_source_count": 0,
+    "readiness_class": "biblical_draft_ready",
+    "unresolved_gaps": [
+      "historical_context",
+      "archaeology"
+    ],
+    "blocked_sections": [
+      "historical_context",
+      "archaeology",
+      "homiletical_context"
+    ],
+    "drafting_scope": "csak biblical_significance + key_events + identification_notes",
+    "drafting_notes_hu": "Draft csak az auditált evidence packet alapján készülhet; ez még nem végleges enrichment szöveg."
+  },
+  {
+    "place_id": "lebanon",
+    "name_hu": "Libanon",
+    "valid_sections": [
+      "biblical_significance",
+      "key_events",
+      "ancient_geography",
+      "modern_context",
+      "identification_notes"
+    ],
+    "evidence_count_by_strength": {
+      "A_biblical_primary": 8,
+      "B_structured_gazetteer": 3,
+      "C_external_institutional": 0,
+      "D_external_scholarly": 0,
+      "E_contextual_secondary": 0,
+      "F_inference": 0,
+      "G_unsupported": 0
+    },
+    "approved_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "candidate_source_ids": [],
+    "independent_external_source_count": 0,
+    "readiness_class": "biblical_draft_ready",
+    "unresolved_gaps": [
+      "historical_context",
+      "archaeology"
+    ],
+    "blocked_sections": [
+      "historical_context",
+      "archaeology",
+      "homiletical_context"
+    ],
+    "drafting_scope": "csak biblical_significance + key_events + identification_notes",
+    "drafting_notes_hu": "Draft csak az auditált evidence packet alapján készülhet; ez még nem végleges enrichment szöveg."
+  },
+  {
+    "place_id": "lystra",
+    "name_hu": "Lisztra",
+    "valid_sections": [
+      "biblical_significance",
+      "key_events",
+      "ancient_geography",
+      "modern_context",
+      "identification_notes"
+    ],
+    "evidence_count_by_strength": {
+      "A_biblical_primary": 5,
+      "B_structured_gazetteer": 3,
+      "C_external_institutional": 0,
+      "D_external_scholarly": 0,
+      "E_contextual_secondary": 0,
+      "F_inference": 0,
+      "G_unsupported": 0
+    },
+    "approved_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "candidate_source_ids": [],
+    "independent_external_source_count": 0,
+    "readiness_class": "biblical_draft_ready",
+    "unresolved_gaps": [
+      "historical_context",
+      "archaeology"
+    ],
+    "blocked_sections": [
+      "historical_context",
+      "archaeology",
+      "homiletical_context"
+    ],
+    "drafting_scope": "csak biblical_significance + key_events + identification_notes",
+    "drafting_notes_hu": "Draft csak az auditált evidence packet alapján készülhet; ez még nem végleges enrichment szöveg."
+  },
+  {
+    "place_id": "macedonia",
+    "name_hu": "Macedónia",
+    "valid_sections": [
+      "biblical_significance",
+      "key_events",
+      "ancient_geography",
+      "modern_context",
+      "identification_notes"
+    ],
+    "evidence_count_by_strength": {
+      "A_biblical_primary": 3,
+      "B_structured_gazetteer": 5,
+      "C_external_institutional": 0,
+      "D_external_scholarly": 0,
+      "E_contextual_secondary": 0,
+      "F_inference": 0,
+      "G_unsupported": 0
+    },
+    "approved_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "candidate_source_ids": [
+      "catalog_pleiades_981531"
+    ],
+    "independent_external_source_count": 0,
+    "readiness_class": "biblical_draft_ready",
+    "unresolved_gaps": [
+      "historical_context",
+      "archaeology"
+    ],
+    "blocked_sections": [
+      "historical_context",
+      "archaeology",
+      "homiletical_context"
+    ],
+    "drafting_scope": "csak biblical_significance + key_events + identification_notes",
+    "drafting_notes_hu": "Draft csak az auditált evidence packet alapján készülhet; ez még nem végleges enrichment szöveg."
+  },
+  {
+    "place_id": "mizpah_3",
+    "name_hu": "Micpa (Benjámin)",
+    "valid_sections": [
+      "biblical_significance",
+      "key_events",
+      "ancient_geography",
+      "modern_context",
+      "identification_notes"
+    ],
+    "evidence_count_by_strength": {
+      "A_biblical_primary": 8,
+      "B_structured_gazetteer": 3,
+      "C_external_institutional": 0,
+      "D_external_scholarly": 0,
+      "E_contextual_secondary": 0,
+      "F_inference": 0,
+      "G_unsupported": 0
+    },
+    "approved_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "candidate_source_ids": [],
+    "independent_external_source_count": 0,
+    "readiness_class": "biblical_draft_ready",
+    "unresolved_gaps": [
+      "historical_context",
+      "archaeology"
+    ],
+    "blocked_sections": [
+      "historical_context",
+      "archaeology",
+      "homiletical_context"
+    ],
+    "drafting_scope": "csak biblical_significance + key_events + identification_notes",
+    "drafting_notes_hu": "Draft csak az auditált evidence packet alapján készülhet; ez még nem végleges enrichment szöveg."
+  },
+  {
+    "place_id": "moab_1",
+    "name_hu": "Moáb",
+    "valid_sections": [
+      "biblical_significance",
+      "key_events",
+      "ancient_geography",
+      "modern_context",
+      "identification_notes"
+    ],
+    "evidence_count_by_strength": {
+      "A_biblical_primary": 8,
+      "B_structured_gazetteer": 5,
+      "C_external_institutional": 0,
+      "D_external_scholarly": 0,
+      "E_contextual_secondary": 0,
+      "F_inference": 0,
+      "G_unsupported": 0
+    },
+    "approved_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "candidate_source_ids": [
+      "catalog_pleiades_857932176"
+    ],
+    "independent_external_source_count": 0,
+    "readiness_class": "biblical_draft_ready",
+    "unresolved_gaps": [
+      "historical_context",
+      "archaeology"
+    ],
+    "blocked_sections": [
+      "historical_context",
+      "archaeology",
+      "homiletical_context"
+    ],
+    "drafting_scope": "csak biblical_significance + key_events + identification_notes",
+    "drafting_notes_hu": "Draft csak az auditált evidence packet alapján készülhet; ez még nem végleges enrichment szöveg."
+  },
+  {
+    "place_id": "moab_2",
+    "name_hu": "Moáb síksága",
+    "valid_sections": [
+      "biblical_significance",
+      "key_events",
+      "ancient_geography",
+      "modern_context",
+      "identification_notes"
+    ],
+    "evidence_count_by_strength": {
+      "A_biblical_primary": 3,
+      "B_structured_gazetteer": 3,
+      "C_external_institutional": 0,
+      "D_external_scholarly": 0,
+      "E_contextual_secondary": 0,
+      "F_inference": 0,
+      "G_unsupported": 0
+    },
+    "approved_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "candidate_source_ids": [],
+    "independent_external_source_count": 0,
+    "readiness_class": "biblical_draft_ready",
+    "unresolved_gaps": [
+      "historical_context",
+      "archaeology"
+    ],
+    "blocked_sections": [
+      "historical_context",
+      "archaeology",
+      "homiletical_context"
+    ],
+    "drafting_scope": "csak biblical_significance + key_events + identification_notes",
+    "drafting_notes_hu": "Draft csak az auditált evidence packet alapján készülhet; ez még nem végleges enrichment szöveg."
+  },
+  {
+    "place_id": "mount_of_olives",
+    "name_hu": "Olajfák hegye",
+    "valid_sections": [
+      "biblical_significance",
+      "key_events",
+      "ancient_geography",
+      "modern_context",
+      "identification_notes"
+    ],
+    "evidence_count_by_strength": {
+      "A_biblical_primary": 8,
+      "B_structured_gazetteer": 3,
+      "C_external_institutional": 0,
+      "D_external_scholarly": 0,
+      "E_contextual_secondary": 0,
+      "F_inference": 0,
+      "G_unsupported": 0
+    },
+    "approved_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "candidate_source_ids": [],
+    "independent_external_source_count": 0,
+    "readiness_class": "biblical_draft_ready",
+    "unresolved_gaps": [
+      "historical_context",
+      "archaeology"
+    ],
+    "blocked_sections": [
+      "historical_context",
+      "archaeology",
+      "homiletical_context"
+    ],
+    "drafting_scope": "csak biblical_significance + key_events + identification_notes",
+    "drafting_notes_hu": "Draft csak az auditált evidence packet alapján készülhet; ez még nem végleges enrichment szöveg."
+  },
+  {
+    "place_id": "mount_zion",
+    "name_hu": "Sion hegye",
+    "valid_sections": [
+      "biblical_significance",
+      "key_events",
+      "ancient_geography",
+      "historical_context",
+      "modern_context",
+      "identification_notes"
+    ],
+    "evidence_count_by_strength": {
+      "A_biblical_primary": 8,
+      "B_structured_gazetteer": 3,
+      "C_external_institutional": 0,
+      "D_external_scholarly": 0,
+      "E_contextual_secondary": 3,
+      "F_inference": 0,
+      "G_unsupported": 0
+    },
+    "approved_source_ids": [
+      "openbible_geocoding_cc_by_4_0",
+      "unesco_jerusalem_148"
+    ],
+    "candidate_source_ids": [
+      "web_unesco_jerusalem_148"
+    ],
+    "independent_external_source_count": 1,
+    "readiness_class": "partial_profile_ready",
+    "unresolved_gaps": [
+      "archaeology"
+    ],
+    "blocked_sections": [
+      "archaeology",
+      "homiletical_context"
+    ],
+    "drafting_scope": "részleges profil; történeti/régészeti szakaszok csak a támogatott körben",
+    "drafting_notes_hu": "Draft csak az auditált evidence packet alapján készülhet; ez még nem végleges enrichment szöveg."
+  },
+  {
+    "place_id": "negeb",
+    "name_hu": "Negev",
+    "valid_sections": [
+      "biblical_significance",
+      "key_events",
+      "ancient_geography",
+      "modern_context",
+      "identification_notes"
+    ],
+    "evidence_count_by_strength": {
+      "A_biblical_primary": 5,
+      "B_structured_gazetteer": 5,
+      "C_external_institutional": 0,
+      "D_external_scholarly": 0,
+      "E_contextual_secondary": 0,
+      "F_inference": 0,
+      "G_unsupported": 0
+    },
+    "approved_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "candidate_source_ids": [
+      "catalog_pleiades_687985"
+    ],
+    "independent_external_source_count": 0,
+    "readiness_class": "biblical_draft_ready",
+    "unresolved_gaps": [
+      "historical_context",
+      "archaeology"
+    ],
+    "blocked_sections": [
+      "historical_context",
+      "archaeology",
+      "homiletical_context"
+    ],
+    "drafting_scope": "csak biblical_significance + key_events + identification_notes",
+    "drafting_notes_hu": "Draft csak az auditált evidence packet alapján készülhet; ez még nem végleges enrichment szöveg."
+  },
+  {
+    "place_id": "nile",
+    "name_hu": "Nílus",
+    "valid_sections": [
+      "biblical_significance",
+      "key_events",
+      "ancient_geography",
+      "modern_context",
+      "identification_notes"
+    ],
+    "evidence_count_by_strength": {
+      "A_biblical_primary": 8,
+      "B_structured_gazetteer": 5,
+      "C_external_institutional": 0,
+      "D_external_scholarly": 0,
+      "E_contextual_secondary": 0,
+      "F_inference": 0,
+      "G_unsupported": 0
+    },
+    "approved_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "candidate_source_ids": [
+      "catalog_pleiades_727172"
+    ],
+    "independent_external_source_count": 0,
+    "readiness_class": "biblical_draft_ready",
+    "unresolved_gaps": [
+      "historical_context",
+      "archaeology"
+    ],
+    "blocked_sections": [
+      "historical_context",
+      "archaeology",
+      "homiletical_context"
+    ],
+    "drafting_scope": "csak biblical_significance + key_events + identification_notes",
+    "drafting_notes_hu": "Draft csak az auditált evidence packet alapján készülhet; ez még nem végleges enrichment szöveg."
+  },
+  {
+    "place_id": "persia",
+    "name_hu": "Perzsia",
+    "valid_sections": [
+      "biblical_significance",
+      "key_events",
+      "ancient_geography",
+      "modern_context",
+      "identification_notes"
+    ],
+    "evidence_count_by_strength": {
+      "A_biblical_primary": 8,
+      "B_structured_gazetteer": 3,
+      "C_external_institutional": 0,
+      "D_external_scholarly": 0,
+      "E_contextual_secondary": 0,
+      "F_inference": 0,
+      "G_unsupported": 0
+    },
+    "approved_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "candidate_source_ids": [],
+    "independent_external_source_count": 0,
+    "readiness_class": "biblical_draft_ready",
+    "unresolved_gaps": [
+      "historical_context",
+      "archaeology"
+    ],
+    "blocked_sections": [
+      "historical_context",
+      "archaeology",
+      "homiletical_context"
+    ],
+    "drafting_scope": "csak biblical_significance + key_events + identification_notes",
+    "drafting_notes_hu": "Draft csak az auditált evidence packet alapján készülhet; ez még nem végleges enrichment szöveg."
+  },
+  {
+    "place_id": "ramah_1",
+    "name_hu": "Ráma",
+    "valid_sections": [
+      "biblical_significance",
+      "key_events",
+      "ancient_geography",
+      "modern_context",
+      "identification_notes"
+    ],
+    "evidence_count_by_strength": {
+      "A_biblical_primary": 8,
+      "B_structured_gazetteer": 3,
+      "C_external_institutional": 0,
+      "D_external_scholarly": 0,
+      "E_contextual_secondary": 0,
+      "F_inference": 0,
+      "G_unsupported": 0
+    },
+    "approved_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "candidate_source_ids": [],
+    "independent_external_source_count": 0,
+    "readiness_class": "biblical_draft_ready",
+    "unresolved_gaps": [
+      "historical_context",
+      "archaeology"
+    ],
+    "blocked_sections": [
+      "historical_context",
+      "archaeology",
+      "homiletical_context"
+    ],
+    "drafting_scope": "csak biblical_significance + key_events + identification_notes",
+    "drafting_notes_hu": "Draft csak az auditált evidence packet alapján készülhet; ez még nem végleges enrichment szöveg."
+  },
+  {
+    "place_id": "red_sea_1",
+    "name_hu": "Vörös-tenger",
+    "valid_sections": [
+      "biblical_significance",
+      "key_events",
+      "ancient_geography",
+      "modern_context",
+      "identification_notes"
+    ],
+    "evidence_count_by_strength": {
+      "A_biblical_primary": 3,
+      "B_structured_gazetteer": 3,
+      "C_external_institutional": 0,
+      "D_external_scholarly": 0,
+      "E_contextual_secondary": 0,
+      "F_inference": 0,
+      "G_unsupported": 0
+    },
+    "approved_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "candidate_source_ids": [],
+    "independent_external_source_count": 0,
+    "readiness_class": "biblical_draft_ready",
+    "unresolved_gaps": [
+      "historical_context",
+      "archaeology"
+    ],
+    "blocked_sections": [
+      "historical_context",
+      "archaeology",
+      "homiletical_context"
+    ],
+    "drafting_scope": "csak biblical_significance + key_events + identification_notes",
+    "drafting_notes_hu": "Draft csak az auditált evidence packet alapján készülhet; ez még nem végleges enrichment szöveg."
+  },
+  {
+    "place_id": "salt_sea",
+    "name_hu": "Sós-tenger",
+    "valid_sections": [
+      "biblical_significance",
+      "key_events",
+      "ancient_geography",
+      "modern_context",
+      "identification_notes"
+    ],
+    "evidence_count_by_strength": {
+      "A_biblical_primary": 8,
+      "B_structured_gazetteer": 5,
+      "C_external_institutional": 0,
+      "D_external_scholarly": 0,
+      "E_contextual_secondary": 0,
+      "F_inference": 0,
+      "G_unsupported": 0
+    },
+    "approved_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "candidate_source_ids": [
+      "catalog_pleiades_697709"
+    ],
+    "independent_external_source_count": 0,
+    "readiness_class": "biblical_draft_ready",
+    "unresolved_gaps": [
+      "historical_context",
+      "archaeology"
+    ],
+    "blocked_sections": [
+      "historical_context",
+      "archaeology",
+      "homiletical_context"
+    ],
+    "drafting_scope": "csak biblical_significance + key_events + identification_notes",
+    "drafting_notes_hu": "Draft csak az auditált evidence packet alapján készülhet; ez még nem végleges enrichment szöveg."
+  },
+  {
+    "place_id": "samaria_1",
+    "name_hu": "Samária",
+    "valid_sections": [
+      "biblical_significance",
+      "key_events",
+      "ancient_geography",
+      "modern_context",
+      "identification_notes"
+    ],
+    "evidence_count_by_strength": {
+      "A_biblical_primary": 8,
+      "B_structured_gazetteer": 5,
+      "C_external_institutional": 0,
+      "D_external_scholarly": 0,
+      "E_contextual_secondary": 0,
+      "F_inference": 0,
+      "G_unsupported": 0
+    },
+    "approved_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "candidate_source_ids": [
+      "catalog_pleiades_678369"
+    ],
+    "independent_external_source_count": 0,
+    "readiness_class": "biblical_draft_ready",
+    "unresolved_gaps": [
+      "historical_context",
+      "archaeology"
+    ],
+    "blocked_sections": [
+      "historical_context",
+      "archaeology",
+      "homiletical_context"
+    ],
+    "drafting_scope": "csak biblical_significance + key_events + identification_notes",
+    "drafting_notes_hu": "Draft csak az auditált evidence packet alapján készülhet; ez még nem végleges enrichment szöveg."
+  },
+  {
+    "place_id": "shiloh",
+    "name_hu": "Siló",
+    "valid_sections": [
+      "biblical_significance",
+      "key_events",
+      "ancient_geography",
+      "modern_context",
+      "identification_notes"
+    ],
+    "evidence_count_by_strength": {
+      "A_biblical_primary": 8,
+      "B_structured_gazetteer": 3,
+      "C_external_institutional": 0,
+      "D_external_scholarly": 0,
+      "E_contextual_secondary": 0,
+      "F_inference": 0,
+      "G_unsupported": 0
+    },
+    "approved_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "candidate_source_ids": [],
+    "independent_external_source_count": 0,
+    "readiness_class": "biblical_draft_ready",
+    "unresolved_gaps": [
+      "historical_context",
+      "archaeology"
+    ],
+    "blocked_sections": [
+      "historical_context",
+      "archaeology",
+      "homiletical_context"
+    ],
+    "drafting_scope": "csak biblical_significance + key_events + identification_notes",
+    "drafting_notes_hu": "Draft csak az auditált evidence packet alapján készülhet; ez még nem végleges enrichment szöveg."
+  },
+  {
+    "place_id": "sodom",
+    "name_hu": "Sodoma",
+    "valid_sections": [
+      "biblical_significance",
+      "key_events",
+      "ancient_geography",
+      "modern_context",
+      "identification_notes"
+    ],
+    "evidence_count_by_strength": {
+      "A_biblical_primary": 8,
+      "B_structured_gazetteer": 3,
+      "C_external_institutional": 0,
+      "D_external_scholarly": 0,
+      "E_contextual_secondary": 0,
+      "F_inference": 0,
+      "G_unsupported": 0
+    },
+    "approved_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "candidate_source_ids": [],
+    "independent_external_source_count": 0,
+    "readiness_class": "biblical_draft_ready",
+    "unresolved_gaps": [
+      "historical_context",
+      "archaeology"
+    ],
+    "blocked_sections": [
+      "historical_context",
+      "archaeology",
+      "homiletical_context"
+    ],
+    "drafting_scope": "csak biblical_significance + key_events + identification_notes",
+    "drafting_notes_hu": "Draft csak az auditált evidence packet alapján készülhet; ez még nem végleges enrichment szöveg."
+  },
+  {
+    "place_id": "syria_2",
+    "name_hu": "Szíria",
+    "valid_sections": [
+      "biblical_significance",
+      "key_events",
+      "ancient_geography",
+      "modern_context",
+      "identification_notes"
+    ],
+    "evidence_count_by_strength": {
+      "A_biblical_primary": 3,
+      "B_structured_gazetteer": 3,
+      "C_external_institutional": 0,
+      "D_external_scholarly": 0,
+      "E_contextual_secondary": 0,
+      "F_inference": 0,
+      "G_unsupported": 0
+    },
+    "approved_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "candidate_source_ids": [],
+    "independent_external_source_count": 0,
+    "readiness_class": "biblical_draft_ready",
+    "unresolved_gaps": [
+      "historical_context",
+      "archaeology"
+    ],
+    "blocked_sections": [
+      "historical_context",
+      "archaeology",
+      "homiletical_context"
+    ],
+    "drafting_scope": "csak biblical_significance + key_events + identification_notes",
+    "drafting_notes_hu": "Draft csak az auditált evidence packet alapján készülhet; ez még nem végleges enrichment szöveg."
+  },
+  {
+    "place_id": "thessalonica",
+    "name_hu": "Thesszalonika",
+    "valid_sections": [
+      "biblical_significance",
+      "key_events",
+      "ancient_geography",
+      "modern_context",
+      "identification_notes"
+    ],
+    "evidence_count_by_strength": {
+      "A_biblical_primary": 3,
+      "B_structured_gazetteer": 8,
+      "C_external_institutional": 0,
+      "D_external_scholarly": 0,
+      "E_contextual_secondary": 0,
+      "F_inference": 0,
+      "G_unsupported": 0
+    },
+    "approved_source_ids": [
+      "openbible_geocoding_cc_by_4_0",
+      "pleiades_place_491741"
+    ],
+    "candidate_source_ids": [
+      "existing_pleiades_place_491741"
+    ],
+    "independent_external_source_count": 0,
+    "readiness_class": "biblical_draft_ready",
+    "unresolved_gaps": [
+      "historical_context",
+      "archaeology"
+    ],
+    "blocked_sections": [
+      "historical_context",
+      "archaeology",
+      "homiletical_context"
+    ],
+    "drafting_scope": "csak biblical_significance + key_events + identification_notes",
+    "drafting_notes_hu": "Draft csak az auditált evidence packet alapján készülhet; ez még nem végleges enrichment szöveg."
+  },
+  {
+    "place_id": "troas",
+    "name_hu": "Tróász",
+    "valid_sections": [
+      "biblical_significance",
+      "key_events",
+      "ancient_geography",
+      "modern_context",
+      "identification_notes"
+    ],
+    "evidence_count_by_strength": {
+      "A_biblical_primary": 4,
+      "B_structured_gazetteer": 3,
+      "C_external_institutional": 0,
+      "D_external_scholarly": 0,
+      "E_contextual_secondary": 0,
+      "F_inference": 0,
+      "G_unsupported": 0
+    },
+    "approved_source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "candidate_source_ids": [],
+    "independent_external_source_count": 0,
+    "readiness_class": "biblical_draft_ready",
+    "unresolved_gaps": [
+      "historical_context",
+      "archaeology"
+    ],
+    "blocked_sections": [
+      "historical_context",
+      "archaeology",
+      "homiletical_context"
+    ],
+    "drafting_scope": "csak biblical_significance + key_events + identification_notes",
+    "drafting_notes_hu": "Draft csak az auditált evidence packet alapján készülhet; ez még nem végleges enrichment szöveg."
+  },
+  {
+    "place_id": "tyre",
+    "name_hu": "Tírusz",
+    "valid_sections": [
+      "biblical_significance",
+      "key_events",
+      "ancient_geography",
+      "historical_context",
+      "archaeology",
+      "modern_context",
+      "identification_notes"
+    ],
+    "evidence_count_by_strength": {
+      "A_biblical_primary": 3,
+      "B_structured_gazetteer": 3,
+      "C_external_institutional": 3,
+      "D_external_scholarly": 0,
+      "E_contextual_secondary": 0,
+      "F_inference": 0,
+      "G_unsupported": 0
+    },
+    "approved_source_ids": [
+      "openbible_geocoding_cc_by_4_0",
+      "unesco_tyre_299"
+    ],
+    "candidate_source_ids": [
+      "web_unesco_tyre_299"
+    ],
+    "independent_external_source_count": 1,
+    "readiness_class": "partial_profile_ready",
+    "unresolved_gaps": [],
+    "blocked_sections": [
+      "homiletical_context"
+    ],
+    "drafting_scope": "részleges profil; történeti/régészeti szakaszok csak a támogatott körben",
+    "drafting_notes_hu": "Draft csak az auditált evidence packet alapján készülhet; ez még nem végleges enrichment szöveg."
+  },
+  {
+    "place_id": "zion",
+    "name_hu": "Sion",
+    "valid_sections": [
+      "biblical_significance",
+      "key_events",
+      "ancient_geography",
+      "historical_context",
+      "modern_context",
+      "identification_notes"
+    ],
+    "evidence_count_by_strength": {
+      "A_biblical_primary": 8,
+      "B_structured_gazetteer": 3,
+      "C_external_institutional": 0,
+      "D_external_scholarly": 0,
+      "E_contextual_secondary": 3,
+      "F_inference": 0,
+      "G_unsupported": 0
+    },
+    "approved_source_ids": [
+      "openbible_geocoding_cc_by_4_0",
+      "unesco_jerusalem_148"
+    ],
+    "candidate_source_ids": [
+      "web_unesco_jerusalem_148"
+    ],
+    "independent_external_source_count": 1,
+    "readiness_class": "partial_profile_ready",
+    "unresolved_gaps": [
+      "archaeology"
+    ],
+    "blocked_sections": [
+      "archaeology",
+      "homiletical_context"
+    ],
+    "drafting_scope": "részleges profil; történeti/régészeti szakaszok csak a támogatott körben",
+    "drafting_notes_hu": "Draft csak az auditált evidence packet alapján készülhet; ez még nem végleges enrichment szöveg."
+  }
+]

@@ -1,0 +1,50 @@
+{
+  "valid_groups": 41,
+  "merge_decision_count": 4,
+  "keep_separate_count": 37,
+  "catalog_count_before": 1272,
+  "catalog_count_after": 1267,
+  "removed_place_ids": [
+    "gedor_3",
+    "gedor_4",
+    "havilah_2",
+    "ur_2",
+    "zin_2"
+  ],
+  "canonical_place_ids": [
+    "gedor_1",
+    "havilah_3",
+    "ur_1",
+    "zin_1"
+  ],
+  "redirected_passage_link_count": 5,
+  "deduped_passage_link_count": 0,
+  "lost_passage_link_count": 0,
+  "bad_passage_reference_count": 0,
+  "bad_passage_references": [],
+  "duplicate_queue_changed_groups": 41,
+  "protected_missing_place_ids": [],
+  "would_write": true,
+  "idempotency_check_report": {
+    "valid_groups": 41,
+    "merge_decision_count": 4,
+    "keep_separate_count": 37,
+    "catalog_count_before": 1267,
+    "catalog_count_after": 1267,
+    "removed_place_ids": [],
+    "canonical_place_ids": [
+      "gedor_1",
+      "havilah_3",
+      "ur_1",
+      "zin_1"
+    ],
+    "redirected_passage_link_count": 0,
+    "deduped_passage_link_count": 0,
+    "lost_passage_link_count": 0,
+    "bad_passage_reference_count": 0,
+    "bad_passage_references": [],
+    "duplicate_queue_changed_groups": 0,
+    "protected_missing_place_ids": [],
+    "would_write": true
+  }
+}

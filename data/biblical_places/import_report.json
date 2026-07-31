@@ -1,0 +1,25 @@
+{
+  "messages": [
+    "Prepared 10 pilot places.",
+    "Dry-run only; JSON outputs were not written."
+  ],
+  "warnings": [],
+  "errors": [],
+  "imported_place_ids": [
+    "jerusalem",
+    "nazareth",
+    "capernaum",
+    "corinth",
+    "ephesus",
+    "athens",
+    "philippi",
+    "thessalonica",
+    "antioch_syria",
+    "rome"
+  ],
+  "preserved_locked_ids": [
+    "corinth",
+    "ephesus"
+  ],
+  "download": {}
+}

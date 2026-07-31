@@ -1,0 +1,795 @@
+[
+  {
+    "candidate_id": "catalog_pleiades_1043",
+    "place_ids": [
+      "great_sea"
+    ],
+    "section_names": [
+      "ancient_geography",
+      "identification_notes",
+      "modern_context"
+    ],
+    "title": "Pleiades place 1043",
+    "institution_or_author": "Pleiades",
+    "source_type": "academic_gazetteer",
+    "url_or_identifier": "https://pleiades.stoa.org/places/1043",
+    "publication_date": null,
+    "access_date": "2026-07-30",
+    "language": "en",
+    "license": "CC-BY-3.0",
+    "attribution": "Pleiades contributors; Ancient World Mapping Center and Institute for the Study of the Ancient World",
+    "reuse_status": "approved",
+    "reliability_status": "high",
+    "relevance_status": "direct",
+    "supported_topics": [
+      "földrajzi azonosítás; névváltozat; ókori földrajz"
+    ],
+    "limitations_hu": "A Pleiades ID a canonical katalógusból származik. A live oldal botvédelem miatt nem volt tartalmilag ellenőrizhető.",
+    "discovery_method": "catalog_external_id",
+    "duplicate_of_candidate_id": null,
+    "review_status": "candidate_only",
+    "place_specific": true,
+    "claim_support_notes_hu": "Külső azonosító a helyi katalógusban; tartalmi claim live fetch nélkül."
+  },
+  {
+    "candidate_id": "catalog_pleiades_658427",
+    "place_ids": [
+      "haran"
+    ],
+    "section_names": [
+      "ancient_geography",
+      "identification_notes",
+      "modern_context"
+    ],
+    "title": "Pleiades place 658427",
+    "institution_or_author": "Pleiades",
+    "source_type": "academic_gazetteer",
+    "url_or_identifier": "https://pleiades.stoa.org/places/658427",
+    "publication_date": null,
+    "access_date": "2026-07-30",
+    "language": "en",
+    "license": "CC-BY-3.0",
+    "attribution": "Pleiades contributors; Ancient World Mapping Center and Institute for the Study of the Ancient World",
+    "reuse_status": "approved",
+    "reliability_status": "high",
+    "relevance_status": "direct",
+    "supported_topics": [
+      "földrajzi azonosítás; névváltozat; ókori földrajz"
+    ],
+    "limitations_hu": "A Pleiades ID a canonical katalógusból származik. A live oldal botvédelem miatt nem volt tartalmilag ellenőrizhető.",
+    "discovery_method": "catalog_external_id",
+    "duplicate_of_candidate_id": null,
+    "review_status": "candidate_only",
+    "place_specific": true,
+    "claim_support_notes_hu": "Külső azonosító a helyi katalógusban; tartalmi claim live fetch nélkül."
+  },
+  {
+    "candidate_id": "catalog_pleiades_678369",
+    "place_ids": [
+      "samaria_1"
+    ],
+    "section_names": [
+      "ancient_geography",
+      "identification_notes",
+      "modern_context"
+    ],
+    "title": "Pleiades place 678369",
+    "institution_or_author": "Pleiades",
+    "source_type": "academic_gazetteer",
+    "url_or_identifier": "https://pleiades.stoa.org/places/678369",
+    "publication_date": null,
+    "access_date": "2026-07-30",
+    "language": "en",
+    "license": "CC-BY-3.0",
+    "attribution": "Pleiades contributors; Ancient World Mapping Center and Institute for the Study of the Ancient World",
+    "reuse_status": "approved",
+    "reliability_status": "high",
+    "relevance_status": "direct",
+    "supported_topics": [
+      "földrajzi azonosítás; névváltozat; ókori földrajz"
+    ],
+    "limitations_hu": "A Pleiades ID a canonical katalógusból származik. A live oldal botvédelem miatt nem volt tartalmilag ellenőrizhető.",
+    "discovery_method": "catalog_external_id",
+    "duplicate_of_candidate_id": null,
+    "review_status": "candidate_only",
+    "place_specific": true,
+    "claim_support_notes_hu": "Külső azonosító a helyi katalógusban; tartalmi claim live fetch nélkül."
+  },
+  {
+    "candidate_id": "catalog_pleiades_687932",
+    "place_ids": [
+      "jordan"
+    ],
+    "section_names": [
+      "ancient_geography",
+      "identification_notes",
+      "modern_context"
+    ],
+    "title": "Pleiades place 687932",
+    "institution_or_author": "Pleiades",
+    "source_type": "academic_gazetteer",
+    "url_or_identifier": "https://pleiades.stoa.org/places/687932",
+    "publication_date": null,
+    "access_date": "2026-07-30",
+    "language": "en",
+    "license": "CC-BY-3.0",
+    "attribution": "Pleiades contributors; Ancient World Mapping Center and Institute for the Study of the Ancient World",
+    "reuse_status": "approved",
+    "reliability_status": "high",
+    "relevance_status": "direct",
+    "supported_topics": [
+      "földrajzi azonosítás; névváltozat; ókori földrajz"
+    ],
+    "limitations_hu": "A Pleiades ID a canonical katalógusból származik. A live oldal botvédelem miatt nem volt tartalmilag ellenőrizhető.",
+    "discovery_method": "catalog_external_id",
+    "duplicate_of_candidate_id": null,
+    "review_status": "candidate_only",
+    "place_specific": true,
+    "claim_support_notes_hu": "Külső azonosító a helyi katalógusban; tartalmi claim live fetch nélkül."
+  },
+  {
+    "candidate_id": "catalog_pleiades_687985",
+    "place_ids": [
+      "negeb"
+    ],
+    "section_names": [
+      "ancient_geography",
+      "identification_notes",
+      "modern_context"
+    ],
+    "title": "Pleiades place 687985",
+    "institution_or_author": "Pleiades",
+    "source_type": "academic_gazetteer",
+    "url_or_identifier": "https://pleiades.stoa.org/places/687985",
+    "publication_date": null,
+    "access_date": "2026-07-30",
+    "language": "en",
+    "license": "CC-BY-3.0",
+    "attribution": "Pleiades contributors; Ancient World Mapping Center and Institute for the Study of the Ancient World",
+    "reuse_status": "approved",
+    "reliability_status": "high",
+    "relevance_status": "direct",
+    "supported_topics": [
+      "földrajzi azonosítás; névváltozat; ókori földrajz"
+    ],
+    "limitations_hu": "A Pleiades ID a canonical katalógusból származik. A live oldal botvédelem miatt nem volt tartalmilag ellenőrizhető.",
+    "discovery_method": "catalog_external_id",
+    "duplicate_of_candidate_id": null,
+    "review_status": "candidate_only",
+    "place_specific": true,
+    "claim_support_notes_hu": "Külső azonosító a helyi katalógusban; tartalmi claim live fetch nélkül."
+  },
+  {
+    "candidate_id": "catalog_pleiades_697709",
+    "place_ids": [
+      "salt_sea"
+    ],
+    "section_names": [
+      "ancient_geography",
+      "identification_notes",
+      "modern_context"
+    ],
+    "title": "Pleiades place 697709",
+    "institution_or_author": "Pleiades",
+    "source_type": "academic_gazetteer",
+    "url_or_identifier": "https://pleiades.stoa.org/places/697709",
+    "publication_date": null,
+    "access_date": "2026-07-30",
+    "language": "en",
+    "license": "CC-BY-3.0",
+    "attribution": "Pleiades contributors; Ancient World Mapping Center and Institute for the Study of the Ancient World",
+    "reuse_status": "approved",
+    "reliability_status": "high",
+    "relevance_status": "direct",
+    "supported_topics": [
+      "földrajzi azonosítás; névváltozat; ókori földrajz"
+    ],
+    "limitations_hu": "A Pleiades ID a canonical katalógusból származik. A live oldal botvédelem miatt nem volt tartalmilag ellenőrizhető.",
+    "discovery_method": "catalog_external_id",
+    "duplicate_of_candidate_id": null,
+    "review_status": "candidate_only",
+    "place_specific": true,
+    "claim_support_notes_hu": "Külső azonosító a helyi katalógusban; tartalmi claim live fetch nélkül."
+  },
+  {
+    "candidate_id": "catalog_pleiades_707498",
+    "place_ids": [
+      "cyprus"
+    ],
+    "section_names": [
+      "ancient_geography",
+      "identification_notes",
+      "modern_context"
+    ],
+    "title": "Pleiades place 707498",
+    "institution_or_author": "Pleiades",
+    "source_type": "academic_gazetteer",
+    "url_or_identifier": "https://pleiades.stoa.org/places/707498",
+    "publication_date": null,
+    "access_date": "2026-07-30",
+    "language": "en",
+    "license": "CC-BY-3.0",
+    "attribution": "Pleiades contributors; Ancient World Mapping Center and Institute for the Study of the Ancient World",
+    "reuse_status": "approved",
+    "reliability_status": "high",
+    "relevance_status": "direct",
+    "supported_topics": [
+      "földrajzi azonosítás; névváltozat; ókori földrajz"
+    ],
+    "limitations_hu": "A Pleiades ID a canonical katalógusból származik. A live oldal botvédelem miatt nem volt tartalmilag ellenőrizhető.",
+    "discovery_method": "catalog_external_id",
+    "duplicate_of_candidate_id": null,
+    "review_status": "candidate_only",
+    "place_specific": true,
+    "claim_support_notes_hu": "Külső azonosító a helyi katalógusban; tartalmi claim live fetch nélkül."
+  },
+  {
+    "candidate_id": "catalog_pleiades_727172",
+    "place_ids": [
+      "nile"
+    ],
+    "section_names": [
+      "ancient_geography",
+      "identification_notes",
+      "modern_context"
+    ],
+    "title": "Pleiades place 727172",
+    "institution_or_author": "Pleiades",
+    "source_type": "academic_gazetteer",
+    "url_or_identifier": "https://pleiades.stoa.org/places/727172",
+    "publication_date": null,
+    "access_date": "2026-07-30",
+    "language": "en",
+    "license": "CC-BY-3.0",
+    "attribution": "Pleiades contributors; Ancient World Mapping Center and Institute for the Study of the Ancient World",
+    "reuse_status": "approved",
+    "reliability_status": "high",
+    "relevance_status": "direct",
+    "supported_topics": [
+      "földrajzi azonosítás; névváltozat; ókori földrajz"
+    ],
+    "limitations_hu": "A Pleiades ID a canonical katalógusból származik. A live oldal botvédelem miatt nem volt tartalmilag ellenőrizhető.",
+    "discovery_method": "catalog_external_id",
+    "duplicate_of_candidate_id": null,
+    "review_status": "candidate_only",
+    "place_specific": true,
+    "claim_support_notes_hu": "Külső azonosító a helyi katalógusban; tartalmi claim live fetch nélkül."
+  },
+  {
+    "candidate_id": "catalog_pleiades_857932176",
+    "place_ids": [
+      "moab_1"
+    ],
+    "section_names": [
+      "ancient_geography",
+      "identification_notes",
+      "modern_context"
+    ],
+    "title": "Pleiades place 857932176",
+    "institution_or_author": "Pleiades",
+    "source_type": "academic_gazetteer",
+    "url_or_identifier": "https://pleiades.stoa.org/places/857932176",
+    "publication_date": null,
+    "access_date": "2026-07-30",
+    "language": "en",
+    "license": "CC-BY-3.0",
+    "attribution": "Pleiades contributors; Ancient World Mapping Center and Institute for the Study of the Ancient World",
+    "reuse_status": "approved",
+    "reliability_status": "high",
+    "relevance_status": "direct",
+    "supported_topics": [
+      "földrajzi azonosítás; névváltozat; ókori földrajz"
+    ],
+    "limitations_hu": "A Pleiades ID a canonical katalógusból származik. A live oldal botvédelem miatt nem volt tartalmilag ellenőrizhető.",
+    "discovery_method": "catalog_external_id",
+    "duplicate_of_candidate_id": null,
+    "review_status": "candidate_only",
+    "place_specific": true,
+    "claim_support_notes_hu": "Külső azonosító a helyi katalógusban; tartalmi claim live fetch nélkül."
+  },
+  {
+    "candidate_id": "catalog_pleiades_912842",
+    "place_ids": [
+      "elam"
+    ],
+    "section_names": [
+      "ancient_geography",
+      "identification_notes",
+      "modern_context"
+    ],
+    "title": "Pleiades place 912842",
+    "institution_or_author": "Pleiades",
+    "source_type": "academic_gazetteer",
+    "url_or_identifier": "https://pleiades.stoa.org/places/912842",
+    "publication_date": null,
+    "access_date": "2026-07-30",
+    "language": "en",
+    "license": "CC-BY-3.0",
+    "attribution": "Pleiades contributors; Ancient World Mapping Center and Institute for the Study of the Ancient World",
+    "reuse_status": "approved",
+    "reliability_status": "high",
+    "relevance_status": "direct",
+    "supported_topics": [
+      "földrajzi azonosítás; névváltozat; ókori földrajz"
+    ],
+    "limitations_hu": "A Pleiades ID a canonical katalógusból származik. A live oldal botvédelem miatt nem volt tartalmilag ellenőrizhető.",
+    "discovery_method": "catalog_external_id",
+    "duplicate_of_candidate_id": null,
+    "review_status": "candidate_only",
+    "place_specific": true,
+    "claim_support_notes_hu": "Külső azonosító a helyi katalógusban; tartalmi claim live fetch nélkül."
+  },
+  {
+    "candidate_id": "catalog_pleiades_981502",
+    "place_ids": [
+      "achaia"
+    ],
+    "section_names": [
+      "ancient_geography",
+      "identification_notes",
+      "modern_context"
+    ],
+    "title": "Pleiades place 981502",
+    "institution_or_author": "Pleiades",
+    "source_type": "academic_gazetteer",
+    "url_or_identifier": "https://pleiades.stoa.org/places/981502",
+    "publication_date": null,
+    "access_date": "2026-07-30",
+    "language": "en",
+    "license": "CC-BY-3.0",
+    "attribution": "Pleiades contributors; Ancient World Mapping Center and Institute for the Study of the Ancient World",
+    "reuse_status": "approved",
+    "reliability_status": "high",
+    "relevance_status": "direct",
+    "supported_topics": [
+      "földrajzi azonosítás; névváltozat; ókori földrajz"
+    ],
+    "limitations_hu": "A Pleiades ID a canonical katalógusból származik. A live oldal botvédelem miatt nem volt tartalmilag ellenőrizhető.",
+    "discovery_method": "catalog_external_id",
+    "duplicate_of_candidate_id": null,
+    "review_status": "candidate_only",
+    "place_specific": true,
+    "claim_support_notes_hu": "Külső azonosító a helyi katalógusban; tartalmi claim live fetch nélkül."
+  },
+  {
+    "candidate_id": "catalog_pleiades_981509",
+    "place_ids": [
+      "asia"
+    ],
+    "section_names": [
+      "ancient_geography",
+      "identification_notes",
+      "modern_context"
+    ],
+    "title": "Pleiades place 981509",
+    "institution_or_author": "Pleiades",
+    "source_type": "academic_gazetteer",
+    "url_or_identifier": "https://pleiades.stoa.org/places/981509",
+    "publication_date": null,
+    "access_date": "2026-07-30",
+    "language": "en",
+    "license": "CC-BY-3.0",
+    "attribution": "Pleiades contributors; Ancient World Mapping Center and Institute for the Study of the Ancient World",
+    "reuse_status": "approved",
+    "reliability_status": "high",
+    "relevance_status": "direct",
+    "supported_topics": [
+      "földrajzi azonosítás; névváltozat; ókori földrajz"
+    ],
+    "limitations_hu": "A Pleiades ID a canonical katalógusból származik. A live oldal botvédelem miatt nem volt tartalmilag ellenőrizhető.",
+    "discovery_method": "catalog_external_id",
+    "duplicate_of_candidate_id": null,
+    "review_status": "candidate_only",
+    "place_specific": true,
+    "claim_support_notes_hu": "Külső azonosító a helyi katalógusban; tartalmi claim live fetch nélkül."
+  },
+  {
+    "candidate_id": "catalog_pleiades_981527",
+    "place_ids": [
+      "judea_1"
+    ],
+    "section_names": [
+      "ancient_geography",
+      "identification_notes",
+      "modern_context"
+    ],
+    "title": "Pleiades place 981527",
+    "institution_or_author": "Pleiades",
+    "source_type": "academic_gazetteer",
+    "url_or_identifier": "https://pleiades.stoa.org/places/981527",
+    "publication_date": null,
+    "access_date": "2026-07-30",
+    "language": "en",
+    "license": "CC-BY-3.0",
+    "attribution": "Pleiades contributors; Ancient World Mapping Center and Institute for the Study of the Ancient World",
+    "reuse_status": "approved",
+    "reliability_status": "high",
+    "relevance_status": "direct",
+    "supported_topics": [
+      "földrajzi azonosítás; névváltozat; ókori földrajz"
+    ],
+    "limitations_hu": "A Pleiades ID a canonical katalógusból származik. A live oldal botvédelem miatt nem volt tartalmilag ellenőrizhető.",
+    "discovery_method": "catalog_external_id",
+    "duplicate_of_candidate_id": null,
+    "review_status": "candidate_only",
+    "place_specific": true,
+    "claim_support_notes_hu": "Külső azonosító a helyi katalógusban; tartalmi claim live fetch nélkül."
+  },
+  {
+    "candidate_id": "catalog_pleiades_981531",
+    "place_ids": [
+      "macedonia"
+    ],
+    "section_names": [
+      "ancient_geography",
+      "identification_notes",
+      "modern_context"
+    ],
+    "title": "Pleiades place 981531",
+    "institution_or_author": "Pleiades",
+    "source_type": "academic_gazetteer",
+    "url_or_identifier": "https://pleiades.stoa.org/places/981531",
+    "publication_date": null,
+    "access_date": "2026-07-30",
+    "language": "en",
+    "license": "CC-BY-3.0",
+    "attribution": "Pleiades contributors; Ancient World Mapping Center and Institute for the Study of the Ancient World",
+    "reuse_status": "approved",
+    "reliability_status": "high",
+    "relevance_status": "direct",
+    "supported_topics": [
+      "földrajzi azonosítás; névváltozat; ókori földrajz"
+    ],
+    "limitations_hu": "A Pleiades ID a canonical katalógusból származik. A live oldal botvédelem miatt nem volt tartalmilag ellenőrizhető.",
+    "discovery_method": "catalog_external_id",
+    "duplicate_of_candidate_id": null,
+    "review_status": "candidate_only",
+    "place_specific": true,
+    "claim_support_notes_hu": "Külső azonosító a helyi katalógusban; tartalmi claim live fetch nélkül."
+  },
+  {
+    "candidate_id": "catalog_pleiades_991393",
+    "place_ids": [
+      "galatia"
+    ],
+    "section_names": [
+      "ancient_geography",
+      "identification_notes",
+      "modern_context"
+    ],
+    "title": "Pleiades place 991393",
+    "institution_or_author": "Pleiades",
+    "source_type": "academic_gazetteer",
+    "url_or_identifier": "https://pleiades.stoa.org/places/991393",
+    "publication_date": null,
+    "access_date": "2026-07-30",
+    "language": "en",
+    "license": "CC-BY-3.0",
+    "attribution": "Pleiades contributors; Ancient World Mapping Center and Institute for the Study of the Ancient World",
+    "reuse_status": "approved",
+    "reliability_status": "high",
+    "relevance_status": "direct",
+    "supported_topics": [
+      "földrajzi azonosítás; névváltozat; ókori földrajz"
+    ],
+    "limitations_hu": "A Pleiades ID a canonical katalógusból származik. A live oldal botvédelem miatt nem volt tartalmilag ellenőrizhető.",
+    "discovery_method": "catalog_external_id",
+    "duplicate_of_candidate_id": null,
+    "review_status": "candidate_only",
+    "place_specific": true,
+    "claim_support_notes_hu": "Külső azonosító a helyi katalógusban; tartalmi claim live fetch nélkül."
+  },
+  {
+    "candidate_id": "existing_openbible_geocoding_cc_by_4_0",
+    "place_id": "multiple",
+    "place_ids": [
+      "achaia",
+      "ai_1",
+      "ammon",
+      "ashdod",
+      "ashkelon",
+      "asia",
+      "assyria",
+      "canaan",
+      "chaldea",
+      "cush_1",
+      "cyprus",
+      "derbe",
+      "east",
+      "edom",
+      "egypt",
+      "ekron",
+      "elam",
+      "galatia",
+      "gaza",
+      "gilead_1",
+      "gilgal_1",
+      "gomorrah",
+      "great_sea",
+      "haran",
+      "jezreel_2",
+      "jordan",
+      "judea_1",
+      "lachish",
+      "lebanon",
+      "lystra",
+      "macedonia",
+      "mizpah_3",
+      "moab_1",
+      "moab_2",
+      "mount_of_olives",
+      "mount_zion",
+      "negeb",
+      "nile",
+      "persia",
+      "ramah_1",
+      "red_sea_1",
+      "salt_sea",
+      "samaria_1",
+      "shiloh",
+      "sodom",
+      "syria_2",
+      "thessalonica",
+      "troas",
+      "tyre",
+      "zion"
+    ],
+    "name_hu": "több hely",
+    "section_names": [
+      "biblical_significance",
+      "key_events",
+      "modern_context",
+      "identification_notes"
+    ],
+    "title": "Bible Geocoding Data (ancient/modern place catalog)",
+    "institution_or_author": "OpenBible.info Bible Geocoding Data",
+    "source_type": "biblical_text_dataset",
+    "url_or_identifier": "https://github.com/openbibleinfo/Bible-Geocoding-Data",
+    "publication_date": null,
+    "access_date": "2026-07-30",
+    "language": "en",
+    "license": "CC-BY-4.0",
+    "attribution": "Stephen Smith / OpenBible.info Bible Geocoding Data",
+    "reuse_status": "approved",
+    "reliability_status": "medium",
+    "relevance_status": "direct",
+    "supported_topics": [
+      "bibliai hivatkozás; földrajzi azonosítás; névváltozat; modern helyzet"
+    ],
+    "limitations_hu": "Helynevek, koordináták és bibliai vershivatkozások forrása. A Textus nem másol át hosszú forrásszöveget.",
+    "discovery_method": "existing_registry",
+    "duplicate_of_candidate_id": null,
+    "review_status": "accepted_existing_source",
+    "place_specific": true
+  },
+  {
+    "candidate_id": "existing_pleiades_place_491741",
+    "place_id": "multiple",
+    "place_ids": [
+      "thessalonica"
+    ],
+    "name_hu": "több hely",
+    "section_names": [
+      "ancient_geography",
+      "identification_notes",
+      "modern_context"
+    ],
+    "title": "Pleiades place 491741",
+    "institution_or_author": "Pleiades",
+    "source_type": "academic_gazetteer",
+    "url_or_identifier": "https://pleiades.stoa.org/places/491741",
+    "publication_date": null,
+    "access_date": "2026-07-30",
+    "language": "en",
+    "license": "CC-BY-3.0",
+    "attribution": "Pleiades contributors; Ancient World Mapping Center and Institute for the Study of the Ancient World",
+    "reuse_status": "approved",
+    "reliability_status": "high",
+    "relevance_status": "direct",
+    "supported_topics": [
+      "földrajzi azonosítás; névváltozat; ókori földrajz"
+    ],
+    "limitations_hu": "Ókori helyazonosítás és névváltozatok kiegészítő forrása.",
+    "discovery_method": "existing_registry",
+    "duplicate_of_candidate_id": null,
+    "review_status": "accepted_existing_source",
+    "place_specific": true
+  },
+  {
+    "candidate_id": "web_cogat_archaeology_unit",
+    "place_ids": [
+      "samaria_1",
+      "judea_1"
+    ],
+    "section_names": [
+      "archaeology",
+      "historical_context"
+    ],
+    "title": "Archaeology Unit",
+    "institution_or_author": "Coordination of Government Activities in the Territories",
+    "source_type": "official_archaeological_site",
+    "url_or_identifier": "https://www.gov.il/en/departments/units/archeology_unit",
+    "publication_date": null,
+    "access_date": "2026-07-30",
+    "language": "en",
+    "license": "citation_only_review_required",
+    "attribution": "Coordination of Government Activities in the Territories",
+    "reuse_status": "citation_only",
+    "reliability_status": "medium",
+    "relevance_status": "contextual",
+    "supported_topics": [
+      "Archaeological responsibility in Judea and Samaria",
+      "Site preservation context"
+    ],
+    "limitations_hu": "Intézményi oldal; a live fetch Cloudflare-blokkot kapott, ezért claim-támogatás nem ellenőrizhető.",
+    "discovery_method": "web_search",
+    "duplicate_of_candidate_id": null,
+    "review_status": "candidate_only",
+    "place_specific": false,
+    "claim_support_notes_hu": "URL formátum ismert; tartalom live ellenőrzése sikertelen."
+  },
+  {
+    "candidate_id": "web_pleiades_ancient_places",
+    "place_ids": [
+      "multiple"
+    ],
+    "section_names": [
+      "ancient_geography",
+      "identification_notes"
+    ],
+    "title": "Ancient Places in Pleiades",
+    "institution_or_author": "Pleiades contributors",
+    "source_type": "academic_gazetteer",
+    "url_or_identifier": "https://pleiades.stoa.org/places",
+    "publication_date": "2024-07-11",
+    "access_date": "2026-07-30",
+    "language": "en",
+    "license": "CC-BY-3.0",
+    "attribution": "Pleiades contributors; Ancient World Mapping Center and Institute for the Study of the Ancient World",
+    "reuse_status": "approved",
+    "reliability_status": "high",
+    "relevance_status": "contextual",
+    "supported_topics": [
+      "Ancient gazetteer methodology",
+      "Place identity and names"
+    ],
+    "limitations_hu": "Módszertani gazetteer-oldal; csak akkor közvetlen, ha konkrét Pleiades rekord is fel van oldva.",
+    "discovery_method": "web_search",
+    "duplicate_of_candidate_id": null,
+    "review_status": "candidate_only",
+    "place_specific": false,
+    "claim_support_notes_hu": "Az oldal a Pleiades gazetteer modelljét ismerteti."
+  },
+  {
+    "candidate_id": "web_unesco_ancient_thebes_87",
+    "place_ids": [
+      "egypt"
+    ],
+    "section_names": [
+      "historical_context",
+      "archaeology",
+      "modern_context"
+    ],
+    "title": "Ancient Thebes with its Necropolis",
+    "institution_or_author": "UNESCO World Heritage Centre",
+    "source_type": "heritage_authority",
+    "url_or_identifier": "https://whc.unesco.org/en/list/87",
+    "publication_date": "1979",
+    "access_date": "2026-07-30",
+    "language": "en",
+    "license": "citation_only_review_required",
+    "attribution": "UNESCO World Heritage Centre",
+    "reuse_status": "citation_only",
+    "reliability_status": "high",
+    "relevance_status": "contextual",
+    "supported_topics": [
+      "Ancient Egypt heritage context",
+      "Thebes and Nile Valley setting"
+    ],
+    "limitations_hu": "Egyiptom egészére kontextuális örökségvédelmi forrás; nem minden egyiptomi bibliai helyre közvetlen lelőhelyadat.",
+    "discovery_method": "web_search",
+    "duplicate_of_candidate_id": null,
+    "review_status": "candidate_only",
+    "place_specific": false,
+    "claim_support_notes_hu": "Az oldal megerősíti Théba / Nílus-völgyi ókori egyiptomi civilizációs és régészeti kontextusát."
+  },
+  {
+    "candidate_id": "web_unesco_jerusalem_148",
+    "place_ids": [
+      "zion",
+      "judea_1",
+      "mount_zion"
+    ],
+    "section_names": [
+      "historical_context",
+      "modern_context",
+      "identification_notes"
+    ],
+    "title": "Old City of Jerusalem and its Walls",
+    "institution_or_author": "UNESCO World Heritage Centre",
+    "source_type": "heritage_authority",
+    "url_or_identifier": "https://whc.unesco.org/en/list/148",
+    "publication_date": "1981",
+    "access_date": "2026-07-30",
+    "language": "en",
+    "license": "citation_only_review_required",
+    "attribution": "UNESCO World Heritage Centre",
+    "reuse_status": "citation_only",
+    "reliability_status": "high",
+    "relevance_status": "contextual",
+    "supported_topics": [
+      "Jerusalem old city heritage setting",
+      "Multi-religious historical significance"
+    ],
+    "limitations_hu": "Jeruzsálem óvárosára vonatkozik; Sion / Júdea rekordoknál kontextuális, nem helyettesít külön Sion-lelőhelylapot.",
+    "discovery_method": "web_search",
+    "duplicate_of_candidate_id": null,
+    "review_status": "candidate_only",
+    "place_specific": false,
+    "claim_support_notes_hu": "Az oldal Jeruzsálem óvárosának örökségi és történeti kontextusát dokumentálja."
+  },
+  {
+    "candidate_id": "web_unesco_petra_326",
+    "place_ids": [
+      "edom"
+    ],
+    "section_names": [
+      "historical_context",
+      "modern_context"
+    ],
+    "title": "Petra",
+    "institution_or_author": "UNESCO World Heritage Centre",
+    "source_type": "heritage_authority",
+    "url_or_identifier": "https://whc.unesco.org/en/list/326",
+    "publication_date": "1985",
+    "access_date": "2026-07-30",
+    "language": "en",
+    "license": "citation_only_review_required",
+    "attribution": "UNESCO World Heritage Centre",
+    "reuse_status": "citation_only",
+    "reliability_status": "high",
+    "relevance_status": "contextual",
+    "supported_topics": [
+      "Nabataean caravan-city context between Arabia, Egypt and Syria-Phoenicia"
+    ],
+    "limitations_hu": "Petra lelőhelylap; Edóm egészére csak kontextuális. Nem indokol településspecifikus archaeology sectiont Edómra.",
+    "discovery_method": "web_search",
+    "duplicate_of_candidate_id": null,
+    "review_status": "candidate_only",
+    "place_specific": false,
+    "claim_support_notes_hu": "A lap a nabateus karavánváros és a tágabb Arábia–Egyiptom–Szíria kereszteződés kontextusát írja le."
+  },
+  {
+    "candidate_id": "web_unesco_tyre_299",
+    "place_ids": [
+      "tyre"
+    ],
+    "section_names": [
+      "historical_context",
+      "archaeology",
+      "modern_context"
+    ],
+    "title": "Tyre",
+    "institution_or_author": "UNESCO World Heritage Centre",
+    "source_type": "heritage_authority",
+    "url_or_identifier": "https://whc.unesco.org/en/list/299",
+    "publication_date": "1984",
+    "access_date": "2026-07-30",
+    "language": "en",
+    "license": "citation_only_review_required",
+    "attribution": "UNESCO World Heritage Centre",
+    "reuse_status": "citation_only",
+    "reliability_status": "high",
+    "relevance_status": "direct",
+    "supported_topics": [
+      "Phoenician Tyre historical role",
+      "Roman and later archaeological remains"
+    ],
+    "limitations_hu": "Helyspecifikus UNESCO WHC lap; citation-only szöveghasználat.",
+    "discovery_method": "web_search",
+    "duplicate_of_candidate_id": null,
+    "review_status": "candidate_only",
+    "place_specific": true,
+    "claim_support_notes_hu": "A lap Tírusz föníciai szerepét és főként római kori régészeti maradványait írja le."
+  }
+]

@@ -1,0 +1,628 @@
+[
+  {
+    "requested_name_hu": "Jeruzsálem",
+    "resolved_place_id": "jerusalem",
+    "ui_default_place_id": "jerusalem",
+    "related_canonical_place_ids": [
+      "jerusalem"
+    ],
+    "same_physical_site": false,
+    "distinct_record_reason": "A fő jeruzsálemi városrekordot választjuk, nem a kapu-, templom- vagy városrészi rekordokat.",
+    "enrichment_available": true,
+    "rendered_in_ui": true,
+    "filled_sections": [
+      "biblical_significance",
+      "identification_notes",
+      "key_events",
+      "modern_context"
+    ],
+    "source_count": 2,
+    "source_diversity": [
+      "open_geocoding_dataset",
+      "scholarly_gazetteer"
+    ],
+    "institutional_source_count": 0,
+    "generic_content_findings": [],
+    "profile_status": "source_backed",
+    "content_quality_score": 80,
+    "recommended_action": "research_additional_sources",
+    "review_notes_hu": "A rekordkapcsolat és a tartalmi lefedettség dokumentálva; a hiányzó részek research queue-ba kerülnek."
+  },
+  {
+    "requested_name_hu": "Betlehem",
+    "resolved_place_id": "bethlehem_1",
+    "ui_default_place_id": "bethlehem_1",
+    "related_canonical_place_ids": [
+      "bethlehem_1",
+      "bethlehem_2"
+    ],
+    "same_physical_site": false,
+    "distinct_record_reason": "A zebuloni Betlehem külön rekord; nem került összevonásra.",
+    "enrichment_available": true,
+    "rendered_in_ui": true,
+    "filled_sections": [
+      "biblical_significance",
+      "identification_notes",
+      "modern_context"
+    ],
+    "source_count": 1,
+    "source_diversity": [
+      "open_geocoding_dataset"
+    ],
+    "institutional_source_count": 0,
+    "generic_content_findings": [],
+    "profile_status": "source_backed",
+    "content_quality_score": 60,
+    "recommended_action": "research_additional_sources",
+    "review_notes_hu": "A rekordkapcsolat és a tartalmi lefedettség dokumentálva; a hiányzó részek research queue-ba kerülnek."
+  },
+  {
+    "requested_name_hu": "Názáret",
+    "resolved_place_id": "nazareth",
+    "ui_default_place_id": "nazareth",
+    "related_canonical_place_ids": [
+      "nazareth"
+    ],
+    "same_physical_site": false,
+    "distinct_record_reason": "Egyetlen aktív Názáret-rekord szerepel a katalógusban.",
+    "enrichment_available": true,
+    "rendered_in_ui": true,
+    "filled_sections": [
+      "biblical_significance",
+      "identification_notes",
+      "modern_context"
+    ],
+    "source_count": 1,
+    "source_diversity": [
+      "open_geocoding_dataset"
+    ],
+    "institutional_source_count": 0,
+    "generic_content_findings": [],
+    "profile_status": "source_backed",
+    "content_quality_score": 60,
+    "recommended_action": "research_additional_sources",
+    "review_notes_hu": "A rekordkapcsolat és a tartalmi lefedettség dokumentálva; a hiányzó részek research queue-ba kerülnek."
+  },
+  {
+    "requested_name_hu": "Kapernaum",
+    "resolved_place_id": "capernaum",
+    "ui_default_place_id": "capernaum",
+    "related_canonical_place_ids": [
+      "capernaum"
+    ],
+    "same_physical_site": false,
+    "distinct_record_reason": "Egyetlen aktív Kapernaum-rekord szerepel a katalógusban.",
+    "enrichment_available": true,
+    "rendered_in_ui": true,
+    "filled_sections": [
+      "biblical_significance",
+      "identification_notes",
+      "modern_context"
+    ],
+    "source_count": 2,
+    "source_diversity": [
+      "open_geocoding_dataset",
+      "scholarly_gazetteer"
+    ],
+    "institutional_source_count": 0,
+    "generic_content_findings": [],
+    "profile_status": "source_backed",
+    "content_quality_score": 60,
+    "recommended_action": "research_additional_sources",
+    "review_notes_hu": "A rekordkapcsolat és a tartalmi lefedettség dokumentálva; a hiányzó részek research queue-ba kerülnek."
+  },
+  {
+    "requested_name_hu": "Jerikó",
+    "resolved_place_id": "jericho_1",
+    "ui_default_place_id": "jericho_1",
+    "related_canonical_place_ids": [
+      "jericho_1",
+      "jericho_2",
+      "valley_of_jericho",
+      "waters_of_jericho"
+    ],
+    "same_physical_site": true,
+    "distinct_record_reason": "Jerikó más korszakú és vízrajzi rekordjai külön maradnak.",
+    "enrichment_available": true,
+    "rendered_in_ui": true,
+    "filled_sections": [
+      "biblical_significance",
+      "identification_notes",
+      "key_events",
+      "modern_context"
+    ],
+    "source_count": 1,
+    "source_diversity": [
+      "open_geocoding_dataset"
+    ],
+    "institutional_source_count": 0,
+    "generic_content_findings": [],
+    "profile_status": "source_backed",
+    "content_quality_score": 80,
+    "recommended_action": "research_additional_sources",
+    "review_notes_hu": "A rekordkapcsolat és a tartalmi lefedettség dokumentálva; a hiányzó részek research queue-ba kerülnek."
+  },
+  {
+    "requested_name_hu": "Sikem",
+    "resolved_place_id": "shechem",
+    "ui_default_place_id": "shechem",
+    "related_canonical_place_ids": [
+      "shechem",
+      "tower_of_shechem"
+    ],
+    "same_physical_site": false,
+    "distinct_record_reason": "A településrekordot választjuk; Sikem tornya külön objektum marad.",
+    "enrichment_available": true,
+    "rendered_in_ui": true,
+    "filled_sections": [
+      "biblical_significance",
+      "identification_notes",
+      "key_events",
+      "modern_context"
+    ],
+    "source_count": 1,
+    "source_diversity": [
+      "open_geocoding_dataset"
+    ],
+    "institutional_source_count": 0,
+    "generic_content_findings": [],
+    "profile_status": "source_backed",
+    "content_quality_score": 80,
+    "recommended_action": "research_additional_sources",
+    "review_notes_hu": "A rekordkapcsolat és a tartalmi lefedettség dokumentálva; a hiányzó részek research queue-ba kerülnek."
+  },
+  {
+    "requested_name_hu": "Bétel",
+    "resolved_place_id": "bethel_1",
+    "ui_default_place_id": "bethel_1",
+    "related_canonical_place_ids": [
+      "bethel_1",
+      "el_bethel"
+    ],
+    "same_physical_site": false,
+    "distinct_record_reason": "Bétel, Bétel 2, Él-Bétel és Aj környéki rekordjai nem automatikusan összevontak.",
+    "enrichment_available": true,
+    "rendered_in_ui": true,
+    "filled_sections": [
+      "biblical_significance",
+      "identification_notes",
+      "key_events",
+      "modern_context"
+    ],
+    "source_count": 1,
+    "source_diversity": [
+      "open_geocoding_dataset"
+    ],
+    "institutional_source_count": 0,
+    "generic_content_findings": [],
+    "profile_status": "source_backed",
+    "content_quality_score": 80,
+    "recommended_action": "research_additional_sources",
+    "review_notes_hu": "A rekordkapcsolat és a tartalmi lefedettség dokumentálva; a hiányzó részek research queue-ba kerülnek."
+  },
+  {
+    "requested_name_hu": "Hebrón",
+    "resolved_place_id": "hebron",
+    "ui_default_place_id": "hebron",
+    "related_canonical_place_ids": [
+      "gibeah_2",
+      "hebron",
+      "valley_of_hebron"
+    ],
+    "same_physical_site": false,
+    "distinct_record_reason": "A fő Hebrón településrekordot választjuk.",
+    "enrichment_available": true,
+    "rendered_in_ui": true,
+    "filled_sections": [
+      "biblical_significance",
+      "identification_notes",
+      "key_events",
+      "modern_context"
+    ],
+    "source_count": 1,
+    "source_diversity": [
+      "open_geocoding_dataset"
+    ],
+    "institutional_source_count": 0,
+    "generic_content_findings": [],
+    "profile_status": "source_backed",
+    "content_quality_score": 80,
+    "recommended_action": "research_additional_sources",
+    "review_notes_hu": "A rekordkapcsolat és a tartalmi lefedettség dokumentálva; a hiányzó részek research queue-ba kerülnek."
+  },
+  {
+    "requested_name_hu": "Beérseba",
+    "resolved_place_id": "beersheba_1",
+    "ui_default_place_id": "beersheba_1",
+    "related_canonical_place_ids": [
+      "beersheba_1"
+    ],
+    "same_physical_site": false,
+    "distinct_record_reason": "A fő Beérseba településrekordot választjuk.",
+    "enrichment_available": true,
+    "rendered_in_ui": true,
+    "filled_sections": [
+      "biblical_significance",
+      "identification_notes",
+      "key_events",
+      "modern_context"
+    ],
+    "source_count": 1,
+    "source_diversity": [
+      "open_geocoding_dataset"
+    ],
+    "institutional_source_count": 0,
+    "generic_content_findings": [],
+    "profile_status": "source_backed",
+    "content_quality_score": 80,
+    "recommended_action": "research_additional_sources",
+    "review_notes_hu": "A rekordkapcsolat és a tartalmi lefedettség dokumentálva; a hiányzó részek research queue-ba kerülnek."
+  },
+  {
+    "requested_name_hu": "Sínai-hegy vagy Sínai térsége",
+    "resolved_place_id": "mount_sinai",
+    "ui_default_place_id": null,
+    "related_canonical_place_ids": [
+      "abarim",
+      "hachilah",
+      "mount_baal_hermon",
+      "mount_baalah",
+      "mount_bashan",
+      "mount_carmel",
+      "mount_ebal",
+      "mount_ephraim",
+      "mount_ephron",
+      "mount_esau",
+      "mount_gerizim",
+      "mount_gilboa",
+      "mount_gilead",
+      "mount_halak",
+      "mount_heres",
+      "mount_hermon",
+      "mount_hor_1",
+      "mount_hor_2",
+      "mount_horeb",
+      "mount_jearim",
+      "mount_lebanon",
+      "mount_mizar",
+      "mount_moriah",
+      "mount_nebo",
+      "mount_of_olives",
+      "mount_paran",
+      "mount_perazim",
+      "mount_seir_1",
+      "mount_seir_2",
+      "mount_shepher",
+      "mount_sinai",
+      "mount_tabor",
+      "mount_zalmon",
+      "mount_zemaraim",
+      "mount_zion",
+      "wilderness_of_sinai"
+    ],
+    "same_physical_site": true,
+    "distinct_record_reason": "A Sínai-hegy és a Sínai-puszta külön rekordtípus.",
+    "enrichment_available": true,
+    "rendered_in_ui": false,
+    "filled_sections": [
+      "biblical_significance",
+      "identification_notes",
+      "modern_context"
+    ],
+    "source_count": 1,
+    "source_diversity": [
+      "open_geocoding_dataset"
+    ],
+    "institutional_source_count": 0,
+    "generic_content_findings": [],
+    "profile_status": "needs_record_resolution",
+    "content_quality_score": 60,
+    "recommended_action": "review_profile_group_and_ui_default",
+    "review_notes_hu": "A rekordkapcsolat és a tartalmi lefedettség dokumentálva; a hiányzó részek research queue-ba kerülnek."
+  },
+  {
+    "requested_name_hu": "Kádés-Barnea",
+    "resolved_place_id": "kadesh_barnea",
+    "ui_default_place_id": "kadesh_barnea",
+    "related_canonical_place_ids": [
+      "atharim",
+      "kadesh_2",
+      "kadesh_barnea",
+      "meribah_1",
+      "tibhath",
+      "zin_1"
+    ],
+    "same_physical_site": false,
+    "distinct_record_reason": "A Kádés-Barnea településrekordot választjuk.",
+    "enrichment_available": true,
+    "rendered_in_ui": true,
+    "filled_sections": [
+      "biblical_significance",
+      "identification_notes",
+      "key_events",
+      "modern_context"
+    ],
+    "source_count": 1,
+    "source_diversity": [
+      "open_geocoding_dataset"
+    ],
+    "institutional_source_count": 0,
+    "generic_content_findings": [],
+    "profile_status": "source_backed",
+    "content_quality_score": 80,
+    "recommended_action": "research_additional_sources",
+    "review_notes_hu": "A rekordkapcsolat és a tartalmi lefedettség dokumentálva; a hiányzó részek research queue-ba kerülnek."
+  },
+  {
+    "requested_name_hu": "Babilon",
+    "resolved_place_id": "babylon_1",
+    "ui_default_place_id": "babylon_1",
+    "related_canonical_place_ids": [
+      "babylon_1",
+      "babylon_2",
+      "babylon_3",
+      "babylonia"
+    ],
+    "same_physical_site": false,
+    "distinct_record_reason": "Babilon város, Babilónia régió és a szimbolikus római Babilon külön rekord.",
+    "enrichment_available": true,
+    "rendered_in_ui": true,
+    "filled_sections": [
+      "biblical_significance",
+      "identification_notes",
+      "modern_context"
+    ],
+    "source_count": 1,
+    "source_diversity": [
+      "open_geocoding_dataset"
+    ],
+    "institutional_source_count": 0,
+    "generic_content_findings": [],
+    "profile_status": "source_backed",
+    "content_quality_score": 60,
+    "recommended_action": "research_additional_sources",
+    "review_notes_hu": "A rekordkapcsolat és a tartalmi lefedettség dokumentálva; a hiányzó részek research queue-ba kerülnek."
+  },
+  {
+    "requested_name_hu": "Ninive",
+    "resolved_place_id": "nineveh",
+    "ui_default_place_id": "nineveh",
+    "related_canonical_place_ids": [
+      "nineveh"
+    ],
+    "same_physical_site": false,
+    "distinct_record_reason": "A fő Ninive településrekordot választjuk.",
+    "enrichment_available": true,
+    "rendered_in_ui": true,
+    "filled_sections": [
+      "biblical_significance",
+      "identification_notes",
+      "modern_context"
+    ],
+    "source_count": 1,
+    "source_diversity": [
+      "open_geocoding_dataset"
+    ],
+    "institutional_source_count": 0,
+    "generic_content_findings": [],
+    "profile_status": "source_backed",
+    "content_quality_score": 60,
+    "recommended_action": "research_additional_sources",
+    "review_notes_hu": "A rekordkapcsolat és a tartalmi lefedettség dokumentálva; a hiányzó részek research queue-ba kerülnek."
+  },
+  {
+    "requested_name_hu": "szíriai Antiókhia",
+    "resolved_place_id": "antioch_syria",
+    "ui_default_place_id": null,
+    "related_canonical_place_ids": [
+      "antioch_2",
+      "antioch_syria"
+    ],
+    "same_physical_site": false,
+    "distinct_record_reason": "A szíriai és a pisidiai Antiókhia külön hely.",
+    "enrichment_available": true,
+    "rendered_in_ui": false,
+    "filled_sections": [
+      "biblical_significance",
+      "identification_notes",
+      "key_events",
+      "modern_context"
+    ],
+    "source_count": 2,
+    "source_diversity": [
+      "open_geocoding_dataset",
+      "scholarly_gazetteer"
+    ],
+    "institutional_source_count": 0,
+    "generic_content_findings": [],
+    "profile_status": "needs_record_resolution",
+    "content_quality_score": 80,
+    "recommended_action": "review_profile_group_and_ui_default",
+    "review_notes_hu": "A rekordkapcsolat és a tartalmi lefedettség dokumentálva; a hiányzó részek research queue-ba kerülnek."
+  },
+  {
+    "requested_name_hu": "Efezus",
+    "resolved_place_id": "ephesus",
+    "ui_default_place_id": "ephesus",
+    "related_canonical_place_ids": [
+      "ephesus"
+    ],
+    "same_physical_site": false,
+    "distinct_record_reason": "A kézi, részletes Efezus-rekordot használjuk.",
+    "enrichment_available": true,
+    "rendered_in_ui": true,
+    "filled_sections": [
+      "ancient_geography",
+      "archaeology",
+      "biblical_significance",
+      "historical_context",
+      "identification_notes",
+      "key_events",
+      "modern_context"
+    ],
+    "source_count": 5,
+    "source_diversity": [
+      "international_heritage_reference",
+      "official_archaeological_site",
+      "open_geocoding_dataset",
+      "scholarly_gazetteer"
+    ],
+    "institutional_source_count": 2,
+    "generic_content_findings": [],
+    "profile_status": "featured",
+    "content_quality_score": 140,
+    "recommended_action": "ready_for_public_pilot",
+    "review_notes_hu": "A rekordkapcsolat és a tartalmi lefedettség dokumentálva; a hiányzó részek research queue-ba kerülnek."
+  },
+  {
+    "requested_name_hu": "Korinthus",
+    "resolved_place_id": "corinth",
+    "ui_default_place_id": "corinth",
+    "related_canonical_place_ids": [
+      "corinth"
+    ],
+    "same_physical_site": false,
+    "distinct_record_reason": "A kézi, részletes Korinthus-rekordot használjuk.",
+    "enrichment_available": true,
+    "rendered_in_ui": true,
+    "filled_sections": [
+      "ancient_geography",
+      "archaeology",
+      "biblical_significance",
+      "historical_context",
+      "identification_notes",
+      "key_events",
+      "modern_context"
+    ],
+    "source_count": 5,
+    "source_diversity": [
+      "official_archaeological_site",
+      "open_geocoding_dataset",
+      "scholarly_archaeological_reference",
+      "scholarly_gazetteer"
+    ],
+    "institutional_source_count": 2,
+    "generic_content_findings": [],
+    "profile_status": "featured",
+    "content_quality_score": 140,
+    "recommended_action": "ready_for_public_pilot",
+    "review_notes_hu": "A rekordkapcsolat és a tartalmi lefedettség dokumentálva; a hiányzó részek research queue-ba kerülnek."
+  },
+  {
+    "requested_name_hu": "Filippi",
+    "resolved_place_id": "philippi",
+    "ui_default_place_id": "philippi",
+    "related_canonical_place_ids": [
+      "caesarea_philippi",
+      "philippi"
+    ],
+    "same_physical_site": false,
+    "distinct_record_reason": "A fő Filippi-rekordot választjuk; Cézárea Filippi külön hely marad.",
+    "enrichment_available": true,
+    "rendered_in_ui": true,
+    "filled_sections": [
+      "biblical_significance",
+      "identification_notes",
+      "key_events",
+      "modern_context"
+    ],
+    "source_count": 1,
+    "source_diversity": [
+      "open_geocoding_dataset"
+    ],
+    "institutional_source_count": 0,
+    "generic_content_findings": [],
+    "profile_status": "source_backed",
+    "content_quality_score": 80,
+    "recommended_action": "research_additional_sources",
+    "review_notes_hu": "A rekordkapcsolat és a tartalmi lefedettség dokumentálva; a hiányzó részek research queue-ba kerülnek."
+  },
+  {
+    "requested_name_hu": "Athén",
+    "resolved_place_id": "athens",
+    "ui_default_place_id": "athens",
+    "related_canonical_place_ids": [
+      "athens",
+      "greece"
+    ],
+    "same_physical_site": false,
+    "distinct_record_reason": "A fő Athén városrekordot választjuk.",
+    "enrichment_available": true,
+    "rendered_in_ui": true,
+    "filled_sections": [
+      "biblical_significance",
+      "identification_notes",
+      "key_events",
+      "modern_context"
+    ],
+    "source_count": 2,
+    "source_diversity": [
+      "open_geocoding_dataset",
+      "scholarly_gazetteer"
+    ],
+    "institutional_source_count": 0,
+    "generic_content_findings": [],
+    "profile_status": "source_backed",
+    "content_quality_score": 80,
+    "recommended_action": "research_additional_sources",
+    "review_notes_hu": "A rekordkapcsolat és a tartalmi lefedettség dokumentálva; a hiányzó részek research queue-ba kerülnek."
+  },
+  {
+    "requested_name_hu": "tengeri Cézárea",
+    "resolved_place_id": "caesarea",
+    "ui_default_place_id": null,
+    "related_canonical_place_ids": [
+      "caesarea",
+      "caesarea_philippi"
+    ],
+    "same_physical_site": false,
+    "distinct_record_reason": "Cézárea Maritima és Cézárea Filippi külön hely.",
+    "enrichment_available": true,
+    "rendered_in_ui": false,
+    "filled_sections": [
+      "biblical_significance",
+      "identification_notes",
+      "key_events",
+      "modern_context"
+    ],
+    "source_count": 1,
+    "source_diversity": [
+      "open_geocoding_dataset"
+    ],
+    "institutional_source_count": 0,
+    "generic_content_findings": [],
+    "profile_status": "needs_record_resolution",
+    "content_quality_score": 80,
+    "recommended_action": "review_profile_group_and_ui_default",
+    "review_notes_hu": "A rekordkapcsolat és a tartalmi lefedettség dokumentálva; a hiányzó részek research queue-ba kerülnek."
+  },
+  {
+    "requested_name_hu": "Róma",
+    "resolved_place_id": "rome",
+    "ui_default_place_id": "rome",
+    "related_canonical_place_ids": [
+      "rome"
+    ],
+    "same_physical_site": false,
+    "distinct_record_reason": "A fő Róma városrekordot választjuk.",
+    "enrichment_available": true,
+    "rendered_in_ui": true,
+    "filled_sections": [
+      "biblical_significance",
+      "identification_notes",
+      "key_events",
+      "modern_context"
+    ],
+    "source_count": 2,
+    "source_diversity": [
+      "open_geocoding_dataset",
+      "scholarly_gazetteer"
+    ],
+    "institutional_source_count": 0,
+    "generic_content_findings": [],
+    "profile_status": "source_backed",
+    "content_quality_score": 80,
+    "recommended_action": "research_additional_sources",
+    "review_notes_hu": "A rekordkapcsolat és a tartalmi lefedettség dokumentálva; a hiányzó részek research queue-ba kerülnek."
+  }
+]

@@ -1,0 +1,232 @@
+{
+  "requested_pilot_place_count": 20,
+  "resolved_place_count": 20,
+  "skipped_or_ambiguous_places": [],
+  "sections_by_place": {
+    "jerusalem": [
+      "biblical_significance",
+      "identification_notes",
+      "key_events",
+      "modern_context"
+    ],
+    "bethlehem_1": [
+      "biblical_significance",
+      "identification_notes",
+      "modern_context"
+    ],
+    "nazareth": [
+      "biblical_significance",
+      "identification_notes",
+      "modern_context"
+    ],
+    "capernaum": [
+      "biblical_significance",
+      "identification_notes",
+      "modern_context"
+    ],
+    "jericho_1": [
+      "biblical_significance",
+      "identification_notes",
+      "key_events",
+      "modern_context"
+    ],
+    "shechem": [
+      "biblical_significance",
+      "identification_notes",
+      "key_events",
+      "modern_context"
+    ],
+    "bethel_1": [
+      "biblical_significance",
+      "identification_notes",
+      "key_events",
+      "modern_context"
+    ],
+    "hebron": [
+      "biblical_significance",
+      "identification_notes",
+      "key_events",
+      "modern_context"
+    ],
+    "beersheba_1": [
+      "biblical_significance",
+      "identification_notes",
+      "key_events",
+      "modern_context"
+    ],
+    "mount_sinai": [
+      "biblical_significance",
+      "identification_notes",
+      "modern_context"
+    ],
+    "kadesh_barnea": [
+      "biblical_significance",
+      "identification_notes",
+      "key_events",
+      "modern_context"
+    ],
+    "babylon_1": [
+      "biblical_significance",
+      "identification_notes",
+      "modern_context"
+    ],
+    "nineveh": [
+      "biblical_significance",
+      "identification_notes",
+      "modern_context"
+    ],
+    "antioch_syria": [
+      "biblical_significance",
+      "identification_notes",
+      "key_events",
+      "modern_context"
+    ],
+    "ephesus": [
+      "ancient_geography",
+      "archaeology",
+      "biblical_significance",
+      "historical_context",
+      "identification_notes",
+      "key_events",
+      "modern_context"
+    ],
+    "corinth": [
+      "ancient_geography",
+      "archaeology",
+      "biblical_significance",
+      "historical_context",
+      "identification_notes",
+      "key_events",
+      "modern_context"
+    ],
+    "philippi": [
+      "biblical_significance",
+      "identification_notes",
+      "key_events",
+      "modern_context"
+    ],
+    "athens": [
+      "biblical_significance",
+      "identification_notes",
+      "key_events",
+      "modern_context"
+    ],
+    "caesarea": [
+      "biblical_significance",
+      "identification_notes",
+      "key_events",
+      "modern_context"
+    ],
+    "rome": [
+      "biblical_significance",
+      "identification_notes",
+      "key_events",
+      "modern_context"
+    ]
+  },
+  "source_ids_by_place": {
+    "jerusalem": [
+      "openbible_geocoding_cc_by_4_0",
+      "pleiades_place_687928"
+    ],
+    "bethlehem_1": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "nazareth": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "capernaum": [
+      "openbible_geocoding_cc_by_4_0",
+      "pleiades_place_678231"
+    ],
+    "jericho_1": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "shechem": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "bethel_1": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "hebron": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "beersheba_1": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "mount_sinai": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "kadesh_barnea": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "babylon_1": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "nineveh": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "antioch_syria": [
+      "openbible_geocoding_cc_by_4_0",
+      "pleiades_place_658381"
+    ],
+    "ephesus": [
+      "openbible_geocoding_cc_by_4_0",
+      "pleiades_ephesus_599612",
+      "pleiades_place_599612",
+      "turkiye_ephesus_archaeological_site",
+      "unesco_ephesus_1018"
+    ],
+    "corinth": [
+      "ascsa_ancient_corinth_history",
+      "hellenic_ministry_ancient_corinth",
+      "openbible_geocoding_cc_by_4_0",
+      "pleiades_corinth_570182",
+      "pleiades_place_570182"
+    ],
+    "philippi": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "athens": [
+      "openbible_geocoding_cc_by_4_0",
+      "pleiades_place_579885"
+    ],
+    "caesarea": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "rome": [
+      "openbible_geocoding_cc_by_4_0",
+      "pleiades_place_423025"
+    ]
+  },
+  "sections_without_sources": [],
+  "archaeology_section_count": 2,
+  "needs_review_blocks": [],
+  "missing_or_invalid_place_ids": [],
+  "utf8_mojibake_check": "passed",
+  "length_limits_check": "passed",
+  "route_link_count_by_place": {
+    "jerusalem": 3,
+    "bethlehem_1": 0,
+    "nazareth": 0,
+    "capernaum": 0,
+    "jericho_1": 1,
+    "shechem": 3,
+    "bethel_1": 3,
+    "hebron": 2,
+    "beersheba_1": 3,
+    "mount_sinai": 0,
+    "kadesh_barnea": 1,
+    "babylon_1": 0,
+    "nineveh": 0,
+    "antioch_syria": 3,
+    "ephesus": 2,
+    "corinth": 1,
+    "philippi": 2,
+    "athens": 1,
+    "caesarea": 3,
+    "rome": 1
+  },
+  "duplicate_content_check": "not_detected",
+  "expert_review_notes_hu": "A pilot szándékosan rövid, strukturált mezőkből és meglévő passage/route adatokból épül."
+}

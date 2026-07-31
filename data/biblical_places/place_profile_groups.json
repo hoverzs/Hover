@@ -1,0 +1,51 @@
+[
+  {
+    "profile_id": "jericho_site",
+    "name_hu": "Jerikó",
+    "primary_place_id": "jericho_1",
+    "member_place_ids": [
+      "jericho_1",
+      "jericho_2",
+      "valley_of_jericho",
+      "waters_of_jericho"
+    ],
+    "relationship_type": "same_site_different_period_or_feature",
+    "shared_sections": [
+      "modern_context",
+      "identification_notes"
+    ],
+    "record_specific_sections": [
+      "biblical_significance",
+      "key_events",
+      "historical_context",
+      "archaeology",
+      "homiletical_context"
+    ],
+    "review_status": "reviewed",
+    "notes_hu": "A rekordok Jerikó tágabb helycsoportjához tartoznak, de korszak, funkció vagy földrajzi részlet szerint külön canonical rekordok maradnak."
+  },
+  {
+    "profile_id": "sinai_area",
+    "name_hu": "Sínai térsége",
+    "primary_place_id": "mount_sinai",
+    "member_place_ids": [
+      "mount_sinai",
+      "mount_horeb",
+      "wilderness_of_sinai"
+    ],
+    "relationship_type": "related_mountain_and_region_records",
+    "shared_sections": [
+      "modern_context",
+      "identification_notes"
+    ],
+    "record_specific_sections": [
+      "biblical_significance",
+      "key_events",
+      "historical_context",
+      "archaeology",
+      "homiletical_context"
+    ],
+    "review_status": "needs_review",
+    "notes_hu": "A hegy- és pusztarekordok kapcsolódnak, de nem azonos rekordtípusok; a pontos azonosítási hagyományok szakmai forráskutatást igényelnek."
+  }
+]

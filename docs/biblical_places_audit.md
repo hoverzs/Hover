@@ -1,0 +1,986 @@
+# Bibliai helyszínkatalógus audit
+
+- Auditált katalógus: `data\biblical_places\biblical_places_catalog.json`
+- OpenBible nyers helyrekordok száma: 1342
+- Sikeresen importált helyek száma: 1309
+- Kihagyott helyek száma: 33
+- Kihagyási okok: `{'missing_or_invalid_coordinates': 33}`
+- Kézi override-ok száma: 10
+- Merged katalógus mérete: 1267
+- Katalógus rekordok száma: 1267
+- Forrásrekordok száma: 16
+- Passage-place kapcsolatok száma: 8654
+- Szakmai ellenőrzést igénylő tételek: 1042
+- Large passage-list találatok: 118
+- Biztosan összevont duplikátumok: 0
+- Bizonytalan duplikátumok: 161
+- Invalid external ID találatok: 0
+- Mixed manual demo source találatok: 0
+- UI fallback nevet igénylő rekordok: 0
+- Biztonságos rövid fallback leírás előállítható: 0
+- Idempotencia státusz: sikeres
+
+## Hibakategóriák
+- `certain_status_without_review`: 484
+- `hungarian_name_review`: 203
+- `large_place_list_for_passage`: 118
+- `probable_duplicate_place`: 161
+- `same_hungarian_name`: 67
+- `summary_repeats_name`: 9
+
+## Automatikusan javított tételek
+- Nem volt automatikusan javítható eltérés.
+
+## Legfontosabb problémák
+- [review] `same_hungarian_name` `achzib_1, achzib_2`: Same normalized Hungarian name is used by multiple records: akzíb.
+- [review] `same_hungarian_name` `ain_1, ain_3`: Same normalized Hungarian name is used by multiple records: ain.
+- [review] `same_hungarian_name` `aphek_1, aphek_2, aphek_3, aphek_4`: Same normalized Hungarian name is used by multiple records: afék.
+- [review] `same_hungarian_name` `arabia_1, arabia_2`: Same normalized Hungarian name is used by multiple records: arábia.
+- [review] `same_hungarian_name` `aroer_1, aroer_2, aroer_3`: Same normalized Hungarian name is used by multiple records: aróér.
+- [review] `same_hungarian_name` `ataroth_1, ataroth_3`: Same normalized Hungarian name is used by multiple records: atárót.
+- [review] `same_hungarian_name` `babylon_1, babylon_2, babylon_3`: Same normalized Hungarian name is used by multiple records: babilon.
+- [review] `same_hungarian_name` `bealoth_1, bealoth_2`: Same normalized Hungarian name is used by multiple records: bealoth.
+- [review] `same_hungarian_name` `beth_aven_1, beth_aven_2`: Same normalized Hungarian name is used by multiple records: bét-áven.
+- [review] `same_hungarian_name` `beth_dagon_1, beth_dagon_2`: Same normalized Hungarian name is used by multiple records: bét-dagon.
+- [review] `same_hungarian_name` `beth_shemesh_1, beth_shemesh_3`: Same normalized Hungarian name is used by multiple records: bét-semes.
+- [review] `same_hungarian_name` `bezek_1, bezek_2`: Same normalized Hungarian name is used by multiple records: bezek.
+- [review] `same_hungarian_name` `bozrah_1, bozrah_2`: Same normalized Hungarian name is used by multiple records: bocrá.
+- [review] `same_hungarian_name` `cana, kanah_1`: Same normalized Hungarian name is used by multiple records: kána.
+- [review] `same_hungarian_name` `cush_1, cush_2`: Same normalized Hungarian name is used by multiple records: kús.
+- [review] `same_hungarian_name` `debir_1, debir_3`: Same normalized Hungarian name is used by multiple records: debír.
+- [review] `same_hungarian_name` `dibon_1, dibon_2`: Same normalized Hungarian name is used by multiple records: díbón.
+- [review] `same_hungarian_name` `dumah_1, dumah_2`: Same normalized Hungarian name is used by multiple records: dúmá.
+- [review] `same_hungarian_name` `edrei_1, edrei_2`: Same normalized Hungarian name is used by multiple records: edrei.
+- [review] `same_hungarian_name` `ephraim_1, ephraim_2, ephraim_3`: Same normalized Hungarian name is used by multiple records: efraim.
+- [review] `same_hungarian_name` `ephron_1, ephron_2`: Same normalized Hungarian name is used by multiple records: efrón.
+- [review] `same_hungarian_name` `etam_1, etam_3, etham`: Same normalized Hungarian name is used by multiple records: étám.
+- [review] `same_hungarian_name` `ether_1, ether_2`: Same normalized Hungarian name is used by multiple records: éter.
+- [review] `same_hungarian_name` `galilee_1, galilee_2`: Same normalized Hungarian name is used by multiple records: galilea.
+- [review] `same_hungarian_name` `gath_1, gath_2, gath_3`: Same normalized Hungarian name is used by multiple records: gát.
+- [review] `same_hungarian_name` `geba_1, geba_2, geba_3, geba_4`: Same normalized Hungarian name is used by multiple records: geba.
+- [review] `same_hungarian_name` `gebal_1, gebal_2`: Same normalized Hungarian name is used by multiple records: gebál.
+- [review] `same_hungarian_name` `gederah_2, gederah_3`: Same normalized Hungarian name is used by multiple records: gedérá.
+- [review] `same_hungarian_name` `gedor_1, gedor_2`: Same normalized Hungarian name is used by multiple records: gedór.
+- [review] `same_hungarian_name` `gibeah_1, gibeah_2`: Same normalized Hungarian name is used by multiple records: gibea.
+
+## Magyar névellenőrzésre vár
+- `abel_keramim`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `abila`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `abila_lysaniou`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `accad`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `adamah`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `adasa`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `addar`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `adithaim`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `adulis`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `aenon`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `akeldama`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `alexandria`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `ama`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `amad`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `amam`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `amate`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `amaw`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `ammah`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `arab`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `arbela`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `armageddon`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `arsinoe`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `atharim`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `atroth_beth_joab`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `atroth_shophan`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `avvim`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `azal`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `aznoth_tabor`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `baal_hamon`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `baal_hazor`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `baal_hermon`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `baal_shalishah`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `baal_tamar`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `batanea`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `belamon`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `bered`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `berothah`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `beten`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `bethuel`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `brook_of_the_arabah`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `buz`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `carthage`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `chalcis`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `charmande`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `chephar_ammoni`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `chilmad`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `chitlish`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `cun`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `dannah`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `dilean`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `dimonah`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `dizahab`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `ebez`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `eglaim`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `elishah`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `elkosh`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `elon`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `elonbeth_hanan`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `emmaus`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `enam`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `eneglaim`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `eridu`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `eshan`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `eth_kazin`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `etruria`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `gadara`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `gamad`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `geder`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `gederothaim`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `gerasa`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `gergesa`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `gibeath_elohim`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `gibeath_haaraloth`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `gidom`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `gittaim`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `gur`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `gutium`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `haeleph`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `halahha`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `harhar`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `harmon`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `hatti`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `hazer_hatticon`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `heracleopolis_magna`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `heracleopolis_parva`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `hereth`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `herods_palace`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `hilakku`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `hobah`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `horem`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `hukkok`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `idumea`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `india`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `iphtah`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `irpeel`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `ithnan`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `jabez`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `janua`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `jorkeam`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `kamon`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `karkor`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `kartan`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `kerioth_hezron`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `kinah`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `kiriath_huzoth`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `kitron`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `kumidi`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `laash`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `laban`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `lahmam`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `laishah`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `laodicea`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `lasea`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `lasha`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `lehi`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `lydia`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `maareh_geba`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `machbenah`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `madiama`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `madmen`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `madmenah`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `magbish`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `magdalsenna`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `magdolum`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `mahanaim`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `makaz`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `maroth`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `mearah`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `meconah`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `merom`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `meroz`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `mesha`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `metheg_ammah`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `migdal_el`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `migdal_gad`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `minni`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `moriah`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `nahaliel`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `nahuru`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `nain`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `nibshan`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `nuhashe`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `parvaim`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `patara`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `pishon`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `pitru`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `punt`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `puteoli`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `raamah`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `ragmat`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `rakkon`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `ramath_mizpeh`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `rekem`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `salim`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `salmone`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `salona`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `saparda`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `saparre`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `scythia`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `secacah`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `sephar`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `shahazumah`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `shaphir`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `shion`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `silla`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `sitnah`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `sparta`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `suph`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `suphah`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `sutu`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `tabbath`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `tabbur_erez`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `tartessos`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `tegarama`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `telem`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `terah`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `thapsacus`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `thelme`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `thisbe`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `tigris`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `tjaru`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `tochen`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `tophel`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `umman_manda`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `upu`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `uqnu`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `ura`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `uzal`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `uzzen_sheerah`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `zalmon`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `zeboim`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `zemaraim`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `zenan`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `zer`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `zererah`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `zereth_shahar`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `ziddim`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `zimri`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `zior`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `ziphron`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `ziz`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `zophim`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+- `zuph`: name_hu is identical to name_en and has no Hungarian diacritic signal.
+
+## Vitatott vagy többes helyazonosítás
+- `achzib_1, achzib_2`: Same normalized Hungarian name is used by multiple records: akzíb.
+- `ain_1, ain_3`: Same normalized Hungarian name is used by multiple records: ain.
+- `aphek_1, aphek_2, aphek_3, aphek_4`: Same normalized Hungarian name is used by multiple records: afék.
+- `arabia_1, arabia_2`: Same normalized Hungarian name is used by multiple records: arábia.
+- `aroer_1, aroer_2, aroer_3`: Same normalized Hungarian name is used by multiple records: aróér.
+- `ataroth_1, ataroth_3`: Same normalized Hungarian name is used by multiple records: atárót.
+- `babylon_1, babylon_2, babylon_3`: Same normalized Hungarian name is used by multiple records: babilon.
+- `bealoth_1, bealoth_2`: Same normalized Hungarian name is used by multiple records: bealoth.
+- `beth_aven_1, beth_aven_2`: Same normalized Hungarian name is used by multiple records: bét-áven.
+- `beth_dagon_1, beth_dagon_2`: Same normalized Hungarian name is used by multiple records: bét-dagon.
+- `beth_shemesh_1, beth_shemesh_3`: Same normalized Hungarian name is used by multiple records: bét-semes.
+- `bezek_1, bezek_2`: Same normalized Hungarian name is used by multiple records: bezek.
+- `bozrah_1, bozrah_2`: Same normalized Hungarian name is used by multiple records: bocrá.
+- `cana, kanah_1`: Same normalized Hungarian name is used by multiple records: kána.
+- `cush_1, cush_2`: Same normalized Hungarian name is used by multiple records: kús.
+- `debir_1, debir_3`: Same normalized Hungarian name is used by multiple records: debír.
+- `dibon_1, dibon_2`: Same normalized Hungarian name is used by multiple records: díbón.
+- `dumah_1, dumah_2`: Same normalized Hungarian name is used by multiple records: dúmá.
+- `edrei_1, edrei_2`: Same normalized Hungarian name is used by multiple records: edrei.
+- `ephraim_1, ephraim_2, ephraim_3`: Same normalized Hungarian name is used by multiple records: efraim.
+- `ephron_1, ephron_2`: Same normalized Hungarian name is used by multiple records: efrón.
+- `etam_1, etam_3, etham`: Same normalized Hungarian name is used by multiple records: étám.
+- `ether_1, ether_2`: Same normalized Hungarian name is used by multiple records: éter.
+- `galilee_1, galilee_2`: Same normalized Hungarian name is used by multiple records: galilea.
+- `gath_1, gath_2, gath_3`: Same normalized Hungarian name is used by multiple records: gát.
+- `geba_1, geba_2, geba_3, geba_4`: Same normalized Hungarian name is used by multiple records: geba.
+- `gebal_1, gebal_2`: Same normalized Hungarian name is used by multiple records: gebál.
+- `gederah_2, gederah_3`: Same normalized Hungarian name is used by multiple records: gedérá.
+- `gedor_1, gedor_2`: Same normalized Hungarian name is used by multiple records: gedór.
+- `gibeah_1, gibeah_2`: Same normalized Hungarian name is used by multiple records: gibea.
+- `gibeah_3, gibeah_4`: Same normalized Hungarian name is used by multiple records: gibeá.
+- `gilgal_1, gilgal_2, gilgal_3, gilgal_4`: Same normalized Hungarian name is used by multiple records: gilgál.
+- `hamath_1, hamath_2`: Same normalized Hungarian name is used by multiple records: hamát.
+- `hammon_1, hammon_2`: Same normalized Hungarian name is used by multiple records: hammón.
+- `harod_1, harod_2`: Same normalized Hungarian name is used by multiple records: haród.
+- `havilah_1, havilah_3`: Same normalized Hungarian name is used by multiple records: havilá.
+- `hazazon_tamar_1, hazazon_tamar_2`: Same normalized Hungarian name is used by multiple records: hacacón-tamar.
+- `hazor_1, hazor_2, hazor_3, hazor_4, hazor_5`: Same normalized Hungarian name is used by multiple records: hácór.
+- `horonaim_1, horonaim_2`: Same normalized Hungarian name is used by multiple records: hórónaim.
+- `jabneel_1, jabneel_2`: Same normalized Hungarian name is used by multiple records: jabneél.
+- `jarmuth_1, jarmuth_2`: Same normalized Hungarian name is used by multiple records: jarmút.
+- `jericho_1, jericho_2`: Same normalized Hungarian name is used by multiple records: jerikó.
+- `jokmeam_1, jokmeam_2`: Same normalized Hungarian name is used by multiple records: jokmeam.
+- `kedesh_2, kedesh_3, kedesh_4`: Same normalized Hungarian name is used by multiple records: kedes.
+- `kir_1, kir_2`: Same normalized Hungarian name is used by multiple records: kír.
+- `lud_1, lud_2`: Same normalized Hungarian name is used by multiple records: lúd.
+- `meribah_1, meribah_2`: Same normalized Hungarian name is used by multiple records: meríbá.
+- `migdol_1, migdol_2, migdol_3`: Same normalized Hungarian name is used by multiple records: migdól.
+- `mizpah_1, mizpah_2, mizpah_4`: Same normalized Hungarian name is used by multiple records: micpa.
+- `mizpeh_2, mizpeh_3`: Same normalized Hungarian name is used by multiple records: micpe.
+- `mount_hor_1, mount_hor_2`: Same normalized Hungarian name is used by multiple records: hór hegye.
+- `mount_seir_1, mount_seir_2`: Same normalized Hungarian name is used by multiple records: széír hegye.
+- `naamah_1, naamah_2`: Same normalized Hungarian name is used by multiple records: naamá.
+- `ophrah_1, ophrah_2`: Same normalized Hungarian name is used by multiple records: ofrá.
+- `ramah_1, ramah_2, ramah_3, ramah_4, ramah_6, ramah_7, ramah_8, ramah_9`: Same normalized Hungarian name is used by multiple records: ráma.
+- `rehob_1, rehob_3`: Same normalized Hungarian name is used by multiple records: rehób.
+- `rehoboth_1, rehoboth_2`: Same normalized Hungarian name is used by multiple records: rehóbót.
+- `rhodes_1, rhodes_2`: Same normalized Hungarian name is used by multiple records: rodosz.
+- `rimmon_1, rimmon_2`: Same normalized Hungarian name is used by multiple records: rimmón.
+- `sela_1, sela_2`: Same normalized Hungarian name is used by multiple records: szela.
+- `shaaraim_1, shaaraim_2`: Same normalized Hungarian name is used by multiple records: saaraim.
+- `socoh_1, socoh_2, socoh_3`: Same normalized Hungarian name is used by multiple records: szókó.
+- `succoth_1, succoth_2`: Same normalized Hungarian name is used by multiple records: szukkót.
+- `tabor_2, tabor_3`: Same normalized Hungarian name is used by multiple records: tábor.
+- `timnah_2, timnah_3`: Same normalized Hungarian name is used by multiple records: timná.
+- `tiphsah_1, tiphsah_2`: Same normalized Hungarian name is used by multiple records: tifsza.
+- `zaphon_1, zaphon_2`: Same normalized Hungarian name is used by multiple records: cáfón.
+- `aijalon_1 / valley_of_aijalon`: Records share a name variant and have very close coordinates.
+- `ain_2 / ain_3`: Records share a name variant and have very close coordinates.
+- `ain_2 / ashan`: Records share a name variant and have very close coordinates.
+- `ain_3 / ashan`: Records share a name variant and have very close coordinates.
+- `aram / syria_1`: Records share a name variant and have very close coordinates.
+- `aram / syria_2`: Records share a name variant and have very close coordinates.
+- `aram_naharaim / mesopotamia`: Records share a name variant and have very close coordinates.
+- `ariel / city_of_david`: Records share a name variant and have very close coordinates.
+- `ariel / jerusalem`: Records share a name variant and have very close coordinates.
+- `ariel / mount_zion`: Records share a name variant and have very close coordinates.
+- `ariel / salem`: Records share a name variant and have very close coordinates.
+- `ariel / zion`: Records share a name variant and have very close coordinates.
+- `arnon / valley_of_the_arnon`: Records share a name variant and have very close coordinates.
+- `ashdod / philistia`: Records share a name variant and have very close coordinates.
+- `ataroth_2 / ataroth_3`: Records share a name variant and have very close coordinates.
+- `ataroth_2 / atroth_beth_joab`: Records share a name variant and have very close coordinates.
+- `ataroth_3 / atroth_beth_joab`: Records share a name variant and have very close coordinates.
+- `baal_hermon / mount_baal_hermon`: Records share a name variant and have very close coordinates.
+- `baal_peor / peor`: Records share a name variant and have very close coordinates.
+- `babel / babylon_1`: Records share a name variant and have very close coordinates.
+- `babel / babylonia`: Records share a name variant and have very close coordinates.
+- `babel / sheshach`: Records share a name variant and have very close coordinates.
+- `babel / shinar`: Records share a name variant and have very close coordinates.
+- `babylon_1 / babylonia`: Records share a name variant and have very close coordinates.
+- `babylon_1 / sheshach`: Records share a name variant and have very close coordinates.
+- `babylon_1 / shinar`: Records share a name variant and have very close coordinates.
+- `babylon_2 / babylon_3`: Records share a name variant and have very close coordinates.
+- `babylonia / sheshach`: Records share a name variant and have very close coordinates.
+- `babylonia / shinar`: Records share a name variant and have very close coordinates.
+- `bealoth_1 / bealoth_2`: Records share a name variant and have very close coordinates.
+- `beth_aven_1 / beth_aven_2`: Records share a name variant and have very close coordinates.
+- `beth_gilgal / gilgal_1`: Records share a name variant and have very close coordinates.
+- `beth_gilgal / gilgal_3`: Records share a name variant and have very close coordinates.
+- `beth_gilgal / gilgal_4`: Records share a name variant and have very close coordinates.
+- `bezek_1 / bezek_2`: Records share a name variant and have very close coordinates.
+- `caphtor / crete`: Records share a name variant and have very close coordinates.
+- `chinnereth / galilee_1`: Records share a name variant and have very close coordinates.
+- `chinnereth / galilee_2`: Records share a name variant and have very close coordinates.
+- `chinnereth / gennesaret`: Records share a name variant and have very close coordinates.
+- `chinnereth / sea_of_galilee`: Records share a name variant and have very close coordinates.
+- `city_of_david / jerusalem`: Records share a name variant and have very close coordinates.
+- `city_of_david / mount_zion`: Records share a name variant and have very close coordinates.
+- `city_of_david / salem`: Records share a name variant and have very close coordinates.
+- `city_of_david / zion`: Records share a name variant and have very close coordinates.
+- `city_of_destruction / heliopolis`: Records share a name variant and have very close coordinates.
+- `cush_1 / ethiopia`: Records share a name variant and have very close coordinates.
+- `cyprus / elishah`: Records share a name variant and have very close coordinates.
+- `cyprus / kittim`: Records share a name variant and have very close coordinates.
+- `damascus / syria_1`: Records share a name variant and have very close coordinates.
+- `debir_3 / lo_debar`: Records share a name variant and have very close coordinates.
+- `dumah_2 / edom`: Records share a name variant and have very close coordinates.
+- `dumah_2 / teman`: Records share a name variant and have very close coordinates.
+- `edom / teman`: Records share a name variant and have very close coordinates.
+- `elishah / kittim`: Records share a name variant and have very close coordinates.
+- `ephraim_1 / ephraim_2`: Records share a name variant and have very close coordinates.
+- `ephraim_1 / mount_ephraim`: Records share a name variant and have very close coordinates.
+- `ephraim_2 / mount_ephraim`: Records share a name variant and have very close coordinates.
+- `ephron_1 / mount_ephron`: Records share a name variant and have very close coordinates.
+- `etam_1 / etam_2`: Records share a name variant and have very close coordinates.
+- `etam_1 / etam_3`: Records share a name variant and have very close coordinates.
+- `etam_2 / etam_3`: Records share a name variant and have very close coordinates.
+- `ether_1 / ether_2`: Records share a name variant and have very close coordinates.
+- `galilee_1 / galilee_2`: Records share a name variant and have very close coordinates.
+- `galilee_1 / gennesaret`: Records share a name variant and have very close coordinates.
+- `galilee_1 / sea_of_galilee`: Records share a name variant and have very close coordinates.
+- `gath_1 / gath_3`: Records share a name variant and have very close coordinates.
+- `gath_1 / metheg_ammah`: Records share a name variant and have very close coordinates.
+- `gath_3 / metheg_ammah`: Records share a name variant and have very close coordinates.
+- `geba_1 / geba_2`: Records share a name variant and have very close coordinates.
+- `geba_1 / geba_3`: Records share a name variant and have very close coordinates.
+- `geba_1 / geba_4`: Records share a name variant and have very close coordinates.
+- `geba_1 / gibeah_1`: Records share a name variant and have very close coordinates.
+- `geba_1 / gibeah_3`: Records share a name variant and have very close coordinates.
+- `geba_1 / gibeah_4`: Records share a name variant and have very close coordinates.
+- `geba_2 / geba_3`: Records share a name variant and have very close coordinates.
+- `geba_2 / geba_4`: Records share a name variant and have very close coordinates.
+- `geba_2 / gibeah_1`: Records share a name variant and have very close coordinates.
+- `geba_2 / gibeon`: Records share a name variant and have very close coordinates.
+- `geba_2 / valley_of_gibeon`: Records share a name variant and have very close coordinates.
+- `geba_3 / geba_4`: Records share a name variant and have very close coordinates.
+- `geba_3 / gibeah_1`: Records share a name variant and have very close coordinates.
+- `geba_4 / gibeah_1`: Records share a name variant and have very close coordinates.
+- `gedor_2 / gerar`: Records share a name variant and have very close coordinates.
+- `gennesaret / sea_of_galilee`: Records share a name variant and have very close coordinates.
+- `gibeah_1 / gibeah_3`: Records share a name variant and have very close coordinates.
+- `gibeah_1 / gibeah_4`: Records share a name variant and have very close coordinates.
+- `gibeah_1 / gibeon`: Records share a name variant and have very close coordinates.
+- `gibeah_1 / valley_of_gibeon`: Records share a name variant and have very close coordinates.
+- `gibeah_3 / gibeah_4`: Records share a name variant and have very close coordinates.
+- `gibeon / valley_of_gibeon`: Records share a name variant and have very close coordinates.
+- `gilead_1 / gilead_2`: Records share a name variant and have very close coordinates.
+- `gilgal_1 / gilgal_3`: Records share a name variant and have very close coordinates.
+- `gilgal_1 / gilgal_4`: Records share a name variant and have very close coordinates.
+- `gilgal_3 / gilgal_4`: Records share a name variant and have very close coordinates.
+- `goshen_2 / goshen_3`: Records share a name variant and have very close coordinates.
+- `hamath_1 / hamath_2`: Records share a name variant and have very close coordinates.
+- `hamath_1 / hamath_zobah`: Records share a name variant and have very close coordinates.
+- `hamath_2 / hamath_zobah`: Records share a name variant and have very close coordinates.
+- `hazor_3 / hazor_hadattah`: Records share a name variant and have very close coordinates.
+- `hebron / valley_of_hebron`: Records share a name variant and have very close coordinates.
+- `holy_place_2 / most_holy_place_2`: Records share a name variant and have very close coordinates.
+- `jazer / sea_of_jazer`: Records share a name variant and have very close coordinates.
+- `jericho_1 / jericho_2`: Records share a name variant and have very close coordinates.
+- `jerusalem / mount_zion`: Records share a name variant and have very close coordinates.
+- `jerusalem / salem`: Records share a name variant and have very close coordinates.
+- `jerusalem / zion`: Records share a name variant and have very close coordinates.
+- `jeshanah / shen`: Records share a name variant and have very close coordinates.
+- `jokmeam_1 / jokmeam_2`: Records share a name variant and have very close coordinates.
+- `jordan / valley_of_jericho`: Records share a name variant and have very close coordinates.
+- `kadesh_barnea / meribah_1`: Records share a name variant and have very close coordinates.
+- `kedesh_3 / kedesh_4`: Records share a name variant and have very close coordinates.
+- `libya / put`: Records share a name variant and have very close coordinates.
+- `lud_1 / lud_2`: Records share a name variant and have very close coordinates.
+- `lud_1 / lydia`: Records share a name variant and have very close coordinates.
+- `lud_2 / lydia`: Records share a name variant and have very close coordinates.
+- `migdol_1 / migdol_2`: Records share a name variant and have very close coordinates.
+- `migdol_1 / migdol_3`: Records share a name variant and have very close coordinates.
+- `migdol_2 / migdol_3`: Records share a name variant and have very close coordinates.
+- `migron_1 / migron_2`: Records share a name variant and have very close coordinates.
+- `mizpah_1 / mizpah_4`: Records share a name variant and have very close coordinates.
+- `moriah / mount_moriah`: Records share a name variant and have very close coordinates.
+- `mount_horeb / mount_sinai`: Records share a name variant and have very close coordinates.
+- `mount_nebo / nebo_1`: Records share a name variant and have very close coordinates.
+- `mount_of_olives / the_lord_will_provide`: Records share a name variant and have very close coordinates.
+- `mount_tabor / tabor_2`: Records share a name variant and have very close coordinates.
+- `mount_zemaraim / zemaraim`: Records share a name variant and have very close coordinates.
+- `mount_zion / salem`: Records share a name variant and have very close coordinates.
+- `mount_zion / zion`: Records share a name variant and have very close coordinates.
+- `negeb / south_1`: Records share a name variant and have very close coordinates.
+- `ramah_1 / ramah_4`: Records share a name variant and have very close coordinates.
+- `ramah_1 / ramah_7`: Records share a name variant and have very close coordinates.
+- `ramah_1 / ramah_8`: Records share a name variant and have very close coordinates.
+- `ramah_1 / ramah_9`: Records share a name variant and have very close coordinates.
+- `ramah_1 / ramathaim_zophim`: Records share a name variant and have very close coordinates.
+- `ramah_4 / ramah_7`: Records share a name variant and have very close coordinates.
+- `ramah_4 / ramah_8`: Records share a name variant and have very close coordinates.
+- `ramah_4 / ramah_9`: Records share a name variant and have very close coordinates.
+- `ramah_4 / ramathaim_zophim`: Records share a name variant and have very close coordinates.
+- `ramah_7 / ramah_8`: Records share a name variant and have very close coordinates.
+- `ramah_7 / ramah_9`: Records share a name variant and have very close coordinates.
+- `ramah_7 / ramathaim_zophim`: Records share a name variant and have very close coordinates.
+- `ramah_8 / ramah_9`: Records share a name variant and have very close coordinates.
+- `ramah_8 / ramathaim_zophim`: Records share a name variant and have very close coordinates.
+- `ramah_9 / ramathaim_zophim`: Records share a name variant and have very close coordinates.
+- `red_sea_1 / red_sea_3`: Records share a name variant and have very close coordinates.
+- `red_sea_2 / suph`: Records share a name variant and have very close coordinates.
+- `rehoboth_2 / river_3`: Records share a name variant and have very close coordinates.
+- `rhodes_1 / rhodes_2`: Records share a name variant and have very close coordinates.
+- `riblah_1 / riblah_2`: Records share a name variant and have very close coordinates.
+- `salem / zion`: Records share a name variant and have very close coordinates.
+- `samaria_1 / samaria_2`: Records share a name variant and have very close coordinates.
+- `sea_of_galilee / tiberias`: Records share a name variant and have very close coordinates.
+- `sela_1 / sela_2`: Records share a name variant and have very close coordinates.
+- `sela_1 / sela_3`: Records share a name variant and have very close coordinates.
+- `sela_2 / sela_3`: Records share a name variant and have very close coordinates.
+- `sheba_1 / south_2`: Records share a name variant and have very close coordinates.
+- `sheshach / shinar`: Records share a name variant and have very close coordinates.
+- `syria_1 / syria_2`: Records share a name variant and have very close coordinates.
+- `tappuah_1 / tiphsah_2`: Records share a name variant and have very close coordinates.
+- `timnah_2 / timnah_3`: Records share a name variant and have very close coordinates.
+- `wilderness_of_ziph / ziph_1`: Records share a name variant and have very close coordinates.
+- `abana`: Place is marked certain while still prototype/draft.
+- `abarim`: Place is marked certain while still prototype/draft.
+- `abiezer`: Place is marked certain while still prototype/draft.
+- `abila_lysaniou`: Place is marked certain while still prototype/draft.
+- `abilene`: Place is marked certain while still prototype/draft.
+- `acco`: Place is marked certain while still prototype/draft.
+- `achaia`: Place is marked certain while still prototype/draft.
+- `adam`: Place is marked certain while still prototype/draft.
+- `adoraim`: Place is marked certain while still prototype/draft.
+- `adramyttium`: Place is marked certain while still prototype/draft.
+- `adriatic_sea`: Place is marked certain while still prototype/draft.
+- `adulis`: Place is marked certain while still prototype/draft.
+- `adummim`: Place is marked certain while still prototype/draft.
+- `alemeth`: Place is marked certain while still prototype/draft.
+- `alexandria`: Place is marked certain while still prototype/draft.
+- `allon`: Place is marked certain while still prototype/draft.
+- `allon_bacuth`: Place is marked certain while still prototype/draft.
+- `almon`: Place is marked certain while still prototype/draft.
+- `amalek`: Place is marked certain while still prototype/draft.
+- `amate`: Place is marked certain while still prototype/draft.
+- `ammon`: Place is marked certain while still prototype/draft.
+- `amphipolis`: Place is marked certain while still prototype/draft.
+- `angle`: Place is marked certain while still prototype/draft.
+- `antioch_2`: Place is marked certain while still prototype/draft.
+- `aphek_2`: Place is marked certain while still prototype/draft.
+- `apollonia`: Place is marked certain while still prototype/draft.
+- `arabah`: Place is marked certain while still prototype/draft.
+- `arabia_1`: Place is marked certain while still prototype/draft.
+- `arabia_2`: Place is marked certain while still prototype/draft.
+- `aram`: Place is marked certain while still prototype/draft.
+- `aram_naharaim`: Place is marked certain while still prototype/draft.
+- `ararat`: Place is marked certain while still prototype/draft.
+- `arbela`: Place is marked certain while still prototype/draft.
+- `areopagus`: Place is marked certain while still prototype/draft.
+- `argob`: Place is marked certain while still prototype/draft.
+- `ariel`: Place is marked certain while still prototype/draft.
+- `arnon`: Place is marked certain while still prototype/draft.
+- `aroer_1`: Place is marked certain while still prototype/draft.
+- `arvad`: Place is marked certain while still prototype/draft.
+- `ashdod`: Place is marked certain while still prototype/draft.
+- `ashkelon`: Place is marked certain while still prototype/draft.
+- `ashkenaz`: Place is marked certain while still prototype/draft.
+- `ashteroth_karnaim`: Place is marked certain while still prototype/draft.
+- `asia`: Place is marked certain while still prototype/draft.
+- `asshur`: Place is marked certain while still prototype/draft.
+- `assos`: Place is marked certain while still prototype/draft.
+- `assyria`: Place is marked certain while still prototype/draft.
+- `atad`: Place is marked certain while still prototype/draft.
+- `attalia`: Place is marked certain while still prototype/draft.
+- `aven`: Place is marked certain while still prototype/draft.
+- `baalah_2`: Place is marked certain while still prototype/draft.
+- `baale_judah`: Place is marked certain while still prototype/draft.
+- `babel`: Place is marked certain while still prototype/draft.
+- `babylon_1`: Place is marked certain while still prototype/draft.
+- `babylon_2`: Place is marked certain while still prototype/draft.
+- `babylon_3`: Place is marked certain while still prototype/draft.
+- `babylonia`: Place is marked certain while still prototype/draft.
+- `bamoth_baal`: Place is marked certain while still prototype/draft.
+- `bashan`: Place is marked certain while still prototype/draft.
+- `batanea`: Place is marked certain while still prototype/draft.
+- `bath_rabbim`: Place is marked certain while still prototype/draft.
+- `beautiful_gate`: Place is marked certain while still prototype/draft.
+- `beeroth_bene_jaakan`: Place is marked certain while still prototype/draft.
+- `bene_berak`: Place is marked certain while still prototype/draft.
+- `benjamin_gate`: Place is marked certain while still prototype/draft.
+- `beon`: Place is marked certain while still prototype/draft.
+- `berea`: Place is marked certain while still prototype/draft.
+- `besor`: Place is marked certain while still prototype/draft.
+- `beth_aven_2`: Place is marked certain while still prototype/draft.
+- `beth_horon`: Place is marked certain while still prototype/draft.
+- `beth_meon`: Place is marked certain while still prototype/draft.
+- `beth_shan`: Place is marked certain while still prototype/draft.
+- `beth_shemesh_1`: Place is marked certain while still prototype/draft.
+- `beth_tappuah`: Place is marked certain while still prototype/draft.
+- `beth_zur`: Place is marked certain while still prototype/draft.
+- `bethany_1`: Place is marked certain while still prototype/draft.
+- `bether_2`: Place is marked certain while still prototype/draft.
+- `bethesda`: Place is marked certain while still prototype/draft.
+- `bethlehem_1`: Place is marked certain while still prototype/draft.
+- `bethul`: Place is marked certain while still prototype/draft.
+- `beyond_the_river`: Place is marked certain while still prototype/draft.
+- `bilhah`: Place is marked certain while still prototype/draft.
+- `bithynia`: Place is marked certain while still prototype/draft.
+- `bor_ashan`: Place is marked certain while still prototype/draft.
+- `bozez`: Place is marked certain while still prototype/draft.
+- `bozrah_1`: Place is marked certain while still prototype/draft.
+- `broad_wall`: Place is marked certain while still prototype/draft.
+- `caesarea`: Place is marked certain while still prototype/draft.
+- `caesarea_philippi`: Place is marked certain while still prototype/draft.
+- `calah`: Place is marked certain while still prototype/draft.
+- `canaan`: Place is marked certain while still prototype/draft.
+- `capernaum`: Place is marked certain while still prototype/draft.
+- `cappadocia`: Place is marked certain while still prototype/draft.
+- `carchemish`: Place is marked certain while still prototype/draft.
+- `carmel_1`: Place is marked certain while still prototype/draft.
+- `carthage`: Place is marked certain while still prototype/draft.
+- `cauda`: Place is marked certain while still prototype/draft.
+- `cenchreae`: Place is marked certain while still prototype/draft.
+- `chephirah`: Place is marked certain while still prototype/draft.
+- `chesulloth`: Place is marked certain while still prototype/draft.
+- `chezib`: Place is marked certain while still prototype/draft.
+- `chios`: Place is marked certain while still prototype/draft.
+- `cilicia`: Place is marked certain while still prototype/draft.
+- `city_of_david`: Place is marked certain while still prototype/draft.
+- `cnidus`: Place is marked certain while still prototype/draft.
+- `colossae`: Place is marked certain while still prototype/draft.
+- `corinth`: Place is marked certain while still prototype/draft.
+- `corner_gate`: Place is marked certain while still prototype/draft.
+- `cos`: Place is marked certain while still prototype/draft.
+- `crete`: Place is marked certain while still prototype/draft.
+- `cush_1`: Place is marked certain while still prototype/draft.
+- `cuth`: Place is marked certain while still prototype/draft.
+- `cyprus`: Place is marked certain while still prototype/draft.
+- `cyrene`: Place is marked certain while still prototype/draft.
+- `dalmatia`: Place is marked certain while still prototype/draft.
+- `damascus`: Place is marked certain while still prototype/draft.
+- `dan`: Place is marked certain while still prototype/draft.
+- `decapolis`: Place is marked certain while still prototype/draft.
+- `dedan`: Place is marked certain while still prototype/draft.
+- `derbe`: Place is marked certain while still prototype/draft.
+- `diviners_oak`: Place is marked certain while still prototype/draft.
+- `dor`: Place is marked certain while still prototype/draft.
+- `dothan`: Place is marked certain while still prototype/draft.
+- `dung_gate`: Place is marked certain while still prototype/draft.
+- `east`: Place is marked certain while still prototype/draft.
+- `east_gate`: Place is marked certain while still prototype/draft.
+- `east_square`: Place is marked certain while still prototype/draft.
+- `ecbatana`: Place is marked certain while still prototype/draft.
+- `edom`: Place is marked certain while still prototype/draft.
+- `edrei_1`: Place is marked certain while still prototype/draft.
+- `ekron`: Place is marked certain while still prototype/draft.
+- `el_bethel`: Place is marked certain while still prototype/draft.
+- `elam`: Place is marked certain while still prototype/draft.
+- `engedi`: Place is marked certain while still prototype/draft.
+- `ephah`: Place is marked certain while still prototype/draft.
+- `ephesus`: Place is marked certain while still prototype/draft.
+- `ephraim_2`: Place is marked certain while still prototype/draft.
+- `ephraim_3`: Place is marked certain while still prototype/draft.
+- `ephraim_gate`: Place is marked certain while still prototype/draft.
+- `erech`: Place is marked certain while still prototype/draft.
+- `eridu`: Place is marked certain while still prototype/draft.
+- `etam_1`: Place is marked certain while still prototype/draft.
+- `ethiopia`: Place is marked certain while still prototype/draft.
+- `etruria`: Place is marked certain while still prototype/draft.
+- `fair_havens`: Place is marked certain while still prototype/draft.
+- `fish_gate`: Place is marked certain while still prototype/draft.
+- `forum_of_appius`: Place is marked certain while still prototype/draft.
+- `fountain_gate`: Place is marked certain while still prototype/draft.
+- `gaash`: Place is marked certain while still prototype/draft.
+- `gadara`: Place is marked certain while still prototype/draft.
+- `galatia`: Place is marked certain while still prototype/draft.
+- `galilee_1`: Place is marked certain while still prototype/draft.
+- `gareb`: Place is marked certain while still prototype/draft.
+- `gate_of_the_guard`: Place is marked certain while still prototype/draft.
+- `gate_of_yeshanah`: Place is marked certain while still prototype/draft.
+- `gath_1`: Place is marked certain while still prototype/draft.
+- `gaza`: Place is marked certain while still prototype/draft.
+- `gebal_1`: Place is marked certain while still prototype/draft.
+- `gennesaret`: Place is marked certain while still prototype/draft.
+- `gerasa`: Place is marked certain while still prototype/draft.
+- `gergesa`: Place is marked certain while still prototype/draft.
+- `geruth_chimham`: Place is marked certain while still prototype/draft.
+- `geshur`: Place is marked certain while still prototype/draft.
+- `gethsemane`: Place is marked certain while still prototype/draft.
+- `gezer`: Place is marked certain while still prototype/draft.
+- `gibeah_1`: Place is marked certain while still prototype/draft.
+- `gibeon`: Place is marked certain while still prototype/draft.
+- `gihon_2`: Place is marked certain while still prototype/draft.
+- `gilead_1`: Place is marked certain while still prototype/draft.
+- `gimzo`: Place is marked certain while still prototype/draft.
+- `goah`: Place is marked certain while still prototype/draft.
+- `gog`: Place is marked certain while still prototype/draft.
+- `gomer`: Place is marked certain while still prototype/draft.
+- `goshen_1`: Place is marked certain while still prototype/draft.
+- `gozan`: Place is marked certain while still prototype/draft.
+- `great_sea`: Place is marked certain while still prototype/draft.
+- `greece`: Place is marked certain while still prototype/draft.
+- `gulloth_mayim`: Place is marked certain while still prototype/draft.
+- `gutium`: Place is marked certain while still prototype/draft.
+- `habor`: Place is marked certain while still prototype/draft.
+- `hadid`: Place is marked certain while still prototype/draft.
+- `hakkephirim`: Place is marked certain while still prototype/draft.
+- `halhul`: Place is marked certain while still prototype/draft.
+- `hall_of_judgment`: Place is marked certain while still prototype/draft.
+- `hall_of_pillars`: Place is marked certain while still prototype/draft.
+- `hall_of_the_throne`: Place is marked certain while still prototype/draft.
+- `hamath_1`: Place is marked certain while still prototype/draft.
+- `hamath_2`: Place is marked certain while still prototype/draft.
+- `hammoth_dor`: Place is marked certain while still prototype/draft.
+- `hamonah`: Place is marked certain while still prototype/draft.
+- `hannathon`: Place is marked certain while still prototype/draft.
+- `haran`: Place is marked certain while still prototype/draft.
+- `hatti`: Place is marked certain while still prototype/draft.
+- `hauran`: Place is marked certain while still prototype/draft.
+- `havvoth_jair`: Place is marked certain while still prototype/draft.
+- `hazazon_tamar_2`: Place is marked certain while still prototype/draft.
+- `hazor_1`: Place is marked certain while still prototype/draft.
+- `hebron`: Place is marked certain while still prototype/draft.
+- `heliopolis`: Place is marked certain while still prototype/draft.
+- `helkath_hazzurim`: Place is marked certain while still prototype/draft.
+- `heracleopolis_magna`: Place is marked certain while still prototype/draft.
+- `heracleopolis_parva`: Place is marked certain while still prototype/draft.
+- `herods_palace`: Place is marked certain while still prototype/draft.
+- `hierapolis`: Place is marked certain while still prototype/draft.
+- `hilakku`: Place is marked certain while still prototype/draft.
+- `holy_place_2`: Place is marked certain while still prototype/draft.
+- `horse_gate`: Place is marked certain while still prototype/draft.
+- `house_of_the_forest_of_lebanon`: Place is marked certain while still prototype/draft.
+- `ibleam`: Place is marked certain while still prototype/draft.
+- `iconium`: Place is marked certain while still prototype/draft.
+- `idumea`: Place is marked certain while still prototype/draft.
+- `illyricum`: Place is marked certain while still prototype/draft.
+- `immer`: Place is marked certain while still prototype/draft.
+- `india`: Place is marked certain while still prototype/draft.
+- `ir_shemesh`: Place is marked certain while still prototype/draft.
+- `italy`: Place is marked certain while still prototype/draft.
+- `ituraea`: Place is marked certain while still prototype/draft.
+- `jabbok`: Place is marked certain while still prototype/draft.
+- `jarmuth_1`: Place is marked certain while still prototype/draft.
+- `jarmuth_2`: Place is marked certain while still prototype/draft.
+- `jattir`: Place is marked certain while still prototype/draft.
+- `javan`: Place is marked certain while still prototype/draft.
+- `jebus`: Place is marked certain while still prototype/draft.
+- `jehud`: Place is marked certain while still prototype/draft.
+- `jericho_1`: Place is marked certain while still prototype/draft.
+- `jericho_2`: Place is marked certain while still prototype/draft.
+- `jeruel`: Place is marked certain while still prototype/draft.
+- `jeshanah`: Place is marked certain while still prototype/draft.
+- `jeshimon`: Place is marked certain while still prototype/draft.
+- `jezreel_2`: Place is marked certain while still prototype/draft.
+- `jokneam`: Place is marked certain while still prototype/draft.
+- `joppa`: Place is marked certain while still prototype/draft.
+- `jordan`: Place is marked certain while still prototype/draft.
+- `jordan_valley`: Place is marked certain while still prototype/draft.
+- `kadesh_barnea`: Place is marked certain while still prototype/draft.
+- `kanah_2`: Place is marked certain while still prototype/draft.
+- `kedar`: Place is marked certain while still prototype/draft.
+- `keilah`: Place is marked certain while still prototype/draft.
+- `kidron`: Place is marked certain while still prototype/draft.
+- `kings_highway`: Place is marked certain while still prototype/draft.
+- `kir_hareseth`: Place is marked certain while still prototype/draft.
+- `kiriath_jearim`: Place is marked certain while still prototype/draft.
+- `kishon`: Place is marked certain while still prototype/draft.
+- `kittim`: Place is marked certain while still prototype/draft.
+- `kue`: Place is marked certain while still prototype/draft.
+- `kumidi`: Place is marked certain while still prototype/draft.
+- `laash`: Place is marked certain while still prototype/draft.
+- `lachish`: Place is marked certain while still prototype/draft.
+- `laodicea`: Place is marked certain while still prototype/draft.
+- `lasea`: Place is marked certain while still prototype/draft.
+- `lebanon`: Place is marked certain while still prototype/draft.
+- `libya`: Place is marked certain while still prototype/draft.
+- `lod`: Place is marked certain while still prototype/draft.
+- `lower_beth_horon`: Place is marked certain while still prototype/draft.
+- `lower_gulloth`: Place is marked certain while still prototype/draft.
+- `lower_pool`: Place is marked certain while still prototype/draft.
+- `lud_1`: Place is marked certain while still prototype/draft.
+- `luz_1`: Place is marked certain while still prototype/draft.
+- `lycaonia`: Place is marked certain while still prototype/draft.
+- `lycia`: Place is marked certain while still prototype/draft.
+- `lydia`: Place is marked certain while still prototype/draft.
+- `lystra`: Place is marked certain while still prototype/draft.
+- `maacah`: Place is marked certain while still prototype/draft.
+- `maareh_geba`: Place is marked certain while still prototype/draft.
+- `macedonia`: Place is marked certain while still prototype/draft.
+- `machpelah`: Place is marked certain while still prototype/draft.
+- `madiama`: Place is marked certain while still prototype/draft.
+- `malta`: Place is marked certain while still prototype/draft.
+- `maon`: Place is marked certain while still prototype/draft.
+- `mareshah`: Place is marked certain while still prototype/draft.
+- `massah`: Place is marked certain while still prototype/draft.
+- `medeba`: Place is marked certain while still prototype/draft.
+- `media`: Place is marked certain while still prototype/draft.
+- `megiddo`: Place is marked certain while still prototype/draft.
+- `memphis`: Place is marked certain while still prototype/draft.
+- `merathaim`: Place is marked certain while still prototype/draft.
+- `meribah_1`: Place is marked certain while still prototype/draft.
+- `meribah_2`: Place is marked certain while still prototype/draft.
+- `meshech`: Place is marked certain while still prototype/draft.
+- `mesopotamia`: Place is marked certain while still prototype/draft.
+- `middle_gate`: Place is marked certain while still prototype/draft.
+- `midian`: Place is marked certain while still prototype/draft.
+- `miletus`: Place is marked certain while still prototype/draft.
+- `minni`: Place is marked certain while still prototype/draft.
+- `mithkah`: Place is marked certain while still prototype/draft.
+- `mitylene`: Place is marked certain while still prototype/draft.
+- `moab_1`: Place is marked certain while still prototype/draft.
+- `moab_2`: Place is marked certain while still prototype/draft.
+- `moreh_1`: Place is marked certain while still prototype/draft.
+- `mortar`: Place is marked certain while still prototype/draft.
+- `most_holy_place_2`: Place is marked certain while still prototype/draft.
+- `mount_baal_hermon`: Place is marked certain while still prototype/draft.
+- `mount_bashan`: Place is marked certain while still prototype/draft.
+- `mount_carmel`: Place is marked certain while still prototype/draft.
+- `mount_ebal`: Place is marked certain while still prototype/draft.
+- `mount_ephraim`: Place is marked certain while still prototype/draft.
+- `mount_esau`: Place is marked certain while still prototype/draft.
+- `mount_gerizim`: Place is marked certain while still prototype/draft.
+- `mount_gilboa`: Place is marked certain while still prototype/draft.
+- `mount_hermon`: Place is marked certain while still prototype/draft.
+- `mount_horeb`: Place is marked certain while still prototype/draft.
+- `mount_jearim`: Place is marked certain while still prototype/draft.
+- `mount_lebanon`: Place is marked certain while still prototype/draft.
+- `mount_moriah`: Place is marked certain while still prototype/draft.
+- `mount_of_olives`: Place is marked certain while still prototype/draft.
+- `mount_shepher`: Place is marked certain while still prototype/draft.
+- `mount_tabor`: Place is marked certain while still prototype/draft.
+- `mount_zion`: Place is marked certain while still prototype/draft.
+- `muster_gate`: Place is marked certain while still prototype/draft.
+- `myra`: Place is marked certain while still prototype/draft.
+- `mysia`: Place is marked certain while still prototype/draft.
+- `nahuru`: Place is marked certain while still prototype/draft.
+- `nain`: Place is marked certain while still prototype/draft.
+- `neapolis`: Place is marked certain while still prototype/draft.
+- `neballat`: Place is marked certain while still prototype/draft.
+- `negeb`: Place is marked certain while still prototype/draft.
+- `new_gate`: Place is marked certain while still prototype/draft.
+- `nicopolis`: Place is marked certain while still prototype/draft.
+- `nile`: Place is marked certain while still prototype/draft.
+- `nimrah`: Place is marked certain while still prototype/draft.
+- `nimrod`: Place is marked certain while still prototype/draft.
+- `nineveh`: Place is marked certain while still prototype/draft.
+- `north`: Place is marked certain while still prototype/draft.
+- `north_gate`: Place is marked certain while still prototype/draft.
+- `nuhashe`: Place is marked certain while still prototype/draft.
+- `old_pool`: Place is marked certain while still prototype/draft.
+- `ophel`: Place is marked certain while still prototype/draft.
+- `pamphylia`: Place is marked certain while still prototype/draft.
+- `paphos`: Place is marked certain while still prototype/draft.
+- `paran`: Place is marked certain while still prototype/draft.
+- `parbar`: Place is marked certain while still prototype/draft.
+- `patara`: Place is marked certain while still prototype/draft.
+- `pathros`: Place is marked certain while still prototype/draft.
+- `patmos`: Place is marked certain while still prototype/draft.
+- `pekod`: Place is marked certain while still prototype/draft.
+- `pelusium`: Place is marked certain while still prototype/draft.
+- `peoples_gate`: Place is marked certain while still prototype/draft.
+- `peor`: Place is marked certain while still prototype/draft.
+- `perez_uzzah`: Place is marked certain while still prototype/draft.
+- `perga`: Place is marked certain while still prototype/draft.
+- `pergamum`: Place is marked certain while still prototype/draft.
+- `persia`: Place is marked certain while still prototype/draft.
+- `pethor`: Place is marked certain while still prototype/draft.
+- `philadelphia`: Place is marked certain while still prototype/draft.
+- `philistia`: Place is marked certain while still prototype/draft.
+- `phoenicia`: Place is marked certain while still prototype/draft.
+- `phrygia`: Place is marked certain while still prototype/draft.
+- `pi_beseth`: Place is marked certain while still prototype/draft.
+- `pisidia`: Place is marked certain while still prototype/draft.
+- `pontus`: Place is marked certain while still prototype/draft.
+- `ptolemais`: Place is marked certain while still prototype/draft.
+- `puteoli`: Place is marked certain while still prototype/draft.
+- `rabbah_1`: Place is marked certain while still prototype/draft.
+- `ragmat`: Place is marked certain while still prototype/draft.
+- `ramah_1`: Place is marked certain while still prototype/draft.
+- `ramah_7`: Place is marked certain while still prototype/draft.
+- `ramah_8`: Place is marked certain while still prototype/draft.
+- `ramath_lehi`: Place is marked certain while still prototype/draft.
+- `ramoth_2`: Place is marked certain while still prototype/draft.
+- `red_sea_2`: Place is marked certain while still prototype/draft.
+- `rhegium`: Place is marked certain while still prototype/draft.
+- `riblah_1`: Place is marked certain while still prototype/draft.
+- `salamis`: Place is marked certain while still prototype/draft.
+- `salem`: Place is marked certain while still prototype/draft.
+- `salmone`: Place is marked certain while still prototype/draft.
+- `salona`: Place is marked certain while still prototype/draft.
+- `salt_sea`: Place is marked certain while still prototype/draft.
+- `samaria_1`: Place is marked certain while still prototype/draft.
+- `samaria_2`: Place is marked certain while still prototype/draft.
+- `samos`: Place is marked certain while still prototype/draft.
+- `samothrace`: Place is marked certain while still prototype/draft.
+- `saparre`: Place is marked certain while still prototype/draft.
+- `sardis`: Place is marked certain while still prototype/draft.
+- `scythia`: Place is marked certain while still prototype/draft.
+- `sea_of_galilee`: Place is marked certain while still prototype/draft.
+- `second_quarter`: Place is marked certain while still prototype/draft.
+- `secu`: Place is marked certain while still prototype/draft.
+- `seleucia`: Place is marked certain while still prototype/draft.
+- `seneh`: Place is marked certain while still prototype/draft.
+- `senir`: Place is marked certain while still prototype/draft.
+- `serpents_stone`: Place is marked certain while still prototype/draft.
+- `shaalbon`: Place is marked certain while still prototype/draft.
+- `shallecheth`: Place is marked certain while still prototype/draft.
+- `sharon_1`: Place is marked certain while still prototype/draft.
+- `shaveh_kiriathaim`: Place is marked certain while still prototype/draft.
+- `sheba_1`: Place is marked certain while still prototype/draft.
+- `shechem`: Place is marked certain while still prototype/draft.
+- `sheep_gate`: Place is marked certain while still prototype/draft.
+- `shepham`: Place is marked certain while still prototype/draft.
+- `shephelah`: Place is marked certain while still prototype/draft.
+- `sheshach`: Place is marked certain while still prototype/draft.
+- `shiloh`: Place is marked certain while still prototype/draft.
+- `shimron`: Place is marked certain while still prototype/draft.
+- `shinar`: Place is marked certain while still prototype/draft.
+- `shunem`: Place is marked certain while still prototype/draft.
+- `sibraim`: Place is marked certain while still prototype/draft.
+- `sidon`: Place is marked certain while still prototype/draft.
+- `silla`: Place is marked certain while still prototype/draft.
+- `siphmoth`: Place is marked certain while still prototype/draft.
+- `smyrna`: Place is marked certain while still prototype/draft.
+- `socoh_1`: Place is marked certain while still prototype/draft.
+- `socoh_2`: Place is marked certain while still prototype/draft.
+- `solomons_portico`: Place is marked certain while still prototype/draft.
+- `south_1`: Place is marked certain while still prototype/draft.
+- `south_2`: Place is marked certain while still prototype/draft.
+- `south_3`: Place is marked certain while still prototype/draft.
+- `south_gate`: Place is marked certain while still prototype/draft.
+- `spain`: Place is marked certain while still prototype/draft.
+- `sparta`: Place is marked certain while still prototype/draft.
+- `straight_street`: Place is marked certain while still prototype/draft.
+- `susa`: Place is marked certain while still prototype/draft.
+- `sutu`: Place is marked certain while still prototype/draft.
+- `syene`: Place is marked certain while still prototype/draft.
+- `syracuse`: Place is marked certain while still prototype/draft.
+- `syria_1`: Place is marked certain while still prototype/draft.
+- `syria_2`: Place is marked certain while still prototype/draft.
+- `syrtis`: Place is marked certain while still prototype/draft.
+- `taanach`: Place is marked certain while still prototype/draft.
+- `tabbur_erez`: Place is marked certain while still prototype/draft.
+- `tadmor`: Place is marked certain while still prototype/draft.
+- `tahpanhes`: Place is marked certain while still prototype/draft.
+- `tarsus`: Place is marked certain while still prototype/draft.
+- `tartessos`: Place is marked certain while still prototype/draft.
+- `tekoa`: Place is marked certain while still prototype/draft.
+- `tema`: Place is marked certain while still prototype/draft.
+- `terah`: Place is marked certain while still prototype/draft.
+- `thapsacus`: Place is marked certain while still prototype/draft.
+- `the_lord_is_there`: Place is marked certain while still prototype/draft.
+- `thebes`: Place is marked certain while still prototype/draft.
+- `three_taverns`: Place is marked certain while still prototype/draft.
+- `thyatira`: Place is marked certain while still prototype/draft.
+- `tiberias`: Place is marked certain while still prototype/draft.
+- `tigris`: Place is marked certain while still prototype/draft.
+- `timnah_1`: Place is marked certain while still prototype/draft.
+- `timnath_heres`: Place is marked certain while still prototype/draft.
+- `tirzah`: Place is marked certain while still prototype/draft.
+- `topheth`: Place is marked certain while still prototype/draft.
+- `tower_of_hananel`: Place is marked certain while still prototype/draft.
+- `tower_of_shechem`: Place is marked certain while still prototype/draft.
+- `tower_of_the_hundred`: Place is marked certain while still prototype/draft.
+- `tower_of_the_ovens`: Place is marked certain while still prototype/draft.
+- `trachonitis`: Place is marked certain while still prototype/draft.
+- `troas`: Place is marked certain while still prototype/draft.
+- `trogyllium`: Place is marked certain while still prototype/draft.
+- `tubal`: Place is marked certain while still prototype/draft.
+- `tyre`: Place is marked certain while still prototype/draft.
+- `upper_beth_horon`: Place is marked certain while still prototype/draft.
+- `upper_gulloth`: Place is marked certain while still prototype/draft.
+- `upper_pool`: Place is marked certain while still prototype/draft.
+- `upu`: Place is marked certain while still prototype/draft.
+- `ura`: Place is marked certain while still prototype/draft.
+- `uzza`: Place is marked certain while still prototype/draft.
+- `valley_of_aijalon`: Place is marked certain while still prototype/draft.
+- `valley_of_decision`: Place is marked certain while still prototype/draft.
+- `valley_of_elah`: Place is marked certain while still prototype/draft.
+- `valley_of_gerar`: Place is marked certain while still prototype/draft.
+- `valley_of_gibeon`: Place is marked certain while still prototype/draft.
+- `valley_of_hebron`: Place is marked certain while still prototype/draft.
+- `valley_of_hinnom`: Place is marked certain while still prototype/draft.
+- `valley_of_jehoshaphat`: Place is marked certain while still prototype/draft.
+- `valley_of_jericho`: Place is marked certain while still prototype/draft.
+- `valley_of_jezreel`: Place is marked certain while still prototype/draft.
+- `valley_of_lebanon`: Place is marked certain while still prototype/draft.
+- `valley_of_mizpeh`: Place is marked certain while still prototype/draft.
+- `valley_of_rephaim`: Place is marked certain while still prototype/draft.
+- `valley_of_shaveh`: Place is marked certain while still prototype/draft.
+- `valley_of_sorek`: Place is marked certain while still prototype/draft.
+- `valley_of_succoth`: Place is marked certain while still prototype/draft.
+- `valley_of_the_arnon`: Place is marked certain while still prototype/draft.
+- `waheb`: Place is marked certain while still prototype/draft.
+- `water_gate`: Place is marked certain while still prototype/draft.
+- `way_of_holiness`: Place is marked certain while still prototype/draft.
+- `way_of_the_red_sea`: Place is marked certain while still prototype/draft.
+- `wilderness_of_maon`: Place is marked certain while still prototype/draft.
+- `wilderness_of_sinai`: Place is marked certain while still prototype/draft.
+- `wilderness_of_ziph`: Place is marked certain while still prototype/draft.
+- `wildgoats_rocks`: Place is marked certain while still prototype/draft.
+- `zaphon_2`: Place is marked certain while still prototype/draft.
+- `zarephath`: Place is marked certain while still prototype/draft.
+- `zephath`: Place is marked certain while still prototype/draft.
+- `zion`: Place is marked certain while still prototype/draft.
+- `zoan`: Place is marked certain while still prototype/draft.
+- `zobah`: Place is marked certain while still prototype/draft.
+- `zorah`: Place is marked certain while still prototype/draft.
+
+## Megjegyzés
+Az audit nem végez történeti, régészeti vagy exegetikai tartalmi döntést. A bizonytalan találatok szakmai ellenőrzésre maradnak.

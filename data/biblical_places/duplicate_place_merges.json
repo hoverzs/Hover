@@ -1,0 +1,892 @@
+[
+  {
+    "group_id": "dup_abdon__ebron",
+    "final_action": "merge",
+    "canonical_place_id": "abdon",
+    "removed_place_ids": [
+      "ebron"
+    ],
+    "candidate_place_ids": [
+      "abdon",
+      "ebron"
+    ],
+    "proposed_merged_name_hu": "Abdón",
+    "proposed_merged_summary_hu": "Áser területén fekvő lévita város. Az Ebrón névalak szövegváltozatként vagy alternatív helynévként őrzendő meg.",
+    "proposed_passage_strategy": "A két rekord összes passage-kapcsolatának egyesítése.",
+    "proposed_coordinate_strategy": "Az abdon rekord koordinátáinak megtartása.",
+    "proposed_alias_strategy": "Ebron, Ebrón és Hebron csak ennél a rekordnál, forrásjelöléssel kerüljön az aliasok közé.",
+    "proposed_record_type": "settlement",
+    "expert_decision_hu": "Azonos koordináta, modern név és névváltozati kapcsolat alapján egyesíthető.",
+    "merge_risks_hu": [
+      "A Hebron névalak könnyen összekeverhető a nagy júdai Hebrón városával; ezt külön alias-megjegyzéssel kell kezelni."
+    ]
+  },
+  {
+    "group_id": "dup_ai_1__ai_3",
+    "final_action": "merge",
+    "canonical_place_id": "ai_1",
+    "removed_place_ids": [
+      "ai_3"
+    ],
+    "candidate_place_ids": [
+      "ai_1",
+      "ai_3"
+    ],
+    "proposed_merged_name_hu": "Aj",
+    "proposed_merged_summary_hu": "Bétel közelében fekvő bibliai város, amely Ábrahám történetében, Józsué honfoglalásában és a fogság utáni felsorolásokban is szerepel.",
+    "proposed_passage_strategy": "A hódításkori és fogság utáni passage-ek egyesítése ugyanazon kanonikus rekord alatt.",
+    "proposed_coordinate_strategy": "Az ai_1 koordinátáinak megtartása.",
+    "proposed_alias_strategy": "Ai, Hai és a számozott technikai névalakok egyesítése.",
+    "proposed_record_type": "settlement",
+    "expert_decision_hu": "Ugyanazon település külön szövegcsoportokból létrejött technikai rekordjai; egyesíthetők.",
+    "merge_risks_hu": [
+      "A korszakok eltérnek, de ez nem indokol külön helyrekordot; az időbeli különbség a passage-ekből követhető."
+    ]
+  },
+  {
+    "group_id": "dup_aija__ayyah",
+    "final_action": "merge",
+    "canonical_place_id": "aija",
+    "removed_place_ids": [
+      "ayyah"
+    ],
+    "candidate_place_ids": [
+      "aija",
+      "ayyah"
+    ],
+    "proposed_merged_name_hu": "Ajjá",
+    "proposed_merged_summary_hu": "Benjámin területéhez kapcsolódó településnév, amely Aj/Ajja névváltozataként jelenik meg. Az Ayyah alak aliaszként őrzendő.",
+    "proposed_passage_strategy": "A két passage egyesítése az aija rekord alatt.",
+    "proposed_coordinate_strategy": "Az aija koordinátáinak megtartása.",
+    "proposed_alias_strategy": "Aija, Ayyah és Ajjá névalakok megőrzése.",
+    "proposed_record_type": "settlement",
+    "expert_decision_hu": "A névalakok és azonos koordináta alapján valószínűleg ugyanazon hely; egyesíthető, de a Gaza alias kihagyandó vagy külön ellenőrzendő.",
+    "merge_risks_hu": [
+      "Az Ayyah rekord Gaza aliasa félrevezető lehet; ezt nem szabad automatikusan továbbörökíteni ellenőrzés nélkül."
+    ]
+  },
+  {
+    "group_id": "dup_aphek_1__aphik",
+    "final_action": "merge",
+    "canonical_place_id": "aphek_1",
+    "removed_place_ids": [
+      "aphik"
+    ],
+    "candidate_place_ids": [
+      "aphek_1",
+      "aphik"
+    ],
+    "proposed_merged_name_hu": "Afék",
+    "proposed_merged_summary_hu": "Áser területén fekvő bibliai település. Az Aphik névalak ugyanennek a helynek alternatív átírása.",
+    "proposed_passage_strategy": "A Józsué és Bírák passage-ek egyesítése.",
+    "proposed_coordinate_strategy": "Az azonos koordináta megtartása.",
+    "proposed_alias_strategy": "Aphek, Aphik és Afék névalakok egyesítése.",
+    "proposed_record_type": "settlement",
+    "expert_decision_hu": "Ugyanazon áseri település két átírása; egyesíthető.",
+    "merge_risks_hu": [
+      "A Bibliában több Afék nevű hely van; csak ezt a két, azonos koordinátájú rekordot szabad összevonni."
+    ]
+  },
+  {
+    "group_id": "dup_arad_1__arad_2",
+    "final_action": "merge",
+    "canonical_place_id": "arad_1",
+    "removed_place_ids": [
+      "arad_2"
+    ],
+    "candidate_place_ids": [
+      "arad_1",
+      "arad_2"
+    ],
+    "proposed_merged_name_hu": "Arád",
+    "proposed_merged_summary_hu": "A Negev északi részén fekvő kánaáni város, amely a pusztai vándorlás és a honfoglalás történeteiben szerepel.",
+    "proposed_passage_strategy": "A négy passage-kapcsolat egyesítése.",
+    "proposed_coordinate_strategy": "A közös Tel Arad koordináta megtartása.",
+    "proposed_alias_strategy": "A számozott technikai névalakok eltávolítása, Arad/Arád aliasok megtartása.",
+    "proposed_record_type": "settlement",
+    "expert_decision_hu": "Azonos név, koordináta és modern azonosítás alapján technikai duplikátum; egyesíthető.",
+    "merge_risks_hu": [
+      "Az azonosítás státusza eltér; a kanonikus rekordban a bizonytalanságot óvatosan kell megfogalmazni."
+    ]
+  },
+  {
+    "group_id": "dup_aroer_3__aroer_4",
+    "final_action": "merge",
+    "canonical_place_id": "aroer_3",
+    "removed_place_ids": [
+      "aroer_4"
+    ],
+    "candidate_place_ids": [
+      "aroer_3",
+      "aroer_4"
+    ],
+    "proposed_merged_name_hu": "Aróér",
+    "proposed_merged_summary_hu": "Júda déli vidékén fekvő Aróér, amely Dávid történetéhez és az aróéri származásmegjelöléshez kapcsolódik.",
+    "proposed_passage_strategy": "A két passage-kapcsolat egyesítése.",
+    "proposed_coordinate_strategy": "A közös Khirbet Aro’er koordináta megtartása.",
+    "proposed_alias_strategy": "Aroer, Aróér és Aroerite/aróéri névalakok megőrzése.",
+    "proposed_record_type": "settlement",
+    "expert_decision_hu": "Azonos helyhez kapcsolódó település- és származásmegjelölés; egyesíthető.",
+    "merge_risks_hu": [
+      "Több Aróér nevű bibliai település létezik; csak ezt a két azonos koordinátájú déli rekordot szabad összevonni."
+    ]
+  },
+  {
+    "group_id": "dup_baalath_1__baalath_2",
+    "final_action": "merge",
+    "canonical_place_id": "baalath_1",
+    "removed_place_ids": [
+      "baalath_2"
+    ],
+    "candidate_place_ids": [
+      "baalath_1",
+      "baalath_2"
+    ],
+    "proposed_merged_name_hu": "Baalát",
+    "proposed_merged_summary_hu": "Dán területéhez kapcsolódó bibliai település; a két rekord valószínűleg ugyanazon helyet jelöli.",
+    "proposed_passage_strategy": "Az összes passage-kapcsolat egyesítése a kanonikus rekord alatt, duplikációk eltávolításával.",
+    "proposed_coordinate_strategy": "A baalath_1 rekord koordinátáinak megtartása; az identification_status nem válhat indokolatlanul bizonyosabbá.",
+    "proposed_alias_strategy": "Minden névváltozat és korábbi place_id megőrzése alias/legacy mezőben, technikai számozások nélkül.",
+    "proposed_record_type": "merged_place",
+    "expert_decision_hu": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható.",
+    "merge_risks_hu": [
+      "Más, azonos nevű bibliai helyekkel nem szabad automatikusan összevonni.",
+      "Minden passage-, alias- és forráskapcsolatot meg kell őrizni."
+    ]
+  },
+  {
+    "group_id": "dup_beersheba_1__beersheba_2__sheba_2",
+    "final_action": "merge",
+    "canonical_place_id": "beersheba_1",
+    "removed_place_ids": [
+      "beersheba_2",
+      "sheba_2"
+    ],
+    "candidate_place_ids": [
+      "beersheba_1",
+      "beersheba_2",
+      "sheba_2"
+    ],
+    "proposed_merged_name_hu": "Beérseba",
+    "proposed_merged_summary_hu": "A Negev északi részének jelentős bibliai városa, a pátriárkai történetek és Izráel déli határának fontos helye. A Beérseba, Beér-Seba, Seba és kapcsolódó névalakok egy rekordban őrzendők.",
+    "proposed_passage_strategy": "Mindhárom rekord összes passage-kapcsolatának egyesítése, duplikációk eltávolításával.",
+    "proposed_coordinate_strategy": "A közös Tel Beer Sheva koordináta megtartása.",
+    "proposed_alias_strategy": "Beer Sheba, Beer-sheba, Beersheba, Sheba, Shebah, Shibah és Seba aliasok megőrzése; a pusztára utaló alakokat jelölt alias/kapcsolt tájnévként kezelni.",
+    "proposed_record_type": "settlement",
+    "expert_decision_hu": "Azonos koordináta, névváltozat és földrajzi kontextus alapján a három rekord egyesíthető a beersheba_1 alatt.",
+    "merge_risks_hu": [
+      "A Beérseba pusztája nem teljesen azonos a várossal; ezt alias- vagy kapcsolt tájnévként, nem külön településként kell megőrizni."
+    ]
+  },
+  {
+    "group_id": "dup_beth_eden__eden_2",
+    "final_action": "merge",
+    "canonical_place_id": "beth_eden",
+    "removed_place_ids": [
+      "eden_2"
+    ],
+    "candidate_place_ids": [
+      "beth_eden",
+      "eden_2"
+    ],
+    "proposed_merged_name_hu": "Bét-Éden",
+    "proposed_merged_summary_hu": "Arám térségéhez kapcsolódó bibliai hely vagy régió, amely Bét-Éden és Éden néven is szerepel. Nem azonos az 1Mózes Édenkertjével.",
+    "proposed_passage_strategy": "A négy passage-kapcsolat egyesítése a beth_eden rekord alatt.",
+    "proposed_coordinate_strategy": "A közös Til Barsip koordináta megtartása.",
+    "proposed_alias_strategy": "Beth-eden, Beth Eden, Eden és Edenites aliasok megőrzése, egyértelmű elkülönítéssel az Édenkert rekordjától.",
+    "proposed_record_type": "region_settlement",
+    "expert_decision_hu": "Ugyanazon észak-szíriai térség névváltozatai; egyesíthetők.",
+    "merge_risks_hu": [
+      "Az Éden név összetéveszthető az Édenkerttel; a rekordleírásban ezt kifejezetten tisztázni kell."
+    ]
+  },
+  {
+    "group_id": "dup_bethel_1__bethel_3",
+    "final_action": "merge",
+    "canonical_place_id": "bethel_1",
+    "removed_place_ids": [
+      "bethel_3"
+    ],
+    "candidate_place_ids": [
+      "bethel_1",
+      "bethel_3"
+    ],
+    "proposed_merged_name_hu": "Bétel",
+    "proposed_merged_summary_hu": "Efraim hegyvidékének jelentős bibliai városa; a két rekord ugyanazon település eltérő szövegcsoportjait tartalmazza.",
+    "proposed_passage_strategy": "Az összes passage-kapcsolat egyesítése a kanonikus rekord alatt, duplikációk eltávolításával.",
+    "proposed_coordinate_strategy": "A bethel_1 rekord koordinátáinak megtartása; az identification_status nem válhat indokolatlanul bizonyosabbá.",
+    "proposed_alias_strategy": "Minden névváltozat és korábbi place_id megőrzése alias/legacy mezőben, technikai számozások nélkül.",
+    "proposed_record_type": "merged_place",
+    "expert_decision_hu": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható.",
+    "merge_risks_hu": [
+      "Más, azonos nevű bibliai helyekkel nem szabad automatikusan összevonni.",
+      "Minden passage-, alias- és forráskapcsolatot meg kell őrizni."
+    ]
+  },
+  {
+    "group_id": "dup_bethlehem_2__bethlehem_3",
+    "final_action": "merge",
+    "canonical_place_id": "bethlehem_2",
+    "removed_place_ids": [
+      "bethlehem_3"
+    ],
+    "candidate_place_ids": [
+      "bethlehem_2",
+      "bethlehem_3"
+    ],
+    "proposed_merged_name_hu": "Betlehem (Zebulon)",
+    "proposed_merged_summary_hu": "Zebulon területén fekvő Betlehem, amely nem azonos a júdai Betlehemmel. Józsué és a Bírák könyve ugyanahhoz a galileai településhez kapcsolja.",
+    "proposed_passage_strategy": "A Józs 19,15 és Bír 12,8.10 passage-ek egyesítése.",
+    "proposed_coordinate_strategy": "A közös Beit Lahm koordináta megtartása.",
+    "proposed_alias_strategy": "Bethlehem, Beth-lehem és a technikai számozott alakok egyesítése; a júdai Betlehem rekordjától külön tartani.",
+    "proposed_record_type": "settlement",
+    "expert_decision_hu": "Azonos galileai település két technikai rekordja; egyesíthetők.",
+    "merge_risks_hu": [
+      "A név könnyen összekeverhető a júdai Betlehemmel; a magyar névben vagy leírásban mindig jelezni kell a zebuloni helyet."
+    ]
+  },
+  {
+    "group_id": "dup_bethsaida_1__bethsaida_2",
+    "final_action": "merge",
+    "canonical_place_id": "bethsaida_1",
+    "removed_place_ids": [
+      "bethsaida_2"
+    ],
+    "candidate_place_ids": [
+      "bethsaida_1",
+      "bethsaida_2"
+    ],
+    "proposed_merged_name_hu": "Bétsaida",
+    "proposed_merged_summary_hu": "A Galileai-tenger északi térségének újszövetségi települése, amely Jézus szolgálatához és több tanítványhoz kapcsolódik. Az azonosítás At-Tell térségével valószínű, de vitatott.",
+    "proposed_passage_strategy": "A hét újszövetségi passage-kapcsolat egyesítése.",
+    "proposed_coordinate_strategy": "A közös At Tell koordináta megtartása, az azonosítás bizonytalanságának megőrzésével.",
+    "proposed_alias_strategy": "Bethsaida és Bétsaida névalakok egyesítése.",
+    "proposed_record_type": "settlement",
+    "expert_decision_hu": "A passage-ek ugyanahhoz az újszövetségi településhez tartoznak; a két technikai rekord egyesíthető.",
+    "merge_risks_hu": [
+      "Bétsaida pontos régészeti azonosítása vitatott; az egyesítés nem emelheti certain szintre az identification_status mezőt."
+    ]
+  },
+  {
+    "group_id": "dup_cabul_1__cabul_2",
+    "final_action": "merge",
+    "canonical_place_id": "cabul_1",
+    "removed_place_ids": [
+      "cabul_2"
+    ],
+    "candidate_place_ids": [
+      "cabul_1",
+      "cabul_2"
+    ],
+    "proposed_merged_name_hu": "Kábúl",
+    "proposed_merged_summary_hu": "Áser területén fekvő bibliai település vagy körzet; a két rekord név- és helyazonossága alapján egyesíthető.",
+    "proposed_passage_strategy": "Az összes passage-kapcsolat egyesítése a kanonikus rekord alatt, duplikációk eltávolításával.",
+    "proposed_coordinate_strategy": "A cabul_1 rekord koordinátáinak megtartása; az identification_status nem válhat indokolatlanul bizonyosabbá.",
+    "proposed_alias_strategy": "Minden névváltozat és korábbi place_id megőrzése alias/legacy mezőben, technikai számozások nélkül.",
+    "proposed_record_type": "merged_place",
+    "expert_decision_hu": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható.",
+    "merge_risks_hu": [
+      "Más, azonos nevű bibliai helyekkel nem szabad automatikusan összevonni.",
+      "Minden passage-, alias- és forráskapcsolatot meg kell őrizni."
+    ]
+  },
+  {
+    "group_id": "dup_chaldea__leb_kamai",
+    "final_action": "merge",
+    "canonical_place_id": "chaldea",
+    "removed_place_ids": [
+      "leb_kamai"
+    ],
+    "candidate_place_ids": [
+      "chaldea",
+      "leb_kamai"
+    ],
+    "proposed_merged_name_hu": "Káldea",
+    "proposed_merged_summary_hu": "Dél-Mezopotámia, illetve Babilónia bibliai térsége. A Léb-Kamaj Jeremiás könyvének rejtjeles megnevezése, amely Káldeára/Babilóniára utal.",
+    "proposed_passage_strategy": "A Jer 51,1 passage-kapcsolat hozzáadása a chaldea rekordhoz.",
+    "proposed_coordinate_strategy": "A chaldea rekord koordinátáinak megtartása.",
+    "proposed_alias_strategy": "Leb-kamai, Leb Kamai és Leb-qamai aliasok megőrzése, rejtjeles/irodalmi névként jelölve.",
+    "proposed_record_type": "region",
+    "expert_decision_hu": "A Léb-Kamaj Jeremiás rejtjeles neve Káldeára/Babilóniára; egyesíthető a chaldea rekorddal.",
+    "merge_risks_hu": [
+      "A Léb-Kamaj nem hétköznapi földrajzi név, hanem atbas-rejtjel; ezt a leírásban és alias-típusban jelezni kell."
+    ]
+  },
+  {
+    "group_id": "dup_city_of_palms_1__city_of_palms_2",
+    "final_action": "merge",
+    "canonical_place_id": "city_of_palms_1",
+    "removed_place_ids": [
+      "city_of_palms_2"
+    ],
+    "candidate_place_ids": [
+      "city_of_palms_1",
+      "city_of_palms_2"
+    ],
+    "proposed_merged_name_hu": "Pálmák városa",
+    "proposed_merged_summary_hu": "Jerikó bibliai körülíró neve, amely több ószövetségi szövegben jelenik meg. A rekord Jerikóhoz kapcsolódó névváltozatként kezelendő.",
+    "proposed_passage_strategy": "A négy passage-kapcsolat egyesítése.",
+    "proposed_coordinate_strategy": "A közös Tell es-Sultan koordináta megtartása.",
+    "proposed_alias_strategy": "City of Palms és Pálmák városa névalakok egyesítése; Jerikóhoz való kapcsolat megőrzése.",
+    "proposed_record_type": "settlement_alias",
+    "expert_decision_hu": "Ugyanazon jerikói körülíró helynév két technikai rekordja; egyesíthetők.",
+    "merge_risks_hu": [
+      "A későbbi tisztításnál megfontolandó, hogy önálló rekord helyett Jerikó aliasa legyen; most csak a két technikai duplikátum egyesüljön."
+    ]
+  },
+  {
+    "group_id": "dup_dibon_1__dibon_3",
+    "final_action": "merge",
+    "canonical_place_id": "dibon_1",
+    "removed_place_ids": [
+      "dibon_3"
+    ],
+    "candidate_place_ids": [
+      "dibon_1",
+      "dibon_3"
+    ],
+    "proposed_merged_name_hu": "Díbón",
+    "proposed_merged_summary_hu": "Moáb jelentős bibliai városa, amely Díbón, Díbón-Gád és Dimón névváltozatokkal szerepel.",
+    "proposed_passage_strategy": "Az összes passage-kapcsolat egyesítése a kanonikus rekord alatt, duplikációk eltávolításával.",
+    "proposed_coordinate_strategy": "A dibon_1 rekord koordinátáinak megtartása; az identification_status nem válhat indokolatlanul bizonyosabbá.",
+    "proposed_alias_strategy": "Minden névváltozat és korábbi place_id megőrzése alias/legacy mezőben, technikai számozások nélkül.",
+    "proposed_record_type": "merged_place",
+    "expert_decision_hu": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható.",
+    "merge_risks_hu": [
+      "Más, azonos nevű bibliai helyekkel nem szabad automatikusan összevonni.",
+      "Minden passage-, alias- és forráskapcsolatot meg kell őrizni."
+    ]
+  },
+  {
+    "group_id": "dup_egypt__ham_2",
+    "final_action": "merge",
+    "canonical_place_id": "egypt",
+    "removed_place_ids": [
+      "ham_2"
+    ],
+    "candidate_place_ids": [
+      "egypt",
+      "ham_2"
+    ],
+    "proposed_merged_name_hu": "Egyiptom",
+    "proposed_merged_summary_hu": "Az ókori Egyiptom bibliai földrajzi egysége. A „Hám földje” költői megnevezést és az összes kapcsolódó igehelyet aliaszként, illetve passage-kapcsolatként meg kell őrizni.",
+    "proposed_passage_strategy": "A két rekord összes passage-kapcsolatának egyesítése, duplikációk eltávolításával.",
+    "proposed_coordinate_strategy": "Az egypt rekord koordinátáinak megtartása.",
+    "proposed_alias_strategy": "A Ham, Hám, land of Ham / Hám földje alakok kerüljenek az ancient_names/alias mezőbe.",
+    "proposed_record_type": "region_country",
+    "expert_decision_hu": "A ham_2 itt földrajzi, költői megnevezésként Egyiptomra utal; egyesíthető az egypt rekorddal.",
+    "merge_risks_hu": [
+      "A „Hám” személynév más rekordokban nem vonható automatikusan Egyiptomhoz."
+    ]
+  },
+  {
+    "group_id": "dup_ephrath__ephrathah",
+    "final_action": "merge",
+    "canonical_place_id": "ephrath",
+    "removed_place_ids": [
+      "ephrathah"
+    ],
+    "candidate_place_ids": [
+      "ephrath",
+      "ephrathah"
+    ],
+    "proposed_merged_name_hu": "Efráta",
+    "proposed_merged_summary_hu": "Betlehemhez kapcsolódó bibliai helynév és tájnév; az Efrát és Efráta alakok ugyanahhoz a földrajzi hagyományhoz tartoznak.",
+    "proposed_passage_strategy": "Az összes passage-kapcsolat egyesítése a kanonikus rekord alatt, duplikációk eltávolításával.",
+    "proposed_coordinate_strategy": "A ephrath rekord koordinátáinak megtartása; az identification_status nem válhat indokolatlanul bizonyosabbá.",
+    "proposed_alias_strategy": "Minden névváltozat és korábbi place_id megőrzése alias/legacy mezőben, technikai számozások nélkül.",
+    "proposed_record_type": "merged_place",
+    "expert_decision_hu": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható.",
+    "merge_risks_hu": [
+      "Más, azonos nevű bibliai helyekkel nem szabad automatikusan összevonni.",
+      "Minden passage-, alias- és forráskapcsolatot meg kell őrizni."
+    ]
+  },
+  {
+    "group_id": "dup_euphrates__river_2",
+    "final_action": "merge",
+    "canonical_place_id": "euphrates",
+    "removed_place_ids": [
+      "river_2"
+    ],
+    "candidate_place_ids": [
+      "euphrates",
+      "river_2"
+    ],
+    "proposed_merged_name_hu": "Eufrátesz",
+    "proposed_merged_summary_hu": "A Biblia nagy folyója, amelyet Eufrátesz, Perát és egyszerűen „a Folyó” néven is említenek.",
+    "proposed_passage_strategy": "Az összes passage-kapcsolat egyesítése a kanonikus rekord alatt, duplikációk eltávolításával.",
+    "proposed_coordinate_strategy": "A euphrates rekord koordinátáinak megtartása; az identification_status nem válhat indokolatlanul bizonyosabbá.",
+    "proposed_alias_strategy": "Minden névváltozat és korábbi place_id megőrzése alias/legacy mezőben, technikai számozások nélkül.",
+    "proposed_record_type": "merged_place",
+    "expert_decision_hu": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható.",
+    "merge_risks_hu": [
+      "Más, azonos nevű bibliai helyekkel nem szabad automatikusan összevonni.",
+      "Minden passage-, alias- és forráskapcsolatot meg kell őrizni."
+    ]
+  },
+  {
+    "group_id": "dup_gate_of_the_foundation__sur",
+    "final_action": "merge",
+    "canonical_place_id": "gate_of_the_foundation",
+    "removed_place_ids": [
+      "sur"
+    ],
+    "candidate_place_ids": [
+      "gate_of_the_foundation",
+      "sur"
+    ],
+    "proposed_merged_name_hu": "Alap-kapu",
+    "proposed_merged_summary_hu": "Jeruzsálem egyik bibliai kapuja, amelyet Alap-kapu és Súr-kapu néven említenek.",
+    "proposed_passage_strategy": "Az összes passage-kapcsolat egyesítése a kanonikus rekord alatt, duplikációk eltávolításával.",
+    "proposed_coordinate_strategy": "A gate_of_the_foundation rekord koordinátáinak megtartása; az identification_status nem válhat indokolatlanul bizonyosabbá.",
+    "proposed_alias_strategy": "Minden névváltozat és korábbi place_id megőrzése alias/legacy mezőben, technikai számozások nélkül.",
+    "proposed_record_type": "merged_place",
+    "expert_decision_hu": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható.",
+    "merge_risks_hu": [
+      "Más, azonos nevű bibliai helyekkel nem szabad automatikusan összevonni.",
+      "Minden passage-, alias- és forráskapcsolatot meg kell őrizni."
+    ]
+  },
+  {
+    "group_id": "dup_gederah_1__gederah_3",
+    "final_action": "merge",
+    "canonical_place_id": "gederah_3",
+    "removed_place_ids": [
+      "gederah_1"
+    ],
+    "candidate_place_ids": [
+      "gederah_1",
+      "gederah_3"
+    ],
+    "proposed_merged_name_hu": "Gedérá",
+    "proposed_merged_summary_hu": "Júda területén fekvő bibliai település; a két rekord ugyanazon hely külön szövegcsoportjait őrzi.",
+    "proposed_passage_strategy": "Az összes passage-kapcsolat egyesítése a kanonikus rekord alatt, duplikációk eltávolításával.",
+    "proposed_coordinate_strategy": "A gederah_3 rekord koordinátáinak megtartása; az identification_status nem válhat indokolatlanul bizonyosabbá.",
+    "proposed_alias_strategy": "Minden névváltozat és korábbi place_id megőrzése alias/legacy mezőben, technikai számozások nélkül.",
+    "proposed_record_type": "merged_place",
+    "expert_decision_hu": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható.",
+    "merge_risks_hu": [
+      "Más, azonos nevű bibliai helyekkel nem szabad automatikusan összevonni.",
+      "Minden passage-, alias- és forráskapcsolatot meg kell őrizni."
+    ]
+  },
+  {
+    "group_id": "dup_gedor_1__gedor_3__gedor_4",
+    "final_action": "merge",
+    "canonical_place_id": "gedor_1",
+    "removed_place_ids": [
+      "gedor_3",
+      "gedor_4"
+    ],
+    "candidate_place_ids": [
+      "gedor_1",
+      "gedor_3",
+      "gedor_4"
+    ],
+    "proposed_merged_name_hu": "Gedór",
+    "proposed_merged_summary_hu": "Júda hegyvidékének bibliai települése. A három technikai rekord azonos néven, azonos koordinátával és egymást kiegészítő passage-kapcsolatokkal ugyanahhoz a helyhez köthető.",
+    "proposed_passage_strategy": "Minden passage-kapcsolat átirányítása a kanonikus rekordra, duplikációk eltávolításával és adatvesztés nélkül.",
+    "proposed_coordinate_strategy": "A gedor_1 rekord koordinátáinak megtartása; az azonosítási bizonyosság nem növelhető automatikusan.",
+    "proposed_alias_strategy": "Az összes valódi névváltozat és kivezetett place_id megőrzése alias/legacy mezőben; a technikai számozott nevek ne jelenjenek meg felhasználói aliaszként.",
+    "proposed_record_type": "settlement",
+    "expert_decision_hu": "A három Gedór-rekord azonos település technikai szétválasztásának tűnik; egyesíthetők.",
+    "merge_risks_hu": [
+      "A csoporton kívüli, azonos nevű bibliai helyekhez nem szabad hozzányúlni.",
+      "Minden passage-, forrás-, név- és review-adatot meg kell őrizni."
+    ]
+  },
+  {
+    "group_id": "dup_havilah_2__havilah_3",
+    "final_action": "merge",
+    "canonical_place_id": "havilah_3",
+    "removed_place_ids": [
+      "havilah_2"
+    ],
+    "candidate_place_ids": [
+      "havilah_2",
+      "havilah_3"
+    ],
+    "proposed_merged_name_hu": "Havilá",
+    "proposed_merged_summary_hu": "Az Arab-félszigethez kapcsolódó bibliai régió, amely az izmaelita és amáléki határleírásokban szerepel. A két rekord ugyanazt a térséget jelöli.",
+    "proposed_passage_strategy": "Minden passage-kapcsolat átirányítása a kanonikus rekordra, duplikációk eltávolításával és adatvesztés nélkül.",
+    "proposed_coordinate_strategy": "A havilah_3 rekord koordinátáinak megtartása; az azonosítási bizonyosság nem növelhető automatikusan.",
+    "proposed_alias_strategy": "Az összes valódi névváltozat és kivezetett place_id megőrzése alias/legacy mezőben; a technikai számozott nevek ne jelenjenek meg felhasználói aliaszként.",
+    "proposed_record_type": "region",
+    "expert_decision_hu": "Azonos név, koordináta és földrajzi kontextus alapján a két Havilá-rekord egyesíthető.",
+    "merge_risks_hu": [
+      "A csoporton kívüli, azonos nevű bibliai helyekhez nem szabad hozzányúlni.",
+      "Minden passage-, forrás-, név- és review-adatot meg kell őrizni."
+    ]
+  },
+  {
+    "group_id": "dup_jezreel_1__jezreel_3",
+    "final_action": "merge",
+    "canonical_place_id": "jezreel_3",
+    "removed_place_ids": [
+      "jezreel_1"
+    ],
+    "candidate_place_ids": [
+      "jezreel_1",
+      "jezreel_3"
+    ],
+    "proposed_merged_name_hu": "Jezréel (Júda)",
+    "proposed_merged_summary_hu": "Júda területén fekvő Jezréel, amely nem azonos az északi Jezréel városával vagy völgyével.",
+    "proposed_passage_strategy": "Az összes passage-kapcsolat egyesítése a kanonikus rekord alatt, duplikációk eltávolításával.",
+    "proposed_coordinate_strategy": "A jezreel_3 rekord koordinátáinak megtartása; az identification_status nem válhat indokolatlanul bizonyosabbá.",
+    "proposed_alias_strategy": "Minden névváltozat és korábbi place_id megőrzése alias/legacy mezőben, technikai számozások nélkül.",
+    "proposed_record_type": "merged_place",
+    "expert_decision_hu": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható.",
+    "merge_risks_hu": [
+      "Más, azonos nevű bibliai helyekkel nem szabad automatikusan összevonni.",
+      "Minden passage-, alias- és forráskapcsolatot meg kell őrizni."
+    ]
+  },
+  {
+    "group_id": "dup_judea_1__judea_2",
+    "final_action": "merge",
+    "canonical_place_id": "judea_1",
+    "removed_place_ids": [
+      "judea_2"
+    ],
+    "candidate_place_ids": [
+      "judea_1",
+      "judea_2"
+    ],
+    "proposed_merged_name_hu": "Júdea",
+    "proposed_merged_summary_hu": "A júdai tartomány bibliai és történeti régiója, amely az ószövetségi és újszövetségi szövegekben is szerepel.",
+    "proposed_passage_strategy": "Az összes passage-kapcsolat egyesítése a kanonikus rekord alatt, duplikációk eltávolításával.",
+    "proposed_coordinate_strategy": "A judea_1 rekord koordinátáinak megtartása; az identification_status nem válhat indokolatlanul bizonyosabbá.",
+    "proposed_alias_strategy": "Minden névváltozat és korábbi place_id megőrzése alias/legacy mezőben, technikai számozások nélkül.",
+    "proposed_record_type": "merged_place",
+    "expert_decision_hu": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható.",
+    "merge_risks_hu": [
+      "Más, azonos nevű bibliai helyekkel nem szabad automatikusan összevonni.",
+      "Minden passage-, alias- és forráskapcsolatot meg kell őrizni."
+    ]
+  },
+  {
+    "group_id": "dup_kedesh_1__kedesh_5",
+    "final_action": "merge",
+    "canonical_place_id": "kedesh_5",
+    "removed_place_ids": [
+      "kedesh_1"
+    ],
+    "candidate_place_ids": [
+      "kedesh_1",
+      "kedesh_5"
+    ],
+    "proposed_merged_name_hu": "Kedes (Naftáli)",
+    "proposed_merged_summary_hu": "Naftáli területén fekvő Kedes, menedékváros és lévita város.",
+    "proposed_passage_strategy": "Az összes passage-kapcsolat egyesítése a kanonikus rekord alatt, duplikációk eltávolításával.",
+    "proposed_coordinate_strategy": "A kedesh_5 rekord koordinátáinak megtartása; az identification_status nem válhat indokolatlanul bizonyosabbá.",
+    "proposed_alias_strategy": "Minden névváltozat és korábbi place_id megőrzése alias/legacy mezőben, technikai számozások nélkül.",
+    "proposed_record_type": "merged_place",
+    "expert_decision_hu": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható.",
+    "merge_risks_hu": [
+      "Más, azonos nevű bibliai helyekkel nem szabad automatikusan összevonni.",
+      "Minden passage-, alias- és forráskapcsolatot meg kell őrizni."
+    ]
+  },
+  {
+    "group_id": "dup_magadan__magdala",
+    "final_action": "merge",
+    "canonical_place_id": "magdala",
+    "removed_place_ids": [
+      "magadan"
+    ],
+    "candidate_place_ids": [
+      "magadan",
+      "magdala"
+    ],
+    "proposed_merged_name_hu": "Magdala / Magadán",
+    "proposed_merged_summary_hu": "A Galileai-tenger nyugati partján fekvő település, amely Magdala és Magadán névalakban jelenik meg.",
+    "proposed_passage_strategy": "Az összes passage-kapcsolat egyesítése a kanonikus rekord alatt, duplikációk eltávolításával.",
+    "proposed_coordinate_strategy": "A magdala rekord koordinátáinak megtartása; az identification_status nem válhat indokolatlanul bizonyosabbá.",
+    "proposed_alias_strategy": "Minden névváltozat és korábbi place_id megőrzése alias/legacy mezőben, technikai számozások nélkül.",
+    "proposed_record_type": "merged_place",
+    "expert_decision_hu": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható.",
+    "merge_risks_hu": [
+      "Más, azonos nevű bibliai helyekkel nem szabad automatikusan összevonni.",
+      "Minden passage-, alias- és forráskapcsolatot meg kell őrizni."
+    ]
+  },
+  {
+    "group_id": "dup_mahaneh_dan_1__mahaneh_dan_2",
+    "final_action": "merge",
+    "canonical_place_id": "mahaneh_dan_1",
+    "removed_place_ids": [
+      "mahaneh_dan_2"
+    ],
+    "candidate_place_ids": [
+      "mahaneh_dan_1",
+      "mahaneh_dan_2"
+    ],
+    "proposed_merged_name_hu": "Mahané-Dán",
+    "proposed_merged_summary_hu": "Dán táborhelye Córeá és Estáól között; a két bírák könyvi előfordulás ugyanahhoz a helyhez kapcsolódik.",
+    "proposed_passage_strategy": "Az összes passage-kapcsolat egyesítése a kanonikus rekord alatt, duplikációk eltávolításával.",
+    "proposed_coordinate_strategy": "A mahaneh_dan_1 rekord koordinátáinak megtartása; az identification_status nem válhat indokolatlanul bizonyosabbá.",
+    "proposed_alias_strategy": "Minden névváltozat és korábbi place_id megőrzése alias/legacy mezőben, technikai számozások nélkül.",
+    "proposed_record_type": "merged_place",
+    "expert_decision_hu": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható.",
+    "merge_risks_hu": [
+      "Más, azonos nevű bibliai helyekkel nem szabad automatikusan összevonni.",
+      "Minden passage-, alias- és forráskapcsolatot meg kell őrizni."
+    ]
+  },
+  {
+    "group_id": "dup_mizpah_3__mizpeh_1",
+    "final_action": "merge",
+    "canonical_place_id": "mizpah_3",
+    "removed_place_ids": [
+      "mizpeh_1"
+    ],
+    "candidate_place_ids": [
+      "mizpah_3",
+      "mizpeh_1"
+    ],
+    "proposed_merged_name_hu": "Micpa (Benjámin)",
+    "proposed_merged_summary_hu": "Benjámin területének fontos bibliai települése és gyülekezési helye.",
+    "proposed_passage_strategy": "Az összes passage-kapcsolat egyesítése a kanonikus rekord alatt, duplikációk eltávolításával.",
+    "proposed_coordinate_strategy": "A mizpah_3 rekord koordinátáinak megtartása; az identification_status nem válhat indokolatlanul bizonyosabbá.",
+    "proposed_alias_strategy": "Minden névváltozat és korábbi place_id megőrzése alias/legacy mezőben, technikai számozások nélkül.",
+    "proposed_record_type": "merged_place",
+    "expert_decision_hu": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható.",
+    "merge_risks_hu": [
+      "Más, azonos nevű bibliai helyekkel nem szabad automatikusan összevonni.",
+      "Minden passage-, alias- és forráskapcsolatot meg kell őrizni."
+    ]
+  },
+  {
+    "group_id": "dup_nobah_1__nobah_2",
+    "final_action": "merge",
+    "canonical_place_id": "nobah_1",
+    "removed_place_ids": [
+      "nobah_2"
+    ],
+    "candidate_place_ids": [
+      "nobah_1",
+      "nobah_2"
+    ],
+    "proposed_merged_name_hu": "Nóbá",
+    "proposed_merged_summary_hu": "Gileád keleti térségéhez kapcsolódó bibliai település; a két rekord ugyanazon hely névváltozatait őrzi.",
+    "proposed_passage_strategy": "Az összes passage-kapcsolat egyesítése a kanonikus rekord alatt, duplikációk eltávolításával.",
+    "proposed_coordinate_strategy": "A nobah_1 rekord koordinátáinak megtartása; az identification_status nem válhat indokolatlanul bizonyosabbá.",
+    "proposed_alias_strategy": "Minden névváltozat és korábbi place_id megőrzése alias/legacy mezőben, technikai számozások nélkül.",
+    "proposed_record_type": "merged_place",
+    "expert_decision_hu": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható.",
+    "merge_risks_hu": [
+      "Más, azonos nevű bibliai helyekkel nem szabad automatikusan összevonni.",
+      "Minden passage-, alias- és forráskapcsolatot meg kell őrizni."
+    ]
+  },
+  {
+    "group_id": "dup_ramah_5__ramoth_3__ramoth_gilead",
+    "final_action": "merge",
+    "canonical_place_id": "ramoth_gilead",
+    "removed_place_ids": [
+      "ramah_5",
+      "ramoth_3"
+    ],
+    "candidate_place_ids": [
+      "ramah_5",
+      "ramoth_3",
+      "ramoth_gilead"
+    ],
+    "proposed_merged_name_hu": "Rámót-Gileád",
+    "proposed_merged_summary_hu": "Gileád jelentős városa, menedékváros és több királyi hadjárat helyszíne.",
+    "proposed_passage_strategy": "Az összes passage-kapcsolat egyesítése a kanonikus rekord alatt, duplikációk eltávolításával.",
+    "proposed_coordinate_strategy": "A ramoth_gilead rekord koordinátáinak megtartása; az identification_status nem válhat indokolatlanul bizonyosabbá.",
+    "proposed_alias_strategy": "Minden névváltozat és korábbi place_id megőrzése alias/legacy mezőben, technikai számozások nélkül.",
+    "proposed_record_type": "merged_place",
+    "expert_decision_hu": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható.",
+    "merge_risks_hu": [
+      "Más, azonos nevű bibliai helyekkel nem szabad automatikusan összevonni.",
+      "Minden passage-, alias- és forráskapcsolatot meg kell őrizni."
+    ]
+  },
+  {
+    "group_id": "dup_rimmon_3__rimmono",
+    "final_action": "merge",
+    "canonical_place_id": "rimmono",
+    "removed_place_ids": [
+      "rimmon_3"
+    ],
+    "candidate_place_ids": [
+      "rimmon_3",
+      "rimmono"
+    ],
+    "proposed_merged_name_hu": "Rimmón / Rimmóno",
+    "proposed_merged_summary_hu": "Naftáli területén fekvő bibliai település, amely Rimmón és Rimmóno névalakban szerepel.",
+    "proposed_passage_strategy": "Az összes passage-kapcsolat egyesítése a kanonikus rekord alatt, duplikációk eltávolításával.",
+    "proposed_coordinate_strategy": "A rimmono rekord koordinátáinak megtartása; az identification_status nem válhat indokolatlanul bizonyosabbá.",
+    "proposed_alias_strategy": "Minden névváltozat és korábbi place_id megőrzése alias/legacy mezőben, technikai számozások nélkül.",
+    "proposed_record_type": "merged_place",
+    "expert_decision_hu": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható.",
+    "merge_risks_hu": [
+      "Más, azonos nevű bibliai helyekkel nem szabad automatikusan összevonni.",
+      "Minden passage-, alias- és forráskapcsolatot meg kell őrizni."
+    ]
+  },
+  {
+    "group_id": "dup_shihor_1__shihor_2",
+    "final_action": "merge",
+    "canonical_place_id": "shihor_1",
+    "removed_place_ids": [
+      "shihor_2"
+    ],
+    "candidate_place_ids": [
+      "shihor_1",
+      "shihor_2"
+    ],
+    "proposed_merged_name_hu": "Sihór",
+    "proposed_merged_summary_hu": "Egyiptomhoz kapcsolódó vízrajzi név, amelyet rendszerint a Nílus egyik keleti ágával azonosítanak.",
+    "proposed_passage_strategy": "Az összes passage-kapcsolat egyesítése a kanonikus rekord alatt, duplikációk eltávolításával.",
+    "proposed_coordinate_strategy": "A shihor_1 rekord koordinátáinak megtartása; az identification_status nem válhat indokolatlanul bizonyosabbá.",
+    "proposed_alias_strategy": "Minden névváltozat és korábbi place_id megőrzése alias/legacy mezőben, technikai számozások nélkül.",
+    "proposed_record_type": "merged_place",
+    "expert_decision_hu": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható.",
+    "merge_risks_hu": [
+      "Más, azonos nevű bibliai helyekkel nem szabad automatikusan összevonni.",
+      "Minden passage-, alias- és forráskapcsolatot meg kell őrizni."
+    ]
+  },
+  {
+    "group_id": "dup_shiloah__siloam",
+    "final_action": "merge",
+    "canonical_place_id": "siloam",
+    "removed_place_ids": [
+      "shiloah"
+    ],
+    "candidate_place_ids": [
+      "shiloah",
+      "siloam"
+    ],
+    "proposed_merged_name_hu": "Siloám",
+    "proposed_merged_summary_hu": "Jeruzsálem déli vízrendszerének forrása és medencéje, amely Siloah és Siloám néven szerepel.",
+    "proposed_passage_strategy": "Az összes passage-kapcsolat egyesítése a kanonikus rekord alatt, duplikációk eltávolításával.",
+    "proposed_coordinate_strategy": "A siloam rekord koordinátáinak megtartása; az identification_status nem válhat indokolatlanul bizonyosabbá.",
+    "proposed_alias_strategy": "Minden névváltozat és korábbi place_id megőrzése alias/legacy mezőben, technikai számozások nélkül.",
+    "proposed_record_type": "merged_place",
+    "expert_decision_hu": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható.",
+    "merge_risks_hu": [
+      "Más, azonos nevű bibliai helyekkel nem szabad automatikusan összevonni.",
+      "Minden passage-, alias- és forráskapcsolatot meg kell őrizni."
+    ]
+  },
+  {
+    "group_id": "dup_tamar_1__tamar_2",
+    "final_action": "merge",
+    "canonical_place_id": "tamar_1",
+    "removed_place_ids": [
+      "tamar_2"
+    ],
+    "candidate_place_ids": [
+      "tamar_1",
+      "tamar_2"
+    ],
+    "proposed_merged_name_hu": "Támár",
+    "proposed_merged_summary_hu": "Júda délkeleti határvidékének bibliai települése és határpontja.",
+    "proposed_passage_strategy": "Az összes passage-kapcsolat egyesítése a kanonikus rekord alatt, duplikációk eltávolításával.",
+    "proposed_coordinate_strategy": "A tamar_1 rekord koordinátáinak megtartása; az identification_status nem válhat indokolatlanul bizonyosabbá.",
+    "proposed_alias_strategy": "Minden névváltozat és korábbi place_id megőrzése alias/legacy mezőben, technikai számozások nélkül.",
+    "proposed_record_type": "merged_place",
+    "expert_decision_hu": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható.",
+    "merge_risks_hu": [
+      "Más, azonos nevű bibliai helyekkel nem szabad automatikusan összevonni.",
+      "Minden passage-, alias- és forráskapcsolatot meg kell őrizni."
+    ]
+  },
+  {
+    "group_id": "dup_ur_1__ur_2",
+    "final_action": "merge",
+    "canonical_place_id": "ur_1",
+    "removed_place_ids": [
+      "ur_2"
+    ],
+    "candidate_place_ids": [
+      "ur_1",
+      "ur_2"
+    ],
+    "proposed_merged_name_hu": "Úr",
+    "proposed_merged_summary_hu": "A káldeusok Úr városa, Ábrahám családjának kiindulóhelye. A második rekord passage nélküli technikai duplikátum.",
+    "proposed_passage_strategy": "Minden passage-kapcsolat átirányítása a kanonikus rekordra, duplikációk eltávolításával és adatvesztés nélkül.",
+    "proposed_coordinate_strategy": "A ur_1 rekord koordinátáinak megtartása; az azonosítási bizonyosság nem növelhető automatikusan.",
+    "proposed_alias_strategy": "Az összes valódi névváltozat és kivezetett place_id megőrzése alias/legacy mezőben; a technikai számozott nevek ne jelenjenek meg felhasználói aliaszként.",
+    "proposed_record_type": "settlement",
+    "expert_decision_hu": "A passage nélküli ur_2 rekord az ur_1 technikai duplikátuma; biztonságosan egyesíthető.",
+    "merge_risks_hu": [
+      "A csoporton kívüli, azonos nevű bibliai helyekhez nem szabad hozzányúlni.",
+      "Minden passage-, forrás-, név- és review-adatot meg kell őrizni."
+    ]
+  },
+  {
+    "group_id": "dup_valley_of_zered__zered",
+    "final_action": "merge",
+    "canonical_place_id": "zered",
+    "removed_place_ids": [
+      "valley_of_zered"
+    ],
+    "candidate_place_ids": [
+      "valley_of_zered",
+      "zered"
+    ],
+    "proposed_merged_name_hu": "Zered-patak és völgye",
+    "proposed_merged_summary_hu": "A Zered vízfolyása és völgye ugyanannak a bibliai tájegységnek két megnevezése.",
+    "proposed_passage_strategy": "Az összes passage-kapcsolat egyesítése a kanonikus rekord alatt, duplikációk eltávolításával.",
+    "proposed_coordinate_strategy": "A zered rekord koordinátáinak megtartása; az identification_status nem válhat indokolatlanul bizonyosabbá.",
+    "proposed_alias_strategy": "Minden névváltozat és korábbi place_id megőrzése alias/legacy mezőben, technikai számozások nélkül.",
+    "proposed_record_type": "merged_place",
+    "expert_decision_hu": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható.",
+    "merge_risks_hu": [
+      "Más, azonos nevű bibliai helyekkel nem szabad automatikusan összevonni.",
+      "Minden passage-, alias- és forráskapcsolatot meg kell őrizni."
+    ]
+  },
+  {
+    "group_id": "dup_zarethan__zeredah_2",
+    "final_action": "merge",
+    "canonical_place_id": "zarethan",
+    "removed_place_ids": [
+      "zeredah_2"
+    ],
+    "candidate_place_ids": [
+      "zarethan",
+      "zeredah_2"
+    ],
+    "proposed_merged_name_hu": "Cáretán / Cerédá",
+    "proposed_merged_summary_hu": "A Jordán-völgyben fekvő bibliai hely, amelyhez Salamon bronzmunkáinak környezete is kapcsolódik.",
+    "proposed_passage_strategy": "Az összes passage-kapcsolat egyesítése a kanonikus rekord alatt, duplikációk eltávolításával.",
+    "proposed_coordinate_strategy": "A zarethan rekord koordinátáinak megtartása; az identification_status nem válhat indokolatlanul bizonyosabbá.",
+    "proposed_alias_strategy": "Minden névváltozat és korábbi place_id megőrzése alias/legacy mezőben, technikai számozások nélkül.",
+    "proposed_record_type": "merged_place",
+    "expert_decision_hu": "A rendelkezésre álló név-, koordináta- és passage-adatok alapján összevonható.",
+    "merge_risks_hu": [
+      "Más, azonos nevű bibliai helyekkel nem szabad automatikusan összevonni.",
+      "Minden passage-, alias- és forráskapcsolatot meg kell őrizni."
+    ]
+  },
+  {
+    "group_id": "dup_zin_1__zin_2",
+    "final_action": "merge",
+    "canonical_place_id": "zin_1",
+    "removed_place_ids": [
+      "zin_2"
+    ],
+    "candidate_place_ids": [
+      "zin_1",
+      "zin_2"
+    ],
+    "proposed_merged_name_hu": "Cin pusztája",
+    "proposed_merged_summary_hu": "Izráel déli határvidékének bibliai pusztasága, Kádés térségéhez kapcsolódó tájegység. A két rekord ugyanazon régió eltérő passage-csoportjait tartalmazza.",
+    "proposed_passage_strategy": "Minden passage-kapcsolat átirányítása a kanonikus rekordra, duplikációk eltávolításával és adatvesztés nélkül.",
+    "proposed_coordinate_strategy": "A zin_1 rekord koordinátáinak megtartása; az azonosítási bizonyosság nem növelhető automatikusan.",
+    "proposed_alias_strategy": "Az összes valódi névváltozat és kivezetett place_id megőrzése alias/legacy mezőben; a technikai számozott nevek ne jelenjenek meg felhasználói aliaszként.",
+    "proposed_record_type": "wilderness_region",
+    "expert_decision_hu": "A két Cin-rekord azonos pusztaságot jelöli, azonos koordinátával és egymást kiegészítő passage-ekkel; egyesíthetők.",
+    "merge_risks_hu": [
+      "A csoporton kívüli, azonos nevű bibliai helyekhez nem szabad hozzányúlni.",
+      "Minden passage-, forrás-, név- és review-adatot meg kell őrizni."
+    ]
+  }
+]

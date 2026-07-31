@@ -596,7 +596,6 @@ def _render_editor_fields(*, save_label: str = "Bibliai szöveg mentése") -> No
         key=KEY_PASSAGE_TEXT_INPUT,
         height=220,
         placeholder="Töltsd be a RÚF szöveget, vagy illeszd be ide kézzel…",
-        persist_state="session",
     )
     if st.button(save_label, key="bible_text_save_btn", use_container_width=True):
         saved = save_bible_text_from_widgets(st.session_state)

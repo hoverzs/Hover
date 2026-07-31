@@ -1,0 +1,7 @@
+{
+  "locked_place_ids": [
+    "corinth",
+    "ephesus"
+  ],
+  "policy": "Bulk import may fill null fields and union source_ids, but must not overwrite non-empty protected content fields. review_status must not be auto-promoted to reviewed/approved."
+}

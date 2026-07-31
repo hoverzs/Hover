@@ -1,0 +1,233 @@
+[
+  {
+    "place_id": "edom",
+    "name_hu": "Edóm",
+    "valid_sections": [
+      "biblical_significance",
+      "key_events",
+      "ancient_geography",
+      "historical_context",
+      "modern_context",
+      "identification_notes"
+    ],
+    "evidence_count_by_strength": {
+      "A_biblical_primary": 8,
+      "B_structured_gazetteer": 3,
+      "C_external_institutional": 0,
+      "D_external_scholarly": 0,
+      "E_contextual_secondary": 2,
+      "F_inference": 0,
+      "G_unsupported": 0
+    },
+    "approved_source_ids": [
+      "openbible_geocoding_cc_by_4_0",
+      "unesco_petra_326"
+    ],
+    "candidate_source_ids": [
+      "web_unesco_petra_326"
+    ],
+    "independent_external_source_count": 1,
+    "readiness_class": "partial_profile_ready",
+    "unresolved_gaps": [
+      "archaeology"
+    ],
+    "blocked_sections": [
+      "archaeology",
+      "homiletical_context"
+    ],
+    "drafting_scope": "részleges profil; történeti/régészeti szakaszok csak a támogatott körben",
+    "drafting_notes_hu": "Draft csak az auditált evidence packet alapján készülhet; ez még nem végleges enrichment szöveg."
+  },
+  {
+    "place_id": "egypt",
+    "name_hu": "Egyiptom",
+    "valid_sections": [
+      "biblical_significance",
+      "key_events",
+      "ancient_geography",
+      "historical_context",
+      "archaeology",
+      "modern_context",
+      "identification_notes"
+    ],
+    "evidence_count_by_strength": {
+      "A_biblical_primary": 6,
+      "B_structured_gazetteer": 3,
+      "C_external_institutional": 1,
+      "D_external_scholarly": 0,
+      "E_contextual_secondary": 2,
+      "F_inference": 0,
+      "G_unsupported": 0
+    },
+    "approved_source_ids": [
+      "openbible_geocoding_cc_by_4_0",
+      "unesco_ancient_thebes_87"
+    ],
+    "candidate_source_ids": [
+      "web_unesco_ancient_thebes_87"
+    ],
+    "independent_external_source_count": 1,
+    "readiness_class": "partial_profile_ready",
+    "unresolved_gaps": [],
+    "blocked_sections": [
+      "homiletical_context"
+    ],
+    "drafting_scope": "részleges profil; történeti/régészeti szakaszok csak a támogatott körben",
+    "drafting_notes_hu": "Draft csak az auditált evidence packet alapján készülhet; ez még nem végleges enrichment szöveg."
+  },
+  {
+    "place_id": "judea_1",
+    "name_hu": "Júdea",
+    "valid_sections": [
+      "biblical_significance",
+      "key_events",
+      "ancient_geography",
+      "historical_context",
+      "modern_context",
+      "identification_notes"
+    ],
+    "evidence_count_by_strength": {
+      "A_biblical_primary": 8,
+      "B_structured_gazetteer": 5,
+      "C_external_institutional": 0,
+      "D_external_scholarly": 0,
+      "E_contextual_secondary": 3,
+      "F_inference": 0,
+      "G_unsupported": 0
+    },
+    "approved_source_ids": [
+      "openbible_geocoding_cc_by_4_0",
+      "unesco_jerusalem_148"
+    ],
+    "candidate_source_ids": [
+      "catalog_pleiades_981527",
+      "web_unesco_jerusalem_148"
+    ],
+    "independent_external_source_count": 1,
+    "readiness_class": "partial_profile_ready",
+    "unresolved_gaps": [
+      "archaeology"
+    ],
+    "blocked_sections": [
+      "archaeology",
+      "homiletical_context"
+    ],
+    "drafting_scope": "részleges profil; történeti/régészeti szakaszok csak a támogatott körben",
+    "drafting_notes_hu": "Draft csak az auditált evidence packet alapján készülhet; ez még nem végleges enrichment szöveg."
+  },
+  {
+    "place_id": "mount_zion",
+    "name_hu": "Sion hegye",
+    "valid_sections": [
+      "biblical_significance",
+      "key_events",
+      "ancient_geography",
+      "historical_context",
+      "modern_context",
+      "identification_notes"
+    ],
+    "evidence_count_by_strength": {
+      "A_biblical_primary": 8,
+      "B_structured_gazetteer": 3,
+      "C_external_institutional": 0,
+      "D_external_scholarly": 0,
+      "E_contextual_secondary": 3,
+      "F_inference": 0,
+      "G_unsupported": 0
+    },
+    "approved_source_ids": [
+      "openbible_geocoding_cc_by_4_0",
+      "unesco_jerusalem_148"
+    ],
+    "candidate_source_ids": [
+      "web_unesco_jerusalem_148"
+    ],
+    "independent_external_source_count": 1,
+    "readiness_class": "partial_profile_ready",
+    "unresolved_gaps": [
+      "archaeology"
+    ],
+    "blocked_sections": [
+      "archaeology",
+      "homiletical_context"
+    ],
+    "drafting_scope": "részleges profil; történeti/régészeti szakaszok csak a támogatott körben",
+    "drafting_notes_hu": "Draft csak az auditált evidence packet alapján készülhet; ez még nem végleges enrichment szöveg."
+  },
+  {
+    "place_id": "tyre",
+    "name_hu": "Tírusz",
+    "valid_sections": [
+      "biblical_significance",
+      "key_events",
+      "ancient_geography",
+      "historical_context",
+      "archaeology",
+      "modern_context",
+      "identification_notes"
+    ],
+    "evidence_count_by_strength": {
+      "A_biblical_primary": 3,
+      "B_structured_gazetteer": 3,
+      "C_external_institutional": 3,
+      "D_external_scholarly": 0,
+      "E_contextual_secondary": 0,
+      "F_inference": 0,
+      "G_unsupported": 0
+    },
+    "approved_source_ids": [
+      "openbible_geocoding_cc_by_4_0",
+      "unesco_tyre_299"
+    ],
+    "candidate_source_ids": [
+      "web_unesco_tyre_299"
+    ],
+    "independent_external_source_count": 1,
+    "readiness_class": "partial_profile_ready",
+    "unresolved_gaps": [],
+    "blocked_sections": [
+      "homiletical_context"
+    ],
+    "drafting_scope": "részleges profil; történeti/régészeti szakaszok csak a támogatott körben",
+    "drafting_notes_hu": "Draft csak az auditált evidence packet alapján készülhet; ez még nem végleges enrichment szöveg."
+  },
+  {
+    "place_id": "zion",
+    "name_hu": "Sion",
+    "valid_sections": [
+      "biblical_significance",
+      "key_events",
+      "ancient_geography",
+      "historical_context",
+      "modern_context",
+      "identification_notes"
+    ],
+    "evidence_count_by_strength": {
+      "A_biblical_primary": 8,
+      "B_structured_gazetteer": 3,
+      "C_external_institutional": 0,
+      "D_external_scholarly": 0,
+      "E_contextual_secondary": 3,
+      "F_inference": 0,
+      "G_unsupported": 0
+    },
+    "approved_source_ids": [
+      "openbible_geocoding_cc_by_4_0",
+      "unesco_jerusalem_148"
+    ],
+    "candidate_source_ids": [
+      "web_unesco_jerusalem_148"
+    ],
+    "independent_external_source_count": 1,
+    "readiness_class": "partial_profile_ready",
+    "unresolved_gaps": [
+      "archaeology"
+    ],
+    "blocked_sections": [
+      "archaeology",
+      "homiletical_context"
+    ],
+    "drafting_scope": "részleges profil; történeti/régészeti szakaszok csak a támogatott körben",
+    "drafting_notes_hu": "Draft csak az auditált evidence packet alapján készülhet; ez még nem végleges enrichment szöveg."
+  }
+]
