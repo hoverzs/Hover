@@ -522,15 +522,44 @@ def _route_segment_direction(from_stop: BiblicalRouteStop, to_stop: BiblicalRout
 def route_curve_profile(segment_type: str) -> tuple[str, float]:
     if segment_type == "sea":
         return "soft_sea_curve", 0.11
-    return "subtle_land_curve", 0.055
+    return "subtle_land_curve", 0.085
+
+
+def _normalize_stop_id_for_curve(stop_id: str) -> str:
+    normalized = stop_id
+    for suffix in ("_return", "_outbound", "_departure", "_arrival"):
+        if normalized.endswith(suffix):
+            return normalized[: -len(suffix)]
+    return normalized
 
 
 def _curve_seed_key(from_stop_id: str, to_stop_id: str, segment_type: str) -> str:
     normalized = sorted(
-        stop_id.removesuffix("_return")
+        _normalize_stop_id_for_curve(stop_id)
         for stop_id in (from_stop_id, to_stop_id)
     )
     return "|".join([*normalized, segment_type])
+
+
+def _route_corridor_key(
+    *,
+    from_place_id: str | None,
+    to_place_id: str | None,
+    from_stop_id: str,
+    to_stop_id: str,
+    segment_type: str,
+) -> tuple[str, str, str]:
+    """Stable undirected key so outbound/return of the same place pair share one line."""
+    if from_place_id and to_place_id:
+        left, right = sorted((from_place_id, to_place_id))
+    else:
+        left, right = sorted(
+            (
+                _normalize_stop_id_for_curve(from_stop_id),
+                _normalize_stop_id_for_curve(to_stop_id),
+            )
+        )
+    return (segment_type, left, right)
 
 
 def schematic_segment_path(
@@ -555,13 +584,13 @@ def schematic_segment_path(
         return [[from_lon, from_lat], [to_lon, to_lat]]
 
     _profile, strength = route_curve_profile(segment_type)
-    from_seed_id = from_stop_id.removesuffix("_return")
-    to_seed_id = to_stop_id.removesuffix("_return")
+    from_seed_id = _normalize_stop_id_for_curve(from_stop_id)
+    to_seed_id = _normalize_stop_id_for_curve(to_stop_id)
     stable_seed = sum(ord(char) for char in _curve_seed_key(from_stop_id, to_stop_id, segment_type))
     sign = -1.0 if stable_seed % 2 else 1.0
     if direction == "return" and from_seed_id <= to_seed_id:
         sign *= -1.0
-    offset = min(max(distance * strength, 0.035), 0.55) * sign
+    offset = min(max(distance * strength, 0.045), 0.55) * sign
     perp_lon = -dy / distance
     perp_lat = dx / distance
     control_lon = (from_lon + to_lon) / 2 + perp_lon * offset
@@ -623,6 +652,8 @@ def route_segment_rows(
             {
                 "from_stop_id": segment.from_stop_id,
                 "to_stop_id": segment.to_stop_id,
+                "from_place_id": from_place.place_id,
+                "to_place_id": to_place.place_id,
                 "segment_type": segment.segment_type,
                 "segment_type_label": _display_status(segment.segment_type, SEGMENT_TYPE_LABELS),
                 "certainty": segment.certainty,
@@ -666,7 +697,13 @@ def _valid_route_path(value: Any) -> bool:
 
 
 def route_line_rows(segment_rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Build one renderable path per undirected place corridor.
+
+    Outbound/return pairs that share the same places would otherwise draw two
+    near-parallel lines; keep a single gently curved path (outbound preferred).
+    """
     rows: list[dict[str, Any]] = []
+    seen_corridors: set[tuple[str, str, str]] = set()
     for segment in segment_rows:
         curved_path = segment.get("path")
         straight_path = segment.get("straight_path")
@@ -678,6 +715,16 @@ def route_line_rows(segment_rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
             geometry_source = "fallback_straight"
         else:
             continue
+        corridor = _route_corridor_key(
+            from_place_id=str(segment.get("from_place_id") or "") or None,
+            to_place_id=str(segment.get("to_place_id") or "") or None,
+            from_stop_id=str(segment.get("from_stop_id") or ""),
+            to_stop_id=str(segment.get("to_stop_id") or ""),
+            segment_type=str(segment.get("segment_type") or "land"),
+        )
+        if corridor in seen_corridors:
+            continue
+        seen_corridors.add(corridor)
         rows.append(
             {
                 key: value
@@ -687,6 +734,7 @@ def route_line_rows(segment_rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
         )
         rows[-1]["render_path"] = render_path
         rows[-1]["geometry_source"] = geometry_source
+        rows[-1]["corridor_key"] = "|".join(corridor)
     return rows
 
 

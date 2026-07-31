@@ -1567,18 +1567,25 @@ def test_route_segment_paths_are_deterministic_curves_without_mutating_stop_coor
     assert all(row["straight_path"][-1] == row["path"][-1] for row in segment_rows)
 
 
-def test_route_line_rows_render_exactly_one_geometry_per_segment() -> None:
+def test_route_line_rows_render_exactly_one_geometry_per_corridor() -> None:
     route = load_biblical_routes()[0]
     segment_rows = route_segment_rows(route)
     line_rows = route_line_rows(segment_rows)
 
     assert len(segment_rows) == 14
-    assert len(line_rows) == 14
+    # Outbound/return of the same place pair share one drawn corridor.
+    assert len(line_rows) < len(segment_rows)
+    assert len(line_rows) == len({row["corridor_key"] for row in line_rows})
     assert all("render_path" in row for row in line_rows)
     assert all("path" not in row and "straight_path" not in row for row in line_rows)
     assert all(row["geometry_source"] == "curved" for row in line_rows)
-    assert all(row["render_path"][0] == source["straight_path"][0] for row, source in zip(line_rows, segment_rows))
-    assert all(row["render_path"][-1] == source["straight_path"][-1] for row, source in zip(line_rows, segment_rows))
+    assert all(len(row["render_path"]) > 2 for row in line_rows)
+    assert all(row["direction"] == "outbound" or row["from_place_id"] != row["to_place_id"] for row in line_rows)
+    # Shared Anatolian corridors keep the outbound (gently curved) line only.
+    assert sum(1 for row in line_rows if row["direction"] == "return") == 2
+    assert all(
+        row["render_path"][0] != row["render_path"][-1] for row in line_rows
+    )
 
 
 def test_route_line_rows_use_single_straight_fallback_when_curved_path_is_unavailable() -> None:
@@ -1588,11 +1595,11 @@ def test_route_line_rows_use_single_straight_fallback_when_curved_path_is_unavai
     broken[0]["path"] = None
     line_rows = route_line_rows(broken)
 
-    assert len(line_rows) == len(segment_rows)
     assert line_rows[0]["geometry_source"] == "fallback_straight"
     assert line_rows[0]["render_path"] == segment_rows[0]["straight_path"]
     assert "path" not in line_rows[0] and "straight_path" not in line_rows[0]
     assert all(row["geometry_source"] == "curved" for row in line_rows[1:])
+    assert len(line_rows) == len({row["corridor_key"] for row in line_rows})
 
 
 def test_textual_only_stop_is_listed_but_not_rendered_on_map() -> None:
@@ -1652,16 +1659,17 @@ def test_textual_only_stop_is_listed_but_not_rendered_on_map() -> None:
     assert segment_rows == []
 
 
-def test_all_pauline_routes_produce_one_route_line_per_segment() -> None:
+def test_all_pauline_routes_produce_one_route_line_per_corridor() -> None:
     for route in load_biblical_routes():
         segment_rows = route_segment_rows(route)
         line_rows = route_line_rows(segment_rows)
 
-        assert len(line_rows) == len(route.segments)
-        assert len(line_rows) == len(segment_rows)
+        assert len(line_rows) <= len(route.segments)
+        assert len(line_rows) == len({row["corridor_key"] for row in line_rows})
         assert {row["segment_type"] for row in line_rows} <= {"land", "sea"}
         assert {row["line_style"] for row in line_rows} <= {"solid", "dashed"}
         assert all(row["render_path"][0] != row["render_path"][-1] for row in line_rows)
+        assert all(row["geometry_source"] == "curved" for row in line_rows)
 
 
 def test_route_segment_curve_profiles_separate_land_sea_and_return_paths() -> None:
@@ -1671,6 +1679,7 @@ def test_route_segment_curve_profiles_separate_land_sea_and_return_paths() -> No
     assert land_profile == "subtle_land_curve"
     assert sea_profile == "soft_sea_curve"
     assert sea_strength > land_strength
+    assert land_strength >= 0.08
 
     outbound = schematic_segment_path(
         (1.0, 1.0),
@@ -1680,21 +1689,22 @@ def test_route_segment_curve_profiles_separate_land_sea_and_return_paths() -> No
         from_stop_id="out_a",
         to_stop_id="out_b",
     )
-    returning = schematic_segment_path(
-        (4.0, 2.0),
+    sea = schematic_segment_path(
         (1.0, 1.0),
-        segment_type="land",
-        direction="return",
-        from_stop_id="out_b_return",
-        to_stop_id="out_a_return",
+        (4.0, 2.0),
+        segment_type="sea",
+        direction="outbound",
+        from_stop_id="out_a",
+        to_stop_id="out_b",
     )
 
     assert outbound[0] == [1.0, 1.0]
     assert outbound[-1] == [4.0, 2.0]
-    assert returning[0] == [4.0, 2.0]
-    assert returning[-1] == [1.0, 1.0]
-    assert outbound[6] != returning[6]
-
+    assert len(outbound) > 2
+    # Midpoint leaves the chord so the drawn path is gently curved.
+    chord_mid = [(1.0 + 4.0) / 2, (1.0 + 2.0) / 2]
+    assert outbound[6] != chord_mid
+    assert sea[6] != outbound[6]
 
 def test_route_viewport_is_calculated_from_all_stops() -> None:
     route = load_biblical_routes()[0]
@@ -1885,6 +1895,26 @@ def test_route_family_navigation_buttons_render_for_exodus_routes() -> None:
     assert any("Útvonalcsalád: A kivonulás és a pusztai vándorlás · 2/2" in caption for caption in fake_st.captions)
     assert any(label == "Előző szakasz" for label, _kwargs in fake_st.buttons)
     assert any(box[0] == "Útvonalfázis" for box in fake_st.selectboxes)
+
+
+def test_pauline_route_family_navigation_buttons_render() -> None:
+    fake_st = _FakeStreamlit()
+    fake_st.session_state[ACTIVE_MAP_VIEW_KEY] = MAP_VIEW_ROUTES
+    fake_st.session_state[SELECTED_ROUTE_ID_KEY] = "paul_first_missionary_journey"
+
+    render_biblical_map_prototype(st_module=fake_st)
+
+    assert any("Útvonalcsalád: Pál missziói útjai · 1/4" in caption for caption in fake_st.captions)
+    assert any(label == "Következő szakasz" for label, _kwargs in fake_st.buttons)
+
+    fake_st = _FakeStreamlit()
+    fake_st.session_state[ACTIVE_MAP_VIEW_KEY] = MAP_VIEW_ROUTES
+    fake_st.session_state[SELECTED_ROUTE_ID_KEY] = "paul_journey_to_rome"
+
+    render_biblical_map_prototype(st_module=fake_st)
+
+    assert any("Útvonalcsalád: Pál missziói útjai · 4/4" in caption for caption in fake_st.captions)
+    assert any(label == "Előző szakasz" for label, _kwargs in fake_st.buttons)
 
 
 def test_partial_passage_overlap_links_to_route_stop() -> None:
