@@ -3,8 +3,8 @@
     "route_id": "paul_first_missionary_journey",
     "route_family_id": "pauline_missionary_journeys",
     "family_name_hu": "Pál missziói útjai",
-    "route_sequence_order": 1,
-    "previous_route_id": null,
+    "route_sequence_order": 2,
+    "previous_route_id": "paul_early_damascus_to_antioch",
     "next_route_id": "paul_second_missionary_journey",
     "name_hu": "Pál első missziói útja",
     "name_en": "Paul's first missionary journey",
@@ -372,7 +372,7 @@
     "route_id": "paul_second_missionary_journey",
     "route_family_id": "pauline_missionary_journeys",
     "family_name_hu": "Pál missziói útjai",
-    "route_sequence_order": 2,
+    "route_sequence_order": 3,
     "previous_route_id": "paul_first_missionary_journey",
     "next_route_id": "paul_third_missionary_journey",
     "name_hu": "Pál második missziói útja",
@@ -925,7 +925,7 @@
     "route_id": "paul_third_missionary_journey",
     "route_family_id": "pauline_missionary_journeys",
     "family_name_hu": "Pál missziói útjai",
-    "route_sequence_order": 3,
+    "route_sequence_order": 4,
     "previous_route_id": "paul_second_missionary_journey",
     "next_route_id": "paul_journey_to_rome",
     "name_hu": "Pál harmadik missziói útja",
@@ -1432,7 +1432,7 @@
     "route_id": "paul_journey_to_rome",
     "route_family_id": "pauline_missionary_journeys",
     "family_name_hu": "Pál missziói útjai",
-    "route_sequence_order": 4,
+    "route_sequence_order": 5,
     "previous_route_id": "paul_third_missionary_journey",
     "next_route_id": null,
     "name_hu": "Pál útja Jeruzsálemből Rómába",
@@ -5088,6 +5088,1298 @@
         "segment_type": "land",
         "geometry_status": "schematic",
         "source_notes_hu": "Sematikus összekötő vonal; nem rekonstruált hadjárati útvonal.",
+        "waypoints": [],
+        "geometry": null
+      }
+    ]
+  },
+  {
+    "route_id": "paul_early_damascus_to_antioch",
+    "route_family_id": "pauline_missionary_journeys",
+    "family_name_hu": "Pál missziói útjai",
+    "route_sequence_order": 1,
+    "previous_route_id": null,
+    "next_route_id": "paul_first_missionary_journey",
+    "name_hu": "Pál korai útja Damaszkusztól Antiókhiáig",
+    "name_en": "Paul's early journey from Damascus to Antioch",
+    "short_description_hu": "Az útvonal a bibliai szövegben megnevezett állomások sorrendjét mutatja. A vonalak sematikusak, nem a pontos ókori nyomvonalat jelölik.",
+    "route_category": "missionary_journey",
+    "primary_passage_refs": [
+      "ApCsel 9,1-30",
+      "ApCsel 11,25-26"
+    ],
+    "chronology_label_hu": "Pál korai évei",
+    "chronology_sort_key": 0,
+    "certainty": "mixed",
+    "geometry_status": "schematic",
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "review_status": "draft",
+    "review_notes_hu": "Csak az ApCselben biztonságosan megnevezett állomások. Az arábiai tartózkodás (Gal 1,17) nincs térképezve, mert a katalógusban nincs elég pontos, egyértelmű helyrekord.",
+    "evidence_model": {
+      "station_order_basis": "biblical_text_named_stops",
+      "historical_route_status": "not_reconstructed",
+      "map_geometry_status": "schematic",
+      "precision_note_hu": "Az állomássorrend a bibliai szöveg megnevezett helyeit követi; a vonalak sematikusak."
+    },
+    "stops": [
+      {
+        "order": 1,
+        "stop_id": "damascus_conversion",
+        "place_id": "damascus",
+        "place_name_override_hu": "Damaszkusz",
+        "passage_refs": [
+          "ApCsel 9,1-25"
+        ],
+        "event_summary_hu": "Saul Damaszkuszban találkozik az Úrral, majd tanít.",
+        "certainty": "certain",
+        "stop_type": "embarkation",
+        "source_notes_hu": "Az állomás a bibliai szövegben megnevezett hely.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "Aktív katalógusrekord; a térképi vonal sematikus.",
+        "sequence_status": "explicit",
+        "journey_phase": "Damaszkusz"
+      },
+      {
+        "order": 2,
+        "stop_id": "jerusalem_early_paul",
+        "place_id": "jerusalem",
+        "place_name_override_hu": "Jeruzsálem",
+        "passage_refs": [
+          "ApCsel 9,26-29"
+        ],
+        "event_summary_hu": "Saul Jeruzsálemben csatlakozik a tanítványokhoz.",
+        "certainty": "probable",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "Az állomás a bibliai szövegben megnevezett hely.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "Aktív katalógusrekord; a térképi vonal sematikus.",
+        "sequence_status": "explicit",
+        "journey_phase": "Jeruzsálem"
+      },
+      {
+        "order": 3,
+        "stop_id": "caesarea_to_tarsus",
+        "place_id": "caesarea",
+        "place_name_override_hu": "Cézárea",
+        "passage_refs": [
+          "ApCsel 9,30"
+        ],
+        "event_summary_hu": "Saulot Cézárán át Tarzuszba küldik.",
+        "certainty": "certain",
+        "stop_type": "transit",
+        "source_notes_hu": "Az állomás a bibliai szövegben megnevezett hely.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "Aktív katalógusrekord; a térképi vonal sematikus.",
+        "sequence_status": "explicit",
+        "journey_phase": "Tarzusz felé"
+      },
+      {
+        "order": 4,
+        "stop_id": "tarsus_early_paul",
+        "place_id": "tarsus",
+        "place_name_override_hu": "Tarzusz",
+        "passage_refs": [
+          "ApCsel 9,30",
+          "ApCsel 11,25"
+        ],
+        "event_summary_hu": "Saul Tarzuszban tartózkodik.",
+        "certainty": "certain",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "Az állomás a bibliai szövegben megnevezett hely.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "Aktív katalógusrekord; a térképi vonal sematikus.",
+        "sequence_status": "explicit",
+        "journey_phase": "Tarzusz"
+      },
+      {
+        "order": 5,
+        "stop_id": "antioch_syria_early",
+        "place_id": "antioch_syria",
+        "place_name_override_hu": "szíriai Antiókhia",
+        "passage_refs": [
+          "ApCsel 11,25-26"
+        ],
+        "event_summary_hu": "Barnabás elhozza Sault Antiókhiába.",
+        "certainty": "probable",
+        "stop_type": "destination",
+        "source_notes_hu": "Az állomás a bibliai szövegben megnevezett hely.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "Aktív katalógusrekord; a térképi vonal sematikus.",
+        "sequence_status": "explicit",
+        "journey_phase": "Antiókhia"
+      }
+    ],
+    "segments": [
+      {
+        "from_stop_id": "damascus_conversion",
+        "to_stop_id": "jerusalem_early_paul",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal két megnevezett állomás között; nem rekonstruált ókori útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "jerusalem_early_paul",
+        "to_stop_id": "caesarea_to_tarsus",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal két megnevezett állomás között; nem rekonstruált ókori útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "caesarea_to_tarsus",
+        "to_stop_id": "tarsus_early_paul",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal két megnevezett állomás között; nem rekonstruált ókori útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "tarsus_early_paul",
+        "to_stop_id": "antioch_syria_early",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal két megnevezett állomás között; nem rekonstruált ókori útvonal.",
+        "waypoints": [],
+        "geometry": null
+      }
+    ]
+  },
+  {
+    "route_id": "philip_samaria_to_caesarea",
+    "route_family_id": "acts_early_journeys",
+    "family_name_hu": "Korai apostoli utak (ApCsel)",
+    "route_sequence_order": 1,
+    "previous_route_id": null,
+    "next_route_id": "peter_jerusalem_to_caesarea",
+    "name_hu": "Fülöp útja Szamáriától Cézáráig",
+    "name_en": "Philip's journey from Samaria to Caesarea",
+    "short_description_hu": "Az útvonal a bibliai szövegben megnevezett állomások sorrendjét mutatja. A vonalak sematikusak, nem a pontos ókori nyomvonalat jelölik.",
+    "route_category": "ministry_journey",
+    "primary_passage_refs": [
+      "ApCsel 8,5-40"
+    ],
+    "chronology_label_hu": "Fülöp szolgálata",
+    "chronology_sort_key": 13,
+    "certainty": "mixed",
+    "geometry_status": "schematic",
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "review_status": "draft",
+    "review_notes_hu": "Az ApCsel 8 megnevezett helyei. Azótusz az aktív ashdod rekordra mutat; a Gáza felé vezető út sematikus tájékozódási pont.",
+    "evidence_model": {
+      "station_order_basis": "biblical_text_named_stops",
+      "historical_route_status": "not_reconstructed",
+      "map_geometry_status": "schematic",
+      "precision_note_hu": "Az állomássorrend a bibliai szöveg megnevezett helyeit követi; a vonalak sematikusak."
+    },
+    "stops": [
+      {
+        "order": 1,
+        "stop_id": "samaria_philip",
+        "place_id": "samaria_1",
+        "place_name_override_hu": "Szamária",
+        "passage_refs": [
+          "ApCsel 8,5-25"
+        ],
+        "event_summary_hu": "Fülöp Szamáriában hirdeti az igét.",
+        "certainty": "certain",
+        "stop_type": "embarkation",
+        "source_notes_hu": "Az állomás a bibliai szövegben megnevezett hely.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "Aktív katalógusrekord; a térképi vonal sematikus.",
+        "sequence_status": "explicit",
+        "journey_phase": "Szamária"
+      },
+      {
+        "order": 2,
+        "stop_id": "gaza_road_philip",
+        "place_id": "gaza",
+        "place_name_override_hu": "Gáza felé vezető út",
+        "passage_refs": [
+          "ApCsel 8,26-39"
+        ],
+        "event_summary_hu": "Fülöp a Gáza felé vezető úton találkozik az etióp udvari főemberrel.",
+        "certainty": "probable",
+        "stop_type": "transit",
+        "source_notes_hu": "Az állomás a bibliai szövegben megnevezett hely.",
+        "mapping_status": "approximate",
+        "display_on_map": true,
+        "mapping_notes_hu": "A szöveg utat említ Gáza felé; a gaza rekord sematikus tájékozódási pont.",
+        "sequence_status": "explicit",
+        "journey_phase": "Gáza útja"
+      },
+      {
+        "order": 3,
+        "stop_id": "azotus_philip",
+        "place_id": "ashdod",
+        "place_name_override_hu": "Azótusz (Asdód)",
+        "passage_refs": [
+          "ApCsel 8,40"
+        ],
+        "event_summary_hu": "Fülöp Azótuszban jelenik meg, és hirdeti az evangéliumot.",
+        "certainty": "certain",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "Azótusz a katalógus ashdod (Asdód) rekordjára mutat.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "Aktív katalógusrekord; a térképi vonal sematikus.",
+        "sequence_status": "explicit",
+        "journey_phase": "Tengerparti városok"
+      },
+      {
+        "order": 4,
+        "stop_id": "caesarea_philip",
+        "place_id": "caesarea",
+        "place_name_override_hu": "Cézárea",
+        "passage_refs": [
+          "ApCsel 8,40"
+        ],
+        "event_summary_hu": "Fülöp Cézáráig jut.",
+        "certainty": "certain",
+        "stop_type": "destination",
+        "source_notes_hu": "Az állomás a bibliai szövegben megnevezett hely.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "Aktív katalógusrekord; a térképi vonal sematikus.",
+        "sequence_status": "explicit",
+        "journey_phase": "Tengerparti városok"
+      }
+    ],
+    "segments": [
+      {
+        "from_stop_id": "samaria_philip",
+        "to_stop_id": "gaza_road_philip",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal két megnevezett állomás között; nem rekonstruált ókori útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "gaza_road_philip",
+        "to_stop_id": "azotus_philip",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal két megnevezett állomás között; nem rekonstruált ókori útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "azotus_philip",
+        "to_stop_id": "caesarea_philip",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal két megnevezett állomás között; nem rekonstruált ókori útvonal.",
+        "waypoints": [],
+        "geometry": null
+      }
+    ]
+  },
+  {
+    "route_id": "peter_jerusalem_to_caesarea",
+    "route_family_id": "acts_early_journeys",
+    "family_name_hu": "Korai apostoli utak (ApCsel)",
+    "route_sequence_order": 2,
+    "previous_route_id": "philip_samaria_to_caesarea",
+    "next_route_id": null,
+    "name_hu": "Péter útja Jeruzsálemtől Cézáráig",
+    "name_en": "Peter's journey from Jerusalem to Caesarea",
+    "short_description_hu": "Az útvonal a bibliai szövegben megnevezett állomások sorrendjét mutatja. A vonalak sematikusak, nem a pontos ókori nyomvonalat jelölik.",
+    "route_category": "ministry_journey",
+    "primary_passage_refs": [
+      "ApCsel 8,14-25",
+      "ApCsel 9,32-10,48"
+    ],
+    "chronology_label_hu": "Péter korai szolgálata",
+    "chronology_sort_key": 14,
+    "certainty": "mixed",
+    "geometry_status": "schematic",
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "review_status": "draft",
+    "review_notes_hu": "Az ApCsel 8–10 megnevezett állomásai. Lydda a katalógus lod rekordjára mutat.",
+    "evidence_model": {
+      "station_order_basis": "biblical_text_named_stops",
+      "historical_route_status": "not_reconstructed",
+      "map_geometry_status": "schematic",
+      "precision_note_hu": "Az állomássorrend a bibliai szöveg megnevezett helyeit követi; a vonalak sematikusak."
+    },
+    "stops": [
+      {
+        "order": 1,
+        "stop_id": "jerusalem_peter",
+        "place_id": "jerusalem",
+        "place_name_override_hu": "Jeruzsálem",
+        "passage_refs": [
+          "ApCsel 8,14"
+        ],
+        "event_summary_hu": "A jeruzsálemi apostolok Pétert is elküldik Szamáriába.",
+        "certainty": "probable",
+        "stop_type": "embarkation",
+        "source_notes_hu": "Az állomás a bibliai szövegben megnevezett hely.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "Aktív katalógusrekord; a térképi vonal sematikus.",
+        "sequence_status": "explicit",
+        "journey_phase": "Jeruzsálem és Szamária"
+      },
+      {
+        "order": 2,
+        "stop_id": "samaria_peter",
+        "place_id": "samaria_1",
+        "place_name_override_hu": "Szamária",
+        "passage_refs": [
+          "ApCsel 8,14-25"
+        ],
+        "event_summary_hu": "Péter Szamáriában szolgál.",
+        "certainty": "certain",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "Az állomás a bibliai szövegben megnevezett hely.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "Aktív katalógusrekord; a térképi vonal sematikus.",
+        "sequence_status": "explicit",
+        "journey_phase": "Jeruzsálem és Szamária"
+      },
+      {
+        "order": 3,
+        "stop_id": "lydda_peter",
+        "place_id": "lod",
+        "place_name_override_hu": "Lidda (Lód)",
+        "passage_refs": [
+          "ApCsel 9,32-35"
+        ],
+        "event_summary_hu": "Péter Liddában meggyógyítja Éneást.",
+        "certainty": "certain",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "Lidda a katalógus lod rekordjára mutat.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "Aktív katalógusrekord; a térképi vonal sematikus.",
+        "sequence_status": "explicit",
+        "journey_phase": "Lidda és Joppé"
+      },
+      {
+        "order": 4,
+        "stop_id": "joppa_peter",
+        "place_id": "joppa",
+        "place_name_override_hu": "Joppé",
+        "passage_refs": [
+          "ApCsel 9,36-43"
+        ],
+        "event_summary_hu": "Péter Joppéban feltámasztja Tábithát.",
+        "certainty": "certain",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "Az állomás a bibliai szövegben megnevezett hely.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "Aktív katalógusrekord; a térképi vonal sematikus.",
+        "sequence_status": "explicit",
+        "journey_phase": "Lidda és Joppé"
+      },
+      {
+        "order": 5,
+        "stop_id": "caesarea_peter",
+        "place_id": "caesarea",
+        "place_name_override_hu": "Cézárea",
+        "passage_refs": [
+          "ApCsel 10,1-48"
+        ],
+        "event_summary_hu": "Péter Cézárában Kornéliusz házában szolgál.",
+        "certainty": "certain",
+        "stop_type": "destination",
+        "source_notes_hu": "Az állomás a bibliai szövegben megnevezett hely.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "Aktív katalógusrekord; a térképi vonal sematikus.",
+        "sequence_status": "explicit",
+        "journey_phase": "Cézárea"
+      }
+    ],
+    "segments": [
+      {
+        "from_stop_id": "jerusalem_peter",
+        "to_stop_id": "samaria_peter",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal két megnevezett állomás között; nem rekonstruált ókori útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "samaria_peter",
+        "to_stop_id": "lydda_peter",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal két megnevezett állomás között; nem rekonstruált ókori útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "lydda_peter",
+        "to_stop_id": "joppa_peter",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal két megnevezett állomás között; nem rekonstruált ókori útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "joppa_peter",
+        "to_stop_id": "caesarea_peter",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal két megnevezett állomás között; nem rekonstruált ókori útvonal.",
+        "waypoints": [],
+        "geometry": null
+      }
+    ]
+  },
+  {
+    "route_id": "jesus_galilee_named_sites",
+    "route_family_id": "jesus_ministry_routes",
+    "family_name_hu": "Jézus szolgálatának helyszínei",
+    "route_sequence_order": 1,
+    "previous_route_id": null,
+    "next_route_id": "jesus_passion_jerusalem",
+    "name_hu": "Jézus galileai helyszínei",
+    "name_en": "Jesus' named sites in Galilee",
+    "short_description_hu": "Az útvonal a bibliai szövegben megnevezett állomások sorrendjét mutatja. A vonalak sematikusak, nem a pontos ókori nyomvonalat jelölik.",
+    "route_category": "ministry_journey",
+    "primary_passage_refs": [
+      "Mt 4,12-25",
+      "Mk 1,14-39",
+      "Lk 4,14-37",
+      "Mt 15,21-28",
+      "Mt 16,13"
+    ],
+    "chronology_label_hu": "Jézus galileai szolgálata",
+    "chronology_sort_key": 15,
+    "certainty": "mixed",
+    "geometry_status": "schematic",
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "review_status": "draft",
+    "review_notes_hu": "Csak egyértelműen azonosítható, aktív katalógushelyek. A sorrend a evangéliumi elbeszélés tipikus helycsoportjait követi sematikusan; nem rekonstruált egyetlen körút. Gerasza/Gadara vita miatt kimaradt.",
+    "evidence_model": {
+      "station_order_basis": "biblical_text_named_stops",
+      "historical_route_status": "not_reconstructed",
+      "map_geometry_status": "schematic",
+      "precision_note_hu": "Sematikus helylánc a megnevezett galileai és kapcsolódó helyekről; nem állít pontos napi itineráriumot."
+    },
+    "stops": [
+      {
+        "order": 1,
+        "stop_id": "nazareth_start",
+        "place_id": "nazareth",
+        "place_name_override_hu": "Názáret",
+        "passage_refs": [
+          "Lk 4,16-30"
+        ],
+        "event_summary_hu": "Jézus Názáretben tanít a zsinagógában.",
+        "certainty": "probable",
+        "stop_type": "embarkation",
+        "source_notes_hu": "Az állomás a bibliai szövegben megnevezett hely.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "Aktív katalógusrekord; a térképi vonal sematikus.",
+        "sequence_status": "explicit",
+        "journey_phase": "Galileai kezdet"
+      },
+      {
+        "order": 2,
+        "stop_id": "cana_sign",
+        "place_id": "cana",
+        "place_name_override_hu": "Kána",
+        "passage_refs": [
+          "Jn 2,1-11"
+        ],
+        "event_summary_hu": "A kánai menyegző.",
+        "certainty": "probable",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "Az állomás a bibliai szövegben megnevezett hely.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "Aktív katalógusrekord; a térképi vonal sematikus.",
+        "sequence_status": "explicit",
+        "journey_phase": "Galileai kezdet"
+      },
+      {
+        "order": 3,
+        "stop_id": "capernaum_base",
+        "place_id": "capernaum",
+        "place_name_override_hu": "Kapernaum",
+        "passage_refs": [
+          "Mt 4,13",
+          "Mk 1,21-34"
+        ],
+        "event_summary_hu": "Kapernaum a galileai szolgálat központi helye.",
+        "certainty": "certain",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "Az állomás a bibliai szövegben megnevezett hely.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "Aktív katalógusrekord; a térképi vonal sematikus.",
+        "sequence_status": "explicit",
+        "journey_phase": "Kapernaum és környéke"
+      },
+      {
+        "order": 4,
+        "stop_id": "chorazin_named",
+        "place_id": "chorazin",
+        "place_name_override_hu": "Korazin",
+        "passage_refs": [
+          "Mt 11,21"
+        ],
+        "event_summary_hu": "Jézus Korazint is megnevezi.",
+        "certainty": "probable",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "Az állomás a bibliai szövegben megnevezett hely.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "Aktív katalógusrekord; a térképi vonal sematikus.",
+        "sequence_status": "explicit",
+        "journey_phase": "Kapernaum és környéke"
+      },
+      {
+        "order": 5,
+        "stop_id": "bethsaida_named",
+        "place_id": "bethsaida_1",
+        "place_name_override_hu": "Betsaida",
+        "passage_refs": [
+          "Mk 8,22-26",
+          "Mt 11,21"
+        ],
+        "event_summary_hu": "Betsaida megnevezett galileai hely.",
+        "certainty": "probable",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "Az állomás a bibliai szövegben megnevezett hely.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "A katalógus egy aktív Betsaida-rekordot tartalmaz; az azonosítás a szakirodalomban vitatott lehet.",
+        "sequence_status": "explicit",
+        "journey_phase": "Kapernaum és környéke"
+      },
+      {
+        "order": 6,
+        "stop_id": "magdala_named",
+        "place_id": "magdala",
+        "place_name_override_hu": "Magdala",
+        "passage_refs": [
+          "Mt 15,39"
+        ],
+        "event_summary_hu": "Magdala / Magadán térsége.",
+        "certainty": "probable",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "Az állomás a bibliai szövegben megnevezett hely.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "Aktív katalógusrekord; a térképi vonal sematikus.",
+        "sequence_status": "explicit",
+        "journey_phase": "Kapernaum és környéke"
+      },
+      {
+        "order": 7,
+        "stop_id": "nain_named",
+        "place_id": "nain",
+        "place_name_override_hu": "Nain",
+        "passage_refs": [
+          "Lk 7,11-17"
+        ],
+        "event_summary_hu": "Nainban feltámaszt egy ifjút.",
+        "certainty": "certain",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "Az állomás a bibliai szövegben megnevezett hely.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "Aktív katalógusrekord; a térképi vonal sematikus.",
+        "sequence_status": "explicit",
+        "journey_phase": "Galileai városok"
+      },
+      {
+        "order": 8,
+        "stop_id": "sea_of_galilee_ministry",
+        "place_id": "sea_of_galilee",
+        "place_name_override_hu": "Galileai-tenger",
+        "passage_refs": [
+          "Mk 4,35-41",
+          "Mt 14,22-33"
+        ],
+        "event_summary_hu": "Több elbeszélés a Galileai-tengerhez kötődik.",
+        "certainty": "certain",
+        "stop_type": "region",
+        "source_notes_hu": "Az állomás a bibliai szövegben megnevezett hely.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "Aktív katalógusrekord; a térképi vonal sematikus.",
+        "sequence_status": "explicit",
+        "journey_phase": "Galileai-tenger"
+      },
+      {
+        "order": 9,
+        "stop_id": "tyre_sidon_approach",
+        "place_id": "tyre",
+        "place_name_override_hu": "Tírusz",
+        "passage_refs": [
+          "Mt 15,21-28",
+          "Mk 7,24-31"
+        ],
+        "event_summary_hu": "Jézus Tírusz vidékére megy.",
+        "certainty": "certain",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "Az állomás a bibliai szövegben megnevezett hely.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "Aktív katalógusrekord; a térképi vonal sematikus.",
+        "sequence_status": "explicit",
+        "journey_phase": "Tírusz és Szidón"
+      },
+      {
+        "order": 10,
+        "stop_id": "sidon_named",
+        "place_id": "sidon",
+        "place_name_override_hu": "Szidón",
+        "passage_refs": [
+          "Mk 7,31"
+        ],
+        "event_summary_hu": "Szidón térsége is szerepel az elbeszélésben.",
+        "certainty": "certain",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "Az állomás a bibliai szövegben megnevezett hely.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "Aktív katalógusrekord; a térképi vonal sematikus.",
+        "sequence_status": "explicit",
+        "journey_phase": "Tírusz és Szidón"
+      },
+      {
+        "order": 11,
+        "stop_id": "caesarea_philippi_named",
+        "place_id": "caesarea_philippi",
+        "place_name_override_hu": "Cézárea Filippi",
+        "passage_refs": [
+          "Mt 16,13-20"
+        ],
+        "event_summary_hu": "Péter vallástétele Cézárea Filippi vidékén.",
+        "certainty": "certain",
+        "stop_type": "destination",
+        "source_notes_hu": "Az állomás a bibliai szövegben megnevezett hely.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "Aktív katalógusrekord; a térképi vonal sematikus.",
+        "sequence_status": "explicit",
+        "journey_phase": "Cézárea Filippi"
+      }
+    ],
+    "segments": [
+      {
+        "from_stop_id": "nazareth_start",
+        "to_stop_id": "cana_sign",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal két megnevezett állomás között; nem rekonstruált ókori útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "cana_sign",
+        "to_stop_id": "capernaum_base",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal két megnevezett állomás között; nem rekonstruált ókori útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "capernaum_base",
+        "to_stop_id": "chorazin_named",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal két megnevezett állomás között; nem rekonstruált ókori útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "chorazin_named",
+        "to_stop_id": "bethsaida_named",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal két megnevezett állomás között; nem rekonstruált ókori útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "bethsaida_named",
+        "to_stop_id": "magdala_named",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal két megnevezett állomás között; nem rekonstruált ókori útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "magdala_named",
+        "to_stop_id": "nain_named",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal két megnevezett állomás között; nem rekonstruált ókori útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "nain_named",
+        "to_stop_id": "sea_of_galilee_ministry",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal két megnevezett állomás között; nem rekonstruált ókori útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "sea_of_galilee_ministry",
+        "to_stop_id": "tyre_sidon_approach",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal két megnevezett állomás között; nem rekonstruált ókori útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "tyre_sidon_approach",
+        "to_stop_id": "sidon_named",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal két megnevezett állomás között; nem rekonstruált ókori útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "sidon_named",
+        "to_stop_id": "caesarea_philippi_named",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal két megnevezett állomás között; nem rekonstruált ókori útvonal.",
+        "waypoints": [],
+        "geometry": null
+      }
+    ]
+  },
+  {
+    "route_id": "jesus_passion_jerusalem",
+    "route_family_id": "jesus_ministry_routes",
+    "family_name_hu": "Jézus szolgálatának helyszínei",
+    "route_sequence_order": 2,
+    "previous_route_id": "jesus_galilee_named_sites",
+    "next_route_id": null,
+    "name_hu": "Jézus útja Jeruzsálemben a passió idején",
+    "name_en": "Jesus in Jerusalem during the Passion",
+    "short_description_hu": "Az útvonal a bibliai szövegben megnevezett állomások sorrendjét mutatja. A vonalak sematikusak, nem a pontos ókori nyomvonalat jelölik.",
+    "route_category": "ministry_journey",
+    "primary_passage_refs": [
+      "Mt 21,1-27,66",
+      "Mk 11,1-15,47",
+      "Lk 19,28-23,56",
+      "Jn 12,12-19,42"
+    ],
+    "chronology_label_hu": "Passió hét",
+    "chronology_sort_key": 16,
+    "certainty": "mixed",
+    "geometry_status": "schematic",
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "review_status": "draft",
+    "review_notes_hu": "A passió elbeszélések megnevezett helyei. Emmaus kimaradt, mert azonosítása vitatott. Betánia a certain bethany_1 rekordra mutat.",
+    "evidence_model": {
+      "station_order_basis": "biblical_text_named_stops",
+      "historical_route_status": "not_reconstructed",
+      "map_geometry_status": "schematic",
+      "precision_note_hu": "Az állomássorrend a bibliai szöveg megnevezett helyeit követi; a vonalak sematikusak."
+    },
+    "stops": [
+      {
+        "order": 1,
+        "stop_id": "bethany_passion",
+        "place_id": "bethany_1",
+        "place_name_override_hu": "Betánia",
+        "passage_refs": [
+          "Jn 12,1-8",
+          "Mk 14,3"
+        ],
+        "event_summary_hu": "Jézus Betániában tartózkodik a passió előtt.",
+        "certainty": "certain",
+        "stop_type": "embarkation",
+        "source_notes_hu": "Az állomás a bibliai szövegben megnevezett hely.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "Aktív katalógusrekord; a térképi vonal sematikus.",
+        "sequence_status": "explicit",
+        "journey_phase": "Betánia és bevonulás"
+      },
+      {
+        "order": 2,
+        "stop_id": "bethphage_entry",
+        "place_id": "bethphage",
+        "place_name_override_hu": "Betfagé",
+        "passage_refs": [
+          "Mt 21,1-11",
+          "Mk 11,1-10"
+        ],
+        "event_summary_hu": "A bevonulás Betfagé felől indul.",
+        "certainty": "probable",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "Az állomás a bibliai szövegben megnevezett hely.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "Aktív katalógusrekord; a térképi vonal sematikus.",
+        "sequence_status": "explicit",
+        "journey_phase": "Betánia és bevonulás"
+      },
+      {
+        "order": 3,
+        "stop_id": "jerusalem_entry",
+        "place_id": "jerusalem",
+        "place_name_override_hu": "Jeruzsálem",
+        "passage_refs": [
+          "Mt 21,10-17",
+          "Mk 11,11"
+        ],
+        "event_summary_hu": "Jézus bevonul Jeruzsálembe.",
+        "certainty": "probable",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "Az állomás a bibliai szövegben megnevezett hely.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "Aktív katalógusrekord; a térképi vonal sematikus.",
+        "sequence_status": "explicit",
+        "journey_phase": "Jeruzsálem"
+      },
+      {
+        "order": 4,
+        "stop_id": "mount_of_olives_teaching",
+        "place_id": "mount_of_olives",
+        "place_name_override_hu": "Olajfák hegye",
+        "passage_refs": [
+          "Mt 24,3",
+          "Mk 13,3"
+        ],
+        "event_summary_hu": "Tanítás az Olajfák hegyén.",
+        "certainty": "certain",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "Az állomás a bibliai szövegben megnevezett hely.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "Aktív katalógusrekord; a térképi vonal sematikus.",
+        "sequence_status": "explicit",
+        "journey_phase": "Olajfák hegye"
+      },
+      {
+        "order": 5,
+        "stop_id": "gethsemane_prayer",
+        "place_id": "gethsemane",
+        "place_name_override_hu": "Gecsemáné",
+        "passage_refs": [
+          "Mt 26,36-46",
+          "Mk 14,32-42"
+        ],
+        "event_summary_hu": "Imádság a Gecsemánéban.",
+        "certainty": "certain",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "Az állomás a bibliai szövegben megnevezett hely.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "Aktív katalógusrekord; a térképi vonal sematikus.",
+        "sequence_status": "explicit",
+        "journey_phase": "Gecsemáné"
+      },
+      {
+        "order": 6,
+        "stop_id": "golgotha_crucifixion",
+        "place_id": "golgotha",
+        "place_name_override_hu": "Golgota",
+        "passage_refs": [
+          "Mt 27,33-50",
+          "Jn 19,17-30"
+        ],
+        "event_summary_hu": "A keresztre feszítés helye.",
+        "certainty": "probable",
+        "stop_type": "destination",
+        "source_notes_hu": "Az állomás a bibliai szövegben megnevezett hely.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "Aktív katalógusrekord; a térképi vonal sematikus.",
+        "sequence_status": "explicit",
+        "journey_phase": "Golgota"
+      }
+    ],
+    "segments": [
+      {
+        "from_stop_id": "bethany_passion",
+        "to_stop_id": "bethphage_entry",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal két megnevezett állomás között; nem rekonstruált ókori útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "bethphage_entry",
+        "to_stop_id": "jerusalem_entry",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal két megnevezett állomás között; nem rekonstruált ókori útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "jerusalem_entry",
+        "to_stop_id": "mount_of_olives_teaching",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal két megnevezett állomás között; nem rekonstruált ókori útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "mount_of_olives_teaching",
+        "to_stop_id": "gethsemane_prayer",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal két megnevezett állomás között; nem rekonstruált ókori útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "gethsemane_prayer",
+        "to_stop_id": "golgotha_crucifixion",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal két megnevezett állomás között; nem rekonstruált ókori útvonal.",
+        "waypoints": [],
+        "geometry": null
+      }
+    ]
+  },
+  {
+    "route_id": "seven_churches_asia",
+    "name_hu": "Ázsia hét gyülekezete",
+    "name_en": "The seven churches of Asia",
+    "short_description_hu": "Az útvonal a bibliai szövegben megnevezett állomások sorrendjét mutatja. A vonalak sematikusak, nem a pontos ókori nyomvonalat jelölik.",
+    "route_category": "other",
+    "primary_passage_refs": [
+      "Jel 1,11",
+      "Jel 2,1-3,22"
+    ],
+    "chronology_label_hu": "Jelenések – hét gyülekezet",
+    "chronology_sort_key": 17,
+    "certainty": "certain",
+    "geometry_status": "schematic",
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "review_status": "draft",
+    "review_notes_hu": "A Jel 1,11 és 2–3 megnevezett városai sorrendben. Ez állomáslánc / gyülekezeti kör, nem egyetlen utazás rekonstrukciója.",
+    "evidence_model": {
+      "station_order_basis": "biblical_text_named_stops",
+      "historical_route_status": "not_reconstructed",
+      "map_geometry_status": "schematic",
+      "precision_note_hu": "A sorrend a Jelenések könyvében megadott városnevek sorrendjét követi; a vonalak sematikusak."
+    },
+    "stops": [
+      {
+        "order": 1,
+        "stop_id": "ephesus_church",
+        "place_id": "ephesus",
+        "place_name_override_hu": "Efézus",
+        "passage_refs": [
+          "Jel 2,1-7"
+        ],
+        "event_summary_hu": "Az efézusi gyülekezet üzenete.",
+        "certainty": "certain",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "Az állomás a bibliai szövegben megnevezett hely.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "Aktív katalógusrekord; a térképi vonal sematikus.",
+        "sequence_status": "explicit"
+      },
+      {
+        "order": 2,
+        "stop_id": "smyrna_church",
+        "place_id": "smyrna",
+        "place_name_override_hu": "Szmirna",
+        "passage_refs": [
+          "Jel 2,8-11"
+        ],
+        "event_summary_hu": "A szmirnai gyülekezet üzenete.",
+        "certainty": "certain",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "Az állomás a bibliai szövegben megnevezett hely.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "Aktív katalógusrekord; a térképi vonal sematikus.",
+        "sequence_status": "explicit"
+      },
+      {
+        "order": 3,
+        "stop_id": "pergamum_church",
+        "place_id": "pergamum",
+        "place_name_override_hu": "Pergamon",
+        "passage_refs": [
+          "Jel 2,12-17"
+        ],
+        "event_summary_hu": "A pergamoni gyülekezet üzenete.",
+        "certainty": "certain",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "Az állomás a bibliai szövegben megnevezett hely.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "Aktív katalógusrekord; a térképi vonal sematikus.",
+        "sequence_status": "explicit"
+      },
+      {
+        "order": 4,
+        "stop_id": "thyatira_church",
+        "place_id": "thyatira",
+        "place_name_override_hu": "Thiatira",
+        "passage_refs": [
+          "Jel 2,18-29"
+        ],
+        "event_summary_hu": "A thiatirai gyülekezet üzenete.",
+        "certainty": "certain",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "Az állomás a bibliai szövegben megnevezett hely.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "Aktív katalógusrekord; a térképi vonal sematikus.",
+        "sequence_status": "explicit"
+      },
+      {
+        "order": 5,
+        "stop_id": "sardis_church",
+        "place_id": "sardis",
+        "place_name_override_hu": "Szárdisz",
+        "passage_refs": [
+          "Jel 3,1-6"
+        ],
+        "event_summary_hu": "A szárdiszi gyülekezet üzenete.",
+        "certainty": "certain",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "Az állomás a bibliai szövegben megnevezett hely.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "Aktív katalógusrekord; a térképi vonal sematikus.",
+        "sequence_status": "explicit"
+      },
+      {
+        "order": 6,
+        "stop_id": "philadelphia_church",
+        "place_id": "philadelphia",
+        "place_name_override_hu": "Filadelfia",
+        "passage_refs": [
+          "Jel 3,7-13"
+        ],
+        "event_summary_hu": "A filadelfiai gyülekezet üzenete.",
+        "certainty": "certain",
+        "stop_type": "explicit_place",
+        "source_notes_hu": "Az állomás a bibliai szövegben megnevezett hely.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "Aktív katalógusrekord; a térképi vonal sematikus.",
+        "sequence_status": "explicit"
+      },
+      {
+        "order": 7,
+        "stop_id": "laodicea_church",
+        "place_id": "laodicea",
+        "place_name_override_hu": "Laodicea",
+        "passage_refs": [
+          "Jel 3,14-22"
+        ],
+        "event_summary_hu": "A laodiceai gyülekezet üzenete.",
+        "certainty": "certain",
+        "stop_type": "destination",
+        "source_notes_hu": "Az állomás a bibliai szövegben megnevezett hely.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "Aktív katalógusrekord; a térképi vonal sematikus.",
+        "sequence_status": "explicit"
+      }
+    ],
+    "segments": [
+      {
+        "from_stop_id": "ephesus_church",
+        "to_stop_id": "smyrna_church",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal két megnevezett állomás között; nem rekonstruált ókori útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "smyrna_church",
+        "to_stop_id": "pergamum_church",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal két megnevezett állomás között; nem rekonstruált ókori útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "pergamum_church",
+        "to_stop_id": "thyatira_church",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal két megnevezett állomás között; nem rekonstruált ókori útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "thyatira_church",
+        "to_stop_id": "sardis_church",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal két megnevezett állomás között; nem rekonstruált ókori útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "sardis_church",
+        "to_stop_id": "philadelphia_church",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal két megnevezett állomás között; nem rekonstruált ókori útvonal.",
+        "waypoints": [],
+        "geometry": null
+      },
+      {
+        "from_stop_id": "philadelphia_church",
+        "to_stop_id": "laodicea_church",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal két megnevezett állomás között; nem rekonstruált ókori útvonal.",
+        "waypoints": [],
+        "geometry": null
+      }
+    ]
+  },
+  {
+    "route_id": "ruth_moab_to_bethlehem",
+    "name_hu": "Ruth útja Moábtól Betlehemig",
+    "name_en": "Ruth's journey from Moab to Bethlehem",
+    "short_description_hu": "Az útvonal a bibliai szövegben megnevezett állomások sorrendjét mutatja. A vonalak sematikusak, nem a pontos ókori nyomvonalat jelölik.",
+    "route_category": "other",
+    "primary_passage_refs": [
+      "Ruth 1,1-22"
+    ],
+    "chronology_label_hu": "Ruth története",
+    "chronology_sort_key": 7.5,
+    "certainty": "certain",
+    "geometry_status": "schematic",
+    "source_ids": [
+      "openbible_geocoding_cc_by_4_0"
+    ],
+    "review_status": "draft",
+    "review_notes_hu": "Rövid, szövegesen egyértelmű állomáspár; Moáb régióként, Betlehem településként.",
+    "evidence_model": {
+      "station_order_basis": "biblical_text_named_stops",
+      "historical_route_status": "not_reconstructed",
+      "map_geometry_status": "schematic",
+      "precision_note_hu": "Az állomássorrend a bibliai szöveg megnevezett helyeit követi; a vonalak sematikusak."
+    },
+    "stops": [
+      {
+        "order": 1,
+        "stop_id": "moab_ruth",
+        "place_id": "moab_1",
+        "place_name_override_hu": "Moáb",
+        "passage_refs": [
+          "Ruth 1,1-5"
+        ],
+        "event_summary_hu": "Elimélek családja Moáb mezejére megy.",
+        "certainty": "certain",
+        "stop_type": "region",
+        "source_notes_hu": "Az állomás a bibliai szövegben megnevezett hely.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "Aktív katalógusrekord; a térképi vonal sematikus.",
+        "sequence_status": "explicit",
+        "journey_phase": "Moáb"
+      },
+      {
+        "order": 2,
+        "stop_id": "bethlehem_ruth",
+        "place_id": "bethlehem_1",
+        "place_name_override_hu": "Betlehem",
+        "passage_refs": [
+          "Ruth 1,19-22"
+        ],
+        "event_summary_hu": "Naomi és Ruth visszatérnek Betlehembe.",
+        "certainty": "certain",
+        "stop_type": "destination",
+        "source_notes_hu": "Az állomás a bibliai szövegben megnevezett hely.",
+        "mapping_status": "mapped",
+        "display_on_map": true,
+        "mapping_notes_hu": "Aktív katalógusrekord; a térképi vonal sematikus.",
+        "sequence_status": "explicit",
+        "journey_phase": "Betlehem"
+      }
+    ],
+    "segments": [
+      {
+        "from_stop_id": "moab_ruth",
+        "to_stop_id": "bethlehem_ruth",
+        "certainty": "probable",
+        "segment_type": "land",
+        "geometry_status": "schematic",
+        "source_notes_hu": "Sematikus összekötő vonal két megnevezett állomás között; nem rekonstruált ókori útvonal.",
         "waypoints": [],
         "geometry": null
       }

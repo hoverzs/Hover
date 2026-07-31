@@ -34,6 +34,34 @@ EXPECTED_ROUTE_NAMES_HU = [
     "A Jord\u00e1n \u00e1tkel\u00e9se \u00e9s a k\u00f6z\u00e9ps\u0151 hadj\u00e1rat",
     "J\u00f3zsu\u00e9 d\u00e9li hadj\u00e1rata",
     "J\u00f3zsu\u00e9 \u00e9szaki hadj\u00e1rata",
+    "P\u00e1l korai \u00fatja Damaszkuszt\u00f3l Anti\u00f3khi\u00e1ig",
+    "F\u00fcl\u00f6p \u00fatja Szam\u00e1ri\u00e1t\u00f3l C\u00e9z\u00e1r\u00e1ig",
+    "P\u00e9ter \u00fatja Jeruzs\u00e1lemt\u0151l C\u00e9z\u00e1r\u00e1ig",
+    "J\u00e9zus galileai helysz\u00ednei",
+    "J\u00e9zus \u00fatja Jeruzs\u00e1lemben a passi\u00f3 idej\u00e9n",
+    "\u00c1zsia h\u00e9t gy\u00fclekezete",
+    "Ruth \u00fatja Mo\u00e1bt\u00f3l Betlehemig",
+]
+EXPECTED_ROUTE_OPTION_IDS = [
+    "paul_early_damascus_to_antioch",
+    "paul_first_missionary_journey",
+    "paul_second_missionary_journey",
+    "paul_third_missionary_journey",
+    "paul_journey_to_rome",
+    "abraham_journey",
+    "jacob_journeys",
+    "joseph_geographical_arc",
+    "ruth_moab_to_bethlehem",
+    "exodus_egypt_to_sinai",
+    "wilderness_sinai_to_moab",
+    "joshua_jordan_crossing_central_campaign",
+    "joshua_southern_campaign",
+    "joshua_northern_campaign",
+    "philip_samaria_to_caesarea",
+    "peter_jerusalem_to_caesarea",
+    "jesus_galilee_named_sites",
+    "jesus_passion_jerusalem",
+    "seven_churches_asia",
 ]
 CORRUPTED_TEXT_MARKERS = ("\ufffd", "\u0102", "\u00c2", "\u010f", "ďż˝")
 
@@ -58,7 +86,7 @@ def _assert_raises(expected: type[Exception], callback, *args, **kwargs) -> Exce
 
 def test_valid_pilot_route_loads() -> None:
     routes = load_biblical_routes()
-    assert len(routes) == 12
+    assert len(routes) == 19
     route = routes[0]
     assert route.route_id == "paul_first_missionary_journey"
     assert route.name_hu == EXPECTED_ROUTE_NAMES_HU[0]
@@ -71,22 +99,14 @@ def test_valid_pilot_route_loads() -> None:
 def test_all_pauline_routes_load_in_chronological_order() -> None:
     routes = load_biblical_routes()
 
-    assert [route.route_id for route in routes] == [
+    assert [route.route_id for route in routes][:4] == [
         "paul_first_missionary_journey",
         "paul_second_missionary_journey",
         "paul_third_missionary_journey",
         "paul_journey_to_rome",
-        "abraham_journey",
-        "jacob_journeys",
-        "joseph_geographical_arc",
-        "exodus_egypt_to_sinai",
-        "wilderness_sinai_to_moab",
-        "joshua_jordan_crossing_central_campaign",
-        "joshua_southern_campaign",
-        "joshua_northern_campaign",
     ]
-    assert route_options(routes) == [route.route_id for route in routes]
-    assert len({route.route_id for route in routes}) == 12
+    assert route_options(routes) == EXPECTED_ROUTE_OPTION_IDS
+    assert len({route.route_id for route in routes}) == 19
     assert [route.name_hu for route in routes] == EXPECTED_ROUTE_NAMES_HU
 
 
@@ -569,30 +589,69 @@ def test_joshua_northern_route_uses_branch_segments_without_forced_linear_pursui
 
 def test_pauline_routes_have_family_navigation_links() -> None:
     routes = {route.route_id: route for route in load_biblical_routes()}
+    early = routes["paul_early_damascus_to_antioch"]
     first = routes["paul_first_missionary_journey"]
     second = routes["paul_second_missionary_journey"]
     third = routes["paul_third_missionary_journey"]
     rome = routes["paul_journey_to_rome"]
 
+    assert early.route_family_id == "pauline_missionary_journeys"
+    assert early.family_name_hu == "Pál missziói útjai"
+    assert early.route_sequence_order == 1
+    assert early.previous_route_id is None
+    assert early.next_route_id == "paul_first_missionary_journey"
+
     assert first.route_family_id == "pauline_missionary_journeys"
-    assert first.family_name_hu == "Pál missziói útjai"
-    assert first.route_sequence_order == 1
-    assert first.previous_route_id is None
+    assert first.route_sequence_order == 2
+    assert first.previous_route_id == "paul_early_damascus_to_antioch"
     assert first.next_route_id == "paul_second_missionary_journey"
 
     assert second.route_family_id == "pauline_missionary_journeys"
-    assert second.route_sequence_order == 2
+    assert second.route_sequence_order == 3
     assert second.previous_route_id == "paul_first_missionary_journey"
     assert second.next_route_id == "paul_third_missionary_journey"
 
-    assert third.route_sequence_order == 3
+    assert third.route_sequence_order == 4
     assert third.previous_route_id == "paul_second_missionary_journey"
     assert third.next_route_id == "paul_journey_to_rome"
 
-    assert rome.route_sequence_order == 4
+    assert rome.route_sequence_order == 5
     assert rome.previous_route_id == "paul_third_missionary_journey"
     assert rome.next_route_id is None
     assert rome.review_status == "draft"
+
+
+def test_safe_catalog_backed_routes_load_with_active_place_ids() -> None:
+    routes = {route.route_id: route for route in load_biblical_routes()}
+    catalog_ids = {
+        item["place_id"]
+        for item in json.loads((ROOT / "data" / "biblical_places" / "biblical_places_catalog.json").read_text(encoding="utf-8"))
+    }
+
+    expected = {
+        "paul_early_damascus_to_antioch": 5,
+        "philip_samaria_to_caesarea": 4,
+        "peter_jerusalem_to_caesarea": 5,
+        "jesus_galilee_named_sites": 11,
+        "jesus_passion_jerusalem": 6,
+        "seven_churches_asia": 7,
+        "ruth_moab_to_bethlehem": 2,
+    }
+    for route_id, stop_count in expected.items():
+        route = routes[route_id]
+        assert len(route.stops) == stop_count
+        assert len(route.segments) == stop_count - 1
+        assert route.geometry_status == "schematic"
+        assert route.review_status == "draft"
+        assert all(stop.place_id in catalog_ids for stop in route.stops)
+        assert all(stop.display_on_map for stop in route.stops)
+
+    assert routes["philip_samaria_to_caesarea"].next_route_id == "peter_jerusalem_to_caesarea"
+    assert routes["jesus_galilee_named_sites"].next_route_id == "jesus_passion_jerusalem"
+    assert routes["seven_churches_asia"].stops[0].place_id == "ephesus"
+    assert routes["seven_churches_asia"].stops[-1].place_id == "laodicea"
+    assert routes["ruth_moab_to_bethlehem"].stops[0].place_id == "moab_1"
+    assert routes["ruth_moab_to_bethlehem"].stops[-1].place_id == "bethlehem_1"
 
 
 def test_patriarchal_routes_have_family_navigation_links() -> None:

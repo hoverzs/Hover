@@ -1900,11 +1900,11 @@ def test_route_family_navigation_buttons_render_for_exodus_routes() -> None:
 def test_pauline_route_family_navigation_buttons_render() -> None:
     fake_st = _FakeStreamlit()
     fake_st.session_state[ACTIVE_MAP_VIEW_KEY] = MAP_VIEW_ROUTES
-    fake_st.session_state[SELECTED_ROUTE_ID_KEY] = "paul_first_missionary_journey"
+    fake_st.session_state[SELECTED_ROUTE_ID_KEY] = "paul_early_damascus_to_antioch"
 
     render_biblical_map_prototype(st_module=fake_st)
 
-    assert any("Útvonalcsalád: Pál missziói útjai · 1/4" in caption for caption in fake_st.captions)
+    assert any("Útvonalcsalád: Pál missziói útjai · 1/5" in caption for caption in fake_st.captions)
     assert any(label == "Következő szakasz" for label, _kwargs in fake_st.buttons)
 
     fake_st = _FakeStreamlit()
@@ -1913,7 +1913,7 @@ def test_pauline_route_family_navigation_buttons_render() -> None:
 
     render_biblical_map_prototype(st_module=fake_st)
 
-    assert any("Útvonalcsalád: Pál missziói útjai · 4/4" in caption for caption in fake_st.captions)
+    assert any("Útvonalcsalád: Pál missziói útjai · 5/5" in caption for caption in fake_st.captions)
     assert any(label == "Előző szakasz" for label, _kwargs in fake_st.buttons)
 
 
@@ -2135,9 +2135,9 @@ def test_render_route_view_loads_first_missionary_journey() -> None:
 
     render_biblical_map_prototype(st_module=fake_st)
 
-    assert fake_st.session_state[SELECTED_ROUTE_ID_KEY] == "paul_first_missionary_journey"
-    assert fake_st.session_state[SELECTED_ROUTE_STOP_ID_KEY] == "antioch_syria_departure"
-    assert any("Pál első missziói útja" in body for body in fake_st.markdowns)
+    assert fake_st.session_state[SELECTED_ROUTE_ID_KEY] == "paul_early_damascus_to_antioch"
+    assert fake_st.session_state[SELECTED_ROUTE_STOP_ID_KEY] == "damascus_conversion"
+    assert any("Pál korai útja Damaszkusztól Antiókhiáig" in body for body in fake_st.markdowns)
     assert fake_st.warnings.count(ROUTE_VIEW_WARNING_HU) == 1
     assert fake_st.pydeck_charts or fake_st.maps
     assert any(label == "Állomás kiválasztása" for label, *_ in fake_st.selectboxes)
@@ -2152,6 +2152,7 @@ def test_render_route_view_loads_first_missionary_journey() -> None:
 
 def test_route_selector_lists_all_biblical_routes() -> None:
     assert route_options() == [
+        "paul_early_damascus_to_antioch",
         "paul_first_missionary_journey",
         "paul_second_missionary_journey",
         "paul_third_missionary_journey",
@@ -2159,11 +2160,17 @@ def test_route_selector_lists_all_biblical_routes() -> None:
         "abraham_journey",
         "jacob_journeys",
         "joseph_geographical_arc",
+        "ruth_moab_to_bethlehem",
         "exodus_egypt_to_sinai",
         "wilderness_sinai_to_moab",
         "joshua_jordan_crossing_central_campaign",
         "joshua_southern_campaign",
         "joshua_northern_campaign",
+        "philip_samaria_to_caesarea",
+        "peter_jerusalem_to_caesarea",
+        "jesus_galilee_named_sites",
+        "jesus_passion_jerusalem",
+        "seven_churches_asia",
     ]
 
     fake_st = _FakeStreamlit()
