@@ -19,12 +19,8 @@ _DEFAULT_UI_MODE_LABELS: dict[str, str] = {
     "sermon_workshop": "Igehirdetési műhely",
 }
 
-# Optional Material icons (Streamlit markdown) — clean, not emoji.
-_DEFAULT_UI_MODE_ICONS: dict[str, str] = {
-    "quick": ":material/bolt:",
-    "workshop": ":material/menu_book:",
-    "sermon_workshop": ":material/auto_stories:",
-}
+# Optional Material icons — a nézetváltó szöveges címkéket használ (ikon nélkül).
+_DEFAULT_UI_MODE_ICONS: dict[str, str] = {}
 
 def completed_step_indices(
     options: Sequence[str],
@@ -559,10 +555,6 @@ def render_primary_view_switcher(
             f"{scope} .{active_cls} button p{{"
             "color:var(--tx-primary-deep)!important;font-weight:650!important;"
             "}"
-            f"{scope} .{active_cls} .stButton button [data-testid=\"stIconMaterial\"],"
-            f"{scope} .{active_cls} button [data-testid=\"stIconMaterial\"]{{"
-            "color:#3f6699!important;"
-            "}"
             f"{scope} .{active_cls} .stButton button::after,"
             f"{scope} .{active_cls} button::after{{height:2px!important;}}"
             "</style>",
@@ -573,14 +565,16 @@ def render_primary_view_switcher(
             is_active = mode == current
             title = label_map.get(mode, mode)
             with col:
-                clicked = st.button(
-                    title,
-                    key=f"tx_mainnav_{mode}",
-                    icon=(icon_map.get(mode) or None),
-                    type="secondary",
-                    use_container_width=True,
-                    help=title,
-                )
+                btn_kwargs: dict[str, Any] = {
+                    "key": f"tx_mainnav_{mode}",
+                    "type": "secondary",
+                    "use_container_width": True,
+                    "help": title,
+                }
+                icon = icon_map.get(mode) or None
+                if icon:
+                    btn_kwargs["icon"] = icon
+                clicked = st.button(title, **btn_kwargs)
             if clicked and not is_active:
                 st.session_state[key] = mode
                 st.rerun()
