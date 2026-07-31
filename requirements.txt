@@ -6,5 +6,7 @@ supabase
 requests>=2.31.0
 # Homiletikai profil radar chart (opcionális; hiánya esetén natív sáv-fallback)
 plotly>=5.18.0
+# Bibliai útvonalak térképi PathLayer (hiánya esetén egyszerűbb fallback)
+pydeck>=0.9.1
 # Vázlat Word (.docx) export
 python-docx>=1.1.0
