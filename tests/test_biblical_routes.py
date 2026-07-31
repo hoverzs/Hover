@@ -567,6 +567,55 @@ def test_joshua_northern_route_uses_branch_segments_without_forced_linear_pursui
     assert ("misrephoth_maim_pursuit", "valley_mizpeh_pursuit") not in pairs
 
 
+def test_pauline_routes_have_family_navigation_links() -> None:
+    routes = {route.route_id: route for route in load_biblical_routes()}
+    first = routes["paul_first_missionary_journey"]
+    second = routes["paul_second_missionary_journey"]
+    third = routes["paul_third_missionary_journey"]
+    rome = routes["paul_journey_to_rome"]
+
+    assert first.route_family_id == "pauline_missionary_journeys"
+    assert first.family_name_hu == "Pál missziói útjai"
+    assert first.route_sequence_order == 1
+    assert first.previous_route_id is None
+    assert first.next_route_id == "paul_second_missionary_journey"
+
+    assert second.route_family_id == "pauline_missionary_journeys"
+    assert second.route_sequence_order == 2
+    assert second.previous_route_id == "paul_first_missionary_journey"
+    assert second.next_route_id == "paul_third_missionary_journey"
+
+    assert third.route_sequence_order == 3
+    assert third.previous_route_id == "paul_second_missionary_journey"
+    assert third.next_route_id == "paul_journey_to_rome"
+
+    assert rome.route_sequence_order == 4
+    assert rome.previous_route_id == "paul_third_missionary_journey"
+    assert rome.next_route_id is None
+    assert rome.review_status == "draft"
+
+
+def test_patriarchal_routes_have_family_navigation_links() -> None:
+    routes = {route.route_id: route for route in load_biblical_routes()}
+    abraham = routes["abraham_journey"]
+    jacob = routes["jacob_journeys"]
+    joseph = routes["joseph_geographical_arc"]
+
+    assert abraham.route_family_id == "patriarchal_journeys"
+    assert abraham.family_name_hu == "Pátriárkák földrajzi ívei"
+    assert abraham.route_sequence_order == 1
+    assert abraham.previous_route_id is None
+    assert abraham.next_route_id == "jacob_journeys"
+
+    assert jacob.route_sequence_order == 2
+    assert jacob.previous_route_id == "abraham_journey"
+    assert jacob.next_route_id == "joseph_geographical_arc"
+
+    assert joseph.route_sequence_order == 3
+    assert joseph.previous_route_id == "jacob_journeys"
+    assert joseph.next_route_id is None
+
+
 def test_joshua_conquest_validation_report_matches_loader() -> None:
     report = json.loads(JOSHUA_VALIDATION_REPORT_PATH.read_text(encoding="utf-8"))
     by_id = {route["route_id"]: route for route in report["routes"]}
