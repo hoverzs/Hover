@@ -28,6 +28,7 @@ from ruf_bible_service import (
     format_structured_verses,
     parse_bible_reference,
 )
+from ui_components import render_work_section
 
 # Durable session / project keys
 DURABLE_PASSAGE_TEXT = "passage_text"
@@ -625,13 +626,11 @@ def render_bible_text_editor() -> None:
     _ensure_bible_text_styles()
     apply_bible_text_resync_if_needed(st.session_state)
 
-    st.markdown("### Bibliai szöveg")
-    st.caption(
-        "Az igehely megadása után töltsd be a RÚF 2014 szöveget, "
-        "vagy illeszd be kézzel. Ellenőrizd, hogy a szöveg megfelel-e "
-        "a megadott igehelynek."
+    render_work_section(
+        title="Bibliai szöveg",
+        body="RÚF 2014 betöltése vagy kézi beillesztés — ellenőrizd, hogy a szöveg az igehelyhez tartozik.",
+        show_rule=False,
     )
-    st.markdown(f"**Fordítás:** {TRANSLATION_NAME}")
 
     _render_flash()
     _render_reference_mismatch_warning(st.session_state)

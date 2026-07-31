@@ -240,6 +240,7 @@ def test_shell_components_use_keyed_containers():
     assert "Vissza a főoldalra" in src
     assert 'key="project_picker_content"' in src
     assert 'key="workspace_switcher"' in src
+    assert "help=title" in src or "help=title," in src
     assert 'key="workshop_step_bar"' in src
     assert 'key="quick_tools_grid"' in src or "QUICK_TOOLS_GRID_KEY" in src
     assert "render_quick_tools_tabs" in src
@@ -250,6 +251,7 @@ def test_shell_components_use_keyed_containers():
     # Ne legyen egyszerre két elsődleges mentés a toolbarban (ideiglenes ág)
     assert 'key="bar_project_save_as_new"' in src
     assert "Mentés másolatként" in src
+    assert 'key=f"bar_projects_popover_{epoch}"' in src
     assert 'help="Mentett projektek megnyitása"' in src
     assert 'help="Beállítások"' in src
     # JS-es widget-mozgatás a shell komponensekből kikerült

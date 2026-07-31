@@ -1219,13 +1219,17 @@ body:has(.st-key-passage_search_occasion_field [aria-expanded="true"])
 }
 
 .st-key-textus_app_toolbar .st-key-bar_projects_popover,
-.st-key-textus_app_toolbar .st-key-bar_projects_popover [data-testid="stPopover"] {
+.st-key-textus_app_toolbar [class*="st-key-bar_projects_popover_"],
+.st-key-textus_app_toolbar .st-key-bar_projects_popover [data-testid="stPopover"],
+.st-key-textus_app_toolbar [class*="st-key-bar_projects_popover_"] [data-testid="stPopover"] {
     width: auto !important;
     min-width: 112px !important;
     flex: 0 0 auto !important;
 }
 .st-key-textus_app_toolbar .st-key-bar_projects_popover > button,
-.st-key-textus_app_toolbar .st-key-bar_projects_popover [data-testid="stPopover"] > button {
+.st-key-textus_app_toolbar [class*="st-key-bar_projects_popover_"] > button,
+.st-key-textus_app_toolbar .st-key-bar_projects_popover [data-testid="stPopover"] > button,
+.st-key-textus_app_toolbar [class*="st-key-bar_projects_popover_"] [data-testid="stPopover"] > button {
     min-width: 112px !important;
     width: auto !important;
     white-space: nowrap !important;
@@ -1402,10 +1406,21 @@ div[data-baseweb="popover"]:has(.st-key-project_picker_content) [class*="st-key-
         margin-left: auto !important;
     }
     .tx-project-name-text {
-        max-width: min(120px, 28vw);
+        max-width: min(160px, 48vw);
     }
     .tx-project-name-row {
-        max-width: min(180px, 40vw);
+        max-width: min(200px, 58vw);
+        gap: 6px;
+    }
+    /* Mentve / Ideiglenes → színes pont, több hely a címnek */
+    .tx-project-status-chip {
+        font-size: 0 !important;
+        line-height: 0 !important;
+        width: 10px !important;
+        height: 10px !important;
+        min-width: 10px !important;
+        padding: 0 !important;
+        border-radius: 50% !important;
     }
     .st-key-textus_app_toolbar .st-key-bar_new_work button {
         min-width: 40px !important;
@@ -1422,10 +1437,13 @@ div[data-baseweb="popover"]:has(.st-key-project_picker_content) [class*="st-key-
         display: none !important;
     }
     .st-key-textus_app_toolbar .st-key-bar_projects_popover,
-    .st-key-textus_app_toolbar .st-key-bar_projects_popover [data-testid="stPopover"] {
+    .st-key-textus_app_toolbar [class*="st-key-bar_projects_popover_"],
+    .st-key-textus_app_toolbar .st-key-bar_projects_popover [data-testid="stPopover"],
+    .st-key-textus_app_toolbar [class*="st-key-bar_projects_popover_"] [data-testid="stPopover"] {
         min-width: 0 !important;
     }
-    .st-key-textus_app_toolbar .st-key-bar_projects_popover button {
+    .st-key-textus_app_toolbar .st-key-bar_projects_popover button,
+    .st-key-textus_app_toolbar [class*="st-key-bar_projects_popover_"] button {
         min-width: 40px !important;
         width: 40px !important;
         max-width: 44px !important;
@@ -1434,11 +1452,14 @@ div[data-baseweb="popover"]:has(.st-key-project_picker_content) [class*="st-key-
         gap: 0 !important;
         font-size: 0 !important;
     }
-    .st-key-textus_app_toolbar .st-key-bar_projects_popover button [data-testid="stIconMaterial"] {
+    .st-key-textus_app_toolbar .st-key-bar_projects_popover button [data-testid="stIconMaterial"],
+    .st-key-textus_app_toolbar [class*="st-key-bar_projects_popover_"] button [data-testid="stIconMaterial"] {
         font-size: 1.25rem !important;
     }
     .st-key-textus_app_toolbar .st-key-bar_projects_popover button [data-testid="stMarkdownContainer"],
-    .st-key-textus_app_toolbar .st-key-bar_projects_popover button svg {
+    .st-key-textus_app_toolbar [class*="st-key-bar_projects_popover_"] button [data-testid="stMarkdownContainer"],
+    .st-key-textus_app_toolbar .st-key-bar_projects_popover button svg,
+    .st-key-textus_app_toolbar [class*="st-key-bar_projects_popover_"] button svg {
         display: none !important;
     }
     .tx-appbar-guest-label {
@@ -1489,6 +1510,7 @@ div[data-baseweb="popover"]:has(.st-key-project_picker_content) [class*="st-key-
     .st-key-textus_app_toolbar .st-key-bar_project_save button,
     .st-key-textus_app_toolbar .st-key-bar_project_save_as_new button,
     .st-key-textus_app_toolbar .st-key-bar_projects_popover button,
+    .st-key-textus_app_toolbar [class*="st-key-bar_projects_popover_"] button,
     .st-key-textus_app_toolbar .st-key-bar_overflow_more button,
     .st-key-textus_app_toolbar .st-key-tx_appbar_login_popover button,
     .st-key-textus_app_toolbar .st-key-tx_appbar_account_popover button {
@@ -1503,6 +1525,7 @@ div[data-baseweb="popover"]:has(.st-key-project_picker_content) [class*="st-key-
     .st-key-textus_app_toolbar .st-key-bar_project_save button [data-testid="stIconMaterial"],
     .st-key-textus_app_toolbar .st-key-bar_project_save_as_new button [data-testid="stIconMaterial"],
     .st-key-textus_app_toolbar .st-key-bar_projects_popover button [data-testid="stIconMaterial"],
+    .st-key-textus_app_toolbar [class*="st-key-bar_projects_popover_"] button [data-testid="stIconMaterial"],
     .st-key-textus_app_toolbar .st-key-bar_overflow_more button [data-testid="stIconMaterial"],
     .st-key-textus_app_toolbar .st-key-tx_appbar_login_popover button [data-testid="stIconMaterial"],
     .st-key-textus_app_toolbar .st-key-tx_appbar_account_popover button [data-testid="stIconMaterial"] {
@@ -1512,10 +1535,12 @@ div[data-baseweb="popover"]:has(.st-key-project_picker_content) [class*="st-key-
     .st-key-textus_app_toolbar .st-key-bar_project_save button [data-testid="stMarkdownContainer"],
     .st-key-textus_app_toolbar .st-key-bar_project_save_as_new button [data-testid="stMarkdownContainer"],
     .st-key-textus_app_toolbar .st-key-bar_projects_popover button [data-testid="stMarkdownContainer"],
+    .st-key-textus_app_toolbar [class*="st-key-bar_projects_popover_"] button [data-testid="stMarkdownContainer"],
     .st-key-textus_app_toolbar .st-key-bar_overflow_more button [data-testid="stMarkdownContainer"],
     .st-key-textus_app_toolbar .st-key-tx_appbar_login_popover button [data-testid="stMarkdownContainer"],
     .st-key-textus_app_toolbar .st-key-tx_appbar_account_popover button [data-testid="stMarkdownContainer"],
     .st-key-textus_app_toolbar .st-key-bar_projects_popover button svg,
+    .st-key-textus_app_toolbar [class*="st-key-bar_projects_popover_"] button svg,
     .st-key-textus_app_toolbar .st-key-bar_overflow_more button svg,
     .st-key-textus_app_toolbar .st-key-tx_appbar_login_popover button svg,
     .st-key-textus_app_toolbar .st-key-tx_appbar_account_popover button svg {
@@ -1912,41 +1937,50 @@ div[data-baseweb="popover"] [data-testid="stPopoverBody"]::-webkit-scrollbar-thu
     box-shadow: none !important;
 }
 
-/* ===== 1. Munkaszakasz — cím + rövid leírás, NEM teljes kártya ===== */
+/* ===== 1. Munkaszakasz — kompakt cím + magyarázat, NEM teljes kártya ===== */
 .tx-work-section {
-    margin: 0 0 var(--tx-space-5);
+    margin: 0 0 var(--tx-space-3);
     padding: 0;
     max-width: 100%;
 }
 .tx-work-section-context {
     font-family: "Inter", "Segoe UI", sans-serif;
-    font-size: 0.72rem;
+    font-size: 0.68rem;
     font-weight: 600;
     letter-spacing: 0.06em;
     text-transform: uppercase;
     color: var(--tx-gold);
-    margin: 0 0 var(--tx-space-2);
+    margin: 0 0 4px;
+}
+.tx-work-section-lead {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    column-gap: 0.75rem;
+    row-gap: 0.1rem;
 }
 .tx-work-section-title {
     font-family: "Playfair Display", "Cormorant Garamond", Georgia, serif;
-    font-size: clamp(22px, 2.2vw, 26px);
+    font-size: clamp(17px, 1.65vw, 20px);
     font-weight: 650;
-    line-height: 1.25;
+    line-height: 1.2;
     margin: 0;
     color: #2a2117;
+    flex: 0 0 auto;
 }
 .tx-work-section-body {
-    margin: var(--tx-space-2) 0 0;
+    margin: 0;
     font-family: "Lora", Georgia, serif;
-    font-size: 0.95rem;
-    line-height: 1.5;
+    font-size: 0.82rem;
+    line-height: 1.35;
     color: var(--tx-text-muted);
-    max-width: var(--tx-prose-width);
+    flex: 1 1 14rem;
+    max-width: min(36rem, 100%);
 }
 .tx-work-section-rule {
-    margin-top: var(--tx-space-4);
+    margin-top: var(--tx-space-2);
     height: 1px;
-    max-width: 220px;
+    max-width: 180px;
     border: 0;
     background: linear-gradient(
         90deg,
@@ -2264,21 +2298,27 @@ div[data-baseweb="popover"] [data-testid="stPopoverBody"]::-webkit-scrollbar-thu
         gap: 2px !important;
         padding: 3px !important;
     }
+    /* Mobilon csak ikon — a csonka „Gyorseszkö…” címkék helyett */
     .st-key-workspace_switcher .stButton button {
-        min-height: 44px !important;
-        max-height: 48px !important;
-        gap: 6px !important;
-        padding: 0 0.35rem !important;
+        min-height: 46px !important;
+        max-height: 50px !important;
+        gap: 0 !important;
+        padding: 0 !important;
+        justify-content: center !important;
     }
-    .st-key-workspace_switcher .stButton button [data-testid="stMarkdownContainer"] p {
-        font-size: 0.72rem !important;
+    .st-key-workspace_switcher .stButton button [data-testid="stMarkdownContainer"] {
+        display: none !important;
     }
     .st-key-workspace_switcher .stButton button [data-testid="stIconMaterial"] {
-        width: 16px !important;
-        height: 16px !important;
-        min-width: 16px !important;
-        min-height: 16px !important;
-        font-size: 15px !important;
+        width: 22px !important;
+        height: 22px !important;
+        min-width: 22px !important;
+        min-height: 22px !important;
+        font-size: 21px !important;
+    }
+    .st-key-workspace_switcher .stButton button::after {
+        left: 18% !important;
+        right: 18% !important;
     }
     .st-key-workspace_intro .tx-intro-title {
         font-size: 26px !important;
@@ -2289,9 +2329,6 @@ div[data-baseweb="popover"] [data-testid="stPopoverBody"]::-webkit-scrollbar-thu
 }
 
 @media (max-width: 390px) {
-    .st-key-workspace_switcher .stButton button [data-testid="stMarkdownContainer"] p {
-        font-size: 0.68rem !important;
-    }
     .st-key-workspace_intro {
         margin-bottom: 20px !important;
     }

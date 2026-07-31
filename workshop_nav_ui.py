@@ -579,6 +579,7 @@ def render_primary_view_switcher(
                     icon=(icon_map.get(mode) or None),
                     type="secondary",
                     use_container_width=True,
+                    help=title,
                 )
             if clicked and not is_active:
                 st.session_state[key] = mode
@@ -739,13 +740,14 @@ def render_app_toolbar(
 
     def _projects_popover() -> None:
         nonlocal action
+        epoch = int(st.session_state.get("_projects_popover_epoch") or 0)
         with st.popover(
             "Projektek",
             icon=":material/folder:",
             help="Mentett projektek megnyitása",
             use_container_width=False,
             width=520,
-            key="bar_projects_popover",
+            key=f"bar_projects_popover_{epoch}",
         ):
             with st.container(key="project_picker_content"):
                 if projects_renderer is not None:
@@ -846,8 +848,8 @@ def render_app_toolbar(
                     (
                         f'<div class="tx-project-name-row" title="{safe_label}">'
                         f'<span class="tx-project-name-text">{safe_label}</span>'
-                        f'<span class="tx-project-status-chip {kind_cls}">'
-                        f"{escape(status)}</span></div>"
+                        f'<span class="tx-project-status-chip {kind_cls}" '
+                        f'title="{escape(status)}">{escape(status)}</span></div>'
                     ),
                     unsafe_allow_html=True,
                 )

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from contextlib import nullcontext
 from dataclasses import dataclass, replace
 from functools import lru_cache
 import html
@@ -944,6 +945,36 @@ def _render_styles(st: Any) -> None:
     st.markdown(
         """
 <style>
+/* Feltűnőbb térkép-expander — ne olvadjon a felületbe */
+.st-key-biblical_map_cta [data-testid="stExpander"],
+.st-key-biblical_map_cta details {
+  border: 1px solid rgba(90, 122, 168, 0.42) !important;
+  border-left: 4px solid var(--tx-primary, #5a7aa8) !important;
+  border-radius: 10px !important;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(232, 238, 248, 0.92) 0%,
+      rgba(248, 245, 238, 0.88) 55%,
+      rgba(255, 252, 247, 0.95) 100%
+    ) !important;
+  box-shadow: 0 1px 3px rgba(42, 33, 23, 0.07) !important;
+}
+.st-key-biblical_map_cta [data-testid="stExpander"] summary,
+.st-key-biblical_map_cta [data-testid="stExpander"] summary p,
+.st-key-biblical_map_cta details summary,
+.st-key-biblical_map_cta details summary p,
+.st-key-biblical_map_cta [data-testid="stExpander"] span {
+  font-weight: 650 !important;
+  color: #2a2117 !important;
+  font-size: 1.02rem !important;
+  letter-spacing: 0.01em !important;
+}
+.st-key-biblical_map_cta [data-testid="stExpander"]:hover,
+.st-key-biblical_map_cta details:hover {
+  border-color: rgba(90, 122, 168, 0.62) !important;
+  box-shadow: 0 2px 8px rgba(42, 33, 23, 0.1) !important;
+}
 .textus-biblical-map-note {
   color: var(--tx-text-muted, #5d5347);
   font-size: 0.84rem;
@@ -2145,27 +2176,30 @@ def render_biblical_map_prototype(
     places = BIBLICAL_MAP_PLACES
 
     _render_styles(st)
-    with st.expander("Bibliai térkép", expanded=False):
-        st.caption(MAP_SCOPE_NOTE_HU)
-        st.caption(
-            "Az útvonalnézet vázlatos (draft/schematic): a vonalak nem pontos ókori nyomvonalak."
-        )
-        apply_pending_route_navigation_state(st.session_state)
-        view_options = [MAP_VIEW_PLACES, MAP_VIEW_ROUTES]
-        current_view = str(st.session_state.get(ACTIVE_MAP_VIEW_KEY) or MAP_VIEW_PLACES)
-        if current_view not in view_options:
-            current_view = MAP_VIEW_PLACES
-        active_view = st.radio(
-            "Térkép nézet",
-            view_options,
-            index=view_options.index(current_view),
-            horizontal=True,
-            key=ACTIVE_MAP_VIEW_KEY,
-        )
-        if active_view == MAP_VIEW_ROUTES:
-            _render_route_view(st)
-        else:
-            _render_places_view(st, passage_reference=passage_reference, places=places)
+    container = getattr(st, "container", None)
+    map_cta = container(key="biblical_map_cta") if callable(container) else nullcontext()
+    with map_cta:
+        with st.expander("Bibliai térkép", expanded=False):
+            st.caption(MAP_SCOPE_NOTE_HU)
+            st.caption(
+                "Az útvonalnézet vázlatos (draft/schematic): a vonalak nem pontos ókori nyomvonalak."
+            )
+            apply_pending_route_navigation_state(st.session_state)
+            view_options = [MAP_VIEW_PLACES, MAP_VIEW_ROUTES]
+            current_view = str(st.session_state.get(ACTIVE_MAP_VIEW_KEY) or MAP_VIEW_PLACES)
+            if current_view not in view_options:
+                current_view = MAP_VIEW_PLACES
+            active_view = st.radio(
+                "Térkép nézet",
+                view_options,
+                index=view_options.index(current_view),
+                horizontal=True,
+                key=ACTIVE_MAP_VIEW_KEY,
+            )
+            if active_view == MAP_VIEW_ROUTES:
+                _render_route_view(st)
+            else:
+                _render_places_view(st, passage_reference=passage_reference, places=places)
 
 
 __all__ = [
