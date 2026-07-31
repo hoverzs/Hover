@@ -1939,7 +1939,7 @@ div[data-baseweb="popover"] [data-testid="stPopoverBody"]::-webkit-scrollbar-thu
 
 /* ===== 1. Munkaszakasz — kompakt cím + magyarázat, NEM teljes kártya ===== */
 .tx-work-section {
-    margin: 0 0 var(--tx-space-3);
+    margin: 0 0 var(--tx-space-2);
     padding: 0;
     max-width: 100%;
 }
@@ -1978,16 +1978,11 @@ div[data-baseweb="popover"] [data-testid="stPopoverBody"]::-webkit-scrollbar-thu
     max-width: min(36rem, 100%);
 }
 .tx-work-section-rule {
-    margin-top: var(--tx-space-2);
-    height: 1px;
-    max-width: 180px;
-    border: 0;
-    background: linear-gradient(
-        90deg,
-        rgba(90, 122, 168, 0.55) 0%,
-        rgba(138, 106, 63, 0.45) 55%,
-        rgba(138, 106, 63, 0) 100%
-    );
+    display: none !important;
+    margin: 0 !important;
+    height: 0 !important;
+    border: 0 !important;
+    background: none !important;
 }
 
 /* ===== 2. Munkafelület — egy feladat = egy emelt panel ===== */
