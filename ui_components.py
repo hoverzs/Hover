@@ -50,7 +50,7 @@ def render_work_section(
     title: str,
     body: str = "",
     context: str = "",
-    show_rule: bool = True,
+    show_rule: bool = False,
 ) -> None:
     """Munkaszakasz fejléc: kis kontextuscímke, kompakt cím + magyarázat egy sorban.
 
@@ -63,7 +63,11 @@ def render_work_section(
     if not ttl and not txt:
         return
     ctx_html = f'<div class="tx-work-section-context">{ctx}</div>' if ctx else ""
-    title_html = f'<h2 class="tx-work-section-title">{ttl}</h2>' if ttl else ""
+    title_html = (
+        f'<div class="tx-work-section-title" role="heading" aria-level="2">{ttl}</div>'
+        if ttl
+        else ""
+    )
     body_html = f'<p class="tx-work-section-body">{txt}</p>' if txt else ""
     lead_html = (
         f'<div class="tx-work-section-lead">{title_html}{body_html}</div>'
