@@ -565,16 +565,12 @@ def render_primary_view_switcher(
             is_active = mode == current
             title = label_map.get(mode, mode)
             with col:
-                btn_kwargs: dict[str, Any] = {
-                    "key": f"tx_mainnav_{mode}",
-                    "type": "secondary",
-                    "use_container_width": True,
-                    "help": title,
-                }
-                icon = icon_map.get(mode) or None
-                if icon:
-                    btn_kwargs["icon"] = icon
-                clicked = st.button(title, **btn_kwargs)
+                clicked = st.button(
+                    title,
+                    key=f"tx_mainnav_{mode}",
+                    type="secondary",
+                    use_container_width=True,
+                )
             if clicked and not is_active:
                 st.session_state[key] = mode
                 st.rerun()

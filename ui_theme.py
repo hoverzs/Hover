@@ -2140,8 +2140,7 @@ div[data-baseweb="popover"] [data-testid="stPopoverBody"]::-webkit-scrollbar-thu
     width: 100% !important;
     height: 100% !important;
     margin: 0 !important;
-    display: flex !important;
-    align-items: stretch !important;
+    display: block !important;
 }
 
 .st-key-workspace_switcher .stButton > div,
@@ -2150,10 +2149,14 @@ div[data-baseweb="popover"] [data-testid="stPopoverBody"]::-webkit-scrollbar-thu
 .st-key-workspace_switcher .stButton [class*="TooltipHoverTarget"] {
     width: 100% !important;
     max-width: 100% !important;
-    display: flex !important;
-    flex: 1 1 auto !important;
-    align-self: stretch !important;
+    display: block !important;
     box-sizing: border-box !important;
+}
+
+/* Tooltip/help másodpéldány ne jelenjen meg külön fülként */
+.st-key-workspace_switcher .stButton > *:not(:first-child),
+.st-key-workspace_switcher .stButton button [data-testid="stMarkdownContainer"] ~ * {
+    display: none !important;
 }
 
 .st-key-workspace_switcher .stButton button {
