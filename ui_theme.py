@@ -2293,27 +2293,14 @@ div[data-baseweb="popover"] [data-testid="stPopoverBody"]::-webkit-scrollbar-thu
         gap: 2px !important;
         padding: 3px !important;
     }
-    /* Mobilon csak ikon — a csonka „Gyorseszkö…” címkék helyett */
     .st-key-workspace_switcher .stButton button {
-        min-height: 46px !important;
-        max-height: 50px !important;
-        gap: 0 !important;
-        padding: 0 !important;
-        justify-content: center !important;
+        min-height: 44px !important;
+        max-height: 48px !important;
+        gap: 6px !important;
+        padding: 0 0.35rem !important;
     }
-    .st-key-workspace_switcher .stButton button [data-testid="stMarkdownContainer"] {
-        display: none !important;
-    }
-    .st-key-workspace_switcher .stButton button [data-testid="stIconMaterial"] {
-        width: 22px !important;
-        height: 22px !important;
-        min-width: 22px !important;
-        min-height: 22px !important;
-        font-size: 21px !important;
-    }
-    .st-key-workspace_switcher .stButton button::after {
-        left: 18% !important;
-        right: 18% !important;
+    .st-key-workspace_switcher .stButton button [data-testid="stMarkdownContainer"] p {
+        font-size: 0.72rem !important;
     }
     .st-key-workspace_intro .tx-intro-title {
         font-size: 26px !important;
@@ -2324,6 +2311,9 @@ div[data-baseweb="popover"] [data-testid="stPopoverBody"]::-webkit-scrollbar-thu
 }
 
 @media (max-width: 390px) {
+    .st-key-workspace_switcher .stButton button [data-testid="stMarkdownContainer"] p {
+        font-size: 0.68rem !important;
+    }
     .st-key-workspace_intro {
         margin-bottom: 20px !important;
     }
