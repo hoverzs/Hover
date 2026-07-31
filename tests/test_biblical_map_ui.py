@@ -1529,7 +1529,7 @@ def test_phase_change_normalizes_stop_and_focuses_first_visible_stop() -> None:
 def test_map_style_switch_preserves_selected_stop_focus_state() -> None:
     route = load_biblical_routes()[0]
     state = {
-        MAP_STYLE_KEY: MAP_STYLE_HISTORICAL_MOOD,
+        MAP_STYLE_KEY: MAP_STYLE_CLEAN,
         SELECTED_ROUTE_ID_KEY: route.route_id,
         SELECTED_ROUTE_STOP_ID_KEY: "perga_outbound",
     }
@@ -1541,7 +1541,7 @@ def test_map_style_switch_preserves_selected_stop_focus_state() -> None:
         route_id=route.route_id,
         selected_stop_id="perga_outbound",
     )
-    state[MAP_STYLE_KEY] = MAP_STYLE_TERRAIN
+    state[MAP_STYLE_KEY] = MAP_STYLE_CLEAN
     after = route_viewport_for_selection(
         state,
         rows,
@@ -1550,7 +1550,7 @@ def test_map_style_switch_preserves_selected_stop_focus_state() -> None:
     )
 
     assert state[SELECTED_ROUTE_STOP_ID_KEY] == "perga_outbound"
-    assert state[MAP_STYLE_KEY] == MAP_STYLE_TERRAIN
+    assert state[MAP_STYLE_KEY] == MAP_STYLE_CLEAN
     assert after == before
 
 
@@ -2052,12 +2052,12 @@ def test_route_navigation_preserves_map_style_state() -> None:
     fake_st.session_state[ACTIVE_MAP_VIEW_KEY] = MAP_VIEW_ROUTES
     fake_st.session_state[PENDING_ROUTE_ID_KEY] = "wilderness_sinai_to_moab"
     fake_st.session_state[PENDING_MAP_VIEW_KEY] = MAP_VIEW_ROUTES
-    fake_st.session_state[MAP_STYLE_KEY] = MAP_STYLE_HISTORICAL_MOOD
+    fake_st.session_state[MAP_STYLE_KEY] = MAP_STYLE_CLEAN
 
     render_biblical_map_prototype(st_module=fake_st)
 
     assert fake_st.session_state[SELECTED_ROUTE_ID_KEY] == "wilderness_sinai_to_moab"
-    assert fake_st.session_state[MAP_STYLE_KEY] == MAP_STYLE_HISTORICAL_MOOD
+    assert fake_st.session_state[MAP_STYLE_KEY] == MAP_STYLE_CLEAN
 
 
 def test_render_default_places_view_does_not_force_route_map() -> None:
@@ -2071,23 +2071,22 @@ def test_render_default_places_view_does_not_force_route_map() -> None:
     assert fake_st.session_state[SELECTED_PLACE_ID_KEY] == "corinth"
 
 
-def test_map_styles_are_available_and_default_to_clean() -> None:
-    assert MAP_STYLE_OPTIONS == (
-        MAP_STYLE_CLEAN,
-        MAP_STYLE_TERRAIN,
-        MAP_STYLE_HISTORICAL_MOOD,
-    )
-    assert [MAP_STYLE_CONFIGS[style_id].label_hu for style_id in MAP_STYLE_OPTIONS] == [
-        "Letisztult",
-        "Domborzati",
-        "Történeti hangulat",
-    ]
+def test_map_uses_single_clean_basemap_without_style_picker() -> None:
+    assert MAP_STYLE_OPTIONS == (MAP_STYLE_CLEAN,)
+    assert list(MAP_STYLE_CONFIGS) == [MAP_STYLE_CLEAN]
+    assert MAP_STYLE_CONFIGS[MAP_STYLE_CLEAN].label_hu == "Letisztult"
 
     fake_st = _FakeStreamlit()
+    fake_st.session_state[MAP_STYLE_KEY] = MAP_STYLE_HISTORICAL_MOOD
     assert resolve_map_style_id(fake_st.session_state) == MAP_STYLE_CLEAN
-    selected = render_map_style_selector(fake_st)
+    assert fake_st.session_state[MAP_STYLE_KEY] == MAP_STYLE_CLEAN
 
+    selected = render_map_style_selector(fake_st)
     assert selected == MAP_STYLE_CLEAN
+    assert fake_st.session_state[MAP_STYLE_KEY] == MAP_STYLE_CLEAN
+
+    render_biblical_map_prototype(passage_reference="ApCsel 18,1-18", st_module=fake_st)
+    assert not any(box[0] == "Térképstílus" for box in fake_st.selectboxes)
     assert fake_st.session_state[MAP_STYLE_KEY] == MAP_STYLE_CLEAN
 
 
@@ -2100,20 +2099,17 @@ def test_invalid_map_style_falls_back_to_clean() -> None:
 
 
 def test_map_style_state_is_shared_by_places_and_route_views() -> None:
-    fake_st = _FakeStreamlit(selectbox_choice=MAP_STYLE_HISTORICAL_MOOD)
+    fake_st = _FakeStreamlit()
     render_biblical_map_prototype(passage_reference="ApCsel 18,1-18", st_module=fake_st)
 
-    assert fake_st.session_state[MAP_STYLE_KEY] == MAP_STYLE_HISTORICAL_MOOD
-    assert any(box[0] == "Térképstílus" for box in fake_st.selectboxes)
-    assert any("nem korabeli térképi rekonstrukció" in caption for caption in fake_st.captions)
+    assert fake_st.session_state[MAP_STYLE_KEY] == MAP_STYLE_CLEAN
+    assert not any(box[0] == "Térképstílus" for box in fake_st.selectboxes)
 
     fake_st.session_state[ACTIVE_MAP_VIEW_KEY] = MAP_VIEW_ROUTES
-    fake_st.selectbox_choice = None
     render_biblical_map_prototype(st_module=fake_st)
 
-    assert fake_st.session_state[MAP_STYLE_KEY] == MAP_STYLE_HISTORICAL_MOOD
-    style_boxes = [box for box in fake_st.selectboxes if box[0] == "Térképstílus"]
-    assert len(style_boxes) >= 2
+    assert fake_st.session_state[MAP_STYLE_KEY] == MAP_STYLE_CLEAN
+    assert not any(box[0] == "Térképstílus" for box in fake_st.selectboxes)
 
 
 def test_map_style_switch_does_not_change_route_or_place_render_data() -> None:
@@ -2122,14 +2118,15 @@ def test_map_style_switch_does_not_change_route_or_place_render_data() -> None:
     clean_segments = route_segment_rows(route)
     clean_lines = route_line_rows(clean_segments)
 
-    fake_st = _FakeStreamlit(selectbox_choice=MAP_STYLE_TERRAIN)
+    fake_st = _FakeStreamlit()
+    fake_st.session_state[MAP_STYLE_KEY] = MAP_STYLE_TERRAIN
     render_biblical_map_prototype(passage_reference="ApCsel 13", st_module=fake_st)
 
-    assert fake_st.session_state[MAP_STYLE_KEY] == MAP_STYLE_TERRAIN
+    assert fake_st.session_state[MAP_STYLE_KEY] == MAP_STYLE_CLEAN
     assert route_stop_rows(route) == clean_stops
     assert route_segment_rows(route) == clean_segments
     assert route_line_rows(route_segment_rows(route)) == clean_lines
-    assert any("letisztult alaptérképre áll vissza" in caption for caption in fake_st.captions)
+    assert not any(box[0] == "Térképstílus" for box in fake_st.selectboxes)
 
 
 def test_render_route_view_loads_first_missionary_journey() -> None:

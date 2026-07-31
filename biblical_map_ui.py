@@ -63,6 +63,7 @@ MAP_VIEW_PLACES = "Helyszínek"
 MAP_VIEW_ROUTES = "Bibliai útvonalak"
 MAP_STYLE_KEY = "_biblical_map_style"
 MAP_STYLE_CLEAN = "clean"
+# Legacy style ids from earlier prototypes; always coerced to the clean basemap.
 MAP_STYLE_TERRAIN = "terrain"
 MAP_STYLE_HISTORICAL_MOOD = "historical_mood"
 SELECTED_ROUTE_ID_KEY = "_biblical_map_selected_route_id"
@@ -137,27 +138,8 @@ MAP_STYLE_CONFIGS: dict[str, BiblicalMapStyle] = {
         pydeck_style=None,
         attribution_hu=None,
     ),
-    MAP_STYLE_TERRAIN: BiblicalMapStyle(
-        style_id=MAP_STYLE_TERRAIN,
-        label_hu="Domborzati",
-        pydeck_style=None,
-        attribution_hu=None,
-        note_hu=(
-            "A domborzati alaptérképhez még nincs biztonságosan konfigurált, kulcs nélküli "
-            "tile-forrás; a megjelenítés jelenleg a letisztult alaptérképre áll vissza."
-        ),
-        fallback_style_id=MAP_STYLE_CLEAN,
-    ),
-    MAP_STYLE_HISTORICAL_MOOD: BiblicalMapStyle(
-        style_id=MAP_STYLE_HISTORICAL_MOOD,
-        label_hu="Történeti hangulat",
-        pydeck_style=None,
-        attribution_hu=None,
-        note_hu="A történeti megjelenés vizuális hangulatot ad; nem korabeli térképi rekonstrukció.",
-        fallback_style_id=MAP_STYLE_CLEAN,
-    ),
 }
-MAP_STYLE_OPTIONS = tuple(MAP_STYLE_CONFIGS)
+MAP_STYLE_OPTIONS = (MAP_STYLE_CLEAN,)
 
 IDENTIFICATION_STATUS_LABELS = {
     "certain": "biztos",
@@ -1030,20 +1012,9 @@ def effective_map_style(style_id: str) -> BiblicalMapStyle:
 
 
 def render_map_style_selector(st: Any) -> str:
-    selected_style_id = resolve_map_style_id(st.session_state)
-    selected_style_id = st.selectbox(
-        "Térképstílus",
-        list(MAP_STYLE_OPTIONS),
-        index=list(MAP_STYLE_OPTIONS).index(selected_style_id),
-        format_func=lambda style_id: MAP_STYLE_CONFIGS[style_id].label_hu,
-        key=MAP_STYLE_KEY,
-    )
-    style = MAP_STYLE_CONFIGS.get(selected_style_id, MAP_STYLE_CONFIGS[MAP_STYLE_CLEAN])
-    if style.note_hu:
-        st.caption(style.note_hu)
-    if style.attribution_hu:
-        st.caption(style.attribution_hu)
-    return selected_style_id
+    """Keep a single clean basemap; no style picker in the UI."""
+    st.session_state[MAP_STYLE_KEY] = MAP_STYLE_CLEAN
+    return MAP_STYLE_CLEAN
 
 
 def _render_places_map_block(
