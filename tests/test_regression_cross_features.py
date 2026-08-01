@@ -169,7 +169,10 @@ def test_css_mainnav_and_prayer_not_conflicting():
     assert ".st-key-workspace_intro" in overlay
     assert ".st-key-textus_app_toolbar" in overlay
     assert ".st-key-project_picker_content" in overlay or "project_picker_content" in overlay
-    assert "data-tx-projects-dismissed" in overlay or "_PROJECTS_POPOVER_DISMISS_JS" in (
+    assert 'key="bar_projects_open"' in (
+        (ROOT / "workshop_nav_ui.py").read_text(encoding="utf-8")
+    )
+    assert "_PROJECTS_POPOVER_DISMISS_JS" not in (
         (ROOT / "workshop_nav_ui.py").read_text(encoding="utf-8")
     )
     assert ".st-key-quick_tools_grid" in overlay
