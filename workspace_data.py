@@ -25,6 +25,18 @@ from occasion_context import (
     normalize_occasion_context,
 )
 
+# Exegetikai mag — session cache kulcsok (projektben is megőrzendők)
+try:
+    from exegetical_core import (
+        SESSION_CORE_FP_KEY,
+        SESSION_CORE_KEY,
+        SESSION_PASSAGE_FP_KEY,
+    )
+except Exception:  # pragma: no cover
+    SESSION_CORE_KEY = "exegetical_core_result"
+    SESSION_CORE_FP_KEY = "exegetical_core_fingerprint"
+    SESSION_PASSAGE_FP_KEY = "exegetical_passage_fingerprint"
+
 # Meglévő workspace-export kulcsok (app.py serialize_workspace).
 WORKSPACE_STR_KEYS: list[str] = [
     "last_igehely",
@@ -53,6 +65,8 @@ WORKSPACE_STR_KEYS: list[str] = [
     "songs",
     "series_planner_output",
     "series_idea",
+    SESSION_CORE_FP_KEY,
+    SESSION_PASSAGE_FP_KEY,
 ]
 
 WORKSPACE_LIST_KEYS: list[str] = [
@@ -84,6 +98,7 @@ PROJECT_NESTED_KEYS: list[str] = [
     TEXT_WORKSHOP_KEY,
     SERMON_WORKSHOP_KEY,
     OCCASION_CONTEXT_KEY,
+    SESSION_CORE_KEY,
 ]
 
 PROJECT_DATA_STR_KEYS: list[str] = WORKSPACE_STR_KEYS + PROJECT_EXTRA_STR_KEYS

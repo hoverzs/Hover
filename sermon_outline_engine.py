@@ -34,6 +34,11 @@ from sermon_outline_context import (
     outline_context_to_legacy_bundle,
 )
 from sermon_outline_exegesis import ExegeticalBrief, generate_exegetical_brief
+from exegetical_core import (
+    core_to_outline_brief,
+    ensure_exegetical_core,
+    invalidate_core_if_stale,
+)
 from sermon_outline_quality import (
     SEMANTIC_HARD_ISSUES,
     assess_semantic_quality,
@@ -2540,7 +2545,8 @@ def generate_sermon_outline(
         include_original_language=True,
     )
     bundle = outline_context_to_legacy_bundle(outline_ctx)
-    # Hash a legacy evidence kulcsokon (stabil refresh jelzés)
+    # Hash a collect_available-kompatibilis csomagon (passage fill ELŐTT),
+    # különben a nyers session-szöveg és a tisztított collect eltérne.
     ctx_hash = compute_context_hash(bundle)
     warnings: list[str] = []
     compressed = False
@@ -2559,9 +2565,33 @@ def generate_sermon_outline(
             keys.append("passage_text")
         bundle["source_keys"] = keys
 
-    # BARE/PARTIAL mini-exegézist az ExegeticalBrief adja; a régi rapid_evidence
-    # csomag csak akkor készül, ha nincs brief és tényleg üres a műhely.
-    brief = generate_exegetical_brief(outline_ctx, generate_fn=None)
+    # Közös exegetikai mag — ha van érvényes cache (pl. Eredeti szöveg fül),
+    # azt használjuk; különben determinisztikus magot építünk.
+    # Szándékosan NEM a vázlat generate_fn-jét adjuk át: az outline JSON
+    # séma és a core séma külön hívás; a mag AI-szintézise az eredeti
+    # szöveg panelen történik.
+    invalidate_core_if_stale(
+        session,
+        reference=outline_ctx.passage_reference,
+        bible_text=outline_ctx.bible_text or raw_passage,
+    )
+    brief: ExegeticalBrief | None = None
+    try:
+        core = ensure_exegetical_core(
+            session,
+            reference=outline_ctx.passage_reference,
+            bible_text=outline_ctx.bible_text or raw_passage,
+            generate_fn=None,
+            enrich=False,
+            force_refresh=False,
+            # Ne írjuk felül a felületi original_text-et a vázlat futásakor —
+            # különben hamis needs_refresh lenne a context_hash miatt.
+            sync_original_text=False,
+        )
+        brief = core_to_outline_brief(core)
+    except Exception as exc:
+        logger.info("shared_exegetical_core_failed err=%s", type(exc).__name__)
+        brief = generate_exegetical_brief(outline_ctx, generate_fn=None)
 
     if (
         generate_fn is not None

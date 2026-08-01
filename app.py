@@ -3485,49 +3485,38 @@ művelt és igényes nyelven.
 ORIGINAL_TEXT_BASE_PROMPT = """
 Légy alapos, teológiai és nyelvészeti érzékenységgel dolgozó exegéta.
 Segíts a megadott bibliai szakasz eredeti nyelvű tanulmányozásában úgy,
-hogy az közvetlenül támogassa az ige mélyebb megértését és az üzenet
-megfogalmazását.
+hogy az közvetlenül támogassa az ige mélyebb megértését.
 
-Ne készíts teljes kommentárt. Ne elemezz minden szót. Válassz ki néhány
-valóban fontos eredeti kifejezést, motívumot vagy jelentésréteget, amelyek
-érdemben segítik a textus megértését.
+Ne készíts teljes kommentárt. Ne elemezz minden szót. Csak a valóban fontos
+2–6 kulcskifejezést vagy összetartozó formulát emeld ki — kizárólag olyanokat,
+amelyek a textusban ténylegesen azonosíthatók.
 
-Elsősorban azokra a héber vagy görög kifejezésekre figyelj, amelyek:
-- több jelentésréteget hordoznak,
-- a magyar fordításban könnyen elsimulnak,
-- teológiailag vagy homiletikailag fontosak,
-- belső feszültséget, kontrasztot vagy hangsúlyt adnak a szakasznak.
+Szerkezet (prózai bekezdések, NE mechanikus alcímsablon):
 
-Minden kiemelt kifejezésnél világosan mutasd meg:
-- mi az eredeti szó vagy kifejezés (ha biztosan azonosítható),
-- mit jelent alapvetően,
-- milyen árnyalatokat vagy többletjelentést hordozhat,
-- miért fontos ez a textus üzenete szempontjából,
-- hogyan segítheti az igehirdetés fő gondolatának megfogalmazását.
+## Szöveg és szerkezet
+2–4 összefüggő bekezdés: honnan hová halad a szakasz, központi állítás,
+nyelvtani/retorikai kapcsolatok, hangsúly vagy fordulat.
+Ne bontsd mesterséges főpontokra a textust.
 
-Ha valóban releváns, említs néhány bibliai párhuzamot is, ahol ugyanaz a szó,
-motívum vagy gondolat megjelenik. Csak akkor hozz párhuzamot, ha az tényleg
-segít a mostani szakasz megértésében. Ha egy szó máshol eltérő árnyalattal
-szerepel, ezt röviden magyarázd el.
+## Kulcskifejezések
+Minden kifejezéshez EGY összefüggő bekezdés: eredeti alak, lemma + releváns
+morph, kontextushoz illő jelentés, mit ad a magyar fordítás megértéséhez,
+esetleges árnyalat, szerep a szakaszban.
+TILOS ismételni: „Alapjelentés”, „Miért fontos”, „Mélyebb árnyalat”,
+„Bibliai párhuzam”, „Igehirdetési hozam” alcímeket.
 
-A válasz legyen:
-- világos és jól tagolt,
-- lényegre törő,
-- nem túl hosszú,
-- de szakmailag elég mély egy alapos prédikációs készüléshez.
+## Teológiai összegzés
+1–3 bekezdés: mit állít a szakasz Istenről / emberről / Krisztusról /
+kegyelemről / hit életéről — csak ami valóban következik a textusból.
 
-Javasolt forma:
+## Átadás a homiletikai műhelynek
+1–2 bekezdés: emberi kérdés, téves feltételezés, evangéliumi megérkezés.
+Ez NEM prédikációvázlat (nincs bevezetés / 3 főpont / zárás).
 
-### [eredeti szó / kifejezés] — [rövid magyar jelzés]
-**Alapjelentés:** ...
-**Miért fontos itt:** ...
-**Mélyebb árnyalat:** ...
-**Bibliai párhuzam (ha releváns):** ...
-**Igehirdetési hozam:** ...
-
-Ha bizonytalan vagy egy eredeti alakban, etimológiában vagy párhuzamban,
-jelöld világosan: „Bizonytalan:” vagy „Vitatott:”. Ne találj ki nem létező
-eredeti nyelvi adatot, bibliai párhuzamot vagy idézetet.
+Megkülönböztetés: nyelvi TÉNY ≠ teológiai INTERPRETÁCIÓ ≠ HOMILETIKAI híd.
+Ne mutass biztos lexikai tényként homiletikai következtetést.
+Ne találj ki Strong-számot, lemmát, igeidőt vagy forrást.
+Rövid textusnál rövid elemzés; kerüljed az ismétlést és a távoli párhuzamokat.
 """
 
 
@@ -3666,8 +3655,8 @@ Csak biztos, ellenőrizhető párhuzamok rövid magyarázattal.
 - **Valószínű:** ahol több értelmezés is megengedett, de van súlypont.
 - **Vitatott:** ahol komoly értelmezésbeli feszültségek vannak.
 
-## Prédikációs haszon
-Az exegézis fő gyümölcse — mit ad ez a homiletikai munkához.
+## Átadás a homiletikai műhelynek
+Röviden: milyen exegetikai felismerés vihető tovább a homiletikai munkába.
 
 Ne prédikációt írj, hanem szakmai háttérelemzést.
 """,
@@ -3960,8 +3949,11 @@ def build_alap_from_state(*, include_pastoral_context: bool = False):
 # is automatikusan tudja generálni ezeket az igehely megadásakor.
 
 def build_original_text_prompt(igehely: str) -> str:
-    """Az „Eredeti szöveg" fül teljes promptja. Csak az igehely kell
-    bemenetként — ugyanaz a sablon, mint a tab saját gombja mögött."""
+    """Legacy adapter.
+
+    A tényleges eredeti nyelvi elemzés az `exegetical_core` pipeline-on fut;
+    ez a szöveg csak régi hívásokhoz marad, hogy ne épüljön párhuzamos motor.
+    """
     passage_text = st.session_state.get("passage_text") or ""
     if not str(passage_text).strip():
         passage_text = st.session_state.get("passage_text_input") or ""
@@ -3975,21 +3967,14 @@ def build_original_text_prompt(igehely: str) -> str:
         else "\nBibliai szöveg: nincs adat\n"
     )
     return f"""
-{ORIGINAL_TEXT_BASE_PROMPT}
-
-==================================================
-EREDETI NYELVI MŰHELY — FELADAT
-==================================================
+Ez egy kompatibilitási adapter a régi Eredeti szöveg prompt helyén.
+A kanonikus elemzőút az exegetical_core.build_exegetical_core / ensure_exegetical_core.
 
 Igeszakasz: {igehely}
 {text_block}
-Készíts eredeti nyelvű elemzést ehhez a textushoz a fenti mesterprompt
-szerkezete szerint.
-
-Ha a szakasz eredeti nyelvi kulcsszavai biztonsággal azonosíthatók, építsd be
-őket a kapcsolati hálóba. Ha az eredeti alakban bizonytalan vagy, ne találgass:
-inkább jelezd a bizonytalanságot, és dolgozz a textus biztos motívumaival,
-ismétlődéseivel, belső feszültségeivel és homiletikai lehetőségeivel.
+Ha ez a prompt mégis modellhez jut, ne találj ki eredeti nyelvi adatot.
+Csak a megadott bibliai szöveg biztos megfigyeléseiből készíts tömör,
+strukturált exegetikai összefoglalót.
 """
 
 
@@ -4108,6 +4093,25 @@ def generate_section(key: str) -> bool:
 
     label = SECTION_LABELS.get(key, key)
     use_search = key in SECTIONS_WITH_GOOGLE_SEARCH
+    if key == "exegesis":
+        from exegetical_core import ensure_exegetical_core
+
+        passage_text = st.session_state.get("passage_text") or ""
+        if not str(passage_text).strip():
+            passage_text = st.session_state.get("passage_text_input") or ""
+        with st.spinner(f"{label} készítése…"):
+            core = ensure_exegetical_core(
+                st.session_state,
+                reference=st.session_state.get("last_igehely") or "",
+                bible_text=str(passage_text or ""),
+                generate_fn=generate_text,
+                enrich=True,
+                force_refresh=True,
+                sync_original_text=False,
+            )
+            st.session_state[key] = core.to_display_markdown()
+        return True
+
     # Exegézis / kortörténet / teológia: szövegközpontú — ne keverjük az
     # életrajzi hátteret. Áttekintés / illusztráció / aktualizálás: igen.
     pastoral_sections = {"overview", "illustrations", "actualization"}
@@ -5601,14 +5605,13 @@ def _default_max_output_tokens(tab_label: str) -> int:
 
 KEY_EXPRESSIONS_SYSTEM_PROMPT = """\
 Te egy bibliai eredeti nyelvi és exegetikai műhelyvezető vagy.
-Az Eredeti szöveg tanulmányozása funkcióban fontos héber/görög kifejezéseket,
-jelentésárnyalatokat, bibliai párhuzamokat és prédikációs hozamokat emelsz ki
-magyarul.
+Az Eredeti szöveg tanulmányozása funkcióban tömör, prózai exegetikai magot
+készítesz magyarul: szövegmozgás, szelektív kulcskifejezések, teológiai
+összegzés és igehirdetési híd — nem vázlat, nem szótári cikkgyűjtemény.
 
-A cél nem teljes teológiai rendszer, hanem tiszta, fókuszált segítség a textus
-tudatosabb olvasásához és prédikációra való előkészítéséhez.
-Kerüld a chatty megszólítást, önbemutatkozást és udvariaskodó zárást; azonnal
-a szakmai tartalommal kezdj.
+Kerüld a chatty megszólítást és az „Alapjelentés / Miért fontos / …”
+mechanikus alcímsablont. Azonnal a szakmai tartalommal kezdj.
+Különítsd el a nyelvi tényt az értelmezéstől és a homiletikai következtetéstől.
 """
 
 # ─────────────────────────────────────────────────────────────────────
@@ -6958,9 +6961,16 @@ def render_igehely_panel() -> None:
 
 def render_original_text_panel() -> None:
     """Eredeti héber/görög szöveg tanulmányozása, jegyzet és vázlatkosár."""
+    from exegetical_core import (
+        ExegeticalCoreResult,
+        SESSION_CORE_KEY,
+        ensure_exegetical_core,
+        invalidate_core_if_stale,
+    )
+
     render_work_section(
         title="Eredeti szöveg tanulmányozása",
-        body="Héber / görög kulcskifejezések, jelentésárnyalatok és prédikációs hozam.",
+        body="Tömör exegetikai mag: szövegmozgás, kulcskifejezések, teológiai összegzés és igehirdetési irány.",
         context="Textusműhely",
     )
 
@@ -6974,7 +6984,16 @@ def render_original_text_panel() -> None:
             (st.session_state.get("igehely_input") or "").strip()
             or (st.session_state.get("last_igehely") or "").strip()
         )
+        _passage_now = st.session_state.get("passage_text") or ""
+        if not str(_passage_now).strip():
+            _passage_now = st.session_state.get("passage_text_input") or ""
+        _passage_now = str(_passage_now or "")
         if _igehely_orig:
+            invalidate_core_if_stale(
+                st.session_state,
+                reference=_igehely_orig,
+                bible_text=_passage_now,
+            )
             st.markdown(
                 f"**Igeszakasz** *(az „Igehely” fülről):* `{_igehely_orig}`"
             )
@@ -7001,6 +7020,10 @@ def render_original_text_panel() -> None:
             ):
                 _sync_inputs_to_last()
                 _igehely_now = (st.session_state.get("last_igehely") or "").strip()
+                _passage_gen = st.session_state.get("passage_text") or ""
+                if not str(_passage_gen).strip():
+                    _passage_gen = st.session_state.get("passage_text_input") or ""
+                _passage_gen = str(_passage_gen or "")
                 if not _resolve_api_key().strip():
                     st.warning("Először add meg az API kulcsot a Beállítások fülön.")
                 elif not _igehely_now:
@@ -7008,23 +7031,30 @@ def render_original_text_panel() -> None:
                 else:
                     st.session_state["_original_running"] = True
                     try:
-                        with st.spinner("Eredeti nyelvi elemzés készül..."):
-                            st.session_state["original_text"] = generate_text(
-                                build_original_text_prompt(_igehely_now),
-                                tab_label="Eredeti szöveg tanulmányozása",
-                                use_cache=False,
-                                system_bundle=KEY_EXPRESSIONS_SYSTEM_PROMPT,
-                                include_brevity_directive=False,
-                                truncation_notice_mode="never",
-                                incomplete_response_message=(
-                                    "⚠️ **Az eredeti nyelvi elemzés nem érkezett meg teljesen.** "
-                                    "Nem jelenítek meg félbeszakadt szöveget. Kérlek, próbáld újra."
-                                ),
+                        with st.spinner("Exegetikai mag készül..."):
+                            ensure_exegetical_core(
+                                st.session_state,
+                                reference=_igehely_now,
+                                bible_text=_passage_gen,
+                                generate_fn=generate_text,
+                                enrich=True,
+                                force_refresh=True,
                             )
+                    except Exception as exc:
+                        st.session_state["original_text"] = (
+                            "⚠️ **Az eredeti nyelvi elemzés nem sikerült.** "
+                            f"({type(exc).__name__}) Kérlek, próbáld újra."
+                        )
                     finally:
                         st.session_state["_original_running"] = False
                     st.rerun()
 
+        _core_raw = st.session_state.get(SESSION_CORE_KEY)
+        _core = (
+            ExegeticalCoreResult.from_dict(_core_raw)
+            if isinstance(_core_raw, dict)
+            else None
+        )
         if st.session_state.get("original_text"):
             if st.session_state["original_text"].startswith(("⚠️", "⏳")):
                 st.warning(st.session_state["original_text"])
@@ -7035,6 +7065,26 @@ def render_original_text_panel() -> None:
                 )
                 st.markdown(st.session_state["original_text"])
                 st.markdown('</div>', unsafe_allow_html=True)
+                if _core and _core.is_usable():
+                    morph_md = _core.detailed_morphology_markdown()
+                    if morph_md:
+                        with st.expander("Részletes nyelvi adatok", expanded=False):
+                            st.markdown(morph_md)
+                    if _core.enrichment_notes or _core.source_references:
+                        with st.expander("További háttér", expanded=False):
+                            if _core.enrichment_notes:
+                                st.markdown(_core.enrichment_notes)
+                            for src in _core.source_references[:12]:
+                                label = src.name or src.source_type or "Forrás"
+                                origin = src.origin or ""
+                                if src.url:
+                                    st.markdown(f"- [{label}]({src.url}) _{origin}_")
+                                elif src.excerpt:
+                                    st.markdown(
+                                        f"- {label} _{origin}_: {src.excerpt[:240]}"
+                                    )
+                                else:
+                                    st.markdown(f"- {label} _{origin}_")
 
         else:
             render_info_panel(

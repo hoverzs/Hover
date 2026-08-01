@@ -540,16 +540,37 @@ def collect_outline_context_bundle(
         bundle["outline_basket"] = basket_items
         keys.append("outline_basket")
 
-    for field_name, limit, session_key in (
-        ("exegesis", MAX_EXEGESIS_CHARS, "exegesis"),
-        ("theology", MAX_THEOLOGY_CHARS, "theology"),
-        ("history", MAX_HISTORY_CHARS, "history"),
-        ("original_text", MAX_EXEGESIS_CHARS, "original_text"),
-    ):
-        text = _truncate(_session_str(session_state, session_key), limit)
-        if text:
-            bundle[field_name] = text
-            keys.append(field_name)
+    cached_core = None
+    try:
+        from exegetical_core import get_cached_core
+
+        cached_core = get_cached_core(
+            session_state,
+            reference=bundle.get("passage_reference", ""),
+            bible_text=passage_text,
+        )
+    except Exception:
+        cached_core = None
+    if cached_core is not None:
+        bundle["exegetical_core"] = cached_core.to_prompt_dict()
+        keys.append("exegetical_core")
+        core_summary = cached_core.to_prompt_summary()
+        if core_summary:
+            bundle["exegesis"] = _truncate(core_summary, MAX_EXEGESIS_CHARS)
+            keys.append("exegesis")
+        if cached_core.original_language_signature:
+            bundle["original_language_signature"] = cached_core.original_language_signature
+    else:
+        for field_name, limit, session_key in (
+            ("exegesis", MAX_EXEGESIS_CHARS, "exegesis"),
+            ("theology", MAX_THEOLOGY_CHARS, "theology"),
+            ("history", MAX_HISTORY_CHARS, "history"),
+            ("original_text", MAX_EXEGESIS_CHARS, "original_text"),
+        ):
+            text = _truncate(_session_str(session_state, session_key), limit)
+            if text:
+                bundle[field_name] = text
+                keys.append(field_name)
 
     # Ne küldjük a nyers MI-alternatívákat / elutasított javaslatokat
     for block_key in (

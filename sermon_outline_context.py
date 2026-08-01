@@ -15,14 +15,16 @@ from typing import Any, Callable, Mapping, MutableMapping, Protocol
 
 from sermon_workshop_data import SERMON_WORKSHOP_KEY
 
+ORIGINAL_LANGUAGE_DATA_VERSION = "original_language_provider_v2"
+
 
 class SourcePriority(int, Enum):
     """Alacsonyabb szám = magasabb prioritás."""
 
     BIBLE_TEXT = 1
     ORIGINAL_LANGUAGE = 2
-    USER_DECISIONS = 3
-    EXEGETICAL_BACKGROUND = 4
+    EXEGETICAL_BACKGROUND = 3
+    USER_DECISIONS = 4
     HOMILETICAL_METHOD = 5
     MODEL_SUPPLEMENT = 6
 
@@ -83,6 +85,7 @@ class OutlineContext:
     theology: str = ""
     history: str = ""
     original_text_prose: str = ""
+    exegetical_core: dict[str, Any] = field(default_factory=dict)
     approved_insights: list[str] = field(default_factory=list)
     approved_sermon_decisions: list[str] = field(default_factory=list)
     sermon_main_idea: str = ""
@@ -95,7 +98,7 @@ class OutlineContext:
         return bool(self.original_language_data)
 
     def has_exegetical(self) -> bool:
-        return bool(self.exegetical_material.strip())
+        return bool(self.exegetical_core or self.exegetical_material.strip())
 
     def has_homiletical(self) -> bool:
         prefs = self.homiletical_preferences or {}
@@ -127,8 +130,10 @@ class OutlineContext:
             "source_priority_order": [
                 "bible_text",
                 "original_language_data",
-                "user_decisions_and_notes",
+                "exegetical_core",
                 "exegetical_material",
+                "user_decisions_and_notes",
+                "outline_basket",
                 "homiletical_preferences",
                 "model_supplement",
             ],
@@ -146,6 +151,7 @@ class OutlineContext:
                 "occasion": self.occasion,
             },
             "exegetical_material": self.exegetical_material,
+            "exegetical_core": self.exegetical_core,
             "homiletical_preferences": self.homiletical_preferences,
             "outline_basket": self.outline_basket,
             "supporting_background": {
@@ -202,17 +208,67 @@ class LocalOriginalLanguageProvider:
         # NT — görög
         try:
             from bible_engine.greek_token_repository import load_greek_passage_tokens
+            from bible_engine.greek_lexicon_repository import get_tbesg_lexicon_entry
+            from bible_engine.lexicon_hu import (
+                load_default_hungarian_lexicon,
+                load_strong_aliases,
+                resolve_hungarian_lexicon_entry,
+            )
+            from bible_engine.morphology_hu import (
+                format_morphology_hu,
+                parse_morphology_hu,
+            )
 
             verses = load_greek_passage_tokens(ref)
+            hu_entries = load_default_hungarian_lexicon() or {}
+            aliases = load_strong_aliases()
             for verse in verses:
                 tokens = []
                 for tok in verse.tokens[:40]:
+                    strong_id = getattr(tok, "strong_id", "") or ""
+                    morph_code = getattr(tok, "morph_code", "") or ""
+                    morph_resolved = ""
+                    if morph_code:
+                        try:
+                            morph_resolved = format_morphology_hu(
+                                parse_morphology_hu(morph_code)
+                            )
+                        except Exception:
+                            morph_resolved = ""
+                    lexical_gloss = ""
+                    lexical_source = ""
+                    if strong_id:
+                        try:
+                            resolution = resolve_hungarian_lexicon_entry(
+                                hu_entries, strong_id, aliases
+                            )
+                            if resolution and resolution.entry:
+                                lexical_gloss = resolution.entry.primary_gloss
+                                lexical_source = resolution.entry.source
+                        except Exception:
+                            lexical_gloss = ""
+                        if not lexical_gloss:
+                            try:
+                                entry = get_tbesg_lexicon_entry(strong_id)
+                                if entry:
+                                    lexical_gloss = entry.gloss or ""
+                                    lexical_source = entry.source_name or "STEPBible TBESG"
+                            except Exception:
+                                pass
                     tokens.append(
                         {
+                            "book": verse.book,
+                            "chapter": verse.chapter,
+                            "verse": verse.verse,
                             "form": getattr(tok, "greek_form", "") or "",
                             "lemma": getattr(tok, "lemma", "") or "",
-                            "morph": getattr(tok, "morph_code", "") or "",
-                            "strong": getattr(tok, "strong_id", "") or "",
+                            "morph": morph_code,
+                            "morph_resolved": morph_resolved,
+                            "strong": strong_id,
+                            "lexical_gloss": lexical_gloss,
+                            "lexical_source": lexical_source,
+                            "source_id": "TAGNT",
+                            "data_version": ORIGINAL_LANGUAGE_DATA_VERSION,
                             "index": getattr(tok, "word_index", 0),
                         }
                     )
@@ -230,37 +286,93 @@ class LocalOriginalLanguageProvider:
             pass
         if items:
             return items
-        # OT — héber (ha elérhető)
+        # OT — héber (TAHOT SQLite)
         try:
-            from bible_engine.hebrew_token_repository import load_hebrew_passage_tokens
+            from bible_engine.hebrew_books import parse_hebrew_reference
+            from bible_engine.hebrew_lexicon_hu import HebrewHungarianLexiconRepository
+            from bible_engine.hebrew_token_repository import (
+                default_hebrew_token_repository,
+            )
 
-            verses = load_hebrew_passage_tokens(ref)
-            for verse in verses:
-                tokens = []
-                for tok in getattr(verse, "tokens", ())[:40]:
-                    tokens.append(
-                        {
-                            "form": getattr(tok, "surface", "")
-                            or getattr(tok, "hebrew_form", "")
-                            or "",
-                            "lemma": getattr(tok, "lemma", "") or "",
-                            "morph": getattr(tok, "morph_code", "")
-                            or getattr(tok, "morphology", "")
-                            or "",
-                            "strong": getattr(tok, "strong_id", "") or "",
-                            "index": getattr(tok, "word_index", 0),
-                        }
-                    )
-                if tokens:
-                    items.append(
-                        {
-                            "language": "hebrew",
-                            "verse": getattr(verse, "verse", 0),
-                            "chapter": getattr(verse, "chapter", 0),
-                            "book": getattr(verse, "book", ""),
-                            "tokens": tokens,
-                        }
-                    )
+            book, chapter, verse_start, verse_end = parse_hebrew_reference(ref)
+            repo = default_hebrew_token_repository()
+            result = repo.passage(
+                book, chapter, verse_start, verse_end
+            )
+            if result.status != "ok" or not result.tokens:
+                return items
+            lexicon_repo = HebrewHungarianLexiconRepository()
+            by_verse: dict[int, list[dict[str, Any]]] = {}
+            for tok in result.tokens:
+                vno = int(getattr(tok, "verse", 0) or 0)
+                strongs = getattr(tok, "strong_ids", ()) or ()
+                strong = ""
+                if isinstance(strongs, (list, tuple)) and strongs:
+                    strong = str(strongs[0] or "")
+                morph_code = getattr(tok, "morphology_code", "") or ""
+                morph_resolved = ""
+                if morph_code:
+                    try:
+                        decoded = repo.morphology(tok)
+                        morph_resolved = " ".join(
+                            str(x or "").strip()
+                            for x in (
+                                decoded.language,
+                                decoded.part_of_speech,
+                                decoded.verb_stem,
+                                decoded.verb_conjugation,
+                                decoded.person,
+                                decoded.gender,
+                                decoded.number,
+                                decoded.state,
+                                decoded.english_expansion,
+                            )
+                            if str(x or "").strip()
+                        )
+                    except Exception:
+                        morph_resolved = ""
+                lexical_gloss = getattr(tok, "english_gloss", "") or ""
+                lexical_source = "TAHOT"
+                if strong:
+                    try:
+                        resolution = lexicon_repo.lookup(strong)
+                        if resolution.entry:
+                            lexical_gloss = resolution.entry.base_meaning_hu
+                            lexical_source = resolution.entry.source
+                        elif resolution.tbesh_fallback and resolution.tbesh_fallback.entry:
+                            lexical_gloss = resolution.tbesh_fallback.entry.gloss
+                            lexical_source = resolution.source or "STEPBible TBESH"
+                    except Exception:
+                        pass
+                entry = {
+                    "book": book,
+                    "chapter": chapter,
+                    "verse": vno,
+                    "form": getattr(tok, "surface", "") or "",
+                    "lemma": getattr(tok, "lemma", "") or "",
+                    "morph": morph_code,
+                    "morph_resolved": morph_resolved,
+                    "strong": strong,
+                    "lexical_gloss": lexical_gloss,
+                    "lexical_source": lexical_source,
+                    "source_id": "TAHOT/TBESH",
+                    "data_version": ORIGINAL_LANGUAGE_DATA_VERSION,
+                    "index": getattr(tok, "word_index", 0),
+                }
+                by_verse.setdefault(vno, []).append(entry)
+            for vno in sorted(by_verse):
+                toks = by_verse[vno][:40]
+                if not toks:
+                    continue
+                items.append(
+                    {
+                        "language": "hebrew",
+                        "verse": vno,
+                        "chapter": chapter,
+                        "book": book,
+                        "tokens": toks,
+                    }
+                )
         except Exception:
             pass
         return items
@@ -365,6 +477,17 @@ def build_outline_context(
     original_prose = _strip_raw_markdown(
         _truncate(_s(bundle.get("original_text")), 1600)
     )
+    exegetical_core_data: dict[str, Any] = {}
+    try:
+        from exegetical_core import get_cached_core
+
+        cached_core = get_cached_core(session_state, reference=ref, bible_text=bible)
+        if cached_core is not None:
+            exegetical_core_data = cached_core.to_prompt_dict()
+            exegesis = cached_core.to_prompt_summary()
+            original_prose = ""
+    except Exception:
+        exegetical_core_data = {}
 
     sw = (
         dict(sermon_workshop)
@@ -420,6 +543,7 @@ def build_outline_context(
         theology=theology,
         history=history,
         original_text_prose=original_prose,
+        exegetical_core=exegetical_core_data,
         approved_insights=insights,
         approved_sermon_decisions=decisions,
         sermon_main_idea=_s(bundle.get("sermon_main_idea")),
@@ -488,8 +612,8 @@ def build_outline_context(
         SourceBlock(
             kind="exegetical_material",
             priority=SourcePriority.EXEGETICAL_BACKGROUND,
-            available=bool(exegesis),
-            origin="workshop_or_tab",
+            available=bool(exegesis or exegetical_core_data),
+            origin="exegetical_core" if exegetical_core_data else "workshop_or_tab",
             payload=_truncate(exegesis, 2000) if exegesis else None,
         ),
         SourceBlock(
@@ -515,6 +639,7 @@ def build_outline_context(
         "available_kinds": [s.kind for s in sources if s.available],
         "original_language_token_verses": len(original_data),
         "has_raw_markdown_cleaned": True,
+        "has_exegetical_core": bool(exegetical_core_data),
     }
     return ctx
 
@@ -533,6 +658,8 @@ def outline_context_to_legacy_bundle(ctx: OutlineContext) -> dict[str, Any]:
         bundle["history"] = ctx.history
     if ctx.original_text_prose:
         bundle["original_text"] = ctx.original_text_prose
+    if ctx.exegetical_core:
+        bundle["exegetical_core"] = ctx.exegetical_core
     if ctx.outline_basket:
         bundle["outline_basket"] = ctx.outline_basket
     if ctx.homiletical_preferences:
@@ -564,6 +691,7 @@ def outline_context_to_legacy_bundle(ctx: OutlineContext) -> dict[str, Any]:
         "passage_reference",
         "passage_text",
         "original_language_data",
+        "exegetical_core",
         "exegesis",
         "context_mode",
     ):
