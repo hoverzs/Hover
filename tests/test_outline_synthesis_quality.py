@@ -82,16 +82,14 @@ def _assert_usable_outline(outline: dict) -> str:
 
 
 def test_system_prompt_contains_homiletic_core():
-    assert "igehirdető" in HOMILETIC_SYSTEM_PROMPT.casefold() or "homiletikai" in HOMILETIC_SYSTEM_PROMPT.casefold()
+    assert "igehirdető" in HOMILETIC_SYSTEM_PROMPT.casefold() or "teológus" in HOMILETIC_SYSTEM_PROMPT.casefold()
     assert "prédikációvázlat" in HOMILETIC_SYSTEM_PROMPT.casefold() or "vázlat" in HOMILETIC_SYSTEM_PROMPT.casefold()
-    assert "850" in HOMILETIC_SYSTEM_PROMPT
-    assert "300" in HOMILETIC_SYSTEM_PROMPT and "500" in HOMILETIC_SYSTEM_PROMPT
-    assert "JSON" in HOMILETIC_SYSTEM_PROMPT
-    assert "textual_insight" in HOMILETIC_SYSTEM_PROMPT or "movements" in HOMILETIC_SYSTEM_PROMPT
-    assert "TILOS" in HOMILETIC_SYSTEM_PROMPT
+    assert "MARKDOWN" in HOMILETIC_SYSTEM_PROMPT
+    assert "Fókuszmondat" in HOMILETIC_SYSTEM_PROMPT
     assert "háttéranyag" in HOMILETIC_SYSTEM_PROMPT.casefold()
-    assert "refinement" in HOMILETIC_SYSTEM_PROMPT.casefold()
     assert "gyakorlati" in HOMILETIC_SYSTEM_PROMPT.casefold()
+    assert "A textus mozgása" in HOMILETIC_SYSTEM_PROMPT  # tiltott példa
+    assert "Ne jelezd" in HOMILETIC_SYSTEM_PROMPT or "ne jelezd" in HOMILETIC_SYSTEM_PROMPT.casefold()
 
 
 def test_soft_length_ranges_match_working_outline_targets():
@@ -343,10 +341,12 @@ def test_prompt_dynamic_background_vs_passage_only_in_assembly():
         bare, generate_fn=gen_ok, synthesize=True, force_overwrite=True
     )
     assert bare_result.ok, bare_result.error_message
-    outline_prompts = [p for p in captured if "BIBLIAI TEXTUS" in p]
+    outline_prompts = [
+        p for p in captured if "BIBLIAI SZÖVEG" in p or "IGEHELY:" in p
+    ]
     assert outline_prompts, captured
     assert "HÁTTÉRANYAG" not in outline_prompts[0]
-    assert "kizárólag a fenti bibliai textus" in outline_prompts[0].casefold()
+    assert "csak a fenti bibliai textus" in outline_prompts[0].casefold()
 
     rich = dict(bare)
     rich["exegesis"] = "Júdás a gúnyolódók ellen figyelmeztet, majd a megmaradásra hív."
@@ -360,7 +360,7 @@ def test_prompt_dynamic_background_vs_passage_only_in_assembly():
     prompt = build_outline_user_prompt(bundle, mode="workshop")
     assert "HÁTTÉRANYAG" in prompt
     assert "gúnyolódók ellen" in prompt
-    assert "kizárólag a fenti bibliai textus" not in prompt.casefold()
+    assert "csak a fenti bibliai textus" not in prompt.casefold()
 
     captured.clear()
     rich_result = assemble_sermon_outline(

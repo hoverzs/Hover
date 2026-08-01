@@ -10711,8 +10711,12 @@ def flush_sermon_workshop_from_widgets() -> None:
     vázlatként” gombbal elmentett mezők se vesszenek el — ugyanaz a minta,
     mint a Bibliai szöveg `save_bible_text_from_widgets` hívása.
     Nem változtatja a jóváhagyási státuszokat (draft/approved).
+    Projektváltás után, ha a UI-resync még nem futott, előbb a tartós
+    adatból frissíti a widgeteket, hogy régi session-érték ne írjon felül
+    (ugyanaz a minta, mint a Textusműhely flush).
     """
     ensure_sermon_workshop_state(st.session_state)
+    _apply_sw_ui_resync_if_needed()
 
     if _KEY_SERMON_IDEA in st.session_state:
         update_sermon_workshop_section(

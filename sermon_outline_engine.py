@@ -216,73 +216,47 @@ Kizárólag JSON:
 }
 """
 
-OUTLINE_SYSTEM_PROMPT = f"""\
-Tevékenység: Tapasztalt, teológiailag érett igehirdető és homiletikai szakértő vagy.
+OUTLINE_SYSTEM_PROMPT = """\
+SZEREP:
+Te egy magas szinten képzett teológus, exegéta és tapasztalt igehirdető vagy. Feladatod egy mély, teológiailag megalapozott, mégis gyakorlatias, 'szószékre kész' prédikációvázlat összeállítása.
 
-A feladatod egy szószékre kész, gyakorlatias, logikusan felépített prédikációvázlat
-készítése a megadott bibliai igeszakasz alapján.
+BEMENET KEZELÉSE:
+1. Ha a kérés tartalmaz háttéranyagot (exegézis, kortörténet stb.), szintetizáld azokat a vázlatba.
+2. HA NINCS HÁTTÉRANYAG megadva (csak a bibliai ige), akkor NEked kell elvégezned a háttérmunkát! Ilyenkor a vázlat megírása közben önállóan tárj fel 1-2 kulcsfontosságú eredeti (héber/görög) szót, vizsgáld meg a történelmi kontextust, és ezeket a felismeréseket szervesen építsd be a vázlatba. Ne jelezd, hogy hiányzik az adat, egyszerűen csak dolgozz a saját teológiai tudásodból!
 
-SÉMAVERZIÓ: {SCHEMA_VERSION}
-MOTOR: {ENGINE_VERSION}
+STÍLUS ÉS HANGVÉTEL:
+- Szikár, jól áttekinthető, lényegretörő (tőmondatok és 1-2 mondatos, velős kifejtések).
+- Tilos a teológiai bikkfanyelv és a sablonos, üres meta-szöveg (pl. 'A szakasz a bölcsességi irodalomba tartozik...', 'A textus mozgása...'). A hallgatóságnak szóló, életközeli nyelvezetet használj.
+- Tilos a bibliai igeszöveg hosszú, ismétlődő bemásolása!
+- Csak a kért Markdown struktúrát add vissza, semmi bevezető vagy lezáró udvariaskodás!
 
-SZIGORÚ MŰKÖDÉSI SZABÁLYOK:
+KÖTELEZŐ MARKDOWN STRUKTÚRA:
 
-1. ADATFORRÁSOK KEZELÉSE:
-   - Ha a felhasználó biztosított háttéranyagot (exegézis, kortörténet, eredeti
-     szöveg elemzése, teológia, lelkészi döntések), építsd be ezeket a gondolatokat
-     szervesen a vázlatba!
-   - Ha NINCS külön háttéranyag megadva, saját teológiai és homiletikai tudásodra
-     támaszkodva végezd el a szöveg belső logikájának elemzését! Soha ne hivatkozz
-     arra, hogy hiányzik a háttéranyag, és ne írj semmilyen hibaüzenetet vagy
-     mentegetőzést!
-   - A betöltött bibliai textus az elsődleges forrás. Ne találj ki verset.
-   - Hagyd el az ismétlődő, gyenge, bizonytalan vagy ellentmondó háttérelemeket.
+# [A Prédikáció Címe] – [Igehely]
 
-2. FORMAI ÉS TARTALMI KÖVETELMÉNYEK:
-   - Hossz: Kb. 300–500 szó. Legyen lényegretörő, jól áttekinthető.
-     Abszolút felső határ: 850 szó.
-   - Stílus: Életközeli, mély, szószékre illő jegyzet. Kerüld a túl elvont
-     teológiai bikkfanyelvet, de a túl száraz, sablonos tőmondatokat is!
-     Használj világos gondolatmenetet.
-   - Szerkezet (a JSON mezőkbe kódolva):
-     * Főcím & Alapige (`title`, `text_reference`) + fókuszmondat (`focus_sentence`).
-     * Bevezetés (`introduction_direction`): 1–2 rövid pont + 1–2 mondat
-       kifejtés — kapcsolódás a mai ember életéhez, a probléma felvetése.
-     * Főpontok (`movements`, lehetőleg 3, indokolt esetben 2–5):
-       - világos tételmondat a `title` mezőben (igehely nélkül; vers a `verses`-ben);
-       - szövegüzenet / eredeti kontextus: `textual_insight` (1–2 mondat);
-       - teológiai igazság: `theological_emphasis` (1–2 mondat);
-       - gyakorlati alkalmazás: `listener_movement` (mit jelent ez a mai hívő
-         életében? — 1–2 mondat).
-     * Befejezés/Kitekintés (`conclusion_direction`): 1–2 pont — összegző
-       bátorítás, hívás a cselekvésre vagy imádságos reflexióra.
-   - `refinement_suggestions`: 0–2 szerkesztői javaslat (opcionális).
+**Fókuszmondat:** [Egyetlen, dinamikus tételmondat, ami a prédikáció fő üzenetét hordozza a mai hallgató számára.]
 
-TILOS: felvezető szöveg („Íme a vázlat:”); utólagos magyarázat; teljes prédikáció;
-többbekezdéses próza; metaszöveg; „nincs elég anyag” jellegű panasz; kitalált
-nyelvi adat; sabloncímek („A textus megnyitása”, „A központi állítás”).
+---
 
-KÖTELEZŐ KIMENET — kizárólag JSON (ne Markdown, ne próza):
+### 1. Bevezetés és Ráhangolódás
+* **Élethelyzet / Probléma:** [1-2 rövid mondat arról a modern élethelyzetről vagy belső küzdelemről, amire a textus választ ad.]
+* **A Textus Világa (Kontextus):** [Rövid megállapítás az Ige eredeti helyzetéről, hogy áthidaljuk a kortörténeti távolságot.]
 
-{{
-  "title": "string",
-  "text_reference": "string",
-  "scope_note": "string or empty",
-  "focus_sentence": "string",
-  "introduction_direction": "string",
-  "movements": [
-    {{
-      "title": "string without verse ref",
-      "verses": "v. x–y",
-      "textual_insight": "1-2 full sentences",
-      "theological_emphasis": "1-2 clear sentences",
-      "listener_movement": "1-2 concrete pastoral / practical sentences",
-      "transition": ""
-    }}
-  ],
-  "conclusion_direction": "string",
-  "refinement_suggestions": []
-}}
+### 2. [Első Főpont Címe - Lehetőség szerint egy rövid, kifejező tétel]
+* **Igei fókusz:** [Melyik versre vagy gondolatra épül a pont?]
+* **Exegetikai / Eredeti nyelvi mélység:** [Mutasd be a kulcsszó eredeti jelentését vagy a rejtett teológiai összefüggést 1-2 mondatban.]
+* **Gyakorlati alkalmazás:** [Mit jelent ez a mai hívő életében? Hogyan formálja a hétköznapokat?]
+
+### 3. [Második Főpont Címe]
+* **Igei fókusz:** [Vonatkozó igevers/gondolat.]
+* **Exegetikai / Eredeti nyelvi mélység:** [A szöveg belső logikájának vagy egy másik kulcsszónak a kibontása.]
+* **Gyakorlati alkalmazás:** [Konkrét, cselekvésre vagy szemléletváltásra ösztönző gondolat.]
+
+*(Opcionális: 4. [Harmadik Főpont Címe] - Ugyanebben a struktúrában, ha a szöveg hossza/mélysége indokolja.)*
+
+### Befejezés és Útravaló
+* **Összegzés:** [A fő üzenet egy mondatos, bátorító lezárása.]
+* **Személyes döntés / Lépés:** [Egy konkrét kérdés, felhívás, vagy imádságos irány a gyülekezet felé.]
 """
 
 _JSON_SHAPE = """\
@@ -1392,46 +1366,37 @@ def build_outline_user_prompt(
     has_basket = bool(outline_basket)
 
     task_mode_note = (
-        "ÚJ GYORSVÁZLAT: készíts önálló, szószékre vihető vázlatot a textusból."
+        "ÚJ GYORSVÁZLAT: készíts szószékre kész Markdown prédikációvázlatot."
         if mode == "quick"
         else
-        "ÚJ MŰHELYVÁZLAT: készíts önálló, szószékre vihető vázlatot a textusból; "
+        "ÚJ MŰHELYVÁZLAT: készíts szószékre kész Markdown prédikációvázlatot; "
         "a lelkész jóváhagyott döntéseit (ha vannak) építsd be szervesen."
     )
     try:
         from sermon_workshop_outline_synth_ai import (
-            _is_partial_workshop_bundle,
-            outline_length_profile,
             resolve_outline_occasion,
         )
 
-        profile = outline_length_profile(
-            resolve_outline_occasion(bundle),
-            partial=_is_partial_workshop_bundle(bundle),
-        )
-        occasion_block = (
-            f"ALKALOM: {profile['occasion']}\n"
-            f"SÉMAVERZIÓ: {SCHEMA_VERSION}\n"
-            f"CÉLHOSSZ: ~{profile['target_range']} szó "
-            f"(abszolút max {LIMITS['absolute_max_words']}).\n"
-        )
+        occasion = resolve_outline_occasion(bundle)
+        occasion_block = f"ALKALOM: {occasion}\n"
     except Exception:  # noqa: BLE001
-        occasion_block = (
-            f"SÉMAVERZIÓ: {SCHEMA_VERSION}\n"
-            f"CÉLHOSSZ: {LIMITS['target_min_words']}–{LIMITS['target_max_words']} szó "
-            f"(abszolút max {LIMITS['absolute_max_words']}).\n"
-        )
+        occasion_block = ""
 
+    ref = _s(core.get("passage_reference"))
+    passage = _s(core.get("passage_text"))
     parts: list[str] = [
         task_mode_note,
         occasion_block.rstrip(),
-        "Készíts gyakorlatias prédikációvázlatot a rendszerutasítás szerkezete szerint.",
-        "Célhossz kb. 300–500 szó; lehetőleg 3 főpont.",
+        "Add vissza KIZÁRÓLAG a rendszerutasításban megadott Markdown struktúrát.",
+        "Ne írj bevezetőt, magyarázatot vagy udvariaskodást.",
+        "Célhossz kb. 300–500 szó.",
         "",
-        "BIBLIAI TEXTUS (elsődleges és kötelező bemenet):",
+        f"IGEHELY: {ref or '(ismeretlen)'}",
+        "",
+        "BIBLIAI SZÖVEG (textus):",
         wrap_untrusted_content(
             "bibliai_textus",
-            json.dumps(core, ensure_ascii=False),
+            passage or json.dumps(core, ensure_ascii=False),
             limit_name="prompt_context_total",
         ),
     ]
@@ -1440,8 +1405,8 @@ def build_outline_user_prompt(
         parts.extend(
             [
                 "",
-                "HÁTTÉRANYAG (kiegészítő kontextus — építsd be szervesen, "
-                "ne másold mechanikusan):",
+                "HÁTTÉRANYAG (exegézis / kortörténet / eredeti nyelv / műhely — "
+                "szintetizáld szervesen):",
                 wrap_untrusted_content(
                     "háttéranyag",
                     json.dumps(background, ensure_ascii=False),
@@ -1453,9 +1418,9 @@ def build_outline_user_prompt(
         parts.extend(
             [
                 "",
-                "BEMENETI MÓD: kizárólag a fenti bibliai textus áll rendelkezésre.",
-                "Saját teológiai és homiletikai tudásoddal dolgozz a textus "
-                "belső logikájából. Ne említsd, hogy hiányzik háttéranyag.",
+                "BEMENETI MÓD: csak a fenti bibliai textus áll rendelkezésre.",
+                "Végezj mini-exegézist a vázlatban (1–2 kulcsszó, kontextus).",
+                "Ne említsd, hogy hiányzik háttéranyag.",
             ]
         )
 
@@ -1471,8 +1436,119 @@ def build_outline_user_prompt(
             ]
         )
 
-    parts.extend(["", f"KIMENETI SÉMA:\n{_JSON_SHAPE}"])
-    return "\n".join(parts)
+    return "\n".join(p for p in parts if p is not None)
+
+
+def markdown_outline_to_structured(markdown: str) -> dict[str, Any]:
+    """Markdown szószéki vázlat → belső structured séma (UI / validáció)."""
+    text = (markdown or "").strip()
+    data = empty_structured_outline()
+    if not text:
+        return data
+
+    title_m = re.search(r"^#\s+(.+?)(?:\s+[–—-]\s+(.+))?$", text, re.M)
+    if title_m:
+        data["title"] = _s(title_m.group(1))
+        if title_m.group(2):
+            data["text_reference"] = _s(title_m.group(2))
+
+    focus_m = re.search(
+        r"\*\*Fókuszmondat:\*\*\s*(.+?)(?:\n|$)",
+        text,
+        re.I,
+    )
+    if focus_m:
+        data["focus_sentence"] = _s(focus_m.group(1))
+
+    def _bullet(section: str, label: str) -> str:
+        pat = rf"\*\*{re.escape(label)}:\*\*\s*(.+?)(?=\n\s*\*|\n###|\Z)"
+        m = re.search(pat, section, re.I | re.S)
+        return _s(m.group(1)) if m else ""
+
+    intro_m = re.search(
+        r"###\s*1\.[^\n]*\n(.*?)(?=\n###\s*\d|\n###\s*Befejezés|\Z)",
+        text,
+        re.I | re.S,
+    )
+    if intro_m:
+        intro_body = intro_m.group(1)
+        life = _bullet(intro_body, "Élethelyzet / Probléma") or _bullet(
+            intro_body, "Élethelyzet"
+        )
+        ctx = _bullet(intro_body, "A Textus Világa (Kontextus)") or _bullet(
+            intro_body, "A Textus Világa"
+        )
+        data["introduction_direction"] = " ".join(x for x in (life, ctx) if x).strip()
+
+    points: list[dict[str, Any]] = []
+    for m in re.finditer(
+        r"###\s*([2-5])\.\s*(.+?)\n(.*?)(?=\n###\s*(?:[2-5]\.|Befejezés)|\Z)",
+        text,
+        re.I | re.S,
+    ):
+        body = m.group(3)
+        igei = _bullet(body, "Igei fókusz")
+        exe = _bullet(body, "Exegetikai / Eredeti nyelvi mélység") or _bullet(
+            body, "Exegetikai"
+        )
+        app = _bullet(body, "Gyakorlati alkalmazás")
+        verses = ""
+        verse_m = re.search(r"(v\.?\s*\d[\d\s,–\-]*\d?)", igei, re.I)
+        if verse_m:
+            verses = verse_m.group(1).strip()
+            if not verses.lower().startswith("v"):
+                verses = f"v. {verses}"
+        points.append(
+            {
+                "title": _s(m.group(2)),
+                "verses": verses or "v. —",
+                "textual_insight": igei
+                or "A textus erre a pontra épít ebben a szakaszban.",
+                "theological_emphasis": exe
+                or "A teológiai súly ebben a gondolatban sűrűsödik.",
+                "listener_movement": app
+                or "A hallgató ezt a felismerést magával viheti a hétköznapokba.",
+                "transition": "",
+            }
+        )
+    if points:
+        data["points"] = points
+        data["movements"] = points
+
+    closing_m = re.search(
+        r"###\s*Befejezés[^\n]*\n(.*)\Z",
+        text,
+        re.I | re.S,
+    )
+    if closing_m:
+        cbody = closing_m.group(1)
+        summary = _bullet(cbody, "Összegzés")
+        step = _bullet(cbody, "Személyes döntés / Lépés") or _bullet(
+            cbody, "Személyes döntés"
+        )
+        data["conclusion_direction"] = " ".join(x for x in (summary, step) if x).strip()
+
+    data["refinement_suggestions"] = []
+    return normalize_structured_outline(data)
+
+
+def _looks_like_markdown_outline(text: str) -> bool:
+    raw = (text or "").strip()
+    if not raw:
+        return False
+    return bool(
+        re.search(r"^#\s+\S", raw, re.M)
+        and (
+            "fókuszmondat" in raw.casefold()
+            or "###" in raw
+            or "**fókuszmondat:**" in raw.casefold()
+        )
+    )
+
+
+def clear_outline_generation_caches(session: MutableMapping[str, Any]) -> None:
+    """Projektváltáskor / új munkánál ürítendő outline AI-cache."""
+    session.pop(RAPID_EVIDENCE_SESSION_KEY, None)
 
 
 def _generate_rapid_evidence(
@@ -1624,6 +1700,7 @@ def _call_generate(
     *,
     system_bundle: str = OUTLINE_SYSTEM_PROMPT,
     temperature: float = DEFAULT_TEMPERATURE,
+    as_json: bool = False,
 ) -> str:
     prev_temp = None
     touched = False
@@ -1636,18 +1713,19 @@ def _call_generate(
     except Exception:  # noqa: BLE001
         touched = False
     try:
+        kwargs: dict[str, Any] = {
+            "enable_google_search": False,
+            "tab_label": TAB_OUTLINE,
+            "use_cache": False,
+            "system_bundle": system_bundle,
+            "include_brevity_directive": False,
+            "max_output_tokens": OUTLINE_MAX_OUTPUT_TOKENS,
+        }
+        if as_json:
+            kwargs["response_mime_type"] = "application/json"
+            kwargs["response_schema"] = OUTLINE_RESPONSE_SCHEMA
         try:
-            return generate_fn(
-                prompt,
-                enable_google_search=False,
-                tab_label=TAB_OUTLINE,
-                use_cache=False,
-                system_bundle=system_bundle,
-                include_brevity_directive=False,
-                max_output_tokens=OUTLINE_MAX_OUTPUT_TOKENS,
-                response_mime_type="application/json",
-                response_schema=OUTLINE_RESPONSE_SCHEMA,
-            )
+            return generate_fn(prompt, **kwargs)
         except TypeError:
             # Teszt / legacy generate_fn signature
             return generate_fn(
@@ -2020,22 +2098,19 @@ def _heuristic_structured_from_bundle(
                     "textual_insight": _one_layer(
                         body,
                         fallback=(
-                            "A textus saját mozgása bontja ki ezt a pontot a "
-                            "betöltött igeszakasz alapján."
+                            "Ez a gondolat a betöltött igeszakasz saját szavaira épül."
                         ),
                     ),
                     "theological_emphasis": _one_layer(
                         exe or original or "",
                         fallback=(
-                            "A teológiai hangsúly abban áll, hogy Isten cselekvése "
-                            "rendezi a hallgató helyzetét."
+                            "Isten cselekvése itt rendezi a hallgató konkrét helyzetét."
                         ),
                     ),
                     "listener_movement": _one_layer(
                         history or "",
                         fallback=(
-                            "A hallgató így konkrét felismerésre jut anélkül, hogy "
-                            "üres felszólítást kapna."
+                            "A hallgató konkrét felismerést vihet magával a hétköznapokba."
                         ),
                     ),
                 }
@@ -2078,29 +2153,44 @@ def _ai_generate_structured(
     generate_fn: GenerateFn,
     seed_outline: Mapping[str, Any] | None = None,
     mode: str = "standard",
-) -> tuple[dict[str, Any] | None, list[str], int]:
-    """Returns (structured|None, warnings, raw_rendered_word_count)."""
+) -> tuple[dict[str, Any] | None, list[str], int, str]:
+    """Returns (structured|None, warnings, raw_word_count, markdown_content)."""
     warnings: list[str] = []
     _ = seed_outline  # seed csak heurisztikus fallbacknél; az AI önálló vázlatot ír
     prompt = build_outline_user_prompt(bundle, mode=mode)
     try:
-        raw = _call_generate(generate_fn, prompt, temperature=0.3)
+        raw = _call_generate(generate_fn, prompt, temperature=0.3, as_json=False)
     except Exception as exc:  # noqa: BLE001
         warnings.append(f"Vázlat AI-hívás sikertelen: {exc}")
-        return None, warnings, 0
+        return None, warnings, 0, ""
     if _is_api_error_text(raw or ""):
         warnings.append("A vázlat AI-válasz hibát jelzett.")
-        return None, warnings, 0
-    obj = extract_json_object(raw or "")
-    if not isinstance(obj, dict):
-        # Raw markdown / prose instead of JSON
-        warnings.append("Érvénytelen JSON vázlatválasz.")
+        return None, warnings, 0, ""
+
+    raw_text = (raw or "").strip()
+    # Elsődleges: Markdown szószéki vázlat
+    if _looks_like_markdown_outline(raw_text):
+        structured = markdown_outline_to_structured(raw_text)
+        # Tartalom: a nyers Markdown marad a megjelenített szöveg
+        md_wc = word_count(raw_text)
         logger.info(
-            "outline_invalid_json schema=%s raw_words=%s",
+            "outline_ai_markdown schema=%s words=%s background=%s",
             SCHEMA_VERSION,
-            word_count(raw or ""),
+            md_wc,
+            bool(extract_outline_background_material(bundle)),
         )
-        return None, warnings, word_count(raw or "")
+        return structured, warnings, md_wc, raw_text
+
+    # Visszafelé kompatibilitás: JSON válasz
+    obj = extract_json_object(raw_text)
+    if not isinstance(obj, dict):
+        warnings.append("Érvénytelen vázlatválasz (sem Markdown, sem JSON).")
+        logger.info(
+            "outline_invalid_response schema=%s raw_words=%s",
+            SCHEMA_VERSION,
+            word_count(raw_text),
+        )
+        return None, warnings, word_count(raw_text), ""
     cleaned = sanitize_ai_json(
         obj,
         allowed_keys={
@@ -2113,7 +2203,6 @@ def _ai_generate_structured(
             "conclusion_direction",
             "refinement_suggestions",
             "schema_version",
-            # Legacy v5 migráció (normalize három rétegre alakítja)
             "subpoints",
             "application",
             "textual_insight",
@@ -2123,17 +2212,17 @@ def _ai_generate_structured(
     )
     if cleaned is None:
         warnings.append("A vázlat JSON biztonsági szűrése sikertelen.")
-        return None, warnings, word_count(raw or "")
+        return None, warnings, word_count(raw_text), ""
     structured = normalize_structured_outline(cleaned)
     raw_wc = word_count(render_structured_outline(structured))
     logger.info(
-        "outline_ai_raw schema=%s rendered_words=%s forbidden=%s background=%s",
+        "outline_ai_json schema=%s rendered_words=%s forbidden=%s background=%s",
         SCHEMA_VERSION,
         raw_wc,
         _has_forbidden_keys(obj),
         bool(extract_outline_background_material(bundle)),
     )
-    return structured, warnings, raw_wc
+    return structured, warnings, raw_wc, ""
 
 
 def _repair_source_context(bundle: Mapping[str, Any], *, rich: bool = False) -> dict[str, Any]:
@@ -2223,7 +2312,7 @@ def _compress_structured(
         f"Kimenet JSON séma:\n{_JSON_SHAPE}"
     )
     try:
-        raw = _call_generate(generate_fn, prompt, temperature=0.2)
+        raw = _call_generate(generate_fn, prompt, temperature=0.2, as_json=True)
     except Exception as exc:  # noqa: BLE001
         warnings.append(f"Tömörítő javítás sikertelen: {exc}")
         return None, warnings
@@ -2264,7 +2353,7 @@ def _enrich_structured(
         f"Kimenet JSON séma:\n{_JSON_SHAPE}"
     )
     try:
-        raw = _call_generate(generate_fn, prompt, temperature=0.35)
+        raw = _call_generate(generate_fn, prompt, temperature=0.35, as_json=True)
     except Exception as exc:  # noqa: BLE001
         warnings.append(f"Mélyítő javítás sikertelen: {exc}")
         return None, warnings
@@ -2531,30 +2620,21 @@ def generate_sermon_outline(
             keys.append("passage_text")
         bundle["source_keys"] = keys
 
-    if generate_fn is not None and not _bundle_has_rich_workshop_material(bundle):
-        rapid = _generate_rapid_evidence(
-            bundle,
-            generate_fn=generate_fn,
-            session=session,
-            context_hash=ctx_hash,
-        )
-        if rapid:
-            bundle["rapid_evidence"] = rapid
-            keys = list(bundle.get("source_keys") or [])
-            if "rapid_evidence" not in keys:
-                keys.append("rapid_evidence")
-            bundle["source_keys"] = keys
+    # A system prompt maga végzi a mini-exegézist háttér nélkül —
+    # ne hívjunk külön rapid_evidence AI-t (kerüljük a sablonos „textus mozgása” csomagot).
+    markdown_content = ""
 
     seed = build_outline_from_workshop(session, sermon_workshop=sw)
     structured: dict[str, Any] | None = None
 
     if generate_fn is not None:
-        structured, ai_warnings, raw_wc = _ai_generate_structured(
+        structured, ai_warnings, raw_wc, markdown_content = _ai_generate_structured(
             bundle, generate_fn=generate_fn, seed_outline=seed, mode=mode
         )
         warnings.extend(ai_warnings)
     if structured is None:
         structured = _heuristic_structured_from_bundle(bundle, seed_outline=seed)
+        markdown_content = ""
 
     passage_for_validation = bundle.get("passage_text") or ""
 
@@ -2808,6 +2888,9 @@ def generate_sermon_outline(
         source=source_tag or "workshop",
         context_hash=ctx_hash,
     )
+    # Markdown generálás: a nyers Markdown a kanonikus megjelenített tartalom
+    if _s(markdown_content):
+        outline["content"] = _s(markdown_content)
     outline["source_fingerprint"] = ctx_hash
     outline["source_sections"] = list(bundle.get("source_keys") or [])
     if generate_fn is None and "sermon_movements" not in (bundle.get("source_keys") or []):
@@ -2873,6 +2956,7 @@ __all__ = [
     "SOFT_QUALITY_ISSUES",
     "OutlineGenerationResult",
     "build_outline_user_prompt",
+    "clear_outline_generation_caches",
     "collect_outline_evidence",
     "compute_context_hash",
     "ensure_passage_text_for_outline",
@@ -2880,6 +2964,7 @@ __all__ = [
     "extract_outline_core_passage_context",
     "extract_verse_numbers",
     "generate_sermon_outline",
+    "markdown_outline_to_structured",
     "mirror_outline_to_session_strings",
     "normalize_structured_outline",
     "outline_needs_refresh",
