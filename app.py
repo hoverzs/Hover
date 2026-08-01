@@ -3833,6 +3833,22 @@ def _sync_inputs_to_last():
     Így minden tab generálás-gombja ugyanazt a forrást használja, és a
     workspace-mentésnél is a legfrissebb állapot kerül exportra.
     """
+    # Projektváltás után a pending widget-szinkron / resync elsőbbséget élvez:
+    # a régi igehely_input / workshop widgetek ne írják felül az új projektet.
+    if st.session_state.get("_pending_project_widget_sync"):
+        _apply_pending_project_widget_sync()
+    try:
+        if st.session_state.get("_sw_ui_resync"):
+            from sermon_workshop_ui import _apply_sw_ui_resync_if_needed
+
+            _apply_sw_ui_resync_if_needed()
+        if st.session_state.get("_tw_ui_resync"):
+            from textus_workshop_ui import _apply_tw_ui_resync_if_needed
+
+            _apply_tw_ui_resync_if_needed()
+    except Exception:  # noqa: BLE001
+        pass
+
     igehely = (st.session_state.get("igehely_input") or "").strip()
     alkalom = st.session_state.get("alkalom_input") or ""
     stilus = st.session_state.get("stilus_input") or ""
@@ -4457,6 +4473,14 @@ def _apply_project_data_to_session(project_data: dict) -> None:
     st.session_state["_tw_ui_resync"] = True
     st.session_state["_sw_ui_resync"] = True
     st.session_state[_BIBLE_TEXT_RESYNC_FLAG] = True
+    # Cross-project AI evidence cache ürítése (ne keveredjen a háttércsomag)
+    st.session_state.pop("_outline_rapid_evidence_cache", None)
+    try:
+        from sermon_outline_engine import clear_outline_generation_caches
+
+        clear_outline_generation_caches(st.session_state)
+    except Exception:  # noqa: BLE001
+        pass
     _queue_project_widget_sync_from_state()
 
 
@@ -4751,6 +4775,14 @@ def _clear_workspace_content() -> None:
     st.session_state["_pending_project_title_input"] = ""
     st.session_state["project_saved_fingerprint"] = ""
     st.session_state[_BIBLE_TEXT_RESYNC_FLAG] = True
+    # Nested workshop állapotok is nullázódjanak (ne maradjon régi vázlat)
+    st.session_state[TEXT_WORKSHOP_KEY] = get_default_text_workshop()
+    st.session_state[SERMON_WORKSHOP_KEY] = get_default_sermon_workshop()
+    ensure_text_workshop_state(st.session_state)
+    ensure_sermon_workshop_state(st.session_state)
+    st.session_state["_tw_ui_resync"] = True
+    st.session_state["_sw_ui_resync"] = True
+    st.session_state.pop("_outline_rapid_evidence_cache", None)
     _queue_project_widget_sync_from_state()
 
 
@@ -6858,6 +6890,10 @@ if not logo_file:
 
 # Flash (mentés/megnyitás utáni üzenet — túléli az st.rerun()-t)
 _render_flash_message()
+
+# Projektváltás után a pending widget-értékek a status bar / dirty-check ELŐTT
+# érvényesüljenek (ne írja felül a régi igehely_input az új projektet).
+_apply_pending_project_widget_sync()
 
 # Állandó projekt-sáv (mentés / dirty / projektek) — a tabok előtt
 _render_project_status_bar()

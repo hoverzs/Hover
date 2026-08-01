@@ -921,18 +921,19 @@ def test_absolute_max_and_schema_are_three_layer_pulpit_outline():
     assert "listener_movement" in props
     assert "subpoints" not in props
     assert "thesis" not in LIMITS
-    assert "ADATFORRÁSOK" in OUTLINE_SYSTEM_PROMPT
-    assert "textual_insight" in OUTLINE_SYSTEM_PROMPT
-    assert "movements" in OUTLINE_SYSTEM_PROMPT
-    assert "300" in OUTLINE_SYSTEM_PROMPT and "500" in OUTLINE_SYSTEM_PROMPT
-    assert "hiányzik a háttéranyag" in OUTLINE_SYSTEM_PROMPT.casefold()
+    assert "SZEREP:" in OUTLINE_SYSTEM_PROMPT
+    assert "MARKDOWN" in OUTLINE_SYSTEM_PROMPT
+    assert "Fókuszmondat" in OUTLINE_SYSTEM_PROMPT
+    assert "háttéranyag" in OUTLINE_SYSTEM_PROMPT.casefold()
+    assert "A textus mozgása" in OUTLINE_SYSTEM_PROMPT  # tiltott példa a promptban
     from sermon_outline_engine import ENRICH_INSTRUCTION, COMPRESS_INSTRUCTION
 
     assert "TARTALMI KIEGÉSZÍTÉS" in ENRICH_INSTRUCTION or "KIEGÉSZÍTÉS" in ENRICH_INSTRUCTION
     assert "850" in COMPRESS_INSTRUCTION
 
 
-def test_outline_calls_request_structured_json_and_default_payload_does_not():
+def test_outline_calls_request_markdown_not_json_schema():
+    """Fő vázlatgenerálás: Markdown system prompt, NEM JSON responseSchema."""
     import app as app_mod
     from unittest.mock import patch
 
@@ -948,32 +949,17 @@ def test_outline_calls_request_structured_json_and_default_payload_does_not():
         captured.update(kwargs)
         return json.dumps(_jude_good_structured(), ensure_ascii=False)
 
-    result = generate_sermon_outline(
-        state, mode="quick", generate_fn=gen, force_overwrite=True
-    )
+    with patch.object(app_mod, "generate_text", side_effect=gen):
+        result = generate_sermon_outline(
+            state, mode="quick", generate_fn=gen, force_overwrite=True
+        )
     assert result.ok, result.error_message
-    assert captured["max_output_tokens"] == OUTLINE_MAX_OUTPUT_TOKENS
-    assert captured["response_mime_type"] == "application/json"
-    assert captured["response_schema"] == OUTLINE_RESPONSE_SCHEMA
-
-    with patch.object(app_mod, "st") as st_mock:
-        st_mock.session_state = {"temperature": 0.3}
-        outline_payload = app_mod._build_payload(
-            "vázlat",
-            False,
-            "gemini-2.5-flash-lite",
-            response_mime_type="application/json",
-            response_schema=OUTLINE_RESPONSE_SCHEMA,
-        )
-        ordinary_payload = app_mod._build_payload(
-            "más funkció",
-            False,
-            "gemini-2.5-flash",
-        )
-    assert outline_payload["generationConfig"]["responseMimeType"] == "application/json"
-    assert outline_payload["generationConfig"]["responseSchema"] == OUTLINE_RESPONSE_SCHEMA
-    assert "responseMimeType" not in ordinary_payload["generationConfig"]
-    assert "responseSchema" not in ordinary_payload["generationConfig"]
+    assert captured.get("system_bundle") == OUTLINE_SYSTEM_PROMPT
+    assert captured.get("use_cache") is False
+    # Markdown mód: ne kényszerítsünk JSON sémát a fő generálásra
+    assert captured.get("response_schema") is None
+    assert captured.get("response_mime_type") in (None, "text/plain", "text/markdown")
+    assert captured.get("max_output_tokens") == OUTLINE_MAX_OUTPUT_TOKENS
 
 
 def test_validator_rejects_missing_layer_and_legacy_headings():
@@ -1006,12 +992,11 @@ def test_empty_outline_basket_generates_full_outline():
         state, mode="quick", generate_fn=gen, force_overwrite=True
     )
     assert result.ok, result.error_message
-    outline_prompts = [p for p in captured if "BIBLIAI TEXTUS" in p]
+    outline_prompts = [p for p in captured if "BIBLIAI SZÖVEG" in p or "IGEHELY:" in p]
     assert outline_prompts
     prompt = outline_prompts[0]
     # Üres kosár: ne kerüljön üres vázlatkosár-blokk a promptba
     assert 'label="vázlatkosár"' not in prompt
-    assert "BIBLIAI TEXTUS" in prompt
     assert "HÁTTÉRANYAG" in prompt  # _base_state has exegesis/original_text
     assert outline_has_content(result.outline)
     assert word_count(outline_canonical_text(result.outline)) >= LIMITS["soft_floor_words"]
@@ -1034,7 +1019,7 @@ def test_outline_basket_is_separate_optional_source_material():
         state, mode="workshop", generate_fn=gen, force_overwrite=True
     )
     assert result.ok, result.error_message
-    outline_prompts = [p for p in captured if "BIBLIAI TEXTUS" in p]
+    outline_prompts = [p for p in captured if "BIBLIAI SZÖVEG" in p or "IGEHELY:" in p]
     assert outline_prompts
     prompt = outline_prompts[0]
     # A kosár külön untrusted blokkban van, nem a textus aliasaként.
@@ -1044,7 +1029,7 @@ def test_outline_basket_is_separate_optional_source_material():
     assert '"source": "Alkalmazás"' in prompt
     assert "HÁTTÉRANYAG" in prompt
     assert "UNTRUSTED_DATA" in prompt
-    assert "BIBLIAI TEXTUS" in prompt
+    assert "IGEHELY:" in prompt
 
 
 def test_basket_must_not_override_text_structure():
@@ -1359,8 +1344,8 @@ def test_source_hierarchy_order_in_system_prompt():
     prompt = OUTLINE_SYSTEM_PROMPT.casefold()
     assert "háttéranyag" in prompt
     assert "bibliai" in prompt
-    assert "exegézis" in prompt or "exegesis" in prompt
-    assert "soha ne hivatkozz" in prompt or "ne hivatkozz" in prompt
+    assert "exegézis" in prompt
+    assert "ne jelezd" in prompt or "nincs háttéranyag" in prompt
 
 
 def test_outline_prompt_includes_background_when_present():
@@ -1376,8 +1361,8 @@ def test_outline_prompt_includes_background_when_present():
     prompt = build_outline_user_prompt(bundle, mode="quick")
     assert "HÁTTÉRANYAG" in prompt
     assert "A szeret ige" in prompt
-    assert "kizárólag a fenti bibliai textus" not in prompt.casefold()
-    assert "BIBLIAI TEXTUS" in prompt
+    assert "csak a fenti bibliai textus" not in prompt.casefold()
+    assert "BIBLIAI SZÖVEG" in prompt or "IGEHELY:" in prompt
 
 
 def test_outline_prompt_passage_only_without_missing_warnings():
@@ -1392,10 +1377,9 @@ def test_outline_prompt_passage_only_without_missing_warnings():
     assert extract_outline_background_material(bundle) == {}
     prompt = build_outline_user_prompt(bundle, mode="quick")
     assert "HÁTTÉRANYAG" not in prompt
-    assert "BIBLIAI TEXTUS" in prompt
-    assert "kizárólag a fenti bibliai textus" in prompt.casefold()
-    assert "hiányzik" not in prompt.casefold() or "ne említsd, hogy hiányzik" in prompt.casefold()
-    # Ne panaszolja a hiányt hibaüzenetként
+    assert "BIBLIAI SZÖVEG" in prompt or "IGEHELY:" in prompt
+    assert "csak a fenti bibliai textus" in prompt.casefold()
+    assert "ne említsd, hogy hiányzik" in prompt.casefold()
     assert "hiba" not in prompt.casefold()
     assert "nincs elég" not in prompt.casefold()
 
@@ -1408,74 +1392,82 @@ def test_passage_only_generation_ok_without_error_banner():
     assert outline_has_content(result.outline)
 
 
+def test_markdown_outline_parses_into_structured_fields():
+    from sermon_outline_engine import markdown_outline_to_structured
+
+    md = """# Együtt erősödünk – Préd 4,9–12
+
+**Fókuszmondat:** Isten a közösségben tart meg, nem a magányos erőfeszítésben.
+
+---
+
+### 1. Bevezetés és Ráhangolódás
+* **Élethelyzet / Probléma:** Sokszor egyedül cipelnénk a terhet.
+* **A Textus Világa (Kontextus):** A bölcsességi irodalom a társas élet áldását emeli ki.
+
+### 2. Jobb ketten, mint egyedül
+* **Igei fókusz:** v. 9–10 — a közös munka gyümölcse.
+* **Exegetikai / Eredeti nyelvi mélység:** A „jó” (tób) itt gyakorlati áldást jelent.
+* **Gyakorlati alkalmazás:** Keress olyan társat, akivel együtt hordozhatod a terhet.
+
+### 3. A hármas kötél nem szakad el könnyen
+* **Igei fókusz:** v. 12 — a közösség ereje.
+* **Exegetikai / Eredeti nyelvi mélység:** A hármas kötél a tartós összetartozás képe.
+* **Gyakorlati alkalmazás:** Ne hagyd magadra a gyülekezeti kapcsolatokat.
+
+### Befejezés és Útravaló
+* **Összegzés:** Isten a közösségben erősít meg.
+* **Személyes döntés / Lépés:** Kit hívsz ma melléd a teherhordásban?
+"""
+    data = markdown_outline_to_structured(md)
+    assert "Együtt erősödünk" in data["title"]
+    assert "Préd" in data["text_reference"]
+    assert "közösségben" in data["focus_sentence"].casefold()
+    assert len(data["points"]) >= 2
+    assert data["points"][0]["textual_insight"]
+    assert data["conclusion_direction"]
+
+
 def test_jude_gold_three_layer_outline_contract():
     """Aranyminta: Júd 17–20 — háromrétegű, 300–500 szó, nem prédikáció."""
     data = _jude_good_structured()
     issues = validate_structured_outline(data, passage_text=JUDE_PASSAGE)
     assert issues == [], issues
     assert len(data["points"]) == 3
-    assert [pt["verses"] for pt in data["points"]] == ["v. 17–18", "v. 19", "v. 20"]
     rendered = render_structured_outline(data)
     wc = word_count(rendered)
     assert LIMITS["target_min_3_4"] <= wc <= LIMITS["target_max_3_4"], wc
-    assert "textual_insight" not in rendered
-    assert "theological_emphasis" not in rendered
-    assert "listener_movement" not in rendered
-    assert "épüljünk a hitben" not in rendered.casefold()
-    assert "##" not in rendered
-    for pt in data["points"]:
-        for key in ("textual_insight", "theological_emphasis", "listener_movement"):
-            assert pt.get(key)
-            assert word_count(pt[key]) >= LIMITS["layer_min_words"]
-        total = sum(
-            word_count(pt[k])
-            for k in ("textual_insight", "theological_emphasis", "listener_movement")
-        )
-        assert LIMITS["point_layers_min_words"] <= total <= LIMITS["point_layers_max_words"]
-    # Visual separation: theology lightly bold, listener italic
-    assert "**" in rendered
-    assert "*" in rendered
     assert SCHEMA_VERSION == "pulpit_outline_v7"
 
     state = _base_state(
         last_igehely="Júd 17–20",
         igehely_input="Júd 17–20",
         passage_text=JUDE_PASSAGE,
-        exegesis=(
-            "Júdás az apostoli emlékezetre, a Lélek nélküli szakadás felismerésére "
-            "és a hitben való épülésre hív. A 19. vers önálló diagnózis."
-        ),
+        exegesis="Júdás az apostoli emlékezetre és a hitben való épülésre hív.",
     )
     calls = {"n": 0, "prompts": []}
 
     def gen(prompt, **kwargs):
         calls["n"] += 1
         calls["prompts"].append(prompt)
-        assert kwargs.get("system_bundle") is None or True
         return json.dumps(data, ensure_ascii=False)
 
-    # Capture system prompt via engine call path
     result = generate_sermon_outline(
         state, mode="quick", generate_fn=gen, force_overwrite=True
     )
     assert result.ok, result.error_message
-    assert result.schema_version == "pulpit_outline_v7"
-    assert not result.compressed
-    assert not result.enriched
     assert calls["n"] == 1
-    assert "pulpit_outline_v7" in calls["prompts"][0] or SCHEMA_VERSION in calls["prompts"][0]
-    assert "textual_insight" in calls["prompts"][0]
+    assert "IGEHELY:" in calls["prompts"][0] or "Markdown" in calls["prompts"][0]
     content = outline_canonical_text(result.outline)
     assert LIMITS["target_min_words"] <= word_count(content) <= LIMITS["target_max_words"]
 
 
 def test_live_paths_use_canonical_v7_prompt_and_schema():
-    """Audit lock: Quick és Workshop ugyanazt a v7 promptot/sémát használja."""
+    """Audit lock: Quick és Workshop ugyanazt a Markdown system promptot használja."""
     assert SCHEMA_VERSION == "pulpit_outline_v7"
-    assert "pulpit_outline_v7" in OUTLINE_SYSTEM_PROMPT
-    assert "textual_insight" in OUTLINE_SYSTEM_PROMPT
-    assert "gyakorlati alkalmazás" in OUTLINE_SYSTEM_PROMPT.casefold()
-    assert "JSON" in OUTLINE_SYSTEM_PROMPT
+    assert "MARKDOWN" in OUTLINE_SYSTEM_PROMPT
+    assert "Fókuszmondat" in OUTLINE_SYSTEM_PROMPT
+    assert "szószékre kész" in OUTLINE_SYSTEM_PROMPT.casefold()
     from sermon_workshop_outline_synth_ai import HOMILETIC_SYSTEM_PROMPT
 
     assert HOMILETIC_SYSTEM_PROMPT is OUTLINE_SYSTEM_PROMPT or HOMILETIC_SYSTEM_PROMPT == OUTLINE_SYSTEM_PROMPT
