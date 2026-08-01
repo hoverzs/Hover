@@ -171,7 +171,7 @@ def outline_length_profile(
         guidance += " Részleges anyag: teljes szerkezet, kissé rövidebb OK."
     return {
         "occasion": occ or "Vasárnapi istentisztelet",
-        "soft_min": max(300, soft_min),
+        "soft_min": max(220, soft_min),
         "soft_max": soft_max,
         "target_range": target,
         "min_movements": min_movements,

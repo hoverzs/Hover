@@ -73,17 +73,17 @@ LIMITS = {
     "min_points": 2,
     "max_points": 5,
     "default_points": 3,
-    # Soft céltartományok pontszám szerint (abszolút max mindig 850).
-    # Tőmondatos szószéki jegyzet — rövidebb, mint a korábbi prózai tartomány.
-    "target_min_words": 280,
-    "target_max_words": 520,
-    "target_min_2": 250,
-    "target_max_2": 400,
-    "target_min_3_4": 280,
-    "target_max_3_4": 520,
-    "target_min_5": 400,
-    "target_max_5": 650,
-    "soft_floor_words": 280,
+    # Soft céltartományok (abszolút max mindig 850).
+    # Gyakorlatias szószéki jegyzet: kb. 300–500 szó.
+    "target_min_words": 300,
+    "target_max_words": 500,
+    "target_min_2": 280,
+    "target_max_2": 420,
+    "target_min_3_4": 300,
+    "target_max_3_4": 500,
+    "target_min_5": 380,
+    "target_max_5": 600,
+    "soft_floor_words": 250,
     "absolute_max_words": 850,
     "max_prose_block_words": 140,
     "refinement_max": 2,
@@ -217,85 +217,52 @@ Kizárólag JSON:
 """
 
 OUTLINE_SYSTEM_PROMPT = f"""\
-SZEREP ÉS CÉL
+Tevékenység: Tapasztalt, teológiailag érett igehirdető és homiletikai szakértő vagy.
 
-Tapasztalt, biblikus, református szemléletű homiletikai szerkesztő vagy.
-Feladatod egy kanonikus SZÓSZÉKI GONDOLATVÁZLAT (`movements`) készítése:
-konkrét textuális felismeréssel, teológiai hangsúllyal és hallgatói úttal.
-Nem kész prédikáció, nem hosszú kommentár, nem kétsoros séma.
+A feladatod egy szószékre kész, gyakorlatias, logikusan felépített prédikációvázlat
+készítése a megadott bibliai igeszakasz alapján.
 
 SÉMAVERZIÓ: {SCHEMA_VERSION}
 MOTOR: {ENGINE_VERSION}
 
-BELSŐ MUNKAMENET (csendben)
+SZIGORÚ MŰKÖDÉSI SZABÁLYOK:
 
-1. A betöltött bibliai szöveg belső szerkezete: központi állítás, egységek,
-   feszültség, fordulat, megérkezés.
-2. Mit mond/tesz a textus, és milyen felismerés/válasz felé vezet.
-3. A textus természetes mozgása szerint 2–5 movement (ne ragaszkodj mindig 3-hoz).
-4. Szelektíven: exegézis, nyelvi megfigyelés, kortörténet, lelkész fókusza,
-   alkalom, félretett kosárelemek, gyors háttércsomag — a textus elsőbbségével.
-5. Hagyd el az ismétlődő, gyenge, bizonytalan vagy ellentmondó elemeket.
+1. ADATFORRÁSOK KEZELÉSE:
+   - Ha a felhasználó biztosított háttéranyagot (exegézis, kortörténet, eredeti
+     szöveg elemzése, teológia, lelkészi döntések), építsd be ezeket a gondolatokat
+     szervesen a vázlatba!
+   - Ha NINCS külön háttéranyag megadva, saját teológiai és homiletikai tudásodra
+     támaszkodva végezd el a szöveg belső logikájának elemzését! Soha ne hivatkozz
+     arra, hogy hiányzik a háttéranyag, és ne írj semmilyen hibaüzenetet vagy
+     mentegetőzést!
+   - A betöltött bibliai textus az elsődleges forrás. Ne találj ki verset.
+   - Hagyd el az ismétlődő, gyenge, bizonytalan vagy ellentmondó háttérelemeket.
 
-FORRÁSHIERARCHIA
+2. FORMAI ÉS TARTALMI KÖVETELMÉNYEK:
+   - Hossz: Kb. 300–500 szó. Legyen lényegretörő, jól áttekinthető.
+     Abszolút felső határ: 850 szó.
+   - Stílus: Életközeli, mély, szószékre illő jegyzet. Kerüld a túl elvont
+     teológiai bikkfanyelvet, de a túl száraz, sablonos tőmondatokat is!
+     Használj világos gondolatmenetet.
+   - Szerkezet (a JSON mezőkbe kódolva):
+     * Főcím & Alapige (`title`, `text_reference`) + fókuszmondat (`focus_sentence`).
+     * Bevezetés (`introduction_direction`): 1–2 rövid pont + 1–2 mondat
+       kifejtés — kapcsolódás a mai ember életéhez, a probléma felvetése.
+     * Főpontok (`movements`, lehetőleg 3, indokolt esetben 2–5):
+       - világos tételmondat a `title` mezőben (igehely nélkül; vers a `verses`-ben);
+       - szövegüzenet / eredeti kontextus: `textual_insight` (1–2 mondat);
+       - teológiai igazság: `theological_emphasis` (1–2 mondat);
+       - gyakorlati alkalmazás: `listener_movement` (mit jelent ez a mai hívő
+         életében? — 1–2 mondat).
+     * Befejezés/Kitekintés (`conclusion_direction`): 1–2 pont — összegző
+       bátorítás, hívás a cselekvésre vagy imádságos reflexióra.
+   - `refinement_suggestions`: 0–2 szerkesztői javaslat (opcionális).
 
-1. Betöltött bibliai szöveg és indokolt határa.
-2. Felhasználó jóváhagyott döntései.
-3. Saját megjegyzések, alkalmi és életrajzi adatok (pásztori hang, textus nélkül).
-4. Mentett exegetikai / nyelvi / történeti / teológiai anyag.
-5. Vázlatkosár tudatos elemei.
-6. Gyors háttérelemzés.
-7. Nem jóváhagyott MI-javaslat csak háttérként.
+TILOS: felvezető szöveg („Íme a vázlat:”); utólagos magyarázat; teljes prédikáció;
+többbekezdéses próza; metaszöveg; „nincs elég anyag” jellegű panasz; kitalált
+nyelvi adat; sabloncímek („A textus megnyitása”, „A központi állítás”).
 
-Üres vázlatkosár nem hiány. Teljes, konkrét vázlatot készíts csak igehely +
-betöltött szöveg (+ opcionális gyors háttér) alapján is. Ne jelezd a hiányt
-a vázlatban, és ne töltsd ki közhelyekkel. Ha nincs exegézis / kortörténet /
-eredeti nyelvi anyag, a betöltött bibliai szövegből állíts össze szószékre
-vihető, tőmondatos jegyzetet rövid címekkel és 1–1 mondatos rétegekkel.
-
-Ne találj ki verset vagy bizonytalan nyelvi adatot. Ugyanazt a verset ne bontsd
-automatikusan több mozgásra. Párhuzamos felszólításokat tarts egyben, ha egy
-mozgalmat alkotnak. Alkalmi/életrajzi adat ne írja felül a textust, és ne
-állíts igazolhatatlan üdvbizonyosságot.
-
-Az evangéliumi vagy krisztológiai kapcsolat, Krisztus és a kegyelemhorizont
-csak akkor jelenjen meg, ha textuálisan és kánonilag indokolható.
-
-MOZGÁS (minden movement)
-
-- rövid tartalmi `title` + `verses`
-- `textual_insight`: 1–2 mondat — mit mond/tesz a textus ebben a mozgásban
-- `theological_emphasis`: egy világos mondat a teológiai súlypontról
-- `listener_movement`: konkrét, kegyelmi/pásztori irány — ne általános felszólítás
-- `transition`: csak ha valóban segíti az előrehaladást; különben üres
-
-A három tartalmi réteg legyen egymástól megkülönböztethető; ne másold át
-ugyanazt a mondatot. Kerüld a sabloncímeket („A textus megnyitása”,
-„A központi állítás”, „A kegyelmi megérkezés”).
-
-MEZŐK
-
-- `title`, `text_reference`, `scope_note` (csak valódi határkérdésnél)
-- `focus_sentence`: egy konkrét, textusból következő állítás
-- `introduction_direction`: 1–2 tartalmi mondat, nem kész bevezető
-- `movements`: 2–5
-- `conclusion_direction`: 1–2 mondatos megérkezés
-- `refinement_suggestions`: 0–2 hasznos szerkesztői javaslat
-
-HOSSZ (tartalom elsőbbségével)
-
-- Alapforma: tőmondatos szószéki JEGYZET (nem beszéd, nem kommentár).
-- 2 mozgás: ~250–400 szó
-- 3–4 mozgás: ~280–520 szó
-- 5 mozgás: legfeljebb ~650 szó
-- Kemény felső korlát: 850 szó. Az alsó tartomány minőségi jelzés, nem öncél.
-- Ha kevés a háttéranyag: rövid, konkrét, textus-alapú jegyzet — ne jelezd a hiányt.
-
-TILOS: teljes prédikáció; többbekezdéses próza; félmondat; `points` / `subpoints`
-/ `application` / `body` / `thesis` mezők; metaszöveg; üres közhelyek;
-„nincs elég anyag” jellegű panasz a vázlatban.
-
-KÖTELEZŐ KIMENET — kizárólag JSON:
+KÖTELEZŐ KIMENET — kizárólag JSON (ne Markdown, ne próza):
 
 {{
   "title": "string",
@@ -308,8 +275,8 @@ KÖTELEZŐ KIMENET — kizárólag JSON:
       "title": "string without verse ref",
       "verses": "v. x–y",
       "textual_insight": "1-2 full sentences",
-      "theological_emphasis": "one clear sentence",
-      "listener_movement": "one concrete pastoral sentence",
+      "theological_emphasis": "1-2 clear sentences",
+      "listener_movement": "1-2 concrete pastoral / practical sentences",
       "transition": ""
     }}
   ],
@@ -320,25 +287,56 @@ KÖTELEZŐ KIMENET — kizárólag JSON:
 
 _JSON_SHAPE = """\
 {
-  "title": "Rövid, megjegyezhető cím",
+  "title": "Figyelemfelkeltő, lényegre törő cím",
   "text_reference": "Igehely",
   "scope_note": "",
-  "focus_sentence": "Egy konkrét fókuszmondat.",
-  "introduction_direction": "Bevezetési irány (1–2 mondat).",
+  "focus_sentence": "Egy konkrét fókuszmondat a textusból.",
+  "introduction_direction": "Bevezetés: mai élet + probléma (1-2 pont / 1-2 mondat).",
   "movements": [
     {
-      "title": "Mozgás cím igehely nélkül",
+      "title": "Világos tételmondat igehely nélkül",
       "verses": "v. x–y",
-      "textual_insight": "Mit állít / milyen mozgást végez a textus.",
-      "theological_emphasis": "Teológiai súlypont.",
-      "listener_movement": "Konkrét hallgatói / pásztori irány.",
+      "textual_insight": "Szövegüzenet / kontextus (1-2 mondat).",
+      "theological_emphasis": "Teológiai igazság (1-2 mondat).",
+      "listener_movement": "Gyakorlati alkalmazás a mai hívő életére (1-2 mondat).",
       "transition": ""
     }
   ],
-  "conclusion_direction": "Megérkezés (1–2 mondat).",
+  "conclusion_direction": "Befejezés / kitekintés: bátorítás vagy imádságos reflexió.",
   "refinement_suggestions": []
 }
 """
+
+# Háttéranyag-kulcsok: ha bármelyik érdemi, a promptba kerül kiegészítő kontextusként.
+_BACKGROUND_BUNDLE_KEYS: tuple[str, ...] = (
+    "exegesis",
+    "original_text",
+    "theology",
+    "history",
+    "approved_sermon_decisions",
+    "approved_insights",
+    "sermon_main_idea",
+    "text_main_idea",
+    "human_condition",
+    "listener_tension",
+    "christ_centered_arc",
+    "sermon_path",
+    "sermon_movements",
+    "closing",
+    "user_notes",
+    "rapid_evidence",
+    "language_notes",
+    "historical_notes",
+)
+
+_CORE_PASSAGE_KEYS: tuple[str, ...] = (
+    "passage_reference",
+    "passage_text",
+    "project_title",
+    "occasion",
+    "user_focus",
+    "bible_translation",
+)
 
 # Gemini responseSchema — kanonikus movements.
 OUTLINE_RESPONSE_SCHEMA: dict[str, Any] = {
@@ -1324,23 +1322,157 @@ def ensure_passage_text_for_outline(
     return True, ""
 
 
+def _background_value_is_usable(value: Any) -> bool:
+    """True, ha a háttérmező nem üres / None / csak hiányjelző."""
+    if value is None:
+        return False
+    if isinstance(value, str):
+        text = value.strip()
+        if not text:
+            return False
+        markers = (
+            "nincs kidolgozva",
+            "nincs adat",
+            "hiányzik",
+            "placeholder",
+            "n/a",
+            "—",
+            "-",
+        )
+        return text.casefold() not in markers
+    if isinstance(value, Mapping):
+        return any(_background_value_is_usable(v) for v in value.values())
+    if isinstance(value, (list, tuple, set)):
+        return any(_background_value_is_usable(v) for v in value)
+    return bool(value)
+
+
+def extract_outline_background_material(bundle: Mapping[str, Any]) -> dict[str, Any]:
+    """Érdemi háttéranyagok (exegézis, nyelv, kortörténet, műhelydöntések…)."""
+    background: dict[str, Any] = {}
+    for key in _BACKGROUND_BUNDLE_KEYS:
+        if key not in bundle:
+            continue
+        value = bundle.get(key)
+        if _background_value_is_usable(value):
+            background[key] = value
+    return background
+
+
 def _bundle_has_rich_workshop_material(bundle: Mapping[str, Any]) -> bool:
-    keys = (
-        "exegesis",
-        "original_text",
-        "theology",
-        "history",
-        "approved_sermon_decisions",
-        "approved_insights",
-        "sermon_main_idea",
-        "text_main_idea",
-        "human_condition",
-        "listener_tension",
-        "christ_centered_arc",
-        "sermon_path",
-        "sermon_movements",
+    return bool(extract_outline_background_material(bundle))
+
+
+def extract_outline_core_passage_context(bundle: Mapping[str, Any]) -> dict[str, Any]:
+    """Mindig átadott alapbemenet: igehely + bibliai szöveg (+ alkalom/fókusz)."""
+    core: dict[str, Any] = {}
+    for key in _CORE_PASSAGE_KEYS:
+        value = bundle.get(key)
+        if value not in (None, "", [], {}):
+            core[key] = value
+    # Gyakori aliasok a session/collector oldaláról
+    if "passage_reference" not in core:
+        for alt in ("last_igehely", "igehely_input", "passage_reference"):
+            if _s(bundle.get(alt)):
+                core["passage_reference"] = _s(bundle.get(alt))
+                break
+    return core
+
+
+def build_outline_user_prompt(
+    bundle: Mapping[str, Any],
+    *,
+    mode: str = "standard",
+) -> str:
+    """Dinamikus user-prompt: textus mindig; háttér csak ha van érdemi anyag."""
+    core = extract_outline_core_passage_context(bundle)
+    background = extract_outline_background_material(bundle)
+    outline_basket = bundle.get("outline_basket") or []
+    has_background = bool(background)
+    has_basket = bool(outline_basket)
+
+    task_mode_note = (
+        "ÚJ GYORSVÁZLAT: készíts önálló, szószékre vihető vázlatot a textusból."
+        if mode == "quick"
+        else
+        "ÚJ MŰHELYVÁZLAT: készíts önálló, szószékre vihető vázlatot a textusból; "
+        "a lelkész jóváhagyott döntéseit (ha vannak) építsd be szervesen."
     )
-    return any(bundle.get(k) not in (None, "", [], {}) for k in keys)
+    try:
+        from sermon_workshop_outline_synth_ai import (
+            _is_partial_workshop_bundle,
+            outline_length_profile,
+            resolve_outline_occasion,
+        )
+
+        profile = outline_length_profile(
+            resolve_outline_occasion(bundle),
+            partial=_is_partial_workshop_bundle(bundle),
+        )
+        occasion_block = (
+            f"ALKALOM: {profile['occasion']}\n"
+            f"SÉMAVERZIÓ: {SCHEMA_VERSION}\n"
+            f"CÉLHOSSZ: ~{profile['target_range']} szó "
+            f"(abszolút max {LIMITS['absolute_max_words']}).\n"
+        )
+    except Exception:  # noqa: BLE001
+        occasion_block = (
+            f"SÉMAVERZIÓ: {SCHEMA_VERSION}\n"
+            f"CÉLHOSSZ: {LIMITS['target_min_words']}–{LIMITS['target_max_words']} szó "
+            f"(abszolút max {LIMITS['absolute_max_words']}).\n"
+        )
+
+    parts: list[str] = [
+        task_mode_note,
+        occasion_block.rstrip(),
+        "Készíts gyakorlatias prédikációvázlatot a rendszerutasítás szerkezete szerint.",
+        "Célhossz kb. 300–500 szó; lehetőleg 3 főpont.",
+        "",
+        "BIBLIAI TEXTUS (elsődleges és kötelező bemenet):",
+        wrap_untrusted_content(
+            "bibliai_textus",
+            json.dumps(core, ensure_ascii=False),
+            limit_name="prompt_context_total",
+        ),
+    ]
+
+    if has_background:
+        parts.extend(
+            [
+                "",
+                "HÁTTÉRANYAG (kiegészítő kontextus — építsd be szervesen, "
+                "ne másold mechanikusan):",
+                wrap_untrusted_content(
+                    "háttéranyag",
+                    json.dumps(background, ensure_ascii=False),
+                    limit_name="prompt_context_total",
+                ),
+            ]
+        )
+    else:
+        parts.extend(
+            [
+                "",
+                "BEMENETI MÓD: kizárólag a fenti bibliai textus áll rendelkezésre.",
+                "Saját teológiai és homiletikai tudásoddal dolgozz a textus "
+                "belső logikájából. Ne említsd, hogy hiányzik háttéranyag.",
+            ]
+        )
+
+    if has_basket:
+        parts.extend(
+            [
+                "",
+                wrap_untrusted_content(
+                    "vázlatkosár",
+                    json.dumps(outline_basket, ensure_ascii=False),
+                    limit_name="basket_total",
+                ),
+            ]
+        )
+
+    parts.extend(["", f"KIMENETI SÉMA:\n{_JSON_SHAPE}"])
+    return "\n".join(parts)
 
 
 def _generate_rapid_evidence(
@@ -1949,85 +2081,8 @@ def _ai_generate_structured(
 ) -> tuple[dict[str, Any] | None, list[str], int]:
     """Returns (structured|None, warnings, raw_rendered_word_count)."""
     warnings: list[str] = []
-    ctx_without_basket_and_seed = {
-        k: v
-        for k, v in bundle.items()
-        if not str(k).startswith("_")
-        and k not in {"outline_basket", "sermon_outline", "outline_manual_notes"}
-    }
-    source_keys = ctx_without_basket_and_seed.get("source_keys")
-    if isinstance(source_keys, list):
-        ctx_without_basket_and_seed["source_keys"] = [
-            key
-            for key in source_keys
-            if key not in {"outline_basket", "outline_manual_notes"}
-        ]
-    outline_basket = bundle.get("outline_basket") or []
-    task_mode_note = (
-        "ÚJ GYORSVÁZLAT: készíts önálló vázlatot a textusból; "
-        "a rendelkezésre álló műhelyanyagot csak szelektív háttérként használd."
-        if mode == "quick"
-        else
-        "ÚJ MŰHELYVÁZLAT: készíts önálló vázlatot a textusból; "
-        "a lelkész jóváhagyott döntéseit mérlegeld, de ne másold mechanikusan."
-    )
-    try:
-        from sermon_workshop_outline_synth_ai import (
-            _is_partial_workshop_bundle,
-            outline_length_profile,
-            resolve_outline_occasion,
-        )
-
-        profile = outline_length_profile(
-            resolve_outline_occasion(bundle),
-            partial=_is_partial_workshop_bundle(bundle),
-        )
-        occasion_block = (
-            f"ALKALOM: {profile['occasion']}\n"
-            f"SÉMAVERZIÓ: {SCHEMA_VERSION}\n"
-            f"CÉLHOSSZ: ~{profile['target_range']} szó "
-            f"(abszolút max {LIMITS['absolute_max_words']}).\n"
-            f"{profile['guidance']}\n"
-        )
-    except Exception:  # noqa: BLE001
-        occasion_block = (
-            f"SÉMAVERZIÓ: {SCHEMA_VERSION}\n"
-            f"CÉLHOSSZ: {LIMITS['target_min_words']}–{LIMITS['target_max_words']} szó "
-            f"(abszolút max {LIMITS['absolute_max_words']}; "
-            f"puha alsó határ ~{LIMITS['soft_floor_words']}).\n"
-        )
-    prompt = (
-        f"{task_mode_note}\n"
-        f"{occasion_block}"
-        "A feladat új szószéki munkavázlat készítése, nem egy korábbi vázlat "
-        "javítása vagy átszövegezése.\n"
-        "Forráshierarchia: betöltött bibliai szöveg → exegézis → eredeti nyelvi "
-        "munka → releváns kortörténet → lelkészi fókusz/döntések → alkalom/"
-        "hallgató → vázlatkosár → egyéb műhelyanyag.\n"
-        "Először a textus központi állítását és természetes egységeit állapítsd "
-        "meg. Csak ezután mérlegeld a többi anyagot szelektíven.\n"
-        "Üres vázlatkosár esetén is készíts teljes értékű, konkrét vázlatot.\n"
-        "A textus szerint válassz 3–4 főpontot (indokolt esetben 2).\n"
-        "Minden főpontban kötelező a három réteg: textual_insight, "
-        "theological_emphasis, listener_movement — egy-egy rövid, teljes "
-        "mondat; együtt kb. 40–90 szó/pont. Ne legyen versátfogalmazás, "
-        "közhely vagy moralizálás.\n"
-        "Az igehelyet csak a `verses` mezőbe írd; a pont `title` mezője legyen "
-        "igehely nélküli.\n"
-        "Ugyanazt a verset ne bontsd több főpontra; párhuzamos felszólításokat "
-        "egy pontban tarts.\n"
-        "A bevezetési irány és a megérkezés 25–55 szavas irány legyen, ne "
-        "szerkesztői utasítás és ne kész beszéd.\n"
-        "Célhossz ~280–520 szó (tőmondatos jegyzet); 850 felett túl bő. "
-        "Ha a forráscsomag csak a bibliai szöveget tartalmazza, akkor is "
-        "készíts szószékre vihető vázlatot — ne írj hiányról szóló panaszt.\n\n"
-        f"FORRÁSCSOMAG:\n"
-        f"{wrap_untrusted_content('forráscsomag', json.dumps(ctx_without_basket_and_seed, ensure_ascii=False), limit_name='prompt_context_total')}\n\n"
-        "A forráscsomag exegetikai, teológiai és homiletikai elemei háttéranyagok; "
-        "nem kell mindegyiket felhasználni.\n\n"
-        f"{wrap_untrusted_content('vázlatkosár', json.dumps(outline_basket or [], ensure_ascii=False), limit_name='basket_total')}\n\n"
-        f"KIMENETI SÉMA:\n{_JSON_SHAPE}"
-    )
+    _ = seed_outline  # seed csak heurisztikus fallbacknél; az AI önálló vázlatot ír
+    prompt = build_outline_user_prompt(bundle, mode=mode)
     try:
         raw = _call_generate(generate_fn, prompt, temperature=0.3)
     except Exception as exc:  # noqa: BLE001
@@ -2072,10 +2127,11 @@ def _ai_generate_structured(
     structured = normalize_structured_outline(cleaned)
     raw_wc = word_count(render_structured_outline(structured))
     logger.info(
-        "outline_ai_raw schema=%s rendered_words=%s forbidden=%s",
+        "outline_ai_raw schema=%s rendered_words=%s forbidden=%s background=%s",
         SCHEMA_VERSION,
         raw_wc,
         _has_forbidden_keys(obj),
+        bool(extract_outline_background_material(bundle)),
     )
     return structured, warnings, raw_wc
 
@@ -2816,9 +2872,12 @@ __all__ = [
     "SCHEMA_VERSION",
     "SOFT_QUALITY_ISSUES",
     "OutlineGenerationResult",
+    "build_outline_user_prompt",
     "collect_outline_evidence",
     "compute_context_hash",
     "ensure_passage_text_for_outline",
+    "extract_outline_background_material",
+    "extract_outline_core_passage_context",
     "extract_verse_numbers",
     "generate_sermon_outline",
     "mirror_outline_to_session_strings",
