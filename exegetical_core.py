@@ -32,6 +32,7 @@ SESSION_PASSAGE_FP_KEY = "exegetical_passage_fingerprint"
 SOURCE_DATA_VERSION = "exegetical_core_v1"
 CORE_SCHEMA_VERSION = "exegetical_core_schema_v2"
 CORE_PROMPT_VERSION = "exegetical_core_prompt_v2"
+SECTION_SCHEMA_VERSION = "quick_sections_v2"
 
 LINKED_PASSAGE_OUTPUT_KEYS: tuple[str, ...] = (
     "overview",
@@ -448,6 +449,65 @@ def _first_sentence(text: str) -> str:
     return parts[0] if parts else raw
 
 
+def _clip_words(text: str, max_words: int) -> str:
+    raw = _s(text)
+    if not raw:
+        return ""
+    words = raw.split()
+    if len(words) <= max_words:
+        return raw
+    clipped = " ".join(words[:max_words]).rstrip(" ,;:")
+    if not re.search(r"[.!?…]$", clipped):
+        clipped += "."
+    return clipped
+
+
+def _clip_list(items: Sequence[Any], max_items: int, max_words_each: int) -> list[str]:
+    out: list[str] = []
+    for item in items:
+        text = _clip_words(_s(item), max_words_each)
+        if text:
+            out.append(text)
+        if len(out) >= max_items:
+            break
+    return out
+
+
+def normalize_reference_for_fingerprint(reference: str) -> str:
+    raw = _s(reference)
+    if not raw:
+        return ""
+    try:
+        from ruf_bible_service import parse_bible_reference
+
+        return parse_bible_reference(raw).canonical_reference
+    except Exception:
+        folded = _fold_for_claim_check(raw)
+        folded = re.sub(r"\s+", " ", folded).strip()
+        match = re.match(r"^(jud|judas|jude|filem|phm|abd|obad|2jn|3jn)\s+(.+)$", folded)
+        if match:
+            book, rest = match.groups()
+            abbr = {
+                "jud": "Júd",
+                "judas": "Júd",
+                "jude": "Júd",
+                "filem": "Filem",
+                "phm": "Filem",
+                "abd": "Abd",
+                "obad": "Abd",
+                "2jn": "2Jn",
+                "3jn": "3Jn",
+            }[book]
+            clean = rest.replace(":", ",").replace("–", "-").replace("—", "-")
+            if "," in clean:
+                chapter, verses = clean.split(",", 1)
+                if chapter.strip() == "1":
+                    return f"{abbr} 1,{verses.strip().replace('-', '–')}"
+            if re.fullmatch(r"\d+(?:-\d+)?", clean.strip()):
+                return f"{abbr} 1,{clean.strip().replace('-', '–')}"
+        return folded
+
+
 def compute_exegetical_fingerprint(
     *,
     reference: str,
@@ -458,7 +518,7 @@ def compute_exegetical_fingerprint(
     prompt_schema_version: str = CORE_SCHEMA_VERSION,
 ) -> str:
     payload = {
-        "ref": _s(reference),
+        "ref": normalize_reference_for_fingerprint(reference),
         "text": " ".join(_s(bible_text).split())[:4000],
         "lang": _s(original_language),
         "tokens": _s(token_signature),
@@ -479,7 +539,7 @@ def compute_passage_fingerprint(
     prompt_schema_version: str = CORE_SCHEMA_VERSION,
 ) -> str:
     payload = {
-        "reference": " ".join(_s(reference).casefold().split()),
+        "reference": normalize_reference_for_fingerprint(reference),
         "bible_text_hash": hashlib.sha1(
             " ".join(_s(bible_text).split()).encode("utf-8")
         ).hexdigest()[:20],
@@ -1095,6 +1155,148 @@ def _merge_ai_core(
     return out
 
 
+def _compress_core_result(core: ExegeticalCoreResult) -> ExegeticalCoreResult:
+    out = ExegeticalCoreResult.from_dict(core.to_dict())
+    out.central_claim = _clip_words(out.central_claim, 42)
+    out.literary_movement = _clip_words(out.literary_movement, 70)
+    out.concise_analysis = _clip_words(out.concise_analysis, 150)
+    out.theological_synthesis = _clip_words(out.theological_synthesis, 120)
+    out.historical_context = _clip_words(out.historical_context, 80)
+    out.homiletical_bridge = _clip_words(out.homiletical_bridge, 55)
+    out.immediate_context = _clip_words(out.immediate_context, 55)
+    out.decisive_observations = _clip_list(out.decisive_observations, 5, 28)
+    out.interpretive_issues = _clip_list(out.interpretive_issues, 4, 24)
+    out.close_parallels = [
+        {
+            "reference": _s(item.get("reference")),
+            "connection": _clip_words(_s(item.get("connection")), 24),
+        }
+        for item in out.close_parallels[:4]
+        if isinstance(item, dict) and _s(item.get("reference"))
+    ]
+    for expr in out.selected_expressions[:]:
+        expr.prose_paragraph = _clip_words(expr.prose_paragraph, 55)
+        expr.contextual_gloss = _clip_words(expr.contextual_gloss, 12)
+        expr.role_in_passage = _clip_words(expr.role_in_passage, 18)
+    out.selected_expressions = out.selected_expressions[:4]
+    return out
+
+
+def _core_is_too_long_or_repetitive(core: ExegeticalCoreResult) -> bool:
+    text_parts = [
+        core.central_claim,
+        core.literary_movement,
+        core.concise_analysis,
+        core.theological_synthesis,
+        core.historical_context,
+        core.homiletical_bridge,
+        *(e.prose_paragraph for e in core.selected_expressions),
+    ]
+    words = " ".join(p for p in text_parts if p).split()
+    if len(words) > 650:
+        return True
+    seen: set[str] = set()
+    repeated = 0
+    for sentence in re.split(r"(?<=[.!?])\s+", " ".join(text_parts)):
+        norm = " ".join(sentence.casefold().split())
+        if len(norm) < 30:
+            continue
+        if norm in seen:
+            repeated += 1
+        seen.add(norm)
+    return repeated >= 2
+
+
+_DOCTRINAL_SYSTEM_TERMS = (
+    "teljes romlotts",
+    "perseverantia",
+    "sola fide",
+    "megigaz",
+    "megszentel",
+    "szovetsegetteolog",
+    "szövetségteológ",
+    "predestin",
+    "eleve elrendel",
+    "hitvall",
+    "heidelbergi",
+    "helvet",
+    "helvét",
+)
+_OVERCLAIM_TERMS = (
+    "bizonyit",
+    "bizonyít",
+    "teljes bibliai alap",
+    "onmagaban",
+    "önmagában",
+    "levezetheto",
+    "levezethető",
+    "megalapozza",
+    "dogmatikai rendszer",
+)
+
+
+def _fold_for_claim_check(text: str) -> str:
+    try:
+        import unicodedata
+
+        norm = unicodedata.normalize("NFKD", text or "")
+        return "".join(ch for ch in norm if not unicodedata.combining(ch)).casefold()
+    except Exception:
+        return (text or "").casefold()
+
+
+def _has_theological_overclaim(text: str) -> bool:
+    folded = _fold_for_claim_check(text)
+    return any(t in folded for t in _DOCTRINAL_SYSTEM_TERMS) and any(
+        t in folded for t in _OVERCLAIM_TERMS
+    )
+
+
+def _section_lines(title: str, body: str) -> list[str]:
+    body = _s(body)
+    return [f"## {title}", body] if body else []
+
+
+def core_to_theology_markdown(core: ExegeticalCoreResult) -> str:
+    """Rovid, core-alapu teologiai gyorsnezet a regi locus-sablon helyett."""
+    lines: list[str] = []
+    lines.extend(_section_lines("Teológiai összegzés", _clip_words(core.theological_synthesis, 105)))
+    if core.central_claim:
+        lines.extend(["", "## Textusból következő hangsúly", _clip_words(core.central_claim, 45)])
+    if core.warnings:
+        cautions = [
+            w
+            for w in core.warnings
+            if "validáció" not in w.casefold() and "validation" not in w.casefold()
+        ][:2]
+        if cautions:
+            lines.extend(["", "## Óvatos használat", *[f"- {_clip_words(w, 24)}" for w in cautions]])
+    return "\n".join(lines).strip()
+
+
+def core_to_history_markdown(core: ExegeticalCoreResult) -> str:
+    """Rovid, relevanciaalapu hatternezet a regi kortorteneti sablon helyett."""
+    lines: list[str] = []
+    context = _s(core.historical_context)
+    if not context:
+        context = (
+            "Ehhez a textushoz a döntő háttér a közvetlen irodalmi helyzet: "
+            "a szakasz a levél saját gondolatmenetében kap értelmet, nem általános "
+            "politikai vagy gazdasági háttéranyagból."
+        )
+    lines.extend(_section_lines("Irodalmi és történeti háttér", _clip_words(context, 90)))
+    if core.immediate_context:
+        lines.extend(["", "## Közvetlen kontextus", _clip_words(core.immediate_context, 55)])
+    if core.close_parallels:
+        lines.extend(["", "## Szoros bibliai párhuzamok"])
+        for item in core.close_parallels[:3]:
+            ref = _s(item.get("reference")) if isinstance(item, dict) else ""
+            connection = _s(item.get("connection")) if isinstance(item, dict) else ""
+            if ref and connection:
+                lines.append(f"- {ref}: {_clip_words(connection, 22)}")
+    return "\n".join(lines).strip()
+
+
 _MECHANICAL_HEADINGS = (
     "**alapjelentés",
     "alapjelentés:",
@@ -1169,6 +1371,18 @@ def validate_core_result(result: ExegeticalCoreResult) -> list[str]:
     for e in result.selected_expressions:
         if _has_mechanical_subheads(e.prose_paragraph):
             issues.append("mechanical_subheads")
+            break
+        if _has_theological_overclaim(
+            " ".join(
+                [
+                    e.prose_paragraph,
+                    e.role_in_passage,
+                    e.contextual_gloss,
+                    result.theological_synthesis,
+                ]
+            )
+        ):
+            issues.append("theological_overclaim")
             break
         if e.grounded and token_values:
             candidates = [
@@ -1312,16 +1526,32 @@ def build_exegetical_core(
             from sermon_workshop_m4_ai import extract_json_object
             from ai_response_validation import sanitize_ai_json
 
-            obj = extract_json_object(raw or "") or {}
-            if isinstance(obj, dict):
+            obj = extract_json_object(raw or "")
+            if not isinstance(obj, dict) or not obj:
+                if raw:
+                    core.warnings.append(
+                        "Az AI-szintézis nem adott érvényes strukturált JSON-t; a determinisztikus mag maradt."
+                    )
+            else:
                 obj = sanitize_ai_json(obj) or obj
                 core = _merge_ai_core(core, obj)
+                if _core_is_too_long_or_repetitive(core):
+                    core = _compress_core_result(core)
+                    core.warnings.append(
+                        "Az AI-szintézis túl hosszú vagy ismétlődő volt; a rendszer tömörítette."
+                    )
         except Exception as exc:
             logger.info("core_ai_failed err=%s", type(exc).__name__)
             core.warnings.append("Az AI-szintézis nem sikerült; a determinisztikus mag maradt.")
 
     # Validáció — aránytalan hossz esetén vágás soft figyelmeztetéssel
     issues = validate_core_result(core)
+    if "disproportionate_length" in issues or "mechanical_subheads" in issues:
+        core = _compress_core_result(core)
+        core.warnings.append(
+            "A validáció túl hosszú vagy sablonos kimenetet talált; a rendszer tömörítette."
+        )
+        issues = validate_core_result(core)
     for issue in issues:
         tip = f"validáció: {issue}"
         if tip not in core.warnings:
@@ -1519,6 +1749,7 @@ __all__ = [
     "CORE_PROMPT_VERSION",
     "CORE_SCHEMA_VERSION",
     "CORE_SYSTEM_PROMPT",
+    "SECTION_SCHEMA_VERSION",
     "ClaimKind",
     "ExegeticalCoreResult",
     "LINKED_PASSAGE_OUTPUT_KEYS",
@@ -1531,7 +1762,9 @@ __all__ = [
     "build_exegetical_core",
     "compute_exegetical_fingerprint",
     "compute_passage_fingerprint",
+    "core_to_history_markdown",
     "core_to_outline_brief",
+    "core_to_theology_markdown",
     "ensure_exegetical_core",
     "get_cached_core",
     "invalidate_core_if_stale",

@@ -19,7 +19,9 @@ from exegetical_core import (
     build_exegetical_core,
     compute_exegetical_fingerprint,
     compute_passage_fingerprint,
+    core_to_history_markdown,
     core_to_outline_brief,
+    core_to_theology_markdown,
     ensure_exegetical_core,
     get_cached_core,
     invalidate_core_if_stale,
@@ -493,6 +495,107 @@ def test_passage_fingerprint_includes_schema_and_text():
     )
     assert base != changed_schema
     assert base != changed_text
+
+
+def test_single_chapter_reference_fingerprint_is_canonicalized():
+    short = compute_passage_fingerprint(
+        reference="Jud 24-25",
+        bible_text=JUDE_TEXT,
+        token_signature="abc",
+    )
+    explicit = compute_passage_fingerprint(
+        reference="Jud 1,24-25",
+        bible_text=JUDE_TEXT,
+        token_signature="abc",
+    )
+    assert short == explicit
+
+def test_invalid_or_long_ai_core_is_not_rendered_as_incomplete_legacy_text():
+    def incomplete_ai(_prompt, **_kwargs):
+        return "A valasz hianyos, mert a modell elerte a tokenlimitet"
+
+    core = build_exegetical_core(
+        reference="JĂşd 24-25",
+        bible_text=JUDE_TEXT,
+        token_verses=JUDE_TOKENS,
+        generate_fn=incomplete_ai,
+        enrich=False,
+    )
+    rendered = core.to_display_markdown()
+    assert "tokenlimitet" not in rendered
+    assert "Exegetikai lényeg" in rendered or "Exegetikai l" in rendered
+    assert any("struktur" in warning.casefold() for warning in core.warnings)
+
+
+def test_valid_but_verbose_ai_core_is_compressed():
+    repeated = " ".join(["Isten megtarto kegyelme vezeti a doxologiat."] * 90)
+
+    def verbose_ai(_prompt, **_kwargs):
+        return json.dumps(
+            {
+                "central_claim": repeated,
+                "concise_analysis": repeated,
+                "theological_synthesis": repeated,
+                "expressions": [
+                    {
+                        "lemma_or_surface": "Î´ĎŚÎľÎ±",
+                        "prose_paragraph": repeated,
+                    }
+                ],
+            }
+        )
+
+    core = build_exegetical_core(
+        reference="JĂşd 24-25",
+        bible_text=JUDE_TEXT,
+        token_verses=JUDE_TOKENS,
+        generate_fn=verbose_ai,
+        enrich=False,
+    )
+    total = (
+        len(core.concise_analysis.split())
+        + len(core.theological_synthesis.split())
+        + sum(len(e.prose_paragraph.split()) for e in core.selected_expressions)
+    )
+    assert total < 650
+    assert any("tömör" in warning.casefold() or "tomor" in warning.casefold() for warning in core.warnings)
+
+
+def test_theological_overclaim_is_flagged():
+    core = build_exegetical_core(
+        reference="JĂşd 24-25",
+        bible_text=JUDE_TEXT,
+        token_verses=JUDE_TOKENS,
+        enrich=False,
+    )
+    assert core.selected_expressions
+    core.selected_expressions[0].prose_paragraph = (
+        "Ez a lemma önmagában bizonyítja a teljes dogmatikai rendszer "
+        "perseverantia sanctorum tételét."
+    )
+    assert "theological_overclaim" in validate_core_result(core)
+
+
+def test_core_quick_section_renderers_do_not_emit_old_templates():
+    core = build_exegetical_core(
+        reference="JĂşd 24-25",
+        bible_text=JUDE_TEXT,
+        token_verses=JUDE_TOKENS,
+        enrich=False,
+    )
+    theology = core_to_theology_markdown(core)
+    history = core_to_history_markdown(core)
+    forbidden = (
+        "Istenkép",
+        "Antropológia",
+        "Szoteriológia",
+        "Homiletikai haszon",
+        "politikai és vallási környezet",
+        "társadalmi és gazdasági viszonyok",
+    )
+    combined = f"{theology}\n{history}".casefold()
+    for phrase in forbidden:
+        assert phrase.casefold() not in combined
 
 
 def test_stale_core_invalidates_linked_passage_outputs():

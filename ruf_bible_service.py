@@ -80,7 +80,25 @@ class ParsedReference:
 
     @property
     def api_reference(self) -> str:
+        dash = "-"
+        abbr = self.book.abbr
+        if self.book.single_chapter:
+            if self.verse_start is None:
+                return f"{abbr} 1"
+            if self.verse_end is None or self.verse_end == self.verse_start:
+                return f"{abbr} 1,{self.verse_start}"
+            return f"{abbr} 1,{self.verse_start}{dash}{self.verse_end}"
         return self.normalized_reference.replace("–", "-")
+
+    @property
+    def canonical_reference(self) -> str:
+        abbr = self.book.abbr
+        dash = "–"
+        if self.verse_start is None:
+            return f"{abbr} {self.chapter}"
+        if self.verse_end is None or self.verse_end == self.verse_start:
+            return f"{abbr} {self.chapter},{self.verse_start}"
+        return f"{abbr} {self.chapter},{self.verse_start}{dash}{self.verse_end}"
 
 
 @dataclass(frozen=True)

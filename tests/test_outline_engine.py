@@ -1448,3 +1448,44 @@ def test_extract_verse_numbers_from_passage_and_labels():
     assert extract_verse_numbers(JUDE_PASSAGE) >= {17, 18, 19, 20}
     assert extract_verse_numbers("v. 17–18") == {17, 18}
     assert extract_verse_numbers("v. 20") == {20}
+
+
+def test_outline_generation_uses_manual_text_despite_ruf_error():
+    state = _base_state(
+        last_igehely="Jud 24-25",
+        igehely_input="Jud 24-25",
+        passage_text=(
+            "24 Annak pedig, aki megorizhet titeket a botlastol, "
+            "es dicsosege ele allithat. 25 Az egyedul udvozito Istennek "
+            "dicsoseg, fenseg, ero es hatalom mindorokke. Amen."
+        ),
+        original_text="",
+        exegesis="",
+        theology="",
+        history="",
+        _bible_text_ruf_last_error="A RUF-valasz ures volt.",
+    )
+
+    result = generate_sermon_outline(state, mode="quick", generate_fn=None, force_overwrite=True)
+
+    assert result.ok, result.error_message
+    content = outline_canonical_text(result.outline)
+    assert content
+    assert "Amen" not in "\n".join(
+        str(point.get("title", "")) for point in result.outline.get("points", [])
+    )
+
+
+def test_outline_generation_reports_missing_text_without_manual_clear():
+    state = _base_state(
+        last_igehely="Jud 24-25",
+        igehely_input="Jud 24-25",
+        passage_text="",
+        passage_text_input="",
+        _bible_text_ruf_last_error="A RUF-valasz ures volt.",
+    )
+
+    result = generate_sermon_outline(state, mode="quick", generate_fn=None, force_overwrite=True)
+
+    assert not result.ok
+    assert "bibliai" in result.error_message.casefold()

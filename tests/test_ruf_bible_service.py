@@ -192,15 +192,34 @@ def test_old_testament_and_numbered_books(monkeypatch: pytest.MonkeyPatch) -> No
 
 def test_single_chapter_book(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv(ruf.SZENTIRAS_EU_API_KEY_NAME, "key")
+    requested_urls: list[str] = []
 
-    result = ruf.fetch_ruf_passage(
-        "Júd 24-25",
-        http_get=lambda *_args, **_kwargs: api_payload("Júd 24-25", [(24, "Annak pedig."), (25, "Az egyedül üdvözítő Istennek.")]),
-    )
+    def fake_get(url: str, **_kwargs):
+        requested_urls.append(url)
+        return api_payload("Jud 1,24-25", [(24, "Annak pedig."), (25, "Az egyedul udvozito Istennek.")])
+
+    result = ruf.fetch_ruf_passage("Jud 24-25", http_get=fake_get)
 
     assert result["success"]
     assert result["normalized_reference"] == "Júd 24–25"
+    parsed = ruf.parse_bible_reference("Jud 24-25")
+    assert parsed.canonical_reference == "Júd 1,24–25"
+    assert parsed.api_reference == "Júd 1,24-25"
+    assert requested_urls
+    assert "1%2C24-25" in requested_urls[0]
 
+
+def test_single_chapter_short_and_explicit_forms_share_cache_key() -> None:
+    short = ruf.parse_bible_reference("Jud 24-25")
+    explicit = ruf.parse_bible_reference("Jud 1,24-25")
+    assert short.canonical_reference == explicit.canonical_reference
+    assert short.api_reference == explicit.api_reference
+    assert ruf._passage_key(short) == ruf._passage_key(explicit)
+
+
+def test_non_single_chapter_range_without_comma_is_rejected() -> None:
+    with pytest.raises(ValueError):
+        ruf.parse_bible_reference("Jn 24-25")
 
 def test_empty_or_invalid_json_is_not_successful(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv(ruf.SZENTIRAS_EU_API_KEY_NAME, "key")

@@ -4075,47 +4075,51 @@ SECTIONS_WITH_GOOGLE_SEARCH = {"actualization"}
 
 
 def generate_section(key: str) -> bool:
-    """Egy adott szekciót lefuttat (első generálás VAGY újrageneráláshoz).
-
-    Olvassa az élő input mezőket (igehely_input stb.), szinkronizálja
-    `last_*`-okba, majd indít EGYETLEN Gemini hívást. Visszatérési érték:
-      - True   → eredmény bekerült a `st.session_state[key]`-be
-      - False  → blokkoló validáció (pl. nincs igehely vagy API kulcs)
-    """
+    """Egy adott szekciót lefuttat; core-szakaszoknál nem használ legacy promptot."""
     _sync_inputs_to_last()
 
-    if not _resolve_api_key().strip():
-        st.warning("Először add meg az API kulcsot a Beállítások fülön.")
-        return False
     if not st.session_state.get("last_igehely"):
-        st.warning("Add meg az igeszakaszt az „Igehely” fülön, mielőtt itt generálsz.")
+        st.warning("Add meg az igeszakaszt az Igehely fülön, mielőtt itt generálsz.")
         return False
 
     label = SECTION_LABELS.get(key, key)
     use_search = key in SECTIONS_WITH_GOOGLE_SEARCH
-    if key == "exegesis":
-        from exegetical_core import ensure_exegetical_core
+    if key in {"exegesis", "theology", "history"}:
+        from exegetical_core import (
+            core_to_history_markdown,
+            core_to_theology_markdown,
+            ensure_exegetical_core,
+        )
 
         passage_text = st.session_state.get("passage_text") or ""
         if not str(passage_text).strip():
             passage_text = st.session_state.get("passage_text_input") or ""
-        with st.spinner(f"{label} készítése…"):
+        api_key_available = bool(_resolve_api_key().strip())
+        core_generate_fn = generate_text if (api_key_available and key == "exegesis") else None
+        with st.spinner(f"{label} készítése..."):
             core = ensure_exegetical_core(
                 st.session_state,
                 reference=st.session_state.get("last_igehely") or "",
                 bible_text=str(passage_text or ""),
-                generate_fn=generate_text,
-                enrich=True,
-                force_refresh=True,
+                generate_fn=core_generate_fn,
+                enrich=bool(core_generate_fn),
+                force_refresh=bool(core_generate_fn),
                 sync_original_text=False,
             )
-            st.session_state[key] = core.to_display_markdown()
+            if key == "theology":
+                st.session_state[key] = core_to_theology_markdown(core)
+            elif key == "history":
+                st.session_state[key] = core_to_history_markdown(core)
+            else:
+                st.session_state[key] = core.to_display_markdown()
         return True
 
-    # Exegézis / kortörténet / teológia: szövegközpontú — ne keverjük az
-    # életrajzi hátteret. Áttekintés / illusztráció / aktualizálás: igen.
+    if not _resolve_api_key().strip():
+        st.warning("Először add meg az API kulcsot a Beállítások fülön.")
+        return False
+
     pastoral_sections = {"overview", "illustrations", "actualization"}
-    with st.spinner(f"{label} készítése…"):
+    with st.spinner(f"{label} készítése..."):
         prompt = SECTION_PROMPTS[key].format(
             alap=build_alap_from_state(
                 include_pastoral_context=key in pastoral_sections
@@ -4127,7 +4131,6 @@ def generate_section(key: str) -> bool:
             tab_label=label,
         )
     return True
-
 
 regenerate_section = generate_section
 
