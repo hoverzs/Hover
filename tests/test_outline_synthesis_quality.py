@@ -82,28 +82,27 @@ def _assert_usable_outline(outline: dict) -> str:
 
 
 def test_system_prompt_contains_homiletic_core():
-    assert "református" in HOMILETIC_SYSTEM_PROMPT.casefold()
-    assert "Krisztus" in HOMILETIC_SYSTEM_PROMPT or "krisztus" in HOMILETIC_SYSTEM_PROMPT.casefold()
-    assert "gondolatvázlat" in HOMILETIC_SYSTEM_PROMPT.casefold() or "vázlat" in HOMILETIC_SYSTEM_PROMPT.casefold()
+    assert "igehirdető" in HOMILETIC_SYSTEM_PROMPT.casefold() or "homiletikai" in HOMILETIC_SYSTEM_PROMPT.casefold()
+    assert "prédikációvázlat" in HOMILETIC_SYSTEM_PROMPT.casefold() or "vázlat" in HOMILETIC_SYSTEM_PROMPT.casefold()
     assert "850" in HOMILETIC_SYSTEM_PROMPT
-    assert "280" in HOMILETIC_SYSTEM_PROMPT or "520" in HOMILETIC_SYSTEM_PROMPT
-    assert "prédikáció" in HOMILETIC_SYSTEM_PROMPT.casefold()
+    assert "300" in HOMILETIC_SYSTEM_PROMPT and "500" in HOMILETIC_SYSTEM_PROMPT
     assert "JSON" in HOMILETIC_SYSTEM_PROMPT
     assert "textual_insight" in HOMILETIC_SYSTEM_PROMPT or "movements" in HOMILETIC_SYSTEM_PROMPT
     assert "TILOS" in HOMILETIC_SYSTEM_PROMPT
-    assert "thesis" in HOMILETIC_SYSTEM_PROMPT.casefold() or "points" in HOMILETIC_SYSTEM_PROMPT.casefold()
+    assert "háttéranyag" in HOMILETIC_SYSTEM_PROMPT.casefold()
     assert "refinement" in HOMILETIC_SYSTEM_PROMPT.casefold()
+    assert "gyakorlati" in HOMILETIC_SYSTEM_PROMPT.casefold()
 
 
 def test_soft_length_ranges_match_working_outline_targets():
     sunday = outline_length_profile("Vasárnapi istentisztelet")
-    assert sunday["target_range"] == "280–520"
+    assert sunday["target_range"] == "300–500"
     assert sunday["soft_max"] == 850
     assert sunday["min_movements"] == 2
     assert sunday["max_movements"] == 5
 
     wake = outline_length_profile("Virrasztó")
-    assert wake["target_range"] == "280–520"
+    assert wake["target_range"] == "300–500"
     assert wake["soft_max"] == 850
     assert wake["min_movements"] == 2
     assert wake["max_movements"] == 3
@@ -255,6 +254,120 @@ def test_ai_failure_rescues_usable_pulpit_notes_instead_of_hard_error():
         "jegyzet" in w.casefold() or "finomítható" in w.casefold() or "formázással" in w
         for w in (result.warnings or [])
     )
+
+
+def test_prompt_dynamic_background_vs_passage_only_in_assembly():
+    """Háttérrel: HÁTTÉRANYAG a promptban; anélkül: textus-only mód, nincs hiány-panasz."""
+    from sermon_outline_engine import build_outline_user_prompt
+
+    captured: list[str] = []
+
+    def gen_ok(prompt, **kwargs):
+        captured.append(prompt)
+        return json.dumps(
+            {
+                "title": "Megtartva",
+                "text_reference": "Júd 17–20",
+                "scope_note": "",
+                "focus_sentence": (
+                    "Isten a gúny közepette is megtartja népét a Szentlélekben."
+                ),
+                "introduction_direction": (
+                    "A gúny hangja körülöttünk egyre hangosabb. "
+                    "A kérdés: hogyan maradhatunk meg hitben."
+                ),
+                "movements": [
+                    {
+                        "title": "Emlékezzetek az apostoli szóra",
+                        "verses": "v. 17–18",
+                        "textual_insight": (
+                            "Júdás az apostolok előrejelzésére hív: gúnyolódók jönnek."
+                        ),
+                        "theological_emphasis": (
+                            "Az emlékezet nem nosztalgia, hanem megtartó igazság."
+                        ),
+                        "listener_movement": (
+                            "A hallgató az apostoli szóra támaszkodik, nem a hangulataira."
+                        ),
+                        "transition": "",
+                    },
+                    {
+                        "title": "Ismerjétek fel a szakadást",
+                        "verses": "v. 19",
+                        "textual_insight": (
+                            "A szakadáskeltők érzékiek, és nincs bennük Lélek."
+                        ),
+                        "theological_emphasis": (
+                            "A Lélek hiánya a közösség valódi veszélye."
+                        ),
+                        "listener_movement": (
+                            "A hallgató nem gyanakvással, hanem józan felismeréssel él."
+                        ),
+                        "transition": "",
+                    },
+                    {
+                        "title": "Épüljetek a Lélekben",
+                        "verses": "v. 20",
+                        "textual_insight": (
+                            "A megmaradás hitben való épülés és Lélekben való ima."
+                        ),
+                        "theological_emphasis": (
+                            "Isten szeretete tart meg, nem az emberi erőfeszítés."
+                        ),
+                        "listener_movement": (
+                            "A hallgató imában és szeretetben marad a közösségben."
+                        ),
+                        "transition": "",
+                    },
+                ],
+                "conclusion_direction": (
+                    "A megtartás Isten ajándéka. Maradjatok imában és szeretetben."
+                ),
+                "refinement_suggestions": [],
+            },
+            ensure_ascii=False,
+        )
+
+    bare = {
+        "last_igehely": "Júd 17–20",
+        "passage_text": (
+            "17 Ti pedig, szeretteim, emlékezzetek… "
+            "20 Ti azonban, szeretteim, épüljetek… imádkozva a Szentlélek által."
+        ),
+        TEXT_WORKSHOP_KEY: get_default_text_workshop(),
+        SERMON_WORKSHOP_KEY: get_default_sermon_workshop(),
+    }
+    ensure_sermon_workshop_state(bare)
+    captured.clear()
+    bare_result = assemble_sermon_outline(
+        bare, generate_fn=gen_ok, synthesize=True, force_overwrite=True
+    )
+    assert bare_result.ok, bare_result.error_message
+    outline_prompts = [p for p in captured if "BIBLIAI TEXTUS" in p]
+    assert outline_prompts, captured
+    assert "HÁTTÉRANYAG" not in outline_prompts[0]
+    assert "kizárólag a fenti bibliai textus" in outline_prompts[0].casefold()
+
+    rich = dict(bare)
+    rich["exegesis"] = "Júdás a gúnyolódók ellen figyelmeztet, majd a megmaradásra hív."
+    rich["history"] = "A levél a korai egyház szakadásainak közegében született."
+    rich["original_text"] = "ἐποικοδομοῦντες — folyamatos épülés."
+    ensure_sermon_workshop_state(rich)
+    # Direct prompt check mirrors assembly context
+    from sermon_outline_engine import collect_outline_evidence
+
+    bundle = collect_outline_evidence(rich)
+    prompt = build_outline_user_prompt(bundle, mode="workshop")
+    assert "HÁTTÉRANYAG" in prompt
+    assert "gúnyolódók ellen" in prompt
+    assert "kizárólag a fenti bibliai textus" not in prompt.casefold()
+
+    captured.clear()
+    rich_result = assemble_sermon_outline(
+        rich, generate_fn=gen_ok, synthesize=True, force_overwrite=True
+    )
+    assert rich_result.ok, rich_result.error_message
+    assert any("HÁTTÉRANYAG" in p for p in captured)
 
 
 def test_sparse_workshop_still_coherent_outline():
@@ -613,7 +726,7 @@ def test_resolve_virraszto_occasion_from_text_and_field():
     profile = outline_length_profile("Virrasztó")
     assert profile["min_movements"] == 2
     assert profile["soft_max"] <= 850
-    assert profile["target_range"] == "280–520"
+    assert profile["target_range"] == "300–500"
 
 
 def test_word_count_alone_is_soft_not_hard_rejection():
