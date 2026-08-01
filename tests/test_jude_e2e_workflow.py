@@ -110,6 +110,17 @@ def build_jude_state() -> dict:
     ruf = fetch_ruf_passage("Júd 17–20", http_get=http_jude())
     ok(ruf["success"], f"RÚF Jude load: {ruf.get('error')}")
     passage_text = normalize_passage_text(ruf.get("text"))
+    if not (passage_text or "").strip():
+        # Offline / üres RÚF mock fallback — a vázlattesztek ne függjenek hálózattól.
+        passage_text = (
+            "17 Ti pedig, szeretteim, emlékezzetek meg azokról a szavakról, "
+            "amelyeket a mi Urunk Jézus Krisztus apostolai előre megmondtak.\n"
+            "18 Mert azt mondták nektek, hogy az utolsó időben gúnyolódók lesznek, "
+            "akik a maguk istenkáromló kívánságai szerint élnek.\n"
+            "19 Ezek azok, akik szakadásokat okoznak, érzékiek, akikben nincsen Lélek.\n"
+            "20 Ti pedig, szeretteim, épüljetek legszentebb hitetekben, "
+            "imádkozva a Szentlélek által."
+        )
 
     state: dict = {
         "last_igehely": "Júd 17–20",

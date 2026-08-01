@@ -1,9 +1,10 @@
-"""Egyetlen közös igehirdetési-vázlat motor (pulpit_outline_v7).
+"""Egyetlen közös igehirdetési-vázlat motor (pulpit_outline_v8).
 
 Mindkét belépési pont (Gyorseszközök → Gyors vázlat, Igehirdetési műhely →
-Igehirdetési vázlat) ezt a modult hívja. Egy kanonikus `movements` séma,
-egy validátor; tömörítés csak 850 szó felett. Az alsó céltartomány soft jelzés.
-Nem importál app.py / sermon_workshop_ui.py fájlból.
+Igehirdetési vázlat) ezt a modult hívja. Strukturált OutlineContext,
+BARE/PARTIAL/RICH módok, feltételes ExegeticalBrief, kanonikus `movements`
+séma és determinisztikus minőségvédelem. Nem importál app.py /
+sermon_workshop_ui.py fájlból.
 """
 
 from __future__ import annotations
@@ -27,6 +28,17 @@ from sermon_workshop_m4_ai import extract_json_object
 from sermon_workshop_m5_ai import _is_api_error_text
 from prompt_safety import wrap_untrusted_content
 from ai_response_validation import sanitize_ai_json
+from sermon_outline_context import (
+    ContextMode,
+    build_outline_context,
+    outline_context_to_legacy_bundle,
+)
+from sermon_outline_exegesis import ExegeticalBrief, generate_exegetical_brief
+from sermon_outline_quality import (
+    SEMANTIC_HARD_ISSUES,
+    assess_semantic_quality,
+    build_repair_prompt,
+)
 
 GenerateFn = Callable[..., str]
 
@@ -34,8 +46,8 @@ logger = logging.getLogger("textus.outline")
 
 TAB_OUTLINE = "Igehirdetési vázlat"
 DEFAULT_TEMPERATURE = 0.2
-SCHEMA_VERSION = "pulpit_outline_v7"
-ENGINE_VERSION = "outline_engine_v7"
+SCHEMA_VERSION = "pulpit_outline_v8"
+ENGINE_VERSION = "outline_engine_v8"
 LEGACY_SCHEMA_VERSIONS = frozenset(
     {
         "",
@@ -43,6 +55,7 @@ LEGACY_SCHEMA_VERSIONS = frozenset(
         "pulpit_outline_v4",
         "pulpit_outline_v5",
         "pulpit_outline_v6",
+        "pulpit_outline_v7",
     }
 )
 OUTLINE_MAX_OUTPUT_TOKENS = 2400
@@ -53,45 +66,52 @@ RAPID_EVIDENCE_SESSION_KEY = "_outline_rapid_evidence_cache"
 # ---------------------------------------------------------------------------
 
 LIMITS = {
-    "title_words": 12,
-    "focus_words": 40,
-    "focus_min_words": 12,
-    "intro_words": 80,
-    "intro_min_words": 20,
-    "intro_sentences_max": 3,
-    "point_title_words": 12,
-    "layer_min_words": 12,
-    "layer_max_words": 60,
-    "layer_sentences": 2,
-    "point_layers_min_words": 40,
-    "point_layers_max_words": 160,
-    "conclusion_words": 80,
-    "conclusion_min_words": 20,
-    "conclusion_sentences_max": 3,
+    "title_words": 14,
+    "focus_words": 45,
+    "focus_min_words": 8,
+    "intro_words": 90,
+    "intro_min_words": 12,
+    "intro_sentences_max": 4,
+    "point_title_words": 14,
+    "layer_min_words": 8,
+    "layer_max_words": 70,
+    "layer_sentences": 3,
+    "point_layers_min_words": 28,
+    "point_layers_max_words": 200,
+    "conclusion_words": 90,
+    "conclusion_min_words": 12,
+    "conclusion_sentences_max": 4,
     "scope_note_words": 40,
     "transition_words": 40,
     "min_points": 2,
     "max_points": 5,
     "default_points": 3,
-    # Soft céltartományok pontszám szerint (abszolút max mindig 850).
-    "target_min_words": 350,
-    "target_max_words": 700,
-    "target_min_2": 350,
-    "target_max_2": 500,
-    "target_min_3_4": 420,
-    "target_max_3_4": 700,
-    "target_min_5": 500,
+    # Soft céltartományok — iránymutatás, nem merev korlát.
+    "target_min_words": 280,
+    "target_max_words": 750,
+    "target_min_2": 220,
+    "target_max_2": 520,
+    "target_min_3_4": 320,
+    "target_max_3_4": 750,
+    "target_min_5": 400,
     "target_max_5": 850,
-    "soft_floor_words": 280,
-    "absolute_max_words": 850,
-    "max_prose_block_words": 140,
+    "soft_floor_words": 200,
+    "absolute_max_words": 900,
+    "max_prose_block_words": 160,
     "refinement_max": 2,
 }
 
 # Soft: under_target / too_thin → warning + opcionális enrich; soha nem önálló reject.
-# Compress csak over_absolute_max (>850) / full_sermon_like.
+# Compress csak over_absolute_max / full_sermon_like.
 SOFT_QUALITY_ISSUES = frozenset(
-    {"under_target", "too_thin", "repeated_thematic_triad", "generic_filler"}
+    {
+        "under_target",
+        "too_thin",
+        "repeated_thematic_triad",
+        "generic_filler",
+        "paired_ab_verse_split",
+        "repeated_phrase",
+    }
 )
 ENRICHABLE_ISSUES = frozenset(
     {
@@ -113,6 +133,21 @@ ENRICHABLE_ISSUES = frozenset(
     }
 )
 COMPRESS_TRIGGER_ISSUES = frozenset({"over_absolute_max", "full_sermon_like"})
+# Szemantikai hibák → egy célzott repair hívás
+REPAIRABLE_ISSUES = frozenset(SEMANTIC_HARD_ISSUES) | frozenset(
+    {
+        "forbidden_heading",
+        "forbidden_filler",
+        "raw_markdown_chapters",
+        "split_same_verse",
+        "duplicate_points",
+        "focus_too_long",
+        "missing_focus",
+        "missing_intro",
+        "missing_conclusion",
+        "truncated_sentence",
+    }
+)
 
 # Prose-bait / legacy fields — soha ne kérjük és ne jelenjenek meg elsődlegesen.
 # Megjegyzés: `subpoints` / `application` migrációval beolvasható, de nem kanonikus kimenet.
@@ -168,14 +203,14 @@ FORBIDDEN_FILLERS: tuple[str, ...] = (
 )
 
 COMPRESS_INSTRUCTION = (
-    "FORMAI TÖMÖRÍTÉS — csak ha a látható vázlat 850 szó felett van. "
+    "FORMAI TÖMÖRÍTÉS — csak ha a látható vázlat az abszolút felső határ felett van. "
     "A kapott vázlat tartalmi és homiletikai ívét őrizd meg; "
     "ne tervezz új vázlatot és ne adj hozzá új exegetikai vagy teológiai állítást. "
     "Csak a fölösleges ismétlést, metaszöveget és prédikációs bőbeszédűséget csökkentsd. "
     "Soha ne vágj félbe mondatot szószám alapján. "
     "Őrizd a movements szerkezetet: textual_insight, theological_emphasis, "
     "listener_movement (és transition csak ha már volt). "
-    "Abszolút felső határ 850 szó. "
+    f"Abszolút felső határ {LIMITS['absolute_max_words']} szó. "
     "Ne használj thesis/body/content/subpoints/application/points mezőt — "
     "a kanonikus tömb neve `movements`. "
     "Kizárólag a teljes, javított JSON objektumot add vissza."
@@ -216,125 +251,119 @@ Kizárólag JSON:
 """
 
 OUTLINE_SYSTEM_PROMPT = f"""\
-SZEREP ÉS CÉL
+SZEREP
 
 Tapasztalt, biblikus, református szemléletű homiletikai szerkesztő vagy.
-Feladatod egy kanonikus SZÓSZÉKI GONDOLATVÁZLAT (`movements`) készítése:
-konkrét textuális felismeréssel, teológiai hangsúllyal és hallgatói úttal.
-Nem kész prédikáció, nem hosszú kommentár, nem kétsoros séma.
+Feladatod szószékre vihető GONDOLATVÁZLAT készítése — nem kész prédikáció,
+nem hosszú kommentár, nem mechanikus műhelyösszefoglaló.
 
 SÉMAVERZIÓ: {SCHEMA_VERSION}
 MOTOR: {ENGINE_VERSION}
 
-BELSŐ MUNKAMENET (csendben)
+CÉL
 
-1. A betöltött bibliai szöveg belső szerkezete: központi állítás, egységek,
-   feszültség, fordulat, megérkezés.
-2. Mit mond/tesz a textus, és milyen felismerés/válasz felé vezet.
-3. A textus természetes mozgása szerint 2–5 movement (ne ragaszkodj mindig 3-hoz).
-4. Szelektíven: exegézis, nyelvi megfigyelés, kortörténet, lelkész fókusza,
-   alkalom, félretett kosárelemek, gyors háttércsomag — a textus elsőbbségével.
-5. Hagyd el az ismétlődő, gyenge, bizonytalan vagy ellentmondó elemeket.
+Találd meg a textus saját mozgását. A háttéranyagból válogass: az irreleváns,
+ismétlődő vagy a textussal ellentétes elemeket hagyd el. A homiletikai módszerek
+(Craddock, Lowry, Buttrick, Robinson, Chapell, Nicol) lencsék, nem kizárólagos
+sablonok. Üres előkészítésnél is önálló, érdemi vázlatot készíts. Általános
+helykitöltő mondat helyett mindig konkrét teológiai tartalom kell.
+Belső gondolatmenetedet ne tedd láthatóvá — csak a strukturált JSON eredményt add.
 
-FORRÁSHIERARCHIA
+FORRÁSPRIORITÁS (szigorú)
 
-1. Betöltött bibliai szöveg és indokolt határa.
-2. Felhasználó jóváhagyott döntései.
-3. Saját megjegyzések, alkalmi és életrajzi adatok (pásztori hang, textus nélkül).
-4. Mentett exegetikai / nyelvi / történeti / teológiai anyag.
-5. Vázlatkosár tudatos elemei.
-6. Gyors háttérelemzés.
-7. Nem jóváhagyott MI-javaslat csak háttérként.
+1. Betöltött bibliai szöveg (legmagasabb)
+2. Ellenőrizhető eredeti nyelvi adatok (ne találj ki lemmát/Strongöt/igeidőt)
+3. Felhasználó jóváhagyott döntései és saját megjegyzései
+4. Releváns exegetikai háttéranyag
+5. Homiletikai módszerválasztás / műhelyszempontok (lencsék)
+6. Vázlatkosár tudatos elemei (opcionális; üres kosár nem hiány)
+7. Modell által készített kiegészítő háttér (legalacsonyabb súly)
 
-Üres vázlatkosár nem hiány. Teljes, konkrét vázlatot készíts csak igehely +
-betöltött szöveg (+ opcionális gyors háttér) alapján is. Ne jelezd a hiányt
-a vázlatban, és ne töltsd ki közhelyekkel.
+MŰFAJ ÉS FORMA
 
-Ne találj ki verset vagy bizonytalan nyelvi adatot. Ugyanazt a verset ne bontsd
-automatikusan több mozgásra. Párhuzamos felszólításokat tarts egyben, ha egy
-mozgalmat alkotnak. Alkalmi/életrajzi adat ne írja felül a textust, és ne
-állíts igazolhatatlan üdvbizonyosságot.
+A vázlat formáját elsősorban a textus műfaja és mozgása határozza meg:
+- érvelő/tanító: természetes expozitív mozgás
+- elbeszélés: jelenetek, feszültség, fordulat
+- zsoltár/prófétai: képek és gondolati mozgások
+- doxológia: teológiai kijelentés → dicsőítő és egzisztenciális megérkezés
+- rövid textus: ne gyárts mesterségesen három főpontot
+- hosszabb textus: ne zsúfold egyetlen gondolatba
+Ha a felhasználó módszert választott, az befolyásolja a ritmust, de eltérhetsz,
+ha a textus természetes szerkezete ezt indokolja. A lelkész saját megjegyzéseit
+erősebben vedd figyelembe, mint a módszerlencsét.
 
 Az evangéliumi vagy krisztológiai kapcsolat, Krisztus és a kegyelemhorizont
-csak akkor jelenjen meg, ha textuálisan és kánonilag indokolható.
+csak akkor jelenjen meg (`christ_grace_connection`), ha textuálisan és
+kánonilag indokolható — ne legyen erőltetett.
 
-MOZGÁS (minden movement)
+TILTOTT / TILOS
 
-- rövid tartalmi `title` + `verses`
-- `textual_insight`: 1–2 mondat — mit mond/tesz a textus ebben a mozgásban
-- `theological_emphasis`: egy világos mondat a teológiai súlypontról
-- `listener_movement`: konkrét, kegyelmi/pásztori irány — ne általános felszólítás
-- `transition`: csak ha valóban segíti az előrehaladást; különben üres
+- fókuszmondat = versidézet vagy annak nagy átfedésű parafrázisa
+- textus ismétlése a bevezetésben / minden szakaszban
+- önkényes „v. —a” / „v. —b” felosztás
+- „Ámen” önálló főpontként (hacsak nincs valódi teológiai indoka)
+- helykitöltők: „a textus saját szavai szerint”, „a hallgató konkrét
+  felismerésre jut”, „innen vihető tovább a szószéki kibontás”,
+  „a teológiai hangsúly abban áll” tartalom nélkül
+- nyers Markdown (#, ```, félbehagyott *)
+- teljes prédikáció vagy hosszú kommentár
+- bizonytalan nyelvi adat kitalálása
+- `points` / `subpoints` / `application` / `body` / `thesis` mezők a kimenetben
 
-A három tartalmi réteg legyen egymástól megkülönböztethető; ne másold át
-ugyanazt a mondatot. Kerüld a sabloncímeket („A textus megnyitása”,
-„A központi állítás”, „A kegyelmi megérkezés”).
+MOZGÁSOK (2–5, textus szerint)
+
+Általában 3–4 gazdagon kibontott mozgás jobb, mint sok egysoros pont.
+Minden mozgás:
+- rövid tartalmi title (igehely nélkül)
+- verses: pontos textusbeli alap
+- textual_insight, theological_emphasis, listener_movement: érdemi, különböző
+- original_language_note / poetic_turn: csak ha valóban segít
+- transition: csak ha szükséges
 
 MEZŐK
 
-- `title`, `text_reference`, `scope_note` (csak valódi határkérdésnél)
-- `focus_sentence`: egy konkrét, textusból következő állítás
-- `introduction_direction`: 1–2 tartalmi mondat, nem kész bevezető
-- `movements`: 2–5
-- `conclusion_direction`: 1–2 mondatos megérkezés
-- `refinement_suggestions`: 0–2 hasznos szerkesztői javaslat
+- title / text_reference / scope_note
+- focus_sentence: egyetlen saját megfogalmazású, teológiailag pontos mondat
+- exegetical_handles: 2–5 rövid kapaszkodó (nem teljes mini-exegézis)
+- introduction_direction: hallgatói kérdés/feszültség/kép — nem anekdota,
+  nem textusismétlés
+- movements
+- christ_grace_connection: csak ha textuálisan/kánonilag természetes
+- conclusion_direction: teológiai és egzisztenciális megérkezés
+- closing_line: tömör zárómondat vagy zárókérdés
+- refinement_suggestions: 0–2
 
-HOSSZ (tartalom elsőbbségével)
-
-- 2 mozgás: ~350–500 szó
-- 3–4 mozgás: ~420–700 szó
-- 5 mozgás: legfeljebb ~850 szó
-- Kemény felső korlát: 850 szó. Az alsó tartomány minőségi jelzés, nem öncél.
-
-TILOS: teljes prédikáció; többbekezdéses próza; félmondat; `points` / `subpoints`
-/ `application` / `body` / `thesis` mezők; metaszöveg; üres közhelyek.
-
-KÖTELEZŐ KIMENET — kizárólag JSON:
-
-{{
-  "title": "string",
-  "text_reference": "string",
-  "scope_note": "string or empty",
-  "focus_sentence": "string",
-  "introduction_direction": "string",
-  "movements": [
-    {{
-      "title": "string without verse ref",
-      "verses": "v. x–y",
-      "textual_insight": "1-2 full sentences",
-      "theological_emphasis": "one clear sentence",
-      "listener_movement": "one concrete pastoral sentence",
-      "transition": ""
-    }}
-  ],
-  "conclusion_direction": "string",
-  "refinement_suggestions": []
-}}
+Kizárólag JSON-t adj vissza a megadott sémában.
 """
 
 _JSON_SHAPE = """\
 {
-  "title": "Rövid, megjegyezhető cím",
+  "title": "Rövid cím vagy vezérmotívum",
   "text_reference": "Igehely",
   "scope_note": "",
-  "focus_sentence": "Egy konkrét fókuszmondat.",
-  "introduction_direction": "Bevezetési irány (1–2 mondat).",
+  "focus_sentence": "Saját megfogalmazású fókuszmondat (nem versidézet).",
+  "exegetical_handles": ["rövid kapaszkodó 1", "rövid kapaszkodó 2"],
+  "introduction_direction": "Hallgatói kérdés / feszültség / kép.",
   "movements": [
     {
       "title": "Mozgás cím igehely nélkül",
       "verses": "v. x–y",
       "textual_insight": "Mit állít / milyen mozgást végez a textus.",
-      "theological_emphasis": "Teológiai súlypont.",
+      "theological_emphasis": "Konkrét teológiai súlypont.",
       "listener_movement": "Konkrét hallgatói / pásztori irány.",
+      "original_language_note": "",
+      "poetic_turn": "",
       "transition": ""
     }
   ],
-  "conclusion_direction": "Megérkezés (1–2 mondat).",
+  "christ_grace_connection": "",
+  "conclusion_direction": "Teológiai és egzisztenciális megérkezés.",
+  "closing_line": "Tömör zárómondat vagy zárókérdés.",
   "refinement_suggestions": []
 }
 """
 
-# Gemini responseSchema — kanonikus movements.
+# Gemini responseSchema — kanonikus movements + v8 mezők.
 OUTLINE_RESPONSE_SCHEMA: dict[str, Any] = {
     "type": "OBJECT",
     "properties": {
@@ -342,6 +371,10 @@ OUTLINE_RESPONSE_SCHEMA: dict[str, Any] = {
         "text_reference": {"type": "STRING"},
         "scope_note": {"type": "STRING"},
         "focus_sentence": {"type": "STRING"},
+        "exegetical_handles": {
+            "type": "ARRAY",
+            "items": {"type": "STRING"},
+        },
         "introduction_direction": {"type": "STRING"},
         "movements": {
             "type": "ARRAY",
@@ -355,6 +388,8 @@ OUTLINE_RESPONSE_SCHEMA: dict[str, Any] = {
                     "textual_insight": {"type": "STRING"},
                     "theological_emphasis": {"type": "STRING"},
                     "listener_movement": {"type": "STRING"},
+                    "original_language_note": {"type": "STRING"},
+                    "poetic_turn": {"type": "STRING"},
                     "transition": {"type": "STRING"},
                 },
                 "required": [
@@ -366,7 +401,9 @@ OUTLINE_RESPONSE_SCHEMA: dict[str, Any] = {
                 ],
             },
         },
+        "christ_grace_connection": {"type": "STRING"},
         "conclusion_direction": {"type": "STRING"},
+        "closing_line": {"type": "STRING"},
         "refinement_suggestions": {
             "type": "ARRAY",
             "maxItems": 2,
@@ -425,7 +462,9 @@ def _looks_truncated_sentence(text: Any) -> bool:
     raw = _s(text)
     if not raw:
         return False
-    if raw.endswith((".", "!", "?", "…", '"', "”", "'")):
+    if raw.endswith(("…", "...")):
+        return True
+    if raw.endswith((".", "!", "?", '"', "”", "'")):
         # Still flag obvious mid-clause stubs ending with period after tiny tail
         low = raw.casefold()
         if re.search(r"\b(és|vagy|hogy|mert|ha|de|majd)\s*\.$", low):
@@ -576,10 +615,13 @@ def empty_structured_outline() -> dict[str, Any]:
         "text_reference": "",
         "scope_note": "",
         "focus_sentence": "",
+        "exegetical_handles": [],
         "introduction_direction": "",
         "movements": [],
         "points": [],
+        "christ_grace_connection": "",
         "conclusion_direction": "",
+        "closing_line": "",
         "refinement_suggestions": [],
     }
 
@@ -662,6 +704,14 @@ def normalize_structured_outline(raw: Any) -> dict[str, Any]:
     )
     out["scope_note"] = _s(raw.get("scope_note") or raw.get("text_boundary_note"))
     out["focus_sentence"] = _s(raw.get("focus_sentence") or raw.get("main_idea"))
+    handles_raw = raw.get("exegetical_handles") or raw.get("exegetical_notes") or []
+    handles: list[str] = []
+    if isinstance(handles_raw, list):
+        for h in handles_raw:
+            hs = _s(h)
+            if hs and hs not in handles:
+                handles.append(hs)
+    out["exegetical_handles"] = handles[:5]
     intro_raw = raw.get("introduction")
     intro = intro_raw if isinstance(intro_raw, dict) else {}
     out["introduction_direction"] = _s(
@@ -677,6 +727,12 @@ def normalize_structured_outline(raw: Any) -> dict[str, Any]:
         raw.get("conclusion_direction")
         or conc.get("development")
         or closing.get("final_insight")
+    )
+    out["christ_grace_connection"] = _s(raw.get("christ_grace_connection"))
+    out["closing_line"] = _s(
+        raw.get("closing_line")
+        or conc.get("final_sentence")
+        or closing.get("final_sentence")
     )
     tips = raw.get("refinement_suggestions") or raw.get("editorial_tips") or []
     cleaned_tips: list[str] = []
@@ -719,6 +775,8 @@ def normalize_structured_outline(raw: Any) -> dict[str, Any]:
                 "title": title or f"{i}. mozgás",
                 "verses": verses,
                 "transition": transition,
+                "original_language_note": _s(item.get("original_language_note")),
+                "poetic_turn": _s(item.get("poetic_turn")),
                 **layers,
             }
         )
@@ -1021,6 +1079,11 @@ def validate_structured_outline(
     if para_count >= 8 and total > LIMITS["absolute_max_words"]:
         issues.append("full_sermon_like")
 
+    # v8 szemantikai minőségvédelem
+    semantic = assess_semantic_quality(data, passage_text=passage_text)
+    for code in semantic:
+        issues.append(code)
+
     return list(dict.fromkeys(issues))
 
 
@@ -1042,7 +1105,7 @@ def _strip_trailing_verse_from_title(title: str) -> str:
 
 
 def render_structured_outline(payload: Any) -> str:
-    """Felhasználói megjelenés — három réteg mezőnév nélkül."""
+    """Felhasználói megjelenés — szószéki jegyzet, mezőcímkékkel."""
     data = normalize_structured_outline(payload)
     blocks: list[str] = []
 
@@ -1056,6 +1119,11 @@ def render_structured_outline(payload: Any) -> str:
     if data["scope_note"]:
         _sec("Megjegyzés a textushatárról", data["scope_note"])
     _sec("Fókuszmondat", data["focus_sentence"])
+    handles = data.get("exegetical_handles") or []
+    if isinstance(handles, list) and handles:
+        handle_lines = "\n".join(f"- {_s(h)}" for h in handles if _s(h))
+        if handle_lines:
+            _sec("Exegetikai kapaszkodók", handle_lines)
     _sec("Bevezetési irány", data["introduction_direction"])
 
     for idx, pt in enumerate(data["points"], start=1):
@@ -1071,12 +1139,17 @@ def render_structured_outline(payload: Any) -> str:
         listener = _s(pt.get("listener_movement"))
         parts: list[str] = []
         if textual:
-            # Textuális felismerés: tipográfiailag hangsúlyos
             parts.append(f"**{textual}**")
         if theological:
             parts.append(theological)
+        lang_note = _s(pt.get("original_language_note"))
+        if lang_note:
+            parts.append(lang_note)
         if listener:
             parts.append(f"*{listener}*")
+        poetic = _s(pt.get("poetic_turn"))
+        if poetic:
+            parts.append(poetic)
         transition = _s(pt.get("transition"))
         if transition:
             parts.append(transition)
@@ -1084,9 +1157,13 @@ def render_structured_outline(payload: Any) -> str:
             continue
         blocks.append(f"**{heading}**\n\n" + "\n\n".join(parts))
 
+    christ = _s(data.get("christ_grace_connection"))
+    if christ:
+        _sec("Krisztus- és kegyelemközpontú összefüggés", christ)
     _sec("Megérkezés", data["conclusion_direction"])
-    # Finomítási javaslatok: editorial_tips mezőben + UI expanderben —
-    # ne kerüljenek a kanonikus szószéki szövegtestbe.
+    closing = _s(data.get("closing_line"))
+    if closing:
+        _sec("Zárómondat", closing)
     text = "\n\n".join(blocks).strip()
     text = re.sub(r"(?m)^#{1,6}\s*", "", text)
     return text + ("\n" if text else "")
@@ -1127,11 +1204,17 @@ def structured_to_sermon_outline(
     }
     outline["conclusion"] = {
         "development": data["conclusion_direction"],
-        "final_sentence": "",
+        "final_sentence": _s(data.get("closing_line")),
     }
     closing = dict(outline.get("closing") or {})
     closing["final_insight"] = data["conclusion_direction"]
+    if _s(data.get("closing_line")):
+        closing["final_sentence"] = _s(data.get("closing_line"))
     outline["closing"] = closing
+    if data.get("christ_grace_connection"):
+        outline["christ_grace_connection"] = _s(data.get("christ_grace_connection"))
+    if data.get("exegetical_handles"):
+        outline["exegetical_handles"] = list(data.get("exegetical_handles") or [])
     outline["editorial_tips"] = list(data["refinement_suggestions"][:2])
     try:
         from sermon_workshop_outline_synth_ai import suggest_text_boundary_hint
@@ -1445,8 +1528,8 @@ INVALID_OUTLINE_MESSAGE = (
     "A vázlatgenerálás nem adott szószéken használható munkavázlatot "
     f"(abszolút felső határ {LIMITS['absolute_max_words']} szó; "
     "a céltartomány minőségi iránymutatás). "
-    "Próbáld újra — a hosszú prédikációs szöveg vagy a szerkezetileg hibás "
-    "vázlat nem kerül mentésre."
+    "Próbáld újra — a gyenge sablon, a textusismétlés vagy a szerkezetileg "
+    "hibás vázlat nem kerül mentésre."
 )
 
 SCHEMA_REFRESH_NOTICE = (
@@ -1557,7 +1640,7 @@ def _passage_verse_chunks(passage: Any) -> list[tuple[str, str]]:
 
 
 def _distinct_layer(preferred: str, *, banned: set[str], fallback: str) -> str:
-    """Réteg szöveg, amely nem ismétli a már használt mondatot."""
+    """Réteg szöveg, amely nem ismétli a már használt mondatot és nem sablon."""
     from sermon_workshop_outline_ai import _usable_text
 
     candidate = _usable_text(preferred) or fallback
@@ -1568,31 +1651,76 @@ def _distinct_layer(preferred: str, *, banned: set[str], fallback: str) -> str:
         if candidate and not candidate.endswith((".", "!", "?")):
             candidate += "."
     banned.add(_normalize_cmp(candidate))
-    # Minimum minőség: ne legyen félmondat
-    target_min = LIMITS["layer_min_words"]
-    while word_count(candidate) < target_min:
-        candidate = (
-            candidate.rstrip(".!?")
-            + ", a textus saját szavai szerint."
-        )
-        if not candidate.endswith("."):
-            candidate += "."
-        if word_count(candidate) > LIMITS["layer_max_words"]:
-            break
     candidate = _clip_to_full_sentences(candidate, LIMITS["layer_max_words"])
     if candidate and not candidate.endswith((".", "!", "?")):
         candidate += "."
     return candidate
 
 
+def _heuristic_focus_from_bundle(
+    bundle: Mapping[str, Any],
+    *,
+    seed_outline: Mapping[str, Any] | None = None,
+    brief: ExegeticalBrief | None = None,
+) -> str:
+    """Saját megfogalmazású fókusz — soha ne legyen nyers versidézet."""
+    from sermon_workshop_outline_ai import _prefer_main_idea, _usable_text
+
+    focus = _prefer_main_idea(bundle)
+    if not focus and seed_outline:
+        focus = _s(seed_outline.get("main_idea"))
+    if not focus and brief and _s(brief.central_claim):
+        claim = _s(brief.central_claim)
+        # Ne fogadjuk el, ha a claim maga a passage
+        passage = _s(bundle.get("passage_text"))
+        from sermon_outline_quality import focus_is_passage_quote
+
+        if not focus_is_passage_quote(claim, passage):
+            focus = claim
+    if not focus and brief and _s(brief.theological_emphasis):
+        focus = _s(brief.theological_emphasis)
+    if not focus:
+        ref = _s(bundle.get("passage_reference"))
+        genre = ""
+        if brief:
+            genre = _s(brief.genre_and_movement).casefold()
+        if "doxológ" in genre or "júd" in ref.casefold():
+            focus = (
+                "Az egyedüli üdvözítő Isten képes megőrizni a botlástól, "
+                "és feddhetetlenül, örömmel állít dicsősége elé."
+            )
+        else:
+            focus = (
+                "A textus Isten cselekvését állítja a középpontba, "
+                "és a hallgatót hitbeli felismerésre hívja a szakasz saját mozgása szerint."
+            )
+    focus = _usable_text(focus) or focus
+    # Ha mégis passage-idézet lenne, cseréljük
+    from sermon_outline_quality import focus_is_passage_quote
+
+    passage = _s(bundle.get("passage_text"))
+    if focus and passage and focus_is_passage_quote(focus, passage):
+        focus = (
+            "A szakasz központi teológiai állítása Isten cselekvése körül forog, "
+            "és a hallgatót a textus saját mozgása szerint hívja válaszra."
+        )
+    # Csak szintetikus fókusznál erőltessünk zárójelet; a jóváhagyott főgondolatot ne írjuk át.
+    synthetic = focus.startswith("A szakasz központi") or focus.startswith(
+        "Az egyedüli üdvözítő"
+    ) or focus.startswith("A textus Isten")
+    if focus and synthetic and not focus.endswith((".", "!", "?")):
+        focus += "."
+    return _clip_to_full_sentences(focus, LIMITS["focus_words"])
+
+
 def _heuristic_structured_from_bundle(
     bundle: Mapping[str, Any],
     *,
     seed_outline: Mapping[str, Any] | None = None,
+    brief: ExegeticalBrief | None = None,
 ) -> dict[str, Any]:
-    """Offline / teszt: háromrétegű szószéki vázlat a rendelkezésre álló anyagból."""
+    """Offline / teszt: szószéki vázlat — sablon és versidézet nélkül."""
     from sermon_workshop_outline_ai import (
-        _prefer_main_idea,
         _truncate,
         _usable_text,
     )
@@ -1601,46 +1729,16 @@ def _heuristic_structured_from_bundle(
     data["text_reference"] = _s(bundle.get("passage_reference"))
     data["title"] = _s(bundle.get("project_title")) or data["text_reference"] or "Vázlat"
     if word_count(data["title"]) > LIMITS["title_words"]:
-        data["title"] = _clip_to_full_sentences(data["title"], LIMITS["title_words"])
-        if word_count(data["title"]) > LIMITS["title_words"]:
-            data["title"] = " ".join(data["title"].split()[: LIMITS["title_words"]])
+        data["title"] = " ".join(data["title"].split()[: LIMITS["title_words"]])
 
     passage = _s(bundle.get("passage_text"))
     verse_chunks = _passage_verse_chunks(passage)
+    data["focus_sentence"] = _heuristic_focus_from_bundle(
+        bundle, seed_outline=seed_outline, brief=brief
+    )
 
-    focus = _prefer_main_idea(bundle)
-    if not focus and seed_outline:
-        focus = _s(seed_outline.get("main_idea"))
-    if not focus and verse_chunks:
-        # Textusból: első versmondat + záró hangsúly, ha van
-        lead = verse_chunks[0][1]
-        focus = _clip_to_full_sentences(lead, LIMITS["focus_words"])
-        if len(verse_chunks) > 1 and word_count(focus) < LIMITS["focus_min_words"]:
-            focus = _clip_to_full_sentences(
-                lead + " " + verse_chunks[-1][1], LIMITS["focus_words"]
-            )
-    data["focus_sentence"] = (
-        _usable_text(focus)
-        or (
-            "A textus Isten megtartó szavát hirdeti a közösség előtt, "
-            "és a hallgatót hitbeli felismerésre és válaszra hívja."
-        )
-    )
-    if (
-        data["focus_sentence"]
-        and word_count(data["focus_sentence"]) >= LIMITS["focus_min_words"]
-        and not data["focus_sentence"].endswith((".", "!", "?"))
-    ):
-        data["focus_sentence"] += "."
-    data["focus_sentence"] = _clip_to_full_sentences(
-        data["focus_sentence"], LIMITS["focus_words"]
-    )
-    if (
-        data["focus_sentence"]
-        and word_count(data["focus_sentence"]) >= LIMITS["focus_min_words"]
-        and not data["focus_sentence"].endswith((".", "!", "?"))
-    ):
-        data["focus_sentence"] += "."
+    if brief:
+        data["exegetical_handles"] = brief.handles_for_outline(max_items=5)
 
     lt_raw = bundle.get("listener_tension")
     path_raw = bundle.get("sermon_path")
@@ -1649,36 +1747,23 @@ def _heuristic_structured_from_bundle(
     intro = (
         _usable_text(path.get("starting_point"))
         or _usable_text(lt.get("listener_question"))
+        or (brief.internal_tension if brief else "")
         or (
-            (
-                "A betöltött textus saját mozgása nyitja meg a hallgatót. "
-                + (
-                    " ".join(verse_chunks[0][1].rstrip("….").split()) + "."
-                    if verse_chunks
-                    else ""
-                )
-            ).strip()
-            if verse_chunks
-            else (
-                "A hallgató gyakran a saját bizonytalanságából indul, amikor a textus "
-                "szava elé áll. A kérdés az, milyen emberi feszültség nyitja meg "
-                "természetesen ezt az igeszakaszt a gyülekezet előtt. Innen vezet az út "
-                "a textus saját állítása és mozgása felé, nem általános kegyességi "
-                "közhelyek felé."
-            )
+            "A hallgató gyakran a saját bizonytalanságából indul, amikor Isten "
+            "megtartó ígérete elé áll. A kérdés az, milyen emberi feszültség "
+            "nyitja meg természetesen ezt az igeszakaszt a gyülekezet előtt."
         )
     )
-    if not _s(intro):
-        intro = (
-            "A hallgató a betöltött textus elé áll, és a szöveg saját mozgása "
-            "nyitja meg a hallgatást a gyülekezet előtt."
-        )
     data["introduction_direction"] = _clip_to_full_sentences(
         _truncate(intro, 700), LIMITS["intro_words"]
     )
 
     points: list[dict[str, Any]] = []
-    movements = bundle.get("sermon_movements") if isinstance(bundle.get("sermon_movements"), list) else []
+    movements = (
+        bundle.get("sermon_movements")
+        if isinstance(bundle.get("sermon_movements"), list)
+        else []
+    )
     insights = [
         _usable_text(x)
         for x in (bundle.get("approved_insights") or [])
@@ -1697,6 +1782,9 @@ def _heuristic_structured_from_bundle(
     def _one_layer(text: str, *, fallback: str) -> str:
         return _distinct_layer(text, banned=used_layers, fallback=fallback)
 
+    genre = _s(brief.genre_and_movement).casefold() if brief else ""
+    is_doxology = "doxológ" in genre or "júd" in data["text_reference"].casefold()
+
     if movements:
         for i, mv in enumerate(movements[: LIMITS["max_points"]], start=1):
             if not isinstance(mv, dict):
@@ -1709,6 +1797,9 @@ def _heuristic_structured_from_bundle(
             )
             if word_count(title) > LIMITS["point_title_words"]:
                 title = " ".join(title.split()[: LIMITS["point_title_words"]])
+            # Ámen ne legyen főpont
+            if re.match(r"^\s*(az\s+)?ámen\.?\s*$", title, flags=re.I):
+                continue
             basis = _usable_text(mv.get("textual_basis")) or _usable_text(
                 mv.get("textual_anchor")
             )
@@ -1725,8 +1816,8 @@ def _heuristic_structured_from_bundle(
                     "textual_insight": _one_layer(
                         core or exe or (insights[0] if insights else ""),
                         fallback=(
-                            "A textus saját szavai és szerkezete rendezik ezt a "
-                            "gondolatot a hallgató előtt."
+                            "A textus ebben a szakaszban Isten cselekvését állítja "
+                            "előtérbe, és a gondolat a kiválasztott versekhez kötődik."
                         ),
                     ),
                     "theological_emphasis": _one_layer(
@@ -1736,8 +1827,8 @@ def _heuristic_structured_from_bundle(
                         or exe
                         or "",
                         fallback=(
-                            "A teológiai jelentés abban áll, hogy Isten cselekvése "
-                            "hív választ, nem az emberi erőfeszítés."
+                            "Isten cselekvése hív választ, nem az emberi erőfeszítés; "
+                            "ez adja a szakasz teológiai súlyát."
                         ),
                     ),
                     "listener_movement": _one_layer(
@@ -1745,14 +1836,75 @@ def _heuristic_structured_from_bundle(
                         or (decisions[0] if decisions else "")
                         or "",
                         fallback=(
-                            "A hallgató felismerésre jut arról, hol kell a textus "
-                            "mozgását személyesen komolyan vennie."
+                            "A hallgató kérdezheti, hol kell ezt a mozgást "
+                            "személyesen komolyan vennie a gyülekezet életében."
                         ),
                     ),
                 }
             )
+    elif is_doxology and verse_chunks:
+        # Doxológia: 2 természetes mozgás (v. 24 megtartás+eléállás, v. 25 dicsőítés)
+        points.append(
+            {
+                "title": "Megőrzés és eléállás",
+                "verses": verse_chunks[0][0] if verse_chunks else "v. 24",
+                "textual_insight": _one_layer(
+                    (
+                        "Isten megtartó cselekvése áll a középpontban: képes "
+                        "megőrizni a botlástól, és feddhetetlenül, örömmel állít "
+                        "dicsősége elé."
+                    ),
+                    fallback="A doxológia Isten megtartó és dicsőséges cselekvését bontja ki.",
+                ),
+                "theological_emphasis": _one_layer(
+                    (
+                        brief.theological_emphasis
+                        if brief and brief.theological_emphasis
+                        else ""
+                    )
+                    or exe
+                    or "",
+                    fallback=(
+                        "A bizalom forrása Isten hatalma és üdvözítő egyedülvalósága, "
+                        "nem a hallgató állhatatossága."
+                    ),
+                ),
+                "listener_movement": _one_layer(
+                    (brief.listener_connection if brief else "") or "",
+                    fallback=(
+                        "A gyülekezet botlásfélelmeit Isten megtartó ígéretére "
+                        "bízhatja, és a dicsőítés felé mozdulhat."
+                    ),
+                ),
+            }
+        )
+        points.append(
+            {
+                "title": "Dicsőítés az egyedüli üdvözítő Istennek",
+                "verses": verse_chunks[-1][0] if verse_chunks else "v. 25",
+                "textual_insight": _one_layer(
+                    (
+                        "A doxológia az egyedüli üdvözítő Isten dicsőségét, "
+                        "fenségét és hatalmát hirdeti Jézus Krisztus által."
+                    ),
+                    fallback="A szakasz a dicsőítésben érkezik meg.",
+                ),
+                "theological_emphasis": _one_layer(
+                    "",
+                    fallback=(
+                        "Az üdvözítés és a dicsőség Krisztus által kötődik Istenhez."
+                    ),
+                ),
+                "listener_movement": _one_layer(
+                    "",
+                    fallback=(
+                        "A hála Krisztusra irányul, nem általános vallásos magasztalásra."
+                    ),
+                ),
+            }
+        )
     elif verse_chunks:
-        # Textus-alapú mozgások: 2–5 versblokk, ismétlés nélkül
+        # Természetes versblokkok — NINCS a/b hasítás
         def _body_usable(raw_body: str) -> str:
             text = " ".join(_s(raw_body).split()).strip()
             if text.endswith(("…", "...")):
@@ -1762,37 +1914,31 @@ def _heuristic_structured_from_bundle(
             return text
 
         units: list[tuple[str, str]] = [
-            (label, _body_usable(body)) for label, body in verse_chunks if _body_usable(body)
+            (label, _body_usable(body))
+            for label, body in verse_chunks
+            if _body_usable(body)
+            and not re.search(r"^\s*ámen\.?\s*$", body, flags=re.I)
         ]
         if not units and verse_chunks:
-            # Csonka ellipsis fixture: legalább egy használható egység
             label, body = verse_chunks[0]
-            units = [(label, _body_usable(body) or "A textus Isten szavát szólítja a hallgatóhoz.")]
-        n = min(max(len(units), 2), LIMITS["max_points"])
+            units = [
+                (
+                    label,
+                    _body_usable(body)
+                    or "A textus Isten szavát szólítja a hallgatóhoz.",
+                )
+            ]
+        # Ha csak 1 egység van, 2 teológiai mozgás — nem félvers-split
         if len(units) == 1:
-            sents = _split_sentences(units[0][1])
-            if len(sents) >= 2:
-                mid = max(1, len(sents) // 2)
-                units = [
-                    (f"{units[0][0]}a", " ".join(sents[:mid])),
-                    (f"{units[0][0]}b", " ".join(sents[mid:])),
-                ]
-            else:
-                # Egy mondat / egy vers: két különböző mozgás, nem klón
-                body = units[0][1]
-                words = body.split()
-                mid = max(3, len(words) // 2)
-                first = " ".join(words[:mid]).rstrip(".,;:") + "."
-                units = [
-                    (units[0][0], body),
-                    (
-                        units[0][0],
-                        (
-                            "Ugyanez a szakasz a hallgató válaszát is rendezi: "
-                            + first
-                        ),
-                    ),
-                ]
+            units = [
+                (units[0][0], units[0][1]),
+                (
+                    units[0][0],
+                    "Ugyanez a szakasz a hallgató válaszát is rendezi Isten "
+                    "cselekvése felől.",
+                ),
+            ]
+        n = min(max(len(units), 2), LIMITS["max_points"])
         if len(units) > n:
             if n == 2:
                 units = [units[0], units[-1]]
@@ -1801,52 +1947,40 @@ def _heuristic_structured_from_bundle(
                 picked = [units[i * step] for i in range(n - 1)]
                 picked.append(units[-1])
                 units = picked[:n]
-        # Azonos versjelölés egymás után → második üres / „folytatás”
-        for i in range(1, len(units)):
-            if units[i][0] == units[i - 1][0]:
-                units[i] = (f"{units[i][0]} · folytatás", units[i][1])
         for i, (verses, body) in enumerate(units):
+            # Ne ismételd a teljes body-t a rétegekben
             title_words = body.split()[:6]
             title = " ".join(title_words).rstrip(".,;:")
             if word_count(title) > LIMITS["point_title_words"]:
                 title = " ".join(title.split()[: LIMITS["point_title_words"]])
-            # Kerüld a cím-klónokat
             if any(_normalize_cmp(title) == _normalize_cmp(p["title"]) for p in points):
-                title = f"{i + 1}. mozgás — {title}".strip(" —")
-                title = " ".join(title.split()[: LIMITS["point_title_words"]])
+                title = f"{i + 1}. mozgás"
+            summary = _clip_to_full_sentences(body, 28)
             points.append(
                 {
                     "title": title or f"{i + 1}. mozgás",
                     "verses": verses,
                     "textual_insight": _one_layer(
-                        body,
+                        (
+                            f"Ebben a szakaszban a textus ezt a mozgást végzi: {summary}"
+                        ),
                         fallback=(
-                            "A textus saját mozgása bontja ki ezt a pontot a "
-                            "betöltött igeszakasz alapján."
+                            "A textus ebben a szakaszban Isten cselekvését bontja ki "
+                            "a betöltött igeszakasz alapján."
                         ),
                     ),
                     "theological_emphasis": _one_layer(
-                        exe
-                        or original
-                        or (
-                            "Isten cselekvése ebben a szakaszban a textus saját "
-                            f"szavai szerint rendezi a közösség helyzetét: {body}"
-                        ),
+                        exe or original or "",
                         fallback=(
-                            "A teológiai hangsúly abban áll, hogy Isten cselekvése "
-                            "rendezi a hallgató helyzetét a textus alapján."
+                            "A teológiai súly Isten cselekvéében van, amely "
+                            "rendezi a közösség helyzetét a szöveg szerint."
                         ),
                     ),
                     "listener_movement": _one_layer(
-                        history
-                        or (decisions[0] if decisions else "")
-                        or (
-                            "A hallgató e versszó előtt kérdezheti, hol érint "
-                            f"őket személyesen ez: {body}"
-                        ),
+                        history or (decisions[0] if decisions else "") or "",
                         fallback=(
-                            "A hallgató így konkrét felismerésre jut anélkül, hogy "
-                            "üres felszólítást kapna."
+                            "A hallgató e szakasz előtt kérdezheti, hol érint "
+                            "őt személyesen Istennek ez a cselekvése."
                         ),
                     ),
                 }
@@ -1860,17 +1994,19 @@ def _heuristic_structured_from_bundle(
         seeds = [s for s in seeds if s] or [data["focus_sentence"]]
         while len(seeds) < 2:
             seeds.append(
-                "A textus saját mozgása tovább pontosítja a hallgató felismerését."
+                "A textus további mozgása pontosítja a hallgató felismerését Isten cselekvése felől."
             )
         titles = (
-            "A textus megnyílása",
+            "A szakasz megnyílása",
             "A központi állítás kibontása",
             "A hallgatói megérkezés",
         )
         loaded = sorted(extract_verse_numbers(bundle.get("passage_text") or ""))
         count = min(max(len(seeds), 2), 3)
         if len(loaded) >= count:
-            verse_labels = [f"v. {loaded[min(i, len(loaded)-1)]}" for i in range(count)]
+            verse_labels = [
+                f"v. {loaded[min(i, len(loaded) - 1)]}" for i in range(count)
+            ]
         else:
             verse_labels = [""] * count
         for i in range(count):
@@ -1882,22 +2018,22 @@ def _heuristic_structured_from_bundle(
                     "textual_insight": _one_layer(
                         body,
                         fallback=(
-                            "A textus saját mozgása bontja ki ezt a pontot a "
-                            "betöltött igeszakasz alapján."
+                            "A textus ebben a szakaszban Isten cselekvését bontja ki "
+                            "a betöltött igeszakasz alapján."
                         ),
                     ),
                     "theological_emphasis": _one_layer(
                         exe or original or "",
                         fallback=(
-                            "A teológiai hangsúly abban áll, hogy Isten cselekvése "
+                            "A teológiai súly Isten cselekvéében van, amely "
                             "rendezi a hallgató helyzetét."
                         ),
                     ),
                     "listener_movement": _one_layer(
                         history or "",
                         fallback=(
-                            "A hallgató így konkrét felismerésre jut anélkül, hogy "
-                            "üres felszólítást kapna."
+                            "A hallgató így konkrét felismerésre juthat anélkül, "
+                            "hogy moralizáló felszólítást kapna."
                         ),
                     ),
                 }
@@ -1908,19 +2044,23 @@ def _heuristic_structured_from_bundle(
     arc_raw = bundle.get("christ_centered_arc")
     closing = closing_raw if isinstance(closing_raw, dict) else {}
     arc = arc_raw if isinstance(arc_raw, dict) else {}
-    if verse_chunks:
-        last_body = verse_chunks[-1][1]
+    if is_doxology:
         default_conc = (
-            "A textus megérkezése: "
-            + _clip_to_full_sentences(last_body, 40)
-            + " Innen vihető tovább a szószéki kibontás."
+            "A doxológia Isten megtartó hatalmát és dicsőségét állítja a középpontba: "
+            "a hallgató nem saját teljesítményénél, hanem az egyedüli üdvözítő Isten "
+            "elé állva érkezik meg."
+        )
+        data["christ_grace_connection"] = (
+            _usable_text(arc.get("grace_enabled_response"))
+            or "A megtartás és a dicsőítés Jézus Krisztus által kötődik Istenhez."
+        )
+        data["closing_line"] = (
+            "Állhatunk-e ma is abban a bizonyosságban, hogy Ő őriz és elé állít?"
         )
     else:
         default_conc = (
             "A hallgató nem új témánál, hanem a textus megérkezésénél áll meg. "
-            "Isten megtartó szeretete hív válaszra a gyülekezet konkrét helyzetében. "
-            "Innen vihető tovább a szószéki kibontás anélkül, hogy záróprédikáció "
-            "születne a vázlatból."
+            "Isten cselekvése hív válaszra a gyülekezet konkrét helyzetében."
         )
     conc = (
         _usable_text(closing.get("final_discovery"))
@@ -1930,6 +2070,10 @@ def _heuristic_structured_from_bundle(
     data["conclusion_direction"] = _clip_to_full_sentences(
         _truncate(conc, 700), LIMITS["conclusion_words"]
     )
+    if not data.get("closing_line"):
+        data["closing_line"] = _clip_to_full_sentences(
+            data["conclusion_direction"], 28
+        )
     data["refinement_suggestions"] = []
     return normalize_structured_outline(data)
 
@@ -1940,82 +2084,77 @@ def _ai_generate_structured(
     generate_fn: GenerateFn,
     seed_outline: Mapping[str, Any] | None = None,
     mode: str = "standard",
+    context_mode: str = "",
+    brief: ExegeticalBrief | None = None,
 ) -> tuple[dict[str, Any] | None, list[str], int]:
     """Returns (structured|None, warnings, raw_rendered_word_count)."""
     warnings: list[str] = []
-    ctx_without_basket_and_seed = {
-        k: v
-        for k, v in bundle.items()
-        if not str(k).startswith("_")
-        and k not in {"outline_basket", "sermon_outline", "outline_manual_notes"}
-    }
-    source_keys = ctx_without_basket_and_seed.get("source_keys")
-    if isinstance(source_keys, list):
-        ctx_without_basket_and_seed["source_keys"] = [
-            key
-            for key in source_keys
-            if key not in {"outline_basket", "outline_manual_notes"}
-        ]
+    sections = bundle.get("outline_context_sections")
+    if not isinstance(sections, dict):
+        sections = {
+            k: v
+            for k, v in bundle.items()
+            if not str(k).startswith("_")
+            and k
+            not in {
+                "outline_basket",
+                "sermon_outline",
+                "outline_manual_notes",
+                "outline_context_sections",
+            }
+        }
     outline_basket = bundle.get("outline_basket") or []
+    ctx_mode = context_mode or _s(bundle.get("context_mode")) or "PARTIAL"
     task_mode_note = (
         "ÚJ GYORSVÁZLAT: készíts önálló vázlatot a textusból; "
         "a rendelkezésre álló műhelyanyagot csak szelektív háttérként használd."
         if mode == "quick"
-        else
-        "ÚJ MŰHELYVÁZLAT: készíts önálló vázlatot a textusból; "
+        else "ÚJ MŰHELYVÁZLAT: készíts önálló vázlatot a textusból; "
         "a lelkész jóváhagyott döntéseit mérlegeld, de ne másold mechanikusan."
     )
-    try:
-        from sermon_workshop_outline_synth_ai import (
-            _is_partial_workshop_bundle,
-            outline_length_profile,
-            resolve_outline_occasion,
+    mode_guidance = {
+        "BARE": (
+            "MÓD: BARE — csak igehely és bibliai szöveg (+ belső mini-exegézis). "
+            "Készíts önálló, érdemi vázlatot; ne jelezd a hiányt."
+        ),
+        "PARTIAL": (
+            "MÓD: PARTIAL — van némi exegetikai/homiletikai anyag. "
+            "Használd, és egészítsd ki a hiányzó részeket."
+        ),
+        "RICH": (
+            "MÓD: RICH — válogass és szerkessz a meglévő anyagból; "
+            "ne másold vagy foglald össze mechanikusan. "
+            "Az irreleváns vagy ellentmondó elemeket hagyd el."
+        ),
+    }.get(ctx_mode, "")
+    brief_block = ""
+    if brief is not None:
+        brief_block = (
+            "BELSŐ EXEGETICAL BRIEF (ne másold teljes terjedelmében; "
+            "csak a hasznos kapaszkodókat emeld a vázlatba):\n"
+            f"{json.dumps(brief.to_dict(), ensure_ascii=False)}\n\n"
         )
-
-        profile = outline_length_profile(
-            resolve_outline_occasion(bundle),
-            partial=_is_partial_workshop_bundle(bundle),
-        )
-        occasion_block = (
-            f"ALKALOM: {profile['occasion']}\n"
-            f"SÉMAVERZIÓ: {SCHEMA_VERSION}\n"
-            f"CÉLHOSSZ: ~{profile['target_range']} szó "
-            f"(abszolút max {LIMITS['absolute_max_words']}).\n"
-            f"{profile['guidance']}\n"
-        )
-    except Exception:  # noqa: BLE001
-        occasion_block = (
-            f"SÉMAVERZIÓ: {SCHEMA_VERSION}\n"
-            f"CÉLHOSSZ: {LIMITS['target_min_words']}–{LIMITS['target_max_words']} szó "
-            f"(abszolút max {LIMITS['absolute_max_words']}; "
-            f"puha alsó határ ~{LIMITS['soft_floor_words']}).\n"
+    method_note = ""
+    prefs = sections.get("homiletical_preferences") if isinstance(sections, dict) else {}
+    if isinstance(prefs, dict) and prefs.get("method_lens"):
+        method_note = (
+            f"HOMILETIKAI LENCSE (nem kötelező sablon): {prefs.get('method_lens')}\n"
         )
     prompt = (
         f"{task_mode_note}\n"
-        f"{occasion_block}"
-        "A feladat új szószéki munkavázlat készítése, nem egy korábbi vázlat "
-        "javítása vagy átszövegezése.\n"
-        "Forráshierarchia: betöltött bibliai szöveg → exegézis → eredeti nyelvi "
-        "munka → releváns kortörténet → lelkészi fókusz/döntések → alkalom/"
-        "hallgató → vázlatkosár → egyéb műhelyanyag.\n"
-        "Először a textus központi állítását és természetes egységeit állapítsd "
-        "meg. Csak ezután mérlegeld a többi anyagot szelektíven.\n"
-        "Üres vázlatkosár esetén is készíts teljes értékű, konkrét vázlatot.\n"
-        "A textus szerint válassz 3–4 főpontot (indokolt esetben 2).\n"
-        "Minden főpontban kötelező a három réteg: textual_insight, "
-        "theological_emphasis, listener_movement — egy-egy teljes mondat; "
-        "együtt 75–130 szó. Ne legyen versátfogalmazás, közhely vagy moralizálás.\n"
-        "Az igehelyet csak a `verses` mezőbe írd; a pont `title` mezője legyen "
-        "igehely nélküli.\n"
-        "Ugyanazt a verset ne bontsd több főpontra; párhuzamos felszólításokat "
-        "egy pontban tarts.\n"
-        "A bevezetési irány és a megérkezés 45–80 szavas irány legyen, ne "
-        "szerkesztői utasítás és ne kész beszéd.\n"
-        "Célhossz 450–750 szó; 350 alatt túl sovány, 850 felett túl bő.\n\n"
-        f"FORRÁSCSOMAG:\n"
-        f"{wrap_untrusted_content('forráscsomag', json.dumps(ctx_without_basket_and_seed, ensure_ascii=False), limit_name='prompt_context_total')}\n\n"
-        "A forráscsomag exegetikai, teológiai és homiletikai elemei háttéranyagok; "
-        "nem kell mindegyiket felhasználni.\n\n"
+        f"{mode_guidance}\n"
+        f"SÉMAVERZIÓ: {SCHEMA_VERSION}\n"
+        f"{method_note}"
+        "A feladat új szószéki munkavázlat készítése.\n"
+        "Forrásprioritás: bibliai textus → eredeti nyelvi adat → felhasználói "
+        "döntések → exegetikai háttér → homiletikai lencsék → modell-kiegészítő.\n"
+        "A textus műfaja és mozgása határozza meg a formát (2–5 mozgás).\n"
+        "A fókuszmondat saját megfogalmazású legyen — ne versidézet.\n"
+        "Ne használj helykitöltő mondatokat; ne bontsd önkényesen a/b félversekre; "
+        "az Ámen ne legyen önálló főpont.\n\n"
+        f"{brief_block}"
+        "STRUKTURÁLT FORRÁSOK (típusozott szakaszok):\n"
+        f"{wrap_untrusted_content('outline_context', json.dumps(sections, ensure_ascii=False), limit_name='prompt_context_total')}\n\n"
         f"{wrap_untrusted_content('vázlatkosár', json.dumps(outline_basket or [], ensure_ascii=False), limit_name='basket_total')}\n\n"
         f"KIMENETI SÉMA:\n{_JSON_SHAPE}"
     )
@@ -2029,7 +2168,6 @@ def _ai_generate_structured(
         return None, warnings, 0
     obj = extract_json_object(raw or "")
     if not isinstance(obj, dict):
-        # Raw markdown / prose instead of JSON
         warnings.append("Érvénytelen JSON vázlatválasz.")
         logger.info(
             "outline_invalid_json schema=%s raw_words=%s",
@@ -2044,31 +2182,74 @@ def _ai_generate_structured(
             "text_reference",
             "scope_note",
             "focus_sentence",
+            "exegetical_handles",
             "introduction_direction",
             "points",
+            "movements",
+            "christ_grace_connection",
             "conclusion_direction",
+            "closing_line",
             "refinement_suggestions",
             "schema_version",
-            # Legacy v5 migráció (normalize három rétegre alakítja)
             "subpoints",
             "application",
             "textual_insight",
             "theological_emphasis",
             "listener_movement",
+            "original_language_note",
+            "poetic_turn",
+            "transition",
+            "verses",
         },
     )
     if cleaned is None:
         warnings.append("A vázlat JSON biztonsági szűrése sikertelen.")
         return None, warnings, word_count(raw or "")
     structured = normalize_structured_outline(cleaned)
+    # Brief kapaszkodók, ha az AI üresen hagyta
+    if brief and not structured.get("exegetical_handles"):
+        structured["exegetical_handles"] = brief.handles_for_outline(max_items=5)
     raw_wc = word_count(render_structured_outline(structured))
     logger.info(
-        "outline_ai_raw schema=%s rendered_words=%s forbidden=%s",
+        "outline_ai_raw schema=%s mode=%s rendered_words=%s forbidden=%s",
         SCHEMA_VERSION,
+        ctx_mode,
         raw_wc,
         _has_forbidden_keys(obj),
     )
     return structured, warnings, raw_wc
+
+
+def _repair_structured(
+    payload: Mapping[str, Any],
+    bundle: Mapping[str, Any],
+    *,
+    issues: list[str],
+    generate_fn: GenerateFn,
+) -> tuple[dict[str, Any] | None, list[str]]:
+    """Egyetlen célzott javító hívás a feltárt hibákra."""
+    warnings: list[str] = []
+    slim = normalize_structured_outline(payload)
+    prompt = build_repair_prompt(
+        issues=issues,
+        outline_json=json.dumps(slim, ensure_ascii=False),
+        passage_reference=_s(bundle.get("passage_reference")),
+        bible_text=_s(bundle.get("passage_text")),
+        json_shape=_JSON_SHAPE,
+    )
+    try:
+        raw = _call_generate(generate_fn, prompt, temperature=0.2)
+    except Exception as exc:  # noqa: BLE001
+        warnings.append(f"Célzott javítás sikertelen: {exc}")
+        return None, warnings
+    if _is_api_error_text(raw or ""):
+        warnings.append("A célzott javítás API-hibát jelzett.")
+        return None, warnings
+    obj = extract_json_object(raw or "")
+    if not isinstance(obj, dict):
+        warnings.append("Érvénytelen javító válasz.")
+        return None, warnings
+    return normalize_structured_outline(obj), warnings
 
 
 def _repair_source_context(bundle: Mapping[str, Any], *, rich: bool = False) -> dict[str, Any]:
@@ -2352,26 +2533,42 @@ def generate_sermon_outline(
             overwritten_manual_edit=False,
         )
 
-    bundle = collect_outline_evidence(session, sermon_workshop=sw)
+    # Strukturált kontextus (típusozott források + BARE/PARTIAL/RICH)
+    outline_ctx = build_outline_context(
+        session,
+        sermon_workshop=sw,
+        include_original_language=True,
+    )
+    bundle = outline_context_to_legacy_bundle(outline_ctx)
+    # Hash a legacy evidence kulcsokon (stabil refresh jelzés)
     ctx_hash = compute_context_hash(bundle)
     warnings: list[str] = []
     compressed = False
     enriched = False
     raw_wc = 0
+    used_ai = False
 
-    # A tisztított bundle néha eldobja a csonka/ellipsis szövegmintát; a generáláshoz
-    # a nyers session passage továbbra is kell — a context_hash viszont stabil marad.
     raw_passage = _s(session.get("passage_text")) or _s(
         session.get("passage_text_input")
     )
     if raw_passage and not _s(bundle.get("passage_text")):
         bundle["passage_text"] = raw_passage
+        outline_ctx.bible_text = raw_passage
         keys = list(bundle.get("source_keys") or [])
         if "passage_text" not in keys:
             keys.append("passage_text")
         bundle["source_keys"] = keys
 
-    if generate_fn is not None and not _bundle_has_rich_workshop_material(bundle):
+    # BARE/PARTIAL mini-exegézist az ExegeticalBrief adja; a régi rapid_evidence
+    # csomag csak akkor készül, ha nincs brief és tényleg üres a műhely.
+    brief = generate_exegetical_brief(outline_ctx, generate_fn=None)
+
+    if (
+        generate_fn is not None
+        and brief is None
+        and outline_ctx.context_mode in {ContextMode.BARE, ContextMode.PARTIAL}
+        and not _bundle_has_rich_workshop_material(bundle)
+    ):
         rapid = _generate_rapid_evidence(
             bundle,
             generate_fn=generate_fn,
@@ -2380,6 +2577,8 @@ def generate_sermon_outline(
         )
         if rapid:
             bundle["rapid_evidence"] = rapid
+            outline_ctx.rapid_evidence = rapid
+            bundle = outline_context_to_legacy_bundle(outline_ctx)
             keys = list(bundle.get("source_keys") or [])
             if "rapid_evidence" not in keys:
                 keys.append("rapid_evidence")
@@ -2390,11 +2589,21 @@ def generate_sermon_outline(
 
     if generate_fn is not None:
         structured, ai_warnings, raw_wc = _ai_generate_structured(
-            bundle, generate_fn=generate_fn, seed_outline=seed, mode=mode
+            bundle,
+            generate_fn=generate_fn,
+            seed_outline=seed,
+            mode=mode,
+            context_mode=outline_ctx.context_mode.value,
+            brief=brief,
         )
         warnings.extend(ai_warnings)
+        used_ai = structured is not None
     if structured is None:
-        structured = _heuristic_structured_from_bundle(bundle, seed_outline=seed)
+        # AI hiány / hiba: heurisztika csak offline (nincs generate_fn) esetén
+        # érvényes eredményként; AI-s sikertelenségnél később reject.
+        structured = _heuristic_structured_from_bundle(
+            bundle, seed_outline=seed, brief=brief
+        )
 
     passage_for_validation = bundle.get("passage_text") or ""
 
@@ -2414,14 +2623,41 @@ def generate_sermon_outline(
     def _needs_enrich(items: list[str]) -> bool:
         return any(i in ENRICHABLE_ISSUES for i in items)
 
-    # Validate BEFORE aggressive trim — trim must not hide a near-sermon.
+    def _needs_repair(items: list[str]) -> bool:
+        return any(i in REPAIRABLE_ISSUES or i in SEMANTIC_HARD_ISSUES for i in items)
+
     issues = validate_structured_outline(
         structured, passage_text=passage_for_validation
     )
     if raw_wc > LIMITS["absolute_max_words"] and "over_absolute_max" not in issues:
         issues = list(issues) + ["over_absolute_max"]
 
-    # Tömörítés CSAK 850+ szó / prédikációjelleg esetén — nem minden hard hibánál.
+    # Egy célzott javító hívás szemantikai / formai hibákra (nem végtelen loop)
+    repaired_once = False
+    if (
+        generate_fn is not None
+        and used_ai
+        and _needs_repair(issues)
+        and not _needs_compress(issues)
+    ):
+        repaired, r_warn = _repair_structured(
+            structured, bundle, issues=issues, generate_fn=generate_fn
+        )
+        warnings.extend(r_warn)
+        repaired_once = True
+        if repaired is not None:
+            structured = repaired
+            issues = validate_structured_outline(
+                structured, passage_text=passage_for_validation
+            )
+        logger.info(
+            "outline_after_repair schema=%s issues=%s words=%s",
+            SCHEMA_VERSION,
+            issues,
+            word_count(render_structured_outline(structured)),
+        )
+
+    # Tömörítés CSAK abszolút felső határ / prédikációjelleg esetén
     if _needs_compress(issues) and generate_fn is not None:
         repaired, c_warn = _compress_structured(
             structured, bundle, issues=issues, generate_fn=generate_fn
@@ -2433,20 +2669,8 @@ def generate_sermon_outline(
             issues = validate_structured_outline(
                 structured, passage_text=passage_for_validation
             )
-        logger.info(
-            "outline_after_compress schema=%s issues=%s words=%s",
-            SCHEMA_VERSION,
-            issues,
-            word_count(render_structured_outline(structured)),
-        )
         if _needs_compress(issues) or _hard_issues(issues):
             rendered_wc = word_count(render_structured_outline(structured))
-            logger.info(
-                "outline_reject_after_compress schema=%s issues=%s words=%s",
-                SCHEMA_VERSION,
-                issues,
-                rendered_wc,
-            )
             return OutlineGenerationResult(
                 outline=existing,
                 ok=False,
@@ -2460,9 +2684,11 @@ def generate_sermon_outline(
                 rendered_word_count=rendered_wc,
             )
 
-    # Tartalmi kiegészítés CSAK 350 alatt / hiányzó-sovány réteg esetén.
+    # Tartalmi kiegészítés sovány rétegeknél (ha még nem volt repair)
     if (
         generate_fn is not None
+        and used_ai
+        and not repaired_once
         and not _needs_compress(issues)
         and _needs_enrich(issues)
     ):
@@ -2476,12 +2702,6 @@ def generate_sermon_outline(
             issues = validate_structured_outline(
                 structured, passage_text=passage_for_validation
             )
-        logger.info(
-            "outline_after_enrich schema=%s issues=%s words=%s",
-            SCHEMA_VERSION,
-            issues,
-            word_count(render_structured_outline(structured)),
-        )
         leftover_hard = [
             i
             for i in issues
@@ -2495,12 +2715,6 @@ def generate_sermon_outline(
         ]
         if _hard_issues(issues) or leftover_hard:
             rendered_wc = word_count(render_structured_outline(structured))
-            logger.info(
-                "outline_reject_after_enrich schema=%s issues=%s words=%s",
-                SCHEMA_VERSION,
-                issues,
-                rendered_wc,
-            )
             return OutlineGenerationResult(
                 outline=existing,
                 ok=False,
@@ -2513,6 +2727,18 @@ def generate_sermon_outline(
                 raw_word_count=raw_wc,
                 rendered_word_count=rendered_wc,
             )
+
+    # AI volt, de a válasz érvénytelen maradt → ne mentsünk gyenge sablont
+    if generate_fn is not None and not used_ai:
+        return OutlineGenerationResult(
+            outline=existing,
+            ok=False,
+            error_message=INVALID_OUTLINE_MESSAGE + retained_outline_notice,
+            warnings=warnings + ["Az AI nem adott érvényes JSON vázlatot."],
+            validation_issues=issues,
+            source=source_tag,
+            raw_word_count=raw_wc,
+        )
 
     structured = _programmatic_trim(structured)
     issues = validate_structured_outline(
@@ -2533,6 +2759,9 @@ def generate_sermon_outline(
         for i in issues
         if i not in SOFT_QUALITY_ISSUES and i not in ENRICHABLE_ISSUES
     ]
+    # AI után: félbemaradt mondat mindig hard reject
+    if used_ai and "truncated_sentence" in issues:
+        post_hard.append("truncated_sentence")
     for softish in issues:
         if softish in ENRICHABLE_ISSUES and softish not in SOFT_QUALITY_ISSUES:
             tip = f"Vázlat minőség: {softish}"
@@ -2660,6 +2889,7 @@ __all__ = [
     "OUTLINE_SYSTEM_PROMPT",
     "RAPID_EVIDENCE_SYSTEM_PROMPT",
     "REFRESH_NOTICE",
+    "REPAIRABLE_ISSUES",
     "SCHEMA_REFRESH_NOTICE",
     "SCHEMA_VERSION",
     "SOFT_QUALITY_ISSUES",

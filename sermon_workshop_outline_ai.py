@@ -73,6 +73,11 @@ OUTLINE_PLACEHOLDER_BANLIST: tuple[str, ...] = (
     "Kibontás — Elmélyítés",
     "Megérkezés – Megérkezés",
     "Megérkezés — Megérkezés",
+    "a textus saját szavai szerint",
+    "a hallgató konkrét felismerésre jut",
+    "innen vihető tovább a szószéki kibontás",
+    "a teológiai hangsúly abban áll",
+    "a teológiai jelentés abban áll",
 )
 _GENERIC_MOVEMENT_TITLES = {
     "nyitás",

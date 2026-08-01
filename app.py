@@ -158,8 +158,10 @@ def _read_gemini_key_from_project_secrets_file() -> str:
     except ImportError:
         return ""
     try:
-        with p.open("rb") as f:
-            data = tomllib.load(f)
+        # UTF-8 BOM (Windows Notepad) → tomllib Invalid statement; utf-8-sig tisztít.
+        raw = p.read_bytes()
+        text = raw.decode("utf-8-sig")
+        data = tomllib.loads(text)
         v = data.get("GEMINI_API_KEY")
         if v:
             return str(v).strip()

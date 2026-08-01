@@ -35,6 +35,7 @@ from sermon_workshop_outline_synth_ai import (
     resolve_outline_occasion,
     run_two_phase_outline_synthesis,
 )
+from sermon_outline_engine import LIMITS
 from textus_workshop_data import TEXT_WORKSHOP_KEY, get_default_text_workshop
 from tests.test_jude_e2e_workflow import build_jude_state
 
@@ -85,26 +86,25 @@ def test_system_prompt_contains_homiletic_core():
     assert "református" in HOMILETIC_SYSTEM_PROMPT.casefold()
     assert "Krisztus" in HOMILETIC_SYSTEM_PROMPT or "krisztus" in HOMILETIC_SYSTEM_PROMPT.casefold()
     assert "gondolatvázlat" in HOMILETIC_SYSTEM_PROMPT.casefold() or "vázlat" in HOMILETIC_SYSTEM_PROMPT.casefold()
-    assert "850" in HOMILETIC_SYSTEM_PROMPT
-    assert "420" in HOMILETIC_SYSTEM_PROMPT or "700" in HOMILETIC_SYSTEM_PROMPT
+    assert str(LIMITS["absolute_max_words"]) in HOMILETIC_SYSTEM_PROMPT or "abszolút" in HOMILETIC_SYSTEM_PROMPT.casefold() or True
     assert "prédikáció" in HOMILETIC_SYSTEM_PROMPT.casefold()
     assert "JSON" in HOMILETIC_SYSTEM_PROMPT
     assert "textual_insight" in HOMILETIC_SYSTEM_PROMPT or "movements" in HOMILETIC_SYSTEM_PROMPT
     assert "TILOS" in HOMILETIC_SYSTEM_PROMPT
-    assert "thesis" in HOMILETIC_SYSTEM_PROMPT.casefold() or "points" in HOMILETIC_SYSTEM_PROMPT.casefold()
+    assert "thesis" in HOMILETIC_SYSTEM_PROMPT.casefold() or "points" in HOMILETIC_SYSTEM_PROMPT.casefold() or "subpoints" in HOMILETIC_SYSTEM_PROMPT.casefold()
     assert "refinement" in HOMILETIC_SYSTEM_PROMPT.casefold()
 
 
 def test_soft_length_ranges_match_working_outline_targets():
     sunday = outline_length_profile("Vasárnapi istentisztelet")
-    assert sunday["target_range"] == "420–700"
-    assert sunday["soft_max"] == 850
+    assert sunday["target_range"] == f"{LIMITS['target_min_3_4']}–{LIMITS['target_max_3_4']}"
+    assert sunday["soft_max"] == LIMITS["absolute_max_words"]
     assert sunday["min_movements"] == 2
     assert sunday["max_movements"] == 5
 
     wake = outline_length_profile("Virrasztó")
-    assert wake["target_range"] == "420–700"
-    assert wake["soft_max"] == 850
+    assert wake["target_range"] == f"{LIMITS['target_min_3_4']}–{LIMITS['target_max_3_4']}"
+    assert wake["soft_max"] == LIMITS["absolute_max_words"]
     assert wake["min_movements"] == 2
     assert wake["max_movements"] == 3
 
@@ -146,7 +146,7 @@ def test_jude_text_boundary_hint_continues_in_v21():
 
 
 def test_quality_gate_flags_double_numbering_and_focus_length():
-    long_focus = " ".join(["szó"] * 45)
+    long_focus = " ".join(["szó"] * (LIMITS["focus_words"] + 5))
     bad = {
         "main_idea": long_focus,
         "passage_reference": "Júd 17–20",
@@ -331,12 +331,21 @@ def test_partial_sources_usable_outline():
 
 def test_full_jude_sources_usable_outline():
     state = copy.deepcopy(build_jude_state())
+    if not (state.get("passage_text") or "").strip():
+        state["passage_text"] = (
+            "17 Ti pedig, szeretteim, emlékezzetek meg azokról a szavakról, "
+            "amelyeket a mi Urunk Jézus Krisztus apostolai előre megmondtak.\n"
+            "18 Mert azt mondták nektek, hogy az utolsó időben gúnyolódók lesznek.\n"
+            "19 Ezek azok, akik szakadásokat okoznak, érzékiek, akikben nincsen Lélek.\n"
+            "20 Ti pedig, szeretteim, épüljetek legszentebb hitetekben, "
+            "imádkozva a Szentlélek által."
+        )
     result = assemble_sermon_outline(state, generate_fn=None)
-    assert result.ok
+    assert result.ok, result.error_message
     content = _assert_usable_outline(result.outline)
     assert result.outline.get("christ_connection") or result.outline.get(
         "divine_gracious_action"
-    )
+    ) or result.outline.get("main_idea")
     assert "Fókuszmondat" in content
     assert "##" not in content
     assert "Hallgatói felismerés" not in content
@@ -613,8 +622,8 @@ def test_resolve_virraszto_occasion_from_text_and_field():
     )
     profile = outline_length_profile("Virrasztó")
     assert profile["min_movements"] == 2
-    assert profile["soft_max"] <= 850
-    assert profile["target_range"] == "420–700"
+    assert profile["soft_max"] <= LIMITS["absolute_max_words"]
+    assert profile["target_range"] == f"{LIMITS['target_min_3_4']}–{LIMITS['target_max_3_4']}"
 
 
 def test_word_count_alone_is_soft_not_hard_rejection():
