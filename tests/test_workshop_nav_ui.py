@@ -238,8 +238,11 @@ def test_shell_components_use_keyed_containers():
     assert 'key="tx_toolbar_actions"' in src
     assert 'key="bar_overflow_more"' in src
     assert "Vissza a főoldalra" in src
-    assert 'key=f"project_picker_content_{epoch}"' in src
-    assert "_PROJECTS_POPOVER_DISMISS_JS" in src
+    assert 'key="bar_projects_open"' in src
+    assert "@st.dialog" in src or 'st.dialog("Mentett projektek"' in src
+    assert "_projects_picker" in src
+    assert 'key="project_picker_content"' in src
+    assert "_PROJECTS_POPOVER_DISMISS_JS" not in src
     assert 'key="workspace_switcher"' in src
     assert "tx_mainnav_" in src
     assert '"help": title' not in src
@@ -252,7 +255,6 @@ def test_shell_components_use_keyed_containers():
     assert "Projekt nevének szerkesztése" in src
     assert 'key="bar_project_save_as_new"' in src
     assert "Mentés másolatként" in src
-    assert 'key=f"bar_projects_popover_{epoch}"' in src
     assert 'help="Mentett projektek megnyitása"' in src
     assert 'help="Beállítások"' in src
     # JS-es widget-mozgatás a shell komponensekből kikerült

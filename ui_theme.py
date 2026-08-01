@@ -1221,7 +1221,8 @@ body:has(.st-key-passage_search_occasion_field [aria-expanded="true"])
 .st-key-textus_app_toolbar .st-key-bar_projects_popover,
 .st-key-textus_app_toolbar [class*="st-key-bar_projects_popover_"],
 .st-key-textus_app_toolbar .st-key-bar_projects_popover [data-testid="stPopover"],
-.st-key-textus_app_toolbar [class*="st-key-bar_projects_popover_"] [data-testid="stPopover"] {
+.st-key-textus_app_toolbar [class*="st-key-bar_projects_popover_"] [data-testid="stPopover"],
+.st-key-textus_app_toolbar .st-key-bar_projects_open {
     width: auto !important;
     min-width: 112px !important;
     flex: 0 0 auto !important;
@@ -1229,7 +1230,8 @@ body:has(.st-key-passage_search_occasion_field [aria-expanded="true"])
 .st-key-textus_app_toolbar .st-key-bar_projects_popover > button,
 .st-key-textus_app_toolbar [class*="st-key-bar_projects_popover_"] > button,
 .st-key-textus_app_toolbar .st-key-bar_projects_popover [data-testid="stPopover"] > button,
-.st-key-textus_app_toolbar [class*="st-key-bar_projects_popover_"] [data-testid="stPopover"] > button {
+.st-key-textus_app_toolbar [class*="st-key-bar_projects_popover_"] [data-testid="stPopover"] > button,
+.st-key-textus_app_toolbar .st-key-bar_projects_open button {
     min-width: 112px !important;
     width: auto !important;
     white-space: nowrap !important;
@@ -1276,7 +1278,23 @@ div[data-baseweb="popover"]:has([class*="st-key-project_picker_content"]) [data-
     box-sizing: border-box !important;
 }
 
-/* Megnyitás után ragadt BaseWeb portál — JS + CSS elrejti */
+/* Projektek dialógus — picker tartalom */
+[data-testid="stDialog"] [class*="st-key-project_picker_content"],
+div[role="dialog"] [class*="st-key-project_picker_content"] {
+    width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+}
+[data-testid="stDialog"] [class*="st-key-project_picker_row_"],
+div[role="dialog"] [class*="st-key-project_picker_row_"] {
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 0 0.55rem !important;
+    padding: 0.55rem 0.65rem !important;
+    box-sizing: border-box !important;
+}
+
+/* Legacy: elavult popover-dismiss jelölő (ha még a DOM-ban van) */
 div[data-baseweb="popover"][data-tx-projects-dismissed="1"] {
     display: none !important;
     visibility: hidden !important;
@@ -1339,7 +1357,7 @@ div[data-baseweb="popover"]:has([class*="st-key-project_picker_content"]) [class
     min-width: 0;
 }
 
-div[data-baseweb="popover"]:has([class*="st-key-project_picker_content"]) .stButton > button {
+[class*="st-key-project_picker_content"] .stButton > button {
     position: relative !important;
     display: inline-flex !important;
     align-items: center !important;
@@ -1359,11 +1377,11 @@ div[data-baseweb="popover"]:has([class*="st-key-project_picker_content"]) .stBut
     padding: 0 0.85rem !important;
     margin: 0 !important;
 }
-div[data-baseweb="popover"]:has([class*="st-key-project_picker_content"]) .stButton > button::before {
+[class*="st-key-project_picker_content"] .stButton > button::before {
     content: none !important;
     display: none !important;
 }
-div[data-baseweb="popover"]:has([class*="st-key-project_picker_content"]) .stButton > button [data-testid="stIconMaterial"] {
+[class*="st-key-project_picker_content"] .stButton > button [data-testid="stIconMaterial"] {
     position: static !important;
     background: transparent !important;
     box-shadow: none !important;
@@ -1374,12 +1392,12 @@ div[data-baseweb="popover"]:has([class*="st-key-project_picker_content"]) .stBut
     font-size: 1rem !important;
     line-height: 1 !important;
 }
-div[data-baseweb="popover"]:has([class*="st-key-project_picker_content"]) .stButton > button [data-testid="stMarkdownContainer"] p {
+[class*="st-key-project_picker_content"] .stButton > button [data-testid="stMarkdownContainer"] p {
     display: block !important;
     margin: 0 !important;
     width: auto !important;
 }
-div[data-baseweb="popover"]:has([class*="st-key-project_picker_content"]) .stButton > button [data-testid="stMarkdownContainer"] p span {
+[class*="st-key-project_picker_content"] .stButton > button [data-testid="stMarkdownContainer"] p span {
     flex: none !important;
     width: auto !important;
     min-width: 0 !important;
@@ -1390,10 +1408,10 @@ div[data-baseweb="popover"]:has([class*="st-key-project_picker_content"]) .stBut
     white-space: nowrap !important;
 }
 
-div[data-baseweb="popover"]:has([class*="st-key-project_picker_content"]) [class*="st-key-bar_project_open_"] button {
+[class*="st-key-project_picker_content"] [class*="st-key-bar_project_open_"] button {
     min-width: 96px !important;
 }
-div[data-baseweb="popover"]:has([class*="st-key-project_picker_content"]) [class*="st-key-bar_project_delete_"] button {
+[class*="st-key-project_picker_content"] [class*="st-key-bar_project_delete_"] button {
     min-width: 80px !important;
 }
 
@@ -1447,11 +1465,13 @@ div[data-baseweb="popover"]:has([class*="st-key-project_picker_content"]) [class
     .st-key-textus_app_toolbar .st-key-bar_projects_popover,
     .st-key-textus_app_toolbar [class*="st-key-bar_projects_popover_"],
     .st-key-textus_app_toolbar .st-key-bar_projects_popover [data-testid="stPopover"],
-    .st-key-textus_app_toolbar [class*="st-key-bar_projects_popover_"] [data-testid="stPopover"] {
+    .st-key-textus_app_toolbar [class*="st-key-bar_projects_popover_"] [data-testid="stPopover"],
+    .st-key-textus_app_toolbar .st-key-bar_projects_open {
         min-width: 0 !important;
     }
     .st-key-textus_app_toolbar .st-key-bar_projects_popover button,
-    .st-key-textus_app_toolbar [class*="st-key-bar_projects_popover_"] button {
+    .st-key-textus_app_toolbar [class*="st-key-bar_projects_popover_"] button,
+    .st-key-textus_app_toolbar .st-key-bar_projects_open button {
         min-width: 40px !important;
         width: 40px !important;
         max-width: 44px !important;
@@ -1461,13 +1481,16 @@ div[data-baseweb="popover"]:has([class*="st-key-project_picker_content"]) [class
         font-size: 0 !important;
     }
     .st-key-textus_app_toolbar .st-key-bar_projects_popover button [data-testid="stIconMaterial"],
-    .st-key-textus_app_toolbar [class*="st-key-bar_projects_popover_"] button [data-testid="stIconMaterial"] {
+    .st-key-textus_app_toolbar [class*="st-key-bar_projects_popover_"] button [data-testid="stIconMaterial"],
+    .st-key-textus_app_toolbar .st-key-bar_projects_open button [data-testid="stIconMaterial"] {
         font-size: 1.25rem !important;
     }
     .st-key-textus_app_toolbar .st-key-bar_projects_popover button [data-testid="stMarkdownContainer"],
     .st-key-textus_app_toolbar [class*="st-key-bar_projects_popover_"] button [data-testid="stMarkdownContainer"],
+    .st-key-textus_app_toolbar .st-key-bar_projects_open button [data-testid="stMarkdownContainer"],
     .st-key-textus_app_toolbar .st-key-bar_projects_popover button svg,
-    .st-key-textus_app_toolbar [class*="st-key-bar_projects_popover_"] button svg {
+    .st-key-textus_app_toolbar [class*="st-key-bar_projects_popover_"] button svg,
+    .st-key-textus_app_toolbar .st-key-bar_projects_open button svg {
         display: none !important;
     }
     .tx-appbar-guest-label {
@@ -1519,6 +1542,7 @@ div[data-baseweb="popover"]:has([class*="st-key-project_picker_content"]) [class
     .st-key-textus_app_toolbar .st-key-bar_project_save_as_new button,
     .st-key-textus_app_toolbar .st-key-bar_projects_popover button,
     .st-key-textus_app_toolbar [class*="st-key-bar_projects_popover_"] button,
+    .st-key-textus_app_toolbar .st-key-bar_projects_open button,
     .st-key-textus_app_toolbar .st-key-bar_overflow_more button,
     .st-key-textus_app_toolbar .st-key-tx_appbar_login_popover button,
     .st-key-textus_app_toolbar .st-key-tx_appbar_account_popover button {
@@ -1534,6 +1558,7 @@ div[data-baseweb="popover"]:has([class*="st-key-project_picker_content"]) [class
     .st-key-textus_app_toolbar .st-key-bar_project_save_as_new button [data-testid="stIconMaterial"],
     .st-key-textus_app_toolbar .st-key-bar_projects_popover button [data-testid="stIconMaterial"],
     .st-key-textus_app_toolbar [class*="st-key-bar_projects_popover_"] button [data-testid="stIconMaterial"],
+    .st-key-textus_app_toolbar .st-key-bar_projects_open button [data-testid="stIconMaterial"],
     .st-key-textus_app_toolbar .st-key-bar_overflow_more button [data-testid="stIconMaterial"],
     .st-key-textus_app_toolbar .st-key-tx_appbar_login_popover button [data-testid="stIconMaterial"],
     .st-key-textus_app_toolbar .st-key-tx_appbar_account_popover button [data-testid="stIconMaterial"] {
@@ -1544,11 +1569,13 @@ div[data-baseweb="popover"]:has([class*="st-key-project_picker_content"]) [class
     .st-key-textus_app_toolbar .st-key-bar_project_save_as_new button [data-testid="stMarkdownContainer"],
     .st-key-textus_app_toolbar .st-key-bar_projects_popover button [data-testid="stMarkdownContainer"],
     .st-key-textus_app_toolbar [class*="st-key-bar_projects_popover_"] button [data-testid="stMarkdownContainer"],
+    .st-key-textus_app_toolbar .st-key-bar_projects_open button [data-testid="stMarkdownContainer"],
     .st-key-textus_app_toolbar .st-key-bar_overflow_more button [data-testid="stMarkdownContainer"],
     .st-key-textus_app_toolbar .st-key-tx_appbar_login_popover button [data-testid="stMarkdownContainer"],
     .st-key-textus_app_toolbar .st-key-tx_appbar_account_popover button [data-testid="stMarkdownContainer"],
     .st-key-textus_app_toolbar .st-key-bar_projects_popover button svg,
     .st-key-textus_app_toolbar [class*="st-key-bar_projects_popover_"] button svg,
+    .st-key-textus_app_toolbar .st-key-bar_projects_open button svg,
     .st-key-textus_app_toolbar .st-key-bar_overflow_more button svg,
     .st-key-textus_app_toolbar .st-key-tx_appbar_login_popover button svg,
     .st-key-textus_app_toolbar .st-key-tx_appbar_account_popover button svg {
