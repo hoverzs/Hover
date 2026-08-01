@@ -86,7 +86,7 @@ def test_system_prompt_contains_homiletic_core():
     assert "Krisztus" in HOMILETIC_SYSTEM_PROMPT or "krisztus" in HOMILETIC_SYSTEM_PROMPT.casefold()
     assert "gondolatvázlat" in HOMILETIC_SYSTEM_PROMPT.casefold() or "vázlat" in HOMILETIC_SYSTEM_PROMPT.casefold()
     assert "850" in HOMILETIC_SYSTEM_PROMPT
-    assert "420" in HOMILETIC_SYSTEM_PROMPT or "700" in HOMILETIC_SYSTEM_PROMPT
+    assert "280" in HOMILETIC_SYSTEM_PROMPT or "520" in HOMILETIC_SYSTEM_PROMPT
     assert "prédikáció" in HOMILETIC_SYSTEM_PROMPT.casefold()
     assert "JSON" in HOMILETIC_SYSTEM_PROMPT
     assert "textual_insight" in HOMILETIC_SYSTEM_PROMPT or "movements" in HOMILETIC_SYSTEM_PROMPT
@@ -97,13 +97,13 @@ def test_system_prompt_contains_homiletic_core():
 
 def test_soft_length_ranges_match_working_outline_targets():
     sunday = outline_length_profile("Vasárnapi istentisztelet")
-    assert sunday["target_range"] == "420–700"
+    assert sunday["target_range"] == "280–520"
     assert sunday["soft_max"] == 850
     assert sunday["min_movements"] == 2
     assert sunday["max_movements"] == 5
 
     wake = outline_length_profile("Virrasztó")
-    assert wake["target_range"] == "420–700"
+    assert wake["target_range"] == "280–520"
     assert wake["soft_max"] == 850
     assert wake["min_movements"] == 2
     assert wake["max_movements"] == 3
@@ -205,8 +205,8 @@ def test_quality_gate_flags_technical_labels_and_repeated_paragraphs():
     assert "repeated_paragraphs" in issues
 
 
-def test_ai_failure_does_not_replace_with_mechanical_success():
-    """Egy javító kör utáni minőségbukás → őszinte hiba, nem mechanikus „kész”."""
+def test_ai_failure_rescues_usable_pulpit_notes_instead_of_hard_error():
+    """Rossz AI-JSON után is szószéki jegyzet készül (ne üres hibaüzenet)."""
     state = {
         "last_igehely": "Júd 17–20",
         "passage_text": (
@@ -218,9 +218,6 @@ def test_ai_failure_does_not_replace_with_mechanical_success():
         SERMON_WORKSHOP_KEY: get_default_sermon_workshop(),
     }
     ensure_sermon_workshop_state(state)
-    previous = normalize_sermon_outline(
-        (state.get(SERMON_WORKSHOP_KEY) or {}).get("sermon_outline")
-    )
 
     def gen(prompt, **kwargs):
         return json.dumps(
@@ -250,16 +247,14 @@ def test_ai_failure_does_not_replace_with_mechanical_success():
     result = assemble_sermon_outline(
         state, generate_fn=gen, synthesize=True, force_overwrite=True
     )
-    assert not result.ok
-    assert "szószéken használható" in (result.error_message or "").casefold() or (
-        "nem adott" in (result.error_message or "").casefold()
+    assert result.ok, result.error_message
+    content = _assert_usable_outline(result.outline)
+    assert "szószéken használható" not in (result.error_message or "").casefold()
+    assert MISSING_PART not in content
+    assert any(
+        "jegyzet" in w.casefold() or "finomítható" in w.casefold() or "formázással" in w
+        for w in (result.warnings or [])
     )
-    assert "word_count_out_of_range" not in (result.error_message or "")
-    # Ne mentse felül a meglévő állapotot „kész” mechanikus vázlattal
-    kept = normalize_sermon_outline(
-        (state.get(SERMON_WORKSHOP_KEY) or {}).get("sermon_outline")
-    )
-    assert kept.get("main_idea") == previous.get("main_idea")
 
 
 def test_sparse_workshop_still_coherent_outline():
@@ -331,8 +326,12 @@ def test_partial_sources_usable_outline():
 
 def test_full_jude_sources_usable_outline():
     state = copy.deepcopy(build_jude_state())
+    if not str(state.get("passage_text") or "").strip():
+        from tests.test_outline_engine import JUDE_PASSAGE
+
+        state["passage_text"] = JUDE_PASSAGE
     result = assemble_sermon_outline(state, generate_fn=None)
-    assert result.ok
+    assert result.ok, result.error_message
     content = _assert_usable_outline(result.outline)
     assert result.outline.get("christ_connection") or result.outline.get(
         "divine_gracious_action"
@@ -614,7 +613,7 @@ def test_resolve_virraszto_occasion_from_text_and_field():
     profile = outline_length_profile("Virrasztó")
     assert profile["min_movements"] == 2
     assert profile["soft_max"] <= 850
-    assert profile["target_range"] == "420–700"
+    assert profile["target_range"] == "280–520"
 
 
 def test_word_count_alone_is_soft_not_hard_rejection():
@@ -881,7 +880,7 @@ def test_virraszto_produces_shorter_complete_usable_outline():
     }
 
 
-def test_truncated_or_empty_ai_outline_still_rejected():
+def test_truncated_or_empty_ai_outline_rescues_usable_notes():
     def gen_empty(prompt, **kwargs):
         return json.dumps(
             {
@@ -905,8 +904,10 @@ def test_truncated_or_empty_ai_outline_still_rejected():
     empty_result = assemble_sermon_outline(
         state, generate_fn=gen_empty, synthesize=True, force_overwrite=True
     )
-    assert not empty_result.ok
+    assert empty_result.ok, empty_result.error_message
     assert "word_count_out_of_range" not in (empty_result.error_message or "")
+    assert "szószéken használható" not in (empty_result.error_message or "").casefold()
+    _assert_usable_outline(empty_result.outline)
 
     def gen_truncated(prompt, **kwargs):
         return json.dumps(
@@ -935,8 +936,9 @@ def test_truncated_or_empty_ai_outline_still_rejected():
     trunc_result = assemble_sermon_outline(
         state, generate_fn=gen_truncated, synthesize=True, force_overwrite=True
     )
-    assert not trunc_result.ok
+    assert trunc_result.ok, trunc_result.error_message
     assert "word_count_out_of_range" not in (trunc_result.error_message or "")
+    _assert_usable_outline(trunc_result.outline)
 
 
 def test_filippi_virraszto_partial_workshop_working_outline():

@@ -74,14 +74,15 @@ LIMITS = {
     "max_points": 5,
     "default_points": 3,
     # Soft céltartományok pontszám szerint (abszolút max mindig 850).
-    "target_min_words": 350,
-    "target_max_words": 700,
-    "target_min_2": 350,
-    "target_max_2": 500,
-    "target_min_3_4": 420,
-    "target_max_3_4": 700,
-    "target_min_5": 500,
-    "target_max_5": 850,
+    # Tőmondatos szószéki jegyzet — rövidebb, mint a korábbi prózai tartomány.
+    "target_min_words": 280,
+    "target_max_words": 520,
+    "target_min_2": 250,
+    "target_max_2": 400,
+    "target_min_3_4": 280,
+    "target_max_3_4": 520,
+    "target_min_5": 400,
+    "target_max_5": 650,
     "soft_floor_words": 280,
     "absolute_max_words": 850,
     "max_prose_block_words": 140,
@@ -248,7 +249,9 @@ FORRÁSHIERARCHIA
 
 Üres vázlatkosár nem hiány. Teljes, konkrét vázlatot készíts csak igehely +
 betöltött szöveg (+ opcionális gyors háttér) alapján is. Ne jelezd a hiányt
-a vázlatban, és ne töltsd ki közhelyekkel.
+a vázlatban, és ne töltsd ki közhelyekkel. Ha nincs exegézis / kortörténet /
+eredeti nyelvi anyag, a betöltött bibliai szövegből állíts össze szószékre
+vihető, tőmondatos jegyzetet rövid címekkel és 1–1 mondatos rétegekkel.
 
 Ne találj ki verset vagy bizonytalan nyelvi adatot. Ugyanazt a verset ne bontsd
 automatikusan több mozgásra. Párhuzamos felszólításokat tarts egyben, ha egy
@@ -281,13 +284,16 @@ MEZŐK
 
 HOSSZ (tartalom elsőbbségével)
 
-- 2 mozgás: ~350–500 szó
-- 3–4 mozgás: ~420–700 szó
-- 5 mozgás: legfeljebb ~850 szó
+- Alapforma: tőmondatos szószéki JEGYZET (nem beszéd, nem kommentár).
+- 2 mozgás: ~250–400 szó
+- 3–4 mozgás: ~280–520 szó
+- 5 mozgás: legfeljebb ~650 szó
 - Kemény felső korlát: 850 szó. Az alsó tartomány minőségi jelzés, nem öncél.
+- Ha kevés a háttéranyag: rövid, konkrét, textus-alapú jegyzet — ne jelezd a hiányt.
 
 TILOS: teljes prédikáció; többbekezdéses próza; félmondat; `points` / `subpoints`
-/ `application` / `body` / `thesis` mezők; metaszöveg; üres közhelyek.
+/ `application` / `body` / `thesis` mezők; metaszöveg; üres közhelyek;
+„nincs elég anyag” jellegű panasz a vázlatban.
 
 KÖTELEZŐ KIMENET — kizárólag JSON:
 
@@ -2003,15 +2009,18 @@ def _ai_generate_structured(
         "Üres vázlatkosár esetén is készíts teljes értékű, konkrét vázlatot.\n"
         "A textus szerint válassz 3–4 főpontot (indokolt esetben 2).\n"
         "Minden főpontban kötelező a három réteg: textual_insight, "
-        "theological_emphasis, listener_movement — egy-egy teljes mondat; "
-        "együtt 75–130 szó. Ne legyen versátfogalmazás, közhely vagy moralizálás.\n"
+        "theological_emphasis, listener_movement — egy-egy rövid, teljes "
+        "mondat; együtt kb. 40–90 szó/pont. Ne legyen versátfogalmazás, "
+        "közhely vagy moralizálás.\n"
         "Az igehelyet csak a `verses` mezőbe írd; a pont `title` mezője legyen "
         "igehely nélküli.\n"
         "Ugyanazt a verset ne bontsd több főpontra; párhuzamos felszólításokat "
         "egy pontban tarts.\n"
-        "A bevezetési irány és a megérkezés 45–80 szavas irány legyen, ne "
+        "A bevezetési irány és a megérkezés 25–55 szavas irány legyen, ne "
         "szerkesztői utasítás és ne kész beszéd.\n"
-        "Célhossz 450–750 szó; 350 alatt túl sovány, 850 felett túl bő.\n\n"
+        "Célhossz ~280–520 szó (tőmondatos jegyzet); 850 felett túl bő. "
+        "Ha a forráscsomag csak a bibliai szöveget tartalmazza, akkor is "
+        "készíts szószékre vihető vázlatot — ne írj hiányról szóló panaszt.\n\n"
         f"FORRÁSCSOMAG:\n"
         f"{wrap_untrusted_content('forráscsomag', json.dumps(ctx_without_basket_and_seed, ensure_ascii=False), limit_name='prompt_context_total')}\n\n"
         "A forráscsomag exegetikai, teológiai és homiletikai elemei háttéranyagok; "
@@ -2281,6 +2290,101 @@ def _programmatic_trim(payload: Mapping[str, Any]) -> dict[str, Any]:
     return normalize_structured_outline(data)
 
 
+_FATAL_OUTLINE_ISSUES = frozenset(
+    {
+        "over_absolute_max",
+        "too_few_points",
+        "missing_focus",
+        "missing_conclusion",
+        "full_sermon_like",
+    }
+)
+
+
+def _structured_has_min_pulpit_shape(data: Mapping[str, Any]) -> bool:
+    safe = normalize_structured_outline(data)
+    points = safe.get("points") if isinstance(safe.get("points"), list) else []
+    return bool(
+        _s(safe.get("focus_sentence"))
+        and len(points) >= LIMITS["min_points"]
+        and _s(safe.get("conclusion_direction"))
+    )
+
+
+def _rescue_structured_outline(
+    structured: dict[str, Any] | None,
+    *,
+    bundle: Mapping[str, Any],
+    seed_outline: Mapping[str, Any] | None,
+    passage_text: Any,
+    warnings: list[str],
+) -> tuple[dict[str, Any] | None, list[str]]:
+    """Szigorú AI-bukás után is próbáljunk szószéki jegyzetet adni.
+
+    Először csak akkor tartjuk meg az AI-választ, ha trim után nincs hard hiba.
+    Egyébként textus-alapú heurisztika.
+    """
+    from sermon_workshop_outline_ai import MISSING_PART, outline_to_readable_content
+
+    stub_markers = (
+        MISSING_PART.casefold(),
+        "nincs kidolgozva",
+        "ez a rész még",
+        "placeholder",
+    )
+
+    def _looks_stub(data: Mapping[str, Any]) -> bool:
+        try:
+            text = outline_to_readable_content(
+                structured_to_sermon_outline(data, seed=seed_outline or {})
+            ).casefold()
+        except Exception:  # noqa: BLE001
+            text = json.dumps(dict(data), ensure_ascii=False).casefold()
+        return any(m in text for m in stub_markers)
+
+    if isinstance(structured, dict) and structured:
+        trimmed = normalize_structured_outline(_programmatic_trim(structured))
+        if _structured_has_min_pulpit_shape(trimmed) and not _looks_stub(trimmed):
+            issues = validate_structured_outline(trimmed, passage_text=passage_text)
+            hard = [
+                i
+                for i in issues
+                if i not in SOFT_QUALITY_ISSUES and i not in ENRICHABLE_ISSUES
+            ]
+            wc = word_count(render_structured_outline(trimmed))
+            if not hard and wc <= LIMITS["absolute_max_words"]:
+                tip = "A vázlat automatikus formázással került mentésre."
+                if tip not in warnings:
+                    warnings.append(tip)
+                for issue in issues:
+                    soft_tip = f"Vázlat finomítható: {issue}"
+                    if soft_tip not in warnings:
+                        warnings.append(soft_tip)
+                return trimmed, warnings
+
+    heuristic = normalize_structured_outline(
+        _heuristic_structured_from_bundle(bundle, seed_outline=seed_outline)
+    )
+    if not _structured_has_min_pulpit_shape(heuristic) or _looks_stub(heuristic):
+        return None, warnings
+    issues = validate_structured_outline(heuristic, passage_text=passage_text)
+    fatal = [i for i in issues if i in _FATAL_OUTLINE_ISSUES]
+    wc = word_count(render_structured_outline(heuristic))
+    if fatal or wc > LIMITS["absolute_max_words"]:
+        return None, warnings
+    tip = (
+        "A modell válasza nem felelt meg a szigorú formának; "
+        "textus-alapú, szószékre vihető jegyzetvázlat készült."
+    )
+    if tip not in warnings:
+        warnings.append(tip)
+    for issue in issues:
+        soft_tip = f"Vázlat finomítható: {issue}"
+        if soft_tip not in warnings:
+            warnings.append(soft_tip)
+    return heuristic, warnings
+
+
 def generate_sermon_outline(
     session_state: MutableMapping[str, Any] | Mapping[str, Any],
     *,
@@ -2447,17 +2551,30 @@ def generate_sermon_outline(
                 issues,
                 rendered_wc,
             )
-            return OutlineGenerationResult(
-                outline=existing,
-                ok=False,
-                error_message=INVALID_OUTLINE_MESSAGE + retained_outline_notice,
+            rescued, warnings = _rescue_structured_outline(
+                structured,
+                bundle=bundle,
+                seed_outline=seed,
+                passage_text=passage_for_validation,
                 warnings=warnings,
-                validation_issues=issues,
-                source=source_tag,
-                compressed=True,
-                enriched=enriched,
-                raw_word_count=raw_wc,
-                rendered_word_count=rendered_wc,
+            )
+            if rescued is None:
+                return OutlineGenerationResult(
+                    outline=existing,
+                    ok=False,
+                    error_message=INVALID_OUTLINE_MESSAGE + retained_outline_notice,
+                    warnings=warnings,
+                    validation_issues=issues,
+                    source=source_tag,
+                    compressed=True,
+                    enriched=enriched,
+                    raw_word_count=raw_wc,
+                    rendered_word_count=rendered_wc,
+                )
+            structured = rescued
+            compressed = True
+            issues = validate_structured_outline(
+                structured, passage_text=passage_for_validation
             )
 
     # Tartalmi kiegészítés CSAK 350 alatt / hiányzó-sovány réteg esetén.
@@ -2501,17 +2618,30 @@ def generate_sermon_outline(
                 issues,
                 rendered_wc,
             )
-            return OutlineGenerationResult(
-                outline=existing,
-                ok=False,
-                error_message=INVALID_OUTLINE_MESSAGE + retained_outline_notice,
+            rescued, warnings = _rescue_structured_outline(
+                structured,
+                bundle=bundle,
+                seed_outline=seed,
+                passage_text=passage_for_validation,
                 warnings=warnings,
-                validation_issues=issues,
-                source=source_tag,
-                compressed=compressed,
-                enriched=True,
-                raw_word_count=raw_wc,
-                rendered_word_count=rendered_wc,
+            )
+            if rescued is None:
+                return OutlineGenerationResult(
+                    outline=existing,
+                    ok=False,
+                    error_message=INVALID_OUTLINE_MESSAGE + retained_outline_notice,
+                    warnings=warnings,
+                    validation_issues=issues,
+                    source=source_tag,
+                    compressed=compressed,
+                    enriched=True,
+                    raw_word_count=raw_wc,
+                    rendered_word_count=rendered_wc,
+                )
+            structured = rescued
+            enriched = True
+            issues = validate_structured_outline(
+                structured, passage_text=passage_for_validation
             )
 
     structured = _programmatic_trim(structured)
@@ -2546,18 +2676,40 @@ def generate_sermon_outline(
             rendered_wc,
             raw_wc,
         )
-        return OutlineGenerationResult(
-            outline=existing,
-            ok=False,
-            error_message=INVALID_OUTLINE_MESSAGE + retained_outline_notice,
+        rescued, warnings = _rescue_structured_outline(
+            structured,
+            bundle=bundle,
+            seed_outline=seed,
+            passage_text=passage_for_validation,
             warnings=warnings,
-            validation_issues=issues,
-            source=source_tag,
-            compressed=compressed,
-            enriched=enriched,
-            raw_word_count=raw_wc,
-            rendered_word_count=rendered_wc,
         )
+        if rescued is None:
+            return OutlineGenerationResult(
+                outline=existing,
+                ok=False,
+                error_message=INVALID_OUTLINE_MESSAGE + retained_outline_notice,
+                warnings=warnings,
+                validation_issues=issues,
+                source=source_tag,
+                compressed=compressed,
+                enriched=enriched,
+                raw_word_count=raw_wc,
+                rendered_word_count=rendered_wc,
+            )
+        structured = rescued
+        issues = validate_structured_outline(
+            structured, passage_text=passage_for_validation
+        )
+        rendered_wc = word_count(render_structured_outline(structured))
+        for soft in _soft_final_issues(issues):
+            tip = f"Vázlat minőség: {soft}"
+            if tip not in warnings:
+                warnings.append(tip)
+        for softish in issues:
+            if softish in ENRICHABLE_ISSUES and softish not in SOFT_QUALITY_ISSUES:
+                tip = f"Vázlat minőség: {softish}"
+                if tip not in warnings:
+                    warnings.append(tip)
 
     # Offline heuristic: only hard-block catastrophic failures
     if generate_fn is None and issues:
