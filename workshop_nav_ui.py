@@ -22,6 +22,46 @@ _DEFAULT_UI_MODE_LABELS: dict[str, str] = {
 # Optional Material icons — a nézetváltó szöveges címkéket használ (ikon nélkül).
 _DEFAULT_UI_MODE_ICONS: dict[str, str] = {}
 
+# Projektlista-popover bezárása után: a BaseWeb portál gyakran „szellem” panelt
+# hagy a DOM-ban. Egyszeri JS eltávolítja a Mentett projektek overlay-t.
+_PROJECTS_POPOVER_DISMISS_JS = """
+<script>
+(function () {
+  try {
+    var doc = window.parent.document;
+    function dismiss() {
+      var nodes = doc.querySelectorAll('div[data-baseweb="popover"]');
+      for (var i = nodes.length - 1; i >= 0; i--) {
+        var el = nodes[i];
+        var txt = el.textContent || "";
+        if (
+          el.querySelector('[class*="st-key-project_picker_content"]') ||
+          txt.indexOf("Mentett projektek") !== -1
+        ) {
+          el.setAttribute("data-tx-projects-dismissed", "1");
+          el.style.setProperty("display", "none", "important");
+          el.style.setProperty("visibility", "hidden", "important");
+          el.style.setProperty("pointer-events", "none", "important");
+          el.style.setProperty("opacity", "0", "important");
+          try { el.remove(); } catch (err) {}
+        }
+      }
+      try {
+        doc.dispatchEvent(new KeyboardEvent("keydown", {
+          key: "Escape", code: "Escape", keyCode: 27, which: 27, bubbles: true
+        }));
+      } catch (err2) {}
+    }
+    dismiss();
+    setTimeout(dismiss, 40);
+    setTimeout(dismiss, 160);
+    setTimeout(dismiss, 400);
+  } catch (e) {}
+})();
+</script>
+"""
+
+
 def completed_step_indices(
     options: Sequence[str],
     completed: Iterable[str] | None,
@@ -730,6 +770,8 @@ def render_app_toolbar(
 
     def _projects_popover() -> None:
         nonlocal action
+        if st.session_state.pop("_projects_popover_dismiss_js", False):
+            components.html(_PROJECTS_POPOVER_DISMISS_JS, height=0)
         epoch = int(st.session_state.get("_projects_popover_epoch") or 0)
         with st.popover(
             "Projektek",
@@ -739,7 +781,7 @@ def render_app_toolbar(
             width=520,
             key=f"bar_projects_popover_{epoch}",
         ):
-            with st.container(key="project_picker_content"):
+            with st.container(key=f"project_picker_content_{epoch}"):
                 if projects_renderer is not None:
                     projects_renderer()
                 else:
