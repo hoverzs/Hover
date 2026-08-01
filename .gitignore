@@ -25,8 +25,10 @@ wheels/
 venv/
 ENV/
 
-# Environment & secrets (ne kerüljenek fel GitHubra)
+# Titkos környezeti változók (soha ne kerüljenek GitHubra)
 .env
+.env.local
+.env.*.local
 .env.*
 !.env.example
 
@@ -37,7 +39,8 @@ secrets.toml
 *.secret
 *.secrets
 
-# IDE / OS
+# IDE és Cursor beállítások (ha tartalmazhatnak kulcsot)
+.cursor/
 .idea/
 .vscode/
 *.swp
