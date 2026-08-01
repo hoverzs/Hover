@@ -238,7 +238,8 @@ def test_shell_components_use_keyed_containers():
     assert 'key="tx_toolbar_actions"' in src
     assert 'key="bar_overflow_more"' in src
     assert "Vissza a főoldalra" in src
-    assert 'key="project_picker_content"' in src
+    assert 'key=f"project_picker_content_{epoch}"' in src
+    assert "_PROJECTS_POPOVER_DISMISS_JS" in src
     assert 'key="workspace_switcher"' in src
     assert "tx_mainnav_" in src
     assert '"help": title' not in src
@@ -249,7 +250,6 @@ def test_shell_components_use_keyed_containers():
     assert "horizontal=True" in src
     assert "Szerkesztés" not in src or 'key="bar_title_edit"' in src
     assert "Projekt nevének szerkesztése" in src
-    # Ne legyen egyszerre két elsődleges mentés a toolbarban (ideiglenes ág)
     assert 'key="bar_project_save_as_new"' in src
     assert "Mentés másolatként" in src
     assert 'key=f"bar_projects_popover_{epoch}"' in src

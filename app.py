@@ -4671,12 +4671,13 @@ def _project_autosave_fragment() -> None:
 def _close_projects_popover() -> None:
     """A Projektek popover bezárása (Streamlit gomb után nyitva tartja).
 
-    Widgetkulcs-epoch növelésével újrarendereljük a popovert, így a
-    megnyitás / megerősítés után nem marad lebegő panel a felületen.
+    Widgetkulcs-epoch növelésével újrarendereljük a popovert, és a következő
+    futásban JS eltávolítja a BaseWeb portálon ragadt „szellem” panelt.
     """
     st.session_state["_projects_popover_epoch"] = (
         int(st.session_state.get("_projects_popover_epoch") or 0) + 1
     )
+    st.session_state["_projects_popover_dismiss_js"] = True
 
 
 def _cloud_open_project(project_id: str) -> None:

@@ -1246,20 +1246,20 @@ body:has(.st-key-passage_search_occasion_field [aria-expanded="true"])
     margin: 0 0 0.35rem;
 }
 
-div[data-baseweb="popover"]:has(.st-key-project_picker_content) {
+div[data-baseweb="popover"]:has([class*="st-key-project_picker_content"]) {
     width: 520px !important;
     min-width: 440px !important;
     max-width: calc(100vw - 32px) !important;
 }
-div[data-baseweb="popover"]:has(.st-key-project_picker_content) > div,
-div[data-baseweb="popover"]:has(.st-key-project_picker_content) [data-testid="stVerticalBlock"],
-div[data-baseweb="popover"]:has(.st-key-project_picker_content) [data-testid="stLayoutWrapper"] {
+div[data-baseweb="popover"]:has([class*="st-key-project_picker_content"]) > div,
+div[data-baseweb="popover"]:has([class*="st-key-project_picker_content"]) [data-testid="stVerticalBlock"],
+div[data-baseweb="popover"]:has([class*="st-key-project_picker_content"]) [data-testid="stLayoutWrapper"] {
     width: 100% !important;
     max-width: 100% !important;
     min-width: 0 !important;
     box-sizing: border-box !important;
 }
-div[data-baseweb="popover"]:has(.st-key-project_picker_content) [data-testid="stPopoverBody"] {
+div[data-baseweb="popover"]:has([class*="st-key-project_picker_content"]) [data-testid="stPopoverBody"] {
     width: 100% !important;
     min-width: 0 !important;
     max-width: 100% !important;
@@ -1270,10 +1270,18 @@ div[data-baseweb="popover"]:has(.st-key-project_picker_content) [data-testid="st
     box-sizing: border-box !important;
 }
 
-.st-key-project_picker_content {
+[class*="st-key-project_picker_content"] {
     width: 100% !important;
     min-width: 0 !important;
     box-sizing: border-box !important;
+}
+
+/* Megnyitás után ragadt BaseWeb portál — JS + CSS elrejti */
+div[data-baseweb="popover"][data-tx-projects-dismissed="1"] {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    opacity: 0 !important;
 }
 
 .tx-project-picker-title {
@@ -1283,7 +1291,7 @@ div[data-baseweb="popover"]:has(.st-key-project_picker_content) [data-testid="st
     margin: 0 0 0.55rem;
 }
 
-div[data-baseweb="popover"]:has(.st-key-project_picker_content) [class*="st-key-project_picker_row_"] {
+div[data-baseweb="popover"]:has([class*="st-key-project_picker_content"]) [class*="st-key-project_picker_row_"] {
     width: 100% !important;
     min-width: 0 !important;
     margin: 0 0 0.55rem !important;
@@ -1331,7 +1339,7 @@ div[data-baseweb="popover"]:has(.st-key-project_picker_content) [class*="st-key-
     min-width: 0;
 }
 
-div[data-baseweb="popover"]:has(.st-key-project_picker_content) .stButton > button {
+div[data-baseweb="popover"]:has([class*="st-key-project_picker_content"]) .stButton > button {
     position: relative !important;
     display: inline-flex !important;
     align-items: center !important;
@@ -1351,11 +1359,11 @@ div[data-baseweb="popover"]:has(.st-key-project_picker_content) .stButton > butt
     padding: 0 0.85rem !important;
     margin: 0 !important;
 }
-div[data-baseweb="popover"]:has(.st-key-project_picker_content) .stButton > button::before {
+div[data-baseweb="popover"]:has([class*="st-key-project_picker_content"]) .stButton > button::before {
     content: none !important;
     display: none !important;
 }
-div[data-baseweb="popover"]:has(.st-key-project_picker_content) .stButton > button [data-testid="stIconMaterial"] {
+div[data-baseweb="popover"]:has([class*="st-key-project_picker_content"]) .stButton > button [data-testid="stIconMaterial"] {
     position: static !important;
     background: transparent !important;
     box-shadow: none !important;
@@ -1366,12 +1374,12 @@ div[data-baseweb="popover"]:has(.st-key-project_picker_content) .stButton > butt
     font-size: 1rem !important;
     line-height: 1 !important;
 }
-div[data-baseweb="popover"]:has(.st-key-project_picker_content) .stButton > button [data-testid="stMarkdownContainer"] p {
+div[data-baseweb="popover"]:has([class*="st-key-project_picker_content"]) .stButton > button [data-testid="stMarkdownContainer"] p {
     display: block !important;
     margin: 0 !important;
     width: auto !important;
 }
-div[data-baseweb="popover"]:has(.st-key-project_picker_content) .stButton > button [data-testid="stMarkdownContainer"] p span {
+div[data-baseweb="popover"]:has([class*="st-key-project_picker_content"]) .stButton > button [data-testid="stMarkdownContainer"] p span {
     flex: none !important;
     width: auto !important;
     min-width: 0 !important;
@@ -1382,10 +1390,10 @@ div[data-baseweb="popover"]:has(.st-key-project_picker_content) .stButton > butt
     white-space: nowrap !important;
 }
 
-div[data-baseweb="popover"]:has(.st-key-project_picker_content) [class*="st-key-bar_project_open_"] button {
+div[data-baseweb="popover"]:has([class*="st-key-project_picker_content"]) [class*="st-key-bar_project_open_"] button {
     min-width: 96px !important;
 }
-div[data-baseweb="popover"]:has(.st-key-project_picker_content) [class*="st-key-bar_project_delete_"] button {
+div[data-baseweb="popover"]:has([class*="st-key-project_picker_content"]) [class*="st-key-bar_project_delete_"] button {
     min-width: 80px !important;
 }
 
@@ -1561,12 +1569,12 @@ div[data-baseweb="popover"]:has(.st-key-project_picker_content) [class*="st-key-
     .tx-project-name-text {
         max-width: min(110px, 36vw);
     }
-    div[data-baseweb="popover"]:has(.st-key-project_picker_content) {
+    div[data-baseweb="popover"]:has([class*="st-key-project_picker_content"]) {
         width: calc(100vw - 24px) !important;
         min-width: 0 !important;
         max-width: calc(100vw - 24px) !important;
     }
-    div[data-baseweb="popover"]:has(.st-key-project_picker_content) [data-testid="stPopoverBody"] {
+    div[data-baseweb="popover"]:has([class*="st-key-project_picker_content"]) [data-testid="stPopoverBody"] {
         width: 100% !important;
         min-width: 0 !important;
         max-width: 100% !important;
