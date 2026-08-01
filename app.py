@@ -7827,12 +7827,13 @@ with tabs[7]:
                     force_overwrite=True,
                 )
                 if not result.ok:
-                    retained = (
-                        " A korábbi mentett vázlat változatlanul látható."
-                        if outline_has_content(outline)
-                        else ""
-                    )
-                    st.warning((result.error_message or EMPTY_PROJECT_MESSAGE) + retained)
+                    msg = (result.error_message or EMPTY_PROJECT_MESSAGE).strip()
+                    if (
+                        outline_has_content(outline)
+                        and "korábbi mentett vázlat" not in msg.casefold()
+                    ):
+                        msg += " A korábbi mentett vázlat változatlanul látható."
+                    st.warning(msg)
                 else:
                     outline = sync_outline_content(result.outline, force=True)
                     save_sermon_outline(

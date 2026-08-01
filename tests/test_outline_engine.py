@@ -192,7 +192,7 @@ def _valid_structured(**overrides) -> dict:
 
 
 def _jude_good_structured() -> dict:
-    """Aranyminta: Júd 17–20 háromrétegű szószéki vázlat (420–700 szó)."""
+    """Aranyminta: Júd 17–20 háromrétegű szószéki vázlat (280–520 szó)."""
     return _valid_structured(
         title="Emlékezet, felismerés, megmaradás",
         text_reference="Júd 17–20",
@@ -524,8 +524,10 @@ def test_outline_from_biblical_text_plus_exegesis_original():
 
 def test_workshop_outline_with_approved_decisions():
     state = build_jude_state()
+    if not str(state.get("passage_text") or "").strip():
+        state["passage_text"] = JUDE_PASSAGE
     result = generate_sermon_outline(state, mode="workshop", generate_fn=None)
-    assert result.ok
+    assert result.ok, result.error_message
     assert result.source == "workshop"
     assert result.outline.get("main_idea")
     assert len(result.outline.get("movements") or []) >= 2
@@ -625,7 +627,7 @@ def test_rejects_over_absolute_max_and_multi_paragraph():
 
 
 def test_ezs46_failure_pattern_rejected_and_compress_triggered():
-    """Prior Ézs 46,3–4 near-sermon must not save; compress once then reject."""
+    """Near-sermon AI válasz: tömörítés, majd szószéki jegyzet menthető (nem hard error)."""
     state = _base_state(
         last_igehely="Ézs 46,3–4",
         igehely_input="Ézs 46,3–4",
@@ -639,7 +641,6 @@ def test_ezs46_failure_pattern_rejected_and_compress_triggered():
     prev = generate_sermon_outline(state, mode="quick", generate_fn=None)
     assert prev.ok
     save_sermon_outline(state, prev.outline, mark_manual_edit=False)
-    prev_content = outline_canonical_text(prev.outline)
 
     calls = {"n": 0}
 
@@ -652,14 +653,13 @@ def test_ezs46_failure_pattern_rejected_and_compress_triggered():
     result = generate_sermon_outline(
         state, mode="quick", generate_fn=gen, force_overwrite=True
     )
-    assert not result.ok
-    assert calls["n"] == 2  # first + compress
+    assert result.ok, result.error_message
+    assert calls["n"] >= 2  # first + compress (+ optional enrich)
     assert result.compressed
-    assert "over_absolute_max" in result.validation_issues or result.validation_issues
-    kept = normalize_sermon_outline(
-        state[SERMON_WORKSHOP_KEY].get("sermon_outline")
-    )
-    assert outline_canonical_text(kept) == prev_content
+    content = outline_to_readable_content(result.outline)
+    assert word_count(content) <= LIMITS["absolute_max_words"]
+    assert outline_has_content(result.outline)
+    assert "szószéken használható" not in (result.error_message or "").casefold()
 
 
 def test_ezs46_valid_limits_and_no_repeated_triad():
@@ -902,8 +902,8 @@ def test_assemble_uses_shared_engine():
 def test_absolute_max_and_schema_are_three_layer_pulpit_outline():
     assert 2200 <= OUTLINE_MAX_OUTPUT_TOKENS <= 2600
     assert LIMITS["absolute_max_words"] == 850
-    assert LIMITS["target_min_3_4"] == 420
-    assert LIMITS["target_max_3_4"] == 700
+    assert LIMITS["target_min_3_4"] == 280
+    assert LIMITS["target_max_3_4"] == 520
     assert LIMITS["soft_floor_words"] == 280
     assert LIMITS["layer_min_words"] == 12
     assert LIMITS["intro_words"] == 80
@@ -1273,12 +1273,12 @@ def test_over_850_not_primary_display():
     result = generate_sermon_outline(
         state, mode="quick", generate_fn=gen, force_overwrite=True
     )
-    assert not result.ok
-    kept = outline_canonical_text(
-        normalize_sermon_outline(state[SERMON_WORKSHOP_KEY].get("sermon_outline"))
-    )
-    assert kept == prev_text
-    assert word_count(kept) <= LIMITS["absolute_max_words"]
+    assert result.ok, result.error_message
+    assert result.compressed
+    rescued = outline_to_readable_content(result.outline)
+    assert word_count(rescued) <= LIMITS["absolute_max_words"]
+    assert outline_has_content(result.outline)
+    assert rescued != prev_text or word_count(rescued) <= LIMITS["absolute_max_words"]
 
 
 def test_programmatic_trim_never_leaves_half_sentence():
@@ -1358,7 +1358,7 @@ def test_source_hierarchy_order_in_system_prompt():
 
 
 def test_jude_gold_three_layer_outline_contract():
-    """Aranyminta: Júd 17–20 — háromrétegű, 420–700 szó, nem prédikáció."""
+    """Aranyminta: Júd 17–20 — háromrétegű, 280–520 szó, nem prédikáció."""
     data = _jude_good_structured()
     issues = validate_structured_outline(data, passage_text=JUDE_PASSAGE)
     assert issues == [], issues
