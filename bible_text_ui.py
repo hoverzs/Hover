@@ -21,6 +21,7 @@ import streamlit as st
 
 from bible_engine.greek_analysis_ui import render_greek_analysis_block
 from ruf_bible_service import (
+    PERMISSION_NOTICE,
     SOURCE_NAME,
     SOURCE_ATTRIBUTION,
     TRANSLATION_NAME,
@@ -543,17 +544,19 @@ def _render_source_caption(session_state: MutableMapping[str, Any]) -> None:
         SOURCE_ATTRIBUTION,
         quote=True,
     )
+    permission_notice = html.escape(PERMISSION_NOTICE, quote=True)
     if url:
         safe_url = html.escape(url, quote=True)
         st.markdown(
             f'<p class="bible-source-note">{caption}<br/>'
+            f"{permission_notice}<br/>"
             f'<a href="{safe_url}" target="_blank" rel="noopener noreferrer">'
             "Megnyitás a forrásoldalon</a></p>",
             unsafe_allow_html=True,
         )
     else:
         st.markdown(
-            f'<p class="bible-source-note">{caption}</p>',
+            f'<p class="bible-source-note">{caption}<br/>{permission_notice}</p>',
             unsafe_allow_html=True,
         )
 

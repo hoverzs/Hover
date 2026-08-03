@@ -19,6 +19,7 @@ TRANSLATION_CODE = "RUF"
 SOURCE_NAME = "Szentírás.eu"
 COPYRIGHT_NOTICE = "Revideált új fordítás, © Magyar Bibliatársulat, 2014."
 SOURCE_ATTRIBUTION = "Forrás: Szentírás.eu — Revideált új fordítás, © Magyar Bibliatársulat, 2014."
+PERMISSION_NOTICE = "A RÚF 2014 szövegének felhasználása a Magyar Bibliatársulat Alapítvány engedélyével történik."
 BASE_URL = "https://szentiras.eu/api/idezet"
 SZENTIRAS_EU_API_KEY_NAME = "SZENTIRAS_EU_API_KEY"
 USER_AGENT = "TextusHomiletics/2.2 (+https://textus.ro; Szentiras.eu REST RUF loader)"
@@ -806,6 +807,7 @@ __all__ = [
     "SOURCE_NAME",
     "COPYRIGHT_NOTICE",
     "SOURCE_ATTRIBUTION",
+    "PERMISSION_NOTICE",
     "BASE_URL",
     "SZENTIRAS_EU_API_KEY_NAME",
     "USER_AGENT",

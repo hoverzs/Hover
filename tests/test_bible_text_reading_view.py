@@ -19,7 +19,7 @@ from bible_text_ui import (
     parse_passage_text_blocks,
     save_bible_text_from_widgets,
 )
-from ruf_bible_service import SOURCE_ATTRIBUTION, SOURCE_NAME
+from ruf_bible_service import PERMISSION_NOTICE, SOURCE_ATTRIBUTION, SOURCE_NAME
 
 errors: list[str] = []
 
@@ -135,6 +135,7 @@ def test_manual_text_area_is_hidden_by_default() -> None:
         for expander in app.expander
     )
     assert not any(SOURCE_ATTRIBUTION in markdown.value for markdown in app.markdown)
+    assert not any(PERMISSION_NOTICE in markdown.value for markdown in app.markdown)
 
 
 def test_manual_text_area_renders_when_expander_is_open() -> None:
@@ -238,6 +239,7 @@ def test_szentiras_eu_ruf_load_preserves_source_attribution_and_text() -> None:
         markdown_values = [markdown.value for markdown in app.markdown]
         assert any("Pál, Krisztus Jézus apostola." in value for value in markdown_values)
         assert any(SOURCE_ATTRIBUTION in value for value in markdown_values)
+        assert sum(value.count(PERMISSION_NOTICE) for value in markdown_values) == 1
         assert any("szentiras.eu/api/idezet/Ef%201%2C1-4/RUF" in value for value in markdown_values)
     finally:
         bible_text_ui.fetch_ruf_passage = original_fetch
@@ -296,6 +298,7 @@ def test_main_ui_ruf_load_survives_prefetch_flush_and_renders_luke_3() -> None:
         markdown_values = [markdown.value for markdown in app.markdown]
         assert any("Tibérius császár uralkodásának" in value for value in markdown_values)
         assert any(SOURCE_ATTRIBUTION in value for value in markdown_values)
+        assert sum(value.count(PERMISSION_NOTICE) for value in markdown_values) == 1
 
         app.run()
         markdown_values = [markdown.value for markdown in app.markdown]
@@ -304,6 +307,7 @@ def test_main_ui_ruf_load_survives_prefetch_flush_and_renders_luke_3() -> None:
             "1. Tibérius császár uralkodásának"
         )
         assert any("Tibérius császár uralkodásának" in value for value in markdown_values)
+        assert sum(value.count(PERMISSION_NOTICE) for value in markdown_values) == 1
     finally:
         bible_text_ui.fetch_ruf_passage = original_fetch
 
