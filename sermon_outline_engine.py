@@ -309,18 +309,52 @@ _BACKGROUND_BUNDLE_KEYS: tuple[str, ...] = (
     "approved_sermon_decisions",
     "approved_insights",
     "sermon_main_idea",
+    "sermon_main_idea_status",
     "text_main_idea",
+    "text_main_idea_status",
     "human_condition",
+    "human_condition_status",
     "listener_tension",
+    "listener_tension_status",
     "christ_centered_arc",
+    "christ_centered_arc_status",
     "sermon_path",
+    "sermon_path_status",
     "sermon_movements",
     "closing",
+    "closing_status",
     "user_notes",
     "rapid_evidence",
     "language_notes",
     "historical_notes",
 )
+
+# Ezekre a kulcsokra a MEGLÉVŐ session_state-beli draft/approved státusz
+# (a "Jóváhagyom és átadom" gomb, ld. sermon_workshop_data.py) ténylegesen
+# kikényszerítendő — csak approved állapotban kerülnek a vázlatmotor
+# promptjába. Az exegesis/theology/history/original_text NINCS itt: azokhoz
+# nincs UI-szintű elfogadás, "unreviewed" címkével szűretlenül mennek át.
+_APPROVAL_GATED_KEYS: frozenset[str] = frozenset(
+    {
+        "sermon_main_idea",
+        "text_main_idea",
+        "human_condition",
+        "listener_tension",
+        "christ_centered_arc",
+        "sermon_path",
+        "closing",
+    }
+)
+
+_GATED_KEY_LABELS: dict[str, str] = {
+    "sermon_main_idea": "Igehirdetés fő gondolata",
+    "text_main_idea": "Textus fő gondolata",
+    "human_condition": "Emberi állapot / helyzet",
+    "listener_tension": "Hallgatói feszültség",
+    "christ_centered_arc": "Krisztus-központú ív",
+    "sermon_path": "Igehirdetés útja",
+    "closing": "Lezárás",
+}
 
 _CORE_PASSAGE_KEYS: tuple[str, ...] = (
     "passage_reference",
@@ -1341,15 +1375,39 @@ def _background_value_is_usable(value: Any) -> bool:
 
 
 def extract_outline_background_material(bundle: Mapping[str, Any]) -> dict[str, Any]:
-    """Érdemi háttéranyagok (exegézis, nyelv, kortörténet, műhelydöntések…)."""
+    """Érdemi háttéranyagok (exegézis, nyelv, kortörténet, műhelydöntések…).
+
+    A `_APPROVAL_GATED_KEYS`-ben szereplő kulcsok csak akkor kerülnek be, ha a
+    hozzájuk tartozó `<kulcs>_status` mező a session_state-ben "approved" —
+    ez a meglévő "Jóváhagyom és átadom" gomb állapotát kényszeríti ki. Minden
+    más kulcs (pl. exegesis/theology/history/original_text, amelyekhez nincs
+    UI-szintű elfogadás) változatlanul, szűretlenül megy át.
+    """
     background: dict[str, Any] = {}
     for key in _BACKGROUND_BUNDLE_KEYS:
         if key not in bundle:
             continue
+        base_key = key[: -len("_status")] if key.endswith("_status") else key
+        if base_key in _APPROVAL_GATED_KEYS:
+            if _s(bundle.get(f"{base_key}_status")) != "approved":
+                continue
         value = bundle.get(key)
         if _background_value_is_usable(value):
             background[key] = value
     return background
+
+
+def extract_outline_excluded_draft_blocks(bundle: Mapping[str, Any]) -> list[str]:
+    """Mely `_APPROVAL_GATED_KEYS` blokkoknak van tartalma, de a session_state
+    szerint nincsenek jóváhagyva — ezek maradnak ki emiatt a háttéranyagból."""
+    excluded: list[str] = []
+    for key in _APPROVAL_GATED_KEYS:
+        value = bundle.get(key)
+        if not _background_value_is_usable(value):
+            continue
+        if _s(bundle.get(f"{key}_status")) != "approved":
+            excluded.append(_GATED_KEY_LABELS.get(key, key))
+    return excluded
 
 
 def _bundle_has_rich_workshop_material(bundle: Mapping[str, Any]) -> bool:
@@ -1380,6 +1438,7 @@ def build_outline_user_prompt(
     """Dinamikus user-prompt: textus mindig; háttér csak ha van érdemi anyag."""
     core = extract_outline_core_passage_context(bundle)
     background = extract_outline_background_material(bundle)
+    excluded_blocks = extract_outline_excluded_draft_blocks(bundle)
     outline_basket = bundle.get("outline_basket") or []
     has_background = bool(background)
     has_basket = bool(outline_basket)
@@ -1448,6 +1507,18 @@ def build_outline_user_prompt(
                 "A vázlat elején, egy külön \"Hiányzó háttéranyag\" "
                 "szakaszban jelezd egyértelműen, hogy nincs mellékelt "
                 "háttéranyag ehhez a szakaszhoz.",
+            ]
+        )
+
+    if excluded_blocks:
+        parts.extend(
+            [
+                "",
+                "KIMARADT, NEM JÓVÁHAGYOTT BLOKKOK (szándékosan hiányoznak, "
+                "a lelkész még nem hagyta jóvá őket): "
+                + ", ".join(excluded_blocks) + ".",
+                "NE hivatkozz rájuk, és NE pótold a tartalmukat saját "
+                "kitalálással — egyszerűen hagyd ki őket a vázlatból.",
             ]
         )
 
@@ -2631,6 +2702,13 @@ def generate_sermon_outline(
     bundle = collect_outline_evidence(session, sermon_workshop=sw)
     ctx_hash = compute_context_hash(bundle)
     warnings: list[str] = []
+    excluded_blocks = extract_outline_excluded_draft_blocks(bundle)
+    if excluded_blocks:
+        warnings.append(
+            "Kimaradt a vázlatból (nincs jóváhagyva): "
+            + ", ".join(excluded_blocks)
+            + ". Hagyd jóvá a megfelelő fülön a „Jóváhagyom és átadom” gombbal."
+        )
     compressed = False
     enriched = False
     raw_wc = 0

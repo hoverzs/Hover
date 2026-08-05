@@ -613,6 +613,8 @@ _KEY_OUTLINE_PRAYER_AFTER = {
 }
 _OUTLINE_MV_PREFIX = "sw_outline_mv_"
 _CONFIRM_OUTLINE_OVERWRITE = "_sw_outline_confirm_overwrite"
+_OUTLINE_ASSEMBLY_FLASH_WARNINGS = "_sw_outline_assembly_flash_warnings"
+_OUTLINE_ASSEMBLY_FLASH_SUCCESS = "_sw_outline_assembly_flash_success"
 _PENDING_PRAYER_SUGGEST = "_sw_prayer_suggest_pending"
 _PRAYER_CONFIRM_PREFIX = "_sw_prayer_confirm_"
 _PRAYER_BASELINE_PREFIX = "_sw_prayer_baseline_"
@@ -2773,9 +2775,12 @@ def _assemble_and_save_outline(
         sw["sermon_outline"] = outline
         st.session_state[_CONFIRM_OUTLINE_OVERWRITE] = False
         st.session_state[_RESYNC_FLAG] = True
-        for w in result.warnings:
-            st.caption(w)
-        st.success("A vázlat elkészült.")
+        # A st.rerun() eldobná a közvetlenül előtte kiírt st.caption/st.success
+        # elemeket — a "flash" mintát követve (ld. _sw_prayer_flash_*) a
+        # session_state-en át visszük át a következő renderre.
+        if result.warnings:
+            st.session_state[_OUTLINE_ASSEMBLY_FLASH_WARNINGS] = list(result.warnings)
+        st.session_state[_OUTLINE_ASSEMBLY_FLASH_SUCCESS] = "A vázlat elkészült."
         st.rerun()
 
 
@@ -3524,6 +3529,14 @@ def render_outline_section(
     _apply_sw_ui_resync_if_needed()
     _apply_pending_adopts_if_needed()
     ensure_sermon_workshop_state(st.session_state)
+
+    flash_warnings = st.session_state.pop(_OUTLINE_ASSEMBLY_FLASH_WARNINGS, None)
+    if flash_warnings:
+        for w in flash_warnings:
+            st.warning(str(w))
+    flash_success = st.session_state.pop(_OUTLINE_ASSEMBLY_FLASH_SUCCESS, None)
+    if flash_success:
+        st.success(str(flash_success))
 
     render_work_section(
         title="Igehirdetési vázlat",

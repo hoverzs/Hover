@@ -570,7 +570,9 @@ def collect_outline_context_bundle(
         cleaned = {k: _s(v) for k, v in block.items() if _s(v)}
         if cleaned:
             bundle[block_key] = cleaned
+            bundle[f"{block_key}_status"] = _s(sw.get(f"{block_key}_status")) or "draft"
             keys.append(block_key)
+            keys.append(f"{block_key}_status")
 
     movements = normalize_sermon_movements(sw.get("sermon_movements"))
     if movements:
