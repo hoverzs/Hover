@@ -91,7 +91,15 @@ from bible_text_ui import (
     save_bible_text_from_widgets,
 )
 from biblical_map_ui import render_biblical_map_prototype
-from bible_engine.greek_analysis_ui import render_greek_analysis_block
+from bible_engine.greek_analysis_ui import (
+    CROSS_CHAPTER_GREEK_MESSAGE,
+    greek_reference_status,
+    render_greek_analysis_block,
+)
+from bible_engine.greek_token_repository import load_greek_passage_tokens
+from bible_engine.morphology_hu import parse_morphology_hu
+from bible_engine.hebrew_books import HebrewReferenceError, parse_hebrew_reference
+from bible_engine.hebrew_token_repository import HebrewTokenRepository
 from passage_search_history import invalidate_used_passage_cache
 from passage_search_ui import (
     apply_pending_passage_search_before_widget,
@@ -3482,51 +3490,52 @@ művelt és igényes nyelven.
 
 
 ORIGINAL_TEXT_BASE_PROMPT = """
-Légy alapos, teológiai és nyelvészeti érzékenységgel dolgozó exegéta.
-Segíts a megadott bibliai szakasz eredeti nyelvű tanulmányozásában úgy,
-hogy az közvetlenül támogassa az ige mélyebb megértését és az üzenet
-megfogalmazását.
+Légy alapos, nyelvészeti érzékenységgel dolgozó eredeti nyelvi (görög/héber)
+munkatárs. A feladatod KIZÁRÓLAG az alább mellékelt, helyi adatbázisból
+származó token-lista megfigyelése — nem a szakasz jelentésének vagy
+igehirdetési hasznának meghatározása.
 
-Ne készíts teljes kommentárt. Ne elemezz minden szót. Válassz ki néhány
-valóban fontos eredeti kifejezést, motívumot vagy jelentésréteget, amelyek
-érdemben segítik a textus megértését.
+Kizárólag az alább mellékelt token-listában szereplő szóalakokra, lemmákra,
+morfológiai kódokra és Strong-azonosítókra hivatkozhatsz. Új szót, lemmát
+vagy alakot NEM generálhatsz, még akkor sem, ha egyébként ismered — ha a
+token-listában nincs benne, nem létezik a válaszod számára.
 
-Elsősorban azokra a héber vagy görög kifejezésekre figyelj, amelyek:
-- több jelentésréteget hordoznak,
-- a magyar fordításban könnyen elsimulnak,
-- teológiailag vagy homiletikailag fontosak,
-- belső feszültséget, kontrasztot vagy hangsúlyt adnak a szakasznak.
+Ne készíts teljes kommentárt, és ne foglalkozz minden egyes tokennel.
+Válassz ki néhány, valóban figyelemre méltó tokent vagy token-csoportot,
+és tegyél rájuk vonatkozó, ellenőrizhető, token-szintű megfigyelést.
 
-Minden kiemelt kifejezésnél világosan mutasd meg:
-- mi az eredeti szó vagy kifejezés (ha biztosan azonosítható),
-- mit jelent alapvetően,
-- milyen árnyalatokat vagy többletjelentést hordozhat,
-- miért fontos ez a textus üzenete szempontjából,
-- hogyan segítheti az igehirdetés fő gondolatának megfogalmazását.
+Elsősorban azokra a tokenekre figyelj, amelyek:
+- morfológiailag szokatlanok vagy ritkák (pl. ritka igealak, szokatlan eset),
+- a szakaszon belül ismétlődnek vagy visszatérő mintát alkotnak,
+- lemma vagy morfológiai kód szerint feltűnő kontrasztban állnak egymással
+  (pl. két különböző ige ugyanarra a cselekvésre),
+- olyan jelentésréteget hordoznak, ami a szóalak/lemma szintjén (nem a
+  szakasz egészének értelmezéseként) megmutatható.
 
-Ha valóban releváns, említs néhány bibliai párhuzamot is, ahol ugyanaz a szó,
-motívum vagy gondolat megjelenik. Csak akkor hozz párhuzamot, ha az tényleg
-segít a mostani szakasz megértésében. Ha egy szó máshol eltérő árnyalattal
-szerepel, ezt röviden magyarázd el.
+Minden kiemelt tokennél add meg strukturáltan:
+- token_ref: melyik tokenre vonatkozik (a token-lista sorszáma és szóalakja),
+- megfigyeles: a konkrét, ellenőrizhető nyelvi tény (pl. "aorisztosz alak,
+  befejezett cselekvést jelöl"; "ugyanaz a lemma jelenik meg a 3. és 7.
+  tokennél"),
+- tipus: "morfologiai", "szemantikai" vagy "szintaktikai" a megfigyelés
+  jellege szerint.
 
-A válasz legyen:
-- világos és jól tagolt,
-- lényegre törő,
-- nem túl hosszú,
-- de szakmailag elég mély egy alapos prédikációs készüléshez.
+TILOS:
+- állítást tenni arról, hogy a szakasz "miről szól", mi a "fő hangsúlya"
+  vagy "üzenete",
+- igehirdetési, homiletikai vagy alkalmazási következtetést levonni,
+- olyan bibliai párhuzamot vagy nyelvi adatot említeni, ami nem vezethető
+  vissza a mellékelt token-listára.
 
-Javasolt forma:
+Ha egy token morfológiai vagy lexikai háttere bizonytalan a mellékelt
+adatokból, jelöld: „Bizonytalan a rendelkezésre álló adat alapján:” — ne
+egészítsd ki saját tudásból.
 
-### [eredeti szó / kifejezés] — [rövid magyar jelzés]
-**Alapjelentés:** ...
-**Miért fontos itt:** ...
-**Mélyebb árnyalat:** ...
-**Bibliai párhuzam (ha releváns):** ...
-**Igehirdetési hozam:** ...
+Javasolt forma minden kiemelt tokenhez:
 
-Ha bizonytalan vagy egy eredeti alakban, etimológiában vagy párhuzamban,
-jelöld világosan: „Bizonytalan:” vagy „Vitatott:”. Ne találj ki nem létező
-eredeti nyelvi adatot, bibliai párhuzamot vagy idézetet.
+### [token_ref: szóalak]
+**Megfigyelés:** ...
+**Típus:** morfologiai / szemantikai / szintaktikai
 """
 
 
@@ -3974,6 +3983,68 @@ def build_alap_from_state(*, include_pastoral_context: bool = False):
 # Külön függvénybe szervezve, hogy a "Teljes elemzés indítása" gomb
 # is automatikusan tudja generálni ezeket az igehely megadásakor.
 
+def _format_greek_token_line(token) -> str:
+    pos = parse_morphology_hu(token.morph_code or "").part_of_speech or "?"
+    strong = token.strong_id or "nincs"
+    return (
+        f"[{token.word_index}] {token.greek_form} | lemma: {token.lemma} | "
+        f"morf: {token.morph_code or '?'} ({pos}) | Strong: {strong}"
+    )
+
+
+def _format_hebrew_token_line(token, repository: HebrewTokenRepository) -> str:
+    pos = repository.morphology(token).part_of_speech or "?"
+    strong = "+".join(token.strong_ids) if token.strong_ids else "nincs"
+    return (
+        f"[{token.word_index}] {token.surface} | lemma: {token.lemma} | "
+        f"morf: {token.morphology_code or '?'} ({pos}) | Strong: {strong}"
+    )
+
+
+def build_original_language_token_block(igehely: str) -> str:
+    """A helyi görög/héber token-adatbázisból strukturált, kizárólagos
+    forrásként szolgáló token-listát épít a megadott igehelyhez. A modell
+    a promptban csak erre a listára hivatkozhat — nem szabad generálnia
+    saját szót/lemmát/morfológiát."""
+    reference = (igehely or "").strip()
+    header = "EREDETI NYELVI TOKENEK (helyi adatbázisból, kizárólagos forrás):\n"
+    if not reference:
+        return header + "Nincs igehely megadva — nincs lekérhető token-adat."
+
+    status = greek_reference_status(reference)
+
+    if status == "cross_chapter":
+        return header + f"{CROSS_CHAPTER_GREEK_MESSAGE} Nincs lekérhető token-adat."
+
+    if status == "old_testament":
+        try:
+            book, chapter, verse_start, verse_end = parse_hebrew_reference(reference)
+        except HebrewReferenceError as exc:
+            return header + f"Nem sikerült azonosítani az ószövetségi hivatkozást: {exc}"
+        repository = HebrewTokenRepository()
+        result = repository.passage(book, chapter, verse_start, verse_end)
+        if result.status != "ok":
+            return header + f"A helyi héber adatbázisban nem található token-adat ehhez a szakaszhoz (státusz: {result.status})."
+        lines = [_format_hebrew_token_line(token, repository) for token in result.tokens]
+        return header + "\n".join(lines)
+
+    if status == "loaded":
+        try:
+            verse_groups = load_greek_passage_tokens(reference)
+        except (FileNotFoundError, ValueError):
+            return header + "A helyi görög adatbázis nem érhető el vagy a hivatkozás érvénytelen."
+        lines = [
+            _format_greek_token_line(token)
+            for group in verse_groups
+            for token in group.tokens
+        ]
+        if not lines:
+            return header + "A helyi görög adatbázisban nem található token-adat ehhez a szakaszhoz."
+        return header + "\n".join(lines)
+
+    return header + "Nem sikerült azonosítani a hivatkozást — nincs lekérhető token-adat."
+
+
 def build_original_text_prompt(igehely: str) -> str:
     """Az „Eredeti szöveg" fül teljes promptja. Csak az igehely kell
     bemenetként — ugyanaz a sablon, mint a tab saját gombja mögött."""
@@ -3989,6 +4060,7 @@ def build_original_text_prompt(igehely: str) -> str:
         if passage_text.strip()
         else "\nBibliai szöveg: nincs adat\n"
     )
+    token_block = build_original_language_token_block(igehely)
     return f"""
 {ORIGINAL_TEXT_BASE_PROMPT}
 
@@ -3998,13 +4070,10 @@ EREDETI NYELVI MŰHELY — FELADAT
 
 Igeszakasz: {igehely}
 {text_block}
-Készíts eredeti nyelvű elemzést ehhez a textushoz a fenti mesterprompt
-szerkezete szerint.
+{token_block}
 
-Ha a szakasz eredeti nyelvi kulcsszavai biztonsággal azonosíthatók, építsd be
-őket a kapcsolati hálóba. Ha az eredeti alakban bizonytalan vagy, ne találgass:
-inkább jelezd a bizonytalanságot, és dolgozz a textus biztos motívumaival,
-ismétlődéseivel, belső feszültségeivel és homiletikai lehetőségeivel.
+Készíts eredeti nyelvű elemzést ehhez a textushoz a fenti mesterprompt
+szerkezete szerint, kizárólag a fenti token-listára hivatkozva.
 """
 
 
