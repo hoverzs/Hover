@@ -89,7 +89,7 @@ def test_system_prompt_contains_homiletic_core():
     assert "háttéranyag" in HOMILETIC_SYSTEM_PROMPT.casefold()
     assert "gyakorlati" in HOMILETIC_SYSTEM_PROMPT.casefold()
     assert "A textus mozgása" in HOMILETIC_SYSTEM_PROMPT  # tiltott példa
-    assert "Ne jelezd" in HOMILETIC_SYSTEM_PROMPT or "ne jelezd" in HOMILETIC_SYSTEM_PROMPT.casefold()
+    assert "Hiányzó háttéranyag" in HOMILETIC_SYSTEM_PROMPT or "hiányzó háttéranyag" in HOMILETIC_SYSTEM_PROMPT.casefold()
 
 
 def test_soft_length_ranges_match_working_outline_targets():

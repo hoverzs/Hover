@@ -221,8 +221,23 @@ SZEREP:
 Te egy magas szinten képzett teológus, exegéta és tapasztalt igehirdető vagy. Feladatod egy mély, teológiailag megalapozott, mégis gyakorlatias, 'szószékre kész' prédikációvázlat összeállítása.
 
 BEMENET KEZELÉSE:
-1. Ha a kérés tartalmaz háttéranyagot (exegézis, kortörténet stb.), szintetizáld azokat a vázlatba.
-2. HA NINCS HÁTTÉRANYAG megadva (csak a bibliai ige), akkor NEked kell elvégezned a háttérmunkát! Ilyenkor a vázlat megírása közben önállóan tárj fel 1-2 kulcsfontosságú eredeti (héber/görög) szót, vizsgáld meg a történelmi kontextust, és ezeket a felismeréseket szervesen építsd be a vázlatba. Ne jelezd, hogy hiányzik az adat, egyszerűen csak dolgozz a saját teológiai tudásodból!
+1. Ha a kérés tartalmaz háttéranyagot (exegézis, kortörténet, eredeti nyelvi
+   megfigyelés stb.), kizárólag ezekre a mellékelt anyagokra építve
+   szervezd meg a vázlatot — ne végezz önálló nyelvi, kortörténeti vagy
+   exegetikai elemzést azon a részterületen, ahol van mellékelt anyag.
+2. HA NINCS (vagy csak részben van) HÁTTÉRANYAG megadva egy adott
+   részterülethez (pl. nincs eredeti nyelvi vagy kortörténeti anyag), NE
+   pótold saját tudásból, és NE találj ki új nyelvi/kortörténeti tényt.
+   Ehelyett a vázlat elején, egy külön "Hiányzó háttéranyag" szakaszban
+   sorold fel egyértelműen, mely részterülethez nincs elég anyag (pl.
+   "Nincs eredeti nyelvi megfigyelés ehhez a szakaszhoz"). A vázlat
+   többi része csak a ténylegesen mellékelt anyagra és a bibliai
+   szövegre épülhet.
+3. Ha egy mellékelt háttéranyag mezőhöz `_status: "unreviewed"` jelzés
+   tartozik, az azt jelenti, hogy a tartalom AI-generált és a
+   felhasználó még nem hagyta jóvá — használhatod, de ne kezeld
+   egyenrangú, ellenőrzött tényként a felhasználó által jóváhagyott
+   (approved) anyaggal.
 
 STÍLUS ÉS HANGVÉTEL:
 - Szikár, jól áttekinthető, lényegretörő (tőmondatok és 1-2 mondatos, velős kifejtések).
@@ -284,9 +299,13 @@ _JSON_SHAPE = """\
 # Háttéranyag-kulcsok: ha bármelyik érdemi, a promptba kerül kiegészítő kontextusként.
 _BACKGROUND_BUNDLE_KEYS: tuple[str, ...] = (
     "exegesis",
+    "exegesis_status",
     "original_text",
+    "original_text_status",
     "theology",
+    "theology_status",
     "history",
+    "history_status",
     "approved_sermon_decisions",
     "approved_insights",
     "sermon_main_idea",
@@ -1405,8 +1424,12 @@ def build_outline_user_prompt(
         parts.extend(
             [
                 "",
-                "HÁTTÉRANYAG (exegézis / kortörténet / eredeti nyelv / műhely — "
-                "szintetizáld szervesen):",
+                "HÁTTÉRANYAG (exegézis / kortörténet / eredeti nyelv / műhely):",
+                "Kizárólag erre az anyagra építve szervezd a vázlatot — ne "
+                "végezz önálló elemzést azon a részterületen, ahol van adat. "
+                "A `_status: \"unreviewed\"` jelzésű mezők AI-generáltak, "
+                "felhasználói jóváhagyás nélkül — ne kezeld ellenőrzött "
+                "tényként.",
                 wrap_untrusted_content(
                     "háttéranyag",
                     json.dumps(background, ensure_ascii=False),
@@ -1418,9 +1441,13 @@ def build_outline_user_prompt(
         parts.extend(
             [
                 "",
-                "BEMENETI MÓD: csak a fenti bibliai textus áll rendelkezésre.",
-                "Végezj mini-exegézist a vázlatban (1–2 kulcsszó, kontextus).",
-                "Ne említsd, hogy hiányzik háttéranyag.",
+                "BEMENETI MÓD: csak a fenti bibliai textus áll rendelkezésre, "
+                "háttéranyag (exegézis / kortörténet / eredeti nyelv) nincs.",
+                "NE végezz önálló nyelvi vagy kortörténeti elemzést, és NE "
+                "találj ki eredeti nyelvi vagy történelmi tényt.",
+                "A vázlat elején, egy külön \"Hiányzó háttéranyag\" "
+                "szakaszban jelezd egyértelműen, hogy nincs mellékelt "
+                "háttéranyag ehhez a szakaszhoz.",
             ]
         )
 

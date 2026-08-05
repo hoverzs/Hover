@@ -357,7 +357,14 @@ def collect_available_sermon_material(
     *,
     sermon_workshop: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """Központi anyaggyűjtés: minden nem üres, elmentett tartalom státusztól függetlenül.
+    """Központi anyaggyűjtés: minden nem üres, elmentett tartalom.
+
+    Ahol van UI-szintű elfogadás (`approved_insights`, `approved_sermon_decisions`,
+    `sermon_main_idea`/`text_main_idea` státusza), ott csak elfogadott anyag
+    kerül be. Az `exegesis`/`theology`/`history`/`original_text` mezőkhöz
+    jelenleg nincs elfogadási lépés a UI-ban — ezek `<mező>_status: "unreviewed"`
+    jelzéssel kerülnek be, hogy a vázlatmotor promptja megkülönböztethesse
+    őket a jóváhagyott anyagtól.
 
     Alias a meglévő `collect_outline_context_bundle` fölött — a vázlatgenerálás
     és a diagnosztika ugyanezt a forrást használja.
@@ -544,7 +551,12 @@ def collect_outline_context_bundle(
         text = _truncate(_session_str(session_state, session_key), limit)
         if text:
             bundle[field_name] = text
+            # Ezekhez a mezőkhöz nincs UI-szintű elfogadási lépés (nincs
+            # Reszanyag-állapotgép) — explicit jelöljük, hogy a vázlatmotor
+            # ne kezelje jóváhagyott tényként.
+            bundle[f"{field_name}_status"] = "unreviewed"
             keys.append(field_name)
+            keys.append(f"{field_name}_status")
 
     # Ne küldjük a nyers MI-alternatívákat / elutasított javaslatokat
     for block_key in (

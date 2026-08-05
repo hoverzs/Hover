@@ -1345,7 +1345,7 @@ def test_source_hierarchy_order_in_system_prompt():
     assert "háttéranyag" in prompt
     assert "bibliai" in prompt
     assert "exegézis" in prompt
-    assert "ne jelezd" in prompt or "nincs háttéranyag" in prompt
+    assert "hiányzó háttéranyag" in prompt or "ne pótold saját tudásból" in prompt
 
 
 def test_outline_prompt_includes_background_when_present():
@@ -1378,8 +1378,8 @@ def test_outline_prompt_passage_only_without_missing_warnings():
     prompt = build_outline_user_prompt(bundle, mode="quick")
     assert "HÁTTÉRANYAG" not in prompt
     assert "BIBLIAI SZÖVEG" in prompt or "IGEHELY:" in prompt
-    assert "csak a fenti bibliai textus" in prompt.casefold()
-    assert "ne említsd, hogy hiányzik" in prompt.casefold()
+    assert "csak a fenti bibliai textus áll rendelkezésre" in prompt.casefold()
+    assert "hiányzó háttéranyag" in prompt.casefold()
     assert "hiba" not in prompt.casefold()
     assert "nincs elég" not in prompt.casefold()
 
