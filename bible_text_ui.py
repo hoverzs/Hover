@@ -6,6 +6,9 @@ Tartós kulcsok (project_data / workspace):
 - `passage_text` → teljes bibliai szöveg
 - `passage_text_source` / `passage_text_source_url` / `passage_text_fetched_at`
   / `passage_text_fetched_reference` → forrásmeta (nem a szöveg része)
+- `passage_text_last_fetched_text` → az utolsó sikeres RÚF-lekérés szövege
+  (belső összehasonlításra: kézi mentéskor ebből derül ki, hogy a szöveg
+  ténylegesen eltér-e az utolsó API-eredménytől — nem UI-elem)
 
 Widgetkulcsok nem mennek mentésbe.
 """
@@ -38,6 +41,12 @@ DURABLE_SOURCE = "passage_text_source"
 DURABLE_SOURCE_URL = "passage_text_source_url"
 DURABLE_FETCHED_AT = "passage_text_fetched_at"
 DURABLE_FETCHED_REF = "passage_text_fetched_reference"
+DURABLE_LAST_FETCHED_TEXT = "passage_text_last_fetched_text"
+
+# adatsema_v1.md 2. pont: BibliaiSzoveg forrás-típusok.
+SOURCE_TYPE_USER_OVERRIDE = "user_override"
+SOURCE_TYPE_LOCAL_STORE = "local_store"
+SOURCE_TYPE_EXTERNAL_API = "external_api"
 
 # Widget-only
 KEY_PASSAGE_TEXT_INPUT = "passage_text_input"
@@ -371,6 +380,17 @@ def save_bible_text_from_widgets(session_state: MutableMapping[str, Any]) -> dic
     text = normalize_verse_number_spacing(session_state.get(KEY_PASSAGE_TEXT_INPUT))
     session_state[DURABLE_PASSAGE_TEXT] = text
 
+    # Ha a mentett szöveg eltér az utolsó sikeres RÚF-lekérés szövegétől,
+    # a felhasználó ténylegesen felülírta kézzel — a forrás user_override
+    # lesz. Ha megegyezik (pl. autosave-flush, a user nem nyúlt hozzá),
+    # a meglévő forrásjelzést (external_api/local_store) nem bántjuk.
+    last_fetched = session_state.get(DURABLE_LAST_FETCHED_TEXT)
+    if last_fetched is None or text != normalize_passage_text(last_fetched):
+        session_state[DURABLE_SOURCE] = SOURCE_TYPE_USER_OVERRIDE
+        session_state[DURABLE_SOURCE_URL] = ""
+        session_state[DURABLE_FETCHED_AT] = ""
+        session_state[DURABLE_FETCHED_REF] = ""
+
     # A központi blokk RÚF 2014-re van szabva (automatikus + kézi).
     translation = TRANSLATION_NAME
     session_state[DURABLE_TRANSLATION] = translation
@@ -472,7 +492,13 @@ def _apply_ruf_fetch_success(result: dict[str, Any]) -> bool:
         return False
     st.session_state[DURABLE_PASSAGE_TEXT] = text
     st.session_state[DURABLE_TRANSLATION] = TRANSLATION_NAME
-    st.session_state[DURABLE_SOURCE] = str(result.get("source_name") or SOURCE_NAME)
+    # cache_status "live" = valódi hálózati hívás; "fresh"/"stale_fallback" a
+    # process-szintű memória-cache-ből jött, nem új API-hívásból.
+    st.session_state[DURABLE_SOURCE] = (
+        SOURCE_TYPE_EXTERNAL_API
+        if result.get("cache_status") == "live"
+        else SOURCE_TYPE_LOCAL_STORE
+    )
     st.session_state[DURABLE_SOURCE_URL] = str(result.get("source_url") or "")
     st.session_state[DURABLE_FETCHED_AT] = datetime.now(timezone.utc).strftime(
         "%Y-%m-%dT%H:%M:%SZ"
@@ -480,6 +506,7 @@ def _apply_ruf_fetch_success(result: dict[str, Any]) -> bool:
     st.session_state[DURABLE_FETCHED_REF] = str(
         result.get("normalized_reference") or result.get("requested_reference") or ""
     )
+    st.session_state[DURABLE_LAST_FETCHED_TEXT] = text
     ige = _current_reference(st.session_state)
     if ige:
         st.session_state[DURABLE_PASSAGE] = ige
@@ -536,7 +563,13 @@ def _render_source_caption(session_state: MutableMapping[str, Any]) -> None:
     snap = get_bible_text_snapshot(session_state)
     if not normalize_passage_text(snap["passage_text"]).strip():
         return
-    source = snap["passage_text_source"] or SOURCE_NAME
+    source = snap["passage_text_source"]
+    if source == SOURCE_TYPE_USER_OVERRIDE:
+        st.markdown(
+            '<p class="bible-source-note">Kézi beillesztés</p>',
+            unsafe_allow_html=True,
+        )
+        return
     if not source and not snap["passage_text_source_url"]:
         return
     url = snap["passage_text_source_url"]
@@ -689,6 +722,10 @@ __all__ = [
     "DURABLE_SOURCE_URL",
     "DURABLE_FETCHED_AT",
     "DURABLE_FETCHED_REF",
+    "DURABLE_LAST_FETCHED_TEXT",
+    "SOURCE_TYPE_USER_OVERRIDE",
+    "SOURCE_TYPE_LOCAL_STORE",
+    "SOURCE_TYPE_EXTERNAL_API",
     "KEY_PASSAGE_TEXT_INPUT",
     "KEY_TRANSLATION_SELECT",
     "KEY_TRANSLATION_OTHER",

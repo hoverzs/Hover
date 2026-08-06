@@ -37,6 +37,7 @@ WORKSPACE_STR_KEYS: list[str] = [
     "passage_text_source_url",
     "passage_text_fetched_at",
     "passage_text_fetched_reference",
+    "passage_text_last_fetched_text",
     "overview",
     "exegesis",
     "history",

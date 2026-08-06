@@ -13,6 +13,7 @@ if str(ROOT) not in sys.path:
 
 from bible_text_ui import (
     RESYNC_FLAG,
+    SOURCE_TYPE_EXTERNAL_API,
     build_formatted_bible_text_html,
     format_passage_text_blocks,
     normalize_verse_number_spacing,
@@ -78,6 +79,7 @@ def _ruf_result(reference: str, verses: list[tuple[int, str]]) -> dict[str, obje
         "copyright_notice": "Revideált új fordítás, © Magyar Bibliatársulat, 2014.",
         "warnings": [],
         "error": "",
+        "cache_status": "live",
     }
 
 
@@ -219,6 +221,7 @@ def test_szentiras_eu_ruf_load_preserves_source_attribution_and_text() -> None:
             "copyright_notice": "Revideált új fordítás, © Magyar Bibliatársulat, 2014.",
             "warnings": [],
             "error": "",
+            "cache_status": "live",
         }
 
     def render_editor() -> None:
@@ -234,7 +237,7 @@ def test_szentiras_eu_ruf_load_preserves_source_attribution_and_text() -> None:
         app = AppTest.from_function(render_editor).run()
         app.button[0].click().run()
 
-        assert app.session_state["passage_text_source"] == SOURCE_NAME
+        assert app.session_state["passage_text_source"] == SOURCE_TYPE_EXTERNAL_API
         markdown_values = [markdown.value for markdown in app.markdown]
         assert any("Pál, Krisztus Jézus apostola." in value for value in markdown_values)
         assert any(SOURCE_ATTRIBUTION in value for value in markdown_values)
@@ -291,7 +294,7 @@ def test_main_ui_ruf_load_survives_prefetch_flush_and_renders_luke_3() -> None:
         assert app.session_state["passage_text_input"].startswith(
             "1. Tibérius császár uralkodásának"
         )
-        assert app.session_state["passage_text_source"] == SOURCE_NAME
+        assert app.session_state["passage_text_source"] == SOURCE_TYPE_EXTERNAL_API
         assert "10. Mit tegyünk tehát?" in app.session_state["passage_text"]
         markdown_values = [markdown.value for markdown in app.markdown]
         assert any("Tibérius császár uralkodásának" in value for value in markdown_values)
