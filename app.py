@@ -3512,10 +3512,16 @@ szakszó nevét).
 
 A görög/héber szó azonosítására elég maga a szó (pl. *μορφή*) — ha segít,
 add meg zárójelben a magyar átírását/kiejtését is (pl. *μορφή* [morphé]).
-Ne hivatkozz token-sorszámra vagy egyéb technikai azonosítóra.
+Ne hivatkozz token-sorszámra vagy egyéb technikai azonosítóra. Ha egy szó
+jelentését is megadod (zárójelben vagy a szövegbe ágyazva), azt MINDIG
+magyarul fogalmazd meg — a saját nyelvi tudásodból, ne az angol (Strong-
+szótári) hagyomány szerinti kifejezéssel. Ne írj angol nyelvű jelentés-
+megadást vagy glosszát semmilyen formában.
 
-Válassz ki 3–5, valóban figyelemre méltó szót vagy kifejezést — elsősorban
-olyanokat, amelyek:
+LEGFELJEBB 5 szót vagy kifejezést emelhetsz ki. Ha ennél többet találsz
+figyelemre méltónak, válaszd ki közülük a legfontosabb, legfeljebb 5-öt — a
+többit hagyd ki teljesen, még említés szintjén se szerepeljenek. Elsősorban
+olyanokat válassz, amelyek:
 - morfológiailag szokatlanok vagy ritkák (pl. ritka igealak, szokatlan eset),
 - a szakaszon belül ismétlődnek vagy visszatérő mintát alkotnak,
 - lemma vagy morfológiai kód szerint feltűnő kontrasztban állnak egymással,
@@ -3528,9 +3534,12 @@ Ezekből írj EGY összefüggő, folyó szövegű magyarázatot, ami megmutatja,
 kösd össze őket ott, ahol tartalmilag összefüggenek.
 
 TILOS:
+- 5-nél több szó vagy kifejezés kiemelése — szigorúan LEGFELJEBB 5,
 - nyelvtani szakkifejezés használata a végleges szövegben (eset-, igealak-,
   szófaj-nevek stb. — a JELENTÉSÜKET írd le, ne a nevüket),
 - token-sorszám vagy egyéb technikai azonosító feltüntetése,
+- angol nyelvű jelentés-megadás vagy gloss (pl. „being, existing”, „he
+  emptied”) — minden jelentés-magyarázat kizárólag magyarul,
 - igehirdetési, homiletikai vagy alkalmazási következtetést levonni (mit
   "kezdjen" ezzel az igehirdető, mire "használható" a prédikációban),
 - olyan bibliai párhuzamot vagy nyelvi adatot említeni, ami nem vezethető
