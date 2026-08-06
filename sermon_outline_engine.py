@@ -34,6 +34,7 @@ logger = logging.getLogger("textus.outline")
 
 TAB_OUTLINE = "Igehirdetési vázlat"
 DEFAULT_TEMPERATURE = 0.2
+_OUTLINE_INCOMPLETE_SENTINEL = "__OUTLINE_TRUNCATED__"
 SCHEMA_VERSION = "pulpit_outline_v7"
 ENGINE_VERSION = "outline_engine_v7"
 LEGACY_SCHEMA_VERSIONS = frozenset(
@@ -45,7 +46,7 @@ LEGACY_SCHEMA_VERSIONS = frozenset(
         "pulpit_outline_v6",
     }
 )
-OUTLINE_MAX_OUTPUT_TOKENS = 2400
+OUTLINE_MAX_OUTPUT_TOKENS = 8000
 RAPID_EVIDENCE_SESSION_KEY = "_outline_rapid_evidence_cache"
 
 # ---------------------------------------------------------------------------
@@ -225,6 +226,14 @@ BEMENET KEZELÉSE:
    megfigyelés stb.), kizárólag ezekre a mellékelt anyagokra építve
    szervezd meg a vázlatot — ne végezz önálló nyelvi, kortörténeti vagy
    exegetikai elemzést azon a részterületen, ahol van mellékelt anyag.
+   FONTOS: "erre építve" NEM azt jelenti, hogy szó szerint bemásolod a
+   mellékelt anyagot — SŰRÍTSD, SZINTETIZÁLD a saját, tömör mondataiddá.
+   Rossz példa (TILOS): a kortörténeti anyag egész bekezdését változtatás
+   nélkül átemeled a "A Textus Világa (Kontextus)" mezőbe. Jó példa: a
+   kortörténeti anyag lényegét 1-2 saját mondatban összefoglalod (pl. "A
+   filippi gyülekezet tagjai büszke római polgárok voltak, ami élesen
+   szembeállítja Krisztus szolgai formává válását a korabeli
+   értékrenddel.").
 2. HA NINCS (vagy csak részben van) HÁTTÉRANYAG megadva egy adott
    részterülethez (pl. nincs eredeti nyelvi vagy kortörténeti anyag), NE
    pótold saját tudásból, és NE találj ki új nyelvi/kortörténeti tényt.
@@ -237,7 +246,13 @@ BEMENET KEZELÉSE:
 STÍLUS ÉS HANGVÉTEL:
 - Szikár, jól áttekinthető, lényegretörő (tőmondatok és 1-2 mondatos, velős kifejtések).
 - Tilos a teológiai bikkfanyelv és a sablonos, üres meta-szöveg (pl. 'A szakasz a bölcsességi irodalomba tartozik...', 'A textus mozgása...'). A hallgatóságnak szóló, életközeli nyelvezetet használj.
-- Tilos a bibliai igeszöveg hosszú, ismétlődő bemásolása!
+- SZIGORÚAN TILOS a bibliai igeszöveg — akár rövid szakaszának is — SZÓ
+  SZERINTI idézése bárhol a vázlatban, az "Igei fókusz" mezőben is. Ez a
+  mező CSAK rövid hivatkozást tartalmazzon (pl. "6-7. vers" vagy "a
+  kenózis-mozzanat"), NE idézőjeles szövegrészletet. Rossz példa (TILOS):
+  "**Igei fókusz:** 6-7a versek ('aki Isten formájában lévén nem
+  tekintette zsákmánynak...')". Jó példa: "**Igei fókusz:** 6-7a vers —
+  Krisztus isteni státusza és annak önkéntes háttérbe helyezése."
 - Csak a kért Markdown struktúrát add vissza, semmi bevezető vagy lezáró udvariaskodás!
 
 KÖTELEZŐ MARKDOWN STRUKTÚRA:
@@ -1065,15 +1080,18 @@ def validate_structured_outline(
 
 
 def _strip_trailing_verse_from_title(title: str) -> str:
+    # A [a-c]? résznél a betűs részvers-jelölést is elfogadjuk (pl. "6a",
+    # "7b–8") — enélkül egy ilyen alakú hivatkozás nem illeszkedett, és
+    # csonkán a címben maradt.
     cleaned = re.sub(r"^\s*\d+[.)]\s*", "", _s(title)).strip()
     cleaned = re.sub(
-        r"\s*\(\s*v\.?\s*\d{1,3}(?:\s*[–\-]\s*\d{1,3})?\s*\)\s*$",
+        r"\s*\(\s*v\.?\s*\d{1,3}[a-c]?(?:\s*[–\-]\s*\d{1,3}[a-c]?)?\s*\)\s*$",
         "",
         cleaned,
         flags=re.I,
     ).strip()
     cleaned = re.sub(
-        r"\s+v\.?\s*\d{1,3}(?:\s*[–\-]\s*\d{1,3})?\s*$",
+        r"\s+v\.?\s*\d{1,3}[a-c]?(?:\s*[–\-]\s*\d{1,3}[a-c]?)?\s*$",
         "",
         cleaned,
         flags=re.I,
@@ -1687,11 +1705,30 @@ def markdown_outline_to_structured(markdown: str) -> dict[str, Any]:
         )
         app = _bullet(body, "Gyakorlati alkalmazás")
         verses = ""
-        verse_m = re.search(r"(v\.?\s*\d[\d\s,–\-]*\d?)", igei, re.I)
+        # Ket alternativa: a "v. 6-7a" elotagos forma ES a termeszetes magyar
+        # szorendu "6-7a versek"/"6-8. vers" forma is (a modell tobbnyire ez
+        # utobbit hasznalja — a regi minta csak az elsot ismerte fel, ami
+        # miatt a nema "v. —" fallback szinte mindig aktivalodott). Az [a-c]?
+        # a betus reszvers-jelolest is elfogadja (pl. "6a", "7b-8").
+        verse_m = re.search(
+            r"(\d{1,3}[a-c]?(?:\s*[–\-]\s*\d{1,3}[a-c]?)?\.?\s*vers(?:ek)?"
+            r"|v\.?\s*\d{1,3}[a-c]?(?:\s*[–\-]\s*\d{1,3}[a-c]?)?)",
+            igei,
+            re.I,
+        )
         if verse_m:
             verses = verse_m.group(1).strip()
             if not verses.lower().startswith("v"):
                 verses = f"v. {verses}"
+        if not verses:
+            logger.warning(
+                "outline_markdown_verse_fallback schema=%s point_title=%r "
+                "igei_focus=%r — nem sikerult vershivatkozast kinyerni, "
+                "\"v. —\" placeholder hasznalva",
+                SCHEMA_VERSION,
+                _s(m.group(2))[:80],
+                igei[:120],
+            )
         points.append(
             {
                 "title": _s(m.group(2)),
@@ -1918,6 +1955,16 @@ def _call_generate(
         if as_json:
             kwargs["response_mime_type"] = "application/json"
             kwargs["response_schema"] = OUTLINE_RESPONSE_SCHEMA
+        else:
+            # Csonkulás-védelem: a Markdown-vázlat MAX_TOKENS-nél megszakadt
+            # válasza korábban változtatás nélkül ment tovább a regex-
+            # parserbe (torz "v. —" placeholderek, hiányos pontok). Most a
+            # generate_text() már ismert truncated/_looks_incomplete_response
+            # ellenőrzésével elutasítjuk — a hívó (_ai_generate_structured)
+            # ezt a sentinelt felismeri és a heurisztikus fallbackra vált,
+            # ahelyett hogy egy csonka dokumentumot próbálna feldolgozni.
+            kwargs["truncation_notice_mode"] = "never"
+            kwargs["incomplete_response_message"] = _OUTLINE_INCOMPLETE_SENTINEL
         try:
             return generate_fn(prompt, **kwargs)
         except TypeError:
@@ -2359,6 +2406,19 @@ def _ai_generate_structured(
         return None, warnings, 0, ""
     if _is_api_error_text(raw or ""):
         warnings.append("A vázlat AI-válasz hibát jelzett.")
+        return None, warnings, 0, ""
+    if (raw or "").strip() == _OUTLINE_INCOMPLETE_SENTINEL:
+        logger.warning(
+            "outline_ai_truncated schema=%s mode=%s — MAX_TOKENS előtt megszakadt "
+            "válasz, heurisztikus fallbackra váltás",
+            SCHEMA_VERSION,
+            mode,
+        )
+        warnings.append(
+            "A vázlat AI-válasza félbeszakadt (túllépte a kimeneti korlátot) — "
+            "heurisztikus vázlatot használunk helyette. Próbáld újra a "
+            "generálást."
+        )
         return None, warnings, 0, ""
 
     raw_text = (raw or "").strip()

@@ -904,7 +904,9 @@ def test_assemble_uses_shared_engine():
 
 
 def test_absolute_max_and_schema_are_three_layer_pulpit_outline():
-    assert 2200 <= OUTLINE_MAX_OUTPUT_TOKENS <= 2600
+    # 2026-08-06: 2400 -> 8000, mert a MAX_TOKENS-csonkulas a regi plafonnal
+    # szinte minden futasnal bekovetkezett (elo, ismetelt tesztekkel igazolva).
+    assert 7500 <= OUTLINE_MAX_OUTPUT_TOKENS <= 8500
     assert LIMITS["absolute_max_words"] == 850
     assert LIMITS["target_min_3_4"] == 300
     assert LIMITS["target_max_3_4"] == 500
