@@ -3648,34 +3648,53 @@ Szakmai vízió:
 Készíts alapos exegetikai elemzést. Határozd meg a szakasz **pontos
 szerkezetét** és **irodalmi műfaját**. Elemezd a kontextuális összefüggéseket:
 mi előzi meg, mi követi, és hogyan illeszkedik ez a rész **a kánon egészébe**.
-Világíts rá a **biztos pontokra** és a **vitatott értelmezési kérdésekre** is.
+
+FONTOS FORMAI KÖVETELMÉNY: minden érdemi, ÉRTELMEZŐ állításodhoz — NEM csak
+az "Értelmezési kérdések" szakaszban, hanem MINDEN alábbi szakaszban — add
+meg közvetlenül utána:
+- **Támaszték:** mely versre, szóalakra vagy konkrét megfigyelésre épül az
+  állítás (pl. "v. 16", "a görög ἠγάπησεν szóalak", "a mondat okhatározói
+  kötőszava").
+- **Biztonsági szint:** magas / közepes / vitatott — mennyire konszenzusos
+  vagy vitatott az állítás a szakirodalomban.
+
+Ha egy mondat csupán leíró tény (pl. egy versszám vagy szó idézése, nem
+értelmezés), nem kell külön alátámasztás — csak az ÉRTELMEZŐ, magyarázó
+állításokhoz kötelező a Támaszték és a Biztonsági szint.
 
 Strukturáld a választ így:
 
 ## Műfaj és szerkezet
-A szakasz műfaji besorolása + belső szerkezete (versek/szakaszok, kompozíciós elemek).
+A szakasz műfaji besorolása + belső szerkezete (versek/szakaszok, kompozíciós
+elemek). Minden besorolási állításhoz add meg a Támasztékot és a Biztonsági
+szintet.
 
 ## Kontextus
 - Közvetlen szövegkörnyezet (mi előtte, mi utána).
 - Tágabb kontextus a könyv egészében.
 - Helye a kánoni íven belül (Ó- vagy Újszövetség, hagyományegység).
+Minden kontextuális állításhoz add meg a Támasztékot és a Biztonsági szintet.
 
 ## Kulcsszavak és kulcskifejezések
-3–6 valóban hangsúlyos kifejezés rövid exegetikai magyarázattal.
+3–6 valóban hangsúlyos kifejezés rövid exegetikai magyarázattal — mindegyiknél
+Támaszték (a szó pontos helye vagy alakja) + Biztonsági szint.
 
 ## Nyelvtani és szerkezeti megfigyelések
-Releváns igealakok, mondatszerkezet, retorikai eszközök.
+Releváns igealakok, mondatszerkezet, retorikai eszközök — mindegyik
+megfigyeléshez Támaszték + Biztonsági szint.
 
 ## Párhuzamos bibliai helyek
-Csak biztos, ellenőrizhető párhuzamok rövid magyarázattal.
+Csak biztos, ellenőrizhető párhuzamok rövid magyarázattal — a párhuzam maga a
+Támaszték (add meg pontosan a hivatkozást), és jelöld a Biztonsági szintet.
 
 ## Értelmezési kérdések
-- **Biztos:** amit a tudomány konszenzusosan állít.
-- **Valószínű:** ahol több értelmezés is megengedett, de van súlypont.
-- **Vitatott:** ahol komoly értelmezésbeli feszültségek vannak.
+Azok az állítások, ahol komoly értelmezésbeli feszültség van — itt minden
+tételnél KÖTELEZŐ a "vitatott" Biztonsági szint, és röviden indokold, mi
+osztja meg az értelmezőket.
 
 ## Prédikációs haszon
-Az exegézis fő gyümölcse — mit ad ez a homiletikai munkához.
+Az exegézis fő gyümölcse — mit ad ez a homiletikai munkához. (Ez már
+szintézis jellegű összegzés, nem kötelező hozzá külön Támaszték.)
 
 Ne prédikációt írj, hanem szakmai háttérelemzést.
 """,
@@ -4173,6 +4192,55 @@ Soha ne találj ki nem létező éneket vagy énekszámot.
 SECTIONS_WITH_GOOGLE_SEARCH = {"actualization"}
 
 
+# =========================================================
+# EGZEGÉZIS — HEURISZTIKUS ALÁTÁMASZTÁS-ELLENŐRZÉS
+# =========================================================
+# Nem szigorú validáció: csak figyelmeztet, sosem blokkolja a mentést.
+# A modul_kontraktusok_v1.md 3. pontja szerint minden egzegetikai
+# állításnak Támaszték-kal kellene rendelkeznie — ez a heurisztika
+# a Markdown-szintű promptutasítás betartását ellenőrzi utólag.
+
+_EXEGESIS_SUPPORT_EXEMPT_HEADINGS = {"prédikációs haszon"}
+
+_EXEGESIS_SUPPORT_PATTERN = re.compile(
+    r"(v\.?\s*\d|vers\s*\d|Támaszték\s*:|Biztonsági szint\s*:)",
+    re.IGNORECASE,
+)
+
+_MARKDOWN_HEADING_PATTERN = re.compile(r"(?m)^##\s+(.+?)\s*$")
+
+
+def validate_exegesis_has_support(text: str) -> list[str]:
+    """Heurisztikus, csak figyelmeztető ellenőrzés: mely `## ` alcímek
+    alatti szakaszoknak nincs semmilyen vers-hivatkozása vagy explicit
+    Támaszték/Biztonsági szint jelölése.
+
+    NEM szigorú validáció — hamis pozitív/negatív is előfordulhat (pl. egy
+    valódi hivatkozás más formában van megadva), ezért ez SOHA nem
+    blokkolja a tartalom mentését, csak `st.warning`-ként jelzi.
+    """
+    if not text or not text.strip():
+        return []
+    headings = list(_MARKDOWN_HEADING_PATTERN.finditer(text))
+    if not headings:
+        return []
+    issues: list[str] = []
+    for i, m in enumerate(headings):
+        heading = m.group(1).strip()
+        if heading.casefold() in _EXEGESIS_SUPPORT_EXEMPT_HEADINGS:
+            continue
+        start = m.end()
+        end = headings[i + 1].start() if i + 1 < len(headings) else len(text)
+        body = text[start:end]
+        if body.strip() and not _EXEGESIS_SUPPORT_PATTERN.search(body):
+            issues.append(
+                f"„{heading}” szakasz alátámasztás nélküli állítást "
+                "tartalmazhat — nincs benne vers-hivatkozás vagy "
+                "Támaszték/Biztonsági szint jelölés."
+            )
+    return issues
+
+
 def generate_section(key: str) -> bool:
     """Egy adott szekciót lefuttat (első generálás VAGY újrageneráláshoz).
 
@@ -4206,6 +4274,10 @@ def generate_section(key: str) -> bool:
             enable_google_search=use_search,
             tab_label=label,
         )
+        if key == "exegesis":
+            st.session_state[f"{key}_support_warnings"] = (
+                validate_exegesis_has_support(st.session_state[key])
+            )
     return True
 
 
@@ -4291,6 +4363,11 @@ def render_section_tab(
                 body=empty_msg or "Kattints a generálás gombra.",
                 tone="neutral",
             )
+
+        support_warnings = st.session_state.get(f"{key}_support_warnings")
+        if support_warnings:
+            for w in support_warnings:
+                st.warning(w)
 
         if approvable and has_result:
             status = st.session_state.get(f"{key}_status") or "draft"
