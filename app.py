@@ -245,10 +245,10 @@ GEMINI_MODEL_BY_TAB_LABEL: dict[str, str] = {
     "Teológia": LOCKED_MODEL,
     "Eredeti szöveg": LOCKED_MODEL,
     "Eredeti szöveg tanulmányozása": LOCKED_MODEL,
+    "Kortörténet": LOCKED_MODEL,
     "API teszt": LOCKED_MODEL,
     # --- gemini-2.5-flash-lite (összegzés, háttér, könnyebb szekciók) ---
     "Áttekintés": GEMINI_MODEL_FLASH_LITE,
-    "Kortörténet": GEMINI_MODEL_FLASH_LITE,
     "Illusztrációk": GEMINI_MODEL_FLASH_LITE,
     "Aktualizálás": GEMINI_MODEL_FLASH_LITE,
     "Vázlat": LOCKED_MODEL,
