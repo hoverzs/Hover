@@ -3666,54 +3666,60 @@ Készíts alapos exegetikai elemzést. Határozd meg a szakasz **pontos
 szerkezetét** és **irodalmi műfaját**. Elemezd a kontextuális összefüggéseket:
 mi előzi meg, mi követi, és hogyan illeszkedik ez a rész **a kánon egészébe**.
 
-FONTOS FORMAI KÖVETELMÉNY: minden érdemi, ÉRTELMEZŐ állításodhoz — NEM csak
-az "Értelmezési kérdések" szakaszban, hanem MINDEN alábbi szakaszban — add
-meg közvetlenül utána:
-- **Támaszték:** mely versre, szóalakra vagy konkrét megfigyelésre épül az
-  állítás (pl. "v. 16", "a görög ἠγάπησεν szóalak", "a mondat okhatározói
-  kötőszava").
-- **Biztonsági szint:** magas / közepes / vitatott — mennyire konszenzusos
-  vagy vitatott az állítás a szakirodalomban.
+FONTOS BELSŐ FEGYELEM (nem a végleges szöveg formája): minden érdemi,
+értelmező állításodat kösd egy konkrét vershez, görög/héber szóalakhoz vagy
+konkrét megfigyeléshez — ezt magadban tartsd nyomon, hogy ellenőrizhető
+maradj. A VÉGLEGES SZÖVEGBEN azonban NE különálló "Támaszték:"/"Biztonsági
+szint:" mezőként add meg ezt — hivatkozz rá mondatba ágyazva, természetes
+módon (pl. "...amit a 7. vers elején álló »hanem« [ἀλλὰ] jelez..." vagy "a
+görög ἠγάπησεν aorisztosz alakja mutatja, hogy..."), nem külön felsorolt
+tételként.
 
-Ha egy mondat csupán leíró tény (pl. egy versszám vagy szó idézése, nem
-értelmezés), nem kell külön alátámasztás — csak az ÉRTELMEZŐ, magyarázó
-állításokhoz kötelező a Támaszték és a Biztonsági szint.
+Bizonytalanságot CSAK akkor jelezz explicit módon, ha ténylegesen alacsony
+vagy közepes a megbízhatóság — vagyis valódi vitatottság áll fenn (pl. "ez a
+kifejezés vitatott: némely értelmezők szerint..., mások szerint..."). Ahol
+magas biztonsággal állítasz valamit, NE jelöld külön semmilyen címkével —
+egyszerűen állítsd. A cél: a szöveg olvasás közben ne akadjon meg ismétlődő,
+gépies jelölőkön.
 
-Strukturáld a választ így:
+Strukturáld a választ ## alcímekkel, DE minden alcím alatt összefüggő, folyó
+szövegű magyarázatot írj — ne táblázatos vagy tételes felsorolást, és ne
+mélyítsd az alcímnél tovább a tagolást (## alcím → bekezdés; ne legyen
+alcím alatt külön al-alcím vagy bullet-hierarchia).
 
 ## Műfaj és szerkezet
-A szakasz műfaji besorolása + belső szerkezete (versek/szakaszok, kompozíciós
-elemek). Minden besorolási állításhoz add meg a Támasztékot és a Biztonsági
-szintet.
+A szakasz műfaji besorolása és belső szerkezete (versek/szakaszok,
+kompozíciós elemek) — összefüggő magyarázatban, a versekre és kifejezésekre
+mondatba ágyazva hivatkozva.
 
 ## Kontextus
-- Közvetlen szövegkörnyezet (mi előtte, mi utána).
-- Tágabb kontextus a könyv egészében.
-- Helye a kánoni íven belül (Ó- vagy Újszövetség, hagyományegység).
-Minden kontextuális állításhoz add meg a Támasztékot és a Biztonsági szintet.
+Közvetlen szövegkörnyezet (mi előtte, mi utána), tágabb kontextus a könyv
+egészében, helye a kánoni íven belül — egy összefüggő bekezdésben, nem
+felsorolásban.
 
 ## Kulcsszavak és kulcskifejezések
-3–6 valóban hangsúlyos kifejezés rövid exegetikai magyarázattal — mindegyiknél
-Támaszték (a szó pontos helye vagy alakja) + Biztonsági szint.
+3–6 valóban hangsúlyos kifejezés — EGY összefüggő magyarázatban (nem
+különálló tételekben), a szavakat mondatba ágyazva idézve.
 
 ## Nyelvtani és szerkezeti megfigyelések
-Releváns igealakok, mondatszerkezet, retorikai eszközök — mindegyik
-megfigyeléshez Támaszték + Biztonsági szint.
+Releváns igealakok, mondatszerkezet, retorikai eszközök — folyó szövegben,
+nyelvtani szakkifejezés nélkül (a JELENTÉSÉT írd le, ne a szakszó nevét —
+pl. "aoristus" helyett "egyszeri, lezárt cselekvés").
 
 ## Párhuzamos bibliai helyek
-Csak biztos, ellenőrizhető párhuzamok rövid magyarázattal — a párhuzam maga a
-Támaszték (add meg pontosan a hivatkozást), és jelöld a Biztonsági szintet.
+Csak biztos, ellenőrizhető párhuzamok, rövid magyarázattal, összefüggő
+szövegben.
 
 ## Értelmezési kérdések
-Azok az állítások, ahol komoly értelmezésbeli feszültség van — itt minden
-tételnél KÖTELEZŐ a "vitatott" Biztonsági szint, és röviden indokold, mi
-osztja meg az értelmezőket.
+Azok a pontok, ahol valódi értelmezésbeli feszültség van a szakirodalomban —
+itt a vitatottságot mondatba ágyazva, indokolással együtt fejtsd ki (ne
+külön "Biztonsági szint: vitatott" címkével).
 
 ## Prédikációs haszon
-Az exegézis fő gyümölcse — mit ad ez a homiletikai munkához. (Ez már
-szintézis jellegű összegzés, nem kötelező hozzá külön Támaszték.)
+Az exegézis fő gyümölcse — mit ad ez a homiletikai munkához.
 
-Ne prédikációt írj, hanem szakmai háttérelemzést.
+Ne prédikációt írj, hanem szakmai háttérelemzést — de olyan nyelven, amit
+egy lelkész azonnal magáévá tud tenni, szakzsargon "fordítása" nélkül.
 """,
     "history": """{alap}
 
@@ -4258,13 +4264,19 @@ SECTIONS_WITH_GOOGLE_SEARCH = {"actualization"}
 # =========================================================
 # Nem szigorú validáció: csak figyelmeztet, sosem blokkolja a mentést.
 # A modul_kontraktusok_v1.md 3. pontja szerint minden egzegetikai
-# állításnak Támaszték-kal kellene rendelkeznie — ez a heurisztika
-# a Markdown-szintű promptutasítás betartását ellenőrzi utólag.
+# állításnak vissza kellene vezethetőnek lennie egy konkrét versre vagy
+# eredeti nyelvi szóra — ez a heurisztika ezt ellenőrzi utólag. A prompt
+# 2026-08-06 óta mondatba ágyazott hivatkozást kér (nem külön "Támaszték:"/
+# "Biztonsági szint:" mezőt), ezért a minta vers-hivatkozást (számmal a
+# "vers" szó előtt VAGY után) és görög/héber írásjel jelenlétét keresi — a
+# régi mezőnevekre is illeszkedik, ha mégis előfordulnának.
 
 _EXEGESIS_SUPPORT_EXEMPT_HEADINGS = {"prédikációs haszon"}
 
 _EXEGESIS_SUPPORT_PATTERN = re.compile(
-    r"(v\.?\s*\d|vers\s*\d|Támaszték\s*:|Biztonsági szint\s*:)",
+    r"(\d+\.\s*vers|vers\s*\d+|v\.\s*\d+|\d+[,:]\s*\d+|"
+    r"Támaszték\s*:|Biztonsági szint\s*:|"
+    r"[Ͱ-Ͽἀ-῿֐-׿])",
     re.IGNORECASE,
 )
 
@@ -4273,8 +4285,8 @@ _MARKDOWN_HEADING_PATTERN = re.compile(r"(?m)^##\s+(.+?)\s*$")
 
 def validate_exegesis_has_support(text: str) -> list[str]:
     """Heurisztikus, csak figyelmeztető ellenőrzés: mely `## ` alcímek
-    alatti szakaszoknak nincs semmilyen vers-hivatkozása vagy explicit
-    Támaszték/Biztonsági szint jelölése.
+    alatti szakaszoknak nincs semmilyen vers-hivatkozása vagy eredeti
+    nyelvi (görög/héber) szó idézése.
 
     NEM szigorú validáció — hamis pozitív/negatív is előfordulhat (pl. egy
     valódi hivatkozás más formában van megadva), ezért ez SOHA nem
