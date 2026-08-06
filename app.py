@@ -3672,8 +3672,8 @@ konkrét megfigyeléshez — ezt magadban tartsd nyomon, hogy ellenőrizhető
 maradj. A VÉGLEGES SZÖVEGBEN azonban NE különálló "Támaszték:"/"Biztonsági
 szint:" mezőként add meg ezt — hivatkozz rá mondatba ágyazva, természetes
 módon (pl. "...amit a 7. vers elején álló »hanem« [ἀλλὰ] jelez..." vagy "a
-görög ἠγάπησεν aorisztosz alakja mutatja, hogy..."), nem külön felsorolt
-tételként.
+görög ἠγάπησεν egyszeri, lezárt cselekvést kifejező alakja mutatja, hogy..."),
+nem külön felsorolt tételként.
 
 Bizonytalanságot CSAK akkor jelezz explicit módon, ha ténylegesen alacsony
 vagy közepes a megbízhatóság — vagyis valódi vitatottság áll fenn (pl. "ez a
@@ -3686,6 +3686,12 @@ Strukturáld a választ ## alcímekkel, DE minden alcím alatt összefüggő, fo
 szövegű magyarázatot írj — ne táblázatos vagy tételes felsorolást, és ne
 mélyítsd az alcímnél tovább a tagolást (## alcím → bekezdés; ne legyen
 alcím alatt külön al-alcím vagy bullet-hierarchia).
+
+Legyen lényegretörő: kerüld az ismétlést és a túlmagyarázást. Minden
+alcímnél csak a valóban legfontosabb 2–4 megfigyelésre fókuszálj a
+kimerítő teljesség helyett — a cél nem az, hogy mindent elmondj, amit
+tudnál, hanem hogy a legértékesebb megfigyeléseket add át tömören. Mind a
+hét alcím tartalmi lényege maradjon meg, csak tömörebben kifejtve.
 
 ## Műfaj és szerkezet
 A szakasz műfaji besorolása és belső szerkezete (versek/szakaszok,
@@ -3704,7 +3710,17 @@ különálló tételekben), a szavakat mondatba ágyazva idézve.
 ## Nyelvtani és szerkezeti megfigyelések
 Releváns igealakok, mondatszerkezet, retorikai eszközök — folyó szövegben,
 nyelvtani szakkifejezés nélkül (a JELENTÉSÉT írd le, ne a szakszó nevét —
-pl. "aoristus" helyett "egyszeri, lezárt cselekvés").
+pl. "aoristus" helyett "egyszeri, lezárt cselekvés"). SZIGORÚAN TILOS ebben
+a szakaszban (és bárhol a válaszban) latin/görög nyelvtani terminus
+kiírása — pl. "aoristos", "aoristus", "particip", "participium",
+"accusativus", "genitivus", "indicativus" — MÉG AKKOR IS, ha a jelentését
+egyébként helyesen le is írod: ne add meg mindkettőt, CSAK a jelentést írd
+le, a szakszót hagyd el teljesen. Ez a magyar megfelelőkre is vonatkozik
+(pl. "melléknévi igenév" is TILOS, nem csak a latin "particip"/"participium"
+— egyik nyelven se nevezd meg a nyelvtani kategóriát). Például "participium"
+helyett írd körül: "egy melléknévi jellegű igealak, ami egy folyamatosan
+fennálló állapotot ír le" vagy hasonló, a szó FUNKCIÓJÁT leíró körülírással
+— sosem a kategória nevével.
 
 ## Párhuzamos bibliai helyek
 Csak biztos, ellenőrizhető párhuzamok, rövid magyarázattal, összefüggő
@@ -5880,7 +5896,7 @@ GEMINI_DEBUG_LOG_MAX = 80         # session debug-log max bejegyzések
 # Funkcióspecifikus kimeneti tokenplafonok (ésszerű felső határ).
 DEFAULT_MAX_OUTPUT_TOKENS_BY_TAB: dict[str, int] = {
     "Áttekintés": 4096,
-    "Exegézis": 8192,
+    "Exegézis": 12000,
     "Kortörténet": 6144,
     "Teológia": 6144,
     "Eredeti szöveg": 6144,
