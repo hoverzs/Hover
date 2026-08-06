@@ -4305,8 +4305,15 @@ def render_section_tab(
                     type="primary",
                     key=f"{key}_approve_btn",
                 ):
+                    from sermon_outline_engine import (
+                        compute_current_passage_context_hash,
+                    )
+
                     st.session_state[f"{key}_status"] = "approved"
                     st.session_state[f"{key}_ever_approved"] = True
+                    st.session_state[f"{key}_approved_context_hash"] = (
+                        compute_current_passage_context_hash(st.session_state)
+                    )
                     st.success("Jóváhagyva és továbbvíve a vázlatmotorhoz.")
             st.caption(
                 f"Elmentett állapot: **{_APPROVABLE_STATUS_LABELS.get(status, status)}**"
@@ -7266,8 +7273,15 @@ def render_original_text_panel() -> None:
                         type="primary",
                         key="original_approve_btn",
                     ):
+                        from sermon_outline_engine import (
+                            compute_current_passage_context_hash,
+                        )
+
                         st.session_state["original_text_status"] = "approved"
                         st.session_state["original_text_ever_approved"] = True
+                        st.session_state["original_text_approved_context_hash"] = (
+                            compute_current_passage_context_hash(st.session_state)
+                        )
                         st.success("Jóváhagyva és továbbvíve a vázlatmotorhoz.")
                 st.caption(
                     f"Elmentett állapot: **{_APPROVABLE_STATUS_LABELS.get(_orig_status, _orig_status)}**"

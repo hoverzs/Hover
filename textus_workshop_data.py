@@ -23,6 +23,7 @@ def get_default_text_workshop() -> dict[str, Any]:
     return {
         "text_main_idea": "",
         "text_main_idea_status": "",
+        "text_main_idea_approved_context_hash": "",
         "approved_insights": [],
         "main_idea_suggestions": None,
         "main_idea_assessment": None,
@@ -84,6 +85,9 @@ def normalize_text_workshop(raw: Any) -> dict[str, Any]:
         "text_main_idea_status": _migrate_main_idea_field(
             raw, "text_main_idea_status", _LEGACY_MAIN_IDEA_STATUS
         ),
+        "text_main_idea_approved_context_hash": str(
+            raw.get("text_main_idea_approved_context_hash") or ""
+        ),
         "approved_insights": insights_out,
         "main_idea_suggestions": _normalize_optional_dict(
             raw.get("main_idea_suggestions", base["main_idea_suggestions"])
@@ -142,10 +146,24 @@ def update_text_main_idea(
     content: str,
     status: str,
 ) -> dict[str, Any]:
-    """A textus fő gondolatának tartalma / státusza (UI nélkül)."""
+    """A textus fő gondolatának tartalma / státusza (UI nélkül).
+
+    Jóváhagyáskor (status == "approved") elmenti a
+    `text_main_idea_approved_context_hash`-t is — a vázlatmotor STALE-
+    ellenőrzésének alapja (ld. sermon_outline_engine.compute_current_
+    passage_context_hash). Lusta import a körkörös import elkerülésére."""
     tw = ensure_text_workshop_state(session_state)
     tw["text_main_idea"] = str(content or "")
     tw["text_main_idea_status"] = str(status or "")
+    if str(status or "") == "approved":
+        try:
+            from sermon_outline_engine import compute_current_passage_context_hash
+
+            tw["text_main_idea_approved_context_hash"] = (
+                compute_current_passage_context_hash(session_state)
+            )
+        except Exception:  # noqa: BLE001
+            pass
     return tw
 
 

@@ -521,10 +521,16 @@ def collect_outline_context_bundle(
     if sermon_idea:
         bundle["sermon_main_idea"] = sermon_idea
         bundle["sermon_main_idea_status"] = sermon_status or "draft"
+        bundle["sermon_main_idea_approved_context_hash"] = _s(
+            sw.get("sermon_main_idea_approved_context_hash")
+        )
         keys.append("sermon_main_idea")
     if text_idea:
         bundle["text_main_idea"] = text_idea
         bundle["text_main_idea_status"] = text_status or "draft"
+        bundle["text_main_idea_approved_context_hash"] = _s(
+            tw.get("text_main_idea_approved_context_hash")
+        )
         keys.append("text_main_idea")
 
     insights = _approved_insights_texts(tw)
@@ -557,6 +563,9 @@ def collect_outline_context_bundle(
             bundle[f"{field_name}_ever_approved"] = bool(
                 session_state.get(f"{session_key}_ever_approved")
             )
+            bundle[f"{field_name}_approved_context_hash"] = _s(
+                session_state.get(f"{session_key}_approved_context_hash")
+            )
             keys.append(field_name)
             keys.append(f"{field_name}_status")
 
@@ -573,6 +582,9 @@ def collect_outline_context_bundle(
         if cleaned:
             bundle[block_key] = cleaned
             bundle[f"{block_key}_status"] = _s(sw.get(f"{block_key}_status")) or "draft"
+            bundle[f"{block_key}_approved_context_hash"] = _s(
+                sw.get(f"{block_key}_approved_context_hash")
+            )
             keys.append(block_key)
             keys.append(f"{block_key}_status")
 

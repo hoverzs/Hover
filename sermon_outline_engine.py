@@ -1272,6 +1272,31 @@ def compute_context_hash(bundle: Mapping[str, Any]) -> str:
     return hashlib.sha1(raw.encode("utf-8")).hexdigest()[:16]
 
 
+def compute_passage_context_hash(bundle: Mapping[str, Any]) -> str:
+    """Szűk igehely-ujjlenyomat: KIZÁRÓLAG igehely + fordítás + bibliai
+    szöveg alapján (ld. adatsema_v1.md 5. pont) — nem tartalmaz gated
+    tartalmat, ezért alkalmas egyedi blokkok STALE-ellenőrzésére anélkül,
+    hogy egy jóváhagyás vagy egy másik blokk szerkesztése önmagát vagy
+    más, változatlan blokkokat hamisan elavulttá tenne."""
+    payload = {
+        "passage_reference": _s(bundle.get("passage_reference")),
+        "bible_translation": _s(bundle.get("bible_translation")),
+        "passage_text": _s(bundle.get("passage_text")),
+    }
+    raw = json.dumps(payload, ensure_ascii=False, sort_keys=True)
+    return hashlib.sha1(raw.encode("utf-8")).hexdigest()[:16]
+
+
+def compute_current_passage_context_hash(session_state: Mapping[str, Any]) -> str:
+    """Kényelmi függvény: az aktuális session_state-ből azonnal kiszámítja
+    a szűk igehely-ujjlenyomatot — ezt hívja a "Jóváhagyom és átadom" gomb
+    jóváhagyáskor, hogy elmentse `<blokk>_approved_context_hash`-ként."""
+    from sermon_workshop_outline_ai import collect_available_sermon_material
+
+    bundle = collect_available_sermon_material(session_state)
+    return compute_passage_context_hash(bundle)
+
+
 def collect_outline_evidence(
     session_state: Mapping[str, Any],
     *,
@@ -1383,14 +1408,34 @@ def _background_value_is_usable(value: Any) -> bool:
     return bool(value)
 
 
+def _block_is_stale(bundle: Mapping[str, Any], base_key: str) -> bool:
+    """True, ha a blokk approved, DE a jóváhagyáskor elmentett
+    `<kulcs>_approved_context_hash` eltér az aktuális igehely/szöveg
+    ujjlenyomatától. Ha nincs mentett hash (pl. a mechanizmus bevezetése
+    előtti jóváhagyás), NEM tekintjük STALE-nek — visszafelé-kompatibilitás."""
+    if _s(bundle.get(f"{base_key}_status")) != "approved":
+        return False
+    approved_hash = _s(bundle.get(f"{base_key}_approved_context_hash"))
+    if not approved_hash:
+        return False
+    return approved_hash != compute_passage_context_hash(bundle)
+
+
+def _block_is_approved_and_fresh(bundle: Mapping[str, Any], base_key: str) -> bool:
+    """True, ha a blokk approved ÉS (nincs mentett hash VAGY a mentett hash
+    megegyezik az aktuálissal) — azaz ténylegesen felhasználható."""
+    if _s(bundle.get(f"{base_key}_status")) != "approved":
+        return False
+    return not _block_is_stale(bundle, base_key)
+
+
 def extract_outline_background_material(bundle: Mapping[str, Any]) -> dict[str, Any]:
     """Érdemi háttéranyagok (exegézis, nyelv, kortörténet, műhelydöntések…).
 
     A `_APPROVAL_GATED_KEYS`-ben szereplő kulcsok csak akkor kerülnek be, ha a
-    hozzájuk tartozó `<kulcs>_status` mező a session_state-ben "approved" —
-    ez a meglévő "Jóváhagyom és átadom" gomb állapotát kényszeríti ki. Minden
-    más kulcs (pl. exegesis/theology/history/original_text, amelyekhez nincs
-    UI-szintű elfogadás) változatlanul, szűretlenül megy át.
+    hozzájuk tartozó `<kulcs>_status` mező "approved" ÉS a jóváhagyáskori
+    igehely/szöveg-ujjlenyomat (`<kulcs>_approved_context_hash`) megegyezik
+    az aktuálissal (nincs STALE). Minden más kulcs változatlanul megy át.
     """
     background: dict[str, Any] = {}
     for key in _BACKGROUND_BUNDLE_KEYS:
@@ -1398,12 +1443,26 @@ def extract_outline_background_material(bundle: Mapping[str, Any]) -> dict[str, 
             continue
         base_key = key[: -len("_status")] if key.endswith("_status") else key
         if base_key in _APPROVAL_GATED_KEYS:
-            if _s(bundle.get(f"{base_key}_status")) != "approved":
+            if not _block_is_approved_and_fresh(bundle, base_key):
                 continue
         value = bundle.get(key)
         if _background_value_is_usable(value):
             background[key] = value
     return background
+
+
+def extract_stale_approved_blocks(bundle: Mapping[str, Any]) -> list[str]:
+    """Mely `_APPROVAL_GATED_KEYS` blokkok voltak jóváhagyva, de az igehely
+    vagy a bibliai szöveg megváltozott azóta — a jóváhagyást újra meg kell
+    erősíteni, mielőtt a vázlatmotor felhasználná őket."""
+    stale: list[str] = []
+    for key in _APPROVAL_GATED_KEYS:
+        value = bundle.get(key)
+        if not _background_value_is_usable(value):
+            continue
+        if _block_is_stale(bundle, key):
+            stale.append(_GATED_KEY_LABELS.get(key, key))
+    return stale
 
 
 def extract_outline_excluded_draft_blocks(bundle: Mapping[str, Any]) -> list[str]:
@@ -1465,6 +1524,7 @@ def build_outline_user_prompt(
     core = extract_outline_core_passage_context(bundle)
     background = extract_outline_background_material(bundle)
     excluded_blocks = extract_outline_excluded_draft_blocks(bundle)
+    stale_blocks = extract_stale_approved_blocks(bundle)
     outline_basket = bundle.get("outline_basket") or []
     has_background = bool(background)
     has_basket = bool(outline_basket)
@@ -1540,6 +1600,19 @@ def build_outline_user_prompt(
                 "KIMARADT, NEM JÓVÁHAGYOTT BLOKKOK (szándékosan hiányoznak, "
                 "a lelkész még nem hagyta jóvá őket): "
                 + ", ".join(excluded_blocks) + ".",
+                "NE hivatkozz rájuk, és NE pótold a tartalmukat saját "
+                "kitalálással — egyszerűen hagyd ki őket a vázlatból.",
+            ]
+        )
+
+    if stale_blocks:
+        parts.extend(
+            [
+                "",
+                "KIMARADT, ELAVULT JÓVÁHAGYÁSÚ BLOKKOK (az igehely vagy a "
+                "bibliai szöveg megváltozott a jóváhagyás óta, ezért a "
+                "vázlatmotor újra nem jóváhagyottnak tekinti őket): "
+                + ", ".join(stale_blocks) + ".",
                 "NE hivatkozz rájuk, és NE pótold a tartalmukat saját "
                 "kitalálással — egyszerűen hagyd ki őket a vázlatból.",
             ]
@@ -2738,6 +2811,18 @@ def generate_sermon_outline(
             "Ezek a fő elemzési blokkok még sosem lettek jóváhagyva ebben a "
             "projektben: " + ", ".join(never_approved_main) + "."
         )
+    stale_approved_blocks = extract_stale_approved_blocks(bundle)
+    if stale_approved_blocks:
+        warnings.append(
+            "Ezeknél a blokkoknál megváltozott az igehely vagy a bibliai "
+            "szöveg a jóváhagyás óta, ezért újra jóvá kell hagyni: "
+            + ", ".join(stale_approved_blocks) + "."
+        )
+    used_module_ids = [
+        key
+        for key in extract_outline_background_material(bundle)
+        if key in _APPROVAL_GATED_KEYS
+    ]
     compressed = False
     enriched = False
     raw_wc = 0
@@ -3026,6 +3111,7 @@ def generate_sermon_outline(
     if _s(markdown_content):
         outline["content"] = _s(markdown_content)
     outline["source_fingerprint"] = ctx_hash
+    outline["used_module_ids"] = used_module_ids
     outline["source_sections"] = list(bundle.get("source_keys") or [])
     if generate_fn is None and "sermon_movements" not in (bundle.get("source_keys") or []):
         outline["provisional_sections"] = ["sermon_movements"]

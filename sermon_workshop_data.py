@@ -50,6 +50,7 @@ def get_default_sermon_workshop() -> dict[str, Any]:
     return {
         "sermon_main_idea": "",
         "sermon_main_idea_status": "draft",
+        "sermon_main_idea_approved_context_hash": "",
         "human_condition": {
             "condition": "",
             "false_response": "",
@@ -58,6 +59,7 @@ def get_default_sermon_workshop() -> dict[str, Any]:
             "grace_response": "",
         },
         "human_condition_status": "draft",
+        "human_condition_approved_context_hash": "",
         "listener_tension": {
             "listener_question": "",
             "listener_resistance": "",
@@ -65,6 +67,7 @@ def get_default_sermon_workshop() -> dict[str, Any]:
             "promised_resolution": "",
         },
         "listener_tension_status": "draft",
+        "listener_tension_approved_context_hash": "",
         "christ_centered_arc": {
             "divine_gracious_action": "",
             "christ_connection": "",
@@ -72,6 +75,7 @@ def get_default_sermon_workshop() -> dict[str, Any]:
             "grace_enabled_response": "",
         },
         "christ_centered_arc_status": "draft",
+        "christ_centered_arc_approved_context_hash": "",
         "sermon_path": {
             "type": "",
             "reason": "",
@@ -79,6 +83,7 @@ def get_default_sermon_workshop() -> dict[str, Any]:
             "destination": "",
         },
         "sermon_path_status": "draft",
+        "sermon_path_approved_context_hash": "",
         "sermon_movements": [],
         "selected_images": [],
         "illustrations": [],
@@ -102,6 +107,7 @@ def get_default_sermon_workshop() -> dict[str, Any]:
             "tone": "",
         },
         "closing_status": "draft",
+        "closing_approved_context_hash": "",
         "diagnostics": {
             "result": {},
             "priorities": [],
@@ -288,6 +294,9 @@ def empty_sermon_outline() -> dict[str, Any]:
         "source": "",
         # Forrásanyag-hash a frissítési figyelmeztetéshez.
         "context_hash": "",
+        # Mely gated Reszanyag-blokkok (kulcsnevei) kerültek ténylegesen
+        # felhasználásra a vázlat összeállításakor — visszakövethetőség.
+        "used_module_ids": [],
         "movements": [],
         "extra_enrichment": {
             "images": [],
@@ -451,6 +460,9 @@ def normalize_sermon_outline(raw: Any) -> dict[str, Any]:
         out["content"] = _as_str(raw.get("outline"))
     out["title_suggestions"] = _normalize_str_list(
         raw.get("title_suggestions"), max_items=5
+    )
+    out["used_module_ids"] = _normalize_str_list(
+        raw.get("used_module_ids"), max_items=20
     )
     out["editorial_tips"] = _normalize_str_list(
         raw.get("editorial_tips"), max_items=2
@@ -1159,22 +1171,37 @@ def normalize_sermon_workshop(data: Any) -> dict[str, Any]:
     return {
         "sermon_main_idea": _as_str(data.get("sermon_main_idea")),
         "sermon_main_idea_status": status or "draft",
+        "sermon_main_idea_approved_context_hash": _as_str(
+            data.get("sermon_main_idea_approved_context_hash")
+        ),
         "human_condition": _normalize_str_dict(
             data.get("human_condition"), base["human_condition"]
         ),
         "human_condition_status": human_condition_status,
+        "human_condition_approved_context_hash": _as_str(
+            data.get("human_condition_approved_context_hash")
+        ),
         "listener_tension": _normalize_str_dict(
             data.get("listener_tension"), base["listener_tension"]
         ),
         "listener_tension_status": listener_tension_status,
+        "listener_tension_approved_context_hash": _as_str(
+            data.get("listener_tension_approved_context_hash")
+        ),
         "christ_centered_arc": _normalize_str_dict(
             data.get("christ_centered_arc"), base["christ_centered_arc"]
         ),
         "christ_centered_arc_status": christ_centered_arc_status,
+        "christ_centered_arc_approved_context_hash": _as_str(
+            data.get("christ_centered_arc_approved_context_hash")
+        ),
         "sermon_path": _normalize_str_dict(
             data.get("sermon_path"), base["sermon_path"]
         ),
         "sermon_path_status": sermon_path_status,
+        "sermon_path_approved_context_hash": _as_str(
+            data.get("sermon_path_approved_context_hash")
+        ),
         "sermon_movements": normalize_sermon_movements(data.get("sermon_movements")),
         "selected_images": normalize_textual_images(data.get("selected_images")),
         "illustrations": normalize_illustrations(data.get("illustrations")),
@@ -1202,6 +1229,9 @@ def normalize_sermon_workshop(data: Any) -> dict[str, Any]:
         "actualization_suggest_note": _as_str(data.get("actualization_suggest_note")),
         "closing": _normalize_str_dict(data.get("closing"), base["closing"]),
         "closing_status": closing_status or "draft",
+        "closing_approved_context_hash": _as_str(
+            data.get("closing_approved_context_hash")
+        ),
         "diagnostics": _normalize_diagnostics(data.get("diagnostics")),
         "lection": _normalize_lection(data.get("lection")),
         "lection_status": lection_status or "draft",
@@ -1355,6 +1385,34 @@ def ensure_sermon_workshop_state(
     return normalized
 
 
+def _current_passage_context_hash(session_state: Mapping[str, Any]) -> str:
+    """Lusta import — a sermon_outline_engine modulra épülő szűk igehely-
+    ujjlenyomat, elkerülve a körkörös importot (az modul-szinten importálja
+    ezt a fájlt). Hiba esetén üres string — a jóváhagyás sose bukjon el
+    emiatt, csak a STALE-ellenőrzés marad ki (visszafelé-kompatibilis eset)."""
+    try:
+        from sermon_outline_engine import compute_current_passage_context_hash
+
+        return compute_current_passage_context_hash(session_state)
+    except Exception:  # noqa: BLE001
+        return ""
+
+
+# A gated blokkok közül melyikhez tartozik `_approved_context_hash` mentés,
+# amikor a `_status` mezője "approved"-ra vált. Az enrichment/lection NINCS
+# itt, mert azok nem `_APPROVAL_GATED_KEYS` tagjai.
+_APPROVED_HASH_TRACKED_STATUS_KEYS = frozenset(
+    {
+        "sermon_main_idea_status",
+        "human_condition_status",
+        "listener_tension_status",
+        "christ_centered_arc_status",
+        "sermon_path_status",
+        "closing_status",
+    }
+)
+
+
 def update_sermon_workshop_section(
     session_state: MutableMapping[str, Any],
     section: str,
@@ -1365,6 +1423,14 @@ def update_sermon_workshop_section(
     `section` lehet pl. `human_condition`, `sermon_path`, `sermon_main_idea`,
     `sermon_movements`, stb. A `sermon_main_idea` esetén a `data` lehet string
     vagy dict (`sermon_main_idea` / `sermon_main_idea_status` kulcsokkal).
+
+    Amikor egy gated blokk `_status` mezője "approved"-ra vált — bármelyik
+    hívási úton (közvetlen gomb, `accept_workshop_proposal`, MI-javaslat
+    elfogadása) —, ez a függvény EGYSÉGESEN elmenti a
+    `<blokk>_approved_context_hash` mezőt is, hogy a vázlatmotor STALE-
+    ellenőrzése működjön. Ez szándékosan központosított egyetlen helyen,
+    hogy ne kelljen minden egyes UI-gombnál külön megismételni (és emiatt
+    könnyen kifelejteni).
     """
     sw = ensure_sermon_workshop_state(session_state)
     key = str(section or "").strip()
@@ -1378,6 +1444,10 @@ def update_sermon_workshop_section(
                 if status not in ("draft", "approved", ""):
                     status = "draft"
                 sw["sermon_main_idea_status"] = status or "draft"
+                if status == "approved":
+                    sw["sermon_main_idea_approved_context_hash"] = (
+                        _current_passage_context_hash(session_state)
+                    )
         else:
             sw["sermon_main_idea"] = _as_str(data)
         return sw
@@ -1387,6 +1457,10 @@ def update_sermon_workshop_section(
         if status not in ("draft", "approved", ""):
             status = "draft"
         sw["sermon_main_idea_status"] = status or "draft"
+        if status == "approved":
+            sw["sermon_main_idea_approved_context_hash"] = (
+                _current_passage_context_hash(session_state)
+            )
         return sw
 
     if key in (
@@ -1402,6 +1476,11 @@ def update_sermon_workshop_section(
         if status not in ("draft", "approved", ""):
             status = "draft"
         sw[key] = status or "draft"
+        if status == "approved" and key in _APPROVED_HASH_TRACKED_STATUS_KEYS:
+            base_key = key[: -len("_status")]
+            sw[f"{base_key}_approved_context_hash"] = _current_passage_context_hash(
+                session_state
+            )
         return sw
 
     if key == "sermon_outline_status":
