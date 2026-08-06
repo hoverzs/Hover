@@ -4115,17 +4115,24 @@ szerkezete szerint, kizárólag a fenti token-listára hivatkozva.
 _BOLD_LABEL_FIELD_RE = re.compile(r'^\*\*[^*\n:]+:\*\*\s+[^\s,][^\n,]{0,39}$')
 
 
-def _looks_incomplete_response(text: str) -> bool:
-    """Óvatos heurisztika: csak láthatóan félbeszakadt választ jelölünk rövidítettnek."""
+def _incomplete_response_reason(text: str) -> str:
+    """A `_looks_incomplete_response()` döntésének belső indoklása.
+
+    Ugyanazt a logikát futtatja, mint `_looks_incomplete_response()`, de a
+    True/False helyett azt is visszaadja, MELYIK ág jelölte hiányosnak —
+    debug-célra (pl. az `INCOMPLETE_REJECTED` log-bejegyzéshez), hogy egy
+    hamis pozitív esetén ne kelljen találgatni. Üres string = a heurisztika
+    szerint a válasz teljes.
+    """
     cleaned = _strip_chatty_intro(text or "").strip()
     if not cleaned:
-        return False
+        return ""
 
     # Markdown kerítések / idézőjelek gyakori félbeszakadás-jelei.
     if cleaned.count("```") % 2 == 1:
-        return True
+        return "unclosed_code_fence"
     if cleaned.endswith(("-", "–", "—", ",", ";", ":", "(", "[", "{", "/")):
-        return True
+        return f"trailing_char:{cleaned[-1]!r}"
 
     last_nonempty = ""
     for line in reversed(cleaned.splitlines()):
@@ -4133,10 +4140,10 @@ def _looks_incomplete_response(text: str) -> bool:
             last_nonempty = line.strip()
             break
     if not last_nonempty:
-        return False
+        return ""
 
     if re.match(r"^[-*+]\s*$", last_nonempty) or re.match(r"^\d+\.\s*$", last_nonempty):
-        return True
+        return "dangling_list_marker"
 
     # „**Címke:** érték” alakú, bold-formázott záró mező (pl. „**Típus:**
     # morfologiai”) — szándékosan nem végződik írásjellel, mégis teljes
@@ -4147,10 +4154,17 @@ def _looks_incomplete_response(text: str) -> bool:
     # sablonoktól függetlenül általánosan felismerjük, nem csak a jelenleg
     # ismert záró mezőnevekre szűkítve.
     if _BOLD_LABEL_FIELD_RE.match(last_nonempty):
-        return False
+        return ""
 
     # Ha a legutolsó sor természetes záró írásjel nélkül áll meg, az gyanús.
-    return not re.search(r'[.!?…)"”\]\}]$', last_nonempty)
+    if not re.search(r'[.!?…)"”\]\}]$', last_nonempty):
+        return "no_terminal_punctuation"
+    return ""
+
+
+def _looks_incomplete_response(text: str) -> bool:
+    """Óvatos heurisztika: csak láthatóan félbeszakadt választ jelölünk rövidítettnek."""
+    return bool(_incomplete_response_reason(text))
 
 
 def build_songs_prompt(
@@ -6465,15 +6479,19 @@ def generate_text(
                         "Próbáld újra, vagy fogalmazd át kissé a kérést."
                     )
 
-                if incomplete_response_message and (
-                    truncated or _looks_incomplete_response(text)
-                ):
+                _incomplete_reason = "" if truncated else _incomplete_response_reason(text)
+                if incomplete_response_message and (truncated or _incomplete_reason):
+                    _tail = text[-150:]
                     _debug_log_append({
                         "ts": _now_str(), "tab": tab_label, "attempt": attempt + 1,
                         "status": "INCOMPLETE_REJECTED", "model": model,
                         "prompt_chars": prompt_chars, "response_chars": len(text),
                         "latency_ms": latency_ms,
-                        "error_message": f"finishReason={finish_reason}",
+                        "error_message": (
+                            f"finishReason={finish_reason}; "
+                            f"heuristic={_incomplete_reason or 'n/a (truncated by finishReason)'}; "
+                            f"tail={_tail!r}"
+                        ),
                         "auth_ok": True,
                     })
                     return incomplete_response_message
