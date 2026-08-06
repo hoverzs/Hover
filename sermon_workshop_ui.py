@@ -8929,6 +8929,9 @@ def render_human_condition_section(
                 update_sermon_workshop_section(
                     st.session_state, "human_condition", block
                 )
+                update_sermon_workshop_section(
+                    st.session_state, "human_condition_status", "draft"
+                )
                 st.success("Vázlatként elmentve.")
     with b2:
         if st.button(
@@ -9367,6 +9370,9 @@ def render_listener_tension_section(
             else:
                 update_sermon_workshop_section(
                     st.session_state, "listener_tension", block
+                )
+                update_sermon_workshop_section(
+                    st.session_state, "listener_tension_status", "draft"
                 )
                 st.success("Vázlatként elmentve.")
     with b2:
@@ -9894,6 +9900,9 @@ def render_gospel_arc_section(
                 st.warning("Üres mezőket nem lehet menteni. Tölts ki legalább egyet.")
             else:
                 _persist_gospel_arc_from_widgets()
+                update_sermon_workshop_section(
+                    st.session_state, "christ_centered_arc_status", "draft"
+                )
                 st.success("Vázlatként elmentve.")
     with b2:
         if st.button(
@@ -10598,6 +10607,9 @@ def render_sermon_path_section(
             if not filled:
                 st.warning("Üres mezőket nem lehet menteni. Tölts ki legalább egyet.")
             else:
+                update_sermon_workshop_section(
+                    st.session_state, "sermon_path_status", "draft"
+                )
                 st.success("Vázlatként elmentve.")
     with b2:
         if st.button(
