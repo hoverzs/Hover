@@ -233,11 +233,6 @@ BEMENET KEZELÉSE:
    "Nincs eredeti nyelvi megfigyelés ehhez a szakaszhoz"). A vázlat
    többi része csak a ténylegesen mellékelt anyagra és a bibliai
    szövegre épülhet.
-3. Ha egy mellékelt háttéranyag mezőhöz `_status: "unreviewed"` jelzés
-   tartozik, az azt jelenti, hogy a tartalom AI-generált és a
-   felhasználó még nem hagyta jóvá — használhatod, de ne kezeld
-   egyenrangú, ellenőrzött tényként a felhasználó által jóváhagyott
-   (approved) anyaggal.
 
 STÍLUS ÉS HANGVÉTEL:
 - Szikár, jól áttekinthető, lényegretörő (tőmondatok és 1-2 mondatos, velős kifejtések).
@@ -330,10 +325,8 @@ _BACKGROUND_BUNDLE_KEYS: tuple[str, ...] = (
 )
 
 # Ezekre a kulcsokra a MEGLÉVŐ session_state-beli draft/approved státusz
-# (a "Jóváhagyom és átadom" gomb, ld. sermon_workshop_data.py) ténylegesen
-# kikényszerítendő — csak approved állapotban kerülnek a vázlatmotor
-# promptjába. Az exegesis/theology/history/original_text NINCS itt: azokhoz
-# nincs UI-szintű elfogadás, "unreviewed" címkével szűretlenül mennek át.
+# (a "Jóváhagyom és átadom" gomb) ténylegesen kikényszerítendő — csak
+# approved állapotban kerülnek a vázlatmotor promptjába.
 _APPROVAL_GATED_KEYS: frozenset[str] = frozenset(
     {
         "sermon_main_idea",
@@ -343,6 +336,10 @@ _APPROVAL_GATED_KEYS: frozenset[str] = frozenset(
         "christ_centered_arc",
         "sermon_path",
         "closing",
+        "exegesis",
+        "theology",
+        "history",
+        "original_text",
     }
 )
 
@@ -354,7 +351,19 @@ _GATED_KEY_LABELS: dict[str, str] = {
     "christ_centered_arc": "Krisztus-központú ív",
     "sermon_path": "Igehirdetés útja",
     "closing": "Lezárás",
+    "exegesis": "Exegézis",
+    "theology": "Teológia",
+    "history": "Kortörténet",
+    "original_text": "Eredeti nyelvi elemzés",
 }
+
+# A 4 fő AI-blokknál (exegesis/theology/history/original_text) a kimaradás
+# okát megkülönböztetjük: "sosem lett jóváhagyva" vs. "a jóváhagyás
+# vissza lett vonva / a tartalom megváltozott azóta" — ez a felhasználói
+# tudatosságot segíti, nem befolyásolja magát a szűrést.
+_NEVER_VS_REVOKED_TRACKED_KEYS: frozenset[str] = frozenset(
+    {"exegesis", "theology", "history", "original_text"}
+)
 
 _CORE_PASSAGE_KEYS: tuple[str, ...] = (
     "passage_reference",
@@ -1410,6 +1419,23 @@ def extract_outline_excluded_draft_blocks(bundle: Mapping[str, Any]) -> list[str
     return excluded
 
 
+def extract_never_approved_main_blocks(bundle: Mapping[str, Any]) -> list[str]:
+    """A 4 fő AI-blokk (exegézis/teológia/kortörténet/eredeti nyelvi) közül
+    melyik maradt ki úgy a vázlatból, hogy ebben a projektben MÉG SOSEM lett
+    jóváhagyva — megkülönböztetve attól az esettől, amikor a felhasználó
+    korábban jóváhagyta, majd tudatosan visszavonta / új tartalmat mentett."""
+    out: list[str] = []
+    for key in _NEVER_VS_REVOKED_TRACKED_KEYS:
+        value = bundle.get(key)
+        if not _background_value_is_usable(value):
+            continue
+        if _s(bundle.get(f"{key}_status")) == "approved":
+            continue
+        if not bool(bundle.get(f"{key}_ever_approved")):
+            out.append(_GATED_KEY_LABELS.get(key, key))
+    return out
+
+
 def _bundle_has_rich_workshop_material(bundle: Mapping[str, Any]) -> bool:
     return bool(extract_outline_background_material(bundle))
 
@@ -1485,10 +1511,7 @@ def build_outline_user_prompt(
                 "",
                 "HÁTTÉRANYAG (exegézis / kortörténet / eredeti nyelv / műhely):",
                 "Kizárólag erre az anyagra építve szervezd a vázlatot — ne "
-                "végezz önálló elemzést azon a részterületen, ahol van adat. "
-                "A `_status: \"unreviewed\"` jelzésű mezők AI-generáltak, "
-                "felhasználói jóváhagyás nélkül — ne kezeld ellenőrzött "
-                "tényként.",
+                "végezz önálló elemzést azon a részterületen, ahol van adat.",
                 wrap_untrusted_content(
                     "háttéranyag",
                     json.dumps(background, ensure_ascii=False),
@@ -2708,6 +2731,12 @@ def generate_sermon_outline(
             "Kimaradt a vázlatból (nincs jóváhagyva): "
             + ", ".join(excluded_blocks)
             + ". Hagyd jóvá a megfelelő fülön a „Jóváhagyom és átadom” gombbal."
+        )
+    never_approved_main = extract_never_approved_main_blocks(bundle)
+    if never_approved_main:
+        warnings.append(
+            "Ezek a fő elemzési blokkok még sosem lettek jóváhagyva ebben a "
+            "projektben: " + ", ".join(never_approved_main) + "."
         )
     compressed = False
     enriched = False

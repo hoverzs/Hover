@@ -4216,6 +4216,9 @@ regenerate_section = generate_section
 # SECTION TAB RENDERER — DRY, TABONKÉNTI GENERÁLÁS
 # =========================================================
 
+_APPROVABLE_STATUS_LABELS = {"draft": "Vázlat", "approved": "Jóváhagyva"}
+
+
 def render_section_tab(
     key: str,
     header: str,
@@ -4225,6 +4228,7 @@ def render_section_tab(
     extra_box_class: str = "",
     action_label: str = None,
     regen_label: str = None,
+    approvable: bool = False,
 ):
     """Egységes szekció-tab renderelő.
 
@@ -4238,6 +4242,11 @@ def render_section_tab(
         az alapértelmezett `"{header} generálása"` lesz.
       - `regen_label`: a gomb felirata újrageneráláskor. Ha nincs megadva,
         a `regen_label = "Frissítés — " + action_label` automatikus.
+      - `approvable`: ha True, a tartalom mellé "Mentés vázlatként" /
+        "Jóváhagyom és átadom" gombpár kerül (`st.session_state[f"{key}_status"]`),
+        amit a vázlatmotor kikényszerít — csak jóváhagyott állapotban
+        kerül a promptba. Regeneráláskor a státusz automatikusan
+        visszaáll "draft"-ra.
     """
     render_work_section(
         title=header,
@@ -4265,6 +4274,8 @@ def render_section_tab(
                 st.session_state[running_flag] = True
                 try:
                     generate_section(key)
+                    if approvable:
+                        st.session_state[f"{key}_status"] = "draft"
                 finally:
                     st.session_state[running_flag] = False
                 st.rerun()
@@ -4279,6 +4290,26 @@ def render_section_tab(
                 title="Még nincs tartalom",
                 body=empty_msg or "Kattints a generálás gombra.",
                 tone="neutral",
+            )
+
+        if approvable and has_result:
+            status = st.session_state.get(f"{key}_status") or "draft"
+            ab1, ab2 = st.columns(2)
+            with ab1:
+                if st.button("Mentés vázlatként", key=f"{key}_save_draft_btn"):
+                    st.session_state[f"{key}_status"] = "draft"
+                    st.success("Vázlatként elmentve.")
+            with ab2:
+                if st.button(
+                    "Jóváhagyom és átadom",
+                    type="primary",
+                    key=f"{key}_approve_btn",
+                ):
+                    st.session_state[f"{key}_status"] = "approved"
+                    st.session_state[f"{key}_ever_approved"] = True
+                    st.success("Jóváhagyva és továbbvíve a vázlatmotorhoz.")
+            st.caption(
+                f"Elmentett állapot: **{_APPROVABLE_STATUS_LABELS.get(status, status)}**"
             )
 
         refinement_chat(chat_title or header, key, f"{key}_chat")
@@ -7209,6 +7240,7 @@ def render_original_text_panel() -> None:
                             )
                     finally:
                         st.session_state["_original_running"] = False
+                    st.session_state["original_text_status"] = "draft"
                     st.rerun()
 
         if st.session_state.get("original_text"):
@@ -7221,6 +7253,25 @@ def render_original_text_panel() -> None:
                 )
                 st.markdown(st.session_state["original_text"])
                 st.markdown('</div>', unsafe_allow_html=True)
+
+                _orig_status = st.session_state.get("original_text_status") or "draft"
+                oab1, oab2 = st.columns(2)
+                with oab1:
+                    if st.button("Mentés vázlatként", key="original_save_draft_btn"):
+                        st.session_state["original_text_status"] = "draft"
+                        st.success("Vázlatként elmentve.")
+                with oab2:
+                    if st.button(
+                        "Jóváhagyom és átadom",
+                        type="primary",
+                        key="original_approve_btn",
+                    ):
+                        st.session_state["original_text_status"] = "approved"
+                        st.session_state["original_text_ever_approved"] = True
+                        st.success("Jóváhagyva és továbbvíve a vázlatmotorhoz.")
+                st.caption(
+                    f"Elmentett állapot: **{_APPROVABLE_STATUS_LABELS.get(_orig_status, _orig_status)}**"
+                )
 
         else:
             render_info_panel(
@@ -7287,6 +7338,7 @@ def render_textus_workshop_shell() -> None:
                 basket_label="Exegézis",
                 empty_msg="Még nincs exegézis. Kattints az „Exegetikai háttér feltárása” gombra.",
                 action_label="Exegetikai háttér feltárása",
+                approvable=True,
             )
         elif active == "Kortörténeti háttér":
             render_section_tab(
@@ -7295,6 +7347,7 @@ def render_textus_workshop_shell() -> None:
                 basket_label="Kortörténet",
                 empty_msg="Még nincs kortörténeti háttér. Kattints a „Kortörténeti háttér feltárása” gombra.",
                 action_label="Kortörténeti háttér feltárása",
+                approvable=True,
             )
         elif active == "Teológiai hangsúlyok":
             render_section_tab(
@@ -7303,6 +7356,7 @@ def render_textus_workshop_shell() -> None:
                 basket_label="Teológia",
                 empty_msg="Még nincs teológiai elemzés. Kattints a „Teológiai összefüggések feltárása” gombra.",
                 action_label="Teológiai összefüggések feltárása",
+                approvable=True,
             )
         elif active == "A textus fő gondolata":
             render_text_main_idea_section(generate_fn=generate_text)
@@ -7827,6 +7881,7 @@ with tabs[2]:
         basket_label="Exegézis",
         empty_msg="Még nincs exegézis. Kattints az „Exegetikai háttér feltárása” gombra.",
         action_label="Exegetikai háttér feltárása",
+        approvable=True,
     )
 
 with tabs[3]:
@@ -7836,6 +7891,7 @@ with tabs[3]:
         basket_label="Kortörténet",
         empty_msg="Még nincs kortörténeti háttér. Kattints a „Kortörténeti háttér feltárása” gombra.",
         action_label="Kortörténeti háttér feltárása",
+        approvable=True,
     )
 
 with tabs[4]:
@@ -7845,6 +7901,7 @@ with tabs[4]:
         basket_label="Teológia",
         empty_msg="Még nincs teológiai elemzés. Kattints a „Teológiai összefüggések feltárása” gombra.",
         action_label="Teológiai összefüggések feltárása",
+        approvable=True,
     )
 
 with tabs[5]:

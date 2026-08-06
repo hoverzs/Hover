@@ -359,12 +359,12 @@ def collect_available_sermon_material(
 ) -> dict[str, Any]:
     """Központi anyaggyűjtés: minden nem üres, elmentett tartalom.
 
-    Ahol van UI-szintű elfogadás (`approved_insights`, `approved_sermon_decisions`,
-    `sermon_main_idea`/`text_main_idea` státusza), ott csak elfogadott anyag
-    kerül be. Az `exegesis`/`theology`/`history`/`original_text` mezőkhöz
-    jelenleg nincs elfogadási lépés a UI-ban — ezek `<mező>_status: "unreviewed"`
-    jelzéssel kerülnek be, hogy a vázlatmotor promptja megkülönböztethesse
-    őket a jóváhagyott anyagtól.
+    Minden `_APPROVAL_GATED_KEYS`-ben szereplő mezőnek (sermon_main_idea,
+    text_main_idea, human_condition, listener_tension, christ_centered_arc,
+    sermon_path, closing, exegesis, theology, history, original_text) van
+    UI-szintű "Mentés vázlatként" / "Jóváhagyom és átadom" elfogadási lépése —
+    a vázlatmotor promptjába csak approved státuszú tartalmuk kerül be
+    (ld. `sermon_outline_engine.extract_outline_background_material`).
 
     Alias a meglévő `collect_outline_context_bundle` fölött — a vázlatgenerálás
     és a diagnosztika ugyanezt a forrást használja.
@@ -551,10 +551,12 @@ def collect_outline_context_bundle(
         text = _truncate(_session_str(session_state, session_key), limit)
         if text:
             bundle[field_name] = text
-            # Ezekhez a mezőkhöz nincs UI-szintű elfogadási lépés (nincs
-            # Reszanyag-állapotgép) — explicit jelöljük, hogy a vázlatmotor
-            # ne kezelje jóváhagyott tényként.
-            bundle[f"{field_name}_status"] = "unreviewed"
+            bundle[f"{field_name}_status"] = (
+                _s(session_state.get(f"{session_key}_status")) or "draft"
+            )
+            bundle[f"{field_name}_ever_approved"] = bool(
+                session_state.get(f"{session_key}_ever_approved")
+            )
             keys.append(field_name)
             keys.append(f"{field_name}_status")
 

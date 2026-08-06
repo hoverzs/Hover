@@ -76,7 +76,9 @@ def _base_state(**extra) -> dict:
         "igehely_input": "Jn 3,16",
         "passage_text": "16 Mert úgy szerette Isten a világot, hogy egyszülött Fiát adta…",
         "exegesis": "A szeret ige a szöveg központi mozgása a megváltás felé.",
+        "exegesis_status": "approved",
         "original_text": "ἠγάπησεν — aoristos, Isten cselekvő szeretete.",
+        "original_text_status": "approved",
         "theology": "",
         "history": "",
         "last_sajat": "",
@@ -1353,8 +1355,11 @@ def test_outline_prompt_includes_background_when_present():
         "passage_reference": "Jn 3,16",
         "passage_text": "Mert úgy szerette Isten a világot…",
         "exegesis": "A szeret ige a szöveg központi mozgása.",
+        "exegesis_status": "approved",
         "history": "A nikodémusi párbeszéd kontextusa.",
+        "history_status": "approved",
         "original_text": "ἠγάπησεν — aoristos.",
+        "original_text_status": "approved",
     }
     bg = extract_outline_background_material(bundle)
     assert "exegesis" in bg and "history" in bg and "original_text" in bg

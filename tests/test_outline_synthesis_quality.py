@@ -350,8 +350,11 @@ def test_prompt_dynamic_background_vs_passage_only_in_assembly():
 
     rich = dict(bare)
     rich["exegesis"] = "Júdás a gúnyolódók ellen figyelmeztet, majd a megmaradásra hív."
+    rich["exegesis_status"] = "approved"
     rich["history"] = "A levél a korai egyház szakadásainak közegében született."
+    rich["history_status"] = "approved"
     rich["original_text"] = "ἐποικοδομοῦντες — folyamatos épülés."
+    rich["original_text_status"] = "approved"
     ensure_sermon_workshop_state(rich)
     # Direct prompt check mirrors assembly context
     from sermon_outline_engine import collect_outline_evidence
