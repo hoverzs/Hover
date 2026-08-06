@@ -3704,35 +3704,51 @@ Ne prédikációt írj, hanem szakmai háttérelemzést.
 
 Szakmai vízió:
 Helyezd el a textust a keletkezésének **valóságos történeti és kulturális
-terébe**. Keress konkrét **régészeti, társadalmi vagy vallástörténeti adatokat**.
-Hogyan értették ezt az üzenetet az **első hallgatók** a saját **politikai,
-gazdasági vagy vallási szorongásaik** közepette?
+terébe**. Keress konkrét **régészeti, társadalmi vagy vallástörténeti
+adatokat**. Milyen dokumentált korabeli szokás, politikai, gazdasági vagy
+vallási körülmény kapcsolódik közvetlenül ehhez a szakaszhoz?
+
+FONTOS HATÁRVONAL: csak ELLENŐRIZHETŐ, forrásra visszavezethető történeti
+vagy kulturális TÉNYEKET adj. NE állítsd, hogy a szakasz "miről szól" vagy
+"milyen problémára reagál", és NE fogalmazz meg olyan mondatot, hogy az első
+hallgatók "hogyan értették", "hogyan hangzott ez nekik" vagy "mit éreztek" —
+ez már interpretáció, nem kontextuális tény, és nem a te feladatod. A
+kontextust önmagában, összekötés nélkül add át; azt, hogy ez mit jelent a
+szakasz üzenete szempontjából, az igehirdető vagy más modul dönti el.
 
 Strukturáld a választ így:
 
 ## Történelmi háttér
-A szöveg keletkezésének időszaka, az adott periódus jellemzői.
+A szöveg keletkezésének időszaka, az adott periódus dokumentált jellemzői.
 
 ## Politikai és vallási környezet
-Uralkodók, hatalmi viszonyok, vallási intézmények, kortárs irányzatok.
+Uralkodók, hatalmi viszonyok, vallási intézmények, kortárs irányzatok — csak
+dokumentált tények.
 
 ## Társadalmi és gazdasági viszonyok
-Társadalmi rétegek, hétköznapok, gazdasági realitások — ami nélkül a szöveget nem értjük.
+Társadalmi rétegek, hétköznapok, gazdasági realitások az adott korban és
+térségben — leíró jelleggel, nem "amit a szöveg megértéséhez tudnunk kell"
+keretezésben.
 
 ## Földrajzi és régészeti háttér
 Helyszín, topográfia, releváns régészeti felfedezések — csak biztos adatok.
 
 ## Korabeli szokások
-A textus hátterében álló kulturális gyakorlatok (étkezés, házasság, jog, vallási rítusok stb.).
+A textus hátterében álló, dokumentált kulturális gyakorlatok (étkezés,
+házasság, jog, vallási rítusok stb.) — írd le magát a gyakorlatot vagy
+felfogást, ne azt, hogy ez mit jelentett volna a hallgatóknak.
 
-## Az első hallgatók szorongásai
-**Hogyan hangzott ez akkor?** — a konkrét történelmi terhek között.
+## Korabeli élethelyzet
+Milyen politikai, gazdasági vagy vallási körülmények jellemezték
+általánosságban ezt a közösséget vagy kort — dokumentált, történeti leírás,
+NEM "hogyan élték ezt meg" vagy "hogyan hatott ez rájuk" jellegű állítás.
 
-## Homiletikai haszon
-- Mit érdemes ebből a prédikációban használni.
-- Mit **nem** érdemes túlhangsúlyozni (a kontextus nem helyettesíti az igét).
+Külön és világosan jelezd, mi **biztos**, mi **valószínű**, és mi
+**vitatott**.
 
-Külön és világosan jelezd, mi **biztos**, mi **valószínű**, és mi **vitatott**.
+Ne vonj le következtetést arról, mire használható ez a prédikációban, és ne
+mondd meg, mit "érdemes" vagy "nem érdemes" felhasználni — az összekötést az
+igehirdetőre vagy a vázlatmotorra bízd.
 """,
     "theology": """{alap}
 
