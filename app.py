@@ -4112,6 +4112,9 @@ szerkezete szerint, kizárólag a fenti token-listára hivatkozva.
 """
 
 
+_BOLD_LABEL_FIELD_RE = re.compile(r'^\*\*[^*\n:]+:\*\*\s+[^\s,][^\n,]{0,39}$')
+
+
 def _looks_incomplete_response(text: str) -> bool:
     """Óvatos heurisztika: csak láthatóan félbeszakadt választ jelölünk rövidítettnek."""
     cleaned = _strip_chatty_intro(text or "").strip()
@@ -4134,6 +4137,17 @@ def _looks_incomplete_response(text: str) -> bool:
 
     if re.match(r"^[-*+]\s*$", last_nonempty) or re.match(r"^\d+\.\s*$", last_nonempty):
         return True
+
+    # „**Címke:** érték” alakú, bold-formázott záró mező (pl. „**Típus:**
+    # morfologiai”) — szándékosan nem végződik írásjellel, mégis teljes
+    # tartalom. Csak akkor fogadjuk el teljesnek, ha az érték rövid és
+    # vessző nélküli (kategória-szerű címke) — egy vesszőt tartalmazó vagy
+    # hosszabb érték inkább folyó szöveg, ami mondat közben is
+    # megszakadhatott, ott a lenti írásjel-ellenőrzés döntsön. Prompt-
+    # sablonoktól függetlenül általánosan felismerjük, nem csak a jelenleg
+    # ismert záró mezőnevekre szűkítve.
+    if _BOLD_LABEL_FIELD_RE.match(last_nonempty):
+        return False
 
     # Ha a legutolsó sor természetes záró írásjel nélkül áll meg, az gyanús.
     return not re.search(r'[.!?…)"”\]\}]$', last_nonempty)
