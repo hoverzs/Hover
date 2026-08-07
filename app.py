@@ -3844,37 +3844,70 @@ A cél a **teológiai tisztánlátás** — nem közhelyek, hanem mély, prédik
 """,
     "illustrations": """{alap}
 
-# ILLUSZTRÁCIÓK — FELTÖRIK A TEXTUS KÉRGÉT
+# ILLUSZTRÁCIÓK — ELMESÉLHETŐ TÖRTÉNETEK
 
 Szakmai vízió:
-Generálj olyan **szellemi képeket és analógiákat**, amelyek **feltörik
-a textus kemény kérgeit**. Keress a **kortárs kultúrából, a tudományból
-vagy a művészetből** olyan metaforákat, amelyek a textus **belső logikáját**
-teszik átélhetővé. Olyan képeket adj, amelyek **intellektuálisan izgalmasak
-és lelkileg megrendítőek**.
+Ez a modul KIZÁRÓLAG konkrét, elmesélhető TÖRTÉNETEKET ad — nem elemzést.
+Az exegetikai és homiletikai kifejtés máshol (Exegézis, Teológia, Vázlat
+modulokban) már megvan; ezt itt NE ismételd meg, és NE adj szerkezeti vagy
+alkalmazási javaslatot a prédikációhoz.
 
-Strukturáld a választ így:
+Minden illusztráció legyen:
+- valós eset, ismert anekdota, vagy klasszikus tanmese (pl. haszid
+  történetek Anthony de Mello stílusában, keleti bölcs-mesék, ismert
+  történelmi vagy egyháztörténeti anekdoták) — SOHA nem elvont
+  "kép" vagy metafora-leírás cselekmény nélkül,
+- rövid, önmagában megálló sztori — néhány mondat, konkrét szereplővel,
+  helyszínnel/idővel (ha ismert), cselekménnyel és világos csattanóval
+  vagy tanulsággal a végén,
+- olyan forma, amit a lelkész szó szerint fel tud olvasni vagy el tud
+  mesélni a szószéken, elemzés vagy magyarázat nélkül is megáll önmagában.
 
-## Hétköznapi képek
-2–3 mai, megélt élethelyzet, amely a textus központi mozgását leképezi.
+SZIGORÚAN TILOS (ez a modul feladatköre kizárja, más modul dolga):
+- görög vagy héber szó, kifejezés idézése vagy nyelvi elemzése,
+- exegetikai szövegelemzés (versenkénti bontás, szómagyarázat, szerkezeti
+  vagy teológiai értelmezés) bármilyen formában, még bevezetésképpen is,
+- homiletikai szerkezeti javaslat, igehirdetési felépítés vagy
+  "hogyan építsd be" jellegű alkalmazási útmutatás,
+- elvont "kép" vagy analógia konkrét, elmesélhető cselekmény nélkül.
+Ezek a tiltások AKKOR IS érvényesek, ha az általános rendszerutasítás
+"exegetikailag pontos" vagy "homiletikailag használható" tartalmat kér —
+EZ a modul kizárólag elmesélhető történeteket ad, a nyelvi/teológiai
+feltárást és a szerkezeti javaslatot más modulra (Exegézis, Teológia,
+Vázlat) bízza.
 
-## Kortárs kulturális analógiák
-Kortárs irodalmi, filmes, zenei vagy közéleti analógiák — csak valós, nem találgatott.
-Ha egy idézet vagy hivatkozás bizonytalan, jelöld: *(bizonytalan eredet)*.
+Strukturáld a választ KIZÁRÓLAG az alábbi 4 alcímmel — sem többet, sem
+kevesebbet, ne adj hozzá saját alcímet (pl. "Exegetikai alapvetés",
+"Homiletikai irányok", "Teológiai háttér" stb.), és a válasz a negyedik
+alcím után ÉRJEN VÉGET, ne folytasd tovább:
 
-## Tudomány és művészet
-Olyan **természettudományos, művészettörténeti vagy filozófiai kép**, amely
-intellektuálisan is provokál és új szemszöget nyit a szövegre.
+## Klasszikus tanmesék
+2–3 ismert bölcs-történet vagy tanmese (haszid, keleti, egyháztörténeti
+hagyomány), amely a textus központi mozgását vagy csattanóját visszaadja.
 
-## Történeti vagy bibliai párhuzam
-Egy másik bibliai vagy egyháztörténeti történet, amely a textus üzenetét élővé teszi.
+## Valós anekdoták és esetek
+2–3 megtörtént, azonosítható esemény (történelmi, egyháztörténeti, közismert
+életrajzi anekdota) — csak valós, nem kitalált.
 
-## Egy bevezető kép
-**Egy konkrét, készre formált bevezető kép** — amelyet a lelkipásztor a prédikáció
-első mondataiban használhat.
+## Mai, hétköznapi történet
+1–2 konkrét, megtörténhetett léptékű eset — NEM elvont élethelyzet-leírás,
+hanem tényleges kis sztori szereplővel és csattanóval.
+
+## Bevezető illusztráció
+EGY ÚJ, a fentiektől eltérő, készre formált történet, amelyet a
+lelkipásztor az igehirdetés első mondataiban elmondhat — NE ismételd meg
+szó szerint vagy tartalmában egyik korábbi szakasz sztoriját sem. EZ AZ
+UTOLSÓ SZAKASZ — itt fejezd be a választ, ne adj hozzá további alcímet
+vagy összegzést.
+
+Minden illusztráció végén — külön sorban, dőlten — egy egymondatos jelzés,
+*mire* rímel a textusban (pl. *„Kapcsolódás: a türelmes várakozás
+motívuma"*) — ez NE fejtse ki elemzés vagy magyarázat formájában, csak
+nevezze meg a kapcsolódási pontot.
 
 Soha NE használj hamis idézeteket, ellenőrizetlen legendákat vagy kitalált
-egyházatya-mondásokat. Ha bizonytalan vagy az eredetben, jelezd.
+egyházatya-mondásokat. Ha bizonytalan vagy egy történet eredetében vagy
+valóságtartalmában, jelöld: *(bizonytalan eredet)*.
 """,
     "actualization": """{alap}
 
