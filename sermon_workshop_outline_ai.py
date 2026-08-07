@@ -1214,7 +1214,7 @@ def outline_to_readable_content(outline: Any) -> str:
 
     safe = outline if isinstance(outline, dict) else {}
     structured = safe.get("structured") if isinstance(safe.get("structured"), dict) else {}
-    if structured.get("points") or structured.get("focus_sentence"):
+    if structured.get("body_markdown") or structured.get("points") or structured.get("focus_sentence"):
         try:
             from sermon_outline_engine import render_structured_outline
 
@@ -1545,7 +1545,7 @@ def outline_canonical_text(outline: Any) -> str:
     """
     safe = normalize_sermon_outline(outline)
     structured = safe.get("structured") if isinstance(safe.get("structured"), dict) else {}
-    if structured.get("points") or structured.get("focus_sentence"):
+    if structured.get("body_markdown") or structured.get("points") or structured.get("focus_sentence"):
         try:
             from sermon_outline_engine import render_structured_outline
 

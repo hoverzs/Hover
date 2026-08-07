@@ -399,7 +399,7 @@ def _ezs46_good_structured() -> dict:
 
 
 def _ezs_verbose_payload() -> dict:
-    """Ézs 46,3–4 failure pattern: long intro, multi-para points, long close."""
+    """Ézs 46,3–4 failure pattern: jóval 850 szó feletti, ismétlődő body_markdown."""
     para = (
         "Az Úr nem idegen erőként áll a nép fölött, hanem anyai gondoskodással "
         "hordozza őket a méhtől fogva, és az öregség napjaiban sem engedi el "
@@ -411,51 +411,7 @@ def _ezs_verbose_payload() -> dict:
         "title": "Az örök Hordozó",
         "text_reference": "Ézs 46,3–4",
         "scope_note": "",
-        "focus_sentence": (
-            "Az örökkévaló Isten a méhtől az öregségig hordozza népét, "
-            "és nem engedi el a kezét a fáradtság napjaiban sem."
-        ),
-        "introduction_direction": " ".join(["bevezetés"] * 50)
-        + " A hallgató a saját terheivel áll a textus elé, mielőtt Isten "
-        "hordozó szeretetét hallaná, és hosszú magyarázatot kap arról, "
-        "miért fontos ez a kép a száműzetés népének és nekünk is.",
-        "points": [
-            {
-                "title": "A méhtől fogva hordozó Isten",
-                "verses": "v. 3",
-                "thesis": para,
-                "body": para + "\n\n" + para,
-                "textual_insight": para + "\n\n" + para,
-                "theological_emphasis": para + "\n\n" + para,
-                "listener_movement": para,
-            },
-            {
-                "title": "Az öregségig tartó megtartás",
-                "verses": "v. 4",
-                "thesis": para,
-                "textual_insight": para,
-                "theological_emphasis": para,
-                "listener_movement": para,
-            },
-            {
-                "title": "A bálványokkal szemben álló Úr",
-                "verses": "v. 3–4",
-                "thesis": para,
-                "textual_insight": para,
-                "theological_emphasis": para,
-                "listener_movement": para,
-            },
-            {
-                "title": "A hallgató válasza a hordozásra",
-                "verses": "v. 4",
-                "thesis": para,
-                "textual_insight": para,
-                "theological_emphasis": para,
-                "listener_movement": para,
-            },
-        ],
-        "conclusion_direction": " ".join(["zaras"] * 55)
-        + " Hosszú záró beszéd ismétli a magyarázatot és az alkalmazást.",
+        "body_markdown": "\n\n".join([para] * 20),
         "refinement_suggestions": [],
     }
 
@@ -471,8 +427,6 @@ def test_schema_version_shared_by_quick_and_workshop():
     ws = normalize_structured_outline(workshop.outline.get("structured"))
     assert qs.get("schema_version") == SCHEMA_VERSION
     assert ws.get("schema_version") == SCHEMA_VERSION
-    assert "thesis" not in qs["points"][0]
-    assert "thesis" not in ws["points"][0]
 
 
 def test_quick_and_workshop_share_render_contract():
@@ -513,7 +467,7 @@ def test_quick_outline_without_homiletical_workshop():
     assert result.ok, result.error_message
     assert result.source == "quick"
     assert outline_has_content(result.outline)
-    assert 2 <= len(result.outline.get("movements") or []) <= 4
+    assert 2 <= len(result.outline.get("movements") or []) <= 5
 
 
 def test_outline_from_biblical_text_plus_exegesis_original():
@@ -533,8 +487,7 @@ def test_workshop_outline_with_approved_decisions():
     result = generate_sermon_outline(state, mode="workshop", generate_fn=None)
     assert result.ok, result.error_message
     assert result.source == "workshop"
-    assert result.outline.get("main_idea")
-    assert len(result.outline.get("movements") or []) >= 2
+    assert result.outline.get("main_idea") or outline_has_content(result.outline)
 
 
 def test_both_entry_points_same_output_schema():
@@ -916,18 +869,18 @@ def test_absolute_max_and_schema_are_three_layer_pulpit_outline():
     assert LIMITS["max_points"] == 5
     assert LIMITS["point_layers_min_words"] == 40
     assert LIMITS["point_layers_max_words"] == 160
-    assert SCHEMA_VERSION == "pulpit_outline_v7"
-    assert OUTLINE_RESPONSE_SCHEMA["properties"]["movements"]["minItems"] == 2
-    assert OUTLINE_RESPONSE_SCHEMA["properties"]["movements"]["maxItems"] == 5
-    props = OUTLINE_RESPONSE_SCHEMA["properties"]["movements"]["items"]["properties"]
-    assert "textual_insight" in props
-    assert "theological_emphasis" in props
-    assert "listener_movement" in props
-    assert "subpoints" not in props
+    # 2026-08-07: séma pulpit_outline_v8 — egyetlen folyó szövegű
+    # `body_markdown`, nem `movements` tömb (ld. formai átalakítás).
+    assert SCHEMA_VERSION == "pulpit_outline_v8"
+    assert "body_markdown" in OUTLINE_RESPONSE_SCHEMA["properties"]
+    assert "movements" not in OUTLINE_RESPONSE_SCHEMA["properties"]
     assert "thesis" not in LIMITS
     assert "SZEREP:" in OUTLINE_SYSTEM_PROMPT
-    assert "MARKDOWN" in OUTLINE_SYSTEM_PROMPT
-    assert "Fókuszmondat" in OUTLINE_SYSTEM_PROMPT
+    assert "KÖTELEZŐ FORMA" in OUTLINE_SYSTEM_PROMPT
+    # A régi, mezőkre tagolt forma most kifejezetten TILTOTT — a "Fókuszmondat"
+    # csak a tiltólistán szerepel, nem kötelező mezőként.
+    assert "Fókuszmondat:" in OUTLINE_SYSTEM_PROMPT  # a tiltólista része
+    assert "SZIGORÚAN TILOS" in OUTLINE_SYSTEM_PROMPT
     assert "háttéranyag" in OUTLINE_SYSTEM_PROMPT.casefold()
     assert "A textus mozgása" in OUTLINE_SYSTEM_PROMPT  # tiltott példa a promptban
     from sermon_outline_engine import ENRICH_INSTRUCTION, COMPRESS_INSTRUCTION
@@ -1214,45 +1167,20 @@ def test_outline_tabs_use_flash_not_lite():
 
 def test_over_850_not_primary_display():
     # Build a payload clearly over the absolute visible-word ceiling
-    fat_sp = (
-        "Ez egy szándékosan hosszú rétegmondat, amely a textus állítását, teológiai "
+    fat_para = (
+        "Ez egy szándékosan hosszú bekezdés, amely a textus állítását, teológiai "
         "súlyát, homiletikai fordulatát és a hallgatói helyzet konkrét feszültségét "
         "is magába sűríti annak érdekében, hogy a teljes látható vázlat könnyen "
-        "átlépje az abszolút szóhatárt a háromrétegű szószéki vázlat szerződésében, "
+        "átlépje az abszolút szóhatárt a szószéki vázlat szerződésében, "
         "és még további magyarázó szavakat is hozzáad a bőbeszédűséghez, miközben "
         "újra és újra elismétli ugyanazt a gondolatot a prédikációs próza mintájára "
         "a szószéki munkavázlat helyett a tesztelt abszolút határ átlépéséhez."
     )
-    points = []
-    for i in range(4):
-        points.append(
-            {
-                "title": f"Pont címe {i+1}",
-                "verses": f"v. {i+1}",
-                "textual_insight": fat_sp + " " + fat_sp,
-                "theological_emphasis": fat_sp + " " + fat_sp,
-                "listener_movement": fat_sp + " " + fat_sp,
-            }
-        )
     fat = {
         "title": "Túlírt próbakövet",
         "text_reference": "Jn 3,16",
         "scope_note": "",
-        "focus_sentence": (
-            "A textus Isten szeretetét hirdeti a Fiúban, és a hallgatót "
-            "hitbeli válaszra hívja a világ közepette."
-        ),
-        "introduction_direction": (
-            "A hallgató hosszú feszültséggel érkezik a textus elé. "
-            "A kérdés személyes és közösségi egyszerre. "
-            "Innen nyílik meg lassan az ige saját mozgása."
-        ),
-        "points": points,
-        "conclusion_direction": (
-            "A megérkezés is hosszabb, hogy a teszt biztosan az abszolút "
-            "maximum fölé emelje a látható szószámot. "
-            "Új témát azonban így sem vezet be a zárás."
-        ),
+        "body_markdown": "\n\n".join([fat_para] * 18),
         "refinement_suggestions": [],
     }
     assert word_count(render_structured_outline(fat)) > LIMITS["absolute_max_words"]
@@ -1386,7 +1314,7 @@ def test_outline_prompt_passage_only_without_missing_warnings():
     assert "HÁTTÉRANYAG" not in prompt
     assert "BIBLIAI SZÖVEG" in prompt or "IGEHELY:" in prompt
     assert "csak a fenti bibliai textus áll rendelkezésre" in prompt.casefold()
-    assert "hiányzó háttéranyag" in prompt.casefold()
+    assert "nincs mellékelt háttéranyag" in prompt.casefold()
     assert "hiba" not in prompt.casefold()
     assert "nincs elég" not in prompt.casefold()
 
@@ -1400,39 +1328,36 @@ def test_passage_only_generation_ok_without_error_banner():
 
 
 def test_markdown_outline_parses_into_structured_fields():
+    """2026-08-07: a parser már csak a címet választja le — a maradék
+    (mozgás-címkékkel tagolt folyó szöveg) változatlanul `body_markdown`."""
     from sermon_outline_engine import markdown_outline_to_structured
 
     md = """# Együtt erősödünk – Préd 4,9–12
 
-**Fókuszmondat:** Isten a közösségben tart meg, nem a magányos erőfeszítésben.
+Indítás: az egyedül cipelt teher
 
----
+Sokszor egyedül cipelnénk a terhet, pedig a bölcsességi irodalom a társas élet áldását emeli ki.
 
-### 1. Bevezetés és Ráhangolódás
-* **Élethelyzet / Probléma:** Sokszor egyedül cipelnénk a terhet.
-* **A Textus Világa (Kontextus):** A bölcsességi irodalom a társas élet áldását emeli ki.
+Jobb ketten, mint egyedül
 
-### 2. Jobb ketten, mint egyedül
-* **Igei fókusz:** v. 9–10 — a közös munka gyümölcse.
-* **Exegetikai / Eredeti nyelvi mélység:** A „jó” (tób) itt gyakorlati áldást jelent.
-* **Gyakorlati alkalmazás:** Keress olyan társat, akivel együtt hordozhatod a terhet.
+A 9–10. vers a közös munka gyümölcséről beszél — a „jó” (tób) itt gyakorlati áldást jelent.
 
-### 3. A hármas kötél nem szakad el könnyen
-* **Igei fókusz:** v. 12 — a közösség ereje.
-* **Exegetikai / Eredeti nyelvi mélység:** A hármas kötél a tartós összetartozás képe.
-* **Gyakorlati alkalmazás:** Ne hagyd magadra a gyülekezeti kapcsolatokat.
+A hármas kötél nem szakad el könnyen
 
-### Befejezés és Útravaló
-* **Összegzés:** Isten a közösségben erősít meg.
-* **Személyes döntés / Lépés:** Kit hívsz ma melléd a teherhordásban?
+A 12. vers képe a közösség erejét mutatja: a hármas kötél a tartós összetartozás jele.
+
+Hazavezető gondolat
+
+Isten a közösségben tart meg, nem a magányos erőfeszítésben. Kit hívsz ma melléd a teherhordásban?
 """
     data = markdown_outline_to_structured(md)
     assert "Együtt erősödünk" in data["title"]
     assert "Préd" in data["text_reference"]
-    assert "közösségben" in data["focus_sentence"].casefold()
-    assert len(data["points"]) >= 2
-    assert data["points"][0]["textual_insight"]
-    assert data["conclusion_direction"]
+    assert "közösségben" in data["body_markdown"].casefold()
+    assert "Indítás" in data["body_markdown"]
+    assert "Hazavezető gondolat" in data["body_markdown"]
+    # A cím sora ne maradjon benne a body_markdown-ban
+    assert not data["body_markdown"].startswith("#")
 
 
 def test_jude_gold_three_layer_outline_contract():
@@ -1444,7 +1369,7 @@ def test_jude_gold_three_layer_outline_contract():
     rendered = render_structured_outline(data)
     wc = word_count(rendered)
     assert LIMITS["target_min_3_4"] <= wc <= LIMITS["target_max_3_4"], wc
-    assert SCHEMA_VERSION == "pulpit_outline_v7"
+    assert SCHEMA_VERSION == "pulpit_outline_v8"
 
     state = _base_state(
         last_igehely="Júd 17–20",
@@ -1470,10 +1395,9 @@ def test_jude_gold_three_layer_outline_contract():
 
 
 def test_live_paths_use_canonical_v7_prompt_and_schema():
-    """Audit lock: Quick és Workshop ugyanazt a Markdown system promptot használja."""
-    assert SCHEMA_VERSION == "pulpit_outline_v7"
-    assert "MARKDOWN" in OUTLINE_SYSTEM_PROMPT
-    assert "Fókuszmondat" in OUTLINE_SYSTEM_PROMPT
+    """Audit lock: Quick és Workshop ugyanazt a system promptot használja."""
+    assert SCHEMA_VERSION == "pulpit_outline_v8"
+    assert "KÖTELEZŐ FORMA" in OUTLINE_SYSTEM_PROMPT
     assert "szószékre kész" in OUTLINE_SYSTEM_PROMPT.casefold()
     from sermon_workshop_outline_synth_ai import HOMILETIC_SYSTEM_PROMPT
 

@@ -36,8 +36,8 @@ logger = logging.getLogger("textus.outline")
 TAB_OUTLINE = "Igehirdetési vázlat"
 DEFAULT_TEMPERATURE = 0.2
 _OUTLINE_INCOMPLETE_SENTINEL = "__OUTLINE_TRUNCATED__"
-SCHEMA_VERSION = "pulpit_outline_v7"
-ENGINE_VERSION = "outline_engine_v7"
+SCHEMA_VERSION = "pulpit_outline_v8"
+ENGINE_VERSION = "outline_engine_v8"
 LEGACY_SCHEMA_VERSIONS = frozenset(
     {
         "",
@@ -116,7 +116,13 @@ ENRICHABLE_ISSUES = frozenset(
     }
 )
 COMPRESS_TRIGGER_ISSUES = frozenset(
-    {"over_absolute_max", "full_sermon_like", "verbatim_source_copy"}
+    {
+        "over_absolute_max",
+        "full_sermon_like",
+        "verbatim_source_copy",
+        "forbidden_structure",
+        "forbidden_filler",
+    }
 )
 
 # Prose-bait / legacy fields — soha ne kérjük és ne jelenjenek meg elsődlegesen.
@@ -165,6 +171,57 @@ FORBIDDEN_HEADINGS: tuple[str, ...] = (
     "Tételmondat (scopus)",
 )
 
+# A 2026-08-07 formai átalakítás ELŐTTI, mezőkre/pontokra tagolt struktúra
+# technikai mezőnevei — ezek KIZÁRÓLAG az ÚJ, `body_markdown`-alapú formában
+# tiltottak (`_has_forbidden_outline_structure`). Szándékosan KÜLÖN tuple a
+# `FORBIDDEN_HEADINGS`-től: az a régebbi, univerzálisan tiltott
+# (más regresszióból eredő) alcím-mintákat listázza, amik a RÉGI,
+# visszafelé-kompatibilis renderelő ágban (`render_structured_outline` régi
+# branch) továbbra is legitim módon megjelennek saját szekciócímkeként —
+# ha ide kerülnének, a régi vázlatok visszafelé-kompatibilis megjelenítése
+# hamisan "tiltott struktúrának" minősülne.
+_LEGACY_FIELD_LABELS: tuple[str, ...] = (
+    "Igei fókusz",
+    "Exegetikai / Eredeti nyelvi mélység",
+    "Exegetikai mélység",
+    "Gyakorlati alkalmazás",
+    "Bevezetés és Ráhangolódás",
+    "Befejezés és Útravaló",
+    "Élethelyzet / Probléma",
+    "A Textus Világa (Kontextus)",
+    "Fókuszmondat",
+    "Bevezetési irány",
+    "Megérkezés",
+)
+
+# A régi mezőcímke-struktúra felismerésére — ha a modell visszacsúszik a
+# tiltott formába, a `forbidden_structure` validációs hiba erre épül.
+# 2026-08-07 (2. kör): a szabad, tartalmi mozgás-címkék (pl. "Indítás: ...",
+# "I. Az áldozat, amit nem tudunk megmagyarázni") EXPLICIT MEGENGEDETTEK —
+# ezért itt KIZÁRÓLAG a névvel azonosítható régi technikai mezőnevekre és a
+# zárójeles/fejléc-szintaxisú versszám-jelölésre szűrünk, nem minden
+# alcímezésre.
+_FORBIDDEN_LABEL_PATTERN = "|".join(re.escape(h) for h in _LEGACY_FIELD_LABELS)
+_FORBIDDEN_STRUCTURE_PATTERNS: tuple[re.Pattern[str], ...] = (
+    re.compile(r"(?m)^#{1,6}\s"),  # bármilyen markdown-fejléc a fő cím soron kívül
+    re.compile(rf"\*\*(?:{_FORBIDDEN_LABEL_PATTERN})\s*:?\*\*"),  # pl. "**Igei fókusz:**"
+    re.compile(rf"(?mi)^\s*(?:{_FORBIDDEN_LABEL_PATTERN})\s*:\s*$"),  # bare "Igei fókusz:" sor
+    re.compile(r"(?m)^\s*\(?v\.?\s*\d{1,3}[a-c]?(?:\s*[–\-]\s*\d{1,3}[a-c]?)?\)?\s*$"),  # önálló versszám-sor
+    re.compile(
+        r"\(\s*v\.?\s*\d{1,3}[a-c]?(?:\s*[–\-]\s*\d{1,3}[a-c]?)?\s*(?:vers(?:ek)?)?\s*\)"
+        r"|\(\s*\d{1,3}[a-c]?(?:\s*[–\-]\s*\d{1,3}[a-c]?)?\.\s*vers(?:ek)?\s*\)",
+        re.I,
+    ),  # zárójeles versszám-címke, pl. "(v. 6-7)" / "(3-7. versek)"
+)
+
+
+def _has_forbidden_outline_structure(body: str) -> bool:
+    """True, ha a szöveg a régi, mezőkre/pontokra tagolt formát mutatja."""
+    raw = _s(body)
+    if not raw:
+        return False
+    return any(pat.search(raw) for pat in _FORBIDDEN_STRUCTURE_PATTERNS)
+
 FORBIDDEN_FILLERS: tuple[str, ...] = (
     "de vajon",
     "ez azonban",
@@ -174,34 +231,36 @@ FORBIDDEN_FILLERS: tuple[str, ...] = (
 
 COMPRESS_INSTRUCTION = (
     "FORMAI TÖMÖRÍTÉS ÉS/VAGY SZÓ SZERINTI ÁTVÉTEL JAVÍTÁSA — a JELZETT "
-    "PROBLÉMÁK között szereplő `verbatim_source_copy` azt jelenti, hogy egy "
-    "mező szó szerint (vagy majdnem szó szerint) átvette a forrásanyag "
+    "PROBLÉMÁK között szereplő `verbatim_source_copy` azt jelenti, hogy a "
+    "vázlattest szó szerint (vagy majdnem szó szerint) átvette a forrásanyag "
     "(bibliai szöveg vagy háttéranyag) egy hosszabb részletét ahelyett, hogy "
     "szintetizálta volna — ezt írd át saját, tömör megfogalmazásra, ne csak "
-    "töröld a mondatot. Ha a `over_absolute_max`/`full_sermon_like` jelzés "
-    "is szerepel, a látható vázlat 850 szó felett van. "
+    "töröld a mondatot. A `forbidden_structure` jelzés azt jelenti, hogy a "
+    "vázlat számozott alcímet, mezőcímkét (pl. \"Igei fókusz:\") vagy "
+    "zárójeles versszám-jelölést tartalmaz — EZ TILOS, írd át egyetlen, "
+    "folyó szövegű bekezdéssorozattá. Ha a `over_absolute_max`/"
+    "`full_sermon_like` jelzés is szerepel, a látható vázlat 850 szó felett van. "
     "A kapott vázlat tartalmi és homiletikai ívét őrizd meg; "
     "ne tervezz új vázlatot és ne adj hozzá új exegetikai vagy teológiai állítást. "
     "Csak a fölösleges ismétlést, metaszöveget és prédikációs bőbeszédűséget csökkentsd. "
     "Soha ne vágj félbe mondatot szószám alapján. "
-    "Őrizd a movements szerkezetet: textual_insight, theological_emphasis, "
-    "listener_movement (és transition csak ha már volt). "
     "Abszolút felső határ 850 szó. "
-    "Ne használj thesis/body/content/subpoints/application/points mezőt — "
-    "a kanonikus tömb neve `movements`. "
+    "A kanonikus mező neve `body_markdown` — EGY folyó szövegű, bekezdésekre "
+    "tagolt gondolatmenet, NEM tömb/pontokra bontott struktúra. "
     "Kizárólag a teljes, javított JSON objektumot add vissza."
 )
 
 ENRICH_INSTRUCTION = (
     "CÉLZOTT TARTALMI KIEGÉSZÍTÉS — ha a vázlat felszínes, ismétlődő, vagy "
-    "egy kötelező réteg hiányzik/sovány. "
+    "túl rövid. "
     "A kapott vázlat szerkezetét és igehely-beosztását őrizd; "
     "ne írj új prédikációt és ne találj ki verseket. "
-    "Gazdagítsd a FORRÁS és a gyors háttércsomag anyagából. "
-    "Minden mozgásban legyen konkrét textual_insight, theological_emphasis és "
-    "listener_movement — teljes mondatok, nem közhely, nem bekezdés. "
-    "Ne ismételd ugyanazt a mondatot más mezőben. "
-    "Ne írj többbekezdéses prózát vagy záróprédikációt. "
+    "Gazdagítsd a FORRÁS és a gyors háttércsomag anyagából — konkrét, a "
+    "forrásra visszavezethető megfigyeléssel, nem közhellyel. "
+    "A `body_markdown` maradjon EGY folyó szövegű, bekezdésekre tagolt "
+    "gondolatmenet — NE válts számozott alcímekre, mezőcímkékre (pl. "
+    "\"Igei fókusz:\") vagy zárójeles versszám-jelölésre. "
+    "Ne ismételd ugyanazt a mondatot más bekezdésben. "
     "refinement_suggestions: legfeljebb 2 hasznos szerkesztői javaslat, vagy []. "
     "Kizárólag a teljes, kiegészített JSON objektumot add vissza."
 )
@@ -256,41 +315,74 @@ STÍLUS ÉS HANGVÉTEL:
 - Szikár, jól áttekinthető, lényegretörő (tőmondatok és 1-2 mondatos, velős kifejtések).
 - Tilos a teológiai bikkfanyelv és a sablonos, üres meta-szöveg (pl. 'A szakasz a bölcsességi irodalomba tartozik...', 'A textus mozgása...'). A hallgatóságnak szóló, életközeli nyelvezetet használj.
 - SZIGORÚAN TILOS a bibliai igeszöveg — akár rövid szakaszának is — SZÓ
-  SZERINTI idézése bárhol a vázlatban, az "Igei fókusz" mezőben is. Ez a
-  mező CSAK rövid hivatkozást tartalmazzon (pl. "6-7. vers" vagy "a
-  kenózis-mozzanat"), NE idézőjeles szövegrészletet. Rossz példa (TILOS):
-  "**Igei fókusz:** 6-7a versek ('aki Isten formájában lévén nem
-  tekintette zsákmánynak...')". Jó példa: "**Igei fókusz:** 6-7a vers —
-  Krisztus isteni státusza és annak önkéntes háttérbe helyezése."
-- Csak a kért Markdown struktúrát add vissza, semmi bevezető vagy lezáró udvariaskodás!
+  SZERINTI idézése bárhol a vázlatban. Egy verstartományra csak a mondat
+  természetes részeként utalhatsz (pl. "A 6–7. vers fordulópontja…"),
+  SOHA nem idézőjeles szövegrészlettel.
+- Ha a mellékelt anyagban (pl. vázlatkosár, illusztráció) NEVESÍTETT
+  forrás szerepel — szerző, gondolkodó, teológus neve —, ŐRIZD MEG a
+  nevesítést, ha ezt a gondolatot felhasználod, mondatba ágyazva (pl.
+  "Anthony de Mello egyik tanítása szerint…"). NE anonimizáld
+  "egy bölcs tanítás szerint" vagy hasonló, forrás nélküli formára —
+  ez elveszíti a hitelességet és a visszakereshetőséget. Ha a mellékelt
+  anyagban NINCS név, TE se találj ki egyet.
+- Csak a kért forma szerinti szöveget add vissza, semmi bevezető vagy lezáró udvariaskodás!
 
-KÖTELEZŐ MARKDOWN STRUKTÚRA:
+KÖTELEZŐ FORMA — FOLYÓ SZÖVEGŰ GONDOLATMENET, KÖNNYŰ MOZGÁS-CÍMKÉKKEL:
 
 # [A Prédikáció Címe] – [Igehely]
 
-**Fókuszmondat:** [Egyetlen, dinamikus tételmondat, ami a prédikáció fő üzenetét hordozza a mai hallgató számára.]
+Ez után egy tapasztalt igehirdető tényleges gondolatmenete következik,
+bekezdésről bekezdésre — a hangsúly a folyó prózán van, NEM a mezőkre/
+pontokra tagolt struktúrán. A bekezdéseket ROVID, EVOKATÍV, SZABAD
+SZÖVEGŰ mozgás-címkékkel tagolhatod (ez megengedett és kívánatos, nem
+tilos!) — pl. "Indítás: a felkapaszkodás kényszere", "A mélypont: a szó,
+ami egyszerre és véglegesen történt", "A fordulat: »ezért«",
+"Hazavezető gondolat", vagy akár "I. Az áldozat, amit nem tudunk
+megmagyarázni" — saját tartalmi címet adva minden mozgásnak, NEM
+sorszámozott sablon-címet ("1. Főpont") és NEM technikai mezőnevet.
+Ezek a címkék SOSEM markdown-fejléc szintaxissal íródnak (nincs "#"/
+"##"/"###" a fő cím során kívül) — önálló, rövid szövegsorok, amiket
+utánuk a folyó szövegű bekezdés követ. FORMAI SZABÁLY: a mozgás-címke
+saját sorban álljon, utána ÜRES SOR következzen, és csak ez után a
+bekezdés — soha ne írj a címke sora után közvetlenül, üres sor nélkül
+folytatólagos szöveget. Példa a helyes tagolásra:
 
----
+Indítás: a felkapaszkodás kényszere
 
-### 1. Bevezetés és Ráhangolódás
-* **Élethelyzet / Probléma:** [1-2 rövid mondat arról a modern élethelyzetről vagy belső küzdelemről, amire a textus választ ad.]
-* **A Textus Világa (Kontextus):** [Rövid megállapítás az Ige eredeti helyzetéről, hogy áthidaljuk a kortörténeti távolságot.]
+Mai világunkban mindenki felfelé igyekszik…
 
-### 2. [Első Főpont Címe - Lehetőség szerint egy rövid, kifejező tétel]
-* **Igei fókusz:** [Melyik versre vagy gondolatra épül a pont?]
-* **Exegetikai / Eredeti nyelvi mélység:** [Mutasd be a kulcsszó eredeti jelentését vagy a rejtett teológiai összefüggést 1-2 mondatban.]
-* **Gyakorlati alkalmazás:** [Mit jelent ez a mai hívő életében? Hogyan formálja a hétköznapokat?]
+- Indítás: a hallgató mai élethelyzete vagy a textus első mondata nyitja
+  meg a figyelmet — ez legyen a szöveg első mozgása.
+- A textus belső fordulópontjai: kövesd a szakasz saját mozgását,
+  mozgásról mozgásra. A nyelvi, történeti vagy teológiai megfigyelést
+  MONDATBA ÁGYAZVA add elő a bekezdésen belül (pl. "A görög szó itt nem
+  egyszerű önmegtartóztatást jelent, hanem tudatos lemondást — ez a
+  fordulat adja a szakasz súlyát"), SOHA NEM külön "Igei fókusz:" /
+  "Exegetikai / Eredeti nyelvi mélység:" / "Gyakorlati alkalmazás:"
+  technikai mezőben vagy bullet-listában.
+- Verstartomány-hivatkozás csak a mondat természetes részeként
+  fordulhat elő (pl. "A 6–7. vers fordulópontja…"), SOHA nem
+  zárójeles vagy fejléc-szerű címkeként (pl. TILOS: "(v. 6-7)" vagy
+  "1. [Cím] (v. 3-7. versek)" forma).
+- Hazavezető gondolat: a szöveg egy záró mozgással érkezzen meg.
 
-### 3. [Második Főpont Címe]
-* **Igei fókusz:** [Vonatkozó igevers/gondolat.]
-* **Exegetikai / Eredeti nyelvi mélység:** [A szöveg belső logikájának vagy egy másik kulcsszónak a kibontása.]
-* **Gyakorlati alkalmazás:** [Konkrét, cselekvésre vagy szemléletváltásra ösztönző gondolat.]
+SZIGORÚAN TILOS:
+- markdown-fejléc szintaxis ("#", "##", "###") bárhol a fő cím során
+  kívül — a mozgás-címkék szabad szövegsorok, nem fejlécek,
+- a régi, technikai mezőnevek bármelyike: "Igei fókusz:", "Exegetikai /
+  Eredeti nyelvi mélység:", "Exegetikai mélység:", "Gyakorlati
+  alkalmazás:", "Fókuszmondat:", "Bevezetési irány:", "Megérkezés:",
+  "Bevezetés és Ráhangolódás", "Befejezés és Útravaló", "Élethelyzet /
+  Probléma", "A Textus Világa (Kontextus)" — sem bullet-listában, sem
+  mozgás-címkeként,
+- sorszámozott sablon-cím tartalom nélkül (pl. "1. Főpont", "2.
+  Főpont") — minden mozgás-címke legyen SAJÁT, tartalmi cím,
+- zárójeles versszám-címke bekezdés, mondat vagy mozgás-címke elején
+  vagy végén (pl. "(v. 6-7)", "(3-7. versek)").
 
-*(Opcionális: 4. [Harmadik Főpont Címe] - Ugyanebben a struktúrában, ha a szöveg hossza/mélysége indokolja.)*
-
-### Befejezés és Útravaló
-* **Összegzés:** [A fő üzenet egy mondatos, bátorító lezárása.]
-* **Személyes döntés / Lépés:** [Egy konkrét kérdés, felhívás, vagy imádságos irány a gyülekezet felé.]
+A cím sora után a teljes válasz — a mozgás-címkékkel együtt — kb.
+300–500 szó legyen, amit egy lelkész szó szerint fel tud olvasni a
+szószéken, technikai mezőcímke vagy sorszámozott sablon nélkül.
 """
 
 _JSON_SHAPE = """\
@@ -298,19 +390,7 @@ _JSON_SHAPE = """\
   "title": "Figyelemfelkeltő, lényegre törő cím",
   "text_reference": "Igehely",
   "scope_note": "",
-  "focus_sentence": "Egy konkrét fókuszmondat a textusból.",
-  "introduction_direction": "Bevezetés: mai élet + probléma (1-2 pont / 1-2 mondat).",
-  "movements": [
-    {
-      "title": "Világos tételmondat igehely nélkül",
-      "verses": "v. x–y",
-      "textual_insight": "Szövegüzenet / kontextus (1-2 mondat).",
-      "theological_emphasis": "Teológiai igazság (1-2 mondat).",
-      "listener_movement": "Gyakorlati alkalmazás a mai hívő életére (1-2 mondat).",
-      "transition": ""
-    }
-  ],
-  "conclusion_direction": "Befejezés / kitekintés: bátorítás vagy imádságos reflexió.",
+  "body_markdown": "Folyó szövegű gondolatmenet, opcionálisan rövid, szabad szövegű mozgás-címkékkel tagolva — NEM technikai mezőkre/sorszámozott sablonra bontva. Ld. a rendszerutasítás KÖTELEZŐ FORMA szakaszát.",
   "refinement_suggestions": []
 }
 """
@@ -398,39 +478,14 @@ _CORE_PASSAGE_KEYS: tuple[str, ...] = (
     "bible_translation",
 )
 
-# Gemini responseSchema — kanonikus movements.
+# Gemini responseSchema — egyetlen folyó szövegű vázlattest (body_markdown).
 OUTLINE_RESPONSE_SCHEMA: dict[str, Any] = {
     "type": "OBJECT",
     "properties": {
         "title": {"type": "STRING"},
         "text_reference": {"type": "STRING"},
         "scope_note": {"type": "STRING"},
-        "focus_sentence": {"type": "STRING"},
-        "introduction_direction": {"type": "STRING"},
-        "movements": {
-            "type": "ARRAY",
-            "minItems": 2,
-            "maxItems": 5,
-            "items": {
-                "type": "OBJECT",
-                "properties": {
-                    "title": {"type": "STRING"},
-                    "verses": {"type": "STRING"},
-                    "textual_insight": {"type": "STRING"},
-                    "theological_emphasis": {"type": "STRING"},
-                    "listener_movement": {"type": "STRING"},
-                    "transition": {"type": "STRING"},
-                },
-                "required": [
-                    "title",
-                    "verses",
-                    "textual_insight",
-                    "theological_emphasis",
-                    "listener_movement",
-                ],
-            },
-        },
-        "conclusion_direction": {"type": "STRING"},
+        "body_markdown": {"type": "STRING"},
         "refinement_suggestions": {
             "type": "ARRAY",
             "maxItems": 2,
@@ -441,10 +496,7 @@ OUTLINE_RESPONSE_SCHEMA: dict[str, Any] = {
         "title",
         "text_reference",
         "scope_note",
-        "focus_sentence",
-        "introduction_direction",
-        "movements",
-        "conclusion_direction",
+        "body_markdown",
         "refinement_suggestions",
     ],
 }
@@ -639,6 +691,12 @@ def empty_structured_outline() -> dict[str, Any]:
         "title": "",
         "text_reference": "",
         "scope_note": "",
+        # ÚJ (2026-08-07): egyetlen folyó szövegű vázlattest — ez a
+        # kanonikus generálási cél. A `focus_sentence`/`introduction_direction`/
+        # `movements`/`points`/`conclusion_direction` mezők csak a korábban
+        # (a formai átalakítás előtt) mentett vázlatok visszafelé-kompatibilis
+        # megjelenítésére maradtak meg — új generálás sosem tölti ki őket.
+        "body_markdown": "",
         "focus_sentence": "",
         "introduction_direction": "",
         "movements": [],
@@ -725,6 +783,7 @@ def normalize_structured_outline(raw: Any) -> dict[str, Any]:
         raw.get("text_reference") or raw.get("passage_reference")
     )
     out["scope_note"] = _s(raw.get("scope_note") or raw.get("text_boundary_note"))
+    out["body_markdown"] = _s(raw.get("body_markdown"))
     out["focus_sentence"] = _s(raw.get("focus_sentence") or raw.get("main_idea"))
     intro_raw = raw.get("introduction")
     intro = intro_raw if isinstance(intro_raw, dict) else {}
@@ -832,7 +891,13 @@ def validate_structured_outline(
     passage_text: Any = "",
     background_texts: list[str] | None = None,
 ) -> list[str]:
-    """Hard validation — bármely találat → érvénytelen (compress / reject)."""
+    """Hard validation — bármely találat → érvénytelen (compress / reject).
+
+    2026-08-07 óta a kanonikus forma egyetlen folyó szövegű vázlattest
+    (`body_markdown`) — az ellenőrzés ezért egész-szöveges, nem mezőnkénti/
+    pontonkénti. A korábbi, mezőkre/pontokra bontott ág csak a formai
+    átalakítás előtt mentett vázlatok visszafelé-kompatibilis
+    (defenzív) ellenőrzésére maradt meg — ÚJ AI-generálás sosem ide fut."""
     data = normalize_structured_outline(payload)
     issues: list[str] = []
     overlap_sources = [_s(passage_text)] + list(background_texts or [])
@@ -841,39 +906,51 @@ def validate_structured_outline(
         forbidden = _has_forbidden_keys(payload)
         if forbidden:
             issues.append("forbidden_prose_fields")
-        for key in (
-            "title",
-            "text_reference",
-            "scope_note",
-            "focus_sentence",
-            "introduction_direction",
-            "conclusion_direction",
-        ):
-            if _looks_multi_paragraph(payload.get(key)):
-                issues.append("multi_paragraph_field")
-                break
         raw_tips = payload.get("refinement_suggestions")
         if isinstance(raw_tips, list) and len(raw_tips) > LIMITS["refinement_max"]:
             issues.append("too_many_refinements")
-        raw_points = payload.get("movements")
-        if not isinstance(raw_points, list):
-            raw_points = payload.get("points")
-        if isinstance(raw_points, list):
-            if not LIMITS["min_points"] <= len(raw_points) <= LIMITS["max_points"]:
-                issues.append("invalid_point_count")
-            for raw_point in raw_points:
-                if not isinstance(raw_point, dict):
-                    continue
-                if _looks_multi_paragraph(raw_point.get("title")) or _looks_multi_paragraph(
-                    raw_point.get("verses")
-                ):
-                    issues.append("multi_paragraph_field")
-                    break
-                for lk in POINT_LAYER_KEYS:
-                    if _looks_multi_paragraph(raw_point.get(lk)):
-                        issues.append("multi_paragraph_field")
-                        break
 
+    if data["title"] and word_count(data["title"]) > LIMITS["title_words"]:
+        issues.append("title_too_long")
+    if data["scope_note"] and word_count(data["scope_note"]) > LIMITS["scope_note_words"]:
+        issues.append("scope_note_too_long")
+    if passage_text and scope_note_uses_unloaded_verse(
+        data["scope_note"], passage_text
+    ):
+        issues.append("scope_note_unloaded_verse")
+
+    body = data["body_markdown"]
+    if body:
+        if _has_forbidden_outline_structure(body):
+            issues.append("forbidden_structure")
+        if _looks_truncated_sentence(body):
+            issues.append("truncated_sentence")
+        if _has_verbatim_overlap(body, overlap_sources, min_words=10):
+            issues.append("verbatim_source_copy")
+        blob = body.casefold()
+        for filler in FORBIDDEN_FILLERS:
+            if filler in blob:
+                issues.append("forbidden_filler")
+                break
+        wc = word_count(body)
+        if wc > LIMITS["absolute_max_words"]:
+            issues.append("over_absolute_max")
+        elif wc and wc < LIMITS["soft_floor_words"]:
+            issues.append("too_thin")
+        elif wc and wc < LIMITS["target_min_words"]:
+            issues.append("under_target")
+        para_count = len([p for p in body.split("\n\n") if len(p) > 120])
+        if para_count >= 8 and wc > LIMITS["absolute_max_words"]:
+            issues.append("full_sermon_like")
+        return list(dict.fromkeys(issues))
+
+    if not data["points"] and not data["focus_sentence"]:
+        issues.append("missing_body")
+        return list(dict.fromkeys(issues))
+
+    # ---- Visszafelé-kompatibilitás: a 2026-08-07 előtti, mezőkre/pontokra
+    # bontott séma ellenőrzése. ÚJ generálás sosem ide fut — csak a
+    # formai átalakítás előtt mentett vázlatok esetleges újra-validálására. ----
     if not data["focus_sentence"]:
         issues.append("missing_focus")
     else:
@@ -888,16 +965,6 @@ def validate_structured_outline(
             issues.append("truncated_sentence")
         if _has_verbatim_overlap(data["focus_sentence"], overlap_sources):
             issues.append("verbatim_source_copy")
-
-    if data["title"] and word_count(data["title"]) > LIMITS["title_words"]:
-        issues.append("title_too_long")
-
-    if data["scope_note"] and word_count(data["scope_note"]) > LIMITS["scope_note_words"]:
-        issues.append("scope_note_too_long")
-    if passage_text and scope_note_uses_unloaded_verse(
-        data["scope_note"], passage_text
-    ):
-        issues.append("scope_note_unloaded_verse")
 
     intro = data["introduction_direction"]
     if not intro:
@@ -1077,35 +1144,6 @@ def validate_structured_outline(
     elif total and total < tmin:
         issues.append("under_target")
 
-    for block in rendered.split("\n\n"):
-        plain = block.strip()
-        if re.fullmatch(r"\*?v\.?\s*\d{1,3}(?:\s*[–\-]\s*\d{1,3})?\*?", plain.casefold()):
-            issues.append("standalone_verse_line")
-            break
-
-    for block in rendered.split("\n\n"):
-        plain = re.sub(r"^[-•*]\s+", "", block.strip(), flags=re.M)
-        plain = re.sub(r"\*\*?|[*_]", "", plain)
-        if word_count(plain) > LIMITS["max_prose_block_words"] and not plain.startswith(
-            ("1.", "2.", "3.", "4.")
-        ):
-            if not plain.startswith("**") and "\n- " not in block and not block.strip().startswith("-"):
-                if not any(
-                    block.strip().startswith(f"**{lab}")
-                    for lab in (
-                        "Cím",
-                        "Textus",
-                        "Fókuszmondat",
-                        "Bevezetési irány",
-                        "Bevezetés",
-                        "Megérkezés",
-                        "Megjegyzés",
-                    )
-                ):
-                    # Point bodies are three lines; skip heading+body blocks
-                    if not re.match(r"\*\*\d+\.", block.strip()):
-                        issues.append("prose_block_too_long")
-
     blob = rendered.casefold()
     for heading in FORBIDDEN_HEADINGS:
         h = re.escape(heading.casefold())
@@ -1119,9 +1157,6 @@ def validate_structured_outline(
         if filler in blob:
             issues.append("forbidden_filler")
             break
-
-    if re.search(r"(?m)^#{1,3}\s+\S", rendered) or rendered.count("##") >= 2:
-        issues.append("raw_markdown_chapters")
 
     para_count = len([p for p in rendered.split("\n\n") if len(p) > 120])
     if para_count >= 8 and total > LIMITS["absolute_max_words"]:
@@ -1151,8 +1186,27 @@ def _strip_trailing_verse_from_title(title: str) -> str:
 
 
 def render_structured_outline(payload: Any) -> str:
-    """Felhasználói megjelenés — három réteg mezőnév nélkül."""
+    """Felhasználói megjelenés — egyetlen folyó szövegű vázlattest.
+
+    Ha van `body_markdown` (2026-08-07 óta a kanonikus generálási cél),
+    azt adja vissza cím + (opcionális) textushatár-megjegyzés után,
+    tagolás/mezőcímke nélkül. A régi, mezőkre/pontokra bontott render
+    csak a korábban mentett vázlatok visszafelé-kompatibilis
+    megjelenítésére szolgál — új generálás sosem ide fut."""
     data = normalize_structured_outline(payload)
+
+    if data["body_markdown"]:
+        parts: list[str] = []
+        heading = data["title"]
+        if data["text_reference"]:
+            heading = f"{heading} – {data['text_reference']}" if heading else data["text_reference"]
+        if heading:
+            parts.append(f"# {heading}")
+        if data["scope_note"]:
+            parts.append(f"*{data['scope_note']}*")
+        parts.append(data["body_markdown"])
+        return "\n\n".join(p for p in parts if p).strip() + "\n"
+
     blocks: list[str] = []
 
     def _sec(label: str, body: str) -> None:
@@ -1308,7 +1362,7 @@ def sermon_outline_to_structured(outline: Any) -> dict[str, Any]:
     safe = normalize_sermon_outline(outline)
     stored = safe.get("structured")
     if isinstance(stored, dict) and (
-        stored.get("points") or stored.get("focus_sentence")
+        stored.get("body_markdown") or stored.get("points") or stored.get("focus_sentence")
     ):
         return normalize_structured_outline(stored)
     return normalize_structured_outline(safe)
@@ -1656,9 +1710,10 @@ def build_outline_user_prompt(
                 "háttéranyag (exegézis / kortörténet / eredeti nyelv) nincs.",
                 "NE végezz önálló nyelvi vagy kortörténeti elemzést, és NE "
                 "találj ki eredeti nyelvi vagy történelmi tényt.",
-                "A vázlat elején, egy külön \"Hiányzó háttéranyag\" "
-                "szakaszban jelezd egyértelműen, hogy nincs mellékelt "
-                "háttéranyag ehhez a szakaszhoz.",
+                "A VÁLASZ ELSŐ SORA MINDIG a \"# Cím – Igehely\" címsor "
+                "legyen — a \"nincs mellékelt háttéranyag\" jelzés a cím "
+                "UTÁN, a folyó szöveg első mondataként szerepeljen, SOHA "
+                "nem a cím előtt és NEM külön alcím alatt.",
             ]
         )
 
@@ -1703,129 +1758,53 @@ def build_outline_user_prompt(
 
 
 def markdown_outline_to_structured(markdown: str) -> dict[str, Any]:
-    """Markdown szószéki vázlat → belső structured séma (UI / validáció)."""
+    """Markdown szószéki vázlat → belső structured séma (UI / validáció).
+
+    2026-08-07 óta a kért forma EGYETLEN folyó szövegű test — nincs többé
+    mezőnkénti/pontonkénti bontás, ezért a parser is minimális: a H1
+    címsort (+ opcionális " – Igehely" utótagot) választja le, a maradék
+    szöveg VÁLTOZATLANUL `body_markdown`. Ha a modell mégis a régi,
+    tiltott mezős/pontos formában válaszolna, az itt nem kerül szétbontásra
+    — a `validate_structured_outline()` `forbidden_structure` ellenőrzése
+    fogja hibaként jelezni, ami a compress/enrich javítási kört indítja."""
     text = (markdown or "").strip()
     data = empty_structured_outline()
     if not text:
         return data
 
-    title_m = re.search(r"^#\s+(.+?)(?:\s+[–—-]\s+(.+))?$", text, re.M)
+    # `re.search` + MULTILINE (nem `re.match`/pozíció-0 horgony): a modell
+    # néha egy rövid előjegyzést (pl. "nincs mellékelt háttéranyag") tesz a
+    # címsor ELÉ a kért elhelyezés ellenére is — ha a cím kinyerése pozíció-
+    # 0-hoz lenne kötve, ez a teljes cím-felismerést meghiúsítaná. Az esetleg
+    # a cím előtt/után maradó szöveg elvész, hanem a body_markdown elejére
+    # kerül, hogy tartalom soha ne tűnjön el.
+    title_m = re.search(r"^#\s+(.+?)(?:\s+[–—-]\s+(.+))?\s*$", text, re.M)
     if title_m:
         data["title"] = _s(title_m.group(1))
         if title_m.group(2):
             data["text_reference"] = _s(title_m.group(2))
+        preamble = text[: title_m.start()].strip()
+        remainder = text[title_m.end():].strip()
+        text = f"{preamble}\n\n{remainder}".strip() if preamble else remainder
 
-    focus_m = re.search(
-        r"\*\*Fókuszmondat:\*\*\s*(.+?)(?:\n|$)",
-        text,
-        re.I,
-    )
-    if focus_m:
-        data["focus_sentence"] = _s(focus_m.group(1))
-
-    def _bullet(section: str, label: str) -> str:
-        pat = rf"\*\*{re.escape(label)}:\*\*\s*(.+?)(?=\n\s*\*|\n###|\Z)"
-        m = re.search(pat, section, re.I | re.S)
-        return _s(m.group(1)) if m else ""
-
-    intro_m = re.search(
-        r"###\s*1\.[^\n]*\n(.*?)(?=\n###\s*\d|\n###\s*Befejezés|\Z)",
-        text,
-        re.I | re.S,
-    )
-    if intro_m:
-        intro_body = intro_m.group(1)
-        life = _bullet(intro_body, "Élethelyzet / Probléma") or _bullet(
-            intro_body, "Élethelyzet"
-        )
-        ctx = _bullet(intro_body, "A Textus Világa (Kontextus)") or _bullet(
-            intro_body, "A Textus Világa"
-        )
-        data["introduction_direction"] = " ".join(x for x in (life, ctx) if x).strip()
-
-    points: list[dict[str, Any]] = []
-    for m in re.finditer(
-        r"###\s*([2-5])\.\s*(.+?)\n(.*?)(?=\n###\s*(?:[2-5]\.|Befejezés)|\Z)",
-        text,
-        re.I | re.S,
-    ):
-        body = m.group(3)
-        igei = _bullet(body, "Igei fókusz")
-        exe = _bullet(body, "Exegetikai / Eredeti nyelvi mélység") or _bullet(
-            body, "Exegetikai"
-        )
-        app = _bullet(body, "Gyakorlati alkalmazás")
-        verses = ""
-        # Ket alternativa: a "v. 6-7a" elotagos forma ES a termeszetes magyar
-        # szorendu "6-7a versek"/"6-8. vers" forma is (a modell tobbnyire ez
-        # utobbit hasznalja — a regi minta csak az elsot ismerte fel, ami
-        # miatt a nema "v. —" fallback szinte mindig aktivalodott). Az [a-c]?
-        # a betus reszvers-jelolest is elfogadja (pl. "6a", "7b-8").
-        verse_m = re.search(
-            r"(\d{1,3}[a-c]?(?:\s*[–\-]\s*\d{1,3}[a-c]?)?\.?\s*vers(?:ek)?"
-            r"|v\.?\s*\d{1,3}[a-c]?(?:\s*[–\-]\s*\d{1,3}[a-c]?)?)",
-            igei,
-            re.I,
-        )
-        if verse_m:
-            verses = verse_m.group(1).strip()
-            if not verses.lower().startswith("v"):
-                verses = f"v. {verses}"
-        if not verses:
-            logger.warning(
-                "outline_markdown_verse_fallback schema=%s point_title=%r "
-                "igei_focus=%r — nem sikerult vershivatkozast kinyerni, "
-                "\"v. —\" placeholder hasznalva",
-                SCHEMA_VERSION,
-                _s(m.group(2))[:80],
-                igei[:120],
-            )
-        points.append(
-            {
-                "title": _s(m.group(2)),
-                "verses": verses or "v. —",
-                "textual_insight": igei
-                or "A textus erre a pontra épít ebben a szakaszban.",
-                "theological_emphasis": exe
-                or "A teológiai súly ebben a gondolatban sűrűsödik.",
-                "listener_movement": app
-                or "A hallgató ezt a felismerést magával viheti a hétköznapokba.",
-                "transition": "",
-            }
-        )
-    if points:
-        data["points"] = points
-        data["movements"] = points
-
-    closing_m = re.search(
-        r"###\s*Befejezés[^\n]*\n(.*)\Z",
-        text,
-        re.I | re.S,
-    )
-    if closing_m:
-        cbody = closing_m.group(1)
-        summary = _bullet(cbody, "Összegzés")
-        step = _bullet(cbody, "Személyes döntés / Lépés") or _bullet(
-            cbody, "Személyes döntés"
-        )
-        data["conclusion_direction"] = " ".join(x for x in (summary, step) if x).strip()
-
+    data["body_markdown"] = text
     data["refinement_suggestions"] = []
     return normalize_structured_outline(data)
 
 
 def _looks_like_markdown_outline(text: str) -> bool:
+    """H1 címsor + érdemi folyó szöveg a cím után (2026-08-07 óta a forma
+    NEM tartalmaz kötelező "###"/"Fókuszmondat" jelölőt — azok kifejezetten
+    tiltottak —, ezért a régi jelölő-alapú felismerés helyett a cím +
+    minimális szöveghossz a kritérium)."""
     raw = (text or "").strip()
     if not raw:
         return False
-    return bool(
-        re.search(r"^#\s+\S", raw, re.M)
-        and (
-            "fókuszmondat" in raw.casefold()
-            or "###" in raw
-            or "**fókuszmondat:**" in raw.casefold()
-        )
-    )
+    title_m = re.search(r"^#\s+\S.*$", raw, re.M)
+    if not title_m:
+        return False
+    body_after_title = raw[title_m.end():].strip()
+    return word_count(body_after_title) >= 30
 
 
 def clear_outline_generation_caches(session: MutableMapping[str, Any]) -> None:
@@ -2124,16 +2103,20 @@ def _passage_verse_chunks(passage: Any) -> list[tuple[str, str]]:
 
 
 def _distinct_layer(preferred: str, *, banned: set[str], fallback: str) -> str:
-    """Réteg szöveg, amely nem ismétli a már használt mondatot."""
+    """Réteg szöveg, amely nem ismétli a már használt mondatot.
+
+    Ha `preferred` üres/hiányzik ÉS a `fallback` is már egyszer felhasználva
+    volt (`banned`), a szó szerinti ismétlés helyett — ami a korábbi,
+    ismétlődő sablonmondat hibát okozta — egy sorszámmal megkülönböztetett
+    változatot ad vissza, hogy két pont/réteg SOSE legyen szó szerint azonos."""
     from sermon_workshop_outline_ai import _usable_text
 
     candidate = _usable_text(preferred) or fallback
     if candidate and not candidate.endswith((".", "!", "?")):
         candidate += "."
     if _normalize_cmp(candidate) in banned:
-        candidate = fallback
-        if candidate and not candidate.endswith((".", "!", "?")):
-            candidate += "."
+        n = sum(1 for b in banned if b.startswith(_normalize_cmp(fallback)[:20])) + 1
+        candidate = fallback.rstrip(".!?") + f" ({n}. mozgás)."
     banned.add(_normalize_cmp(candidate))
     # Minimum minőség: ne legyen félmondat
     target_min = LIMITS["layer_min_words"]
@@ -2152,17 +2135,34 @@ def _distinct_layer(preferred: str, *, banned: set[str], fallback: str) -> str:
     return candidate
 
 
+_HTML_TAG_RE = re.compile(r"<[^>]+>")
+
+
+def _strip_html(text: Any) -> str:
+    return _s(_HTML_TAG_RE.sub("", _s(text)))
+
+
 def _heuristic_structured_from_bundle(
     bundle: Mapping[str, Any],
     *,
     seed_outline: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """Offline / teszt: háromrétegű szószéki vázlat a rendelkezésre álló anyagból."""
-    from sermon_workshop_outline_ai import (
-        _prefer_main_idea,
-        _truncate,
-        _usable_text,
-    )
+    """Offline / teszt VÉGSŐ MENTŐÖV — háromrétegű szószéki vázlat a
+    rendelkezésre álló anyagból, ha az AI-generálás teljesen sikertelen,
+    VAGY ha a hívó eleve nem ad `generate_fn`-t (pl. Igehirdetési műhely
+    "Vázlat összeállítása a meglévő anyagból" AI nélkül — ez a leggyakoribb
+    éles hívás, nem csak API-hiba esetén fut).
+
+    Szándékosan a RÉGI points/movements sémát adja vissza (nem az új,
+    AI-célú `body_markdown`-t): ez a heurisztika sosem versenyez a
+    kanonikus AI-próza minőségével, és a hívók (workshop-összeállítás,
+    diagnosztika, tesztek) `movements` tömböt várnak. A 2026-08-07 formai
+    átalakítás explicit célja csak a SIKERES AI-válasz formája volt, nem ez
+    a mentőöv.
+
+    HTML-töredékek szűrve (`_strip_html`); az ismétlődő sablonmondat hiba
+    a `_distinct_layer()`-ben lett javítva, nem itt."""
+    from sermon_workshop_outline_ai import _prefer_main_idea, _truncate, _usable_text
 
     data = empty_structured_outline()
     data["text_reference"] = _s(bundle.get("passage_reference"))
@@ -2179,12 +2179,11 @@ def _heuristic_structured_from_bundle(
     if not focus and seed_outline:
         focus = _s(seed_outline.get("main_idea"))
     if not focus and verse_chunks:
-        # Textusból: első versmondat + záró hangsúly, ha van
-        lead = verse_chunks[0][1]
+        lead = _strip_html(verse_chunks[0][1])
         focus = _clip_to_full_sentences(lead, LIMITS["focus_words"])
         if len(verse_chunks) > 1 and word_count(focus) < LIMITS["focus_min_words"]:
             focus = _clip_to_full_sentences(
-                lead + " " + verse_chunks[-1][1], LIMITS["focus_words"]
+                lead + " " + _strip_html(verse_chunks[-1][1]), LIMITS["focus_words"]
             )
     data["focus_sentence"] = (
         _usable_text(focus)
@@ -2220,7 +2219,7 @@ def _heuristic_structured_from_bundle(
             (
                 "A betöltött textus saját mozgása nyitja meg a hallgatót. "
                 + (
-                    " ".join(verse_chunks[0][1].rstrip("….").split()) + "."
+                    " ".join(_strip_html(verse_chunks[0][1]).rstrip("….").split()) + "."
                     if verse_chunks
                     else ""
                 )
@@ -2256,13 +2255,13 @@ def _heuristic_structured_from_bundle(
         for x in (bundle.get("approved_sermon_decisions") or [])
         if _usable_text(x)
     ]
-    exe = _usable_text(bundle.get("exegesis"))
-    original = _usable_text(bundle.get("original_text"))
-    history = _usable_text(bundle.get("history"))
+    exe = _strip_html(_usable_text(bundle.get("exegesis")))
+    original = _strip_html(_usable_text(bundle.get("original_text")))
+    history = _strip_html(_usable_text(bundle.get("history")))
     used_layers: set[str] = set()
 
     def _one_layer(text: str, *, fallback: str) -> str:
-        return _distinct_layer(text, banned=used_layers, fallback=fallback)
+        return _distinct_layer(_strip_html(text), banned=used_layers, fallback=fallback)
 
     if movements:
         for i, mv in enumerate(movements[: LIMITS["max_points"]], start=1):
@@ -2321,7 +2320,7 @@ def _heuristic_structured_from_bundle(
     elif verse_chunks:
         # Textus-alapú mozgások: 2–5 versblokk, ismétlés nélkül
         def _body_usable(raw_body: str) -> str:
-            text = " ".join(_s(raw_body).split()).strip()
+            text = " ".join(_strip_html(raw_body).split()).strip()
             if text.endswith(("…", "...")):
                 text = text.rstrip("….").rstrip()
             if text and not text.endswith((".", "!", "?")):
@@ -2473,7 +2472,7 @@ def _heuristic_structured_from_bundle(
     closing = closing_raw if isinstance(closing_raw, dict) else {}
     arc = arc_raw if isinstance(arc_raw, dict) else {}
     if verse_chunks:
-        last_body = verse_chunks[-1][1]
+        last_body = _strip_html(verse_chunks[-1][1])
         default_conc = (
             "A textus megérkezése: "
             + _clip_to_full_sentences(last_body, 40)
@@ -2561,12 +2560,16 @@ def _ai_generate_structured(
             "title",
             "text_reference",
             "scope_note",
+            "body_markdown",
+            "refinement_suggestions",
+            "schema_version",
+            # Régi mezőnevek: csak visszafelé-kompatibilis beolvasásra (pl.
+            # egy még folyamatban lévő javítási kísérlet a régi sémában
+            # válaszol) — új generálás célja mindig `body_markdown`.
             "focus_sentence",
             "introduction_direction",
             "points",
             "conclusion_direction",
-            "refinement_suggestions",
-            "schema_version",
             "subpoints",
             "application",
             "textual_insight",
@@ -2724,9 +2727,8 @@ MARKDOWN_COMPRESS_ESCALATION_INSTRUCTION = (
     "NEM oldotta meg teljesen a problémát: az alábbi vázlatban MÉG MINDIG van "
     "olyan szakasz, amely 8 vagy több egymást követő szóban szó szerint "
     "megegyezik a bibliai szöveggel vagy a háttéranyaggal. "
-    "Ez alkalommal NE csak finoman átfogalmazz — OLVASD ÁT SORBAN MINDEN "
-    "EGYES szakaszt (Fókuszmondat, Bevezetési irány, minden pont mindhárom "
-    "rétege, Megérkezés), és ha bármelyikben szó szerinti vagy majdnem szó "
+    "Ez alkalommal NE csak finoman átfogalmazz — OLVASD ÁT SORBAN AZ EGÉSZ "
+    "SZÖVEGET, bekezdésről bekezdésre, és ahol szó szerinti vagy majdnem szó "
     "szerinti átvételt találsz, ÍRD ÁT TELJESEN, saját szavakkal, a lényeg "
     "megtartásával, de egyetlen 8 szónál hosszabb szó szerinti egyezés "
     "nélkül a bibliai szöveggel vagy a háttéranyaggal. Inkább legyen egy "
@@ -2813,9 +2815,8 @@ def _enrich_structured(
         f"{ENRICH_INSTRUCTION}\n"
         f"SÉMAVERZIÓ: {SCHEMA_VERSION}\n"
         f"JELZETT PROBLÉMÁK: {', '.join(issues)}\n"
-        "Őrizd a pontok számát és az igehely-beosztást; egészítsd ki a három "
-        "réteget és a keretmondatokat a forrásból. Cél: 450–750 szó; "
-        "ne lépd át a 850 szót.\n\n"
+        "Egészítsd ki a `body_markdown` folyó szövegét a forrásból, mondatba "
+        "ágyazva. Cél: 450–750 szó; ne lépd át a 850 szót.\n\n"
         f"FORRÁS (mélyítéshez):\n{json.dumps(repair_context, ensure_ascii=False)}\n\n"
         f"MÉLYÍTENDŐ VÁZLAT:\n{json.dumps(slim, ensure_ascii=False)}\n\n"
         f"Kimenet JSON séma:\n{_JSON_SHAPE}"
@@ -2843,36 +2844,31 @@ def _enrich_structured(
 MARKDOWN_ENRICH_INSTRUCTION = (
     "TARTALMI KIEGÉSZÍTÉS A SAJÁT KORÁBBI VÁLASZODON — az alábbi vázlatot te "
     "magad írtad, de az automatikus ellenőrzés szerint felszínes, "
-    "ismétlődő, vagy egy kötelező réteg hiányzik/sovány. "
+    "ismétlődő, vagy túl rövid. "
     "A szerkezetet és az igehely-beosztást őrizd meg; ne írj új prédikációt "
     "és ne találj ki verseket vagy tényeket. "
     "Gazdagítsd a lenti FORRÁS anyagából — konkrét, a forrásra "
-    "visszavezethető megfigyeléssel, nem közhellyel. "
-    "Minden pontban legyen konkrét igei/nyelvi megfigyelés, teológiai "
-    "hangsúly és hallgatói/gyakorlati mozdulat — teljes mondatok, nem "
-    "bekezdés. Ne ismételd ugyanazt a mondatot más szakaszban. "
+    "visszavezethető megfigyeléssel, nem közhellyel, MONDATBA ÁGYAZVA. "
+    "A szöveg EGY folyó, bekezdésekre tagolt gondolatmenet maradjon — NE "
+    "válts számozott alcímekre vagy mezőcímkékre (pl. \"Igei fókusz:\"). "
+    "Ne ismételd ugyanazt a mondatot más bekezdésben. "
     "Add vissza a TELJES, kiegészített vázlatot PONTOSAN ugyanabban a "
-    "Markdown formátumban és szakaszszerkezetben, mint amit kaptál — ne "
-    "válts JSON-ra vagy más formátumra, és ne írj magyarázatot a vázlaton "
-    "kívül."
+    "Markdown formátumban, mint amit kaptál — ne válts JSON-ra vagy más "
+    "formátumra, és ne írj magyarázatot a vázlaton kívül."
 )
 
 MARKDOWN_ENRICH_ESCALATION_INSTRUCTION = (
     "MÁSODIK, HATÁROZOTTABB KIEGÉSZÍTÉSI KÍSÉRLET — az előző kiegészítési "
     "próbálkozásod NEM oldotta meg teljesen a problémát: az alábbi vázlat "
-    "MÉG MINDIG felszínes, ismétlődő, vagy hiányzik/sovány belőle egy "
-    "kötelező réteg. Ez alkalommal OLVASD ÁT SORBAN MINDEN EGYES szakaszt, "
-    "és ahol felszínes vagy hiányos, ÍRJ HOZZÁ konkrét, a FORRÁSBAN "
-    "ténylegesen szereplő megfigyelést — ne általánosságot, ne közhelyet. "
-    "Ha egy pontban hiányzik az igei/nyelvi megfigyelés, a teológiai "
-    "hangsúly vagy a hallgatói mozdulat, azt MOST pótold, teljes "
-    "mondattal. "
-    "A vázlat homiletikai ívét, szerkezetét és a meglévő főpontok számát "
-    "őrizd meg. "
+    "MÉG MINDIG felszínes, ismétlődő vagy túl rövid. Ez alkalommal OLVASD "
+    "ÁT SORBAN AZ EGÉSZ SZÖVEGET, bekezdésről bekezdésre, és ahol felszínes "
+    "vagy hiányos, ÍRJ HOZZÁ konkrét, a FORRÁSBAN ténylegesen szereplő "
+    "megfigyelést — ne általánosságot, ne közhelyet, mondatba ágyazva. "
+    "A vázlat homiletikai ívét és a folyó szövegű, tagolatlan formát "
+    "őrizd meg — NE válts számozott alcímekre vagy mezőcímkékre. "
     "Add vissza a TELJES, kiegészített vázlatot PONTOSAN ugyanabban a "
-    "Markdown formátumban és szakaszszerkezetben, mint amit kaptál — ne "
-    "válts JSON-ra vagy más formátumra, és ne írj magyarázatot a vázlaton "
-    "kívül."
+    "Markdown formátumban, mint amit kaptál — ne válts JSON-ra vagy más "
+    "formátumra, és ne írj magyarázatot a vázlaton kívül."
 )
 
 
@@ -2933,6 +2929,26 @@ def _enrich_markdown(
     return raw_text, warnings
 
 
+def _clip_body_to_full_paragraphs(body: str, max_w: int) -> str:
+    """Rövidít teljes bekezdések mentén — soha nem vág félbe mondatot/
+    bekezdést. A `_clip_to_full_sentences()` bekezdés-tudatos párja,
+    a folyó szövegű `body_markdown` biztonsági hálójaként."""
+    raw = _s(body)
+    if not raw or word_count(raw) <= max_w:
+        return raw
+    paragraphs = [p for p in raw.split("\n\n") if p.strip()]
+    kept: list[str] = []
+    for para in paragraphs:
+        trial = "\n\n".join(kept + [para])
+        if kept and word_count(trial) > max_w:
+            break
+        kept.append(para)
+    if kept:
+        return "\n\n".join(kept).strip()
+    # Egyetlen bekezdés is túl hosszú: mondatszinten vágjunk.
+    return _clip_to_full_sentences(paragraphs[0], max_w) if paragraphs else raw
+
+
 def _programmatic_trim(payload: Mapping[str, Any]) -> dict[str, Any]:
     """Könnyű tisztítás — csak abszolút felső határ felett agresszívebb; félmondat nélkül."""
     data = normalize_structured_outline(payload)
@@ -2940,6 +2956,24 @@ def _programmatic_trim(payload: Mapping[str, Any]) -> dict[str, Any]:
     data["title"] = _strip_trailing_verse_from_title(data["title"])
     if word_count(data["title"]) > LIMITS["title_words"]:
         data["title"] = " ".join(data["title"].split()[: LIMITS["title_words"]])
+
+    if data["body_markdown"]:
+        # A render a body elé fűzi a cím(+igehely)/scope_note sorát is —
+        # a keretet ezekre a szavakra is le kell foglalni, különben a
+        # végleges renderelt szöveg pár szóval túllépheti az abszolút
+        # határt, még ha maga a body pontosan a limiten belül van is.
+        reserved = (
+            word_count(data["title"])
+            + word_count(data["text_reference"])
+            + word_count(data["scope_note"])
+            + 5
+        )
+        budget = max(1, LIMITS["absolute_max_words"] - reserved)
+        data["body_markdown"] = _clip_body_to_full_paragraphs(
+            data["body_markdown"], budget
+        )
+        return normalize_structured_outline(data)
+
     data["focus_sentence"] = _clip_to_full_sentences(
         data["focus_sentence"], LIMITS["focus_words"]
     )
@@ -3002,6 +3036,7 @@ _FATAL_OUTLINE_ISSUES = frozenset(
         "too_few_points",
         "missing_focus",
         "missing_conclusion",
+        "missing_body",
         "full_sermon_like",
     }
 )
@@ -3009,6 +3044,9 @@ _FATAL_OUTLINE_ISSUES = frozenset(
 
 def _structured_has_min_pulpit_shape(data: Mapping[str, Any]) -> bool:
     safe = normalize_structured_outline(data)
+    body = safe.get("body_markdown")
+    if body:
+        return word_count(body) >= LIMITS["soft_floor_words"] // 2
     points = safe.get("points") if isinstance(safe.get("points"), list) else []
     return bool(
         _s(safe.get("focus_sentence"))

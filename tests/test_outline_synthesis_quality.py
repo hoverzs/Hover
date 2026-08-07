@@ -84,8 +84,8 @@ def _assert_usable_outline(outline: dict) -> str:
 def test_system_prompt_contains_homiletic_core():
     assert "igehirdető" in HOMILETIC_SYSTEM_PROMPT.casefold() or "teológus" in HOMILETIC_SYSTEM_PROMPT.casefold()
     assert "prédikációvázlat" in HOMILETIC_SYSTEM_PROMPT.casefold() or "vázlat" in HOMILETIC_SYSTEM_PROMPT.casefold()
-    assert "MARKDOWN" in HOMILETIC_SYSTEM_PROMPT
-    assert "Fókuszmondat" in HOMILETIC_SYSTEM_PROMPT
+    assert "KÖTELEZŐ FORMA" in HOMILETIC_SYSTEM_PROMPT
+    assert "Fókuszmondat" in HOMILETIC_SYSTEM_PROMPT  # a tiltólista része
     assert "háttéranyag" in HOMILETIC_SYSTEM_PROMPT.casefold()
     assert "gyakorlati" in HOMILETIC_SYSTEM_PROMPT.casefold()
     assert "A textus mozgása" in HOMILETIC_SYSTEM_PROMPT  # tiltott példa
