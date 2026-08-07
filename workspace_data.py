@@ -139,6 +139,7 @@ EXCLUDED_SESSION_KEYS: frozenset[str] = frozenset(
         "_feedback_last_sent",
         # Felületi nézetkulcsok — ne kerüljenek tartós mentésbe
         "ui_mode",
+        "quick_tools_active_tab",
         "tw_active_section",
         "tw_main_idea_input",
         "tw_main_idea_status_radio",

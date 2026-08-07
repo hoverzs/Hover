@@ -614,6 +614,7 @@ QUICK_TOOLS_TAB_LABELS: tuple[str, ...] = (
 )
 
 QUICK_TOOLS_GRID_KEY = "quick_tools_grid"
+QUICK_TOOLS_ACTIVE_TAB_KEY = "quick_tools_active_tab"
 
 
 def render_quick_tools_tabs(
@@ -624,12 +625,19 @@ def render_quick_tools_tabs(
     Mindig kulcsolt konténerben épül (`quick_tools_grid`), hogy a premium
     rács-CSS vendég/Cloud módban is érvényesüljön JS/`parent.document` nélkül.
     Nem fogad login/guest paramétert: a megjelenés minden sessionben azonos.
+
+    Az `st.tabs()` kulcsolt (`key=QUICK_TOOLS_ACTIVE_TAB_KEY`) — enélkül a
+    kiválasztott fül csak a böngésző oldali, nem-perzisztens állapot volt,
+    és egy generálás gomb utáni `st.rerun()` (pl. Vázlat/Eredeti szöveg
+    generálása) visszaugrasztotta a nézetet az első fülre (Igehely), holott
+    a generálás maga rendben lefutott — csak a UI ugrott vissza, nem a
+    munkamenet szakadt meg.
     """
     tab_labels = [str(x) for x in (labels or QUICK_TOOLS_TAB_LABELS) if str(x).strip()]
     if not tab_labels:
         tab_labels = list(QUICK_TOOLS_TAB_LABELS)
     with st.container(key=QUICK_TOOLS_GRID_KEY):
-        return st.tabs(tab_labels)
+        return st.tabs(tab_labels, key=QUICK_TOOLS_ACTIVE_TAB_KEY)
 
 
 def render_project_toolbar_anchor() -> None:
