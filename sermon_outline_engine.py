@@ -12,6 +12,7 @@ import hashlib
 import json
 import logging
 import re
+import time
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Callable, Mapping, MutableMapping
@@ -114,7 +115,9 @@ ENRICHABLE_ISSUES = frozenset(
         "focus_not_one_sentence",
     }
 )
-COMPRESS_TRIGGER_ISSUES = frozenset({"over_absolute_max", "full_sermon_like"})
+COMPRESS_TRIGGER_ISSUES = frozenset(
+    {"over_absolute_max", "full_sermon_like", "verbatim_source_copy"}
+)
 
 # Prose-bait / legacy fields — soha ne kérjük és ne jelenjenek meg elsődlegesen.
 # Megjegyzés: `subpoints` / `application` migrációval beolvasható, de nem kanonikus kimenet.
@@ -170,7 +173,13 @@ FORBIDDEN_FILLERS: tuple[str, ...] = (
 )
 
 COMPRESS_INSTRUCTION = (
-    "FORMAI TÖMÖRÍTÉS — csak ha a látható vázlat 850 szó felett van. "
+    "FORMAI TÖMÖRÍTÉS ÉS/VAGY SZÓ SZERINTI ÁTVÉTEL JAVÍTÁSA — a JELZETT "
+    "PROBLÉMÁK között szereplő `verbatim_source_copy` azt jelenti, hogy egy "
+    "mező szó szerint (vagy majdnem szó szerint) átvette a forrásanyag "
+    "(bibliai szöveg vagy háttéranyag) egy hosszabb részletét ahelyett, hogy "
+    "szintetizálta volna — ezt írd át saját, tömör megfogalmazásra, ne csak "
+    "töröld a mondatot. Ha a `over_absolute_max`/`full_sermon_like` jelzés "
+    "is szerepel, a látható vázlat 850 szó felett van. "
     "A kapott vázlat tartalmi és homiletikai ívét őrizd meg; "
     "ne tervezz új vázlatot és ne adj hozzá új exegetikai vagy teológiai állítást. "
     "Csak a fölösleges ismétlést, metaszöveget és prédikációs bőbeszédűséget csökkentsd. "
@@ -785,14 +794,48 @@ def normalize_structured_outline(raw: Any) -> dict[str, Any]:
     return out
 
 
+_WORD_RE = re.compile(r"[\wáéíóöőúüűÁÉÍÓÖŐÚÜŰ]+")
+
+
+def _normalize_words(text: Any) -> list[str]:
+    return _WORD_RE.findall(_s(text).casefold())
+
+
+def _has_verbatim_overlap(
+    candidate: Any, sources: list[str] | None, *, min_words: int = 8
+) -> bool:
+    """True, ha `candidate` legalább `min_words` egymást követő szava szó
+    szerint (normalizálva) megtalálható valamelyik `sources` szövegben —
+    azaz a modell nem szintetizált, hanem szó szerint átvette a forrást."""
+    if not sources:
+        return False
+    cand_words = _normalize_words(candidate)
+    if len(cand_words) < min_words:
+        return False
+    normalized_sources = [
+        " ".join(_normalize_words(src)) for src in sources if _s(src)
+    ]
+    normalized_sources = [s for s in normalized_sources if s]
+    if not normalized_sources:
+        return False
+    for i in range(len(cand_words) - min_words + 1):
+        shingle = " ".join(cand_words[i : i + min_words])
+        for src_joined in normalized_sources:
+            if shingle in src_joined:
+                return True
+    return False
+
+
 def validate_structured_outline(
     payload: Any,
     *,
     passage_text: Any = "",
+    background_texts: list[str] | None = None,
 ) -> list[str]:
     """Hard validation — bármely találat → érvénytelen (compress / reject)."""
     data = normalize_structured_outline(payload)
     issues: list[str] = []
+    overlap_sources = [_s(passage_text)] + list(background_texts or [])
 
     if isinstance(payload, dict):
         forbidden = _has_forbidden_keys(payload)
@@ -843,6 +886,8 @@ def validate_structured_outline(
             issues.append("focus_not_one_sentence")
         if _looks_truncated_sentence(data["focus_sentence"]):
             issues.append("truncated_sentence")
+        if _has_verbatim_overlap(data["focus_sentence"], overlap_sources):
+            issues.append("verbatim_source_copy")
 
     if data["title"] and word_count(data["title"]) > LIMITS["title_words"]:
         issues.append("title_too_long")
@@ -869,6 +914,8 @@ def validate_structured_outline(
             issues.append("intro_multi_paragraph")
         if _looks_truncated_sentence(intro):
             issues.append("truncated_sentence")
+        if _has_verbatim_overlap(intro, overlap_sources):
+            issues.append("verbatim_source_copy")
 
     points = data["points"]
     n = len(points)
@@ -955,6 +1002,8 @@ def validate_structured_outline(
                 issues.append("truncated_sentence")
             if wc > LIMITS["max_prose_block_words"]:
                 issues.append("prose_block_too_long")
+            if _has_verbatim_overlap(val, overlap_sources):
+                issues.append("verbatim_source_copy")
 
         layer_total = _point_layer_words(pt)
         if layer_total and layer_total < LIMITS["point_layers_min_words"]:
@@ -1010,6 +1059,8 @@ def validate_structured_outline(
             issues.append("conclusion_multi_paragraph")
         if _looks_truncated_sentence(conc):
             issues.append("truncated_sentence")
+        if _has_verbatim_overlap(conc, overlap_sources):
+            issues.append("verbatim_source_copy")
 
     rendered = render_structured_outline(data)
     total = word_count(rendered)
@@ -1991,14 +2042,73 @@ def _call_generate(
                 pass
 
 
+def _call_generate_with_retry(
+    generate_fn: GenerateFn,
+    prompt: str,
+    *,
+    system_bundle: str = OUTLINE_SYSTEM_PROMPT,
+    temperature: float = DEFAULT_TEMPERATURE,
+    as_json: bool = False,
+) -> str:
+    """`_call_generate()` egyszeri újrapróbálkozással.
+
+    Csak a compress/enrich/Markdown-javító hívásokhoz — ezek egy sikertelen
+    (pl. átmeneti 503-as) próbálkozás esetén a teljes javítási kísérletet
+    elvesztegetnék, és a mechanikus, kevésbé jó minőségű vészmegoldásra
+    (`_rescue_structured_outline`) kényszerítenék a folyamatot, holott egy
+    második próbálkozás gyakran sikerül. NEM az elsődleges vázlatgeneráló
+    hívásra vonatkozik — az saját, meglévő csonkulás-kezeléssel rendelkezik."""
+    try:
+        result = _call_generate(
+            generate_fn,
+            prompt,
+            system_bundle=system_bundle,
+            temperature=temperature,
+            as_json=as_json,
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.info("outline_repair_call_retry reason=exception err=%s", exc)
+        time.sleep(1.5)
+        return _call_generate(
+            generate_fn,
+            prompt,
+            system_bundle=system_bundle,
+            temperature=temperature,
+            as_json=as_json,
+        )
+    # `_is_api_error_text` az üres választ és a figyelmeztető-jelölésű
+    # (⚠️/⏳/Hiba/❌) hibaszöveget kapja el, de a csonkulás-védelem sentinel
+    # értékét (`_OUTLINE_INCOMPLETE_SENTINEL`, MAX_TOKENS esetén) NEM — azt
+    # külön kell ellenőrizni, különben egy csonkult javító-válasz retry
+    # nélkül, hiányos válaszként bukna el.
+    stripped = (result or "").strip()
+    if _is_api_error_text(result or "") or stripped == _OUTLINE_INCOMPLETE_SENTINEL:
+        logger.info("outline_repair_call_retry reason=empty_or_truncated")
+        time.sleep(1.5)
+        return _call_generate(
+            generate_fn,
+            prompt,
+            system_bundle=system_bundle,
+            temperature=temperature,
+            as_json=as_json,
+        )
+    return result
+
+
 def _passage_verse_chunks(passage: Any) -> list[tuple[str, str]]:
     """Számozott RÚF-sorok → (versjelölés, szöveg) párok."""
     text = _s(passage)
     if not text:
         return []
     chunks: list[tuple[str, str]] = []
+    # A `\.?` a valós RÚF-formátum miatt kell: a betöltött szöveg "6. aki…"
+    # alakú (szám + PONT + szóköz), nem "6 aki…" — a pont nélküli minta soha
+    # nem illeszkedett, ezért ez a függvény korábban mindig az egy-blokkos
+    # "v. —" fallback-ra esett valós, betöltött igeszakasznál, ami a teljes
+    # textus duplikált, szét nem bontott felhasználásához vezetett a
+    # vészmegoldásban (lásd `(v. —a/b)` cím-placeholder is ebből ered).
     pattern = re.compile(
-        r"(?:^|\n)\s*(\d+)\s+([^\n]+(?:\n(?!\s*\d+\s)[^\n]+)*)",
+        r"(?:^|\n)\s*(\d+)\.?\s+([^\n]+(?:\n(?!\s*\d+\.?\s)[^\n]+)*)",
         re.MULTILINE,
     )
     for match in pattern.finditer(text):
@@ -2531,7 +2641,11 @@ def _compress_structured(
     generate_fn: GenerateFn,
 ) -> tuple[dict[str, Any] | None, list[str]]:
     warnings: list[str] = []
-    repair_context = _repair_source_context(bundle, rich=False)
+    # rich=True: a verbatim_source_copy javításához a modellnek ténylegesen
+    # látnia kell az exegézis/kortörténet/teológia szövegét, különben csak
+    # a már hibás vázlatból tud "szintetizálni" — nem tud valódi forrásra
+    # visszavezetett, saját megfogalmazást adni.
+    repair_context = _repair_source_context(bundle, rich=True)
     try:
         from sermon_workshop_outline_synth_ai import (
             _is_partial_workshop_bundle,
@@ -2566,7 +2680,7 @@ def _compress_structured(
         f"Kimenet JSON séma:\n{_JSON_SHAPE}"
     )
     try:
-        raw = _call_generate(generate_fn, prompt, temperature=0.2, as_json=True)
+        raw = _call_generate_with_retry(generate_fn, prompt, temperature=0.2, as_json=True)
     except Exception as exc:  # noqa: BLE001
         warnings.append(f"Tömörítő javítás sikertelen: {exc}")
         return None, warnings
@@ -2583,6 +2697,106 @@ def _compress_structured(
         word_count(render_structured_outline(normalize_structured_outline(obj))),
     )
     return normalize_structured_outline(obj), warnings
+
+
+MARKDOWN_COMPRESS_INSTRUCTION = (
+    "JAVÍTÁS A SAJÁT KORÁBBI VÁLASZODON — az alábbi vázlatot te magad írtad, "
+    "de az automatikus ellenőrzés problémát jelzett benne. "
+    "Ha a jelzett problémák közt szerepel `verbatim_source_copy`: egy vagy "
+    "több szakasz szó szerint (vagy majdnem szó szerint, 8+ egymást követő "
+    "szóban) átvette a bibliai szöveg vagy a lenti FORRÁS egy hosszabb "
+    "részletét ahelyett, hogy szintetizálta volna — ezeket írd át saját, "
+    "tömör, szintetizáló megfogalmazásra. NE idézd szó szerint a verset "
+    "vagy a háttéranyagot; fogalmazd meg a lényegét a magad szavaival. "
+    "Ha hosszúsági probléma is szerepel (pl. `over_absolute_max`, "
+    "`layer_too_long`, `prose_block_too_long`, `intro_too_long`, "
+    "`conclusion_too_long`): tömörítsd az érintett részt. "
+    "A vázlat homiletikai ívét, szerkezetét és a meglévő főpontok számát "
+    "őrizd meg — ne tervezz új vázlatot, ne adj hozzá új exegetikai vagy "
+    "teológiai állítást. "
+    "Add vissza a TELJES, javított vázlatot PONTOSAN ugyanabban a Markdown "
+    "formátumban és szakaszszerkezetben, mint amit kaptál — ne válts JSON-ra "
+    "vagy más formátumra, és ne írj magyarázatot a vázlaton kívül."
+)
+
+MARKDOWN_COMPRESS_ESCALATION_INSTRUCTION = (
+    "MÁSODIK, HATÁROZOTTABB JAVÍTÁSI KÍSÉRLET — az előző javítási próbálkozásod "
+    "NEM oldotta meg teljesen a problémát: az alábbi vázlatban MÉG MINDIG van "
+    "olyan szakasz, amely 8 vagy több egymást követő szóban szó szerint "
+    "megegyezik a bibliai szöveggel vagy a háttéranyaggal. "
+    "Ez alkalommal NE csak finoman átfogalmazz — OLVASD ÁT SORBAN MINDEN "
+    "EGYES szakaszt (Fókuszmondat, Bevezetési irány, minden pont mindhárom "
+    "rétege, Megérkezés), és ha bármelyikben szó szerinti vagy majdnem szó "
+    "szerinti átvételt találsz, ÍRD ÁT TELJESEN, saját szavakkal, a lényeg "
+    "megtartásával, de egyetlen 8 szónál hosszabb szó szerinti egyezés "
+    "nélkül a bibliai szöveggel vagy a háttéranyaggal. Inkább legyen egy "
+    "mondat rövidebb és egyszerűbb, mint hogy idézetet tartalmazzon. "
+    "A vázlat homiletikai ívét, szerkezetét és a meglévő főpontok számát "
+    "őrizd meg. "
+    "Add vissza a TELJES, javított vázlatot PONTOSAN ugyanabban a Markdown "
+    "formátumban és szakaszszerkezetben, mint amit kaptál — ne válts JSON-ra "
+    "vagy más formátumra, és ne írj magyarázatot a vázlaton kívül."
+)
+
+
+def _compress_markdown(
+    markdown_text: str,
+    bundle: Mapping[str, Any],
+    *,
+    issues: list[str],
+    generate_fn: GenerateFn,
+    escalate: bool = False,
+) -> tuple[str | None, list[str]]:
+    """Markdown-szintű javítás: a modell saját nyers Markdown-válaszát kapja
+    vissza a konkrét validációs problémákkal együtt, és Markdown formátumban
+    javít — nem vált a mechanikus JSON sémára (az természetellenes, tömbösített
+    kimenetet adna), és a háttéranyagot (exegézis/kortörténet/teológia) is
+    megkapja, hogy legyen miből ténylegesen szintetizálnia, ne csak a már
+    hibás vázlatból dolgozzon.
+
+    `escalate=True`: második, határozottabb kísérlet — akkor hívjuk, ha az
+    első (akár Markdown-, akár JSON-alapú) javítás szintaktikailag sikerült,
+    de a probléma a re-validáció szerint mégis megmaradt."""
+    warnings: list[str] = []
+    instruction = (
+        MARKDOWN_COMPRESS_ESCALATION_INSTRUCTION if escalate else MARKDOWN_COMPRESS_INSTRUCTION
+    )
+    repair_context = _repair_source_context(bundle, rich=True)
+    prompt = (
+        f"{instruction}\n\n"
+        f"JELZETT PROBLÉMÁK: {', '.join(issues)}\n\n"
+        f"FORRÁS (támasz a javításhoz):\n"
+        f"{wrap_untrusted_content('forrás', json.dumps(repair_context, ensure_ascii=False), limit_name='prompt_context_total')}\n\n"
+        f"JAVÍTANDÓ VÁZLAT (Markdown):\n"
+        f"{wrap_untrusted_content('vázlat', markdown_text, limit_name='prompt_context_total')}"
+    )
+    try:
+        raw = _call_generate_with_retry(
+            generate_fn,
+            prompt,
+            system_bundle=OUTLINE_SYSTEM_PROMPT,
+            temperature=0.2,
+            as_json=False,
+        )
+    except Exception as exc:  # noqa: BLE001
+        warnings.append(f"Markdown-javítás sikertelen: {exc}")
+        return None, warnings
+    if _is_api_error_text(raw or ""):
+        warnings.append("A Markdown-javítás API-hibát jelzett.")
+        return None, warnings
+    raw_text = (raw or "").strip()
+    if not raw_text or raw_text == _OUTLINE_INCOMPLETE_SENTINEL:
+        warnings.append("A Markdown-javítás válasza hiányos vagy üres volt.")
+        return None, warnings
+    if not _looks_like_markdown_outline(raw_text):
+        warnings.append("A Markdown-javítás válasza nem Markdown-formátumú volt.")
+        return None, warnings
+    logger.info(
+        "outline_markdown_compress schema=%s words=%s",
+        SCHEMA_VERSION,
+        word_count(raw_text),
+    )
+    return raw_text, warnings
 
 
 def _enrich_structured(
@@ -2607,7 +2821,7 @@ def _enrich_structured(
         f"Kimenet JSON séma:\n{_JSON_SHAPE}"
     )
     try:
-        raw = _call_generate(generate_fn, prompt, temperature=0.35, as_json=True)
+        raw = _call_generate_with_retry(generate_fn, prompt, temperature=0.35, as_json=True)
     except Exception as exc:  # noqa: BLE001
         warnings.append(f"Mélyítő javítás sikertelen: {exc}")
         return None, warnings
@@ -2624,6 +2838,99 @@ def _enrich_structured(
         word_count(render_structured_outline(normalize_structured_outline(obj))),
     )
     return normalize_structured_outline(obj), warnings
+
+
+MARKDOWN_ENRICH_INSTRUCTION = (
+    "TARTALMI KIEGÉSZÍTÉS A SAJÁT KORÁBBI VÁLASZODON — az alábbi vázlatot te "
+    "magad írtad, de az automatikus ellenőrzés szerint felszínes, "
+    "ismétlődő, vagy egy kötelező réteg hiányzik/sovány. "
+    "A szerkezetet és az igehely-beosztást őrizd meg; ne írj új prédikációt "
+    "és ne találj ki verseket vagy tényeket. "
+    "Gazdagítsd a lenti FORRÁS anyagából — konkrét, a forrásra "
+    "visszavezethető megfigyeléssel, nem közhellyel. "
+    "Minden pontban legyen konkrét igei/nyelvi megfigyelés, teológiai "
+    "hangsúly és hallgatói/gyakorlati mozdulat — teljes mondatok, nem "
+    "bekezdés. Ne ismételd ugyanazt a mondatot más szakaszban. "
+    "Add vissza a TELJES, kiegészített vázlatot PONTOSAN ugyanabban a "
+    "Markdown formátumban és szakaszszerkezetben, mint amit kaptál — ne "
+    "válts JSON-ra vagy más formátumra, és ne írj magyarázatot a vázlaton "
+    "kívül."
+)
+
+MARKDOWN_ENRICH_ESCALATION_INSTRUCTION = (
+    "MÁSODIK, HATÁROZOTTABB KIEGÉSZÍTÉSI KÍSÉRLET — az előző kiegészítési "
+    "próbálkozásod NEM oldotta meg teljesen a problémát: az alábbi vázlat "
+    "MÉG MINDIG felszínes, ismétlődő, vagy hiányzik/sovány belőle egy "
+    "kötelező réteg. Ez alkalommal OLVASD ÁT SORBAN MINDEN EGYES szakaszt, "
+    "és ahol felszínes vagy hiányos, ÍRJ HOZZÁ konkrét, a FORRÁSBAN "
+    "ténylegesen szereplő megfigyelést — ne általánosságot, ne közhelyet. "
+    "Ha egy pontban hiányzik az igei/nyelvi megfigyelés, a teológiai "
+    "hangsúly vagy a hallgatói mozdulat, azt MOST pótold, teljes "
+    "mondattal. "
+    "A vázlat homiletikai ívét, szerkezetét és a meglévő főpontok számát "
+    "őrizd meg. "
+    "Add vissza a TELJES, kiegészített vázlatot PONTOSAN ugyanabban a "
+    "Markdown formátumban és szakaszszerkezetben, mint amit kaptál — ne "
+    "válts JSON-ra vagy más formátumra, és ne írj magyarázatot a vázlaton "
+    "kívül."
+)
+
+
+def _enrich_markdown(
+    markdown_text: str,
+    bundle: Mapping[str, Any],
+    *,
+    issues: list[str],
+    generate_fn: GenerateFn,
+    escalate: bool = False,
+) -> tuple[str | None, list[str]]:
+    """Markdown-szintű tartalmi kiegészítés — a `_compress_markdown()` párja
+    a "túl sovány" hibaosztályra. Megőrzi a természetes prózát a mechanikus
+    JSON-séma helyett, és a háttéranyagot is megkapja (rich=True).
+
+    `escalate=True`: második, határozottabb kísérlet, ha az első kiegészítés
+    szintaktikailag sikerült, de a probléma a re-validáció szerint mégis
+    megmaradt."""
+    warnings: list[str] = []
+    instruction = (
+        MARKDOWN_ENRICH_ESCALATION_INSTRUCTION if escalate else MARKDOWN_ENRICH_INSTRUCTION
+    )
+    repair_context = _repair_source_context(bundle, rich=True)
+    prompt = (
+        f"{instruction}\n\n"
+        f"JELZETT PROBLÉMÁK: {', '.join(issues)}\n\n"
+        f"FORRÁS (mélyítéshez):\n"
+        f"{wrap_untrusted_content('forrás', json.dumps(repair_context, ensure_ascii=False), limit_name='prompt_context_total')}\n\n"
+        f"MÉLYÍTENDŐ VÁZLAT (Markdown):\n"
+        f"{wrap_untrusted_content('vázlat', markdown_text, limit_name='prompt_context_total')}"
+    )
+    try:
+        raw = _call_generate_with_retry(
+            generate_fn,
+            prompt,
+            system_bundle=OUTLINE_SYSTEM_PROMPT,
+            temperature=0.3,
+            as_json=False,
+        )
+    except Exception as exc:  # noqa: BLE001
+        warnings.append(f"Markdown-mélyítés sikertelen: {exc}")
+        return None, warnings
+    if _is_api_error_text(raw or ""):
+        warnings.append("A Markdown-mélyítés API-hibát jelzett.")
+        return None, warnings
+    raw_text = (raw or "").strip()
+    if not raw_text or raw_text == _OUTLINE_INCOMPLETE_SENTINEL:
+        warnings.append("A Markdown-mélyítés válasza hiányos vagy üres volt.")
+        return None, warnings
+    if not _looks_like_markdown_outline(raw_text):
+        warnings.append("A Markdown-mélyítés válasza nem Markdown-formátumú volt.")
+        return None, warnings
+    logger.info(
+        "outline_markdown_enrich schema=%s words=%s",
+        SCHEMA_VERSION,
+        word_count(raw_text),
+    )
+    return raw_text, warnings
 
 
 def _programmatic_trim(payload: Mapping[str, Any]) -> dict[str, Any]:
@@ -2717,6 +3024,7 @@ def _rescue_structured_outline(
     seed_outline: Mapping[str, Any] | None,
     passage_text: Any,
     warnings: list[str],
+    background_texts: list[str] | None = None,
 ) -> tuple[dict[str, Any] | None, list[str]]:
     """Szigorú AI-bukás után is próbáljunk szószéki jegyzetet adni.
 
@@ -2744,7 +3052,9 @@ def _rescue_structured_outline(
     if isinstance(structured, dict) and structured:
         trimmed = normalize_structured_outline(_programmatic_trim(structured))
         if _structured_has_min_pulpit_shape(trimmed) and not _looks_stub(trimmed):
-            issues = validate_structured_outline(trimmed, passage_text=passage_text)
+            issues = validate_structured_outline(
+                trimmed, passage_text=passage_text, background_texts=background_texts
+            )
             hard = [
                 i
                 for i in issues
@@ -2766,6 +3076,9 @@ def _rescue_structured_outline(
     )
     if not _structured_has_min_pulpit_shape(heuristic) or _looks_stub(heuristic):
         return None, warnings
+    # Nincs background_texts itt: a heurisztika szándékosan a forrásanyagból
+    # (exegézis/kortörténet) emel ki mondatokat végső mentőövként — ezt a
+    # verbatim_source_copy ellenőrzés tévesen elutasítaná.
     issues = validate_structured_outline(heuristic, passage_text=passage_text)
     fatal = [i for i in issues if i in _FATAL_OUTLINE_ISSUES]
     wc = word_count(render_structured_outline(heuristic))
@@ -2878,13 +3191,32 @@ def generate_sermon_outline(
             "szöveg a jóváhagyás óta, ezért újra jóvá kell hagyni: "
             + ", ".join(stale_approved_blocks) + "."
         )
+    background_material = extract_outline_background_material(bundle)
     used_module_ids = [
-        key
-        for key in extract_outline_background_material(bundle)
-        if key in _APPROVAL_GATED_KEYS
+        key for key in background_material if key in _APPROVAL_GATED_KEYS
+    ]
+    # Csak a valódi prózai háttéranyagot vetjük össze a kimenettel (nem a
+    # listaszerű vázlatkosarat/döntéseket) — ezekben a szó szerinti átvétel
+    # (pl. bemásolt kortörténet-bekezdés) a jellemző hiba.
+    background_texts = [
+        _s(background_material.get(k))
+        for k in ("exegesis", "theology", "history", "original_text")
+        if _s(background_material.get(k))
     ]
     compressed = False
     enriched = False
+    # True, ha a `structured` egy AI-alapú compress/enrich/rescue javítás
+    # eredménye — ilyenkor a megjelenített tartalomnak EZT kell tükröznie,
+    # nem az eredeti, hibásnak jelzett nyers Markdown-választ.
+    structured_was_repaired = False
+    # Ha a Markdown-szintű javítás (lásd lejjebb) sikerül, ez tárolja a
+    # javított, még mindig természetes prózájú Markdown-szöveget.
+    repaired_markdown_content = ""
+    # A legutóbb ismert, `structured`/`issues`-szal összhangban lévő Markdown-
+    # szöveg — a compress ÉS az enrich blokk is frissíti/tovább örökíti, hogy
+    # az eszkalációs kísérletek mindig a legjobb elérhető verzióból induljanak,
+    # ne az eredeti, sokkal hibásabb szövegből.
+    md_for_escalation = ""
     raw_wc = 0
 
     # A tisztított bundle néha eldobja a csonka/ellipsis szövegmintát; a generáláshoz
@@ -2914,6 +3246,7 @@ def generate_sermon_outline(
     if structured is None:
         structured = _heuristic_structured_from_bundle(bundle, seed_outline=seed)
         markdown_content = ""
+    md_for_escalation = markdown_content
 
     passage_for_validation = bundle.get("passage_text") or ""
 
@@ -2935,29 +3268,94 @@ def generate_sermon_outline(
 
     # Validate BEFORE aggressive trim — trim must not hide a near-sermon.
     issues = validate_structured_outline(
-        structured, passage_text=passage_for_validation
+        structured, passage_text=passage_for_validation, background_texts=background_texts
     )
     if raw_wc > LIMITS["absolute_max_words"] and "over_absolute_max" not in issues:
         issues = list(issues) + ["over_absolute_max"]
 
     # Tömörítés CSAK 850+ szó / prédikációjelleg esetén — nem minden hard hibánál.
     if _needs_compress(issues) and generate_fn is not None:
-        repaired, c_warn = _compress_structured(
-            structured, bundle, issues=issues, generate_fn=generate_fn
-        )
-        warnings.extend(c_warn)
-        compressed = True
-        if repaired is not None:
-            structured = repaired
-            issues = validate_structured_outline(
-                structured, passage_text=passage_for_validation
+        # Elsőként Markdown-szintű javítás, ha van nyers Markdown-válasz —
+        # ez megőrzi a természetes prózát (nem vált a mechanikus JSON-sémára)
+        # és a modell most már a háttéranyagot is megkapja (rich=True), hogy
+        # legyen miből ténylegesen szintetizálnia, ne csak a hibás vázlatot
+        # kozmetikázza.
+        # `md_for_escalation` a legutóbb ismert Markdown-szöveg (a függvény
+        # elején az eredeti nyers Markdown-ra inicializálva) — itt frissül,
+        # ha sikerül javítás.
+        md_attempt_failed_outright = False
+        if markdown_content:
+            md_repaired, md_warn = _compress_markdown(
+                markdown_content, bundle, issues=issues, generate_fn=generate_fn
             )
+            warnings.extend(md_warn)
+            if md_repaired is not None:
+                # Maradunk a Markdown-vonalon akkor is, ha még nem tiszta —
+                # az `issues`/`structured` innentől EBBŐL a szövegből
+                # származik, hogy az esetleges eszkalációs próbálkozás
+                # ugyanarra a szövegre hivatkozzon, amit a JELZETT PROBLÉMÁK
+                # ténylegesen leír (JSON-fallback esetén ez az összhang
+                # elveszne).
+                md_for_escalation = md_repaired
+                reparsed = markdown_outline_to_structured(md_repaired)
+                reparsed_issues = validate_structured_outline(
+                    reparsed, passage_text=passage_for_validation, background_texts=background_texts
+                )
+                structured = reparsed
+                issues = reparsed_issues
+                if not (_needs_compress(issues) or _hard_issues(issues)):
+                    repaired_markdown_content = md_repaired
+                    structured_was_repaired = True
+            else:
+                md_attempt_failed_outright = True
+        # JSON-alapú fallback CSAK akkor, ha eleve nem volt Markdown-válasz
+        # (legacy JSON mód), vagy a Markdown-javítás ténylegesen hibázott
+        # (nem csak "még nem elég jó") — különben a Markdown-vonalon
+        # maradunk, és az eszkaláció próbálja tovább javítani.
+        if not repaired_markdown_content and (not markdown_content or md_attempt_failed_outright):
+            repaired, c_warn = _compress_structured(
+                structured, bundle, issues=issues, generate_fn=generate_fn
+            )
+            warnings.extend(c_warn)
+            if repaired is not None:
+                structured = repaired
+                structured_was_repaired = True
+                issues = validate_structured_outline(
+                    structured, passage_text=passage_for_validation, background_texts=background_texts
+                )
+        compressed = True
         logger.info(
             "outline_after_compress schema=%s issues=%s words=%s",
             SCHEMA_VERSION,
             issues,
             word_count(render_structured_outline(structured)),
         )
+        # Második, határozottabb Markdown-javítási kísérlet, mielőtt a
+        # mechanikus vészmegoldásra esnénk — az első próbálkozás szintaktikailag
+        # sikerülhetett, de a probléma (pl. verbatim_source_copy) a
+        # re-validáció szerint mégis megmaradhatott.
+        if (_needs_compress(issues) or _hard_issues(issues)) and md_for_escalation:
+            md_repaired2, md_warn2 = _compress_markdown(
+                md_for_escalation,
+                bundle,
+                issues=issues,
+                generate_fn=generate_fn,
+                escalate=True,
+            )
+            warnings.extend(md_warn2)
+            if md_repaired2 is not None:
+                reparsed2 = markdown_outline_to_structured(md_repaired2)
+                reparsed2_issues = validate_structured_outline(
+                    reparsed2, passage_text=passage_for_validation, background_texts=background_texts
+                )
+                if not (_needs_compress(reparsed2_issues) or _hard_issues(reparsed2_issues)):
+                    structured = reparsed2
+                    repaired_markdown_content = md_repaired2
+                    structured_was_repaired = True
+                    issues = reparsed2_issues
+                    logger.info(
+                        "outline_compress_escalation_success schema=%s", SCHEMA_VERSION
+                    )
         if _needs_compress(issues) or _hard_issues(issues):
             rendered_wc = word_count(render_structured_outline(structured))
             logger.info(
@@ -2972,6 +3370,7 @@ def generate_sermon_outline(
                 seed_outline=seed,
                 passage_text=passage_for_validation,
                 warnings=warnings,
+                background_texts=background_texts,
             )
             if rescued is None:
                 return OutlineGenerationResult(
@@ -2988,8 +3387,9 @@ def generate_sermon_outline(
                 )
             structured = rescued
             compressed = True
+            structured_was_repaired = True
             issues = validate_structured_outline(
-                structured, passage_text=passage_for_validation
+                structured, passage_text=passage_for_validation, background_texts=background_texts
             )
 
     # Tartalmi kiegészítés CSAK 350 alatt / hiányzó-sovány réteg esetén.
@@ -2998,16 +3398,54 @@ def generate_sermon_outline(
         and not _needs_compress(issues)
         and _needs_enrich(issues)
     ):
-        deepened, e_warn = _enrich_structured(
-            structured, bundle, issues=issues, generate_fn=generate_fn
-        )
-        warnings.extend(e_warn)
-        enriched = True
-        if deepened is not None:
-            structured = deepened
-            issues = validate_structured_outline(
-                structured, passage_text=passage_for_validation
+        # Ugyanaz a minta, mint a tömörítésnél: elsőként Markdown-szintű
+        # kiegészítés (természetes próza), csak utána JSON-alapú fallback —
+        # `md_for_escalation` a compress blokkból örökölt legutóbbi ismert
+        # Markdown-szöveg (vagy az eredeti, ha compress nem futott).
+        md_e_attempt_failed_outright = False
+        if md_for_escalation:
+            md_deepened, md_e_warn = _enrich_markdown(
+                md_for_escalation, bundle, issues=issues, generate_fn=generate_fn
             )
+            warnings.extend(md_e_warn)
+            if md_deepened is not None:
+                md_for_escalation = md_deepened
+                reparsed_e = markdown_outline_to_structured(md_deepened)
+                reparsed_e_issues = validate_structured_outline(
+                    reparsed_e, passage_text=passage_for_validation, background_texts=background_texts
+                )
+                reparsed_e_leftover = [
+                    i
+                    for i in reparsed_e_issues
+                    if i
+                    in {
+                        "missing_textual_insight",
+                        "missing_theological_emphasis",
+                        "missing_listener_movement",
+                        "truncated_sentence",
+                    }
+                ]
+                structured = reparsed_e
+                issues = reparsed_e_issues
+                if not (_hard_issues(reparsed_e_issues) or reparsed_e_leftover):
+                    repaired_markdown_content = md_deepened
+                    structured_was_repaired = True
+            else:
+                md_e_attempt_failed_outright = True
+        enriched = True
+        if not structured_was_repaired and (
+            not markdown_content or md_e_attempt_failed_outright
+        ):
+            deepened, e_warn = _enrich_structured(
+                structured, bundle, issues=issues, generate_fn=generate_fn
+            )
+            warnings.extend(e_warn)
+            if deepened is not None:
+                structured = deepened
+                structured_was_repaired = True
+                issues = validate_structured_outline(
+                    structured, passage_text=passage_for_validation, background_texts=background_texts
+                )
         logger.info(
             "outline_after_enrich schema=%s issues=%s words=%s",
             SCHEMA_VERSION,
@@ -3025,6 +3463,42 @@ def generate_sermon_outline(
                 "truncated_sentence",
             }
         ]
+        # Második, határozottabb Markdown-kiegészítési kísérlet, mielőtt a
+        # mechanikus vészmegoldásra esnénk.
+        if (_hard_issues(issues) or leftover_hard) and md_for_escalation:
+            md_deepened2, md_e_warn2 = _enrich_markdown(
+                md_for_escalation,
+                bundle,
+                issues=issues,
+                generate_fn=generate_fn,
+                escalate=True,
+            )
+            warnings.extend(md_e_warn2)
+            if md_deepened2 is not None:
+                reparsed_e2 = markdown_outline_to_structured(md_deepened2)
+                reparsed_e2_issues = validate_structured_outline(
+                    reparsed_e2, passage_text=passage_for_validation, background_texts=background_texts
+                )
+                leftover_hard2 = [
+                    i
+                    for i in reparsed_e2_issues
+                    if i
+                    in {
+                        "missing_textual_insight",
+                        "missing_theological_emphasis",
+                        "missing_listener_movement",
+                        "truncated_sentence",
+                    }
+                ]
+                if not (_hard_issues(reparsed_e2_issues) or leftover_hard2):
+                    structured = reparsed_e2
+                    repaired_markdown_content = md_deepened2
+                    structured_was_repaired = True
+                    issues = reparsed_e2_issues
+                    leftover_hard = leftover_hard2
+                    logger.info(
+                        "outline_enrich_escalation_success schema=%s", SCHEMA_VERSION
+                    )
         if _hard_issues(issues) or leftover_hard:
             rendered_wc = word_count(render_structured_outline(structured))
             logger.info(
@@ -3039,6 +3513,7 @@ def generate_sermon_outline(
                 seed_outline=seed,
                 passage_text=passage_for_validation,
                 warnings=warnings,
+                background_texts=background_texts,
             )
             if rescued is None:
                 return OutlineGenerationResult(
@@ -3055,13 +3530,14 @@ def generate_sermon_outline(
                 )
             structured = rescued
             enriched = True
+            structured_was_repaired = True
             issues = validate_structured_outline(
-                structured, passage_text=passage_for_validation
+                structured, passage_text=passage_for_validation, background_texts=background_texts
             )
 
     structured = _programmatic_trim(structured)
     issues = validate_structured_outline(
-        structured, passage_text=passage_for_validation
+        structured, passage_text=passage_for_validation, background_texts=background_texts
     )
 
     rendered_wc = word_count(render_structured_outline(structured))
@@ -3097,6 +3573,7 @@ def generate_sermon_outline(
             seed_outline=seed,
             passage_text=passage_for_validation,
             warnings=warnings,
+            background_texts=background_texts,
         )
         if rescued is None:
             return OutlineGenerationResult(
@@ -3112,8 +3589,9 @@ def generate_sermon_outline(
                 rendered_word_count=rendered_wc,
             )
         structured = rescued
+        structured_was_repaired = True
         issues = validate_structured_outline(
-            structured, passage_text=passage_for_validation
+            structured, passage_text=passage_for_validation, background_texts=background_texts
         )
         rendered_wc = word_count(render_structured_outline(structured))
         for soft in _soft_final_issues(issues):
@@ -3130,7 +3608,7 @@ def generate_sermon_outline(
     if generate_fn is None and issues:
         structured = _programmatic_trim(structured)
         issues = validate_structured_outline(
-            structured, passage_text=passage_for_validation
+            structured, passage_text=passage_for_validation, background_texts=background_texts
         )
         fatal = [
             i
@@ -3167,8 +3645,17 @@ def generate_sermon_outline(
         source=source_tag or "workshop",
         context_hash=ctx_hash,
     )
-    # Markdown generálás: a nyers Markdown a kanonikus megjelenített tartalom
-    if _s(markdown_content):
+    # Markdown generálás: alapesetben a nyers Markdown a kanonikus megjelenített
+    # tartalom. Ha a validáció hibát jelzett és sikerült Markdown-szintű
+    # javítás (természetes próza marad), azt mutatjuk. Ha csak a mechanikus
+    # JSON-alapú compress/enrich/rescue sikerült, az a második választás —
+    # különben a validáció/javítás láthatatlan marad, és a hibás nyers szöveg
+    # jelenik meg változatlanul.
+    if repaired_markdown_content:
+        outline["content"] = repaired_markdown_content
+    elif structured_was_repaired:
+        outline["content"] = render_structured_outline(structured)
+    elif _s(markdown_content):
         outline["content"] = _s(markdown_content)
     outline["source_fingerprint"] = ctx_hash
     outline["used_module_ids"] = used_module_ids
