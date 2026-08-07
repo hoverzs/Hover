@@ -2111,9 +2111,14 @@ div[data-baseweb="popover"] [data-testid="stPopoverBody"]::-webkit-scrollbar-thu
     }
 }
 
-/* Magyarázó próza olvasási szélesség */
-.tx-prose,
-.result-box {
+/* Magyarázó próza olvasási szélesség.
+   A .result-box a KÁRTYA (háttér/keret/árnyék) — ez töltse ki a
+   .main-card rendelkezésre álló szélességét. Az olvashatóságot a
+   benne lévő bekezdések biztosítják (`.stMarkdown p { max-width: 78ch }`,
+   app.py ~1071), mivel a .result-box tartalma mindig egy .stMarkdown
+   wrapperbe ágyazva jelenik meg — nem a kártya-konténerre kell rátenni
+   a sor-hossz limitet, mert az feleslegesen szűkíti a teljes kártyát. */
+.tx-prose {
     max-width: var(--tx-prose-width);
 }
 .tx-prose p,
