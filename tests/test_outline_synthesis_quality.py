@@ -346,7 +346,9 @@ def test_prompt_dynamic_background_vs_passage_only_in_assembly():
     ]
     assert outline_prompts, captured
     assert "HÁTTÉRANYAG" not in outline_prompts[0]
-    assert "csak a fenti bibliai textus" in outline_prompts[0].casefold()
+    # 2026-08-08: a puszta-textus mód a leggyakoribb eset, nem hiány —
+    # a modell a saját tudására támaszkodva adjon legjobb minőségű vázlatot.
+    assert "leggyakoribb eset" in outline_prompts[0].casefold()
 
     rich = dict(bare)
     rich["exegesis"] = "Júdás a gúnyolódók ellen figyelmeztet, majd a megmaradásra hív."

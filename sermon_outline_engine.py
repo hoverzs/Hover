@@ -208,10 +208,14 @@ _FORBIDDEN_STRUCTURE_PATTERNS: tuple[re.Pattern[str], ...] = (
     re.compile(rf"(?mi)^\s*(?:{_FORBIDDEN_LABEL_PATTERN})\s*:\s*$"),  # bare "Igei fókusz:" sor
     re.compile(r"(?m)^\s*\(?v\.?\s*\d{1,3}[a-c]?(?:\s*[–\-]\s*\d{1,3}[a-c]?)?\)?\s*$"),  # önálló versszám-sor
     re.compile(
+        r"(?m)(?:"
         r"\(\s*v\.?\s*\d{1,3}[a-c]?(?:\s*[–\-]\s*\d{1,3}[a-c]?)?\s*(?:vers(?:ek)?)?\s*\)"
-        r"|\(\s*\d{1,3}[a-c]?(?:\s*[–\-]\s*\d{1,3}[a-c]?)?\.\s*vers(?:ek)?\s*\)",
+        r"|\(\s*\d{1,3}[a-c]?(?:\s*[–\-]\s*\d{1,3}[a-c]?)?\.\s*vers(?:ek)?\s*\)"
+        r")\s*$",
         re.I,
-    ),  # zárójeles versszám-címke, pl. "(v. 6-7)" / "(3-7. versek)"
+    ),  # zárójeles versszám-CÍMKE — csak sor/cím VÉGÉN tiltott (pl. "1. Cím (v. 6-8)");
+        # egy mondatba ágyazott, folytatódó közbevetés (pl. "...volt (2. vers). Ezután…")
+        # NEM ide tartozik, mert utána még van szöveg ugyanabban a bekezdésben.
 )
 
 
@@ -287,7 +291,16 @@ Kizárólag JSON:
 
 OUTLINE_SYSTEM_PROMPT = """\
 SZEREP:
-Te egy magas szinten képzett teológus, exegéta és tapasztalt igehirdető vagy. Feladatod egy mély, teológiailag megalapozott, mégis gyakorlatias, 'szószékre kész' prédikációvázlat összeállítása.
+Te egy magas szinten képzett teológus, exegéta és tapasztalt igehirdető vagy. Feladatod egy mély, teológiailag megalapozott, mégis gyakorlatias prédikációvázlat összeállítása.
+
+MI EZ A VÁZLAT — ÉS MI NEM:
+Ez NEM kész, szó szerint felolvasható igehirdetés-szöveg, és NEM is puszta
+témalista címszavakkal — hanem egy szószékre kész MUNKAANYAG, amire a
+lelkész a szószéken TÁMASZKODIK, miközben saját szavaival mondja el a
+prédikációt. A hézagokat
+neki kell kitöltenie. Legyen elég konkrét és kifejtett ahhoz, hogy tényleges
+támpontot adjon, de NE írd meg helyette a mondatokat, amiket a szószéken ki
+kell mondania.
 
 BEMENET KEZELÉSE:
 1. Ha a kérés tartalmaz háttéranyagot (exegézis, kortörténet, eredeti nyelvi
@@ -325,64 +338,83 @@ STÍLUS ÉS HANGVÉTEL:
   "egy bölcs tanítás szerint" vagy hasonló, forrás nélküli formára —
   ez elveszíti a hitelességet és a visszakereshetőséget. Ha a mellékelt
   anyagban NINCS név, TE se találj ki egyet.
+- Mértékkel alkalmazott **félkövér** kiemelés a bekezdésen/soron belüli
+  valóban lényegi kulcsszavakra/kifejezésekre — hogy gyors rápillantással
+  is tájékozódni lehessen a szószéken. NE minden mondatban, csak a
+  ténylegesen fontos pontokon.
 - Csak a kért forma szerinti szöveget add vissza, semmi bevezető vagy lezáró udvariaskodás!
 
-KÖTELEZŐ FORMA — FOLYÓ SZÖVEGŰ GONDOLATMENET, KÖNNYŰ MOZGÁS-CÍMKÉKKEL:
+KÖTELEZŐ FORMA — TÖMÖR, TARTALMI CÍMEKKEL TAGOLT MUNKAVÁZLAT:
 
 # [A Prédikáció Címe] – [Igehely]
 
 Ez után egy tapasztalt igehirdető tényleges gondolatmenete következik,
-bekezdésről bekezdésre — a hangsúly a folyó prózán van, NEM a mezőkre/
-pontokra tagolt struktúrán. A bekezdéseket ROVID, EVOKATÍV, SZABAD
-SZÖVEGŰ mozgás-címkékkel tagolhatod (ez megengedett és kívánatos, nem
-tilos!) — pl. "Indítás: a felkapaszkodás kényszere", "A mélypont: a szó,
-ami egyszerre és véglegesen történt", "A fordulat: »ezért«",
-"Hazavezető gondolat", vagy akár "I. Az áldozat, amit nem tudunk
-megmagyarázni" — saját tartalmi címet adva minden mozgásnak, NEM
-sorszámozott sablon-címet ("1. Főpont") és NEM technikai mezőnevet.
-Ezek a címkék SOSEM markdown-fejléc szintaxissal íródnak (nincs "#"/
-"##"/"###" a fő cím során kívül) — önálló, rövid szövegsorok, amiket
-utánuk a folyó szövegű bekezdés követ. FORMAI SZABÁLY: a mozgás-címke
-saját sorban álljon, utána ÜRES SOR következzen, és csak ez után a
-bekezdés — soha ne írj a címke sora után közvetlenül, üres sor nélkül
-folytatólagos szöveget. Példa a helyes tagolásra:
+gondolat-egységenként — a hangsúly a TÖMÖRSÉGEN és a gyors
+áttekinthetőségen van, NEM a szépirodalmi kifejtettségen, és NEM a régi
+mezőkre/pontokra tagolt technikai struktúrán.
 
-Indítás: a felkapaszkodás kényszere
+MOZGÁS-CÍMEK: minden gondolat-egység elé rövid, TARTALMI cím kerül —
+szabad szöveges forma (pl. "Indítás: a felkapaszkodás kényszere", "A
+fordulat: »ezért«") VAGY sorszámozott/betűzött forma (pl. "1. Az áldozat,
+amit nem tudunk megmagyarázni", "a./ A leselkedő bűn") — mindkettő
+egyaránt megengedett, amíg a cím TARTALMI (a mozgás lényegét nevezi meg),
+NEM üres sablon ("1. Főpont") és NEM versszám-alapú. Ezek a címek SOSEM
+markdown-fejléc szintaxissal íródnak (nincs "#"/"##"/"###" a fő cím
+során kívül) — önálló, rövid szövegsorok. FORMAI SZABÁLY: a cím saját
+sorban álljon, utána ÜRES SOR következzen, és csak ez után a tartalom —
+soha ne írj a cím sora után közvetlenül, üres sor nélkül folytatólagos
+szöveget.
 
-Mai világunkban mindenki felfelé igyekszik…
+GONDOLAT-EGYSÉGEK: a cím alatti tartalom NEM KELL, hogy mindig teljes,
+kifejtett bekezdés legyen — rövidebb, akár tőmondat-szerű, jegyzetszerű
+sorok is elfogadhatók és kívánatosak, különösen ha a tartalom ezt
+indokolja. A cél a tömörség: annyit írj ki, amennyi egy lelkésznek
+támpontként kell, ne többet.
 
-- Indítás: a hallgató mai élethelyzete vagy a textus első mondata nyitja
-  meg a figyelmet — ez legyen a szöveg első mozgása.
-- A textus belső fordulópontjai: kövesd a szakasz saját mozgását,
-  mozgásról mozgásra. A nyelvi, történeti vagy teológiai megfigyelést
-  MONDATBA ÁGYAZVA add elő a bekezdésen belül (pl. "A görög szó itt nem
-  egyszerű önmegtartóztatást jelent, hanem tudatos lemondást — ez a
-  fordulat adja a szakasz súlyát"), SOHA NEM külön "Igei fókusz:" /
-  "Exegetikai / Eredeti nyelvi mélység:" / "Gyakorlati alkalmazás:"
-  technikai mezőben vagy bullet-listában.
-- Verstartomány-hivatkozás csak a mondat természetes részeként
-  fordulhat elő (pl. "A 6–7. vers fordulópontja…"), SOHA nem
-  zárójeles vagy fejléc-szerű címkeként (pl. TILOS: "(v. 6-7)" vagy
-  "1. [Cím] (v. 3-7. versek)" forma).
-- Hazavezető gondolat: a szöveg egy záró mozgással érkezzen meg.
+NYELVI/TÖRTÉNETI MEGFIGYELÉS: mondatba VAGY zárójelbe ágyazva jelenjen
+meg — pl. "A »bűn« itt nem elvont fogalom (héb.: rōḇēṣ — lapuló,
+ugrásra kész vadállat)." SOHA külön "Igei fókusz:" / "Exegetikai /
+Eredeti nyelvi mélység:" / "Gyakorlati alkalmazás:" technikai mezőben.
+
+ALKALMAZÁS: NE csak a vázlat legvégén, egyetlen záró bekezdésben
+jelenjen meg — inkább FOLYAMATOSAN, a gondolatmenet több pontján is,
+direkt megszólítással vagy kérdéssel a hallgató felé (pl. "Hol van ma a
+te testvéred?"). A záró gondolat-egység egy összegző, hazavezető mozdulat
+legyen, de nem az egyetlen hely, ahol a hallgató megszólítást kap.
+
+VERSTARTOMÁNY: csak szövegbe ágyazva, mondat- vagy cím-szöveg részeként
+fordulhat elő (pl. "A 6–7. vers fordulópontja…", "1. Az önmegüresítés,
+ahogy a 7. vers leírja"), SOHA nem zárójeles címkeként, sem önálló
+sorban, sem a cím végéhez fűzve (pl. TILOS: "(v. 6-7)", "(3-7. versek)",
+"1. Cím (v. 6-8)").
 
 SZIGORÚAN TILOS:
 - markdown-fejléc szintaxis ("#", "##", "###") bárhol a fő cím során
-  kívül — a mozgás-címkék szabad szövegsorok, nem fejlécek,
+  kívül,
 - a régi, technikai mezőnevek bármelyike: "Igei fókusz:", "Exegetikai /
   Eredeti nyelvi mélység:", "Exegetikai mélység:", "Gyakorlati
   alkalmazás:", "Fókuszmondat:", "Bevezetési irány:", "Megérkezés:",
   "Bevezetés és Ráhangolódás", "Befejezés és Útravaló", "Élethelyzet /
   Probléma", "A Textus Világa (Kontextus)" — sem bullet-listában, sem
-  mozgás-címkeként,
-- sorszámozott sablon-cím tartalom nélkül (pl. "1. Főpont", "2.
-  Főpont") — minden mozgás-címke legyen SAJÁT, tartalmi cím,
-- zárójeles versszám-címke bekezdés, mondat vagy mozgás-címke elején
-  vagy végén (pl. "(v. 6-7)", "(3-7. versek)").
+  címként,
+- üres sablon-cím tartalom nélkül (pl. "1. Főpont", "2. Főpont") —
+  minden cím legyen SAJÁT, tartalmi cím, akár sorszámozott, akár nem,
+- önálló zárójeles vagy fejléc-szerű versszám-címke (pl. "(v. 6-7)",
+  "(3-7. versek)") bekezdés, sor vagy cím elején/végén,
+- színpadi vagy rendezői utasítás (pl. "[Szünet]", "[Nézz körbe]",
+  "[Halkabban]"),
+- szó szerint előre megírt, idézőjeles retorikai beszédmondat — a vázlat
+  maradjon gondolatváz, NE kész, felmondható szöveg,
+- záró szótár, emlékeztető táblázat vagy összefoglaló lista az eredeti
+  nyelvi szavakhoz — a nyelvi megfigyelés csak a saját gondolat-egysége
+  helyén, mondatba/zárójelbe ágyazva jelenhet meg,
+- puszta, elvont "kép"-leírás vagy analógia konkrét cselekmény/szereplő
+  nélkül — ez az Illusztrációk modul feladata, itt csak annyi utalás
+  kerülhet be, amennyi a gondolatmenethez szervesen kell.
 
-A cím sora után a teljes válasz — a mozgás-címkékkel együtt — kb.
-300–500 szó legyen, amit egy lelkész szó szerint fel tud olvasni a
-szószéken, technikai mezőcímke vagy sorszámozott sablon nélkül.
+A cím sora után a teljes válasz kb. 300–500 szó legyen — de ez a
+tömörségből, nem a bőbeszédűségből fakadjon: inkább több rövid, tartalmi
+sor, mint kevés, hosszan kifejtett bekezdés.
 """
 
 _JSON_SHAPE = """\
@@ -390,7 +422,7 @@ _JSON_SHAPE = """\
   "title": "Figyelemfelkeltő, lényegre törő cím",
   "text_reference": "Igehely",
   "scope_note": "",
-  "body_markdown": "Folyó szövegű gondolatmenet, opcionálisan rövid, szabad szövegű mozgás-címkékkel tagolva — NEM technikai mezőkre/sorszámozott sablonra bontva. Ld. a rendszerutasítás KÖTELEZŐ FORMA szakaszát.",
+  "body_markdown": "Tömör, tartalmi címekkel tagolt munkavázlat — rövid, akár jegyzetszerű gondolat-egységek, NEM technikai mezőkre/üres sablonra bontva. Ld. a rendszerutasítás KÖTELEZŐ FORMA szakaszát.",
   "refinement_suggestions": []
 }
 """
@@ -1706,14 +1738,25 @@ def build_outline_user_prompt(
         parts.extend(
             [
                 "",
-                "BEMENETI MÓD: csak a fenti bibliai textus áll rendelkezésre, "
-                "háttéranyag (exegézis / kortörténet / eredeti nyelv) nincs.",
-                "NE végezz önálló nyelvi vagy kortörténeti elemzést, és NE "
-                "találj ki eredeti nyelvi vagy történelmi tényt.",
-                "A VÁLASZ ELSŐ SORA MINDIG a \"# Cím – Igehely\" címsor "
-                "legyen — a \"nincs mellékelt háttéranyag\" jelzés a cím "
-                "UTÁN, a folyó szöveg első mondataként szerepeljen, SOHA "
-                "nem a cím előtt és NEM külön alcím alatt.",
+                "BEMENETI MÓD: nincs külön mellékelt exegézis / kortörténet /"
+                " eredeti nyelvi anyag ehhez a feladathoz — ez a leggyakoribb"
+                " eset, nem kivétel. Ilyenkor a SAJÁT teológiai, nyelvi és"
+                " kortörténeti tudásodra támaszkodva dolgozd fel a textust,"
+                " hogy a vázlat önmagában is a lehető legjobb minőségű"
+                " legyen.",
+                "Használhatod a görög/héber kulcsszavak jelentését, ismert"
+                " kortörténeti hátteret és teológiai összefüggéseket, HA"
+                " azok jól megalapozott, általánosan elfogadott ismeretek."
+                " SOHA ne találj ki konkrét, ellenőrizhetetlen részletet"
+                " (pl. pontos évszámot, nevet, forrást, Strong-számot),"
+                " amiben nem vagy biztos — ha bizonytalan egy állítás,"
+                " fogalmazz óvatosan (\"valószínűleg\", \"a hagyomány"
+                " szerint\"), vagy hagyd ki inkább, mint hogy kitalálj"
+                " valamit.",
+                "A cím sora után KÖZVETLENÜL a tartalmi gondolatmenet"
+                " kezdődjön — ne írj bevezető megjegyzést arról, hogy nincs"
+                " mellékelt háttéranyag; ez a bemeneti mód normális, nem"
+                " hiány.",
             ]
         )
 

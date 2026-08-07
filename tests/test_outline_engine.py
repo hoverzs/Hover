@@ -1313,8 +1313,12 @@ def test_outline_prompt_passage_only_without_missing_warnings():
     prompt = build_outline_user_prompt(bundle, mode="quick")
     assert "HÁTTÉRANYAG" not in prompt
     assert "BIBLIAI SZÖVEG" in prompt or "IGEHELY:" in prompt
-    assert "csak a fenti bibliai textus áll rendelkezésre" in prompt.casefold()
-    assert "nincs mellékelt háttéranyag" in prompt.casefold()
+    # 2026-08-08: termékdöntés — a puszta-textus eset a leggyakoribb, nem
+    # kivétel; a modell a saját tudására támaszkodva adjon a lehető
+    # legjobb vázlatot, ne írjon bocsánatkérő "nincs háttéranyag" nyitányt.
+    assert "leggyakoribb eset" in prompt.casefold()
+    assert "saját" in prompt.casefold() and "tudásodra" in prompt.casefold()
+    assert "ne írj bevezető megjegyzést arról, hogy nincs mellékelt háttéranyag" in prompt.casefold()
     assert "hiba" not in prompt.casefold()
     assert "nincs elég" not in prompt.casefold()
 

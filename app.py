@@ -8193,9 +8193,14 @@ with tabs[7]:
     sw = st.session_state[SERMON_WORKSHOP_KEY]
     outline = normalize_sermon_outline(sw.get("sermon_outline"))
     bundle = collect_available_sermon_material(st.session_state, sermon_workshop=sw)
-    readiness = assess_outline_readiness(
-        st.session_state, sermon_workshop=sw, require_curation=True
-    )
+    # Termékdöntés (2026-08-08): a kurátori-kényszer (require_curation=True)
+    # visszavonva — a gomb újra pusztán az igehely + betöltött bibliai
+    # szöveg alapján elérhető, ahogy eredetileg. A minőségbiztosítást a
+    # vázlatmotor prompt-ja/validátora végzi, nem egy mesterséges belépési
+    # korlát. A `require_curation` paraméter magában megmarad
+    # (`sermon_workshop_outline_ai.assess_outline_readiness`), ha később
+    # újra szükség lenne rá.
+    readiness = assess_outline_readiness(st.session_state, sermon_workshop=sw)
 
     if outline_has_content(outline) and outline_needs_refresh(outline, bundle):
         if str(outline.get("status") or "") != "needs_refresh":
