@@ -382,12 +382,20 @@ def _has_curated_material(
 ) -> bool:
     """Van-e legalább egy saját kurátori döntés a nyers textuson felül.
 
-    Szándékosan csak olyan jelekre épít, amik túlélik a projekt mentését/
-    újratöltését (`WORKSPACE_LIST_KEYS` / `TEXT_WORKSHOP_KEY` /
-    `SERMON_WORKSHOP_KEY` nested mezők) — a szakaszonkénti
-    `{key}_ever_approved` session-flagek (Exegézis/Kortörténet/Teológia
-    "Jóváhagyom és átadom" gombjai) NEM perzisztensek, ezért ide direkt nem
-    kerülnek be: reload után hamis negatívot adnának.
+    Csak olyan jelekre épít, amik túlélik a projekt mentését/újratöltését:
+    `WORKSPACE_LIST_KEYS` / `TEXT_WORKSHOP_KEY` / `SERMON_WORKSHOP_KEY`
+    nested mezők, az Exegézis/Kortörténet/Teológia/Eredeti nyelvi
+    `{key}_status` mezők (2026-08-08 óta a `WORKSPACE_STR_KEYS` része —
+    korábban csak a session-only `{key}_ever_approved` flag létezett, ami
+    NEM élte túl a projekt-újratöltést), valamint magának a
+    exegézis/kortörténet/teológia/eredeti nyelvi SZÖVEGNEK a megléte.
+
+    Ez utóbbi (puszta szöveg, jóváhagyás nélkül) szándékosan gyengébb jel,
+    de retroaktívan is működik: a `{key}_status` csak az ETTŐL A
+    JAVÍTÁSTÓL kezdve mentett projekteknél elérhető, a KORÁBBAN mentett
+    projekteknél a mentett adatban nincs ilyen mező — ott a `{key}` maga
+    (ami mindig is mentve volt) az egyetlen retroaktív jel, hogy a
+    felhasználó valóban dolgozott a textussal, nem csak beírta az igehelyet.
     """
     if isinstance(session_state.get("basket"), list) and session_state.get("basket"):
         return True
@@ -399,6 +407,11 @@ def _has_curated_material(
         return True
     if _approved_sermon_decision_texts(sw):
         return True
+    for key in ("exegesis", "history", "theology", "original_text"):
+        if _s(session_state.get(f"{key}_status")) == "approved":
+            return True
+        if _s(session_state.get(key)):
+            return True
     return False
 
 

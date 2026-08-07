@@ -73,8 +73,29 @@ def test_require_curation_passes_with_sermon_main_idea():
     assert ready.ok
 
 
-def test_require_curation_ignores_non_persistent_approval_flags():
-    """A `{key}_ever_approved` session-flagek (nem perzisztensek) NEM elegendők."""
-    state = _base_state(exegesis_ever_approved=True, exegesis_status="approved")
+def test_require_curation_ignores_transient_ever_approved_flag():
+    """A session-only `{key}_ever_approved` flag (nem WORKSPACE_STR_KEYS
+    tagja, nem éli túl a mentést/újratöltést) önmagában NEM elegendő —
+    csak a perzisztens `{key}_status` vagy maga a szöveg számít."""
+    state = _base_state(exegesis_ever_approved=True)
     ready = assess_outline_readiness(state, require_curation=True)
     assert not ready.ok
+
+
+def test_require_curation_passes_with_persisted_approved_status():
+    """2026-08-08: a `{key}_status` mező mostantól perzisztens
+    (WORKSPACE_STR_KEYS tagja) — jóváhagyott exegézis mentés/újratöltés
+    után is elegendő jel a kapuhoz."""
+    state = _base_state(exegesis_status="approved")
+    ready = assess_outline_readiness(state, require_curation=True)
+    assert ready.ok
+
+
+def test_require_curation_passes_with_unapproved_exegesis_text_retroactive():
+    """Retroaktív jel a JAVÍTÁS ELŐTT mentett projektekhez: ha van
+    exegézis/kortörténet/teológia/eredeti nyelvi SZÖVEG (akkor is, ha a
+    `{key}_status` mező hiányzik a régi mentésből), az is elég — anélkül a
+    korábban mentett projektek véglegesen elzáródnának a gyors vázlattól."""
+    state = _base_state(exegesis="A szeret ige a szöveg központi mozgása.")
+    ready = assess_outline_readiness(state, require_curation=True)
+    assert ready.ok
