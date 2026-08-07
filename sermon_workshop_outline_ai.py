@@ -374,12 +374,49 @@ def collect_available_sermon_material(
     )
 
 
+def _has_curated_material(
+    session_state: Mapping[str, Any],
+    *,
+    tw: Mapping[str, Any],
+    sw: Mapping[str, Any],
+) -> bool:
+    """Van-e legalább egy saját kurátori döntés a nyers textuson felül.
+
+    Szándékosan csak olyan jelekre épít, amik túlélik a projekt mentését/
+    újratöltését (`WORKSPACE_LIST_KEYS` / `TEXT_WORKSHOP_KEY` /
+    `SERMON_WORKSHOP_KEY` nested mezők) — a szakaszonkénti
+    `{key}_ever_approved` session-flagek (Exegézis/Kortörténet/Teológia
+    "Jóváhagyom és átadom" gombjai) NEM perzisztensek, ezért ide direkt nem
+    kerülnek be: reload után hamis negatívot adnának.
+    """
+    if isinstance(session_state.get("basket"), list) and session_state.get("basket"):
+        return True
+    if _s(tw.get("text_main_idea")):
+        return True
+    if _approved_insights_texts(tw):
+        return True
+    if _s(sw.get("sermon_main_idea")):
+        return True
+    if _approved_sermon_decision_texts(sw):
+        return True
+    return False
+
+
 def assess_outline_readiness(
     session_state: Mapping[str, Any],
     *,
     sermon_workshop: Mapping[str, Any] | None = None,
+    require_curation: bool = False,
 ) -> OutlineReadiness:
-    """Minimális bemenet: érvényes igehely + betöltött bibliai szöveg."""
+    """Minimális bemenet: érvényes igehely + betöltött bibliai szöveg.
+
+    `require_curation=True` esetén ehhez jön egy plusz feltétel: legalább
+    egy saját kurátori döntés (vázlatkosár-elem, jóváhagyott textusfőgondolat/
+    felismerés/igehirdetési fő gondolat) — ez zárja ki, hogy a nyers
+    textusból egyetlen kattintással, munka nélkül készüljön kész vázlat.
+    Alapértelmezésben (False) a viselkedés változatlan — csak az explicit
+    igénylő hívó (Gyorseszközök „Vázlat" gomb) kapcsolja be.
+    """
     sw = (
         dict(sermon_workshop)
         if isinstance(sermon_workshop, dict)
@@ -455,6 +492,17 @@ def assess_outline_readiness(
         return OutlineReadiness(
             ok=False,
             message=EMPTY_PROJECT_MESSAGE,
+            source_keys=sources,
+        )
+    if require_curation and not _has_curated_material(session_state, tw=tw, sw=sw):
+        return OutlineReadiness(
+            ok=False,
+            message=(
+                "A gyorsvázlathoz legalább egy saját döntés kell: tegyél "
+                "valamit a Vázlatkosárba, hagyj jóvá egy felismerést a "
+                "Textusműhelyben, vagy rögzíts egy fő gondolatot — így a "
+                "vázlat a te munkádra épül, nem csak a nyers textusra."
+            ),
             source_keys=sources,
         )
     return OutlineReadiness(ok=True, source_keys=sources)

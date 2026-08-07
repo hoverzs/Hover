@@ -8193,7 +8193,9 @@ with tabs[7]:
     sw = st.session_state[SERMON_WORKSHOP_KEY]
     outline = normalize_sermon_outline(sw.get("sermon_outline"))
     bundle = collect_available_sermon_material(st.session_state, sermon_workshop=sw)
-    readiness = assess_outline_readiness(st.session_state, sermon_workshop=sw)
+    readiness = assess_outline_readiness(
+        st.session_state, sermon_workshop=sw, require_curation=True
+    )
 
     if outline_has_content(outline) and outline_needs_refresh(outline, bundle):
         if str(outline.get("status") or "") != "needs_refresh":
