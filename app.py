@@ -4459,9 +4459,10 @@ def render_section_tab(
 
         if has_result:
             box_classes = f"result-box {extra_box_class}".strip()
-            st.markdown(f'<div class="{box_classes}">', unsafe_allow_html=True)
-            st.markdown(st.session_state[key])
-            st.markdown('</div>', unsafe_allow_html=True)
+            st.markdown(
+                f'<div class="{box_classes}">\n\n{st.session_state[key]}\n\n</div>',
+                unsafe_allow_html=True,
+            )
         else:
             render_info_panel(
                 title="Még nincs tartalom",
@@ -7357,9 +7358,10 @@ def render_igehely_panel() -> None:
         render_current_biblical_map_prototype()
 
         if st.session_state.get("overview"):
-            st.markdown('<div class="result-box">', unsafe_allow_html=True)
-            st.markdown(st.session_state["overview"])
-            st.markdown('</div>', unsafe_allow_html=True)
+            st.markdown(
+                f'<div class="result-box">\n\n{st.session_state["overview"]}\n\n</div>',
+                unsafe_allow_html=True,
+            )
 
             with action_row("igehely_overview_regen"):
                 if st.button("Bibliai háttér újragenerálása", key="overview_regen"):
@@ -7442,11 +7444,10 @@ def render_original_text_panel() -> None:
                 st.warning(st.session_state["original_text"])
             else:
                 st.markdown(
-                    '<div class="result-box original-text-result">',
-                    unsafe_allow_html=True
+                    '<div class="result-box original-text-result">\n\n'
+                    f'{st.session_state["original_text"]}\n\n</div>',
+                    unsafe_allow_html=True,
                 )
-                st.markdown(st.session_state["original_text"])
-                st.markdown('</div>', unsafe_allow_html=True)
 
                 _orig_status = st.session_state.get("original_text_status") or "draft"
                 oab1, oab2 = st.columns(2)
@@ -8425,11 +8426,10 @@ with tabs[9]:
 
     if st.session_state.get("songs"):
         st.markdown(
-            '<div class="result-box songs-result">',
-            unsafe_allow_html=True
+            '<div class="result-box songs-result">\n\n'
+            f'{st.session_state["songs"]}\n\n</div>',
+            unsafe_allow_html=True,
         )
-        st.markdown(st.session_state["songs"])
-        st.markdown('</div>', unsafe_allow_html=True)
     else:
         st.info("Még nincs énekajánlás. Add meg az igeszakaszt és az alkalmat, majd kérj ajánlást.")
 

@@ -126,9 +126,9 @@ def test_quick_tools_css_injected_at_startup_unconditionally():
     assert "premium_tokens_css()" in app and "premium_overlay_css()" in app
     idx = app.index("premium_overlay_css()")
     # Keressük a legközelebbi st.markdown style injectet
-    style_inject = app[
-        app.rfind("st.markdown(", 0, idx) : app.find("unsafe_allow_html=True)", idx) + 30
-    ]
+    uh_idx = app.find("unsafe_allow_html=True", idx)
+    close_idx = app.find(")", uh_idx)
+    style_inject = app[app.rfind("st.markdown(", 0, idx) : close_idx + 1]
     assert "premium_overlay_css()" in style_inject
     assert "_is_logged_in" not in style_inject
     assert "logged_in" not in style_inject
