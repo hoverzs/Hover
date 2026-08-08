@@ -296,6 +296,8 @@ def render_hebrew_analysis_card(
     view_model: dict[str, object],
     hu_lookup: object | None,
     tbesh_lookup: object,
+    *,
+    key_prefix: str = "hebrew_original",
 ) -> None:
     st.markdown('<div class="textus-hebrew-analysis-card-marker"></div>', unsafe_allow_html=True)
     with st.container(border=True):
@@ -316,6 +318,41 @@ def render_hebrew_analysis_card(
         with st.expander("Technikai morfológiai részletek", expanded=False):
             st.json(asdict(view_model["morphology"]))  # type: ignore[arg-type]
         render_lexical_panel(hu_lookup, tbesh_lookup, view_model)
+        _render_concordance_jump_button(selected_token, key_prefix=key_prefix)
+
+
+def _render_concordance_jump_button(selected_token: HebrewToken, *, key_prefix: str) -> None:
+    query = selected_token.strong_ids[0] if selected_token.strong_ids else selected_token.lemma
+    query = (query or "").strip()
+    if not query:
+        return
+    try:
+        from bible_engine.hebrew_token_repository import HebrewTokenRepository
+
+        repo = HebrewTokenRepository()
+        tokens = (
+            repo.by_strong_id(query) if selected_token.strong_ids else repo.by_lemma(query)
+        )
+        count = len({t.stable_key for t in tokens})
+    except Exception:  # noqa: BLE001 — a gomb hiánya nem akaszthatja meg a fő elemzést
+        count = 0
+    if count == 0:
+        return
+    from concordance_ui import request_original_language_search
+
+    # A kulcs a `key_prefix`-et (ez a felület egyszerre TÖBB, párhuzamos
+    # elrendezésben is renderelheti ugyanezt a panelt) ÉS a token
+    # pozícióját is tartalmazza — ugyanaz a Strong-szám/lemma több helyen
+    # is előfordulhat egy betöltött szakaszban, önmagában nem egyedi kulcs.
+    if st.button(
+        f"Konkordancia: mind a {count} előfordulás",
+        key=(
+            f"{key_prefix}_concordance_jump_{query}_{selected_token.book}_"
+            f"{selected_token.chapter}_{selected_token.verse}_{selected_token.word_index}"
+        ),
+    ):
+        request_original_language_search(query)
+        st.rerun()
 
 
 def render_lexical_panel(
@@ -587,7 +624,7 @@ def render_hebrew_original_language_panel(
         else None
     )
     view_model = build_hebrew_token_view_model(selected_token, morphology, lookup)
-    render_hebrew_analysis_card(selected_token, view_model, hu_lookup, lookup)
+    render_hebrew_analysis_card(selected_token, view_model, hu_lookup, lookup, key_prefix=key_prefix)
     st.caption("Forr\u00e1s \u00e9s licenc: STEP Bible / STEPBible-Data, CC BY 4.0, www.STEPBible.org.")
 
 

@@ -8,6 +8,8 @@ import pytest
 from bible_engine.tagnt_parser import get_verse_tokens
 from bible_engine.tagnt_sqlite import (
     create_schema,
+    find_greek_tokens_by_lemma,
+    find_greek_tokens_by_strong_id,
     get_sqlite_verse_tokens,
     import_tagnt_book,
 )
@@ -49,6 +51,42 @@ def test_import_small_fixture_and_get_john_3_16(tmp_path: Path) -> None:
     assert report.duplicate_rows == 0
     assert len(tokens) == 26
     assert [token.word_index for token in tokens] == list(range(1, 27))
+
+
+def test_find_greek_tokens_by_strong_id_finds_occurrence(tmp_path: Path) -> None:
+    database = tmp_path / "tagnt.sqlite"
+    import_tagnt_book(JHN_FIXTURE, database, book="Jhn", source_name="fixture", source_version="test")
+
+    tokens = find_greek_tokens_by_strong_id(database, "G2316")
+
+    assert len(tokens) >= 1
+    assert all(token.strong_id == "G2316" for token in tokens)
+    assert tokens[0].book == "Jhn"
+
+
+def test_find_greek_tokens_by_strong_id_no_match_is_empty(tmp_path: Path) -> None:
+    database = tmp_path / "tagnt.sqlite"
+    import_tagnt_book(JHN_FIXTURE, database, book="Jhn", source_name="fixture", source_version="test")
+
+    assert find_greek_tokens_by_strong_id(database, "G9999") == []
+
+
+def test_find_greek_tokens_by_lemma_finds_occurrence(tmp_path: Path) -> None:
+    database = tmp_path / "tagnt.sqlite"
+    import_tagnt_book(JHN_FIXTURE, database, book="Jhn", source_name="fixture", source_version="test")
+
+    by_strong = find_greek_tokens_by_strong_id(database, "G2316")
+    lemma = by_strong[0].lemma
+    tokens = find_greek_tokens_by_lemma(database, lemma)
+
+    assert len(tokens) >= 1
+    assert all(token.lemma == lemma for token in tokens)
+
+
+def test_find_greek_tokens_missing_database_raises(tmp_path: Path) -> None:
+    missing = tmp_path / "does_not_exist.sqlite"
+    with pytest.raises(FileNotFoundError):
+        find_greek_tokens_by_strong_id(missing, "G2316")
 
 
 def test_import_only_requested_book(tmp_path: Path) -> None:

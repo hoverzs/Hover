@@ -394,7 +394,7 @@ def _render_loaded_greek_passage_analysis(
 
     current_selection = _selected_token_key(all_tokens, st.session_state.get(selected_token_key))
     selected = _token_by_selection_key(all_tokens, current_selection)
-    _render_analysis_panel(selected, lexicon_entries, tbesg_lexicon_loader)
+    _render_analysis_panel(selected, lexicon_entries, tbesg_lexicon_loader, key_prefix=key_prefix)
 
 
 def _render_loaded_greek_analysis(
@@ -461,13 +461,15 @@ def _render_loaded_greek_analysis(
     current_index = selected_word_index(tokens, st.session_state.get(selected_key))
     selected_index = current_index if current_index is not None else tokens[0].word_index
     selected = _token_by_index(tokens, selected_index)
-    _render_analysis_panel(selected, lexicon_entries, tbesg_lexicon_loader)
+    _render_analysis_panel(selected, lexicon_entries, tbesg_lexicon_loader, key_prefix=key_prefix)
 
 
 def _render_analysis_panel(
     selected: GreekToken,
     lexicon_entries: dict[str, HungarianLexiconEntry] | None,
     tbesg_lexicon_loader: Callable[[str], SQLiteGreekLexiconEntry | None],
+    *,
+    key_prefix: str,
 ) -> None:
     st.markdown('<div class="textus-greek-analysis-card-marker"></div>', unsafe_allow_html=True)
     with st.container(border=True):
@@ -477,6 +479,40 @@ def _render_analysis_panel(
         left.markdown(_compact_field_markup(analysis_items[:3]), unsafe_allow_html=True)
         right.markdown(_compact_field_markup(analysis_items[3:]), unsafe_allow_html=True)
         _render_lexicon_section(selected, lexicon_entries, tbesg_lexicon_loader)
+        _render_concordance_jump_button(selected, key_prefix=key_prefix)
+
+
+def _render_concordance_jump_button(selected: GreekToken, *, key_prefix: str) -> None:
+    strong_id = (selected.strong_id or "").strip()
+    if not strong_id:
+        return
+    try:
+        from bible_engine.tagnt_sqlite import find_greek_tokens_by_strong_id
+        from bible_engine.greek_token_repository import resolve_tagnt_database_path
+
+        database_path = resolve_tagnt_database_path()
+        count = len(find_greek_tokens_by_strong_id(database_path, strong_id)) if database_path else 0
+    except Exception:  # noqa: BLE001 — a gomb hiánya nem akaszthatja meg a fő elemzést
+        count = 0
+    if count == 0:
+        return
+    from concordance_ui import request_original_language_search
+
+    # A kulcs a `key_prefix`-et (ez a felület egyszerre TÖBB, párhuzamos
+    # elrendezésben is renderelheti ugyanezt a panelt — lásd a
+    # `render_greek_analysis_block(key_prefix=...)` hívási mintát ebben a
+    # fájlban) ÉS a token pozícióját (könyv/fejezet/vers/szó-index) is
+    # tartalmazza, nem csak a strong_id-t.
+    if st.button(
+        f"Konkordancia: mind a {count} előfordulás",
+        key=_key(
+            key_prefix,
+            f"concordance_jump_{strong_id}_{selected.book}_"
+            f"{selected.chapter}_{selected.verse}_{selected.word_index}",
+        ),
+    ):
+        request_original_language_search(strong_id)
+        st.rerun()
 
 
 def _render_lexicon_section(

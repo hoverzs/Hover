@@ -229,7 +229,8 @@ def test_streamlit_demo_renders_initial_view() -> None:
     assert not any("οὕτως γὰρ ἠγάπησεν" in value for value in markdown_values)
     assert not any("analysis-panel" in value for value in markdown_values)
 
-    assert len(app.button) == 0
+    assert len(app.button) == 1
+    assert app.button[0].label == "Konkordancia: mind a 215 előfordulás"
 
     selectbox = app.selectbox[0]
     assert len(selectbox.options) == 26

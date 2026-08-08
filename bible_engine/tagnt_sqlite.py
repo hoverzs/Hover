@@ -431,6 +431,59 @@ def get_sqlite_verse_tokens(
     ]
 
 
+def find_greek_tokens_by_lemma(database_path: str | Path, lemma: str) -> list[GreekToken]:
+    """A megadott görög lemma összes előfordulása a teljes ÚSZ-ben,
+    kanonikus (könyv, fejezet, vers, szó-index) sorrendben. A
+    `greek_tokens` tábla `idx_greek_tokens_lemma` indexe támogatja."""
+    database = Path(database_path)
+    if not database.exists():
+        raise FileNotFoundError(f"TAGNT SQLite database not found: {database}")
+    return _find_greek_tokens(database, "lemma", lemma)
+
+
+def find_greek_tokens_by_strong_id(database_path: str | Path, strong_id: str) -> list[GreekToken]:
+    """A megadott Strong-szám összes előfordulása a teljes ÚSZ-ben,
+    kanonikus sorrendben. Az `idx_greek_tokens_strong_id` index
+    támogatja."""
+    database = Path(database_path)
+    if not database.exists():
+        raise FileNotFoundError(f"TAGNT SQLite database not found: {database}")
+    return _find_greek_tokens(database, "strong_id", strong_id)
+
+
+def _find_greek_tokens(database: Path, column: str, value: str) -> list[GreekToken]:
+    try:
+        with sqlite3.connect(database) as connection:
+            rows = connection.execute(
+                f"""
+                SELECT
+                    book, chapter, verse, word_index,
+                    greek_form, lemma, morph_code, strong_id, edition_flags
+                FROM greek_tokens
+                WHERE {column} = ?
+                ORDER BY book, chapter, verse, word_index
+                """,
+                (value,),
+            ).fetchall()
+    except sqlite3.Error as error:
+        raise ValueError(f"Invalid TAGNT SQLite database schema: {error}") from error
+
+    return [
+        GreekToken(
+            book=row[0],
+            chapter=row[1],
+            verse=row[2],
+            word_index=row[3],
+            greek_form=row[4],
+            lemma=row[5] or "",
+            morph_code=row[6] or "",
+            strong_id=row[7] or "",
+            edition_flags=row[8] or "",
+        )
+        for row in rows
+    ]
+
+
 def _insert_token(
     connection: sqlite3.Connection,
     token: GreekToken,
