@@ -3810,37 +3810,46 @@ igehirdetőre vagy a vázlatmotorra bízd.
 # TEOLÓGIA — REFORMÁTUS ÉRZÉKENYSÉGGEL
 
 Szakmai vízió:
-Bontsd ki a textusban rejlő teológiai igazságokat a **református gondolkodásmód**
-mentén. Vizsgáld az **Istenképet**, az **antropológiát** és a **szoteriológiát**.
-Keresd meg a szöveg **krisztológiai fókuszát**, és helyezd el az üzenetet
-a **református hitvallások** (Heidelbergi Káté, II. Helvét Hitvallás)
-összefüggésrendszerében.
+Emeld ki a textusban TÉNYLEGESEN jelenlévő teológiai súlypontokat — ne
+járd végig mechanikusan az összes lehetséges dogmatikai kategóriát minden
+szakasznál. Válaszd ki azt a 2-3 szempontot, ami ebben a konkrét szövegben
+ténylegesen megalapozott és érdemi mélységet ad; amit nem tudsz érdemben
+kibontani, hagyd ki teljesen — ne "töltsd fel" gyenge vagy közhelyes
+tartalommal csak azért, mert a kategória létezik.
 
-Strukturáld a választ így:
+Kerüld a latin és szakteológiai terminusok elsődleges használatát (pl.
+"totális romlottság", "gratia communis", "gratia conservans",
+"szoteriológia", "antropológia" stb.) — ehelyett a FOGALOM JELENTÉSÉT írd
+le hétköznapi, érthető nyelven (pl. "totális romlottság" helyett: "az
+ember minden képessége — értelme, akarata, érzelmei — érintett a bűn
+által, nem csak egy-egy rossz tette"). Ha egy hitvallási/dogmatikai
+fogalom megnevezése elkerülhetetlen, a szakkifejezést zárójelben,
+másodlagosan add meg a köznyelvi magyarázat UTÁN, sosem előtte vagy
+helyette.
 
-## Istenkép
-A textus által kirajzolódó Isten-arculat (szent, irgalmas, igazságos, szövetségkötő stb.).
+Válassz az alábbi szempontok közül 2-3-at, amelyik ehhez a konkrét
+szöveghez ténylegesen a legtöbbet ad — ne mindet:
 
-## Antropológia
-Mit mond a szöveg az emberről — bűn, méltóság, hivatás, közösség.
+- Isten-arculat: milyen Isten rajzolódik ki a szövegben (szent, irgalmas,
+  igazságos, szövetségkötő stb.)
+- Emberkép: mit mond a szöveg az emberről — bűn, méltóság, hivatás,
+  közösség
+- Isten üdvözítő munkája: hogyan szól ez arról, ahogyan Isten menti,
+  gyógyítja vagy hívja az embert
+- Krisztusra mutatás: a szöveg hogyan mutat Krisztusra — közvetlenül,
+  tipológiailag vagy ígéretként
+- Hitvallásos kapcsolódás: csak ha ténylegesen megalapozott, konkrét
+  utalás a Heidelbergi Kátéra vagy a II. Helvét Hitvallásra (SOHA ne
+  találj ki kérdés-számot)
 
-## Szoteriológia
-Hogyan szól ez Isten üdvözítő munkájáról.
+Ha van releváns, gyakori félreértés vagy torzítás, amire ez a szöveg
+hajlamosít, zárd 1-2 mondattal — de csak ha ez ténylegesen ehhez a
+szakaszhoz kötődik, ne általános figyelmeztetésként.
 
-## Krisztológiai fókusz
-**A szöveg hogyan mutat Krisztusra**, akár közvetlenül, akár tipológiailag, akár ígéretként.
-
-## Szövetségteológiai összefüggések
-A szövetség(ek) ívében hol áll ez a textus.
-
-## Református hitvallásos kapcsolódás
-Konkrét utalás a Heidelbergi Káté és a II. Helvét Hitvallás vonatkozó pontjaira
-(csak ha ténylegesen megalapozott — ne találj ki kérdés-számot).
-
-## Kerülendő torzítások
-Milyen teológiai félreértésekre, eltolódásokra hajlamosít a szöveg.
-
-A cél a **teológiai tisztánlátás** — nem közhelyek, hanem mély, prédikálható megértés.
+A cél a tömör teológiai tisztánlátás: 2-3 valóban kibontott szempont,
+nem 6-7 kategóriát felületesen végigjáró enciklopédikus válasz. Rövidebb,
+letisztultabb válasz mindig jobb, mint egy hosszabb, ami minden dobozt
+kipipál.
 """,
     "illustrations": """{alap}
 
@@ -5990,7 +5999,7 @@ DEFAULT_MAX_OUTPUT_TOKENS_BY_TAB: dict[str, int] = {
     "Áttekintés": 4096,
     "Exegézis": 12000,
     "Kortörténet": 6144,
-    "Teológia": 6144,
+    "Teológia": 9216,
     "Eredeti szöveg": 6144,
     "Eredeti szöveg tanulmányozása": 6144,
     "Illusztrációk": 4096,
