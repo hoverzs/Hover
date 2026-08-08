@@ -185,6 +185,7 @@ _LEGACY_FIELD_LABELS: tuple[str, ...] = (
     "Exegetikai / Eredeti nyelvi mélység",
     "Exegetikai mélység",
     "Gyakorlati alkalmazás",
+    "Alkalmazás",
     "Bevezetés és Ráhangolódás",
     "Befejezés és Útravaló",
     "Élethelyzet / Probléma",
@@ -204,18 +205,32 @@ _LEGACY_FIELD_LABELS: tuple[str, ...] = (
 _FORBIDDEN_LABEL_PATTERN = "|".join(re.escape(h) for h in _LEGACY_FIELD_LABELS)
 _FORBIDDEN_STRUCTURE_PATTERNS: tuple[re.Pattern[str], ...] = (
     re.compile(r"(?m)^#{1,6}\s"),  # bármilyen markdown-fejléc a fő cím soron kívül
-    re.compile(rf"\*\*(?:{_FORBIDDEN_LABEL_PATTERN})\s*:?\*\*"),  # pl. "**Igei fókusz:**"
-    re.compile(rf"(?mi)^\s*(?:{_FORBIDDEN_LABEL_PATTERN})\s*:\s*$"),  # bare "Igei fókusz:" sor
-    re.compile(r"(?m)^\s*\(?v\.?\s*\d{1,3}[a-c]?(?:\s*[–\-]\s*\d{1,3}[a-c]?)?\)?\s*$"),  # önálló versszám-sor
+    re.compile(
+        rf"\*\*(?:\d{{1,2}}[.)]\s*)?(?:{_FORBIDDEN_LABEL_PATTERN})\s*:?\*\*"
+    ),  # pl. "**Igei fókusz:**" vagy sorszámmal "**1. Igei fókusz:**"
+    re.compile(
+        rf"(?mi)^\s*(?:\d{{1,2}}[.)]\s*)?(?:{_FORBIDDEN_LABEL_PATTERN})\s*:\s*\**\s*$"
+    ),  # bare (vagy sorszámozott/félkövér) "Igei fókusz:" sor, semmi utána
+    re.compile(
+        rf"(?mi)^\s*(?:\d{{1,2}}[.)]\s*)?(?:{_FORBIDDEN_LABEL_PATTERN})\s*:\s+\S"
+    ),  # bare "Alkalmazás: <folytatódó tartalom>" — a címke egysoros,
+        # tartalommal ellátott formában is tiltott, nem csak önmagában
+    re.compile(r"(?m)^\s*\*{0,2}\(?v\.?\s*\d{1,3}[a-c]?(?:\s*[–\-]\s*\d{1,3}[a-c]?)?\)?\*{0,2}\s*$"),  # önálló versszám-sor (opcionálisan félkövér)
     re.compile(
         r"(?m)(?:"
         r"\(\s*v\.?\s*\d{1,3}[a-c]?(?:\s*[–\-]\s*\d{1,3}[a-c]?)?\s*(?:vers(?:ek)?)?\s*\)"
         r"|\(\s*\d{1,3}[a-c]?(?:\s*[–\-]\s*\d{1,3}[a-c]?)?\.\s*vers(?:ek)?\s*\)"
-        r")\s*$",
+        r")\*{0,2}\s*$",
         re.I,
-    ),  # zárójeles versszám-CÍMKE — csak sor/cím VÉGÉN tiltott (pl. "1. Cím (v. 6-8)");
-        # egy mondatba ágyazott, folytatódó közbevetés (pl. "...volt (2. vers). Ezután…")
-        # NEM ide tartozik, mert utána még van szöveg ugyanabban a bekezdésben.
+    ),  # zárójeles versszám-CÍMKE — csak sor/cím VÉGÉN tiltott (pl. "1. Cím (v. 6-8)",
+        # vagy félkövér cím esetén "**1. Cím (v. 6-8)**" — a záró "**" jelet a `\*{0,2}`
+        # engedi át a sorvég-illesztésen). Egy mondatba ágyazott, folytatódó közbevetés
+        # (pl. "...volt (2. vers). Ezután…") NEM ide tartozik, mert utána még van
+        # szöveg ugyanabban a bekezdésben.
+    re.compile(r"(?m)^\s*[*\-•]\s+\S"),  # bullet-lista jel sor elején — a gondolat-
+        # egységek folyó mondatok legyenek, nem itemizált felsorolás (2026-08-08:
+        # élesben látott regresszió, amikor a bold+sorszámozott cím alá a modell
+        # "*"-jelekkel tagolt katalógusszerű listát írt a folyó szöveg helyett).
 )
 
 
@@ -353,23 +368,33 @@ gondolat-egységenként — a hangsúly a TÖMÖRSÉGEN és a gyors
 áttekinthetőségen van, NEM a szépirodalmi kifejtettségen, és NEM a régi
 mezőkre/pontokra tagolt technikai struktúrán.
 
-MOZGÁS-CÍMEK: minden gondolat-egység elé rövid, TARTALMI cím kerül —
-szabad szöveges forma (pl. "Indítás: a felkapaszkodás kényszere", "A
-fordulat: »ezért«") VAGY sorszámozott/betűzött forma (pl. "1. Az áldozat,
-amit nem tudunk megmagyarázni", "a./ A leselkedő bűn") — mindkettő
-egyaránt megengedett, amíg a cím TARTALMI (a mozgás lényegét nevezi meg),
-NEM üres sablon ("1. Főpont") és NEM versszám-alapú. Ezek a címek SOSEM
-markdown-fejléc szintaxissal íródnak (nincs "#"/"##"/"###" a fő cím
-során kívül) — önálló, rövid szövegsorok. FORMAI SZABÁLY: a cím saját
-sorban álljon, utána ÜRES SOR következzen, és csak ez után a tartalom —
-soha ne írj a cím sora után közvetlenül, üres sor nélkül folytatólagos
-szöveget.
+MOZGÁS-CÍMEK: minden gondolat-egység elé rövid, TARTALMI cím kerül,
+MINDIG két elemmel együtt: (1) egyszerű sorszám a cím elején (1., 2.,
+3. …, sorrendben, kihagyás nélkül), és (2) a teljes cím **félkövér**
+kiemeléssel — pl. "**1. A kezdetek: két testvér, két út**" vagy "**2.
+Az áldozat és az elutasítás**". A sorszám és a félkövér forma KIZÁRÓLAG
+a gyors áttekinthetőséget szolgálja a szószéken — ez NEM hozza vissza a
+régi, mezőkre bontott struktúrát: a cím után SOHA nem következik
+"Igei fókusz:" / "Exegetikai mélység:" / "Gyakorlati alkalmazás:"
+jellegű technikai almező, és a cím SOHA nem tartalmaz zárójeles
+versszám-jelölést (pl. TILOS: "**1. Az áldozat (v. 6-8)**"). A cím
+mindig TARTALMI (a mozgás lényegét nevezi meg), NEM üres sablon (TILOS:
+"**1. Főpont**"). Ezek a címek SOSEM markdown-fejléc szintaxissal íródnak
+(nincs "#"/"##"/"###" a fő cím során kívül) — önálló, félkövér szövegsorok.
+FORMAI SZABÁLY: a cím saját sorban álljon, utána ÜRES SOR következzen, és
+csak ez után a tartalom — soha ne írj a cím sora után közvetlenül, üres
+sor nélkül folytatólagos szöveget.
 
 GONDOLAT-EGYSÉGEK: a cím alatti tartalom NEM KELL, hogy mindig teljes,
 kifejtett bekezdés legyen — rövidebb, akár tőmondat-szerű, jegyzetszerű
-sorok is elfogadhatók és kívánatosak, különösen ha a tartalom ezt
-indokolja. A cél a tömörség: annyit írj ki, amennyi egy lelkésznek
-támpontként kell, ne többet.
+MONDATOK is elfogadhatók és kívánatosak, egymás után, folyó szövegként
+(akár rövid bekezdésbe rendezve). A cél a tömörség: annyit írj ki,
+amennyi egy lelkésznek támpontként kell, ne többet. FONTOS: ez SOHA NEM
+jelent bullet-listát ("*"/"-"/"•" jelekkel tagolt felsorolást) — a
+tömörség a MONDATOK rövidségéből fakadjon, nem listásításból. A
+bullet-lista pontosan az a katalógusszerű, darabos hatás, amit a forma
+kifejezetten kerül; a rövid mondatok egyszerűen egymás után, térköz
+nélkül kövessék egymást ugyanabban a bekezdésben.
 
 NYELVI/TÖRTÉNETI MEGFIGYELÉS: mondatba VAGY zárójelbe ágyazva jelenjen
 meg — pl. "A »bűn« itt nem elvont fogalom (héb.: rōḇēṣ — lapuló,
@@ -379,24 +404,31 @@ Eredeti nyelvi mélység:" / "Gyakorlati alkalmazás:" technikai mezőben.
 ALKALMAZÁS: NE csak a vázlat legvégén, egyetlen záró bekezdésben
 jelenjen meg — inkább FOLYAMATOSAN, a gondolatmenet több pontján is,
 direkt megszólítással vagy kérdéssel a hallgató felé (pl. "Hol van ma a
-te testvéred?"). A záró gondolat-egység egy összegző, hazavezető mozdulat
-legyen, de nem az egyetlen hely, ahol a hallgató megszólítást kap.
+te testvéred?"), a bekezdés természetes mondataként. SOHA ne vezesd be
+külön "Alkalmazás:" vagy "Gyakorlati alkalmazás:" címkével — ez
+ugyanolyan technikai mezőcímke, mint a többi tiltott forma, csak rövidebb
+névvel. A záró gondolat-egység egy összegző, hazavezető mozdulat legyen,
+de nem az egyetlen hely, ahol a hallgató megszólítást kap.
 
-VERSTARTOMÁNY: csak szövegbe ágyazva, mondat- vagy cím-szöveg részeként
-fordulhat elő (pl. "A 6–7. vers fordulópontja…", "1. Az önmegüresítés,
-ahogy a 7. vers leírja"), SOHA nem zárójeles címkeként, sem önálló
-sorban, sem a cím végéhez fűzve (pl. TILOS: "(v. 6-7)", "(3-7. versek)",
-"1. Cím (v. 6-8)").
+VERSTARTOMÁNY: csak a BEKEZDÉS szövegébe, mondat részeként ágyazva
+fordulhat elő (pl. "A 6–7. vers fordulópontja…"), SOHA nem a cím
+részeként és SOHA nem zárójeles címkeként — sem önálló sorban, sem a
+cím végéhez fűzve (pl. TILOS: "(v. 6-7)", "(3-7. versek)", "**1. Az
+önmegüresítés (v. 6-8)**"). A cím maga (a sorszám + félkövér tartalmi
+cím) SOSEM tartalmaz versszámot.
 
 SZIGORÚAN TILOS:
 - markdown-fejléc szintaxis ("#", "##", "###") bárhol a fő cím során
   kívül,
 - a régi, technikai mezőnevek bármelyike: "Igei fókusz:", "Exegetikai /
   Eredeti nyelvi mélység:", "Exegetikai mélység:", "Gyakorlati
-  alkalmazás:", "Fókuszmondat:", "Bevezetési irány:", "Megérkezés:",
-  "Bevezetés és Ráhangolódás", "Befejezés és Útravaló", "Élethelyzet /
-  Probléma", "A Textus Világa (Kontextus)" — sem bullet-listában, sem
-  címként,
+  alkalmazás:", "Alkalmazás:", "Fókuszmondat:", "Bevezetési irány:",
+  "Megérkezés:", "Bevezetés és Ráhangolódás", "Befejezés és Útravaló",
+  "Élethelyzet / Probléma", "A Textus Világa (Kontextus)" — sem
+  bullet-listában, sem címként,
+- bullet-lista ("*"/"-"/"•" jelekkel tagolt felsorolás) BÁRHOL a gondolat-
+  egységek tartalmában — a tartalom mindig folyó mondatokból áll, akár
+  rövidekből is, sosem itemizált listából,
 - üres sablon-cím tartalom nélkül (pl. "1. Főpont", "2. Főpont") —
   minden cím legyen SAJÁT, tartalmi cím, akár sorszámozott, akár nem,
 - önálló zárójeles vagy fejléc-szerű versszám-címke (pl. "(v. 6-7)",
