@@ -376,7 +376,14 @@ def inspect_hebrew_database_path(database_path: str | Path | None = None) -> Heb
         return HebrewDatabaseDiagnostics(str(path), exists, is_file, size, "", False)
     try:
         with sqlite3.connect(path) as connection:
-            integrity = connection.execute("PRAGMA integrity_check").fetchone()[0]
+            # `quick_check` (nem a teljes `integrity_check`) — a futásidejű
+            # DB-t build-időben már ellenőriztük, ez itt csak egy gyors
+            # egészség-jelzés minden `HebrewTokenRepository()` példánynál
+            # (Streamlit rerunonként újra lefut). A teljes integrity_check
+            # ~2 mp a jelenlegi fájlméretnél (quick_check ~0.3 mp) — ez a
+            # UI-válaszidőben közvetlenül érezhető, míg a védelmi értéke a
+            # quick_check-hez képest itt marginális.
+            integrity = connection.execute("PRAGMA quick_check").fetchone()[0]
             tables = set(_read_scalar_list_from_connection(connection, "SELECT name FROM sqlite_master WHERE type='table'"))
         required = {"metadata", "books", "tokens", "token_strong_ids"}
         return HebrewDatabaseDiagnostics(str(path), exists, is_file, size, integrity, required <= tables)
@@ -467,11 +474,23 @@ def _tokens_from_database_rows(connection: sqlite3.Connection, rows: list[sqlite
     return [_token_from_normalized_row(row, strong_rows.get(row[join_column], ())) for row in rows]
 
 
+def _token_strong_order_column(connection: sqlite3.Connection) -> str:
+    """A lecsupaszított (pruned) runtime DB-ben `token_strong_ids` egy
+    WITHOUT ROWID tábla, ahol nincs implicit `rowid` — az eredeti
+    (prefix/core/suffix) beszúrási sorrendet ott az explicit `seq`
+    oszlop őrzi meg (lásd scripts/prune_tahot_runtime_db.py). A nem
+    metszett/teljes build DB-kben ilyen oszlop nincs, ott a `rowid`
+    (a beszúrás sorrendjét tükröző implicit sorszám) a helyes forrás."""
+    columns = {row[1] for row in connection.execute("PRAGMA table_info(token_strong_ids)")}
+    return "seq" if "seq" in columns else "rowid"
+
+
 def _load_token_strong_rows(
     connection: sqlite3.Connection,
     token_rows: list[sqlite3.Row],
     join_column: str,
 ) -> dict[object, tuple[sqlite3.Row, ...]]:
+    order_column = _token_strong_order_column(connection)
     grouped: dict[object, list[sqlite3.Row]] = defaultdict(list)
     token_keys = [row[join_column] for row in token_rows]
     for chunk in _chunks(token_keys, 500):
@@ -481,7 +500,7 @@ def _load_token_strong_rows(
             SELECT {join_column}, strong_id, role
             FROM token_strong_ids
             WHERE {join_column} IN ({placeholders})
-            ORDER BY rowid
+            ORDER BY {order_column}
             """,
             chunk,
         ).fetchall()
@@ -499,17 +518,31 @@ def _chunks(items: list[object], size: int) -> list[list[object]]:
     return [items[index : index + size] for index in range(0, len(items), size)]
 
 
+_ROLE_SHORT_CODES = {"t": "token", "c": "core", "p": "prefix", "s": "suffix"}
+
+
+def _decode_role(role: str) -> str:
+    """A lecsupaszított runtime DB-kben a role egykarakteres kóddal tárolt
+    (fájlméret-optimalizálás — lásd scripts/prune_tahot_runtime_db.py),
+    a nem-metszett/teljes build DB-kben viszont a teljes szó szerepel.
+    Mindkettőt visszaadja a Python-oldali `HebrewComponent.role` teljes
+    szó alakjában, hogy a downstream (UI) kód (pl. hebrew_text_demo.py)
+    változatlanul "prefix"/"core"/"suffix"/"token" ellen hasonlíthasson."""
+    return _ROLE_SHORT_CODES.get(role, role)
+
+
 def _token_from_normalized_row(row: sqlite3.Row, strong_rows: tuple[sqlite3.Row, ...]) -> HebrewToken:
-    strong_ids = tuple(dict.fromkeys(item["strong_id"] for item in strong_rows if item["role"] == "token"))
+    decoded_roles = [(_decode_role(item["role"]), item) for item in strong_rows]
+    strong_ids = tuple(dict.fromkeys(item["strong_id"] for role, item in decoded_roles if role == "token"))
     components = tuple(
         HebrewComponent(
-            surface=row["surface"] if item["role"] == "core" else "",
+            surface=row["surface"] if role == "core" else "",
             strong_id=item["strong_id"],
             morphology_code=row["morphology_code"] or "",
-            role=item["role"],
+            role=role,
         )
-        for item in strong_rows
-        if item["role"] != "token"
+        for role, item in decoded_roles
+        if role != "token"
     )
     core_component = next((item for item in components if item.role == "core"), None)
     return HebrewToken(
@@ -533,11 +566,16 @@ def _token_from_normalized_row(row: sqlite3.Row, strong_rows: tuple[sqlite3.Row,
         qere=row["qere"] or "",
         punctuation=row["punctuation"] or "",
         maqaf=bool(row["maqaf"]),
-        source_token_id=row["source_token_id"] or "",
+        # source_token_id / expanded_strong_tags: nagy, futásidőben sehol
+        # nem megjelenített szöveges mezők — a lecsupaszított (pruned)
+        # runtime DB-kben szándékosan hiányoznak a fájlméret miatt (lásd
+        # scripts/prune_tahot_runtime_db.py), ezért defenzíven, a tábla
+        # tényleges oszlopkészletétől függően olvassuk.
+        source_token_id=(row["source_token_id"] if "source_token_id" in row.keys() else "") or "",
         source_edition=row["source_edition"] or "",
         meaning_variant=row["meaning_variant"] or "",
         spelling_variant=row["spelling_variant"] or "",
-        expanded_strong_tags=row["expanded_strong_tags"] or "",
+        expanded_strong_tags=(row["expanded_strong_tags"] if "expanded_strong_tags" in row.keys() else "") or "",
         raw_fields=(),
     )
 

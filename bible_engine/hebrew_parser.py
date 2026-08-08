@@ -7,7 +7,8 @@ from dataclasses import dataclass
 
 
 _REF_RE = re.compile(
-    r"^(?P<book>[1-3]?[A-Za-z]{2,3})\.(?P<chapter>\d+)\.(?P<verse>\d+)#"
+    r"^(?P<book>[1-3]?[A-Za-z]{2,3})\.(?P<chapter>\d+)\.(?P<verse>\d+)"
+    r"(?:\((?P<alt_chapter>\d+)\.(?P<alt_verse>\d+)\))?#"
     r"(?P<word_index>\d+)=(?P<source_edition>.+)$"
 )
 _HEBREW_MARKS_RE = re.compile(r"[\u0591-\u05BD\u05BF-\u05C7]")
@@ -68,6 +69,15 @@ def parse_tahot_row(row: str, *, token_index: int | None = None) -> HebrewToken:
     if not match:
         raise ValueError(f"Invalid TAHOT reference field: {source_token_id!r}")
 
+    # A "Chapter.Verse(AltChapter.AltVerse)" alak a héber (maszoréta)
+    # verstagszámozást zárójelezi, amikor eltér az angol/NRSV-számozástól
+    # (jellemzően a zsoltárfelirat miatt — pl. "Psa.69.1(69.2)"). A RÚF a
+    # héber hagyományt követi, ezért a zárójeles pár az irányadó, ha jelen
+    # van — enélkül a teljes fejezet néma vereséget szenved a párosításnál
+    # (lásd hebrew_books.py / ruf_bible_service.py könyv/vers-egyeztetés).
+    chapter_str = match.group("alt_chapter") or match.group("chapter")
+    verse_str = match.group("alt_verse") or match.group("verse")
+
     surface = _nfc(fields[1].strip())
     dstrongs = fields[4].strip()
     morphology = fields[5].strip()
@@ -79,8 +89,8 @@ def parse_tahot_row(row: str, *, token_index: int | None = None) -> HebrewToken:
 
     return HebrewToken(
         book=match.group("book"),
-        chapter=int(match.group("chapter")),
-        verse=int(match.group("verse")),
+        chapter=int(chapter_str),
+        verse=int(verse_str),
         word_index=int(match.group("word_index")),
         token_index=token_index if token_index is not None else int(match.group("word_index")),
         surface=surface,

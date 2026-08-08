@@ -28,9 +28,18 @@ class HebrewRepositoryResult:
 class HebrewTokenRepository:
     def __init__(self, database_path: str | Path | None = None) -> None:
         self.database_path = resolve_tahot_database_path(database_path)
+        self._diagnostics_cache: HebrewDatabaseDiagnostics | None = None
 
     def diagnostics(self) -> HebrewDatabaseDiagnostics:
-        return inspect_hebrew_database_path(self.database_path)
+        """A `PRAGMA integrity_check` egy teljes DB-vizsgálat (itt: ~2 mp
+        a jelenlegi fájlméretnél) — egy repository-példány élettartamán
+        belül elég egyszer lefuttatni, nem minden metódushíváskor (a
+        `passage()` korábban akár 3x is lefuttatta egyetlen hívásban).
+        Új `HebrewTokenRepository()` példány (pl. minden Streamlit
+        rerun) friss ellenőrzést kap — ez a cache nem tartós."""
+        if self._diagnostics_cache is None:
+            self._diagnostics_cache = inspect_hebrew_database_path(self.database_path)
+        return self._diagnostics_cache
 
     def passage(
         self,
@@ -40,12 +49,13 @@ class HebrewTokenRepository:
         verse_end: int | None = None,
     ) -> HebrewRepositoryResult:
         status = self._database_status()
+        diagnostics = self.diagnostics()
         if status != "ok":
-            return HebrewRepositoryResult(status=status, diagnostics=self.diagnostics())
+            return HebrewRepositoryResult(status=status, diagnostics=diagnostics)
         tokens = tuple(get_hebrew_passage_tokens(self.database_path, book, chapter, verse_start, verse_end))
         if not tokens:
-            return HebrewRepositoryResult(status="passage_not_found", diagnostics=self.diagnostics())
-        return HebrewRepositoryResult(status="ok", tokens=tokens, diagnostics=self.diagnostics())
+            return HebrewRepositoryResult(status="passage_not_found", diagnostics=diagnostics)
+        return HebrewRepositoryResult(status="ok", tokens=tokens, diagnostics=diagnostics)
 
     def token(self, stable_token_key: str) -> HebrewToken | None:
         if self._database_status() != "ok":
