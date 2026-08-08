@@ -280,6 +280,41 @@ class LiteralSearchHit:
     chapter: int
     verse: int
     text: str
+    snippet: str = ""
+
+
+def _fts_phrase_query(query: str) -> str:
+    """A felhasználói bevitelt mindig szó szerinti FTS5 kifejezéssé alakítja.
+
+    A UI-n szabad szöveget kap (nem FTS5-szintaxist) — idézőjelbe zárva
+    elkerüljük, hogy pl. egy kötőjel vagy kettőspont FTS5-operátorként
+    okozzon szintaxishibát, és a keresés mindig pontos kifejezés-egyezés
+    marad (nem AND/OR/NEAR kombinátor).
+    """
+    escaped = query.replace('"', '""')
+    return f'"{escaped}"'
+
+
+def _open_readonly(path: Path) -> sqlite3.Connection | None:
+    if not path.is_file():
+        return None
+    try:
+        conn = sqlite3.connect(str(path))
+        conn.row_factory = sqlite3.Row
+        return conn
+    except sqlite3.Error:
+        return None
+
+
+def _testament_filter_sql(
+    book_code: str | None, book_codes: list[str] | None
+) -> tuple[str, list[Any]]:
+    if book_code:
+        return " AND v.book_code = ?", [book_code]
+    if book_codes:
+        placeholders = ",".join("?" for _ in book_codes)
+        return f" AND v.book_code IN ({placeholders})", list(book_codes)
+    return "", []
 
 
 def search_literal(
@@ -288,36 +323,35 @@ def search_literal(
     limit: int = 50,
     offset: int = 0,
     book_code: str | None = None,
+    book_codes: list[str] | None = None,
     database_path: str | Path | None = None,
 ) -> list[LiteralSearchHit]:
-    """Szó szerinti (FTS5) keresés a helyi RÚF szövegben.
+    """Szó szerinti keresés a helyi RÚF szövegben — mindig kifejezés-egyezés.
 
-    `query` FTS5 MATCH-szintaxist követhet (pl. `"örök élet"` kifejezésre
-    idézőjelezve). Üres DB vagy hiányzó fájl esetén üres listát ad.
+    A `query` bármilyen szabad szöveg lehet (nem kell FTS5-szintaxist
+    ismerni) — belül automatikusan idézőjelezett, pontos kifejezésként
+    kerül lekérdezésre. `book_code` egyetlen könyvre szűr, `book_codes`
+    egy könyvlistára (pl. testamentum szerint) — a kettő közül csak az
+    egyik adható meg egyszerre; `book_code` élvez elsőbbséget. Üres DB
+    vagy hiányzó fájl esetén üres listát ad, hibás/üres lekérdezésnél is.
     """
-    path = resolve_database_path(database_path)
-    if not path.is_file():
-        return []
     q = (query or "").strip()
     if not q:
         return []
-    try:
-        conn = sqlite3.connect(str(path))
-        conn.row_factory = sqlite3.Row
-    except sqlite3.Error:
+    path = resolve_database_path(database_path)
+    conn = _open_readonly(path)
+    if conn is None:
         return []
     try:
+        filter_sql, filter_params = _testament_filter_sql(book_code, book_codes)
         sql = (
-            "SELECT v.book_code, v.book_abbr, v.ordinal, v.chapter, v.verse, v.text "
+            "SELECT v.book_code, v.book_abbr, v.ordinal, v.chapter, v.verse, v.text, "
+            "snippet(verses_fts, 0, '**', '**', '…', 64) AS snip "
             "FROM verses_fts f JOIN verses v ON v.id = f.rowid "
-            "WHERE f.text MATCH ?"
+            "WHERE f.text MATCH ?" + filter_sql +
+            " ORDER BY v.ordinal, v.chapter, v.verse LIMIT ? OFFSET ?"
         )
-        params: list[Any] = [q]
-        if book_code:
-            sql += " AND v.book_code = ?"
-            params.append(book_code)
-        sql += " ORDER BY v.ordinal, v.chapter, v.verse LIMIT ? OFFSET ?"
-        params.extend([limit, offset])
+        params: list[Any] = [_fts_phrase_query(q), *filter_params, limit, offset]
         rows = conn.execute(sql, params).fetchall()
         return [
             LiteralSearchHit(
@@ -327,9 +361,42 @@ def search_literal(
                 chapter=r["chapter"],
                 verse=r["verse"],
                 text=r["text"],
+                snippet=r["snip"] or r["text"],
             )
             for r in rows
         ]
+    except sqlite3.OperationalError:
+        return []
+    finally:
+        conn.close()
+
+
+def count_literal(
+    query: str,
+    *,
+    book_code: str | None = None,
+    book_codes: list[str] | None = None,
+    database_path: str | Path | None = None,
+) -> int:
+    """A `search_literal`-lal megegyező szűrés melletti összes találatszám."""
+    q = (query or "").strip()
+    if not q:
+        return 0
+    path = resolve_database_path(database_path)
+    conn = _open_readonly(path)
+    if conn is None:
+        return 0
+    try:
+        filter_sql, filter_params = _testament_filter_sql(book_code, book_codes)
+        sql = (
+            "SELECT COUNT(*) AS n FROM verses_fts f JOIN verses v ON v.id = f.rowid "
+            "WHERE f.text MATCH ?" + filter_sql
+        )
+        params: list[Any] = [_fts_phrase_query(q), *filter_params]
+        row = conn.execute(sql, params).fetchone()
+        return int(row["n"]) if row else 0
+    except sqlite3.OperationalError:
+        return 0
     finally:
         conn.close()
 
@@ -380,6 +447,7 @@ __all__ = [
     "upsert_chapter_verses",
     "lookup_local",
     "search_literal",
+    "count_literal",
     "database_exists",
     "purge_database",
     "LiteralSearchHit",

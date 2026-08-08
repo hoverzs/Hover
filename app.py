@@ -106,6 +106,7 @@ from passage_search_ui import (
     ensure_passage_search_state,
     render_passage_search_expander,
 )
+from concordance_ui import render_concordance_expander
 # =========================================================
 # VERZIÓ
 # =========================================================
@@ -7364,6 +7365,8 @@ def render_igehely_panel() -> None:
             owner_sub=_ps_owner,
             fetch_projects_fn=_ps_fetch,
         )
+
+        render_concordance_expander()
 
         render_bible_text_editor()
 

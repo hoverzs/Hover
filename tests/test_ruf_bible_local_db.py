@@ -30,6 +30,78 @@ def _seed_db(path: Path) -> None:
     conn.close()
 
 
+def _seed_gen(path: Path) -> None:
+    conn = local_db.get_connection(path)
+    local_db.upsert_chapter_verses(
+        conn,
+        book_code="GEN",
+        book_abbr="1Móz",
+        ordinal=1,
+        chapter=1,
+        verses=[{"verse_number": 27, "text": "Megteremtette Isten az embert a maga képére."}],
+    )
+    conn.commit()
+    conn.close()
+
+
+def test_search_literal_treats_query_as_exact_phrase(tmp_path: Path) -> None:
+    path = tmp_path / "ruf.sqlite3"
+    _seed_db(path)
+
+    # "Isten szerette" fordított sorrendben NEM egyezik szó szerint, mivel
+    # a keresés mindig pontos kifejezésre illeszkedik (nem AND/OR).
+    assert local_db.search_literal("Isten szerette", database_path=path) == []
+    assert len(local_db.search_literal("úgy szerette", database_path=path)) == 1
+
+
+def test_search_literal_survives_special_characters_without_crashing(tmp_path: Path) -> None:
+    path = tmp_path / "ruf.sqlite3"
+    _seed_db(path)
+
+    # FTS5-ben operátor-jelentésű karakterek (kötőjel, idézőjel, kettőspont)
+    # ne dobjanak kivételt — a keresés egyszerűen 0 találatot ad.
+    assert local_db.search_literal('"fura- lekérdezés:1', database_path=path) == []
+
+
+def test_search_literal_returns_highlighted_snippet(tmp_path: Path) -> None:
+    path = tmp_path / "ruf.sqlite3"
+    _seed_db(path)
+
+    hits = local_db.search_literal("szerette", database_path=path)
+    assert len(hits) == 1
+    assert "**szerette**" in hits[0].snippet
+
+
+def test_search_literal_book_codes_filters_by_testament(tmp_path: Path) -> None:
+    path = tmp_path / "ruf.sqlite3"
+    _seed_db(path)
+    _seed_gen(path)
+
+    ot_hits = local_db.search_literal("Isten", book_codes=["GEN"], database_path=path)
+    assert {h.book_code for h in ot_hits} == {"GEN"}
+
+    nt_hits = local_db.search_literal("Isten", book_codes=["JHN"], database_path=path)
+    assert {h.book_code for h in nt_hits} == {"JHN"}
+
+    all_hits = local_db.search_literal("Isten", database_path=path)
+    assert {h.book_code for h in all_hits} == {"GEN", "JHN"}
+
+
+def test_count_literal_matches_search_literal_result_size(tmp_path: Path) -> None:
+    path = tmp_path / "ruf.sqlite3"
+    _seed_db(path)
+    _seed_gen(path)
+
+    assert local_db.count_literal("Isten", database_path=path) == 3
+    assert local_db.count_literal("Isten", book_codes=["GEN"], database_path=path) == 1
+
+
+def test_count_literal_empty_query_is_zero(tmp_path: Path) -> None:
+    path = tmp_path / "ruf.sqlite3"
+    _seed_db(path)
+    assert local_db.count_literal("", database_path=path) == 0
+
+
 def test_purge_database_removes_main_and_sibling_files(tmp_path: Path) -> None:
     path = tmp_path / "ruf.sqlite3"
     _seed_db(path)
