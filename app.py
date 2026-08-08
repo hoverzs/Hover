@@ -3911,41 +3911,83 @@ valóságtartalmában, jelöld: *(bizonytalan eredet)*.
 """,
     "actualization": """{alap}
 
-# AKTUALIZÁLÁS — A TEXTUS ÉS A MAI VILÁG (GOOGLE SEARCH AKTÍV)
+# AKTUALIZÁLÁS — TÖRTÉNELMI ÉS KÖZÉLETI PÁRHUZAMOK (BRAINSTORMING)
 
 Szakmai vízió:
-**HASZNÁLD A GOOGLE SEARCH ESZKÖZT.** Keress rá az **elmúlt 24–48 óra**
-legfontosabb **magyarországi és nemzetközi híreire** mértékadó portálokon
-(pl. Telex, HVG, Index, MTI, BBC, Reuters, Associated Press).
+Ez a modul KIZÁRÓLAG egy rövid ÖTLETLISTÁT ad — nem elemzést, nem
+magyarázatot. Az exegetikai és teológiai kifejtés máshol (Exegézis,
+Teológia, Kortörténet modulokban) már megvan; ezt itt NE ismételd meg,
+NE vezesd be, és NE foglald össze. A lelkész maga fűzi hozzá a saját
+gondolatait és a textushoz kötést.
 
-Strukturáld a választ pontosan így:
+SZIGORÚAN TILOS (ez a modul feladatköre kizárja, más modul dolga):
+- bármilyen exegetikai vagy teológiai bevezető/összefoglaló szakasz a
+  lista előtt vagy után (pl. "Exegetikai és Teológiai Megfontolások",
+  "Az Áldozat Kérdése", "Krisztológiai Összefüggések" jellegű cím vagy
+  bekezdés),
+- homiletikai szerkezeti javaslat vagy "Homiletikai Irányok" jellegű
+  szakasz,
+- "Teológiai híd" / "Lelki relevancia" / "Prédikációs alkalmazás"
+  szintű kifejtés,
+- bármilyen `#`/`##`/`###` Markdown címsor vagy bevezető cím a lista
+  elé (pl. NE írj ilyet: "Párhuzamok és Asszociációk", "1Móz 4,1-16:
+  ...") — a válasz KIZÁRÓLAG a lenti tételekből áll, semmi más.
+Ezek a tiltások AKKOR IS érvényesek, ha az általános rendszerutasítás
+"exegetikailag pontos", "teológiailag árnyalt" vagy "homiletikailag
+használható", részletesen strukturált markdown-választ kér — EZ a
+modul kizárólag a lenti rövid párhuzam-listát adja, a mélyebb
+exegetikai/teológiai/homiletikai kifejtést más modulra bízza. Ha
+bizonytalan vagy, hogy egy mondat exegézisnek számít-e, HAGYD KI —
+a rövidebb, tisztán a lista-formátumot követő válasz a helyes, nem a
+teljesebb.
 
-## Aktuális horizont
-3–4 friss, valós **headline vagy trend**, amely a mai közhangulatot meghatározza.
-Minden tételhez: **rövid leíró cím + 1–2 mondatos kontextus**.
-Ahol lehet, jelöld a forrást és (ha ismert) az időpontot.
+Használhatod a Google Search eszközt és a saját tudásodat is, hogy VALÓS,
+azonosítható történelmi vagy közéleti eseményeket, alakokat, jelenségeket
+találj — SOHA ne találj ki hihető, de hamis eseményt vagy nevet. Ha egy
+részletben (pontos dátum, szereplő neve, pontos szám) bizonytalan vagy,
+fogalmazz általánosabban, vagy hagyd ki azt a részletet, ahelyett hogy
+kitalálnál egyet.
 
-## Teológiai híd
-Építs **szellemi kapcsolatot** a textus és a fenti hírek mögött meghúzódó
-**emberi tapasztalatok** között. Nem felszínes „aktualizálás", hanem mélyebb
-megfeleltetés: a textus milyen **emberi alapkérdést** érint, ami a hírekben
-is felszínre kerül (félelem, remény, igazságszolgáltatás, identitás, halál,
-megbocsátás, közösség, hatalom stb.).
+Preferáld az ÁLTALÁNOSAN ISMERT, IDŐTÁLLÓ történelmi vagy közéleti
+párhuzamokat (pl. jól dokumentált történelmi események, közismert
+életrajzi mozzanatok, tartósan visszatérő társadalmi jelenségek) a friss,
+napi hírekkel szemben — kerüld az olyan aktuális eseményt, ami néhány
+hónap múlva már nehezen azonosítható vagy elavult lesz (pl. "a jelenlegi
+[ország] válság", folyamatban lévő konfliktusok, e heti hírek).
 
-## Lelki relevancia
-Hogyan szólít meg ez az Ige egy **ma reggeli híreket olvasó embert**?
-Milyen **konkrét lelki válasz**, irány, vigasz vagy hívás származik a textusból
-ebbe az aktuális élethelyzetbe?
+Minden tétel egy, a TEXTUSTÓL FÜGGETLEN, a bibliai szövegen KÍVÜLI, valós
+világból vett esemény, alak vagy jelenség legyen — SOHA ne a bibliai
+szereplőket vagy a textus saját cselekményét írd körül más szavakkal (pl.
+NE írj ilyet: "Káin és Ábel: a testvéri irigység és az áldozat kérdése" —
+ez maga a textus, nem párhuzam). A cím MAGA a konkrét esemény/alak/jelenség
+neve legyen — nem egy róla szóló elvont téma-címke.
 
-## Prédikációs alkalmazás
-1–2 konkrét, prédikációba beépíthető irány — hogyan szólalhat meg ez
-a kapcsolat a vasárnapi igehirdetésben **tisztelettel és nem politikai éllel**.
+Helyes vs. helytelen cím-forma (a szerkezetet kövesd, ne a tartalmát):
+- HELYES: "**Romulus és Remus legendája**" vagy "**A ruandai népirtás
+  (1994)**" — ez maga a nevesített esemény/alak, a magyarázat utána jön.
+- HELYTELEN: "**A hatalommal való visszaélés**" vagy "**Az emberi
+  közösség és a bűn következményei**" — ezek elvont témák, amikbe
+  bármi belefér, nem konkrét, ellenőrizhető párhuzamok.
+
+A válaszod ELSŐ KARAKTERE a `**` legyen, ami az első tétel címét nyitja —
+semmi nem előzi meg. Adj 3–5 tömör párhuzamot, ez a lista formátum
+(csak a félkövér tétel-címeket használd, `#`/`##` címsort SOHA):
+
+**[A konkrét, nevesített esemény/alak/jelenség neve — ez maga a cím]**
+1–2 mondatban: mi történt/mi a jelenség, és miért világít rá a textus
+valamelyik alapkérdésére (pl. hatalom, félelem, megbocsátás, igazság,
+közösség, identitás). Ne fejtsd ki a prédikációs alkalmazást — csak a
+RÁLÁTÁST add meg, a lelkész maga építi be. Az utolsó tétel után ÉRJEN
+VÉGET a válasz (nincs záró összegzés).
 
 Szigorú szabályok:
-- **Kerüld a pártpolitikát** és a politikai állásfoglalást.
-- A híreket **mint az emberi állapot tüneteit** vizsgáld, nem mint politikai eseményeket.
-- Ne erőltesd rá a textusra a mai kérdéseket — engedd, hogy a szöveg szólaljon meg.
-- Ha egy hír forrása vagy időpontja bizonytalan, jelezd.
+- NE jelenj meg forrás-megjelölés, dátum-hivatkozás vagy URL a végleges
+  szövegben (pl. ne írj ilyet: "Forrás: MTI, 2024. május 15.") — a
+  hitelesség a te felelősséged, nem a felhasználó felé való kimutatás
+  kérdése.
+- Kerüld a pártpolitikát és a hatásvadászatot.
+- Ha nincs érdemi, hiteles párhuzam, inkább adj kevesebbet (akár csak
+  2-3 tételt), mint hogy kitalálj egyet.
 """,
 }
 
