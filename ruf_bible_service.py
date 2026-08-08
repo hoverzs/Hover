@@ -1,4 +1,22 @@
-"""RUF 2014 passage loading through the official Szentiras.eu REST API."""
+"""RUF 2014 passage loading through the official Szentiras.eu REST API.
+
+Ez a modul KIZÁRÓLAG az élő, szakaszonkénti API-útvonalat adja (a
+munkamenet-szintű `_PASSAGE_CACHE`-szel) — nem nyúl a helyi, teljes Biblia
+szintű RÚF-szövegtárhoz. A helyi szövegtárat a `ruf_bible_local_db.py`
+modul kezeli, önálló, a Konkordancia funkcióhoz szánt olvasási API-val
+(`lookup_local`, `search_literal`); ez a modul szándékosan NEM hívja azt,
+hogy a meglévő "Igehely keresése" / szakaszonkénti betöltés funkció
+mindig a friss, élő API-válasz szerint működjön.
+
+JOGI MEGJEGYZÉS — FELHASZNÁLÁSI ALAP
+-------------------------------------
+A RÚF 2014 fordítás szövegének megjelenítése (ez a modul) és — a
+`ruf_bible_local_db` modulon keresztül — teljes szövegű helyi tárolása a
+TEXTUS üzemeltetője és a Magyar Bibliatársulat között fennálló, érvényes
+szerződés/engedély alapján történik (lásd `COPYRIGHT_NOTICE` /
+`SOURCE_ATTRIBUTION` lent). Lásd bővebben `ruf_bible_local_db.py`
+modul-docstringjét.
+"""
 
 from __future__ import annotations
 
@@ -194,6 +212,11 @@ def _build_book_lookup() -> dict[str, BookInfo]:
 
 
 BOOK_LOOKUP = _build_book_lookup()
+
+# Kanonikus, 66 könyvet tartalmazó sorrend (1Móz..Jel) — a helyi DB-importhoz
+# és bármely olyan felhasználáshoz, ahol a teljes könyvlistára van szükség
+# a `BOOK_LOOKUP` alias-dict helyett (ami csak név→BookInfo feloldásra jó).
+CANONICAL_BOOKS: tuple[BookInfo, ...] = tuple(info for info, _aliases in _BOOK_DEFS)
 
 
 def parse_bible_reference(reference: str) -> ParsedReference:
@@ -805,6 +828,7 @@ __all__ = [
     "ParsedReference",
     "BookInfo",
     "BOOK_LOOKUP",
+    "CANONICAL_BOOKS",
     "parse_bible_reference",
     "build_api_url",
     "get_szentiras_eu_api_key",
