@@ -102,6 +102,95 @@ def test_count_literal_empty_query_is_zero(tmp_path: Path) -> None:
     assert local_db.count_literal("", database_path=path) == 0
 
 
+class _FakeBucket:
+    def __init__(self, payload: bytes | None = None, error: Exception | None = None) -> None:
+        self._payload = payload
+        self._error = error
+        self.requested_paths: list[str] = []
+
+    def download(self, path: str) -> bytes:
+        self.requested_paths.append(path)
+        if self._error is not None:
+            raise self._error
+        return self._payload or b""
+
+
+class _FakeStorage:
+    def __init__(self, bucket: _FakeBucket) -> None:
+        self._bucket = bucket
+        self.requested_buckets: list[str] = []
+
+    def from_(self, bucket_id: str) -> _FakeBucket:
+        self.requested_buckets.append(bucket_id)
+        return self._bucket
+
+
+class _FakeSupabaseClient:
+    def __init__(self, bucket: _FakeBucket) -> None:
+        self.storage = _FakeStorage(bucket)
+
+
+def test_ensure_local_database_short_circuits_when_file_exists(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    path = tmp_path / "ruf.sqlite3"
+    _seed_db(path)
+
+    def boom():
+        raise AssertionError("Nem kellett volna Supabase-t hívnia.")
+
+    monkeypatch.setattr("supabase_client.get_supabase_client", boom, raising=False)
+
+    assert local_db.ensure_local_database(path) is True
+
+
+def test_ensure_local_database_downloads_when_missing(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    path = tmp_path / "ruf.sqlite3"
+    assert not path.exists()
+
+    source = tmp_path / "source.sqlite3"
+    _seed_db(source)
+    payload = source.read_bytes()
+    bucket = _FakeBucket(payload=payload)
+    client = _FakeSupabaseClient(bucket)
+    monkeypatch.setattr("supabase_client.get_supabase_client", lambda: client)
+
+    ok = local_db.ensure_local_database(path)
+
+    assert ok is True
+    assert path.is_file()
+    assert path.read_bytes() == payload
+    assert bucket.requested_paths == [local_db.STORAGE_OBJECT_PATH]
+    # Nincs ittmaradt .part ideiglenes fájl.
+    assert not path.with_suffix(path.suffix + ".part").exists()
+
+
+def test_ensure_local_database_returns_false_on_download_error(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    path = tmp_path / "ruf.sqlite3"
+    bucket = _FakeBucket(error=ConnectionError("network down"))
+    client = _FakeSupabaseClient(bucket)
+    monkeypatch.setattr("supabase_client.get_supabase_client", lambda: client)
+
+    assert local_db.ensure_local_database(path) is False
+    assert not path.exists()
+
+
+def test_ensure_local_database_returns_false_on_empty_payload(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    path = tmp_path / "ruf.sqlite3"
+    bucket = _FakeBucket(payload=b"")
+    client = _FakeSupabaseClient(bucket)
+    monkeypatch.setattr("supabase_client.get_supabase_client", lambda: client)
+
+    assert local_db.ensure_local_database(path) is False
+    assert not path.exists()
+
+
 def test_purge_database_removes_main_and_sibling_files(tmp_path: Path) -> None:
     path = tmp_path / "ruf.sqlite3"
     _seed_db(path)

@@ -16,14 +16,21 @@ szabja — ezek a KÓDBAN is betartandó, nem csak dokumentációs elvárások:
    bármilyen tartalmi módosítást ehhez a réteghez.
 2. KIZÁRÓLAG BELSŐ HASZNÁLAT. Ez a DB SOSE váljon külső, exportálható
    vagy nyilvánosan lekérdezhető adatforrássá. Ehhez a modulhoz TILOS
-   bármilyen hálózati/HTTP végpontot, fájl-letöltési/export funkciót
-   vagy publikus API-t hozzáadni — csak az alkalmazás saját Python-
-   folyamatán belüli, programozott hívás (`lookup_local`,
-   `search_literal`) férhet hozzá. A DB fájl NEM kerülhet verziókezelésbe
-   (lásd `.gitignore` — a `*.sqlite3` blokkoló szabály alól a
-   `data/generated/ruf_bible.sqlite3`-hoz SOSE adj negation-kivételt,
-   szemben a `tahot`/`tbesh` DB-kkel, amik más, permisszívebb forrásból
-   származnak).
+   olyan hálózati/HTTP végpontot, fájl-export funkciót vagy publikus
+   API-t hozzáadni, amin keresztül BÁRMILYEN KÜLSŐ FÉL kiolvashatná a
+   szöveget — csak az alkalmazás saját Python-folyamatán belüli,
+   programozott hívás (`lookup_local`, `search_literal`) férhet hozzá.
+   Ez NEM zárja ki a `ensure_local_database()` BEFELÉ irányuló
+   betöltését egy PRIVÁT, csak a szerverfolyamat saját hitelesítő
+   adataival elérhető tárolóból (Supabase Storage privát bucket) —
+   ez a DB egyetlen tartós, kanonikus forrásának provizionálása, nem
+   egy kifelé mutató export-végpont. A DB fájl NEM kerülhet
+   verziókezelésbe (lásd `.gitignore` — a `*.sqlite3` blokkoló szabály
+   alól a `data/generated/ruf_bible.sqlite3`-hoz SOSE adj
+   negation-kivételt, szemben a `tahot`/`tbesh` DB-kkel, amik más,
+   permisszívebb forrásból származnak). A Supabase bucket, ahonnan a
+   betöltés történik, SOSE lehet publikus (lásd
+   `scripts/setup_ruf_bible_storage.py` — explicit `public: False`).
 3. LÁTHATÓ COPYRIGHT. A `COPYRIGHT_NOTICE`/`SOURCE_ATTRIBUTION`
    (`ruf_bible_service.py`) minden, ebből a DB-ből származó válasszal
    együtt megjelenik — ez a helyi-DB-elsőbbségi integráció (lásd
@@ -56,6 +63,12 @@ DATABASE_NAME = "ruf_bible.sqlite3"
 DEFAULT_DATABASE_PATH = GENERATED_DATA_DIR / DATABASE_NAME
 
 SCHEMA_VERSION = 1
+
+# Privát Supabase Storage bucket — kizárólag a szerverfolyamat saját
+# hitelesítő adataival (SUPABASE_URL/SUPABASE_KEY) elérhető, SOSE publikus.
+# Lásd scripts/setup_ruf_bible_storage.py (egyszeri feltöltés/bucket-létrehozás).
+STORAGE_BUCKET_ID = "ruf-bible-private"
+STORAGE_OBJECT_PATH = "ruf_bible.sqlite3"
 
 
 def resolve_database_path(database_path: str | Path | None = None) -> Path:
@@ -405,6 +418,44 @@ def database_exists(database_path: str | Path | None = None) -> bool:
     return resolve_database_path(database_path).is_file()
 
 
+def ensure_local_database(database_path: str | Path | None = None) -> bool:
+    """Ha a helyi DB hiányzik (pl. friss/újraindult konténer), letölti a
+    privát Supabase Storage bucketből — API-hívások és a 15-30 perces
+    bulk-import nélkül, másodpercek alatt.
+
+    Idempotens: ha a fájl már megvan, azonnal True-val tér vissza, nem
+    tölt le semmit újra. Hálózati/hitelesítési hiba esetén False-t ad
+    (nem dob kivételt) — a hívó fél ilyenkor a "még nem elérhető"
+    állapotra esik vissza, ahogy eddig is, ha egyáltalán nincs DB.
+    """
+    path = resolve_database_path(database_path)
+    if path.is_file():
+        return True
+    try:
+        from supabase_client import get_supabase_client
+
+        client = get_supabase_client()
+        data = client.storage.from_(STORAGE_BUCKET_ID).download(STORAGE_OBJECT_PATH)
+    except Exception:  # noqa: BLE001 — hálózat/hitelesítés hibája sose akassza meg az appot
+        return False
+    if not data:
+        return False
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp_path = path.with_suffix(path.suffix + ".part")
+    try:
+        tmp_path.write_bytes(data)
+        tmp_path.replace(path)
+    except OSError:
+        return False
+    finally:
+        if tmp_path.exists():
+            try:
+                tmp_path.unlink()
+            except OSError:
+                pass
+    return path.is_file()
+
+
 def purge_database(database_path: str | Path | None = None) -> list[str]:
     """Teljesen és véglegesen törli a helyi RÚF-szövegtárat.
 
@@ -449,6 +500,9 @@ __all__ = [
     "search_literal",
     "count_literal",
     "database_exists",
+    "ensure_local_database",
+    "STORAGE_BUCKET_ID",
+    "STORAGE_OBJECT_PATH",
     "purge_database",
     "LiteralSearchHit",
 ]

@@ -47,6 +47,10 @@ def render_concordance_expander() -> None:
         )
 
         if not local_db.database_exists():
+            with st.spinner("Konkordancia-adatbázis előkészítése…"):
+                local_db.ensure_local_database()
+
+        if not local_db.database_exists():
             render_info_panel(
                 title="A konkordancia-kereső még nem elérhető",
                 body=(
