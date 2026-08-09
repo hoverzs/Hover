@@ -59,6 +59,19 @@ def test_search_original_hebrew_strong_is_deduplicated_and_ordered() -> None:
     assert all(h.language == "héber" for h in hits)
 
 
+def test_search_original_greek_lemma_strips_pilcrow_annotation() -> None:
+    """A TAGNT forrás bekezdésjelet (¶) fűz néhány szóalak végéhez (pl.
+    Jn 15,10-ben az "ἀγάπῃ" második előfordulása "ἀγάπῃ.¶"-ként volt
+    tárolva) — élő tesztelés során ez látszólagos, "szennyezett"
+    duplikátumként jelent meg a keresési találatok között. A ¶-t a
+    `surface` mezőből el kell távolítani; a versen belüli valódi, kétszeri
+    előfordulás (más szópozíción) továbbra is két külön találat marad."""
+    hits = olc.search_original("ἀγάπη", with_hungarian_context=False)
+    jn15_hits = [h for h in hits if h.book_abbr == "Jn" and h.chapter == 15 and h.verse == 10]
+    assert len(jn15_hits) == 2, "Jn 15,10-ben a szó valóban kétszer fordul elő (más szópozíción)"
+    assert all("¶" not in h.surface for h in jn15_hits)
+
+
 def test_search_original_greek_strong_returns_hits() -> None:
     hits = olc.search_original("G2316", with_hungarian_context=False)
 
@@ -74,6 +87,28 @@ def test_search_original_attaches_hungarian_context_by_default() -> None:
     assert any(h.hungarian_context for h in hits), (
         "legalább néhány találatnak legyen magyar kontextusa (a helyi RÚF-DB-ből)"
     )
+
+
+def test_search_original_hebrew_strong_bare_number_matches_lettered_variant() -> None:
+    """A STEPBible TAHOT-adatban sok Strong-szám kizárólag betű-
+    suffixummal ellátott változatként létezik (pl. "H2617A"/"H2617B"
+    a "H2617" helyett) — a felhasználó viszont a szokásos, suffixum
+    nélküli formát írja be. Élő tesztelés során ez H2617-re (חֶסֶד)
+    0 találatot adott, holott a szónak sok előfordulása van."""
+    hits = olc.search_original("H2617", with_hungarian_context=False)
+    assert len(hits) > 0
+    assert all(h.language == "héber" for h in hits)
+
+
+def test_search_original_hebrew_lemma_ignores_cantillation_marks() -> None:
+    """A TAHOT lemma-mező gyakran tartalmaz kantillációs (te'amim)
+    jeleket (pl. "חֶ֫סֶד"), amit egy felhasználó normál begépeléssel/
+    beillesztéssel szinte sosem ír be (pl. "חֶסֶד") — a pontos
+    egyezés emiatt adott 0 találatot élő tesztelés során, holott a
+    szó valójában sokszor előfordul."""
+    hits = olc.search_original("חֶסֶד", with_hungarian_context=False)
+    assert len(hits) > 0
+    assert all(h.language == "héber" for h in hits)
 
 
 def test_search_original_hebrew_lemma_matches_strong_lookup_book() -> None:

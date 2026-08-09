@@ -7,6 +7,7 @@ import pytest
 
 from bible_engine.tagnt_parser import get_verse_tokens
 from bible_engine.tagnt_sqlite import (
+    _clean_greek_form,
     create_schema,
     find_greek_tokens_by_lemma,
     find_greek_tokens_by_strong_id,
@@ -205,6 +206,22 @@ def test_john_alternate_verse_numbering_rows_are_imported(tmp_path: Path) -> Non
     assert tokens[0].verse == 53
     assert tokens[0].word_index == 1
     assert tokens[0].greek_form == "[[Καὶ"
+
+
+def test_clean_greek_form_strips_paragraph_pilcrow() -> None:
+    assert _clean_greek_form("ἀγάπῃ.¶") == "ἀγάπῃ."
+
+
+def test_clean_greek_form_preserves_double_bracket_textual_marker() -> None:
+    """A [[ / ]] a vitatott hitelességű szakaszok (pl. Jn 7,53–8,11)
+    valódi szövegkritikai jelölése — ezt SOSE szabad eltávolítani,
+    szemben a puszta formázási zajnak számító ¶-vel."""
+    assert _clean_greek_form("[[Καὶ") == "[[Καὶ"
+
+
+def test_clean_greek_form_handles_empty_and_none() -> None:
+    assert _clean_greek_form("") == ""
+    assert _clean_greek_form(None) == ""
 
 
 def _import_fixture(tmp_path: Path) -> Path:

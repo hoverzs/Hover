@@ -5,6 +5,7 @@ import sqlite3
 from pathlib import Path
 
 from bible_engine.hebrew_sqlite import (
+    _strip_hebrew_cantillation,
     find_hebrew_tokens_by_lemma,
     find_hebrew_tokens_by_strong_id,
     get_hebrew_books,
@@ -107,3 +108,37 @@ def test_tbesh_parser_extracts_ids_from_annotated_fields() -> None:
     entry = parse_tbesh_rows("eStrong#\tdStrong\tuStrong\tHebrew\tTransliteration\tMorph\tGloss\tMeaning\n" + record)[0]
 
     assert entry.strong_ids == ("H6635B",)
+
+
+def test_strip_hebrew_cantillation_removes_accent_marks() -> None:
+    """A TAHOT lemma-mező gyakran tartalmaz kantillációs (te'amim)
+    jeleket (pl. "חֶ֫סֶד"), amit egy felhasználó normál begépeléssel
+    szinte sosem ír be — a lemma-keresésnek ezért ezen jelek nélkül
+    kell egyeznie."""
+    with_accent = "חֶ֫סֶד"
+    without_accent = "חֶסֶד"
+    assert _strip_hebrew_cantillation(with_accent) == without_accent
+    assert _strip_hebrew_cantillation(without_accent) == without_accent
+
+
+def test_strip_hebrew_cantillation_handles_empty_and_none() -> None:
+    assert _strip_hebrew_cantillation("") == ""
+    assert _strip_hebrew_cantillation(None) == ""
+
+
+def test_find_hebrew_tokens_by_strong_id_bare_number_matches_lettered_variant(tmp_path: Path) -> None:
+    """Ha egy Strong-szám a TAHOT-ban kizárólag betű-suffixummal
+    ellátott változatként létezik (pl. "H1961A"), a suffixum nélküli
+    ("H1961") keresésnek is meg kell találnia — a felhasználók a
+    szokásos, suffixum nélküli formát írják be."""
+    database = tmp_path / "tahot_ot.sqlite3"
+    import_hebrew_fixture_database(TAHOT, TBESH, database)
+    with sqlite3.connect(database) as connection:
+        connection.execute(
+            "UPDATE token_strong_ids SET strong_id = 'H1961A' WHERE strong_id = 'H1961'"
+        )
+        connection.commit()
+
+    tokens = find_hebrew_tokens_by_strong_id(database, "H1961")
+
+    assert len(tokens) > 0

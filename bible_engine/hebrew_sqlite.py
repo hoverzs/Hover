@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 import sqlite3
 import tempfile
 import time
@@ -15,6 +16,19 @@ from bible_engine.hebrew_parser import HebrewComponent, HebrewToken, parse_tahot
 from bible_engine.hebrew_books import OT_BOOK_ORDER
 from bible_engine.paths import GENERATED_DATA_DIR
 from bible_engine.tbesh_parser import HebrewLexiconEntry, parse_tbesh_row
+
+
+# Héber kantilláció (te'amim) — Unicode "Hebrew accents" blokk (U+0591–
+# U+05AF). A TAHOT lemma-mező gyakran tartalmaz ilyen jeleket (pl.
+# "חֶ֫סֶד"), miközben egy felhasználó által beírt/beillesztett héber szó
+# (pl. "חֶסֶד") szinte sosem — a lemma-keresésnek ezért a jelek
+# figyelmen kívül hagyásával kell egyeznie, különben a pontos `=`
+# egyezés hamis negatívot ad egy ténylegesen létező szóra is.
+_HEBREW_CANTILLATION_RE = re.compile("[֑-֯]")
+
+
+def _strip_hebrew_cantillation(text: str) -> str:
+    return _HEBREW_CANTILLATION_RE.sub("", text or "")
 
 
 TAHOT_DATABASE_NAME = "tahot_ot_runtime.sqlite3"
@@ -437,14 +451,24 @@ def get_hebrew_token(database_path: str | Path, stable_token_key: str) -> Hebrew
 def find_hebrew_tokens_by_lemma(database_path: str | Path, lemma: str) -> list[HebrewToken]:
     with sqlite3.connect(database_path) as connection:
         connection.row_factory = sqlite3.Row
+        connection.create_function("HSTRIP_CANTILLATION", 1, _strip_hebrew_cantillation)
         rows = connection.execute(
-            "SELECT * FROM tokens WHERE lemma = ? ORDER BY book, chapter, verse, word_index",
+            "SELECT * FROM tokens "
+            "WHERE HSTRIP_CANTILLATION(lemma) = HSTRIP_CANTILLATION(?) "
+            "ORDER BY book, chapter, verse, word_index",
             (lemma,),
         ).fetchall()
         return _tokens_from_database_rows(connection, rows)
 
 
 def find_hebrew_tokens_by_strong_id(database_path: str | Path, strong_id: str) -> list[HebrewToken]:
+    """A `strong_id` PONTOS egyezését keresi, DE emellett a STEPBible-
+    adatban gyakori homográf-jelölő betűsuffixummal (pl. "H2617A",
+    "H2617B") ellátott változatokat is — sok Strong-szám kizárólag
+    lettered variánsként létezik a TAHOT-ban, egy sima "H2617" keresés
+    tehát pontos egyezés hiányában is találjon rájuk. Ha a bemenet már
+    tartalmaz betűt, a plusz `LIKE` feltétel ártalmatlan (nem talál
+    semmit extra), a viselkedés lényegében változatlan marad."""
     with sqlite3.connect(database_path) as connection:
         connection.row_factory = sqlite3.Row
         join_column = _token_strong_join_column(connection)
@@ -453,10 +477,10 @@ def find_hebrew_tokens_by_strong_id(database_path: str | Path, strong_id: str) -
             SELECT t.*
             FROM tokens t
             JOIN token_strong_ids s ON s.{join_column} = t.{join_column}
-            WHERE s.strong_id = ?
+            WHERE s.strong_id = ? OR s.strong_id LIKE ?
             ORDER BY t.book, t.chapter, t.verse, t.word_index
             """,
-            (strong_id,),
+            (strong_id, strong_id + "_"),
         ).fetchall()
         return _tokens_from_database_rows(connection, rows)
 

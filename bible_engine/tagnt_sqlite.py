@@ -12,6 +12,22 @@ from bible_engine.tagnt_parser import GreekToken, parse_tagnt_row
 _TAGNT_RECORD_RE = re.compile(r"^[1-3]?[A-Za-z]{2,3}\.\d+\.\d+(?:[\[\(\{][^#]+[\]\)\}])?#")
 _TAGNT_BOOK_RE = re.compile(r"^(?P<book>[1-3]?[A-Za-z]{2,3})\.")
 
+# A STEPBible TAGNT forrás bekezdésjelet (¶) néha közvetlenül a szó
+# alakjához fűzve tárolja (pl. "ἀγάπῃ.¶") — ez NEM a görög szó része,
+# csak formázási maradék, ami álduplikátumot okoz konkordancia-
+# keresésnél (ugyanaz a szó egyszer tiszta, egyszer ¶-vel "szennyezett"
+# alakban jelenik meg). Olvasáskor (nem a tárolt adatban) távolítjuk el,
+# hogy minden fogyasztó (konkordancia, szóelemző panel) egységesen
+# tiszta alakot lásson. A kettős szögletes zárójelet ([[ / ]], a
+# vitatott hitelességű szakaszok — pl. Jn 7,53–8,11 — jelölése) VISZONT
+# szándékosan NEM töröljük: az valódi szövegkritikai tartalom, nem
+# formázási zaj.
+_GREEK_FORM_ANNOTATION_RE = re.compile(r"¶")
+
+
+def _clean_greek_form(text: str) -> str:
+    return _GREEK_FORM_ANNOTATION_RE.sub("", text or "")
+
 
 @dataclass(frozen=True)
 class ImportReport:
@@ -421,7 +437,7 @@ def get_sqlite_verse_tokens(
             chapter=row[1],
             verse=row[2],
             word_index=row[3],
-            greek_form=row[4],
+            greek_form=_clean_greek_form(row[4]),
             lemma=row[5] or "",
             morph_code=row[6] or "",
             strong_id=row[7] or "",
@@ -474,7 +490,7 @@ def _find_greek_tokens(database: Path, column: str, value: str) -> list[GreekTok
             chapter=row[1],
             verse=row[2],
             word_index=row[3],
-            greek_form=row[4],
+            greek_form=_clean_greek_form(row[4]),
             lemma=row[5] or "",
             morph_code=row[6] or "",
             strong_id=row[7] or "",

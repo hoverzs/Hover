@@ -27,6 +27,8 @@ helyi szövegtár tartalmát sosem).
 
 from __future__ import annotations
 
+import re
+
 import streamlit as st
 
 import concept_concordance as concept
@@ -39,6 +41,21 @@ from ui_components import render_info_panel
 
 PAGE_SIZE = 20
 _MANY_RESULTS_THRESHOLD = 200
+
+# A Szentírás.eu API (és a belőle importált helyi RÚF-tár) néhány vers
+# szövegébe közvetlenül beágyazott szakaszcím-/kereszthivatkozás-HTML-t
+# ad vissza (pl. "A megbocsátás (<a href='Mt 18,25.21-22'>...</a>)
+# Vigyázzatok magatokra!..."). A `ruf_bible_local_db.py` szerződéses
+# elvárása szerint ezt a szöveget SZÓ SZERINT, változtatás nélkül kell
+# TÁROLNI — ezért a nyers HTML-t itt, a Konkordancia MEGJELENÍTÉSI
+# rétegében szűrjük ki (nem a tárolt/visszaadott adatban), mert
+# `st.markdown` `unsafe_allow_html` nélkül a nyers taget látható,
+# nem-renderelt szövegként hagyná bent.
+_HTML_TAG_RE = re.compile(r"<[^>]+>")
+
+
+def _strip_html_tags(text: str) -> str:
+    return _HTML_TAG_RE.sub("", text or "")
 
 # Az első 39 könyv az ÓSZ, a maradék 27 az ÚSZ — a CANONICAL_BOOKS
 # kanonikus, 1Móz..Jel sorrendben tárolja őket.
@@ -260,7 +277,7 @@ def _render_literal_results(committed_query: str) -> None:
         reference = f"{hit.book_abbr} {hit.chapter},{hit.verse}"
         col_text, col_jump = st.columns([5, 1])
         with col_text:
-            st.markdown(f"`{reference}` — {hit.snippet}")
+            st.markdown(f"`{reference}` — {_strip_html_tags(hit.snippet)}")
         with col_jump:
             if st.button(
                 "Ugrás",
@@ -306,7 +323,11 @@ def _render_original_results(committed_query: str) -> None:
         reference = f"{hit.book_abbr} {hit.chapter},{hit.verse}"
         col_text, col_jump = st.columns([5, 1])
         with col_text:
-            context = f" — {hit.hungarian_context}" if hit.hungarian_context else ""
+            context = (
+                f" — {_strip_html_tags(hit.hungarian_context)}"
+                if hit.hungarian_context
+                else ""
+            )
             st.markdown(
                 f"`{reference}` **{hit.surface}** _{hit.lemma}_ "
                 f"({hit.strong_id}){context}"
@@ -349,7 +370,7 @@ def _render_concept_results(committed_query: str) -> None:
                     reference += f"-{ref.verse_end}"
             col_text, col_jump = st.columns([5, 1])
             with col_text:
-                st.markdown(f"`{reference}` — {ref.context_text}")
+                st.markdown(f"`{reference}` — {_strip_html_tags(ref.context_text)}")
                 st.caption(f"_{ref.relation_label}_ — {ref.reasoning}")
             with col_jump:
                 if st.button(
@@ -367,7 +388,7 @@ def _render_concept_results(committed_query: str) -> None:
                 reference = f"{hit.book_abbr} {hit.chapter},{hit.verse}"
                 col_text, col_jump = st.columns([5, 1])
                 with col_text:
-                    st.markdown(f"`{reference}` — {hit.snippet}")
+                    st.markdown(f"`{reference}` — {_strip_html_tags(hit.snippet)}")
                 with col_jump:
                     if st.button(
                         "Ugrás",
@@ -378,7 +399,11 @@ def _render_concept_results(committed_query: str) -> None:
                 reference = f"{hit.book_abbr} {hit.chapter},{hit.verse}"
                 col_text, col_jump = st.columns([5, 1])
                 with col_text:
-                    context = f" — {hit.hungarian_context}" if hit.hungarian_context else ""
+                    context = (
+                        f" — {_strip_html_tags(hit.hungarian_context)}"
+                        if hit.hungarian_context
+                        else ""
+                    )
                     st.markdown(
                         f"`{reference}` **{hit.surface}** _{hit.lemma}_ "
                         f"({hit.strong_id}){context}"
