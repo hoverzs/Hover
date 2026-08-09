@@ -1,22 +1,35 @@
 """Konkordancia — önálló, kinyitható panel az Igehely fülön.
 
-Két mód, egy közös keresőmezővel, automatikus felismeréssel:
-  1. Szó szerinti RÚF-keresés (`ruf_bible_local_db.py`) — alapértelmezett,
-     ha a bevitel nem Strong-kód és nem héber/görög írásjel.
-  2. Eredeti nyelvi (héber/görög) keresés (`original_language_concordance.py`)
-     — automatikusan aktiválódik Strong-kód mintára (pl. "H3467", "G2316")
-     vagy héber/görög szöveg beillesztésére/beírására.
+Egy explicit kapcsoló két főmód között (NEM automatikus felismerés — egy
+összetett kérdés nyelvtanilag nem különböztethető meg megbízhatóan egy
+hosszabb kifejezéstől):
+
+  A. "Pontos kifejezés" — a keresőmezőn belül továbbra is automatikus
+     al-mód-felismerés:
+       1. Szó szerinti RÚF-keresés (`ruf_bible_local_db.py`) —
+          alapértelmezett, ha a bevitel nem Strong-kód és nem
+          héber/görög írásjel.
+       2. Eredeti nyelvi (héber/görög) keresés
+          (`original_language_concordance.py`) — Strong-kód mintára
+          (pl. "H3467", "G2316") vagy héber/görög írásjelre aktiválódik.
+  B. "Kérdés/fogalom" — összetett, teológiai/fogalmi kérdésekhez
+     (`concept_concordance.py`) — EGY Gemini-hívással igehelyeket,
+     kulcsszavakat és eredeti nyelvi terminusokat von ki a kérdésből,
+     majd a fenti 1-2. mód motorjaival egészíti ki a találatokat.
 
 Egyik mód sem érinti a fő igehely-beviteli mezőt vagy a "Bibliai szöveg"
 betöltést (mindkettő az élő Szentírás.eu API-t hívja
 `ruf_bible_service.fetch_ruf_passage`-on keresztül) — a Konkordancia
-kizárólag a helyi RÚF- és héber/görög szövegtárakat használja.
+kizárólag a helyi RÚF- és héber/görög szövegtárakat használja (a "Kérdés/
+fogalom" mód Gemini-hívása is csak a felhasználó kérdését küldi el, a
+helyi szövegtár tartalmát sosem).
 """
 
 from __future__ import annotations
 
 import streamlit as st
 
+import concept_concordance as concept
 import original_language_concordance as olc
 import ruf_bible_local_db as local_db
 from passage_search_ui import request_select_suggestion
@@ -40,10 +53,14 @@ TESTAMENT_BOOK_CODES: dict[str, list[str] | None] = {
 }
 
 QUERY_WIDGET_KEY = "concordance_query_input"
+CONCEPT_QUERY_WIDGET_KEY = "concordance_concept_query_input"
 TESTAMENT_WIDGET_KEY = "concordance_testament_input"
+MODE_TOGGLE_KEY = "concordance_top_mode"
+_MODE_EXACT = "Pontos kifejezés"
+_MODE_CONCEPT = "Kérdés/fogalom"
 _COMMITTED_QUERY_KEY = "_concordance_committed_query"
 _COMMITTED_TESTAMENT_KEY = "_concordance_committed_testament"
-_COMMITTED_MODE_KEY = "_concordance_committed_mode"  # "literal" | "original"
+_COMMITTED_MODE_KEY = "_concordance_committed_mode"  # "literal" | "original" | "concept"
 _OFFSET_KEY = "_concordance_offset"
 _PREFILL_QUERY_KEY = "_concordance_prefill_query"
 
@@ -59,18 +76,13 @@ def render_concordance_expander() -> None:
     """A "Konkordancia" kinyitható panel — az "Igehely keresése" alatt."""
     prefill = st.session_state.pop(_PREFILL_QUERY_KEY, None)
     if prefill:
+        st.session_state[MODE_TOGGLE_KEY] = _MODE_EXACT
         st.session_state[QUERY_WIDGET_KEY] = prefill
         st.session_state[_COMMITTED_QUERY_KEY] = prefill
         st.session_state[_COMMITTED_TESTAMENT_KEY] = "Egész Biblia"
         st.session_state[_OFFSET_KEY] = 0
 
     with st.expander("Konkordancia", expanded=bool(prefill)):
-        st.caption(
-            "Keress rá egy szóra/kifejezésre a RÚF szövegében, vagy adj meg "
-            "egy Strong-számot (pl. H3467, G2316) / héber-görög szót az "
-            "eredeti nyelvi előfordulásokhoz."
-        )
-
         if not local_db.database_exists():
             with st.spinner("Konkordancia-adatbázis előkészítése…"):
                 local_db.ensure_local_database()
@@ -86,51 +98,107 @@ def render_concordance_expander() -> None:
             )
             return
 
-        live_query = str(st.session_state.get(QUERY_WIDGET_KEY) or "")
-        is_original_mode = olc.is_original_language_query(live_query)
+        top_mode = st.radio(
+            "Konkordancia mód",
+            options=[_MODE_EXACT, _MODE_CONCEPT],
+            key=MODE_TOGGLE_KEY,
+            horizontal=True,
+            label_visibility="collapsed",
+        )
 
-        if is_original_mode:
-            col_query, col_btn = st.columns([5, 1])
+        if top_mode == _MODE_CONCEPT:
+            _render_concept_input()
         else:
-            col_query, col_filter, col_btn = st.columns([3, 2, 1])
-        with col_query:
-            st.text_input(
-                "Keresett szó, kifejezés vagy Strong-szám",
-                key=QUERY_WIDGET_KEY,
-                placeholder="Pl. szeretet, örök élet, H3467, G2316",
-                label_visibility="collapsed",
-            )
-        if not is_original_mode:
-            with col_filter:
-                st.selectbox(
-                    "Szűrés",
-                    options=list(TESTAMENT_BOOK_CODES.keys()),
-                    key=TESTAMENT_WIDGET_KEY,
-                    label_visibility="collapsed",
-                )
-        with col_btn:
-            search_clicked = st.button(
-                "Keresés",
-                key="concordance_search_btn",
-                type="primary",
-                use_container_width=True,
-            )
-
-        if is_original_mode:
-            st.caption("Eredeti nyelvi mód — a testamentum-szűrő nem releváns.")
-
-        if search_clicked:
-            query = (st.session_state.get(QUERY_WIDGET_KEY) or "").strip()
-            st.session_state[_COMMITTED_QUERY_KEY] = query
-            st.session_state[_COMMITTED_MODE_KEY] = (
-                "original" if olc.is_original_language_query(query) else "literal"
-            )
-            st.session_state[_COMMITTED_TESTAMENT_KEY] = st.session_state.get(
-                TESTAMENT_WIDGET_KEY, "Egész Biblia"
-            )
-            st.session_state[_OFFSET_KEY] = 0
+            _render_exact_input()
 
         _render_results()
+
+
+def _render_exact_input() -> None:
+    st.caption(
+        "Keress rá egy szóra/kifejezésre a RÚF szövegében, vagy adj meg "
+        "egy Strong-számot (pl. H3467, G2316) / héber-görög szót az "
+        "eredeti nyelvi előfordulásokhoz."
+    )
+
+    live_query = str(st.session_state.get(QUERY_WIDGET_KEY) or "")
+    is_original_mode = olc.is_original_language_query(live_query)
+
+    if is_original_mode:
+        col_query, col_btn = st.columns([5, 1])
+    else:
+        col_query, col_filter, col_btn = st.columns([3, 2, 1])
+    with col_query:
+        st.text_input(
+            "Keresett szó, kifejezés vagy Strong-szám",
+            key=QUERY_WIDGET_KEY,
+            placeholder=(
+                "Írj be egy magyar szót, görög/héber kifejezést vagy "
+                "Strong-számot (pl. »kegyelem«, »ἀγάπη«, »sha'ah«, vagy »G26«)"
+            ),
+            label_visibility="collapsed",
+        )
+    if not is_original_mode:
+        with col_filter:
+            st.selectbox(
+                "Szűrés",
+                options=list(TESTAMENT_BOOK_CODES.keys()),
+                key=TESTAMENT_WIDGET_KEY,
+                label_visibility="collapsed",
+            )
+    with col_btn:
+        search_clicked = st.button(
+            "Keresés",
+            key="concordance_search_btn",
+            type="primary",
+            use_container_width=True,
+        )
+
+    if is_original_mode:
+        st.caption("Eredeti nyelvi mód — a testamentum-szűrő nem releváns.")
+
+    if search_clicked:
+        query = (st.session_state.get(QUERY_WIDGET_KEY) or "").strip()
+        st.session_state[_COMMITTED_QUERY_KEY] = query
+        st.session_state[_COMMITTED_MODE_KEY] = (
+            "original" if olc.is_original_language_query(query) else "literal"
+        )
+        st.session_state[_COMMITTED_TESTAMENT_KEY] = st.session_state.get(
+            TESTAMENT_WIDGET_KEY, "Egész Biblia"
+        )
+        st.session_state[_OFFSET_KEY] = 0
+
+
+def _render_concept_input() -> None:
+    st.caption(
+        "Tegyél fel egy összetett, teológiai/fogalmi kérdést — a rendszer "
+        "nemcsak szó szerinti egyezéseket keres, hanem valódi fogalmi "
+        "kapcsolódásokat és narratív példákat is."
+    )
+    col_query, col_btn = st.columns([5, 1])
+    with col_query:
+        st.text_input(
+            "Kérdés/fogalom",
+            key=CONCEPT_QUERY_WIDGET_KEY,
+            placeholder=(
+                "Pl.: hol beszél a Biblia arról, hogy a megbocsátás nem "
+                "mindig automatikus, hanem feltételekhez kötött?"
+            ),
+            label_visibility="collapsed",
+        )
+    with col_btn:
+        search_clicked = st.button(
+            "Keresés",
+            key="concordance_concept_search_btn",
+            type="primary",
+            use_container_width=True,
+        )
+
+    if search_clicked:
+        query = (st.session_state.get(CONCEPT_QUERY_WIDGET_KEY) or "").strip()
+        st.session_state[_COMMITTED_QUERY_KEY] = query
+        st.session_state[_COMMITTED_MODE_KEY] = "concept"
+        st.session_state[_OFFSET_KEY] = 0
 
 
 def _render_results() -> None:
@@ -143,7 +211,9 @@ def _render_results() -> None:
         return
 
     mode = st.session_state.get(_COMMITTED_MODE_KEY, "literal")
-    if mode == "original":
+    if mode == "concept":
+        _render_concept_results(committed_query)
+    elif mode == "original":
         _render_original_results(committed_query)
     else:
         _render_literal_results(committed_query)
@@ -252,6 +322,73 @@ def _render_original_results(committed_query: str) -> None:
                 request_select_suggestion(reference)
 
     _render_pagination(offset, total)
+
+
+def _render_concept_results(committed_query: str) -> None:
+    with st.spinner("Fogalmi keresés — a Gemini konkrét igehelyeket keres…"):
+        result = concept.search_concept(committed_query)
+
+    if result.error:
+        st.warning(result.error)
+        return
+
+    if not result.references and not result.keyword_hits and not result.original_language_hits:
+        st.info(
+            f"Nem sikerült releváns, ellenőrizhető igehelyet találni erre: "
+            f"„{committed_query}”."
+        )
+        return
+
+    if result.references:
+        st.caption(f"{len(result.references)} igehely erre: „{committed_query}”")
+        for position, ref in enumerate(result.references):
+            reference = f"{ref.book_abbr} {ref.chapter}"
+            if ref.verse_start:
+                reference += f",{ref.verse_start}"
+                if ref.verse_end and ref.verse_end != ref.verse_start:
+                    reference += f"-{ref.verse_end}"
+            col_text, col_jump = st.columns([5, 1])
+            with col_text:
+                st.markdown(f"`{reference}` — {ref.context_text}")
+                st.caption(f"_{ref.relation_label}_ — {ref.reasoning}")
+            with col_jump:
+                if st.button(
+                    "Ugrás",
+                    key=f"concordance_jump_concept_{position}",
+                ):
+                    request_select_suggestion(reference)
+    else:
+        st.info("A Gemini nem javasolt ellenőrizhető igehelyet erre a kérdésre.")
+
+    extra_hits = len(result.keyword_hits) + len(result.original_language_hits)
+    if extra_hits:
+        with st.expander(f"További kapcsolódó találatok ({extra_hits})"):
+            for position, hit in enumerate(result.keyword_hits):
+                reference = f"{hit.book_abbr} {hit.chapter},{hit.verse}"
+                col_text, col_jump = st.columns([5, 1])
+                with col_text:
+                    st.markdown(f"`{reference}` — {hit.snippet}")
+                with col_jump:
+                    if st.button(
+                        "Ugrás",
+                        key=f"concordance_jump_concept_kw_{position}",
+                    ):
+                        request_select_suggestion(reference)
+            for position, hit in enumerate(result.original_language_hits):
+                reference = f"{hit.book_abbr} {hit.chapter},{hit.verse}"
+                col_text, col_jump = st.columns([5, 1])
+                with col_text:
+                    context = f" — {hit.hungarian_context}" if hit.hungarian_context else ""
+                    st.markdown(
+                        f"`{reference}` **{hit.surface}** _{hit.lemma}_ "
+                        f"({hit.strong_id}){context}"
+                    )
+                with col_jump:
+                    if st.button(
+                        "Ugrás",
+                        key=f"concordance_jump_concept_ol_{position}",
+                    ):
+                        request_select_suggestion(reference)
 
 
 def _render_pagination(offset: int, total: int) -> None:

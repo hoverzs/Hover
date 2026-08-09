@@ -247,6 +247,7 @@ GEMINI_MODEL_BY_TAB_LABEL: dict[str, str] = {
     "Eredeti szöveg": LOCKED_MODEL,
     "Eredeti szöveg tanulmányozása": LOCKED_MODEL,
     "Kortörténet": LOCKED_MODEL,
+    "Konkordancia": LOCKED_MODEL,
     "API teszt": LOCKED_MODEL,
     # --- gemini-2.5-flash-lite (összegzés, háttér, könnyebb szekciók) ---
     "Áttekintés": GEMINI_MODEL_FLASH_LITE,
@@ -6003,6 +6004,7 @@ DEFAULT_MAX_OUTPUT_TOKENS_BY_TAB: dict[str, int] = {
     "Teológia": 9216,
     "Eredeti szöveg": 6144,
     "Eredeti szöveg tanulmányozása": 6144,
+    "Konkordancia": 4096,
     "Illusztrációk": 4096,
     "Aktualizálás": 4096,
     "Vázlat": 2048,
