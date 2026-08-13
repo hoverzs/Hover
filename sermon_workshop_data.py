@@ -430,6 +430,29 @@ def _normalize_outline_movement(raw: Any) -> dict[str, Any]:
     return out
 
 
+# A vázlatmotor korábbi verziójának megfelelő, egyszer rögzített érték —
+# KIZÁRÓLAG akkor használt, ha a lusta import (lásd lent) valamiért
+# meghiúsulna. Ez nem önálló, karbantartandó "második kanonikus érték": a
+# `sermon_outline_engine.SCHEMA_VERSION` mindig elsőbbséget élvez, ezt a
+# konstanst csak import-hiba esetén, biztonsági hálóként olvassuk.
+_SCHEMA_VERSION_IMPORT_FAILURE_FALLBACK = "pulpit_outline_v8"
+
+
+def _canonical_outline_schema_version() -> str:
+    """Lusta import — a `sermon_outline_engine.SCHEMA_VERSION` az egyetlen
+    kanonikus, aktuális vázlat-sémaverzió; elkerüli a körkörös importot
+    (a `sermon_outline_engine` modul-szinten importálja ezt a fájlt, ld.
+    `from sermon_workshop_data import (...)`). Ugyanaz a minta, mint a
+    `_current_passage_context_hash`-nél — hiba esetén sem dobhat kivételt,
+    csak a korábban rögzített, ismert-jó értékre esik vissza."""
+    try:
+        from sermon_outline_engine import SCHEMA_VERSION
+
+        return SCHEMA_VERSION
+    except Exception:  # noqa: BLE001
+        return _SCHEMA_VERSION_IMPORT_FAILURE_FALLBACK
+
+
 def normalize_sermon_outline(raw: Any) -> dict[str, Any]:
     """Vázlat normalizálása; hiányzó mezők biztonságos alapértékkel."""
     base = empty_sermon_outline()
@@ -508,7 +531,7 @@ def normalize_sermon_outline(raw: Any) -> dict[str, Any]:
         or (isinstance(out.get("movements"), list) and out.get("movements"))
         or (isinstance(out.get("structured"), dict) and out.get("structured"))
     )
-    if has_body and schema != "pulpit_outline_v7":
+    if has_body and schema != _canonical_outline_schema_version():
         # Üres schema vagy legacy → jelölés; ne írjuk felül a tartalmat.
         if out["status"] != "needs_refresh":
             out["status"] = "needs_refresh"
