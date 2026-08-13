@@ -53,6 +53,13 @@ def get_default_sermon_workshop() -> dict[str, Any]:
         "sermon_main_idea": "",
         "sermon_main_idea_status": "draft",
         "sermon_main_idea_approved_context_hash": "",
+        # ÚJ, additív mező (célarchitektúra-terv, 1. fázis, 2026-08-13).
+        # Egységesített hétpontos "Az igehirdetés íve" modell. Ebben a
+        # fázisban KIZÁRÓLAG adatmodell — nem aktív source of truth, a UI
+        # nem írja, a vázlatmotor nem olvassa. A régi `entry_point` /
+        # `sermon_path` / `christ_centered_arc` / `closing` / `human_condition`
+        # / `listener_tension` mezők VÁLTOZATLANUL az aktív rendszer forrásai.
+        "arc": get_default_arc(),
         "human_condition": {
             "condition": "",
             "false_response": "",
@@ -1265,6 +1272,8 @@ def normalize_sermon_workshop(data: Any) -> dict[str, Any]:
         "sermon_main_idea_approved_context_hash": _as_str(
             data.get("sermon_main_idea_approved_context_hash")
         ),
+        # ÚJ, additív mező — ld. get_default_sermon_workshop() megjegyzését.
+        "arc": normalize_arc(data.get("arc")),
         "human_condition": hc_block,
         "human_condition_status": human_condition_status,
         "human_condition_approved_context_hash": _as_str(
@@ -2461,12 +2470,310 @@ def set_sermon_outline_diagnostics_status(
     return sw
 
 
+# =============================================================================
+# ÚJ, ADDITÍV: "Az igehirdetés íve" egységesített hétpontos adatmodell.
+#
+# Célarchitektúra-terv (TEXTUS_EGYSZERUSITETT_IGEHIRDETESI_CELARCHITEKTURA_
+# TERV_2026-08-13.md), 1. fázis. FONTOS KORLÁTOK ERRE A FÁZISRA:
+#   - kizárólag adatmodell + tiszta, tesztelhető migrációs/frissítő függvény;
+#   - NEM aktív source of truth — sem a jelenlegi öt munkafázisos UI, sem a
+#     vázlatmotor (sermon_outline_engine.generate_sermon_outline) nem olvassa;
+#   - a régi mezők (entry_point, sermon_path, christ_centered_arc, closing,
+#     human_condition, listener_tension, engagement_elements) TELJESEN
+#     ÉRINTETLENEK maradnak, továbbra is ők az aktív rendszer forrásai;
+#   - a migrációs függvénynek NINCS automatikus UI- vagy projektbetöltési
+#     hívása ebben a fázisban — csak tesztekből/később, explicit hívással.
+# =============================================================================
+
+_ARC_POINT_KEYS: tuple[str, ...] = (
+    "entry",  # 1. Belépés
+    "starting_point",  # 2. Alaphelyzet
+    "first_shift",  # 3. Első fordulópont
+    "deepening",  # 4. Mélyítés és fokozás
+    "reinterpretation",  # 5. Átértelmezés — opcionális
+    "second_shift",  # 6. Második fordulópont
+    "arrival",  # 7. Megérkezés
+)
+
+_ARC_POINT_FIELDS: tuple[str, ...] = (
+    "text",
+    "ai_suggestion",
+    "ai_suggested_at",
+    "context_hash",
+    "updated_at",
+)
+
+
+def empty_arc_point() -> dict[str, Any]:
+    """Egy üres "Az igehirdetés íve" modellpont — mindegyik pont ugyanezt a
+    sémát használja: 1 szerkeszthető mező + 1 MI-javaslat mező + auto-save
+    metaadat. Nincs `status` (draft/approved) mező — a kapu (későbbi fázis)
+    tartalom+frissesség alapú lesz, nem jóváhagyás-alapú."""
+    return {
+        "text": "",
+        "ai_suggestion": None,
+        "ai_suggested_at": "",
+        "context_hash": "",
+        "updated_at": "",
+    }
+
+
+def get_default_arc() -> dict[str, Any]:
+    """Üres, hét pontból álló `arc` struktúra."""
+    return {key: empty_arc_point() for key in _ARC_POINT_KEYS}
+
+
+def _normalize_arc_point(raw: Any) -> dict[str, Any]:
+    base = empty_arc_point()
+    if not isinstance(raw, dict):
+        return base
+    out = dict(base)
+    out["text"] = _as_str(raw.get("text"))
+    suggestion = raw.get("ai_suggestion")
+    out["ai_suggestion"] = (
+        str(suggestion) if isinstance(suggestion, str) and suggestion.strip() else None
+    )
+    out["ai_suggested_at"] = _as_str(raw.get("ai_suggested_at"))
+    out["context_hash"] = _as_str(raw.get("context_hash"))
+    out["updated_at"] = _as_str(raw.get("updated_at"))
+    return out
+
+
+def normalize_arc(raw: Any) -> dict[str, Any]:
+    """Bármilyen bemenetből érvényes, pontosan hét pontból álló `arc`
+    struktúrát ad vissza — hiányzó/hibás bemenet esetén biztonságos
+    alapérték, adatvesztés nélkül (ismeretlen pontkulcsok egyszerűen nem
+    kerülnek be, ismert pontok hiánya alapértékkel pótlódik)."""
+    base = get_default_arc()
+    if not isinstance(raw, dict):
+        return base
+    return {key: _normalize_arc_point(raw.get(key)) for key in _ARC_POINT_KEYS}
+
+
+def _join_nonempty(*parts: Any, separator: str = "\n\n") -> str:
+    """Nem üres részek összefűzése — a migrációs összevonásokhoz (pl. a régi
+    `christ_centered_arc` 3 almezője -> 1 `arc.second_shift.text` mező)."""
+    cleaned = [str(p).strip() for p in parts if str(p or "").strip()]
+    return separator.join(cleaned)
+
+
+_ENGAGEMENT_BASKET_SOURCE_LABEL = "Megszólítás (migrált)"
+
+
+def _migrate_engagement_elements_to_basket(
+    raw_elements: Any,
+    *,
+    existing_basket: Any = None,
+) -> list[tuple[str, str]]:
+    """Csak a korábban JÓVÁHAGYOTT (status == "approved") megszólító elemeket
+    adja vissza, kosár-elem `(source, text)` pár formájában — duplikátumszűrve
+    a már meglévő kosártartalommal ÉS egymással szemben is. Tiszta függvény:
+    sem a bemenetet, sem semmilyen session_state-et nem módosít, csak az ÚJONNAN
+    hozzáfűzendő elemeket adja vissza."""
+    elements = normalize_engagement_elements(raw_elements) if raw_elements else []
+
+    seen_texts: set[str] = set()
+    if isinstance(existing_basket, list):
+        for item in existing_basket:
+            if isinstance(item, list | tuple) and len(item) == 2:
+                text = str(item[1] or "").strip()
+                if text:
+                    seen_texts.add(text)
+
+    out: list[tuple[str, str]] = []
+    for element in elements:
+        if element.get("status") != "approved":
+            continue
+        text = str(element.get("text") or "").strip()
+        if not text or text in seen_texts:
+            continue
+        out.append((_ENGAGEMENT_BASKET_SOURCE_LABEL, text))
+        seen_texts.add(text)
+    return out
+
+
+def migrate_legacy_arc_fields(
+    sermon_workshop: Mapping[str, Any] | None,
+    *,
+    existing_arc: Mapping[str, Any] | None = None,
+    existing_basket: Any = None,
+) -> dict[str, Any]:
+    """Nem destruktív, tisztán funkcionális migráció a régi Igehirdetési
+    műhely-mezőkből az egységes `arc` struktúrába (célarchitektúra-terv,
+    9.1. szakasz mezőtérképe szerint).
+
+    KÖTELEZŐ SZABÁLYOK (mind betartva):
+      - kizárólag ÜRES célmezőbe másolhat (`arc.<pont>.text` csak akkor
+        töltődik, ha korábban is üres volt);
+      - nem törli és nem módosítja a bemeneti `sermon_workshop`-ot (nincs
+        mutáció — a `sermon_workshop` paraméter csak OLVASVA van);
+      - nem ír semmilyen session_state-et vagy tartós projektadatot — tiszta
+        függvény, a hívó felelőssége a visszatérési érték felhasználása;
+      - ugyanazzal a bemenettel többször lefuttatva azonos eredményt ad
+        (idempotens — ld. tests/test_arc_data_model.py);
+      - az `engagement_elements` -> Vázlatkosár migráció csak a jóváhagyott
+        elemeket veszi figyelembe, és duplikátummentes.
+
+    Visszatérési érték:
+        {
+            "arc": dict[str, Any],               # a migrált, teljes arc
+            "basket_items": list[tuple[str,str]], # ÚJONNAN kosárba teendő
+                                                    # (source, text) párok
+        }
+
+    Ez a függvény ebben a fázisban SEHOL nem hívódik automatikusan (sem UI-,
+    sem projektbetöltési útvonalon) — kizárólag tesztekből / jövőbeli,
+    explicit hívásból érhető el.
+    """
+    sw = sermon_workshop if isinstance(sermon_workshop, dict) else {}
+
+    result_arc = normalize_arc(existing_arc) if existing_arc is not None else get_default_arc()
+    # Mély másolat — a visszaadott struktúra semmilyen közös referenciát nem
+    # oszt meg a bemenettel, hogy a hívó biztonságosan módosíthassa.
+    result_arc = copy.deepcopy(result_arc)
+
+    entry = sw.get("entry_point") if isinstance(sw.get("entry_point"), dict) else {}
+    sermon_path = sw.get("sermon_path") if isinstance(sw.get("sermon_path"), dict) else {}
+    christ_arc = (
+        sw.get("christ_centered_arc")
+        if isinstance(sw.get("christ_centered_arc"), dict)
+        else {}
+    )
+    closing = sw.get("closing") if isinstance(sw.get("closing"), dict) else {}
+    human_condition = (
+        sw.get("human_condition") if isinstance(sw.get("human_condition"), dict) else {}
+    )
+    listener_tension = (
+        sw.get("listener_tension") if isinstance(sw.get("listener_tension"), dict) else {}
+    )
+
+    def _fill(point_key: str, candidate_text: str) -> None:
+        """Csak akkor ír, ha a cél `text` mezője jelenleg üres, ÉS van
+        tartalmas jelölt szöveg — soha nem ír felül nem üres célmezőt."""
+        current = str(result_arc[point_key].get("text") or "").strip()
+        if current:
+            return
+        candidate = candidate_text.strip()
+        if not candidate:
+            return
+        result_arc[point_key] = dict(result_arc[point_key])
+        result_arc[point_key]["text"] = candidate
+
+    # --- Elsődleges (közvetlen 1:1, ill. 1 blokk -> 1 pont összevonás) ---
+    _fill(
+        "entry",
+        _join_nonempty(entry.get("today_connection"), entry.get("text")),
+    )
+    _fill("starting_point", _as_str(sermon_path.get("starting_point")))
+    _fill("first_shift", _as_str(sermon_path.get("first_shift")))
+    _fill("deepening", _as_str(sermon_path.get("deepening")))
+    _fill("reinterpretation", _as_str(sermon_path.get("reinterpretation")))
+    _fill(
+        "second_shift",
+        _join_nonempty(
+            christ_arc.get("divine_gracious_action"),
+            christ_arc.get("christ_connection"),
+            christ_arc.get("grace_enabled_response"),
+        ),
+    )
+    _fill(
+        "arrival",
+        _join_nonempty(
+            closing.get("final_discovery"),
+            closing.get("hope"),
+            closing.get("call_or_response"),
+            closing.get("image_or_line"),
+            closing.get("open_question"),
+        ),
+    )
+
+    # --- Másodlagos, ALACSONYABB PRIORITÁSÚ pótló források — csak akkor
+    # töltenek, ha az elsődleges forrás(ok) UTÁN a célpont még mindig üres.
+    _fill(
+        "starting_point",
+        _join_nonempty(
+            human_condition.get("condition"),
+            human_condition.get("false_response"),
+            human_condition.get("human_need"),
+            human_condition.get("divine_action"),
+            human_condition.get("grace_response"),
+        ),
+    )
+    _fill(
+        "first_shift",
+        _join_nonempty(
+            listener_tension.get("listener_question"),
+            listener_tension.get("listener_resistance"),
+            listener_tension.get("sermon_tension"),
+            listener_tension.get("promised_resolution"),
+        ),
+    )
+
+    basket_items = _migrate_engagement_elements_to_basket(
+        sw.get("engagement_elements"), existing_basket=existing_basket
+    )
+
+    return {"arc": result_arc, "basket_items": basket_items}
+
+
+def update_arc_point(
+    session_state: MutableMapping[str, Any],
+    point_key: str,
+    text: str,
+) -> dict[str, Any]:
+    """Egy `arc` pont szövegének frissítése — a jövőbeli auto-save mintázat
+    adatréteg-szintű előkészítése.
+
+    Szabályok:
+      - csak érvényes `_ARC_POINT_KEYS` értéket fogad (egyébként ValueError);
+      - normalizálja a szöveget (`_as_str`);
+      - mindig frissíti az `updated_at` időbélyeget;
+      - tartalmas (nem üres) mentésnél az aktuális igehelyhez/szöveghez
+        kötött `context_hash`-t is beállítja (ugyanaz a lusta-import minta,
+        mint `_current_passage_context_hash`-nél — hiba esetén csendben
+        üres marad, a mentés emiatt sosem bukik el);
+      - SOHA nem nyúl az `ai_suggestion` / `ai_suggested_at` mezőkhöz;
+      - a régi modellmezőket (entry_point, sermon_path, stb.) nem érinti;
+      - kizárólag a meglévő session_state-mintát követi (ugyanúgy, mint pl.
+        `update_sermon_workshop_section`) — nem ír külön tartós projektadatot,
+        a projektmentés a meglévő `normalize_sermon_workshop` allowlist-úton
+        történik, változatlanul.
+
+    Ebben a fázisban ezt a függvényt sem a UI, sem a vázlatmotor nem hívja —
+    kizárólag tesztekből érhető el.
+    """
+    if point_key not in _ARC_POINT_KEYS:
+        raise ValueError(f"Ismeretlen arc pont: {point_key!r}")
+
+    sw = ensure_sermon_workshop_state(session_state)
+    arc = sw.get("arc")
+    if not isinstance(arc, dict):
+        arc = get_default_arc()
+    arc = normalize_arc(arc)
+
+    point = dict(arc[point_key])
+    normalized_text = _as_str(text)
+    point["text"] = normalized_text
+    point["updated_at"] = datetime.now().isoformat(timespec="seconds")
+    if normalized_text.strip():
+        point["context_hash"] = _current_passage_context_hash(session_state)
+
+    arc[point_key] = point
+    sw["arc"] = arc
+    return point
+
+
 __all__ = [
     "SERMON_WORKSHOP_KEY",
     "get_default_sermon_workshop",
     "normalize_sermon_workshop",
     "ensure_sermon_workshop_state",
     "update_sermon_workshop_section",
+    "empty_arc_point",
+    "get_default_arc",
+    "normalize_arc",
+    "migrate_legacy_arc_fields",
+    "update_arc_point",
     "add_approved_sermon_decision",
     "accept_workshop_proposal",
     "section_has_accepted_content",

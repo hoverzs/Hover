@@ -617,6 +617,45 @@ _APPROVAL_GATED_KEYS: frozenset[str] = (
     _HOMILETICAL_DECISION_KEYS | _CANONICAL_TEXTUS_SOURCE_KEYS
 )
 
+# =============================================================================
+# DORMANT / FUTURE-USE — NEM AKTÍV. Célarchitektúra-terv (TEXTUS_
+# EGYSZERUSITETT_IGEHIRDETESI_CELARCHITEKTURA_TERV_2026-08-13.md), 1. fázis.
+#
+# Ez a kulcshalmaz a leendő, egységesített `arc` adatmodellre mutat
+# (ld. sermon_workshop_data.get_default_arc / _ARC_POINT_KEYS — a hét
+# igehirdetési modellpont: entry, starting_point, first_shift, deepening,
+# reinterpretation, second_shift, arrival).
+#
+# EBBEN A FÁZISBAN EZT A HALMAZT SEMMILYEN AKTÍV FÜGGVÉNY NEM HASZNÁLJA.
+# A `_block_is_context_ready`, `extract_outline_background_material`,
+# `_gated_fallback_bundle`, `collect_canonical_source_material`, valamint a
+# `generate_sermon_outline()` VÁLTOZATLANUL, kizárólag a fenti
+# `_HOMILETICAL_DECISION_KEYS` / `_CANONICAL_TEXTUS_SOURCE_KEYS` /
+# `_APPROVAL_GATED_KEYS` szerint működik — ezt a jelen fázis nem módosítja.
+#
+# Az aktiválás (a vázlatmotor forráscsomagjának tényleges bővítése az
+# `arc.*` mezőkkel) egy KÉSŐBBI, külön jóváhagyandó fázis feladata (ld. a
+# tervdokumentum 10. szakasza, Fázis 3).
+# =============================================================================
+_FUTURE_ARC_SOURCE_KEYS: frozenset[str] = frozenset(
+    {
+        "arc.entry",
+        "arc.starting_point",
+        "arc.first_shift",
+        "arc.deepening",
+        "arc.reinterpretation",
+        "arc.second_shift",
+        "arc.arrival",
+    }
+)
+
+# Dormant, jövőbeli egységesített forráskulcs-halmaz — ma még sehol nem
+# hivatkozott. Ld. a fenti figyelmeztetést: NEM váltja ki
+# `_HOMILETICAL_DECISION_KEYS`-t / `_CANONICAL_TEXTUS_SOURCE_KEYS`-t.
+_FUTURE_CANONICAL_SOURCE_KEYS: frozenset[str] = (
+    _CANONICAL_TEXTUS_SOURCE_KEYS | frozenset({"sermon_main_idea"}) | _FUTURE_ARC_SOURCE_KEYS
+)
+
 _GATED_KEY_LABELS: dict[str, str] = {
     "sermon_main_idea": "Igehirdetés fő gondolata",
     "text_main_idea": "Textus fő gondolata",
