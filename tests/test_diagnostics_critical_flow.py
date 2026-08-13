@@ -120,11 +120,10 @@ def test_partial_workshop_runs_diagnostics(session):
     session[SERMON_WORKSHOP_KEY]["listener_tension"] = {}
     session[SERMON_WORKSHOP_KEY]["closing"] = {}
     session[SERMON_WORKSHOP_KEY]["sermon_main_idea_status"] = "draft"
-    result = assemble_sermon_outline(session, synthesize=False, polish=False)
-    if not result.ok or not outline_has_content(result.outline):
+    outline = sync_outline_content(build_outline_from_workshop(session), force=True)
+    if not outline_has_content(outline):
         outline = _contentful_draft_outline(session)
     else:
-        outline = sync_outline_content(result.outline, force=True)
         save_sermon_outline(session, outline, mark_manual_edit=False)
     diag = run_outline_diagnostics(sermon_outline=outline, generate_fn=None)
     assert diag.ok

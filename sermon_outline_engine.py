@@ -1882,14 +1882,20 @@ def _gated_fallback_bundle(bundle: Mapping[str, Any]) -> dict[str, Any]:
     meg — draft/stale/soha jóvá nem hagyott HOMILETIKAI döntés, illetve
     stale Textusműhely-forrás itt eltávolítódik.
 
-    Ezt használja mindkét vázlat-összeállítási fallback útvonal
-    (`build_outline_from_workshop` és `_heuristic_structured_from_bundle`),
-    hogy ugyanazt a kontextust lássák, mint a normál (AI-generálásos)
-    útvonal `extract_outline_background_material()`-en keresztül — a
-    Korrekciós fázis 3.1 óta ugyanazzal a `_block_is_context_ready`
-    dispatcherrel, tehát a Textusműhely-forrásoknál is egységesen. Az összes
-    NEM gated kulcs (igehely, bibliai szöveg, jóváhagyott felismerések/
-    döntések, illusztrációk stb. — ezek saját gate-jükkel már a
+    MEGJEGYZÉS (2026-08-13, célarchitektúra-terv 2. fázis, 2. rész): a
+    korábbi egyetlen hívója, a mechanikus `_heuristic_structured_from_
+    bundle()` megszűnt (nincs többé nem-AI vázlat-fallback) — ez a
+    függvény jelenleg a `generate_sermon_outline()` pipeline-jából NEM
+    hívódik. Megmaradt, mert (a) tesztek közvetlenül ellenőrzik vele a
+    "gated blokkok soha nem szivárognak ki draft/stale állapotban" garanciát
+    (ld. tests/test_canonical_source_collector.py, tests/test_homiletical_
+    model_unification.py, tests/test_sermon_workshop_ui_state_sync.py), és
+    (b) ugyanazt a `_block_is_context_ready` dispatchert használja, mint a
+    normál AI-útvonal `extract_outline_background_material()`-je — tehát
+    továbbra is bizonyítja, hogy egy esetleges jövőbeli "mit látna egy
+    gate-elt nézet" felhasználás garantáltan ugyanazt a forráskészletet
+    kapná. Az összes NEM gated kulcs (igehely, bibliai szöveg, jóváhagyott
+    felismerések/döntések, illusztrációk stb. — ezek saját gate-jükkel már a
     `collect_outline_context_bundle`-ben szűrve vannak) változatlanul átmegy.
     """
     out = dict(bundle)
@@ -1993,10 +1999,14 @@ def build_outline_user_prompt(
     has_background = bool(background)
     has_basket = bool(outline_basket)
 
+    # A korábbi "ÚJ GYORSVÁZLAT" (mode="quick") promptág a Textusműhely
+    # önálló "Gyors vázlat" kártyájához tartozott — az a felület 2026-08-13-
+    # án megszűnt (célarchitektúra-terv, 2. fázis, 1. lépés), az Igehirdetési
+    # vázlat mostantól az EGYETLEN felhasználói vázlatkészítő belépési pont.
+    # A `mode` paraméter csak forrás-jelölésre (source_tag) marad — a prompt
+    # feltétel nélkül a műhely-jegyű utasítást kapja.
+    _ = mode
     task_mode_note = (
-        "ÚJ GYORSVÁZLAT: készíts szószékre kész Markdown prédikációvázlatot."
-        if mode == "quick"
-        else
         "ÚJ MŰHELYVÁZLAT: készíts szószékre kész Markdown prédikációvázlatot; "
         "a lelkész jóváhagyott döntéseit (ha vannak) építsd be szervesen."
     )
@@ -2281,12 +2291,44 @@ SCHEMA_REFRESH_NOTICE = (
     "a meglévő szöveg megmarad, amíg újat nem generálsz."
 )
 
+# =============================================================================
+# EGYETLEN GENERÁLÁSI SZERZŐDÉS (célarchitektúra-terv, 2. fázis, 2. rész,
+# 2026-08-13): vázlat KIZÁRÓLAG sikeres AI-szintézisből vagy már meglévő,
+# érvényes mentett vázlatból származhat. Nincs többé mechanikus,
+# versszakaszokra daraboló "álvázlat" — sem `generate_fn=None`, sem sikertelen
+# AI-hívás, sem érvénytelen AI-válasz esetén. Az `OutlineGenerationResult.
+# error_kind` legalább a következő három esetet különbözteti meg (ld. lent a
+# tényleges hozzárendeléseket):
+#   - "ai_unavailable"     — nincs elérhető MI-hívó funkció (generate_fn=None);
+#   - "ai_call_failed"     — az MI-hívás kivételt dobott vagy a szolgáltatás
+#                            explicit hibát jelzett;
+#   - "ai_invalid_response" — az MI válasza csonka, feldolgozhatatlan, vagy a
+#                            biztonsági szűrés elutasította.
+# Emellett a meglévő, egyéb ok=False esetekhez is kapnak error_kind/retryable
+# jelölést (pl. hiányzó bibliai szöveg, nem elég háttéranyag, kézi
+# szerkesztés-ütközés, végső validáció sikertelensége, üres eredmény).
+# =============================================================================
+
+AI_UNAVAILABLE_MESSAGE = (
+    "A vázlat elkészítéséhez MI-generálás szükséges — jelenleg nincs "
+    "elérhető MI-hívó funkció. Mechanikus, versdaraboló álvázlat nem készül."
+)
+
 
 @dataclass
 class OutlineGenerationResult:
     outline: dict[str, Any] = field(default_factory=empty_sermon_outline)
     ok: bool = True
     error_message: str = ""
+    # Strukturált hibaosztályozás — üres string sikeres generáláskor.
+    # Ismert értékek: "missing_passage", "not_ready", "manual_edit_conflict",
+    # "ai_unavailable", "ai_call_failed", "ai_invalid_response",
+    # "validation_failed", "empty_result".
+    error_kind: str = ""
+    # True, ha a hívó számára érdemes egy változatlan bemenettel újra
+    # próbálkoznia (pl. átmeneti AI-hiba) — False, ha a hiba oka a bemenet
+    # vagy a hívó felelőssége (pl. hiányzó igehely, nincs generate_fn).
+    retryable: bool = False
     warnings: list[str] = field(default_factory=list)
     validation_issues: list[str] = field(default_factory=list)
     source: str = ""
@@ -2302,6 +2344,8 @@ class OutlineGenerationResult:
             "outline": dict(self.outline),
             "ok": self.ok,
             "error_message": self.error_message,
+            "error_kind": self.error_kind,
+            "retryable": self.retryable,
             "warnings": list(self.warnings),
             "overwritten_manual_edit": self.overwritten_manual_edit,
         }
@@ -2426,488 +2470,42 @@ def _call_generate_with_retry(
     return result
 
 
-def _passage_verse_chunks(passage: Any) -> list[tuple[str, str]]:
-    """Számozott RÚF-sorok → (versjelölés, szöveg) párok."""
-    text = _s(passage)
-    if not text:
-        return []
-    chunks: list[tuple[str, str]] = []
-    # A `\.?` a valós RÚF-formátum miatt kell: a betöltött szöveg "6. aki…"
-    # alakú (szám + PONT + szóköz), nem "6 aki…" — a pont nélküli minta soha
-    # nem illeszkedett, ezért ez a függvény korábban mindig az egy-blokkos
-    # "v. —" fallback-ra esett valós, betöltött igeszakasznál, ami a teljes
-    # textus duplikált, szét nem bontott felhasználásához vezetett a
-    # vészmegoldásban (lásd `(v. —a/b)` cím-placeholder is ebből ered).
-    pattern = re.compile(
-        r"(?:^|\n)\s*(\d+)\.?\s+([^\n]+(?:\n(?!\s*\d+\.?\s)[^\n]+)*)",
-        re.MULTILINE,
-    )
-    for match in pattern.finditer(text):
-        num = match.group(1)
-        body = " ".join(match.group(2).split()).strip()
-        if body:
-            chunks.append((f"v. {num}", body))
-    if chunks:
-        return chunks
-    # Nincs számozás: teljes szöveg egy egységként
-    compact = " ".join(text.split()).strip()
-    return [("v. —", compact)] if compact else []
-
-
-def _distinct_layer(preferred: str, *, banned: set[str], fallback: str) -> str:
-    """Réteg szöveg, amely nem ismétli a már használt mondatot.
-
-    Ha `preferred` üres/hiányzik ÉS a `fallback` is már egyszer felhasználva
-    volt (`banned`), a szó szerinti ismétlés helyett — ami a korábbi,
-    ismétlődő sablonmondat hibát okozta — egy sorszámmal megkülönböztetett
-    változatot ad vissza, hogy két pont/réteg SOSE legyen szó szerint azonos."""
-    from sermon_workshop_outline_ai import _usable_text
-
-    candidate = _usable_text(preferred) or fallback
-    if candidate and not candidate.endswith((".", "!", "?")):
-        candidate += "."
-    if _normalize_cmp(candidate) in banned:
-        n = sum(1 for b in banned if b.startswith(_normalize_cmp(fallback)[:20])) + 1
-        candidate = fallback.rstrip(".!?") + f" ({n}. mozgás)."
-    banned.add(_normalize_cmp(candidate))
-    # Minimum minőség: ne legyen félmondat
-    target_min = LIMITS["layer_min_words"]
-    while word_count(candidate) < target_min:
-        candidate = (
-            candidate.rstrip(".!?")
-            + ", a textus saját szavai szerint."
-        )
-        if not candidate.endswith("."):
-            candidate += "."
-        if word_count(candidate) > LIMITS["layer_max_words"]:
-            break
-    candidate = _clip_to_full_sentences(candidate, LIMITS["layer_max_words"])
-    if candidate and not candidate.endswith((".", "!", "?")):
-        candidate += "."
-    return candidate
-
-
-_HTML_TAG_RE = re.compile(r"<[^>]+>")
-
-
-def _strip_html(text: Any) -> str:
-    return _s(_HTML_TAG_RE.sub("", _s(text)))
-
-
-def _heuristic_structured_from_bundle(
-    bundle: Mapping[str, Any],
-    *,
-    seed_outline: Mapping[str, Any] | None = None,
-) -> dict[str, Any]:
-    """Offline / teszt VÉGSŐ MENTŐÖV — háromrétegű szószéki vázlat a
-    rendelkezésre álló anyagból, ha az AI-generálás teljesen sikertelen,
-    VAGY ha a hívó eleve nem ad `generate_fn`-t (pl. Igehirdetési műhely
-    "Vázlat összeállítása a meglévő anyagból" AI nélkül — ez a leggyakoribb
-    éles hívás, nem csak API-hiba esetén fut).
-
-    Szándékosan a RÉGI points/movements sémát adja vissza (nem az új,
-    AI-célú `body_markdown`-t): ez a heurisztika sosem versenyez a
-    kanonikus AI-próza minőségével, és a hívók (workshop-összeállítás,
-    diagnosztika, tesztek) `movements` tömböt várnak. A 2026-08-07 formai
-    átalakítás explicit célja csak a SIKERES AI-válasz formája volt, nem ez
-    a mentőöv.
-
-    HTML-töredékek szűrve (`_strip_html`); az ismétlődő sablonmondat hiba
-    a `_distinct_layer()`-ben lett javítva, nem itt.
-
-    Az `_APPROVAL_GATED_KEYS` blokkokat (emberi helyzet, hallgatói
-    feszültség, belépési pont, evangéliumi ív, prédikáció útja, lezárás,
-    mozgások, exegézis/teológia/kortörténet/eredeti szöveg, fő gondolat)
-    `_gated_fallback_bundle()` szűri jóváhagyott-és-friss állapotra,
-    mielőtt bármi felhasználásra kerülne — a heurisztikus mentőöv sem
-    olvashat draft/stale/soha-jóvá-nem-hagyott tartalmat."""
-    bundle = _gated_fallback_bundle(bundle)
-    from sermon_workshop_outline_ai import _prefer_main_idea, _truncate, _usable_text
-
-    data = empty_structured_outline()
-    data["text_reference"] = _s(bundle.get("passage_reference"))
-    data["title"] = _s(bundle.get("project_title")) or data["text_reference"] or "Vázlat"
-    if word_count(data["title"]) > LIMITS["title_words"]:
-        data["title"] = _clip_to_full_sentences(data["title"], LIMITS["title_words"])
-        if word_count(data["title"]) > LIMITS["title_words"]:
-            data["title"] = " ".join(data["title"].split()[: LIMITS["title_words"]])
-
-    passage = _s(bundle.get("passage_text"))
-    verse_chunks = _passage_verse_chunks(passage)
-
-    focus = _prefer_main_idea(bundle)
-    if not focus and seed_outline:
-        focus = _s(seed_outline.get("main_idea"))
-    if not focus and verse_chunks:
-        lead = _strip_html(verse_chunks[0][1])
-        focus = _clip_to_full_sentences(lead, LIMITS["focus_words"])
-        if len(verse_chunks) > 1 and word_count(focus) < LIMITS["focus_min_words"]:
-            focus = _clip_to_full_sentences(
-                lead + " " + _strip_html(verse_chunks[-1][1]), LIMITS["focus_words"]
-            )
-    data["focus_sentence"] = (
-        _usable_text(focus)
-        or (
-            "A textus Isten megtartó szavát hirdeti a közösség előtt, "
-            "és a hallgatót hitbeli felismerésre és válaszra hívja."
-        )
-    )
-    if (
-        data["focus_sentence"]
-        and word_count(data["focus_sentence"]) >= LIMITS["focus_min_words"]
-        and not data["focus_sentence"].endswith((".", "!", "?"))
-    ):
-        data["focus_sentence"] += "."
-    data["focus_sentence"] = _clip_to_full_sentences(
-        data["focus_sentence"], LIMITS["focus_words"]
-    )
-    if (
-        data["focus_sentence"]
-        and word_count(data["focus_sentence"]) >= LIMITS["focus_min_words"]
-        and not data["focus_sentence"].endswith((".", "!", "?"))
-    ):
-        data["focus_sentence"] += "."
-
-    lt_raw = bundle.get("listener_tension")
-    path_raw = bundle.get("sermon_path")
-    entry_raw = bundle.get("entry_point")
-    lt = lt_raw if isinstance(lt_raw, dict) else {}
-    path = path_raw if isinstance(path_raw, dict) else {}
-    entry = entry_raw if isinstance(entry_raw, dict) else {}
-    # A modell 1. eleme (Belépés) elsőbbséget élvez az Alaphelyzet (2. elem)
-    # felett — a Belépés a hallgató bevonása, az Alaphelyzet a textus saját
-    # kiinduló feszültsége; a bevezető irány a Belépésből induljon, ha van.
-    intro = (
-        _usable_text(entry.get("text"))
-        or _usable_text(path.get("starting_point"))
-        or _usable_text(lt.get("listener_question"))
-        or (
-            (
-                "A betöltött textus saját mozgása nyitja meg a hallgatót. "
-                + (
-                    " ".join(_strip_html(verse_chunks[0][1]).rstrip("….").split()) + "."
-                    if verse_chunks
-                    else ""
-                )
-            ).strip()
-            if verse_chunks
-            else (
-                "A hallgató gyakran a saját bizonytalanságából indul, amikor a textus "
-                "szava elé áll. A kérdés az, milyen emberi feszültség nyitja meg "
-                "természetesen ezt az igeszakaszt a gyülekezet előtt. Innen vezet az út "
-                "a textus saját állítása és mozgása felé, nem általános kegyességi "
-                "közhelyek felé."
-            )
-        )
-    )
-    if not _s(intro):
-        intro = (
-            "A hallgató a betöltött textus elé áll, és a szöveg saját mozgása "
-            "nyitja meg a hallgatást a gyülekezet előtt."
-        )
-    data["introduction_direction"] = _clip_to_full_sentences(
-        _truncate(intro, 700), LIMITS["intro_words"]
-    )
-
-    points: list[dict[str, Any]] = []
-    movements = bundle.get("sermon_movements") if isinstance(bundle.get("sermon_movements"), list) else []
-    insights = [
-        _usable_text(x)
-        for x in (bundle.get("approved_insights") or [])
-        if _usable_text(x)
-    ]
-    decisions = [
-        _usable_text(x)
-        for x in (bundle.get("approved_sermon_decisions") or [])
-        if _usable_text(x)
-    ]
-    exe = _strip_html(_usable_text(bundle.get("exegesis")))
-    original = _strip_html(_usable_text(bundle.get("original_text")))
-    history = _strip_html(_usable_text(bundle.get("history")))
-    used_layers: set[str] = set()
-
-    def _one_layer(text: str, *, fallback: str) -> str:
-        return _distinct_layer(_strip_html(text), banned=used_layers, fallback=fallback)
-
-    if movements:
-        for i, mv in enumerate(movements[: LIMITS["max_points"]], start=1):
-            if not isinstance(mv, dict):
-                continue
-            core = _usable_text(mv.get("core_content")) or _usable_text(
-                mv.get("listener_discovery")
-            )
-            title = _strip_trailing_verse_from_title(
-                _usable_text(mv.get("title")) or f"Pont {i}"
-            )
-            if word_count(title) > LIMITS["point_title_words"]:
-                title = " ".join(title.split()[: LIMITS["point_title_words"]])
-            basis = _usable_text(mv.get("textual_basis")) or _usable_text(
-                mv.get("textual_anchor")
-            )
-            if basis and extract_verse_numbers(basis) and len(basis) > 24:
-                nums = sorted(extract_verse_numbers(basis))
-                if len(nums) == 1:
-                    basis = f"v. {nums[0]}"
-                elif nums:
-                    basis = f"v. {nums[0]}–{nums[-1]}"
-            points.append(
-                {
-                    "title": title,
-                    "verses": basis or "",
-                    "textual_insight": _one_layer(
-                        core or exe or (insights[0] if insights else ""),
-                        fallback=(
-                            "A textus saját szavai és szerkezete rendezik ezt a "
-                            "gondolatot a hallgató előtt."
-                        ),
-                    ),
-                    "theological_emphasis": _one_layer(
-                        _usable_text(mv.get("listener_discovery"))
-                        or (insights[1] if len(insights) > 1 else "")
-                        or original
-                        or exe
-                        or "",
-                        fallback=(
-                            "A teológiai jelentés abban áll, hogy Isten cselekvése "
-                            "hív választ, nem az emberi erőfeszítés."
-                        ),
-                    ),
-                    "listener_movement": _one_layer(
-                        (insights[2] if len(insights) > 2 else "")
-                        or (decisions[0] if decisions else "")
-                        or "",
-                        fallback=(
-                            "A hallgató felismerésre jut arról, hol kell a textus "
-                            "mozgását személyesen komolyan vennie."
-                        ),
-                    ),
-                }
-            )
-    elif verse_chunks:
-        # Textus-alapú mozgások: 2–5 versblokk, ismétlés nélkül
-        def _body_usable(raw_body: str) -> str:
-            text = " ".join(_strip_html(raw_body).split()).strip()
-            if text.endswith(("…", "...")):
-                text = text.rstrip("….").rstrip()
-            if text and not text.endswith((".", "!", "?")):
-                text += "."
-            return text
-
-        units: list[tuple[str, str]] = [
-            (label, _body_usable(body)) for label, body in verse_chunks if _body_usable(body)
-        ]
-        if not units and verse_chunks:
-            # Csonka ellipsis fixture: legalább egy használható egység
-            label, body = verse_chunks[0]
-            units = [(label, _body_usable(body) or "A textus Isten szavát szólítja a hallgatóhoz.")]
-        # A fordulópont-alapú modellben 2-3 beszédegység a cél — ez csak
-        # ezt az elsődleges (mozgás-lista nélküli) ágat szűkíti, a legacy
-        # `sermon_movements`-ből építő ágat és a globális LIMITS-et nem.
-        n = min(max(len(units), 2), min(LIMITS["max_points"], 3))
-        if len(units) == 1:
-            sents = _split_sentences(units[0][1])
-            if len(sents) >= 2:
-                mid = max(1, len(sents) // 2)
-                units = [
-                    (f"{units[0][0]}a", " ".join(sents[:mid])),
-                    (f"{units[0][0]}b", " ".join(sents[mid:])),
-                ]
-            else:
-                # Egy mondat / egy vers: két különböző mozgás, nem klón
-                body = units[0][1]
-                words = body.split()
-                mid = max(3, len(words) // 2)
-                first = " ".join(words[:mid]).rstrip(".,;:") + "."
-                units = [
-                    (units[0][0], body),
-                    (
-                        units[0][0],
-                        (
-                            "Ugyanez a szakasz a hallgató válaszát is rendezi: "
-                            + first
-                        ),
-                    ),
-                ]
-        if len(units) > n:
-            if n == 2:
-                units = [units[0], units[-1]]
-            else:
-                step = max(1, len(units) // n)
-                picked = [units[i * step] for i in range(n - 1)]
-                picked.append(units[-1])
-                units = picked[:n]
-        # Azonos versjelölés egymás után → második üres / „folytatás”
-        for i in range(1, len(units)):
-            if units[i][0] == units[i - 1][0]:
-                units[i] = (f"{units[i][0]} · folytatás", units[i][1])
-        for i, (verses, body) in enumerate(units):
-            title_words = body.split()[:6]
-            title = " ".join(title_words).rstrip(".,;:")
-            if word_count(title) > LIMITS["point_title_words"]:
-                title = " ".join(title.split()[: LIMITS["point_title_words"]])
-            # Kerüld a cím-klónokat
-            if any(_normalize_cmp(title) == _normalize_cmp(p["title"]) for p in points):
-                title = f"{i + 1}. mozgás — {title}".strip(" —")
-                title = " ".join(title.split()[: LIMITS["point_title_words"]])
-            points.append(
-                {
-                    "title": title or f"{i + 1}. mozgás",
-                    "verses": verses,
-                    "textual_insight": _one_layer(
-                        body,
-                        fallback=(
-                            "A textus saját mozgása bontja ki ezt a pontot a "
-                            "betöltött igeszakasz alapján."
-                        ),
-                    ),
-                    "theological_emphasis": _one_layer(
-                        exe
-                        or original
-                        or (
-                            "Isten cselekvése ebben a szakaszban a textus saját "
-                            f"szavai szerint rendezi a közösség helyzetét: {body}"
-                        ),
-                        fallback=(
-                            "A teológiai hangsúly abban áll, hogy Isten cselekvése "
-                            "rendezi a hallgató helyzetét a textus alapján."
-                        ),
-                    ),
-                    "listener_movement": _one_layer(
-                        history
-                        or (decisions[0] if decisions else "")
-                        or (
-                            "A hallgató e versszó előtt kérdezheti, hol érint "
-                            f"őket személyesen ez: {body}"
-                        ),
-                        fallback=(
-                            "A hallgató így konkrét felismerésre jut anélkül, hogy "
-                            "üres felszólítást kapna."
-                        ),
-                    ),
-                }
-            )
-    else:
-        seeds = insights or decisions or [
-            exe[:220] if exe else "",
-            original[:220] if original else "",
-            data["focus_sentence"],
-        ]
-        seeds = [s for s in seeds if s] or [data["focus_sentence"]]
-        while len(seeds) < 2:
-            seeds.append(
-                "A textus saját mozgása tovább pontosítja a hallgató felismerését."
-            )
-        titles = (
-            "A textus megnyílása",
-            "A központi állítás kibontása",
-            "A hallgatói megérkezés",
-        )
-        loaded = sorted(extract_verse_numbers(bundle.get("passage_text") or ""))
-        count = min(max(len(seeds), 2), 3)
-        if len(loaded) >= count:
-            verse_labels = [f"v. {loaded[min(i, len(loaded)-1)]}" for i in range(count)]
-        else:
-            verse_labels = [""] * count
-        for i in range(count):
-            body = seeds[i % len(seeds)]
-            points.append(
-                {
-                    "title": titles[i] if i < len(titles) else f"{i + 1}. mozgás",
-                    "verses": verse_labels[i],
-                    "textual_insight": _one_layer(
-                        body,
-                        fallback=(
-                            "Ez a gondolat a betöltött igeszakasz saját szavaira épül."
-                        ),
-                    ),
-                    "theological_emphasis": _one_layer(
-                        exe or original or "",
-                        fallback=(
-                            "Isten cselekvése itt rendezi a hallgató konkrét helyzetét."
-                        ),
-                    ),
-                    "listener_movement": _one_layer(
-                        history or "",
-                        fallback=(
-                            "A hallgató konkrét felismerést vihet magával a hétköznapokba."
-                        ),
-                    ),
-                }
-            )
-
-    points = points[: LIMITS["max_points"]]
-    # Átvezetés a következő beszédegységhez — a heurisztikus mentőöv sem
-    # hagyhatja pusztán egymás mellé rendelt pontként a beszédegységeket;
-    # `render_structured_outline` már beolvassa a `transition` mezőt, ha
-    # van (ld. fentebb), ezért itt csak a hiányzót töltjük ki, tartalmi
-    # állítás kitalálása nélkül, a következő pont saját címére hivatkozva.
-    for i in range(len(points) - 1):
-        if not _s(points[i].get("transition")):
-            next_title = _s(points[i + 1].get("title")) or "a következő gondolat"
-            points[i]["transition"] = f"Innen vezet tovább a gondolat: {next_title.rstrip('.')}."
-    data["points"] = points
-    closing_raw = bundle.get("closing")
-    arc_raw = bundle.get("christ_centered_arc")
-    closing = closing_raw if isinstance(closing_raw, dict) else {}
-    arc = arc_raw if isinstance(arc_raw, dict) else {}
-    if verse_chunks:
-        last_body = _strip_html(verse_chunks[-1][1])
-        default_conc = (
-            "A textus megérkezése: "
-            + _clip_to_full_sentences(last_body, 40)
-            + " Innen vihető tovább a szószéki kibontás."
-        )
-    else:
-        default_conc = (
-            "A hallgató nem új témánál, hanem a textus megérkezésénél áll meg. "
-            "Isten megtartó szeretete hív válaszra a gyülekezet konkrét helyzetében. "
-            "Innen vihető tovább a szószéki kibontás anélkül, hogy záróprédikáció "
-            "születne a vázlatból."
-        )
-    conc = (
-        _usable_text(closing.get("final_discovery"))
-        or _usable_text(arc.get("grace_enabled_response"))
-        or default_conc
-    )
-    data["conclusion_direction"] = _clip_to_full_sentences(
-        _truncate(conc, 700), LIMITS["conclusion_words"]
-    )
-    data["refinement_suggestions"] = []
-    return normalize_structured_outline(data)
-
-
 def _ai_generate_structured(
     bundle: Mapping[str, Any],
     *,
     generate_fn: GenerateFn,
     seed_outline: Mapping[str, Any] | None = None,
     mode: str = "standard",
-) -> tuple[dict[str, Any] | None, list[str], int, str]:
-    """Returns (structured|None, warnings, raw_word_count, markdown_content)."""
+) -> tuple[dict[str, Any] | None, list[str], int, str, str]:
+    """Returns (structured|None, warnings, raw_word_count, markdown_content,
+    error_kind). `error_kind` üres string sikeres válasznál; egyébként
+    "ai_call_failed" (a hívás kivételt dobott, vagy a szolgáltatás explicit
+    hibát jelzett) vagy "ai_invalid_response" (csonka, feldolgozhatatlan,
+    vagy a biztonsági szűrésen elakadt válasz) — ld. AI_UNAVAILABLE_MESSAGE
+    és a hívó `generate_sermon_outline()` egységes szerződését."""
     warnings: list[str] = []
-    _ = seed_outline  # seed csak heurisztikus fallbacknél; az AI önálló vázlatot ír
+    _ = seed_outline  # seed csak a végleges outline metaadat-egyesítésénél kell; az AI önálló vázlatot ír
     prompt = build_outline_user_prompt(bundle, mode=mode)
     try:
         raw = _call_generate(generate_fn, prompt, temperature=0.3, as_json=False)
     except Exception as exc:  # noqa: BLE001
         warnings.append(f"Vázlat AI-hívás sikertelen: {exc}")
-        return None, warnings, 0, ""
+        return None, warnings, 0, "", "ai_call_failed"
     if _is_api_error_text(raw or ""):
         warnings.append("A vázlat AI-válasz hibát jelzett.")
-        return None, warnings, 0, ""
+        return None, warnings, 0, "", "ai_call_failed"
     if (raw or "").strip() == _OUTLINE_INCOMPLETE_SENTINEL:
         logger.warning(
             "outline_ai_truncated schema=%s mode=%s — MAX_TOKENS előtt megszakadt "
-            "válasz, heurisztikus fallbackra váltás",
+            "válasz",
             SCHEMA_VERSION,
             mode,
         )
         warnings.append(
-            "A vázlat AI-válasza félbeszakadt (túllépte a kimeneti korlátot) — "
-            "heurisztikus vázlatot használunk helyette. Próbáld újra a "
-            "generálást."
+            "A vázlat AI-válasza félbeszakadt (túllépte a kimeneti korlátot). "
+            "Próbáld újra a generálást."
         )
-        return None, warnings, 0, ""
+        return None, warnings, 0, "", "ai_invalid_response"
 
     raw_text = (raw or "").strip()
     # Elsődleges: Markdown szószéki vázlat
@@ -2921,7 +2519,7 @@ def _ai_generate_structured(
             md_wc,
             bool(extract_outline_background_material(bundle)),
         )
-        return structured, warnings, md_wc, raw_text
+        return structured, warnings, md_wc, raw_text, ""
 
     # Visszafelé kompatibilitás: JSON válasz
     obj = extract_json_object(raw_text)
@@ -2932,7 +2530,7 @@ def _ai_generate_structured(
             SCHEMA_VERSION,
             word_count(raw_text),
         )
-        return None, warnings, word_count(raw_text), ""
+        return None, warnings, word_count(raw_text), "", "ai_invalid_response"
     cleaned = sanitize_ai_json(
         obj,
         allowed_keys={
@@ -2958,7 +2556,7 @@ def _ai_generate_structured(
     )
     if cleaned is None:
         warnings.append("A vázlat JSON biztonsági szűrése sikertelen.")
-        return None, warnings, word_count(raw_text), ""
+        return None, warnings, word_count(raw_text), "", "ai_invalid_response"
     structured = normalize_structured_outline(cleaned)
     raw_wc = word_count(render_structured_outline(structured))
     logger.info(
@@ -2968,7 +2566,7 @@ def _ai_generate_structured(
         _has_forbidden_keys(obj),
         bool(extract_outline_background_material(bundle)),
     )
-    return structured, warnings, raw_wc, ""
+    return structured, warnings, raw_wc, "", ""
 
 
 def _repair_source_context(bundle: Mapping[str, Any], *, rich: bool = False) -> dict[str, Any]:
@@ -3443,11 +3041,14 @@ def _rescue_structured_outline(
     warnings: list[str],
     background_texts: list[str] | None = None,
 ) -> tuple[dict[str, Any] | None, list[str]]:
-    """Szigorú AI-bukás után is próbáljunk szószéki jegyzetet adni.
+    """Szigorú AI-bukás után is próbáljunk menteni a MEGLÉVŐ AI-válaszból.
 
-    Először csak akkor tartjuk meg az AI-választ, ha trim után nincs hard hiba.
-    Egyébként textus-alapú heurisztika.
-    """
+    Kizárólag a már megkapott AI-strukturát próbálja programozott
+    tömörítéssel (`_programmatic_trim`) validálhatóvá tenni — ÚJ tartalmat
+    nem generál, és nem esik vissza mechanikus, textus-daraboló
+    heurisztikára. Ha a tömörített AI-válasz sem felel meg, a hívó felé
+    `None`-t ad vissza — ez a `generate_sermon_outline()`-ban egyértelmű,
+    retryable "validation_failed" hibát eredményez, nem áltartalmat."""
     from sermon_workshop_outline_ai import MISSING_PART, outline_to_readable_content
 
     stub_markers = (
@@ -3488,30 +3089,10 @@ def _rescue_structured_outline(
                         warnings.append(soft_tip)
                 return trimmed, warnings
 
-    heuristic = normalize_structured_outline(
-        _heuristic_structured_from_bundle(bundle, seed_outline=seed_outline)
-    )
-    if not _structured_has_min_pulpit_shape(heuristic) or _looks_stub(heuristic):
-        return None, warnings
-    # Nincs background_texts itt: a heurisztika szándékosan a forrásanyagból
-    # (exegézis/kortörténet) emel ki mondatokat végső mentőövként — ezt a
-    # verbatim_source_copy ellenőrzés tévesen elutasítaná.
-    issues = validate_structured_outline(heuristic, passage_text=passage_text)
-    fatal = [i for i in issues if i in _FATAL_OUTLINE_ISSUES]
-    wc = word_count(render_structured_outline(heuristic))
-    if fatal or wc > LIMITS["absolute_max_words"]:
-        return None, warnings
-    tip = (
-        "A modell válasza nem felelt meg a szigorú formának; "
-        "textus-alapú, szószékre vihető jegyzetvázlat készült."
-    )
-    if tip not in warnings:
-        warnings.append(tip)
-    for issue in issues:
-        soft_tip = f"Vázlat finomítható: {issue}"
-        if soft_tip not in warnings:
-            warnings.append(soft_tip)
-    return heuristic, warnings
+    # A tömörített AI-válasz sem érte el a minimális szószéki formát —
+    # nincs mechanikus (nem-AI) mentőöv többé. A hívó "validation_failed"
+    # hibát ad vissza, a korábbi mentett vázlat változatlanul megmarad.
+    return None, warnings
 
 
 def generate_sermon_outline(
@@ -3551,6 +3132,8 @@ def generate_sermon_outline(
             outline=normalize_sermon_outline(sw.get("sermon_outline")),
             ok=False,
             error_message=passage_msg or EMPTY_PROJECT_MESSAGE,
+            error_kind="missing_passage",
+            retryable=False,
             source=source_tag,
         )
 
@@ -3560,6 +3143,8 @@ def generate_sermon_outline(
             outline=normalize_sermon_outline(sw.get("sermon_outline")),
             ok=False,
             error_message=readiness.message or EMPTY_PROJECT_MESSAGE,
+            error_kind="not_ready",
+            retryable=False,
             source=source_tag,
         )
 
@@ -3581,6 +3166,8 @@ def generate_sermon_outline(
                 "A vázlat kézzel szerkesztve van. "
                 "Frissítéshez erősítsd meg a felülírást."
             ),
+            error_kind="manual_edit_conflict",
+            retryable=False,
             source=_s(existing.get("source")) or source_tag,
             overwritten_manual_edit=False,
         )
@@ -3654,16 +3241,43 @@ def generate_sermon_outline(
     markdown_content = ""
 
     seed = build_outline_from_workshop(session, sermon_workshop=sw)
-    structured: dict[str, Any] | None = None
 
-    if generate_fn is not None:
-        structured, ai_warnings, raw_wc, markdown_content = _ai_generate_structured(
+    # EGYETLEN generálási szerződés (célarchitektúra-terv, 2. fázis, 2.
+    # rész): vázlat KIZÁRÓLAG sikeres AI-szintézisből vagy a már meglévő,
+    # érvényes mentett vázlatból származhat — mechanikus, versszakaszokra
+    # daraboló "álvázlat" SOHA nem készül, sem generate_fn hiányában, sem
+    # AI-hiba/érvénytelen AI-válasz esetén. A korábbi mentett vázlat (ha
+    # van) mindig érintetlen marad — a hívó ezt kapja vissza `outline`-ként.
+    if generate_fn is None:
+        return OutlineGenerationResult(
+            outline=existing,
+            ok=False,
+            error_message=AI_UNAVAILABLE_MESSAGE + retained_outline_notice,
+            error_kind="ai_unavailable",
+            retryable=False,
+            warnings=warnings,
+            source=source_tag,
+        )
+
+    structured, ai_warnings, raw_wc, markdown_content, ai_error_kind = (
+        _ai_generate_structured(
             bundle, generate_fn=generate_fn, seed_outline=seed, mode=mode
         )
-        warnings.extend(ai_warnings)
+    )
+    warnings.extend(ai_warnings)
     if structured is None:
-        structured = _heuristic_structured_from_bundle(bundle, seed_outline=seed)
-        markdown_content = ""
+        return OutlineGenerationResult(
+            outline=existing,
+            ok=False,
+            error_message=(
+                (ai_warnings[-1] if ai_warnings else INVALID_OUTLINE_MESSAGE)
+                + retained_outline_notice
+            ),
+            error_kind=ai_error_kind or "ai_invalid_response",
+            retryable=True,
+            warnings=warnings,
+            source=source_tag,
+        )
     md_for_escalation = markdown_content
 
     passage_for_validation = bundle.get("passage_text") or ""
@@ -3795,6 +3409,8 @@ def generate_sermon_outline(
                     outline=existing,
                     ok=False,
                     error_message=INVALID_OUTLINE_MESSAGE + retained_outline_notice,
+                    error_kind="validation_failed",
+                    retryable=True,
                     warnings=warnings,
                     validation_issues=issues,
                     source=source_tag,
@@ -3938,6 +3554,8 @@ def generate_sermon_outline(
                     outline=existing,
                     ok=False,
                     error_message=INVALID_OUTLINE_MESSAGE + retained_outline_notice,
+                    error_kind="validation_failed",
+                    retryable=True,
                     warnings=warnings,
                     validation_issues=issues,
                     source=source_tag,
@@ -3998,6 +3616,8 @@ def generate_sermon_outline(
                 outline=existing,
                 ok=False,
                 error_message=INVALID_OUTLINE_MESSAGE + retained_outline_notice,
+                error_kind="validation_failed",
+                retryable=True,
                 warnings=warnings,
                 validation_issues=issues,
                 source=source_tag,
@@ -4022,40 +3642,9 @@ def generate_sermon_outline(
                 if tip not in warnings:
                     warnings.append(tip)
 
-    # Offline heuristic: only hard-block catastrophic failures
-    if generate_fn is None and issues:
-        structured = _programmatic_trim(structured)
-        issues = validate_structured_outline(
-            structured, passage_text=passage_for_validation, background_texts=background_texts
-        )
-        fatal = [
-            i
-            for i in issues
-            if i
-            in {
-                "over_absolute_max",
-                "too_few_points",
-                "missing_focus",
-                "missing_conclusion",
-                "full_sermon_like",
-            }
-        ]
-        if fatal or word_count(render_structured_outline(structured)) > LIMITS[
-            "absolute_max_words"
-        ]:
-            return OutlineGenerationResult(
-                outline=existing,
-                ok=False,
-                error_message=INVALID_OUTLINE_MESSAGE,
-                warnings=warnings,
-                validation_issues=issues,
-                source=source_tag,
-            )
-        # Non-fatal offline leftovers (incl. too_thin) → warnings only
-        for issue in issues:
-            tip = f"Vázlat finomítható: {issue}"
-            if tip not in warnings:
-                warnings.append(tip)
+    # (A korábbi "offline heurisztika" ág itt megszűnt — generate_fn ezen a
+    # ponton már garantáltan nem None, mert a függvény korábban, az AI-hívás
+    # előtt visszatér, ha nincs generate_fn. Ld. AI_UNAVAILABLE_MESSAGE.)
 
     outline = structured_to_sermon_outline(
         structured,
@@ -4078,17 +3667,13 @@ def generate_sermon_outline(
     outline["source_fingerprint"] = ctx_hash
     outline["used_module_ids"] = used_module_ids
     outline["source_sections"] = list(bundle.get("source_keys") or [])
-    if generate_fn is None and "sermon_movements" not in (bundle.get("source_keys") or []):
-        outline["provisional_sections"] = ["sermon_movements"]
-        from sermon_workshop_outline_ai import PROVISIONAL_NOTICE
-
-        if PROVISIONAL_NOTICE not in warnings:
-            warnings.append(PROVISIONAL_NOTICE)
     if not outline_has_content(outline):
         return OutlineGenerationResult(
             outline=existing,
             ok=False,
             error_message=EMPTY_PROJECT_MESSAGE,
+            error_kind="empty_result",
+            retryable=True,
             warnings=warnings,
             validation_issues=issues,
             source=source_tag,
@@ -4121,6 +3706,7 @@ def generate_sermon_outline(
 
 
 __all__ = [
+    "AI_UNAVAILABLE_MESSAGE",
     "COMPRESS_INSTRUCTION",
     "COMPRESS_TRIGGER_ISSUES",
     "ENRICH_INSTRUCTION",

@@ -2028,6 +2028,10 @@ class OutlineAssemblyResult:
     outline: dict[str, Any] = field(default_factory=empty_sermon_outline)
     ok: bool = True
     error_message: str = ""
+    # A sermon_outline_engine.OutlineGenerationResult egységes hibaosztályo-
+    # zásának továbbadása — ld. ott a lehetséges értékek dokumentációját.
+    error_kind: str = ""
+    retryable: bool = False
     warnings: list[str] = field(default_factory=list)
     overwritten_manual_edit: bool = False
 
@@ -2036,6 +2040,8 @@ class OutlineAssemblyResult:
             "outline": dict(self.outline),
             "ok": self.ok,
             "error_message": self.error_message,
+            "error_kind": self.error_kind,
+            "retryable": self.retryable,
             "warnings": list(self.warnings),
             "overwritten_manual_edit": self.overwritten_manual_edit,
         }
@@ -2401,32 +2407,31 @@ def assemble_sermon_outline(
     generate_fn: GenerateFn | None = None,
     force_overwrite: bool = False,
     polish: bool = False,
-    synthesize: bool = True,
     mode: str = "workshop",
 ) -> OutlineAssemblyResult:
     """Összeállítja a vázlatot — egyetlen közös motor (`sermon_outline_engine`).
 
-    A `polish` / `synthesize` flag-ek visszafelé kompatibilisek; a generálás
-    mindig a közös JSON sémán és hard validáción megy keresztül.
+    EGYETLEN generálási szerződés (célarchitektúra-terv, 2. fázis, 2. rész,
+    2026-08-13): ha `generate_fn` `None`, a motor NEM készít mechanikus,
+    versdaraboló álvázlatot — `ok=False`, `error_kind="ai_unavailable"`
+    eredményt ad, és a korábbi mentett vázlat (ha van) változatlanul
+    megmarad az `outline` mezőben. A korábbi `synthesize` paraméter (ami a
+    mára megszűnt heurisztikus fallback kényszerítésére szolgált) megszűnt —
+    nincs többé "szintetizáljak vagy sem" választás, csak "van generate_fn
+    vagy nincs".
     """
     from sermon_outline_engine import generate_sermon_outline
 
     ensure_sermon_workshop_state(session_state)
-    # synthesize=False + generate_fn=None: deterministic heuristic only (tests)
-    use_fn = generate_fn if synthesize else None
-    if not synthesize and generate_fn is not None and polish:
-        use_fn = generate_fn
-    # When synthesize=False we still want heuristic structured outline without AI
     result = generate_sermon_outline(
         session_state,
         mode=mode if mode in ("quick", "workshop", "standard") else "workshop",
-        generate_fn=use_fn if synthesize else None,
+        generate_fn=generate_fn,
         force_overwrite=force_overwrite,
     )
-    # Optional legacy polish path unused by UI; keep no-op unless explicitly requested
     outline = result.outline
     warnings = list(result.warnings)
-    if polish and synthesize and generate_fn is not None and result.ok:
+    if polish and generate_fn is not None and result.ok:
         outline, polish_warnings = _optional_polish(outline, generate_fn=generate_fn)
         warnings.extend(polish_warnings)
         outline = sync_outline_content(outline, force=True)
@@ -2435,6 +2440,8 @@ def assemble_sermon_outline(
         outline=outline,
         ok=result.ok,
         error_message=result.error_message,
+        error_kind=result.error_kind,
+        retryable=result.retryable,
         warnings=warnings,
         overwritten_manual_edit=result.overwritten_manual_edit,
     )

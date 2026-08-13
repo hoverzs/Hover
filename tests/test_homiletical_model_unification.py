@@ -18,7 +18,6 @@ import streamlit as st
 
 from sermon_outline_engine import (
     _gated_fallback_bundle,
-    _heuristic_structured_from_bundle,
     extract_outline_background_material,
 )
 from sermon_workshop_data import (
@@ -183,7 +182,12 @@ def test_sermon_path_approve_decisions_only_cover_three_active_fields(session):
 
 
 # ---------------------------------------------------------------------------
-# Vázlatmotor — 2-3 beszédegység, átvezetéssel (heurisztikus fallback)
+# Kanonikus forrás-gating — a mechanikus heurisztikus fallback megszűnése
+# után (2026-08-13, célarchitektúra-terv 2. fázis, 2. rész) a
+# `_gated_fallback_bundle` már nem vázlatgenerálásra hívódik, de a
+# "draft/elavult HOMILETIKAI blokk soha nem szivárog ki" garanciát
+# közvetlenül továbbra is bizonyítja (ld. a függvény docstringjét
+# sermon_outline_engine.py-ban).
 # ---------------------------------------------------------------------------
 
 
@@ -206,22 +210,12 @@ def _passage_bundle(extra: dict | None = None) -> dict:
     return bundle
 
 
-def test_heuristic_outline_produces_two_or_three_points_with_transitions():
-    bundle = _passage_bundle()
-    result = _heuristic_structured_from_bundle(bundle)
-    points = result["points"]
-    assert 2 <= len(points) <= 3
-    for pt in points[:-1]:
-        assert (pt.get("transition") or "").strip(), (
-            "minden nem-utolsó beszédegységnek legyen átvezetése"
-        )
-    assert not (points[-1].get("transition") or "").strip() or True  # utolsó opcionális
-
-
-def test_heuristic_fallback_never_reads_draft_or_rejected_gated_blocks():
-    """Kényszerített fallback teszt (Korrekciós fázis 2C/2D): a heurisztikus
-    mentőöv is kizárólag jóváhagyott-és-friss tartalmat használhat a
-    gate-elt blokkokból."""
+def test_gated_fallback_bundle_never_exposes_draft_or_rejected_blocks():
+    """A gate-elt nézet (`_gated_fallback_bundle`) kizárólag jóváhagyott-és-
+    friss tartalmat enged át a HOMILETIKAI (`_HOMILETICAL_DECISION_KEYS`)
+    blokkokból — ez a garancia a mechanikus fallback megszűnése után is
+    közvetlenül tesztelt marad, mert ugyanazt a `_block_is_context_ready`
+    dispatchert használja, mint a normál AI-útvonal."""
     bundle = _passage_bundle(
         {
             "sermon_path": {
@@ -240,11 +234,6 @@ def test_heuristic_fallback_never_reads_draft_or_rejected_gated_blocks():
     assert "human_condition" not in gated
     assert "listener_tension" not in gated
     assert gated["sermon_path"]["starting_point"] == "JÓVÁHAGYOTT kiinduló látás"
-
-    result = _heuristic_structured_from_bundle(bundle)
-    rendered = str(result)
-    assert "DRAFT emberi helyzet" not in rendered
-    assert "DRAFT feszültség" not in rendered
 
 
 def test_forced_fallback_build_outline_from_workshop_excludes_draft_includes_approved():
@@ -396,25 +385,6 @@ def test_reinterpretation_reaches_outline_background_only_when_approved():
     bundle2 = collect_outline_context_bundle(state)
     background2 = extract_outline_background_material(bundle2)
     assert background2["sermon_path"]["reinterpretation"] == "JÓVÁHAGYOTT átértelmezés szövege"
-
-
-def test_heuristic_intro_prefers_entry_point_belepes_over_starting_point():
-    """A modell 1. eleme (Belépés) elsőbbséget élvez az Alaphelyzet (2.
-    elem) felett a bevezető irány felépítésénél."""
-    bundle = _passage_bundle(
-        {
-            "entry_point": {
-                "today_connection": "tc",
-                "type": "question",
-                "text": "BELÉPÉS: konkrét nyitókérdés a hallgatóhoz.",
-            },
-            "entry_point_status": "approved",
-            "sermon_path": {"starting_point": "ALAPHELYZET: a textus saját feszültsége."},
-            "sermon_path_status": "approved",
-        }
-    )
-    result = _heuristic_structured_from_bundle(bundle)
-    assert "BELÉPÉS" in result["introduction_direction"]
 
 
 def test_outline_system_prompt_defines_full_seven_element_model():

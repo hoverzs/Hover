@@ -195,6 +195,20 @@ def _valid_structured(**overrides) -> dict:
     return normalize_structured_outline(base)
 
 
+def _ok_gen(_prompt=None, **_kwargs) -> str:
+    """Minimális, mindig érvényes AI-válasz-mock (JSON-alapú).
+
+    2026-08-13 (célarchitektúra-terv, 2. fázis, 2. rész): a mechanikus,
+    AI nélküli fallback megszűnt — `generate_fn=None` mostantól mindig
+    `ok=False` eredményt ad. Azok a tesztek, amelyeknek TÉNYLEGES célja
+    nem a "nincs AI" hibaágat ellenőrizni, hanem valamilyen valós,
+    megjelenő vázlattartalmat igényelnek, ezt a mockot használják a
+    korábbi `generate_fn=None` helyett — ugyanaz a bevált `_valid_
+    structured()` "aranyminta", mint amit a fájl más tesztjei is
+    használnak `gen(...)` zárványokban."""
+    return json.dumps(_valid_structured(), ensure_ascii=False)
+
+
 def _jude_good_structured() -> dict:
     """Aranyminta: Júd 17–20 háromrétegű szószéki vázlat (300–500 szó)."""
     return _valid_structured(
@@ -418,8 +432,8 @@ def _ezs_verbose_payload() -> dict:
 
 def test_schema_version_shared_by_quick_and_workshop():
     state = _base_state()
-    quick = generate_sermon_outline(state, mode="quick", generate_fn=None)
-    workshop = generate_sermon_outline(dict(state), mode="workshop", generate_fn=None)
+    quick = generate_sermon_outline(state, mode="quick", generate_fn=_ok_gen)
+    workshop = generate_sermon_outline(dict(state), mode="workshop", generate_fn=_ok_gen)
     assert quick.ok and workshop.ok
     assert quick.outline.get("schema_version") == SCHEMA_VERSION
     assert workshop.outline.get("schema_version") == SCHEMA_VERSION
@@ -463,7 +477,7 @@ def test_quick_outline_without_homiletical_workshop():
     ready = assess_outline_readiness(state)
     assert ready.ok
     assert "human_condition" not in ready.source_keys
-    result = generate_sermon_outline(state, mode="quick", generate_fn=None)
+    result = generate_sermon_outline(state, mode="quick", generate_fn=_ok_gen)
     assert result.ok, result.error_message
     assert result.source == "quick"
     assert outline_has_content(result.outline)
@@ -473,7 +487,7 @@ def test_quick_outline_without_homiletical_workshop():
 def test_outline_from_biblical_text_plus_exegesis_original():
     state = _base_state(theology="", history="")
     state[SERMON_WORKSHOP_KEY] = get_default_sermon_workshop()
-    result = generate_sermon_outline(state, mode="quick", generate_fn=None)
+    result = generate_sermon_outline(state, mode="quick", generate_fn=_ok_gen)
     assert result.ok
     content = outline_to_readable_content(result.outline)
     assert word_count(content) <= LIMITS["absolute_max_words"]
@@ -484,7 +498,7 @@ def test_workshop_outline_with_approved_decisions():
     state = build_jude_state()
     if not str(state.get("passage_text") or "").strip():
         state["passage_text"] = JUDE_PASSAGE
-    result = generate_sermon_outline(state, mode="workshop", generate_fn=None)
+    result = generate_sermon_outline(state, mode="workshop", generate_fn=_ok_gen)
     assert result.ok, result.error_message
     assert result.source == "workshop"
     assert result.outline.get("main_idea") or outline_has_content(result.outline)
@@ -492,8 +506,8 @@ def test_workshop_outline_with_approved_decisions():
 
 def test_both_entry_points_same_output_schema():
     state = _base_state()
-    quick = generate_sermon_outline(state, mode="quick", generate_fn=None)
-    workshop = generate_sermon_outline(dict(state), mode="workshop", generate_fn=None)
+    quick = generate_sermon_outline(state, mode="quick", generate_fn=_ok_gen)
+    workshop = generate_sermon_outline(dict(state), mode="workshop", generate_fn=_ok_gen)
     assert quick.ok and workshop.ok
     qs = normalize_structured_outline(quick.outline.get("structured"))
     ws = normalize_structured_outline(workshop.outline.get("structured"))
@@ -512,16 +526,22 @@ def test_both_entry_points_same_output_schema():
 
 def test_outline_saved_on_one_surface_appears_on_other():
     state = _base_state()
-    result = generate_sermon_outline(state, mode="quick", generate_fn=None)
+    result = generate_sermon_outline(state, mode="quick", generate_fn=_ok_gen)
     assert result.ok
     save_sermon_outline(state, result.outline, mark_manual_edit=False)
     sw = state[SERMON_WORKSHOP_KEY]
     loaded = normalize_sermon_outline(sw.get("sermon_outline"))
     assert outline_has_content(loaded)
     assert loaded.get("source") == "quick"
-    assemble_sermon_outline(
-        state, generate_fn=None, force_overwrite=False, synthesize=True
+    # Ismételt lekérés generate_fn nélkül: a korábban mentett vázlat
+    # (kézzel nem szerkesztett) a "manual_edit_conflict" ág elkerülésével,
+    # de AI hiányában "ai_unavailable" hibát ad — a mentett tartalom
+    # változatlanul megmarad, nem vész el.
+    assemble_result = assemble_sermon_outline(
+        state, generate_fn=None, force_overwrite=False
     )
+    assert not assemble_result.ok
+    assert assemble_result.error_kind == "ai_unavailable"
     assert outline_has_content(normalize_sermon_outline(sw.get("sermon_outline")))
 
 
@@ -595,7 +615,7 @@ def test_ezs46_failure_pattern_rejected_and_compress_triggered():
         ),
         last_sajat="Az örök Hordozó",
     )
-    prev = generate_sermon_outline(state, mode="quick", generate_fn=None)
+    prev = generate_sermon_outline(state, mode="quick", generate_fn=_ok_gen)
     assert prev.ok
     save_sermon_outline(state, prev.outline, mark_manual_edit=False)
 
@@ -749,7 +769,7 @@ def test_legacy_markdown_not_shown_after_new_generation():
             "passage_reference": "Jn 3,16",
         }
     )
-    result = generate_sermon_outline(state, mode="quick", generate_fn=None)
+    result = generate_sermon_outline(state, mode="quick", generate_fn=_ok_gen)
     assert result.ok
     save_sermon_outline(state, result.outline, mark_manual_edit=False)
     outline = normalize_sermon_outline(sw.get("sermon_outline"))
@@ -822,7 +842,7 @@ def test_old_project_outline_migrates_safely():
 def test_incomplete_homiletics_with_exegesis_succeeds():
     state = _base_state()
     assert not state[SERMON_WORKSHOP_KEY].get("sermon_main_idea")
-    result = generate_sermon_outline(state, mode="quick", generate_fn=None)
+    result = generate_sermon_outline(state, mode="quick", generate_fn=_ok_gen)
     assert result.ok, result.error_message
     tips = result.outline.get("editorial_tips") or []
     assert len(tips) <= 2
@@ -832,7 +852,7 @@ def test_incomplete_homiletics_with_exegesis_succeeds():
 
 def test_context_hash_refresh_notice_without_second_outline():
     state = _base_state()
-    result = generate_sermon_outline(state, mode="workshop", generate_fn=None)
+    result = generate_sermon_outline(state, mode="workshop", generate_fn=_ok_gen)
     assert result.ok
     save_sermon_outline(state, result.outline)
     from sermon_workshop_outline_ai import collect_available_sermon_material
@@ -848,7 +868,7 @@ def test_context_hash_refresh_notice_without_second_outline():
 
 def test_assemble_uses_shared_engine():
     state = _base_state()
-    a = assemble_sermon_outline(state, generate_fn=None, mode="quick")
+    a = assemble_sermon_outline(state, generate_fn=_ok_gen, mode="quick")
     assert a.ok
     assert a.outline.get("structured") or a.outline.get("movements")
     content = outline_to_readable_content(a.outline)
@@ -1188,7 +1208,7 @@ def test_over_850_not_primary_display():
     assert "over_absolute_max" in issues
 
     state = _base_state()
-    prev = generate_sermon_outline(state, mode="quick", generate_fn=None)
+    prev = generate_sermon_outline(state, mode="quick", generate_fn=_ok_gen)
     save_sermon_outline(state, prev.outline, mark_manual_edit=False)
     prev_text = outline_canonical_text(prev.outline)
 
@@ -1254,7 +1274,7 @@ def test_scope_note_rejects_unloaded_verse_as_fact():
 
 def test_manual_or_approved_outline_overwrite_protection():
     state = _base_state()
-    first = generate_sermon_outline(state, mode="quick", generate_fn=None)
+    first = generate_sermon_outline(state, mode="quick", generate_fn=_ok_gen)
     assert first.ok
     save_sermon_outline(state, first.outline, mark_manual_edit=True)
     blocked = generate_sermon_outline(state, mode="quick", generate_fn=None)
@@ -1264,7 +1284,7 @@ def test_manual_or_approved_outline_overwrite_protection():
 
     # Approved status also protects
     state2 = _base_state()
-    second = generate_sermon_outline(state2, mode="workshop", generate_fn=None)
+    second = generate_sermon_outline(state2, mode="workshop", generate_fn=_ok_gen)
     save_sermon_outline(state2, second.outline, mark_manual_edit=False)
     state2[SERMON_WORKSHOP_KEY]["sermon_outline_status"] = "approved"
     state2[SERMON_WORKSHOP_KEY]["sermon_outline"]["status"] = "approved"
@@ -1325,7 +1345,7 @@ def test_outline_prompt_passage_only_without_missing_warnings():
 
 def test_passage_only_generation_ok_without_error_banner():
     state = _base_state(exegesis="", original_text="", theology="", history="")
-    result = generate_sermon_outline(state, mode="quick", generate_fn=None)
+    result = generate_sermon_outline(state, mode="quick", generate_fn=_ok_gen)
     assert result.ok, result.error_message
     assert "szószéken használható" not in (result.error_message or "").casefold()
     assert outline_has_content(result.outline)

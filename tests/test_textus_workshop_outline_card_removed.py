@@ -150,8 +150,15 @@ def test_generate_sermon_outline_has_exactly_one_user_facing_caller_left():
 
 
 def test_outline_engine_signature_and_contract_unchanged():
-    """Ez a fázis nem nyúlhat a motor szerződéséhez — csak a UI-belépési
-    pont szűnt meg."""
+    """Ez a fázis (2A — Textusműhely-kártya eltávolítása) nem nyúlhat a
+    motor szerződéséhez — csak a UI-belépési pont szűnt meg.
+
+    MEGJEGYZÉS (2026-08-13, célarchitektúra-terv 2. fázis, 2. rész — külön
+    kör): a `_heuristic_structured_from_bundle` mechanikus fallback ekkor,
+    egy KÉSŐBBI, önálló jóváhagyott lépésben szűnt meg — ld.
+    tests/test_outline_no_mechanical_fallback.py. Ez a teszt csak azt
+    őrzi, amit ez a (2A) fázis ígért: a `generate_sermon_outline` alap-
+    szignatúrája (mode/generate_fn) nem változott."""
     import inspect
 
     import sermon_outline_engine as engine
@@ -159,7 +166,6 @@ def test_outline_engine_signature_and_contract_unchanged():
     params = inspect.signature(engine.generate_sermon_outline).parameters
     assert "mode" in params, "A generate_sermon_outline szerződése nem változhatott"
     assert "generate_fn" in params
-    assert hasattr(engine, "_heuristic_structured_from_bundle")
 
 
 # ---------------------------------------------------------------------------

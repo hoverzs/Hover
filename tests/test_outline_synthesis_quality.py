@@ -81,6 +81,79 @@ def _assert_usable_outline(outline: dict) -> str:
     return content
 
 
+def _jude_minimal_gen(_prompt=None, **_kwargs) -> str:
+    """Minimális, mindig érvényes AI-válasz-mock Júd 17-20-hoz (movements-forma).
+
+    A heurisztikus fallback megszűnése (2026-08-13) óta a
+    `generate_fn=None` eset mindig `ai_unavailable` hibát ad — a korábban
+    ezzel tesztelt "szűkös műhely mellett is koherens vázlat" elvárást
+    innentől valódi (mockolt) AI-válaszon keresztül ellenőrizzük.
+    """
+    return json.dumps(
+        {
+            "title": "Megtartva",
+            "text_reference": "Júd 17–20",
+            "scope_note": "",
+            "focus_sentence": (
+                "Isten a gúny közepette is megtartja népét a Szentlélekben."
+            ),
+            "introduction_direction": (
+                "A gúny hangja körülöttünk egyre hangosabb. "
+                "A kérdés: hogyan maradhatunk meg hitben."
+            ),
+            "movements": [
+                {
+                    "title": "Emlékezzetek az apostoli szóra",
+                    "verses": "v. 17–18",
+                    "textual_insight": (
+                        "Júdás az apostolok előrejelzésére hív: gúnyolódók jönnek."
+                    ),
+                    "theological_emphasis": (
+                        "Az emlékezet nem nosztalgia, hanem megtartó igazság."
+                    ),
+                    "listener_movement": (
+                        "A hallgató az apostoli szóra támaszkodik, nem a hangulataira."
+                    ),
+                    "transition": "",
+                },
+                {
+                    "title": "Ismerjétek fel a szakadást",
+                    "verses": "v. 19",
+                    "textual_insight": (
+                        "A szakadáskeltők érzékiek, és nincs bennük Lélek."
+                    ),
+                    "theological_emphasis": (
+                        "A Lélek hiánya a közösség valódi veszélye."
+                    ),
+                    "listener_movement": (
+                        "A hallgató nem gyanakvással, hanem józan felismeréssel él."
+                    ),
+                    "transition": "",
+                },
+                {
+                    "title": "Épüljetek a Lélekben",
+                    "verses": "v. 20",
+                    "textual_insight": (
+                        "A megmaradás hitben való épülés és Lélekben való ima."
+                    ),
+                    "theological_emphasis": (
+                        "Isten szeretete tart meg, nem az emberi erőfeszítés."
+                    ),
+                    "listener_movement": (
+                        "A hallgató imában és szeretetben marad a közösségben."
+                    ),
+                    "transition": "",
+                },
+            ],
+            "conclusion_direction": (
+                "A megtartás Isten ajándéka. Maradjatok imában és szeretetben."
+            ),
+            "refinement_suggestions": [],
+        },
+        ensure_ascii=False,
+    )
+
+
 def test_system_prompt_contains_homiletic_core():
     assert "igehirdető" in HOMILETIC_SYSTEM_PROMPT.casefold() or "teológus" in HOMILETIC_SYSTEM_PROMPT.casefold()
     assert "prédikációvázlat" in HOMILETIC_SYSTEM_PROMPT.casefold() or "vázlat" in HOMILETIC_SYSTEM_PROMPT.casefold()
@@ -202,8 +275,18 @@ def test_quality_gate_flags_technical_labels_and_repeated_paragraphs():
     assert "repeated_paragraphs" in issues
 
 
-def test_ai_failure_rescues_usable_pulpit_notes_instead_of_hard_error():
-    """Rossz AI-JSON után is szószéki jegyzet készül (ne üres hibaüzenet)."""
+def test_ai_stub_placeholder_content_rejected_not_silently_rescued():
+    """Placeholder-tartalmú ("nincs kidolgozva") AI-válasz nem lesz vázlat.
+
+    2026-08-13, Fázis 2B: a korábbi mechanikus/heurisztikus mentőöv
+    megszűnése előtt ez a teszt azt várta, hogy egy nyilvánvalóan
+    kidolgozatlan ("Ez a rész még nincs kidolgozva.") AI-válaszból is
+    készüljön "szószéken használható" álvázlat. Ez pontosan az a
+    viselkedés, amit a szerződés egyértelműsítése (ld. AI_UNAVAILABLE_MESSAGE
+    és az error_kind taxonómia sermon_outline_engine.py-ban) megszüntetett:
+    stub/placeholder-tartalom nem kerülhet szószékre "mentve". A helyes új
+    viselkedés: strukturált, retryable hiba, a korábbi mentett vázlat
+    változatlanul megmarad."""
     state = {
         "last_igehely": "Júd 17–20",
         "passage_text": (
@@ -242,16 +325,14 @@ def test_ai_failure_rescues_usable_pulpit_notes_instead_of_hard_error():
         )
 
     result = assemble_sermon_outline(
-        state, generate_fn=gen, synthesize=True, force_overwrite=True
+        state, generate_fn=gen, force_overwrite=True
     )
-    assert result.ok, result.error_message
-    content = _assert_usable_outline(result.outline)
-    assert "szószéken használható" not in (result.error_message or "").casefold()
-    assert MISSING_PART not in content
-    assert any(
-        "jegyzet" in w.casefold() or "finomítható" in w.casefold() or "formázással" in w
-        for w in (result.warnings or [])
-    )
+    assert not result.ok
+    assert result.error_kind == "validation_failed"
+    assert result.retryable is True
+    # Nincs korábbi mentett vázlat, tehát a visszaadott outline üres marad —
+    # de semmiképp sem a placeholder-tartalmú AI-válasz "megmentett" változata.
+    assert MISSING_PART not in outline_to_readable_content(result.outline)
 
 
 def test_prompt_dynamic_background_vs_passage_only_in_assembly():
@@ -338,7 +419,7 @@ def test_prompt_dynamic_background_vs_passage_only_in_assembly():
     ensure_sermon_workshop_state(bare)
     captured.clear()
     bare_result = assemble_sermon_outline(
-        bare, generate_fn=gen_ok, synthesize=True, force_overwrite=True
+        bare, generate_fn=gen_ok, force_overwrite=True
     )
     assert bare_result.ok, bare_result.error_message
     outline_prompts = [
@@ -369,7 +450,7 @@ def test_prompt_dynamic_background_vs_passage_only_in_assembly():
 
     captured.clear()
     rich_result = assemble_sermon_outline(
-        rich, generate_fn=gen_ok, synthesize=True, force_overwrite=True
+        rich, generate_fn=gen_ok, force_overwrite=True
     )
     assert rich_result.ok, rich_result.error_message
     assert any("HÁTTÉRANYAG" in p for p in captured)
@@ -388,7 +469,7 @@ def test_sparse_workshop_still_coherent_outline():
         SERMON_WORKSHOP_KEY: get_default_sermon_workshop(),
     }
     ensure_sermon_workshop_state(state)
-    result = assemble_sermon_outline(state, generate_fn=None, synthesize=True)
+    result = assemble_sermon_outline(state, generate_fn=_jude_minimal_gen)
     assert result.ok
     content = _assert_usable_outline(result.outline)
     assert "##" not in content
@@ -410,7 +491,7 @@ def test_minimal_sources_usable_outline():
         SERMON_WORKSHOP_KEY: get_default_sermon_workshop(),
     }
     ensure_sermon_workshop_state(state)
-    result = assemble_sermon_outline(state, generate_fn=None, synthesize=True)
+    result = assemble_sermon_outline(state, generate_fn=_jude_minimal_gen)
     assert result.ok
     _assert_usable_outline(result.outline)
 
@@ -436,7 +517,7 @@ def test_partial_sources_usable_outline():
         SERMON_WORKSHOP_KEY: get_default_sermon_workshop(),
     }
     ensure_sermon_workshop_state(state)
-    result = assemble_sermon_outline(state, generate_fn=None)
+    result = assemble_sermon_outline(state, generate_fn=_jude_minimal_gen)
     assert result.ok
     content = _assert_usable_outline(result.outline)
     assert "Szentlélek" in content or "szeretet" in content.casefold()
@@ -448,7 +529,7 @@ def test_full_jude_sources_usable_outline():
         from tests.test_outline_engine import JUDE_PASSAGE
 
         state["passage_text"] = JUDE_PASSAGE
-    result = assemble_sermon_outline(state, generate_fn=None)
+    result = assemble_sermon_outline(state, generate_fn=_jude_minimal_gen)
     assert result.ok, result.error_message
     content = _assert_usable_outline(result.outline)
     assert result.outline.get("christ_connection") or result.outline.get(
@@ -759,7 +840,7 @@ def test_word_count_alone_is_soft_not_hard_rejection():
     }
     ensure_sermon_workshop_state(state)
     result = assemble_sermon_outline(
-        state, generate_fn=gen, synthesize=True, force_overwrite=True
+        state, generate_fn=gen, force_overwrite=True
     )
     assert result.ok, result.error_message
     content = outline_to_readable_content(result.outline)
@@ -821,7 +902,7 @@ def test_partial_workshop_ai_outline_kept_despite_short_word_count():
     }
     ensure_sermon_workshop_state(state)
     result = assemble_sermon_outline(
-        state, generate_fn=gen, synthesize=True, force_overwrite=True
+        state, generate_fn=gen, force_overwrite=True
     )
     assert result.ok, result.error_message
     assert result.outline.get("main_idea")
@@ -940,7 +1021,7 @@ def test_virraszto_produces_shorter_complete_usable_outline():
     }
     ensure_sermon_workshop_state(state)
     result = assemble_sermon_outline(
-        state, generate_fn=gen, synthesize=True, force_overwrite=True
+        state, generate_fn=gen, force_overwrite=True
     )
     assert result.ok, result.error_message
     outline = result.outline
@@ -998,7 +1079,17 @@ def test_virraszto_produces_shorter_complete_usable_outline():
     }
 
 
-def test_truncated_or_empty_ai_outline_rescues_usable_notes():
+def test_empty_ai_outline_rejected_truncated_ai_outline_still_usable():
+    """Üres AI-válasz → strukturált hiba (nem áltartalom); valódi, csak
+    tömör AI-válasz → továbbra is elfogadható vázlat marad.
+
+    2026-08-13, Fázis 2B: a `gen_empty` ág korábban a heurisztikus
+    mentőövre támaszkodott ("rescues usable notes" — a névből is látszik).
+    Azóta ez a mentőöv megszűnt: teljesen üres AI-tartalomból (üres cím,
+    üres mozgások) nem készülhet vázlat, ezt itt ellenőrizzük. A
+    `gen_truncated` ág valódi (ha rövid) tartalmat ad — ez a rész
+    változatlanul sikeres marad, mert ez sosem a heurisztikán múlt."""
+
     def gen_empty(prompt, **kwargs):
         return json.dumps(
             {
@@ -1020,12 +1111,11 @@ def test_truncated_or_empty_ai_outline_rescues_usable_notes():
     }
     ensure_sermon_workshop_state(state)
     empty_result = assemble_sermon_outline(
-        state, generate_fn=gen_empty, synthesize=True, force_overwrite=True
+        state, generate_fn=gen_empty, force_overwrite=True
     )
-    assert empty_result.ok, empty_result.error_message
-    assert "word_count_out_of_range" not in (empty_result.error_message or "")
-    assert "szószéken használható" not in (empty_result.error_message or "").casefold()
-    _assert_usable_outline(empty_result.outline)
+    assert not empty_result.ok
+    assert empty_result.error_kind in ("validation_failed", "ai_invalid_response", "empty_result")
+    assert empty_result.retryable is True
 
     def gen_truncated(prompt, **kwargs):
         return json.dumps(
@@ -1052,7 +1142,7 @@ def test_truncated_or_empty_ai_outline_rescues_usable_notes():
         )
 
     trunc_result = assemble_sermon_outline(
-        state, generate_fn=gen_truncated, synthesize=True, force_overwrite=True
+        state, generate_fn=gen_truncated, force_overwrite=True
     )
     assert trunc_result.ok, trunc_result.error_message
     assert "word_count_out_of_range" not in (trunc_result.error_message or "")
@@ -1206,7 +1296,7 @@ def test_filippi_virraszto_partial_workshop_working_outline():
     }
     ensure_sermon_workshop_state(state)
     result = assemble_sermon_outline(
-        state, generate_fn=gen, synthesize=True, force_overwrite=True
+        state, generate_fn=gen, force_overwrite=True
     )
     assert result.ok, result.error_message
     assert captured.get("prompt")
