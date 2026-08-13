@@ -75,10 +75,20 @@ def ok(cond: bool, msg: str) -> None:
 
 
 def http_jude():
-    html = (FIXTURES / "jud_1.html").read_text(encoding="utf-8")
+    """A ``SzentirasEuApiProvider`` a szentiras.eu API válaszát nyers JSON
+    szövegként várja (ld. ``ruf_bible_service._json_payload`` /
+    ``parse_szentiras_eu_response``) — NEM a régi, szentiras.hu-stílusú,
+    HTML oldalba ágyazott ``<script id="verse-data">`` JSON-t (az a
+    korábbi scraping-alapú providerhez tartozott, ld. ``jud_1.html``, ami
+    innentől csak a valódi RUF-szöveg forrásaként szolgál, a fixture
+    generálásának dokumentációjaként). A ``jud_17_20_api.json`` a jelenlegi
+    API-szerződés (``{"valasz": {"forditas": {...}, "versek": [...]}}``)
+    szerinti, reprezentatív mintaválasz — ugyanazzal a valódi RUF
+    versszöveggel, mint a ``jud_1.html``."""
+    payload = (FIXTURES / "jud_17_20_api.json").read_text(encoding="utf-8")
 
     def _get(url: str, timeout: float = 15.0) -> str:  # noqa: ARG001
-        return html
+        return payload
 
     return _get
 
@@ -406,6 +416,48 @@ def build_jude_state() -> dict:
         state[SERMON_WORKSHOP_KEY]["sermon_main_idea"],
     )
     return state
+
+
+def test_ruf_jude_fetch_succeeds_with_current_api_fixture() -> None:
+    """A RÚF-fixture regresszió (2026-08-04 óta ismert, 2026-08-13-án javítva)
+    ellen — közvetlen, a `build_jude_state()`-től független ellenőrzés
+    (nem a megosztott, modulszintű `errors` listára támaszkodik, hogy a
+    tesztek definíciós sorrendjétől függetlenül is megbízható legyen).
+
+    A `SzentirasEuApiProvider` a szentiras.eu API nyers JSON válaszát várja
+    (ld. `ruf_bible_service._json_payload`); a `http_jude()` fixture-nek
+    ezt a szerződést kell teljesítenie, NEM a régi, HTML-be ágyazott
+    scraping-formátumot."""
+    clear_ruf_cache()
+    result = fetch_ruf_passage("Júd 17–20", http_get=http_jude())
+    assert result.get("success") is True, result.get("error")
+    assert not result.get("error")
+
+    passage = normalize_passage_text(result.get("text"))
+    assert len(passage) > 40, (
+        f"A Júdás passage_text túl rövid/üres ({len(passage)} kar.) — "
+        "a RÚF-fixture valószínűleg nem töltődött be."
+    )
+    # Nem elég, hogy VAN valamilyen szöveg — konkrétan a kért Júd 17–20
+    # tartalmának kell lennie, nem egy hibaüzenet-placeholdernek.
+    assert "nem volt betölthető" not in passage.casefold()
+    assert "szentlélek" in passage.casefold()
+    assert "apostolai" in passage.casefold()
+
+
+def test_ruf_jude_passage_text_actually_loads_not_a_placeholder(state: dict) -> None:
+    """Ugyanaz a garancia, de a teljes `build_jude_state()` láncon
+    keresztül — annak bizonyítására, hogy a betöltött szöveg ténylegesen
+    eljut a projekt-state `passage_text` mezőjéig, nem csak a nyers
+    `fetch_ruf_passage()` válaszban létezik."""
+    passage = state.get("passage_text") or ""
+    assert len(passage) > 40, (
+        f"A Júdás passage_text túl rövid/üres ({len(passage)} kar.) — "
+        "a RÚF-fixture valószínűleg nem töltődött be."
+    )
+    assert "nem volt betölthető" not in passage.casefold()
+    assert "szentlélek" in passage.casefold()
+    assert "apostolai" in passage.casefold()
 
 
 def test_old_project_compat() -> None:

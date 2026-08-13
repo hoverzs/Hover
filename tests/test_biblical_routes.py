@@ -467,8 +467,19 @@ def test_pauline_routes_validation_report_matches_loader() -> None:
         assert len(item["place_resolution"]) == len(route.stops)
 
 
-def test_loader_runs_without_streamlit_dependency() -> None:
-    sys.modules.pop("streamlit", None)
+def test_loader_runs_without_streamlit_dependency(monkeypatch) -> None:
+    """A `sys.modules` a teljes pytest-folyamatra megosztott, folyamatszintű
+    cache — a korábbi, helyreállítás nélküli `sys.modules.pop("streamlit",
+    None)` a modul VÉGLEGES eltávolításával járt a teljes tesztfutás
+    hátralévő részére. A következő `import streamlit` emiatt újra
+    végrehajtotta a `streamlit/__init__.py` modulszintű kódját (beleértve a
+    `DeltaGeneratorSingleton` egyszeri létrehozását is), ami később, más
+    AppTest-alapú teszteknél hamis "DeltaGeneratorSingleton instance already
+    exists!" hibát okozott. A `monkeypatch.delitem` ugyanazt a hatást éri el
+    a teszt idejére, de a teszt végén garantáltan visszaállítja a
+    `sys.modules["streamlit"]` bejegyzést — tesztinfrastruktúra-javítás,
+    a `load_biblical_routes()` termékkódot nem érinti."""
+    monkeypatch.delitem(sys.modules, "streamlit", raising=False)
     routes = load_biblical_routes()
     assert routes
     assert "streamlit" not in sys.modules
