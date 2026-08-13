@@ -417,6 +417,63 @@ cím végéhez fűzve (pl. TILOS: "(v. 6-7)", "(3-7. versek)", "**1. Az
 önmegüresítés (v. 6-8)**"). A cím maga (a sorszám + félkövér tartalmi
 cím) SOSEM tartalmaz versszámot.
 
+A FORDULÓPONT-ALAPÚ EXPOZITÍV MODELL — A KANONIKUS FELISMERÉSI ÍV:
+
+Az Igehirdetési műhelyben ez az EGYETLEN homiletikai modell (nem egy a
+választható úttípusok közül). Hét egymásra épülő eleme:
+
+1. BELÉPÉS — kérdés, kép, élethelyzet, tapasztalat vagy közvetlenül a
+   textusból fakadó feszültség, amely bevonja a hallgatót: a textus
+   kérdése valamilyen módon az ő kérdése is.
+2. ALAPHELYZET — a textus saját kiinduló feszültsége: konfliktus, hiány,
+   kérdés, paradoxon, félreértés, emberi helyzet vagy teológiai probléma.
+3. ELSŐ FORDULÓPONT — felismerés, amely módosítja az addigi értelmezést
+   (nem pusztán új információ: megváltozik, ahogyan a hallgató a
+   helyzetet látja).
+4. MÉLYÍTÉS ÉS FOKOZÁS — a kérdés összetettebbé válik, nő a tét; minden
+   új mozzanat tovább viszi a gondolatmenetet (ha egy rész nem mélyíti a
+   kérdést, kitérő, nem tartozik ide).
+5. ÁTÉRTELMEZÉS (OPCIONÁLIS) — csak akkor, ha a jóváhagyott anyag vagy a
+   textus valóban indokolja: a textus nem úgy oldja fel a kérdést,
+   ahogyan ösztönösen várnánk (váratlan fordulat, paradoxon, korrekció).
+   Ha nincs hozzá jóváhagyott tartalom, KIHAGYANDÓ — ne találj ki egyet.
+6. MÁSODIK FORDULÓPONT — a teológiai súlypont: az addigi részletek
+   mélyebb, gyakran krisztológiai/evangéliumi összefüggésben állnak
+   össze; Isten cselekvése kerül az emberi teljesítmény elé.
+7. MEGÉRKEZÉS — nem puszta összefoglalás: hogyan változott meg a kiinduló
+   kérdés értelme, és mit jelent ez a hallgató számára (hitbeli
+   felismerés, reménység, döntés vagy gyakorlati következmény — nem
+   kötelező közvetlen felszólítással zárni).
+
+Rövid alak: Belépés → Alaphelyzet → Első fordulópont → Mélyítés és fokozás
+→ (opcionális Átértelmezés) → Második fordulópont → Megérkezés.
+
+BESZÉDEGYSÉGEK SZÁMA, ÍV ÉS ÁTVEZETÉS:
+A vázlat 2–3, EGYMÁSBÓL KÖVETKEZŐ beszédegységből álljon — a hét elemből
+SZINTETIZÁLVA, nem hét külön címsorként kimásolva. Egy tipikus felosztás
+(nem kötelező forma): 1. egység = Belépés+Alaphelyzet+Első fordulópont,
+2. egység = Mélyítés és fokozás (+ Átértelmezés, ha van), 3. egység =
+Második fordulópont+Megérkezés — de a tényleges egységhatárokat mindig a
+textus és a jóváhagyott anyag indokolja, nem ez a séma. Csak akkor legyen
+3 egység, ha a jóváhagyott anyag valóban külön egységet indokol — ne
+erőltess harmadikat. Minden beszédegység tartalmazza: rövid, tartalmi
+címet; egy egyértelmű központi állítást (lehetőleg az egység elején); a
+szükséges exegetikai-teológiai anyagot mondatba ágyazva; konkrét hallgatói
+kapcsolódást; és — az utolsó egység kivételével — egy világos ÁTVEZETŐ
+mondatot vagy félmondatot, amely megmutatja, HOGYAN visz tovább a
+gondolatmenet a következő egységbe (ne csak "másodszor" jellegű technikai
+összekötő szót használj, hanem tartalmi hidat).
+TILOS a hét jóváhagyott modellelemet (belépés, alaphelyzet, első
+fordulópont, mélyítés és fokozás, átértelmezés, második fordulópont,
+megérkezés) egy az egyben, egymás mellé rendelt pontokként lemásolni —
+ezek a FELISMERÉSI ÍV vázát adják, nem a végleges tagolást. A
+beszédegységeknek érzékelhetően követniük és megőrizniük kell ezt a
+jóváhagyott felismerési ívet (a belépéstől a megérkezésig, honnan hová jut
+el a hallgató a textus mentén), de a tényleges egységhatárokat a textus és
+a jóváhagyott anyag tartalma indokolja — ne állíts be mesterséges
+fordulópontot vagy átértelmezést olyan helyen, ahol nincs hozzá jóváhagyott
+tartalom.
+
 SZIGORÚAN TILOS:
 - markdown-fejléc szintaxis ("#", "##", "###") bárhol a fő cím során
   kívül,
@@ -469,6 +526,13 @@ _BACKGROUND_BUNDLE_KEYS: tuple[str, ...] = (
     "theology_status",
     "history",
     "history_status",
+    # Korrekciós fázis 3.1: korábban hiányzott innen — a Textusösszegzés
+    # (jóváhagyva is) SOSEM jutott el a vázlatmotor promptjáig, mert ez a
+    # tuple nem tartalmazta (ld. audit). Az `actualization` szintén új.
+    "text_summary",
+    "text_summary_status",
+    "actualization",
+    "actualization_status",
     "approved_sermon_decisions",
     "approved_insights",
     "sermon_main_idea",
@@ -479,6 +543,8 @@ _BACKGROUND_BUNDLE_KEYS: tuple[str, ...] = (
     "human_condition_status",
     "listener_tension",
     "listener_tension_status",
+    "entry_point",
+    "entry_point_status",
     "christ_centered_arc",
     "christ_centered_arc_status",
     "sermon_path",
@@ -486,6 +552,10 @@ _BACKGROUND_BUNDLE_KEYS: tuple[str, ...] = (
     "sermon_movements",
     "closing",
     "closing_status",
+    # Elemenként előre jóváhagyott lista (a szűrés a bundle-építéskor,
+    # collect_outline_context_bundle-ben történik) — itt ungate-elve
+    # megy át, mint approved_sermon_decisions/approved_insights.
+    "engagement_elements",
     "user_notes",
     "rapid_evidence",
     "language_notes",
@@ -495,20 +565,56 @@ _BACKGROUND_BUNDLE_KEYS: tuple[str, ...] = (
 # Ezekre a kulcsokra a MEGLÉVŐ session_state-beli draft/approved státusz
 # (a "Jóváhagyom és átadom" gomb) ténylegesen kikényszerítendő — csak
 # approved állapotban kerülnek a vázlatmotor promptjába.
-_APPROVAL_GATED_KEYS: frozenset[str] = frozenset(
+# Korrekciós fázis 3.1 (automatikus/kanonikus forrás-hozzáférés): a korábbi
+# egységes `_APPROVAL_GATED_KEYS` két, eltérő szabályú csoportra vált szét.
+#
+# `_HOMILETICAL_DECISION_KEYS` — igehirdetési DÖNTÉSEK (az Igehirdetési
+# műhely saját szerkesztőfelületei). Ezeknél VÁLTOZATLANUL approval ÉS
+# freshness szükséges — ezt a fázist ez nem érinti (a döntések jóváhagyási
+# mechanizmusa külön kérdés, ld. audit 8. termékszabály).
+_HOMILETICAL_DECISION_KEYS: frozenset[str] = frozenset(
     {
         "sermon_main_idea",
-        "text_main_idea",
         "human_condition",
         "listener_tension",
+        "entry_point",
         "christ_centered_arc",
         "sermon_path",
+        # A mozgások ("A prédikáció íve" első látásváltás / mélyítés
+        # tartalma is részben innen jön) ugyanazon a felületen, ugyanazzal
+        # a gombbal kerülnek jóváhagyásra, mint a sermon_path — a
+        # jóváhagyási állapotukat a bundle-építő (collect_outline_context_
+        # bundle) a sermon_path-éból tükrözi, ezért itt is gate-elve vannak.
+        "sermon_movements",
         "closing",
+    }
+)
+
+# `_CANONICAL_TEXTUS_SOURCE_KEYS` — a Textusműhely háttérforrásai. Ezeknél
+# a jóváhagyás (mezőnkénti "Jóváhagyom és átadom" kattintás) TÖBBÉ NEM
+# feltétel: elég, hogy a tartalom nem üres és az AKTUÁLIS igehelyhez/
+# szöveghez készült (nem "stale" — ld. `_canonical_source_is_usable`).
+# Ez zárja le azt a — a kézi tesztben és az adatfolyam-auditban (ld.
+# TEXTUS_IGEHIRDETESI_MUHELY_ADATFOLYAM_AUDIT.md 4. pont) dokumentált —
+# helyzetet, hogy elkészült exegézis/kortörténet/teológia/eredeti szöveg a
+# külön jóváhagyás elmaradása miatt láthatatlan maradt a vázlatmotor előtt.
+_CANONICAL_TEXTUS_SOURCE_KEYS: frozenset[str] = frozenset(
+    {
+        "text_main_idea",
         "exegesis",
         "theology",
         "history",
         "original_text",
+        "text_summary",
+        "actualization",
     }
+)
+
+# Visszafelé kompatibilis unió — a régi kódrészek (pl. `used_module_ids` a
+# `generate_sermon_outline`-ban) ugyanazt a teljes halmazt kapják, mint
+# korábban; csak a BELSŐ szűrési szabály vált szét kulcscsoportonként.
+_APPROVAL_GATED_KEYS: frozenset[str] = (
+    _HOMILETICAL_DECISION_KEYS | _CANONICAL_TEXTUS_SOURCE_KEYS
 )
 
 _GATED_KEY_LABELS: dict[str, str] = {
@@ -516,22 +622,26 @@ _GATED_KEY_LABELS: dict[str, str] = {
     "text_main_idea": "Textus fő gondolata",
     "human_condition": "Emberi állapot / helyzet",
     "listener_tension": "Hallgatói feszültség",
+    "entry_point": "Homiletikai belépési pont",
     "christ_centered_arc": "Krisztus-központú ív",
     "sermon_path": "Igehirdetés útja",
+    "sermon_movements": "Prédikációs mozgások",
     "closing": "Lezárás",
     "exegesis": "Exegézis",
     "theology": "Teológia",
     "history": "Kortörténet",
     "original_text": "Eredeti nyelvi elemzés",
+    "text_summary": "Textusösszegzés",
+    "actualization": "Aktualizálás",
 }
 
-# A 4 fő AI-blokknál (exegesis/theology/history/original_text) a kimaradás
-# okát megkülönböztetjük: "sosem lett jóváhagyva" vs. "a jóváhagyás
-# vissza lett vonva / a tartalom megváltozott azóta" — ez a felhasználói
-# tudatosságot segíti, nem befolyásolja magát a szűrést.
-_NEVER_VS_REVOKED_TRACKED_KEYS: frozenset[str] = frozenset(
-    {"exegesis", "theology", "history", "original_text"}
-)
+# Korrekciós fázis 3.1 óta a Textusműhely 4 fő háttérforrása
+# (exegesis/theology/history/original_text) már nem approval-gated — a
+# "sosem lett jóváhagyva" megkülönböztetés rájuk nézve nem értelmezhető
+# többé, ezért ez a halmaz üres. A függvény (`extract_never_approved_
+# main_blocks`) és a mögöttes mechanizmus megmarad — ha a jövőben ismét
+# lenne approval-gated "fő AI-blokk", ide kerülne vissza.
+_NEVER_VS_REVOKED_TRACKED_KEYS: frozenset[str] = frozenset()
 
 _CORE_PASSAGE_KEYS: tuple[str, ...] = (
     "passage_reference",
@@ -1610,19 +1720,106 @@ def _block_is_stale(bundle: Mapping[str, Any], base_key: str) -> bool:
 
 def _block_is_approved_and_fresh(bundle: Mapping[str, Any], base_key: str) -> bool:
     """True, ha a blokk approved ÉS (nincs mentett hash VAGY a mentett hash
-    megegyezik az aktuálissal) — azaz ténylegesen felhasználható."""
+    megegyezik az aktuálissal) — azaz ténylegesen felhasználható.
+
+    Kizárólag `_HOMILETICAL_DECISION_KEYS` tagjaira érvényes szabály."""
     if _s(bundle.get(f"{base_key}_status")) != "approved":
         return False
     return not _block_is_stale(bundle, base_key)
 
 
+def _canonical_source_is_stale(bundle: Mapping[str, Any], base_key: str) -> bool:
+    """True, ha a Textusműhely-forráshoz mentett igehely/szöveg-ujjlenyomat
+    ELTÉR az aktuálistól — azaz a tartalom más textushoz készült.
+
+    Jóváhagyási státusztól FÜGGETLEN ellenőrzés (Korrekciós fázis 3.1) — a
+    hash-t a tartalom GENERÁLÁSAKOR/MENTÉSEKOR bélyegzi be a hívó (ld.
+    `app.py::render_section_tab`, `textus_workshop_data.update_text_main_idea`
+    / `update_text_summary_fields`), nem csak jóváhagyáskor. Ha nincs mentett
+    ujjlenyomat (pl. régi projekt, a mechanizmus bevezetése előtti mentés),
+    NEM tekintjük stale-nek — visszafelé-kompatibilitás."""
+    saved_hash = _s(bundle.get(f"{base_key}_approved_context_hash"))
+    if not saved_hash:
+        return False
+    return saved_hash != compute_passage_context_hash(bundle)
+
+
+def _canonical_source_is_usable(bundle: Mapping[str, Any], base_key: str) -> bool:
+    """True, ha a Textusműhely-forrás felhasználható a vázlatmotor
+    kontextusában: van tartalma (a hívó ellenőrzi) és nem stale — a
+    jóváhagyási állapot NEM feltétel."""
+    return not _canonical_source_is_stale(bundle, base_key)
+
+
+def _block_is_context_ready(bundle: Mapping[str, Any], base_key: str) -> bool:
+    """Egyetlen belépési pont mindkét kulcscsoport felhasználhatóság-
+    ellenőrzéséhez — ezt hívja mind a normál (AI) út
+    (`extract_outline_background_material`), mind a fallback út
+    (`_gated_fallback_bundle`), így a kettő garantáltan ugyanazt látja."""
+    if base_key in _HOMILETICAL_DECISION_KEYS:
+        return _block_is_approved_and_fresh(bundle, base_key)
+    if base_key in _CANONICAL_TEXTUS_SOURCE_KEYS:
+        return _canonical_source_is_usable(bundle, base_key)
+    return True
+
+
+def collect_canonical_source_material(bundle: Mapping[str, Any]) -> dict[str, Any]:
+    """Egyetlen kanonikus forrásgyűjtő a Textusműhely háttérforrásaihoz
+    (Korrekciós fázis 3.1 — TEXTUS_IGEHIRDETESI_MUHELY_ADATFOLYAM_AUDIT.md).
+
+    A már összeállított `bundle`-ből (ld. `collect_outline_context_bundle`)
+    strukturáltan adja vissza:
+      - `passage`: igehely, bibliai szöveg, fordítás;
+      - `sources`: a `_CANONICAL_TEXTUS_SOURCE_KEYS` közül azok, amiknek van
+        tartalmuk — mindegyikhez `content`, `origin` ("textusműhely"),
+        `editable_by_user` (mindig True — a felhasználó bármikor felülírhatja)
+        és `current_passage` (a friss/stale ellenőrzés eredménye, ld.
+        `_canonical_source_is_usable`);
+      - `user_notes`: a vázlatkosár jegyzetei;
+      - `identity`: az aktuális igehely-ujjlenyomat, a stale-ellenőrzés alapja.
+
+    Ezt a struktúrát ma az `extract_outline_background_material` (normál
+    AI-út) és a `_gated_fallback_bundle` (heurisztikus fallback-út) is a
+    `_block_is_context_ready` dispatcheren keresztül, közvetve használja —
+    így mindkét út garantáltan ugyanazt a forráskészletet látja. Önálló
+    hívásra (pl. UI-diagnosztika, "Felhasznált források" panel) is alkalmas.
+    """
+    sources: dict[str, dict[str, Any]] = {}
+    for base_key in sorted(_CANONICAL_TEXTUS_SOURCE_KEYS):
+        value = bundle.get(base_key)
+        if not _background_value_is_usable(value):
+            continue
+        sources[base_key] = {
+            "content": value,
+            "origin": "textusműhely",
+            "editable_by_user": True,
+            "current_passage": _canonical_source_is_usable(bundle, base_key),
+        }
+    return {
+        "passage": {
+            "reference": _s(bundle.get("passage_reference")),
+            "text": _s(bundle.get("passage_text")),
+            "translation": _s(bundle.get("bible_translation")),
+        },
+        "sources": sources,
+        "user_notes": bundle.get("outline_basket") or [],
+        "identity": {
+            "passage_reference": _s(bundle.get("passage_reference")),
+            "passage_context_hash": compute_passage_context_hash(bundle),
+        },
+    }
+
+
 def extract_outline_background_material(bundle: Mapping[str, Any]) -> dict[str, Any]:
     """Érdemi háttéranyagok (exegézis, nyelv, kortörténet, műhelydöntések…).
 
-    A `_APPROVAL_GATED_KEYS`-ben szereplő kulcsok csak akkor kerülnek be, ha a
-    hozzájuk tartozó `<kulcs>_status` mező "approved" ÉS a jóváhagyáskori
-    igehely/szöveg-ujjlenyomat (`<kulcs>_approved_context_hash`) megegyezik
-    az aktuálissal (nincs STALE). Minden más kulcs változatlanul megy át.
+    Két szabály érvényesül `base_key` csoportja szerint (`_block_is_context_
+    ready`): a `_HOMILETICAL_DECISION_KEYS` tagjai csak approved+friss
+    állapotban kerülnek be (változatlan, ld. `_block_is_approved_and_fresh`);
+    a `_CANONICAL_TEXTUS_SOURCE_KEYS` (Textusműhely-források) csak friss
+    állapotot igényelnek, jóváhagyás nélkül is bekerülnek (Korrekciós fázis
+    3.1, ld. `collect_canonical_source_material`). Minden más kulcs
+    változatlanul megy át.
     """
     background: dict[str, Any] = {}
     for key in _BACKGROUND_BUNDLE_KEYS:
@@ -1630,7 +1827,7 @@ def extract_outline_background_material(bundle: Mapping[str, Any]) -> dict[str, 
             continue
         base_key = key[: -len("_status")] if key.endswith("_status") else key
         if base_key in _APPROVAL_GATED_KEYS:
-            if not _block_is_approved_and_fresh(bundle, base_key):
+            if not _block_is_context_ready(bundle, base_key):
                 continue
         value = bundle.get(key)
         if _background_value_is_usable(value):
@@ -1638,25 +1835,64 @@ def extract_outline_background_material(bundle: Mapping[str, Any]) -> dict[str, 
     return background
 
 
+def _gated_fallback_bundle(bundle: Mapping[str, Any]) -> dict[str, Any]:
+    """A bundle másolata, amelyben az `_APPROVAL_GATED_KEYS` blokkok
+    KIZÁRÓLAG felhasználható (`_block_is_context_ready`) állapotban maradnak
+    meg — draft/stale/soha jóvá nem hagyott HOMILETIKAI döntés, illetve
+    stale Textusműhely-forrás itt eltávolítódik.
+
+    Ezt használja mindkét vázlat-összeállítási fallback útvonal
+    (`build_outline_from_workshop` és `_heuristic_structured_from_bundle`),
+    hogy ugyanazt a kontextust lássák, mint a normál (AI-generálásos)
+    útvonal `extract_outline_background_material()`-en keresztül — a
+    Korrekciós fázis 3.1 óta ugyanazzal a `_block_is_context_ready`
+    dispatcherrel, tehát a Textusműhely-forrásoknál is egységesen. Az összes
+    NEM gated kulcs (igehely, bibliai szöveg, jóváhagyott felismerések/
+    döntések, illusztrációk stb. — ezek saját gate-jükkel már a
+    `collect_outline_context_bundle`-ben szűrve vannak) változatlanul átmegy.
+    """
+    out = dict(bundle)
+    for base_key in _APPROVAL_GATED_KEYS:
+        if base_key not in out:
+            continue
+        if not _block_is_context_ready(bundle, base_key):
+            out.pop(base_key, None)
+            out.pop(f"{base_key}_status", None)
+            out.pop(f"{base_key}_approved_context_hash", None)
+    return out
+
+
 def extract_stale_approved_blocks(bundle: Mapping[str, Any]) -> list[str]:
-    """Mely `_APPROVAL_GATED_KEYS` blokkok voltak jóváhagyva, de az igehely
-    vagy a bibliai szöveg megváltozott azóta — a jóváhagyást újra meg kell
-    erősíteni, mielőtt a vázlatmotor felhasználná őket."""
+    """Mely blokkok tartalma más igehelyhez/szöveghez készült, mint az
+    aktuális — a homiletikai döntéseknél ("_HOMILETICAL_DECISION_KEYS")
+    ez azt jelenti, hogy a jóváhagyást újra meg kell erősíteni; a
+    Textusműhely-forrásoknál ("_CANONICAL_TEXTUS_SOURCE_KEYS", Korrekciós
+    fázis 3.1 óta) jóváhagyás nélkül is figyelmeztető jelzés, hogy a
+    tartalom frissítésre szorulhat, de NEM zárja ki automatikusan — ld.
+    `_block_is_context_ready`."""
     stale: list[str] = []
     for key in _APPROVAL_GATED_KEYS:
         value = bundle.get(key)
         if not _background_value_is_usable(value):
             continue
-        if _block_is_stale(bundle, key):
+        if key in _HOMILETICAL_DECISION_KEYS:
+            is_stale = _block_is_stale(bundle, key)
+        else:
+            is_stale = _canonical_source_is_stale(bundle, key)
+        if is_stale:
             stale.append(_GATED_KEY_LABELS.get(key, key))
     return stale
 
 
 def extract_outline_excluded_draft_blocks(bundle: Mapping[str, Any]) -> list[str]:
-    """Mely `_APPROVAL_GATED_KEYS` blokkoknak van tartalma, de a session_state
-    szerint nincsenek jóváhagyva — ezek maradnak ki emiatt a háttéranyagból."""
+    """Mely `_HOMILETICAL_DECISION_KEYS` blokkoknak van tartalma, de a
+    session_state szerint nincsenek jóváhagyva — ezek maradnak ki emiatt a
+    háttéranyagból. A `_CANONICAL_TEXTUS_SOURCE_KEYS` (Textusműhely-
+    források) a Korrekciós fázis 3.1 óta jóváhagyás nélkül is bekerülnek,
+    ezért itt nem szerepelnek — hiányuk nem "kizárás", legfeljebb hiányzó
+    tartalom (ld. `collect_canonical_source_material`)."""
     excluded: list[str] = []
-    for key in _APPROVAL_GATED_KEYS:
+    for key in _HOMILETICAL_DECISION_KEYS:
         value = bundle.get(key)
         if not _background_value_is_usable(value):
             continue
@@ -2236,7 +2472,15 @@ def _heuristic_structured_from_bundle(
     a mentőöv.
 
     HTML-töredékek szűrve (`_strip_html`); az ismétlődő sablonmondat hiba
-    a `_distinct_layer()`-ben lett javítva, nem itt."""
+    a `_distinct_layer()`-ben lett javítva, nem itt.
+
+    Az `_APPROVAL_GATED_KEYS` blokkokat (emberi helyzet, hallgatói
+    feszültség, belépési pont, evangéliumi ív, prédikáció útja, lezárás,
+    mozgások, exegézis/teológia/kortörténet/eredeti szöveg, fő gondolat)
+    `_gated_fallback_bundle()` szűri jóváhagyott-és-friss állapotra,
+    mielőtt bármi felhasználásra kerülne — a heurisztikus mentőöv sem
+    olvashat draft/stale/soha-jóvá-nem-hagyott tartalmat."""
+    bundle = _gated_fallback_bundle(bundle)
     from sermon_workshop_outline_ai import _prefer_main_idea, _truncate, _usable_text
 
     data = empty_structured_outline()
@@ -2285,10 +2529,16 @@ def _heuristic_structured_from_bundle(
 
     lt_raw = bundle.get("listener_tension")
     path_raw = bundle.get("sermon_path")
+    entry_raw = bundle.get("entry_point")
     lt = lt_raw if isinstance(lt_raw, dict) else {}
     path = path_raw if isinstance(path_raw, dict) else {}
+    entry = entry_raw if isinstance(entry_raw, dict) else {}
+    # A modell 1. eleme (Belépés) elsőbbséget élvez az Alaphelyzet (2. elem)
+    # felett — a Belépés a hallgató bevonása, az Alaphelyzet a textus saját
+    # kiinduló feszültsége; a bevezető irány a Belépésből induljon, ha van.
     intro = (
-        _usable_text(path.get("starting_point"))
+        _usable_text(entry.get("text"))
+        or _usable_text(path.get("starting_point"))
         or _usable_text(lt.get("listener_question"))
         or (
             (
@@ -2409,7 +2659,10 @@ def _heuristic_structured_from_bundle(
             # Csonka ellipsis fixture: legalább egy használható egység
             label, body = verse_chunks[0]
             units = [(label, _body_usable(body) or "A textus Isten szavát szólítja a hallgatóhoz.")]
-        n = min(max(len(units), 2), LIMITS["max_points"])
+        # A fordulópont-alapú modellben 2-3 beszédegység a cél — ez csak
+        # ezt az elsődleges (mozgás-lista nélküli) ágat szűkíti, a legacy
+        # `sermon_movements`-ből építő ágat és a globális LIMITS-et nem.
+        n = min(max(len(units), 2), min(LIMITS["max_points"], 3))
         if len(units) == 1:
             sents = _split_sentences(units[0][1])
             if len(sents) >= 2:
@@ -2541,7 +2794,17 @@ def _heuristic_structured_from_bundle(
                 }
             )
 
-    data["points"] = points[: LIMITS["max_points"]]
+    points = points[: LIMITS["max_points"]]
+    # Átvezetés a következő beszédegységhez — a heurisztikus mentőöv sem
+    # hagyhatja pusztán egymás mellé rendelt pontként a beszédegységeket;
+    # `render_structured_outline` már beolvassa a `transition` mezőt, ha
+    # van (ld. fentebb), ezért itt csak a hiányzót töltjük ki, tartalmi
+    # állítás kitalálása nélkül, a következő pont saját címére hivatkozva.
+    for i in range(len(points) - 1):
+        if not _s(points[i].get("transition")):
+            next_title = _s(points[i + 1].get("title")) or "a következő gondolat"
+            points[i]["transition"] = f"Innen vezet tovább a gondolat: {next_title.rstrip('.')}."
+    data["points"] = points
     closing_raw = bundle.get("closing")
     arc_raw = bundle.get("christ_centered_arc")
     closing = closing_raw if isinstance(closing_raw, dict) else {}
@@ -3301,7 +3564,8 @@ def generate_sermon_outline(
     if stale_approved_blocks:
         warnings.append(
             "Ezeknél a blokkoknál megváltozott az igehely vagy a bibliai "
-            "szöveg a jóváhagyás óta, ezért újra jóvá kell hagyni: "
+            "szöveg azóta, hogy a tartalom készült — ellenőrizd vagy "
+            "frissítsd, mielőtt a vázlatmotor felhasználná őket: "
             + ", ".join(stale_approved_blocks) + "."
         )
     background_material = extract_outline_background_material(bundle)

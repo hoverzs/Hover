@@ -21,6 +21,7 @@ from sermon_workshop_data import (
     get_default_sermon_workshop,
     normalize_sermon_workshop,
     save_sermon_outline,
+    update_sermon_workshop_section,
 )
 from sermon_workshop_outline_ai import (
     PROVISIONAL_NOTICE,
@@ -88,8 +89,8 @@ def test_c_textus_plus_sermon_main_idea_no_m5_m9():
         exegesis="Exegézis röviden.",
     )
     state[TEXT_WORKSHOP_KEY]["text_main_idea"] = "Textus fő gondolat"
-    state[SERMON_WORKSHOP_KEY]["sermon_main_idea"] = "Igehirdetési fő gondolat"
-    state[SERMON_WORKSHOP_KEY]["sermon_main_idea_status"] = "draft"
+    update_sermon_workshop_section(state, "sermon_main_idea", "Igehirdetési fő gondolat")
+    update_sermon_workshop_section(state, "sermon_main_idea_status", "approved")
     result = assemble_sermon_outline(state, generate_fn=None)
     assert result.ok
     assert result.outline["main_idea"] == "Igehirdetési fő gondolat"
@@ -103,7 +104,8 @@ def test_d_own_idea_and_notes():
         passage_text="Rövid bibliai szöveg a keresztről.",
         last_sajat="A kereszt a szeretet jele a gyülekezetnek.",
     )
-    state[SERMON_WORKSHOP_KEY]["sermon_main_idea"] = "Saját fő gondolat a keresztről"
+    update_sermon_workshop_section(state, "sermon_main_idea", "Saját fő gondolat a keresztről")
+    update_sermon_workshop_section(state, "sermon_main_idea_status", "approved")
     result = assemble_sermon_outline(state, generate_fn=None)
     assert result.ok
     assert "Saját fő gondolat" in result.outline["main_idea"]
@@ -155,7 +157,8 @@ def test_h_no_lection_or_prayer_hidden():
 
 def test_i_no_closing_module_gets_provisional():
     state = _base_state(passage_text="Textus.")
-    state[SERMON_WORKSHOP_KEY]["sermon_main_idea"] = "Fő gondolat lezárás nélkül"
+    update_sermon_workshop_section(state, "sermon_main_idea", "Fő gondolat lezárás nélkül")
+    update_sermon_workshop_section(state, "sermon_main_idea_status", "approved")
     outline = build_outline_from_workshop(state)
     assert outline["closing"]["final_insight"]
     assert "closing" in (outline.get("provisional_sections") or [])
@@ -237,8 +240,10 @@ def test_m_save_reload_partial_outline():
 def test_n_project_switch_isolation():
     a = _base_state(passage_text="A", last_igehely="Jn 1,1")
     b = _base_state(passage_text="B", last_igehely="Jn 2,1")
-    a[SERMON_WORKSHOP_KEY]["sermon_main_idea"] = "Projekt A"
-    b[SERMON_WORKSHOP_KEY]["sermon_main_idea"] = "Projekt B"
+    update_sermon_workshop_section(a, "sermon_main_idea", "Projekt A")
+    update_sermon_workshop_section(a, "sermon_main_idea_status", "approved")
+    update_sermon_workshop_section(b, "sermon_main_idea", "Projekt B")
+    update_sermon_workshop_section(b, "sermon_main_idea_status", "approved")
     oa = assemble_sermon_outline(a, generate_fn=None).outline
     ob = assemble_sermon_outline(b, generate_fn=None).outline
     save_sermon_outline(a, oa)

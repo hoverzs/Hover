@@ -19,6 +19,7 @@ from sermon_workshop_data import (
     ensure_sermon_workshop_state,
     normalize_sermon_outline,
     save_sermon_outline,
+    update_sermon_workshop_section,
 )
 from sermon_workshop_outline_ai import (
     assemble_sermon_outline,
@@ -43,25 +44,41 @@ def session(monkeypatch):
 
 
 def _partial_workshop(state: dict) -> None:
+    """"Partial" itt azt jelenti: nem minden M4-M9 lépés van kitöltve —
+    de ami ki van töltve (fő gondolat, hallgatói feszültség, evangéliumi
+    ív), az jóváhagyott. Jóváhagyás nélkül a Korrekciós fázis 2C
+    approval-gate-je ezeket kizárná a vázlatból (ld. sermon_outline_engine
+    `_gated_fallback_bundle`)."""
     ensure_sermon_workshop_state(state)
-    sw = state[SERMON_WORKSHOP_KEY]
-    sw["sermon_main_idea"] = "Isten kegyelme megújítja a fáradt szívet."
-    sw["sermon_main_idea_status"] = "draft"
-    sw["listener_tension"] = {
-        "listener_question": "Miért nem elég a saját erőnk?",
-        "sermon_tension": "A fáradtság és a kegyelem feszültsége",
-        "listener_resistance": "Mégis magunkat erőltetjük",
-        "promised_resolution": "Krisztus pihenést ad",
-    }
-    sw["christ_centered_arc"] = {
-        "divine_gracious_action": "Isten eljön a fáradthoz",
-        "christ_connection": "Mt 11,28",
-        "christ_connection_type": "direct",
-        "grace_enabled_response": "Elfogadni a pihenést",
-    }
     state["last_igehely"] = "Mt 11,28–30"
     state["passage_reference"] = "Mt 11,28–30"
     state["passage_text"] = "Jöjjetek énhozzám mindnyájan..."
+    update_sermon_workshop_section(
+        state, "sermon_main_idea", "Isten kegyelme megújítja a fáradt szívet."
+    )
+    update_sermon_workshop_section(state, "sermon_main_idea_status", "approved")
+    update_sermon_workshop_section(
+        state,
+        "listener_tension",
+        {
+            "listener_question": "Miért nem elég a saját erőnk?",
+            "sermon_tension": "A fáradtság és a kegyelem feszültsége",
+            "listener_resistance": "Mégis magunkat erőltetjük",
+            "promised_resolution": "Krisztus pihenést ad",
+        },
+    )
+    update_sermon_workshop_section(state, "listener_tension_status", "approved")
+    update_sermon_workshop_section(
+        state,
+        "christ_centered_arc",
+        {
+            "divine_gracious_action": "Isten eljön a fáradthoz",
+            "christ_connection": "Mt 11,28",
+            "christ_connection_type": "direct",
+            "grace_enabled_response": "Elfogadni a pihenést",
+        },
+    )
+    update_sermon_workshop_section(state, "christ_centered_arc_status", "approved")
 
 
 def test_partial_workshop_builds_nonempty_outline(session):

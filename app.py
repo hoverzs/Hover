@@ -44,8 +44,8 @@ from textus_workshop_data import (
 )
 from textus_workshop_ui import (
     flush_textus_workshop_from_widgets,
-    render_approved_insights_section,
     render_text_main_idea_section,
+    render_text_summary_section,
 )
 from sermon_workshop_data import (
     SERMON_WORKSHOP_KEY,
@@ -57,9 +57,7 @@ from sermon_workshop_ui import flush_sermon_workshop_from_widgets, render_sermon
 from workshop_nav_ui import (
     render_app_toolbar,
     render_quick_tools_tabs,
-    render_workshop_workflow_nav,
     render_workspace_switcher,
-    textus_completed_sections,
 )
 from ui_components import (
     action_row,
@@ -4539,6 +4537,19 @@ def render_section_tab(
                     generate_section(key)
                     if approvable:
                         st.session_state[f"{key}_status"] = "draft"
+                    # Korrekciós fázis 3.1: az ujjlenyomat GENERÁLÁSKOR
+                    # bélyegződik be, nem csak jóváhagyáskor — ez teszi
+                    # lehetővé, hogy a vázlatmotor a tartalmat approval
+                    # nélkül is felismerje "az aktuális textushoz tartozó,
+                    # friss" forrásként (ld. sermon_outline_engine.
+                    # _canonical_source_is_usable).
+                    from sermon_outline_engine import (
+                        compute_current_passage_context_hash,
+                    )
+
+                    st.session_state[f"{key}_approved_context_hash"] = (
+                        compute_current_passage_context_hash(st.session_state)
+                    )
                 finally:
                     st.session_state[running_flag] = False
                 st.rerun()
@@ -7285,45 +7296,7 @@ _render_project_status_bar()
 # NÉZETVÁLTÓ (Gyorseszközök / Textusműhely) — M0 Lépés 3
 # =========================================================
 
-_TW_SECTION_OPTIONS = [
-    "Igehely, alkalom és szövegkörnyezet",
-    "Eredeti szöveg és kulcsszavak",
-    "Exegézis, műfaj és szerkezet",
-    "Kortörténeti háttér",
-    "Teológiai hangsúlyok",
-    "A textus fő gondolata",
-    "Mit viszünk tovább?",
-]
-
-# Visszafogott, nem kötelező következő-lépés szöveg (nincs navigáció / gomb).
-_TW_NEXT_STEP_HINTS: dict[str, str] = {
-    "Igehely, alkalom és szövegkörnyezet": (
-        "Következő ajánlott lépés: Eredeti szöveg vagy Exegézis"
-    ),
-    "Eredeti szöveg és kulcsszavak": (
-        "Következő ajánlott lépés: Exegézis, műfaj és szerkezet"
-    ),
-    "Exegézis, műfaj és szerkezet": (
-        "Következő ajánlott lépés: A textus fő gondolata"
-    ),
-    "Kortörténeti háttér": (
-        "Következő ajánlott lépés: Teológiai hangsúlyok vagy A textus fő gondolata"
-    ),
-    "Teológiai hangsúlyok": (
-        "Következő ajánlott lépés: A textus fő gondolata"
-    ),
-    "A textus fő gondolata": (
-        "Következő ajánlott lépés: Mit viszünk tovább?"
-    ),
-}
-
-# Régi szakaszfelirat → új (session / mentett UI-állapot migrációja)
-_TW_SECTION_LABEL_ALIASES = {
-    "A textus nagy gondolata": "A textus fő gondolata",
-}
-
 _UI_MODE_LABELS = {
-    "quick": "Gyorseszközök",
     "workshop": "Textusműhely",
     "sermon_workshop": "Igehirdetési műhely",
 }
@@ -7526,6 +7499,15 @@ def render_original_text_panel() -> None:
                     finally:
                         st.session_state["_original_running"] = False
                     st.session_state["original_text_status"] = "draft"
+                    # Korrekciós fázis 3.1: generáláskori ujjlenyomat, ld.
+                    # render_section_tab ugyanezen mintája.
+                    from sermon_outline_engine import (
+                        compute_current_passage_context_hash,
+                    )
+
+                    st.session_state["original_text_approved_context_hash"] = (
+                        compute_current_passage_context_hash(st.session_state)
+                    )
                     st.rerun()
 
         if st.session_state.get("original_text"):
@@ -7593,81 +7575,8 @@ def render_original_text_panel() -> None:
                     st.rerun()
 
 
-def render_textus_workshop_shell() -> None:
-    """Textusműhely-keret: elemző szakaszok + kézi fő gondolat / felismerések."""
-    render_page_intro(
-        title="Textusműhely",
-        body="A bibliai szöveg feltárása a textus fő gondolatáig.",
-        workspace_scope=True,
-    )
-
-    if st.session_state.get("tw_active_section") not in _TW_SECTION_OPTIONS:
-        alias = _TW_SECTION_LABEL_ALIASES.get(st.session_state.get("tw_active_section"))
-        if alias in _TW_SECTION_OPTIONS:
-            st.session_state["tw_active_section"] = alias
-        else:
-            st.session_state["tw_active_section"] = _TW_SECTION_OPTIONS[0]
-
-    render_workshop_workflow_nav(
-        _TW_SECTION_OPTIONS,
-        key="tw_active_section",
-        completed=textus_completed_sections(st.session_state),
-    )
-
-    active = st.session_state.get("tw_active_section") or _TW_SECTION_OPTIONS[0]
-
-    st.markdown('<div class="tx-workcard-anchor" aria-hidden="true"></div>', unsafe_allow_html=True)
-    with st.container(border=True):
-        if active == "Igehely, alkalom és szövegkörnyezet":
-            render_igehely_panel()
-        elif active == "Eredeti szöveg és kulcsszavak":
-            render_original_text_panel()
-        elif active == "Exegézis, műfaj és szerkezet":
-            render_section_tab(
-                key="exegesis",
-                header="Exegézis",
-                basket_label="Exegézis",
-                empty_msg="Még nincs exegézis. Kattints az „Exegetikai háttér feltárása” gombra.",
-                action_label="Exegetikai háttér feltárása",
-                approvable=True,
-            )
-        elif active == "Kortörténeti háttér":
-            render_section_tab(
-                key="history",
-                header="Kortörténet",
-                basket_label="Kortörténet",
-                empty_msg="Még nincs kortörténeti háttér. Kattints a „Kortörténeti háttér feltárása” gombra.",
-                action_label="Kortörténeti háttér feltárása",
-                approvable=True,
-            )
-        elif active == "Teológiai hangsúlyok":
-            render_section_tab(
-                key="theology",
-                header="Teológia",
-                basket_label="Teológia",
-                empty_msg="Még nincs teológiai elemzés. Kattints a „Teológiai összefüggések feltárása” gombra.",
-                action_label="Teológiai összefüggések feltárása",
-                approvable=True,
-            )
-        elif active == "A textus fő gondolata":
-            render_text_main_idea_section(generate_fn=generate_text)
-        elif active == "Mit viszünk tovább?":
-            render_approved_insights_section()
-        else:
-            st.info(
-                "Ez a műhelyszakasz a következő fejlesztési lépésben kapcsolódik "
-                "a meglévő Textus-funkcióhoz."
-            )
-
-        next_hint = _TW_NEXT_STEP_HINTS.get(active)
-        if next_hint:
-            st.caption(next_hint)
-
-    render_footer_and_feedback()
-
-
-if st.session_state.get("ui_mode") not in ("quick", "workshop", "sermon_workshop"):
-    st.session_state["ui_mode"] = "quick"
+if st.session_state.get("ui_mode") not in ("workshop", "sermon_workshop"):
+    st.session_state["ui_mode"] = "workshop"
 
 def _render_settings_panel() -> None:
     """Beállítások panel — fiókmenüből / shell_panel."""
@@ -8107,21 +8016,12 @@ if st.session_state.get("shell_panel") == "settings":
     st.stop()
 
 render_workspace_switcher(
-    options=["quick", "workshop", "sermon_workshop"],
+    options=["workshop", "sermon_workshop"],
     labels=_UI_MODE_LABELS,
     key="ui_mode",
 )
 
-# Textusműhely: csak a műhelykeret; a régi 13 fül ne jöjjön létre
-if st.session_state.get("ui_mode") == "workshop":
-    try:
-        track_app_navigation()
-    except Exception:
-        pass
-    render_textus_workshop_shell()
-    st.stop()
-
-# Igehirdetési műhely: csak a műhelykeret; tabok és Textusműhely ne jöjjenek létre
+# Igehirdetési műhely: csak a műhelykeret; a Textusműhely fülei ne jöjjenek létre
 if st.session_state.get("ui_mode") == "sermon_workshop":
     try:
         track_app_navigation()
@@ -8144,8 +8044,8 @@ except Exception:
     pass
 
 render_page_intro(
-    title="Gyorseszközök",
-    body="Válassz egy eszközt, és folytasd a munkát az aktuális projekttel.",
+    title="Textusműhely",
+    body="Mit mond a textus? Válassz egy eszközt, és folytasd a munkát az aktuális projekttel.",
     workspace_scope=True,
 )
 
@@ -8550,10 +8450,26 @@ with tabs[9]:
 
 
 # =========================================================
-# ÚTMUTATÁS — ARS POETICA + PROMPT GYORSSEGÉD
+# A TEXTUS FŐ GONDOLATA (a régi különálló Textusműhelyből beolvasztva)
 # =========================================================
 
 with tabs[11]:
+    render_text_main_idea_section(generate_fn=generate_text)
+
+
+# =========================================================
+# TEXTUSÖSSZEGZÉS (a régi „Mit viszünk tovább?” + új záró bundle)
+# =========================================================
+
+with tabs[12]:
+    render_text_summary_section(generate_fn=generate_text)
+
+
+# =========================================================
+# ÚTMUTATÁS — ARS POETICA + PROMPT GYORSSEGÉD
+# =========================================================
+
+with tabs[13]:
     st.header("📖 Útmutatás")
 
     st.subheader("Ars Poetica: Miért készítettem ezt az eszközt?")

@@ -17,10 +17,12 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_quick_tools_shared_render_api():
-    """Egy közös komponens: 12 címke, kulcsolt rács, nincs auth param."""
+    """Egy közös komponens: 14 címke (a Textusműhely-összevonás után), kulcsolt rács, nincs auth param."""
     assert QUICK_TOOLS_GRID_KEY == "quick_tools_grid"
-    assert len(QUICK_TOOLS_TAB_LABELS) == 12
+    assert len(QUICK_TOOLS_TAB_LABELS) == 14
     assert "Igehely" in QUICK_TOOLS_TAB_LABELS[0]
+    assert any("fő gondolata" in label for label in QUICK_TOOLS_TAB_LABELS)
+    assert any("Textusösszegzés" in label for label in QUICK_TOOLS_TAB_LABELS)
     # render_quick_tools_tabs ne fogadjon login/guest kapcsolót
     import inspect
 

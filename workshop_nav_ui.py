@@ -14,7 +14,6 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 _DEFAULT_UI_MODE_LABELS: dict[str, str] = {
-    "quick": "Gyorseszközök",
     "workshop": "Textusműhely",
     "sermon_workshop": "Igehirdetési műhely",
 }
@@ -419,14 +418,23 @@ def render_step_selector(
                         st.session_state[key] = opt
                         st.rerun()
             # Nyitáskor az aktív lépéshez görgetés (mozgáscsökkentést tisztelve).
+            # Minden script-újrafuttatáson új iframe jön létre — a korábbi
+            # MutationObserver-t explicit lecsatlakoztatjuk (window.parent-en
+            # tárolt referencia), hogy reruns között ne halmozódjanak fel
+            # élő megfigyelők ugyanarra a document.body-ra (stale/duplikált
+            # overlay-tünetek egyik lehetséges forrása).
             components.html(
                 """
 <script>
 (function () {
   try {
     var pdoc = window.parent.document;
-    var mq = window.parent.matchMedia
-      && window.parent.matchMedia('(prefers-reduced-motion: reduce)');
+    var pwin = window.parent;
+    if (pwin.__txStepbarObserver) {
+      try { pwin.__txStepbarObserver.disconnect(); } catch (e) {}
+      pwin.__txStepbarObserver = null;
+    }
+    var mq = pwin.matchMedia && pwin.matchMedia('(prefers-reduced-motion: reduce)');
     var reduce = !!(mq && mq.matches);
     function scrollActive() {
       var body = pdoc.querySelector('[data-testid="stPopoverBody"]');
@@ -449,6 +457,7 @@ def render_step_selector(
       }
     });
     obs.observe(pdoc.body, { childList: true, subtree: true });
+    pwin.__txStepbarObserver = obs;
   } catch (e) {}
 })();
 </script>
@@ -524,7 +533,7 @@ def render_primary_view_switcher(
     értéke marad a nézet forrása. A gombok `secondary` típusúak (a Streamlit
     primary kék kitöltését CSS/kulcs alapján kerüljük el).
     """
-    opts = [str(o) for o in (options or ("quick", "workshop", "sermon_workshop"))]
+    opts = [str(o) for o in (options or ("workshop", "sermon_workshop"))]
     label_map = dict(_DEFAULT_UI_MODE_LABELS)
     if labels:
         label_map.update({str(k): str(v) for k, v in labels.items()})
@@ -544,6 +553,23 @@ def render_primary_view_switcher(
     with st.container(key="workspace_switcher"):
         st.markdown(
             "<style>"
+            # A kapcsoló teljes doboza ne nyúljon a teljes oldalszélességre —
+            # keskeny, középre igazított sáv legyen, ahogy a lépésválasztó is.
+            f"{scope}{{max-width:680px!important;margin-left:auto!important;"
+            "margin-right:auto!important;width:100%!important;}"
+            # Mindkét szegmens azonos szélességű oszlopot kap és azonos
+            # doboz-keretet (csak a kitöltés/szín tér el aktív állapotban) —
+            # enélkül az inaktív gomb átlátszó háttere/kerete miatt a két
+            # szegmens vizuálisan nem tűnik egyenlő méretűnek, még akkor
+            # sem, ha a tényleges oszlopszélesség egyenlő.
+            f"{scope} [data-testid='stHorizontalBlock']{{align-items:stretch!important;}}"
+            f"{scope} [data-testid='stColumn']{{flex:1 1 0!important;min-width:0!important;}}"
+            f"{scope} .stButton{{width:100%!important;}}"
+            f"{scope} .stButton button{{"
+            "width:100%!important;"
+            "background:var(--ui-surface)!important;"
+            "border:1px solid var(--ui-border)!important;"
+            "}"
             f"{scope} .{active_cls} .stButton button,"
             f"{scope} .{active_cls} button{{"
             "background:var(--ui-surface-active)!important;"
@@ -610,6 +636,8 @@ QUICK_TOOLS_TAB_LABELS: tuple[str, ...] = (
     ":material/shopping_basket: Vázlatkosár",
     ":material/music_note: Énekajánló",
     ":material/calendar_month: Igehirdetési sorozat tervező",
+    ":material/target: A textus fő gondolata",
+    ":material/summarize: Textusösszegzés",
     ":material/help: Útmutatás",
 )
 
@@ -1129,6 +1157,18 @@ def sermon_section_statuses(
         own=_has_text("listener_tension"),
         suggested=_suggestion_payload_nonempty(sw.get("listener_tension_suggestions")),
     )
+    # A "Homiletikai belépési pont" fázis tényleges UI-tartalma a Korrekciós
+    # fázis 2A/2D óta az `entry_point` blokk — a legacy human_condition/
+    # listener_tension szakaszstátuszok fentebb régi projektek miatt
+    # maradnak meg, de önmagukban NEM tükrözik az entry_point jóváhagyását.
+    # E nélkül a bejegyzés nélkül a progresszsáv soha nem mutatott
+    # "Jóváhagyva"-t egy kizárólag entry_point-tal kitöltött projektnél.
+    out["Homiletikai belépési pont"] = _classify(
+        approved=_status("entry_point_status") == "approved"
+        or _has_decision("Homiletikai belépési pont"),
+        own=_has_text("entry_point"),
+        suggested=_suggestion_payload_nonempty(sw.get("entry_point_suggestions")),
+    )
     out["Krisztus-központú és evangéliumi ív"] = _classify(
         approved=_status("christ_centered_arc_status") == "approved"
         or _has_decision("Krisztus-központú és evangéliumi ív"),
@@ -1155,6 +1195,22 @@ def sermon_section_statuses(
         or _suggestion_payload_nonempty(sw.get("actualization_suggestions")),
     )
     out["Képek, illusztrációk és alkalmazás"] = out["Illusztrációk és aktualizálás"]
+
+    engagement_items = sw.get("engagement_elements")
+    engagement_items = engagement_items if isinstance(engagement_items, list) else []
+    engagement_approved = any(
+        isinstance(e, dict) and (e.get("status") or "") == "approved"
+        for e in engagement_items
+    )
+    engagement_own = any(
+        isinstance(e, dict) and (e.get("text") or "").strip() for e in engagement_items
+    )
+    out["Megszólítás és bevonás"] = _classify(
+        approved=engagement_approved,
+        own=engagement_own,
+        suggested=_suggestion_payload_nonempty(sw.get("engagement_suggestions")),
+    )
+
     out["Lezárás és megérkezés"] = _classify(
         approved=_status("closing_status") == "approved",
         own=_has_text("closing"),
@@ -1258,6 +1314,84 @@ def sermon_completed_sections(
     }
 
 
+# ---------------------------------------------------------------------------
+# Igehirdetési műhely — 5 fázisra összesített nézet (két-műhely refaktor).
+#
+# A mögöttes 11/12 régi szakasznév és session_state mező NEM változik —
+# `sermon_section_statuses` marad az igazi forrás. Ez a réteg csak
+# összesíti a régi szakaszállapotokat az öt új fázisnévre, hogy a
+# leegyszerűsített navigáció ugyanazt a státuszinformációt tudja mutatni.
+# ---------------------------------------------------------------------------
+
+SERMON_PHASE_OPTIONS: tuple[str, ...] = (
+    "Textusmag és fókuszmondat",
+    "Homiletikai belépési pont",
+    "A prédikáció íve",
+    "Megszólítás és bevonás",
+    "Igehirdetési vázlat",
+)
+
+_SERMON_PHASE_SECTION_MAP: dict[str, tuple[str, ...]] = {
+    "Textusmag és fókuszmondat": ("Az igehirdetés fő gondolata",),
+    "Homiletikai belépési pont": (
+        "Homiletikai belépési pont",
+        "Emberi helyzet és kegyelmi válasz",
+        "Hallgatói kérdés és feszültség",
+    ),
+    "A prédikáció íve": (
+        "Krisztus-központú és evangéliumi ív",
+        "Az igehirdetés útja és mozgásai",
+        "Lezárás és megérkezés",
+    ),
+    "Megszólítás és bevonás": ("Megszólítás és bevonás",),
+    "Igehirdetési vázlat": ("Igehirdetési vázlat",),
+}
+
+_SERMON_STATUS_RANK: dict[str, int] = {
+    "ai_ready": 0,
+    "ai_suggested": 1,
+    "own_emphasis": 2,
+    "approved": 3,
+}
+
+
+def sermon_phase_statuses(
+    state: Any,
+    *,
+    status_of: Callable[[str], str] | None = None,
+) -> dict[str, str]:
+    """Az öt igehirdetési-műhely fázis állapota.
+
+    A régi (11 szakaszos) ``sermon_section_statuses`` eredményét összesíti
+    fázisonként: egy fázis állapota a benne összevont szakaszok legmagasabb
+    rangú állapota (approved > own_emphasis > ai_suggested > ai_ready).
+    """
+    section_statuses = sermon_section_statuses(state, status_of=status_of)
+    out: dict[str, str] = {}
+    for phase, sections in _SERMON_PHASE_SECTION_MAP.items():
+        best = "ai_ready"
+        for section in sections:
+            stt = section_statuses.get(section, "ai_ready")
+            if _SERMON_STATUS_RANK.get(stt, 0) > _SERMON_STATUS_RANK.get(best, 0):
+                best = stt
+        out[phase] = best
+    return out
+
+
+def sermon_phase_completed(
+    state: Any,
+    *,
+    status_of: Callable[[str], str] | None = None,
+) -> set[str]:
+    """Igehirdetési műhely: az öt fázis közül melyik számít késznek."""
+    statuses = sermon_phase_statuses(state, status_of=status_of)
+    return {
+        name
+        for name, stt in statuses.items()
+        if stt in ("approved", "own_emphasis", "ai_suggested")
+    }
+
+
 __all__ = [
     "completed_step_indices",
     "render_workshop_stepper",
@@ -1275,4 +1409,7 @@ __all__ = [
     "textus_completed_sections",
     "sermon_completed_sections",
     "sermon_section_statuses",
+    "SERMON_PHASE_OPTIONS",
+    "sermon_phase_statuses",
+    "sermon_phase_completed",
 ]

@@ -19,6 +19,7 @@ _SECTION_DICT_KEYS = (
     "listener_tension",
     "christ_centered_arc",
     "sermon_path",
+    "entry_point",
     "closing",
     "diagnostics",
     "lection",
@@ -35,6 +36,7 @@ _SECTION_LIST_KEYS = (
     "actualization_suggestions",
     "retained_illustration_cards",
     "actualization_connections",
+    "engagement_elements",
 )
 
 _SECTION_STR_KEYS = (
@@ -80,10 +82,23 @@ def get_default_sermon_workshop() -> dict[str, Any]:
             "type": "",
             "reason": "",
             "starting_point": "",
+            "first_shift": "",
+            "deepening": "",
+            "reinterpretation": "",
             "destination": "",
         },
         "sermon_path_status": "draft",
         "sermon_path_approved_context_hash": "",
+        "entry_point": {
+            "today_connection": "",
+            "type": "",
+            "text": "",
+        },
+        "entry_point_status": "draft",
+        "entry_point_approved_context_hash": "",
+        "entry_point_legacy_prefilled": False,
+        "entry_point_suggestions": None,
+        "entry_point_last_generated_at": "",
         "sermon_movements": [],
         "selected_images": [],
         "illustrations": [],
@@ -97,6 +112,9 @@ def get_default_sermon_workshop() -> dict[str, Any]:
         "actualization_connections": [],
         "illustration_suggest_note": "",
         "actualization_suggest_note": "",
+        "engagement_elements": [],
+        "engagement_suggestions": None,
+        "engagement_last_generated_at": "",
         "closing": {
             "type": "",
             "final_discovery": "",
@@ -750,6 +768,17 @@ _APPLICATION_FIELDS = (
     "source_ref",
 )
 
+_ENGAGEMENT_ELEMENT_FIELDS = (
+    "id",
+    "type",
+    "text",
+    "status",
+    "source",
+    "created_at",
+)
+_ENGAGEMENT_STATUSES = frozenset({"draft", "approved"})
+_ENGAGEMENT_SOURCES = frozenset({"ai", "own"})
+
 
 def empty_textual_image() -> dict[str, str]:
     return {
@@ -790,6 +819,47 @@ def empty_application() -> dict[str, str]:
         "pastoral_caution": "",
         "source_ref": "",
     }
+
+
+def empty_engagement_element(*, type: str = "", source: str = "own") -> dict[str, str]:
+    return {
+        "id": str(uuid.uuid4()),
+        "type": type,
+        "text": "",
+        "status": "draft",
+        "source": source if source in _ENGAGEMENT_SOURCES else "own",
+        "created_at": datetime.now().isoformat(timespec="seconds"),
+    }
+
+
+def normalize_engagement_element(raw: Any) -> dict[str, str]:
+    base = empty_engagement_element()
+    if not isinstance(raw, dict):
+        return base
+    out = dict(base)
+    for key in _ENGAGEMENT_ELEMENT_FIELDS:
+        if key in raw:
+            out[key] = _as_str(raw.get(key))
+    if not out["id"]:
+        out["id"] = str(uuid.uuid4())
+    if out["status"] not in _ENGAGEMENT_STATUSES:
+        out["status"] = "draft"
+    if out["source"] not in _ENGAGEMENT_SOURCES:
+        out["source"] = "own"
+    return out
+
+
+def normalize_engagement_elements(raw: Any, *, max_items: int = 6) -> list[dict[str, str]]:
+    if not isinstance(raw, list):
+        return []
+    out: list[dict[str, str]] = []
+    for item in raw:
+        if not isinstance(item, dict):
+            continue
+        out.append(normalize_engagement_element(item))
+        if len(out) >= max_items:
+            break
+    return out
 
 
 def _normalize_enrichment_item(
@@ -1163,10 +1233,31 @@ def normalize_sermon_workshop(data: Any) -> dict[str, Any]:
     listener_tension_status = _norm_status(data.get("listener_tension_status"))
     christ_centered_arc_status = _norm_status(data.get("christ_centered_arc_status"))
     sermon_path_status = _norm_status(data.get("sermon_path_status"))
+    entry_point_status = _norm_status(data.get("entry_point_status"))
 
     outline_status = _as_str(data.get("sermon_outline_status")) or "draft"
     if outline_status not in ("draft", "approved", "empty", "needs_refresh", ""):
         outline_status = "draft"
+
+    hc_block = _normalize_str_dict(data.get("human_condition"), base["human_condition"])
+    lt_block = _normalize_str_dict(data.get("listener_tension"), base["listener_tension"])
+    entry_block = _normalize_str_dict(data.get("entry_point"), base["entry_point"])
+    legacy_prefilled = bool(data.get("entry_point_legacy_prefilled"))
+    if (
+        not legacy_prefilled
+        and not entry_block.get("today_connection")
+        and not entry_block.get("text")
+    ):
+        legacy_hint = (
+            hc_block.get("condition")
+            or hc_block.get("divine_action")
+            or lt_block.get("sermon_tension")
+            or ""
+        ).strip()
+        if legacy_hint:
+            entry_block = dict(entry_block)
+            entry_block["today_connection"] = legacy_hint
+            legacy_prefilled = True
 
     return {
         "sermon_main_idea": _as_str(data.get("sermon_main_idea")),
@@ -1174,16 +1265,12 @@ def normalize_sermon_workshop(data: Any) -> dict[str, Any]:
         "sermon_main_idea_approved_context_hash": _as_str(
             data.get("sermon_main_idea_approved_context_hash")
         ),
-        "human_condition": _normalize_str_dict(
-            data.get("human_condition"), base["human_condition"]
-        ),
+        "human_condition": hc_block,
         "human_condition_status": human_condition_status,
         "human_condition_approved_context_hash": _as_str(
             data.get("human_condition_approved_context_hash")
         ),
-        "listener_tension": _normalize_str_dict(
-            data.get("listener_tension"), base["listener_tension"]
-        ),
+        "listener_tension": lt_block,
         "listener_tension_status": listener_tension_status,
         "listener_tension_approved_context_hash": _as_str(
             data.get("listener_tension_approved_context_hash")
@@ -1201,6 +1288,18 @@ def normalize_sermon_workshop(data: Any) -> dict[str, Any]:
         "sermon_path_status": sermon_path_status,
         "sermon_path_approved_context_hash": _as_str(
             data.get("sermon_path_approved_context_hash")
+        ),
+        "entry_point": entry_block,
+        "entry_point_status": entry_point_status,
+        "entry_point_approved_context_hash": _as_str(
+            data.get("entry_point_approved_context_hash")
+        ),
+        "entry_point_legacy_prefilled": legacy_prefilled,
+        "entry_point_suggestions": _normalize_optional_dict(
+            data.get("entry_point_suggestions", base["entry_point_suggestions"])
+        ),
+        "entry_point_last_generated_at": _as_str(
+            data.get("entry_point_last_generated_at")
         ),
         "sermon_movements": normalize_sermon_movements(data.get("sermon_movements")),
         "selected_images": normalize_textual_images(data.get("selected_images")),
@@ -1227,6 +1326,15 @@ def normalize_sermon_workshop(data: Any) -> dict[str, Any]:
         ),
         "illustration_suggest_note": _as_str(data.get("illustration_suggest_note")),
         "actualization_suggest_note": _as_str(data.get("actualization_suggest_note")),
+        "engagement_elements": normalize_engagement_elements(
+            data.get("engagement_elements")
+        ),
+        "engagement_suggestions": _normalize_optional_dict(
+            data.get("engagement_suggestions", base["engagement_suggestions"])
+        ),
+        "engagement_last_generated_at": _as_str(
+            data.get("engagement_last_generated_at")
+        ),
         "closing": _normalize_str_dict(data.get("closing"), base["closing"]),
         "closing_status": closing_status or "draft",
         "closing_approved_context_hash": _as_str(
@@ -1408,6 +1516,7 @@ _APPROVED_HASH_TRACKED_STATUS_KEYS = frozenset(
         "listener_tension_status",
         "christ_centered_arc_status",
         "sermon_path_status",
+        "entry_point_status",
         "closing_status",
     }
 )
@@ -1468,6 +1577,7 @@ def update_sermon_workshop_section(
         "listener_tension_status",
         "christ_centered_arc_status",
         "sermon_path_status",
+        "entry_point_status",
         "enrichment_status",
         "closing_status",
         "lection_status",
@@ -1588,6 +1698,8 @@ def update_sermon_workshop_section(
             "actualization_connections",
         ):
             sw[key] = _normalize_simple_card_list(data)
+        elif key == "engagement_elements":
+            sw[key] = normalize_engagement_elements(data)
         else:
             sw[key] = _normalize_generic_list(data)
         return sw
@@ -1788,6 +1900,88 @@ def remove_approved_sermon_decision(
     return sw
 
 
+def add_engagement_element(
+    session_state: MutableMapping[str, Any],
+    *,
+    type: str,
+    text: str,
+    source: str = "own",
+) -> dict[str, Any]:
+    """Új megszólító elem hozzáadása (MI-javaslat átvétele vagy saját elem)."""
+    sw = ensure_sermon_workshop_state(session_state)
+    element = empty_engagement_element(type=type, source=source)
+    element["text"] = _as_str(text)
+    sw["engagement_elements"] = list(sw.get("engagement_elements") or []) + [element]
+    return element
+
+
+def update_engagement_element(
+    session_state: MutableMapping[str, Any],
+    element_id: str,
+    *,
+    type: str | None = None,
+    text: str | None = None,
+    status: str | None = None,
+) -> dict[str, Any] | None:
+    """Egy megszólító elem szerkesztése / jóváhagyása `id` alapján.
+
+    Jóváhagyáskor (`status == "approved"`) a többi szakaszhoz hasonlóan
+    STALE-ellenőrzésre alkalmas kontextushash-t is kapna — mivel azonban
+    ez elemenkénti (nem egyetlen blokk-státusz), a vázlatmotor a
+    jóváhagyott elemet magát a tartalom alapján szűri be
+    (`collect_outline_context_bundle`), nem egy közös blokk-hash alapján.
+    """
+    sw = ensure_sermon_workshop_state(session_state)
+    target = _as_str(element_id)
+    updated: dict[str, Any] | None = None
+    elements: list[dict[str, Any]] = []
+    for item in sw.get("engagement_elements") or []:
+        if not isinstance(item, dict):
+            continue
+        if _as_str(item.get("id")) == target:
+            item = dict(item)
+            if type is not None:
+                item["type"] = _as_str(type)
+            if text is not None:
+                item["text"] = _as_str(text)
+            if status is not None:
+                status_norm = _as_str(status)
+                item["status"] = status_norm if status_norm in _ENGAGEMENT_STATUSES else "draft"
+            updated = item
+        elements.append(item)
+    sw["engagement_elements"] = elements
+    return updated
+
+
+def remove_engagement_element(
+    session_state: MutableMapping[str, Any],
+    element_id: str,
+) -> dict[str, Any]:
+    """Megszólító elem eltávolítása `id` alapján."""
+    sw = ensure_sermon_workshop_state(session_state)
+    target = _as_str(element_id)
+    sw["engagement_elements"] = [
+        item
+        for item in (sw.get("engagement_elements") or [])
+        if isinstance(item, dict) and _as_str(item.get("id")) != target
+    ]
+    return sw
+
+
+def save_engagement_suggestions(
+    session_state: MutableMapping[str, Any],
+    payload: dict[str, Any],
+    *,
+    stamp_generated_at: bool = True,
+) -> dict[str, Any]:
+    """Tartós Megszólítás és bevonás javaslat mentése (átvétel előtti staging)."""
+    sw = ensure_sermon_workshop_state(session_state)
+    sw["engagement_suggestions"] = dict(payload) if isinstance(payload, dict) else None
+    if stamp_generated_at:
+        sw["engagement_last_generated_at"] = datetime.now().isoformat(timespec="seconds")
+    return sw
+
+
 def deepcopy_sermon_workshop(data: Any) -> dict[str, Any]:
     """Normalizált másolat (tesztekhez / biztonságos átadáshoz)."""
     return copy.deepcopy(normalize_sermon_workshop(data))
@@ -1916,6 +2110,24 @@ def save_gospel_arc_assessment(
     sw["gospel_arc_assessment"] = dict(payload) if isinstance(payload, dict) else None
     if stamp_generated_at:
         sw["m5_gospel_arc_last_generated_at"] = datetime.now().isoformat(
+            timespec="seconds"
+        )
+    return sw
+
+
+def save_entry_point_suggestions(
+    session_state: MutableMapping[str, Any],
+    payload: dict[str, Any],
+    *,
+    stamp_generated_at: bool = True,
+) -> dict[str, Any]:
+    """Tartós Homiletikai belépési pont javaslat mentése."""
+    sw = ensure_sermon_workshop_state(session_state)
+    sw["entry_point_suggestions"] = (
+        dict(payload) if isinstance(payload, dict) else None
+    )
+    if stamp_generated_at:
+        sw["entry_point_last_generated_at"] = datetime.now().isoformat(
             timespec="seconds"
         )
     return sw

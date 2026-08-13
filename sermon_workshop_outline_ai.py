@@ -44,6 +44,7 @@ MAX_PASSAGE_CHARS = 3200
 MAX_EXEGESIS_CHARS = 1600
 MAX_THEOLOGY_CHARS = 1200
 MAX_HISTORY_CHARS = 800
+MAX_ACTUALIZATION_CHARS = 1200
 MAX_INSIGHTS = 8
 MAX_BASKET_ITEMS = 12
 MAX_BASKET_ITEM_CHARS = 700
@@ -570,6 +571,20 @@ def collect_outline_context_bundle(
     passage_text = _truncate(
         _session_str(session_state, "passage_text"), MAX_PASSAGE_CHARS
     )
+    if not passage_text:
+        # A `_truncate`/`_clean_source_text` csonka-AI-válasz heurisztikája
+        # ("…"/"..." végű, lezáratlan mondat) néha a nyers, kézzel beillesztett
+        # vagy tesztfixtúra-szöveget is eldobja, ha az ilyen jellel végződik.
+        # Korrekciós fázis 3.1 előtt ezt csak a `generate_sermon_outline`
+        # (sermon_outline_engine.py) pótolta utólag, kizárólag a saját
+        # bundle-jén — emiatt a `build_outline_from_workshop` (más bundle-t
+        # épít) és a `generate_sermon_outline` eltérő passage_text-et,
+        # ezáltal eltérő igehely-ujjlenyomatot látott ugyanahhoz a
+        # projekthez. Itt, a kanonikus forrásnál pótoljuk, hogy MINDEN hívó
+        # (normál út, fallback, diagnosztika) ugyanazt lássa.
+        raw_passage = _session_str(session_state, "passage_text", "passage_text_input")
+        if raw_passage:
+            passage_text = _truncate(raw_passage, MAX_PASSAGE_CHARS) or raw_passage
     if passage_text:
         bundle["passage_text"] = passage_text
         keys.append("passage_text")
@@ -609,31 +624,76 @@ def collect_outline_context_bundle(
         bundle["outline_basket"] = basket_items
         keys.append("outline_basket")
 
-    for field_name, limit, session_key in (
-        ("exegesis", MAX_EXEGESIS_CHARS, "exegesis"),
-        ("theology", MAX_THEOLOGY_CHARS, "theology"),
-        ("history", MAX_HISTORY_CHARS, "history"),
-        ("original_text", MAX_EXEGESIS_CHARS, "original_text"),
-    ):
-        text = _truncate(_session_str(session_state, session_key), limit)
-        if text:
-            bundle[field_name] = text
-            bundle[f"{field_name}_status"] = (
-                _s(session_state.get(f"{session_key}_status")) or "draft"
-            )
-            bundle[f"{field_name}_ever_approved"] = bool(
-                session_state.get(f"{session_key}_ever_approved")
-            )
-            bundle[f"{field_name}_approved_context_hash"] = _s(
-                session_state.get(f"{session_key}_approved_context_hash")
-            )
-            keys.append(field_name)
-            keys.append(f"{field_name}_status")
+    # Textusösszegzés (Textusműhely) — ha van tartalma, ez az elsődleges
+    # exegetikai kontextus, amit az Igehirdetési műhely kap; a nyers
+    # exegesis/theology/history/original_text mezőket ilyenkor nem
+    # küldjük tovább duplikáltan, hogy ne fusson „párhuzamos”
+    # exegézis-értelmezés. Korrekciós fázis 3.1: a feltétel a JÓVÁHAGYÁS
+    # helyett a TARTALOM MEGLÉTE — approval nélkül is automatikusan
+    # elérhető forrás (ld. TEXTUS_IGEHIRDETESI_MUHELY_ADATFOLYAM_AUDIT.md).
+    # Tartalom hiányában a korábbi, nyers mezőkre épülő viselkedés marad.
+    text_summary = tw.get("text_summary") if isinstance(tw.get("text_summary"), dict) else {}
+    summary_fields = {
+        "main_idea": _s(text_summary.get("main_idea")),
+        "base_tension": _s(text_summary.get("base_tension")),
+        "key_exegetical_findings": _s(text_summary.get("key_exegetical_findings")),
+        "theological_emphases": _s(text_summary.get("theological_emphases")),
+        "genre_structure_notes": _s(text_summary.get("genre_structure_notes")),
+    }
+    summary_fields = {k: v for k, v in summary_fields.items() if v}
+
+    if summary_fields:
+        bundle["text_summary"] = summary_fields
+        bundle["text_summary_status"] = _s(text_summary.get("status")) or "draft"
+        bundle["text_summary_approved_context_hash"] = _s(
+            text_summary.get("approved_context_hash")
+        )
+        keys.append("text_summary")
+    else:
+        for field_name, limit, session_key in (
+            ("exegesis", MAX_EXEGESIS_CHARS, "exegesis"),
+            ("theology", MAX_THEOLOGY_CHARS, "theology"),
+            ("history", MAX_HISTORY_CHARS, "history"),
+            ("original_text", MAX_EXEGESIS_CHARS, "original_text"),
+        ):
+            text = _truncate(_session_str(session_state, session_key), limit)
+            if text:
+                bundle[field_name] = text
+                bundle[f"{field_name}_status"] = (
+                    _s(session_state.get(f"{session_key}_status")) or "draft"
+                )
+                bundle[f"{field_name}_ever_approved"] = bool(
+                    session_state.get(f"{session_key}_ever_approved")
+                )
+                bundle[f"{field_name}_approved_context_hash"] = _s(
+                    session_state.get(f"{session_key}_approved_context_hash")
+                )
+                keys.append(field_name)
+                keys.append(f"{field_name}_status")
+
+    # Aktualizálás — a Textusműhely önálló, nem exegetikai forrása; a
+    # Textusösszegzéstől függetlenül mindig bekerül, ha van tartalma
+    # (Korrekciós fázis 3.1: korábban egyáltalán nem jutott el a
+    # vázlatmotorig, mert hiányzott ebből a bundle-építő ciklusból).
+    actualization_text = _truncate(
+        _session_str(session_state, "actualization"), MAX_ACTUALIZATION_CHARS
+    )
+    if actualization_text:
+        bundle["actualization"] = actualization_text
+        bundle["actualization_status"] = (
+            _s(session_state.get("actualization_status")) or "draft"
+        )
+        bundle["actualization_approved_context_hash"] = _s(
+            session_state.get("actualization_approved_context_hash")
+        )
+        keys.append("actualization")
+        keys.append("actualization_status")
 
     # Ne küldjük a nyers MI-alternatívákat / elutasított javaslatokat
     for block_key in (
         "human_condition",
         "listener_tension",
+        "entry_point",
         "christ_centered_arc",
         "sermon_path",
         "closing",
@@ -665,20 +725,48 @@ def collect_outline_context_bundle(
                 }
             )
         bundle["sermon_movements"] = compact_mvs
+        # A mozgásokat ugyanazon a felületen, ugyanazzal a gombbal hagyja
+        # jóvá a felhasználó, mint a sermon_path-ot ("A prédikáció íve" /
+        # "Jóváhagyom és átadom") — ezért a jóváhagyási állapotukat is a
+        # sermon_path-éval osztják meg, hogy a vázlatmotor approval-gate-je
+        # (_APPROVAL_GATED_KEYS) rájuk is érvényesüljön.
+        bundle["sermon_movements_status"] = _s(sw.get("sermon_path_status")) or "draft"
+        bundle["sermon_movements_approved_context_hash"] = _s(
+            sw.get("sermon_path_approved_context_hash")
+        )
         keys.append("sermon_movements")
 
-    images = normalize_textual_images(sw.get("selected_images"))
-    illustrations = normalize_illustrations(sw.get("illustrations"))
-    applications = normalize_applications(sw.get("applications"))
-    if images:
-        bundle["selected_images"] = images
-        keys.append("selected_images")
-    if illustrations:
-        bundle["illustrations"] = illustrations
-        keys.append("illustrations")
-    if applications:
-        bundle["applications"] = applications
-        keys.append("applications")
+    # Régi "Illusztrációk és aktualizálás" tartalom — csak akkor kerül a
+    # vázlat kontextusába, ha a szakasz jóváhagyva lett (enrichment_status).
+    # Nem jóváhagyott illusztráció/aktualizálás ne szivárogjon be
+    # automatikusan a vázlat promptjába (Korrekciós fázis 2B).
+    if _s(sw.get("enrichment_status")) == "approved":
+        images = normalize_textual_images(sw.get("selected_images"))
+        illustrations = normalize_illustrations(sw.get("illustrations"))
+        applications = normalize_applications(sw.get("applications"))
+        if images:
+            bundle["selected_images"] = images
+            keys.append("selected_images")
+        if illustrations:
+            bundle["illustrations"] = illustrations
+            keys.append("illustrations")
+        if applications:
+            bundle["applications"] = applications
+            keys.append("applications")
+
+    # Megszólítás és bevonás — kizárólag EGYENKÉNT jóváhagyott elemek
+    # kerülhetnek a vázlat kontextusába (nem blokk-szintű, hanem
+    # elemenkénti jóváhagyás; ld. render_engagement_section).
+    engagement_approved = [
+        {"type": _s(item.get("type")), "text": _s(item.get("text"))}
+        for item in (sw.get("engagement_elements") or [])
+        if isinstance(item, dict)
+        and _s(item.get("status")) == "approved"
+        and _s(item.get("text"))
+    ]
+    if engagement_approved:
+        bundle["engagement_elements"] = engagement_approved
+        keys.append("engagement_elements")
 
     lection = sw.get("lection") if isinstance(sw.get("lection"), dict) else {}
     if _s(lection.get("reference")):
@@ -863,10 +951,21 @@ def build_outline_from_workshop(
     *,
     sermon_workshop: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """Műhelyanyag → vázlat. Nem módosít sessiont / forrásmezőket."""
+    """Műhelyanyag → vázlat. Nem módosít sessiont / forrásmezőket.
+
+    A fallback (AI-hívás nélküli / heurisztikus) vázlatépítéshez ez a
+    függvény is csak jóváhagyott-és-friss `_APPROVAL_GATED_KEYS` tartalmat
+    használhat — a `_gated_fallback_bundle()` szűri ki a draft/stale/soha
+    jóvá nem hagyott blokkokat, mielőtt bármi felhasználásra kerülne,
+    ugyanúgy, ahogy a normál (AI-generálásos) útvonal is csak jóváhagyott
+    háttéranyagot kap (`extract_outline_background_material`).
+    """
+    from sermon_outline_engine import _gated_fallback_bundle
+
     bundle = collect_outline_context_bundle(
         session_state, sermon_workshop=sermon_workshop
     )
+    bundle = _gated_fallback_bundle(bundle)
     sw = bundle.get("_sw") if isinstance(bundle.get("_sw"), dict) else {}
     outline = empty_sermon_outline()
     sources: list[str] = list(bundle.get("source_keys") or [])

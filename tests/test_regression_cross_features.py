@@ -249,8 +249,6 @@ def test_workshop_mode_switch_and_step_helpers(session):
     assert session["ui_mode"] == "sermon_workshop"
     session["ui_mode"] = "workshop"
     assert session["ui_mode"] == "workshop"
-    session["ui_mode"] = "quick"
-    assert session["ui_mode"] == "quick"
     session["ui_mode"] = "sermon_workshop"
 
     text_done = textus_completed_sections(session)

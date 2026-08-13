@@ -165,6 +165,7 @@ def build_jude_state() -> dict:
             "grace_response": "Imában és szeretetben megmaradni.",
         },
     )
+    update_sermon_workshop_section(state, "human_condition_status", "approved")
     # M5
     update_sermon_workshop_section(
         state,
@@ -176,6 +177,7 @@ def build_jude_state() -> dict:
             "promised_resolution": "A Szentlélekben imádkozva Isten szeretetében maradhatunk.",
         },
     )
+    update_sermon_workshop_section(state, "listener_tension_status", "approved")
     # Gospel arc
     update_sermon_workshop_section(
         state,
@@ -187,6 +189,7 @@ def build_jude_state() -> dict:
             "grace_enabled_response": "Szentlélekben imádkozni és a hitben épülni.",
         },
     )
+    update_sermon_workshop_section(state, "christ_centered_arc_status", "approved")
     # M6
     mid1, mid2, mid3 = "mv-a", "mv-b", "mv-c"
     update_sermon_workshop_section(
@@ -199,6 +202,7 @@ def build_jude_state() -> dict:
             "destination": "Megmaradás Isten szeretetében",
         },
     )
+    update_sermon_workshop_section(state, "sermon_path_status", "approved")
     update_sermon_workshop_section(
         state,
         "sermon_movements",
@@ -419,6 +423,22 @@ def test_old_project_compat() -> None:
     ok(legacy["lection"]["reference"] == "", "legacy lection empty")
     ok(legacy["prayer_preparation"]["before"]["own_thoughts"] == "", "legacy prayer empty")
     ok(legacy["sermon_main_idea"] == "régi", "legacy idea kept")
+
+    # Régi Textusműhely-projekt (két-műhely refaktor előtti mentés):
+    # nincs text_summary mező, esetleg még "ui_mode": "quick" is szerepel
+    # a mentett (kiszűrt) állapotban — a normalizálás ne dobjon hibát,
+    # és adjon vissza érvényes, alapértelmezett text_summary blokkot.
+    legacy_text_workshop = normalize_text_workshop(
+        {
+            "text_main_idea": "Régi fő gondolat",
+            "text_main_idea_status": "approved",
+            "approved_insights": [{"id": "1", "content": "régi felismerés"}],
+        }
+    )
+    ok("text_summary" in legacy_text_workshop, "text_summary missing after migration")
+    ok(legacy_text_workshop["text_summary"]["status"] == "draft", "text_summary default status")
+    ok(legacy_text_workshop["text_main_idea"] == "Régi fő gondolat", "legacy main idea kept")
+    ok(len(legacy_text_workshop["approved_insights"]) == 1, "legacy insights kept")
 
 
 def test_save_reload_switch(state: dict) -> None:

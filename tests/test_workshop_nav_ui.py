@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from workshop_nav_ui import (
+    SERMON_PHASE_OPTIONS,
     completed_step_indices,
     render_info_panel,
     render_primary_view_switcher,
@@ -11,6 +12,8 @@ from workshop_nav_ui import (
     render_section_stepper,
     render_workshop_stepper,
     sermon_completed_sections,
+    sermon_phase_completed,
+    sermon_phase_statuses,
     sermon_section_statuses,
     textus_completed_sections,
 )
@@ -125,6 +128,42 @@ def test_sermon_completed_sections_ignores_empty_defaults():
     )
 
 
+def test_sermon_phase_statuses_aggregates_five_phases():
+    """Az öt fázisos nézet a régi 11 szakasz státuszát összesíti fázisonként."""
+    state = {
+        "sermon_workshop": {
+            "sermon_main_idea": "Fő gondolat",
+            "sermon_main_idea_status": "approved",
+            "listener_tension": {"listener_question": "Kérdés"},
+            "closing": {"final_discovery": "Felismerés"},
+            "closing_status": "approved",
+            "lection": {"reference": "Zsolt 23"},
+            "lection_status": "draft",
+        }
+    }
+    statuses = sermon_phase_statuses(state)
+    assert set(statuses.keys()) == set(SERMON_PHASE_OPTIONS)
+    assert statuses["Textusmag és fókuszmondat"] == "approved"
+    # Homiletikai belépési pont: csak listener_tension van kitöltve -> own_emphasis
+    assert statuses["Homiletikai belépési pont"] == "own_emphasis"
+    # A prédikáció íve: closing jóváhagyva -> a legmagasabb rangú státusz nyer
+    assert statuses["A prédikáció íve"] == "approved"
+    # Lekció a Kiegészítők alá tartozik, nem önálló fázis; az Igehirdetési
+    # vázlat fázis állapotát a vázlat maga (nem a lekció) határozza meg.
+    assert statuses["Igehirdetési vázlat"] == "ai_ready"
+
+    completed = sermon_phase_completed(state)
+    assert "Textusmag és fókuszmondat" in completed
+    assert "A prédikáció íve" in completed
+    assert "Igehirdetési vázlat" not in completed
+
+
+def test_sermon_phase_statuses_empty_state_all_ai_ready():
+    statuses = sermon_phase_statuses({})
+    assert all(v == "ai_ready" for v in statuses.values())
+    assert sermon_phase_completed({}) == set()
+
+
 def test_completed_step_indices_order():
     opts = ["A", "B", "C", "D"]
     assert completed_step_indices(opts, {"B", "D"}) == [1, 3]
@@ -224,7 +263,7 @@ def test_global_appbar_and_workspace_switcher_importable():
     assert callable(render_project_toolbar)
     assert callable(render_quick_tools_tabs)
     assert QUICK_TOOLS_GRID_KEY == "quick_tools_grid"
-    assert len(QUICK_TOOLS_TAB_LABELS) == 12
+    assert len(QUICK_TOOLS_TAB_LABELS) == 14
     assert render_workspace_switcher is not None
 
 
@@ -260,6 +299,45 @@ def test_shell_components_use_keyed_containers():
     # JS-es widget-mozgatás a shell komponensekből kikerült
     assert "tx-appbar-anchor" not in src
     assert "tx-project-toolbar-anchor" not in src or "no-op" in src.lower() or "Kompatibilitási" in src
+
+
+def test_primary_view_switcher_two_modes_only(monkeypatch):
+    """A nézetváltó mostantól csak Textusműhely / Igehirdetési műhely — a 'quick' mód megszűnt."""
+    import streamlit as st
+    from contextlib import nullcontext
+
+    monkeypatch.setattr(st, "session_state", {"ui_mode": "quick"})
+    monkeypatch.setattr(st, "container", lambda **k: nullcontext())
+    monkeypatch.setattr(st, "markdown", lambda *a, **k: None)
+
+    def _columns(*args, **kwargs):
+        spec = args[0] if args else kwargs.get("spec", 2)
+        n = spec if isinstance(spec, int) else len(spec)
+        return [nullcontext() for _ in range(n)]
+
+    monkeypatch.setattr(st, "columns", _columns)
+    monkeypatch.setattr(st, "button", lambda *a, **k: False)
+
+    result = render_primary_view_switcher(
+        options=["workshop", "sermon_workshop"],
+        key="ui_mode",
+    )
+    # A régi "quick" érték nincs az opciók között -> a switcher normalizálja.
+    assert result in ("workshop", "sermon_workshop")
+    assert st.session_state["ui_mode"] != "quick"
+
+
+def test_app_navigation_reduced_to_two_top_level_modes():
+    """Forrásaudit: app.py-ban a régi három-módú switcher/stepper eltűnt."""
+    from pathlib import Path
+
+    app = Path(__file__).resolve().parents[1].joinpath("app.py").read_text(
+        encoding="utf-8"
+    )
+    assert 'options=["workshop", "sermon_workshop"]' in app
+    assert 'options=["quick", "workshop", "sermon_workshop"]' not in app
+    assert "render_textus_workshop_shell" not in app
+    assert '"quick": "Gyorseszközök"' not in app
 
 
 def test_page_intro_supports_workspace_scope():
