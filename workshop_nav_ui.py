@@ -632,7 +632,6 @@ QUICK_TOOLS_TAB_LABELS: tuple[str, ...] = (
     ":material/account_balance: Teológia",
     ":material/image: Illusztrációk",
     ":material/lightbulb: Aktualizálás",
-    ":material/format_list_bulleted: Vázlat",
     ":material/shopping_basket: Vázlatkosár",
     ":material/music_note: Énekajánló",
     ":material/calendar_month: Igehirdetési sorozat tervező",

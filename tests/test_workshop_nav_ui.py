@@ -263,7 +263,7 @@ def test_global_appbar_and_workspace_switcher_importable():
     assert callable(render_project_toolbar)
     assert callable(render_quick_tools_tabs)
     assert QUICK_TOOLS_GRID_KEY == "quick_tools_grid"
-    assert len(QUICK_TOOLS_TAB_LABELS) == 14
+    assert len(QUICK_TOOLS_TAB_LABELS) == 13
     assert render_workspace_switcher is not None
 
 

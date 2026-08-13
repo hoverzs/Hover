@@ -5494,127 +5494,13 @@ def _render_project_status_bar() -> None:
 # =========================================================
 # VÁZLAT WORD EXPORT (.docx)
 # =========================================================
-# Ugyanaz a tartalom-struktúra, mint a Markdown exportnál; a vázlat törzsét
-# és a kosár/ének szövegeket soronkénti, egyszerű Markdown-heurisztikával
-# alakítjuk Word-be (UTF-8, Calibri — magyar ékezetek).
-
-def _docx_strip_md_links(text: str) -> str:
-    return re.sub(r"\[([^\]]+)\]\([^)]*\)", r"\1", text or "")
-
-
-def _docx_add_inline_runs(paragraph, line: str) -> None:
-    """`**félkövér**` és sima szöveg — páros `**` felosztással."""
-    t = _docx_strip_md_links(line)
-    parts = t.split("**")
-    for i, seg in enumerate(parts):
-        if not seg:
-            continue
-        run = paragraph.add_run(seg)
-        if i % 2 == 1:
-            run.bold = True
-
-
-def _docx_append_markdown_body(doc, text: str) -> None:
-    """Markdown-szerű blokk Word-be: címsorok, listák, idézet, üres sorok."""
-    if not (text or "").strip():
-        p = doc.add_paragraph(style="Intense Quote")
-        p.add_run("_Még nem készült vázlat._")
-        return
-    for raw_line in text.splitlines():
-        line = raw_line.rstrip()
-        stripped = line.strip()
-        if not stripped:
-            doc.add_paragraph()
-            continue
-        if stripped in ("---", "***", "___"):
-            doc.add_paragraph()
-            continue
-        hm = re.match(r"^(#{1,6})\s+(.*)$", stripped)
-        if hm:
-            level = min(len(hm.group(1)), 4)
-            doc.add_heading(hm.group(2).strip(), level=level)
-            continue
-        if stripped.startswith(">"):
-            content = stripped.lstrip(">").strip()
-            p = doc.add_paragraph(style="Quote")
-            _docx_add_inline_runs(p, content)
-            continue
-        if re.match(r"^[-*+]\s+", stripped):
-            content = re.sub(r"^[-*+]\s+", "", stripped)
-            p = doc.add_paragraph(style="List Bullet")
-            _docx_add_inline_runs(p, content)
-            continue
-        if re.match(r"^\d+\.\s+", stripped):
-            content = re.sub(r"^\d+\.\s+", "", stripped)
-            p = doc.add_paragraph(style="List Number")
-            _docx_add_inline_runs(p, content)
-            continue
-        p = doc.add_paragraph()
-        _docx_add_inline_runs(p, stripped)
-
-
-def build_outline_docx() -> bytes:
-    """Összeállítja a vázlatkosár + ének Word dokumentumát (bináris .docx)."""
-    from docx import Document
-    from docx.enum.text import WD_COLOR_INDEX
-    from docx.shared import Pt
-
-    doc = Document()
-    doc.styles["Normal"].font.name = "Calibri"
-    doc.styles["Normal"].font.size = Pt(11)
-
-    doc.add_heading(f"Prédikációvázlat — {APP_NAME}", level=1)
-
-    igehely = st.session_state.get("last_igehely", "—")
-    alkalom = st.session_state.get("last_alkalom", "—")
-    stilus = st.session_state.get("last_stilus", "—")
-    outline = st.session_state.get("outline", "").strip()
-    basket = st.session_state.get("basket", [])
-    songs = st.session_state.get("songs", "").strip()
-    now = datetime.now().strftime("%Y. %m. %d. %H:%M")
-
-    p_meta = doc.add_paragraph()
-    r_l = p_meta.add_run("Igehely: ")
-    r_l.bold = True
-    r_v = p_meta.add_run(igehely)
-    r_v.bold = True
-    try:
-        r_v.font.highlight_color = WD_COLOR_INDEX.YELLOW
-    except Exception:
-        r_v.italic = True
-
-    p_al = doc.add_paragraph()
-    p_al.add_run("Alkalom: ").bold = True
-    _docx_add_inline_runs(p_al, alkalom)
-
-    p_st = doc.add_paragraph()
-    p_st.add_run("Homiletikai stílus: ").bold = True
-    _docx_add_inline_runs(p_st, stilus)
-
-    doc.add_paragraph(f"Készült: {now}")
-    doc.add_paragraph()
-
-    doc.add_heading("Vázlat", level=2)
-    _docx_append_markdown_body(doc, outline)
-
-    if basket:
-        doc.add_heading("Vázlatkosár — gondolatok a vázlathoz", level=2)
-        for source, item in basket:
-            doc.add_heading(source, level=3)
-            _docx_append_markdown_body(doc, item)
-
-    if songs:
-        doc.add_heading("Liturgiai énekajánlás", level=2)
-        _docx_append_markdown_body(doc, songs)
-
-    doc.add_paragraph()
-    p_f = doc.add_paragraph()
-    r_f = p_f.add_run(f"{APP_NAME} v{APP_VERSION} — {APP_SUBTITLE} · {APP_TAGLINE}")
-    r_f.italic = True
-
-    buf = io.BytesIO()
-    doc.save(buf)
-    return buf.getvalue()
+# A tényleges implementáció az outline_word_export.py-ban él (2026-08-13,
+# célarchitektúra-terv 2. fázis, 1. lépés — kiemelve, hogy az Igehirdetési
+# műhely UI-ja (sermon_workshop_ui.py) is biztonságosan importálhassa,
+# körkörös import / kettős app.py-végrehajtás kockázata nélkül). Itt csak
+# visszafelé kompatibilis re-export marad, hogy az `app.build_outline_docx`
+# hívási forma (és a rá épülő tesztek) változatlanul működjenek.
+from outline_word_export import build_outline_docx  # noqa: E402
 
 
 # =========================================================
@@ -8115,162 +8001,10 @@ with tabs[6]:
 
 
 # =========================================================
-# VÁZLAT — közös motor (sermon_outline_engine)
-# =========================================================
-
-with tabs[7]:
-    from sermon_outline_engine import (
-        REFRESH_NOTICE,
-        generate_sermon_outline,
-        outline_needs_refresh,
-    )
-    from sermon_workshop_data import (
-        SERMON_WORKSHOP_KEY,
-        ensure_sermon_workshop_state,
-        normalize_sermon_outline,
-        save_sermon_outline,
-    )
-    from sermon_workshop_outline_ai import (
-        EMPTY_PROJECT_MESSAGE,
-        assess_outline_readiness,
-        collect_available_sermon_material,
-        outline_canonical_text,
-        outline_has_content,
-        render_compact_sermon_outline,
-        sync_outline_content,
-    )
-
-    st.header("Gyors vázlat")
-    st.caption(
-        "Vázlat készítése a projektben jelenleg rendelkezésre álló anyagból."
-    )
-
-    ensure_sermon_workshop_state(st.session_state)
-    sw = st.session_state[SERMON_WORKSHOP_KEY]
-    outline = normalize_sermon_outline(sw.get("sermon_outline"))
-    bundle = collect_available_sermon_material(st.session_state, sermon_workshop=sw)
-    # Termékdöntés (2026-08-08): a kurátori-kényszer (require_curation=True)
-    # visszavonva — a gomb újra pusztán az igehely + betöltött bibliai
-    # szöveg alapján elérhető, ahogy eredetileg. A minőségbiztosítást a
-    # vázlatmotor prompt-ja/validátora végzi, nem egy mesterséges belépési
-    # korlát. A `require_curation` paraméter magában megmarad
-    # (`sermon_workshop_outline_ai.assess_outline_readiness`), ha később
-    # újra szükség lenne rá.
-    readiness = assess_outline_readiness(st.session_state, sermon_workshop=sw)
-
-    if outline_has_content(outline) and outline_needs_refresh(outline, bundle):
-        if str(outline.get("status") or "") != "needs_refresh":
-            outline["status"] = "needs_refresh"
-            sw["sermon_outline"] = outline
-            sw["sermon_outline_status"] = "needs_refresh"
-        st.info(REFRESH_NOTICE)
-
-    _qt_outline_running = bool(st.session_state.get("_outline_running"))
-    primary = (
-        "Vázlat frissítése"
-        if outline_has_content(outline)
-        else "Vázlat készítése"
-    )
-    if st.button(
-        primary,
-        type="primary",
-        disabled=_qt_outline_running or not readiness.ok,
-        key="outline_run",
-    ):
-        st.session_state["_outline_running"] = True
-        try:
-            with st.spinner("Homiletikai vázlat készül…"):
-                result = generate_sermon_outline(
-                    st.session_state,
-                    mode="quick",
-                    generate_fn=generate_text,
-                    force_overwrite=True,
-                )
-                if not result.ok:
-                    msg = (result.error_message or EMPTY_PROJECT_MESSAGE).strip()
-                    if (
-                        outline_has_content(outline)
-                        and "korábbi mentett vázlat" not in msg.casefold()
-                    ):
-                        msg += " A korábbi mentett vázlat változatlanul látható."
-                    st.warning(msg)
-                else:
-                    outline = sync_outline_content(result.outline, force=True)
-                    save_sermon_outline(
-                        st.session_state, outline, mark_manual_edit=False
-                    )
-                    body = outline_canonical_text(outline)
-                    st.session_state["outline"] = body
-                    st.session_state["outline_draft"] = body
-                    st.success("A vázlat elkészült.")
-                    st.rerun()
-        finally:
-            st.session_state["_outline_running"] = False
-
-    if not readiness.ok:
-        st.info(readiness.message or EMPTY_PROJECT_MESSAGE)
-
-    outline = normalize_sermon_outline(
-        ensure_sermon_workshop_state(st.session_state).get("sermon_outline")
-    )
-    if outline_has_content(outline):
-        st.markdown("### Vázlat előnézete")
-        render_compact_sermon_outline(outline)
-        body = outline_canonical_text(outline)
-        if body and not str(st.session_state.get("outline") or "").strip():
-            st.session_state["outline"] = body
-        st.divider()
-        st.subheader("Letöltés")
-        _verse_clean = (
-            (st.session_state.get("last_igehely") or "vazlat")
-            .replace(" ", "_")
-            .replace("/", "-")
-            .replace(",", "")
-            .replace(":", "-")
-        )
-        _ts = datetime.now().strftime("%Y%m%d-%H%M")
-        _filename_docx = f"textus-vazlat-{_verse_clean}-{_ts}.docx"
-        try:
-            if not str(st.session_state.get("outline") or "").strip():
-                st.session_state["outline"] = body
-            _docx_bytes = build_outline_docx()
-            if st.download_button(
-                label="Vázlat letöltése (Word)",
-                data=_docx_bytes,
-                file_name=_filename_docx,
-                mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                use_container_width=False,
-                key="outline_download_docx",
-                type="primary",
-            ):
-                track_event(
-                    "file_export",
-                    {
-                        "feature_name": "outline",
-                        "file_format": "docx",
-                        "method": "download",
-                    },
-                )
-        except ImportError as _docx_exc:
-            import logging as _logging
-
-            _logging.getLogger(__name__).exception(
-                "Word export unavailable (python-docx): %s", _docx_exc
-            )
-            st.error(
-                "A Word-export jelenleg nem érhető el. Az alkalmazás egyik dokumentumkezelő összetevője hiányzik."
-            )
-            with st.expander("Technikai részletek", expanded=False):
-                st.caption("Hiányzó függőség: python-docx")
-    elif readiness.ok:
-        st.caption("Még nincs összeállított vázlat — indítsd a készítést.")
-
-
-# =========================================================
 # VÁZLATKOSÁR
 # =========================================================
 
-with tabs[8]:
+with tabs[7]:
     st.header("Vázlatkosár")
     st.caption(f"{len(st.session_state['basket'])} elem · szerkeszthető, törölhető, sorrendezhető")
 
@@ -8338,7 +8072,7 @@ with tabs[1]:
 # ÉNEKAJÁNLÓ
 # =========================================================
 
-with tabs[9]:
+with tabs[8]:
     st.header("Énekajánló")
     st.caption("Református liturgiai énekajánlás az igeszakaszhoz és az alkalomhoz")
 
@@ -8453,7 +8187,7 @@ with tabs[9]:
 # A TEXTUS FŐ GONDOLATA (a régi különálló Textusműhelyből beolvasztva)
 # =========================================================
 
-with tabs[11]:
+with tabs[10]:
     render_text_main_idea_section(generate_fn=generate_text)
 
 
@@ -8461,7 +8195,7 @@ with tabs[11]:
 # TEXTUSÖSSZEGZÉS (a régi „Mit viszünk tovább?” + új záró bundle)
 # =========================================================
 
-with tabs[12]:
+with tabs[11]:
     render_text_summary_section(generate_fn=generate_text)
 
 
@@ -8469,7 +8203,7 @@ with tabs[12]:
 # ÚTMUTATÁS — ARS POETICA + PROMPT GYORSSEGÉD
 # =========================================================
 
-with tabs[13]:
+with tabs[12]:
     st.header("📖 Útmutatás")
 
     st.subheader("Ars Poetica: Miért készítettem ezt az eszközt?")
@@ -8561,7 +8295,7 @@ with tabs[13]:
 # IGEHIRDETÉSI SOROZAT TERVEZŐ
 # =========================================================
 
-with tabs[10]:
+with tabs[9]:
     st.header("📅 Igehirdetési sorozat tervező")
 
     st.info(

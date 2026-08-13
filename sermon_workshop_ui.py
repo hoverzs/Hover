@@ -3786,6 +3786,68 @@ def render_outline_section(
                     "Nagyobb betűméret, tiszta háttér — ugyanaz a kanonikus vázlattartalom."
                 )
                 render_pulpit_outline_view(outline)
+
+            # Biztonsági háló: ha a lapos `outline` mirror-kulcs valamiért
+            # még üres (pl. frissen betöltött régi projekt, amiben még nem
+            # futott mentés ebben a munkamenetben), a Word-export előtt
+            # pótoljuk a kanonikus szövegből — ugyanaz a minta, mint a
+            # korábbi Textusműhely-oldali "Vázlat" fülön volt.
+            _outline_body_for_export = outline_canonical_text(outline)
+            if _outline_body_for_export and not str(
+                st.session_state.get("outline") or ""
+            ).strip():
+                st.session_state["outline"] = _outline_body_for_export
+
+            st.divider()
+            st.subheader("Letöltés")
+            try:
+                from datetime import datetime
+
+                from outline_word_export import build_outline_docx
+
+                _verse_clean = (
+                    (st.session_state.get("last_igehely") or "vazlat")
+                    .replace(" ", "_")
+                    .replace("/", "-")
+                    .replace(",", "")
+                    .replace(":", "-")
+                )
+                _ts = datetime.now().strftime("%Y%m%d-%H%M")
+                _filename_docx = f"textus-vazlat-{_verse_clean}-{_ts}.docx"
+                if not str(st.session_state.get("outline") or "").strip():
+                    st.session_state["outline"] = _outline_body_for_export
+                _docx_bytes = build_outline_docx()
+                if st.download_button(
+                    label="Vázlat letöltése (Word)",
+                    data=_docx_bytes,
+                    file_name=_filename_docx,
+                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                    use_container_width=False,
+                    key="outline_download_docx",
+                    type="primary",
+                ):
+                    from textus_analytics import track_event
+
+                    track_event(
+                        "file_export",
+                        {
+                            "feature_name": "outline",
+                            "file_format": "docx",
+                            "method": "download",
+                        },
+                    )
+            except ImportError as _docx_exc:
+                import logging as _logging
+
+                _logging.getLogger(__name__).exception(
+                    "Word export unavailable (python-docx): %s", _docx_exc
+                )
+                st.error(
+                    "A Word-export jelenleg nem érhető el. Az alkalmazás egyik dokumentumkezelő összetevője hiányzik."
+                )
+                with st.expander("Technikai részletek", expanded=False):
+                    st.caption("Hiányzó függőség: python-docx")
+
             _render_outline_partial_regen(outline, generate_fn=generate_fn)
 
             # Alsó műveleti terület: jóváhagyás + szerkesztés + következő lépés

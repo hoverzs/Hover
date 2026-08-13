@@ -1,8 +1,10 @@
 """Egyetlen közös igehirdetési-vázlat motor (pulpit_outline_v7).
 
-Mindkét belépési pont (Gyorseszközök → Gyors vázlat, Igehirdetési műhely →
-Igehirdetési vázlat) ezt a modult hívja. Egy kanonikus `movements` séma,
-egy validátor; tömörítés csak 850 szó felett. Az alsó céltartomány soft jelzés.
+Az Igehirdetési műhely „Igehirdetési vázlat” szekciója (az egyetlen
+felhasználói vázlatkészítő belépési pont — a korábbi, párhuzamos
+Textusműhely „Gyors vázlat” felület 2026-08-13-án megszűnt) ezt a modult
+hívja. Egy kanonikus `movements` séma, egy validátor; tömörítés csak 850
+szó felett. Az alsó céltartomány soft jelzés.
 Nem importál app.py / sermon_workshop_ui.py fájlból.
 """
 

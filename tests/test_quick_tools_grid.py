@@ -17,9 +17,11 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_quick_tools_shared_render_api():
-    """Egy közös komponens: 14 címke (a Textusműhely-összevonás után), kulcsolt rács, nincs auth param."""
+    """Egy közös komponens: 13 címke (a Vázlat/Gyors vázlat kártya
+    megszűnése után — a vázlatkészítés kizárólag az Igehirdetési
+    műhelyben érhető el), kulcsolt rács, nincs auth param."""
     assert QUICK_TOOLS_GRID_KEY == "quick_tools_grid"
-    assert len(QUICK_TOOLS_TAB_LABELS) == 14
+    assert len(QUICK_TOOLS_TAB_LABELS) == 13
     assert "Igehely" in QUICK_TOOLS_TAB_LABELS[0]
     assert any("fő gondolata" in label for label in QUICK_TOOLS_TAB_LABELS)
     assert any("Textusösszegzés" in label for label in QUICK_TOOLS_TAB_LABELS)
@@ -31,6 +33,28 @@ def test_quick_tools_shared_render_api():
     assert "logged_in" not in params
     assert "guest" not in params
     assert "owner" not in params
+
+
+def test_quick_tools_grid_has_no_standalone_outline_card():
+    """A Textusműhely kártyalistája már nem tartalmaz önálló „Vázlat” elemet
+    — csak a "Vázlatkosár"-t (ami más funkció, nem törlendő). A vázlatkészítés
+    kizárólag az Igehirdetési műhely „Igehirdetési vázlat” szekciójából
+    érhető el (célarchitektúra-terv, 2. fázis, 1. lépés, 2026-08-13)."""
+    assert not any(
+        label.strip().endswith(": Vázlat") for label in QUICK_TOOLS_TAB_LABELS
+    )
+    assert any(
+        label.strip().endswith(": Vázlatkosár") for label in QUICK_TOOLS_TAB_LABELS
+    )
+
+
+def test_app_py_has_no_quick_outline_render_block():
+    """Az app.py-ban nem maradt „Gyors vázlat” fejléc/render-blokk, és a
+    korábbi Textusműhely-oldali vázlatmotor-hívás (mode="quick") megszűnt."""
+    app = (ROOT / "app.py").read_text(encoding="utf-8")
+    assert "Gyors vázlat" not in app
+    assert 'mode="quick"' not in app
+    assert "outline_run" not in app
 
 
 def test_quick_tools_uses_shared_renderer_not_parent_js():
