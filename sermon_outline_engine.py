@@ -77,6 +77,16 @@ LIMITS = {
     "min_points": 2,
     "max_points": 5,
     "default_points": 3,
+    # 2C.1 (célarchitektúra-terv, 2. fázis, 3. rész): KÜLÖN korlátpár az
+    # élő, body_markdown-alapú beszédegység-szegmentáláshoz
+    # (`_extract_markdown_movements`/`_assess_outline_structure`).
+    # Szándékosan NEM a fenti `min_points`/`max_points` — azok a régi,
+    # 2026-08-07 előtti points[] sémát validálják, amit élő AI-generálás
+    # ma már nem tölt ki; módosításuk visszamenőleg érintené a régi,
+    # mentett vázlatok újravalidálását. Ez a két új kulcs kizárólag az
+    # új, Markdown-alapú szerkezeti ellenőrzésen belül él.
+    "min_speech_units": 2,
+    "max_speech_units": 4,
     # Soft céltartományok (abszolút max mindig 850).
     # Gyakorlatias szószéki jegyzet: kb. 300–500 szó.
     "target_min_words": 300,
@@ -95,8 +105,27 @@ LIMITS = {
 
 # Soft: under_target / too_thin → warning + opcionális enrich; soha nem önálló reject.
 # Compress csak over_absolute_max (>850) / full_sermon_like.
+#
+# 2C.1: a Markdown beszédegység-szegmentálás SZERKEZETI proxy-jelzései
+# (ld. `_assess_outline_structure`). Mindhárom ENRICHABLE — a meglévő
+# AI-repair (`_enrich_markdown`) mindegyiknél kap először esélyt —, de
+# csak `units_not_distinct` marad SOFT is: ha a javítás után is fennmarad,
+# csak figyelmeztetés (a 0.60-as hasonlósági küszöb empirikus, nem elég
+# megbízható kemény elutasításhoz). `too_few_speech_units`/
+# `too_many_speech_units` NEM soft-only: a 2–4 beszédegység valódi
+# kimeneti szerződés — ha a repair után is fennmaradnak, a
+# `generate_sermon_outline()` egy külön, kifejezett ellenőrzése (a
+# beszédegység-szám-blokk) blokkoló, retryable hibává alakítja őket,
+# SOHA nem mechanikus fallbackkel, hanem strukturált `validation_failed`
+# eredménnyel — a korábbi mentett vázlat változatlanul megmarad.
 SOFT_QUALITY_ISSUES = frozenset(
-    {"under_target", "too_thin", "repeated_thematic_triad", "generic_filler"}
+    {
+        "under_target",
+        "too_thin",
+        "repeated_thematic_triad",
+        "generic_filler",
+        "units_not_distinct",
+    }
 )
 ENRICHABLE_ISSUES = frozenset(
     {
@@ -115,6 +144,9 @@ ENRICHABLE_ISSUES = frozenset(
         "repeated_layer_text",
         "repeated_thematic_triad",
         "focus_not_one_sentence",
+        "too_few_speech_units",
+        "too_many_speech_units",
+        "units_not_distinct",
     }
 )
 COMPRESS_TRIGGER_ISSUES = frozenset(
@@ -451,14 +483,14 @@ Rövid alak: Belépés → Alaphelyzet → Első fordulópont → Mélyítés é
 → (opcionális Átértelmezés) → Második fordulópont → Megérkezés.
 
 BESZÉDEGYSÉGEK SZÁMA, ÍV ÉS ÁTVEZETÉS:
-A vázlat 2–3, EGYMÁSBÓL KÖVETKEZŐ beszédegységből álljon — a hét elemből
+A vázlat 2–4, EGYMÁSBÓL KÖVETKEZŐ beszédegységből álljon — a hét elemből
 SZINTETIZÁLVA, nem hét külön címsorként kimásolva. Egy tipikus felosztás
 (nem kötelező forma): 1. egység = Belépés+Alaphelyzet+Első fordulópont,
 2. egység = Mélyítés és fokozás (+ Átértelmezés, ha van), 3. egység =
 Második fordulópont+Megérkezés — de a tényleges egységhatárokat mindig a
 textus és a jóváhagyott anyag indokolja, nem ez a séma. Csak akkor legyen
-3 egység, ha a jóváhagyott anyag valóban külön egységet indokol — ne
-erőltess harmadikat. Minden beszédegység tartalmazza: rövid, tartalmi
+3 vagy 4 egység, ha a jóváhagyott anyag valóban külön egységet indokol —
+ne erőltess pluszegységet. Minden beszédegység tartalmazza: rövid, tartalmi
 címet; egy egyértelmű központi állítást (lehetőleg az egység elején); a
 szükséges exegetikai-teológiai anyagot mondatba ágyazva; konkrét hallgatói
 kapcsolódást; és — az utolsó egység kivételével — egy világos ÁTVEZETŐ
@@ -1157,6 +1189,10 @@ def validate_structured_outline(
         para_count = len([p for p in body.split("\n\n") if len(p) > 120])
         if para_count >= 8 and wc > LIMITS["absolute_max_words"]:
             issues.append("full_sermon_like")
+        # 2C.1: szerkezeti koherencia-proxy — a beszédegységek száma és
+        # megkülönböztethetősége, NEM a felismerési ív szemantikai
+        # ellenőrzése (ld. _assess_outline_structure docstringje).
+        issues.extend(_assess_outline_structure(_extract_markdown_movements(body)))
         return list(dict.fromkeys(issues))
 
     if not data["points"] and not data["focus_sentence"]:
@@ -2169,6 +2205,116 @@ def _looks_like_markdown_outline(text: str) -> bool:
     return word_count(body_after_title) >= 30
 
 
+# =============================================================================
+# 2C.1 (célarchitektúra-terv, 2. fázis, 3. rész, 2026-08-13): a generált
+# vázlat SZERKEZETI koherenciájának ellenőrzése — NEM a hét homiletikai
+# modellelem teológiai megvalósulásának szemantikai felismerése. A motor
+# nem állítja és nem is állíthatja, hogy determinisztikusan megítéli, egy
+# beszédegység ténylegesen "Alaphelyzet" vagy "Első fordulópont"-e — csak
+# azt méri, hogy a KIMENET FORMÁJA (hány beszédegység van, egymástól
+# ténylegesen megkülönböztethetőek-e) konzisztens-e azzal, amit egy jól
+# tagolt, a rendszerpromptban leírt szerkezetet követő vázlat mutatna.
+# =============================================================================
+
+_MOVEMENT_HEADING_RE = re.compile(
+    r"^[ \t]*\*\*[ \t]*(\d{1,2})[.)][ \t]*(.+?)[ \t]*\*\*[ \t]*$",
+    re.MULTILINE,
+)
+
+SPEECH_UNIT_DISTINCTNESS_MIN_WORDS = 15
+SPEECH_UNIT_DISTINCTNESS_SIMILARITY_THRESHOLD = 0.60
+
+
+def _extract_markdown_movements(body_markdown: Any) -> list[dict[str, Any]]:
+    """Defenzíven szegmentálja a kanonikus "**N. Cím**" mozgás-címekkel
+    tagolt Markdown vázlattestet beszédegységekre.
+
+    Kizárólag a KÖTELEZŐ FORMA szerinti (ld. OUTLINE_SYSTEM_PROMPT
+    "MOZGÁS-CÍMEK" szakasza), számozott, félkövér, önálló sorban álló
+    mozgás-címeket ismeri fel — NEM keresi és NEM várja el a hét
+    modellelem (Belépés/Alaphelyzet/stb.) nevét vagy pontosan hét
+    egységet; a cím szövege bármi lehet.
+
+    Ha a szöveg nem tartalmaz felismerhető, kötelező formájú címet, üres
+    listát ad vissza — ez NEM hibajelzés. A formai érvényesség (pl. hogy
+    a modell egyáltalán a kért formában válaszolt-e) a MEGLÉVŐ
+    `_has_forbidden_outline_structure`/`_looks_truncated_sentence`
+    ellenőrzések felelőssége, nem ezé a függvényé; ez a függvény sosem
+    dobhat kivételt üres, hiányos vagy hibás Markdownon."""
+    text = (body_markdown or "")
+    if not isinstance(text, str):
+        text = _s(text)
+    text = text.replace("\r\n", "\n").replace("\r", "\n")
+    if not text.strip():
+        return []
+    matches = list(_MOVEMENT_HEADING_RE.finditer(text))
+    if not matches:
+        return []
+    units: list[dict[str, Any]] = []
+    for i, m in enumerate(matches):
+        title = _s(m.group(2))
+        if not title:
+            continue
+        start = m.end()
+        end = matches[i + 1].start() if i + 1 < len(matches) else len(text)
+        unit_body = text[start:end].strip()
+        units.append(
+            {"index": len(units) + 1, "title": title, "body": unit_body}
+        )
+    return units
+
+
+def _speech_unit_word_set(text: Any) -> set[str]:
+    return set(re.findall(r"\w+", _s(text).casefold()))
+
+
+def _assess_outline_structure(units: list[Mapping[str, Any]]) -> list[str]:
+    """Szerkezeti proxy-ellenőrzések a Markdown beszédegységeken.
+
+    KIZÁRÓLAG mennyiségi/formai jelzéseket ad — nem méri, hogy a
+    tartalom ténylegesen követi-e a felismerési ívet. Ha `units` üres
+    (a parser nem talált felismerhető címet), nem ad vissza issue-t: ez
+    NEM azonos azzal, hogy "túl kevés" beszédegység van — egyszerűen
+    nincs elég megbízható jel a szerkezeti ellenőrzéshez, és a formai
+    érvényességet más ellenőrzés felelőssége lefedni."""
+    issues: list[str] = []
+    if not units:
+        return issues
+
+    n = len(units)
+    if n < LIMITS["min_speech_units"]:
+        issues.append("too_few_speech_units")
+    elif n > LIMITS["max_speech_units"]:
+        issues.append("too_many_speech_units")
+
+    # Megkülönböztethetőség: csak akkor hasonlítunk két egységet, ha
+    # mindkettő elér egy minimális hosszt (rövid egységeknél a kis
+    # szókészlet miatt a hasonlósági arány megbízhatatlanul ingadozna),
+    # és csak a NORMALIZÁLT szóhalmazok Jaccard-átfedését nézzük — pár
+    # közös (akár teológiai) szó önmagában alacsony átfedést ad, csak a
+    # nagyfokú, szinte-azonos tartalom éri el a küszöböt.
+    word_sets: list[set[str]] = []
+    for u in units:
+        word_sets.append(_speech_unit_word_set(u.get("body")))
+    for i in range(len(units)):
+        if len(word_sets[i]) < SPEECH_UNIT_DISTINCTNESS_MIN_WORDS:
+            continue
+        for j in range(i + 1, len(units)):
+            if len(word_sets[j]) < SPEECH_UNIT_DISTINCTNESS_MIN_WORDS:
+                continue
+            union = word_sets[i] | word_sets[j]
+            if not union:
+                continue
+            overlap = len(word_sets[i] & word_sets[j]) / len(union)
+            if overlap >= SPEECH_UNIT_DISTINCTNESS_SIMILARITY_THRESHOLD:
+                issues.append("units_not_distinct")
+                break
+        if "units_not_distinct" in issues:
+            break
+
+    return issues
+
+
 def clear_outline_generation_caches(session: MutableMapping[str, Any]) -> None:
     """Projektváltáskor / új munkánál ürítendő outline AI-cache."""
     session.pop(RAPID_EVIDENCE_SESSION_KEY, None)
@@ -2284,6 +2430,17 @@ INVALID_OUTLINE_MESSAGE = (
     "a céltartomány minőségi iránymutatás). "
     "Próbáld újra — a hosszú prédikációs szöveg vagy a szerkezetileg hibás "
     "vázlat nem kerül mentésre."
+)
+
+# 2C.1: a beszédegység-SZÁM (nem a tartalom hossza) miatti elutasítás
+# külön, pontosabb üzenetet kap — ha a javítási kísérlet(ek) után is
+# 1 vagy 5+ felismerhető beszédegység marad.
+SPEECH_UNIT_COUNT_INVALID_MESSAGE = (
+    "A vázlatgenerálás a beszédegységek számában nem érte el a "
+    f"szerkezeti elvárást ({LIMITS['min_speech_units']}–"
+    f"{LIMITS['max_speech_units']} beszédegység) — sem az eredeti, sem a "
+    "javítási kísérlet nem adott ennek megfelelő tagolást. "
+    "Próbáld újra a generálást."
 )
 
 SCHEMA_REFRESH_NOTICE = (
@@ -2829,6 +2986,14 @@ MARKDOWN_ENRICH_INSTRUCTION = (
     "A szöveg EGY folyó, bekezdésekre tagolt gondolatmenet maradjon — NE "
     "válts számozott alcímekre vagy mezőcímkékre (pl. \"Igei fókusz:\"). "
     "Ne ismételd ugyanazt a mondatot más bekezdésben. "
+    "Ha a JELZETT PROBLÉMÁK között \"too_few_speech_units\" szerepel, a "
+    "meglévő beszédegység(ek)et bontsd tovább egy indokolt, tartalmi "
+    "határnál; \"too_many_speech_units\" esetén vonj össze két egymáshoz "
+    "közel álló egységet; \"units_not_distinct\" esetén tedd egyértelműen "
+    "megkülönböztethetővé a túlságosan hasonló beszédegységeket — mindezt "
+    "a rendszerutasítás BESZÉDEGYSÉGEK SZÁMA szakasza szerint (2–4 egység, "
+    "számozott félkövér cím soronként), nem a hét modellelem külön-külön "
+    "kimásolásával. "
     "Add vissza a TELJES, kiegészített vázlatot PONTOSAN ugyanabban a "
     "Markdown formátumban, mint amit kaptál — ne válts JSON-ra vagy más "
     "formátumra, és ne írj magyarázatot a vázlaton kívül."
@@ -2843,6 +3008,10 @@ MARKDOWN_ENRICH_ESCALATION_INSTRUCTION = (
     "megfigyelést — ne általánosságot, ne közhelyet, mondatba ágyazva. "
     "A vázlat homiletikai ívét és a folyó szövegű, tagolatlan formát "
     "őrizd meg — NE válts számozott alcímekre vagy mezőcímkékre. "
+    "Ha a JELZETT PROBLÉMÁK között beszédegység-szám vagy megkülönböztethe"
+    "tőségi jelzés szerepel (too_few_speech_units / too_many_speech_units "
+    "/ units_not_distinct), igazítsd a beszédegység-tagolást a "
+    "rendszerutasítás szerinti 2–4 egységre. "
     "Add vissza a TELJES, kiegészített vázlatot PONTOSAN ugyanabban a "
     "Markdown formátumban, mint amit kaptál — ne válts JSON-ra vagy más "
     "formátumra, és ne írj magyarázatot a vázlaton kívül."
@@ -3577,6 +3746,40 @@ def generate_sermon_outline(
     )
 
     rendered_wc = word_count(render_structured_outline(structured))
+
+    # 2C.1: a beszédegység-SZÁM valódi kimeneti szerződés, nem puszta
+    # minőségi figyelmeztetés. too_few_speech_units/too_many_speech_units
+    # ENRICHABLE (a fenti compress/enrich hurok, amely idáig már lefutott,
+    # megkapta az esélyt a javításra) — de ha a javítás(ok) után is
+    # fennmaradnak, blokkoló, retryable validációs hibává válnak. A
+    # programozott tömörítés/mentőöv (`_rescue_structured_outline`) nem
+    # tudna beszédegységeket szétbontani vagy összevonni, ezért erre a
+    # konkrét hibaosztályra nem is próbálkozunk vele — egyenesen
+    # strukturált hibát adunk, a korábbi mentett vázlat érintetlen marad.
+    speech_unit_count_issues = [
+        i for i in issues if i in ("too_few_speech_units", "too_many_speech_units")
+    ]
+    if speech_unit_count_issues:
+        logger.info(
+            "outline_reject_speech_unit_count schema=%s issues=%s rendered_words=%s",
+            SCHEMA_VERSION,
+            speech_unit_count_issues,
+            rendered_wc,
+        )
+        return OutlineGenerationResult(
+            outline=existing,
+            ok=False,
+            error_message=SPEECH_UNIT_COUNT_INVALID_MESSAGE + retained_outline_notice,
+            error_kind="validation_failed",
+            retryable=True,
+            warnings=warnings,
+            validation_issues=issues,
+            source=source_tag,
+            compressed=compressed,
+            enriched=enriched,
+            raw_word_count=raw_wc,
+            rendered_word_count=rendered_wc,
+        )
 
     # Soft quality flags (too_thin / under_target) → warning, keep if otherwise valid
     for soft in _soft_final_issues(issues):
