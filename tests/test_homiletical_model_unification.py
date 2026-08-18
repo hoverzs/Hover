@@ -51,16 +51,23 @@ def test_first_phase_renamed_to_text_core_and_focus():
 
 
 def test_shell_dispatch_no_longer_calls_old_parallel_forms():
-    """Az öt fázis közül a Homiletikai belépési pont mostantól kizárólag az
-    entry_point szakaszt hívja — az öt mezős human_condition/listener_tension
-    űrlap nem jelenik meg mellette párhuzamos rendszerként."""
+    """RESET 2B (2026-08-18) — megfordított elvárás: ez a teszt korábban
+    (a fordulópont-alapú modell egységesítése idején) azt védte, hogy a
+    Homiletikai belépési pont fázis kizárólag az `entry_point` szakaszt
+    hívja, az öt mezős human_condition/listener_tension űrlap nélkül. Az
+    egyszerű, lapos, hétpontos felület ezt az egész ötfázisos dispatchet
+    (`entry_point`-tal együtt) leválasztotta — a régi függvények
+    (`render_entry_point_section`, `render_text_core_and_focus_section`,
+    `render_human_condition_section`, `render_listener_tension_section`)
+    egyike sem hívódik többé a shellből, de mind megmaradtak legacy
+    kódként."""
     from sermon_workshop_ui import render_sermon_workshop_shell
 
     src = inspect.getsource(render_sermon_workshop_shell)
     assert "render_human_condition_section(generate_fn=generate_fn)" not in src
     assert "render_listener_tension_section(generate_fn=generate_fn)" not in src
-    assert "render_entry_point_section(generate_fn=generate_fn)" in src
-    assert "render_text_core_and_focus_section(generate_fn=generate_fn)" in src
+    assert "render_entry_point_section(generate_fn=generate_fn)" not in src
+    assert "render_text_core_and_focus_section(generate_fn=generate_fn)" not in src
 
 
 def test_sermon_path_section_source_has_no_path_type_or_movements_editor():

@@ -49,7 +49,13 @@ def session(monkeypatch):
 # ---------------------------------------------------------------------------
 
 
-def test_each_section_render_function_dispatched_exactly_once():
+def test_old_section_render_functions_no_longer_dispatched_after_reset_2b():
+    """RESET 2B (2026-08-18): megfordított elvárás — a korábbi
+    `test_each_section_render_function_dispatched_exactly_once` azt
+    védte, hogy minden régi öt-fázisos section-renderer pontosan egyszer
+    hívódjon a shellből. Az egyszerű, lapos felület ezt a dispatchet
+    teljesen leválasztotta — a régi függvények megmaradtak legacy
+    kódként (nem törölve), de innen már NEM hívódnak."""
     src = inspect.getsource(sw_ui.render_sermon_workshop_shell)
     for fn_name in (
         "render_text_core_and_focus_section",
@@ -61,8 +67,8 @@ def test_each_section_render_function_dispatched_exactly_once():
         "render_outline_section",
     ):
         call = f"{fn_name}(generate_fn=generate_fn)"
-        count = src.count(call)
-        assert count == 1, f"{fn_name} {count}-szer szerepel a dispatch-ban, 1 helyett"
+        assert call not in src, f"{fn_name} még mindig aktívan hívódik a shellből"
+        assert callable(getattr(sw_ui, fn_name)), f"{fn_name} ne törlődjön, csak inaktiválódjon"
 
 
 # ---------------------------------------------------------------------------

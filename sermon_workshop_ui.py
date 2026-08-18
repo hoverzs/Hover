@@ -30,6 +30,7 @@ from bible_text_ui import (
 from bible_text_ui import _ensure_bible_text_styles
 from ruf_bible_service import SOURCE_NAME, fetch_ruf_passage
 from sermon_workshop_data import (
+    _ARC_POINT_KEYS,
     accept_workshop_proposal,
     add_approved_sermon_decision,
     add_engagement_element,
@@ -41,6 +42,7 @@ from sermon_workshop_data import (
     empty_sermon_movement,
     empty_textual_image,
     ensure_sermon_workshop_state,
+    update_arc_point,
     normalize_applications,
     normalize_illustrations,
     normalize_lection_connection_type,
@@ -257,7 +259,7 @@ from sermon_outline_diagnostics_ai import (
     adapt_m8_to_outline_diagnostics,
     run_outline_diagnostics,
 )
-from textus_workshop_data import ensure_text_workshop_state
+from textus_workshop_data import ensure_text_workshop_state, update_text_main_idea
 from textus_workshop_ui import render_text_main_idea_section, render_text_summary_section
 from diagnostics_dashboard_ui import (
     ensure_dashboard_styles,
@@ -507,6 +509,34 @@ _HC_SUGGEST_DISPLAY = [
 # Widget / technikai kulcsok — nem project_data
 _KEY_ACTIVE_SECTION = "sw_active_section"
 _KEY_SERMON_IDEA = "sw_sermon_main_idea_input"
+
+# RESET 2B (2026-08-18): az egyszerű, lapos "Textus és fókusz" + hétpontos
+# szerkesztőfelület widgetkulcsai. A `_KEY_SERMON_IDEA`-t újrahasznosítjuk
+# (már seedelve van `_apply_sw_ui_resync_if_needed()`-ben) — csak a
+# text_main_idea és az arc-pontok kapnak új, dedikált kulcsot.
+_KEY_FLAT_TEXT_MAIN_IDEA = "sw_flat_text_main_idea"
+_KEY_FLAT_ARC: dict[str, str] = {key: f"sw_flat_arc_{key}" for key in _ARC_POINT_KEYS}
+
+# A hét kártya sorrendje és tartalma — 1:1 a `_ARC_POINT_KEYS` sorrendjével
+# (zip-elve), hogy a kulcs↔címke↔leírás hármas sosem csúszhat szét.
+_ARC_CARD_TITLES: dict[str, str] = {
+    "entry": "Belépés",
+    "starting_point": "Alaphelyzet",
+    "first_shift": "Első fordulópont",
+    "deepening": "Mélyítés és fokozás",
+    "reinterpretation": "Átértelmezés",
+    "second_shift": "Második fordulópont",
+    "arrival": "Megérkezés",
+}
+_ARC_CARD_DESCRIPTIONS: dict[str, str] = {
+    "entry": "Természetes belépés a textus kérdésébe és a hallgató tapasztalatába.",
+    "starting_point": "A textus és a hallgatói helyzet kiinduló feszültsége.",
+    "first_shift": "Az első felismerés, amely elmozdítja a megszokott értelmezést.",
+    "deepening": "A kérdés teológiai, emberi és egzisztenciális kibontása.",
+    "reinterpretation": "A textus központi felismerése új fénybe helyezi a kiinduló kérdést.",
+    "second_shift": "Az evangéliumi felismerés személyes és közösségi következménye.",
+    "arrival": "A gondolatmenet természetes lezárása, amely eljuttat valahová.",
+}
 _KEY_HC = {
     "condition": "sw_hc_condition",
     "false_response": "sw_hc_false_response",
@@ -1918,6 +1948,19 @@ def _apply_sw_ui_resync_if_needed() -> None:
                 durable_val.strip() and not str(st.session_state.get(wkey) or "").strip()
             ):
                 st.session_state[wkey] = durable_val
+
+    # RESET 2B: az egyszerű, lapos "Textus és fókusz" + hétpontos
+    # szerkesztőfelület widgetkulcsai — ugyanaz a "force vagy még nincs
+    # session_state-ben" minta, mint a fentebbi mezőknél.
+    tw = ensure_text_workshop_state(st.session_state)
+    if force or _KEY_FLAT_TEXT_MAIN_IDEA not in st.session_state:
+        st.session_state[_KEY_FLAT_TEXT_MAIN_IDEA] = tw.get("text_main_idea") or ""
+
+    flat_arc = sw.get("arc") if isinstance(sw.get("arc"), dict) else {}
+    for point_key, wkey in _KEY_FLAT_ARC.items():
+        if force or wkey not in st.session_state:
+            point = flat_arc.get(point_key) or {}
+            st.session_state[wkey] = str(point.get("text") or "")
 
 
 def _request_adopt_sermon_sentence(sentence: str) -> None:
@@ -11597,18 +11640,153 @@ def flush_sermon_workshop_from_widgets() -> None:
         _persist_outline_from_widgets(mark_manual_edit=None)
 
 
+def _flat_save_text_main_idea() -> None:
+    """A textus fő gondolata — automatikus mentés a kanonikus
+    `text_workshop.text_main_idea` mezőbe. Nem igényel approval-státuszt
+    és nem szivárog az `arc` egyetlen pontjába sem."""
+    content = (st.session_state.get(_KEY_FLAT_TEXT_MAIN_IDEA) or "").strip()
+    update_text_main_idea(st.session_state, content, "draft")
+
+
+def _flat_save_sermon_main_idea() -> None:
+    """Az igehirdetés fő gondolata / fókuszmondat — automatikus mentés a
+    kanonikus `sermon_workshop.sermon_main_idea` mezőbe. A státuszt nem
+    módosítja (a meglévő legacy státusz csak tájékoztató marad)."""
+    content = (st.session_state.get(_KEY_SERMON_IDEA) or "").strip()
+    update_sermon_workshop_section(st.session_state, "sermon_main_idea", content)
+
+
+def render_flat_text_and_focus_section() -> None:
+    """RESET 2B: „Textus és fókusz” — a hét pontot összetartó két központi
+    irány. Mindkét mező önállóan, approval és „Átveszem” nélkül, kézzel
+    szerkeszthető és automatikusan mentődik. MI-javaslat ebben a fázisban
+    még nincs bekötve (ld. fázisvégi audit)."""
+    render_work_section(
+        title="Textus és fókusz",
+        body=(
+            "A két mező a hét pontot összetartó központi irány — nem "
+            "további modellpont. Kitöltésük opcionális, és nem "
+            "blokkolja a hétpontos vázlat használatát."
+        ),
+        context="Igehirdetési műhely",
+    )
+
+    st.markdown("**A textus fő gondolata**")
+    st.caption("Mit mond ez a bibliai szakasz saját összefüggésében?")
+    st.text_area(
+        "A textus fő gondolata",
+        key=_KEY_FLAT_TEXT_MAIN_IDEA,
+        height=100,
+        label_visibility="collapsed",
+        on_change=_flat_save_text_main_idea,
+    )
+
+    st.markdown("**Az igehirdetés fő gondolata – fókuszmondat**")
+    st.caption("Milyen központi felismerés felé vezesse az igehirdetés a hallgatót?")
+    st.text_area(
+        "Az igehirdetés fő gondolata – fókuszmondat",
+        key=_KEY_SERMON_IDEA,
+        height=100,
+        label_visibility="collapsed",
+        on_change=_flat_save_sermon_main_idea,
+    )
+
+
+def _flat_save_arc_point(point_key: str) -> None:
+    """Egy hétpontos kártya automatikus mentése — közvetlenül a meglévő
+    `update_arc_point()` adatmodell-függvényt hívja (ez frissíti az
+    `arc_meta.manually_updated_at`-ot is), csak a célpontot módosítja."""
+    widget_key = _KEY_FLAT_ARC[point_key]
+    content = st.session_state.get(widget_key) or ""
+    update_arc_point(st.session_state, point_key, content)
+
+
+def render_flat_seven_point_outline_section() -> None:
+    """RESET 2B: „Hétpontos igehirdetési vázlat” — hét, számozott,
+    egyenként szerkeszthető kártya, közvetlenül az `arc.*` pontokat
+    módosítva. Nincs approval, nincs pontonkénti MI-gomb vagy „Átveszem”,
+    nincs generálás — csak kézi szerkesztés, automatikus mentéssel."""
+    render_work_section(
+        title="Hétpontos igehirdetési vázlat",
+        body=(
+            "A hét rész együtt alkotja az igehirdetés gondolati és "
+            "dramaturgiai ívét. Nem hét elszigetelt tétel, hanem egyetlen "
+            "előrehaladó gondolatmenet."
+        ),
+        context="Igehirdetési műhely",
+    )
+
+    for idx, point_key in enumerate(_ARC_POINT_KEYS, start=1):
+        title = _ARC_CARD_TITLES[point_key]
+        description = _ARC_CARD_DESCRIPTIONS[point_key]
+        widget_key = _KEY_FLAT_ARC[point_key]
+        with st.container(border=True):
+            st.markdown(f"**{idx}. {title}**")
+            st.caption(description)
+            st.text_area(
+                title,
+                key=widget_key,
+                height=150,
+                label_visibility="collapsed",
+                on_change=_flat_save_arc_point,
+                args=(point_key,),
+            )
+
+
+def _render_flat_legacy_outline_panel() -> None:
+    """RESET 2B: régi (2–4 beszédegységes) vázlat read-only megjelenítése,
+    KIZÁRÓLAG akkor, ha az új kanonikus `arc` mind a hét pontja üres és a
+    régi `sermon_outline` tartalmaz használható tartalmat. Nem szerkeszthető,
+    nem másolja át automatikusan az adatot az `arc`-ba — nincs „Átemelem”
+    gomb."""
+    sw = ensure_sermon_workshop_state(st.session_state)
+    arc = sw.get("arc") if isinstance(sw.get("arc"), dict) else {}
+    has_new_arc_content = any(
+        str((arc.get(key) or {}).get("text") or "").strip() for key in _ARC_POINT_KEYS
+    )
+    if has_new_arc_content:
+        return
+
+    legacy_outline = sw.get("sermon_outline")
+    if not outline_has_content(legacy_outline):
+        return
+
+    legacy_text = outline_canonical_text(legacy_outline)
+    if not legacy_text.strip():
+        return
+
+    st.divider()
+    with st.container(border=True):
+        st.markdown("**Korábbi vázlat – régi formátum**")
+        st.caption(
+            "Csak megtekintésre — nem szerkeszthető, és nem kerül át "
+            "automatikusan a fenti hét pontba."
+        )
+        st.markdown(legacy_text)
+
+
 def render_sermon_workshop_shell(
     *,
     generate_fn: GenerateFn | None = None,
 ) -> None:
-    """Igehirdetési műhely keret — működő szakaszok + helyőrzők."""
-    # Friss futtatásonként pontosan egy widget-szinkron: a fázisok több
-    # szakasz-render függvényt is meghívnak egymás után, azok mindegyike
-    # saját maga is meghívja a resync-et — a jelzőt itt töröljük, hogy az
-    # első hívás valóban szinkronizáljon, a többi pedig no-op maradjon.
+    """Igehirdetési műhely — egyszerű, lapos, hétpontos szerkesztőfelület.
+
+    RESET 2B (2026-08-18): a korábbi ötlépéses, popover-navigációs
+    munkafolyamat aktív hívási útvonalból leválasztva. A régi függvények
+    (`render_workshop_workflow_nav`, `render_entry_point_section`,
+    `render_gospel_arc_section`, `render_sermon_path_section`,
+    `render_engagement_section`, `render_closing_section`,
+    `render_text_core_and_focus_section`, `render_outline_section` és a
+    hozzájuk tartozó régi section-szintű MI-segédek) megmaradnak legacy
+    kódként, de innen már nem hívódnak. Az oldal két része: „Textus és
+    fókusz” (két önálló, kanonikus mező) és a „Hétpontos igehirdetési
+    vázlat” (az `arc.*` pontok közvetlen szerkesztése). A generálás és a
+    Word-export egy következő fázisban kerül vissza működőképesen — ebben
+    a fázisban a cél kizárólag a kézi, automatikusan mentett felület.
+    """
+    _ = generate_fn  # ebben a fázisban még nincs MI-/generálás-bekötés
     st.session_state.pop(_RESYNC_DONE_THIS_RUN, None)
     _apply_sw_ui_resync_if_needed()
-    _apply_pending_adopts_if_needed()
     ensure_sermon_workshop_state(st.session_state)
     ensure_text_workshop_state(st.session_state)
 
@@ -11618,76 +11796,16 @@ def render_sermon_workshop_shell(
         workspace_scope=True,
     )
 
-    _render_shell_context_summary()
+    # A bibliai szöveg a munkaterület szerkezetében, nem külön lebegve.
+    render_bible_text_preview(expanded=False)
 
-    if st.session_state.get(_KEY_ACTIVE_SECTION) not in SERMON_PHASE_OPTIONS:
-        legacy = str(st.session_state.get(_KEY_ACTIVE_SECTION) or "")
-        st.session_state[_KEY_ACTIVE_SECTION] = (
-            _SW_LEGACY_SECTION_TO_PHASE.get(legacy) or SERMON_PHASE_OPTIONS[0]
-        )
+    st.divider()
+    render_flat_text_and_focus_section()
 
-    from sermon_workshop_outline_ai import assess_outline_readiness
+    st.divider()
+    render_flat_seven_point_outline_section()
 
-    render_workshop_workflow_nav(
-        list(SERMON_PHASE_OPTIONS),
-        key=_KEY_ACTIVE_SECTION,
-        completed=sermon_phase_completed(st.session_state),
-        status_map=sermon_phase_statuses(st.session_state),
-        outline_ready=assess_outline_readiness(st.session_state).ok,
-    )
-
-    active = st.session_state.get(_KEY_ACTIVE_SECTION) or SERMON_PHASE_OPTIONS[0]
-
-    st.markdown('<div class="tx-workcard-anchor" aria-hidden="true"></div>', unsafe_allow_html=True)
-    with st.container(border=True):
-        # A bibliai szöveg a munkaterület szerkezetében, nem külön lebegve.
-        render_bible_text_preview(expanded=False)
-
-        if active == "Textusmag és fókuszmondat":
-            render_text_core_and_focus_section(generate_fn=generate_fn)
-        elif active == "Homiletikai belépési pont":
-            render_entry_point_section(generate_fn=generate_fn)
-        elif active == "A prédikáció íve":
-            st.caption(
-                "Alaphelyzet → Első fordulópont → Mélyítés és fokozás → "
-                "(opcionális Átértelmezés) → Második fordulópont "
-                "(Evangéliumi fordulat) → Megérkezés. Az Átértelmezés "
-                "kivételével egyik elem sem kötelező, összevonhatók, és a "
-                "felhasználó bármelyiket kihagyhatja vagy saját maga írhatja "
-                "meg — csak amit a textus valóban indokol."
-            )
-            render_sermon_path_section(generate_fn=generate_fn)
-            st.divider()
-            st.markdown("##### 5. Második fordulópont: Evangéliumi fordulat")
-            render_gospel_arc_section(generate_fn=generate_fn)
-            st.divider()
-            st.markdown("##### 6. Megérkezés")
-            render_closing_section(generate_fn=generate_fn)
-        elif active == "Megszólítás és bevonás":
-            render_engagement_section(generate_fn=generate_fn)
-        elif active == "Igehirdetési vázlat":
-            render_outline_section(generate_fn=generate_fn)
-            st.divider()
-            with st.expander(
-                "Kiegészítők: illusztrációk, lekciójavaslat és imádsági előkészítés",
-                expanded=False,
-            ):
-                render_enrichment_section(generate_fn=generate_fn)
-                st.divider()
-                render_lection_section(generate_fn=generate_fn)
-                st.divider()
-                render_prayer_section(generate_fn=generate_fn)
-            with st.expander(
-                "Vázlat ellenőrzése (homiletikai diagnosztika)",
-                expanded=False,
-            ):
-                render_diagnostics_section(generate_fn=generate_fn)
-        else:
-            _render_section_placeholder(active)
-
-        next_hint = _SW_NEXT_HINTS.get(active)
-        if next_hint:
-            st.caption(next_hint)
+    _render_flat_legacy_outline_panel()
 
 
 __all__ = [
