@@ -18,9 +18,13 @@ hozzá, ugyanazzal a sentinel-mintával, mint a 2D.1:
    láncot, NEM csak az élő session-collector viselkedést;
 2. a TÉNYLEGES AI-prompt szövegét (nem csak a bundle/background dict-et).
 
-Emellett explicit regressziós bizonyítékot ad arra, hogy a Vázlatkosár
-és a homiletikai döntések collector-viselkedése ebben a fázisban is
-érintetlen maradt. (Az overview approval-mentességének non-regressziós
+Emellett (a 2D.2 fázis idején) explicit regressziós bizonyítékot adott
+arra, hogy a Vázlatkosár és a homiletikai döntések collector-viselkedése
+akkor még érintetlen maradt. FRISSÍTÉS (RESET 1A-DATA, 2026-08-18): a
+Vázlatkosár collector-viselkedése azóta SZÁNDÉKOSAN megváltozott — ld.
+`test_outline_basket_no_longer_reaches_collector_after_reset_1a_data`
+lentebb és `tests/test_basket_disconnected_from_outline_generation.py`.
+(Az overview approval-mentességének non-regressziós
 próbája már a 2D.1 `tests/test_outline_canonical_background_flow.py`
 fájljában megvan — itt szándékosan nem ismételtük meg, hogy elkerüljük
 a lényegében teljes duplikációt.)
@@ -243,10 +247,16 @@ def test_homiletical_decision_keys_still_require_approval_after_2d2():
     assert "human_condition" in background2
 
 
-def test_outline_basket_collector_behavior_unchanged_after_2d2():
+def test_outline_basket_no_longer_reaches_collector_after_reset_1a_data():
+    """RESET 1A-DATA (2026-08-18): megfordított elvárás — a 2D.2-es
+    `test_outline_basket_collector_behavior_unchanged_after_2d2` korábban
+    azt bizonyította, hogy a Vázlatkosár tartalma bekerül a bundle-be
+    (`outline_basket` kulcsként). Ez a viselkedés szándékosan megszűnt: a
+    Vázlatkosár projektadata megmarad, de a collector többé nem olvassa
+    aktív forrásként. Ld. tests/test_basket_disconnected_from_outline_
+    generation.py a teljes bundle→background→prompt→repair láncra."""
     state = _draft_research_state()
-    state["basket"] = [("Exegézis", "2D2 kosár-regresszió SENTINEL")]
+    state["basket"] = [["Exegézis", "2D2 kosár-regresszió SENTINEL"]]
     bundle = collect_outline_context_bundle(state)
-    assert bundle.get("outline_basket") == [
-        {"source": "Exegézis", "content": "2D2 kosár-regresszió SENTINEL"}
-    ]
+    assert "outline_basket" not in bundle
+    assert "outline_basket" not in (bundle.get("source_keys") or [])

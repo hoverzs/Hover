@@ -979,7 +979,13 @@ def test_empty_outline_basket_generates_full_outline():
     assert word_count(outline_canonical_text(result.outline)) >= LIMITS["soft_floor_words"]
 
 
-def test_outline_basket_is_separate_optional_source_material():
+def test_outline_basket_no_longer_reaches_the_prompt_after_reset_1a_data():
+    """RESET 1A-DATA (2026-08-18): megfordított elvárás — korábban
+    (`test_outline_basket_is_separate_optional_source_material`) a
+    Vázlatkosár tartalma bizonyítottan bekerült a promptba, külön
+    untrusted blokkban. Ez a viselkedés szándékosan megszűnt: a kosár
+    projektadata megmarad, de a promptba többé semmilyen formában nem
+    kerül be."""
     state = _base_state(
         basket=[
             ("Exegézis", "A Fiú odaadása a textus középponti állítása."),
@@ -999,18 +1005,22 @@ def test_outline_basket_is_separate_optional_source_material():
     outline_prompts = [p for p in captured if "BIBLIAI SZÖVEG" in p or "IGEHELY:" in p]
     assert outline_prompts
     prompt = outline_prompts[0]
-    # A kosár külön untrusted blokkban van, nem a textus aliasaként.
-    before_basket = prompt.split('label="vázlatkosár"')[0]
-    assert '"outline_basket"' not in before_basket
-    assert '"source": "Exegézis"' in prompt
-    assert '"source": "Alkalmazás"' in prompt
+    assert '"outline_basket"' not in prompt
+    assert 'label="vázlatkosár"' not in prompt
+    assert '"source": "Exegézis"' not in prompt
+    assert '"source": "Alkalmazás"' not in prompt
     assert "HÁTTÉRANYAG" in prompt
-    assert "UNTRUSTED_DATA" in prompt
     assert "IGEHELY:" in prompt
 
 
-def test_basket_must_not_override_text_structure():
-    """Kosáranyag beépülhet, de a Jude természetes egységeit nem írhatja felül."""
+def test_basket_note_does_not_reach_prompt_and_text_structure_stays_faithful():
+    """RESET 1A-DATA (2026-08-18): a korábbi `test_basket_must_not_
+    override_text_structure` docstringje/kommentje még azt feltételezte,
+    hogy "a motor megkapja a kosarat, de a textushű válasz győz" — ez
+    módszertanilag nem is bizonyította a promptba kerülést. Most explicit
+    bizonyítja: a kosárjegyzet EGYÁLTALÁN NEM jut el a promptig, és a Jude
+    természetes egységei emiatt is (nem csak a modell fegyelme miatt)
+    érintetlenek maradnak."""
     state = _base_state(
         last_igehely="Júd 17–20",
         igehely_input="Júd 17–20",
@@ -1023,15 +1033,19 @@ def test_basket_must_not_override_text_structure():
             )
         ],
     )
+    captured: list[str] = []
 
-    def gen(_prompt, **_kwargs):
-        # Engine still receives basket, but a textus-faithful model answer wins.
+    def gen(prompt, **_kwargs):
+        captured.append(prompt)
         return json.dumps(_jude_good_structured(), ensure_ascii=False)
 
     result = generate_sermon_outline(
         state, mode="workshop", generate_fn=gen, force_overwrite=True
     )
     assert result.ok, result.error_message
+    for prompt in captured:
+        assert "Csak a huszadik versről beszélj" not in prompt
+        assert "vázlatkosár" not in prompt.casefold()
     structured = normalize_structured_outline(result.outline.get("structured"))
     assert [pt["verses"] for pt in structured["points"]] == [
         "v. 17–18",
@@ -1040,21 +1054,30 @@ def test_basket_must_not_override_text_structure():
     ]
 
 
-def test_conflicting_or_repetitive_basket_material_is_instructed_to_be_omitted():
+def test_conflicting_basket_material_never_reaches_prompt_or_rendered_outline():
+    """RESET 1A-DATA (2026-08-18): a korábbi `test_conflicting_or_
+    repetitive_basket_material_is_instructed_to_be_omitted` név/dokumentáció
+    egy promptutasításos "hagyd ki" mechanizmust feltételezett — az a
+    mechanizmus a kosárral együtt megszűnt. Most explicit bizonyítja: az
+    ellentmondó kosártartalom SOHA nem jut el a promptig (nem a modellnek
+    kell kihagynia)."""
     state = _base_state(
         basket=[
             ("Ellentmondó", "A textus szerint kizárólag emberi érdem ment meg."),
         ]
     )
+    captured: list[str] = []
 
     def gen(prompt, **_kwargs):
-        assert "Hagyd el" in OUTLINE_SYSTEM_PROMPT or "hagyd el" in prompt.casefold() or True
+        captured.append(prompt)
         return json.dumps(_valid_structured(), ensure_ascii=False)
 
     result = generate_sermon_outline(
         state, mode="quick", generate_fn=gen, force_overwrite=True
     )
     assert result.ok
+    for prompt in captured:
+        assert "kizárólag emberi érdem" not in prompt
     rendered = outline_canonical_text(result.outline)
     assert "kizárólag emberi érdem" not in rendered
 

@@ -264,22 +264,26 @@ def test_stale_detailed_source_still_excluded_from_background_after_fix():
 
 
 # ---------------------------------------------------------------------------
-# l) Vázlatkosár + homiletikai döntések collector-viselkedése változatlan
+# l) Vázlatkosár leválasztva, homiletikai döntések collector-viselkedése
+#    változatlan
 # ---------------------------------------------------------------------------
 
 
-def test_basket_and_homiletical_decisions_collector_behavior_unchanged():
+def test_basket_disconnected_and_homiletical_decisions_collector_behavior_unchanged():
+    """RESET 1A-DATA (2026-08-18): megfordított elvárás a korábbi
+    `test_basket_and_homiletical_decisions_collector_behavior_unchanged`
+    tesztre — a Vázlatkosár tartalma többé NEM kerül a bundle-be, a
+    homiletikai döntések (itt: human_condition) approval+frissesség
+    kapuja viszont változatlan."""
     state = _full_sentinel_state()
-    state["basket"] = [("Exegézis", "Megtartandó idézet SENTINEL")]
+    state["basket"] = [["Exegézis", "Megtartandó idézet SENTINEL"]]
     update_sermon_workshop_section(
         state, "human_condition", {"condition": "Emberi helyzet SENTINEL"}
     )
     update_sermon_workshop_section(state, "human_condition_status", "approved")
 
     bundle = collect_outline_context_bundle(state)
-    assert bundle.get("outline_basket") == [
-        {"source": "Exegézis", "content": "Megtartandó idézet SENTINEL"}
-    ]
+    assert "outline_basket" not in bundle
     assert bundle.get("human_condition", {}).get("condition") == "Emberi helyzet SENTINEL"
     assert bundle.get("human_condition_status") == "approved"
 

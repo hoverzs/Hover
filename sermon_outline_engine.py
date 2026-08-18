@@ -1852,7 +1852,8 @@ def collect_canonical_source_material(bundle: Mapping[str, Any]) -> dict[str, An
         `editable_by_user` (mindig True — a felhasználó bármikor felülírhatja)
         és `current_passage` (a friss/stale ellenőrzés eredménye, ld.
         `_canonical_source_is_usable`);
-      - `user_notes`: a vázlatkosár jegyzetei;
+      - `user_notes`: mindig üres lista (RESET 1A-DATA, 2026-08-18 — a
+        korábbi vázlatkosár-jegyzetek forrása leválasztva, ld. lentebb);
       - `identity`: az aktuális igehely-ujjlenyomat, a stale-ellenőrzés alapja.
 
     Ezt a struktúrát ma az `extract_outline_background_material` (normál
@@ -1879,7 +1880,9 @@ def collect_canonical_source_material(bundle: Mapping[str, Any]) -> dict[str, An
             "translation": _s(bundle.get("bible_translation")),
         },
         "sources": sources,
-        "user_notes": bundle.get("outline_basket") or [],
+        # RESET 1A-DATA: korábban `bundle.get("outline_basket")` — a bundle
+        # többé sosem tartalmaz ilyen kulcsot, ezért ez mindig üres marad.
+        "user_notes": [],
         "identity": {
             "passage_reference": _s(bundle.get("passage_reference")),
             "passage_context_hash": compute_passage_context_hash(bundle),
@@ -2014,9 +2017,7 @@ def build_outline_user_prompt(
     background = extract_outline_background_material(bundle)
     excluded_blocks = extract_outline_excluded_draft_blocks(bundle)
     stale_blocks = extract_stale_approved_blocks(bundle)
-    outline_basket = bundle.get("outline_basket") or []
     has_background = bool(background)
-    has_basket = bool(outline_basket)
 
     # A korábbi "ÚJ GYORSVÁZLAT" (mode="quick") promptág a Textusműhely
     # önálló "Gyors vázlat" kártyájához tartozott — az a felület 2026-08-13-
@@ -2121,18 +2122,6 @@ def build_outline_user_prompt(
                 + ", ".join(stale_blocks) + ".",
                 "NE hivatkozz rájuk, és NE pótold a tartalmukat saját "
                 "kitalálással — egyszerűen hagyd ki őket a vázlatból.",
-            ]
-        )
-
-    if has_basket:
-        parts.extend(
-            [
-                "",
-                wrap_untrusted_content(
-                    "vázlatkosár",
-                    json.dumps(outline_basket, ensure_ascii=False),
-                    limit_name="basket_total",
-                ),
             ]
         )
 
@@ -2736,21 +2725,6 @@ def _repair_source_context(bundle: Mapping[str, Any], *, rich: bool = False) -> 
         val = _clip(bundle.get(key), cap)
         if val:
             ctx[key] = val
-    basket = bundle.get("outline_basket") or bundle.get("basket") or []
-    if isinstance(basket, list) and basket:
-        clipped: list[Any] = []
-        for item in basket[:8]:
-            if isinstance(item, Mapping):
-                clipped.append(
-                    {
-                        k: _clip(item.get(k), 240)
-                        for k in ("title", "text", "note", "content", "label")
-                        if _s(item.get(k))
-                    }
-                )
-            else:
-                clipped.append(_clip(item, 240))
-        ctx["outline_basket"] = clipped
     return ctx
 
 

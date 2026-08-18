@@ -400,9 +400,11 @@ def _has_curated_material(
     projekteknél a mentett adatban nincs ilyen mező — ott a `{key}` maga
     (ami mindig is mentve volt) az egyetlen retroaktív jel, hogy a
     felhasználó valóban dolgozott a textussal, nem csak beírta az igehelyet.
+
+    RESET 1A-DATA (2026-08-18): a Vázlatkosár jelenléte korábban önmagában
+    elegendő jel volt a kurátori kapuhoz — ez megszűnt, mert a Vázlatkosár
+    többé nem befolyásolhatja a vázlatgenerálás engedélyezését.
     """
-    if isinstance(session_state.get("basket"), list) and session_state.get("basket"):
-        return True
     if _s(tw.get("text_main_idea")):
         return True
     if _approved_insights_texts(tw):
@@ -622,10 +624,10 @@ def collect_outline_context_bundle(
         bundle["approved_sermon_decisions"] = decisions
         keys.append("approved_sermon_decisions")
 
-    basket_items = _outline_basket_items(session_state)
-    if basket_items:
-        bundle["outline_basket"] = basket_items
-        keys.append("outline_basket")
+    # RESET 1A-DATA (2026-08-18): a Vázlatkosár ("basket") KISZÁNDÉKOSAN
+    # nem kerül be a bundle-be — sem `outline_basket` kulcsként, sem a
+    # `source_keys` listában. A projektadat (`session_state["basket"]`)
+    # megmarad mentés/visszatöltés után, de innentől nincs aktív olvasója.
 
     # Bibliai áttekintés (Igehely fül, `overview`) — általános, első
     # tájékozódási anyag. 2D.1 (adatfolyam-audit): korábban ez a mező
