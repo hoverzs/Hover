@@ -60,6 +60,15 @@ def get_default_sermon_workshop() -> dict[str, Any]:
         # `sermon_path` / `christ_centered_arc` / `closing` / `human_condition`
         # / `listener_tension` mezők VÁLTOZATLANUL az aktív rendszer forrásai.
         "arc": get_default_arc(),
+        # RESET 2A (2026-08-18): a kanonikus `arc`-ra EGYÜTTESEN vonatkozó
+        # frissesség-/eredet-metaadat — külön mező, nem egy pont belseje.
+        "arc_meta": empty_arc_meta(),
+        # RESET 2A: additív scaffolding a biztonságos újragenerálás
+        # előnézetéhez — `None`, amíg nincs függőben lévő candidate. Ha
+        # van candidate, teljes {"points","reference","context_hash",
+        # "generated_at"} szerkezetű (ld. normalize_arc_candidate).
+        # Ebben a fázisban is kizárólag adatmodell.
+        "arc_candidate": None,
         "human_condition": {
             "condition": "",
             "false_response": "",
@@ -1297,6 +1306,9 @@ def normalize_sermon_workshop(data: Any) -> dict[str, Any]:
         ),
         # ÚJ, additív mező — ld. get_default_sermon_workshop() megjegyzését.
         "arc": normalize_arc(data.get("arc")),
+        # RESET 2A: ugyanúgy additív, önálló mezők — nem az `arc` alstruktúrái.
+        "arc_meta": normalize_arc_meta(data.get("arc_meta")),
+        "arc_candidate": normalize_arc_candidate(data.get("arc_candidate")),
         "human_condition": hc_block,
         "human_condition_status": human_condition_status,
         "human_condition_approved_context_hash": _as_str(
@@ -2531,7 +2543,17 @@ def empty_arc_point() -> dict[str, Any]:
     """Egy üres "Az igehirdetés íve" modellpont — mindegyik pont ugyanezt a
     sémát használja: 1 szerkeszthető mező + 1 MI-javaslat mező + auto-save
     metaadat. Nincs `status` (draft/approved) mező — a kapu (későbbi fázis)
-    tartalom+frissesség alapú lesz, nem jóváhagyás-alapú."""
+    tartalom+frissesség alapú lesz, nem jóváhagyás-alapú.
+
+    RESET 2A (2026-08-18, adatmodell-fázis): a termékkövetelmény szerint a
+    hét pont mindegyikéhez NEM lesz külön, pontonkénti MI-javaslat — a
+    javaslatkészítés a két különálló "központi irány" mezőhöz (textus fő
+    gondolata / igehirdetés fő gondolata-fókuszmondat, ld. `sermon_main_idea`
+    itt és `text_main_idea` a `textus_workshop_data.py`-ban) tartozik, NEM
+    az `arc` pontjaihoz. Az `ai_suggestion`/`ai_suggested_at` mezők ezért a
+    ÚJ folyamatban nem kerülnek kitöltésre — a séma NEM törlődik
+    (visszafelé-kompatibilitás, nincs destruktív migráció), csak a UI/MI
+    réteg nem épít rájuk a jövőben."""
     return {
         "text": "",
         "ai_suggestion": None,
@@ -2544,6 +2566,296 @@ def empty_arc_point() -> dict[str, Any]:
 def get_default_arc() -> dict[str, Any]:
     """Üres, hét pontból álló `arc` struktúra."""
     return {key: empty_arc_point() for key in _ARC_POINT_KEYS}
+
+
+_ARC_META_FIELDS: tuple[str, ...] = (
+    "reference",
+    "context_hash",
+    "generated_at",
+    "manually_updated_at",
+)
+
+
+def empty_arc_meta() -> dict[str, Any]:
+    """RESET 2A: a kanonikus `arc` (NEM egy adott pont) frissesség- és
+    eredet-metaadata. Szándékosan KÜLÖN, top-level `sermon_workshop.
+    arc_meta` mező — nem egy arc-pont `context_hash`-ébe van elrejtve,
+    mert ez a hét pontra EGYÜTTESEN, nem pontonként vonatkozó infó."""
+    return {
+        "reference": "",
+        "context_hash": "",
+        "generated_at": "",
+        "manually_updated_at": "",
+    }
+
+
+def normalize_arc_meta(raw: Any) -> dict[str, Any]:
+    """Bármilyen bemenetből érvényes `arc_meta` struktúrát ad vissza —
+    hiányzó/hibás bemenet esetén biztonságos alapérték. Idempotens:
+    `normalize_arc_meta(normalize_arc_meta(x)) == normalize_arc_meta(x)`,
+    mert minden mező egyszerű, önmagán stabil string-konverzión megy át."""
+    base = empty_arc_meta()
+    if not isinstance(raw, dict):
+        return base
+    return {key: _as_str(raw.get(key)) for key in _ARC_META_FIELDS}
+
+
+def normalize_arc_candidate(raw: Any) -> dict[str, Any] | None:
+    """RESET 2A: a biztonságos újragenerálás előnézeti tárolója.
+
+    `None`, ha nincs függőben lévő candidate (ez a választott szerződés
+    "üres állapota" — nincs külön szentinel-dict, a hiány maga `None`).
+
+    Érvényes candidate esetén EGYÉRTELMŰ, metaadattal ellátott szerkezetet
+    ad vissza — sosem puszta hétpontos dictet:
+      - `points`: a hét normalizált arc-pont (`normalize_arc` szabályai);
+      - `reference`, `context_hash`, `generated_at`: string metaadat.
+
+    Biztonságos hibakezelés: ha a bemenet nem dict, VAGY a `points` mező
+    hiányzik / nem dict (tehát szerkezetileg nem candidate), a teljes
+    bemenetet érvénytelennek tekinti és `None`-t ad vissza — így egy
+    sérült candidate sosem viselkedhet érvényesként, és sosem írhatja
+    felül a kanonikus `arc`-ot (az elfogadás előfeltétele pont ez a
+    sikeres normalizálás, ld. `accept_arc_candidate`). Hiányos, de
+    szerkezetileg ép bemenetnél (van `points` dict, de pl. a `reference`
+    hiányzik) a hiányzó metaadat egyszerűen üres string lesz — ez nem
+    tekinthető sérültnek, csak hiányosnak."""
+    if not isinstance(raw, dict):
+        return None
+    points_raw = raw.get("points")
+    if not isinstance(points_raw, dict):
+        return None
+    return {
+        "points": normalize_arc(points_raw),
+        "reference": _as_str(raw.get("reference")),
+        "context_hash": _as_str(raw.get("context_hash")),
+        "generated_at": _as_str(raw.get("generated_at")),
+    }
+
+
+def arc_has_content(arc: Any) -> bool:
+    """True, ha a (bármilyen bemenetből normalizált) kanonikus `arc`
+    legalább egy pontjának `text` mezője nem üres. Tiszta, session-
+    független segédfüggvény — nem hív AI-t, nem módosít semmit."""
+    normalized = normalize_arc(arc)
+    return any(_as_str(point.get("text")).strip() for point in normalized.values())
+
+
+def _arc_candidate_matches_context(
+    candidate: Mapping[str, Any], *, reference: str, context_hash: str
+) -> bool:
+    """True, ha egy már normalizált candidate `reference`/`context_hash`
+    párja PONTOSAN megegyezik az aktuálisan átadott értékekkel — ez az
+    egyetlen alapja annak, hogy egy candidate elfogadható-e.
+
+    Üres kontextusazonosító SOSEM tekinthető érvényes egyezésnek — sem a
+    candidate, sem az aktuálisan átadott oldal nem lehet üres, még akkor
+    sem, ha mindkettő ÜGYANÚGY üres. (Az `accept_arc_candidate()` ugyanezt
+    a szabályt implementálja, de a konkrét elutasítási OK — reference
+    vs. context_hash vs. hiányzó azonosító — megkülönböztetése miatt ott
+    közvetlenül, nem ezen a segédfüggvényen keresztül; ez a függvény
+    olyan hívóknak való, akiknek csak az igen/nem eldöntés kell.)"""
+    candidate_reference = _as_str(candidate.get("reference"))
+    candidate_context_hash = _as_str(candidate.get("context_hash"))
+    current_reference = _as_str(reference)
+    current_context_hash = _as_str(context_hash)
+    if (
+        not candidate_reference.strip()
+        or not candidate_context_hash.strip()
+        or not current_reference.strip()
+        or not current_context_hash.strip()
+    ):
+        return False
+    return (
+        candidate_reference == current_reference
+        and candidate_context_hash == current_context_hash
+    )
+
+
+def set_arc_candidate(
+    session_state: MutableMapping[str, Any],
+    *,
+    points: Any,
+    reference: str,
+    context_hash: str,
+    generated_at: str | None = None,
+) -> dict[str, Any]:
+    """A megadott hétpontos eredményt candidate-ként tárolja el —
+    a kanonikus `arc`-hoz és `arc_meta`-hoz NEM nyúl. Egy új hívás mindig
+    felülírja az esetlegesen már ott lévő korábbi candidate-et (egy új
+    generálás a legutóbbi javaslatot tükrözi). Nem indít AI-hívást — csak
+    egy már meglévő, kész eredményt tárol el.
+
+    DÖNTÉS (szűk korrekció, 2026-08-18): ez a függvény (és a rajta
+    keresztül hívó `store_generated_arc_result` candidate-ága) SZÁNDÉKOSAN
+    NEM utasítja el az üres `reference`/`context_hash` értéket íráskor —
+    ez a modul meglévő konvenciója (a `normalize_*` függvények mindenütt
+    biztonságosan default-olnak íráskor/normalizáláskor, sosem dobnak
+    kivételt hiányos metaadatra; a SZIGORÚ kapu mindig a felhasználásnál,
+    itt az elfogadásnál van). Egy üres kontextusú candidate ETTŐL
+    FÜGGETLENÜL SOSEM fogadható el — ld. `accept_arc_candidate()`, ami
+    külön, explicit `"missing_context_identity"` okkal utasítja el. Ez a
+    kettő együtt biztosítja, hogy hiányos kontextusú candidate sosem
+    írhatja felül a kanonikus arc-ot, anélkül hogy a tárolást magát
+    feleslegesen szigorítanánk."""
+    sw = ensure_sermon_workshop_state(session_state)
+    stamp = _as_str(generated_at) or datetime.now().isoformat(timespec="seconds")
+    candidate = {
+        "points": normalize_arc(points),
+        "reference": _as_str(reference),
+        "context_hash": _as_str(context_hash),
+        "generated_at": stamp,
+    }
+    sw["arc_candidate"] = candidate
+    return candidate
+
+
+def discard_arc_candidate(session_state: MutableMapping[str, Any]) -> None:
+    """A függőben lévő candidate elvetése. KIZÁRÓLAG az `arc_candidate`-et
+    törli (`None`-ra állítja) — a kanonikus `arc` és `arc_meta`
+    BIT-PONTOSAN változatlan marad. Nem indít AI-hívást."""
+    sw = ensure_sermon_workshop_state(session_state)
+    sw["arc_candidate"] = None
+
+
+def store_generated_arc_result(
+    session_state: MutableMapping[str, Any],
+    *,
+    points: Any,
+    reference: str,
+    context_hash: str,
+    generated_at: str | None = None,
+) -> dict[str, Any]:
+    """Egyetlen belépési pont egy frissen elkészült hétpontos eredmény
+    biztonságos tárolásához — az "első generálás vs. újragenerálás"
+    döntési szabály itt dől el.
+
+    Döntés:
+      - ha a kanonikus `arc` mind a hét pontja üres (`arc_has_content`
+        hamis) -> az eredmény KÖZVETLENÜL az `arc`-ba kerül, az
+        `arc_meta.reference`/`context_hash`/`generated_at` frissül, a
+        visszatérési érték `{"status": "applied", ...}`;
+      - egyébként (legalább egy pont nem üres) -> az `arc` egyetlen
+        pontja SEM módosul; az eredmény a `set_arc_candidate()`-tel az
+        `arc_candidate`-be kerül, a visszatérési érték
+        `{"status": "candidate", ...}`.
+
+    `arc_meta.manually_updated_at` szemantikája (szűk korrekció,
+    2026-08-18): ez a mező KIZÁRÓLAG a JELENLEGI kanonikus `arc` utolsó
+    KÉZI szerkesztésére vonatkozik. Egy közvetlen (üres arc-ra történő)
+    alkalmazás nem kézi szerkesztés — az itt frissülő `arc` tartalma
+    teljes egészében a generált eredmény, semmi kézi nincs benne, ezért
+    az `manually_updated_at` itt mindig ÜRESRE áll (nem őrzi meg egy
+    korábbi, MÁR LECSERÉLT arc kézi-szerkesztési időpontját).
+
+    Sosem ír felül meglévő, kézzel vagy korábban elfogadott arc-tartalmat
+    automatikusan. Nem indít AI-hívást — csak egy már meglévő, kész
+    eredményt tárol el a fenti szabály szerint."""
+    sw = ensure_sermon_workshop_state(session_state)
+    stamp = _as_str(generated_at) or datetime.now().isoformat(timespec="seconds")
+    normalized_points = normalize_arc(points)
+
+    if not arc_has_content(sw.get("arc")):
+        sw["arc"] = normalized_points
+        sw["arc_meta"] = normalize_arc_meta(
+            {
+                "reference": reference,
+                "context_hash": context_hash,
+                "generated_at": stamp,
+                "manually_updated_at": "",
+            }
+        )
+        return {"status": "applied", "arc": sw["arc"], "arc_meta": sw["arc_meta"]}
+
+    candidate = set_arc_candidate(
+        session_state,
+        points=normalized_points,
+        reference=reference,
+        context_hash=context_hash,
+        generated_at=stamp,
+    )
+    return {"status": "candidate", "arc_candidate": candidate}
+
+
+def accept_arc_candidate(
+    session_state: MutableMapping[str, Any],
+    *,
+    reference: str,
+    context_hash: str,
+) -> dict[str, Any]:
+    """A függőben lévő candidate elfogadása — "Lecserélem erre".
+
+    KIZÁRÓLAG akkor fogadja el, ha:
+      - van függőben lévő, szerkezetileg ép candidate (`normalize_arc_
+        candidate` nem ad vissza `None`-t — ez már önmagában bizonyítja,
+        hogy mind a hét pont érvényesen normalizálható);
+      - a candidate `reference` értéke pontosan megegyezik az itt átadott
+        `reference`-szel;
+      - a candidate `context_hash` értéke pontosan megegyezik az itt
+        átadott `context_hash`-sel.
+
+    Sikeres elfogadáskor a candidate hét pontja kerül a kanonikus `arc`-ba,
+    az `arc_meta` frissül a candidate saját reference/context_hash/
+    generated_at adataival, az `arc_candidate` kiürül (`None`). Nem indít
+    AI-hívást.
+
+    `manually_updated_at` szemantikája (szűk korrekció, 2026-08-18): a
+    candidate elfogadása a kanonikus `arc` TELJES tartalomcseréje — az
+    elfogadott hét pont a candidate-ből származik, nem kézi szerkesztés.
+    Ezért az elfogadás után az `arc_meta.manually_updated_at` mindig
+    ÜRESRE áll, akkor is, ha a LECSERÉLT arc-ot korábban kézzel
+    szerkesztették — az az időpont a MOST lecserélt tartalomra
+    vonatkozott, a candidate tartalmára nem érvényes.
+
+    Üres kontextusazonosítót SOSEM tekint érvényes egyezésnek — sem a
+    candidate, sem az itt átadott `reference`/`context_hash` nem lehet
+    üres, akkor sem, ha mindkét oldal ÜGYANÚGY üres (két hiányzó azonosító
+    "egyezése" véletlen, nem valódi kontextus-igazolás).
+
+    Sikertelen esetben (nincs candidate / sérült candidate / hiányzó
+    kontextusazonosító bármelyik oldalon / eltérő reference / eltérő
+    context_hash) a kanonikus `arc` és `arc_meta` BIT-PONTOSAN változatlan
+    marad, és a visszatérési érték `reason` mezője jelzi az elutasítás
+    pontos okát: `"no_candidate"`, `"invalid_candidate"`,
+    `"missing_context_identity"`, `"reference_mismatch"` vagy
+    `"context_hash_mismatch"`."""
+    sw = ensure_sermon_workshop_state(session_state)
+    raw_candidate = sw.get("arc_candidate")
+    if raw_candidate is None:
+        return {"accepted": False, "reason": "no_candidate"}
+
+    candidate = normalize_arc_candidate(raw_candidate)
+    if candidate is None:
+        return {"accepted": False, "reason": "invalid_candidate"}
+
+    candidate_reference = _as_str(candidate["reference"])
+    candidate_context_hash = _as_str(candidate["context_hash"])
+    current_reference = _as_str(reference)
+    current_context_hash = _as_str(context_hash)
+    if (
+        not candidate_reference.strip()
+        or not candidate_context_hash.strip()
+        or not current_reference.strip()
+        or not current_context_hash.strip()
+    ):
+        return {"accepted": False, "reason": "missing_context_identity"}
+
+    if candidate_reference != current_reference:
+        return {"accepted": False, "reason": "reference_mismatch"}
+    if candidate_context_hash != current_context_hash:
+        return {"accepted": False, "reason": "context_hash_mismatch"}
+
+    sw["arc"] = candidate["points"]
+    sw["arc_meta"] = normalize_arc_meta(
+        {
+            "reference": candidate["reference"],
+            "context_hash": candidate["context_hash"],
+            "generated_at": candidate["generated_at"],
+            "manually_updated_at": "",
+        }
+    )
+    sw["arc_candidate"] = None
+    return {"accepted": True, "reason": "", "arc": sw["arc"], "arc_meta": sw["arc_meta"]}
 
 
 def _normalize_arc_point(raw: Any) -> dict[str, Any]:
@@ -2760,7 +3072,13 @@ def update_arc_point(
       - kizárólag a meglévő session_state-mintát követi (ugyanúgy, mint pl.
         `update_sermon_workshop_section`) — nem ír külön tartós projektadatot,
         a projektmentés a meglévő `normalize_sermon_workshop` allowlist-úton
-        történik, változatlanul.
+        történik, változatlanul;
+      - RESET 2A: minden hívás frissíti az `arc_meta.manually_updated_at`
+        időbélyeget is — ez az EGYETLEN `arc_meta` mező, amit ez a függvény
+        érint (`reference`/`context_hash`/`generated_at` változatlan marad,
+        azokat kizárólag `store_generated_arc_result`/`accept_arc_candidate`
+        írja). Nem igényelt aláírásváltozást, mert a függvény már úgyis
+        `session_state`-et kap, amiből az `arc_meta` is elérhető.
 
     Ebben a fázisban ezt a függvényt sem a UI, sem a vázlatmotor nem hívja —
     kizárólag tesztekből érhető el.
@@ -2783,6 +3101,11 @@ def update_arc_point(
 
     arc[point_key] = point
     sw["arc"] = arc
+
+    meta = normalize_arc_meta(sw.get("arc_meta"))
+    meta["manually_updated_at"] = datetime.now().isoformat(timespec="seconds")
+    sw["arc_meta"] = meta
+
     return point
 
 
@@ -2795,6 +3118,14 @@ __all__ = [
     "empty_arc_point",
     "get_default_arc",
     "normalize_arc",
+    "empty_arc_meta",
+    "normalize_arc_meta",
+    "normalize_arc_candidate",
+    "arc_has_content",
+    "set_arc_candidate",
+    "discard_arc_candidate",
+    "store_generated_arc_result",
+    "accept_arc_candidate",
     "migrate_legacy_arc_fields",
     "update_arc_point",
     "add_approved_sermon_decision",
