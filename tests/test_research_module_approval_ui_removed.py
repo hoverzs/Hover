@@ -118,6 +118,28 @@ def test_no_orphaned_approvable_status_labels_constant():
     assert not hasattr(app, "_APPROVABLE_STATUS_LABELS")
 
 
+def test_render_section_tab_has_no_basket_note_or_button():
+    """RESET 1A-UI (2026-08-18): a "Mit szeretnél ebből megtartani a
+    vázlathoz?" jegyzetmező és a "Hozzáadás a vázlatkosárhoz" gomb
+    eltűnt a render_section_tab-ból — a Vázlatkosár többé nem aktív
+    köztes réteg."""
+    import app
+
+    src = inspect.getsource(app.render_section_tab)
+    assert "Hozzáadás a vázlatkosárhoz" not in src
+    assert "Mit szeretnél ebből megtartani a vázlathoz?" not in src
+    assert "_append_basket_item(" not in src
+
+
+def test_render_original_text_panel_has_no_basket_note_or_button():
+    import app
+
+    src = inspect.getsource(app.render_original_text_panel)
+    assert "Hozzáadás a vázlatkosárhoz" not in src
+    assert "Mit szeretnél ebből megtartani a vázlathoz?" not in src
+    assert "_append_basket_item(" not in src
+
+
 # ---------------------------------------------------------------------------
 # B) a "sosem lett jóváhagyva" holt figyelmeztetés-mechanizmus eltűnt
 # ---------------------------------------------------------------------------

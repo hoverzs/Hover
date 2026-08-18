@@ -52,9 +52,16 @@ def test_quick_tools_grid_has_no_standalone_outline_card():
     assert not any(
         label.strip().endswith(": Vázlat") for label in QUICK_TOOLS_TAB_LABELS
     )
-    assert any(
+
+
+def test_quick_tools_grid_has_no_basket_card():
+    """RESET 1A-UI (2026-08-18): a Vázlatkosár mint önálló Gyorseszköz-kártya
+    megszűnt — a kutatási tartalmak automatikusan elérhetők a vázlatmotor
+    számára, nincs szükség köztes gyűjtő-fülre."""
+    assert not any(
         label.strip().endswith(": Vázlatkosár") for label in QUICK_TOOLS_TAB_LABELS
     )
+    assert len(QUICK_TOOLS_TAB_LABELS) == 12
 
 
 def test_no_quick_outline_ui_remnants_in_app_py():
@@ -76,18 +83,17 @@ _EXPECTED_MARKERS: dict[int, str] = {
     4: 'key="theology"',
     5: 'key="illustrations"',
     6: 'key="actualization"',
-    7: 'st.header("Vázlatkosár")',
-    8: 'st.header("Énekajánló")',
-    9: '"Igehirdetési sorozat tervező"',
-    10: "render_text_main_idea_section(",
-    11: "render_text_summary_section(",
-    12: 'st.header("📖 Útmutatás")',
+    7: 'st.header("Énekajánló")',
+    8: '"Igehirdetési sorozat tervező"',
+    9: "render_text_main_idea_section(",
+    10: "render_text_summary_section(",
+    11: 'st.header("📖 Útmutatás")',
 }
 
 
 def test_tab_indices_are_contiguous_without_gaps_or_duplicates():
     blocks = _tab_blocks()
-    assert sorted(blocks.keys()) == list(range(13))
+    assert sorted(blocks.keys()) == list(range(12))
 
 
 @pytest.mark.parametrize("index", sorted(_EXPECTED_MARKERS))
@@ -118,8 +124,8 @@ def test_text_main_idea_and_summary_still_in_textus_workshop():
     )
     assert any("Textusösszegzés" in label for label in QUICK_TOOLS_TAB_LABELS)
     blocks = _tab_blocks()
-    assert "render_text_main_idea_section(" in blocks[10]
-    assert "render_text_summary_section(" in blocks[11]
+    assert "render_text_main_idea_section(" in blocks[9]
+    assert "render_text_summary_section(" in blocks[10]
 
 
 # ---------------------------------------------------------------------------
@@ -222,22 +228,28 @@ def test_ensure_sermon_workshop_state_does_not_touch_existing_outline_content():
 
 
 # ---------------------------------------------------------------------------
-# 8. A Vázlatkosár működése változatlan
+# 8. A Vázlatkosár aktív felülete megszűnt (RESET 1A-UI, 2026-08-18)
 # ---------------------------------------------------------------------------
 
 
-def test_basket_tab_block_functionally_unchanged():
-    block = _tab_blocks()[7]
+def test_no_basket_tab_or_active_basket_ui_remains():
+    """A korábbi `test_basket_tab_block_functionally_unchanged` elvárását
+    tudatosan megfordítottuk: a Vázlatkosár többé nem önálló fő UI-elem —
+    sem panel, sem hozzáadás-gomb nem maradt aktív hívási úton. A `basket`
+    projektadat és az `_append_basket_item` segédfüggvény változatlanul
+    megmarad legacy, holt kódként (nincs aktív hívója)."""
     for marker in (
         'st.header("Vázlatkosár")',
-        "st.session_state['basket']",
         'key=f"basket_save_{idx}"',
         'key=f"basket_up_{idx}"',
         'key=f"basket_down_{idx}"',
         'key=f"delete_{idx}"',
         "Kosár ürítése",
+        "Hozzáadás a vázlatkosárhoz",
     ):
-        assert marker in block, marker
+        assert marker not in APP_SRC, marker
+    for block in _tab_blocks().values():
+        assert 'st.header("Vázlatkosár")' not in block
 
 
 # ---------------------------------------------------------------------------

@@ -4494,7 +4494,7 @@ def render_section_tab(
     - Saját **Generálás** gomb (futás közben tiltott, spinner aktív).
     - Csak gombnyomásra fut Gemini hívás, page-load alatt SOHA.
     - Az eredmény külön `st.session_state[key]`-ben él, rerun nem dobja.
-    - Megjeleníti a finomítás-chatet és a vázlatkosár-jegyzetet.
+    - Megjeleníti a finomítás-chatet.
 
     Paraméterek:
       - `action_label`: a gomb felirata első generáláskor. Ha nincs megadva,
@@ -4579,22 +4579,6 @@ def render_section_tab(
             )
 
         refinement_chat(chat_title or header, key, f"{key}_chat")
-
-        note_key = f"{key}_note"
-        add_btn_key = f"{key}_add"
-        _maybe_clear_note(note_key)
-        note = st.text_area("Mit szeretnél ebből megtartani a vázlathoz?", key=note_key)
-
-        with action_row(f"section_{key}_basket"):
-            if st.button("Hozzáadás a vázlatkosárhoz", key=add_btn_key):
-                if note.strip():
-                    warn = _append_basket_item(basket_label, note.strip())
-                    _request_clear_note(note_key)
-                    if warn:
-                        st.warning(warn)
-                    else:
-                        st.success("Hozzáadva.")
-                    st.rerun()
 
 
 # =========================================================
@@ -7297,7 +7281,7 @@ def render_igehely_panel() -> None:
 
 
 def render_original_text_panel() -> None:
-    """Eredeti héber/görög szöveg tanulmányozása, jegyzet és vázlatkosár."""
+    """Eredeti héber/görög szöveg tanulmányozása."""
     render_work_section(
         title="Eredeti szöveg tanulmányozása",
         body="Héber / görög kulcskifejezések, jelentésárnyalatok és prédikációs hozam.",
@@ -7399,25 +7383,6 @@ def render_original_text_panel() -> None:
             )
 
         refinement_chat("Eredeti szöveg tanulmányozása", "original_text", "original_text_chat")
-
-        _maybe_clear_note("original_note")
-        note = st.text_area(
-            "Mit szeretnél ebből megtartani a vázlathoz?",
-            key="original_note"
-        )
-
-        with action_row("original_basket"):
-            if st.button("Hozzáadás a vázlatkosárhoz", key="original_add"):
-                if note.strip():
-                    warn = _append_basket_item(
-                        "Eredeti szöveg tanulmányozása", note.strip()
-                    )
-                    _request_clear_note("original_note")
-                    if warn:
-                        st.warning(warn)
-                    else:
-                        st.success("Hozzáadva.")
-                    st.rerun()
 
 
 if st.session_state.get("ui_mode") not in ("workshop", "sermon_workshop"):
@@ -7960,66 +7925,6 @@ with tabs[6]:
 
 
 # =========================================================
-# VÁZLATKOSÁR
-# =========================================================
-
-with tabs[7]:
-    st.header("Vázlatkosár")
-    st.caption(f"{len(st.session_state['basket'])} elem · szerkeszthető, törölhető, sorrendezhető")
-
-    if not st.session_state["basket"]:
-        st.info("Még nincs elmentett elem. A tartalom-fülek alján a „Hozzáadás a vázlatkosárhoz” gombbal tudsz hozzáadni.")
-
-    for idx, (source, item) in enumerate(st.session_state["basket"]):
-        st.markdown(
-            f'<div class="basket-box"><b>{source}</b></div>',
-            unsafe_allow_html=True
-        )
-
-        edited = st.text_area(
-            "Tartalom",
-            value=item,
-            key=f"basket_edit_{idx}",
-            height=140,
-            label_visibility="collapsed"
-        )
-
-        c1, c2, c3, c4 = st.columns([1, 1, 1, 4])
-        with c1:
-            if st.button("Mentés", key=f"basket_save_{idx}"):
-                st.session_state["basket"][idx] = (source, edited.strip())
-                st.success("Frissítve.")
-                st.rerun()
-        with c2:
-            if idx > 0 and st.button("↑", key=f"basket_up_{idx}", help="Feljebb"):
-                st.session_state["basket"][idx - 1], st.session_state["basket"][idx] = (
-                    st.session_state["basket"][idx],
-                    st.session_state["basket"][idx - 1],
-                )
-                st.rerun()
-        with c3:
-            if idx < len(st.session_state["basket"]) - 1 and st.button("↓", key=f"basket_down_{idx}", help="Lejjebb"):
-                st.session_state["basket"][idx + 1], st.session_state["basket"][idx] = (
-                    st.session_state["basket"][idx],
-                    st.session_state["basket"][idx + 1],
-                )
-                st.rerun()
-        with c4:
-            st.markdown('<div class="btn-danger-marker"></div>', unsafe_allow_html=True)
-            if st.button("Törlés", key=f"delete_{idx}"):
-                st.session_state["basket"].pop(idx)
-                st.rerun()
-
-        st.markdown("<hr style='opacity:0.3; margin:1.2rem 0;' />", unsafe_allow_html=True)
-
-    if st.session_state["basket"]:
-        st.markdown('<div class="btn-danger-marker"></div>', unsafe_allow_html=True)
-        if st.button("Kosár ürítése"):
-            st.session_state["basket"] = []
-            st.rerun()
-
-
-# =========================================================
 # EREDETI SZÖVEG (Gyorseszközök — ugyanaz a panel, mint a Textusműhelyben)
 # =========================================================
 
@@ -8031,7 +7936,7 @@ with tabs[1]:
 # ÉNEKAJÁNLÓ
 # =========================================================
 
-with tabs[8]:
+with tabs[7]:
     st.header("Énekajánló")
     st.caption("Református liturgiai énekajánlás az igeszakaszhoz és az alkalomhoz")
 
@@ -8124,29 +8029,13 @@ with tabs[8]:
 
     refinement_chat("Énekajánló", "songs", "songs_chat")
 
-    _maybe_clear_note("songs_note")
-    note = st.text_area(
-        "Mit szeretnél ebből megtartani a vázlathoz?",
-        key="songs_note"
-    )
-
-    if st.button("Hozzáadás a vázlatkosárhoz", key="songs_add"):
-        if note.strip():
-            warn = _append_basket_item("Énekajánló", note.strip())
-            _request_clear_note("songs_note")
-            if warn:
-                st.warning(warn)
-            else:
-                st.success("Hozzáadva.")
-            st.rerun()
-
 
 
 # =========================================================
 # A TEXTUS FŐ GONDOLATA (a régi különálló Textusműhelyből beolvasztva)
 # =========================================================
 
-with tabs[10]:
+with tabs[9]:
     render_text_main_idea_section(generate_fn=generate_text)
 
 
@@ -8154,7 +8043,7 @@ with tabs[10]:
 # TEXTUSÖSSZEGZÉS (a régi „Mit viszünk tovább?” + új záró bundle)
 # =========================================================
 
-with tabs[11]:
+with tabs[10]:
     render_text_summary_section(generate_fn=generate_text)
 
 
@@ -8162,7 +8051,7 @@ with tabs[11]:
 # ÚTMUTATÁS — ARS POETICA + PROMPT GYORSSEGÉD
 # =========================================================
 
-with tabs[12]:
+with tabs[11]:
     st.header("📖 Útmutatás")
 
     st.subheader("Ars Poetica: Miért készítettem ezt az eszközt?")
@@ -8240,10 +8129,11 @@ with tabs[12]:
         "amit neked kell megmunkálnod a saját stílusodban."
     )
     st.info(
-        "Tipp: amelyik elemzés tetszik, mentsd el a **Vázlatkosárba** "
-        "(„Hozzáadás a vázlatkosárhoz” gomb); a végén ezekből építed össze a "
-        "saját vázlatodat.",
-        icon="🧺",
+        "Tipp: amit egy-egy fülön elkészítesz (exegézis, eredeti nyelvi "
+        "anyag, kortörténet, teológia), az automatikusan elérhető az "
+        "Igehirdetési műhely vázlatmotora számára — nincs szükség külön "
+        "mentésre vagy átvitelre.",
+        icon="💡",
     )
 
     st.divider()
@@ -8254,7 +8144,7 @@ with tabs[12]:
 # IGEHIRDETÉSI SOROZAT TERVEZŐ
 # =========================================================
 
-with tabs[9]:
+with tabs[8]:
     st.header("📅 Igehirdetési sorozat tervező")
 
     st.info(
