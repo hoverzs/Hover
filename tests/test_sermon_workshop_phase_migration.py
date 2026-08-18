@@ -1,9 +1,10 @@
-"""Igehirdetési műhely 11->5 fázis migráció + Textusösszegzés-elsőbbség tesztek.
+"""Igehirdetési műhely 11->5 fázis migráció + Textusösszegzés-additivitás tesztek.
 
 Nem Streamlit UI — a régi szakaszfelirat->új fázis megfeleltetést és az
-Igehirdetési műhely vázlat-kontextusának Textusösszegzés-elsőbbségét
-vizsgálja (két-műhely refaktor, Fázis 2).
-"""
+Igehirdetési műhely vázlat-kontextusának Textusösszegzés-kezelését
+vizsgálja (két-műhely refaktor, Fázis 2; 2D.1 adatfolyam-javítás óta a
+Textusösszegzés additív forrás, nem helyettesíti a nyers exegesis/
+theology/history/original_text mezőket)."""
 
 from __future__ import annotations
 
@@ -63,14 +64,19 @@ def test_outline_context_bundle_falls_back_to_raw_fields_when_summary_empty():
     assert "text_summary" not in bundle["source_keys"]
 
 
-def test_outline_context_bundle_prefers_draft_summary_with_content_over_raw_fields():
-    """Korrekciós fázis 3.1: DRAFT (nem jóváhagyott) Textusösszegzés is
-    elsőbbséget élvez a nyers exegesis/theology mezőkkel szemben, ha van
-    tartalma — a jóváhagyás többé nem feltétel, csak a tartalom megléte."""
+def test_outline_context_bundle_adds_draft_summary_alongside_raw_fields():
+    """2D.1 (adatfolyam-audit, bizonyított hiba javítva): a Textusösszegzés
+    — DRAFT állapotban is, ha van tartalma — TOVÁBBRA IS bekerül a
+    bundle-be, de többé NEM helyettesíti/nyomja el a nyers exegesis/
+    theology mezőket — mindkettő együtt, additívan jelenik meg. A korábbi
+    kizárólagos viselkedés (`if summary_fields: ... else: ...`) néma
+    adatvesztést okozott: egyetlen kitöltött összegzés-mező is
+    eltüntette a jóváhagyott, részletes kutatási anyagot a vázlatmotor
+    elől."""
     state = {
         "last_igehely": "Jn 3,16",
-        "exegesis": "Nyers exegézis, nem kellene bekerülnie.",
-        "theology": "Nyers teológia, nem kellene bekerülnie.",
+        "exegesis": "Nyers exegézis, most már bekerül.",
+        "theology": "Nyers teológia, most már bekerül.",
         "text_workshop": {
             "text_summary": {
                 "base_tension": "Vázlat, de van tartalma.",
@@ -79,21 +85,25 @@ def test_outline_context_bundle_prefers_draft_summary_with_content_over_raw_fiel
         },
     }
     bundle = collect_outline_context_bundle(state)
-    assert "exegesis" not in bundle
-    assert "theology" not in bundle
+    assert bundle.get("exegesis") == "Nyers exegézis, most már bekerül."
+    assert bundle.get("theology") == "Nyers teológia, most már bekerül."
     assert bundle["text_summary"]["base_tension"] == "Vázlat, de van tartalma."
     assert bundle["text_summary_status"] == "draft"
     assert "text_summary" in bundle["source_keys"]
+    assert "exegesis" in bundle["source_keys"]
+    assert "theology" in bundle["source_keys"]
 
 
-def test_outline_context_bundle_prefers_approved_summary_over_raw_fields():
-    """Jóváhagyott Textusösszegzés esetén a nyers exegesis/theology/history/original_text kimarad."""
+def test_outline_context_bundle_adds_approved_summary_alongside_raw_fields():
+    """2D.1: jóváhagyott Textusösszegzés esetén is megmarad a nyers
+    exegesis/theology/history/original_text — additív forrás, nem
+    kizárólagos."""
     state = {
         "last_igehely": "Jn 3,16",
-        "exegesis": "Nyers exegézis, nem kellene bekerülnie.",
-        "theology": "Nyers teológia, nem kellene bekerülnie.",
-        "history": "Nyers kortörténet, nem kellene bekerülnie.",
-        "original_text": "Nyers eredeti szöveg elemzés, nem kellene bekerülnie.",
+        "exegesis": "Nyers exegézis, most már bekerül.",
+        "theology": "Nyers teológia, most már bekerül.",
+        "history": "Nyers kortörténet, most már bekerül.",
+        "original_text": "Nyers eredeti szöveg elemzés, most már bekerül.",
         "text_workshop": {
             "text_summary": {
                 "main_idea": "A textus fő gondolata.",
@@ -107,14 +117,16 @@ def test_outline_context_bundle_prefers_approved_summary_over_raw_fields():
         },
     }
     bundle = collect_outline_context_bundle(state)
-    assert "exegesis" not in bundle
-    assert "theology" not in bundle
-    assert "history" not in bundle
-    assert "original_text" not in bundle
+    assert bundle.get("exegesis") == "Nyers exegézis, most már bekerül."
+    assert bundle.get("theology") == "Nyers teológia, most már bekerül."
+    assert bundle.get("history") == "Nyers kortörténet, most már bekerül."
+    assert bundle.get("original_text") == "Nyers eredeti szöveg elemzés, most már bekerül."
     assert bundle["text_summary"]["base_tension"] == "A textus alapfeszültsége."
     assert bundle["text_summary_status"] == "approved"
     assert bundle["text_summary_approved_context_hash"] == "abc123"
     assert "text_summary" in bundle["source_keys"]
+    for key in ("exegesis", "theology", "history", "original_text"):
+        assert key in bundle["source_keys"]
 
 
 # ---------------------------------------------------------------------------

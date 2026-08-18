@@ -552,6 +552,14 @@ _JSON_SHAPE = """\
 
 # Háttéranyag-kulcsok: ha bármelyik érdemi, a promptba kerül kiegészítő kontextusként.
 _BACKGROUND_BUNDLE_KEYS: tuple[str, ...] = (
+    # 2D.1 (adatfolyam-audit): a Bibliai áttekintés (`overview`) korábban
+    # hiányzott ebből a tuple-ből, ezért `extract_outline_background_
+    # material()` sosem engedte át — a bundle tartalmazta, de a motor
+    # promptjáig nem jutott el. Nincs hozzá `_status` társmező (nincs
+    # approval-fogalma az `overview`-nak), ezért nem kerül az
+    # `_APPROVAL_GATED_KEYS` egyik csoportjába sem — ungate-elve megy át,
+    # akárcsak `approved_insights`/`approved_sermon_decisions`.
+    "overview",
     "exegesis",
     "exegesis_status",
     "original_text",
@@ -2079,7 +2087,8 @@ def build_outline_user_prompt(
         parts.extend(
             [
                 "",
-                "HÁTTÉRANYAG (exegézis / kortörténet / eredeti nyelv / műhely):",
+                "HÁTTÉRANYAG (Bibliai áttekintés / exegézis / kortörténet / "
+                "eredeti nyelv / műhely):",
                 "Kizárólag erre az anyagra építve szervezd a vázlatot — ne "
                 "végezz önálló elemzést azon a részterületen, ahol van adat.",
                 wrap_untrusted_content(

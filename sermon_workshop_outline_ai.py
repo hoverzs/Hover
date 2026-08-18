@@ -45,6 +45,9 @@ MAX_EXEGESIS_CHARS = 1600
 MAX_THEOLOGY_CHARS = 1200
 MAX_HISTORY_CHARS = 800
 MAX_ACTUALIZATION_CHARS = 1200
+# 2D.1: „Bibliai áttekintés” (Igehely fül, `overview`) — általános,
+# első tájékozódási anyag; hasonló terjedelmi kategória, mint a teológia.
+MAX_OVERVIEW_CHARS = 1200
 MAX_INSIGHTS = 8
 MAX_BASKET_ITEMS = 12
 MAX_BASKET_ITEM_CHARS = 700
@@ -624,14 +627,29 @@ def collect_outline_context_bundle(
         bundle["outline_basket"] = basket_items
         keys.append("outline_basket")
 
-    # Textusösszegzés (Textusműhely) — ha van tartalma, ez az elsődleges
-    # exegetikai kontextus, amit az Igehirdetési műhely kap; a nyers
-    # exegesis/theology/history/original_text mezőket ilyenkor nem
-    # küldjük tovább duplikáltan, hogy ne fusson „párhuzamos”
-    # exegézis-értelmezés. Korrekciós fázis 3.1: a feltétel a JÓVÁHAGYÁS
-    # helyett a TARTALOM MEGLÉTE — approval nélkül is automatikusan
-    # elérhető forrás (ld. TEXTUS_IGEHIRDETESI_MUHELY_ADATFOLYAM_AUDIT.md).
-    # Tartalom hiányában a korábbi, nyers mezőkre épülő viselkedés marad.
+    # Bibliai áttekintés (Igehely fül, `overview`) — általános, első
+    # tájékozódási anyag. 2D.1 (adatfolyam-audit): korábban ez a mező
+    # SOSEM került be ebbe a bundle-be, ezért a vázlatmotor promptjáig
+    # sem jutott el, holott mentés/projekt-újratöltés után is megmarad
+    # (`workspace_data.WORKSPACE_STR_KEYS`). Nincs hozzá approval-fogalom
+    # (nincs `overview_status` mező sehol a felületen) — a puszta,
+    # nem-üres tartalom elég, hogy automatikusan felhasználható legyen.
+    overview_text = _truncate(
+        _session_str(session_state, "overview"), MAX_OVERVIEW_CHARS
+    )
+    if overview_text:
+        bundle["overview"] = overview_text
+        keys.append("overview")
+
+    # Textusösszegzés (Textusműhely) — ha van tartalma, KIEGÉSZÍTŐ
+    # kontextusként kerül be, a nyers exegesis/theology/history/
+    # original_text mezők MELLETT, nem helyettük. 2D.1 (adatfolyam-audit,
+    # bizonyított hiba): korábban az `if summary_fields: ... else: ...`
+    # kizárólagos elágazás a text_summary bármely (akár csak a
+    # jóváhagyott fő gondolatból automatikusan átmásolt `main_idea`)
+    # mezőjének jelenlétekor TELJESEN KIHAGYTA a négy részletes,
+    # jóváhagyott kutatási forrást a bundle-ből — ezt szünteti meg ez a
+    # javítás: mindkét ág feltétel nélkül, additívan fut.
     text_summary = tw.get("text_summary") if isinstance(tw.get("text_summary"), dict) else {}
     summary_fields = {
         "main_idea": _s(text_summary.get("main_idea")),
@@ -649,27 +667,27 @@ def collect_outline_context_bundle(
             text_summary.get("approved_context_hash")
         )
         keys.append("text_summary")
-    else:
-        for field_name, limit, session_key in (
-            ("exegesis", MAX_EXEGESIS_CHARS, "exegesis"),
-            ("theology", MAX_THEOLOGY_CHARS, "theology"),
-            ("history", MAX_HISTORY_CHARS, "history"),
-            ("original_text", MAX_EXEGESIS_CHARS, "original_text"),
-        ):
-            text = _truncate(_session_str(session_state, session_key), limit)
-            if text:
-                bundle[field_name] = text
-                bundle[f"{field_name}_status"] = (
-                    _s(session_state.get(f"{session_key}_status")) or "draft"
-                )
-                bundle[f"{field_name}_ever_approved"] = bool(
-                    session_state.get(f"{session_key}_ever_approved")
-                )
-                bundle[f"{field_name}_approved_context_hash"] = _s(
-                    session_state.get(f"{session_key}_approved_context_hash")
-                )
-                keys.append(field_name)
-                keys.append(f"{field_name}_status")
+
+    for field_name, limit, session_key in (
+        ("exegesis", MAX_EXEGESIS_CHARS, "exegesis"),
+        ("theology", MAX_THEOLOGY_CHARS, "theology"),
+        ("history", MAX_HISTORY_CHARS, "history"),
+        ("original_text", MAX_EXEGESIS_CHARS, "original_text"),
+    ):
+        text = _truncate(_session_str(session_state, session_key), limit)
+        if text:
+            bundle[field_name] = text
+            bundle[f"{field_name}_status"] = (
+                _s(session_state.get(f"{session_key}_status")) or "draft"
+            )
+            bundle[f"{field_name}_ever_approved"] = bool(
+                session_state.get(f"{session_key}_ever_approved")
+            )
+            bundle[f"{field_name}_approved_context_hash"] = _s(
+                session_state.get(f"{session_key}_approved_context_hash")
+            )
+            keys.append(field_name)
+            keys.append(f"{field_name}_status")
 
     # Aktualizálás — a Textusműhely önálló, nem exegetikai forrása; a
     # Textusösszegzéstől függetlenül mindig bekerül, ha van tartalma
