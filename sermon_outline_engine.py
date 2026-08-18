@@ -716,14 +716,6 @@ _GATED_KEY_LABELS: dict[str, str] = {
     "actualization": "Aktualizálás",
 }
 
-# Korrekciós fázis 3.1 óta a Textusműhely 4 fő háttérforrása
-# (exegesis/theology/history/original_text) már nem approval-gated — a
-# "sosem lett jóváhagyva" megkülönböztetés rájuk nézve nem értelmezhető
-# többé, ezért ez a halmaz üres. A függvény (`extract_never_approved_
-# main_blocks`) és a mögöttes mechanizmus megmarad — ha a jövőben ismét
-# lenne approval-gated "fő AI-blokk", ide kerülne vissza.
-_NEVER_VS_REVOKED_TRACKED_KEYS: frozenset[str] = frozenset()
-
 _CORE_PASSAGE_KEYS: tuple[str, ...] = (
     "passage_reference",
     "passage_text",
@@ -1990,23 +1982,6 @@ def extract_outline_excluded_draft_blocks(bundle: Mapping[str, Any]) -> list[str
         if _s(bundle.get(f"{key}_status")) != "approved":
             excluded.append(_GATED_KEY_LABELS.get(key, key))
     return excluded
-
-
-def extract_never_approved_main_blocks(bundle: Mapping[str, Any]) -> list[str]:
-    """A 4 fő AI-blokk (exegézis/teológia/kortörténet/eredeti nyelvi) közül
-    melyik maradt ki úgy a vázlatból, hogy ebben a projektben MÉG SOSEM lett
-    jóváhagyva — megkülönböztetve attól az esettől, amikor a felhasználó
-    korábban jóváhagyta, majd tudatosan visszavonta / új tartalmat mentett."""
-    out: list[str] = []
-    for key in _NEVER_VS_REVOKED_TRACKED_KEYS:
-        value = bundle.get(key)
-        if not _background_value_is_usable(value):
-            continue
-        if _s(bundle.get(f"{key}_status")) == "approved":
-            continue
-        if not bool(bundle.get(f"{key}_ever_approved")):
-            out.append(_GATED_KEY_LABELS.get(key, key))
-    return out
 
 
 def _bundle_has_rich_workshop_material(bundle: Mapping[str, Any]) -> bool:
@@ -3359,12 +3334,6 @@ def generate_sermon_outline(
             "Kimaradt a vázlatból (nincs jóváhagyva): "
             + ", ".join(excluded_blocks)
             + ". Hagyd jóvá a megfelelő fülön a „Jóváhagyom és átadom” gombbal."
-        )
-    never_approved_main = extract_never_approved_main_blocks(bundle)
-    if never_approved_main:
-        warnings.append(
-            "Ezek a fő elemzési blokkok még sosem lettek jóváhagyva ebben a "
-            "projektben: " + ", ".join(never_approved_main) + "."
         )
     stale_approved_blocks = extract_stale_approved_blocks(bundle)
     if stale_approved_blocks:

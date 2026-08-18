@@ -258,16 +258,22 @@ def test_homiletical_decision_keys_still_require_approval():
 
 
 def test_textus_workshop_ui_unchanged_render_section_tab_signature():
+    """2D.3 (UI-audit, 2026-08-18): a `render_section_tab` approvable-ága
+    ELTÁVOLÍTOTTA a "Mentés vázlatként" / "Jóváhagyom és átadom" gombpárt,
+    mivel a mögöttes vázlatmotor-logika ezekre a forrásokra ma már nem
+    approval-gated (ld. `sermon_outline_engine._CANONICAL_TEXTUS_SOURCE_
+    KEYS` és `tests/test_outline_research_source_no_approval_gate.py`) —
+    a gombpár tehát félrevezető volt. A generáláskori hash-bélyegzés
+    (freshness védelem) és a `key`/`approvable` paraméterek megmaradtak."""
     import inspect
 
     import app
 
     src = inspect.getsource(app.render_section_tab)
-    # A gombpár és az approvable-ág megmaradt — csak a generáláskori
-    # hash-bélyegzés adódott hozzá.
-    assert '"Mentés vázlatként"' in src
-    assert '"Jóváhagyom és átadom"' in src
+    assert '"Mentés vázlatként"' not in src
+    assert '"Jóváhagyom és átadom"' not in src
     assert "approvable and has_result" in src
+    assert "compute_current_passage_context_hash" in src
 
 
 def test_update_text_main_idea_and_summary_still_support_manual_status_flow():

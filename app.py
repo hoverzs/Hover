@@ -4477,8 +4477,6 @@ regenerate_section = generate_section
 # SECTION TAB RENDERER — DRY, TABONKÉNTI GENERÁLÁS
 # =========================================================
 
-_APPROVABLE_STATUS_LABELS = {"draft": "Vázlat", "approved": "Jóváhagyva"}
-
 
 def render_section_tab(
     key: str,
@@ -4503,11 +4501,12 @@ def render_section_tab(
         az alapértelmezett `"{header} generálása"` lesz.
       - `regen_label`: a gomb felirata újrageneráláskor. Ha nincs megadva,
         a `regen_label = "Frissítés — " + action_label` automatikus.
-      - `approvable`: ha True, a tartalom mellé "Mentés vázlatként" /
-        "Jóváhagyom és átadom" gombpár kerül (`st.session_state[f"{key}_status"]`),
-        amit a vázlatmotor kikényszerít — csak jóváhagyott állapotban
-        kerül a promptba. Regeneráláskor a státusz automatikusan
-        visszaáll "draft"-ra.
+      - `approvable`: ha True, a tartalom alá egy tájékoztató felirat
+        kerül, hogy a mentett tartalom külön jóváhagyás nélkül,
+        automatikusan elérhető az Igehirdetési műhely vázlatmotora
+        számára. (A vázlatmotor ezekre a forrásokra csak a friss
+        igehelyhez tartozást ellenőrzi, jóváhagyást nem — ld.
+        `sermon_outline_engine._CANONICAL_TEXTUS_SOURCE_KEYS`.)
     """
     render_work_section(
         title=header,
@@ -4573,30 +4572,10 @@ def render_section_tab(
                 st.warning(w)
 
         if approvable and has_result:
-            status = st.session_state.get(f"{key}_status") or "draft"
-            ab1, ab2 = st.columns(2)
-            with ab1:
-                if st.button("Mentés vázlatként", key=f"{key}_save_draft_btn"):
-                    st.session_state[f"{key}_status"] = "draft"
-                    st.success("Vázlatként elmentve.")
-            with ab2:
-                if st.button(
-                    "Jóváhagyom és átadom",
-                    type="primary",
-                    key=f"{key}_approve_btn",
-                ):
-                    from sermon_outline_engine import (
-                        compute_current_passage_context_hash,
-                    )
-
-                    st.session_state[f"{key}_status"] = "approved"
-                    st.session_state[f"{key}_ever_approved"] = True
-                    st.session_state[f"{key}_approved_context_hash"] = (
-                        compute_current_passage_context_hash(st.session_state)
-                    )
-                    st.success("Jóváhagyva és továbbvíve a vázlatmotorhoz.")
             st.caption(
-                f"Elmentett állapot: **{_APPROVABLE_STATUS_LABELS.get(status, status)}**"
+                "Ez a tartalom automatikusan elérhető az Igehirdetési "
+                "műhely vázlatmotora számára — külön jóváhagyás nem "
+                "szükséges."
             )
 
         refinement_chat(chat_title or header, key, f"{key}_chat")
@@ -7406,30 +7385,10 @@ def render_original_text_panel() -> None:
                     unsafe_allow_html=True,
                 )
 
-                _orig_status = st.session_state.get("original_text_status") or "draft"
-                oab1, oab2 = st.columns(2)
-                with oab1:
-                    if st.button("Mentés vázlatként", key="original_save_draft_btn"):
-                        st.session_state["original_text_status"] = "draft"
-                        st.success("Vázlatként elmentve.")
-                with oab2:
-                    if st.button(
-                        "Jóváhagyom és átadom",
-                        type="primary",
-                        key="original_approve_btn",
-                    ):
-                        from sermon_outline_engine import (
-                            compute_current_passage_context_hash,
-                        )
-
-                        st.session_state["original_text_status"] = "approved"
-                        st.session_state["original_text_ever_approved"] = True
-                        st.session_state["original_text_approved_context_hash"] = (
-                            compute_current_passage_context_hash(st.session_state)
-                        )
-                        st.success("Jóváhagyva és továbbvíve a vázlatmotorhoz.")
                 st.caption(
-                    f"Elmentett állapot: **{_APPROVABLE_STATUS_LABELS.get(_orig_status, _orig_status)}**"
+                    "Ez a tartalom automatikusan elérhető az Igehirdetési "
+                    "műhely vázlatmotora számára — külön jóváhagyás nem "
+                    "szükséges."
                 )
 
         else:
