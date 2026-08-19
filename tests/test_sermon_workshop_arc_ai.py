@@ -540,6 +540,121 @@ def test_discarding_candidate_via_ui_leaves_arc_untouched_and_removes_panel():
 
 
 # =============================================================================
+# RESET 2D-F2 — a teljes generálógomb saját, bekeretezett blokkot kap, és a
+# pending candidate-panel közvetlenül e blokk ALATT jelenik meg, MÉG a hét
+# arc-kártya ELŐTT — nem a kártyák után, elszakítva a kattintástól. Az
+# átvétel visszajelzése konkrétabb. Adatmodellt, promptot vagy generálási
+# logikát nem érint egyik teszt sem.
+# =============================================================================
+
+
+def _classify_top_level_blocks(app) -> list[tuple[int, str]]:
+    """A `render_flat_seven_point_outline_section` top-level blokkjainak
+    sorrendjét és fajtáját adja vissza — a `sermon_workshop_arc_ai`
+    logikától teljesen független, kizárólag renderelési sorrend teszt."""
+    classified: list[tuple[int, str]] = []
+    for i in sorted(app.main.children):
+        node = app.main.children[i]
+        if type(node).__name__ != "Block":
+            continue
+        labels = {b.label for b in node.button}
+        if "MI-javaslat mind a hét ponthoz" in labels:
+            classified.append((i, "trigger_button_block"))
+        elif "Javaslat átvétele" in labels:
+            classified.append((i, "candidate_block"))
+        elif len(node.text_area) > 0:
+            classified.append((i, "arc_card_block"))
+    return classified
+
+
+def test_trigger_button_has_its_own_bordered_container():
+    """RESET 2D-F2, 1. pont: a teljes generálógomb saját, bekeretezett
+    blokkot kap — nem hoz létre új generáló gombot vagy második
+    útvonalat, csak vizuálisan kiemeli a meglévőt."""
+    app = AppTest.from_function(_render_no_candidate).run(timeout=60)
+    blocks = _classify_top_level_blocks(app)
+    trigger_positions = [i for i, kind in blocks if kind == "trigger_button_block"]
+    assert len(trigger_positions) == 1
+    trigger_block = app.main.children[trigger_positions[0]]
+    assert trigger_block.proto.flex_container.border is True
+    # Változatlanul az EGYETLEN "MI-javaslat mind a hét ponthoz" gomb van a lapon.
+    assert [b.label for b in app.button].count("MI-javaslat mind a hét ponthoz") == 1
+
+
+def test_candidate_panel_renders_between_trigger_button_and_arc_cards():
+    """RESET 2D-F2, 2. pont: pending candidate esetén a panel a
+    generálógomb blokkja UTÁN, de a hét arc-kártya ELŐTT renderelődik."""
+    app = AppTest.from_function(_render_and_generate_twice).run(timeout=60)
+    idx = next(
+        i for i, b in enumerate(app.button) if b.label == "MI-javaslat mind a hét ponthoz"
+    )
+    app.button[idx].click().run()  # 1. hívás -> applied (üres arc)
+    idx2 = next(
+        i for i, b in enumerate(app.button) if b.label == "MI-javaslat mind a hét ponthoz"
+    )
+    app.button[idx2].click().run()  # 2. hívás -> candidate (már nem üres arc)
+    assert not app.exception
+
+    blocks = _classify_top_level_blocks(app)
+    kinds_in_order = [kind for _, kind in blocks]
+    trigger_pos = next(i for i, kind in blocks if kind == "trigger_button_block")
+    candidate_pos = next(i for i, kind in blocks if kind == "candidate_block")
+    card_positions = [i for i, kind in blocks if kind == "arc_card_block"]
+
+    assert len(card_positions) == 7, "mind a hét arc-kártya blokkja megtalálható legyen"
+    assert trigger_pos < candidate_pos < min(card_positions), (
+        "a candidate-panelnek a gombblokk UTÁN, de az ÖSSZES arc-kártya ELŐTT kell lennie",
+        kinds_in_order,
+    )
+
+
+def test_no_candidate_panel_still_renders_only_trigger_and_cards_in_order():
+    """Pending candidate NÉLKÜL a top-level blokksorrend csak a gombblokk,
+    majd a hét kártya — a candidate-panel hívása üres candidate esetén
+    változatlanul nem renderel semmit."""
+    app = AppTest.from_function(_render_no_candidate).run(timeout=60)
+    blocks = _classify_top_level_blocks(app)
+    kinds_in_order = [kind for _, kind in blocks]
+    assert kinds_in_order == ["trigger_button_block"] + ["arc_card_block"] * 7
+
+
+def test_accept_feedback_is_concrete_about_all_seven_fields():
+    """RESET 2D-F2, 4. pont: az átvétel visszajelzése konkrétan jelzi,
+    hogy mind a hét pont frissült, és hogy alább, a kártyákban kell
+    keresni — nem az általános "bekerült a szerkesztőbe" szöveg."""
+    app = AppTest.from_function(_render_and_generate_twice).run(timeout=60)
+    idx = next(
+        i for i, b in enumerate(app.button) if b.label == "MI-javaslat mind a hét ponthoz"
+    )
+    app.button[idx].click().run()
+    idx2 = next(
+        i for i, b in enumerate(app.button) if b.label == "MI-javaslat mind a hét ponthoz"
+    )
+    app.button[idx2].click().run()
+
+    accept_idx = next(i for i, b in enumerate(app.button) if b.label == "Javaslat átvétele")
+    app.button[accept_idx].click().run()
+    assert not app.exception
+
+    toast_values = [t.value for t in app.toast]
+    assert toast_values == [
+        "A javaslat mind a hét pontba bekerült — ellenőrizd és alakítsd "
+        "tovább az alábbi kártyákban."
+    ]
+
+
+def test_accept_still_only_writes_via_accept_arc_candidate_route(monkeypatch):
+    """RESET 2D-F2, 3. pont: az átvétel forráskód-szinten is bizonyítottan
+    kizárólag a meglévő `accept_arc_candidate()` útvonalon írhat a
+    kanonikus `arc`-ba — nincs második, közvetlen írás bevezetve."""
+    src = inspect.getsource(sw_ui.render_flat_seven_point_outline_section)
+    assert "accept_arc_candidate(" not in src
+    src_panel = inspect.getsource(sw_ui._render_arc_candidate_panel)
+    assert src_panel.count("accept_arc_candidate(") == 1
+    assert "update_arc_point(" not in src_panel
+
+
+# =============================================================================
 # 17. Nincs régi outline-generálás, export vagy section-szintű MI-gomb ezen
 #     az útvonalon; az arc_ai modul nem függ a régi motortól/segédektől.
 # =============================================================================

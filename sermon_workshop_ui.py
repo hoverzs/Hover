@@ -11950,19 +11950,24 @@ def render_flat_seven_point_outline_section(
     *,
     generate_fn: GenerateFn | None = None,
 ) -> None:
-    """RESET 2B/2C/2D-B2: „Hétpontos igehirdetési vázlat” — hét, számozott,
-    egyenként szerkeszthető kártya, közvetlenül az `arc.*` pontokat
-    módosítva, plusz az EGYETLEN MI-generáló gomb (RESET 2C), amely
-    továbbra is az egyetlen teljes-hétpontos candidate/applied útvonal
-    (`generate_seven_point_arc`) — nincs második, párhuzamos
-    teljes-vázlat-generáló. Emellett (RESET 2D-B2) mind a hét kártyán
-    van egy önálló, jól látható „MI-javaslat ehhez a ponthoz” gomb,
-    közvetlenül a szövegmező alatt, az expander előtt — ez a meglévő
-    field-refinement candidate-mechanizmust hívja üres instrukcióval, így
-    üres mezőnél is, kitöltött mezőnél is működik, automatikus felülírás
-    nélkül. Nincs approval vagy „Átveszem” a kártyákon magukon (a
-    javaslatok kizárólag a saját candidate-panelen fogadhatók el), nincs
-    régi outline-generálás vagy export ezen az útvonalon."""
+    """RESET 2B/2C/2D-B2/2D-F2: „Hétpontos igehirdetési vázlat” — hét,
+    számozott, egyenként szerkeszthető kártya, közvetlenül az `arc.*`
+    pontokat módosítva, plusz az EGYETLEN MI-generáló gomb (RESET 2C),
+    amely továbbra is az egyetlen teljes-hétpontos candidate/applied
+    útvonal (`generate_seven_point_arc`) — nincs második, párhuzamos
+    teljes-vázlat-generáló. A gomb (RESET 2D-F2) saját, bekeretezett
+    blokkot kap, és a függőben lévő candidate-panel közvetlenül e blokk
+    ALATT jelenik meg — MÉG a hét kártya ELŐTT (ld. `_render_arc_
+    candidate_panel` hívását lentebb) —, hogy a javaslat ugyanott
+    látszódjon, ahol a felhasználó kérte, ne a kártyák után, elszakítva
+    a kattintástól. Emellett (RESET 2D-B2) mind a hét kártyán van egy
+    önálló, jól látható „MI-javaslat ehhez a ponthoz” gomb, közvetlenül a
+    szövegmező alatt, az expander előtt — ez a meglévő field-refinement
+    candidate-mechanizmust hívja üres instrukcióval, így üres mezőnél is,
+    kitöltött mezőnél is működik, automatikus felülírás nélkül. Nincs
+    approval vagy „Átveszem” a kártyákon magukon (a javaslatok kizárólag
+    a saját candidate-panelen fogadhatók el), nincs régi outline-generálás
+    vagy export ezen az útvonalon."""
     render_work_section(
         title="Hétpontos igehirdetési vázlat",
         body=(
@@ -11974,37 +11979,43 @@ def render_flat_seven_point_outline_section(
     )
 
     running = bool(st.session_state.get(_KEY_ARC_GEN_RUNNING))
-    if st.button(
-        "MI-javaslat mind a hét ponthoz",
-        type="primary",
-        key="sw_flat_arc_generate",
-        disabled=running or generate_fn is None,
-    ):
-        if generate_fn is None:
-            st.warning("Az MI-segéd jelenleg nem elérhető.")
-        else:
-            st.session_state[_KEY_ARC_GEN_RUNNING] = True
-            try:
-                with st.spinner("Hétpontos vázlatjavaslat készül…"):
-                    outcome = generate_seven_point_arc(
-                        st.session_state, generate_fn=generate_fn
-                    )
-            finally:
-                st.session_state[_KEY_ARC_GEN_RUNNING] = False
+    with st.container(border=True):
+        if st.button(
+            "MI-javaslat mind a hét ponthoz",
+            type="primary",
+            key="sw_flat_arc_generate",
+            disabled=running or generate_fn is None,
+        ):
+            if generate_fn is None:
+                st.warning("Az MI-segéd jelenleg nem elérhető.")
+            else:
+                st.session_state[_KEY_ARC_GEN_RUNNING] = True
+                try:
+                    with st.spinner("Hétpontos vázlatjavaslat készül…"):
+                        outcome = generate_seven_point_arc(
+                            st.session_state, generate_fn=generate_fn
+                        )
+                finally:
+                    st.session_state[_KEY_ARC_GEN_RUNNING] = False
 
-            if not outcome.ok:
-                st.error(outcome.error_message)
-            elif outcome.status == "applied":
-                st.session_state[_RESYNC_FLAG] = True
-                _toast_and_rerun(
-                    "A hétpontos vázlatjavaslat bekerült a szerkesztőbe."
-                )
-            else:  # "candidate" — a kanonikus arc változatlan, lásd lentebb
-                _toast_and_rerun(
-                    "Elkészült egy új vázlatjavaslat — nézd át alul."
-                )
-    if generate_fn is None:
-        st.caption("Az MI-segéd jelenleg nem elérhető.")
+                if not outcome.ok:
+                    st.error(outcome.error_message)
+                elif outcome.status == "applied":
+                    st.session_state[_RESYNC_FLAG] = True
+                    _toast_and_rerun(
+                        "A hétpontos vázlatjavaslat bekerült a szerkesztőbe."
+                    )
+                else:  # "candidate" — a kanonikus arc változatlan, lásd lentebb
+                    _toast_and_rerun(
+                        "Elkészült egy új vázlatjavaslat — nézd át alább."
+                    )
+        if generate_fn is None:
+            st.caption("Az MI-segéd jelenleg nem elérhető.")
+
+    # RESET 2D-F2: a candidate-panel közvetlenül a gombblokk alatt, MÉG a
+    # hét kártya ELŐTT jelenik meg — üres/hiányzó candidate esetén a
+    # függvény nem renderel semmit.
+    _render_arc_candidate_panel()
 
     sw = ensure_sermon_workshop_state(st.session_state)
     arc = sw.get("arc") if isinstance(sw.get("arc"), dict) else {}
@@ -12052,13 +12063,15 @@ def render_flat_seven_point_outline_section(
                 expander_title="Pontosítási kérés (opcionális)",
             )
 
-    _render_arc_candidate_panel()
-
 
 def _render_arc_candidate_panel() -> None:
-    """RESET 2C: readonly előnézet egy függőben lévő `arc_candidate`-re,
-    pontosan két művelettel. Csak akkor jelenik meg, ha van ÉRVÉNYES
-    candidate — üres/hiányzó candidate esetén nem renderel semmit."""
+    """RESET 2C/2D-F2: readonly előnézet egy függőben lévő `arc_candidate`-
+    re, pontosan két művelettel. Csak akkor jelenik meg, ha van ÉRVÉNYES
+    candidate — üres/hiányzó candidate esetén nem renderel semmit. RESET
+    2D-F2 óta a hívó (`render_flat_seven_point_outline_section`) a teljes
+    generáló gomb blokkja UTÁN, de a hét arc-kártya ELŐTT hívja — a
+    panel maga nem tud a saját pozíciójáról, ezt kizárólag a hívási hely
+    dönti el."""
     sw = ensure_sermon_workshop_state(st.session_state)
     candidate = sw.get("arc_candidate")
     if not isinstance(candidate, dict):
@@ -12094,7 +12107,10 @@ def _render_arc_candidate_panel() -> None:
                 )
                 if result["accepted"]:
                     st.session_state[_RESYNC_FLAG] = True
-                    _toast_and_rerun("A javaslat bekerült a szerkesztőbe.")
+                    _toast_and_rerun(
+                        "A javaslat mind a hét pontba bekerült — ellenőrizd "
+                        "és alakítsd tovább az alábbi kártyákban."
+                    )
                 else:
                     reason = str(result.get("reason") or "")
                     st.warning(
