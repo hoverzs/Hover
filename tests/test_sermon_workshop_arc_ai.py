@@ -472,7 +472,9 @@ def test_candidate_shows_readonly_preview_and_exactly_two_action_buttons():
     labels = [b.label for b in app.button]
     assert labels.count("Javaslat átvétele") == 1
     assert labels.count("Javaslat elvetése") == 1
-    assert len(app.text_area) == 9  # a readonly előnézet nem ad hozzá text_area-t
+    # 9 kanonikus tartalommező + 9 RESET 2D-B1 pontosítási instrukciós mező —
+    # a readonly candidate-előnézet önmagában nem ad hozzá text_area-t.
+    assert len(app.text_area) == 18
 
     body = "\n".join(md.value for md in app.markdown)
     for text in VALID_POINTS.values():

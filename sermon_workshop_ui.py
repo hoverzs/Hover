@@ -36,6 +36,8 @@ from sermon_workshop_data import (
     add_approved_sermon_decision,
     add_engagement_element,
     discard_arc_candidate,
+    discard_field_refinement_suggestion,
+    validate_field_refinement_acceptance,
     update_engagement_element,
     remove_engagement_element,
     save_engagement_suggestions,
@@ -262,6 +264,10 @@ from sermon_outline_diagnostics_ai import (
     run_outline_diagnostics,
 )
 from sermon_workshop_arc_ai import build_arc_generation_context, generate_seven_point_arc
+from sermon_workshop_refinement_ai import (
+    build_refinement_context,
+    generate_field_refinement,
+)
 from textus_workshop_data import ensure_text_workshop_state, update_text_main_idea
 from textus_workshop_ui import render_text_main_idea_section, render_text_summary_section
 from diagnostics_dashboard_ui import (
@@ -557,6 +563,38 @@ _ARC_CANDIDATE_REJECT_MESSAGES: dict[str, str] = {
     "context_hash_mismatch": (
         "A bibliai szöveg megváltozott a javaslat elkészülte óta — "
         "változatlanul nem fogadható el."
+    ),
+}
+
+# RESET 2D-B1: célzott, elfogadásos MI-pontosítás UI-technikai üzenetei —
+# kilenc egymástól teljesen független példány (két főgondolat + hét
+# arc-pont), mindegyik saját, dinamikusan képzett widgetkulcsokkal.
+#
+# UX-korrekció (2026-08-19): a `_toast_and_rerun()` programozott
+# `st.rerun()`-ja a kulcs nélküli `st.expander`-ek nyitott/csukott
+# állapotát visszaállítja — sikeres javaslatkérés után emiatt a saját
+# panel is visszacsukódott, noha friss, még át nem tekintett javaslat
+# készült benne. Ez a fogyó (session-state, NEM projektmentett) jelző
+# pontosan EGY rendereléshez jegyzi meg, melyik célmező paneljét kell
+# `expanded=True`-val nyitni — a `_render_field_refinement_panel` a
+# felolvasáskor azonnal törli is, hogy ne ragadjon be egy régi javaslat
+# panelje nyitva a jövőbeli rendereléseken.
+_KEY_REFINE_AUTO_OPEN_FIELD = "_sw_refine_auto_open_field"
+
+_FIELD_REFINEMENT_REJECT_MESSAGES: dict[str, str] = {
+    "no_suggestion": "Nincs függőben lévő javaslat.",
+    "invalid_suggestion": "A javaslat sérült — nem fogadható el.",
+    "missing_context_identity": (
+        "A javaslathoz vagy az aktuális igehelyhez nem tartozik kontextus-"
+        "azonosító — nem fogadható el."
+    ),
+    "reference_mismatch": (
+        "A javaslat egy másik igehelyhez készült — nem fogadható el "
+        "ehhez a szöveghez."
+    ),
+    "context_hash_mismatch": (
+        "A bibliai szöveg vagy a mező tartalma megváltozott a javaslat "
+        "elkészülte óta — változatlanul nem fogadható el."
     ),
 }
 
@@ -11679,11 +11717,130 @@ def _flat_save_sermon_main_idea() -> None:
     update_sermon_workshop_section(st.session_state, "sermon_main_idea", content)
 
 
-def render_flat_text_and_focus_section() -> None:
-    """RESET 2B: „Textus és fókusz” — a hét pontot összetartó két központi
-    irány. Mindkét mező önállóan, approval és „Átveszem” nélkül, kézzel
-    szerkeszthető és automatikusan mentődik. MI-javaslat ebben a fázisban
-    még nincs bekötve (ld. fázisvégi audit)."""
+def _render_field_refinement_panel(
+    field_key: str,
+    *,
+    current_text: str,
+    on_accept: Callable[[str], None],
+    generate_fn: GenerateFn | None,
+) -> None:
+    """RESET 2D-B1: célzott, elfogadásos MI-pontosítás EGY célmezőhöz —
+    kilenc egymástól TELJESEN FÜGGETLEN példány (két főgondolat + hét
+    arc-pont), mindegyik saját, `field_key`-vel képzett widgetkulcsokkal.
+    Alapból összecsukott, KIVÉVE közvetlenül egy saját sikeres
+    javaslatkérés utáni egyetlen rendereléskor (ld. `_KEY_REFINE_AUTO_
+    OPEN_FIELD`). A javaslat SOSEM íródik automatikusan a kanonikus
+    mezőbe — kizárólag az „Átvétel” gomb explicit hatására, és csak
+    akkor, ha a generálás óta a teljes felhasznált kontextus (igehely,
+    bibliai szöveg, fordítás, a mező saját aktuális tartalma) nem
+    változott. `on_accept` a hívó által átadott, MEGLÉVŐ kanonikus
+    mentési útvonal (pl. `update_arc_point`, `update_text_main_idea`)."""
+    auto_open = st.session_state.get(_KEY_REFINE_AUTO_OPEN_FIELD) == field_key
+    if auto_open:
+        # Fogyó jelző: pontosan egyszer nyit, utána azonnal törlődik.
+        st.session_state.pop(_KEY_REFINE_AUTO_OPEN_FIELD, None)
+
+    with st.expander("MI-vel pontosítom", expanded=auto_open):
+        instruction_key = f"sw_refine_instr_{field_key}"
+        running_key = f"_sw_refine_running_{field_key}"
+        running = bool(st.session_state.get(running_key))
+
+        st.text_area(
+            "Mit szeretnél pontosítani?",
+            key=instruction_key,
+            height=68,
+            placeholder=(
+                "Pl. „Legyen konkrétabb.”, „Rövidítsd le.” — nem kötelező kitölteni."
+            ),
+        )
+
+        if st.button(
+            "Javaslat kérése",
+            key=f"sw_refine_request_{field_key}",
+            disabled=running or generate_fn is None,
+        ):
+            if generate_fn is None:
+                st.warning("Az MI-segéd jelenleg nem elérhető.")
+            else:
+                instruction = str(st.session_state.get(instruction_key) or "")
+                st.session_state[running_key] = True
+                try:
+                    with st.spinner("Javaslat készül…"):
+                        outcome = generate_field_refinement(
+                            st.session_state,
+                            field_key=field_key,
+                            current_text=current_text,
+                            instruction=instruction,
+                            generate_fn=generate_fn,
+                        )
+                finally:
+                    st.session_state[running_key] = False
+
+                if not outcome.ok:
+                    st.error(outcome.error_message)
+                else:
+                    st.session_state[_KEY_REFINE_AUTO_OPEN_FIELD] = field_key
+                    _toast_and_rerun("Elkészült egy javaslat — nézd át alul.")
+        if generate_fn is None:
+            st.caption("Az MI-segéd jelenleg nem elérhető.")
+
+        sw = ensure_sermon_workshop_state(st.session_state)
+        refinements = sw.get("field_refinements")
+        suggestion = (
+            refinements.get(field_key) if isinstance(refinements, dict) else None
+        )
+        if not isinstance(suggestion, dict) or not suggestion.get("text"):
+            return
+
+        st.divider()
+        st.caption("Javaslat:")
+        st.markdown(suggestion["text"])
+
+        c1, c2 = st.columns(2)
+        with c1:
+            if st.button(
+                "Javaslat átvétele",
+                type="primary",
+                key=f"sw_refine_accept_{field_key}",
+            ):
+                context = build_refinement_context(
+                    st.session_state,
+                    field_key=field_key,
+                    current_text=current_text,
+                )
+                result = validate_field_refinement_acceptance(
+                    st.session_state,
+                    field_key,
+                    reference=context.reference,
+                    context_hash=context.context_hash,
+                )
+                if result["valid"]:
+                    on_accept(result["text"])
+                    discard_field_refinement_suggestion(st.session_state, field_key)
+                    st.session_state[_RESYNC_FLAG] = True
+                    _toast_and_rerun("A javaslat bekerült a szerkesztőbe.")
+                else:
+                    reason = str(result.get("reason") or "")
+                    st.warning(
+                        _FIELD_REFINEMENT_REJECT_MESSAGES.get(
+                            reason, "A javaslat nem fogadható el."
+                        )
+                    )
+        with c2:
+            if st.button("Javaslat elvetése", key=f"sw_refine_discard_{field_key}"):
+                discard_field_refinement_suggestion(st.session_state, field_key)
+                _toast_and_rerun("A javaslat elvetve.")
+
+
+def render_flat_text_and_focus_section(
+    *,
+    generate_fn: GenerateFn | None = None,
+) -> None:
+    """RESET 2B/2D-B1: „Textus és fókusz” — a hét pontot összetartó két
+    központi irány. Mindkét mező önállóan, approval és automatikus
+    felülírás nélkül, kézzel szerkeszthető és automatikusan mentődik.
+    Mindkettő alatt egy összecsukott, önálló „MI-vel pontosítom” szakasz
+    (RESET 2D-B1) ad célzott, elfogadásos MI-segítséget."""
     render_work_section(
         title="Textus és fókusz",
         body=(
@@ -11694,6 +11851,9 @@ def render_flat_text_and_focus_section() -> None:
         context="Igehirdetési műhely",
     )
 
+    tw = ensure_text_workshop_state(st.session_state)
+    sw = ensure_sermon_workshop_state(st.session_state)
+
     st.markdown("**A textus fő gondolata**")
     st.caption("Mit mond ez a bibliai szakasz saját összefüggésében?")
     st.text_area(
@@ -11702,6 +11862,12 @@ def render_flat_text_and_focus_section() -> None:
         height=100,
         label_visibility="collapsed",
         on_change=_flat_save_text_main_idea,
+    )
+    _render_field_refinement_panel(
+        "text_main_idea",
+        current_text=str(tw.get("text_main_idea") or ""),
+        on_accept=lambda text: update_text_main_idea(st.session_state, text, "draft"),
+        generate_fn=generate_fn,
     )
 
     st.markdown("**Az igehirdetés fő gondolata – fókuszmondat**")
@@ -11712,6 +11878,14 @@ def render_flat_text_and_focus_section() -> None:
         height=100,
         label_visibility="collapsed",
         on_change=_flat_save_sermon_main_idea,
+    )
+    _render_field_refinement_panel(
+        "sermon_main_idea",
+        current_text=str(sw.get("sermon_main_idea") or ""),
+        on_accept=lambda text: update_sermon_workshop_section(
+            st.session_state, "sermon_main_idea", text
+        ),
+        generate_fn=generate_fn,
     )
 
 
@@ -11786,6 +11960,8 @@ def render_flat_seven_point_outline_section(
     if generate_fn is None:
         st.caption("Az MI-segéd jelenleg nem elérhető.")
 
+    sw = ensure_sermon_workshop_state(st.session_state)
+    arc = sw.get("arc") if isinstance(sw.get("arc"), dict) else {}
     for idx, point_key in enumerate(_ARC_POINT_KEYS, start=1):
         title = _ARC_CARD_TITLES[point_key]
         description = _ARC_CARD_DESCRIPTIONS[point_key]
@@ -11800,6 +11976,19 @@ def render_flat_seven_point_outline_section(
                 label_visibility="collapsed",
                 on_change=_flat_save_arc_point,
                 args=(point_key,),
+            )
+            _render_field_refinement_panel(
+                point_key,
+                current_text=str((arc.get(point_key) or {}).get("text") or ""),
+                on_accept=lambda text, pk=point_key: update_arc_point(
+                    st.session_state,
+                    pk,
+                    text,
+                    context_hash=build_arc_generation_context(
+                        st.session_state
+                    ).context_hash,
+                ),
+                generate_fn=generate_fn,
             )
 
     _render_arc_candidate_panel()
@@ -11926,7 +12115,7 @@ def render_sermon_workshop_shell(
     render_bible_text_preview(expanded=False)
 
     st.divider()
-    render_flat_text_and_focus_section()
+    render_flat_text_and_focus_section(generate_fn=generate_fn)
 
     st.divider()
     render_flat_seven_point_outline_section(generate_fn=generate_fn)

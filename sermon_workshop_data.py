@@ -69,6 +69,11 @@ def get_default_sermon_workshop() -> dict[str, Any]:
         # "generated_at"} szerkezetű (ld. normalize_arc_candidate).
         # Ebben a fázisban is kizárólag adatmodell.
         "arc_candidate": None,
+        # RESET 2D-B1: kilenc egymástól teljesen független, függőben lévő
+        # MI-pontosítási javaslat (két főgondolat + hét arc-pont) — az
+        # `arc`/`arc_meta`/`arc_candidate` sémától teljesen külön, saját
+        # mező. Ld. `get_default_field_refinements`.
+        "field_refinements": get_default_field_refinements(),
         "human_condition": {
             "condition": "",
             "false_response": "",
@@ -1309,6 +1314,9 @@ def normalize_sermon_workshop(data: Any) -> dict[str, Any]:
         # RESET 2A: ugyanúgy additív, önálló mezők — nem az `arc` alstruktúrái.
         "arc_meta": normalize_arc_meta(data.get("arc_meta")),
         "arc_candidate": normalize_arc_candidate(data.get("arc_candidate")),
+        # RESET 2D-B1: ugyanúgy additív, önálló mező — ld.
+        # get_default_sermon_workshop() megjegyzését.
+        "field_refinements": normalize_field_refinements(data.get("field_refinements")),
         "human_condition": hc_block,
         "human_condition_status": human_condition_status,
         "human_condition_approved_context_hash": _as_str(
@@ -2530,6 +2538,12 @@ _ARC_POINT_KEYS: tuple[str, ...] = (
     "arrival",  # 7. Megérkezés
 )
 
+# RESET 2D-B1: a célzott, elfogadásos MI-pontosítás kilenc egymástól
+# teljesen független célmezője — a két főgondolat plusz mind a hét
+# arc-pont. Az arc-pont kulcsokat innen, a `_ARC_POINT_KEYS`-ből veszi át
+# (nem duplikálja), hogy a kulcsidentitás egyetlen forrásból származzon.
+_REFINEMENT_FIELD_KEYS: tuple[str, ...] = ("text_main_idea", "sermon_main_idea") + _ARC_POINT_KEYS
+
 _ARC_POINT_FIELDS: tuple[str, ...] = (
     "text",
     "ai_suggestion",
@@ -2858,6 +2872,155 @@ def accept_arc_candidate(
     return {"accepted": True, "reason": "", "arc": sw["arc"], "arc_meta": sw["arc_meta"]}
 
 
+# =============================================================================
+# RESET 2D-B1: célzott, elfogadásos MI-pontosítás — kilenc egymástól
+# teljesen független, függőben lévő javaslat-tároló (két főgondolat +
+# hét arc-pont). Additív mező, nem az `arc`/`arc_meta`/`arc_candidate`
+# séma része — attól teljesen külön, saját `field_refinements` kulcs
+# alatt. Legacy projekteknél hiányzó/sérült adat esetén biztonságosan
+# az összes célmezőre `None`-ra esik vissza (ugyanaz a védekező minta,
+# mint `normalize_arc_candidate`-nél).
+# =============================================================================
+
+
+def get_default_field_refinements() -> dict[str, Any]:
+    """Kilenc célmező, mindegyik `None` — nincs függőben lévő javaslat."""
+    return {key: None for key in _REFINEMENT_FIELD_KEYS}
+
+
+def _normalize_field_refinement_entry(raw: Any) -> dict[str, str] | None:
+    """Biztonságos normalizálás egyetlen célmező javaslatára — sérült,
+    hiányzó vagy üres szövegű bemenet esetén `None` (nincs érvényes
+    javaslat), sosem dob kivételt."""
+    if not isinstance(raw, dict):
+        return None
+    text = _as_str(raw.get("text")).strip()
+    if not text:
+        return None
+    return {
+        "text": text,
+        "instruction": _as_str(raw.get("instruction")),
+        "reference": _as_str(raw.get("reference")),
+        "context_hash": _as_str(raw.get("context_hash")),
+        "generated_at": _as_str(raw.get("generated_at")),
+    }
+
+
+def normalize_field_refinements(raw: Any) -> dict[str, dict[str, str] | None]:
+    """Bármilyen bemenetből érvényes, pontosan a kilenc célmezőt lefedő
+    struktúrát ad vissza — ismeretlen kulcsok kimaradnak, hiányzó/sérült
+    mezők biztonságosan `None`-ra esnek (`normalize_arc_candidate`
+    mintáját követve)."""
+    base = get_default_field_refinements()
+    if not isinstance(raw, dict):
+        return base
+    return {
+        key: _normalize_field_refinement_entry(raw.get(key))
+        for key in _REFINEMENT_FIELD_KEYS
+    }
+
+
+def set_field_refinement_suggestion(
+    session_state: MutableMapping[str, Any],
+    field_key: str,
+    *,
+    text: str,
+    instruction: str = "",
+    reference: str,
+    context_hash: str,
+    generated_at: str | None = None,
+) -> dict[str, str]:
+    """Egy adott célmezőhöz tartozó, frissen elkészült javaslat tárolása.
+    KIZÁRÓLAG a megadott `field_key` bejegyzését írja — a másik nyolc
+    célmező függőben lévő javaslata (ha van) érintetlen marad. Nem indít
+    AI-hívást, csak egy már kész eredményt tárol el."""
+    if field_key not in _REFINEMENT_FIELD_KEYS:
+        raise ValueError(f"Ismeretlen pontosítási célmező: {field_key!r}")
+    sw = ensure_sermon_workshop_state(session_state)
+    stamp = _as_str(generated_at) or datetime.now().isoformat(timespec="seconds")
+    entry = _normalize_field_refinement_entry(
+        {
+            "text": text,
+            "instruction": instruction,
+            "reference": reference,
+            "context_hash": context_hash,
+            "generated_at": stamp,
+        }
+    )
+    if entry is None:
+        raise ValueError("Üres javaslat szöveg nem tárolható.")
+    refinements = sw.get("field_refinements")
+    refinements = (
+        dict(refinements) if isinstance(refinements, dict) else get_default_field_refinements()
+    )
+    refinements[field_key] = entry
+    sw["field_refinements"] = refinements
+    return entry
+
+
+def discard_field_refinement_suggestion(
+    session_state: MutableMapping[str, Any], field_key: str
+) -> None:
+    """A megadott célmező függőben lévő javaslatának elvetése. KIZÁRÓLAG
+    azt az egy bejegyzést törli — a kanonikus mező és a többi nyolc
+    célmező javaslata BIT-PONTOSAN változatlan marad. Nem indít AI-hívást."""
+    if field_key not in _REFINEMENT_FIELD_KEYS:
+        raise ValueError(f"Ismeretlen pontosítási célmező: {field_key!r}")
+    sw = ensure_sermon_workshop_state(session_state)
+    refinements = sw.get("field_refinements")
+    refinements = (
+        dict(refinements) if isinstance(refinements, dict) else get_default_field_refinements()
+    )
+    refinements[field_key] = None
+    sw["field_refinements"] = refinements
+
+
+def validate_field_refinement_acceptance(
+    session_state: MutableMapping[str, Any],
+    field_key: str,
+    *,
+    reference: str,
+    context_hash: str,
+) -> dict[str, Any]:
+    """Elfogadás ELŐFELTÉTEL-ellenőrzése — NEM módosít semmilyen kanonikus
+    mezőt; a tényleges írást a hívó (UI) végzi a megfelelő, meglévő
+    mentési útvonalon (`update_arc_point` / `update_text_main_idea` /
+    `update_sermon_workshop_section`), és csak SIKERES ellenőrzés után.
+
+    KIZÁRÓLAG akkor `valid: True`, ha van függőben lévő, szerkezetileg ép
+    javaslat, ÉS annak `reference`/`context_hash` párja pontosan
+    megegyezik az itt átadott, aktuális értékekkel. Üres azonosító —
+    akár a javaslat, akár az aktuális oldal — SOSEM tekinthető érvényes
+    egyezésnek, még akkor sem, ha mindkét oldal ugyanúgy üres.
+
+    Sikertelen esetben a `reason` jelzi a pontos okot: `"no_suggestion"`,
+    `"invalid_suggestion"`, `"missing_context_identity"`,
+    `"reference_mismatch"` vagy `"context_hash_mismatch"`."""
+    if field_key not in _REFINEMENT_FIELD_KEYS:
+        raise ValueError(f"Ismeretlen pontosítási célmező: {field_key!r}")
+    sw = ensure_sermon_workshop_state(session_state)
+    refinements = sw.get("field_refinements")
+    raw = refinements.get(field_key) if isinstance(refinements, dict) else None
+    if raw is None:
+        return {"valid": False, "reason": "no_suggestion"}
+
+    entry = _normalize_field_refinement_entry(raw)
+    if entry is None:
+        return {"valid": False, "reason": "invalid_suggestion"}
+
+    s_ref = entry["reference"].strip()
+    s_hash = entry["context_hash"].strip()
+    c_ref = _as_str(reference).strip()
+    c_hash = _as_str(context_hash).strip()
+    if not s_ref or not s_hash or not c_ref or not c_hash:
+        return {"valid": False, "reason": "missing_context_identity"}
+    if s_ref != c_ref:
+        return {"valid": False, "reason": "reference_mismatch"}
+    if s_hash != c_hash:
+        return {"valid": False, "reason": "context_hash_mismatch"}
+    return {"valid": True, "reason": "", "text": entry["text"]}
+
+
 def _normalize_arc_point(raw: Any) -> dict[str, Any]:
     base = empty_arc_point()
     if not isinstance(raw, dict):
@@ -3145,6 +3308,11 @@ __all__ = [
     "discard_arc_candidate",
     "store_generated_arc_result",
     "accept_arc_candidate",
+    "get_default_field_refinements",
+    "normalize_field_refinements",
+    "set_field_refinement_suggestion",
+    "discard_field_refinement_suggestion",
+    "validate_field_refinement_acceptance",
     "migrate_legacy_arc_fields",
     "update_arc_point",
     "add_approved_sermon_decision",

@@ -160,10 +160,29 @@ def test_exactly_two_main_idea_fields_with_correct_content():
     assert SERMON_MAIN_IDEA_SENTINEL in values
 
 
-def test_exactly_nine_text_areas_two_main_idea_plus_seven_arc_cards():
+def test_exactly_nine_content_text_areas_two_main_idea_plus_seven_arc_cards():
+    """RESET 2D-B1: a KANONIKUS tartalommezők száma változatlanul kilenc —
+    ezeket a saját, egyedi aria-label-jükről (nem a 9x megegyező „Mit
+    szeretnél pontosítani?” instrukciós mezőről) azonosítjuk. Az
+    instrukciós mezőkkel együtt összesen 18 `text_area` van a lapon."""
     app = AppTest.from_function(_render_shell).run(timeout=60)
     assert not app.exception
-    assert len(app.text_area) == 9
+    labels = [ta.label for ta in app.text_area]
+    content_labels = {
+        "A textus fő gondolata",
+        "Az igehirdetés fő gondolata – fókuszmondat",
+        "Belépés",
+        "Alaphelyzet",
+        "Első fordulópont",
+        "Mélyítés és fokozás",
+        "Átértelmezés",
+        "Második fordulópont",
+        "Megérkezés",
+    }
+    content_count = sum(1 for lb in labels if lb in content_labels)
+    assert content_count == 9
+    assert labels.count("Mit szeretnél pontosítani?") == 9
+    assert len(app.text_area) == 18
 
 
 def test_seven_arc_cards_in_correct_order_with_correct_content():
@@ -233,9 +252,10 @@ def test_no_per_point_ai_or_adopt_buttons():
 
 
 def test_no_legacy_generation_or_export_button_present():
-    """RESET 2C: az EGYETLEN sanctioned MI-gomb ("Hétpontos vázlatjavaslat
-    készítése") megjelenhet, de a régi vázlatmotor generálás-/exportgombjai
-    és a pontonkénti MI-gombok továbbra sem jelenhetnek meg."""
+    """RESET 2C/2D-B1: a sanctioned MI-gombok — az EGYETLEN hétpontos
+    generáló gomb, és a kilenc, egymástól független „Javaslat kérése”
+    pontosítás-gomb — megjelenhetnek, de a régi vázlatmotor generálás-/
+    exportgombjai továbbra sem jelenhetnek meg."""
     app = AppTest.from_function(_render_shell).run(timeout=60)
     labels = [btn.label for btn in app.button]
     for forbidden in (
@@ -245,34 +265,45 @@ def test_no_legacy_generation_or_export_button_present():
         "Letöltés Word (.docx)",
     ):
         assert forbidden not in labels, forbidden
-    assert labels == ["Hétpontos vázlatjavaslat készítése"], (
-        f"nem várt gomb(ok) jelentek meg ebben a fázisban: {labels}"
-    )
+    assert labels.count("Hétpontos vázlatjavaslat készítése") == 1
+    assert labels.count("Javaslat kérése") == 9
+    assert len(labels) == 10, f"nem várt gomb(ok) jelentek meg ebben a fázisban: {labels}"
 
 
 def test_no_ai_call_helpers_referenced_by_new_flat_functions():
     """Forráskód-szintű bizonyíték: a mentő/renderelő függvények nem
     hivatkoznak közvetlen AI-/külső API-hívásra. A `render_flat_seven_
-    point_outline_section` RESET 2C óta KIVÉTEL: legitim módon fogadja és
-    továbbadja a `generate_fn`-t az önálló `sermon_workshop_arc_ai`
-    modulnak — ott viszont közvetlenül sem `generate_text(`-et, sem
-    `_call_generate`-et nem hívhat."""
+    point_outline_section` RESET 2C óta, a `render_flat_text_and_focus_
+    section` pedig RESET 2D-B1 óta KIVÉTEL: legitim módon fogadják és
+    továbbadják a `generate_fn`-t az önálló engine-moduloknak — ott
+    viszont közvetlenül sem `generate_text(`-et, sem `_call_generate`-et
+    nem hívhatnak."""
     for fn in (
         sw_ui._flat_save_text_main_idea,
         sw_ui._flat_save_sermon_main_idea,
         sw_ui._flat_save_arc_point,
-        sw_ui.render_flat_text_and_focus_section,
         sw_ui._render_flat_legacy_outline_panel,
     ):
         src = inspect.getsource(fn)
         for forbidden in ("generate_fn(", "generate_text(", "GenerateFn", "_call_generate"):
             assert forbidden not in src, f"{fn.__name__} hivatkozik: {forbidden}"
 
+    for fn in (
+        sw_ui.render_flat_seven_point_outline_section,
+        sw_ui.render_flat_text_and_focus_section,
+        sw_ui._render_field_refinement_panel,
+    ):
+        src = inspect.getsource(fn)
+        for forbidden in ("generate_text(", "_call_generate"):
+            assert forbidden not in src, f"{fn.__name__} hivatkozik: {forbidden}"
+
     src_outline = inspect.getsource(sw_ui.render_flat_seven_point_outline_section)
-    for forbidden in ("generate_text(", "_call_generate"):
-        assert forbidden not in src_outline, forbidden
-    # A generálás kizárólag a különálló engine-modulon keresztül történhet.
+    # A hétpontos generálás kizárólag a különálló engine-modulon keresztül történhet.
     assert "generate_seven_point_arc(" in src_outline
+
+    src_panel = inspect.getsource(sw_ui._render_field_refinement_panel)
+    # A mezőnkénti pontosítás kizárólag a különálló engine-modulon keresztül történhet.
+    assert "generate_field_refinement(" in src_panel
 
 
 # ---------------------------------------------------------------------------
@@ -432,9 +463,10 @@ def test_legacy_panel_appears_when_arc_empty_and_legacy_outline_has_content():
     body = "\n".join(md.value for md in app.markdown)
     assert "Korábbi vázlat" in body
     assert "SENTINEL" in body
-    # Read-only: nem ad hozzá új text_area-t a legacy tartalomhoz (a 9
-    # meglévő widgeten felül semmi).
-    assert len(app.text_area) == 9
+    # Read-only: nem ad hozzá új text_area-t a legacy tartalomhoz (a 18
+    # meglévő widgeten — 9 kanonikus tartalommező + 9 pontosítási
+    # instrukciós mező — felül semmi).
+    assert len(app.text_area) == 18
 
 
 def test_legacy_panel_absent_when_arc_already_has_content():
@@ -506,7 +538,7 @@ def test_arc_candidate_present_renders_readonly_panel_not_text_area():
     assert not app.exception
     values = [ta.value for ta in app.text_area]
     assert "Candidate SENTINEL." not in values
-    assert len(app.text_area) == 9
+    assert len(app.text_area) == 18
     body = "\n".join(md.value for md in app.markdown)
     assert "Candidate SENTINEL." in body
     assert "Új vázlatjavaslat" in body
