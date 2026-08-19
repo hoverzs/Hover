@@ -31,9 +31,11 @@ from bible_text_ui import _ensure_bible_text_styles
 from ruf_bible_service import SOURCE_NAME, fetch_ruf_passage
 from sermon_workshop_data import (
     _ARC_POINT_KEYS,
+    accept_arc_candidate,
     accept_workshop_proposal,
     add_approved_sermon_decision,
     add_engagement_element,
+    discard_arc_candidate,
     update_engagement_element,
     remove_engagement_element,
     save_engagement_suggestions,
@@ -259,6 +261,7 @@ from sermon_outline_diagnostics_ai import (
     adapt_m8_to_outline_diagnostics,
     run_outline_diagnostics,
 )
+from sermon_workshop_arc_ai import build_arc_generation_context, generate_seven_point_arc
 from textus_workshop_data import ensure_text_workshop_state, update_text_main_idea
 from textus_workshop_ui import render_text_main_idea_section, render_text_summary_section
 from diagnostics_dashboard_ui import (
@@ -537,6 +540,26 @@ _ARC_CARD_DESCRIPTIONS: dict[str, str] = {
     "second_shift": "Az evangéliumi felismerés személyes és közösségi következménye.",
     "arrival": "A gondolatmenet természetes lezárása, amely eljuttat valahová.",
 }
+
+# RESET 2C: a hétpontos MI-generálás UI-technikai kulcsai és üzenetei.
+_KEY_ARC_GEN_RUNNING = "_sw_flat_arc_gen_running"
+_ARC_CANDIDATE_REJECT_MESSAGES: dict[str, str] = {
+    "no_candidate": "Nincs függőben lévő javaslat.",
+    "invalid_candidate": "A javaslat sérült — nem fogadható el.",
+    "missing_context_identity": (
+        "A javaslathoz vagy az aktuális igehelyhez nem tartozik kontextus-"
+        "azonosító — nem fogadható el."
+    ),
+    "reference_mismatch": (
+        "A javaslat egy másik igehelyhez készült — nem fogadható el "
+        "ehhez a szöveghez."
+    ),
+    "context_hash_mismatch": (
+        "A bibliai szöveg megváltozott a javaslat elkészülte óta — "
+        "változatlanul nem fogadható el."
+    ),
+}
+
 _KEY_HC = {
     "condition": "sw_hc_condition",
     "false_response": "sw_hc_false_response",
@@ -11695,17 +11718,31 @@ def render_flat_text_and_focus_section() -> None:
 def _flat_save_arc_point(point_key: str) -> None:
     """Egy hétpontos kártya automatikus mentése — közvetlenül a meglévő
     `update_arc_point()` adatmodell-függvényt hívja (ez frissíti az
-    `arc_meta.manually_updated_at`-ot is), csak a célpontot módosítja."""
+    `arc_meta.manually_updated_at`-ot is), csak a célpontot módosítja.
+
+    Szűk korrekció (2026-08-19): a jelenlegi TELJES generálási-kontextus
+    hash-t (`sermon_workshop_arc_ai.compute_arc_generation_context_hash`)
+    adja át `update_arc_point()`-nak, hogy az `arc_meta.context_hash` egy
+    kézi szerkesztés után is az aktuális, teljes hétpontos-generálási
+    kontextust tükrözze — ne csak a szűk igehely-hash-t. Nem indít
+    AI-hívást, csak string-feldolgozás és hash-számítás."""
     widget_key = _KEY_FLAT_ARC[point_key]
     content = st.session_state.get(widget_key) or ""
-    update_arc_point(st.session_state, point_key, content)
+    context = build_arc_generation_context(st.session_state)
+    update_arc_point(
+        st.session_state, point_key, content, context_hash=context.context_hash
+    )
 
 
-def render_flat_seven_point_outline_section() -> None:
-    """RESET 2B: „Hétpontos igehirdetési vázlat” — hét, számozott,
+def render_flat_seven_point_outline_section(
+    *,
+    generate_fn: GenerateFn | None = None,
+) -> None:
+    """RESET 2B/2C: „Hétpontos igehirdetési vázlat” — hét, számozott,
     egyenként szerkeszthető kártya, közvetlenül az `arc.*` pontokat
-    módosítva. Nincs approval, nincs pontonkénti MI-gomb vagy „Átveszem”,
-    nincs generálás — csak kézi szerkesztés, automatikus mentéssel."""
+    módosítva, plusz az EGYETLEN MI-generáló gomb (RESET 2C). Nincs
+    approval, nincs pontonkénti MI-gomb vagy „Átveszem” a kártyákon
+    magukon, nincs régi outline-generálás vagy export ezen az útvonalon."""
     render_work_section(
         title="Hétpontos igehirdetési vázlat",
         body=(
@@ -11715,6 +11752,39 @@ def render_flat_seven_point_outline_section() -> None:
         ),
         context="Igehirdetési műhely",
     )
+
+    running = bool(st.session_state.get(_KEY_ARC_GEN_RUNNING))
+    if st.button(
+        "Hétpontos vázlatjavaslat készítése",
+        type="primary",
+        key="sw_flat_arc_generate",
+        disabled=running or generate_fn is None,
+    ):
+        if generate_fn is None:
+            st.warning("Az MI-segéd jelenleg nem elérhető.")
+        else:
+            st.session_state[_KEY_ARC_GEN_RUNNING] = True
+            try:
+                with st.spinner("Hétpontos vázlatjavaslat készül…"):
+                    outcome = generate_seven_point_arc(
+                        st.session_state, generate_fn=generate_fn
+                    )
+            finally:
+                st.session_state[_KEY_ARC_GEN_RUNNING] = False
+
+            if not outcome.ok:
+                st.error(outcome.error_message)
+            elif outcome.status == "applied":
+                st.session_state[_RESYNC_FLAG] = True
+                _toast_and_rerun(
+                    "A hétpontos vázlatjavaslat bekerült a szerkesztőbe."
+                )
+            else:  # "candidate" — a kanonikus arc változatlan, lásd lentebb
+                _toast_and_rerun(
+                    "Elkészült egy új vázlatjavaslat — nézd át alul."
+                )
+    if generate_fn is None:
+        st.caption("Az MI-segéd jelenleg nem elérhető.")
 
     for idx, point_key in enumerate(_ARC_POINT_KEYS, start=1):
         title = _ARC_CARD_TITLES[point_key]
@@ -11731,6 +11801,61 @@ def render_flat_seven_point_outline_section() -> None:
                 on_change=_flat_save_arc_point,
                 args=(point_key,),
             )
+
+    _render_arc_candidate_panel()
+
+
+def _render_arc_candidate_panel() -> None:
+    """RESET 2C: readonly előnézet egy függőben lévő `arc_candidate`-re,
+    pontosan két művelettel. Csak akkor jelenik meg, ha van ÉRVÉNYES
+    candidate — üres/hiányzó candidate esetén nem renderel semmit."""
+    sw = ensure_sermon_workshop_state(st.session_state)
+    candidate = sw.get("arc_candidate")
+    if not isinstance(candidate, dict):
+        return
+    points = candidate.get("points") if isinstance(candidate.get("points"), dict) else {}
+    if not points:
+        return
+
+    st.divider()
+    with st.container(border=True):
+        st.markdown("**Új vázlatjavaslat**")
+        st.caption(
+            "Ez a javaslat még nem került a kanonikus vázlatba. Nézd át, "
+            "majd vedd át vagy vesd el — a kanonikus vázlat addig "
+            "változatlan marad."
+        )
+        for idx, point_key in enumerate(_ARC_POINT_KEYS, start=1):
+            title = _ARC_CARD_TITLES[point_key]
+            text = str((points.get(point_key) or {}).get("text") or "")
+            st.markdown(f"**{idx}. {title}**")
+            st.markdown(text if text.strip() else "_(üres)_")
+
+        c1, c2 = st.columns(2)
+        with c1:
+            if st.button(
+                "Javaslat átvétele", type="primary", key="sw_flat_arc_candidate_accept"
+            ):
+                context = build_arc_generation_context(st.session_state)
+                result = accept_arc_candidate(
+                    st.session_state,
+                    reference=context.reference,
+                    context_hash=context.context_hash,
+                )
+                if result["accepted"]:
+                    st.session_state[_RESYNC_FLAG] = True
+                    _toast_and_rerun("A javaslat bekerült a szerkesztőbe.")
+                else:
+                    reason = str(result.get("reason") or "")
+                    st.warning(
+                        _ARC_CANDIDATE_REJECT_MESSAGES.get(
+                            reason, "A javaslat nem fogadható el."
+                        )
+                    )
+        with c2:
+            if st.button("Javaslat elvetése", key="sw_flat_arc_candidate_discard"):
+                discard_arc_candidate(st.session_state)
+                _toast_and_rerun("A javaslat elvetve.")
 
 
 def _render_flat_legacy_outline_panel() -> None:
@@ -11778,13 +11903,14 @@ def render_sermon_workshop_shell(
     `render_engagement_section`, `render_closing_section`,
     `render_text_core_and_focus_section`, `render_outline_section` és a
     hozzájuk tartozó régi section-szintű MI-segédek) megmaradnak legacy
-    kódként, de innen már nem hívódnak. Az oldal két része: „Textus és
-    fókusz” (két önálló, kanonikus mező) és a „Hétpontos igehirdetési
-    vázlat” (az `arc.*` pontok közvetlen szerkesztése). A generálás és a
-    Word-export egy következő fázisban kerül vissza működőképesen — ebben
-    a fázisban a cél kizárólag a kézi, automatikusan mentett felület.
+    kódként, de innen már nem hívódnak.
+
+    RESET 2C (2026-08-19): a „Hétpontos igehirdetési vázlat” szakasz
+    megkapja az egyetlen MI-generáló gombot (`sermon_workshop_arc_ai.
+    generate_seven_point_arc`, candidate-alapú, üres/nem-üres arc szerint
+    applied/candidate döntéssel) — a Word-export egy következő fázisban
+    kerül vissza működőképesen.
     """
-    _ = generate_fn  # ebben a fázisban még nincs MI-/generálás-bekötés
     st.session_state.pop(_RESYNC_DONE_THIS_RUN, None)
     _apply_sw_ui_resync_if_needed()
     ensure_sermon_workshop_state(st.session_state)
@@ -11803,7 +11929,7 @@ def render_sermon_workshop_shell(
     render_flat_text_and_focus_section()
 
     st.divider()
-    render_flat_seven_point_outline_section()
+    render_flat_seven_point_outline_section(generate_fn=generate_fn)
 
     _render_flat_legacy_outline_panel()
 

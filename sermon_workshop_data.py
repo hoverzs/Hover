@@ -3055,6 +3055,8 @@ def update_arc_point(
     session_state: MutableMapping[str, Any],
     point_key: str,
     text: str,
+    *,
+    context_hash: str | None = None,
 ) -> dict[str, Any]:
     """Egy `arc` pont szövegének frissítése — a jövőbeli auto-save mintázat
     adatréteg-szintű előkészítése.
@@ -3064,9 +3066,10 @@ def update_arc_point(
       - normalizálja a szöveget (`_as_str`);
       - mindig frissíti az `updated_at` időbélyeget;
       - tartalmas (nem üres) mentésnél az aktuális igehelyhez/szöveghez
-        kötött `context_hash`-t is beállítja (ugyanaz a lusta-import minta,
-        mint `_current_passage_context_hash`-nél — hiba esetén csendben
-        üres marad, a mentés emiatt sosem bukik el);
+        kötött `context_hash`-t is beállítja a ponton — alapértelmezetten a
+        szűk igehely-hash (ugyanaz a lusta-import minta, mint `_current_
+        passage_context_hash`-nél — hiba esetén csendben üres marad, a
+        mentés emiatt sosem bukik el);
       - SOHA nem nyúl az `ai_suggestion` / `ai_suggested_at` mezőkhöz;
       - a régi modellmezőket (entry_point, sermon_path, stb.) nem érinti;
       - kizárólag a meglévő session_state-mintát követi (ugyanúgy, mint pl.
@@ -3074,14 +3077,24 @@ def update_arc_point(
         a projektmentés a meglévő `normalize_sermon_workshop` allowlist-úton
         történik, változatlanul;
       - RESET 2A: minden hívás frissíti az `arc_meta.manually_updated_at`
-        időbélyeget is — ez az EGYETLEN `arc_meta` mező, amit ez a függvény
-        érint (`reference`/`context_hash`/`generated_at` változatlan marad,
-        azokat kizárólag `store_generated_arc_result`/`accept_arc_candidate`
-        írja). Nem igényelt aláírásváltozást, mert a függvény már úgyis
-        `session_state`-et kap, amiből az `arc_meta` is elérhető.
+        időbélyeget is — ez alapértelmezetten az EGYETLEN `arc_meta` mező,
+        amit ez a függvény érint (`reference`/`generated_at` mindig, és
+        `context_hash` is, HA a hívó nem adja át a lenti opcionális
+        paramétert, változatlan marad — azokat ekkor kizárólag `store_
+        generated_arc_result`/`accept_arc_candidate` írja).
 
-    Ebben a fázisban ezt a függvényt sem a UI, sem a vázlatmotor nem hívja —
-    kizárólag tesztekből érhető el.
+    `context_hash` (opcionális, szűk kiegészítés, 2026-08-19): ha a hívó
+    átadja (jelenleg KIZÁRÓLAG az új, lapos hétpontos UI teszi ezt, a
+    `sermon_workshop_arc_ai.compute_arc_generation_context_hash()` által
+    számított TELJES generálási-kontextus hash-sel), akkor ez az érték
+    kerül mind a pont saját `context_hash` mezőjébe, MIND az `arc_meta.
+    context_hash`-ba — így kézi szerkesztés után az `arc_meta` a valódi,
+    aktuális teljes kontextust tükrözi, nem csak a szűk igehely-hash-t.
+    Ha a hívó nem ad át semmit (`None`, az alapértelmezés), a viselkedés
+    száz százalékig megegyezik a korábbival: csak a pont saját mezője kap
+    szűk igehely-hash-t, az `arc_meta.context_hash` érintetlen marad. Ez a
+    régi hívók (pl. a közvetlen adatmodell-tesztek) számára teljesen
+    visszafelé kompatibilis.
     """
     if point_key not in _ARC_POINT_KEYS:
         raise ValueError(f"Ismeretlen arc pont: {point_key!r}")
@@ -3097,13 +3110,19 @@ def update_arc_point(
     point["text"] = normalized_text
     point["updated_at"] = datetime.now().isoformat(timespec="seconds")
     if normalized_text.strip():
-        point["context_hash"] = _current_passage_context_hash(session_state)
+        point["context_hash"] = (
+            _as_str(context_hash)
+            if context_hash is not None
+            else _current_passage_context_hash(session_state)
+        )
 
     arc[point_key] = point
     sw["arc"] = arc
 
     meta = normalize_arc_meta(sw.get("arc_meta"))
     meta["manually_updated_at"] = datetime.now().isoformat(timespec="seconds")
+    if context_hash is not None:
+        meta["context_hash"] = _as_str(context_hash)
     sw["arc_meta"] = meta
 
     return point

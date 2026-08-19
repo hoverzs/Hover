@@ -232,7 +232,10 @@ def test_no_per_point_ai_or_adopt_buttons():
         assert forbidden not in labels, forbidden
 
 
-def test_no_generation_or_export_button_in_this_phase():
+def test_no_legacy_generation_or_export_button_present():
+    """RESET 2C: az EGYETLEN sanctioned MI-gomb ("Hétpontos vázlatjavaslat
+    készítése") megjelenhet, de a régi vázlatmotor generálás-/exportgombjai
+    és a pontonkénti MI-gombok továbbra sem jelenhetnek meg."""
     app = AppTest.from_function(_render_shell).run(timeout=60)
     labels = [btn.label for btn in app.button]
     for forbidden in (
@@ -242,25 +245,34 @@ def test_no_generation_or_export_button_in_this_phase():
         "Letöltés Word (.docx)",
     ):
         assert forbidden not in labels, forbidden
-    assert len(app.button) == 0, (
-        f"nem várt gomb(ok) jelentek meg ebben a fázisban: {[b.label for b in app.button]}"
+    assert labels == ["Hétpontos vázlatjavaslat készítése"], (
+        f"nem várt gomb(ok) jelentek meg ebben a fázisban: {labels}"
     )
 
 
 def test_no_ai_call_helpers_referenced_by_new_flat_functions():
-    """Forráskód-szintű bizonyíték: az új mentő/renderelő függvények
-    egyike sem hivatkozik AI-/külső API-hívásra."""
+    """Forráskód-szintű bizonyíték: a mentő/renderelő függvények nem
+    hivatkoznak közvetlen AI-/külső API-hívásra. A `render_flat_seven_
+    point_outline_section` RESET 2C óta KIVÉTEL: legitim módon fogadja és
+    továbbadja a `generate_fn`-t az önálló `sermon_workshop_arc_ai`
+    modulnak — ott viszont közvetlenül sem `generate_text(`-et, sem
+    `_call_generate`-et nem hívhat."""
     for fn in (
         sw_ui._flat_save_text_main_idea,
         sw_ui._flat_save_sermon_main_idea,
         sw_ui._flat_save_arc_point,
         sw_ui.render_flat_text_and_focus_section,
-        sw_ui.render_flat_seven_point_outline_section,
         sw_ui._render_flat_legacy_outline_panel,
     ):
         src = inspect.getsource(fn)
         for forbidden in ("generate_fn(", "generate_text(", "GenerateFn", "_call_generate"):
             assert forbidden not in src, f"{fn.__name__} hivatkozik: {forbidden}"
+
+    src_outline = inspect.getsource(sw_ui.render_flat_seven_point_outline_section)
+    for forbidden in ("generate_text(", "_call_generate"):
+        assert forbidden not in src_outline, forbidden
+    # A generálás kizárólag a különálló engine-modulon keresztül történhet.
+    assert "generate_seven_point_arc(" in src_outline
 
 
 # ---------------------------------------------------------------------------
@@ -449,20 +461,27 @@ def test_legacy_panel_does_not_copy_data_into_arc(monkeypatch):
 
 
 # ---------------------------------------------------------------------------
-# 17. Az `arc_candidate` nem jelenik meg ebben a fázisban.
+# 17 (RESET 2B). Nincs `arc_candidate` a szöveg- és fókusz-, illetve a
+# legacy vázlatpanelben — ott azóta sem jelenik meg. A hétpontos vázlat
+# szekció RESET 2C óta SZÁNDÉKOSAN ismeri az `arc_candidate`-et (readonly
+# javaslatpanel) — ennek a teljes, célzott lefedettségét
+# `tests/test_sermon_workshop_arc_ai.py` adja (14-16. pont).
 # ---------------------------------------------------------------------------
 
 
-def test_arc_candidate_never_rendered_in_this_phase():
-    src_shell = inspect.getsource(sw_ui.render_sermon_workshop_shell)
+def test_arc_candidate_not_referenced_outside_the_outline_section():
+    src_shell_minus_outline_call = inspect.getsource(sw_ui.render_sermon_workshop_shell)
     src_focus = inspect.getsource(sw_ui.render_flat_text_and_focus_section)
-    src_outline = inspect.getsource(sw_ui.render_flat_seven_point_outline_section)
     src_legacy = inspect.getsource(sw_ui._render_flat_legacy_outline_panel)
-    for src in (src_shell, src_focus, src_outline, src_legacy):
+    for src in (src_shell_minus_outline_call, src_focus, src_legacy):
         assert "arc_candidate" not in src
 
 
-def test_arc_candidate_present_but_not_rendered_does_not_appear_in_ui():
+def test_arc_candidate_present_renders_readonly_panel_not_text_area():
+    """RESET 2C: egy függőben lévő candidate megjelenik (readonly
+    markdown-előnézetként), de nem kerül `text_area`-ba — a kanonikus
+    hét kártya `text_area`-i változatlanok maradnak."""
+
     def _render() -> None:
         import streamlit as st
 
@@ -487,10 +506,10 @@ def test_arc_candidate_present_but_not_rendered_does_not_appear_in_ui():
     assert not app.exception
     values = [ta.value for ta in app.text_area]
     assert "Candidate SENTINEL." not in values
-    body = "\n".join(md.value for md in app.markdown) + "\n".join(
-        c.value for c in app.caption
-    )
-    assert "andidate" not in body.casefold() or "arc_candidate" not in body
+    assert len(app.text_area) == 9
+    body = "\n".join(md.value for md in app.markdown)
+    assert "Candidate SENTINEL." in body
+    assert "Új vázlatjavaslat" in body
 
 
 # ---------------------------------------------------------------------------
