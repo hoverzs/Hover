@@ -963,3 +963,71 @@ def test_update_arc_point_signature_gained_only_an_optional_keyword_param():
         if p.kind in (inspect.Parameter.POSITIONAL_ONLY, inspect.Parameter.POSITIONAL_OR_KEYWORD)
     ]
     assert positional == ["session_state", "point_key", "text"]
+
+
+# =============================================================================
+# RESET 2D-F1 — a hétpontos generáló promptjának TARTALMI szerződése
+# (hossz, eredeti nyelvi tiltás, 5–6. pont megkülönböztetése). Ezek a
+# tesztek KIZÁRÓLAG a promptszöveget ellenőrzik — nem tudják és nem is
+# állítják, hogy egy valódi modellválasz minőségét bizonyítanák; azt csak
+# élő, kézi próbával lehet ellenőrizni (ld. a fázis auditját).
+# =============================================================================
+
+
+def test_arc_system_prompt_specifies_per_point_length_guidance():
+    prompt = arc_ai.ARC_SYSTEM_PROMPT
+    assert "3–4 mondat" in prompt or "3-4 mondat" in prompt
+    assert "50–80 szó" in prompt or "50-80 szó" in prompt
+
+
+def test_arc_system_prompt_allows_longer_deepening_point_only():
+    prompt = arc_ai.ARC_SYSTEM_PROMPT
+    assert "legfeljebb 5 mondat" in prompt
+    # a hosszabb kivétel kifejezetten a "Mélyítés és fokozás" ponthoz kötött
+    assert "Mélyítés és fokozás" in prompt
+
+
+def test_arc_system_prompt_specifies_total_length_target():
+    prompt = arc_ai.ARC_SYSTEM_PROMPT
+    assert "350–450 szó" in prompt or "350-450 szó" in prompt
+
+
+def test_arc_system_prompt_forbids_original_language_forms_in_output():
+    prompt = arc_ai.ARC_SYSTEM_PROMPT
+    assert "TILOS" in prompt
+    for keyword in ("görög", "héber", "átírás", "Strong-szám", "nyelvtani szakkifejezés"):
+        assert keyword in prompt, keyword
+
+
+def test_arc_system_prompt_distinguishes_reinterpretation_from_second_shift():
+    prompt = arc_ai.ARC_SYSTEM_PROMPT
+    assert "NE ismételd meg az 5. pont" in prompt
+    # az 5. pont a felismerés csúcsa, a 6. annak következménye — a két
+    # szerep szövegesen is külön kulcsszóval jelenjen meg a promptban
+    assert "KÖVETKEZMÉNYE" in prompt
+    assert "FELISMERÉS maga" in prompt
+
+
+def test_arc_system_prompt_forbids_retelling_and_spoiling_later_points():
+    prompt = arc_ai.ARC_SYSTEM_PROMPT
+    assert "se mesélje újra a teljes textust" in prompt
+    assert "se árulja el előre egy KÉSŐBBI pont felismerését" in prompt
+
+
+def test_arc_response_schema_and_point_keys_unchanged_by_prompt_edit():
+    """RESET 2D-F1 kizárólag promptszöveget módosít — a séma és a
+    kanonikus kulcssorrend bit-pontosan változatlan marad."""
+    assert arc_ai.ARC_RESPONSE_SCHEMA == {
+        "type": "object",
+        "properties": {key: {"type": "string"} for key in _ARC_POINT_KEYS},
+        "required": list(_ARC_POINT_KEYS),
+    }
+    assert tuple(_ARC_POINT_KEYS) == (
+        "entry",
+        "starting_point",
+        "first_shift",
+        "deepening",
+        "reinterpretation",
+        "second_shift",
+        "arrival",
+    )

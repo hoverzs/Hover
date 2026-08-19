@@ -60,8 +60,15 @@ _FIELD_LABELS: dict[str, str] = {
 }
 
 _FIELD_PURPOSE: dict[str, str] = {
-    "text_main_idea": "Mit mond ez a bibliai szakasz saját összefüggésében?",
-    "sermon_main_idea": "Milyen központi felismerés felé vezesse az igehirdetés a hallgatót?",
+    "text_main_idea": (
+        "Mit mond ez a bibliai szakasz saját összefüggésében — EXEGETIKAI "
+        "megállapítás, nem alkalmazás vagy felszólítás."
+    ),
+    "sermon_main_idea": (
+        "Milyen felismerés vagy válasz felé vezesse az igehirdetés a "
+        "hallgatót — HOMILETIKAI fókuszmondat, nem a szöveg tartalmi "
+        "összefoglalása."
+    ),
     "entry": "Természetes belépés a textus kérdésébe és a hallgató tapasztalatába.",
     "starting_point": "A textus és a hallgatói helyzet kiinduló feszültsége.",
     "first_shift": "Az első felismerés, amely elmozdítja a megszokott értelmezést.",
@@ -174,6 +181,28 @@ ALAPELVEK:
 - a válasz KIZÁRÓLAG a pontosított szöveg legyen — ne írj bevezetőt, magyarázatot, címkét, és ne idézd vissza az utasítást;
 - a válasz magyar nyelvű, rövid, közvetlenül felhasználható szöveg legyen — nem teljes prédikáció és nem bekezdések sorozata."""
 
+# A két főgondolat-mező funkcionálisan élesen elkülönül (RESET 2D-F1): a
+# `text_main_idea` EXEGETIKAI állítás, a `sermon_main_idea` HOMILETIKAI
+# fókuszmondat — a kilenc célmező egymástól független marad (ld. modul
+# docstring), ezért ez a megkülönböztetés kizárólag a SAJÁT promptjukba
+# épül be, nem a másik mező tartalmának ismeretéből fakad.
+_MAIN_IDEA_CONTRAST_GUIDANCE: dict[str, str] = {
+    "text_main_idea": (
+        "Ez EXEGETIKAI állítás: fogalmazd meg tömören, mit állít, mit "
+        "jelent ki vagy mit tesz Isten (illetve mi történik) EBBEN a "
+        "szövegben, a maga összefüggésében — ne az igehirdetés "
+        "alkalmazása, felszólítás vagy a hallgató felé mutass, és ne "
+        "ismételd meg a szöveget. Legfeljebb 1–2 mondat."
+    ),
+    "sermon_main_idea": (
+        "Ez HOMILETIKAI FÓKUSZMONDAT: fogalmazd meg tömören, milyen "
+        "felismerés vagy válasz felé vezeti az igehirdetés a hallgatót — "
+        "ez NE a szöveg tartalmi összefoglalása legyen (az a „textus fő "
+        "gondolata” mező szerepe), hanem egy jól megjegyezhető, a "
+        "hallgató felé forduló irány. Legfeljebb 1–2 mondat."
+    ),
+}
+
 
 def build_refinement_prompt(context: RefinementContext) -> str:
     label = _FIELD_LABELS.get(context.field_key, context.field_key)
@@ -189,6 +218,9 @@ def build_refinement_prompt(context: RefinementContext) -> str:
     ]
     if purpose:
         parts.append(f"A mező szerepe: {purpose}")
+    contrast = _MAIN_IDEA_CONTRAST_GUIDANCE.get(context.field_key)
+    if contrast:
+        parts.append(contrast)
     parts += [
         "",
         "JELENLEGI TARTALOM:",

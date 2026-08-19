@@ -199,21 +199,24 @@ ALAPELVEK:
 - ne találj ki történeti, nyelvi vagy teológiai adatot; ha bizonytalan vagy hiányzik egy háttéradat, ne egészítsd ki kitalálással, inkább maradj a textus tényleges szövegénél és általánosan elfogadott, jól megalapozott ismereteknél;
 - református teológiai érzékenységgel dolgozz, de ne erőltess minden textusra hitvallási formulákat;
 - kerüld a moralizálást — mutasd meg, mit cselekszik, jelent ki vagy ígér Isten, és csak ebből vezesd le az ember válaszát;
-- a hét pont EGYMÁSRA ÉPÜLJÖN: minden fordulópont valódi tartalmi elmozdulást okozzon, a következő rész NE kezdje újra a prédikációt, ugyanaz a felismerés, illusztráció vagy kép NE ismétlődjön több pontban — ne írd le hétféleképpen ugyanazt a gondolatot;
+- a hét pont EGYMÁSRA ÉPÜLJÖN: minden fordulópont valódi tartalmi elmozdulást okozzon, a következő rész NE kezdje újra a prédikációt, ugyanaz a felismerés, illusztráció vagy kép NE ismétlődjön több pontban — ne írd le hétféleképpen ugyanazt a gondolatot; egyik pont se mesélje újra a teljes textust, és egyik pont se árulja el előre egy KÉSŐBBI pont felismerését;
 - a "Megérkezés" NE mechanikus összefoglalás vagy erkölcsi felhívás legyen — teológiailag a textus felismerésében érkezzen meg, lehetőleg visszakapcsolva a Belépés képéhez vagy kérdéséhez;
 - a textus fő gondolatát és a fókuszmondatot KIZÁRÓLAG akkor vedd figyelembe explicit irányként, ha a promptban ténylegesen meg vannak adva — ha nincsenek megadva, magad határozd meg ezeket belső munkalépésként a textus és a háttéranyag alapján, ez nem jelenik meg külön a válaszban;
+- ha a rendelkezésre álló háttéranyag eredeti nyelvi (görög/héber) elemzést tartalmaz, abból KIZÁRÓLAG a mögöttes teológiai vagy értelmezési felismerést építsd be, a nyelvi FORMÁT magát soha: a válaszban TILOS görög vagy héber szóalak, átírás (pl. "agapé", "cheszed"), Strong-szám vagy nyelvtani szakkifejezés (pl. "aorisztosz", "hitfeel", "STRONG") megjelenése — a felismerést mondd ki magyarul, a nyelvi hivatkozás nélkül;
 - a válasz KIZÁRÓLAG magyar nyelvű legyen.
+
+TERJEDELEM: minden pont egy feszes, jól szerkeszthető bekezdés, irányadóan 3–4 mondat / kb. 50–80 szó — kivéve a 4. "Mélyítés és fokozás" pontot, amely indokolt esetben legfeljebb 5 mondatig bővíthető. A hét pont EGYÜTT célzottan kb. 350–450 szó legyen — ez egy feszes homiletikai munkavázlat, amit a lelkész tovább dolgoz, NEM hét különálló, hosszú magyarázó esszé vagy mini-egzegézis.
 
 A HÉT PONT FUNKCIÓJA (ebben a sorrendben, ez egyben a kimeneti kulcsok sorrendje is):
 1. entry (Belépés) — természetes belépés a textus kérdésébe és a hallgató tapasztalatába; ne árulja el rögtön a végkövetkeztetést, ne kezdődjön közhelyes nyitással.
 2. starting_point (Alaphelyzet) — a textus és a hallgatói helyzet kiinduló feszültsége; mi forog kockán a textusban.
 3. first_shift (Első fordulópont) — az első felismerés, amely elmozdítja a megszokott értelmezést; valódi nézőpontváltás, nem puszta új információ.
 4. deepening (Mélyítés és fokozás) — a kérdés teológiai, emberi és egzisztenciális kibontása; csak a valóban releváns háttéranyagot használd, kerüld az adathalmozást.
-5. reinterpretation (Átértelmezés) — a textus központi felismerése új fénybe helyezi a kiinduló kérdést; itt jelenjen meg legvilágosabban a fő teológiai felismerés.
-6. second_shift (Második fordulópont) — az evangéliumi felismerés személyes és közösségi következménye; ne csupán felszólítás, hanem ami lehetségessé válik az evangélium fényében.
+5. reinterpretation (Átértelmezés) — a textus KÖZPONTI teológiai felismerése, a gondolatmenet csúcsa; itt mondd ki legvilágosabban, mit állít, cselekszik vagy ígér Isten a textusban — ez a pont a FELISMERÉS maga.
+6. second_shift (Második fordulópont) — az 5. pont felismerésének SZEMÉLYES ÉS KÖZÖSSÉGI KÖVETKEZMÉNYE, a hallgató felé forduló irány; NE ismételd meg az 5. pont teológiai állítását újra más szavakkal — ehelyett mutasd meg, mi VÁLTOZIK ebből fakadóan a hallgató életében vagy a közösségben, mi válik lehetségessé, ami korábban nem volt az.
 7. arrival (Megérkezés) — a gondolatmenet természetes lezárása; nem összegzés, hanem eljuttat egy teológiai és egzisztenciális felismeréshez, lehetőleg visszakapcsolva a Belépéshez.
 
-KIMENET: kizárólag egy JSON objektum, PONTOSAN ez a hét kulcs (entry, starting_point, first_shift, deepening, reinterpretation, second_shift, arrival), semmi más kulcs. Minden érték egy rövid, összefüggő, használható magyar bekezdés — nem egyetlen szó, nem puszta címszó. Ne írj bevezetőt, magyarázatot, bibliográfiát, forrásjegyzéket vagy teljes, szó szerint felolvasható prédikációt — homiletikai nyersanyagot adj, amit a lelkész tovább dolgoz. Ne ismételd meg szó szerint a bibliai szöveget hosszan — szintetizálj, ne idézz."""
+KIMENET: kizárólag egy JSON objektum, PONTOSAN ez a hét kulcs (entry, starting_point, first_shift, deepening, reinterpretation, second_shift, arrival), semmi más kulcs. Minden érték egy rövid, összefüggő, használható magyar bekezdés a fenti terjedelmi korláttal — nem egyetlen szó, nem puszta címszó. Ne írj bevezetőt, magyarázatot, bibliográfiát, forrásjegyzéket vagy teljes, szó szerint felolvasható prédikációt — homiletikai nyersanyagot adj, amit a lelkész tovább dolgoz. Ne ismételd meg szó szerint a bibliai szöveget hosszan — szintetizálj, ne idézz."""
 
 ARC_RESPONSE_SCHEMA: dict[str, Any] = {
     "type": "object",

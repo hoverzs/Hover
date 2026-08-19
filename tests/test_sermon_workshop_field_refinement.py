@@ -899,3 +899,86 @@ def test_quick_button_creates_candidate_for_filled_arc_point_without_overwrite()
     )
     # a kézzel írt tartalom NEM íródik felül automatikusan
     assert app.session_state["sermon_workshop"]["arc"]["entry"]["text"] == "Kézzel írt belépés."
+
+
+# =============================================================================
+# RESET 2D-F1 — a két főgondolat-mező promptszerződése: exegetikai vs.
+# homiletikai szerep, rövidség, nem egymás parafrázisa. Ezek a tesztek
+# KIZÁRÓLAG a promptba kerülő szöveget ellenőrzik — nem tudnak és nem is
+# állítják, hogy egy valódi modellválasz minőségét bizonyítanák.
+# =============================================================================
+
+
+def test_text_main_idea_prompt_states_exegetical_role_and_length_cap():
+    state = _base_state()
+    context = refine_ai.build_refinement_context(
+        state, field_key="text_main_idea", current_text=""
+    )
+    prompt = refine_ai.build_refinement_prompt(context)
+    assert "EXEGETIKAI" in prompt
+    assert "Legfeljebb 1–2 mondat" in prompt or "Legfeljebb 1-2 mondat" in prompt
+    assert "ne ismételd meg a szöveget" in prompt
+
+
+def test_sermon_main_idea_prompt_states_homiletical_role_and_length_cap():
+    state = _base_state()
+    context = refine_ai.build_refinement_context(
+        state, field_key="sermon_main_idea", current_text=""
+    )
+    prompt = refine_ai.build_refinement_prompt(context)
+    assert "HOMILETIKAI FÓKUSZMONDAT" in prompt
+    assert "Legfeljebb 1–2 mondat" in prompt or "Legfeljebb 1-2 mondat" in prompt
+
+
+def test_main_idea_prompts_explicitly_contrast_with_each_other():
+    """A két mező promptja NEM egymás parafrázisát kéri: a `text_main_
+    idea` explicit tiltja a hallgató/alkalmazás felé mutatást, a `sermon_
+    main_idea` explicit tiltja a szöveg puszta tartalmi összefoglalását —
+    a két utasítás egymást kizáró irányt ad."""
+    state = _base_state()
+    text_context = refine_ai.build_refinement_context(
+        state, field_key="text_main_idea", current_text=""
+    )
+    sermon_context = refine_ai.build_refinement_context(
+        state, field_key="sermon_main_idea", current_text=""
+    )
+    text_prompt = refine_ai.build_refinement_prompt(text_context)
+    sermon_prompt = refine_ai.build_refinement_prompt(sermon_context)
+
+    assert "ne az igehirdetés alkalmazása, felszólítás vagy a hallgató felé mutass" in text_prompt
+    assert "ez NE a szöveg tartalmi összefoglalása legyen" in sermon_prompt
+    assert text_prompt != sermon_prompt
+
+
+def test_other_seven_fields_do_not_receive_main_idea_contrast_guidance():
+    """A kontraszt-utasítás KIZÁRÓLAG a két főgondolat-mezőt érinti — a
+    hét arc-pont promptja nem tartalmazza (azoknak nincs "egymás
+    parafrázisa" kockázatuk, mindegyik saját, elkülönült szerepű)."""
+    state = _base_state()
+    for field_key in _ARC_POINT_KEYS:
+        context = refine_ai.build_refinement_context(
+            state, field_key=field_key, current_text=""
+        )
+        prompt = refine_ai.build_refinement_prompt(context)
+        assert "EXEGETIKAI" not in prompt
+        assert "HOMILETIKAI FÓKUSZMONDAT" not in prompt
+
+
+def test_field_labels_and_response_validation_unchanged_by_prompt_edit():
+    """RESET 2D-F1 kizárólag promptszöveget módosít — a mezőcímkék és a
+    kilenc célmező kulcskészlete bit-pontosan változatlan marad."""
+    assert refine_ai._FIELD_LABELS == {
+        "text_main_idea": "A textus fő gondolata",
+        "sermon_main_idea": "Az igehirdetés fő gondolata – fókuszmondat",
+        "entry": "Belépés",
+        "starting_point": "Alaphelyzet",
+        "first_shift": "Első fordulópont",
+        "deepening": "Mélyítés és fokozás",
+        "reinterpretation": "Átértelmezés",
+        "second_shift": "Második fordulópont",
+        "arrival": "Megérkezés",
+    }
+    assert tuple(_REFINEMENT_FIELD_KEYS) == (
+        "text_main_idea",
+        "sermon_main_idea",
+    ) + tuple(_ARC_POINT_KEYS)
