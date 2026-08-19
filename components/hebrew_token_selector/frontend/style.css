@@ -34,7 +34,10 @@
   border: 0;
   border-radius: 0.25rem;
   background: transparent;
-  color: inherit;
+  /* Héber szó — sötétkék, kb. 7.6:1 kontraszt a világos háttéren, és
+     jól megkülönböztethető a kijelölési állapot --st-primary-color
+     árnyalatától. */
+  color: #1e40af;
   cursor: pointer;
   display: inline-block;
   font: inherit;

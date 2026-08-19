@@ -1136,6 +1136,94 @@ def test_key_prefix_separates_session_state_keys() -> None:
     assert "bible_text_ui_selected_word_index" not in app.session_state
 
 
+# ---------------------------------------------------------------------------
+# RESET 2D-A (2026-08-19): görög = zöld / héber = kék token-kiemelés.
+#
+# Statikus fájlteszt ÉS aktív renderelési teszt is: az utóbbi a VALÓDI
+# render-útvonalat futtatja (`render_greek_analysis_block` -> a nyelv
+# szerinti dispatch -> a komponens saját `_component()` segédfüggvénye),
+# és a ténylegesen a Streamlit v2 komponensnek átadott `css=` payloadot
+# kémleli ki egy `st.components.v2.component` spy-jal — nem egy a
+# teszttől független, duplikált CSS-stringet vizsgál.
+# ---------------------------------------------------------------------------
+
+
+def test_greek_token_css_file_defines_accessible_green_not_inherit() -> None:
+    css_path = ROOT / "components" / "greek_token_selector" / "frontend" / "style.css"
+    css = css_path.read_text(encoding="utf-8")
+    token_rule_start = css.index(".greek-token {")
+    token_rule_end = css.index("}", token_rule_start)
+    token_rule = css[token_rule_start:token_rule_end]
+
+    assert "color: inherit" not in token_rule
+    assert "color: #166534" in token_rule
+
+
+def test_hebrew_token_css_file_defines_accessible_blue_not_inherit() -> None:
+    css_path = ROOT / "components" / "hebrew_token_selector" / "frontend" / "style.css"
+    css = css_path.read_text(encoding="utf-8")
+    token_rule_start = css.index(".hebrew-token {")
+    token_rule_end = css.index("}", token_rule_start)
+    token_rule = css[token_rule_start:token_rule_end]
+
+    assert "color: inherit" not in token_rule
+    assert "color: #1e40af" in token_rule
+
+
+def test_greek_token_selector_delivers_green_css_through_real_render_path(
+    monkeypatch,
+) -> None:
+    """Aktív renderelési bizonyíték: a Jn 3,16 blokk valódi renderelése
+    (`_render_john_3_16_block`, ugyanaz a segédfüggvény, amit a többi
+    görög teszt is használ) ténylegesen eljut a komponens saját
+    `_component()`-jéig, ami a lemezről beolvasott, valódi `style.css`
+    tartalmat adja át — ezt kémleljük ki, nem egy külön stringet."""
+    import streamlit as st
+
+    captured: dict[str, str] = {}
+    real_component_factory = st.components.v2.component
+
+    def spy_component_factory(name, *, html, css, js):
+        if name == "greek_token_selector":
+            captured["css"] = css
+        return real_component_factory(name, html=html, css=css, js=js)
+
+    monkeypatch.setattr(st.components.v2, "component", spy_component_factory)
+
+    app = AppTest.from_function(_render_john_3_16_block).run()
+
+    assert not app.exception
+    assert "css" in captured, "a komponens sosem lett meghívva a valódi render során"
+    assert ".greek-token {" in captured["css"]
+    assert "color: #166534" in captured["css"]
+
+
+def test_hebrew_token_selector_delivers_blue_css_through_real_render_path(
+    monkeypatch,
+) -> None:
+    """Aktív renderelési bizonyíték a héber útvonalra — a `Zsolt 23,1`
+    blokk (`_render_old_testament_block`) a valódi ÓSZ-dispatch-en és a
+    héber komponens saját `_component()`-jén keresztül fut."""
+    import streamlit as st
+
+    captured: dict[str, str] = {}
+    real_component_factory = st.components.v2.component
+
+    def spy_component_factory(name, *, html, css, js):
+        if name == "hebrew_token_selector":
+            captured["css"] = css
+        return real_component_factory(name, html=html, css=css, js=js)
+
+    monkeypatch.setattr(st.components.v2, "component", spy_component_factory)
+
+    app = AppTest.from_function(_render_old_testament_block).run()
+
+    assert not app.exception
+    assert "css" in captured, "a komponens sosem lett meghívva a valódi render során"
+    assert ".hebrew-token {" in captured["css"]
+    assert "color: #1e40af" in captured["css"]
+
+
 def test_runtime_hungarian_lexicon_uses_full_json_by_default() -> None:
     assert LEXICON_HU_PATH == ROOT / "bible_engine" / "data" / "lexicon_hu.json"
 

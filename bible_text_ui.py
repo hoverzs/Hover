@@ -293,6 +293,29 @@ def normalize_verse_number_spacing(passage_text: str) -> str:
     return format_passage_text_blocks(parse_passage_text_blocks(passage_text))
 
 
+# A Szentírás.eu API (és a belőle importált helyi RÚF-tár) néhány vers
+# szövegébe közvetlenül beágyazott szakaszcím-/kereszthivatkozás-HTML-t ad
+# vissza (pl. "1. Péter halfogása <a href='Mt 4,18-22'>Mt 4,18-22</a>; ...").
+# A `ruf_bible_local_db.py` szerződéses elvárása szerint ezt a szöveget SZÓ
+# SZERINT, változtatás nélkül kell TÁROLNI — ezért a nyers HTML-t itt, a
+# MEGJELENÍTÉSI rétegben szűrjük ki (nem a tárolt/visszaadott adatban).
+# Puszta `html.escape()` nélküle csak láthatóvá, nem eltávolítottá tenné a
+# taget (a felhasználó a nyers `&lt;a href=...&gt;` szöveget látná). Ugyanaz
+# a minta, mint a Konkordancia MEGJELENÍTÉSI rétegében (`concordance_ui.py`
+# `_strip_html_tags`) — itt önálló másolatként, hogy ez a modul ne kössön
+# új importot egy UI-feature-specifikus modulra.
+_EMBEDDED_HTML_TAG_RE = re.compile(r"<[^>]+>")
+_DOUBLE_SPACE_RE = re.compile(r" {2,}")
+
+
+def _strip_embedded_html_tags(text: str) -> str:
+    """Tag eltávolítás, majd a tag körüli szóközök összevonása — a
+    versszám és a szöveg közötti térköz emiatt nem sérülhet meg akkor sem,
+    ha egy eltávolított tag mindkét oldalán szóköz maradt."""
+    without_tags = _EMBEDDED_HTML_TAG_RE.sub("", text or "")
+    return _DOUBLE_SPACE_RE.sub(" ", without_tags).strip()
+
+
 def build_formatted_bible_text_html(
     passage_text: str,
     *,
@@ -306,9 +329,10 @@ def build_formatted_bible_text_html(
     if view_mode == "Folyamatos nézet":
         inline_parts: list[str] = []
         for num, body in blocks:
-            safe_body = html.escape(body, quote=True)
+            clean_body = _strip_embedded_html_tags(body)
+            safe_body = html.escape(clean_body, quote=True)
             if num is None:
-                inline_parts.append(html.escape(body, quote=True))
+                inline_parts.append(safe_body)
             else:
                 safe_num = html.escape(num, quote=True)
                 inline_parts.append(
@@ -324,7 +348,8 @@ def build_formatted_bible_text_html(
 
     parts: list[str] = ['<div class="bible-reader bible-reader-lines">']
     for num, body in blocks:
-        safe_body = html.escape(body, quote=True)
+        clean_body = _strip_embedded_html_tags(body)
+        safe_body = html.escape(clean_body, quote=True)
         if num is None:
             parts.append(f'<p class="bible-para">{safe_body}</p>')
         else:
