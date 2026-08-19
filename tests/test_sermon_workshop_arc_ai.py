@@ -449,7 +449,7 @@ def _render_and_generate_twice() -> None:
 def test_applied_result_shows_no_candidate_panel():
     app = AppTest.from_function(_render_and_generate_twice).run(timeout=60)
     idx = next(
-        i for i, b in enumerate(app.button) if b.label == "Hétpontos vázlatjavaslat készítése"
+        i for i, b in enumerate(app.button) if b.label == "MI-javaslat mind a hét ponthoz"
     )
     app.button[idx].click().run()  # üres arc -> applied
     assert not app.exception
@@ -460,11 +460,11 @@ def test_applied_result_shows_no_candidate_panel():
 def test_candidate_shows_readonly_preview_and_exactly_two_action_buttons():
     app = AppTest.from_function(_render_and_generate_twice).run(timeout=60)
     idx = next(
-        i for i, b in enumerate(app.button) if b.label == "Hétpontos vázlatjavaslat készítése"
+        i for i, b in enumerate(app.button) if b.label == "MI-javaslat mind a hét ponthoz"
     )
     app.button[idx].click().run()  # 1. hívás -> applied (üres arc)
     idx2 = next(
-        i for i, b in enumerate(app.button) if b.label == "Hétpontos vázlatjavaslat készítése"
+        i for i, b in enumerate(app.button) if b.label == "MI-javaslat mind a hét ponthoz"
     )
     app.button[idx2].click().run()  # 2. hívás -> candidate (már nem üres arc)
     assert not app.exception
@@ -484,11 +484,11 @@ def test_candidate_shows_readonly_preview_and_exactly_two_action_buttons():
 def test_accepting_candidate_via_ui_does_not_trigger_extra_ai_call():
     app = AppTest.from_function(_render_and_generate_twice).run(timeout=60)
     idx = next(
-        i for i, b in enumerate(app.button) if b.label == "Hétpontos vázlatjavaslat készítése"
+        i for i, b in enumerate(app.button) if b.label == "MI-javaslat mind a hét ponthoz"
     )
     app.button[idx].click().run()
     idx2 = next(
-        i for i, b in enumerate(app.button) if b.label == "Hétpontos vázlatjavaslat készítése"
+        i for i, b in enumerate(app.button) if b.label == "MI-javaslat mind a hét ponthoz"
     )
     app.button[idx2].click().run()
     assert app.session_state["_arc_ai_call_count"] == 2
@@ -512,11 +512,11 @@ def test_accepting_candidate_via_ui_does_not_trigger_extra_ai_call():
 def test_discarding_candidate_via_ui_leaves_arc_untouched_and_removes_panel():
     app = AppTest.from_function(_render_and_generate_twice).run(timeout=60)
     idx = next(
-        i for i, b in enumerate(app.button) if b.label == "Hétpontos vázlatjavaslat készítése"
+        i for i, b in enumerate(app.button) if b.label == "MI-javaslat mind a hét ponthoz"
     )
     app.button[idx].click().run()
     idx2 = next(
-        i for i, b in enumerate(app.button) if b.label == "Hétpontos vázlatjavaslat készítése"
+        i for i, b in enumerate(app.button) if b.label == "MI-javaslat mind a hét ponthoz"
     )
     app.button[idx2].click().run()
     values_before = sorted(ta.value for ta in app.text_area)
@@ -571,7 +571,7 @@ def test_arc_ai_module_does_not_import_old_engine_prompt_or_section_helpers():
 def test_generated_route_has_no_legacy_or_export_buttons():
     app = AppTest.from_function(_render_and_generate_twice).run(timeout=60)
     idx = next(
-        i for i, b in enumerate(app.button) if b.label == "Hétpontos vázlatjavaslat készítése"
+        i for i, b in enumerate(app.button) if b.label == "MI-javaslat mind a hét ponthoz"
     )
     app.button[idx].click().run()
     labels = {b.label for b in app.button}

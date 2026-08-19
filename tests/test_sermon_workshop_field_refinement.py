@@ -583,12 +583,20 @@ def _render_shell_with_generate() -> None:
 
 
 def test_ui_renders_nine_independent_refinement_expanders():
+    """RESET 2D-B2, 6. pont: a két főgondolat expanderének felirata
+    („MI-javaslat vagy pontosítás”) egyértelműen jelzi, hogy üres mezőhöz
+    is kérhető javaslat, nem csak meglévő tartalom pontosítható; a hét
+    arc-pont expandere külön felirattal jelenik meg, mivel azoknál a
+    kártya alatti önálló gyors gomb már fedi az egyszerű javaslatkérést."""
     app = AppTest.from_function(_render_shell_with_generate).run(timeout=60)
     assert not app.exception
     expander_labels = [e.label for e in app.expander]
-    assert expander_labels.count("MI-vel pontosítom") == 9
-    request_buttons = [b for b in app.button if b.label == "Javaslat kérése"]
+    assert expander_labels.count("MI-javaslat vagy pontosítás") == 2
+    assert expander_labels.count("Pontosítási kérés (opcionális)") == 7
+    request_buttons = [b for b in app.button if b.label == "Egyedi MI-javaslat kérése"]
     assert len(request_buttons) == 9
+    quick_buttons = [b for b in app.button if b.label == "MI-javaslat ehhez a ponthoz"]
+    assert len(quick_buttons) == 7
 
 
 def test_ui_no_refinement_button_when_generate_fn_is_none():
@@ -604,14 +612,17 @@ def test_ui_no_refinement_button_when_generate_fn_is_none():
 
     app = AppTest.from_function(_render_no_generate).run(timeout=60)
     assert not app.exception
-    request_buttons = [b for b in app.button if b.label == "Javaslat kérése"]
+    request_buttons = [b for b in app.button if b.label == "Egyedi MI-javaslat kérése"]
     assert len(request_buttons) == 9
     assert all(b.disabled for b in request_buttons)
+    quick_buttons = [b for b in app.button if b.label == "MI-javaslat ehhez a ponthoz"]
+    assert len(quick_buttons) == 7
+    assert all(b.disabled for b in quick_buttons)
 
 
 def test_ui_request_then_accept_updates_target_field_and_shows_no_stale_panel():
     app = AppTest.from_function(_render_shell_with_generate).run(timeout=60)
-    request_buttons = [i for i, b in enumerate(app.button) if b.label == "Javaslat kérése"]
+    request_buttons = [i for i, b in enumerate(app.button) if b.label == "Egyedi MI-javaslat kérése"]
     # a 3. kérés gomb (index 2) az első arc-pont ("Belépés")
     idx = request_buttons[2]
     app.button[idx].click().run()
@@ -637,7 +648,7 @@ def test_ui_request_then_accept_updates_target_field_and_shows_no_stale_panel():
 
 def test_ui_request_then_discard_leaves_arc_untouched():
     app = AppTest.from_function(_render_shell_with_generate).run(timeout=60)
-    request_buttons = [i for i, b in enumerate(app.button) if b.label == "Javaslat kérése"]
+    request_buttons = [i for i, b in enumerate(app.button) if b.label == "Egyedi MI-javaslat kérése"]
     idx = request_buttons[2]
     app.button[idx].click().run()
     values_before = sorted(ta.value for ta in app.text_area)
@@ -667,7 +678,11 @@ def _expander_states(app) -> list[tuple[str, bool]]:
 
 
 def _request_button_indexes(app) -> list[int]:
-    return [i for i, b in enumerate(app.button) if b.label == "Javaslat kérése"]
+    return [i for i, b in enumerate(app.button) if b.label == "Egyedi MI-javaslat kérése"]
+
+
+def _quick_request_button_indexes(app) -> list[int]:
+    return [i for i, b in enumerate(app.button) if b.label == "MI-javaslat ehhez a ponthoz"]
 
 
 # 1-4. Javaslatkérés után PONTOSAN a célmező panelje nyílik ki; a Bibliai
@@ -715,7 +730,11 @@ def test_other_eight_panels_remain_closed_after_one_field_requests_suggestion():
     assert not app.exception
 
     states = _expander_states(app)
-    refinement_states = [expanded for label, expanded in states if label == "MI-vel pontosítom"]
+    refinement_states = [
+        expanded
+        for label, expanded in states
+        if label in ("MI-javaslat vagy pontosítás", "Pontosítási kérés (opcionális)")
+    ]
     assert refinement_states.count(True) == 1
     assert refinement_states.count(False) == 8
 
@@ -793,3 +812,90 @@ def test_auto_opened_panel_shows_correct_readonly_suggestion_and_both_buttons():
     assert "Javaslat elvetése" in labels
     # a kanonikus arc-pont a javaslat átvétele NÉLKÜL változatlan marad
     assert app.session_state["sermon_workshop"]["arc"]["entry"]["text"] == ""
+
+
+# =============================================================================
+# RESET 2D-B2: a hétpontos vázlat átnevezett gombja, az önálló kártyánkénti
+# gyors javaslatgomb üres és kitöltött mezőn is, valamint annak bizonyítéka,
+# hogy nincs második, párhuzamos teljes-vázlat-generáló útvonal.
+# =============================================================================
+
+
+def test_full_outline_button_relabeled_and_still_uses_single_generation_route():
+    """2D-B2, 1. pont: a hétpontos vázlat gombja az új feliratot kapja, de
+    továbbra is a meglévő, egyetlen AI-hívást használó candidate/applied
+    útvonalat (`generate_seven_point_arc`) hívja."""
+    app = AppTest.from_function(_render_shell_with_generate).run(timeout=60)
+    labels = [b.label for b in app.button]
+    assert "MI-javaslat mind a hét ponthoz" in labels
+    assert "Hétpontos vázlatjavaslat készítése" not in labels
+
+
+def test_no_second_full_outline_generator_path():
+    """2D-B2, 8. pont: a hétpontos szekció forráskódja pontosan egyetlen
+    `generate_seven_point_arc(` hívást tartalmaz — nincs második,
+    párhuzamos teljes-vázlat-generáló út."""
+    src = inspect.getsource(sw_ui.render_flat_seven_point_outline_section)
+    assert src.count("generate_seven_point_arc(") == 1
+
+
+def test_quick_button_appears_exactly_once_per_arc_card():
+    """2D-B2, 2. pont: mind a hét arc-kártyán pontosan egy külső, egyedi
+    MI-javaslat gomb jelenik meg."""
+    app = AppTest.from_function(_render_shell_with_generate).run(timeout=60)
+    quick_idx = _quick_request_button_indexes(app)
+    assert len(quick_idx) == 7
+
+
+def test_quick_button_generates_suggestion_for_empty_arc_point():
+    """2D-B2, 3. pont: üres arc-pontnál a külső gomb javaslatot készít."""
+    app = AppTest.from_function(_render_shell_with_generate).run(timeout=60)
+    quick_idx = _quick_request_button_indexes(app)
+    assert app.session_state["sermon_workshop"]["arc"]["entry"]["text"] == ""
+
+    # a legelső gyors gomb -> az első arc-pont ("Belépés")
+    app.button[quick_idx[0]].click().run()
+    assert not app.exception
+
+    assert app.session_state["sermon_workshop"]["field_refinements"]["entry"]["text"] == (
+        "Pontosított javaslat szöveg."
+    )
+    assert app.session_state["sermon_workshop"]["arc"]["entry"]["text"] == ""
+
+    states = _expander_states(app)
+    open_indexes = [i for i, (_, expanded) in enumerate(states) if expanded]
+    assert open_indexes == [3], "a gyors gomb ugyanazt a panelt nyitja ki, mint az egyedi kérés"
+
+
+def test_quick_button_creates_candidate_for_filled_arc_point_without_overwrite():
+    """2D-B2, 4. pont: kitöltött arc-pontnál a külső gomb candidate-et
+    készít, automatikus felülírás nélkül."""
+
+    def _render_with_filled_entry() -> None:
+        import streamlit as st
+
+        import sermon_workshop_ui as sw_ui
+        from sermon_workshop_data import ensure_sermon_workshop_state, update_arc_point
+
+        st.session_state["last_igehely"] = "Jn 3,16"
+        st.session_state["igehely_input"] = "Jn 3,16"
+        st.session_state["passage_text"] = "Mert úgy szerette Isten a világot."
+        st.session_state["bible_translation"] = "RÚF 2014"
+        ensure_sermon_workshop_state(st.session_state)
+        update_arc_point(st.session_state, "entry", "Kézzel írt belépés.")
+
+        def fake_gen(prompt, **kwargs):
+            return "Alternatív, jobb megfogalmazás."
+
+        sw_ui.render_sermon_workshop_shell(generate_fn=fake_gen)
+
+    app = AppTest.from_function(_render_with_filled_entry).run(timeout=60)
+    quick_idx = _quick_request_button_indexes(app)
+    app.button[quick_idx[0]].click().run()
+    assert not app.exception
+
+    assert app.session_state["sermon_workshop"]["field_refinements"]["entry"]["text"] == (
+        "Alternatív, jobb megfogalmazás."
+    )
+    # a kézzel írt tartalom NEM íródik felül automatikusan
+    assert app.session_state["sermon_workshop"]["arc"]["entry"]["text"] == "Kézzel írt belépés."

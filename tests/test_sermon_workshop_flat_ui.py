@@ -239,23 +239,30 @@ def test_seven_cards_use_correct_arc_point_keys_via_update_arc_point(monkeypatch
 
 
 def test_no_per_point_ai_or_adopt_buttons():
+    """RESET 2D-B2 óta a kártyák alatt SZÁNDÉKOSAN megjelenik egy „MI-
+    javaslat ehhez a ponthoz” gomb (ld. `test_no_legacy_generation_or_
+    export_button_present`), ezért az „MI-javaslat” szótöredék önmagában
+    már nem tiltott — de „Átveszem”/közvetlen kártyán lévő elfogadás-gomb
+    továbbra sem jelenhet meg, a javaslat kizárólag a saját candidate-
+    panelen fogadható el."""
     app = AppTest.from_function(_render_shell).run(timeout=60)
     labels = [btn.label for btn in app.button]
     for forbidden in (
         "Átveszem",
         "Javaslat készítése",
         "Javaslatok készítése",
-        "MI-javaslat",
         "Saját megfogalmazás értékelése",
     ):
         assert forbidden not in labels, forbidden
 
 
 def test_no_legacy_generation_or_export_button_present():
-    """RESET 2C/2D-B1: a sanctioned MI-gombok — az EGYETLEN hétpontos
-    generáló gomb, és a kilenc, egymástól független „Javaslat kérése”
-    pontosítás-gomb — megjelenhetnek, de a régi vázlatmotor generálás-/
-    exportgombjai továbbra sem jelenhetnek meg."""
+    """RESET 2C/2D-B1/2D-B2: a sanctioned MI-gombok — az EGYETLEN hétpontos
+    generáló gomb („MI-javaslat mind a hét ponthoz”), a kilenc, egymástól
+    független „Egyedi MI-javaslat kérése” pontosítás-gomb, és a hét,
+    kártyánkénti „MI-javaslat ehhez a ponthoz” gyors gomb — megjelenhetnek,
+    de a régi vázlatmotor generálás-/exportgombjai továbbra sem
+    jelenhetnek meg."""
     app = AppTest.from_function(_render_shell).run(timeout=60)
     labels = [btn.label for btn in app.button]
     for forbidden in (
@@ -263,11 +270,14 @@ def test_no_legacy_generation_or_export_button_present():
         "Word-export",
         "Vázlat exportálása",
         "Letöltés Word (.docx)",
+        "Hétpontos vázlatjavaslat készítése",
+        "Javaslat kérése",
     ):
         assert forbidden not in labels, forbidden
-    assert labels.count("Hétpontos vázlatjavaslat készítése") == 1
-    assert labels.count("Javaslat kérése") == 9
-    assert len(labels) == 10, f"nem várt gomb(ok) jelentek meg ebben a fázisban: {labels}"
+    assert labels.count("MI-javaslat mind a hét ponthoz") == 1
+    assert labels.count("Egyedi MI-javaslat kérése") == 9
+    assert labels.count("MI-javaslat ehhez a ponthoz") == 7
+    assert len(labels) == 17, f"nem várt gomb(ok) jelentek meg ebben a fázisban: {labels}"
 
 
 def test_no_ai_call_helpers_referenced_by_new_flat_functions():
@@ -292,6 +302,7 @@ def test_no_ai_call_helpers_referenced_by_new_flat_functions():
         sw_ui.render_flat_seven_point_outline_section,
         sw_ui.render_flat_text_and_focus_section,
         sw_ui._render_field_refinement_panel,
+        sw_ui._trigger_field_refinement_request,
     ):
         src = inspect.getsource(fn)
         for forbidden in ("generate_text(", "_call_generate"):
@@ -301,9 +312,13 @@ def test_no_ai_call_helpers_referenced_by_new_flat_functions():
     # A hétpontos generálás kizárólag a különálló engine-modulon keresztül történhet.
     assert "generate_seven_point_arc(" in src_outline
 
-    src_panel = inspect.getsource(sw_ui._render_field_refinement_panel)
-    # A mezőnkénti pontosítás kizárólag a különálló engine-modulon keresztül történhet.
-    assert "generate_field_refinement(" in src_panel
+    # RESET 2D-B2: a mezőnkénti pontosítás AI-hívása a megosztott
+    # `_trigger_field_refinement_request` segédfüggvénybe került (ezt hívja
+    # mind a kártya alatti gyors gomb, mind az expanderes egyedi kérés) —
+    # maga `_render_field_refinement_panel` már csak ezt a segédet hívja,
+    # nem közvetlenül az engine-modult.
+    src_trigger = inspect.getsource(sw_ui._trigger_field_refinement_request)
+    assert "generate_field_refinement(" in src_trigger
 
 
 # ---------------------------------------------------------------------------

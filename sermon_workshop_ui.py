@@ -11717,15 +11717,54 @@ def _flat_save_sermon_main_idea() -> None:
     update_sermon_workshop_section(st.session_state, "sermon_main_idea", content)
 
 
+def _trigger_field_refinement_request(
+    field_key: str,
+    *,
+    current_text: str,
+    instruction: str,
+    generate_fn: GenerateFn | None,
+    running_key: str,
+) -> None:
+    """RESET 2D-B2: EGYETLEN megosztott végrehajtási út — mind a kártya
+    alatti gyors („MI-javaslat ehhez a ponthoz”), mind a személyre szabott
+    expander-gomb („Egyedi MI-javaslat kérése”) ugyanezt hívja, ugyanazzal
+    a running-state védelemmel és a fogyó auto-open jelzővel. A gyors gomb
+    üres `instruction`-nel hívja, a személyre szabott a felhasználó által
+    beírt szöveggel — a mögöttes, biztonságos candidate-folyamat mindkét
+    esetben azonos (`generate_field_refinement`)."""
+    if generate_fn is None:
+        st.warning("Az MI-segéd jelenleg nem elérhető.")
+        return
+    st.session_state[running_key] = True
+    try:
+        with st.spinner("Javaslat készül…"):
+            outcome = generate_field_refinement(
+                st.session_state,
+                field_key=field_key,
+                current_text=current_text,
+                instruction=instruction,
+                generate_fn=generate_fn,
+            )
+    finally:
+        st.session_state[running_key] = False
+
+    if not outcome.ok:
+        st.error(outcome.error_message)
+    else:
+        st.session_state[_KEY_REFINE_AUTO_OPEN_FIELD] = field_key
+        _toast_and_rerun("Elkészült egy javaslat — nézd át alul.")
+
+
 def _render_field_refinement_panel(
     field_key: str,
     *,
     current_text: str,
     on_accept: Callable[[str], None],
     generate_fn: GenerateFn | None,
+    expander_title: str,
 ) -> None:
-    """RESET 2D-B1: célzott, elfogadásos MI-pontosítás EGY célmezőhöz —
-    kilenc egymástól TELJESEN FÜGGETLEN példány (két főgondolat + hét
+    """RESET 2D-B1/2D-B2: célzott, elfogadásos MI-pontosítás EGY célmezőhöz
+    — kilenc egymástól TELJESEN FÜGGETLEN példány (két főgondolat + hét
     arc-pont), mindegyik saját, `field_key`-vel képzett widgetkulcsokkal.
     Alapból összecsukott, KIVÉVE közvetlenül egy saját sikeres
     javaslatkérés utáni egyetlen rendereléskor (ld. `_KEY_REFINE_AUTO_
@@ -11734,13 +11773,20 @@ def _render_field_refinement_panel(
     akkor, ha a generálás óta a teljes felhasznált kontextus (igehely,
     bibliai szöveg, fordítás, a mező saját aktuális tartalma) nem
     változott. `on_accept` a hívó által átadott, MEGLÉVŐ kanonikus
-    mentési útvonal (pl. `update_arc_point`, `update_text_main_idea`)."""
+    mentési útvonal (pl. `update_arc_point`, `update_text_main_idea`).
+
+    `expander_title` a hívó által megadott felirat (RESET 2D-B2): az
+    arc-pontoknál „Pontosítási kérés (opcionális)” — mivel ott a
+    kártya alatti önálló gomb már fedi az egyszerű „adj javaslatot”
+    esetet —, a két főgondolatnál „MI-javaslat vagy pontosítás”, mivel
+    azoknál nincs külön gyors gomb, az expander az egyetlen belépési
+    pont mindkét esethez."""
     auto_open = st.session_state.get(_KEY_REFINE_AUTO_OPEN_FIELD) == field_key
     if auto_open:
         # Fogyó jelző: pontosan egyszer nyit, utána azonnal törlődik.
         st.session_state.pop(_KEY_REFINE_AUTO_OPEN_FIELD, None)
 
-    with st.expander("MI-vel pontosítom", expanded=auto_open):
+    with st.expander(expander_title, expanded=auto_open):
         instruction_key = f"sw_refine_instr_{field_key}"
         running_key = f"_sw_refine_running_{field_key}"
         running = bool(st.session_state.get(running_key))
@@ -11750,37 +11796,24 @@ def _render_field_refinement_panel(
             key=instruction_key,
             height=68,
             placeholder=(
-                "Pl. „Legyen konkrétabb.”, „Rövidítsd le.” — nem kötelező kitölteni."
+                "Például: legyen konkrétabb, rövidebb, vagy kapcsolódjon "
+                "jobban a textus feszültségéhez."
             ),
         )
 
         if st.button(
-            "Javaslat kérése",
+            "Egyedi MI-javaslat kérése",
             key=f"sw_refine_request_{field_key}",
             disabled=running or generate_fn is None,
         ):
-            if generate_fn is None:
-                st.warning("Az MI-segéd jelenleg nem elérhető.")
-            else:
-                instruction = str(st.session_state.get(instruction_key) or "")
-                st.session_state[running_key] = True
-                try:
-                    with st.spinner("Javaslat készül…"):
-                        outcome = generate_field_refinement(
-                            st.session_state,
-                            field_key=field_key,
-                            current_text=current_text,
-                            instruction=instruction,
-                            generate_fn=generate_fn,
-                        )
-                finally:
-                    st.session_state[running_key] = False
-
-                if not outcome.ok:
-                    st.error(outcome.error_message)
-                else:
-                    st.session_state[_KEY_REFINE_AUTO_OPEN_FIELD] = field_key
-                    _toast_and_rerun("Elkészült egy javaslat — nézd át alul.")
+            instruction = str(st.session_state.get(instruction_key) or "")
+            _trigger_field_refinement_request(
+                field_key,
+                current_text=current_text,
+                instruction=instruction,
+                generate_fn=generate_fn,
+                running_key=running_key,
+            )
         if generate_fn is None:
             st.caption("Az MI-segéd jelenleg nem elérhető.")
 
@@ -11836,11 +11869,14 @@ def render_flat_text_and_focus_section(
     *,
     generate_fn: GenerateFn | None = None,
 ) -> None:
-    """RESET 2B/2D-B1: „Textus és fókusz” — a hét pontot összetartó két
-    központi irány. Mindkét mező önállóan, approval és automatikus
+    """RESET 2B/2D-B1/2D-B2: „Textus és fókusz” — a hét pontot összetartó
+    két központi irány. Mindkét mező önállóan, approval és automatikus
     felülírás nélkül, kézzel szerkeszthető és automatikusan mentődik.
-    Mindkettő alatt egy összecsukott, önálló „MI-vel pontosítom” szakasz
-    (RESET 2D-B1) ad célzott, elfogadásos MI-segítséget."""
+    Mindkettő alatt egy összecsukott „MI-javaslat vagy pontosítás”
+    szakasz ad célzott, elfogadásos MI-segítséget — a felirat (RESET
+    2D-B2) szándékosan jelzi, hogy ÜRES mezőhöz is kérhető javaslat, nem
+    csak meglévő tartalom pontosítható (nincs itt külön gyors gomb, az
+    expander az egyetlen belépési pont mindkét esethez)."""
     render_work_section(
         title="Textus és fókusz",
         body=(
@@ -11868,6 +11904,7 @@ def render_flat_text_and_focus_section(
         current_text=str(tw.get("text_main_idea") or ""),
         on_accept=lambda text: update_text_main_idea(st.session_state, text, "draft"),
         generate_fn=generate_fn,
+        expander_title="MI-javaslat vagy pontosítás",
     )
 
     st.markdown("**Az igehirdetés fő gondolata – fókuszmondat**")
@@ -11886,6 +11923,7 @@ def render_flat_text_and_focus_section(
             st.session_state, "sermon_main_idea", text
         ),
         generate_fn=generate_fn,
+        expander_title="MI-javaslat vagy pontosítás",
     )
 
 
@@ -11912,11 +11950,19 @@ def render_flat_seven_point_outline_section(
     *,
     generate_fn: GenerateFn | None = None,
 ) -> None:
-    """RESET 2B/2C: „Hétpontos igehirdetési vázlat” — hét, számozott,
+    """RESET 2B/2C/2D-B2: „Hétpontos igehirdetési vázlat” — hét, számozott,
     egyenként szerkeszthető kártya, közvetlenül az `arc.*` pontokat
-    módosítva, plusz az EGYETLEN MI-generáló gomb (RESET 2C). Nincs
-    approval, nincs pontonkénti MI-gomb vagy „Átveszem” a kártyákon
-    magukon, nincs régi outline-generálás vagy export ezen az útvonalon."""
+    módosítva, plusz az EGYETLEN MI-generáló gomb (RESET 2C), amely
+    továbbra is az egyetlen teljes-hétpontos candidate/applied útvonal
+    (`generate_seven_point_arc`) — nincs második, párhuzamos
+    teljes-vázlat-generáló. Emellett (RESET 2D-B2) mind a hét kártyán
+    van egy önálló, jól látható „MI-javaslat ehhez a ponthoz” gomb,
+    közvetlenül a szövegmező alatt, az expander előtt — ez a meglévő
+    field-refinement candidate-mechanizmust hívja üres instrukcióval, így
+    üres mezőnél is, kitöltött mezőnél is működik, automatikus felülírás
+    nélkül. Nincs approval vagy „Átveszem” a kártyákon magukon (a
+    javaslatok kizárólag a saját candidate-panelen fogadhatók el), nincs
+    régi outline-generálás vagy export ezen az útvonalon."""
     render_work_section(
         title="Hétpontos igehirdetési vázlat",
         body=(
@@ -11929,7 +11975,7 @@ def render_flat_seven_point_outline_section(
 
     running = bool(st.session_state.get(_KEY_ARC_GEN_RUNNING))
     if st.button(
-        "Hétpontos vázlatjavaslat készítése",
+        "MI-javaslat mind a hét ponthoz",
         type="primary",
         key="sw_flat_arc_generate",
         disabled=running or generate_fn is None,
@@ -11977,6 +12023,20 @@ def render_flat_seven_point_outline_section(
                 on_change=_flat_save_arc_point,
                 args=(point_key,),
             )
+            point_running_key = f"_sw_refine_running_{point_key}"
+            if st.button(
+                "MI-javaslat ehhez a ponthoz",
+                key=f"sw_refine_quick_{point_key}",
+                disabled=bool(st.session_state.get(point_running_key))
+                or generate_fn is None,
+            ):
+                _trigger_field_refinement_request(
+                    point_key,
+                    current_text=str((arc.get(point_key) or {}).get("text") or ""),
+                    instruction="",
+                    generate_fn=generate_fn,
+                    running_key=point_running_key,
+                )
             _render_field_refinement_panel(
                 point_key,
                 current_text=str((arc.get(point_key) or {}).get("text") or ""),
@@ -11989,6 +12049,7 @@ def render_flat_seven_point_outline_section(
                     ).context_hash,
                 ),
                 generate_fn=generate_fn,
+                expander_title="Pontosítási kérés (opcionális)",
             )
 
     _render_arc_candidate_panel()
