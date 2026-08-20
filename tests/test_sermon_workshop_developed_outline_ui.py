@@ -907,3 +907,656 @@ def test_index_out_of_range_does_not_crash():
         app.session_state["sermon_workshop"]["developed_outline"]["movements"][0]["title"]
         == "Cím"
     )
+
+
+# =============================================================================
+# RESET 2E-6a — state-integritási hardening: a kanonikus `developed_
+# outline` upstream frissessége, és a legacy panel egyidejű
+# megjelenésének megszüntetése.
+# =============================================================================
+
+
+def _render_blueprint_regenerates_with_different_content() -> None:
+    """Az `_render_fresh_blueprint_then_generate_outline`-tól eltérően a
+    blueprint-generátor a MÁSODIK hívásra MÁS `central_claim`-mel
+    válaszol — ez teszi lehetővé a "friss blueprint, de más tartalom"
+    forgatókönyv (RESET 2E-6a, 3. pont) explicit tesztelését."""
+    import json
+
+    import streamlit as st
+
+    import sermon_workshop_ui as sw_ui
+
+    st.session_state["last_igehely"] = "Jn 3,16"
+    st.session_state["igehely_input"] = "Jn 3,16"
+    st.session_state["passage_text"] = "Mert úgy szerette Isten a világot."
+    st.session_state["bible_translation"] = "RÚF 2014"
+
+    arc_keys = (
+        "entry",
+        "starting_point",
+        "first_shift",
+        "deepening",
+        "reinterpretation",
+        "second_shift",
+        "arrival",
+    )
+
+    def blueprint_payload(claim: str) -> dict:
+        return {
+            "central_claim": claim,
+            "textual_center": "Úgy szerette Isten...",
+            "listener_tension": "",
+            "theological_turn": "",
+            "desired_listener_movement": "A kételytől a bizalomig.",
+            "arc_fit": {"verdict": "strong_fit", "reason": "r"},
+            "recommended_structure": {
+                "mode": "seven_point",
+                "movements": [
+                    {"key": k, "function": "f", "core_idea": "c", "grounded_in": []}
+                    for k in arc_keys
+                ],
+            },
+            "key_support": {
+                "exegetical": [],
+                "original_language": [],
+                "historical_theological": [],
+            },
+            "illustration_direction": "",
+            "application_direction": "",
+            "warnings": [],
+        }
+
+    outline_payload = {
+        "structure_mode": "seven_point",
+        "structure_note": "",
+        "movements": [
+            {
+                "key": k,
+                "title": f"{k} cím",
+                "function": "f",
+                "main_claim": "állítás",
+                "development": ["pont 1", "pont 2"],
+                "exegetical_support": [],
+                "original_language_support": [],
+                "historical_theological_support": [],
+                "illustration_direction": "",
+                "application_direction": "",
+                "transition_to_next": "",
+            }
+            for k in arc_keys
+        ],
+    }
+
+    if "_bp_gen_count" not in st.session_state:
+        st.session_state["_bp_gen_count"] = 0
+
+    def fake_gen(prompt, **kwargs):
+        if kwargs.get("tab_label") == "Homiletikai blueprint":
+            st.session_state["_bp_gen_count"] += 1
+            claim = (
+                "ELSŐ ÁLLÍTÁS"
+                if st.session_state["_bp_gen_count"] == 1
+                else "MÁSODIK, MÁS ÁLLÍTÁS"
+            )
+            return json.dumps(blueprint_payload(claim), ensure_ascii=False)
+        return json.dumps(outline_payload, ensure_ascii=False)
+
+    sw_ui.render_sermon_workshop_shell(generate_fn=fake_gen)
+
+
+# -----------------------------------------------------------------------
+# 1. Friss canonical developed outline -> nincs stale warning
+# -----------------------------------------------------------------------
+
+
+def test_fresh_canonical_outline_has_no_stale_warning():
+    app = AppTest.from_function(_render_fresh_blueprint_then_generate_outline).run(timeout=60)
+    _accept_fresh_outline(app)
+    assert not app.exception
+
+    warning_values = [w.value for w in app.warning]
+    assert not any("KORÁBBI blueprintből" in w for w in warning_values)
+    assert not any("igehelyhez készült" in w for w in warning_values)
+
+
+# -----------------------------------------------------------------------
+# 2. Blueprint input megváltozik -> canonical outline stale warningot kap
+#    (+ 6/7: nem törlődik, továbbra is szerkeszthető)
+# -----------------------------------------------------------------------
+
+
+def test_blueprint_input_change_triggers_stale_warning_but_keeps_content_editable():
+    app = AppTest.from_function(_render_fresh_blueprint_then_generate_outline).run(timeout=60)
+    _accept_fresh_outline(app)
+
+    app.session_state["sermon_workshop"]["arc"]["entry"]["text"] = "MEGVÁLTOZOTT_ARC_SZÖVEG"
+    app.run(timeout=60)
+    assert not app.exception
+
+    warning_values = [w.value for w in app.warning]
+    assert any("KORÁBBI blueprintből" in w for w in warning_values)
+
+    # A tartalom NEM törlődött, és továbbra is szerkeszthető.
+    assert app.session_state["sermon_workshop"]["developed_outline"]["movements"] != []
+    title_widget = _text_input_by_key(app, "sw_flat_outline_edit_entry_title")
+    assert title_widget.disabled is False
+
+    idx = _text_input_index_by_key(app, "sw_flat_outline_edit_entry_title")
+    app.text_input[idx].input("STALE ÁLLAPOTBAN SZERKESZTETT CÍM").run()
+    assert not app.exception
+    assert (
+        app.session_state["sermon_workshop"]["developed_outline"]["movements"][0]["title"]
+        == "STALE ÁLLAPOTBAN SZERKESZTETT CÍM"
+    )
+
+
+# -----------------------------------------------------------------------
+# 3. Blueprint újragenerálás (más tartalommal) -> régi canonical outline
+#    stale warningot kap, függetlenül attól, hogy kézzel módosítva volt-e
+# -----------------------------------------------------------------------
+
+
+def test_blueprint_regeneration_with_different_content_triggers_stale_warning():
+    app = AppTest.from_function(_render_blueprint_regenerates_with_different_content).run(
+        timeout=60
+    )
+    _accept_fresh_outline(app)
+    assert app.session_state["sermon_workshop"]["blueprint"]["central_claim"] == "ELSŐ ÁLLÍTÁS"
+    old_canonical = copy.deepcopy(app.session_state["sermon_workshop"]["developed_outline"])
+
+    _click_and_settle(app, "Blueprint újragenerálása")
+    assert not app.exception
+    assert (
+        app.session_state["sermon_workshop"]["blueprint"]["central_claim"]
+        == "MÁSODIK, MÁS ÁLLÍTÁS"
+    )
+
+    warning_values = [w.value for w in app.warning]
+    assert any("KORÁBBI blueprintből" in w for w in warning_values)
+    # A régi canonical outline MEGMARADT, változatlanul.
+    assert app.session_state["sermon_workshop"]["developed_outline"] == old_canonical
+
+
+def test_stale_warning_appears_regardless_of_manual_edit_state():
+    app = AppTest.from_function(_render_blueprint_regenerates_with_different_content).run(
+        timeout=60
+    )
+    _accept_fresh_outline(app)
+
+    idx = _text_input_index_by_key(app, "sw_flat_outline_edit_entry_title")
+    app.text_input[idx].input("KÉZILEG SZERKESZTETT CÍM").run()
+    app.run(timeout=60)
+
+    _click_and_settle(app, "Blueprint újragenerálása")
+    assert not app.exception
+
+    warning_values = [w.value for w in app.warning]
+    assert any("KORÁBBI blueprintből" in w for w in warning_values)
+    assert (
+        app.session_state["sermon_workshop"]["developed_outline"]["movements"][0]["title"]
+        == "KÉZILEG SZERKESZTETT CÍM"
+    )
+
+
+# -----------------------------------------------------------------------
+# 4. Reference változás -> különösen egyértelmű stale warning
+# -----------------------------------------------------------------------
+
+
+def _render_fresh_blueprint_then_generate_outline_reusable_inputs() -> None:
+    """A megosztott `_render_fresh_blueprint_then_generate_outline`
+    UNCONDITIONÁLISAN, minden egyes scriptfuttatáson újraírja a
+    `last_igehely`/`igehely_input`/`passage_text` mezőket a hardcode-olt
+    kezdőértékre — ez elfedné egy, a teszt OLDALÁRÓL (a `.run()` HÍVÁS
+    ELŐTT) `app.session_state`-en keresztül végzett külső módosítást,
+    mert a scriptfuttatás a saját elején rögtön felülírná.
+
+    Ez a változat `st.session_state.setdefault(...)`-ot használ — csak
+    AKKOR ír kezdőértéket, ha a kulcs MÉG NINCS jelen —, így egy a teszt
+    által a `.run()` hívás előtt beállított ÚJ érték a következő
+    scriptfuttatáson TÉNYLEGESEN érvényesül, ahogy egy valódi
+    felhasználói szerkesztés is tenné."""
+    import json
+
+    import streamlit as st
+
+    import sermon_workshop_ui as sw_ui
+
+    st.session_state.setdefault("last_igehely", "Jn 3,16")
+    st.session_state.setdefault("igehely_input", "Jn 3,16")
+    st.session_state.setdefault("passage_text", "Mert úgy szerette Isten a világot.")
+    st.session_state.setdefault("bible_translation", "RÚF 2014")
+
+    arc_keys = (
+        "entry",
+        "starting_point",
+        "first_shift",
+        "deepening",
+        "reinterpretation",
+        "second_shift",
+        "arrival",
+    )
+    blueprint_payload = {
+        "central_claim": "Isten kezdeményez.",
+        "textual_center": "Úgy szerette Isten...",
+        "listener_tension": "",
+        "theological_turn": "",
+        "desired_listener_movement": "A kételytől a bizalomig.",
+        "arc_fit": {"verdict": "strong_fit", "reason": "r"},
+        "recommended_structure": {
+            "mode": "seven_point",
+            "movements": [
+                {"key": k, "function": "f", "core_idea": "c", "grounded_in": []}
+                for k in arc_keys
+            ],
+        },
+        "key_support": {
+            "exegetical": [],
+            "original_language": [],
+            "historical_theological": [],
+        },
+        "illustration_direction": "",
+        "application_direction": "",
+        "warnings": [],
+    }
+    outline_payload = {
+        "structure_mode": "seven_point",
+        "structure_note": "",
+        "movements": [
+            {
+                "key": k,
+                "title": f"{k} cím",
+                "function": "f",
+                "main_claim": "állítás",
+                "development": ["pont 1", "pont 2"],
+                "exegetical_support": [],
+                "original_language_support": [],
+                "historical_theological_support": [],
+                "illustration_direction": "",
+                "application_direction": "",
+                "transition_to_next": "",
+            }
+            for k in arc_keys
+        ],
+    }
+
+    def fake_gen(prompt, **kwargs):
+        if kwargs.get("tab_label") == "Homiletikai blueprint":
+            return json.dumps(blueprint_payload, ensure_ascii=False)
+        return json.dumps(outline_payload, ensure_ascii=False)
+
+    sw_ui.render_sermon_workshop_shell(generate_fn=fake_gen)
+
+
+def test_reference_change_triggers_reference_changed_warning():
+    app = AppTest.from_function(
+        _render_fresh_blueprint_then_generate_outline_reusable_inputs
+    ).run(timeout=60)
+    _accept_fresh_outline(app)
+
+    app.session_state["last_igehely"] = "Róm 8,28"
+    app.session_state["igehely_input"] = "Róm 8,28"
+    app.run(timeout=60)
+    assert not app.exception
+
+    warning_values = [w.value for w in app.warning]
+    assert any(
+        ("igehelyhez készült" in w) and (REFERENCE in w) and ("Róm 8,28" in w)
+        for w in warning_values
+    )
+
+
+# -----------------------------------------------------------------------
+# 5. Passage text változás -> stale warning
+# -----------------------------------------------------------------------
+
+
+def test_passage_text_change_triggers_stale_warning():
+    app = AppTest.from_function(
+        _render_fresh_blueprint_then_generate_outline_reusable_inputs
+    ).run(timeout=60)
+    _accept_fresh_outline(app)
+
+    app.session_state["passage_text"] = "Egy teljesen más bibliai szöveg."
+    app.run(timeout=60)
+    assert not app.exception
+
+    warning_values = [w.value for w in app.warning]
+    assert any("KORÁBBI blueprintből" in w for w in warning_values)
+
+
+# -----------------------------------------------------------------------
+# 8. Új developed-outline candidate generálása (friss blueprintből, a
+#    RÉGI canonical mögötti blueprinthez képest) NEM törli a régi
+#    canonical outline-t
+# -----------------------------------------------------------------------
+
+
+def test_new_candidate_after_blueprint_regeneration_does_not_touch_old_canonical():
+    app = AppTest.from_function(_render_blueprint_regenerates_with_different_content).run(
+        timeout=60
+    )
+    _accept_fresh_outline(app)
+    old_canonical = copy.deepcopy(app.session_state["sermon_workshop"]["developed_outline"])
+
+    _click_and_settle(app, "Blueprint újragenerálása")
+    _click_and_settle(app, "Részletes vázlat újragenerálása")
+    assert not app.exception
+
+    assert app.session_state["sermon_workshop"]["developed_outline"] == old_canonical
+    assert app.session_state["sermon_workshop"]["developed_outline_candidate"] is not None
+
+
+# -----------------------------------------------------------------------
+# 9. Új candidate accept után a friss canonical context hash friss,
+#    a stale warning eltűnik
+# -----------------------------------------------------------------------
+
+
+def test_accept_after_blueprint_regeneration_clears_stale_warning():
+    app = AppTest.from_function(_render_blueprint_regenerates_with_different_content).run(
+        timeout=60
+    )
+    _accept_fresh_outline(app)
+
+    _click_and_settle(app, "Blueprint újragenerálása")
+    warning_values_before = [w.value for w in app.warning]
+    assert any("KORÁBBI blueprintből" in w for w in warning_values_before)
+
+    _click_and_settle(app, "Részletes vázlat újragenerálása")
+    _click_and_settle(app, "Vázlat átvétele")
+    assert not app.exception
+
+    warning_values_after = [w.value for w in app.warning]
+    assert not any("KORÁBBI blueprintből" in w for w in warning_values_after)
+    assert not any("igehelyhez készült" in w for w in warning_values_after)
+
+
+# -----------------------------------------------------------------------
+# 10-13. Legacy panel láthatósága érdemi új workflow-állapot mellett
+# -----------------------------------------------------------------------
+
+_LEGACY_OUTLINE_CONTENT = {
+    "content": (
+        "1. Bevezetés: RÉGI, LEGACY VÁZLAT SZÖVEGE a korábbi ötlépéses "
+        "munkafolyamatból, kellően hosszú tartalommal."
+    )
+}
+
+
+def _render_legacy_only() -> None:
+    import streamlit as st
+
+    import sermon_workshop_ui as sw_ui
+    from sermon_workshop_data import ensure_sermon_workshop_state
+
+    st.session_state["last_igehely"] = "Jn 3,16"
+    st.session_state["igehely_input"] = "Jn 3,16"
+    st.session_state["passage_text"] = "Mert úgy szerette Isten a világot."
+    st.session_state["bible_translation"] = "RÚF 2014"
+
+    sw = ensure_sermon_workshop_state(st.session_state)
+    sw["sermon_outline"] = {
+        "content": (
+            "1. Bevezetés: RÉGI, LEGACY VÁZLAT SZÖVEGE a korábbi "
+            "ötlépéses munkafolyamatból, kellően hosszú tartalommal."
+        )
+    }
+    sw_ui.render_sermon_workshop_shell(generate_fn=None)
+
+
+def test_legacy_panel_visible_when_no_new_workflow_state():
+    app = AppTest.from_function(_render_legacy_only).run(timeout=60)
+    assert not app.exception
+    body = "\n".join(md.value for md in app.markdown)
+    assert "Korábbi vázlat" in body
+
+
+def _render_legacy_with_blueprint() -> None:
+    import streamlit as st
+
+    import sermon_workshop_ui as sw_ui
+    from sermon_workshop_data import ensure_sermon_workshop_state, store_generated_blueprint_result
+
+    st.session_state["last_igehely"] = "Jn 3,16"
+    st.session_state["igehely_input"] = "Jn 3,16"
+    st.session_state["passage_text"] = "Mert úgy szerette Isten a világot."
+    st.session_state["bible_translation"] = "RÚF 2014"
+
+    sw = ensure_sermon_workshop_state(st.session_state)
+    sw["sermon_outline"] = {
+        "content": (
+            "1. Bevezetés: RÉGI, LEGACY VÁZLAT SZÖVEGE a korábbi "
+            "ötlépéses munkafolyamatból, kellően hosszú tartalommal."
+        )
+    }
+    arc_keys = (
+        "entry",
+        "starting_point",
+        "first_shift",
+        "deepening",
+        "reinterpretation",
+        "second_shift",
+        "arrival",
+    )
+    blueprint = {
+        "central_claim": "X",
+        "textual_center": "Y",
+        "listener_tension": "",
+        "theological_turn": "",
+        "desired_listener_movement": "Z",
+        "arc_fit": {"verdict": "strong_fit", "reason": "r"},
+        "recommended_structure": {
+            "mode": "seven_point",
+            "movements": [
+                {"key": k, "function": "f", "core_idea": "c", "grounded_in": []}
+                for k in arc_keys
+            ],
+        },
+        "key_support": {"exegetical": [], "original_language": [], "historical_theological": []},
+        "illustration_direction": "",
+        "application_direction": "",
+        "warnings": [],
+    }
+    store_generated_blueprint_result(st.session_state, blueprint=blueprint, context_hash="H1")
+
+    sw_ui.render_sermon_workshop_shell(generate_fn=None)
+
+
+def test_legacy_panel_hidden_when_blueprint_exists():
+    app = AppTest.from_function(_render_legacy_with_blueprint).run(timeout=60)
+    assert not app.exception
+    body = "\n".join(md.value for md in app.markdown)
+    assert "Korábbi vázlat" not in body
+
+
+def _render_legacy_with_outline_candidate() -> None:
+    import streamlit as st
+
+    import sermon_workshop_ui as sw_ui
+    from sermon_workshop_data import ensure_sermon_workshop_state, set_developed_outline_candidate
+
+    st.session_state["last_igehely"] = "Jn 3,16"
+    st.session_state["igehely_input"] = "Jn 3,16"
+    st.session_state["passage_text"] = "Mert úgy szerette Isten a világot."
+    st.session_state["bible_translation"] = "RÚF 2014"
+
+    sw = ensure_sermon_workshop_state(st.session_state)
+    sw["sermon_outline"] = {
+        "content": (
+            "1. Bevezetés: RÉGI, LEGACY VÁZLAT SZÖVEGE a korábbi "
+            "ötlépéses munkafolyamatból, kellően hosszú tartalommal."
+        )
+    }
+    set_developed_outline_candidate(
+        st.session_state,
+        outline={
+            "structure_mode": "seven_point",
+            "structure_note": "",
+            "movements": [
+                {
+                    "key": "entry",
+                    "title": "T",
+                    "function": "f",
+                    "main_claim": "m",
+                    "development": ["d"],
+                    "exegetical_support": [],
+                    "original_language_support": [],
+                    "historical_theological_support": [],
+                    "illustration_direction": "",
+                    "application_direction": "",
+                    "transition_to_next": "",
+                }
+            ],
+        },
+        reference="Jn 3,16",
+        context_hash="H1",
+    )
+    sw_ui.render_sermon_workshop_shell(generate_fn=None)
+
+
+def test_legacy_panel_hidden_when_outline_candidate_exists():
+    app = AppTest.from_function(_render_legacy_with_outline_candidate).run(timeout=60)
+    assert not app.exception
+    body = "\n".join(md.value for md in app.markdown)
+    assert "Korábbi vázlat" not in body
+
+
+def _render_legacy_with_canonical_outline() -> None:
+    import streamlit as st
+
+    import sermon_workshop_ui as sw_ui
+    from sermon_workshop_data import ensure_sermon_workshop_state
+
+    st.session_state["last_igehely"] = "Jn 3,16"
+    st.session_state["igehely_input"] = "Jn 3,16"
+    st.session_state["passage_text"] = "Mert úgy szerette Isten a világot."
+    st.session_state["bible_translation"] = "RÚF 2014"
+
+    sw = ensure_sermon_workshop_state(st.session_state)
+    sw["sermon_outline"] = {
+        "content": (
+            "1. Bevezetés: RÉGI, LEGACY VÁZLAT SZÖVEGE a korábbi "
+            "ötlépéses munkafolyamatból, kellően hosszú tartalommal."
+        )
+    }
+    sw["developed_outline"] = {
+        "structure_mode": "seven_point",
+        "structure_note": "",
+        "movements": [
+            {
+                "key": "entry",
+                "title": "T",
+                "function": "f",
+                "main_claim": "m",
+                "development": ["d"],
+                "exegetical_support": [],
+                "original_language_support": [],
+                "historical_theological_support": [],
+                "illustration_direction": "",
+                "application_direction": "",
+                "transition_to_next": "",
+            }
+        ],
+    }
+    sw_ui.render_sermon_workshop_shell(generate_fn=None)
+
+
+def test_legacy_panel_hidden_when_canonical_outline_exists():
+    app = AppTest.from_function(_render_legacy_with_canonical_outline).run(timeout=60)
+    assert not app.exception
+    body = "\n".join(md.value for md in app.markdown)
+    assert "Korábbi vázlat" not in body
+
+
+# -----------------------------------------------------------------------
+# 14. Projektváltási widget-state célzott teszt
+# -----------------------------------------------------------------------
+
+
+def _render_project_switch_scenario() -> None:
+    import streamlit as st
+
+    import sermon_workshop_ui as sw_ui
+    from sermon_workshop_data import ensure_sermon_workshop_state
+
+    st.session_state["last_igehely"] = "Jn 3,16"
+    st.session_state["igehely_input"] = "Jn 3,16"
+    st.session_state["passage_text"] = "Mert úgy szerette Isten a világot."
+    st.session_state["bible_translation"] = "RÚF 2014"
+
+    sw = ensure_sermon_workshop_state(st.session_state)
+    if not st.session_state.get("_switched_to_project_b"):
+        sw["developed_outline"] = {
+            "structure_mode": "seven_point",
+            "structure_note": "",
+            "movements": [
+                {
+                    "key": "entry",
+                    "title": "PROJEKT_A_CIM",
+                    "function": "f",
+                    "main_claim": "A",
+                    "development": ["a"],
+                    "exegetical_support": [],
+                    "original_language_support": [],
+                    "historical_theological_support": [],
+                    "illustration_direction": "",
+                    "application_direction": "",
+                    "transition_to_next": "",
+                }
+            ],
+        }
+        sw["developed_outline_meta"] = {
+            "reference": "Jn 3,16",
+            "context_hash": "A",
+            "generated_at": "t",
+            "manually_updated_at": "",
+        }
+
+    sw_ui.render_sermon_workshop_shell(generate_fn=None)
+
+
+def test_project_switch_purges_stale_outline_editor_widgets():
+    """RESET 2E-6a: a `_apply_sw_ui_resync_if_needed()`-ba épített
+    `_clear_developed_outline_edit_widgets()` hívás ELLENŐRZÉSE — a
+    `_sw_ui_resync` jelző UGYANAZ, amit `app.py` projektnyitáskor is
+    beállít (`_apply_project_data_to_session`)."""
+    app = AppTest.from_function(_render_project_switch_scenario).run(timeout=60)
+    title_widget = _text_input_by_key(app, "sw_flat_outline_edit_entry_title")
+    assert title_widget.value == "PROJEKT_A_CIM"
+
+    app.session_state["_switched_to_project_b"] = True
+    app.session_state["sermon_workshop"]["developed_outline"] = {
+        "structure_mode": "seven_point",
+        "structure_note": "",
+        "movements": [
+            {
+                "key": "entry",
+                "title": "PROJEKT_B_CIM",
+                "function": "f",
+                "main_claim": "B",
+                "development": ["b"],
+                "exegetical_support": [],
+                "original_language_support": [],
+                "historical_theological_support": [],
+                "illustration_direction": "",
+                "application_direction": "",
+                "transition_to_next": "",
+            }
+        ],
+    }
+    app.session_state["sermon_workshop"]["developed_outline_meta"] = {
+        "reference": "Jn 3,16",
+        "context_hash": "B",
+        "generated_at": "t2",
+        "manually_updated_at": "",
+    }
+    # Ugyanaz a jelző, mint amit `app.py` `_apply_project_data_to_session`-je
+    # állít be projekt megnyitásakor.
+    app.session_state["_sw_ui_resync"] = True
+    app.run(timeout=60)
+    assert not app.exception
+
+    title_widget2 = _text_input_by_key(app, "sw_flat_outline_edit_entry_title")
+    assert title_widget2.value == "PROJEKT_B_CIM"

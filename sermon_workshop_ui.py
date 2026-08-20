@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import html
 import json
-from typing import Any, Callable
+from typing import Any, Callable, MutableMapping
 
 import streamlit as st
 from ui_components import (
@@ -2102,6 +2102,22 @@ def _apply_sw_ui_resync_if_needed() -> None:
         if force or wkey not in st.session_state:
             point = flat_arc.get(point_key) or {}
             st.session_state[wkey] = str(point.get("text") or "")
+
+    # RESET 2E-6a: a részletes vázlat szerkesztő-widgetjei (RESET 2E-5)
+    # mozgás-KULCS alapján kulcsolódnak (`sw_flat_outline_edit_<key>_
+    # <field>`), NEM projekt- vagy session-specifikus azonosítóval. Ha egy
+    # MÁSIK projekt megnyitása (`force=True`, ugyanaz a jelző, mint a
+    # `_clear_movement_widgets()`-et is kiváltó projektváltás) UGYANAZOKKAL
+    # a mozgás-kulcsokkal (pl. mindkettő seven_point) rendelkező kanonikus
+    # vázlatot hoz be, a widget-kulcsok VÉLETLENÜL egyeznének — enélkül a
+    # purge nélkül a régi projekt kézzel szerkesztett szövege maradna
+    # látható és szerkeszthető az új projekt vázlata "helyén" (verifikálva
+    # AppTest-tel: a widget a régi projekt szövegét mutatta az új projekt
+    # betöltése UTÁN is). A purge kizárólag `force`-nál fut — sima
+    # rerunnál (arc-pont szerkesztés stb.) a kézi vázlat-szerkesztés nem
+    # veszhet el.
+    if force:
+        _clear_developed_outline_edit_widgets()
 
 
 def _request_adopt_sermon_sentence(sentence: str) -> None:
@@ -12205,17 +12221,38 @@ def _render_arc_candidate_panel() -> None:
 
 
 def _render_flat_legacy_outline_panel() -> None:
-    """RESET 2B: régi (2–4 beszédegységes) vázlat read-only megjelenítése,
-    KIZÁRÓLAG akkor, ha az új kanonikus `arc` mind a hét pontja üres és a
-    régi `sermon_outline` tartalmaz használható tartalmat. Nem szerkeszthető,
-    nem másolja át automatikusan az adatot az `arc`-ba — nincs „Átemelem”
-    gomb."""
+    """RESET 2B/2E-6a: régi (2–4 beszédegységes) vázlat read-only
+    megjelenítése — KIZÁRÓLAG migrációs fallbackként, amíg a felhasználó
+    még nem kezdett bele az ÚJ workflow-ba. Nem szerkeszthető, nem
+    másolja át automatikusan az adatot az `arc`-ba — nincs „Átemelem”
+    gomb.
+
+    RESET 2E-6a (2026-08-20): a korábbi feltétel (kizárólag az `arc`
+    üressége) élesben ellenőrizve olyan állapotot engedett meg, ahol ez a
+    panel EGYSZERRE jelent meg a blueprint/developed-outline szekcióval —
+    ha a felhasználó a hét arc-kártyát sosem töltötte ki, de közvetlenül
+    blueprintet és részletes vázlatot generált (ezekhez nem kötelező az
+    arc). Ez a felhasználónak két, fogalmilag versengő "vázlat"-ot
+    mutatott egyszerre. A kiegészített feltétel ezt zárja ki: a legacy
+    panel csak akkor jelenik meg, ha SEM az arc, SEM semmilyen érdemi ÚJ
+    workflow-állapot (blueprint tartalom, függőben lévő developed-outline
+    candidate, vagy kanonikus developed_outline) nincs jelen. A legacy
+    adat és kód VÁLTOZATLAN — csak az egyidejű UI-megjelenés szűnik meg."""
     sw = ensure_sermon_workshop_state(st.session_state)
     arc = sw.get("arc") if isinstance(sw.get("arc"), dict) else {}
     has_new_arc_content = any(
         str((arc.get(key) or {}).get("text") or "").strip() for key in _ARC_POINT_KEYS
     )
     if has_new_arc_content:
+        return
+
+    blueprint = sw.get("blueprint") if isinstance(sw.get("blueprint"), dict) else {}
+    has_blueprint_content = bool(str(blueprint.get("central_claim") or "").strip())
+    has_outline_candidate = isinstance(sw.get("developed_outline_candidate"), dict)
+    developed_outline = sw.get("developed_outline")
+    developed_outline = developed_outline if isinstance(developed_outline, dict) else {}
+    has_canonical_outline = bool(developed_outline.get("movements"))
+    if has_blueprint_content or has_outline_candidate or has_canonical_outline:
         return
 
     legacy_outline = sw.get("sermon_outline")
@@ -12537,6 +12574,61 @@ def _render_developed_outline_movement_editable(index: int, movement: dict) -> N
         )
 
 
+def _developed_outline_freshness(
+    session_state: MutableMapping[str, Any],
+) -> tuple[bool, bool, str, str]:
+    """RESET 2E-6a: a kanonikus `developed_outline` upstream frissessége —
+    KIZÁRÓLAG a meglévő `build_developed_outline_context`/`is_blueprint_
+    fresh` szerződésekből SZÁRMAZTATVA, semmilyen új hash-logika vagy
+    perzisztált mező nélkül.
+
+    Visszatérés: `(stale, reference_changed, stored_reference,
+    current_reference)`.
+
+    `stale` akkor `True`, ha VAGY a jelenlegi blueprint maga elavult
+    (`is_blueprint_fresh() == False` — pl. egy arc-pont vagy a textus
+    módosult a blueprint elkészülte óta), VAGY a jelenlegi, FRISS
+    blueprintből újraszámolt developed-outline-context-hash eltér a
+    kanonikus vázlat SAJÁT, tárolt `developed_outline_meta.context_hash`
+    értékétől (pl. a blueprintet időközben — akár ugyanabból a bemenetből
+    — újragenerálták, és más tartalommal állt elő, vagy az igehely/
+    bibliai szöveg megváltozott). `reference_changed` külön jelzi, ha
+    emellett a tárolt és a jelenlegi igehely is konkrétan eltér — ez egy
+    élesebb, konkrétabb figyelmeztető szöveget indokol.
+
+    Nincs kanonikus tartalom vagy nincs tárolt hash (pl. réges-régi
+    projekt) esetén `stale=False` — ezekben az esetekben nincs elég
+    infó a döntéshez, és a hamis pozitív jelzés rosszabb, mint a csend."""
+    sw = ensure_sermon_workshop_state(session_state)
+    outline = sw.get("developed_outline")
+    outline = outline if isinstance(outline, dict) else {}
+    if not outline.get("movements"):
+        return False, False, "", ""
+
+    meta = sw.get("developed_outline_meta")
+    meta = meta if isinstance(meta, dict) else {}
+    stored_hash = str(meta.get("context_hash") or "").strip()
+    stored_reference = str(meta.get("reference") or "").strip()
+    if not stored_hash:
+        return False, False, stored_reference, ""
+
+    current_context = build_developed_outline_context(session_state)
+    current_reference = current_context.reference
+
+    stale = (
+        not is_blueprint_fresh(session_state)
+        or not current_context.context_hash
+        or current_context.context_hash != stored_hash
+    )
+    reference_changed = bool(
+        stale
+        and stored_reference
+        and current_reference
+        and stored_reference != current_reference
+    )
+    return stale, reference_changed, stored_reference, current_reference
+
+
 def _render_developed_outline_canonical_editable() -> None:
     """A már elfogadott, kanonikus részletes vázlat kézi szerkesztése.
 
@@ -12545,7 +12637,13 @@ def _render_developed_outline_canonical_editable() -> None:
     application_direction/transition_to_next) szerkeszthetők — a `key`,
     a `structure_mode`, a `structure_note`, a mozgás-sorrend és a
     mozgás-darabszám NEM (nincs is hozzá widget). Nincs mozgás
-    hozzáadás/törlés/átrendezés."""
+    hozzáadás/törlés/átrendezés.
+
+    RESET 2E-6a: ha a vázlat upstream szempontból elavult (ld.
+    `_developed_outline_freshness`), egyértelmű `st.warning` jelzi ezt —
+    de a tartalom NEM tűnik el és NEM válik zárolttá: a felhasználó
+    tudatosan dönthet úgy, hogy megtartja és tovább dolgozza a korábbi
+    változatot."""
     sw = ensure_sermon_workshop_state(st.session_state)
     outline = sw.get("developed_outline")
     outline = outline if isinstance(outline, dict) else {}
@@ -12557,6 +12655,25 @@ def _render_developed_outline_canonical_editable() -> None:
     st.divider()
     with st.container(border=True):
         st.markdown("**Részletes prédikációs munkavázlat**")
+        stale, reference_changed, stored_reference, current_reference = (
+            _developed_outline_freshness(st.session_state)
+        )
+        if reference_changed:
+            st.warning(
+                f"Ez a vázlat még a(z) „{stored_reference}” igehelyhez "
+                f"készült — a jelenlegi igehely már „{current_reference}”. "
+                "A tartalom megmarad, de valószínűleg nem ehhez a "
+                "textushoz illik; érdemes új blueprintet és új részletes "
+                "vázlatot készíteni."
+            )
+        elif stale:
+            st.warning(
+                "Ez a vázlat egy KORÁBBI blueprintből készült — az "
+                "igehely, a bibliai szöveg vagy a blueprint azóta "
+                "megváltozott. A tartalom megmarad és tovább "
+                "szerkesztheted, de érdemes lehet új blueprintet és/vagy "
+                "új részletes vázlatot készíteni."
+            )
         st.caption("A mezők automatikusan mentődnek, ahogy szerkeszted őket.")
         structure_note = str(outline.get("structure_note") or "").strip()
         if structure_note:
