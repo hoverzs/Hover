@@ -31,10 +31,12 @@ from bible_text_ui import _ensure_bible_text_styles
 from ruf_bible_service import SOURCE_NAME, fetch_ruf_passage
 from sermon_workshop_data import (
     _ARC_POINT_KEYS,
+    _DEVELOPED_MOVEMENT_LIST_FIELDS,
     accept_arc_candidate,
     accept_developed_outline_candidate,
     accept_workshop_proposal,
     discard_developed_outline_candidate,
+    update_developed_outline_movement_field,
     add_approved_sermon_decision,
     add_engagement_element,
     discard_arc_candidate,
@@ -12360,6 +12362,13 @@ def _render_developed_outline_candidate_panel() -> None:
             "majd vedd át vagy vesd el — a kanonikus vázlat addig "
             "változatlan marad."
         )
+        meta = sw.get("developed_outline_meta")
+        meta = meta if isinstance(meta, dict) else {}
+        if str(meta.get("manually_updated_at") or "").strip():
+            st.warning(
+                "Az elfogadás lecseréli a jelenlegi, kézzel módosított "
+                "vázlatot is."
+            )
         structure_note = str(outline.get("structure_note") or "").strip()
         if structure_note:
             st.caption(structure_note)
@@ -12381,6 +12390,15 @@ def _render_developed_outline_candidate_panel() -> None:
                     context_hash=context.context_hash,
                 )
                 if result["accepted"]:
+                    # RESET 2E-5: a kanonikus vázlat TELJESEN lecserélődött —
+                    # a régi szerkesztő-widgetek session_state-ben ragadt
+                    # szövege innentől NEM tartozik semmilyen tényleges
+                    # mozgáshoz. Ha nem törölnénk, a következő renderelés a
+                    # régi (widget-kulcsban megőrzött) szöveget mutatná az
+                    # új kanonikus tartalom helyett — ezért a rerun ELŐTT
+                    # töröljük ezeket, hogy a widgetek a friss kanonikus
+                    # tartalomból seedelődjenek újra.
+                    _clear_developed_outline_edit_widgets()
                     _toast_and_rerun(
                         "A részletes vázlat bekerült a kanonikus vázlatba."
                     )
@@ -12397,10 +12415,137 @@ def _render_developed_outline_candidate_panel() -> None:
                 _toast_and_rerun("A javaslat elvetve.")
 
 
-def _render_developed_outline_canonical_readonly() -> None:
-    """A már elfogadott, kanonikus részletes vázlat read-only
-    megjelenítése. RESET 2E-4-ben NINCS kézi szerkesztő (RESET 2E-5) —
-    ez KIZÁRÓLAG megtekintésre szolgál."""
+# RESET 2E-5: a kanonikus, MÁR ELFOGADOTT részletes vázlat kézi
+# szerkesztése. A widget-kulcs a mozgás SAJÁT, stabil `key`-éből (nem az
+# indexéből) épül — ez a mozgás-azonosítás forrása marad addig, amíg a
+# kanonikus vázlat maga nem cserélődik le (candidate-elfogadás). A
+# `key`, a `structure_mode`, a mozgás-sorrend/darabszám és a
+# `structure_note` SZÁNDÉKOSAN nincs ebben a listában — ezekhez nem
+# létezik (és itt nem is készül) UI-widget.
+_DEVELOPED_OUTLINE_EDIT_WIDGET_PREFIX = "sw_flat_outline_edit_"
+
+_OUTLINE_SHORT_TEXT_FIELDS: tuple[str, ...] = ("title", "function")
+_OUTLINE_TEXTAREA_FIELDS: tuple[str, ...] = (
+    "main_claim",
+    "illustration_direction",
+    "application_direction",
+    "transition_to_next",
+)
+_OUTLINE_FIELD_LABELS: dict[str, str] = {
+    "title": "Cím",
+    "function": "Szerep",
+    "main_claim": "Fő állítás",
+    "development": "Kibontás (soronként egy gondolat)",
+    "exegetical_support": "Exegetikai támasz (soronként egy elem)",
+    "original_language_support": "Eredeti nyelvi támasz (soronként egy elem)",
+    "historical_theological_support": (
+        "Történeti/teológiai támasz (soronként egy elem)"
+    ),
+    "illustration_direction": "Illusztrációs irány",
+    "application_direction": "Alkalmazási irány",
+    "transition_to_next": "Átvezetés a következőhöz",
+}
+
+
+def _developed_outline_edit_widget_key(movement_key: str, field: str) -> str:
+    return f"{_DEVELOPED_OUTLINE_EDIT_WIDGET_PREFIX}{movement_key}_{field}"
+
+
+def _clear_developed_outline_edit_widgets() -> None:
+    """A régi szerkesztő-widgetek session_state-kulcsainak törlése —
+    KIZÁRÓLAG candidate-elfogadás után hívandó, MIELŐTT a rerun lefut
+    (`_clear_movement_widgets()` bevett mintája, a részletes-vázlat
+    szerkesztőhöz igazítva)."""
+    stale = [
+        key
+        for key in list(st.session_state.keys())
+        if isinstance(key, str) and key.startswith(_DEVELOPED_OUTLINE_EDIT_WIDGET_PREFIX)
+    ]
+    for key in stale:
+        st.session_state.pop(key, None)
+
+
+def _flat_save_developed_outline_movement_field(
+    index: int, movement_key: str, field: str
+) -> None:
+    """Egy szerkesztett mozgás-mező automatikus mentése — közvetlenül a
+    meglévő `update_developed_outline_movement_field()` adatmodell-
+    függvényt hívja, VÁLTOZTATÁS NÉLKÜL. Lista-mezőnél a widget nyers,
+    többsoros szövegét itt, a UI-ban alakítjuk explicit listává —
+    trimmelt, nem üres sorok, sorrendben — mert a mutátor `_normalize_
+    str_list()` szigorúan CSAK `list` bemenetet fogad el, nyers stringet
+    csendben üres listává alakítana. Az esetleges `index_out_of_range`
+    legitim, futásidejű állapot (a vázlat időközben megváltozhatott) —
+    a mutátor ilyenkor sem dob kivételt, itt sincs külön kezelés rá."""
+    widget_key = _developed_outline_edit_widget_key(movement_key, field)
+    raw = st.session_state.get(widget_key)
+    if field in _DEVELOPED_MOVEMENT_LIST_FIELDS:
+        value: Any = [
+            line.strip() for line in str(raw or "").split("\n") if line.strip()
+        ]
+    else:
+        value = raw
+    update_developed_outline_movement_field(
+        st.session_state, index=index, field=field, value=value
+    )
+
+
+def _render_developed_outline_movement_editable(index: int, movement: dict) -> None:
+    """Egy kanonikus vázlat-mozgás szerkeszthető megjelenítése. `index` a
+    mozgás TÉNYLEGES, 0-alapú pozíciója a kanonikus listában (ez kell a
+    mutátorhíváshoz); a widget-kulcsokhoz viszont a mozgás saját `key`-e
+    (nem az index) a forrás, ld. a modulszintű megjegyzést."""
+    movement_key = str(movement.get("key") or f"movement_{index}")
+    title = str(movement.get("title") or "").strip() or f"{index + 1}. mozgás"
+    st.markdown(f"**{index + 1}. {title}**")
+
+    for field in _OUTLINE_SHORT_TEXT_FIELDS:
+        widget_key = _developed_outline_edit_widget_key(movement_key, field)
+        if widget_key not in st.session_state:
+            st.session_state[widget_key] = str(movement.get(field) or "")
+        st.text_input(
+            _OUTLINE_FIELD_LABELS[field],
+            key=widget_key,
+            on_change=_flat_save_developed_outline_movement_field,
+            args=(index, movement_key, field),
+        )
+
+    for field in _DEVELOPED_MOVEMENT_LIST_FIELDS:
+        widget_key = _developed_outline_edit_widget_key(movement_key, field)
+        if widget_key not in st.session_state:
+            items = movement.get(field)
+            items = items if isinstance(items, list) else []
+            st.session_state[widget_key] = "\n".join(str(item) for item in items)
+        st.text_area(
+            _OUTLINE_FIELD_LABELS[field],
+            key=widget_key,
+            height=100,
+            on_change=_flat_save_developed_outline_movement_field,
+            args=(index, movement_key, field),
+        )
+
+    for field in _OUTLINE_TEXTAREA_FIELDS:
+        widget_key = _developed_outline_edit_widget_key(movement_key, field)
+        if widget_key not in st.session_state:
+            st.session_state[widget_key] = str(movement.get(field) or "")
+        st.text_area(
+            _OUTLINE_FIELD_LABELS[field],
+            key=widget_key,
+            height=68,
+            on_change=_flat_save_developed_outline_movement_field,
+            args=(index, movement_key, field),
+        )
+
+
+def _render_developed_outline_canonical_editable() -> None:
+    """A már elfogadott, kanonikus részletes vázlat kézi szerkesztése.
+
+    KIZÁRÓLAG a movementenkénti tartalmi mezők (title/function/
+    main_claim/development/*_support/illustration_direction/
+    application_direction/transition_to_next) szerkeszthetők — a `key`,
+    a `structure_mode`, a `structure_note`, a mozgás-sorrend és a
+    mozgás-darabszám NEM (nincs is hozzá widget). Nincs mozgás
+    hozzáadás/törlés/átrendezés."""
     sw = ensure_sermon_workshop_state(st.session_state)
     outline = sw.get("developed_outline")
     outline = outline if isinstance(outline, dict) else {}
@@ -12412,12 +12557,13 @@ def _render_developed_outline_canonical_readonly() -> None:
     st.divider()
     with st.container(border=True):
         st.markdown("**Részletes prédikációs munkavázlat**")
+        st.caption("A mezők automatikusan mentődnek, ahogy szerkeszted őket.")
         structure_note = str(outline.get("structure_note") or "").strip()
         if structure_note:
             st.caption(structure_note)
-        for idx, movement in enumerate(movements, start=1):
+        for index, movement in enumerate(movements):
             if isinstance(movement, dict):
-                _render_developed_outline_movement_readonly(idx, movement)
+                _render_developed_outline_movement_editable(index, movement)
 
 
 def render_flat_developed_outline_section(
@@ -12513,7 +12659,7 @@ def render_flat_developed_outline_section(
             st.caption("Az MI-segéd jelenleg nem elérhető.")
 
     _render_developed_outline_candidate_panel()
-    _render_developed_outline_canonical_readonly()
+    _render_developed_outline_canonical_editable()
 
 
 def render_sermon_workshop_shell(
