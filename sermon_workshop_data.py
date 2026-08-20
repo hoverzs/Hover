@@ -74,6 +74,18 @@ def get_default_sermon_workshop() -> dict[str, Any]:
         # `arc`/`arc_meta`/`arc_candidate` sémától teljesen külön, saját
         # mező. Ld. `get_default_field_refinements`.
         "field_refinements": get_default_field_refinements(),
+        # RESET 2E-1 (2026-08-20): a kétlépcsős vázlatmotor két új, additív
+        # rétege — BELSŐ homiletikai `blueprint` (sosem UI-tartalom, ezért
+        # nincs candidate-je) és a felhasználónak szánt, SZERKESZTHETŐ
+        # `developed_outline` (kötelező candidate/accept/discard
+        # életciklussal). Ebben a fázisban kizárólag adatmodell: nincs
+        # AI-hívás, nincs UI, és a legacy `sermon_outline`-nal SEMMILYEN
+        # migrációs kapcsolatban nem állnak. Ld. a fájl RESET 2E-1 blokkját.
+        "blueprint": empty_blueprint(),
+        "blueprint_meta": empty_blueprint_meta(),
+        "developed_outline": empty_developed_outline(),
+        "developed_outline_meta": empty_developed_outline_meta(),
+        "developed_outline_candidate": None,
         "human_condition": {
             "condition": "",
             "false_response": "",
@@ -1317,6 +1329,18 @@ def normalize_sermon_workshop(data: Any) -> dict[str, Any]:
         # RESET 2D-B1: ugyanúgy additív, önálló mező — ld.
         # get_default_sermon_workshop() megjegyzését.
         "field_refinements": normalize_field_refinements(data.get("field_refinements")),
+        # RESET 2E-1: additív, önálló mezők — régi projektben hiányoznak,
+        # ilyenkor biztonságos alapértéket kapnak (nincs migráció a legacy
+        # `sermon_outline`-ból). Ld. get_default_sermon_workshop() megjegyzését.
+        "blueprint": normalize_blueprint(data.get("blueprint")),
+        "blueprint_meta": normalize_blueprint_meta(data.get("blueprint_meta")),
+        "developed_outline": normalize_developed_outline(data.get("developed_outline")),
+        "developed_outline_meta": normalize_developed_outline_meta(
+            data.get("developed_outline_meta")
+        ),
+        "developed_outline_candidate": normalize_developed_outline_candidate(
+            data.get("developed_outline_candidate")
+        ),
         "human_condition": hc_block,
         "human_condition_status": human_condition_status,
         "human_condition_approved_context_hash": _as_str(
@@ -3048,6 +3072,554 @@ def normalize_arc(raw: Any) -> dict[str, Any]:
     return {key: _normalize_arc_point(raw.get(key)) for key in _ARC_POINT_KEYS}
 
 
+# =============================================================================
+# RESET 2E-1 (2026-08-20): kétlépcsős vázlatmotor ADATMODELLJE — belső
+# homiletikai `blueprint` + felhasználónak szánt `developed_outline`.
+#
+# Ebben a fázisban KIZÁRÓLAG adatmodell: nincs AI-hívás, nincs prompt,
+# nincs UI, és a meglévő `arc` generálás VÁLTOZATLAN. A mezők additívak,
+# a régi projektek biztonságos alapértéket kapnak (ugyanaz a védekező
+# minta, mint `arc_candidate`/`field_refinements`-nél).
+#
+# A két réteg SZÁNDÉKOSAN külön:
+#   - `blueprint`: teljesen BELSŐ artefaktum. Sosem jelenik meg a
+#     felületen, a felhasználó sosem szerkeszti. Ezért NINCS
+#     `blueprint_candidate` — a candidate egyetlen létező szerepe ebben a
+#     kódbázisban (`arc_candidate`, `field_refinements`) a FELHASZNÁLÓ
+#     saját tartalmának védelme a néma felülírástól; belső, sosem
+#     szerkesztett artefaktumnál ez a szerep nem értelmezhető. A
+#     biztonságot ugyanaz a "csak validált eredmény íródik ki" szabály
+#     adja, amit a hétpontos motor is használ.
+#   - `developed_outline`: a felhasználónak szánt, később SZERKESZTHETŐ
+#     tartalom, ezért KÖTELEZŐEN candidate/accept/discard életciklussal.
+#     Az elfogadás/elutasítás szerződése (szigorú reference+context_hash
+#     egyezés, `reason`-kódok) az `accept_arc_candidate` bevált mintáját
+#     követi, EGY SZÁNDÉKOS ELTÉRÉSSEL (RESET 2E-1A): itt MINDEN
+#     generálás candidate-et hoz létre — az ELSŐ is —, sosem alkalmazódik
+#     automatikusan. Ld. `store_generated_developed_outline_result`.
+#
+# A legacy `sermon_outline` egy MÁSIK, régi workflow mezője: sem oda-,
+# sem visszafelé NEM migrálódik, és a jelentése változatlan marad.
+# =============================================================================
+
+_BLUEPRINT_TEXT_FIELDS: tuple[str, ...] = (
+    "central_claim",
+    "textual_center",
+    "listener_tension",
+    "theological_turn",
+    "desired_listener_movement",
+    "illustration_direction",
+    "application_direction",
+)
+
+_BLUEPRINT_ARC_FIT_FIELDS: tuple[str, ...] = ("verdict", "reason")
+
+_BLUEPRINT_SUPPORT_KEYS: tuple[str, ...] = (
+    "exegetical",
+    "original_language",
+    "historical_theological",
+)
+
+_BLUEPRINT_MOVEMENT_TEXT_FIELDS: tuple[str, ...] = ("key", "function", "core_idea")
+
+# Védekező felső korlát: a hétpontos modell 7 mozgása mellett az adaptív
+# (összevont/rövidebb/custom) szerkezetnek is kényelmesen elég, de egy
+# sérült vagy elszabadult bemenet nem növelheti korlátlanul a state-et.
+_STRUCTURE_MOVEMENTS_MAX = 12
+
+
+def empty_blueprint() -> dict[str, Any]:
+    """Üres belső homiletikai blueprint — a kétlépcsős vázlatmotor első
+    lépcsőjének (RESET 2E-0 terv) tárolója.
+
+    A mezők jelentése röviden: `central_claim` a prédikáció egyetlen
+    mondatos fő állítása; `textual_center` a textus saját, szöveghű
+    központi mozgása; `listener_tension` a hallgató felőli kérdés;
+    `theological_turn` a felismerés fordulópontja; `desired_listener_
+    movement` a hallgató honnan-hová útja; `arc_fit` a hétpontos
+    modellhez való illeszkedés ÉRTÉKELÉSE (a döntési logika NEM ebben a
+    fázisban készül, itt csak tárolható); `recommended_structure` a
+    javasolt mozgásszerkezet; `key_support` a ténylegesen releváns
+    alátámasztás három forráscsoportból; `warnings` a feloldatlan
+    feszültségek/ellentmondások (pl. a felhasználó szövege és az
+    exegézis ütközése) — ez SOSEM néma felülírás, hanem jelzés."""
+    return {
+        **{key: "" for key in _BLUEPRINT_TEXT_FIELDS},
+        "arc_fit": {key: "" for key in _BLUEPRINT_ARC_FIT_FIELDS},
+        "recommended_structure": {"mode": "", "movements": []},
+        "key_support": {key: [] for key in _BLUEPRINT_SUPPORT_KEYS},
+        "warnings": [],
+    }
+
+
+def _normalize_structure_movement(raw: Any) -> dict[str, Any]:
+    """Egy javasolt mozgás normalizálása a blueprintben. Hiányos bemenet
+    NEM kerül eldobásra — a hiányzó mezők üres alapértéket kapnak, hogy a
+    részleges modellválasz se okozzon adatvesztést.
+
+    `key` szándékosan SZABAD string: lehet kanonikus hétpontos kulcs
+    (`entry`…`arrival`) vagy adaptív/custom azonosító — a validálását
+    (és bármilyen `strong_fit`/`partial_fit`/`weak_fit` döntést) egy
+    későbbi AI-fázis végzi, az adatmodell csak biztonságosan tárolja."""
+    base: dict[str, Any] = {key: "" for key in _BLUEPRINT_MOVEMENT_TEXT_FIELDS}
+    base["grounded_in"] = []
+    if not isinstance(raw, dict):
+        return base
+    out = dict(base)
+    for key in _BLUEPRINT_MOVEMENT_TEXT_FIELDS:
+        out[key] = _as_str(raw.get(key))
+    out["grounded_in"] = _normalize_str_list(raw.get("grounded_in"))
+    return out
+
+
+def _normalize_structure_movements(raw: Any) -> list[dict[str, Any]]:
+    """Mozgáslista normalizálása — nem-dict elemek kimaradnak, a többi
+    hiányos elem alapértékkel egészül ki (nincs adatvesztés)."""
+    if not isinstance(raw, list):
+        return []
+    out: list[dict[str, Any]] = []
+    for item in raw:
+        if not isinstance(item, dict):
+            continue
+        out.append(_normalize_structure_movement(item))
+        if len(out) >= _STRUCTURE_MOVEMENTS_MAX:
+            break
+    return out
+
+
+def normalize_blueprint(raw: Any) -> dict[str, Any]:
+    """Bármilyen bemenetből érvényes `blueprint` struktúrát ad vissza.
+
+    Védett a hiányzó kulcsok, `None`, hibás scalar/list/dict típus,
+    részleges mozgás és ismeretlen extra kulcs ellen — de szándékosan NEM
+    agresszív: a meglévő, értelmezhető felhasználói/AI-tartalmat sosem
+    dobja el csak azért, mert egy opcionális mező hiányzik. Idempotens."""
+    base = empty_blueprint()
+    if not isinstance(raw, dict):
+        return base
+
+    arc_fit_raw = raw.get("arc_fit")
+    arc_fit = {key: "" for key in _BLUEPRINT_ARC_FIT_FIELDS}
+    if isinstance(arc_fit_raw, dict):
+        arc_fit = {key: _as_str(arc_fit_raw.get(key)) for key in _BLUEPRINT_ARC_FIT_FIELDS}
+
+    structure_raw = raw.get("recommended_structure")
+    structure: dict[str, Any] = {"mode": "", "movements": []}
+    if isinstance(structure_raw, dict):
+        structure = {
+            "mode": _as_str(structure_raw.get("mode")),
+            "movements": _normalize_structure_movements(structure_raw.get("movements")),
+        }
+
+    support_raw = raw.get("key_support")
+    support = {key: [] for key in _BLUEPRINT_SUPPORT_KEYS}
+    if isinstance(support_raw, dict):
+        support = {
+            key: _normalize_str_list(support_raw.get(key))
+            for key in _BLUEPRINT_SUPPORT_KEYS
+        }
+
+    return {
+        **{key: _as_str(raw.get(key)) for key in _BLUEPRINT_TEXT_FIELDS},
+        "arc_fit": arc_fit,
+        "recommended_structure": structure,
+        "key_support": support,
+        "warnings": _normalize_str_list(raw.get("warnings")),
+    }
+
+
+_BLUEPRINT_META_FIELDS: tuple[str, ...] = ("context_hash", "generated_at")
+
+
+def empty_blueprint_meta() -> dict[str, Any]:
+    """A `blueprint` frissesség-/eredet-metaadata.
+
+    Szándékosan MINIMÁLIS: nincs `manually_updated_at`, mert a blueprint
+    belső artefaktum, amit a felhasználó sosem szerkeszt kézzel. A
+    `context_hash` KÉSŐBB annak eldöntésére szolgál, hogy a blueprint
+    bemeneti kontextusa megváltozott-e — a tényleges kontextus-építő és
+    bármilyen staleness-jelzés egy későbbi fázis feladata, ez a mező most
+    csak tárolható és normalizált."""
+    return {key: "" for key in _BLUEPRINT_META_FIELDS}
+
+
+def normalize_blueprint_meta(raw: Any) -> dict[str, Any]:
+    """Bármilyen bemenetből érvényes `blueprint_meta`-t ad vissza —
+    ugyanaz az egyszerű, idempotens string-konverziós minta, mint
+    `normalize_arc_meta`-nál."""
+    base = empty_blueprint_meta()
+    if not isinstance(raw, dict):
+        return base
+    return {key: _as_str(raw.get(key)) for key in _BLUEPRINT_META_FIELDS}
+
+
+_DEVELOPED_MOVEMENT_TEXT_FIELDS: tuple[str, ...] = (
+    "key",
+    "title",
+    "function",
+    "main_claim",
+    "illustration_direction",
+    "application_direction",
+    "transition_to_next",
+)
+
+_DEVELOPED_MOVEMENT_LIST_FIELDS: tuple[str, ...] = (
+    "development",
+    "exegetical_support",
+    "original_language_support",
+    "historical_theological_support",
+)
+
+# Az egyetlen, kézzel is szerkeszthető mezőkészlet — a manual update
+# helper KIZÁRÓLAG ezeket fogadja el célmezőként.
+_DEVELOPED_MOVEMENT_FIELDS: tuple[str, ...] = (
+    _DEVELOPED_MOVEMENT_TEXT_FIELDS + _DEVELOPED_MOVEMENT_LIST_FIELDS
+)
+
+
+def empty_developed_outline_movement() -> dict[str, Any]:
+    """Egy mozgás a felhasználónak szánt, részletes vázlatban.
+
+    A `development` és a három `*_support` mező LISTA, hogy 2-4 külön
+    kibontási gondolat, illetve több önálló megfigyelés külön elemként
+    legyen kezelhető (és később külön szerkeszthető) — nem egyetlen
+    összefolyó szövegblokk. Tiszta domain-adat: NINCS benne HTML vagy
+    bármilyen UI-formázás."""
+    out: dict[str, Any] = {key: "" for key in _DEVELOPED_MOVEMENT_TEXT_FIELDS}
+    for key in _DEVELOPED_MOVEMENT_LIST_FIELDS:
+        out[key] = []
+    return out
+
+
+def normalize_developed_outline_movement(raw: Any) -> dict[str, Any]:
+    """Egy vázlat-mozgás normalizálása. Részleges bemenet NEM vész el: a
+    hiányzó mezők üres, de TÍPUSHELYES alapértéket kapnak (string vs.
+    lista), így a hívóknak sosem kell típust ellenőrizniük."""
+    base = empty_developed_outline_movement()
+    if not isinstance(raw, dict):
+        return base
+    out = dict(base)
+    for key in _DEVELOPED_MOVEMENT_TEXT_FIELDS:
+        out[key] = _as_str(raw.get(key))
+    for key in _DEVELOPED_MOVEMENT_LIST_FIELDS:
+        out[key] = _normalize_str_list(raw.get(key))
+    return out
+
+
+def normalize_developed_outline_movements(raw: Any) -> list[dict[str, Any]]:
+    """Vázlat-mozgások listájának normalizálása — nem-dict elemek
+    kimaradnak, a hiányos elemek alapértékkel egészülnek ki."""
+    if not isinstance(raw, list):
+        return []
+    out: list[dict[str, Any]] = []
+    for item in raw:
+        if not isinstance(item, dict):
+            continue
+        out.append(normalize_developed_outline_movement(item))
+        if len(out) >= _STRUCTURE_MOVEMENTS_MAX:
+            break
+    return out
+
+
+def empty_developed_outline() -> dict[str, Any]:
+    """A felhasználónak szánt, részletes prédikációs munkavázlat.
+
+    ADAPTÍV szerkezetű: a `movements` hossza NEM kötött hétre — a
+    `structure_mode` (pl. teljes hétpontos / összevont / rövidebb egyedi)
+    és a `structure_note` (rövid, emberi indoklás) írja le, milyen ívet
+    használ. A tényleges döntési logikát egy későbbi AI-fázis hozza; itt
+    csak biztonságos tárolás van.
+
+    SZÁNDÉKOSAN külön a legacy `sermon_outline` mezőtől: az egy régi
+    workflow más szerkezetű adata, a kettő között NINCS automatikus
+    migráció egyik irányban sem."""
+    return {
+        "structure_mode": "",
+        "structure_note": "",
+        "movements": [],
+    }
+
+
+def normalize_developed_outline(raw: Any) -> dict[str, Any]:
+    """Bármilyen bemenetből érvényes `developed_outline`-t ad vissza —
+    hiányzó/hibás bemenet esetén biztonságos alapérték, részleges
+    bemenetnél adatvesztés nélkül. Idempotens."""
+    base = empty_developed_outline()
+    if not isinstance(raw, dict):
+        return base
+    return {
+        "structure_mode": _as_str(raw.get("structure_mode")),
+        "structure_note": _as_str(raw.get("structure_note")),
+        "movements": normalize_developed_outline_movements(raw.get("movements")),
+    }
+
+
+def developed_outline_has_content(outline: Any) -> bool:
+    """True, ha a (bármilyen bemenetből normalizált) vázlat legalább egy
+    mozgásában van érdemi tartalom. Tiszta, session-független segéd —
+    ugyanaz a szerep, mint `arc_has_content`-nél."""
+    normalized = normalize_developed_outline(outline)
+    for movement in normalized["movements"]:
+        for key in _DEVELOPED_MOVEMENT_TEXT_FIELDS:
+            if _as_str(movement.get(key)).strip():
+                return True
+        for key in _DEVELOPED_MOVEMENT_LIST_FIELDS:
+            if any(str(item).strip() for item in movement.get(key) or []):
+                return True
+    return False
+
+
+_DEVELOPED_OUTLINE_META_FIELDS: tuple[str, ...] = (
+    "reference",
+    "context_hash",
+    "generated_at",
+    "manually_updated_at",
+)
+
+
+def empty_developed_outline_meta() -> dict[str, Any]:
+    """A `developed_outline`-ra EGYÜTTESEN vonatkozó frissesség-/eredet-
+    metaadat — nem egy mozgás belseje (ugyanaz az elv, mint `arc_meta`).
+
+    Mind a négy mező indokolt már V1-ben: a `reference` + `context_hash`
+    pár az elfogadás előfeltétele (`accept_developed_outline_candidate`,
+    az `accept_arc_candidate` bevált szerződése szerint — enélkül
+    elveszne a `reference_mismatch` és a `context_hash_mismatch`
+    megkülönböztetése); a `generated_at` az eredet; a
+    `manually_updated_at` pedig azt védi, hogy egy kézzel szerkesztett
+    vázlatot később ne lehessen némán felülírni."""
+    return {key: "" for key in _DEVELOPED_OUTLINE_META_FIELDS}
+
+
+def normalize_developed_outline_meta(raw: Any) -> dict[str, Any]:
+    """Bármilyen bemenetből érvényes `developed_outline_meta`-t ad vissza."""
+    base = empty_developed_outline_meta()
+    if not isinstance(raw, dict):
+        return base
+    return {key: _as_str(raw.get(key)) for key in _DEVELOPED_OUTLINE_META_FIELDS}
+
+
+def normalize_developed_outline_candidate(raw: Any) -> dict[str, Any] | None:
+    """A biztonságos újragenerálás előnézeti tárolója a részletes
+    vázlathoz — pontosan a `normalize_arc_candidate` szerződése szerint.
+
+    `None`, ha nincs függőben lévő candidate (a hiány maga `None`, nincs
+    külön szentinel-dict). Ha a bemenet nem dict, VAGY az `outline` mező
+    hiányzik / nem dict (tehát szerkezetileg nem candidate), a teljes
+    bemenet érvénytelen -> `None`; így egy sérült candidate sosem
+    viselkedhet érvényesként, és sosem írhatja felül a kanonikus
+    vázlatot. Hiányzó metaadat (pl. `reference`) csak HIÁNYOS, nem
+    sérült: üres stringgé normalizálódik."""
+    if not isinstance(raw, dict):
+        return None
+    outline_raw = raw.get("outline")
+    if not isinstance(outline_raw, dict):
+        return None
+    return {
+        "outline": normalize_developed_outline(outline_raw),
+        "reference": _as_str(raw.get("reference")),
+        "context_hash": _as_str(raw.get("context_hash")),
+        "generated_at": _as_str(raw.get("generated_at")),
+    }
+
+
+def set_developed_outline_candidate(
+    session_state: MutableMapping[str, Any],
+    *,
+    outline: Any,
+    reference: str,
+    context_hash: str,
+    generated_at: str | None = None,
+) -> dict[str, Any]:
+    """A megadott vázlat-eredményt candidate-ként tárolja — a kanonikus
+    `developed_outline`-hoz és `developed_outline_meta`-hoz NEM nyúl. Egy
+    új hívás mindig felülírja a korábbi candidate-et (egy új generálás a
+    legutóbbi javaslatot tükrözi). Nem indít AI-hívást.
+
+    Az üres `reference`/`context_hash` értéket — az `set_arc_candidate`
+    meglévő konvenciója szerint — íráskor SZÁNDÉKOSAN nem utasítja el; a
+    szigorú kapu mindig a FELHASZNÁLÁSNÁL, azaz az elfogadásnál van (ld.
+    `accept_developed_outline_candidate`, `missing_context_identity`)."""
+    sw = ensure_sermon_workshop_state(session_state)
+    stamp = _as_str(generated_at) or datetime.now().isoformat(timespec="seconds")
+    candidate = {
+        "outline": normalize_developed_outline(outline),
+        "reference": _as_str(reference),
+        "context_hash": _as_str(context_hash),
+        "generated_at": stamp,
+    }
+    sw["developed_outline_candidate"] = candidate
+    return candidate
+
+
+def discard_developed_outline_candidate(
+    session_state: MutableMapping[str, Any],
+) -> None:
+    """A függőben lévő vázlat-candidate elvetése. KIZÁRÓLAG a
+    `developed_outline_candidate`-et törli (`None`) — a kanonikus
+    `developed_outline` és `developed_outline_meta` BIT-PONTOSAN
+    változatlan marad. Nem indít AI-hívást."""
+    sw = ensure_sermon_workshop_state(session_state)
+    sw["developed_outline_candidate"] = None
+
+
+def store_generated_developed_outline_result(
+    session_state: MutableMapping[str, Any],
+    *,
+    outline: Any,
+    reference: str,
+    context_hash: str,
+    generated_at: str | None = None,
+) -> dict[str, Any]:
+    """Egyetlen belépési pont egy frissen elkészült vázlat biztonságos
+    tárolásához. Az eredmény MINDIG candidate lesz — az ELSŐ generálás is:
+
+        generálás -> `developed_outline_candidate`
+        explicit elfogadás -> `developed_outline`
+
+    Ez a függvény tehát SOHA nem ír a kanonikus `developed_outline`
+    mezőbe; azt kizárólag `accept_developed_outline_candidate()` teheti.
+    Visszatérési érték mindig `{"status": "candidate", ...}`.
+
+    RESET 2E-1A (2026-08-20) — SZÁNDÉKOS ELTÉRÉS a `store_generated_arc_
+    result` mintájától: ott az üres `arc`-ra történő első generálás
+    közvetlenül alkalmazódik ("applied"), itt viszont nem. Az ok
+    tartalmi, nem technikai: a részletes vázlat FELHASZNÁLÓI artefaktum,
+    és egy MI által készített vázlat első alkalommal is JAVASLAT, nem
+    automatikusan elfogadott tartalom. A kanonikus `developed_outline`
+    így kizárólag explicit felhasználói elfogadás nyomán jöhet létre —
+    az üres kanonikus vázlat egyértelműen azt jelenti, hogy a felhasználó
+    még semmit nem fogadott el.
+
+    Sosem ír felül meglévő, kézzel szerkesztett vagy korábban elfogadott
+    vázlatot. Nem indít AI-hívást — csak egy már kész eredményt tárol."""
+    candidate = set_developed_outline_candidate(
+        session_state,
+        outline=outline,
+        reference=reference,
+        context_hash=context_hash,
+        generated_at=generated_at,
+    )
+    return {"status": "candidate", "developed_outline_candidate": candidate}
+
+
+def accept_developed_outline_candidate(
+    session_state: MutableMapping[str, Any],
+    *,
+    reference: str,
+    context_hash: str,
+) -> dict[str, Any]:
+    """A függőben lévő vázlat-candidate elfogadása — az
+    `accept_arc_candidate` szerződésének pontos megfelelője.
+
+    KIZÁRÓLAG akkor fogad el, ha van szerkezetileg ép candidate, ÉS annak
+    `reference`/`context_hash` párja pontosan egyezik az itt átadott,
+    aktuális értékekkel. Üres azonosító SOSEM érvényes egyezés, akkor sem,
+    ha mindkét oldal ugyanúgy üres.
+
+    Sikeres elfogadáskor a candidate tartalma lesz a kanonikus vázlat, a
+    meta a candidate saját metaadataival frissül, és a
+    `manually_updated_at` ÜRESRE áll (az elfogadott tartalom a
+    candidate-ből származik, nem kézi szerkesztésből), a candidate pedig
+    kiürül. Sikertelen esetben a kanonikus vázlat és meta BIT-PONTOSAN
+    változatlan, a `reason` pedig jelzi az okot: `"no_candidate"`,
+    `"invalid_candidate"`, `"missing_context_identity"`,
+    `"reference_mismatch"` vagy `"context_hash_mismatch"`."""
+    sw = ensure_sermon_workshop_state(session_state)
+    raw_candidate = sw.get("developed_outline_candidate")
+    if raw_candidate is None:
+        return {"accepted": False, "reason": "no_candidate"}
+
+    candidate = normalize_developed_outline_candidate(raw_candidate)
+    if candidate is None:
+        return {"accepted": False, "reason": "invalid_candidate"}
+
+    candidate_reference = _as_str(candidate["reference"])
+    candidate_context_hash = _as_str(candidate["context_hash"])
+    current_reference = _as_str(reference)
+    current_context_hash = _as_str(context_hash)
+    if (
+        not candidate_reference.strip()
+        or not candidate_context_hash.strip()
+        or not current_reference.strip()
+        or not current_context_hash.strip()
+    ):
+        return {"accepted": False, "reason": "missing_context_identity"}
+    if candidate_reference != current_reference:
+        return {"accepted": False, "reason": "reference_mismatch"}
+    if candidate_context_hash != current_context_hash:
+        return {"accepted": False, "reason": "context_hash_mismatch"}
+
+    sw["developed_outline"] = candidate["outline"]
+    sw["developed_outline_meta"] = normalize_developed_outline_meta(
+        {
+            "reference": candidate["reference"],
+            "context_hash": candidate["context_hash"],
+            "generated_at": candidate["generated_at"],
+            "manually_updated_at": "",
+        }
+    )
+    sw["developed_outline_candidate"] = None
+    return {
+        "accepted": True,
+        "reason": "",
+        "developed_outline": sw["developed_outline"],
+        "developed_outline_meta": sw["developed_outline_meta"],
+    }
+
+
+def update_developed_outline_movement_field(
+    session_state: MutableMapping[str, Any],
+    *,
+    index: int,
+    field: str,
+    value: Any,
+) -> dict[str, Any]:
+    """Egyetlen vázlat-mozgás EGYETLEN mezőjének kézi frissítése.
+
+    Kizárólag a célzott mezőt írja — a mozgás többi mezője, a többi
+    mozgás, a `structure_mode`/`structure_note` és a candidate
+    BIT-PONTOSAN változatlan marad. Sikeres írásnál a
+    `developed_outline_meta.manually_updated_at` frissül (ez védi később
+    a kézi munkát a néma felülírástól). Nem indít AI-hívást.
+
+    Hibakezelés — a kódbázis meglévő kettős konvencióját követve:
+      - ISMERETLEN `field` programozói hiba -> `ValueError` (ugyanúgy,
+        mint `update_arc_point` ismeretlen pontkulcsnál);
+      - ÉRVÉNYTELEN `index` viszont legitim futásidejű állapot (a vázlat
+        időközben megváltozhatott) -> nem dob, hanem
+        `{"updated": False, "reason": "index_out_of_range"}`.
+
+    A `value` a mező típusa szerint normalizálódik: szöveges mezőnél
+    stringgé, listamezőnél (`development`, `*_support`) stringlistává —
+    így egy hibás típusú hívás sem ronthatja el a struktúrát."""
+    if field not in _DEVELOPED_MOVEMENT_FIELDS:
+        raise ValueError(f"Ismeretlen vázlat-mozgás mező: {field!r}")
+
+    sw = ensure_sermon_workshop_state(session_state)
+    outline = normalize_developed_outline(sw.get("developed_outline"))
+    movements = outline["movements"]
+    if not isinstance(index, int) or isinstance(index, bool):
+        return {"updated": False, "reason": "index_out_of_range"}
+    if index < 0 or index >= len(movements):
+        return {"updated": False, "reason": "index_out_of_range"}
+
+    movement = dict(movements[index])
+    if field in _DEVELOPED_MOVEMENT_LIST_FIELDS:
+        movement[field] = _normalize_str_list(value)
+    else:
+        movement[field] = _as_str(value)
+    movements[index] = movement
+
+    outline["movements"] = movements
+    sw["developed_outline"] = outline
+
+    meta = normalize_developed_outline_meta(sw.get("developed_outline_meta"))
+    meta["manually_updated_at"] = datetime.now().isoformat(timespec="seconds")
+    sw["developed_outline_meta"] = meta
+    return {"updated": True, "reason": "", "movement": movement}
+
+
 def _join_nonempty(*parts: Any, separator: str = "\n\n") -> str:
     """Nem üres részek összefűzése — a migrációs összevonásokhoz (pl. a régi
     `christ_centered_arc` 3 almezője -> 1 `arc.second_shift.text` mező)."""
@@ -3313,6 +3885,25 @@ __all__ = [
     "set_field_refinement_suggestion",
     "discard_field_refinement_suggestion",
     "validate_field_refinement_acceptance",
+    # RESET 2E-1: kétlépcsős vázlatmotor adatmodellje.
+    "empty_blueprint",
+    "normalize_blueprint",
+    "empty_blueprint_meta",
+    "normalize_blueprint_meta",
+    "empty_developed_outline_movement",
+    "normalize_developed_outline_movement",
+    "normalize_developed_outline_movements",
+    "empty_developed_outline",
+    "normalize_developed_outline",
+    "developed_outline_has_content",
+    "empty_developed_outline_meta",
+    "normalize_developed_outline_meta",
+    "normalize_developed_outline_candidate",
+    "set_developed_outline_candidate",
+    "discard_developed_outline_candidate",
+    "store_generated_developed_outline_result",
+    "accept_developed_outline_candidate",
+    "update_developed_outline_movement_field",
     "migrate_legacy_arc_fields",
     "update_arc_point",
     "add_approved_sermon_decision",
