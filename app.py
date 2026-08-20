@@ -3675,6 +3675,22 @@ módon (pl. "...amit a 7. vers elején álló »hanem« [ἀλλὰ] jelez..." v
 görög ἠγάπησεν egyszeri, lezárt cselekvést kifejező alakja mutatja, hogy..."),
 nem külön felsorolt tételként.
 
+GÖRÖG/HÉBER HIVATKOZÁS SZIGORÚ HATÁRA: az alább, a bemeneti anyagban
+mellékelt "EREDETI NYELVI TOKENEK" lista a KIZÁRÓLAGOS forrásod bármilyen
+görög/héber szóalakhoz, lemmához, morfológiai vagy Strong-hivatkozáshoz.
+Új szóalakot, lemmát, morfológiai adatot vagy Strong-számot NEM találhatsz
+ki, és nem egészítheted ki saját emlékezetből — még akkor sem, ha
+magabiztosan emlékszel rá. Ha egy nyelvi megfigyeléshez a token-listában
+nincs elég adat, vagy hagyd ki teljesen, vagy jelezd: "Bizonytalan a
+rendelkezésre álló adat alapján:". NEM KÖTELEZŐ minden alcímhez vagy minden
+szakaszhoz eredeti nyelvi hivatkozást tenned — ha a token-lista egy adott
+ponthoz nem ad érdemi támpontot, a nyelvi szintről egyszerűen ne szólj,
+inkább a szerkezetre, kontextusra és érvelésre fókuszálj. Ez a feladatod
+ITT NEM önálló lexikai/morfológiai elemzés (az az "Eredeti szöveg" modul
+feladata, amit ne ismételj meg és ne dolgozz fel újra teljes terjedelmében)
+— a nyelvi tényt csak annyiban használd, amennyiben segít a szakasz
+TARTALMI, exegetikai értelmezésében.
+
 Bizonytalanságot CSAK akkor jelezz explicit módon, ha ténylegesen alacsony
 vagy közepes a megbízhatóság — vagyis valódi vitatottság áll fenn (pl. "ez a
 kifejezés vitatott: némely értelmezők szerint..., mások szerint..."). Ahol
@@ -4063,13 +4079,25 @@ def _sync_inputs_to_last():
     flush_sermon_workshop_from_widgets()
 
 
-def build_alap_from_state(*, include_pastoral_context: bool = False):
+def build_alap_from_state(
+    *,
+    include_pastoral_context: bool = False,
+    include_original_language_tokens: bool = False,
+):
     """A `last_…` session-mezőkből építi vissza az elemzés kontextusát.
 
     include_pastoral_context=True: ceremoniális alkalmi háttér a
     „pásztori alkalmazási kontextus” címkével (áttekintés / alkalmazás /
     illusztráció). Exegézis / kortörténet / teológia esetén False marad.
-    """
+
+    include_original_language_tokens=True (RESET 3B-3): a helyi görög/
+    héber token-adatbázisból épített, determinisztikus token-blokkot is
+    csatolja — UGYANAZT a `build_original_language_token_block()`
+    függvényt hívja, amelyből az „Eredeti szöveg” modul is dolgozik
+    (`build_original_text_prompt`), tehát ugyanaz a source-of-truth, nem
+    párhuzamos adatforrás. Jelenleg KIZÁRÓLAG az egzegézis szekció
+    kapcsolja be (`generate_section`) — más szekció (kortörténet,
+    teológia stb.) promptját ez a paraméter nem érinti."""
     passage = st.session_state.get("last_igehely", "") or ""
     translation = (st.session_state.get("bible_translation") or "").strip()
     passage_text = st.session_state.get("passage_text") or ""
@@ -4149,6 +4177,13 @@ def build_alap_from_state(*, include_pastoral_context: bool = False):
                 "Ne keverd a textus tényállásába, és ne másold be automatikusan "
                 "a személyes adatokat."
             )
+    if include_original_language_tokens:
+        # RESET 3B-3: a token-blokk SAJÁT fejlécet és "nincs adat"-jellegű
+        # üzeneteket is tartalmaz (ld. `build_original_language_token_
+        # block`) — ezt változatlanul, kiegészítés nélkül csatoljuk, hogy
+        # a hiányzó-adat eset ugyanúgy, egységesen kommunikálódjon, mint
+        # az „Eredeti szöveg” modulnál.
+        lines.append(build_original_language_token_block(passage))
     return "\n".join(lines)
 
 # =========================================================
@@ -4452,10 +4487,14 @@ def generate_section(key: str) -> bool:
     # Exegézis / kortörténet / teológia: szövegközpontú — ne keverjük az
     # életrajzi hátteret. Áttekintés / illusztráció / aktualizálás: igen.
     pastoral_sections = {"overview", "illustrations", "actualization"}
+    # RESET 3B-3: KIZÁRÓLAG az egzegézis kapja meg a helyi görög/héber
+    # token-blokkot groundingként — más szekció promptját nem érinti.
+    original_language_sections = {"exegesis"}
     with st.spinner(f"{label} készítése…"):
         prompt = SECTION_PROMPTS[key].format(
             alap=build_alap_from_state(
-                include_pastoral_context=key in pastoral_sections
+                include_pastoral_context=key in pastoral_sections,
+                include_original_language_tokens=key in original_language_sections,
             )
         )
         st.session_state[key] = generate_text(
