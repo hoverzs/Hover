@@ -1560,3 +1560,286 @@ def test_project_switch_purges_stale_outline_editor_widgets():
 
     title_widget2 = _text_input_by_key(app, "sw_flat_outline_edit_entry_title")
     assert title_widget2.value == "PROJEKT_B_CIM"
+
+
+# =============================================================================
+# RESET 2E-6b — UX-rendezés: blueprint-részletek expander, movementenkénti
+# expander, mezősorrend, eredet-caption.
+# =============================================================================
+
+
+def _render_fresh_blueprint_with_sentinel_internal_fields() -> None:
+    """A blueprint BELSŐ, technikai mezőit (`arc_fit.reason`, `key_support`,
+    `grounded_in`) SZENTINEL-értékekkel tölti fel, hogy explicit
+    bizonyítható legyen: a "Blueprint részletei" expander ezeket NEM
+    jeleníti meg — csak `central_claim`/`textual_center`/szerkezeti
+    mód/movementenkénti `function`+`core_idea`."""
+    import json
+
+    import streamlit as st
+
+    import sermon_workshop_ui as sw_ui
+
+    st.session_state["last_igehely"] = "Jn 3,16"
+    st.session_state["igehely_input"] = "Jn 3,16"
+    st.session_state["passage_text"] = "Mert úgy szerette Isten a világot."
+    st.session_state["bible_translation"] = "RÚF 2014"
+
+    arc_keys = (
+        "entry",
+        "starting_point",
+        "first_shift",
+        "deepening",
+        "reinterpretation",
+        "second_shift",
+        "arrival",
+    )
+    blueprint_payload = {
+        "central_claim": "Isten kezdeményez.",
+        "textual_center": "Úgy szerette Isten...",
+        "listener_tension": "",
+        "theological_turn": "",
+        "desired_listener_movement": "A kételytől a bizalomig.",
+        "arc_fit": {"verdict": "strong_fit", "reason": "ARC_FIT_REASON_SENTINEL"},
+        "recommended_structure": {
+            "mode": "seven_point",
+            "movements": [
+                {
+                    "key": k,
+                    "function": f"{k} funkció",
+                    "core_idea": f"{k} mag",
+                    "grounded_in": ["text_main_idea"],
+                }
+                for k in arc_keys
+            ],
+        },
+        "key_support": {
+            "exegetical": ["KEY_SUPPORT_EXEGETICAL_SENTINEL"],
+            "original_language": ["KEY_SUPPORT_ORIGLANG_SENTINEL"],
+            "historical_theological": ["KEY_SUPPORT_HIST_SENTINEL"],
+        },
+        "illustration_direction": "",
+        "application_direction": "",
+        "warnings": [],
+    }
+
+    def fake_gen(prompt, **kwargs):
+        return json.dumps(blueprint_payload, ensure_ascii=False)
+
+    sw_ui.render_sermon_workshop_shell(generate_fn=fake_gen)
+
+
+# -----------------------------------------------------------------------
+# 1-6. Blueprint-részletek expander
+# -----------------------------------------------------------------------
+
+
+def test_blueprint_details_expander_appears_when_blueprint_exists():
+    app = AppTest.from_function(_render_fresh_blueprint_then_generate_outline).run(timeout=60)
+    _click_and_settle(app, "Blueprint készítése")
+    assert not app.exception
+
+    labels = [e.label for e in app.expander]
+    assert "Blueprint részletei" in labels
+
+
+def test_blueprint_details_expander_starts_collapsed():
+    app = AppTest.from_function(_render_fresh_blueprint_then_generate_outline).run(timeout=60)
+    _click_and_settle(app, "Blueprint készítése")
+
+    expander = next(e for e in app.expander if e.label == "Blueprint részletei")
+    assert expander.proto.expanded is False
+
+
+def test_blueprint_details_shows_central_claim():
+    app = AppTest.from_function(_render_fresh_blueprint_then_generate_outline).run(timeout=60)
+    _click_and_settle(app, "Blueprint készítése")
+
+    body = "\n".join(md.value for md in app.markdown)
+    assert "Isten kezdeményez." in body
+
+
+def test_blueprint_details_shows_structure_mode_label():
+    app = AppTest.from_function(_render_fresh_blueprint_then_generate_outline).run(timeout=60)
+    _click_and_settle(app, "Blueprint készítése")
+
+    captions = [c.value for c in app.caption]
+    assert "Hétpontos ív" in captions
+
+
+def test_blueprint_details_shows_movement_function_and_core_idea():
+    app = AppTest.from_function(_render_fresh_blueprint_with_sentinel_internal_fields).run(
+        timeout=60
+    )
+    idx = next(i for i, b in enumerate(app.button) if b.label == "Blueprint készítése")
+    app.button[idx].click().run()
+    app.run(timeout=60)
+    assert not app.exception
+
+    body = "\n".join(md.value for md in app.markdown)
+    assert "entry funkció" in body
+    assert "entry mag" in body
+
+
+def test_blueprint_details_hides_internal_technical_fields():
+    app = AppTest.from_function(_render_fresh_blueprint_with_sentinel_internal_fields).run(
+        timeout=60
+    )
+    idx = next(i for i, b in enumerate(app.button) if b.label == "Blueprint készítése")
+    app.button[idx].click().run()
+    app.run(timeout=60)
+    assert not app.exception
+
+    full_text = "\n".join(
+        [md.value for md in app.markdown]
+        + [c.value for c in app.caption]
+        + [w.value for w in app.warning]
+    )
+    for forbidden in (
+        "ARC_FIT_REASON_SENTINEL",
+        "KEY_SUPPORT_EXEGETICAL_SENTINEL",
+        "KEY_SUPPORT_ORIGLANG_SENTINEL",
+        "KEY_SUPPORT_HIST_SENTINEL",
+        "text_main_idea",  # `grounded_in` provenance-token — nem jelenhet meg szövegként
+    ):
+        assert forbidden not in full_text
+
+
+# -----------------------------------------------------------------------
+# 7-8. Movement-expanderek
+# -----------------------------------------------------------------------
+
+
+def test_canonical_movements_render_inside_expanders():
+    app = AppTest.from_function(_render_fresh_blueprint_then_generate_outline).run(timeout=60)
+    _accept_fresh_outline(app)
+
+    labels = [e.label for e in app.expander]
+    assert "1. entry cím" in labels
+
+
+def test_movement_expanders_start_collapsed():
+    app = AppTest.from_function(_render_fresh_blueprint_then_generate_outline).run(timeout=60)
+    _accept_fresh_outline(app)
+
+    assert app.expander
+    assert all(e.proto.expanded is False for e in app.expander)
+
+
+# -----------------------------------------------------------------------
+# 9-10. Mezősorrend a movement-expanderen belül
+# -----------------------------------------------------------------------
+
+
+def test_main_claim_appears_before_development():
+    app = AppTest.from_function(_render_fresh_blueprint_then_generate_outline).run(timeout=60)
+    _accept_fresh_outline(app)
+
+    main_claim_idx = _text_area_index_by_key(app, "sw_flat_outline_edit_entry_main_claim")
+    development_idx = _text_area_index_by_key(app, "sw_flat_outline_edit_entry_development")
+    assert main_claim_idx < development_idx
+
+
+def test_support_block_appears_after_development():
+    app = AppTest.from_function(_render_fresh_blueprint_then_generate_outline).run(timeout=60)
+    _accept_fresh_outline(app)
+
+    development_idx = _text_area_index_by_key(app, "sw_flat_outline_edit_entry_development")
+    exeg_idx = _text_area_index_by_key(app, "sw_flat_outline_edit_entry_exegetical_support")
+    assert development_idx < exeg_idx
+
+
+# -----------------------------------------------------------------------
+# 11-13. Widget-kulcsok és kézi szerkesztés az új expander-elrendezésben
+# -----------------------------------------------------------------------
+
+
+def test_widget_keys_unchanged_after_ux_restructure():
+    app = AppTest.from_function(_render_fresh_blueprint_then_generate_outline).run(timeout=60)
+    _accept_fresh_outline(app)
+
+    for field in (
+        "title",
+        "function",
+        "main_claim",
+        "development",
+        "exegetical_support",
+        "original_language_support",
+        "historical_theological_support",
+        "illustration_direction",
+        "application_direction",
+        "transition_to_next",
+    ):
+        key = f"sw_flat_outline_edit_entry_{field}"
+        found = any(ti.key == key for ti in app.text_input) or any(
+            ta.key == key for ta in app.text_area
+        )
+        assert found, field
+
+
+def test_manual_edit_still_works_inside_expander():
+    app = AppTest.from_function(_render_fresh_blueprint_then_generate_outline).run(timeout=60)
+    _accept_fresh_outline(app)
+
+    idx = _text_input_index_by_key(app, "sw_flat_outline_edit_entry_title")
+    app.text_input[idx].input("EXPANDER SZERKESZTÉS TESZT").run()
+    assert not app.exception
+    assert (
+        app.session_state["sermon_workshop"]["developed_outline"]["movements"][0]["title"]
+        == "EXPANDER SZERKESZTÉS TESZT"
+    )
+
+
+def test_manual_edit_in_expander_survives_rerun():
+    app = AppTest.from_function(_render_fresh_blueprint_then_generate_outline).run(timeout=60)
+    _accept_fresh_outline(app)
+
+    idx = _text_input_index_by_key(app, "sw_flat_outline_edit_entry_title")
+    app.text_input[idx].input("MEGŐRZÖTT EXPANDER SZÖVEG").run()
+    app.run(timeout=60)
+
+    idx2 = _text_input_index_by_key(app, "sw_flat_outline_edit_entry_title")
+    assert app.text_input[idx2].value == "MEGŐRZÖTT EXPANDER SZÖVEG"
+
+
+# -----------------------------------------------------------------------
+# 14-15. Eredet-caption (`manually_updated_at`-alapú)
+# -----------------------------------------------------------------------
+
+
+def test_origin_caption_shows_ai_generated_when_not_manually_edited():
+    app = AppTest.from_function(_render_fresh_blueprint_then_generate_outline).run(timeout=60)
+    _accept_fresh_outline(app)
+
+    captions = [c.value for c in app.caption]
+    assert "AI által generált, még nem szerkesztett vázlat." in captions
+
+
+def test_origin_caption_shows_manually_updated_after_edit():
+    app = AppTest.from_function(_render_fresh_blueprint_then_generate_outline).run(timeout=60)
+    _accept_fresh_outline(app)
+
+    idx = _text_input_index_by_key(app, "sw_flat_outline_edit_entry_title")
+    app.text_input[idx].input("SZERKESZTVE").run()
+    app.run(timeout=60)
+
+    captions = [c.value for c in app.caption]
+    assert any(c.startswith("Kézzel módosítva:") for c in captions)
+    assert "AI által generált, még nem szerkesztett vázlat." not in captions
+
+
+# -----------------------------------------------------------------------
+# 16. Stale-warning nem veszik el az átrendezésben
+# -----------------------------------------------------------------------
+
+
+def test_stale_warning_still_appears_after_ux_restructure():
+    app = AppTest.from_function(_render_fresh_blueprint_then_generate_outline).run(timeout=60)
+    _accept_fresh_outline(app)
+
+    app.session_state["sermon_workshop"]["arc"]["entry"]["text"] = "MEGVÁLTOZOTT_UTÁN_UX"
+    app.run(timeout=60)
+    assert not app.exception
+
+    warning_values = [w.value for w in app.warning]
+    assert any("KORÁBBI blueprintből" in w for w in warning_values)

@@ -12273,6 +12273,50 @@ def _render_flat_legacy_outline_panel() -> None:
         st.markdown(legacy_text)
 
 
+_BLUEPRINT_STRUCTURE_MODE_LABELS: dict[str, str] = {
+    "seven_point": "Hétpontos ív",
+    "merged": "Összevont szerkezet",
+    "custom": "Egyedi szerkezet",
+}
+
+
+def _render_blueprint_details_expander(blueprint: dict) -> None:
+    """RESET 2E-6b: read-only "Blueprint részletei" — kizárólag a
+    felhasználónak érdemi, a részletes vázlat megértéséhez szükséges
+    tartalom (`central_claim`, `textual_center`, a szerkezeti mód magyar
+    címkéje, movementenként `function`+`core_idea`). SZÁNDÉKOSAN NEM
+    jelenik meg itt: `arc_fit.verdict`/`arc_fit.reason` (a döntés
+    INDOKLÁSA, nem a felhasználónak szól), `key_support.*` (a developed
+    outline-ban már konkretizálva van), és `grounded_in` provenance-
+    tokenek — ezek belső, technikai részletek."""
+    with st.expander("Blueprint részletei", expanded=False):
+        central_claim = str(blueprint.get("central_claim") or "").strip()
+        if central_claim:
+            st.markdown(f"**{central_claim}**")
+        textual_center = str(blueprint.get("textual_center") or "").strip()
+        if textual_center:
+            st.caption(textual_center)
+
+        structure = blueprint.get("recommended_structure")
+        structure = structure if isinstance(structure, dict) else {}
+        mode = str(structure.get("mode") or "").strip()
+        if mode:
+            st.caption(_BLUEPRINT_STRUCTURE_MODE_LABELS.get(mode, mode))
+
+        movements = structure.get("movements")
+        for movement in movements if isinstance(movements, list) else []:
+            if not isinstance(movement, dict):
+                continue
+            function = str(movement.get("function") or "").strip()
+            core_idea = str(movement.get("core_idea") or "").strip()
+            if not (function or core_idea):
+                continue
+            if function and core_idea:
+                st.markdown(f"- **{function}**: {core_idea}")
+            else:
+                st.markdown(f"- {function or core_idea}")
+
+
 def _render_blueprint_status_and_generate_button(
     *, generate_fn: GenerateFn | None
 ) -> None:
@@ -12284,7 +12328,12 @@ def _render_blueprint_status_and_generate_button(
     esetén a kanonikus blueprint bit-pontosan változatlan marad — ezt a
     `generate_sermon_blueprint()` már garantálja, a UI csak megjeleníti
     az eredményt. A `warnings` mindig látható, ha van tartalma, de itt
-    NINCS "feloldás" — pusztán tájékoztató jelzés a generáláshoz."""
+    NINCS "feloldás" — pusztán tájékoztató jelzés a generáláshoz.
+
+    RESET 2E-6b: ha van tartalommal bíró kanonikus blueprint, egy
+    read-only "Blueprint részletei" expander is megjelenik — a
+    `warnings` szándékosan KÍVÜL marad az expanderen, hogy jól látható
+    maradjon, ne lehessen véletlenül elrejteni."""
     sw = ensure_sermon_workshop_state(st.session_state)
     blueprint = sw.get("blueprint") if isinstance(sw.get("blueprint"), dict) else {}
     has_blueprint = bool(str(blueprint.get("central_claim") or "").strip())
@@ -12311,6 +12360,9 @@ def _render_blueprint_status_and_generate_button(
         else:
             st.success("A blueprint friss és elkészült.")
             label = "Blueprint újragenerálása"
+
+        if has_blueprint:
+            _render_blueprint_details_expander(blueprint)
 
         warnings = blueprint.get("warnings")
         for warning in warnings if isinstance(warnings, list) else []:
@@ -12527,51 +12579,110 @@ def _flat_save_developed_outline_movement_field(
     )
 
 
-def _render_developed_outline_movement_editable(index: int, movement: dict) -> None:
-    """Egy kanonikus vázlat-mozgás szerkeszthető megjelenítése. `index` a
-    mozgás TÉNYLEGES, 0-alapú pozíciója a kanonikus listában (ez kell a
-    mutátorhíváshoz); a widget-kulcsokhoz viszont a mozgás saját `key`-e
-    (nem az index) a forrás, ld. a modulszintű megjegyzést."""
-    movement_key = str(movement.get("key") or f"movement_{index}")
-    title = str(movement.get("title") or "").strip() or f"{index + 1}. mozgás"
-    st.markdown(f"**{index + 1}. {title}**")
-
-    for field in _OUTLINE_SHORT_TEXT_FIELDS:
-        widget_key = _developed_outline_edit_widget_key(movement_key, field)
-        if widget_key not in st.session_state:
-            st.session_state[widget_key] = str(movement.get(field) or "")
-        st.text_input(
-            _OUTLINE_FIELD_LABELS[field],
-            key=widget_key,
-            on_change=_flat_save_developed_outline_movement_field,
-            args=(index, movement_key, field),
-        )
-
-    for field in _DEVELOPED_MOVEMENT_LIST_FIELDS:
-        widget_key = _developed_outline_edit_widget_key(movement_key, field)
-        if widget_key not in st.session_state:
+def _render_developed_outline_edit_field(
+    *,
+    index: int,
+    movement_key: str,
+    movement: dict,
+    field: str,
+    widget: str,
+    height: int | None = None,
+) -> None:
+    """Egy szerkeszthető mozgás-mező widgetjének kiírása — a seed-elés
+    (widget hiányában a kanonikus tartalomból) és az `on_change`-mentés
+    közös a `text_input`/`text_area` esetek között, csak a widget típusa
+    és mérete tér el (RESET 2E-6b: elsődleges vs. másodlagos mezők
+    vizuális elkülönítéséhez)."""
+    widget_key = _developed_outline_edit_widget_key(movement_key, field)
+    if widget_key not in st.session_state:
+        if field in _DEVELOPED_MOVEMENT_LIST_FIELDS:
             items = movement.get(field)
             items = items if isinstance(items, list) else []
             st.session_state[widget_key] = "\n".join(str(item) for item in items)
-        st.text_area(
-            _OUTLINE_FIELD_LABELS[field],
+        else:
+            st.session_state[widget_key] = str(movement.get(field) or "")
+
+    label = _OUTLINE_FIELD_LABELS[field]
+    if widget == "text_input":
+        st.text_input(
+            label,
             key=widget_key,
-            height=100,
+            on_change=_flat_save_developed_outline_movement_field,
+            args=(index, movement_key, field),
+        )
+    else:
+        st.text_area(
+            label,
+            key=widget_key,
+            height=height,
             on_change=_flat_save_developed_outline_movement_field,
             args=(index, movement_key, field),
         )
 
-    for field in _OUTLINE_TEXTAREA_FIELDS:
-        widget_key = _developed_outline_edit_widget_key(movement_key, field)
-        if widget_key not in st.session_state:
-            st.session_state[widget_key] = str(movement.get(field) or "")
-        st.text_area(
-            _OUTLINE_FIELD_LABELS[field],
-            key=widget_key,
-            height=68,
-            on_change=_flat_save_developed_outline_movement_field,
-            args=(index, movement_key, field),
+
+def _render_developed_outline_movement_editable(index: int, movement: dict) -> None:
+    """Egy kanonikus vázlat-mozgás szerkeszthető megjelenítése, MOZGÁSONKÉNTI
+    `st.expander`-be zárva (RESET 2E-6b). `index` a mozgás TÉNYLEGES,
+    0-alapú pozíciója a kanonikus listában (ez kell a mutátorhíváshoz);
+    a widget-kulcsokhoz viszont a mozgás saját `key`-e (nem az index) a
+    forrás, ld. a modulszintű megjegyzést — ez VÁLTOZATLAN maradt, csak a
+    vizuális elrendezés és a mezők sorrendje változott.
+
+    Mezősorrend (RESET 2E-6b, elsődleges -> másodlagos): `title`,
+    `function`, `main_claim`, `development` — ezek után egy halk
+    elválasztó felirat, majd a támasz- és irány-mezők
+    (`exegetical_support`, `original_language_support`,
+    `historical_theological_support`, `illustration_direction`,
+    `application_direction`, `transition_to_next`). A `main_claim`
+    SOHA nem kerülhet a support-mezők UTÁN — ez volt a korábbi,
+    RESET 2E-6-ban azonosított sorrendi hiba."""
+    movement_key = str(movement.get("key") or f"movement_{index}")
+    title = str(movement.get("title") or "").strip() or f"{index + 1}. mozgás"
+
+    with st.expander(f"{index + 1}. {title}", expanded=False):
+        for field in ("title", "function"):
+            _render_developed_outline_edit_field(
+                index=index,
+                movement_key=movement_key,
+                movement=movement,
+                field=field,
+                widget="text_input",
+            )
+
+        _render_developed_outline_edit_field(
+            index=index,
+            movement_key=movement_key,
+            movement=movement,
+            field="main_claim",
+            widget="text_area",
+            height=90,
         )
+        _render_developed_outline_edit_field(
+            index=index,
+            movement_key=movement_key,
+            movement=movement,
+            field="development",
+            widget="text_area",
+            height=100,
+        )
+
+        st.caption("További támasz és átvezetés")
+        for field in (
+            "exegetical_support",
+            "original_language_support",
+            "historical_theological_support",
+            "illustration_direction",
+            "application_direction",
+            "transition_to_next",
+        ):
+            _render_developed_outline_edit_field(
+                index=index,
+                movement_key=movement_key,
+                movement=movement,
+                field=field,
+                widget="text_area",
+                height=68,
+            )
 
 
 def _developed_outline_freshness(
@@ -12629,6 +12740,19 @@ def _developed_outline_freshness(
     return stale, reference_changed, stored_reference, current_reference
 
 
+def _format_human_timestamp(value: str) -> str:
+    """`datetime.now().isoformat(timespec="seconds")` -> emberileg
+    olvasható formátum. Sikertelen feldolgozásnál a nyers értéket adja
+    vissza — sosem dob kivételt, ez pusztán megjelenítési segédlet."""
+    from datetime import datetime
+
+    try:
+        dt = datetime.fromisoformat(value)
+    except ValueError:
+        return value
+    return dt.strftime("%Y.%m.%d. %H:%M")
+
+
 def _render_developed_outline_canonical_editable() -> None:
     """A már elfogadott, kanonikus részletes vázlat kézi szerkesztése.
 
@@ -12643,7 +12767,13 @@ def _render_developed_outline_canonical_editable() -> None:
     `_developed_outline_freshness`), egyértelmű `st.warning` jelzi ezt —
     de a tartalom NEM tűnik el és NEM válik zárolttá: a felhasználó
     tudatosan dönthet úgy, hogy megtartja és tovább dolgozza a korábbi
-    változatot."""
+    változatot.
+
+    RESET 2E-6b: a fejléc alatt egy állandó EREDET-caption jelzi, hogy a
+    kanonikus tartalom tisztán AI-eredetű-e, vagy kézzel módosítva —
+    KIZÁRÓLAG a meglévő `developed_outline_meta.manually_updated_at`
+    mezőből származtatva, új state nélkül. Sorrend: cím -> eredet ->
+    stale-warning -> movement-expanderek."""
     sw = ensure_sermon_workshop_state(st.session_state)
     outline = sw.get("developed_outline")
     outline = outline if isinstance(outline, dict) else {}
@@ -12655,6 +12785,16 @@ def _render_developed_outline_canonical_editable() -> None:
     st.divider()
     with st.container(border=True):
         st.markdown("**Részletes prédikációs munkavázlat**")
+        st.caption("A mezők automatikusan mentődnek, ahogy szerkeszted őket.")
+
+        meta = sw.get("developed_outline_meta")
+        meta = meta if isinstance(meta, dict) else {}
+        manually_updated_at = str(meta.get("manually_updated_at") or "").strip()
+        if manually_updated_at:
+            st.caption(f"Kézzel módosítva: {_format_human_timestamp(manually_updated_at)}.")
+        else:
+            st.caption("AI által generált, még nem szerkesztett vázlat.")
+
         stale, reference_changed, stored_reference, current_reference = (
             _developed_outline_freshness(st.session_state)
         )
@@ -12674,7 +12814,7 @@ def _render_developed_outline_canonical_editable() -> None:
                 "szerkesztheted, de érdemes lehet új blueprintet és/vagy "
                 "új részletes vázlatot készíteni."
             )
-        st.caption("A mezők automatikusan mentődnek, ahogy szerkeszted őket.")
+
         structure_note = str(outline.get("structure_note") or "").strip()
         if structure_note:
             st.caption(structure_note)
