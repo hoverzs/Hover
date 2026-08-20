@@ -795,6 +795,25 @@ def _save_summary(*, status: str) -> None:
         st.success("Vázlatként elmentve.")
 
 
+def _original_text_is_fresh_for_summary() -> bool:
+    """RESET 3B-2: a MEGLÉVŐ `original_text_approved_context_hash`
+    kontraktust (a szekció generáláskor bélyegzi, ld. `app.py::render_
+    section_tab`) veti össze az aktuális igehely/fordítás/bibliai szöveg
+    szűk ujjlenyomatával — UGYANAZZAL a függvénnyel
+    (`sermon_outline_engine.compute_current_passage_context_hash`), amit
+    a bélyegzés is használ. Hiányzó mentett hash NEM minősül stale-nek
+    (visszafelé-kompatibilitás, ugyanaz a döntés, mint a legacy motorban)."""
+    stored = _session_str("original_text_approved_context_hash")
+    if not stored:
+        return True
+    try:
+        from sermon_outline_engine import compute_current_passage_context_hash
+
+        return stored == compute_current_passage_context_hash(st.session_state)
+    except Exception:  # noqa: BLE001 — a javaslatkérés ne dőljön el emiatt
+        return True
+
+
 def _run_suggest_summary(generate_fn: GenerateFn) -> None:
     tw = ensure_text_workshop_state(st.session_state)
     kwargs = {
@@ -805,6 +824,8 @@ def _run_suggest_summary(generate_fn: GenerateFn) -> None:
         "exegesis": _session_str("exegesis"),
         "theology": _session_str("theology"),
         "historical_context": _session_str("history"),
+        "original_text": _session_str("original_text"),
+        "original_text_is_fresh": _original_text_is_fresh_for_summary(),
     }
     if not kwargs["passage"]:
         st.warning(

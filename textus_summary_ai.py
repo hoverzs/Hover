@@ -7,12 +7,20 @@ függvénye) — ugyanaz a motor, mint minden más Textus AI-modulnál, nem új
 párhuzamos gépezet.
 
 A Textusösszegzés a Textusműhely már meglévő, jóváhagyott/piszkozat
-anyagából (fő gondolat, exegézis, teológia, kortörténet) egyetlen hívással
-javasol négy mezőt: a textus alapfeszültségét, a legfontosabb exegetikai
-felismeréseket, a teológiai hangsúlyokat és a műfaji/szerkezeti
-sajátosságokat. A `main_idea` mezőt nem az MI generálja — az a jóváhagyott
-`text_main_idea` egyszerű átvétele.
-"""
+anyagából (fő gondolat, exegézis, teológia, kortörténet, RESET 3B-2 óta
+eredeti nyelvi megfigyelések is) egyetlen hívással javasol négy mezőt: a
+textus alapfeszültségét, a legfontosabb exegetikai felismeréseket, a
+teológiai hangsúlyokat és a műfaji/szerkezeti sajátosságokat. A
+`main_idea` mezőt nem az MI generálja — az a jóváhagyott `text_main_idea`
+egyszerű átvétele.
+
+RESET 3B-2 — EREDETI NYELVI SŰRÍTÉS: a `key_exegetical_findings` mező
+KURÁTORI, nem újraelemző szerepet tölt be az "Eredeti szöveg" modul
+kimenetére nézve — a szintézis kizárólag a KAPOTT eredeti nyelvi
+megfigyelésekből válogathat, ha azok ténylegesen relevánsak, de SOSEM
+végez új görög/héber elemzést. Nincs önálló "original_language" mező —
+ez SZÁNDÉKOS: a meglévő négy mező sémáját a feladat nem indokolja
+bővíteni (ld. az implementáció melletti audit indoklását)."""
 
 from __future__ import annotations
 
@@ -35,6 +43,10 @@ _LIMITS = {
     "exegesis": 3200,
     "theology": 2500,
     "historical_context": 1800,
+    # RESET 3B-2: az "Eredeti szöveg" modul kimenete jellemzően egyetlen,
+    # rövid, összefüggő bekezdés (legfeljebb 5 kiemelt szó egy magyarázó
+    # szövegben) — nem igényel akkora keretet, mint az exegézis.
+    "original_text": 1500,
 }
 
 SUMMARY_SYSTEM_BUNDLE = """\
@@ -144,11 +156,22 @@ def build_summary_context(
     exegesis: str = "",
     theology: str = "",
     historical_context: str = "",
+    original_text: str = "",
+    original_text_is_fresh: bool = True,
 ) -> dict[str, str]:
     """Szelektív, címkézett kontextus-dict a promptkitöltéshez.
 
     Nem módosítja a session állapotot; csak olvas és levág.
-    """
+
+    RESET 3B-2 — `original_text`/`original_text_is_fresh`: ez a modul
+    SZÁNDÉKOSAN nem fér hozzá `st.session_state`-hez (a hívó adja át a
+    nyers stringeket) — ezért a frissesség-ELLENŐRZÉST (a MEGLÉVŐ
+    `*_approved_context_hash` kontraktus alapján, ld. `textus_workshop_
+    ui._run_suggest_summary`) is a HÍVÓ végzi el, és egyetlen `bool`-t ad
+    át. Itt NEM számolunk új hash-t — ha `original_text_is_fresh` `False`,
+    az `original_text` tartalmát EGYSZERŰEN úgy kezeljük, mintha hiányozna
+    (nem kerül a promptba), a bemeneti stringet magát nem módosítjuk."""
+    effective_original_text = original_text if original_text_is_fresh else ""
     return {
         "passage": _display(passage, max_chars=200) if _is_present(passage) else MISSING,
         "passage_text": _display(passage_text, max_chars=_LIMITS["passage_text"]),
@@ -160,6 +183,9 @@ def build_summary_context(
         "theology": _display(theology, max_chars=_LIMITS["theology"]),
         "historical_context": _display(
             historical_context, max_chars=_LIMITS["historical_context"]
+        ),
+        "original_text": _display(
+            effective_original_text, max_chars=_LIMITS["original_text"]
         ),
     }
 
@@ -216,7 +242,7 @@ Ez a Textusműhely záró, jóváhagyandó összegzése — az Igehirdetési mű
 ## A négy mező
 
 1. base_tension — a textus ALAPFESZÜLTSÉGE: milyen belső feszültséget, kérdést, ellentétet vagy problémát hordoz maga a szakasz (nem a mai hallgató élethelyzete, hanem a textus saját belső mozgása/dinamikája). 1-3 mondat.
-2. key_exegetical_findings — a legfontosabb exegetikai felismerések tömör, pontokba szedhető összegzése (szerkezet, kulcskifejezések, az állítás logikája). Legfeljebb 5 rövid pont vagy 4-5 mondat.
+2. key_exegetical_findings — a legfontosabb exegetikai felismerések tömör, pontokba szedhető összegzése (szerkezet, kulcskifejezések, az állítás logikája). Legfeljebb 5 rövid pont vagy 4-5 mondat. Ha az alább mellékelt eredeti nyelvi megfigyelések között van olyan, ami TÉNYLEGESEN segíti a szakasz értelmezését, tömören építsd be ide, a többi exegetikai megfigyeléssel egy összefüggő gondolatmenetben — ne külön alcímként vagy tételként. Ha nincs ilyen releváns eredeti nyelvi megfigyelés, egyszerűen hagyd ki: ne erőltess bele semmit csak azért, mert kaptál eredeti nyelvi anyagot.
 3. theological_emphases — a textus legfontosabb teológiai hangsúlyai, tömören. Legfeljebb 4-5 mondat.
 4. genre_structure_notes — a szakasz műfaja és szerkezeti sajátosságai (pl. elbeszélés/levél/próféta/költői szöveg; felépítés, fordulópontok). 2-4 mondat.
 
@@ -224,7 +250,7 @@ Ez a Textusműhely záró, jóváhagyandó összegzése — az Igehirdetési mű
 
 Elsődleges: a rendelkezésre bocsátott bibliai szöveg ({{passage_text}}), ha van; a jóváhagyott/piszkozat fő gondolat; az exegézis.
 Fontos kiegészítő: teológiai elemzés; jóváhagyott felismerések.
-Csak akkor vedd figyelembe, ha ténylegesen szükséges: kortörténeti háttér.
+Csak akkor vedd figyelembe, ha ténylegesen szükséges: kortörténeti háttér; eredeti nyelvi megfigyelések.
 
 ## Abszolút tilalmak
 
@@ -234,6 +260,7 @@ Csak akkor vedd figyelembe, ha ténylegesen szükséges: kortörténeti háttér
 - Ne keverd a base_tension mezőbe a mai hallgatói élethelyzetet — az a textus SAJÁT belső feszültsége, nem homiletikai belépési pont.
 - Ha egy adatforrás „nincs adat” vagy üres: ne találj ki helyette semmit.
 - Ne adj belső gondolatmenetet vagy hosszú érvelést; a reasoning_summary legyen rövid.
+- Eredeti nyelvi (görög/héber) információt KIZÁRÓLAG az alább mellékelt eredeti nyelvi megfigyelésekből emelhetsz át — SOHA ne találj ki, ne egészíts ki és ne pontosíts saját emlékezetből új lemmát, morfológiai vagy lexikai adatot. Nem a te feladatod új nyelvi elemzést végezni, kizárólag a KAPOTT megfigyelésekből azt kiválasztani és sűríteni, ami ténylegesen releváns. Ne ismételd meg a teljes mellékelt eredeti nyelvi elemzést — csak a ténylegesen legfontosabb, a szakasz értelmezését segítő pontot/pontokat vedd át, tömören.
 
 ## Elégtelen adat
 
@@ -258,6 +285,9 @@ Exegézis:
 
 Teológiai elemzés:
 {{theology}}
+
+Eredeti nyelvi megfigyelések, ha rendelkezésre állnak (csak akkor emelj át belőle, ha ténylegesen releváns — ne találj ki újat, ne ismételd meg a teljeset):
+{{original_text}}
 
 Kortörténeti háttér (csak ha releváns):
 {{historical_context}}
@@ -463,6 +493,8 @@ def suggest_text_summary(
     exegesis: str = "",
     theology: str = "",
     historical_context: str = "",
+    original_text: str = "",
+    original_text_is_fresh: bool = True,
     generate_fn: GenerateFn | None = None,
     temperature: float | None = DEFAULT_TEMPERATURE,
     skip_api_if_insufficient: bool = True,
@@ -470,7 +502,13 @@ def suggest_text_summary(
     """Textusösszegzés-javaslat (base_tension + 3 kísérő mező) egy hívásban.
 
     `generate_fn`: tipikusan az app.py `generate_text` függvénye.
-    """
+
+    `original_text_is_fresh`: a hívó (`textus_workshop_ui._run_suggest_
+    summary`) a MEGLÉVŐ `original_text_approved_context_hash` kontraktus
+    alapján dönti el, és `False`-t ad át, ha az "Eredeti szöveg" modul
+    kimenete már NEM a jelenlegi igehelyhez/textushoz tartozik — ez a
+    modul maga nem fér hozzá session_state-hez, ezért nem számol hash-t,
+    csak a kapott döntést alkalmazza (ld. `build_summary_context`)."""
     ctx = build_summary_context(
         passage=passage,
         passage_text=passage_text,
@@ -479,6 +517,8 @@ def suggest_text_summary(
         exegesis=exegesis,
         theology=theology,
         historical_context=historical_context,
+        original_text=original_text,
+        original_text_is_fresh=original_text_is_fresh,
     )
 
     if not _is_present(ctx["passage"]):
