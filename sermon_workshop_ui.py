@@ -269,7 +269,11 @@ from sermon_workshop_refinement_ai import (
     generate_field_refinement,
 )
 from textus_workshop_data import ensure_text_workshop_state, update_text_main_idea
-from textus_workshop_ui import render_text_main_idea_section, render_text_summary_section
+from textus_workshop_ui import (
+    _KEY_IDEA_INPUT as _KEY_FLAT_TEXT_MAIN_IDEA,
+    render_text_main_idea_section,
+    render_text_summary_section,
+)
 from diagnostics_dashboard_ui import (
     ensure_dashboard_styles,
     render_summary_card,
@@ -521,9 +525,22 @@ _KEY_SERMON_IDEA = "sw_sermon_main_idea_input"
 
 # RESET 2B (2026-08-18): az egyszerű, lapos "Textus és fókusz" + hétpontos
 # szerkesztőfelület widgetkulcsai. A `_KEY_SERMON_IDEA`-t újrahasznosítjuk
-# (már seedelve van `_apply_sw_ui_resync_if_needed()`-ben) — csak a
-# text_main_idea és az arc-pontok kapnak új, dedikált kulcsot.
-_KEY_FLAT_TEXT_MAIN_IDEA = "sw_flat_text_main_idea"
+# (már seedelve van `_apply_sw_ui_resync_if_needed()`-ben) — csak az
+# arc-pontok kapnak új, dedikált kulcsot.
+#
+# RESET 2D-H (2026-08-20): a `_KEY_FLAT_TEXT_MAIN_IDEA` MOST a `textus_
+# workshop_ui._KEY_IDEA_INPUT`-tal AZONOS kulcs (import-aliasként, ld. a
+# fájl elejei import), nem saját, önálló string. Korábban a lapos UI
+# (`sw_flat_text_main_idea`) és a Textusműhely gyorseszköz-tab
+# (`render_text_main_idea_section`, `tw_main_idea_input`) KÉT, EGYMÁSTÓL
+# FÜGGETLEN widget-kulcsot használt ugyanahhoz a kanonikus `text_workshop.
+# text_main_idea` mezőhöz — a `flush_textus_workshop_from_widgets()` a
+# stale (soha nem frissülő) régi kulcsból írt vissza, és felülírta a
+# frissen beírt értéket (RESET 2D-G audit, determinisztikus AppTest-tel
+# igazolva). A javítás — pontosan a `_KEY_SERMON_IDEA`-nál már bevált
+# mintát követve — megszünteti a két divergens forrást: mostantól
+# EGYETLEN widget-state forrás (`tw_main_idea_input`) táplálja mindkét
+# felületet, ezért a két oldal SOSEM láthat egymástól eltérő értéket.
 _KEY_FLAT_ARC: dict[str, str] = {key: f"sw_flat_arc_{key}" for key in _ARC_POINT_KEYS}
 
 # A hét kártya sorrendje és tartalma — 1:1 a `_ARC_POINT_KEYS` sorrendjével
