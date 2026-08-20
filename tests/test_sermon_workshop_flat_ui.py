@@ -257,12 +257,13 @@ def test_no_per_point_ai_or_adopt_buttons():
 
 
 def test_no_legacy_generation_or_export_button_present():
-    """RESET 2C/2D-B1/2D-B2: a sanctioned MI-gombok — az EGYETLEN hétpontos
-    generáló gomb („MI-javaslat mind a hét ponthoz”), a kilenc, egymástól
-    független „Egyedi MI-javaslat kérése” pontosítás-gomb, és a hét,
-    kártyánkénti „MI-javaslat ehhez a ponthoz” gyors gomb — megjelenhetnek,
-    de a régi vázlatmotor generálás-/exportgombjai továbbra sem
-    jelenhetnek meg."""
+    """RESET 2C/2D-B1/2D-B2/2E-4: a sanctioned MI-gombok — az EGYETLEN
+    hétpontos generáló gomb („MI-javaslat mind a hét ponthoz”), a kilenc,
+    egymástól független „Egyedi MI-javaslat kérése” pontosítás-gomb, a
+    hét, kártyánkénti „MI-javaslat ehhez a ponthoz” gyors gomb, valamint
+    (RESET 2E-4 óta) a kétlépcsős vázlatmotor blueprint- és
+    részletesvázlat-generáló gombja — megjelenhetnek, de a régi
+    vázlatmotor generálás-/exportgombjai továbbra sem jelenhetnek meg."""
     app = AppTest.from_function(_render_shell).run(timeout=60)
     labels = [btn.label for btn in app.button]
     for forbidden in (
@@ -277,7 +278,14 @@ def test_no_legacy_generation_or_export_button_present():
     assert labels.count("MI-javaslat mind a hét ponthoz") == 1
     assert labels.count("Egyedi MI-javaslat kérése") == 9
     assert labels.count("MI-javaslat ehhez a ponthoz") == 7
-    assert len(labels) == 17, f"nem várt gomb(ok) jelentek meg ebben a fázisban: {labels}"
+    # RESET 2E-4: a blueprint-generálás nincs candidate-lifecycle-hoz
+    # kötve, ezért üres/hiányzó blueprintnél a gomb felirata mindig
+    # "Blueprint készítése" — ugyanígy a részletes vázlat gombja is
+    # "Részletes vázlat készítése", amíg nincs sem kanonikus vázlat, sem
+    # függőben lévő candidate.
+    assert labels.count("Blueprint készítése") == 1
+    assert labels.count("Részletes vázlat készítése") == 1
+    assert len(labels) == 19, f"nem várt gomb(ok) jelentek meg ebben a fázisban: {labels}"
 
 
 def test_no_ai_call_helpers_referenced_by_new_flat_functions():

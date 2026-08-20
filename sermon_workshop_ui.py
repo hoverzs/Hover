@@ -32,7 +32,9 @@ from ruf_bible_service import SOURCE_NAME, fetch_ruf_passage
 from sermon_workshop_data import (
     _ARC_POINT_KEYS,
     accept_arc_candidate,
+    accept_developed_outline_candidate,
     accept_workshop_proposal,
+    discard_developed_outline_candidate,
     add_approved_sermon_decision,
     add_engagement_element,
     discard_arc_candidate,
@@ -264,6 +266,12 @@ from sermon_outline_diagnostics_ai import (
     run_outline_diagnostics,
 )
 from sermon_workshop_arc_ai import build_arc_generation_context, generate_seven_point_arc
+from sermon_workshop_blueprint_ai import generate_sermon_blueprint
+from sermon_workshop_developed_outline_ai import (
+    build_developed_outline_context,
+    generate_developed_outline,
+    is_blueprint_fresh,
+)
 from sermon_workshop_refinement_ai import (
     build_refinement_context,
     generate_field_refinement,
@@ -580,6 +588,59 @@ _ARC_CANDIDATE_REJECT_MESSAGES: dict[str, str] = {
     "context_hash_mismatch": (
         "A bibliai szöveg megváltozott a javaslat elkészülte óta — "
         "változatlanul nem fogadható el."
+    ),
+}
+
+# RESET 2E-4: a kétlépcsős vázlatmotor (blueprint + részletes vázlat)
+# UI-technikai kulcsai és üzenetei. A blueprintnek NINCS candidate-
+# lifecycle-ja (RESET 2E-1/2E-2 szerződés, változatlan) — sikeres
+# generálás közvetlenül a kanonikus `sermon_workshop.blueprint`-et írja.
+# A részletes vázlat viszont KÖTELEZŐEN candidate-only (RESET 2E-1A/
+# 2E-3) — ezt itt a UI sem változtatja meg, csak megjeleníti.
+_KEY_BLUEPRINT_GEN_RUNNING = "_sw_flat_blueprint_gen_running"
+_KEY_OUTLINE_GEN_RUNNING = "_sw_flat_outline_gen_running"
+
+# A `build_developed_outline_context(...).missing_required_fields()`
+# VISSZATÉRÉSI SORRENDJE (igehely -> bibliai szöveg -> homiletikai
+# blueprint -> blueprint kontextusazonosító) pontosan megegyezik a
+# `generate_developed_outline` blokkoló-ellenőrzéseinek sorrendjével —
+# ezért az első hiányzó elem közvetlenül leképezhető ugyanarra a
+# reason-kódra, amit egy tényleges (itt el sem indított) generálási
+# kísérlet adna.
+_MISSING_FIELD_TO_OUTLINE_BLOCK_REASON: dict[str, str] = {
+    "igehely": "missing_reference",
+    "bibliai szöveg": "missing_passage_text",
+    "homiletikai blueprint": "missing_blueprint",
+    "blueprint kontextusazonosító": "missing_blueprint_context_identity",
+}
+
+_DEVELOPED_OUTLINE_BLOCK_MESSAGES: dict[str, str] = {
+    "missing_blueprint": "Előbb készítsd el a homiletikai blueprintet.",
+    "blueprint_stale": (
+        "A blueprint elavult: a kanonikus bemenet megváltozott az "
+        "elkészülte óta — készíts újat, mielőtt részletes vázlatot kérsz."
+    ),
+    "missing_reference": "Hiányzik az igehely a részletes vázlat elkészítéséhez.",
+    "missing_passage_text": "Hiányzik a bibliai szöveg a részletes vázlat elkészítéséhez.",
+    "missing_blueprint_context_identity": (
+        "A blueprint kontextusazonosítója hiányzik — készíts új blueprintet."
+    ),
+}
+
+_DEVELOPED_OUTLINE_CANDIDATE_REJECT_MESSAGES: dict[str, str] = {
+    "no_candidate": "Nincs függőben lévő vázlatjavaslat.",
+    "invalid_candidate": "A vázlatjavaslat sérült — nem fogadható el.",
+    "missing_context_identity": (
+        "A javaslathoz vagy az aktuális igehelyhez nem tartozik kontextus-"
+        "azonosító — nem fogadható el."
+    ),
+    "reference_mismatch": (
+        "A javaslat egy másik igehelyhez készült — nem fogadható el "
+        "ehhez a szöveghez."
+    ),
+    "context_hash_mismatch": (
+        "A blueprint vagy a bibliai szöveg megváltozott a javaslat "
+        "elkészülte óta — változatlanul nem fogadható el."
     ),
 }
 
@@ -12173,6 +12234,288 @@ def _render_flat_legacy_outline_panel() -> None:
         st.markdown(legacy_text)
 
 
+def _render_blueprint_status_and_generate_button(
+    *, generate_fn: GenerateFn | None
+) -> None:
+    """RESET 2E-4: a homiletikai blueprint minimális UI-ja.
+
+    A blueprintnek NINCS candidate-lifecycle-ja (RESET 2E-1/2E-2
+    szerződés, itt sem változik): sikeres generálás közvetlenül a
+    kanonikus `sermon_workshop.blueprint`-et írja, érvénytelen válasz
+    esetén a kanonikus blueprint bit-pontosan változatlan marad — ezt a
+    `generate_sermon_blueprint()` már garantálja, a UI csak megjeleníti
+    az eredményt. A `warnings` mindig látható, ha van tartalma, de itt
+    NINCS "feloldás" — pusztán tájékoztató jelzés a generáláshoz."""
+    sw = ensure_sermon_workshop_state(st.session_state)
+    blueprint = sw.get("blueprint") if isinstance(sw.get("blueprint"), dict) else {}
+    has_blueprint = bool(str(blueprint.get("central_claim") or "").strip())
+    fresh = is_blueprint_fresh(st.session_state) if has_blueprint else False
+    running = bool(st.session_state.get(_KEY_BLUEPRINT_GEN_RUNNING))
+
+    with st.container(border=True):
+        st.markdown("**Homiletikai blueprint**")
+        st.caption(
+            "Belső tervrajz, amely a textus és az igehirdetés eddigi "
+            "tartalmából egyetlen koherens prédikációs logikát alakít ki. "
+            "Nem jelenik meg a végleges vázlatban, de ez alapján készül a "
+            "részletes munkavázlat."
+        )
+        if not has_blueprint:
+            st.info("Még nincs blueprint ehhez az igehelyhez.")
+            label = "Blueprint készítése"
+        elif not fresh:
+            st.warning(
+                "A blueprint elavult: a kanonikus bemenet megváltozott az "
+                "elkészülte óta."
+            )
+            label = "Blueprint újragenerálása"
+        else:
+            st.success("A blueprint friss és elkészült.")
+            label = "Blueprint újragenerálása"
+
+        warnings = blueprint.get("warnings")
+        for warning in warnings if isinstance(warnings, list) else []:
+            st.warning(str(warning))
+
+        if st.button(
+            label,
+            key="sw_flat_blueprint_generate",
+            disabled=running or generate_fn is None,
+        ):
+            if generate_fn is None:
+                st.warning("Az MI-segéd jelenleg nem elérhető.")
+            else:
+                st.session_state[_KEY_BLUEPRINT_GEN_RUNNING] = True
+                try:
+                    with st.spinner("Homiletikai blueprint készül…"):
+                        outcome = generate_sermon_blueprint(
+                            st.session_state, generate_fn=generate_fn
+                        )
+                finally:
+                    st.session_state[_KEY_BLUEPRINT_GEN_RUNNING] = False
+
+                if not outcome.ok:
+                    st.error(outcome.error_message)
+                else:
+                    _toast_and_rerun("A blueprint elkészült.")
+        if generate_fn is None:
+            st.caption("Az MI-segéd jelenleg nem elérhető.")
+
+
+def _render_developed_outline_movement_readonly(index: int, movement: dict) -> None:
+    """Egy vázlat-mozgás read-only megjelenítése — közös a candidate-
+    előnézet és a kanonikus, már elfogadott vázlat megjelenítése között."""
+    title = str(movement.get("title") or "").strip() or f"{index}. mozgás"
+    st.markdown(f"**{index}. {title}**")
+    function = str(movement.get("function") or "").strip()
+    if function:
+        st.caption(function)
+    main_claim = str(movement.get("main_claim") or "").strip()
+    if main_claim:
+        st.markdown(main_claim)
+    development = movement.get("development")
+    for item in development if isinstance(development, list) else []:
+        st.markdown(f"- {item}")
+    for label, field in (
+        ("Exegetikai támasz", "exegetical_support"),
+        ("Eredeti nyelvi támasz", "original_language_support"),
+        ("Történeti/teológiai támasz", "historical_theological_support"),
+    ):
+        items = movement.get(field)
+        items = items if isinstance(items, list) else []
+        if items:
+            st.caption(f"{label}: " + "; ".join(str(item) for item in items))
+    illustration = str(movement.get("illustration_direction") or "").strip()
+    if illustration:
+        st.caption(f"Illusztrációs irány: {illustration}")
+    application = str(movement.get("application_direction") or "").strip()
+    if application:
+        st.caption(f"Alkalmazási irány: {application}")
+    transition = str(movement.get("transition_to_next") or "").strip()
+    if transition:
+        st.caption(f"Átvezetés: {transition}")
+
+
+def _render_developed_outline_candidate_panel() -> None:
+    """RESET 2E-4: readonly előnézet egy függőben lévő `developed_outline_
+    candidate`-re, pontosan két művelettel — az `_render_arc_candidate_
+    panel()` mintája, a részletes-vázlat state-szerződéshez igazítva.
+    Csak akkor jelenik meg, ha van ÉRVÉNYES, tartalommal bíró candidate."""
+    sw = ensure_sermon_workshop_state(st.session_state)
+    candidate = sw.get("developed_outline_candidate")
+    if not isinstance(candidate, dict):
+        return
+    outline = candidate.get("outline")
+    outline = outline if isinstance(outline, dict) else {}
+    movements = outline.get("movements")
+    movements = movements if isinstance(movements, list) else []
+    if not movements:
+        return
+
+    st.divider()
+    with st.container(border=True):
+        st.markdown("**Új részletes vázlatjavaslat**")
+        st.caption(
+            "Ez a javaslat még nem került a kanonikus vázlatba. Nézd át, "
+            "majd vedd át vagy vesd el — a kanonikus vázlat addig "
+            "változatlan marad."
+        )
+        structure_note = str(outline.get("structure_note") or "").strip()
+        if structure_note:
+            st.caption(structure_note)
+        for idx, movement in enumerate(movements, start=1):
+            if isinstance(movement, dict):
+                _render_developed_outline_movement_readonly(idx, movement)
+
+        c1, c2 = st.columns(2)
+        with c1:
+            if st.button(
+                "Vázlat átvétele",
+                type="primary",
+                key="sw_flat_outline_candidate_accept",
+            ):
+                context = build_developed_outline_context(st.session_state)
+                result = accept_developed_outline_candidate(
+                    st.session_state,
+                    reference=context.reference,
+                    context_hash=context.context_hash,
+                )
+                if result["accepted"]:
+                    _toast_and_rerun(
+                        "A részletes vázlat bekerült a kanonikus vázlatba."
+                    )
+                else:
+                    reason = str(result.get("reason") or "")
+                    st.warning(
+                        _DEVELOPED_OUTLINE_CANDIDATE_REJECT_MESSAGES.get(
+                            reason, "A javaslat nem fogadható el."
+                        )
+                    )
+        with c2:
+            if st.button("Vázlat elvetése", key="sw_flat_outline_candidate_discard"):
+                discard_developed_outline_candidate(st.session_state)
+                _toast_and_rerun("A javaslat elvetve.")
+
+
+def _render_developed_outline_canonical_readonly() -> None:
+    """A már elfogadott, kanonikus részletes vázlat read-only
+    megjelenítése. RESET 2E-4-ben NINCS kézi szerkesztő (RESET 2E-5) —
+    ez KIZÁRÓLAG megtekintésre szolgál."""
+    sw = ensure_sermon_workshop_state(st.session_state)
+    outline = sw.get("developed_outline")
+    outline = outline if isinstance(outline, dict) else {}
+    movements = outline.get("movements")
+    movements = movements if isinstance(movements, list) else []
+    if not movements:
+        return
+
+    st.divider()
+    with st.container(border=True):
+        st.markdown("**Részletes prédikációs munkavázlat**")
+        structure_note = str(outline.get("structure_note") or "").strip()
+        if structure_note:
+            st.caption(structure_note)
+        for idx, movement in enumerate(movements, start=1):
+            if isinstance(movement, dict):
+                _render_developed_outline_movement_readonly(idx, movement)
+
+
+def render_flat_developed_outline_section(
+    *, generate_fn: GenerateFn | None = None
+) -> None:
+    """RESET 2E-4: a kétlépcsős vázlatmotor UI-bekötése.
+
+    Két, egymástól FÜGGETLEN, explicit felhasználói művelet — nincs
+    automatikus blueprint -> részletes vázlat láncolás:
+      1. Homiletikai blueprint (nincs candidate-lifecycle, RESET
+         2E-1/2E-2 szerint közvetlenül a kanonikus mezőbe ír sikeres
+         validálás után).
+      2. Részletes vázlat (KÖTELEZŐEN candidate-only, RESET 2E-1A/2E-3
+         szerint — a "Részletes vázlat készítése/újragenerálása" gomb
+         csak érvényes, KANONIKUS ÉS FRISS blueprintnél aktív; blokkoló
+         állapotban a UI ELŐRE jelzi az okot, AI-hívás nélkül).
+    """
+    render_work_section(
+        title="Részletes prédikációs munkavázlat",
+        body=(
+            "Két lépésben készül: előbb egy belső homiletikai blueprint "
+            "alakítja ki a koherens gondolatmenetet, majd ebből készül a "
+            "részletes, szószékre vihető munkavázlat."
+        ),
+        context="Igehirdetési műhely",
+    )
+
+    _render_blueprint_status_and_generate_button(generate_fn=generate_fn)
+
+    sw = ensure_sermon_workshop_state(st.session_state)
+    context = build_developed_outline_context(st.session_state)
+    missing = context.missing_required_fields()
+    if missing:
+        block_reason = _MISSING_FIELD_TO_OUTLINE_BLOCK_REASON.get(
+            missing[0], "missing_blueprint"
+        )
+    elif not is_blueprint_fresh(st.session_state):
+        block_reason = "blueprint_stale"
+    else:
+        block_reason = ""
+
+    running = bool(st.session_state.get(_KEY_OUTLINE_GEN_RUNNING))
+    has_canonical = bool((sw.get("developed_outline") or {}).get("movements"))
+    has_pending_candidate = isinstance(sw.get("developed_outline_candidate"), dict)
+    label = (
+        "Részletes vázlat újragenerálása"
+        if has_canonical or has_pending_candidate
+        else "Részletes vázlat készítése"
+    )
+
+    with st.container(border=True):
+        st.markdown("**Részletes vázlat generálása**")
+        if block_reason:
+            st.caption(_DEVELOPED_OUTLINE_BLOCK_MESSAGES[block_reason])
+        if has_pending_candidate:
+            st.caption(
+                "Az újragenerálás lecseréli a lenti, még el nem bírált "
+                "javaslatot — a kanonikus vázlatot nem érinti."
+            )
+        if st.button(
+            label,
+            type="primary",
+            key="sw_flat_outline_generate",
+            disabled=running or generate_fn is None or bool(block_reason),
+        ):
+            if generate_fn is None:
+                st.warning("Az MI-segéd jelenleg nem elérhető.")
+            else:
+                st.session_state[_KEY_OUTLINE_GEN_RUNNING] = True
+                try:
+                    with st.spinner("Részletes munkavázlat készül…"):
+                        outcome = generate_developed_outline(
+                            st.session_state, generate_fn=generate_fn
+                        )
+                finally:
+                    st.session_state[_KEY_OUTLINE_GEN_RUNNING] = False
+
+                if not outcome.ok:
+                    if outcome.status == "blocked":
+                        st.warning(
+                            _DEVELOPED_OUTLINE_BLOCK_MESSAGES.get(
+                                outcome.reason, outcome.error_message
+                            )
+                        )
+                    else:
+                        st.error(outcome.error_message)
+                else:
+                    _toast_and_rerun(
+                        "Elkészült egy új részletes vázlatjavaslat — nézd "
+                        "át alább."
+                    )
+        if generate_fn is None:
+            st.caption("Az MI-segéd jelenleg nem elérhető.")
+
+    _render_developed_outline_candidate_panel()
+    _render_developed_outline_canonical_readonly()
+
+
 def render_sermon_workshop_shell(
     *,
     generate_fn: GenerateFn | None = None,
@@ -12216,9 +12559,13 @@ def render_sermon_workshop_shell(
 
     _render_flat_legacy_outline_panel()
 
+    st.divider()
+    render_flat_developed_outline_section(generate_fn=generate_fn)
+
 
 __all__ = [
     "render_sermon_workshop_shell",
+    "render_flat_developed_outline_section",
     "flush_sermon_workshop_from_widgets",
     "render_text_core_and_focus_section",
     "render_sermon_main_idea_section",
