@@ -3253,6 +3253,33 @@ def normalize_blueprint_meta(raw: Any) -> dict[str, Any]:
     return {key: _as_str(raw.get(key)) for key in _BLUEPRINT_META_FIELDS}
 
 
+def store_generated_blueprint_result(
+    session_state: MutableMapping[str, Any],
+    *,
+    blueprint: Any,
+    context_hash: str,
+    generated_at: str | None = None,
+) -> dict[str, Any]:
+    """RESET 2E-2: egy frissen elkészült, MÁR VALIDÁLT blueprint tárolása.
+
+    A blueprintnek NINCS candidate életciklusa (ld. a RESET 2E-1 blokk
+    indoklását): belső artefaktum, amit a felhasználó sosem szerkeszt,
+    ezért nincs mit védeni néma felülírástól. A biztonságot az adja, hogy
+    a hívó KIZÁRÓLAG sikeres szemantikai validálás után hívja meg ezt a
+    függvényt — érvénytelen modellválasznál meg sem hívódik, így a
+    korábbi kanonikus blueprint érintetlen marad.
+
+    Nem indít AI-hívást — csak egy kész eredményt tárol el, és frissíti a
+    `blueprint_meta.context_hash`/`generated_at` mezőt."""
+    sw = ensure_sermon_workshop_state(session_state)
+    stamp = _as_str(generated_at) or datetime.now().isoformat(timespec="seconds")
+    sw["blueprint"] = normalize_blueprint(blueprint)
+    sw["blueprint_meta"] = normalize_blueprint_meta(
+        {"context_hash": context_hash, "generated_at": stamp}
+    )
+    return {"blueprint": sw["blueprint"], "blueprint_meta": sw["blueprint_meta"]}
+
+
 _DEVELOPED_MOVEMENT_TEXT_FIELDS: tuple[str, ...] = (
     "key",
     "title",
@@ -3890,6 +3917,7 @@ __all__ = [
     "normalize_blueprint",
     "empty_blueprint_meta",
     "normalize_blueprint_meta",
+    "store_generated_blueprint_result",
     "empty_developed_outline_movement",
     "normalize_developed_outline_movement",
     "normalize_developed_outline_movements",
