@@ -947,3 +947,196 @@ def test_arc_point_keys_come_from_the_data_model_not_duplicated():
     assert len([t for t in bp_ai.ALLOWED_GROUNDED_IN if t.startswith("arc.")]) == len(
         _ARC_POINT_KEYS
     )
+
+
+# =============================================================================
+# RESET 3B-1 — Textusműhely-forrás frissesség ("szűk igehely-ujjlenyomat")
+#
+# A `*_approved_context_hash` mezőket a Textusműhely MÁR MOST is
+# bélyegzi mentéskor/generáláskor (`textus_workshop_data.py`, `app.py`) —
+# ezek a tesztek NEM azt tesztelik, HOGYAN keletkeznek ezek a hash-ek
+# (az egy másik modul felelőssége), hanem hogy `build_blueprint_
+# generation_context` HELYESEN veti-e össze őket az aktuális igehely/
+# textus szűk ujjlenyomatával, és HELYESEN zárja-e ki a stale forrásokat
+# — csendes állapot-módosítás nélkül (a session_state-et sosem törli/
+# írja át, csak SZŰR).
+# =============================================================================
+
+
+def _fresh_hash(state: dict) -> str:
+    """A `state` JELENLEGI igehely/fordítás/textus alapján számított
+    szűk ujjlenyomat — pontosan az, amit egy a `_base_state()` felállítás
+    idején "most" mentett Textusműhely-forrás kapna."""
+    return bp_ai._narrow_passage_identity_hash(
+        reference=state["last_igehely"],
+        bible_translation=state["bible_translation"],
+        passage_text=state["passage_text"],
+    )
+
+
+# -----------------------------------------------------------------------
+# 1-3. Approved text_summary frissesség
+# -----------------------------------------------------------------------
+
+
+def test_o1_fresh_approved_summary_is_used():
+    state = _base_state()
+    _approved_summary(state, approved_context_hash=_fresh_hash(state))
+    context = _context(state)
+    assert context.summary_source == "approved_summary"
+    assert dict(context.text_summary)["main_idea"] == "APPROVED_MAIN_IDEA_SENTINEL"
+
+
+def test_o2_stale_approved_summary_is_not_used_as_approved_source():
+    state = _base_state()
+    _approved_summary(state, approved_context_hash="STALE_HASH_MISMATCH")
+    context = _context(state)
+    assert context.summary_source != "approved_summary"
+
+
+def test_o3_stale_summary_never_enters_context_or_prompt():
+    state = _base_state()
+    _approved_summary(state, approved_context_hash="STALE_HASH_MISMATCH")
+    context = _context(state)
+    assert context.text_summary == ()
+    prompt = bp_ai.build_blueprint_prompt(context)
+    for sentinel in (
+        "APPROVED_MAIN_IDEA_SENTINEL",
+        "APPROVED_TENSION_SENTINEL",
+        "APPROVED_EXEG_SENTINEL",
+        "APPROVED_THEO_SENTINEL",
+        "APPROVED_GENRE_SENTINEL",
+    ):
+        assert sentinel not in prompt, sentinel
+
+
+# -----------------------------------------------------------------------
+# 4-9. Raw fallback mezők frissessége (exegesis / history / original_text)
+# -----------------------------------------------------------------------
+
+
+def test_o4_fresh_raw_exegesis_enters_fallback():
+    state = _base_state()
+    state["exegesis"] = "RAW_EXEGESIS_SENTINEL"
+    state["exegesis_approved_context_hash"] = _fresh_hash(state)
+    context = _context(state)
+    assert dict(context.raw_fallback).get("exegesis") == "RAW_EXEGESIS_SENTINEL"
+
+
+def test_o5_stale_raw_exegesis_is_excluded():
+    state = _base_state()
+    state["exegesis"] = "RAW_EXEGESIS_SENTINEL"
+    state["exegesis_approved_context_hash"] = "STALE_HASH_MISMATCH"
+    context = _context(state)
+    assert "exegesis" not in dict(context.raw_fallback)
+    prompt = bp_ai.build_blueprint_prompt(context)
+    assert "RAW_EXEGESIS_SENTINEL" not in prompt
+    # A session_state-ben a tartalom VÁLTOZATLANUL megmarad — csak a
+    # kontextusból marad ki.
+    assert state["exegesis"] == "RAW_EXEGESIS_SENTINEL"
+
+
+def test_o6_fresh_raw_history_enters_fallback():
+    state = _base_state()
+    state["history"] = "RAW_HISTORY_SENTINEL"
+    state["history_approved_context_hash"] = _fresh_hash(state)
+    context = _context(state)
+    assert dict(context.raw_fallback).get("history") == "RAW_HISTORY_SENTINEL"
+
+
+def test_o7_stale_raw_history_is_excluded():
+    state = _base_state()
+    state["history"] = "RAW_HISTORY_SENTINEL"
+    state["history_approved_context_hash"] = "STALE_HASH_MISMATCH"
+    context = _context(state)
+    assert "history" not in dict(context.raw_fallback)
+    prompt = bp_ai.build_blueprint_prompt(context)
+    assert "RAW_HISTORY_SENTINEL" not in prompt
+
+
+def test_o8_fresh_raw_original_text_enters_fallback():
+    state = _base_state()
+    state["original_text"] = "RAW_ORIGINAL_SENTINEL"
+    state["original_text_approved_context_hash"] = _fresh_hash(state)
+    context = _context(state)
+    assert dict(context.raw_fallback).get("original_text") == "RAW_ORIGINAL_SENTINEL"
+
+
+def test_o9_stale_raw_original_text_is_excluded():
+    state = _base_state()
+    state["original_text"] = "RAW_ORIGINAL_SENTINEL"
+    state["original_text_approved_context_hash"] = "STALE_HASH_MISMATCH"
+    context = _context(state)
+    assert "original_text" not in dict(context.raw_fallback)
+    prompt = bp_ai.build_blueprint_prompt(context)
+    assert "RAW_ORIGINAL_SENTINEL" not in prompt
+
+
+# -----------------------------------------------------------------------
+# 10-11. Reference / passage_text változás stale-lé teszi a korábbi
+#         forrásokat
+# -----------------------------------------------------------------------
+
+
+def test_o10_reference_change_makes_previously_fresh_source_stale():
+    state = _base_state()
+    state["exegesis"] = "RAW_EXEGESIS_SENTINEL"
+    state["exegesis_approved_context_hash"] = _fresh_hash(state)
+
+    # A mentett hash a RÉGI igehelyhez tartozik -- most megváltozik.
+    state["last_igehely"] = "Róm 8,28"
+    state["igehely_input"] = "Róm 8,28"
+
+    context = _context(state)
+    assert "exegesis" not in dict(context.raw_fallback)
+
+
+def test_o11_passage_text_change_makes_previously_fresh_source_stale():
+    state = _base_state()
+    state["exegesis"] = "RAW_EXEGESIS_SENTINEL"
+    state["exegesis_approved_context_hash"] = _fresh_hash(state)
+
+    state["passage_text"] = "Egy teljesen más bibliai szöveg."
+
+    context = _context(state)
+    assert "exegesis" not in dict(context.raw_fallback)
+
+
+# -----------------------------------------------------------------------
+# 12-13. Regresszió: hiányzó hash (visszafelé-kompatibilitás) és
+#         irreleváns state nem befolyásolja a döntést
+# -----------------------------------------------------------------------
+
+
+def test_o12_missing_freshness_hash_is_treated_as_fresh_for_backward_compatibility():
+    """Régi projekt / a mechanizmus bevezetése előtti mentés — nincs
+    `approved_context_hash` -- ez NEM minősül stale-nek, a meglévő
+    viselkedés (RESET 2E-2) változatlan marad."""
+    state = _base_state()
+    _approved_summary(state)  # nincs approved_context_hash override
+    context = _context(state)
+    assert context.summary_source == "approved_summary"
+
+    state2 = _base_state()
+    state2["exegesis"] = "RAW_EXEGESIS_SENTINEL"  # nincs *_approved_context_hash
+    context2 = _context(state2)
+    assert dict(context2.raw_fallback).get("exegesis") == "RAW_EXEGESIS_SENTINEL"
+
+
+def test_o13_candidate_and_ui_state_do_not_affect_freshness_decision():
+    state = _base_state()
+    state["exegesis"] = "RAW_EXEGESIS_SENTINEL"
+    state["exegesis_approved_context_hash"] = _fresh_hash(state)
+
+    set_arc_candidate(
+        state,
+        points={k: {"text": "X"} for k in _ARC_POINT_KEYS},
+        reference="Ef 2,4-10",
+        context_hash="H1",
+    )
+    state["_sw_ui_resync"] = True
+    state["ui_mode"] = "workshop"
+    state["quick_tools_active_tab"] = 3
+
+    context = _context(state)
+    assert dict(context.raw_fallback).get("exegesis") == "RAW_EXEGESIS_SENTINEL"

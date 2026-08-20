@@ -27,14 +27,25 @@ kerülhet. El nem fogadott MI-javaslat SOHA — sem `arc_candidate`, sem
 `field_refinements`, sem `text_summary.suggestions`, sem
 `developed_outline_candidate`, sem a legacy `arc.*.ai_suggestion`.
 
-TEXTUSMŰHELY-ÁTADÁS: ha van JÓVÁHAGYOTT (`status == "approved"`)
+TEXTUSMŰHELY-ÁTADÁS: ha van JÓVÁHAGYOTT (`status == "approved"`) ÉS FRISS
 `text_summary`, akkor az az elsődleges — és egyben KIZÁRÓLAGOS —
 Textusműhely-kontextus; ilyenkor a nyers `overview`/`exegesis`/`history`/
 `theology`/`original_text` blobok NEM kerülnek a promptba. Ez csökkenti a
 prompt zaját és megakadályozza a már elvetett vagy megalapozatlan
-információ visszaszivárgását. Jóváhagyott összegzés hiányában kontrollált,
-CÍMKÉZETT fallback történik a nyers mezőkre — a prompt ilyenkor
-explicit tudja, hogy ez NEM jóváhagyott anyag.
+információ visszaszivárgását. Jóváhagyott (vagy jóváhagyott, de STALE)
+összegzés hiányában kontrollált, CÍMKÉZETT fallback történik a nyers
+mezőkre — de KIZÁRÓLAG azokra, amelyek maguk is frissek — a prompt
+ilyenkor explicit tudja, hogy ez NEM jóváhagyott anyag.
+
+RESET 3B-1 — FRISSESSÉG: a `text_summary.approved_context_hash` és az
+egyes nyers mezők `{mező}_approved_context_hash`-e (mindkettőt a
+Textusműhely már MOST is bélyegzi mentéskor/generáláskor, ld.
+`textus_workshop_data.py`/`app.py`) az AKTUÁLIS igehely/fordítás/bibliai
+szöveg szűk ujjlenyomatával kerül összevetésre. Egy STALE forrás — akár
+jóváhagyott, akár nyers — SOSEM kerül csendben a blueprint kontextusába;
+sem a session_state-ből nem törlődik, sem nem íródik át, csak kimarad a
+felhasznált anyagból. Ld. `_narrow_passage_identity_hash`/`_is_narrow_
+context_fresh`/`build_blueprint_generation_context`.
 """
 
 from __future__ import annotations
@@ -224,6 +235,58 @@ def _s(value: Any) -> str:
     return value.strip() if isinstance(value, str) else ""
 
 
+# =============================================================================
+# RESET 3B-1 — Textusműhely-forrás frissesség ("szűk igehely-ujjlenyomat")
+#
+# A Textusműhely szekciói (`exegesis`, `history`, `theology`,
+# `original_text`, `overview`) és a `text_summary` MÁR MOST is bélyegeznek
+# egy "szűk igehely-ujjlenyomatot" MENTÉSKOR/GENERÁLÁSKOR — ezt a MEGLÉVŐ
+# kontraktust a `sermon_outline_engine.compute_passage_context_hash`
+# rögzíti (SHA1[:16], a {passage_reference, bible_translation,
+# passage_text} rendezett JSON-ján), és ezt írja be a hívó (`app.py`
+# `render_section_tab`, `textus_workshop_data.update_text_main_idea`/
+# `update_text_summary_fields`) a `{mező}_approved_context_hash` /
+# `text_summary.approved_context_hash` mezőkbe.
+#
+# EZ a modul (`sermon_workshop_blueprint_ai`) SZÁNDÉKOSAN NEM importál
+# `sermon_outline_engine`-t (ld. a modul-izolációs teszt,
+# `test_blueprint_module_is_independent_of_other_ai_modules`) — ezért az
+# ÖSSZEHASONLÍTÁSHOZ szükséges "friss" oldali hash-t ITT, önállóan
+# számítjuk, DE UGYANAZZAL a payload-alakkal és algoritmussal, mint a
+# `compute_passage_context_hash` — ez NEM új, párhuzamos hash-SÉMA, hanem
+# a MEGLÉVŐ kontraktus tükrözése modul-határon át, hogy a blueprint réteg
+# össze tudja mérni a MÁR TÁROLT `*_approved_context_hash` értékeket az
+# aktuális igehellyel/textussal anélkül, hogy a legacy motorra épülne.
+# =============================================================================
+
+
+def _narrow_passage_identity_hash(
+    *, reference: str, bible_translation: str, passage_text: str
+) -> str:
+    """A `sermon_outline_engine.compute_passage_context_hash` payload-
+    alakjának és algoritmusának tükrözése — lásd a fenti modulszintű
+    megjegyzést."""
+    payload = {
+        "passage_reference": _s(reference),
+        "bible_translation": _s(bible_translation),
+        "passage_text": _s(passage_text),
+    }
+    raw = json.dumps(payload, ensure_ascii=False, sort_keys=True)
+    return hashlib.sha1(raw.encode("utf-8")).hexdigest()[:16]
+
+
+def _is_narrow_context_fresh(stored_hash: Any, current_hash: str) -> bool:
+    """True, ha a MENTETT szűk igehely-ujjlenyomat még megegyezik az
+    aktuálissal, VAGY ha nincs mentett ujjlenyomat (régi projekt / a
+    mechanizmus bevezetése előtti mentés) — ugyanaz a visszafelé-
+    kompatibilis döntés, mint a `sermon_outline_engine._canonical_source_
+    is_stale`-ben: hiányzó hash SOHA nem minősül stale-nek."""
+    stored = _s(stored_hash)
+    if not stored:
+        return True
+    return stored == current_hash
+
+
 def build_blueprint_generation_context(
     session_state: Mapping[str, Any],
 ) -> BlueprintContext:
@@ -231,19 +294,40 @@ def build_blueprint_generation_context(
 
     Prioritás (RESET 2E-2, 4. pont): bibliai textus/igehely -> a textus fő
     gondolata -> az igehirdetés fókuszmondata -> a hét arc-pont -> a
-    JÓVÁHAGYOTT textusösszegzés -> és csak szükség esetén a kontrollált
-    nyers fallback.
+    JÓVÁHAGYOTT ÉS FRISS textusösszegzés -> és csak szükség esetén a
+    kontrollált, egyenként FRISS nyers fallback-mezők.
 
     El nem fogadott MI-javaslatot SOSEM olvas: sem `arc_candidate`, sem
     `field_refinements`, sem `text_summary.suggestions`, sem
     `developed_outline_candidate`, sem a legacy `arc.*.ai_suggestion`
-    mezőt — kizárólag az `arc.*.text` kanonikus tartalmat."""
+    mezőt — kizárólag az `arc.*.text` kanonikus tartalmat.
+
+    RESET 3B-1 — FRISSESSÉG: sem a jóváhagyott `text_summary`, sem
+    EGYETLEN nyers fallback-mező sem kerülhet csendben a kontextusba, ha a
+    hozzá tartozó `*_approved_context_hash` MÁR NEM egyezik az aktuális
+    igehely/fordítás/bibliai szöveg szűk ujjlenyomatával (ld. a
+    `_narrow_passage_identity_hash`/`_is_narrow_context_fresh` fenti
+    modulszintű megjegyzését). Egy JÓVÁHAGYOTT, DE STALE `text_summary`
+    NEM használható jóváhagyott forrásként — ilyenkor a függvény ÚGY
+    viselkedik, mintha nem lenne jóváhagyott összegzés: a kontrollált,
+    egyenként friss nyers fallback-ra esik vissza (vagy `"none"`-ra, ha
+    abból sincs friss). Ez SZÁNDÉKOS döntés (nem blokkolás): a blueprint
+    generálása így is folytatható a textus/arc-tartalomból, ahogy eddig
+    is optionális volt a Textusműhely-anyag hiánya — csak a STALE anyag
+    nem szivároghat be csendben. A session_state-ben tárolt adatot ez a
+    függvény sosem törli vagy módosítja — tisztán OLVASÁSI/szűrési
+    döntés."""
     reference = _first_nonempty_str(session_state, "last_igehely", "igehely_input")
     passage_text = _first_nonempty_str(
         session_state, "passage_text", "passage_text_input"
     )
     bible_translation = (
         _first_nonempty_str(session_state, "bible_translation") or "RÚF 2014"
+    )
+    current_narrow_hash = _narrow_passage_identity_hash(
+        reference=reference,
+        bible_translation=bible_translation,
+        passage_text=passage_text,
     )
 
     tw = session_state.get("text_workshop")
@@ -265,17 +349,20 @@ def build_blueprint_generation_context(
         if text:
             arc_points.append((key, text))
 
-    # Textusműhely-átadás: jóváhagyott összegzés KIZÁRÓLAGOSAN, egyébként
-    # kontrollált, címkézett fallback.
+    # Textusműhely-átadás: jóváhagyott ÉS FRISS összegzés KIZÁRÓLAGOSAN,
+    # egyébként kontrollált, egyenként FRISS nyers fallback.
     summary_raw = tw.get("text_summary")
     summary_raw = summary_raw if isinstance(summary_raw, dict) else {}
     approved = _s(summary_raw.get("status")) == "approved"
+    summary_fresh = _is_narrow_context_fresh(
+        summary_raw.get("approved_context_hash"), current_narrow_hash
+    )
 
     text_summary: list[tuple[str, str]] = []
     raw_fallback: list[tuple[str, str]] = []
     exegesis_warnings: list[str] = []
 
-    if approved:
+    if approved and summary_fresh:
         for field in _TEXT_SUMMARY_FIELDS:
             value = _s(summary_raw.get(field))
             if value:
@@ -286,7 +373,10 @@ def build_blueprint_generation_context(
     else:
         for field in _RAW_FALLBACK_FIELDS:
             value = _first_nonempty_str(session_state, field)
-            if value:
+            if value and _is_narrow_context_fresh(
+                session_state.get(f"{field}_approved_context_hash"),
+                current_narrow_hash,
+            ):
                 raw_fallback.append((field, value))
         summary_source = "raw_fallback" if raw_fallback else "none"
         # Az exegézis megalapozottsági figyelmeztetései CSAK akkor
