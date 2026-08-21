@@ -11,8 +11,10 @@
   background: transparent;
   border: 0;
   border-radius: 0.25rem;
-  /* Görög szó — sötétzöld, kb. 6.2:1 kontraszt a világos háttéren. */
-  color: #166534;
+  /* A nyers forrásszöveg semleges/normál szövegszínű — a szín csak az
+     elemzésben kiemelt (kijelölt) szóra kerül, ld. [aria-pressed="true"]
+     lentebb. */
+  color: inherit;
   cursor: pointer;
   display: inline-block;
   font: inherit;
@@ -53,6 +55,9 @@
 }
 
 .greek-token[aria-pressed="true"] {
+  /* Az elemzésben kiemelt (kijelölt) szó — sötétzöld, kb. 6.2:1 kontraszt
+     a világos háttéren. */
+  color: #166534;
   background: color-mix(in srgb, var(--st-primary-color, #ff4b4b) 16%, transparent);
   box-shadow: inset 0 -0.08em 0 var(--st-primary-color, #ff4b4b);
 }

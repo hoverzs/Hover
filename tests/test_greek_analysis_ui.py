@@ -1138,6 +1138,11 @@ def test_key_prefix_separates_session_state_keys() -> None:
 
 # ---------------------------------------------------------------------------
 # RESET 2D-A (2026-08-19): görög = zöld / héber = kék token-kiemelés.
+# LOCAL MANUAL QA FIX, Phase A (2026-08-21): a nyers forrásszöveg (az
+# ALAP `.hebrew-token`/`.greek-token` szabály) mostantól semleges színű
+# (`color: inherit`) — a szín csak az elemzésben kiemelt, KIJELÖLT szóra
+# kerül (`[aria-pressed="true"]`), ami a lenti morfológiai kártyát
+# vezérli. A token-kattinthatóság, az RTL működés és a font változatlan.
 #
 # Statikus fájlteszt ÉS aktív renderelési teszt is: az utóbbi a VALÓDI
 # render-útvonalat futtatja (`render_greek_analysis_block` -> a nyelv
@@ -1148,26 +1153,46 @@ def test_key_prefix_separates_session_state_keys() -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_greek_token_css_file_defines_accessible_green_not_inherit() -> None:
+def test_greek_raw_token_base_rule_is_neutral_not_hardcoded_green() -> None:
     css_path = ROOT / "components" / "greek_token_selector" / "frontend" / "style.css"
     css = css_path.read_text(encoding="utf-8")
     token_rule_start = css.index(".greek-token {")
     token_rule_end = css.index("}", token_rule_start)
     token_rule = css[token_rule_start:token_rule_end]
 
-    assert "color: inherit" not in token_rule
-    assert "color: #166534" in token_rule
+    assert "color: inherit" in token_rule
+    assert "color: #166534" not in token_rule
 
 
-def test_hebrew_token_css_file_defines_accessible_blue_not_inherit() -> None:
+def test_greek_selected_token_rule_keeps_accessible_green() -> None:
+    css_path = ROOT / "components" / "greek_token_selector" / "frontend" / "style.css"
+    css = css_path.read_text(encoding="utf-8")
+    selected_start = css.index('.greek-token[aria-pressed="true"] {')
+    selected_end = css.index("}", selected_start)
+    selected_rule = css[selected_start:selected_end]
+
+    assert "color: #166534" in selected_rule
+
+
+def test_hebrew_raw_token_base_rule_is_neutral_not_hardcoded_blue() -> None:
     css_path = ROOT / "components" / "hebrew_token_selector" / "frontend" / "style.css"
     css = css_path.read_text(encoding="utf-8")
     token_rule_start = css.index(".hebrew-token {")
     token_rule_end = css.index("}", token_rule_start)
     token_rule = css[token_rule_start:token_rule_end]
 
-    assert "color: inherit" not in token_rule
-    assert "color: #1e40af" in token_rule
+    assert "color: inherit" in token_rule
+    assert "color: #1e40af" not in token_rule
+
+
+def test_hebrew_selected_token_rule_keeps_accessible_blue() -> None:
+    css_path = ROOT / "components" / "hebrew_token_selector" / "frontend" / "style.css"
+    css = css_path.read_text(encoding="utf-8")
+    selected_start = css.index('.hebrew-token[aria-pressed="true"] {')
+    selected_end = css.index("}", selected_start)
+    selected_rule = css[selected_start:selected_end]
+
+    assert "color: #1e40af" in selected_rule
 
 
 def test_greek_token_selector_delivers_green_css_through_real_render_path(
