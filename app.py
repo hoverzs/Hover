@@ -106,6 +106,9 @@ from bible_engine.greek_token_repository import load_greek_passage_tokens
 from bible_engine.morphology_hu import parse_morphology_hu
 from bible_engine.hebrew_books import HebrewReferenceError, parse_hebrew_reference
 from bible_engine.hebrew_token_repository import HebrewTokenRepository
+from bible_engine.original_language_grounding_check import (
+    check_original_language_grounding,
+)
 from passage_search_history import invalidate_used_passage_cache
 from passage_search_ui import (
     apply_pending_passage_search_before_widget,
@@ -4577,6 +4580,27 @@ SECTIONS_WITH_GOOGLE_SEARCH = {"actualization"}
 # "vers" szó előtt VAGY után) és görög/héber írásjel jelenlétét keresi — a
 # régi mezőnevekre is illeszkedik, ha mégis előfordulnának.
 
+# RESET 3B-6a: ez a három kulcs SOSEM része a mentett project_data-nak —
+# tisztán futásidejű, generáláskor újraszámított állapot (ld. `generate_
+# section`/`render_original_text_panel`). Éppen ezért NINCS bent a
+# `WORKSPACE_STR_KEYS`/`WORKSPACE_LIST_KEYS`-ben (workspace_data.py) sem —
+# a tartalom-visszaállító útvonalaknak (projektváltás, workspace-törlés,
+# workspace-import) EXPLICIT módon kell nullázniuk, különben egy korábbi
+# projekt/állapot figyelmeztetése szivárogna át az új (vagy üres) tartalom
+# alá. `exegesis_support_warnings` a RESET 3B-6 előttről öröklött, azonos
+# hibamintájú kulcs — ugyanitt, ugyanúgy nullázzuk.
+_LANGUAGE_GROUNDING_WARNING_KEYS = (
+    "exegesis_support_warnings",
+    "exegesis_grounding_warnings",
+    "original_text_grounding_warnings",
+)
+
+
+def _reset_language_grounding_warnings() -> None:
+    for warning_key in _LANGUAGE_GROUNDING_WARNING_KEYS:
+        st.session_state[warning_key] = []
+
+
 _EXEGESIS_SUPPORT_EXEMPT_HEADINGS = {"prédikációs haszon"}
 
 _EXEGESIS_SUPPORT_PATTERN = re.compile(
@@ -4666,6 +4690,16 @@ def generate_section(key: str) -> bool:
             st.session_state[f"{key}_support_warnings"] = (
                 validate_exegesis_has_support(st.session_state[key])
             )
+            # RESET 3B-6: ADDITÍV második réteg — a meglévő jelenlét-
+            # alapú `validate_exegesis_has_support` VÁLTOZATLAN marad,
+            # ez egy külön, tartalmi grounding cross-check, külön
+            # session-kulcsban, sosem blokkol.
+            st.session_state[f"{key}_grounding_warnings"] = [
+                w.message
+                for w in check_original_language_grounding(
+                    st.session_state[key], st.session_state.get("last_igehely", "")
+                )
+            ]
     return True
 
 
@@ -4770,6 +4804,13 @@ def render_section_tab(
             for w in support_warnings:
                 st.warning(w)
 
+        # RESET 3B-6: ADDITÍV második réteg a `support_warnings` mellett —
+        # csak az exegézis tölti fel, más szekciónál mindig üres/hiányzó.
+        grounding_warnings = st.session_state.get(f"{key}_grounding_warnings")
+        if grounding_warnings:
+            for w in grounding_warnings:
+                st.warning(w)
+
         if approvable and has_result:
             st.caption(
                 "Ez a tartalom automatikusan elérhető az Igehirdetési "
@@ -4826,6 +4867,10 @@ def deserialize_workspace(raw_bytes):
     for nested in (TEXT_WORKSHOP_KEY, SERMON_WORKSHOP_KEY, OCCASION_CONTEXT_KEY):
         if nested in obj:
             st.session_state[nested] = obj[nested]
+    # RESET 3B-6a: az importált fájl sosem tartalmazza ezeket (tisztán
+    # futásidejű állapot) — a betöltés előtti, esetleg más tartalomhoz
+    # tartozó figyelmeztetések ne maradjanak bent az importált szöveg alatt.
+    _reset_language_grounding_warnings()
     # Titkok soha ne kerüljenek vissza
     for secret_key in ("api_key", "api_key_input"):
         if secret_key in st.session_state and secret_key in (obj or {}):
@@ -4990,6 +5035,11 @@ def _apply_project_data_to_session(project_data: dict) -> None:
             st.session_state[key] = int(raw)
         except (TypeError, ValueError):
             st.session_state[key] = 4
+    # RESET 3B-6a: ezek sosem részei a project_data-nak (tisztán
+    # futásidejű állapot) — projektváltáskor MINDIG nullázódniuk kell,
+    # különben az előző projekt figyelmeztetése szivárogna át az új
+    # (vagy üres) exegézis/eredeti szöveg tartalom alá.
+    _reset_language_grounding_warnings()
     # Régi projektek: hiányzó text_workshop → alapértelmezett struktúra
     if TEXT_WORKSHOP_KEY in project_data:
         st.session_state[TEXT_WORKSHOP_KEY] = normalize_text_workshop(
@@ -5315,6 +5365,9 @@ def _clear_workspace_content() -> None:
         st.session_state[k] = ""
     for k in WORKSPACE_LIST_KEYS:
         st.session_state[k] = []
+    # RESET 3B-6a: ezek sosem részei a workspace-nek (tisztán futásidejű
+    # állapot) — üresítéskor MINDIG nullázódniuk kell.
+    _reset_language_grounding_warnings()
     for k in ("series_cadence",):
         st.session_state[k] = "vasárnapi"
     st.session_state["series_weeks"] = 4
@@ -7547,6 +7600,19 @@ def render_original_text_panel() -> None:
                     finally:
                         st.session_state["_original_running"] = False
                     st.session_state["original_text_status"] = "draft"
+                    _orig_result = st.session_state["original_text"]
+                    # RESET 3B-6: post-hoc grounding cross-check — csak
+                    # sikeres (nem hiba-/félbeszakadt) eredményre fut,
+                    # SOSEM blokkol, csak figyelmeztetést tárol el.
+                    if _orig_result.startswith(("⚠️", "⏳")):
+                        st.session_state["original_text_grounding_warnings"] = []
+                    else:
+                        st.session_state["original_text_grounding_warnings"] = [
+                            w.message
+                            for w in check_original_language_grounding(
+                                _orig_result, _igehely_now
+                            )
+                        ]
                     # Korrekciós fázis 3.1: generáláskori ujjlenyomat, ld.
                     # render_section_tab ugyanezen mintája.
                     from sermon_outline_engine import (
@@ -7573,6 +7639,13 @@ def render_original_text_panel() -> None:
                     "műhely vázlatmotora számára — külön jóváhagyás nem "
                     "szükséges."
                 )
+
+                # RESET 3B-6: non-blocking grounding figyelmeztetések — az
+                # output mentése/felhasználása ettől függetlenül működik.
+                for _grounding_warning in st.session_state.get(
+                    "original_text_grounding_warnings", []
+                ):
+                    st.warning(_grounding_warning)
 
         else:
             render_info_panel(
