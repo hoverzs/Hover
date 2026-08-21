@@ -74,31 +74,35 @@ _PROMPTS = _load_prompts()
 
 
 def test_1_theology_prompt_forbids_inventing_catechism_question_numbers():
+    # LOCAL MANUAL QA FIX (2026-08-21): a manuális teszt (1Móz 32,23-32)
+    # kimutatta, hogy a "csak ha nagy biztonsággal rendelkezel" feltételes
+    # szabály NEM volt elég szigorú -- a modell tovább is konkrét HK-
+    # kérdésszámot generált. A szabály mostantól ALAPÉRTELMEZETT TILTÁS,
+    # nem feltételes engedély.
     theology = _PROMPTS["theology"]
     assert (
-        "(SOHA ne\n  találj ki kérdés-számot, fejezetszámot vagy szó "
-        "szerinti idézetet —\n  ld. lentebb a bizonytalanság-fegyelmi "
-        "szabályt)" in theology
+        "ALAPÉRTELMEZETTEN NE adj meg konkrét hitvallási\nhivatkozást — "
+        "Heidelbergi Káté kérdésszámot, II. Helvét Hitvallás"
+        in theology
     )
     assert (
-        "kérdésszámot, II. Helvét Hitvallás fejezetszámát vagy "
-        "dokumentumpontját,\nilletve szó szerinti vagy kvázi-szó "
-        "szerinti idézetet — KIZÁRÓLAG akkor\nemlíts" in theology
+        'saját emlékezetből felidézett szám ÉPP OLYAN ellenőrizetlen, '
+        "mint egy\nkitalált." in theology
     )
 
 
 def test_2_theology_prompt_forbids_uncertain_confession_chapter_reference():
     theology = _PROMPTS["theology"]
     assert (
-        "II. Helvét Hitvallás fejezetszámát vagy dokumentumpontját"
+        "II. Helvét Hitvallás\nfejezetszámát vagy dokumentumpontját"
         in theology
     )
-    assert "NE találj ki helyette" in theology
+    assert "MERT nincs grounded" in theology
 
 
 def test_3_theology_prompt_forbids_fabricated_quotes():
     theology = _PROMPTS["theology"]
-    assert "kvázi-szó szerinti idézetet" in theology
+    assert "kvázi-szó\nszerinti idézetet" in theology
     assert "hamis idézetet a szószéken" in theology
 
 
@@ -120,11 +124,14 @@ def test_4_theology_prompt_forbids_uncertain_theologian_attribution():
 
 def test_5_theology_prompt_explicitly_allows_more_general_phrasing():
     theology = _PROMPTS["theology"]
-    assert "fogalmazz\nÁLTALÁNOSABBAN" in theology
     assert (
-        '(pl. "a református hitvallási hagyomány hangsúlyozza..."\n'
-        "egy konkrét, bizonytalan kérdésszám vagy fejezethivatkozás "
-        "helyett)" in theology
+        "Csak a REFORMÁTUS HITVALLÁSI HAGYOMÁNY TARTALMÁT/TANÍTÁSÁT\n"
+        "fogalmazd meg, szám vagy idézet nélkül" in theology
+    )
+    assert (
+        '(pl. "a református hitvallási\nhagyomány hangsúlyozza..." '
+        "egy konkrét kérdésszám vagy fejezethivatkozás\nhelyett)"
+        in theology
     )
 
 
@@ -154,9 +161,13 @@ def test_6_theology_prompt_forbids_presenting_contested_view_as_the_reformed_pos
 
 
 def test_7_theology_prompt_explicitly_allows_omitting_a_detail():
+    # LOCAL MANUAL QA FIX: a szabály mostantól nem "generalizálj VAGY
+    # hagyd ki" választást ad, hanem egyenesen elhagyja a konkrét
+    # hivatkozást (szám/idézet) alapból -- a hiányzó konkrétum explicit
+    # jobbnak van jelölve a bizonytalan adatnál.
     theology = _PROMPTS["theology"]
-    assert "egyszerűen HAGYD KI a konkrétumot" in theology
-    assert "A hiányzó hivatkozás MINDIG jobb, mint" in theology
+    assert "fogalmazd meg, szám vagy idézet nélkül" in theology
+    assert "A hiányzó hivatkozás MINDIG jobb,\nmint" in theology
 
 
 def test_uncertainty_disclosure_is_framed_as_required_discipline_not_weakness():

@@ -199,3 +199,100 @@ def test_9_theology_and_overview_prompts_have_no_history_hardening_text():
         prompt = _PROMPTS[key]
         assert "BIZONYTALANSÁG-FEGYELEM (KÖTELEZŐ, RÉSZLETES SZABÁLY" not in prompt
         assert 'NE gyárts mesterséges régészeti "érdekességet"' not in prompt
+
+
+# =============================================================================
+# LOCAL MANUAL QA FIX (2026-08-21) — konkrét, az 1Móz 32,23-32 kézi teszt
+# valós kimenete alapján azonosított túlzott-bizonyosság kategóriák
+# explicit óvatosságra kényszerítve.
+# =============================================================================
+
+
+def test_10_concrete_examples_block_is_present():
+    history = _PROMPTS["history"]
+    assert (
+        "KONKRÉT PÉLDÁK arra, ami ÁLTALÁBAN NEM alaptankönyvi szintű, "
+        "hanem" in history
+    )
+
+
+def test_11_precise_date_range_dating_flagged_as_example():
+    history = _PROMPTS["history"]
+    assert (
+        '(pl. "középső\n  bronzkorra, kb. Kr. e. 2000-1550 közé '
+        'datálják")' in history
+    )
+
+
+def test_12_modern_archaeological_site_identification_flagged_as_example():
+    history = _PROMPTS["history"]
+    assert (
+        "egy adott bibliai helyszín MODERN régészeti lelőhellyel való"
+        in history
+    )
+
+
+def test_13_cult_dominance_claims_flagged_as_example():
+    history = _PROMPTS["history"]
+    assert '"a\n  Baal/Aséra-kultusz uralta a vallási életet"' in history
+
+
+def test_14_detailed_social_political_reconstruction_flagged_as_example():
+    history = _PROMPTS["history"]
+    assert (
+        "részletes társadalmi/gazdasági/politikai REKONSTRUKCIÓ" in history
+    )
+
+
+def test_15_hedging_language_examples_given():
+    history = _PROMPTS["history"]
+    assert "MINDIG óvatosító nyelvet" in history
+    assert '"egyes kutatók szerint", "feltételezhetően", "a leletek' in history
+
+
+def test_16_concrete_examples_do_not_leak_into_other_sections():
+    for key in ("exegesis", "theology", "overview"):
+        prompt = _PROMPTS[key]
+        assert "KONKRÉT PÉLDÁK arra, ami" not in prompt
+        assert "Baal/Aséra-kultusz" not in prompt
+
+
+# =============================================================================
+# LOCAL QA — Phase D/E real-model validation (2026-08-21): a KONKRÉT
+# PÉLDÁK blokk önmagában NEM akadályozta meg, hogy a modell (valós Gemini-
+# hívással, 1Móz 32,23-32-n) szó szerint a felsorolt hibamintákat
+# reprodukálja (pl. "A mai Zarqa folyóval azonosítják" hedge nélkül). Az
+# alábbi szabály az óvatosító szót UGYANAHHOZ A MONDATHOZ köti, nem csak
+# valahol a válaszban általánosságban.
+# =============================================================================
+
+
+def test_17_hedge_word_required_in_same_sentence_as_claim():
+    history = _PROMPTS["history"]
+    assert "UGYANABBAN A MONDATBAN" in history
+
+
+def test_18_negative_and_positive_example_pair_given():
+    history = _PROMPTS["history"]
+    assert "NE írj ilyen mondatot" in history
+    assert "EHELYETT" in history
+    assert "bár ez vitatott" in history
+
+
+# =============================================================================
+# LOCAL QA — Phase E closing round (2026-08-21): a fenti szabály sem
+# akadályozta meg, hogy a valós output hedge nélkül állítson konkrét
+# nagyhatalmi politikai befolyást (pl. "Egyiptom, Mari... befolyása alatt
+# álltak") — külön, saját negatív/pozitív példapár a rekonstrukció-
+# kategóriához is.
+# =============================================================================
+
+
+def test_19_political_influence_reconstruction_has_its_own_example_pair():
+    history = _PROMPTS["history"]
+    assert (
+        '"a térség X nagyhatalom befolyása alatt állt" — EHELYETT:\n'
+        '"a térség feltehetően X nagyhatalom befolyási övezetébe tartozott, '
+        "bár\nennek pontos mértéke vitatott"
+        in history
+    )
