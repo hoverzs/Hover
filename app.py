@@ -3538,6 +3538,50 @@ olyanokat válassz, amelyek:
 - lemma vagy morfológiai kód szerint feltűnő kontrasztban állnak egymással,
 - olyan jelentésréteget hordoznak, ami a szóalak/lemma szintjén megmutatható.
 
+FEGYELEM SZÓNKÉNT — MIKROSZERKEZET (bár nem feltétlenül külön címkével,
+hanem a mondat felépítésével): (1) szóalak + lemma + alapjelentés EGY
+mondatban; (2) mit végez EBBEN a mondatban (funkció) EGY mondatban; (3)
+legfeljebb EGY rövid mondat exegetikai jelentőség, DE csak akkor, ha ez
+ténylegesen indokolt — ha nincs érdemi exegetikai súlya, hagyd ki ezt a
+harmadik mondatot, és álljon meg a szó tárgyalása 2 mondatnál. Egy
+kiválasztott szóhoz ALAPÉRTELMEZETTEN LEGFELJEBB 3 rövid mondat tartozik.
+4. mondat KIVÉTELESEN megengedett, kizárólag akkor, ha a nyelvi adat
+(pl. egy összetett morfológiai szerkezet több elemre bontása) ezt
+ténylegesen megköveteli — ne írj mini-exegézist vagy a szakasz egészének
+teológiai üzenetét minden egyes szó alatt újra kifejtve.
+
+NE tulajdoníts nagy, önálló teológiai vagy exegetikai következtetést
+PUSZTÁN egy szó jelentéséből — egyetlen szó szemantikai mezeje önmagában
+ritkán hordoz akkora súlyt, amennyit egy lelkesen kifejtett bekezdés
+sugallna; a jelentés-magyarázat maradjon arányos a szó tényleges
+szerepével a mondatban. Kerüld, hogy UGYANAZT a gondolatot több kiemelt
+szó alatt is megismételd — ha két szó lényegében ugyanarra a
+megfigyelésre vezetne, csak az egyiknél fejtsd ki, a másiknál legfeljebb
+utalj vissza rá, vagy hagyd ki.
+
+VITATOTT IDENTITÁSI KÉRDÉS NEM DÖNTHETŐ EL NYELVI ESZKÖZZEL: ha egy
+szereplő vagy alak kiléte (pl. egy titokzatos szereplő isteni/emberi/
+angyali volta) a szövegből önmagában nem egyértelműen eldöntött, TILOS
+flat, kész tényként megnevezni (pl. TILOS: "az isteni lény", "Isten
+itt...", "mint isteni jelenlét"), ha ezt maga a KIEMELT szóalak/lemma
+önmagában nem bizonyítja. Ehelyett semleges, a szövegre magára hagyatkozó
+megnevezést használj (pl. "a Jákóbbal küzdő alak", "a szövegben szereplő
+titokzatos küzdő fél"), és csak akkor jelezd az isteni dimenziót, ha ezt
+a TELJES szöveg (pl. egy KÜLÖN, arra utaló szó vagy kifejezés) ténylegesen
+alátámasztja — ekkor is inkább leíró módon (pl. "a narratíva később isteni
+dimenzióval kapcsolja össze a találkozást"), nem kész azonosításként. Ez a
+modul nyelvi elemzés, NEM teológiai identitásdöntés — a vitatott olvasatok
+mérlegelése más modul (Exegézis) feladata.
+
+NE TÚLOZD EL A SZÓETIMOLÓGIÁT: egy lemma jelentését NE bővítsd ki
+rokongyökök, hangzásbeli asszociációk vagy későbbi teológiai kapcsolatok
+alapján úgy, mintha azok a szó közvetlen lexikai jelentéséhez tartoznának.
+Pl. a שׂרה gyöknél a "küzd / harcol / felülkerekedik" jellegű jelentés
+tárgyalható, de az olyan gloss, mint "fejedelmi módon", "uralkodóként",
+CSAK akkor jelenhet meg, ha ezt a helyi lexikai/token-adat ténylegesen
+támogatja — ne vezess le szójelentést pusztán egy rokon alak vagy hasonló
+hangzású szó alapján.
+
 Ezekből írj EGY összefüggő, folyó szövegű magyarázatot, ami megmutatja, hogyan
 épül fel a szakasz nyelvi/jelentésbeli dinamikája ezekből a szóválasztásokból
 — olyan nyelven, amit egy görög/héber nyelvtanban járatlan lelkész is azonnal
@@ -3702,6 +3746,16 @@ feladata, amit ne ismételj meg és ne dolgozz fel újra teljes terjedelmében)
 — a nyelvi tényt csak annyiban használd, amennyiben segít a szakasz
 TARTALMI, exegetikai értelmezésében.
 
+Ha Strong-azonosítót mégis megemlítesz, az EMBER SZÁMÁRA OLVASHATÓ formában
+történjen — egyetlen, tiszta azonosító (pl. "G0025"), SOSEM a token-lista
+nyers, technikai összetett kódja (pl. "H9005+H9033" vagy más "+"-szal
+összefűzött morfológiai/prefixum-kombináció). Ezek a "+"-os összetett
+alakok a token-adatbázis BELSŐ, technikai szerkezetét tükrözik (előtag,
+szótő, rag külön elemként), nem a lelkésznek szóló, olvasható hivatkozást
+— NE másold be őket a végleges szövegbe. Ha egy szóhoz több technikai
+komponens tartozik, vagy egyáltalán ne hivatkozz Strong-számra, vagy csak a
+szótő (core) egyetlen, tiszta azonosítóját említsd.
+
 Bizonytalanságot CSAK akkor jelezz explicit módon, ha ténylegesen alacsony
 vagy közepes a megbízhatóság — vagyis valódi vitatottság áll fenn (pl. "ez a
 kifejezés vitatott: némely értelmezők szerint..., mások szerint..."). Ahol
@@ -3720,10 +3774,26 @@ kimerítő teljesség helyett — a cél nem az, hogy mindent elmondj, amit
 tudnál, hanem hogy a legértékesebb megfigyeléseket add át tömören. Mind a
 hét alcím tartalmi lényege maradjon meg, csak tömörebben kifejtve.
 
+ALCÍMEK KÖZÖTTI ISMÉTLÉS TILOS: egy fontos exegetikai vagy teológiai
+felismerést TELJES KIFEJTÉSSEL csak EGYETLEN alcím alatt fejts ki. Ha
+ugyanaz a gondolat egy másik alcímnél is releváns, ott legfeljebb röviden
+utalj vissza rá (pl. "mint fentebb említettük..."), de NE ismételd meg
+ugyanazt a mondatot vagy egy közel azonos megfogalmazását két különböző
+alcím alatt (pl. ne írd le két helyen is, közel azonos szavakkal, hogy
+"a győzelem paradox módon a sebezhetőségen és a függésen keresztül
+valósul meg" — válaszd ki, melyik alcím a gondolat ELSŐDLEGES helye, és a
+másikban csak utalj rá). Ez NEM jelenti azt, hogy a választ szegényebbé
+kell tenni — csak azt, hogy egy megfigyelés egyszer, a hozzá leginkább
+illő alcím alatt kapjon teljes kifejtést.
+
 ## Műfaj és szerkezet
 A szakasz műfaji besorolása és belső szerkezete (versek/szakaszok,
 kompozíciós elemek) — összefüggő magyarázatban, a versekre és kifejezésekre
-mondatba ágyazva hivatkozva.
+mondatba ágyazva hivatkozva. Ha a műfaji besorolás egy vitatott identitási
+kérdést feltételezne (ld. lentebb, "Értelmezési kérdések"), semleges
+műfaji megnevezést használj (pl. "különös/rendkívüli találkozás-jelenet"),
+NE a vitatott olvasat nevét (pl. NE nevezd flatly "teofániának", ha ez a
+kérdés maga is vitatott — azt hagyd az Értelmezési kérdések alcímre).
 
 ## Kontextus
 Közvetlen szövegkörnyezet (mi előtte, mi utána), tágabb kontextus a könyv
@@ -3732,7 +3802,11 @@ felsorolásban.
 
 ## Kulcsszavak és kulcskifejezések
 3–6 valóban hangsúlyos kifejezés — EGY összefüggő magyarázatban (nem
-különálló tételekben), a szavakat mondatba ágyazva idézve.
+különálló tételekben), a szavakat mondatba ágyazva idézve. Ha egy
+kulcsszó egy vitatott identitási kérdéshez kapcsolódik, csak a szó nyelvi
+jelentését/funkcióját írd le itt — a kilétre vonatkozó következtetést
+(pl. "isteni jelenlét", "angyal") NE ide, hanem az Értelmezési kérdések
+alcímbe tedd.
 
 ## Nyelvtani és szerkezeti megfigyelések
 Releváns igealakok, mondatszerkezet, retorikai eszközök — folyó szövegben,
@@ -3747,7 +3821,22 @@ le, a szakszót hagyd el teljesen. Ez a magyar megfelelőkre is vonatkozik
 — egyik nyelven se nevezd meg a nyelvtani kategóriát). Például "participium"
 helyett írd körül: "egy melléknévi jellegű igealak, ami egy folyamatosan
 fennálló állapotot ír le" vagy hasonló, a szó FUNKCIÓJÁT leíró körülírással
-— sosem a kategória nevével.
+— sosem a kategória nevével. Ha egy nyelvtani/szerkezeti megfigyelés egy
+olyan identitási kérdéshez vezetne, amely az Értelmezési kérdések alatt
+több legitim lehetőségként jelenik meg (pl. hogy egy szereplő emberi vagy
+isteni), NE zárd le itt a kérdést — sem nyíltan, sem burkoltan. Ez
+azt jelenti: a szereplőt NE nevezd "isteni természetűnek", NE nevezd
+"isteni jelenlétnek", és NE beszélj "isteni szuverenitásáról" vagy hasonló
+kifejezésről úgy, mintha ez a kilétét eldöntené — akkor sem, ha a
+megfogalmazás burkolt vagy közvetett (pl. NE írj olyat, hogy "a későbbi
+versek egyértelműen isteni jelenlétre utalnak", vagy hogy egy cselekedet
+"az isteni szuverenitás megnyilvánulása"). Ehelyett csak a megfigyelhető
+narratív/szövegi tényt mondd ki — pl. "a szereplő neve rejtve marad",
+"Jákób későbbi értelmezése isteni dimenziót kapcsol az eseményhez", vagy
+"a jelenet szövegileg nyitva hagyja a szereplő pontos azonosítását". Ez a
+korlátozás KIZÁRÓLAG a vitatott szereplő identitására vonatkozik — más,
+nem vitatott "isteni" vonatkozású nyelvtani megfigyelést (pl. egy másik
+igealak Istenre mint alanyra utal, ahol ez nem vitatott) nyugodtan tehetsz.
 
 ## Párhuzamos bibliai helyek
 Csak biztos, ellenőrizhető párhuzamok, rövid magyarázattal, összefüggő
@@ -3756,13 +3845,53 @@ szövegben.
 ## Értelmezési kérdések
 Azok a pontok, ahol valódi értelmezésbeli feszültség van a szakirodalomban —
 itt a vitatottságot mondatba ágyazva, indokolással együtt fejtsd ki (ne
-külön "Biztonsági szint: vitatott" címkével).
+külön "Biztonsági szint: vitatott" címkével). IDE tartozik minden olyan
+azonosítási vagy teológiai kérdés, ahol a szakirodalomban több elfogadott
+olvasat létezik (pl. egy titokzatos alak isteni/angyali kiléte, egy
+névváltoztatás pontos teológiai súlya, egy küzdelem "győzelemként" való
+értelmezése) — ezeket mint LEHETSÉGES olvasatokat mutasd be ("egyes
+értelmezők szerint..., mások szerint..."), NE egyetlen, magától értetődő
+tényként valahol máshol a szövegben. Ha egy ilyen kérdésre a szakasz egy
+másik alcíme alatt is utalnál, ott ne foglalj állást — a döntést vagy
+annak hiányát erre az alcímre hagyd.
+
+BELSŐ ÖNELLENTMONDÁS TILOS: ha egy kérdésnél több legitim értelmezési
+alternatívát sorolsz fel, a bekezdés VÉGÉN se oldd fel a vitát olyan
+mondattal, amely valamelyik alternatívát "egyértelműnek", "biztosnak",
+"világosnak" vagy más módon tényszerűen eldöntöttnek nevezi — ez pontosan
+azt a vitatottságot semmisítené meg, amit a bekezdés elején magad
+állapítottál meg. Különböztesd meg a narratív megfigyelést az értelmezési
+döntéstől: "Jákób a találkozást Istennel való találkozásként értelmezi"
+(ez egy narratív megfigyelés — megengedett), szemben azzal, hogy "a küzdő
+fél biztosan Isten volt" (ez már értelmezési döntés — TILOS). Használj
+ehelyett ilyen megfogalmazást: "Jákób saját értelmezése szerint...", "a
+narratíva isteni dimenziót kapcsol az eseményhez...", "ez azonban
+önmagában nem dönti el egyértelműen a küzdő fél pontos identitását."
+
+KONKRÉTAN: ha a szövegben egy titokzatos szereplő kiléte vitatott, az
+"angyal", "teofánia", "isteni jelenlét", "pre-inkarnációs Krisztus" (vagy
+hasonló azonosító) EGYIKE se jelenjen meg biztos, eldöntött tényként a
+Műfaj és szerkezet, a Kulcsszavak és kulcskifejezések, vagy a Nyelvtani és
+szerkezeti megfigyelések alcím alatt — kizárólag itt, az Értelmezési
+kérdések alatt, több lehetőségként tárgyalhatók. Ez a szabály KIZÁRÓLAG a
+ténylegesen vitatott azonosítási/értelmezési kérdésekre vonatkozik — nem
+azt jelenti, hogy minden teológiai állítást ide kellene zárni; amit a
+szöveg vagy a szakirodalom egyértelműen, vita nélkül állít, azt a neki
+megfelelő alcím alatt is nyugodtan, egyenesen közölheted.
 
 ## Prédikációs haszon
 Az exegézis fő gyümölcse — mit ad ez a homiletikai munkához.
 
 Ne prédikációt írj, hanem szakmai háttérelemzést — de olyan nyelven, amit
 egy lelkész azonnal magáévá tud tenni, szakzsargon "fordítása" nélkül.
+
+Ebben az alcímben (és bárhol a válaszban) NE hivatkozz konkrét hitvallási
+kérdésszámra vagy fejezetszámra (pl. "Heidelbergi Káté 20-21. kérdése",
+"II. Helvét Hitvallás XI. fejezete") — ehhez a modulhoz nincs ellenőrzött
+hitvallási adatforrásod, egy emlékezetből felidézett szám ugyanúgy
+ellenőrizetlen, mint egy kitalált. A református hitvallási hagyomány
+TARTALMÁRA/TANÍTÁSÁRA szám nélkül utalhatsz (pl. "a református hitvallási
+hagyomány hangsúlyozza...").
 """,
     "history": """{alap}
 
@@ -6148,7 +6277,13 @@ DEFAULT_MAX_OUTPUT_TOKENS_BY_TAB: dict[str, int] = {
     "Kortörténet": 6144,
     "Teológia": 9216,
     "Eredeti szöveg": 6144,
-    "Eredeti szöveg tanulmányozása": 6144,
+    # LOCAL QA — Phase D (2026-08-21): a FEGYELEM SZÓNKÉNT bekezdés miatt
+    # a valódi kimenet (thoughts+candidates) megnőtt — 1 mérés (1Móz
+    # 32,23-32): thoughtsTokenCount=4221 + candidatesTokenCount=1443 =
+    # 5664, veszélyesen közel a régi 6144-es plafonhoz (élesben egy
+    # kattintás ténylegesen MAX_TOKENS-re futott ezzel a prompttal). Az
+    # "Exegézis" fülével azonos nagyságrendre emelve, kb. 2x tartalékkal.
+    "Eredeti szöveg tanulmányozása": 12000,
     "Konkordancia": 4096,
     "Illusztrációk": 4096,
     "Aktualizálás": 4096,
