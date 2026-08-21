@@ -1,5 +1,8 @@
 """RESET 3B-2 — az "Eredeti szöveg" (original_text) bekötése a
-Textusösszegzés (text_summary) szintézisébe.
+Textusösszegzés (text_summary) szintézisébe. RESET 3D-1 — UGYANEZ az elv
+kiterjesztve `exegesis`/`theology`/`historical_context`/`text_main_idea`-ra:
+egy friss `text_summary` SOHA ne használhasson más passzushoz tartozó
+(stale) upstream adatot egyik forrásmezőből sem.
 
 `textus_summary_ai.py` korábban NEM rendelkezett dedikált tesztfájllal
 (csak a modul saját `_self_check()` smoke-tesztjével) — ez a fájl az
@@ -306,3 +309,355 @@ def test_9_caller_freshness_helper_true_when_no_stored_hash():
     app = AppTest.from_function(_render_missing_hash_original_text_probe).run(timeout=60)
     assert not app.exception
     assert app.session_state["_probe_result"] is True
+
+
+# =============================================================================
+# RESET 3D-1 — 10-13. `build_summary_context`: fresh/stale `exegesis`/
+# `theology`/`historical_context`/`text_main_idea` (ugyanaz a minta, mint
+# az 1-3. teszt az `original_text`-nél).
+# =============================================================================
+
+
+def test_10_fresh_exegesis_enters_context():
+    ctx = summary_ai.build_summary_context(
+        passage=PASSAGE,
+        exegesis="EXEGESIS_SENTINEL",
+        exegesis_is_fresh=True,
+    )
+    assert ctx["exegesis"] == "EXEGESIS_SENTINEL"
+
+
+def test_11_stale_exegesis_is_excluded_from_context():
+    ctx = summary_ai.build_summary_context(
+        passage=PASSAGE,
+        exegesis="EXEGESIS_SENTINEL",
+        exegesis_is_fresh=False,
+    )
+    assert ctx["exegesis"] == summary_ai.MISSING
+    prompt = summary_ai.build_summary_suggest_prompt(ctx)
+    assert "EXEGESIS_SENTINEL" not in prompt
+
+
+def test_12_fresh_theology_enters_context():
+    ctx = summary_ai.build_summary_context(
+        passage=PASSAGE,
+        theology="THEOLOGY_SENTINEL",
+        theology_is_fresh=True,
+    )
+    assert ctx["theology"] == "THEOLOGY_SENTINEL"
+
+
+def test_13_stale_theology_is_excluded_from_context():
+    ctx = summary_ai.build_summary_context(
+        passage=PASSAGE,
+        theology="THEOLOGY_SENTINEL",
+        theology_is_fresh=False,
+    )
+    assert ctx["theology"] == summary_ai.MISSING
+    prompt = summary_ai.build_summary_suggest_prompt(ctx)
+    assert "THEOLOGY_SENTINEL" not in prompt
+
+
+def test_14_fresh_historical_context_enters_context():
+    ctx = summary_ai.build_summary_context(
+        passage=PASSAGE,
+        historical_context="HISTORY_SENTINEL",
+        historical_context_is_fresh=True,
+    )
+    assert ctx["historical_context"] == "HISTORY_SENTINEL"
+
+
+def test_15_stale_historical_context_is_excluded_from_context():
+    ctx = summary_ai.build_summary_context(
+        passage=PASSAGE,
+        historical_context="HISTORY_SENTINEL",
+        historical_context_is_fresh=False,
+    )
+    assert ctx["historical_context"] == summary_ai.MISSING
+    prompt = summary_ai.build_summary_suggest_prompt(ctx)
+    assert "HISTORY_SENTINEL" not in prompt
+
+
+def test_16_fresh_text_main_idea_enters_context():
+    ctx = summary_ai.build_summary_context(
+        passage=PASSAGE,
+        text_main_idea="MAIN_IDEA_SENTINEL",
+        text_main_idea_is_fresh=True,
+    )
+    assert ctx["text_main_idea"] == "MAIN_IDEA_SENTINEL"
+
+
+def test_17_stale_text_main_idea_is_excluded_from_context():
+    ctx = summary_ai.build_summary_context(
+        passage=PASSAGE,
+        text_main_idea="MAIN_IDEA_SENTINEL",
+        text_main_idea_is_fresh=False,
+    )
+    assert ctx["text_main_idea"] == summary_ai.MISSING
+    prompt = summary_ai.build_summary_suggest_prompt(ctx)
+    assert "MAIN_IDEA_SENTINEL" not in prompt
+
+
+def test_18_all_fields_fresh_by_default_matches_pre_3d1_behavior():
+    """Ha egyik `*_is_fresh` sincs explicit megadva (alapérték `True`
+    mindegyikre), a context pontosan úgy néz ki, mint RESET 3D-1 előtt —
+    teljes visszafelé-kompatibilitás."""
+    ctx = summary_ai.build_summary_context(
+        passage=PASSAGE,
+        passage_text=PASSAGE_TEXT,
+        text_main_idea="MAIN_IDEA_SENTINEL",
+        exegesis="EXEGESIS_SENTINEL",
+        theology="THEOLOGY_SENTINEL",
+        historical_context="HISTORY_SENTINEL",
+        original_text="ORIGINAL_TEXT_SENTINEL",
+    )
+    assert ctx["text_main_idea"] == "MAIN_IDEA_SENTINEL"
+    assert ctx["exegesis"] == "EXEGESIS_SENTINEL"
+    assert ctx["theology"] == "THEOLOGY_SENTINEL"
+    assert ctx["historical_context"] == "HISTORY_SENTINEL"
+    assert ctx["original_text"] == "ORIGINAL_TEXT_SENTINEL"
+
+
+# =============================================================================
+# RESET 3D-1 — 19. Több stale mező mellett is generálható javaslat, amíg
+# van legalább egy elégséges forrás (itt: `passage_text`, aminek nincs
+# freshness-fogalma -- mindig a jelenlegi session állapotot tükrözi).
+# =============================================================================
+
+
+def test_19_suggestion_still_proceeds_with_multiple_stale_fields():
+    captured: dict = {}
+
+    def fake_gen(prompt: str, **kwargs):
+        captured["prompt"] = prompt
+        return (
+            '{"base_tension":"BT","key_exegetical_findings":"KF",'
+            '"theological_emphases":"TE","genre_structure_notes":"GS",'
+            '"reasoning_summary":"ok.","warnings":[],"missing_information":[]}'
+        )
+
+    result = summary_ai.suggest_text_summary(
+        passage=PASSAGE,
+        passage_text=PASSAGE_TEXT,
+        text_main_idea="STALE_MAIN_IDEA",
+        text_main_idea_is_fresh=False,
+        exegesis="STALE_EXEGESIS",
+        exegesis_is_fresh=False,
+        theology="STALE_THEOLOGY",
+        theology_is_fresh=False,
+        historical_context="STALE_HISTORY",
+        historical_context_is_fresh=False,
+        original_text="STALE_ORIGINAL_TEXT",
+        original_text_is_fresh=False,
+        generate_fn=fake_gen,
+    )
+    assert result.ok is True
+    assert "prompt" in captured  # az API-hívás ténylegesen megtörtént
+    for sentinel in (
+        "STALE_MAIN_IDEA",
+        "STALE_EXEGESIS",
+        "STALE_THEOLOGY",
+        "STALE_HISTORY",
+        "STALE_ORIGINAL_TEXT",
+    ):
+        assert sentinel not in captured["prompt"]
+
+
+# =============================================================================
+# RESET 3D-1 — 20. Séma-regresszió — a text_summary schema NEM változott.
+# =============================================================================
+
+
+def test_20_response_schema_still_unchanged_after_freshness_extension():
+    field_names = {f.name for f in fields(summary_ai.TextSummarySuggestionResult)}
+    assert field_names == {
+        "base_tension",
+        "key_exegetical_findings",
+        "theological_emphases",
+        "genre_structure_notes",
+        "reasoning_summary",
+        "warnings",
+        "missing_information",
+        "ok",
+        "error_message",
+        "raw_response",
+    }
+
+
+# =============================================================================
+# RESET 3D-1 — caller-szintű probe-ok: `textus_workshop_ui._exegesis_is_
+# fresh_for_summary()` / `_theology_is_fresh_for_summary()` / `_historical_
+# context_is_fresh_for_summary()` / `_text_main_idea_is_fresh_for_summary()`
+# — ugyanaz a minta, mint a fenti 9. teszt `original_text`-re, egy
+# render-passzban az öt mezőre együtt (kevesebb AppTest-futtatás).
+# =============================================================================
+
+
+def _render_all_fields_fresh_probe() -> None:
+    import streamlit as st
+
+    import textus_workshop_ui as tw_ui
+    from sermon_outline_engine import compute_current_passage_context_hash
+    from textus_workshop_data import ensure_text_workshop_state
+
+    st.session_state["last_igehely"] = "Jn 3,16"
+    st.session_state["igehely_input"] = "Jn 3,16"
+    st.session_state["passage_text"] = "Mert úgy szerette Isten a világot."
+    current_hash = compute_current_passage_context_hash(st.session_state)
+
+    st.session_state["exegesis"] = "EXEGESIS_SENTINEL"
+    st.session_state["exegesis_approved_context_hash"] = current_hash
+    st.session_state["theology"] = "THEOLOGY_SENTINEL"
+    st.session_state["theology_approved_context_hash"] = current_hash
+    st.session_state["history"] = "HISTORY_SENTINEL"
+    st.session_state["history_approved_context_hash"] = current_hash
+
+    tw = ensure_text_workshop_state(st.session_state)
+    tw["text_main_idea"] = "MAIN_IDEA_SENTINEL"
+    tw["text_main_idea_approved_context_hash"] = current_hash
+
+    st.session_state["_probe_result"] = {
+        "exegesis": tw_ui._exegesis_is_fresh_for_summary(),
+        "theology": tw_ui._theology_is_fresh_for_summary(),
+        "historical_context": tw_ui._historical_context_is_fresh_for_summary(),
+        "text_main_idea": tw_ui._text_main_idea_is_fresh_for_summary(),
+    }
+
+
+def _render_all_fields_stale_probe() -> None:
+    import streamlit as st
+
+    import textus_workshop_ui as tw_ui
+    from textus_workshop_data import ensure_text_workshop_state
+
+    st.session_state["last_igehely"] = "Jn 3,16"
+    st.session_state["igehely_input"] = "Jn 3,16"
+    st.session_state["passage_text"] = "Mert úgy szerette Isten a világot."
+
+    st.session_state["exegesis"] = "EXEGESIS_SENTINEL"
+    st.session_state["exegesis_approved_context_hash"] = "STALE_HASH_MISMATCH"
+    st.session_state["theology"] = "THEOLOGY_SENTINEL"
+    st.session_state["theology_approved_context_hash"] = "STALE_HASH_MISMATCH"
+    st.session_state["history"] = "HISTORY_SENTINEL"
+    st.session_state["history_approved_context_hash"] = "STALE_HASH_MISMATCH"
+
+    tw = ensure_text_workshop_state(st.session_state)
+    tw["text_main_idea"] = "MAIN_IDEA_SENTINEL"
+    tw["text_main_idea_approved_context_hash"] = "STALE_HASH_MISMATCH"
+
+    st.session_state["_probe_result"] = {
+        "exegesis": tw_ui._exegesis_is_fresh_for_summary(),
+        "theology": tw_ui._theology_is_fresh_for_summary(),
+        "historical_context": tw_ui._historical_context_is_fresh_for_summary(),
+        "text_main_idea": tw_ui._text_main_idea_is_fresh_for_summary(),
+        # 12. teszt: a stale allapot ELLENERE a session-state tartalom
+        # (maga a generalt szoveg) NEM torlodik/valtozik.
+        "exegesis_content_preserved": st.session_state.get("exegesis") == "EXEGESIS_SENTINEL",
+        "theology_content_preserved": st.session_state.get("theology") == "THEOLOGY_SENTINEL",
+        "history_content_preserved": st.session_state.get("history") == "HISTORY_SENTINEL",
+        "text_main_idea_content_preserved": tw.get("text_main_idea") == "MAIN_IDEA_SENTINEL",
+    }
+
+
+def _render_all_fields_missing_hash_probe() -> None:
+    import streamlit as st
+
+    import textus_workshop_ui as tw_ui
+
+    st.session_state["last_igehely"] = "Jn 3,16"
+    st.session_state["igehely_input"] = "Jn 3,16"
+    st.session_state["passage_text"] = "Mert úgy szerette Isten a világot."
+    # Nincs mentett approved_context_hash egyik mezonel sem -- regi
+    # projekt / meg sosem generalt tartalom.
+    st.session_state["_probe_result"] = {
+        "exegesis": tw_ui._exegesis_is_fresh_for_summary(),
+        "theology": tw_ui._theology_is_fresh_for_summary(),
+        "historical_context": tw_ui._historical_context_is_fresh_for_summary(),
+        "text_main_idea": tw_ui._text_main_idea_is_fresh_for_summary(),
+    }
+
+
+def _render_passage_change_probe() -> None:
+    """13. teszt: a hash a REGI igehelyhez keszult, majd a felhasznalo
+    ATVALT egy UJ igehelyre, generalas nelkul -- a regi tartalom NE
+    szamitson frissnek az uj kontextusban."""
+    import streamlit as st
+
+    import textus_workshop_ui as tw_ui
+    from sermon_outline_engine import compute_current_passage_context_hash
+
+    st.session_state["last_igehely"] = "Jn 3,16"
+    st.session_state["igehely_input"] = "Jn 3,16"
+    st.session_state["passage_text"] = "Mert úgy szerette Isten a világot."
+    old_hash = compute_current_passage_context_hash(st.session_state)
+
+    st.session_state["exegesis"] = "OLD_PASSAGE_EXEGESIS"
+    st.session_state["exegesis_approved_context_hash"] = old_hash
+
+    # Igehely-valtas, ujragenerlas nelkul.
+    st.session_state["last_igehely"] = "Róm 8,28"
+    st.session_state["igehely_input"] = "Róm 8,28"
+    st.session_state["passage_text"] = "Tudjuk pedig, hogy azoknak, akik Istent szeretik."
+
+    st.session_state["_probe_result"] = {
+        "exegesis_is_fresh": tw_ui._exegesis_is_fresh_for_summary(),
+        "exegesis_content_preserved": st.session_state.get("exegesis") == "OLD_PASSAGE_EXEGESIS",
+    }
+
+
+def test_21_all_fields_fresh_when_hashes_match_current_context():
+    from streamlit.testing.v1 import AppTest
+
+    app = AppTest.from_function(_render_all_fields_fresh_probe).run(timeout=60)
+    assert not app.exception
+    result = app.session_state["_probe_result"]
+    assert result == {
+        "exegesis": True,
+        "theology": True,
+        "historical_context": True,
+        "text_main_idea": True,
+    }
+
+
+def test_22_all_fields_stale_when_hashes_mismatch_and_content_preserved():
+    from streamlit.testing.v1 import AppTest
+
+    app = AppTest.from_function(_render_all_fields_stale_probe).run(timeout=60)
+    assert not app.exception
+    result = app.session_state["_probe_result"]
+    assert result["exegesis"] is False
+    assert result["theology"] is False
+    assert result["historical_context"] is False
+    assert result["text_main_idea"] is False
+    # 12. teszt: stale allapotban is VALTOZATLAN marad a session-state
+    # tartalma -- a freshness-ellenorzes sosem torol semmit.
+    assert result["exegesis_content_preserved"] is True
+    assert result["theology_content_preserved"] is True
+    assert result["history_content_preserved"] is True
+    assert result["text_main_idea_content_preserved"] is True
+
+
+def test_23_all_fields_fresh_when_no_stored_hash():
+    from streamlit.testing.v1 import AppTest
+
+    app = AppTest.from_function(_render_all_fields_missing_hash_probe).run(timeout=60)
+    assert not app.exception
+    result = app.session_state["_probe_result"]
+    assert result == {
+        "exegesis": True,
+        "theology": True,
+        "historical_context": True,
+        "text_main_idea": True,
+    }
+
+
+def test_24_passage_change_without_regeneration_marks_old_content_stale():
+    from streamlit.testing.v1 import AppTest
+
+    app = AppTest.from_function(_render_passage_change_probe).run(timeout=60)
+    assert not app.exception
+    result = app.session_state["_probe_result"]
+    assert result["exegesis_is_fresh"] is False
+    # A regi tartalom a valtas UTAN is VALTOZATLANUL a session-state-ben
+    # marad -- csak a szintezis-kontextusba nem kerul be (ld. 11/19. teszt).
+    assert result["exegesis_content_preserved"] is True

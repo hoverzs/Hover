@@ -795,15 +795,20 @@ def _save_summary(*, status: str) -> None:
         st.success("Vázlatként elmentve.")
 
 
-def _original_text_is_fresh_for_summary() -> bool:
-    """RESET 3B-2: a MEGLÉVŐ `original_text_approved_context_hash`
-    kontraktust (a szekció generáláskor bélyegzi, ld. `app.py::render_
-    section_tab`) veti össze az aktuális igehely/fordítás/bibliai szöveg
-    szűk ujjlenyomatával — UGYANAZZAL a függvénnyel
+def _stored_context_hash_is_fresh(stored_hash: str) -> bool:
+    """RESET 3D-1: a RESET 3B-2-ben bevezetett `_original_text_is_fresh_
+    for_summary()` mintájának ÁLTALÁNOSÍTOTT magja — egy MÁR TÁROLT
+    `*_approved_context_hash` értéket vet össze az aktuális igehely/
+    fordítás/bibliai szöveg szűk ujjlenyomatával, UGYANAZZAL a függvénnyel
     (`sermon_outline_engine.compute_current_passage_context_hash`), amit
-    a bélyegzés is használ. Hiányzó mentett hash NEM minősül stale-nek
-    (visszafelé-kompatibilitás, ugyanaz a döntés, mint a legacy motorban)."""
-    stored = _session_str("original_text_approved_context_hash")
+    a szekciók generáláskori bélyegzése is használ (ld. `app.py::render_
+    section_tab`, `app.py::render_original_text_panel`,
+    `textus_workshop_data.update_text_main_idea`). Hiányzó mentett hash
+    NEM minősül stale-nek (visszafelé-kompatibilitás, ugyanaz a döntés,
+    mint a legacy motorban és minden korábbi RESET fázisban). Nem
+    törli/módosítja a mentett tartalmat — csak eldönti, bekerülhet-e a
+    textusösszegzés kontextusába."""
+    stored = (stored_hash or "").strip()
     if not stored:
         return True
     try:
@@ -812,6 +817,43 @@ def _original_text_is_fresh_for_summary() -> bool:
         return stored == compute_current_passage_context_hash(st.session_state)
     except Exception:  # noqa: BLE001 — a javaslatkérés ne dőljön el emiatt
         return True
+
+
+def _original_text_is_fresh_for_summary() -> bool:
+    """RESET 3B-2: az "Eredeti szöveg" modul kimenete friss-e a
+    textusösszegzés szempontjából — ld. `_stored_context_hash_is_fresh()`."""
+    return _stored_context_hash_is_fresh(
+        _session_str("original_text_approved_context_hash")
+    )
+
+
+def _exegesis_is_fresh_for_summary() -> bool:
+    """RESET 3D-1: az exegézis kimenete friss-e a textusösszegzés
+    szempontjából — ld. `_stored_context_hash_is_fresh()`."""
+    return _stored_context_hash_is_fresh(_session_str("exegesis_approved_context_hash"))
+
+
+def _theology_is_fresh_for_summary() -> bool:
+    """RESET 3D-1: a teológia kimenete friss-e a textusösszegzés
+    szempontjából — ld. `_stored_context_hash_is_fresh()`."""
+    return _stored_context_hash_is_fresh(_session_str("theology_approved_context_hash"))
+
+
+def _historical_context_is_fresh_for_summary() -> bool:
+    """RESET 3D-1: a kortörténet kimenete friss-e a textusösszegzés
+    szempontjából — ld. `_stored_context_hash_is_fresh()`."""
+    return _stored_context_hash_is_fresh(_session_str("history_approved_context_hash"))
+
+
+def _text_main_idea_is_fresh_for_summary() -> bool:
+    """RESET 3D-1: a fő gondolat friss-e a textusösszegzés szempontjából
+    — a hash a `text_workshop.text_main_idea_approved_context_hash`
+    mezőben él (ld. `textus_workshop_data.update_text_main_idea`), nem
+    egy lapos session-kulcsban."""
+    tw = ensure_text_workshop_state(st.session_state)
+    return _stored_context_hash_is_fresh(
+        str(tw.get("text_main_idea_approved_context_hash") or "")
+    )
 
 
 def _run_suggest_summary(generate_fn: GenerateFn) -> None:
@@ -826,6 +868,13 @@ def _run_suggest_summary(generate_fn: GenerateFn) -> None:
         "historical_context": _session_str("history"),
         "original_text": _session_str("original_text"),
         "original_text_is_fresh": _original_text_is_fresh_for_summary(),
+        # RESET 3D-1: ugyanaz az elv, mint az original_text-nél (RESET
+        # 3B-2) — stale mező NEM kerül a szintézis kontextusába, de a
+        # session-state tartalma változatlan marad.
+        "exegesis_is_fresh": _exegesis_is_fresh_for_summary(),
+        "theology_is_fresh": _theology_is_fresh_for_summary(),
+        "historical_context_is_fresh": _historical_context_is_fresh_for_summary(),
+        "text_main_idea_is_fresh": _text_main_idea_is_fresh_for_summary(),
     }
     if not kwargs["passage"]:
         st.warning(

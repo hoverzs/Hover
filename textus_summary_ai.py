@@ -152,10 +152,14 @@ def build_summary_context(
     passage: str = "",
     passage_text: str = "",
     text_main_idea: str = "",
+    text_main_idea_is_fresh: bool = True,
     approved_insights: Any = None,
     exegesis: str = "",
+    exegesis_is_fresh: bool = True,
     theology: str = "",
+    theology_is_fresh: bool = True,
     historical_context: str = "",
+    historical_context_is_fresh: bool = True,
     original_text: str = "",
     original_text_is_fresh: bool = True,
 ) -> dict[str, str]:
@@ -163,26 +167,34 @@ def build_summary_context(
 
     Nem módosítja a session állapotot; csak olvas és levág.
 
-    RESET 3B-2 — `original_text`/`original_text_is_fresh`: ez a modul
-    SZÁNDÉKOSAN nem fér hozzá `st.session_state`-hez (a hívó adja át a
-    nyers stringeket) — ezért a frissesség-ELLENŐRZÉST (a MEGLÉVŐ
-    `*_approved_context_hash` kontraktus alapján, ld. `textus_workshop_
-    ui._run_suggest_summary`) is a HÍVÓ végzi el, és egyetlen `bool`-t ad
-    át. Itt NEM számolunk új hash-t — ha `original_text_is_fresh` `False`,
-    az `original_text` tartalmát EGYSZERŰEN úgy kezeljük, mintha hiányozna
-    (nem kerül a promptba), a bemeneti stringet magát nem módosítjuk."""
+    RESET 3B-2 — `original_text`/`original_text_is_fresh`, RESET 3D-1 —
+    ugyanez az elv kiterjesztve `exegesis`/`theology`/`historical_context`/
+    `text_main_idea`-ra: ez a modul SZÁNDÉKOSAN nem fér hozzá
+    `st.session_state`-hez (a hívó adja át a nyers stringeket) — ezért a
+    frissesség-ELLENŐRZÉST (a MEGLÉVŐ `*_approved_context_hash`
+    kontraktus alapján, ld. `textus_workshop_ui._run_suggest_summary`) is
+    a HÍVÓ végzi el, és egyetlen `bool`-t ad át mezőnként. Itt NEM
+    számolunk új hash-t — ha egy `*_is_fresh` `False`, a hozzá tartozó
+    mezőt EGYSZERŰEN úgy kezeljük, mintha hiányozna (nem kerül a
+    promptba), a bemeneti stringet magát nem módosítjuk."""
     effective_original_text = original_text if original_text_is_fresh else ""
+    effective_exegesis = exegesis if exegesis_is_fresh else ""
+    effective_theology = theology if theology_is_fresh else ""
+    effective_historical_context = historical_context if historical_context_is_fresh else ""
+    effective_text_main_idea = text_main_idea if text_main_idea_is_fresh else ""
     return {
         "passage": _display(passage, max_chars=200) if _is_present(passage) else MISSING,
         "passage_text": _display(passage_text, max_chars=_LIMITS["passage_text"]),
-        "text_main_idea": _display(text_main_idea, max_chars=_LIMITS["text_main_idea"]),
+        "text_main_idea": _display(
+            effective_text_main_idea, max_chars=_LIMITS["text_main_idea"]
+        ),
         "approved_insights": _format_insights(
             approved_insights, max_chars=_LIMITS["approved_insights"]
         ),
-        "exegesis": _display(exegesis, max_chars=_LIMITS["exegesis"]),
-        "theology": _display(theology, max_chars=_LIMITS["theology"]),
+        "exegesis": _display(effective_exegesis, max_chars=_LIMITS["exegesis"]),
+        "theology": _display(effective_theology, max_chars=_LIMITS["theology"]),
         "historical_context": _display(
-            historical_context, max_chars=_LIMITS["historical_context"]
+            effective_historical_context, max_chars=_LIMITS["historical_context"]
         ),
         "original_text": _display(
             effective_original_text, max_chars=_LIMITS["original_text"]
@@ -489,10 +501,14 @@ def suggest_text_summary(
     passage: str,
     passage_text: str = "",
     text_main_idea: str = "",
+    text_main_idea_is_fresh: bool = True,
     approved_insights: Any = None,
     exegesis: str = "",
+    exegesis_is_fresh: bool = True,
     theology: str = "",
+    theology_is_fresh: bool = True,
     historical_context: str = "",
+    historical_context_is_fresh: bool = True,
     original_text: str = "",
     original_text_is_fresh: bool = True,
     generate_fn: GenerateFn | None = None,
@@ -503,20 +519,27 @@ def suggest_text_summary(
 
     `generate_fn`: tipikusan az app.py `generate_text` függvénye.
 
-    `original_text_is_fresh`: a hívó (`textus_workshop_ui._run_suggest_
-    summary`) a MEGLÉVŐ `original_text_approved_context_hash` kontraktus
-    alapján dönti el, és `False`-t ad át, ha az "Eredeti szöveg" modul
-    kimenete már NEM a jelenlegi igehelyhez/textushoz tartozik — ez a
-    modul maga nem fér hozzá session_state-hez, ezért nem számol hash-t,
-    csak a kapott döntést alkalmazza (ld. `build_summary_context`)."""
+    `original_text_is_fresh`/`exegesis_is_fresh`/`theology_is_fresh`/
+    `historical_context_is_fresh`/`text_main_idea_is_fresh`: a hívó
+    (`textus_workshop_ui._run_suggest_summary`) a MEGLÉVŐ
+    `*_approved_context_hash` kontraktusok alapján dönti el mezőnként, és
+    `False`-t ad át azokra, amelyek kimenete már NEM a jelenlegi
+    igehelyhez/textushoz tartozik (RESET 3B-2 az `original_text`-re,
+    RESET 3D-1 a többi négy mezőre) — ez a modul maga nem fér hozzá
+    session_state-hez, ezért nem számol hash-t, csak a kapott döntéseket
+    alkalmazza (ld. `build_summary_context`)."""
     ctx = build_summary_context(
         passage=passage,
         passage_text=passage_text,
         text_main_idea=text_main_idea,
+        text_main_idea_is_fresh=text_main_idea_is_fresh,
         approved_insights=approved_insights,
         exegesis=exegesis,
+        exegesis_is_fresh=exegesis_is_fresh,
         theology=theology,
+        theology_is_fresh=theology_is_fresh,
         historical_context=historical_context,
+        historical_context_is_fresh=historical_context_is_fresh,
         original_text=original_text,
         original_text_is_fresh=original_text_is_fresh,
     )
