@@ -943,6 +943,7 @@ def generate_sermon_blueprint(
     session_state: MutableMapping[str, Any],
     *,
     generate_fn: GenerateFn,
+    bypass_cooldown: bool = False,
 ) -> BlueprintOutcome:
     """Egyetlen belépési pont: determinisztikus kontextus -> legfeljebb EGY
     AI-hívás -> SZIGORÚ validálás -> és KIZÁRÓLAG érvényes eredmény esetén
@@ -954,7 +955,16 @@ def generate_sermon_blueprint(
     kanonikus blueprint és a `blueprint_meta` bit-pontosan változatlan
     marad, és semmilyen félkész adat nem kerül state-be.
 
-    Hiányos kontextus esetén EL SEM INDUL az AI-hívás."""
+    Hiányos kontextus esetén EL SEM INDUL az AI-hívás.
+
+    `bypass_cooldown`: FINAL SERMON WORKFLOW + OUTLINE PRESENTATION
+    POLISH (2026-08-21) — KIZÁRÓLAG akkor `True`, ha a hívó UGYANAZON a
+    gombnyomáson belül közvetlenül ez után egy részletes vázlat
+    generálást is indít (a hiányzó/elavult blueprint automatikus
+    pótlása a "Részletes vázlat készítése" gomb egyetlen kattintásán
+    belül) — a globális `GEMINI_COOLDOWN_S` két LOGIKAILAG FÜGGETLEN
+    felhasználói hívás közé való, nem egyetlen gombnyomás belső,
+    láncolt lépései közé."""
     context = build_blueprint_generation_context(session_state)
     missing = context.missing_required_fields()
     if missing:
@@ -990,6 +1000,7 @@ def generate_sermon_blueprint(
                 include_brevity_directive=False,
                 response_mime_type="application/json",
                 response_schema=BLUEPRINT_RESPONSE_SCHEMA,
+                bypass_cooldown=bypass_cooldown,
                 # A csonka válaszhoz fűzött, ember-olvasható magyar
                 # figyelmeztető mondat MINDIG érvénytelenné tenné a
                 # JSON-t (a szintaktikai csonkaság mellett is) — inkább a

@@ -254,7 +254,7 @@ MIT NEM CSINÁLSZ:
 - NEM "oldod fel" csendben a blueprint figyelmeztetéseiben jelzett feszültségeket — azok korlátozó kontextusként szolgálnak a generáláshoz, nem javítandó hibaként.
 - NEM írsz előbb hosszú, kész prédikációs prózát azért, hogy azt utána kivonatold — közvetlenül a strukturált blueprintből dolgozol.
 - A KANONIKUS BLUEPRINT BIZONYTALANSÁGI SZINTJÉT ŐRZÖD MEG. Ha a blueprint (vagy a mögötte álló exegetikai/kortörténeti anyag) egy állítást vitatottként, bizonytalanként vagy több legitim értelmezés egyikeként kezel, a részletes vázlat NE emelje ezt kategorikus, eldöntött tényként. NE írj ilyet: "A küzdő fél maga Isten." / "…egyértelműen isteni beavatkozásra utal." / "…egyértelműen isteni találkozásként…" / "…de a találkozás isteni dimenziója nyilvánvaló." — az "egyértelműen" szó és ehhez hasonló lezáró minősítők (biztosan, kétségtelenül, nyilvánvalóan, nyilvánvaló — RAGOZOTT ALAKBAN IS) TILOSAK egy olyan kérdésnél, amit a forrásanyag maga vitatottnak vagy homályosnak nevez — akkor is, ha a mondat korábbi fele már helyesen nyitva hagyta a kérdést: ne zárd le az imént nyitva hagyott bizonytalanságot egy ilyen szóval a MONDAT MÁSIK FELÉBEN. Írj helyette olyat, hogy "Jákób a találkozást Istennel való találkozásként értelmezi; a küzdő fél pontos identitását a szöveg nyitva hagyja, amit a hagyomány többféleképpen értelmezett." Ugyanez vonatkozik minden bizonytalan történeti, teológiai vagy nyelvi állításra — a homiletikai alkalmazás lehet magabiztos, de az ALAPJÁUL szolgáló, vitatott tényállítás nem.
-- HOMILETIKAI KÖVETKEZTETÉST NE FOGALMAZZ ÚGY, MINTHA MAGA A TEXTUS BIZONYÍTANÁ. Írás közben tartsd fejben a különbséget — akkor is, ha ez a végleges szövegben nem külön címkeként jelenik meg, hanem a megfogalmazás módjában — (1) amit a textus explicit mond; (2) amit az exegézis valószínű vagy lehetséges értelmezésként ad; (3) amit a prédikáció homiletikai alkalmazásként épít tovább ezekre. Egy homiletikai vagy teológiai alkalmazás lehet magabiztos és bátor megfogalmazású, de NE állítsd be úgy, mintha a szöveg maga mondaná vagy bizonyítaná — jelöld meg nyelvileg alkalmazásként (pl. "homiletikailag…", "ez lehetőséget ad arra, hogy…", "megnyithatja a … témát"), ne textuális ténymegállapításként. Példa — ROSSZ: "A sérülés azt mutatja, hogy Isten ereje a gyengeségben teljesedik ki." JOBB: "Homiletikailag a sérülés megnyithatja a gyengeség és az Istentől való függés témáját." ROSSZ: "Jákób a csalóból Isten harcosává válik." JOBB: "A névváltoztatás új identitást és rendeltetést jelez; ennek pontos teológiai jelentését ne szűkítsd egyetlen szóetimológiai formulára." ROSSZ: "A küzdelem nem elkerülendő, hanem az átalakulás része." JOBB: "A történet lehetőséget ad annak megfogalmazására, hogy bizonyos küzdelmek között Isten formáló jelenléte is felismerhető." Kerüld az olyan mondatszerkezeteket is, ahol egy konkrét textuális részlet (pl. egy sérülés, egy név, egy cselekedet) "mutatja", "megmutatja" vagy "bizonyítja", hogy egy elvont teológiai/homiletikai állítás igaz — ez ugyanaz a hiba MÁS SZAVAKKAL, akkor is, ha az "egyértelműen" szót nem használod. TILOS: "…megmutatva, hogy Isten ereje a gyengeségben teljesedik ki." — ez homiletikai alkalmazást állít be textuális bizonyítékként. JOBB: "Homiletikailag a sebesülés a gyengeségben megélt isteni erő témáját nyithatja meg."
+- HOMILETIKAI KÖVETKEZTETÉST NE FOGALMAZZ ÚGY, MINTHA MAGA A TEXTUS BIZONYÍTANÁ. Írás közben tartsd fejben a különbséget — akkor is, ha ez a végleges szövegben nem külön címkeként jelenik meg, hanem a megfogalmazás módjában — (1) amit a textus explicit mond; (2) amit az exegézis valószínű vagy lehetséges értelmezésként ad; (3) amit a prédikáció homiletikai alkalmazásként épít tovább ezekre. Egy homiletikai vagy teológiai alkalmazás lehet magabiztos és bátor megfogalmazású, de NE állítsd be úgy, mintha a szöveg maga mondaná vagy bizonyítaná — jelöld meg nyelvileg alkalmazásként (pl. "homiletikailag…", "ez lehetőséget ad arra, hogy…", "megnyithatja a … témát"), ne textuális ténymegállapításként. Példa — ROSSZ: "A sérülés azt mutatja, hogy Isten ereje a gyengeségben teljesedik ki." JOBB: "Homiletikailag a sérülés megnyithatja a gyengeség és az Istentől való függés témáját." ROSSZ: "Jákób a csalóból Isten harcosává válik." JOBB: "A névváltoztatás új identitást és rendeltetést jelez; ennek pontos teológiai jelentését ne szűkítsd egyetlen szóetimológiai formulára." Hasonlóképpen: ha egy nehézség/küzdelem "szükségszerűen" vagy "elkerülhetetlenül" az átalakulás/növekedés része — mintha ez maga a textus kategorikus kijelentése lenne —, az UGYANAZ a hiba: fogalmazz helyette explicit homiletikai keretezéssel, pl. "a történet lehetőséget ad annak megfogalmazására, hogy bizonyos küzdelmek mögött Isten formáló jelenléte is felismerhető" jellegű, saját szavaiddal megfogalmazott mondattal — SOSE a jelen instrukcióban szereplő bármely mintamondatot szó szerint vagy majdnem szó szerint átvéve, egy másik mozgásban megismételve. Kerüld az olyan mondatszerkezeteket is, ahol egy konkrét textuális részlet (pl. egy sérülés, egy név, egy cselekedet) "mutatja", "megmutatja" vagy "bizonyítja", hogy egy elvont teológiai/homiletikai állítás igaz — ez ugyanaz a hiba MÁS SZAVAKKAL, akkor is, ha az "egyértelműen" szót nem használod. TILOS: "…megmutatva, hogy Isten ereje a gyengeségben teljesedik ki." — ez homiletikai alkalmazást állít be textuális bizonyítékként. JOBB: "Homiletikailag a sebesülés a gyengeségben megélt isteni erő témáját nyithatja meg."
 
 TÁMASZ HASZNÁLATA: kizárólag a blueprint támogató anyagából (exegetikai, eredeti nyelvi, történeti/teológiai) dolgozhatsz. Nem hivatkozhatsz olyan állításra, aminek nincs alapja a blueprintben vagy a mellékelt bibliai szövegben. A bibliai szöveget kizárólag groundingként használd: szöveghűség-ellenőrzésre és idézetek pontosítására — nem új exegézis forrásaként. Eredeti nyelvi elem mozgásonként jellemzően 0 vagy 1 — csak ha ténylegesen fontos, és akkor is magyarul értelmezhető megállapításként, sosem díszítő Strong-számként vagy nyers szóalakként.
 
@@ -655,6 +655,7 @@ def generate_developed_outline(
     session_state: MutableMapping[str, Any],
     *,
     generate_fn: GenerateFn,
+    bypass_cooldown: bool = False,
 ) -> DevelopedOutlineOutcome:
     """Egyetlen belépési pont: determinisztikus kontextus -> blueprint
     frissesség-ellenőrzés -> legfeljebb EGY AI-hívás -> SZIGORÚ,
@@ -664,7 +665,16 @@ def generate_developed_outline(
     mezőbe, az ELSŐ generálás is candidate).
 
     Hiányzó vagy elavult (stale) blueprint esetén EL SEM INDUL az
-    AI-hívás — determinisztikus, `status="blocked"` eredmény érkezik."""
+    AI-hívás — determinisztikus, `status="blocked"` eredmény érkezik.
+
+    `bypass_cooldown`: FINAL SERMON WORKFLOW + OUTLINE PRESENTATION
+    POLISH (2026-08-21) — KIZÁRÓLAG akkor `True`, ha a hívó UGYANAZON a
+    gombnyomáson belül közvetlenül egy sikeres automatikus blueprint-
+    generálás UTÁN hívja ezt (a globális `GEMINI_COOLDOWN_S` két
+    LOGIKAILAG FÜGGETLEN felhasználói hívás közé való, nem egyetlen
+    gombnyomás belső, láncolt lépései közé — ugyanaz az elv, mint amit a
+    `generate_text(..., bypass_cooldown=True)` már meglévő "ugyanazon
+    gombnyomás fill/repair hívásai" kivétele dokumentál)."""
     context = build_developed_outline_context(session_state)
 
     if not context.reference.strip():
@@ -728,6 +738,7 @@ def generate_developed_outline(
             include_brevity_directive=False,
             response_mime_type="application/json",
             response_schema=DEVELOPED_OUTLINE_RESPONSE_SCHEMA,
+            bypass_cooldown=bypass_cooldown,
         )
     except Exception as exc:  # noqa: BLE001 — a hívónak mindenképp választ kell adnunk
         return DevelopedOutlineOutcome(

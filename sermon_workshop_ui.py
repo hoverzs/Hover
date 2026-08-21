@@ -602,20 +602,6 @@ _ARC_CANDIDATE_REJECT_MESSAGES: dict[str, str] = {
 _KEY_BLUEPRINT_GEN_RUNNING = "_sw_flat_blueprint_gen_running"
 _KEY_OUTLINE_GEN_RUNNING = "_sw_flat_outline_gen_running"
 
-# A `build_developed_outline_context(...).missing_required_fields()`
-# VISSZATÉRÉSI SORRENDJE (igehely -> bibliai szöveg -> homiletikai
-# blueprint -> blueprint kontextusazonosító) pontosan megegyezik a
-# `generate_developed_outline` blokkoló-ellenőrzéseinek sorrendjével —
-# ezért az első hiányzó elem közvetlenül leképezhető ugyanarra a
-# reason-kódra, amit egy tényleges (itt el sem indított) generálási
-# kísérlet adna.
-_MISSING_FIELD_TO_OUTLINE_BLOCK_REASON: dict[str, str] = {
-    "igehely": "missing_reference",
-    "bibliai szöveg": "missing_passage_text",
-    "homiletikai blueprint": "missing_blueprint",
-    "blueprint kontextusazonosító": "missing_blueprint_context_identity",
-}
-
 _DEVELOPED_OUTLINE_BLOCK_MESSAGES: dict[str, str] = {
     "missing_blueprint": "Előbb készítsd el az igehirdetési tervrajzot.",
     "blueprint_stale": (
@@ -12417,13 +12403,16 @@ def _render_developed_outline_movement_readonly(index: int, movement: dict) -> N
     """Egy vázlat-mozgás read-only megjelenítése — a függőben lévő
     `developed_outline_candidate` előnézetéhez.
 
-    FINAL SERMON UX POLISH (2026-08-21): a főnézetben csak sorszám+cím,
-    funkció, fő állítás, kibontás-bullet-ek és átvezetés jelenik meg —
-    a támasz-/irány-mezők (`exegetical_support`, `original_language_
-    support`, `historical_theological_support`, `illustration_
-    direction`, `application_direction`) egy összecsukott "Segédanyag
-    ehhez a ponthoz" expanderbe kerülnek, és CSAK akkor jelennek meg
-    egyáltalán, ha legalább az egyiknek van tényleges tartalma."""
+    FINAL SERMON UX POLISH (2026-08-21) + FINAL SERMON WORKFLOW +
+    OUTLINE PRESENTATION POLISH (2026-08-21): a főnézetben csak
+    sorszám+cím, funkció, fő állítás, kibontás-bullet-ek és átvezetés
+    jelenik meg. A támasz-/irány-mezők (`exegetical_support`,
+    `original_language_support`, `historical_theological_support`,
+    `illustration_direction`, `application_direction`) EBBEN a
+    függvényben egyáltalán NEM jelennek meg — azokat a teljes candidate
+    alatt EGYETLEN, közös "Háttéranyagok a vázlathoz" expander gyűjti
+    össze (ld. `_render_developed_outline_support_material_readonly`),
+    hogy ne tördelje szét pontonként a javaslatot."""
     title = str(movement.get("title") or "").strip() or f"{index}. mozgás"
     st.markdown(f"**{index}. {title}**")
     function = str(movement.get("function") or "").strip()
@@ -12439,8 +12428,32 @@ def _render_developed_outline_movement_readonly(index: int, movement: dict) -> N
     if transition:
         st.caption(f"Átvezetés: {transition}")
 
-    if _developed_outline_movement_has_support_content(movement):
-        with st.expander("Segédanyag ehhez a ponthoz", expanded=False):
+
+def _render_developed_outline_support_material_readonly(
+    movements: list[dict], *, start: int = 1
+) -> None:
+    """A `_render_developed_outline_support_material_expander` read-only
+    megfelelője a még el nem bírált candidate-hez — ugyanaz az elv:
+    EGYETLEN, közös, alapértelmezetten összecsukott "Háttéranyagok a
+    vázlathoz" expander, mozgásonként csoportosítva, csak a ténylegesen
+    kitöltött mezőkkel, csak akkor jelenik meg egyáltalán, ha van
+    tényleges tartalom valahol."""
+    indexed = list(enumerate(movements, start=start))
+    with_content = [
+        (index, movement)
+        for index, movement in indexed
+        if isinstance(movement, dict)
+        and _developed_outline_movement_has_support_content(movement)
+    ]
+    if not with_content:
+        return
+
+    with st.expander("Háttéranyagok a vázlathoz", expanded=False):
+        for i, (index, movement) in enumerate(with_content):
+            if i > 0:
+                st.divider()
+            title = str(movement.get("title") or "").strip() or f"{index}. mozgás"
+            st.caption(f"{index}. {title}")
             for label, field in _DEVELOPED_OUTLINE_READONLY_SUPPORT_LABELS:
                 if field in _DEVELOPED_MOVEMENT_LIST_FIELDS:
                     items = movement.get(field)
@@ -12491,6 +12504,8 @@ def _render_developed_outline_candidate_panel() -> None:
         for idx, movement in enumerate(movements, start=1):
             if isinstance(movement, dict):
                 _render_developed_outline_movement_readonly(idx, movement)
+
+        _render_developed_outline_support_material_readonly(movements, start=1)
 
         c1, c2 = st.columns(2)
         with c1:
@@ -12679,20 +12694,21 @@ def _developed_outline_movement_has_support_content(movement: dict) -> bool:
 def _render_developed_outline_movement_editable(index: int, movement: dict) -> None:
     """Egy kanonikus vázlat-mozgás szerkeszthető megjelenítése.
 
-    FINAL SERMON UX POLISH (2026-08-21): korábban (RESET 2E-6b) a teljes
-    mozgás — a fő állítástól a támasz-/irány-mezőkig — EGYETLEN,
-    alapértelmezetten összecsukott `st.expander`-be volt zárva, ami azt
-    jelentette, hogy a lelkésznek a fő állítást és a kibontást is minden
-    egyes ponton külön ki kellett nyitnia. A cél most a gyors,
-    szószékre-vihető áttekinthetőség: a FŐNÉZET (sorszám+cím, funkció,
-    fő állítás, kibontás-bullet-ek, átvezetés) mindig KÖZVETLENÜL
-    látható, egy könnyű kártya-keretben (`st.container(border=True)`) —
-    csak a másodlagos SEGÉDANYAG (`exegetical_support`,
-    `original_language_support`, `historical_theological_support`,
-    `illustration_direction`, `application_direction`) kerül egy
-    pontonkénti, összecsukott "Segédanyag ehhez a ponthoz" expanderbe, és
-    az is CSAK akkor jelenik meg, ha legalább egy ilyen mező ténylegesen
-    tartalmaz valamit — nincs üres placeholder-widget.
+    FINAL SERMON UX POLISH (2026-08-21) + FINAL SERMON WORKFLOW +
+    OUTLINE PRESENTATION POLISH (2026-08-21): korábban (RESET 2E-6b) a
+    teljes mozgás — a fő állítástól a támasz-/irány-mezőkig — EGYETLEN,
+    alapértelmezetten összecsukott `st.expander`-be volt zárva. A cél
+    most a gyors, szószékre-vihető áttekinthetőség: a FŐNÉZET
+    (sorszám+cím, funkció, fő állítás, kibontás-bullet-ek, átvezetés)
+    mindig KÖZVETLENÜL látható, egy könnyű kártya-keretben
+    (`st.container(border=True)`). A másodlagos SEGÉDANYAG
+    (`exegetical_support`, `original_language_support`,
+    `historical_theological_support`, `illustration_direction`,
+    `application_direction`) EBBEN a függvényben egyáltalán NEM jelenik
+    meg — azt a teljes vázlat alatt EGYETLEN, közös "Háttéranyagok a
+    vázlathoz" expander gyűjti össze, mozgásonként csoportosítva (ld.
+    `_render_developed_outline_support_material_expander`), hogy ne
+    tördelje szét pontonként a vázlatot.
 
     A structured adatmodell, a mutátorok és a `key`-alapú widget-
     azonosítás VÁLTOZATLAN — kizárólag a RENDERELÉS egyszerűsödött.
@@ -12701,7 +12717,7 @@ def _render_developed_outline_movement_editable(index: int, movement: dict) -> N
     `key`-e (nem az index) a forrás."""
     movement_key = str(movement.get("key") or f"movement_{index}")
 
-    with st.container(border=True):
+    with st.container(border=True, key=f"sw_flat_outline_movement_{movement_key}"):
         _render_developed_outline_edit_field(
             index=index,
             movement_key=movement_key,
@@ -12742,19 +12758,49 @@ def _render_developed_outline_movement_editable(index: int, movement: dict) -> N
             height=68,
         )
 
-        if _developed_outline_movement_has_support_content(movement):
-            with st.expander("Segédanyag ehhez a ponthoz", expanded=False):
-                for field in _DEVELOPED_OUTLINE_SUPPORT_FIELDS:
-                    if not _developed_outline_field_has_content(movement, field):
-                        continue
-                    _render_developed_outline_edit_field(
-                        index=index,
-                        movement_key=movement_key,
-                        movement=movement,
-                        field=field,
-                        widget="text_area",
-                        height=68,
-                    )
+
+def _render_developed_outline_support_material_expander(
+    movements: list[dict],
+) -> None:
+    """A teljes kanonikus vázlat EGYETLEN, közös háttéranyag-expandere.
+
+    FINAL SERMON WORKFLOW + OUTLINE PRESENTATION POLISH (2026-08-21):
+    korábban minden mozgásnak SAJÁT, pontonkénti "Segédanyag ehhez a
+    ponthoz" expandere volt — ez a vázlatot vizuálisan feldarabolta.
+    Most a teljes vázlat alatt EGYETLEN, alapértelmezetten összecsukott
+    "Háttéranyagok a vázlathoz" expander gyűjti össze az összes mozgás
+    segédanyagát, mozgásonként csoportosítva egy rövid alcím alatt — és
+    az expander maga is CSAK akkor jelenik meg, ha legalább egy
+    mozgásnak van tényleges segédanyag-tartalma; egy adott mozgás
+    csoportja pedig csak akkor jelenik meg ezen belül, ha annak a
+    mozgásnak van tartalma (nincs üres placeholder-csoport)."""
+    movements_with_content = [
+        (index, movement)
+        for index, movement in enumerate(movements)
+        if isinstance(movement, dict)
+        and _developed_outline_movement_has_support_content(movement)
+    ]
+    if not movements_with_content:
+        return
+
+    with st.expander("Háttéranyagok a vázlathoz", expanded=False):
+        for i, (index, movement) in enumerate(movements_with_content):
+            if i > 0:
+                st.divider()
+            movement_key = str(movement.get("key") or f"movement_{index}")
+            title = str(movement.get("title") or "").strip() or f"{index + 1}. mozgás"
+            st.caption(f"{index + 1}. {title}")
+            for field in _DEVELOPED_OUTLINE_SUPPORT_FIELDS:
+                if not _developed_outline_field_has_content(movement, field):
+                    continue
+                _render_developed_outline_edit_field(
+                    index=index,
+                    movement_key=movement_key,
+                    movement=movement,
+                    field=field,
+                    widget="text_area",
+                    height=68,
+                )
 
 
 def _developed_outline_freshness(
@@ -12855,7 +12901,7 @@ def _render_developed_outline_canonical_editable() -> None:
         return
 
     st.divider()
-    with st.container(border=True):
+    with st.container(border=True, key="sw_flat_outline_canonical"):
         st.markdown("**Részletes prédikációs munkavázlat**")
         st.caption("A mezők automatikusan mentődnek, ahogy szerkeszted őket.")
 
@@ -12894,28 +12940,46 @@ def _render_developed_outline_canonical_editable() -> None:
             if isinstance(movement, dict):
                 _render_developed_outline_movement_editable(index, movement)
 
+        _render_developed_outline_support_material_expander(movements)
+
 
 def render_flat_developed_outline_section(
     *, generate_fn: GenerateFn | None = None
 ) -> None:
-    """RESET 2E-4: a kétlépcsős vázlatmotor UI-bekötése.
+    """A kétlépcsős vázlatmotor (blueprint -> részletes vázlat) UI-bekötése.
 
-    Két, egymástól FÜGGETLEN, explicit felhasználói művelet — nincs
-    automatikus blueprint -> részletes vázlat láncolás:
-      1. Homiletikai blueprint (nincs candidate-lifecycle, RESET
-         2E-1/2E-2 szerint közvetlenül a kanonikus mezőbe ír sikeres
-         validálás után).
-      2. Részletes vázlat (KÖTELEZŐEN candidate-only, RESET 2E-1A/2E-3
-         szerint — a "Részletes vázlat készítése/újragenerálása" gomb
-         csak érvényes, KANONIKUS ÉS FRISS blueprintnél aktív; blokkoló
-         állapotban a UI ELŐRE jelzi az okot, AI-hívás nélkül).
-    """
+    FINAL SERMON WORKFLOW + OUTLINE PRESENTATION POLISH (2026-08-21): a
+    blueprint (tervrajz) megszűnt user-facing GATE lenni — korábban
+    (RESET 2E-4) a "Részletes vázlat készítése" gomb csak érvényes,
+    KANONIKUS ÉS FRISS blueprintnél volt aktív, és a felhasználónak
+    KÜLÖN, előzetes kattintással kellett elkészítenie a blueprintet. Most
+    egyetlen gombnyomás:
+      1. ha van friss, érvényes kanonikus blueprint -> azt használja,
+         AI-hívás nélkül;
+      2. ha nincs, vagy elavult (`is_blueprint_fresh()` szerint) -> a
+         HÁTTÉRBEN, ugyanabban a kattintásban előbb elkészíti/frissíti
+         (`generate_sermon_blueprint`) — a blueprint MOTORJA (schema,
+         canonical state, hash/freshness-logika, validálás) VÁLTOZATLAN,
+         kizárólag ez az UI-orchestráció bővült;
+      3. ha az automatikus blueprint-generálás sikertelen, a részletes
+         vázlat `generate_developed_outline` hívása EL SEM INDUL — rövid,
+         kulturált hibaüzenet jelenik meg, a pontos ok a szerver-konzol
+         logban (`textus.sermon_workshop` logger) marad;
+      4. sikeres (vagy már eleve friss) blueprint esetén AZONNAL,
+         ugyanabban a kattintásban elindul a részletes vázlat
+         candidate-generálása — nincs második kattintás.
+
+    A `_render_blueprint_status_and_generate_button` (a tervrajz
+    összecsukott, alapértelmezetten rejtett állapot/részletek/
+    figyelmeztetés/kézi-újragenerálás panelje) VÁLTOZATLANUL megmarad —
+    de többé NEM előfeltétele a részletes vázlatnak, tisztán opcionális
+    betekintési/kézi felülbírálási lehetőség marad."""
     render_work_section(
         title="Részletes prédikációs munkavázlat",
         body=(
-            "Két lépésben készül: előbb egy belső igehirdetési tervrajz "
-            "alakítja ki a koherens gondolatmenetet, majd ebből készül a "
-            "részletes, szószékre vihető munkavázlat."
+            "A hétpontos gondolatívből közvetlenül készül — ha szükséges, "
+            "egy belső igehirdetési tervrajz is automatikusan elkészül a "
+            "háttérben, mielőtt a részletes munkavázlat összeáll."
         ),
         context="Igehirdetési műhely",
     )
@@ -12925,14 +12989,15 @@ def render_flat_developed_outline_section(
     sw = ensure_sermon_workshop_state(st.session_state)
     context = build_developed_outline_context(st.session_state)
     missing = context.missing_required_fields()
-    if missing:
-        block_reason = _MISSING_FIELD_TO_OUTLINE_BLOCK_REASON.get(
-            missing[0], "missing_blueprint"
-        )
-    elif not is_blueprint_fresh(st.session_state):
-        block_reason = "blueprint_stale"
-    else:
-        block_reason = ""
+    # KIZÁRÓLAG az igehely/bibliai szöveg hiánya blokkol ténylegesen — ezek
+    # NEM automatizálhatók, a felhasználónak kell megadnia a Textusműhelyben.
+    # A blueprint hiánya/elavultsága önmagában többé NEM blokkoló ok: azt a
+    # gombnyomás automatikusan pótolja (ld. lent).
+    hard_block_reason = ""
+    if "igehely" in missing:
+        hard_block_reason = "missing_reference"
+    elif "bibliai szöveg" in missing:
+        hard_block_reason = "missing_passage_text"
 
     running = bool(st.session_state.get(_KEY_OUTLINE_GEN_RUNNING))
     has_canonical = bool((sw.get("developed_outline") or {}).get("movements"))
@@ -12945,8 +13010,8 @@ def render_flat_developed_outline_section(
 
     with st.container(border=True):
         st.markdown("**Részletes vázlat generálása**")
-        if block_reason:
-            st.caption(_DEVELOPED_OUTLINE_BLOCK_MESSAGES[block_reason])
+        if hard_block_reason:
+            st.caption(_DEVELOPED_OUTLINE_BLOCK_MESSAGES[hard_block_reason])
         if has_pending_candidate:
             st.caption(
                 "Az újragenerálás lecseréli a lenti, még el nem bírált "
@@ -12956,34 +13021,77 @@ def render_flat_developed_outline_section(
             label,
             type="primary",
             key="sw_flat_outline_generate",
-            disabled=running or generate_fn is None or bool(block_reason),
+            disabled=running or generate_fn is None or bool(hard_block_reason),
         ):
             if generate_fn is None:
                 st.warning("Az MI-segéd jelenleg nem elérhető.")
             else:
                 st.session_state[_KEY_OUTLINE_GEN_RUNNING] = True
+                outline_ready = False
+                outcome = None
                 try:
-                    with st.spinner("Részletes munkavázlat készül…"):
-                        outcome = generate_developed_outline(
-                            st.session_state, generate_fn=generate_fn
-                        )
+                    current_context = build_developed_outline_context(
+                        st.session_state
+                    )
+                    blueprint_needs_prep = bool(
+                        current_context.missing_required_fields()
+                    ) or not is_blueprint_fresh(st.session_state)
+
+                    outline_ready = True
+                    if blueprint_needs_prep:
+                        with st.spinner("Igehirdetési tervrajz előkészítése…"):
+                            bp_outcome = generate_sermon_blueprint(
+                                st.session_state, generate_fn=generate_fn
+                            )
+                        if not bp_outcome.ok:
+                            import logging
+
+                            logging.getLogger("textus.sermon_workshop").error(
+                                "auto blueprint generation failed before "
+                                "developed outline (reason=%s): %s",
+                                bp_outcome.reason,
+                                bp_outcome.error_message,
+                            )
+                            st.error(
+                                "Nem sikerült elkészíteni az igehirdetési "
+                                "tervrajzot a részletes vázlathoz. Próbáld "
+                                "újra, vagy nyisd meg fent a tervrajz-"
+                                "panelt kézi generáláshoz."
+                            )
+                            outline_ready = False
+
+                    if outline_ready:
+                        with st.spinner("Részletes munkavázlat készül…"):
+                            outcome = generate_developed_outline(
+                                st.session_state,
+                                generate_fn=generate_fn,
+                                # A globális GEMINI_COOLDOWN_S két
+                                # LOGIKAILAG FÜGGETLEN felhasználói hívás
+                                # közé való — nem az EGYETLEN kattintáson
+                                # belül automatikusan láncolt blueprint+
+                                # vázlat hívás közé. Csak akkor kerüljük
+                                # meg, ha ebben a kattintásban TÉNYLEGESEN
+                                # most készült/frissült a blueprint.
+                                bypass_cooldown=blueprint_needs_prep,
+                            )
                 finally:
                     st.session_state[_KEY_OUTLINE_GEN_RUNNING] = False
 
-                if not outcome.ok:
-                    if outcome.status == "blocked":
-                        st.warning(
-                            _DEVELOPED_OUTLINE_BLOCK_MESSAGES.get(
-                                outcome.reason, outcome.error_message
+                if outline_ready and outcome is not None:
+                    if not outcome.ok:
+                        if outcome.status == "blocked":
+                            st.warning(
+                                _DEVELOPED_OUTLINE_BLOCK_MESSAGES.get(
+                                    outcome.reason, outcome.error_message
+                                )
                             )
-                        )
+                        else:
+                            st.error(outcome.error_message)
                     else:
-                        st.error(outcome.error_message)
-                else:
-                    _toast_and_rerun(
-                        "Elkészült egy új részletes vázlatjavaslat — nézd "
-                        "át alább."
-                    )
+                        _toast_and_rerun(
+                            "Elkészült egy új részletes vázlatjavaslat — nézd "
+                            "át alább."
+                        )
         if generate_fn is None:
             st.caption("Az MI-segéd jelenleg nem elérhető.")
 

@@ -813,7 +813,22 @@ def test_system_prompt_gives_concrete_bad_good_homiletical_application_examples(
     assert '"A sérülés azt mutatja, hogy Isten ereje a gyengeségben teljesedik ki."' in prompt
     assert "Homiletikailag a sérülés megnyithatja a gyengeség és az Istentől való függés témáját." in prompt
     assert '"Jákób a csalóból Isten harcosává válik."' in prompt
-    assert '"A küzdelem nem elkerülendő, hanem az átalakulás része."' in prompt
+
+
+def test_system_prompt_forbids_echoing_its_own_bad_examples_verbatim():
+    """FINAL SERMON WORKFLOW + OUTLINE PRESENTATION POLISH (2026-08-21):
+    real-API retest 1Móz32-n kimutatta, hogy a modell időnként szinte szó
+    szerint visszaidézte a promptban korábban literálisan szereplő ROSSZ
+    mintamondatot ("A küzdelem nem elkerülendő, hanem az átalakulás
+    része.") egy másik mozgásban — az anti-echo instrukció önmagában nem
+    volt elég, ezért a promptból eltávolítottuk az adott ROSSZ mondat
+    SZÓ SZERINTI idézetét (elvont leírással helyettesítve), és a maradék
+    literális ROSSZ mintáknál is explicit tiltjuk a szó szerinti/majdnem
+    szó szerinti újrahasználatot."""
+    prompt = ol_ai.DEVELOPED_OUTLINE_SYSTEM_PROMPT
+    assert '"A küzdelem nem elkerülendő, hanem az átalakulás része."' not in prompt
+    assert "szükségszerűen" in prompt and "elkerülhetetlenül" in prompt
+    assert "SOSE a jelen instrukcióban szereplő bármely mintamondatot szó szerint" in prompt
 
 
 def test_blueprint_system_prompt_also_preserves_upstream_uncertainty():

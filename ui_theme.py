@@ -2631,5 +2631,37 @@ div[data-baseweb="popover"] [data-testid="stPopoverBody"]::-webkit-scrollbar-thu
 [class*="st-key-sw_flat_"] button:disabled {
     opacity: 0.55 !important;
 }
+
+/* ===== FINAL SERMON WORKFLOW + OUTLINE PRESENTATION POLISH — a
+   részletes vázlat (developed outline) főnézetének sűrítése
+   (SCOPED a `.st-key-sw_flat_outline_canonical` blokkra, 2026-08-21) =====
+   KIZÁRÓLAG a kanonikus részletes vázlat kártyáit célozza — nem az
+   app globális tipográfiáját. A cél sűrűbb, könyvszerűbb, könnyebben
+   pásztázható megjelenés: kisebb függőleges távolság a mozgás-kártyák
+   között, cím/funkció/fő állítás/kibontás/átvezetés mezők között, és
+   a kibontás-textarea sorai között — a betűméret VÁLTOZATLAN marad. */
+.st-key-sw_flat_outline_canonical [data-testid="stVerticalBlock"] {
+    gap: 0.4rem !important;
+}
+.st-key-sw_flat_outline_canonical [data-testid="stElementContainer"] {
+    margin-bottom: 0 !important;
+}
+.st-key-sw_flat_outline_canonical [data-testid="stWidgetLabel"] {
+    margin-bottom: 0.1rem !important;
+    padding-bottom: 0 !important;
+}
+.st-key-sw_flat_outline_canonical [data-testid="stWidgetLabel"] p {
+    margin-bottom: 0 !important;
+    font-size: 0.85rem !important;
+    opacity: 0.85;
+}
+.st-key-sw_flat_outline_canonical textarea,
+.st-key-sw_flat_outline_canonical input[type="text"] {
+    padding: 0.35rem 0.55rem !important;
+    line-height: 1.35 !important;
+}
+[class*="st-key-sw_flat_outline_movement_"] {
+    padding: 0.65rem 0.85rem !important;
+}
 """.strip()
 

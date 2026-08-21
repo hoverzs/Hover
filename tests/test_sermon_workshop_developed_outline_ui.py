@@ -393,33 +393,46 @@ def _render_fresh_blueprint_then_generate_outline_with_support_content() -> None
 
 
 # =============================================================================
-# A. Hiányzó blueprint -> nulla AI-hívás, letiltott gomb, blokkoló üzenet
+# A. Hiányzó blueprint -> a gomb TOVÁBBRA IS aktív (FINAL SERMON WORKFLOW +
+# OUTLINE PRESENTATION POLISH, 2026-08-21: a blueprint már nem user-facing
+# gate — a gombnyomás automatikusan pótolja a hiányzó blueprintet).
 # =============================================================================
 
 
-def test_a_missing_blueprint_disables_outline_button_with_message():
+def test_a_missing_blueprint_no_longer_disables_outline_button():
+    """A blueprint hiánya önmagában NEM blokkolja a "Részletes vázlat
+    készítése" gombot — csak az igehely/bibliai szöveg hiánya blokkol
+    ténylegesen (az nem automatizálható). A `_render_missing_blueprint`
+    fixture `fake_gen`-je szándékosan hibát dobna, ha meghívódna — ez a
+    teszt NEM kattint, csak azt ellenőrzi, hogy a gomb elérhető és nincs
+    blokkoló üzenet, tehát egy tényleges kattintás elindítaná a hívást."""
     app = AppTest.from_function(_render_missing_blueprint).run(timeout=60)
     assert not app.exception
 
     outline_btn = next(b for b in app.button if b.label == "Részletes vázlat készítése")
-    assert outline_btn.disabled is True
+    assert outline_btn.disabled is False
     captions = [c.value for c in app.caption]
-    assert any("Előbb készítsd el az igehirdetési tervrajzot." in c for c in captions)
+    assert not any("Előbb készítsd el az igehirdetési tervrajzot." in c for c in captions)
 
 
 # =============================================================================
-# B. Elavult blueprint -> nulla AI-hívás, letiltott gomb, blokkoló üzenet
+# B. Elavult blueprint -> a gomb TOVÁBBRA IS aktív (a gombnyomás
+# automatikusan frissíti a blueprintet, mielőtt a vázlat elkészülne).
 # =============================================================================
 
 
-def test_b_stale_blueprint_disables_outline_button_with_message():
+def test_b_stale_blueprint_no_longer_disables_outline_button():
     app = AppTest.from_function(_render_stale_blueprint).run(timeout=60)
     assert not app.exception
 
     outline_btn = next(b for b in app.button if b.label == "Részletes vázlat készítése")
-    assert outline_btn.disabled is True
+    assert outline_btn.disabled is False
     captions = [c.value for c in app.caption]
-    assert any("elavult" in c for c in captions)
+    assert not any(
+        "elavult: a kanonikus bemenet megváltozott az elkészülte óta — "
+        "készíts újat, mielőtt részletes vázlatot kérsz" in c
+        for c in captions
+    )
 
 
 def test_b_blueprint_warnings_are_always_visible_and_not_resolvable():
@@ -429,6 +442,99 @@ def test_b_blueprint_warnings_are_always_visible_and_not_resolvable():
     # Nincs "feloldás"/"megoldás" gomb a warninghoz.
     labels = [b.label for b in app.button]
     assert not any("felold" in label.lower() or "megold" in label.lower() for label in labels)
+
+
+# =============================================================================
+# A2/B2. FINAL SERMON WORKFLOW + OUTLINE PRESENTATION POLISH (2026-08-21):
+# a hiányzó blueprintet a "Részletes vázlat készítése" gomb EGYETLEN
+# kattintással automatikusan pótolja, majd folytatja a részletes vázlat
+# generálásával — nincs második kattintás.
+# =============================================================================
+
+
+def test_single_click_auto_generates_missing_blueprint_then_outline():
+    app = AppTest.from_function(_render_fresh_blueprint_then_generate_outline).run(
+        timeout=60
+    )
+    assert app.session_state["_bp_call_count"] == 0
+    assert app.session_state["_outline_call_count"] == 0
+
+    # KIZÁRÓLAG a "Részletes vázlat készítése" gombra kattintunk — a
+    # "Tervrajz készítése" gombot SOHA nem érintjük.
+    _click_and_settle(app, "Részletes vázlat készítése")
+    assert not app.exception
+
+    assert app.session_state["_bp_call_count"] == 1
+    assert app.session_state["_outline_call_count"] == 1
+    assert app.session_state["sermon_workshop"]["blueprint"]["central_claim"] == (
+        "Isten kezdeményez."
+    )
+    assert isinstance(
+        app.session_state["sermon_workshop"].get("developed_outline_candidate"), dict
+    )
+
+
+def test_single_click_skips_blueprint_regeneration_when_already_fresh():
+    """Ha VAN friss, érvényes kanonikus blueprint, a gombnyomás NEM hívja
+    újra a tervrajz-generálást — csak a részletes vázlatét."""
+    app = AppTest.from_function(_render_fresh_blueprint_then_generate_outline).run(
+        timeout=60
+    )
+    _click_and_settle(app, "Tervrajz készítése")
+    assert app.session_state["_bp_call_count"] == 1
+
+    _click_and_settle(app, "Részletes vázlat készítése")
+    assert not app.exception
+    assert app.session_state["_bp_call_count"] == 1  # nem nőtt
+    assert app.session_state["_outline_call_count"] == 1
+
+
+def test_single_click_auto_refreshes_stale_blueprint_then_outline():
+    app = AppTest.from_function(
+        _render_fresh_blueprint_then_generate_outline
+    ).run(timeout=60)
+    _click_and_settle(app, "Tervrajz készítése")
+    assert app.session_state["_bp_call_count"] == 1
+
+    # A kanonikus bemenet megváltozik -> a blueprint elavulttá válik.
+    app.session_state["sermon_workshop"]["arc"]["entry"]["text"] = (
+        "MEGVÁLTOZOTT_ARC_PONT"
+    )
+    app.run(timeout=60)
+
+    _click_and_settle(app, "Részletes vázlat készítése")
+    assert not app.exception
+    assert app.session_state["_bp_call_count"] == 2  # újragenerálódott
+    assert app.session_state["_outline_call_count"] == 1
+
+
+def test_failed_auto_blueprint_generation_blocks_outline_with_cultured_error():
+    """Ha az automatikus blueprint-generálás sikertelen (pl. a modell
+    érvénytelen választ ad), a `generate_developed_outline` EL SEM
+    INDUL — rövid, kulturált hibaüzenet jelenik meg, nincs traceback.
+
+    MEGJEGYZÉS: szándékosan NEM `_click_and_settle`-t használ — az egy
+    MÁSODIK, kattintás nélküli `.run()`-t is végrehajt (ami a
+    `_toast_and_rerun()`-alapú, session_state-ben tárolt flash-üzenetek
+    teljes megjelenéséhez szükséges), de egy sima `st.error(...)`
+    transzens elem, amely EBBEN a plusz, kattintás nélküli rerunban már
+    nem jelenne meg újra — ezért itt egyetlen kattintás + egyetlen
+    `.run()` a helyes minta."""
+    app = AppTest.from_function(_render_blueprint_invalid_response).run(timeout=60)
+
+    idx = next(
+        i for i, b in enumerate(app.button) if b.label == "Részletes vázlat készítése"
+    )
+    app.button[idx].click().run(timeout=60)
+    assert not app.exception
+
+    error_values = [e.value for e in app.error]
+    assert any(
+        "Nem sikerült elkészíteni az igehirdetési tervrajzot" in e
+        for e in error_values
+    )
+    sw = app.session_state["sermon_workshop"]
+    assert not isinstance(sw.get("developed_outline_candidate"), dict)
 
 
 # =============================================================================
@@ -1896,17 +2002,19 @@ def test_core_field_widget_keys_unchanged_after_ux_restructure():
 
 
 def test_empty_support_fields_render_no_widget_and_no_expander():
-    """FINAL SERMON UX POLISH (2026-08-21): ha egy mozgásnak nincs
-    tényleges segédanyag-tartalma (mind az öt mező üres — a
-    `_render_fresh_blueprint_then_generate_outline` alap-fixture
-    mindegyik mozgásnál ezt adja), akkor SEM a "Segédanyag ehhez a
-    ponthoz" expander, SEM az egyes segédmezők widgetje nem jelenik
-    meg — nincs üres placeholder-widget."""
+    """FINAL SERMON UX POLISH (2026-08-21) + FINAL SERMON WORKFLOW +
+    OUTLINE PRESENTATION POLISH (2026-08-21): ha EGYETLEN mozgásnak
+    sincs tényleges segédanyag-tartalma (mind az öt mező üres minden
+    mozgásnál — a `_render_fresh_blueprint_then_generate_outline`
+    alap-fixture ezt adja), akkor SEM a korábbi pontonkénti "Segédanyag
+    ehhez a ponthoz", SEM az új, közös "Háttéranyagok a vázlathoz"
+    expander nem jelenik meg — nincs üres placeholder-widget/expander."""
     app = AppTest.from_function(_render_fresh_blueprint_then_generate_outline).run(timeout=60)
     _accept_fresh_outline(app)
 
     labels = [e.label for e in app.expander]
     assert "Segédanyag ehhez a ponthoz" not in labels
+    assert "Háttéranyagok a vázlathoz" not in labels
 
     for field in (
         "exegetical_support",
@@ -1923,22 +2031,24 @@ def test_empty_support_fields_render_no_widget_and_no_expander():
 
 
 def test_populated_support_fields_render_inside_a_single_collapsed_expander():
-    """Ha VAN tényleges segédanyag-tartalom (az "entry" mozgásnál mind az
-    öt mező ki van töltve), a "Segédanyag ehhez a ponthoz" expander
-    megjelenik, alapértelmezetten összecsukva, és mind az öt widget
-    elérhető benne — a többi (üres-tartalmú) mozgásnál viszont NEM
-    jelenik meg külön expander."""
+    """FINAL SERMON WORKFLOW + OUTLINE PRESENTATION POLISH (2026-08-21):
+    a korábbi, mozgásonkénti "Segédanyag ehhez a ponthoz" expanderek
+    megszűntek — a teljes vázlat alatt EGYETLEN, közös "Háttéranyagok a
+    vázlathoz" expander gyűjti össze az összes mozgás segédanyagát. Ha
+    VAN tényleges segédanyag-tartalom (az "entry" mozgásnál mind az öt
+    mező ki van töltve), ez az egyetlen expander megjelenik,
+    alapértelmezetten összecsukva, és mind az öt widget elérhető benne."""
     app = AppTest.from_function(
         _render_fresh_blueprint_then_generate_outline_with_support_content
     ).run(timeout=60)
     _accept_fresh_outline(app)
 
     support_expanders = [
-        e for e in app.expander if e.label == "Segédanyag ehhez a ponthoz"
+        e for e in app.expander if e.label == "Háttéranyagok a vázlathoz"
     ]
-    # Pontosan egy mozgásnak (entry) van tényleges tartalma -> pontosan egy expander.
     assert len(support_expanders) == 1
     assert support_expanders[0].proto.expanded is False
+    assert not any(e.label == "Segédanyag ehhez a ponthoz" for e in app.expander)
 
     for field in (
         "exegetical_support",
