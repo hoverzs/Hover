@@ -3679,38 +3679,95 @@ Válaszolj magyarul, természetes, lelkipásztori-liturgiai nyelven.
 SECTION_PROMPTS = {
     "overview": """{alap}
 
-# IGEHELY — A SZÖVEG BELSŐ DINAMIKÁJA
+# IGEHELY — BIBLIAI HÁTTÉR ÖSSZEGZÉS
 
 Szakmai vízió:
-Térképezd fel a szöveg belső dinamikáját — hol találhatók benne a teológiai
-hangsúlyeltolódások, hol feszülnek belső ellentétek, és mi az az alapvető
-„mozgás", amely a kezdetétől a végéig vezeti az olvasót. Mutasd be a szakasz
-**irodalmi és teológiai architektúráját**, rávilágítva azokra a pontokra,
-ahol az Ige **provokál, vigasztal vagy kérdőre von**.
+Ez egy GYORS, szakmailag használható áttekintés — elsősorban azoknak, akik
+nem akarnak minden részletes műhelymodulon (exegézis, kortörténet,
+teológia) végigmenni, hanem egy tömör, megbízható kiindulópontra van
+szükségük. NE készíts mini-kommentárt, teljes exegézist, teljes teológiai
+tanulmányt vagy hosszú igehirdetés-előkészítő esszét — a cél a lényeg
+tömör, pontos megragadása, nem a kimerítő feltárás.
 
-A válasz strukturáltan, az alábbi szakaszokra bontva:
+A válasz strukturáltan, az alábbi öt szakaszra bontva:
 
 ## Fő üzenet
-1–2 mondatos magvas tételmondat — a szöveg „idegszála".
+2–4 mondat, EGY koherens központi állítás — a szöveg „idegszála". A
+későbbi szakaszok ezt NE ismételjék meg szó szerint vagy közel szó
+szerint; ha visszautalnak rá, tegyék röviden, más funkcióval.
 
-## Közvetlen bibliai kontextus
-Mi előzi meg, mi követi, hol helyezkedik el a kanonikus íven belül.
+## Kontextus és szerkezet
+Egy összefüggő blokkban: mi előzi meg és mi követi a szakaszt a kánoni
+íven belül; a szöveg műfaja; a belső mozgás (honnan-hová vezet); a fő
+feszültség; ha van, egy fontos szerkezeti fordulópont. NE írj hosszú
+elemző esszét — a cél egy tájékozódó áttekintés, nem egy irodalmi
+tanulmány.
 
-## Irodalmi és teológiai architektúra
-- A szakasz szerkezete (kompozíció, ismétlés, retorikai fordulatok).
-- Belső mozgás: honnan-hová vezet a szöveg.
-- Belső feszültségek és hangsúlyeltolódások.
+## Teológiai hangsúlyok
+Legfeljebb 3–4 VALÓBAN különálló hangsúly. Csak akkor sorolj fel egy
+hangsúlyt külön pontként, ha az ténylegesen önálló teológiai funkciót
+hordoz — ne bontsd szét ugyanazt a gondolatot több, csak
+megfogalmazásban eltérő ponttá.
 
-## Teológiai hangsúly
-A textus központi teológiai magja — Isten-kép, emberkép, kegyelem, hit, ítélet stb.
+## Lehetséges prédikációs irányok
+Legfeljebb 3–4, egymástól ÉRDEMBEN különböző prédikációs irány,
+mindegyikhez egy rövid indoklással. Ezek ne a teológiai hangsúlyok
+szinonim átfogalmazásai legyenek, hanem valódi, eltérő kibontási
+lehetőségek (más-más fókuszpont, más-más hallgatóság felé forduló
+kérdés).
 
-## Prédikációs irányok
-3–5 lehetséges kibontási út, mindegyikhez egy mondatos indoklás.
+## Mire figyeljünk?
+Legfeljebb 3–4 pont a valódi hermeneutikai/homiletikai veszélyekről (pl.
+moralizálás, pszichologizálás, egy vitatott értelmezés túlzott
+magabiztossággal való bemutatása, a kontextus figyelmen kívül hagyása).
+Ez NE legyen a fő üzenet vagy a teológiai hangsúlyok harmadik
+megismétlése — kifejezetten a félreértési/félrehasználási kockázatokra
+fókuszáljon.
 
-## Figyelmeztetések
-Mire kell vigyázni az értelmezésnél (szövegrész félreérthető pontjai, gyakori torzítások).
+TARTALMI FEGYELEM:
+- Ha egy értelmezési kérdés vitatott, vagy a szöveg nem dönti el
+  egyértelműen (pl. egy szereplő pontos kiléte, egy esemény pontos
+  természete), NE fogalmazz kategorikus bizonyossággal. Ez a szabály a
+  válasz MINDEN szakaszára egyformán vonatkozik (Fő üzenet, Kontextus és
+  szerkezet, Teológiai hangsúlyok is) — NE fordulhat elő, hogy egy korábbi
+  szakasz (pl. Teológiai hangsúlyok) kategorikus tényként kezel valamit,
+  amit a "Mire figyeljünk?" szakasz utólag vitatottként jelöl meg; legyél
+  következetes a válasz egészében. TILOS: "egyértelműen",
+  "biztosan", "kétségtelenül", "nyilvánvalóan" — és ehhez hasonló lezáró
+  minősítők — egy olyan kérdésnél, amit a szöveg maga nem dönt el
+  egyértelműen. Ez nem csak a fenti minősítő szavak kerülésére
+  vonatkozik: NE fogalmazz úgy sem, hogy Istent teszed meg egy vitatott
+  cselekvés (pl. a küzdelem) ALANYÁVÁ (pl. "Isten kezdeményezi/irányítja
+  a küzdelmet", "Isten tusakodik Jákóbbal") — ha a küzdő fél kiléte
+  vitatott, magát a küzdelmet semleges alannyal írd le (pl. "egy
+  titokzatos alak", "a küzdő fél"), és az isteni dimenzióra csak Jákób
+  SAJÁT értelmezéseként utalj, ne tényként. Helyette: "a szöveg nyitva
+  hagyja...", "a hagyomány többféleképpen érti...", "több legitim olvasat
+  is lehetséges...". Példa — ROSSZ: "A küzdő fél maga Isten." JOBB: "Jákób a találkozást Istennel
+  való találkozásként értelmezi; a küzdő fél pontos identitását a szöveg
+  nyitva hagyja, amit a hagyomány többféleképpen értelmezett."
+- NE találj ki konkrét hitvallási hivatkozást (pl. Heidelbergi Káté
+  kérdésszámot, konfessziós fejezetszámot vagy közel szó szerinti
+  idézetet) emlékezetből. Általános, hivatkozásszám nélküli
+  megfogalmazás megengedett (pl. "a református hitvallási hagyomány
+  hangsúlyozza, hogy…"), konkrét szám vagy idézet NEM.
+- Történeti állításokat (datálás, régészeti azonosítás, politikai vagy
+  társadalomtörténeti rekonstrukció) csak megfelelő óvatossággal
+  fogalmazz meg, ha a kérdés a szakirodalomban ténylegesen vitatott — ne
+  mutasd be konszenzusként, ha nem az.
 
-Ne írj teljes prédikációt — szakmai feltáró elemzést készíts.
+REDUNDANCIA TILALOM: egy fontos felismerést TELJES KIFEJTÉSSEL csak
+EGYSZER fejts ki, abban a szakaszban, ahova elsődlegesen tartozik. A
+többi szakasz legfeljebb röviden utalhat vissza rá, de nem ismételheti
+meg ugyanazokkal vagy közel azonos szavakkal.
+
+TERJEDELEM: a cél kb. 25–30%-kal tömörebb szöveg, mint egy kimerítő,
+minden részletre kiterjedő áttekintés — de ne legyen sekélyes vagy
+sablonos. A tömörség a redundancia és a felesleges általánosítás
+elhagyásából fakadjon, ne a valódi tartalmi lényeg feláldozásából.
+
+Ne írj teljes prédikációt — szakmai, gyors, jól használható áttekintést
+készíts.
 """,
     "exegesis": """{alap}
 
@@ -4301,22 +4358,9 @@ def _sync_inputs_to_last():
         pass
 
     igehely = (st.session_state.get("igehely_input") or "").strip()
-    alkalom = st.session_state.get("alkalom_input") or ""
-    stilus = st.session_state.get("stilus_input") or ""
-    sajat = st.session_state.get("sajat_input") or ""
 
     if igehely:
         st.session_state["last_igehely"] = igehely
-        # verse_history frissítés (utolsó 10, duplikátum nélkül)
-        _vh = [v for v in st.session_state.get("verse_history", []) if v != igehely]
-        _vh.insert(0, igehely)
-        st.session_state["verse_history"] = _vh[:10]
-
-    if alkalom:
-        st.session_state["last_alkalom"] = alkalom
-    if stilus:
-        st.session_state["last_stilus"] = stilus
-    st.session_state["last_sajat"] = sajat
 
     # Bibliai szöveg: ha a szerkesztő widget létezik, tartós mezőkbe is kerüljön
     # (projekt Mentés / autosave ne veszítse el a még nem „Mentett” szöveget).
@@ -5188,9 +5232,6 @@ def _queue_project_widget_sync_from_state() -> None:
     """
     pending = {
         "igehely_input": st.session_state.get("last_igehely", "") or "",
-        "alkalom_input": st.session_state.get("last_alkalom", "") or "",
-        "stilus_input": st.session_state.get("last_stilus", "") or "",
-        "sajat_input": st.session_state.get("last_sajat", "") or "",
         "_outline_draft_editor": st.session_state.get("outline_draft", "") or "",
         "_outline_answers_editor": (
             st.session_state.get("outline_workshop_answers", "") or ""
@@ -7640,13 +7681,13 @@ def render_current_biblical_map_prototype() -> None:
 
 
 def render_igehely_panel() -> None:
-    """Igehely, alkalom, stílus, saját szempont + Áttekintés (bibliai háttér)."""
+    """Igehely megadása (közvetlen bevitel / keresés / konkordancia) + Áttekintés (bibliai háttér)."""
     apply_bible_text_resync_if_needed(st.session_state)
     # Widget létrehozása előtt: igehely-keresésből érkező kiválasztás
     apply_pending_passage_search_before_widget()
     render_work_section(
         title="Igeszakasz megadása",
-        body="Textus, alkalom és szempontok — innen indul a műhelymunka.",
+        body="Textus megadása — innen indul a műhelymunka.",
         context="Textusműhely",
     )
 
@@ -7672,52 +7713,6 @@ def render_igehely_panel() -> None:
         render_concordance_expander()
 
         render_bible_text_editor()
-
-    with work_surface("igehely_context"):
-        col1, col2 = st.columns(2)
-
-        with col1:
-            st.selectbox(
-                "Felhasználási cél",
-                [
-                    "vasárnapi gyülekezeti igehirdetés",
-                    "ifjúsági alkalom",
-                    "bibliaóra",
-                    "temetés",
-                    "esküvő",
-                    "konferencia",
-                    "pasztorális beszélgetés",
-                ],
-                key="alkalom_input",
-            )
-
-        with col2:
-            st.selectbox(
-                "Homiletikai stílus",
-                [
-                    "klasszikus református",
-                    "narratív",
-                    "tanító jellegű",
-                    "pasztorális",
-                    "ifjúsági",
-                    "storytelling",
-                    "induktív",
-                ],
-                key="stilus_input",
-            )
-
-        st.text_area(
-            "Saját szempont vagy kérdés",
-            placeholder="Pl. szeretném hangsúlyozni a kegyelem, hit vagy reménység témáját...",
-            key="sajat_input",
-        )
-
-        if st.session_state.get("verse_history"):
-            with st.expander("Korábbi igehelyek (utolsó 5)", expanded=False):
-                for v_idx, v in enumerate(st.session_state["verse_history"][:5]):
-                    if st.button(f"📜 {v}", key=f"verse_hist_{v_idx}", use_container_width=True):
-                        st.session_state["igehely_input"] = v
-                        st.rerun()
 
     with work_surface("igehely_overview"):
         render_info_panel(
