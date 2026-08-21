@@ -293,7 +293,13 @@ def build_arc_generation_prompt(context: ArcGenerationContext) -> str:
 def _extract_json_object(raw: Any) -> dict[str, Any] | None:
     """Önálló, kis JSON-kinyerő — szándékosan NEM importál a régi
     section-szintű MI-modulokból (pl. a M4-es `extract_json_object`-ből),
-    hogy ez a modul teljesen független maradjon."""
+    hogy ez a modul teljesen független maradjon.
+
+    Megengedett, szűk tűrés: whitespace trim, markdown code-fence
+    eltávolítás, egyetlen jól azonosítható JSON-object kibontása, és a
+    záró vessző (trailing comma) levágása objektum/lista végén (LOCAL
+    MANUAL QA FIX, 2.3) — UGYANAZ a szűk normalizálás, mint a `textus_
+    summary_ai`/`sermon_workshop_blueprint_ai` saját kinyerőjében."""
     if raw is None:
         return None
     text = str(raw).strip()
@@ -310,12 +316,51 @@ def _extract_json_object(raw: Any) -> dict[str, Any] | None:
     start = text.find("{")
     end = text.rfind("}")
     if start >= 0 and end > start:
-        try:
-            obj = json.loads(text[start : end + 1])
-            return obj if isinstance(obj, dict) else None
-        except json.JSONDecodeError:
-            return None
+        candidate = text[start : end + 1]
+        candidate_fixed = re.sub(r",\s*}", "}", candidate)
+        candidate_fixed = re.sub(r",\s*]", "]", candidate_fixed)
+        for attempt in (candidate, candidate_fixed):
+            try:
+                obj = json.loads(attempt)
+                if isinstance(obj, dict):
+                    return obj
+            except json.JSONDecodeError:
+                continue
     return None
+
+
+def _diagnose_invalid_json_response(raw: Any) -> str:
+    """Determinisztikus, durva DIAGNÓZIS arra, miért nem sikerült a
+    modellválaszt érvényes JSON-objektumként kinyerni — kizárólag
+    fejlesztői/debug célra (LOCAL MANUAL QA FIX, 2.2). Nem próbál semmit
+    kijavítani, csak osztályozza a hibát. Azonos logika, mint a
+    `sermon_workshop_blueprint_ai._diagnose_invalid_json_response` —
+    szándékosan duplikálva, hogy ez a modul importfüggetlen maradjon."""
+    if raw is None or _looks_like_api_error(raw):
+        return "not_json:empty_or_api_error"
+    text = str(raw).strip()
+    if not text:
+        return "not_json:empty_or_api_error"
+
+    fence = re.search(r"```(?:json)?\s*([\s\S]*?)\s*```", text, re.IGNORECASE)
+    body = fence.group(1).strip() if fence else text
+
+    start = body.find("{")
+    if start < 0:
+        return "not_json:no_json_object_found"
+    if body[:start].strip():
+        return "not_json:prose_before_json"
+
+    end = body.rfind("}")
+    if end < start:
+        return "not_json:truncated_response"
+    if body[end + 1 :].strip():
+        return "not_json:prose_after_json"
+
+    candidate = body[start : end + 1]
+    if re.search(r",\s*[}\]]", candidate):
+        return "not_json:trailing_comma_unrecoverable"
+    return "not_json:unparseable"
 
 
 def validate_and_normalize_arc_response(raw: Any) -> dict[str, str] | None:
@@ -356,6 +401,7 @@ class ArcGenerationOutcome:
     status: str  # "applied" | "candidate" | "error"
     error_message: str = ""
     points: dict[str, str] | None = None
+    reason: str = ""  # LOCAL MANUAL QA FIX, 2.2: fejlesztői debug-diagnózis
 
 
 def generate_seven_point_arc(
@@ -364,8 +410,10 @@ def generate_seven_point_arc(
     generate_fn: GenerateFn,
 ) -> ArcGenerationOutcome:
     """Egyetlen belépési pont: kontextus-ellenőrzés → legfeljebb EGY
-    AI-hívás → szigorú válaszvalidálás → `store_generated_arc_result()`
-    (RESET 2A, változatlan) az applied/candidate döntéshez.
+    AI-hívás (LOCAL MANUAL QA FIX, 2.5: JSON-kinyerési hiba esetén
+    legfeljebb 1 kontrollált retry) → szigorú válaszvalidálás →
+    `store_generated_arc_result()` (RESET 2A, változatlan) az
+    applied/candidate döntéshez.
 
     Ha a kontextus hiányos, vagy a válasz szerkezetileg érvénytelen, NEM
     indul (vagy nem hasznosul) AI-hívás, és sem a kanonikus `arc`, sem az
@@ -384,31 +432,65 @@ def generate_seven_point_arc(
         )
 
     prompt = build_arc_generation_prompt(context)
-    try:
-        raw = generate_fn(
-            prompt,
-            tab_label="Hétpontos vázlatjavaslat",
-            use_cache=False,
-            system_bundle=ARC_SYSTEM_PROMPT,
-            include_brevity_directive=False,
-            response_mime_type="application/json",
-            response_schema=ARC_RESPONSE_SCHEMA,
-        )
-    except Exception as exc:  # noqa: BLE001 — a UI-nak mindenképp választ kell adnunk
-        return ArcGenerationOutcome(
-            ok=False,
-            status="error",
-            error_message=f"A generálás sikertelen volt: {exc}",
-        )
+    current_prompt = prompt
+    points: dict[str, str] | None = None
+    diagnosis = ""
+    for attempt in range(2):
+        try:
+            raw = generate_fn(
+                current_prompt,
+                tab_label="Hétpontos vázlatjavaslat",
+                use_cache=False,
+                system_bundle=ARC_SYSTEM_PROMPT,
+                include_brevity_directive=False,
+                response_mime_type="application/json",
+                response_schema=ARC_RESPONSE_SCHEMA,
+                truncation_notice_mode="never",
+            )
+        except Exception as exc:  # noqa: BLE001 — a UI-nak mindenképp választ kell adnunk
+            return ArcGenerationOutcome(
+                ok=False,
+                status="error",
+                error_message=f"A generálás sikertelen volt: {exc}",
+            )
 
-    if _looks_like_api_error(raw):
-        return ArcGenerationOutcome(ok=False, status="error", error_message=str(raw))
+        if _looks_like_api_error(raw):
+            return ArcGenerationOutcome(ok=False, status="error", error_message=str(raw))
 
-    points = validate_and_normalize_arc_response(raw)
+        points = validate_and_normalize_arc_response(raw)
+        if points is not None:
+            break
+        # A retry KIZÁRÓLAG akkor indokolt, ha a JSON-KINYERÉS magától
+        # sikertelen (`_extract_json_object(raw) is None`) — ha a JSON
+        # szintaktikailag rendben kinyerhető volt, csak a SÉMA (kulcsok/
+        # típusok) hibás, az a modell valódi TARTALMI hibája, amit egy
+        # néma retry csak elfedne.
+        extraction_failed = _extract_json_object(raw) is None
+        diagnosis = (
+            _diagnose_invalid_json_response(raw)
+            if extraction_failed
+            else "invalid_shape"
+        )
+        if attempt == 0 and extraction_failed:
+            current_prompt = (
+                prompt
+                + "\n\n==================================================\n"
+                "KORREKCIÓ\n"
+                "==================================================\n\n"
+                "Az előző válaszod NEM volt érvényes, önmagában feldolgozható "
+                "JSON-objektum (pl. csonka volt, vagy szöveg állt a JSON előtt/"
+                "után). Add meg ÚJRA mind a hét pontot, KIZÁRÓLAG egyetlen, "
+                "jólformált JSON-objektumként — semmilyen bevezető vagy záró "
+                "szöveg, markdown-jelölés nélkül."
+            )
+            continue
+        break
+
     if points is None:
         return ArcGenerationOutcome(
             ok=False,
             status="error",
+            reason=diagnosis,
             error_message=(
                 "A modell válasza nem érvényes hétpontos struktúra — "
                 "nem került mentésre. Próbáld újra."

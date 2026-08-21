@@ -658,7 +658,14 @@ def build_blueprint_prompt(context: BlueprintContext) -> str:
 
 def _extract_json_object(raw: Any) -> dict[str, Any] | None:
     """Önálló, kis JSON-kinyerő — szándékosan NEM importál más
-    MI-modulokból, hogy ez a modul teljesen független maradjon."""
+    MI-modulokból, hogy ez a modul teljesen független maradjon.
+
+    Megengedett, szűk tűrés: whitespace trim, markdown code-fence
+    eltávolítás, egyetlen jól azonosítható JSON-object kibontása a
+    szövegből, és a záró vessző (trailing comma) levágása objektum/lista
+    végén — ez utóbbi UGYANAZ a szűk, biztonságos normalizálás, mint a
+    `textus_summary_ai.extract_json_object`-ben. Nem próbál tetszőleges
+    prózából JSON-t kitalálni, és nem fogad el sémán kívüli tartalmat."""
     if raw is None:
         return None
     text = str(raw).strip()
@@ -675,12 +682,53 @@ def _extract_json_object(raw: Any) -> dict[str, Any] | None:
     start = text.find("{")
     end = text.rfind("}")
     if start >= 0 and end > start:
-        try:
-            obj = json.loads(text[start : end + 1])
-            return obj if isinstance(obj, dict) else None
-        except json.JSONDecodeError:
-            return None
+        candidate = text[start : end + 1]
+        candidate_fixed = re.sub(r",\s*}", "}", candidate)
+        candidate_fixed = re.sub(r",\s*]", "]", candidate_fixed)
+        for attempt in (candidate, candidate_fixed):
+            try:
+                obj = json.loads(attempt)
+                if isinstance(obj, dict):
+                    return obj
+            except json.JSONDecodeError:
+                continue
     return None
+
+
+def _diagnose_invalid_json_response(raw: Any) -> str:
+    """Determinisztikus, durva DIAGNÓZIS arra, miért nem sikerült a
+    modellválaszt érvényes JSON-objektumként kinyerni — kizárólag
+    fejlesztői/debug célra (a `BlueprintOutcome.reason` mezőbe kerül,
+    NEM a végfelhasználónak mutatott `error_message`-be, ld. `generate_
+    blueprint`). Nem próbál semmit kijavítani, csak osztályozza a hibát,
+    hogy egy fejlesztő ne csak azt lássa, hogy "invalid JSON", hanem
+    hogy pl. csonka volt-e a válasz, próza előzte/követte-e, vagy
+    egyáltalán nem talált benne JSON-objektumot."""
+    if raw is None or _looks_like_api_error(raw):
+        return "not_json:empty_or_api_error"
+    text = str(raw).strip()
+    if not text:
+        return "not_json:empty_or_api_error"
+
+    fence = re.search(r"```(?:json)?\s*([\s\S]*?)\s*```", text, re.IGNORECASE)
+    body = fence.group(1).strip() if fence else text
+
+    start = body.find("{")
+    if start < 0:
+        return "not_json:no_json_object_found"
+    if body[:start].strip():
+        return "not_json:prose_before_json"
+
+    end = body.rfind("}")
+    if end < start:
+        return "not_json:truncated_response"
+    if body[end + 1 :].strip():
+        return "not_json:prose_after_json"
+
+    candidate = body[start : end + 1]
+    if re.search(r",\s*[}\]]", candidate):
+        return "not_json:trailing_comma_unrecoverable"
+    return "not_json:unparseable"
 
 
 def _clean_str_list(raw: Any) -> list[str]:
@@ -787,7 +835,12 @@ def validate_blueprint_response(raw: Any) -> BlueprintValidationResult:
     a válasz "megjavítása" itt veszélyes lenne, mert egy kitalált
     szerkezet csendben helyesnek látszana.
 
-    Elutasítási okok (`reason`): `not_json`, `empty_central_claim`,
+    Elutasítási okok (`reason`): `not_json:*` (LOCAL MANUAL QA FIX —
+    részletesebb debug-diagnózis, ld. `_diagnose_invalid_json_response`:
+    `not_json:empty_or_api_error`, `not_json:no_json_object_found`,
+    `not_json:prose_before_json`, `not_json:truncated_response`,
+    `not_json:prose_after_json`, `not_json:trailing_comma_unrecoverable`,
+    `not_json:unparseable`), `empty_central_claim`,
     `empty_textual_center`, `empty_desired_listener_movement`,
     `invalid_arc_fit`, `invalid_verdict`, `invalid_structure`,
     `invalid_mode`, `verdict_mode_mismatch`, plusz a mozgás-szintű okok
@@ -801,7 +854,9 @@ def validate_blueprint_response(raw: Any) -> BlueprintValidationResult:
     `custom_too_many_movements` (RESET 2E-2A: >5))."""
     obj = _extract_json_object(raw)
     if obj is None:
-        return BlueprintValidationResult(ok=False, reason="not_json")
+        return BlueprintValidationResult(
+            ok=False, reason=_diagnose_invalid_json_response(raw)
+        )
 
     central_claim = str(obj.get("central_claim") or "").strip()
     if not central_claim:
@@ -914,30 +969,66 @@ def generate_sermon_blueprint(
         )
 
     prompt = build_blueprint_prompt(context)
-    try:
-        raw = generate_fn(
-            prompt,
-            tab_label="Homiletikai blueprint",
-            use_cache=False,
-            system_bundle=BLUEPRINT_SYSTEM_PROMPT,
-            include_brevity_directive=False,
-            response_mime_type="application/json",
-            response_schema=BLUEPRINT_RESPONSE_SCHEMA,
-        )
-    except Exception as exc:  # noqa: BLE001 — a hívónak mindenképp választ kell adnunk
-        return BlueprintOutcome(
-            ok=False,
-            status="error",
-            reason="generate_failed",
-            error_message=f"A blueprint generálása sikertelen volt: {exc}",
-        )
+    # LOCAL MANUAL QA FIX, 2.5 — LEGFELJEBB 1 kontrollált retry, KIZÁRÓLAG
+    # akkor, ha az első válasz JSON-KINYERÉSI szinten hibás (`not_json:*` —
+    # pl. csonkulás, próza a JSON körül). Szemantikai/sémahiba (pl. üres
+    # mező, érvénytelen `grounded_in`) esetén NEM ismételünk — az a
+    # modell tényleges TARTALMI hibája, amit egy néma újrapróbálkozás
+    # csak elfedne. A retry ugyanazt a kontextust és promptot használja,
+    # csak egy rövid, korrekciós megjegyzést told hozzá — nem generálja
+    # újra a teljes upstream Textusműhely-adatfolyamot.
+    current_prompt = prompt
+    result: BlueprintValidationResult | None = None
+    for attempt in range(2):
+        try:
+            raw = generate_fn(
+                current_prompt,
+                tab_label="Homiletikai blueprint",
+                use_cache=False,
+                system_bundle=BLUEPRINT_SYSTEM_PROMPT,
+                include_brevity_directive=False,
+                response_mime_type="application/json",
+                response_schema=BLUEPRINT_RESPONSE_SCHEMA,
+                # A csonka válaszhoz fűzött, ember-olvasható magyar
+                # figyelmeztető mondat MINDIG érvénytelenné tenné a
+                # JSON-t (a szintaktikai csonkaság mellett is) — inkább a
+                # nyers (esetleg csonka) szöveget kapja meg a validáció,
+                # hogy a `_diagnose_invalid_json_response` pontosan
+                # jelezhesse a csonkulást.
+                truncation_notice_mode="never",
+            )
+        except Exception as exc:  # noqa: BLE001 — a hívónak mindenképp választ kell adnunk
+            return BlueprintOutcome(
+                ok=False,
+                status="error",
+                reason="generate_failed",
+                error_message=f"A blueprint generálása sikertelen volt: {exc}",
+            )
 
-    if _looks_like_api_error(raw):
-        return BlueprintOutcome(
-            ok=False, status="error", reason="api_error", error_message=str(raw)
-        )
+        if _looks_like_api_error(raw):
+            return BlueprintOutcome(
+                ok=False, status="error", reason="api_error", error_message=str(raw)
+            )
 
-    result = validate_blueprint_response(raw)
+        result = validate_blueprint_response(raw)
+        if result.ok and result.blueprint is not None:
+            break
+        if attempt == 0 and result.reason.startswith("not_json:"):
+            current_prompt = (
+                prompt
+                + "\n\n==================================================\n"
+                "KORREKCIÓ\n"
+                "==================================================\n\n"
+                "Az előző válaszod NEM volt érvényes, önmagában feldolgozható "
+                "JSON-objektum (pl. csonka volt, vagy szöveg állt a JSON előtt/"
+                "után). Add meg ÚJRA a TELJES homiletikai tervrajzot, "
+                "KIZÁRÓLAG egyetlen, jólformált JSON-objektumként — semmilyen "
+                "bevezető vagy záró szöveg, markdown-jelölés nélkül."
+            )
+            continue
+        break
+
+    assert result is not None
     if not result.ok or result.blueprint is None:
         return BlueprintOutcome(
             ok=False,

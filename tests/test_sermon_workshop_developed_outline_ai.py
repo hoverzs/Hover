@@ -721,3 +721,18 @@ def test_outline_system_prompt_is_standalone_and_not_shared_with_blueprint():
     assert ol_ai.DEVELOPED_OUTLINE_SYSTEM_PROMPT != bp_ai.BLUEPRINT_SYSTEM_PROMPT
     assert ol_ai.DEVELOPED_OUTLINE_SYSTEM_PROMPT.startswith("SZEREP:")
     assert "BASE_SYSTEM_PROMPT" not in ol_ai.DEVELOPED_OUTLINE_SYSTEM_PROMPT
+
+
+def test_developed_outline_tab_has_a_dedicated_evidence_based_token_budget():
+    """LOCAL MANUAL QA FIX: a budget NEM találgatás -- 2 valódi Gemini-
+    hívás `usageMetadata`-ja (thoughtsTokenCount + candidatesTokenCount)
+    6345-9087 közé esett egy teljes, blueprintből kibontott munkavázlatnál
+    (1Móz 32,23-32 kontextussal) -- a 16000-es érték ésszerű tartalékot ad
+    a MEGFIGYELT maximum fölé, NEM egy vakon nagyra állított plafon."""
+    import app
+
+    assert "Részletes prédikációs munkavázlat" in app.DEFAULT_MAX_OUTPUT_TOKENS_BY_TAB
+    budget = app.DEFAULT_MAX_OUTPUT_TOKENS_BY_TAB["Részletes prédikációs munkavázlat"]
+    observed_max = 9087
+    assert budget >= observed_max * 1.5
+    assert budget <= observed_max * 2.5

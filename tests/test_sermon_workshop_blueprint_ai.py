@@ -51,6 +51,21 @@ class _CountingGenerator:
         return self.response
 
 
+class _SequenceGenerator:
+    """Mock `generate_fn`, ami hívásonként MÁS választ ad — a kontrollált
+    retry (LOCAL MANUAL QA FIX, 2.5) teszteléséhez: az első hívás
+    érvénytelen JSON-t ad, a második (retry) már érvényeset."""
+
+    def __init__(self, responses: list[str]) -> None:
+        self.responses = list(responses)
+        self.calls: list[dict] = []
+
+    def __call__(self, prompt: str, **kwargs) -> str:
+        self.calls.append({"prompt": prompt, "kwargs": kwargs})
+        index = min(len(self.calls) - 1, len(self.responses) - 1)
+        return self.responses[index]
+
+
 def _base_state() -> dict:
     state: dict = {}
     ensure_sermon_workshop_state(state)
@@ -790,13 +805,165 @@ def test_j_required_text_fields_must_not_be_empty():
 
 
 def test_j_non_json_responses_are_rejected():
+    # LOCAL MANUAL QA FIX: a `reason` mostantól `not_json:<ok>` alakú,
+    # részletesebb debug-diagnózissal (ld. `_diagnose_invalid_json_
+    # response`) -- minden nem-JSON eset a közös `not_json:` előtaggal
+    # kezdődik, a konkrét al-ok külön tesztelt lentebb.
     for raw in (None, "", "   ", "nem json", "[]", "{{{"):
-        assert bp_ai.validate_blueprint_response(raw).reason == "not_json"
+        assert bp_ai.validate_blueprint_response(raw).reason.startswith("not_json:")
 
 
 def test_validation_accepts_markdown_fenced_json():
     fenced = "```json\n" + _valid_json() + "\n```"
     assert bp_ai.validate_blueprint_response(fenced).ok is True
+
+
+def test_validation_accepts_a_single_trailing_comma():
+    """LOCAL MANUAL QA FIX, 2.3 — a záró vessző (trailing comma) az
+    objektum/lista végén biztonságosan levágható, NEM utasítjuk el emiatt
+    egy egyébként érvényes választ."""
+    payload = _valid_json()
+    with_trailing_comma = payload[:-1] + ",}"  # a záró `}` elé vessző
+    result = bp_ai.validate_blueprint_response(with_trailing_comma)
+    assert result.ok is True
+
+
+# =============================================================================
+# LOCAL MANUAL QA FIX, Phase C — a nem-JSON válasz OKÁNAK részletes,
+# fejlesztői célú diagnózisa (`_diagnose_invalid_json_response`).
+# =============================================================================
+
+
+def test_diagnose_empty_or_api_error_response():
+    for raw in (None, "", "   ", "⚠️ Hiba történt a generálás közben."):
+        assert bp_ai._diagnose_invalid_json_response(raw) == "not_json:empty_or_api_error"
+
+
+def test_diagnose_no_json_object_found():
+    for raw in ("csak sima próza, semmi JSON", "[]", "1234"):
+        assert bp_ai._diagnose_invalid_json_response(raw) == "not_json:no_json_object_found"
+
+
+def test_diagnose_prose_before_json():
+    raw = "Íme a válaszom:\n" + _valid_json()
+    assert bp_ai._diagnose_invalid_json_response(raw) == "not_json:prose_before_json"
+
+
+def test_diagnose_prose_after_json():
+    raw = _valid_json() + "\nRemélem, ez segít!"
+    assert bp_ai._diagnose_invalid_json_response(raw) == "not_json:prose_after_json"
+
+
+def test_diagnose_truncated_response():
+    # A JSON nyílik, de a kimeneti korlát miatt sosem zárul le -- a
+    # levágott résznek NINCS egyetlen záró kapcsos zárójele sem, ahogy
+    # egy valódi MAX_TOKENS-csonkulásnál is jellemzően egy mező érték
+    # közepén szakad meg a válasz.
+    cut_off = (
+        '{"central_claim": "Isten kegyelemből, nem teljesítményből tart '
+        'meg.", "textual_center": "A »De Isten« fordulat a szakasz'
+    )
+    assert "}" not in cut_off
+    assert bp_ai._diagnose_invalid_json_response(cut_off) == "not_json:truncated_response"
+
+
+def test_diagnose_trailing_comma_unrecoverable_alongside_other_error():
+    # Trailing comma MELLETT egy másik, önmagában is végzetes hiba
+    # (idézőjel nélküli kulcsnév) -- a kettő együtt már nem javítható a
+    # szűk, biztonságos normalizálással.
+    raw = '{"central_claim": "x", b: 2,}'
+    assert (
+        bp_ai._diagnose_invalid_json_response(raw)
+        == "not_json:trailing_comma_unrecoverable"
+    )
+
+
+def test_diagnose_unparseable_structurally_broken_json():
+    raw = '{"a": 1 "b": 2}'  # hianyzo vesszo a mezok kozott
+    assert bp_ai._diagnose_invalid_json_response(raw) == "not_json:unparseable"
+
+
+def test_diagnose_reason_surfaces_through_full_validation():
+    result = bp_ai.validate_blueprint_response("Sajnálom, nem tudok segíteni.")
+    assert result.ok is False
+    assert result.reason == "not_json:no_json_object_found"
+
+
+# =============================================================================
+# LOCAL MANUAL QA FIX, Phase C — token-plafon és csonkítás-kezelés.
+# Élesben reprodukálva: a "Homiletikai blueprint" fül a generikus 4096-os
+# alapértékre esett vissza (nem szerepelt `DEFAULT_MAX_OUTPUT_TOKENS_BY_
+# TAB`-ban), ami `finishReason=MAX_TOKENS`-hez (csonka JSON) vezetett.
+# =============================================================================
+
+
+def test_blueprint_tab_has_a_dedicated_evidence_based_token_budget():
+    """A budget NEM találgatás: 4 valódi Gemini-hívás `usageMetadata`-ja
+    (thoughtsTokenCount + candidatesTokenCount) 4038-5120 közé esett egy
+    teljes, 7-mozgásos blueprintnél (1Móz 32,23-32 kontextussal) — a
+    12000-es érték kb. 2x tartalékot ad a MEGFIGYELT maximum fölé, NEM
+    egy vakon nagyra állított plafon."""
+    import app
+
+    assert "Homiletikai blueprint" in app.DEFAULT_MAX_OUTPUT_TOKENS_BY_TAB
+    budget = app.DEFAULT_MAX_OUTPUT_TOKENS_BY_TAB["Homiletikai blueprint"]
+    observed_max = 5120
+    assert budget >= observed_max * 1.5  # ésszerű tartalék
+    assert budget <= observed_max * 3  # NE legyen indokolatlanul túlméretezett
+    assert app._default_max_output_tokens("Homiletikai blueprint") == budget
+
+
+def test_retry_recovers_from_a_truncated_first_response():
+    state = _base_state()
+    gen = _SequenceGenerator(["{\"central_claim\": \"csonka", _valid_json()])
+
+    outcome = bp_ai.generate_sermon_blueprint(state, generate_fn=gen)
+
+    assert outcome.ok is True
+    assert len(gen.calls) == 2
+    # A retry-prompt röviden jelzi az előző hibát, de NEM generálja újra
+    # a teljes upstream kontextust -- ugyanaz az igehely/textus a
+    # második prompt alapjában is.
+    assert "KORREKCIÓ" in gen.calls[1]["prompt"]
+    assert "Ef 2,4-10" in gen.calls[1]["prompt"]
+
+
+def test_retry_gives_up_after_one_attempt_if_still_invalid():
+    state = _base_state()
+    gen = _CountingGenerator("{\"central_claim\": \"még mindig csonka")
+
+    outcome = bp_ai.generate_sermon_blueprint(state, generate_fn=gen)
+
+    assert outcome.ok is False
+    assert outcome.reason.startswith("not_json:")
+    assert len(gen.calls) == 2
+
+
+def test_semantic_failure_does_not_trigger_a_retry():
+    """Tartalmi/sémahiba (pl. üres `textual_center`) esetén NINCS retry —
+    ez a modell valódi tartalmi hibája, amit egy néma újrapróbálkozás
+    csak elfedne."""
+    state = _base_state()
+    gen = _CountingGenerator(json.dumps({"central_claim": "x"}))
+
+    outcome = bp_ai.generate_sermon_blueprint(state, generate_fn=gen)
+
+    assert outcome.ok is False
+    assert not outcome.reason.startswith("not_json:")
+    assert len(gen.calls) == 1
+
+
+def test_generation_disables_the_appended_truncation_note():
+    """A generálás `truncation_notice_mode="never"`-t ad át, hogy egy
+    csonka válaszhoz NE fűződjön ember-olvasható magyar figyelmeztető
+    mondat -- az garantáltan érvénytelenné tenné a JSON-t a szintaktikai
+    csonkaság mellett is, elfedve a valódi (csonkulási) okot."""
+    state = _base_state()
+    gen = _CountingGenerator(_valid_json())
+    bp_ai.generate_sermon_blueprint(state, generate_fn=gen)
+
+    kwargs = gen.calls[0]["kwargs"]
+    assert kwargs["truncation_notice_mode"] == "never"
 
 
 def test_validation_safely_normalizes_without_semantic_repair():

@@ -80,6 +80,20 @@ class _CountingGenerator:
         return self.response
 
 
+class _SequenceGenerator:
+    """Mock `generate_fn`, ami hívásonként MÁS választ ad — a kontrollált
+    retry (LOCAL MANUAL QA FIX, 2.5) teszteléséhez."""
+
+    def __init__(self, responses: list[str]) -> None:
+        self.responses = list(responses)
+        self.calls: list[dict] = []
+
+    def __call__(self, prompt: str, **kwargs) -> str:
+        self.calls.append({"prompt": prompt, "kwargs": kwargs})
+        index = min(len(self.calls) - 1, len(self.responses) - 1)
+        return self.responses[index]
+
+
 # =============================================================================
 # 1. A generálási bemenet nem használ legacy outline/basket adatot.
 # =============================================================================
@@ -213,6 +227,11 @@ def test_malformed_json_is_rejected():
 
 
 def test_invalid_response_causes_zero_mutation_end_to_end():
+    # LOCAL MANUAL QA FIX, 2.5: nem-JSON válasz esetén 1 kontrollált
+    # retry indul (ld. lentebb a retry-specifikus tesztblokkot) — mivel a
+    # mock generátor MINDKÉT hívásra ugyanazt az érvénytelen szöveget
+    # adja vissza, a végeredmény változatlanul sikertelen, de a hívás
+    # 2-szer történik meg.
     state = _base_state()
     before_arc = copy.deepcopy(state["sermon_workshop"]["arc"])
     gen = _CountingGenerator(response="nem JSON szöveg {{{")
@@ -220,7 +239,7 @@ def test_invalid_response_causes_zero_mutation_end_to_end():
     outcome = arc_ai.generate_seven_point_arc(state, generate_fn=gen)
 
     assert outcome.ok is False
-    assert len(gen.calls) == 1  # a hívás megtörtént, de az eredmény nem hasznosult
+    assert len(gen.calls) == 2  # 1 eredeti hívás + 1 retry, egyik sem hasznosult
     assert state["sermon_workshop"]["arc"] == before_arc
     assert state["sermon_workshop"]["arc_candidate"] is None
 
@@ -1146,3 +1165,110 @@ def test_arc_response_schema_and_point_keys_unchanged_by_prompt_edit():
         "second_shift",
         "arrival",
     )
+
+
+# =============================================================================
+# LOCAL MANUAL QA FIX, Phase B — JSON-kinyerés robusztussága, diagnózis,
+# token-plafon és kontrollált retry. Ugyanaz a minta, mint a
+# `sermon_workshop_blueprint_ai.py`-nál (Phase C).
+# =============================================================================
+
+
+def test_extraction_accepts_a_single_trailing_comma():
+    payload = _valid_response_json()
+    with_trailing_comma = payload[:-1] + ",}"
+    assert arc_ai._extract_json_object(with_trailing_comma) is not None
+    assert arc_ai.validate_and_normalize_arc_response(with_trailing_comma) is not None
+
+
+def test_diagnose_empty_or_api_error_response():
+    for raw in (None, "", "   ", "⚠️ Hiba történt a generálás közben."):
+        assert (
+            arc_ai._diagnose_invalid_json_response(raw)
+            == "not_json:empty_or_api_error"
+        )
+
+
+def test_diagnose_no_json_object_found():
+    for raw in ("csak sima próza, semmi JSON", "[]", "1234"):
+        assert (
+            arc_ai._diagnose_invalid_json_response(raw)
+            == "not_json:no_json_object_found"
+        )
+
+
+def test_diagnose_prose_before_and_after_json():
+    before = "Íme a válaszom:\n" + _valid_response_json()
+    assert arc_ai._diagnose_invalid_json_response(before) == "not_json:prose_before_json"
+
+    after = _valid_response_json() + "\nRemélem, ez segít!"
+    assert arc_ai._diagnose_invalid_json_response(after) == "not_json:prose_after_json"
+
+
+def test_diagnose_truncated_response():
+    cut_off = '{"entry": "Természetes belépés a textus'
+    assert "}" not in cut_off
+    assert (
+        arc_ai._diagnose_invalid_json_response(cut_off) == "not_json:truncated_response"
+    )
+
+
+def test_arc_tab_has_a_dedicated_evidence_based_token_budget():
+    """A budget NEM találgatás: 2 valódi Gemini-hívás `usageMetadata`-ja
+    (thoughtsTokenCount + candidatesTokenCount) 4803-5486 közé esett — a
+    10000-es érték ésszerű tartalékot ad a MEGFIGYELT maximum fölé, NEM
+    egy vakon nagyra állított plafon."""
+    import app
+
+    assert "Hétpontos vázlatjavaslat" in app.DEFAULT_MAX_OUTPUT_TOKENS_BY_TAB
+    budget = app.DEFAULT_MAX_OUTPUT_TOKENS_BY_TAB["Hétpontos vázlatjavaslat"]
+    observed_max = 5486
+    assert budget >= observed_max * 1.5
+    assert budget <= observed_max * 3
+
+
+def test_generation_disables_the_appended_truncation_note():
+    state = _base_state()
+    gen = _CountingGenerator(_valid_response_json())
+    arc_ai.generate_seven_point_arc(state, generate_fn=gen)
+
+    kwargs = gen.calls[0]["kwargs"]
+    assert kwargs["truncation_notice_mode"] == "never"
+
+
+def test_retry_recovers_from_a_truncated_first_response():
+    state = _base_state()
+    gen = _SequenceGenerator(
+        ['{"entry": "csonka', _valid_response_json()]
+    )
+
+    outcome = arc_ai.generate_seven_point_arc(state, generate_fn=gen)
+
+    assert outcome.ok is True
+    assert len(gen.calls) == 2
+    assert "KORREKCIÓ" in gen.calls[1]["prompt"]
+
+
+def test_retry_gives_up_after_one_attempt_if_still_invalid():
+    state = _base_state()
+    gen = _CountingGenerator("{\"entry\": \"még mindig csonka")
+
+    outcome = arc_ai.generate_seven_point_arc(state, generate_fn=gen)
+
+    assert outcome.ok is False
+    assert outcome.reason.startswith("not_json:")
+    assert len(gen.calls) == 2
+
+
+def test_semantic_shape_failure_does_not_trigger_a_retry():
+    """A JSON szintaktikailag rendben van, de a séma hibás (hiányzó
+    kulcs) -- ez a modell TARTALMI hibája, NEM ismételjük."""
+    state = _base_state()
+    bad_shape = json.dumps({"entry": "csak egy pont"}, ensure_ascii=False)
+    gen = _CountingGenerator(bad_shape)
+
+    outcome = arc_ai.generate_seven_point_arc(state, generate_fn=gen)
+
+    assert outcome.ok is False
+    assert outcome.reason == "invalid_shape"
+    assert len(gen.calls) == 1
