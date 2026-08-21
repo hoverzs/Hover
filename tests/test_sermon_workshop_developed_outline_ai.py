@@ -736,3 +736,61 @@ def test_developed_outline_tab_has_a_dedicated_evidence_based_token_budget():
     observed_max = 9087
     assert budget >= observed_max * 1.5
     assert budget <= observed_max * 2.5
+
+
+# =============================================================================
+# LOCAL QA FINAL FUNCTIONAL POLISH (2026-08-21) — redundancia-csökkentés
+# és upstream bizonytalanság megőrzése. Invariant tesztek a promptra, nem
+# egyetlen bibliai történetre drótozva.
+# =============================================================================
+
+
+def test_optional_fields_default_to_empty_not_auto_filled():
+    prompt = ol_ai.DEVELOPED_OUTLINE_SYSTEM_PROMPT
+    assert "`exegetical_support`: ÜRES LISTA az alapértelmezett" in prompt
+    assert "`illustration_direction`: ÜRES STRING az alapértelmezett" in prompt
+    assert "`application_direction`: ÜRES STRING az alapértelmezett" in prompt
+
+
+def test_application_folds_into_last_development_bullet():
+    prompt = ol_ai.DEVELOPED_OUTLINE_SYSTEM_PROMPT
+    assert "UTOLSÓ development-pont" in prompt
+    assert "application_direction` maradjon üres string" in prompt
+
+
+def test_illustration_direction_forbids_generic_search_task_pattern():
+    prompt = ol_ai.DEVELOPED_OUTLINE_SYSTEM_PROMPT
+    assert "TILOS az olyan mondatszerkezet" in prompt
+    assert "Egy történet/példa arról/arra, amikor valaki" in prompt
+    assert "MEGNEVEZETT, behatárolt területet" in prompt
+
+
+def test_illustration_direction_still_forbids_fabricated_real_events():
+    prompt = ol_ai.DEVELOPED_OUTLINE_SYSTEM_PROMPT
+    assert "Ne találj ki ellenőrizhetetlen történelmi vagy valós személyhez köthető történetet." in prompt
+
+
+def test_system_prompt_requires_preserving_upstream_uncertainty():
+    prompt = ol_ai.DEVELOPED_OUTLINE_SYSTEM_PROMPT
+    assert "A KANONIKUS BLUEPRINT BIZONYTALANSÁGI SZINTJÉT ŐRZÖD MEG" in prompt
+    assert '"A küzdő fél maga Isten."' in prompt
+
+
+def test_system_prompt_forbids_categorical_certainty_qualifiers():
+    prompt = ol_ai.DEVELOPED_OUTLINE_SYSTEM_PROMPT
+    assert "egyértelműen" in prompt
+    assert "TILOSAK egy olyan kérdésnél" in prompt
+    assert "biztosan, kétségtelenül, nyilvánvalóan" in prompt
+
+
+def test_blueprint_system_prompt_also_preserves_upstream_uncertainty():
+    assert (
+        "A KANONIKUS BEMENET BIZONYTALANSÁGI SZINTJÉT ŐRIZD MEG"
+        in bp_ai.BLUEPRINT_SYSTEM_PROMPT
+    )
+
+
+def test_target_length_reduction_is_specified_without_impoverishing_content():
+    prompt = ol_ai.DEVELOPED_OUTLINE_SYSTEM_PROMPT
+    assert "15-25%-kal kevesebb szöveg" in prompt
+    assert "Ne legyen vázlatosan szegényes" in prompt
