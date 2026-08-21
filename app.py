@@ -6395,6 +6395,16 @@ DEFAULT_MAX_OUTPUT_TOKENS_BY_TAB: dict[str, int] = {
     "Homiletikai blueprint": 12000,
     "Részletes prédikációs munkavázlat": 16000,
     "Hétpontos vázlatjavaslat": 10000,
+    # LOCAL QA FINAL FUNCTIONAL POLISH (2026-08-21) — a "Textus fő
+    # gondolata" (javaslat + értékelés) sem szerepelt itt, ezért a
+    # generikus 4096-os alapértékre esett vissza. Valós Gemini-mérés
+    # (1Móz 32,23-32, teljes exegézis/eredeti szöveg/teológia/kortörténet
+    # kontextussal, response_schema-val): javaslat 3 mérés, thoughts+
+    # candidates = 2740-4001; értékelés 1 mérés, 3476 — a 4096-os
+    # plafonhoz veszélyesen közel, élesben ténylegesen csonka/érvénytelen
+    # JSON-t okozott. 8000 kb. 2x tartalék a megfigyelt maximum fölé.
+    "Textus fő gondolat — javaslat": 8000,
+    "Textus fő gondolat — értékelés": 8000,
 }
 
 

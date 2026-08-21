@@ -273,6 +273,7 @@ Csak akkor vedd figyelembe, ha ténylegesen szükséges: kortörténeti háttér
 - Ha egy adatforrás „nincs adat” vagy üres: ne találj ki helyette semmit.
 - Ne adj belső gondolatmenetet vagy hosszú érvelést; a reasoning_summary legyen rövid.
 - Eredeti nyelvi (görög/héber) információt KIZÁRÓLAG az alább mellékelt eredeti nyelvi megfigyelésekből emelhetsz át — SOHA ne találj ki, ne egészíts ki és ne pontosíts saját emlékezetből új lemmát, morfológiai vagy lexikai adatot. Nem a te feladatod új nyelvi elemzést végezni, kizárólag a KAPOTT megfigyelésekből azt kiválasztani és sűríteni, ami ténylegesen releváns. Ne ismételd meg a teljes mellékelt eredeti nyelvi elemzést — csak a ténylegesen legfontosabb, a szakasz értelmezését segítő pontot/pontokat vedd át, tömören.
+- Ha a mellékelt exegézis, kortörténet vagy teológia egy állítást vitatottként, bizonytalanként vagy több legitim értelmezés egyikeként kezel, az összegzés (különösen a key_exegetical_findings és a theological_emphases) NE emelje ezt kategorikus, eldöntött tényként — a bizonytalanságot rövid formában (pl. "vitatott, hogy...", "a hagyomány többféleképpen érti...") tartsd meg, ne old fel csendben.
 
 ## Elégtelen adat
 

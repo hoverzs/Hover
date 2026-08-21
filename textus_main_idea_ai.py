@@ -56,6 +56,107 @@ _ASSESSMENT_PREFIXES = (
 
 GenerateFn = Callable[..., str]
 
+# LOCAL QA FINAL FUNCTIONAL POLISH (2026-08-21) — a "Textus fő gondolata"
+# hívás korábban sem `response_schema`-t, sem dedikált token-budgetet nem
+# kapott (a generikus 4096-os alapértékre esett vissza). Valós Gemini-
+# méréssel (1Móz 32,23-32, teljes exegézis/eredeti szöveg/teológia/
+# kortörténet kontextussal): suggest thoughts+candidates = 2740-4001,
+# assess = 3476 — a 4096-os plafonhoz veszélyesen közel, élesben
+# ténylegesen `finishReason=MAX_TOKENS`-hez (csonka -> érvénytelen JSON)
+# vezetett. A `response_schema` a strukturált kimenetet Gemini oldalon
+# kényszeríti ki (ugyanaz a módszer, mint a tervrajznál/hétpontos ívnél).
+MAIN_IDEA_SUGGEST_RESPONSE_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "properties": {
+        "recommended": {"type": "string"},
+        "expanded_summary": {"type": "string"},
+        "alternatives": {"type": "array", "items": {"type": "string"}},
+        "reasoning_summary": {"type": "string"},
+        "textual_basis": {"type": "array", "items": {"type": "string"}},
+        "warnings": {"type": "array", "items": {"type": "string"}},
+        "missing_information": {"type": "array", "items": {"type": "string"}},
+    },
+    "required": [
+        "recommended",
+        "expanded_summary",
+        "alternatives",
+        "reasoning_summary",
+        "textual_basis",
+        "warnings",
+        "missing_information",
+    ],
+}
+
+MAIN_IDEA_ASSESS_RESPONSE_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "properties": {
+        "assessment": {
+            "type": "object",
+            "properties": {
+                "text_fidelity": {"type": "string"},
+                "clarity": {"type": "string"},
+                "unity": {"type": "string"},
+                "theological_accuracy": {"type": "string"},
+                "scope": {"type": "string"},
+                "statement_quality": {"type": "string"},
+                "application_confusion": {"type": "string"},
+            },
+            "required": [
+                "text_fidelity",
+                "clarity",
+                "unity",
+                "theological_accuracy",
+                "scope",
+                "statement_quality",
+                "application_confusion",
+            ],
+        },
+        "strengths": {"type": "array", "items": {"type": "string"}},
+        "revision_priorities": {"type": "array", "items": {"type": "string"}},
+        "revised_version": {"type": "string"},
+        "warnings": {"type": "array", "items": {"type": "string"}},
+    },
+    "required": [
+        "assessment",
+        "strengths",
+        "revision_priorities",
+        "revised_version",
+        "warnings",
+    ],
+}
+
+
+def _diagnose_invalid_json_response(raw: Any) -> str:
+    """Determinisztikus, durva diagnózis — kizárólag fejlesztői/debug
+    célra (sosem a végfelhasználónak mutatott hibaüzenetbe kerül).
+    Ugyanaz a logika, mint a blueprint/arc moduloknál (modul-független
+    másolat, a bevett konvenció szerint)."""
+    if _is_api_error_text(raw):
+        return "not_json:empty_or_api_error"
+    text = str(raw or "").strip()
+    if not text:
+        return "not_json:empty_or_api_error"
+
+    fence = re.search(r"```(?:json)?\s*([\s\S]*?)\s*```", text, re.IGNORECASE)
+    body = fence.group(1).strip() if fence else text
+
+    start = body.find("{")
+    if start < 0:
+        return "not_json:no_json_object_found"
+    if body[:start].strip():
+        return "not_json:prose_before_json"
+
+    end = body.rfind("}")
+    if end < start:
+        return "not_json:truncated_response"
+    if body[end + 1 :].strip():
+        return "not_json:prose_after_json"
+
+    candidate = body[start : end + 1]
+    if re.search(r",\s*[}\]]", candidate):
+        return "not_json:trailing_comma_unrecoverable"
+    return "not_json:unparseable"
+
 
 # ---------------------------------------------------------------------------
 # Adatstruktúrák
@@ -942,8 +1043,15 @@ def _call_generate(
     *,
     tab_label: str,
     temperature: float | None = DEFAULT_TEMPERATURE,
+    response_schema: dict[str, Any] | None = None,
 ) -> str:
-    """generate_fn hívása; opcionális session temperature felülírással."""
+    """generate_fn hívása; opcionális session temperature felülírással.
+
+    `response_schema` megadásakor JSON-mód (`response_mime_type`) is
+    aktiválódik, és a csonkulás-jelző magyar mondat hozzáfűzése kikapcsolt
+    (`truncation_notice_mode="never"`) — ez MINDIG érvénytelenné tenné a
+    JSON-t egy csonka válasz esetén is, ugyanaz a minta, mint a tervrajz/
+    hétpontos ív hívásoknál."""
     prev_temp = None
     touched_temp = False
     if temperature is not None:
@@ -956,6 +1064,11 @@ def _call_generate(
         except Exception:
             touched_temp = False
     try:
+        extra: dict[str, Any] = {}
+        if response_schema is not None:
+            extra["response_mime_type"] = "application/json"
+            extra["response_schema"] = response_schema
+            extra["truncation_notice_mode"] = "never"
         return generate_fn(
             prompt,
             enable_google_search=False,
@@ -963,6 +1076,7 @@ def _call_generate(
             use_cache=False,
             system_bundle=MAIN_IDEA_SYSTEM_BUNDLE,
             include_brevity_directive=False,
+            **extra,
         )
     finally:
         if touched_temp:
@@ -1055,21 +1169,47 @@ def suggest_text_main_idea(
         )
 
     prompt = build_main_idea_suggest_prompt(ctx)
-    try:
-        raw = _call_generate(
-            generate_fn,
-            prompt,
-            tab_label=TAB_LABEL_SUGGEST,
-            temperature=temperature,
+    # LOCAL QA FINAL FUNCTIONAL POLISH — LEGFELJEBB 1 kontrollált retry,
+    # KIZÁRÓLAG akkor, ha a válasz JSON-KINYERÉSI szinten hibás (csonkulás,
+    # próza a JSON körül). Szemantikai tartalom esetén NEM ismételünk — ezt
+    # a modul saját, megengedő parsere (`parse_main_idea_suggestions`)
+    # amúgy is hiánytalanul kezeli hiányzó/üres mezőkkel.
+    current_prompt = prompt
+    raw = ""
+    for attempt in range(2):
+        try:
+            raw = _call_generate(
+                generate_fn,
+                current_prompt,
+                tab_label=TAB_LABEL_SUGGEST,
+                temperature=temperature,
+                response_schema=MAIN_IDEA_SUGGEST_RESPONSE_SCHEMA,
+            )
+        except Exception as exc:  # noqa: BLE001 — UI ne dőljön el
+            return fallback_suggestion(
+                reasoning="A javaslatkészítés közben váratlan hiba történt.",
+                warnings=[f"Váratlan hiba: {exc}"],
+                missing=missing,
+                error_message=str(exc),
+                ok=False,
+            )
+        extraction_failed = (
+            not _is_api_error_text(raw) and extract_json_object(raw) is None
         )
-    except Exception as exc:  # noqa: BLE001 — UI ne dőljön el
-        return fallback_suggestion(
-            reasoning="A javaslatkészítés közben váratlan hiba történt.",
-            warnings=[f"Váratlan hiba: {exc}"],
-            missing=missing,
-            error_message=str(exc),
-            ok=False,
-        )
+        if attempt == 0 and extraction_failed:
+            current_prompt = (
+                prompt
+                + "\n\n==================================================\n"
+                "KORREKCIÓ\n"
+                "==================================================\n\n"
+                "Az előző válaszod NEM volt érvényes, önmagában feldolgozható "
+                "JSON-objektum (pl. csonka volt, vagy szöveg állt a JSON előtt/"
+                "után). Add meg ÚJRA a TELJES választ, KIZÁRÓLAG egyetlen, "
+                "jólformált JSON-objektumként — semmilyen bevezető vagy záró "
+                "szöveg, markdown-jelölés nélkül."
+            )
+            continue
+        break
 
     return _ensure_passage_text_absence_notes(
         parse_main_idea_suggestions(raw or ""),
@@ -1144,20 +1284,41 @@ def assess_user_main_idea(
         pass
 
     prompt = build_main_idea_assess_prompt(ctx)
-    try:
-        raw = _call_generate(
-            generate_fn,
-            prompt,
-            tab_label=TAB_LABEL_ASSESS,
-            temperature=temperature,
+    current_prompt = prompt
+    raw = ""
+    for attempt in range(2):
+        try:
+            raw = _call_generate(
+                generate_fn,
+                current_prompt,
+                tab_label=TAB_LABEL_ASSESS,
+                temperature=temperature,
+                response_schema=MAIN_IDEA_ASSESS_RESPONSE_SCHEMA,
+            )
+        except Exception as exc:  # noqa: BLE001
+            return fallback_assessment(
+                reason="Az értékelés közben váratlan hiba történt.",
+                warnings=[f"Váratlan hiba: {exc}"],
+                error_message=str(exc),
+                ok=False,
+            )
+        extraction_failed = (
+            not _is_api_error_text(raw) and extract_json_object(raw) is None
         )
-    except Exception as exc:  # noqa: BLE001
-        return fallback_assessment(
-            reason="Az értékelés közben váratlan hiba történt.",
-            warnings=[f"Váratlan hiba: {exc}"],
-            error_message=str(exc),
-            ok=False,
-        )
+        if attempt == 0 and extraction_failed:
+            current_prompt = (
+                prompt
+                + "\n\n==================================================\n"
+                "KORREKCIÓ\n"
+                "==================================================\n\n"
+                "Az előző válaszod NEM volt érvényes, önmagában feldolgozható "
+                "JSON-objektum (pl. csonka volt, vagy szöveg állt a JSON előtt/"
+                "után). Add meg ÚJRA a TELJES választ, KIZÁRÓLAG egyetlen, "
+                "jólformált JSON-objektumként — semmilyen bevezető vagy záró "
+                "szöveg, markdown-jelölés nélkül."
+            )
+            continue
+        break
 
     result = parse_main_idea_assessment(raw or "")
     # Extra biztonság: ha semmi elemzési forrás, ne hagyjunk „új” átdolgozást
