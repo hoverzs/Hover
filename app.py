@@ -6383,16 +6383,17 @@ DEFAULT_MAX_OUTPUT_TOKENS_BY_TAB: dict[str, int] = {
     # tokenek (`thoughtsTokenCount`) IS ebből a keretből fogyasztanak, a
     # látható JSON-kimenet (`candidatesTokenCount`) mellett — a kettő
     # ÖSSZEGE számít bele a `maxOutputTokens`-be. Élesben reprodukálva:
-    # a "Homiletikai blueprint" fülön 4096-tal `finishReason=MAX_TOKENS`
-    # (csonka válasz -> érvénytelen JSON). Az alábbi értékek NEM
-    # találgatások — 4-6 valódi Gemini-hívás `usageMetadata`-ja alapján
-    # lettek meghatározva (1Móz 32,23-32 kontextussal, teljes 7-mozgásos
-    # sémával), kb. 2x biztonsági tartalékkal a megfigyelt maximum fölé:
+    # a "Homiletikai blueprint" (UI-n: "Igehirdetési tervrajz") fülön
+    # 4096-tal `finishReason=MAX_TOKENS` (csonka válasz -> érvénytelen
+    # JSON). Az alábbi értékek NEM találgatások — 4-6 valódi Gemini-hívás
+    # `usageMetadata`-ja alapján lettek meghatározva (1Móz 32,23-32
+    # kontextussal, teljes 7-mozgásos sémával), kb. 2x biztonsági
+    # tartalékkal a megfigyelt maximum fölé:
     #   - blueprint: 4 mérés, thoughts+candidates = 4038-5120 -> 12000
     #     (ugyanaz a nagyságrend, mint a már bevált "Exegézis": 12000)
     #   - fejlesztett vázlat: 2 mérés, 6345-9087 -> 16000
     #   - hétpontos ív: 2 mérés, 4803-5486 -> 10000
-    "Homiletikai blueprint": 12000,
+    "Igehirdetési tervrajz": 12000,
     "Részletes prédikációs munkavázlat": 16000,
     "Hétpontos vázlatjavaslat": 10000,
     # LOCAL QA FINAL FUNCTIONAL POLISH (2026-08-21) — a "Textus fő

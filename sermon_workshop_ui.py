@@ -617,15 +617,15 @@ _MISSING_FIELD_TO_OUTLINE_BLOCK_REASON: dict[str, str] = {
 }
 
 _DEVELOPED_OUTLINE_BLOCK_MESSAGES: dict[str, str] = {
-    "missing_blueprint": "Előbb készítsd el a homiletikai blueprintet.",
+    "missing_blueprint": "Előbb készítsd el az igehirdetési tervrajzot.",
     "blueprint_stale": (
-        "A blueprint elavult: a kanonikus bemenet megváltozott az "
+        "A tervrajz elavult: a kanonikus bemenet megváltozott az "
         "elkészülte óta — készíts újat, mielőtt részletes vázlatot kérsz."
     ),
     "missing_reference": "Hiányzik az igehely a részletes vázlat elkészítéséhez.",
     "missing_passage_text": "Hiányzik a bibliai szöveg a részletes vázlat elkészítéséhez.",
     "missing_blueprint_context_identity": (
-        "A blueprint kontextusazonosítója hiányzik — készíts új blueprintet."
+        "A tervrajz kontextusazonosítója hiányzik — készíts új tervrajzot."
     ),
 }
 
@@ -641,7 +641,7 @@ _DEVELOPED_OUTLINE_CANDIDATE_REJECT_MESSAGES: dict[str, str] = {
         "ehhez a szöveghez."
     ),
     "context_hash_mismatch": (
-        "A blueprint vagy a bibliai szöveg megváltozott a javaslat "
+        "A tervrajz vagy a bibliai szöveg megváltozott a javaslat "
         "elkészülte óta — változatlanul nem fogadható el."
     ),
 }
@@ -12341,25 +12341,24 @@ def _render_blueprint_status_and_generate_button(
     running = bool(st.session_state.get(_KEY_BLUEPRINT_GEN_RUNNING))
 
     with st.container(border=True):
-        st.markdown("**Homiletikai blueprint**")
+        st.markdown("**Igehirdetési tervrajz**")
         st.caption(
-            "Belső tervrajz, amely a textus és az igehirdetés eddigi "
-            "tartalmából egyetlen koherens prédikációs logikát alakít ki. "
-            "Nem jelenik meg a végleges vázlatban, de ez alapján készül a "
-            "részletes munkavázlat."
+            "Belső szerkezeti terv, amely a textus és az összegyűjtött "
+            "anyag alapján kialakítja az igehirdetés központi gondolatát "
+            "és logikai ívét. Erre épül a részletes vázlat."
         )
         if not has_blueprint:
-            st.info("Még nincs blueprint ehhez az igehelyhez.")
-            label = "Blueprint készítése"
+            st.info("Még nincs tervrajz ehhez az igehelyhez.")
+            label = "Tervrajz készítése"
         elif not fresh:
             st.warning(
-                "A blueprint elavult: a kanonikus bemenet megváltozott az "
+                "A tervrajz elavult: a kanonikus bemenet megváltozott az "
                 "elkészülte óta."
             )
-            label = "Blueprint újragenerálása"
+            label = "Tervrajz újragenerálása"
         else:
-            st.success("A blueprint friss és elkészült.")
-            label = "Blueprint újragenerálása"
+            st.success("A tervrajz friss és elkészült.")
+            label = "Tervrajz újragenerálása"
 
         if has_blueprint:
             _render_blueprint_details_expander(blueprint)
@@ -12378,7 +12377,7 @@ def _render_blueprint_status_and_generate_button(
             else:
                 st.session_state[_KEY_BLUEPRINT_GEN_RUNNING] = True
                 try:
-                    with st.spinner("Homiletikai blueprint készül…"):
+                    with st.spinner("Igehirdetési tervrajz készül…"):
                         outcome = generate_sermon_blueprint(
                             st.session_state, generate_fn=generate_fn
                         )
@@ -12388,7 +12387,7 @@ def _render_blueprint_status_and_generate_button(
                 if not outcome.ok:
                     st.error(outcome.error_message)
                 else:
-                    _toast_and_rerun("A blueprint elkészült.")
+                    _toast_and_rerun("A tervrajz elkészült.")
         if generate_fn is None:
             st.caption("Az MI-segéd jelenleg nem elérhető.")
 
@@ -12525,7 +12524,7 @@ _OUTLINE_FIELD_LABELS: dict[str, str] = {
     "function": "Szerep",
     "main_claim": "Fő állítás",
     "development": "Kibontás (soronként egy gondolat)",
-    "exegetical_support": "Exegetikai támasz (soronként egy elem)",
+    "exegetical_support": "Szövegi kapaszkodó (soronként egy elem)",
     "original_language_support": "Eredeti nyelvi támasz (soronként egy elem)",
     "historical_theological_support": (
         "Történeti/teológiai támasz (soronként egy elem)"
@@ -12803,15 +12802,15 @@ def _render_developed_outline_canonical_editable() -> None:
                 f"Ez a vázlat még a(z) „{stored_reference}” igehelyhez "
                 f"készült — a jelenlegi igehely már „{current_reference}”. "
                 "A tartalom megmarad, de valószínűleg nem ehhez a "
-                "textushoz illik; érdemes új blueprintet és új részletes "
+                "textushoz illik; érdemes új tervrajzot és új részletes "
                 "vázlatot készíteni."
             )
         elif stale:
             st.warning(
-                "Ez a vázlat egy KORÁBBI blueprintből készült — az "
-                "igehely, a bibliai szöveg vagy a blueprint azóta "
+                "Ez a vázlat egy KORÁBBI tervrajzból készült — az "
+                "igehely, a bibliai szöveg vagy a tervrajz azóta "
                 "megváltozott. A tartalom megmarad és tovább "
-                "szerkesztheted, de érdemes lehet új blueprintet és/vagy "
+                "szerkesztheted, de érdemes lehet új tervrajzot és/vagy "
                 "új részletes vázlatot készíteni."
             )
 
@@ -12841,7 +12840,7 @@ def render_flat_developed_outline_section(
     render_work_section(
         title="Részletes prédikációs munkavázlat",
         body=(
-            "Két lépésben készül: előbb egy belső homiletikai blueprint "
+            "Két lépésben készül: előbb egy belső igehirdetési tervrajz "
             "alakítja ki a koherens gondolatmenetet, majd ebből készül a "
             "részletes, szószékre vihető munkavázlat."
         ),

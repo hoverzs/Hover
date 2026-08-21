@@ -301,7 +301,7 @@ def test_a_missing_blueprint_disables_outline_button_with_message():
     outline_btn = next(b for b in app.button if b.label == "Részletes vázlat készítése")
     assert outline_btn.disabled is True
     captions = [c.value for c in app.caption]
-    assert any("Előbb készítsd el a homiletikai blueprintet." in c for c in captions)
+    assert any("Előbb készítsd el az igehirdetési tervrajzot." in c for c in captions)
 
 
 # =============================================================================
@@ -342,7 +342,7 @@ def test_c_fresh_blueprint_enables_outline_button_and_shows_warnings():
     warning_values = [w.value for w in app.warning]
     assert any("WARNING_SENTINEL_FRESH" in w for w in warning_values)
     labels = [b.label for b in app.button]
-    assert "Blueprint újragenerálása" in labels
+    assert "Tervrajz újragenerálása" in labels
 
 
 # =============================================================================
@@ -352,7 +352,7 @@ def test_c_fresh_blueprint_enables_outline_button_and_shows_warnings():
 
 def test_d_successful_generation_creates_candidate_only():
     app = AppTest.from_function(_render_fresh_blueprint_then_generate_outline).run(timeout=60)
-    bp_idx = next(i for i, b in enumerate(app.button) if b.label == "Blueprint készítése")
+    bp_idx = next(i for i, b in enumerate(app.button) if b.label == "Tervrajz készítése")
     app.button[bp_idx].click().run()
     # `st.rerun()`-t indító kattintás után egy további `.run()` szükséges
     # a letisztult gomb-fához (ld. `test_h`/`test_i` bővebb magyarázatát).
@@ -380,7 +380,7 @@ def test_d_successful_generation_creates_candidate_only():
 
 def test_no_automatic_chaining_from_blueprint_to_outline():
     app = AppTest.from_function(_render_fresh_blueprint_then_generate_outline).run(timeout=60)
-    bp_idx = next(i for i, b in enumerate(app.button) if b.label == "Blueprint készítése")
+    bp_idx = next(i for i, b in enumerate(app.button) if b.label == "Tervrajz készítése")
     app.button[bp_idx].click().run()
     assert not app.exception
     # `_outline_call_count`-ot a render-függvény minden futáson MINDIG
@@ -397,7 +397,7 @@ def test_no_automatic_chaining_from_blueprint_to_outline():
 
 def test_f_accept_writes_canonical_and_clears_candidate():
     app = AppTest.from_function(_render_fresh_blueprint_then_generate_outline).run(timeout=60)
-    bp_idx = next(i for i, b in enumerate(app.button) if b.label == "Blueprint készítése")
+    bp_idx = next(i for i, b in enumerate(app.button) if b.label == "Tervrajz készítése")
     app.button[bp_idx].click().run()
     app.run(timeout=60)
     outline_idx = next(
@@ -427,7 +427,7 @@ def test_f_accept_writes_canonical_and_clears_candidate():
 
 def test_g_discard_clears_candidate_and_leaves_canonical_untouched():
     app = AppTest.from_function(_render_fresh_blueprint_then_generate_outline).run(timeout=60)
-    bp_idx = next(i for i, b in enumerate(app.button) if b.label == "Blueprint készítése")
+    bp_idx = next(i for i, b in enumerate(app.button) if b.label == "Tervrajz készítése")
     app.button[bp_idx].click().run()
     app.run(timeout=60)
     outline_idx = next(
@@ -454,7 +454,7 @@ def test_g_discard_clears_candidate_and_leaves_canonical_untouched():
 
 def test_h_regeneration_after_accept_never_overwrites_canonical():
     app = AppTest.from_function(_render_fresh_blueprint_then_generate_outline).run(timeout=60)
-    bp_idx = next(i for i, b in enumerate(app.button) if b.label == "Blueprint készítése")
+    bp_idx = next(i for i, b in enumerate(app.button) if b.label == "Tervrajz készítése")
     app.button[bp_idx].click().run()
     app.run(timeout=60)
     outline_idx = next(
@@ -493,11 +493,11 @@ def test_h_regeneration_after_accept_never_overwrites_canonical():
 
 def test_i_blueprint_can_be_generated_and_regenerated():
     app = AppTest.from_function(_render_fresh_blueprint_then_generate_outline).run(timeout=60)
-    bp_idx = next(i for i, b in enumerate(app.button) if b.label == "Blueprint készítése")
+    bp_idx = next(i for i, b in enumerate(app.button) if b.label == "Tervrajz készítése")
     app.button[bp_idx].click().run()
     # A sikeres generálás `st.rerun()`-t indít (`_toast_and_rerun`) — egy
     # további, kattintás nélküli `.run()` szükséges, hogy a gomb-fa (és
-    # ezzel a "Blueprint készítése" -> "Blueprint újragenerálása" felirat-
+    # ezzel a "Tervrajz készítése" -> "Tervrajz újragenerálása" felirat-
     # váltás) ténylegesen a rerun UTÁNI állapotot tükrözze.
     app.run(timeout=60)
     assert not app.exception
@@ -507,7 +507,7 @@ def test_i_blueprint_can_be_generated_and_regenerated():
     assert app.session_state["_bp_call_count"] == 1
 
     regen_idx = next(
-        i for i, b in enumerate(app.button) if b.label == "Blueprint újragenerálása"
+        i for i, b in enumerate(app.button) if b.label == "Tervrajz újragenerálása"
     )
     app.button[regen_idx].click().run()
     assert not app.exception
@@ -516,7 +516,7 @@ def test_i_blueprint_can_be_generated_and_regenerated():
 
 def test_i_invalid_blueprint_response_shows_error_and_preserves_canonical():
     app = AppTest.from_function(_render_blueprint_invalid_response).run(timeout=60)
-    idx = next(i for i, b in enumerate(app.button) if b.label == "Blueprint készítése")
+    idx = next(i for i, b in enumerate(app.button) if b.label == "Tervrajz készítése")
     app.button[idx].click().run()
     assert not app.exception
 
@@ -534,7 +534,7 @@ def test_j_generate_fn_none_is_crash_free_and_disables_buttons():
     app = AppTest.from_function(_render_shell_no_generate_fn).run(timeout=60)
     assert not app.exception
 
-    bp_btn = next(b for b in app.button if b.label == "Blueprint készítése")
+    bp_btn = next(b for b in app.button if b.label == "Tervrajz készítése")
     outline_btn = next(b for b in app.button if b.label == "Részletes vázlat készítése")
     assert bp_btn.disabled is True
     assert outline_btn.disabled is True
@@ -564,7 +564,7 @@ def _accept_fresh_outline(app: AppTest) -> AppTest:
     a `_render_fresh_blueprint_then_generate_outline` render-függvényre
     épülő AppTest-példányon. A végén a kanonikus `developed_outline`
     tartalmazza mind a hét, `entry`...`arrival` kulcsú mozgást."""
-    _click_and_settle(app, "Blueprint készítése")
+    _click_and_settle(app, "Tervrajz készítése")
     _click_and_settle(app, "Részletes vázlat készítése")
     _click_and_settle(app, "Vázlat átvétele")
     return app
@@ -589,7 +589,7 @@ def _text_area_index_by_key(app: AppTest, key: str) -> int:
 
 def test_candidate_panel_has_no_editable_widgets():
     app = AppTest.from_function(_render_fresh_blueprint_then_generate_outline).run(timeout=60)
-    _click_and_settle(app, "Blueprint készítése")
+    _click_and_settle(app, "Tervrajz készítése")
     _click_and_settle(app, "Részletes vázlat készítése")
     assert not app.exception
 
@@ -992,7 +992,7 @@ def _render_blueprint_regenerates_with_different_content() -> None:
         st.session_state["_bp_gen_count"] = 0
 
     def fake_gen(prompt, **kwargs):
-        if kwargs.get("tab_label") == "Homiletikai blueprint":
+        if kwargs.get("tab_label") == "Igehirdetési tervrajz":
             st.session_state["_bp_gen_count"] += 1
             claim = (
                 "ELSŐ ÁLLÍTÁS"
@@ -1016,7 +1016,7 @@ def test_fresh_canonical_outline_has_no_stale_warning():
     assert not app.exception
 
     warning_values = [w.value for w in app.warning]
-    assert not any("KORÁBBI blueprintből" in w for w in warning_values)
+    assert not any("KORÁBBI tervrajzból" in w for w in warning_values)
     assert not any("igehelyhez készült" in w for w in warning_values)
 
 
@@ -1035,7 +1035,7 @@ def test_blueprint_input_change_triggers_stale_warning_but_keeps_content_editabl
     assert not app.exception
 
     warning_values = [w.value for w in app.warning]
-    assert any("KORÁBBI blueprintből" in w for w in warning_values)
+    assert any("KORÁBBI tervrajzból" in w for w in warning_values)
 
     # A tartalom NEM törlődött, és továbbra is szerkeszthető.
     assert app.session_state["sermon_workshop"]["developed_outline"]["movements"] != []
@@ -1065,7 +1065,7 @@ def test_blueprint_regeneration_with_different_content_triggers_stale_warning():
     assert app.session_state["sermon_workshop"]["blueprint"]["central_claim"] == "ELSŐ ÁLLÍTÁS"
     old_canonical = copy.deepcopy(app.session_state["sermon_workshop"]["developed_outline"])
 
-    _click_and_settle(app, "Blueprint újragenerálása")
+    _click_and_settle(app, "Tervrajz újragenerálása")
     assert not app.exception
     assert (
         app.session_state["sermon_workshop"]["blueprint"]["central_claim"]
@@ -1073,7 +1073,7 @@ def test_blueprint_regeneration_with_different_content_triggers_stale_warning():
     )
 
     warning_values = [w.value for w in app.warning]
-    assert any("KORÁBBI blueprintből" in w for w in warning_values)
+    assert any("KORÁBBI tervrajzból" in w for w in warning_values)
     # A régi canonical outline MEGMARADT, változatlanul.
     assert app.session_state["sermon_workshop"]["developed_outline"] == old_canonical
 
@@ -1088,11 +1088,11 @@ def test_stale_warning_appears_regardless_of_manual_edit_state():
     app.text_input[idx].input("KÉZILEG SZERKESZTETT CÍM").run()
     app.run(timeout=60)
 
-    _click_and_settle(app, "Blueprint újragenerálása")
+    _click_and_settle(app, "Tervrajz újragenerálása")
     assert not app.exception
 
     warning_values = [w.value for w in app.warning]
-    assert any("KORÁBBI blueprintből" in w for w in warning_values)
+    assert any("KORÁBBI tervrajzból" in w for w in warning_values)
     assert (
         app.session_state["sermon_workshop"]["developed_outline"]["movements"][0]["title"]
         == "KÉZILEG SZERKESZTETT CÍM"
@@ -1182,7 +1182,7 @@ def _render_fresh_blueprint_then_generate_outline_reusable_inputs() -> None:
     }
 
     def fake_gen(prompt, **kwargs):
-        if kwargs.get("tab_label") == "Homiletikai blueprint":
+        if kwargs.get("tab_label") == "Igehirdetési tervrajz":
             return json.dumps(blueprint_payload, ensure_ascii=False)
         return json.dumps(outline_payload, ensure_ascii=False)
 
@@ -1223,7 +1223,7 @@ def test_passage_text_change_triggers_stale_warning():
     assert not app.exception
 
     warning_values = [w.value for w in app.warning]
-    assert any("KORÁBBI blueprintből" in w for w in warning_values)
+    assert any("KORÁBBI tervrajzból" in w for w in warning_values)
 
 
 # -----------------------------------------------------------------------
@@ -1240,7 +1240,7 @@ def test_new_candidate_after_blueprint_regeneration_does_not_touch_old_canonical
     _accept_fresh_outline(app)
     old_canonical = copy.deepcopy(app.session_state["sermon_workshop"]["developed_outline"])
 
-    _click_and_settle(app, "Blueprint újragenerálása")
+    _click_and_settle(app, "Tervrajz újragenerálása")
     _click_and_settle(app, "Részletes vázlat újragenerálása")
     assert not app.exception
 
@@ -1260,16 +1260,16 @@ def test_accept_after_blueprint_regeneration_clears_stale_warning():
     )
     _accept_fresh_outline(app)
 
-    _click_and_settle(app, "Blueprint újragenerálása")
+    _click_and_settle(app, "Tervrajz újragenerálása")
     warning_values_before = [w.value for w in app.warning]
-    assert any("KORÁBBI blueprintből" in w for w in warning_values_before)
+    assert any("KORÁBBI tervrajzból" in w for w in warning_values_before)
 
     _click_and_settle(app, "Részletes vázlat újragenerálása")
     _click_and_settle(app, "Vázlat átvétele")
     assert not app.exception
 
     warning_values_after = [w.value for w in app.warning]
-    assert not any("KORÁBBI blueprintből" in w for w in warning_values_after)
+    assert not any("KORÁBBI tervrajzból" in w for w in warning_values_after)
     assert not any("igehelyhez készült" in w for w in warning_values_after)
 
 
@@ -1571,7 +1571,7 @@ def test_project_switch_purges_stale_outline_editor_widgets():
 def _render_fresh_blueprint_with_sentinel_internal_fields() -> None:
     """A blueprint BELSŐ, technikai mezőit (`arc_fit.reason`, `key_support`,
     `grounded_in`) SZENTINEL-értékekkel tölti fel, hogy explicit
-    bizonyítható legyen: a "Blueprint részletei" expander ezeket NEM
+    bizonyítható legyen: a "Tervrajz részletei" expander ezeket NEM
     jeleníti meg — csak `central_claim`/`textual_center`/szerkezeti
     mód/movementenkénti `function`+`core_idea`."""
     import json
@@ -1636,7 +1636,7 @@ def _render_fresh_blueprint_with_sentinel_internal_fields() -> None:
 
 def test_blueprint_details_expander_appears_when_blueprint_exists():
     app = AppTest.from_function(_render_fresh_blueprint_then_generate_outline).run(timeout=60)
-    _click_and_settle(app, "Blueprint készítése")
+    _click_and_settle(app, "Tervrajz készítése")
     assert not app.exception
 
     labels = [e.label for e in app.expander]
@@ -1645,7 +1645,7 @@ def test_blueprint_details_expander_appears_when_blueprint_exists():
 
 def test_blueprint_details_expander_starts_collapsed():
     app = AppTest.from_function(_render_fresh_blueprint_then_generate_outline).run(timeout=60)
-    _click_and_settle(app, "Blueprint készítése")
+    _click_and_settle(app, "Tervrajz készítése")
 
     expander = next(e for e in app.expander if e.label == "Blueprint részletei")
     assert expander.proto.expanded is False
@@ -1653,7 +1653,7 @@ def test_blueprint_details_expander_starts_collapsed():
 
 def test_blueprint_details_shows_central_claim():
     app = AppTest.from_function(_render_fresh_blueprint_then_generate_outline).run(timeout=60)
-    _click_and_settle(app, "Blueprint készítése")
+    _click_and_settle(app, "Tervrajz készítése")
 
     body = "\n".join(md.value for md in app.markdown)
     assert "Isten kezdeményez." in body
@@ -1661,7 +1661,7 @@ def test_blueprint_details_shows_central_claim():
 
 def test_blueprint_details_shows_structure_mode_label():
     app = AppTest.from_function(_render_fresh_blueprint_then_generate_outline).run(timeout=60)
-    _click_and_settle(app, "Blueprint készítése")
+    _click_and_settle(app, "Tervrajz készítése")
 
     captions = [c.value for c in app.caption]
     assert "Hétpontos ív" in captions
@@ -1671,7 +1671,7 @@ def test_blueprint_details_shows_movement_function_and_core_idea():
     app = AppTest.from_function(_render_fresh_blueprint_with_sentinel_internal_fields).run(
         timeout=60
     )
-    idx = next(i for i, b in enumerate(app.button) if b.label == "Blueprint készítése")
+    idx = next(i for i, b in enumerate(app.button) if b.label == "Tervrajz készítése")
     app.button[idx].click().run()
     app.run(timeout=60)
     assert not app.exception
@@ -1685,7 +1685,7 @@ def test_blueprint_details_hides_internal_technical_fields():
     app = AppTest.from_function(_render_fresh_blueprint_with_sentinel_internal_fields).run(
         timeout=60
     )
-    idx = next(i for i, b in enumerate(app.button) if b.label == "Blueprint készítése")
+    idx = next(i for i, b in enumerate(app.button) if b.label == "Tervrajz készítése")
     app.button[idx].click().run()
     app.run(timeout=60)
     assert not app.exception
@@ -1842,4 +1842,4 @@ def test_stale_warning_still_appears_after_ux_restructure():
     assert not app.exception
 
     warning_values = [w.value for w in app.warning]
-    assert any("KORÁBBI blueprintből" in w for w in warning_values)
+    assert any("KORÁBBI tervrajzból" in w for w in warning_values)

@@ -280,10 +280,10 @@ def test_no_legacy_generation_or_export_button_present():
     assert labels.count("MI-javaslat ehhez a ponthoz") == 7
     # RESET 2E-4: a blueprint-generálás nincs candidate-lifecycle-hoz
     # kötve, ezért üres/hiányzó blueprintnél a gomb felirata mindig
-    # "Blueprint készítése" — ugyanígy a részletes vázlat gombja is
+    # "Tervrajz készítése" — ugyanígy a részletes vázlat gombja is
     # "Részletes vázlat készítése", amíg nincs sem kanonikus vázlat, sem
     # függőben lévő candidate.
-    assert labels.count("Blueprint készítése") == 1
+    assert labels.count("Tervrajz készítése") == 1
     assert labels.count("Részletes vázlat készítése") == 1
     assert len(labels) == 19, f"nem várt gomb(ok) jelentek meg ebben a fázisban: {labels}"
 

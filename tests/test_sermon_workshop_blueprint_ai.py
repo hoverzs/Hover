@@ -905,12 +905,12 @@ def test_blueprint_tab_has_a_dedicated_evidence_based_token_budget():
     egy vakon nagyra állított plafon."""
     import app
 
-    assert "Homiletikai blueprint" in app.DEFAULT_MAX_OUTPUT_TOKENS_BY_TAB
-    budget = app.DEFAULT_MAX_OUTPUT_TOKENS_BY_TAB["Homiletikai blueprint"]
+    assert "Igehirdetési tervrajz" in app.DEFAULT_MAX_OUTPUT_TOKENS_BY_TAB
+    budget = app.DEFAULT_MAX_OUTPUT_TOKENS_BY_TAB["Igehirdetési tervrajz"]
     observed_max = 5120
     assert budget >= observed_max * 1.5  # ésszerű tartalék
     assert budget <= observed_max * 3  # NE legyen indokolatlanul túlméretezett
-    assert app._default_max_output_tokens("Homiletikai blueprint") == budget
+    assert app._default_max_output_tokens("Igehirdetési tervrajz") == budget
 
 
 def test_retry_recovers_from_a_truncated_first_response():

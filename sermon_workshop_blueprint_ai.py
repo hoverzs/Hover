@@ -963,7 +963,7 @@ def generate_sermon_blueprint(
             status="error",
             reason="missing_context",
             error_message=(
-                "Hiányzik a blueprint elkészítéséhez: "
+                "Hiányzik a tervrajz elkészítéséhez: "
                 + ", ".join(missing)
                 + ". Ezek nélkül nem indítható a generálás."
             ),
@@ -984,7 +984,7 @@ def generate_sermon_blueprint(
         try:
             raw = generate_fn(
                 current_prompt,
-                tab_label="Homiletikai blueprint",
+                tab_label="Igehirdetési tervrajz",
                 use_cache=False,
                 system_bundle=BLUEPRINT_SYSTEM_PROMPT,
                 include_brevity_directive=False,
@@ -1003,7 +1003,7 @@ def generate_sermon_blueprint(
                 ok=False,
                 status="error",
                 reason="generate_failed",
-                error_message=f"A blueprint generálása sikertelen volt: {exc}",
+                error_message=f"A tervrajz generálása sikertelen volt: {exc}",
             )
 
         if _looks_like_api_error(raw):

@@ -553,22 +553,53 @@ def render_primary_view_switcher(
     with st.container(key="workspace_switcher"):
         st.markdown(
             "<style>"
-            # A kapcsoló teljes doboza ne nyúljon a teljes oldalszélességre —
-            # keskeny, középre igazított sáv legyen, ahogy a lépésválasztó is.
-            f"{scope}{{max-width:680px!important;margin-left:auto!important;"
+            # A kapcsoló a két fő munkaterület egyenrangú váltója — szélesebb,
+            # középre igazított sáv, mint a lépésválasztó (annál hangsúlyosabb
+            # navigációs elem).
+            f"{scope}{{max-width:860px!important;margin-left:auto!important;"
             "margin-right:auto!important;width:100%!important;}"
-            # Mindkét szegmens azonos szélességű oszlopot kap és azonos
-            # doboz-keretet (csak a kitöltés/szín tér el aktív állapotban) —
-            # enélkül az inaktív gomb átlátszó háttere/kerete miatt a két
-            # szegmens vizuálisan nem tűnik egyenlő méretűnek, még akkor
-            # sem, ha a tényleges oszlopszélesség egyenlő.
-            f"{scope} [data-testid='stHorizontalBlock']{{align-items:stretch!important;}}"
-            f"{scope} [data-testid='stColumn']{{flex:1 1 0!important;min-width:0!important;}}"
+            # Közös "sín" a két szegmens mögött — ez adja az egységes
+            # segmented-control hatást (nem két külön lebegő gomb).
+            # FONTOS: a Streamlit `st.columns()` ezt a blokkot CSS GRID-ként
+            # rendereli (nem flexbox), és a generált grid-template-columns
+            # ITT (2 oszlopnál) tapasztalat szerint 3 egyenlő sávot adott ki
+            # 2 gyerekelemhez — emiatt a 2. oszlop után üres hely maradt
+            # jobbra. A grid-template-columns EXPLICIT felülírása a
+            # tényleges opciószámmal (ugyanaz a technika, mint a
+            # quick_tools_grid kártyarácsnál) garantálja a pontos 50/50
+            # felosztást, függetlenül attól, hogy a Streamlit mit generál.
+            f"{scope} [data-testid='stHorizontalBlock']{{"
+            "display:grid!important;"
+            f"grid-template-columns:repeat({len(opts)},minmax(0,1fr))!important;"
+            "align-items:stretch!important;"
+            "background:var(--ui-surface)!important;"
+            "border:1px solid var(--ui-border)!important;"
+            "border-radius:16px!important;"
+            "box-shadow:var(--ui-shadow-sm)!important;"
+            "padding:4px!important;gap:4px!important;"
+            "width:100%!important;}"
+            f"{scope} [data-testid='stColumn']{{"
+            "flex:1 1 0!important;min-width:0!important;width:100%!important;"
+            "max-width:100%!important;}}"
             f"{scope} .stButton{{width:100%!important;}}"
             f"{scope} .stButton button{{"
             "width:100%!important;"
-            "background:var(--ui-surface)!important;"
-            "border:1px solid var(--ui-border)!important;"
+            "min-height:52px!important;"
+            "background:transparent!important;"
+            "border:1px solid transparent!important;"
+            "border-radius:12px!important;"
+            "transition:background 160ms ease,border-color 160ms ease,"
+            "color 160ms ease!important;"
+            "}"
+            f"{scope} .stButton button [data-testid='stMarkdownContainer'] p{{"
+            "font-size:1rem!important;font-weight:600!important;"
+            "}"
+            f"{scope} .stButton button [data-testid='stIconMaterial']{{"
+            "width:20px!important;height:20px!important;font-size:19px!important;"
+            "}"
+            f"{scope} .stButton button:hover{{"
+            "background:var(--ui-surface-hover)!important;"
+            "border-color:rgba(90,122,168,0.28)!important;"
             "}"
             f"{scope} .{active_cls} .stButton button,"
             f"{scope} .{active_cls} button{{"
@@ -577,12 +608,21 @@ def render_primary_view_switcher(
             "box-shadow:var(--ui-shadow-sm)!important;"
             "color:var(--tx-primary-deep)!important;"
             "}"
+            f"{scope} .{active_cls} .stButton button:hover{{"
+            "background:var(--ui-surface-active)!important;"
+            "}"
             f"{scope} .{active_cls} .stButton button p,"
             f"{scope} .{active_cls} button p{{"
-            "color:var(--tx-primary-deep)!important;font-weight:650!important;"
+            "color:var(--tx-primary-deep)!important;font-weight:700!important;"
             "}"
             f"{scope} .{active_cls} .stButton button::after,"
             f"{scope} .{active_cls} button::after{{height:2px!important;}}"
+            "@media (max-width:768px){"
+            f"{scope}{{max-width:100%!important;}}"
+            f"{scope} .stButton button{{min-height:46px!important;}}"
+            f"{scope} .stButton button [data-testid='stMarkdownContainer'] p{{"
+            "font-size:0.86rem!important;}"
+            "}"
             "</style>",
             unsafe_allow_html=True,
         )
