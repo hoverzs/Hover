@@ -335,7 +335,22 @@ def build_blueprint_generation_context(
     sw = session_state.get("sermon_workshop")
     sw = sw if isinstance(sw, dict) else {}
 
-    text_main_idea = _s(tw.get("text_main_idea"))
+    # RESET 3F: a `text_main_idea` (a textus fő gondolata) UGYANAZZAL a
+    # szűk igehely-ujjlenyomat-ellenőrzéssel védett, mint a raw-fallback
+    # mezők — passzusváltás után, újragenerálás nélkül, a régi (más
+    # igehelyhez tartozó) fő gondolat NEM kerülhet csendben a blueprint
+    # kontextusába. A `sermon_main_idea`-nak (az igehirdető saját
+    # fókuszmondata) nincs passzus-ujjlenyomat kontraktusa — az
+    # változatlanul, feltétel nélkül kerül be, ahogy eddig is.
+    text_main_idea_raw = _s(tw.get("text_main_idea"))
+    text_main_idea = (
+        text_main_idea_raw
+        if text_main_idea_raw
+        and _is_narrow_context_fresh(
+            tw.get("text_main_idea_approved_context_hash"), current_narrow_hash
+        )
+        else ""
+    )
     sermon_main_idea = _s(sw.get("sermon_main_idea"))
 
     # A hét arc-pont KANONIKUS sorrendben, kizárólag a `text` mezőből —

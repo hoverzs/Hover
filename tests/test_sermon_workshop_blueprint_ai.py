@@ -1244,3 +1244,127 @@ def test_o13_candidate_and_ui_state_do_not_affect_freshness_decision():
 
     context = _context(state)
     assert dict(context.raw_fallback).get("exegesis") == "RAW_EXEGESIS_SENTINEL"
+
+
+# =============================================================================
+# RESET 3F — `text_main_idea` freshness a blueprint context-builderben,
+# UGYANAZZAL a `_is_narrow_context_fresh`/`text_main_idea_approved_
+# context_hash` mechanizmussal, mint a raw-fallback mezőknél (ld. fent az
+# O-szekció, 4-9. teszt).
+# =============================================================================
+
+
+def test_q1_fresh_text_main_idea_enters_context():
+    state = _base_state()
+    state["text_workshop"]["text_main_idea"] = "FRESH_MAIN_IDEA_SENTINEL"
+    state["text_workshop"]["text_main_idea_approved_context_hash"] = _fresh_hash(state)
+
+    context = _context(state)
+    assert context.text_main_idea == "FRESH_MAIN_IDEA_SENTINEL"
+    prompt = bp_ai.build_blueprint_prompt(context)
+    assert "FRESH_MAIN_IDEA_SENTINEL" in prompt
+
+
+def test_q2_stale_text_main_idea_is_excluded_from_context():
+    state = _base_state()
+    state["text_workshop"]["text_main_idea"] = "STALE_MAIN_IDEA_SENTINEL"
+    state["text_workshop"]["text_main_idea_approved_context_hash"] = "STALE_HASH_MISMATCH"
+
+    context = _context(state)
+    assert context.text_main_idea == ""
+    prompt = bp_ai.build_blueprint_prompt(context)
+    assert "STALE_MAIN_IDEA_SENTINEL" not in prompt
+
+
+def test_q3_missing_hash_is_backward_compatible_and_treated_as_fresh():
+    state = _base_state()
+    state["text_workshop"]["text_main_idea"] = "NO_HASH_MAIN_IDEA_SENTINEL"
+    # Nincs `text_main_idea_approved_context_hash` -- régi projekt / a
+    # mechanizmus bevezetése előtti mentés. A globális visszafelé-
+    # kompatibilis szabály szerint ez NEM minősül stale-nek.
+    context = _context(state)
+    assert context.text_main_idea == "NO_HASH_MAIN_IDEA_SENTINEL"
+
+
+def test_q4_stale_text_main_idea_is_preserved_in_session_state():
+    state = _base_state()
+    state["text_workshop"]["text_main_idea"] = "STALE_MAIN_IDEA_SENTINEL"
+    state["text_workshop"]["text_main_idea_approved_context_hash"] = "STALE_HASH_MISMATCH"
+
+    _context(state)
+    # A `build_blueprint_generation_context` tisztán OLVASÁSI/szűrési
+    # döntés -- a Textusműhely state-et sosem törli vagy írja át.
+    assert state["text_workshop"]["text_main_idea"] == "STALE_MAIN_IDEA_SENTINEL"
+    assert (
+        state["text_workshop"]["text_main_idea_approved_context_hash"]
+        == "STALE_HASH_MISMATCH"
+    )
+
+
+def test_q5_passage_change_without_regeneration_makes_text_main_idea_stale():
+    state = _base_state()
+    state["text_workshop"]["text_main_idea"] = "OLD_PASSAGE_MAIN_IDEA_SENTINEL"
+    # A hash a RÉGI igehelyhez készült.
+    state["text_workshop"]["text_main_idea_approved_context_hash"] = _fresh_hash(state)
+
+    # Igehely-váltás, újragenerálás nélkül.
+    state["last_igehely"] = "Jn 3,16"
+    state["igehely_input"] = "Jn 3,16"
+    state["passage_text"] = "Mert úgy szerette Isten a világot."
+
+    context = _context(state)
+    assert context.text_main_idea == ""
+
+
+def test_q6_context_hash_reacts_to_text_main_idea_freshness_via_existing_mechanism():
+    """A `text_main_idea` MÁR RÉSZE volt a `compute_blueprint_context_
+    hash` payloadjának (RESET 2E-2 óta) -- nincs szükség külön hash-
+    logikára: a stale-szűrés a MEGLÉVŐ mechanizmuson keresztül
+    automatikusan a `context_hash`-re is hat."""
+    fresh_state = _base_state()
+    fresh_state["text_workshop"]["text_main_idea"] = "MAIN_IDEA_SENTINEL"
+    fresh_state["text_workshop"]["text_main_idea_approved_context_hash"] = _fresh_hash(
+        fresh_state
+    )
+    fresh_hash_value = _context(fresh_state).context_hash
+
+    stale_state = _base_state()
+    stale_state["text_workshop"]["text_main_idea"] = "MAIN_IDEA_SENTINEL"
+    stale_state["text_workshop"][
+        "text_main_idea_approved_context_hash"
+    ] = "STALE_HASH_MISMATCH"
+    stale_hash_value = _context(stale_state).context_hash
+
+    baseline_state = _base_state()  # nincs text_main_idea egyáltalán
+    baseline_hash_value = _context(baseline_state).context_hash
+
+    assert fresh_hash_value != baseline_hash_value
+    # A stale eset ÚGY viselkedik a hash szempontjából, mintha a mező
+    # üres lenne -- megegyezik a baseline (nincs main idea) hash-sel.
+    assert stale_hash_value == baseline_hash_value
+
+
+def test_q7_approved_summary_and_raw_fallback_behavior_is_unchanged():
+    """Regresszió: az approved-summary/raw-fallback logika a `text_main_
+    idea` freshness-szűrés bevezetése UTÁN is pontosan úgy működik, mint
+    előtte -- a `text_main_idea` mindkét ágban FÜGGETLENÜL, saját maga
+    szerint szűrődik, nem befolyásolja a `summary_source` döntést."""
+    state = _base_state()
+    _approved_summary(state)
+    state["text_workshop"]["text_main_idea"] = "FRESH_MAIN_IDEA_SENTINEL"
+    state["text_workshop"]["text_main_idea_approved_context_hash"] = _fresh_hash(state)
+
+    context = _context(state)
+    assert context.summary_source == "approved_summary"
+    assert context.text_main_idea == "FRESH_MAIN_IDEA_SENTINEL"
+
+    state2 = _base_state()
+    state2["exegesis"] = "RAW_EXEGESIS_SENTINEL"
+    state2["exegesis_approved_context_hash"] = _fresh_hash(state2)
+    state2["text_workshop"]["text_main_idea"] = "STALE_MAIN_IDEA_SENTINEL"
+    state2["text_workshop"]["text_main_idea_approved_context_hash"] = "STALE_HASH_MISMATCH"
+
+    context2 = _context(state2)
+    assert context2.summary_source == "raw_fallback"
+    assert dict(context2.raw_fallback).get("exegesis") == "RAW_EXEGESIS_SENTINEL"
+    assert context2.text_main_idea == ""
