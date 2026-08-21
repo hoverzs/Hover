@@ -379,12 +379,30 @@ def build_blueprint_generation_context(
             ):
                 raw_fallback.append((field, value))
         summary_source = "raw_fallback" if raw_fallback else "none"
-        # Az exegézis megalapozottsági figyelmeztetései CSAK akkor
-        # relevánsak, ha a nyers exegézist ténylegesen be is csatoljuk.
+        # Az exegézis megalapozottsági ÉS grounding-figyelmeztetései CSAK
+        # akkor relevánsak, ha a nyers exegézist ténylegesen be is
+        # csatoljuk (ami már önmagában feltételezi, hogy az exegézis
+        # friss — ld. a fenti `_is_narrow_context_fresh` szűrést). RESET
+        # 3D-3: a RESET 3B-6-ban bevezetett `exegesis_grounding_warnings`
+        # (determinisztikus görög/héber token/lemma/Strong-ellenőrzés) a
+        # MEGLÉVŐ `exegesis_support_warnings` (jelenlét-alapú, RESET
+        # 2E-2 óta létező) lista UTÁN fűződik hozzá, ugyanabba a listába —
+        # nincs új warning-séma, csak egy második, determinisztikus forrás
+        # ugyanahhoz a figyelmeztetés-csatornához.
         if any(field == "exegesis" for field, _ in raw_fallback):
-            warnings_raw = session_state.get("exegesis_support_warnings")
-            if isinstance(warnings_raw, list):
-                exegesis_warnings = [_s(item) for item in warnings_raw if _s(item)]
+            support_warnings_raw = session_state.get("exegesis_support_warnings")
+            support_warnings = (
+                [_s(item) for item in support_warnings_raw if _s(item)]
+                if isinstance(support_warnings_raw, list)
+                else []
+            )
+            grounding_warnings_raw = session_state.get("exegesis_grounding_warnings")
+            grounding_warnings = (
+                [_s(item) for item in grounding_warnings_raw if _s(item)]
+                if isinstance(grounding_warnings_raw, list)
+                else []
+            )
+            exegesis_warnings = support_warnings + grounding_warnings
 
     context = BlueprintContext(
         reference=reference,
@@ -592,10 +610,12 @@ def build_blueprint_prompt(context: BlueprintContext) -> str:
         if context.exegesis_warnings:
             parts += [
                 "",
-                "FIGYELMEZTETÉS a fenti exegézishez — az alábbi szakaszok "
-                "alatt nem található konkrét vers- vagy eredeti nyelvi "
-                "hivatkozás, ezért ezek megalapozottsága bizonytalan. Ezekre "
-                "NE építs érdemi állítást:",
+                "FIGYELMEZTETÉS a fenti exegézishez — az alábbi pontok "
+                "megalapozottsága vagy nyelvi pontossága bizonytalan lehet "
+                "(pl. hiányzó vers- vagy eredeti nyelvi hivatkozás egy "
+                "szakasz alatt, vagy a helyi adatbázissal nem egyező "
+                "görög/héber adat). Ezek NEM bizonyított hibák, csak "
+                "figyelmeztetések — ezekre NE építs érdemi állítást:",
             ]
             for warning in context.exegesis_warnings:
                 parts.append(f"- {warning}")

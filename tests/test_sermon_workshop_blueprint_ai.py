@@ -236,6 +236,110 @@ def test_b_exegesis_support_warnings_are_surfaced_only_with_raw_exegesis():
     assert _context(state2).exegesis_warnings == ()
 
 
+def test_b_exegesis_grounding_warnings_are_surfaced_only_with_raw_exegesis():
+    """RESET 3D-3, 1-2. teszt: a RESET 3B-6-ban bevezetett `exegesis_
+    grounding_warnings` UGYANÚGY becsatolódik, mint a régi `exegesis_
+    support_warnings` -- csak akkor, ha a nyers exegézis ténylegesen
+    bekerül a kontextusba."""
+    state = _base_state()
+    state["exegesis"] = "RAW_EXEGESIS_SENTINEL"
+    state["exegesis_grounding_warnings"] = ['"λόγος" — más szakaszból való.']
+
+    context = _context(state)
+    assert context.exegesis_warnings == ('"λόγος" — más szakaszból való.',)
+    prompt = bp_ai.build_blueprint_prompt(context)
+    assert "FIGYELMEZTETÉS" in prompt
+    assert '"λόγος" — más szakaszból való.' in prompt
+
+    # Jóváhagyott összegzésnél nincs nyers exegézis -> a grounding-
+    # figyelmeztetés sem releváns (6. teszt: approved-summary ág
+    # változatlan -- nincs külön párhuzamos csatorna).
+    state2 = _base_state()
+    _approved_summary(state2)
+    state2["exegesis"] = "RAW_EXEGESIS_SENTINEL"
+    state2["exegesis_grounding_warnings"] = ['"λόγος" — más szakaszból való.']
+    context2 = _context(state2)
+    assert context2.exegesis_warnings == ()
+    prompt2 = bp_ai.build_blueprint_prompt(context2)
+    assert '"λόγος" — más szakaszból való.' not in prompt2
+
+
+def test_b_both_support_and_grounding_warnings_are_combined_in_deterministic_order():
+    """RESET 3D-3, 3. teszt: mindkét figyelmeztetés-forrás jelen van ->
+    mindkettő bekerül, MINDIG a support előbb, grounding utána."""
+    state = _base_state()
+    state["exegesis"] = "RAW_EXEGESIS_SENTINEL"
+    state["exegesis_support_warnings"] = ["Teológiai hangsúly", "Prédikációs irányok"]
+    state["exegesis_grounding_warnings"] = [
+        '"λόγος" — más szakaszból való.',
+        '"ξψζθφ" — nem azonosítható.',
+    ]
+
+    context = _context(state)
+    assert context.exegesis_warnings == (
+        "Teológiai hangsúly",
+        "Prédikációs irányok",
+        '"λόγος" — más szakaszból való.',
+        '"ξψζθφ" — nem azonosítható.',
+    )
+    prompt = bp_ai.build_blueprint_prompt(context)
+    # A sorrend a promptban is megőrződik.
+    idx_support = prompt.index("Teológiai hangsúly")
+    idx_grounding = prompt.index('"λόγος" — más szakaszból való.')
+    assert idx_support < idx_grounding
+
+
+def test_b_stale_exegesis_excludes_both_warning_kinds():
+    """RESET 3D-3, 4. teszt: stale exegézis esetén sem a support-, sem a
+    grounding-figyelmeztetés nem kerül be -- mert maga az exegézis sem
+    kerül be a raw_fallback-be."""
+    state = _base_state()
+    state["exegesis"] = "RAW_EXEGESIS_SENTINEL"
+    state["exegesis_approved_context_hash"] = "STALE_HASH_MISMATCH"
+    state["exegesis_support_warnings"] = ["Teológiai hangsúly"]
+    state["exegesis_grounding_warnings"] = ['"λόγος" — más szakaszból való.']
+
+    context = _context(state)
+    assert "exegesis" not in dict(context.raw_fallback)
+    assert context.exegesis_warnings == ()
+    prompt = bp_ai.build_blueprint_prompt(context)
+    assert "Teológiai hangsúly" not in prompt
+    assert '"λόγος" — más szakaszból való.' not in prompt
+
+
+def test_b_no_exegesis_at_all_excludes_both_warning_kinds():
+    """RESET 3D-3, 5. teszt: ha nincs nyers exegézis-tartalom, a
+    warning-kulcsok jelenléte önmagában sem elég."""
+    state = _base_state()
+    state["exegesis_support_warnings"] = ["Teológiai hangsúly"]
+    state["exegesis_grounding_warnings"] = ['"λόγος" — más szakaszból való.']
+
+    context = _context(state)
+    assert "exegesis" not in dict(context.raw_fallback)
+    assert context.exegesis_warnings == ()
+
+
+def test_b_warnings_do_not_affect_blueprint_context_hash():
+    """RESET 3D-3, 7. teszt: a figyelmeztetések (sem a régi support-, sem
+    az új grounding-lista) nem befolyásolják a `context_hash`-t -- ez már
+    a RESET 3D-3 előtt sem volt a hash része (`compute_blueprint_context_
+    hash` payloadja sosem tartalmazta az `exegesis_warnings`-ot)."""
+    state_no_warnings = _base_state()
+    state_no_warnings["exegesis"] = "RAW_EXEGESIS_SENTINEL"
+
+    state_with_warnings = _base_state()
+    state_with_warnings["exegesis"] = "RAW_EXEGESIS_SENTINEL"
+    state_with_warnings["exegesis_support_warnings"] = ["Teológiai hangsúly"]
+    state_with_warnings["exegesis_grounding_warnings"] = [
+        '"λόγος" — más szakaszból való.'
+    ]
+
+    hash_without = _context(state_no_warnings).context_hash
+    hash_with = _context(state_with_warnings).context_hash
+    assert hash_without == hash_with
+    assert hash_without  # nem üres -- valódi hash-ek hasonlítva
+
+
 def test_b_no_material_at_all_is_handled_explicitly():
     state = _base_state()
     context = _context(state)
