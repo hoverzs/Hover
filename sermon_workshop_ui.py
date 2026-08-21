@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import html
 import json
-from typing import Any, Callable
+from typing import Any, Callable, MutableMapping
 
 import streamlit as st
 from ui_components import (
@@ -30,13 +30,27 @@ from bible_text_ui import (
 from bible_text_ui import _ensure_bible_text_styles
 from ruf_bible_service import SOURCE_NAME, fetch_ruf_passage
 from sermon_workshop_data import (
+    _ARC_POINT_KEYS,
+    _DEVELOPED_MOVEMENT_LIST_FIELDS,
+    accept_arc_candidate,
+    accept_developed_outline_candidate,
     accept_workshop_proposal,
+    discard_developed_outline_candidate,
+    update_developed_outline_movement_field,
     add_approved_sermon_decision,
+    add_engagement_element,
+    discard_arc_candidate,
+    discard_field_refinement_suggestion,
+    validate_field_refinement_acceptance,
+    update_engagement_element,
+    remove_engagement_element,
+    save_engagement_suggestions,
     empty_application,
     empty_illustration,
     empty_sermon_movement,
     empty_textual_image,
     ensure_sermon_workshop_state,
+    update_arc_point,
     normalize_applications,
     normalize_illustrations,
     normalize_lection_connection_type,
@@ -53,6 +67,7 @@ from sermon_workshop_data import (
     save_listener_tension_suggestions,
     save_closing_assessment,
     save_closing_suggestions,
+    save_entry_point_suggestions,
     save_lection_assessment,
     save_lection_connection_analysis,
     save_lection_suggestions,
@@ -90,6 +105,20 @@ from sermon_workshop_m5_ai import (
     ListenerTensionSuggestionResult,
     assess_listener_tension,
     suggest_listener_tension,
+)
+from sermon_workshop_entry_point_ai import (
+    ENTRY_POINT_TYPE_KEYS,
+    EntryPointSuggestionResult,
+    entry_point_type_label,
+    normalize_entry_point_type,
+    suggest_entry_point,
+)
+from sermon_workshop_engagement_ai import (
+    ENGAGEMENT_TYPE_KEYS,
+    EngagementSuggestionResult,
+    engagement_type_label,
+    normalize_engagement_type,
+    suggest_engagement_elements,
 )
 from sermon_workshop_m5_gospel_ai import (
     CHRIST_CONNECTION_TYPES,
@@ -238,7 +267,23 @@ from sermon_outline_diagnostics_ai import (
     adapt_m8_to_outline_diagnostics,
     run_outline_diagnostics,
 )
-from textus_workshop_data import ensure_text_workshop_state
+from sermon_workshop_arc_ai import build_arc_generation_context, generate_seven_point_arc
+from sermon_workshop_blueprint_ai import generate_sermon_blueprint
+from sermon_workshop_developed_outline_ai import (
+    build_developed_outline_context,
+    generate_developed_outline,
+    is_blueprint_fresh,
+)
+from sermon_workshop_refinement_ai import (
+    build_refinement_context,
+    generate_field_refinement,
+)
+from textus_workshop_data import ensure_text_workshop_state, update_text_main_idea
+from textus_workshop_ui import (
+    _KEY_IDEA_INPUT as _KEY_FLAT_TEXT_MAIN_IDEA,
+    render_text_main_idea_section,
+    render_text_summary_section,
+)
 from diagnostics_dashboard_ui import (
     ensure_dashboard_styles,
     render_summary_card,
@@ -247,9 +292,10 @@ from diagnostics_dashboard_ui import (
     segment_state_label,
 )
 from workshop_nav_ui import (
+    SERMON_PHASE_OPTIONS,
     render_workshop_workflow_nav,
-    sermon_completed_sections,
-    sermon_section_statuses,
+    sermon_phase_completed,
+    sermon_phase_statuses,
 )
 
 GenerateFn = Callable[..., str]
@@ -270,40 +316,39 @@ _SW_SECTION_OPTIONS = [
 
 _SW_SECTION_PLACEHOLDERS: dict[str, dict[str, str]] = {}
 
+# Régi (11 szakaszos) szakaszfelirat → új (5 fázisos) navigáció.
+# A mögöttes render_* függvények és session_state mezők nem változnak —
+# csak az, hogy melyik fázis alatt jelennek meg. Régi mentett projektek
+# `sw_active_section` értéke ezen a táblán keresztül képződik az öt új
+# fázisnév egyikére.
+_SW_LEGACY_SECTION_TO_PHASE: dict[str, str] = {
+    "Fókuszmondat": "Textusmag és fókuszmondat",
+    "Az igehirdetés fő gondolata": "Textusmag és fókuszmondat",
+    "Emberi helyzet és kegyelmi válasz": "Homiletikai belépési pont",
+    "Hallgatói kérdés és feszültség": "Homiletikai belépési pont",
+    "Krisztus-központú és evangéliumi ív": "A prédikáció íve",
+    "Az igehirdetés útja és mozgásai": "A prédikáció íve",
+    "A prédikáció útja": "A prédikáció íve",
+    "Prédikációs mozgások": "A prédikáció íve",
+    "Lezárás és megérkezés": "A prédikáció íve",
+    "Lezárás": "A prédikáció íve",
+    # A régi "Illusztrációk és aktualizálás" tartalma (render_enrichment_section)
+    # a Korrekciós fázis 2B óta az "Igehirdetési vázlat" fázis Kiegészítők
+    # blokkjába költözött — a "Megszólítás és bevonás" nevet az ÚJ,
+    # jóváhagyott anyagból dolgozó modul (render_engagement_section) kapta.
+    "Illusztrációk és aktualizálás": "Igehirdetési vázlat",
+    "Képek, illusztrációk és alkalmazás": "Igehirdetési vázlat",
+    "Lekciójavaslat": "Igehirdetési vázlat",
+    "Imádsági előkészítés": "Igehirdetési vázlat",
+    "Igehirdetési vázlat": "Igehirdetési vázlat",
+    "Homiletikai diagnosztika": "Igehirdetési vázlat",
+}
+
 _SW_NEXT_HINTS: dict[str, str] = {
-    "Az igehirdetés fő gondolata": (
-        "Következő ajánlott lépés: Emberi helyzet és kegyelmi válasz"
-    ),
-    "Emberi helyzet és kegyelmi válasz": (
-        "Következő ajánlott lépés: Hallgatói kérdés és feszültség"
-    ),
-    "Hallgatói kérdés és feszültség": (
-        "Következő ajánlott lépés: Krisztus-központú és evangéliumi ív"
-    ),
-    "Krisztus-központú és evangéliumi ív": (
-        "Következő ajánlott lépés: Az igehirdetés útja és mozgásai"
-    ),
-    "Az igehirdetés útja és mozgásai": (
-        "Következő ajánlott lépés: Illusztrációk és aktualizálás"
-    ),
-    "Illusztrációk és aktualizálás": (
-        "Következő ajánlott lépés: Lezárás és megérkezés"
-    ),
-    "Képek, illusztrációk és alkalmazás": (
-        "Következő ajánlott lépés: Lezárás és megérkezés"
-    ),
-    "Lezárás és megérkezés": (
-        "Következő ajánlott lépés: Lekciójavaslat"
-    ),
-    "Lekciójavaslat": (
-        "Következő ajánlott lépés: Imádsági előkészítés"
-    ),
-    "Imádsági előkészítés": (
-        "Következő ajánlott lépés: Igehirdetési vázlat"
-    ),
-    "Igehirdetési vázlat": (
-        "Következő ajánlott lépés: Homiletikai diagnosztika"
-    ),
+    "Textusmag és fókuszmondat": "Következő ajánlott lépés: Homiletikai belépési pont",
+    "Homiletikai belépési pont": "Következő ajánlott lépés: A prédikáció íve",
+    "A prédikáció íve": "Következő ajánlott lépés: Megszólítás és bevonás",
+    "Megszólítás és bevonás": "Következő ajánlott lépés: Igehirdetési vázlat",
 }
 
 _STATUS_LABELS = {
@@ -311,7 +356,24 @@ _STATUS_LABELS = {
     "approved": "Jóváhagyva",
 }
 
+
+def _toast_and_rerun(message: str, *, icon: str | None = None) -> None:
+    """Mentés/jóváhagyás után egységes, ATOMI minta: az állapot (tartalom +
+    státusz + approved_context_hash) ekkorra már elmentve; itt csak
+    visszajelzünk és azonnal, kontrolláltan újrafuttatjuk a scriptet.
+
+    Enélkül egy adott futtatáson belül a navigáció/progresszsáv (amely a
+    szakasz-tartalom ELŐTT renderel a shell-ben) még a jóváhagyás ELŐTTI
+    állapotot mutatja, miközben a szakasz saját UI-ja már a frisset — ez a
+    „progressz és a ténylegesen jóváhagyott tartalom nem egyezik” és a
+    „lebegő panel/duplikált fejléc” tünetek gyökéroka. A `st.toast` a
+    rerun után is látszik még egy pillanatra, így a visszajelzés nem vész el.
+    """
+    st.toast(message, icon=icon)
+    st.rerun()
+
 _SOURCE_SERMON_MAIN = "Az igehirdetés fő gondolata"
+_SOURCE_ENTRY = "Homiletikai belépési pont"
 _SOURCE_HUMAN = "Emberi helyzet és kegyelmi válasz"
 _SOURCE_LISTENER = "Hallgatói kérdés és feszültség"
 _SOURCE_GOSPEL = "Krisztus-központú és evangéliumi ív"
@@ -470,6 +532,138 @@ _HC_SUGGEST_DISPLAY = [
 # Widget / technikai kulcsok — nem project_data
 _KEY_ACTIVE_SECTION = "sw_active_section"
 _KEY_SERMON_IDEA = "sw_sermon_main_idea_input"
+
+# RESET 2B (2026-08-18): az egyszerű, lapos "Textus és fókusz" + hétpontos
+# szerkesztőfelület widgetkulcsai. A `_KEY_SERMON_IDEA`-t újrahasznosítjuk
+# (már seedelve van `_apply_sw_ui_resync_if_needed()`-ben) — csak az
+# arc-pontok kapnak új, dedikált kulcsot.
+#
+# RESET 2D-H (2026-08-20): a `_KEY_FLAT_TEXT_MAIN_IDEA` MOST a `textus_
+# workshop_ui._KEY_IDEA_INPUT`-tal AZONOS kulcs (import-aliasként, ld. a
+# fájl elejei import), nem saját, önálló string. Korábban a lapos UI
+# (`sw_flat_text_main_idea`) és a Textusműhely gyorseszköz-tab
+# (`render_text_main_idea_section`, `tw_main_idea_input`) KÉT, EGYMÁSTÓL
+# FÜGGETLEN widget-kulcsot használt ugyanahhoz a kanonikus `text_workshop.
+# text_main_idea` mezőhöz — a `flush_textus_workshop_from_widgets()` a
+# stale (soha nem frissülő) régi kulcsból írt vissza, és felülírta a
+# frissen beírt értéket (RESET 2D-G audit, determinisztikus AppTest-tel
+# igazolva). A javítás — pontosan a `_KEY_SERMON_IDEA`-nál már bevált
+# mintát követve — megszünteti a két divergens forrást: mostantól
+# EGYETLEN widget-state forrás (`tw_main_idea_input`) táplálja mindkét
+# felületet, ezért a két oldal SOSEM láthat egymástól eltérő értéket.
+_KEY_FLAT_ARC: dict[str, str] = {key: f"sw_flat_arc_{key}" for key in _ARC_POINT_KEYS}
+
+# A hét kártya sorrendje és tartalma — 1:1 a `_ARC_POINT_KEYS` sorrendjével
+# (zip-elve), hogy a kulcs↔címke↔leírás hármas sosem csúszhat szét.
+_ARC_CARD_TITLES: dict[str, str] = {
+    "entry": "Belépés",
+    "starting_point": "Alaphelyzet",
+    "first_shift": "Első fordulópont",
+    "deepening": "Mélyítés és fokozás",
+    "reinterpretation": "Átértelmezés",
+    "second_shift": "Második fordulópont",
+    "arrival": "Megérkezés",
+}
+_ARC_CARD_DESCRIPTIONS: dict[str, str] = {
+    "entry": "Természetes belépés a textus kérdésébe és a hallgató tapasztalatába.",
+    "starting_point": "A textus és a hallgatói helyzet kiinduló feszültsége.",
+    "first_shift": "Az első felismerés, amely elmozdítja a megszokott értelmezést.",
+    "deepening": "A kérdés teológiai, emberi és egzisztenciális kibontása.",
+    "reinterpretation": "A textus központi felismerése új fénybe helyezi a kiinduló kérdést.",
+    "second_shift": "Az evangéliumi felismerés személyes és közösségi következménye.",
+    "arrival": "A gondolatmenet természetes lezárása, amely eljuttat valahová.",
+}
+
+# RESET 2C: a hétpontos MI-generálás UI-technikai kulcsai és üzenetei.
+_KEY_ARC_GEN_RUNNING = "_sw_flat_arc_gen_running"
+_ARC_CANDIDATE_REJECT_MESSAGES: dict[str, str] = {
+    "no_candidate": "Nincs függőben lévő javaslat.",
+    "invalid_candidate": "A javaslat sérült — nem fogadható el.",
+    "missing_context_identity": (
+        "A javaslathoz vagy az aktuális igehelyhez nem tartozik kontextus-"
+        "azonosító — nem fogadható el."
+    ),
+    "reference_mismatch": (
+        "A javaslat egy másik igehelyhez készült — nem fogadható el "
+        "ehhez a szöveghez."
+    ),
+    "context_hash_mismatch": (
+        "A bibliai szöveg megváltozott a javaslat elkészülte óta — "
+        "változatlanul nem fogadható el."
+    ),
+}
+
+# RESET 2E-4: a kétlépcsős vázlatmotor (blueprint + részletes vázlat)
+# UI-technikai kulcsai és üzenetei. A blueprintnek NINCS candidate-
+# lifecycle-ja (RESET 2E-1/2E-2 szerződés, változatlan) — sikeres
+# generálás közvetlenül a kanonikus `sermon_workshop.blueprint`-et írja.
+# A részletes vázlat viszont KÖTELEZŐEN candidate-only (RESET 2E-1A/
+# 2E-3) — ezt itt a UI sem változtatja meg, csak megjeleníti.
+_KEY_BLUEPRINT_GEN_RUNNING = "_sw_flat_blueprint_gen_running"
+_KEY_OUTLINE_GEN_RUNNING = "_sw_flat_outline_gen_running"
+
+_DEVELOPED_OUTLINE_BLOCK_MESSAGES: dict[str, str] = {
+    "missing_blueprint": "Előbb készítsd el az igehirdetési tervrajzot.",
+    "blueprint_stale": (
+        "A tervrajz elavult: a kanonikus bemenet megváltozott az "
+        "elkészülte óta — készíts újat, mielőtt részletes vázlatot kérsz."
+    ),
+    "missing_reference": "Hiányzik az igehely a részletes vázlat elkészítéséhez.",
+    "missing_passage_text": "Hiányzik a bibliai szöveg a részletes vázlat elkészítéséhez.",
+    "missing_blueprint_context_identity": (
+        "A tervrajz kontextusazonosítója hiányzik — készíts új tervrajzot."
+    ),
+}
+
+_DEVELOPED_OUTLINE_CANDIDATE_REJECT_MESSAGES: dict[str, str] = {
+    "no_candidate": "Nincs függőben lévő vázlatjavaslat.",
+    "invalid_candidate": "A vázlatjavaslat sérült — nem fogadható el.",
+    "missing_context_identity": (
+        "A javaslathoz vagy az aktuális igehelyhez nem tartozik kontextus-"
+        "azonosító — nem fogadható el."
+    ),
+    "reference_mismatch": (
+        "A javaslat egy másik igehelyhez készült — nem fogadható el "
+        "ehhez a szöveghez."
+    ),
+    "context_hash_mismatch": (
+        "A tervrajz vagy a bibliai szöveg megváltozott a javaslat "
+        "elkészülte óta — változatlanul nem fogadható el."
+    ),
+}
+
+# RESET 2D-B1: célzott, elfogadásos MI-pontosítás UI-technikai üzenetei —
+# kilenc egymástól teljesen független példány (két főgondolat + hét
+# arc-pont), mindegyik saját, dinamikusan képzett widgetkulcsokkal.
+#
+# UX-korrekció (2026-08-19): a `_toast_and_rerun()` programozott
+# `st.rerun()`-ja a kulcs nélküli `st.expander`-ek nyitott/csukott
+# állapotát visszaállítja — sikeres javaslatkérés után emiatt a saját
+# panel is visszacsukódott, noha friss, még át nem tekintett javaslat
+# készült benne. Ez a fogyó (session-state, NEM projektmentett) jelző
+# pontosan EGY rendereléshez jegyzi meg, melyik célmező paneljét kell
+# `expanded=True`-val nyitni — a `_render_field_refinement_panel` a
+# felolvasáskor azonnal törli is, hogy ne ragadjon be egy régi javaslat
+# panelje nyitva a jövőbeli rendereléseken.
+_KEY_REFINE_AUTO_OPEN_FIELD = "_sw_refine_auto_open_field"
+
+_FIELD_REFINEMENT_REJECT_MESSAGES: dict[str, str] = {
+    "no_suggestion": "Nincs függőben lévő javaslat.",
+    "invalid_suggestion": "A javaslat sérült — nem fogadható el.",
+    "missing_context_identity": (
+        "A javaslathoz vagy az aktuális igehelyhez nem tartozik kontextus-"
+        "azonosító — nem fogadható el."
+    ),
+    "reference_mismatch": (
+        "A javaslat egy másik igehelyhez készült — nem fogadható el "
+        "ehhez a szöveghez."
+    ),
+    "context_hash_mismatch": (
+        "A bibliai szöveg vagy a mező tartalma megváltozott a javaslat "
+        "elkészülte óta — változatlanul nem fogadható el."
+    ),
+}
+
 _KEY_HC = {
     "condition": "sw_hc_condition",
     "false_response": "sw_hc_false_response",
@@ -493,15 +687,32 @@ _KEY_PATH = {
     "type": "sw_path_type",
     "reason": "sw_path_reason",
     "starting_point": "sw_path_starting_point",
+    "first_shift": "sw_path_first_shift",
+    "deepening": "sw_path_deepening",
+    "reinterpretation": "sw_path_reinterpretation",
     "destination": "sw_path_destination",
 }
+_KEY_ENTRY = {
+    "today_connection": "sw_entry_today_connection",
+    "type": "sw_entry_type",
+    "text": "sw_entry_text",
+}
+_ADOPT_ENTRY_PENDING = "_sw_entry_adopt_pending"
+_ADOPT_ENTRY_TODAY_PENDING = "_sw_entry_today_adopt_pending"
 _RESYNC_FLAG = "_sw_ui_resync"
+# Több szakasz-render függvény is fut egyetlen scriptfuttatáson belül (öt
+# fázisra csoportosított nézet) — a widget-szinkron csak EGYSZER futhat le
+# egy futtatáson belül, különben egy már instanciált widget kulcsát írná
+# felül (StreamlitAPIException). A jelzőt a shell törli minden futtatás
+# elején, hogy a következő rerun újra szinkronizálhasson.
+_RESYNC_DONE_THIS_RUN = "_sw_ui_resync_done_this_run"
 _ADOPT_FEEDBACK = "_sw_adopt_feedback"
 _ADOPT_SERMON_PENDING = "_sw_sermon_idea_adopt_pending"
 _ADOPT_HC_PENDING = "_sw_hc_adopt_pending"
 _ADOPT_LT_PENDING = "_sw_lt_adopt_pending"
 _ADOPT_GA_PENDING = "_sw_ga_adopt_pending"
 _ADOPT_PATH_PENDING = "_sw_path_adopt_pending"
+_ADOPT_ARC_PREFILL_PENDING = "_sw_path_arc_prefill_pending"
 _ADOPT_MOVEMENTS_PENDING = "_sw_movements_adopt_pending"
 _ADOPT_HC_OVERWRITE_CONFIRM = "_sw_hc_adopt_overwrite_confirm"
 _ADOPT_SERMON_OVERWRITE_CONFIRM = "_sw_sermon_idea_adopt_overwrite_confirm"
@@ -1473,21 +1684,107 @@ def _persist_gospel_arc_from_widgets() -> None:
     update_sermon_workshop_section(st.session_state, "listener_tension", lt_block)
 
 
-def _persist_sermon_path_from_widgets() -> None:
-    """Widgetek → sermon_path (type/reason/starting_point/destination)."""
-    path = {
-        "type": normalize_sermon_path_type(
-            st.session_state.get(_KEY_PATH["type"])
+def _apply_pending_arc_prefill_if_needed() -> None:
+    """Mozgásból-előtöltés: widget ELŐTT (pending + rerun), a régi mozgás megmarad."""
+    pending = st.session_state.pop(_ADOPT_ARC_PREFILL_PENDING, None)
+    if not isinstance(pending, dict):
+        return
+    field = str(pending.get("field") or "")
+    text = str(pending.get("text") or "")
+    wkey = _KEY_PATH.get(field)
+    if wkey:
+        st.session_state[wkey] = text
+
+
+def _render_arc_field_prefill_button(*, field: str, role: str, label: str) -> None:
+    """Első látásváltás / mélyítés előtöltése a megfelelő szerepű mozgásból.
+
+    Csak átmásolja a tartalmat a szövegmezőbe — a mozgás maga változatlanul
+    megmarad a `sermon_movements` listában (nincs törlés/migráció-veszteség).
+    """
+    movements = normalize_sermon_movements(
+        ensure_sermon_workshop_state(st.session_state).get("sermon_movements")
+    )
+    match = next(
+        (
+            m
+            for m in movements
+            if (m.get("role") or "") == role
+            and ((m.get("core_content") or "").strip() or (m.get("title") or "").strip())
         ),
-        "reason": (st.session_state.get(_KEY_PATH["reason"]) or "").strip(),
+        None,
+    )
+    if st.button(label, key=f"sw_path_prefill_{field}", disabled=match is None):
+        if match is None:
+            st.info(
+                f"Nincs „{movement_role_label(role)}” szerepű, tartalommal "
+                "kitöltött mozgás, amiből előtölthetnéd."
+            )
+        else:
+            content = (match.get("core_content") or "").strip() or (
+                match.get("title") or ""
+            ).strip()
+            st.session_state[_ADOPT_ARC_PREFILL_PENDING] = {
+                "field": field,
+                "text": content,
+            }
+            st.rerun()
+
+
+def _persist_sermon_path_from_widgets() -> None:
+    """Widgetek → sermon_path (starting_point/first_shift/deepening/
+    reinterpretation).
+
+    Az egységesített modellben a type/reason/destination mezőknek már
+    nincs saját widgetje — a bennük korábban tárolt legacy értéket
+    megőrizzük (nem írjuk felül üresre), ha a widget nem létezik.
+    """
+    sw = ensure_sermon_workshop_state(st.session_state)
+    existing = sw.get("sermon_path") if isinstance(sw.get("sermon_path"), dict) else {}
+    path = {
+        "type": (
+            normalize_sermon_path_type(st.session_state[_KEY_PATH["type"]])
+            if _KEY_PATH["type"] in st.session_state
+            else str(existing.get("type") or "")
+        ),
+        "reason": (
+            (st.session_state.get(_KEY_PATH["reason"]) or "").strip()
+            if _KEY_PATH["reason"] in st.session_state
+            else str(existing.get("reason") or "")
+        ),
         "starting_point": (
             st.session_state.get(_KEY_PATH["starting_point"]) or ""
         ).strip(),
-        "destination": (
-            st.session_state.get(_KEY_PATH["destination"]) or ""
+        "first_shift": (
+            st.session_state.get(_KEY_PATH["first_shift"]) or ""
         ).strip(),
+        "deepening": (
+            st.session_state.get(_KEY_PATH["deepening"]) or ""
+        ).strip(),
+        "reinterpretation": (
+            (st.session_state.get(_KEY_PATH["reinterpretation"]) or "").strip()
+            if _KEY_PATH["reinterpretation"] in st.session_state
+            else str(existing.get("reinterpretation") or "")
+        ),
+        "destination": (
+            (st.session_state.get(_KEY_PATH["destination"]) or "").strip()
+            if _KEY_PATH["destination"] in st.session_state
+            else str(existing.get("destination") or "")
+        ),
     }
     update_sermon_workshop_section(st.session_state, "sermon_path", path)
+
+
+def _persist_entry_point_from_widgets() -> None:
+    """Widgetek → entry_point (today_connection/type/text)."""
+    block = {
+        "today_connection": (
+            st.session_state.get(_KEY_ENTRY["today_connection"]) or ""
+        ).strip(),
+        "type": normalize_entry_point_type(st.session_state.get(_KEY_ENTRY["type"])),
+        "text": (st.session_state.get(_KEY_ENTRY["text"]) or "").strip(),
+    }
+    update_sermon_workshop_section(st.session_state, "entry_point", block)
 
 
 def _read_movements_from_widgets() -> list[dict[str, str]]:
@@ -1519,7 +1816,17 @@ def _persist_sermon_movements_from_widgets() -> None:
 
 
 def _apply_sw_ui_resync_if_needed() -> None:
-    """Widgetkulcsok szinkronja a tartós sermon_workshop adatokkal (widget előtt)."""
+    """Widgetkulcsok szinkronja a tartós sermon_workshop adatokkal (widget előtt).
+
+    Több fázis-render függvény is meghívja ugyanazon scriptfuttatáson belül
+    (öt fázisra csoportosított nézet) — a tényleges szinkron csak az első
+    hívásnál fut le, a többi no-op, különben egy már instanciált widget
+    session_state kulcsát írná felül.
+    """
+    if st.session_state.get(_RESYNC_DONE_THIS_RUN):
+        return
+    st.session_state[_RESYNC_DONE_THIS_RUN] = True
+
     sw = ensure_sermon_workshop_state(st.session_state)
     force = bool(st.session_state.pop(_RESYNC_FLAG, False))
 
@@ -1566,6 +1873,14 @@ def _apply_sw_ui_resync_if_needed() -> None:
                 )
             else:
                 st.session_state[wkey] = str(path.get(field) or "")
+
+    entry = sw.get("entry_point") if isinstance(sw.get("entry_point"), dict) else {}
+    for field, wkey in _KEY_ENTRY.items():
+        if force or wkey not in st.session_state:
+            if field == "type":
+                st.session_state[wkey] = normalize_entry_point_type(entry.get(field))
+            else:
+                st.session_state[wkey] = str(entry.get(field) or "")
 
     movements = normalize_sermon_movements(sw.get("sermon_movements"))
     live_ids = {str(m.get("id") or "") for m in movements if m.get("id")}
@@ -1760,6 +2075,35 @@ def _apply_sw_ui_resync_if_needed() -> None:
                 durable_val.strip() and not str(st.session_state.get(wkey) or "").strip()
             ):
                 st.session_state[wkey] = durable_val
+
+    # RESET 2B: az egyszerű, lapos "Textus és fókusz" + hétpontos
+    # szerkesztőfelület widgetkulcsai — ugyanaz a "force vagy még nincs
+    # session_state-ben" minta, mint a fentebbi mezőknél.
+    tw = ensure_text_workshop_state(st.session_state)
+    if force or _KEY_FLAT_TEXT_MAIN_IDEA not in st.session_state:
+        st.session_state[_KEY_FLAT_TEXT_MAIN_IDEA] = tw.get("text_main_idea") or ""
+
+    flat_arc = sw.get("arc") if isinstance(sw.get("arc"), dict) else {}
+    for point_key, wkey in _KEY_FLAT_ARC.items():
+        if force or wkey not in st.session_state:
+            point = flat_arc.get(point_key) or {}
+            st.session_state[wkey] = str(point.get("text") or "")
+
+    # RESET 2E-6a: a részletes vázlat szerkesztő-widgetjei (RESET 2E-5)
+    # mozgás-KULCS alapján kulcsolódnak (`sw_flat_outline_edit_<key>_
+    # <field>`), NEM projekt- vagy session-specifikus azonosítóval. Ha egy
+    # MÁSIK projekt megnyitása (`force=True`, ugyanaz a jelző, mint a
+    # `_clear_movement_widgets()`-et is kiváltó projektváltás) UGYANAZOKKAL
+    # a mozgás-kulcsokkal (pl. mindkettő seven_point) rendelkező kanonikus
+    # vázlatot hoz be, a widget-kulcsok VÉLETLENÜL egyeznének — enélkül a
+    # purge nélkül a régi projekt kézzel szerkesztett szövege maradna
+    # látható és szerkeszthető az új projekt vázlata "helyén" (verifikálva
+    # AppTest-tel: a widget a régi projekt szövegét mutatta az új projekt
+    # betöltése UTÁN is). A purge kizárólag `force`-nál fut — sima
+    # rerunnál (arc-pont szerkesztés stb.) a kézi vázlat-szerkesztés nem
+    # veszhet el.
+    if force:
+        _clear_developed_outline_edit_widgets()
 
 
 def _request_adopt_sermon_sentence(sentence: str) -> None:
@@ -3628,6 +3972,68 @@ def render_outline_section(
                     "Nagyobb betűméret, tiszta háttér — ugyanaz a kanonikus vázlattartalom."
                 )
                 render_pulpit_outline_view(outline)
+
+            # Biztonsági háló: ha a lapos `outline` mirror-kulcs valamiért
+            # még üres (pl. frissen betöltött régi projekt, amiben még nem
+            # futott mentés ebben a munkamenetben), a Word-export előtt
+            # pótoljuk a kanonikus szövegből — ugyanaz a minta, mint a
+            # korábbi Textusműhely-oldali "Vázlat" fülön volt.
+            _outline_body_for_export = outline_canonical_text(outline)
+            if _outline_body_for_export and not str(
+                st.session_state.get("outline") or ""
+            ).strip():
+                st.session_state["outline"] = _outline_body_for_export
+
+            st.divider()
+            st.subheader("Letöltés")
+            try:
+                from datetime import datetime
+
+                from outline_word_export import build_outline_docx
+
+                _verse_clean = (
+                    (st.session_state.get("last_igehely") or "vazlat")
+                    .replace(" ", "_")
+                    .replace("/", "-")
+                    .replace(",", "")
+                    .replace(":", "-")
+                )
+                _ts = datetime.now().strftime("%Y%m%d-%H%M")
+                _filename_docx = f"textus-vazlat-{_verse_clean}-{_ts}.docx"
+                if not str(st.session_state.get("outline") or "").strip():
+                    st.session_state["outline"] = _outline_body_for_export
+                _docx_bytes = build_outline_docx()
+                if st.download_button(
+                    label="Vázlat letöltése (Word)",
+                    data=_docx_bytes,
+                    file_name=_filename_docx,
+                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                    use_container_width=False,
+                    key="outline_download_docx",
+                    type="primary",
+                ):
+                    from textus_analytics import track_event
+
+                    track_event(
+                        "file_export",
+                        {
+                            "feature_name": "outline",
+                            "file_format": "docx",
+                            "method": "download",
+                        },
+                    )
+            except ImportError as _docx_exc:
+                import logging as _logging
+
+                _logging.getLogger(__name__).exception(
+                    "Word export unavailable (python-docx): %s", _docx_exc
+                )
+                st.error(
+                    "A Word-export jelenleg nem érhető el. Az alkalmazás egyik dokumentumkezelő összetevője hiányzik."
+                )
+                with st.expander("Technikai részletek", expanded=False):
+                    st.caption("Hiányzó függőség: python-docx")
+
             _render_outline_partial_regen(outline, generate_fn=generate_fn)
 
             # Alsó műveleti terület: jóváhagyás + szerkesztés + következő lépés
@@ -5371,7 +5777,7 @@ def _render_lection_save_approve() -> None:
                 update_sermon_workshop_section(
                     st.session_state, "lection_status", "draft"
                 )
-                st.success("Vázlatként elmentve.")
+                _toast_and_rerun("Vázlatként elmentve.")
     with b2:
         if st.button(
             "Jóváhagyom és átadom",
@@ -5416,11 +5822,11 @@ def _render_lection_save_approve() -> None:
                     )
                     added += 1
                 if added:
-                    st.success(f"Jóváhagyva ({added} döntés).")
+                    _toast_and_rerun(f"Jóváhagyva ({added} döntés).")
                 elif skipped:
-                    st.info("Ezek a döntések már szerepelnek.")
+                    _toast_and_rerun("Jóváhagyva. Ezek a döntések már szerepelnek.")
                 else:
-                    st.warning("Nem volt menthető tartalom.")
+                    _toast_and_rerun("Jóváhagyva.")
 
     _render_decisions_for_section(_SOURCE_LECTION)
 
@@ -5906,7 +6312,7 @@ def _save_prayer_as_draft() -> None:
         return
     block["status"] = "draft"
     update_sermon_workshop_section(st.session_state, "prayer_preparation", block)
-    st.success("Vázlatként elmentve.")
+    _toast_and_rerun("Vázlatként elmentve.")
 
 
 def _approve_prayer_and_handoff() -> None:
@@ -5977,11 +6383,11 @@ def _approve_prayer_and_handoff() -> None:
         )
         added += 1
     if added:
-        st.success(f"Jóváhagyva ({added} döntés).")
+        _toast_and_rerun(f"Jóváhagyva ({added} döntés).")
     elif skipped:
-        st.info("Ezek a döntések már szerepelnek.")
+        _toast_and_rerun("Jóváhagyva. Ezek a döntések már szerepelnek.")
     else:
-        st.warning("Nem volt menthető tartalom.")
+        _toast_and_rerun("Jóváhagyva.")
 
 
 def _render_prayer_quick_strip(
@@ -7426,6 +7832,296 @@ def _render_closing_assessment() -> None:
             st.warning(str(w))
 
 
+_SOURCE_ENGAGEMENT = "Megszólítás és bevonás"
+_ENGAGE_ADD_TYPE_KEY = "sw_engage_add_type"
+_ENGAGE_ADD_TEXT_KEY = "sw_engage_add_text"
+
+
+def _engage_text_key(item_id: str) -> str:
+    return f"sw_engage_text_{item_id}"
+
+
+def _engage_type_key(item_id: str) -> str:
+    return f"sw_engage_type_{item_id}"
+
+
+def _block_if_approved(sw: dict[str, Any], block_key: str) -> Any:
+    """Egy blokk tartalma, DE csak akkor, ha jóváhagyott állapotban van.
+
+    A Megszólítás és bevonás modul kizárólag jóváhagyott anyagból dolgozhat
+    — ez a segédfüggvény a forrás oldali (nem csak a végső vázlat oldali)
+    szűrést végzi el, mielőtt bármi eljutna a generate_fn hívásig.
+    """
+    if (sw.get(f"{block_key}_status") or "") != "approved":
+        return None
+    return sw.get(block_key)
+
+
+def _collect_approved_engagement_kwargs() -> dict[str, Any]:
+    tw = ensure_text_workshop_state(st.session_state)
+    sw = ensure_sermon_workshop_state(st.session_state)
+    summary = tw.get("text_summary") if isinstance(tw.get("text_summary"), dict) else {}
+    summary_approved = (summary.get("status") or "") == "approved"
+
+    sermon_idea = sw.get("sermon_main_idea") or ""
+    sermon_idea_approved = (sw.get("sermon_main_idea_status") or "") == "approved"
+
+    return {
+        "passage": (
+            st.session_state.get("last_igehely")
+            or st.session_state.get("igehely_input")
+            or ""
+        ).strip(),
+        "text_summary_main_idea": (summary.get("main_idea") or "") if summary_approved else "",
+        "text_summary_base_tension": (
+            (summary.get("base_tension") or "") if summary_approved else ""
+        ),
+        "sermon_main_idea": sermon_idea if sermon_idea_approved else "",
+        "entry_point": _block_if_approved(sw, "entry_point"),
+        "human_condition": _block_if_approved(sw, "human_condition"),
+        "listener_tension": _block_if_approved(sw, "listener_tension"),
+        "sermon_path": _block_if_approved(sw, "sermon_path"),
+        "christ_centered_arc": _block_if_approved(sw, "christ_centered_arc"),
+        "closing": _block_if_approved(sw, "closing"),
+    }
+
+
+def _run_engagement_suggest(generate_fn: GenerateFn) -> None:
+    if st.session_state.get("_sw_engage_suggest_running"):
+        return
+    st.session_state["_sw_engage_suggest_running"] = True
+    try:
+        kwargs = _collect_approved_engagement_kwargs()
+        if not kwargs["passage"]:
+            st.warning(
+                "Add meg az igeszakaszt a Textusműhelyben, mielőtt javaslatot kérsz."
+            )
+            return
+
+        with st.spinner("Megszólítás és bevonás javaslatok készülnek…"):
+            result: EngagementSuggestionResult = suggest_engagement_elements(
+                **kwargs, generate_fn=generate_fn
+            )
+
+        if not result.ok:
+            st.warning(
+                _user_facing_entry_point_error(
+                    result.error_message,
+                    fallback="A javaslatkészítés nem sikerült. Próbáld újra később.",
+                )
+            )
+            return
+
+        save_engagement_suggestions(st.session_state, result.to_dict())
+        if not result.options:
+            st.info(
+                "Nincs elegendő jóváhagyott anyag érdemi javaslathoz — hagyj "
+                "jóvá legalább egy szakaszt (pl. fókuszmondat, belépési "
+                "pont, prédikáció íve), vagy nézd meg a hiányzó "
+                "információkat."
+            )
+        else:
+            st.success("A javaslatok elkészültek.")
+    finally:
+        st.session_state["_sw_engage_suggest_running"] = False
+
+
+def _render_engagement_suggestion_results() -> None:
+    sw = ensure_sermon_workshop_state(st.session_state)
+    sugs = sw.get("engagement_suggestions")
+    if not isinstance(sugs, dict):
+        return
+
+    st.markdown("**MI-javaslatok**")
+    generated_at = (sw.get("engagement_last_generated_at") or "").strip()
+    if generated_at:
+        st.caption(f"Utolsó generálás: {generated_at}")
+
+    options = sugs.get("options") or []
+    if isinstance(options, list) and options:
+        for idx, opt in enumerate(options):
+            if not isinstance(opt, dict):
+                continue
+            type_key = normalize_engagement_type(opt.get("type"))
+            text = (opt.get("text") or "").strip()
+            if not text:
+                continue
+            with st.container(border=True):
+                st.markdown(f"**{engagement_type_label(type_key)}**")
+                st.markdown(text)
+                if st.button("Átveszem", key=f"sw_engage_adopt_{idx}"):
+                    add_engagement_element(
+                        st.session_state, type=type_key, text=text, source="ai"
+                    )
+                    st.rerun()
+    else:
+        st.info(
+            "Nincs javaslat (elégtelen jóváhagyott adat, vagy a modell "
+            "üresen hagyta). A részletek a figyelmeztetéseknél/hiányzó "
+            "információknál találhatók."
+        )
+
+    reasoning = (sugs.get("reasoning_summary") or "").strip()
+    warnings = sugs.get("warnings") or []
+    missing = sugs.get("missing_information") or []
+    has_warnings = isinstance(warnings, list) and any(str(x).strip() for x in warnings)
+    has_missing = isinstance(missing, list) and any(str(x).strip() for x in missing)
+    if reasoning or has_warnings or has_missing:
+        with st.expander("Mi alapján készült?", expanded=False):
+            if reasoning:
+                st.markdown("**Indoklás**")
+                st.markdown(reasoning)
+            if has_warnings:
+                st.markdown("**Figyelmeztetések**")
+                for item in warnings:
+                    line = str(item or "").strip()
+                    if line:
+                        st.warning(line)
+            if has_missing:
+                st.markdown("**Hiányzó információk**")
+                for item in missing:
+                    line = str(item or "").strip()
+                    if line:
+                        st.markdown(f"- {line}")
+
+
+def _render_engagement_element_editor(item: dict[str, Any]) -> None:
+    iid = str(item.get("id") or "")
+    if not iid:
+        return
+    status = item.get("status") or "draft"
+    source = item.get("source") or "own"
+
+    with st.container(border=True):
+        st.selectbox(
+            "Típus",
+            options=list(ENGAGEMENT_TYPE_KEYS),
+            format_func=engagement_type_label,
+            key=_engage_type_key(iid),
+            index=(
+                list(ENGAGEMENT_TYPE_KEYS).index(item.get("type"))
+                if item.get("type") in ENGAGEMENT_TYPE_KEYS
+                else 0
+            ),
+        )
+        st.text_area(
+            "Szöveg",
+            key=_engage_text_key(iid),
+            value=item.get("text") or "",
+            height=80,
+            label_visibility="collapsed",
+        )
+        st.caption(
+            f"Állapot: **{_STATUS_LABELS.get(status, status)}** · "
+            f"Forrás: {'MI-javaslat' if source == 'ai' else 'Saját elem'}"
+        )
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            if st.button("Mentés", key=f"sw_engage_save_{iid}"):
+                update_engagement_element(
+                    st.session_state,
+                    iid,
+                    type=st.session_state.get(_engage_type_key(iid)),
+                    text=st.session_state.get(_engage_text_key(iid)),
+                )
+                _toast_and_rerun("Mentve.")
+        with c2:
+            if st.button("Jóváhagyom", key=f"sw_engage_approve_{iid}", type="primary"):
+                text_now = (st.session_state.get(_engage_text_key(iid)) or "").strip()
+                if not text_now:
+                    st.warning("Üres elemet nem lehet jóváhagyni.")
+                else:
+                    update_engagement_element(
+                        st.session_state,
+                        iid,
+                        type=st.session_state.get(_engage_type_key(iid)),
+                        text=text_now,
+                        status="approved",
+                    )
+                    _toast_and_rerun("Jóváhagyva — bekerülhet a végső vázlatba.")
+        with c3:
+            if st.button("Törlés", key=f"sw_engage_delete_{iid}"):
+                remove_engagement_element(st.session_state, iid)
+                st.rerun()
+
+
+def render_engagement_section(
+    *,
+    generate_fn: GenerateFn | None = None,
+) -> None:
+    """Megszólítás és bevonás — kizárólag jóváhagyott anyagból dolgozó MI-javaslat
+    + kézi szerkesztés/jóváhagyás. Opcionális, kihagyható szakasz.
+    """
+    _apply_sw_ui_resync_if_needed()
+    _apply_pending_adopts_if_needed()
+    ensure_sermon_workshop_state(st.session_state)
+
+    st.subheader("Megszólítás és bevonás")
+    st.markdown(
+        "2-4 rövid retorikai eszköz — kérdés, megszólítás, kép, élethelyzet "
+        "vagy jelenlétteremtő mondat —, amely segít, hogy az igehirdetés ne "
+        "távoli „szentbeszédként” hasson. A javaslat kizárólag a már "
+        "jóváhagyott textus- és igehirdetési anyagból készül. Ez a szakasz "
+        "teljesen opcionális — kihagyása nem akadályozza a vázlat "
+        "elkészítését."
+    )
+
+    ai_ready = generate_fn is not None
+    if st.button(
+        "Javaslatok készítése",
+        key="sw_engage_suggest",
+        type="primary",
+        disabled=not ai_ready or bool(st.session_state.get("_sw_engage_suggest_running")),
+    ):
+        if generate_fn is None:
+            st.warning("Az MI-segéd jelenleg nem elérhető.")
+        else:
+            _run_engagement_suggest(generate_fn)
+    if not ai_ready:
+        st.caption("Az MI-segéd nincs bekötve ehhez a nézethez.")
+
+    _render_engagement_suggestion_results()
+
+    sw = ensure_sermon_workshop_state(st.session_state)
+    elements = sw.get("engagement_elements") or []
+    st.markdown("**Megszólító elemek**")
+    if not elements:
+        st.info(
+            "Még nincs megszólító elem. Kérj javaslatot, vagy add hozzá "
+            "saját ötletedet lentebb."
+        )
+    for item in elements:
+        if isinstance(item, dict):
+            _render_engagement_element_editor(item)
+
+    with st.expander("Saját elem hozzáadása", expanded=False):
+        st.selectbox(
+            "Típus",
+            options=list(ENGAGEMENT_TYPE_KEYS),
+            format_func=engagement_type_label,
+            key=_ENGAGE_ADD_TYPE_KEY,
+        )
+        st.text_area(
+            "Szöveg",
+            key=_ENGAGE_ADD_TEXT_KEY,
+            height=80,
+            placeholder="A saját megszólító elem szövege…",
+        )
+        if st.button("Hozzáadás", key="sw_engage_add_own"):
+            text = (st.session_state.get(_ENGAGE_ADD_TEXT_KEY) or "").strip()
+            if not text:
+                st.warning("Üres elemet nem lehet hozzáadni.")
+            else:
+                add_engagement_element(
+                    st.session_state,
+                    type=st.session_state.get(_ENGAGE_ADD_TYPE_KEY) or "",
+                    text=text,
+                    source="own",
+                )
+                st.session_state[_ENGAGE_ADD_TEXT_KEY] = ""
+                st.rerun()
+
+
 def render_closing_section(
     *,
     generate_fn: GenerateFn | None = None,
@@ -7505,7 +8201,7 @@ def render_closing_section(
                 update_sermon_workshop_section(
                     st.session_state, "closing_status", "draft"
                 )
-                st.success("Vázlatként elmentve.")
+                _toast_and_rerun("Vázlatként elmentve.")
     with b2:
         if st.button(
             "Jóváhagyom és átadom",
@@ -7568,11 +8264,11 @@ def render_closing_section(
                     )
                     added += 1
                 if added:
-                    st.success(f"Jóváhagyva ({added} döntés).")
+                    _toast_and_rerun(f"Jóváhagyva ({added} döntés).")
                 elif skipped:
-                    st.info("Ezek a döntések már szerepelnek.")
+                    _toast_and_rerun("Jóváhagyva. Ezek a döntések már szerepelnek.")
                 else:
-                    st.warning("Nem volt menthető tartalom.")
+                    _toast_and_rerun("Jóváhagyva.")
 
     _render_decisions_for_section(_SOURCE_CLOSING)
 
@@ -7588,8 +8284,6 @@ def render_closing_section(
 
     _render_closing_suggestions()
     _render_closing_assessment()
-
-    st.caption("Következő ajánlott lépés: Lekciójavaslat")
 
 
 def _ensure_enrichment_retained_from_legacy(sw: dict[str, Any]) -> None:
@@ -7980,7 +8674,7 @@ def render_enrichment_section(
             update_sermon_workshop_section(
                 st.session_state, "enrichment_status", "draft"
             )
-            st.success("Vázlatként elmentve.")
+            _toast_and_rerun("Vázlatként elmentve.")
     with b2:
         if st.button(
             "Jóváhagyom és átadom",
@@ -8036,10 +8730,9 @@ def render_enrichment_section(
                         summary,
                     )
                     added += 1
-                st.success(f"Jóváhagyva ({added} döntés)." if added else "Jóváhagyva.")
+                _toast_and_rerun(f"Jóváhagyva ({added} döntés)." if added else "Jóváhagyva.")
 
     _render_decisions_for_section(_SOURCE_ENRICHMENT)
-    st.caption("Következő ajánlott lépés: Lezárás és megérkezés")
 
 
 def _suggestion_payload_from_result(
@@ -8731,6 +9424,46 @@ def _render_hc_assessment_results() -> None:
                     st.warning(line)
 
 
+def render_text_core_and_focus_section(
+    *,
+    generate_fn: GenerateFn | None = None,
+) -> None:
+    """Textusmag és fókuszmondat — három egymásra épülő, jóváhagyható elem.
+
+    A textus fő gondolata és a Textusösszegzés a Textusműhely már meglévő,
+    saját jóváhagyási körű mezői — ez a szakasz ugyanazokat a render-
+    függvényeket (és ugyanazt a `text_workshop` állapotot) hívja meg, nem
+    indít új, párhuzamos exegézist. A fókuszmondat marad az Igehirdetési
+    műhely saját, prédikációra fókuszáló mezője.
+    """
+    st.markdown(
+        "A textus saját állítása → a legfontosabb exegetikai/teológiai "
+        "felismerések tömör összegzése → ebből egyetlen, prédikálható "
+        "fókuszmondat. Mindhárom elem kézzel is megfogalmazható, MI-"
+        "javaslattal is támogatható, és külön-külön jóváhagyható."
+    )
+
+    st.markdown("##### 1. A textus fő gondolata")
+    render_text_main_idea_section(generate_fn=generate_fn)
+
+    st.divider()
+    st.markdown("##### 2. Textusösszegzés")
+    tw = ensure_text_workshop_state(st.session_state)
+    summary = tw.get("text_summary") or {}
+    summary_status = (summary.get("status") or "draft").strip()
+    base_tension = (summary.get("base_tension") or "").strip()
+    st.caption(
+        f"Állapot: **{_STATUS_LABELS.get(summary_status, summary_status)}** — "
+        + (base_tension or "Még nincs megfogalmazva.")
+    )
+    with st.expander("Szerkesztés és részletek", expanded=False):
+        render_text_summary_section(generate_fn=generate_fn)
+
+    st.divider()
+    st.markdown("##### 3. Fókuszmondat")
+    render_sermon_main_idea_section(generate_fn=generate_fn)
+
+
 def render_sermon_main_idea_section(
     *,
     generate_fn: GenerateFn | None = None,
@@ -8801,7 +9534,7 @@ def render_sermon_main_idea_section(
                                 "sermon_main_idea_status": "draft",
                             },
                         )
-                        st.success("Vázlatként elmentve.")
+                        _toast_and_rerun("Vázlatként elmentve.")
             with b2:
                 if st.button(
                     "Jóváhagyom és átadom",
@@ -8827,7 +9560,7 @@ def render_sermon_main_idea_section(
                             category=_CAT_MAIN_IDEA,
                             content=content,
                         ):
-                            st.success(
+                            _toast_and_rerun(
                                 "Jóváhagyva. Ez a fő gondolat már szerepel a "
                                 "homiletikai döntések között."
                             )
@@ -8838,7 +9571,7 @@ def render_sermon_main_idea_section(
                                 _CAT_MAIN_IDEA,
                                 content,
                             )
-                            st.success(
+                            _toast_and_rerun(
                                 "Jóváhagyva és továbbvíve a homiletikai döntésekhez."
                             )
 
@@ -9026,7 +9759,6 @@ def render_human_condition_section(
     _render_hc_suggestion_results()
     _render_hc_assessment_results()
 
-    st.caption("Következő ajánlott lépés: Hallgatói kérdés és feszültség")
     _render_decisions_for_section(_SOURCE_HUMAN)
 
 
@@ -9479,8 +10211,305 @@ def render_listener_tension_section(
     _render_lt_suggestion_results()
     _render_lt_assessment_results()
 
-    st.caption("Következő ajánlott lépés: Krisztus-központú és evangéliumi ív")
     _render_decisions_for_section(_SOURCE_LISTENER)
+
+
+def _apply_pending_entry_point_adopt_if_needed() -> None:
+    """Belépésipont-javaslat átvétele: widget ELŐTT (pending + rerun)."""
+    pending = st.session_state.pop(_ADOPT_ENTRY_PENDING, None)
+    if isinstance(pending, dict):
+        type_key = normalize_entry_point_type(pending.get("type"))
+        text = str(pending.get("text") or "").strip()
+        st.session_state[_KEY_ENTRY["type"]] = type_key
+        st.session_state[_KEY_ENTRY["text"]] = text
+        update_sermon_workshop_section(
+            st.session_state, "entry_point", {"type": type_key, "text": text}
+        )
+        _mark_adopt_feedback()
+
+    pending_today = st.session_state.pop(_ADOPT_ENTRY_TODAY_PENDING, None)
+    if pending_today is not None:
+        text = str(pending_today).strip()
+        st.session_state[_KEY_ENTRY["today_connection"]] = text
+        update_sermon_workshop_section(
+            st.session_state, "entry_point", {"today_connection": text}
+        )
+        _mark_adopt_feedback()
+
+
+def _request_adopt_entry_point_option(type_key: str, text: str) -> None:
+    st.session_state[_ADOPT_ENTRY_PENDING] = {"type": type_key, "text": text}
+    st.rerun()
+
+
+def _request_adopt_entry_point_today(text: str) -> None:
+    st.session_state[_ADOPT_ENTRY_TODAY_PENDING] = text
+    st.rerun()
+
+
+def _run_entry_point_suggest(generate_fn: GenerateFn) -> None:
+    if st.session_state.get("_sw_entry_suggest_running"):
+        return
+    st.session_state["_sw_entry_suggest_running"] = True
+    try:
+        tw = ensure_text_workshop_state(st.session_state)
+        sw = ensure_sermon_workshop_state(st.session_state)
+        summary = tw.get("text_summary") if isinstance(tw.get("text_summary"), dict) else {}
+        summary_approved = (summary.get("status") or "") == "approved"
+        kwargs = {
+            "passage": (
+                st.session_state.get("last_igehely")
+                or st.session_state.get("igehely_input")
+                or ""
+            ).strip(),
+            "text_summary_main_idea": (
+                (summary.get("main_idea") or "") if summary_approved else ""
+            )
+            or (tw.get("text_main_idea") or ""),
+            "text_summary_base_tension": (
+                (summary.get("base_tension") or "") if summary_approved else ""
+            ),
+            "sermon_main_idea": sw.get("sermon_main_idea") or "",
+            "human_condition": sw.get("human_condition") or {},
+            "listener_tension": sw.get("listener_tension") or {},
+        }
+        if not kwargs["passage"]:
+            st.warning(
+                "Add meg az igeszakaszt a Textusműhelyben, mielőtt javaslatot kérsz."
+            )
+            return
+
+        with st.spinner("Homiletikai belépési pont javaslatok készülnek…"):
+            result: EntryPointSuggestionResult = suggest_entry_point(
+                **kwargs, generate_fn=generate_fn
+            )
+
+        if not result.ok:
+            st.warning(
+                _user_facing_entry_point_error(
+                    result.error_message,
+                    fallback="A javaslatkészítés nem sikerült. Próbáld újra később.",
+                )
+            )
+            return
+
+        save_entry_point_suggestions(st.session_state, result.to_dict())
+        if not (result.today_connection or result.options):
+            st.info(
+                "A rendelkezésre álló anyag alapján nem készült érdemi javaslat. "
+                "Nézd meg a hiányzó információkat és figyelmeztetéseket."
+            )
+        else:
+            st.success("A javaslatok elkészültek.")
+    finally:
+        st.session_state["_sw_entry_suggest_running"] = False
+
+
+def _user_facing_entry_point_error(error_message: str, *, fallback: str) -> str:
+    msg = (error_message or "").strip()
+    if not msg:
+        return fallback
+    if len(msg) > 280:
+        return fallback
+    lower = msg.casefold()
+    if "api key" in lower or "apikey" in lower or "x-goog-api-key" in lower:
+        return fallback
+    return msg
+
+
+def _render_entry_point_suggestion_results() -> None:
+    sw = ensure_sermon_workshop_state(st.session_state)
+    sugs = sw.get("entry_point_suggestions")
+    if not isinstance(sugs, dict):
+        return
+
+    st.subheader("MI-javaslatok")
+    generated_at = (sw.get("entry_point_last_generated_at") or "").strip()
+    if generated_at:
+        st.caption(f"Utolsó generálás: {generated_at}")
+
+    today = (sugs.get("today_connection") or "").strip()
+    if today:
+        with st.container(border=True):
+            st.markdown("**Mai kapcsolódás — javaslat**")
+            st.markdown(today)
+            if st.button("Átveszem", key="sw_entry_adopt_today"):
+                _request_adopt_entry_point_today(today)
+
+    options = sugs.get("options") or []
+    if isinstance(options, list) and options:
+        for idx, opt in enumerate(options):
+            if not isinstance(opt, dict):
+                continue
+            type_key = normalize_entry_point_type(opt.get("type"))
+            text = (opt.get("text") or "").strip()
+            if not text:
+                continue
+            with st.container(border=True):
+                st.markdown(f"**{entry_point_type_label(type_key)}**")
+                st.markdown(text)
+                if st.button("Átveszem", key=f"sw_entry_adopt_option_{idx}"):
+                    _request_adopt_entry_point_option(type_key, text)
+    else:
+        st.info(
+            "Nincs javaslat (elégtelen adat vagy a modell üresen hagyta). "
+            "A részletek a figyelmeztetéseknél/hiányzó információknál "
+            "találhatók."
+        )
+
+    reasoning = (sugs.get("reasoning_summary") or "").strip()
+    warnings = sugs.get("warnings") or []
+    missing = sugs.get("missing_information") or []
+    has_warnings = isinstance(warnings, list) and any(str(x).strip() for x in warnings)
+    has_missing = isinstance(missing, list) and any(str(x).strip() for x in missing)
+    if reasoning or has_warnings or has_missing:
+        with st.expander("Mi alapján készült?", expanded=False):
+            if reasoning:
+                st.markdown("**Indoklás**")
+                st.markdown(reasoning)
+            if has_warnings:
+                st.markdown("**Figyelmeztetések**")
+                for item in warnings:
+                    line = str(item or "").strip()
+                    if line:
+                        st.warning(line)
+            if has_missing:
+                st.markdown("**Hiányzó információk**")
+                for item in missing:
+                    line = str(item or "").strip()
+                    if line:
+                        st.markdown(f"- {line}")
+
+
+def render_entry_point_section(
+    *,
+    generate_fn: GenerateFn | None = None,
+) -> None:
+    """Mai kapcsolódás + belépési pont típusa/szövege — kézi szerkesztő + MI-segéd.
+
+    Az emberi helyzet és a hallgatói feszültség változatlanul, saját
+    szakaszként (render_human_condition_section / render_listener_tension_section)
+    marad meg — ez a szakasz csak kiegészíti azokat a mai kapcsolódással és
+    a konkrét belépési ponttal. A típusválasztó nem kötelező: "Nincs külön
+    belépési pont" is választható, és a mező üresen hagyható/kihagyható.
+    """
+    _apply_sw_ui_resync_if_needed()
+    _apply_pending_entry_point_adopt_if_needed()
+    ensure_sermon_workshop_state(st.session_state)
+
+    st.markdown("---")
+    st.subheader("Mai kapcsolódás és belépési pont")
+    st.markdown(
+        "Hogyan találkozik a textus alapfeszültsége a hallgató jelenlegi "
+        "élethelyzetével, és milyen konkrét nyitó mozzanat viheti be a "
+        "hallgatót a textusba? A típusválasztó nem kötelező — hagyható "
+        "„Nincs külön belépési pont” állapotban is."
+    )
+
+    st.text_area(
+        "Mai kapcsolódás",
+        key=_KEY_ENTRY["today_connection"],
+        height=90,
+        placeholder=(
+            "Hogyan találkozik a textus alapfeszültsége a hallgató mai "
+            "élethelyzetével?"
+        ),
+    )
+
+    type_options = ("",) + ENTRY_POINT_TYPE_KEYS
+    st.selectbox(
+        "Belépési pont típusa",
+        options=type_options,
+        format_func=entry_point_type_label,
+        key=_KEY_ENTRY["type"],
+        help="Opcionális — választhatod a „Nincs külön belépési pont” állapotot is.",
+    )
+    st.text_area(
+        "Belépési pont szövege",
+        key=_KEY_ENTRY["text"],
+        height=90,
+        placeholder="A konkrét kérdés, eset, tapasztalat, kép vagy felütés szövege…",
+    )
+
+    b1, b2 = st.columns(2)
+    with b1:
+        if st.button("Mentés vázlatként", key="sw_entry_save_draft"):
+            _persist_entry_point_from_widgets()
+            update_sermon_workshop_section(
+                st.session_state, "entry_point_status", "draft"
+            )
+            _toast_and_rerun("Vázlatként elmentve.")
+    with b2:
+        if st.button(
+            "Jóváhagyom és átadom",
+            type="primary",
+            key="sw_entry_approve",
+        ):
+            _persist_entry_point_from_widgets()
+            update_sermon_workshop_section(
+                st.session_state, "entry_point_status", "approved"
+            )
+            entry = ensure_sermon_workshop_state(st.session_state).get(
+                "entry_point"
+            ) or {}
+            decisions = [
+                ("Mai kapcsolódás", entry.get("today_connection")),
+                (
+                    entry_point_type_label(entry.get("type")),
+                    entry.get("text"),
+                ),
+            ]
+            added = 0
+            skipped = 0
+            for category, content in decisions:
+                content = (content or "").strip()
+                if not content:
+                    continue
+                if _decision_is_duplicate(
+                    source_section=_SOURCE_ENTRY,
+                    category=category,
+                    content=content,
+                ):
+                    skipped += 1
+                    continue
+                add_approved_sermon_decision(
+                    st.session_state, _SOURCE_ENTRY, category, content
+                )
+                added += 1
+            if added:
+                _toast_and_rerun(f"Jóváhagyva ({added} döntés).")
+            elif skipped:
+                _toast_and_rerun("Jóváhagyva. Ezek a döntések már szerepelnek.")
+            else:
+                _toast_and_rerun("Jóváhagyva. A belépési pont egyelőre üres — bármikor kiegészítheted.")
+
+    sw = ensure_sermon_workshop_state(st.session_state)
+    status = sw.get("entry_point_status") or "draft"
+    st.caption(f"Elmentett állapot: **{_STATUS_LABELS.get(status, status)}**")
+
+    ai_ready = generate_fn is not None
+    st.markdown("---")
+    st.markdown("**MI-segéd**")
+    st.caption(
+        "Egy hívással 2-3 rövid, eltérő típusú belépési pont javaslatot ad "
+        "a jóváhagyott Textusösszegzés, az emberi helyzet és a hallgatói "
+        "feszültség alapján. A végső megfogalmazás és jóváhagyás a "
+        "prédikátor döntése."
+    )
+    if st.button(
+        "Javaslatok készítése",
+        key="sw_entry_suggest",
+        disabled=not ai_ready or bool(st.session_state.get("_sw_entry_suggest_running")),
+    ):
+        if generate_fn is None:
+            st.warning("Az MI-segéd jelenleg nem elérhető.")
+        else:
+            _run_entry_point_suggest(generate_fn)
+    if not ai_ready:
+        st.caption("Az MI-segéd nincs bekötve ehhez a nézethez.")
+
+    _render_entry_point_suggestion_results()
+    _render_decisions_for_section(_SOURCE_ENTRY)
 
 
 def _run_ga_suggest(generate_fn: GenerateFn) -> None:
@@ -9840,11 +10869,13 @@ def render_gospel_arc_section(
     ensure_sermon_workshop_state(st.session_state)
     tw = ensure_text_workshop_state(st.session_state)
 
-    st.subheader("Krisztus-központú és evangéliumi ív")
+    st.subheader("Második fordulópont: a mélyebb, evangéliumi felismerés")
     st.markdown(
-        "Mutasd meg, mit tesz Isten, hogyan kapcsolódik a textus Krisztushoz, "
-        "és milyen kegyelemből fakadó válasz következhet. A cél nem az erőltetett "
-        "krisztologizálás, hanem a textushű evangéliumi feloldási ív."
+        "Itt áll össze mélyebb összefüggésben mindaz, ami eddig történt: mit "
+        "tesz Isten, hogyan kapcsolódik a textus Krisztushoz, és milyen "
+        "kegyelemből fakadó válasz következhet. Isten cselekvése kerüljön az "
+        "emberi teljesítmény elé — a cél nem az erőltetett krisztologizálás, "
+        "hanem a textushű evangéliumi feloldási ív."
     )
 
     sw = ensure_sermon_workshop_state(st.session_state)
@@ -9903,7 +10934,7 @@ def render_gospel_arc_section(
                 update_sermon_workshop_section(
                     st.session_state, "christ_centered_arc_status", "draft"
                 )
-                st.success("Vázlatként elmentve.")
+                _toast_and_rerun("Vázlatként elmentve.")
     with b2:
         if st.button(
             "Jóváhagyom és átadom",
@@ -9981,16 +11012,16 @@ def render_gospel_arc_section(
                     else:
                         skipped += 1
                 if added and skipped:
-                    st.success(
+                    _toast_and_rerun(
                         f"Jóváhagyva. {added} új döntés került továbbvitelre; "
                         f"{skipped} már szerepelt."
                     )
                 elif added:
-                    st.success(
+                    _toast_and_rerun(
                         f"Jóváhagyva és továbbvíve ({added} homiletikai döntés)."
                     )
                 else:
-                    st.success(
+                    _toast_and_rerun(
                         "Jóváhagyva. A kitöltött elemek már szerepeltek a "
                         "homiletikai döntések között."
                     )
@@ -10055,7 +11086,6 @@ def render_gospel_arc_section(
     _render_ga_suggestion_results()
     _render_ga_assessment_results()
 
-    st.caption("Következő ajánlott lépés: Az igehirdetés útja és mozgásai")
     _render_decisions_for_section(_SOURCE_GOSPEL)
 
 
@@ -10244,25 +11274,37 @@ def _run_sermon_path_assess(*, generate_fn: GenerateFn | None) -> None:
 
 
 def _render_sermon_path_suggestions() -> None:
+    """MI-javaslat kizárólag a három aktív mezőre (kiinduló látás / első
+    látásváltás / mélyítés) — a `suggest_sermon_path` válaszban lévő
+    úttípus/indoklás/megérkezés/mozgás-lista mezőket nem jelenítjük meg
+    választható rendszerként; a mozgások közül csak a "tension" és
+    "deepening" szerepű elem tartalma kerül át javaslatként az első
+    látásváltás, illetve a mélyítés mezőbe.
+    """
     sw = ensure_sermon_workshop_state(st.session_state)
     data = sw.get("sermon_path_suggestions")
     if not isinstance(data, dict):
         return
-    if data.get("ok") is False and not (
-        data.get("path_rationale") or data.get("movements")
-    ):
-        err = str(data.get("error_message") or "").strip()
-        if err:
-            st.error(err)
-        return
 
-    path_type = normalize_sermon_path_type(data.get("recommended_path_type"))
-    rationale = str(data.get("path_rationale") or "").strip()
     starting = str(data.get("starting_point") or "").strip()
-    destination = str(data.get("destination") or "").strip()
     movements = normalize_sermon_movements(data.get("movements"))
+    first_shift = next(
+        (
+            str(mv.get("core_content") or "").strip()
+            for mv in movements
+            if mv.get("role") == "tension" and (mv.get("core_content") or "").strip()
+        ),
+        "",
+    )
+    deepening = next(
+        (
+            str(mv.get("core_content") or "").strip()
+            for mv in movements
+            if mv.get("role") == "deepening" and (mv.get("core_content") or "").strip()
+        ),
+        "",
+    )
     expanded = str(data.get("expanded_summary") or "").strip()
-    alts = data.get("alternative_paths") if isinstance(data.get("alternative_paths"), list) else []
     basis = data.get("basis") if isinstance(data.get("basis"), list) else []
     warnings = data.get("warnings") if isinstance(data.get("warnings"), list) else []
     missing = (
@@ -10272,98 +11314,46 @@ def _render_sermon_path_suggestions() -> None:
     )
     reasoning = str(data.get("reasoning_summary") or "").strip()
 
-    if not (rationale or starting or destination or movements):
+    if not (starting or first_shift or deepening):
+        if data.get("ok") is False:
+            err = str(data.get("error_message") or "").strip()
+            if err:
+                st.error(err)
         if missing:
             st.info("Hiányzó információ: " + "; ".join(str(x) for x in missing if x))
         return
 
     st.markdown("**MI-javaslat**")
-    st.markdown(
-        f"**Ajánlott úttípus:** {sermon_path_type_label(path_type)}"
-    )
-    if rationale:
-        st.markdown(f"**Miért illik ehhez a textushoz?**  \n{rationale}")
     if starting:
-        st.markdown(f"**Kiindulópont**  \n{starting}")
-    if movements:
-        st.markdown("**Mozgások**")
-        for idx, mv in enumerate(movements, start=1):
-            role = movement_role_label(mv.get("role"))
-            title = str(mv.get("title") or f"Mozgás {idx}")
-            with st.expander(f"{idx}. {title} — {role}", expanded=False):
-                if mv.get("core_content"):
-                    st.write(mv["core_content"])
-                if mv.get("textual_basis"):
-                    st.caption(f"Textusbeli alap: {mv['textual_basis']}")
-                if mv.get("listener_discovery"):
-                    st.caption(f"Hallgatói felismerés: {mv['listener_discovery']}")
-                if mv.get("transition_to_next"):
-                    st.caption(f"Átmenet: {mv['transition_to_next']}")
-                if st.button(
-                    f"Átveszem ezt a mozgást ({idx})",
-                    key=f"sw_mi_path_adopt_mv_{idx}",
-                ):
-                    current = _read_movements_from_widgets()
-                    if len(current) >= MAX_MOVEMENTS:
-                        st.warning(f"Legfeljebb {MAX_MOVEMENTS} mozgás lehet.")
-                    else:
-                        new_mv = empty_sermon_movement(
-                            role=normalize_movement_role(mv.get("role"))
-                        )
-                        for field in _MV_FIELDS:
-                            if field == "role":
-                                continue
-                            new_mv[field] = str(mv.get(field) or "")
-                        new_mv["role"] = normalize_movement_role(mv.get("role")) or "deepening"
-                        current.append(new_mv)
-                        _request_adopt_movements(current)
-    if destination:
-        st.markdown(f"**Megérkezési pont**  \n{destination}")
+        st.markdown(f"**Alaphelyzet**  \n{starting}")
+        if st.button("Átveszem az alaphelyzetet", key="sw_mi_path_adopt_start"):
+            _request_adopt_path_block({"starting_point": starting})
+    if first_shift:
+        st.markdown(f"**Első fordulópont**  \n{first_shift}")
+        if st.button(
+            "Átveszem az első fordulópontot", key="sw_mi_path_adopt_first_shift"
+        ):
+            _request_adopt_path_block({"first_shift": first_shift})
+    if deepening:
+        st.markdown(f"**Mélyítés és fokozás**  \n{deepening}")
+        if st.button(
+            "Átveszem a mélyítést", key="sw_mi_path_adopt_deepening"
+        ):
+            _request_adopt_path_block({"deepening": deepening})
     if expanded:
         st.markdown("**Az egész út rövid összefoglalása**")
         st.write(expanded)
 
-    if st.button("Átveszem az egész tervet", key="sw_mi_path_adopt_all"):
-        _request_adopt_path_plan(
-            path_block={
-                "type": path_type,
-                "reason": rationale,
-                "starting_point": starting,
-                "destination": destination,
-            },
-            movements=movements,
-        )
-    c1, c2, c3 = st.columns(3)
-    with c1:
-        if rationale and st.button("Átveszem az indoklást", key="sw_mi_path_adopt_reason"):
-            _request_adopt_path_block({"reason": rationale, "type": path_type})
-    with c2:
-        if starting and st.button(
-            "Átveszem a kiindulópontot", key="sw_mi_path_adopt_start"
-        ):
-            _request_adopt_path_block({"starting_point": starting})
-    with c3:
-        if destination and st.button(
-            "Átveszem a megérkezést", key="sw_mi_path_adopt_dest"
-        ):
-            _request_adopt_path_block({"destination": destination})
-
-    if alts:
-        with st.expander("Alternatív igehirdetési utak", expanded=False):
-            for i, alt in enumerate(alts[:2], start=1):
-                if not isinstance(alt, dict):
-                    continue
-                a_type = normalize_sermon_path_type(alt.get("path_type"))
-                st.markdown(
-                    f"**{i}. {sermon_path_type_label(a_type)}**  \n"
-                    f"{alt.get('emphasis') or ''}  \n"
-                    f"*{alt.get('reason_for_use') or ''}*"
-                )
-                if st.button(
-                    f"Átveszem ezt az úttípust ({i})",
-                    key=f"sw_mi_path_adopt_alt_{i}",
-                ):
-                    _request_adopt_path_block({"type": a_type})
+    if (starting and first_shift) or (starting and deepening) or (first_shift and deepening):
+        if st.button("Mindhármat átveszem", key="sw_mi_path_adopt_all"):
+            block = {}
+            if starting:
+                block["starting_point"] = starting
+            if first_shift:
+                block["first_shift"] = first_shift
+            if deepening:
+                block["deepening"] = deepening
+            _request_adopt_path_block(block)
 
     with st.expander("Mi alapján készült?", expanded=False):
         if reasoning:
@@ -10483,12 +11473,26 @@ def render_sermon_path_section(
     *,
     generate_fn: GenerateFn | None = None,
 ) -> None:
-    """Az igehirdetés útja és mozgásai — kézi szerkesztő + MI-segéd."""
+    """Alaphelyzet → Első fordulópont → Mélyítés és fokozás → (opcionális
+    Átértelmezés).
+
+    Az egységesített, fordulópont-alapú modell 7 eleme közül ez a szakasz
+    az „Alaphelyzet”, „Első fordulópont”, „Mélyítés és fokozás” és az
+    opcionális „Átértelmezés” elemeket adja (a „Belépés” a Homiletikai
+    belépési pont szakaszon, a „Második fordulópont”/„Megérkezés” lejjebb,
+    a Krisztus-központú ív / Lezárás szakaszon jelenik meg). A korábbi
+    úttípus-választó, indoklás és a külön Prédikációs mozgások szerkesztő
+    (és az arról átöltő gombok) itt nem jelenik meg — nem választható
+    út-alternatíva, ez maga a szerkesztési rendszer. A mögöttes
+    `sermon_path`/`sermon_movements` legacy adatok nem vesznek el (ld.
+    `_persist_sermon_path_from_widgets`), csak a felület nem mutatja őket
+    párhuzamos rendszerként.
+    """
     _apply_sw_ui_resync_if_needed()
     _apply_pending_adopts_if_needed()
     ensure_sermon_workshop_state(st.session_state)
 
-    st.subheader("Az igehirdetés útja és mozgásai")
+    st.subheader("Az igehirdetés útja")
     st.markdown(
         "Itt nem kész prédikációvázlatot írunk, hanem megtervezzük, milyen "
         "felismerési úton haladjon végig a hallgató."
@@ -10497,112 +11501,78 @@ def render_sermon_path_section(
     sw = ensure_sermon_workshop_state(st.session_state)
     if (sw.get("sermon_main_idea_status") or "").strip() != "approved":
         st.info(
-            "A szakasz használható, de a javaslatkészítéshez előbb jóvá kell "
-            "hagyni az igehirdetés fő gondolatát, és szükség van központi "
-            "feszültségre, valamint evangéliumi feloldásra vagy Isten kegyelmi "
-            "cselekvésére."
+            "A szakasz használható, de a munka biztosabb, ha előbb jóváhagyod "
+            "az igehirdetés fő gondolatát."
         )
 
-    st.markdown("**Az igehirdetés útja**")
-    st.selectbox(
-        "Úttípus",
-        options=list(SERMON_PATH_TYPES),
-        format_func=lambda v: SERMON_PATH_TYPE_LABELS_HU.get(v, str(v)),
-        key=_KEY_PATH["type"],
+    st.markdown("##### 1. Alaphelyzet")
+    st.caption(
+        "Mi a textus kiinduló feszültsége — konfliktus, hiány, kérdés, "
+        "paradoxon, félreértés, emberi helyzet vagy teológiai probléma? "
+        "(Ez a textus saját feszültsége, nem a hallgató első benyomása — "
+        "azt a Homiletikai belépési pont szakasz Belépés mezője adja.)"
     )
     st.text_area(
-        "Az út rövid indoklása",
-        key=_KEY_PATH["reason"],
-        height=80,
-        placeholder="Miért illik ez az út a textushoz…",
-        help=(
-            "Röviden fogalmazd meg, miért illik ez az út a textushoz, a központi "
-            "feszültséghez és az igehirdetés fő gondolatához."
-        ),
-    )
-    st.text_area(
-        "Kiindulópont",
+        "Alaphelyzet",
         key=_KEY_PATH["starting_point"],
         height=80,
-        placeholder="Kérdés, tapasztalat, kép, jelenet vagy feszültség…",
-        help=(
-            "Hol találkozzon először a hallgató a textussal? Ez lehet kérdés, "
-            "tapasztalat, kép, jelenet, állítás vagy a textus egyik feszültsége."
-        ),
+        label_visibility="collapsed",
+        placeholder="Konfliktus, hiány, kérdés, paradoxon vagy teológiai probléma…",
+    )
+
+    st.markdown("##### 2. Első fordulópont")
+    st.caption(
+        "Milyen felismerés módosítja itt az addigi értelmezést? Nem "
+        "pusztán új információ, hanem valami megváltozik abban, ahogyan a "
+        "hallgató a helyzetet látja. Nem kötelező — hagyd üresen, ha a "
+        "textus nem indokol külön fordulópontot."
     )
     st.text_area(
-        "Megérkezési pont",
-        key=_KEY_PATH["destination"],
-        height=80,
-        placeholder="Felismerés, hitbeli látás vagy kegyelemből fakadó válasz…",
-        help=(
-            "Milyen felismeréshez, hitbeli látáshoz vagy kegyelemből fakadó "
-            "válaszhoz érkezzen meg a hallgató az igehirdetés végére?"
-        ),
+        "Első fordulópont",
+        key=_KEY_PATH["first_shift"],
+        height=90,
+        label_visibility="collapsed",
+        placeholder="Váratlan isteni cselekvés, kulcsmondat, döntés vagy teológiai hangsúly… (opcionális)",
     )
 
-    st.markdown("**Prédikációs mozgások**")
+    st.markdown("##### 3. Mélyítés és fokozás")
     st.caption(
-        f"3–5 mozgás (ajánlott: {DEFAULT_MOVEMENT_COUNT}). "
-        "A mozgás felismerési lépés, nem hagyományos prédikációs pont."
+        "Hogyan nő a tét? A kérdés összetettebbé válik, a következmények "
+        "világosabbá lesznek — ne ismételd az első fordulópontot, hanem "
+        "vidd tovább. Elhagyható vagy összevonható az előzővel."
     )
-    movements = normalize_sermon_movements(
-        ensure_sermon_workshop_state(st.session_state).get("sermon_movements")
+    st.text_area(
+        "Mélyítés és fokozás",
+        key=_KEY_PATH["deepening"],
+        height=90,
+        label_visibility="collapsed",
+        placeholder="Mitől lesz összetettebb, súlyosabb a kérdés? (opcionális)",
     )
-    if not movements:
-        st.info("Még nincs mozgás. Adj hozzá egyet, vagy kérj MI-javaslatot.")
-    for idx, mv in enumerate(movements):
-        _render_movement_editor(mv, index=idx, total=len(movements))
 
-    add_cols = st.columns(2)
-    with add_cols[0]:
-        if st.button(
-            "Mozgás hozzáadása",
-            key="sw_path_add_movement",
-            disabled=len(movements) >= MAX_MOVEMENTS,
-        ):
-            _persist_sermon_path_from_widgets()
-            _persist_sermon_movements_from_widgets()
-            sw = ensure_sermon_workshop_state(st.session_state)
-            mvs = normalize_sermon_movements(sw.get("sermon_movements"))
-            if len(mvs) < MAX_MOVEMENTS:
-                mvs.append(
-                    empty_sermon_movement(role=_default_role_for_index(len(mvs)))
-                )
-                update_sermon_workshop_section(
-                    st.session_state, "sermon_movements", mvs
-                )
-                st.session_state[_RESYNC_FLAG] = True
-                st.rerun()
-    with add_cols[1]:
-        if st.button(
-            f"{DEFAULT_MOVEMENT_COUNT} üres mozgás",
-            key="sw_path_seed_movements",
-            disabled=len(movements) > 0,
-        ):
-            seeded = [
-                empty_sermon_movement(role=_default_role_for_index(i))
-                for i in range(DEFAULT_MOVEMENT_COUNT)
-            ]
-            update_sermon_workshop_section(
-                st.session_state, "sermon_movements", seeded
-            )
-            _clear_movement_widgets()
-            st.session_state[_RESYNC_FLAG] = True
-            st.rerun()
+    with st.expander("4. Átértelmezés (opcionális)", expanded=False):
+        st.caption(
+            "Itt válik láthatóvá, hogy a textus nem feltétlenül úgy oldja "
+            "fel a kérdést, ahogyan ösztönösen várnánk — váratlan fordulat, "
+            "paradoxon vagy az addigi feltételezések korrekciója. Csak "
+            "akkor töltsd ki, ha a textus valóban indokolja; egyébként "
+            "hagyd üresen, és a mélyítés közvetlenül a második "
+            "fordulóponthoz (Evangéliumi fordulat) vezet tovább."
+        )
+        st.text_area(
+            "Átértelmezés",
+            key=_KEY_PATH["reinterpretation"],
+            height=90,
+            label_visibility="collapsed",
+            placeholder="Váratlan fordulat vagy korrekció a textusban… (opcionális, gyakran üres)",
+        )
 
     b1, b2 = st.columns(2)
     with b1:
         if st.button("Mentés vázlatként", key="sw_path_save_draft"):
             _persist_sermon_path_from_widgets()
-            _persist_sermon_movements_from_widgets()
-            path = {
-                field: (st.session_state.get(wkey) or "").strip()
-                for field, wkey in _KEY_PATH.items()
-            }
-            mvs = _read_movements_from_widgets()
-            filled = any(path.values()) or any(
-                (m.get("title") or m.get("core_content") or "").strip() for m in mvs
+            filled = any(
+                (st.session_state.get(_KEY_PATH[f]) or "").strip()
+                for f in ("starting_point", "first_shift", "deepening", "reinterpretation")
             )
             if not filled:
                 st.warning("Üres mezőket nem lehet menteni. Tölts ki legalább egyet.")
@@ -10610,7 +11580,7 @@ def render_sermon_path_section(
                 update_sermon_workshop_section(
                     st.session_state, "sermon_path_status", "draft"
                 )
-                st.success("Vázlatként elmentve.")
+                _toast_and_rerun("Vázlatként elmentve.")
     with b2:
         if st.button(
             "Jóváhagyom és átadom",
@@ -10618,39 +11588,41 @@ def render_sermon_path_section(
             key="sw_path_approve",
         ):
             _persist_sermon_path_from_widgets()
-            _persist_sermon_movements_from_widgets()
             path = {
-                "type": normalize_sermon_path_type(
-                    st.session_state.get(_KEY_PATH["type"])
-                ),
-                "reason": (st.session_state.get(_KEY_PATH["reason"]) or "").strip(),
                 "starting_point": (
                     st.session_state.get(_KEY_PATH["starting_point"]) or ""
                 ).strip(),
-                "destination": (
-                    st.session_state.get(_KEY_PATH["destination"]) or ""
+                "first_shift": (
+                    st.session_state.get(_KEY_PATH["first_shift"]) or ""
+                ).strip(),
+                "deepening": (
+                    st.session_state.get(_KEY_PATH["deepening"]) or ""
+                ).strip(),
+                "reinterpretation": (
+                    st.session_state.get(_KEY_PATH["reinterpretation"]) or ""
                 ).strip(),
             }
-            mvs = _read_movements_from_widgets()
-            if not any(
-                path.get(k) for k in ("reason", "starting_point", "destination")
-            ) and not any(
-                (m.get("title") or m.get("core_content") or "").strip() for m in mvs
-            ):
+            if not any(path.values()):
                 st.warning(
                     "Üres megfogalmazást nem lehet jóváhagyni. Tölts ki legalább egyet."
                 )
             else:
-                if len(mvs) < MIN_MOVEMENTS:
-                    st.warning(
-                        f"Javasolt legalább {MIN_MOVEMENTS} mozgás; "
-                        f"jelenleg {len(mvs)} van. A jóváhagyás így is megtörténhet."
-                    )
+                update_sermon_workshop_section(
+                    st.session_state, "sermon_path_status", "approved"
+                )
                 decisions = [
-                    ("type", "Úttípus", sermon_path_type_label(path["type"])),
-                    ("reason", "Út indoklása", path["reason"]),
-                    ("starting_point", "Kiindulópont", path["starting_point"]),
-                    ("destination", "Megérkezési pont", path["destination"]),
+                    ("starting_point", "Alaphelyzet", path["starting_point"]),
+                    ("first_shift", "Első fordulópont", path["first_shift"]),
+                    (
+                        "deepening",
+                        "Mélyítés és fokozás",
+                        path["deepening"],
+                    ),
+                    (
+                        "reinterpretation",
+                        "Átértelmezés",
+                        path["reinterpretation"],
+                    ),
                 ]
                 added = 0
                 skipped = 0
@@ -10671,51 +11643,21 @@ def render_sermon_path_section(
                         content,
                     )
                     added += 1
-                for idx, mv in enumerate(mvs, start=1):
-                    summary = (
-                        f"{idx}. {mv.get('title') or 'Mozgás'} "
-                        f"({movement_role_label(mv.get('role'))}): "
-                        f"{(mv.get('core_content') or '')[:180]}"
-                    ).strip()
-                    if not (mv.get("title") or mv.get("core_content")):
-                        continue
-                    if _decision_is_duplicate(
-                        source_section=_SOURCE_PATH,
-                        category="Mozgás",
-                        content=summary,
-                    ):
-                        skipped += 1
-                        continue
-                    add_approved_sermon_decision(
-                        st.session_state,
-                        _SOURCE_PATH,
-                        "Mozgás",
-                        summary,
-                    )
-                    added += 1
                 if added:
-                    st.success(f"Jóváhagyva ({added} döntés).")
+                    _toast_and_rerun(f"Jóváhagyva ({added} döntés).")
                 elif skipped:
-                    st.info("Ezek a döntések már szerepelnek.")
+                    _toast_and_rerun("Jóváhagyva. Ezek a döntések már szerepelnek.")
                 else:
-                    st.warning("Nem volt menthető tartalom.")
+                    _toast_and_rerun("Jóváhagyva.")
 
     _render_decisions_for_section(_SOURCE_PATH)
 
     st.markdown("---")
     st.markdown("**MI-segéd**")
-    mi1, mi2 = st.columns(2)
-    with mi1:
-        if st.button("Igehirdetési út javaslata", key="sw_path_mi_suggest"):
-            _run_sermon_path_suggest(generate_fn=generate_fn)
-    with mi2:
-        if st.button("Saját út és mozgások értékelése", key="sw_path_mi_assess"):
-            _run_sermon_path_assess(generate_fn=generate_fn)
+    if st.button("Javaslatot kérek", key="sw_path_mi_suggest"):
+        _run_sermon_path_suggest(generate_fn=generate_fn)
 
     _render_sermon_path_suggestions()
-    _render_sermon_path_assessment()
-
-    st.caption("Következő ajánlott lépés: Illusztrációk és aktualizálás")
 
 
 def _render_section_placeholder(section: str) -> None:
@@ -10786,8 +11728,14 @@ def flush_sermon_workshop_from_widgets() -> None:
     ):
         _persist_gospel_arc_from_widgets()
 
-    if all(wkey in st.session_state for wkey in _KEY_PATH.values()):
+    if all(
+        _KEY_PATH[field] in st.session_state
+        for field in ("starting_point", "first_shift", "deepening")
+    ):
         _persist_sermon_path_from_widgets()
+
+    if all(wkey in st.session_state for wkey in _KEY_ENTRY.values()):
+        _persist_entry_point_from_widgets()
 
     if any(
         isinstance(k, str) and k.startswith(_MV_WIDGET_PREFIX)
@@ -10835,13 +11783,1345 @@ def flush_sermon_workshop_from_widgets() -> None:
         _persist_outline_from_widgets(mark_manual_edit=None)
 
 
+def _flat_save_text_main_idea() -> None:
+    """A textus fő gondolata — automatikus mentés a kanonikus
+    `text_workshop.text_main_idea` mezőbe. Nem igényel approval-státuszt
+    és nem szivárog az `arc` egyetlen pontjába sem."""
+    content = (st.session_state.get(_KEY_FLAT_TEXT_MAIN_IDEA) or "").strip()
+    update_text_main_idea(st.session_state, content, "draft")
+
+
+def _flat_save_sermon_main_idea() -> None:
+    """Az igehirdetés fő gondolata / fókuszmondat — automatikus mentés a
+    kanonikus `sermon_workshop.sermon_main_idea` mezőbe. A státuszt nem
+    módosítja (a meglévő legacy státusz csak tájékoztató marad)."""
+    content = (st.session_state.get(_KEY_SERMON_IDEA) or "").strip()
+    update_sermon_workshop_section(st.session_state, "sermon_main_idea", content)
+
+
+def _trigger_field_refinement_request(
+    field_key: str,
+    *,
+    current_text: str,
+    instruction: str,
+    generate_fn: GenerateFn | None,
+    running_key: str,
+) -> None:
+    """RESET 2D-B2: EGYETLEN megosztott végrehajtási út — mind a kártya
+    alatti gyors („MI-javaslat ehhez a ponthoz”), mind a személyre szabott
+    expander-gomb („Egyedi MI-javaslat kérése”) ugyanezt hívja, ugyanazzal
+    a running-state védelemmel és a fogyó auto-open jelzővel. A gyors gomb
+    üres `instruction`-nel hívja, a személyre szabott a felhasználó által
+    beírt szöveggel — a mögöttes, biztonságos candidate-folyamat mindkét
+    esetben azonos (`generate_field_refinement`)."""
+    if generate_fn is None:
+        st.warning("Az MI-segéd jelenleg nem elérhető.")
+        return
+    st.session_state[running_key] = True
+    try:
+        with st.spinner("Javaslat készül…"):
+            outcome = generate_field_refinement(
+                st.session_state,
+                field_key=field_key,
+                current_text=current_text,
+                instruction=instruction,
+                generate_fn=generate_fn,
+            )
+    finally:
+        st.session_state[running_key] = False
+
+    if not outcome.ok:
+        st.error(outcome.error_message)
+    else:
+        st.session_state[_KEY_REFINE_AUTO_OPEN_FIELD] = field_key
+        _toast_and_rerun("Elkészült egy javaslat — nézd át alul.")
+
+
+def _render_field_refinement_panel(
+    field_key: str,
+    *,
+    current_text: str,
+    on_accept: Callable[[str], None],
+    generate_fn: GenerateFn | None,
+    expander_title: str,
+) -> None:
+    """RESET 2D-B1/2D-B2: célzott, elfogadásos MI-pontosítás EGY célmezőhöz
+    — kilenc egymástól TELJESEN FÜGGETLEN példány (két főgondolat + hét
+    arc-pont), mindegyik saját, `field_key`-vel képzett widgetkulcsokkal.
+    Alapból összecsukott, KIVÉVE közvetlenül egy saját sikeres
+    javaslatkérés utáni egyetlen rendereléskor (ld. `_KEY_REFINE_AUTO_
+    OPEN_FIELD`). A javaslat SOSEM íródik automatikusan a kanonikus
+    mezőbe — kizárólag az „Átvétel” gomb explicit hatására, és csak
+    akkor, ha a generálás óta a teljes felhasznált kontextus (igehely,
+    bibliai szöveg, fordítás, a mező saját aktuális tartalma) nem
+    változott. `on_accept` a hívó által átadott, MEGLÉVŐ kanonikus
+    mentési útvonal (pl. `update_arc_point`, `update_text_main_idea`).
+
+    `expander_title` a hívó által megadott felirat (RESET 2D-B2): az
+    arc-pontoknál „Pontosítási kérés (opcionális)” — mivel ott a
+    kártya alatti önálló gomb már fedi az egyszerű „adj javaslatot”
+    esetet —, a két főgondolatnál „MI-javaslat vagy pontosítás”, mivel
+    azoknál nincs külön gyors gomb, az expander az egyetlen belépési
+    pont mindkét esethez."""
+    auto_open = st.session_state.get(_KEY_REFINE_AUTO_OPEN_FIELD) == field_key
+    if auto_open:
+        # Fogyó jelző: pontosan egyszer nyit, utána azonnal törlődik.
+        st.session_state.pop(_KEY_REFINE_AUTO_OPEN_FIELD, None)
+
+    with st.expander(expander_title, expanded=auto_open):
+        instruction_key = f"sw_refine_instr_{field_key}"
+        running_key = f"_sw_refine_running_{field_key}"
+        running = bool(st.session_state.get(running_key))
+
+        st.text_area(
+            "Mit szeretnél pontosítani?",
+            key=instruction_key,
+            height=68,
+            placeholder=(
+                "Például: legyen konkrétabb, rövidebb, vagy kapcsolódjon "
+                "jobban a textus feszültségéhez."
+            ),
+        )
+
+        if st.button(
+            "Egyedi MI-javaslat kérése",
+            key=f"sw_refine_request_{field_key}",
+            disabled=running or generate_fn is None,
+        ):
+            instruction = str(st.session_state.get(instruction_key) or "")
+            _trigger_field_refinement_request(
+                field_key,
+                current_text=current_text,
+                instruction=instruction,
+                generate_fn=generate_fn,
+                running_key=running_key,
+            )
+        if generate_fn is None:
+            st.caption("Az MI-segéd jelenleg nem elérhető.")
+
+        sw = ensure_sermon_workshop_state(st.session_state)
+        refinements = sw.get("field_refinements")
+        suggestion = (
+            refinements.get(field_key) if isinstance(refinements, dict) else None
+        )
+        if not isinstance(suggestion, dict) or not suggestion.get("text"):
+            return
+
+        st.divider()
+        st.caption("Javaslat:")
+        st.markdown(suggestion["text"])
+
+        c1, c2 = st.columns(2)
+        with c1:
+            if st.button(
+                "Javaslat átvétele",
+                type="primary",
+                key=f"sw_refine_accept_{field_key}",
+            ):
+                context = build_refinement_context(
+                    st.session_state,
+                    field_key=field_key,
+                    current_text=current_text,
+                )
+                result = validate_field_refinement_acceptance(
+                    st.session_state,
+                    field_key,
+                    reference=context.reference,
+                    context_hash=context.context_hash,
+                )
+                if result["valid"]:
+                    on_accept(result["text"])
+                    discard_field_refinement_suggestion(st.session_state, field_key)
+                    st.session_state[_RESYNC_FLAG] = True
+                    _toast_and_rerun("A javaslat bekerült a szerkesztőbe.")
+                else:
+                    reason = str(result.get("reason") or "")
+                    st.warning(
+                        _FIELD_REFINEMENT_REJECT_MESSAGES.get(
+                            reason, "A javaslat nem fogadható el."
+                        )
+                    )
+        with c2:
+            if st.button("Javaslat elvetése", key=f"sw_refine_discard_{field_key}"):
+                discard_field_refinement_suggestion(st.session_state, field_key)
+                _toast_and_rerun("A javaslat elvetve.")
+
+
+def render_flat_text_and_focus_section(
+    *,
+    generate_fn: GenerateFn | None = None,
+) -> None:
+    """RESET 2B/2D-B1/2D-B2: „Textus és fókusz” — a hét pontot összetartó
+    két központi irány. Mindkét mező önállóan, approval és automatikus
+    felülírás nélkül, kézzel szerkeszthető és automatikusan mentődik.
+    Mindkettő alatt egy összecsukott „MI-javaslat vagy pontosítás”
+    szakasz ad célzott, elfogadásos MI-segítséget — a felirat (RESET
+    2D-B2) szándékosan jelzi, hogy ÜRES mezőhöz is kérhető javaslat, nem
+    csak meglévő tartalom pontosítható (nincs itt külön gyors gomb, az
+    expander az egyetlen belépési pont mindkét esethez)."""
+    render_work_section(
+        title="Textus és fókusz",
+        body=(
+            "A két mező a hét pontot összetartó központi irány — nem "
+            "további modellpont. Kitöltésük opcionális, és nem "
+            "blokkolja a hétpontos vázlat használatát."
+        ),
+        context="Igehirdetési műhely",
+    )
+
+    tw = ensure_text_workshop_state(st.session_state)
+    sw = ensure_sermon_workshop_state(st.session_state)
+
+    st.markdown("**A textus fő gondolata**")
+    st.caption("Mit mond ez a bibliai szakasz saját összefüggésében?")
+    st.text_area(
+        "A textus fő gondolata",
+        key=_KEY_FLAT_TEXT_MAIN_IDEA,
+        height=100,
+        label_visibility="collapsed",
+        on_change=_flat_save_text_main_idea,
+    )
+    _render_field_refinement_panel(
+        "text_main_idea",
+        current_text=str(tw.get("text_main_idea") or ""),
+        on_accept=lambda text: update_text_main_idea(st.session_state, text, "draft"),
+        generate_fn=generate_fn,
+        expander_title="MI-javaslat vagy pontosítás",
+    )
+
+    st.markdown("**Az igehirdetés fő gondolata – fókuszmondat**")
+    st.caption("Milyen központi felismerés felé vezesse az igehirdetés a hallgatót?")
+    st.text_area(
+        "Az igehirdetés fő gondolata – fókuszmondat",
+        key=_KEY_SERMON_IDEA,
+        height=100,
+        label_visibility="collapsed",
+        on_change=_flat_save_sermon_main_idea,
+    )
+    _render_field_refinement_panel(
+        "sermon_main_idea",
+        current_text=str(sw.get("sermon_main_idea") or ""),
+        on_accept=lambda text: update_sermon_workshop_section(
+            st.session_state, "sermon_main_idea", text
+        ),
+        generate_fn=generate_fn,
+        expander_title="MI-javaslat vagy pontosítás",
+    )
+
+
+def _flat_save_arc_point(point_key: str) -> None:
+    """Egy hétpontos kártya automatikus mentése — közvetlenül a meglévő
+    `update_arc_point()` adatmodell-függvényt hívja (ez frissíti az
+    `arc_meta.manually_updated_at`-ot is), csak a célpontot módosítja.
+
+    Szűk korrekció (2026-08-19): a jelenlegi TELJES generálási-kontextus
+    hash-t (`sermon_workshop_arc_ai.compute_arc_generation_context_hash`)
+    adja át `update_arc_point()`-nak, hogy az `arc_meta.context_hash` egy
+    kézi szerkesztés után is az aktuális, teljes hétpontos-generálási
+    kontextust tükrözze — ne csak a szűk igehely-hash-t. Nem indít
+    AI-hívást, csak string-feldolgozás és hash-számítás."""
+    widget_key = _KEY_FLAT_ARC[point_key]
+    content = st.session_state.get(widget_key) or ""
+    context = build_arc_generation_context(st.session_state)
+    update_arc_point(
+        st.session_state, point_key, content, context_hash=context.context_hash
+    )
+
+
+def render_flat_seven_point_outline_section(
+    *,
+    generate_fn: GenerateFn | None = None,
+) -> None:
+    """RESET 2B/2C/2D-B2/2D-F2: „Hétpontos igehirdetési vázlat” — hét,
+    számozott, egyenként szerkeszthető kártya, közvetlenül az `arc.*`
+    pontokat módosítva, plusz az EGYETLEN MI-generáló gomb (RESET 2C),
+    amely továbbra is az egyetlen teljes-hétpontos candidate/applied
+    útvonal (`generate_seven_point_arc`) — nincs második, párhuzamos
+    teljes-vázlat-generáló. A gomb (RESET 2D-F2) saját, bekeretezett
+    blokkot kap, és a függőben lévő candidate-panel közvetlenül e blokk
+    ALATT jelenik meg — MÉG a hét kártya ELŐTT (ld. `_render_arc_
+    candidate_panel` hívását lentebb) —, hogy a javaslat ugyanott
+    látszódjon, ahol a felhasználó kérte, ne a kártyák után, elszakítva
+    a kattintástól. Emellett (RESET 2D-B2) mind a hét kártyán van egy
+    önálló, jól látható „MI-javaslat ehhez a ponthoz” gomb, közvetlenül a
+    szövegmező alatt, az expander előtt — ez a meglévő field-refinement
+    candidate-mechanizmust hívja üres instrukcióval, így üres mezőnél is,
+    kitöltött mezőnél is működik, automatikus felülírás nélkül. Nincs
+    approval vagy „Átveszem” a kártyákon magukon (a javaslatok kizárólag
+    a saját candidate-panelen fogadhatók el), nincs régi outline-generálás
+    vagy export ezen az útvonalon."""
+    render_work_section(
+        title="Hétpontos igehirdetési vázlat",
+        body=(
+            "A hét rész együtt alkotja az igehirdetés gondolati és "
+            "dramaturgiai ívét. Nem hét elszigetelt tétel, hanem egyetlen "
+            "előrehaladó gondolatmenet."
+        ),
+        context="Igehirdetési műhely",
+    )
+
+    running = bool(st.session_state.get(_KEY_ARC_GEN_RUNNING))
+    with st.container(border=True):
+        if st.button(
+            "MI-javaslat mind a hét ponthoz",
+            type="primary",
+            key="sw_flat_arc_generate",
+            disabled=running or generate_fn is None,
+        ):
+            if generate_fn is None:
+                st.warning("Az MI-segéd jelenleg nem elérhető.")
+            else:
+                st.session_state[_KEY_ARC_GEN_RUNNING] = True
+                try:
+                    with st.spinner("Hétpontos vázlatjavaslat készül…"):
+                        outcome = generate_seven_point_arc(
+                            st.session_state, generate_fn=generate_fn
+                        )
+                finally:
+                    st.session_state[_KEY_ARC_GEN_RUNNING] = False
+
+                if not outcome.ok:
+                    st.error(outcome.error_message)
+                elif outcome.status == "applied":
+                    st.session_state[_RESYNC_FLAG] = True
+                    _toast_and_rerun(
+                        "A hétpontos vázlatjavaslat bekerült a szerkesztőbe."
+                    )
+                else:  # "candidate" — a kanonikus arc változatlan, lásd lentebb
+                    _toast_and_rerun(
+                        "Elkészült egy új vázlatjavaslat — nézd át alább."
+                    )
+        if generate_fn is None:
+            st.caption("Az MI-segéd jelenleg nem elérhető.")
+
+    # RESET 2D-F2: a candidate-panel közvetlenül a gombblokk alatt, MÉG a
+    # hét kártya ELŐTT jelenik meg — üres/hiányzó candidate esetén a
+    # függvény nem renderel semmit.
+    _render_arc_candidate_panel()
+
+    sw = ensure_sermon_workshop_state(st.session_state)
+    arc = sw.get("arc") if isinstance(sw.get("arc"), dict) else {}
+    for idx, point_key in enumerate(_ARC_POINT_KEYS, start=1):
+        title = _ARC_CARD_TITLES[point_key]
+        description = _ARC_CARD_DESCRIPTIONS[point_key]
+        widget_key = _KEY_FLAT_ARC[point_key]
+        with st.container(border=True):
+            st.markdown(f"**{idx}. {title}**")
+            st.caption(description)
+            st.text_area(
+                title,
+                key=widget_key,
+                height=150,
+                label_visibility="collapsed",
+                on_change=_flat_save_arc_point,
+                args=(point_key,),
+            )
+            point_running_key = f"_sw_refine_running_{point_key}"
+            if st.button(
+                "MI-javaslat ehhez a ponthoz",
+                key=f"sw_refine_quick_{point_key}",
+                disabled=bool(st.session_state.get(point_running_key))
+                or generate_fn is None,
+            ):
+                _trigger_field_refinement_request(
+                    point_key,
+                    current_text=str((arc.get(point_key) or {}).get("text") or ""),
+                    instruction="",
+                    generate_fn=generate_fn,
+                    running_key=point_running_key,
+                )
+            _render_field_refinement_panel(
+                point_key,
+                current_text=str((arc.get(point_key) or {}).get("text") or ""),
+                on_accept=lambda text, pk=point_key: update_arc_point(
+                    st.session_state,
+                    pk,
+                    text,
+                    context_hash=build_arc_generation_context(
+                        st.session_state
+                    ).context_hash,
+                ),
+                generate_fn=generate_fn,
+                expander_title="Pontosítási kérés (opcionális)",
+            )
+
+
+def _render_arc_candidate_panel() -> None:
+    """RESET 2C/2D-F2: readonly előnézet egy függőben lévő `arc_candidate`-
+    re, pontosan két művelettel. Csak akkor jelenik meg, ha van ÉRVÉNYES
+    candidate — üres/hiányzó candidate esetén nem renderel semmit. RESET
+    2D-F2 óta a hívó (`render_flat_seven_point_outline_section`) a teljes
+    generáló gomb blokkja UTÁN, de a hét arc-kártya ELŐTT hívja — a
+    panel maga nem tud a saját pozíciójáról, ezt kizárólag a hívási hely
+    dönti el."""
+    sw = ensure_sermon_workshop_state(st.session_state)
+    candidate = sw.get("arc_candidate")
+    if not isinstance(candidate, dict):
+        return
+    points = candidate.get("points") if isinstance(candidate.get("points"), dict) else {}
+    if not points:
+        return
+
+    st.divider()
+    with st.container(border=True):
+        st.markdown("**Új vázlatjavaslat**")
+        st.caption(
+            "Ez a javaslat még nem került a kanonikus vázlatba. Nézd át, "
+            "majd vedd át vagy vesd el — a kanonikus vázlat addig "
+            "változatlan marad."
+        )
+        for idx, point_key in enumerate(_ARC_POINT_KEYS, start=1):
+            title = _ARC_CARD_TITLES[point_key]
+            text = str((points.get(point_key) or {}).get("text") or "")
+            st.markdown(f"**{idx}. {title}**")
+            st.markdown(text if text.strip() else "_(üres)_")
+
+        c1, c2 = st.columns(2)
+        with c1:
+            if st.button(
+                "Javaslat átvétele", type="primary", key="sw_flat_arc_candidate_accept"
+            ):
+                context = build_arc_generation_context(st.session_state)
+                result = accept_arc_candidate(
+                    st.session_state,
+                    reference=context.reference,
+                    context_hash=context.context_hash,
+                )
+                if result["accepted"]:
+                    st.session_state[_RESYNC_FLAG] = True
+                    _toast_and_rerun(
+                        "A javaslat mind a hét pontba bekerült — ellenőrizd "
+                        "és alakítsd tovább az alábbi kártyákban."
+                    )
+                else:
+                    reason = str(result.get("reason") or "")
+                    st.warning(
+                        _ARC_CANDIDATE_REJECT_MESSAGES.get(
+                            reason, "A javaslat nem fogadható el."
+                        )
+                    )
+        with c2:
+            if st.button("Javaslat elvetése", key="sw_flat_arc_candidate_discard"):
+                discard_arc_candidate(st.session_state)
+                _toast_and_rerun("A javaslat elvetve.")
+
+
+def _render_flat_legacy_outline_panel() -> None:
+    """RESET 2B/2E-6a: régi (2–4 beszédegységes) vázlat read-only
+    megjelenítése — KIZÁRÓLAG migrációs fallbackként, amíg a felhasználó
+    még nem kezdett bele az ÚJ workflow-ba. Nem szerkeszthető, nem
+    másolja át automatikusan az adatot az `arc`-ba — nincs „Átemelem”
+    gomb.
+
+    RESET 2E-6a (2026-08-20): a korábbi feltétel (kizárólag az `arc`
+    üressége) élesben ellenőrizve olyan állapotot engedett meg, ahol ez a
+    panel EGYSZERRE jelent meg a blueprint/developed-outline szekcióval —
+    ha a felhasználó a hét arc-kártyát sosem töltötte ki, de közvetlenül
+    blueprintet és részletes vázlatot generált (ezekhez nem kötelező az
+    arc). Ez a felhasználónak két, fogalmilag versengő "vázlat"-ot
+    mutatott egyszerre. A kiegészített feltétel ezt zárja ki: a legacy
+    panel csak akkor jelenik meg, ha SEM az arc, SEM semmilyen érdemi ÚJ
+    workflow-állapot (blueprint tartalom, függőben lévő developed-outline
+    candidate, vagy kanonikus developed_outline) nincs jelen. A legacy
+    adat és kód VÁLTOZATLAN — csak az egyidejű UI-megjelenés szűnik meg."""
+    sw = ensure_sermon_workshop_state(st.session_state)
+    arc = sw.get("arc") if isinstance(sw.get("arc"), dict) else {}
+    has_new_arc_content = any(
+        str((arc.get(key) or {}).get("text") or "").strip() for key in _ARC_POINT_KEYS
+    )
+    if has_new_arc_content:
+        return
+
+    blueprint = sw.get("blueprint") if isinstance(sw.get("blueprint"), dict) else {}
+    has_blueprint_content = bool(str(blueprint.get("central_claim") or "").strip())
+    has_outline_candidate = isinstance(sw.get("developed_outline_candidate"), dict)
+    developed_outline = sw.get("developed_outline")
+    developed_outline = developed_outline if isinstance(developed_outline, dict) else {}
+    has_canonical_outline = bool(developed_outline.get("movements"))
+    if has_blueprint_content or has_outline_candidate or has_canonical_outline:
+        return
+
+    legacy_outline = sw.get("sermon_outline")
+    if not outline_has_content(legacy_outline):
+        return
+
+    legacy_text = outline_canonical_text(legacy_outline)
+    if not legacy_text.strip():
+        return
+
+    st.divider()
+    with st.container(border=True):
+        st.markdown("**Korábbi vázlat – régi formátum**")
+        st.caption(
+            "Csak megtekintésre — nem szerkeszthető, és nem kerül át "
+            "automatikusan a fenti hét pontba."
+        )
+        st.markdown(legacy_text)
+
+
+_BLUEPRINT_STRUCTURE_MODE_LABELS: dict[str, str] = {
+    "seven_point": "Hétpontos ív",
+    "merged": "Összevont szerkezet",
+    "custom": "Egyedi szerkezet",
+}
+
+
+def _render_blueprint_details_inline(blueprint: dict) -> None:
+    """RESET 2E-6b / FINAL SERMON UX POLISH: a tervrajz érdemi tartalma
+    (`central_claim`, `textual_center`, a szerkezeti mód magyar címkéje,
+    movementenként `function`+`core_idea`) — SZÁNDÉKOSAN NEM jelenik meg
+    itt: `arc_fit.verdict`/`arc_fit.reason` (a döntés INDOKLÁSA, nem a
+    felhasználónak szól), `key_support.*` (a developed outline-ban már
+    konkretizálva van), és `grounded_in` provenance-tokenek — ezek belső,
+    technikai részletek.
+
+    Inline renderel (NEM saját `st.expander`), mert a hívója
+    (`_render_blueprint_status_and_generate_button`) már maga egy
+    összecsukható expander — Streamlit nem enged egymásba ágyazott
+    expandereket."""
+    central_claim = str(blueprint.get("central_claim") or "").strip()
+    if central_claim:
+        st.markdown(f"**{central_claim}**")
+    textual_center = str(blueprint.get("textual_center") or "").strip()
+    if textual_center:
+        st.caption(textual_center)
+
+    structure = blueprint.get("recommended_structure")
+    structure = structure if isinstance(structure, dict) else {}
+    mode = str(structure.get("mode") or "").strip()
+    if mode:
+        st.caption(_BLUEPRINT_STRUCTURE_MODE_LABELS.get(mode, mode))
+
+    movements = structure.get("movements")
+    for movement in movements if isinstance(movements, list) else []:
+        if not isinstance(movement, dict):
+            continue
+        function = str(movement.get("function") or "").strip()
+        core_idea = str(movement.get("core_idea") or "").strip()
+        if not (function or core_idea):
+            continue
+        if function and core_idea:
+            st.markdown(f"- **{function}**: {core_idea}")
+        else:
+            st.markdown(f"- {function or core_idea}")
+
+
+def _render_blueprint_status_and_generate_button(
+    *, generate_fn: GenerateFn | None
+) -> None:
+    """RESET 2E-4: a homiletikai blueprint minimális UI-ja.
+
+    A blueprintnek NINCS candidate-lifecycle-ja (RESET 2E-1/2E-2
+    szerződés, itt sem változik): sikeres generálás közvetlenül a
+    kanonikus `sermon_workshop.blueprint`-et írja, érvénytelen válasz
+    esetén a kanonikus blueprint bit-pontosan változatlan marad — ezt a
+    `generate_sermon_blueprint()` már garantálja, a UI csak megjeleníti
+    az eredményt. A `warnings` mindig látható, ha van tartalma, de itt
+    NINCS "feloldás" — pusztán tájékoztató jelzés a generáláshoz.
+
+    FINAL SERMON UX POLISH (2026-08-21): a tervrajz továbbra is a motor
+    része (adatmodell, generálás, canonical state, hash/freshness logika
+    változatlan) — de a normál felhasználói UI-ban túl nagy vizuális
+    hangsúlyt kapott ahhoz képest, amennyi tényleges olvasói értéke van.
+    Ezért a teljes állapot/részletek/figyelmeztetések/újragenerálás-gomb
+    egyetlen, alapértelmezetten összecsukott expanderbe kerül — a
+    felhasználó a hétpontos ívből normál esetben közvetlenül a részletes
+    munkavázlathoz halad tovább, anélkül, hogy ezt ki kellene nyitnia.
+    A `warnings` (RESET 2E-6b korábbi döntése szerint korábban szándékosan
+    KÍVÜL maradt a részletek-expanderen) itt is az expanderen BELÜL van,
+    mert most már maga a teljes blokk egyetlen összecsukható egység —
+    nincs mód rá, hogy csak a figyelmeztetés maradjon kívül anélkül, hogy
+    két egymásba ágyazott expander jönne létre (amit Streamlit nem
+    enged)."""
+    sw = ensure_sermon_workshop_state(st.session_state)
+    blueprint = sw.get("blueprint") if isinstance(sw.get("blueprint"), dict) else {}
+    has_blueprint = bool(str(blueprint.get("central_claim") or "").strip())
+    fresh = is_blueprint_fresh(st.session_state) if has_blueprint else False
+    running = bool(st.session_state.get(_KEY_BLUEPRINT_GEN_RUNNING))
+
+    with st.expander("Igehirdetési tervrajz megtekintése", expanded=False):
+        st.caption(
+            "Belső szerkezeti terv, amely a textus és az összegyűjtött "
+            "anyag alapján kialakítja az igehirdetés központi gondolatát "
+            "és logikai ívét. Erre épül a részletes vázlat."
+        )
+        if not has_blueprint:
+            st.info("Még nincs tervrajz ehhez az igehelyhez.")
+            label = "Tervrajz készítése"
+        elif not fresh:
+            st.warning(
+                "A tervrajz elavult: a kanonikus bemenet megváltozott az "
+                "elkészülte óta."
+            )
+            label = "Tervrajz újragenerálása"
+        else:
+            st.success("A tervrajz friss és elkészült.")
+            label = "Tervrajz újragenerálása"
+
+        if has_blueprint:
+            _render_blueprint_details_inline(blueprint)
+
+        warnings = blueprint.get("warnings")
+        for warning in warnings if isinstance(warnings, list) else []:
+            st.warning(str(warning))
+
+        if st.button(
+            label,
+            key="sw_flat_blueprint_generate",
+            disabled=running or generate_fn is None,
+        ):
+            if generate_fn is None:
+                st.warning("Az MI-segéd jelenleg nem elérhető.")
+            else:
+                st.session_state[_KEY_BLUEPRINT_GEN_RUNNING] = True
+                try:
+                    with st.spinner("Igehirdetési tervrajz készül…"):
+                        outcome = generate_sermon_blueprint(
+                            st.session_state, generate_fn=generate_fn
+                        )
+                finally:
+                    st.session_state[_KEY_BLUEPRINT_GEN_RUNNING] = False
+
+                if not outcome.ok:
+                    st.error(outcome.error_message)
+                else:
+                    _toast_and_rerun("A tervrajz elkészült.")
+        if generate_fn is None:
+            st.caption("Az MI-segéd jelenleg nem elérhető.")
+
+
+_DEVELOPED_OUTLINE_READONLY_SUPPORT_LABELS: tuple[tuple[str, str], ...] = (
+    ("Szövegi kapaszkodó", "exegetical_support"),
+    ("Eredeti nyelvi támasz", "original_language_support"),
+    ("Történeti/teológiai támasz", "historical_theological_support"),
+    ("Illusztrációs irány", "illustration_direction"),
+    ("Alkalmazási irány", "application_direction"),
+)
+
+
+def _render_developed_outline_movement_readonly(index: int, movement: dict) -> None:
+    """Egy vázlat-mozgás read-only megjelenítése — a függőben lévő
+    `developed_outline_candidate` előnézetéhez.
+
+    FINAL SERMON UX POLISH (2026-08-21) + FINAL SERMON WORKFLOW +
+    OUTLINE PRESENTATION POLISH (2026-08-21): a főnézetben csak
+    sorszám+cím, funkció, fő állítás, kibontás-bullet-ek és átvezetés
+    jelenik meg. A támasz-/irány-mezők (`exegetical_support`,
+    `original_language_support`, `historical_theological_support`,
+    `illustration_direction`, `application_direction`) EBBEN a
+    függvényben egyáltalán NEM jelennek meg — azokat a teljes candidate
+    alatt EGYETLEN, közös "Háttéranyagok a vázlathoz" expander gyűjti
+    össze (ld. `_render_developed_outline_support_material_readonly`),
+    hogy ne tördelje szét pontonként a javaslatot."""
+    title = str(movement.get("title") or "").strip() or f"{index}. mozgás"
+    st.markdown(f"**{index}. {title}**")
+    function = str(movement.get("function") or "").strip()
+    if function:
+        st.caption(function)
+    main_claim = str(movement.get("main_claim") or "").strip()
+    if main_claim:
+        st.markdown(main_claim)
+    development = movement.get("development")
+    for item in development if isinstance(development, list) else []:
+        st.markdown(f"- {item}")
+    transition = str(movement.get("transition_to_next") or "").strip()
+    if transition:
+        st.caption(f"Átvezetés: {transition}")
+
+
+def _render_developed_outline_support_material_readonly(
+    movements: list[dict], *, start: int = 1
+) -> None:
+    """A `_render_developed_outline_support_material_expander` read-only
+    megfelelője a még el nem bírált candidate-hez — ugyanaz az elv:
+    EGYETLEN, közös, alapértelmezetten összecsukott "Háttéranyagok a
+    vázlathoz" expander, mozgásonként csoportosítva, csak a ténylegesen
+    kitöltött mezőkkel, csak akkor jelenik meg egyáltalán, ha van
+    tényleges tartalom valahol."""
+    indexed = list(enumerate(movements, start=start))
+    with_content = [
+        (index, movement)
+        for index, movement in indexed
+        if isinstance(movement, dict)
+        and _developed_outline_movement_has_support_content(movement)
+    ]
+    if not with_content:
+        return
+
+    with st.expander("Háttéranyagok a vázlathoz", expanded=False):
+        for i, (index, movement) in enumerate(with_content):
+            if i > 0:
+                st.divider()
+            title = str(movement.get("title") or "").strip() or f"{index}. mozgás"
+            st.caption(f"{index}. {title}")
+            for label, field in _DEVELOPED_OUTLINE_READONLY_SUPPORT_LABELS:
+                if field in _DEVELOPED_MOVEMENT_LIST_FIELDS:
+                    items = movement.get(field)
+                    items = items if isinstance(items, list) else []
+                    items = [str(item) for item in items if str(item).strip()]
+                    if items:
+                        st.caption(f"{label}: " + "; ".join(items))
+                else:
+                    value = str(movement.get(field) or "").strip()
+                    if value:
+                        st.caption(f"{label}: {value}")
+
+
+def _render_developed_outline_candidate_panel() -> None:
+    """RESET 2E-4: readonly előnézet egy függőben lévő `developed_outline_
+    candidate`-re, pontosan két művelettel — az `_render_arc_candidate_
+    panel()` mintája, a részletes-vázlat state-szerződéshez igazítva.
+    Csak akkor jelenik meg, ha van ÉRVÉNYES, tartalommal bíró candidate."""
+    sw = ensure_sermon_workshop_state(st.session_state)
+    candidate = sw.get("developed_outline_candidate")
+    if not isinstance(candidate, dict):
+        return
+    outline = candidate.get("outline")
+    outline = outline if isinstance(outline, dict) else {}
+    movements = outline.get("movements")
+    movements = movements if isinstance(movements, list) else []
+    if not movements:
+        return
+
+    st.divider()
+    with st.container(border=True):
+        st.markdown("**Új részletes vázlatjavaslat**")
+        st.caption(
+            "Ez a javaslat még nem került a kanonikus vázlatba. Nézd át, "
+            "majd vedd át vagy vesd el — a kanonikus vázlat addig "
+            "változatlan marad."
+        )
+        meta = sw.get("developed_outline_meta")
+        meta = meta if isinstance(meta, dict) else {}
+        if str(meta.get("manually_updated_at") or "").strip():
+            st.warning(
+                "Az elfogadás lecseréli a jelenlegi, kézzel módosított "
+                "vázlatot is."
+            )
+        structure_note = str(outline.get("structure_note") or "").strip()
+        if structure_note:
+            st.caption(structure_note)
+        for idx, movement in enumerate(movements, start=1):
+            if isinstance(movement, dict):
+                _render_developed_outline_movement_readonly(idx, movement)
+
+        _render_developed_outline_support_material_readonly(movements, start=1)
+
+        c1, c2 = st.columns(2)
+        with c1:
+            if st.button(
+                "Vázlat átvétele",
+                type="primary",
+                key="sw_flat_outline_candidate_accept",
+            ):
+                context = build_developed_outline_context(st.session_state)
+                result = accept_developed_outline_candidate(
+                    st.session_state,
+                    reference=context.reference,
+                    context_hash=context.context_hash,
+                )
+                if result["accepted"]:
+                    # RESET 2E-5: a kanonikus vázlat TELJESEN lecserélődött —
+                    # a régi szerkesztő-widgetek session_state-ben ragadt
+                    # szövege innentől NEM tartozik semmilyen tényleges
+                    # mozgáshoz. Ha nem törölnénk, a következő renderelés a
+                    # régi (widget-kulcsban megőrzött) szöveget mutatná az
+                    # új kanonikus tartalom helyett — ezért a rerun ELŐTT
+                    # töröljük ezeket, hogy a widgetek a friss kanonikus
+                    # tartalomból seedelődjenek újra.
+                    _clear_developed_outline_edit_widgets()
+                    _toast_and_rerun(
+                        "A részletes vázlat bekerült a kanonikus vázlatba."
+                    )
+                else:
+                    reason = str(result.get("reason") or "")
+                    st.warning(
+                        _DEVELOPED_OUTLINE_CANDIDATE_REJECT_MESSAGES.get(
+                            reason, "A javaslat nem fogadható el."
+                        )
+                    )
+        with c2:
+            if st.button("Vázlat elvetése", key="sw_flat_outline_candidate_discard"):
+                discard_developed_outline_candidate(st.session_state)
+                _toast_and_rerun("A javaslat elvetve.")
+
+
+# RESET 2E-5: a kanonikus, MÁR ELFOGADOTT részletes vázlat kézi
+# szerkesztése. A widget-kulcs a mozgás SAJÁT, stabil `key`-éből (nem az
+# indexéből) épül — ez a mozgás-azonosítás forrása marad addig, amíg a
+# kanonikus vázlat maga nem cserélődik le (candidate-elfogadás). A
+# `key`, a `structure_mode`, a mozgás-sorrend/darabszám és a
+# `structure_note` SZÁNDÉKOSAN nincs ebben a listában — ezekhez nem
+# létezik (és itt nem is készül) UI-widget.
+_DEVELOPED_OUTLINE_EDIT_WIDGET_PREFIX = "sw_flat_outline_edit_"
+
+_OUTLINE_SHORT_TEXT_FIELDS: tuple[str, ...] = ("title", "function")
+_OUTLINE_TEXTAREA_FIELDS: tuple[str, ...] = (
+    "main_claim",
+    "illustration_direction",
+    "application_direction",
+    "transition_to_next",
+)
+_OUTLINE_FIELD_LABELS: dict[str, str] = {
+    "title": "Cím",
+    "function": "Szerep",
+    "main_claim": "Fő állítás",
+    "development": "Kibontás (soronként egy gondolat)",
+    "exegetical_support": "Szövegi kapaszkodó (soronként egy elem)",
+    "original_language_support": "Eredeti nyelvi támasz (soronként egy elem)",
+    "historical_theological_support": (
+        "Történeti/teológiai támasz (soronként egy elem)"
+    ),
+    "illustration_direction": "Illusztrációs irány",
+    "application_direction": "Alkalmazási irány",
+    "transition_to_next": "Átvezetés a következőhöz",
+}
+
+
+def _developed_outline_edit_widget_key(movement_key: str, field: str) -> str:
+    return f"{_DEVELOPED_OUTLINE_EDIT_WIDGET_PREFIX}{movement_key}_{field}"
+
+
+def _clear_developed_outline_edit_widgets() -> None:
+    """A régi szerkesztő-widgetek session_state-kulcsainak törlése —
+    KIZÁRÓLAG candidate-elfogadás után hívandó, MIELŐTT a rerun lefut
+    (`_clear_movement_widgets()` bevett mintája, a részletes-vázlat
+    szerkesztőhöz igazítva)."""
+    stale = [
+        key
+        for key in list(st.session_state.keys())
+        if isinstance(key, str) and key.startswith(_DEVELOPED_OUTLINE_EDIT_WIDGET_PREFIX)
+    ]
+    for key in stale:
+        st.session_state.pop(key, None)
+
+
+def _flat_save_developed_outline_movement_field(
+    index: int, movement_key: str, field: str
+) -> None:
+    """Egy szerkesztett mozgás-mező automatikus mentése — közvetlenül a
+    meglévő `update_developed_outline_movement_field()` adatmodell-
+    függvényt hívja, VÁLTOZTATÁS NÉLKÜL. Lista-mezőnél a widget nyers,
+    többsoros szövegét itt, a UI-ban alakítjuk explicit listává —
+    trimmelt, nem üres sorok, sorrendben — mert a mutátor `_normalize_
+    str_list()` szigorúan CSAK `list` bemenetet fogad el, nyers stringet
+    csendben üres listává alakítana. Az esetleges `index_out_of_range`
+    legitim, futásidejű állapot (a vázlat időközben megváltozhatott) —
+    a mutátor ilyenkor sem dob kivételt, itt sincs külön kezelés rá."""
+    widget_key = _developed_outline_edit_widget_key(movement_key, field)
+    raw = st.session_state.get(widget_key)
+    if field in _DEVELOPED_MOVEMENT_LIST_FIELDS:
+        value: Any = [
+            line.strip() for line in str(raw or "").split("\n") if line.strip()
+        ]
+    else:
+        value = raw
+    update_developed_outline_movement_field(
+        st.session_state, index=index, field=field, value=value
+    )
+
+
+def _render_developed_outline_edit_field(
+    *,
+    index: int,
+    movement_key: str,
+    movement: dict,
+    field: str,
+    widget: str,
+    height: int | None = None,
+    label: str | None = None,
+) -> None:
+    """Egy szerkeszthető mozgás-mező widgetjének kiírása — a seed-elés
+    (widget hiányában a kanonikus tartalomból) és az `on_change`-mentés
+    közös a `text_input`/`text_area` esetek között, csak a widget típusa
+    és mérete tér el (RESET 2E-6b: elsődleges vs. másodlagos mezők
+    vizuális elkülönítéséhez).
+
+    `label`: opcionális felülírás (pl. FINAL SERMON UX POLISH: a `title`
+    mezőnél a sorszám a label részévé válik, "1. Cím" formában) — None
+    esetén az alapértelmezett `_OUTLINE_FIELD_LABELS[field]` marad."""
+    widget_key = _developed_outline_edit_widget_key(movement_key, field)
+    if widget_key not in st.session_state:
+        if field in _DEVELOPED_MOVEMENT_LIST_FIELDS:
+            items = movement.get(field)
+            items = items if isinstance(items, list) else []
+            st.session_state[widget_key] = "\n".join(str(item) for item in items)
+        else:
+            st.session_state[widget_key] = str(movement.get(field) or "")
+
+    label = label if label is not None else _OUTLINE_FIELD_LABELS[field]
+    if widget == "text_input":
+        st.text_input(
+            label,
+            key=widget_key,
+            on_change=_flat_save_developed_outline_movement_field,
+            args=(index, movement_key, field),
+        )
+    else:
+        st.text_area(
+            label,
+            key=widget_key,
+            height=height,
+            on_change=_flat_save_developed_outline_movement_field,
+            args=(index, movement_key, field),
+        )
+
+
+_DEVELOPED_OUTLINE_SUPPORT_FIELDS: tuple[str, ...] = (
+    "exegetical_support",
+    "original_language_support",
+    "historical_theological_support",
+    "illustration_direction",
+    "application_direction",
+)
+
+
+def _developed_outline_field_has_content(movement: dict, field: str) -> bool:
+    value = movement.get(field)
+    if field in _DEVELOPED_MOVEMENT_LIST_FIELDS:
+        items = value if isinstance(value, list) else []
+        return any(str(item).strip() for item in items)
+    return bool(str(value or "").strip())
+
+
+def _developed_outline_movement_has_support_content(movement: dict) -> bool:
+    return any(
+        _developed_outline_field_has_content(movement, field)
+        for field in _DEVELOPED_OUTLINE_SUPPORT_FIELDS
+    )
+
+
+def _render_developed_outline_movement_editable(index: int, movement: dict) -> None:
+    """Egy kanonikus vázlat-mozgás szerkeszthető megjelenítése.
+
+    FINAL SERMON UX POLISH (2026-08-21) + FINAL SERMON WORKFLOW +
+    OUTLINE PRESENTATION POLISH (2026-08-21): korábban (RESET 2E-6b) a
+    teljes mozgás — a fő állítástól a támasz-/irány-mezőkig — EGYETLEN,
+    alapértelmezetten összecsukott `st.expander`-be volt zárva. A cél
+    most a gyors, szószékre-vihető áttekinthetőség: a FŐNÉZET
+    (sorszám+cím, funkció, fő állítás, kibontás-bullet-ek, átvezetés)
+    mindig KÖZVETLENÜL látható, egy könnyű kártya-keretben
+    (`st.container(border=True)`). A másodlagos SEGÉDANYAG
+    (`exegetical_support`, `original_language_support`,
+    `historical_theological_support`, `illustration_direction`,
+    `application_direction`) EBBEN a függvényben egyáltalán NEM jelenik
+    meg — azt a teljes vázlat alatt EGYETLEN, közös "Háttéranyagok a
+    vázlathoz" expander gyűjti össze, mozgásonként csoportosítva (ld.
+    `_render_developed_outline_support_material_expander`), hogy ne
+    tördelje szét pontonként a vázlatot.
+
+    A structured adatmodell, a mutátorok és a `key`-alapú widget-
+    azonosítás VÁLTOZATLAN — kizárólag a RENDERELÉS egyszerűsödött.
+    `index` a mozgás TÉNYLEGES, 0-alapú pozíciója a kanonikus listában
+    (ez kell a mutátorhíváshoz); a widget-kulcsokhoz a mozgás saját
+    `key`-e (nem az index) a forrás."""
+    movement_key = str(movement.get("key") or f"movement_{index}")
+
+    with st.container(border=True, key=f"sw_flat_outline_movement_{movement_key}"):
+        _render_developed_outline_edit_field(
+            index=index,
+            movement_key=movement_key,
+            movement=movement,
+            field="title",
+            widget="text_input",
+            label=f"{index + 1}. Cím",
+        )
+        _render_developed_outline_edit_field(
+            index=index,
+            movement_key=movement_key,
+            movement=movement,
+            field="function",
+            widget="text_input",
+        )
+        _render_developed_outline_edit_field(
+            index=index,
+            movement_key=movement_key,
+            movement=movement,
+            field="main_claim",
+            widget="text_area",
+            height=90,
+        )
+        _render_developed_outline_edit_field(
+            index=index,
+            movement_key=movement_key,
+            movement=movement,
+            field="development",
+            widget="text_area",
+            height=100,
+        )
+        _render_developed_outline_edit_field(
+            index=index,
+            movement_key=movement_key,
+            movement=movement,
+            field="transition_to_next",
+            widget="text_area",
+            height=68,
+        )
+
+
+def _render_developed_outline_support_material_expander(
+    movements: list[dict],
+) -> None:
+    """A teljes kanonikus vázlat EGYETLEN, közös háttéranyag-expandere.
+
+    FINAL SERMON WORKFLOW + OUTLINE PRESENTATION POLISH (2026-08-21):
+    korábban minden mozgásnak SAJÁT, pontonkénti "Segédanyag ehhez a
+    ponthoz" expandere volt — ez a vázlatot vizuálisan feldarabolta.
+    Most a teljes vázlat alatt EGYETLEN, alapértelmezetten összecsukott
+    "Háttéranyagok a vázlathoz" expander gyűjti össze az összes mozgás
+    segédanyagát, mozgásonként csoportosítva egy rövid alcím alatt — és
+    az expander maga is CSAK akkor jelenik meg, ha legalább egy
+    mozgásnak van tényleges segédanyag-tartalma; egy adott mozgás
+    csoportja pedig csak akkor jelenik meg ezen belül, ha annak a
+    mozgásnak van tartalma (nincs üres placeholder-csoport)."""
+    movements_with_content = [
+        (index, movement)
+        for index, movement in enumerate(movements)
+        if isinstance(movement, dict)
+        and _developed_outline_movement_has_support_content(movement)
+    ]
+    if not movements_with_content:
+        return
+
+    with st.expander("Háttéranyagok a vázlathoz", expanded=False):
+        for i, (index, movement) in enumerate(movements_with_content):
+            if i > 0:
+                st.divider()
+            movement_key = str(movement.get("key") or f"movement_{index}")
+            title = str(movement.get("title") or "").strip() or f"{index + 1}. mozgás"
+            st.caption(f"{index + 1}. {title}")
+            for field in _DEVELOPED_OUTLINE_SUPPORT_FIELDS:
+                if not _developed_outline_field_has_content(movement, field):
+                    continue
+                _render_developed_outline_edit_field(
+                    index=index,
+                    movement_key=movement_key,
+                    movement=movement,
+                    field=field,
+                    widget="text_area",
+                    height=68,
+                )
+
+
+def _developed_outline_freshness(
+    session_state: MutableMapping[str, Any],
+) -> tuple[bool, bool, str, str]:
+    """RESET 2E-6a: a kanonikus `developed_outline` upstream frissessége —
+    KIZÁRÓLAG a meglévő `build_developed_outline_context`/`is_blueprint_
+    fresh` szerződésekből SZÁRMAZTATVA, semmilyen új hash-logika vagy
+    perzisztált mező nélkül.
+
+    Visszatérés: `(stale, reference_changed, stored_reference,
+    current_reference)`.
+
+    `stale` akkor `True`, ha VAGY a jelenlegi blueprint maga elavult
+    (`is_blueprint_fresh() == False` — pl. egy arc-pont vagy a textus
+    módosult a blueprint elkészülte óta), VAGY a jelenlegi, FRISS
+    blueprintből újraszámolt developed-outline-context-hash eltér a
+    kanonikus vázlat SAJÁT, tárolt `developed_outline_meta.context_hash`
+    értékétől (pl. a blueprintet időközben — akár ugyanabból a bemenetből
+    — újragenerálták, és más tartalommal állt elő, vagy az igehely/
+    bibliai szöveg megváltozott). `reference_changed` külön jelzi, ha
+    emellett a tárolt és a jelenlegi igehely is konkrétan eltér — ez egy
+    élesebb, konkrétabb figyelmeztető szöveget indokol.
+
+    Nincs kanonikus tartalom vagy nincs tárolt hash (pl. réges-régi
+    projekt) esetén `stale=False` — ezekben az esetekben nincs elég
+    infó a döntéshez, és a hamis pozitív jelzés rosszabb, mint a csend."""
+    sw = ensure_sermon_workshop_state(session_state)
+    outline = sw.get("developed_outline")
+    outline = outline if isinstance(outline, dict) else {}
+    if not outline.get("movements"):
+        return False, False, "", ""
+
+    meta = sw.get("developed_outline_meta")
+    meta = meta if isinstance(meta, dict) else {}
+    stored_hash = str(meta.get("context_hash") or "").strip()
+    stored_reference = str(meta.get("reference") or "").strip()
+    if not stored_hash:
+        return False, False, stored_reference, ""
+
+    current_context = build_developed_outline_context(session_state)
+    current_reference = current_context.reference
+
+    stale = (
+        not is_blueprint_fresh(session_state)
+        or not current_context.context_hash
+        or current_context.context_hash != stored_hash
+    )
+    reference_changed = bool(
+        stale
+        and stored_reference
+        and current_reference
+        and stored_reference != current_reference
+    )
+    return stale, reference_changed, stored_reference, current_reference
+
+
+def _format_human_timestamp(value: str) -> str:
+    """`datetime.now().isoformat(timespec="seconds")` -> emberileg
+    olvasható formátum. Sikertelen feldolgozásnál a nyers értéket adja
+    vissza — sosem dob kivételt, ez pusztán megjelenítési segédlet."""
+    from datetime import datetime
+
+    try:
+        dt = datetime.fromisoformat(value)
+    except ValueError:
+        return value
+    return dt.strftime("%Y.%m.%d. %H:%M")
+
+
+def _render_developed_outline_canonical_editable() -> None:
+    """A már elfogadott, kanonikus részletes vázlat kézi szerkesztése.
+
+    KIZÁRÓLAG a movementenkénti tartalmi mezők (title/function/
+    main_claim/development/*_support/illustration_direction/
+    application_direction/transition_to_next) szerkeszthetők — a `key`,
+    a `structure_mode`, a `structure_note`, a mozgás-sorrend és a
+    mozgás-darabszám NEM (nincs is hozzá widget). Nincs mozgás
+    hozzáadás/törlés/átrendezés.
+
+    RESET 2E-6a: ha a vázlat upstream szempontból elavult (ld.
+    `_developed_outline_freshness`), egyértelmű `st.warning` jelzi ezt —
+    de a tartalom NEM tűnik el és NEM válik zárolttá: a felhasználó
+    tudatosan dönthet úgy, hogy megtartja és tovább dolgozza a korábbi
+    változatot.
+
+    RESET 2E-6b: a fejléc alatt egy állandó EREDET-caption jelzi, hogy a
+    kanonikus tartalom tisztán AI-eredetű-e, vagy kézzel módosítva —
+    KIZÁRÓLAG a meglévő `developed_outline_meta.manually_updated_at`
+    mezőből származtatva, új state nélkül. Sorrend: cím -> eredet ->
+    stale-warning -> movement-expanderek."""
+    sw = ensure_sermon_workshop_state(st.session_state)
+    outline = sw.get("developed_outline")
+    outline = outline if isinstance(outline, dict) else {}
+    movements = outline.get("movements")
+    movements = movements if isinstance(movements, list) else []
+    if not movements:
+        return
+
+    st.divider()
+    with st.container(border=True, key="sw_flat_outline_canonical"):
+        st.markdown("**Részletes prédikációs munkavázlat**")
+        st.caption("A mezők automatikusan mentődnek, ahogy szerkeszted őket.")
+
+        meta = sw.get("developed_outline_meta")
+        meta = meta if isinstance(meta, dict) else {}
+        manually_updated_at = str(meta.get("manually_updated_at") or "").strip()
+        if manually_updated_at:
+            st.caption(f"Kézzel módosítva: {_format_human_timestamp(manually_updated_at)}.")
+        else:
+            st.caption("AI által generált, még nem szerkesztett vázlat.")
+
+        stale, reference_changed, stored_reference, current_reference = (
+            _developed_outline_freshness(st.session_state)
+        )
+        if reference_changed:
+            st.warning(
+                f"Ez a vázlat még a(z) „{stored_reference}” igehelyhez "
+                f"készült — a jelenlegi igehely már „{current_reference}”. "
+                "A tartalom megmarad, de valószínűleg nem ehhez a "
+                "textushoz illik; érdemes új tervrajzot és új részletes "
+                "vázlatot készíteni."
+            )
+        elif stale:
+            st.warning(
+                "Ez a vázlat egy KORÁBBI tervrajzból készült — az "
+                "igehely, a bibliai szöveg vagy a tervrajz azóta "
+                "megváltozott. A tartalom megmarad és tovább "
+                "szerkesztheted, de érdemes lehet új tervrajzot és/vagy "
+                "új részletes vázlatot készíteni."
+            )
+
+        structure_note = str(outline.get("structure_note") or "").strip()
+        if structure_note:
+            st.caption(structure_note)
+        for index, movement in enumerate(movements):
+            if isinstance(movement, dict):
+                _render_developed_outline_movement_editable(index, movement)
+
+        _render_developed_outline_support_material_expander(movements)
+
+
+def render_flat_developed_outline_section(
+    *, generate_fn: GenerateFn | None = None
+) -> None:
+    """A kétlépcsős vázlatmotor (blueprint -> részletes vázlat) UI-bekötése.
+
+    FINAL SERMON WORKFLOW + OUTLINE PRESENTATION POLISH (2026-08-21): a
+    blueprint (tervrajz) megszűnt user-facing GATE lenni — korábban
+    (RESET 2E-4) a "Részletes vázlat készítése" gomb csak érvényes,
+    KANONIKUS ÉS FRISS blueprintnél volt aktív, és a felhasználónak
+    KÜLÖN, előzetes kattintással kellett elkészítenie a blueprintet. Most
+    egyetlen gombnyomás:
+      1. ha van friss, érvényes kanonikus blueprint -> azt használja,
+         AI-hívás nélkül;
+      2. ha nincs, vagy elavult (`is_blueprint_fresh()` szerint) -> a
+         HÁTTÉRBEN, ugyanabban a kattintásban előbb elkészíti/frissíti
+         (`generate_sermon_blueprint`) — a blueprint MOTORJA (schema,
+         canonical state, hash/freshness-logika, validálás) VÁLTOZATLAN,
+         kizárólag ez az UI-orchestráció bővült;
+      3. ha az automatikus blueprint-generálás sikertelen, a részletes
+         vázlat `generate_developed_outline` hívása EL SEM INDUL — rövid,
+         kulturált hibaüzenet jelenik meg, a pontos ok a szerver-konzol
+         logban (`textus.sermon_workshop` logger) marad;
+      4. sikeres (vagy már eleve friss) blueprint esetén AZONNAL,
+         ugyanabban a kattintásban elindul a részletes vázlat
+         candidate-generálása — nincs második kattintás.
+
+    A `_render_blueprint_status_and_generate_button` (a tervrajz
+    összecsukott, alapértelmezetten rejtett állapot/részletek/
+    figyelmeztetés/kézi-újragenerálás panelje) VÁLTOZATLANUL megmarad —
+    de többé NEM előfeltétele a részletes vázlatnak, tisztán opcionális
+    betekintési/kézi felülbírálási lehetőség marad."""
+    render_work_section(
+        title="Részletes prédikációs munkavázlat",
+        body=(
+            "A hétpontos gondolatívből közvetlenül készül — ha szükséges, "
+            "egy belső igehirdetési tervrajz is automatikusan elkészül a "
+            "háttérben, mielőtt a részletes munkavázlat összeáll."
+        ),
+        context="Igehirdetési műhely",
+    )
+
+    _render_blueprint_status_and_generate_button(generate_fn=generate_fn)
+
+    sw = ensure_sermon_workshop_state(st.session_state)
+    context = build_developed_outline_context(st.session_state)
+    missing = context.missing_required_fields()
+    # KIZÁRÓLAG az igehely/bibliai szöveg hiánya blokkol ténylegesen — ezek
+    # NEM automatizálhatók, a felhasználónak kell megadnia a Textusműhelyben.
+    # A blueprint hiánya/elavultsága önmagában többé NEM blokkoló ok: azt a
+    # gombnyomás automatikusan pótolja (ld. lent).
+    hard_block_reason = ""
+    if "igehely" in missing:
+        hard_block_reason = "missing_reference"
+    elif "bibliai szöveg" in missing:
+        hard_block_reason = "missing_passage_text"
+
+    running = bool(st.session_state.get(_KEY_OUTLINE_GEN_RUNNING))
+    has_canonical = bool((sw.get("developed_outline") or {}).get("movements"))
+    has_pending_candidate = isinstance(sw.get("developed_outline_candidate"), dict)
+    label = (
+        "Részletes vázlat újragenerálása"
+        if has_canonical or has_pending_candidate
+        else "Részletes vázlat készítése"
+    )
+
+    with st.container(border=True):
+        st.markdown("**Részletes vázlat generálása**")
+        if hard_block_reason:
+            st.caption(_DEVELOPED_OUTLINE_BLOCK_MESSAGES[hard_block_reason])
+        if has_pending_candidate:
+            st.caption(
+                "Az újragenerálás lecseréli a lenti, még el nem bírált "
+                "javaslatot — a kanonikus vázlatot nem érinti."
+            )
+        if st.button(
+            label,
+            type="primary",
+            key="sw_flat_outline_generate",
+            disabled=running or generate_fn is None or bool(hard_block_reason),
+        ):
+            if generate_fn is None:
+                st.warning("Az MI-segéd jelenleg nem elérhető.")
+            else:
+                st.session_state[_KEY_OUTLINE_GEN_RUNNING] = True
+                outline_ready = False
+                outcome = None
+                try:
+                    current_context = build_developed_outline_context(
+                        st.session_state
+                    )
+                    blueprint_needs_prep = bool(
+                        current_context.missing_required_fields()
+                    ) or not is_blueprint_fresh(st.session_state)
+
+                    outline_ready = True
+                    if blueprint_needs_prep:
+                        with st.spinner("Igehirdetési tervrajz előkészítése…"):
+                            bp_outcome = generate_sermon_blueprint(
+                                st.session_state, generate_fn=generate_fn
+                            )
+                        if not bp_outcome.ok:
+                            import logging
+
+                            logging.getLogger("textus.sermon_workshop").error(
+                                "auto blueprint generation failed before "
+                                "developed outline (reason=%s): %s",
+                                bp_outcome.reason,
+                                bp_outcome.error_message,
+                            )
+                            st.error(
+                                "Nem sikerült elkészíteni az igehirdetési "
+                                "tervrajzot a részletes vázlathoz. Próbáld "
+                                "újra, vagy nyisd meg fent a tervrajz-"
+                                "panelt kézi generáláshoz."
+                            )
+                            outline_ready = False
+
+                    if outline_ready:
+                        with st.spinner("Részletes munkavázlat készül…"):
+                            outcome = generate_developed_outline(
+                                st.session_state,
+                                generate_fn=generate_fn,
+                                # A globális GEMINI_COOLDOWN_S két
+                                # LOGIKAILAG FÜGGETLEN felhasználói hívás
+                                # közé való — nem az EGYETLEN kattintáson
+                                # belül automatikusan láncolt blueprint+
+                                # vázlat hívás közé. Csak akkor kerüljük
+                                # meg, ha ebben a kattintásban TÉNYLEGESEN
+                                # most készült/frissült a blueprint.
+                                bypass_cooldown=blueprint_needs_prep,
+                            )
+                finally:
+                    st.session_state[_KEY_OUTLINE_GEN_RUNNING] = False
+
+                if outline_ready and outcome is not None:
+                    if not outcome.ok:
+                        if outcome.status == "blocked":
+                            st.warning(
+                                _DEVELOPED_OUTLINE_BLOCK_MESSAGES.get(
+                                    outcome.reason, outcome.error_message
+                                )
+                            )
+                        else:
+                            st.error(outcome.error_message)
+                    else:
+                        _toast_and_rerun(
+                            "Elkészült egy új részletes vázlatjavaslat — nézd "
+                            "át alább."
+                        )
+        if generate_fn is None:
+            st.caption("Az MI-segéd jelenleg nem elérhető.")
+
+    _render_developed_outline_candidate_panel()
+    _render_developed_outline_canonical_editable()
+
+
 def render_sermon_workshop_shell(
     *,
     generate_fn: GenerateFn | None = None,
 ) -> None:
-    """Igehirdetési műhely keret — működő szakaszok + helyőrzők."""
+    """Igehirdetési műhely — egyszerű, lapos, hétpontos szerkesztőfelület.
+
+    RESET 2B (2026-08-18): a korábbi ötlépéses, popover-navigációs
+    munkafolyamat aktív hívási útvonalból leválasztva. A régi függvények
+    (`render_workshop_workflow_nav`, `render_entry_point_section`,
+    `render_gospel_arc_section`, `render_sermon_path_section`,
+    `render_engagement_section`, `render_closing_section`,
+    `render_text_core_and_focus_section`, `render_outline_section` és a
+    hozzájuk tartozó régi section-szintű MI-segédek) megmaradnak legacy
+    kódként, de innen már nem hívódnak.
+
+    RESET 2C (2026-08-19): a „Hétpontos igehirdetési vázlat” szakasz
+    megkapja az egyetlen MI-generáló gombot (`sermon_workshop_arc_ai.
+    generate_seven_point_arc`, candidate-alapú, üres/nem-üres arc szerint
+    applied/candidate döntéssel) — a Word-export egy következő fázisban
+    kerül vissza működőképesen.
+    """
+    st.session_state.pop(_RESYNC_DONE_THIS_RUN, None)
     _apply_sw_ui_resync_if_needed()
-    _apply_pending_adopts_if_needed()
     ensure_sermon_workshop_state(st.session_state)
     ensure_text_workshop_state(st.session_state)
 
@@ -10851,102 +13131,34 @@ def render_sermon_workshop_shell(
         workspace_scope=True,
     )
 
-    _render_shell_context_summary()
+    # A bibliai szöveg a munkaterület szerkezetében, nem külön lebegve.
+    render_bible_text_preview(expanded=False)
 
-    if st.session_state.get(_KEY_ACTIVE_SECTION) not in _SW_SECTION_OPTIONS:
-        legacy = str(st.session_state.get(_KEY_ACTIVE_SECTION) or "")
-        if legacy in ("A prédikáció útja", "Prédikációs mozgások"):
-            st.session_state[_KEY_ACTIVE_SECTION] = "Az igehirdetés útja és mozgásai"
-        elif legacy in (
-            "Lezárás",
-        ):
-            st.session_state[_KEY_ACTIVE_SECTION] = "Lezárás és megérkezés"
-        elif legacy == "Képek, illusztrációk és alkalmazás":
-            st.session_state[_KEY_ACTIVE_SECTION] = "Illusztrációk és aktualizálás"
-        else:
-            st.session_state[_KEY_ACTIVE_SECTION] = _SW_SECTION_OPTIONS[0]
+    st.divider()
+    render_flat_text_and_focus_section(generate_fn=generate_fn)
 
-    from sermon_workshop_outline_ai import assess_outline_readiness
+    st.divider()
+    render_flat_seven_point_outline_section(generate_fn=generate_fn)
 
-    _status_map = sermon_section_statuses(st.session_state)
-    render_workshop_workflow_nav(
-        _SW_SECTION_OPTIONS,
-        key=_KEY_ACTIVE_SECTION,
-        completed=sermon_completed_sections(st.session_state),
-        status_map=_status_map,
-        outline_ready=assess_outline_readiness(st.session_state).ok,
-    )
+    _render_flat_legacy_outline_panel()
 
-    active = st.session_state.get(_KEY_ACTIVE_SECTION) or _SW_SECTION_OPTIONS[0]
-
-    st.markdown('<div class="tx-workcard-anchor" aria-hidden="true"></div>', unsafe_allow_html=True)
-    with st.container(border=True):
-        # A bibliai szöveg a munkaterület szerkezetében, nem külön lebegve.
-        render_bible_text_preview(expanded=False)
-
-        if active == "Az igehirdetés fő gondolata":
-            render_sermon_main_idea_section(generate_fn=generate_fn)
-        elif active == "Emberi helyzet és kegyelmi válasz":
-            render_human_condition_section(generate_fn=generate_fn)
-        elif active == "Hallgatói kérdés és feszültség":
-            render_listener_tension_section(generate_fn=generate_fn)
-        elif active == "Krisztus-központú és evangéliumi ív":
-            render_gospel_arc_section(generate_fn=generate_fn)
-        elif active == "Az igehirdetés útja és mozgásai":
-            render_sermon_path_section(generate_fn=generate_fn)
-        elif active in (
-            "Illusztrációk és aktualizálás",
-            "Képek, illusztrációk és alkalmazás",
-        ):
-            render_enrichment_section(generate_fn=generate_fn)
-        elif active == "Lezárás és megérkezés":
-            render_closing_section(generate_fn=generate_fn)
-        elif active == "Lekciójavaslat":
-            render_lection_section(generate_fn=generate_fn)
-        elif active == "Imádsági előkészítés":
-            render_prayer_section(generate_fn=generate_fn)
-        elif active == "Igehirdetési vázlat":
-            render_outline_section(generate_fn=generate_fn)
-        elif active == "Homiletikai diagnosztika":
-            render_diagnostics_section(generate_fn=generate_fn)
-        else:
-            _render_section_placeholder(active)
-
-        if active not in (
-            "Az igehirdetés fő gondolata",
-            "Emberi helyzet és kegyelmi válasz",
-            "Hallgatói kérdés és feszültség",
-            "Krisztus-központú és evangéliumi ív",
-            "Az igehirdetés útja és mozgásai",
-            "Illusztrációk és aktualizálás",
-            "Képek, illusztrációk és alkalmazás",
-            "Lezárás és megérkezés",
-            "Lekciójavaslat",
-            "Imádsági előkészítés",
-            "Igehirdetési vázlat",
-            "Homiletikai diagnosztika",
-        ):
-            next_hint = _SW_NEXT_HINTS.get(active)
-            if next_hint:
-                st.caption(next_hint)
-        elif active in (
-            "Az igehirdetés fő gondolata",
-            "Lekciójavaslat",
-            "Imádsági előkészítés",
-            "Igehirdetési vázlat",
-        ):
-            st.caption(_SW_NEXT_HINTS[active])
+    st.divider()
+    render_flat_developed_outline_section(generate_fn=generate_fn)
 
 
 __all__ = [
     "render_sermon_workshop_shell",
+    "render_flat_developed_outline_section",
     "flush_sermon_workshop_from_widgets",
+    "render_text_core_and_focus_section",
     "render_sermon_main_idea_section",
     "render_human_condition_section",
     "render_listener_tension_section",
+    "render_entry_point_section",
     "render_gospel_arc_section",
     "render_sermon_path_section",
     "render_enrichment_section",
+    "render_engagement_section",
     "render_closing_section",
     "render_lection_section",
     "render_prayer_section",

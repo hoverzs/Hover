@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 
@@ -37,6 +38,16 @@ def _layer(text: str) -> str:
 
 def _blob(data: dict) -> str:
     return render_structured_outline(data).casefold()
+
+
+def _ok_gen(_prompt=None, **_kwargs) -> str:
+    """Minimális, mindig érvényes AI-válasz-mock — a heurisztikus fallback
+    megszűnése (2026-08-13) óta a `generate_fn=None` eset mindig
+    `ai_unavailable` hibát ad, ezért a sikeres-generálás tesztek innentől
+    egy valódi (mockolt) AI-választ igényelnek."""
+    from tests.test_outline_engine import _jude_good_structured
+
+    return json.dumps(_jude_good_structured(), ensure_ascii=False)
 
 
 def _jude_24_25() -> dict:
@@ -327,7 +338,7 @@ def test_funeral_occasion_shapes_tone_not_textus():
     ensure_sermon_workshop_state(state)
     ready = assess_outline_readiness(state)
     assert ready.ok
-    result = generate_sermon_outline(state, mode="workshop", generate_fn=None)
+    result = generate_sermon_outline(state, mode="workshop", generate_fn=_ok_gen)
     assert result.ok
     content = (result.outline.get("content") or "").casefold()
     opening = (result.outline.get("opening_direction") or "").casefold()
@@ -354,7 +365,7 @@ def test_passage_only_enables_outline_generation():
     }
     ensure_sermon_workshop_state(state)
     assert assess_outline_readiness(state).ok
-    result = generate_sermon_outline(state, mode="quick", generate_fn=None)
+    result = generate_sermon_outline(state, mode="quick", generate_fn=_ok_gen)
     assert result.ok
     assert result.outline.get("schema_version") == SCHEMA_VERSION
     assert result.outline.get("movements") or result.outline.get("content")
@@ -396,7 +407,7 @@ def test_quick_and_workshop_share_canonical_state():
         SERMON_WORKSHOP_KEY: get_default_sermon_workshop(),
     }
     ensure_sermon_workshop_state(state)
-    quick = generate_sermon_outline(state, mode="quick", generate_fn=None)
+    quick = generate_sermon_outline(state, mode="quick", generate_fn=_ok_gen)
     assert quick.ok
     save_sermon_outline(state, quick.outline)
     workshop_view = normalize_sermon_outline(

@@ -54,7 +54,6 @@ _EMAIL_RE = re.compile(r"[^\s@]+@[^\s@]+\.[^\s@]+")
 _MEASUREMENT_ID_RE = re.compile(r"^G-[A-Z0-9]+$", re.IGNORECASE)
 
 _UI_MODE_LABELS = {
-    "quick": "Gyorseszközök",
     "workshop": "Textusműhely",
     "sermon_workshop": "Igehirdetési műhely",
     "settings": "Beállítások",
@@ -344,23 +343,14 @@ def track_app_navigation() -> None:
         import streamlit as st
 
         shell = str(st.session_state.get("shell_panel") or "").strip()
-        mode = str(st.session_state.get("ui_mode") or "quick").strip()
-        if mode not in ("quick", "workshop", "sermon_workshop"):
-            mode = "quick"
+        mode = str(st.session_state.get("ui_mode") or "workshop").strip()
+        if mode not in ("workshop", "sermon_workshop"):
+            mode = "workshop"
 
         if shell == "settings":
             module = "settings"
             page_name = _UI_MODE_LABELS["settings"]
             page_path = "/settings"
-        elif mode == "workshop":
-            module = "workshop"
-            section = str(st.session_state.get("tw_active_section") or "").strip()
-            if section:
-                page_name = f"Textusműhely · {section}"
-                page_path = f"/workshop/{_slug(section)}"
-            else:
-                page_name = _UI_MODE_LABELS["workshop"]
-                page_path = "/workshop"
         elif mode == "sermon_workshop":
             module = "sermon_workshop"
             section = str(st.session_state.get("sw_active_section") or "").strip()
@@ -371,9 +361,9 @@ def track_app_navigation() -> None:
                 page_name = _UI_MODE_LABELS["sermon_workshop"]
                 page_path = "/sermon"
         else:
-            module = "quick"
-            page_name = _UI_MODE_LABELS["quick"]
-            page_path = "/quick"
+            module = "workshop"
+            page_name = _UI_MODE_LABELS["workshop"]
+            page_path = "/workshop"
 
         ss = st.session_state
         prev_module = ss.get(_SS_LAST_MODULE)

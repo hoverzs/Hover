@@ -75,10 +75,20 @@ def ok(cond: bool, msg: str) -> None:
 
 
 def http_jude():
-    html = (FIXTURES / "jud_1.html").read_text(encoding="utf-8")
+    """A ``SzentirasEuApiProvider`` a szentiras.eu API válaszát nyers JSON
+    szövegként várja (ld. ``ruf_bible_service._json_payload`` /
+    ``parse_szentiras_eu_response``) — NEM a régi, szentiras.hu-stílusú,
+    HTML oldalba ágyazott ``<script id="verse-data">`` JSON-t (az a
+    korábbi scraping-alapú providerhez tartozott, ld. ``jud_1.html``, ami
+    innentől csak a valódi RUF-szöveg forrásaként szolgál, a fixture
+    generálásának dokumentációjaként). A ``jud_17_20_api.json`` a jelenlegi
+    API-szerződés (``{"valasz": {"forditas": {...}, "versek": [...]}}``)
+    szerinti, reprezentatív mintaválasz — ugyanazzal a valódi RUF
+    versszöveggel, mint a ``jud_1.html``."""
+    payload = (FIXTURES / "jud_17_20_api.json").read_text(encoding="utf-8")
 
     def _get(url: str, timeout: float = 15.0) -> str:  # noqa: ARG001
-        return html
+        return payload
 
     return _get
 
@@ -165,6 +175,7 @@ def build_jude_state() -> dict:
             "grace_response": "Imában és szeretetben megmaradni.",
         },
     )
+    update_sermon_workshop_section(state, "human_condition_status", "approved")
     # M5
     update_sermon_workshop_section(
         state,
@@ -176,6 +187,7 @@ def build_jude_state() -> dict:
             "promised_resolution": "A Szentlélekben imádkozva Isten szeretetében maradhatunk.",
         },
     )
+    update_sermon_workshop_section(state, "listener_tension_status", "approved")
     # Gospel arc
     update_sermon_workshop_section(
         state,
@@ -187,6 +199,7 @@ def build_jude_state() -> dict:
             "grace_enabled_response": "Szentlélekben imádkozni és a hitben épülni.",
         },
     )
+    update_sermon_workshop_section(state, "christ_centered_arc_status", "approved")
     # M6
     mid1, mid2, mid3 = "mv-a", "mv-b", "mv-c"
     update_sermon_workshop_section(
@@ -199,6 +212,7 @@ def build_jude_state() -> dict:
             "destination": "Megmaradás Isten szeretetében",
         },
     )
+    update_sermon_workshop_section(state, "sermon_path_status", "approved")
     update_sermon_workshop_section(
         state,
         "sermon_movements",
@@ -404,6 +418,48 @@ def build_jude_state() -> dict:
     return state
 
 
+def test_ruf_jude_fetch_succeeds_with_current_api_fixture() -> None:
+    """A RÚF-fixture regresszió (2026-08-04 óta ismert, 2026-08-13-án javítva)
+    ellen — közvetlen, a `build_jude_state()`-től független ellenőrzés
+    (nem a megosztott, modulszintű `errors` listára támaszkodik, hogy a
+    tesztek definíciós sorrendjétől függetlenül is megbízható legyen).
+
+    A `SzentirasEuApiProvider` a szentiras.eu API nyers JSON válaszát várja
+    (ld. `ruf_bible_service._json_payload`); a `http_jude()` fixture-nek
+    ezt a szerződést kell teljesítenie, NEM a régi, HTML-be ágyazott
+    scraping-formátumot."""
+    clear_ruf_cache()
+    result = fetch_ruf_passage("Júd 17–20", http_get=http_jude())
+    assert result.get("success") is True, result.get("error")
+    assert not result.get("error")
+
+    passage = normalize_passage_text(result.get("text"))
+    assert len(passage) > 40, (
+        f"A Júdás passage_text túl rövid/üres ({len(passage)} kar.) — "
+        "a RÚF-fixture valószínűleg nem töltődött be."
+    )
+    # Nem elég, hogy VAN valamilyen szöveg — konkrétan a kért Júd 17–20
+    # tartalmának kell lennie, nem egy hibaüzenet-placeholdernek.
+    assert "nem volt betölthető" not in passage.casefold()
+    assert "szentlélek" in passage.casefold()
+    assert "apostolai" in passage.casefold()
+
+
+def test_ruf_jude_passage_text_actually_loads_not_a_placeholder(state: dict) -> None:
+    """Ugyanaz a garancia, de a teljes `build_jude_state()` láncon
+    keresztül — annak bizonyítására, hogy a betöltött szöveg ténylegesen
+    eljut a projekt-state `passage_text` mezőjéig, nem csak a nyers
+    `fetch_ruf_passage()` válaszban létezik."""
+    passage = state.get("passage_text") or ""
+    assert len(passage) > 40, (
+        f"A Júdás passage_text túl rövid/üres ({len(passage)} kar.) — "
+        "a RÚF-fixture valószínűleg nem töltődött be."
+    )
+    assert "nem volt betölthető" not in passage.casefold()
+    assert "szentlélek" in passage.casefold()
+    assert "apostolai" in passage.casefold()
+
+
 def test_old_project_compat() -> None:
     empty = normalize_sermon_workshop({})
     ok("lection" in empty and "prayer_preparation" in empty, "defaults missing")
@@ -419,6 +475,22 @@ def test_old_project_compat() -> None:
     ok(legacy["lection"]["reference"] == "", "legacy lection empty")
     ok(legacy["prayer_preparation"]["before"]["own_thoughts"] == "", "legacy prayer empty")
     ok(legacy["sermon_main_idea"] == "régi", "legacy idea kept")
+
+    # Régi Textusműhely-projekt (két-műhely refaktor előtti mentés):
+    # nincs text_summary mező, esetleg még "ui_mode": "quick" is szerepel
+    # a mentett (kiszűrt) állapotban — a normalizálás ne dobjon hibát,
+    # és adjon vissza érvényes, alapértelmezett text_summary blokkot.
+    legacy_text_workshop = normalize_text_workshop(
+        {
+            "text_main_idea": "Régi fő gondolat",
+            "text_main_idea_status": "approved",
+            "approved_insights": [{"id": "1", "content": "régi felismerés"}],
+        }
+    )
+    ok("text_summary" in legacy_text_workshop, "text_summary missing after migration")
+    ok(legacy_text_workshop["text_summary"]["status"] == "draft", "text_summary default status")
+    ok(legacy_text_workshop["text_main_idea"] == "Régi fő gondolat", "legacy main idea kept")
+    ok(len(legacy_text_workshop["approved_insights"]) == 1, "legacy insights kept")
 
 
 def test_save_reload_switch(state: dict) -> None:

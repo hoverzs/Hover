@@ -588,13 +588,6 @@ def test_map_call_is_in_igehely_panel_after_overview_button() -> None:
     panel_end = source.index("def render_original_text_panel() -> None:", panel_start)
     panel_source = source[panel_start:panel_end]
 
-    workshop_start = source.index("def render_textus_workshop_shell() -> None:")
-    workshop_end = source.index(
-        'if st.session_state.get("ui_mode") not in ("quick", "workshop", "sermon_workshop"):',
-        workshop_start,
-    )
-    workshop_source = source[workshop_start:workshop_end]
-
     button_index = panel_source.index('"Bibliai háttér összegzése"')
     map_index = panel_source.index("render_current_biblical_map_prototype()")
     overview_result_index = panel_source.index(
@@ -603,7 +596,6 @@ def test_map_call_is_in_igehely_panel_after_overview_button() -> None:
     )
 
     assert button_index < map_index < overview_result_index
-    assert "render_current_biblical_map_prototype()" not in workshop_source
     assert 'st.caption("Bibliai térkép renderpont elérve.")' not in source
     assert "SMART-MAP BIZTOS RENDERPONT ELÉRVE" not in source
     assert source.count("render_current_biblical_map_prototype()") == 2

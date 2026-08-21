@@ -36,6 +36,7 @@ from sermon_workshop_m9_prayer_ai import (
 )
 from sermon_workshop_outline_ai import (
     assemble_sermon_outline,
+    build_outline_from_workshop,
     collect_available_sermon_material,
     outline_has_content,
 )
@@ -198,14 +199,16 @@ def test_css_mainnav_and_prayer_not_conflicting():
     assert "repeat(4, minmax(0, 1fr))" in overlay
 
 def test_project_save_preserves_outline_diag_prayer(session):
-    """Mentés: vázlat + diagnosztika + mindkét imaív megmarad."""
-    outline_result = assemble_sermon_outline(session, synthesize=False, polish=False)
-    assert outline_result.ok
-    save_sermon_outline(session, outline_result.outline, mark_manual_edit=False)
-    assert outline_has_content(outline_result.outline)
+    """Mentés: vázlat + diagnosztika + mindkét imaív megmarad.
+
+    2026-08-13, Fázis 2B: `synthesize=False` megszűnt — a nem-mechanikus
+    SEED-építőt (`build_outline_from_workshop`) közvetlenül használjuk."""
+    outline = build_outline_from_workshop(session)
+    save_sermon_outline(session, outline, mark_manual_edit=False)
+    assert outline_has_content(outline)
 
     diag = run_outline_diagnostics(
-        sermon_outline=outline_result.outline,
+        sermon_outline=outline,
         passage="Júd 17–20",
         sermon_main_idea="Isten megtartja népét.",
         generate_fn=lambda *_a, **_k: json.dumps(
@@ -249,8 +252,6 @@ def test_workshop_mode_switch_and_step_helpers(session):
     assert session["ui_mode"] == "sermon_workshop"
     session["ui_mode"] = "workshop"
     assert session["ui_mode"] == "workshop"
-    session["ui_mode"] = "quick"
-    assert session["ui_mode"] == "quick"
     session["ui_mode"] = "sermon_workshop"
 
     text_done = textus_completed_sections(session)
@@ -272,9 +273,8 @@ def test_outline_material_feeds_prayer_and_diagnostics(session):
     )
     assert bundle.get("text_main_idea") or bundle.get("sermon_main_idea")
 
-    outline_result = assemble_sermon_outline(session, synthesize=False, polish=False)
-    assert outline_result.ok
-    save_sermon_outline(session, outline_result.outline, mark_manual_edit=False)
+    outline = build_outline_from_workshop(session)
+    save_sermon_outline(session, outline, mark_manual_edit=False)
 
     kwargs = _collect_prayer_kwargs()
     assert kwargs.get("passage")
@@ -367,14 +367,14 @@ def test_prayer_modes_quick_and_criteria_and_edit_guard(session):
 
 def test_diagnostics_api_failure_no_fake_success(session):
     """Diagnosztika hálózati hibánál ne adjon hamis sikert."""
-    assemble = assemble_sermon_outline(session, synthesize=False, polish=False)
-    save_sermon_outline(session, assemble.outline, mark_manual_edit=False)
+    outline = build_outline_from_workshop(session)
+    save_sermon_outline(session, outline, mark_manual_edit=False)
 
     def boom(*_a, **_k):
         raise ConnectionError("offline")
 
     result = run_outline_diagnostics(
-        sermon_outline=assemble.outline,
+        sermon_outline=outline,
         passage="Júd 17–20",
         generate_fn=boom,
     )

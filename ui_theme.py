@@ -447,19 +447,19 @@ div.header-logo img.textus-logo-image.main-logo,
     height: 60px !important;
     max-height: 62px !important;
     border-radius: var(--ui-radius-sm) !important;
-    border: 1px solid var(--ui-border) !important;
-    background: rgba(255, 253, 249, 0.96) !important;
+    border: 1px solid rgba(170, 145, 112, 0.55) !important;
+    background: rgba(255, 255, 255, 0.98) !important;
     display: inline-flex !important;
     justify-content: flex-start !important;
     text-align: left !important;
     align-items: center !important;
     padding: 0 12px !important;
-    box-shadow: none !important;
-    font-weight: 550 !important;
+    box-shadow: 0 1px 3px rgba(58, 40, 22, 0.09) !important;
+    font-weight: 600 !important;
     white-space: normal !important;
     line-height: 1.2 !important;
     gap: 9px !important;
-    transition: background 160ms ease, border-color 160ms ease !important;
+    transition: background 160ms ease, border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease !important;
     transform: none !important;
     position: relative !important;
     min-width: 0 !important;
@@ -519,10 +519,10 @@ div.header-logo img.textus-logo-image.main-logo,
 .tx-quick-tools [data-testid="stTab"]:hover,
 .tx-quick-tools-root [data-baseweb="tab"]:hover,
 .tx-quick-tools-root [data-testid="stTab"]:hover {
-    transform: none !important;
-    background: var(--ui-surface-hover) !important;
+    transform: translateY(-1px) !important;
+    background: rgba(232, 238, 247, 0.75) !important;
     border-color: var(--ui-border-active) !important;
-    box-shadow: none !important;
+    box-shadow: 0 4px 10px rgba(58, 40, 22, 0.13) !important;
 }
 
 .st-key-quick_tools_grid [data-baseweb="tab"] [data-testid="stMarkdownContainer"],
@@ -553,10 +553,10 @@ div.header-logo img.textus-logo-image.main-logo,
     white-space: nowrap !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
-    font-size: 0.86rem !important;
+    font-size: 0.89rem !important;
     line-height: 1.2 !important;
     margin: 0 !important;
-    color: var(--ui-text) !important;
+    color: var(--tx-text) !important;
 }
 
 .st-key-quick_tools_grid [data-baseweb="tab"] [data-testid="stIconMaterial"],
@@ -589,10 +589,20 @@ div.header-logo img.textus-logo-image.main-logo,
 .tx-quick-tools [data-testid="stTab"][aria-selected="true"],
 .tx-quick-tools-root [aria-selected="true"][data-baseweb="tab"],
 .tx-quick-tools-root [data-testid="stTab"][aria-selected="true"] {
-    background: var(--ui-surface-active) !important;
-    border-color: var(--ui-border-active) !important;
+    background: rgba(90, 122, 168, 0.16) !important;
+    border-color: rgba(90, 122, 168, 0.55) !important;
     color: var(--tx-primary-deep) !important;
-    box-shadow: none !important;
+    /* Bal oldali accent-sáv — egyértelmű "ez van kiválasztva" jelzés,
+       nem csak a háttérszín-árnyalatra hagyatkozva. */
+    box-shadow: inset 3px 0 0 0 var(--tx-primary), 0 2px 5px rgba(58, 40, 22, 0.1) !important;
+}
+.st-key-quick_tools_grid [aria-selected="true"][data-baseweb="tab"] [data-testid="stMarkdownContainer"] p,
+.st-key-quick_tools_grid [data-testid="stTab"][aria-selected="true"] [data-testid="stMarkdownContainer"] p,
+.tx-quick-tools [aria-selected="true"][data-baseweb="tab"] [data-testid="stMarkdownContainer"] p,
+.tx-quick-tools [data-testid="stTab"][aria-selected="true"] [data-testid="stMarkdownContainer"] p,
+.tx-quick-tools-root [aria-selected="true"][data-baseweb="tab"] [data-testid="stMarkdownContainer"] p,
+.tx-quick-tools-root [data-testid="stTab"][aria-selected="true"] [data-testid="stMarkdownContainer"] p {
+    font-weight: 650 !important;
 }
 
 @media (max-width: 1024px) {
@@ -2562,6 +2572,96 @@ div[data-baseweb="popover"] [data-testid="stPopoverBody"]::-webkit-scrollbar-thu
         padding-right: 0.45rem !important;
         font-size: 0.82rem !important;
     }
+}
+
+/* ===== FINAL UI REFINEMENT — sermon-workshop AI-akciógombok
+   (SCOPED, nem globális, 2026-08-21) =====
+   Alapból a Streamlit "secondary" gomb háttere teljesen átlátszó, a
+   szegélye is csak halványan látszik — a bézs alapszínen ez könnyen
+   "beleolvad" a háttérbe. Ez KIFEJEZETTEN csak a tényleges Igehirdetési
+   műhely AI-akciógombjait célozza a saját `key=`-eik prefixe alapján
+   (`sw_refine_*`: MI-javaslat / pontosítás a hét ponthoz és a két
+   főgondolathoz; `sw_flat_*`: hétpontos ív / tervrajz / részletes vázlat
+   generálása és a candidate elfogadása/elvetése) — NEM minden Streamlit
+   gombra. A vizuális nyelv a már bevált (.st-key-tension_transfer_actions)
+   telt, visszafogott stílust követi: elsődleges = kékes telítésű, erősebb
+   szegély; másodlagos = tompább, de MINDIG jól látható, telt háttér. */
+[class*="st-key-sw_refine_"] button[data-testid="stBaseButton-primary"],
+[class*="st-key-sw_flat_"] button[data-testid="stBaseButton-primary"] {
+    background: rgba(90, 122, 168, 0.16) !important;
+    border: 1px solid rgba(90, 122, 168, 0.45) !important;
+    color: var(--tx-primary-deep) !important;
+    box-shadow: none !important;
+    font-weight: 650 !important;
+}
+[class*="st-key-sw_refine_"] button[data-testid="stBaseButton-primary"]:hover,
+[class*="st-key-sw_flat_"] button[data-testid="stBaseButton-primary"]:hover {
+    background: rgba(90, 122, 168, 0.26) !important;
+    border-color: rgba(90, 122, 168, 0.6) !important;
+}
+[class*="st-key-sw_refine_"] button[data-testid="stBaseButton-primary"]:active,
+[class*="st-key-sw_flat_"] button[data-testid="stBaseButton-primary"]:active {
+    background: rgba(90, 122, 168, 0.32) !important;
+}
+[class*="st-key-sw_refine_"] button[data-testid="stBaseButton-secondary"],
+[class*="st-key-sw_flat_"] button[data-testid="stBaseButton-secondary"] {
+    background: rgba(255, 253, 249, 0.92) !important;
+    border: 1px solid rgba(170, 145, 112, 0.45) !important;
+    color: var(--tx-text) !important;
+    box-shadow: none !important;
+}
+[class*="st-key-sw_refine_"] button[data-testid="stBaseButton-secondary"]:hover,
+[class*="st-key-sw_flat_"] button[data-testid="stBaseButton-secondary"]:hover {
+    background: rgba(232, 238, 247, 0.65) !important;
+    border-color: rgba(90, 122, 168, 0.42) !important;
+    color: var(--tx-primary-deep) !important;
+}
+[class*="st-key-sw_refine_"] button[data-testid="stBaseButton-secondary"]:active,
+[class*="st-key-sw_flat_"] button[data-testid="stBaseButton-secondary"]:active {
+    background: rgba(232, 238, 247, 0.85) !important;
+}
+[class*="st-key-sw_refine_"] button[data-testid="stBaseButton-primary"]:focus-visible,
+[class*="st-key-sw_flat_"] button[data-testid="stBaseButton-primary"]:focus-visible,
+[class*="st-key-sw_refine_"] button[data-testid="stBaseButton-secondary"]:focus-visible,
+[class*="st-key-sw_flat_"] button[data-testid="stBaseButton-secondary"]:focus-visible {
+    outline: 2px solid rgba(90, 122, 168, 0.55) !important;
+    outline-offset: 2px !important;
+}
+[class*="st-key-sw_refine_"] button:disabled,
+[class*="st-key-sw_flat_"] button:disabled {
+    opacity: 0.55 !important;
+}
+
+/* ===== FINAL SERMON WORKFLOW + OUTLINE PRESENTATION POLISH — a
+   részletes vázlat (developed outline) főnézetének sűrítése
+   (SCOPED a `.st-key-sw_flat_outline_canonical` blokkra, 2026-08-21) =====
+   KIZÁRÓLAG a kanonikus részletes vázlat kártyáit célozza — nem az
+   app globális tipográfiáját. A cél sűrűbb, könyvszerűbb, könnyebben
+   pásztázható megjelenés: kisebb függőleges távolság a mozgás-kártyák
+   között, cím/funkció/fő állítás/kibontás/átvezetés mezők között, és
+   a kibontás-textarea sorai között — a betűméret VÁLTOZATLAN marad. */
+.st-key-sw_flat_outline_canonical [data-testid="stVerticalBlock"] {
+    gap: 0.4rem !important;
+}
+.st-key-sw_flat_outline_canonical [data-testid="stElementContainer"] {
+    margin-bottom: 0 !important;
+}
+.st-key-sw_flat_outline_canonical [data-testid="stWidgetLabel"] {
+    margin-bottom: 0.1rem !important;
+    padding-bottom: 0 !important;
+}
+.st-key-sw_flat_outline_canonical [data-testid="stWidgetLabel"] p {
+    margin-bottom: 0 !important;
+    font-size: 0.85rem !important;
+    opacity: 0.85;
+}
+.st-key-sw_flat_outline_canonical textarea,
+.st-key-sw_flat_outline_canonical input[type="text"] {
+    padding: 0.35rem 0.55rem !important;
+    line-height: 1.35 !important;
+}
+[class*="st-key-sw_flat_outline_movement_"] {
+    padding: 0.65rem 0.85rem !important;
 }
 """.strip()
 

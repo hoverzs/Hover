@@ -1,8 +1,10 @@
 """Egyetlen közös igehirdetési-vázlat motor (pulpit_outline_v7).
 
-Mindkét belépési pont (Gyorseszközök → Gyors vázlat, Igehirdetési műhely →
-Igehirdetési vázlat) ezt a modult hívja. Egy kanonikus `movements` séma,
-egy validátor; tömörítés csak 850 szó felett. Az alsó céltartomány soft jelzés.
+Az Igehirdetési műhely „Igehirdetési vázlat” szekciója (az egyetlen
+felhasználói vázlatkészítő belépési pont — a korábbi, párhuzamos
+Textusműhely „Gyors vázlat” felület 2026-08-13-án megszűnt) ezt a modult
+hívja. Egy kanonikus `movements` séma, egy validátor; tömörítés csak 850
+szó felett. Az alsó céltartomány soft jelzés.
 Nem importál app.py / sermon_workshop_ui.py fájlból.
 """
 
@@ -75,6 +77,16 @@ LIMITS = {
     "min_points": 2,
     "max_points": 5,
     "default_points": 3,
+    # 2C.1 (célarchitektúra-terv, 2. fázis, 3. rész): KÜLÖN korlátpár az
+    # élő, body_markdown-alapú beszédegység-szegmentáláshoz
+    # (`_extract_markdown_movements`/`_assess_outline_structure`).
+    # Szándékosan NEM a fenti `min_points`/`max_points` — azok a régi,
+    # 2026-08-07 előtti points[] sémát validálják, amit élő AI-generálás
+    # ma már nem tölt ki; módosításuk visszamenőleg érintené a régi,
+    # mentett vázlatok újravalidálását. Ez a két új kulcs kizárólag az
+    # új, Markdown-alapú szerkezeti ellenőrzésen belül él.
+    "min_speech_units": 2,
+    "max_speech_units": 4,
     # Soft céltartományok (abszolút max mindig 850).
     # Gyakorlatias szószéki jegyzet: kb. 300–500 szó.
     "target_min_words": 300,
@@ -93,8 +105,27 @@ LIMITS = {
 
 # Soft: under_target / too_thin → warning + opcionális enrich; soha nem önálló reject.
 # Compress csak over_absolute_max (>850) / full_sermon_like.
+#
+# 2C.1: a Markdown beszédegység-szegmentálás SZERKEZETI proxy-jelzései
+# (ld. `_assess_outline_structure`). Mindhárom ENRICHABLE — a meglévő
+# AI-repair (`_enrich_markdown`) mindegyiknél kap először esélyt —, de
+# csak `units_not_distinct` marad SOFT is: ha a javítás után is fennmarad,
+# csak figyelmeztetés (a 0.60-as hasonlósági küszöb empirikus, nem elég
+# megbízható kemény elutasításhoz). `too_few_speech_units`/
+# `too_many_speech_units` NEM soft-only: a 2–4 beszédegység valódi
+# kimeneti szerződés — ha a repair után is fennmaradnak, a
+# `generate_sermon_outline()` egy külön, kifejezett ellenőrzése (a
+# beszédegység-szám-blokk) blokkoló, retryable hibává alakítja őket,
+# SOHA nem mechanikus fallbackkel, hanem strukturált `validation_failed`
+# eredménnyel — a korábbi mentett vázlat változatlanul megmarad.
 SOFT_QUALITY_ISSUES = frozenset(
-    {"under_target", "too_thin", "repeated_thematic_triad", "generic_filler"}
+    {
+        "under_target",
+        "too_thin",
+        "repeated_thematic_triad",
+        "generic_filler",
+        "units_not_distinct",
+    }
 )
 ENRICHABLE_ISSUES = frozenset(
     {
@@ -113,6 +144,9 @@ ENRICHABLE_ISSUES = frozenset(
         "repeated_layer_text",
         "repeated_thematic_triad",
         "focus_not_one_sentence",
+        "too_few_speech_units",
+        "too_many_speech_units",
+        "units_not_distinct",
     }
 )
 COMPRESS_TRIGGER_ISSUES = frozenset(
@@ -417,6 +451,63 @@ cím végéhez fűzve (pl. TILOS: "(v. 6-7)", "(3-7. versek)", "**1. Az
 önmegüresítés (v. 6-8)**"). A cím maga (a sorszám + félkövér tartalmi
 cím) SOSEM tartalmaz versszámot.
 
+A FORDULÓPONT-ALAPÚ EXPOZITÍV MODELL — A KANONIKUS FELISMERÉSI ÍV:
+
+Az Igehirdetési műhelyben ez az EGYETLEN homiletikai modell (nem egy a
+választható úttípusok közül). Hét egymásra épülő eleme:
+
+1. BELÉPÉS — kérdés, kép, élethelyzet, tapasztalat vagy közvetlenül a
+   textusból fakadó feszültség, amely bevonja a hallgatót: a textus
+   kérdése valamilyen módon az ő kérdése is.
+2. ALAPHELYZET — a textus saját kiinduló feszültsége: konfliktus, hiány,
+   kérdés, paradoxon, félreértés, emberi helyzet vagy teológiai probléma.
+3. ELSŐ FORDULÓPONT — felismerés, amely módosítja az addigi értelmezést
+   (nem pusztán új információ: megváltozik, ahogyan a hallgató a
+   helyzetet látja).
+4. MÉLYÍTÉS ÉS FOKOZÁS — a kérdés összetettebbé válik, nő a tét; minden
+   új mozzanat tovább viszi a gondolatmenetet (ha egy rész nem mélyíti a
+   kérdést, kitérő, nem tartozik ide).
+5. ÁTÉRTELMEZÉS (OPCIONÁLIS) — csak akkor, ha a jóváhagyott anyag vagy a
+   textus valóban indokolja: a textus nem úgy oldja fel a kérdést,
+   ahogyan ösztönösen várnánk (váratlan fordulat, paradoxon, korrekció).
+   Ha nincs hozzá jóváhagyott tartalom, KIHAGYANDÓ — ne találj ki egyet.
+6. MÁSODIK FORDULÓPONT — a teológiai súlypont: az addigi részletek
+   mélyebb, gyakran krisztológiai/evangéliumi összefüggésben állnak
+   össze; Isten cselekvése kerül az emberi teljesítmény elé.
+7. MEGÉRKEZÉS — nem puszta összefoglalás: hogyan változott meg a kiinduló
+   kérdés értelme, és mit jelent ez a hallgató számára (hitbeli
+   felismerés, reménység, döntés vagy gyakorlati következmény — nem
+   kötelező közvetlen felszólítással zárni).
+
+Rövid alak: Belépés → Alaphelyzet → Első fordulópont → Mélyítés és fokozás
+→ (opcionális Átértelmezés) → Második fordulópont → Megérkezés.
+
+BESZÉDEGYSÉGEK SZÁMA, ÍV ÉS ÁTVEZETÉS:
+A vázlat 2–4, EGYMÁSBÓL KÖVETKEZŐ beszédegységből álljon — a hét elemből
+SZINTETIZÁLVA, nem hét külön címsorként kimásolva. Egy tipikus felosztás
+(nem kötelező forma): 1. egység = Belépés+Alaphelyzet+Első fordulópont,
+2. egység = Mélyítés és fokozás (+ Átértelmezés, ha van), 3. egység =
+Második fordulópont+Megérkezés — de a tényleges egységhatárokat mindig a
+textus és a jóváhagyott anyag indokolja, nem ez a séma. Csak akkor legyen
+3 vagy 4 egység, ha a jóváhagyott anyag valóban külön egységet indokol —
+ne erőltess pluszegységet. Minden beszédegység tartalmazza: rövid, tartalmi
+címet; egy egyértelmű központi állítást (lehetőleg az egység elején); a
+szükséges exegetikai-teológiai anyagot mondatba ágyazva; konkrét hallgatói
+kapcsolódást; és — az utolsó egység kivételével — egy világos ÁTVEZETŐ
+mondatot vagy félmondatot, amely megmutatja, HOGYAN visz tovább a
+gondolatmenet a következő egységbe (ne csak "másodszor" jellegű technikai
+összekötő szót használj, hanem tartalmi hidat).
+TILOS a hét jóváhagyott modellelemet (belépés, alaphelyzet, első
+fordulópont, mélyítés és fokozás, átértelmezés, második fordulópont,
+megérkezés) egy az egyben, egymás mellé rendelt pontokként lemásolni —
+ezek a FELISMERÉSI ÍV vázát adják, nem a végleges tagolást. A
+beszédegységeknek érzékelhetően követniük és megőrizniük kell ezt a
+jóváhagyott felismerési ívet (a belépéstől a megérkezésig, honnan hová jut
+el a hallgató a textus mentén), de a tényleges egységhatárokat a textus és
+a jóváhagyott anyag tartalma indokolja — ne állíts be mesterséges
+fordulópontot vagy átértelmezést olyan helyen, ahol nincs hozzá jóváhagyott
+tartalom.
+
 SZIGORÚAN TILOS:
 - markdown-fejléc szintaxis ("#", "##", "###") bárhol a fő cím során
   kívül,
@@ -461,6 +552,14 @@ _JSON_SHAPE = """\
 
 # Háttéranyag-kulcsok: ha bármelyik érdemi, a promptba kerül kiegészítő kontextusként.
 _BACKGROUND_BUNDLE_KEYS: tuple[str, ...] = (
+    # 2D.1 (adatfolyam-audit): a Bibliai áttekintés (`overview`) korábban
+    # hiányzott ebből a tuple-ből, ezért `extract_outline_background_
+    # material()` sosem engedte át — a bundle tartalmazta, de a motor
+    # promptjáig nem jutott el. Nincs hozzá `_status` társmező (nincs
+    # approval-fogalma az `overview`-nak), ezért nem kerül az
+    # `_APPROVAL_GATED_KEYS` egyik csoportjába sem — ungate-elve megy át,
+    # akárcsak `approved_insights`/`approved_sermon_decisions`.
+    "overview",
     "exegesis",
     "exegesis_status",
     "original_text",
@@ -469,6 +568,13 @@ _BACKGROUND_BUNDLE_KEYS: tuple[str, ...] = (
     "theology_status",
     "history",
     "history_status",
+    # Korrekciós fázis 3.1: korábban hiányzott innen — a Textusösszegzés
+    # (jóváhagyva is) SOSEM jutott el a vázlatmotor promptjáig, mert ez a
+    # tuple nem tartalmazta (ld. audit). Az `actualization` szintén új.
+    "text_summary",
+    "text_summary_status",
+    "actualization",
+    "actualization_status",
     "approved_sermon_decisions",
     "approved_insights",
     "sermon_main_idea",
@@ -479,6 +585,8 @@ _BACKGROUND_BUNDLE_KEYS: tuple[str, ...] = (
     "human_condition_status",
     "listener_tension",
     "listener_tension_status",
+    "entry_point",
+    "entry_point_status",
     "christ_centered_arc",
     "christ_centered_arc_status",
     "sermon_path",
@@ -486,6 +594,10 @@ _BACKGROUND_BUNDLE_KEYS: tuple[str, ...] = (
     "sermon_movements",
     "closing",
     "closing_status",
+    # Elemenként előre jóváhagyott lista (a szűrés a bundle-építéskor,
+    # collect_outline_context_bundle-ben történik) — itt ungate-elve
+    # megy át, mint approved_sermon_decisions/approved_insights.
+    "engagement_elements",
     "user_notes",
     "rapid_evidence",
     "language_notes",
@@ -495,20 +607,95 @@ _BACKGROUND_BUNDLE_KEYS: tuple[str, ...] = (
 # Ezekre a kulcsokra a MEGLÉVŐ session_state-beli draft/approved státusz
 # (a "Jóváhagyom és átadom" gomb) ténylegesen kikényszerítendő — csak
 # approved állapotban kerülnek a vázlatmotor promptjába.
-_APPROVAL_GATED_KEYS: frozenset[str] = frozenset(
+# Korrekciós fázis 3.1 (automatikus/kanonikus forrás-hozzáférés): a korábbi
+# egységes `_APPROVAL_GATED_KEYS` két, eltérő szabályú csoportra vált szét.
+#
+# `_HOMILETICAL_DECISION_KEYS` — igehirdetési DÖNTÉSEK (az Igehirdetési
+# műhely saját szerkesztőfelületei). Ezeknél VÁLTOZATLANUL approval ÉS
+# freshness szükséges — ezt a fázist ez nem érinti (a döntések jóváhagyási
+# mechanizmusa külön kérdés, ld. audit 8. termékszabály).
+_HOMILETICAL_DECISION_KEYS: frozenset[str] = frozenset(
     {
         "sermon_main_idea",
-        "text_main_idea",
         "human_condition",
         "listener_tension",
+        "entry_point",
         "christ_centered_arc",
         "sermon_path",
+        # A mozgások ("A prédikáció íve" első látásváltás / mélyítés
+        # tartalma is részben innen jön) ugyanazon a felületen, ugyanazzal
+        # a gombbal kerülnek jóváhagyásra, mint a sermon_path — a
+        # jóváhagyási állapotukat a bundle-építő (collect_outline_context_
+        # bundle) a sermon_path-éból tükrözi, ezért itt is gate-elve vannak.
+        "sermon_movements",
         "closing",
+    }
+)
+
+# `_CANONICAL_TEXTUS_SOURCE_KEYS` — a Textusműhely háttérforrásai. Ezeknél
+# a jóváhagyás (mezőnkénti "Jóváhagyom és átadom" kattintás) TÖBBÉ NEM
+# feltétel: elég, hogy a tartalom nem üres és az AKTUÁLIS igehelyhez/
+# szöveghez készült (nem "stale" — ld. `_canonical_source_is_usable`).
+# Ez zárja le azt a — a kézi tesztben és az adatfolyam-auditban (ld.
+# TEXTUS_IGEHIRDETESI_MUHELY_ADATFOLYAM_AUDIT.md 4. pont) dokumentált —
+# helyzetet, hogy elkészült exegézis/kortörténet/teológia/eredeti szöveg a
+# külön jóváhagyás elmaradása miatt láthatatlan maradt a vázlatmotor előtt.
+_CANONICAL_TEXTUS_SOURCE_KEYS: frozenset[str] = frozenset(
+    {
+        "text_main_idea",
         "exegesis",
         "theology",
         "history",
         "original_text",
+        "text_summary",
+        "actualization",
     }
+)
+
+# Visszafelé kompatibilis unió — a régi kódrészek (pl. `used_module_ids` a
+# `generate_sermon_outline`-ban) ugyanazt a teljes halmazt kapják, mint
+# korábban; csak a BELSŐ szűrési szabály vált szét kulcscsoportonként.
+_APPROVAL_GATED_KEYS: frozenset[str] = (
+    _HOMILETICAL_DECISION_KEYS | _CANONICAL_TEXTUS_SOURCE_KEYS
+)
+
+# =============================================================================
+# DORMANT / FUTURE-USE — NEM AKTÍV. Célarchitektúra-terv (TEXTUS_
+# EGYSZERUSITETT_IGEHIRDETESI_CELARCHITEKTURA_TERV_2026-08-13.md), 1. fázis.
+#
+# Ez a kulcshalmaz a leendő, egységesített `arc` adatmodellre mutat
+# (ld. sermon_workshop_data.get_default_arc / _ARC_POINT_KEYS — a hét
+# igehirdetési modellpont: entry, starting_point, first_shift, deepening,
+# reinterpretation, second_shift, arrival).
+#
+# EBBEN A FÁZISBAN EZT A HALMAZT SEMMILYEN AKTÍV FÜGGVÉNY NEM HASZNÁLJA.
+# A `_block_is_context_ready`, `extract_outline_background_material`,
+# `_gated_fallback_bundle`, `collect_canonical_source_material`, valamint a
+# `generate_sermon_outline()` VÁLTOZATLANUL, kizárólag a fenti
+# `_HOMILETICAL_DECISION_KEYS` / `_CANONICAL_TEXTUS_SOURCE_KEYS` /
+# `_APPROVAL_GATED_KEYS` szerint működik — ezt a jelen fázis nem módosítja.
+#
+# Az aktiválás (a vázlatmotor forráscsomagjának tényleges bővítése az
+# `arc.*` mezőkkel) egy KÉSŐBBI, külön jóváhagyandó fázis feladata (ld. a
+# tervdokumentum 10. szakasza, Fázis 3).
+# =============================================================================
+_FUTURE_ARC_SOURCE_KEYS: frozenset[str] = frozenset(
+    {
+        "arc.entry",
+        "arc.starting_point",
+        "arc.first_shift",
+        "arc.deepening",
+        "arc.reinterpretation",
+        "arc.second_shift",
+        "arc.arrival",
+    }
+)
+
+# Dormant, jövőbeli egységesített forráskulcs-halmaz — ma még sehol nem
+# hivatkozott. Ld. a fenti figyelmeztetést: NEM váltja ki
+# `_HOMILETICAL_DECISION_KEYS`-t / `_CANONICAL_TEXTUS_SOURCE_KEYS`-t.
+_FUTURE_CANONICAL_SOURCE_KEYS: frozenset[str] = (
+    _CANONICAL_TEXTUS_SOURCE_KEYS | frozenset({"sermon_main_idea"}) | _FUTURE_ARC_SOURCE_KEYS
 )
 
 _GATED_KEY_LABELS: dict[str, str] = {
@@ -516,22 +703,18 @@ _GATED_KEY_LABELS: dict[str, str] = {
     "text_main_idea": "Textus fő gondolata",
     "human_condition": "Emberi állapot / helyzet",
     "listener_tension": "Hallgatói feszültség",
+    "entry_point": "Homiletikai belépési pont",
     "christ_centered_arc": "Krisztus-központú ív",
     "sermon_path": "Igehirdetés útja",
+    "sermon_movements": "Prédikációs mozgások",
     "closing": "Lezárás",
     "exegesis": "Exegézis",
     "theology": "Teológia",
     "history": "Kortörténet",
     "original_text": "Eredeti nyelvi elemzés",
+    "text_summary": "Textusösszegzés",
+    "actualization": "Aktualizálás",
 }
-
-# A 4 fő AI-blokknál (exegesis/theology/history/original_text) a kimaradás
-# okát megkülönböztetjük: "sosem lett jóváhagyva" vs. "a jóváhagyás
-# vissza lett vonva / a tartalom megváltozott azóta" — ez a felhasználói
-# tudatosságot segíti, nem befolyásolja magát a szűrést.
-_NEVER_VS_REVOKED_TRACKED_KEYS: frozenset[str] = frozenset(
-    {"exegesis", "theology", "history", "original_text"}
-)
 
 _CORE_PASSAGE_KEYS: tuple[str, ...] = (
     "passage_reference",
@@ -1006,6 +1189,10 @@ def validate_structured_outline(
         para_count = len([p for p in body.split("\n\n") if len(p) > 120])
         if para_count >= 8 and wc > LIMITS["absolute_max_words"]:
             issues.append("full_sermon_like")
+        # 2C.1: szerkezeti koherencia-proxy — a beszédegységek száma és
+        # megkülönböztethetősége, NEM a felismerési ív szemantikai
+        # ellenőrzése (ld. _assess_outline_structure docstringje).
+        issues.extend(_assess_outline_structure(_extract_markdown_movements(body)))
         return list(dict.fromkeys(issues))
 
     if not data["points"] and not data["focus_sentence"]:
@@ -1610,19 +1797,109 @@ def _block_is_stale(bundle: Mapping[str, Any], base_key: str) -> bool:
 
 def _block_is_approved_and_fresh(bundle: Mapping[str, Any], base_key: str) -> bool:
     """True, ha a blokk approved ÉS (nincs mentett hash VAGY a mentett hash
-    megegyezik az aktuálissal) — azaz ténylegesen felhasználható."""
+    megegyezik az aktuálissal) — azaz ténylegesen felhasználható.
+
+    Kizárólag `_HOMILETICAL_DECISION_KEYS` tagjaira érvényes szabály."""
     if _s(bundle.get(f"{base_key}_status")) != "approved":
         return False
     return not _block_is_stale(bundle, base_key)
 
 
+def _canonical_source_is_stale(bundle: Mapping[str, Any], base_key: str) -> bool:
+    """True, ha a Textusműhely-forráshoz mentett igehely/szöveg-ujjlenyomat
+    ELTÉR az aktuálistól — azaz a tartalom más textushoz készült.
+
+    Jóváhagyási státusztól FÜGGETLEN ellenőrzés (Korrekciós fázis 3.1) — a
+    hash-t a tartalom GENERÁLÁSAKOR/MENTÉSEKOR bélyegzi be a hívó (ld.
+    `app.py::render_section_tab`, `textus_workshop_data.update_text_main_idea`
+    / `update_text_summary_fields`), nem csak jóváhagyáskor. Ha nincs mentett
+    ujjlenyomat (pl. régi projekt, a mechanizmus bevezetése előtti mentés),
+    NEM tekintjük stale-nek — visszafelé-kompatibilitás."""
+    saved_hash = _s(bundle.get(f"{base_key}_approved_context_hash"))
+    if not saved_hash:
+        return False
+    return saved_hash != compute_passage_context_hash(bundle)
+
+
+def _canonical_source_is_usable(bundle: Mapping[str, Any], base_key: str) -> bool:
+    """True, ha a Textusműhely-forrás felhasználható a vázlatmotor
+    kontextusában: van tartalma (a hívó ellenőrzi) és nem stale — a
+    jóváhagyási állapot NEM feltétel."""
+    return not _canonical_source_is_stale(bundle, base_key)
+
+
+def _block_is_context_ready(bundle: Mapping[str, Any], base_key: str) -> bool:
+    """Egyetlen belépési pont mindkét kulcscsoport felhasználhatóság-
+    ellenőrzéséhez — ezt hívja mind a normál (AI) út
+    (`extract_outline_background_material`), mind a fallback út
+    (`_gated_fallback_bundle`), így a kettő garantáltan ugyanazt látja."""
+    if base_key in _HOMILETICAL_DECISION_KEYS:
+        return _block_is_approved_and_fresh(bundle, base_key)
+    if base_key in _CANONICAL_TEXTUS_SOURCE_KEYS:
+        return _canonical_source_is_usable(bundle, base_key)
+    return True
+
+
+def collect_canonical_source_material(bundle: Mapping[str, Any]) -> dict[str, Any]:
+    """Egyetlen kanonikus forrásgyűjtő a Textusműhely háttérforrásaihoz
+    (Korrekciós fázis 3.1 — TEXTUS_IGEHIRDETESI_MUHELY_ADATFOLYAM_AUDIT.md).
+
+    A már összeállított `bundle`-ből (ld. `collect_outline_context_bundle`)
+    strukturáltan adja vissza:
+      - `passage`: igehely, bibliai szöveg, fordítás;
+      - `sources`: a `_CANONICAL_TEXTUS_SOURCE_KEYS` közül azok, amiknek van
+        tartalmuk — mindegyikhez `content`, `origin` ("textusműhely"),
+        `editable_by_user` (mindig True — a felhasználó bármikor felülírhatja)
+        és `current_passage` (a friss/stale ellenőrzés eredménye, ld.
+        `_canonical_source_is_usable`);
+      - `user_notes`: mindig üres lista (RESET 1A-DATA, 2026-08-18 — a
+        korábbi vázlatkosár-jegyzetek forrása leválasztva, ld. lentebb);
+      - `identity`: az aktuális igehely-ujjlenyomat, a stale-ellenőrzés alapja.
+
+    Ezt a struktúrát ma az `extract_outline_background_material` (normál
+    AI-út) és a `_gated_fallback_bundle` (heurisztikus fallback-út) is a
+    `_block_is_context_ready` dispatcheren keresztül, közvetve használja —
+    így mindkét út garantáltan ugyanazt a forráskészletet látja. Önálló
+    hívásra (pl. UI-diagnosztika, "Felhasznált források" panel) is alkalmas.
+    """
+    sources: dict[str, dict[str, Any]] = {}
+    for base_key in sorted(_CANONICAL_TEXTUS_SOURCE_KEYS):
+        value = bundle.get(base_key)
+        if not _background_value_is_usable(value):
+            continue
+        sources[base_key] = {
+            "content": value,
+            "origin": "textusműhely",
+            "editable_by_user": True,
+            "current_passage": _canonical_source_is_usable(bundle, base_key),
+        }
+    return {
+        "passage": {
+            "reference": _s(bundle.get("passage_reference")),
+            "text": _s(bundle.get("passage_text")),
+            "translation": _s(bundle.get("bible_translation")),
+        },
+        "sources": sources,
+        # RESET 1A-DATA: korábban `bundle.get("outline_basket")` — a bundle
+        # többé sosem tartalmaz ilyen kulcsot, ezért ez mindig üres marad.
+        "user_notes": [],
+        "identity": {
+            "passage_reference": _s(bundle.get("passage_reference")),
+            "passage_context_hash": compute_passage_context_hash(bundle),
+        },
+    }
+
+
 def extract_outline_background_material(bundle: Mapping[str, Any]) -> dict[str, Any]:
     """Érdemi háttéranyagok (exegézis, nyelv, kortörténet, műhelydöntések…).
 
-    A `_APPROVAL_GATED_KEYS`-ben szereplő kulcsok csak akkor kerülnek be, ha a
-    hozzájuk tartozó `<kulcs>_status` mező "approved" ÉS a jóváhagyáskori
-    igehely/szöveg-ujjlenyomat (`<kulcs>_approved_context_hash`) megegyezik
-    az aktuálissal (nincs STALE). Minden más kulcs változatlanul megy át.
+    Két szabály érvényesül `base_key` csoportja szerint (`_block_is_context_
+    ready`): a `_HOMILETICAL_DECISION_KEYS` tagjai csak approved+friss
+    állapotban kerülnek be (változatlan, ld. `_block_is_approved_and_fresh`);
+    a `_CANONICAL_TEXTUS_SOURCE_KEYS` (Textusműhely-források) csak friss
+    állapotot igényelnek, jóváhagyás nélkül is bekerülnek (Korrekciós fázis
+    3.1, ld. `collect_canonical_source_material`). Minden más kulcs
+    változatlanul megy át.
     """
     background: dict[str, Any] = {}
     for key in _BACKGROUND_BUNDLE_KEYS:
@@ -1630,7 +1907,7 @@ def extract_outline_background_material(bundle: Mapping[str, Any]) -> dict[str, 
             continue
         base_key = key[: -len("_status")] if key.endswith("_status") else key
         if base_key in _APPROVAL_GATED_KEYS:
-            if not _block_is_approved_and_fresh(bundle, base_key):
+            if not _block_is_context_ready(bundle, base_key):
                 continue
         value = bundle.get(key)
         if _background_value_is_usable(value):
@@ -1638,48 +1915,76 @@ def extract_outline_background_material(bundle: Mapping[str, Any]) -> dict[str, 
     return background
 
 
+def _gated_fallback_bundle(bundle: Mapping[str, Any]) -> dict[str, Any]:
+    """A bundle másolata, amelyben az `_APPROVAL_GATED_KEYS` blokkok
+    KIZÁRÓLAG felhasználható (`_block_is_context_ready`) állapotban maradnak
+    meg — draft/stale/soha jóvá nem hagyott HOMILETIKAI döntés, illetve
+    stale Textusműhely-forrás itt eltávolítódik.
+
+    MEGJEGYZÉS (2026-08-13, célarchitektúra-terv 2. fázis, 2. rész): a
+    korábbi egyetlen hívója, a mechanikus `_heuristic_structured_from_
+    bundle()` megszűnt (nincs többé nem-AI vázlat-fallback) — ez a
+    függvény jelenleg a `generate_sermon_outline()` pipeline-jából NEM
+    hívódik. Megmaradt, mert (a) tesztek közvetlenül ellenőrzik vele a
+    "gated blokkok soha nem szivárognak ki draft/stale állapotban" garanciát
+    (ld. tests/test_canonical_source_collector.py, tests/test_homiletical_
+    model_unification.py, tests/test_sermon_workshop_ui_state_sync.py), és
+    (b) ugyanazt a `_block_is_context_ready` dispatchert használja, mint a
+    normál AI-útvonal `extract_outline_background_material()`-je — tehát
+    továbbra is bizonyítja, hogy egy esetleges jövőbeli "mit látna egy
+    gate-elt nézet" felhasználás garantáltan ugyanazt a forráskészletet
+    kapná. Az összes NEM gated kulcs (igehely, bibliai szöveg, jóváhagyott
+    felismerések/döntések, illusztrációk stb. — ezek saját gate-jükkel már a
+    `collect_outline_context_bundle`-ben szűrve vannak) változatlanul átmegy.
+    """
+    out = dict(bundle)
+    for base_key in _APPROVAL_GATED_KEYS:
+        if base_key not in out:
+            continue
+        if not _block_is_context_ready(bundle, base_key):
+            out.pop(base_key, None)
+            out.pop(f"{base_key}_status", None)
+            out.pop(f"{base_key}_approved_context_hash", None)
+    return out
+
+
 def extract_stale_approved_blocks(bundle: Mapping[str, Any]) -> list[str]:
-    """Mely `_APPROVAL_GATED_KEYS` blokkok voltak jóváhagyva, de az igehely
-    vagy a bibliai szöveg megváltozott azóta — a jóváhagyást újra meg kell
-    erősíteni, mielőtt a vázlatmotor felhasználná őket."""
+    """Mely blokkok tartalma más igehelyhez/szöveghez készült, mint az
+    aktuális — a homiletikai döntéseknél ("_HOMILETICAL_DECISION_KEYS")
+    ez azt jelenti, hogy a jóváhagyást újra meg kell erősíteni; a
+    Textusműhely-forrásoknál ("_CANONICAL_TEXTUS_SOURCE_KEYS", Korrekciós
+    fázis 3.1 óta) jóváhagyás nélkül is figyelmeztető jelzés, hogy a
+    tartalom frissítésre szorulhat, de NEM zárja ki automatikusan — ld.
+    `_block_is_context_ready`."""
     stale: list[str] = []
     for key in _APPROVAL_GATED_KEYS:
         value = bundle.get(key)
         if not _background_value_is_usable(value):
             continue
-        if _block_is_stale(bundle, key):
+        if key in _HOMILETICAL_DECISION_KEYS:
+            is_stale = _block_is_stale(bundle, key)
+        else:
+            is_stale = _canonical_source_is_stale(bundle, key)
+        if is_stale:
             stale.append(_GATED_KEY_LABELS.get(key, key))
     return stale
 
 
 def extract_outline_excluded_draft_blocks(bundle: Mapping[str, Any]) -> list[str]:
-    """Mely `_APPROVAL_GATED_KEYS` blokkoknak van tartalma, de a session_state
-    szerint nincsenek jóváhagyva — ezek maradnak ki emiatt a háttéranyagból."""
+    """Mely `_HOMILETICAL_DECISION_KEYS` blokkoknak van tartalma, de a
+    session_state szerint nincsenek jóváhagyva — ezek maradnak ki emiatt a
+    háttéranyagból. A `_CANONICAL_TEXTUS_SOURCE_KEYS` (Textusműhely-
+    források) a Korrekciós fázis 3.1 óta jóváhagyás nélkül is bekerülnek,
+    ezért itt nem szerepelnek — hiányuk nem "kizárás", legfeljebb hiányzó
+    tartalom (ld. `collect_canonical_source_material`)."""
     excluded: list[str] = []
-    for key in _APPROVAL_GATED_KEYS:
+    for key in _HOMILETICAL_DECISION_KEYS:
         value = bundle.get(key)
         if not _background_value_is_usable(value):
             continue
         if _s(bundle.get(f"{key}_status")) != "approved":
             excluded.append(_GATED_KEY_LABELS.get(key, key))
     return excluded
-
-
-def extract_never_approved_main_blocks(bundle: Mapping[str, Any]) -> list[str]:
-    """A 4 fő AI-blokk (exegézis/teológia/kortörténet/eredeti nyelvi) közül
-    melyik maradt ki úgy a vázlatból, hogy ebben a projektben MÉG SOSEM lett
-    jóváhagyva — megkülönböztetve attól az esettől, amikor a felhasználó
-    korábban jóváhagyta, majd tudatosan visszavonta / új tartalmat mentett."""
-    out: list[str] = []
-    for key in _NEVER_VS_REVOKED_TRACKED_KEYS:
-        value = bundle.get(key)
-        if not _background_value_is_usable(value):
-            continue
-        if _s(bundle.get(f"{key}_status")) == "approved":
-            continue
-        if not bool(bundle.get(f"{key}_ever_approved")):
-            out.append(_GATED_KEY_LABELS.get(key, key))
-    return out
 
 
 def _bundle_has_rich_workshop_material(bundle: Mapping[str, Any]) -> bool:
@@ -1712,14 +2017,16 @@ def build_outline_user_prompt(
     background = extract_outline_background_material(bundle)
     excluded_blocks = extract_outline_excluded_draft_blocks(bundle)
     stale_blocks = extract_stale_approved_blocks(bundle)
-    outline_basket = bundle.get("outline_basket") or []
     has_background = bool(background)
-    has_basket = bool(outline_basket)
 
+    # A korábbi "ÚJ GYORSVÁZLAT" (mode="quick") promptág a Textusműhely
+    # önálló "Gyors vázlat" kártyájához tartozott — az a felület 2026-08-13-
+    # án megszűnt (célarchitektúra-terv, 2. fázis, 1. lépés), az Igehirdetési
+    # vázlat mostantól az EGYETLEN felhasználói vázlatkészítő belépési pont.
+    # A `mode` paraméter csak forrás-jelölésre (source_tag) marad — a prompt
+    # feltétel nélkül a műhely-jegyű utasítást kapja.
+    _ = mode
     task_mode_note = (
-        "ÚJ GYORSVÁZLAT: készíts szószékre kész Markdown prédikációvázlatot."
-        if mode == "quick"
-        else
         "ÚJ MŰHELYVÁZLAT: készíts szószékre kész Markdown prédikációvázlatot; "
         "a lelkész jóváhagyott döntéseit (ha vannak) építsd be szervesen."
     )
@@ -1756,7 +2063,8 @@ def build_outline_user_prompt(
         parts.extend(
             [
                 "",
-                "HÁTTÉRANYAG (exegézis / kortörténet / eredeti nyelv / műhely):",
+                "HÁTTÉRANYAG (Bibliai áttekintés / exegézis / kortörténet / "
+                "eredeti nyelv / műhely):",
                 "Kizárólag erre az anyagra építve szervezd a vázlatot — ne "
                 "végezz önálló elemzést azon a részterületen, ahol van adat.",
                 wrap_untrusted_content(
@@ -1817,18 +2125,6 @@ def build_outline_user_prompt(
             ]
         )
 
-    if has_basket:
-        parts.extend(
-            [
-                "",
-                wrap_untrusted_content(
-                    "vázlatkosár",
-                    json.dumps(outline_basket, ensure_ascii=False),
-                    limit_name="basket_total",
-                ),
-            ]
-        )
-
     return "\n".join(p for p in parts if p is not None)
 
 
@@ -1880,6 +2176,116 @@ def _looks_like_markdown_outline(text: str) -> bool:
         return False
     body_after_title = raw[title_m.end():].strip()
     return word_count(body_after_title) >= 30
+
+
+# =============================================================================
+# 2C.1 (célarchitektúra-terv, 2. fázis, 3. rész, 2026-08-13): a generált
+# vázlat SZERKEZETI koherenciájának ellenőrzése — NEM a hét homiletikai
+# modellelem teológiai megvalósulásának szemantikai felismerése. A motor
+# nem állítja és nem is állíthatja, hogy determinisztikusan megítéli, egy
+# beszédegység ténylegesen "Alaphelyzet" vagy "Első fordulópont"-e — csak
+# azt méri, hogy a KIMENET FORMÁJA (hány beszédegység van, egymástól
+# ténylegesen megkülönböztethetőek-e) konzisztens-e azzal, amit egy jól
+# tagolt, a rendszerpromptban leírt szerkezetet követő vázlat mutatna.
+# =============================================================================
+
+_MOVEMENT_HEADING_RE = re.compile(
+    r"^[ \t]*\*\*[ \t]*(\d{1,2})[.)][ \t]*(.+?)[ \t]*\*\*[ \t]*$",
+    re.MULTILINE,
+)
+
+SPEECH_UNIT_DISTINCTNESS_MIN_WORDS = 15
+SPEECH_UNIT_DISTINCTNESS_SIMILARITY_THRESHOLD = 0.60
+
+
+def _extract_markdown_movements(body_markdown: Any) -> list[dict[str, Any]]:
+    """Defenzíven szegmentálja a kanonikus "**N. Cím**" mozgás-címekkel
+    tagolt Markdown vázlattestet beszédegységekre.
+
+    Kizárólag a KÖTELEZŐ FORMA szerinti (ld. OUTLINE_SYSTEM_PROMPT
+    "MOZGÁS-CÍMEK" szakasza), számozott, félkövér, önálló sorban álló
+    mozgás-címeket ismeri fel — NEM keresi és NEM várja el a hét
+    modellelem (Belépés/Alaphelyzet/stb.) nevét vagy pontosan hét
+    egységet; a cím szövege bármi lehet.
+
+    Ha a szöveg nem tartalmaz felismerhető, kötelező formájú címet, üres
+    listát ad vissza — ez NEM hibajelzés. A formai érvényesség (pl. hogy
+    a modell egyáltalán a kért formában válaszolt-e) a MEGLÉVŐ
+    `_has_forbidden_outline_structure`/`_looks_truncated_sentence`
+    ellenőrzések felelőssége, nem ezé a függvényé; ez a függvény sosem
+    dobhat kivételt üres, hiányos vagy hibás Markdownon."""
+    text = (body_markdown or "")
+    if not isinstance(text, str):
+        text = _s(text)
+    text = text.replace("\r\n", "\n").replace("\r", "\n")
+    if not text.strip():
+        return []
+    matches = list(_MOVEMENT_HEADING_RE.finditer(text))
+    if not matches:
+        return []
+    units: list[dict[str, Any]] = []
+    for i, m in enumerate(matches):
+        title = _s(m.group(2))
+        if not title:
+            continue
+        start = m.end()
+        end = matches[i + 1].start() if i + 1 < len(matches) else len(text)
+        unit_body = text[start:end].strip()
+        units.append(
+            {"index": len(units) + 1, "title": title, "body": unit_body}
+        )
+    return units
+
+
+def _speech_unit_word_set(text: Any) -> set[str]:
+    return set(re.findall(r"\w+", _s(text).casefold()))
+
+
+def _assess_outline_structure(units: list[Mapping[str, Any]]) -> list[str]:
+    """Szerkezeti proxy-ellenőrzések a Markdown beszédegységeken.
+
+    KIZÁRÓLAG mennyiségi/formai jelzéseket ad — nem méri, hogy a
+    tartalom ténylegesen követi-e a felismerési ívet. Ha `units` üres
+    (a parser nem talált felismerhető címet), nem ad vissza issue-t: ez
+    NEM azonos azzal, hogy "túl kevés" beszédegység van — egyszerűen
+    nincs elég megbízható jel a szerkezeti ellenőrzéshez, és a formai
+    érvényességet más ellenőrzés felelőssége lefedni."""
+    issues: list[str] = []
+    if not units:
+        return issues
+
+    n = len(units)
+    if n < LIMITS["min_speech_units"]:
+        issues.append("too_few_speech_units")
+    elif n > LIMITS["max_speech_units"]:
+        issues.append("too_many_speech_units")
+
+    # Megkülönböztethetőség: csak akkor hasonlítunk két egységet, ha
+    # mindkettő elér egy minimális hosszt (rövid egységeknél a kis
+    # szókészlet miatt a hasonlósági arány megbízhatatlanul ingadozna),
+    # és csak a NORMALIZÁLT szóhalmazok Jaccard-átfedését nézzük — pár
+    # közös (akár teológiai) szó önmagában alacsony átfedést ad, csak a
+    # nagyfokú, szinte-azonos tartalom éri el a küszöböt.
+    word_sets: list[set[str]] = []
+    for u in units:
+        word_sets.append(_speech_unit_word_set(u.get("body")))
+    for i in range(len(units)):
+        if len(word_sets[i]) < SPEECH_UNIT_DISTINCTNESS_MIN_WORDS:
+            continue
+        for j in range(i + 1, len(units)):
+            if len(word_sets[j]) < SPEECH_UNIT_DISTINCTNESS_MIN_WORDS:
+                continue
+            union = word_sets[i] | word_sets[j]
+            if not union:
+                continue
+            overlap = len(word_sets[i] & word_sets[j]) / len(union)
+            if overlap >= SPEECH_UNIT_DISTINCTNESS_SIMILARITY_THRESHOLD:
+                issues.append("units_not_distinct")
+                break
+        if "units_not_distinct" in issues:
+            break
+
+    return issues
 
 
 def clear_outline_generation_caches(session: MutableMapping[str, Any]) -> None:
@@ -1999,9 +2405,43 @@ INVALID_OUTLINE_MESSAGE = (
     "vázlat nem kerül mentésre."
 )
 
+# 2C.1: a beszédegység-SZÁM (nem a tartalom hossza) miatti elutasítás
+# külön, pontosabb üzenetet kap — ha a javítási kísérlet(ek) után is
+# 1 vagy 5+ felismerhető beszédegység marad.
+SPEECH_UNIT_COUNT_INVALID_MESSAGE = (
+    "A vázlatgenerálás a beszédegységek számában nem érte el a "
+    f"szerkezeti elvárást ({LIMITS['min_speech_units']}–"
+    f"{LIMITS['max_speech_units']} beszédegység) — sem az eredeti, sem a "
+    "javítási kísérlet nem adott ennek megfelelő tagolást. "
+    "Próbáld újra a generálást."
+)
+
 SCHEMA_REFRESH_NOTICE = (
     "Ez a vázlat korábbi sémával készült. Frissíthető az új motorral; "
     "a meglévő szöveg megmarad, amíg újat nem generálsz."
+)
+
+# =============================================================================
+# EGYETLEN GENERÁLÁSI SZERZŐDÉS (célarchitektúra-terv, 2. fázis, 2. rész,
+# 2026-08-13): vázlat KIZÁRÓLAG sikeres AI-szintézisből vagy már meglévő,
+# érvényes mentett vázlatból származhat. Nincs többé mechanikus,
+# versszakaszokra daraboló "álvázlat" — sem `generate_fn=None`, sem sikertelen
+# AI-hívás, sem érvénytelen AI-válasz esetén. Az `OutlineGenerationResult.
+# error_kind` legalább a következő három esetet különbözteti meg (ld. lent a
+# tényleges hozzárendeléseket):
+#   - "ai_unavailable"     — nincs elérhető MI-hívó funkció (generate_fn=None);
+#   - "ai_call_failed"     — az MI-hívás kivételt dobott vagy a szolgáltatás
+#                            explicit hibát jelzett;
+#   - "ai_invalid_response" — az MI válasza csonka, feldolgozhatatlan, vagy a
+#                            biztonsági szűrés elutasította.
+# Emellett a meglévő, egyéb ok=False esetekhez is kapnak error_kind/retryable
+# jelölést (pl. hiányzó bibliai szöveg, nem elég háttéranyag, kézi
+# szerkesztés-ütközés, végső validáció sikertelensége, üres eredmény).
+# =============================================================================
+
+AI_UNAVAILABLE_MESSAGE = (
+    "A vázlat elkészítéséhez MI-generálás szükséges — jelenleg nincs "
+    "elérhető MI-hívó funkció. Mechanikus, versdaraboló álvázlat nem készül."
 )
 
 
@@ -2010,6 +2450,15 @@ class OutlineGenerationResult:
     outline: dict[str, Any] = field(default_factory=empty_sermon_outline)
     ok: bool = True
     error_message: str = ""
+    # Strukturált hibaosztályozás — üres string sikeres generáláskor.
+    # Ismert értékek: "missing_passage", "not_ready", "manual_edit_conflict",
+    # "ai_unavailable", "ai_call_failed", "ai_invalid_response",
+    # "validation_failed", "empty_result".
+    error_kind: str = ""
+    # True, ha a hívó számára érdemes egy változatlan bemenettel újra
+    # próbálkoznia (pl. átmeneti AI-hiba) — False, ha a hiba oka a bemenet
+    # vagy a hívó felelőssége (pl. hiányzó igehely, nincs generate_fn).
+    retryable: bool = False
     warnings: list[str] = field(default_factory=list)
     validation_issues: list[str] = field(default_factory=list)
     source: str = ""
@@ -2025,6 +2474,8 @@ class OutlineGenerationResult:
             "outline": dict(self.outline),
             "ok": self.ok,
             "error_message": self.error_message,
+            "error_kind": self.error_kind,
+            "retryable": self.retryable,
             "warnings": list(self.warnings),
             "overwritten_manual_edit": self.overwritten_manual_edit,
         }
@@ -2149,461 +2600,42 @@ def _call_generate_with_retry(
     return result
 
 
-def _passage_verse_chunks(passage: Any) -> list[tuple[str, str]]:
-    """Számozott RÚF-sorok → (versjelölés, szöveg) párok."""
-    text = _s(passage)
-    if not text:
-        return []
-    chunks: list[tuple[str, str]] = []
-    # A `\.?` a valós RÚF-formátum miatt kell: a betöltött szöveg "6. aki…"
-    # alakú (szám + PONT + szóköz), nem "6 aki…" — a pont nélküli minta soha
-    # nem illeszkedett, ezért ez a függvény korábban mindig az egy-blokkos
-    # "v. —" fallback-ra esett valós, betöltött igeszakasznál, ami a teljes
-    # textus duplikált, szét nem bontott felhasználásához vezetett a
-    # vészmegoldásban (lásd `(v. —a/b)` cím-placeholder is ebből ered).
-    pattern = re.compile(
-        r"(?:^|\n)\s*(\d+)\.?\s+([^\n]+(?:\n(?!\s*\d+\.?\s)[^\n]+)*)",
-        re.MULTILINE,
-    )
-    for match in pattern.finditer(text):
-        num = match.group(1)
-        body = " ".join(match.group(2).split()).strip()
-        if body:
-            chunks.append((f"v. {num}", body))
-    if chunks:
-        return chunks
-    # Nincs számozás: teljes szöveg egy egységként
-    compact = " ".join(text.split()).strip()
-    return [("v. —", compact)] if compact else []
-
-
-def _distinct_layer(preferred: str, *, banned: set[str], fallback: str) -> str:
-    """Réteg szöveg, amely nem ismétli a már használt mondatot.
-
-    Ha `preferred` üres/hiányzik ÉS a `fallback` is már egyszer felhasználva
-    volt (`banned`), a szó szerinti ismétlés helyett — ami a korábbi,
-    ismétlődő sablonmondat hibát okozta — egy sorszámmal megkülönböztetett
-    változatot ad vissza, hogy két pont/réteg SOSE legyen szó szerint azonos."""
-    from sermon_workshop_outline_ai import _usable_text
-
-    candidate = _usable_text(preferred) or fallback
-    if candidate and not candidate.endswith((".", "!", "?")):
-        candidate += "."
-    if _normalize_cmp(candidate) in banned:
-        n = sum(1 for b in banned if b.startswith(_normalize_cmp(fallback)[:20])) + 1
-        candidate = fallback.rstrip(".!?") + f" ({n}. mozgás)."
-    banned.add(_normalize_cmp(candidate))
-    # Minimum minőség: ne legyen félmondat
-    target_min = LIMITS["layer_min_words"]
-    while word_count(candidate) < target_min:
-        candidate = (
-            candidate.rstrip(".!?")
-            + ", a textus saját szavai szerint."
-        )
-        if not candidate.endswith("."):
-            candidate += "."
-        if word_count(candidate) > LIMITS["layer_max_words"]:
-            break
-    candidate = _clip_to_full_sentences(candidate, LIMITS["layer_max_words"])
-    if candidate and not candidate.endswith((".", "!", "?")):
-        candidate += "."
-    return candidate
-
-
-_HTML_TAG_RE = re.compile(r"<[^>]+>")
-
-
-def _strip_html(text: Any) -> str:
-    return _s(_HTML_TAG_RE.sub("", _s(text)))
-
-
-def _heuristic_structured_from_bundle(
-    bundle: Mapping[str, Any],
-    *,
-    seed_outline: Mapping[str, Any] | None = None,
-) -> dict[str, Any]:
-    """Offline / teszt VÉGSŐ MENTŐÖV — háromrétegű szószéki vázlat a
-    rendelkezésre álló anyagból, ha az AI-generálás teljesen sikertelen,
-    VAGY ha a hívó eleve nem ad `generate_fn`-t (pl. Igehirdetési műhely
-    "Vázlat összeállítása a meglévő anyagból" AI nélkül — ez a leggyakoribb
-    éles hívás, nem csak API-hiba esetén fut).
-
-    Szándékosan a RÉGI points/movements sémát adja vissza (nem az új,
-    AI-célú `body_markdown`-t): ez a heurisztika sosem versenyez a
-    kanonikus AI-próza minőségével, és a hívók (workshop-összeállítás,
-    diagnosztika, tesztek) `movements` tömböt várnak. A 2026-08-07 formai
-    átalakítás explicit célja csak a SIKERES AI-válasz formája volt, nem ez
-    a mentőöv.
-
-    HTML-töredékek szűrve (`_strip_html`); az ismétlődő sablonmondat hiba
-    a `_distinct_layer()`-ben lett javítva, nem itt."""
-    from sermon_workshop_outline_ai import _prefer_main_idea, _truncate, _usable_text
-
-    data = empty_structured_outline()
-    data["text_reference"] = _s(bundle.get("passage_reference"))
-    data["title"] = _s(bundle.get("project_title")) or data["text_reference"] or "Vázlat"
-    if word_count(data["title"]) > LIMITS["title_words"]:
-        data["title"] = _clip_to_full_sentences(data["title"], LIMITS["title_words"])
-        if word_count(data["title"]) > LIMITS["title_words"]:
-            data["title"] = " ".join(data["title"].split()[: LIMITS["title_words"]])
-
-    passage = _s(bundle.get("passage_text"))
-    verse_chunks = _passage_verse_chunks(passage)
-
-    focus = _prefer_main_idea(bundle)
-    if not focus and seed_outline:
-        focus = _s(seed_outline.get("main_idea"))
-    if not focus and verse_chunks:
-        lead = _strip_html(verse_chunks[0][1])
-        focus = _clip_to_full_sentences(lead, LIMITS["focus_words"])
-        if len(verse_chunks) > 1 and word_count(focus) < LIMITS["focus_min_words"]:
-            focus = _clip_to_full_sentences(
-                lead + " " + _strip_html(verse_chunks[-1][1]), LIMITS["focus_words"]
-            )
-    data["focus_sentence"] = (
-        _usable_text(focus)
-        or (
-            "A textus Isten megtartó szavát hirdeti a közösség előtt, "
-            "és a hallgatót hitbeli felismerésre és válaszra hívja."
-        )
-    )
-    if (
-        data["focus_sentence"]
-        and word_count(data["focus_sentence"]) >= LIMITS["focus_min_words"]
-        and not data["focus_sentence"].endswith((".", "!", "?"))
-    ):
-        data["focus_sentence"] += "."
-    data["focus_sentence"] = _clip_to_full_sentences(
-        data["focus_sentence"], LIMITS["focus_words"]
-    )
-    if (
-        data["focus_sentence"]
-        and word_count(data["focus_sentence"]) >= LIMITS["focus_min_words"]
-        and not data["focus_sentence"].endswith((".", "!", "?"))
-    ):
-        data["focus_sentence"] += "."
-
-    lt_raw = bundle.get("listener_tension")
-    path_raw = bundle.get("sermon_path")
-    lt = lt_raw if isinstance(lt_raw, dict) else {}
-    path = path_raw if isinstance(path_raw, dict) else {}
-    intro = (
-        _usable_text(path.get("starting_point"))
-        or _usable_text(lt.get("listener_question"))
-        or (
-            (
-                "A betöltött textus saját mozgása nyitja meg a hallgatót. "
-                + (
-                    " ".join(_strip_html(verse_chunks[0][1]).rstrip("….").split()) + "."
-                    if verse_chunks
-                    else ""
-                )
-            ).strip()
-            if verse_chunks
-            else (
-                "A hallgató gyakran a saját bizonytalanságából indul, amikor a textus "
-                "szava elé áll. A kérdés az, milyen emberi feszültség nyitja meg "
-                "természetesen ezt az igeszakaszt a gyülekezet előtt. Innen vezet az út "
-                "a textus saját állítása és mozgása felé, nem általános kegyességi "
-                "közhelyek felé."
-            )
-        )
-    )
-    if not _s(intro):
-        intro = (
-            "A hallgató a betöltött textus elé áll, és a szöveg saját mozgása "
-            "nyitja meg a hallgatást a gyülekezet előtt."
-        )
-    data["introduction_direction"] = _clip_to_full_sentences(
-        _truncate(intro, 700), LIMITS["intro_words"]
-    )
-
-    points: list[dict[str, Any]] = []
-    movements = bundle.get("sermon_movements") if isinstance(bundle.get("sermon_movements"), list) else []
-    insights = [
-        _usable_text(x)
-        for x in (bundle.get("approved_insights") or [])
-        if _usable_text(x)
-    ]
-    decisions = [
-        _usable_text(x)
-        for x in (bundle.get("approved_sermon_decisions") or [])
-        if _usable_text(x)
-    ]
-    exe = _strip_html(_usable_text(bundle.get("exegesis")))
-    original = _strip_html(_usable_text(bundle.get("original_text")))
-    history = _strip_html(_usable_text(bundle.get("history")))
-    used_layers: set[str] = set()
-
-    def _one_layer(text: str, *, fallback: str) -> str:
-        return _distinct_layer(_strip_html(text), banned=used_layers, fallback=fallback)
-
-    if movements:
-        for i, mv in enumerate(movements[: LIMITS["max_points"]], start=1):
-            if not isinstance(mv, dict):
-                continue
-            core = _usable_text(mv.get("core_content")) or _usable_text(
-                mv.get("listener_discovery")
-            )
-            title = _strip_trailing_verse_from_title(
-                _usable_text(mv.get("title")) or f"Pont {i}"
-            )
-            if word_count(title) > LIMITS["point_title_words"]:
-                title = " ".join(title.split()[: LIMITS["point_title_words"]])
-            basis = _usable_text(mv.get("textual_basis")) or _usable_text(
-                mv.get("textual_anchor")
-            )
-            if basis and extract_verse_numbers(basis) and len(basis) > 24:
-                nums = sorted(extract_verse_numbers(basis))
-                if len(nums) == 1:
-                    basis = f"v. {nums[0]}"
-                elif nums:
-                    basis = f"v. {nums[0]}–{nums[-1]}"
-            points.append(
-                {
-                    "title": title,
-                    "verses": basis or "",
-                    "textual_insight": _one_layer(
-                        core or exe or (insights[0] if insights else ""),
-                        fallback=(
-                            "A textus saját szavai és szerkezete rendezik ezt a "
-                            "gondolatot a hallgató előtt."
-                        ),
-                    ),
-                    "theological_emphasis": _one_layer(
-                        _usable_text(mv.get("listener_discovery"))
-                        or (insights[1] if len(insights) > 1 else "")
-                        or original
-                        or exe
-                        or "",
-                        fallback=(
-                            "A teológiai jelentés abban áll, hogy Isten cselekvése "
-                            "hív választ, nem az emberi erőfeszítés."
-                        ),
-                    ),
-                    "listener_movement": _one_layer(
-                        (insights[2] if len(insights) > 2 else "")
-                        or (decisions[0] if decisions else "")
-                        or "",
-                        fallback=(
-                            "A hallgató felismerésre jut arról, hol kell a textus "
-                            "mozgását személyesen komolyan vennie."
-                        ),
-                    ),
-                }
-            )
-    elif verse_chunks:
-        # Textus-alapú mozgások: 2–5 versblokk, ismétlés nélkül
-        def _body_usable(raw_body: str) -> str:
-            text = " ".join(_strip_html(raw_body).split()).strip()
-            if text.endswith(("…", "...")):
-                text = text.rstrip("….").rstrip()
-            if text and not text.endswith((".", "!", "?")):
-                text += "."
-            return text
-
-        units: list[tuple[str, str]] = [
-            (label, _body_usable(body)) for label, body in verse_chunks if _body_usable(body)
-        ]
-        if not units and verse_chunks:
-            # Csonka ellipsis fixture: legalább egy használható egység
-            label, body = verse_chunks[0]
-            units = [(label, _body_usable(body) or "A textus Isten szavát szólítja a hallgatóhoz.")]
-        n = min(max(len(units), 2), LIMITS["max_points"])
-        if len(units) == 1:
-            sents = _split_sentences(units[0][1])
-            if len(sents) >= 2:
-                mid = max(1, len(sents) // 2)
-                units = [
-                    (f"{units[0][0]}a", " ".join(sents[:mid])),
-                    (f"{units[0][0]}b", " ".join(sents[mid:])),
-                ]
-            else:
-                # Egy mondat / egy vers: két különböző mozgás, nem klón
-                body = units[0][1]
-                words = body.split()
-                mid = max(3, len(words) // 2)
-                first = " ".join(words[:mid]).rstrip(".,;:") + "."
-                units = [
-                    (units[0][0], body),
-                    (
-                        units[0][0],
-                        (
-                            "Ugyanez a szakasz a hallgató válaszát is rendezi: "
-                            + first
-                        ),
-                    ),
-                ]
-        if len(units) > n:
-            if n == 2:
-                units = [units[0], units[-1]]
-            else:
-                step = max(1, len(units) // n)
-                picked = [units[i * step] for i in range(n - 1)]
-                picked.append(units[-1])
-                units = picked[:n]
-        # Azonos versjelölés egymás után → második üres / „folytatás”
-        for i in range(1, len(units)):
-            if units[i][0] == units[i - 1][0]:
-                units[i] = (f"{units[i][0]} · folytatás", units[i][1])
-        for i, (verses, body) in enumerate(units):
-            title_words = body.split()[:6]
-            title = " ".join(title_words).rstrip(".,;:")
-            if word_count(title) > LIMITS["point_title_words"]:
-                title = " ".join(title.split()[: LIMITS["point_title_words"]])
-            # Kerüld a cím-klónokat
-            if any(_normalize_cmp(title) == _normalize_cmp(p["title"]) for p in points):
-                title = f"{i + 1}. mozgás — {title}".strip(" —")
-                title = " ".join(title.split()[: LIMITS["point_title_words"]])
-            points.append(
-                {
-                    "title": title or f"{i + 1}. mozgás",
-                    "verses": verses,
-                    "textual_insight": _one_layer(
-                        body,
-                        fallback=(
-                            "A textus saját mozgása bontja ki ezt a pontot a "
-                            "betöltött igeszakasz alapján."
-                        ),
-                    ),
-                    "theological_emphasis": _one_layer(
-                        exe
-                        or original
-                        or (
-                            "Isten cselekvése ebben a szakaszban a textus saját "
-                            f"szavai szerint rendezi a közösség helyzetét: {body}"
-                        ),
-                        fallback=(
-                            "A teológiai hangsúly abban áll, hogy Isten cselekvése "
-                            "rendezi a hallgató helyzetét a textus alapján."
-                        ),
-                    ),
-                    "listener_movement": _one_layer(
-                        history
-                        or (decisions[0] if decisions else "")
-                        or (
-                            "A hallgató e versszó előtt kérdezheti, hol érint "
-                            f"őket személyesen ez: {body}"
-                        ),
-                        fallback=(
-                            "A hallgató így konkrét felismerésre jut anélkül, hogy "
-                            "üres felszólítást kapna."
-                        ),
-                    ),
-                }
-            )
-    else:
-        seeds = insights or decisions or [
-            exe[:220] if exe else "",
-            original[:220] if original else "",
-            data["focus_sentence"],
-        ]
-        seeds = [s for s in seeds if s] or [data["focus_sentence"]]
-        while len(seeds) < 2:
-            seeds.append(
-                "A textus saját mozgása tovább pontosítja a hallgató felismerését."
-            )
-        titles = (
-            "A textus megnyílása",
-            "A központi állítás kibontása",
-            "A hallgatói megérkezés",
-        )
-        loaded = sorted(extract_verse_numbers(bundle.get("passage_text") or ""))
-        count = min(max(len(seeds), 2), 3)
-        if len(loaded) >= count:
-            verse_labels = [f"v. {loaded[min(i, len(loaded)-1)]}" for i in range(count)]
-        else:
-            verse_labels = [""] * count
-        for i in range(count):
-            body = seeds[i % len(seeds)]
-            points.append(
-                {
-                    "title": titles[i] if i < len(titles) else f"{i + 1}. mozgás",
-                    "verses": verse_labels[i],
-                    "textual_insight": _one_layer(
-                        body,
-                        fallback=(
-                            "Ez a gondolat a betöltött igeszakasz saját szavaira épül."
-                        ),
-                    ),
-                    "theological_emphasis": _one_layer(
-                        exe or original or "",
-                        fallback=(
-                            "Isten cselekvése itt rendezi a hallgató konkrét helyzetét."
-                        ),
-                    ),
-                    "listener_movement": _one_layer(
-                        history or "",
-                        fallback=(
-                            "A hallgató konkrét felismerést vihet magával a hétköznapokba."
-                        ),
-                    ),
-                }
-            )
-
-    data["points"] = points[: LIMITS["max_points"]]
-    closing_raw = bundle.get("closing")
-    arc_raw = bundle.get("christ_centered_arc")
-    closing = closing_raw if isinstance(closing_raw, dict) else {}
-    arc = arc_raw if isinstance(arc_raw, dict) else {}
-    if verse_chunks:
-        last_body = _strip_html(verse_chunks[-1][1])
-        default_conc = (
-            "A textus megérkezése: "
-            + _clip_to_full_sentences(last_body, 40)
-            + " Innen vihető tovább a szószéki kibontás."
-        )
-    else:
-        default_conc = (
-            "A hallgató nem új témánál, hanem a textus megérkezésénél áll meg. "
-            "Isten megtartó szeretete hív válaszra a gyülekezet konkrét helyzetében. "
-            "Innen vihető tovább a szószéki kibontás anélkül, hogy záróprédikáció "
-            "születne a vázlatból."
-        )
-    conc = (
-        _usable_text(closing.get("final_discovery"))
-        or _usable_text(arc.get("grace_enabled_response"))
-        or default_conc
-    )
-    data["conclusion_direction"] = _clip_to_full_sentences(
-        _truncate(conc, 700), LIMITS["conclusion_words"]
-    )
-    data["refinement_suggestions"] = []
-    return normalize_structured_outline(data)
-
-
 def _ai_generate_structured(
     bundle: Mapping[str, Any],
     *,
     generate_fn: GenerateFn,
     seed_outline: Mapping[str, Any] | None = None,
     mode: str = "standard",
-) -> tuple[dict[str, Any] | None, list[str], int, str]:
-    """Returns (structured|None, warnings, raw_word_count, markdown_content)."""
+) -> tuple[dict[str, Any] | None, list[str], int, str, str]:
+    """Returns (structured|None, warnings, raw_word_count, markdown_content,
+    error_kind). `error_kind` üres string sikeres válasznál; egyébként
+    "ai_call_failed" (a hívás kivételt dobott, vagy a szolgáltatás explicit
+    hibát jelzett) vagy "ai_invalid_response" (csonka, feldolgozhatatlan,
+    vagy a biztonsági szűrésen elakadt válasz) — ld. AI_UNAVAILABLE_MESSAGE
+    és a hívó `generate_sermon_outline()` egységes szerződését."""
     warnings: list[str] = []
-    _ = seed_outline  # seed csak heurisztikus fallbacknél; az AI önálló vázlatot ír
+    _ = seed_outline  # seed csak a végleges outline metaadat-egyesítésénél kell; az AI önálló vázlatot ír
     prompt = build_outline_user_prompt(bundle, mode=mode)
     try:
         raw = _call_generate(generate_fn, prompt, temperature=0.3, as_json=False)
     except Exception as exc:  # noqa: BLE001
         warnings.append(f"Vázlat AI-hívás sikertelen: {exc}")
-        return None, warnings, 0, ""
+        return None, warnings, 0, "", "ai_call_failed"
     if _is_api_error_text(raw or ""):
         warnings.append("A vázlat AI-válasz hibát jelzett.")
-        return None, warnings, 0, ""
+        return None, warnings, 0, "", "ai_call_failed"
     if (raw or "").strip() == _OUTLINE_INCOMPLETE_SENTINEL:
         logger.warning(
             "outline_ai_truncated schema=%s mode=%s — MAX_TOKENS előtt megszakadt "
-            "válasz, heurisztikus fallbackra váltás",
+            "válasz",
             SCHEMA_VERSION,
             mode,
         )
         warnings.append(
-            "A vázlat AI-válasza félbeszakadt (túllépte a kimeneti korlátot) — "
-            "heurisztikus vázlatot használunk helyette. Próbáld újra a "
-            "generálást."
+            "A vázlat AI-válasza félbeszakadt (túllépte a kimeneti korlátot). "
+            "Próbáld újra a generálást."
         )
-        return None, warnings, 0, ""
+        return None, warnings, 0, "", "ai_invalid_response"
 
     raw_text = (raw or "").strip()
     # Elsődleges: Markdown szószéki vázlat
@@ -2617,7 +2649,7 @@ def _ai_generate_structured(
             md_wc,
             bool(extract_outline_background_material(bundle)),
         )
-        return structured, warnings, md_wc, raw_text
+        return structured, warnings, md_wc, raw_text, ""
 
     # Visszafelé kompatibilitás: JSON válasz
     obj = extract_json_object(raw_text)
@@ -2628,7 +2660,7 @@ def _ai_generate_structured(
             SCHEMA_VERSION,
             word_count(raw_text),
         )
-        return None, warnings, word_count(raw_text), ""
+        return None, warnings, word_count(raw_text), "", "ai_invalid_response"
     cleaned = sanitize_ai_json(
         obj,
         allowed_keys={
@@ -2654,7 +2686,7 @@ def _ai_generate_structured(
     )
     if cleaned is None:
         warnings.append("A vázlat JSON biztonsági szűrése sikertelen.")
-        return None, warnings, word_count(raw_text), ""
+        return None, warnings, word_count(raw_text), "", "ai_invalid_response"
     structured = normalize_structured_outline(cleaned)
     raw_wc = word_count(render_structured_outline(structured))
     logger.info(
@@ -2664,7 +2696,7 @@ def _ai_generate_structured(
         _has_forbidden_keys(obj),
         bool(extract_outline_background_material(bundle)),
     )
-    return structured, warnings, raw_wc, ""
+    return structured, warnings, raw_wc, "", ""
 
 
 def _repair_source_context(bundle: Mapping[str, Any], *, rich: bool = False) -> dict[str, Any]:
@@ -2693,21 +2725,6 @@ def _repair_source_context(bundle: Mapping[str, Any], *, rich: bool = False) -> 
         val = _clip(bundle.get(key), cap)
         if val:
             ctx[key] = val
-    basket = bundle.get("outline_basket") or bundle.get("basket") or []
-    if isinstance(basket, list) and basket:
-        clipped: list[Any] = []
-        for item in basket[:8]:
-            if isinstance(item, Mapping):
-                clipped.append(
-                    {
-                        k: _clip(item.get(k), 240)
-                        for k in ("title", "text", "note", "content", "label")
-                        if _s(item.get(k))
-                    }
-                )
-            else:
-                clipped.append(_clip(item, 240))
-        ctx["outline_basket"] = clipped
     return ctx
 
 
@@ -2927,6 +2944,14 @@ MARKDOWN_ENRICH_INSTRUCTION = (
     "A szöveg EGY folyó, bekezdésekre tagolt gondolatmenet maradjon — NE "
     "válts számozott alcímekre vagy mezőcímkékre (pl. \"Igei fókusz:\"). "
     "Ne ismételd ugyanazt a mondatot más bekezdésben. "
+    "Ha a JELZETT PROBLÉMÁK között \"too_few_speech_units\" szerepel, a "
+    "meglévő beszédegység(ek)et bontsd tovább egy indokolt, tartalmi "
+    "határnál; \"too_many_speech_units\" esetén vonj össze két egymáshoz "
+    "közel álló egységet; \"units_not_distinct\" esetén tedd egyértelműen "
+    "megkülönböztethetővé a túlságosan hasonló beszédegységeket — mindezt "
+    "a rendszerutasítás BESZÉDEGYSÉGEK SZÁMA szakasza szerint (2–4 egység, "
+    "számozott félkövér cím soronként), nem a hét modellelem külön-külön "
+    "kimásolásával. "
     "Add vissza a TELJES, kiegészített vázlatot PONTOSAN ugyanabban a "
     "Markdown formátumban, mint amit kaptál — ne válts JSON-ra vagy más "
     "formátumra, és ne írj magyarázatot a vázlaton kívül."
@@ -2941,6 +2966,10 @@ MARKDOWN_ENRICH_ESCALATION_INSTRUCTION = (
     "megfigyelést — ne általánosságot, ne közhelyet, mondatba ágyazva. "
     "A vázlat homiletikai ívét és a folyó szövegű, tagolatlan formát "
     "őrizd meg — NE válts számozott alcímekre vagy mezőcímkékre. "
+    "Ha a JELZETT PROBLÉMÁK között beszédegység-szám vagy megkülönböztethe"
+    "tőségi jelzés szerepel (too_few_speech_units / too_many_speech_units "
+    "/ units_not_distinct), igazítsd a beszédegység-tagolást a "
+    "rendszerutasítás szerinti 2–4 egységre. "
     "Add vissza a TELJES, kiegészített vázlatot PONTOSAN ugyanabban a "
     "Markdown formátumban, mint amit kaptál — ne válts JSON-ra vagy más "
     "formátumra, és ne írj magyarázatot a vázlaton kívül."
@@ -3139,11 +3168,14 @@ def _rescue_structured_outline(
     warnings: list[str],
     background_texts: list[str] | None = None,
 ) -> tuple[dict[str, Any] | None, list[str]]:
-    """Szigorú AI-bukás után is próbáljunk szószéki jegyzetet adni.
+    """Szigorú AI-bukás után is próbáljunk menteni a MEGLÉVŐ AI-válaszból.
 
-    Először csak akkor tartjuk meg az AI-választ, ha trim után nincs hard hiba.
-    Egyébként textus-alapú heurisztika.
-    """
+    Kizárólag a már megkapott AI-strukturát próbálja programozott
+    tömörítéssel (`_programmatic_trim`) validálhatóvá tenni — ÚJ tartalmat
+    nem generál, és nem esik vissza mechanikus, textus-daraboló
+    heurisztikára. Ha a tömörített AI-válasz sem felel meg, a hívó felé
+    `None`-t ad vissza — ez a `generate_sermon_outline()`-ban egyértelmű,
+    retryable "validation_failed" hibát eredményez, nem áltartalmat."""
     from sermon_workshop_outline_ai import MISSING_PART, outline_to_readable_content
 
     stub_markers = (
@@ -3184,30 +3216,10 @@ def _rescue_structured_outline(
                         warnings.append(soft_tip)
                 return trimmed, warnings
 
-    heuristic = normalize_structured_outline(
-        _heuristic_structured_from_bundle(bundle, seed_outline=seed_outline)
-    )
-    if not _structured_has_min_pulpit_shape(heuristic) or _looks_stub(heuristic):
-        return None, warnings
-    # Nincs background_texts itt: a heurisztika szándékosan a forrásanyagból
-    # (exegézis/kortörténet) emel ki mondatokat végső mentőövként — ezt a
-    # verbatim_source_copy ellenőrzés tévesen elutasítaná.
-    issues = validate_structured_outline(heuristic, passage_text=passage_text)
-    fatal = [i for i in issues if i in _FATAL_OUTLINE_ISSUES]
-    wc = word_count(render_structured_outline(heuristic))
-    if fatal or wc > LIMITS["absolute_max_words"]:
-        return None, warnings
-    tip = (
-        "A modell válasza nem felelt meg a szigorú formának; "
-        "textus-alapú, szószékre vihető jegyzetvázlat készült."
-    )
-    if tip not in warnings:
-        warnings.append(tip)
-    for issue in issues:
-        soft_tip = f"Vázlat finomítható: {issue}"
-        if soft_tip not in warnings:
-            warnings.append(soft_tip)
-    return heuristic, warnings
+    # A tömörített AI-válasz sem érte el a minimális szószéki formát —
+    # nincs mechanikus (nem-AI) mentőöv többé. A hívó "validation_failed"
+    # hibát ad vissza, a korábbi mentett vázlat változatlanul megmarad.
+    return None, warnings
 
 
 def generate_sermon_outline(
@@ -3247,6 +3259,8 @@ def generate_sermon_outline(
             outline=normalize_sermon_outline(sw.get("sermon_outline")),
             ok=False,
             error_message=passage_msg or EMPTY_PROJECT_MESSAGE,
+            error_kind="missing_passage",
+            retryable=False,
             source=source_tag,
         )
 
@@ -3256,6 +3270,8 @@ def generate_sermon_outline(
             outline=normalize_sermon_outline(sw.get("sermon_outline")),
             ok=False,
             error_message=readiness.message or EMPTY_PROJECT_MESSAGE,
+            error_kind="not_ready",
+            retryable=False,
             source=source_tag,
         )
 
@@ -3277,6 +3293,8 @@ def generate_sermon_outline(
                 "A vázlat kézzel szerkesztve van. "
                 "Frissítéshez erősítsd meg a felülírást."
             ),
+            error_kind="manual_edit_conflict",
+            retryable=False,
             source=_s(existing.get("source")) or source_tag,
             overwritten_manual_edit=False,
         )
@@ -3291,17 +3309,12 @@ def generate_sermon_outline(
             + ", ".join(excluded_blocks)
             + ". Hagyd jóvá a megfelelő fülön a „Jóváhagyom és átadom” gombbal."
         )
-    never_approved_main = extract_never_approved_main_blocks(bundle)
-    if never_approved_main:
-        warnings.append(
-            "Ezek a fő elemzési blokkok még sosem lettek jóváhagyva ebben a "
-            "projektben: " + ", ".join(never_approved_main) + "."
-        )
     stale_approved_blocks = extract_stale_approved_blocks(bundle)
     if stale_approved_blocks:
         warnings.append(
             "Ezeknél a blokkoknál megváltozott az igehely vagy a bibliai "
-            "szöveg a jóváhagyás óta, ezért újra jóvá kell hagyni: "
+            "szöveg azóta, hogy a tartalom készült — ellenőrizd vagy "
+            "frissítsd, mielőtt a vázlatmotor felhasználná őket: "
             + ", ".join(stale_approved_blocks) + "."
         )
     background_material = extract_outline_background_material(bundle)
@@ -3349,16 +3362,43 @@ def generate_sermon_outline(
     markdown_content = ""
 
     seed = build_outline_from_workshop(session, sermon_workshop=sw)
-    structured: dict[str, Any] | None = None
 
-    if generate_fn is not None:
-        structured, ai_warnings, raw_wc, markdown_content = _ai_generate_structured(
+    # EGYETLEN generálási szerződés (célarchitektúra-terv, 2. fázis, 2.
+    # rész): vázlat KIZÁRÓLAG sikeres AI-szintézisből vagy a már meglévő,
+    # érvényes mentett vázlatból származhat — mechanikus, versszakaszokra
+    # daraboló "álvázlat" SOHA nem készül, sem generate_fn hiányában, sem
+    # AI-hiba/érvénytelen AI-válasz esetén. A korábbi mentett vázlat (ha
+    # van) mindig érintetlen marad — a hívó ezt kapja vissza `outline`-ként.
+    if generate_fn is None:
+        return OutlineGenerationResult(
+            outline=existing,
+            ok=False,
+            error_message=AI_UNAVAILABLE_MESSAGE + retained_outline_notice,
+            error_kind="ai_unavailable",
+            retryable=False,
+            warnings=warnings,
+            source=source_tag,
+        )
+
+    structured, ai_warnings, raw_wc, markdown_content, ai_error_kind = (
+        _ai_generate_structured(
             bundle, generate_fn=generate_fn, seed_outline=seed, mode=mode
         )
-        warnings.extend(ai_warnings)
+    )
+    warnings.extend(ai_warnings)
     if structured is None:
-        structured = _heuristic_structured_from_bundle(bundle, seed_outline=seed)
-        markdown_content = ""
+        return OutlineGenerationResult(
+            outline=existing,
+            ok=False,
+            error_message=(
+                (ai_warnings[-1] if ai_warnings else INVALID_OUTLINE_MESSAGE)
+                + retained_outline_notice
+            ),
+            error_kind=ai_error_kind or "ai_invalid_response",
+            retryable=True,
+            warnings=warnings,
+            source=source_tag,
+        )
     md_for_escalation = markdown_content
 
     passage_for_validation = bundle.get("passage_text") or ""
@@ -3490,6 +3530,8 @@ def generate_sermon_outline(
                     outline=existing,
                     ok=False,
                     error_message=INVALID_OUTLINE_MESSAGE + retained_outline_notice,
+                    error_kind="validation_failed",
+                    retryable=True,
                     warnings=warnings,
                     validation_issues=issues,
                     source=source_tag,
@@ -3633,6 +3675,8 @@ def generate_sermon_outline(
                     outline=existing,
                     ok=False,
                     error_message=INVALID_OUTLINE_MESSAGE + retained_outline_notice,
+                    error_kind="validation_failed",
+                    retryable=True,
                     warnings=warnings,
                     validation_issues=issues,
                     source=source_tag,
@@ -3654,6 +3698,40 @@ def generate_sermon_outline(
     )
 
     rendered_wc = word_count(render_structured_outline(structured))
+
+    # 2C.1: a beszédegység-SZÁM valódi kimeneti szerződés, nem puszta
+    # minőségi figyelmeztetés. too_few_speech_units/too_many_speech_units
+    # ENRICHABLE (a fenti compress/enrich hurok, amely idáig már lefutott,
+    # megkapta az esélyt a javításra) — de ha a javítás(ok) után is
+    # fennmaradnak, blokkoló, retryable validációs hibává válnak. A
+    # programozott tömörítés/mentőöv (`_rescue_structured_outline`) nem
+    # tudna beszédegységeket szétbontani vagy összevonni, ezért erre a
+    # konkrét hibaosztályra nem is próbálkozunk vele — egyenesen
+    # strukturált hibát adunk, a korábbi mentett vázlat érintetlen marad.
+    speech_unit_count_issues = [
+        i for i in issues if i in ("too_few_speech_units", "too_many_speech_units")
+    ]
+    if speech_unit_count_issues:
+        logger.info(
+            "outline_reject_speech_unit_count schema=%s issues=%s rendered_words=%s",
+            SCHEMA_VERSION,
+            speech_unit_count_issues,
+            rendered_wc,
+        )
+        return OutlineGenerationResult(
+            outline=existing,
+            ok=False,
+            error_message=SPEECH_UNIT_COUNT_INVALID_MESSAGE + retained_outline_notice,
+            error_kind="validation_failed",
+            retryable=True,
+            warnings=warnings,
+            validation_issues=issues,
+            source=source_tag,
+            compressed=compressed,
+            enriched=enriched,
+            raw_word_count=raw_wc,
+            rendered_word_count=rendered_wc,
+        )
 
     # Soft quality flags (too_thin / under_target) → warning, keep if otherwise valid
     for soft in _soft_final_issues(issues):
@@ -3693,6 +3771,8 @@ def generate_sermon_outline(
                 outline=existing,
                 ok=False,
                 error_message=INVALID_OUTLINE_MESSAGE + retained_outline_notice,
+                error_kind="validation_failed",
+                retryable=True,
                 warnings=warnings,
                 validation_issues=issues,
                 source=source_tag,
@@ -3717,40 +3797,9 @@ def generate_sermon_outline(
                 if tip not in warnings:
                     warnings.append(tip)
 
-    # Offline heuristic: only hard-block catastrophic failures
-    if generate_fn is None and issues:
-        structured = _programmatic_trim(structured)
-        issues = validate_structured_outline(
-            structured, passage_text=passage_for_validation, background_texts=background_texts
-        )
-        fatal = [
-            i
-            for i in issues
-            if i
-            in {
-                "over_absolute_max",
-                "too_few_points",
-                "missing_focus",
-                "missing_conclusion",
-                "full_sermon_like",
-            }
-        ]
-        if fatal or word_count(render_structured_outline(structured)) > LIMITS[
-            "absolute_max_words"
-        ]:
-            return OutlineGenerationResult(
-                outline=existing,
-                ok=False,
-                error_message=INVALID_OUTLINE_MESSAGE,
-                warnings=warnings,
-                validation_issues=issues,
-                source=source_tag,
-            )
-        # Non-fatal offline leftovers (incl. too_thin) → warnings only
-        for issue in issues:
-            tip = f"Vázlat finomítható: {issue}"
-            if tip not in warnings:
-                warnings.append(tip)
+    # (A korábbi "offline heurisztika" ág itt megszűnt — generate_fn ezen a
+    # ponton már garantáltan nem None, mert a függvény korábban, az AI-hívás
+    # előtt visszatér, ha nincs generate_fn. Ld. AI_UNAVAILABLE_MESSAGE.)
 
     outline = structured_to_sermon_outline(
         structured,
@@ -3773,17 +3822,13 @@ def generate_sermon_outline(
     outline["source_fingerprint"] = ctx_hash
     outline["used_module_ids"] = used_module_ids
     outline["source_sections"] = list(bundle.get("source_keys") or [])
-    if generate_fn is None and "sermon_movements" not in (bundle.get("source_keys") or []):
-        outline["provisional_sections"] = ["sermon_movements"]
-        from sermon_workshop_outline_ai import PROVISIONAL_NOTICE
-
-        if PROVISIONAL_NOTICE not in warnings:
-            warnings.append(PROVISIONAL_NOTICE)
     if not outline_has_content(outline):
         return OutlineGenerationResult(
             outline=existing,
             ok=False,
             error_message=EMPTY_PROJECT_MESSAGE,
+            error_kind="empty_result",
+            retryable=True,
             warnings=warnings,
             validation_issues=issues,
             source=source_tag,
@@ -3816,6 +3861,7 @@ def generate_sermon_outline(
 
 
 __all__ = [
+    "AI_UNAVAILABLE_MESSAGE",
     "COMPRESS_INSTRUCTION",
     "COMPRESS_TRIGGER_ISSUES",
     "ENRICH_INSTRUCTION",

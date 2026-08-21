@@ -44,6 +44,10 @@ MAX_PASSAGE_CHARS = 3200
 MAX_EXEGESIS_CHARS = 1600
 MAX_THEOLOGY_CHARS = 1200
 MAX_HISTORY_CHARS = 800
+MAX_ACTUALIZATION_CHARS = 1200
+# 2D.1: „Bibliai áttekintés” (Igehely fül, `overview`) — általános,
+# első tájékozódási anyag; hasonló terjedelmi kategória, mint a teológia.
+MAX_OVERVIEW_CHARS = 1200
 MAX_INSIGHTS = 8
 MAX_BASKET_ITEMS = 12
 MAX_BASKET_ITEM_CHARS = 700
@@ -396,9 +400,11 @@ def _has_curated_material(
     projekteknél a mentett adatban nincs ilyen mező — ott a `{key}` maga
     (ami mindig is mentve volt) az egyetlen retroaktív jel, hogy a
     felhasználó valóban dolgozott a textussal, nem csak beírta az igehelyet.
+
+    RESET 1A-DATA (2026-08-18): a Vázlatkosár jelenléte korábban önmagában
+    elegendő jel volt a kurátori kapuhoz — ez megszűnt, mert a Vázlatkosár
+    többé nem befolyásolhatja a vázlatgenerálás engedélyezését.
     """
-    if isinstance(session_state.get("basket"), list) and session_state.get("basket"):
-        return True
     if _s(tw.get("text_main_idea")):
         return True
     if _approved_insights_texts(tw):
@@ -570,6 +576,20 @@ def collect_outline_context_bundle(
     passage_text = _truncate(
         _session_str(session_state, "passage_text"), MAX_PASSAGE_CHARS
     )
+    if not passage_text:
+        # A `_truncate`/`_clean_source_text` csonka-AI-válasz heurisztikája
+        # ("…"/"..." végű, lezáratlan mondat) néha a nyers, kézzel beillesztett
+        # vagy tesztfixtúra-szöveget is eldobja, ha az ilyen jellel végződik.
+        # Korrekciós fázis 3.1 előtt ezt csak a `generate_sermon_outline`
+        # (sermon_outline_engine.py) pótolta utólag, kizárólag a saját
+        # bundle-jén — emiatt a `build_outline_from_workshop` (más bundle-t
+        # épít) és a `generate_sermon_outline` eltérő passage_text-et,
+        # ezáltal eltérő igehely-ujjlenyomatot látott ugyanahhoz a
+        # projekthez. Itt, a kanonikus forrásnál pótoljuk, hogy MINDEN hívó
+        # (normál út, fallback, diagnosztika) ugyanazt lássa.
+        raw_passage = _session_str(session_state, "passage_text", "passage_text_input")
+        if raw_passage:
+            passage_text = _truncate(raw_passage, MAX_PASSAGE_CHARS) or raw_passage
     if passage_text:
         bundle["passage_text"] = passage_text
         keys.append("passage_text")
@@ -604,10 +624,51 @@ def collect_outline_context_bundle(
         bundle["approved_sermon_decisions"] = decisions
         keys.append("approved_sermon_decisions")
 
-    basket_items = _outline_basket_items(session_state)
-    if basket_items:
-        bundle["outline_basket"] = basket_items
-        keys.append("outline_basket")
+    # RESET 1A-DATA (2026-08-18): a Vázlatkosár ("basket") KISZÁNDÉKOSAN
+    # nem kerül be a bundle-be — sem `outline_basket` kulcsként, sem a
+    # `source_keys` listában. A projektadat (`session_state["basket"]`)
+    # megmarad mentés/visszatöltés után, de innentől nincs aktív olvasója.
+
+    # Bibliai áttekintés (Igehely fül, `overview`) — általános, első
+    # tájékozódási anyag. 2D.1 (adatfolyam-audit): korábban ez a mező
+    # SOSEM került be ebbe a bundle-be, ezért a vázlatmotor promptjáig
+    # sem jutott el, holott mentés/projekt-újratöltés után is megmarad
+    # (`workspace_data.WORKSPACE_STR_KEYS`). Nincs hozzá approval-fogalom
+    # (nincs `overview_status` mező sehol a felületen) — a puszta,
+    # nem-üres tartalom elég, hogy automatikusan felhasználható legyen.
+    overview_text = _truncate(
+        _session_str(session_state, "overview"), MAX_OVERVIEW_CHARS
+    )
+    if overview_text:
+        bundle["overview"] = overview_text
+        keys.append("overview")
+
+    # Textusösszegzés (Textusműhely) — ha van tartalma, KIEGÉSZÍTŐ
+    # kontextusként kerül be, a nyers exegesis/theology/history/
+    # original_text mezők MELLETT, nem helyettük. 2D.1 (adatfolyam-audit,
+    # bizonyított hiba): korábban az `if summary_fields: ... else: ...`
+    # kizárólagos elágazás a text_summary bármely (akár csak a
+    # jóváhagyott fő gondolatból automatikusan átmásolt `main_idea`)
+    # mezőjének jelenlétekor TELJESEN KIHAGYTA a négy részletes,
+    # jóváhagyott kutatási forrást a bundle-ből — ezt szünteti meg ez a
+    # javítás: mindkét ág feltétel nélkül, additívan fut.
+    text_summary = tw.get("text_summary") if isinstance(tw.get("text_summary"), dict) else {}
+    summary_fields = {
+        "main_idea": _s(text_summary.get("main_idea")),
+        "base_tension": _s(text_summary.get("base_tension")),
+        "key_exegetical_findings": _s(text_summary.get("key_exegetical_findings")),
+        "theological_emphases": _s(text_summary.get("theological_emphases")),
+        "genre_structure_notes": _s(text_summary.get("genre_structure_notes")),
+    }
+    summary_fields = {k: v for k, v in summary_fields.items() if v}
+
+    if summary_fields:
+        bundle["text_summary"] = summary_fields
+        bundle["text_summary_status"] = _s(text_summary.get("status")) or "draft"
+        bundle["text_summary_approved_context_hash"] = _s(
+            text_summary.get("approved_context_hash")
+        )
+        keys.append("text_summary")
 
     for field_name, limit, session_key in (
         ("exegesis", MAX_EXEGESIS_CHARS, "exegesis"),
@@ -630,10 +691,29 @@ def collect_outline_context_bundle(
             keys.append(field_name)
             keys.append(f"{field_name}_status")
 
+    # Aktualizálás — a Textusműhely önálló, nem exegetikai forrása; a
+    # Textusösszegzéstől függetlenül mindig bekerül, ha van tartalma
+    # (Korrekciós fázis 3.1: korábban egyáltalán nem jutott el a
+    # vázlatmotorig, mert hiányzott ebből a bundle-építő ciklusból).
+    actualization_text = _truncate(
+        _session_str(session_state, "actualization"), MAX_ACTUALIZATION_CHARS
+    )
+    if actualization_text:
+        bundle["actualization"] = actualization_text
+        bundle["actualization_status"] = (
+            _s(session_state.get("actualization_status")) or "draft"
+        )
+        bundle["actualization_approved_context_hash"] = _s(
+            session_state.get("actualization_approved_context_hash")
+        )
+        keys.append("actualization")
+        keys.append("actualization_status")
+
     # Ne küldjük a nyers MI-alternatívákat / elutasított javaslatokat
     for block_key in (
         "human_condition",
         "listener_tension",
+        "entry_point",
         "christ_centered_arc",
         "sermon_path",
         "closing",
@@ -665,20 +745,48 @@ def collect_outline_context_bundle(
                 }
             )
         bundle["sermon_movements"] = compact_mvs
+        # A mozgásokat ugyanazon a felületen, ugyanazzal a gombbal hagyja
+        # jóvá a felhasználó, mint a sermon_path-ot ("A prédikáció íve" /
+        # "Jóváhagyom és átadom") — ezért a jóváhagyási állapotukat is a
+        # sermon_path-éval osztják meg, hogy a vázlatmotor approval-gate-je
+        # (_APPROVAL_GATED_KEYS) rájuk is érvényesüljön.
+        bundle["sermon_movements_status"] = _s(sw.get("sermon_path_status")) or "draft"
+        bundle["sermon_movements_approved_context_hash"] = _s(
+            sw.get("sermon_path_approved_context_hash")
+        )
         keys.append("sermon_movements")
 
-    images = normalize_textual_images(sw.get("selected_images"))
-    illustrations = normalize_illustrations(sw.get("illustrations"))
-    applications = normalize_applications(sw.get("applications"))
-    if images:
-        bundle["selected_images"] = images
-        keys.append("selected_images")
-    if illustrations:
-        bundle["illustrations"] = illustrations
-        keys.append("illustrations")
-    if applications:
-        bundle["applications"] = applications
-        keys.append("applications")
+    # Régi "Illusztrációk és aktualizálás" tartalom — csak akkor kerül a
+    # vázlat kontextusába, ha a szakasz jóváhagyva lett (enrichment_status).
+    # Nem jóváhagyott illusztráció/aktualizálás ne szivárogjon be
+    # automatikusan a vázlat promptjába (Korrekciós fázis 2B).
+    if _s(sw.get("enrichment_status")) == "approved":
+        images = normalize_textual_images(sw.get("selected_images"))
+        illustrations = normalize_illustrations(sw.get("illustrations"))
+        applications = normalize_applications(sw.get("applications"))
+        if images:
+            bundle["selected_images"] = images
+            keys.append("selected_images")
+        if illustrations:
+            bundle["illustrations"] = illustrations
+            keys.append("illustrations")
+        if applications:
+            bundle["applications"] = applications
+            keys.append("applications")
+
+    # Megszólítás és bevonás — kizárólag EGYENKÉNT jóváhagyott elemek
+    # kerülhetnek a vázlat kontextusába (nem blokk-szintű, hanem
+    # elemenkénti jóváhagyás; ld. render_engagement_section).
+    engagement_approved = [
+        {"type": _s(item.get("type")), "text": _s(item.get("text"))}
+        for item in (sw.get("engagement_elements") or [])
+        if isinstance(item, dict)
+        and _s(item.get("status")) == "approved"
+        and _s(item.get("text"))
+    ]
+    if engagement_approved:
+        bundle["engagement_elements"] = engagement_approved
+        keys.append("engagement_elements")
 
     lection = sw.get("lection") if isinstance(sw.get("lection"), dict) else {}
     if _s(lection.get("reference")):
@@ -863,10 +971,21 @@ def build_outline_from_workshop(
     *,
     sermon_workshop: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """Műhelyanyag → vázlat. Nem módosít sessiont / forrásmezőket."""
+    """Műhelyanyag → vázlat. Nem módosít sessiont / forrásmezőket.
+
+    A fallback (AI-hívás nélküli / heurisztikus) vázlatépítéshez ez a
+    függvény is csak jóváhagyott-és-friss `_APPROVAL_GATED_KEYS` tartalmat
+    használhat — a `_gated_fallback_bundle()` szűri ki a draft/stale/soha
+    jóvá nem hagyott blokkokat, mielőtt bármi felhasználásra kerülne,
+    ugyanúgy, ahogy a normál (AI-generálásos) útvonal is csak jóváhagyott
+    háttéranyagot kap (`extract_outline_background_material`).
+    """
+    from sermon_outline_engine import _gated_fallback_bundle
+
     bundle = collect_outline_context_bundle(
         session_state, sermon_workshop=sermon_workshop
     )
+    bundle = _gated_fallback_bundle(bundle)
     sw = bundle.get("_sw") if isinstance(bundle.get("_sw"), dict) else {}
     outline = empty_sermon_outline()
     sources: list[str] = list(bundle.get("source_keys") or [])
@@ -1929,6 +2048,10 @@ class OutlineAssemblyResult:
     outline: dict[str, Any] = field(default_factory=empty_sermon_outline)
     ok: bool = True
     error_message: str = ""
+    # A sermon_outline_engine.OutlineGenerationResult egységes hibaosztályo-
+    # zásának továbbadása — ld. ott a lehetséges értékek dokumentációját.
+    error_kind: str = ""
+    retryable: bool = False
     warnings: list[str] = field(default_factory=list)
     overwritten_manual_edit: bool = False
 
@@ -1937,6 +2060,8 @@ class OutlineAssemblyResult:
             "outline": dict(self.outline),
             "ok": self.ok,
             "error_message": self.error_message,
+            "error_kind": self.error_kind,
+            "retryable": self.retryable,
             "warnings": list(self.warnings),
             "overwritten_manual_edit": self.overwritten_manual_edit,
         }
@@ -2302,32 +2427,31 @@ def assemble_sermon_outline(
     generate_fn: GenerateFn | None = None,
     force_overwrite: bool = False,
     polish: bool = False,
-    synthesize: bool = True,
     mode: str = "workshop",
 ) -> OutlineAssemblyResult:
     """Összeállítja a vázlatot — egyetlen közös motor (`sermon_outline_engine`).
 
-    A `polish` / `synthesize` flag-ek visszafelé kompatibilisek; a generálás
-    mindig a közös JSON sémán és hard validáción megy keresztül.
+    EGYETLEN generálási szerződés (célarchitektúra-terv, 2. fázis, 2. rész,
+    2026-08-13): ha `generate_fn` `None`, a motor NEM készít mechanikus,
+    versdaraboló álvázlatot — `ok=False`, `error_kind="ai_unavailable"`
+    eredményt ad, és a korábbi mentett vázlat (ha van) változatlanul
+    megmarad az `outline` mezőben. A korábbi `synthesize` paraméter (ami a
+    mára megszűnt heurisztikus fallback kényszerítésére szolgált) megszűnt —
+    nincs többé "szintetizáljak vagy sem" választás, csak "van generate_fn
+    vagy nincs".
     """
     from sermon_outline_engine import generate_sermon_outline
 
     ensure_sermon_workshop_state(session_state)
-    # synthesize=False + generate_fn=None: deterministic heuristic only (tests)
-    use_fn = generate_fn if synthesize else None
-    if not synthesize and generate_fn is not None and polish:
-        use_fn = generate_fn
-    # When synthesize=False we still want heuristic structured outline without AI
     result = generate_sermon_outline(
         session_state,
         mode=mode if mode in ("quick", "workshop", "standard") else "workshop",
-        generate_fn=use_fn if synthesize else None,
+        generate_fn=generate_fn,
         force_overwrite=force_overwrite,
     )
-    # Optional legacy polish path unused by UI; keep no-op unless explicitly requested
     outline = result.outline
     warnings = list(result.warnings)
-    if polish and synthesize and generate_fn is not None and result.ok:
+    if polish and generate_fn is not None and result.ok:
         outline, polish_warnings = _optional_polish(outline, generate_fn=generate_fn)
         warnings.extend(polish_warnings)
         outline = sync_outline_content(outline, force=True)
@@ -2336,6 +2460,8 @@ def assemble_sermon_outline(
         outline=outline,
         ok=result.ok,
         error_message=result.error_message,
+        error_kind=result.error_kind,
+        retryable=result.retryable,
         warnings=warnings,
         overwritten_manual_edit=result.overwritten_manual_edit,
     )

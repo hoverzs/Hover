@@ -68,7 +68,9 @@ def test_docx_package_importable():
 
 
 def test_build_outline_docx_rich_content(outline_session, tmp_path):
-    import app as app_mod
+    # 2026-08-13: a build_outline_docx az outline_word_export.py-ba került
+    # (ld. a modul docstringjét) — a saját `st` referenciáját onnan olvassa.
+    import outline_word_export
 
     class _SS(dict):
         pass
@@ -76,9 +78,9 @@ def test_build_outline_docx_rich_content(outline_session, tmp_path):
     ss = _SS()
     ss.update(outline_session)
 
-    with patch.object(app_mod, "st") as st_mock:
+    with patch.object(outline_word_export, "st") as st_mock:
         st_mock.session_state = ss
-        data = app_mod.build_outline_docx()
+        data = outline_word_export.build_outline_docx()
 
     assert isinstance(data, (bytes, bytearray))
     assert len(data) > 1000
@@ -108,7 +110,7 @@ def test_build_outline_docx_rich_content(outline_session, tmp_path):
 
 def test_build_outline_docx_empty_optional_sections():
     """Üres kosár / ének: csak a vázlat jelenik meg, nincs crash."""
-    import app as app_mod
+    import outline_word_export
 
     class _SS(dict):
         pass
@@ -124,9 +126,9 @@ def test_build_outline_docx_empty_optional_sections():
         }
     )
 
-    with patch.object(app_mod, "st") as st_mock:
+    with patch.object(outline_word_export, "st") as st_mock:
         st_mock.session_state = ss
-        data = app_mod.build_outline_docx()
+        data = outline_word_export.build_outline_docx()
 
     doc = Document(io.BytesIO(data))
     joined = "\n".join(p.text for p in doc.paragraphs)
@@ -136,7 +138,7 @@ def test_build_outline_docx_empty_optional_sections():
 
 
 def test_build_outline_docx_empty_outline_placeholder():
-    import app as app_mod
+    import outline_word_export
 
     class _SS(dict):
         pass
@@ -152,9 +154,9 @@ def test_build_outline_docx_empty_outline_placeholder():
         }
     )
 
-    with patch.object(app_mod, "st") as st_mock:
+    with patch.object(outline_word_export, "st") as st_mock:
         st_mock.session_state = ss
-        data = app_mod.build_outline_docx()
+        data = outline_word_export.build_outline_docx()
 
     doc = Document(io.BytesIO(data))
     joined = "\n".join(p.text for p in doc.paragraphs)
@@ -162,8 +164,14 @@ def test_build_outline_docx_empty_outline_placeholder():
 
 
 def test_word_export_ui_message_and_no_install_leak():
-    """Felhasználói üzenet + Technikai részletek; nincs pip/path leak."""
-    src = (ROOT / "app.py").read_text(encoding="utf-8")
+    """Felhasználói üzenet + Technikai részletek; nincs pip/path leak.
+
+    2026-08-13 (célarchitektúra-terv, 2. fázis, 1. lépés): a letöltés-gomb
+    a Textusműhely önálló "Vázlat" kártyájának megszűnésével átkerült az
+    Igehirdetési műhely "Igehirdetési vázlat" szekciójába
+    (sermon_workshop_ui.py), a közös `outline_word_export.build_outline_docx`
+    hívásával — ugyanazzal a felhasználói szöveggel és hibakezeléssel."""
+    src = (ROOT / "sermon_workshop_ui.py").read_text(encoding="utf-8")
     idx = src.find('key="outline_download_docx"')
     assert idx > 0
     block = src[idx : idx + 1200]

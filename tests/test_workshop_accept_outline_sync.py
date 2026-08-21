@@ -21,6 +21,7 @@ from sermon_workshop_outline_ai import (
     EMPTY_PROJECT_MESSAGE,
     assemble_sermon_outline,
     assess_outline_readiness,
+    build_outline_from_workshop,
     collect_outline_context_bundle,
 )
 from textus_workshop_data import TEXT_WORKSHOP_KEY, get_default_text_workshop
@@ -186,23 +187,22 @@ def test_accept_survives_project_save_reload_and_feeds_outline():
     )
     assert accepted in joined
 
-    result = assemble_sermon_outline(reloaded, generate_fn=None, synthesize=True)
-    assert result.ok, result.error_message
+    outline = build_outline_from_workshop(reloaded)
     outline_blob = " ".join(
         [
-            str(result.outline.get("main_idea") or ""),
-            str(result.outline.get("divine_gracious_action") or ""),
-            str(result.outline.get("grace_enabled_response") or ""),
-            str(result.outline.get("human_situation") or ""),
+            str(outline.get("main_idea") or ""),
+            str(outline.get("divine_gracious_action") or ""),
+            str(outline.get("grace_enabled_response") or ""),
+            str(outline.get("human_situation") or ""),
         ]
         + [
             str(m.get("core_content") or "")
-            for m in (result.outline.get("movements") or [])
+            for m in (outline.get("movements") or [])
             if isinstance(m, dict)
         ]
     )
     assert accepted in outline_blob or accepted in joined
-    assert result.outline.get("main_idea") or result.outline.get("movements")
+    assert outline.get("main_idea") or outline.get("movements")
 
 
 def test_draft_adopt_survives_rerun_without_approval():

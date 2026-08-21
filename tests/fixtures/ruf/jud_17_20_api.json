@@ -1,0 +1,45 @@
+{
+  "keres": {
+    "hivatkozas": "Júd 17-20"
+  },
+  "valasz": {
+    "forditas": {
+      "rov": "RUF",
+      "nev": "protestant"
+    },
+    "versek": [
+      {
+        "szoveg": "Ti azonban, szeretteim, emlékezzetek meg azokról a beszédekről, amelyeket a mi Urunk Jézus Krisztus apostolai előre megmondtak.",
+        "hely": {
+          "szep": "Júd 17",
+          "gepi": "JUD 1:17"
+        },
+        "vers": 17
+      },
+      {
+        "szoveg": "Azt mondták ugyanis, hogy az utolsó időben csúfolódók támadnak, akik istentelen vágyaik útján járnak.",
+        "hely": {
+          "szep": "Júd 18",
+          "gepi": "JUD 1:18"
+        },
+        "vers": 18
+      },
+      {
+        "szoveg": "Ezek szakadásokat okoznak, testi emberek, akikben nincsen Szentlélek.",
+        "hely": {
+          "szep": "Júd 19",
+          "gepi": "JUD 1:19"
+        },
+        "vers": 19
+      },
+      {
+        "szoveg": "Ti azonban, szeretteim, épüljetek szentséges hitetekben, imádkozzatok a Szentlélek által,",
+        "hely": {
+          "szep": "Júd 20",
+          "gepi": "JUD 1:20"
+        },
+        "vers": 20
+      }
+    ]
+  }
+}

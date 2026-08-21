@@ -153,12 +153,17 @@ def test_g_enrichment_attached_to_movements():
 
 
 def test_h_no_silent_overwrite_manual_edit():
+    """2026-08-13, Fázis 2B: az `assemble_sermon_outline` sikeres generáláshoz
+    innentől `generate_fn`-t igényel — a kézi-szerkesztés-védelem tesztelt
+    lényegéhez (manual_edit_conflict a generate_fn hiányától függetlenül fut
+    le, ld. sermon_outline_engine.generate_sermon_outline) elég a
+    nem-mechanikus SEED-építőt (`build_outline_from_workshop`) használni a
+    "meglévő vázlat" előállításához."""
     state = build_jude_state()
-    first = assemble_sermon_outline(state, force_overwrite=True)
-    assert first.ok
-    save_sermon_outline(state, first.outline, mark_manual_edit=False)
+    first = build_outline_from_workshop(state)
+    save_sermon_outline(state, first, mark_manual_edit=False)
     # Kézi szerkesztés jelölése
-    edited = dict(first.outline)
+    edited = dict(first)
     edited["main_idea"] = "Kézzel átírt fő gondolat"
     edited["manually_edited"] = True
     save_sermon_outline(state, edited, mark_manual_edit=True)
@@ -166,9 +171,8 @@ def test_h_no_silent_overwrite_manual_edit():
     assert not blocked.ok
     assert "kézzel" in blocked.error_message.casefold() or "szerkeszt" in blocked.error_message.casefold()
     assert state[SERMON_WORKSHOP_KEY]["sermon_outline"]["main_idea"] == "Kézzel átírt fő gondolat"
-    forced = assemble_sermon_outline(state, force_overwrite=True)
-    assert forced.ok
-    save_sermon_outline(state, forced.outline, mark_manual_edit=False)
+    forced = build_outline_from_workshop(state)
+    save_sermon_outline(state, forced, mark_manual_edit=False)
     assert "Kézzel átírt" not in state[SERMON_WORKSHOP_KEY]["sermon_outline"]["main_idea"]
 
 

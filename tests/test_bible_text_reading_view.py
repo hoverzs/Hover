@@ -511,6 +511,75 @@ def test_continuous_and_line_views_contain_same_text() -> None:
     assert "bible-inline-num" in continuous_markup
 
 
+def test_embedded_cross_reference_anchor_is_stripped_not_shown_raw_or_escaped() -> None:
+    """A bug jelentés pontos esete: a Szentírás.eu API néhány vers szövegébe
+    közvetlenül beágyazott szakaszcím-/kereszthivatkozás-HTML-t ad vissza."""
+    text = (
+        "1. Péter halfogása <a href='Mt 4,18-22'>Mt 4,18-22</a>; "
+        "<a href='Mk 1,16-20'>Mk 1,16-20</a> Miután pedig elvégezte a szólást."
+    )
+    markup = build_formatted_bible_text_html(text)
+
+    assert "<a " not in markup
+    assert "<a href" not in markup
+    assert "&lt;a " not in markup
+    assert "href=" not in markup
+    assert "&lt;/a&gt;" not in markup
+
+
+def test_section_heading_reference_text_remains_as_clean_readable_text() -> None:
+    """A hivatkozás SZÖVEGE (pl. 'Mt 4,18-22') olvasható sima szövegként
+    megmaradhat — csak a nyers HTML-jelölés tűnik el, nem az információ."""
+    text = "1. Péter halfogása <a href='Mt 4,18-22'>Mt 4,18-22</a> Miután pedig."
+    markup = build_formatted_bible_text_html(text)
+
+    assert "Péter halfogása" in markup
+    assert "Mt 4,18-22" in markup
+    assert "Miután pedig" in markup
+
+
+def test_verse_number_and_text_spacing_survives_tag_removal() -> None:
+    """A tag eltávolítása nem hagyhat dupla szóközt vagy hiányzó szóközt a
+    versszám és a szöveg, illetve a megmaradt szövegrészek között."""
+    text = "1. Bevezetés <a href='Mt 4,18-22'>Mt 4,18-22</a> folytatás."
+    markup = build_formatted_bible_text_html(text)
+
+    assert "  " not in markup
+    assert "Bevezetés Mt 4,18-22 folytatás." in markup
+    assert '<span class="bible-verse-num">1.</span>' in markup
+
+
+def test_normal_verse_text_without_any_markup_is_unaffected() -> None:
+    """Sima, tag nélküli versszöveg tartalma és formázása változatlan."""
+    text = "16. Mert úgy szerette Isten a világot, hogy egyszülött Fiát adta."
+    markup = build_formatted_bible_text_html(text)
+
+    assert "Mert úgy szerette Isten a világot, hogy egyszülött Fiát adta." in markup
+    assert '<span class="bible-verse-num">16.</span>' in markup
+
+
+def test_tag_stripping_applies_identically_in_both_view_modes() -> None:
+    text = "1. Cím <a href='Mt 4,18-22'>Mt 4,18-22</a> szöveg."
+    line_markup = build_formatted_bible_text_html(text, view_mode="Versenkénti nézet")
+    continuous_markup = build_formatted_bible_text_html(text, view_mode="Folyamatos nézet")
+
+    for markup in (line_markup, continuous_markup):
+        assert "<a " not in markup
+        assert "href=" not in markup
+        assert "Cím Mt 4,18-22 szöveg." in markup
+
+
+def test_raw_data_storage_helpers_are_untouched_by_the_display_fix() -> None:
+    """A javítás kizárólag a megjelenítést érinti — a nyers szöveg
+    feldolgozása (versszám-parsolás, sortörés-normalizálás) a beágyazott
+    HTML-t érintetlenül hagyja, azt csak a megjelenítési réteg szűri ki."""
+    text = "1. Cím <a href='X'>X</a> szöveg."
+    blocks = parse_passage_text_blocks(text)
+    assert blocks == [("1", "Cím <a href='X'>X</a> szöveg.")]
+    normalized = normalize_verse_number_spacing(text)
+    assert "<a href='X'>X</a>" in normalized
+
+
 def main() -> None:
     # Versszám formák
     blocks = parse_passage_text_blocks(
@@ -526,13 +595,15 @@ def main() -> None:
     ok(blocks[3] == (None, "Bevezető megjegyzés sortörés nélkül"), f"b3 {blocks[3]}")
     ok(blocks[4] == ("20", "Ti azonban, szeretteim..."), f"b4 {blocks[4]}")
 
-    # HTML escape
+    # HTML tag stripping (2026-08-19 korrekció): a beágyazott tagek — akár
+    # kereszthivatkozás-anchor, akár bármi más — sem nyersen, sem escape-elt
+    # formában nem maradhatnak láthatók; a szöveges tartalom megmarad.
     markup = build_formatted_bible_text_html('16 <script>alert("x")</script> & "idézet"')
-    ok("<script>" not in markup, "script tag must be escaped")
-    ok("&lt;script&gt;" in markup, "escaped script")
-    ok("&amp;" in markup, "amp escaped")
+    ok("<script>" not in markup, "script tag must not appear raw")
+    ok("&lt;script&gt;" not in markup, "script tag must not appear escaped either — stripped")
+    ok("&amp;" in markup, "amp in remaining plain text still escaped")
     ok("bible-verse-num" in markup and "bible-verse-text" in markup, "structure")
-    ok("alert" in markup, "text preserved escaped")
+    ok("alert" in markup, "tag-free text content preserved")
 
     # Üres
     ok(build_formatted_bible_text_html("   \n  ") == "", "empty")

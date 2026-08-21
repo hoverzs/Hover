@@ -18,6 +18,22 @@ _LEGACY_MAIN_IDEA = "text_big_idea"
 _LEGACY_MAIN_IDEA_STATUS = "text_big_idea_status"
 
 
+def get_default_text_summary() -> dict[str, Any]:
+    """Üres Textusösszegzés-blokk (a Textusműhely záró, jóváhagyandó bundle-ja)."""
+    return {
+        "main_idea": "",
+        "base_tension": "",
+        "key_exegetical_findings": "",
+        "theological_emphases": "",
+        "genre_structure_notes": "",
+        "status": "draft",
+        "approved_at": "",
+        "approved_context_hash": "",
+        "suggestions": None,
+        "last_generated_at": "",
+    }
+
+
 def get_default_text_workshop() -> dict[str, Any]:
     """Üres Textusműhely-adat (új session / régi projekt hiányzó mező)."""
     return {
@@ -28,6 +44,7 @@ def get_default_text_workshop() -> dict[str, Any]:
         "main_idea_suggestions": None,
         "main_idea_assessment": None,
         "main_idea_last_generated_at": "",
+        "text_summary": get_default_text_summary(),
     }
 
 
@@ -47,6 +64,33 @@ def _normalize_optional_dict(raw: Any) -> dict[str, Any] | None:
     if isinstance(raw, dict):
         return dict(raw)
     return None
+
+
+_TEXT_SUMMARY_STATUSES = {"draft", "approved"}
+
+
+def normalize_text_summary(raw: Any) -> dict[str, Any]:
+    """Bármilyen bemenetből érvényes `text_summary` struktúrát ad vissza."""
+    base = get_default_text_summary()
+    if not isinstance(raw, dict):
+        return base
+
+    status = str(raw.get("status") or "draft").strip().casefold()
+    if status not in _TEXT_SUMMARY_STATUSES:
+        status = "draft"
+
+    return {
+        "main_idea": str(raw.get("main_idea") or ""),
+        "base_tension": str(raw.get("base_tension") or ""),
+        "key_exegetical_findings": str(raw.get("key_exegetical_findings") or ""),
+        "theological_emphases": str(raw.get("theological_emphases") or ""),
+        "genre_structure_notes": str(raw.get("genre_structure_notes") or ""),
+        "status": status,
+        "approved_at": str(raw.get("approved_at") or ""),
+        "approved_context_hash": str(raw.get("approved_context_hash") or ""),
+        "suggestions": _normalize_optional_dict(raw.get("suggestions")),
+        "last_generated_at": str(raw.get("last_generated_at") or ""),
+    }
 
 
 def normalize_text_workshop(raw: Any) -> dict[str, Any]:
@@ -98,6 +142,7 @@ def normalize_text_workshop(raw: Any) -> dict[str, Any]:
         "main_idea_last_generated_at": str(
             raw.get("main_idea_last_generated_at") or ""
         ),
+        "text_summary": normalize_text_summary(raw.get("text_summary")),
     }
 
 
@@ -148,14 +193,19 @@ def update_text_main_idea(
 ) -> dict[str, Any]:
     """A textus fő gondolatának tartalma / státusza (UI nélkül).
 
-    Jóváhagyáskor (status == "approved") elmenti a
-    `text_main_idea_approved_context_hash`-t is — a vázlatmotor STALE-
+    Minden mentéskor (draft VAGY approved) elmenti a
+    `text_main_idea_approved_context_hash`-t — a vázlatmotor STALE-
     ellenőrzésének alapja (ld. sermon_outline_engine.compute_current_
-    passage_context_hash). Lusta import a körkörös import elkerülésére."""
+    passage_context_hash). Korrekciós fázis 3.1 óta ez NEM csak
+    jóváhagyáskor történik: a Textusműhely e forrása approval nélkül is
+    automatikusan elérhető a vázlatmotor számára (ld.
+    TEXTUS_IGEHIRDETESI_MUHELY_ADATFOLYAM_AUDIT.md), a "friss" ellenőrzéshez
+    viszont mentéskor is kell egy aktuális ujjlenyomat. Lusta import a
+    körkörös import elkerülésére."""
     tw = ensure_text_workshop_state(session_state)
     tw["text_main_idea"] = str(content or "")
     tw["text_main_idea_status"] = str(status or "")
-    if str(status or "") == "approved":
+    if str(content or "").strip():
         try:
             from sermon_outline_engine import compute_current_passage_context_hash
 
@@ -195,14 +245,94 @@ def save_main_idea_assessment(
     return tw
 
 
+def update_text_summary_fields(
+    session_state: MutableMapping[str, Any],
+    fields: dict[str, str],
+    *,
+    status: str | None = None,
+) -> dict[str, Any]:
+    """Textusösszegzés mezőinek frissítése (kézi szerkesztés vagy javaslat-átvétel).
+
+    Minden ténylegesen tartalmat hordozó mentéskor (nem csak jóváhagyáskor)
+    elmenti az `approved_context_hash`-t — a vázlatmotor STALE-
+    ellenőrzésének alapja, ugyanaz a minta, mint `update_text_main_idea`-nál.
+    Korrekciós fázis 3.1 óta a Textusösszegzés approval nélkül is
+    automatikusan elérhető forrás (ld. TEXTUS_IGEHIRDETESI_MUHELY_
+    ADATFOLYAM_AUDIT.md); jóváhagyáskor emellett az `approved_at`
+    időbélyeget is beállítja. Lusta import a körkörös import elkerülésére.
+    """
+    tw = ensure_text_workshop_state(session_state)
+    summary = dict(tw.get("text_summary") or get_default_text_summary())
+    for key in (
+        "main_idea",
+        "base_tension",
+        "key_exegetical_findings",
+        "theological_emphases",
+        "genre_structure_notes",
+    ):
+        if key in fields:
+            summary[key] = str(fields.get(key) or "")
+
+    if status is not None:
+        status_norm = str(status or "draft").strip().casefold()
+        if status_norm not in _TEXT_SUMMARY_STATUSES:
+            status_norm = "draft"
+        summary["status"] = status_norm
+        if status_norm == "approved":
+            summary["approved_at"] = datetime.now().isoformat(timespec="seconds")
+
+    has_content = any(
+        str(summary.get(k) or "").strip()
+        for k in (
+            "main_idea",
+            "base_tension",
+            "key_exegetical_findings",
+            "theological_emphases",
+            "genre_structure_notes",
+        )
+    )
+    if has_content:
+        try:
+            from sermon_outline_engine import compute_current_passage_context_hash
+
+            summary["approved_context_hash"] = compute_current_passage_context_hash(
+                session_state
+            )
+        except Exception:  # noqa: BLE001
+            pass
+
+    tw["text_summary"] = summary
+    return tw
+
+
+def save_text_summary_suggestions(
+    session_state: MutableMapping[str, Any],
+    payload: dict[str, Any],
+    *,
+    stamp_generated_at: bool = True,
+) -> dict[str, Any]:
+    """Tartós javaslat-eredmény mentése a text_summary-ba."""
+    tw = ensure_text_workshop_state(session_state)
+    summary = dict(tw.get("text_summary") or get_default_text_summary())
+    summary["suggestions"] = dict(payload) if isinstance(payload, dict) else None
+    if stamp_generated_at:
+        summary["last_generated_at"] = datetime.now().isoformat(timespec="seconds")
+    tw["text_summary"] = summary
+    return tw
+
+
 __all__ = [
     "TEXT_WORKSHOP_KEY",
     "get_default_text_workshop",
+    "get_default_text_summary",
     "normalize_text_workshop",
+    "normalize_text_summary",
     "ensure_text_workshop_state",
     "add_approved_insight",
     "remove_approved_insight",
     "update_text_main_idea",
     "save_main_idea_suggestions",
     "save_main_idea_assessment",
+    "update_text_summary_fields",
+    "save_text_summary_suggestions",
 ]

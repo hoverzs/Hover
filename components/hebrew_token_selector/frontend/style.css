@@ -34,6 +34,9 @@
   border: 0;
   border-radius: 0.25rem;
   background: transparent;
+  /* A nyers forrásszöveg semleges/normál szövegszínű — a szín csak az
+     elemzésben kiemelt (kijelölt) szóra kerül, ld. [aria-pressed="true"]
+     lentebb. */
   color: inherit;
   cursor: pointer;
   display: inline-block;
@@ -55,6 +58,10 @@
 }
 
 .hebrew-token[aria-pressed="true"] {
+  /* Az elemzésben kiemelt (kijelölt) szó — sötétkék, kb. 7.6:1 kontraszt
+     a világos háttéren, jól megkülönböztethető a kijelölési állapot
+     --st-primary-color árnyalatától. */
+  color: #1e40af;
   background: color-mix(in srgb, var(--st-primary-color) 18%, transparent);
   box-shadow: inset 0 -0.08em 0 var(--st-primary-color);
   outline: 1px solid rgba(115, 92, 62, 0.22);

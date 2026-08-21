@@ -39,19 +39,18 @@ def session(monkeypatch):
 
 
 def _sync_inputs_like_app(state: dict) -> None:
-    """Az app._sync_inputs_to_last lényegi része (Streamlit nélkül)."""
+    """Az app._sync_inputs_to_last lényegi része (Streamlit nélkül).
+
+    A legacy "Felhasználási cél" / "Homiletikai stílus" / "Saját szempont"
+    widgetek (és az `alkalom_input`/`stilus_input`/`sajat_input` szinkron)
+    eltávolításra kerültek — a `last_alkalom`/`last_stilus`/`last_sajat`
+    mezők mostantól kizárólag régi mentett projektekből érkezhetnek
+    (visszafelé kompatibilitás), élő widget már nem írja őket.
+    """
     igehely = (state.get("igehely_input") or "").strip()
-    alkalom = state.get("alkalom_input") or ""
-    stilus = state.get("stilus_input") or ""
-    sajat = state.get("sajat_input") or ""
 
     if igehely:
         state["last_igehely"] = igehely
-    if alkalom:
-        state["last_alkalom"] = alkalom
-    if stilus:
-        state["last_stilus"] = stilus
-    state["last_sajat"] = sajat
 
     if "passage_text_input" in state:
         save_bible_text_from_widgets(state)
@@ -115,7 +114,13 @@ def test_project_switch_resync_blocks_stale_widget_overwrite(session):
 
 
 def test_text_input_selectbox_passage_sync_and_reload(session):
-    """Igehely (text), alkalom (select), passage_text, fő gondolat → reload."""
+    """Igehely (text), passage_text, fő gondolat → reload.
+
+    A `last_alkalom`/`last_stilus`/`last_sajat` mezőket itt egy RÉGI
+    mentett projektből visszatöltött értékként állítjuk be közvetlenül
+    (nem élő widgeten keresztül) — a legacy widgetek eltávolítása után
+    ez az egyetlen forrásuk; a mentés/újratöltés körnek ezeket is
+    tolerálnia kell (visszafelé kompatibilitás)."""
     ensure_text_workshop_state(session)
     session[TEXT_WORKSHOP_KEY]["text_main_idea"] = ""
     session[TEXT_WORKSHOP_KEY]["text_main_idea_status"] = ""
@@ -130,9 +135,9 @@ def test_text_input_selectbox_passage_sync_and_reload(session):
     ]
 
     session["igehely_input"] = "Júd 17–20"
-    session["alkalom_input"] = "vasárnapi gyülekezeti igehirdetés"
-    session["stilus_input"] = "klasszikus református"
-    session["sajat_input"] = "Hitben megmaradás"
+    session["last_alkalom"] = "vasárnapi gyülekezeti igehirdetés"
+    session["last_stilus"] = "klasszikus református"
+    session["last_sajat"] = "Hitben megmaradás"
     session["passage_text_input"] = "17 Ti pedig, szeretteim…"
     session["tw_main_idea_input"] = "Őrizzétek meg magatokat Isten szeretetében."
     session["exegesis"] = "Exegetikai háttér tartalom"

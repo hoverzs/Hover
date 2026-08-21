@@ -44,10 +44,15 @@ def test_require_curation_blocks_raw_passage_only():
     assert "saját döntés" in ready.message
 
 
-def test_require_curation_passes_with_basket_item():
+def test_require_curation_basket_item_alone_no_longer_passes():
+    """RESET 1A-DATA (2026-08-18): megfordított elvárás — korábban
+    (`test_require_curation_passes_with_basket_item`) egy puszta,
+    kitöltött Vázlatkosár ÖNMAGÁBAN elegendő volt a kurátori kapuhoz. Ez
+    szándékosan megszűnt: a kosár többé nem befolyásolhatja a
+    generálás/kurálás engedélyezését."""
     state = _base_state(basket=[{"source": "Exegézis", "content": "Megtartandó gondolat."}])
     ready = assess_outline_readiness(state, require_curation=True)
-    assert ready.ok
+    assert not ready.ok
 
 
 def test_require_curation_passes_with_text_main_idea():

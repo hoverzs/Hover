@@ -19,9 +19,11 @@ from sermon_workshop_data import (
     ensure_sermon_workshop_state,
     normalize_sermon_outline,
     save_sermon_outline,
+    update_sermon_workshop_section,
 )
 from sermon_workshop_outline_ai import (
     assemble_sermon_outline,
+    build_outline_from_workshop,
     outline_canonical_text,
     outline_has_content,
     repair_outline_integrity,
@@ -43,36 +45,54 @@ def session(monkeypatch):
 
 
 def _partial_workshop(state: dict) -> None:
+    """"Partial" itt azt jelenti: nem minden M4-M9 lépés van kitöltve —
+    de ami ki van töltve (fő gondolat, hallgatói feszültség, evangéliumi
+    ív), az jóváhagyott. Jóváhagyás nélkül a Korrekciós fázis 2C
+    approval-gate-je ezeket kizárná a vázlatból (ld. sermon_outline_engine
+    `_gated_fallback_bundle`)."""
     ensure_sermon_workshop_state(state)
-    sw = state[SERMON_WORKSHOP_KEY]
-    sw["sermon_main_idea"] = "Isten kegyelme megújítja a fáradt szívet."
-    sw["sermon_main_idea_status"] = "draft"
-    sw["listener_tension"] = {
-        "listener_question": "Miért nem elég a saját erőnk?",
-        "sermon_tension": "A fáradtság és a kegyelem feszültsége",
-        "listener_resistance": "Mégis magunkat erőltetjük",
-        "promised_resolution": "Krisztus pihenést ad",
-    }
-    sw["christ_centered_arc"] = {
-        "divine_gracious_action": "Isten eljön a fáradthoz",
-        "christ_connection": "Mt 11,28",
-        "christ_connection_type": "direct",
-        "grace_enabled_response": "Elfogadni a pihenést",
-    }
     state["last_igehely"] = "Mt 11,28–30"
     state["passage_reference"] = "Mt 11,28–30"
     state["passage_text"] = "Jöjjetek énhozzám mindnyájan..."
+    update_sermon_workshop_section(
+        state, "sermon_main_idea", "Isten kegyelme megújítja a fáradt szívet."
+    )
+    update_sermon_workshop_section(state, "sermon_main_idea_status", "approved")
+    update_sermon_workshop_section(
+        state,
+        "listener_tension",
+        {
+            "listener_question": "Miért nem elég a saját erőnk?",
+            "sermon_tension": "A fáradtság és a kegyelem feszültsége",
+            "listener_resistance": "Mégis magunkat erőltetjük",
+            "promised_resolution": "Krisztus pihenést ad",
+        },
+    )
+    update_sermon_workshop_section(state, "listener_tension_status", "approved")
+    update_sermon_workshop_section(
+        state,
+        "christ_centered_arc",
+        {
+            "divine_gracious_action": "Isten eljön a fáradthoz",
+            "christ_connection": "Mt 11,28",
+            "christ_connection_type": "direct",
+            "grace_enabled_response": "Elfogadni a pihenést",
+        },
+    )
+    update_sermon_workshop_section(state, "christ_centered_arc_status", "approved")
 
 
 def test_partial_workshop_builds_nonempty_outline(session):
+    """2026-08-13, Fázis 2B: `synthesize=False` (AI nélküli, heurisztikus
+    út kényszerítése) megszűnt az egységes szerződéssel — a nem-mechanikus
+    SEED-építőt (`build_outline_from_workshop`) közvetlenül teszteljük."""
     _partial_workshop(session)
-    result = assemble_sermon_outline(session, synthesize=False, polish=False)
-    assert result.ok
-    assert outline_has_content(result.outline)
-    text = outline_canonical_text(result.outline)
+    outline = sync_outline_content(build_outline_from_workshop(session), force=True)
+    assert outline_has_content(outline)
+    text = outline_canonical_text(outline)
     assert "fókuszmondat" in text.lower() or "Fókuszmondat" in text
     assert "Isten kegyelme" in text
-    assert result.outline.get("content", "").strip()
+    assert outline.get("content", "").strip()
     assert "Saját megjegyzés" not in text
 
 
@@ -126,11 +146,11 @@ def test_generated_outline_appears_immediately(session, monkeypatch):
     monkeypatch.setattr(st, "spinner", lambda *a, **k: nullctx())
     monkeypatch.setattr(st, "rerun", lambda: None)
 
-    result = assemble_sermon_outline(session, synthesize=False, polish=False)
-    save_sermon_outline(session, result.outline, mark_manual_edit=False)
+    outline = sync_outline_content(build_outline_from_workshop(session), force=True)
+    save_sermon_outline(session, outline, mark_manual_edit=False)
     from sermon_workshop_outline_ai import render_compact_sermon_outline
 
-    render_compact_sermon_outline(result.outline)
+    render_compact_sermon_outline(outline)
     blob = "\n".join(messages)
     assert "Isten kegyelme" in blob
     assert "Vázlat előnézete" not in blob  # preview title is outside compact render
@@ -149,11 +169,11 @@ class nullctx:
 
 def test_outline_editable_and_persists(session):
     _partial_workshop(session)
-    result = assemble_sermon_outline(session, synthesize=False, polish=False)
-    save_sermon_outline(session, result.outline, mark_manual_edit=False)
+    outline = sync_outline_content(build_outline_from_workshop(session), force=True)
+    save_sermon_outline(session, outline, mark_manual_edit=False)
     st.session_state.clear()
     st.session_state.update(session)
-    edited = (result.outline.get("content") or "") + "\n\nKézi kiegészítés."
+    edited = (outline.get("content") or "") + "\n\nKézi kiegészítés."
     st.session_state[_KEY_OUTLINE["content"]] = edited
     st.session_state[_KEY_OUTLINE["manual_notes"]] = "csak jegyzet"
     _persist_outline_from_widgets(mark_manual_edit=True)
@@ -187,14 +207,14 @@ def test_notes_do_not_substitute_outline():
 
 def test_diagnostics_receives_canonical_outline_text(session):
     _partial_workshop(session)
-    result = assemble_sermon_outline(session, synthesize=False, polish=False)
-    save_sermon_outline(session, result.outline, mark_manual_edit=False)
-    block = _outline_context_block(result.outline)
+    outline = sync_outline_content(build_outline_from_workshop(session), force=True)
+    save_sermon_outline(session, outline, mark_manual_edit=False)
+    block = _outline_context_block(outline)
     assert "Isten kegyelme" in block
     assert "content" in block
     assert "csak jegyzet" not in block
     diag = run_outline_diagnostics(
-        sermon_outline=result.outline,
+        sermon_outline=outline,
         generate_fn=None,
         prefer_local_heuristic=True,
     )
@@ -227,8 +247,7 @@ def test_ai_failure_no_false_success(session, monkeypatch):
     monkeypatch.setattr(st, "caption", lambda *a, **k: None)
     monkeypatch.setattr(st, "rerun", lambda: None)
 
-    # synthesize=True with failing generate_fn still keeps local outline → success OK
-    # False success path: assemble returns ok=False
+    # Sikertelen generálás → assemble ok=False (nincs hamis "siker" visszajelzés)
     from sermon_workshop_outline_ai import OutlineAssemblyResult
 
     monkeypatch.setattr(
@@ -244,8 +263,7 @@ def test_ai_failure_no_false_success(session, monkeypatch):
 
 def test_approved_outline_still_visible(session):
     _partial_workshop(session)
-    result = assemble_sermon_outline(session, synthesize=False, polish=False)
-    outline = sync_outline_content(result.outline, force=True)
+    outline = sync_outline_content(build_outline_from_workshop(session), force=True)
     outline["status"] = "approved"
     save_sermon_outline(session, outline, mark_manual_edit=False)
     session[SERMON_WORKSHOP_KEY]["sermon_outline_status"] = "approved"

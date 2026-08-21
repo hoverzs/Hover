@@ -20,7 +20,11 @@ from sermon_workshop_data import (
     save_sermon_outline,
 )
 from sermon_workshop_m9_lection_ai import suggest_lections
-from sermon_workshop_outline_ai import assemble_sermon_outline, outline_has_content
+from sermon_workshop_outline_ai import (
+    assemble_sermon_outline,
+    build_outline_from_workshop,
+    outline_has_content,
+)
 from sermon_workshop_ui import (
     _KEY_OUTLINE,
     _KEY_OUTLINE_CLOSING,
@@ -50,9 +54,8 @@ def _stub_json(payload: dict):
 
 def test_stale_empty_widgets_do_not_wipe_outline_on_flush(session):
     state = build_jude_state()
-    result = assemble_sermon_outline(state, synthesize=False, polish=False)
-    assert result.ok
-    save_sermon_outline(state, result.outline, mark_manual_edit=False)
+    outline = build_outline_from_workshop(state)
+    save_sermon_outline(state, outline, mark_manual_edit=False)
     before_idea = str(state[SERMON_WORKSHOP_KEY]["sermon_outline"].get("main_idea") or "")
     assert before_idea.strip()
 
@@ -85,8 +88,8 @@ def test_stale_empty_widgets_do_not_wipe_outline_on_flush(session):
 
 def test_approve_rejects_empty_shell_and_keeps_content(session):
     state = build_jude_state()
-    result = assemble_sermon_outline(state, synthesize=False, polish=False)
-    save_sermon_outline(state, result.outline, mark_manual_edit=False)
+    outline = build_outline_from_workshop(state)
+    save_sermon_outline(state, outline, mark_manual_edit=False)
     st.session_state.clear()
     st.session_state.update(state)
 

@@ -114,12 +114,11 @@ def test_collect_available_sermon_material_ignores_empty_status():
 
 def test_partial_assemble_then_diagnose_heuristic():
     state = build_jude_state()
-    # Csak részleges anyag — assemble mégis működik
-    result = assemble_sermon_outline(state, generate_fn=None)
-    assert result.ok
-    save_sermon_outline(state, result.outline)
+    # Csak részleges anyag — a nem-mechanikus SEED-építő mégis működik
+    outline = build_outline_from_workshop(state)
+    save_sermon_outline(state, outline)
     diag = run_outline_diagnostics(
-        sermon_outline=result.outline,
+        sermon_outline=outline,
         generate_fn=None,
     )
     assert diag.ok
@@ -130,7 +129,7 @@ def test_partial_assemble_then_diagnose_heuristic():
     ]
     save_sermon_outline_diagnostics(state, payload)
     # Elavultság: vázlat későbbi frissítése
-    save_sermon_outline(state, result.outline, mark_manual_edit=True)
+    save_sermon_outline(state, outline, mark_manual_edit=True)
     outline_u = state[SERMON_WORKSHOP_KEY]["sermon_outline_updated_at"]
     diag_u = state[SERMON_WORKSHOP_KEY]["sermon_outline_diagnostics_generated_at"]
     pinned = state[SERMON_WORKSHOP_KEY]["sermon_outline_diagnostics"][

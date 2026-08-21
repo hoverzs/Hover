@@ -18,13 +18,19 @@ from textus_main_idea_ai import (
     assess_user_main_idea,
     suggest_text_main_idea,
 )
+from textus_summary_ai import (
+    TextSummarySuggestionResult,
+    suggest_text_summary,
+)
 from textus_workshop_data import (
     add_approved_insight,
     ensure_text_workshop_state,
     remove_approved_insight,
     save_main_idea_assessment,
     save_main_idea_suggestions,
+    save_text_summary_suggestions,
     update_text_main_idea,
+    update_text_summary_fields,
 )
 from ui_components import (
     action_row,
@@ -148,6 +154,8 @@ def flush_textus_workshop_from_widgets() -> None:
     if _KEY_IDEA_INPUT in st.session_state:
         tw = ensure_text_workshop_state(st.session_state)
         tw["text_main_idea"] = (st.session_state.get(_KEY_IDEA_INPUT) or "").strip()
+
+    flush_text_summary_from_widgets()
 
 
 def _request_adopt_sentence(sentence: str) -> None:
@@ -699,8 +707,383 @@ def render_approved_insights_section() -> None:
                 st.rerun()
 
 
+# ---------------------------------------------------------------------------
+# Textusösszegzés — a Textusműhely záró, jóváhagyandó bundle-ja
+# ---------------------------------------------------------------------------
+
+_KEY_SUMMARY_BASE_TENSION = "tw_summary_base_tension_input"
+_KEY_SUMMARY_FINDINGS = "tw_summary_findings_input"
+_KEY_SUMMARY_THEOLOGY = "tw_summary_theology_input"
+_KEY_SUMMARY_GENRE = "tw_summary_genre_input"
+_SUMMARY_RESYNC_FLAG = "_tw_summary_ui_resync"
+_SUMMARY_ADOPT_PENDING = "_tw_summary_adopt_pending"
+
+_SUMMARY_FIELD_KEYS = {
+    "base_tension": _KEY_SUMMARY_BASE_TENSION,
+    "key_exegetical_findings": _KEY_SUMMARY_FINDINGS,
+    "theological_emphases": _KEY_SUMMARY_THEOLOGY,
+    "genre_structure_notes": _KEY_SUMMARY_GENRE,
+}
+
+_SUMMARY_FIELD_LABELS = [
+    ("base_tension", "Alapfeszültség"),
+    ("key_exegetical_findings", "Legfontosabb exegetikai felismerések"),
+    ("theological_emphases", "Teológiai hangsúlyok"),
+    ("genre_structure_notes", "Műfaji és szerkezeti sajátosságok"),
+]
+
+
+def _apply_tw_summary_ui_resync_if_needed() -> None:
+    """Widgetkulcsok szinkronja a tartós text_summary adatokkal (widget előtt)."""
+    tw = ensure_text_workshop_state(st.session_state)
+    summary = tw.get("text_summary") or {}
+    force = bool(st.session_state.pop(_SUMMARY_RESYNC_FLAG, False))
+    for field_key, widget_key in _SUMMARY_FIELD_KEYS.items():
+        if force or widget_key not in st.session_state:
+            st.session_state[widget_key] = summary.get(field_key) or ""
+
+
+def _current_summary_widget_values() -> dict[str, str]:
+    return {
+        field_key: (st.session_state.get(widget_key) or "").strip()
+        for field_key, widget_key in _SUMMARY_FIELD_KEYS.items()
+    }
+
+
+def flush_text_summary_from_widgets() -> None:
+    """Élő Streamlit widgetek → tartós text_summary (ha a widget létezik).
+
+    A Mentés / autosave előtt hívandó, hogy a még nem gombbal elmentett
+    szerkesztés se vesszen el — ugyanaz a minta, mint a fő gondolat flush.
+    """
+    ensure_text_workshop_state(st.session_state)
+    _apply_tw_summary_ui_resync_if_needed()
+    if any(k in st.session_state for k in _SUMMARY_FIELD_KEYS.values()):
+        update_text_summary_fields(st.session_state, _current_summary_widget_values())
+
+
+def _request_adopt_summary_field(field_key: str, text: str) -> None:
+    """MI-javaslat mező átvétele a kézi mezőbe — következő futásban, widget előtt."""
+    pending = dict(st.session_state.get(_SUMMARY_ADOPT_PENDING) or {})
+    pending[field_key] = str(text or "").strip()
+    st.session_state[_SUMMARY_ADOPT_PENDING] = pending
+    st.rerun()
+
+
+def _apply_pending_summary_adopt_if_needed() -> None:
+    pending = st.session_state.pop(_SUMMARY_ADOPT_PENDING, None)
+    if not isinstance(pending, dict) or not pending:
+        return
+    for field_key, text in pending.items():
+        widget_key = _SUMMARY_FIELD_KEYS.get(field_key)
+        if widget_key:
+            st.session_state[widget_key] = text
+    update_text_summary_fields(st.session_state, pending)
+
+
+def _save_summary(*, status: str) -> None:
+    fields = _current_summary_widget_values()
+    if status == "approved" and not any(fields.values()):
+        st.warning("Üres összegzést nem lehet jóváhagyni. Tölts ki legalább egy mezőt.")
+        return
+    tw = ensure_text_workshop_state(st.session_state)
+    fields["main_idea"] = (tw.get("text_main_idea") or "").strip()
+    update_text_summary_fields(st.session_state, fields, status=status)
+    if status == "approved":
+        st.success("Textusösszegzés jóváhagyva.")
+    else:
+        st.success("Vázlatként elmentve.")
+
+
+def _stored_context_hash_is_fresh(stored_hash: str) -> bool:
+    """RESET 3D-1: a RESET 3B-2-ben bevezetett `_original_text_is_fresh_
+    for_summary()` mintájának ÁLTALÁNOSÍTOTT magja — egy MÁR TÁROLT
+    `*_approved_context_hash` értéket vet össze az aktuális igehely/
+    fordítás/bibliai szöveg szűk ujjlenyomatával, UGYANAZZAL a függvénnyel
+    (`sermon_outline_engine.compute_current_passage_context_hash`), amit
+    a szekciók generáláskori bélyegzése is használ (ld. `app.py::render_
+    section_tab`, `app.py::render_original_text_panel`,
+    `textus_workshop_data.update_text_main_idea`). Hiányzó mentett hash
+    NEM minősül stale-nek (visszafelé-kompatibilitás, ugyanaz a döntés,
+    mint a legacy motorban és minden korábbi RESET fázisban). Nem
+    törli/módosítja a mentett tartalmat — csak eldönti, bekerülhet-e a
+    textusösszegzés kontextusába."""
+    stored = (stored_hash or "").strip()
+    if not stored:
+        return True
+    try:
+        from sermon_outline_engine import compute_current_passage_context_hash
+
+        return stored == compute_current_passage_context_hash(st.session_state)
+    except Exception:  # noqa: BLE001 — a javaslatkérés ne dőljön el emiatt
+        return True
+
+
+def _original_text_is_fresh_for_summary() -> bool:
+    """RESET 3B-2: az "Eredeti szöveg" modul kimenete friss-e a
+    textusösszegzés szempontjából — ld. `_stored_context_hash_is_fresh()`."""
+    return _stored_context_hash_is_fresh(
+        _session_str("original_text_approved_context_hash")
+    )
+
+
+def _exegesis_is_fresh_for_summary() -> bool:
+    """RESET 3D-1: az exegézis kimenete friss-e a textusösszegzés
+    szempontjából — ld. `_stored_context_hash_is_fresh()`."""
+    return _stored_context_hash_is_fresh(_session_str("exegesis_approved_context_hash"))
+
+
+def _theology_is_fresh_for_summary() -> bool:
+    """RESET 3D-1: a teológia kimenete friss-e a textusösszegzés
+    szempontjából — ld. `_stored_context_hash_is_fresh()`."""
+    return _stored_context_hash_is_fresh(_session_str("theology_approved_context_hash"))
+
+
+def _historical_context_is_fresh_for_summary() -> bool:
+    """RESET 3D-1: a kortörténet kimenete friss-e a textusösszegzés
+    szempontjából — ld. `_stored_context_hash_is_fresh()`."""
+    return _stored_context_hash_is_fresh(_session_str("history_approved_context_hash"))
+
+
+def _text_main_idea_is_fresh_for_summary() -> bool:
+    """RESET 3D-1: a fő gondolat friss-e a textusösszegzés szempontjából
+    — a hash a `text_workshop.text_main_idea_approved_context_hash`
+    mezőben él (ld. `textus_workshop_data.update_text_main_idea`), nem
+    egy lapos session-kulcsban."""
+    tw = ensure_text_workshop_state(st.session_state)
+    return _stored_context_hash_is_fresh(
+        str(tw.get("text_main_idea_approved_context_hash") or "")
+    )
+
+
+def _run_suggest_summary(generate_fn: GenerateFn) -> None:
+    tw = ensure_text_workshop_state(st.session_state)
+    kwargs = {
+        "passage": _session_str("last_igehely", "igehely_input"),
+        "passage_text": _session_passage_text(),
+        "text_main_idea": tw.get("text_main_idea") or "",
+        "approved_insights": tw.get("approved_insights") or [],
+        "exegesis": _session_str("exegesis"),
+        "theology": _session_str("theology"),
+        "historical_context": _session_str("history"),
+        "original_text": _session_str("original_text"),
+        "original_text_is_fresh": _original_text_is_fresh_for_summary(),
+        # RESET 3D-1: ugyanaz az elv, mint az original_text-nél (RESET
+        # 3B-2) — stale mező NEM kerül a szintézis kontextusába, de a
+        # session-state tartalma változatlan marad.
+        "exegesis_is_fresh": _exegesis_is_fresh_for_summary(),
+        "theology_is_fresh": _theology_is_fresh_for_summary(),
+        "historical_context_is_fresh": _historical_context_is_fresh_for_summary(),
+        "text_main_idea_is_fresh": _text_main_idea_is_fresh_for_summary(),
+    }
+    if not kwargs["passage"]:
+        st.warning(
+            "Add meg az igeszakaszt az „Igehely” szakaszon, mielőtt javaslatot kérsz."
+        )
+        return
+
+    with st.spinner("A textusösszegzés mezőinek javaslatai készülnek…"):
+        result: TextSummarySuggestionResult = suggest_text_summary(
+            **kwargs, generate_fn=generate_fn
+        )
+
+    if not result.ok:
+        st.warning(
+            _user_facing_error(
+                False,
+                result.error_message,
+                fallback="A javaslatkészítés nem sikerült. Próbáld újra később.",
+            )
+        )
+        return
+
+    save_text_summary_suggestions(st.session_state, result.to_dict())
+    if not any(
+        (result.base_tension, result.key_exegetical_findings, result.theological_emphases)
+    ):
+        st.info(
+            "A rendelkezésre álló anyag alapján nem készült érdemi javaslat. "
+            "Nézd meg a hiányzó információkat és figyelmeztetéseket."
+        )
+    else:
+        st.success("A javaslatok elkészültek.")
+
+
+def _render_summary_suggestion_results() -> None:
+    tw = ensure_text_workshop_state(st.session_state)
+    summary = tw.get("text_summary") or {}
+    sugs = summary.get("suggestions")
+    if not isinstance(sugs, dict):
+        return
+
+    st.subheader("MI-javaslatok")
+    generated_at = (summary.get("last_generated_at") or "").strip()
+    if generated_at:
+        st.caption(f"Utolsó generálás: {generated_at}")
+
+    any_content = False
+    for field_key, label in _SUMMARY_FIELD_LABELS:
+        text = (sugs.get(field_key) or "").strip()
+        if not text:
+            continue
+        any_content = True
+        with st.container(border=True):
+            st.markdown(f"**{label}**")
+            st.markdown(text)
+            if st.button("Átveszem", key=f"tw_summary_adopt_{field_key}"):
+                _request_adopt_summary_field(field_key, text)
+
+    if not any_content:
+        st.info(
+            "Nincs javaslat (elégtelen adat vagy a modell üresen hagyta). "
+            "A részletek a „Mi alapján készült?” részben vannak."
+        )
+
+    reasoning = (sugs.get("reasoning_summary") or "").strip()
+    warnings = sugs.get("warnings") or []
+    missing = sugs.get("missing_information") or []
+    has_warnings = isinstance(warnings, list) and any(str(x).strip() for x in warnings)
+    has_missing = isinstance(missing, list) and any(str(x).strip() for x in missing)
+
+    if reasoning or has_warnings or has_missing:
+        with st.expander("Mi alapján készült?", expanded=False):
+            if reasoning:
+                st.markdown("**Indoklás**")
+                st.markdown(reasoning)
+            if has_warnings:
+                st.markdown("**Figyelmeztetések**")
+                for item in warnings:
+                    line = str(item or "").strip()
+                    if line:
+                        st.warning(line)
+            if has_missing:
+                st.markdown("**Hiányzó információk**")
+                for item in missing:
+                    line = str(item or "").strip()
+                    if line:
+                        st.markdown(f"- {line}")
+
+
+def render_text_summary_section(
+    *,
+    generate_fn: GenerateFn | None = None,
+) -> None:
+    """Textusösszegzés: a Textusműhely záró, jóváhagyandó kontextus-bundle-ja.
+
+    Jóváhagyás után az Igehirdetési műhely ebből a bundle-ból dolgozik
+    elsődleges/kizárólagos exegetikai kontextusként (nem futtat saját
+    exegézist). A „Mit viszünk tovább?” jóváhagyott felismerések listája
+    támogató bizonyítékként ugyanezen a felületen jelenik meg.
+    """
+    _apply_pending_summary_adopt_if_needed()
+    _apply_tw_summary_ui_resync_if_needed()
+    tw = ensure_text_workshop_state(st.session_state)
+    summary = tw.get("text_summary") or {}
+
+    render_work_section(
+        title="Textusösszegzés",
+        body=(
+            "A Textusműhely záró összegzése: a textus fő gondolata, "
+            "alapfeszültsége, legfontosabb exegetikai felismerései, "
+            "teológiai hangsúlyai és műfaji-szerkezeti sajátosságai egy "
+            "helyen. Jóváhagyás után az Igehirdetési műhely kizárólag "
+            "ebből a kontextusból dolgozik — nem fut újra exegézis."
+        ),
+        context="Textusműhely",
+    )
+
+    main_idea = (tw.get("text_main_idea") or "").strip()
+    main_idea_status = tw.get("text_main_idea_status") or ""
+    with work_surface("tw_summary_main_idea"):
+        st.markdown("**A textus fő gondolata**")
+        if main_idea:
+            st.markdown(main_idea)
+            if main_idea_status != "approved":
+                st.caption(
+                    "Még nincs jóváhagyva — érdemes előbb az „A textus fő "
+                    "gondolata” szakaszon jóváhagyni."
+                )
+        else:
+            st.info(
+                "Még nincs megfogalmazva a textus fő gondolata. Töltsd ki "
+                "az „A textus fő gondolata” szakaszt, mielőtt jóváhagyod "
+                "az összegzést."
+            )
+
+    with work_surface("tw_summary_fields"):
+        st.text_area(
+            "A textus alapfeszültsége",
+            key=_KEY_SUMMARY_BASE_TENSION,
+            height=90,
+            placeholder=(
+                "Milyen belső feszültséget, kérdést vagy ellentétet hordoz "
+                "maga a szakasz?"
+            ),
+        )
+        st.text_area(
+            "Legfontosabb exegetikai felismerések",
+            key=_KEY_SUMMARY_FINDINGS,
+            height=110,
+        )
+        st.text_area(
+            "Teológiai hangsúlyok",
+            key=_KEY_SUMMARY_THEOLOGY,
+            height=110,
+        )
+        st.text_area(
+            "Műfaji és szerkezeti sajátosságok",
+            key=_KEY_SUMMARY_GENRE,
+            height=90,
+        )
+
+        with action_row("tw_summary"):
+            b1, b2 = st.columns(2)
+            with b1:
+                if st.button("Mentés vázlatként", key="tw_summary_save_draft_btn"):
+                    _save_summary(status="draft")
+            with b2:
+                if st.button(
+                    "Jóváhagyom",
+                    type="primary",
+                    key="tw_summary_approve_btn",
+                ):
+                    _save_summary(status="approved")
+
+        status = summary.get("status") or "draft"
+        st.caption(f"Elmentett állapot: **{_STATUS_LABELS.get(status, status)}**")
+
+    ai_ready = generate_fn is not None
+    with mi_helper_zone(
+        "tw_summary",
+        title="MI-segéd",
+        body=(
+            "Egy hívással javaslatot ad az alapfeszültségre és a három "
+            "kísérő mezőre a már elkészült műhelyanyag alapján. A végső "
+            "megfogalmazás és jóváhagyás a prédikátor döntése."
+        ),
+    ):
+        if st.button(
+            "Javaslatok készítése",
+            key="tw_summary_suggest_btn",
+            disabled=not ai_ready,
+        ):
+            if generate_fn is None:
+                st.warning("A javaslatkészítés jelenleg nem érhető el.")
+            else:
+                _run_suggest_summary(generate_fn)
+        if not ai_ready:
+            st.caption("Az MI-segéd nincs bekötve ehhez a nézethez.")
+
+    _render_summary_suggestion_results()
+
+    st.divider()
+    render_approved_insights_section()
+
+
 __all__ = [
     "flush_textus_workshop_from_widgets",
+    "flush_text_summary_from_widgets",
     "render_text_main_idea_section",
     "render_approved_insights_section",
+    "render_text_summary_section",
 ]

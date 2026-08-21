@@ -44,8 +44,8 @@ from textus_workshop_data import (
 )
 from textus_workshop_ui import (
     flush_textus_workshop_from_widgets,
-    render_approved_insights_section,
     render_text_main_idea_section,
+    render_text_summary_section,
 )
 from sermon_workshop_data import (
     SERMON_WORKSHOP_KEY,
@@ -57,9 +57,7 @@ from sermon_workshop_ui import flush_sermon_workshop_from_widgets, render_sermon
 from workshop_nav_ui import (
     render_app_toolbar,
     render_quick_tools_tabs,
-    render_workshop_workflow_nav,
     render_workspace_switcher,
-    textus_completed_sections,
 )
 from ui_components import (
     action_row,
@@ -91,6 +89,14 @@ from bible_text_ui import (
     save_bible_text_from_widgets,
 )
 from biblical_map_ui import render_biblical_map_prototype
+from biblical_map_data import places_by_id as biblical_places_by_id
+from biblical_map_passages import find_place_links_for_passage
+from biblical_place_enrichment import (
+    CONFIDENCE_LABELS_HU as BIBLICAL_PLACE_CONFIDENCE_LABELS_HU,
+    SECTION_LABELS_HU as BIBLICAL_PLACE_SECTION_LABELS_HU,
+    get_place_enrichment,
+    place_enrichment_sources_by_id,
+)
 from bible_engine.greek_analysis_ui import (
     CROSS_CHAPTER_GREEK_MESSAGE,
     greek_reference_status,
@@ -100,6 +106,9 @@ from bible_engine.greek_token_repository import load_greek_passage_tokens
 from bible_engine.morphology_hu import parse_morphology_hu
 from bible_engine.hebrew_books import HebrewReferenceError, parse_hebrew_reference
 from bible_engine.hebrew_token_repository import HebrewTokenRepository
+from bible_engine.original_language_grounding_check import (
+    check_original_language_grounding,
+)
 from passage_search_history import invalidate_used_passage_cache
 from passage_search_ui import (
     apply_pending_passage_search_before_widget,
@@ -3529,6 +3538,50 @@ olyanokat válassz, amelyek:
 - lemma vagy morfológiai kód szerint feltűnő kontrasztban állnak egymással,
 - olyan jelentésréteget hordoznak, ami a szóalak/lemma szintjén megmutatható.
 
+FEGYELEM SZÓNKÉNT — MIKROSZERKEZET (bár nem feltétlenül külön címkével,
+hanem a mondat felépítésével): (1) szóalak + lemma + alapjelentés EGY
+mondatban; (2) mit végez EBBEN a mondatban (funkció) EGY mondatban; (3)
+legfeljebb EGY rövid mondat exegetikai jelentőség, DE csak akkor, ha ez
+ténylegesen indokolt — ha nincs érdemi exegetikai súlya, hagyd ki ezt a
+harmadik mondatot, és álljon meg a szó tárgyalása 2 mondatnál. Egy
+kiválasztott szóhoz ALAPÉRTELMEZETTEN LEGFELJEBB 3 rövid mondat tartozik.
+4. mondat KIVÉTELESEN megengedett, kizárólag akkor, ha a nyelvi adat
+(pl. egy összetett morfológiai szerkezet több elemre bontása) ezt
+ténylegesen megköveteli — ne írj mini-exegézist vagy a szakasz egészének
+teológiai üzenetét minden egyes szó alatt újra kifejtve.
+
+NE tulajdoníts nagy, önálló teológiai vagy exegetikai következtetést
+PUSZTÁN egy szó jelentéséből — egyetlen szó szemantikai mezeje önmagában
+ritkán hordoz akkora súlyt, amennyit egy lelkesen kifejtett bekezdés
+sugallna; a jelentés-magyarázat maradjon arányos a szó tényleges
+szerepével a mondatban. Kerüld, hogy UGYANAZT a gondolatot több kiemelt
+szó alatt is megismételd — ha két szó lényegében ugyanarra a
+megfigyelésre vezetne, csak az egyiknél fejtsd ki, a másiknál legfeljebb
+utalj vissza rá, vagy hagyd ki.
+
+VITATOTT IDENTITÁSI KÉRDÉS NEM DÖNTHETŐ EL NYELVI ESZKÖZZEL: ha egy
+szereplő vagy alak kiléte (pl. egy titokzatos szereplő isteni/emberi/
+angyali volta) a szövegből önmagában nem egyértelműen eldöntött, TILOS
+flat, kész tényként megnevezni (pl. TILOS: "az isteni lény", "Isten
+itt...", "mint isteni jelenlét"), ha ezt maga a KIEMELT szóalak/lemma
+önmagában nem bizonyítja. Ehelyett semleges, a szövegre magára hagyatkozó
+megnevezést használj (pl. "a Jákóbbal küzdő alak", "a szövegben szereplő
+titokzatos küzdő fél"), és csak akkor jelezd az isteni dimenziót, ha ezt
+a TELJES szöveg (pl. egy KÜLÖN, arra utaló szó vagy kifejezés) ténylegesen
+alátámasztja — ekkor is inkább leíró módon (pl. "a narratíva később isteni
+dimenzióval kapcsolja össze a találkozást"), nem kész azonosításként. Ez a
+modul nyelvi elemzés, NEM teológiai identitásdöntés — a vitatott olvasatok
+mérlegelése más modul (Exegézis) feladata.
+
+NE TÚLOZD EL A SZÓETIMOLÓGIÁT: egy lemma jelentését NE bővítsd ki
+rokongyökök, hangzásbeli asszociációk vagy későbbi teológiai kapcsolatok
+alapján úgy, mintha azok a szó közvetlen lexikai jelentéséhez tartoznának.
+Pl. a שׂרה gyöknél a "küzd / harcol / felülkerekedik" jellegű jelentés
+tárgyalható, de az olyan gloss, mint "fejedelmi módon", "uralkodóként",
+CSAK akkor jelenhet meg, ha ezt a helyi lexikai/token-adat ténylegesen
+támogatja — ne vezess le szójelentést pusztán egy rokon alak vagy hasonló
+hangzású szó alapján.
+
 Ezekből írj EGY összefüggő, folyó szövegű magyarázatot, ami megmutatja, hogyan
 épül fel a szakasz nyelvi/jelentésbeli dinamikája ezekből a szóválasztásokból
 — olyan nyelven, amit egy görög/héber nyelvtanban járatlan lelkész is azonnal
@@ -3626,38 +3679,95 @@ Válaszolj magyarul, természetes, lelkipásztori-liturgiai nyelven.
 SECTION_PROMPTS = {
     "overview": """{alap}
 
-# IGEHELY — A SZÖVEG BELSŐ DINAMIKÁJA
+# IGEHELY — BIBLIAI HÁTTÉR ÖSSZEGZÉS
 
 Szakmai vízió:
-Térképezd fel a szöveg belső dinamikáját — hol találhatók benne a teológiai
-hangsúlyeltolódások, hol feszülnek belső ellentétek, és mi az az alapvető
-„mozgás", amely a kezdetétől a végéig vezeti az olvasót. Mutasd be a szakasz
-**irodalmi és teológiai architektúráját**, rávilágítva azokra a pontokra,
-ahol az Ige **provokál, vigasztal vagy kérdőre von**.
+Ez egy GYORS, szakmailag használható áttekintés — elsősorban azoknak, akik
+nem akarnak minden részletes műhelymodulon (exegézis, kortörténet,
+teológia) végigmenni, hanem egy tömör, megbízható kiindulópontra van
+szükségük. NE készíts mini-kommentárt, teljes exegézist, teljes teológiai
+tanulmányt vagy hosszú igehirdetés-előkészítő esszét — a cél a lényeg
+tömör, pontos megragadása, nem a kimerítő feltárás.
 
-A válasz strukturáltan, az alábbi szakaszokra bontva:
+A válasz strukturáltan, az alábbi öt szakaszra bontva:
 
 ## Fő üzenet
-1–2 mondatos magvas tételmondat — a szöveg „idegszála".
+2–4 mondat, EGY koherens központi állítás — a szöveg „idegszála". A
+későbbi szakaszok ezt NE ismételjék meg szó szerint vagy közel szó
+szerint; ha visszautalnak rá, tegyék röviden, más funkcióval.
 
-## Közvetlen bibliai kontextus
-Mi előzi meg, mi követi, hol helyezkedik el a kanonikus íven belül.
+## Kontextus és szerkezet
+Egy összefüggő blokkban: mi előzi meg és mi követi a szakaszt a kánoni
+íven belül; a szöveg műfaja; a belső mozgás (honnan-hová vezet); a fő
+feszültség; ha van, egy fontos szerkezeti fordulópont. NE írj hosszú
+elemző esszét — a cél egy tájékozódó áttekintés, nem egy irodalmi
+tanulmány.
 
-## Irodalmi és teológiai architektúra
-- A szakasz szerkezete (kompozíció, ismétlés, retorikai fordulatok).
-- Belső mozgás: honnan-hová vezet a szöveg.
-- Belső feszültségek és hangsúlyeltolódások.
+## Teológiai hangsúlyok
+Legfeljebb 3–4 VALÓBAN különálló hangsúly. Csak akkor sorolj fel egy
+hangsúlyt külön pontként, ha az ténylegesen önálló teológiai funkciót
+hordoz — ne bontsd szét ugyanazt a gondolatot több, csak
+megfogalmazásban eltérő ponttá.
 
-## Teológiai hangsúly
-A textus központi teológiai magja — Isten-kép, emberkép, kegyelem, hit, ítélet stb.
+## Lehetséges prédikációs irányok
+Legfeljebb 3–4, egymástól ÉRDEMBEN különböző prédikációs irány,
+mindegyikhez egy rövid indoklással. Ezek ne a teológiai hangsúlyok
+szinonim átfogalmazásai legyenek, hanem valódi, eltérő kibontási
+lehetőségek (más-más fókuszpont, más-más hallgatóság felé forduló
+kérdés).
 
-## Prédikációs irányok
-3–5 lehetséges kibontási út, mindegyikhez egy mondatos indoklás.
+## Mire figyeljünk?
+Legfeljebb 3–4 pont a valódi hermeneutikai/homiletikai veszélyekről (pl.
+moralizálás, pszichologizálás, egy vitatott értelmezés túlzott
+magabiztossággal való bemutatása, a kontextus figyelmen kívül hagyása).
+Ez NE legyen a fő üzenet vagy a teológiai hangsúlyok harmadik
+megismétlése — kifejezetten a félreértési/félrehasználási kockázatokra
+fókuszáljon.
 
-## Figyelmeztetések
-Mire kell vigyázni az értelmezésnél (szövegrész félreérthető pontjai, gyakori torzítások).
+TARTALMI FEGYELEM:
+- Ha egy értelmezési kérdés vitatott, vagy a szöveg nem dönti el
+  egyértelműen (pl. egy szereplő pontos kiléte, egy esemény pontos
+  természete), NE fogalmazz kategorikus bizonyossággal. Ez a szabály a
+  válasz MINDEN szakaszára egyformán vonatkozik (Fő üzenet, Kontextus és
+  szerkezet, Teológiai hangsúlyok is) — NE fordulhat elő, hogy egy korábbi
+  szakasz (pl. Teológiai hangsúlyok) kategorikus tényként kezel valamit,
+  amit a "Mire figyeljünk?" szakasz utólag vitatottként jelöl meg; legyél
+  következetes a válasz egészében. TILOS: "egyértelműen",
+  "biztosan", "kétségtelenül", "nyilvánvalóan" — és ehhez hasonló lezáró
+  minősítők — egy olyan kérdésnél, amit a szöveg maga nem dönt el
+  egyértelműen. Ez nem csak a fenti minősítő szavak kerülésére
+  vonatkozik: NE fogalmazz úgy sem, hogy Istent teszed meg egy vitatott
+  cselekvés (pl. a küzdelem) ALANYÁVÁ (pl. "Isten kezdeményezi/irányítja
+  a küzdelmet", "Isten tusakodik Jákóbbal") — ha a küzdő fél kiléte
+  vitatott, magát a küzdelmet semleges alannyal írd le (pl. "egy
+  titokzatos alak", "a küzdő fél"), és az isteni dimenzióra csak Jákób
+  SAJÁT értelmezéseként utalj, ne tényként. Helyette: "a szöveg nyitva
+  hagyja...", "a hagyomány többféleképpen érti...", "több legitim olvasat
+  is lehetséges...". Példa — ROSSZ: "A küzdő fél maga Isten." JOBB: "Jákób a találkozást Istennel
+  való találkozásként értelmezi; a küzdő fél pontos identitását a szöveg
+  nyitva hagyja, amit a hagyomány többféleképpen értelmezett."
+- NE találj ki konkrét hitvallási hivatkozást (pl. Heidelbergi Káté
+  kérdésszámot, konfessziós fejezetszámot vagy közel szó szerinti
+  idézetet) emlékezetből. Általános, hivatkozásszám nélküli
+  megfogalmazás megengedett (pl. "a református hitvallási hagyomány
+  hangsúlyozza, hogy…"), konkrét szám vagy idézet NEM.
+- Történeti állításokat (datálás, régészeti azonosítás, politikai vagy
+  társadalomtörténeti rekonstrukció) csak megfelelő óvatossággal
+  fogalmazz meg, ha a kérdés a szakirodalomban ténylegesen vitatott — ne
+  mutasd be konszenzusként, ha nem az.
 
-Ne írj teljes prédikációt — szakmai feltáró elemzést készíts.
+REDUNDANCIA TILALOM: egy fontos felismerést TELJES KIFEJTÉSSEL csak
+EGYSZER fejts ki, abban a szakaszban, ahova elsődlegesen tartozik. A
+többi szakasz legfeljebb röviden utalhat vissza rá, de nem ismételheti
+meg ugyanazokkal vagy közel azonos szavakkal.
+
+TERJEDELEM: a cél kb. 25–30%-kal tömörebb szöveg, mint egy kimerítő,
+minden részletre kiterjedő áttekintés — de ne legyen sekélyes vagy
+sablonos. A tömörség a redundancia és a felesleges általánosítás
+elhagyásából fakadjon, ne a valódi tartalmi lényeg feláldozásából.
+
+Ne írj teljes prédikációt — szakmai, gyors, jól használható áttekintést
+készíts.
 """,
     "exegesis": """{alap}
 
@@ -3677,6 +3787,32 @@ módon (pl. "...amit a 7. vers elején álló »hanem« [ἀλλὰ] jelez..." v
 görög ἠγάπησεν egyszeri, lezárt cselekvést kifejező alakja mutatja, hogy..."),
 nem külön felsorolt tételként.
 
+GÖRÖG/HÉBER HIVATKOZÁS SZIGORÚ HATÁRA: az alább, a bemeneti anyagban
+mellékelt "EREDETI NYELVI TOKENEK" lista a KIZÁRÓLAGOS forrásod bármilyen
+görög/héber szóalakhoz, lemmához, morfológiai vagy Strong-hivatkozáshoz.
+Új szóalakot, lemmát, morfológiai adatot vagy Strong-számot NEM találhatsz
+ki, és nem egészítheted ki saját emlékezetből — még akkor sem, ha
+magabiztosan emlékszel rá. Ha egy nyelvi megfigyeléshez a token-listában
+nincs elég adat, vagy hagyd ki teljesen, vagy jelezd: "Bizonytalan a
+rendelkezésre álló adat alapján:". NEM KÖTELEZŐ minden alcímhez vagy minden
+szakaszhoz eredeti nyelvi hivatkozást tenned — ha a token-lista egy adott
+ponthoz nem ad érdemi támpontot, a nyelvi szintről egyszerűen ne szólj,
+inkább a szerkezetre, kontextusra és érvelésre fókuszálj. Ez a feladatod
+ITT NEM önálló lexikai/morfológiai elemzés (az az "Eredeti szöveg" modul
+feladata, amit ne ismételj meg és ne dolgozz fel újra teljes terjedelmében)
+— a nyelvi tényt csak annyiban használd, amennyiben segít a szakasz
+TARTALMI, exegetikai értelmezésében.
+
+Ha Strong-azonosítót mégis megemlítesz, az EMBER SZÁMÁRA OLVASHATÓ formában
+történjen — egyetlen, tiszta azonosító (pl. "G0025"), SOSEM a token-lista
+nyers, technikai összetett kódja (pl. "H9005+H9033" vagy más "+"-szal
+összefűzött morfológiai/prefixum-kombináció). Ezek a "+"-os összetett
+alakok a token-adatbázis BELSŐ, technikai szerkezetét tükrözik (előtag,
+szótő, rag külön elemként), nem a lelkésznek szóló, olvasható hivatkozást
+— NE másold be őket a végleges szövegbe. Ha egy szóhoz több technikai
+komponens tartozik, vagy egyáltalán ne hivatkozz Strong-számra, vagy csak a
+szótő (core) egyetlen, tiszta azonosítóját említsd.
+
 Bizonytalanságot CSAK akkor jelezz explicit módon, ha ténylegesen alacsony
 vagy közepes a megbízhatóság — vagyis valódi vitatottság áll fenn (pl. "ez a
 kifejezés vitatott: némely értelmezők szerint..., mások szerint..."). Ahol
@@ -3695,10 +3831,26 @@ kimerítő teljesség helyett — a cél nem az, hogy mindent elmondj, amit
 tudnál, hanem hogy a legértékesebb megfigyeléseket add át tömören. Mind a
 hét alcím tartalmi lényege maradjon meg, csak tömörebben kifejtve.
 
+ALCÍMEK KÖZÖTTI ISMÉTLÉS TILOS: egy fontos exegetikai vagy teológiai
+felismerést TELJES KIFEJTÉSSEL csak EGYETLEN alcím alatt fejts ki. Ha
+ugyanaz a gondolat egy másik alcímnél is releváns, ott legfeljebb röviden
+utalj vissza rá (pl. "mint fentebb említettük..."), de NE ismételd meg
+ugyanazt a mondatot vagy egy közel azonos megfogalmazását két különböző
+alcím alatt (pl. ne írd le két helyen is, közel azonos szavakkal, hogy
+"a győzelem paradox módon a sebezhetőségen és a függésen keresztül
+valósul meg" — válaszd ki, melyik alcím a gondolat ELSŐDLEGES helye, és a
+másikban csak utalj rá). Ez NEM jelenti azt, hogy a választ szegényebbé
+kell tenni — csak azt, hogy egy megfigyelés egyszer, a hozzá leginkább
+illő alcím alatt kapjon teljes kifejtést.
+
 ## Műfaj és szerkezet
 A szakasz műfaji besorolása és belső szerkezete (versek/szakaszok,
 kompozíciós elemek) — összefüggő magyarázatban, a versekre és kifejezésekre
-mondatba ágyazva hivatkozva.
+mondatba ágyazva hivatkozva. Ha a műfaji besorolás egy vitatott identitási
+kérdést feltételezne (ld. lentebb, "Értelmezési kérdések"), semleges
+műfaji megnevezést használj (pl. "különös/rendkívüli találkozás-jelenet"),
+NE a vitatott olvasat nevét (pl. NE nevezd flatly "teofániának", ha ez a
+kérdés maga is vitatott — azt hagyd az Értelmezési kérdések alcímre).
 
 ## Kontextus
 Közvetlen szövegkörnyezet (mi előtte, mi utána), tágabb kontextus a könyv
@@ -3707,7 +3859,11 @@ felsorolásban.
 
 ## Kulcsszavak és kulcskifejezések
 3–6 valóban hangsúlyos kifejezés — EGY összefüggő magyarázatban (nem
-különálló tételekben), a szavakat mondatba ágyazva idézve.
+különálló tételekben), a szavakat mondatba ágyazva idézve. Ha egy
+kulcsszó egy vitatott identitási kérdéshez kapcsolódik, csak a szó nyelvi
+jelentését/funkcióját írd le itt — a kilétre vonatkozó következtetést
+(pl. "isteni jelenlét", "angyal") NE ide, hanem az Értelmezési kérdések
+alcímbe tedd.
 
 ## Nyelvtani és szerkezeti megfigyelések
 Releváns igealakok, mondatszerkezet, retorikai eszközök — folyó szövegben,
@@ -3722,7 +3878,22 @@ le, a szakszót hagyd el teljesen. Ez a magyar megfelelőkre is vonatkozik
 — egyik nyelven se nevezd meg a nyelvtani kategóriát). Például "participium"
 helyett írd körül: "egy melléknévi jellegű igealak, ami egy folyamatosan
 fennálló állapotot ír le" vagy hasonló, a szó FUNKCIÓJÁT leíró körülírással
-— sosem a kategória nevével.
+— sosem a kategória nevével. Ha egy nyelvtani/szerkezeti megfigyelés egy
+olyan identitási kérdéshez vezetne, amely az Értelmezési kérdések alatt
+több legitim lehetőségként jelenik meg (pl. hogy egy szereplő emberi vagy
+isteni), NE zárd le itt a kérdést — sem nyíltan, sem burkoltan. Ez
+azt jelenti: a szereplőt NE nevezd "isteni természetűnek", NE nevezd
+"isteni jelenlétnek", és NE beszélj "isteni szuverenitásáról" vagy hasonló
+kifejezésről úgy, mintha ez a kilétét eldöntené — akkor sem, ha a
+megfogalmazás burkolt vagy közvetett (pl. NE írj olyat, hogy "a későbbi
+versek egyértelműen isteni jelenlétre utalnak", vagy hogy egy cselekedet
+"az isteni szuverenitás megnyilvánulása"). Ehelyett csak a megfigyelhető
+narratív/szövegi tényt mondd ki — pl. "a szereplő neve rejtve marad",
+"Jákób későbbi értelmezése isteni dimenziót kapcsol az eseményhez", vagy
+"a jelenet szövegileg nyitva hagyja a szereplő pontos azonosítását". Ez a
+korlátozás KIZÁRÓLAG a vitatott szereplő identitására vonatkozik — más,
+nem vitatott "isteni" vonatkozású nyelvtani megfigyelést (pl. egy másik
+igealak Istenre mint alanyra utal, ahol ez nem vitatott) nyugodtan tehetsz.
 
 ## Párhuzamos bibliai helyek
 Csak biztos, ellenőrizhető párhuzamok, rövid magyarázattal, összefüggő
@@ -3731,13 +3902,53 @@ szövegben.
 ## Értelmezési kérdések
 Azok a pontok, ahol valódi értelmezésbeli feszültség van a szakirodalomban —
 itt a vitatottságot mondatba ágyazva, indokolással együtt fejtsd ki (ne
-külön "Biztonsági szint: vitatott" címkével).
+külön "Biztonsági szint: vitatott" címkével). IDE tartozik minden olyan
+azonosítási vagy teológiai kérdés, ahol a szakirodalomban több elfogadott
+olvasat létezik (pl. egy titokzatos alak isteni/angyali kiléte, egy
+névváltoztatás pontos teológiai súlya, egy küzdelem "győzelemként" való
+értelmezése) — ezeket mint LEHETSÉGES olvasatokat mutasd be ("egyes
+értelmezők szerint..., mások szerint..."), NE egyetlen, magától értetődő
+tényként valahol máshol a szövegben. Ha egy ilyen kérdésre a szakasz egy
+másik alcíme alatt is utalnál, ott ne foglalj állást — a döntést vagy
+annak hiányát erre az alcímre hagyd.
+
+BELSŐ ÖNELLENTMONDÁS TILOS: ha egy kérdésnél több legitim értelmezési
+alternatívát sorolsz fel, a bekezdés VÉGÉN se oldd fel a vitát olyan
+mondattal, amely valamelyik alternatívát "egyértelműnek", "biztosnak",
+"világosnak" vagy más módon tényszerűen eldöntöttnek nevezi — ez pontosan
+azt a vitatottságot semmisítené meg, amit a bekezdés elején magad
+állapítottál meg. Különböztesd meg a narratív megfigyelést az értelmezési
+döntéstől: "Jákób a találkozást Istennel való találkozásként értelmezi"
+(ez egy narratív megfigyelés — megengedett), szemben azzal, hogy "a küzdő
+fél biztosan Isten volt" (ez már értelmezési döntés — TILOS). Használj
+ehelyett ilyen megfogalmazást: "Jákób saját értelmezése szerint...", "a
+narratíva isteni dimenziót kapcsol az eseményhez...", "ez azonban
+önmagában nem dönti el egyértelműen a küzdő fél pontos identitását."
+
+KONKRÉTAN: ha a szövegben egy titokzatos szereplő kiléte vitatott, az
+"angyal", "teofánia", "isteni jelenlét", "pre-inkarnációs Krisztus" (vagy
+hasonló azonosító) EGYIKE se jelenjen meg biztos, eldöntött tényként a
+Műfaj és szerkezet, a Kulcsszavak és kulcskifejezések, vagy a Nyelvtani és
+szerkezeti megfigyelések alcím alatt — kizárólag itt, az Értelmezési
+kérdések alatt, több lehetőségként tárgyalhatók. Ez a szabály KIZÁRÓLAG a
+ténylegesen vitatott azonosítási/értelmezési kérdésekre vonatkozik — nem
+azt jelenti, hogy minden teológiai állítást ide kellene zárni; amit a
+szöveg vagy a szakirodalom egyértelműen, vita nélkül állít, azt a neki
+megfelelő alcím alatt is nyugodtan, egyenesen közölheted.
 
 ## Prédikációs haszon
 Az exegézis fő gyümölcse — mit ad ez a homiletikai munkához.
 
 Ne prédikációt írj, hanem szakmai háttérelemzést — de olyan nyelven, amit
 egy lelkész azonnal magáévá tud tenni, szakzsargon "fordítása" nélkül.
+
+Ebben az alcímben (és bárhol a válaszban) NE hivatkozz konkrét hitvallási
+kérdésszámra vagy fejezetszámra (pl. "Heidelbergi Káté 20-21. kérdése",
+"II. Helvét Hitvallás XI. fejezete") — ehhez a modulhoz nincs ellenőrzött
+hitvallási adatforrásod, egy emlékezetből felidézett szám ugyanúgy
+ellenőrizetlen, mint egy kitalált. A református hitvallási hagyomány
+TARTALMÁRA/TANÍTÁSÁRA szám nélkül utalhatsz (pl. "a református hitvallási
+hagyomány hangsúlyozza...").
 """,
     "history": """{alap}
 
@@ -3756,6 +3967,77 @@ hallgatók "hogyan értették", "hogyan hangzott ez nekik" vagy "mit éreztek" �
 ez már interpretáció, nem kontextuális tény, és nem a te feladatod. A
 kontextust önmagában, összekötés nélkül add át; azt, hogy ez mit jelent a
 szakasz üzenete szempontjából, az igehirdető vagy más modul dönti el.
+
+BIZONYTALANSÁG-FEGYELEM (KÖTELEZŐ, RÉSZLETES SZABÁLY — mert ehhez a
+modulhoz jelenleg NINCS külső, ellenőrzött történeti adatforrás, kizárólag
+a saját tudásodból dolgozol): konkrét évszámot, uralkodó nevét, régészeti
+leletet, pontos társadalmi/gazdasági adatot vagy "dokumentált" korabeli
+szokást KIZÁRÓLAG akkor állíts, ha ehhez NAGY BIZTONSÁGGAL rendelkezel —
+vagyis olyan széles körben ismert, alaptankönyvi szintű tényről van szó,
+amiben gyakorlatilag nincs kétséged. Ha bármilyen bizonytalanság van egy
+konkrétum pontosságában (dátum, név, szám, egy adott "ásatás" léte vagy
+eredménye), NE találj ki helyette hihetően hangzó, de ellenőrizetlen
+részletet — inkább fogalmazz ÁLTALÁNOSABBAN (pl. "a korszakra jellemző
+politikai instabilitás" egy konkrét, bizonytalan uralkodó-név helyett),
+vagy egyszerűen HAGYD KI azt a konkrétumot. A hiányzó részlet MINDIG jobb,
+mint a hihetően hangzó, de bizonytalan adat.
+
+NE HASZNÁLJ olyan erős, tényként ható megfogalmazást ("dokumentált",
+"biztosan", "a régészet bizonyítja", "kimutatták, hogy"), ha ez pusztán a
+saját modellemlékezetedből, külső ellenőrzés nélkül származik — ezek a
+kifejezések azt sugallják a felhasználónak, hogy a mondat mögött valódi,
+ellenőrzött forrás áll. Csak akkor használj ilyen erős megfogalmazást, ha
+a mögötte álló tény ténylegesen alaptankönyvi szinten, vitán felül ismert.
+
+KONKRÉT PÉLDÁK arra, ami ÁLTALÁBAN NEM alaptankönyvi szintű, hanem
+szakmailag vitatott vagy bizonytalan — ezekhez MINDIG óvatosító nyelvet
+használj (pl. "egyes kutatók szerint", "feltételezhetően", "a leletek
+értelmezése vitatott"), SOSEM add elő őket konszenzusos tényként:
+- pontos évszázad-/évszám-tartományra bontott datálás (pl. "középső
+  bronzkorra, kb. Kr. e. 2000-1550 közé datálják") — a patriarchakor és
+  sok ószövetségi esemény datálása a szakirodalomban is vitatott,
+- egy adott bibliai helyszín MODERN régészeti lelőhellyel való
+  azonosítása (pl. "X modern régészeti lelőhelyként azonosítható Y-nál")
+  — a legtöbb ilyen azonosítás hipotézis, nem lezárt tény,
+- konkrét kultusz, istenség vagy vallási gyakorlat "meghatározó" vagy
+  "domináns" jellegének kijelentése egy adott térségben/korban (pl. "a
+  Baal/Aséra-kultusz uralta a vallási életet"),
+- részletes társadalmi/gazdasági/politikai REKONSTRUKCIÓ (pl. egy
+  szomszédos nagyhatalom pontos politikai befolyásának mértéke egy adott
+  régióra és időszakra) — ezek jellemzően tudós rekonstrukciók, nem
+  közvetlen leletek,
+- konkrét régészeti "településmaradvány" vagy leletegyüttes létezésének
+  vagy jellegének kijelentése, ha ehhez nincs egyértelmű, széles körben
+  elfogadott forrásod.
+Ezekben az esetekben az általánosabb megfogalmazás vagy a részlet
+kihagyása a helyes választás, NEM a magabiztos részletgazdagság.
+
+Az óvatosító szónak UGYANABBAN A MONDATBAN kell állnia, mint magának a
+bizonytalan állításnak — nem elég, ha a bizonytalanság csak valahol
+máshol, általánosságban szerepel a válaszban. NE írj ilyen mondatot: "X-et
+a mai Y folyóval/lelőhellyel azonosítják" vagy "a Z-kultusz uralta a
+vallási életet" — EHELYETT: "X-et egyes kutatók a mai Y folyóval
+azonosítják, bár ez vitatott" vagy "a Z-kultusz feltehetően jelentős
+szerepet játszott, bár ennek pontos mértéke bizonytalan". Ugyanez
+vonatkozik a társadalmi/gazdasági/politikai rekonstrukció minden egyes
+konkrét mondatára (pl. adóterhek mértéke, egy nagyhatalom befolyásának
+mértéke) — mindegyik kapjon saját, helyben álló óvatosító kifejezést,
+nem elég egy általános bevezető mondat az egész bekezdés elején. NE írj
+ilyen mondatot: "a térség X nagyhatalom befolyása alatt állt" — EHELYETT:
+"a térség feltehetően X nagyhatalom befolyási övezetébe tartozott, bár
+ennek pontos mértéke vitatott".
+
+Egyetlen alcím sem kötelezően "tartalmas" — ha egy adott szakaszhoz nincs
+releváns, megbízhatóan ismert háttéranyagod, az az alcím lehet RÖVID, akár
+1-2 mondatos is. NE gyárts mesterséges régészeti "érdekességet" vagy
+kitalált részletet csak azért, hogy egy alcím hosszabbnak vagy
+tartalmasabbnak tűnjön.
+
+A BIZONYTALANSÁG JELZÉSE NEM GYENGESÉG, HANEM KÖTELEZŐ SZAKMAI FEGYELEM —
+egy lelkész, aki a szószéken tévesen "dokumentált tényként" ad tovább egy
+valójában kitalált részletet, komoly szakmai kárt okozhat. Az óvatos,
+általánosabb megfogalmazás MINDIG jobb választás, mint a magabiztos, de
+ellenőrizetlen konkrétum.
 
 SZIGORÚAN TILOS (ez a modul feladatköre kizárja, más modul dolga):
 - görög vagy héber szó, kifejezés idézése vagy elemzése,
@@ -3800,8 +4082,13 @@ Milyen politikai, gazdasági vagy vallási körülmények jellemezték
 NEM "hogyan élték ezt meg" vagy "hogyan hatott ez rájuk" jellegű állítás. EZ
 AZ UTOLSÓ SZAKASZ — itt fejezd be a választ, ne adj hozzá további alcímet.
 
-Külön és világosan jelezd, mi **biztos**, mi **valószínű**, és mi
-**vitatott**.
+Ahol VALÓDI bizonytalanság van egy állításban, jelezd is (**valószínű**,
+**vitatott**) — de ez NEM azt jelenti, hogy minden bekezdést vagy mondatot
+külön címkével kellene ellátnod. Ahol egy tény alaptankönyvi szinten, nagy
+biztonsággal ismert, egyszerűen állítsd, címkézés nélkül — a cél nem a
+gépies, minden mondathoz odabiggyesztett minősítés, hanem hogy a VALÓDI
+bizonytalanság ne tűnjön el, illetve ne is látsszon több bizonyosságúnak,
+mint amennyi ténylegesen van mögötte.
 
 Ne vonj le következtetést arról, mire használható ez a prédikációban, és ne
 mondd meg, mit "érdemes" vagy "nem érdemes" felhasználni — az összekötést az
@@ -3840,9 +4127,45 @@ szöveghez ténylegesen a legtöbbet ad — ne mindet:
   gyógyítja vagy hívja az embert
 - Krisztusra mutatás: a szöveg hogyan mutat Krisztusra — közvetlenül,
   tipológiailag vagy ígéretként
-- Hitvallásos kapcsolódás: csak ha ténylegesen megalapozott, konkrét
-  utalás a Heidelbergi Kátéra vagy a II. Helvét Hitvallásra (SOHA ne
-  találj ki kérdés-számot)
+- Hitvallásos kapcsolódás: utalhatsz a református hitvallási hagyományra
+  (pl. Heidelbergi Káté, II. Helvét Hitvallás) TARTALMILAG, de — ld.
+  lentebb a bizonytalanság-fegyelmi szabályt — alapértelmezetten SZÁM
+  NÉLKÜL, mert ehhez a modulhoz nincs ellenőrzött forrásod
+
+BIZONYTALANSÁG-FEGYELEM (KÖTELEZŐ SZABÁLY — mert ehhez a modulhoz
+jelenleg NINCS külső, ellenőrzött teológiai adatforrás, kizárólag a saját
+tudásodból dolgozol): ALAPÉRTELMEZETTEN NE adj meg konkrét hitvallási
+hivatkozást — Heidelbergi Káté kérdésszámot, II. Helvét Hitvallás
+fejezetszámát vagy dokumentumpontját, illetve szó szerinti vagy kvázi-szó
+szerinti idézetet —, MERT nincs grounded (ellenőrzött, külső adatforrásból
+származó) hitvallási forrásod, amivel a pontosságát igazolni tudnád. Ez
+akkor is érvényes, ha "emlékszel" egy konkrét számra vagy idézetre — a
+saját emlékezetből felidézett szám ÉPP OLYAN ellenőrizetlen, mint egy
+kitalált. Csak a REFORMÁTUS HITVALLÁSI HAGYOMÁNY TARTALMÁT/TANÍTÁSÁT
+fogalmazd meg, szám vagy idézet nélkül (pl. "a református hitvallási
+hagyomány hangsúlyozza..." egy konkrét kérdésszám vagy fejezethivatkozás
+helyett) — ez NEM gyengíti a teológiai mondanivalót, csak elhagyja az
+ellenőrizhetetlen technikai hivatkozást. A hiányzó hivatkozás MINDIG jobb,
+mint a hihetően hangzó, de bizonytalan adat.
+
+Ugyanez vonatkozik konkrét teológusoknak vagy reformátoroknak (pl.
+Kálvin, Luther, Barth vagy más teológus) tulajdonított állításokra: NE
+rendelj hozzájuk konkrét nézetet csak azért, hogy tekintélyt kölcsönözz
+az érvelésnek. Ha egy adott gondolat konkrét szerzőhöz kötése nem biztos,
+mondd el a teológiai gondolatot NÉV NÉLKÜL, mint általános teológiai
+belátást.
+
+Különböztesd meg világosan: (1) a textusból közvetlenül következő
+teológiai hangsúlyt, (2) a református hagyomány általánosan elfogadott
+értelmezését, és (3) egy lehetséges — nem egyedüli — dogmatikai olvasatot.
+Vitatott vagy többféleképpen értelmezhető kérdést NE állíts be úgy,
+mintha az volna az EGYETLEN, magától értetődő "református álláspont".
+
+A BIZONYTALANSÁG JELZÉSE NEM GYENGESÉG, HANEM KÖTELEZŐ SZAKMAI FEGYELEM
+— egy lelkész, aki tévesen "dokumentált tényként" ad tovább egy kitalált
+kátékérdés-számot vagy hamis idézetet a szószéken, komoly szakmai kárt
+okozhat. A bizonytalan konkrétum elhagyása MINDIG szakmailag helyesebb,
+mint egy hihető, de ellenőrizetlen hivatkozás létrehozása.
 
 Ha van releváns, gyakori félreértés vagy torzítás, amire ez a szöveg
 hajlamosít, zárd 1-2 mondattal — de csak ha ez ténylegesen ehhez a
@@ -4035,22 +4358,9 @@ def _sync_inputs_to_last():
         pass
 
     igehely = (st.session_state.get("igehely_input") or "").strip()
-    alkalom = st.session_state.get("alkalom_input") or ""
-    stilus = st.session_state.get("stilus_input") or ""
-    sajat = st.session_state.get("sajat_input") or ""
 
     if igehely:
         st.session_state["last_igehely"] = igehely
-        # verse_history frissítés (utolsó 10, duplikátum nélkül)
-        _vh = [v for v in st.session_state.get("verse_history", []) if v != igehely]
-        _vh.insert(0, igehely)
-        st.session_state["verse_history"] = _vh[:10]
-
-    if alkalom:
-        st.session_state["last_alkalom"] = alkalom
-    if stilus:
-        st.session_state["last_stilus"] = stilus
-    st.session_state["last_sajat"] = sajat
 
     # Bibliai szöveg: ha a szerkesztő widget létezik, tartós mezőkbe is kerüljön
     # (projekt Mentés / autosave ne veszítse el a még nem „Mentett” szöveget).
@@ -4065,13 +4375,35 @@ def _sync_inputs_to_last():
     flush_sermon_workshop_from_widgets()
 
 
-def build_alap_from_state(*, include_pastoral_context: bool = False):
+def build_alap_from_state(
+    *,
+    include_pastoral_context: bool = False,
+    include_original_language_tokens: bool = False,
+    include_biblical_place_context: bool = False,
+):
     """A `last_…` session-mezőkből építi vissza az elemzés kontextusát.
 
     include_pastoral_context=True: ceremoniális alkalmi háttér a
     „pásztori alkalmazási kontextus” címkével (áttekintés / alkalmazás /
     illusztráció). Exegézis / kortörténet / teológia esetén False marad.
-    """
+
+    include_original_language_tokens=True (RESET 3B-3): a helyi görög/
+    héber token-adatbázisból épített, determinisztikus token-blokkot is
+    csatolja — UGYANAZT a `build_original_language_token_block()`
+    függvényt hívja, amelyből az „Eredeti szöveg” modul is dolgozik
+    (`build_original_text_prompt`), tehát ugyanaz a source-of-truth, nem
+    párhuzamos adatforrás. Jelenleg KIZÁRÓLAG az egzegézis szekció
+    kapcsolja be (`generate_section`) — más szekció (kortörténet,
+    teológia stb.) promptját ez a paraméter nem érinti.
+
+    include_biblical_place_context=True (RESET 3B-4c): a meglévő,
+    forrásolt `biblical_places` adatbázisból épített, szűk földrajzi/
+    régészeti háttérblokkot csatolja (`build_biblical_place_history_
+    context()`) — KIZÁRÓLAG akkor, ha van kvalifikáló (source_backed,
+    high/medium confidence) tartalom, egyébként nem csatol semmit
+    (nincs "nincs adat" placeholder). Jelenleg KIZÁRÓLAG a kortörténet
+    szekció kapcsolja be — más szekció promptját ez a paraméter nem
+    érinti."""
     passage = st.session_state.get("last_igehely", "") or ""
     translation = (st.session_state.get("bible_translation") or "").strip()
     passage_text = st.session_state.get("passage_text") or ""
@@ -4151,6 +4483,20 @@ def build_alap_from_state(*, include_pastoral_context: bool = False):
                 "Ne keverd a textus tényállásába, és ne másold be automatikusan "
                 "a személyes adatokat."
             )
+    if include_original_language_tokens:
+        # RESET 3B-3: a token-blokk SAJÁT fejlécet és "nincs adat"-jellegű
+        # üzeneteket is tartalmaz (ld. `build_original_language_token_
+        # block`) — ezt változatlanul, kiegészítés nélkül csatoljuk, hogy
+        # a hiányzó-adat eset ugyanúgy, egységesen kommunikálódjon, mint
+        # az „Eredeti szöveg” modulnál.
+        lines.append(build_original_language_token_block(passage))
+    if include_biblical_place_context:
+        # RESET 3B-4c: csak akkor csatolunk sort, ha VAN kvalifikáló
+        # tartalom — üres connector-eredmény esetén a blokk teljesen
+        # kimarad, nincs "nincs adat" placeholder (ld. függvény docstring).
+        place_context_block = build_biblical_place_history_context(passage)
+        if place_context_block:
+            lines.append(place_context_block)
     return "\n".join(lines)
 
 # =========================================================
@@ -4219,6 +4565,98 @@ def build_original_language_token_block(igehely: str) -> str:
         return header + "\n".join(lines)
 
     return header + "Nem sikerült azonosítani a hivatkozást — nincs lekérhető token-adat."
+
+
+# RESET 3B-4c: a meglévő, forrásolt `biblical_places` adatbázis szűk
+# connectora a kortörténet ("history") szekcióhoz. Csak a földrajzi/
+# régészeti (és explicit forrásolt történeti) hátteret adja tovább — a
+# bibliai jelentőség, kulcsesemények, mai helyzet, azonosítási megjegyzés
+# és homiletikai kontextus szakaszok SOSEM kerülnek bele (ld. RESET 3B-4b
+# audit felelősségi-határ döntése).
+BIBLICAL_PLACE_HISTORY_SECTION_KEYS = ("ancient_geography", "historical_context", "archaeology")
+BIBLICAL_PLACE_HISTORY_QUALIFYING_CONFIDENCE = {"high", "medium"}
+BIBLICAL_PLACE_HISTORY_MAX_PLACES = 2
+BIBLICAL_PLACE_HISTORY_HEADER = "FORRÁSOLT FÖLDRAJZI/RÉGÉSZETI HÁTTÉR (ellenőrzött adatbázisból):\n"
+BIBLICAL_PLACE_HISTORY_DISCLAIMER = (
+    "\n\nFONTOS: a fenti blokk ellenőrzött, forrásolt adat, és KIZÁRÓLAG az "
+    "itt konkrétan szereplő földrajzi/régészeti/történeti állításokra "
+    "tekinthető groundingnak. A kortörténeti válasz TÖBBI RÉSZE továbbra is "
+    "a saját tudásodból készül — arra változatlanul érvényes a fent leírt "
+    "bizonytalanság-fegyelem (ne állíts konkrétumot bizonytalanul, inkább "
+    "fogalmazz általánosabban vagy hagyd ki). Ne sugalld, hogy a teljes "
+    "válasz forrásolt."
+)
+
+
+def build_biblical_place_history_context(igehely: str) -> str:
+    """Legfeljebb 2, a megadott igehelyhez kapcsolódó helyszín forrásolt
+    földrajzi/régészeti (és explicit forrásolt történeti) hátteréből épít
+    egy rövid, strukturált blokkot a `find_place_links_for_passage()` /
+    `get_place_enrichment()` meglévő runtime helperek segítségével — nem
+    olvas nyers JSON-t.
+
+    Csak `review_status == "source_backed"` ÉS `confidence in {"high",
+    "medium"}` szakasz kerül be. Ha nincs place-link, vagy van place-link,
+    de egyik helyhez sincs kvalifikáló szakasz, üres stringet ad vissza —
+    a hívó ekkor a blokkot TELJESEN kihagyja a promptból (nincs "nincs
+    adat" placeholder; ld. RESET 3B-4b audit: ez ma a tipikus eset)."""
+    reference = (igehely or "").strip()
+    if not reference:
+        return ""
+
+    links = find_place_links_for_passage(reference)
+    if not links:
+        return ""
+
+    place_names = biblical_places_by_id()
+    sources = place_enrichment_sources_by_id()
+
+    place_blocks: list[str] = []
+    for link in links:
+        if len(place_blocks) >= BIBLICAL_PLACE_HISTORY_MAX_PLACES:
+            break
+        enrichment = get_place_enrichment(link.place_id)
+        if enrichment is None:
+            continue
+        section_texts: list[str] = []
+        for section_key in BIBLICAL_PLACE_HISTORY_SECTION_KEYS:
+            section = enrichment.sections.get(section_key)
+            if section is None:
+                continue
+            if section.review_status != "source_backed":
+                continue
+            if section.confidence not in BIBLICAL_PLACE_HISTORY_QUALIFYING_CONFIDENCE:
+                continue
+            institutions = sorted(
+                {
+                    sources[source_id].institution
+                    for source_id in section.source_ids
+                    if source_id in sources
+                }
+            )
+            section_label = BIBLICAL_PLACE_SECTION_LABELS_HU.get(section_key, section_key)
+            confidence_label = BIBLICAL_PLACE_CONFIDENCE_LABELS_HU.get(
+                section.confidence, section.confidence
+            )
+            attribution = ", ".join(institutions) if institutions else "ismeretlen intézmény"
+            section_texts.append(
+                f"[{section_label}, {confidence_label}, forrás: {attribution}]\n"
+                f"{section.text_hu}"
+            )
+        if not section_texts:
+            continue
+        place = place_names.get(link.place_id)
+        place_label = place.name_hu if place is not None else link.place_id
+        place_blocks.append(place_label + "\n" + "\n".join(section_texts))
+
+    if not place_blocks:
+        return ""
+
+    return (
+        BIBLICAL_PLACE_HISTORY_HEADER
+        + "\n\n".join(place_blocks)
+        + BIBLICAL_PLACE_HISTORY_DISCLAIMER
+    )
 
 
 def build_original_text_prompt(igehely: str) -> str:
@@ -4389,6 +4827,27 @@ SECTIONS_WITH_GOOGLE_SEARCH = {"actualization"}
 # "vers" szó előtt VAGY után) és görög/héber írásjel jelenlétét keresi — a
 # régi mezőnevekre is illeszkedik, ha mégis előfordulnának.
 
+# RESET 3B-6a: ez a három kulcs SOSEM része a mentett project_data-nak —
+# tisztán futásidejű, generáláskor újraszámított állapot (ld. `generate_
+# section`/`render_original_text_panel`). Éppen ezért NINCS bent a
+# `WORKSPACE_STR_KEYS`/`WORKSPACE_LIST_KEYS`-ben (workspace_data.py) sem —
+# a tartalom-visszaállító útvonalaknak (projektváltás, workspace-törlés,
+# workspace-import) EXPLICIT módon kell nullázniuk, különben egy korábbi
+# projekt/állapot figyelmeztetése szivárogna át az új (vagy üres) tartalom
+# alá. `exegesis_support_warnings` a RESET 3B-6 előttről öröklött, azonos
+# hibamintájú kulcs — ugyanitt, ugyanúgy nullázzuk.
+_LANGUAGE_GROUNDING_WARNING_KEYS = (
+    "exegesis_support_warnings",
+    "exegesis_grounding_warnings",
+    "original_text_grounding_warnings",
+)
+
+
+def _reset_language_grounding_warnings() -> None:
+    for warning_key in _LANGUAGE_GROUNDING_WARNING_KEYS:
+        st.session_state[warning_key] = []
+
+
 _EXEGESIS_SUPPORT_EXEMPT_HEADINGS = {"prédikációs haszon"}
 
 _EXEGESIS_SUPPORT_PATTERN = re.compile(
@@ -4454,10 +4913,19 @@ def generate_section(key: str) -> bool:
     # Exegézis / kortörténet / teológia: szövegközpontú — ne keverjük az
     # életrajzi hátteret. Áttekintés / illusztráció / aktualizálás: igen.
     pastoral_sections = {"overview", "illustrations", "actualization"}
+    # RESET 3B-3: KIZÁRÓLAG az egzegézis kapja meg a helyi görög/héber
+    # token-blokkot groundingként — más szekció promptját nem érinti.
+    original_language_sections = {"exegesis"}
+    # RESET 3B-4c: KIZÁRÓLAG a kortörténet kapja meg a forrásolt
+    # biblical_places földrajzi/régészeti háttérblokkot — más szekció
+    # promptját nem érinti.
+    biblical_place_context_sections = {"history"}
     with st.spinner(f"{label} készítése…"):
         prompt = SECTION_PROMPTS[key].format(
             alap=build_alap_from_state(
-                include_pastoral_context=key in pastoral_sections
+                include_pastoral_context=key in pastoral_sections,
+                include_original_language_tokens=key in original_language_sections,
+                include_biblical_place_context=key in biblical_place_context_sections,
             )
         )
         st.session_state[key] = generate_text(
@@ -4469,6 +4937,16 @@ def generate_section(key: str) -> bool:
             st.session_state[f"{key}_support_warnings"] = (
                 validate_exegesis_has_support(st.session_state[key])
             )
+            # RESET 3B-6: ADDITÍV második réteg — a meglévő jelenlét-
+            # alapú `validate_exegesis_has_support` VÁLTOZATLAN marad,
+            # ez egy külön, tartalmi grounding cross-check, külön
+            # session-kulcsban, sosem blokkol.
+            st.session_state[f"{key}_grounding_warnings"] = [
+                w.message
+                for w in check_original_language_grounding(
+                    st.session_state[key], st.session_state.get("last_igehely", "")
+                )
+            ]
     return True
 
 
@@ -4478,8 +4956,6 @@ regenerate_section = generate_section
 # =========================================================
 # SECTION TAB RENDERER — DRY, TABONKÉNTI GENERÁLÁS
 # =========================================================
-
-_APPROVABLE_STATUS_LABELS = {"draft": "Vázlat", "approved": "Jóváhagyva"}
 
 
 def render_section_tab(
@@ -4498,18 +4974,19 @@ def render_section_tab(
     - Saját **Generálás** gomb (futás közben tiltott, spinner aktív).
     - Csak gombnyomásra fut Gemini hívás, page-load alatt SOHA.
     - Az eredmény külön `st.session_state[key]`-ben él, rerun nem dobja.
-    - Megjeleníti a finomítás-chatet és a vázlatkosár-jegyzetet.
+    - Megjeleníti a finomítás-chatet.
 
     Paraméterek:
       - `action_label`: a gomb felirata első generáláskor. Ha nincs megadva,
         az alapértelmezett `"{header} generálása"` lesz.
       - `regen_label`: a gomb felirata újrageneráláskor. Ha nincs megadva,
         a `regen_label = "Frissítés — " + action_label` automatikus.
-      - `approvable`: ha True, a tartalom mellé "Mentés vázlatként" /
-        "Jóváhagyom és átadom" gombpár kerül (`st.session_state[f"{key}_status"]`),
-        amit a vázlatmotor kikényszerít — csak jóváhagyott állapotban
-        kerül a promptba. Regeneráláskor a státusz automatikusan
-        visszaáll "draft"-ra.
+      - `approvable`: ha True, a tartalom alá egy tájékoztató felirat
+        kerül, hogy a mentett tartalom külön jóváhagyás nélkül,
+        automatikusan elérhető az Igehirdetési műhely vázlatmotora
+        számára. (A vázlatmotor ezekre a forrásokra csak a friss
+        igehelyhez tartozást ellenőrzi, jóváhagyást nem — ld.
+        `sermon_outline_engine._CANONICAL_TEXTUS_SOURCE_KEYS`.)
     """
     render_work_section(
         title=header,
@@ -4539,6 +5016,19 @@ def render_section_tab(
                     generate_section(key)
                     if approvable:
                         st.session_state[f"{key}_status"] = "draft"
+                    # Korrekciós fázis 3.1: az ujjlenyomat GENERÁLÁSKOR
+                    # bélyegződik be, nem csak jóváhagyáskor — ez teszi
+                    # lehetővé, hogy a vázlatmotor a tartalmat approval
+                    # nélkül is felismerje "az aktuális textushoz tartozó,
+                    # friss" forrásként (ld. sermon_outline_engine.
+                    # _canonical_source_is_usable).
+                    from sermon_outline_engine import (
+                        compute_current_passage_context_hash,
+                    )
+
+                    st.session_state[f"{key}_approved_context_hash"] = (
+                        compute_current_passage_context_hash(st.session_state)
+                    )
                 finally:
                     st.session_state[running_flag] = False
                 st.rerun()
@@ -4561,50 +5051,21 @@ def render_section_tab(
             for w in support_warnings:
                 st.warning(w)
 
-        if approvable and has_result:
-            status = st.session_state.get(f"{key}_status") or "draft"
-            ab1, ab2 = st.columns(2)
-            with ab1:
-                if st.button("Mentés vázlatként", key=f"{key}_save_draft_btn"):
-                    st.session_state[f"{key}_status"] = "draft"
-                    st.success("Vázlatként elmentve.")
-            with ab2:
-                if st.button(
-                    "Jóváhagyom és átadom",
-                    type="primary",
-                    key=f"{key}_approve_btn",
-                ):
-                    from sermon_outline_engine import (
-                        compute_current_passage_context_hash,
-                    )
+        # RESET 3B-6: ADDITÍV második réteg a `support_warnings` mellett —
+        # csak az exegézis tölti fel, más szekciónál mindig üres/hiányzó.
+        grounding_warnings = st.session_state.get(f"{key}_grounding_warnings")
+        if grounding_warnings:
+            for w in grounding_warnings:
+                st.warning(w)
 
-                    st.session_state[f"{key}_status"] = "approved"
-                    st.session_state[f"{key}_ever_approved"] = True
-                    st.session_state[f"{key}_approved_context_hash"] = (
-                        compute_current_passage_context_hash(st.session_state)
-                    )
-                    st.success("Jóváhagyva és továbbvíve a vázlatmotorhoz.")
+        if approvable and has_result:
             st.caption(
-                f"Elmentett állapot: **{_APPROVABLE_STATUS_LABELS.get(status, status)}**"
+                "Ez a tartalom automatikusan elérhető az Igehirdetési "
+                "műhely vázlatmotora számára — külön jóváhagyás nem "
+                "szükséges."
             )
 
         refinement_chat(chat_title or header, key, f"{key}_chat")
-
-        note_key = f"{key}_note"
-        add_btn_key = f"{key}_add"
-        _maybe_clear_note(note_key)
-        note = st.text_area("Mit szeretnél ebből megtartani a vázlathoz?", key=note_key)
-
-        with action_row(f"section_{key}_basket"):
-            if st.button("Hozzáadás a vázlatkosárhoz", key=add_btn_key):
-                if note.strip():
-                    warn = _append_basket_item(basket_label, note.strip())
-                    _request_clear_note(note_key)
-                    if warn:
-                        st.warning(warn)
-                    else:
-                        st.success("Hozzáadva.")
-                    st.rerun()
 
 
 # =========================================================
@@ -4653,6 +5114,10 @@ def deserialize_workspace(raw_bytes):
     for nested in (TEXT_WORKSHOP_KEY, SERMON_WORKSHOP_KEY, OCCASION_CONTEXT_KEY):
         if nested in obj:
             st.session_state[nested] = obj[nested]
+    # RESET 3B-6a: az importált fájl sosem tartalmazza ezeket (tisztán
+    # futásidejű állapot) — a betöltés előtti, esetleg más tartalomhoz
+    # tartozó figyelmeztetések ne maradjanak bent az importált szöveg alatt.
+    _reset_language_grounding_warnings()
     # Titkok soha ne kerüljenek vissza
     for secret_key in ("api_key", "api_key_input"):
         if secret_key in st.session_state and secret_key in (obj or {}):
@@ -4767,9 +5232,6 @@ def _queue_project_widget_sync_from_state() -> None:
     """
     pending = {
         "igehely_input": st.session_state.get("last_igehely", "") or "",
-        "alkalom_input": st.session_state.get("last_alkalom", "") or "",
-        "stilus_input": st.session_state.get("last_stilus", "") or "",
-        "sajat_input": st.session_state.get("last_sajat", "") or "",
         "_outline_draft_editor": st.session_state.get("outline_draft", "") or "",
         "_outline_answers_editor": (
             st.session_state.get("outline_workshop_answers", "") or ""
@@ -4817,6 +5279,11 @@ def _apply_project_data_to_session(project_data: dict) -> None:
             st.session_state[key] = int(raw)
         except (TypeError, ValueError):
             st.session_state[key] = 4
+    # RESET 3B-6a: ezek sosem részei a project_data-nak (tisztán
+    # futásidejű állapot) — projektváltáskor MINDIG nullázódniuk kell,
+    # különben az előző projekt figyelmeztetése szivárogna át az új
+    # (vagy üres) exegézis/eredeti szöveg tartalom alá.
+    _reset_language_grounding_warnings()
     # Régi projektek: hiányzó text_workshop → alapértelmezett struktúra
     if TEXT_WORKSHOP_KEY in project_data:
         st.session_state[TEXT_WORKSHOP_KEY] = normalize_text_workshop(
@@ -5142,6 +5609,9 @@ def _clear_workspace_content() -> None:
         st.session_state[k] = ""
     for k in WORKSPACE_LIST_KEYS:
         st.session_state[k] = []
+    # RESET 3B-6a: ezek sosem részei a workspace-nek (tisztán futásidejű
+    # állapot) — üresítéskor MINDIG nullázódniuk kell.
+    _reset_language_grounding_warnings()
     for k in ("series_cadence",):
         st.session_state[k] = "vasárnapi"
     st.session_state["series_weeks"] = 4
@@ -5483,127 +5953,13 @@ def _render_project_status_bar() -> None:
 # =========================================================
 # VÁZLAT WORD EXPORT (.docx)
 # =========================================================
-# Ugyanaz a tartalom-struktúra, mint a Markdown exportnál; a vázlat törzsét
-# és a kosár/ének szövegeket soronkénti, egyszerű Markdown-heurisztikával
-# alakítjuk Word-be (UTF-8, Calibri — magyar ékezetek).
-
-def _docx_strip_md_links(text: str) -> str:
-    return re.sub(r"\[([^\]]+)\]\([^)]*\)", r"\1", text or "")
-
-
-def _docx_add_inline_runs(paragraph, line: str) -> None:
-    """`**félkövér**` és sima szöveg — páros `**` felosztással."""
-    t = _docx_strip_md_links(line)
-    parts = t.split("**")
-    for i, seg in enumerate(parts):
-        if not seg:
-            continue
-        run = paragraph.add_run(seg)
-        if i % 2 == 1:
-            run.bold = True
-
-
-def _docx_append_markdown_body(doc, text: str) -> None:
-    """Markdown-szerű blokk Word-be: címsorok, listák, idézet, üres sorok."""
-    if not (text or "").strip():
-        p = doc.add_paragraph(style="Intense Quote")
-        p.add_run("_Még nem készült vázlat._")
-        return
-    for raw_line in text.splitlines():
-        line = raw_line.rstrip()
-        stripped = line.strip()
-        if not stripped:
-            doc.add_paragraph()
-            continue
-        if stripped in ("---", "***", "___"):
-            doc.add_paragraph()
-            continue
-        hm = re.match(r"^(#{1,6})\s+(.*)$", stripped)
-        if hm:
-            level = min(len(hm.group(1)), 4)
-            doc.add_heading(hm.group(2).strip(), level=level)
-            continue
-        if stripped.startswith(">"):
-            content = stripped.lstrip(">").strip()
-            p = doc.add_paragraph(style="Quote")
-            _docx_add_inline_runs(p, content)
-            continue
-        if re.match(r"^[-*+]\s+", stripped):
-            content = re.sub(r"^[-*+]\s+", "", stripped)
-            p = doc.add_paragraph(style="List Bullet")
-            _docx_add_inline_runs(p, content)
-            continue
-        if re.match(r"^\d+\.\s+", stripped):
-            content = re.sub(r"^\d+\.\s+", "", stripped)
-            p = doc.add_paragraph(style="List Number")
-            _docx_add_inline_runs(p, content)
-            continue
-        p = doc.add_paragraph()
-        _docx_add_inline_runs(p, stripped)
-
-
-def build_outline_docx() -> bytes:
-    """Összeállítja a vázlatkosár + ének Word dokumentumát (bináris .docx)."""
-    from docx import Document
-    from docx.enum.text import WD_COLOR_INDEX
-    from docx.shared import Pt
-
-    doc = Document()
-    doc.styles["Normal"].font.name = "Calibri"
-    doc.styles["Normal"].font.size = Pt(11)
-
-    doc.add_heading(f"Prédikációvázlat — {APP_NAME}", level=1)
-
-    igehely = st.session_state.get("last_igehely", "—")
-    alkalom = st.session_state.get("last_alkalom", "—")
-    stilus = st.session_state.get("last_stilus", "—")
-    outline = st.session_state.get("outline", "").strip()
-    basket = st.session_state.get("basket", [])
-    songs = st.session_state.get("songs", "").strip()
-    now = datetime.now().strftime("%Y. %m. %d. %H:%M")
-
-    p_meta = doc.add_paragraph()
-    r_l = p_meta.add_run("Igehely: ")
-    r_l.bold = True
-    r_v = p_meta.add_run(igehely)
-    r_v.bold = True
-    try:
-        r_v.font.highlight_color = WD_COLOR_INDEX.YELLOW
-    except Exception:
-        r_v.italic = True
-
-    p_al = doc.add_paragraph()
-    p_al.add_run("Alkalom: ").bold = True
-    _docx_add_inline_runs(p_al, alkalom)
-
-    p_st = doc.add_paragraph()
-    p_st.add_run("Homiletikai stílus: ").bold = True
-    _docx_add_inline_runs(p_st, stilus)
-
-    doc.add_paragraph(f"Készült: {now}")
-    doc.add_paragraph()
-
-    doc.add_heading("Vázlat", level=2)
-    _docx_append_markdown_body(doc, outline)
-
-    if basket:
-        doc.add_heading("Vázlatkosár — gondolatok a vázlathoz", level=2)
-        for source, item in basket:
-            doc.add_heading(source, level=3)
-            _docx_append_markdown_body(doc, item)
-
-    if songs:
-        doc.add_heading("Liturgiai énekajánlás", level=2)
-        _docx_append_markdown_body(doc, songs)
-
-    doc.add_paragraph()
-    p_f = doc.add_paragraph()
-    r_f = p_f.add_run(f"{APP_NAME} v{APP_VERSION} — {APP_SUBTITLE} · {APP_TAGLINE}")
-    r_f.italic = True
-
-    buf = io.BytesIO()
-    doc.save(buf)
-    return buf.getvalue()
+# A tényleges implementáció az outline_word_export.py-ban él (2026-08-13,
+# célarchitektúra-terv 2. fázis, 1. lépés — kiemelve, hogy az Igehirdetési
+# műhely UI-ja (sermon_workshop_ui.py) is biztonságosan importálhassa,
+# körkörös import / kettős app.py-végrehajtás kockázata nélkül). Itt csak
+# visszafelé kompatibilis re-export marad, hogy az `app.build_outline_docx`
+# hívási forma (és a rá épülő tesztek) változatlanul működjenek.
+from outline_word_export import build_outline_docx  # noqa: E402
 
 
 # =========================================================
@@ -6003,7 +6359,13 @@ DEFAULT_MAX_OUTPUT_TOKENS_BY_TAB: dict[str, int] = {
     "Kortörténet": 6144,
     "Teológia": 9216,
     "Eredeti szöveg": 6144,
-    "Eredeti szöveg tanulmányozása": 6144,
+    # LOCAL QA — Phase D (2026-08-21): a FEGYELEM SZÓNKÉNT bekezdés miatt
+    # a valódi kimenet (thoughts+candidates) megnőtt — 1 mérés (1Móz
+    # 32,23-32): thoughtsTokenCount=4221 + candidatesTokenCount=1443 =
+    # 5664, veszélyesen közel a régi 6144-es plafonhoz (élesben egy
+    # kattintás ténylegesen MAX_TOKENS-re futott ezzel a prompttal). Az
+    # "Exegézis" fülével azonos nagyságrendre emelve, kb. 2x tartalékkal.
+    "Eredeti szöveg tanulmányozása": 12000,
     "Konkordancia": 4096,
     "Illusztrációk": 4096,
     "Aktualizálás": 4096,
@@ -6015,6 +6377,35 @@ DEFAULT_MAX_OUTPUT_TOKENS_BY_TAB: dict[str, int] = {
     "Diagnosztika": 4096,
     "Homiletikai diagnosztika": 4096,
     "API teszt": 256,
+    # LOCAL MANUAL QA FIX (2026-08-21) — ezek a JSON/structured-output
+    # hívások korábban NEM szerepeltek itt, ezért a 4096-os generikus
+    # alapértékre estek vissza. Gemini 2.5 Flash-nél a "gondolkodási"
+    # tokenek (`thoughtsTokenCount`) IS ebből a keretből fogyasztanak, a
+    # látható JSON-kimenet (`candidatesTokenCount`) mellett — a kettő
+    # ÖSSZEGE számít bele a `maxOutputTokens`-be. Élesben reprodukálva:
+    # a "Homiletikai blueprint" (UI-n: "Igehirdetési tervrajz") fülön
+    # 4096-tal `finishReason=MAX_TOKENS` (csonka válasz -> érvénytelen
+    # JSON). Az alábbi értékek NEM találgatások — 4-6 valódi Gemini-hívás
+    # `usageMetadata`-ja alapján lettek meghatározva (1Móz 32,23-32
+    # kontextussal, teljes 7-mozgásos sémával), kb. 2x biztonsági
+    # tartalékkal a megfigyelt maximum fölé:
+    #   - blueprint: 4 mérés, thoughts+candidates = 4038-5120 -> 12000
+    #     (ugyanaz a nagyságrend, mint a már bevált "Exegézis": 12000)
+    #   - fejlesztett vázlat: 2 mérés, 6345-9087 -> 16000
+    #   - hétpontos ív: 2 mérés, 4803-5486 -> 10000
+    "Igehirdetési tervrajz": 12000,
+    "Részletes prédikációs munkavázlat": 16000,
+    "Hétpontos vázlatjavaslat": 10000,
+    # LOCAL QA FINAL FUNCTIONAL POLISH (2026-08-21) — a "Textus fő
+    # gondolata" (javaslat + értékelés) sem szerepelt itt, ezért a
+    # generikus 4096-os alapértékre esett vissza. Valós Gemini-mérés
+    # (1Móz 32,23-32, teljes exegézis/eredeti szöveg/teológia/kortörténet
+    # kontextussal, response_schema-val): javaslat 3 mérés, thoughts+
+    # candidates = 2740-4001; értékelés 1 mérés, 3476 — a 4096-os
+    # plafonhoz veszélyesen közel, élesben ténylegesen csonka/érvénytelen
+    # JSON-t okozott. 8000 kb. 2x tartalék a megfigyelt maximum fölé.
+    "Textus fő gondolat — javaslat": 8000,
+    "Textus fő gondolat — értékelés": 8000,
 }
 
 
@@ -7285,45 +7676,7 @@ _render_project_status_bar()
 # NÉZETVÁLTÓ (Gyorseszközök / Textusműhely) — M0 Lépés 3
 # =========================================================
 
-_TW_SECTION_OPTIONS = [
-    "Igehely, alkalom és szövegkörnyezet",
-    "Eredeti szöveg és kulcsszavak",
-    "Exegézis, műfaj és szerkezet",
-    "Kortörténeti háttér",
-    "Teológiai hangsúlyok",
-    "A textus fő gondolata",
-    "Mit viszünk tovább?",
-]
-
-# Visszafogott, nem kötelező következő-lépés szöveg (nincs navigáció / gomb).
-_TW_NEXT_STEP_HINTS: dict[str, str] = {
-    "Igehely, alkalom és szövegkörnyezet": (
-        "Következő ajánlott lépés: Eredeti szöveg vagy Exegézis"
-    ),
-    "Eredeti szöveg és kulcsszavak": (
-        "Következő ajánlott lépés: Exegézis, műfaj és szerkezet"
-    ),
-    "Exegézis, műfaj és szerkezet": (
-        "Következő ajánlott lépés: A textus fő gondolata"
-    ),
-    "Kortörténeti háttér": (
-        "Következő ajánlott lépés: Teológiai hangsúlyok vagy A textus fő gondolata"
-    ),
-    "Teológiai hangsúlyok": (
-        "Következő ajánlott lépés: A textus fő gondolata"
-    ),
-    "A textus fő gondolata": (
-        "Következő ajánlott lépés: Mit viszünk tovább?"
-    ),
-}
-
-# Régi szakaszfelirat → új (session / mentett UI-állapot migrációja)
-_TW_SECTION_LABEL_ALIASES = {
-    "A textus nagy gondolata": "A textus fő gondolata",
-}
-
 _UI_MODE_LABELS = {
-    "quick": "Gyorseszközök",
     "workshop": "Textusműhely",
     "sermon_workshop": "Igehirdetési műhely",
 }
@@ -7339,13 +7692,13 @@ def render_current_biblical_map_prototype() -> None:
 
 
 def render_igehely_panel() -> None:
-    """Igehely, alkalom, stílus, saját szempont + Áttekintés (bibliai háttér)."""
+    """Igehely megadása (közvetlen bevitel / keresés / konkordancia) + Áttekintés (bibliai háttér)."""
     apply_bible_text_resync_if_needed(st.session_state)
     # Widget létrehozása előtt: igehely-keresésből érkező kiválasztás
     apply_pending_passage_search_before_widget()
     render_work_section(
         title="Igeszakasz megadása",
-        body="Textus, alkalom és szempontok — innen indul a műhelymunka.",
+        body="Textus megadása — innen indul a műhelymunka.",
         context="Textusműhely",
     )
 
@@ -7371,52 +7724,6 @@ def render_igehely_panel() -> None:
         render_concordance_expander()
 
         render_bible_text_editor()
-
-    with work_surface("igehely_context"):
-        col1, col2 = st.columns(2)
-
-        with col1:
-            st.selectbox(
-                "Felhasználási cél",
-                [
-                    "vasárnapi gyülekezeti igehirdetés",
-                    "ifjúsági alkalom",
-                    "bibliaóra",
-                    "temetés",
-                    "esküvő",
-                    "konferencia",
-                    "pasztorális beszélgetés",
-                ],
-                key="alkalom_input",
-            )
-
-        with col2:
-            st.selectbox(
-                "Homiletikai stílus",
-                [
-                    "klasszikus református",
-                    "narratív",
-                    "tanító jellegű",
-                    "pasztorális",
-                    "ifjúsági",
-                    "storytelling",
-                    "induktív",
-                ],
-                key="stilus_input",
-            )
-
-        st.text_area(
-            "Saját szempont vagy kérdés",
-            placeholder="Pl. szeretném hangsúlyozni a kegyelem, hit vagy reménység témáját...",
-            key="sajat_input",
-        )
-
-        if st.session_state.get("verse_history"):
-            with st.expander("Korábbi igehelyek (utolsó 5)", expanded=False):
-                for v_idx, v in enumerate(st.session_state["verse_history"][:5]):
-                    if st.button(f"📜 {v}", key=f"verse_hist_{v_idx}", use_container_width=True):
-                        st.session_state["igehely_input"] = v
-                        st.rerun()
 
     with work_surface("igehely_overview"):
         render_info_panel(
@@ -7459,7 +7766,7 @@ def render_igehely_panel() -> None:
 
 
 def render_original_text_panel() -> None:
-    """Eredeti héber/görög szöveg tanulmányozása, jegyzet és vázlatkosár."""
+    """Eredeti héber/görög szöveg tanulmányozása."""
     render_work_section(
         title="Eredeti szöveg tanulmányozása",
         body="Héber / görög kulcskifejezések, jelentésárnyalatok és prédikációs hozam.",
@@ -7526,6 +7833,28 @@ def render_original_text_panel() -> None:
                     finally:
                         st.session_state["_original_running"] = False
                     st.session_state["original_text_status"] = "draft"
+                    _orig_result = st.session_state["original_text"]
+                    # RESET 3B-6: post-hoc grounding cross-check — csak
+                    # sikeres (nem hiba-/félbeszakadt) eredményre fut,
+                    # SOSEM blokkol, csak figyelmeztetést tárol el.
+                    if _orig_result.startswith(("⚠️", "⏳")):
+                        st.session_state["original_text_grounding_warnings"] = []
+                    else:
+                        st.session_state["original_text_grounding_warnings"] = [
+                            w.message
+                            for w in check_original_language_grounding(
+                                _orig_result, _igehely_now
+                            )
+                        ]
+                    # Korrekciós fázis 3.1: generáláskori ujjlenyomat, ld.
+                    # render_section_tab ugyanezen mintája.
+                    from sermon_outline_engine import (
+                        compute_current_passage_context_hash,
+                    )
+
+                    st.session_state["original_text_approved_context_hash"] = (
+                        compute_current_passage_context_hash(st.session_state)
+                    )
                     st.rerun()
 
         if st.session_state.get("original_text"):
@@ -7538,31 +7867,18 @@ def render_original_text_panel() -> None:
                     unsafe_allow_html=True,
                 )
 
-                _orig_status = st.session_state.get("original_text_status") or "draft"
-                oab1, oab2 = st.columns(2)
-                with oab1:
-                    if st.button("Mentés vázlatként", key="original_save_draft_btn"):
-                        st.session_state["original_text_status"] = "draft"
-                        st.success("Vázlatként elmentve.")
-                with oab2:
-                    if st.button(
-                        "Jóváhagyom és átadom",
-                        type="primary",
-                        key="original_approve_btn",
-                    ):
-                        from sermon_outline_engine import (
-                            compute_current_passage_context_hash,
-                        )
-
-                        st.session_state["original_text_status"] = "approved"
-                        st.session_state["original_text_ever_approved"] = True
-                        st.session_state["original_text_approved_context_hash"] = (
-                            compute_current_passage_context_hash(st.session_state)
-                        )
-                        st.success("Jóváhagyva és továbbvíve a vázlatmotorhoz.")
                 st.caption(
-                    f"Elmentett állapot: **{_APPROVABLE_STATUS_LABELS.get(_orig_status, _orig_status)}**"
+                    "Ez a tartalom automatikusan elérhető az Igehirdetési "
+                    "műhely vázlatmotora számára — külön jóváhagyás nem "
+                    "szükséges."
                 )
+
+                # RESET 3B-6: non-blocking grounding figyelmeztetések — az
+                # output mentése/felhasználása ettől függetlenül működik.
+                for _grounding_warning in st.session_state.get(
+                    "original_text_grounding_warnings", []
+                ):
+                    st.warning(_grounding_warning)
 
         else:
             render_info_panel(
@@ -7573,101 +7889,9 @@ def render_original_text_panel() -> None:
 
         refinement_chat("Eredeti szöveg tanulmányozása", "original_text", "original_text_chat")
 
-        _maybe_clear_note("original_note")
-        note = st.text_area(
-            "Mit szeretnél ebből megtartani a vázlathoz?",
-            key="original_note"
-        )
 
-        with action_row("original_basket"):
-            if st.button("Hozzáadás a vázlatkosárhoz", key="original_add"):
-                if note.strip():
-                    warn = _append_basket_item(
-                        "Eredeti szöveg tanulmányozása", note.strip()
-                    )
-                    _request_clear_note("original_note")
-                    if warn:
-                        st.warning(warn)
-                    else:
-                        st.success("Hozzáadva.")
-                    st.rerun()
-
-
-def render_textus_workshop_shell() -> None:
-    """Textusműhely-keret: elemző szakaszok + kézi fő gondolat / felismerések."""
-    render_page_intro(
-        title="Textusműhely",
-        body="A bibliai szöveg feltárása a textus fő gondolatáig.",
-        workspace_scope=True,
-    )
-
-    if st.session_state.get("tw_active_section") not in _TW_SECTION_OPTIONS:
-        alias = _TW_SECTION_LABEL_ALIASES.get(st.session_state.get("tw_active_section"))
-        if alias in _TW_SECTION_OPTIONS:
-            st.session_state["tw_active_section"] = alias
-        else:
-            st.session_state["tw_active_section"] = _TW_SECTION_OPTIONS[0]
-
-    render_workshop_workflow_nav(
-        _TW_SECTION_OPTIONS,
-        key="tw_active_section",
-        completed=textus_completed_sections(st.session_state),
-    )
-
-    active = st.session_state.get("tw_active_section") or _TW_SECTION_OPTIONS[0]
-
-    st.markdown('<div class="tx-workcard-anchor" aria-hidden="true"></div>', unsafe_allow_html=True)
-    with st.container(border=True):
-        if active == "Igehely, alkalom és szövegkörnyezet":
-            render_igehely_panel()
-        elif active == "Eredeti szöveg és kulcsszavak":
-            render_original_text_panel()
-        elif active == "Exegézis, műfaj és szerkezet":
-            render_section_tab(
-                key="exegesis",
-                header="Exegézis",
-                basket_label="Exegézis",
-                empty_msg="Még nincs exegézis. Kattints az „Exegetikai háttér feltárása” gombra.",
-                action_label="Exegetikai háttér feltárása",
-                approvable=True,
-            )
-        elif active == "Kortörténeti háttér":
-            render_section_tab(
-                key="history",
-                header="Kortörténet",
-                basket_label="Kortörténet",
-                empty_msg="Még nincs kortörténeti háttér. Kattints a „Kortörténeti háttér feltárása” gombra.",
-                action_label="Kortörténeti háttér feltárása",
-                approvable=True,
-            )
-        elif active == "Teológiai hangsúlyok":
-            render_section_tab(
-                key="theology",
-                header="Teológia",
-                basket_label="Teológia",
-                empty_msg="Még nincs teológiai elemzés. Kattints a „Teológiai összefüggések feltárása” gombra.",
-                action_label="Teológiai összefüggések feltárása",
-                approvable=True,
-            )
-        elif active == "A textus fő gondolata":
-            render_text_main_idea_section(generate_fn=generate_text)
-        elif active == "Mit viszünk tovább?":
-            render_approved_insights_section()
-        else:
-            st.info(
-                "Ez a műhelyszakasz a következő fejlesztési lépésben kapcsolódik "
-                "a meglévő Textus-funkcióhoz."
-            )
-
-        next_hint = _TW_NEXT_STEP_HINTS.get(active)
-        if next_hint:
-            st.caption(next_hint)
-
-    render_footer_and_feedback()
-
-
-if st.session_state.get("ui_mode") not in ("quick", "workshop", "sermon_workshop"):
-    st.session_state["ui_mode"] = "quick"
+if st.session_state.get("ui_mode") not in ("workshop", "sermon_workshop"):
+    st.session_state["ui_mode"] = "workshop"
 
 def _render_settings_panel() -> None:
     """Beállítások panel — fiókmenüből / shell_panel."""
@@ -8107,21 +8331,12 @@ if st.session_state.get("shell_panel") == "settings":
     st.stop()
 
 render_workspace_switcher(
-    options=["quick", "workshop", "sermon_workshop"],
+    options=["workshop", "sermon_workshop"],
     labels=_UI_MODE_LABELS,
     key="ui_mode",
 )
 
-# Textusműhely: csak a műhelykeret; a régi 13 fül ne jöjjön létre
-if st.session_state.get("ui_mode") == "workshop":
-    try:
-        track_app_navigation()
-    except Exception:
-        pass
-    render_textus_workshop_shell()
-    st.stop()
-
-# Igehirdetési műhely: csak a műhelykeret; tabok és Textusműhely ne jöjjenek létre
+# Igehirdetési műhely: csak a műhelykeret; a Textusműhely fülei ne jöjjenek létre
 if st.session_state.get("ui_mode") == "sermon_workshop":
     try:
         track_app_navigation()
@@ -8144,8 +8359,8 @@ except Exception:
     pass
 
 render_page_intro(
-    title="Gyorseszközök",
-    body="Válassz egy eszközt, és folytasd a munkát az aktuális projekttel.",
+    title="Textusműhely",
+    body="Mit mond a textus? Válassz egy eszközt, és folytasd a munkát az aktuális projekttel.",
     workspace_scope=True,
 )
 
@@ -8215,218 +8430,6 @@ with tabs[6]:
 
 
 # =========================================================
-# VÁZLAT — közös motor (sermon_outline_engine)
-# =========================================================
-
-with tabs[7]:
-    from sermon_outline_engine import (
-        REFRESH_NOTICE,
-        generate_sermon_outline,
-        outline_needs_refresh,
-    )
-    from sermon_workshop_data import (
-        SERMON_WORKSHOP_KEY,
-        ensure_sermon_workshop_state,
-        normalize_sermon_outline,
-        save_sermon_outline,
-    )
-    from sermon_workshop_outline_ai import (
-        EMPTY_PROJECT_MESSAGE,
-        assess_outline_readiness,
-        collect_available_sermon_material,
-        outline_canonical_text,
-        outline_has_content,
-        render_compact_sermon_outline,
-        sync_outline_content,
-    )
-
-    st.header("Gyors vázlat")
-    st.caption(
-        "Vázlat készítése a projektben jelenleg rendelkezésre álló anyagból."
-    )
-
-    ensure_sermon_workshop_state(st.session_state)
-    sw = st.session_state[SERMON_WORKSHOP_KEY]
-    outline = normalize_sermon_outline(sw.get("sermon_outline"))
-    bundle = collect_available_sermon_material(st.session_state, sermon_workshop=sw)
-    # Termékdöntés (2026-08-08): a kurátori-kényszer (require_curation=True)
-    # visszavonva — a gomb újra pusztán az igehely + betöltött bibliai
-    # szöveg alapján elérhető, ahogy eredetileg. A minőségbiztosítást a
-    # vázlatmotor prompt-ja/validátora végzi, nem egy mesterséges belépési
-    # korlát. A `require_curation` paraméter magában megmarad
-    # (`sermon_workshop_outline_ai.assess_outline_readiness`), ha később
-    # újra szükség lenne rá.
-    readiness = assess_outline_readiness(st.session_state, sermon_workshop=sw)
-
-    if outline_has_content(outline) and outline_needs_refresh(outline, bundle):
-        if str(outline.get("status") or "") != "needs_refresh":
-            outline["status"] = "needs_refresh"
-            sw["sermon_outline"] = outline
-            sw["sermon_outline_status"] = "needs_refresh"
-        st.info(REFRESH_NOTICE)
-
-    _qt_outline_running = bool(st.session_state.get("_outline_running"))
-    primary = (
-        "Vázlat frissítése"
-        if outline_has_content(outline)
-        else "Vázlat készítése"
-    )
-    if st.button(
-        primary,
-        type="primary",
-        disabled=_qt_outline_running or not readiness.ok,
-        key="outline_run",
-    ):
-        st.session_state["_outline_running"] = True
-        try:
-            with st.spinner("Homiletikai vázlat készül…"):
-                result = generate_sermon_outline(
-                    st.session_state,
-                    mode="quick",
-                    generate_fn=generate_text,
-                    force_overwrite=True,
-                )
-                if not result.ok:
-                    msg = (result.error_message or EMPTY_PROJECT_MESSAGE).strip()
-                    if (
-                        outline_has_content(outline)
-                        and "korábbi mentett vázlat" not in msg.casefold()
-                    ):
-                        msg += " A korábbi mentett vázlat változatlanul látható."
-                    st.warning(msg)
-                else:
-                    outline = sync_outline_content(result.outline, force=True)
-                    save_sermon_outline(
-                        st.session_state, outline, mark_manual_edit=False
-                    )
-                    body = outline_canonical_text(outline)
-                    st.session_state["outline"] = body
-                    st.session_state["outline_draft"] = body
-                    st.success("A vázlat elkészült.")
-                    st.rerun()
-        finally:
-            st.session_state["_outline_running"] = False
-
-    if not readiness.ok:
-        st.info(readiness.message or EMPTY_PROJECT_MESSAGE)
-
-    outline = normalize_sermon_outline(
-        ensure_sermon_workshop_state(st.session_state).get("sermon_outline")
-    )
-    if outline_has_content(outline):
-        st.markdown("### Vázlat előnézete")
-        render_compact_sermon_outline(outline)
-        body = outline_canonical_text(outline)
-        if body and not str(st.session_state.get("outline") or "").strip():
-            st.session_state["outline"] = body
-        st.divider()
-        st.subheader("Letöltés")
-        _verse_clean = (
-            (st.session_state.get("last_igehely") or "vazlat")
-            .replace(" ", "_")
-            .replace("/", "-")
-            .replace(",", "")
-            .replace(":", "-")
-        )
-        _ts = datetime.now().strftime("%Y%m%d-%H%M")
-        _filename_docx = f"textus-vazlat-{_verse_clean}-{_ts}.docx"
-        try:
-            if not str(st.session_state.get("outline") or "").strip():
-                st.session_state["outline"] = body
-            _docx_bytes = build_outline_docx()
-            if st.download_button(
-                label="Vázlat letöltése (Word)",
-                data=_docx_bytes,
-                file_name=_filename_docx,
-                mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                use_container_width=False,
-                key="outline_download_docx",
-                type="primary",
-            ):
-                track_event(
-                    "file_export",
-                    {
-                        "feature_name": "outline",
-                        "file_format": "docx",
-                        "method": "download",
-                    },
-                )
-        except ImportError as _docx_exc:
-            import logging as _logging
-
-            _logging.getLogger(__name__).exception(
-                "Word export unavailable (python-docx): %s", _docx_exc
-            )
-            st.error(
-                "A Word-export jelenleg nem érhető el. Az alkalmazás egyik dokumentumkezelő összetevője hiányzik."
-            )
-            with st.expander("Technikai részletek", expanded=False):
-                st.caption("Hiányzó függőség: python-docx")
-    elif readiness.ok:
-        st.caption("Még nincs összeállított vázlat — indítsd a készítést.")
-
-
-# =========================================================
-# VÁZLATKOSÁR
-# =========================================================
-
-with tabs[8]:
-    st.header("Vázlatkosár")
-    st.caption(f"{len(st.session_state['basket'])} elem · szerkeszthető, törölhető, sorrendezhető")
-
-    if not st.session_state["basket"]:
-        st.info("Még nincs elmentett elem. A tartalom-fülek alján a „Hozzáadás a vázlatkosárhoz” gombbal tudsz hozzáadni.")
-
-    for idx, (source, item) in enumerate(st.session_state["basket"]):
-        st.markdown(
-            f'<div class="basket-box"><b>{source}</b></div>',
-            unsafe_allow_html=True
-        )
-
-        edited = st.text_area(
-            "Tartalom",
-            value=item,
-            key=f"basket_edit_{idx}",
-            height=140,
-            label_visibility="collapsed"
-        )
-
-        c1, c2, c3, c4 = st.columns([1, 1, 1, 4])
-        with c1:
-            if st.button("Mentés", key=f"basket_save_{idx}"):
-                st.session_state["basket"][idx] = (source, edited.strip())
-                st.success("Frissítve.")
-                st.rerun()
-        with c2:
-            if idx > 0 and st.button("↑", key=f"basket_up_{idx}", help="Feljebb"):
-                st.session_state["basket"][idx - 1], st.session_state["basket"][idx] = (
-                    st.session_state["basket"][idx],
-                    st.session_state["basket"][idx - 1],
-                )
-                st.rerun()
-        with c3:
-            if idx < len(st.session_state["basket"]) - 1 and st.button("↓", key=f"basket_down_{idx}", help="Lejjebb"):
-                st.session_state["basket"][idx + 1], st.session_state["basket"][idx] = (
-                    st.session_state["basket"][idx],
-                    st.session_state["basket"][idx + 1],
-                )
-                st.rerun()
-        with c4:
-            st.markdown('<div class="btn-danger-marker"></div>', unsafe_allow_html=True)
-            if st.button("Törlés", key=f"delete_{idx}"):
-                st.session_state["basket"].pop(idx)
-                st.rerun()
-
-        st.markdown("<hr style='opacity:0.3; margin:1.2rem 0;' />", unsafe_allow_html=True)
-
-    if st.session_state["basket"]:
-        st.markdown('<div class="btn-danger-marker"></div>', unsafe_allow_html=True)
-        if st.button("Kosár ürítése"):
-            st.session_state["basket"] = []
-            st.rerun()
-
-
-# =========================================================
 # EREDETI SZÖVEG (Gyorseszközök — ugyanaz a panel, mint a Textusműhelyben)
 # =========================================================
 
@@ -8438,7 +8441,7 @@ with tabs[1]:
 # ÉNEKAJÁNLÓ
 # =========================================================
 
-with tabs[9]:
+with tabs[7]:
     st.header("Énekajánló")
     st.caption("Református liturgiai énekajánlás az igeszakaszhoz és az alkalomhoz")
 
@@ -8531,22 +8534,22 @@ with tabs[9]:
 
     refinement_chat("Énekajánló", "songs", "songs_chat")
 
-    _maybe_clear_note("songs_note")
-    note = st.text_area(
-        "Mit szeretnél ebből megtartani a vázlathoz?",
-        key="songs_note"
-    )
 
-    if st.button("Hozzáadás a vázlatkosárhoz", key="songs_add"):
-        if note.strip():
-            warn = _append_basket_item("Énekajánló", note.strip())
-            _request_clear_note("songs_note")
-            if warn:
-                st.warning(warn)
-            else:
-                st.success("Hozzáadva.")
-            st.rerun()
 
+# =========================================================
+# A TEXTUS FŐ GONDOLATA (a régi különálló Textusműhelyből beolvasztva)
+# =========================================================
+
+with tabs[9]:
+    render_text_main_idea_section(generate_fn=generate_text)
+
+
+# =========================================================
+# TEXTUSÖSSZEGZÉS (a régi „Mit viszünk tovább?” + új záró bundle)
+# =========================================================
+
+with tabs[10]:
+    render_text_summary_section(generate_fn=generate_text)
 
 
 # =========================================================
@@ -8631,10 +8634,11 @@ with tabs[11]:
         "amit neked kell megmunkálnod a saját stílusodban."
     )
     st.info(
-        "Tipp: amelyik elemzés tetszik, mentsd el a **Vázlatkosárba** "
-        "(„Hozzáadás a vázlatkosárhoz” gomb); a végén ezekből építed össze a "
-        "saját vázlatodat.",
-        icon="🧺",
+        "Tipp: amit egy-egy fülön elkészítesz (exegézis, eredeti nyelvi "
+        "anyag, kortörténet, teológia), az automatikusan elérhető az "
+        "Igehirdetési műhely vázlatmotora számára — nincs szükség külön "
+        "mentésre vagy átvitelre.",
+        icon="💡",
     )
 
     st.divider()
@@ -8645,7 +8649,7 @@ with tabs[11]:
 # IGEHIRDETÉSI SOROZAT TERVEZŐ
 # =========================================================
 
-with tabs[10]:
+with tabs[8]:
     st.header("📅 Igehirdetési sorozat tervező")
 
     st.info(
