@@ -89,6 +89,14 @@ from bible_text_ui import (
     save_bible_text_from_widgets,
 )
 from biblical_map_ui import render_biblical_map_prototype
+from biblical_map_data import places_by_id as biblical_places_by_id
+from biblical_map_passages import find_place_links_for_passage
+from biblical_place_enrichment import (
+    CONFIDENCE_LABELS_HU as BIBLICAL_PLACE_CONFIDENCE_LABELS_HU,
+    SECTION_LABELS_HU as BIBLICAL_PLACE_SECTION_LABELS_HU,
+    get_place_enrichment,
+    place_enrichment_sources_by_id,
+)
 from bible_engine.greek_analysis_ui import (
     CROSS_CHAPTER_GREEK_MESSAGE,
     greek_reference_status,
@@ -4121,6 +4129,7 @@ def build_alap_from_state(
     *,
     include_pastoral_context: bool = False,
     include_original_language_tokens: bool = False,
+    include_biblical_place_context: bool = False,
 ):
     """A `last_…` session-mezőkből építi vissza az elemzés kontextusát.
 
@@ -4135,7 +4144,16 @@ def build_alap_from_state(
     (`build_original_text_prompt`), tehát ugyanaz a source-of-truth, nem
     párhuzamos adatforrás. Jelenleg KIZÁRÓLAG az egzegézis szekció
     kapcsolja be (`generate_section`) — más szekció (kortörténet,
-    teológia stb.) promptját ez a paraméter nem érinti."""
+    teológia stb.) promptját ez a paraméter nem érinti.
+
+    include_biblical_place_context=True (RESET 3B-4c): a meglévő,
+    forrásolt `biblical_places` adatbázisból épített, szűk földrajzi/
+    régészeti háttérblokkot csatolja (`build_biblical_place_history_
+    context()`) — KIZÁRÓLAG akkor, ha van kvalifikáló (source_backed,
+    high/medium confidence) tartalom, egyébként nem csatol semmit
+    (nincs "nincs adat" placeholder). Jelenleg KIZÁRÓLAG a kortörténet
+    szekció kapcsolja be — más szekció promptját ez a paraméter nem
+    érinti."""
     passage = st.session_state.get("last_igehely", "") or ""
     translation = (st.session_state.get("bible_translation") or "").strip()
     passage_text = st.session_state.get("passage_text") or ""
@@ -4222,6 +4240,13 @@ def build_alap_from_state(
         # a hiányzó-adat eset ugyanúgy, egységesen kommunikálódjon, mint
         # az „Eredeti szöveg” modulnál.
         lines.append(build_original_language_token_block(passage))
+    if include_biblical_place_context:
+        # RESET 3B-4c: csak akkor csatolunk sort, ha VAN kvalifikáló
+        # tartalom — üres connector-eredmény esetén a blokk teljesen
+        # kimarad, nincs "nincs adat" placeholder (ld. függvény docstring).
+        place_context_block = build_biblical_place_history_context(passage)
+        if place_context_block:
+            lines.append(place_context_block)
     return "\n".join(lines)
 
 # =========================================================
@@ -4290,6 +4315,98 @@ def build_original_language_token_block(igehely: str) -> str:
         return header + "\n".join(lines)
 
     return header + "Nem sikerült azonosítani a hivatkozást — nincs lekérhető token-adat."
+
+
+# RESET 3B-4c: a meglévő, forrásolt `biblical_places` adatbázis szűk
+# connectora a kortörténet ("history") szekcióhoz. Csak a földrajzi/
+# régészeti (és explicit forrásolt történeti) hátteret adja tovább — a
+# bibliai jelentőség, kulcsesemények, mai helyzet, azonosítási megjegyzés
+# és homiletikai kontextus szakaszok SOSEM kerülnek bele (ld. RESET 3B-4b
+# audit felelősségi-határ döntése).
+BIBLICAL_PLACE_HISTORY_SECTION_KEYS = ("ancient_geography", "historical_context", "archaeology")
+BIBLICAL_PLACE_HISTORY_QUALIFYING_CONFIDENCE = {"high", "medium"}
+BIBLICAL_PLACE_HISTORY_MAX_PLACES = 2
+BIBLICAL_PLACE_HISTORY_HEADER = "FORRÁSOLT FÖLDRAJZI/RÉGÉSZETI HÁTTÉR (ellenőrzött adatbázisból):\n"
+BIBLICAL_PLACE_HISTORY_DISCLAIMER = (
+    "\n\nFONTOS: a fenti blokk ellenőrzött, forrásolt adat, és KIZÁRÓLAG az "
+    "itt konkrétan szereplő földrajzi/régészeti/történeti állításokra "
+    "tekinthető groundingnak. A kortörténeti válasz TÖBBI RÉSZE továbbra is "
+    "a saját tudásodból készül — arra változatlanul érvényes a fent leírt "
+    "bizonytalanság-fegyelem (ne állíts konkrétumot bizonytalanul, inkább "
+    "fogalmazz általánosabban vagy hagyd ki). Ne sugalld, hogy a teljes "
+    "válasz forrásolt."
+)
+
+
+def build_biblical_place_history_context(igehely: str) -> str:
+    """Legfeljebb 2, a megadott igehelyhez kapcsolódó helyszín forrásolt
+    földrajzi/régészeti (és explicit forrásolt történeti) hátteréből épít
+    egy rövid, strukturált blokkot a `find_place_links_for_passage()` /
+    `get_place_enrichment()` meglévő runtime helperek segítségével — nem
+    olvas nyers JSON-t.
+
+    Csak `review_status == "source_backed"` ÉS `confidence in {"high",
+    "medium"}` szakasz kerül be. Ha nincs place-link, vagy van place-link,
+    de egyik helyhez sincs kvalifikáló szakasz, üres stringet ad vissza —
+    a hívó ekkor a blokkot TELJESEN kihagyja a promptból (nincs "nincs
+    adat" placeholder; ld. RESET 3B-4b audit: ez ma a tipikus eset)."""
+    reference = (igehely or "").strip()
+    if not reference:
+        return ""
+
+    links = find_place_links_for_passage(reference)
+    if not links:
+        return ""
+
+    place_names = biblical_places_by_id()
+    sources = place_enrichment_sources_by_id()
+
+    place_blocks: list[str] = []
+    for link in links:
+        if len(place_blocks) >= BIBLICAL_PLACE_HISTORY_MAX_PLACES:
+            break
+        enrichment = get_place_enrichment(link.place_id)
+        if enrichment is None:
+            continue
+        section_texts: list[str] = []
+        for section_key in BIBLICAL_PLACE_HISTORY_SECTION_KEYS:
+            section = enrichment.sections.get(section_key)
+            if section is None:
+                continue
+            if section.review_status != "source_backed":
+                continue
+            if section.confidence not in BIBLICAL_PLACE_HISTORY_QUALIFYING_CONFIDENCE:
+                continue
+            institutions = sorted(
+                {
+                    sources[source_id].institution
+                    for source_id in section.source_ids
+                    if source_id in sources
+                }
+            )
+            section_label = BIBLICAL_PLACE_SECTION_LABELS_HU.get(section_key, section_key)
+            confidence_label = BIBLICAL_PLACE_CONFIDENCE_LABELS_HU.get(
+                section.confidence, section.confidence
+            )
+            attribution = ", ".join(institutions) if institutions else "ismeretlen intézmény"
+            section_texts.append(
+                f"[{section_label}, {confidence_label}, forrás: {attribution}]\n"
+                f"{section.text_hu}"
+            )
+        if not section_texts:
+            continue
+        place = place_names.get(link.place_id)
+        place_label = place.name_hu if place is not None else link.place_id
+        place_blocks.append(place_label + "\n" + "\n".join(section_texts))
+
+    if not place_blocks:
+        return ""
+
+    return (
+        BIBLICAL_PLACE_HISTORY_HEADER
+        + "\n\n".join(place_blocks)
+        + BIBLICAL_PLACE_HISTORY_DISCLAIMER
+    )
 
 
 def build_original_text_prompt(igehely: str) -> str:
@@ -4528,11 +4645,16 @@ def generate_section(key: str) -> bool:
     # RESET 3B-3: KIZÁRÓLAG az egzegézis kapja meg a helyi görög/héber
     # token-blokkot groundingként — más szekció promptját nem érinti.
     original_language_sections = {"exegesis"}
+    # RESET 3B-4c: KIZÁRÓLAG a kortörténet kapja meg a forrásolt
+    # biblical_places földrajzi/régészeti háttérblokkot — más szekció
+    # promptját nem érinti.
+    biblical_place_context_sections = {"history"}
     with st.spinner(f"{label} készítése…"):
         prompt = SECTION_PROMPTS[key].format(
             alap=build_alap_from_state(
                 include_pastoral_context=key in pastoral_sections,
                 include_original_language_tokens=key in original_language_sections,
+                include_biblical_place_context=key in biblical_place_context_sections,
             )
         )
         st.session_state[key] = generate_text(
