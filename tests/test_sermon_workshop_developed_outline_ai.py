@@ -783,6 +783,39 @@ def test_system_prompt_forbids_categorical_certainty_qualifiers():
     assert "biztosan, kétségtelenül, nyilvánvalóan" in prompt
 
 
+def test_system_prompt_forbids_the_adjective_form_of_nyilvanvalo_too():
+    """FINAL SERMON UX POLISH (2026-08-21): real-API retest 1Móz32-n
+    kimutatta, hogy a modell a "nyilvánvalóan" (határozó) tiltása mellett
+    a "nyilvánvaló" (melléknév) alakkal kerülte meg a szabályt, méghozzá
+    UGYANABBAN a mondatban, ami korábban helyesen nyitva hagyta a küzdő
+    fél kilétét ("...a küzdő fél pontos identitását a szöveg nyitva
+    hagyja... de a találkozás isteni dimenziója nyilvánvaló."). A prompt
+    mostantól explicit tiltja a ragozott alakokat is, és külön kimondja,
+    hogy a mondat egyik fele sem zárhatja le, amit a másik nyitva hagyott."""
+    prompt = ol_ai.DEVELOPED_OUTLINE_SYSTEM_PROMPT
+    assert "nyilvánvaló — RAGOZOTT ALAKBAN IS" in prompt
+    assert "ne zárd le az imént nyitva hagyott bizonytalanságot" in prompt
+
+
+def test_system_prompt_distinguishes_textual_fact_exegetical_inference_and_homiletical_application():
+    """FINAL SERMON UX POLISH (2026-08-21): a downstream epistemikus
+    fegyelem — a homiletikai következtetés ne jelenjen meg exegetikai
+    vagy textuális tényként."""
+    prompt = ol_ai.DEVELOPED_OUTLINE_SYSTEM_PROMPT
+    assert "HOMILETIKAI KÖVETKEZTETÉST NE FOGALMAZZ ÚGY, MINTHA MAGA A TEXTUS BIZONYÍTANÁ" in prompt
+    assert "amit a textus explicit mond" in prompt
+    assert "amit az exegézis valószínű vagy lehetséges értelmezésként ad" in prompt
+    assert "amit a prédikáció homiletikai alkalmazásként épít tovább" in prompt
+
+
+def test_system_prompt_gives_concrete_bad_good_homiletical_application_examples():
+    prompt = ol_ai.DEVELOPED_OUTLINE_SYSTEM_PROMPT
+    assert '"A sérülés azt mutatja, hogy Isten ereje a gyengeségben teljesedik ki."' in prompt
+    assert "Homiletikailag a sérülés megnyithatja a gyengeség és az Istentől való függés témáját." in prompt
+    assert '"Jákób a csalóból Isten harcosává válik."' in prompt
+    assert '"A küzdelem nem elkerülendő, hanem az átalakulás része."' in prompt
+
+
 def test_blueprint_system_prompt_also_preserves_upstream_uncertainty():
     assert (
         "A KANONIKUS BEMENET BIZONYTALANSÁGI SZINTJÉT ŐRIZD MEG"

@@ -12280,41 +12280,44 @@ _BLUEPRINT_STRUCTURE_MODE_LABELS: dict[str, str] = {
 }
 
 
-def _render_blueprint_details_expander(blueprint: dict) -> None:
-    """RESET 2E-6b: read-only "Blueprint részletei" — kizárólag a
-    felhasználónak érdemi, a részletes vázlat megértéséhez szükséges
-    tartalom (`central_claim`, `textual_center`, a szerkezeti mód magyar
-    címkéje, movementenként `function`+`core_idea`). SZÁNDÉKOSAN NEM
-    jelenik meg itt: `arc_fit.verdict`/`arc_fit.reason` (a döntés
-    INDOKLÁSA, nem a felhasználónak szól), `key_support.*` (a developed
-    outline-ban már konkretizálva van), és `grounded_in` provenance-
-    tokenek — ezek belső, technikai részletek."""
-    with st.expander("Blueprint részletei", expanded=False):
-        central_claim = str(blueprint.get("central_claim") or "").strip()
-        if central_claim:
-            st.markdown(f"**{central_claim}**")
-        textual_center = str(blueprint.get("textual_center") or "").strip()
-        if textual_center:
-            st.caption(textual_center)
+def _render_blueprint_details_inline(blueprint: dict) -> None:
+    """RESET 2E-6b / FINAL SERMON UX POLISH: a tervrajz érdemi tartalma
+    (`central_claim`, `textual_center`, a szerkezeti mód magyar címkéje,
+    movementenként `function`+`core_idea`) — SZÁNDÉKOSAN NEM jelenik meg
+    itt: `arc_fit.verdict`/`arc_fit.reason` (a döntés INDOKLÁSA, nem a
+    felhasználónak szól), `key_support.*` (a developed outline-ban már
+    konkretizálva van), és `grounded_in` provenance-tokenek — ezek belső,
+    technikai részletek.
 
-        structure = blueprint.get("recommended_structure")
-        structure = structure if isinstance(structure, dict) else {}
-        mode = str(structure.get("mode") or "").strip()
-        if mode:
-            st.caption(_BLUEPRINT_STRUCTURE_MODE_LABELS.get(mode, mode))
+    Inline renderel (NEM saját `st.expander`), mert a hívója
+    (`_render_blueprint_status_and_generate_button`) már maga egy
+    összecsukható expander — Streamlit nem enged egymásba ágyazott
+    expandereket."""
+    central_claim = str(blueprint.get("central_claim") or "").strip()
+    if central_claim:
+        st.markdown(f"**{central_claim}**")
+    textual_center = str(blueprint.get("textual_center") or "").strip()
+    if textual_center:
+        st.caption(textual_center)
 
-        movements = structure.get("movements")
-        for movement in movements if isinstance(movements, list) else []:
-            if not isinstance(movement, dict):
-                continue
-            function = str(movement.get("function") or "").strip()
-            core_idea = str(movement.get("core_idea") or "").strip()
-            if not (function or core_idea):
-                continue
-            if function and core_idea:
-                st.markdown(f"- **{function}**: {core_idea}")
-            else:
-                st.markdown(f"- {function or core_idea}")
+    structure = blueprint.get("recommended_structure")
+    structure = structure if isinstance(structure, dict) else {}
+    mode = str(structure.get("mode") or "").strip()
+    if mode:
+        st.caption(_BLUEPRINT_STRUCTURE_MODE_LABELS.get(mode, mode))
+
+    movements = structure.get("movements")
+    for movement in movements if isinstance(movements, list) else []:
+        if not isinstance(movement, dict):
+            continue
+        function = str(movement.get("function") or "").strip()
+        core_idea = str(movement.get("core_idea") or "").strip()
+        if not (function or core_idea):
+            continue
+        if function and core_idea:
+            st.markdown(f"- **{function}**: {core_idea}")
+        else:
+            st.markdown(f"- {function or core_idea}")
 
 
 def _render_blueprint_status_and_generate_button(
@@ -12330,18 +12333,27 @@ def _render_blueprint_status_and_generate_button(
     az eredményt. A `warnings` mindig látható, ha van tartalma, de itt
     NINCS "feloldás" — pusztán tájékoztató jelzés a generáláshoz.
 
-    RESET 2E-6b: ha van tartalommal bíró kanonikus blueprint, egy
-    read-only "Blueprint részletei" expander is megjelenik — a
-    `warnings` szándékosan KÍVÜL marad az expanderen, hogy jól látható
-    maradjon, ne lehessen véletlenül elrejteni."""
+    FINAL SERMON UX POLISH (2026-08-21): a tervrajz továbbra is a motor
+    része (adatmodell, generálás, canonical state, hash/freshness logika
+    változatlan) — de a normál felhasználói UI-ban túl nagy vizuális
+    hangsúlyt kapott ahhoz képest, amennyi tényleges olvasói értéke van.
+    Ezért a teljes állapot/részletek/figyelmeztetések/újragenerálás-gomb
+    egyetlen, alapértelmezetten összecsukott expanderbe kerül — a
+    felhasználó a hétpontos ívből normál esetben közvetlenül a részletes
+    munkavázlathoz halad tovább, anélkül, hogy ezt ki kellene nyitnia.
+    A `warnings` (RESET 2E-6b korábbi döntése szerint korábban szándékosan
+    KÍVÜL maradt a részletek-expanderen) itt is az expanderen BELÜL van,
+    mert most már maga a teljes blokk egyetlen összecsukható egység —
+    nincs mód rá, hogy csak a figyelmeztetés maradjon kívül anélkül, hogy
+    két egymásba ágyazott expander jönne létre (amit Streamlit nem
+    enged)."""
     sw = ensure_sermon_workshop_state(st.session_state)
     blueprint = sw.get("blueprint") if isinstance(sw.get("blueprint"), dict) else {}
     has_blueprint = bool(str(blueprint.get("central_claim") or "").strip())
     fresh = is_blueprint_fresh(st.session_state) if has_blueprint else False
     running = bool(st.session_state.get(_KEY_BLUEPRINT_GEN_RUNNING))
 
-    with st.container(border=True):
-        st.markdown("**Igehirdetési tervrajz**")
+    with st.expander("Igehirdetési tervrajz megtekintése", expanded=False):
         st.caption(
             "Belső szerkezeti terv, amely a textus és az összegyűjtött "
             "anyag alapján kialakítja az igehirdetés központi gondolatát "
@@ -12361,7 +12373,7 @@ def _render_blueprint_status_and_generate_button(
             label = "Tervrajz újragenerálása"
 
         if has_blueprint:
-            _render_blueprint_details_expander(blueprint)
+            _render_blueprint_details_inline(blueprint)
 
         warnings = blueprint.get("warnings")
         for warning in warnings if isinstance(warnings, list) else []:
@@ -12392,9 +12404,26 @@ def _render_blueprint_status_and_generate_button(
             st.caption("Az MI-segéd jelenleg nem elérhető.")
 
 
+_DEVELOPED_OUTLINE_READONLY_SUPPORT_LABELS: tuple[tuple[str, str], ...] = (
+    ("Szövegi kapaszkodó", "exegetical_support"),
+    ("Eredeti nyelvi támasz", "original_language_support"),
+    ("Történeti/teológiai támasz", "historical_theological_support"),
+    ("Illusztrációs irány", "illustration_direction"),
+    ("Alkalmazási irány", "application_direction"),
+)
+
+
 def _render_developed_outline_movement_readonly(index: int, movement: dict) -> None:
-    """Egy vázlat-mozgás read-only megjelenítése — közös a candidate-
-    előnézet és a kanonikus, már elfogadott vázlat megjelenítése között."""
+    """Egy vázlat-mozgás read-only megjelenítése — a függőben lévő
+    `developed_outline_candidate` előnézetéhez.
+
+    FINAL SERMON UX POLISH (2026-08-21): a főnézetben csak sorszám+cím,
+    funkció, fő állítás, kibontás-bullet-ek és átvezetés jelenik meg —
+    a támasz-/irány-mezők (`exegetical_support`, `original_language_
+    support`, `historical_theological_support`, `illustration_
+    direction`, `application_direction`) egy összecsukott "Segédanyag
+    ehhez a ponthoz" expanderbe kerülnek, és CSAK akkor jelennek meg
+    egyáltalán, ha legalább az egyiknek van tényleges tartalma."""
     title = str(movement.get("title") or "").strip() or f"{index}. mozgás"
     st.markdown(f"**{index}. {title}**")
     function = str(movement.get("function") or "").strip()
@@ -12406,24 +12435,23 @@ def _render_developed_outline_movement_readonly(index: int, movement: dict) -> N
     development = movement.get("development")
     for item in development if isinstance(development, list) else []:
         st.markdown(f"- {item}")
-    for label, field in (
-        ("Exegetikai támasz", "exegetical_support"),
-        ("Eredeti nyelvi támasz", "original_language_support"),
-        ("Történeti/teológiai támasz", "historical_theological_support"),
-    ):
-        items = movement.get(field)
-        items = items if isinstance(items, list) else []
-        if items:
-            st.caption(f"{label}: " + "; ".join(str(item) for item in items))
-    illustration = str(movement.get("illustration_direction") or "").strip()
-    if illustration:
-        st.caption(f"Illusztrációs irány: {illustration}")
-    application = str(movement.get("application_direction") or "").strip()
-    if application:
-        st.caption(f"Alkalmazási irány: {application}")
     transition = str(movement.get("transition_to_next") or "").strip()
     if transition:
         st.caption(f"Átvezetés: {transition}")
+
+    if _developed_outline_movement_has_support_content(movement):
+        with st.expander("Segédanyag ehhez a ponthoz", expanded=False):
+            for label, field in _DEVELOPED_OUTLINE_READONLY_SUPPORT_LABELS:
+                if field in _DEVELOPED_MOVEMENT_LIST_FIELDS:
+                    items = movement.get(field)
+                    items = items if isinstance(items, list) else []
+                    items = [str(item) for item in items if str(item).strip()]
+                    if items:
+                        st.caption(f"{label}: " + "; ".join(items))
+                else:
+                    value = str(movement.get(field) or "").strip()
+                    if value:
+                        st.caption(f"{label}: {value}")
 
 
 def _render_developed_outline_candidate_panel() -> None:
@@ -12586,12 +12614,17 @@ def _render_developed_outline_edit_field(
     field: str,
     widget: str,
     height: int | None = None,
+    label: str | None = None,
 ) -> None:
     """Egy szerkeszthető mozgás-mező widgetjének kiírása — a seed-elés
     (widget hiányában a kanonikus tartalomból) és az `on_change`-mentés
     közös a `text_input`/`text_area` esetek között, csak a widget típusa
     és mérete tér el (RESET 2E-6b: elsődleges vs. másodlagos mezők
-    vizuális elkülönítéséhez)."""
+    vizuális elkülönítéséhez).
+
+    `label`: opcionális felülírás (pl. FINAL SERMON UX POLISH: a `title`
+    mezőnél a sorszám a label részévé válik, "1. Cím" formában) — None
+    esetén az alapértelmezett `_OUTLINE_FIELD_LABELS[field]` marad."""
     widget_key = _developed_outline_edit_widget_key(movement_key, field)
     if widget_key not in st.session_state:
         if field in _DEVELOPED_MOVEMENT_LIST_FIELDS:
@@ -12601,7 +12634,7 @@ def _render_developed_outline_edit_field(
         else:
             st.session_state[widget_key] = str(movement.get(field) or "")
 
-    label = _OUTLINE_FIELD_LABELS[field]
+    label = label if label is not None else _OUTLINE_FIELD_LABELS[field]
     if widget == "text_input":
         st.text_input(
             label,
@@ -12619,35 +12652,71 @@ def _render_developed_outline_edit_field(
         )
 
 
+_DEVELOPED_OUTLINE_SUPPORT_FIELDS: tuple[str, ...] = (
+    "exegetical_support",
+    "original_language_support",
+    "historical_theological_support",
+    "illustration_direction",
+    "application_direction",
+)
+
+
+def _developed_outline_field_has_content(movement: dict, field: str) -> bool:
+    value = movement.get(field)
+    if field in _DEVELOPED_MOVEMENT_LIST_FIELDS:
+        items = value if isinstance(value, list) else []
+        return any(str(item).strip() for item in items)
+    return bool(str(value or "").strip())
+
+
+def _developed_outline_movement_has_support_content(movement: dict) -> bool:
+    return any(
+        _developed_outline_field_has_content(movement, field)
+        for field in _DEVELOPED_OUTLINE_SUPPORT_FIELDS
+    )
+
+
 def _render_developed_outline_movement_editable(index: int, movement: dict) -> None:
-    """Egy kanonikus vázlat-mozgás szerkeszthető megjelenítése, MOZGÁSONKÉNTI
-    `st.expander`-be zárva (RESET 2E-6b). `index` a mozgás TÉNYLEGES,
-    0-alapú pozíciója a kanonikus listában (ez kell a mutátorhíváshoz);
-    a widget-kulcsokhoz viszont a mozgás saját `key`-e (nem az index) a
-    forrás, ld. a modulszintű megjegyzést — ez VÁLTOZATLAN maradt, csak a
-    vizuális elrendezés és a mezők sorrendje változott.
+    """Egy kanonikus vázlat-mozgás szerkeszthető megjelenítése.
 
-    Mezősorrend (RESET 2E-6b, elsődleges -> másodlagos): `title`,
-    `function`, `main_claim`, `development` — ezek után egy halk
-    elválasztó felirat, majd a támasz- és irány-mezők
-    (`exegetical_support`, `original_language_support`,
-    `historical_theological_support`, `illustration_direction`,
-    `application_direction`, `transition_to_next`). A `main_claim`
-    SOHA nem kerülhet a support-mezők UTÁN — ez volt a korábbi,
-    RESET 2E-6-ban azonosított sorrendi hiba."""
+    FINAL SERMON UX POLISH (2026-08-21): korábban (RESET 2E-6b) a teljes
+    mozgás — a fő állítástól a támasz-/irány-mezőkig — EGYETLEN,
+    alapértelmezetten összecsukott `st.expander`-be volt zárva, ami azt
+    jelentette, hogy a lelkésznek a fő állítást és a kibontást is minden
+    egyes ponton külön ki kellett nyitnia. A cél most a gyors,
+    szószékre-vihető áttekinthetőség: a FŐNÉZET (sorszám+cím, funkció,
+    fő állítás, kibontás-bullet-ek, átvezetés) mindig KÖZVETLENÜL
+    látható, egy könnyű kártya-keretben (`st.container(border=True)`) —
+    csak a másodlagos SEGÉDANYAG (`exegetical_support`,
+    `original_language_support`, `historical_theological_support`,
+    `illustration_direction`, `application_direction`) kerül egy
+    pontonkénti, összecsukott "Segédanyag ehhez a ponthoz" expanderbe, és
+    az is CSAK akkor jelenik meg, ha legalább egy ilyen mező ténylegesen
+    tartalmaz valamit — nincs üres placeholder-widget.
+
+    A structured adatmodell, a mutátorok és a `key`-alapú widget-
+    azonosítás VÁLTOZATLAN — kizárólag a RENDERELÉS egyszerűsödött.
+    `index` a mozgás TÉNYLEGES, 0-alapú pozíciója a kanonikus listában
+    (ez kell a mutátorhíváshoz); a widget-kulcsokhoz a mozgás saját
+    `key`-e (nem az index) a forrás."""
     movement_key = str(movement.get("key") or f"movement_{index}")
-    title = str(movement.get("title") or "").strip() or f"{index + 1}. mozgás"
 
-    with st.expander(f"{index + 1}. {title}", expanded=False):
-        for field in ("title", "function"):
-            _render_developed_outline_edit_field(
-                index=index,
-                movement_key=movement_key,
-                movement=movement,
-                field=field,
-                widget="text_input",
-            )
-
+    with st.container(border=True):
+        _render_developed_outline_edit_field(
+            index=index,
+            movement_key=movement_key,
+            movement=movement,
+            field="title",
+            widget="text_input",
+            label=f"{index + 1}. Cím",
+        )
+        _render_developed_outline_edit_field(
+            index=index,
+            movement_key=movement_key,
+            movement=movement,
+            field="function",
+            widget="text_input",
+        )
         _render_developed_outline_edit_field(
             index=index,
             movement_key=movement_key,
@@ -12664,24 +12733,28 @@ def _render_developed_outline_movement_editable(index: int, movement: dict) -> N
             widget="text_area",
             height=100,
         )
+        _render_developed_outline_edit_field(
+            index=index,
+            movement_key=movement_key,
+            movement=movement,
+            field="transition_to_next",
+            widget="text_area",
+            height=68,
+        )
 
-        st.caption("További támasz és átvezetés")
-        for field in (
-            "exegetical_support",
-            "original_language_support",
-            "historical_theological_support",
-            "illustration_direction",
-            "application_direction",
-            "transition_to_next",
-        ):
-            _render_developed_outline_edit_field(
-                index=index,
-                movement_key=movement_key,
-                movement=movement,
-                field=field,
-                widget="text_area",
-                height=68,
-            )
+        if _developed_outline_movement_has_support_content(movement):
+            with st.expander("Segédanyag ehhez a ponthoz", expanded=False):
+                for field in _DEVELOPED_OUTLINE_SUPPORT_FIELDS:
+                    if not _developed_outline_field_has_content(movement, field):
+                        continue
+                    _render_developed_outline_edit_field(
+                        index=index,
+                        movement_key=movement_key,
+                        movement=movement,
+                        field=field,
+                        widget="text_area",
+                        height=68,
+                    )
 
 
 def _developed_outline_freshness(

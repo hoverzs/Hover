@@ -280,7 +280,110 @@ def _render_fresh_blueprint_then_generate_outline() -> None:
         st.session_state["_outline_call_count"] = 0
 
     def fake_gen(prompt, **kwargs):
-        if kwargs.get("tab_label") == "Homiletikai blueprint":
+        if kwargs.get("tab_label") == "Igehirdetési tervrajz":
+            st.session_state["_bp_call_count"] += 1
+            return json.dumps(blueprint_payload, ensure_ascii=False)
+        st.session_state["_outline_call_count"] += 1
+        return json.dumps(outline_payload, ensure_ascii=False)
+
+    sw_ui.render_sermon_workshop_shell(generate_fn=fake_gen)
+
+
+def _render_fresh_blueprint_then_generate_outline_with_support_content() -> None:
+    """FINAL SERMON UX POLISH (2026-08-21): mint `_render_fresh_blueprint_
+    then_generate_outline`, de az "entry" mozgás mind az öt segédmezőjét
+    (`exegetical_support`, `original_language_support`,
+    `historical_theological_support`, `illustration_direction`,
+    `application_direction`) valódi tartalommal tölti fel, a többi
+    mozgásét üresen hagyja — így külön tesztelhető, hogy a "Segédanyag
+    ehhez a ponthoz" expander CSAK a ténylegesen kitöltött mezőket
+    jeleníti meg, és CSAK azoknál a mozgásoknál jelenik meg egyáltalán,
+    ahol van tartalom."""
+    import json
+
+    import streamlit as st
+
+    import sermon_workshop_ui as sw_ui
+
+    st.session_state["last_igehely"] = "Jn 3,16"
+    st.session_state["igehely_input"] = "Jn 3,16"
+    st.session_state["passage_text"] = "Mert úgy szerette Isten a világot."
+    st.session_state["bible_translation"] = "RÚF 2014"
+
+    arc_keys = (
+        "entry",
+        "starting_point",
+        "first_shift",
+        "deepening",
+        "reinterpretation",
+        "second_shift",
+        "arrival",
+    )
+    blueprint_payload = {
+        "central_claim": "Isten kezdeményez.",
+        "textual_center": "Úgy szerette Isten...",
+        "listener_tension": "",
+        "theological_turn": "",
+        "desired_listener_movement": "A kételytől a bizalomig.",
+        "arc_fit": {"verdict": "strong_fit", "reason": "r"},
+        "recommended_structure": {
+            "mode": "seven_point",
+            "movements": [
+                {"key": k, "function": "f", "core_idea": "c", "grounded_in": []}
+                for k in arc_keys
+            ],
+        },
+        "key_support": {
+            "exegetical": [],
+            "original_language": [],
+            "historical_theological": [],
+        },
+        "illustration_direction": "",
+        "application_direction": "",
+        "warnings": [],
+    }
+
+    def _movement(k: str) -> dict:
+        if k == "entry":
+            return {
+                "key": k,
+                "title": f"{k} cím",
+                "function": "f",
+                "main_claim": "állítás",
+                "development": ["pont 1", "pont 2"],
+                "exegetical_support": ["SUPPORT_EXEG_SENTINEL"],
+                "original_language_support": ["SUPPORT_ORIGLANG_SENTINEL"],
+                "historical_theological_support": ["SUPPORT_HIST_SENTINEL"],
+                "illustration_direction": "SUPPORT_ILLUSTRATION_SENTINEL",
+                "application_direction": "SUPPORT_APPLICATION_SENTINEL",
+                "transition_to_next": "MAIN_VIEW_TRANSITION_SENTINEL",
+            }
+        return {
+            "key": k,
+            "title": f"{k} cím",
+            "function": "f",
+            "main_claim": "állítás",
+            "development": ["pont 1", "pont 2"],
+            "exegetical_support": [],
+            "original_language_support": [],
+            "historical_theological_support": [],
+            "illustration_direction": "",
+            "application_direction": "",
+            "transition_to_next": "",
+        }
+
+    outline_payload = {
+        "structure_mode": "seven_point",
+        "structure_note": "",
+        "movements": [_movement(k) for k in arc_keys],
+    }
+    if "_bp_call_count" not in st.session_state:
+        st.session_state["_bp_call_count"] = 0
+    if "_outline_call_count" not in st.session_state:
+        st.session_state["_outline_call_count"] = 0
+
+    def fake_gen(prompt, **kwargs):
+        if kwargs.get("tab_label") == "Igehirdetési tervrajz":
             st.session_state["_bp_call_count"] += 1
             return json.dumps(blueprint_payload, ensure_ascii=False)
         st.session_state["_outline_call_count"] += 1
@@ -1635,19 +1738,28 @@ def _render_fresh_blueprint_with_sentinel_internal_fields() -> None:
 
 
 def test_blueprint_details_expander_appears_when_blueprint_exists():
+    """FINAL SERMON UX POLISH (2026-08-21): a korábbi külön "Tervrajz
+    részletei" expander megszűnt — a tervrajz TELJES állapota/részletei/
+    figyelmeztetései/generálás-gombja egyetlen, "Igehirdetési tervrajz
+    megtekintése" expanderbe került (Streamlit nem enged egymásba
+    ágyazott expandereket, ezért a részletek immár INLINE jelennek meg
+    ezen belül, nem egy másik, beágyazott expanderben)."""
     app = AppTest.from_function(_render_fresh_blueprint_then_generate_outline).run(timeout=60)
     _click_and_settle(app, "Tervrajz készítése")
     assert not app.exception
 
     labels = [e.label for e in app.expander]
-    assert "Blueprint részletei" in labels
+    assert "Igehirdetési tervrajz megtekintése" in labels
+    assert "Tervrajz részletei" not in labels
 
 
 def test_blueprint_details_expander_starts_collapsed():
     app = AppTest.from_function(_render_fresh_blueprint_then_generate_outline).run(timeout=60)
     _click_and_settle(app, "Tervrajz készítése")
 
-    expander = next(e for e in app.expander if e.label == "Blueprint részletei")
+    expander = next(
+        e for e in app.expander if e.label == "Igehirdetési tervrajz megtekintése"
+    )
     assert expander.proto.expanded is False
 
 
@@ -1710,12 +1822,21 @@ def test_blueprint_details_hides_internal_technical_fields():
 # -----------------------------------------------------------------------
 
 
-def test_canonical_movements_render_inside_expanders():
+def test_canonical_movements_are_directly_visible_without_a_wrapping_expander():
+    """FINAL SERMON UX POLISH (2026-08-21): a korábbi, mozgásonkénti
+    "{sorszám}. {cím}" `st.expander` megszűnt — a főnézet (cím, funkció,
+    fő állítás, kibontás, átvezetés) mostantól KÖZVETLENÜL látható, nem
+    kell kattintani egy expanderre ahhoz, hogy a lelkész elolvashassa."""
     app = AppTest.from_function(_render_fresh_blueprint_then_generate_outline).run(timeout=60)
     _accept_fresh_outline(app)
 
     labels = [e.label for e in app.expander]
-    assert "1. entry cím" in labels
+    assert "1. entry cím" not in labels
+    assert not any(label.startswith("1. entry") for label in labels)
+
+    title_widget = _text_input_by_key(app, "sw_flat_outline_edit_entry_title")
+    assert title_widget.value == "entry cím"
+    assert title_widget.label == "1. Cím"
 
 
 def test_movement_expanders_start_collapsed():
@@ -1741,7 +1862,12 @@ def test_main_claim_appears_before_development():
 
 
 def test_support_block_appears_after_development():
-    app = AppTest.from_function(_render_fresh_blueprint_then_generate_outline).run(timeout=60)
+    """A "Segédanyag ehhez a ponthoz" expander (és a benne lévő
+    `exegetical_support` widget) csak akkor jelenik meg, ha van tényleges
+    tartalma — ehhez a támasztott-tartalmú fixture-t kell használni."""
+    app = AppTest.from_function(
+        _render_fresh_blueprint_then_generate_outline_with_support_content
+    ).run(timeout=60)
     _accept_fresh_outline(app)
 
     development_idx = _text_area_index_by_key(app, "sw_flat_outline_edit_entry_development")
@@ -1754,27 +1880,97 @@ def test_support_block_appears_after_development():
 # -----------------------------------------------------------------------
 
 
-def test_widget_keys_unchanged_after_ux_restructure():
+def test_core_field_widget_keys_unchanged_after_ux_restructure():
+    """A főnézet mezői (cím, funkció, fő állítás, kibontás, átvezetés)
+    mindig megjelennek, VÁLTOZATLAN widget-kulccsal — attól függetlenül,
+    hogy a mozgásnak van-e segédanyag-tartalma."""
     app = AppTest.from_function(_render_fresh_blueprint_then_generate_outline).run(timeout=60)
     _accept_fresh_outline(app)
 
+    for field in ("title", "function", "main_claim", "development", "transition_to_next"):
+        key = f"sw_flat_outline_edit_entry_{field}"
+        found = any(ti.key == key for ti in app.text_input) or any(
+            ta.key == key for ta in app.text_area
+        )
+        assert found, field
+
+
+def test_empty_support_fields_render_no_widget_and_no_expander():
+    """FINAL SERMON UX POLISH (2026-08-21): ha egy mozgásnak nincs
+    tényleges segédanyag-tartalma (mind az öt mező üres — a
+    `_render_fresh_blueprint_then_generate_outline` alap-fixture
+    mindegyik mozgásnál ezt adja), akkor SEM a "Segédanyag ehhez a
+    ponthoz" expander, SEM az egyes segédmezők widgetje nem jelenik
+    meg — nincs üres placeholder-widget."""
+    app = AppTest.from_function(_render_fresh_blueprint_then_generate_outline).run(timeout=60)
+    _accept_fresh_outline(app)
+
+    labels = [e.label for e in app.expander]
+    assert "Segédanyag ehhez a ponthoz" not in labels
+
     for field in (
-        "title",
-        "function",
-        "main_claim",
-        "development",
         "exegetical_support",
         "original_language_support",
         "historical_theological_support",
         "illustration_direction",
         "application_direction",
-        "transition_to_next",
+    ):
+        key = f"sw_flat_outline_edit_entry_{field}"
+        found = any(ti.key == key for ti in app.text_input) or any(
+            ta.key == key for ta in app.text_area
+        )
+        assert not found, field
+
+
+def test_populated_support_fields_render_inside_a_single_collapsed_expander():
+    """Ha VAN tényleges segédanyag-tartalom (az "entry" mozgásnál mind az
+    öt mező ki van töltve), a "Segédanyag ehhez a ponthoz" expander
+    megjelenik, alapértelmezetten összecsukva, és mind az öt widget
+    elérhető benne — a többi (üres-tartalmú) mozgásnál viszont NEM
+    jelenik meg külön expander."""
+    app = AppTest.from_function(
+        _render_fresh_blueprint_then_generate_outline_with_support_content
+    ).run(timeout=60)
+    _accept_fresh_outline(app)
+
+    support_expanders = [
+        e for e in app.expander if e.label == "Segédanyag ehhez a ponthoz"
+    ]
+    # Pontosan egy mozgásnak (entry) van tényleges tartalma -> pontosan egy expander.
+    assert len(support_expanders) == 1
+    assert support_expanders[0].proto.expanded is False
+
+    for field in (
+        "exegetical_support",
+        "original_language_support",
+        "historical_theological_support",
+        "illustration_direction",
+        "application_direction",
     ):
         key = f"sw_flat_outline_edit_entry_{field}"
         found = any(ti.key == key for ti in app.text_input) or any(
             ta.key == key for ta in app.text_area
         )
         assert found, field
+
+
+def test_transition_to_next_is_always_directly_visible_not_in_support_expander():
+    """Az `Átvezetés` (`transition_to_next`) a felhasználó explicit
+    kérése szerint MINDIG a főnézetben marad, még akkor is, ha a mozgás
+    minden más segédmezője ki van töltve."""
+    app = AppTest.from_function(
+        _render_fresh_blueprint_then_generate_outline_with_support_content
+    ).run(timeout=60)
+    _accept_fresh_outline(app)
+
+    key = "sw_flat_outline_edit_entry_transition_to_next"
+    found = any(ti.key == key for ti in app.text_input) or any(
+        ta.key == key for ta in app.text_area
+    )
+    assert found
+
+    widget = next(ta for ta in app.text_area if ta.key == key)
+    assert widget.value == "MAIN_VIEW_TRANSITION_SENTINEL"
 
 
 def test_manual_edit_still_works_inside_expander():
