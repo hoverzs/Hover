@@ -116,6 +116,11 @@ from passage_search_ui import (
     render_passage_search_expander,
 )
 from concordance_ui import render_concordance_expander
+from hymn_recommendation_ai import ERE_BOOK_LABEL, recommend_hymns
+from hymn_ui_state import (
+    mark_hymn_passage_manual_override,
+    sync_hymn_passage_from_main_state,
+)
 # =========================================================
 # VERZIÓ
 # =========================================================
@@ -4749,7 +4754,7 @@ def _looks_incomplete_response(text: str) -> bool:
 def build_songs_prompt(
     igehely: str,
     alkalom: str,
-    enekeskonyv: str = "Vegyesen — magyar református hagyomány",
+    enekeskonyv: str = "Erdélyi Református Énekeskönyv",
     hangsuly: str = "",
 ) -> str:
     """Az „Énekajánló" fül teljes promptja. Az igehely + alkalom +
@@ -8445,10 +8450,13 @@ with tabs[7]:
     st.header("Énekajánló")
     st.caption("Református liturgiai énekajánlás az igeszakaszhoz és az alkalomhoz")
 
+    sync_hymn_passage_from_main_state(st.session_state)
     igehely_song = st.text_input(
         "Igeszakasz",
         placeholder="Pl. Lk 15,11–32 vagy Zsolt 23",
-        key="songs_verse"
+        key="songs_verse",
+        on_change=mark_hymn_passage_manual_override,
+        args=(st.session_state,),
     )
 
     alkalom_song = st.selectbox(
@@ -8487,10 +8495,9 @@ with tabs[7]:
     enekeskonyv_song = st.selectbox(
         "Elsődleges énekeskönyv",
         [
-            "Vegyesen — magyar református hagyomány",
+            "Erdélyi Református Énekeskönyv",
             "Református Énekeskönyv (1948)",
             "Református Énekeskönyv (2021)",
-            "Erdélyi Református Énekeskönyv"
         ],
         key="songs_book"
     )
@@ -8510,15 +8517,21 @@ with tabs[7]:
             st.session_state["_songs_running"] = True
             try:
                 with st.spinner("Református énekek keresése a liturgiai ívhez..."):
-                    st.session_state["songs"] = generate_text(
-                        build_songs_prompt(
-                            igehely=igehely_song,
-                            alkalom=alkalom_song,
-                            enekeskonyv=enekeskonyv_song,
-                            hangsuly=hangsuly_song,
+                    result = recommend_hymns(
+                        igehely=igehely_song,
+                        alkalom=alkalom_song,
+                        enekeskonyv=enekeskonyv_song,
+                        hangsuly=hangsuly_song,
+                        llm_generate=lambda prompt: generate_text(
+                            prompt,
+                            tab_label="Énekajánló",
+                            use_cache=False,
+                            response_mime_type="application/json",
+                            temperature=0.2,
                         ),
-                        tab_label="Énekajánló",
                     )
+                    st.session_state["songs"] = result.markdown
+                    st.session_state["_songs_repository_status"] = result.status
             finally:
                 st.session_state["_songs_running"] = False
             st.rerun()
@@ -8532,7 +8545,20 @@ with tabs[7]:
     else:
         st.info("Még nincs énekajánlás. Add meg az igeszakaszt és az alkalmat, majd kérj ajánlást.")
 
-    refinement_chat("Énekajánló", "songs", "songs_chat")
+    _songs_repo_status = st.session_state.get("_songs_repository_status")
+    if _songs_repo_status in {
+        "ok",
+        "unsupported_hymnal",
+        "database_unavailable",
+        "no_candidates",
+        "no_valid_ranked_hymns",
+    }:
+        st.caption(
+            "Az énekajánló ebben a fázisban csak ellenőrzött énekadatbázis-rekordból "
+            "adhat számot és kezdősort; a szabad finomító chat itt ki van kapcsolva."
+        )
+    else:
+        refinement_chat("Énekajánló", "songs", "songs_chat")
 
 
 
