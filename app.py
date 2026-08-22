@@ -117,6 +117,10 @@ from passage_search_ui import (
 )
 from concordance_ui import render_concordance_expander
 from hymn_recommendation_ai import ERE_BOOK_LABEL, recommend_hymns
+from hymn_ui_state import (
+    mark_hymn_passage_manual_override,
+    sync_hymn_passage_from_main_state,
+)
 # =========================================================
 # VERZIÓ
 # =========================================================
@@ -8446,10 +8450,13 @@ with tabs[7]:
     st.header("Énekajánló")
     st.caption("Református liturgiai énekajánlás az igeszakaszhoz és az alkalomhoz")
 
+    sync_hymn_passage_from_main_state(st.session_state)
     igehely_song = st.text_input(
         "Igeszakasz",
         placeholder="Pl. Lk 15,11–32 vagy Zsolt 23",
-        key="songs_verse"
+        key="songs_verse",
+        on_change=mark_hymn_passage_manual_override,
+        args=(st.session_state,),
     )
 
     alkalom_song = st.selectbox(
