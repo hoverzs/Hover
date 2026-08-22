@@ -25,6 +25,14 @@ EXPECTED_ERE_BASE_NUMBER_COUNT = 504
 EXPECTED_ERE_SECTION_COUNT = 44
 EXPECTED_ERE_STANZA_COUNT = 2697
 EXPECTED_ERE_PARSER_WARNING_COUNT = 0
+EXPECTED_RE21_SOURCE_CHECKSUM = (
+    "c5075014a35aa843707c4a196409f46bfcf86ab950928724d5e36a43cecdbb51"
+)
+EXPECTED_RE21_HYMN_COUNT = 667
+EXPECTED_RE21_BASE_NUMBER_COUNT = 667
+EXPECTED_RE21_SECTION_COUNT = 39
+EXPECTED_RE21_STANZA_COUNT = 3783
+EXPECTED_RE21_PARSER_WARNING_COUNT = 0
 EXPECTED_SCHEMA_VERSION = "1"
 
 HYMN_STORAGE_BUCKET_ENV_VAR = "TEXTUS_HYMN_DB_STORAGE_BUCKET"
@@ -393,23 +401,33 @@ def _validate_database(path: Path) -> HymnRepositoryStatus:
                 str(path),
                 f"schema_version={schema_version or '<missing>'}",
             )
-        summary = _summary_counts(conn, "ERE")
-        if summary is None:
+        ere_summary = _summary_counts(conn, "ERE")
+        if ere_summary is None:
             return HymnRepositoryStatus(False, "hymnal_missing", str(path), "ERE")
-        source_checksum, hymn_count, base_count, section_count, stanza_count, warning_count = summary
-        expected = {
-            "source_checksum": (source_checksum, EXPECTED_ERE_SOURCE_CHECKSUM),
-            "hymn_count": (hymn_count, EXPECTED_ERE_HYMN_COUNT),
-            "base_number_count": (base_count, EXPECTED_ERE_BASE_NUMBER_COUNT),
-            "section_count": (section_count, EXPECTED_ERE_SECTION_COUNT),
-            "stanza_count": (stanza_count, EXPECTED_ERE_STANZA_COUNT),
-            "parser_warning_count": (warning_count, EXPECTED_ERE_PARSER_WARNING_COUNT),
-        }
-        mismatches = [
-            f"{name}={actual} expected={want}"
-            for name, (actual, want) in expected.items()
-            if actual != want
-        ]
+        mismatches = _hymnal_mismatches(
+            "ERE",
+            ere_summary,
+            expected_source_checksum=EXPECTED_ERE_SOURCE_CHECKSUM,
+            expected_hymn_count=EXPECTED_ERE_HYMN_COUNT,
+            expected_base_number_count=EXPECTED_ERE_BASE_NUMBER_COUNT,
+            expected_section_count=EXPECTED_ERE_SECTION_COUNT,
+            expected_stanza_count=EXPECTED_ERE_STANZA_COUNT,
+            expected_parser_warning_count=EXPECTED_ERE_PARSER_WARNING_COUNT,
+        )
+        re21_summary = _summary_counts(conn, "RE21")
+        if re21_summary is not None:
+            mismatches.extend(
+                _hymnal_mismatches(
+                    "RE21",
+                    re21_summary,
+                    expected_source_checksum=EXPECTED_RE21_SOURCE_CHECKSUM,
+                    expected_hymn_count=EXPECTED_RE21_HYMN_COUNT,
+                    expected_base_number_count=EXPECTED_RE21_BASE_NUMBER_COUNT,
+                    expected_section_count=EXPECTED_RE21_SECTION_COUNT,
+                    expected_stanza_count=EXPECTED_RE21_STANZA_COUNT,
+                    expected_parser_warning_count=EXPECTED_RE21_PARSER_WARNING_COUNT,
+                )
+            )
         if mismatches:
             return HymnRepositoryStatus(
                 False,
@@ -422,6 +440,33 @@ def _validate_database(path: Path) -> HymnRepositoryStatus:
         return HymnRepositoryStatus(False, "database_invalid", str(path), str(exc))
     finally:
         conn.close()
+
+
+def _hymnal_mismatches(
+    hymnal_code: str,
+    summary: tuple[str, int, int, int, int, int],
+    *,
+    expected_source_checksum: str,
+    expected_hymn_count: int,
+    expected_base_number_count: int,
+    expected_section_count: int,
+    expected_stanza_count: int,
+    expected_parser_warning_count: int,
+) -> list[str]:
+    source_checksum, hymn_count, base_count, section_count, stanza_count, warning_count = summary
+    expected = {
+        "source_checksum": (source_checksum, expected_source_checksum),
+        "hymn_count": (hymn_count, expected_hymn_count),
+        "base_number_count": (base_count, expected_base_number_count),
+        "section_count": (section_count, expected_section_count),
+        "stanza_count": (stanza_count, expected_stanza_count),
+        "parser_warning_count": (warning_count, expected_parser_warning_count),
+    }
+    return [
+        f"{hymnal_code}.{name}={actual} expected={want}"
+        for name, (actual, want) in expected.items()
+        if actual != want
+    ]
 
 
 def _summary_counts(conn: sqlite3.Connection, hymnal_code: str) -> tuple[str, int, int, int, int, int] | None:
@@ -438,7 +483,11 @@ def _summary_counts(conn: sqlite3.Connection, hymnal_code: str) -> tuple[str, in
                 JOIN hymns h ON h.id = st.hymn_id
                 WHERE h.hymnal_id = hy.id
             ) AS stanza_count,
-            COALESCE((SELECT value FROM import_meta WHERE key = 'parser_warning_count'), '0')
+            COALESCE(
+                (SELECT value FROM import_meta WHERE key = hy.code || '.parser_warning_count'),
+                (SELECT value FROM import_meta WHERE key = 'parser_warning_count'),
+                '0'
+            )
                 AS parser_warning_count
         FROM hymnals hy
         WHERE hy.code = ?
@@ -565,6 +614,7 @@ def _sha256_bytes(data: bytes) -> str:
 
 __all__ = [
     "EXPECTED_ERE_SOURCE_CHECKSUM",
+    "EXPECTED_RE21_SOURCE_CHECKSUM",
     "HYMN_DATABASE_SHA256_ENV_VAR",
     "HYMN_STORAGE_BUCKET_ENV_VAR",
     "HYMN_STORAGE_OBJECT_ENV_VAR",

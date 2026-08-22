@@ -10,9 +10,10 @@ import pytest
 from bible_engine.hymn_repository import HymnRecord, HymnRepositoryStatus
 from bible_engine.hymn_repository import get_hymn_candidates as repo_get_hymn_candidates
 from bible_engine.hymn_repository import get_status, validate_hymn_ids
-from bible_engine.hymn_sqlite import import_dtx_hymnal_database
+from bible_engine.hymn_sqlite import HymnalSourceConfig, import_dtx_hymnal_database, import_hymnals_database
 from hymn_recommendation_ai import (
     ERE_BOOK_LABEL,
+    RE21_BOOK_LABEL,
     build_hymn_ranking_prompt,
     build_topic_search_profile,
     _collect_candidates,
@@ -22,6 +23,7 @@ from hymn_recommendation_ai import (
 
 ROOT = Path(__file__).resolve().parents[1]
 ERE_SOURCE = ROOT / "data" / "raw" / "hymnals" / "ERE.dtx"
+RE21_SOURCE = ROOT / "data" / "raw" / "hymnals" / "RE21_master.docx"
 
 
 H1 = HymnRecord(
@@ -68,6 +70,39 @@ H504 = HymnRecord(
     section="Kánonok",
     parent_section="Bibliaórák",
 )
+R1 = HymnRecord(
+    hymn_id="RE21:1",
+    hymnal_code="RE21",
+    number=1,
+    variant="",
+    display_number="1",
+    first_line="RE21 DB first line 1",
+    title="RE21 DB title 1",
+    section="Genfi zsoltárok",
+    parent_section="ZSOLTÁROK",
+)
+R360 = HymnRecord(
+    hymn_id="RE21:360",
+    hymnal_code="RE21",
+    number=360,
+    variant="",
+    display_number="360",
+    first_line="Jer, lássuk az Úr keresztjét,",
+    title="Jer, lássuk az Úr keresztjét,",
+    section="Úrvacsora",
+    parent_section="Hitünk alapjai",
+)
+R846 = HymnRecord(
+    hymn_id="RE21:846",
+    hymnal_code="RE21",
+    number=846,
+    variant="",
+    display_number="846",
+    first_line="Áldjon meg téged, áldjon az Úr",
+    title="Áldjon meg téged, áldjon az Úr",
+    section="Áldás",
+    parent_section="Keresztyén élet",
+)
 
 
 class FakeRepository:
@@ -84,6 +119,7 @@ class FakeRepository:
         )
         self.candidates = candidates if candidates is not None else [H1, H254A, H254B, H504]
         self.candidate_queries: list[str] = []
+        self.candidate_hymnal_codes: list[tuple[str, ...]] = []
         self.validated_ids: list[str] = []
 
     def ensure_hymn_database(self) -> HymnRepositoryStatus:
@@ -100,6 +136,10 @@ class FakeRepository:
         limit: int = 36,
     ) -> list[HymnRecord]:
         self.candidate_queries.append(query)
+        codes = tuple(hymnal_codes or ())
+        self.candidate_hymnal_codes.append(codes)
+        if codes:
+            return [h for h in self.candidates if h.hymnal_code in codes][:limit]
         return self.candidates[:limit]
 
     def validate_hymn_ids(self, hymn_ids: Iterable[str]) -> dict[str, HymnRecord]:
@@ -142,6 +182,26 @@ def ere_repository(tmp_path_factory: pytest.TempPathFactory) -> LocalDatabaseRep
         pytest.skip("Full ERE.dtx is local raw data")
     database = tmp_path_factory.mktemp("hymn_recommendation_quality") / "hymns.sqlite3"
     import_dtx_hymnal_database(ERE_SOURCE, database, hymnal_code="ERE")
+    return LocalDatabaseRepository(database)
+
+
+@pytest.fixture(scope="module")
+def combined_repository(tmp_path_factory: pytest.TempPathFactory) -> LocalDatabaseRepository:
+    if not (ERE_SOURCE.exists() and RE21_SOURCE.exists()):
+        pytest.skip("Full ERE.dtx and RÉ21 DOCX are local raw data")
+    database = tmp_path_factory.mktemp("hymn_recommendation_re21") / "hymns.sqlite3"
+    import_hymnals_database(
+        (
+            HymnalSourceConfig(code="ERE", source_path=ERE_SOURCE, source_format="dtx"),
+            HymnalSourceConfig(
+                code="RE21",
+                source_path=RE21_SOURCE,
+                source_format="docx",
+                title="Református Énekeskönyv 2021",
+            ),
+        ),
+        database,
+    )
     return LocalDatabaseRepository(database)
 
 
@@ -236,7 +296,7 @@ def test_unsupported_hymnal_has_no_hallucinated_fallback() -> None:
     result = recommend_hymns(
         igehely="Zsolt 23",
         alkalom="Vasárnapi istentisztelet",
-        enekeskonyv="Református Énekeskönyv (2021)",
+        enekeskonyv="Református Énekeskönyv (1948)",
         repository=FakeRepository(),
         llm_generate=lambda prompt: _ranking(["ERE:1"]),
     )
@@ -244,6 +304,103 @@ def test_unsupported_hymnal_has_no_hallucinated_fallback() -> None:
     assert result.status == "unsupported_hymnal"
     assert result.recommendations == ()
     assert "még nincs validált helyi hymn adatbázis" in result.markdown
+
+
+def test_mixed_hymnal_option_remains_unavailable_without_hallucinated_fallback() -> None:
+    result = recommend_hymns(
+        igehely="Zsolt 23",
+        alkalom="Vasárnapi istentisztelet",
+        enekeskonyv="Vegyesen — magyar református hagyomány",
+        repository=FakeRepository(),
+        llm_generate=lambda prompt: _ranking(["ERE:1"]),
+    )
+
+    assert result.status == "unsupported_hymnal"
+    assert result.recommendations == ()
+    assert "még nincs validált helyi hymn adatbázis" in result.markdown
+
+
+def test_valid_re21_recommendation_uses_grounded_flow() -> None:
+    repo = FakeRepository(candidates=[H1, R1, R360, R846])
+
+    result = recommend_hymns(
+        igehely="1Kor 11,23-26",
+        alkalom="Úrvacsorás istentisztelet",
+        enekeskonyv=RE21_BOOK_LABEL,
+        repository=repo,
+        llm_generate=lambda prompt: _ranking(["RE21:360", "RE21:846"]),
+    )
+
+    assert result.status == "ok"
+    assert [item.hymn.hymn_id for item in result.recommendations] == ["RE21:360", "RE21:846"]
+    assert "RE21 360" in result.markdown
+    assert "Jer, lássuk az Úr keresztjét," in result.markdown
+    assert all(codes == ("RE21",) for codes in repo.candidate_hymnal_codes)
+
+
+def test_re21_false_hymn_id_is_filtered_out() -> None:
+    repo = FakeRepository(candidates=[R360, R846])
+
+    result = recommend_hymns(
+        igehely="1Kor 11,23-26",
+        alkalom="Úrvacsorás istentisztelet",
+        enekeskonyv=RE21_BOOK_LABEL,
+        repository=repo,
+        llm_generate=lambda prompt: _ranking(["RE21:999", "RE21:360"]),
+    )
+
+    assert result.status == "ok"
+    assert [item.hymn.hymn_id for item in result.recommendations] == ["RE21:360"]
+    assert "RE21 999" not in result.markdown
+    assert "RE21:999" in repo.validated_ids
+
+
+def test_re21_display_number_and_first_line_come_from_database_not_llm() -> None:
+    repo = FakeRepository(candidates=[R360])
+
+    result = recommend_hymns(
+        igehely="1Kor 11,23-26",
+        alkalom="Úrvacsorás istentisztelet",
+        enekeskonyv=RE21_BOOK_LABEL,
+        repository=repo,
+        llm_generate=lambda prompt: json.dumps(
+            {
+                "ranked": [
+                    {
+                        "slot": "main",
+                        "hymn_id": "RE21:360",
+                        "number": "999",
+                        "first_line": "LLM invented RE21 first line",
+                        "reason": "ok",
+                        "connection": "ok",
+                    }
+                ]
+            }
+        ),
+    )
+
+    assert result.status == "ok"
+    assert "RE21 360" in result.markdown
+    assert "Jer, lássuk az Úr keresztjét," in result.markdown
+    assert "LLM invented RE21 first line" not in result.markdown
+    assert "999" not in result.markdown
+
+
+def test_re21_hymnal_filter_excludes_ere_candidates() -> None:
+    repo = FakeRepository(candidates=[H254A, R360])
+
+    result = recommend_hymns(
+        igehely="1Kor 11,23-26",
+        alkalom="Úrvacsorás istentisztelet",
+        enekeskonyv=RE21_BOOK_LABEL,
+        repository=repo,
+        llm_generate=lambda prompt: _ranking(["ERE:254a", "RE21:360"]),
+    )
+
+    assert result.status == "ok"
+    assert [item.hymn.hymn_id for item in result.recommendations] == ["RE21:360"]
+    assert all(codes == ("RE21",) for codes in repo.candidate_hymnal_codes)
+    assert "ERE 254a" not in result.markdown
 
 
 def test_empty_candidate_list_does_not_call_llm() -> None:
@@ -370,6 +527,21 @@ def test_candidate_prompt_uses_unambiguous_hymn_id_fields() -> None:
     assert "- ERE:254a:" not in prompt
 
 
+def test_re21_candidate_prompt_uses_re21_namespace() -> None:
+    prompt = build_hymn_ranking_prompt(
+        igehely="1Kor 11,23-26",
+        alkalom="Úrvacsorás istentisztelet",
+        hangsuly="",
+        candidates=[R360],
+        hymnal_code="RE21",
+    )
+
+    assert "adatbázisból kapott RE21 hymn_id-k" in prompt
+    assert 'hymn_id="RE21:360"' in prompt
+    assert 'display_number="360"' in prompt
+    assert '"hymn_id": "RE21:254a"' in prompt
+
+
 def test_topic_profile_extracts_psalm_51_repentance() -> None:
     profile = build_topic_search_profile(
         igehely="Zsolt 51,3-14",
@@ -430,6 +602,24 @@ def test_first_corinthians_11_candidates_prioritize_communion_section(
 
     assert sections[:8] == ["Úrvacsorai énekek"] * 8
     assert _count_sections(sections[:10], {"Úrvacsorai énekek"}) >= 8
+
+
+def test_re21_first_corinthians_11_candidates_use_re21_filter(
+    combined_repository: LocalDatabaseRepository,
+) -> None:
+    candidates = _collect_candidates(
+        combined_repository,
+        igehely="1Kor 11,23-26",
+        alkalom="Úrvacsorás istentisztelet",
+        hangsuly="",
+        hymnal_code="RE21",
+        limit=12,
+    )
+    sections = [h.section for h in candidates]
+
+    assert candidates
+    assert all(h.hymnal_code == "RE21" for h in candidates)
+    assert sections[:8] == ["Úrvacsora"] * 8
 
 
 def test_psalm_23_candidates_prioritize_providence_and_trust(

@@ -7,6 +7,7 @@ import pytest
 
 from bible_engine.hymn_repository import (
     EXPECTED_ERE_SOURCE_CHECKSUM,
+    EXPECTED_RE21_SOURCE_CHECKSUM,
     ensure_hymn_database,
     get_hymn_by_id,
     get_hymn_by_number,
@@ -16,11 +17,17 @@ from bible_engine.hymn_repository import (
     search_hymns,
     validate_hymn_ids,
 )
-from bible_engine.hymn_sqlite import create_schema, import_dtx_hymnal_database
+from bible_engine.hymn_sqlite import (
+    HymnalSourceConfig,
+    create_schema,
+    import_dtx_hymnal_database,
+    import_hymnals_database,
+)
 
 
 ROOT = Path(__file__).resolve().parents[1]
 ERE_SOURCE = ROOT / "data" / "raw" / "hymnals" / "ERE.dtx"
+RE21_SOURCE = ROOT / "data" / "raw" / "hymnals" / "RE21_master.docx"
 
 
 class _FakeBucket:
@@ -110,6 +117,43 @@ def test_list_hymnals_returns_ere_metadata(ere_database: Path) -> None:
     assert [h.code for h in hymnals] == ["ERE"]
     assert hymnals[0].title == "Erdélyi Református Énekeskönyv"
     assert hymnals[0].source_checksum == EXPECTED_ERE_SOURCE_CHECKSUM
+
+
+@pytest.mark.skipif(
+    not (ERE_SOURCE.exists() and RE21_SOURCE.exists()),
+    reason="Full ERE.dtx and RÉ21 DOCX are local raw data",
+)
+def test_status_and_repository_reads_combined_ere_re21_database(tmp_path: Path) -> None:
+    database = tmp_path / "hymns.sqlite3"
+    import_hymnals_database(
+        (
+            HymnalSourceConfig(code="ERE", source_path=ERE_SOURCE, source_format="dtx"),
+            HymnalSourceConfig(
+                code="RE21",
+                source_path=RE21_SOURCE,
+                source_format="docx",
+                title="Református Énekeskönyv 2021",
+            ),
+        ),
+        database,
+    )
+
+    status = get_status(database)
+    hymnals = list_hymnals(database)
+    re21_hymn = get_hymn_by_number("RE21", 360, database_path=database)
+    valid = validate_hymn_ids(["RE21:360", "RE21:9999"], database_path=database)
+    hits = search_hymns("úrvacsora", hymnal_codes=["RE21"], database_path=database)
+
+    assert status.available is True
+    assert status.reason == "ok"
+    assert [h.code for h in hymnals] == ["ERE", "RE21"]
+    assert hymnals[1].source_checksum == EXPECTED_RE21_SOURCE_CHECKSUM
+    assert re21_hymn is not None
+    assert re21_hymn.hymn_id == "RE21:360"
+    assert re21_hymn.first_line == "Jer, lássuk az Úr keresztjét,"
+    assert set(valid) == {"RE21:360"}
+    assert hits
+    assert all(hit.hymn.hymnal_code == "RE21" for hit in hits)
 
 
 def test_representative_lookups_return_database_records(ere_database: Path) -> None:

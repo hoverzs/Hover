@@ -23,8 +23,14 @@ from bible_engine.hymn_repository import (
 
 
 ERE_BOOK_LABEL = "Erdélyi Református Énekeskönyv"
+RE21_BOOK_LABEL = "Református Énekeskönyv (2021)"
 ERE_HYMNAL_CODE = "ERE"
-SUPPORTED_HYMNAL_LABELS = {ERE_BOOK_LABEL}
+RE21_HYMNAL_CODE = "RE21"
+SUPPORTED_HYMNAL_LABELS = {ERE_BOOK_LABEL, RE21_BOOK_LABEL}
+HYMNAL_CODE_BY_LABEL = {
+    ERE_BOOK_LABEL: ERE_HYMNAL_CODE,
+    RE21_BOOK_LABEL: RE21_HYMNAL_CODE,
+}
 DEFAULT_CANDIDATE_LIMIT = 36
 
 SECTION_EXACT_WEIGHT = 120
@@ -143,7 +149,8 @@ def recommend_hymns(
     candidate_limit: int = DEFAULT_CANDIDATE_LIMIT,
 ) -> HymnRecommendationResult:
     book = (enekeskonyv or "").strip()
-    if book not in SUPPORTED_HYMNAL_LABELS:
+    hymnal_code = HYMNAL_CODE_BY_LABEL.get(book)
+    if hymnal_code is None:
         return HymnRecommendationResult(
             status="unsupported_hymnal",
             markdown=_unsupported_hymnal_markdown(book),
@@ -163,13 +170,14 @@ def recommend_hymns(
         igehely=igehely,
         alkalom=alkalom,
         hangsuly=hangsuly,
+        hymnal_code=hymnal_code,
         limit=candidate_limit,
     )
     if not candidates:
         return HymnRecommendationResult(
             status="no_candidates",
             markdown=(
-                "⚠️ **Nem találtam ellenőrzött ERE énekjelöltet a helyi énekadatbázisban.**\n\n"
+                f"⚠️ **Nem találtam ellenőrzött {hymnal_code} énekjelöltet a helyi énekadatbázisban.**\n\n"
                 "Nem készítek szabad LLM-alapú éneklistát, mert az énekszám és a kezdősor "
                 "csak validált adatbázisrekordból származhat."
             ),
@@ -181,6 +189,7 @@ def recommend_hymns(
         alkalom=alkalom,
         hangsuly=hangsuly,
         candidates=candidates,
+        hymnal_code=hymnal_code,
     )
     raw = llm_generate(prompt)
     parsed = _parse_ranked_response(raw)
@@ -222,6 +231,7 @@ def build_hymn_ranking_prompt(
     alkalom: str,
     hangsuly: str,
     candidates: list[HymnRecord],
+    hymnal_code: str = ERE_HYMNAL_CODE,
 ) -> str:
     candidate_lines = "\n".join(
         f'- hymn_id="{h.hymn_id}"'
@@ -235,7 +245,7 @@ def build_hymn_ranking_prompt(
 Te református liturgiai szerkesztő vagy. Nem adhatsz meg énekszámot,
 kezdősort vagy címet saját tudásból.
 
-Feladat: az alábbi, adatbázisból kapott ERE hymn_id-k közül válassz ki
+Feladat: az alábbi, adatbázisból kapott {hymnal_code} hymn_id-k közül válassz ki
 legfeljebb négyet a liturgiai ívre. Csak a felsorolt hymn_id-kat használhatod.
 Ha egy hymn_id nincs a listában, tilos szerepeltetni.
 
@@ -251,7 +261,7 @@ Válaszolj kizárólag JSON objektummal, ebben az alakban:
   "ranked": [
     {{
       "slot": "opening|before_sermon|main|closing",
-      "hymn_id": "ERE:254a",
+      "hymn_id": "{hymnal_code}:254a",
       "reason": "1-2 magyar mondat",
       "connection": "1 magyar mondat"
     }}
@@ -286,9 +296,10 @@ def _collect_candidates(
     alkalom: str,
     hangsuly: str,
     limit: int,
+    hymnal_code: str = ERE_HYMNAL_CODE,
 ) -> list[HymnRecord]:
     profile = build_topic_search_profile(igehely=igehely, alkalom=alkalom, hangsuly=hangsuly)
-    return _collect_weighted_candidates(repo, profile, limit=limit)
+    return _collect_weighted_candidates(repo, profile, hymnal_code=hymnal_code, limit=limit)
 
 
 def build_topic_search_profile(
@@ -390,6 +401,7 @@ def _collect_weighted_candidates(
     repo: HymnRepositoryPort,
     profile: HymnTopicSearchProfile,
     *,
+    hymnal_code: str = ERE_HYMNAL_CODE,
     limit: int,
 ) -> list[HymnRecord]:
     records: dict[str, HymnRecord] = {}
@@ -399,7 +411,7 @@ def _collect_weighted_candidates(
     per_query_limit = max(12, min(limit, 24))
     for query in queries:
         for index, hymn in enumerate(
-            repo.get_hymn_candidates(query.term, [ERE_HYMNAL_CODE], limit=per_query_limit)
+            repo.get_hymn_candidates(query.term, [hymnal_code], limit=per_query_limit)
         ):
             records.setdefault(hymn.hymn_id, hymn)
             score = query.weight + max(0, 12 - index)
@@ -605,7 +617,10 @@ def _compose_recommendations(
     used_slots: set[str] = set()
     recommendations: list[RecommendedHymn] = []
     slot_labels = dict(LITURGICAL_SLOTS)
+    candidate_ids = {hymn.hymn_id for hymn in candidates}
     for item in ranked:
+        if item.hymn_id not in candidate_ids:
+            continue
         hymn = valid_by_id.get(item.hymn_id)
         if hymn is None or hymn.hymn_id in used_ids or item.slot in used_slots:
             continue
@@ -660,14 +675,15 @@ def _unsupported_hymnal_markdown(book: str) -> str:
         f"⚠️ **A(z) {label} énekeskönyvhöz még nincs validált helyi hymn adatbázis.**\n\n"
         "Ebben az átmeneti állapotban nem készítek szabad LLM-alapú énekajánlást, "
         "mert az énekszám és a kezdősor csak ellenőrzött adatbázisrekordból "
-        "származhat. Jelenleg adatbázis-alapon az Erdélyi Református Énekeskönyv támogatott."
+        "származhat. Jelenleg adatbázis-alapon az Erdélyi Református Énekeskönyv "
+        "és a Református Énekeskönyv (2021) támogatott."
     )
 
 
 def _unavailable_markdown(status: HymnRepositoryStatus) -> str:
     detail = f" (`{status.reason}`)" if status.reason else ""
     return (
-        f"⚠️ **Az ellenőrzött ERE énekadatbázis jelenleg nem elérhető{detail}.**\n\n"
+        f"⚠️ **Az ellenőrzött énekadatbázis jelenleg nem elérhető{detail}.**\n\n"
         "Nem készítek szabad LLM-alapú éneklistát, mert az énekszám és a kezdősor "
         "csak validált SQLite rekordból származhat."
     )
@@ -677,7 +693,7 @@ def _ranking_unavailable_markdown(reason: str) -> str:
     detail = f" (`{reason}`)" if reason else ""
     return (
         f"⚠️ **Az AI-rangsorolás jelenleg nem elérhető{detail}.**\n\n"
-        "Az ellenőrzött ERE énekjelöltek megvannak a helyi adatbázisból, "
+        "Az ellenőrzött énekjelöltek megvannak a helyi adatbázisból, "
         "de a rangsorolási AI-hívás nem adott feldolgozható JSON választ. "
         "Nem készítek szabad LLM-alapú éneklistát, mert az énekszám és a "
         "kezdősor csak validált adatbázisrekordból származhat."
@@ -686,6 +702,7 @@ def _ranking_unavailable_markdown(reason: str) -> str:
 
 __all__ = [
     "ERE_BOOK_LABEL",
+    "RE21_BOOK_LABEL",
     "HymnRecommendationResult",
     "HymnTopicSearchProfile",
     "RecommendedHymn",

@@ -11,6 +11,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from bible_engine.hymn_docx_parser import parse_docx_file
 from bible_engine.hymn_dtx_parser import Hymn, HymnalDocument, Section, parse_dtx_file
 from bible_engine.paths import GENERATED_DATA_DIR
 
@@ -32,6 +33,15 @@ class HymnImportReport:
     stanza_count: int
     parser_warning_count: int
     built_at: str
+
+
+@dataclass(frozen=True)
+class HymnalSourceConfig:
+    code: str
+    source_path: str | Path
+    source_format: str
+    title: str = ""
+    source_version: str = ""
 
 
 @dataclass(frozen=True)
@@ -132,8 +142,7 @@ def create_schema(connection: sqlite3.Connection) -> None:
             text TEXT NOT NULL,
             heading TEXT,
             technical_hash TEXT,
-            FOREIGN KEY(hymn_id) REFERENCES hymns(id) ON DELETE CASCADE,
-            UNIQUE(hymn_id, stanza_no)
+            FOREIGN KEY(hymn_id) REFERENCES hymns(id) ON DELETE CASCADE
         );
 
         CREATE TABLE IF NOT EXISTS import_meta (
@@ -173,49 +182,111 @@ def import_dtx_hymnal_database(
     source_version: str = "",
     atomic: bool = True,
 ) -> HymnImportReport:
-    source = Path(source_path)
-    if not source.exists():
-        raise FileNotFoundError(f"DTX source file not found: {source}")
+    reports = import_hymnals_database(
+        [
+            HymnalSourceConfig(
+                code=hymnal_code,
+                source_path=source_path,
+                source_format="dtx",
+                source_version=source_version,
+            )
+        ],
+        database_path,
+        atomic=atomic,
+    )
+    return reports[0]
+
+
+def import_hymnals_database(
+    sources: list[HymnalSourceConfig] | tuple[HymnalSourceConfig, ...],
+    database_path: str | Path,
+    *,
+    atomic: bool = True,
+) -> tuple[HymnImportReport, ...]:
+    if not sources:
+        raise ValueError("At least one hymnal source must be provided.")
     database = Path(database_path)
     database.parent.mkdir(parents=True, exist_ok=True)
     target = _temporary_database_path(database) if atomic else database
     if target.exists():
         target.unlink()
 
-    document = parse_dtx_file(source, code=hymnal_code)
-    checksum = _sha256(source)
     built_at = datetime.now(UTC).isoformat()
-    stanza_count = sum(len(hymn.stanzas) for hymn in document.hymns)
-    base_number_count = len({hymn.number for hymn in document.hymns})
+    loaded = [_load_source(config) for config in sources]
 
     connection = sqlite3.connect(target)
+    reports: list[HymnImportReport] = []
     try:
         create_schema(connection)
-        _insert_document(
-            connection,
-            document,
-            hymnal_code=hymnal_code,
-            source_checksum=checksum,
-            source_version=source_version,
-            imported_at=built_at,
-        )
-        _set_import_meta(
-            connection,
+        metadata: dict[str, str] = {
+            "schema_version": str(SCHEMA_VERSION),
+            "hymnal_codes": json.dumps([item["config"].code for item in loaded], ensure_ascii=False),
+            "build_timestamp": built_at,
+        }
+        for item in loaded:
+            config = item["config"]
+            document = item["document"]
+            checksum = item["checksum"]
+            source = item["source"]
+            normalized_format = item["source_format"]
+            stanza_count = sum(len(hymn.stanzas) for hymn in document.hymns)
+            base_number_count = len({hymn.number for hymn in document.hymns})
+            warning_count = len(document.warnings)
+
+            _insert_document(
+                connection,
+                document,
+                hymnal_code=config.code,
+                title_override=config.title,
+                source_format=normalized_format,
+                source_checksum=checksum,
+                source_version=config.source_version,
+                imported_at=built_at,
+            )
+            metadata.update(
+                {
+                    f"{config.code}.source_path": str(source),
+                    f"{config.code}.source_checksum": checksum,
+                    f"{config.code}.source_format": normalized_format,
+                    f"{config.code}.source_version": config.source_version,
+                    f"{config.code}.hymn_count": str(len(document.hymns)),
+                    f"{config.code}.base_number_count": str(base_number_count),
+                    f"{config.code}.section_count": str(len(document.sections)),
+                    f"{config.code}.stanza_count": str(stanza_count),
+                    f"{config.code}.parser_warning_count": str(warning_count),
+                }
+            )
+            reports.append(
+                HymnImportReport(
+                    database_path=str(database),
+                    hymnal_code=config.code,
+                    source_path=str(source),
+                    source_checksum=checksum,
+                    hymn_count=len(document.hymns),
+                    base_number_count=base_number_count,
+                    section_count=len(document.sections),
+                    stanza_count=stanza_count,
+                    parser_warning_count=warning_count,
+                    built_at=built_at,
+                )
+            )
+
+        first = reports[0]
+        metadata.update(
             {
-                "schema_version": str(SCHEMA_VERSION),
-                "hymnal_code": hymnal_code,
-                "source_path": str(source),
-                "source_checksum": checksum,
-                "source_format": "DiaTar DTX",
-                "source_version": source_version,
-                "hymn_count": str(len(document.hymns)),
-                "base_number_count": str(base_number_count),
-                "section_count": str(len(document.sections)),
-                "stanza_count": str(stanza_count),
-                "parser_warning_count": str(len(document.warnings)),
-                "build_timestamp": built_at,
-            },
+                "hymnal_code": first.hymnal_code,
+                "source_path": first.source_path,
+                "source_checksum": first.source_checksum,
+                "source_format": loaded[0]["source_format"],
+                "source_version": loaded[0]["config"].source_version,
+                "hymn_count": str(first.hymn_count),
+                "base_number_count": str(first.base_number_count),
+                "section_count": str(first.section_count),
+                "stanza_count": str(first.stanza_count),
+                "parser_warning_count": str(first.parser_warning_count),
+            }
         )
+        _set_import_meta(connection, metadata)
         _rebuild_fts(connection)
         integrity = connection.execute("PRAGMA integrity_check").fetchone()[0]
         if integrity != "ok":
@@ -227,18 +298,7 @@ def import_dtx_hymnal_database(
     if atomic:
         _replace_atomically(target, database)
 
-    return HymnImportReport(
-        database_path=str(database),
-        hymnal_code=hymnal_code,
-        source_path=str(source),
-        source_checksum=checksum,
-        hymn_count=len(document.hymns),
-        base_number_count=base_number_count,
-        section_count=len(document.sections),
-        stanza_count=stanza_count,
-        parser_warning_count=len(document.warnings),
-        built_at=built_at,
-    )
+    return tuple(reports)
 
 
 def get_hymnal_summary(
@@ -269,10 +329,15 @@ def get_hymnal_summary(
                     JOIN hymns h ON h.id = st.hymn_id
                     WHERE h.hymnal_id = hy.id
                 ) AS stanza_count,
-                COALESCE(MAX(CASE WHEN im.key = 'parser_warning_count' THEN im.value END), '0')
+                COALESCE(
+                    MAX(CASE WHEN im.key = hy.code || '.parser_warning_count' THEN im.value END),
+                    MAX(CASE WHEN im.key = 'parser_warning_count' THEN im.value END),
+                    '0'
+                )
                     AS parser_warning_count
             FROM hymnals hy
-            LEFT JOIN import_meta im ON im.key = 'parser_warning_count'
+            LEFT JOIN import_meta im
+                ON im.key IN (hy.code || '.parser_warning_count', 'parser_warning_count')
             WHERE hy.code = ?
             GROUP BY hy.id
             """,
@@ -410,9 +475,11 @@ def search_fts(
 
 def _insert_document(
     connection: sqlite3.Connection,
-    document: HymnalDocument,
+    document: Any,
     *,
     hymnal_code: str,
+    title_override: str = "",
+    source_format: str,
     source_checksum: str,
     source_version: str,
     imported_at: str,
@@ -426,9 +493,9 @@ def _insert_document(
         """,
         (
             hymnal_code,
-            document.metadata.title,
-            document.metadata.dtx_code,
-            "DiaTar DTX",
+            title_override or document.metadata.title,
+            getattr(document.metadata, "dtx_code", ""),
+            source_format,
             source_version,
             source_checksum,
             imported_at,
@@ -443,7 +510,7 @@ def _insert_document(
 def _insert_sections(
     connection: sqlite3.Connection,
     hymnal_id: int,
-    sections: tuple[Section, ...],
+    sections: tuple[Any, ...],
 ) -> dict[int, int]:
     ids: dict[int, int] = {}
     for section in sections:
@@ -463,7 +530,7 @@ def _insert_hymn(
     connection: sqlite3.Connection,
     hymnal_id: int,
     section_ids: dict[int, int],
-    hymn: Hymn,
+    hymn: Any,
 ) -> None:
     section_id = section_ids.get(hymn.section.ordinal) if hymn.section else None
     cursor = connection.execute(
@@ -480,19 +547,11 @@ def _insert_hymn(
             hymn.number,
             hymn.variant or None,
             _number_sort(hymn.number, hymn.variant),
-            hymn.key,
+            _canonical_key(hymn),
             hymn.first_line,
             hymn.title,
             hymn.title_source,
-            json.dumps(
-                {
-                    "start_line": hymn.raw_source.start_line,
-                    "end_line": hymn.raw_source.end_line,
-                    "header_line": hymn.raw_source.header_line,
-                },
-                ensure_ascii=False,
-                sort_keys=True,
-            ),
+            _raw_source_reference(hymn),
         ),
     )
     hymn_id = int(cursor.lastrowid)
@@ -509,10 +568,64 @@ def _insert_hymn(
                 stanza.number,
                 stanza.first_line,
                 stanza.text,
-                stanza.heading or None,
-                stanza.technical_hash or None,
+                getattr(stanza, "heading", "") or None,
+                getattr(stanza, "technical_hash", "") or None,
             ),
         )
+
+
+def _load_source(config: HymnalSourceConfig) -> dict[str, Any]:
+    source = Path(config.source_path)
+    if not source.exists():
+        raise FileNotFoundError(f"Hymnal source file not found: {source}")
+    source_format = _normalized_source_format(config.source_format)
+    if source_format == "DiaTar DTX":
+        document = parse_dtx_file(source, code=config.code)
+    elif source_format == "docx":
+        document = parse_docx_file(
+            source,
+            code=config.code,
+            title=config.title or "Református Énekeskönyv 2021",
+        )
+    else:
+        raise ValueError(f"Unsupported hymnal source_format: {config.source_format}")
+    return {
+        "config": config,
+        "source": source,
+        "source_format": source_format,
+        "checksum": _sha256(source),
+        "document": document,
+    }
+
+
+def _normalized_source_format(source_format: str) -> str:
+    value = source_format.strip().lower()
+    if value in {"dtx", "diatar dtx"}:
+        return "DiaTar DTX"
+    if value in {"docx", "word docx"}:
+        return "docx"
+    return source_format.strip()
+
+
+def _canonical_key(hymn: Any) -> str:
+    return getattr(hymn, "key", "") or getattr(hymn, "canonical_key", "")
+
+
+def _raw_source_reference(hymn: Any) -> str:
+    raw = hymn.raw_source
+    if hasattr(raw, "start_line"):
+        payload = {
+            "start_line": raw.start_line,
+            "end_line": raw.end_line,
+            "header_line": raw.header_line,
+        }
+    else:
+        payload = {
+            "start_paragraph": raw.start_paragraph,
+            "end_paragraph": raw.end_paragraph,
+            "header_paragraph": raw.header_paragraph,
+        }
+    return json.dumps(payload, ensure_ascii=False, sort_keys=True)
 
 
 def _rebuild_fts(connection: sqlite3.Connection) -> None:
@@ -623,6 +736,7 @@ __all__ = [
     "DEFAULT_DATABASE_PATH",
     "SCHEMA_VERSION",
     "HymnImportReport",
+    "HymnalSourceConfig",
     "HymnLookup",
     "HymnSearchHit",
     "HymnalSummary",
@@ -630,6 +744,7 @@ __all__ = [
     "get_hymn_by_number",
     "get_hymnal_summary",
     "import_dtx_hymnal_database",
+    "import_hymnals_database",
     "resolve_database_path",
     "search_fts",
 ]
