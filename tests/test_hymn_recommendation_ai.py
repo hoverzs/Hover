@@ -2,10 +2,26 @@ from __future__ import annotations
 
 import json
 from dataclasses import replace
+from pathlib import Path
 from typing import Iterable
 
+import pytest
+
 from bible_engine.hymn_repository import HymnRecord, HymnRepositoryStatus
-from hymn_recommendation_ai import ERE_BOOK_LABEL, recommend_hymns
+from bible_engine.hymn_repository import get_hymn_candidates as repo_get_hymn_candidates
+from bible_engine.hymn_repository import get_status, validate_hymn_ids
+from bible_engine.hymn_sqlite import import_dtx_hymnal_database
+from hymn_recommendation_ai import (
+    ERE_BOOK_LABEL,
+    build_hymn_ranking_prompt,
+    build_topic_search_profile,
+    _collect_candidates,
+    recommend_hymns,
+)
+
+
+ROOT = Path(__file__).resolve().parents[1]
+ERE_SOURCE = ROOT / "data" / "raw" / "hymnals" / "ERE.dtx"
 
 
 H1 = HymnRecord(
@@ -90,6 +106,43 @@ class FakeRepository:
         self.validated_ids.extend(hymn_ids)
         by_id = {h.hymn_id: h for h in self.candidates}
         return {hymn_id: by_id[hymn_id] for hymn_id in self.validated_ids if hymn_id in by_id}
+
+
+class LocalDatabaseRepository:
+    def __init__(self, database_path: Path) -> None:
+        self.database_path = database_path
+
+    def ensure_hymn_database(self) -> HymnRepositoryStatus:
+        return get_status(self.database_path)
+
+    def get_status(self) -> HymnRepositoryStatus:
+        return get_status(self.database_path)
+
+    def get_hymn_candidates(
+        self,
+        query: str,
+        hymnal_codes: Iterable[str] | None = None,
+        *,
+        limit: int = 36,
+    ) -> list[HymnRecord]:
+        return repo_get_hymn_candidates(
+            query,
+            hymnal_codes,
+            limit=limit,
+            database_path=self.database_path,
+        )
+
+    def validate_hymn_ids(self, hymn_ids: Iterable[str]) -> dict[str, HymnRecord]:
+        return validate_hymn_ids(hymn_ids, database_path=self.database_path)
+
+
+@pytest.fixture(scope="module")
+def ere_repository(tmp_path_factory: pytest.TempPathFactory) -> LocalDatabaseRepository:
+    if not ERE_SOURCE.exists():
+        pytest.skip("Full ERE.dtx is local raw data")
+    database = tmp_path_factory.mktemp("hymn_recommendation_quality") / "hymns.sqlite3"
+    import_dtx_hymnal_database(ERE_SOURCE, database, hymnal_code="ERE")
+    return LocalDatabaseRepository(database)
 
 
 def test_valid_candidate_ranking_uses_database_fields() -> None:
@@ -237,6 +290,42 @@ def test_no_valid_ranked_hymns_does_not_fallback_to_generated_song() -> None:
     assert result.status == "no_valid_ranked_hymns"
     assert result.recommendations == ()
     assert "szabad, adatbázison kívüli énekajánlást" in result.markdown
+    assert "jelenleg nem elérhető" not in result.markdown
+
+
+def test_llm_network_error_message_returns_ranking_unavailable() -> None:
+    repo = FakeRepository()
+
+    result = recommend_hymns(
+        igehely="Zsolt 23",
+        alkalom="Vasárnapi istentisztelet",
+        enekeskonyv=ERE_BOOK_LABEL,
+        repository=repo,
+        llm_generate=lambda prompt: "⚠️ **Nincs internetkapcsolat.** Nem sikerült elérni a Gemini API-t.",
+    )
+
+    assert result.status == "ranking_unavailable"
+    assert result.recommendations == ()
+    assert repo.validated_ids == []
+    assert "AI-rangsorolás jelenleg nem elérhető" in result.markdown
+    assert "nem adott vissza ellenőrzött hymn_id-t" not in result.markdown
+
+
+def test_malformed_json_returns_ranking_unavailable_without_crash() -> None:
+    repo = FakeRepository()
+
+    result = recommend_hymns(
+        igehely="Zsolt 23",
+        alkalom="Vasárnapi istentisztelet",
+        enekeskonyv=ERE_BOOK_LABEL,
+        repository=repo,
+        llm_generate=lambda prompt: "{not valid json",
+    )
+
+    assert result.status == "ranking_unavailable"
+    assert result.recommendations == ()
+    assert repo.validated_ids == []
+    assert "malformed_json" in result.markdown
 
 
 def test_variant_handling_keeps_ranked_variant() -> None:
@@ -267,6 +356,99 @@ def test_mocked_llm_response_can_be_json_fenced() -> None:
     assert result.recommendations[0].hymn.hymn_id == "ERE:254a"
 
 
+def test_candidate_prompt_uses_unambiguous_hymn_id_fields() -> None:
+    prompt = build_hymn_ranking_prompt(
+        igehely="Zsolt 23",
+        alkalom="Vasárnapi istentisztelet",
+        hangsuly="",
+        candidates=[H254A],
+    )
+
+    assert 'hymn_id="ERE:254a"' in prompt
+    assert 'display_number="254a"' in prompt
+    assert 'first_line="DB first line 254a"' in prompt
+    assert "- ERE:254a:" not in prompt
+
+
+def test_topic_profile_extracts_psalm_51_repentance() -> None:
+    profile = build_topic_search_profile(
+        igehely="Zsolt 51,3-14",
+        alkalom="Vasárnapi istentisztelet",
+        hangsuly="",
+    )
+
+    assert "bűnbánat" in profile.themes
+    assert "Bűnbánati énekek" in profile.section_hints
+    assert "Megtérés" in profile.section_hints
+
+
+def test_psalm_51_candidates_are_repentance_weighted(
+    ere_repository: LocalDatabaseRepository,
+) -> None:
+    candidates = _collect_candidates(
+        ere_repository,
+        igehely="Zsolt 51,3-14",
+        alkalom="Vasárnapi istentisztelet",
+        hangsuly="",
+        limit=12,
+    )
+    sections = [h.section for h in candidates]
+
+    assert _count_sections(sections, {"Bűnbánati énekek", "Megtérés"}) >= 9
+    assert "Karácsony" not in sections[:8]
+    assert any(h.section == "Bűnbánati énekek" for h in candidates[:6])
+
+
+def test_isaiah_53_candidates_prioritize_passion_sections(
+    ere_repository: LocalDatabaseRepository,
+) -> None:
+    candidates = _collect_candidates(
+        ere_repository,
+        igehely="Ézs 53,3-7",
+        alkalom="Vasárnapi istentisztelet",
+        hangsuly="",
+        limit=12,
+    )
+    sections = [h.section for h in candidates]
+
+    assert sections[:8] == ["Nagypéntek"] * 8
+    assert _count_sections(sections[:10], {"Nagypéntek", "Nagyszombat"}) >= 9
+    assert "Isten dicsérete" not in sections[:10]
+
+
+def test_first_corinthians_11_candidates_prioritize_communion_section(
+    ere_repository: LocalDatabaseRepository,
+) -> None:
+    candidates = _collect_candidates(
+        ere_repository,
+        igehely="1Kor 11,23-26",
+        alkalom="Úrvacsorás istentisztelet",
+        hangsuly="",
+        limit=12,
+    )
+    sections = [h.section for h in candidates]
+
+    assert sections[:8] == ["Úrvacsorai énekek"] * 8
+    assert _count_sections(sections[:10], {"Úrvacsorai énekek"}) >= 8
+
+
+def test_psalm_23_candidates_prioritize_providence_and_trust(
+    ere_repository: LocalDatabaseRepository,
+) -> None:
+    candidates = _collect_candidates(
+        ere_repository,
+        igehely="Zsolt 23",
+        alkalom="Vasárnapi istentisztelet",
+        hangsuly="",
+        limit=12,
+    )
+    sections = [h.section for h in candidates]
+
+    assert _count_sections(sections, {"Gondviselés", "Bizodalom Istenben"}) >= 10
+    assert any(h.section == "Gondviselés" for h in candidates[:5])
+    assert "Keresztyén élet" not in sections[:8]
+
+
 def _ranking(ids: list[str]) -> str:
     slots = ["opening", "before_sermon", "main", "closing"]
     return json.dumps(
@@ -283,3 +465,7 @@ def _ranking(ids: list[str]) -> str:
             "liturgical_note": "Rövid liturgiai megjegyzés.",
         }
     )
+
+
+def _count_sections(sections: list[str], expected: set[str]) -> int:
+    return sum(1 for section in sections if section in expected)
