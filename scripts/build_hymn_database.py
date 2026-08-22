@@ -19,7 +19,9 @@ from bible_engine.hymn_sqlite import (
 
 DEFAULT_ERE_SOURCE = ROOT / "data" / "raw" / "hymnals" / "ERE.dtx"
 DEFAULT_RE21_SOURCE = ROOT / "data" / "raw" / "hymnals" / "RE21_master.docx"
+DEFAULT_RE48_SOURCE = ROOT / "data" / "raw" / "hymnals" / "REF48_reformatus.dtx"
 RE21_TITLE = "Református Énekeskönyv 2021"
+RE48_TITLE = "Református Énekeskönyv (1948)"
 
 
 def main() -> None:
@@ -59,6 +61,12 @@ def main() -> None:
         default=DEFAULT_RE21_SOURCE,
         help="Path to the official RÉ21 DOCX source file.",
     )
+    parser.add_argument(
+        "--re48-source",
+        type=Path,
+        default=DEFAULT_RE48_SOURCE,
+        help="Path to the RÉ48 DiaTar DTX source file.",
+    )
     args = parser.parse_args()
 
     if args.source:
@@ -84,6 +92,13 @@ def main() -> None:
                     source_path=args.re21_source,
                     source_format="docx",
                     title=RE21_TITLE,
+                    source_version=args.source_version,
+                ),
+                HymnalSourceConfig(
+                    code="RE48",
+                    source_path=args.re48_source,
+                    source_format="dtx",
+                    title=RE48_TITLE,
                     source_version=args.source_version,
                 ),
             ),

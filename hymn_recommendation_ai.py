@@ -24,12 +24,15 @@ from bible_engine.hymn_repository import (
 
 ERE_BOOK_LABEL = "Erdélyi Református Énekeskönyv"
 RE21_BOOK_LABEL = "Református Énekeskönyv (2021)"
+RE48_BOOK_LABEL = "Református Énekeskönyv (1948)"
 ERE_HYMNAL_CODE = "ERE"
 RE21_HYMNAL_CODE = "RE21"
-SUPPORTED_HYMNAL_LABELS = {ERE_BOOK_LABEL, RE21_BOOK_LABEL}
+RE48_HYMNAL_CODE = "RE48"
+SUPPORTED_HYMNAL_LABELS = {ERE_BOOK_LABEL, RE21_BOOK_LABEL, RE48_BOOK_LABEL}
 HYMNAL_CODE_BY_LABEL = {
     ERE_BOOK_LABEL: ERE_HYMNAL_CODE,
     RE21_BOOK_LABEL: RE21_HYMNAL_CODE,
+    RE48_BOOK_LABEL: RE48_HYMNAL_CODE,
 }
 DEFAULT_CANDIDATE_LIMIT = 36
 
@@ -64,6 +67,26 @@ _OCCASION_KEYWORDS = {
     "Bűnbánati istentisztelet": ("bűnbánat", "irgalom", "kegyelem", "megtérés"),
     "Hétközi alkalom / Bibliaóra": ("ige", "tanítás", "követés", "hit"),
     "Ifjúsági istentisztelet": ("követés", "hit", "öröm", "ifjúság"),
+}
+
+_LEXICAL_EXPANSIONS = {
+    "úrvacsora": ("vacsora", "kenyér", "bor", "test", "vér", "asztal"),
+    "urvacsora": ("vacsora", "kenyér", "bor", "test", "vér", "asztal"),
+    "úrvacsorai énekek": ("vacsora", "kenyér", "bor", "test", "vér", "asztal"),
+    "krisztus vére": ("vér", "véred", "vére", "bűnbocsánat"),
+    "krisztus teste": ("test", "kenyér"),
+    "nagypéntek": ("kereszt", "szenvedés", "szenved", "halál", "bárány", "vér"),
+    "passió": ("kereszt", "szenvedés", "szenved", "halál", "bárány", "vér"),
+    "krisztus szenvedése": ("kereszt", "szenvedés", "szenved", "halál", "bárány"),
+    "szenvedő szolga": ("szenvedés", "szenved", "bárány", "halál"),
+    "bűnbánat": ("bűn", "vétkét", "vétkem", "irgalom", "könyörülj", "bocsásd", "kegyelmezz"),
+    "bunbanat": ("bűn", "vétkét", "vétkem", "irgalom", "könyörülj", "bocsásd", "kegyelmezz"),
+    "bűnbocsánat": ("bűn", "bocsánat", "bocsásd", "irgalom", "könyörülj"),
+    "megtérés": ("térj", "téríts", "új szív", "bűn", "kegyelem"),
+    "bizalom": ("pásztor", "őriz", "őriző", "bíznak", "bíztunk", "bizodalom", "oltalom"),
+    "gondviselés": ("pásztor", "őriz", "vezet", "oltalom", "nyugalom", "bizodalom"),
+    "húsvét": ("húsvét", "feltámad", "feltámadott", "feltámadás", "él", "sír", "halál"),
+    "feltámadás": ("feltámad", "feltámadott", "él", "sír", "halál", "győzelem"),
 }
 
 
@@ -353,6 +376,14 @@ def build_topic_search_profile(
             keyword=("úrvacsora", "Krisztus vére", "asztal", "bűnbocsánat", "szövetség"),
             section=("Úrvacsorai énekek",),
         )
+    if _has_any(folded, ("jn20", "jn 20", "janos20", "janos 20", "jános20", "jános 20", "john20", "john 20")):
+        add(
+            theme=("feltámadás", "húsvét", "győzelem", "élet"),
+            liturgy=("húsvét",),
+            christology=("feltámadott Krisztus",),
+            keyword=("feltámad", "feltámadott", "sír", "él", "halál", "győzelem"),
+            section=("Húsvét",),
+        )
     if _has_any(folded, ("zsolt23", "zsolt 23", "psalm23", "psa23")):
         add(
             theme=("gondviselés", "bizalom", "vezetés", "oltalom"),
@@ -422,6 +453,7 @@ def _collect_weighted_candidates(
     ordered = sorted(
         records.values(),
         key=lambda hymn: (
+            -_section_match_priority(hymn, matched_roles),
             -scores.get(hymn.hymn_id, 0),
             hymn.section,
             hymn.number,
@@ -431,13 +463,30 @@ def _collect_weighted_candidates(
     return _diversify_candidates(ordered, limit=limit)
 
 
+def _section_match_priority(hymn: HymnRecord, matched_roles: dict[str, set[str]]) -> int:
+    roles = matched_roles.get(hymn.hymn_id, set())
+    if hymn.section and roles.intersection({"section_exact", "section_fuzzy"}):
+        return 1
+    return 0
+
+
 def _weighted_queries(profile: HymnTopicSearchProfile) -> list[_WeightedQuery]:
     queries: list[_WeightedQuery] = []
-    queries.extend(_WeightedQuery(term, "section_exact", SECTION_EXACT_WEIGHT) for term in profile.section_hints)
-    queries.extend(_WeightedQuery(term, "section_fuzzy", SECTION_FUZZY_WEIGHT) for term in profile.liturgical_tags)
-    queries.extend(_WeightedQuery(term, "theme", THEME_WEIGHT) for term in profile.themes)
-    queries.extend(_WeightedQuery(term, "theme", THEME_WEIGHT) for term in profile.christological_tags)
-    queries.extend(_WeightedQuery(term, "keyword", KEYWORD_WEIGHT) for term in profile.keywords)
+    for term in profile.section_hints:
+        queries.append(_WeightedQuery(term, "section_exact", SECTION_EXACT_WEIGHT))
+        queries.extend(_expanded_queries(term, "keyword", TITLE_OR_FIRST_LINE_WEIGHT))
+    for term in profile.liturgical_tags:
+        queries.append(_WeightedQuery(term, "section_fuzzy", SECTION_FUZZY_WEIGHT))
+        queries.extend(_expanded_queries(term, "keyword", TITLE_OR_FIRST_LINE_WEIGHT))
+    for term in profile.themes:
+        queries.append(_WeightedQuery(term, "theme", THEME_WEIGHT))
+        queries.extend(_expanded_queries(term, "keyword", KEYWORD_WEIGHT))
+    for term in profile.christological_tags:
+        queries.append(_WeightedQuery(term, "theme", THEME_WEIGHT))
+        queries.extend(_expanded_queries(term, "keyword", KEYWORD_WEIGHT))
+    for term in profile.keywords:
+        queries.append(_WeightedQuery(term, "keyword", KEYWORD_WEIGHT))
+        queries.extend(_expanded_queries(term, "keyword", max(KEYWORD_WEIGHT - 5, GENERIC_WEIGHT)))
     queries.extend(
         _WeightedQuery(term, "generic", GENERIC_WEIGHT)
         for term in ("kegyelem", "hit", "Krisztus", "irgalom", "dicsőség", "reménység")
@@ -453,6 +502,16 @@ def _weighted_queries(profile: HymnTopicSearchProfile) -> list[_WeightedQuery]:
             seen.add(key)
             unique.append(_WeightedQuery(clean, query.role, query.weight))
     return unique
+
+
+def _expanded_queries(term: str, role: str, weight: int) -> list[_WeightedQuery]:
+    folded = _fold(term)
+    expanded: list[_WeightedQuery] = []
+    for key, values in _LEXICAL_EXPANSIONS.items():
+        folded_key = _fold(key)
+        if folded_key and (folded == folded_key or folded_key in folded or folded in folded_key):
+            expanded.extend(_WeightedQuery(value, role, weight) for value in values)
+    return expanded
 
 
 def _field_match_bonus(hymn: HymnRecord, term: str, role: str) -> int:
@@ -675,8 +734,8 @@ def _unsupported_hymnal_markdown(book: str) -> str:
         f"⚠️ **A(z) {label} énekeskönyvhöz még nincs validált helyi hymn adatbázis.**\n\n"
         "Ebben az átmeneti állapotban nem készítek szabad LLM-alapú énekajánlást, "
         "mert az énekszám és a kezdősor csak ellenőrzött adatbázisrekordból "
-        "származhat. Jelenleg adatbázis-alapon az Erdélyi Református Énekeskönyv "
-        "és a Református Énekeskönyv (2021) támogatott."
+        "származhat. Jelenleg adatbázis-alapon az Erdélyi Református Énekeskönyv, "
+        "a Református Énekeskönyv (2021) és a Református Énekeskönyv (1948) támogatott."
     )
 
 
@@ -703,6 +762,7 @@ def _ranking_unavailable_markdown(reason: str) -> str:
 __all__ = [
     "ERE_BOOK_LABEL",
     "RE21_BOOK_LABEL",
+    "RE48_BOOK_LABEL",
     "HymnRecommendationResult",
     "HymnTopicSearchProfile",
     "RecommendedHymn",

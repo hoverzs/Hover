@@ -19,6 +19,7 @@ from bible_engine.hymn_sqlite import (
 ROOT = Path(__file__).resolve().parents[1]
 ERE_SOURCE = ROOT / "data" / "raw" / "hymnals" / "ERE.dtx"
 RE21_SOURCE = ROOT / "data" / "raw" / "hymnals" / "RE21_master.docx"
+RE48_SOURCE = ROOT / "data" / "raw" / "hymnals" / "REF48_reformatus.dtx"
 
 
 def test_create_schema_creates_tables_indexes_and_fts(tmp_path: Path) -> None:
@@ -399,6 +400,198 @@ def test_combined_rebuild_is_idempotent_without_duplication(tmp_path: Path) -> N
     assert counts == {"hymnals": 2, "sections": 83, "hymns": 1180, "stanzas": 6480}
 
 
+@pytest.mark.skipif(
+    not (ERE_SOURCE.exists() and RE21_SOURCE.exists() and RE48_SOURCE.exists()),
+    reason="Full ERE.dtx, RÉ21 DOCX, and RÉ48 DTX are local raw data",
+)
+def test_triple_ere_re21_re48_import_counts_and_summaries(tmp_path: Path) -> None:
+    database = _build_ere_re21_re48(tmp_path)
+
+    ere = get_hymnal_summary(database, hymnal_code="ERE")
+    re21 = get_hymnal_summary(database, hymnal_code="RE21")
+    re48 = get_hymnal_summary(database, hymnal_code="RE48")
+
+    assert ere is not None
+    assert (ere.hymn_count, ere.base_number_count, ere.section_count, ere.stanza_count) == (
+        513,
+        504,
+        44,
+        2697,
+    )
+    assert re21 is not None
+    assert (re21.hymn_count, re21.base_number_count, re21.section_count, re21.stanza_count) == (
+        667,
+        667,
+        39,
+        3783,
+    )
+    assert re48 is not None
+    assert re48.code == "RE48"
+    assert re48.title == "Református Énekeskönyv (1948)"
+    assert re48.source_format == "DiaTar DTX"
+    assert re48.source_checksum == "3f6ebf59731263db17b7366ac4bde1f4a8515db01d5859f6c8fbbfbfb725d677"
+    assert (re48.hymn_count, re48.base_number_count, re48.section_count, re48.stanza_count) == (
+        512,
+        512,
+        0,
+        3259,
+    )
+    assert re48.parser_warning_count == 0
+
+    with sqlite3.connect(database) as connection:
+        counts = {
+            name: connection.execute(f"SELECT COUNT(*) FROM {name}").fetchone()[0]
+            for name in ("sections", "hymns", "stanzas")
+        }
+    assert counts == {"sections": 83, "hymns": 1692, "stanzas": 9739}
+
+
+@pytest.mark.skipif(
+    not (ERE_SOURCE.exists() and RE21_SOURCE.exists() and RE48_SOURCE.exists()),
+    reason="Full ERE.dtx, RÉ21 DOCX, and RÉ48 DTX are local raw data",
+)
+def test_re48_data_quality_in_combined_import(tmp_path: Path) -> None:
+    database = _build_ere_re21_re48(tmp_path)
+
+    with sqlite3.connect(database) as connection:
+        connection.row_factory = sqlite3.Row
+        duplicate_count = connection.execute(
+            """
+            SELECT COUNT(*)
+            FROM (
+                SELECT hymnal_id, canonical_key, COUNT(*) AS total
+                FROM hymns
+                GROUP BY hymnal_id, canonical_key
+                HAVING total > 1
+            )
+            """
+        ).fetchone()[0]
+        re48_variant_count = connection.execute(
+            """
+            SELECT COUNT(*)
+            FROM hymns h
+            JOIN hymnals hy ON hy.id = h.hymnal_id
+            WHERE hy.code = 'RE48' AND COALESCE(h.variant, '') <> ''
+            """
+        ).fetchone()[0]
+        re48_without_stanzas = connection.execute(
+            """
+            SELECT COUNT(*)
+            FROM hymns h
+            JOIN hymnals hy ON hy.id = h.hymnal_id
+            LEFT JOIN stanzas st ON st.hymn_id = h.id
+            WHERE hy.code = 'RE48'
+            GROUP BY h.id
+            HAVING COUNT(st.id) = 0
+            """
+        ).fetchall()
+        empty_stanza_count = connection.execute(
+            """
+            SELECT COUNT(*)
+            FROM stanzas st
+            JOIN hymns h ON h.id = st.hymn_id
+            JOIN hymnals hy ON hy.id = h.hymnal_id
+            WHERE hy.code = 'RE48' AND TRIM(st.text) = ''
+            """
+        ).fetchone()[0]
+        first_line_mismatch = connection.execute(
+            """
+            SELECT COUNT(*)
+            FROM hymns h
+            JOIN hymnals hy ON hy.id = h.hymnal_id
+            JOIN stanzas st ON st.hymn_id = h.id
+            WHERE hy.code = 'RE48'
+              AND st.id = (SELECT MIN(st2.id) FROM stanzas st2 WHERE st2.hymn_id = h.id)
+              AND h.first_line <> st.first_line
+            """
+        ).fetchone()[0]
+        shared_number_count = connection.execute(
+            """
+            SELECT COUNT(*)
+            FROM hymns ere
+            JOIN hymnals ere_hy ON ere_hy.id = ere.hymnal_id
+            JOIN hymns re48 ON re48.number = ere.number
+            JOIN hymnals re48_hy ON re48_hy.id = re48.hymnal_id
+            WHERE ere_hy.code = 'ERE' AND re48_hy.code = 'RE48'
+            """
+        ).fetchone()[0]
+
+    assert duplicate_count == 0
+    assert re48_variant_count == 0
+    assert re48_without_stanzas == []
+    assert empty_stanza_count == 0
+    assert first_line_mismatch == 0
+    assert shared_number_count > 0
+
+
+@pytest.mark.skipif(
+    not (ERE_SOURCE.exists() and RE21_SOURCE.exists() and RE48_SOURCE.exists()),
+    reason="Full ERE.dtx, RÉ21 DOCX, and RÉ48 DTX are local raw data",
+)
+def test_re48_representative_lookups_use_first_line_as_display_source(tmp_path: Path) -> None:
+    database = _build_ere_re21_re48(tmp_path)
+
+    expected = {
+        1: "Aki nem jár hitlenek tanácsán,",
+        23: "Az Úr énnékem őriző pásztorom,",
+        42: "Mint a szép, híves patakra",
+        90: "Tebenned bíztunk eleitől fogva,",
+        150: "Dicsérjétek az Urat!",
+        220: "Bocsásd meg, Úr Isten, ifjúságomnak vétkét,",
+        341: "Ó, Krisztusfő, te zúzott,",
+        397: "Ó, Sion, ébredj, töltsd be küldetésed,",
+        431: "Úr Isten, kérünk tégedet:",
+        512: "„Szólj, szólj hozzám, Uram, mert szolgád hallja szódat!”",
+    }
+
+    for number, first_line in expected.items():
+        hymn = get_hymn_by_number(database, "RE48", number)
+        assert hymn is not None
+        assert hymn.canonical_key == str(number)
+        assert hymn.first_line == first_line
+        assert hymn.section_title == ""
+
+
+@pytest.mark.skipif(
+    not (ERE_SOURCE.exists() and RE21_SOURCE.exists() and RE48_SOURCE.exists()),
+    reason="Full ERE.dtx, RÉ21 DOCX, and RÉ48 DTX are local raw data",
+)
+def test_re48_fts_search_is_hymnal_filtered_without_section_data(tmp_path: Path) -> None:
+    database = _build_ere_re21_re48(tmp_path)
+
+    pastor_hits = search_fts(database, "pásztor", hymnal_code="RE48")
+    penitence_hits = search_fts(database, "bűn", hymnal_code="RE48")
+    cross_hits = search_fts(database, "kereszt", hymnal_code="RE48")
+    communion_hits = search_fts(database, "vacsora", hymnal_code="RE48")
+    hope_hits = search_fts(database, "reménység", hymnal_code="RE48")
+
+    for hits in (pastor_hits, penitence_hits, cross_hits, communion_hits, hope_hits):
+        assert hits
+        assert all(hit.hymnal_code == "RE48" for hit in hits)
+        assert all(hit.section_title == "" for hit in hits)
+
+    assert pastor_hits[0].canonical_key == "23"
+    assert cross_hits[0].canonical_key in {"230", "338", "341", "344", "345", "496"}
+
+
+@pytest.mark.skipif(
+    not (ERE_SOURCE.exists() and RE21_SOURCE.exists() and RE48_SOURCE.exists()),
+    reason="Full ERE.dtx, RÉ21 DOCX, and RÉ48 DTX are local raw data",
+)
+def test_triple_import_preserves_ere_and_re21_lookups(tmp_path: Path) -> None:
+    database = _build_ere_re21_re48(tmp_path)
+
+    ere = get_hymn_by_number(database, "ERE", 254, "a")
+    re21 = get_hymn_by_number(database, "RE21", 360)
+
+    assert ere is not None
+    assert ere.first_line == "Erős vár a mi Istenünk,"
+    assert ere.section_title == "Reformáció"
+    assert re21 is not None
+    assert re21.first_line == "Jer, lássuk az Úr keresztjét,"
+    assert re21.section_title == "Úrvacsora"
+
+
 def _build_ere(tmp_path: Path) -> Path:
     database = tmp_path / "hymns.sqlite3"
     report = import_dtx_hymnal_database(ERE_SOURCE, database, hymnal_code="ERE")
@@ -426,6 +619,36 @@ def _import_ere_re21(database: Path):
                 source_path=RE21_SOURCE,
                 source_format="docx",
                 title="Református Énekeskönyv 2021",
+            ),
+        ),
+        database,
+    )
+
+
+def _build_ere_re21_re48(tmp_path: Path) -> Path:
+    database = tmp_path / "hymns.sqlite3"
+    reports = _import_ere_re21_re48(database)
+    assert [report.hymn_count for report in reports] == [513, 667, 512]
+    assert [report.section_count for report in reports] == [44, 39, 0]
+    assert [report.stanza_count for report in reports] == [2697, 3783, 3259]
+    return database
+
+
+def _import_ere_re21_re48(database: Path):
+    return import_hymnals_database(
+        (
+            HymnalSourceConfig(code="ERE", source_path=ERE_SOURCE, source_format="dtx"),
+            HymnalSourceConfig(
+                code="RE21",
+                source_path=RE21_SOURCE,
+                source_format="docx",
+                title="Református Énekeskönyv 2021",
+            ),
+            HymnalSourceConfig(
+                code="RE48",
+                source_path=RE48_SOURCE,
+                source_format="dtx",
+                title="Református Énekeskönyv (1948)",
             ),
         ),
         database,

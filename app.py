@@ -4754,7 +4754,7 @@ def _looks_incomplete_response(text: str) -> bool:
 def build_songs_prompt(
     igehely: str,
     alkalom: str,
-    enekeskonyv: str = "Vegyesen — magyar református hagyomány",
+    enekeskonyv: str = "Erdélyi Református Énekeskönyv",
     hangsuly: str = "",
 ) -> str:
     """Az „Énekajánló" fül teljes promptja. Az igehely + alkalom +
@@ -8495,10 +8495,9 @@ with tabs[7]:
     enekeskonyv_song = st.selectbox(
         "Elsődleges énekeskönyv",
         [
-            "Vegyesen — magyar református hagyomány",
+            "Erdélyi Református Énekeskönyv",
             "Református Énekeskönyv (1948)",
             "Református Énekeskönyv (2021)",
-            "Erdélyi Református Énekeskönyv"
         ],
         key="songs_book"
     )

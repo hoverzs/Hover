@@ -33,6 +33,14 @@ EXPECTED_RE21_BASE_NUMBER_COUNT = 667
 EXPECTED_RE21_SECTION_COUNT = 39
 EXPECTED_RE21_STANZA_COUNT = 3783
 EXPECTED_RE21_PARSER_WARNING_COUNT = 0
+EXPECTED_RE48_SOURCE_CHECKSUM = (
+    "3f6ebf59731263db17b7366ac4bde1f4a8515db01d5859f6c8fbbfbfb725d677"
+)
+EXPECTED_RE48_HYMN_COUNT = 512
+EXPECTED_RE48_BASE_NUMBER_COUNT = 512
+EXPECTED_RE48_SECTION_COUNT = 0
+EXPECTED_RE48_STANZA_COUNT = 3259
+EXPECTED_RE48_PARSER_WARNING_COUNT = 0
 EXPECTED_SCHEMA_VERSION = "1"
 
 HYMN_STORAGE_BUCKET_ENV_VAR = "TEXTUS_HYMN_DB_STORAGE_BUCKET"
@@ -428,6 +436,20 @@ def _validate_database(path: Path) -> HymnRepositoryStatus:
                     expected_parser_warning_count=EXPECTED_RE21_PARSER_WARNING_COUNT,
                 )
             )
+        re48_summary = _summary_counts(conn, "RE48")
+        if re48_summary is not None:
+            mismatches.extend(
+                _hymnal_mismatches(
+                    "RE48",
+                    re48_summary,
+                    expected_source_checksum=EXPECTED_RE48_SOURCE_CHECKSUM,
+                    expected_hymn_count=EXPECTED_RE48_HYMN_COUNT,
+                    expected_base_number_count=EXPECTED_RE48_BASE_NUMBER_COUNT,
+                    expected_section_count=EXPECTED_RE48_SECTION_COUNT,
+                    expected_stanza_count=EXPECTED_RE48_STANZA_COUNT,
+                    expected_parser_warning_count=EXPECTED_RE48_PARSER_WARNING_COUNT,
+                )
+            )
         if mismatches:
             return HymnRepositoryStatus(
                 False,
@@ -615,6 +637,7 @@ def _sha256_bytes(data: bytes) -> str:
 __all__ = [
     "EXPECTED_ERE_SOURCE_CHECKSUM",
     "EXPECTED_RE21_SOURCE_CHECKSUM",
+    "EXPECTED_RE48_SOURCE_CHECKSUM",
     "HYMN_DATABASE_SHA256_ENV_VAR",
     "HYMN_STORAGE_BUCKET_ENV_VAR",
     "HYMN_STORAGE_OBJECT_ENV_VAR",
