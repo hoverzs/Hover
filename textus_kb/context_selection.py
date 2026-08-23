@@ -10,6 +10,7 @@ from textus_kb.canonical_reference import CanonicalReference, CanonicalReference
 from textus_kb.context_profiles import (
     BUDGET_BACKGROUND,
     BUDGET_DICTIONARY,
+    BUDGET_ENTITY,
     BUDGET_EXEGETICAL,
     BUDGET_LINGUISTIC,
     BUDGET_PASSAGE,
@@ -105,6 +106,8 @@ def budget_type_for_item(item_type: str) -> str:
         return BUDGET_EXEGETICAL
     if item_type == "dictionary_background":
         return BUDGET_DICTIONARY
+    if item_type == "entity_summary":
+        return BUDGET_ENTITY
     return BUDGET_BACKGROUND
 
 

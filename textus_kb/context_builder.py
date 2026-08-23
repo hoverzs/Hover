@@ -29,6 +29,7 @@ from textus_kb.evidence import (
     EvidencePacket,
     estimate_text_tokens,
 )
+from textus_kb.importers.acai_entities import ACAI_SOURCE_ID, GENERIC_ACAI_IDS
 from textus_kb.retrieval import retrieve
 
 SCHEMA_VERSION = "2"
@@ -343,6 +344,7 @@ def _build_exegesis_context(
             )
         )
 
+    items.extend(_entity_summary_items(evidence, profile))
     return items
 
 
@@ -476,7 +478,59 @@ def _build_historical_context(
                 )
             )
 
+    items.extend(_entity_summary_items(evidence, profile))
     return items
+
+
+def _entity_summary_items(
+    evidence: EvidencePacket,
+    profile: ContextProfile,
+) -> list[ContextItem]:
+    summaries: list[ContextItem] = []
+    entities = [
+        entity
+        for entity in evidence.entities
+        if isinstance(entity, dict)
+        and str((entity.get("external_ids") or {}).get("acai") or "") not in GENERIC_ACAI_IDS
+    ]
+    entities.sort(
+        key=lambda entity: (
+            0 if entity.get("passage_relations") else 1,
+            0 if entity.get("dictionary_relations") else 1,
+            str(entity.get("entity_type") or ""),
+            str(entity.get("canonical_name") or ""),
+            str(entity.get("entity_id") or ""),
+        )
+    )
+    for entity in entities[:8]:
+        entity_id = str(entity.get("entity_id") or "")
+        entity_type = str(entity.get("entity_type") or "entity")
+        name = str(entity.get("canonical_name") or entity_id)
+        link_bits: list[str] = []
+        if entity.get("passage_relations"):
+            link_bits.append("directly linked to Jn 4")
+        if entity.get("dictionary_relations"):
+            link_bits.append("dictionary-linked")
+        if entity.get("place_crosswalk"):
+            link_bits.append(f"place:{entity['place_crosswalk'].get('textus_place_id')}")
+        link_label = ", ".join(link_bits) if link_bits else "ACAI entity"
+        text = f"{name} — {entity_type} — {link_label}"
+        summaries.append(
+            ContextItem(
+                text=text,
+                evidence_id=f"ENT-{entity_id}",
+                source_id=ACAI_SOURCE_ID,
+                relevance_score=profile.priorities.get(RELATION_PASSAGE_PLACE, 70),
+                item_type="entity_summary",
+                metadata={
+                    "entity_id": entity_id,
+                    "external_id": (entity.get("external_ids") or {}).get("acai"),
+                    "entity_type": entity_type,
+                    "budget_type": "entity",
+                },
+            )
+        )
+    return summaries
 
 
 def _build_theology_context(
@@ -626,9 +680,9 @@ def _group_sections(items: list[ContextItem], profile: str) -> list[ContextSecti
 
 def _section_order(profile: str) -> tuple[str, ...]:
     if profile == PROFILE_EXEGESIS:
-        return ("passage", "linguistic", "exegetical", "dictionary", "places", "background")
+        return ("passage", "linguistic", "exegetical", "dictionary", "entities", "places", "background")
     if profile == PROFILE_HISTORICAL:
-        return ("passage", "dictionary", "places", "historical", "geography")
+        return ("passage", "dictionary", "entities", "places", "historical", "geography")
     return ("passage", "lexical", "places", "background")
 
 
@@ -640,6 +694,7 @@ def _item_section_type(item_type: str) -> str:
         "linguistic": "linguistic",
         "exegetical_note": "exegetical",
         "dictionary_background": "dictionary",
+        "entity_summary": "entities",
         "lexical": "lexical",
         "place_link": "places",
         "passage_place_link": "places",

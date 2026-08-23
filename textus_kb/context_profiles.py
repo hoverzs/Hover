@@ -38,6 +38,7 @@ TIER_RANK = {
 BUDGET_LINGUISTIC = "linguistic"
 BUDGET_EXEGETICAL = "exegetical"
 BUDGET_DICTIONARY = "dictionary"
+BUDGET_ENTITY = "entity"
 BUDGET_BACKGROUND = "background"
 BUDGET_PASSAGE = "passage"
 
@@ -66,6 +67,7 @@ DEFAULT_TYPE_BUDGETS: dict[str, dict[str, int]] = {
         BUDGET_LINGUISTIC: 900,
         BUDGET_EXEGETICAL: 1700,
         BUDGET_DICTIONARY: 450,
+        BUDGET_ENTITY: 120,
         BUDGET_BACKGROUND: 350,
     },
     PROFILE_HISTORICAL: {
@@ -73,6 +75,7 @@ DEFAULT_TYPE_BUDGETS: dict[str, dict[str, int]] = {
         BUDGET_LINGUISTIC: 200,
         BUDGET_EXEGETICAL: 0,
         BUDGET_DICTIONARY: 1600,
+        BUDGET_ENTITY: 120,
         BUDGET_BACKGROUND: 450,
     },
     PROFILE_THEOLOGY: {
@@ -133,6 +136,7 @@ EXEGESIS_ITEM_TIERS: dict[str, str] = {
     "linguistic": TIER_PRIMARY,
     "exegetical_note": TIER_PRIMARY,
     "dictionary_background": TIER_SUPPORTING,
+    "entity_summary": TIER_SUPPORTING,
     "place_link": TIER_SUPPORTING,
     "place_catalog": TIER_SUPPORTING,
     "enrichment": TIER_OPTIONAL,
@@ -141,6 +145,7 @@ EXEGESIS_ITEM_TIERS: dict[str, str] = {
 HISTORICAL_ITEM_TIERS: dict[str, str] = {
     "passage_scope": TIER_CORE,
     "dictionary_background": TIER_PRIMARY,
+    "entity_summary": TIER_PRIMARY,
     "passage_place_link": TIER_PRIMARY,
     "historical_enrichment": TIER_PRIMARY,
     "place_catalog": TIER_SUPPORTING,

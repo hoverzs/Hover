@@ -6,6 +6,7 @@ import json
 from collections import Counter
 from typing import Any
 
+from textus_kb.adapters.acai_entities import AcaiEntitiesAdapter, entity_to_packet_dict
 from textus_kb.adapters.aquifer_bible_dictionary import AquiferBibleDictionaryAdapter
 from textus_kb.adapters.aquifer_study_notes import AquiferStudyNotesAdapter
 from textus_kb.adapters.lexicon import LexiconAdapter
@@ -16,6 +17,7 @@ from textus_kb.evidence import (
     PILOT_BUILD_ID,
     PILOT_BUILD_ID_WITH_AQUIFER,
     PILOT_BUILD_ID_WITH_DICTIONARY,
+    PILOT_BUILD_ID_WITH_ACAI,
     RELATION_DIRECT_PASSAGE,
     RELATION_DICTIONARY_BACKGROUND,
     RELATION_EXEGETICAL_NOTE,
@@ -453,13 +455,28 @@ def retrieve(
             )
             dictionary_counter += 1
 
-    build_id = _resolve_build_id(aquifer_counter, dictionary_counter)
+    acai_source = enabled_sources.get("acai")
+    acai_adapter = AcaiEntitiesAdapter(acai_source)
+    entity_records: list[dict[str, Any]] = []
+    if acai_source is None or not acai_source.enabled:
+        warnings.append("Optional source acai is disabled.")
+    elif not acai_source.resolved_path.is_file():
+        warnings.append("Optional source acai pilot bundle missing.")
+    else:
+        _add_source_record(sources_used, enabled_sources, "acai")
+        entity_records = [
+            entity_to_packet_dict(view)
+            for view in acai_adapter.all_entities()
+        ]
+
+    build_id = _resolve_build_id(aquifer_counter, dictionary_counter, len(entity_records))
 
     packet = EvidencePacket(
         passage_canonical=canonical_passage,
         passage_display=display,
         build_id=build_id,
         manifest_version=manifest_obj.manifest_version,
+        entities=entity_records,
         places=places,
         linguistic_evidence=linguistic_evidence,
         historical_evidence=historical_evidence,
@@ -545,7 +562,9 @@ def _dictionary_relevance(chunk: Any) -> int:
     return RELEVANCE_DICTIONARY_BACKGROUND
 
 
-def _resolve_build_id(aquifer_counter: int, dictionary_counter: int) -> str:
+def _resolve_build_id(aquifer_counter: int, dictionary_counter: int, entity_count: int) -> str:
+    if entity_count > 0:
+        return PILOT_BUILD_ID_WITH_ACAI
     if dictionary_counter > 1:
         return PILOT_BUILD_ID_WITH_DICTIONARY
     if aquifer_counter > 1:

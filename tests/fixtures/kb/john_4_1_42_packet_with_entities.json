@@ -3,7 +3,3284 @@
     "build_id": "kb-phase4a-john4-pilot-v1",
     "manifest_version": "1"
   },
-  "entities": [],
+  "entities": [
+    {
+      "aliases": [
+        {
+          "label": "Γαλιλαῖος",
+          "language": "el",
+          "source": "acai_lemma"
+        },
+        {
+          "label": "Galileans",
+          "language": "eng",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Galiléen",
+          "language": "fra",
+          "source": "acai_localization"
+        },
+        {
+          "label": "गलीली ",
+          "language": "hin",
+          "source": "acai_localization"
+        },
+        {
+          "label": "galileo",
+          "language": "spa",
+          "source": "acai_localization"
+        }
+      ],
+      "canonical_name": "Galileans",
+      "dictionary_relations": [
+        {
+          "acai_id": "group:Galilee",
+          "dictionary_article_id": "5354",
+          "dictionary_title": "Galilee",
+          "mapping_method": "explicit",
+          "match_confidence": 0.6159,
+          "match_method": "scored",
+          "source_id": "acai"
+        }
+      ],
+      "entity_id": "acai-group-Galilee",
+      "entity_type": "group",
+      "external_ids": {
+        "acai": "group:Galilee"
+      },
+      "metadata": {
+        "alternate_sources": {
+          "tipnr": [
+            "Galilee@Jos.12.23-Act"
+          ],
+          "ubsdgnt": [
+            "93.445"
+          ]
+        },
+        "is_generic": false,
+        "lemmas": {
+          "el": [
+            "Γαλιλαῖος"
+          ]
+        },
+        "primary_id": "group:Galilee",
+        "referred_to_as": []
+      },
+      "passage_relations": [],
+      "provenance": {
+        "attribution": "ACAI (Aquifer Concept Architecture for Information) © 2025 Mission Mutual. Licensed under CC BY-SA 4.0.",
+        "external_id": "group:Galilee",
+        "license": "CC-BY-SA-4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "source_id": "acai",
+        "upstream_commit": "7e6a2d6674910aedb0888493ebbe6684d374ae5c",
+        "upstream_resource_version": "2025-07-23"
+      }
+    },
+    {
+      "aliases": [
+        {
+          "label": "A Group of Disciples",
+          "language": "eng",
+          "source": "acai_localization"
+        }
+      ],
+      "canonical_name": "A Group of Disciples",
+      "dictionary_relations": [],
+      "entity_id": "acai-group-GenericDisciples",
+      "entity_type": "group",
+      "external_ids": {
+        "acai": "group:GenericDisciples"
+      },
+      "metadata": {
+        "alternate_sources": {},
+        "is_generic": true,
+        "primary_id": "group:GenericDisciples",
+        "referred_to_as": []
+      },
+      "passage_relations": [
+        {
+          "canonical_passage": "John.4.1-42",
+          "confidence": "explicit",
+          "mapping_method": "explicit",
+          "relation_type": "passage_mention",
+          "source_id": "acai",
+          "upstream_refs": [
+            "43004031",
+            "43004033"
+          ]
+        }
+      ],
+      "provenance": {
+        "attribution": "ACAI (Aquifer Concept Architecture for Information) © 2025 Mission Mutual. Licensed under CC BY-SA 4.0.",
+        "external_id": "group:GenericDisciples",
+        "license": "CC-BY-SA-4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "source_id": "acai",
+        "upstream_commit": "7e6a2d6674910aedb0888493ebbe6684d374ae5c",
+        "upstream_resource_version": "2025-07-23"
+      }
+    },
+    {
+      "aliases": [
+        {
+          "label": "A Group of People",
+          "language": "eng",
+          "source": "acai_localization"
+        }
+      ],
+      "canonical_name": "A Group of People",
+      "dictionary_relations": [],
+      "entity_id": "acai-group-GenericGroup",
+      "entity_type": "group",
+      "external_ids": {
+        "acai": "group:GenericGroup"
+      },
+      "metadata": {
+        "alternate_sources": {},
+        "is_generic": true,
+        "primary_id": "group:GenericGroup",
+        "referred_to_as": []
+      },
+      "passage_relations": [
+        {
+          "canonical_passage": "John.4.1-42",
+          "confidence": "explicit",
+          "mapping_method": "explicit",
+          "relation_type": "passage_mention",
+          "source_id": "acai",
+          "upstream_refs": [
+            "43004041",
+            "43004042"
+          ]
+        }
+      ],
+      "provenance": {
+        "attribution": "ACAI (Aquifer Concept Architecture for Information) © 2025 Mission Mutual. Licensed under CC BY-SA 4.0.",
+        "external_id": "group:GenericGroup",
+        "license": "CC-BY-SA-4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "source_id": "acai",
+        "upstream_commit": "7e6a2d6674910aedb0888493ebbe6684d374ae5c",
+        "upstream_resource_version": "2025-07-23"
+      }
+    },
+    {
+      "aliases": [
+        {
+          "label": "group:Judah",
+          "language": "en",
+          "source": "acai_referred_to_as"
+        },
+        {
+          "label": "Jews",
+          "language": "eng",
+          "source": "acai_localization"
+        }
+      ],
+      "canonical_name": "Jews",
+      "dictionary_relations": [],
+      "entity_id": "acai-group-Jews",
+      "entity_type": "group",
+      "external_ids": {
+        "acai": "group:Jews"
+      },
+      "metadata": {
+        "alternate_sources": {
+          "aquifer": [
+            "280105|jews|FIAKeyTerms",
+            "26760|Jew|UWTranslationWords",
+            "132449|Jew|BiblicaStudyNotesKeyTerms"
+          ],
+          "tipnr": [
+            "Jews@2Ki.25.25-Rev"
+          ]
+        },
+        "is_generic": false,
+        "primary_id": "group:Jews",
+        "referred_to_as": [
+          "group:Judah"
+        ]
+      },
+      "passage_relations": [
+        {
+          "canonical_passage": "John.4.1-42",
+          "confidence": "explicit",
+          "mapping_method": "explicit",
+          "relation_type": "passage_mention",
+          "source_id": "acai",
+          "upstream_refs": [
+            "43004009",
+            "43004020",
+            "43004022"
+          ]
+        }
+      ],
+      "provenance": {
+        "attribution": "ACAI (Aquifer Concept Architecture for Information) © 2025 Mission Mutual. Licensed under CC BY-SA 4.0.",
+        "external_id": "group:Jews",
+        "license": "CC-BY-SA-4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "source_id": "acai",
+        "upstream_commit": "7e6a2d6674910aedb0888493ebbe6684d374ae5c",
+        "upstream_resource_version": "2025-07-23"
+      }
+    },
+    {
+      "aliases": [
+        {
+          "label": "يَهوذَا",
+          "language": "arb",
+          "source": "acai_localization"
+        },
+        {
+          "label": "何達威雅",
+          "language": "cmn",
+          "source": "acai_localization"
+        },
+        {
+          "label": "group:Jews",
+          "language": "en",
+          "source": "acai_referred_to_as"
+        },
+        {
+          "label": "Tribe of Judah",
+          "language": "eng",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Juda",
+          "language": "fra",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Yahuda",
+          "language": "hau",
+          "source": "acai_localization"
+        },
+        {
+          "label": "यहूदा",
+          "language": "hin",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Yehuda",
+          "language": "ind",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Judá",
+          "language": "por",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Иуда",
+          "language": "rus",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Judá",
+          "language": "spa",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Yuda",
+          "language": "swh",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Juda",
+          "language": "tpi",
+          "source": "acai_localization"
+        }
+      ],
+      "canonical_name": "Tribe of Judah",
+      "dictionary_relations": [],
+      "entity_id": "acai-group-Judah",
+      "entity_type": "group",
+      "external_ids": {
+        "acai": "group:Judah"
+      },
+      "metadata": {
+        "alternate_sources": {
+          "tipnr": [
+            "Judah@Gen.29.35-Rev"
+          ],
+          "ubsdbh": [
+            "002819001001000",
+            "002819001001000 004048001001000"
+          ],
+          "vizbible": [
+            "rec0rm6yYA4YUQrkh"
+          ]
+        },
+        "is_generic": false,
+        "primary_id": "group:Judah",
+        "referred_to_as": [
+          "group:Jews"
+        ]
+      },
+      "passage_relations": [
+        {
+          "canonical_passage": "John.4.1-42",
+          "confidence": "explicit",
+          "mapping_method": "explicit",
+          "relation_type": "passage_mention",
+          "source_id": "acai",
+          "upstream_refs": [
+            "43004015"
+          ]
+        }
+      ],
+      "provenance": {
+        "attribution": "ACAI (Aquifer Concept Architecture for Information) © 2025 Mission Mutual. Licensed under CC BY-SA 4.0.",
+        "external_id": "group:Judah",
+        "license": "CC-BY-SA-4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "source_id": "acai",
+        "upstream_commit": "7e6a2d6674910aedb0888493ebbe6684d374ae5c",
+        "upstream_resource_version": "2025-07-23"
+      }
+    },
+    {
+      "aliases": [
+        {
+          "label": "Ἰουδαῖος",
+          "language": "el",
+          "source": "acai_lemma"
+        },
+        {
+          "label": "group:Jews",
+          "language": "en",
+          "source": "acai_referred_to_as"
+        },
+        {
+          "label": "Judeans",
+          "language": "eng",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Judéen",
+          "language": "fra",
+          "source": "acai_localization"
+        },
+        {
+          "label": "יְהֻדִיָּה",
+          "language": "he",
+          "source": "acai_lemma"
+        },
+        {
+          "label": "יְהוּדִי",
+          "language": "he",
+          "source": "acai_lemma"
+        },
+        {
+          "label": "judío",
+          "language": "spa",
+          "source": "acai_localization"
+        }
+      ],
+      "canonical_name": "Judeans",
+      "dictionary_relations": [
+        {
+          "acai_id": "group:Judea",
+          "dictionary_article_id": "6487",
+          "dictionary_title": "Judea, Judeans",
+          "mapping_method": "explicit",
+          "match_confidence": 1.0,
+          "match_method": "content_id",
+          "source_id": "acai"
+        }
+      ],
+      "entity_id": "acai-group-Judea",
+      "entity_type": "group",
+      "external_ids": {
+        "acai": "group:Judea"
+      },
+      "metadata": {
+        "alternate_sources": {
+          "aquifer": [
+            "6487|Judea, Judeans|TyndaleBibleDictionary"
+          ],
+          "tipnr": [
+            "Judea@Ezr.9.9-1Th"
+          ],
+          "ubsdbh": [
+            "002820001002000"
+          ],
+          "ubsdgnt": [
+            "93.487"
+          ]
+        },
+        "is_generic": false,
+        "lemmas": {
+          "el": [
+            "Ἰουδαῖος"
+          ],
+          "he": [
+            "יְהוּדִי",
+            "יְהֻדִיָּה"
+          ]
+        },
+        "primary_id": "group:Judea",
+        "referred_to_as": [
+          "group:Jews"
+        ]
+      },
+      "passage_relations": [],
+      "provenance": {
+        "attribution": "ACAI (Aquifer Concept Architecture for Information) © 2025 Mission Mutual. Licensed under CC BY-SA 4.0.",
+        "external_id": "group:Judea",
+        "license": "CC-BY-SA-4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "source_id": "acai",
+        "upstream_commit": "7e6a2d6674910aedb0888493ebbe6684d374ae5c",
+        "upstream_resource_version": "2025-07-23"
+      }
+    },
+    {
+      "aliases": [
+        {
+          "label": "Φαρισαῖος",
+          "language": "el",
+          "source": "acai_lemma"
+        },
+        {
+          "label": "Pharisees",
+          "language": "eng",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Pharisien",
+          "language": "fra",
+          "source": "acai_localization"
+        },
+        {
+          "label": "फरीसी",
+          "language": "hin",
+          "source": "acai_localization"
+        },
+        {
+          "label": "fariseo",
+          "language": "spa",
+          "source": "acai_localization"
+        }
+      ],
+      "canonical_name": "Pharisees",
+      "dictionary_relations": [],
+      "entity_id": "acai-group-Pharisee",
+      "entity_type": "group",
+      "external_ids": {
+        "acai": "group:Pharisee"
+      },
+      "metadata": {
+        "alternate_sources": {
+          "aquifer": [
+            "7696|Pharisees|TyndaleBibleDictionary",
+            "131996|Pharisees|BiblicaStudyNotesKeyTerms",
+            "26761|Jewish Leaders|UWTranslationWords",
+            "26953|Pharisee|UWTranslationWords",
+            "280087|pharisee|FIAKeyTerms"
+          ],
+          "tipnr": [
+            "Pharisee@Mat.3.7-Php"
+          ],
+          "ubsdgnt": [
+            "11.49"
+          ]
+        },
+        "is_generic": false,
+        "lemmas": {
+          "el": [
+            "Φαρισαῖος"
+          ]
+        },
+        "primary_id": "group:Pharisee",
+        "referred_to_as": []
+      },
+      "passage_relations": [
+        {
+          "canonical_passage": "John.4.1-42",
+          "confidence": "explicit",
+          "mapping_method": "explicit",
+          "relation_type": "passage_mention",
+          "source_id": "acai",
+          "upstream_refs": [
+            "43004001"
+          ]
+        }
+      ],
+      "provenance": {
+        "attribution": "ACAI (Aquifer Concept Architecture for Information) © 2025 Mission Mutual. Licensed under CC BY-SA 4.0.",
+        "external_id": "group:Pharisee",
+        "license": "CC-BY-SA-4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "source_id": "acai",
+        "upstream_commit": "7e6a2d6674910aedb0888493ebbe6684d374ae5c",
+        "upstream_resource_version": "2025-07-23"
+      }
+    },
+    {
+      "aliases": [
+        {
+          "label": "Σαμαρίτης",
+          "language": "el",
+          "source": "acai_lemma"
+        },
+        {
+          "label": "Σαμαρῖτις",
+          "language": "el",
+          "source": "acai_lemma"
+        },
+        {
+          "label": "Samaritans",
+          "language": "eng",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Shimrath",
+          "language": "fra",
+          "source": "acai_localization"
+        },
+        {
+          "label": "שִׁמְרָת",
+          "language": "he",
+          "source": "acai_lemma"
+        },
+        {
+          "label": "सामरी",
+          "language": "hin",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Simrat",
+          "language": "spa",
+          "source": "acai_localization"
+        }
+      ],
+      "canonical_name": "Samaritans",
+      "dictionary_relations": [
+        {
+          "acai_id": "group:Samaritan",
+          "dictionary_article_id": "8121",
+          "dictionary_title": "Samaritans",
+          "mapping_method": "explicit",
+          "match_confidence": 1.0,
+          "match_method": "content_id",
+          "source_id": "acai"
+        }
+      ],
+      "entity_id": "acai-group-Samaritan",
+      "entity_type": "group",
+      "external_ids": {
+        "acai": "group:Samaritan"
+      },
+      "metadata": {
+        "alternate_sources": {
+          "aquifer": [
+            "8121|Samaritans|TyndaleBibleDictionary"
+          ],
+          "tipnr": [
+            "Samaritan|Samaria@1Ki.13.32-Act"
+          ],
+          "ubsdbh": [
+            "007507001001000"
+          ],
+          "ubsdgnt": [
+            "93.569"
+          ]
+        },
+        "is_generic": false,
+        "lemmas": {
+          "el": [
+            "Σαμαρῖτις",
+            "Σαμαρίτης"
+          ],
+          "he": [
+            "שִׁמְרָת"
+          ]
+        },
+        "primary_id": "group:Samaritan",
+        "referred_to_as": []
+      },
+      "passage_relations": [
+        {
+          "canonical_passage": "John.4.1-42",
+          "confidence": "explicit",
+          "mapping_method": "explicit",
+          "relation_type": "passage_mention",
+          "source_id": "acai",
+          "upstream_refs": [
+            "43004009",
+            "43004012",
+            "43004020",
+            "43004021",
+            "43004022",
+            "43004025",
+            "43004039",
+            "43004040"
+          ]
+        }
+      ],
+      "provenance": {
+        "attribution": "ACAI (Aquifer Concept Architecture for Information) © 2025 Mission Mutual. Licensed under CC BY-SA 4.0.",
+        "external_id": "group:Samaritan",
+        "license": "CC-BY-SA-4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "source_id": "acai",
+        "upstream_commit": "7e6a2d6674910aedb0888493ebbe6684d374ae5c",
+        "upstream_resource_version": "2025-07-23"
+      }
+    },
+    {
+      "aliases": [
+        {
+          "label": "χρηστός",
+          "language": "el",
+          "source": "acai_lemma"
+        },
+        {
+          "label": "ἀγαθωσύνη",
+          "language": "el",
+          "source": "acai_lemma"
+        },
+        {
+          "label": "ἀγαθός",
+          "language": "el",
+          "source": "acai_lemma"
+        },
+        {
+          "label": "keyterm:Good.2",
+          "language": "en",
+          "source": "acai_referred_to_as"
+        },
+        {
+          "label": "keyterm:Good.3",
+          "language": "en",
+          "source": "acai_referred_to_as"
+        },
+        {
+          "label": "Good (Moral)",
+          "language": "eng",
+          "source": "acai_localization"
+        },
+        {
+          "label": "le bien",
+          "language": "fra",
+          "source": "acai_localization"
+        },
+        {
+          "label": "yang baik",
+          "language": "ind",
+          "source": "acai_localization"
+        },
+        {
+          "label": "bom",
+          "language": "por-Br",
+          "source": "acai_localization"
+        }
+      ],
+      "canonical_name": "Good (Moral)",
+      "dictionary_relations": [
+        {
+          "acai_id": "keyterm:Good",
+          "dictionary_article_id": "9052",
+          "dictionary_title": "Well",
+          "mapping_method": "explicit",
+          "match_confidence": 0.8399,
+          "match_method": "embedding",
+          "source_id": "acai"
+        }
+      ],
+      "entity_id": "acai-keyterm-Good",
+      "entity_type": "keyterm",
+      "external_ids": {
+        "acai": "keyterm:Good"
+      },
+      "metadata": {
+        "alternate_sources": {},
+        "is_generic": false,
+        "lemmas": {
+          "el": [
+            "ἀγαθός",
+            "ἀγαθωσύνη",
+            "χρηστός"
+          ]
+        },
+        "primary_id": "keyterm:Good",
+        "referred_to_as": [
+          "keyterm:Good.2",
+          "keyterm:Good.3"
+        ]
+      },
+      "passage_relations": [],
+      "provenance": {
+        "attribution": "ACAI (Aquifer Concept Architecture for Information) © 2025 Mission Mutual. Licensed under CC BY-SA 4.0.",
+        "external_id": "keyterm:Good",
+        "license": "CC-BY-SA-4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "source_id": "acai",
+        "upstream_commit": "7e6a2d6674910aedb0888493ebbe6684d374ae5c",
+        "upstream_resource_version": "2025-07-23"
+      }
+    },
+    {
+      "aliases": [
+        {
+          "label": "εὐσεβέω",
+          "language": "el",
+          "source": "acai_lemma"
+        },
+        {
+          "label": "σέβομαι",
+          "language": "el",
+          "source": "acai_lemma"
+        },
+        {
+          "label": "σεβάζομαι",
+          "language": "el",
+          "source": "acai_lemma"
+        },
+        {
+          "label": "keyterm:Worship.2",
+          "language": "en",
+          "source": "acai_referred_to_as"
+        },
+        {
+          "label": "keyterm:Worship.3",
+          "language": "en",
+          "source": "acai_referred_to_as"
+        },
+        {
+          "label": "Worship (Act)",
+          "language": "eng",
+          "source": "acai_localization"
+        },
+        {
+          "label": "adorer",
+          "language": "fra",
+          "source": "acai_localization"
+        },
+        {
+          "label": "sembah",
+          "language": "ind",
+          "source": "acai_localization"
+        },
+        {
+          "label": "adorar",
+          "language": "por",
+          "source": "acai_localization"
+        },
+        {
+          "label": "adorar",
+          "language": "por-Br",
+          "source": "acai_localization"
+        },
+        {
+          "label": "adorar",
+          "language": "spa",
+          "source": "acai_localization"
+        }
+      ],
+      "canonical_name": "Worship (Act)",
+      "dictionary_relations": [
+        {
+          "acai_id": "keyterm:Worship",
+          "dictionary_article_id": "9094",
+          "dictionary_title": "Worship",
+          "mapping_method": "explicit",
+          "match_confidence": 1.0,
+          "match_method": "embedding",
+          "source_id": "acai"
+        }
+      ],
+      "entity_id": "acai-keyterm-Worship",
+      "entity_type": "keyterm",
+      "external_ids": {
+        "acai": "keyterm:Worship"
+      },
+      "metadata": {
+        "alternate_sources": {},
+        "is_generic": false,
+        "lemmas": {
+          "el": [
+            "εὐσεβέω",
+            "σεβάζομαι",
+            "σέβομαι"
+          ]
+        },
+        "primary_id": "keyterm:Worship",
+        "referred_to_as": [
+          "keyterm:Worship.2",
+          "keyterm:Worship.3"
+        ]
+      },
+      "passage_relations": [],
+      "provenance": {
+        "attribution": "ACAI (Aquifer Concept Architecture for Information) © 2025 Mission Mutual. Licensed under CC BY-SA 4.0.",
+        "external_id": "keyterm:Worship",
+        "license": "CC-BY-SA-4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "source_id": "acai",
+        "upstream_commit": "7e6a2d6674910aedb0888493ebbe6684d374ae5c",
+        "upstream_resource_version": "2025-07-23"
+      }
+    },
+    {
+      "aliases": [
+        {
+          "label": "A Woman",
+          "language": "eng",
+          "source": "acai_localization"
+        }
+      ],
+      "canonical_name": "A Woman",
+      "dictionary_relations": [],
+      "entity_id": "acai-person-GenericFemale",
+      "entity_type": "person",
+      "external_ids": {
+        "acai": "person:GenericFemale"
+      },
+      "metadata": {
+        "alternate_sources": {},
+        "is_generic": true,
+        "primary_id": "person:GenericFemale",
+        "referred_to_as": []
+      },
+      "passage_relations": [
+        {
+          "canonical_passage": "John.4.1-42",
+          "confidence": "explicit",
+          "mapping_method": "explicit",
+          "relation_type": "passage_mention",
+          "source_id": "acai",
+          "upstream_refs": [
+            "43004009",
+            "43004011",
+            "43004015",
+            "43004019",
+            "43004025",
+            "43004028",
+            "43004039"
+          ]
+        }
+      ],
+      "provenance": {
+        "attribution": "ACAI (Aquifer Concept Architecture for Information) © 2025 Mission Mutual. Licensed under CC BY-SA 4.0.",
+        "external_id": "person:GenericFemale",
+        "license": "CC-BY-SA-4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "source_id": "acai",
+        "upstream_commit": "7e6a2d6674910aedb0888493ebbe6684d374ae5c",
+        "upstream_resource_version": "2025-07-23"
+      }
+    },
+    {
+      "aliases": [
+        {
+          "label": "A Person",
+          "language": "eng",
+          "source": "acai_localization"
+        }
+      ],
+      "canonical_name": "A Person",
+      "dictionary_relations": [],
+      "entity_id": "acai-person-GenericPerson",
+      "entity_type": "person",
+      "external_ids": {
+        "acai": "person:GenericPerson"
+      },
+      "metadata": {
+        "alternate_sources": {},
+        "is_generic": true,
+        "primary_id": "person:GenericPerson",
+        "referred_to_as": []
+      },
+      "passage_relations": [
+        {
+          "canonical_passage": "John.4.1-42",
+          "confidence": "explicit",
+          "mapping_method": "explicit",
+          "relation_type": "passage_mention",
+          "source_id": "acai",
+          "upstream_refs": [
+            "43004027"
+          ]
+        }
+      ],
+      "provenance": {
+        "attribution": "ACAI (Aquifer Concept Architecture for Information) © 2025 Mission Mutual. Licensed under CC BY-SA 4.0.",
+        "external_id": "person:GenericPerson",
+        "license": "CC-BY-SA-4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "source_id": "acai",
+        "upstream_commit": "7e6a2d6674910aedb0888493ebbe6684d374ae5c",
+        "upstream_resource_version": "2025-07-23"
+      }
+    },
+    {
+      "aliases": [
+        {
+          "label": "إِسْرَائِيلَ",
+          "language": "arb",
+          "source": "acai_localization"
+        },
+        {
+          "label": "以色列",
+          "language": "cmn",
+          "source": "acai_localization"
+        },
+        {
+          "label": "group:Israel",
+          "language": "en",
+          "source": "acai_referred_to_as"
+        },
+        {
+          "label": "person:Jacob",
+          "language": "en",
+          "source": "acai_referred_to_as"
+        },
+        {
+          "label": "person:Jeshurun",
+          "language": "en",
+          "source": "acai_referred_to_as"
+        },
+        {
+          "label": "Israel",
+          "language": "eng",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Israël",
+          "language": "fra",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Isra’ila",
+          "language": "hau",
+          "source": "acai_localization"
+        },
+        {
+          "label": "इस्राएल",
+          "language": "hin",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Israel",
+          "language": "ind",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Israel",
+          "language": "por",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Израиль",
+          "language": "rus",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Israel",
+          "language": "spa",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Israeli",
+          "language": "swh",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Israel",
+          "language": "tpi",
+          "source": "acai_localization"
+        }
+      ],
+      "canonical_name": "Israel",
+      "dictionary_relations": [
+        {
+          "acai_id": "person:Israel",
+          "dictionary_article_id": "6163",
+          "dictionary_title": "Jacob",
+          "mapping_method": "explicit",
+          "match_confidence": 1.0,
+          "match_method": "content_id",
+          "source_id": "acai"
+        }
+      ],
+      "entity_id": "acai-person-Israel",
+      "entity_type": "person",
+      "external_ids": {
+        "acai": "person:Israel"
+      },
+      "metadata": {
+        "alternate_sources": {
+          "aquifer": [
+            "6094|Israel (Person)|TyndaleBibleDictionary",
+            "6092|Israel, History of|TyndaleBibleDictionary",
+            "26737|Israel|UWTranslationWords",
+            "132226|Israel|BiblicaStudyNotesKeyTerms",
+            "280207|israel|FIAKeyTerms"
+          ],
+          "tipnr": [
+            "Jeshurun|Israel@Gen.25.26-Rev",
+            "Jacob|Israel@Gen.25.26-Rev",
+            "Israel@Gen.25.26-Rev"
+          ],
+          "vizbible": [
+            "recsU2ZSdzBvDqzgI"
+          ]
+        },
+        "is_generic": false,
+        "primary_id": "person:Israel",
+        "referred_to_as": [
+          "group:Israel",
+          "person:Jacob",
+          "person:Jeshurun"
+        ]
+      },
+      "passage_relations": [
+        {
+          "canonical_passage": "John.4.1-42",
+          "confidence": "explicit",
+          "mapping_method": "explicit",
+          "relation_type": "passage_mention",
+          "source_id": "acai",
+          "upstream_refs": [
+            "43004002",
+            "43004004",
+            "43004005",
+            "43004006",
+            "43004012"
+          ]
+        }
+      ],
+      "provenance": {
+        "attribution": "ACAI (Aquifer Concept Architecture for Information) © 2025 Mission Mutual. Licensed under CC BY-SA 4.0.",
+        "external_id": "person:Israel",
+        "license": "CC-BY-SA-4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "source_id": "acai",
+        "upstream_commit": "7e6a2d6674910aedb0888493ebbe6684d374ae5c",
+        "upstream_resource_version": "2025-07-23"
+      }
+    },
+    {
+      "aliases": [
+        {
+          "label": "يَعْقوبَ",
+          "language": "arb",
+          "source": "acai_localization"
+        },
+        {
+          "label": "雅各",
+          "language": "cmn",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Ἰακώβ",
+          "language": "el",
+          "source": "acai_lemma"
+        },
+        {
+          "label": "Jacob (Father of Joseph)",
+          "language": "eng",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Jacob",
+          "language": "fra",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Yaƙub",
+          "language": "hau",
+          "source": "acai_localization"
+        },
+        {
+          "label": "याकूब",
+          "language": "hin",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Yakub",
+          "language": "ind",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Jacó",
+          "language": "por",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Иаков",
+          "language": "rus",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Jacob",
+          "language": "spa",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Yakobo",
+          "language": "swh",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Jekop",
+          "language": "tpi",
+          "source": "acai_localization"
+        }
+      ],
+      "canonical_name": "Jacob (Father of Joseph)",
+      "dictionary_relations": [
+        {
+          "acai_id": "person:Jacob.2",
+          "dictionary_article_id": "6163",
+          "dictionary_title": "Jacob",
+          "mapping_method": "explicit",
+          "match_confidence": 1.0,
+          "match_method": "content_id",
+          "source_id": "acai"
+        }
+      ],
+      "entity_id": "acai-person-Jacob.2",
+      "entity_type": "person",
+      "external_ids": {
+        "acai": "person:Jacob.2"
+      },
+      "metadata": {
+        "alternate_sources": {
+          "aquifer": [
+            "6163|Jacob|TyndaleBibleDictionary",
+            "26739|Jacob|UWTranslationWords",
+            "132214|Jacob|BiblicaStudyNotesKeyTerms"
+          ],
+          "tipnr": [
+            "Jacob@Mat.1.15-"
+          ],
+          "ubsdgnt": [
+            "93.157b"
+          ],
+          "vizbible": [
+            "reco9bEDv9NKzhzvv"
+          ]
+        },
+        "is_generic": false,
+        "lemmas": {
+          "el": [
+            "Ἰακώβ"
+          ]
+        },
+        "primary_id": "person:Jacob.2",
+        "referred_to_as": []
+      },
+      "passage_relations": [],
+      "provenance": {
+        "attribution": "ACAI (Aquifer Concept Architecture for Information) © 2025 Mission Mutual. Licensed under CC BY-SA 4.0.",
+        "external_id": "person:Jacob.2",
+        "license": "CC-BY-SA-4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "source_id": "acai",
+        "upstream_commit": "7e6a2d6674910aedb0888493ebbe6684d374ae5c",
+        "upstream_resource_version": "2025-07-23"
+      }
+    },
+    {
+      "aliases": [
+        {
+          "label": "يَسوع",
+          "language": "arb",
+          "source": "acai_localization"
+        },
+        {
+          "label": "耶穌",
+          "language": "cmn",
+          "source": "acai_localization"
+        },
+        {
+          "label": "group:Christ",
+          "language": "en",
+          "source": "acai_referred_to_as"
+        },
+        {
+          "label": "person:Christ",
+          "language": "en",
+          "source": "acai_referred_to_as"
+        },
+        {
+          "label": "person:Immanuel",
+          "language": "en",
+          "source": "acai_referred_to_as"
+        },
+        {
+          "label": "person:Lord",
+          "language": "en",
+          "source": "acai_referred_to_as"
+        },
+        {
+          "label": "person:Messiah",
+          "language": "en",
+          "source": "acai_referred_to_as"
+        },
+        {
+          "label": "Jesus",
+          "language": "eng",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Jésus",
+          "language": "fra",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Yesu",
+          "language": "hau",
+          "source": "acai_localization"
+        },
+        {
+          "label": "यीशु",
+          "language": "hin",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Yesus",
+          "language": "ind",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Jesus",
+          "language": "por",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Иисус",
+          "language": "rus",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Jesús",
+          "language": "spa",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Yesu",
+          "language": "swh",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Jisas",
+          "language": "tpi",
+          "source": "acai_localization"
+        }
+      ],
+      "canonical_name": "Jesus",
+      "dictionary_relations": [],
+      "entity_id": "acai-person-Jesus.2",
+      "entity_type": "person",
+      "external_ids": {
+        "acai": "person:Jesus.2"
+      },
+      "metadata": {
+        "alternate_sources": {
+          "aquifer": [
+            "4119|Ben Sirach, Jesus|TyndaleBibleDictionary",
+            "6356|Jesus|TyndaleBibleDictionary",
+            "26758|Jesus|UWTranslationWords",
+            "132165|Jesus|BiblicaStudyNotesKeyTerms",
+            "132092|Lord Jesus Christ|BiblicaStudyNotesKeyTerms"
+          ],
+          "tipnr": [
+            "Immanuel|Jesus@Mat.1.1-Rev",
+            "Lord|Jesus@Mat.1.1.1-Rev",
+            "Messiah|Jesus@Mat.1.1-Rev",
+            "Christ|Jesus@Mat.1.1-Rev",
+            "Jesus@Mat.1.1-Rev"
+          ],
+          "vizbible": [
+            "recgkFqZovgbr3pAi"
+          ]
+        },
+        "is_generic": false,
+        "primary_id": "person:Jesus.2",
+        "referred_to_as": [
+          "person:Christ",
+          "person:Lord",
+          "person:Messiah",
+          "group:Christ",
+          "person:Immanuel"
+        ]
+      },
+      "passage_relations": [
+        {
+          "canonical_passage": "John.4.1-42",
+          "confidence": "explicit",
+          "mapping_method": "explicit",
+          "relation_type": "passage_mention",
+          "source_id": "acai",
+          "upstream_refs": [
+            "43004001",
+            "43004002",
+            "43004003",
+            "43004004",
+            "43004005",
+            "43004006",
+            "43004007",
+            "43004008",
+            "43004009",
+            "43004010",
+            "43004011",
+            "43004013",
+            "43004014",
+            "43004015",
+            "43004016",
+            "43004017",
+            "43004019",
+            "43004021",
+            "43004022",
+            "43004025",
+            "43004026",
+            "43004027",
+            "43004029",
+            "43004030",
+            "43004031",
+            "43004032",
+            "43004033",
+            "43004034",
+            "43004035",
+            "43004038",
+            "43004039",
+            "43004040",
+            "43004041",
+            "43004042"
+          ]
+        }
+      ],
+      "provenance": {
+        "attribution": "ACAI (Aquifer Concept Architecture for Information) © 2025 Mission Mutual. Licensed under CC BY-SA 4.0.",
+        "external_id": "person:Jesus.2",
+        "license": "CC-BY-SA-4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "source_id": "acai",
+        "upstream_commit": "7e6a2d6674910aedb0888493ebbe6684d374ae5c",
+        "upstream_resource_version": "2025-07-23"
+      }
+    },
+    {
+      "aliases": [
+        {
+          "label": "يوحَانَانَ",
+          "language": "arb",
+          "source": "acai_localization"
+        },
+        {
+          "label": "約哈難",
+          "language": "cmn",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Johanan",
+          "language": "eng",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Jochanan",
+          "language": "fra",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Yohanan",
+          "language": "hau",
+          "source": "acai_localization"
+        },
+        {
+          "label": "יְהֹוחָנָן",
+          "language": "he",
+          "source": "acai_lemma"
+        },
+        {
+          "label": "יוֹחָנָן",
+          "language": "he",
+          "source": "acai_lemma"
+        },
+        {
+          "label": "योहानान",
+          "language": "hin",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Yohanan",
+          "language": "ind",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Joanã",
+          "language": "por",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Иоханан",
+          "language": "rus",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Johanán",
+          "language": "spa",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Yohana",
+          "language": "swh",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Johanan",
+          "language": "tpi",
+          "source": "acai_localization"
+        }
+      ],
+      "canonical_name": "Johanan",
+      "dictionary_relations": [],
+      "entity_id": "acai-person-Johanan.5",
+      "entity_type": "person",
+      "external_ids": {
+        "acai": "person:Johanan.5"
+      },
+      "metadata": {
+        "alternate_sources": {
+          "aquifer": [
+            "6406|Johanan|TyndaleBibleDictionary"
+          ],
+          "tipnr": [
+            "Johanan@2Ki.25.23-Jer"
+          ],
+          "ubsdbh": [
+            "002825001010000"
+          ],
+          "vizbible": [
+            "rec1vBUADP3X40CYR"
+          ]
+        },
+        "is_generic": false,
+        "lemmas": {
+          "he": [
+            "יְהֹוחָנָן",
+            "יוֹחָנָן"
+          ]
+        },
+        "primary_id": "person:Johanan.5",
+        "referred_to_as": []
+      },
+      "passage_relations": [
+        {
+          "canonical_passage": "John.4.1-42",
+          "confidence": "explicit",
+          "mapping_method": "explicit",
+          "relation_type": "passage_mention",
+          "source_id": "acai",
+          "upstream_refs": [
+            "43004003",
+            "43004013"
+          ]
+        }
+      ],
+      "provenance": {
+        "attribution": "ACAI (Aquifer Concept Architecture for Information) © 2025 Mission Mutual. Licensed under CC BY-SA 4.0.",
+        "external_id": "person:Johanan.5",
+        "license": "CC-BY-SA-4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "source_id": "acai",
+        "upstream_commit": "7e6a2d6674910aedb0888493ebbe6684d374ae5c",
+        "upstream_resource_version": "2025-07-23"
+      }
+    },
+    {
+      "aliases": [
+        {
+          "label": "يوحَنَّا",
+          "language": "arb",
+          "source": "acai_localization"
+        },
+        {
+          "label": "約翰",
+          "language": "cmn",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Ἰωάννης",
+          "language": "el",
+          "source": "acai_lemma"
+        },
+        {
+          "label": "John (the Baptist)",
+          "language": "eng",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Jean",
+          "language": "fra",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Yohanna",
+          "language": "hau",
+          "source": "acai_localization"
+        },
+        {
+          "label": "यूहन्ना",
+          "language": "hin",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Yohanes",
+          "language": "ind",
+          "source": "acai_localization"
+        },
+        {
+          "label": "João",
+          "language": "por",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Иоанн",
+          "language": "rus",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Juan",
+          "language": "spa",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Yohana",
+          "language": "swh",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Jon",
+          "language": "tpi",
+          "source": "acai_localization"
+        }
+      ],
+      "canonical_name": "John (the Baptist)",
+      "dictionary_relations": [],
+      "entity_id": "acai-person-John",
+      "entity_type": "person",
+      "external_ids": {
+        "acai": "person:John"
+      },
+      "metadata": {
+        "alternate_sources": {
+          "aquifer": [
+            "6413|John (Person)|TyndaleBibleDictionary",
+            "6408|John, Gospel of|TyndaleBibleDictionary",
+            "6410|John, Letters of|TyndaleBibleDictionary",
+            "6414|John, the Apostle|TyndaleBibleDictionary",
+            "6416|John, the Revelation of|TyndaleBibleDictionary",
+            "6951|Mark, John|TyndaleBibleDictionary",
+            "132488|John|BiblicaStudyNotesKeyTerms",
+            "280163|john|FIAKeyTerms",
+            "26770|John the Baptist|UWTranslationWords",
+            "280048|john-the-naptist|FIAKeyTerms",
+            "132526|John the Baptist|BiblicaStudyNotesKeyTerms"
+          ],
+          "tipnr": [
+            "John@Mat.3.1-Act"
+          ],
+          "ubsdgnt": [
+            "93.190a"
+          ],
+          "vizbible": [
+            "recNRRITyGzXsl4yp"
+          ]
+        },
+        "is_generic": false,
+        "lemmas": {
+          "el": [
+            "Ἰωάννης"
+          ]
+        },
+        "primary_id": "person:John",
+        "referred_to_as": []
+      },
+      "passage_relations": [
+        {
+          "canonical_passage": "John.4.1-42",
+          "confidence": "explicit",
+          "mapping_method": "explicit",
+          "relation_type": "passage_mention",
+          "source_id": "acai",
+          "upstream_refs": [
+            "43004001"
+          ]
+        }
+      ],
+      "provenance": {
+        "attribution": "ACAI (Aquifer Concept Architecture for Information) © 2025 Mission Mutual. Licensed under CC BY-SA 4.0.",
+        "external_id": "person:John",
+        "license": "CC-BY-SA-4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "source_id": "acai",
+        "upstream_commit": "7e6a2d6674910aedb0888493ebbe6684d374ae5c",
+        "upstream_resource_version": "2025-07-23"
+      }
+    },
+    {
+      "aliases": [
+        {
+          "label": "يوسف",
+          "language": "arb",
+          "source": "acai_localization"
+        },
+        {
+          "label": "約瑟",
+          "language": "cmn",
+          "source": "acai_localization"
+        },
+        {
+          "label": "person:Zaphenath-paneah",
+          "language": "en",
+          "source": "acai_referred_to_as"
+        },
+        {
+          "label": "Joseph",
+          "language": "eng",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Joseph",
+          "language": "fra",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Yusuf",
+          "language": "hau",
+          "source": "acai_localization"
+        },
+        {
+          "label": "यूसुफ",
+          "language": "hin",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Yusuf",
+          "language": "ind",
+          "source": "acai_localization"
+        },
+        {
+          "label": "José",
+          "language": "por",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Иосиф",
+          "language": "rus",
+          "source": "acai_localization"
+        },
+        {
+          "label": "José",
+          "language": "spa",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Yusufu",
+          "language": "swh",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Josep",
+          "language": "tpi",
+          "source": "acai_localization"
+        }
+      ],
+      "canonical_name": "Joseph",
+      "dictionary_relations": [],
+      "entity_id": "acai-person-Joseph.10",
+      "entity_type": "person",
+      "external_ids": {
+        "acai": "person:Joseph.10"
+      },
+      "metadata": {
+        "alternate_sources": {
+          "aquifer": [
+            "6449|Joseph|TyndaleBibleDictionary",
+            "132234|Joseph|BiblicaStudyNotesKeyTerms",
+            "26777|Joseph OT|UWTranslationWords"
+          ],
+          "tipnr": [
+            "Zaphenath-paneah|Joseph@Gen.30.24-Rev",
+            "Joseph@Gen.30.24-Rev"
+          ],
+          "vizbible": [
+            "rechuDYJoK32gmrME"
+          ]
+        },
+        "is_generic": false,
+        "primary_id": "person:Joseph.10",
+        "referred_to_as": [
+          "person:Zaphenath-paneah"
+        ]
+      },
+      "passage_relations": [
+        {
+          "canonical_passage": "John.4.1-42",
+          "confidence": "explicit",
+          "mapping_method": "explicit",
+          "relation_type": "passage_mention",
+          "source_id": "acai",
+          "upstream_refs": [
+            "43004005"
+          ]
+        }
+      ],
+      "provenance": {
+        "attribution": "ACAI (Aquifer Concept Architecture for Information) © 2025 Mission Mutual. Licensed under CC BY-SA 4.0.",
+        "external_id": "person:Joseph.10",
+        "license": "CC-BY-SA-4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "source_id": "acai",
+        "upstream_commit": "7e6a2d6674910aedb0888493ebbe6684d374ae5c",
+        "upstream_resource_version": "2025-07-23"
+      }
+    },
+    {
+      "aliases": [
+        {
+          "label": "يَهوذَا",
+          "language": "arb",
+          "source": "acai_localization"
+        },
+        {
+          "label": "何達威雅",
+          "language": "cmn",
+          "source": "acai_localization"
+        },
+        {
+          "label": "group:Judah",
+          "language": "en",
+          "source": "acai_referred_to_as"
+        },
+        {
+          "label": "person:David.2",
+          "language": "en",
+          "source": "acai_referred_to_as"
+        },
+        {
+          "label": "Judah",
+          "language": "eng",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Juda",
+          "language": "fra",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Yahuda",
+          "language": "hau",
+          "source": "acai_localization"
+        },
+        {
+          "label": "यहूदा",
+          "language": "hin",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Yehuda",
+          "language": "ind",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Judá",
+          "language": "por",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Иуда",
+          "language": "rus",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Judá",
+          "language": "spa",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Yuda",
+          "language": "swh",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Juda",
+          "language": "tpi",
+          "source": "acai_localization"
+        }
+      ],
+      "canonical_name": "Judah",
+      "dictionary_relations": [],
+      "entity_id": "acai-person-Judah.4",
+      "entity_type": "person",
+      "external_ids": {
+        "acai": "person:Judah.4"
+      },
+      "metadata": {
+        "alternate_sources": {
+          "aquifer": [
+            "6476|Judah (Person)|TyndaleBibleDictionary",
+            "6477|Judah, Tribe of|TyndaleBibleDictionary",
+            "26782|Judah|UWTranslationWords",
+            "132237|Judah|BiblicaStudyNotesKeyTerms"
+          ],
+          "tipnr": [
+            "David|Judah@Gen.29.35-Rev",
+            "Judah@Gen.29.35-Rev"
+          ],
+          "vizbible": [
+            "rec0rm6yYA4YUQrkh"
+          ]
+        },
+        "is_generic": false,
+        "primary_id": "person:Judah.4",
+        "referred_to_as": [
+          "group:Judah",
+          "person:David.2"
+        ]
+      },
+      "passage_relations": [
+        {
+          "canonical_passage": "John.4.1-42",
+          "confidence": "explicit",
+          "mapping_method": "explicit",
+          "relation_type": "passage_mention",
+          "source_id": "acai",
+          "upstream_refs": [
+            "43004007",
+            "43004008",
+            "43004015"
+          ]
+        }
+      ],
+      "provenance": {
+        "attribution": "ACAI (Aquifer Concept Architecture for Information) © 2025 Mission Mutual. Licensed under CC BY-SA 4.0.",
+        "external_id": "person:Judah.4",
+        "license": "CC-BY-SA-4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "source_id": "acai",
+        "upstream_commit": "7e6a2d6674910aedb0888493ebbe6684d374ae5c",
+        "upstream_resource_version": "2025-07-23"
+      }
+    },
+    {
+      "aliases": [
+        {
+          "label": "قَارِيحَ",
+          "language": "arb",
+          "source": "acai_localization"
+        },
+        {
+          "label": "加利亞",
+          "language": "cmn",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Kareah",
+          "language": "eng",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Karéach",
+          "language": "fra",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Kareya",
+          "language": "hau",
+          "source": "acai_localization"
+        },
+        {
+          "label": "קֹ֫רַח",
+          "language": "he",
+          "source": "acai_lemma"
+        },
+        {
+          "label": "קֹרַח",
+          "language": "he",
+          "source": "acai_lemma"
+        },
+        {
+          "label": "कारेह",
+          "language": "hin",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Kareah",
+          "language": "ind",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Careá",
+          "language": "por",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Карея",
+          "language": "rus",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Carea",
+          "language": "spa",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Karea",
+          "language": "swh",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Karea",
+          "language": "tpi",
+          "source": "acai_localization"
+        }
+      ],
+      "canonical_name": "Kareah",
+      "dictionary_relations": [],
+      "entity_id": "acai-person-Kareah",
+      "entity_type": "person",
+      "external_ids": {
+        "acai": "person:Kareah"
+      },
+      "metadata": {
+        "alternate_sources": {
+          "aquifer": [
+            "6520|Kareah|TyndaleBibleDictionary"
+          ],
+          "tipnr": [
+            "Kareah@2Ki.25.23-Jer"
+          ],
+          "ubsdbh": [
+            "006573001001000"
+          ],
+          "vizbible": [
+            "rec2MkBiO7hDR5gOB"
+          ]
+        },
+        "is_generic": false,
+        "lemmas": {
+          "he": [
+            "קֹרַח",
+            "קֹ֫רַח"
+          ]
+        },
+        "primary_id": "person:Kareah",
+        "referred_to_as": []
+      },
+      "passage_relations": [
+        {
+          "canonical_passage": "John.4.1-42",
+          "confidence": "explicit",
+          "mapping_method": "explicit",
+          "relation_type": "passage_mention",
+          "source_id": "acai",
+          "upstream_refs": [
+            "43004005"
+          ]
+        }
+      ],
+      "provenance": {
+        "attribution": "ACAI (Aquifer Concept Architecture for Information) © 2025 Mission Mutual. Licensed under CC BY-SA 4.0.",
+        "external_id": "person:Kareah",
+        "license": "CC-BY-SA-4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "source_id": "acai",
+        "upstream_commit": "7e6a2d6674910aedb0888493ebbe6684d374ae5c",
+        "upstream_resource_version": "2025-07-23"
+      }
+    },
+    {
+      "aliases": [
+        {
+          "label": "مِنْ",
+          "language": "arb",
+          "source": "acai_localization"
+        },
+        {
+          "label": "基尼烈",
+          "language": "cmn",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Chinnereth",
+          "language": "eng",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Kinnéreth",
+          "language": "fra",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Kinneret",
+          "language": "hau",
+          "source": "acai_localization"
+        },
+        {
+          "label": "כִּנֶּ֫רֶת",
+          "language": "he",
+          "source": "acai_lemma"
+        },
+        {
+          "label": "כִּנֶּרֶת",
+          "language": "he",
+          "source": "acai_lemma"
+        },
+        {
+          "label": "किन्नेरेत",
+          "language": "hin",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Kineret",
+          "language": "ind",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Quinerete",
+          "language": "por",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Киннереф",
+          "language": "rus",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Cinneroth",
+          "language": "spa",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Kinerethi",
+          "language": "swh",
+          "source": "acai_localization"
+        },
+        {
+          "label": "raunwara",
+          "language": "tpi",
+          "source": "acai_localization"
+        }
+      ],
+      "canonical_name": "Chinnereth",
+      "dictionary_relations": [
+        {
+          "acai_id": "place:Chinnereth",
+          "dictionary_article_id": "5354",
+          "dictionary_title": "Galilee",
+          "mapping_method": "explicit",
+          "match_confidence": 0.6032,
+          "match_method": "scored",
+          "source_id": "acai"
+        }
+      ],
+      "entity_id": "acai-place-Chinnereth",
+      "entity_type": "place",
+      "external_ids": {
+        "acai": "place:Chinnereth"
+      },
+      "metadata": {
+        "alternate_sources": {
+          "aquifer": [
+            "4530|Chinnereth, Chinneroth|TyndaleBibleDictionary"
+          ],
+          "obi": [
+            "a2bb265"
+          ],
+          "tipnr": [
+            "Chinnereth@Jos.11.2-1Ki"
+          ],
+          "ubsdbh": [
+            "003360001001000"
+          ],
+          "vizbible": [
+            "recEKsQvYiMeFJgdN"
+          ],
+          "wikidata": [
+            "http://www.wikidata.org/entity/Q5533392"
+          ]
+        },
+        "is_generic": false,
+        "lemmas": {
+          "he": [
+            "כִּנֶּרֶת",
+            "כִּנֶּ֫רֶת"
+          ]
+        },
+        "primary_id": "place:Chinnereth",
+        "referred_to_as": []
+      },
+      "passage_relations": [],
+      "provenance": {
+        "attribution": "ACAI (Aquifer Concept Architecture for Information) © 2025 Mission Mutual. Licensed under CC BY-SA 4.0.",
+        "external_id": "place:Chinnereth",
+        "license": "CC-BY-SA-4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "source_id": "acai",
+        "upstream_commit": "7e6a2d6674910aedb0888493ebbe6684d374ae5c",
+        "upstream_resource_version": "2025-07-23"
+      }
+    },
+    {
+      "aliases": [
+        {
+          "label": "ٱلْجَلِيلِ",
+          "language": "arb",
+          "source": "acai_localization"
+        },
+        {
+          "label": "加利利",
+          "language": "cmn",
+          "source": "acai_localization"
+        },
+        {
+          "label": "group:Galilee",
+          "language": "en",
+          "source": "acai_referred_to_as"
+        },
+        {
+          "label": "place:Gilgal",
+          "language": "en",
+          "source": "acai_referred_to_as"
+        },
+        {
+          "label": "Galilee",
+          "language": "eng",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Galilée",
+          "language": "fra",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Galili",
+          "language": "hau",
+          "source": "acai_localization"
+        },
+        {
+          "label": "गलील",
+          "language": "hin",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Galilea",
+          "language": "ind",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Galileia",
+          "language": "por",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Галилея",
+          "language": "rus",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Galilea",
+          "language": "spa",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Galilaya",
+          "language": "swh",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Galili",
+          "language": "tpi",
+          "source": "acai_localization"
+        }
+      ],
+      "canonical_name": "Galilee",
+      "dictionary_relations": [
+        {
+          "acai_id": "place:Galilee",
+          "dictionary_article_id": "5354",
+          "dictionary_title": "Galilee",
+          "mapping_method": "explicit",
+          "match_confidence": 1.0,
+          "match_method": "content_id",
+          "source_id": "acai"
+        }
+      ],
+      "entity_id": "acai-place-Galilee",
+      "entity_type": "place",
+      "external_ids": {
+        "acai": "place:Galilee"
+      },
+      "metadata": {
+        "alternate_sources": {
+          "aquifer": [
+            "5354|Galilee|TyndaleBibleDictionary",
+            "5353|Galilee, Sea of|TyndaleBibleDictionary",
+            "26624|Galilee|UWTranslationWords",
+            "131982|Galilee|BiblicaStudyNotesKeyTerms",
+            "280088|galilee|FIAKeyTerms"
+          ],
+          "tipnr": [
+            "Galilee@Jos.12.23-Act",
+            "Gilgal|Galilee@Jos.12.23-Act"
+          ],
+          "vizbible": [
+            "recmL1lWBqWP3mAq3"
+          ]
+        },
+        "is_generic": false,
+        "primary_id": "place:Galilee",
+        "referred_to_as": [
+          "place:Gilgal",
+          "group:Galilee"
+        ]
+      },
+      "passage_relations": [
+        {
+          "canonical_passage": "John.4.1-42",
+          "confidence": "explicit",
+          "mapping_method": "explicit",
+          "relation_type": "passage_mention",
+          "source_id": "acai",
+          "upstream_refs": [
+            "43004003"
+          ]
+        }
+      ],
+      "provenance": {
+        "attribution": "ACAI (Aquifer Concept Architecture for Information) © 2025 Mission Mutual. Licensed under CC BY-SA 4.0.",
+        "external_id": "place:Galilee",
+        "license": "CC-BY-SA-4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "source_id": "acai",
+        "upstream_commit": "7e6a2d6674910aedb0888493ebbe6684d374ae5c",
+        "upstream_resource_version": "2025-07-23"
+      }
+    },
+    {
+      "aliases": [
+        {
+          "label": "جِرِزِّيمَ",
+          "language": "arb",
+          "source": "acai_localization"
+        },
+        {
+          "label": "基利心山",
+          "language": "cmn",
+          "source": "acai_localization"
+        },
+        {
+          "label": "place:Tabbur-erez",
+          "language": "en",
+          "source": "acai_referred_to_as"
+        },
+        {
+          "label": "Mount Gerizim",
+          "language": "eng",
+          "source": "acai_localization"
+        },
+        {
+          "label": "montagne de Garizim",
+          "language": "fra",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Gerizim",
+          "language": "hau",
+          "source": "acai_localization"
+        },
+        {
+          "label": "גְּרִזִים",
+          "language": "he",
+          "source": "acai_lemma"
+        },
+        {
+          "label": "गिरिज्जीम पर्वत",
+          "language": "hin",
+          "source": "acai_localization"
+        },
+        {
+          "label": "gunung",
+          "language": "ind",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Monte Gerizim",
+          "language": "por",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Gerizim",
+          "language": "spa",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Gerizimu",
+          "language": "swh",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Gerisim",
+          "language": "tpi",
+          "source": "acai_localization"
+        }
+      ],
+      "canonical_name": "Mount Gerizim",
+      "dictionary_relations": [
+        {
+          "acai_id": "place:GerizimMount",
+          "dictionary_article_id": "5428",
+          "dictionary_title": "Mount Gerizim",
+          "mapping_method": "explicit",
+          "match_confidence": 0.6119,
+          "match_method": "scored",
+          "source_id": "acai"
+        }
+      ],
+      "entity_id": "acai-place-GerizimMount",
+      "entity_type": "place",
+      "external_ids": {
+        "acai": "place:GerizimMount"
+      },
+      "metadata": {
+        "alternate_sources": {
+          "aquifer": [
+            "7222|Mount Gerizim|TyndaleBibleDictionary"
+          ],
+          "obi": [
+            "a30e967"
+          ],
+          "pleiades": [
+            "https://pleiades.stoa.org/places/678147",
+            "http://pleiades.stoa.org/places/678147"
+          ],
+          "tipnr": [
+            "Gerizim_Mount@Deu.11.29-Jdg"
+          ],
+          "ubsdbh": [
+            "001495001001000"
+          ],
+          "vizbible": [
+            "recwOLWt1eIDGzfiI"
+          ],
+          "wikidata": [
+            "http://www.wikidata.org/entity/Q1288751"
+          ]
+        },
+        "is_generic": false,
+        "lemmas": {
+          "he": [
+            "גְּרִזִים"
+          ]
+        },
+        "primary_id": "place:GerizimMount",
+        "referred_to_as": [
+          "place:Tabbur-erez"
+        ]
+      },
+      "passage_relations": [
+        {
+          "canonical_passage": "John.4.1-42",
+          "confidence": "explicit",
+          "mapping_method": "explicit",
+          "relation_type": "passage_mention",
+          "source_id": "acai",
+          "upstream_refs": [
+            "43004020"
+          ]
+        }
+      ],
+      "place_crosswalk": {
+        "acai_entity_id": "place:GerizimMount",
+        "canonical_name": "Mount Gerizim",
+        "confidence": "external_id",
+        "mapping_method": "external_id",
+        "openbible_id": "a30e967",
+        "pleiades_id": "678147",
+        "textus_place_id": "mount_gerizim"
+      },
+      "provenance": {
+        "attribution": "ACAI (Aquifer Concept Architecture for Information) © 2025 Mission Mutual. Licensed under CC BY-SA 4.0.",
+        "external_id": "place:GerizimMount",
+        "license": "CC-BY-SA-4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "source_id": "acai",
+        "upstream_commit": "7e6a2d6674910aedb0888493ebbe6684d374ae5c",
+        "upstream_resource_version": "2025-07-23"
+      }
+    },
+    {
+      "aliases": [
+        {
+          "label": "Jacob's Well",
+          "language": "eng",
+          "source": "acai_localization"
+        }
+      ],
+      "canonical_name": "Jacob's Well",
+      "dictionary_relations": [
+        {
+          "acai_id": "place:JacobsWell",
+          "dictionary_article_id": "6162",
+          "dictionary_title": "Jacob’s Well",
+          "mapping_method": "explicit",
+          "match_confidence": 0.6,
+          "match_method": "scored",
+          "source_id": "acai"
+        }
+      ],
+      "entity_id": "acai-place-JacobsWell",
+      "entity_type": "place",
+      "external_ids": {
+        "acai": "place:JacobsWell"
+      },
+      "metadata": {
+        "alternate_sources": {},
+        "is_generic": false,
+        "primary_id": "place:JacobsWell",
+        "referred_to_as": []
+      },
+      "passage_relations": [
+        {
+          "canonical_passage": "John.4.1-42",
+          "confidence": "explicit",
+          "mapping_method": "explicit",
+          "relation_type": "passage_mention",
+          "source_id": "acai",
+          "upstream_refs": [
+            "43004005"
+          ]
+        }
+      ],
+      "provenance": {
+        "attribution": "ACAI (Aquifer Concept Architecture for Information) © 2025 Mission Mutual. Licensed under CC BY-SA 4.0.",
+        "external_id": "place:JacobsWell",
+        "license": "CC-BY-SA-4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "source_id": "acai",
+        "upstream_commit": "7e6a2d6674910aedb0888493ebbe6684d374ae5c",
+        "upstream_resource_version": "2025-07-23"
+      }
+    },
+    {
+      "aliases": [
+        {
+          "label": "أورشَلِيمَ",
+          "language": "arb",
+          "source": "acai_localization"
+        },
+        {
+          "label": "耶路撒冷",
+          "language": "cmn",
+          "source": "acai_localization"
+        },
+        {
+          "label": "place:Ariel",
+          "language": "en",
+          "source": "acai_referred_to_as"
+        },
+        {
+          "label": "place:Beulah",
+          "language": "en",
+          "source": "acai_referred_to_as"
+        },
+        {
+          "label": "place:CityOfTheLord",
+          "language": "en",
+          "source": "acai_referred_to_as"
+        },
+        {
+          "label": "place:Desolate",
+          "language": "en",
+          "source": "acai_referred_to_as"
+        },
+        {
+          "label": "place:Forsaken",
+          "language": "en",
+          "source": "acai_referred_to_as"
+        },
+        {
+          "label": "place:Hephzibah",
+          "language": "en",
+          "source": "acai_referred_to_as"
+        },
+        {
+          "label": "place:Jebus",
+          "language": "en",
+          "source": "acai_referred_to_as"
+        },
+        {
+          "label": "place:Jebusite",
+          "language": "en",
+          "source": "acai_referred_to_as"
+        },
+        {
+          "label": "place:LordIsThere",
+          "language": "en",
+          "source": "acai_referred_to_as"
+        },
+        {
+          "label": "place:Salem",
+          "language": "en",
+          "source": "acai_referred_to_as"
+        },
+        {
+          "label": "place:Zion",
+          "language": "en",
+          "source": "acai_referred_to_as"
+        },
+        {
+          "label": "place:ZionMount",
+          "language": "en",
+          "source": "acai_referred_to_as"
+        },
+        {
+          "label": "Jerusalem",
+          "language": "eng",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Jérusalem",
+          "language": "fra",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Urushalima",
+          "language": "hau",
+          "source": "acai_localization"
+        },
+        {
+          "label": "यरूशलेम",
+          "language": "hin",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Yerusalem",
+          "language": "ind",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Jerusalém",
+          "language": "por",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Иерусалим",
+          "language": "rus",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Jerusalem",
+          "language": "spa",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Yerusalemu",
+          "language": "swh",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Jerusalem",
+          "language": "tpi",
+          "source": "acai_localization"
+        }
+      ],
+      "canonical_name": "Jerusalem",
+      "dictionary_relations": [],
+      "entity_id": "acai-place-Jerusalem",
+      "entity_type": "place",
+      "external_ids": {
+        "acai": "place:Jerusalem"
+      },
+      "metadata": {
+        "alternate_sources": {
+          "aquifer": [
+            "6333|Jerusalem|TyndaleBibleDictionary",
+            "6332|Jerusalem, New|TyndaleBibleDictionary",
+            "26756|Jerusalem|UWTranslationWords",
+            "132410|Jerusalem|BiblicaStudyNotesKeyTerms",
+            "280103|jerusalem|FIAKeyTerms",
+            "26699|Holy City|UWTranslationWords"
+          ],
+          "digital_atlas_roman_empire": [
+            "https://imperium.ahlfeldt.se/places/15896"
+          ],
+          "obi": [
+            "a15257a"
+          ],
+          "tipnr": [
+            "Jebus|Jerusalem@Jos.10.1-Rev",
+            "Desolate|Jerusalem@Jos.10.1-Rev",
+            "Forsaken|Jerusalem@Jos.10.1-Rev",
+            "Beulah|Jerusalem@Jos.10.1-Rev",
+            "Hephzibah|Jerusalem@Jos.10.1-Rev",
+            "Salem|Jerusalem@Jos.10.1-Rev",
+            "Zion|Jerusalem@Jos.10.1-Rev",
+            "Zion_Mount|Jerusalem@Jos.10.1-Rev",
+            "Jebusite|Jerusalem@Jos.10.1-Rev",
+            "Jerusalem@Jos.10.1-Rev",
+            "Ariel|Jerusalem@Jos.10.1-Rev",
+            "City_of_the_Lord|Jerusalem@Jos.10.1-Rev",
+            "Lord_Is_There|Jerusalem@Jos.10.1-Rev"
+          ],
+          "vizbible": [
+            "recL1WV82pXaRBQ59"
+          ],
+          "wikidata": [
+            "http://www.wikidata.org/entity/Q1218"
+          ]
+        },
+        "is_generic": false,
+        "primary_id": "place:Jerusalem",
+        "referred_to_as": [
+          "place:Beulah",
+          "place:LordIsThere",
+          "place:CityOfTheLord",
+          "place:Jebusite",
+          "place:Hephzibah",
+          "place:Jebus",
+          "place:Desolate",
+          "place:Forsaken",
+          "place:Zion",
+          "place:Ariel",
+          "place:Salem",
+          "place:ZionMount"
+        ]
+      },
+      "passage_relations": [
+        {
+          "canonical_passage": "John.4.1-42",
+          "confidence": "explicit",
+          "mapping_method": "explicit",
+          "relation_type": "passage_mention",
+          "source_id": "acai",
+          "upstream_refs": [
+            "43004019",
+            "43004020",
+            "43004021"
+          ]
+        }
+      ],
+      "place_crosswalk": {
+        "acai_entity_id": "place:Jerusalem",
+        "canonical_name": "Jerusalem",
+        "confidence": "external_id",
+        "mapping_method": "external_id",
+        "openbible_id": "a15257a",
+        "pleiades_id": "687928",
+        "textus_place_id": "jerusalem"
+      },
+      "provenance": {
+        "attribution": "ACAI (Aquifer Concept Architecture for Information) © 2025 Mission Mutual. Licensed under CC BY-SA 4.0.",
+        "external_id": "place:Jerusalem",
+        "license": "CC-BY-SA-4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "source_id": "acai",
+        "upstream_commit": "7e6a2d6674910aedb0888493ebbe6684d374ae5c",
+        "upstream_resource_version": "2025-07-23"
+      }
+    },
+    {
+      "aliases": [
+        {
+          "label": "يَهوذَا",
+          "language": "arb",
+          "source": "acai_localization"
+        },
+        {
+          "label": "猶大",
+          "language": "cmn",
+          "source": "acai_localization"
+        },
+        {
+          "label": "group:Judea",
+          "language": "en",
+          "source": "acai_referred_to_as"
+        },
+        {
+          "label": "place:Judea.2",
+          "language": "en",
+          "source": "acai_referred_to_as"
+        },
+        {
+          "label": "place:TerritoryOfJudah",
+          "language": "en",
+          "source": "acai_referred_to_as"
+        },
+        {
+          "label": "Judea",
+          "language": "eng",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Judée",
+          "language": "fra",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Yahuda",
+          "language": "hau",
+          "source": "acai_localization"
+        },
+        {
+          "label": "यहूदिया",
+          "language": "hin",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Yehuda",
+          "language": "ind",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Judeia",
+          "language": "por",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Иудея",
+          "language": "rus",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Judíos",
+          "language": "spa",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Yudea",
+          "language": "swh",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Judia",
+          "language": "tpi",
+          "source": "acai_localization"
+        }
+      ],
+      "canonical_name": "Judea",
+      "dictionary_relations": [
+        {
+          "acai_id": "place:Judea",
+          "dictionary_article_id": "5354",
+          "dictionary_title": "Galilee",
+          "mapping_method": "explicit",
+          "match_confidence": 0.6095,
+          "match_method": "scored",
+          "source_id": "acai"
+        },
+        {
+          "acai_id": "place:Judea",
+          "dictionary_article_id": "6487",
+          "dictionary_title": "Judea, Judeans",
+          "mapping_method": "explicit",
+          "match_confidence": 1.0,
+          "match_method": "content_id",
+          "source_id": "acai"
+        }
+      ],
+      "entity_id": "acai-place-Judea",
+      "entity_type": "place",
+      "external_ids": {
+        "acai": "place:Judea"
+      },
+      "metadata": {
+        "alternate_sources": {
+          "aquifer": [
+            "6487|Judea, Judeans|TyndaleBibleDictionary",
+            "26786|Judea|UWTranslationWords",
+            "131981|Judea|BiblicaStudyNotesKeyTerms",
+            "280221|judea|FIAKeyTerms",
+            "132426|Southern kingdom|BiblicaStudyNotesKeyTerms"
+          ],
+          "tipnr": [
+            "Judea@Ezr.9.9-1Th"
+          ],
+          "vizbible": [
+            "recAalC2QoLT7cJKN"
+          ]
+        },
+        "is_generic": false,
+        "primary_id": "place:Judea",
+        "referred_to_as": [
+          "place:TerritoryOfJudah",
+          "place:Judea.2",
+          "group:Judea"
+        ]
+      },
+      "passage_relations": [
+        {
+          "canonical_passage": "John.4.1-42",
+          "confidence": "explicit",
+          "mapping_method": "explicit",
+          "relation_type": "passage_mention",
+          "source_id": "acai",
+          "upstream_refs": [
+            "43004003"
+          ]
+        }
+      ],
+      "provenance": {
+        "attribution": "ACAI (Aquifer Concept Architecture for Information) © 2025 Mission Mutual. Licensed under CC BY-SA 4.0.",
+        "external_id": "place:Judea",
+        "license": "CC-BY-SA-4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "source_id": "acai",
+        "upstream_commit": "7e6a2d6674910aedb0888493ebbe6684d374ae5c",
+        "upstream_resource_version": "2025-07-23"
+      }
+    },
+    {
+      "aliases": [
+        {
+          "label": "ٱلسَّامِرَةِ",
+          "language": "arb",
+          "source": "acai_localization"
+        },
+        {
+          "label": "撒馬利亞",
+          "language": "cmn",
+          "source": "acai_localization"
+        },
+        {
+          "label": "group:Samaritan",
+          "language": "en",
+          "source": "acai_referred_to_as"
+        },
+        {
+          "label": "Samaria (City)",
+          "language": "eng",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Samarie",
+          "language": "fra",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Samariya",
+          "language": "hau",
+          "source": "acai_localization"
+        },
+        {
+          "label": "सामरिया",
+          "language": "hin",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Samaria",
+          "language": "ind",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Samaria",
+          "language": "por",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Самария",
+          "language": "rus",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Samaria",
+          "language": "spa",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Samaria",
+          "language": "swh",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Samaria",
+          "language": "tpi",
+          "source": "acai_localization"
+        }
+      ],
+      "canonical_name": "Samaria (City)",
+      "dictionary_relations": [
+        {
+          "acai_id": "place:Samaria",
+          "dictionary_article_id": "8120",
+          "dictionary_title": "Samaria",
+          "mapping_method": "explicit",
+          "match_confidence": 1.0,
+          "match_method": "content_id",
+          "source_id": "acai"
+        }
+      ],
+      "entity_id": "acai-place-Samaria",
+      "entity_type": "place",
+      "external_ids": {
+        "acai": "place:Samaria"
+      },
+      "metadata": {
+        "alternate_sources": {
+          "aquifer": [
+            "8120|Samaria|TyndaleBibleDictionary",
+            "27050|Samaria|UWTranslationWords",
+            "132435|Samaria|BiblicaStudyNotesKeyTerms"
+          ],
+          "pleiades": [
+            "http://pleiades.stoa.org/places/678369"
+          ],
+          "tipnr": [
+            "Samaria@1Ki.13.32-Act",
+            "Samaritan|Samaria@1Ki.13.32-Act"
+          ],
+          "vizbible": [
+            "recEP3QZ3HUmIkv4Q"
+          ]
+        },
+        "is_generic": false,
+        "primary_id": "place:Samaria",
+        "referred_to_as": [
+          "group:Samaritan"
+        ]
+      },
+      "passage_relations": [
+        {
+          "canonical_passage": "John.4.1-42",
+          "confidence": "explicit",
+          "mapping_method": "explicit",
+          "relation_type": "passage_mention",
+          "source_id": "acai",
+          "upstream_refs": [
+            "43004004",
+            "43004005",
+            "43004007",
+            "43004009",
+            "43004012",
+            "43004020",
+            "43004021",
+            "43004022",
+            "43004025",
+            "43004039",
+            "43004040"
+          ]
+        }
+      ],
+      "provenance": {
+        "attribution": "ACAI (Aquifer Concept Architecture for Information) © 2025 Mission Mutual. Licensed under CC BY-SA 4.0.",
+        "external_id": "place:Samaria",
+        "license": "CC-BY-SA-4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "source_id": "acai",
+        "upstream_commit": "7e6a2d6674910aedb0888493ebbe6684d374ae5c",
+        "upstream_resource_version": "2025-07-23"
+      }
+    },
+    {
+      "aliases": [
+        {
+          "label": "Samaria",
+          "language": "eng",
+          "source": "acai_localization"
+        }
+      ],
+      "canonical_name": "Samaria",
+      "dictionary_relations": [
+        {
+          "acai_id": "place:Samaria.2",
+          "dictionary_article_id": "8120",
+          "dictionary_title": "Samaria",
+          "mapping_method": "explicit",
+          "match_confidence": 1.0,
+          "match_method": "content_id",
+          "source_id": "acai"
+        }
+      ],
+      "entity_id": "acai-place-Samaria.2",
+      "entity_type": "place",
+      "external_ids": {
+        "acai": "place:Samaria.2"
+      },
+      "metadata": {
+        "alternate_sources": {
+          "aquifer": [
+            "8120|Samaria|TyndaleBibleDictionary",
+            "27050|Samaria|UWTranslationWords",
+            "132435|Samaria|BiblicaStudyNotesKeyTerms"
+          ]
+        },
+        "is_generic": false,
+        "primary_id": "place:Samaria.2",
+        "referred_to_as": []
+      },
+      "passage_relations": [
+        {
+          "canonical_passage": "John.4.1-42",
+          "confidence": "explicit",
+          "mapping_method": "explicit",
+          "relation_type": "passage_mention",
+          "source_id": "acai",
+          "upstream_refs": [
+            "43004004"
+          ]
+        }
+      ],
+      "provenance": {
+        "attribution": "ACAI (Aquifer Concept Architecture for Information) © 2025 Mission Mutual. Licensed under CC BY-SA 4.0.",
+        "external_id": "place:Samaria.2",
+        "license": "CC-BY-SA-4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "source_id": "acai",
+        "upstream_commit": "7e6a2d6674910aedb0888493ebbe6684d374ae5c",
+        "upstream_resource_version": "2025-07-23"
+      }
+    },
+    {
+      "aliases": [
+        {
+          "label": "سوخَار",
+          "language": "arb",
+          "source": "acai_localization"
+        },
+        {
+          "label": "敘加",
+          "language": "cmn",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Συχάρ",
+          "language": "el",
+          "source": "acai_lemma"
+        },
+        {
+          "label": "Sychar",
+          "language": "eng",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Sychar",
+          "language": "fra",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Saikar",
+          "language": "hau",
+          "source": "acai_localization"
+        },
+        {
+          "label": "सूखार",
+          "language": "hin",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Sikhar",
+          "language": "ind",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Sicar",
+          "language": "por",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Сихарь",
+          "language": "rus",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Sichâr",
+          "language": "spa",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Sikari",
+          "language": "swh",
+          "source": "acai_localization"
+        },
+        {
+          "label": "Sikar",
+          "language": "tpi",
+          "source": "acai_localization"
+        }
+      ],
+      "canonical_name": "Sychar",
+      "dictionary_relations": [
+        {
+          "acai_id": "place:Sychar",
+          "dictionary_article_id": "8676",
+          "dictionary_title": "Sychar",
+          "mapping_method": "explicit",
+          "match_confidence": 1.0,
+          "match_method": "content_id",
+          "source_id": "acai"
+        }
+      ],
+      "entity_id": "acai-place-Sychar",
+      "entity_type": "place",
+      "external_ids": {
+        "acai": "place:Sychar"
+      },
+      "metadata": {
+        "alternate_sources": {
+          "aquifer": [
+            "8676|Sychar|TyndaleBibleDictionary"
+          ],
+          "obi": [
+            "a27b472"
+          ],
+          "tipnr": [
+            "Sychar@Jhn.4.5"
+          ],
+          "ubsdgnt": [
+            "93.593"
+          ],
+          "vizbible": [
+            "recEPnsyuSmBSHXr9"
+          ],
+          "wikidata": [
+            "http://www.wikidata.org/entity/Q12971071"
+          ]
+        },
+        "is_generic": false,
+        "lemmas": {
+          "el": [
+            "Συχάρ"
+          ]
+        },
+        "primary_id": "place:Sychar",
+        "referred_to_as": []
+      },
+      "passage_relations": [
+        {
+          "canonical_passage": "John.4.1-42",
+          "confidence": "explicit",
+          "mapping_method": "explicit",
+          "relation_type": "passage_mention",
+          "source_id": "acai",
+          "upstream_refs": [
+            "43004005"
+          ]
+        }
+      ],
+      "place_crosswalk": {
+        "acai_entity_id": "place:Sychar",
+        "canonical_name": "Sychar",
+        "confidence": "external_id",
+        "mapping_method": "external_id",
+        "openbible_id": "a27b472",
+        "pleiades_id": null,
+        "textus_place_id": "sychar"
+      },
+      "provenance": {
+        "attribution": "ACAI (Aquifer Concept Architecture for Information) © 2025 Mission Mutual. Licensed under CC BY-SA 4.0.",
+        "external_id": "place:Sychar",
+        "license": "CC-BY-SA-4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "source_id": "acai",
+        "upstream_commit": "7e6a2d6674910aedb0888493ebbe6684d374ae5c",
+        "upstream_resource_version": "2025-07-23"
+      }
+    },
+    {
+      "aliases": [
+        {
+          "label": "ναός",
+          "language": "el",
+          "source": "acai_lemma"
+        },
+        {
+          "label": "οἶκος",
+          "language": "el",
+          "source": "acai_lemma"
+        },
+        {
+          "label": "πυλών",
+          "language": "el",
+          "source": "acai_lemma"
+        },
+        {
+          "label": "πύλη",
+          "language": "el",
+          "source": "acai_lemma"
+        },
+        {
+          "label": "ἱερός",
+          "language": "el",
+          "source": "acai_lemma"
+        },
+        {
+          "label": "Temple",
+          "language": "eng",
+          "source": "acai_localization"
+        }
+      ],
+      "canonical_name": "Temple",
+      "dictionary_relations": [
+        {
+          "acai_id": "realia:Temple",
+          "dictionary_article_id": "8782",
+          "dictionary_title": "Temple",
+          "mapping_method": "explicit",
+          "match_confidence": 1.0,
+          "match_method": "content_id",
+          "source_id": "acai"
+        }
+      ],
+      "entity_id": "acai-realia-Temple",
+      "entity_type": "realia",
+      "external_ids": {
+        "acai": "realia:Temple"
+      },
+      "metadata": {
+        "alternate_sources": {
+          "aquifer": [
+            "8782|Temple|TyndaleBibleDictionary",
+            "27142|Temple|UWTranslationWords",
+            "132363|Temple|BiblicaStudyNotesKeyTerms",
+            "280063|temple|FIAKeyTerms",
+            "26717|House of God|UWTranslationWords",
+            "280104|house-of-god|FIAKeyTerms"
+          ],
+          "ubsdgnt": [
+            "7.16",
+            "7.15",
+            "7.2",
+            "7.48"
+          ],
+          "ubsrealia": [
+            "realia:3.14.1"
+          ]
+        },
+        "is_generic": false,
+        "lemmas": {
+          "el": [
+            "ἱερός",
+            "ναός",
+            "οἶκος",
+            "πύλη",
+            "πυλών"
+          ]
+        },
+        "primary_id": "realia:Temple",
+        "referred_to_as": []
+      },
+      "passage_relations": [],
+      "provenance": {
+        "attribution": "ACAI (Aquifer Concept Architecture for Information) © 2025 Mission Mutual. Licensed under CC BY-SA 4.0.",
+        "external_id": "realia:Temple",
+        "license": "CC-BY-SA-4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "source_id": "acai",
+        "upstream_commit": "7e6a2d6674910aedb0888493ebbe6684d374ae5c",
+        "upstream_resource_version": "2025-07-23"
+      }
+    }
+  ],
   "estimated_tokens": 114882,
   "evidence_items": [
     {
@@ -11566,6 +14843,15 @@
   ],
   "sources": [
     {
+      "language": "multilingual",
+      "license": "CC-BY-SA-4.0",
+      "local_path": "data/kb/acai/john_4_1_42_entities.json",
+      "name": "ACAI entity graph (John 4 pilot)",
+      "source_id": "acai",
+      "source_type": "entity_graph",
+      "version": "2025-07-23"
+    },
+    {
       "language": "en",
       "license": "CC-BY-SA-4.0",
       "local_path": "data/kb/aquifer/john_4_1_42_bible_dictionary.json",
@@ -11645,5 +14931,5 @@
     "RUF local text source is disabled by manifest policy; packet excludes RUF prose.",
     "Supplemental token estimate (95346) exceeds budget (4500); Aquifer exegetical notes and dictionary evidence retained for audit."
   ],
-  "dictionary_evidence_count": 120
+  "entity_count": 30
 }

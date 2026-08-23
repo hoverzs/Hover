@@ -9,6 +9,7 @@ from typing import Any
 PILOT_BUILD_ID = "kb-phase2a-john4-pilot-v1"
 PILOT_BUILD_ID_WITH_AQUIFER = "kb-phase3a-john4-pilot-v1"
 PILOT_BUILD_ID_WITH_DICTIONARY = "kb-phase3c-john4-pilot-v1"
+PILOT_BUILD_ID_WITH_ACAI = "kb-phase4a-john4-pilot-v1"
 
 # Deterministic relevance tiers (higher = retained first under token budget).
 RELEVANCE_DIRECT_PASSAGE = 100

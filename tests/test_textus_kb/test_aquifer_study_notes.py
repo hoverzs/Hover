@@ -106,7 +106,7 @@ def test_retrieval_includes_aquifer_evidence_deterministically() -> None:
         if item["relation_type"] == "exegetical_note"
     ]
     assert len(aquifer_items) == 24
-    assert first["build"]["build_id"] == "kb-phase3c-john4-pilot-v1"
+    assert first["build"]["build_id"] == "kb-phase4a-john4-pilot-v1"
 
 
 def test_evidence_ids_unique_and_stable() -> None:
