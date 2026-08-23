@@ -1,0 +1,6085 @@
+{
+  "build": {
+    "build_id": "kb-phase2a-john4-pilot-v1",
+    "manifest_version": "1"
+  },
+  "entities": [],
+  "estimated_tokens": 21820,
+  "evidence_items": [
+    {
+      "content": "Direct passage match: John.4.1-42",
+      "evidence_id": "EV-TAGNT-0002",
+      "language": "grc",
+      "metadata": {
+        "display_reference": "Jn 4,1-42"
+      },
+      "passage": "John.4.1-42",
+      "relation_type": "direct_passage_match",
+      "relevance_score": 100,
+      "source_id": "stepbible_tagnt",
+      "source_type": "sqlite"
+    },
+    {
+      "content": "Greek NT token set for Jn 4,1-42: 42 verses, 723 tokens.",
+      "evidence_id": "EV-TAGNT-0001",
+      "language": "grc",
+      "metadata": {
+        "token_count": 723,
+        "verse_count": 42
+      },
+      "passage": "John.4.1-42",
+      "relation_type": "passage_token",
+      "relevance_score": 100,
+      "source_id": "stepbible_tagnt",
+      "source_type": "sqlite"
+    },
+    {
+      "content": "Galilea (galilee_1) linked to passage via Jn 4,3: OpenBible vers-hivatkozásból generált helykapcsolat.",
+      "evidence_id": "EV-PLACE-0001",
+      "language": "hu",
+      "metadata": {
+        "latitude": 32.76,
+        "longitude": 35.527,
+        "place_id": "galilee_1",
+        "source_note": "OpenBible Bible Geocoding Data verses"
+      },
+      "passage": "Jn 4,3",
+      "relation_type": "passage_place_link",
+      "relevance_score": 85,
+      "source_id": "biblical_places_passage_links",
+      "source_type": "json"
+    },
+    {
+      "content": "Jeruzsálem (jerusalem) linked to passage via Jn 4,20: OpenBible vers-hivatkozásból generált helykapcsolat.",
+      "evidence_id": "EV-PLACE-0003",
+      "language": "hu",
+      "metadata": {
+        "latitude": 31.776667,
+        "longitude": 35.234167,
+        "place_id": "jerusalem",
+        "source_note": "OpenBible Bible Geocoding Data verses"
+      },
+      "passage": "Jn 4,20",
+      "relation_type": "passage_place_link",
+      "relevance_score": 85,
+      "source_id": "biblical_places_passage_links",
+      "source_type": "json"
+    },
+    {
+      "content": "Júdea (judea_1) linked to passage via Jn 4,3: OpenBible vers-hivatkozásból generált helykapcsolat.",
+      "evidence_id": "EV-PLACE-0007",
+      "language": "hu",
+      "metadata": {
+        "latitude": 31.776667,
+        "longitude": 35.234167,
+        "place_id": "judea_1",
+        "source_note": "OpenBible Bible Geocoding Data verses"
+      },
+      "passage": "Jn 4,3",
+      "relation_type": "passage_place_link",
+      "relevance_score": 85,
+      "source_id": "biblical_places_passage_links",
+      "source_type": "json"
+    },
+    {
+      "content": "Garizim-hegy (mount_gerizim) linked to passage via Jn 4,20: OpenBible vers-hivatkozásból generált helykapcsolat.",
+      "evidence_id": "EV-PLACE-0009",
+      "language": "hu",
+      "metadata": {
+        "latitude": 32.199444,
+        "longitude": 35.272778,
+        "place_id": "mount_gerizim",
+        "source_note": "OpenBible Bible Geocoding Data verses"
+      },
+      "passage": "Jn 4,20",
+      "relation_type": "passage_place_link",
+      "relevance_score": 85,
+      "source_id": "biblical_places_passage_links",
+      "source_type": "json"
+    },
+    {
+      "content": "Samária vidéke (samaria_2) linked to passage via Jn 4,4: OpenBible vers-hivatkozásból generált helykapcsolat.",
+      "evidence_id": "EV-PLACE-0011",
+      "language": "hu",
+      "metadata": {
+        "latitude": 32.276111,
+        "longitude": 35.195,
+        "place_id": "samaria_2",
+        "source_note": "OpenBible Bible Geocoding Data verses"
+      },
+      "passage": "Jn 4,4",
+      "relation_type": "passage_place_link",
+      "relevance_score": 85,
+      "source_id": "biblical_places_passage_links",
+      "source_type": "json"
+    },
+    {
+      "content": "Sikár (sychar) linked to passage via Jn 4,5: OpenBible vers-hivatkozásból generált helykapcsolat.",
+      "evidence_id": "EV-PLACE-0013",
+      "language": "hu",
+      "metadata": {
+        "latitude": 32.21776,
+        "longitude": 35.28897,
+        "place_id": "sychar",
+        "source_note": "OpenBible Bible Geocoding Data verses"
+      },
+      "passage": "Jn 4,5",
+      "relation_type": "passage_place_link",
+      "relevance_score": 85,
+      "source_id": "biblical_places_passage_links",
+      "source_type": "json"
+    },
+    {
+      "content": "Észak-Izrael történeti régiója, Jézus szolgálatának számos fontos helyszínével. A terület ma Izrael északi részén fekszik.",
+      "evidence_id": "EV-PLACE-0002",
+      "language": "hu",
+      "metadata": {
+        "identification_status": "certain",
+        "place_id": "galilee_1"
+      },
+      "passage": "Jn 4,3",
+      "relation_type": "place_catalog",
+      "relevance_score": 75,
+      "source_id": "biblical_places_catalog",
+      "source_type": "json"
+    },
+    {
+      "content": "Jeruzsálem a bibliai elbeszélés központi városa, a Templom és több újszövetségi esemény helyszíne.",
+      "evidence_id": "EV-PLACE-0004",
+      "language": "hu",
+      "metadata": {
+        "identification_status": "probable",
+        "place_id": "jerusalem"
+      },
+      "passage": "Jn 4,20",
+      "relation_type": "place_catalog",
+      "relevance_score": 75,
+      "source_id": "biblical_places_catalog",
+      "source_type": "json"
+    },
+    {
+      "content": "A júdai tartomány bibliai és történeti régiója, amely az ószövetségi és újszövetségi szövegekben is szerepel.",
+      "evidence_id": "EV-PLACE-0008",
+      "language": "hu",
+      "metadata": {
+        "identification_status": "certain",
+        "place_id": "judea_1"
+      },
+      "passage": "Jn 4,3",
+      "relation_type": "place_catalog",
+      "relevance_score": 75,
+      "source_id": "biblical_places_catalog",
+      "source_type": "json"
+    },
+    {
+      "content": "Sikem mellett emelkedő hegy, az áldás kihirdetésének és a samaritánus istentiszteletnek fontos helye. A mai Náblusz fölött található.",
+      "evidence_id": "EV-PLACE-0010",
+      "language": "hu",
+      "metadata": {
+        "identification_status": "certain",
+        "place_id": "mount_gerizim"
+      },
+      "passage": "Jn 4,20",
+      "relation_type": "place_catalog",
+      "relevance_score": 75,
+      "source_id": "biblical_places_catalog",
+      "source_type": "json"
+    },
+    {
+      "content": "Az északi országrész és későbbi tartomány neve, amely az Apostolok cselekedeteiben a jeruzsálemi misszió egyik első terjeszkedési területe. Központi térsége a mai Szamária vidékén található.",
+      "evidence_id": "EV-PLACE-0012",
+      "language": "hu",
+      "metadata": {
+        "identification_status": "certain",
+        "place_id": "samaria_2"
+      },
+      "passage": "Jn 4,4",
+      "relation_type": "place_catalog",
+      "relevance_score": 75,
+      "source_id": "biblical_places_catalog",
+      "source_type": "json"
+    },
+    {
+      "content": "Samáriai település Jákób kútja közelében, ahol Jézus a samáriai asszonnyal beszélgetett. A mai Aszkár környékével azonosítják.",
+      "evidence_id": "EV-PLACE-0014",
+      "language": "hu",
+      "metadata": {
+        "identification_status": "probable",
+        "place_id": "sychar"
+      },
+      "passage": "Jn 4,5",
+      "relation_type": "place_catalog",
+      "relevance_score": 75,
+      "source_id": "biblical_places_catalog",
+      "source_type": "json"
+    },
+    {
+      "content": "ὁ (G3588) — EN: the/this/who; HU: a, az",
+      "evidence_id": "EV-LEX-0003",
+      "language": "grc",
+      "metadata": {
+        "lexicon_source_ids": [
+          "stepbible_tbesg",
+          "lexicon_hu_overlay"
+        ],
+        "strong_id": "G3588",
+        "token_count_in_passage": 99
+      },
+      "passage": "John.4.1-42",
+      "relation_type": "lexical_highlight",
+      "relevance_score": 70,
+      "source_id": "stepbible_tbesg",
+      "source_type": "sqlite"
+    },
+    {
+      "content": "αὐτός (G0846) — EN: it/s/he; HU: ő; maga",
+      "evidence_id": "EV-LEX-0004",
+      "language": "grc",
+      "metadata": {
+        "lexicon_source_ids": [
+          "stepbible_tbesg",
+          "lexicon_hu_overlay"
+        ],
+        "strong_id": "G0846",
+        "token_count_in_passage": 44
+      },
+      "passage": "John.4.1-42",
+      "relation_type": "lexical_highlight",
+      "relevance_score": 70,
+      "source_id": "stepbible_tbesg",
+      "source_type": "sqlite"
+    },
+    {
+      "content": "καί (G2532) — EN: and; HU: és",
+      "evidence_id": "EV-LEX-0005",
+      "language": "grc",
+      "metadata": {
+        "lexicon_source_ids": [
+          "stepbible_tbesg",
+          "lexicon_hu_overlay"
+        ],
+        "strong_id": "G2532",
+        "token_count_in_passage": 37
+      },
+      "passage": "John.4.1-42",
+      "relation_type": "lexical_highlight",
+      "relevance_score": 70,
+      "source_id": "stepbible_tbesg",
+      "source_type": "sqlite"
+    },
+    {
+      "content": "εἰμί (G1510) — EN: to be; HU: van; lenni",
+      "evidence_id": "EV-LEX-0006",
+      "language": "grc",
+      "metadata": {
+        "lexicon_source_ids": [
+          "stepbible_tbesg",
+          "lexicon_hu_overlay"
+        ],
+        "strong_id": "G1510",
+        "token_count_in_passage": 20
+      },
+      "passage": "John.4.1-42",
+      "relation_type": "lexical_highlight",
+      "relevance_score": 70,
+      "source_id": "stepbible_tbesg",
+      "source_type": "sqlite"
+    },
+    {
+      "content": "λέγω (G3004G) — HU: mond; szól",
+      "evidence_id": "EV-LEX-0007",
+      "language": "grc",
+      "metadata": {
+        "lexicon_source_ids": [
+          "lexicon_hu_overlay"
+        ],
+        "strong_id": "G3004G",
+        "token_count_in_passage": 20
+      },
+      "passage": "John.4.1-42",
+      "relation_type": "lexical_highlight",
+      "relevance_score": 70,
+      "source_id": "lexicon_hu_overlay",
+      "source_type": "json"
+    },
+    {
+      "content": "σύ (G4771) — EN: you; HU: te",
+      "evidence_id": "EV-LEX-0008",
+      "language": "grc",
+      "metadata": {
+        "lexicon_source_ids": [
+          "stepbible_tbesg",
+          "lexicon_hu_overlay"
+        ],
+        "strong_id": "G4771",
+        "token_count_in_passage": 19
+      },
+      "passage": "John.4.1-42",
+      "relation_type": "lexical_highlight",
+      "relevance_score": 70,
+      "source_id": "stepbible_tbesg",
+      "source_type": "sqlite"
+    },
+    {
+      "content": "ὅτι (G3754G) — HU: hogy; mert",
+      "evidence_id": "EV-LEX-0009",
+      "language": "grc",
+      "metadata": {
+        "lexicon_source_ids": [
+          "lexicon_hu_overlay"
+        ],
+        "strong_id": "G3754G",
+        "token_count_in_passage": 14
+      },
+      "passage": "John.4.1-42",
+      "relation_type": "lexical_highlight",
+      "relevance_score": 70,
+      "source_id": "lexicon_hu_overlay",
+      "source_type": "json"
+    },
+    {
+      "content": "γυνή (G1135G) — HU: nő",
+      "evidence_id": "EV-LEX-0010",
+      "language": "grc",
+      "metadata": {
+        "lexicon_source_ids": [
+          "lexicon_hu_overlay"
+        ],
+        "strong_id": "G1135G",
+        "token_count_in_passage": 13
+      },
+      "passage": "John.4.1-42",
+      "relation_type": "lexical_highlight",
+      "relevance_score": 70,
+      "source_id": "lexicon_hu_overlay",
+      "source_type": "json"
+    },
+    {
+      "content": "Ἰησοῦς (G2424G) — HU: Jézus",
+      "evidence_id": "EV-LEX-0011",
+      "language": "grc",
+      "metadata": {
+        "lexicon_source_ids": [
+          "lexicon_hu_overlay"
+        ],
+        "strong_id": "G2424G",
+        "token_count_in_passage": 12
+      },
+      "passage": "John.4.1-42",
+      "relation_type": "lexical_highlight",
+      "relevance_score": 70,
+      "source_id": "lexicon_hu_overlay",
+      "source_type": "json"
+    },
+    {
+      "content": "μέ (G3165) — EN: me; HU: engem",
+      "evidence_id": "EV-LEX-0012",
+      "language": "grc",
+      "metadata": {
+        "lexicon_source_ids": [
+          "stepbible_tbesg",
+          "lexicon_hu_overlay"
+        ],
+        "strong_id": "G3165",
+        "token_count_in_passage": 12
+      },
+      "passage": "John.4.1-42",
+      "relation_type": "lexical_highlight",
+      "relevance_score": 70,
+      "source_id": "stepbible_tbesg",
+      "source_type": "sqlite"
+    },
+    {
+      "content": "ὅς (G3739) — EN: which; HU: aki; amely",
+      "evidence_id": "EV-LEX-0013",
+      "language": "grc",
+      "metadata": {
+        "lexicon_source_ids": [
+          "stepbible_tbesg",
+          "lexicon_hu_overlay"
+        ],
+        "strong_id": "G3739",
+        "token_count_in_passage": 12
+      },
+      "passage": "John.4.1-42",
+      "relation_type": "lexical_highlight",
+      "relevance_score": 70,
+      "source_id": "stepbible_tbesg",
+      "source_type": "sqlite"
+    },
+    {
+      "content": "ἔρχομαι (G2064) — EN: to come/go; HU: jön; megy",
+      "evidence_id": "EV-LEX-0014",
+      "language": "grc",
+      "metadata": {
+        "lexicon_source_ids": [
+          "stepbible_tbesg",
+          "lexicon_hu_overlay"
+        ],
+        "strong_id": "G2064",
+        "token_count_in_passage": 11
+      },
+      "passage": "John.4.1-42",
+      "relation_type": "lexical_highlight",
+      "relevance_score": 70,
+      "source_id": "stepbible_tbesg",
+      "source_type": "sqlite"
+    },
+    {
+      "content": "Jeruzsálem a passage-indexben 956 bibliai hivatkozáshoz kapcsolódik. A route-adatok 3 bibliai útvonalhoz kötik. Jeruzsálem a bibliai elbeszélés központi városa, a Templom és több újszövetségi esemény helyszíne.",
+      "evidence_id": "EV-PLACE-0005",
+      "language": "hu",
+      "metadata": {
+        "confidence": "high",
+        "enrichment_source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "place_id": "jerusalem",
+        "review_status": "source_backed",
+        "section_key": "biblical_significance"
+      },
+      "passage": "Jn 4,20",
+      "relation_type": "place_enrichment",
+      "relevance_score": 45,
+      "source_id": "place_enrichments_overlay",
+      "source_type": "json"
+    },
+    {
+      "content": "Felmegy és köszönti a gyülekezetet; a route ezt Jeruzsálem valószínű értelmezéseként jelöli. Felmennek Jeruzsálembe, ahol a testvérek fogadják őket. Pál Jeruzsálemben kerül őrizetbe, majd a továbbszállítás előkészítése megtörténik. (ApCsel 18,22, ApCsel 21,15-17, ApCsel 21,17-23,22)",
+      "evidence_id": "EV-PLACE-0006",
+      "language": "hu",
+      "metadata": {
+        "confidence": "high",
+        "enrichment_source_ids": [
+          "openbible_geocoding_cc_by_4_0"
+        ],
+        "place_id": "jerusalem",
+        "review_status": "source_backed",
+        "section_key": "key_events"
+      },
+      "passage": "Jn 4,20",
+      "relation_type": "place_enrichment",
+      "relevance_score": 45,
+      "source_id": "place_enrichments_overlay",
+      "source_type": "json"
+    }
+  ],
+  "historical_evidence": [
+    {
+      "confidence": "high",
+      "place_id": "jerusalem",
+      "section_key": "biblical_significance",
+      "source_id": "place_enrichments_overlay",
+      "text_hu": "Jeruzsálem a passage-indexben 956 bibliai hivatkozáshoz kapcsolódik. A route-adatok 3 bibliai útvonalhoz kötik. Jeruzsálem a bibliai elbeszélés központi városa, a Templom és több újszövetségi esemény helyszíne."
+    },
+    {
+      "confidence": "high",
+      "place_id": "jerusalem",
+      "section_key": "key_events",
+      "source_id": "place_enrichments_overlay",
+      "text_hu": "Felmegy és köszönti a gyülekezetet; a route ezt Jeruzsálem valószínű értelmezéseként jelöli. Felmennek Jeruzsálembe, ahol a testvérek fogadják őket. Pál Jeruzsálemben kerül őrizetbe, majd a továbbszállítás előkészítése megtörténik. (ApCsel 18,22, ApCsel 21,15-17, ApCsel 21,17-23,22)"
+    }
+  ],
+  "linguistic_evidence": {
+    "lexical_highlights": [
+      {
+        "gloss_en": "the/this/who",
+        "gloss_hu": "a, az",
+        "lemma": "ὁ",
+        "source_ids": [
+          "stepbible_tbesg",
+          "lexicon_hu_overlay"
+        ],
+        "strong_id": "G3588",
+        "token_count_in_passage": 99
+      },
+      {
+        "gloss_en": "it/s/he",
+        "gloss_hu": "ő; maga",
+        "lemma": "αὐτός",
+        "source_ids": [
+          "stepbible_tbesg",
+          "lexicon_hu_overlay"
+        ],
+        "strong_id": "G0846",
+        "token_count_in_passage": 44
+      },
+      {
+        "gloss_en": "and",
+        "gloss_hu": "és",
+        "lemma": "καί",
+        "source_ids": [
+          "stepbible_tbesg",
+          "lexicon_hu_overlay"
+        ],
+        "strong_id": "G2532",
+        "token_count_in_passage": 37
+      },
+      {
+        "gloss_en": "to be",
+        "gloss_hu": "van; lenni",
+        "lemma": "εἰμί",
+        "source_ids": [
+          "stepbible_tbesg",
+          "lexicon_hu_overlay"
+        ],
+        "strong_id": "G1510",
+        "token_count_in_passage": 20
+      },
+      {
+        "gloss_en": null,
+        "gloss_hu": "mond; szól",
+        "lemma": "λέγω",
+        "source_ids": [
+          "lexicon_hu_overlay"
+        ],
+        "strong_id": "G3004G",
+        "token_count_in_passage": 20
+      },
+      {
+        "gloss_en": "you",
+        "gloss_hu": "te",
+        "lemma": "σύ",
+        "source_ids": [
+          "stepbible_tbesg",
+          "lexicon_hu_overlay"
+        ],
+        "strong_id": "G4771",
+        "token_count_in_passage": 19
+      },
+      {
+        "gloss_en": null,
+        "gloss_hu": "hogy; mert",
+        "lemma": "ὅτι",
+        "source_ids": [
+          "lexicon_hu_overlay"
+        ],
+        "strong_id": "G3754G",
+        "token_count_in_passage": 14
+      },
+      {
+        "gloss_en": null,
+        "gloss_hu": "nő",
+        "lemma": "γυνή",
+        "source_ids": [
+          "lexicon_hu_overlay"
+        ],
+        "strong_id": "G1135G",
+        "token_count_in_passage": 13
+      },
+      {
+        "gloss_en": null,
+        "gloss_hu": "Jézus",
+        "lemma": "Ἰησοῦς",
+        "source_ids": [
+          "lexicon_hu_overlay"
+        ],
+        "strong_id": "G2424G",
+        "token_count_in_passage": 12
+      },
+      {
+        "gloss_en": "me",
+        "gloss_hu": "engem",
+        "lemma": "μέ",
+        "source_ids": [
+          "stepbible_tbesg",
+          "lexicon_hu_overlay"
+        ],
+        "strong_id": "G3165",
+        "token_count_in_passage": 12
+      },
+      {
+        "gloss_en": "which",
+        "gloss_hu": "aki; amely",
+        "lemma": "ὅς",
+        "source_ids": [
+          "stepbible_tbesg",
+          "lexicon_hu_overlay"
+        ],
+        "strong_id": "G3739",
+        "token_count_in_passage": 12
+      },
+      {
+        "gloss_en": "to come/go",
+        "gloss_hu": "jön; megy",
+        "lemma": "ἔρχομαι",
+        "source_ids": [
+          "stepbible_tbesg",
+          "lexicon_hu_overlay"
+        ],
+        "strong_id": "G2064",
+        "token_count_in_passage": 11
+      }
+    ],
+    "passage_token_set": {
+      "token_count": 723,
+      "verse_count": 42,
+      "verses": [
+        {
+          "token_count": 18,
+          "tokens": [
+            {
+              "greek_form": "Ὡς",
+              "lemma": "ὡς",
+              "morph_code": "PRT",
+              "strong_id": "G5613",
+              "word_index": 1
+            },
+            {
+              "greek_form": "οὖν",
+              "lemma": "οὖν",
+              "morph_code": "CONJ",
+              "strong_id": "G3767",
+              "word_index": 2
+            },
+            {
+              "greek_form": "ἔγνω",
+              "lemma": "γινώσκω",
+              "morph_code": "V-2AAI-3S",
+              "strong_id": "G1097",
+              "word_index": 3
+            },
+            {
+              "greek_form": "ὁ",
+              "lemma": "ὁ",
+              "morph_code": "T-NSM",
+              "strong_id": "G3588",
+              "word_index": 4
+            },
+            {
+              "greek_form": "Ἰησοῦς",
+              "lemma": "Ἰησοῦς",
+              "morph_code": "N-NSM-P",
+              "strong_id": "G2424G",
+              "word_index": 5
+            },
+            {
+              "greek_form": "ὅτι",
+              "lemma": "ὅτι",
+              "morph_code": "CONJ",
+              "strong_id": "G3754G",
+              "word_index": 6
+            },
+            {
+              "greek_form": "ἤκουσαν",
+              "lemma": "ἀκούω",
+              "morph_code": "V-AAI-3P",
+              "strong_id": "G0191",
+              "word_index": 7
+            },
+            {
+              "greek_form": "οἱ",
+              "lemma": "ὁ",
+              "morph_code": "T-NPM",
+              "strong_id": "G3588",
+              "word_index": 8
+            },
+            {
+              "greek_form": "Φαρισαῖοι",
+              "lemma": "Φαρισαῖος",
+              "morph_code": "N-NPM-T",
+              "strong_id": "G5330",
+              "word_index": 9
+            },
+            {
+              "greek_form": "ὅτι",
+              "lemma": "ὅτι",
+              "morph_code": "CONJ",
+              "strong_id": "G3754G",
+              "word_index": 10
+            },
+            {
+              "greek_form": "Ἰησοῦς",
+              "lemma": "Ἰησοῦς",
+              "morph_code": "N-NSM-P",
+              "strong_id": "G2424G",
+              "word_index": 11
+            },
+            {
+              "greek_form": "πλείονας",
+              "lemma": "πλείων, πλεῖον",
+              "morph_code": "A-APM-C",
+              "strong_id": "G4119",
+              "word_index": 12
+            },
+            {
+              "greek_form": "μαθητὰς",
+              "lemma": "μαθητής",
+              "morph_code": "N-APM",
+              "strong_id": "G3101",
+              "word_index": 13
+            },
+            {
+              "greek_form": "ποιεῖ",
+              "lemma": "ποιέω",
+              "morph_code": "V-PAI-3S",
+              "strong_id": "G4160G",
+              "word_index": 14
+            },
+            {
+              "greek_form": "καὶ",
+              "lemma": "καί",
+              "morph_code": "CONJ",
+              "strong_id": "G2532",
+              "word_index": 15
+            },
+            {
+              "greek_form": "βαπτίζει",
+              "lemma": "βαπτίζω",
+              "morph_code": "V-PAI-3S",
+              "strong_id": "G0907",
+              "word_index": 16
+            },
+            {
+              "greek_form": "ἢ",
+              "lemma": "ἤ",
+              "morph_code": "CONJ",
+              "strong_id": "G2228",
+              "word_index": 17
+            },
+            {
+              "greek_form": "Ἰωάννης,",
+              "lemma": "Ἰωάννης",
+              "morph_code": "N-NSM-P",
+              "strong_id": "G2491G",
+              "word_index": 18
+            }
+          ],
+          "verse": 1
+        },
+        {
+          "token_count": 9,
+          "tokens": [
+            {
+              "greek_form": "καίτοιγε",
+              "lemma": "καί",
+              "morph_code": "CONJ + G5104=PRT + G1065=PRT",
+              "strong_id": "G2532",
+              "word_index": 1
+            },
+            {
+              "greek_form": "Ἰησοῦς",
+              "lemma": "Ἰησοῦς",
+              "morph_code": "N-NSM-P",
+              "strong_id": "G2424G",
+              "word_index": 2
+            },
+            {
+              "greek_form": "αὐτὸς",
+              "lemma": "αὐτός",
+              "morph_code": "P-NSM",
+              "strong_id": "G0846",
+              "word_index": 3
+            },
+            {
+              "greek_form": "οὐκ",
+              "lemma": "οὐ",
+              "morph_code": "PRT-N",
+              "strong_id": "G3756",
+              "word_index": 4
+            },
+            {
+              "greek_form": "ἐβάπτιζεν",
+              "lemma": "βαπτίζω",
+              "morph_code": "V-IAI-3S",
+              "strong_id": "G0907",
+              "word_index": 5
+            },
+            {
+              "greek_form": "ἀλλ᾽",
+              "lemma": "ἀλλά",
+              "morph_code": "CONJ",
+              "strong_id": "G0235",
+              "word_index": 6
+            },
+            {
+              "greek_form": "οἱ",
+              "lemma": "ὁ",
+              "morph_code": "T-NPM",
+              "strong_id": "G3588",
+              "word_index": 7
+            },
+            {
+              "greek_form": "μαθηταὶ",
+              "lemma": "μαθητής",
+              "morph_code": "N-NPM",
+              "strong_id": "G3101",
+              "word_index": 8
+            },
+            {
+              "greek_form": "αὐτοῦ,",
+              "lemma": "αὐτός",
+              "morph_code": "P-GSM",
+              "strong_id": "G0846",
+              "word_index": 9
+            }
+          ],
+          "verse": 2
+        },
+        {
+          "token_count": 9,
+          "tokens": [
+            {
+              "greek_form": "ἀφῆκεν",
+              "lemma": "ἀφίημι",
+              "morph_code": "V-AAI-3S",
+              "strong_id": "G0863G",
+              "word_index": 1
+            },
+            {
+              "greek_form": "τὴν",
+              "lemma": "ὁ",
+              "morph_code": "T-ASF",
+              "strong_id": "G3588",
+              "word_index": 2
+            },
+            {
+              "greek_form": "Ἰουδαίαν",
+              "lemma": "Ἰουδαία",
+              "morph_code": "N-ASF-L",
+              "strong_id": "G2449",
+              "word_index": 3
+            },
+            {
+              "greek_form": "καὶ",
+              "lemma": "καί",
+              "morph_code": "CONJ",
+              "strong_id": "G2532",
+              "word_index": 4
+            },
+            {
+              "greek_form": "ἀπῆλθεν",
+              "lemma": "ἀπέρχομαι",
+              "morph_code": "V-2AAI-3S",
+              "strong_id": "G0565",
+              "word_index": 5
+            },
+            {
+              "greek_form": "πάλιν",
+              "lemma": "πάλιν",
+              "morph_code": "ADV",
+              "strong_id": "G3825",
+              "word_index": 6
+            },
+            {
+              "greek_form": "εἰς",
+              "lemma": "εἰς",
+              "morph_code": "PREP",
+              "strong_id": "G1519",
+              "word_index": 7
+            },
+            {
+              "greek_form": "τὴν",
+              "lemma": "ὁ",
+              "morph_code": "T-ASF",
+              "strong_id": "G3588",
+              "word_index": 8
+            },
+            {
+              "greek_form": "Γαλιλαίαν.",
+              "lemma": "Γαλιλαία",
+              "morph_code": "N-ASF-L",
+              "strong_id": "G1056G",
+              "word_index": 9
+            }
+          ],
+          "verse": 3
+        },
+        {
+          "token_count": 7,
+          "tokens": [
+            {
+              "greek_form": "ἔδει",
+              "lemma": "δεῖ",
+              "morph_code": "V-IAI-3S",
+              "strong_id": "G1163",
+              "word_index": 1
+            },
+            {
+              "greek_form": "δὲ",
+              "lemma": "δέ",
+              "morph_code": "CONJ",
+              "strong_id": "G1161",
+              "word_index": 2
+            },
+            {
+              "greek_form": "αὐτὸν",
+              "lemma": "αὐτός",
+              "morph_code": "P-ASM",
+              "strong_id": "G0846",
+              "word_index": 3
+            },
+            {
+              "greek_form": "διέρχεσθαι",
+              "lemma": "διέρχομαι",
+              "morph_code": "V-PNN",
+              "strong_id": "G1330",
+              "word_index": 4
+            },
+            {
+              "greek_form": "διὰ",
+              "lemma": "διά",
+              "morph_code": "PREP",
+              "strong_id": "G1223",
+              "word_index": 5
+            },
+            {
+              "greek_form": "τῆς",
+              "lemma": "ὁ",
+              "morph_code": "T-GSF",
+              "strong_id": "G3588",
+              "word_index": 6
+            },
+            {
+              "greek_form": "Σαμαρείας.",
+              "lemma": "Σαμάρεια",
+              "morph_code": "N-GSF-L",
+              "strong_id": "G4540",
+              "word_index": 7
+            }
+          ],
+          "verse": 4
+        },
+        {
+          "token_count": 19,
+          "tokens": [
+            {
+              "greek_form": "ἔρχεται",
+              "lemma": "ἔρχομαι",
+              "morph_code": "V-PNI-3S",
+              "strong_id": "G2064",
+              "word_index": 1
+            },
+            {
+              "greek_form": "οὖν",
+              "lemma": "οὖν",
+              "morph_code": "CONJ",
+              "strong_id": "G3767",
+              "word_index": 2
+            },
+            {
+              "greek_form": "εἰς",
+              "lemma": "εἰς",
+              "morph_code": "PREP",
+              "strong_id": "G1519",
+              "word_index": 3
+            },
+            {
+              "greek_form": "πόλιν",
+              "lemma": "πόλις",
+              "morph_code": "N-ASF",
+              "strong_id": "G4172",
+              "word_index": 4
+            },
+            {
+              "greek_form": "τῆς",
+              "lemma": "ὁ",
+              "morph_code": "T-GSF",
+              "strong_id": "G3588",
+              "word_index": 5
+            },
+            {
+              "greek_form": "Σαμαρείας",
+              "lemma": "Σαμάρεια",
+              "morph_code": "N-GSF-L",
+              "strong_id": "G4540",
+              "word_index": 6
+            },
+            {
+              "greek_form": "λεγομένην",
+              "lemma": "λέγω",
+              "morph_code": "V-PPP-ASF",
+              "strong_id": "G3004H",
+              "word_index": 7
+            },
+            {
+              "greek_form": "Συχάρ,",
+              "lemma": "Συχάρ",
+              "morph_code": "N-ASF-L",
+              "strong_id": "G4965",
+              "word_index": 8
+            },
+            {
+              "greek_form": "πλησίον",
+              "lemma": "πλησίον",
+              "morph_code": "N-NSF",
+              "strong_id": "G4139",
+              "word_index": 9
+            },
+            {
+              "greek_form": "τοῦ",
+              "lemma": "ὁ",
+              "morph_code": "T-GSN",
+              "strong_id": "G3588",
+              "word_index": 10
+            },
+            {
+              "greek_form": "χωρίου",
+              "lemma": "χωρίον",
+              "morph_code": "N-GSN",
+              "strong_id": "G5564G",
+              "word_index": 11
+            },
+            {
+              "greek_form": "ὃ",
+              "lemma": "ὅς, ἥ",
+              "morph_code": "R-ASN",
+              "strong_id": "G3739",
+              "word_index": 12
+            },
+            {
+              "greek_form": "ἔδωκεν",
+              "lemma": "δίδωμι",
+              "morph_code": "V-AAI-3S",
+              "strong_id": "G1325",
+              "word_index": 13
+            },
+            {
+              "greek_form": "Ἰακὼβ",
+              "lemma": "Ἰακώβ",
+              "morph_code": "N-NSM-P",
+              "strong_id": "G2384H",
+              "word_index": 14
+            },
+            {
+              "greek_form": "τῷ",
+              "lemma": "ὁ",
+              "morph_code": "T-DSM",
+              "strong_id": "G3588",
+              "word_index": 15
+            },
+            {
+              "greek_form": "Ἰωσὴφ",
+              "lemma": "Ἰωσήφ",
+              "morph_code": "N-DSM-P",
+              "strong_id": "G2501N",
+              "word_index": 16
+            },
+            {
+              "greek_form": "τῷ",
+              "lemma": "ὁ",
+              "morph_code": "T-DSM",
+              "strong_id": "G3588",
+              "word_index": 17
+            },
+            {
+              "greek_form": "υἱῷ",
+              "lemma": "υἱός",
+              "morph_code": "N-DSM",
+              "strong_id": "G5207",
+              "word_index": 18
+            },
+            {
+              "greek_form": "αὐτοῦ·",
+              "lemma": "αὐτός",
+              "morph_code": "P-GSM",
+              "strong_id": "G0846",
+              "word_index": 19
+            }
+          ],
+          "verse": 5
+        },
+        {
+          "token_count": 22,
+          "tokens": [
+            {
+              "greek_form": "ἦν",
+              "lemma": "εἰμί",
+              "morph_code": "V-IAI-3S",
+              "strong_id": "G1510",
+              "word_index": 1
+            },
+            {
+              "greek_form": "δὲ",
+              "lemma": "δέ",
+              "morph_code": "CONJ",
+              "strong_id": "G1161",
+              "word_index": 2
+            },
+            {
+              "greek_form": "ἐκεῖ",
+              "lemma": "ἐκεῖ",
+              "morph_code": "ADV",
+              "strong_id": "G1563",
+              "word_index": 3
+            },
+            {
+              "greek_form": "πηγὴ",
+              "lemma": "πηγή",
+              "morph_code": "N-NSF",
+              "strong_id": "G4077",
+              "word_index": 4
+            },
+            {
+              "greek_form": "τοῦ",
+              "lemma": "ὁ",
+              "morph_code": "T-GSM",
+              "strong_id": "G3588",
+              "word_index": 5
+            },
+            {
+              "greek_form": "Ἰακώβ.",
+              "lemma": "Ἰακώβ",
+              "morph_code": "N-GSM-P",
+              "strong_id": "G2384H",
+              "word_index": 6
+            },
+            {
+              "greek_form": "Ὁ",
+              "lemma": "ὁ",
+              "morph_code": "T-NSM",
+              "strong_id": "G3588",
+              "word_index": 7
+            },
+            {
+              "greek_form": "οὖν",
+              "lemma": "οὖν",
+              "morph_code": "CONJ",
+              "strong_id": "G3767",
+              "word_index": 8
+            },
+            {
+              "greek_form": "Ἰησοῦς",
+              "lemma": "Ἰησοῦς",
+              "morph_code": "N-NSM-P",
+              "strong_id": "G2424G",
+              "word_index": 9
+            },
+            {
+              "greek_form": "κεκοπιακὼς",
+              "lemma": "κοπιάω",
+              "morph_code": "V-RAP-NSM",
+              "strong_id": "G2872",
+              "word_index": 10
+            },
+            {
+              "greek_form": "ἐκ",
+              "lemma": "ἐκ",
+              "morph_code": "PREP",
+              "strong_id": "G1537",
+              "word_index": 11
+            },
+            {
+              "greek_form": "τῆς",
+              "lemma": "ὁ",
+              "morph_code": "T-GSF",
+              "strong_id": "G3588",
+              "word_index": 12
+            },
+            {
+              "greek_form": "ὁδοιπορίας",
+              "lemma": "ὁδοιπορία",
+              "morph_code": "N-GSF",
+              "strong_id": "G3597",
+              "word_index": 13
+            },
+            {
+              "greek_form": "ἐκαθέζετο",
+              "lemma": "καθέζομαι",
+              "morph_code": "V-INI-3S",
+              "strong_id": "G2516",
+              "word_index": 14
+            },
+            {
+              "greek_form": "οὕτως",
+              "lemma": "οὕτω, οὕτως",
+              "morph_code": "ADV",
+              "strong_id": "G3779",
+              "word_index": 15
+            },
+            {
+              "greek_form": "ἐπὶ",
+              "lemma": "ἐπί",
+              "morph_code": "PREP",
+              "strong_id": "G1909",
+              "word_index": 16
+            },
+            {
+              "greek_form": "τῇ",
+              "lemma": "ὁ",
+              "morph_code": "T-DSF",
+              "strong_id": "G3588",
+              "word_index": 17
+            },
+            {
+              "greek_form": "πηγῇ·",
+              "lemma": "πηγή",
+              "morph_code": "N-DSF",
+              "strong_id": "G4077",
+              "word_index": 18
+            },
+            {
+              "greek_form": "ὥρα",
+              "lemma": "ὥρα",
+              "morph_code": "N-NSF",
+              "strong_id": "G5610",
+              "word_index": 19
+            },
+            {
+              "greek_form": "ἦν",
+              "lemma": "εἰμί",
+              "morph_code": "V-IAI-3S",
+              "strong_id": "G1510",
+              "word_index": 20
+            },
+            {
+              "greek_form": "ὡς",
+              "lemma": "ὡς",
+              "morph_code": "PRT",
+              "strong_id": "G5613",
+              "word_index": 21
+            },
+            {
+              "greek_form": "ἕκτη.",
+              "lemma": "ἕκτος",
+              "morph_code": "A-NSF",
+              "strong_id": "G1623",
+              "word_index": 22
+            }
+          ],
+          "verse": 6
+        },
+        {
+          "token_count": 14,
+          "tokens": [
+            {
+              "greek_form": "Ἔρχεται",
+              "lemma": "ἔρχομαι",
+              "morph_code": "V-PNI-3S",
+              "strong_id": "G2064",
+              "word_index": 1
+            },
+            {
+              "greek_form": "γυνὴ",
+              "lemma": "γυνή",
+              "morph_code": "N-NSF",
+              "strong_id": "G1135G",
+              "word_index": 2
+            },
+            {
+              "greek_form": "ἐκ",
+              "lemma": "ἐκ",
+              "morph_code": "PREP",
+              "strong_id": "G1537",
+              "word_index": 3
+            },
+            {
+              "greek_form": "τῆς",
+              "lemma": "ὁ",
+              "morph_code": "T-GSF",
+              "strong_id": "G3588",
+              "word_index": 4
+            },
+            {
+              "greek_form": "Σαμαρείας",
+              "lemma": "Σαμάρεια",
+              "morph_code": "N-GSF-L",
+              "strong_id": "G4540",
+              "word_index": 5
+            },
+            {
+              "greek_form": "ἀντλῆσαι",
+              "lemma": "ἀντλέω",
+              "morph_code": "V-AAN",
+              "strong_id": "G0501",
+              "word_index": 6
+            },
+            {
+              "greek_form": "ὕδωρ.",
+              "lemma": "ὕδωρ, ὕδατος",
+              "morph_code": "N-ASN",
+              "strong_id": "G5204",
+              "word_index": 7
+            },
+            {
+              "greek_form": "λέγει",
+              "lemma": "λέγω",
+              "morph_code": "V-PAI-3S",
+              "strong_id": "G3004G",
+              "word_index": 8
+            },
+            {
+              "greek_form": "αὐτῇ",
+              "lemma": "αὐτός",
+              "morph_code": "P-DSF",
+              "strong_id": "G0846",
+              "word_index": 9
+            },
+            {
+              "greek_form": "ὁ",
+              "lemma": "ὁ",
+              "morph_code": "T-NSM",
+              "strong_id": "G3588",
+              "word_index": 10
+            },
+            {
+              "greek_form": "Ἰησοῦς·",
+              "lemma": "Ἰησοῦς",
+              "morph_code": "N-NSM-P",
+              "strong_id": "G2424G",
+              "word_index": 11
+            },
+            {
+              "greek_form": "δός",
+              "lemma": "δίδωμι",
+              "morph_code": "V-2AAM-2S",
+              "strong_id": "G1325",
+              "word_index": 12
+            },
+            {
+              "greek_form": "μοι",
+              "lemma": "ἐγώ",
+              "morph_code": "P-1DS",
+              "strong_id": "G3165",
+              "word_index": 13
+            },
+            {
+              "greek_form": "πεῖν.",
+              "lemma": "πίνω",
+              "morph_code": "V-2AAN",
+              "strong_id": "G4095",
+              "word_index": 14
+            }
+          ],
+          "verse": 7
+        },
+        {
+          "token_count": 11,
+          "tokens": [
+            {
+              "greek_form": "οἱ",
+              "lemma": "ὁ",
+              "morph_code": "T-NPM",
+              "strong_id": "G3588",
+              "word_index": 1
+            },
+            {
+              "greek_form": "γὰρ",
+              "lemma": "γάρ",
+              "morph_code": "CONJ",
+              "strong_id": "G1063",
+              "word_index": 2
+            },
+            {
+              "greek_form": "μαθηταὶ",
+              "lemma": "μαθητής",
+              "morph_code": "N-NPM",
+              "strong_id": "G3101",
+              "word_index": 3
+            },
+            {
+              "greek_form": "αὐτοῦ",
+              "lemma": "αὐτός",
+              "morph_code": "P-GSM",
+              "strong_id": "G0846",
+              "word_index": 4
+            },
+            {
+              "greek_form": "ἀπεληλύθεισαν",
+              "lemma": "ἀπέρχομαι",
+              "morph_code": "V-2LAI-3P",
+              "strong_id": "G0565",
+              "word_index": 5
+            },
+            {
+              "greek_form": "εἰς",
+              "lemma": "εἰς",
+              "morph_code": "PREP",
+              "strong_id": "G1519",
+              "word_index": 6
+            },
+            {
+              "greek_form": "τὴν",
+              "lemma": "ὁ",
+              "morph_code": "T-ASF",
+              "strong_id": "G3588",
+              "word_index": 7
+            },
+            {
+              "greek_form": "πόλιν",
+              "lemma": "πόλις",
+              "morph_code": "N-ASF",
+              "strong_id": "G4172",
+              "word_index": 8
+            },
+            {
+              "greek_form": "ἵνα",
+              "lemma": "ἵνα",
+              "morph_code": "CONJ",
+              "strong_id": "G2443",
+              "word_index": 9
+            },
+            {
+              "greek_form": "τροφὰς",
+              "lemma": "τροφή",
+              "morph_code": "N-APF",
+              "strong_id": "G5160",
+              "word_index": 10
+            },
+            {
+              "greek_form": "ἀγοράσωσιν.",
+              "lemma": "ἀγοράζω",
+              "morph_code": "V-AAS-3P",
+              "strong_id": "G0059",
+              "word_index": 11
+            }
+          ],
+          "verse": 8
+        },
+        {
+          "token_count": 23,
+          "tokens": [
+            {
+              "greek_form": "λέγει",
+              "lemma": "λέγω",
+              "morph_code": "V-PAI-3S",
+              "strong_id": "G3004G",
+              "word_index": 1
+            },
+            {
+              "greek_form": "οὖν",
+              "lemma": "οὖν",
+              "morph_code": "CONJ",
+              "strong_id": "G3767",
+              "word_index": 2
+            },
+            {
+              "greek_form": "αὐτῷ",
+              "lemma": "αὐτός",
+              "morph_code": "P-DSM",
+              "strong_id": "G0846",
+              "word_index": 3
+            },
+            {
+              "greek_form": "ἡ",
+              "lemma": "ὁ",
+              "morph_code": "T-NSF",
+              "strong_id": "G3588",
+              "word_index": 4
+            },
+            {
+              "greek_form": "γυνὴ",
+              "lemma": "γυνή",
+              "morph_code": "N-NSF",
+              "strong_id": "G1135G",
+              "word_index": 5
+            },
+            {
+              "greek_form": "ἡ",
+              "lemma": "ὁ",
+              "morph_code": "T-NSF",
+              "strong_id": "G3588",
+              "word_index": 6
+            },
+            {
+              "greek_form": "Σαμαρῖτις·",
+              "lemma": "Σαμαρεῖτις",
+              "morph_code": "N-NSF-LG",
+              "strong_id": "G4542",
+              "word_index": 7
+            },
+            {
+              "greek_form": "πῶς",
+              "lemma": "πως",
+              "morph_code": "PRT-I",
+              "strong_id": "G4459",
+              "word_index": 8
+            },
+            {
+              "greek_form": "σὺ",
+              "lemma": "σύ",
+              "morph_code": "P-2NS",
+              "strong_id": "G4771",
+              "word_index": 9
+            },
+            {
+              "greek_form": "Ἰουδαῖος",
+              "lemma": "Ἰουδαῖος",
+              "morph_code": "N-NSM-PG",
+              "strong_id": "G2453",
+              "word_index": 10
+            },
+            {
+              "greek_form": "ὢν",
+              "lemma": "εἰμί",
+              "morph_code": "V-PAP-NSM",
+              "strong_id": "G1510",
+              "word_index": 11
+            },
+            {
+              "greek_form": "παρ᾽",
+              "lemma": "παρά",
+              "morph_code": "PREP",
+              "strong_id": "G3844",
+              "word_index": 12
+            },
+            {
+              "greek_form": "ἐμοῦ",
+              "lemma": "ἐγώ",
+              "morph_code": "S-1SGSN",
+              "strong_id": "G1473",
+              "word_index": 13
+            },
+            {
+              "greek_form": "πεῖν",
+              "lemma": "πίνω",
+              "morph_code": "V-2AAN",
+              "strong_id": "G4095",
+              "word_index": 14
+            },
+            {
+              "greek_form": "αἰτεῖς",
+              "lemma": "αἰτέω",
+              "morph_code": "V-PAI-2S",
+              "strong_id": "G0154",
+              "word_index": 15
+            },
+            {
+              "greek_form": "γυναικὸς",
+              "lemma": "γυνή",
+              "morph_code": "N-GSF",
+              "strong_id": "G1135G",
+              "word_index": 16
+            },
+            {
+              "greek_form": "Σαμαρίτιδος",
+              "lemma": "Σαμαρεῖτις",
+              "morph_code": "N-GSF-LG",
+              "strong_id": "G4542",
+              "word_index": 17
+            },
+            {
+              "greek_form": "οὔσης;",
+              "lemma": "εἰμί",
+              "morph_code": "V-PAP-GSF",
+              "strong_id": "G1510",
+              "word_index": 18
+            },
+            {
+              "greek_form": "οὐ",
+              "lemma": "οὐ",
+              "morph_code": "PRT-N",
+              "strong_id": "G3756",
+              "word_index": 19
+            },
+            {
+              "greek_form": "γὰρ",
+              "lemma": "γάρ",
+              "morph_code": "CONJ",
+              "strong_id": "G1063",
+              "word_index": 20
+            },
+            {
+              "greek_form": "συγχρῶνται",
+              "lemma": "συγχράομαι",
+              "morph_code": "V-PNI-3P",
+              "strong_id": "G4798",
+              "word_index": 21
+            },
+            {
+              "greek_form": "Ἰουδαῖοι",
+              "lemma": "Ἰουδαῖος",
+              "morph_code": "N-NPM-PG",
+              "strong_id": "G2453",
+              "word_index": 22
+            },
+            {
+              "greek_form": "Σαμαρίταις.",
+              "lemma": "Σαμαρείτης",
+              "morph_code": "N-DPM-LG",
+              "strong_id": "G4541",
+              "word_index": 23
+            }
+          ],
+          "verse": 9
+        },
+        {
+          "token_count": 30,
+          "tokens": [
+            {
+              "greek_form": "Ἀπεκρίθη",
+              "lemma": "ἀποκρίνω",
+              "morph_code": "V-ADI-3S",
+              "strong_id": "G0611",
+              "word_index": 1
+            },
+            {
+              "greek_form": "Ἰησοῦς",
+              "lemma": "Ἰησοῦς",
+              "morph_code": "N-NSM-P",
+              "strong_id": "G2424G",
+              "word_index": 2
+            },
+            {
+              "greek_form": "καὶ",
+              "lemma": "καί",
+              "morph_code": "CONJ",
+              "strong_id": "G2532",
+              "word_index": 3
+            },
+            {
+              "greek_form": "εἶπεν",
+              "lemma": "ἔπω, ἐρῶ, εἶπον",
+              "morph_code": "V-2AAI-3S",
+              "strong_id": "G2036",
+              "word_index": 4
+            },
+            {
+              "greek_form": "αὐτῇ·",
+              "lemma": "αὐτός",
+              "morph_code": "P-DSF",
+              "strong_id": "G0846",
+              "word_index": 5
+            },
+            {
+              "greek_form": "εἰ",
+              "lemma": "εἰ",
+              "morph_code": "COND",
+              "strong_id": "G1487G",
+              "word_index": 6
+            },
+            {
+              "greek_form": "ᾔδεις",
+              "lemma": "εἴδω",
+              "morph_code": "V-2LAI-2S",
+              "strong_id": "G1492I",
+              "word_index": 7
+            },
+            {
+              "greek_form": "τὴν",
+              "lemma": "ὁ",
+              "morph_code": "T-ASF",
+              "strong_id": "G3588",
+              "word_index": 8
+            },
+            {
+              "greek_form": "δωρεὰν",
+              "lemma": "δωρεά",
+              "morph_code": "N-ASF",
+              "strong_id": "G1431",
+              "word_index": 9
+            },
+            {
+              "greek_form": "τοῦ",
+              "lemma": "ὁ",
+              "morph_code": "T-GSM",
+              "strong_id": "G3588",
+              "word_index": 10
+            },
+            {
+              "greek_form": "θεοῦ",
+              "lemma": "θεός",
+              "morph_code": "N-GSM-T",
+              "strong_id": "G2316",
+              "word_index": 11
+            },
+            {
+              "greek_form": "καὶ",
+              "lemma": "καί",
+              "morph_code": "CONJ",
+              "strong_id": "G2532",
+              "word_index": 12
+            },
+            {
+              "greek_form": "τίς",
+              "lemma": "τίς",
+              "morph_code": "I-NSM",
+              "strong_id": "G5101",
+              "word_index": 13
+            },
+            {
+              "greek_form": "ἐστιν",
+              "lemma": "εἰμί",
+              "morph_code": "V-PAI-3S",
+              "strong_id": "G1510",
+              "word_index": 14
+            },
+            {
+              "greek_form": "ὁ",
+              "lemma": "ὁ",
+              "morph_code": "T-NSM",
+              "strong_id": "G3588",
+              "word_index": 15
+            },
+            {
+              "greek_form": "λέγων",
+              "lemma": "λέγω",
+              "morph_code": "V-PAP-NSM",
+              "strong_id": "G3004G",
+              "word_index": 16
+            },
+            {
+              "greek_form": "σοι·",
+              "lemma": "σύ",
+              "morph_code": "P-2DS",
+              "strong_id": "G4771",
+              "word_index": 17
+            },
+            {
+              "greek_form": "δός",
+              "lemma": "δίδωμι",
+              "morph_code": "V-2AAM-2S",
+              "strong_id": "G1325",
+              "word_index": 18
+            },
+            {
+              "greek_form": "μοι",
+              "lemma": "ἐγώ",
+              "morph_code": "P-1DS",
+              "strong_id": "G3165",
+              "word_index": 19
+            },
+            {
+              "greek_form": "πεῖν,",
+              "lemma": "πίνω",
+              "morph_code": "V-2AAN",
+              "strong_id": "G4095",
+              "word_index": 20
+            },
+            {
+              "greek_form": "σὺ",
+              "lemma": "σύ",
+              "morph_code": "P-2NS",
+              "strong_id": "G4771",
+              "word_index": 21
+            },
+            {
+              "greek_form": "ἂν",
+              "lemma": "ἄν",
+              "morph_code": "PRT",
+              "strong_id": "G0302",
+              "word_index": 22
+            },
+            {
+              "greek_form": "ᾔτησας",
+              "lemma": "αἰτέω",
+              "morph_code": "V-AAI-2S",
+              "strong_id": "G0154",
+              "word_index": 23
+            },
+            {
+              "greek_form": "αὐτὸν",
+              "lemma": "αὐτός",
+              "morph_code": "P-ASM",
+              "strong_id": "G0846",
+              "word_index": 24
+            },
+            {
+              "greek_form": "καὶ",
+              "lemma": "καί",
+              "morph_code": "CONJ",
+              "strong_id": "G2532",
+              "word_index": 25
+            },
+            {
+              "greek_form": "ἔδωκεν",
+              "lemma": "δίδωμι",
+              "morph_code": "V-AAI-3S",
+              "strong_id": "G1325",
+              "word_index": 26
+            },
+            {
+              "greek_form": "ἄν",
+              "lemma": "ἄν",
+              "morph_code": "PRT",
+              "strong_id": "G0302",
+              "word_index": 27
+            },
+            {
+              "greek_form": "σοι",
+              "lemma": "σύ",
+              "morph_code": "P-2DS",
+              "strong_id": "G4771",
+              "word_index": 28
+            },
+            {
+              "greek_form": "ὕδωρ",
+              "lemma": "ὕδωρ, ὕδατος",
+              "morph_code": "N-ASN",
+              "strong_id": "G5204",
+              "word_index": 29
+            },
+            {
+              "greek_form": "ζῶν.",
+              "lemma": "ζάω",
+              "morph_code": "V-PAP-ASN",
+              "strong_id": "G2198",
+              "word_index": 30
+            }
+          ],
+          "verse": 10
+        },
+        {
+          "token_count": 20,
+          "tokens": [
+            {
+              "greek_form": "λέγει",
+              "lemma": "λέγω",
+              "morph_code": "V-PAI-3S",
+              "strong_id": "G3004G",
+              "word_index": 1
+            },
+            {
+              "greek_form": "αὐτῷ",
+              "lemma": "αὐτός",
+              "morph_code": "P-DSM",
+              "strong_id": "G0846",
+              "word_index": 2
+            },
+            {
+              "greek_form": "ἡ",
+              "lemma": "ὁ",
+              "morph_code": "T-NSF",
+              "strong_id": "G3588",
+              "word_index": 3
+            },
+            {
+              "greek_form": "γυνή·",
+              "lemma": "γυνή",
+              "morph_code": "N-NSF",
+              "strong_id": "G1135G",
+              "word_index": 4
+            },
+            {
+              "greek_form": "κύριε,",
+              "lemma": "κύριος",
+              "morph_code": "N-VSM",
+              "strong_id": "G2962H",
+              "word_index": 5
+            },
+            {
+              "greek_form": "οὔτε",
+              "lemma": "οὔτε",
+              "morph_code": "CONJ-N",
+              "strong_id": "G3777",
+              "word_index": 6
+            },
+            {
+              "greek_form": "ἄντλημα",
+              "lemma": "ἄντλημα",
+              "morph_code": "N-ASN",
+              "strong_id": "G0502",
+              "word_index": 7
+            },
+            {
+              "greek_form": "ἔχεις,",
+              "lemma": "ἔχω",
+              "morph_code": "V-PAI-2S",
+              "strong_id": "G2192",
+              "word_index": 8
+            },
+            {
+              "greek_form": "καὶ",
+              "lemma": "καί",
+              "morph_code": "CONJ",
+              "strong_id": "G2532",
+              "word_index": 9
+            },
+            {
+              "greek_form": "τὸ",
+              "lemma": "ὁ",
+              "morph_code": "T-NSN",
+              "strong_id": "G3588",
+              "word_index": 10
+            },
+            {
+              "greek_form": "φρέαρ",
+              "lemma": "φρέαρ",
+              "morph_code": "N-NSN",
+              "strong_id": "G5421",
+              "word_index": 11
+            },
+            {
+              "greek_form": "ἐστὶν",
+              "lemma": "εἰμί",
+              "morph_code": "V-PAI-3S",
+              "strong_id": "G1510",
+              "word_index": 12
+            },
+            {
+              "greek_form": "βαθύ·",
+              "lemma": "βαθύς",
+              "morph_code": "A-NSN",
+              "strong_id": "G0901",
+              "word_index": 13
+            },
+            {
+              "greek_form": "πόθεν",
+              "lemma": "πόθεν",
+              "morph_code": "ADV-I",
+              "strong_id": "G4159",
+              "word_index": 14
+            },
+            {
+              "greek_form": "οὖν",
+              "lemma": "οὖν",
+              "morph_code": "CONJ",
+              "strong_id": "G3767",
+              "word_index": 15
+            },
+            {
+              "greek_form": "ἔχεις",
+              "lemma": "ἔχω",
+              "morph_code": "V-PAI-2S",
+              "strong_id": "G2192",
+              "word_index": 16
+            },
+            {
+              "greek_form": "τὸ",
+              "lemma": "ὁ",
+              "morph_code": "T-ASN",
+              "strong_id": "G3588",
+              "word_index": 17
+            },
+            {
+              "greek_form": "ὕδωρ",
+              "lemma": "ὕδωρ, ὕδατος",
+              "morph_code": "N-ASN",
+              "strong_id": "G5204",
+              "word_index": 18
+            },
+            {
+              "greek_form": "τὸ",
+              "lemma": "ὁ",
+              "morph_code": "T-ASN",
+              "strong_id": "G3588",
+              "word_index": 19
+            },
+            {
+              "greek_form": "ζῶν;",
+              "lemma": "ζάω",
+              "morph_code": "V-PAP-ASN",
+              "strong_id": "G2198",
+              "word_index": 20
+            }
+          ],
+          "verse": 11
+        },
+        {
+          "token_count": 26,
+          "tokens": [
+            {
+              "greek_form": "μὴ",
+              "lemma": "μή",
+              "morph_code": "PRT-N",
+              "strong_id": "G3361",
+              "word_index": 1
+            },
+            {
+              "greek_form": "σὺ",
+              "lemma": "σύ",
+              "morph_code": "P-2NS",
+              "strong_id": "G4771",
+              "word_index": 2
+            },
+            {
+              "greek_form": "μείζων",
+              "lemma": "μέγας",
+              "morph_code": "A-NSM-C",
+              "strong_id": "G3173",
+              "word_index": 3
+            },
+            {
+              "greek_form": "εἶ",
+              "lemma": "εἰμί",
+              "morph_code": "V-PAI-2S",
+              "strong_id": "G1510",
+              "word_index": 4
+            },
+            {
+              "greek_form": "τοῦ",
+              "lemma": "ὁ",
+              "morph_code": "T-GSM",
+              "strong_id": "G3588",
+              "word_index": 5
+            },
+            {
+              "greek_form": "πατρὸς",
+              "lemma": "πατήρ",
+              "morph_code": "N-GSM",
+              "strong_id": "G3962",
+              "word_index": 6
+            },
+            {
+              "greek_form": "ἡμῶν",
+              "lemma": "ἐγώ",
+              "morph_code": "P-1GP",
+              "strong_id": "G3165",
+              "word_index": 7
+            },
+            {
+              "greek_form": "Ἰακώβ,",
+              "lemma": "Ἰακώβ",
+              "morph_code": "N-GSM-P",
+              "strong_id": "G2384H",
+              "word_index": 8
+            },
+            {
+              "greek_form": "ὃς",
+              "lemma": "ὅς, ἥ",
+              "morph_code": "R-NSM",
+              "strong_id": "G3739",
+              "word_index": 9
+            },
+            {
+              "greek_form": "ἔδωκεν",
+              "lemma": "δίδωμι",
+              "morph_code": "V-AAI-3S",
+              "strong_id": "G1325",
+              "word_index": 10
+            },
+            {
+              "greek_form": "ἡμῖν",
+              "lemma": "ἐγώ",
+              "morph_code": "P-1DP",
+              "strong_id": "G3165",
+              "word_index": 11
+            },
+            {
+              "greek_form": "τὸ",
+              "lemma": "ὁ",
+              "morph_code": "T-ASN",
+              "strong_id": "G3588",
+              "word_index": 12
+            },
+            {
+              "greek_form": "φρέαρ,",
+              "lemma": "φρέαρ",
+              "morph_code": "N-ASN",
+              "strong_id": "G5421",
+              "word_index": 13
+            },
+            {
+              "greek_form": "καὶ",
+              "lemma": "καί",
+              "morph_code": "CONJ",
+              "strong_id": "G2532",
+              "word_index": 14
+            },
+            {
+              "greek_form": "αὐτὸς",
+              "lemma": "αὐτός",
+              "morph_code": "P-NSM",
+              "strong_id": "G0846",
+              "word_index": 15
+            },
+            {
+              "greek_form": "ἐξ",
+              "lemma": "ἐκ",
+              "morph_code": "PREP",
+              "strong_id": "G1537",
+              "word_index": 16
+            },
+            {
+              "greek_form": "αὐτοῦ",
+              "lemma": "αὐτός",
+              "morph_code": "P-GSN",
+              "strong_id": "G0846",
+              "word_index": 17
+            },
+            {
+              "greek_form": "ἔπιεν",
+              "lemma": "πίνω",
+              "morph_code": "V-2AAI-3S",
+              "strong_id": "G4095",
+              "word_index": 18
+            },
+            {
+              "greek_form": "καὶ",
+              "lemma": "καί",
+              "morph_code": "CONJ",
+              "strong_id": "G2532",
+              "word_index": 19
+            },
+            {
+              "greek_form": "οἱ",
+              "lemma": "ὁ",
+              "morph_code": "T-NPM",
+              "strong_id": "G3588",
+              "word_index": 20
+            },
+            {
+              "greek_form": "υἱοὶ",
+              "lemma": "υἱός",
+              "morph_code": "N-NPM",
+              "strong_id": "G5207",
+              "word_index": 21
+            },
+            {
+              "greek_form": "αὐτοῦ",
+              "lemma": "αὐτός",
+              "morph_code": "P-GSM",
+              "strong_id": "G0846",
+              "word_index": 22
+            },
+            {
+              "greek_form": "καὶ",
+              "lemma": "καί",
+              "morph_code": "CONJ",
+              "strong_id": "G2532",
+              "word_index": 23
+            },
+            {
+              "greek_form": "τὰ",
+              "lemma": "ὁ",
+              "morph_code": "T-NPN",
+              "strong_id": "G3588",
+              "word_index": 24
+            },
+            {
+              "greek_form": "θρέμματα",
+              "lemma": "θρέμμα",
+              "morph_code": "N-NPN",
+              "strong_id": "G2353",
+              "word_index": 25
+            },
+            {
+              "greek_form": "αὐτοῦ;",
+              "lemma": "αὐτός",
+              "morph_code": "P-GSM",
+              "strong_id": "G0846",
+              "word_index": 26
+            }
+          ],
+          "verse": 12
+        },
+        {
+          "token_count": 15,
+          "tokens": [
+            {
+              "greek_form": "Ἀπεκρίθη",
+              "lemma": "ἀποκρίνω",
+              "morph_code": "V-ADI-3S",
+              "strong_id": "G0611",
+              "word_index": 1
+            },
+            {
+              "greek_form": "ὁ",
+              "lemma": "ὁ",
+              "morph_code": "T-NSM",
+              "strong_id": "G3588",
+              "word_index": 2
+            },
+            {
+              "greek_form": "Ἰησοῦς",
+              "lemma": "Ἰησοῦς",
+              "morph_code": "N-NSM-P",
+              "strong_id": "G2424G",
+              "word_index": 3
+            },
+            {
+              "greek_form": "καὶ",
+              "lemma": "καί",
+              "morph_code": "CONJ",
+              "strong_id": "G2532",
+              "word_index": 4
+            },
+            {
+              "greek_form": "εἶπεν",
+              "lemma": "ἔπω, ἐρῶ, εἶπον",
+              "morph_code": "V-2AAI-3S",
+              "strong_id": "G2036",
+              "word_index": 5
+            },
+            {
+              "greek_form": "αὐτῇ·",
+              "lemma": "αὐτός",
+              "morph_code": "P-DSF",
+              "strong_id": "G0846",
+              "word_index": 6
+            },
+            {
+              "greek_form": "πᾶς",
+              "lemma": "πᾶς",
+              "morph_code": "A-NSM",
+              "strong_id": "G3956",
+              "word_index": 7
+            },
+            {
+              "greek_form": "ὁ",
+              "lemma": "ὁ",
+              "morph_code": "T-NSM",
+              "strong_id": "G3588",
+              "word_index": 8
+            },
+            {
+              "greek_form": "πίνων",
+              "lemma": "πίνω",
+              "morph_code": "V-PAP-NSM",
+              "strong_id": "G4095",
+              "word_index": 9
+            },
+            {
+              "greek_form": "ἐκ",
+              "lemma": "ἐκ",
+              "morph_code": "PREP",
+              "strong_id": "G1537",
+              "word_index": 10
+            },
+            {
+              "greek_form": "τοῦ",
+              "lemma": "ὁ",
+              "morph_code": "T-GSN",
+              "strong_id": "G3588",
+              "word_index": 11
+            },
+            {
+              "greek_form": "ὕδατος",
+              "lemma": "ὕδωρ, ὕδατος",
+              "morph_code": "N-GSN",
+              "strong_id": "G5204",
+              "word_index": 12
+            },
+            {
+              "greek_form": "τούτου",
+              "lemma": "οὗτος",
+              "morph_code": "D-GSN",
+              "strong_id": "G3778",
+              "word_index": 13
+            },
+            {
+              "greek_form": "διψήσει",
+              "lemma": "διψάω",
+              "morph_code": "V-FAI-3S",
+              "strong_id": "G1372",
+              "word_index": 14
+            },
+            {
+              "greek_form": "πάλιν.",
+              "lemma": "πάλιν",
+              "morph_code": "ADV",
+              "strong_id": "G3825",
+              "word_index": 15
+            }
+          ],
+          "verse": 13
+        },
+        {
+          "token_count": 32,
+          "tokens": [
+            {
+              "greek_form": "ὃς",
+              "lemma": "ὅς, ἥ",
+              "morph_code": "R-NSM",
+              "strong_id": "G3739",
+              "word_index": 1
+            },
+            {
+              "greek_form": "δ᾽",
+              "lemma": "δέ",
+              "morph_code": "CONJ",
+              "strong_id": "G1161",
+              "word_index": 2
+            },
+            {
+              "greek_form": "ἂν",
+              "lemma": "ἄν",
+              "morph_code": "PRT",
+              "strong_id": "G0302",
+              "word_index": 3
+            },
+            {
+              "greek_form": "πίῃ",
+              "lemma": "πίνω",
+              "morph_code": "V-2AAS-3S",
+              "strong_id": "G4095",
+              "word_index": 4
+            },
+            {
+              "greek_form": "ἐκ",
+              "lemma": "ἐκ",
+              "morph_code": "PREP",
+              "strong_id": "G1537",
+              "word_index": 5
+            },
+            {
+              "greek_form": "τοῦ",
+              "lemma": "ὁ",
+              "morph_code": "T-GSN",
+              "strong_id": "G3588",
+              "word_index": 6
+            },
+            {
+              "greek_form": "ὕδατος",
+              "lemma": "ὕδωρ, ὕδατος",
+              "morph_code": "N-GSN",
+              "strong_id": "G5204",
+              "word_index": 7
+            },
+            {
+              "greek_form": "οὗ",
+              "lemma": "ὅς, ἥ",
+              "morph_code": "R-GSN",
+              "strong_id": "G3739",
+              "word_index": 8
+            },
+            {
+              "greek_form": "ἐγὼ",
+              "lemma": "ἐγώ",
+              "morph_code": "P-1NS",
+              "strong_id": "G1473",
+              "word_index": 9
+            },
+            {
+              "greek_form": "δώσω",
+              "lemma": "δίδωμι",
+              "morph_code": "V-FAI-1S",
+              "strong_id": "G1325",
+              "word_index": 10
+            },
+            {
+              "greek_form": "αὐτῷ,",
+              "lemma": "αὐτός",
+              "morph_code": "P-DSM",
+              "strong_id": "G0846",
+              "word_index": 11
+            },
+            {
+              "greek_form": "οὐ",
+              "lemma": "οὐ",
+              "morph_code": "PRT-N",
+              "strong_id": "G3756",
+              "word_index": 12
+            },
+            {
+              "greek_form": "μὴ",
+              "lemma": "μή",
+              "morph_code": "PRT-N",
+              "strong_id": "G3361",
+              "word_index": 13
+            },
+            {
+              "greek_form": "διψήσει",
+              "lemma": "διψάω",
+              "morph_code": "V-FAI-3S",
+              "strong_id": "G1372",
+              "word_index": 14
+            },
+            {
+              "greek_form": "εἰς",
+              "lemma": "εἰς",
+              "morph_code": "PREP",
+              "strong_id": "G1519",
+              "word_index": 15
+            },
+            {
+              "greek_form": "τὸν",
+              "lemma": "ὁ",
+              "morph_code": "T-ASM",
+              "strong_id": "G3588",
+              "word_index": 16
+            },
+            {
+              "greek_form": "αἰῶνα,",
+              "lemma": "αἰών",
+              "morph_code": "N-ASM",
+              "strong_id": "G0165H",
+              "word_index": 17
+            },
+            {
+              "greek_form": "ἀλλὰ",
+              "lemma": "ἀλλά",
+              "morph_code": "CONJ",
+              "strong_id": "G0235",
+              "word_index": 18
+            },
+            {
+              "greek_form": "τὸ",
+              "lemma": "ὁ",
+              "morph_code": "T-NSN",
+              "strong_id": "G3588",
+              "word_index": 19
+            },
+            {
+              "greek_form": "ὕδωρ",
+              "lemma": "ὕδωρ, ὕδατος",
+              "morph_code": "N-NSN",
+              "strong_id": "G5204",
+              "word_index": 20
+            },
+            {
+              "greek_form": "ὃ",
+              "lemma": "ὅς, ἥ",
+              "morph_code": "R-ASN",
+              "strong_id": "G3739",
+              "word_index": 21
+            },
+            {
+              "greek_form": "δώσω",
+              "lemma": "δίδωμι",
+              "morph_code": "V-FAI-1S",
+              "strong_id": "G1325",
+              "word_index": 22
+            },
+            {
+              "greek_form": "αὐτῷ",
+              "lemma": "αὐτός",
+              "morph_code": "P-DSM",
+              "strong_id": "G0846",
+              "word_index": 23
+            },
+            {
+              "greek_form": "γενήσεται",
+              "lemma": "γίνομαι",
+              "morph_code": "V-FDI-3S",
+              "strong_id": "G1096",
+              "word_index": 24
+            },
+            {
+              "greek_form": "ἐν",
+              "lemma": "ἐν",
+              "morph_code": "PREP",
+              "strong_id": "G1722",
+              "word_index": 25
+            },
+            {
+              "greek_form": "αὐτῷ",
+              "lemma": "αὐτός",
+              "morph_code": "P-DSM",
+              "strong_id": "G0846",
+              "word_index": 26
+            },
+            {
+              "greek_form": "πηγὴ",
+              "lemma": "πηγή",
+              "morph_code": "N-NSF",
+              "strong_id": "G4077",
+              "word_index": 27
+            },
+            {
+              "greek_form": "ὕδατος",
+              "lemma": "ὕδωρ, ὕδατος",
+              "morph_code": "N-GSN",
+              "strong_id": "G5204",
+              "word_index": 28
+            },
+            {
+              "greek_form": "ἁλλομένου",
+              "lemma": "ἅλλομαι",
+              "morph_code": "V-PNP-GSN",
+              "strong_id": "G0242",
+              "word_index": 29
+            },
+            {
+              "greek_form": "εἰς",
+              "lemma": "εἰς",
+              "morph_code": "PREP",
+              "strong_id": "G1519",
+              "word_index": 30
+            },
+            {
+              "greek_form": "ζωὴν",
+              "lemma": "ζωή",
+              "morph_code": "N-ASF",
+              "strong_id": "G2222",
+              "word_index": 31
+            },
+            {
+              "greek_form": "αἰώνιον.",
+              "lemma": "αἰώνιος",
+              "morph_code": "A-ASF",
+              "strong_id": "G0166",
+              "word_index": 32
+            }
+          ],
+          "verse": 14
+        },
+        {
+          "token_count": 18,
+          "tokens": [
+            {
+              "greek_form": "Λέγει",
+              "lemma": "λέγω",
+              "morph_code": "V-PAI-3S",
+              "strong_id": "G3004G",
+              "word_index": 1
+            },
+            {
+              "greek_form": "πρὸς",
+              "lemma": "πρός",
+              "morph_code": "PREP",
+              "strong_id": "G4314",
+              "word_index": 2
+            },
+            {
+              "greek_form": "αὐτὸν",
+              "lemma": "αὐτός",
+              "morph_code": "P-ASM",
+              "strong_id": "G0846",
+              "word_index": 3
+            },
+            {
+              "greek_form": "ἡ",
+              "lemma": "ὁ",
+              "morph_code": "T-NSF",
+              "strong_id": "G3588",
+              "word_index": 4
+            },
+            {
+              "greek_form": "γυνή·",
+              "lemma": "γυνή",
+              "morph_code": "N-NSF",
+              "strong_id": "G1135G",
+              "word_index": 5
+            },
+            {
+              "greek_form": "κύριε,",
+              "lemma": "κύριος",
+              "morph_code": "N-VSM",
+              "strong_id": "G2962H",
+              "word_index": 6
+            },
+            {
+              "greek_form": "δός",
+              "lemma": "δίδωμι",
+              "morph_code": "V-2AAM-2S",
+              "strong_id": "G1325",
+              "word_index": 7
+            },
+            {
+              "greek_form": "μοι",
+              "lemma": "ἐγώ",
+              "morph_code": "P-1DS",
+              "strong_id": "G3165",
+              "word_index": 8
+            },
+            {
+              "greek_form": "τοῦτο",
+              "lemma": "οὗτος",
+              "morph_code": "D-ASN",
+              "strong_id": "G3778",
+              "word_index": 9
+            },
+            {
+              "greek_form": "τὸ",
+              "lemma": "ὁ",
+              "morph_code": "T-ASN",
+              "strong_id": "G3588",
+              "word_index": 10
+            },
+            {
+              "greek_form": "ὕδωρ",
+              "lemma": "ὕδωρ, ὕδατος",
+              "morph_code": "N-ASN",
+              "strong_id": "G5204",
+              "word_index": 11
+            },
+            {
+              "greek_form": "ἵνα",
+              "lemma": "ἵνα",
+              "morph_code": "CONJ",
+              "strong_id": "G2443",
+              "word_index": 12
+            },
+            {
+              "greek_form": "μὴ",
+              "lemma": "μή",
+              "morph_code": "PRT-N",
+              "strong_id": "G3361",
+              "word_index": 13
+            },
+            {
+              "greek_form": "διψῶ",
+              "lemma": "διψάω",
+              "morph_code": "V-PAS-1S",
+              "strong_id": "G1372",
+              "word_index": 14
+            },
+            {
+              "greek_form": "μηδὲ",
+              "lemma": "μηδέ",
+              "morph_code": "CONJ-N",
+              "strong_id": "G3366",
+              "word_index": 15
+            },
+            {
+              "greek_form": "διέρχωμαι",
+              "lemma": "διέρχομαι",
+              "morph_code": "V-PNS-1S",
+              "strong_id": "G1330",
+              "word_index": 16
+            },
+            {
+              "greek_form": "ἐνθάδε",
+              "lemma": "ἐνθάδε",
+              "morph_code": "ADV",
+              "strong_id": "G1759",
+              "word_index": 17
+            },
+            {
+              "greek_form": "ἀντλεῖν.",
+              "lemma": "ἀντλέω",
+              "morph_code": "V-PAN",
+              "strong_id": "G0501",
+              "word_index": 18
+            }
+          ],
+          "verse": 15
+        },
+        {
+          "token_count": 12,
+          "tokens": [
+            {
+              "greek_form": "λέγει",
+              "lemma": "λέγω",
+              "morph_code": "V-PAI-3S",
+              "strong_id": "G3004G",
+              "word_index": 1
+            },
+            {
+              "greek_form": "αὐτῇ",
+              "lemma": "αὐτός",
+              "morph_code": "P-DSF",
+              "strong_id": "G0846",
+              "word_index": 2
+            },
+            {
+              "greek_form": "ὁ",
+              "lemma": "ὁ",
+              "morph_code": "T-NSM",
+              "strong_id": "G3588",
+              "word_index": 3
+            },
+            {
+              "greek_form": "Ἰησοῦς·",
+              "lemma": "Ἰησοῦς",
+              "morph_code": "N-NSM-P",
+              "strong_id": "G2424G",
+              "word_index": 4
+            },
+            {
+              "greek_form": "ὕπαγε",
+              "lemma": "ὑπάγω",
+              "morph_code": "V-PAM-2S",
+              "strong_id": "G5217",
+              "word_index": 5
+            },
+            {
+              "greek_form": "φώνησον",
+              "lemma": "φωνέω",
+              "morph_code": "V-AAM-2S",
+              "strong_id": "G5455",
+              "word_index": 6
+            },
+            {
+              "greek_form": "τὸν",
+              "lemma": "ὁ",
+              "morph_code": "T-ASM",
+              "strong_id": "G3588",
+              "word_index": 7
+            },
+            {
+              "greek_form": "ἄνδρα",
+              "lemma": "ἀνήρ",
+              "morph_code": "N-ASM",
+              "strong_id": "G0435H",
+              "word_index": 8
+            },
+            {
+              "greek_form": "σου",
+              "lemma": "σύ",
+              "morph_code": "P-2GS",
+              "strong_id": "G4771",
+              "word_index": 9
+            },
+            {
+              "greek_form": "καὶ",
+              "lemma": "καί",
+              "morph_code": "CONJ",
+              "strong_id": "G2532",
+              "word_index": 10
+            },
+            {
+              "greek_form": "ἐλθὲ",
+              "lemma": "ἔρχομαι",
+              "morph_code": "V-2AAM-2S",
+              "strong_id": "G2064",
+              "word_index": 11
+            },
+            {
+              "greek_form": "ἐνθάδε.",
+              "lemma": "ἐνθάδε",
+              "morph_code": "ADV",
+              "strong_id": "G1759",
+              "word_index": 12
+            }
+          ],
+          "verse": 16
+        },
+        {
+          "token_count": 19,
+          "tokens": [
+            {
+              "greek_form": "ἀπεκρίθη",
+              "lemma": "ἀποκρίνω",
+              "morph_code": "V-ADI-3S",
+              "strong_id": "G0611",
+              "word_index": 1
+            },
+            {
+              "greek_form": "ἡ",
+              "lemma": "ὁ",
+              "morph_code": "T-NSF",
+              "strong_id": "G3588",
+              "word_index": 2
+            },
+            {
+              "greek_form": "γυνὴ",
+              "lemma": "γυνή",
+              "morph_code": "N-NSF",
+              "strong_id": "G1135G",
+              "word_index": 3
+            },
+            {
+              "greek_form": "καὶ",
+              "lemma": "καί",
+              "morph_code": "CONJ",
+              "strong_id": "G2532",
+              "word_index": 4
+            },
+            {
+              "greek_form": "εἶπεν",
+              "lemma": "ἔπω, ἐρῶ, εἶπον",
+              "morph_code": "V-2AAI-3S",
+              "strong_id": "G2036",
+              "word_index": 5
+            },
+            {
+              "greek_form": "αὐτῷ·",
+              "lemma": "αὐτός",
+              "morph_code": "P-DSM",
+              "strong_id": "G0846",
+              "word_index": 6
+            },
+            {
+              "greek_form": "οὐκ",
+              "lemma": "οὐ",
+              "morph_code": "PRT-N",
+              "strong_id": "G3756",
+              "word_index": 7
+            },
+            {
+              "greek_form": "ἔχω",
+              "lemma": "ἔχω",
+              "morph_code": "V-PAI-1S",
+              "strong_id": "G2192",
+              "word_index": 8
+            },
+            {
+              "greek_form": "ἄνδρα.",
+              "lemma": "ἀνήρ",
+              "morph_code": "N-ASM",
+              "strong_id": "G0435H",
+              "word_index": 9
+            },
+            {
+              "greek_form": "Λέγει",
+              "lemma": "λέγω",
+              "morph_code": "V-PAI-3S",
+              "strong_id": "G3004G",
+              "word_index": 10
+            },
+            {
+              "greek_form": "αὐτῇ",
+              "lemma": "αὐτός",
+              "morph_code": "P-DSF",
+              "strong_id": "G0846",
+              "word_index": 11
+            },
+            {
+              "greek_form": "ὁ",
+              "lemma": "ὁ",
+              "morph_code": "T-NSM",
+              "strong_id": "G3588",
+              "word_index": 12
+            },
+            {
+              "greek_form": "Ἰησοῦς·",
+              "lemma": "Ἰησοῦς",
+              "morph_code": "N-NSM-P",
+              "strong_id": "G2424G",
+              "word_index": 13
+            },
+            {
+              "greek_form": "καλῶς",
+              "lemma": "καλῶς",
+              "morph_code": "ADV",
+              "strong_id": "G2573",
+              "word_index": 14
+            },
+            {
+              "greek_form": "εἶπας",
+              "lemma": "ἔπω, ἐρῶ, εἶπον",
+              "morph_code": "V-2AAI-2S",
+              "strong_id": "G2036",
+              "word_index": 15
+            },
+            {
+              "greek_form": "ὅτι",
+              "lemma": "ὅτι",
+              "morph_code": "CONJ",
+              "strong_id": "G3754G",
+              "word_index": 16
+            },
+            {
+              "greek_form": "ἄνδρα",
+              "lemma": "ἀνήρ",
+              "morph_code": "N-ASM",
+              "strong_id": "G0435H",
+              "word_index": 17
+            },
+            {
+              "greek_form": "οὐκ",
+              "lemma": "οὐ",
+              "morph_code": "PRT-N",
+              "strong_id": "G3756",
+              "word_index": 18
+            },
+            {
+              "greek_form": "ἔχω·",
+              "lemma": "ἔχω",
+              "morph_code": "V-PAI-1S",
+              "strong_id": "G2192",
+              "word_index": 19
+            }
+          ],
+          "verse": 17
+        },
+        {
+          "token_count": 15,
+          "tokens": [
+            {
+              "greek_form": "πέντε",
+              "lemma": "πέντε",
+              "morph_code": "A-NUI",
+              "strong_id": "G4002",
+              "word_index": 1
+            },
+            {
+              "greek_form": "γὰρ",
+              "lemma": "γάρ",
+              "morph_code": "CONJ",
+              "strong_id": "G1063",
+              "word_index": 2
+            },
+            {
+              "greek_form": "ἄνδρας",
+              "lemma": "ἀνήρ",
+              "morph_code": "N-APM",
+              "strong_id": "G0435H",
+              "word_index": 3
+            },
+            {
+              "greek_form": "ἔσχες,",
+              "lemma": "ἔχω",
+              "morph_code": "V-2AAI-2S",
+              "strong_id": "G2192",
+              "word_index": 4
+            },
+            {
+              "greek_form": "καὶ",
+              "lemma": "καί",
+              "morph_code": "CONJ",
+              "strong_id": "G2532",
+              "word_index": 5
+            },
+            {
+              "greek_form": "νῦν",
+              "lemma": "νῦν",
+              "morph_code": "ADV",
+              "strong_id": "G3568",
+              "word_index": 6
+            },
+            {
+              "greek_form": "ὃν",
+              "lemma": "ὅς, ἥ",
+              "morph_code": "R-ASM",
+              "strong_id": "G3739",
+              "word_index": 7
+            },
+            {
+              "greek_form": "ἔχεις",
+              "lemma": "ἔχω",
+              "morph_code": "V-PAI-2S",
+              "strong_id": "G2192",
+              "word_index": 8
+            },
+            {
+              "greek_form": "οὐκ",
+              "lemma": "οὐ",
+              "morph_code": "PRT-N",
+              "strong_id": "G3756",
+              "word_index": 9
+            },
+            {
+              "greek_form": "ἔστιν",
+              "lemma": "εἰμί",
+              "morph_code": "V-PAI-3S",
+              "strong_id": "G1510",
+              "word_index": 10
+            },
+            {
+              "greek_form": "σου",
+              "lemma": "σύ",
+              "morph_code": "P-2GS",
+              "strong_id": "G4771",
+              "word_index": 11
+            },
+            {
+              "greek_form": "ἀνήρ·",
+              "lemma": "ἀνήρ",
+              "morph_code": "N-NSM",
+              "strong_id": "G0435H",
+              "word_index": 12
+            },
+            {
+              "greek_form": "τοῦτο",
+              "lemma": "οὗτος",
+              "morph_code": "D-ASN",
+              "strong_id": "G3778",
+              "word_index": 13
+            },
+            {
+              "greek_form": "ἀληθὲς",
+              "lemma": "ἀληθής",
+              "morph_code": "A-ASN",
+              "strong_id": "G0227",
+              "word_index": 14
+            },
+            {
+              "greek_form": "εἴρηκας.",
+              "lemma": "ἔπω, ἐρῶ, εἶπον",
+              "morph_code": "V-RAI-2S",
+              "strong_id": "G2046",
+              "word_index": 15
+            }
+          ],
+          "verse": 18
+        },
+        {
+          "token_count": 10,
+          "tokens": [
+            {
+              "greek_form": "Λέγει",
+              "lemma": "λέγω",
+              "morph_code": "V-PAI-3S",
+              "strong_id": "G3004G",
+              "word_index": 1
+            },
+            {
+              "greek_form": "αὐτῷ",
+              "lemma": "αὐτός",
+              "morph_code": "P-DSM",
+              "strong_id": "G0846",
+              "word_index": 2
+            },
+            {
+              "greek_form": "ἡ",
+              "lemma": "ὁ",
+              "morph_code": "T-NSF",
+              "strong_id": "G3588",
+              "word_index": 3
+            },
+            {
+              "greek_form": "γυνή·",
+              "lemma": "γυνή",
+              "morph_code": "N-NSF",
+              "strong_id": "G1135G",
+              "word_index": 4
+            },
+            {
+              "greek_form": "κύριε,",
+              "lemma": "κύριος",
+              "morph_code": "N-VSM",
+              "strong_id": "G2962H",
+              "word_index": 5
+            },
+            {
+              "greek_form": "θεωρῶ",
+              "lemma": "θεωρέω",
+              "morph_code": "V-PAI-1S",
+              "strong_id": "G2334",
+              "word_index": 6
+            },
+            {
+              "greek_form": "ὅτι",
+              "lemma": "ὅτι",
+              "morph_code": "CONJ",
+              "strong_id": "G3754G",
+              "word_index": 7
+            },
+            {
+              "greek_form": "προφήτης",
+              "lemma": "προφήτης",
+              "morph_code": "N-NSM",
+              "strong_id": "G4396",
+              "word_index": 8
+            },
+            {
+              "greek_form": "εἶ",
+              "lemma": "εἰμί",
+              "morph_code": "V-PAI-2S",
+              "strong_id": "G1510",
+              "word_index": 9
+            },
+            {
+              "greek_form": "σύ.",
+              "lemma": "σύ",
+              "morph_code": "P-2NS",
+              "strong_id": "G4771",
+              "word_index": 10
+            }
+          ],
+          "verse": 19
+        },
+        {
+          "token_count": 20,
+          "tokens": [
+            {
+              "greek_form": "οἱ",
+              "lemma": "ὁ",
+              "morph_code": "T-NPM",
+              "strong_id": "G3588",
+              "word_index": 1
+            },
+            {
+              "greek_form": "πατέρες",
+              "lemma": "πατήρ",
+              "morph_code": "N-NPM",
+              "strong_id": "G3962",
+              "word_index": 2
+            },
+            {
+              "greek_form": "ἡμῶν",
+              "lemma": "ἐγώ",
+              "morph_code": "P-1GP",
+              "strong_id": "G3165",
+              "word_index": 3
+            },
+            {
+              "greek_form": "ἐν",
+              "lemma": "ἐν",
+              "morph_code": "PREP",
+              "strong_id": "G1722",
+              "word_index": 4
+            },
+            {
+              "greek_form": "τῷ",
+              "lemma": "ὁ",
+              "morph_code": "T-DSN",
+              "strong_id": "G3588",
+              "word_index": 5
+            },
+            {
+              "greek_form": "ὄρει",
+              "lemma": "ὄρος",
+              "morph_code": "N-DSN",
+              "strong_id": "G3735",
+              "word_index": 6
+            },
+            {
+              "greek_form": "τούτῳ",
+              "lemma": "οὗτος",
+              "morph_code": "D-DSN",
+              "strong_id": "G3778",
+              "word_index": 7
+            },
+            {
+              "greek_form": "προσεκύνησαν,",
+              "lemma": "προσκυνέω",
+              "morph_code": "V-AAI-3P",
+              "strong_id": "G4352",
+              "word_index": 8
+            },
+            {
+              "greek_form": "καὶ",
+              "lemma": "καί",
+              "morph_code": "CONJ",
+              "strong_id": "G2532",
+              "word_index": 9
+            },
+            {
+              "greek_form": "ὑμεῖς",
+              "lemma": "σύ",
+              "morph_code": "P-2NP",
+              "strong_id": "G4771",
+              "word_index": 10
+            },
+            {
+              "greek_form": "λέγετε",
+              "lemma": "λέγω",
+              "morph_code": "V-PAI-2P",
+              "strong_id": "G3004G",
+              "word_index": 11
+            },
+            {
+              "greek_form": "ὅτι",
+              "lemma": "ὅτι",
+              "morph_code": "CONJ",
+              "strong_id": "G3754G",
+              "word_index": 12
+            },
+            {
+              "greek_form": "ἐν",
+              "lemma": "ἐν",
+              "morph_code": "PREP",
+              "strong_id": "G1722",
+              "word_index": 13
+            },
+            {
+              "greek_form": "Ἱεροσολύμοις",
+              "lemma": "Ἱεροσόλυμα",
+              "morph_code": "N-DPN-L",
+              "strong_id": "G2414",
+              "word_index": 14
+            },
+            {
+              "greek_form": "ἐστὶν",
+              "lemma": "εἰμί",
+              "morph_code": "V-PAI-3S",
+              "strong_id": "G1510",
+              "word_index": 15
+            },
+            {
+              "greek_form": "ὁ",
+              "lemma": "ὁ",
+              "morph_code": "T-NSM",
+              "strong_id": "G3588",
+              "word_index": 16
+            },
+            {
+              "greek_form": "τόπος",
+              "lemma": "τόπος",
+              "morph_code": "N-NSM",
+              "strong_id": "G5117",
+              "word_index": 17
+            },
+            {
+              "greek_form": "ὅπου",
+              "lemma": "ὅπου",
+              "morph_code": "PREP",
+              "strong_id": "G3699",
+              "word_index": 18
+            },
+            {
+              "greek_form": "προσκυνεῖν",
+              "lemma": "προσκυνέω",
+              "morph_code": "V-PAN",
+              "strong_id": "G4352",
+              "word_index": 19
+            },
+            {
+              "greek_form": "δεῖ.",
+              "lemma": "δεῖ",
+              "morph_code": "V-PAI-3S",
+              "strong_id": "G1163",
+              "word_index": 20
+            }
+          ],
+          "verse": 20
+        },
+        {
+          "token_count": 22,
+          "tokens": [
+            {
+              "greek_form": "Λέγει",
+              "lemma": "λέγω",
+              "morph_code": "V-PAI-3S",
+              "strong_id": "G3004G",
+              "word_index": 1
+            },
+            {
+              "greek_form": "αὐτῇ",
+              "lemma": "αὐτός",
+              "morph_code": "P-DSF",
+              "strong_id": "G0846",
+              "word_index": 2
+            },
+            {
+              "greek_form": "ὁ",
+              "lemma": "ὁ",
+              "morph_code": "T-NSM",
+              "strong_id": "G3588",
+              "word_index": 3
+            },
+            {
+              "greek_form": "Ἰησοῦς·",
+              "lemma": "Ἰησοῦς",
+              "morph_code": "N-NSM-P",
+              "strong_id": "G2424G",
+              "word_index": 4
+            },
+            {
+              "greek_form": "πίστευέ",
+              "lemma": "πιστεύω",
+              "morph_code": "V-PAM-2S",
+              "strong_id": "G4100",
+              "word_index": 5
+            },
+            {
+              "greek_form": "μοι,",
+              "lemma": "ἐγώ",
+              "morph_code": "P-1DS",
+              "strong_id": "G3165",
+              "word_index": 6
+            },
+            {
+              "greek_form": "γύναι,",
+              "lemma": "γυνή",
+              "morph_code": "N-VSF",
+              "strong_id": "G1135G",
+              "word_index": 7
+            },
+            {
+              "greek_form": "ὅτι",
+              "lemma": "ὅτι",
+              "morph_code": "CONJ",
+              "strong_id": "G3754G",
+              "word_index": 8
+            },
+            {
+              "greek_form": "ἔρχεται",
+              "lemma": "ἔρχομαι",
+              "morph_code": "V-PNI-3S",
+              "strong_id": "G2064",
+              "word_index": 9
+            },
+            {
+              "greek_form": "ὥρα",
+              "lemma": "ὥρα",
+              "morph_code": "N-NSF",
+              "strong_id": "G5610",
+              "word_index": 10
+            },
+            {
+              "greek_form": "ὅτε",
+              "lemma": "ὅτε",
+              "morph_code": "PREP",
+              "strong_id": "G3753",
+              "word_index": 11
+            },
+            {
+              "greek_form": "οὔτε",
+              "lemma": "οὔτε",
+              "morph_code": "CONJ-N",
+              "strong_id": "G3777",
+              "word_index": 12
+            },
+            {
+              "greek_form": "ἐν",
+              "lemma": "ἐν",
+              "morph_code": "PREP",
+              "strong_id": "G1722",
+              "word_index": 13
+            },
+            {
+              "greek_form": "τῷ",
+              "lemma": "ὁ",
+              "morph_code": "T-DSN",
+              "strong_id": "G3588",
+              "word_index": 14
+            },
+            {
+              "greek_form": "ὄρει",
+              "lemma": "ὄρος",
+              "morph_code": "N-DSN",
+              "strong_id": "G3735",
+              "word_index": 15
+            },
+            {
+              "greek_form": "τούτῳ",
+              "lemma": "οὗτος",
+              "morph_code": "D-DSN",
+              "strong_id": "G3778",
+              "word_index": 16
+            },
+            {
+              "greek_form": "οὔτε",
+              "lemma": "οὔτε",
+              "morph_code": "CONJ-N",
+              "strong_id": "G3777",
+              "word_index": 17
+            },
+            {
+              "greek_form": "ἐν",
+              "lemma": "ἐν",
+              "morph_code": "PREP",
+              "strong_id": "G1722",
+              "word_index": 18
+            },
+            {
+              "greek_form": "Ἱεροσολύμοις",
+              "lemma": "Ἱεροσόλυμα",
+              "morph_code": "N-DPN-L",
+              "strong_id": "G2414",
+              "word_index": 19
+            },
+            {
+              "greek_form": "προσκυνήσετε",
+              "lemma": "προσκυνέω",
+              "morph_code": "V-FAI-2P",
+              "strong_id": "G4352",
+              "word_index": 20
+            },
+            {
+              "greek_form": "τῷ",
+              "lemma": "ὁ",
+              "morph_code": "T-DSM",
+              "strong_id": "G3588",
+              "word_index": 21
+            },
+            {
+              "greek_form": "πατρί.",
+              "lemma": "πατήρ",
+              "morph_code": "N-DSM-T",
+              "strong_id": "G3962",
+              "word_index": 22
+            }
+          ],
+          "verse": 21
+        },
+        {
+          "token_count": 16,
+          "tokens": [
+            {
+              "greek_form": "ὑμεῖς",
+              "lemma": "σύ",
+              "morph_code": "P-2NP",
+              "strong_id": "G4771",
+              "word_index": 1
+            },
+            {
+              "greek_form": "προσκυνεῖτε",
+              "lemma": "προσκυνέω",
+              "morph_code": "V-PAI-2P",
+              "strong_id": "G4352",
+              "word_index": 2
+            },
+            {
+              "greek_form": "ὃ",
+              "lemma": "ὅς, ἥ",
+              "morph_code": "R-ASN",
+              "strong_id": "G3739",
+              "word_index": 3
+            },
+            {
+              "greek_form": "οὐκ",
+              "lemma": "οὐ",
+              "morph_code": "PRT-N",
+              "strong_id": "G3756",
+              "word_index": 4
+            },
+            {
+              "greek_form": "οἴδατε,",
+              "lemma": "εἴδω",
+              "morph_code": "V-PAI-2P",
+              "strong_id": "G6063",
+              "word_index": 5
+            },
+            {
+              "greek_form": "ἡμεῖς",
+              "lemma": "ἐγώ",
+              "morph_code": "P-1NP",
+              "strong_id": "G3165",
+              "word_index": 6
+            },
+            {
+              "greek_form": "προσκυνοῦμεν",
+              "lemma": "προσκυνέω",
+              "morph_code": "V-PAI-1P",
+              "strong_id": "G4352",
+              "word_index": 7
+            },
+            {
+              "greek_form": "ὃ",
+              "lemma": "ὅς, ἥ",
+              "morph_code": "R-ASN",
+              "strong_id": "G3739",
+              "word_index": 8
+            },
+            {
+              "greek_form": "οἴδαμεν,",
+              "lemma": "εἴδω",
+              "morph_code": "V-PAI-1P",
+              "strong_id": "G6063",
+              "word_index": 9
+            },
+            {
+              "greek_form": "ὅτι",
+              "lemma": "ὅτι",
+              "morph_code": "CONJ",
+              "strong_id": "G3754H",
+              "word_index": 10
+            },
+            {
+              "greek_form": "ἡ",
+              "lemma": "ὁ",
+              "morph_code": "T-NSF",
+              "strong_id": "G3588",
+              "word_index": 11
+            },
+            {
+              "greek_form": "σωτηρία",
+              "lemma": "σωτηρία",
+              "morph_code": "N-NSF",
+              "strong_id": "G4991",
+              "word_index": 12
+            },
+            {
+              "greek_form": "ἐκ",
+              "lemma": "ἐκ",
+              "morph_code": "PREP",
+              "strong_id": "G1537",
+              "word_index": 13
+            },
+            {
+              "greek_form": "τῶν",
+              "lemma": "ὁ",
+              "morph_code": "T-GPM",
+              "strong_id": "G3588",
+              "word_index": 14
+            },
+            {
+              "greek_form": "Ἰουδαίων",
+              "lemma": "Ἰουδαῖος",
+              "morph_code": "N-GPM-PG",
+              "strong_id": "G2453",
+              "word_index": 15
+            },
+            {
+              "greek_form": "ἐστίν.",
+              "lemma": "εἰμί",
+              "morph_code": "V-PAI-3S",
+              "strong_id": "G1510",
+              "word_index": 16
+            }
+          ],
+          "verse": 22
+        },
+        {
+          "token_count": 26,
+          "tokens": [
+            {
+              "greek_form": "ἀλλ᾽",
+              "lemma": "ἀλλά",
+              "morph_code": "CONJ",
+              "strong_id": "G0235",
+              "word_index": 1
+            },
+            {
+              "greek_form": "ἔρχεται",
+              "lemma": "ἔρχομαι",
+              "morph_code": "V-PNI-3S",
+              "strong_id": "G2064",
+              "word_index": 2
+            },
+            {
+              "greek_form": "ὥρα",
+              "lemma": "ὥρα",
+              "morph_code": "N-NSF",
+              "strong_id": "G5610",
+              "word_index": 3
+            },
+            {
+              "greek_form": "καὶ",
+              "lemma": "καί",
+              "morph_code": "CONJ",
+              "strong_id": "G2532",
+              "word_index": 4
+            },
+            {
+              "greek_form": "νῦν",
+              "lemma": "νῦν",
+              "morph_code": "ADV",
+              "strong_id": "G3568",
+              "word_index": 5
+            },
+            {
+              "greek_form": "ἐστιν,",
+              "lemma": "εἰμί",
+              "morph_code": "V-PAI-3S",
+              "strong_id": "G1510",
+              "word_index": 6
+            },
+            {
+              "greek_form": "ὅτε",
+              "lemma": "ὅτε",
+              "morph_code": "PREP",
+              "strong_id": "G3753",
+              "word_index": 7
+            },
+            {
+              "greek_form": "οἱ",
+              "lemma": "ὁ",
+              "morph_code": "T-NPM",
+              "strong_id": "G3588",
+              "word_index": 8
+            },
+            {
+              "greek_form": "ἀληθινοὶ",
+              "lemma": "ἀληθινός",
+              "morph_code": "A-NPM",
+              "strong_id": "G0228",
+              "word_index": 9
+            },
+            {
+              "greek_form": "προσκυνηταὶ",
+              "lemma": "προσκυνητής",
+              "morph_code": "N-NPM",
+              "strong_id": "G4353",
+              "word_index": 10
+            },
+            {
+              "greek_form": "προσκυνήσουσιν",
+              "lemma": "προσκυνέω",
+              "morph_code": "V-FAI-3P",
+              "strong_id": "G4352",
+              "word_index": 11
+            },
+            {
+              "greek_form": "τῷ",
+              "lemma": "ὁ",
+              "morph_code": "T-DSM",
+              "strong_id": "G3588",
+              "word_index": 12
+            },
+            {
+              "greek_form": "πατρὶ",
+              "lemma": "πατήρ",
+              "morph_code": "N-DSM-T",
+              "strong_id": "G3962",
+              "word_index": 13
+            },
+            {
+              "greek_form": "ἐν",
+              "lemma": "ἐν",
+              "morph_code": "PREP",
+              "strong_id": "G1722",
+              "word_index": 14
+            },
+            {
+              "greek_form": "πνεύματι",
+              "lemma": "πνεῦμα",
+              "morph_code": "N-DSN",
+              "strong_id": "G4151G",
+              "word_index": 15
+            },
+            {
+              "greek_form": "καὶ",
+              "lemma": "καί",
+              "morph_code": "CONJ",
+              "strong_id": "G2532",
+              "word_index": 16
+            },
+            {
+              "greek_form": "ἀληθείᾳ·",
+              "lemma": "ἀλήθεια",
+              "morph_code": "N-DSF",
+              "strong_id": "G0225",
+              "word_index": 17
+            },
+            {
+              "greek_form": "καὶ",
+              "lemma": "καί",
+              "morph_code": "CONJ",
+              "strong_id": "G2532",
+              "word_index": 18
+            },
+            {
+              "greek_form": "γὰρ",
+              "lemma": "γάρ",
+              "morph_code": "CONJ",
+              "strong_id": "G1063",
+              "word_index": 19
+            },
+            {
+              "greek_form": "ὁ",
+              "lemma": "ὁ",
+              "morph_code": "T-NSM",
+              "strong_id": "G3588",
+              "word_index": 20
+            },
+            {
+              "greek_form": "πατὴρ",
+              "lemma": "πατήρ",
+              "morph_code": "N-NSM-T",
+              "strong_id": "G3962",
+              "word_index": 21
+            },
+            {
+              "greek_form": "τοιούτους",
+              "lemma": "τοιοῦτος",
+              "morph_code": "D-APM",
+              "strong_id": "G5108",
+              "word_index": 22
+            },
+            {
+              "greek_form": "ζητεῖ",
+              "lemma": "ζητέω",
+              "morph_code": "V-PAI-3S",
+              "strong_id": "G2212",
+              "word_index": 23
+            },
+            {
+              "greek_form": "τοὺς",
+              "lemma": "ὁ",
+              "morph_code": "T-APM",
+              "strong_id": "G3588",
+              "word_index": 24
+            },
+            {
+              "greek_form": "προσκυνοῦντας",
+              "lemma": "προσκυνέω",
+              "morph_code": "V-PAP-APM",
+              "strong_id": "G4352",
+              "word_index": 25
+            },
+            {
+              "greek_form": "αὐτόν.",
+              "lemma": "αὐτός",
+              "morph_code": "P-ASM",
+              "strong_id": "G0846",
+              "word_index": 26
+            }
+          ],
+          "verse": 23
+        },
+        {
+          "token_count": 13,
+          "tokens": [
+            {
+              "greek_form": "πνεῦμα",
+              "lemma": "πνεῦμα",
+              "morph_code": "N-NSN",
+              "strong_id": "G4151G",
+              "word_index": 1
+            },
+            {
+              "greek_form": "ὁ",
+              "lemma": "ὁ",
+              "morph_code": "T-NSM",
+              "strong_id": "G3588",
+              "word_index": 2
+            },
+            {
+              "greek_form": "θεός,",
+              "lemma": "θεός",
+              "morph_code": "N-NSM-T",
+              "strong_id": "G2316",
+              "word_index": 3
+            },
+            {
+              "greek_form": "καὶ",
+              "lemma": "καί",
+              "morph_code": "CONJ",
+              "strong_id": "G2532",
+              "word_index": 4
+            },
+            {
+              "greek_form": "τοὺς",
+              "lemma": "ὁ",
+              "morph_code": "T-APM",
+              "strong_id": "G3588",
+              "word_index": 5
+            },
+            {
+              "greek_form": "προσκυνοῦντας",
+              "lemma": "προσκυνέω",
+              "morph_code": "V-PAP-APM",
+              "strong_id": "G4352",
+              "word_index": 6
+            },
+            {
+              "greek_form": "αὐτὸν",
+              "lemma": "αὐτός",
+              "morph_code": "P-ASM",
+              "strong_id": "G0846",
+              "word_index": 7
+            },
+            {
+              "greek_form": "ἐν",
+              "lemma": "ἐν",
+              "morph_code": "PREP",
+              "strong_id": "G1722",
+              "word_index": 8
+            },
+            {
+              "greek_form": "πνεύματι",
+              "lemma": "πνεῦμα",
+              "morph_code": "N-DSN",
+              "strong_id": "G4151G",
+              "word_index": 9
+            },
+            {
+              "greek_form": "καὶ",
+              "lemma": "καί",
+              "morph_code": "CONJ",
+              "strong_id": "G2532",
+              "word_index": 10
+            },
+            {
+              "greek_form": "ἀληθείᾳ",
+              "lemma": "ἀλήθεια",
+              "morph_code": "N-DSF",
+              "strong_id": "G0225",
+              "word_index": 11
+            },
+            {
+              "greek_form": "δεῖ",
+              "lemma": "δεῖ",
+              "morph_code": "V-PAI-3S",
+              "strong_id": "G1163",
+              "word_index": 12
+            },
+            {
+              "greek_form": "προσκυνεῖν.",
+              "lemma": "προσκυνέω",
+              "morph_code": "V-PAN",
+              "strong_id": "G4352",
+              "word_index": 13
+            }
+          ],
+          "verse": 24
+        },
+        {
+          "token_count": 17,
+          "tokens": [
+            {
+              "greek_form": "Λέγει",
+              "lemma": "λέγω",
+              "morph_code": "V-PAI-3S",
+              "strong_id": "G3004G",
+              "word_index": 1
+            },
+            {
+              "greek_form": "αὐτῷ",
+              "lemma": "αὐτός",
+              "morph_code": "P-DSM",
+              "strong_id": "G0846",
+              "word_index": 2
+            },
+            {
+              "greek_form": "ἡ",
+              "lemma": "ὁ",
+              "morph_code": "T-NSF",
+              "strong_id": "G3588",
+              "word_index": 3
+            },
+            {
+              "greek_form": "γυνή·",
+              "lemma": "γυνή",
+              "morph_code": "N-NSF",
+              "strong_id": "G1135G",
+              "word_index": 4
+            },
+            {
+              "greek_form": "οἶδα",
+              "lemma": "εἴδω",
+              "morph_code": "V-RAI-1S",
+              "strong_id": "G6063",
+              "word_index": 5
+            },
+            {
+              "greek_form": "ὅτι",
+              "lemma": "ὅτι",
+              "morph_code": "CONJ",
+              "strong_id": "G3754G",
+              "word_index": 6
+            },
+            {
+              "greek_form": "Μεσσίας",
+              "lemma": "Μεσσίας",
+              "morph_code": "N-NSM-T",
+              "strong_id": "G3323",
+              "word_index": 7
+            },
+            {
+              "greek_form": "ἔρχεται,",
+              "lemma": "ἔρχομαι",
+              "morph_code": "V-PNI-3S",
+              "strong_id": "G2064",
+              "word_index": 8
+            },
+            {
+              "greek_form": "ὁ",
+              "lemma": "ὁ",
+              "morph_code": "T-NSM",
+              "strong_id": "G3588",
+              "word_index": 9
+            },
+            {
+              "greek_form": "λεγόμενος",
+              "lemma": "λέγω",
+              "morph_code": "V-PPP-NSM",
+              "strong_id": "G3004G",
+              "word_index": 10
+            },
+            {
+              "greek_form": "χριστός,",
+              "lemma": "Χριστός",
+              "morph_code": "N-NSM-T",
+              "strong_id": "G5547",
+              "word_index": 11
+            },
+            {
+              "greek_form": "ὅταν",
+              "lemma": "ὅταν",
+              "morph_code": "CONJ",
+              "strong_id": "G3752",
+              "word_index": 12
+            },
+            {
+              "greek_form": "ἔλθῃ",
+              "lemma": "ἔρχομαι",
+              "morph_code": "V-2AAS-3S",
+              "strong_id": "G2064",
+              "word_index": 13
+            },
+            {
+              "greek_form": "ἐκεῖνος,",
+              "lemma": "ἐκεῖνος",
+              "morph_code": "D-NSM",
+              "strong_id": "G1565",
+              "word_index": 14
+            },
+            {
+              "greek_form": "ἀναγγελεῖ",
+              "lemma": "ἀναγγέλλω",
+              "morph_code": "V-FAI-3S",
+              "strong_id": "G0312",
+              "word_index": 15
+            },
+            {
+              "greek_form": "ἡμῖν",
+              "lemma": "ἐγώ",
+              "morph_code": "P-1DP",
+              "strong_id": "G3165",
+              "word_index": 16
+            },
+            {
+              "greek_form": "ἅπαντα.",
+              "lemma": "ἅπας",
+              "morph_code": "A-APN",
+              "strong_id": "G0537",
+              "word_index": 17
+            }
+          ],
+          "verse": 25
+        },
+        {
+          "token_count": 9,
+          "tokens": [
+            {
+              "greek_form": "λέγει",
+              "lemma": "λέγω",
+              "morph_code": "V-PAI-3S",
+              "strong_id": "G3004G",
+              "word_index": 1
+            },
+            {
+              "greek_form": "αὐτῇ",
+              "lemma": "αὐτός",
+              "morph_code": "P-DSF",
+              "strong_id": "G0846",
+              "word_index": 2
+            },
+            {
+              "greek_form": "ὁ",
+              "lemma": "ὁ",
+              "morph_code": "T-NSM",
+              "strong_id": "G3588",
+              "word_index": 3
+            },
+            {
+              "greek_form": "Ἰησοῦς·",
+              "lemma": "Ἰησοῦς",
+              "morph_code": "N-NSM-P",
+              "strong_id": "G2424G",
+              "word_index": 4
+            },
+            {
+              "greek_form": "ἐγώ",
+              "lemma": "ἐγώ",
+              "morph_code": "P-1NS",
+              "strong_id": "G1473",
+              "word_index": 5
+            },
+            {
+              "greek_form": "εἰμι,",
+              "lemma": "εἰμί",
+              "morph_code": "V-PAI-1S",
+              "strong_id": "G1510",
+              "word_index": 6
+            },
+            {
+              "greek_form": "ὁ",
+              "lemma": "ὁ",
+              "morph_code": "T-NSM",
+              "strong_id": "G3588",
+              "word_index": 7
+            },
+            {
+              "greek_form": "λαλῶν",
+              "lemma": "λαλέω",
+              "morph_code": "V-PAP-NSM",
+              "strong_id": "G2980",
+              "word_index": 8
+            },
+            {
+              "greek_form": "σοι.",
+              "lemma": "σύ",
+              "morph_code": "P-2DS",
+              "strong_id": "G4771",
+              "word_index": 9
+            }
+          ],
+          "verse": 26
+        },
+        {
+          "token_count": 23,
+          "tokens": [
+            {
+              "greek_form": "καὶ",
+              "lemma": "καί",
+              "morph_code": "CONJ",
+              "strong_id": "G2532",
+              "word_index": 1
+            },
+            {
+              "greek_form": "ἐπὶ",
+              "lemma": "ἐπί",
+              "morph_code": "PREP",
+              "strong_id": "G1909",
+              "word_index": 2
+            },
+            {
+              "greek_form": "τούτῳ",
+              "lemma": "οὗτος",
+              "morph_code": "D-DSN",
+              "strong_id": "G3778",
+              "word_index": 3
+            },
+            {
+              "greek_form": "ἦλθαν",
+              "lemma": "ἔρχομαι",
+              "morph_code": "V-2AAI-3P",
+              "strong_id": "G2064",
+              "word_index": 4
+            },
+            {
+              "greek_form": "οἱ",
+              "lemma": "ὁ",
+              "morph_code": "T-NPM",
+              "strong_id": "G3588",
+              "word_index": 5
+            },
+            {
+              "greek_form": "μαθηταὶ",
+              "lemma": "μαθητής",
+              "morph_code": "N-NPM",
+              "strong_id": "G3101",
+              "word_index": 6
+            },
+            {
+              "greek_form": "αὐτοῦ",
+              "lemma": "αὐτός",
+              "morph_code": "P-GSM",
+              "strong_id": "G0846",
+              "word_index": 7
+            },
+            {
+              "greek_form": "καὶ",
+              "lemma": "καί",
+              "morph_code": "CONJ",
+              "strong_id": "G2532",
+              "word_index": 8
+            },
+            {
+              "greek_form": "ἐθαύμαζον",
+              "lemma": "θαυμάζω",
+              "morph_code": "V-IAI-3P",
+              "strong_id": "G2296",
+              "word_index": 9
+            },
+            {
+              "greek_form": "ὅτι",
+              "lemma": "ὅτι",
+              "morph_code": "CONJ",
+              "strong_id": "G3754G",
+              "word_index": 10
+            },
+            {
+              "greek_form": "μετὰ",
+              "lemma": "μετά",
+              "morph_code": "PREP",
+              "strong_id": "G3326",
+              "word_index": 11
+            },
+            {
+              "greek_form": "γυναικὸς",
+              "lemma": "γυνή",
+              "morph_code": "N-GSF",
+              "strong_id": "G1135G",
+              "word_index": 12
+            },
+            {
+              "greek_form": "ἐλάλει·",
+              "lemma": "λαλέω",
+              "morph_code": "V-IAI-3S",
+              "strong_id": "G2980",
+              "word_index": 13
+            },
+            {
+              "greek_form": "οὐδεὶς",
+              "lemma": "οὐδείς",
+              "morph_code": "A-NSM",
+              "strong_id": "G3762",
+              "word_index": 14
+            },
+            {
+              "greek_form": "μέντοι",
+              "lemma": "μέντοι",
+              "morph_code": "CONJ",
+              "strong_id": "G3305",
+              "word_index": 15
+            },
+            {
+              "greek_form": "εἶπεν·",
+              "lemma": "ἔπω, ἐρῶ, εἶπον",
+              "morph_code": "V-2AAI-3S",
+              "strong_id": "G2036",
+              "word_index": 16
+            },
+            {
+              "greek_form": "τί",
+              "lemma": "τίς",
+              "morph_code": "I-ASN",
+              "strong_id": "G5101",
+              "word_index": 17
+            },
+            {
+              "greek_form": "ζητεῖς,",
+              "lemma": "ζητέω",
+              "morph_code": "V-PAI-2S",
+              "strong_id": "G2212",
+              "word_index": 18
+            },
+            {
+              "greek_form": "ἢ",
+              "lemma": "ἤ",
+              "morph_code": "CONJ",
+              "strong_id": "G2228",
+              "word_index": 19
+            },
+            {
+              "greek_form": "τί",
+              "lemma": "τίς",
+              "morph_code": "I-ASN",
+              "strong_id": "G5101",
+              "word_index": 20
+            },
+            {
+              "greek_form": "λαλεῖς",
+              "lemma": "λαλέω",
+              "morph_code": "V-PAI-2S",
+              "strong_id": "G2980",
+              "word_index": 21
+            },
+            {
+              "greek_form": "μετ᾽",
+              "lemma": "μετά",
+              "morph_code": "PREP",
+              "strong_id": "G3326",
+              "word_index": 22
+            },
+            {
+              "greek_form": "αὐτῆς;",
+              "lemma": "αὐτός",
+              "morph_code": "P-GSF",
+              "strong_id": "G0846",
+              "word_index": 23
+            }
+          ],
+          "verse": 27
+        },
+        {
+          "token_count": 16,
+          "tokens": [
+            {
+              "greek_form": "Ἀφῆκεν",
+              "lemma": "ἀφίημι",
+              "morph_code": "V-AAI-3S",
+              "strong_id": "G0863G",
+              "word_index": 1
+            },
+            {
+              "greek_form": "οὖν",
+              "lemma": "οὖν",
+              "morph_code": "CONJ",
+              "strong_id": "G3767",
+              "word_index": 2
+            },
+            {
+              "greek_form": "τὴν",
+              "lemma": "ὁ",
+              "morph_code": "T-ASF",
+              "strong_id": "G3588",
+              "word_index": 3
+            },
+            {
+              "greek_form": "ὑδρίαν",
+              "lemma": "ὑδρία",
+              "morph_code": "N-ASF",
+              "strong_id": "G5201",
+              "word_index": 4
+            },
+            {
+              "greek_form": "αὐτῆς",
+              "lemma": "αὐτός",
+              "morph_code": "P-GSF",
+              "strong_id": "G0846",
+              "word_index": 5
+            },
+            {
+              "greek_form": "ἡ",
+              "lemma": "ὁ",
+              "morph_code": "T-NSF",
+              "strong_id": "G3588",
+              "word_index": 6
+            },
+            {
+              "greek_form": "γυνὴ",
+              "lemma": "γυνή",
+              "morph_code": "N-NSF",
+              "strong_id": "G1135G",
+              "word_index": 7
+            },
+            {
+              "greek_form": "καὶ",
+              "lemma": "καί",
+              "morph_code": "CONJ",
+              "strong_id": "G2532",
+              "word_index": 8
+            },
+            {
+              "greek_form": "ἀπῆλθεν",
+              "lemma": "ἀπέρχομαι",
+              "morph_code": "V-2AAI-3S",
+              "strong_id": "G0565",
+              "word_index": 9
+            },
+            {
+              "greek_form": "εἰς",
+              "lemma": "εἰς",
+              "morph_code": "PREP",
+              "strong_id": "G1519",
+              "word_index": 10
+            },
+            {
+              "greek_form": "τὴν",
+              "lemma": "ὁ",
+              "morph_code": "T-ASF",
+              "strong_id": "G3588",
+              "word_index": 11
+            },
+            {
+              "greek_form": "πόλιν",
+              "lemma": "πόλις",
+              "morph_code": "N-ASF",
+              "strong_id": "G4172",
+              "word_index": 12
+            },
+            {
+              "greek_form": "καὶ",
+              "lemma": "καί",
+              "morph_code": "CONJ",
+              "strong_id": "G2532",
+              "word_index": 13
+            },
+            {
+              "greek_form": "λέγει",
+              "lemma": "λέγω",
+              "morph_code": "V-PAI-3S",
+              "strong_id": "G3004G",
+              "word_index": 14
+            },
+            {
+              "greek_form": "τοῖς",
+              "lemma": "ὁ",
+              "morph_code": "T-DPM",
+              "strong_id": "G3588",
+              "word_index": 15
+            },
+            {
+              "greek_form": "ἀνθρώποις·",
+              "lemma": "ἄνθρωπος",
+              "morph_code": "N-DPM",
+              "strong_id": "G0444",
+              "word_index": 16
+            }
+          ],
+          "verse": 28
+        },
+        {
+          "token_count": 14,
+          "tokens": [
+            {
+              "greek_form": "δεῦτε,",
+              "lemma": "δεῦτε",
+              "morph_code": "INJ",
+              "strong_id": "G1205",
+              "word_index": 1
+            },
+            {
+              "greek_form": "ἴδετε",
+              "lemma": "εἴδω",
+              "morph_code": "V-2AAM-2P",
+              "strong_id": "G1492H",
+              "word_index": 2
+            },
+            {
+              "greek_form": "ἄνθρωπον",
+              "lemma": "ἄνθρωπος",
+              "morph_code": "N-ASM",
+              "strong_id": "G0444",
+              "word_index": 3
+            },
+            {
+              "greek_form": "ὃς",
+              "lemma": "ὅς, ἥ",
+              "morph_code": "R-NSM",
+              "strong_id": "G3739",
+              "word_index": 4
+            },
+            {
+              "greek_form": "εἶπέν",
+              "lemma": "ἔπω, ἐρῶ, εἶπον",
+              "morph_code": "V-2AAI-3S",
+              "strong_id": "G2036",
+              "word_index": 5
+            },
+            {
+              "greek_form": "μοι",
+              "lemma": "ἐγώ",
+              "morph_code": "P-1DS",
+              "strong_id": "G3165",
+              "word_index": 6
+            },
+            {
+              "greek_form": "πάντα",
+              "lemma": "πᾶς",
+              "morph_code": "A-APN",
+              "strong_id": "G3956",
+              "word_index": 7
+            },
+            {
+              "greek_form": "ὅσα",
+              "lemma": "ὅσος",
+              "morph_code": "K-APN",
+              "strong_id": "G3745",
+              "word_index": 8
+            },
+            {
+              "greek_form": "ἐποίησα·",
+              "lemma": "ποιέω",
+              "morph_code": "V-AAI-1S",
+              "strong_id": "G4160G",
+              "word_index": 9
+            },
+            {
+              "greek_form": "μήτι",
+              "lemma": "μή",
+              "morph_code": "PRT-N",
+              "strong_id": "G3385",
+              "word_index": 10
+            },
+            {
+              "greek_form": "οὗτός",
+              "lemma": "οὗτος",
+              "morph_code": "D-NSM",
+              "strong_id": "G3778",
+              "word_index": 11
+            },
+            {
+              "greek_form": "ἐστιν",
+              "lemma": "εἰμί",
+              "morph_code": "V-PAI-3S",
+              "strong_id": "G1510",
+              "word_index": 12
+            },
+            {
+              "greek_form": "ὁ",
+              "lemma": "ὁ",
+              "morph_code": "T-NSM",
+              "strong_id": "G3588",
+              "word_index": 13
+            },
+            {
+              "greek_form": "χριστός;",
+              "lemma": "Χριστός",
+              "morph_code": "N-NSM-T",
+              "strong_id": "G5547",
+              "word_index": 14
+            }
+          ],
+          "verse": 29
+        },
+        {
+          "token_count": 9,
+          "tokens": [
+            {
+              "greek_form": "ἐξῆλθον",
+              "lemma": "ἐξέρχομαι",
+              "morph_code": "V-2AAI-3P",
+              "strong_id": "G1831",
+              "word_index": 1
+            },
+            {
+              "greek_form": "οὖν",
+              "lemma": "οὖν",
+              "morph_code": "CONJ",
+              "strong_id": "G3767",
+              "word_index": 2
+            },
+            {
+              "greek_form": "ἐκ",
+              "lemma": "ἐκ",
+              "morph_code": "PREP",
+              "strong_id": "G1537",
+              "word_index": 3
+            },
+            {
+              "greek_form": "τῆς",
+              "lemma": "ὁ",
+              "morph_code": "T-GSF",
+              "strong_id": "G3588",
+              "word_index": 4
+            },
+            {
+              "greek_form": "πόλεως",
+              "lemma": "πόλις",
+              "morph_code": "N-GSF",
+              "strong_id": "G4172",
+              "word_index": 5
+            },
+            {
+              "greek_form": "καὶ",
+              "lemma": "καί",
+              "morph_code": "CONJ",
+              "strong_id": "G2532",
+              "word_index": 6
+            },
+            {
+              "greek_form": "ἤρχοντο",
+              "lemma": "ἔρχομαι",
+              "morph_code": "V-INI-3P",
+              "strong_id": "G2064",
+              "word_index": 7
+            },
+            {
+              "greek_form": "πρὸς",
+              "lemma": "πρός",
+              "morph_code": "PREP",
+              "strong_id": "G4314",
+              "word_index": 8
+            },
+            {
+              "greek_form": "αὐτόν.",
+              "lemma": "αὐτός",
+              "morph_code": "P-ASM",
+              "strong_id": "G0846",
+              "word_index": 9
+            }
+          ],
+          "verse": 30
+        },
+        {
+          "token_count": 11,
+          "tokens": [
+            {
+              "greek_form": "Ἐν",
+              "lemma": "ἐν",
+              "morph_code": "PREP",
+              "strong_id": "G1722",
+              "word_index": 1
+            },
+            {
+              "greek_form": "δὲ",
+              "lemma": "δέ",
+              "morph_code": "CONJ",
+              "strong_id": "G1161",
+              "word_index": 2
+            },
+            {
+              "greek_form": "τῷ",
+              "lemma": "ὁ",
+              "morph_code": "T-DSN",
+              "strong_id": "G3588",
+              "word_index": 3
+            },
+            {
+              "greek_form": "μεταξὺ",
+              "lemma": "μεταξύ",
+              "morph_code": "PREP",
+              "strong_id": "G3342",
+              "word_index": 4
+            },
+            {
+              "greek_form": "ἠρώτων",
+              "lemma": "ἐρωτάω",
+              "morph_code": "V-IAI-3P",
+              "strong_id": "G2065",
+              "word_index": 5
+            },
+            {
+              "greek_form": "αὐτὸν",
+              "lemma": "αὐτός",
+              "morph_code": "P-ASM",
+              "strong_id": "G0846",
+              "word_index": 6
+            },
+            {
+              "greek_form": "οἱ",
+              "lemma": "ὁ",
+              "morph_code": "T-NPM",
+              "strong_id": "G3588",
+              "word_index": 7
+            },
+            {
+              "greek_form": "μαθηταὶ",
+              "lemma": "μαθητής",
+              "morph_code": "N-NPM",
+              "strong_id": "G3101",
+              "word_index": 8
+            },
+            {
+              "greek_form": "λέγοντες·",
+              "lemma": "λέγω",
+              "morph_code": "V-PAP-NPM",
+              "strong_id": "G3004G",
+              "word_index": 9
+            },
+            {
+              "greek_form": "ῥαββί,",
+              "lemma": "ῥαββί",
+              "morph_code": "N-VSM-T",
+              "strong_id": "G4461",
+              "word_index": 10
+            },
+            {
+              "greek_form": "φάγε.",
+              "lemma": "φαγεῖν",
+              "morph_code": "V-AAM-2S",
+              "strong_id": "G5315",
+              "word_index": 11
+            }
+          ],
+          "verse": 31
+        },
+        {
+          "token_count": 12,
+          "tokens": [
+            {
+              "greek_form": "ὁ",
+              "lemma": "ὁ",
+              "morph_code": "T-NSM",
+              "strong_id": "G3588",
+              "word_index": 1
+            },
+            {
+              "greek_form": "δὲ",
+              "lemma": "δέ",
+              "morph_code": "CONJ",
+              "strong_id": "G1161",
+              "word_index": 2
+            },
+            {
+              "greek_form": "εἶπεν",
+              "lemma": "ἔπω, ἐρῶ, εἶπον",
+              "morph_code": "V-2AAI-3S",
+              "strong_id": "G2036",
+              "word_index": 3
+            },
+            {
+              "greek_form": "αὐτοῖς·",
+              "lemma": "αὐτός",
+              "morph_code": "P-DPM",
+              "strong_id": "G0846",
+              "word_index": 4
+            },
+            {
+              "greek_form": "ἐγὼ",
+              "lemma": "ἐγώ",
+              "morph_code": "P-1NS",
+              "strong_id": "G1473",
+              "word_index": 5
+            },
+            {
+              "greek_form": "βρῶσιν",
+              "lemma": "βρῶσις",
+              "morph_code": "N-ASF",
+              "strong_id": "G1035",
+              "word_index": 6
+            },
+            {
+              "greek_form": "ἔχω",
+              "lemma": "ἔχω",
+              "morph_code": "V-PAI-1S",
+              "strong_id": "G2192",
+              "word_index": 7
+            },
+            {
+              "greek_form": "φαγεῖν",
+              "lemma": "φαγεῖν",
+              "morph_code": "V-AAN",
+              "strong_id": "G5315",
+              "word_index": 8
+            },
+            {
+              "greek_form": "ἣν",
+              "lemma": "ὅς, ἥ",
+              "morph_code": "R-ASF",
+              "strong_id": "G3739",
+              "word_index": 9
+            },
+            {
+              "greek_form": "ὑμεῖς",
+              "lemma": "σύ",
+              "morph_code": "P-2NP",
+              "strong_id": "G4771",
+              "word_index": 10
+            },
+            {
+              "greek_form": "οὐκ",
+              "lemma": "οὐ",
+              "morph_code": "PRT-N",
+              "strong_id": "G3756",
+              "word_index": 11
+            },
+            {
+              "greek_form": "οἴδατε.",
+              "lemma": "εἴδω",
+              "morph_code": "V-RAI-2P",
+              "strong_id": "G6063",
+              "word_index": 12
+            }
+          ],
+          "verse": 32
+        },
+        {
+          "token_count": 11,
+          "tokens": [
+            {
+              "greek_form": "ἔλεγον",
+              "lemma": "λέγω",
+              "morph_code": "V-IAI-3P",
+              "strong_id": "G3004G",
+              "word_index": 1
+            },
+            {
+              "greek_form": "οὖν",
+              "lemma": "οὖν",
+              "morph_code": "CONJ",
+              "strong_id": "G3767",
+              "word_index": 2
+            },
+            {
+              "greek_form": "οἱ",
+              "lemma": "ὁ",
+              "morph_code": "T-NPM",
+              "strong_id": "G3588",
+              "word_index": 3
+            },
+            {
+              "greek_form": "μαθηταὶ",
+              "lemma": "μαθητής",
+              "morph_code": "N-NPM",
+              "strong_id": "G3101",
+              "word_index": 4
+            },
+            {
+              "greek_form": "πρὸς",
+              "lemma": "πρός",
+              "morph_code": "PREP",
+              "strong_id": "G4314",
+              "word_index": 5
+            },
+            {
+              "greek_form": "ἀλλήλους·",
+              "lemma": "ἀλλήλων",
+              "morph_code": "C-APM",
+              "strong_id": "G0240",
+              "word_index": 6
+            },
+            {
+              "greek_form": "μή",
+              "lemma": "μή",
+              "morph_code": "PRT-N",
+              "strong_id": "G3361",
+              "word_index": 7
+            },
+            {
+              "greek_form": "τις",
+              "lemma": "τις",
+              "morph_code": "X-NSM",
+              "strong_id": "G5100",
+              "word_index": 8
+            },
+            {
+              "greek_form": "ἤνεγκεν",
+              "lemma": "φέρω",
+              "morph_code": "V-AAI-3S",
+              "strong_id": "G5342",
+              "word_index": 9
+            },
+            {
+              "greek_form": "αὐτῷ",
+              "lemma": "αὐτός",
+              "morph_code": "P-DSM",
+              "strong_id": "G0846",
+              "word_index": 10
+            },
+            {
+              "greek_form": "φαγεῖν;",
+              "lemma": "φαγεῖν",
+              "morph_code": "V-AAN",
+              "strong_id": "G5315",
+              "word_index": 11
+            }
+          ],
+          "verse": 33
+        },
+        {
+          "token_count": 19,
+          "tokens": [
+            {
+              "greek_form": "λέγει",
+              "lemma": "λέγω",
+              "morph_code": "V-PAI-3S",
+              "strong_id": "G3004G",
+              "word_index": 1
+            },
+            {
+              "greek_form": "αὐτοῖς",
+              "lemma": "αὐτός",
+              "morph_code": "P-DPM",
+              "strong_id": "G0846",
+              "word_index": 2
+            },
+            {
+              "greek_form": "ὁ",
+              "lemma": "ὁ",
+              "morph_code": "T-NSM",
+              "strong_id": "G3588",
+              "word_index": 3
+            },
+            {
+              "greek_form": "Ἰησοῦς·",
+              "lemma": "Ἰησοῦς",
+              "morph_code": "N-NSM-P",
+              "strong_id": "G2424G",
+              "word_index": 4
+            },
+            {
+              "greek_form": "ἐμὸν",
+              "lemma": "ἐμός",
+              "morph_code": "S-1SNSN",
+              "strong_id": "G1473",
+              "word_index": 5
+            },
+            {
+              "greek_form": "βρῶμά",
+              "lemma": "βρῶμα",
+              "morph_code": "N-NSN",
+              "strong_id": "G1033",
+              "word_index": 6
+            },
+            {
+              "greek_form": "ἐστιν",
+              "lemma": "εἰμί",
+              "morph_code": "V-PAI-3S",
+              "strong_id": "G1510",
+              "word_index": 7
+            },
+            {
+              "greek_form": "ἵνα",
+              "lemma": "ἵνα",
+              "morph_code": "CONJ",
+              "strong_id": "G2443",
+              "word_index": 8
+            },
+            {
+              "greek_form": "ποιήσω",
+              "lemma": "ποιέω",
+              "morph_code": "V-AAS-1S",
+              "strong_id": "G4160G",
+              "word_index": 9
+            },
+            {
+              "greek_form": "τὸ",
+              "lemma": "ὁ",
+              "morph_code": "T-ASN",
+              "strong_id": "G3588",
+              "word_index": 10
+            },
+            {
+              "greek_form": "θέλημα",
+              "lemma": "θέλημα",
+              "morph_code": "N-ASN",
+              "strong_id": "G2307",
+              "word_index": 11
+            },
+            {
+              "greek_form": "τοῦ",
+              "lemma": "ὁ",
+              "morph_code": "T-GSM",
+              "strong_id": "G3588",
+              "word_index": 12
+            },
+            {
+              "greek_form": "πέμψαντός",
+              "lemma": "πέμπω",
+              "morph_code": "V-AAP-GSM",
+              "strong_id": "G3992",
+              "word_index": 13
+            },
+            {
+              "greek_form": "με",
+              "lemma": "ἐγώ",
+              "morph_code": "P-1AS",
+              "strong_id": "G3165",
+              "word_index": 14
+            },
+            {
+              "greek_form": "καὶ",
+              "lemma": "καί",
+              "morph_code": "CONJ",
+              "strong_id": "G2532",
+              "word_index": 15
+            },
+            {
+              "greek_form": "τελειώσω",
+              "lemma": "τελειόω",
+              "morph_code": "V-AAS-1S",
+              "strong_id": "G5048",
+              "word_index": 16
+            },
+            {
+              "greek_form": "αὐτοῦ",
+              "lemma": "αὐτός",
+              "morph_code": "P-GSM",
+              "strong_id": "G0846",
+              "word_index": 17
+            },
+            {
+              "greek_form": "τὸ",
+              "lemma": "ὁ",
+              "morph_code": "T-ASN",
+              "strong_id": "G3588",
+              "word_index": 18
+            },
+            {
+              "greek_form": "ἔργον.",
+              "lemma": "ἔργον",
+              "morph_code": "N-ASN",
+              "strong_id": "G2041",
+              "word_index": 19
+            }
+          ],
+          "verse": 34
+        },
+        {
+          "token_count": 28,
+          "tokens": [
+            {
+              "greek_form": "οὐχ",
+              "lemma": "οὐ",
+              "morph_code": "PRT-N",
+              "strong_id": "G3756",
+              "word_index": 1
+            },
+            {
+              "greek_form": "ὑμεῖς",
+              "lemma": "σύ",
+              "morph_code": "P-2NP",
+              "strong_id": "G4771",
+              "word_index": 2
+            },
+            {
+              "greek_form": "λέγετε",
+              "lemma": "λέγω",
+              "morph_code": "V-PAI-2P",
+              "strong_id": "G3004G",
+              "word_index": 3
+            },
+            {
+              "greek_form": "ὅτι",
+              "lemma": "ὅτι",
+              "morph_code": "CONJ",
+              "strong_id": "G3754G",
+              "word_index": 4
+            },
+            {
+              "greek_form": "ἔτι",
+              "lemma": "ἔτι",
+              "morph_code": "ADV",
+              "strong_id": "G2089",
+              "word_index": 5
+            },
+            {
+              "greek_form": "τετράμηνός",
+              "lemma": "τετράμηνος",
+              "morph_code": "A-NSM",
+              "strong_id": "G5072",
+              "word_index": 6
+            },
+            {
+              "greek_form": "ἐστιν",
+              "lemma": "εἰμί",
+              "morph_code": "V-PAI-3S",
+              "strong_id": "G1510",
+              "word_index": 7
+            },
+            {
+              "greek_form": "καὶ",
+              "lemma": "καί",
+              "morph_code": "CONJ",
+              "strong_id": "G2532",
+              "word_index": 8
+            },
+            {
+              "greek_form": "ὁ",
+              "lemma": "ὁ",
+              "morph_code": "T-NSM",
+              "strong_id": "G3588",
+              "word_index": 9
+            },
+            {
+              "greek_form": "θερισμὸς",
+              "lemma": "θερισμός",
+              "morph_code": "N-NSM",
+              "strong_id": "G2326",
+              "word_index": 10
+            },
+            {
+              "greek_form": "ἔρχεται;",
+              "lemma": "ἔρχομαι",
+              "morph_code": "V-PNI-3S",
+              "strong_id": "G2064",
+              "word_index": 11
+            },
+            {
+              "greek_form": "ἰδοὺ",
+              "lemma": "ἰδού",
+              "morph_code": "INJ",
+              "strong_id": "G2400",
+              "word_index": 12
+            },
+            {
+              "greek_form": "λέγω",
+              "lemma": "λέγω",
+              "morph_code": "V-PAI-1S",
+              "strong_id": "G3004G",
+              "word_index": 13
+            },
+            {
+              "greek_form": "ὑμῖν·",
+              "lemma": "σύ",
+              "morph_code": "P-2DP",
+              "strong_id": "G4771",
+              "word_index": 14
+            },
+            {
+              "greek_form": "ἐπάρατε",
+              "lemma": "ἐπαίρω",
+              "morph_code": "V-AAM-2P",
+              "strong_id": "G1869",
+              "word_index": 15
+            },
+            {
+              "greek_form": "τοὺς",
+              "lemma": "ὁ",
+              "morph_code": "T-APM",
+              "strong_id": "G3588",
+              "word_index": 16
+            },
+            {
+              "greek_form": "ὀφθαλμοὺς",
+              "lemma": "ὀφθαλμός",
+              "morph_code": "N-APM",
+              "strong_id": "G3788",
+              "word_index": 17
+            },
+            {
+              "greek_form": "ὑμῶν",
+              "lemma": "σύ",
+              "morph_code": "P-2GP",
+              "strong_id": "G4771",
+              "word_index": 18
+            },
+            {
+              "greek_form": "καὶ",
+              "lemma": "καί",
+              "morph_code": "CONJ",
+              "strong_id": "G2532",
+              "word_index": 19
+            },
+            {
+              "greek_form": "θεάσασθε",
+              "lemma": "θεάομαι",
+              "morph_code": "V-ADM-2P",
+              "strong_id": "G2300",
+              "word_index": 20
+            },
+            {
+              "greek_form": "τὰς",
+              "lemma": "ὁ",
+              "morph_code": "T-APF",
+              "strong_id": "G3588",
+              "word_index": 21
+            },
+            {
+              "greek_form": "χώρας",
+              "lemma": "χώρα",
+              "morph_code": "N-APF",
+              "strong_id": "G5561",
+              "word_index": 22
+            },
+            {
+              "greek_form": "ὅτι",
+              "lemma": "ὅτι",
+              "morph_code": "CONJ",
+              "strong_id": "G3754G",
+              "word_index": 23
+            },
+            {
+              "greek_form": "λευκαί",
+              "lemma": "λευκός",
+              "morph_code": "A-NPF",
+              "strong_id": "G3022",
+              "word_index": 24
+            },
+            {
+              "greek_form": "εἰσιν",
+              "lemma": "εἰμί",
+              "morph_code": "V-PAI-3P",
+              "strong_id": "G1510",
+              "word_index": 25
+            },
+            {
+              "greek_form": "πρὸς",
+              "lemma": "πρός",
+              "morph_code": "PREP",
+              "strong_id": "G4314",
+              "word_index": 26
+            },
+            {
+              "greek_form": "θερισμόν",
+              "lemma": "θερισμός",
+              "morph_code": "N-ASM",
+              "strong_id": "G2326",
+              "word_index": 27
+            },
+            {
+              "greek_form": "ἤδη.",
+              "lemma": "ἤδη",
+              "morph_code": "ADV",
+              "strong_id": "G2235",
+              "word_index": 28
+            }
+          ],
+          "verse": 35
+        },
+        {
+          "token_count": 20,
+          "tokens": [
+            {
+              "greek_form": "καὶ",
+              "lemma": "καί",
+              "morph_code": "CONJ",
+              "strong_id": "G2532",
+              "word_index": 1
+            },
+            {
+              "greek_form": "ὁ",
+              "lemma": "ὁ",
+              "morph_code": "T-NSM",
+              "strong_id": "G3588",
+              "word_index": 2
+            },
+            {
+              "greek_form": "θερίζων",
+              "lemma": "θερίζω",
+              "morph_code": "V-PAP-NSM",
+              "strong_id": "G2325",
+              "word_index": 3
+            },
+            {
+              "greek_form": "μισθὸν",
+              "lemma": "μισθός",
+              "morph_code": "N-ASM",
+              "strong_id": "G3408",
+              "word_index": 4
+            },
+            {
+              "greek_form": "λαμβάνει",
+              "lemma": "λαμβάνω",
+              "morph_code": "V-PAI-3S",
+              "strong_id": "G2983",
+              "word_index": 5
+            },
+            {
+              "greek_form": "καὶ",
+              "lemma": "καί",
+              "morph_code": "CONJ",
+              "strong_id": "G2532",
+              "word_index": 6
+            },
+            {
+              "greek_form": "συνάγει",
+              "lemma": "συνάγω",
+              "morph_code": "V-PAI-3S",
+              "strong_id": "G4863",
+              "word_index": 7
+            },
+            {
+              "greek_form": "καρπὸν",
+              "lemma": "καρπός",
+              "morph_code": "N-ASM",
+              "strong_id": "G2590",
+              "word_index": 8
+            },
+            {
+              "greek_form": "εἰς",
+              "lemma": "εἰς",
+              "morph_code": "PREP",
+              "strong_id": "G1519",
+              "word_index": 9
+            },
+            {
+              "greek_form": "ζωὴν",
+              "lemma": "ζωή",
+              "morph_code": "N-ASF",
+              "strong_id": "G2222",
+              "word_index": 10
+            },
+            {
+              "greek_form": "αἰώνιον,",
+              "lemma": "αἰώνιος",
+              "morph_code": "A-ASF",
+              "strong_id": "G0166",
+              "word_index": 11
+            },
+            {
+              "greek_form": "ἵνα",
+              "lemma": "ἵνα",
+              "morph_code": "CONJ",
+              "strong_id": "G2443",
+              "word_index": 12
+            },
+            {
+              "greek_form": "καὶ",
+              "lemma": "καί",
+              "morph_code": "CONJ",
+              "strong_id": "G2532",
+              "word_index": 13
+            },
+            {
+              "greek_form": "ὁ",
+              "lemma": "ὁ",
+              "morph_code": "T-NSM",
+              "strong_id": "G3588",
+              "word_index": 14
+            },
+            {
+              "greek_form": "σπείρων",
+              "lemma": "σπείρω",
+              "morph_code": "V-PAP-NSM",
+              "strong_id": "G4687",
+              "word_index": 15
+            },
+            {
+              "greek_form": "ὁμοῦ",
+              "lemma": "ὁμοῦ",
+              "morph_code": "ADV",
+              "strong_id": "G3674",
+              "word_index": 16
+            },
+            {
+              "greek_form": "χαίρῃ",
+              "lemma": "χαίρω",
+              "morph_code": "V-PAS-3S",
+              "strong_id": "G5463",
+              "word_index": 17
+            },
+            {
+              "greek_form": "καὶ",
+              "lemma": "καί",
+              "morph_code": "CONJ",
+              "strong_id": "G2532",
+              "word_index": 18
+            },
+            {
+              "greek_form": "ὁ",
+              "lemma": "ὁ",
+              "morph_code": "T-NSM",
+              "strong_id": "G3588",
+              "word_index": 19
+            },
+            {
+              "greek_form": "θερίζων.",
+              "lemma": "θερίζω",
+              "morph_code": "V-PAP-NSM",
+              "strong_id": "G2325",
+              "word_index": 20
+            }
+          ],
+          "verse": 36
+        },
+        {
+          "token_count": 17,
+          "tokens": [
+            {
+              "greek_form": "ἐν",
+              "lemma": "ἐν",
+              "morph_code": "PREP",
+              "strong_id": "G1722",
+              "word_index": 1
+            },
+            {
+              "greek_form": "γὰρ",
+              "lemma": "γάρ",
+              "morph_code": "CONJ",
+              "strong_id": "G1063",
+              "word_index": 2
+            },
+            {
+              "greek_form": "τούτῳ",
+              "lemma": "οὗτος",
+              "morph_code": "D-DSN",
+              "strong_id": "G3778",
+              "word_index": 3
+            },
+            {
+              "greek_form": "ὁ",
+              "lemma": "ὁ",
+              "morph_code": "T-NSM",
+              "strong_id": "G3588",
+              "word_index": 4
+            },
+            {
+              "greek_form": "λόγος",
+              "lemma": "λόγος",
+              "morph_code": "N-NSM",
+              "strong_id": "G3056",
+              "word_index": 5
+            },
+            {
+              "greek_form": "ἐστὶν",
+              "lemma": "εἰμί",
+              "morph_code": "V-PAI-3S",
+              "strong_id": "G1510",
+              "word_index": 6
+            },
+            {
+              "greek_form": "ὁ",
+              "lemma": "ὁ",
+              "morph_code": "T-NSM",
+              "strong_id": "G3588",
+              "word_index": 7
+            },
+            {
+              "greek_form": "ἀληθινός,",
+              "lemma": "ἀληθινός",
+              "morph_code": "A-NSM",
+              "strong_id": "G0228",
+              "word_index": 8
+            },
+            {
+              "greek_form": "ὅτι",
+              "lemma": "ὅτι",
+              "morph_code": "CONJ",
+              "strong_id": "G3754G",
+              "word_index": 9
+            },
+            {
+              "greek_form": "ἄλλος",
+              "lemma": "ἄλλος",
+              "morph_code": "A-NSM",
+              "strong_id": "G0243",
+              "word_index": 10
+            },
+            {
+              "greek_form": "ἐστὶν",
+              "lemma": "εἰμί",
+              "morph_code": "V-PAI-3S",
+              "strong_id": "G1510",
+              "word_index": 11
+            },
+            {
+              "greek_form": "ὁ",
+              "lemma": "ὁ",
+              "morph_code": "T-NSM",
+              "strong_id": "G3588",
+              "word_index": 12
+            },
+            {
+              "greek_form": "σπείρων",
+              "lemma": "σπείρω",
+              "morph_code": "V-PAP-NSM",
+              "strong_id": "G4687",
+              "word_index": 13
+            },
+            {
+              "greek_form": "καὶ",
+              "lemma": "καί",
+              "morph_code": "CONJ",
+              "strong_id": "G2532",
+              "word_index": 14
+            },
+            {
+              "greek_form": "ἄλλος",
+              "lemma": "ἄλλος",
+              "morph_code": "A-NSM",
+              "strong_id": "G0243",
+              "word_index": 15
+            },
+            {
+              "greek_form": "ὁ",
+              "lemma": "ὁ",
+              "morph_code": "T-NSM",
+              "strong_id": "G3588",
+              "word_index": 16
+            },
+            {
+              "greek_form": "θερίζων.",
+              "lemma": "θερίζω",
+              "morph_code": "V-PAP-NSM",
+              "strong_id": "G2325",
+              "word_index": 17
+            }
+          ],
+          "verse": 37
+        },
+        {
+          "token_count": 17,
+          "tokens": [
+            {
+              "greek_form": "ἐγὼ",
+              "lemma": "ἐγώ",
+              "morph_code": "P-1NS",
+              "strong_id": "G1473",
+              "word_index": 1
+            },
+            {
+              "greek_form": "ἀπέστειλα",
+              "lemma": "ἀποστέλλω",
+              "morph_code": "V-AAI-1S",
+              "strong_id": "G0649",
+              "word_index": 2
+            },
+            {
+              "greek_form": "ὑμᾶς",
+              "lemma": "σύ",
+              "morph_code": "P-2AP",
+              "strong_id": "G4771",
+              "word_index": 3
+            },
+            {
+              "greek_form": "θερίζειν",
+              "lemma": "θερίζω",
+              "morph_code": "V-PAN",
+              "strong_id": "G2325",
+              "word_index": 4
+            },
+            {
+              "greek_form": "ὃ",
+              "lemma": "ὅς, ἥ",
+              "morph_code": "R-ASN",
+              "strong_id": "G3739",
+              "word_index": 5
+            },
+            {
+              "greek_form": "οὐχ",
+              "lemma": "οὐ",
+              "morph_code": "PRT-N",
+              "strong_id": "G3756",
+              "word_index": 6
+            },
+            {
+              "greek_form": "ὑμεῖς",
+              "lemma": "σύ",
+              "morph_code": "P-2NP",
+              "strong_id": "G4771",
+              "word_index": 7
+            },
+            {
+              "greek_form": "κεκοπιάκατε·",
+              "lemma": "κοπιάω",
+              "morph_code": "V-RAI-2P",
+              "strong_id": "G2872",
+              "word_index": 8
+            },
+            {
+              "greek_form": "ἄλλοι",
+              "lemma": "ἄλλος",
+              "morph_code": "A-NPM",
+              "strong_id": "G0243",
+              "word_index": 9
+            },
+            {
+              "greek_form": "κεκοπιάκασιν,",
+              "lemma": "κοπιάω",
+              "morph_code": "V-RAI-3P",
+              "strong_id": "G2872",
+              "word_index": 10
+            },
+            {
+              "greek_form": "καὶ",
+              "lemma": "καί",
+              "morph_code": "CONJ",
+              "strong_id": "G2532",
+              "word_index": 11
+            },
+            {
+              "greek_form": "ὑμεῖς",
+              "lemma": "σύ",
+              "morph_code": "P-2NP",
+              "strong_id": "G4771",
+              "word_index": 12
+            },
+            {
+              "greek_form": "εἰς",
+              "lemma": "εἰς",
+              "morph_code": "PREP",
+              "strong_id": "G1519",
+              "word_index": 13
+            },
+            {
+              "greek_form": "τὸν",
+              "lemma": "ὁ",
+              "morph_code": "T-ASM",
+              "strong_id": "G3588",
+              "word_index": 14
+            },
+            {
+              "greek_form": "κόπον",
+              "lemma": "κόπος",
+              "morph_code": "N-ASM",
+              "strong_id": "G2873",
+              "word_index": 15
+            },
+            {
+              "greek_form": "αὐτῶν",
+              "lemma": "αὐτός",
+              "morph_code": "P-GPM",
+              "strong_id": "G0846",
+              "word_index": 16
+            },
+            {
+              "greek_form": "εἰσεληλύθατε.",
+              "lemma": "εἰσέρχομαι",
+              "morph_code": "V-2RAI-2P",
+              "strong_id": "G1525",
+              "word_index": 17
+            }
+          ],
+          "verse": 38
+        },
+        {
+          "token_count": 23,
+          "tokens": [
+            {
+              "greek_form": "ἐκ",
+              "lemma": "ἐκ",
+              "morph_code": "PREP",
+              "strong_id": "G1537",
+              "word_index": 1
+            },
+            {
+              "greek_form": "δὲ",
+              "lemma": "δέ",
+              "morph_code": "CONJ",
+              "strong_id": "G1161",
+              "word_index": 2
+            },
+            {
+              "greek_form": "τῆς",
+              "lemma": "ὁ",
+              "morph_code": "T-GSF",
+              "strong_id": "G3588",
+              "word_index": 3
+            },
+            {
+              "greek_form": "πόλεως",
+              "lemma": "πόλις",
+              "morph_code": "N-GSF",
+              "strong_id": "G4172",
+              "word_index": 4
+            },
+            {
+              "greek_form": "ἐκείνης",
+              "lemma": "ἐκεῖνος",
+              "morph_code": "D-GSF",
+              "strong_id": "G1565",
+              "word_index": 5
+            },
+            {
+              "greek_form": "πολλοὶ",
+              "lemma": "πολύς",
+              "morph_code": "A-NPM",
+              "strong_id": "G4183",
+              "word_index": 6
+            },
+            {
+              "greek_form": "ἐπίστευσαν",
+              "lemma": "πιστεύω",
+              "morph_code": "V-AAI-3P",
+              "strong_id": "G4100",
+              "word_index": 7
+            },
+            {
+              "greek_form": "εἰς",
+              "lemma": "εἰς",
+              "morph_code": "PREP",
+              "strong_id": "G1519",
+              "word_index": 8
+            },
+            {
+              "greek_form": "αὐτὸν",
+              "lemma": "αὐτός",
+              "morph_code": "P-ASM",
+              "strong_id": "G0846",
+              "word_index": 9
+            },
+            {
+              "greek_form": "τῶν",
+              "lemma": "ὁ",
+              "morph_code": "T-GPM",
+              "strong_id": "G3588",
+              "word_index": 10
+            },
+            {
+              "greek_form": "Σαμαριτῶν",
+              "lemma": "Σαμαρείτης",
+              "morph_code": "N-GPM-LG",
+              "strong_id": "G4541",
+              "word_index": 11
+            },
+            {
+              "greek_form": "διὰ",
+              "lemma": "διά",
+              "morph_code": "PREP",
+              "strong_id": "G1223",
+              "word_index": 12
+            },
+            {
+              "greek_form": "τὸν",
+              "lemma": "ὁ",
+              "morph_code": "T-ASM",
+              "strong_id": "G3588",
+              "word_index": 13
+            },
+            {
+              "greek_form": "λόγον",
+              "lemma": "λόγος",
+              "morph_code": "N-ASM",
+              "strong_id": "G3056",
+              "word_index": 14
+            },
+            {
+              "greek_form": "τῆς",
+              "lemma": "ὁ",
+              "morph_code": "T-GSF",
+              "strong_id": "G3588",
+              "word_index": 15
+            },
+            {
+              "greek_form": "γυναικὸς",
+              "lemma": "γυνή",
+              "morph_code": "N-GSF",
+              "strong_id": "G1135G",
+              "word_index": 16
+            },
+            {
+              "greek_form": "μαρτυρούσης",
+              "lemma": "μαρτυρέω",
+              "morph_code": "V-PAP-GSF",
+              "strong_id": "G3140",
+              "word_index": 17
+            },
+            {
+              "greek_form": "ὅτι",
+              "lemma": "ὅτι",
+              "morph_code": "CONJ",
+              "strong_id": "G3754G",
+              "word_index": 18
+            },
+            {
+              "greek_form": "εἶπέν",
+              "lemma": "ἔπω, ἐρῶ, εἶπον",
+              "morph_code": "V-2AAI-3S",
+              "strong_id": "G2036",
+              "word_index": 19
+            },
+            {
+              "greek_form": "μοι",
+              "lemma": "ἐγώ",
+              "morph_code": "P-1DS",
+              "strong_id": "G3165",
+              "word_index": 20
+            },
+            {
+              "greek_form": "πάντα",
+              "lemma": "πᾶς",
+              "morph_code": "A-APN",
+              "strong_id": "G3956",
+              "word_index": 21
+            },
+            {
+              "greek_form": "ἃ",
+              "lemma": "ὅς, ἥ",
+              "morph_code": "R-APN",
+              "strong_id": "G3739",
+              "word_index": 22
+            },
+            {
+              "greek_form": "ἐποίησα.",
+              "lemma": "ποιέω",
+              "morph_code": "V-AAI-1S",
+              "strong_id": "G4160G",
+              "word_index": 23
+            }
+          ],
+          "verse": 39
+        },
+        {
+          "token_count": 17,
+          "tokens": [
+            {
+              "greek_form": "ὡς",
+              "lemma": "ὡς",
+              "morph_code": "PRT",
+              "strong_id": "G5613",
+              "word_index": 1
+            },
+            {
+              "greek_form": "οὖν",
+              "lemma": "οὖν",
+              "morph_code": "CONJ",
+              "strong_id": "G3767",
+              "word_index": 2
+            },
+            {
+              "greek_form": "ἦλθον",
+              "lemma": "ἔρχομαι",
+              "morph_code": "V-2AAI-3P",
+              "strong_id": "G2064",
+              "word_index": 3
+            },
+            {
+              "greek_form": "πρὸς",
+              "lemma": "πρός",
+              "morph_code": "PREP",
+              "strong_id": "G4314",
+              "word_index": 4
+            },
+            {
+              "greek_form": "αὐτὸν",
+              "lemma": "αὐτός",
+              "morph_code": "P-ASM",
+              "strong_id": "G0846",
+              "word_index": 5
+            },
+            {
+              "greek_form": "οἱ",
+              "lemma": "ὁ",
+              "morph_code": "T-NPM",
+              "strong_id": "G3588",
+              "word_index": 6
+            },
+            {
+              "greek_form": "Σαμαρῖται,",
+              "lemma": "Σαμαρείτης",
+              "morph_code": "N-NPM-LG",
+              "strong_id": "G4541",
+              "word_index": 7
+            },
+            {
+              "greek_form": "ἠρώτων",
+              "lemma": "ἐρωτάω",
+              "morph_code": "V-IAI-3P",
+              "strong_id": "G2065",
+              "word_index": 8
+            },
+            {
+              "greek_form": "αὐτὸν",
+              "lemma": "αὐτός",
+              "morph_code": "P-ASM",
+              "strong_id": "G0846",
+              "word_index": 9
+            },
+            {
+              "greek_form": "μεῖναι",
+              "lemma": "μένω",
+              "morph_code": "V-AAN",
+              "strong_id": "G3306",
+              "word_index": 10
+            },
+            {
+              "greek_form": "παρ᾽",
+              "lemma": "παρά",
+              "morph_code": "PREP",
+              "strong_id": "G3844",
+              "word_index": 11
+            },
+            {
+              "greek_form": "αὐτοῖς.",
+              "lemma": "αὐτός",
+              "morph_code": "P-DPM",
+              "strong_id": "G0846",
+              "word_index": 12
+            },
+            {
+              "greek_form": "καὶ",
+              "lemma": "καί",
+              "morph_code": "CONJ",
+              "strong_id": "G2532",
+              "word_index": 13
+            },
+            {
+              "greek_form": "ἔμεινεν",
+              "lemma": "μένω",
+              "morph_code": "V-AAI-3S",
+              "strong_id": "G3306",
+              "word_index": 14
+            },
+            {
+              "greek_form": "ἐκεῖ",
+              "lemma": "ἐκεῖ",
+              "morph_code": "ADV",
+              "strong_id": "G1563",
+              "word_index": 15
+            },
+            {
+              "greek_form": "δύο",
+              "lemma": "δύο",
+              "morph_code": "A-NUI",
+              "strong_id": "G1417",
+              "word_index": 16
+            },
+            {
+              "greek_form": "ἡμέρας.",
+              "lemma": "ἡμέρα",
+              "morph_code": "N-APF",
+              "strong_id": "G2250",
+              "word_index": 17
+            }
+          ],
+          "verse": 40
+        },
+        {
+          "token_count": 8,
+          "tokens": [
+            {
+              "greek_form": "καὶ",
+              "lemma": "καί",
+              "morph_code": "CONJ",
+              "strong_id": "G2532",
+              "word_index": 1
+            },
+            {
+              "greek_form": "πολλῷ",
+              "lemma": "πολύς",
+              "morph_code": "A-DSN",
+              "strong_id": "G4183",
+              "word_index": 2
+            },
+            {
+              "greek_form": "πλείους",
+              "lemma": "πολύς",
+              "morph_code": "A-NPM-C",
+              "strong_id": "G4183",
+              "word_index": 3
+            },
+            {
+              "greek_form": "ἐπίστευσαν",
+              "lemma": "πιστεύω",
+              "morph_code": "V-AAI-3P",
+              "strong_id": "G4100",
+              "word_index": 4
+            },
+            {
+              "greek_form": "διὰ",
+              "lemma": "διά",
+              "morph_code": "PREP",
+              "strong_id": "G1223",
+              "word_index": 5
+            },
+            {
+              "greek_form": "τὸν",
+              "lemma": "ὁ",
+              "morph_code": "T-ASM",
+              "strong_id": "G3588",
+              "word_index": 6
+            },
+            {
+              "greek_form": "λόγον",
+              "lemma": "λόγος",
+              "morph_code": "N-ASM",
+              "strong_id": "G3056",
+              "word_index": 7
+            },
+            {
+              "greek_form": "αὐτοῦ,",
+              "lemma": "αὐτός",
+              "morph_code": "P-GSM",
+              "strong_id": "G0846",
+              "word_index": 8
+            }
+          ],
+          "verse": 41
+        },
+        {
+          "token_count": 26,
+          "tokens": [
+            {
+              "greek_form": "τῇ",
+              "lemma": "ὁ",
+              "morph_code": "T-DSF",
+              "strong_id": "G3588",
+              "word_index": 1
+            },
+            {
+              "greek_form": "τε",
+              "lemma": "τε",
+              "morph_code": "CONJ",
+              "strong_id": "G5037",
+              "word_index": 2
+            },
+            {
+              "greek_form": "γυναικὶ",
+              "lemma": "γυνή",
+              "morph_code": "N-DSF",
+              "strong_id": "G1135G",
+              "word_index": 3
+            },
+            {
+              "greek_form": "ἔλεγον",
+              "lemma": "λέγω",
+              "morph_code": "V-IAI-3P",
+              "strong_id": "G3004G",
+              "word_index": 4
+            },
+            {
+              "greek_form": "ὅτι",
+              "lemma": "ὅτι",
+              "morph_code": "CONJ",
+              "strong_id": "G3754G",
+              "word_index": 5
+            },
+            {
+              "greek_form": "οὐκέτι",
+              "lemma": "οὐ",
+              "morph_code": "PRT-N + G2089=ADV",
+              "strong_id": "G3756",
+              "word_index": 6
+            },
+            {
+              "greek_form": "διὰ",
+              "lemma": "διά",
+              "morph_code": "PREP",
+              "strong_id": "G1223",
+              "word_index": 7
+            },
+            {
+              "greek_form": "τὴν",
+              "lemma": "ὁ",
+              "morph_code": "T-ASF",
+              "strong_id": "G3588",
+              "word_index": 8
+            },
+            {
+              "greek_form": "σὴν",
+              "lemma": "σός",
+              "morph_code": "S-2SASF",
+              "strong_id": "G4771",
+              "word_index": 9
+            },
+            {
+              "greek_form": "λαλιὰν",
+              "lemma": "λαλιά",
+              "morph_code": "N-ASF",
+              "strong_id": "G2981",
+              "word_index": 10
+            },
+            {
+              "greek_form": "πιστεύομεν·",
+              "lemma": "πιστεύω",
+              "morph_code": "V-PAI-1P",
+              "strong_id": "G4100",
+              "word_index": 11
+            },
+            {
+              "greek_form": "αὐτοὶ",
+              "lemma": "αὐτός",
+              "morph_code": "P-NPM",
+              "strong_id": "G0846",
+              "word_index": 12
+            },
+            {
+              "greek_form": "γὰρ",
+              "lemma": "γάρ",
+              "morph_code": "CONJ",
+              "strong_id": "G1063",
+              "word_index": 13
+            },
+            {
+              "greek_form": "ἀκηκόαμεν",
+              "lemma": "ἀκούω",
+              "morph_code": "V-2RAI-1P",
+              "strong_id": "G0191",
+              "word_index": 14
+            },
+            {
+              "greek_form": "καὶ",
+              "lemma": "καί",
+              "morph_code": "CONJ",
+              "strong_id": "G2532",
+              "word_index": 15
+            },
+            {
+              "greek_form": "οἴδαμεν",
+              "lemma": "εἴδω",
+              "morph_code": "V-RAI-1P",
+              "strong_id": "G6063",
+              "word_index": 16
+            },
+            {
+              "greek_form": "ὅτι",
+              "lemma": "ὅτι",
+              "morph_code": "CONJ",
+              "strong_id": "G3754G",
+              "word_index": 17
+            },
+            {
+              "greek_form": "οὗτός",
+              "lemma": "οὗτος",
+              "morph_code": "D-NSM",
+              "strong_id": "G3778",
+              "word_index": 18
+            },
+            {
+              "greek_form": "ἐστιν",
+              "lemma": "εἰμί",
+              "morph_code": "V-PAI-3S",
+              "strong_id": "G1510",
+              "word_index": 19
+            },
+            {
+              "greek_form": "ἀληθῶς",
+              "lemma": "ἀληθῶς",
+              "morph_code": "ADV",
+              "strong_id": "G0230",
+              "word_index": 20
+            },
+            {
+              "greek_form": "ὁ",
+              "lemma": "ὁ",
+              "morph_code": "T-NSM",
+              "strong_id": "G3588",
+              "word_index": 21
+            },
+            {
+              "greek_form": "σωτὴρ",
+              "lemma": "σωτήρ",
+              "morph_code": "N-NSM",
+              "strong_id": "G4990",
+              "word_index": 22
+            },
+            {
+              "greek_form": "τοῦ",
+              "lemma": "ὁ",
+              "morph_code": "T-GSM",
+              "strong_id": "G3588",
+              "word_index": 23
+            },
+            {
+              "greek_form": "κόσμου",
+              "lemma": "κόσμος",
+              "morph_code": "N-GSM",
+              "strong_id": "G2889",
+              "word_index": 24
+            },
+            {
+              "greek_form": "ὁ",
+              "lemma": "ὁ",
+              "morph_code": "T-NSM",
+              "strong_id": "G3588",
+              "word_index": 25
+            },
+            {
+              "greek_form": "χριστός.",
+              "lemma": "Χριστός",
+              "morph_code": "N-NSM-T",
+              "strong_id": "G5547",
+              "word_index": 26
+            }
+          ],
+          "verse": 42
+        }
+      ]
+    }
+  },
+  "passage": {
+    "canonical": "John.4.1-42",
+    "display": "Jn 4,1-42"
+  },
+  "places": [
+    {
+      "card_summary_hu": "Észak-Izrael történeti régiója, Jézus szolgálatának számos fontos helyszínével. A terület ma Izrael északi részén fekszik.",
+      "identification_status": "certain",
+      "latitude": 32.76,
+      "longitude": 35.527,
+      "name_en": "Galilee 1",
+      "name_hu": "Galilea",
+      "passage_links": [
+        "Jn 4,3"
+      ],
+      "place_id": "galilee_1",
+      "source_id": "biblical_places_catalog"
+    },
+    {
+      "card_summary_hu": "Jeruzsálem a bibliai elbeszélés központi városa, a Templom és több újszövetségi esemény helyszíne.",
+      "enrichment_confidence": "high",
+      "enrichment_excerpt_hu": "Jeruzsálem a passage-indexben 956 bibliai hivatkozáshoz kapcsolódik. A route-adatok 3 bibliai útvonalhoz kötik. Jeruzsálem a bibliai elbeszélés központi városa, a Templom és több újszövetségi esemény helyszíne. Felmegy és köszönti a gyülekezetet; a route ezt Jeruzsálem valószínű értelmezéseként jelöli. Felmennek Jeruzsálembe, ahol a testvérek fogadják őket. Pál Jeruzsálemben kerül őrizetbe, majd a továbbszállítás előkészítése megtörténik. (ApCsel 18,22, ApCsel 21,15-17, ApCsel 21,17-23,22)",
+      "enrichment_source_ids": [
+        "openbible_geocoding_cc_by_4_0"
+      ],
+      "identification_status": "probable",
+      "latitude": 31.776667,
+      "longitude": 35.234167,
+      "name_en": "Jerusalem",
+      "name_hu": "Jeruzsálem",
+      "passage_links": [
+        "Jn 4,20"
+      ],
+      "place_id": "jerusalem",
+      "source_id": "biblical_places_catalog"
+    },
+    {
+      "card_summary_hu": "A júdai tartomány bibliai és történeti régiója, amely az ószövetségi és újszövetségi szövegekben is szerepel.",
+      "identification_status": "certain",
+      "latitude": 31.776667,
+      "longitude": 35.234167,
+      "name_en": "Judea 1",
+      "name_hu": "Júdea",
+      "passage_links": [
+        "Jn 4,3"
+      ],
+      "place_id": "judea_1",
+      "source_id": "biblical_places_catalog"
+    },
+    {
+      "card_summary_hu": "Sikem mellett emelkedő hegy, az áldás kihirdetésének és a samaritánus istentiszteletnek fontos helye. A mai Náblusz fölött található.",
+      "identification_status": "certain",
+      "latitude": 32.199444,
+      "longitude": 35.272778,
+      "name_en": "Mount Gerizim",
+      "name_hu": "Garizim-hegy",
+      "passage_links": [
+        "Jn 4,20"
+      ],
+      "place_id": "mount_gerizim",
+      "source_id": "biblical_places_catalog"
+    },
+    {
+      "card_summary_hu": "Az északi országrész és későbbi tartomány neve, amely az Apostolok cselekedeteiben a jeruzsálemi misszió egyik első terjeszkedési területe. Központi térsége a mai Szamária vidékén található.",
+      "identification_status": "certain",
+      "latitude": 32.276111,
+      "longitude": 35.195,
+      "name_en": "Samaria 2",
+      "name_hu": "Samária vidéke",
+      "passage_links": [
+        "Jn 4,4"
+      ],
+      "place_id": "samaria_2",
+      "source_id": "biblical_places_catalog"
+    },
+    {
+      "card_summary_hu": "Samáriai település Jákób kútja közelében, ahol Jézus a samáriai asszonnyal beszélgetett. A mai Aszkár környékével azonosítják.",
+      "identification_status": "probable",
+      "latitude": 32.21776,
+      "longitude": 35.28897,
+      "name_en": "Sychar",
+      "name_hu": "Sikár",
+      "passage_links": [
+        "Jn 4,5"
+      ],
+      "place_id": "sychar",
+      "source_id": "biblical_places_catalog"
+    }
+  ],
+  "sources": [
+    {
+      "language": "hu",
+      "license": "CC-BY-4.0",
+      "local_path": "data/biblical_places/biblical_places_catalog.json",
+      "name": "Biblical places canonical catalog",
+      "source_id": "biblical_places_catalog",
+      "source_type": "json",
+      "version": "catalog-v1"
+    },
+    {
+      "language": "hu",
+      "license": "CC-BY-4.0",
+      "local_path": "data/biblical_places/passage_place_links.json",
+      "name": "Biblical passage to place link index",
+      "source_id": "biblical_places_passage_links",
+      "source_type": "json",
+      "version": "links-v1"
+    },
+    {
+      "language": "hu",
+      "license": "CC-BY-4.0",
+      "local_path": "bible_engine/data/lexicon_hu.json",
+      "name": "Hungarian Greek lexicon overlay (TBESG-derived draft)",
+      "source_id": "lexicon_hu_overlay",
+      "source_type": "json",
+      "version": "lexicon-hu-v1"
+    },
+    {
+      "language": "hu",
+      "license": "CC-BY-4.0",
+      "local_path": "data/biblical_places/place_enrichments.json",
+      "name": "Biblical place enrichment overlay",
+      "source_id": "place_enrichments_overlay",
+      "source_type": "json",
+      "version": "enrichment-v1"
+    },
+    {
+      "language": "grc",
+      "license": "CC-BY-4.0",
+      "local_path": "data/generated/tagnt_nt.sqlite3",
+      "name": "STEPBible TAGNT Greek NT tokens",
+      "source_id": "stepbible_tagnt",
+      "source_type": "sqlite",
+      "version": "STEPBible-Data"
+    },
+    {
+      "language": "en",
+      "license": "CC-BY-4.0",
+      "local_path": "data/generated/tbesg_lexicon.sqlite3",
+      "name": "STEPBible TBESG Greek lexicon",
+      "source_id": "stepbible_tbesg",
+      "source_type": "sqlite",
+      "version": "STEPBible-Data"
+    }
+  ],
+  "supplemental_tokens": 2284,
+  "token_budget": 4500,
+  "token_budget_applied": false,
+  "warnings": [
+    "RUF local text source is disabled by manifest policy; packet excludes RUF prose."
+  ]
+}

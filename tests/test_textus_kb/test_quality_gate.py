@@ -49,7 +49,7 @@ def test_health_paths_are_repo_relative_not_absolute() -> None:
         assert not source.path.startswith("C:\\")
         assert not source.path.startswith("/Users/")
         assert "\\" not in source.path
-        assert source.path.startswith("data/")
+        assert not Path(source.path).is_absolute()
 
 
 def test_disabled_ruf_missing_does_not_degrade_health(tmp_path: Path) -> None:
