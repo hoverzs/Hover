@@ -1,0 +1,13 @@
+{
+  "entity_expansion": {
+    "entities_considered": 30,
+    "entities_used": 0,
+    "dictionary_candidates_added": 0,
+    "dropped_by_limit": 0,
+    "direct_dictionary_candidates": 12,
+    "entity_ids_used": [],
+    "article_ids_added": []
+  },
+  "direct_dictionary_candidates": 120,
+  "acai_backend": "sqlite"
+}

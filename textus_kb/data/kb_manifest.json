@@ -127,16 +127,16 @@
     },
     {
       "id": "acai",
-      "name": "ACAI entity graph (John 4 pilot)",
-      "source_type": "entity_graph",
+      "name": "ACAI entity graph (SQLite runtime, John 4 pilot scope)",
+      "source_type": "sqlite",
       "language": "multilingual",
       "version": "2025-07-23",
       "license": "CC-BY-SA-4.0",
       "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
-      "local_path": "data/kb/acai/john_4_1_42_entities.json",
+      "local_path": "data/generated/acai_entities.sqlite3",
       "required": false,
       "enabled": true,
-      "usage_note": "Pilot scope John.4.1-42 only. ACAI © Mission Mutual, CC BY-SA 4.0. Upstream: https://github.com/BibleAquifer/ACAI"
+      "usage_note": "Phase 4B SQLite runtime store (pilot import for John.4.1-42). JSON parity bundle: data/kb/acai/john_4_1_42_entities.json. ACAI © Mission Mutual, CC BY-SA 4.0. Upstream: https://github.com/BibleAquifer/ACAI"
     },
     {
       "id": "ruf_2014_local",

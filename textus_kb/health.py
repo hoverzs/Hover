@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from textus_kb.canonical_reference import CanonicalReference, CanonicalReferenceError
+from textus_kb.importers.acai_entities import ACAI_SOURCE_ID
 from textus_kb.manifest import (
     KnowledgeBaseManifest,
     ManifestValidationError,
@@ -46,6 +47,22 @@ class CanonicalSelfTestResult:
 
 
 @dataclass
+class AcaiStoreHealthReport:
+    store_available: bool
+    schema_version: str
+    source_version: str
+    entity_count: int
+    passage_link_count: int
+    dictionary_link_count: int
+    content_hash: str
+    import_mode: str
+    warnings: list[str] = field(default_factory=list)
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
 class KnowledgeBaseHealthReport:
     overall_status: str  # ok | degraded | error
     manifest_status: str  # ok | error
@@ -53,6 +70,7 @@ class KnowledgeBaseHealthReport:
     manifest_version: str
     sources: list[SourceHealthReport]
     canonical_self_tests: list[CanonicalSelfTestResult]
+    acai_store: AcaiStoreHealthReport | None = None
     errors: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
 
@@ -155,6 +173,8 @@ def run_health_check(
                 )
             sources_reports.append(report)
 
+    acai_store_report = _acai_store_health(manifest, check_paths=check_paths)
+
     canonical_tests = run_canonical_self_tests()
     if any(not item.ok for item in canonical_tests):
         errors.append("Canonical reference self-test failed.")
@@ -162,6 +182,8 @@ def run_health_check(
     if manifest_status == "error" or errors:
         overall = "error"
     elif warnings or any(r.warnings for r in sources_reports):
+        overall = "degraded"
+    elif acai_store_report is not None and acai_store_report.warnings:
         overall = "degraded"
     else:
         overall = "ok"
@@ -173,7 +195,64 @@ def run_health_check(
         manifest_version=manifest_version,
         sources=sources_reports,
         canonical_self_tests=canonical_tests,
+        acai_store=acai_store_report,
         errors=errors,
+        warnings=warnings,
+    )
+
+
+def _acai_store_health(
+    manifest: KnowledgeBaseManifest | None,
+    *,
+    check_paths: bool,
+) -> AcaiStoreHealthReport | None:
+    if manifest is None:
+        return None
+    source = manifest.source_by_id(ACAI_SOURCE_ID)
+    if source is None:
+        return None
+    if not source.enabled:
+        return AcaiStoreHealthReport(
+            store_available=False,
+            schema_version="",
+            source_version=source.version,
+            entity_count=0,
+            passage_link_count=0,
+            dictionary_link_count=0,
+            content_hash="",
+            import_mode="",
+            warnings=["ACAI source disabled in manifest."],
+        )
+    path = source.resolved_path
+    if check_paths and not path.is_file():
+        return AcaiStoreHealthReport(
+            store_available=False,
+            schema_version="",
+            source_version=source.version,
+            entity_count=0,
+            passage_link_count=0,
+            dictionary_link_count=0,
+            content_hash="",
+            import_mode="",
+            warnings=["Optional ACAI entity store file is missing."],
+        )
+    if path.suffix.lower() not in {".sqlite3", ".db", ".sqlite"}:
+        return None
+    from textus_kb.repositories.acai_entity_repository import AcaiEntityRepository
+
+    status = AcaiEntityRepository(path).store_status()
+    warnings = list(status.warnings)
+    if status.available and status.entity_count == 0:
+        warnings.append("ACAI store is available but contains zero entities.")
+    return AcaiStoreHealthReport(
+        store_available=status.available,
+        schema_version=status.schema_version,
+        source_version=status.source_version,
+        entity_count=status.entity_count,
+        passage_link_count=status.passage_link_count,
+        dictionary_link_count=status.dictionary_link_count,
+        content_hash=status.content_hash,
+        import_mode=status.import_mode,
         warnings=warnings,
     )
 

@@ -25,8 +25,9 @@ from textus_kb.retrieval import retrieve, retrieve_to_json
 
 PILOT_BUNDLE = Path("data/kb/acai/john_4_1_42_entities.json")
 PACKET_WITH_ENTITIES = Path("tests/fixtures/kb/john_4_1_42_packet_with_entities.json")
-EXEGESIS_PHASE4A = Path("tests/fixtures/kb/john_4_1_42_exegesis_context_phase4a.json")
-HISTORICAL_PHASE4A = Path("tests/fixtures/kb/john_4_1_42_historical_context_phase4a.json")
+EXEGESIS_PHASE4B = Path("tests/fixtures/kb/john_4_1_42_exegesis_context_phase4b.json")
+HISTORICAL_PHASE4B = Path("tests/fixtures/kb/john_4_1_42_historical_context_phase4b.json")
+EXPANSION_PHASE4B = Path("tests/fixtures/kb/john_4_1_42_entity_expansion_phase4b.json")
 
 
 def test_acai_manifest_source_valid() -> None:
@@ -34,7 +35,7 @@ def test_acai_manifest_source_valid() -> None:
     source = manifest.source_by_id(ACAI_SOURCE_ID)
     assert source is not None
     assert source.license == "CC-BY-SA-4.0"
-    assert source.source_type == "entity_graph"
+    assert source.source_type == "sqlite"
     assert source.enabled is True
     assert source.required is False
 
@@ -152,7 +153,7 @@ def test_disabled_acai_graceful(tmp_path: Path) -> None:
 def test_evidence_packet_entities_populated() -> None:
     packet = retrieve("Jn 4,1-42")
     assert len(packet.entities) == 30
-    assert packet.build_id == "kb-phase4a-john4-pilot-v1"
+    assert packet.build_id == "kb-phase4b-john4-pilot-v1"
     first = json.loads(retrieve_to_json("Jn 4,1-42"))
     second = json.loads(retrieve_to_json("Jn 4,1-42"))
     assert first["entities"] == second["entities"]
@@ -176,18 +177,21 @@ def test_provenance_chain_complete() -> None:
     assert provenance["license"] == ACAI_LICENSE
 
 
-def test_phase4a_golden_fixtures() -> None:
+def test_phase4b_golden_fixtures() -> None:
     assert PACKET_WITH_ENTITIES.exists()
-    assert EXEGESIS_PHASE4A.exists()
-    assert HISTORICAL_PHASE4A.exists()
+    assert EXEGESIS_PHASE4B.exists()
+    assert HISTORICAL_PHASE4B.exists()
+    assert EXPANSION_PHASE4B.exists()
     golden = json.loads(PACKET_WITH_ENTITIES.read_text(encoding="utf-8"))
     packet = json.loads(retrieve_to_json("Jn 4,1-42"))
-    assert packet["build"]["build_id"] == golden["build"]["build_id"]
+    assert packet["build"]["build_id"] == "kb-phase4b-john4-pilot-v1"
     assert len(packet["entities"]) == golden["entity_count"]
 
     ex = build_context_from_evidence(retrieve("Jn 4,1-42"), PROFILE_EXEGESIS).to_dict()
     hi = build_context_from_evidence(retrieve("Jn 4,1-42"), PROFILE_HISTORICAL).to_dict()
-    golden_ex = json.loads(EXEGESIS_PHASE4A.read_text(encoding="utf-8"))
-    golden_hi = json.loads(HISTORICAL_PHASE4A.read_text(encoding="utf-8"))
+    golden_ex = json.loads(EXEGESIS_PHASE4B.read_text(encoding="utf-8"))
+    golden_hi = json.loads(HISTORICAL_PHASE4B.read_text(encoding="utf-8"))
     assert ex["estimated_tokens"] == golden_ex["estimated_tokens"]
     assert hi["estimated_tokens"] == golden_hi["estimated_tokens"]
+    expansion = json.loads(EXPANSION_PHASE4B.read_text(encoding="utf-8"))
+    assert retrieve("Jn 4,1-42").retrieval_debug == expansion

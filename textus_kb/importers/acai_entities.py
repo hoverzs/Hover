@@ -425,6 +425,10 @@ def _collect_aliases(record: dict[str, Any]) -> tuple[EntityAlias, ...]:
 
 
 def _collect_john4_refs(record: dict[str, Any]) -> set[str]:
+    return {ref for ref in _collect_org_refs(record) if _is_john4_org_ref(ref)}
+
+
+def _collect_org_refs(record: dict[str, Any]) -> set[str]:
     refs: set[str] = set()
     for key in ("references", "key_references"):
         block = record.get(key)
@@ -451,14 +455,18 @@ def _collect_john4_refs(record: dict[str, Any]) -> set[str]:
     return refs
 
 
+def _is_john4_org_ref(ref: str) -> bool:
+    if len(ref) != 8 or not ref.isdigit():
+        return False
+    value = int(ref)
+    return JOHN_4_INDEX_LO <= value <= JOHN_4_INDEX_HI
+
+
 def _normalize_org_ref(raw: str) -> str | None:
     digits = "".join(ch for ch in raw if ch.isdigit())
     for idx in range(max(0, len(digits) - 7)):
         chunk = digits[idx : idx + 8]
-        if not chunk.isdigit():
-            continue
-        value = int(chunk)
-        if JOHN_4_INDEX_LO <= value <= JOHN_4_INDEX_HI:
+        if chunk.isdigit():
             return chunk
     return None
 

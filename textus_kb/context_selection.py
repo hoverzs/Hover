@@ -234,6 +234,11 @@ def prepare_candidates(
         elif item.item_type == "dictionary_background":
             if item.metadata.get("passage_associations"):
                 specificity = 95
+            elif item.metadata.get("entity_expansion"):
+                if profile.name == "historical_context":
+                    specificity = 88
+                else:
+                    specificity = 55
             elif item.metadata.get("entity_topics"):
                 specificity = 85
             else:

@@ -451,6 +451,7 @@
                 "source": "upstream_passage_association"
               }
             ],
+            "entity_expansion": null,
             "license": "CC-BY-SA-4.0",
             "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
             "attribution": "Aquifer Open Bible Dictionary © 2026 Mission Mutual, adapted from Tyndale Open Bible Dictionary © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0.",
@@ -504,12 +505,12 @@
     "Aquifer notes selected 9/24 (source-aware selection; full set remains in Evidence Packet).",
     "Dictionary chunks selected 1/120 (source-aware selection; full set remains in Evidence Packet)."
   ],
-  "estimated_tokens": 3161,
+  "estimated_tokens": 3168,
   "target_tokens": 3200,
   "token_budget": 4500,
   "max_tokens": 4500,
   "truncated": false,
-  "evidence_packet_build_id": "kb-phase4a-john4-pilot-v1",
+  "evidence_packet_build_id": "kb-phase4b-john4-pilot-v1",
   "selection_stats": {
     "candidates": 180,
     "selected": 24,
@@ -521,7 +522,7 @@
       "passage": 97,
       "exegetical": 1897,
       "linguistic": 639,
-      "dictionary": 528
+      "dictionary": 535
     },
     "selected_by_tier": {
       "core": 2,

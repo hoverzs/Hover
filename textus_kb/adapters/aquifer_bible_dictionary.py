@@ -95,6 +95,43 @@ class AquiferBibleDictionaryAdapter:
         )
         return chunks
 
+    def load_chunks_for_article(self, article_id: str) -> list[AquiferDictionaryChunk]:
+        if not self.available:
+            return []
+        article_id = str(article_id)
+        bundle = self._load_bundle()
+        chunks: list[AquiferDictionaryChunk] = []
+        for entry in bundle.get("entries", []):
+            if not isinstance(entry, dict):
+                continue
+            if str(entry.get("article_id") or "") != article_id:
+                continue
+            for chunk in entry.get("chunks", []):
+                if not isinstance(chunk, dict):
+                    continue
+                chunks.append(
+                    AquiferDictionaryChunk(
+                        article_id=str(entry.get("article_id") or ""),
+                        chunk_id=str(chunk.get("chunk_id") or ""),
+                        chunk_index=int(chunk.get("chunk_index") or 0),
+                        title=str(entry.get("title") or ""),
+                        index_reference=str(entry.get("index_reference") or ""),
+                        heading=chunk.get("heading"),
+                        content_html=str(chunk.get("content_html") or ""),
+                        content_plain=str(chunk.get("content_plain") or html_to_plain(
+                            str(chunk.get("content_html") or "")
+                        )),
+                        selection_reason=str(entry.get("selection_reason") or ""),
+                        passage_associations=tuple(entry.get("passage_associations") or ()),
+                        entity_topics=tuple(entry.get("entity_topics") or ()),
+                        license=str(entry.get("license") or AQUIFER_LICENSE),
+                        license_url=str(entry.get("license_url") or AQUIFER_LICENSE_URL),
+                        attribution=str(entry.get("attribution") or AQUIFER_ATTRIBUTION),
+                    )
+                )
+        chunks.sort(key=lambda item: (item.chunk_index, item.chunk_id))
+        return chunks
+
     def bundle_metadata(self) -> dict[str, Any]:
         if not self.available:
             return {}

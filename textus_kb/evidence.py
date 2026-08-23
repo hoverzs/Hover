@@ -10,6 +10,7 @@ PILOT_BUILD_ID = "kb-phase2a-john4-pilot-v1"
 PILOT_BUILD_ID_WITH_AQUIFER = "kb-phase3a-john4-pilot-v1"
 PILOT_BUILD_ID_WITH_DICTIONARY = "kb-phase3c-john4-pilot-v1"
 PILOT_BUILD_ID_WITH_ACAI = "kb-phase4a-john4-pilot-v1"
+PILOT_BUILD_ID_WITH_ACAI_SQLITE = "kb-phase4b-john4-pilot-v1"
 
 # Deterministic relevance tiers (higher = retained first under token budget).
 RELEVANCE_DIRECT_PASSAGE = 100
@@ -150,9 +151,10 @@ class EvidencePacket:
     supplemental_tokens: int = 0
     token_budget: int = 4500
     token_budget_applied: bool = False
+    retrieval_debug: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        payload = {
             "passage": {
                 "canonical": self.passage_canonical,
                 "display": self.passage_display,
@@ -173,6 +175,9 @@ class EvidencePacket:
             "token_budget": self.token_budget,
             "token_budget_applied": self.token_budget_applied,
         }
+        if self.retrieval_debug:
+            payload["retrieval_debug"] = dict(self.retrieval_debug)
+        return payload
 
 
 def estimate_text_tokens(text: str) -> int:

@@ -13,11 +13,13 @@ from textus_kb.adapters.lexicon import LexiconAdapter
 from textus_kb.adapters.places import PlacesAdapter
 from textus_kb.adapters.tagnt import TagntAdapter
 from textus_kb.canonical_reference import CanonicalReference, CanonicalReferenceError
+from textus_kb.entity_expansion import expand_dictionary_evidence
 from textus_kb.evidence import (
     PILOT_BUILD_ID,
     PILOT_BUILD_ID_WITH_AQUIFER,
     PILOT_BUILD_ID_WITH_DICTIONARY,
     PILOT_BUILD_ID_WITH_ACAI,
+    PILOT_BUILD_ID_WITH_ACAI_SQLITE,
     RELATION_DIRECT_PASSAGE,
     RELATION_DICTIONARY_BACKGROUND,
     RELATION_EXEGETICAL_NOTE,
@@ -416,6 +418,7 @@ def retrieve(
     dictionary_source = enabled_sources.get("aquifer_open_bible_dictionary")
     dictionary_adapter = AquiferBibleDictionaryAdapter(dictionary_source)
     dictionary_counter = 1
+    direct_dictionary_count = 0
     if dictionary_source is None or not dictionary_source.enabled:
         warnings.append("Optional source aquifer_open_bible_dictionary is disabled.")
     elif not dictionary_source.resolved_path.is_file():
@@ -454,22 +457,58 @@ def retrieve(
                 )
             )
             dictionary_counter += 1
+            direct_dictionary_count += 1
 
     acai_source = enabled_sources.get("acai")
     acai_adapter = AcaiEntitiesAdapter(acai_source)
     entity_records: list[dict[str, Any]] = []
+    entity_expansion_debug: dict[str, Any] = {}
     if acai_source is None or not acai_source.enabled:
         warnings.append("Optional source acai is disabled.")
-    elif not acai_source.resolved_path.is_file():
-        warnings.append("Optional source acai pilot bundle missing.")
+    elif not acai_adapter.available:
+        warnings.append("Optional source acai entity store missing.")
     else:
         _add_source_record(sources_used, enabled_sources, "acai")
         entity_records = [
             entity_to_packet_dict(view)
-            for view in acai_adapter.all_entities()
+            for view in acai_adapter.entities_for_evidence_packet(canonical)
         ]
+        if dictionary_adapter.available and acai_adapter.available:
+            expanded_items, expansion_diag = expand_dictionary_evidence(
+                reference=canonical,
+                canonical_passage=canonical_passage,
+                acai_adapter=acai_adapter,
+                dictionary_adapter=dictionary_adapter,
+                direct_evidence_items=evidence_items,
+                dictionary_counter_start=dictionary_counter,
+                dict_meta=dictionary_adapter.bundle_metadata(),
+            )
+            existing_chunk_ids = {
+                str(item.metadata.get("chunk_id") or "")
+                for item in evidence_items
+                if item.metadata.get("chunk_id")
+            }
+            for item in expanded_items:
+                chunk_id = str(item.metadata.get("chunk_id") or "")
+                if chunk_id and chunk_id in existing_chunk_ids:
+                    expansion_diag.dropped_by_limit += 1
+                    continue
+                evidence_items.append(item)
+                if chunk_id:
+                    existing_chunk_ids.add(chunk_id)
+                dictionary_counter += 1
+            entity_expansion_debug = {
+                "entity_expansion": expansion_diag.to_dict(),
+                "direct_dictionary_candidates": direct_dictionary_count,
+                "acai_backend": acai_adapter.backend,
+            }
 
-    build_id = _resolve_build_id(aquifer_counter, dictionary_counter, len(entity_records))
+    build_id = _resolve_build_id(
+        aquifer_counter,
+        dictionary_counter,
+        len(entity_records),
+        acai_backend=acai_adapter.backend if acai_adapter.available else "none",
+    )
 
     packet = EvidencePacket(
         passage_canonical=canonical_passage,
@@ -484,6 +523,7 @@ def retrieve(
         evidence_items=_sort_evidence_items(evidence_items),
         warnings=warnings,
         token_budget=max_evidence_tokens,
+        retrieval_debug=entity_expansion_debug,
     )
     packet.estimated_tokens = estimate_packet_tokens(packet)
     packet.supplemental_tokens = estimate_supplemental_tokens(packet)
@@ -492,6 +532,7 @@ def retrieve(
         max_evidence_tokens,
         lexical_highlight_limit=lexical_highlight_limit,
     )
+    packet.retrieval_debug = entity_expansion_debug
     return packet
 
 
@@ -562,7 +603,15 @@ def _dictionary_relevance(chunk: Any) -> int:
     return RELEVANCE_DICTIONARY_BACKGROUND
 
 
-def _resolve_build_id(aquifer_counter: int, dictionary_counter: int, entity_count: int) -> str:
+def _resolve_build_id(
+    aquifer_counter: int,
+    dictionary_counter: int,
+    entity_count: int,
+    *,
+    acai_backend: str = "none",
+) -> str:
+    if entity_count > 0 and acai_backend == "sqlite":
+        return PILOT_BUILD_ID_WITH_ACAI_SQLITE
     if entity_count > 0:
         return PILOT_BUILD_ID_WITH_ACAI
     if dictionary_counter > 1:

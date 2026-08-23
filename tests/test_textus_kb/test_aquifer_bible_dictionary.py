@@ -107,7 +107,7 @@ def test_retrieval_includes_dictionary_evidence_deterministically() -> None:
         if item["relation_type"] == RELATION_DICTIONARY_BACKGROUND
     ]
     assert len(dictionary_items) == 120
-    assert first["build"]["build_id"] == "kb-phase4a-john4-pilot-v1"
+    assert first["build"]["build_id"] == "kb-phase4b-john4-pilot-v1"
 
 
 def test_dictionary_evidence_type_distinct() -> None:
@@ -158,7 +158,7 @@ def test_dictionary_disabled_falls_back_to_phase3b_behavior(tmp_path: Path) -> N
     assert not any(
         item.relation_type == RELATION_DICTIONARY_BACKGROUND for item in packet.evidence_items
     )
-    assert packet.build_id == "kb-phase4a-john4-pilot-v1"
+    assert packet.build_id == "kb-phase4b-john4-pilot-v1"
 
 
 def test_missing_dictionary_bundle_graceful(tmp_path: Path) -> None:

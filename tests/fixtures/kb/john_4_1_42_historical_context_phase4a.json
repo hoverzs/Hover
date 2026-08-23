@@ -63,6 +63,7 @@
                 "source": "upstream_passage_association"
               }
             ],
+            "entity_expansion": null,
             "license": "CC-BY-SA-4.0",
             "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
             "attribution": "Aquifer Open Bible Dictionary © 2026 Mission Mutual, adapted from Tyndale Open Bible Dictionary © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0.",
@@ -112,6 +113,7 @@
                 "source": "upstream_passage_association"
               }
             ],
+            "entity_expansion": null,
             "license": "CC-BY-SA-4.0",
             "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
             "attribution": "Aquifer Open Bible Dictionary © 2026 Mission Mutual, adapted from Tyndale Open Bible Dictionary © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0.",
@@ -155,6 +157,7 @@
                 "source": "upstream_passage_association"
               }
             ],
+            "entity_expansion": null,
             "license": "CC-BY-SA-4.0",
             "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
             "attribution": "Aquifer Open Bible Dictionary © 2026 Mission Mutual, adapted from Tyndale Open Bible Dictionary © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0.",
@@ -380,12 +383,12 @@
     "Supplemental token estimate (95346) exceeds budget (4500); Aquifer exegetical notes and dictionary evidence retained for audit.",
     "Dictionary chunks selected 3/120 (source-aware selection; full set remains in Evidence Packet)."
   ],
-  "estimated_tokens": 2291,
+  "estimated_tokens": 2311,
   "target_tokens": 2500,
   "token_budget": 3500,
   "max_tokens": 3500,
   "truncated": false,
-  "evidence_packet_build_id": "kb-phase4a-john4-pilot-v1",
+  "evidence_packet_build_id": "kb-phase4b-john4-pilot-v1",
   "selection_stats": {
     "candidates": 149,
     "selected": 15,
@@ -394,7 +397,7 @@
     "dropped_type_budget": 132,
     "dropped_target": 1,
     "tokens_by_type": {
-      "dictionary": 1494,
+      "dictionary": 1514,
       "entity": 117,
       "background": 640,
       "passage": 40

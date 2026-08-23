@@ -27,10 +27,14 @@ def main(argv: list[str] | None = None) -> int:
         from textus_kb.context_builder import main as context_main
 
         return context_main(rest)
+    if command == "entity":
+        from textus_kb.entity_cli import main as entity_main
+
+        return entity_main(rest)
 
     print(
         f"Unknown command: {command!r}. "
-        "Use: python -m textus_kb [health|retrieve|context] ...",
+        "Use: python -m textus_kb [health|retrieve|context|entity] ...",
         file=sys.stderr,
     )
     return 2
