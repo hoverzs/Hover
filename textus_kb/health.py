@@ -1,0 +1,205 @@
+"""Read-only Knowledge Base health check."""
+
+from __future__ import annotations
+
+import json
+from dataclasses import asdict, dataclass, field
+from pathlib import Path
+from typing import Any
+
+from textus_kb.canonical_reference import CanonicalReference, CanonicalReferenceError
+from textus_kb.manifest import (
+    KnowledgeBaseManifest,
+    ManifestValidationError,
+    ManifestValidationIssue,
+    load_manifest,
+    validate_manifest_sources,
+)
+from textus_kb.paths import DEFAULT_MANIFEST_PATH, normalize_repo_relative_path
+
+CANONICAL_SELF_TEST_INPUTS = (
+    "Jn 4,1–42",
+    "JHN 4:1-42",
+    "John.4.1-42",
+)
+
+
+@dataclass
+class SourceHealthReport:
+    id: str
+    enabled: bool
+    required: bool
+    available: bool
+    version: str
+    license: str
+    path: str
+    errors: list[str] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
+
+
+@dataclass
+class CanonicalSelfTestResult:
+    input: str
+    canonical: str | None
+    ok: bool
+    error: str | None = None
+
+
+@dataclass
+class KnowledgeBaseHealthReport:
+    overall_status: str  # ok | degraded | error
+    manifest_status: str  # ok | error
+    manifest_path: str
+    manifest_version: str
+    sources: list[SourceHealthReport]
+    canonical_self_tests: list[CanonicalSelfTestResult]
+    errors: list[str] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+def run_canonical_self_tests(
+    inputs: tuple[str, ...] = CANONICAL_SELF_TEST_INPUTS,
+) -> list[CanonicalSelfTestResult]:
+    results: list[CanonicalSelfTestResult] = []
+    canonical_strings: list[str] = []
+    for text in inputs:
+        try:
+            ref = CanonicalReference.parse(text)
+            canonical = ref.canonical_string()
+            results.append(
+                CanonicalSelfTestResult(input=text, canonical=canonical, ok=True)
+            )
+            canonical_strings.append(canonical)
+        except CanonicalReferenceError as exc:
+            results.append(
+                CanonicalSelfTestResult(
+                    input=text,
+                    canonical=None,
+                    ok=False,
+                    error=str(exc),
+                )
+            )
+    if len(set(canonical_strings)) > 1 and canonical_strings:
+        results.append(
+            CanonicalSelfTestResult(
+                input="__cross_input_consistency__",
+                canonical=canonical_strings[0] if canonical_strings else None,
+                ok=False,
+                error="Self-test inputs did not normalize to the same canonical string.",
+            )
+        )
+    elif len(canonical_strings) >= 2:
+        results.append(
+            CanonicalSelfTestResult(
+                input="__cross_input_consistency__",
+                canonical=canonical_strings[0],
+                ok=True,
+            )
+        )
+    return results
+
+
+def run_health_check(
+    manifest_path: str | Path | None = None,
+    *,
+    check_paths: bool = True,
+) -> KnowledgeBaseHealthReport:
+    path = Path(manifest_path) if manifest_path is not None else DEFAULT_MANIFEST_PATH
+    errors: list[str] = []
+    warnings: list[str] = []
+    manifest_status = "ok"
+    sources_reports: list[SourceHealthReport] = []
+    manifest_version = ""
+
+    try:
+        manifest = load_manifest(path)
+        manifest_version = manifest.manifest_version
+        validation_issues = validate_manifest_sources(manifest, check_paths=check_paths)
+    except ManifestValidationError as exc:
+        manifest = None
+        manifest_status = "error"
+        errors.append(str(exc))
+        validation_issues = []
+
+    for issue in validation_issues:
+        target = errors if issue.level == "error" else warnings
+        prefix = f"[{issue.source_id}] " if issue.source_id else ""
+        target.append(f"{prefix}{issue.message}")
+
+    if manifest is not None:
+        for source in manifest.sources:
+            if source.enabled:
+                available = source.resolved_path.is_file()
+            else:
+                # Disabled sources are not probed on disk (contractual isolation).
+                available = False
+            report = SourceHealthReport(
+                id=source.id,
+                enabled=source.enabled,
+                required=source.required,
+                available=available,
+                version=source.version,
+                license=source.license,
+                path=normalize_repo_relative_path(source.local_path),
+            )
+            if source.enabled and source.required and not available:
+                report.errors.append("Required enabled source file is missing.")
+            elif source.enabled and not source.required and not available:
+                report.warnings.append("Optional enabled source file is missing.")
+            if source.restricted and source.enabled:
+                report.warnings.append(
+                    "Restricted contractual source — internal use only."
+                )
+            sources_reports.append(report)
+
+    canonical_tests = run_canonical_self_tests()
+    if any(not item.ok for item in canonical_tests):
+        errors.append("Canonical reference self-test failed.")
+
+    if manifest_status == "error" or errors:
+        overall = "error"
+    elif warnings or any(r.warnings for r in sources_reports):
+        overall = "degraded"
+    else:
+        overall = "ok"
+
+    return KnowledgeBaseHealthReport(
+        overall_status=overall,
+        manifest_status=manifest_status,
+        manifest_path=str(path),
+        manifest_version=manifest_version,
+        sources=sources_reports,
+        canonical_self_tests=canonical_tests,
+        errors=errors,
+        warnings=warnings,
+    )
+
+
+def main(argv: list[str] | None = None) -> int:
+    import sys
+
+    args = argv if argv is not None else sys.argv[1:]
+    manifest_arg = DEFAULT_MANIFEST_PATH
+    skip_paths = False
+    i = 0
+    while i < len(args):
+        if args[i] in {"--manifest", "-m"} and i + 1 < len(args):
+            manifest_arg = Path(args[i + 1])
+            i += 2
+            continue
+        if args[i] == "--no-path-check":
+            skip_paths = True
+            i += 1
+            continue
+        i += 1
+
+    report = run_health_check(manifest_arg, check_paths=not skip_paths)
+    print(json.dumps(report.to_dict(), indent=2, ensure_ascii=False))
+    return 0 if report.overall_status == "ok" else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
