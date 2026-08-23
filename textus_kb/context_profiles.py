@@ -6,6 +6,7 @@ from dataclasses import dataclass
 
 from textus_kb.evidence import (
     RELATION_DIRECT_PASSAGE,
+    RELATION_EXEGETICAL_NOTE,
     RELATION_LEXICAL_HIGHLIGHT,
     RELATION_PASSAGE_PLACE,
     RELATION_PASSAGE_TOKEN,
@@ -34,11 +35,12 @@ PROFILE_PRIORITIES: dict[str, dict[str, int]] = {
     PROFILE_EXEGESIS: {
         RELATION_DIRECT_PASSAGE: 100,
         RELATION_PASSAGE_TOKEN: 95,
+        RELATION_EXEGETICAL_NOTE: 93,
         RELATION_LEXICAL_HIGHLIGHT: 90,
+        "compact_linguistic_line": 88,
         RELATION_PASSAGE_PLACE: 70,
         RELATION_PLACE_CATALOG: 60,
         RELATION_PLACE_ENRICHMENT: 40,
-        "compact_linguistic_line": 88,
         "passage_summary": 98,
     },
     PROFILE_HISTORICAL: {

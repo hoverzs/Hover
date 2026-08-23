@@ -18,6 +18,7 @@ from textus_kb.context_profiles import (
 )
 from textus_kb.evidence import (
     RELATION_DIRECT_PASSAGE,
+    RELATION_EXEGETICAL_NOTE,
     RELATION_LEXICAL_HIGHLIGHT,
     RELATION_PASSAGE_PLACE,
     RELATION_PASSAGE_TOKEN,
@@ -206,6 +207,37 @@ def _build_exegesis_context(
                     "strong_id": strong_id,
                     "verse": verse_ref,
                     "lemma": highlight.get("lemma"),
+                },
+            )
+        )
+
+    for item in sorted(
+        by_relation.get(RELATION_EXEGETICAL_NOTE, []),
+        key=lambda entry: (
+            -entry.relevance_score,
+            str(entry.metadata.get("article_id") or ""),
+            int(entry.metadata.get("chunk_index") or 0),
+        ),
+    ):
+        title = str(item.metadata.get("title") or item.passage or "Study Note")
+        license_label = str(item.metadata.get("license") or "CC-BY-SA-4.0")
+        text = (
+            f"{title} [{item.passage}] — {item.content} "
+            f"(Source: Aquifer Open Study Notes, {license_label})"
+        )
+        items.append(
+            ContextItem(
+                text=text,
+                evidence_id=item.evidence_id,
+                source_id=item.source_id,
+                relevance_score=profile.priorities[RELATION_EXEGETICAL_NOTE],
+                item_type="exegetical_note",
+                metadata={
+                    "article_id": item.metadata.get("article_id"),
+                    "chunk_id": item.metadata.get("chunk_id"),
+                    "license": item.metadata.get("license"),
+                    "license_url": item.metadata.get("license_url"),
+                    "attribution": item.metadata.get("attribution"),
                 },
             )
         )
@@ -509,7 +541,7 @@ def _group_sections(items: list[ContextItem], profile: str) -> list[ContextSecti
 
 def _section_order(profile: str) -> tuple[str, ...]:
     if profile == PROFILE_EXEGESIS:
-        return ("passage", "linguistic", "places", "background")
+        return ("passage", "linguistic", "exegetical", "places", "background")
     if profile == PROFILE_HISTORICAL:
         return ("passage", "places", "historical", "geography")
     return ("passage", "lexical", "places", "background")
@@ -521,6 +553,7 @@ def _item_section_type(item_type: str) -> str:
         "passage_summary": "passage",
         "passage_scope": "passage",
         "linguistic": "linguistic",
+        "exegetical_note": "exegetical",
         "lexical": "lexical",
         "place_link": "places",
         "passage_place_link": "places",

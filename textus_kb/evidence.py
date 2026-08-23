@@ -7,10 +7,12 @@ from dataclasses import dataclass, field
 from typing import Any
 
 PILOT_BUILD_ID = "kb-phase2a-john4-pilot-v1"
+PILOT_BUILD_ID_WITH_AQUIFER = "kb-phase3a-john4-pilot-v1"
 
 # Deterministic relevance tiers (higher = retained first under token budget).
 RELEVANCE_DIRECT_PASSAGE = 100
 RELEVANCE_PASSAGE_PLACE = 85
+RELEVANCE_EXEGETICAL_NOTE = 82
 RELEVANCE_PLACE_CATALOG = 75
 RELEVANCE_LEXICAL_HIGHLIGHT = 70
 RELEVANCE_PLACE_ENRICHMENT = 45
@@ -21,6 +23,7 @@ RELATION_LEXICAL_HIGHLIGHT = "lexical_highlight"
 RELATION_PASSAGE_PLACE = "passage_place_link"
 RELATION_PLACE_CATALOG = "place_catalog"
 RELATION_PLACE_ENRICHMENT = "place_enrichment"
+RELATION_EXEGETICAL_NOTE = "exegetical_note"
 
 
 @dataclass(frozen=True)
@@ -204,3 +207,22 @@ def estimate_packet_tokens(
 def estimate_supplemental_tokens(packet: EvidencePacket) -> int:
     """Token estimate excluding the full passage Greek token set."""
     return estimate_packet_tokens(packet, include_passage_token_set=False)
+
+
+def estimate_trimmable_supplemental_tokens(packet: EvidencePacket) -> int:
+    """Supplemental estimate excluding passage tokens and Aquifer exegetical notes."""
+    total = 0
+    for item in packet.evidence_items:
+        if item.relation_type == RELATION_EXEGETICAL_NOTE:
+            continue
+        total += item.estimated_tokens()
+    for place in packet.places:
+        total += estimate_text_tokens(place.card_summary_hu or "")
+        total += estimate_text_tokens(place.enrichment_excerpt_hu or "")
+    linguistic = packet.linguistic_evidence
+    if linguistic:
+        for highlight in linguistic.get("lexical_highlights", []):
+            total += estimate_text_tokens(str(highlight))
+    for entry in packet.historical_evidence:
+        total += estimate_text_tokens(str(entry))
+    return total

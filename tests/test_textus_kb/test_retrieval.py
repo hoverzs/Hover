@@ -9,7 +9,7 @@ import pytest
 
 from textus_kb.canonical_reference import CanonicalReference
 from textus_kb.evidence import estimate_supplemental_tokens
-from textus_kb.manifest import load_manifest
+from textus_kb.manifest import KnowledgeBaseManifest, load_manifest
 from textus_kb.retrieval import RetrievalError, retrieve, retrieve_to_json
 
 FIXTURE_PATH = Path("tests/fixtures/kb/john_4_1_42_packet.json")
@@ -21,14 +21,14 @@ def test_jn_4_canonical_normalization() -> None:
     assert ref.canonical_string() == "John.4.1-42"
 
 
-def test_retrieval_is_deterministic() -> None:
-    first = retrieve_to_json("Jn 4,1-42")
-    second = retrieve_to_json("Jn 4,1-42")
+def test_retrieval_is_deterministic(phase2a_manifest: KnowledgeBaseManifest) -> None:
+    first = retrieve_to_json("Jn 4,1-42", manifest=phase2a_manifest)
+    second = retrieve_to_json("Jn 4,1-42", manifest=phase2a_manifest)
     assert first == second
 
 
-def test_retrieval_matches_golden_fixture_keys() -> None:
-    packet = json.loads(retrieve_to_json("Jn 4,1-42"))
+def test_retrieval_matches_golden_fixture_keys(phase2a_manifest: KnowledgeBaseManifest) -> None:
+    packet = json.loads(retrieve_to_json("Jn 4,1-42", manifest=phase2a_manifest))
     assert packet["passage"]["canonical"] == GOLDEN["passage"]["canonical"]
     assert packet["passage"]["display"] == GOLDEN["passage"]["display"]
     assert packet["build"]["build_id"] == GOLDEN["build"]["build_id"]
@@ -89,12 +89,14 @@ def test_disabled_source_excluded_from_packet() -> None:
     assert "ruf_2014_local" not in used_ids
 
 
-def test_token_budget_trims_supplemental_content_when_forced() -> None:
-    full = retrieve("Jn 4,1-42", max_evidence_tokens=4500)
-    trimmed = retrieve("Jn 4,1-42", max_evidence_tokens=1500)
+def test_token_budget_trims_supplemental_content_when_forced(phase2a_manifest: KnowledgeBaseManifest) -> None:
+    from textus_kb.evidence import estimate_trimmable_supplemental_tokens
+
+    full = retrieve("Jn 4,1-42", manifest=phase2a_manifest, max_evidence_tokens=4500)
+    trimmed = retrieve("Jn 4,1-42", manifest=phase2a_manifest, max_evidence_tokens=1500)
     assert trimmed.token_budget_applied is True
-    assert estimate_supplemental_tokens(trimmed) <= 1500
-    assert estimate_supplemental_tokens(trimmed) < estimate_supplemental_tokens(full)
+    assert estimate_trimmable_supplemental_tokens(trimmed) <= 1500
+    assert estimate_trimmable_supplemental_tokens(trimmed) < estimate_trimmable_supplemental_tokens(full)
     assert trimmed.linguistic_evidence["passage_token_set"]["token_count"] > 0
     assert any(item.relation_type == "passage_place_link" for item in trimmed.evidence_items)
 

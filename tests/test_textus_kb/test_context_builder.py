@@ -20,6 +20,7 @@ from textus_kb.context_profiles import (
     THEOLOGY_SOURCE_WARNING,
     ContextProfile,
 )
+from textus_kb.manifest import KnowledgeBaseManifest, load_manifest
 from textus_kb.retrieval import retrieve
 
 EXEGESIS_FIXTURE = Path("tests/fixtures/kb/john_4_1_42_exegesis_context.json")
@@ -28,8 +29,8 @@ EVIDENCE_FIXTURE = Path("tests/fixtures/kb/john_4_1_42_packet.json")
 
 
 @pytest.fixture(name="evidence")
-def evidence_fixture() -> object:
-    return retrieve("Jn 4,1-42")
+def evidence_fixture(phase2a_manifest: KnowledgeBaseManifest) -> object:
+    return retrieve("Jn 4,1-42", manifest=phase2a_manifest)
 
 
 def test_context_is_deterministic(evidence) -> None:

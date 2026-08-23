@@ -12,6 +12,7 @@ from textus_kb.paths import DEFAULT_MANIFEST_PATH, resolve_project_path
 SUPPORTED_LICENSES = frozenset(
     {
         "CC-BY-4.0",
+        "CC-BY-SA-4.0",
         "CC-BY-3.0",
         "MIT",
         "contractual-restricted",

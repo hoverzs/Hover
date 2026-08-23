@@ -6,19 +6,23 @@ import json
 from collections import Counter
 from typing import Any
 
+from textus_kb.adapters.aquifer_study_notes import AquiferStudyNotesAdapter
 from textus_kb.adapters.lexicon import LexiconAdapter
 from textus_kb.adapters.places import PlacesAdapter
 from textus_kb.adapters.tagnt import TagntAdapter
 from textus_kb.canonical_reference import CanonicalReference, CanonicalReferenceError
 from textus_kb.evidence import (
     PILOT_BUILD_ID,
+    PILOT_BUILD_ID_WITH_AQUIFER,
     RELATION_DIRECT_PASSAGE,
+    RELATION_EXEGETICAL_NOTE,
     RELATION_LEXICAL_HIGHLIGHT,
     RELATION_PASSAGE_PLACE,
     RELATION_PASSAGE_TOKEN,
     RELATION_PLACE_CATALOG,
     RELATION_PLACE_ENRICHMENT,
     RELEVANCE_DIRECT_PASSAGE,
+    RELEVANCE_EXEGETICAL_NOTE,
     RELEVANCE_LEXICAL_HIGHLIGHT,
     RELEVANCE_PASSAGE_PLACE,
     RELEVANCE_PLACE_CATALOG,
@@ -30,6 +34,7 @@ from textus_kb.evidence import (
     PlaceRecord,
     estimate_packet_tokens,
     estimate_supplemental_tokens,
+    estimate_trimmable_supplemental_tokens,
 )
 from textus_kb.manifest import KnowledgeBaseManifest, ManifestSource, load_manifest
 
@@ -360,10 +365,55 @@ def retrieve(
             "RUF local text source is disabled by manifest policy; packet excludes RUF prose."
         )
 
+    aquifer_source = enabled_sources.get("aquifer_open_study_notes")
+    aquifer_adapter = AquiferStudyNotesAdapter(aquifer_source)
+    aquifer_counter = 1
+    if aquifer_source is None or not aquifer_source.enabled:
+        warnings.append("Optional source aquifer_open_study_notes is disabled.")
+    elif not aquifer_source.resolved_path.is_file():
+        warnings.append("Optional source aquifer_open_study_notes pilot bundle missing.")
+    else:
+        _add_source_record(sources_used, enabled_sources, "aquifer_open_study_notes")
+        meta = aquifer_adapter.bundle_metadata()
+        for chunk in aquifer_adapter.load_chunks_for_passage(canonical):
+            content_plain = chunk.content_plain
+            evidence_items.append(
+                EvidenceItem(
+                    evidence_id=_next_id("AQUIFER", aquifer_counter),
+                    source_id=AquiferStudyNotesAdapter.SOURCE_ID,
+                    source_type="exegetical_note",
+                    language="en",
+                    relation_type=RELATION_EXEGETICAL_NOTE,
+                    passage=chunk.canonical_reference,
+                    content=content_plain,
+                    metadata={
+                        "article_id": chunk.article_id,
+                        "chunk_id": chunk.chunk_id,
+                        "chunk_index": chunk.chunk_index,
+                        "title": chunk.title,
+                        "content_html": chunk.content_html,
+                        "upstream_reference_usfm": chunk.upstream_reference_usfm,
+                        "license": chunk.license,
+                        "license_url": chunk.license_url,
+                        "attribution": chunk.attribution,
+                        "upstream_commit": meta.get("upstream_commit"),
+                        "upstream_resource_version": meta.get("upstream_resource_version"),
+                    },
+                    relevance_score=_aquifer_relevance(chunk.canonical_reference),
+                )
+            )
+            aquifer_counter += 1
+
+    build_id = (
+        PILOT_BUILD_ID_WITH_AQUIFER
+        if aquifer_counter > 1
+        else PILOT_BUILD_ID
+    )
+
     packet = EvidencePacket(
         passage_canonical=canonical_passage,
         passage_display=display,
-        build_id=PILOT_BUILD_ID,
+        build_id=build_id,
         manifest_version=manifest_obj.manifest_version,
         places=places,
         linguistic_evidence=linguistic_evidence,
@@ -432,6 +482,14 @@ def _next_id(prefix: str, index: int) -> str:
     return f"EV-{prefix}-{index:04d}"
 
 
+def _aquifer_relevance(canonical_reference: str) -> int:
+    if canonical_reference == "John.4.1-42":
+        return RELEVANCE_EXEGETICAL_NOTE - 2
+    if "-" not in canonical_reference:
+        return RELEVANCE_EXEGETICAL_NOTE
+    return RELEVANCE_EXEGETICAL_NOTE - 1
+
+
 def _sort_evidence_items(items: list[EvidenceItem]) -> list[EvidenceItem]:
     return sorted(
         items,
@@ -468,9 +526,35 @@ def _apply_token_budget(
     *,
     lexical_highlight_limit: int,
 ) -> EvidencePacket:
-    """Trim supplemental enrichment/highlights; never drop passage tokens or place links."""
+    """Trim supplemental enrichment/highlights; never drop passage tokens, links, or Aquifer notes."""
     supplemental = estimate_supplemental_tokens(packet)
-    if supplemental <= max_tokens:
+    trimmable = estimate_trimmable_supplemental_tokens(packet)
+    if trimmable <= max_tokens:
+        if supplemental > max_tokens and any(
+            item.relation_type == RELATION_EXEGETICAL_NOTE for item in packet.evidence_items
+        ):
+            warned = EvidencePacket(
+                passage_canonical=packet.passage_canonical,
+                passage_display=packet.passage_display,
+                build_id=packet.build_id,
+                manifest_version=packet.manifest_version,
+                entities=list(packet.entities),
+                places=list(packet.places),
+                linguistic_evidence=dict(packet.linguistic_evidence),
+                historical_evidence=list(packet.historical_evidence),
+                sources=list(packet.sources),
+                evidence_items=list(packet.evidence_items),
+                warnings=list(packet.warnings),
+                estimated_tokens=packet.estimated_tokens,
+                supplemental_tokens=supplemental,
+                token_budget=packet.token_budget,
+            )
+            warned.warnings.append(
+                f"Supplemental token estimate ({supplemental}) exceeds budget ({max_tokens}); "
+                "Aquifer exegetical notes retained for audit."
+            )
+            warned.token_budget_applied = True
+            return warned
         return packet
 
     from dataclasses import replace
@@ -530,7 +614,7 @@ def _apply_token_budget(
             continue
         seen_limits.append(limit)
         candidate = _trim_lexical_highlights(trimmed, limit)
-        if estimate_supplemental_tokens(candidate) <= max_tokens:
+        if estimate_trimmable_supplemental_tokens(candidate) <= max_tokens:
             return _finalize_budget_trim(
                 candidate,
                 supplemental=supplemental,
@@ -541,7 +625,7 @@ def _apply_token_budget(
             )
 
     catalog_trimmed = _trim_place_catalog_evidence(trimmed)
-    if estimate_supplemental_tokens(catalog_trimmed) <= max_tokens:
+    if estimate_trimmable_supplemental_tokens(catalog_trimmed) <= max_tokens:
         return _finalize_budget_trim(
             catalog_trimmed,
             supplemental=supplemental,
@@ -570,7 +654,12 @@ def _apply_token_budget(
             item
             for item in link_only.evidence_items
             if item.relation_type
-            in {RELATION_DIRECT_PASSAGE, RELATION_PASSAGE_TOKEN, RELATION_PASSAGE_PLACE}
+            in {
+                RELATION_DIRECT_PASSAGE,
+                RELATION_PASSAGE_TOKEN,
+                RELATION_PASSAGE_PLACE,
+                RELATION_EXEGETICAL_NOTE,
+            }
         ],
         warnings=list(link_only.warnings),
         token_budget=link_only.token_budget,
