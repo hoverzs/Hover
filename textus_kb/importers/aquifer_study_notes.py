@@ -1,4 +1,4 @@
-"""Reproducible pilot importer for Aquifer Open Study Notes (John 4:1-42)."""
+"""Reproducible pilot importer for Aquifer Open Study Notes."""
 
 from __future__ import annotations
 
@@ -13,7 +13,15 @@ from pathlib import Path
 from typing import Any
 
 from textus_kb.canonical_reference import CanonicalReference, CanonicalReferenceError
-from textus_kb.paths import PROJECT_ROOT, resolve_project_path
+from textus_kb.paths import PROJECT_ROOT
+from textus_kb.pilot_registry import (
+    JOHN_4_PILOT,
+    PilotPassage,
+    book_id_from_usfm,
+    get_pilot,
+    index_reference_overlaps_pilot,
+    references_overlap,
+)
 
 AQUIFER_SOURCE_ID = "aquifer_open_study_notes"
 AQUIFER_LICENSE = "CC-BY-SA-4.0"
@@ -27,10 +35,11 @@ DEFAULT_UPSTREAM_PATH = PROJECT_ROOT / "_upstream_audit" / "AquiferOpenStudyNote
 DEFAULT_OUTPUT_PATH = PROJECT_ROOT / "data" / "kb" / "aquifer" / "john_4_1_42_study_notes.json"
 UPSTREAM_ENV_VAR = "TEXTUS_AQUIFER_UPSTREAM_PATH"
 
-JOHN_BOOK_NUM = 43
-JOHN_4_INDEX_LO = 43004001
-JOHN_4_INDEX_HI = 43004042
-PILOT_CANONICAL = "John.4.1-42"
+# Backward-compatible aliases for Phase 3A callers/tests.
+JOHN_BOOK_NUM = JOHN_4_PILOT.usfm_book_num
+JOHN_4_INDEX_LO = JOHN_4_PILOT.org_index_lo
+JOHN_4_INDEX_HI = JOHN_4_PILOT.org_index_hi
+PILOT_CANONICAL = JOHN_4_PILOT.canonical
 CHUNK_MAX_PLAIN_CHARS = 900
 
 _BLOCK_SPLIT_RE = re.compile(r"(?=</p>|</li>)", re.IGNORECASE)
@@ -134,18 +143,35 @@ def import_john_4_pilot(
     language: str = "eng",
 ) -> PilotImportResult:
     """Import John 4:1-42 Aquifer study notes into a normalized pilot JSON bundle."""
+    return import_study_notes_pilot(
+        pilot_id=JOHN_4_PILOT.id,
+        upstream_root=upstream_root,
+        output_path=output_path,
+        language=language,
+    )
+
+
+def import_study_notes_pilot(
+    *,
+    pilot_id: str,
+    upstream_root: str | Path | None = None,
+    output_path: str | Path | None = None,
+    language: str = "eng",
+) -> PilotImportResult:
+    """Import Aquifer study notes for a registered pilot passage."""
+    pilot = get_pilot(pilot_id)
     root = resolve_upstream_path(upstream_root)
-    out = Path(output_path) if output_path is not None else DEFAULT_OUTPUT_PATH
+    out = Path(output_path) if output_path is not None else pilot.study_notes_resolved
     out.parent.mkdir(parents=True, exist_ok=True)
 
     metadata_path = root / language / "metadata.json"
-    content_path = root / language / "json" / "43.content.json"
+    content_path = root / language / "json" / pilot.aquifer_study_notes_content_file
     issues: list[ImportIssue] = []
 
     if not metadata_path.is_file():
         raise FileNotFoundError(f"Aquifer metadata missing: {metadata_path}")
     if not content_path.is_file():
-        raise FileNotFoundError(f"Aquifer John content missing: {content_path}")
+        raise FileNotFoundError(f"Aquifer content missing: {content_path}")
 
     metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
     resource_version = str(
@@ -157,10 +183,10 @@ def import_john_4_pilot(
     notes: list[StudyNoteRecord] = []
     chunk_total = 0
     for article in articles:
-        if not _article_overlaps_john_4_pilot(article):
+        if not _article_overlaps_pilot(article, pilot):
             continue
         try:
-            record, article_issues = _normalize_article(article)
+            record, article_issues = _normalize_article(article, pilot)
         except CanonicalReferenceError as exc:
             issues.append(
                 ImportIssue(
@@ -180,7 +206,8 @@ def import_john_4_pilot(
 
     bundle = {
         "bundle_version": "1",
-        "pilot_scope": PILOT_CANONICAL,
+        "pilot_id": pilot.id,
+        "pilot_scope": pilot.canonical,
         "generated_at": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "source_id": AQUIFER_SOURCE_ID,
         "upstream_repository": AQUIFER_UPSTREAM_REPO,
@@ -205,22 +232,24 @@ def import_john_4_pilot(
     )
 
 
-def _article_overlaps_john_4_pilot(article: dict[str, Any]) -> bool:
+def _article_overlaps_pilot(article: dict[str, Any], pilot: PilotPassage) -> bool:
     for passage in article.get("associations", {}).get("passage", []):
         start_ref = str(passage.get("start_ref") or "")
         end_ref = str(passage.get("end_ref") or start_ref)
         if not start_ref.isdigit() or not end_ref.isdigit():
             continue
-        if int(start_ref) > JOHN_4_INDEX_HI or int(end_ref) < JOHN_4_INDEX_LO:
-            continue
-        if int(start_ref[:2]) != JOHN_BOOK_NUM:
-            continue
-        return True
+        if index_reference_overlaps_pilot(int(start_ref), int(end_ref), pilot):
+            return True
     return False
+
+
+def _article_overlaps_john_4_pilot(article: dict[str, Any]) -> bool:
+    return _article_overlaps_pilot(article, JOHN_4_PILOT)
 
 
 def _normalize_article(
     article: dict[str, Any],
+    pilot: PilotPassage,
 ) -> tuple[StudyNoteRecord | None, list[ImportIssue]]:
     issues: list[ImportIssue] = []
     article_id = str(article.get("content_id") or "").strip()
@@ -239,17 +268,18 @@ def _normalize_article(
 
     canonical = index_reference_to_canonical(index_reference)
     parsed = CanonicalReference.parse(canonical)
-    if parsed.book_id != "John" or parsed.start_chapter != 4:
+    pilot_ref = pilot.reference()
+    if parsed.book_id != pilot_ref.book_id:
         issues.append(
             ImportIssue(
                 "error",
-                f"Article {article_id} mapped outside John 4: {canonical}",
+                f"Article {article_id} mapped outside {pilot.canonical}: {canonical}",
                 article_id=article_id,
             )
         )
         return None, issues
 
-    if not _canonical_overlaps_pilot(parsed):
+    if not references_overlap(parsed, pilot_ref):
         issues.append(
             ImportIssue(
                 "warning",
@@ -283,12 +313,13 @@ def index_reference_to_canonical(index_reference: str) -> str:
     if len(start) != 8 or not start.isdigit():
         raise CanonicalReferenceError(f"Invalid index_reference: {index_reference!r}")
     book_num = int(start[:2])
-    if book_num != JOHN_BOOK_NUM:
+    book_id = book_id_from_usfm(book_num)
+    if book_id is None:
         raise CanonicalReferenceError(f"Unsupported book number: {book_num}")
     chapter = int(start[2:5])
     verse_start = int(start[5:8])
     if len(parts) == 1:
-        return f"John.{chapter}.{verse_start}"
+        return f"{book_id}.{chapter}.{verse_start}"
     end = parts[1]
     if len(end) != 8 or not end.isdigit():
         raise CanonicalReferenceError(f"Invalid index_reference end: {index_reference!r}")
@@ -297,21 +328,12 @@ def index_reference_to_canonical(index_reference: str) -> str:
     if end_chapter != chapter:
         raise CanonicalReferenceError(f"Cross-chapter index_reference unsupported: {index_reference!r}")
     if verse_start == verse_end:
-        return f"John.{chapter}.{verse_start}"
-    return f"John.{chapter}.{verse_start}-{verse_end}"
+        return f"{book_id}.{chapter}.{verse_start}"
+    return f"{book_id}.{chapter}.{verse_start}-{verse_end}"
 
 
 def _canonical_overlaps_pilot(reference: CanonicalReference) -> bool:
-    pilot = CanonicalReference.parse(PILOT_CANONICAL)
-    if reference.book_id != pilot.book_id:
-        return False
-    if reference.end_chapter < pilot.start_chapter or reference.start_chapter > pilot.end_chapter:
-        return False
-    if reference.start_chapter == pilot.start_chapter and reference.end_chapter == pilot.end_chapter:
-        return not (
-            reference.end_verse < pilot.start_verse or reference.start_verse > pilot.end_verse
-        )
-    return reference.start_chapter == 4 or reference.end_chapter == 4
+    return references_overlap(reference, JOHN_4_PILOT.reference())
 
 
 def _first_passage_usfm(article: dict[str, Any]) -> str | None:
@@ -409,6 +431,7 @@ def main(argv: list[str] | None = None) -> int:
     args = argv if argv is not None else sys.argv[1:]
     upstream = None
     output = None
+    pilot_id = JOHN_4_PILOT.id
     i = 0
     while i < len(args):
         if args[i] == "--upstream" and i + 1 < len(args):
@@ -419,9 +442,17 @@ def main(argv: list[str] | None = None) -> int:
             output = args[i + 1]
             i += 2
             continue
+        if args[i] == "--pilot" and i + 1 < len(args):
+            pilot_id = args[i + 1]
+            i += 2
+            continue
         i += 1
 
-    result = import_john_4_pilot(upstream_root=upstream, output_path=output)
+    result = import_study_notes_pilot(
+        pilot_id=pilot_id,
+        upstream_root=upstream,
+        output_path=output,
+    )
     print(json.dumps(result.to_dict(), indent=2, ensure_ascii=False))
     return 0
 

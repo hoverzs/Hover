@@ -30,6 +30,13 @@ from textus_kb.importers.aquifer_bible_dictionary import (
     load_pilot_bundle as load_dictionary_bundle,
 )
 from textus_kb.paths import PROJECT_ROOT
+from textus_kb.pilot_registry import (
+    JOHN_4_PILOT,
+    PilotPassage,
+    get_pilot,
+    index_reference_overlaps_pilot,
+    org_ref_to_canonical,
+)
 
 ACAI_SOURCE_ID = "acai"
 ACAI_LICENSE = "CC-BY-SA-4.0"
@@ -41,21 +48,10 @@ DEFAULT_UPSTREAM_PATH = PROJECT_ROOT / "_upstream_audit" / "ACAI"
 DEFAULT_OUTPUT_PATH = PROJECT_ROOT / "data" / "kb" / "acai" / "john_4_1_42_entities.json"
 UPSTREAM_ENV_VAR = "TEXTUS_ACAI_UPSTREAM_PATH"
 
-PILOT_CANONICAL = "John.4.1-42"
-JOHN_4_INDEX_LO = 43004001
-JOHN_4_INDEX_HI = 43004042
-
-# Jn 4 pilot place IDs from Textus passage-place links within the pilot span.
-PILOT_TEXTUS_PLACE_IDS = frozenset(
-    {
-        "sychar",
-        "samaria_2",
-        "galilee_1",
-        "judea_1",
-        "mount_gerizim",
-        "jerusalem",
-    }
-)
+PILOT_CANONICAL = JOHN_4_PILOT.canonical
+JOHN_4_INDEX_LO = JOHN_4_PILOT.org_index_lo
+JOHN_4_INDEX_HI = JOHN_4_PILOT.org_index_hi
+PILOT_TEXTUS_PLACE_IDS = JOHN_4_PILOT.dictionary_place_ids
 
 # Generic ACAI placeholders excluded from context summaries (still in bundle for audit).
 GENERIC_ACAI_IDS = frozenset(
@@ -130,11 +126,31 @@ def import_john_4_pilot(
     dictionary_bundle_path: str | Path | None = None,
     places_catalog_path: str | Path | None = None,
 ) -> PilotImportResult:
+    return import_acai_pilot(
+        pilot_id=JOHN_4_PILOT.id,
+        upstream_root=upstream_root,
+        output_path=output_path,
+        dictionary_bundle_path=dictionary_bundle_path,
+        places_catalog_path=places_catalog_path,
+    )
+
+
+def import_acai_pilot(
+    *,
+    pilot_id: str,
+    upstream_root: str | Path | None = None,
+    output_path: str | Path | None = None,
+    dictionary_bundle_path: str | Path | None = None,
+    places_catalog_path: str | Path | None = None,
+) -> PilotImportResult:
+    pilot = get_pilot(pilot_id)
     root = resolve_upstream_path(upstream_root)
-    out = Path(output_path) if output_path is not None else DEFAULT_OUTPUT_PATH
+    out = Path(output_path) if output_path is not None else pilot.acai_json_resolved
     out.parent.mkdir(parents=True, exist_ok=True)
 
-    dict_bundle_path = Path(dictionary_bundle_path) if dictionary_bundle_path else DICTIONARY_BUNDLE_PATH
+    dict_bundle_path = (
+        Path(dictionary_bundle_path) if dictionary_bundle_path else pilot.dictionary_resolved
+    )
     catalog_path = (
         Path(places_catalog_path)
         if places_catalog_path is not None
@@ -144,7 +160,7 @@ def import_john_4_pilot(
     issues: list[ImportIssue] = []
     upstream_commit = read_upstream_commit(root)
 
-    passage_ids = _scan_passage_entity_ids(root)
+    passage_ids = _scan_passage_entity_ids(root, pilot)
     dictionary_links = _collect_dictionary_acai_links(root, dict_bundle_path, issues)
     dictionary_ids = {link["acai_id"] for link in dictionary_links}
 
@@ -180,15 +196,17 @@ def import_john_4_pilot(
             dictionary_links=alias_links,
             crosswalk_index=crosswalk_index,
             catalog_places=catalog_places,
+            pilot=pilot,
         )
         entities_by_external[primary_id] = entity
 
     entities = sorted(entities_by_external.values(), key=lambda item: item.entity_id)
-    unresolved_crosswalks = _collect_unresolved_crosswalks(catalog_places, entities, crosswalk_index)
+    unresolved_crosswalks = _collect_unresolved_crosswalks(catalog_places, entities, crosswalk_index, pilot)
 
     bundle = {
         "bundle_version": "1",
-        "pilot_scope": PILOT_CANONICAL,
+        "pilot_id": pilot.id,
+        "pilot_scope": pilot.canonical,
         "generated_at": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "source_id": ACAI_SOURCE_ID,
         "upstream_repository": ACAI_UPSTREAM_REPO,
@@ -223,7 +241,7 @@ def load_pilot_bundle(path: str | Path | None = None) -> dict[str, Any]:
     return raw
 
 
-def _scan_passage_entity_ids(root: Path) -> set[str]:
+def _scan_passage_entity_ids(root: Path, pilot: PilotPassage) -> set[str]:
     selected: set[str] = set()
     for folder in ("people", "places", "groups"):
         json_dir = root / folder / "json"
@@ -234,7 +252,7 @@ def _scan_passage_entity_ids(root: Path) -> set[str]:
             entity_type = str(record.get("type") or "").strip()
             if entity_type not in PASSAGE_ENTITY_TYPES:
                 continue
-            if _record_has_john4_reference(record):
+            if _record_has_pilot_reference(record, pilot):
                 selected.add(str(record.get("id") or ""))
     return {item for item in selected if item}
 
@@ -301,18 +319,19 @@ def _normalize_entity(
     dictionary_links: list[dict[str, Any]],
     crosswalk_index: dict[str, dict[str, Any]],
     catalog_places: dict[str, dict[str, Any]],
+    pilot: PilotPassage,
 ) -> KBEntity:
     external_id = str(record.get("id") or "")
     entity_type = str(record.get("type") or external_id.split(":", 1)[0])
     canonical_name = _preferred_label(record)
     aliases = _collect_aliases(record)
-    upstream_refs = tuple(sorted(_collect_john4_refs(record)))
+    upstream_refs = tuple(sorted(_collect_pilot_refs(record, pilot)))
 
     passage_relations: list[EntityPassageRelation] = []
     if upstream_refs:
         passage_relations.append(
             EntityPassageRelation(
-                canonical_passage=PILOT_CANONICAL,
+                canonical_passage=pilot.canonical,
                 relation_type=RELATION_PASSAGE_MENTION,
                 source_id=ACAI_SOURCE_ID,
                 upstream_refs=upstream_refs,
@@ -342,6 +361,7 @@ def _normalize_entity(
             canonical_name,
             crosswalk_index,
             catalog_places,
+            pilot=pilot,
             has_passage_link=bool(upstream_refs),
         )
 
@@ -424,8 +444,16 @@ def _collect_aliases(record: dict[str, Any]) -> tuple[EntityAlias, ...]:
     return tuple(unique)
 
 
+def _collect_pilot_refs(record: dict[str, Any], pilot: PilotPassage) -> set[str]:
+    return {
+        ref
+        for ref in _collect_org_refs(record)
+        if _is_pilot_org_ref(ref, pilot)
+    }
+
+
 def _collect_john4_refs(record: dict[str, Any]) -> set[str]:
-    return {ref for ref in _collect_org_refs(record) if _is_john4_org_ref(ref)}
+    return _collect_pilot_refs(record, JOHN_4_PILOT)
 
 
 def _collect_org_refs(record: dict[str, Any]) -> set[str]:
@@ -455,11 +483,15 @@ def _collect_org_refs(record: dict[str, Any]) -> set[str]:
     return refs
 
 
-def _is_john4_org_ref(ref: str) -> bool:
+def _is_pilot_org_ref(ref: str, pilot: PilotPassage) -> bool:
     if len(ref) != 8 or not ref.isdigit():
         return False
     value = int(ref)
-    return JOHN_4_INDEX_LO <= value <= JOHN_4_INDEX_HI
+    return pilot.org_index_lo <= value <= pilot.org_index_hi and int(ref[:2]) == pilot.usfm_book_num
+
+
+def _is_john4_org_ref(ref: str) -> bool:
+    return _is_pilot_org_ref(ref, JOHN_4_PILOT)
 
 
 def _normalize_org_ref(raw: str) -> str | None:
@@ -471,8 +503,12 @@ def _normalize_org_ref(raw: str) -> str | None:
     return None
 
 
+def _record_has_pilot_reference(record: dict[str, Any], pilot: PilotPassage) -> bool:
+    return bool(_collect_pilot_refs(record, pilot))
+
+
 def _record_has_john4_reference(record: dict[str, Any]) -> bool:
-    return bool(_collect_john4_refs(record))
+    return _record_has_pilot_reference(record, JOHN_4_PILOT)
 
 
 def _load_catalog_places(path: Path) -> dict[str, dict[str, Any]]:
@@ -503,12 +539,13 @@ def _resolve_place_crosswalk(
     crosswalk_index: dict[str, str],
     catalog_places: dict[str, dict[str, Any]],
     *,
+    pilot: PilotPassage,
     has_passage_link: bool,
 ) -> PlaceCrosswalk | None:
     obi_ids = (record.get("alternate_sources") or {}).get("obi") or []
     for obi in obi_ids:
         textus_place_id = crosswalk_index.get(str(obi))
-        if textus_place_id and textus_place_id in PILOT_TEXTUS_PLACE_IDS:
+        if textus_place_id and textus_place_id in pilot.dictionary_place_ids:
             place = catalog_places[textus_place_id]
             return PlaceCrosswalk(
                 textus_place_id=textus_place_id,
@@ -523,7 +560,7 @@ def _resolve_place_crosswalk(
     normalized_acai = _normalize_name(canonical_name)
     candidates = [
         place_id
-        for place_id in PILOT_TEXTUS_PLACE_IDS
+        for place_id in pilot.dictionary_place_ids
         if _normalize_name(str(catalog_places.get(place_id, {}).get("name_en") or "")) == normalized_acai
         or _normalize_name(str(catalog_places.get(place_id, {}).get("name_hu") or "")) == normalized_acai
     ]
@@ -546,6 +583,7 @@ def _collect_unresolved_crosswalks(
     catalog_places: dict[str, dict[str, Any]],
     entities: list[KBEntity],
     crosswalk_index: dict[str, str],
+    pilot: PilotPassage,
 ) -> list[dict[str, Any]]:
     linked = {
         crosswalk.textus_place_id
@@ -554,7 +592,7 @@ def _collect_unresolved_crosswalks(
         for crosswalk in [entity.place_crosswalk]
     }
     unresolved: list[dict[str, Any]] = []
-    for place_id in sorted(PILOT_TEXTUS_PLACE_IDS):
+    for place_id in sorted(pilot.dictionary_place_ids):
         if place_id in linked:
             continue
         place = catalog_places.get(place_id, {})

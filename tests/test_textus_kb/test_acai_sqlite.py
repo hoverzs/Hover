@@ -213,7 +213,8 @@ def test_disabled_acai_store_graceful(tmp_path: Path) -> None:
     manifest = load_manifest(manifest_path)
     packet = retrieve("Jn 4,1-42", manifest=manifest)
     assert packet.entities == []
-    assert packet.retrieval_debug == {}
+    assert packet.retrieval_debug["entity_mode"] == "direct_plus_entities"
+    assert packet.retrieval_debug["pilot_id"] == "john_4_1_42"
 
 
 def test_context_budget_still_within_limits() -> None:

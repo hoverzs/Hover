@@ -17,11 +17,23 @@ from textus_kb.manifest import (
     validate_manifest_sources,
 )
 from textus_kb.paths import DEFAULT_MANIFEST_PATH, normalize_repo_relative_path
+from textus_kb.pilot_registry import PILOTS, validate_pilot_registry
 
-CANONICAL_SELF_TEST_INPUTS = (
-    "Jn 4,1–42",
-    "JHN 4:1-42",
-    "John.4.1-42",
+CANONICAL_SELF_TEST_GROUPS: tuple[tuple[str, ...], ...] = (
+    (
+        "Jn 4,1–42",
+        "JHN 4:1-42",
+        "John.4.1-42",
+    ),
+    (
+        "Lk 10,25–37",
+        "Luke.10.25-37",
+    ),
+)
+
+# Backward-compatible flat tuple for callers that iterate all inputs.
+CANONICAL_SELF_TEST_INPUTS = tuple(
+    text for group in CANONICAL_SELF_TEST_GROUPS for text in group
 )
 
 
@@ -63,6 +75,31 @@ class AcaiStoreHealthReport:
 
 
 @dataclass
+class PilotBundleHealthReport:
+    pilot_id: str
+    canonical: str
+    study_notes_available: bool
+    dictionary_available: bool
+    acai_json_available: bool
+    study_notes_path: str
+    dictionary_path: str
+    acai_json_path: str
+    warnings: list[str] = field(default_factory=list)
+
+
+@dataclass
+class PilotRegistryHealthReport:
+    valid: bool
+    pilot_count: int
+    pilots: list[PilotBundleHealthReport] = field(default_factory=list)
+    errors: list[str] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
 class KnowledgeBaseHealthReport:
     overall_status: str  # ok | degraded | error
     manifest_status: str  # ok | error
@@ -71,6 +108,7 @@ class KnowledgeBaseHealthReport:
     sources: list[SourceHealthReport]
     canonical_self_tests: list[CanonicalSelfTestResult]
     acai_store: AcaiStoreHealthReport | None = None
+    pilot_registry: PilotRegistryHealthReport | None = None
     errors: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
 
@@ -79,44 +117,46 @@ class KnowledgeBaseHealthReport:
 
 
 def run_canonical_self_tests(
-    inputs: tuple[str, ...] = CANONICAL_SELF_TEST_INPUTS,
+    groups: tuple[tuple[str, ...], ...] = CANONICAL_SELF_TEST_GROUPS,
 ) -> list[CanonicalSelfTestResult]:
     results: list[CanonicalSelfTestResult] = []
-    canonical_strings: list[str] = []
-    for text in inputs:
-        try:
-            ref = CanonicalReference.parse(text)
-            canonical = ref.canonical_string()
-            results.append(
-                CanonicalSelfTestResult(input=text, canonical=canonical, ok=True)
-            )
-            canonical_strings.append(canonical)
-        except CanonicalReferenceError as exc:
+    for group_index, group in enumerate(groups):
+        canonical_strings: list[str] = []
+        for text in group:
+            try:
+                ref = CanonicalReference.parse(text)
+                canonical = ref.canonical_string()
+                results.append(
+                    CanonicalSelfTestResult(input=text, canonical=canonical, ok=True)
+                )
+                canonical_strings.append(canonical)
+            except CanonicalReferenceError as exc:
+                results.append(
+                    CanonicalSelfTestResult(
+                        input=text,
+                        canonical=None,
+                        ok=False,
+                        error=str(exc),
+                    )
+                )
+        consistency_key = f"__cross_input_consistency__:{group_index}"
+        if len(set(canonical_strings)) > 1 and canonical_strings:
             results.append(
                 CanonicalSelfTestResult(
-                    input=text,
-                    canonical=None,
+                    input=consistency_key,
+                    canonical=canonical_strings[0] if canonical_strings else None,
                     ok=False,
-                    error=str(exc),
+                    error="Self-test inputs did not normalize to the same canonical string.",
                 )
             )
-    if len(set(canonical_strings)) > 1 and canonical_strings:
-        results.append(
-            CanonicalSelfTestResult(
-                input="__cross_input_consistency__",
-                canonical=canonical_strings[0] if canonical_strings else None,
-                ok=False,
-                error="Self-test inputs did not normalize to the same canonical string.",
+        elif len(canonical_strings) >= 2:
+            results.append(
+                CanonicalSelfTestResult(
+                    input=consistency_key,
+                    canonical=canonical_strings[0],
+                    ok=True,
+                )
             )
-        )
-    elif len(canonical_strings) >= 2:
-        results.append(
-            CanonicalSelfTestResult(
-                input="__cross_input_consistency__",
-                canonical=canonical_strings[0],
-                ok=True,
-            )
-        )
     return results
 
 
@@ -174,6 +214,11 @@ def run_health_check(
             sources_reports.append(report)
 
     acai_store_report = _acai_store_health(manifest, check_paths=check_paths)
+    pilot_registry_report = _pilot_registry_health(check_paths=check_paths)
+    if pilot_registry_report.errors:
+        errors.extend(pilot_registry_report.errors)
+    if pilot_registry_report.warnings:
+        warnings.extend(pilot_registry_report.warnings)
 
     canonical_tests = run_canonical_self_tests()
     if any(not item.ok for item in canonical_tests):
@@ -184,6 +229,8 @@ def run_health_check(
     elif warnings or any(r.warnings for r in sources_reports):
         overall = "degraded"
     elif acai_store_report is not None and acai_store_report.warnings:
+        overall = "degraded"
+    elif pilot_registry_report.warnings:
         overall = "degraded"
     else:
         overall = "ok"
@@ -196,7 +243,46 @@ def run_health_check(
         sources=sources_reports,
         canonical_self_tests=canonical_tests,
         acai_store=acai_store_report,
+        pilot_registry=pilot_registry_report,
         errors=errors,
+        warnings=warnings,
+    )
+
+
+def _pilot_registry_health(*, check_paths: bool) -> PilotRegistryHealthReport:
+    registry_errors = validate_pilot_registry()
+    pilots: list[PilotBundleHealthReport] = []
+    warnings: list[str] = []
+    for pilot in PILOTS:
+        study_ok = pilot.study_notes_resolved.is_file() if check_paths else True
+        dict_ok = pilot.dictionary_resolved.is_file() if check_paths else True
+        acai_ok = pilot.acai_json_resolved.is_file() if check_paths else True
+        pilot_warnings: list[str] = []
+        if check_paths and not study_ok:
+            pilot_warnings.append(f"Study Notes bundle missing: {pilot.study_notes_path}")
+        if check_paths and not dict_ok:
+            pilot_warnings.append(f"Dictionary bundle missing: {pilot.dictionary_path}")
+        if check_paths and not acai_ok:
+            pilot_warnings.append(f"ACAI JSON bundle missing: {pilot.acai_json_path}")
+        warnings.extend(f"[{pilot.id}] {msg}" for msg in pilot_warnings)
+        pilots.append(
+            PilotBundleHealthReport(
+                pilot_id=pilot.id,
+                canonical=pilot.canonical,
+                study_notes_available=study_ok,
+                dictionary_available=dict_ok,
+                acai_json_available=acai_ok,
+                study_notes_path=normalize_repo_relative_path(pilot.study_notes_path),
+                dictionary_path=normalize_repo_relative_path(pilot.dictionary_path),
+                acai_json_path=normalize_repo_relative_path(pilot.acai_json_path),
+                warnings=pilot_warnings,
+            )
+        )
+    return PilotRegistryHealthReport(
+        valid=not registry_errors,
+        pilot_count=len(PILOTS),
+        pilots=pilots,
+        errors=registry_errors,
         warnings=warnings,
     )
 

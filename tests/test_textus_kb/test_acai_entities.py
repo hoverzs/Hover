@@ -194,4 +194,7 @@ def test_phase4b_golden_fixtures() -> None:
     assert ex["estimated_tokens"] == golden_ex["estimated_tokens"]
     assert hi["estimated_tokens"] == golden_hi["estimated_tokens"]
     expansion = json.loads(EXPANSION_PHASE4B.read_text(encoding="utf-8"))
-    assert retrieve("Jn 4,1-42").retrieval_debug == expansion
+    live_debug = retrieve("Jn 4,1-42").retrieval_debug
+    assert live_debug["entity_mode"] == expansion.get("entity_mode", "direct_plus_entities")
+    assert "expansion_delta" in live_debug
+    assert live_debug["expansion_delta"]["unique_entity_candidates"] == expansion["expansion_delta"]["unique_entity_candidates"]

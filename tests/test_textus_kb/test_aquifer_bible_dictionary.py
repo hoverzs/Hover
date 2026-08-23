@@ -161,16 +161,23 @@ def test_dictionary_disabled_falls_back_to_phase3b_behavior(tmp_path: Path) -> N
     assert packet.build_id == "kb-phase4b-john4-pilot-v1"
 
 
-def test_missing_dictionary_bundle_graceful(tmp_path: Path) -> None:
-    manifest_path = tmp_path / "manifest.json"
-    base = json.loads(Path("textus_kb/data/kb_manifest.json").read_text(encoding="utf-8"))
-    payload = deepcopy(base)
-    for source in payload["sources"]:
-        if source["id"] == AQUIFER_DICTIONARY_SOURCE_ID:
-            source["local_path"] = "data/kb/aquifer/missing_dictionary_bundle.json"
-    manifest_path.write_text(json.dumps(payload), encoding="utf-8")
-    manifest = load_manifest(manifest_path)
-    packet = retrieve("Jn 4,1-42", manifest=manifest)
+def test_missing_dictionary_bundle_graceful(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    from dataclasses import replace
+
+    from textus_kb.pilot_registry import JOHN_4_PILOT, LUKE_10_PILOT
+
+    john_missing = replace(
+        JOHN_4_PILOT,
+        dictionary_path="data/kb/aquifer/__missing_john_dictionary__.json",
+    )
+    monkeypatch.setattr("textus_kb.pilot_registry.JOHN_4_PILOT", john_missing)
+    monkeypatch.setattr("textus_kb.pilot_registry.PILOTS", (john_missing, LUKE_10_PILOT))
+    monkeypatch.setattr(
+        "textus_kb.pilot_registry.PILOTS_BY_ID",
+        {"john_4_1_42": john_missing, "luke_10_25_37": LUKE_10_PILOT},
+    )
+    manifest = load_manifest()
+    packet = retrieve("Jn 4,1-42", manifest=manifest, entity_mode="direct_only")
     assert not any(
         item.relation_type == RELATION_DICTIONARY_BACKGROUND for item in packet.evidence_items
     )

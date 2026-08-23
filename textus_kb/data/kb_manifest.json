@@ -101,7 +101,7 @@
     },
     {
       "id": "aquifer_open_study_notes",
-      "name": "Aquifer Open Study Notes (English, John 4 pilot)",
+      "name": "Aquifer Open Study Notes (English, pilot passages)",
       "source_type": "exegetical_notes",
       "language": "en",
       "version": "1.1.2",
@@ -110,11 +110,11 @@
       "local_path": "data/kb/aquifer/john_4_1_42_study_notes.json",
       "required": false,
       "enabled": true,
-      "usage_note": "Pilot scope John.4.1-42 only. Attribution: Aquifer Open Study Notes © Mission Mutual (adapted from Tyndale Open Study Notes), CC BY-SA 4.0. Upstream: https://github.com/BibleAquifer/AquiferOpenStudyNotes"
+      "usage_note": "Phase 4C multi-pilot: bundles resolved via pilot registry (John.4.1-42, Luke.10.25-37). Legacy manifest path points at John bundle."
     },
     {
       "id": "aquifer_open_bible_dictionary",
-      "name": "Aquifer Open Bible Dictionary (English, John 4 pilot)",
+      "name": "Aquifer Open Bible Dictionary (English, pilot passages)",
       "source_type": "bible_dictionary",
       "language": "en",
       "version": "1.1.2",
@@ -123,11 +123,11 @@
       "local_path": "data/kb/aquifer/john_4_1_42_bible_dictionary.json",
       "required": false,
       "enabled": true,
-      "usage_note": "Pilot scope John.4.1-42 only. Attribution: Aquifer Open Bible Dictionary © Mission Mutual (adapted from Tyndale Open Bible Dictionary), CC BY-SA 4.0. Upstream: https://github.com/BibleAquifer/AquiferOpenBibleDictionary"
+      "usage_note": "Phase 4C multi-pilot: bundles resolved via pilot registry (John.4.1-42, Luke.10.25-37). Legacy manifest path points at John bundle."
     },
     {
       "id": "acai",
-      "name": "ACAI entity graph (SQLite runtime, John 4 pilot scope)",
+      "name": "ACAI entity graph (SQLite runtime + pilot JSON bundles)",
       "source_type": "sqlite",
       "language": "multilingual",
       "version": "2025-07-23",
@@ -136,7 +136,7 @@
       "local_path": "data/generated/acai_entities.sqlite3",
       "required": false,
       "enabled": true,
-      "usage_note": "Phase 4B SQLite runtime store (pilot import for John.4.1-42). JSON parity bundle: data/kb/acai/john_4_1_42_entities.json. ACAI © Mission Mutual, CC BY-SA 4.0. Upstream: https://github.com/BibleAquifer/ACAI"
+      "usage_note": "Phase 4C: SQLite store for John pilot; Luke.10.25-37 entities in data/kb/acai/luke_10_25_37_entities.json. Pilot registry selects bundle per passage."
     },
     {
       "id": "ruf_2014_local",

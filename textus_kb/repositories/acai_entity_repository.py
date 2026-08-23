@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from textus_kb.canonical_reference import CanonicalReference
+from textus_kb.pilot_registry import org_ref_bounds
 from textus_kb.entity_models import (
     EntityAlias,
     EntityDictionaryRelation,
@@ -306,9 +307,4 @@ class AcaiEntityRepository:
 
 
 def _org_ref_bounds(reference: CanonicalReference) -> tuple[str, str]:
-    book = 43  # John in ACAI org ref encoding for NT pilot scope.
-    if reference.book_id != "John":
-        raise ValueError(f"ACAI org-ref lookup supports John only; got {reference.book_id!r}")
-    org_lo = f"{book:02d}{reference.start_chapter:03d}{reference.start_verse:03d}"
-    org_hi = f"{book:02d}{reference.end_chapter:03d}{reference.end_verse:03d}"
-    return org_lo, org_hi
+    return org_ref_bounds(reference)

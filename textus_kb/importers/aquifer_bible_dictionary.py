@@ -1,4 +1,4 @@
-"""Reproducible pilot importer for Aquifer Open Bible Dictionary (John 4:1-42)."""
+"""Reproducible pilot importer for Aquifer Open Bible Dictionary."""
 
 from __future__ import annotations
 
@@ -13,6 +13,12 @@ from pathlib import Path
 from typing import Any
 
 from textus_kb.paths import PROJECT_ROOT
+from textus_kb.pilot_registry import (
+    JOHN_4_PILOT,
+    PilotPassage,
+    get_pilot,
+    index_reference_overlaps_pilot,
+)
 
 AQUIFER_DICTIONARY_SOURCE_ID = "aquifer_open_bible_dictionary"
 AQUIFER_LICENSE = "CC-BY-SA-4.0"
@@ -26,42 +32,14 @@ DEFAULT_UPSTREAM_PATH = PROJECT_ROOT / "_upstream_audit" / "AquiferOpenBibleDict
 DEFAULT_OUTPUT_PATH = PROJECT_ROOT / "data" / "kb" / "aquifer" / "john_4_1_42_bible_dictionary.json"
 UPSTREAM_ENV_VAR = "TEXTUS_AQUIFER_DICTIONARY_UPSTREAM_PATH"
 
-JOHN_BOOK_NUM = 43
-JOHN_4_INDEX_LO = 43004001
-JOHN_4_INDEX_HI = 43004042
-PILOT_CANONICAL = "John.4.1-42"
+# Backward-compatible aliases for Phase 3C callers/tests.
+JOHN_BOOK_NUM = JOHN_4_PILOT.usfm_book_num
+JOHN_4_INDEX_LO = JOHN_4_PILOT.org_index_lo
+JOHN_4_INDEX_HI = JOHN_4_PILOT.org_index_hi
+PILOT_CANONICAL = JOHN_4_PILOT.canonical
+PILOT_INDEX_REFERENCES = JOHN_4_PILOT.dictionary_index_refs
+PILOT_PLACE_ENTITY_IDS = JOHN_4_PILOT.dictionary_place_ids
 CHUNK_MAX_PLAIN_CHARS = 1200
-
-# Deterministic pilot seeds derived from Jn 4 passage-place links and upstream titles.
-PILOT_INDEX_REFERENCES = frozenset(
-    {
-        "samaria",
-        "samaritans",
-        "mount gerizim",
-        "sychar",
-        "jacob",
-        "jacobs well",
-        "galilee",
-        "judea judeans",
-        "temple",
-        "worship",
-        "well",
-        "water",
-    }
-)
-
-# Jn 4 place IDs from the existing Evidence Packet pilot (entity/topic association).
-PILOT_PLACE_ENTITY_IDS = frozenset(
-    {
-        "sychar",
-        "samaria_1",
-        "samaria_2",
-        "galilee_1",
-        "judea_1",
-        "mount_gerizim",
-        "jerusalem",
-    }
-)
 
 _HEADING_SPLIT_RE = re.compile(r"(?=<h[1-3][^>]*>)", re.IGNORECASE)
 _BLOCK_SPLIT_RE = re.compile(r"(?=</p>|</li>)", re.IGNORECASE)
@@ -169,8 +147,25 @@ def import_john_4_pilot(
     language: str = "eng",
 ) -> PilotImportResult:
     """Import Jn 4-relevant Aquifer Bible Dictionary entries into a pilot JSON bundle."""
+    return import_dictionary_pilot(
+        pilot_id=JOHN_4_PILOT.id,
+        upstream_root=upstream_root,
+        output_path=output_path,
+        language=language,
+    )
+
+
+def import_dictionary_pilot(
+    *,
+    pilot_id: str,
+    upstream_root: str | Path | None = None,
+    output_path: str | Path | None = None,
+    language: str = "eng",
+) -> PilotImportResult:
+    """Import Aquifer Bible Dictionary entries for a registered pilot passage."""
+    pilot = get_pilot(pilot_id)
     root = resolve_upstream_path(upstream_root)
-    out = Path(output_path) if output_path is not None else DEFAULT_OUTPUT_PATH
+    out = Path(output_path) if output_path is not None else pilot.dictionary_resolved
     out.parent.mkdir(parents=True, exist_ok=True)
 
     metadata_path = root / language / "metadata.json"
@@ -187,14 +182,14 @@ def import_john_4_pilot(
     upstream_commit = read_upstream_commit(root)
 
     articles_by_index = _load_articles_by_index(json_dir)
-    selected = _select_pilot_articles(articles_by_index)
+    selected = _select_pilot_articles(articles_by_index, pilot)
 
     entries: list[DictionaryRecord] = []
     chunk_total = 0
     for index_reference in sorted(selected.keys()):
         article = selected[index_reference]
         try:
-            record, article_issues = _normalize_article(article, index_reference)
+            record, article_issues = _normalize_article(article, index_reference, pilot)
         except Exception as exc:  # noqa: BLE001 - importer collects issues
             issues.append(
                 ImportIssue(
@@ -212,7 +207,8 @@ def import_john_4_pilot(
 
     bundle = {
         "bundle_version": "1",
-        "pilot_scope": PILOT_CANONICAL,
+        "pilot_id": pilot.id,
+        "pilot_scope": pilot.canonical,
         "generated_at": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "source_id": AQUIFER_DICTIONARY_SOURCE_ID,
         "upstream_repository": AQUIFER_UPSTREAM_REPO,
@@ -255,9 +251,10 @@ def _load_articles_by_index(json_dir: Path) -> dict[str, list[dict[str, Any]]]:
 
 def _select_pilot_articles(
     articles_by_index: dict[str, list[dict[str, Any]]],
+    pilot: PilotPassage,
 ) -> dict[str, dict[str, Any]]:
     selected: dict[str, dict[str, Any]] = {}
-    for index_reference in sorted(PILOT_INDEX_REFERENCES):
+    for index_reference in sorted(pilot.dictionary_index_refs):
         candidates = articles_by_index.get(index_reference, [])
         if not candidates:
             continue
@@ -279,6 +276,7 @@ def _pick_best_duplicate(candidates: list[dict[str, Any]]) -> dict[str, Any]:
 def _normalize_article(
     article: dict[str, Any],
     index_reference: str,
+    pilot: PilotPassage,
 ) -> tuple[DictionaryRecord | None, list[ImportIssue]]:
     issues: list[ImportIssue] = []
     article_id = str(article.get("content_id") or "").strip()
@@ -294,8 +292,8 @@ def _normalize_article(
         )
         return None, issues
 
-    passage_associations = _extract_john4_passage_associations(article)
-    entity_topics = _infer_entity_topics(index_reference, passage_associations)
+    passage_associations = _extract_passage_associations(article, pilot)
+    entity_topics = _infer_entity_topics(index_reference, passage_associations, pilot)
     selection_reason = _selection_reason(index_reference, passage_associations, entity_topics)
     chunks = _chunk_html_content(article_id, content_html)
 
@@ -315,16 +313,17 @@ def _normalize_article(
     return record, issues
 
 
-def _extract_john4_passage_associations(article: dict[str, Any]) -> list[dict[str, str]]:
+def _extract_passage_associations(
+    article: dict[str, Any],
+    pilot: PilotPassage,
+) -> list[dict[str, str]]:
     associations: list[dict[str, str]] = []
     for passage in article.get("associations", {}).get("passage", []):
         start_ref = str(passage.get("start_ref") or "")
         end_ref = str(passage.get("end_ref") or start_ref)
         if not start_ref.isdigit() or not end_ref.isdigit():
             continue
-        if int(start_ref) > JOHN_4_INDEX_HI or int(end_ref) < JOHN_4_INDEX_LO:
-            continue
-        if int(start_ref[:2]) != JOHN_BOOK_NUM:
+        if not index_reference_overlaps_pilot(int(start_ref), int(end_ref), pilot):
             continue
         associations.append(
             {
@@ -338,9 +337,14 @@ def _extract_john4_passage_associations(article: dict[str, Any]) -> list[dict[st
     return associations
 
 
+def _extract_john4_passage_associations(article: dict[str, Any]) -> list[dict[str, str]]:
+    return _extract_passage_associations(article, JOHN_4_PILOT)
+
+
 def _infer_entity_topics(
     index_reference: str,
     passage_associations: list[dict[str, str]],
+    pilot: PilotPassage,
 ) -> list[dict[str, str]]:
     topics: list[dict[str, str]] = []
     place_map = {
@@ -351,9 +355,11 @@ def _infer_entity_topics(
         "galilee": "galilee_1",
         "judea judeans": "judea_1",
         "jacobs well": "sychar",
+        "jerusalem": "jerusalem",
+        "jericho": "jericho",
     }
     place_id = place_map.get(index_reference)
-    if place_id and place_id in PILOT_PLACE_ENTITY_IDS:
+    if place_id and place_id in pilot.dictionary_place_ids:
         topics.append(
             {
                 "entity_id": place_id,
@@ -364,7 +370,7 @@ def _infer_entity_topics(
     if passage_associations:
         topics.append(
             {
-                "entity_id": PILOT_CANONICAL,
+                "entity_id": pilot.canonical,
                 "entity_type": "passage",
                 "source": "upstream_passage_association",
             }
@@ -536,6 +542,7 @@ def main(argv: list[str] | None = None) -> int:
     args = argv if argv is not None else sys.argv[1:]
     upstream = None
     output = None
+    pilot_id = JOHN_4_PILOT.id
     i = 0
     while i < len(args):
         if args[i] == "--upstream" and i + 1 < len(args):
@@ -546,9 +553,17 @@ def main(argv: list[str] | None = None) -> int:
             output = args[i + 1]
             i += 2
             continue
+        if args[i] == "--pilot" and i + 1 < len(args):
+            pilot_id = args[i + 1]
+            i += 2
+            continue
         i += 1
 
-    result = import_john_4_pilot(upstream_root=upstream, output_path=output)
+    result = import_dictionary_pilot(
+        pilot_id=pilot_id,
+        upstream_root=upstream,
+        output_path=output,
+    )
     print(json.dumps(result.to_dict(), indent=2, ensure_ascii=False))
     return 0
 

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from collections import Counter
-from typing import Any
+from typing import Any, Literal
 
 from textus_kb.adapters.acai_entities import AcaiEntitiesAdapter, entity_to_packet_dict
 from textus_kb.adapters.aquifer_bible_dictionary import AquiferBibleDictionaryAdapter
@@ -14,12 +14,14 @@ from textus_kb.adapters.places import PlacesAdapter
 from textus_kb.adapters.tagnt import TagntAdapter
 from textus_kb.canonical_reference import CanonicalReference, CanonicalReferenceError
 from textus_kb.entity_expansion import expand_dictionary_evidence
+from textus_kb.expansion_delta import ExpansionDelta, compute_expansion_delta
 from textus_kb.evidence import (
     PILOT_BUILD_ID,
     PILOT_BUILD_ID_WITH_AQUIFER,
     PILOT_BUILD_ID_WITH_DICTIONARY,
     PILOT_BUILD_ID_WITH_ACAI,
     PILOT_BUILD_ID_WITH_ACAI_SQLITE,
+    PILOT_BUILD_ID_PHASE4C,
     RELATION_DIRECT_PASSAGE,
     RELATION_DICTIONARY_BACKGROUND,
     RELATION_EXEGETICAL_NOTE,
@@ -48,21 +50,17 @@ from textus_kb.evidence import (
     estimate_trimmable_supplemental_tokens,
 )
 from textus_kb.manifest import KnowledgeBaseManifest, ManifestSource, load_manifest
+from textus_kb.pilot_registry import find_pilot
 
 DEFAULT_MAX_EVIDENCE_TOKENS = 4500
 DEFAULT_LEXICAL_HIGHLIGHT_LIMIT = 12
 
-# Strong IDs with repeated theological/geographical weight in John 4 (deterministic seed).
-JOHN_4_LEXICAL_SEED = (
-    "G5204",  # water
-    "G5207",  # son
-    "G3962",  # father
-    "G4352",  # worship
-    "G4151",  # spirit
-    "G225",   # truth
-    "G5117",  # place
-    "G1097",  # know
-)
+EntityRetrievalMode = Literal["direct_only", "direct_plus_entities"]
+
+# Backward-compatible alias retained for tests referencing John 4 seed directly.
+JOHN_4_LEXICAL_SEED = __import__(
+    "textus_kb.pilot_registry", fromlist=["JOHN_4_PILOT"]
+).JOHN_4_PILOT.lexical_seed
 
 
 class RetrievalError(RuntimeError):
@@ -76,6 +74,7 @@ def retrieve(
     max_evidence_tokens: int = DEFAULT_MAX_EVIDENCE_TOKENS,
     lexical_highlight_limit: int = DEFAULT_LEXICAL_HIGHLIGHT_LIMIT,
     display_reference: str | None = None,
+    entity_mode: EntityRetrievalMode = "direct_plus_entities",
 ) -> EvidencePacket:
     """Build a deterministic Evidence Packet from local Textus sources."""
     if isinstance(reference, CanonicalReference):
@@ -100,6 +99,15 @@ def retrieve(
     linguistic_evidence: dict[str, Any] = {}
 
     canonical_passage = canonical.canonical_string()
+    pilot = find_pilot(canonical)
+    if pilot is None:
+        warnings.append(
+            "Passage is outside registered KB pilots; "
+            "Study Notes, Dictionary, and ACAI pilot bundles will be skipped."
+        )
+        lexical_seed: tuple[str, ...] = ()
+    else:
+        lexical_seed = pilot.lexical_seed
 
     _add_source_record(sources_used, enabled_sources, "stepbible_tagnt")
     tagnt = _require_source(enabled_sources, "stepbible_tagnt")
@@ -184,6 +192,7 @@ def retrieve(
     highlight_ids = _select_lexical_highlights(
         strong_counter,
         limit=lexical_highlight_limit,
+        lexical_seed=lexical_seed,
     )
     lex_counter = 3
     for strong_id in highlight_ids:
@@ -381,11 +390,11 @@ def retrieve(
     aquifer_counter = 1
     if aquifer_source is None or not aquifer_source.enabled:
         warnings.append("Optional source aquifer_open_study_notes is disabled.")
-    elif not aquifer_source.resolved_path.is_file():
+    elif not aquifer_adapter.pilot_bundle_available(canonical):
         warnings.append("Optional source aquifer_open_study_notes pilot bundle missing.")
     else:
         _add_source_record(sources_used, enabled_sources, "aquifer_open_study_notes")
-        meta = aquifer_adapter.bundle_metadata()
+        meta = aquifer_adapter.bundle_metadata(canonical)
         for chunk in aquifer_adapter.load_chunks_for_passage(canonical):
             content_plain = chunk.content_plain
             evidence_items.append(
@@ -410,7 +419,10 @@ def retrieve(
                         "upstream_commit": meta.get("upstream_commit"),
                         "upstream_resource_version": meta.get("upstream_resource_version"),
                     },
-                    relevance_score=_aquifer_relevance(chunk.canonical_reference),
+                    relevance_score=_aquifer_relevance(
+                        chunk.canonical_reference,
+                        pilot_canonical=pilot.canonical if pilot is not None else None,
+                    ),
                 )
             )
             aquifer_counter += 1
@@ -419,13 +431,13 @@ def retrieve(
     dictionary_adapter = AquiferBibleDictionaryAdapter(dictionary_source)
     dictionary_counter = 1
     direct_dictionary_count = 0
+    dict_meta = dictionary_adapter.bundle_metadata(canonical)
     if dictionary_source is None or not dictionary_source.enabled:
         warnings.append("Optional source aquifer_open_bible_dictionary is disabled.")
-    elif not dictionary_source.resolved_path.is_file():
+    elif not dictionary_adapter.pilot_bundle_available(canonical):
         warnings.append("Optional source aquifer_open_bible_dictionary pilot bundle missing.")
     else:
         _add_source_record(sources_used, enabled_sources, "aquifer_open_bible_dictionary")
-        dict_meta = dictionary_adapter.bundle_metadata()
         for chunk in dictionary_adapter.load_chunks_for_passage(canonical):
             evidence_items.append(
                 EvidenceItem(
@@ -462,17 +474,30 @@ def retrieve(
     acai_source = enabled_sources.get("acai")
     acai_adapter = AcaiEntitiesAdapter(acai_source)
     entity_records: list[dict[str, Any]] = []
-    entity_expansion_debug: dict[str, Any] = {}
+    entity_expansion_debug: dict[str, Any] = {
+        "entity_mode": entity_mode,
+        "pilot_id": pilot.id if pilot is not None else None,
+    }
+    expansion_delta = ExpansionDelta()
     if acai_source is None or not acai_source.enabled:
         warnings.append("Optional source acai is disabled.")
     elif not acai_adapter.available:
         warnings.append("Optional source acai entity store missing.")
+    elif entity_mode == "direct_only":
+        entity_expansion_debug["entity_expansion"] = {"skipped": True, "reason": "direct_only_mode"}
+        expansion_delta = compute_expansion_delta(
+            direct_evidence_items=evidence_items,
+            expanded_items=[],
+        )
     else:
         _add_source_record(sources_used, enabled_sources, "acai")
         entity_records = [
             entity_to_packet_dict(view)
             for view in acai_adapter.entities_for_evidence_packet(canonical)
         ]
+        expanded_items: list[EvidenceItem] = []
+        expansion_diag = None
+        direct_items_before_expansion = list(evidence_items)
         if dictionary_adapter.available and acai_adapter.available:
             expanded_items, expansion_diag = expand_dictionary_evidence(
                 reference=canonical,
@@ -481,7 +506,7 @@ def retrieve(
                 dictionary_adapter=dictionary_adapter,
                 direct_evidence_items=evidence_items,
                 dictionary_counter_start=dictionary_counter,
-                dict_meta=dictionary_adapter.bundle_metadata(),
+                dict_meta=dict_meta,
             )
             existing_chunk_ids = {
                 str(item.metadata.get("chunk_id") or "")
@@ -491,23 +516,36 @@ def retrieve(
             for item in expanded_items:
                 chunk_id = str(item.metadata.get("chunk_id") or "")
                 if chunk_id and chunk_id in existing_chunk_ids:
-                    expansion_diag.dropped_by_limit += 1
+                    if expansion_diag is not None:
+                        expansion_diag.dropped_by_limit += 1
                     continue
                 evidence_items.append(item)
                 if chunk_id:
                     existing_chunk_ids.add(chunk_id)
                 dictionary_counter += 1
-            entity_expansion_debug = {
-                "entity_expansion": expansion_diag.to_dict(),
+        expansion_delta = compute_expansion_delta(
+            direct_evidence_items=direct_items_before_expansion,
+            expanded_items=expanded_items,
+        )
+        entity_expansion_debug.update(
+            {
+                "entity_expansion": expansion_diag.to_dict() if expansion_diag is not None else {},
                 "direct_dictionary_candidates": direct_dictionary_count,
                 "acai_backend": acai_adapter.backend,
+                "expansion_delta": expansion_delta.to_dict(),
             }
+        )
+
+    if entity_mode == "direct_only" and not entity_expansion_debug.get("expansion_delta"):
+        entity_expansion_debug["expansion_delta"] = expansion_delta.to_dict()
 
     build_id = _resolve_build_id(
         aquifer_counter,
         dictionary_counter,
         len(entity_records),
         acai_backend=acai_adapter.backend if acai_adapter.available else "none",
+        pilot_id=pilot.id if pilot is not None else None,
+        entity_mode=entity_mode,
     )
 
     packet = EvidencePacket(
@@ -585,7 +623,9 @@ def _next_id(prefix: str, index: int) -> str:
     return f"EV-{prefix}-{index:04d}"
 
 
-def _aquifer_relevance(canonical_reference: str) -> int:
+def _aquifer_relevance(canonical_reference: str, *, pilot_canonical: str | None = None) -> int:
+    if pilot_canonical and canonical_reference == pilot_canonical:
+        return RELEVANCE_EXEGETICAL_NOTE - 2
     if canonical_reference == "John.4.1-42":
         return RELEVANCE_EXEGETICAL_NOTE - 2
     if "-" not in canonical_reference:
@@ -609,7 +649,11 @@ def _resolve_build_id(
     entity_count: int,
     *,
     acai_backend: str = "none",
+    pilot_id: str | None = None,
+    entity_mode: EntityRetrievalMode = "direct_plus_entities",
 ) -> str:
+    if pilot_id == "luke_10_25_37":
+        return PILOT_BUILD_ID_PHASE4C
     if entity_count > 0 and acai_backend == "sqlite":
         return PILOT_BUILD_ID_WITH_ACAI_SQLITE
     if entity_count > 0:
@@ -636,15 +680,16 @@ def _select_lexical_highlights(
     strong_counter: Counter[str],
     *,
     limit: int,
+    lexical_seed: tuple[str, ...] = JOHN_4_LEXICAL_SEED,
 ) -> tuple[str, ...]:
     """Deterministic highlight selection: frequency, seed priority, then Strong ID."""
     if not strong_counter:
         return ()
 
-    seed_rank = {strong_id: index for index, strong_id in enumerate(JOHN_4_LEXICAL_SEED)}
+    seed_rank = {strong_id: index for index, strong_id in enumerate(lexical_seed)}
 
     def sort_key(strong_id: str) -> tuple[int, int, str]:
-        seed_priority = seed_rank.get(strong_id, len(JOHN_4_LEXICAL_SEED) + 1)
+        seed_priority = seed_rank.get(strong_id, len(lexical_seed) + 1)
         return (-strong_counter[strong_id], seed_priority, strong_id)
 
     ordered = sorted(strong_counter.keys(), key=sort_key)

@@ -1,0 +1,644 @@
+{
+  "schema_version": "2",
+  "passage": "Luke.10.25-37",
+  "passage_display": "Lk 10,25-37",
+  "profile": "exegesis",
+  "sections": [
+    {
+      "type": "passage",
+      "items": [
+        {
+          "text": "Canonical passage: Luke.10.25-37 (Lk 10,25-37)",
+          "evidence_id": "EV-TAGNT-0002",
+          "source_id": "stepbible_tagnt",
+          "relevance_score": 100,
+          "item_type": "passage",
+          "metadata": {
+            "canonical_scope": "Luke.10.25-37",
+            "selection_tier": "core",
+            "selection_specificity": 50,
+            "budget_type": "passage"
+          }
+        },
+        {
+          "text": "Greek NT coverage: 13 verses, 236 tokens (compact view; full set in Evidence Packet).",
+          "evidence_id": "EV-TAGNT-0001",
+          "source_id": "stepbible_tagnt",
+          "relevance_score": 98,
+          "item_type": "passage_summary",
+          "metadata": {
+            "verse_count": 13,
+            "token_count": 236,
+            "canonical_scope": "Luke.10.25-37",
+            "selection_tier": "core",
+            "selection_specificity": 50,
+            "budget_type": "passage"
+          }
+        }
+      ]
+    },
+    {
+      "type": "linguistic",
+      "items": [
+        {
+          "text": "Lk 10,26 — ὁ (G3588), morph=T-NSM, \"the/this/who\" / \"a, az\"",
+          "evidence_id": "EV-LEX-0003",
+          "source_id": "stepbible_tbesg",
+          "relevance_score": 88,
+          "item_type": "linguistic",
+          "metadata": {
+            "strong_id": "G3588",
+            "verse": 26,
+            "lemma": "ὁ",
+            "canonical_scope": "Luke.10.26",
+            "selection_tier": "primary",
+            "selection_specificity": 95,
+            "budget_type": "linguistic"
+          }
+        },
+        {
+          "text": "Lk 10,25 — Καὶ (G2532), conjunction, \"and\" / \"és\"",
+          "evidence_id": "EV-LEX-0004",
+          "source_id": "stepbible_tbesg",
+          "relevance_score": 88,
+          "item_type": "linguistic",
+          "metadata": {
+            "strong_id": "G2532",
+            "verse": 25,
+            "lemma": "καί",
+            "canonical_scope": "Luke.10.25",
+            "selection_tier": "primary",
+            "selection_specificity": 95,
+            "budget_type": "linguistic"
+          }
+        },
+        {
+          "text": "Lk 10,25 — αὐτὸν (G0846), pronoun, \"it/s/he\" / \"ő; maga\"",
+          "evidence_id": "EV-LEX-0005",
+          "source_id": "stepbible_tbesg",
+          "relevance_score": 88,
+          "item_type": "linguistic",
+          "metadata": {
+            "strong_id": "G0846",
+            "verse": 25,
+            "lemma": "αὐτός",
+            "canonical_scope": "Luke.10.25",
+            "selection_tier": "primary",
+            "selection_specificity": 95,
+            "budget_type": "linguistic"
+          }
+        },
+        {
+          "text": "Lk 10,26 — δὲ (G1161), conjunction, \"then\" / \"pedig\"",
+          "evidence_id": "EV-LEX-0006",
+          "source_id": "stepbible_tbesg",
+          "relevance_score": 88,
+          "item_type": "linguistic",
+          "metadata": {
+            "strong_id": "G1161",
+            "verse": 26,
+            "lemma": "δέ",
+            "canonical_scope": "Luke.10.26",
+            "selection_tier": "primary",
+            "selection_specificity": 95,
+            "budget_type": "linguistic"
+          }
+        },
+        {
+          "text": "Lk 10,27 — σου (G4771), pronoun, \"you\" / \"te\"",
+          "evidence_id": "EV-LEX-0007",
+          "source_id": "stepbible_tbesg",
+          "relevance_score": 88,
+          "item_type": "linguistic",
+          "metadata": {
+            "strong_id": "G4771",
+            "verse": 27,
+            "lemma": "σύ",
+            "canonical_scope": "Luke.10.27",
+            "selection_tier": "primary",
+            "selection_specificity": 95,
+            "budget_type": "linguistic"
+          }
+        },
+        {
+          "text": "Lk 10,26 — εἶπεν (G2036), verb, \"to say\" / \"mond\"",
+          "evidence_id": "EV-LEX-0008",
+          "source_id": "stepbible_tbesg",
+          "relevance_score": 88,
+          "item_type": "linguistic",
+          "metadata": {
+            "strong_id": "G2036",
+            "verse": 26,
+            "lemma": "εἶπον",
+            "canonical_scope": "Luke.10.26",
+            "selection_tier": "primary",
+            "selection_specificity": 95,
+            "budget_type": "linguistic"
+          }
+        },
+        {
+          "text": "Lk 10,26 — ἐν (G1722), pronoun, \"in/on/among\" / \"-ban, -ben\"",
+          "evidence_id": "EV-LEX-0009",
+          "source_id": "stepbible_tbesg",
+          "relevance_score": 88,
+          "item_type": "linguistic",
+          "metadata": {
+            "strong_id": "G1722",
+            "verse": 26,
+            "lemma": "ἐν",
+            "canonical_scope": "Luke.10.26",
+            "selection_tier": "primary",
+            "selection_specificity": 95,
+            "budget_type": "linguistic"
+          }
+        },
+        {
+          "text": "Lk 10,25 — τις (G5100), morph=X-NSM, \"one\" / \"valaki; valami\"",
+          "evidence_id": "EV-LEX-0010",
+          "source_id": "stepbible_tbesg",
+          "relevance_score": 88,
+          "item_type": "linguistic",
+          "metadata": {
+            "strong_id": "G5100",
+            "verse": 25,
+            "lemma": "τις",
+            "canonical_scope": "Luke.10.25",
+            "selection_tier": "primary",
+            "selection_specificity": 95,
+            "budget_type": "linguistic"
+          }
+        },
+        {
+          "text": "Lk 10,27 — ὅλης (G3650), adjective, \"all\" / \"egész; teljes\"",
+          "evidence_id": "EV-LEX-0011",
+          "source_id": "stepbible_tbesg",
+          "relevance_score": 88,
+          "item_type": "linguistic",
+          "metadata": {
+            "strong_id": "G3650",
+            "verse": 27,
+            "lemma": "ὅλος",
+            "canonical_scope": "Luke.10.27",
+            "selection_tier": "primary",
+            "selection_specificity": 95,
+            "budget_type": "linguistic"
+          }
+        },
+        {
+          "text": "Lk 10,25 — ποιήσας (G4160G), verb, \"tesz; készít\"",
+          "evidence_id": "EV-LEX-0012",
+          "source_id": "lexicon_hu_overlay",
+          "relevance_score": 88,
+          "item_type": "linguistic",
+          "metadata": {
+            "strong_id": "G4160G",
+            "verse": 25,
+            "lemma": "ποιέω",
+            "canonical_scope": "Luke.10.25",
+            "selection_tier": "primary",
+            "selection_specificity": 95,
+            "budget_type": "linguistic"
+          }
+        },
+        {
+          "text": "Lk 10,25 — τί (G5101), morph=I-ASN, \"which?\" / \"ki? mi?\"",
+          "evidence_id": "EV-LEX-0013",
+          "source_id": "stepbible_tbesg",
+          "relevance_score": 88,
+          "item_type": "linguistic",
+          "metadata": {
+            "strong_id": "G5101",
+            "verse": 25,
+            "lemma": "τίς",
+            "canonical_scope": "Luke.10.25",
+            "selection_tier": "primary",
+            "selection_specificity": 95,
+            "budget_type": "linguistic"
+          }
+        },
+        {
+          "text": "Lk 10,27 — πλησίον (G4139), adjective, \"near/neighbor\" / \"közel; felebarát\"",
+          "evidence_id": "EV-LEX-0014",
+          "source_id": "stepbible_tbesg",
+          "relevance_score": 88,
+          "item_type": "linguistic",
+          "metadata": {
+            "strong_id": "G4139",
+            "verse": 27,
+            "lemma": "πλησίον",
+            "canonical_scope": "Luke.10.27",
+            "selection_tier": "primary",
+            "selection_specificity": 95,
+            "budget_type": "linguistic"
+          }
+        }
+      ]
+    },
+    {
+      "type": "exegetical",
+      "items": [
+        {
+          "text": "Luke 10:25 [Luke.10.25] — an expert in the law : See study note on 5:17 . (Source: Aquifer Open Study Notes, CC-BY-SA-4.0)",
+          "evidence_id": "EV-AQUIFER-0001",
+          "source_id": "aquifer_open_study_notes",
+          "relevance_score": 93,
+          "item_type": "exegetical_note",
+          "metadata": {
+            "article_id": "20466",
+            "chunk_id": "20466-c001",
+            "license": "CC-BY-SA-4.0",
+            "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "attribution": "Aquifer Open Study Notes © 2026 Mission Mutual, adapted from Tyndale Open Study Notes © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0.",
+            "canonical_scope": "Luke.10.25",
+            "passage": "Luke.10.25",
+            "selection_tier": "primary",
+            "selection_specificity": 100,
+            "budget_type": "exegetical"
+          }
+        },
+        {
+          "text": "Luke 10:27 [Luke.10.27] — Love the Lord your God : Jesus identified Deuteronomy 6:5 and Leviticus 19:18 as the two most important commandments ( Mark 12:28–34 ). Deuteronomy 6:5 is part of the prayer called the Shema , which every Jew was to repeat daily. (Source: Aquifer Open Study Notes, CC-BY-SA-4.0)",
+          "evidence_id": "EV-AQUIFER-0002",
+          "source_id": "aquifer_open_study_notes",
+          "relevance_score": 93,
+          "item_type": "exegetical_note",
+          "metadata": {
+            "article_id": "20467",
+            "chunk_id": "20467-c001",
+            "license": "CC-BY-SA-4.0",
+            "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "attribution": "Aquifer Open Study Notes © 2026 Mission Mutual, adapted from Tyndale Open Study Notes © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0.",
+            "canonical_scope": "Luke.10.27",
+            "passage": "Luke.10.27",
+            "selection_tier": "primary",
+            "selection_specificity": 100,
+            "budget_type": "exegetical"
+          }
+        },
+        {
+          "text": "Luke 10:28 [Luke.10.28] — Do this and you will live : Jesus was not suggesting that people would be saved by their works. Instead, such love expresses genuine faith and devotion to the Lord. (Source: Aquifer Open Study Notes, CC-BY-SA-4.0)",
+          "evidence_id": "EV-AQUIFER-0003",
+          "source_id": "aquifer_open_study_notes",
+          "relevance_score": 93,
+          "item_type": "exegetical_note",
+          "metadata": {
+            "article_id": "20468",
+            "chunk_id": "20468-c001",
+            "license": "CC-BY-SA-4.0",
+            "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "attribution": "Aquifer Open Study Notes © 2026 Mission Mutual, adapted from Tyndale Open Study Notes © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0.",
+            "canonical_scope": "Luke.10.28",
+            "passage": "Luke.10.28",
+            "selection_tier": "primary",
+            "selection_specificity": 100,
+            "budget_type": "exegetical"
+          }
+        },
+        {
+          "text": "Luke 10:29 [Luke.10.29] — Who is my neighbor? : A neighbor, in this context, was normally identified as a fellow Israelite. (Source: Aquifer Open Study Notes, CC-BY-SA-4.0)",
+          "evidence_id": "EV-AQUIFER-0004",
+          "source_id": "aquifer_open_study_notes",
+          "relevance_score": 93,
+          "item_type": "exegetical_note",
+          "metadata": {
+            "article_id": "20469",
+            "chunk_id": "20469-c001",
+            "license": "CC-BY-SA-4.0",
+            "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "attribution": "Aquifer Open Study Notes © 2026 Mission Mutual, adapted from Tyndale Open Study Notes © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0.",
+            "canonical_scope": "Luke.10.29",
+            "passage": "Luke.10.29",
+            "selection_tier": "primary",
+            "selection_specificity": 100,
+            "budget_type": "exegetical"
+          }
+        },
+        {
+          "text": "Luke 10:30 [Luke.10.30] — The road from Jerusalem to Jericho declined 1,000 meters (3,300 feet) through rugged terrain where robbers often waited for travelers. (Source: Aquifer Open Study Notes, CC-BY-SA-4.0)",
+          "evidence_id": "EV-AQUIFER-0005",
+          "source_id": "aquifer_open_study_notes",
+          "relevance_score": 93,
+          "item_type": "exegetical_note",
+          "metadata": {
+            "article_id": "20472",
+            "chunk_id": "20472-c001",
+            "license": "CC-BY-SA-4.0",
+            "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "attribution": "Aquifer Open Study Notes © 2026 Mission Mutual, adapted from Tyndale Open Study Notes © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0.",
+            "canonical_scope": "Luke.10.30",
+            "passage": "Luke.10.30",
+            "selection_tier": "primary",
+            "selection_specificity": 100,
+            "budget_type": "exegetical"
+          }
+        },
+        {
+          "text": "Luke 10:31 [Luke.10.31] — a priest : Priests were descendants of Aaron from the tribe of Levi ( Exodus 28:1–3 ). They served in the temple and offered sacrifices to God. passed by : If Aa priest or a Levite touched a dead body, they would become ceremonially unclean and could not serve in the temple. This priest was unwilling to risk ritual impurity by helping a person in serious trouble. (Source: Aquifer Open Study Notes, CC-BY-SA-4.0)",
+          "evidence_id": "EV-AQUIFER-0007",
+          "source_id": "aquifer_open_study_notes",
+          "relevance_score": 93,
+          "item_type": "exegetical_note",
+          "metadata": {
+            "article_id": "20473",
+            "chunk_id": "20473-c001",
+            "license": "CC-BY-SA-4.0",
+            "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "attribution": "Aquifer Open Study Notes © 2026 Mission Mutual, adapted from Tyndale Open Study Notes © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0.",
+            "canonical_scope": "Luke.10.31",
+            "passage": "Luke.10.31",
+            "selection_tier": "primary",
+            "selection_specificity": 100,
+            "budget_type": "exegetical"
+          }
+        },
+        {
+          "text": "Luke 10:32 [Luke.10.32] — a Levite : Levites were members of the tribe of Levi. They were not given a tribal homeland in Israel but were dedicated to God ( Numbers 3:41 , 45 ; 8:18 ; 35:2–3 ; Deuteronomy 18:1 ; Joshua 14:3 ). They assisted priests in temple service. (Source: Aquifer Open Study Notes, CC-BY-SA-4.0)",
+          "evidence_id": "EV-AQUIFER-0008",
+          "source_id": "aquifer_open_study_notes",
+          "relevance_score": 93,
+          "item_type": "exegetical_note",
+          "metadata": {
+            "article_id": "20474",
+            "chunk_id": "20474-c001",
+            "license": "CC-BY-SA-4.0",
+            "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "attribution": "Aquifer Open Study Notes © 2026 Mission Mutual, adapted from Tyndale Open Study Notes © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0.",
+            "canonical_scope": "Luke.10.32",
+            "passage": "Luke.10.32",
+            "selection_tier": "primary",
+            "selection_specificity": 100,
+            "budget_type": "exegetical"
+          }
+        },
+        {
+          "text": "Luke 10:33 [Luke.10.33] — a Samaritan : This unexpected change in the story probably surprised the listeners. Jews and Samaritans hated each other (see 9:52–53 ; 17:16 ; John 4:4–42 ). After Assyria conquered the northern kingdom of Israel, Assyrian settlers married Israelites who remained in Samaria. Their descendants became known as Samaritans. Later, after the Judeans returned from Babylon, conflict grew between Jews and Samaritans ( Ezra 4:1–24 ). The Samaritans built their own temple on Mount Gerizim. They also used their own version of the Pentateuch, the first five books of the Bible, as Scripture. (Source: Aquifer Open Study Notes, CC-BY-SA-4.0)",
+          "evidence_id": "EV-AQUIFER-0009",
+          "source_id": "aquifer_open_study_notes",
+          "relevance_score": 93,
+          "item_type": "exegetical_note",
+          "metadata": {
+            "article_id": "20475",
+            "chunk_id": "20475-c001",
+            "license": "CC-BY-SA-4.0",
+            "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "attribution": "Aquifer Open Study Notes © 2026 Mission Mutual, adapted from Tyndale Open Study Notes © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0.",
+            "canonical_scope": "Luke.10.33",
+            "passage": "Luke.10.33",
+            "selection_tier": "primary",
+            "selection_specificity": 100,
+            "budget_type": "exegetical"
+          }
+        },
+        {
+          "text": "Luke 10:33 [Luke.10.33] — This hatred grew worse when the Jewish king John Hyrcanus attacked the Samaritans and destroyed their temple on Mount Gerizim. This happened around 128 BC. Because of this long hatred, no first-century Jew would expect a despised Samaritan to help a wounded Jew. But in God’s kingdom, a despised foreigner becomes a true neighbor who helps! (Source: Aquifer Open Study Notes, CC-BY-SA-4.0)",
+          "evidence_id": "EV-AQUIFER-0010",
+          "source_id": "aquifer_open_study_notes",
+          "relevance_score": 93,
+          "item_type": "exegetical_note",
+          "metadata": {
+            "article_id": "20475",
+            "chunk_id": "20475-c002",
+            "license": "CC-BY-SA-4.0",
+            "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "attribution": "Aquifer Open Study Notes © 2026 Mission Mutual, adapted from Tyndale Open Study Notes © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0.",
+            "canonical_scope": "Luke.10.33",
+            "passage": "Luke.10.33",
+            "selection_tier": "primary",
+            "selection_specificity": 100,
+            "budget_type": "exegetical"
+          }
+        },
+        {
+          "text": "Luke 10:30–37 [Luke.10.30-37] — This parable shows that true neighbors love even their enemies ( 10:29 ). True faith is not based on a person’s ethnic background or religious group, but on loving God and loving others. (Source: Aquifer Open Study Notes, CC-BY-SA-4.0)",
+          "evidence_id": "EV-AQUIFER-0006",
+          "source_id": "aquifer_open_study_notes",
+          "relevance_score": 93,
+          "item_type": "exegetical_note",
+          "metadata": {
+            "article_id": "20471",
+            "chunk_id": "20471-c001",
+            "license": "CC-BY-SA-4.0",
+            "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "attribution": "Aquifer Open Study Notes © 2026 Mission Mutual, adapted from Tyndale Open Study Notes © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0.",
+            "canonical_scope": "Luke.10.30-37",
+            "passage": "Luke.10.30-37",
+            "selection_tier": "supporting",
+            "selection_specificity": 55,
+            "budget_type": "exegetical"
+          }
+        }
+      ]
+    },
+    {
+      "type": "entities",
+      "items": [
+        {
+          "text": "Tribe of Levi — group — directly linked to Jn 4",
+          "evidence_id": "ENT-acai-group-Levi",
+          "source_id": "acai",
+          "relevance_score": 70,
+          "item_type": "entity_summary",
+          "metadata": {
+            "entity_id": "acai-group-Levi",
+            "external_id": "group:Levi",
+            "entity_type": "group",
+            "budget_type": "entity",
+            "selection_tier": "supporting",
+            "selection_specificity": 50
+          }
+        },
+        {
+          "text": "Samaritans — group — directly linked to Jn 4, dictionary-linked",
+          "evidence_id": "ENT-acai-group-Samaritan",
+          "source_id": "acai",
+          "relevance_score": 70,
+          "item_type": "entity_summary",
+          "metadata": {
+            "entity_id": "acai-group-Samaritan",
+            "external_id": "group:Samaritan",
+            "entity_type": "group",
+            "budget_type": "entity",
+            "selection_tier": "supporting",
+            "selection_specificity": 50
+          }
+        }
+      ]
+    },
+    {
+      "type": "places",
+      "items": [
+        {
+          "text": "Jerikó (jericho_2) linked to passage via Lk 10,30: OpenBible vers-hivatkozásból generált helykapcsolat.",
+          "evidence_id": "EV-PLACE-0001",
+          "source_id": "biblical_places_passage_links",
+          "relevance_score": 70,
+          "item_type": "place_link",
+          "metadata": {
+            "place_id": "jericho_2",
+            "passage": "Lk 10,30",
+            "canonical_scope": "Lk 10,30",
+            "selection_tier": "supporting",
+            "selection_specificity": 50,
+            "budget_type": "background"
+          }
+        },
+        {
+          "text": "Jeruzsálem (jerusalem) linked to passage via Lk 10,30: OpenBible vers-hivatkozásból generált helykapcsolat.",
+          "evidence_id": "EV-PLACE-0003",
+          "source_id": "biblical_places_passage_links",
+          "relevance_score": 70,
+          "item_type": "place_link",
+          "metadata": {
+            "place_id": "jerusalem",
+            "passage": "Lk 10,30",
+            "canonical_scope": "Lk 10,30",
+            "selection_tier": "supporting",
+            "selection_specificity": 50,
+            "budget_type": "background"
+          }
+        },
+        {
+          "text": "Az újszövetségi kor Jerikójának heródesi–római településrésze. Maradványai Tell el-Alajik térségében, a mai Jerikó mellett találhatók.",
+          "evidence_id": "EV-PLACE-0002",
+          "source_id": "biblical_places_catalog",
+          "relevance_score": 60,
+          "item_type": "place_catalog",
+          "metadata": {
+            "place_id": "jericho_2",
+            "selection_tier": "supporting",
+            "selection_specificity": 50,
+            "budget_type": "background"
+          }
+        },
+        {
+          "text": "Jeruzsálem a bibliai elbeszélés központi városa, a Templom és több újszövetségi esemény helyszíne.",
+          "evidence_id": "EV-PLACE-0004",
+          "source_id": "biblical_places_catalog",
+          "relevance_score": 60,
+          "item_type": "place_catalog",
+          "metadata": {
+            "place_id": "jerusalem",
+            "selection_tier": "supporting",
+            "selection_specificity": 50,
+            "budget_type": "background"
+          }
+        }
+      ]
+    },
+    {
+      "type": "background",
+      "items": [
+        {
+          "text": "Jeruzsálem a passage-indexben 956 bibliai hivatkozáshoz kapcsolódik. A route-adatok 3 bibliai útvonalhoz kötik. Jeruzsálem a bibliai elbeszélés központi városa, a Templom és több újszövetségi esemény helyszíne.",
+          "evidence_id": "EV-PLACE-0005",
+          "source_id": "place_enrichments_overlay",
+          "relevance_score": 40,
+          "item_type": "enrichment",
+          "metadata": {
+            "place_id": "jerusalem",
+            "section_key": "biblical_significance",
+            "selection_tier": "optional",
+            "selection_specificity": 50,
+            "budget_type": "background"
+          }
+        }
+      ]
+    }
+  ],
+  "source_ids": [
+    "acai",
+    "aquifer_open_study_notes",
+    "biblical_places_catalog",
+    "biblical_places_passage_links",
+    "lexicon_hu_overlay",
+    "place_enrichments_overlay",
+    "stepbible_tagnt",
+    "stepbible_tbesg"
+  ],
+  "evidence_ids": [
+    "EV-TAGNT-0002",
+    "EV-TAGNT-0001",
+    "EV-AQUIFER-0001",
+    "EV-AQUIFER-0002",
+    "EV-AQUIFER-0003",
+    "EV-AQUIFER-0004",
+    "EV-AQUIFER-0005",
+    "EV-AQUIFER-0007",
+    "EV-AQUIFER-0008",
+    "EV-AQUIFER-0009",
+    "EV-AQUIFER-0010",
+    "EV-LEX-0003",
+    "EV-LEX-0004",
+    "EV-LEX-0005",
+    "EV-LEX-0006",
+    "EV-LEX-0007",
+    "EV-LEX-0008",
+    "EV-LEX-0009",
+    "EV-LEX-0010",
+    "EV-LEX-0011",
+    "EV-LEX-0012",
+    "EV-LEX-0013",
+    "EV-LEX-0014",
+    "EV-AQUIFER-0006",
+    "ENT-acai-group-Levi",
+    "ENT-acai-group-Samaritan",
+    "EV-PLACE-0001",
+    "EV-PLACE-0003",
+    "EV-PLACE-0002",
+    "EV-PLACE-0004",
+    "EV-PLACE-0005"
+  ],
+  "warnings": [
+    "RUF local text source is disabled by manifest policy; packet excludes RUF prose.",
+    "Supplemental token estimate (98754) exceeds budget (4500); Aquifer exegetical notes and dictionary evidence retained for audit.",
+    "Aquifer notes selected 10/11 (source-aware selection; full set remains in Evidence Packet).",
+    "Dictionary chunks selected 0/146 (source-aware selection; full set remains in Evidence Packet)."
+  ],
+  "estimated_tokens": 3138,
+  "target_tokens": 3200,
+  "token_budget": 4500,
+  "max_tokens": 4500,
+  "truncated": false,
+  "evidence_packet_build_id": "kb-phase4c-multipilot-v1",
+  "selection_stats": {
+    "candidates": 185,
+    "selected": 31,
+    "dropped_budget": 0,
+    "dropped_redundant": 0,
+    "dropped_type_budget": 152,
+    "dropped_target": 2,
+    "tokens_by_type": {
+      "passage": 100,
+      "exegetical": 1914,
+      "linguistic": 673,
+      "entity": 113,
+      "background": 338
+    },
+    "selected_by_tier": {
+      "core": 2,
+      "primary": 21,
+      "supporting": 7,
+      "optional": 1
+    },
+    "coverage_segments": [
+      {
+        "segment": "25-34",
+        "covered": true,
+        "note_count": 10
+      },
+      {
+        "segment": "35-37",
+        "covered": true,
+        "note_count": 1
+      }
+    ],
+    "study_notes_candidates": 11,
+    "study_notes_selected": 10,
+    "dictionary_candidates": 146,
+    "dictionary_selected": 0,
+    "linguistic_selected": 12,
+    "places_background_selected": 5,
+    "aquifer_candidates": 11,
+    "aquifer_selected": 10
+  }
+}
