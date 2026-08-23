@@ -161,7 +161,8 @@ def test_exegesis_context_token_budget() -> None:
 
 
 def test_matches_phase3a_golden_fixtures() -> None:
-    if not PACKET_WITH_AQUIFER.exists() or not EXEGESIS_PHASE3A.exists():
+    """Evidence packet golden remains Phase 3A; context selection is Phase 3B."""
+    if not PACKET_WITH_AQUIFER.exists():
         pytest.skip("Phase 3A golden fixtures not generated yet.")
     golden_packet = json.loads(PACKET_WITH_AQUIFER.read_text(encoding="utf-8"))
     packet = json.loads(retrieve_to_json("Jn 4,1-42"))
@@ -171,7 +172,8 @@ def test_matches_phase3a_golden_fixtures() -> None:
     )
     assert aquifer_count == golden_packet["aquifer_evidence_count"]
 
-    golden_context = json.loads(EXEGESIS_PHASE3A.read_text(encoding="utf-8"))
     context = build_context_from_evidence(retrieve("Jn 4,1-42"), PROFILE_EXEGESIS).to_dict()
-    assert context["estimated_tokens"] == golden_context["estimated_tokens"]
     assert "exegetical" in {section["type"] for section in context["sections"]}
+    assert context["schema_version"] == "2"
+    assert context["selection_stats"]["aquifer_selected"] < aquifer_count
+    assert context["estimated_tokens"] <= context["max_tokens"]

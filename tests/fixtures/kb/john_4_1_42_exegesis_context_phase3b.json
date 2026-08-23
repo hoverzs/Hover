@@ -1,8 +1,17 @@
 {
-  "estimated_tokens": 1691,
+  "estimated_tokens": 3197,
   "evidence_ids": [
     "EV-TAGNT-0002",
     "EV-TAGNT-0001",
+    "EV-AQUIFER-0002",
+    "EV-AQUIFER-0003",
+    "EV-AQUIFER-0004",
+    "EV-AQUIFER-0005",
+    "EV-AQUIFER-0006",
+    "EV-AQUIFER-0013",
+    "EV-AQUIFER-0016",
+    "EV-AQUIFER-0018",
+    "EV-AQUIFER-0022",
     "EV-LEX-0003",
     "EV-LEX-0004",
     "EV-LEX-0005",
@@ -23,14 +32,9 @@
     "EV-PLACE-0013",
     "EV-PLACE-0002",
     "EV-PLACE-0004",
-    "EV-PLACE-0008",
-    "EV-PLACE-0010",
-    "EV-PLACE-0012",
-    "EV-PLACE-0014",
-    "EV-PLACE-0005",
-    "EV-PLACE-0006"
+    "EV-PLACE-0008"
   ],
-  "evidence_packet_build_id": "kb-phase2a-john4-pilot-v1",
+  "evidence_packet_build_id": "kb-phase3a-john4-pilot-v1",
   "max_tokens": 4500,
   "passage": "John.4.1-42",
   "passage_display": "Jn 4,1-42",
@@ -270,6 +274,182 @@
     {
       "items": [
         {
+          "evidence_id": "EV-AQUIFER-0002",
+          "item_type": "exegetical_note",
+          "metadata": {
+            "article_id": "19124",
+            "attribution": "Aquifer Open Study Notes © 2026 Mission Mutual, adapted from Tyndale Open Study Notes © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0.",
+            "budget_type": "exegetical",
+            "canonical_scope": "John.4.10",
+            "chunk_id": "19124-c001",
+            "license": "CC-BY-SA-4.0",
+            "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "passage": "John.4.10",
+            "selection_specificity": 100,
+            "selection_tier": "primary"
+          },
+          "relevance_score": 93,
+          "source_id": "aquifer_open_study_notes",
+          "text": "John 4:10 [John.4.10] — Shechem had no rivers. So it had no living water, which usually means fresh, flowing water from a stream or spring (see “ Living Water ” Theme Note). However, Jesus was speaking symbolically. The gift he offered was not ordinary water. It was the Holy Spirit, whom God would give to believers ( 7:37–39 ). (Source: Aquifer Open Study Notes, CC-BY-SA-4.0)"
+        },
+        {
+          "evidence_id": "EV-AQUIFER-0003",
+          "item_type": "exegetical_note",
+          "metadata": {
+            "article_id": "19125",
+            "attribution": "Aquifer Open Study Notes © 2026 Mission Mutual, adapted from Tyndale Open Study Notes © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0.",
+            "budget_type": "exegetical",
+            "canonical_scope": "John.4.11",
+            "chunk_id": "19125-c001",
+            "license": "CC-BY-SA-4.0",
+            "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "passage": "John.4.11",
+            "selection_specificity": 100,
+            "selection_tier": "primary"
+          },
+          "relevance_score": 93,
+          "source_id": "aquifer_open_study_notes",
+          "text": "John 4:11 [John.4.11] — Jacob’s well was more than 30 meters (about 100 feet) deep. A person needed a long rope and a container to draw water from it. The woman focused on the physical water in the well. She did not yet understand the deeper meaning of what Jesus was saying. At that time, she was still in spiritual darkness. (Source: Aquifer Open Study Notes, CC-BY-SA-4.0)"
+        },
+        {
+          "evidence_id": "EV-AQUIFER-0004",
+          "item_type": "exegetical_note",
+          "metadata": {
+            "article_id": "19126",
+            "attribution": "Aquifer Open Study Notes © 2026 Mission Mutual, adapted from Tyndale Open Study Notes © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0.",
+            "budget_type": "exegetical",
+            "canonical_scope": "John.4.12",
+            "chunk_id": "19126-c001",
+            "license": "CC-BY-SA-4.0",
+            "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "passage": "John.4.12",
+            "selection_specificity": 100,
+            "selection_tier": "primary"
+          },
+          "relevance_score": 93,
+          "source_id": "aquifer_open_study_notes",
+          "text": "John 4:12 [John.4.12] — Our father Jacob : The Samaritan woman respected the holy traditions related to the well more than the presence of God in front of her. (Source: Aquifer Open Study Notes, CC-BY-SA-4.0)"
+        },
+        {
+          "evidence_id": "EV-AQUIFER-0005",
+          "item_type": "exegetical_note",
+          "metadata": {
+            "article_id": "19127",
+            "attribution": "Aquifer Open Study Notes © 2026 Mission Mutual, adapted from Tyndale Open Study Notes © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0.",
+            "budget_type": "exegetical",
+            "canonical_scope": "John.4.14",
+            "chunk_id": "19127-c001",
+            "license": "CC-BY-SA-4.0",
+            "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "passage": "John.4.14",
+            "selection_specificity": 100,
+            "selection_tier": "primary"
+          },
+          "relevance_score": 93,
+          "source_id": "aquifer_open_study_notes",
+          "text": "John 4:14 [John.4.14] — In the dry climate of Israel, a fresh, bubbling spring was a strong and hopeful image. Flowing water meant life, safety, and relief from thirst. The prophets used this image to describe God’s care. They said that those who come to God will not hunger or thirst (see Isaiah 49:10 ; 55:1–3 ; Jeremiah 2:13 ). (Source: Aquifer Open Study Notes, CC-BY-SA-4.0)"
+        },
+        {
+          "evidence_id": "EV-AQUIFER-0006",
+          "item_type": "exegetical_note",
+          "metadata": {
+            "article_id": "19128",
+            "attribution": "Aquifer Open Study Notes © 2026 Mission Mutual, adapted from Tyndale Open Study Notes © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0.",
+            "budget_type": "exegetical",
+            "canonical_scope": "John.4.15",
+            "chunk_id": "19128-c001",
+            "license": "CC-BY-SA-4.0",
+            "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "passage": "John.4.15",
+            "selection_specificity": 100,
+            "selection_tier": "primary"
+          },
+          "relevance_score": 93,
+          "source_id": "aquifer_open_study_notes",
+          "text": "John 4:15 [John.4.15] — The woman asked Jesus for this water, but she did not understand the spiritual meaning of his words. To overcome this spiritual barrier, Jesus spoke about her sin ( 4:16–18 ). (Source: Aquifer Open Study Notes, CC-BY-SA-4.0)"
+        },
+        {
+          "evidence_id": "EV-AQUIFER-0013",
+          "item_type": "exegetical_note",
+          "metadata": {
+            "article_id": "19134",
+            "attribution": "Aquifer Open Study Notes © 2026 Mission Mutual, adapted from Tyndale Open Study Notes © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0.",
+            "budget_type": "exegetical",
+            "canonical_scope": "John.4.24",
+            "chunk_id": "19134-c001",
+            "license": "CC-BY-SA-4.0",
+            "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "passage": "John.4.24",
+            "selection_specificity": 100,
+            "selection_tier": "primary"
+          },
+          "relevance_score": 93,
+          "source_id": "aquifer_open_study_notes",
+          "text": "John 4:24 [John.4.24] — in spirit and in truth : In Greek, one preposition (a connecting word) is used for both words. This shows that spirit and truth form one united idea. True worship happens when God’s Spirit makes God’s truth known to a person. Worship is not only about a place or a ceremony. It is about responding to God with the help of his Spirit and according to what is true about him. Jesus himself is the Truth ( 14:6 ). The Spirit is also called the Spirit of truth ( 14:17 ; 15:26 ). Together, the Spirit and the Truth make true worship possible. (Source: Aquifer Open Study Notes, CC-BY-SA-4.0)"
+        },
+        {
+          "evidence_id": "EV-AQUIFER-0016",
+          "item_type": "exegetical_note",
+          "metadata": {
+            "article_id": "19142",
+            "attribution": "Aquifer Open Study Notes © 2026 Mission Mutual, adapted from Tyndale Open Study Notes © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0.",
+            "budget_type": "exegetical",
+            "canonical_scope": "John.4.3",
+            "chunk_id": "19142-c001",
+            "license": "CC-BY-SA-4.0",
+            "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "passage": "John.4.3",
+            "selection_specificity": 100,
+            "selection_tier": "primary"
+          },
+          "relevance_score": 93,
+          "source_id": "aquifer_open_study_notes",
+          "text": "John 4:3 [John.4.3] — After John the Baptist had been imprisoned, Jesus left Judea (see Mark 6:14–29 ; compare Mark 1:14 ). (Source: Aquifer Open Study Notes, CC-BY-SA-4.0)"
+        },
+        {
+          "evidence_id": "EV-AQUIFER-0018",
+          "item_type": "exegetical_note",
+          "metadata": {
+            "article_id": "19139",
+            "attribution": "Aquifer Open Study Notes © 2026 Mission Mutual, adapted from Tyndale Open Study Notes © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0.",
+            "budget_type": "exegetical",
+            "canonical_scope": "John.4.35",
+            "chunk_id": "19139-c001",
+            "license": "CC-BY-SA-4.0",
+            "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "passage": "John.4.35",
+            "selection_specificity": 100,
+            "selection_tier": "primary"
+          },
+          "relevance_score": 93,
+          "source_id": "aquifer_open_study_notes",
+          "text": "John 4:35 [John.4.35] — four months until the harvest : Jesus referred to a common saying about farming. Farmers usually waited about four months between planting seed and gathering the crop. In Samaria, it was likely the time of harvest, and the fields were ready to be gathered. Jesus used this picture to speak about people, not crops. He had spoken with the woman at the well and planted spiritual seed (God’s message). Soon after, many Samaritans believed in him ( 4:39–42 ). In this way, Jesus was already gathering a harvest of faith. (Source: Aquifer Open Study Notes, CC-BY-SA-4.0)"
+        },
+        {
+          "evidence_id": "EV-AQUIFER-0022",
+          "item_type": "exegetical_note",
+          "metadata": {
+            "article_id": "19144",
+            "attribution": "Aquifer Open Study Notes © 2026 Mission Mutual, adapted from Tyndale Open Study Notes © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0.",
+            "budget_type": "exegetical",
+            "canonical_scope": "John.4.42",
+            "chunk_id": "19144-c001",
+            "license": "CC-BY-SA-4.0",
+            "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "passage": "John.4.42",
+            "selection_specificity": 100,
+            "selection_tier": "primary"
+          },
+          "relevance_score": 93,
+          "source_id": "aquifer_open_study_notes",
+          "text": "John 4:42 [John.4.42] — The Samaritans had heard Jesus and believed his message for themselves. They were no longer depending only on the woman’s testimony. They called him Savior of the world (see also 1 John 4:14 ). This title shows that they understood something important. Salvation was not limited to one ethnic group. As Samaritans, they knew they were separated from the Jews. Yet they recognized that Jesus came for all people. His mission was not only for Jews, but for the whole world ( John 1:4–12 ; compare 12:20–26 ). (Source: Aquifer Open Study Notes, CC-BY-SA-4.0)"
+        }
+      ],
+      "type": "exegetical"
+    },
+    {
+      "items": [
+        {
           "evidence_id": "EV-PLACE-0001",
           "item_type": "place_link",
           "metadata": {
@@ -397,136 +577,64 @@
           "relevance_score": 60,
           "source_id": "biblical_places_catalog",
           "text": "A júdai tartomány bibliai és történeti régiója, amely az ószövetségi és újszövetségi szövegekben is szerepel."
-        },
-        {
-          "evidence_id": "EV-PLACE-0010",
-          "item_type": "place_catalog",
-          "metadata": {
-            "budget_type": "background",
-            "place_id": "mount_gerizim",
-            "selection_specificity": 50,
-            "selection_tier": "supporting"
-          },
-          "relevance_score": 60,
-          "source_id": "biblical_places_catalog",
-          "text": "Sikem mellett emelkedő hegy, az áldás kihirdetésének és a samaritánus istentiszteletnek fontos helye. A mai Náblusz fölött található."
-        },
-        {
-          "evidence_id": "EV-PLACE-0012",
-          "item_type": "place_catalog",
-          "metadata": {
-            "budget_type": "background",
-            "place_id": "samaria_2",
-            "selection_specificity": 50,
-            "selection_tier": "supporting"
-          },
-          "relevance_score": 60,
-          "source_id": "biblical_places_catalog",
-          "text": "Az északi országrész és későbbi tartomány neve, amely az Apostolok cselekedeteiben a jeruzsálemi misszió egyik első terjeszkedési területe. Központi térsége a mai Szamária vidékén található."
-        },
-        {
-          "evidence_id": "EV-PLACE-0014",
-          "item_type": "place_catalog",
-          "metadata": {
-            "budget_type": "background",
-            "place_id": "sychar",
-            "selection_specificity": 50,
-            "selection_tier": "supporting"
-          },
-          "relevance_score": 60,
-          "source_id": "biblical_places_catalog",
-          "text": "Samáriai település Jákób kútja közelében, ahol Jézus a samáriai asszonnyal beszélgetett. A mai Aszkár környékével azonosítják."
         }
       ],
       "type": "places"
-    },
-    {
-      "items": [
-        {
-          "evidence_id": "EV-PLACE-0005",
-          "item_type": "enrichment",
-          "metadata": {
-            "budget_type": "background",
-            "place_id": "jerusalem",
-            "section_key": "biblical_significance",
-            "selection_specificity": 50,
-            "selection_tier": "optional"
-          },
-          "relevance_score": 40,
-          "source_id": "place_enrichments_overlay",
-          "text": "Jeruzsálem a passage-indexben 956 bibliai hivatkozáshoz kapcsolódik. A route-adatok 3 bibliai útvonalhoz kötik. Jeruzsálem a bibliai elbeszélés központi városa, a Templom és több újszövetségi esemény helyszíne."
-        },
-        {
-          "evidence_id": "EV-PLACE-0006",
-          "item_type": "enrichment",
-          "metadata": {
-            "budget_type": "background",
-            "place_id": "jerusalem",
-            "section_key": "key_events",
-            "selection_specificity": 50,
-            "selection_tier": "optional"
-          },
-          "relevance_score": 40,
-          "source_id": "place_enrichments_overlay",
-          "text": "Felmegy és köszönti a gyülekezetet; a route ezt Jeruzsálem valószínű értelmezéseként jelöli. Felmennek Jeruzsálembe, ahol a testvérek fogadják őket. Pál Jeruzsálemben kerül őrizetbe, majd a továbbszállítás előkészítése megtörténik. (ApCsel 18,22, ApCsel 21,15-17, ApCsel 21,17-23,22)"
-        }
-      ],
-      "type": "background"
     }
   ],
   "selection_stats": {
-    "aquifer_candidates": 0,
-    "aquifer_selected": 0,
-    "candidates": 28,
+    "aquifer_candidates": 24,
+    "aquifer_selected": 9,
+    "candidates": 52,
     "coverage_segments": [
       {
-        "covered": false,
-        "note_count": 0,
+        "covered": true,
+        "note_count": 2,
         "segment": "1-10"
       },
       {
-        "covered": false,
-        "note_count": 0,
+        "covered": true,
+        "note_count": 4,
         "segment": "11-20"
       },
       {
-        "covered": false,
-        "note_count": 0,
+        "covered": true,
+        "note_count": 1,
         "segment": "21-30"
       },
       {
-        "covered": false,
-        "note_count": 0,
+        "covered": true,
+        "note_count": 1,
         "segment": "31-40"
       },
       {
-        "covered": false,
-        "note_count": 0,
+        "covered": true,
+        "note_count": 1,
         "segment": "41-42"
       }
     ],
     "dropped_budget": 0,
     "dropped_redundant": 0,
-    "dropped_target": 0,
-    "dropped_type_budget": 0,
-    "selected": 28,
+    "dropped_target": 5,
+    "dropped_type_budget": 15,
+    "selected": 32,
     "selected_by_tier": {
       "core": 2,
-      "optional": 2,
-      "primary": 12,
-      "supporting": 12
+      "primary": 21,
+      "supporting": 9
     },
     "tokens_by_type": {
-      "background": 955,
+      "background": 564,
+      "exegetical": 1897,
       "linguistic": 639,
       "passage": 97
     }
   },
   "source_ids": [
+    "aquifer_open_study_notes",
     "biblical_places_catalog",
     "biblical_places_passage_links",
     "lexicon_hu_overlay",
-    "place_enrichments_overlay",
     "stepbible_tagnt",
     "stepbible_tbesg"
   ],
@@ -535,6 +643,7 @@
   "truncated": false,
   "warnings": [
     "RUF local text source is disabled by manifest policy; packet excludes RUF prose.",
-    "Optional source aquifer_open_study_notes is disabled."
+    "Supplemental token estimate (10345) exceeds budget (4500); Aquifer exegetical notes retained for audit.",
+    "Aquifer notes selected 9/24 (source-aware selection; full set remains in Evidence Packet)."
   ]
 }

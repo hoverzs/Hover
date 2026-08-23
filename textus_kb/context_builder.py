@@ -8,7 +8,6 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from textus_kb.context_profiles import (
-    DEFAULT_TOKEN_BUDGETS,
     PROFILE_EXEGESIS,
     PROFILE_HISTORICAL,
     PROFILE_THEOLOGY,
@@ -16,6 +15,7 @@ from textus_kb.context_profiles import (
     THEOLOGY_SOURCE_WARNING,
     ContextProfile,
 )
+from textus_kb.context_selection import SelectionStats, select_context_items
 from textus_kb.evidence import (
     RELATION_DIRECT_PASSAGE,
     RELATION_EXEGETICAL_NOTE,
@@ -30,7 +30,7 @@ from textus_kb.evidence import (
 )
 from textus_kb.retrieval import retrieve
 
-SCHEMA_VERSION = "1"
+SCHEMA_VERSION = "2"
 
 
 @dataclass(frozen=True)
@@ -78,10 +78,13 @@ class LLMContextPacket:
     evidence_ids: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
     estimated_tokens: int = 0
+    target_tokens: int = 3200
     token_budget: int = 4500
+    max_tokens: int = 4500
     truncated: bool = False
     schema_version: str = SCHEMA_VERSION
     evidence_packet_build_id: str = ""
+    selection_stats: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -94,9 +97,12 @@ class LLMContextPacket:
             "evidence_ids": list(self.evidence_ids),
             "warnings": list(self.warnings),
             "estimated_tokens": self.estimated_tokens,
+            "target_tokens": self.target_tokens,
             "token_budget": self.token_budget,
+            "max_tokens": self.max_tokens,
             "truncated": self.truncated,
             "evidence_packet_build_id": self.evidence_packet_build_id,
+            "selection_stats": dict(self.selection_stats),
         }
 
 
@@ -156,6 +162,7 @@ def _build_exegesis_context(
                 source_id=item.source_id,
                 relevance_score=profile.priorities[RELATION_DIRECT_PASSAGE],
                 item_type="passage",
+                metadata={"canonical_scope": evidence.passage_canonical},
             )
         )
 
@@ -175,6 +182,7 @@ def _build_exegesis_context(
                 metadata={
                     "verse_count": token_set.get("verse_count"),
                     "token_count": token_set.get("token_count"),
+                    "canonical_scope": evidence.passage_canonical,
                 },
             )
         )
@@ -196,6 +204,11 @@ def _build_exegesis_context(
             highlight,
             token,
         )
+        scope = (
+            f"{evidence.passage_canonical.split('.')[0]}.{evidence.passage_canonical.split('.')[1]}.{verse_ref}"
+            if verse_ref
+            else evidence.passage_canonical
+        )
         items.append(
             ContextItem(
                 text=line,
@@ -207,6 +220,7 @@ def _build_exegesis_context(
                     "strong_id": strong_id,
                     "verse": verse_ref,
                     "lemma": highlight.get("lemma"),
+                    "canonical_scope": scope,
                 },
             )
         )
@@ -238,6 +252,8 @@ def _build_exegesis_context(
                     "license": item.metadata.get("license"),
                     "license_url": item.metadata.get("license_url"),
                     "attribution": item.metadata.get("attribution"),
+                    "canonical_scope": item.passage,
+                    "passage": item.passage,
                 },
             )
         )
@@ -250,7 +266,11 @@ def _build_exegesis_context(
                 source_id=item.source_id,
                 relevance_score=profile.priorities[RELATION_PASSAGE_PLACE],
                 item_type="place_link",
-                metadata={"place_id": item.metadata.get("place_id")},
+                metadata={
+                    "place_id": item.metadata.get("place_id"),
+                    "passage": item.passage,
+                    "canonical_scope": item.passage,
+                },
             )
         )
 
@@ -298,6 +318,7 @@ def _build_historical_context(
             source_id=_first_source_id(by_relation, RELATION_DIRECT_PASSAGE) or "stepbible_tagnt",
             relevance_score=profile.priorities[RELATION_DIRECT_PASSAGE],
             item_type="passage_scope",
+            metadata={"canonical_scope": evidence.passage_canonical},
         )
     )
 
@@ -314,7 +335,11 @@ def _build_historical_context(
                 source_id=item.source_id,
                 relevance_score=profile.priorities[RELATION_PASSAGE_PLACE],
                 item_type="passage_place_link",
-                metadata={"place_id": place_id, "passage": item.passage},
+                metadata={
+                    "place_id": place_id,
+                    "passage": item.passage,
+                    "canonical_scope": item.passage,
+                },
             )
         )
 
@@ -385,6 +410,7 @@ def _build_theology_context(
             source_id=_first_source_id(by_relation, RELATION_DIRECT_PASSAGE) or "stepbible_tagnt",
             relevance_score=profile.priorities[RELATION_DIRECT_PASSAGE],
             item_type="passage",
+            metadata={"canonical_scope": evidence.passage_canonical},
         )
     )
 
@@ -448,11 +474,11 @@ def _finalize_context_packet(
     if profile.name == PROFILE_THEOLOGY:
         warnings.append(THEOLOGY_SOURCE_WARNING)
 
-    sorted_items = sorted(
+    kept, stats = select_context_items(
         candidates,
-        key=lambda item: (-item.relevance_score, item.item_type, item.evidence_id),
+        profile,
+        passage_canonical=evidence.passage_canonical,
     )
-    kept, dropped = _apply_context_token_budget(sorted_items, profile.token_budget)
     sections = _group_sections(kept, profile.name)
 
     source_ids = sorted({item.source_id for item in kept})
@@ -466,55 +492,26 @@ def _finalize_context_packet(
         source_ids=source_ids,
         evidence_ids=evidence_ids,
         warnings=warnings,
-        token_budget=profile.token_budget,
-        truncated=dropped > 0,
+        target_tokens=profile.target_tokens,
+        token_budget=profile.max_tokens,
+        max_tokens=profile.max_tokens,
+        truncated=stats.dropped_budget > 0,
         evidence_packet_build_id=evidence.build_id,
+        selection_stats=stats.to_dict(),
     )
     packet.estimated_tokens = _estimate_context_tokens(packet)
-    if dropped > 0:
+
+    if stats.dropped_budget > 0:
         packet.warnings.append(
-            f"Context truncated: dropped {dropped} lower-priority item(s) to stay within "
-            f"{profile.token_budget} token budget."
+            f"Context hard-max pressure: dropped {stats.dropped_budget} item(s) "
+            f"to stay within max_tokens={profile.max_tokens}."
+        )
+    if stats.aquifer_candidates and stats.aquifer_selected < stats.aquifer_candidates:
+        packet.warnings.append(
+            f"Aquifer notes selected {stats.aquifer_selected}/{stats.aquifer_candidates} "
+            f"(source-aware selection; full set remains in Evidence Packet)."
         )
     return packet
-
-
-def _apply_context_token_budget(
-    items: list[ContextItem],
-    max_tokens: int,
-) -> tuple[list[ContextItem], int]:
-    kept: list[ContextItem] = []
-    total = 0
-    dropped = 0
-    for item in items:
-        item_tokens = item.estimated_tokens()
-        if kept and total + item_tokens > max_tokens:
-            dropped += 1
-            continue
-        if not kept and item_tokens > max_tokens:
-            trimmed = _truncate_context_item(item, max_tokens)
-            kept.append(trimmed)
-            total += trimmed.estimated_tokens()
-            dropped += 1
-            continue
-        kept.append(item)
-        total += item_tokens
-    return kept, dropped
-
-
-def _truncate_context_item(item: ContextItem, max_tokens: int) -> ContextItem:
-    char_limit = max(40, max_tokens * 4)
-    text = item.text
-    if len(text) > char_limit:
-        text = text[:char_limit].rstrip() + "…"
-    return ContextItem(
-        text=text,
-        evidence_id=item.evidence_id,
-        source_id=item.source_id,
-        relevance_score=item.relevance_score,
-        item_type=item.item_type,
-        metadata=dict(item.metadata),
-    )
 
 
 def _group_sections(items: list[ContextItem], profile: str) -> list[ContextSection]:
@@ -629,7 +626,14 @@ def _format_compact_lexical_line(
     morph = _describe_morph((token or {}).get("morph_code"))
     gloss_en = highlight.get("gloss_en") or ""
     gloss_hu = highlight.get("gloss_hu") or ""
-    gloss = " / ".join(part for part in (f'"{gloss_en}"' if gloss_en else "", f'"{gloss_hu}"' if gloss_hu else "") if part)
+    gloss = " / ".join(
+        part
+        for part in (
+            f'"{gloss_en}"' if gloss_en else "",
+            f'"{gloss_hu}"' if gloss_hu else "",
+        )
+        if part
+    )
     greek_form = (token or {}).get("greek_form") or lemma
     parts = [f"{verse_ref} — {greek_form} ({strong_id})"]
     if morph:

@@ -17,7 +17,7 @@
     "EV-PLACE-0014",
     "EV-TAGNT-0002"
   ],
-  "evidence_packet_build_id": "kb-phase2a-john4-pilot-v1",
+  "evidence_packet_build_id": "kb-phase3a-john4-pilot-v1",
   "max_tokens": 3500,
   "passage": "John.4.1-42",
   "passage_display": "Jn 4,1-42",
@@ -308,6 +308,6 @@
   "truncated": false,
   "warnings": [
     "RUF local text source is disabled by manifest policy; packet excludes RUF prose.",
-    "Optional source aquifer_open_study_notes is disabled."
+    "Supplemental token estimate (10345) exceeds budget (4500); Aquifer exegetical notes retained for audit."
   ]
 }

@@ -1,8 +1,8 @@
-"""Context profile definitions and selection priorities."""
+"""Context profile definitions, budgets, and selection priorities."""
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from textus_kb.evidence import (
     RELATION_DIRECT_PASSAGE,
@@ -22,13 +22,69 @@ SUPPORTED_PROFILES = frozenset(
     {PROFILE_EXEGESIS, PROFILE_HISTORICAL, PROFILE_THEOLOGY}
 )
 
-DEFAULT_TOKEN_BUDGETS: dict[str, int] = {
+TIER_CORE = "core"
+TIER_PRIMARY = "primary"
+TIER_SUPPORTING = "supporting"
+TIER_OPTIONAL = "optional"
+
+TIER_RANK = {
+    TIER_CORE: 0,
+    TIER_PRIMARY: 1,
+    TIER_SUPPORTING: 2,
+    TIER_OPTIONAL: 3,
+}
+
+BUDGET_LINGUISTIC = "linguistic"
+BUDGET_EXEGETICAL = "exegetical"
+BUDGET_BACKGROUND = "background"
+BUDGET_PASSAGE = "passage"
+
+THEOLOGY_SOURCE_WARNING = "No dedicated theological source layer available"
+
+# Soft target (prefer stop) vs hard max (never exceed).
+DEFAULT_TARGET_TOKENS: dict[str, int] = {
+    PROFILE_EXEGESIS: 3200,
+    PROFILE_HISTORICAL: 2500,
+    PROFILE_THEOLOGY: 2500,
+}
+
+DEFAULT_MAX_TOKENS: dict[str, int] = {
     PROFILE_EXEGESIS: 4500,
     PROFILE_HISTORICAL: 3500,
     PROFILE_THEOLOGY: 3500,
 }
 
-THEOLOGY_SOURCE_WARNING = "No dedicated theological source layer available"
+# Backward-compatible alias used by older callers.
+DEFAULT_TOKEN_BUDGETS = DEFAULT_MAX_TOKENS
+
+# Per-type soft caps within the overall budget (exegesis tuned for Jn 4 pilot).
+DEFAULT_TYPE_BUDGETS: dict[str, dict[str, int]] = {
+    PROFILE_EXEGESIS: {
+        BUDGET_PASSAGE: 150,
+        BUDGET_LINGUISTIC: 900,
+        BUDGET_EXEGETICAL: 1700,
+        BUDGET_BACKGROUND: 700,
+    },
+    PROFILE_HISTORICAL: {
+        BUDGET_PASSAGE: 150,
+        BUDGET_LINGUISTIC: 200,
+        BUDGET_EXEGETICAL: 0,
+        BUDGET_BACKGROUND: 2000,
+    },
+    PROFILE_THEOLOGY: {
+        BUDGET_PASSAGE: 200,
+        BUDGET_LINGUISTIC: 1000,
+        BUDGET_EXEGETICAL: 600,
+        BUDGET_BACKGROUND: 700,
+    },
+}
+
+# Minimum diversity: reserve slots for these budget types when candidates exist.
+DEFAULT_DIVERSITY_TYPES: dict[str, tuple[str, ...]] = {
+    PROFILE_EXEGESIS: (BUDGET_LINGUISTIC, BUDGET_EXEGETICAL, BUDGET_BACKGROUND),
+    PROFILE_HISTORICAL: (BUDGET_BACKGROUND,),
+    PROFILE_THEOLOGY: (BUDGET_LINGUISTIC, BUDGET_BACKGROUND),
+}
 
 # Higher number = retained first under token budget pressure.
 PROFILE_PRIORITIES: dict[str, dict[str, int]] = {
@@ -63,20 +119,70 @@ PROFILE_PRIORITIES: dict[str, dict[str, int]] = {
     },
 }
 
+# Item-type → selection tier (profile-specific overrides applied in code).
+EXEGESIS_ITEM_TIERS: dict[str, str] = {
+    "passage": TIER_CORE,
+    "passage_summary": TIER_CORE,
+    "linguistic": TIER_PRIMARY,
+    "exegetical_note": TIER_PRIMARY,
+    "place_link": TIER_SUPPORTING,
+    "place_catalog": TIER_SUPPORTING,
+    "enrichment": TIER_OPTIONAL,
+}
+
+HISTORICAL_ITEM_TIERS: dict[str, str] = {
+    "passage_scope": TIER_CORE,
+    "passage_place_link": TIER_PRIMARY,
+    "historical_enrichment": TIER_PRIMARY,
+    "place_catalog": TIER_SUPPORTING,
+    "geography": TIER_SUPPORTING,
+}
+
+THEOLOGY_ITEM_TIERS: dict[str, str] = {
+    "passage": TIER_CORE,
+    "lexical": TIER_PRIMARY,
+    "place_link": TIER_SUPPORTING,
+    "place_catalog": TIER_OPTIONAL,
+}
+
 
 @dataclass(frozen=True)
 class ContextProfile:
     name: str
     token_budget: int
     priorities: dict[str, int]
+    target_tokens: int = 3200
+    max_tokens: int = 4500
+    type_budgets: dict[str, int] = field(default_factory=dict)
+    diversity_types: tuple[str, ...] = ()
+    item_tiers: dict[str, str] = field(default_factory=dict)
 
     @classmethod
-    def load(cls, name: str, *, token_budget: int | None = None) -> ContextProfile:
+    def load(
+        cls,
+        name: str,
+        *,
+        token_budget: int | None = None,
+        target_tokens: int | None = None,
+    ) -> ContextProfile:
         if name not in SUPPORTED_PROFILES:
             raise ValueError(f"Unsupported context profile: {name!r}")
-        budget = token_budget if token_budget is not None else DEFAULT_TOKEN_BUDGETS[name]
+        max_tokens = token_budget if token_budget is not None else DEFAULT_MAX_TOKENS[name]
+        target = target_tokens if target_tokens is not None else DEFAULT_TARGET_TOKENS[name]
+        if target > max_tokens:
+            target = max_tokens
+        tiers = {
+            PROFILE_EXEGESIS: EXEGESIS_ITEM_TIERS,
+            PROFILE_HISTORICAL: HISTORICAL_ITEM_TIERS,
+            PROFILE_THEOLOGY: THEOLOGY_ITEM_TIERS,
+        }[name]
         return cls(
             name=name,
-            token_budget=budget,
+            token_budget=max_tokens,
+            max_tokens=max_tokens,
+            target_tokens=target,
             priorities=dict(PROFILE_PRIORITIES[name]),
+            type_budgets=dict(DEFAULT_TYPE_BUDGETS[name]),
+            diversity_types=DEFAULT_DIVERSITY_TYPES[name],
+            item_tiers=dict(tiers),
         )
