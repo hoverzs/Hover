@@ -6,6 +6,7 @@ import json
 from collections import Counter
 from typing import Any
 
+from textus_kb.adapters.aquifer_bible_dictionary import AquiferBibleDictionaryAdapter
 from textus_kb.adapters.aquifer_study_notes import AquiferStudyNotesAdapter
 from textus_kb.adapters.lexicon import LexiconAdapter
 from textus_kb.adapters.places import PlacesAdapter
@@ -14,7 +15,9 @@ from textus_kb.canonical_reference import CanonicalReference, CanonicalReference
 from textus_kb.evidence import (
     PILOT_BUILD_ID,
     PILOT_BUILD_ID_WITH_AQUIFER,
+    PILOT_BUILD_ID_WITH_DICTIONARY,
     RELATION_DIRECT_PASSAGE,
+    RELATION_DICTIONARY_BACKGROUND,
     RELATION_EXEGETICAL_NOTE,
     RELATION_LEXICAL_HIGHLIGHT,
     RELATION_PASSAGE_PLACE,
@@ -22,6 +25,10 @@ from textus_kb.evidence import (
     RELATION_PLACE_CATALOG,
     RELATION_PLACE_ENRICHMENT,
     RELEVANCE_DIRECT_PASSAGE,
+    RELEVANCE_DICTIONARY_BACKGROUND,
+    RELEVANCE_DICTIONARY_ENTITY,
+    RELEVANCE_DICTIONARY_PASSAGE,
+    RELEVANCE_DICTIONARY_TOPIC,
     RELEVANCE_EXEGETICAL_NOTE,
     RELEVANCE_LEXICAL_HIGHLIGHT,
     RELEVANCE_PASSAGE_PLACE,
@@ -404,11 +411,49 @@ def retrieve(
             )
             aquifer_counter += 1
 
-    build_id = (
-        PILOT_BUILD_ID_WITH_AQUIFER
-        if aquifer_counter > 1
-        else PILOT_BUILD_ID
-    )
+    dictionary_source = enabled_sources.get("aquifer_open_bible_dictionary")
+    dictionary_adapter = AquiferBibleDictionaryAdapter(dictionary_source)
+    dictionary_counter = 1
+    if dictionary_source is None or not dictionary_source.enabled:
+        warnings.append("Optional source aquifer_open_bible_dictionary is disabled.")
+    elif not dictionary_source.resolved_path.is_file():
+        warnings.append("Optional source aquifer_open_bible_dictionary pilot bundle missing.")
+    else:
+        _add_source_record(sources_used, enabled_sources, "aquifer_open_bible_dictionary")
+        dict_meta = dictionary_adapter.bundle_metadata()
+        for chunk in dictionary_adapter.load_chunks_for_passage(canonical):
+            evidence_items.append(
+                EvidenceItem(
+                    evidence_id=_next_id("DICT", dictionary_counter),
+                    source_id=AquiferBibleDictionaryAdapter.SOURCE_ID,
+                    source_type="bible_dictionary",
+                    language="en",
+                    relation_type=RELATION_DICTIONARY_BACKGROUND,
+                    passage=canonical_passage if chunk.passage_associations else None,
+                    content=chunk.content_plain,
+                    metadata={
+                        "article_id": chunk.article_id,
+                        "chunk_id": chunk.chunk_id,
+                        "chunk_index": chunk.chunk_index,
+                        "title": chunk.title,
+                        "heading": chunk.heading,
+                        "index_reference": chunk.index_reference,
+                        "content_html": chunk.content_html,
+                        "selection_reason": chunk.selection_reason,
+                        "passage_associations": list(chunk.passage_associations),
+                        "entity_topics": list(chunk.entity_topics),
+                        "license": chunk.license,
+                        "license_url": chunk.license_url,
+                        "attribution": chunk.attribution,
+                        "upstream_commit": dict_meta.get("upstream_commit"),
+                        "upstream_resource_version": dict_meta.get("upstream_resource_version"),
+                    },
+                    relevance_score=_dictionary_relevance(chunk),
+                )
+            )
+            dictionary_counter += 1
+
+    build_id = _resolve_build_id(aquifer_counter, dictionary_counter)
 
     packet = EvidencePacket(
         passage_canonical=canonical_passage,
@@ -490,6 +535,24 @@ def _aquifer_relevance(canonical_reference: str) -> int:
     return RELEVANCE_EXEGETICAL_NOTE - 1
 
 
+def _dictionary_relevance(chunk: Any) -> int:
+    if chunk.passage_associations:
+        return RELEVANCE_DICTIONARY_PASSAGE
+    if chunk.selection_reason == "pilot_place_entity_match":
+        return RELEVANCE_DICTIONARY_ENTITY
+    if chunk.selection_reason == "pilot_index_reference_match":
+        return RELEVANCE_DICTIONARY_TOPIC
+    return RELEVANCE_DICTIONARY_BACKGROUND
+
+
+def _resolve_build_id(aquifer_counter: int, dictionary_counter: int) -> str:
+    if dictionary_counter > 1:
+        return PILOT_BUILD_ID_WITH_DICTIONARY
+    if aquifer_counter > 1:
+        return PILOT_BUILD_ID_WITH_AQUIFER
+    return PILOT_BUILD_ID
+
+
 def _sort_evidence_items(items: list[EvidenceItem]) -> list[EvidenceItem]:
     return sorted(
         items,
@@ -531,7 +594,8 @@ def _apply_token_budget(
     trimmable = estimate_trimmable_supplemental_tokens(packet)
     if trimmable <= max_tokens:
         if supplemental > max_tokens and any(
-            item.relation_type == RELATION_EXEGETICAL_NOTE for item in packet.evidence_items
+            item.relation_type in {RELATION_EXEGETICAL_NOTE, RELATION_DICTIONARY_BACKGROUND}
+            for item in packet.evidence_items
         ):
             warned = EvidencePacket(
                 passage_canonical=packet.passage_canonical,
@@ -551,7 +615,7 @@ def _apply_token_budget(
             )
             warned.warnings.append(
                 f"Supplemental token estimate ({supplemental}) exceeds budget ({max_tokens}); "
-                "Aquifer exegetical notes retained for audit."
+                "Aquifer exegetical notes and dictionary evidence retained for audit."
             )
             warned.token_budget_applied = True
             return warned
@@ -659,6 +723,7 @@ def _apply_token_budget(
                 RELATION_PASSAGE_TOKEN,
                 RELATION_PASSAGE_PLACE,
                 RELATION_EXEGETICAL_NOTE,
+                RELATION_DICTIONARY_BACKGROUND,
             }
         ],
         warnings=list(link_only.warnings),

@@ -6,6 +6,7 @@ from dataclasses import dataclass, field
 
 from textus_kb.evidence import (
     RELATION_DIRECT_PASSAGE,
+    RELATION_DICTIONARY_BACKGROUND,
     RELATION_EXEGETICAL_NOTE,
     RELATION_LEXICAL_HIGHLIGHT,
     RELATION_PASSAGE_PLACE,
@@ -36,6 +37,7 @@ TIER_RANK = {
 
 BUDGET_LINGUISTIC = "linguistic"
 BUDGET_EXEGETICAL = "exegetical"
+BUDGET_DICTIONARY = "dictionary"
 BUDGET_BACKGROUND = "background"
 BUDGET_PASSAGE = "passage"
 
@@ -63,26 +65,29 @@ DEFAULT_TYPE_BUDGETS: dict[str, dict[str, int]] = {
         BUDGET_PASSAGE: 150,
         BUDGET_LINGUISTIC: 900,
         BUDGET_EXEGETICAL: 1700,
-        BUDGET_BACKGROUND: 700,
+        BUDGET_DICTIONARY: 450,
+        BUDGET_BACKGROUND: 350,
     },
     PROFILE_HISTORICAL: {
         BUDGET_PASSAGE: 150,
         BUDGET_LINGUISTIC: 200,
         BUDGET_EXEGETICAL: 0,
-        BUDGET_BACKGROUND: 2000,
+        BUDGET_DICTIONARY: 1600,
+        BUDGET_BACKGROUND: 450,
     },
     PROFILE_THEOLOGY: {
         BUDGET_PASSAGE: 200,
         BUDGET_LINGUISTIC: 1000,
         BUDGET_EXEGETICAL: 600,
-        BUDGET_BACKGROUND: 700,
+        BUDGET_DICTIONARY: 300,
+        BUDGET_BACKGROUND: 400,
     },
 }
 
 # Minimum diversity: reserve slots for these budget types when candidates exist.
 DEFAULT_DIVERSITY_TYPES: dict[str, tuple[str, ...]] = {
-    PROFILE_EXEGESIS: (BUDGET_LINGUISTIC, BUDGET_EXEGETICAL, BUDGET_BACKGROUND),
-    PROFILE_HISTORICAL: (BUDGET_BACKGROUND,),
+    PROFILE_EXEGESIS: (BUDGET_LINGUISTIC, BUDGET_EXEGETICAL, BUDGET_DICTIONARY),
+    PROFILE_HISTORICAL: (BUDGET_DICTIONARY, BUDGET_BACKGROUND),
     PROFILE_THEOLOGY: (BUDGET_LINGUISTIC, BUDGET_BACKGROUND),
 }
 
@@ -92,6 +97,7 @@ PROFILE_PRIORITIES: dict[str, dict[str, int]] = {
         RELATION_DIRECT_PASSAGE: 100,
         RELATION_PASSAGE_TOKEN: 95,
         RELATION_EXEGETICAL_NOTE: 93,
+        RELATION_DICTIONARY_BACKGROUND: 78,
         RELATION_LEXICAL_HIGHLIGHT: 90,
         "compact_linguistic_line": 88,
         RELATION_PASSAGE_PLACE: 70,
@@ -100,7 +106,8 @@ PROFILE_PRIORITIES: dict[str, dict[str, int]] = {
         "passage_summary": 98,
     },
     PROFILE_HISTORICAL: {
-        RELATION_PASSAGE_PLACE: 100,
+        RELATION_DICTIONARY_BACKGROUND: 100,
+        RELATION_PASSAGE_PLACE: 95,
         RELATION_PLACE_ENRICHMENT: 90,
         RELATION_PLACE_CATALOG: 85,
         "place_geography": 80,
@@ -125,6 +132,7 @@ EXEGESIS_ITEM_TIERS: dict[str, str] = {
     "passage_summary": TIER_CORE,
     "linguistic": TIER_PRIMARY,
     "exegetical_note": TIER_PRIMARY,
+    "dictionary_background": TIER_SUPPORTING,
     "place_link": TIER_SUPPORTING,
     "place_catalog": TIER_SUPPORTING,
     "enrichment": TIER_OPTIONAL,
@@ -132,6 +140,7 @@ EXEGESIS_ITEM_TIERS: dict[str, str] = {
 
 HISTORICAL_ITEM_TIERS: dict[str, str] = {
     "passage_scope": TIER_CORE,
+    "dictionary_background": TIER_PRIMARY,
     "passage_place_link": TIER_PRIMARY,
     "historical_enrichment": TIER_PRIMARY,
     "place_catalog": TIER_SUPPORTING,

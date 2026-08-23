@@ -9,6 +9,7 @@ from typing import Any
 from textus_kb.canonical_reference import CanonicalReference, CanonicalReferenceError
 from textus_kb.context_profiles import (
     BUDGET_BACKGROUND,
+    BUDGET_DICTIONARY,
     BUDGET_EXEGETICAL,
     BUDGET_LINGUISTIC,
     BUDGET_PASSAGE,
@@ -19,6 +20,9 @@ from textus_kb.context_profiles import (
     TIER_SUPPORTING,
     ContextProfile,
 )
+
+# Prevent one dictionary article from consuming the entire dictionary budget.
+MAX_DICTIONARY_CHUNKS_PER_ARTICLE = 2
 
 # Jaccard threshold for near-duplicate plain text.
 REDUNDANCY_JACCARD_THRESHOLD = 0.85
@@ -57,6 +61,12 @@ class SelectionStats:
     tokens_by_type: dict[str, int] = field(default_factory=dict)
     selected_by_tier: dict[str, int] = field(default_factory=dict)
     coverage_segments: list[dict[str, Any]] = field(default_factory=list)
+    study_notes_candidates: int = 0
+    study_notes_selected: int = 0
+    dictionary_candidates: int = 0
+    dictionary_selected: int = 0
+    linguistic_selected: int = 0
+    places_background_selected: int = 0
     aquifer_candidates: int = 0
     aquifer_selected: int = 0
 
@@ -71,6 +81,12 @@ class SelectionStats:
             "tokens_by_type": dict(self.tokens_by_type),
             "selected_by_tier": dict(self.selected_by_tier),
             "coverage_segments": list(self.coverage_segments),
+            "study_notes_candidates": self.study_notes_candidates,
+            "study_notes_selected": self.study_notes_selected,
+            "dictionary_candidates": self.dictionary_candidates,
+            "dictionary_selected": self.dictionary_selected,
+            "linguistic_selected": self.linguistic_selected,
+            "places_background_selected": self.places_background_selected,
             "aquifer_candidates": self.aquifer_candidates,
             "aquifer_selected": self.aquifer_selected,
         }
@@ -87,6 +103,8 @@ def budget_type_for_item(item_type: str) -> str:
         return BUDGET_LINGUISTIC
     if item_type == "exegetical_note":
         return BUDGET_EXEGETICAL
+    if item_type == "dictionary_background":
+        return BUDGET_DICTIONARY
     return BUDGET_BACKGROUND
 
 
@@ -210,6 +228,13 @@ def prepare_candidates(
             if isinstance(verse, int):
                 verse_start = verse_end = verse
                 specificity = 95
+        elif item.item_type == "dictionary_background":
+            if item.metadata.get("passage_associations"):
+                specificity = 95
+            elif item.metadata.get("entity_topics"):
+                specificity = 85
+            else:
+                specificity = 65
 
         tier = classify_item_type(item.item_type, profile)
         # Whole-passage Aquifer overview is optional; verse-specific notes stay primary.
@@ -262,9 +287,13 @@ def select_context_items(
         p_start, p_end = 1, 42
 
     candidates = prepare_candidates(items, profile, passage_canonical=passage_canonical)
-    stats.aquifer_candidates = sum(
+    stats.study_notes_candidates = sum(
         1 for c in candidates if c.item.item_type == "exegetical_note"
     )
+    stats.dictionary_candidates = sum(
+        1 for c in candidates if c.item.item_type == "dictionary_background"
+    )
+    stats.aquifer_candidates = stats.study_notes_candidates
 
     # --- Redundancy pass (deterministic order) ---
     candidates.sort(
@@ -418,21 +447,38 @@ def select_context_items(
     remaining = [
         c for c in kept_after_dedup if c.item.evidence_id not in selected_ids
     ]
+    dictionary_article_counts: dict[str, int] = {}
+    for cand in selected:
+        if cand.item.item_type == "dictionary_background":
+            article_id = str(cand.item.metadata.get("article_id") or "")
+            if article_id:
+                dictionary_article_counts[article_id] = dictionary_article_counts.get(article_id, 0) + 1
+
     remaining.sort(
         key=lambda c: (
             TIER_RANK.get(c.tier, 9),
             -c.specificity if c.item.item_type == "exegetical_note" else 0,
+            -c.specificity if c.item.item_type == "dictionary_background" else 0,
             -c.selection_score,
             c.item.evidence_id,
         )
     )
     for cand in remaining:
+        if cand.item.item_type == "dictionary_background":
+            article_id = str(cand.item.metadata.get("article_id") or "")
+            if article_id and dictionary_article_counts.get(article_id, 0) >= MAX_DICTIONARY_CHUNKS_PER_ARTICLE:
+                stats.dropped_type_budget += 1
+                continue
         if total_tokens >= profile.target_tokens:
             # After target, only add core-equivalent leftovers that fit hard max.
             if cand.tier != TIER_CORE:
                 stats.dropped_target += 1
                 continue
         if try_add(cand):
+            if cand.item.item_type == "dictionary_background":
+                article_id = str(cand.item.metadata.get("article_id") or "")
+                if article_id:
+                    dictionary_article_counts[article_id] = dictionary_article_counts.get(article_id, 0) + 1
             continue
         cost = cand.estimated_tokens
         if total_tokens + cost > profile.max_tokens:
@@ -506,9 +552,29 @@ def select_context_items(
         running += cost
 
     stats.selected = len(result_items)
-    stats.aquifer_selected = sum(
+    stats.study_notes_selected = sum(
         1 for item in result_items if item.item_type == "exegetical_note"
     )
+    stats.dictionary_selected = sum(
+        1 for item in result_items if item.item_type == "dictionary_background"
+    )
+    stats.linguistic_selected = sum(
+        1 for item in result_items if item.item_type in {"linguistic", "lexical"}
+    )
+    stats.places_background_selected = sum(
+        1
+        for item in result_items
+        if item.item_type
+        in {
+            "place_link",
+            "passage_place_link",
+            "place_catalog",
+            "geography",
+            "enrichment",
+            "historical_enrichment",
+        }
+    )
+    stats.aquifer_selected = stats.study_notes_selected
     stats.tokens_by_type = {}
     stats.selected_by_tier = {}
     for item in result_items:
@@ -554,7 +620,8 @@ def _dedup_key(cand: SelectionCandidate) -> str:
     article_id = meta.get("article_id")
     chunk_id = meta.get("chunk_id")
     if article_id and chunk_id:
-        return f"aquifer:{article_id}:{chunk_id}"
+        prefix = "dict" if cand.item.item_type == "dictionary_background" else "aquifer"
+        return f"{prefix}:{article_id}:{chunk_id}"
     if article_id:
         return f"aquifer:{article_id}"
     place_id = meta.get("place_id")

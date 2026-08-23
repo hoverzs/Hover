@@ -18,6 +18,7 @@ from textus_kb.context_profiles import (
 from textus_kb.context_selection import SelectionStats, select_context_items
 from textus_kb.evidence import (
     RELATION_DIRECT_PASSAGE,
+    RELATION_DICTIONARY_BACKGROUND,
     RELATION_EXEGETICAL_NOTE,
     RELATION_LEXICAL_HIGHLIGHT,
     RELATION_PASSAGE_PLACE,
@@ -258,6 +259,47 @@ def _build_exegesis_context(
             )
         )
 
+    for item in sorted(
+        by_relation.get(RELATION_DICTIONARY_BACKGROUND, []),
+        key=lambda entry: (
+            -entry.relevance_score,
+            str(entry.metadata.get("article_id") or ""),
+            int(entry.metadata.get("chunk_index") or 0),
+        ),
+    ):
+        title = str(item.metadata.get("title") or "Dictionary")
+        heading = item.metadata.get("heading")
+        heading_label = f" — {heading}" if heading else ""
+        license_label = str(item.metadata.get("license") or "CC-BY-SA-4.0")
+        text = (
+            f"{title}{heading_label}: {item.content} "
+            f"(Source: Aquifer Open Bible Dictionary, {license_label})"
+        )
+        items.append(
+            ContextItem(
+                text=text,
+                evidence_id=item.evidence_id,
+                source_id=item.source_id,
+                relevance_score=profile.priorities[RELATION_DICTIONARY_BACKGROUND],
+                item_type="dictionary_background",
+                metadata={
+                    "article_id": item.metadata.get("article_id"),
+                    "chunk_id": item.metadata.get("chunk_id"),
+                    "heading": heading,
+                    "index_reference": item.metadata.get("index_reference"),
+                    "selection_reason": item.metadata.get("selection_reason"),
+                    "passage_associations": item.metadata.get("passage_associations"),
+                    "entity_topics": item.metadata.get("entity_topics"),
+                    "license": item.metadata.get("license"),
+                    "license_url": item.metadata.get("license_url"),
+                    "attribution": item.metadata.get("attribution"),
+                    "upstream_commit": item.metadata.get("upstream_commit"),
+                    "upstream_resource_version": item.metadata.get("upstream_resource_version"),
+                    "canonical_scope": evidence.passage_canonical,
+                },
+            )
+        )
+
     for item in by_relation.get(RELATION_PASSAGE_PLACE, []):
         items.append(
             ContextItem(
@@ -339,6 +381,47 @@ def _build_historical_context(
                     "place_id": place_id,
                     "passage": item.passage,
                     "canonical_scope": item.passage,
+                },
+            )
+        )
+
+    for item in sorted(
+        by_relation.get(RELATION_DICTIONARY_BACKGROUND, []),
+        key=lambda entry: (
+            -entry.relevance_score,
+            str(entry.metadata.get("article_id") or ""),
+            int(entry.metadata.get("chunk_index") or 0),
+        ),
+    ):
+        title = str(item.metadata.get("title") or "Dictionary")
+        heading = item.metadata.get("heading")
+        heading_label = f" — {heading}" if heading else ""
+        license_label = str(item.metadata.get("license") or "CC-BY-SA-4.0")
+        text = (
+            f"{title}{heading_label}: {item.content} "
+            f"(Source: Aquifer Open Bible Dictionary, {license_label})"
+        )
+        items.append(
+            ContextItem(
+                text=text,
+                evidence_id=item.evidence_id,
+                source_id=item.source_id,
+                relevance_score=profile.priorities[RELATION_DICTIONARY_BACKGROUND],
+                item_type="dictionary_background",
+                metadata={
+                    "article_id": item.metadata.get("article_id"),
+                    "chunk_id": item.metadata.get("chunk_id"),
+                    "heading": heading,
+                    "index_reference": item.metadata.get("index_reference"),
+                    "selection_reason": item.metadata.get("selection_reason"),
+                    "passage_associations": item.metadata.get("passage_associations"),
+                    "entity_topics": item.metadata.get("entity_topics"),
+                    "license": item.metadata.get("license"),
+                    "license_url": item.metadata.get("license_url"),
+                    "attribution": item.metadata.get("attribution"),
+                    "upstream_commit": item.metadata.get("upstream_commit"),
+                    "upstream_resource_version": item.metadata.get("upstream_resource_version"),
+                    "canonical_scope": evidence.passage_canonical,
                 },
             )
         )
@@ -506,9 +589,14 @@ def _finalize_context_packet(
             f"Context hard-max pressure: dropped {stats.dropped_budget} item(s) "
             f"to stay within max_tokens={profile.max_tokens}."
         )
-    if stats.aquifer_candidates and stats.aquifer_selected < stats.aquifer_candidates:
+    if stats.study_notes_candidates and stats.study_notes_selected < stats.study_notes_candidates:
         packet.warnings.append(
-            f"Aquifer notes selected {stats.aquifer_selected}/{stats.aquifer_candidates} "
+            f"Aquifer notes selected {stats.study_notes_selected}/{stats.study_notes_candidates} "
+            f"(source-aware selection; full set remains in Evidence Packet)."
+        )
+    if stats.dictionary_candidates and stats.dictionary_selected < stats.dictionary_candidates:
+        packet.warnings.append(
+            f"Dictionary chunks selected {stats.dictionary_selected}/{stats.dictionary_candidates} "
             f"(source-aware selection; full set remains in Evidence Packet)."
         )
     return packet
@@ -538,9 +626,9 @@ def _group_sections(items: list[ContextItem], profile: str) -> list[ContextSecti
 
 def _section_order(profile: str) -> tuple[str, ...]:
     if profile == PROFILE_EXEGESIS:
-        return ("passage", "linguistic", "exegetical", "places", "background")
+        return ("passage", "linguistic", "exegetical", "dictionary", "places", "background")
     if profile == PROFILE_HISTORICAL:
-        return ("passage", "places", "historical", "geography")
+        return ("passage", "dictionary", "places", "historical", "geography")
     return ("passage", "lexical", "places", "background")
 
 
@@ -551,6 +639,7 @@ def _item_section_type(item_type: str) -> str:
         "passage_scope": "passage",
         "linguistic": "linguistic",
         "exegetical_note": "exegetical",
+        "dictionary_background": "dictionary",
         "lexical": "lexical",
         "place_link": "places",
         "passage_place_link": "places",

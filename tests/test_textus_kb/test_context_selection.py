@@ -19,8 +19,8 @@ from textus_kb.context_selection import (
 from textus_kb.importers.aquifer_study_notes import AQUIFER_SOURCE_ID
 from textus_kb.retrieval import retrieve
 
-PHASE3B_EXEGESIS = Path("tests/fixtures/kb/john_4_1_42_exegesis_context_phase3b.json")
-PHASE3B_HISTORICAL = Path("tests/fixtures/kb/john_4_1_42_historical_context_phase3b.json")
+PHASE3C_EXEGESIS = Path("tests/fixtures/kb/john_4_1_42_exegesis_context_phase3c.json")
+PHASE3C_HISTORICAL = Path("tests/fixtures/kb/john_4_1_42_historical_context_phase3c.json")
 
 
 @pytest.fixture(name="full_evidence")
@@ -109,7 +109,7 @@ def test_minimum_diversity_present(full_evidence) -> None:
     section_types = {section.type for section in context.sections}
     assert "linguistic" in section_types
     assert "exegetical" in section_types
-    assert "places" in section_types or "background" in section_types
+    assert "places" in section_types or "background" in section_types or "dictionary" in section_types
 
 
 def test_target_less_than_max() -> None:
@@ -132,6 +132,7 @@ def test_exegesis_target_range(full_evidence) -> None:
 def test_historical_under_max(full_evidence) -> None:
     context = build_context_from_evidence(full_evidence, PROFILE_HISTORICAL)
     assert context.estimated_tokens <= 3500
+    assert context.selection_stats["dictionary_selected"] >= 2
 
 
 def test_provenance_preserved(full_evidence) -> None:
@@ -156,7 +157,10 @@ def test_selection_diagnostics_present(full_evidence) -> None:
     assert stats["candidates"] >= stats["selected"]
     assert "tokens_by_type" in stats
     assert "coverage_segments" in stats
-    assert stats["aquifer_candidates"] == 24
+    assert stats["study_notes_candidates"] == 24
+    assert stats["dictionary_candidates"] == 120
+    assert "linguistic_selected" in stats
+    assert "places_background_selected" in stats
 
 
 def test_disabled_aquifer_still_builds(phase2a_manifest) -> None:
@@ -174,15 +178,17 @@ def test_schema_version_is_v2(full_evidence) -> None:
     assert "selection_stats" in context.to_dict()
 
 
-def test_phase3b_golden_fixtures(full_evidence) -> None:
-    assert PHASE3B_EXEGESIS.exists()
-    assert PHASE3B_HISTORICAL.exists()
-    golden_ex = json.loads(PHASE3B_EXEGESIS.read_text(encoding="utf-8"))
-    golden_hi = json.loads(PHASE3B_HISTORICAL.read_text(encoding="utf-8"))
+def test_phase3c_golden_fixtures(full_evidence) -> None:
+    assert PHASE3C_EXEGESIS.exists()
+    assert PHASE3C_HISTORICAL.exists()
+    golden_ex = json.loads(PHASE3C_EXEGESIS.read_text(encoding="utf-8"))
+    golden_hi = json.loads(PHASE3C_HISTORICAL.read_text(encoding="utf-8"))
     ex = build_context_from_evidence(full_evidence, PROFILE_EXEGESIS).to_dict()
     hi = build_context_from_evidence(full_evidence, PROFILE_HISTORICAL).to_dict()
     assert ex["estimated_tokens"] == golden_ex["estimated_tokens"]
-    assert ex["selection_stats"]["aquifer_selected"] == golden_ex["selection_stats"]["aquifer_selected"]
+    assert ex["selection_stats"]["study_notes_selected"] == golden_ex["selection_stats"]["study_notes_selected"]
+    assert ex["selection_stats"]["dictionary_selected"] == golden_ex["selection_stats"]["dictionary_selected"]
     assert ex["evidence_ids"] == golden_ex["evidence_ids"]
     assert hi["estimated_tokens"] == golden_hi["estimated_tokens"]
+    assert hi["selection_stats"]["dictionary_selected"] == golden_hi["selection_stats"]["dictionary_selected"]
     assert hi["evidence_ids"] == golden_hi["evidence_ids"]

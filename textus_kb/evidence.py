@@ -8,11 +8,16 @@ from typing import Any
 
 PILOT_BUILD_ID = "kb-phase2a-john4-pilot-v1"
 PILOT_BUILD_ID_WITH_AQUIFER = "kb-phase3a-john4-pilot-v1"
+PILOT_BUILD_ID_WITH_DICTIONARY = "kb-phase3c-john4-pilot-v1"
 
 # Deterministic relevance tiers (higher = retained first under token budget).
 RELEVANCE_DIRECT_PASSAGE = 100
 RELEVANCE_PASSAGE_PLACE = 85
 RELEVANCE_EXEGETICAL_NOTE = 82
+RELEVANCE_DICTIONARY_PASSAGE = 88
+RELEVANCE_DICTIONARY_ENTITY = 80
+RELEVANCE_DICTIONARY_TOPIC = 72
+RELEVANCE_DICTIONARY_BACKGROUND = 65
 RELEVANCE_PLACE_CATALOG = 75
 RELEVANCE_LEXICAL_HIGHLIGHT = 70
 RELEVANCE_PLACE_ENRICHMENT = 45
@@ -24,6 +29,7 @@ RELATION_PASSAGE_PLACE = "passage_place_link"
 RELATION_PLACE_CATALOG = "place_catalog"
 RELATION_PLACE_ENRICHMENT = "place_enrichment"
 RELATION_EXEGETICAL_NOTE = "exegetical_note"
+RELATION_DICTIONARY_BACKGROUND = "dictionary_background"
 
 
 @dataclass(frozen=True)
@@ -210,10 +216,10 @@ def estimate_supplemental_tokens(packet: EvidencePacket) -> int:
 
 
 def estimate_trimmable_supplemental_tokens(packet: EvidencePacket) -> int:
-    """Supplemental estimate excluding passage tokens and Aquifer exegetical notes."""
+    """Supplemental estimate excluding passage tokens, Aquifer notes, and dictionary evidence."""
     total = 0
     for item in packet.evidence_items:
-        if item.relation_type == RELATION_EXEGETICAL_NOTE:
+        if item.relation_type in {RELATION_EXEGETICAL_NOTE, RELATION_DICTIONARY_BACKGROUND}:
             continue
         total += item.estimated_tokens()
     for place in packet.places:

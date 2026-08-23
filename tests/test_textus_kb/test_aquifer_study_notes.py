@@ -106,7 +106,7 @@ def test_retrieval_includes_aquifer_evidence_deterministically() -> None:
         if item["relation_type"] == "exegetical_note"
     ]
     assert len(aquifer_items) == 24
-    assert first["build"]["build_id"] == "kb-phase3a-john4-pilot-v1"
+    assert first["build"]["build_id"] == "kb-phase3c-john4-pilot-v1"
 
 
 def test_evidence_ids_unique_and_stable() -> None:
@@ -161,12 +161,11 @@ def test_exegesis_context_token_budget() -> None:
 
 
 def test_matches_phase3a_golden_fixtures() -> None:
-    """Evidence packet golden remains Phase 3A; context selection is Phase 3B."""
+    """Study Notes evidence count remains Phase 3A; build id bumps when dictionary is enabled."""
     if not PACKET_WITH_AQUIFER.exists():
         pytest.skip("Phase 3A golden fixtures not generated yet.")
     golden_packet = json.loads(PACKET_WITH_AQUIFER.read_text(encoding="utf-8"))
     packet = json.loads(retrieve_to_json("Jn 4,1-42"))
-    assert packet["build"]["build_id"] == golden_packet["build"]["build_id"]
     aquifer_count = sum(
         1 for item in packet["evidence_items"] if item["relation_type"] == "exegetical_note"
     )
@@ -175,5 +174,5 @@ def test_matches_phase3a_golden_fixtures() -> None:
     context = build_context_from_evidence(retrieve("Jn 4,1-42"), PROFILE_EXEGESIS).to_dict()
     assert "exegetical" in {section["type"] for section in context["sections"]}
     assert context["schema_version"] == "2"
-    assert context["selection_stats"]["aquifer_selected"] < aquifer_count
+    assert context["selection_stats"]["study_notes_selected"] < aquifer_count
     assert context["estimated_tokens"] <= context["max_tokens"]

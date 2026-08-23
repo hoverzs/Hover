@@ -8,6 +8,7 @@ from pathlib import Path
 
 import pytest
 
+from textus_kb.importers.aquifer_bible_dictionary import AQUIFER_DICTIONARY_SOURCE_ID
 from textus_kb.importers.aquifer_study_notes import AQUIFER_SOURCE_ID
 from textus_kb.manifest import KnowledgeBaseManifest, load_manifest
 
@@ -17,7 +18,7 @@ def phase2a_manifest_fixture() -> KnowledgeBaseManifest:
     base = json.loads(Path("textus_kb/data/kb_manifest.json").read_text(encoding="utf-8"))
     payload = deepcopy(base)
     for source in payload["sources"]:
-        if source["id"] == AQUIFER_SOURCE_ID:
+        if source["id"] in {AQUIFER_SOURCE_ID, AQUIFER_DICTIONARY_SOURCE_ID}:
             source["enabled"] = False
     path = Path("tests/fixtures/kb/tmp_manifest_phase2a.json")
     path.parent.mkdir(parents=True, exist_ok=True)
