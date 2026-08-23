@@ -23,10 +23,14 @@ def main(argv: list[str] | None = None) -> int:
         from textus_kb.retrieval import main as retrieve_main
 
         return retrieve_main(rest)
+    if command == "context":
+        from textus_kb.context_builder import main as context_main
+
+        return context_main(rest)
 
     print(
         f"Unknown command: {command!r}. "
-        "Use: python -m textus_kb [health|retrieve] ...",
+        "Use: python -m textus_kb [health|retrieve|context] ...",
         file=sys.stderr,
     )
     return 2

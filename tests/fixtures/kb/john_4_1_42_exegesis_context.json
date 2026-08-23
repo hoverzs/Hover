@@ -1,0 +1,378 @@
+{
+  "estimated_tokens": 894,
+  "evidence_ids": [
+    "EV-TAGNT-0002",
+    "EV-TAGNT-0001",
+    "EV-LEX-0003",
+    "EV-LEX-0004",
+    "EV-LEX-0005",
+    "EV-LEX-0006",
+    "EV-LEX-0007",
+    "EV-LEX-0008",
+    "EV-LEX-0009",
+    "EV-LEX-0010",
+    "EV-LEX-0011",
+    "EV-LEX-0012",
+    "EV-LEX-0013",
+    "EV-LEX-0014",
+    "EV-PLACE-0001",
+    "EV-PLACE-0003",
+    "EV-PLACE-0007",
+    "EV-PLACE-0009",
+    "EV-PLACE-0011",
+    "EV-PLACE-0013",
+    "EV-PLACE-0002",
+    "EV-PLACE-0004",
+    "EV-PLACE-0008",
+    "EV-PLACE-0010",
+    "EV-PLACE-0012",
+    "EV-PLACE-0014",
+    "EV-PLACE-0005",
+    "EV-PLACE-0006"
+  ],
+  "evidence_packet_build_id": "kb-phase2a-john4-pilot-v1",
+  "passage": "John.4.1-42",
+  "passage_display": "Jn 4,1-42",
+  "profile": "exegesis",
+  "schema_version": "1",
+  "sections": [
+    {
+      "items": [
+        {
+          "evidence_id": "EV-TAGNT-0002",
+          "item_type": "passage",
+          "metadata": {},
+          "relevance_score": 100,
+          "source_id": "stepbible_tagnt",
+          "text": "Canonical passage: John.4.1-42 (Jn 4,1-42)"
+        },
+        {
+          "evidence_id": "EV-TAGNT-0001",
+          "item_type": "passage_summary",
+          "metadata": {
+            "token_count": 723,
+            "verse_count": 42
+          },
+          "relevance_score": 98,
+          "source_id": "stepbible_tagnt",
+          "text": "Greek NT coverage: 42 verses, 723 tokens (compact view; full set in Evidence Packet)."
+        }
+      ],
+      "type": "passage"
+    },
+    {
+      "items": [
+        {
+          "evidence_id": "EV-LEX-0003",
+          "item_type": "linguistic",
+          "metadata": {
+            "lemma": "ὁ",
+            "strong_id": "G3588",
+            "verse": 1
+          },
+          "relevance_score": 88,
+          "source_id": "stepbible_tbesg",
+          "text": "Jn 4,1 — ὁ (G3588), morph=T-NSM, \"the/this/who\" / \"a, az\""
+        },
+        {
+          "evidence_id": "EV-LEX-0004",
+          "item_type": "linguistic",
+          "metadata": {
+            "lemma": "αὐτός",
+            "strong_id": "G0846",
+            "verse": 2
+          },
+          "relevance_score": 88,
+          "source_id": "stepbible_tbesg",
+          "text": "Jn 4,2 — αὐτὸς (G0846), pronoun, \"it/s/he\" / \"ő; maga\""
+        },
+        {
+          "evidence_id": "EV-LEX-0005",
+          "item_type": "linguistic",
+          "metadata": {
+            "lemma": "καί",
+            "strong_id": "G2532",
+            "verse": 1
+          },
+          "relevance_score": 88,
+          "source_id": "stepbible_tbesg",
+          "text": "Jn 4,1 — καὶ (G2532), conjunction, \"and\" / \"és\""
+        },
+        {
+          "evidence_id": "EV-LEX-0006",
+          "item_type": "linguistic",
+          "metadata": {
+            "lemma": "εἰμί",
+            "strong_id": "G1510",
+            "verse": 6
+          },
+          "relevance_score": 88,
+          "source_id": "stepbible_tbesg",
+          "text": "Jn 4,6 — ἦν (G1510), verb, \"to be\" / \"van; lenni\""
+        },
+        {
+          "evidence_id": "EV-LEX-0007",
+          "item_type": "linguistic",
+          "metadata": {
+            "lemma": "λέγω",
+            "strong_id": "G3004G",
+            "verse": 7
+          },
+          "relevance_score": 88,
+          "source_id": "lexicon_hu_overlay",
+          "text": "Jn 4,7 — λέγει (G3004G), verb, \"mond; szól\""
+        },
+        {
+          "evidence_id": "EV-LEX-0008",
+          "item_type": "linguistic",
+          "metadata": {
+            "lemma": "σύ",
+            "strong_id": "G4771",
+            "verse": 9
+          },
+          "relevance_score": 88,
+          "source_id": "stepbible_tbesg",
+          "text": "Jn 4,9 — σὺ (G4771), pronoun, \"you\" / \"te\""
+        },
+        {
+          "evidence_id": "EV-LEX-0009",
+          "item_type": "linguistic",
+          "metadata": {
+            "lemma": "ὅτι",
+            "strong_id": "G3754G",
+            "verse": 1
+          },
+          "relevance_score": 88,
+          "source_id": "lexicon_hu_overlay",
+          "text": "Jn 4,1 — ὅτι (G3754G), conjunction, \"hogy; mert\""
+        },
+        {
+          "evidence_id": "EV-LEX-0010",
+          "item_type": "linguistic",
+          "metadata": {
+            "lemma": "γυνή",
+            "strong_id": "G1135G",
+            "verse": 7
+          },
+          "relevance_score": 88,
+          "source_id": "lexicon_hu_overlay",
+          "text": "Jn 4,7 — γυνὴ (G1135G), noun, \"nő\""
+        },
+        {
+          "evidence_id": "EV-LEX-0011",
+          "item_type": "linguistic",
+          "metadata": {
+            "lemma": "Ἰησοῦς",
+            "strong_id": "G2424G",
+            "verse": 1
+          },
+          "relevance_score": 88,
+          "source_id": "lexicon_hu_overlay",
+          "text": "Jn 4,1 — Ἰησοῦς (G2424G), noun, \"Jézus\""
+        },
+        {
+          "evidence_id": "EV-LEX-0012",
+          "item_type": "linguistic",
+          "metadata": {
+            "lemma": "μέ",
+            "strong_id": "G3165",
+            "verse": 7
+          },
+          "relevance_score": 88,
+          "source_id": "stepbible_tbesg",
+          "text": "Jn 4,7 — μοι (G3165), pronoun, \"me\" / \"engem\""
+        },
+        {
+          "evidence_id": "EV-LEX-0013",
+          "item_type": "linguistic",
+          "metadata": {
+            "lemma": "ὅς",
+            "strong_id": "G3739",
+            "verse": 5
+          },
+          "relevance_score": 88,
+          "source_id": "stepbible_tbesg",
+          "text": "Jn 4,5 — ὃ (G3739), morph=R-ASN, \"which\" / \"aki; amely\""
+        },
+        {
+          "evidence_id": "EV-LEX-0014",
+          "item_type": "linguistic",
+          "metadata": {
+            "lemma": "ἔρχομαι",
+            "strong_id": "G2064",
+            "verse": 5
+          },
+          "relevance_score": 88,
+          "source_id": "stepbible_tbesg",
+          "text": "Jn 4,5 — ἔρχεται (G2064), verb, \"to come/go\" / \"jön; megy\""
+        }
+      ],
+      "type": "linguistic"
+    },
+    {
+      "items": [
+        {
+          "evidence_id": "EV-PLACE-0001",
+          "item_type": "place_link",
+          "metadata": {
+            "place_id": "galilee_1"
+          },
+          "relevance_score": 70,
+          "source_id": "biblical_places_passage_links",
+          "text": "Galilea (galilee_1) linked to passage via Jn 4,3: OpenBible vers-hivatkozásból generált helykapcsolat."
+        },
+        {
+          "evidence_id": "EV-PLACE-0003",
+          "item_type": "place_link",
+          "metadata": {
+            "place_id": "jerusalem"
+          },
+          "relevance_score": 70,
+          "source_id": "biblical_places_passage_links",
+          "text": "Jeruzsálem (jerusalem) linked to passage via Jn 4,20: OpenBible vers-hivatkozásból generált helykapcsolat."
+        },
+        {
+          "evidence_id": "EV-PLACE-0007",
+          "item_type": "place_link",
+          "metadata": {
+            "place_id": "judea_1"
+          },
+          "relevance_score": 70,
+          "source_id": "biblical_places_passage_links",
+          "text": "Júdea (judea_1) linked to passage via Jn 4,3: OpenBible vers-hivatkozásból generált helykapcsolat."
+        },
+        {
+          "evidence_id": "EV-PLACE-0009",
+          "item_type": "place_link",
+          "metadata": {
+            "place_id": "mount_gerizim"
+          },
+          "relevance_score": 70,
+          "source_id": "biblical_places_passage_links",
+          "text": "Garizim-hegy (mount_gerizim) linked to passage via Jn 4,20: OpenBible vers-hivatkozásból generált helykapcsolat."
+        },
+        {
+          "evidence_id": "EV-PLACE-0011",
+          "item_type": "place_link",
+          "metadata": {
+            "place_id": "samaria_2"
+          },
+          "relevance_score": 70,
+          "source_id": "biblical_places_passage_links",
+          "text": "Samária vidéke (samaria_2) linked to passage via Jn 4,4: OpenBible vers-hivatkozásból generált helykapcsolat."
+        },
+        {
+          "evidence_id": "EV-PLACE-0013",
+          "item_type": "place_link",
+          "metadata": {
+            "place_id": "sychar"
+          },
+          "relevance_score": 70,
+          "source_id": "biblical_places_passage_links",
+          "text": "Sikár (sychar) linked to passage via Jn 4,5: OpenBible vers-hivatkozásból generált helykapcsolat."
+        },
+        {
+          "evidence_id": "EV-PLACE-0002",
+          "item_type": "place_catalog",
+          "metadata": {
+            "place_id": "galilee_1"
+          },
+          "relevance_score": 60,
+          "source_id": "biblical_places_catalog",
+          "text": "Észak-Izrael történeti régiója, Jézus szolgálatának számos fontos helyszínével. A terület ma Izrael északi részén fekszik."
+        },
+        {
+          "evidence_id": "EV-PLACE-0004",
+          "item_type": "place_catalog",
+          "metadata": {
+            "place_id": "jerusalem"
+          },
+          "relevance_score": 60,
+          "source_id": "biblical_places_catalog",
+          "text": "Jeruzsálem a bibliai elbeszélés központi városa, a Templom és több újszövetségi esemény helyszíne."
+        },
+        {
+          "evidence_id": "EV-PLACE-0008",
+          "item_type": "place_catalog",
+          "metadata": {
+            "place_id": "judea_1"
+          },
+          "relevance_score": 60,
+          "source_id": "biblical_places_catalog",
+          "text": "A júdai tartomány bibliai és történeti régiója, amely az ószövetségi és újszövetségi szövegekben is szerepel."
+        },
+        {
+          "evidence_id": "EV-PLACE-0010",
+          "item_type": "place_catalog",
+          "metadata": {
+            "place_id": "mount_gerizim"
+          },
+          "relevance_score": 60,
+          "source_id": "biblical_places_catalog",
+          "text": "Sikem mellett emelkedő hegy, az áldás kihirdetésének és a samaritánus istentiszteletnek fontos helye. A mai Náblusz fölött található."
+        },
+        {
+          "evidence_id": "EV-PLACE-0012",
+          "item_type": "place_catalog",
+          "metadata": {
+            "place_id": "samaria_2"
+          },
+          "relevance_score": 60,
+          "source_id": "biblical_places_catalog",
+          "text": "Az északi országrész és későbbi tartomány neve, amely az Apostolok cselekedeteiben a jeruzsálemi misszió egyik első terjeszkedési területe. Központi térsége a mai Szamária vidékén található."
+        },
+        {
+          "evidence_id": "EV-PLACE-0014",
+          "item_type": "place_catalog",
+          "metadata": {
+            "place_id": "sychar"
+          },
+          "relevance_score": 60,
+          "source_id": "biblical_places_catalog",
+          "text": "Samáriai település Jákób kútja közelében, ahol Jézus a samáriai asszonnyal beszélgetett. A mai Aszkár környékével azonosítják."
+        }
+      ],
+      "type": "places"
+    },
+    {
+      "items": [
+        {
+          "evidence_id": "EV-PLACE-0005",
+          "item_type": "enrichment",
+          "metadata": {
+            "place_id": "jerusalem",
+            "section_key": "biblical_significance"
+          },
+          "relevance_score": 40,
+          "source_id": "place_enrichments_overlay",
+          "text": "Jeruzsálem a passage-indexben 956 bibliai hivatkozáshoz kapcsolódik. A route-adatok 3 bibliai útvonalhoz kötik. Jeruzsálem a bibliai elbeszélés központi városa, a Templom és több újszövetségi esemény helyszíne."
+        },
+        {
+          "evidence_id": "EV-PLACE-0006",
+          "item_type": "enrichment",
+          "metadata": {
+            "place_id": "jerusalem",
+            "section_key": "key_events"
+          },
+          "relevance_score": 40,
+          "source_id": "place_enrichments_overlay",
+          "text": "Felmegy és köszönti a gyülekezetet; a route ezt Jeruzsálem valószínű értelmezéseként jelöli. Felmennek Jeruzsálembe, ahol a testvérek fogadják őket. Pál Jeruzsálemben kerül őrizetbe, majd a továbbszállítás előkészítése megtörténik. (ApCsel 18,22, ApCsel 21,15-17, ApCsel 21,17-23,22)"
+        }
+      ],
+      "type": "background"
+    }
+  ],
+  "source_ids": [
+    "biblical_places_catalog",
+    "biblical_places_passage_links",
+    "lexicon_hu_overlay",
+    "place_enrichments_overlay",
+    "stepbible_tagnt",
+    "stepbible_tbesg"
+  ],
+  "token_budget": 4500,
+  "truncated": false,
+  "warnings": [
+    "RUF local text source is disabled by manifest policy; packet excludes RUF prose."
+  ]
+}
