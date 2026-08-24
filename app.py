@@ -4897,11 +4897,18 @@ def validate_exegesis_has_support(text: str) -> list[str]:
 
 
 KB_SHADOW_FLAG = "TEXTUS_KB_SHADOW_ENABLED"
+KB_GROUNDED_FLAG = "TEXTUS_KB_GROUNDED_ENABLED"
 KB_SHADOW_SESSION_KEY = "_kb_shadow_runs"
+KB_GROUNDED_SESSION_KEY = "_kb_grounded_runs"
 
 
 def _is_kb_shadow_enabled() -> bool:
     raw = (os.getenv(KB_SHADOW_FLAG, "false") or "").strip().lower()
+    return raw in {"1", "true", "yes", "on"}
+
+
+def _is_kb_grounded_enabled() -> bool:
+    raw = (os.getenv(KB_GROUNDED_FLAG, "false") or "").strip().lower()
     return raw in {"1", "true", "yes", "on"}
 
 
@@ -4970,10 +4977,13 @@ def generate_section(key: str) -> bool:
             use_search=use_search,
             passage=(st.session_state.get("last_igehely") or "").strip(),
             shadow_enabled=_is_kb_shadow_enabled(),
+            grounded_enabled=_is_kb_grounded_enabled(),
             generate_text_fn=generate_text,
             shadow_runner_fn=_run_kb_shadow_for_section,
         )
         st.session_state[key] = run.production_output
+        if run.grounded_event is not None and not run.grounded_event.get("grounded_disabled"):
+            st.session_state.setdefault(KB_GROUNDED_SESSION_KEY, []).append(dict(run.grounded_event))
         artifact = run.shadow_event
         if artifact is not None:
             st.session_state.setdefault(KB_SHADOW_SESSION_KEY, []).append(dict(artifact))
@@ -4993,6 +5003,10 @@ def generate_section(key: str) -> bool:
                     "shadow_tokens": int(artifact.get("token_estimate", 0)),
                     "shadow_sources": int(artifact.get("source_count", 0)),
                     "shadow_warning_count": len(artifact.get("retrieval_warnings") or []),
+                    "grounded_used": bool(
+                        (run.grounded_event or {}).get("grounded_used")
+                    ),
+                    "provider_prompt_kind": run.provider_prompt_kind,
                 }
             )
         if key == "exegesis":

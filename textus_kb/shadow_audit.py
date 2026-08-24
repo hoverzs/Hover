@@ -14,7 +14,7 @@ from typing import Any
 from textus_kb.paths import GENERATED_DATA_DIR
 
 SHADOW_STORE_FLAG = "TEXTUS_KB_SHADOW_STORE_ENABLED"
-SCHEMA_VERSION = "2"
+SCHEMA_VERSION = "3"
 DEFAULT_AUDIT_DB_PATH = GENERATED_DATA_DIR / "kb_shadow_audit.sqlite3"
 
 # Never persist these keys if present on an artifact/event dict.
@@ -74,6 +74,13 @@ class ShadowAuditRecord:
     kb_prompt_ratio: float = 0.0
     composition_version: str = ""
     prompt_hash: str = ""
+    # Phase 5D grounded injection metadata.
+    grounded_flag_enabled: int = 0
+    grounded_used: int = 0
+    grounded_fallback: int = 0
+    fallback_reason: str = ""
+    provider_call_count: int = 1
+    grounded_status: str = ""
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -117,7 +124,13 @@ def create_schema(connection: sqlite3.Connection) -> None:
             composed_prompt_estimated_tokens INTEGER NOT NULL DEFAULT 0,
             kb_prompt_ratio REAL NOT NULL DEFAULT 0,
             composition_version TEXT NOT NULL DEFAULT '',
-            prompt_hash TEXT NOT NULL DEFAULT ''
+            prompt_hash TEXT NOT NULL DEFAULT '',
+            grounded_flag_enabled INTEGER NOT NULL DEFAULT 0,
+            grounded_used INTEGER NOT NULL DEFAULT 0,
+            grounded_fallback INTEGER NOT NULL DEFAULT 0,
+            fallback_reason TEXT NOT NULL DEFAULT '',
+            provider_call_count INTEGER NOT NULL DEFAULT 1,
+            grounded_status TEXT NOT NULL DEFAULT ''
         );
 
         CREATE INDEX IF NOT EXISTS idx_shadow_runs_passage
@@ -138,7 +151,7 @@ def create_schema(connection: sqlite3.Connection) -> None:
 
 
 def _migrate_shadow_runs_columns(connection: sqlite3.Connection) -> None:
-    """Backward-compatible additive migration for Phase 5C metrics."""
+    """Backward-compatible additive migration for Phase 5C/5D metrics."""
     existing = {
         str(row[1]) for row in connection.execute("PRAGMA table_info(shadow_runs)").fetchall()
     }
@@ -148,6 +161,12 @@ def _migrate_shadow_runs_columns(connection: sqlite3.Connection) -> None:
         ("kb_prompt_ratio", "REAL NOT NULL DEFAULT 0"),
         ("composition_version", "TEXT NOT NULL DEFAULT ''"),
         ("prompt_hash", "TEXT NOT NULL DEFAULT ''"),
+        ("grounded_flag_enabled", "INTEGER NOT NULL DEFAULT 0"),
+        ("grounded_used", "INTEGER NOT NULL DEFAULT 0"),
+        ("grounded_fallback", "INTEGER NOT NULL DEFAULT 0"),
+        ("fallback_reason", "TEXT NOT NULL DEFAULT ''"),
+        ("provider_call_count", "INTEGER NOT NULL DEFAULT 1"),
+        ("grounded_status", "TEXT NOT NULL DEFAULT ''"),
     ]
     for name, decl in additions:
         if name not in existing:
@@ -188,15 +207,29 @@ def artifact_to_audit_record(artifact: dict[str, Any]) -> ShadowAuditRecord:
         module=str(artifact.get("module") or ""),
         profile=str(artifact.get("profile") or ""),
         evidence_build_id=str(artifact.get("evidence_packet_build_id") or ""),
-        context_schema_version=str(context_packet.get("schema_version") or ""),
+        context_schema_version=str(
+            context_packet.get("schema_version")
+            or artifact.get("context_schema_version")
+            or ""
+        ),
         source_ids=source_ids,
-        evidence_count=int(artifact.get("evidence_item_count") or 0),
+        evidence_count=int(
+            artifact.get("evidence_item_count") or artifact.get("evidence_count") or 0
+        ),
         entity_count=int(artifact.get("entity_count") or 0),
-        selected_item_count=int(artifact.get("selected_context_count") or 0),
-        context_tokens=int(artifact.get("token_estimate") or 0),
+        selected_item_count=int(
+            artifact.get("selected_context_count") or artifact.get("selected_item_count") or 0
+        ),
+        context_tokens=int(
+            artifact.get("token_estimate") or artifact.get("kb_context_estimated_tokens") or 0
+        ),
         retrieval_ms=int(artifact.get("retrieval_duration_ms") or 0),
         context_build_ms=int(artifact.get("context_build_duration_ms") or 0),
-        warning_count=len(artifact.get("retrieval_warnings") or []),
+        warning_count=int(
+            artifact.get("warning_count")
+            if artifact.get("warning_count") is not None
+            else len(artifact.get("retrieval_warnings") or [])
+        ),
         status=str(artifact.get("status") or ("success" if artifact.get("success") else "error")),
         production_prompt_chars=prompt_chars,
         production_output_chars=output_chars,
@@ -214,6 +247,16 @@ def artifact_to_audit_record(artifact: dict[str, Any]) -> ShadowAuditRecord:
             artifact.get("composition_version") or preview.get("composition_version") or ""
         ),
         prompt_hash=str(artifact.get("prompt_hash") or preview.get("prompt_hash") or ""),
+        grounded_flag_enabled=1
+        if artifact.get("grounded_flag_enabled")
+        or artifact.get("grounded_used")
+        or artifact.get("grounded_fallback")
+        else 0,
+        grounded_used=1 if artifact.get("grounded_used") else 0,
+        grounded_fallback=1 if artifact.get("grounded_fallback") else 0,
+        fallback_reason=str(artifact.get("fallback_reason") or ""),
+        provider_call_count=int(artifact.get("provider_call_count") or 1),
+        grounded_status=str(artifact.get("grounded_status") or ""),
     )
 
 
@@ -258,8 +301,10 @@ def persist_shadow_audit(
                     retrieval_ms, context_build_ms, warning_count, status,
                     production_prompt_chars, production_output_chars, generation_ms,
                     composed_prompt_chars, composed_prompt_estimated_tokens,
-                    kb_prompt_ratio, composition_version, prompt_hash
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    kb_prompt_ratio, composition_version, prompt_hash,
+                    grounded_flag_enabled, grounded_used, grounded_fallback,
+                    fallback_reason, provider_call_count, grounded_status
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     record.run_id,
@@ -287,6 +332,12 @@ def persist_shadow_audit(
                     record.kb_prompt_ratio,
                     record.composition_version,
                     record.prompt_hash,
+                    record.grounded_flag_enabled,
+                    record.grounded_used,
+                    record.grounded_fallback,
+                    record.fallback_reason,
+                    record.provider_call_count,
+                    record.grounded_status,
                 ),
             )
     return record

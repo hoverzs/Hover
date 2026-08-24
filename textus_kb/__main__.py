@@ -47,11 +47,15 @@ def main(argv: list[str] | None = None) -> int:
         from textus_kb.prompt_composer import main as prompt_preview_main
 
         return prompt_preview_main(rest)
+    if command == "grounded-compare":
+        from textus_kb.grounded_compare import main as grounded_compare_main
+
+        return grounded_compare_main(rest)
 
     print(
         f"Unknown command: {command!r}. "
         "Use: python -m textus_kb [health|retrieve|context|entity|shadow|"
-        "shadow-report|shadow-compare|prompt-preview] ...",
+        "shadow-report|shadow-compare|prompt-preview|grounded-compare] ...",
         file=sys.stderr,
     )
     return 2
