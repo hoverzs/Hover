@@ -44,11 +44,28 @@ from the CLI default. Dev runner:
 
 ## Budget note (real production prompts)
 
-Long exegesis prompts (Greek token blocks) can exceed the default 8k grounded
-budget. Composition auto-expands the budget to
-`production_tokens + KB reserve` (ceiling 32k) so the production prompt is never
-truncated and KB context can still be attached. Explicit `--token-budget` values
-in tests remain unchanged.
+The old Phase 5C **8000** value is no longer the total grounded prompt max.
+
+Bounded adaptive model:
+
+| Limit | Env | Default |
+|-------|-----|---------|
+| KB context max | `TEXTUS_KB_GROUNDED_CONTEXT_MAX_TOKENS` | **4500** (matches Context Builder exegesis) |
+| Total hard safety cap | `TEXTUS_KB_GROUNDED_TOTAL_MAX_TOKENS` | **28000** |
+
+`required ≈ production_tokens + kb_tokens + composition_overhead`
+
+- Production prompt is **immutable** (never truncated).
+- Oversized KB is trimmed via Context Selection priorities.
+- If production + minimum usable KB still exceeds the total hard cap → structured `budget_exceeded` (B error in compare; A unchanged).
+
+The total cap is an explicit safety config — the app only sets `maxOutputTokens`; there is no reliable in-repo model input-window claim.
+
+Dry-run check (no provider calls):
+
+```powershell
+python scripts/phase5g_budget_dry_run.py
+```
 
 ## Print manual commands (does not execute)
 

@@ -19,15 +19,30 @@ from textus_kb.evidence import estimate_text_tokens
 from textus_kb.shadow import MODULE_TO_PROFILE
 
 COMPOSITION_VERSION = "1"
+# Legacy name retained for compatibility; no longer the total grounded prompt max.
+# Prefer CONTEXT_MAX + TOTAL_MAX below.
 DEFAULT_GROUNDED_PROMPT_TOKEN_BUDGET = 8000
 BUDGET_ENV = "TEXTUS_KB_GROUNDED_PROMPT_TOKEN_BUDGET"
-# When the real production prompt (e.g. long Greek token blocks) already exceeds
-# the configured budget, expand so production text is never truncated and a
-# small KB reserve remains available for grounding.
+
+# KB-only allowance (matches Context Builder exegesis max_tokens).
+CONTEXT_MAX_ENV = "TEXTUS_KB_GROUNDED_CONTEXT_MAX_TOKENS"
+DEFAULT_KB_CONTEXT_MAX_TOKENS = 4500
+
+# Total hard safety cap for composed grounded prompt (production + KB + overhead).
+# Not a provider context-window claim — app only configures maxOutputTokens;
+# no reliable model-specific input limit is coded in-repo. Configurable safety.
+TOTAL_MAX_ENV = "TEXTUS_KB_GROUNDED_TOTAL_MAX_TOKENS"
+DEFAULT_TOTAL_GROUNDED_MAX_TOKENS = 28000
+
+# Deprecated expand helpers (kept for import compatibility; unused by composer).
 KB_TOKEN_RESERVE_ENV = "TEXTUS_KB_GROUNDED_KB_TOKEN_RESERVE"
 PROMPT_TOKEN_CEILING_ENV = "TEXTUS_KB_GROUNDED_PROMPT_TOKEN_CEILING"
 DEFAULT_KB_TOKEN_RESERVE = 2000
 DEFAULT_PROMPT_TOKEN_CEILING = 32000
+
+BUDGET_STATUS_OK = "ok"
+BUDGET_STATUS_TRIMMED = "trimmed"
+BUDGET_STATUS_EXCEEDED = "exceeded"
 
 # Preferred layout for a future Phase 5D injection (documented in phase5c.md):
 # 1) existing production instructions
@@ -83,17 +98,35 @@ class GroundedPromptPreview:
     composition_version: str = COMPOSITION_VERSION
     source_diversity: dict[str, int] = field(default_factory=dict)
     duplicate_text_ratio: float = 0.0
-    token_budget: int = DEFAULT_GROUNDED_PROMPT_TOKEN_BUDGET
+    token_budget: int = DEFAULT_TOTAL_GROUNDED_MAX_TOKENS
     budget_ok: bool = True
     composed_prompt: str = ""  # in-memory only; never audit-persisted
     success: bool = True
     error: str = ""
+    composition_overhead_estimated_tokens: int = 0
+    kb_context_max_tokens: int = DEFAULT_KB_CONTEXT_MAX_TOKENS
+    total_grounded_max_tokens: int = DEFAULT_TOTAL_GROUNDED_MAX_TOKENS
+    kb_trim_applied: bool = False
+    budget_status: str = BUDGET_STATUS_OK
 
     def to_dict(self, *, include_prompt: bool = False) -> dict[str, Any]:
         payload = asdict(self)
         if not include_prompt:
             payload.pop("composed_prompt", None)
         return payload
+
+    def budget_diagnostics(self) -> dict[str, Any]:
+        return {
+            "production_prompt_estimated_tokens": self.original_prompt_estimated_tokens,
+            "kb_context_estimated_tokens": self.kb_context_estimated_tokens,
+            "composition_overhead_estimated_tokens": self.composition_overhead_estimated_tokens,
+            "total_grounded_estimated_tokens": self.composed_prompt_estimated_tokens,
+            "kb_context_max_tokens": self.kb_context_max_tokens,
+            "total_grounded_max_tokens": self.total_grounded_max_tokens,
+            "kb_trim_applied": self.kb_trim_applied,
+            "budget_status": self.budget_status,
+            "budget_ok": self.budget_ok,
+        }
 
     def audit_metrics(self) -> dict[str, Any]:
         """Privacy-safe metrics suitable for shadow audit persistence."""
@@ -108,12 +141,21 @@ class GroundedPromptPreview:
             "original_prompt_chars": self.original_prompt_chars,
             "original_prompt_estimated_tokens": self.original_prompt_estimated_tokens,
             "budget_ok": self.budget_ok,
+            "budget_status": self.budget_status,
+            "kb_trim_applied": self.kb_trim_applied,
+            "composition_overhead_estimated_tokens": self.composition_overhead_estimated_tokens,
+            "kb_context_max_tokens": self.kb_context_max_tokens,
+            "total_grounded_max_tokens": self.total_grounded_max_tokens,
             "duplicate_text_ratio": self.duplicate_text_ratio,
             "source_diversity": dict(self.source_diversity),
         }
 
 
 def grounded_prompt_token_budget(default: int = DEFAULT_GROUNDED_PROMPT_TOKEN_BUDGET) -> int:
+    """Legacy helper: returns TOTAL_MAX when new env set, else old BUDGET_ENV/default."""
+    total = grounded_total_max_tokens()
+    if (os.getenv(TOTAL_MAX_ENV) or "").strip():
+        return total
     raw = (os.getenv(BUDGET_ENV) or "").strip()
     if not raw:
         return int(default)
@@ -124,8 +166,8 @@ def grounded_prompt_token_budget(default: int = DEFAULT_GROUNDED_PROMPT_TOKEN_BU
     return value if value > 0 else int(default)
 
 
-def grounded_kb_token_reserve(default: int = DEFAULT_KB_TOKEN_RESERVE) -> int:
-    raw = (os.getenv(KB_TOKEN_RESERVE_ENV) or "").strip()
+def _positive_int_env(name: str, default: int) -> int:
+    raw = (os.getenv(name) or "").strip()
     if not raw:
         return int(default)
     try:
@@ -133,17 +175,43 @@ def grounded_kb_token_reserve(default: int = DEFAULT_KB_TOKEN_RESERVE) -> int:
     except ValueError:
         return int(default)
     return value if value > 0 else int(default)
+
+
+def grounded_kb_context_max_tokens(default: int = DEFAULT_KB_CONTEXT_MAX_TOKENS) -> int:
+    return _positive_int_env(CONTEXT_MAX_ENV, default)
+
+
+def grounded_total_max_tokens(default: int = DEFAULT_TOTAL_GROUNDED_MAX_TOKENS) -> int:
+    # Prefer explicit TOTAL_MAX; fall back to legacy BUDGET_ENV if set.
+    if (os.getenv(TOTAL_MAX_ENV) or "").strip():
+        return _positive_int_env(TOTAL_MAX_ENV, default)
+    if (os.getenv(BUDGET_ENV) or "").strip():
+        return _positive_int_env(BUDGET_ENV, default)
+    return int(default)
+
+
+def resolve_grounded_budget_limits(
+    *,
+    token_budget: int | None = None,
+) -> tuple[int, int]:
+    """Return (kb_context_max_tokens, total_grounded_max_tokens).
+
+    Explicit ``token_budget`` (tests/CLI) overrides the total hard cap only.
+    """
+    kb_max = grounded_kb_context_max_tokens()
+    if token_budget is not None:
+        return kb_max, int(token_budget)
+    return kb_max, grounded_total_max_tokens()
+
+
+def grounded_kb_token_reserve(default: int = DEFAULT_KB_TOKEN_RESERVE) -> int:
+    """Deprecated — prefer grounded_kb_context_max_tokens()."""
+    return _positive_int_env(KB_TOKEN_RESERVE_ENV, default)
 
 
 def grounded_prompt_token_ceiling(default: int = DEFAULT_PROMPT_TOKEN_CEILING) -> int:
-    raw = (os.getenv(PROMPT_TOKEN_CEILING_ENV) or "").strip()
-    if not raw:
-        return int(default)
-    try:
-        value = int(raw)
-    except ValueError:
-        return int(default)
-    return value if value > 0 else int(default)
+    """Deprecated — prefer grounded_total_max_tokens()."""
+    return grounded_total_max_tokens(default=default)
 
 
 def expand_budget_for_production_prompt(
@@ -153,11 +221,30 @@ def expand_budget_for_production_prompt(
     kb_reserve: int | None = None,
     ceiling: int | None = None,
 ) -> int:
-    """Ensure budget >= production_tokens + KB reserve (never truncate production)."""
-    reserve = grounded_kb_token_reserve() if kb_reserve is None else int(kb_reserve)
-    cap = grounded_prompt_token_ceiling() if ceiling is None else int(ceiling)
-    needed = max(0, int(production_tokens)) + max(0, reserve)
+    """Deprecated compatibility shim.
+
+    New model: total_max is independent of production size; KB has its own
+    allowance. This shim returns max(budget, production + kb_allowance) capped
+    by total_max so older callers do not treat 8k as a hard fail on large prompts.
+    """
+    kb_allow = grounded_kb_context_max_tokens() if kb_reserve is None else int(kb_reserve)
+    cap = grounded_total_max_tokens() if ceiling is None else int(ceiling)
+    needed = max(0, int(production_tokens)) + max(0, kb_allow)
     return min(max(int(budget), needed), cap)
+
+
+def estimate_composition_overhead_tokens(
+    production_prompt: str,
+    canonical_passage: str,
+) -> int:
+    """Tokens added by composer framing with an empty KB block."""
+    production_tokens = estimate_text_tokens(production_prompt) if production_prompt else 0
+    framed = _assemble_prompt(
+        production_prompt=production_prompt or "",
+        canonical_passage=canonical_passage or "",
+        kb_block="",
+    )
+    return max(0, estimate_text_tokens(framed) - production_tokens)
 
 
 def normalize_prompt_text(text: str) -> str:
@@ -355,24 +442,43 @@ def _shrink_packet_for_budget(
     packet: LLMContextPacket,
     *,
     production_prompt: str,
-    token_budget: int,
-) -> tuple[LLMContextPacket, list[str]]:
-    """Reduce KB sections until assembled prompt fits; never truncate production prompt."""
+    total_max_tokens: int,
+    kb_max_tokens: int,
+) -> tuple[LLMContextPacket, list[str], bool]:
+    """Reduce KB sections until composed prompt fits total + KB caps.
+
+    Never truncates the production prompt. Returns (packet, warnings, trim_applied).
+    """
     warnings: list[str] = []
     working = packet
-    # First try dropping whole low-priority sections.
-    for drop_type in _TRIM_SECTION_ORDER:
+    trim_applied = False
+
+    def _kb_and_total(pkt: LLMContextPacket) -> tuple[int, int]:
+        kb_text = render_kb_context(pkt)[0]
+        kb_tok = estimate_text_tokens(kb_text) if kb_text else 0
         composed = _assemble_prompt(
             production_prompt=production_prompt,
-            canonical_passage=working.passage,
-            kb_block=render_kb_context(working)[0],
+            canonical_passage=pkt.passage,
+            kb_block=kb_text,
         )
-        if estimate_text_tokens(composed) <= token_budget:
-            return working, warnings
+        return kb_tok, estimate_text_tokens(composed)
+
+    def _fits(pkt: LLMContextPacket) -> bool:
+        kb_tok, total_tok = _kb_and_total(pkt)
+        return kb_tok <= kb_max_tokens and total_tok <= total_max_tokens
+
+    if _fits(working):
+        return working, warnings, False
+
+    # First try dropping whole low-priority sections.
+    for drop_type in _TRIM_SECTION_ORDER:
+        if _fits(working):
+            return working, warnings, trim_applied
         remaining = [s for s in working.sections if s.type != drop_type]
         if len(remaining) == len(working.sections):
             continue
         warnings.append(f"Trimmed KB section for prompt budget: {drop_type}")
+        trim_applied = True
         working = LLMContextPacket(
             passage=working.passage,
             passage_display=working.passage_display,
@@ -392,15 +498,7 @@ def _shrink_packet_for_budget(
         )
 
     # Then drop trailing items within remaining sections (lowest relevance last).
-    while True:
-        composed = _assemble_prompt(
-            production_prompt=production_prompt,
-            canonical_passage=working.passage,
-            kb_block=render_kb_context(working)[0],
-        )
-        if estimate_text_tokens(composed) <= token_budget:
-            return working, warnings
-        # Find a droppable item: last item of lowest-priority non-empty section.
+    while not _fits(working):
         drop_section_idx = None
         for section_type in _TRIM_SECTION_ORDER:
             for idx, section in enumerate(working.sections):
@@ -412,6 +510,7 @@ def _shrink_packet_for_budget(
         if drop_section_idx is None:
             break
         section = working.sections[drop_section_idx]
+        trim_applied = True
         if len(section.items) <= 1:
             new_sections = [s for i, s in enumerate(working.sections) if i != drop_section_idx]
             warnings.append(f"Removed last item/section for prompt budget: {section.type}")
@@ -438,11 +537,13 @@ def _shrink_packet_for_budget(
             selection_stats=dict(working.selection_stats),
         )
 
-    warnings.append(
-        f"Grounded prompt still exceeds token_budget={token_budget} after KB trimming; "
-        "production prompt was not truncated."
-    )
-    return working, warnings
+    if not _fits(working):
+        warnings.append(
+            f"Grounded prompt still exceeds total_max={total_max_tokens} "
+            f"or kb_max={kb_max_tokens} after KB trimming; "
+            "production prompt was not truncated."
+        )
+    return working, warnings, trim_applied
 
 
 def _duplicate_text_ratio(packet: LLMContextPacket) -> float:
@@ -473,35 +574,74 @@ def compose_grounded_prompt(
     module: str,
     context_packet: LLMContextPacket | dict[str, Any],
     token_budget: int | None = None,
+    kb_context_max_tokens: int | None = None,
 ) -> GroundedPromptPreview:
-    """Compose a dry-run grounded prompt preview. Never calls a model provider."""
-    original_tokens_pre = estimate_text_tokens(production_prompt) if production_prompt else 0
-    if token_budget is not None:
-        # Explicit budgets (tests / callers) are respected as-is.
-        budget = int(token_budget)
-    else:
-        budget = expand_budget_for_production_prompt(
-            grounded_prompt_token_budget(),
-            original_tokens_pre,
-        )
+    """Compose a dry-run grounded prompt preview. Never calls a model provider.
+
+    Budget model (adaptive but bounded):
+    - production prompt is immutable (never truncated);
+    - KB context has its own max (default 4500);
+    - total composed prompt has a hard safety cap (default 28000);
+    - required ≈ production + KB + composition overhead.
+    """
+    kb_max, total_max = resolve_grounded_budget_limits(token_budget=token_budget)
+    if kb_context_max_tokens is not None:
+        kb_max = int(kb_context_max_tokens)
+
     module_key = module if module != "history" else "historical_context"
-    if module_key not in _SUPPORTED_MODULES and module_key not in MODULE_TO_PROFILE:
+    production_tokens = estimate_text_tokens(production_prompt) if production_prompt else 0
+    overhead = estimate_composition_overhead_tokens(
+        production_prompt or "",
+        canonical_passage or "",
+    )
+
+    def _fail_preview(
+        *,
+        error: str,
+        warnings: list[str] | None = None,
+        profile: str = "",
+        success: bool = False,
+    ) -> GroundedPromptPreview:
         return GroundedPromptPreview(
             canonical_passage=canonical_passage,
-            module=module,
-            profile="",
-            original_prompt_chars=len(production_prompt),
-            original_prompt_estimated_tokens=estimate_text_tokens(production_prompt),
+            module=module_key if module_key in _SUPPORTED_MODULES else module,
+            profile=profile,
+            original_prompt_chars=len(production_prompt or ""),
+            original_prompt_estimated_tokens=production_tokens,
             kb_context_chars=0,
             kb_context_estimated_tokens=0,
             composed_prompt_chars=0,
             composed_prompt_estimated_tokens=0,
             kb_prompt_ratio=0.0,
-            warnings=[f"Unsupported module for grounded prompt dry-run: {module!r}"],
-            token_budget=budget,
+            warnings=list(warnings or []),
+            token_budget=total_max,
             budget_ok=False,
-            success=False,
+            success=success,
+            error=error,
+            composition_overhead_estimated_tokens=overhead,
+            kb_context_max_tokens=kb_max,
+            total_grounded_max_tokens=total_max,
+            kb_trim_applied=False,
+            budget_status=BUDGET_STATUS_EXCEEDED,
+        )
+
+    if module_key not in _SUPPORTED_MODULES and module_key not in MODULE_TO_PROFILE:
+        return _fail_preview(
             error=f"Unsupported module: {module!r}",
+            warnings=[f"Unsupported module for grounded prompt dry-run: {module!r}"],
+        )
+
+    # Production alone must fit under the hard cap with framing overhead.
+    if production_tokens + overhead > total_max:
+        return _fail_preview(
+            error=(
+                f"Production prompt ({production_tokens}) + composition overhead "
+                f"({overhead}) exceeds total hard cap ({total_max}); "
+                "production prompt was not truncated."
+            ),
+            warnings=["production_plus_overhead_exceeds_total_max"],
+            profile=str(MODULE_TO_PROFILE.get(module, MODULE_TO_PROFILE.get(module_key, ""))),
+            success=True,
         )
 
     profile = MODULE_TO_PROFILE.get(module, MODULE_TO_PROFILE.get(module_key, ""))
@@ -512,12 +652,13 @@ def compose_grounded_prompt(
 
         original_prompt = production_prompt  # never mutated / truncated
         original_chars = len(original_prompt)
-        original_tokens = estimate_text_tokens(original_prompt) if original_prompt else 0
+        original_tokens = production_tokens
 
-        trimmed, trim_warnings = _shrink_packet_for_budget(
+        trimmed, trim_warnings, kb_trim_applied = _shrink_packet_for_budget(
             packet,
             production_prompt=original_prompt,
-            token_budget=budget,
+            total_max_tokens=total_max,
+            kb_max_tokens=kb_max,
         )
         kb_text, source_ids, evidence_ids, render_warnings = render_kb_context(trimmed)
         kb_chars = len(kb_text)
@@ -534,12 +675,23 @@ def compose_grounded_prompt(
 
         composed_chars = len(composed)
         composed_tokens = estimate_text_tokens(composed)
+        # Measured overhead after composition (accounts for non-empty KB delimiters).
+        measured_overhead = max(0, composed_tokens - original_tokens - kb_tokens)
         ratio = round(kb_tokens / composed_tokens, 4) if composed_tokens else 0.0
-        budget_ok = composed_tokens <= budget
+
+        within_kb = kb_tokens <= kb_max
+        within_total = composed_tokens <= total_max
+        budget_ok = within_kb and within_total
+        if budget_ok:
+            budget_status = BUDGET_STATUS_TRIMMED if kb_trim_applied else BUDGET_STATUS_OK
+        else:
+            budget_status = BUDGET_STATUS_EXCEEDED
+
         warnings = list(packet.warnings) + trim_warnings + render_warnings
-        if not budget_ok and not any("exceeds token_budget" in w for w in warnings):
+        if not budget_ok and not any("exceeds" in w for w in warnings):
             warnings.append(
-                f"Grounded prompt estimated_tokens={composed_tokens} exceeds budget={budget}."
+                f"Grounded prompt estimated_tokens={composed_tokens} exceeds "
+                f"total_max={total_max} or kb_max={kb_max}."
             )
 
         prompt_hash = hashlib.sha256(composed.encode("utf-8")).hexdigest()
@@ -561,10 +713,15 @@ def compose_grounded_prompt(
             composition_version=COMPOSITION_VERSION,
             source_diversity=_source_diversity(source_ids),
             duplicate_text_ratio=_duplicate_text_ratio(trimmed),
-            token_budget=budget,
+            token_budget=total_max,
             budget_ok=budget_ok,
             composed_prompt=composed,
             success=True,
+            composition_overhead_estimated_tokens=measured_overhead or overhead,
+            kb_context_max_tokens=kb_max,
+            total_grounded_max_tokens=total_max,
+            kb_trim_applied=kb_trim_applied,
+            budget_status=budget_status,
         )
     except Exception as exc:
         return GroundedPromptPreview(
@@ -581,10 +738,15 @@ def compose_grounded_prompt(
             composed_prompt_estimated_tokens=0,
             kb_prompt_ratio=0.0,
             warnings=[],
-            token_budget=budget,
+            token_budget=total_max,
             budget_ok=False,
             success=False,
             error=f"{type(exc).__name__}: {exc}",
+            composition_overhead_estimated_tokens=overhead,
+            kb_context_max_tokens=kb_max,
+            total_grounded_max_tokens=total_max,
+            kb_trim_applied=False,
+            budget_status=BUDGET_STATUS_EXCEEDED,
         )
 
 
@@ -698,20 +860,29 @@ def main(argv: list[str] | None = None) -> int:
 
 
 __all__ = [
+    "BUDGET_STATUS_EXCEEDED",
+    "BUDGET_STATUS_OK",
+    "BUDGET_STATUS_TRIMMED",
     "COMPOSITION_VERSION",
     "DEFAULT_GROUNDED_PROMPT_TOKEN_BUDGET",
+    "DEFAULT_KB_CONTEXT_MAX_TOKENS",
     "DEFAULT_KB_TOKEN_RESERVE",
     "DEFAULT_PROMPT_TOKEN_CEILING",
+    "DEFAULT_TOTAL_GROUNDED_MAX_TOKENS",
     "DRY_RUN_PRODUCTION_STUB",
     "GroundedPromptPreview",
     "attach_grounded_preview_metrics",
     "compose_grounded_prompt",
+    "estimate_composition_overhead_tokens",
     "evidence_attribution_marker",
     "expand_budget_for_production_prompt",
+    "grounded_kb_context_max_tokens",
     "grounded_kb_token_reserve",
     "grounded_prompt_token_budget",
     "grounded_prompt_token_ceiling",
+    "grounded_total_max_tokens",
     "main",
     "normalize_prompt_text",
     "render_kb_context",
+    "resolve_grounded_budget_limits",
 ]

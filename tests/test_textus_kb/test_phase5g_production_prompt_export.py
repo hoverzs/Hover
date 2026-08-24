@@ -41,12 +41,17 @@ def test_build_production_prompt_matches_section_keys() -> None:
     assert hist.include_original_language_tokens is False
 
 
-def test_large_production_prompt_expands_budget_without_truncation() -> None:
+def test_large_production_prompt_uses_adaptive_budget_without_truncation() -> None:
     from textus_kb.grounded_generation import prepare_grounded_provider_prompt
-    from textus_kb.prompt_composer import expand_budget_for_production_prompt
+    from textus_kb.prompt_composer import (
+        DEFAULT_KB_CONTEXT_MAX_TOKENS,
+        DEFAULT_TOTAL_GROUNDED_MAX_TOKENS,
+        grounded_kb_context_max_tokens,
+        grounded_total_max_tokens,
+    )
 
-    assert expand_budget_for_production_prompt(8000, 16228) == 18228
-    # Real export can be large; grounded prep must still succeed and keep production intact.
+    assert grounded_kb_context_max_tokens() == DEFAULT_KB_CONTEXT_MAX_TOKENS
+    assert grounded_total_max_tokens() == DEFAULT_TOTAL_GROUNDED_MAX_TOKENS
     export = build_production_section_prompt(
         "John.4.1-42",
         module="exegesis",
@@ -61,6 +66,8 @@ def test_large_production_prompt_expands_budget_without_truncation() -> None:
     assert prep.grounded_used is True
     assert prep.grounded_fallback is False
     assert export.production_prompt in (prep.provider_prompt or "")
+    assert prep.original_prompt_estimated_tokens > 8000
+    assert prep.budget_diagnostics.get("budget_ok") is True
 
 
 def test_live_cli_accepts_from_production_flag_without_file() -> None:

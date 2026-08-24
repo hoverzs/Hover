@@ -251,6 +251,25 @@ def run_grounded_compare(
         "grounded_prompt_chars": grounded_prompt_chars,
         "grounded_prompt_estimated_tokens": grounded_prompt_tokens,
         "kb_context_estimated_tokens": prep.kb_context_estimated_tokens,
+        "composition_overhead_estimated_tokens": int(
+            (prep.budget_diagnostics or {}).get("composition_overhead_estimated_tokens") or 0
+        ),
+        "total_grounded_estimated_tokens": int(
+            (prep.budget_diagnostics or {}).get("total_grounded_estimated_tokens")
+            or grounded_prompt_tokens
+            or 0
+        ),
+        "kb_context_max_tokens": int(
+            (prep.budget_diagnostics or {}).get("kb_context_max_tokens") or 0
+        ),
+        "total_grounded_max_tokens": int(
+            (prep.budget_diagnostics or {}).get("total_grounded_max_tokens") or 0
+        ),
+        "kb_trim_applied": bool((prep.budget_diagnostics or {}).get("kb_trim_applied")),
+        "budget_status": str(
+            (prep.budget_diagnostics or {}).get("budget_status")
+            or ("exceeded" if grounded_status != "success" and prep.grounded_fallback else "ok")
+        ),
         "production_output_chars": len(production_output or ""),
         "grounded_output_chars": len(grounded_output or ""),
         "production_output_estimated_tokens": estimate_text_tokens(production_output or ""),
@@ -260,6 +279,7 @@ def run_grounded_compare(
         "production_latency_ms": production_ms,
         "grounded_prep_ms": prep_ms,
         "grounded_latency_ms": grounded_latency_ms,
+        "budget_diagnostics": dict(prep.budget_diagnostics or {}),
     }
 
     return GroundedCompareArtifact(

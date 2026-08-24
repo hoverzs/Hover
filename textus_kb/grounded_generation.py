@@ -133,6 +133,7 @@ class GroundedPreparationResult:
     context_packet: dict[str, Any] = field(default_factory=dict)
     error: str = ""
     cache_info: dict[str, Any] = field(default_factory=dict)
+    budget_diagnostics: dict[str, Any] = field(default_factory=dict)
 
     def to_audit_dict(self) -> dict[str, Any]:
         """Privacy-safe grounded metadata (never includes full prompts)."""
@@ -169,6 +170,7 @@ class GroundedPreparationResult:
             "warning_count": len(self.warnings),
             "retrieval_warnings": list(self.warnings),
             "error": self.error,
+            "budget_diagnostics": dict(self.budget_diagnostics),
             # Flatten for shadow_audit mapper
             "status": "success" if self.grounded_used else ("degraded" if self.grounded_fallback else "success"),
             "success": True,
@@ -446,6 +448,7 @@ def prepare_grounded_provider_prompt(
             production_prompt,
             reason=REASON_BUDGET_EXCEEDED,
             error="Grounded prompt exceeds token budget after KB trim",
+            budget_diagnostics=preview.budget_diagnostics(),
             **base_kwargs,
         )
 
@@ -481,6 +484,7 @@ def prepare_grounded_provider_prompt(
         warnings=list(preview.warnings) + list(context.warnings),
         context_packet=context.to_dict(),
         cache_info=cache_info,
+        budget_diagnostics=preview.budget_diagnostics(),
     )
 
 

@@ -108,10 +108,12 @@ def test_production_prompt_not_modified_or_truncated() -> None:
         canonical_passage="John.4.1-42",
         module="exegesis",
         context_packet=_tiny_packet(),
-        token_budget=200,  # force KB trimming pressure
+        token_budget=900,  # fits production+overhead; forces KB pressure
+        kb_context_max_tokens=50,
     )
     assert production in preview.composed_prompt
     assert preview.original_prompt_chars == len(production)
+    assert preview.kb_context_estimated_tokens <= 50
 
 
 def test_kb_context_render_stable_and_keeps_ids() -> None:
