@@ -124,9 +124,14 @@ def expand_dictionary_evidence(
                     break
 
                 relevance = _expansion_relevance(entity)
+                stable_id = (
+                    f"EV-DICT-{chunk.chunk_id}"
+                    if dictionary_adapter.backend == "sqlite" and chunk.chunk_id
+                    else f"EV-DICT-{counter:04d}"
+                )
                 expanded_items.append(
                     EvidenceItem(
-                        evidence_id=f"EV-DICT-{counter:04d}",
+                        evidence_id=stable_id,
                         source_id=AQUIFER_DICTIONARY_SOURCE_ID,
                         source_type="bible_dictionary",
                         language="en",

@@ -149,6 +149,28 @@ def build_context_to_json(
     return json.dumps(packet.to_dict(), indent=indent, ensure_ascii=False, sort_keys=True)
 
 
+def _dictionary_context_metadata(item: EvidenceItem, canonical_scope: str) -> dict[str, Any]:
+    """Compact dictionary metadata for context selection (avoid large audit lists)."""
+    passage_associations = item.metadata.get("passage_associations")
+    entity_topics = item.metadata.get("entity_topics")
+    return {
+        "article_id": item.metadata.get("article_id"),
+        "chunk_id": item.metadata.get("chunk_id"),
+        "heading": item.metadata.get("heading"),
+        "index_reference": item.metadata.get("index_reference"),
+        "selection_reason": item.metadata.get("selection_reason"),
+        "passage_linked": bool(passage_associations),
+        "entity_topic_count": len(entity_topics) if isinstance(entity_topics, (list, tuple)) else 0,
+        "entity_expansion": item.metadata.get("entity_expansion"),
+        "license": item.metadata.get("license"),
+        "license_url": item.metadata.get("license_url"),
+        "attribution": item.metadata.get("attribution"),
+        "upstream_commit": item.metadata.get("upstream_commit"),
+        "upstream_resource_version": item.metadata.get("upstream_resource_version"),
+        "canonical_scope": canonical_scope,
+    }
+
+
 def _build_exegesis_context(
     evidence: EvidencePacket,
     profile: ContextProfile,
@@ -283,22 +305,7 @@ def _build_exegesis_context(
                 source_id=item.source_id,
                 relevance_score=profile.priorities[RELATION_DICTIONARY_BACKGROUND],
                 item_type="dictionary_background",
-                metadata={
-                    "article_id": item.metadata.get("article_id"),
-                    "chunk_id": item.metadata.get("chunk_id"),
-                    "heading": heading,
-                    "index_reference": item.metadata.get("index_reference"),
-                    "selection_reason": item.metadata.get("selection_reason"),
-                    "passage_associations": item.metadata.get("passage_associations"),
-                    "entity_topics": item.metadata.get("entity_topics"),
-                    "entity_expansion": item.metadata.get("entity_expansion"),
-                    "license": item.metadata.get("license"),
-                    "license_url": item.metadata.get("license_url"),
-                    "attribution": item.metadata.get("attribution"),
-                    "upstream_commit": item.metadata.get("upstream_commit"),
-                    "upstream_resource_version": item.metadata.get("upstream_resource_version"),
-                    "canonical_scope": evidence.passage_canonical,
-                },
+                metadata=_dictionary_context_metadata(item, evidence.passage_canonical),
             )
         )
 
@@ -411,22 +418,7 @@ def _build_historical_context(
                 source_id=item.source_id,
                 relevance_score=profile.priorities[RELATION_DICTIONARY_BACKGROUND],
                 item_type="dictionary_background",
-                metadata={
-                    "article_id": item.metadata.get("article_id"),
-                    "chunk_id": item.metadata.get("chunk_id"),
-                    "heading": heading,
-                    "index_reference": item.metadata.get("index_reference"),
-                    "selection_reason": item.metadata.get("selection_reason"),
-                    "passage_associations": item.metadata.get("passage_associations"),
-                    "entity_topics": item.metadata.get("entity_topics"),
-                    "entity_expansion": item.metadata.get("entity_expansion"),
-                    "license": item.metadata.get("license"),
-                    "license_url": item.metadata.get("license_url"),
-                    "attribution": item.metadata.get("attribution"),
-                    "upstream_commit": item.metadata.get("upstream_commit"),
-                    "upstream_resource_version": item.metadata.get("upstream_resource_version"),
-                    "canonical_scope": evidence.passage_canonical,
-                },
+                metadata=_dictionary_context_metadata(item, evidence.passage_canonical),
             )
         )
 

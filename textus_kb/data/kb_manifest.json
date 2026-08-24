@@ -101,29 +101,29 @@
     },
     {
       "id": "aquifer_open_study_notes",
-      "name": "Aquifer Open Study Notes (English, pilot passages)",
-      "source_type": "exegetical_notes",
+      "name": "Aquifer Open Study Notes (English, SQLite runtime)",
+      "source_type": "sqlite",
       "language": "en",
       "version": "1.1.2",
       "license": "CC-BY-SA-4.0",
       "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
-      "local_path": "data/kb/aquifer/john_4_1_42_study_notes.json",
+      "local_path": "data/generated/aquifer_study_notes.sqlite3",
       "required": false,
       "enabled": true,
-      "usage_note": "Phase 4C multi-pilot: bundles resolved via pilot registry (John.4.1-42, Luke.10.25-37). Legacy manifest path points at John bundle."
+      "usage_note": "Phase 4D: full English corpus SQLite runtime. Pilot JSON bundles retained for parity/regression."
     },
     {
       "id": "aquifer_open_bible_dictionary",
-      "name": "Aquifer Open Bible Dictionary (English, pilot passages)",
-      "source_type": "bible_dictionary",
+      "name": "Aquifer Open Bible Dictionary (English, SQLite runtime)",
+      "source_type": "sqlite",
       "language": "en",
       "version": "1.1.2",
       "license": "CC-BY-SA-4.0",
       "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
-      "local_path": "data/kb/aquifer/john_4_1_42_bible_dictionary.json",
+      "local_path": "data/generated/aquifer_bible_dictionary.sqlite3",
       "required": false,
       "enabled": true,
-      "usage_note": "Phase 4C multi-pilot: bundles resolved via pilot registry (John.4.1-42, Luke.10.25-37). Legacy manifest path points at John bundle."
+      "usage_note": "Phase 4D: full English corpus SQLite runtime. Pilot JSON bundles retained for parity/regression."
     },
     {
       "id": "acai",

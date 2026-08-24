@@ -232,7 +232,7 @@ def prepare_candidates(
                 verse_start = verse_end = verse
                 specificity = 95
         elif item.item_type == "dictionary_background":
-            if item.metadata.get("passage_associations"):
+            if item.metadata.get("passage_associations") or item.metadata.get("passage_linked"):
                 specificity = 95
             elif item.metadata.get("entity_expansion"):
                 if profile.name == "historical_context":

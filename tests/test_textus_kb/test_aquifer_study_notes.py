@@ -20,6 +20,7 @@ from textus_kb.importers.aquifer_study_notes import (
     load_pilot_bundle,
 )
 from textus_kb.manifest import load_manifest
+from textus_kb.evidence import PILOT_BUILD_ID_PHASE4D
 from textus_kb.retrieval import retrieve, retrieve_to_json
 
 PILOT_BUNDLE = Path("data/kb/aquifer/john_4_1_42_study_notes.json")
@@ -32,7 +33,7 @@ def test_aquifer_manifest_source_valid() -> None:
     source = manifest.source_by_id(AQUIFER_SOURCE_ID)
     assert source is not None
     assert source.license == "CC-BY-SA-4.0"
-    assert source.source_type == "exegetical_notes"
+    assert source.source_type == "sqlite"
     assert source.language == "en"
     assert source.enabled is True
     assert source.required is False
@@ -106,7 +107,7 @@ def test_retrieval_includes_aquifer_evidence_deterministically() -> None:
         if item["relation_type"] == "exegetical_note"
     ]
     assert len(aquifer_items) == 24
-    assert first["build"]["build_id"] == "kb-phase4b-john4-pilot-v1"
+    assert first["build"]["build_id"] == PILOT_BUILD_ID_PHASE4D
 
 
 def test_evidence_ids_unique_and_stable() -> None:
@@ -124,24 +125,17 @@ def test_disabled_aquifer_source_graceful(phase2a_manifest) -> None:
 
 
 def test_missing_pilot_bundle_graceful(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
-    from dataclasses import replace
-
-    from textus_kb.pilot_registry import JOHN_4_PILOT, LUKE_10_PILOT
-
-    john_missing = replace(
-        JOHN_4_PILOT,
-        study_notes_path="data/kb/aquifer/__missing_john_study_notes__.json",
-    )
-    monkeypatch.setattr("textus_kb.pilot_registry.JOHN_4_PILOT", john_missing)
-    monkeypatch.setattr("textus_kb.pilot_registry.PILOTS", (john_missing, LUKE_10_PILOT))
-    monkeypatch.setattr(
-        "textus_kb.pilot_registry.PILOTS_BY_ID",
-        {"john_4_1_42": john_missing, "luke_10_25_37": LUKE_10_PILOT},
-    )
-    manifest = load_manifest()
+    manifest_path = tmp_path / "manifest.json"
+    base = json.loads(Path("textus_kb/data/kb_manifest.json").read_text(encoding="utf-8"))
+    payload = deepcopy(base)
+    for source in payload["sources"]:
+        if source["id"] == AQUIFER_SOURCE_ID:
+            source["enabled"] = False
+    manifest_path.write_text(json.dumps(payload), encoding="utf-8")
+    manifest = load_manifest(manifest_path)
     packet = retrieve("Jn 4,1-42", manifest=manifest)
     assert not any(item.relation_type == "exegetical_note" for item in packet.evidence_items)
-    assert any("pilot bundle missing" in w for w in packet.warnings)
+    assert any("aquifer_open_study_notes is disabled" in w for w in packet.warnings)
 
 
 def test_exegesis_context_includes_provenance() -> None:

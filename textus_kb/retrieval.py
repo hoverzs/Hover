@@ -22,6 +22,7 @@ from textus_kb.evidence import (
     PILOT_BUILD_ID_WITH_ACAI,
     PILOT_BUILD_ID_WITH_ACAI_SQLITE,
     PILOT_BUILD_ID_PHASE4C,
+    PILOT_BUILD_ID_PHASE4D,
     RELATION_DIRECT_PASSAGE,
     RELATION_DICTIONARY_BACKGROUND,
     RELATION_EXEGETICAL_NOTE,
@@ -390,16 +391,23 @@ def retrieve(
     aquifer_counter = 1
     if aquifer_source is None or not aquifer_source.enabled:
         warnings.append("Optional source aquifer_open_study_notes is disabled.")
-    elif not aquifer_adapter.pilot_bundle_available(canonical):
-        warnings.append("Optional source aquifer_open_study_notes pilot bundle missing.")
+    elif not aquifer_adapter.store_available():
+        warnings.append("Optional source aquifer_open_study_notes store missing.")
+    elif not aquifer_adapter.passage_has_data(canonical):
+        warnings.append("Optional source aquifer_open_study_notes: no data for this passage.")
     else:
         _add_source_record(sources_used, enabled_sources, "aquifer_open_study_notes")
         meta = aquifer_adapter.bundle_metadata(canonical)
+        use_stable_ids = aquifer_adapter.backend == "sqlite"
         for chunk in aquifer_adapter.load_chunks_for_passage(canonical):
             content_plain = chunk.content_plain
             evidence_items.append(
                 EvidenceItem(
-                    evidence_id=_next_id("AQUIFER", aquifer_counter),
+                    evidence_id=_chunk_evidence_id(
+                        "AQUIFER", chunk.chunk_id, fallback_index=aquifer_counter
+                    )
+                    if use_stable_ids
+                    else _next_id("AQUIFER", aquifer_counter),
                     source_id=AquiferStudyNotesAdapter.SOURCE_ID,
                     source_type="exegetical_note",
                     language="en",
@@ -434,14 +442,21 @@ def retrieve(
     dict_meta = dictionary_adapter.bundle_metadata(canonical)
     if dictionary_source is None or not dictionary_source.enabled:
         warnings.append("Optional source aquifer_open_bible_dictionary is disabled.")
-    elif not dictionary_adapter.pilot_bundle_available(canonical):
-        warnings.append("Optional source aquifer_open_bible_dictionary pilot bundle missing.")
+    elif not dictionary_adapter.store_available():
+        warnings.append("Optional source aquifer_open_bible_dictionary store missing.")
+    elif not dictionary_adapter.passage_has_data(canonical):
+        warnings.append("Optional source aquifer_open_bible_dictionary: no data for this passage.")
     else:
         _add_source_record(sources_used, enabled_sources, "aquifer_open_bible_dictionary")
+        use_stable_dict_ids = dictionary_adapter.backend == "sqlite"
         for chunk in dictionary_adapter.load_chunks_for_passage(canonical):
             evidence_items.append(
                 EvidenceItem(
-                    evidence_id=_next_id("DICT", dictionary_counter),
+                    evidence_id=_chunk_evidence_id(
+                        "DICT", chunk.chunk_id, fallback_index=dictionary_counter
+                    )
+                    if use_stable_dict_ids
+                    else _next_id("DICT", dictionary_counter),
                     source_id=AquiferBibleDictionaryAdapter.SOURCE_ID,
                     source_type="bible_dictionary",
                     language="en",
@@ -544,6 +559,8 @@ def retrieve(
         dictionary_counter,
         len(entity_records),
         acai_backend=acai_adapter.backend if acai_adapter.available else "none",
+        aquifer_backend=aquifer_adapter.backend if aquifer_adapter.available else "none",
+        dictionary_backend=dictionary_adapter.backend if dictionary_adapter.available else "none",
         pilot_id=pilot.id if pilot is not None else None,
         entity_mode=entity_mode,
     )
@@ -623,6 +640,13 @@ def _next_id(prefix: str, index: int) -> str:
     return f"EV-{prefix}-{index:04d}"
 
 
+def _chunk_evidence_id(prefix: str, chunk_id: str, *, fallback_index: int) -> str:
+    token = str(chunk_id or "").strip().replace(" ", "-")
+    if token:
+        return f"EV-{prefix}-{token}"
+    return _next_id(prefix, fallback_index)
+
+
 def _aquifer_relevance(canonical_reference: str, *, pilot_canonical: str | None = None) -> int:
     if pilot_canonical and canonical_reference == pilot_canonical:
         return RELEVANCE_EXEGETICAL_NOTE - 2
@@ -636,9 +660,9 @@ def _aquifer_relevance(canonical_reference: str, *, pilot_canonical: str | None 
 def _dictionary_relevance(chunk: Any) -> int:
     if chunk.passage_associations:
         return RELEVANCE_DICTIONARY_PASSAGE
-    if chunk.selection_reason == "pilot_place_entity_match":
+    if chunk.selection_reason in {"pilot_place_entity_match", "direct_acai_association"}:
         return RELEVANCE_DICTIONARY_ENTITY
-    if chunk.selection_reason == "pilot_index_reference_match":
+    if chunk.selection_reason in {"pilot_index_reference_match", "full_corpus_index"}:
         return RELEVANCE_DICTIONARY_TOPIC
     return RELEVANCE_DICTIONARY_BACKGROUND
 
@@ -649,9 +673,13 @@ def _resolve_build_id(
     entity_count: int,
     *,
     acai_backend: str = "none",
+    aquifer_backend: str = "none",
+    dictionary_backend: str = "none",
     pilot_id: str | None = None,
     entity_mode: EntityRetrievalMode = "direct_plus_entities",
 ) -> str:
+    if aquifer_backend == "sqlite" or dictionary_backend == "sqlite":
+        return PILOT_BUILD_ID_PHASE4D
     if pilot_id == "luke_10_25_37":
         return PILOT_BUILD_ID_PHASE4C
     if entity_count > 0 and acai_backend == "sqlite":

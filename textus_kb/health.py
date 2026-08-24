@@ -100,6 +100,37 @@ class PilotRegistryHealthReport:
 
 
 @dataclass
+class AquiferStudyNotesStoreHealthReport:
+    store_available: bool
+    schema_version: str
+    source_version: str
+    article_count: int
+    chunk_count: int
+    passage_link_count: int
+    import_mode: str
+    warnings: list[str] = field(default_factory=list)
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
+class AquiferDictionaryStoreHealthReport:
+    store_available: bool
+    schema_version: str
+    source_version: str
+    article_count: int
+    chunk_count: int
+    passage_link_count: int
+    acai_link_count: int
+    import_mode: str
+    warnings: list[str] = field(default_factory=list)
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
 class KnowledgeBaseHealthReport:
     overall_status: str  # ok | degraded | error
     manifest_status: str  # ok | error
@@ -109,6 +140,8 @@ class KnowledgeBaseHealthReport:
     canonical_self_tests: list[CanonicalSelfTestResult]
     acai_store: AcaiStoreHealthReport | None = None
     pilot_registry: PilotRegistryHealthReport | None = None
+    aquifer_study_notes_store: AquiferStudyNotesStoreHealthReport | None = None
+    aquifer_dictionary_store: AquiferDictionaryStoreHealthReport | None = None
     errors: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
 
@@ -214,6 +247,8 @@ def run_health_check(
             sources_reports.append(report)
 
     acai_store_report = _acai_store_health(manifest, check_paths=check_paths)
+    study_notes_store_report = _aquifer_study_notes_store_health(manifest, check_paths=check_paths)
+    dictionary_store_report = _aquifer_dictionary_store_health(manifest, check_paths=check_paths)
     pilot_registry_report = _pilot_registry_health(check_paths=check_paths)
     if pilot_registry_report.errors:
         errors.extend(pilot_registry_report.errors)
@@ -244,7 +279,114 @@ def run_health_check(
         canonical_self_tests=canonical_tests,
         acai_store=acai_store_report,
         pilot_registry=pilot_registry_report,
+        aquifer_study_notes_store=study_notes_store_report,
+        aquifer_dictionary_store=dictionary_store_report,
         errors=errors,
+        warnings=warnings,
+    )
+
+
+def _aquifer_study_notes_store_health(
+    manifest: KnowledgeBaseManifest | None,
+    *,
+    check_paths: bool,
+) -> AquiferStudyNotesStoreHealthReport | None:
+    if manifest is None:
+        return None
+    source = manifest.source_by_id("aquifer_open_study_notes")
+    if source is None:
+        return None
+    if not source.enabled:
+        return AquiferStudyNotesStoreHealthReport(
+            store_available=False,
+            schema_version="",
+            source_version=source.version,
+            article_count=0,
+            chunk_count=0,
+            passage_link_count=0,
+            import_mode="",
+            warnings=["Aquifer Study Notes source disabled in manifest."],
+        )
+    path = source.resolved_path
+    if check_paths and not path.is_file():
+        return AquiferStudyNotesStoreHealthReport(
+            store_available=False,
+            schema_version="",
+            source_version=source.version,
+            article_count=0,
+            chunk_count=0,
+            passage_link_count=0,
+            import_mode="",
+            warnings=["Optional Aquifer Study Notes SQLite store file is missing."],
+        )
+    from textus_kb.repositories.aquifer_study_notes_repository import AquiferStudyNotesRepository
+
+    status = AquiferStudyNotesRepository(path).store_status()
+    warnings: list[str] = []
+    if status.available and status.article_count == 0:
+        warnings.append("Aquifer Study Notes store is available but contains zero articles.")
+    return AquiferStudyNotesStoreHealthReport(
+        store_available=status.available,
+        schema_version=status.schema_version,
+        source_version=status.source_version,
+        article_count=status.article_count,
+        chunk_count=status.chunk_count,
+        passage_link_count=status.passage_link_count,
+        import_mode=status.import_mode,
+        warnings=warnings,
+    )
+
+
+def _aquifer_dictionary_store_health(
+    manifest: KnowledgeBaseManifest | None,
+    *,
+    check_paths: bool,
+) -> AquiferDictionaryStoreHealthReport | None:
+    if manifest is None:
+        return None
+    source = manifest.source_by_id("aquifer_open_bible_dictionary")
+    if source is None:
+        return None
+    if not source.enabled:
+        return AquiferDictionaryStoreHealthReport(
+            store_available=False,
+            schema_version="",
+            source_version=source.version,
+            article_count=0,
+            chunk_count=0,
+            passage_link_count=0,
+            acai_link_count=0,
+            import_mode="",
+            warnings=["Aquifer Bible Dictionary source disabled in manifest."],
+        )
+    path = source.resolved_path
+    if check_paths and not path.is_file():
+        return AquiferDictionaryStoreHealthReport(
+            store_available=False,
+            schema_version="",
+            source_version=source.version,
+            article_count=0,
+            chunk_count=0,
+            passage_link_count=0,
+            acai_link_count=0,
+            import_mode="",
+            warnings=["Optional Aquifer Bible Dictionary SQLite store file is missing."],
+        )
+    from textus_kb.repositories.aquifer_dictionary_repository import AquiferDictionaryRepository
+
+    status = AquiferDictionaryRepository(path).store_status()
+    warnings: list[str] = []
+    if status.available and status.article_count == 0:
+        warnings.append("Aquifer Bible Dictionary store is available but contains zero articles.")
+    return AquiferDictionaryStoreHealthReport(
+        store_available=status.available,
+        schema_version=status.schema_version,
+        source_version=status.source_version,
+        article_count=status.article_count,
+        chunk_count=status.chunk_count,
+        passage_link_count=status.passage_link_count,
+        acai_link_count=status.acai_link_count,
+        import_mode=status.import_mode,
         warnings=warnings,
     )
 

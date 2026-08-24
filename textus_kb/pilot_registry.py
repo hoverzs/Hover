@@ -10,16 +10,15 @@ from dataclasses import dataclass
 from textus_kb.canonical_reference import CanonicalReference, CanonicalReferenceError
 from textus_kb.paths import PROJECT_ROOT
 
-# USFM-style book numbers used by Aquifer / ACAI org refs (NT).
-USFM_BOOK_NUMBERS: dict[str, int] = {
-    "Matthew": 40,
-    "Mark": 41,
-    "Luke": 42,
-    "John": 43,
-    "Acts": 44,
-}
+from textus_kb.books import BOOKS
 
-BOOK_ID_BY_USFM: dict[int, str] = {num: book for book, num in USFM_BOOK_NUMBERS.items()}
+# USFM-style book numbers (1–66) aligned with textus_kb.books order.
+USFM_BOOK_NUMBERS: dict[str, int] = {
+    book.osis_id: index for index, book in enumerate(BOOKS, start=1)
+}
+BOOK_ID_BY_USFM: dict[int, str] = {
+    index: book.osis_id for index, book in enumerate(BOOKS, start=1)
+}
 
 
 @dataclass(frozen=True)
