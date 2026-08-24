@@ -136,7 +136,7 @@
       "local_path": "data/generated/acai_entities.sqlite3",
       "required": false,
       "enabled": true,
-      "usage_note": "Phase 4C: SQLite store for John pilot; Luke.10.25-37 entities in data/kb/acai/luke_10_25_37_entities.json. Pilot registry selects bundle per passage."
+      "usage_note": "Phase 4E: full ACAI SQLite runtime (passage-scoped entity lookup). Pilot JSON bundles retained for parity/regression only."
     },
     {
       "id": "ruf_2014_local",

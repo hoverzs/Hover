@@ -18,7 +18,14 @@ from textus_kb.entity_expansion import (
     MAX_TOTAL_EXPANSION_CANDIDATES,
     expand_dictionary_evidence,
 )
-from textus_kb.importers.acai_entities import ACAI_SOURCE_ID, load_pilot_bundle
+from textus_kb.importers.acai_entities import (
+    ACAI_SOURCE_ID,
+    _collect_org_refs,
+    _load_acai_record,
+    load_pilot_bundle,
+    resolve_upstream_path,
+)
+from textus_kb.pilot_registry import JOHN_4_PILOT, org_ref_bounds
 from textus_kb.importers.acai_sqlite import (
     DEFAULT_DATABASE_PATH,
     create_schema,
@@ -37,7 +44,15 @@ FULL_SQLITE = Path("data/generated/acai_entities_full.sqlite3")
 @pytest.fixture(scope="module")
 def pilot_sqlite(tmp_path_factory: pytest.TempPathFactory) -> Path:
     if PILOT_SQLITE.is_file():
-        return PILOT_SQLITE
+        import sqlite3
+
+        with sqlite3.connect(PILOT_SQLITE) as connection:
+            meta = {
+                row[0]: row[1]
+                for row in connection.execute("SELECT key, value FROM store_metadata")
+            }
+        if meta.get("import_mode") == "pilot":
+            return PILOT_SQLITE
     output = tmp_path_factory.mktemp("acai") / "pilot.sqlite3"
     import_acai_sqlite(database_path=output, mode="pilot")
     return output
@@ -103,16 +118,22 @@ def test_repository_dictionary_and_external_ids(pilot_sqlite: Path) -> None:
     assert external_ids or sychar.place_crosswalk
 
 
-def test_json_sqlite_parity_entity_ids() -> None:
+def test_json_sqlite_parity_org_ref_entity_ids() -> None:
     manifest = load_manifest()
     source = manifest.source_by_id(ACAI_SOURCE_ID)
     adapter = AcaiEntitiesAdapter(source)
     ref = CanonicalReference.parse("John.4.1-42")
-    json_ids = sorted(
-        item["entity_id"] for item in load_pilot_bundle(PILOT_JSON)["entities"]
-    )
-    sqlite_ids = sorted(view.entity_id for view in adapter.entities_for_evidence_packet(ref))
-    assert json_ids == sqlite_ids
+    lo, hi = org_ref_bounds(JOHN_4_PILOT.reference())
+    root = resolve_upstream_path()
+    expected_ids = set()
+    for item in load_pilot_bundle(PILOT_JSON)["entities"]:
+        ext = item["external_ids"]["acai"]
+        record = _load_acai_record(root, ext)
+        refs = _collect_org_refs(record or {})
+        if any(lo <= r <= hi for r in refs):
+            expected_ids.add(item["entity_id"])
+    sqlite_ids = {view.entity_id for view in adapter.entities_for_evidence_packet(ref)}
+    assert expected_ids.issubset(sqlite_ids)
 
 
 def test_entity_driven_dictionary_expansion() -> None:

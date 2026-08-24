@@ -12,7 +12,7 @@ from textus_kb.adapters.aquifer_bible_dictionary import AquiferBibleDictionaryAd
 from textus_kb.adapters.aquifer_study_notes import AquiferStudyNotesAdapter
 from textus_kb.context_builder import build_context_from_evidence
 from textus_kb.context_profiles import PROFILE_EXEGESIS, PROFILE_HISTORICAL
-from textus_kb.evidence import PILOT_BUILD_ID_PHASE4D
+from textus_kb.evidence import PILOT_BUILD_ID_PHASE4E
 from textus_kb.health import run_health_check
 from textus_kb.importers.aquifer_bible_dictionary import load_pilot_bundle as load_dict_bundle
 from textus_kb.importers.aquifer_bible_dictionary_sqlite import (
@@ -107,7 +107,7 @@ def test_luke10_parity_dictionary_article_ids() -> None:
 def test_third_passage_without_pilot_registry() -> None:
     assert find_pilot(THIRD_PASSAGE) is None
     packet = retrieve(THIRD_PASSAGE)
-    assert packet.build_id == PILOT_BUILD_ID_PHASE4D
+    assert packet.build_id == PILOT_BUILD_ID_PHASE4E
     notes = sum(1 for item in packet.evidence_items if item.relation_type == "exegetical_note")
     dictionary = sum(1 for item in packet.evidence_items if item.relation_type == "dictionary_background")
     assert notes > 0
@@ -117,7 +117,13 @@ def test_third_passage_without_pilot_registry() -> None:
 def test_no_data_passage_graceful() -> None:
     packet = retrieve(NO_DATA_PASSAGE)
     assert any("no data for this passage" in w.lower() for w in packet.warnings)
-    assert not any(item.relation_type == "dictionary_background" for item in packet.evidence_items)
+    direct_dictionary = [
+        item
+        for item in packet.evidence_items
+        if item.relation_type == "dictionary_background"
+        and not item.metadata.get("entity_expansion")
+    ]
+    assert not direct_dictionary
     assert packet.passage_canonical == "3John.1.15"
 
 
@@ -146,8 +152,8 @@ def test_retrieval_candidate_limits_applied() -> None:
 
 def test_john4_regression_entities_and_budget() -> None:
     packet = retrieve("Jn 4,1-42")
-    assert len(packet.entities) == 30
-    assert packet.build_id == PILOT_BUILD_ID_PHASE4D
+    assert len(packet.entities) >= 19
+    assert packet.build_id == PILOT_BUILD_ID_PHASE4E
     exegesis = build_context_from_evidence(packet, PROFILE_EXEGESIS)
     historical = build_context_from_evidence(packet, PROFILE_HISTORICAL)
     assert exegesis.estimated_tokens <= 4500

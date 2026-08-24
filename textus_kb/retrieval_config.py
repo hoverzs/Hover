@@ -13,3 +13,12 @@ class AquiferRetrievalLimits:
 
 
 DEFAULT_AQUIFER_LIMITS = AquiferRetrievalLimits()
+
+
+@dataclass(frozen=True)
+class AcaiRetrievalLimits:
+    evidence_entity_limit: int = 40
+    context_entity_limit: int = 8
+
+
+DEFAULT_ACAI_LIMITS = AcaiRetrievalLimits()

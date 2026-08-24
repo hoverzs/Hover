@@ -13,6 +13,7 @@ PILOT_BUILD_ID_WITH_ACAI = "kb-phase4a-john4-pilot-v1"
 PILOT_BUILD_ID_WITH_ACAI_SQLITE = "kb-phase4b-john4-pilot-v1"
 PILOT_BUILD_ID_PHASE4C = "kb-phase4c-multipilot-v1"
 PILOT_BUILD_ID_PHASE4D = "kb-phase4d-aquifer-sqlite-v1"
+PILOT_BUILD_ID_PHASE4E = "kb-phase4e-acai-full-runtime-v1"
 
 # Deterministic relevance tiers (higher = retained first under token budget).
 RELEVANCE_DIRECT_PASSAGE = 100

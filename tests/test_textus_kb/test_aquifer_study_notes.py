@@ -20,7 +20,7 @@ from textus_kb.importers.aquifer_study_notes import (
     load_pilot_bundle,
 )
 from textus_kb.manifest import load_manifest
-from textus_kb.evidence import PILOT_BUILD_ID_PHASE4D
+from textus_kb.evidence import PILOT_BUILD_ID_PHASE4E
 from textus_kb.retrieval import retrieve, retrieve_to_json
 
 PILOT_BUNDLE = Path("data/kb/aquifer/john_4_1_42_study_notes.json")
@@ -107,7 +107,7 @@ def test_retrieval_includes_aquifer_evidence_deterministically() -> None:
         if item["relation_type"] == "exegetical_note"
     ]
     assert len(aquifer_items) == 24
-    assert first["build"]["build_id"] == PILOT_BUILD_ID_PHASE4D
+    assert first["build"]["build_id"] == PILOT_BUILD_ID_PHASE4E
 
 
 def test_evidence_ids_unique_and_stable() -> None:

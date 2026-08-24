@@ -14,6 +14,7 @@ from textus_kb.adapters.places import PlacesAdapter
 from textus_kb.adapters.tagnt import TagntAdapter
 from textus_kb.canonical_reference import CanonicalReference, CanonicalReferenceError
 from textus_kb.entity_expansion import expand_dictionary_evidence
+from textus_kb.entity_selection import entity_type_counts
 from textus_kb.expansion_delta import ExpansionDelta, compute_expansion_delta
 from textus_kb.evidence import (
     PILOT_BUILD_ID,
@@ -23,6 +24,7 @@ from textus_kb.evidence import (
     PILOT_BUILD_ID_WITH_ACAI_SQLITE,
     PILOT_BUILD_ID_PHASE4C,
     PILOT_BUILD_ID_PHASE4D,
+    PILOT_BUILD_ID_PHASE4E,
     RELATION_DIRECT_PASSAGE,
     RELATION_DICTIONARY_BACKGROUND,
     RELATION_EXEGETICAL_NOTE,
@@ -506,10 +508,17 @@ def retrieve(
         )
     else:
         _add_source_record(sources_used, enabled_sources, "acai")
-        entity_records = [
-            entity_to_packet_dict(view)
-            for view in acai_adapter.entities_for_evidence_packet(canonical)
-        ]
+        dict_article_ids = frozenset(
+            str(item.metadata.get("article_id") or "")
+            for item in evidence_items
+            if item.relation_type == RELATION_DICTIONARY_BACKGROUND and item.metadata.get("article_id")
+        )
+        passage_entity_views = acai_adapter.entities_for_passage(canonical)
+        entity_views = acai_adapter.entities_for_evidence_packet(
+            canonical,
+            dictionary_article_ids=dict_article_ids,
+        )
+        entity_records = [entity_to_packet_dict(view) for view in entity_views]
         expanded_items: list[EvidenceItem] = []
         expansion_diag = None
         direct_items_before_expansion = list(evidence_items)
@@ -547,6 +556,10 @@ def retrieve(
                 "entity_expansion": expansion_diag.to_dict() if expansion_diag is not None else {},
                 "direct_dictionary_candidates": direct_dictionary_count,
                 "acai_backend": acai_adapter.backend,
+                "acai_import_mode": acai_adapter.import_mode,
+                "passage_entity_count": len(passage_entity_views),
+                "entity_types": entity_type_counts(entity_records),
+                "entities_selected_for_packet": len(entity_records),
                 "expansion_delta": expansion_delta.to_dict(),
             }
         )
@@ -559,6 +572,7 @@ def retrieve(
         dictionary_counter,
         len(entity_records),
         acai_backend=acai_adapter.backend if acai_adapter.available else "none",
+        acai_import_mode=acai_adapter.import_mode if acai_adapter.available else "",
         aquifer_backend=aquifer_adapter.backend if aquifer_adapter.available else "none",
         dictionary_backend=dictionary_adapter.backend if dictionary_adapter.available else "none",
         pilot_id=pilot.id if pilot is not None else None,
@@ -673,11 +687,14 @@ def _resolve_build_id(
     entity_count: int,
     *,
     acai_backend: str = "none",
+    acai_import_mode: str = "",
     aquifer_backend: str = "none",
     dictionary_backend: str = "none",
     pilot_id: str | None = None,
     entity_mode: EntityRetrievalMode = "direct_plus_entities",
 ) -> str:
+    if acai_backend == "sqlite" and acai_import_mode == "full":
+        return PILOT_BUILD_ID_PHASE4E
     if aquifer_backend == "sqlite" or dictionary_backend == "sqlite":
         return PILOT_BUILD_ID_PHASE4D
     if pilot_id == "luke_10_25_37":

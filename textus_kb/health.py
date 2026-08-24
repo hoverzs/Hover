@@ -66,8 +66,10 @@ class AcaiStoreHealthReport:
     entity_count: int
     passage_link_count: int
     dictionary_link_count: int
+    external_id_count: int
     content_hash: str
     import_mode: str
+    database_path_bytes: int
     warnings: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
@@ -249,7 +251,12 @@ def run_health_check(
     acai_store_report = _acai_store_health(manifest, check_paths=check_paths)
     study_notes_store_report = _aquifer_study_notes_store_health(manifest, check_paths=check_paths)
     dictionary_store_report = _aquifer_dictionary_store_health(manifest, check_paths=check_paths)
-    pilot_registry_report = _pilot_registry_health(check_paths=check_paths)
+    pilot_registry_report = _pilot_registry_health(
+        check_paths=check_paths,
+        acai_import_mode=(
+            acai_store_report.import_mode if acai_store_report is not None else ""
+        ),
+    )
     if pilot_registry_report.errors:
         errors.extend(pilot_registry_report.errors)
     if pilot_registry_report.warnings:
@@ -391,10 +398,15 @@ def _aquifer_dictionary_store_health(
     )
 
 
-def _pilot_registry_health(*, check_paths: bool) -> PilotRegistryHealthReport:
+def _pilot_registry_health(
+    *,
+    check_paths: bool,
+    acai_import_mode: str = "",
+) -> PilotRegistryHealthReport:
     registry_errors = validate_pilot_registry()
     pilots: list[PilotBundleHealthReport] = []
     warnings: list[str] = []
+    full_acai_runtime = acai_import_mode == "full"
     for pilot in PILOTS:
         study_ok = pilot.study_notes_resolved.is_file() if check_paths else True
         dict_ok = pilot.dictionary_resolved.is_file() if check_paths else True
@@ -404,7 +416,7 @@ def _pilot_registry_health(*, check_paths: bool) -> PilotRegistryHealthReport:
             pilot_warnings.append(f"Study Notes bundle missing: {pilot.study_notes_path}")
         if check_paths and not dict_ok:
             pilot_warnings.append(f"Dictionary bundle missing: {pilot.dictionary_path}")
-        if check_paths and not acai_ok:
+        if check_paths and not acai_ok and not full_acai_runtime:
             pilot_warnings.append(f"ACAI JSON bundle missing: {pilot.acai_json_path}")
         warnings.extend(f"[{pilot.id}] {msg}" for msg in pilot_warnings)
         pilots.append(
@@ -447,8 +459,10 @@ def _acai_store_health(
             entity_count=0,
             passage_link_count=0,
             dictionary_link_count=0,
+            external_id_count=0,
             content_hash="",
             import_mode="",
+            database_path_bytes=0,
             warnings=["ACAI source disabled in manifest."],
         )
     path = source.resolved_path
@@ -460,8 +474,10 @@ def _acai_store_health(
             entity_count=0,
             passage_link_count=0,
             dictionary_link_count=0,
+            external_id_count=0,
             content_hash="",
             import_mode="",
+            database_path_bytes=0,
             warnings=["Optional ACAI entity store file is missing."],
         )
     if path.suffix.lower() not in {".sqlite3", ".db", ".sqlite"}:
@@ -472,6 +488,7 @@ def _acai_store_health(
     warnings = list(status.warnings)
     if status.available and status.entity_count == 0:
         warnings.append("ACAI store is available but contains zero entities.")
+    db_bytes = path.stat().st_size if path.is_file() else 0
     return AcaiStoreHealthReport(
         store_available=status.available,
         schema_version=status.schema_version,
@@ -479,8 +496,10 @@ def _acai_store_health(
         entity_count=status.entity_count,
         passage_link_count=status.passage_link_count,
         dictionary_link_count=status.dictionary_link_count,
+        external_id_count=status.external_id_count,
         content_hash=status.content_hash,
         import_mode=status.import_mode,
+        database_path_bytes=db_bytes,
         warnings=warnings,
     )
 

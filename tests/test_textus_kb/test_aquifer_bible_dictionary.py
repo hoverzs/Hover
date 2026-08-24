@@ -12,7 +12,7 @@ from textus_kb.adapters.aquifer_bible_dictionary import AquiferBibleDictionaryAd
 from textus_kb.canonical_reference import CanonicalReference
 from textus_kb.context_builder import build_context_from_evidence
 from textus_kb.context_profiles import PROFILE_EXEGESIS, PROFILE_HISTORICAL
-from textus_kb.evidence import PILOT_BUILD_ID_PHASE4D, RELATION_DICTIONARY_BACKGROUND
+from textus_kb.evidence import PILOT_BUILD_ID_PHASE4E, RELATION_DICTIONARY_BACKGROUND
 from textus_kb.importers.aquifer_bible_dictionary import (
     AQUIFER_DICTIONARY_SOURCE_ID,
     AQUIFER_LICENSE,
@@ -106,8 +106,8 @@ def test_retrieval_includes_dictionary_evidence_deterministically() -> None:
         for item in first["evidence_items"]
         if item["relation_type"] == RELATION_DICTIONARY_BACKGROUND
     ]
-    assert len(dictionary_items) == 72
-    assert first["build"]["build_id"] == PILOT_BUILD_ID_PHASE4D
+    assert len(dictionary_items) == 78
+    assert first["build"]["build_id"] == PILOT_BUILD_ID_PHASE4E
 
 
 def test_dictionary_evidence_type_distinct() -> None:
@@ -158,7 +158,7 @@ def test_dictionary_disabled_falls_back_to_phase3b_behavior(tmp_path: Path) -> N
     assert not any(
         item.relation_type == RELATION_DICTIONARY_BACKGROUND for item in packet.evidence_items
     )
-    assert packet.build_id == PILOT_BUILD_ID_PHASE4D
+    assert packet.build_id == PILOT_BUILD_ID_PHASE4E
 
 
 def test_missing_dictionary_bundle_graceful(tmp_path: Path) -> None:
@@ -205,11 +205,11 @@ def test_phase3c_golden_fixtures() -> None:
     assert EXEGESIS_PHASE3C.exists()
     assert HISTORICAL_PHASE3C.exists()
     packet = json.loads(retrieve_to_json("Jn 4,1-42"))
-    assert packet["build"]["build_id"] == PILOT_BUILD_ID_PHASE4D
+    assert packet["build"]["build_id"] == PILOT_BUILD_ID_PHASE4E
     dictionary_count = sum(
         1 for item in packet["evidence_items"] if item["relation_type"] == RELATION_DICTIONARY_BACKGROUND
     )
-    assert dictionary_count == 72
+    assert dictionary_count == 78
 
     ex = build_context_from_evidence(retrieve("Jn 4,1-42"), PROFILE_EXEGESIS).to_dict()
     hi = build_context_from_evidence(retrieve("Jn 4,1-42"), PROFILE_HISTORICAL).to_dict()

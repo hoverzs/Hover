@@ -67,7 +67,7 @@ DEFAULT_TYPE_BUDGETS: dict[str, dict[str, int]] = {
         BUDGET_LINGUISTIC: 900,
         BUDGET_EXEGETICAL: 1700,
         BUDGET_DICTIONARY: 450,
-        BUDGET_ENTITY: 120,
+        BUDGET_ENTITY: 250,
         BUDGET_BACKGROUND: 350,
     },
     PROFILE_HISTORICAL: {
@@ -75,7 +75,7 @@ DEFAULT_TYPE_BUDGETS: dict[str, dict[str, int]] = {
         BUDGET_LINGUISTIC: 200,
         BUDGET_EXEGETICAL: 0,
         BUDGET_DICTIONARY: 1600,
-        BUDGET_ENTITY: 120,
+        BUDGET_ENTITY: 400,
         BUDGET_BACKGROUND: 450,
     },
     PROFILE_THEOLOGY: {

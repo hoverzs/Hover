@@ -399,6 +399,165 @@ def _normalize_entity(
     )
 
 
+# Phase 4A unresolved crosswalks — not auto-linked without explicit upstream external ID.
+UNRESOLVED_CROSSWALK_PLACE_IDS = frozenset({"galilee_1", "judea_1", "samaria_2"})
+
+
+def _normalize_entity_corpus(
+    record: dict[str, Any],
+    *,
+    upstream_commit: str,
+    dictionary_links: list[dict[str, Any]],
+    crosswalk_index: dict[str, str],
+    catalog_places: dict[str, dict[str, Any]],
+) -> KBEntity:
+    """Normalize one ACAI record for full-corpus import (passage relations from org refs)."""
+    external_id = str(record.get("id") or "")
+    entity_type = str(record.get("type") or external_id.split(":", 1)[0])
+    canonical_name = _preferred_label(record)
+    aliases = _collect_aliases(record)
+    org_refs = sorted(_collect_org_refs(record))
+    passage_relations = _passage_relations_from_org_refs(org_refs)
+
+    dictionary_relations = tuple(
+        EntityDictionaryRelation(
+            dictionary_article_id=str(link["dictionary_article_id"]),
+            dictionary_title=str(link["dictionary_title"]),
+            acai_id=external_id,
+            match_method=str(link["match_method"]),
+            match_confidence=_safe_float(link.get("match_confidence")),
+            source_id=ACAI_SOURCE_ID,
+            mapping_method=MAPPING_EXPLICIT,
+        )
+        for link in dictionary_links
+    )
+
+    place_crosswalk = None
+    if entity_type == "place":
+        place_crosswalk = _resolve_place_crosswalk_corpus(
+            record,
+            external_id,
+            canonical_name,
+            crosswalk_index,
+            catalog_places,
+            has_passage_link=bool(passage_relations),
+        )
+
+    metadata = {
+        "primary_id": str(record.get("primary_id") or external_id),
+        "referred_to_as": list(record.get("referred_to_as") or []),
+        "alternate_sources": dict(record.get("alternate_sources") or {}),
+        "is_generic": external_id in GENERIC_ACAI_IDS,
+        "all_org_refs": org_refs,
+    }
+    if record.get("lemmas"):
+        metadata["lemmas"] = dict(record.get("lemmas") or {})
+
+    provenance = {
+        "source_id": ACAI_SOURCE_ID,
+        "external_id": external_id,
+        "upstream_commit": upstream_commit,
+        "upstream_resource_version": ACAI_RELEASE_VERSION,
+        "license": ACAI_LICENSE,
+        "license_url": ACAI_LICENSE_URL,
+        "attribution": ACAI_ATTRIBUTION,
+    }
+
+    return KBEntity(
+        entity_id=textus_entity_id_from_acai(external_id),
+        entity_type=entity_type,
+        canonical_name=canonical_name,
+        source_id=ACAI_SOURCE_ID,
+        external_id=external_id,
+        aliases=aliases,
+        metadata=metadata,
+        provenance=provenance,
+        passage_relations=passage_relations,
+        dictionary_relations=dictionary_relations,
+        place_crosswalk=place_crosswalk,
+    )
+
+
+def _passage_relations_from_org_refs(org_refs: list[str]) -> tuple[EntityPassageRelation, ...]:
+    from textus_kb.pilot_registry import org_ref_to_canonical
+
+    by_canonical: dict[str, list[str]] = {}
+    for ref in org_refs:
+        canonical = org_ref_to_canonical(ref)
+        if canonical:
+            by_canonical.setdefault(canonical, []).append(ref)
+    relations: list[EntityPassageRelation] = []
+    for canonical in sorted(by_canonical):
+        relations.append(
+            EntityPassageRelation(
+                canonical_passage=canonical,
+                relation_type=RELATION_PASSAGE_MENTION,
+                source_id=ACAI_SOURCE_ID,
+                upstream_refs=tuple(sorted(set(by_canonical[canonical]))),
+                mapping_method=MAPPING_EXPLICIT,
+                confidence=MAPPING_EXPLICIT,
+            )
+        )
+    return tuple(relations)
+
+
+def _resolve_place_crosswalk_corpus(
+    record: dict[str, Any],
+    external_id: str,
+    canonical_name: str,
+    crosswalk_index: dict[str, str],
+    catalog_places: dict[str, dict[str, Any]],
+    *,
+    has_passage_link: bool,
+) -> PlaceCrosswalk | None:
+    if not has_passage_link:
+        return None
+    obi_ids = (record.get("alternate_sources") or {}).get("obi") or []
+    for obi in obi_ids:
+        textus_place_id = crosswalk_index.get(str(obi))
+        if not textus_place_id or textus_place_id not in catalog_places:
+            continue
+        if textus_place_id in UNRESOLVED_CROSSWALK_PLACE_IDS:
+            continue
+        place = catalog_places[textus_place_id]
+        return PlaceCrosswalk(
+            textus_place_id=textus_place_id,
+            acai_entity_id=external_id,
+            openbible_id=str(obi),
+            pleiades_id=place.get("pleiades_id"),
+            canonical_name=str(place.get("name_en") or canonical_name),
+            mapping_method=MAPPING_EXTERNAL_ID,
+            confidence=MAPPING_EXTERNAL_ID,
+        )
+    return None
+
+
+def _collect_unresolved_crosswalks_corpus(
+    catalog_places: dict[str, dict[str, Any]],
+    entities: list[KBEntity],
+) -> list[dict[str, Any]]:
+    linked = {
+        entity.place_crosswalk.textus_place_id
+        for entity in entities
+        if entity.place_crosswalk is not None
+    }
+    unresolved: list[dict[str, Any]] = []
+    for place_id in sorted(UNRESOLVED_CROSSWALK_PLACE_IDS):
+        if place_id in linked:
+            continue
+        place = catalog_places.get(place_id, {})
+        unresolved.append(
+            {
+                "textus_place_id": place_id,
+                "name_en": place.get("name_en"),
+                "openbible_id": place.get("openbible_id"),
+                "confidence": MAPPING_UNRESOLVED,
+                "reason": "no_explicit_acai_external_id_or_verified_exact_match",
+            }
+        )
+    return unresolved
+
+
 def _preferred_label(record: dict[str, Any]) -> str:
     localizations = record.get("localizations") or {}
     eng = localizations.get("eng") or {}

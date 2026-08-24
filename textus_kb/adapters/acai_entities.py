@@ -1,4 +1,4 @@
-"""Read-only adapter for ACAI entity store (SQLite + per-pilot JSON bundles)."""
+"""Read-only adapter for ACAI entity store (SQLite primary + JSON pilot fallback)."""
 
 from __future__ import annotations
 
@@ -8,6 +8,7 @@ from typing import Any
 
 from textus_kb.canonical_reference import CanonicalReference
 from textus_kb.entity_models import KBEntity
+from textus_kb.entity_selection import select_entities_for_evidence
 from textus_kb.importers.acai_entities import (
     ACAI_ATTRIBUTION,
     ACAI_LICENSE,
@@ -19,6 +20,7 @@ from textus_kb.importers.acai_entities import (
 from textus_kb.manifest import ManifestSource
 from textus_kb.pilot_registry import PILOTS, find_pilot, get_pilot
 from textus_kb.repositories.acai_entity_repository import AcaiEntityRepository, AcaiStoreStatus
+from textus_kb.retrieval_config import DEFAULT_ACAI_LIMITS, AcaiRetrievalLimits
 
 
 @dataclass(frozen=True)
@@ -38,8 +40,14 @@ class AcaiEntityView:
 class AcaiEntitiesAdapter:
     SOURCE_ID = ACAI_SOURCE_ID
 
-    def __init__(self, source: ManifestSource | None) -> None:
+    def __init__(
+        self,
+        source: ManifestSource | None,
+        *,
+        limits: AcaiRetrievalLimits | None = None,
+    ) -> None:
         self._source = source
+        self._limits = limits or DEFAULT_ACAI_LIMITS
         self._json_cache: dict[str, dict[str, Any]] = {}
         self._repository: AcaiEntityRepository | None = None
         if source is not None and _is_sqlite_source(source.resolved_path):
@@ -58,6 +66,20 @@ class AcaiEntitiesAdapter:
         return "none"
 
     @property
+    def import_mode(self) -> str:
+        if self._repository is not None and self._repository.available:
+            return self._repository.store_status().import_mode
+        return ""
+
+    @property
+    def uses_full_sqlite_runtime(self) -> bool:
+        return (
+            self._repository is not None
+            and self._repository.available
+            and not self._repository.is_pilot_store
+        )
+
+    @property
     def available(self) -> bool:
         if self._source is None or not self._source.enabled:
             return False
@@ -71,21 +93,45 @@ class AcaiEntitiesAdapter:
         return {"available": self.available, "backend": "json"}
 
     def entities_for_passage(self, reference: CanonicalReference) -> list[AcaiEntityView]:
-        pilot = find_pilot(reference)
-        if pilot is None or not self.available:
+        if not self.available:
             return []
-        views = self._entities_for_pilot(pilot, reference)
+        if self.uses_full_sqlite_runtime and self._repository is not None:
+            views = [
+                _entity_to_view(entity)
+                for entity in self._repository.entities_for_passage(reference)
+            ]
+            views = [view for view in views if view.passage_relations]
+            views.sort(key=lambda item: (item.entity_type, item.canonical_name, item.entity_id))
+            return views
+        pilot = find_pilot(reference)
+        if pilot is None:
+            return []
+        views = self._entities_for_pilot_json(pilot, reference)
         linked = [view for view in views if view.passage_relations]
         linked.sort(key=lambda item: (item.entity_type, item.canonical_name, item.entity_id))
         return linked
 
-    def entities_for_evidence_packet(self, reference: CanonicalReference) -> list[AcaiEntityView]:
-        pilot = find_pilot(reference)
-        if pilot is None or not self.available:
+    def entities_for_evidence_packet(
+        self,
+        reference: CanonicalReference,
+        *,
+        dictionary_article_ids: frozenset[str] | None = None,
+    ) -> list[AcaiEntityView]:
+        if not self.available:
             return []
-        # Prefer registry JSON bundle (per-pilot authoritative). Avoid dumping the
-        # John-only SQLite pilot store into other passages.
-        views = self._entities_for_pilot(pilot, reference)
+        if self.uses_full_sqlite_runtime and self._repository is not None:
+            passage_views = self.entities_for_passage(reference)
+            selected = select_entities_for_evidence(
+                passage_views,
+                limit=self._limits.evidence_entity_limit,
+                dictionary_article_ids=dictionary_article_ids,
+            )
+            selected.sort(key=lambda item: (item.entity_type, item.canonical_name, item.entity_id))
+            return selected
+        pilot = find_pilot(reference)
+        if pilot is None:
+            return []
+        views = self._entities_for_pilot_json(pilot, reference)
         views.sort(key=lambda item: (item.entity_type, item.canonical_name, item.entity_id))
         return views
 
@@ -96,7 +142,7 @@ class AcaiEntitiesAdapter:
             entity = self._repository.entity_by_id(entity_id)
             if entity is not None:
                 return _entity_to_view(entity)
-        for pilot in __import__("textus_kb.pilot_registry", fromlist=["PILOTS"]).PILOTS:
+        for pilot in PILOTS:
             for item in self._load_pilot_json(pilot.id).get("entities", []):
                 if isinstance(item, dict) and str(item.get("entity_id")) == entity_id:
                     return _to_view(item)
@@ -112,13 +158,14 @@ class AcaiEntitiesAdapter:
                 _entity_to_view(entity)
                 for entity in self._repository.entities_for_dictionary_article(article_id)
             )
-        for pilot in __import__("textus_kb.pilot_registry", fromlist=["PILOTS"]).PILOTS:
-            for item in self._load_pilot_json(pilot.id).get("entities", []):
-                if not isinstance(item, dict):
-                    continue
-                relations = item.get("dictionary_relations") or []
-                if any(str(rel.get("dictionary_article_id")) == article_id for rel in relations):
-                    matched.append(_to_view(item))
+        if not self.uses_full_sqlite_runtime:
+            for pilot in PILOTS:
+                for item in self._load_pilot_json(pilot.id).get("entities", []):
+                    if not isinstance(item, dict):
+                        continue
+                    relations = item.get("dictionary_relations") or []
+                    if any(str(rel.get("dictionary_article_id")) == article_id for rel in relations):
+                        matched.append(_to_view(item))
         matched.sort(key=lambda view: view.entity_id)
         seen: set[str] = set()
         deduped: list[AcaiEntityView] = []
@@ -138,35 +185,27 @@ class AcaiEntitiesAdapter:
             return views
         return []
 
-    def context_summary_entities(self, *, limit: int = 8) -> list[AcaiEntityView]:
-        candidates = [
-            view
-            for view in self.all_entities()
-            if view.external_id not in GENERIC_ACAI_IDS
-        ]
-        candidates.sort(
-            key=lambda view: (
-                0 if view.passage_relations else 1,
-                0 if view.dictionary_relations else 1,
-                0 if view.place_crosswalk else 1,
-                view.entity_type,
-                view.canonical_name,
-                view.entity_id,
-            )
+    def context_summary_entities(
+        self,
+        reference: CanonicalReference,
+        *,
+        limit: int | None = None,
+        dictionary_article_ids: frozenset[str] | None = None,
+    ) -> list[AcaiEntityView]:
+        cap = limit if limit is not None else self._limits.context_entity_limit
+        candidates = self.entities_for_evidence_packet(
+            reference,
+            dictionary_article_ids=dictionary_article_ids,
         )
-        return candidates[:limit]
+        candidates = [view for view in candidates if view.external_id not in GENERIC_ACAI_IDS]
+        return candidates[:cap]
 
     def bundle_metadata(self, reference: CanonicalReference | None = None) -> dict[str, Any]:
         if not self.available:
             return {}
-        pilot = find_pilot(reference) if reference is not None else None
-        if pilot is not None:
-            bundle = self._load_pilot_json(pilot.id)
-            if bundle:
-                return _metadata_from_bundle(bundle)
         if self._repository is not None and self._repository.available:
             status = self._repository.store_status()
-            return {
+            meta = {
                 "source_id": ACAI_SOURCE_ID,
                 "backend": "sqlite",
                 "upstream_repository": "https://github.com/BibleAquifer/ACAI",
@@ -178,9 +217,27 @@ class AcaiEntitiesAdapter:
                 "import_mode": status.import_mode,
                 "content_hash": status.content_hash,
             }
+            if not self.uses_full_sqlite_runtime:
+                pilot = find_pilot(reference) if reference is not None else None
+                if pilot is not None:
+                    bundle = self._load_pilot_json(pilot.id)
+                    if bundle:
+                        meta.update(
+                            {
+                                "pilot_id": bundle.get("pilot_id"),
+                                "pilot_scope": bundle.get("pilot_scope"),
+                                "pilot_report": bundle.get("pilot_report"),
+                            }
+                        )
+            return meta
+        pilot = find_pilot(reference) if reference is not None else None
+        if pilot is not None:
+            bundle = self._load_pilot_json(pilot.id)
+            if bundle:
+                return _metadata_from_bundle(bundle)
         return {}
 
-    def _entities_for_pilot(
+    def _entities_for_pilot_json(
         self,
         pilot: Any,
         reference: CanonicalReference,
@@ -189,7 +246,6 @@ class AcaiEntitiesAdapter:
         raw_entities = [item for item in bundle.get("entities", []) if isinstance(item, dict)]
         if raw_entities:
             return [_to_view(item) for item in raw_entities]
-        # Fallback when JSON bundle absent: passage-scoped SQLite only.
         if self._repository is not None and self._repository.available:
             entities = self._repository.entities_for_passage(reference)
             return [_entity_to_view(entity) for entity in entities]

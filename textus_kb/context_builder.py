@@ -496,18 +496,19 @@ def _entity_summary_items(
             str(entity.get("entity_id") or ""),
         )
     )
+    passage_label = evidence.passage_display or evidence.passage_canonical
     for entity in entities[:8]:
         entity_id = str(entity.get("entity_id") or "")
         entity_type = str(entity.get("entity_type") or "entity")
         name = str(entity.get("canonical_name") or entity_id)
-        link_bits: list[str] = []
         if entity.get("passage_relations"):
-            link_bits.append("directly linked to Jn 4")
-        if entity.get("dictionary_relations"):
-            link_bits.append("dictionary-linked")
-        if entity.get("place_crosswalk"):
-            link_bits.append(f"place:{entity['place_crosswalk'].get('textus_place_id')}")
-        link_label = ", ".join(link_bits) if link_bits else "ACAI entity"
+            link_label = f"explicitly referenced in {passage_label}"
+        elif entity.get("dictionary_relations"):
+            link_label = f"dictionary-linked for {passage_label}"
+        elif entity.get("place_crosswalk"):
+            link_label = f"place crosswalk ({entity['place_crosswalk'].get('textus_place_id')})"
+        else:
+            link_label = f"ACAI entity for {passage_label}"
         text = f"{name} — {entity_type} — {link_label}"
         summaries.append(
             ContextItem(
@@ -521,6 +522,7 @@ def _entity_summary_items(
                     "external_id": (entity.get("external_ids") or {}).get("acai"),
                     "entity_type": entity_type,
                     "budget_type": "entity",
+                    "canonical_scope": evidence.passage_canonical,
                 },
             )
         )

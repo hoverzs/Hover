@@ -29,15 +29,18 @@ from textus_kb.importers.acai_entities import (
     _build_crosswalk_index,
     _collect_org_refs,
     _collect_unresolved_crosswalks,
+    _collect_unresolved_crosswalks_corpus,
     _load_acai_record,
     _load_catalog_places,
     _normalize_entity,
+    _normalize_entity_corpus,
     import_john_4_pilot,
     load_pilot_bundle,
     read_upstream_commit,
     resolve_upstream_path,
 )
 from textus_kb.paths import PROJECT_ROOT
+from textus_kb.pilot_registry import org_ref_to_canonical
 
 SCHEMA_VERSION = "1"
 DEFAULT_DATABASE_PATH = PROJECT_ROOT / "data" / "generated" / "acai_entities.sqlite3"
@@ -297,7 +300,7 @@ def import_acai_sqlite(
                         (
                             entity.entity_id,
                             org_ref,
-                            _org_ref_to_canonical(org_ref),
+                            org_ref_to_canonical(org_ref),
                             "passage_mention",
                             MAPPING_EXPLICIT,
                             MAPPING_EXPLICIT,
@@ -409,6 +412,13 @@ def _import_full_entities(
 ) -> tuple[list[KBEntity], list[dict[str, Any]], list[dict[str, Any]]]:
     entities: list[KBEntity] = []
     seen_primary: set[str] = set()
+    dictionary_links = (
+        _collect_dictionary_acai_links_from_upstream(dict_upstream) if dict_upstream.is_dir() else []
+    )
+    links_by_acai: dict[str, list[dict[str, Any]]] = {}
+    for link in dictionary_links:
+        links_by_acai.setdefault(link["acai_id"], []).append(link)
+
     for folder in ACAI_TYPE_FOLDERS.values():
         json_dir = root / folder / "json"
         if not json_dir.is_dir():
@@ -422,48 +432,19 @@ def _import_full_entities(
             if primary_id in seen_primary:
                 continue
             seen_primary.add(primary_id)
-            entity = _normalize_entity(
+            entity_links = links_by_acai.get(external_id, [])
+            entity = _normalize_entity_corpus(
                 record,
                 upstream_commit=upstream_commit,
-                dictionary_links=[],
+                dictionary_links=entity_links,
                 crosswalk_index=crosswalk_index,
                 catalog_places=catalog_places,
             )
-            metadata = dict(entity.metadata)
-            metadata["all_org_refs"] = sorted(_collect_org_refs(record))
-            entity = KBEntity(
-                entity_id=entity.entity_id,
-                entity_type=entity.entity_type,
-                canonical_name=entity.canonical_name,
-                source_id=entity.source_id,
-                external_id=entity.external_id,
-                aliases=entity.aliases,
-                metadata=metadata,
-                provenance=entity.provenance,
-                passage_relations=entity.passage_relations,
-                dictionary_relations=entity.dictionary_relations,
-                place_crosswalk=entity.place_crosswalk,
-            )
             entities.append(entity)
 
-    dictionary_links: list[dict[str, Any]] = []
-    if dict_upstream.is_dir():
-        dictionary_links = _collect_dictionary_acai_links_from_upstream(dict_upstream)
-
     entities.sort(key=lambda item: item.entity_id)
-    unresolved = _collect_unresolved_crosswalks(catalog_places, entities, crosswalk_index)
+    unresolved = _collect_unresolved_crosswalks_corpus(catalog_places, entities)
     return entities, dictionary_links, unresolved
-
-
-def _org_ref_to_canonical(org_ref: str) -> str | None:
-    if len(org_ref) != 8 or not org_ref.isdigit():
-        return None
-    book = int(org_ref[:2])
-    if book != 43:
-        return None
-    chapter = int(org_ref[2:5])
-    verse = int(org_ref[5:8])
-    return f"John.{chapter}.{verse}"
 
 
 def _collect_dictionary_acai_links_from_upstream(dict_upstream: Path) -> list[dict[str, Any]]:
