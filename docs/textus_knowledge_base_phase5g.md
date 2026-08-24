@@ -48,29 +48,37 @@ The old Phase 5C **8000** value is no longer the total grounded prompt max.
 
 Bounded adaptive model (**minimize Gemini token usage** — do not pad KB to max):
 
-| Limit | Env / source | Default |
-|-------|--------------|---------|
-| KB **target** (prefer stop) | `TEXTUS_KB_GROUNDED_CONTEXT_TARGET_TOKENS` or module default | exegesis **2500**, historical **2200** |
-| KB **hard max** (safety ceiling) | `TEXTUS_KB_GROUNDED_CONTEXT_MAX_TOKENS` or module default | exegesis **4500**, historical **3500** |
-| Total hard safety cap | `TEXTUS_KB_GROUNDED_TOTAL_MAX_TOKENS` | **28000** |
+| Limit | Applies to | Env / source | Default |
+|-------|------------|--------------|---------|
+| KB **target** (prefer stop) | **KB add-on only** | `TEXTUS_KB_GROUNDED_CONTEXT_TARGET_TOKENS` or module default | exegesis **2500**, historical **2200** |
+| KB **hard max** (safety ceiling) | **KB add-on only** | `TEXTUS_KB_GROUNDED_CONTEXT_MAX_TOKENS` or module default | exegesis **4500**, historical **3500** |
+| Total hard safety cap | full grounded prompt | `TEXTUS_KB_GROUNDED_TOTAL_MAX_TOKENS` | **28000** |
 
-`required ≈ production_tokens + kb_tokens + composition_overhead`
+```
+total_grounded_tokens =
+    production_prompt_tokens
+    + actual_kb_context_tokens
+    + grounded_instruction_overhead
+```
 
+- `target_kb_context_tokens` / `max_kb_context_tokens` never apply to the full prompt or provider window.
+- The selector does **not** increase `actual_kb_context_tokens` because unused target, unused max, or a large context window remains.
+- Example: 16k production + exegesis target 2500, but relevant evidence already covered at 1900 → send **1900**, not 2500, and never 4500.
 - Production prompt is **immutable** (never truncated) in this benchmark round.
-- Context Selector stops near **target**; max is only a ceiling.
-- Do **not** artificially fill remaining budget once important evidence is covered.
-- Oversized KB is trimmed via Context Selection priorities.
+- Diagnostics include unused target/max headroom so thrift is visible.
 - If production + minimum usable KB still exceeds the total hard cap → structured `budget_exceeded` (B error in compare; A unchanged).
 
 The total cap is an explicit safety config — the app only sets `maxOutputTokens`; there is no reliable in-repo model input-window claim.
 
-Dry-run check (no provider calls):
+Dry-run check (no provider calls) — required before any live A/B:
 
 ```powershell
 python scripts/phase5g_budget_dry_run.py
 ```
 
-Reports per pair: production / KB / overhead / total / KB% / target / max / status.
+Reports per pair: production tokens, candidate/selected evidence, target/actual/max KB, unused target/max, overhead, total, KB%, status.
+
+If `actual_kb_context_tokens` is near the hard max (≥80%) while diversity/coverage could hold with less, **do not start live**; fix selection first.
 
 ## Print manual commands (does not execute)
 

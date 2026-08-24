@@ -73,6 +73,8 @@ class SelectionStats:
     target_kb_tokens: int = 0
     max_kb_tokens: int = 0
     actual_kb_tokens: int = 0
+    unused_target_kb_tokens: int = 0
+    unused_max_kb_tokens: int = 0
     source_diversity: dict[str, int] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -101,6 +103,8 @@ class SelectionStats:
             "target_kb_tokens": self.target_kb_tokens,
             "max_kb_tokens": self.max_kb_tokens,
             "actual_kb_tokens": self.actual_kb_tokens,
+            "unused_target_kb_tokens": self.unused_target_kb_tokens,
+            "unused_max_kb_tokens": self.unused_max_kb_tokens,
             "source_diversity": dict(self.source_diversity),
         }
 
@@ -289,6 +293,82 @@ def prepare_candidates(
     return prepared
 
 
+MIN_HISTORICAL_DICTIONARY_ITEMS = 2
+
+
+def _diversity_satisfied(
+    selected: list[SelectionCandidate],
+    kept: list[SelectionCandidate],
+    profile: ContextProfile,
+) -> bool:
+    selected_types = {c.budget_type for c in selected}
+    for budget_type in profile.diversity_types:
+        has_candidate = any(c.budget_type == budget_type for c in kept)
+        if has_candidate and budget_type not in selected_types:
+            return False
+    return True
+
+
+def _exegetical_coverage_gaps(
+    selected: list[SelectionCandidate],
+    segments: list[tuple[int, int]],
+    segment_hits: dict[int, list[SelectionCandidate]],
+) -> list[int]:
+    """Return segment indexes that have coverable notes but none selected yet."""
+    selected_notes = [c for c in selected if c.item.item_type == "exegetical_note"]
+    gaps: list[int] = []
+    for idx, (seg_start, seg_end) in enumerate(segments):
+        if not segment_hits.get(idx):
+            continue
+        covered = False
+        for cand in selected_notes:
+            if cand.verse_start is None:
+                continue
+            v_end = cand.verse_end if cand.verse_end is not None else cand.verse_start
+            if v_end < seg_start or cand.verse_start > seg_end:
+                continue
+            if cand.specificity > 25:
+                covered = True
+                break
+        if not covered:
+            gaps.append(idx)
+    return gaps
+
+
+def _historical_dictionary_short(
+    selected: list[SelectionCandidate],
+    kept: list[SelectionCandidate],
+    profile: ContextProfile,
+) -> bool:
+    if profile.name != "historical_context":
+        return False
+    available = sum(1 for c in kept if c.item.item_type == "dictionary_background")
+    if available <= 0:
+        return False
+    have = sum(1 for c in selected if c.item.item_type == "dictionary_background")
+    return have < min(MIN_HISTORICAL_DICTIONARY_ITEMS, available)
+
+
+def _selection_goals_met(
+    selected: list[SelectionCandidate],
+    kept: list[SelectionCandidate],
+    profile: ContextProfile,
+    segments: list[tuple[int, int]],
+    segment_hits: dict[int, list[SelectionCandidate]],
+) -> bool:
+    """True when diversity + passage coverage are already satisfied.
+
+    Remaining target headroom must not be spent as padding.
+    """
+    if not _diversity_satisfied(selected, kept, profile):
+        return False
+    if _exegetical_coverage_gaps(selected, segments, segment_hits):
+        return False
+    if _historical_dictionary_short(selected, kept, profile):
+        return False
+    return True
+
+
 def select_context_items(
     items: list[Any],
     profile: ContextProfile,
@@ -463,7 +543,8 @@ def select_context_items(
         pool.sort(key=lambda c: (-c.selection_score, c.item.evidence_id))
         try_add(pool[0], force_diversity=True)
 
-    # 4) Fill remaining by tier then score until target.
+    # 4) Fill remaining by tier/score until goals met or soft target —
+    # never pad leftover target once diversity + coverage are satisfied.
     remaining = [
         c for c in kept_after_dedup if c.item.evidence_id not in selected_ids
     ]
@@ -489,6 +570,26 @@ def select_context_items(
             if article_id and dictionary_article_counts.get(article_id, 0) >= MAX_DICTIONARY_CHUNKS_PER_ARTICLE:
                 stats.dropped_type_budget += 1
                 continue
+        # After diversity + coverage are satisfied, do not pad with
+        # supporting/optional items just to consume leftover target.
+        # Also stop extra study-notes / dictionary once coverage mins are met —
+        # primary linguistic/places may still fill up to the soft target.
+        goals_met = bool(selected) and _selection_goals_met(
+            selected,
+            kept_after_dedup,
+            profile,
+            segments,
+            segment_hits,
+        )
+        if goals_met and cand.tier in {TIER_SUPPORTING, TIER_OPTIONAL}:
+            stats.dropped_target += 1
+            continue
+        if goals_met and cand.item.item_type == "exegetical_note":
+            stats.dropped_target += 1
+            continue
+        if goals_met and cand.item.item_type == "dictionary_background":
+            stats.dropped_target += 1
+            continue
         if total_tokens >= profile.target_tokens:
             # After target, only add core-equivalent leftovers that fit hard max.
             if cand.tier != TIER_CORE:
@@ -635,6 +736,8 @@ def select_context_items(
     stats.target_kb_tokens = int(profile.target_tokens)
     stats.max_kb_tokens = int(profile.max_tokens)
     stats.actual_kb_tokens = int(running)
+    stats.unused_target_kb_tokens = max(0, stats.target_kb_tokens - stats.actual_kb_tokens)
+    stats.unused_max_kb_tokens = max(0, stats.max_kb_tokens - stats.actual_kb_tokens)
     from textus_kb.shadow_audit import classify_source_mix
 
     stats.source_diversity = classify_source_mix(

@@ -394,38 +394,6 @@
             "selection_tier": "supporting",
             "selection_specificity": 50
           }
-        },
-        {
-          "text": "Jews — group — explicitly referenced in Jn 4,1-42",
-          "evidence_id": "ENT-acai-group-Jews",
-          "source_id": "acai",
-          "relevance_score": 70,
-          "item_type": "entity_summary",
-          "metadata": {
-            "entity_id": "acai-group-Jews",
-            "external_id": "group:Jews",
-            "entity_type": "group",
-            "budget_type": "entity",
-            "canonical_scope": "John.4.1-42",
-            "selection_tier": "supporting",
-            "selection_specificity": 50
-          }
-        },
-        {
-          "text": "Pharisees — group — explicitly referenced in Jn 4,1-42",
-          "evidence_id": "ENT-acai-group-Pharisee",
-          "source_id": "acai",
-          "relevance_score": 70,
-          "item_type": "entity_summary",
-          "metadata": {
-            "entity_id": "acai-group-Pharisee",
-            "external_id": "group:Pharisee",
-            "entity_type": "group",
-            "budget_type": "entity",
-            "canonical_scope": "John.4.1-42",
-            "selection_tier": "supporting",
-            "selection_specificity": 50
-          }
         }
       ]
     }
@@ -459,9 +427,7 @@
     "EV-LEX-0013",
     "EV-LEX-0014",
     "EV-DICT-3268-c001",
-    "ENT-acai-deity-Lord",
-    "ENT-acai-group-Jews",
-    "ENT-acai-group-Pharisee"
+    "ENT-acai-deity-Lord"
   ],
   "warnings": [
     "RUF local text source is disabled by manifest policy; packet excludes RUF prose.",
@@ -469,7 +435,7 @@
     "Aquifer notes selected 5/24 (source-aware selection; full set remains in Evidence Packet).",
     "Dictionary chunks selected 1/78 (source-aware selection; full set remains in Evidence Packet)."
   ],
-  "estimated_tokens": 2449,
+  "estimated_tokens": 2320,
   "target_tokens": 2500,
   "token_budget": 4500,
   "max_tokens": 4500,
@@ -477,26 +443,26 @@
   "evidence_packet_build_id": "kb-phase4e-acai-full-runtime-v1",
   "selection_stats": {
     "candidates": 138,
-    "selected": 23,
+    "selected": 21,
     "candidate_evidence_count": 138,
-    "selected_evidence_count": 23,
+    "selected_evidence_count": 21,
     "dropped_budget": 0,
-    "dropped_by_source_budget": 109,
+    "dropped_by_source_budget": 0,
     "dropped_redundant": 0,
-    "dropped_type_budget": 109,
-    "dropped_target": 6,
-    "dropped_by_target": 6,
+    "dropped_type_budget": 0,
+    "dropped_target": 117,
+    "dropped_by_target": 117,
     "tokens_by_type": {
       "passage": 97,
       "exegetical": 1195,
       "linguistic": 639,
       "dictionary": 326,
-      "entity": 192
+      "entity": 63
     },
     "selected_by_tier": {
       "core": 2,
       "primary": 17,
-      "supporting": 4
+      "supporting": 2
     },
     "coverage_segments": [
       {
@@ -535,12 +501,14 @@
     "aquifer_selected": 5,
     "target_kb_tokens": 2500,
     "max_kb_tokens": 4500,
-    "actual_kb_tokens": 2449,
+    "actual_kb_tokens": 2320,
+    "unused_target_kb_tokens": 180,
+    "unused_max_kb_tokens": 2180,
     "source_diversity": {
       "linguistic": 14,
       "study_notes": 5,
       "dictionary": 1,
-      "acai": 3,
+      "acai": 1,
       "places_background": 0,
       "other": 0
     }

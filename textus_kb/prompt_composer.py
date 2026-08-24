@@ -133,19 +133,44 @@ class GroundedPromptPreview:
         return payload
 
     def budget_diagnostics(self) -> dict[str, Any]:
-        total = self.composed_prompt_estimated_tokens
+        production = self.original_prompt_estimated_tokens
         kb = self.kb_context_estimated_tokens
+        overhead = self.composition_overhead_estimated_tokens
+        # total is measured composed size; also report the additive identity.
+        total = self.composed_prompt_estimated_tokens
+        additive_total = production + kb + overhead
         kb_pct = round((kb / total) * 100.0, 2) if total else 0.0
+        unused_target = max(0, self.kb_context_target_tokens - kb)
+        unused_max = max(0, self.kb_context_max_tokens - kb)
         return {
-            "production_prompt_estimated_tokens": self.original_prompt_estimated_tokens,
+            "production_prompt_tokens": production,
+            "production_prompt_estimated_tokens": production,
+            "actual_kb_context_tokens": kb,
             "kb_context_estimated_tokens": kb,
-            "composition_overhead_estimated_tokens": self.composition_overhead_estimated_tokens,
+            "grounded_instruction_overhead": overhead,
+            "composition_overhead_estimated_tokens": overhead,
+            "total_grounded_tokens": total,
             "total_grounded_estimated_tokens": total,
+            "total_grounded_tokens_additive": additive_total,
+            "kb_percentage_of_total": kb_pct,
             "kb_share_of_grounded_percent": kb_pct,
+            # target/max apply ONLY to the KB add-on, never to the full prompt.
             "target_kb_context_tokens": self.kb_context_target_tokens,
             "kb_context_target_tokens": self.kb_context_target_tokens,
             "max_kb_context_tokens": self.kb_context_max_tokens,
             "kb_context_max_tokens": self.kb_context_max_tokens,
+            "unused_target_kb_tokens": unused_target,
+            "unused_max_kb_tokens": unused_max,
+            "kb_target_utilization_percent": round(
+                (kb / self.kb_context_target_tokens) * 100.0, 2
+            )
+            if self.kb_context_target_tokens
+            else 0.0,
+            "kb_max_utilization_percent": round(
+                (kb / self.kb_context_max_tokens) * 100.0, 2
+            )
+            if self.kb_context_max_tokens
+            else 0.0,
             "total_grounded_max_tokens": self.total_grounded_max_tokens,
             "kb_trim_applied": self.kb_trim_applied,
             "budget_status": self.budget_status,
@@ -171,6 +196,12 @@ class GroundedPromptPreview:
             "composition_overhead_estimated_tokens": self.composition_overhead_estimated_tokens,
             "kb_context_target_tokens": self.kb_context_target_tokens,
             "kb_context_max_tokens": self.kb_context_max_tokens,
+            "unused_target_kb_tokens": max(
+                0, self.kb_context_target_tokens - self.kb_context_estimated_tokens
+            ),
+            "unused_max_kb_tokens": max(
+                0, self.kb_context_max_tokens - self.kb_context_estimated_tokens
+            ),
             "total_grounded_max_tokens": self.total_grounded_max_tokens,
             "duplicate_text_ratio": self.duplicate_text_ratio,
             "source_diversity": dict(self.source_diversity),
@@ -660,10 +691,12 @@ def compose_grounded_prompt(
 
     Budget model (adaptive but bounded; minimize provider tokens):
     - production prompt is immutable (never truncated);
-    - KB has a soft target (prefer stop) and hard max (safety ceiling);
-    - do not pad KB toward the hard max;
-    - total composed prompt has a hard safety cap (default 28000);
-    - required ≈ production + KB + composition overhead.
+    - target_kb_context_tokens / max_kb_context_tokens apply ONLY to the
+      added KB block, never to the full grounded prompt or provider window;
+    - do not increase actual_kb_context_tokens just because unused target,
+      unused max, or a large provider window remains;
+    - total_grounded_tokens = production + actual KB + instruction overhead;
+    - total composed prompt has a hard safety cap (default 28000).
     """
     module_key = module if module != "history" else "historical_context"
     kb_target, kb_max, total_max = resolve_grounded_budget_limits(
@@ -784,6 +817,8 @@ def compose_grounded_prompt(
         selection_diag.setdefault("target_kb_tokens", kb_target)
         selection_diag.setdefault("max_kb_tokens", kb_max)
         selection_diag["actual_kb_tokens"] = kb_tokens
+        selection_diag["unused_target_kb_tokens"] = max(0, kb_target - kb_tokens)
+        selection_diag["unused_max_kb_tokens"] = max(0, kb_max - kb_tokens)
         selection_diag["candidate_evidence_count"] = int(
             selection_diag.get("candidate_evidence_count")
             or selection_diag.get("candidates")

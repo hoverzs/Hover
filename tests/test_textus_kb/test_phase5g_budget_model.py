@@ -83,7 +83,16 @@ def test_16k_production_plus_kb_succeeds_under_total_cap() -> None:
     diag = preview.budget_diagnostics()
     assert diag["production_prompt_estimated_tokens"] == preview.original_prompt_estimated_tokens
     assert diag["total_grounded_estimated_tokens"] == preview.composed_prompt_estimated_tokens
+    assert diag["total_grounded_tokens"] == preview.composed_prompt_estimated_tokens
+    assert diag["actual_kb_context_tokens"] == preview.kb_context_estimated_tokens
+    assert diag["target_kb_context_tokens"] == 2500
+    assert diag["max_kb_context_tokens"] == 3000
+    assert diag["unused_max_kb_tokens"] == 3000 - preview.kb_context_estimated_tokens
+    assert preview.kb_context_estimated_tokens < 3000  # do not fill to hard max
     assert "composition_overhead_estimated_tokens" in diag
+    # Target/max are KB-only; a 16k production prompt must not inflate KB.
+    assert preview.original_prompt_estimated_tokens >= 16000
+    assert preview.kb_context_target_tokens < preview.original_prompt_estimated_tokens
 
 
 def test_production_over_legacy_8k_does_not_fail_only_for_that() -> None:
@@ -158,7 +167,18 @@ def test_real_export_prep_succeeds_and_records_diagnostics() -> None:
     assert prep.kb_context_estimated_tokens <= 2500 or prep.budget_diagnostics.get(
         "kb_trim_applied"
     )
+    assert prep.kb_context_estimated_tokens < int(0.8 * 4500)
+    unused_target = int(prep.budget_diagnostics.get("unused_target_kb_tokens") or 0)
+    unused_max = int(prep.budget_diagnostics.get("unused_max_kb_tokens") or 0)
+    assert unused_max == 4500 - prep.kb_context_estimated_tokens
+    assert unused_target == max(0, 2500 - prep.kb_context_estimated_tokens)
     assert "kb_share_of_grounded_percent" in prep.budget_diagnostics
+    additive = (
+        prep.budget_diagnostics["production_prompt_estimated_tokens"]
+        + prep.budget_diagnostics["kb_context_estimated_tokens"]
+        + prep.budget_diagnostics["composition_overhead_estimated_tokens"]
+    )
+    assert prep.budget_diagnostics["total_grounded_tokens_additive"] == additive
 
 
 def test_compare_success_provider_calls_two_and_budget_metrics() -> None:

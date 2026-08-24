@@ -98,58 +98,6 @@
             "selection_specificity": 95,
             "budget_type": "dictionary"
           }
-        },
-        {
-          "text": "Andrew, the Apostle — ANDREW, The Apostle: ANDREW, The Apostle One of Jesus's 12 apostles (special messengers chosen by Jesus). (Source: Aquifer Open Bible Dictionary, CC-BY-SA-4.0)",
-          "evidence_id": "EV-DICT-3604-c001",
-          "source_id": "aquifer_open_bible_dictionary",
-          "relevance_score": 100,
-          "item_type": "dictionary_background",
-          "metadata": {
-            "article_id": "3604",
-            "chunk_id": "3604-c001",
-            "heading": "ANDREW, The Apostle",
-            "index_reference": "andrew the apostle",
-            "selection_reason": "direct_passage_association",
-            "passage_linked": true,
-            "entity_topic_count": 0,
-            "entity_expansion": null,
-            "license": "CC-BY-SA-4.0",
-            "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
-            "attribution": "Aquifer Open Bible Dictionary © 2026 Mission Mutual, adapted from Tyndale Open Bible Dictionary © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0.",
-            "upstream_commit": "3c4773e8746c9b051ce754c5a01ceddaabea84ce",
-            "upstream_resource_version": "1.1.2",
-            "canonical_scope": "John.4.1-42",
-            "selection_tier": "primary",
-            "selection_specificity": 95,
-            "budget_type": "dictionary"
-          }
-        },
-        {
-          "text": "Baptism — Preview: Preview The Baptism of John The Baptism of Jesus Jesus Instructs His Followers to Baptize Baptism in the Early Church The Theology of Baptism in Paul’s and Peter’s Letters (Source: Aquifer Open Bible Dictionary, CC-BY-SA-4.0)",
-          "evidence_id": "EV-DICT-3997-c002",
-          "source_id": "aquifer_open_bible_dictionary",
-          "relevance_score": 100,
-          "item_type": "dictionary_background",
-          "metadata": {
-            "article_id": "3997",
-            "chunk_id": "3997-c002",
-            "heading": "Preview",
-            "index_reference": "baptism",
-            "selection_reason": "direct_passage_association",
-            "passage_linked": true,
-            "entity_topic_count": 0,
-            "entity_expansion": null,
-            "license": "CC-BY-SA-4.0",
-            "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
-            "attribution": "Aquifer Open Bible Dictionary © 2026 Mission Mutual, adapted from Tyndale Open Bible Dictionary © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0.",
-            "upstream_commit": "3c4773e8746c9b051ce754c5a01ceddaabea84ce",
-            "upstream_resource_version": "1.1.2",
-            "canonical_scope": "John.4.1-42",
-            "selection_tier": "primary",
-            "selection_specificity": 95,
-            "budget_type": "dictionary"
-          }
         }
       ]
     },
@@ -352,30 +300,11 @@
           }
         }
       ]
-    },
-    {
-      "type": "geography",
-      "items": [
-        {
-          "text": "Coordinates: 32.76000, 35.52700 | Identification status: certain",
-          "evidence_id": "EV-PLACE-0002",
-          "source_id": "biblical_places_catalog",
-          "relevance_score": 80,
-          "item_type": "geography",
-          "metadata": {
-            "place_id": "galilee_1",
-            "selection_tier": "supporting",
-            "selection_specificity": 50,
-            "budget_type": "background"
-          }
-        }
-      ]
     }
   ],
   "source_ids": [
     "acai",
     "aquifer_open_bible_dictionary",
-    "biblical_places_catalog",
     "biblical_places_passage_links",
     "place_enrichments_overlay",
     "stepbible_tagnt"
@@ -383,8 +312,6 @@
   "evidence_ids": [
     "EV-DICT-3268-c001",
     "EV-DICT-3409-c001",
-    "EV-DICT-3604-c001",
-    "EV-DICT-3997-c002",
     "ENT-acai-deity-Lord",
     "ENT-acai-group-Jews",
     "ENT-acai-group-Pharisee",
@@ -397,15 +324,14 @@
     "EV-PLACE-0011",
     "EV-PLACE-0013",
     "EV-PLACE-0005",
-    "EV-PLACE-0002",
     "EV-TAGNT-0002"
   ],
   "warnings": [
     "RUF local text source is disabled by manifest policy; packet excludes RUF prose.",
     "Supplemental token estimate (182248) exceeds budget (4500); Aquifer exegetical notes and dictionary evidence retained for audit.",
-    "Dictionary chunks selected 4/78 (source-aware selection; full set remains in Evidence Packet)."
+    "Dictionary chunks selected 2/78 (source-aware selection; full set remains in Evidence Packet)."
   ],
-  "estimated_tokens": 2200,
+  "estimated_tokens": 1688,
   "target_tokens": 2200,
   "token_budget": 3500,
   "max_tokens": 3500,
@@ -413,24 +339,23 @@
   "evidence_packet_build_id": "kb-phase4e-acai-full-runtime-v1",
   "selection_stats": {
     "candidates": 107,
-    "selected": 18,
+    "selected": 15,
     "candidate_evidence_count": 107,
-    "selected_evidence_count": 18,
+    "selected_evidence_count": 15,
     "dropped_budget": 0,
-    "dropped_by_source_budget": 89,
+    "dropped_by_source_budget": 4,
     "dropped_redundant": 0,
-    "dropped_type_budget": 89,
-    "dropped_target": 0,
-    "dropped_by_target": 0,
+    "dropped_type_budget": 4,
+    "dropped_target": 88,
+    "dropped_by_target": 88,
     "tokens_by_type": {
-      "dictionary": 1274,
+      "dictionary": 806,
       "entity": 321,
-      "background": 565,
+      "background": 521,
       "passage": 40
     },
     "selected_by_tier": {
-      "primary": 16,
-      "supporting": 1,
+      "primary": 14,
       "core": 1
     },
     "coverage_segments": [
@@ -463,20 +388,22 @@
     "study_notes_candidates": 0,
     "study_notes_selected": 0,
     "dictionary_candidates": 78,
-    "dictionary_selected": 4,
+    "dictionary_selected": 2,
     "linguistic_selected": 0,
-    "places_background_selected": 8,
+    "places_background_selected": 7,
     "aquifer_candidates": 0,
     "aquifer_selected": 0,
     "target_kb_tokens": 2200,
     "max_kb_tokens": 3500,
-    "actual_kb_tokens": 2200,
+    "actual_kb_tokens": 1688,
+    "unused_target_kb_tokens": 512,
+    "unused_max_kb_tokens": 1812,
     "source_diversity": {
       "linguistic": 1,
       "study_notes": 0,
-      "dictionary": 4,
+      "dictionary": 2,
       "acai": 5,
-      "places_background": 8,
+      "places_background": 7,
       "other": 0
     }
   }

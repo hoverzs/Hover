@@ -262,15 +262,31 @@ def run_grounded_compare(
         "kb_share_of_grounded_percent": float(
             (prep.budget_diagnostics or {}).get("kb_share_of_grounded_percent") or 0.0
         ),
+        "kb_percentage_of_total": float(
+            (prep.budget_diagnostics or {}).get("kb_percentage_of_total")
+            or (prep.budget_diagnostics or {}).get("kb_share_of_grounded_percent")
+            or 0.0
+        ),
         "target_kb_context_tokens": int(
             (prep.budget_diagnostics or {}).get("target_kb_context_tokens")
             or (prep.budget_diagnostics or {}).get("kb_context_target_tokens")
+            or 0
+        ),
+        "max_kb_context_tokens": int(
+            (prep.budget_diagnostics or {}).get("max_kb_context_tokens")
+            or (prep.budget_diagnostics or {}).get("kb_context_max_tokens")
             or 0
         ),
         "kb_context_max_tokens": int(
             (prep.budget_diagnostics or {}).get("kb_context_max_tokens")
             or (prep.budget_diagnostics or {}).get("max_kb_context_tokens")
             or 0
+        ),
+        "unused_target_kb_tokens": int(
+            (prep.budget_diagnostics or {}).get("unused_target_kb_tokens") or 0
+        ),
+        "unused_max_kb_tokens": int(
+            (prep.budget_diagnostics or {}).get("unused_max_kb_tokens") or 0
         ),
         "total_grounded_max_tokens": int(
             (prep.budget_diagnostics or {}).get("total_grounded_max_tokens") or 0

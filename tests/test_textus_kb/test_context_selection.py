@@ -133,6 +133,10 @@ def test_exegesis_target_range(full_evidence) -> None:
     assert stats["target_kb_tokens"] == 2500
     assert stats["max_kb_tokens"] == 4500
     assert "actual_kb_tokens" in stats
+    assert stats["unused_target_kb_tokens"] == max(0, 2500 - stats["actual_kb_tokens"])
+    assert stats["unused_max_kb_tokens"] == max(0, 4500 - stats["actual_kb_tokens"])
+    # Hard max is a ceiling, not a fill target.
+    assert stats["actual_kb_tokens"] < int(0.8 * 4500)
     assert "dropped_by_target" in stats or "dropped_target" in stats
     assert "source_diversity" in stats
 
@@ -143,6 +147,8 @@ def test_historical_under_max(full_evidence) -> None:
     assert context.estimated_tokens <= 2500
     assert context.target_tokens == 2200
     assert context.selection_stats["dictionary_selected"] >= 2
+    assert context.selection_stats["actual_kb_tokens"] < int(0.8 * 3500)
+    assert context.selection_stats["unused_max_kb_tokens"] > 0
 
 
 def test_provenance_preserved(full_evidence) -> None:
