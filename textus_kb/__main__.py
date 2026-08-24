@@ -67,6 +67,18 @@ def main(argv: list[str] | None = None) -> int:
         from textus_kb.staging_readiness import main_review_summary
 
         return main_review_summary(rest)
+    if command == "review-sources":
+        from textus_kb.grounded_compare import main_review_sources
+
+        return main_review_sources(rest)
+    if command == "review-campaign-status":
+        from textus_kb.review_campaign import main_campaign_status
+
+        return main_campaign_status(rest)
+    if command == "review-campaign-commands":
+        from textus_kb.review_campaign import main_campaign_commands
+
+        return main_campaign_commands(rest)
     if command == "latency-audit":
         from textus_kb.latency_audit import main as latency_main
 
@@ -76,7 +88,8 @@ def main(argv: list[str] | None = None) -> int:
         f"Unknown command: {command!r}. "
         "Use: python -m textus_kb [health|retrieve|context|entity|shadow|"
         "shadow-report|shadow-compare|prompt-preview|grounded-compare|"
-        "review-list|review-show|review-rate|review-summary|latency-audit] ...",
+        "review-list|review-show|review-rate|review-sources|review-summary|"
+        "review-campaign-status|review-campaign-commands|latency-audit] ...",
         file=sys.stderr,
     )
     return 2

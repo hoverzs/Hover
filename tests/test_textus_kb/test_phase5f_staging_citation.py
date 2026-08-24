@@ -92,6 +92,8 @@ def test_veto_on_factual_worse(tmp_path: Path) -> None:
                 "module": "exegesis" if i % 2 == 0 else "historical_context",
                 "provider_model": "live-model",
                 "grounded_status": "success",
+                "production_output": f"prod-{i}",
+                "grounded_output": f"grounded-{i}",
                 "source_ids": ["acai"],
                 "review": {
                     "overall_preference": "B",
@@ -123,6 +125,8 @@ def test_ready_when_criteria_met() -> None:
                     "module": module,
                     "provider_model": "gemini-live",
                     "grounded_status": "success",
+                    "production_output": f"prod-{passage}-{module}",
+                    "grounded_output": f"grounded-{passage}-{module}",
                     "source_ids": ["acai", "aquifer_open_study_notes"],
                     "review": {
                         "overall_preference": "B",

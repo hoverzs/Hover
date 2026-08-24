@@ -98,6 +98,32 @@ def build_source_trace(
     selected_item_count: int = 0,
 ) -> dict[str, Any]:
     mix = classify_source_mix(list(source_ids))
+    citation_ready_count = 0
+    citation_incomplete_count = 0
+    citations: list[dict[str, Any]] = []
+    if context_packet:
+        try:
+            from textus_kb.citation import citations_from_context_packet
+
+            coverage = citations_from_context_packet(context_packet)
+            citation_ready_count = coverage.citation_ready_count
+            citation_incomplete_count = coverage.incomplete_count
+            citations = [
+                {
+                    "title": c.title,
+                    "source_id": c.source_id,
+                    "evidence_id": c.evidence_id,
+                    "source_type": c.source_type,
+                    "article_or_chunk_id": c.article_or_chunk_id,
+                    "canonical_scope": c.canonical_scope,
+                    "license": c.license,
+                    "attribution": c.attribution,
+                    "citation_ready": c.citation_ready,
+                }
+                for c in coverage.citations
+            ]
+        except Exception:
+            pass
     return {
         "source_ids": list(source_ids),
         "selected_evidence_count": len(evidence_ids),
@@ -110,6 +136,9 @@ def build_source_trace(
         "entity_count": int(entity_count),
         "source_mix": mix,
         "context_section_count": len((context_packet or {}).get("sections") or []),
+        "citation_ready_count": citation_ready_count,
+        "citation_incomplete_count": citation_incomplete_count,
+        "citations": citations,
     }
 
 
@@ -321,10 +350,13 @@ def format_compare_report(
         lines.append(f"dictionary_count: {trace.get('dictionary_count', 0)}")
         lines.append(f"acai_entity_source_count: {trace.get('acai_entity_source_count', 0)}")
         lines.append(f"linguistic_evidence_count: {trace.get('linguistic_evidence_count', 0)}")
+        lines.append(f"places_background_count: {trace.get('places_background_count', 0)}")
         lines.append(f"entity_count: {trace.get('entity_count', 0)}")
+        lines.append(f"citation_ready_count: {trace.get('citation_ready_count', 0)}")
         lines.append(f"grounded_status: {data.get('grounded_status')}")
         if data.get("grounded_error"):
             lines.append(f"grounded_error: {data.get('grounded_error')}")
+        lines.append("(full citation list: python -m textus_kb review-sources <run_id>)")
     lines.extend(
         [
             "",
@@ -371,6 +403,58 @@ def format_compare_report(
         )
     else:
         lines.extend(["", "MAPPING", "blind: true (mapping withheld from reviewer-facing text)"])
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def format_source_trace_report(artifact: dict[str, Any]) -> str:
+    """Human-readable citation/source trace (not mixed into Response A/B)."""
+    from textus_kb.citation import display_name_for_source
+
+    trace = artifact.get("source_trace") if isinstance(artifact.get("source_trace"), dict) else {}
+    lines = [
+        "--------------------------------",
+        "SOURCE / CITATION TRACE",
+        f"PASSAGE: {artifact.get('passage')}",
+        f"MODULE: {artifact.get('module')}",
+        f"RUN_ID: {artifact.get('run_id')}",
+        "--------------------------------",
+        f"selected_evidence_count: {trace.get('selected_evidence_count', 0)}",
+        f"study_notes_count: {trace.get('study_notes_count', 0)}",
+        f"dictionary_count: {trace.get('dictionary_count', 0)}",
+        f"linguistic_evidence_count: {trace.get('linguistic_evidence_count', 0)}",
+        f"acai_entity_source_count: {trace.get('acai_entity_source_count', 0)}",
+        f"places_background_count: {trace.get('places_background_count', 0)}",
+        f"entity_count: {trace.get('entity_count', 0)}",
+        f"citation_ready_count: {trace.get('citation_ready_count', 0)}",
+        f"citation_incomplete_count: {trace.get('citation_incomplete_count', 0)}",
+        "",
+        "SOURCES",
+    ]
+    source_ids = list(artifact.get("source_ids") or trace.get("source_ids") or [])
+    if not source_ids:
+        lines.append("(none)")
+    else:
+        for sid in source_ids:
+            lines.append(f"- {display_name_for_source(str(sid))} ({sid})")
+    lines.append("")
+    lines.append("CITATIONS")
+    citations = list(trace.get("citations") or [])
+    if not citations:
+        lines.append("(none stored — regenerate compare to attach citation metadata)")
+    else:
+        for idx, cite in enumerate(citations, start=1):
+            title = str(cite.get("title") or display_name_for_source(str(cite.get("source_id") or "")))
+            lines.append(f"{idx}. {title}")
+            lines.append(f"   type: {cite.get('source_type') or ''}")
+            if cite.get("article_or_chunk_id"):
+                lines.append(f"   article/chunk: {cite.get('article_or_chunk_id')}")
+            if cite.get("canonical_scope"):
+                lines.append(f"   scope: {cite.get('canonical_scope')}")
+            lines.append(f"   license: {cite.get('license') or '(missing)'}")
+            if cite.get("attribution"):
+                lines.append(f"   attribution: {cite.get('attribution')}")
+            lines.append(f"   citation_ready: {bool(cite.get('citation_ready'))}")
+            lines.append("")
     return "\n".join(lines).rstrip() + "\n"
 
 
@@ -423,7 +507,7 @@ def main(argv: list[str] | None = None) -> int:
         print(
             'Usage: python -m textus_kb grounded-compare "<reference>" '
             "--module exegesis|historical_context "
-            "[--blind] [--live] [--prompt-file PATH] [--output PATH] "
+            "[--blind] [--live --prompt-file PATH] [--output PATH] "
             "[--database PATH] [--out DIR]",
             file=sys.stderr,
         )
@@ -469,14 +553,38 @@ def main(argv: list[str] | None = None) -> int:
             continue
         i += 1
 
-    if prompt_file:
-        production_prompt = Path(prompt_file).read_text(encoding="utf-8")
-    else:
-        production_prompt = DRY_RUN_PRODUCTION_STUB
-
     if live:
+        if not prompt_file:
+            print(
+                "ERROR: --live requires --prompt-file with the real production prompt. "
+                "Do not use the dry-run stub for live review.",
+                file=sys.stderr,
+            )
+            return 2
+        if not blind:
+            print(
+                "ERROR: --live requires --blind for unbiased human review. "
+                "Reveal mapping only after review-rate via review-show --reveal.",
+                file=sys.stderr,
+            )
+            return 2
+        production_prompt = Path(prompt_file).read_text(encoding="utf-8")
+        if not production_prompt.strip():
+            print("ERROR: production prompt file is empty.", file=sys.stderr)
+            return 2
+        if production_prompt.strip() == DRY_RUN_PRODUCTION_STUB.strip():
+            print(
+                "ERROR: --live refuses the dry-run stub prompt. "
+                "Export the real SECTION_PROMPTS production prompt first.",
+                file=sys.stderr,
+            )
+            return 2
         generate_fn, model_note = _resolve_live_generate()
     else:
+        if prompt_file:
+            production_prompt = Path(prompt_file).read_text(encoding="utf-8")
+        else:
+            production_prompt = DRY_RUN_PRODUCTION_STUB
         generate_fn, model_note = _mock_generate, "mock"
 
     artifact = run_grounded_compare(
@@ -522,6 +630,7 @@ def main(argv: list[str] | None = None) -> int:
         "passage": artifact.passage,
         "module": artifact.module,
         "blind": artifact.blind,
+        "live": live,
         "grounded_status": artifact.grounded_status,
         "grounded_error": artifact.grounded_error,
         "grounded_used": artifact.grounded_used,
@@ -532,13 +641,24 @@ def main(argv: list[str] | None = None) -> int:
         "production_latency_ms": artifact.production_latency_ms,
         "grounded_prep_ms": artifact.grounded_prep_ms,
         "grounded_latency_ms": artifact.grounded_latency_ms,
-        "source_trace": artifact.source_trace,
+        "source_trace": {
+            k: v
+            for k, v in (artifact.source_trace or {}).items()
+            if k != "citations"
+        },
+        "citation_ready_count": (artifact.source_trace or {}).get("citation_ready_count", 0),
         "json_path": str(json_path),
         "export_path": str(export_path) if export_path else None,
         "compare_store_enabled": is_compare_store_enabled() or bool(database),
         "compare_store_run_id": store_run_id,
         "compare_store_error": store_error,
         "compare_store_flag": COMPARE_STORE_FLAG,
+        "next_steps": [
+            f"python -m textus_kb review-show {artifact.run_id}",
+            f"python -m textus_kb review-sources {artifact.run_id}",
+            f"python -m textus_kb review-rate {artifact.run_id} --overall ...",
+            f"python -m textus_kb review-show {artifact.run_id} --reveal",
+        ],
     }
     print(json.dumps(summary, indent=2, ensure_ascii=True, sort_keys=True))
     print()
@@ -661,12 +781,42 @@ def main_review_rate(argv: list[str] | None = None) -> int:
         return 1
     review = HumanReview.from_dict(existing.get("review"))
     merged = {**review.to_dict(), **fields}
+    merged["review_updated_at"] = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
     try:
         updated = update_compare_review(run_id, merged, database_path=database)
     except ValueError as exc:
         print(str(exc), file=sys.stderr)
         return 2
     print(json.dumps(updated.get("review") if updated else merged, indent=2, ensure_ascii=True))
+    return 0
+
+
+def main_review_sources(argv: list[str] | None = None) -> int:
+    import sys
+
+    from textus_kb.compare_store import load_compare_run
+
+    args = argv if argv is not None else sys.argv[1:]
+    if not args:
+        print(
+            "Usage: python -m textus_kb review-sources <run_id> [--database PATH]",
+            file=sys.stderr,
+        )
+        return 2
+    run_id = args[0]
+    database = None
+    i = 1
+    while i < len(args):
+        if args[i] == "--database" and i + 1 < len(args):
+            database = args[i + 1]
+            i += 2
+            continue
+        i += 1
+    artifact = load_compare_run(run_id, database_path=database)
+    if artifact is None:
+        print(f"Run not found: {run_id}", file=sys.stderr)
+        return 1
+    print(format_source_trace_report(artifact))
     return 0
 
 
@@ -677,10 +827,12 @@ __all__ = [
     "GroundedCompareArtifact",
     "build_source_trace",
     "format_compare_report",
+    "format_source_trace_report",
     "main",
     "main_review_list",
     "main_review_rate",
     "main_review_show",
+    "main_review_sources",
     "run_grounded_compare",
     "save_compare_export",
 ]

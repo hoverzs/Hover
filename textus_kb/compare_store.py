@@ -285,6 +285,7 @@ def _validate_review_payload(payload: dict[str, Any]) -> None:
         raise ValueError(
             f"Invalid hallucination_risk: {risk!r}; expected one of {sorted(HALLUCINATION_CHOICES)}"
         )
+    # review_updated_at and reviewer_notes are free-form / optional metadata.
 
 
 def _row_to_artifact(row: dict[str, Any]) -> dict[str, Any]:

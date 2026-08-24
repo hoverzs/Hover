@@ -93,7 +93,13 @@ def build_review_summary(
 
     reviewed = [a for a in pool if has_human_overall_review(a)]
     unreviewed = [a for a in pool if not has_human_overall_review(a)]
-    live_reviewed = [a for a in live if has_human_overall_review(a)]
+    live_reviewed = [
+        a
+        for a in live
+        if has_human_overall_review(a)
+        and str(a.get("grounded_status") or "") == "success"
+        and bool(str(a.get("production_output") or "").strip())
+    ]
 
     def _field_counts(field: str, items: list[dict[str, Any]]) -> dict[str, int]:
         return _preference_counts(
@@ -160,11 +166,19 @@ def evaluate_staging_readiness(
     live_artifacts: list[dict[str, Any]],
     criteria: StagingReadinessCriteria = DEFAULT_CRITERIA,
 ) -> dict[str, Any]:
-    live_reviewed = [a for a in live_artifacts if has_human_overall_review(a)]
+    # Evidence for preference thresholds: live + successful generation + reviewed.
+    live_success = [
+        a
+        for a in live_artifacts
+        if str(a.get("grounded_status") or "") == "success"
+        and bool(str(a.get("production_output") or "").strip())
+    ]
+    live_reviewed = [a for a in live_success if has_human_overall_review(a)]
     unmet: list[str] = []
     vetoes: list[str] = []
 
     live_pair_count = len(live_artifacts)
+    live_success_count = len(live_success)
     live_reviewed_count = len(live_reviewed)
     passages = {str(a.get("passage") or "") for a in live_reviewed if a.get("passage")}
     modules = {str(a.get("module") or "") for a in live_reviewed if a.get("module")}
@@ -198,7 +212,7 @@ def evaluate_staging_readiness(
             f"{criteria.min_passages_with_both_modules}"
         )
 
-    # Preference ratios on live reviewed only.
+    # Preference ratios on live reviewed successful pairs only.
     overall_vals = [
         str((a.get("review") or {}).get("overall_preference") or "") for a in live_reviewed
     ]
@@ -238,6 +252,17 @@ def evaluate_staging_readiness(
                     f"{criteria.max_hallucination_b_elevated_ratio}"
                 )
 
+        # Citation readiness veto when stored on successful reviewed runs.
+        low_cite = [
+            a
+            for a in live_reviewed
+            if isinstance(a.get("source_trace"), dict)
+            and int((a.get("source_trace") or {}).get("selected_evidence_count") or 0) > 0
+            and int((a.get("source_trace") or {}).get("citation_ready_count") or 0) == 0
+        ]
+        if low_cite:
+            vetoes.append(f"citation_ready_missing_on_reviewed:{len(low_cite)}")
+
     if live_pair_count:
         errors = sum(1 for a in live_artifacts if str(a.get("grounded_status")) == "error")
         err_rate = errors / live_pair_count
@@ -249,14 +274,15 @@ def evaluate_staging_readiness(
     # Provenance veto: live success runs must carry source_ids.
     missing_sources = [
         a
-        for a in live_artifacts
-        if str(a.get("grounded_status")) == "success" and not (a.get("source_ids") or [])
+        for a in live_success
+        if not (a.get("source_ids") or [])
     ]
     if missing_sources:
         vetoes.append(f"missing_source_ids_on_success:{len(missing_sources)}")
 
     metrics = {
         "live_pair_count": live_pair_count,
+        "live_success_count": live_success_count,
         "live_reviewed_count": live_reviewed_count,
         "distinct_passages": len(passages),
         "modules": sorted(modules),
@@ -329,4 +355,5 @@ __all__ = [
     "has_human_overall_review",
     "is_live_compare_artifact",
     "main_review_summary",
+    "_load_all_artifacts",
 ]
