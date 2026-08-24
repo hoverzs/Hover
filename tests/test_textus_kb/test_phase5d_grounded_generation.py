@@ -98,6 +98,10 @@ def test_flag_true_supported_sends_grounded_prompt_once() -> None:
 
 
 def test_retrieval_failure_falls_back_single_call(monkeypatch: pytest.MonkeyPatch) -> None:
+    from textus_kb.kb_cache import clear_kb_cache
+
+    clear_kb_cache()
+
     def boom(*_a, **_k):
         raise RuntimeError("retrieve failed")
 

@@ -20,6 +20,8 @@ from textus_kb.prompt_composer import (
 from textus_kb.shadow import MODULE_TO_PROFILE
 
 GROUNDED_FLAG = "TEXTUS_KB_GROUNDED_ENABLED"
+STAGE_ALLOWED_FLAG = "TEXTUS_KB_GROUNDED_STAGE_ALLOWED"
+PASSAGE_ALLOWLIST_FLAG = "TEXTUS_KB_GROUNDED_PASSAGE_ALLOWLIST"
 
 STATUS_USED = "grounded_used"
 STATUS_FALLBACK = "grounded_fallback"
@@ -33,11 +35,56 @@ REASON_COMPOSITION_ERROR = "composition_error"
 REASON_UNSUPPORTED_PASSAGE = "unsupported_passage"
 REASON_SOURCE_UNAVAILABLE = "source_unavailable"
 REASON_UNSUPPORTED_MODULE = "unsupported_module"
+REASON_PASSAGE_NOT_ALLOWLISTED = "passage_not_allowlisted"
+REASON_STAGE_NOT_ALLOWED = "stage_not_allowed"
 
 
 def is_grounded_enabled() -> bool:
     raw = (os.getenv(GROUNDED_FLAG, "false") or "").strip().lower()
     return raw in {"1", "true", "yes", "on"}
+
+
+def is_stage_allowed() -> bool:
+    """Extra staging/dev gate. Default false — never auto-enabled by readiness."""
+    raw = (os.getenv(STAGE_ALLOWED_FLAG, "false") or "").strip().lower()
+    return raw in {"1", "true", "yes", "on"}
+
+
+def is_grounded_injection_allowed() -> bool:
+    """Production injection requires both grounded + stage-allowed flags."""
+    return is_grounded_enabled() and is_stage_allowed()
+
+
+def passage_allowlist_canonicals() -> set[str] | None:
+    """Return allowlist set, or None when unrestricted."""
+    raw = (os.getenv(PASSAGE_ALLOWLIST_FLAG, "") or "").strip()
+    if not raw:
+        return None
+    from textus_kb.canonical_reference import CanonicalReference, CanonicalReferenceError
+
+    allowed: set[str] = set()
+    for part in raw.split(","):
+        token = part.strip()
+        if not token:
+            continue
+        try:
+            allowed.add(CanonicalReference.parse(token).canonical_string())
+        except CanonicalReferenceError:
+            allowed.add(token)
+    return allowed
+
+
+def is_passage_allowlisted(passage: str) -> bool:
+    allowed = passage_allowlist_canonicals()
+    if allowed is None:
+        return True
+    from textus_kb.canonical_reference import CanonicalReference, CanonicalReferenceError
+
+    try:
+        canonical = CanonicalReference.parse(passage).canonical_string()
+    except CanonicalReferenceError:
+        canonical = str(passage or "").strip()
+    return canonical in allowed
 
 
 def resolve_grounded_module(section_key: str) -> str | None:
@@ -85,6 +132,7 @@ class GroundedPreparationResult:
     warnings: list[str] = field(default_factory=list)
     context_packet: dict[str, Any] = field(default_factory=dict)
     error: str = ""
+    cache_info: dict[str, Any] = field(default_factory=dict)
 
     def to_audit_dict(self) -> dict[str, Any]:
         """Privacy-safe grounded metadata (never includes full prompts)."""
@@ -204,15 +252,34 @@ def prepare_grounded_provider_prompt(
     module: str,
     token_budget: int | None = None,
     grounded_enabled: bool | None = None,
+    use_cache: bool = True,
+    enforce_stage_gate: bool = False,
 ) -> GroundedPreparationResult:
     """Build grounded provider prompt or hard-fallback to production prompt.
 
     Never calls a model provider. Never raises to callers for KB failures.
+
+    ``enforce_stage_gate`` is for the app injection path only (requires
+    ``TEXTUS_KB_GROUNDED_STAGE_ALLOWED``). Explicit compare/tests pass
+    ``grounded_enabled=True`` without the stage gate.
     """
     if grounded_enabled is None:
-        grounded_enabled = is_grounded_enabled()
+        grounded_enabled = (
+            is_grounded_injection_allowed()
+            if enforce_stage_gate
+            else is_grounded_enabled()
+        )
     if not grounded_enabled:
         return _disabled(production_prompt, passage=passage)
+
+    if enforce_stage_gate and not is_stage_allowed():
+        return _fallback(
+            production_prompt,
+            reason=REASON_STAGE_NOT_ALLOWED,
+            module=module,
+            passage=passage,
+            error="TEXTUS_KB_GROUNDED_STAGE_ALLOWED is false",
+        )
 
     profile = MODULE_TO_PROFILE.get(module)
     if profile is None:
@@ -228,16 +295,32 @@ def prepare_grounded_provider_prompt(
             error="Empty passage",
         )
 
+    if not is_passage_allowlisted(passage):
+        return _fallback(
+            production_prompt,
+            reason=REASON_PASSAGE_NOT_ALLOWLISTED,
+            module=module,
+            profile=profile,
+            passage=passage,
+            error="Passage not in TEXTUS_KB_GROUNDED_PASSAGE_ALLOWLIST",
+        )
+
     budget = int(token_budget) if token_budget is not None else grounded_prompt_token_budget()
     retrieval_ms = 0
     context_build_ms = 0
+    cache_info: dict[str, Any] = {
+        "evidence_cache_hit": False,
+        "context_cache_hit": False,
+    }
 
     try:
+        from textus_kb.kb_cache import cached_retrieve
         from textus_kb.retrieval import retrieve
 
         t0 = time.perf_counter()
-        evidence = retrieve(passage)
+        evidence, evidence_hit = cached_retrieve(passage, retrieve, use_cache=use_cache)
         retrieval_ms = int((time.perf_counter() - t0) * 1000)
+        cache_info["evidence_cache_hit"] = bool(evidence_hit)
     except Exception as exc:
         return _fallback(
             production_prompt,
@@ -251,10 +334,18 @@ def prepare_grounded_provider_prompt(
 
     try:
         from textus_kb.context_builder import build_context_from_evidence
+        from textus_kb.kb_cache import cached_build_context
 
         t1 = time.perf_counter()
-        context = build_context_from_evidence(evidence, profile)
+        context, context_hit = cached_build_context(
+            evidence.passage_canonical or passage,
+            profile,
+            evidence,
+            build_context_from_evidence,
+            use_cache=use_cache,
+        )
         context_build_ms = int((time.perf_counter() - t1) * 1000)
+        cache_info["context_cache_hit"] = bool(context_hit)
     except Exception as exc:
         return _fallback(
             production_prompt,
@@ -284,6 +375,7 @@ def prepare_grounded_provider_prompt(
             evidence_build_id=evidence.build_id,
             evidence_count=len(evidence.evidence_items),
             entity_count=len(evidence.entities),
+            cache_info=cache_info,
         )
 
     try:
@@ -309,6 +401,7 @@ def prepare_grounded_provider_prompt(
             context_build_ms=context_build_ms,
             context_packet=context.to_dict(),
             evidence_build_id=evidence.build_id,
+            cache_info=cache_info,
         )
 
     selected = sum(len(section.items) for section in context.sections)
@@ -337,6 +430,7 @@ def prepare_grounded_provider_prompt(
         "composition_version": preview.composition_version,
         "prompt_hash": preview.prompt_hash,
         "context_schema_version": str(context.schema_version or ""),
+        "cache_info": cache_info,
     }
 
     if not preview.success:
@@ -386,6 +480,7 @@ def prepare_grounded_provider_prompt(
         composition_ms=composition_ms,
         warnings=list(preview.warnings) + list(context.warnings),
         context_packet=context.to_dict(),
+        cache_info=cache_info,
     )
 
 
@@ -437,12 +532,16 @@ def build_shadow_artifact_from_preparation(
 
 __all__ = [
     "GROUNDED_FLAG",
+    "PASSAGE_ALLOWLIST_FLAG",
+    "STAGE_ALLOWED_FLAG",
     "GroundedPreparationResult",
     "REASON_BUDGET_EXCEEDED",
     "REASON_COMPOSITION_ERROR",
     "REASON_CONTEXT_ERROR",
+    "REASON_PASSAGE_NOT_ALLOWLISTED",
     "REASON_RETRIEVAL_ERROR",
     "REASON_SOURCE_UNAVAILABLE",
+    "REASON_STAGE_NOT_ALLOWED",
     "REASON_UNSUPPORTED_MODULE",
     "REASON_UNSUPPORTED_PASSAGE",
     "STATUS_DISABLED",
@@ -451,6 +550,10 @@ __all__ = [
     "STATUS_USED",
     "build_shadow_artifact_from_preparation",
     "is_grounded_enabled",
+    "is_grounded_injection_allowed",
+    "is_passage_allowlisted",
+    "is_stage_allowed",
+    "passage_allowlist_canonicals",
     "prepare_grounded_provider_prompt",
     "resolve_grounded_module",
 ]

@@ -63,12 +63,20 @@ def main(argv: list[str] | None = None) -> int:
         from textus_kb.grounded_compare import main_review_rate
 
         return main_review_rate(rest)
+    if command == "review-summary":
+        from textus_kb.staging_readiness import main_review_summary
+
+        return main_review_summary(rest)
+    if command == "latency-audit":
+        from textus_kb.latency_audit import main as latency_main
+
+        return latency_main(rest)
 
     print(
         f"Unknown command: {command!r}. "
         "Use: python -m textus_kb [health|retrieve|context|entity|shadow|"
         "shadow-report|shadow-compare|prompt-preview|grounded-compare|"
-        "review-list|review-show|review-rate] ...",
+        "review-list|review-show|review-rate|review-summary|latency-audit] ...",
         file=sys.stderr,
     )
     return 2

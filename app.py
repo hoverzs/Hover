@@ -4912,6 +4912,13 @@ def _is_kb_grounded_enabled() -> bool:
     return raw in {"1", "true", "yes", "on"}
 
 
+def _is_kb_grounded_injection_allowed() -> bool:
+    """Requires GROUNDED + STAGE_ALLOWED (both default false)."""
+    from textus_kb.grounded_generation import is_grounded_injection_allowed
+
+    return is_grounded_injection_allowed()
+
+
 def _run_kb_shadow_for_section(
     *,
     passage: str,
@@ -4977,7 +4984,7 @@ def generate_section(key: str) -> bool:
             use_search=use_search,
             passage=(st.session_state.get("last_igehely") or "").strip(),
             shadow_enabled=_is_kb_shadow_enabled(),
-            grounded_enabled=_is_kb_grounded_enabled(),
+            grounded_enabled=_is_kb_grounded_injection_allowed(),
             generate_text_fn=generate_text,
             shadow_runner_fn=_run_kb_shadow_for_section,
         )
