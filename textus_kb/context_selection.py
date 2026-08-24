@@ -70,15 +70,23 @@ class SelectionStats:
     places_background_selected: int = 0
     aquifer_candidates: int = 0
     aquifer_selected: int = 0
+    target_kb_tokens: int = 0
+    max_kb_tokens: int = 0
+    actual_kb_tokens: int = 0
+    source_diversity: dict[str, int] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         return {
             "candidates": self.candidates,
             "selected": self.selected,
+            "candidate_evidence_count": self.candidates,
+            "selected_evidence_count": self.selected,
             "dropped_budget": self.dropped_budget,
+            "dropped_by_source_budget": self.dropped_budget + self.dropped_type_budget,
             "dropped_redundant": self.dropped_redundant,
             "dropped_type_budget": self.dropped_type_budget,
             "dropped_target": self.dropped_target,
+            "dropped_by_target": self.dropped_target,
             "tokens_by_type": dict(self.tokens_by_type),
             "selected_by_tier": dict(self.selected_by_tier),
             "coverage_segments": list(self.coverage_segments),
@@ -90,6 +98,10 @@ class SelectionStats:
             "places_background_selected": self.places_background_selected,
             "aquifer_candidates": self.aquifer_candidates,
             "aquifer_selected": self.aquifer_selected,
+            "target_kb_tokens": self.target_kb_tokens,
+            "max_kb_tokens": self.max_kb_tokens,
+            "actual_kb_tokens": self.actual_kb_tokens,
+            "source_diversity": dict(self.source_diversity),
         }
 
 
@@ -388,11 +400,11 @@ def select_context_items(
         type_cap = type_caps.get(budget_type, profile.max_tokens)
         if type_used.get(budget_type, 0) + cost > type_cap and not force_diversity:
             return False
-        # Soft target: do not add non-core once the next item would exceed target.
+        # Soft target: prefer stop — do not pad toward hard max.
+        # Diversity may add one item only while still under target.
         if (
             selected
             and cand.tier != TIER_CORE
-            and not force_diversity
             and total_tokens + cost > profile.target_tokens
         ):
             return False
@@ -619,6 +631,15 @@ def select_context_items(
                 "note_count": note_count,
             }
         )
+
+    stats.target_kb_tokens = int(profile.target_tokens)
+    stats.max_kb_tokens = int(profile.max_tokens)
+    stats.actual_kb_tokens = int(running)
+    from textus_kb.shadow_audit import classify_source_mix
+
+    stats.source_diversity = classify_source_mix(
+        [item.source_id for item in result_items]
+    )
 
     return result_items, stats
 

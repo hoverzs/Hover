@@ -24,9 +24,24 @@ COMPOSITION_VERSION = "1"
 DEFAULT_GROUNDED_PROMPT_TOKEN_BUDGET = 8000
 BUDGET_ENV = "TEXTUS_KB_GROUNDED_PROMPT_TOKEN_BUDGET"
 
-# KB-only allowance (matches Context Builder exegesis max_tokens).
+# KB-only allowance: soft target (prefer stop) vs hard max (safety ceiling).
+# Do NOT pad KB up to the hard max — minimize provider token usage.
 CONTEXT_MAX_ENV = "TEXTUS_KB_GROUNDED_CONTEXT_MAX_TOKENS"
+CONTEXT_TARGET_ENV = "TEXTUS_KB_GROUNDED_CONTEXT_TARGET_TOKENS"
 DEFAULT_KB_CONTEXT_MAX_TOKENS = 4500
+DEFAULT_KB_CONTEXT_TARGET_TOKENS = 2500
+
+# Per-module defaults (aligned with ContextProfile).
+DEFAULT_KB_CONTEXT_TARGET_BY_MODULE: dict[str, int] = {
+    "exegesis": 2500,
+    "historical_context": 2200,
+    "history": 2200,
+}
+DEFAULT_KB_CONTEXT_MAX_BY_MODULE: dict[str, int] = {
+    "exegesis": 4500,
+    "historical_context": 3500,
+    "history": 3500,
+}
 
 # Total hard safety cap for composed grounded prompt (production + KB + overhead).
 # Not a provider context-window claim — app only configures maxOutputTokens;
@@ -104,10 +119,12 @@ class GroundedPromptPreview:
     success: bool = True
     error: str = ""
     composition_overhead_estimated_tokens: int = 0
+    kb_context_target_tokens: int = DEFAULT_KB_CONTEXT_TARGET_TOKENS
     kb_context_max_tokens: int = DEFAULT_KB_CONTEXT_MAX_TOKENS
     total_grounded_max_tokens: int = DEFAULT_TOTAL_GROUNDED_MAX_TOKENS
     kb_trim_applied: bool = False
     budget_status: str = BUDGET_STATUS_OK
+    selection_diagnostics: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self, *, include_prompt: bool = False) -> dict[str, Any]:
         payload = asdict(self)
@@ -116,16 +133,24 @@ class GroundedPromptPreview:
         return payload
 
     def budget_diagnostics(self) -> dict[str, Any]:
+        total = self.composed_prompt_estimated_tokens
+        kb = self.kb_context_estimated_tokens
+        kb_pct = round((kb / total) * 100.0, 2) if total else 0.0
         return {
             "production_prompt_estimated_tokens": self.original_prompt_estimated_tokens,
-            "kb_context_estimated_tokens": self.kb_context_estimated_tokens,
+            "kb_context_estimated_tokens": kb,
             "composition_overhead_estimated_tokens": self.composition_overhead_estimated_tokens,
-            "total_grounded_estimated_tokens": self.composed_prompt_estimated_tokens,
+            "total_grounded_estimated_tokens": total,
+            "kb_share_of_grounded_percent": kb_pct,
+            "target_kb_context_tokens": self.kb_context_target_tokens,
+            "kb_context_target_tokens": self.kb_context_target_tokens,
+            "max_kb_context_tokens": self.kb_context_max_tokens,
             "kb_context_max_tokens": self.kb_context_max_tokens,
             "total_grounded_max_tokens": self.total_grounded_max_tokens,
             "kb_trim_applied": self.kb_trim_applied,
             "budget_status": self.budget_status,
             "budget_ok": self.budget_ok,
+            "selection_diagnostics": dict(self.selection_diagnostics),
         }
 
     def audit_metrics(self) -> dict[str, Any]:
@@ -144,10 +169,12 @@ class GroundedPromptPreview:
             "budget_status": self.budget_status,
             "kb_trim_applied": self.kb_trim_applied,
             "composition_overhead_estimated_tokens": self.composition_overhead_estimated_tokens,
+            "kb_context_target_tokens": self.kb_context_target_tokens,
             "kb_context_max_tokens": self.kb_context_max_tokens,
             "total_grounded_max_tokens": self.total_grounded_max_tokens,
             "duplicate_text_ratio": self.duplicate_text_ratio,
             "source_diversity": dict(self.source_diversity),
+            "selection_diagnostics": dict(self.selection_diagnostics),
         }
 
 
@@ -177,8 +204,30 @@ def _positive_int_env(name: str, default: int) -> int:
     return value if value > 0 else int(default)
 
 
-def grounded_kb_context_max_tokens(default: int = DEFAULT_KB_CONTEXT_MAX_TOKENS) -> int:
-    return _positive_int_env(CONTEXT_MAX_ENV, default)
+def grounded_kb_context_max_tokens(
+    default: int = DEFAULT_KB_CONTEXT_MAX_TOKENS,
+    *,
+    module: str | None = None,
+) -> int:
+    if (os.getenv(CONTEXT_MAX_ENV) or "").strip():
+        return _positive_int_env(CONTEXT_MAX_ENV, default)
+    if module:
+        key = "historical_context" if module == "history" else module
+        return int(DEFAULT_KB_CONTEXT_MAX_BY_MODULE.get(key, default))
+    return int(default)
+
+
+def grounded_kb_context_target_tokens(
+    default: int = DEFAULT_KB_CONTEXT_TARGET_TOKENS,
+    *,
+    module: str | None = None,
+) -> int:
+    if (os.getenv(CONTEXT_TARGET_ENV) or "").strip():
+        return _positive_int_env(CONTEXT_TARGET_ENV, default)
+    if module:
+        key = "historical_context" if module == "history" else module
+        return int(DEFAULT_KB_CONTEXT_TARGET_BY_MODULE.get(key, default))
+    return int(default)
 
 
 def grounded_total_max_tokens(default: int = DEFAULT_TOTAL_GROUNDED_MAX_TOKENS) -> int:
@@ -192,16 +241,30 @@ def grounded_total_max_tokens(default: int = DEFAULT_TOTAL_GROUNDED_MAX_TOKENS) 
 
 def resolve_grounded_budget_limits(
     *,
+    module: str | None = None,
     token_budget: int | None = None,
-) -> tuple[int, int]:
-    """Return (kb_context_max_tokens, total_grounded_max_tokens).
+    kb_context_max_tokens: int | None = None,
+    kb_context_target_tokens: int | None = None,
+) -> tuple[int, int, int]:
+    """Return (kb_target, kb_max, total_grounded_max).
 
     Explicit ``token_budget`` (tests/CLI) overrides the total hard cap only.
     """
-    kb_max = grounded_kb_context_max_tokens()
+    kb_target = (
+        int(kb_context_target_tokens)
+        if kb_context_target_tokens is not None
+        else grounded_kb_context_target_tokens(module=module)
+    )
+    kb_max = (
+        int(kb_context_max_tokens)
+        if kb_context_max_tokens is not None
+        else grounded_kb_context_max_tokens(module=module)
+    )
+    if kb_target > kb_max:
+        kb_target = kb_max
     if token_budget is not None:
-        return kb_max, int(token_budget)
-    return kb_max, grounded_total_max_tokens()
+        return kb_target, kb_max, int(token_budget)
+    return kb_target, kb_max, grounded_total_max_tokens()
 
 
 def grounded_kb_token_reserve(default: int = DEFAULT_KB_TOKEN_RESERVE) -> int:
@@ -444,14 +507,21 @@ def _shrink_packet_for_budget(
     production_prompt: str,
     total_max_tokens: int,
     kb_max_tokens: int,
+    kb_target_tokens: int | None = None,
 ) -> tuple[LLMContextPacket, list[str], bool]:
     """Reduce KB sections until composed prompt fits total + KB caps.
 
+    Prefer soft KB target; hard max is safety ceiling only. Never pads upward.
     Never truncates the production prompt. Returns (packet, warnings, trim_applied).
     """
     warnings: list[str] = []
     working = packet
     trim_applied = False
+    soft_kb_cap = (
+        min(int(kb_target_tokens), int(kb_max_tokens))
+        if kb_target_tokens is not None
+        else int(kb_max_tokens)
+    )
 
     def _kb_and_total(pkt: LLMContextPacket) -> tuple[int, int]:
         kb_text = render_kb_context(pkt)[0]
@@ -463,85 +533,94 @@ def _shrink_packet_for_budget(
         )
         return kb_tok, estimate_text_tokens(composed)
 
-    def _fits(pkt: LLMContextPacket) -> bool:
+    def _fits(pkt: LLMContextPacket, *, kb_cap: int) -> bool:
         kb_tok, total_tok = _kb_and_total(pkt)
-        return kb_tok <= kb_max_tokens and total_tok <= total_max_tokens
+        return kb_tok <= kb_cap and total_tok <= total_max_tokens
 
-    if _fits(working):
+    if _fits(working, kb_cap=soft_kb_cap):
         return working, warnings, False
 
-    # First try dropping whole low-priority sections.
-    for drop_type in _TRIM_SECTION_ORDER:
-        if _fits(working):
-            return working, warnings, trim_applied
-        remaining = [s for s in working.sections if s.type != drop_type]
-        if len(remaining) == len(working.sections):
-            continue
-        warnings.append(f"Trimmed KB section for prompt budget: {drop_type}")
-        trim_applied = True
-        working = LLMContextPacket(
-            passage=working.passage,
-            passage_display=working.passage_display,
-            profile=working.profile,
-            sections=remaining,
-            source_ids=sorted({i.source_id for s in remaining for i in s.items}),
-            evidence_ids=[i.evidence_id for s in remaining for i in s.items],
-            warnings=list(working.warnings),
-            estimated_tokens=working.estimated_tokens,
-            target_tokens=working.target_tokens,
-            token_budget=working.token_budget,
-            max_tokens=working.max_tokens,
-            truncated=True,
-            schema_version=working.schema_version,
-            evidence_packet_build_id=working.evidence_packet_build_id,
-            selection_stats=dict(working.selection_stats),
-        )
+    def _trim_loop(kb_cap: int) -> None:
+        nonlocal working, trim_applied
+        for drop_type in _TRIM_SECTION_ORDER:
+            if _fits(working, kb_cap=kb_cap):
+                return
+            remaining = [s for s in working.sections if s.type != drop_type]
+            if len(remaining) == len(working.sections):
+                continue
+            warnings.append(f"Trimmed KB section for prompt budget: {drop_type}")
+            trim_applied = True
+            working = LLMContextPacket(
+                passage=working.passage,
+                passage_display=working.passage_display,
+                profile=working.profile,
+                sections=remaining,
+                source_ids=sorted({i.source_id for s in remaining for i in s.items}),
+                evidence_ids=[i.evidence_id for s in remaining for i in s.items],
+                warnings=list(working.warnings),
+                estimated_tokens=working.estimated_tokens,
+                target_tokens=working.target_tokens,
+                token_budget=working.token_budget,
+                max_tokens=working.max_tokens,
+                truncated=True,
+                schema_version=working.schema_version,
+                evidence_packet_build_id=working.evidence_packet_build_id,
+                selection_stats=dict(working.selection_stats),
+            )
 
-    # Then drop trailing items within remaining sections (lowest relevance last).
-    while not _fits(working):
-        drop_section_idx = None
-        for section_type in _TRIM_SECTION_ORDER:
-            for idx, section in enumerate(working.sections):
-                if section.type == section_type and section.items:
-                    drop_section_idx = idx
+        while not _fits(working, kb_cap=kb_cap):
+            drop_section_idx = None
+            for section_type in _TRIM_SECTION_ORDER:
+                for idx, section in enumerate(working.sections):
+                    if section.type == section_type and section.items:
+                        drop_section_idx = idx
+                        break
+                if drop_section_idx is not None:
                     break
-            if drop_section_idx is not None:
+            if drop_section_idx is None:
                 break
-        if drop_section_idx is None:
-            break
-        section = working.sections[drop_section_idx]
-        trim_applied = True
-        if len(section.items) <= 1:
-            new_sections = [s for i, s in enumerate(working.sections) if i != drop_section_idx]
-            warnings.append(f"Removed last item/section for prompt budget: {section.type}")
-        else:
-            new_items = section.items[:-1]
-            new_sections = list(working.sections)
-            new_sections[drop_section_idx] = ContextSection(type=section.type, items=new_items)
-            warnings.append(f"Dropped KB item for prompt budget in section: {section.type}")
-        working = LLMContextPacket(
-            passage=working.passage,
-            passage_display=working.passage_display,
-            profile=working.profile,
-            sections=new_sections,
-            source_ids=sorted({i.source_id for s in new_sections for i in s.items}),
-            evidence_ids=[i.evidence_id for s in new_sections for i in s.items],
-            warnings=list(working.warnings),
-            estimated_tokens=working.estimated_tokens,
-            target_tokens=working.target_tokens,
-            token_budget=working.token_budget,
-            max_tokens=working.max_tokens,
-            truncated=True,
-            schema_version=working.schema_version,
-            evidence_packet_build_id=working.evidence_packet_build_id,
-            selection_stats=dict(working.selection_stats),
-        )
+            section = working.sections[drop_section_idx]
+            trim_applied = True
+            if len(section.items) <= 1:
+                new_sections = [s for i, s in enumerate(working.sections) if i != drop_section_idx]
+                warnings.append(f"Removed last item/section for prompt budget: {section.type}")
+            else:
+                new_items = section.items[:-1]
+                new_sections = list(working.sections)
+                new_sections[drop_section_idx] = ContextSection(type=section.type, items=new_items)
+                warnings.append(f"Dropped KB item for prompt budget in section: {section.type}")
+            working = LLMContextPacket(
+                passage=working.passage,
+                passage_display=working.passage_display,
+                profile=working.profile,
+                sections=new_sections,
+                source_ids=sorted({i.source_id for s in new_sections for i in s.items}),
+                evidence_ids=[i.evidence_id for s in new_sections for i in s.items],
+                warnings=list(working.warnings),
+                estimated_tokens=working.estimated_tokens,
+                target_tokens=working.target_tokens,
+                token_budget=working.token_budget,
+                max_tokens=working.max_tokens,
+                truncated=True,
+                schema_version=working.schema_version,
+                evidence_packet_build_id=working.evidence_packet_build_id,
+                selection_stats=dict(working.selection_stats),
+            )
 
-    if not _fits(working):
+    _trim_loop(soft_kb_cap)
+    if not _fits(working, kb_cap=kb_max_tokens):
+        _trim_loop(kb_max_tokens)
+
+    if not _fits(working, kb_cap=kb_max_tokens):
         warnings.append(
             f"Grounded prompt still exceeds total_max={total_max_tokens} "
             f"or kb_max={kb_max_tokens} after KB trimming; "
             "production prompt was not truncated."
+        )
+    elif trim_applied and kb_target_tokens is not None:
+        warnings.append(
+            f"KB context trimmed toward target={soft_kb_cap} "
+            f"(hard max={kb_max_tokens}); not padded to max."
         )
     return working, warnings, trim_applied
 
@@ -575,20 +654,25 @@ def compose_grounded_prompt(
     context_packet: LLMContextPacket | dict[str, Any],
     token_budget: int | None = None,
     kb_context_max_tokens: int | None = None,
+    kb_context_target_tokens: int | None = None,
 ) -> GroundedPromptPreview:
     """Compose a dry-run grounded prompt preview. Never calls a model provider.
 
-    Budget model (adaptive but bounded):
+    Budget model (adaptive but bounded; minimize provider tokens):
     - production prompt is immutable (never truncated);
-    - KB context has its own max (default 4500);
+    - KB has a soft target (prefer stop) and hard max (safety ceiling);
+    - do not pad KB toward the hard max;
     - total composed prompt has a hard safety cap (default 28000);
     - required ≈ production + KB + composition overhead.
     """
-    kb_max, total_max = resolve_grounded_budget_limits(token_budget=token_budget)
-    if kb_context_max_tokens is not None:
-        kb_max = int(kb_context_max_tokens)
-
     module_key = module if module != "history" else "historical_context"
+    kb_target, kb_max, total_max = resolve_grounded_budget_limits(
+        module=module_key,
+        token_budget=token_budget,
+        kb_context_max_tokens=kb_context_max_tokens,
+        kb_context_target_tokens=kb_context_target_tokens,
+    )
+
     production_tokens = estimate_text_tokens(production_prompt) if production_prompt else 0
     overhead = estimate_composition_overhead_tokens(
         production_prompt or "",
@@ -619,6 +703,7 @@ def compose_grounded_prompt(
             success=success,
             error=error,
             composition_overhead_estimated_tokens=overhead,
+            kb_context_target_tokens=kb_target,
             kb_context_max_tokens=kb_max,
             total_grounded_max_tokens=total_max,
             kb_trim_applied=False,
@@ -649,6 +734,7 @@ def compose_grounded_prompt(
         packet = packet_from_mapping(context_packet)
         if not packet.passage and canonical_passage:
             packet.passage = canonical_passage
+        selection_diag = dict(packet.selection_stats or {})
 
         original_prompt = production_prompt  # never mutated / truncated
         original_chars = len(original_prompt)
@@ -659,6 +745,7 @@ def compose_grounded_prompt(
             production_prompt=original_prompt,
             total_max_tokens=total_max,
             kb_max_tokens=kb_max,
+            kb_target_tokens=kb_target,
         )
         kb_text, source_ids, evidence_ids, render_warnings = render_kb_context(trimmed)
         kb_chars = len(kb_text)
@@ -694,6 +781,22 @@ def compose_grounded_prompt(
                 f"total_max={total_max} or kb_max={kb_max}."
             )
 
+        selection_diag.setdefault("target_kb_tokens", kb_target)
+        selection_diag.setdefault("max_kb_tokens", kb_max)
+        selection_diag["actual_kb_tokens"] = kb_tokens
+        selection_diag["candidate_evidence_count"] = int(
+            selection_diag.get("candidate_evidence_count")
+            or selection_diag.get("candidates")
+            or 0
+        )
+        selection_diag["selected_evidence_count"] = int(
+            selection_diag.get("selected_evidence_count")
+            or selection_diag.get("selected")
+            or len(evidence_ids)
+        )
+        if "source_diversity" not in selection_diag:
+            selection_diag["source_diversity"] = _source_diversity(source_ids)
+
         prompt_hash = hashlib.sha256(composed.encode("utf-8")).hexdigest()
         return GroundedPromptPreview(
             canonical_passage=canonical_passage or packet.passage,
@@ -718,10 +821,12 @@ def compose_grounded_prompt(
             composed_prompt=composed,
             success=True,
             composition_overhead_estimated_tokens=measured_overhead or overhead,
+            kb_context_target_tokens=kb_target,
             kb_context_max_tokens=kb_max,
             total_grounded_max_tokens=total_max,
             kb_trim_applied=kb_trim_applied,
             budget_status=budget_status,
+            selection_diagnostics=selection_diag,
         )
     except Exception as exc:
         return GroundedPromptPreview(
@@ -743,6 +848,7 @@ def compose_grounded_prompt(
             success=False,
             error=f"{type(exc).__name__}: {exc}",
             composition_overhead_estimated_tokens=overhead,
+            kb_context_target_tokens=kb_target,
             kb_context_max_tokens=kb_max,
             total_grounded_max_tokens=total_max,
             kb_trim_applied=False,
@@ -865,7 +971,10 @@ __all__ = [
     "BUDGET_STATUS_TRIMMED",
     "COMPOSITION_VERSION",
     "DEFAULT_GROUNDED_PROMPT_TOKEN_BUDGET",
+    "DEFAULT_KB_CONTEXT_MAX_BY_MODULE",
     "DEFAULT_KB_CONTEXT_MAX_TOKENS",
+    "DEFAULT_KB_CONTEXT_TARGET_BY_MODULE",
+    "DEFAULT_KB_CONTEXT_TARGET_TOKENS",
     "DEFAULT_KB_TOKEN_RESERVE",
     "DEFAULT_PROMPT_TOKEN_CEILING",
     "DEFAULT_TOTAL_GROUNDED_MAX_TOKENS",
@@ -877,6 +986,7 @@ __all__ = [
     "evidence_attribution_marker",
     "expand_budget_for_production_prompt",
     "grounded_kb_context_max_tokens",
+    "grounded_kb_context_target_tokens",
     "grounded_kb_token_reserve",
     "grounded_prompt_token_budget",
     "grounded_prompt_token_ceiling",

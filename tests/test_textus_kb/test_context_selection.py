@@ -125,12 +125,23 @@ def test_hard_max_never_exceeded(full_evidence) -> None:
 
 def test_exegesis_target_range(full_evidence) -> None:
     context = build_context_from_evidence(full_evidence, PROFILE_EXEGESIS)
-    assert 2000 <= context.estimated_tokens <= 4500
+    # Prefer soft target (~2500); hard max 4500 is ceiling only — do not pad to max.
+    assert context.estimated_tokens <= context.max_tokens == 4500
+    assert context.estimated_tokens <= 2800
+    assert context.target_tokens == 2500
+    stats = context.selection_stats
+    assert stats["target_kb_tokens"] == 2500
+    assert stats["max_kb_tokens"] == 4500
+    assert "actual_kb_tokens" in stats
+    assert "dropped_by_target" in stats or "dropped_target" in stats
+    assert "source_diversity" in stats
 
 
 def test_historical_under_max(full_evidence) -> None:
     context = build_context_from_evidence(full_evidence, PROFILE_HISTORICAL)
     assert context.estimated_tokens <= 3500
+    assert context.estimated_tokens <= 2500
+    assert context.target_tokens == 2200
     assert context.selection_stats["dictionary_selected"] >= 2
 
 

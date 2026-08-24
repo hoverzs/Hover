@@ -259,8 +259,18 @@ def run_grounded_compare(
             or grounded_prompt_tokens
             or 0
         ),
+        "kb_share_of_grounded_percent": float(
+            (prep.budget_diagnostics or {}).get("kb_share_of_grounded_percent") or 0.0
+        ),
+        "target_kb_context_tokens": int(
+            (prep.budget_diagnostics or {}).get("target_kb_context_tokens")
+            or (prep.budget_diagnostics or {}).get("kb_context_target_tokens")
+            or 0
+        ),
         "kb_context_max_tokens": int(
-            (prep.budget_diagnostics or {}).get("kb_context_max_tokens") or 0
+            (prep.budget_diagnostics or {}).get("kb_context_max_tokens")
+            or (prep.budget_diagnostics or {}).get("max_kb_context_tokens")
+            or 0
         ),
         "total_grounded_max_tokens": int(
             (prep.budget_diagnostics or {}).get("total_grounded_max_tokens") or 0
@@ -269,6 +279,9 @@ def run_grounded_compare(
         "budget_status": str(
             (prep.budget_diagnostics or {}).get("budget_status")
             or ("exceeded" if grounded_status != "success" and prep.grounded_fallback else "ok")
+        ),
+        "selection_diagnostics": dict(
+            (prep.budget_diagnostics or {}).get("selection_diagnostics") or {}
         ),
         "production_output_chars": len(production_output or ""),
         "grounded_output_chars": len(grounded_output or ""),

@@ -26,43 +26,93 @@
       "type": "dictionary",
       "items": [
         {
-          "text": "Jacob’s Well — JACOB’S WELL: JACOB’S WELL Place mentioned only in John’s Gospel ( Jn 4:5–29 ). It was here that Jesus sat and talked with the unnamed woman of Samaria, who readily accepted Jesus’ words. This well is located in a plot of ground acquired by the patriarch Jacob, about 300 yards (274 meters) southeast from the traditional tomb of Joseph ( Gn 33:19 ; Jos 24:32 ; Jn 4:5–6 ). The site is about two miles (3.2 kilometers) southeast of modern Nablus, 600 yards (549 meters) southeast of the site of ancient Shechem (modern Balata), and 1,000 yards (914 meters) south of Sychar (modern Askar). Towering over the site on the northwest is Mt Ebal (at the foot of which lies Askar), and on the southwest Mt Gerizim, mountains of cursing and blessing, respectively ( Dt 27:12–13 ; Jos 8:30–33 ). Near here Abraham built his first altar, and Jacob his second ( Gn 12:6–7 ; 33:18–20 ). Thus the site is one of the most ancient and sacred in the Holy Land. (Source: Aquifer Open Bible Dictionary, CC-BY-SA-4.0)",
-          "evidence_id": "EV-DICT-0001",
+          "text": "Abba — ABBA: ABBA Aramaic word for “father,” which is applied to God in Mark 14:36 ; Romans 8:15 ; and Galatians 4:6 . The name expresses a very intimate and inseparable relationship between Christ and the Father, and between believers (as children) and God (as Father). (Source: Aquifer Open Bible Dictionary, CC-BY-SA-4.0)",
+          "evidence_id": "EV-DICT-3268-c001",
           "source_id": "aquifer_open_bible_dictionary",
           "relevance_score": 100,
           "item_type": "dictionary_background",
           "metadata": {
-            "article_id": "6162",
-            "chunk_id": "6162-c001",
-            "heading": "JACOB’S WELL",
-            "index_reference": "jacobs well",
+            "article_id": "3268",
+            "chunk_id": "3268-c001",
+            "heading": "ABBA",
+            "index_reference": "abba",
+            "selection_reason": "entity_acai_dictionary_link",
+            "passage_linked": true,
+            "entity_topic_count": 1,
+            "entity_expansion": {
+              "passage": "John.4.1-42",
+              "entity_id": "acai-deity-Lord",
+              "acai_id": "deity:Lord",
+              "entity_type": "deity",
+              "canonical_name": "LORD",
+              "dictionary_article_id": "3268",
+              "dictionary_title": "Abba",
+              "match_method": "content_id",
+              "mapping_method": "explicit",
+              "priority_tier": 1
+            },
+            "license": "CC-BY-SA-4.0",
+            "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "attribution": "Aquifer Open Bible Dictionary © 2026 Mission Mutual, adapted from Tyndale Open Bible Dictionary © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0.",
+            "upstream_commit": "3c4773e8746c9b051ce754c5a01ceddaabea84ce",
+            "upstream_resource_version": "1.1.2",
+            "canonical_scope": "John.4.1-42",
+            "selection_tier": "primary",
+            "selection_specificity": 95,
+            "budget_type": "dictionary"
+          }
+        },
+        {
+          "text": "Aegean Sea — AEGEAN SEA: AEGEAN SEA The Aegean Sea is part of the Mediterranean Sea. It is located between Greece on the west and north and Turkey on the east. The large island of Crete marks its southern boundary. To the northeast, the Aegean connects to the Black Sea through the Strait of Dardanelles and the Sea of Marmara. The Aegean Sea is about 200 miles (320 kilometers) wide and 400 miles (640 kilometers) long and has hundreds of islands, including Lesbos and Patmos ( Revelation 1:9 ). The sea was probably named after Aegeus, a king of Athens and the father of Theseus in Greek mythology. The apostle Paul spent a lot of time in the Aegean area during his second and third missionary journeys. The three major modern cities on the Aegean are Athens (with its port of Piraeus), Thessaloniki (biblical Thessalonica) in Greece, and Izmir (biblical Smyrna) in Turkey. (Source: Aquifer Open Bible Dictionary, CC-BY-SA-4.0)",
+          "evidence_id": "EV-DICT-3409-c001",
+          "source_id": "aquifer_open_bible_dictionary",
+          "relevance_score": 100,
+          "item_type": "dictionary_background",
+          "metadata": {
+            "article_id": "3409",
+            "chunk_id": "3409-c001",
+            "heading": "AEGEAN SEA",
+            "index_reference": "aegean sea",
+            "selection_reason": "entity_acai_dictionary_link",
+            "passage_linked": true,
+            "entity_topic_count": 1,
+            "entity_expansion": {
+              "passage": "John.4.1-42",
+              "entity_id": "acai-deity-Lord",
+              "acai_id": "deity:Lord",
+              "entity_type": "deity",
+              "canonical_name": "LORD",
+              "dictionary_article_id": "3409",
+              "dictionary_title": "Aegean Sea",
+              "match_method": "scored",
+              "mapping_method": "explicit",
+              "priority_tier": 1
+            },
+            "license": "CC-BY-SA-4.0",
+            "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "attribution": "Aquifer Open Bible Dictionary © 2026 Mission Mutual, adapted from Tyndale Open Bible Dictionary © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0.",
+            "upstream_commit": "3c4773e8746c9b051ce754c5a01ceddaabea84ce",
+            "upstream_resource_version": "1.1.2",
+            "canonical_scope": "John.4.1-42",
+            "selection_tier": "primary",
+            "selection_specificity": 95,
+            "budget_type": "dictionary"
+          }
+        },
+        {
+          "text": "Andrew, the Apostle — ANDREW, The Apostle: ANDREW, The Apostle One of Jesus's 12 apostles (special messengers chosen by Jesus). (Source: Aquifer Open Bible Dictionary, CC-BY-SA-4.0)",
+          "evidence_id": "EV-DICT-3604-c001",
+          "source_id": "aquifer_open_bible_dictionary",
+          "relevance_score": 100,
+          "item_type": "dictionary_background",
+          "metadata": {
+            "article_id": "3604",
+            "chunk_id": "3604-c001",
+            "heading": "ANDREW, The Apostle",
+            "index_reference": "andrew the apostle",
             "selection_reason": "direct_passage_association",
-            "passage_associations": [
-              {
-                "start_ref": "43004005",
-                "end_ref": "43004006",
-                "start_ref_usfm": "JHN 4:5",
-                "end_ref_usfm": "JHN 4:6"
-              },
-              {
-                "start_ref": "43004005",
-                "end_ref": "43004029",
-                "start_ref_usfm": "JHN 4:5",
-                "end_ref_usfm": "JHN 4:29"
-              }
-            ],
-            "entity_topics": [
-              {
-                "entity_id": "sychar",
-                "entity_type": "place",
-                "source": "inferred_from_pilot_place_links"
-              },
-              {
-                "entity_id": "John.4.1-42",
-                "entity_type": "passage",
-                "source": "upstream_passage_association"
-              }
-            ],
+            "passage_linked": true,
+            "entity_topic_count": 0,
             "entity_expansion": null,
             "license": "CC-BY-SA-4.0",
             "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
@@ -76,87 +126,19 @@
           }
         },
         {
-          "text": "Jacob’s Well — JACOB’S WELL: The well is about 100 feet (30.5 meters) in depth and one yard (.9 meter) in diameter, cut through limestone. Fed by subterranean streams from the adjacent mountain slopes, the water is pure and plentiful, the pride of the villagers. A church has existed on the site from at least AD 380. The Greek Orthodox Church acquired the site in 1885 and built a structure on the site. Access to the well is by steps leading from either side of the church altar to the well curb below. (Source: Aquifer Open Bible Dictionary, CC-BY-SA-4.0)",
-          "evidence_id": "EV-DICT-0002",
+          "text": "Baptism — Preview: Preview The Baptism of John The Baptism of Jesus Jesus Instructs His Followers to Baptize Baptism in the Early Church The Theology of Baptism in Paul’s and Peter’s Letters (Source: Aquifer Open Bible Dictionary, CC-BY-SA-4.0)",
+          "evidence_id": "EV-DICT-3997-c002",
           "source_id": "aquifer_open_bible_dictionary",
           "relevance_score": 100,
           "item_type": "dictionary_background",
           "metadata": {
-            "article_id": "6162",
-            "chunk_id": "6162-c002",
-            "heading": "JACOB’S WELL",
-            "index_reference": "jacobs well",
+            "article_id": "3997",
+            "chunk_id": "3997-c002",
+            "heading": "Preview",
+            "index_reference": "baptism",
             "selection_reason": "direct_passage_association",
-            "passage_associations": [
-              {
-                "start_ref": "43004005",
-                "end_ref": "43004006",
-                "start_ref_usfm": "JHN 4:5",
-                "end_ref_usfm": "JHN 4:6"
-              },
-              {
-                "start_ref": "43004005",
-                "end_ref": "43004029",
-                "start_ref_usfm": "JHN 4:5",
-                "end_ref_usfm": "JHN 4:29"
-              }
-            ],
-            "entity_topics": [
-              {
-                "entity_id": "sychar",
-                "entity_type": "place",
-                "source": "inferred_from_pilot_place_links"
-              },
-              {
-                "entity_id": "John.4.1-42",
-                "entity_type": "passage",
-                "source": "upstream_passage_association"
-              }
-            ],
-            "entity_expansion": null,
-            "license": "CC-BY-SA-4.0",
-            "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
-            "attribution": "Aquifer Open Bible Dictionary © 2026 Mission Mutual, adapted from Tyndale Open Bible Dictionary © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0.",
-            "upstream_commit": "3c4773e8746c9b051ce754c5a01ceddaabea84ce",
-            "upstream_resource_version": "1.1.2",
-            "canonical_scope": "John.4.1-42",
-            "selection_tier": "primary",
-            "selection_specificity": 95,
-            "budget_type": "dictionary"
-          }
-        },
-        {
-          "text": "Mount Gerizim — MOUNT GERIZIM: MOUNT GERIZIM Mount Gerizim, now called Jebel et-Tor, stands near Shechem. God commanded the Israelites to announce blessings from Mount Gerizim and curses from Mount Ebal ( Deuteronomy 11:29 ). The two mountains face each other. Six tribes stood on Mount Gerizim, and six stood on Mount Ebal. The Levites stood in the valley between them and announced the blessings and curses ( Deuteronomy 27:11–28:68 ; Joshua 8:33–35 ). Mount Gerizim is about 16 kilometers (10 miles) southeast of the ancient city of Samaria. The Samaritan woman referred to it when she told Jesus, “our fathers worshiped on this mountain” ( John 4:20–23 ). Abraham had built an altar near Shechem ( Genesis 12:6–7 ; 33:18–20 ). The area became an important place of worship for the Samaritan people. Jesus told the woman that true worship would not depend on worshiping at Mount Gerizim or in Jerusalem. True worshipers must worship the Father in spirit and truth ( John 4:20–23 ). Joseph’s bones were buried near Shechem ( Joshua 24:32 ). In the same area, Joshua called the Israelites to renew their loyalty to the God of their ancestors (verses 25–27 ). (Source: Aquifer Open Bible Dictionary, CC-BY-SA-4.0)",
-          "evidence_id": "EV-DICT-0003",
-          "source_id": "aquifer_open_bible_dictionary",
-          "relevance_score": 100,
-          "item_type": "dictionary_background",
-          "metadata": {
-            "article_id": "5428",
-            "chunk_id": "5428-c001",
-            "heading": "MOUNT GERIZIM",
-            "index_reference": "mount gerizim",
-            "selection_reason": "direct_passage_association",
-            "passage_associations": [
-              {
-                "start_ref": "43004020",
-                "end_ref": "43004023",
-                "start_ref_usfm": "JHN 4:20",
-                "end_ref_usfm": "JHN 4:23"
-              }
-            ],
-            "entity_topics": [
-              {
-                "entity_id": "mount_gerizim",
-                "entity_type": "place",
-                "source": "inferred_from_pilot_place_links"
-              },
-              {
-                "entity_id": "John.4.1-42",
-                "entity_type": "passage",
-                "source": "upstream_passage_association"
-              }
-            ],
+            "passage_linked": true,
+            "entity_topic_count": 0,
             "entity_expansion": null,
             "license": "CC-BY-SA-4.0",
             "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
@@ -175,7 +157,55 @@
       "type": "entities",
       "items": [
         {
-          "text": "Samaritans — group — directly linked to Jn 4, dictionary-linked",
+          "text": "LORD — deity — explicitly referenced in Jn 4,1-42",
+          "evidence_id": "ENT-acai-deity-Lord",
+          "source_id": "acai",
+          "relevance_score": 95,
+          "item_type": "entity_summary",
+          "metadata": {
+            "entity_id": "acai-deity-Lord",
+            "external_id": "deity:Lord",
+            "entity_type": "deity",
+            "budget_type": "entity",
+            "canonical_scope": "John.4.1-42",
+            "selection_tier": "primary",
+            "selection_specificity": 50
+          }
+        },
+        {
+          "text": "Jews — group — explicitly referenced in Jn 4,1-42",
+          "evidence_id": "ENT-acai-group-Jews",
+          "source_id": "acai",
+          "relevance_score": 95,
+          "item_type": "entity_summary",
+          "metadata": {
+            "entity_id": "acai-group-Jews",
+            "external_id": "group:Jews",
+            "entity_type": "group",
+            "budget_type": "entity",
+            "canonical_scope": "John.4.1-42",
+            "selection_tier": "primary",
+            "selection_specificity": 50
+          }
+        },
+        {
+          "text": "Pharisees — group — explicitly referenced in Jn 4,1-42",
+          "evidence_id": "ENT-acai-group-Pharisee",
+          "source_id": "acai",
+          "relevance_score": 95,
+          "item_type": "entity_summary",
+          "metadata": {
+            "entity_id": "acai-group-Pharisee",
+            "external_id": "group:Pharisee",
+            "entity_type": "group",
+            "budget_type": "entity",
+            "canonical_scope": "John.4.1-42",
+            "selection_tier": "primary",
+            "selection_specificity": 50
+          }
+        },
+        {
+          "text": "Samaritans — group — explicitly referenced in Jn 4,1-42",
           "evidence_id": "ENT-acai-group-Samaritan",
           "source_id": "acai",
           "relevance_score": 95,
@@ -185,21 +215,23 @@
             "external_id": "group:Samaritan",
             "entity_type": "group",
             "budget_type": "entity",
+            "canonical_scope": "John.4.1-42",
             "selection_tier": "primary",
             "selection_specificity": 50
           }
         },
         {
-          "text": "Israel — person — directly linked to Jn 4, dictionary-linked",
-          "evidence_id": "ENT-acai-person-Israel",
+          "text": "Always — keyterm — explicitly referenced in Jn 4,1-42",
+          "evidence_id": "ENT-acai-keyterm-Always",
           "source_id": "acai",
           "relevance_score": 95,
           "item_type": "entity_summary",
           "metadata": {
-            "entity_id": "acai-person-Israel",
-            "external_id": "person:Israel",
-            "entity_type": "person",
+            "entity_id": "acai-keyterm-Always",
+            "external_id": "keyterm:Always",
+            "entity_type": "keyterm",
             "budget_type": "entity",
+            "canonical_scope": "John.4.1-42",
             "selection_tier": "primary",
             "selection_specificity": 50
           }
@@ -298,19 +330,6 @@
             "selection_specificity": 50,
             "budget_type": "background"
           }
-        },
-        {
-          "text": "Észak-Izrael történeti régiója, Jézus szolgálatának számos fontos helyszínével. A terület ma Izrael északi részén fekszik. | Coordinates: 32.76000, 35.52700 | Identification status: certain",
-          "evidence_id": "EV-PLACE-0002",
-          "source_id": "biblical_places_catalog",
-          "relevance_score": 85,
-          "item_type": "place_catalog",
-          "metadata": {
-            "place_id": "galilee_1",
-            "selection_tier": "supporting",
-            "selection_specificity": 50,
-            "budget_type": "background"
-          }
         }
       ]
     },
@@ -338,13 +357,13 @@
       "type": "geography",
       "items": [
         {
-          "text": "Coordinates: 31.77667, 35.23417 | Identification status: probable",
-          "evidence_id": "EV-PLACE-0004",
+          "text": "Coordinates: 32.76000, 35.52700 | Identification status: certain",
+          "evidence_id": "EV-PLACE-0002",
           "source_id": "biblical_places_catalog",
           "relevance_score": 80,
           "item_type": "geography",
           "metadata": {
-            "place_id": "jerusalem",
+            "place_id": "galilee_1",
             "selection_tier": "supporting",
             "selection_specificity": 50,
             "budget_type": "background"
@@ -362,11 +381,15 @@
     "stepbible_tagnt"
   ],
   "evidence_ids": [
-    "EV-DICT-0001",
-    "EV-DICT-0002",
-    "EV-DICT-0003",
+    "EV-DICT-3268-c001",
+    "EV-DICT-3409-c001",
+    "EV-DICT-3604-c001",
+    "EV-DICT-3997-c002",
+    "ENT-acai-deity-Lord",
+    "ENT-acai-group-Jews",
+    "ENT-acai-group-Pharisee",
     "ENT-acai-group-Samaritan",
-    "ENT-acai-person-Israel",
+    "ENT-acai-keyterm-Always",
     "EV-PLACE-0001",
     "EV-PLACE-0003",
     "EV-PLACE-0007",
@@ -375,36 +398,39 @@
     "EV-PLACE-0013",
     "EV-PLACE-0005",
     "EV-PLACE-0002",
-    "EV-PLACE-0004",
     "EV-TAGNT-0002"
   ],
   "warnings": [
     "RUF local text source is disabled by manifest policy; packet excludes RUF prose.",
-    "Supplemental token estimate (95346) exceeds budget (4500); Aquifer exegetical notes and dictionary evidence retained for audit.",
-    "Dictionary chunks selected 3/120 (source-aware selection; full set remains in Evidence Packet)."
+    "Supplemental token estimate (182248) exceeds budget (4500); Aquifer exegetical notes and dictionary evidence retained for audit.",
+    "Dictionary chunks selected 4/78 (source-aware selection; full set remains in Evidence Packet)."
   ],
-  "estimated_tokens": 2311,
-  "target_tokens": 2500,
+  "estimated_tokens": 2200,
+  "target_tokens": 2200,
   "token_budget": 3500,
   "max_tokens": 3500,
   "truncated": false,
-  "evidence_packet_build_id": "kb-phase4b-john4-pilot-v1",
+  "evidence_packet_build_id": "kb-phase4e-acai-full-runtime-v1",
   "selection_stats": {
-    "candidates": 149,
-    "selected": 15,
+    "candidates": 107,
+    "selected": 18,
+    "candidate_evidence_count": 107,
+    "selected_evidence_count": 18,
     "dropped_budget": 0,
-    "dropped_redundant": 1,
-    "dropped_type_budget": 132,
-    "dropped_target": 1,
+    "dropped_by_source_budget": 89,
+    "dropped_redundant": 0,
+    "dropped_type_budget": 89,
+    "dropped_target": 0,
+    "dropped_by_target": 0,
     "tokens_by_type": {
-      "dictionary": 1514,
-      "entity": 117,
-      "background": 640,
+      "dictionary": 1274,
+      "entity": 321,
+      "background": 565,
       "passage": 40
     },
     "selected_by_tier": {
-      "primary": 12,
-      "supporting": 2,
+      "primary": 16,
+      "supporting": 1,
       "core": 1
     },
     "coverage_segments": [
@@ -436,11 +462,22 @@
     ],
     "study_notes_candidates": 0,
     "study_notes_selected": 0,
-    "dictionary_candidates": 120,
-    "dictionary_selected": 3,
+    "dictionary_candidates": 78,
+    "dictionary_selected": 4,
     "linguistic_selected": 0,
-    "places_background_selected": 9,
+    "places_background_selected": 8,
     "aquifer_candidates": 0,
-    "aquifer_selected": 0
+    "aquifer_selected": 0,
+    "target_kb_tokens": 2200,
+    "max_kb_tokens": 3500,
+    "actual_kb_tokens": 2200,
+    "source_diversity": {
+      "linguistic": 1,
+      "study_notes": 0,
+      "dictionary": 4,
+      "acai": 5,
+      "places_background": 8,
+      "other": 0
+    }
   }
 }

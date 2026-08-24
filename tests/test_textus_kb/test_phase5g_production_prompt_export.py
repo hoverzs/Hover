@@ -68,6 +68,12 @@ def test_large_production_prompt_uses_adaptive_budget_without_truncation() -> No
     assert export.production_prompt in (prep.provider_prompt or "")
     assert prep.original_prompt_estimated_tokens > 8000
     assert prep.budget_diagnostics.get("budget_ok") is True
+    assert prep.budget_diagnostics.get("kb_context_target_tokens") == 2500
+    # Prefer target; do not pad to hard max.
+    assert prep.kb_context_estimated_tokens <= 4500
+    assert prep.kb_context_estimated_tokens <= 2800 or prep.budget_diagnostics.get(
+        "kb_trim_applied"
+    )
 
 
 def test_live_cli_accepts_from_production_flag_without_file() -> None:

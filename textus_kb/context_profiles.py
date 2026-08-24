@@ -45,10 +45,12 @@ BUDGET_PASSAGE = "passage"
 THEOLOGY_SOURCE_WARNING = "No dedicated theological source layer available"
 
 # Soft target (prefer stop) vs hard max (never exceed).
+# Goal: minimize provider token usage — do not pad to the hard max.
+# Exegesis target ~2200–2800; historical ~1800–2500.
 DEFAULT_TARGET_TOKENS: dict[str, int] = {
-    PROFILE_EXEGESIS: 3200,
-    PROFILE_HISTORICAL: 2500,
-    PROFILE_THEOLOGY: 2500,
+    PROFILE_EXEGESIS: 2500,
+    PROFILE_HISTORICAL: 2200,
+    PROFILE_THEOLOGY: 2200,
 }
 
 DEFAULT_MAX_TOKENS: dict[str, int] = {
@@ -60,30 +62,30 @@ DEFAULT_MAX_TOKENS: dict[str, int] = {
 # Backward-compatible alias used by older callers.
 DEFAULT_TOKEN_BUDGETS = DEFAULT_MAX_TOKENS
 
-# Per-type soft caps within the overall budget (exegesis tuned for Jn 4 pilot).
+# Per-type soft caps within the overall budget (aligned to target, not hard max).
 DEFAULT_TYPE_BUDGETS: dict[str, dict[str, int]] = {
     PROFILE_EXEGESIS: {
-        BUDGET_PASSAGE: 150,
-        BUDGET_LINGUISTIC: 900,
-        BUDGET_EXEGETICAL: 1700,
-        BUDGET_DICTIONARY: 450,
-        BUDGET_ENTITY: 250,
-        BUDGET_BACKGROUND: 350,
+        BUDGET_PASSAGE: 120,
+        BUDGET_LINGUISTIC: 700,
+        BUDGET_EXEGETICAL: 1200,
+        BUDGET_DICTIONARY: 350,
+        BUDGET_ENTITY: 200,
+        BUDGET_BACKGROUND: 250,
     },
     PROFILE_HISTORICAL: {
-        BUDGET_PASSAGE: 150,
-        BUDGET_LINGUISTIC: 200,
+        BUDGET_PASSAGE: 120,
+        BUDGET_LINGUISTIC: 150,
         BUDGET_EXEGETICAL: 0,
-        BUDGET_DICTIONARY: 1600,
-        BUDGET_ENTITY: 400,
-        BUDGET_BACKGROUND: 450,
+        BUDGET_DICTIONARY: 1200,
+        BUDGET_ENTITY: 300,
+        BUDGET_BACKGROUND: 400,
     },
     PROFILE_THEOLOGY: {
-        BUDGET_PASSAGE: 200,
-        BUDGET_LINGUISTIC: 1000,
-        BUDGET_EXEGETICAL: 600,
-        BUDGET_DICTIONARY: 300,
-        BUDGET_BACKGROUND: 400,
+        BUDGET_PASSAGE: 150,
+        BUDGET_LINGUISTIC: 800,
+        BUDGET_EXEGETICAL: 500,
+        BUDGET_DICTIONARY: 250,
+        BUDGET_BACKGROUND: 350,
     },
 }
 
@@ -165,7 +167,7 @@ class ContextProfile:
     name: str
     token_budget: int
     priorities: dict[str, int]
-    target_tokens: int = 3200
+    target_tokens: int = 2500
     max_tokens: int = 4500
     type_budgets: dict[str, int] = field(default_factory=dict)
     diversity_types: tuple[str, ...] = ()

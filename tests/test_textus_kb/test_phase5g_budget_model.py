@@ -45,6 +45,17 @@ def _kb_packet(text: str, *, n: int = 8) -> LLMContextPacket:
 def test_defaults_kb_allowance_and_total_cap() -> None:
     assert grounded_kb_context_max_tokens() == DEFAULT_KB_CONTEXT_MAX_TOKENS == 4500
     assert grounded_total_max_tokens() == DEFAULT_TOTAL_GROUNDED_MAX_TOKENS == 28000
+    from textus_kb.prompt_composer import (
+        grounded_kb_context_target_tokens,
+        resolve_grounded_budget_limits,
+    )
+
+    assert grounded_kb_context_target_tokens(module="exegesis") == 2500
+    assert grounded_kb_context_max_tokens(module="exegesis") == 4500
+    assert grounded_kb_context_target_tokens(module="historical_context") == 2200
+    assert grounded_kb_context_max_tokens(module="historical_context") == 3500
+    t, m, total = resolve_grounded_budget_limits(module="exegesis")
+    assert (t, m, total) == (2500, 4500, 28000)
 
 
 def test_16k_production_plus_kb_succeeds_under_total_cap() -> None:
@@ -142,7 +153,12 @@ def test_real_export_prep_succeeds_and_records_diagnostics() -> None:
     assert export.production_prompt in (prep.provider_prompt or "")
     assert prep.budget_diagnostics.get("budget_ok") is True
     assert prep.budget_diagnostics.get("kb_context_max_tokens") == 4500
+    assert prep.budget_diagnostics.get("kb_context_target_tokens") == 2500
     assert prep.budget_diagnostics.get("total_grounded_max_tokens") == 28000
+    assert prep.kb_context_estimated_tokens <= 2500 or prep.budget_diagnostics.get(
+        "kb_trim_applied"
+    )
+    assert "kb_share_of_grounded_percent" in prep.budget_diagnostics
 
 
 def test_compare_success_provider_calls_two_and_budget_metrics() -> None:

@@ -80,7 +80,7 @@ class LLMContextPacket:
     evidence_ids: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
     estimated_tokens: int = 0
-    target_tokens: int = 3200
+    target_tokens: int = 2500
     token_budget: int = 4500
     max_tokens: int = 4500
     truncated: bool = False

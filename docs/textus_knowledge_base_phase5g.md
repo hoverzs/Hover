@@ -46,16 +46,19 @@ from the CLI default. Dev runner:
 
 The old Phase 5C **8000** value is no longer the total grounded prompt max.
 
-Bounded adaptive model:
+Bounded adaptive model (**minimize Gemini token usage** — do not pad KB to max):
 
-| Limit | Env | Default |
-|-------|-----|---------|
-| KB context max | `TEXTUS_KB_GROUNDED_CONTEXT_MAX_TOKENS` | **4500** (matches Context Builder exegesis) |
+| Limit | Env / source | Default |
+|-------|--------------|---------|
+| KB **target** (prefer stop) | `TEXTUS_KB_GROUNDED_CONTEXT_TARGET_TOKENS` or module default | exegesis **2500**, historical **2200** |
+| KB **hard max** (safety ceiling) | `TEXTUS_KB_GROUNDED_CONTEXT_MAX_TOKENS` or module default | exegesis **4500**, historical **3500** |
 | Total hard safety cap | `TEXTUS_KB_GROUNDED_TOTAL_MAX_TOKENS` | **28000** |
 
 `required ≈ production_tokens + kb_tokens + composition_overhead`
 
-- Production prompt is **immutable** (never truncated).
+- Production prompt is **immutable** (never truncated) in this benchmark round.
+- Context Selector stops near **target**; max is only a ceiling.
+- Do **not** artificially fill remaining budget once important evidence is covered.
 - Oversized KB is trimmed via Context Selection priorities.
 - If production + minimum usable KB still exceeds the total hard cap → structured `budget_exceeded` (B error in compare; A unchanged).
 
@@ -66,6 +69,8 @@ Dry-run check (no provider calls):
 ```powershell
 python scripts/phase5g_budget_dry_run.py
 ```
+
+Reports per pair: production / KB / overhead / total / KB% / target / max / status.
 
 ## Print manual commands (does not execute)
 
