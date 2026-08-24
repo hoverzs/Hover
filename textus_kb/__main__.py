@@ -31,10 +31,14 @@ def main(argv: list[str] | None = None) -> int:
         from textus_kb.entity_cli import main as entity_main
 
         return entity_main(rest)
+    if command == "shadow":
+        from textus_kb.shadow import main as shadow_main
+
+        return shadow_main(rest)
 
     print(
         f"Unknown command: {command!r}. "
-        "Use: python -m textus_kb [health|retrieve|context|entity] ...",
+        "Use: python -m textus_kb [health|retrieve|context|entity|shadow] ...",
         file=sys.stderr,
     )
     return 2

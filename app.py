@@ -4896,6 +4896,71 @@ def validate_exegesis_has_support(text: str) -> list[str]:
     return issues
 
 
+KB_SHADOW_FLAG = "TEXTUS_KB_SHADOW_ENABLED"
+KB_SHADOW_SESSION_KEY = "_kb_shadow_runs"
+
+
+def _is_kb_shadow_enabled() -> bool:
+    raw = (os.getenv(KB_SHADOW_FLAG, "false") or "").strip().lower()
+    return raw in {"1", "true", "yes", "on"}
+
+
+def _run_kb_shadow_for_section(
+    *,
+    key: str,
+    prompt: str,
+    output: str,
+    generation_duration_ms: int,
+) -> None:
+    module = "exegesis" if key == "exegesis" else "historical_context"
+    passage = (st.session_state.get("last_igehely") or "").strip()
+    if not passage:
+        return
+    try:
+        from textus_kb.shadow import run_kb_shadow_for_module
+
+        artifact = run_kb_shadow_for_module(
+            passage,
+            module=module,
+            production_prompt=prompt,
+            production_output=output,
+        ).to_dict()
+        artifact["generation_duration_ms"] = int(generation_duration_ms)
+        st.session_state.setdefault(KB_SHADOW_SESSION_KEY, []).append(artifact)
+        _debug_log_append(
+            {
+                "ts": _now_str(),
+                "tab": "kb_shadow",
+                "attempt": 1,
+                "status": "KB_SHADOW_OK" if artifact.get("success") else "KB_SHADOW_FAIL",
+                "model": "shadow",
+                "prompt_chars": len(prompt),
+                "response_chars": len(output),
+                "latency_ms": int(artifact.get("retrieval_duration_ms", 0))
+                + int(artifact.get("context_build_duration_ms", 0)),
+                "shadow_module": module,
+                "shadow_success": bool(artifact.get("success")),
+                "shadow_tokens": int(artifact.get("token_estimate", 0)),
+                "shadow_sources": int(artifact.get("source_count", 0)),
+                "shadow_warning_count": len(artifact.get("retrieval_warnings") or []),
+            }
+        )
+    except Exception as exc:
+        _debug_log_append(
+            {
+                "ts": _now_str(),
+                "tab": "kb_shadow",
+                "attempt": 1,
+                "status": "KB_SHADOW_EXCEPTION",
+                "model": "shadow",
+                "prompt_chars": len(prompt),
+                "response_chars": len(output),
+                "latency_ms": 0,
+                "error_message": f"{type(exc).__name__}: {exc}",
+            }
+        )
+
+
 def generate_section(key: str) -> bool:
     """Egy adott szekciót lefuttat (első generálás VAGY újrageneráláshoz).
 
@@ -4933,11 +4998,20 @@ def generate_section(key: str) -> bool:
                 include_biblical_place_context=key in biblical_place_context_sections,
             )
         )
+        _gen_started = _time.perf_counter()
         st.session_state[key] = generate_text(
             prompt,
             enable_google_search=use_search,
             tab_label=label,
         )
+        _gen_ms = int((_time.perf_counter() - _gen_started) * 1000)
+        if _is_kb_shadow_enabled() and key in {"exegesis", "history"}:
+            _run_kb_shadow_for_section(
+                key=key,
+                prompt=prompt,
+                output=st.session_state[key],
+                generation_duration_ms=_gen_ms,
+            )
         if key == "exegesis":
             st.session_state[f"{key}_support_warnings"] = (
                 validate_exegesis_has_support(st.session_state[key])
@@ -6026,6 +6100,7 @@ defaults = {
     "enable_cache": True,
     "_call_cache": {},
     "_debug_log": [],
+    "_kb_shadow_runs": [],
     "_last_api_call_ts": 0.0,
 
     # Felhő projekt (Saját munkáim) — csak bejelentkezve használt
