@@ -1,12 +1,16 @@
-"""Staging readiness criteria and human-review summary (Phase 5F).
+"""Staging readiness criteria and human-review summary (Phase 5F/5G).
 
 Deterministic rules over live A/B human reviews only. No LLM-as-judge.
 Readiness is a report — it never flips runtime grounded flags.
+
+Preference thresholds are mapping-aware: human A/B labels are translated via
+persisted ``blind_mapping`` to production/grounded before ratios are computed.
+Blind reviewer-facing reports remain mapping-free unless explicitly revealed.
 """
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass
 from typing import Any
 
 from textus_kb.compare_store import DEFAULT_COMPARE_DB_PATH, list_compare_runs, load_compare_run
@@ -15,6 +19,8 @@ STATUS_INSUFFICIENT = "insufficient_human_review_data"
 STATUS_NEEDS_MORE = "needs_more_review"
 STATUS_NOT_READY = "not_ready"
 STATUS_READY = "ready_for_limited_staging"
+
+_VALID_MAPPING_SIDES = frozenset({"production", "grounded"})
 
 
 @dataclass(frozen=True)
@@ -27,16 +33,76 @@ class StagingReadinessCriteria:
     require_historical_context: bool = True
     require_overall_review: bool = True
     min_passages_with_both_modules: int = 2
-    # Overall: grounded (B) preferred or equal in at least this share of reviewed live pairs.
+    # Overall: grounded preferred or equal (mapping-aware). Field name kept for compat.
     min_overall_b_or_equal_ratio: float = 0.75
-    # Factual: share where B is strictly worse than A must stay below this.
+    # Factual: share where grounded is strictly worse than production (mapping-aware).
     max_factual_b_worse_ratio: float = 0.25
-    # Hallucination: share where B (or both) is worse risk must stay below this.
+    # Hallucination: share where grounded risk is elevated (grounded_only or both).
     max_hallucination_b_elevated_ratio: float = 0.20
     max_grounded_error_rate: float = 0.25
 
 
 DEFAULT_CRITERIA = StagingReadinessCriteria()
+
+
+def resolve_blind_mapping(
+    artifact: dict[str, Any],
+) -> tuple[dict[str, str] | None, str | None]:
+    """Return ({A,B}->production|grounded, None) or (None, reason) if unusable.
+
+    Fail closed: never invent B=grounded when mapping is missing/ambiguous.
+    """
+    raw = artifact.get("blind_mapping")
+    if not isinstance(raw, dict) or not raw:
+        return None, "missing_blind_mapping"
+    side_a = str(raw.get("A") or "").strip()
+    side_b = str(raw.get("B") or "").strip()
+    if side_a not in _VALID_MAPPING_SIDES or side_b not in _VALID_MAPPING_SIDES:
+        return None, "ambiguous_blind_mapping"
+    if side_a == side_b or {side_a, side_b} != _VALID_MAPPING_SIDES:
+        return None, "ambiguous_blind_mapping"
+    return {"A": side_a, "B": side_b}, None
+
+
+def map_ab_preference_to_system(
+    preference: str,
+    mapping: dict[str, str],
+) -> str:
+    """Translate human A/B/equal/unclear into grounded|production|equal|unclear|other."""
+    pref = str(preference or "").strip()
+    if pref == "equal":
+        return "equal"
+    if pref == "unclear":
+        return "unclear"
+    if pref in ("A", "B"):
+        return mapping[pref]
+    return "other"
+
+
+def map_hallucination_risk_to_system(
+    risk: str,
+    mapping: dict[str, str],
+) -> str:
+    """Translate hallucination A/B/both/neither/unclear via mapping.
+
+    Returns: grounded_only | production_only | both | neither | unclear | other
+    """
+    value = str(risk or "").strip()
+    if value == "both":
+        return "both"
+    if value == "neither":
+        return "neither"
+    if value == "unclear":
+        return "unclear"
+    if value in ("A", "B"):
+        side = mapping[value]
+        return f"{side}_only"
+    return "other"
+
+
+def is_grounded_hallucination_elevated(system_risk: str) -> bool:
+    """Grounded elevated = grounded_only or both. unclear is not elevated (legacy)."""
+    return system_risk in {"grounded_only", "both"}
 
 
 def is_live_compare_artifact(artifact: dict[str, Any]) -> bool:
@@ -156,7 +222,8 @@ def build_review_summary(
         "criteria": asdict(criteria),
         "note": (
             "Mock runs are excluded from staging readiness evidence. "
-            "Readiness never enables TEXTUS_KB_GROUNDED_ENABLED."
+            "Readiness never enables TEXTUS_KB_GROUNDED_ENABLED. "
+            "Preference thresholds are mapping-aware via persisted blind_mapping."
         ),
     }
 
@@ -212,45 +279,80 @@ def evaluate_staging_readiness(
             f"{criteria.min_passages_with_both_modules}"
         )
 
-    # Preference ratios on live reviewed successful pairs only.
-    overall_vals = [
-        str((a.get("review") or {}).get("overall_preference") or "") for a in live_reviewed
-    ]
+    mapping_aware_metrics: dict[str, float] = {}
+
+    # Preference ratios on live reviewed successful pairs only (mapping-aware).
     if live_reviewed_count:
-        b_or_equal = sum(1 for v in overall_vals if v in {"B", "equal"})
-        ratio = b_or_equal / live_reviewed_count
-        if ratio < criteria.min_overall_b_or_equal_ratio:
-            unmet.append(
-                f"overall_b_or_equal_ratio {ratio:.3f} < {criteria.min_overall_b_or_equal_ratio}"
+        mapping_errors: list[str] = []
+        overall_system: list[str] = []
+        factual_system: list[str] = []
+        hallu_system: list[str] = []
+
+        for art in live_reviewed:
+            mapping, map_err = resolve_blind_mapping(art)
+            if mapping is None:
+                mapping_errors.append(map_err or "ambiguous_blind_mapping")
+                continue
+            review = art.get("review") if isinstance(art.get("review"), dict) else {}
+            overall_system.append(
+                map_ab_preference_to_system(
+                    str(review.get("overall_preference") or ""), mapping
+                )
             )
-
-        factual = [
-            str((a.get("review") or {}).get("factual_accuracy_preference") or "")
-            for a in live_reviewed
-        ]
-        factual_filled = [v for v in factual if v]
-        if factual_filled:
-            worse = sum(1 for v in factual_filled if v == "A")  # A preferred => B worse
-            worse_ratio = worse / len(factual_filled)
-            if worse_ratio > criteria.max_factual_b_worse_ratio:
-                vetoes.append(
-                    f"factual_b_worse_ratio {worse_ratio:.3f} > "
-                    f"{criteria.max_factual_b_worse_ratio}"
+            factual_raw = str(review.get("factual_accuracy_preference") or "").strip()
+            if factual_raw:
+                factual_system.append(map_ab_preference_to_system(factual_raw, mapping))
+            hallu_raw = str(review.get("hallucination_risk") or "").strip()
+            if hallu_raw:
+                hallu_system.append(
+                    map_hallucination_risk_to_system(hallu_raw, mapping)
                 )
 
-        hallu = [
-            str((a.get("review") or {}).get("hallucination_risk") or "")
-            for a in live_reviewed
-        ]
-        hallu_filled = [v for v in hallu if v]
-        if hallu_filled:
-            elevated = sum(1 for v in hallu_filled if v in {"B", "both"})
-            elevated_ratio = elevated / len(hallu_filled)
-            if elevated_ratio > criteria.max_hallucination_b_elevated_ratio:
-                vetoes.append(
-                    f"hallucination_b_elevated_ratio {elevated_ratio:.3f} > "
-                    f"{criteria.max_hallucination_b_elevated_ratio}"
+        if mapping_errors:
+            # Fail closed: never invent B=grounded for missing/ambiguous mapping.
+            vetoes.append(
+                f"missing_or_ambiguous_blind_mapping:{len(mapping_errors)}"
+            )
+        else:
+            grounded_or_equal = sum(
+                1 for v in overall_system if v in {"grounded", "equal"}
+            )
+            overall_ratio = grounded_or_equal / live_reviewed_count
+            mapping_aware_metrics["grounded_preferred_or_equal_ratio"] = round(
+                overall_ratio, 3
+            )
+            if overall_ratio < criteria.min_overall_b_or_equal_ratio:
+                unmet.append(
+                    f"grounded_preferred_or_equal_ratio {overall_ratio:.3f} < "
+                    f"{criteria.min_overall_b_or_equal_ratio}"
                 )
+
+            if factual_system:
+                # Human preferred production => grounded is strictly worse.
+                grounded_worse = sum(1 for v in factual_system if v == "production")
+                factual_worse_ratio = grounded_worse / len(factual_system)
+                mapping_aware_metrics["factual_grounded_worse_ratio"] = round(
+                    factual_worse_ratio, 3
+                )
+                if factual_worse_ratio > criteria.max_factual_b_worse_ratio:
+                    vetoes.append(
+                        f"factual_grounded_worse_ratio {factual_worse_ratio:.3f} > "
+                        f"{criteria.max_factual_b_worse_ratio}"
+                    )
+
+            if hallu_system:
+                elevated = sum(
+                    1 for v in hallu_system if is_grounded_hallucination_elevated(v)
+                )
+                elevated_ratio = elevated / len(hallu_system)
+                mapping_aware_metrics["hallucination_grounded_elevated_ratio"] = round(
+                    elevated_ratio, 3
+                )
+                if elevated_ratio > criteria.max_hallucination_b_elevated_ratio:
+                    vetoes.append(
+                        f"hallucination_grounded_elevated_ratio {elevated_ratio:.3f} > "
+                        f"{criteria.max_hallucination_b_elevated_ratio}"
+                    )
 
         # Citation readiness veto when stored on successful reviewed runs.
         low_cite = [
@@ -272,15 +374,11 @@ def evaluate_staging_readiness(
             )
 
     # Provenance veto: live success runs must carry source_ids.
-    missing_sources = [
-        a
-        for a in live_success
-        if not (a.get("source_ids") or [])
-    ]
+    missing_sources = [a for a in live_success if not (a.get("source_ids") or [])]
     if missing_sources:
         vetoes.append(f"missing_source_ids_on_success:{len(missing_sources)}")
 
-    metrics = {
+    metrics: dict[str, Any] = {
         "live_pair_count": live_pair_count,
         "live_success_count": live_success_count,
         "live_reviewed_count": live_reviewed_count,
@@ -288,13 +386,13 @@ def evaluate_staging_readiness(
         "modules": sorted(modules),
         "passages_with_both_modules": both_module_passages,
     }
+    metrics.update(mapping_aware_metrics)
 
     if live_reviewed_count == 0:
         status = STATUS_INSUFFICIENT
     elif vetoes:
         status = STATUS_NOT_READY
     elif unmet:
-        # Distinguish sparse data vs partial progress.
         if live_reviewed_count < max(2, criteria.min_live_ab_pairs // 2):
             status = STATUS_INSUFFICIENT
         else:
@@ -353,7 +451,11 @@ __all__ = [
     "build_review_summary",
     "evaluate_staging_readiness",
     "has_human_overall_review",
+    "is_grounded_hallucination_elevated",
     "is_live_compare_artifact",
     "main_review_summary",
+    "map_ab_preference_to_system",
+    "map_hallucination_risk_to_system",
+    "resolve_blind_mapping",
     "_load_all_artifacts",
 ]

@@ -95,9 +95,11 @@ def test_veto_on_factual_worse(tmp_path: Path) -> None:
                 "production_output": f"prod-{i}",
                 "grounded_output": f"grounded-{i}",
                 "source_ids": ["acai"],
+                # Explicit mapping: A=production, B=grounded — factual A => grounded worse.
+                "blind_mapping": {"A": "production", "B": "grounded"},
                 "review": {
                     "overall_preference": "B",
-                    "factual_accuracy_preference": "A",  # B worse
+                    "factual_accuracy_preference": "A",
                     "hallucination_risk": "neither",
                 },
             }
@@ -111,7 +113,7 @@ def test_veto_on_factual_worse(tmp_path: Path) -> None:
     )
     result = evaluate_staging_readiness(live_artifacts=live, criteria=criteria)
     assert result["status"] == STATUS_NOT_READY
-    assert any("factual_b_worse" in v for v in result["veto_reasons"])
+    assert any("factual_grounded_worse" in v for v in result["veto_reasons"])
 
 
 def test_ready_when_criteria_met() -> None:
@@ -128,6 +130,7 @@ def test_ready_when_criteria_met() -> None:
                     "production_output": f"prod-{passage}-{module}",
                     "grounded_output": f"grounded-{passage}-{module}",
                     "source_ids": ["acai", "aquifer_open_study_notes"],
+                    "blind_mapping": {"A": "production", "B": "grounded"},
                     "review": {
                         "overall_preference": "B",
                         "factual_accuracy_preference": "equal",
@@ -138,6 +141,7 @@ def test_ready_when_criteria_met() -> None:
     result = evaluate_staging_readiness(live_artifacts=live, criteria=DEFAULT_CRITERIA)
     assert result["status"] == STATUS_READY
     assert result["ready"] is True
+    assert result["metrics"]["grounded_preferred_or_equal_ratio"] == 1.0
 
 
 def test_citation_ref_schema_and_cc_metadata() -> None:
