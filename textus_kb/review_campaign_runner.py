@@ -146,11 +146,30 @@ def verify_pair_result(result: dict[str, Any]) -> list[str]:
         issues.append("missing_prompt_hashes")
     if bool(art.get("grounded_fallback")):
         issues.append("grounded_fallback")
+    budget_status = str(
+        (art.get("metrics") or {}).get("budget_status")
+        or art.get("budget_status")
+        or ""
+    ).lower()
+    if budget_status and budget_status not in {"ok", "trimmed"}:
+        issues.append(f"budget_status={budget_status}")
+    elif not budget_status:
+        # Prefer metrics; fall back to budget_diagnostics when present.
+        diag = (art.get("metrics") or {}).get("budget_diagnostics") or art.get(
+            "budget_diagnostics"
+        ) or {}
+        budget_status = str(diag.get("budget_status") or "").lower()
+        if budget_status and budget_status not in {"ok", "trimmed"}:
+            issues.append(f"budget_status={budget_status}")
     trace = art.get("source_trace") if isinstance(art.get("source_trace"), dict) else {}
     if int(trace.get("selected_evidence_count") or 0) <= 0:
         issues.append("empty_source_trace")
+    if int(trace.get("citation_ready_count") or 0) <= 0:
+        issues.append("no_citation_ready")
     if not result.get("store_id"):
         issues.append("compare_store_persist_failed")
+    if str(art.get("provider_model") or "").startswith("mock"):
+        issues.append("mock_provider")
     return issues
 
 
@@ -200,6 +219,9 @@ def run_full_campaign(
                     "empty_source_trace",
                     "missing_prompt_hashes",
                     "compare_store_persist_failed",
+                    "budget_status=",
+                    "no_citation_ready",
+                    "mock_provider",
                 )
             ):
                 return {
@@ -250,19 +272,25 @@ def build_review_pack(
         heading = title_map.get((passage, module), f"{passage} — {module}")
         responses = _responses_for_display(art)
         trace = art.get("source_trace") if isinstance(art.get("source_trace"), dict) else {}
-        mapping = art.get("blind_mapping") or {"A": "production", "B": "grounded"}
-        latency_by_kind = {
-            "production": art.get("production_latency_ms"),
-            "grounded": art.get("grounded_latency_ms"),
-        }
-        chars_by_kind = {
-            "production": art.get("production_output_chars"),
-            "grounded": art.get("grounded_output_chars"),
-        }
-        latency_a = latency_by_kind.get(mapping.get("A", "production"))
-        latency_b = latency_by_kind.get(mapping.get("B", "grounded"))
-        chars_a = chars_by_kind.get(mapping.get("A", "production"))
-        chars_b = chars_by_kind.get(mapping.get("B", "grounded"))
+        metrics = art.get("metrics") if isinstance(art.get("metrics"), dict) else {}
+        diag = metrics.get("budget_diagnostics") or {}
+        selection = (
+            metrics.get("selection_diagnostics")
+            or diag.get("selection_diagnostics")
+            or {}
+        )
+        budget_status = str(
+            metrics.get("budget_status") or diag.get("budget_status") or "unknown"
+        )
+        kb_pct = metrics.get("kb_percentage_of_total")
+        if kb_pct is None:
+            kb_pct = metrics.get("kb_share_of_grounded_percent")
+        candidate_n = selection.get("candidate_evidence_count") or selection.get(
+            "candidates"
+        )
+        selected_n = selection.get("selected_evidence_count") or selection.get(
+            "selected"
+        ) or len(art.get("evidence_ids") or [])
 
         lines.extend(
             [
@@ -281,24 +309,31 @@ def build_review_pack(
                 "",
                 "### Technical metadata",
                 "",
-                f"- production prompt estimate (tokens): {art.get('production_prompt_estimated_tokens')}",
-                f"- grounded prompt estimate (tokens): {art.get('grounded_prompt_estimated_tokens')}",
+                f"- production prompt tokens: {art.get('production_prompt_estimated_tokens')}",
+                f"- grounded prompt tokens: {art.get('grounded_prompt_estimated_tokens')}",
                 f"- KB context tokens: {art.get('kb_context_estimated_tokens')}",
-                f"- latency A (ms): {latency_a}",
+                f"- KB percentage: {kb_pct}%",
+                f"- production generation latency (ms): {art.get('production_latency_ms')}",
                 f"- grounded prep latency (ms): {art.get('grounded_prep_ms')}",
-                f"- latency B (ms): {latency_b}",
+                f"- grounded generation latency (ms): {art.get('grounded_latency_ms')}",
+                f"- candidate evidence: {candidate_n}",
+                f"- selected evidence: {selected_n}",
+                f"- target KB tokens: {metrics.get('target_kb_context_tokens') or diag.get('target_kb_context_tokens')}",
+                f"- max KB tokens: {metrics.get('max_kb_context_tokens') or metrics.get('kb_context_max_tokens') or diag.get('max_kb_context_tokens')}",
+                f"- grounded instruction overhead: {metrics.get('composition_overhead_estimated_tokens') or diag.get('grounded_instruction_overhead')}",
+                f"- total grounded tokens: {metrics.get('total_grounded_estimated_tokens') or diag.get('total_grounded_tokens')}",
+                f"- budget status: {budget_status}",
                 f"- provider call count: {art.get('provider_call_count')}",
-                f"- output chars A/B: {chars_a} / {chars_b}",
                 "",
                 "### Grounded source trace",
                 "",
-                f"- Study Notes count: {trace.get('study_notes_count', 0)}",
-                f"- Dictionary count: {trace.get('dictionary_count', 0)}",
-                f"- Linguistic evidence count: {trace.get('linguistic_evidence_count', 0)}",
-                f"- ACAI entity source count: {trace.get('acai_entity_source_count', 0)}",
-                f"- places/background count: {trace.get('places_background_count', 0)}",
+                f"- Study Notes: {trace.get('study_notes_count', 0)}",
+                f"- Dictionary: {trace.get('dictionary_count', 0)}",
+                f"- Linguistic: {trace.get('linguistic_evidence_count', 0)}",
+                f"- ACAI: {trace.get('acai_entity_source_count', 0)}",
+                f"- Places/background: {trace.get('places_background_count', 0)}",
+                f"- Citation-ready: {trace.get('citation_ready_count', 0)}",
                 f"- selected evidence count: {trace.get('selected_evidence_count', 0)}",
-                f"- citation-ready count: {trace.get('citation_ready_count', 0)}",
                 f"- source IDs: {', '.join(art.get('source_ids') or []) or '(none)'}",
                 "",
                 "Full citation detail:",
@@ -309,33 +344,76 @@ def build_review_pack(
                 "",
                 "### Human review",
                 "",
-                "- Factual accuracy: [ ] A  [ ] B  [ ] equal  [ ] unclear",
-                "- Exegetical usefulness: [ ] A  [ ] B  [ ] equal  [ ] unclear",
-                "- Historical grounding: [ ] A  [ ] B  [ ] equal  [ ] unclear",
-                "- Clarity/style: [ ] A  [ ] B  [ ] equal  [ ] unclear",
-                "- Hallucination risk: [ ] A  [ ] B  [ ] both  [ ] neither  [ ] unclear",
-                "- Overall preference: [ ] A  [ ] B  [ ] equal  [ ] unclear",
-                "- Notes:",
+                "Factual accuracy:",
+                "[ ] A",
+                "[ ] B",
+                "[ ] Equal",
+                "[ ] Unclear",
+                "",
+                "Exegetical usefulness:",
+                "[ ] A",
+                "[ ] B",
+                "[ ] Equal",
+                "[ ] Unclear",
+                "",
+                "Historical grounding:",
+                "[ ] A",
+                "[ ] B",
+                "[ ] Equal",
+                "[ ] Unclear",
+                "",
+                "Clarity/style:",
+                "[ ] A",
+                "[ ] B",
+                "[ ] Equal",
+                "[ ] Unclear",
+                "",
+                "Hallucination risk:",
+                "[ ] A",
+                "[ ] B",
+                "[ ] Both",
+                "[ ] Neither",
+                "[ ] Unclear",
+                "",
+                "Overall:",
+                "[ ] A",
+                "[ ] B",
+                "[ ] Equal",
+                "[ ] Unclear",
+                "",
+                "Notes:",
                 "",
                 "---",
                 "",
             ]
         )
 
+        provider_model = str(art.get("provider_model") or art.get("model_note") or "")
+        live_flag = "live" if not provider_model.startswith("mock") else "mock"
         index_rows.append(
             {
                 "run_id": art.get("run_id"),
                 "passage": passage,
                 "module": module,
-                "reviewer_labels": ["A", "B"],
+                "reviewer_response_a": "A",
+                "reviewer_response_b": "B",
                 "generation_status": art.get("grounded_status"),
+                "live_or_mock": live_flag,
+                "provider": "Gemini",
+                "model": provider_model,
+                "provider_call_count": art.get("provider_call_count"),
                 "source_trace_status": (
                     "ok"
                     if int(trace.get("selected_evidence_count") or 0) > 0
                     else "empty"
                 ),
-                "production_output_chars": art.get("production_output_chars"),
-                "grounded_output_chars": art.get("grounded_output_chars"),
+                "budget_status": budget_status,
+                "production_prompt_tokens": art.get("production_prompt_estimated_tokens"),
+                "grounded_prompt_tokens": art.get("grounded_prompt_estimated_tokens"),
+                "kb_context_tokens": art.get("kb_context_estimated_tokens"),
+                "kb_percentage_of_total": kb_pct,
+                "candidate_evidence_count": candidate_n,
+                "selected_evidence_count": selected_n,
                 "prompt_hash_a": art.get("prompt_hash_a"),
                 "prompt_hash_b": art.get("prompt_hash_b"),
                 "latency": {
@@ -343,7 +421,6 @@ def build_review_pack(
                     "grounded_prep_ms": art.get("grounded_prep_ms"),
                     "grounded_ms": art.get("grounded_latency_ms"),
                 },
-                "provider_call_count": art.get("provider_call_count"),
                 "human_review_status": "pending",
                 # Internal metadata only — not shown in human review MD.
                 "internal_blind_mapping": art.get("blind_mapping"),
@@ -363,30 +440,34 @@ def build_review_pack(
                 "",
                 "Short checklist while reading Response A and Response B.",
                 "Do not decide before reading both fully. Mapping is blind on purpose.",
+                "Do **not** open mapping sidecars before rating.",
                 "",
-                "## Watch for",
+                "## Exegesis",
                 "",
-                "- Concrete factual claims (names, places, dates, groups)",
-                "- Greek/Hebrew linguistic accuracy (only when claimed)",
-                "- Historical / cultural background usefulness",
-                "- Unsupported specific claims",
-                "- Pastoral preparation usefulness",
-                "- Natural Hungarian prose vs stiff dump",
-                "- Excessive technical data-dump",
-                "- Hallucination risk (invented citations, Strong numbers, events)",
+                "- Greek linguistic accuracy (when claimed)",
+                "- Lexical claims tied to the passage",
+                "- Literary / textual context",
+                "- Real exegetical added value",
+                "- Suspicious or unsourced claims",
+                "- Natural Hungarian",
+                "- Excessive technical / data-dump style",
                 "",
-                "## Module emphasis",
+                "## Historical context",
                 "",
-                "### Exegesis",
-                "- Greek lexical claims tied to provided tokens",
-                "- Real exegetical value, not lexicon dump",
-                "- Coherence with literary context",
+                "- Historical concreteness",
+                "- Cultural background",
+                "- Accuracy of people / places / groups",
+                "- Anachronism",
+                "- Overstated or uncertain claims",
+                "- Usability for pastoral prep",
+                "- Natural Hungarian",
                 "",
-                "### Historical context",
-                "- Concreteness of historical/cultural claims",
-                "- Places / people / groups correctness",
-                "- Fewer unsourced specifics",
-                "- Usable for pastoral prep without becoming an encyclopedia entry",
+                "## General questions",
+                "",
+                "- Which gives more actually usable information?",
+                "- Which asserts fewer unverifiable specifics?",
+                "- Which reads more naturally?",
+                "- Which would I rather use for preparation?",
                 "",
                 "## After reading",
                 "",
