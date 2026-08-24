@@ -43,10 +43,15 @@ def main(argv: list[str] | None = None) -> int:
         from textus_kb.shadow_report import main_compare
 
         return main_compare(rest)
+    if command == "prompt-preview":
+        from textus_kb.prompt_composer import main as prompt_preview_main
+
+        return prompt_preview_main(rest)
 
     print(
         f"Unknown command: {command!r}. "
-        "Use: python -m textus_kb [health|retrieve|context|entity|shadow|shadow-report|shadow-compare] ...",
+        "Use: python -m textus_kb [health|retrieve|context|entity|shadow|"
+        "shadow-report|shadow-compare|prompt-preview] ...",
         file=sys.stderr,
     )
     return 2

@@ -1,4 +1,4 @@
-"""Dev-only shadow audit store (SQLite) for Phase 5B reporting."""
+"""Dev-only shadow audit store (SQLite) for Phase 5B/5C reporting."""
 
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ from typing import Any
 from textus_kb.paths import GENERATED_DATA_DIR
 
 SHADOW_STORE_FLAG = "TEXTUS_KB_SHADOW_STORE_ENABLED"
-SCHEMA_VERSION = "1"
+SCHEMA_VERSION = "2"
 DEFAULT_AUDIT_DB_PATH = GENERATED_DATA_DIR / "kb_shadow_audit.sqlite3"
 
 # Never persist these keys if present on an artifact/event dict.
@@ -35,6 +35,8 @@ FORBIDDEN_PAYLOAD_KEYS = frozenset(
         "user_prompt",
         "prompt",
         "output",
+        "composed_prompt",
+        "grounded_prompt",
         "context_packet",
         "evidence_ids",
         "evidence_packet",
@@ -66,6 +68,12 @@ class ShadowAuditRecord:
     production_prompt_chars: int
     production_output_chars: int
     generation_ms: int = 0
+    # Phase 5C dry-run metrics (never full composed prompt text).
+    composed_prompt_chars: int = 0
+    composed_prompt_estimated_tokens: int = 0
+    kb_prompt_ratio: float = 0.0
+    composition_version: str = ""
+    prompt_hash: str = ""
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -104,7 +112,12 @@ def create_schema(connection: sqlite3.Connection) -> None:
             status TEXT NOT NULL,
             production_prompt_chars INTEGER NOT NULL,
             production_output_chars INTEGER NOT NULL,
-            generation_ms INTEGER NOT NULL DEFAULT 0
+            generation_ms INTEGER NOT NULL DEFAULT 0,
+            composed_prompt_chars INTEGER NOT NULL DEFAULT 0,
+            composed_prompt_estimated_tokens INTEGER NOT NULL DEFAULT 0,
+            kb_prompt_ratio REAL NOT NULL DEFAULT 0,
+            composition_version TEXT NOT NULL DEFAULT '',
+            prompt_hash TEXT NOT NULL DEFAULT ''
         );
 
         CREATE INDEX IF NOT EXISTS idx_shadow_runs_passage
@@ -117,10 +130,28 @@ def create_schema(connection: sqlite3.Connection) -> None:
             ON shadow_runs(status);
         """
     )
+    _migrate_shadow_runs_columns(connection)
     connection.execute(
         "INSERT OR REPLACE INTO store_metadata(key, value) VALUES (?, ?)",
         ("schema_version", SCHEMA_VERSION),
     )
+
+
+def _migrate_shadow_runs_columns(connection: sqlite3.Connection) -> None:
+    """Backward-compatible additive migration for Phase 5C metrics."""
+    existing = {
+        str(row[1]) for row in connection.execute("PRAGMA table_info(shadow_runs)").fetchall()
+    }
+    additions = [
+        ("composed_prompt_chars", "INTEGER NOT NULL DEFAULT 0"),
+        ("composed_prompt_estimated_tokens", "INTEGER NOT NULL DEFAULT 0"),
+        ("kb_prompt_ratio", "REAL NOT NULL DEFAULT 0"),
+        ("composition_version", "TEXT NOT NULL DEFAULT ''"),
+        ("prompt_hash", "TEXT NOT NULL DEFAULT ''"),
+    ]
+    for name, decl in additions:
+        if name not in existing:
+            connection.execute(f"ALTER TABLE shadow_runs ADD COLUMN {name} {decl}")
 
 
 def artifact_to_audit_record(artifact: dict[str, Any]) -> ShadowAuditRecord:
@@ -131,6 +162,11 @@ def artifact_to_audit_record(artifact: dict[str, Any]) -> ShadowAuditRecord:
     """
     comparison = artifact.get("comparison") if isinstance(artifact.get("comparison"), dict) else {}
     context_packet = artifact.get("context_packet") if isinstance(artifact.get("context_packet"), dict) else {}
+    preview = (
+        artifact.get("grounded_prompt_preview")
+        if isinstance(artifact.get("grounded_prompt_preview"), dict)
+        else {}
+    )
     source_ids = [str(item) for item in (artifact.get("source_ids") or [])]
 
     prompt_chars = int(
@@ -165,6 +201,19 @@ def artifact_to_audit_record(artifact: dict[str, Any]) -> ShadowAuditRecord:
         production_prompt_chars=prompt_chars,
         production_output_chars=output_chars,
         generation_ms=int(artifact.get("generation_duration_ms") or 0),
+        composed_prompt_chars=int(
+            artifact.get("composed_prompt_chars") or preview.get("composed_prompt_chars") or 0
+        ),
+        composed_prompt_estimated_tokens=int(
+            artifact.get("composed_prompt_estimated_tokens")
+            or preview.get("composed_prompt_estimated_tokens")
+            or 0
+        ),
+        kb_prompt_ratio=float(artifact.get("kb_prompt_ratio") or preview.get("kb_prompt_ratio") or 0.0),
+        composition_version=str(
+            artifact.get("composition_version") or preview.get("composition_version") or ""
+        ),
+        prompt_hash=str(artifact.get("prompt_hash") or preview.get("prompt_hash") or ""),
     )
 
 
@@ -175,6 +224,7 @@ def assert_record_privacy_safe(record: ShadowAuditRecord | dict[str, Any]) -> No
     # Length metrics only — never raw text.
     assert isinstance(payload.get("production_prompt_chars"), int)
     assert isinstance(payload.get("production_output_chars"), int)
+    assert "composed_prompt" not in payload
 
 
 def persist_shadow_audit(
@@ -206,8 +256,10 @@ def persist_shadow_audit(
                     evidence_build_id, context_schema_version, source_ids_json,
                     evidence_count, entity_count, selected_item_count, context_tokens,
                     retrieval_ms, context_build_ms, warning_count, status,
-                    production_prompt_chars, production_output_chars, generation_ms
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    production_prompt_chars, production_output_chars, generation_ms,
+                    composed_prompt_chars, composed_prompt_estimated_tokens,
+                    kb_prompt_ratio, composition_version, prompt_hash
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     record.run_id,
@@ -230,6 +282,11 @@ def persist_shadow_audit(
                     record.production_prompt_chars,
                     record.production_output_chars,
                     record.generation_ms,
+                    record.composed_prompt_chars,
+                    record.composed_prompt_estimated_tokens,
+                    record.kb_prompt_ratio,
+                    record.composition_version,
+                    record.prompt_hash,
                 ),
             )
     return record
@@ -260,6 +317,7 @@ def load_shadow_runs(
         ORDER BY timestamp ASC, run_id ASC
     """
     with sqlite3.connect(path) as connection:
+        create_schema(connection)
         connection.row_factory = sqlite3.Row
         rows = connection.execute(query, tuple(params)).fetchall()
     results: list[dict[str, Any]] = []

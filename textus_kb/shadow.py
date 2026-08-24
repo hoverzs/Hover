@@ -147,6 +147,13 @@ def run_kb_shadow_artifact_dict(
         production_output=production_output,
     ).to_dict()
     artifact["generation_duration_ms"] = int(generation_duration_ms)
+    # Phase 5C dry-run composition: metrics only; never sent to a provider.
+    try:
+        from textus_kb.prompt_composer import attach_grounded_preview_metrics
+
+        attach_grounded_preview_metrics(artifact, production_prompt=production_prompt)
+    except Exception as exc:  # pragma: no cover - exercised in dedicated tests
+        artifact["grounded_preview_error"] = f"{type(exc).__name__}: {exc}"
     # Optional audit persistence is isolated: never raise to production callers.
     try:
         from textus_kb.shadow_audit import persist_shadow_audit
