@@ -21,6 +21,13 @@ from textus_kb.shadow import MODULE_TO_PROFILE
 COMPOSITION_VERSION = "1"
 DEFAULT_GROUNDED_PROMPT_TOKEN_BUDGET = 8000
 BUDGET_ENV = "TEXTUS_KB_GROUNDED_PROMPT_TOKEN_BUDGET"
+# When the real production prompt (e.g. long Greek token blocks) already exceeds
+# the configured budget, expand so production text is never truncated and a
+# small KB reserve remains available for grounding.
+KB_TOKEN_RESERVE_ENV = "TEXTUS_KB_GROUNDED_KB_TOKEN_RESERVE"
+PROMPT_TOKEN_CEILING_ENV = "TEXTUS_KB_GROUNDED_PROMPT_TOKEN_CEILING"
+DEFAULT_KB_TOKEN_RESERVE = 2000
+DEFAULT_PROMPT_TOKEN_CEILING = 32000
 
 # Preferred layout for a future Phase 5D injection (documented in phase5c.md):
 # 1) existing production instructions
@@ -115,6 +122,42 @@ def grounded_prompt_token_budget(default: int = DEFAULT_GROUNDED_PROMPT_TOKEN_BU
     except ValueError:
         return int(default)
     return value if value > 0 else int(default)
+
+
+def grounded_kb_token_reserve(default: int = DEFAULT_KB_TOKEN_RESERVE) -> int:
+    raw = (os.getenv(KB_TOKEN_RESERVE_ENV) or "").strip()
+    if not raw:
+        return int(default)
+    try:
+        value = int(raw)
+    except ValueError:
+        return int(default)
+    return value if value > 0 else int(default)
+
+
+def grounded_prompt_token_ceiling(default: int = DEFAULT_PROMPT_TOKEN_CEILING) -> int:
+    raw = (os.getenv(PROMPT_TOKEN_CEILING_ENV) or "").strip()
+    if not raw:
+        return int(default)
+    try:
+        value = int(raw)
+    except ValueError:
+        return int(default)
+    return value if value > 0 else int(default)
+
+
+def expand_budget_for_production_prompt(
+    budget: int,
+    production_tokens: int,
+    *,
+    kb_reserve: int | None = None,
+    ceiling: int | None = None,
+) -> int:
+    """Ensure budget >= production_tokens + KB reserve (never truncate production)."""
+    reserve = grounded_kb_token_reserve() if kb_reserve is None else int(kb_reserve)
+    cap = grounded_prompt_token_ceiling() if ceiling is None else int(ceiling)
+    needed = max(0, int(production_tokens)) + max(0, reserve)
+    return min(max(int(budget), needed), cap)
 
 
 def normalize_prompt_text(text: str) -> str:
@@ -432,7 +475,15 @@ def compose_grounded_prompt(
     token_budget: int | None = None,
 ) -> GroundedPromptPreview:
     """Compose a dry-run grounded prompt preview. Never calls a model provider."""
-    budget = int(token_budget) if token_budget is not None else grounded_prompt_token_budget()
+    original_tokens_pre = estimate_text_tokens(production_prompt) if production_prompt else 0
+    if token_budget is not None:
+        # Explicit budgets (tests / callers) are respected as-is.
+        budget = int(token_budget)
+    else:
+        budget = expand_budget_for_production_prompt(
+            grounded_prompt_token_budget(),
+            original_tokens_pre,
+        )
     module_key = module if module != "history" else "historical_context"
     if module_key not in _SUPPORTED_MODULES and module_key not in MODULE_TO_PROFILE:
         return GroundedPromptPreview(
@@ -649,12 +700,17 @@ def main(argv: list[str] | None = None) -> int:
 __all__ = [
     "COMPOSITION_VERSION",
     "DEFAULT_GROUNDED_PROMPT_TOKEN_BUDGET",
+    "DEFAULT_KB_TOKEN_RESERVE",
+    "DEFAULT_PROMPT_TOKEN_CEILING",
     "DRY_RUN_PRODUCTION_STUB",
     "GroundedPromptPreview",
     "attach_grounded_preview_metrics",
     "compose_grounded_prompt",
     "evidence_attribution_marker",
+    "expand_budget_for_production_prompt",
+    "grounded_kb_token_reserve",
     "grounded_prompt_token_budget",
+    "grounded_prompt_token_ceiling",
     "main",
     "normalize_prompt_text",
     "render_kb_context",

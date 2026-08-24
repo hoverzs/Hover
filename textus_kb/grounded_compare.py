@@ -166,12 +166,15 @@ def run_grounded_compare(
     timestamp = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
     prompt_hash_a = _sha256_text(production_prompt)
 
+    # Same tab_label for A and B → same model / max_output_tokens / config.
+    provider_tab = tab_label
+
     # --- A: production ---
     t0 = time.perf_counter()
     production_output = generate_text_fn(
         production_prompt,
         enable_google_search=use_search,
-        tab_label=f"{tab_label}:A",
+        tab_label=provider_tab,
     )
     production_ms = int((time.perf_counter() - t0) * 1000)
     provider_calls = 1
@@ -203,7 +206,7 @@ def run_grounded_compare(
             grounded_output = generate_text_fn(
                 prep.provider_prompt,
                 enable_google_search=use_search,
-                tab_label=f"{tab_label}:B",
+                tab_label=provider_tab,
             )
             grounded_latency_ms = int((time.perf_counter() - t2) * 1000)
             provider_calls += 1
@@ -487,16 +490,46 @@ def _mock_generate(prompt: str, *, enable_google_search: bool, tab_label: str) -
 
 
 def _resolve_live_generate() -> tuple[Callable[..., str], str]:
-    """Best-effort reuse of production generate_text (dev/staging only)."""
-    try:
-        from app import generate_text  # type: ignore
+    """Best-effort reuse of production generate_text (dev/staging only).
 
-        return generate_text, "app.generate_text"
+    Wraps production ``generate_text`` so compare calls:
+    - disable provider-output cache (A/B must both hit the provider);
+    - wait out the global Gemini cooldown instead of returning a block message;
+    - keep model/config parity via the caller's ``tab_label`` (section label).
+    """
+    try:
+        from app import (  # type: ignore
+            GEMINI_COOLDOWN_S,
+            _cooldown_remaining,
+            generate_text,
+            resolve_gemini_model_for_tab,
+        )
     except Exception as exc:  # pragma: no cover
         raise RuntimeError(
             "Could not import app.generate_text for --live. "
             "Wire generate_text_fn via run_grounded_compare() instead."
         ) from exc
+
+    def _live_generate(
+        prompt: str,
+        *,
+        enable_google_search: bool = False,
+        tab_label: str = "unknown",
+    ) -> str:
+        remaining = float(_cooldown_remaining() or 0.0)
+        if remaining > 0:
+            time.sleep(remaining + 0.05)
+        return generate_text(
+            prompt,
+            enable_google_search=enable_google_search,
+            tab_label=tab_label,
+            use_cache=False,
+            bypass_cooldown=False,
+        )
+
+    model_note = f"app.generate_text:{resolve_gemini_model_for_tab('Exegézis')}"
+    _ = GEMINI_COOLDOWN_S  # documented parity constraint
+    return _live_generate, model_note
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -507,8 +540,8 @@ def main(argv: list[str] | None = None) -> int:
         print(
             'Usage: python -m textus_kb grounded-compare "<reference>" '
             "--module exegesis|historical_context "
-            "[--blind] [--live --prompt-file PATH] [--output PATH] "
-            "[--database PATH] [--out DIR]",
+            "[--blind] [--live --from-production | --live --prompt-file PATH] "
+            "[--output PATH] [--database PATH] [--out DIR]",
             file=sys.stderr,
         )
         return 2
@@ -517,6 +550,7 @@ def main(argv: list[str] | None = None) -> int:
     module = "exegesis"
     live = False
     blind = False
+    from_production = False
     prompt_file = None
     output_path = None
     out_dir = DEFAULT_COMPARE_DIR
@@ -533,6 +567,10 @@ def main(argv: list[str] | None = None) -> int:
             continue
         if args[i] == "--blind":
             blind = True
+            i += 1
+            continue
+        if args[i] == "--from-production":
+            from_production = True
             i += 1
             continue
         if args[i] == "--prompt-file" and i + 1 < len(args):
@@ -553,11 +591,12 @@ def main(argv: list[str] | None = None) -> int:
             continue
         i += 1
 
+    tab_label = "grounded-compare"
     if live:
-        if not prompt_file:
+        if not prompt_file and not from_production:
             print(
-                "ERROR: --live requires --prompt-file with the real production prompt. "
-                "Do not use the dry-run stub for live review.",
+                "ERROR: --live requires --from-production or --prompt-file "
+                "with the real production prompt. Do not use the dry-run stub.",
                 file=sys.stderr,
             )
             return 2
@@ -568,14 +607,22 @@ def main(argv: list[str] | None = None) -> int:
                 file=sys.stderr,
             )
             return 2
-        production_prompt = Path(prompt_file).read_text(encoding="utf-8")
+        if from_production:
+            from textus_kb.production_prompt_export import build_production_section_prompt
+
+            export = build_production_section_prompt(passage, module=module)
+            production_prompt = export.production_prompt
+            tab_label = export.tab_label
+            passage = export.passage_canonical
+        else:
+            production_prompt = Path(prompt_file).read_text(encoding="utf-8")
         if not production_prompt.strip():
-            print("ERROR: production prompt file is empty.", file=sys.stderr)
+            print("ERROR: production prompt is empty.", file=sys.stderr)
             return 2
         if production_prompt.strip() == DRY_RUN_PRODUCTION_STUB.strip():
             print(
                 "ERROR: --live refuses the dry-run stub prompt. "
-                "Export the real SECTION_PROMPTS production prompt first.",
+                "Use --from-production or export the real SECTION_PROMPTS prompt.",
                 file=sys.stderr,
             )
             return 2
@@ -594,6 +641,7 @@ def main(argv: list[str] | None = None) -> int:
         generate_text_fn=generate_fn,
         blind=blind,
         provider_model=model_note,
+        tab_label=tab_label,
     )
 
     # Optional compare-store persistence (isolated; never touches shadow audit).

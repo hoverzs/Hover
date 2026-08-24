@@ -32,10 +32,23 @@ Live human A/B review campaign workflow (technical support).
 
 - Live provider calls require **`--live`**.
 - Default CLI remains mock / dry-run.
-- `--live` also requires **`--prompt-file`** (real production prompt) and **`--blind`**.
+- `--live` also requires **`--blind`** and either:
+  - **`--from-production`** (builds the real `SECTION_PROMPTS` prompt via
+    `textus_kb.production_prompt_export`), or
+  - **`--prompt-file`** (hand-exported production prompt).
 - The dry-run stub prompt is rejected for `--live`.
 
-There is no code path that auto-starts live provider calls for the full campaign.
+There is no code path that auto-starts live provider calls for the full campaign
+from the CLI default. Dev runner:
+`python -m textus_kb.review_campaign_runner --run` (explicit only).
+
+## Budget note (real production prompts)
+
+Long exegesis prompts (Greek token blocks) can exceed the default 8k grounded
+budget. Composition auto-expands the budget to
+`production_tokens + KB reserve` (ceiling 32k) so the production prompt is never
+truncated and KB context can still be attached. Explicit `--token-budget` values
+in tests remain unchanged.
 
 ## Print manual commands (does not execute)
 

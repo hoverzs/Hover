@@ -73,8 +73,8 @@ def test_compare_only_on_explicit_call() -> None:
     )
     assert artifact.provider_call_count == 2
     assert len(calls) == 2
-    assert calls[0].endswith(":A")
-    assert calls[1].endswith(":B")
+    # Same tab_label for A and B → model / max_output_tokens parity.
+    assert calls[0] == calls[1] == "grounded-compare"
 
 
 def test_a_is_production_b_is_grounded_when_not_blind() -> None:

@@ -223,15 +223,21 @@ def format_campaign_status_text(report: dict[str, Any]) -> str:
     return "\n".join(lines).rstrip() + "\n"
 
 
-def campaign_manual_commands(*, prompt_file: str = "path/to/production_prompt.txt") -> list[str]:
+def campaign_manual_commands(*, prompt_file: str | None = None) -> list[str]:
     """Reproducible live commands — print only; never auto-execute."""
     cmds: list[str] = []
     for passage, module in required_campaign_pairs():
-        cmds.append(
-            "python -m textus_kb grounded-compare "
-            f'"{passage}" --module {module} --live --blind '
-            f'--prompt-file "{prompt_file}"'
-        )
+        if prompt_file:
+            cmds.append(
+                "python -m textus_kb grounded-compare "
+                f'"{passage}" --module {module} --live --blind '
+                f'--prompt-file "{prompt_file}"'
+            )
+        else:
+            cmds.append(
+                "python -m textus_kb grounded-compare "
+                f'"{passage}" --module {module} --live --blind --from-production'
+            )
     return cmds
 
 
@@ -263,7 +269,7 @@ def main_campaign_status(argv: list[str] | None = None) -> int:
 def main_campaign_commands(argv: list[str] | None = None) -> int:
     """Print reproducible live commands without executing provider calls."""
     args = argv if argv is not None else []
-    prompt_file = "path/to/production_prompt.txt"
+    prompt_file = None
     i = 0
     while i < len(args):
         if args[i] == "--prompt-file" and i + 1 < len(args):
@@ -272,6 +278,7 @@ def main_campaign_commands(argv: list[str] | None = None) -> int:
             continue
         i += 1
     print("# Phase 5G live review campaign — run ONE pair at a time (manual).")
+    print("# Prefer --from-production (real SECTION_PROMPTS) over hand-exported files.")
     print("# Do NOT batch-automate these if you want cost control.")
     print("set TEXTUS_KB_COMPARE_STORE_ENABLED=true")
     print()

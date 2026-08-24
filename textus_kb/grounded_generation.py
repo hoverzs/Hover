@@ -305,7 +305,7 @@ def prepare_grounded_provider_prompt(
             error="Passage not in TEXTUS_KB_GROUNDED_PASSAGE_ALLOWLIST",
         )
 
-    budget = int(token_budget) if token_budget is not None else grounded_prompt_token_budget()
+    budget = int(token_budget) if token_budget is not None else None
     retrieval_ms = 0
     context_build_ms = 0
     cache_info: dict[str, Any] = {

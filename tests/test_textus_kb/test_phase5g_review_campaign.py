@@ -199,9 +199,11 @@ def test_source_trace_cli(tmp_path: Path) -> None:
 
 
 def test_manual_commands_do_not_execute_provider() -> None:
-    cmds = campaign_manual_commands(prompt_file="prod.txt")
+    cmds = campaign_manual_commands()
     assert len(cmds) == 8
-    assert all("--live" in c and "--blind" in c and "--prompt-file" in c for c in cmds)
+    assert all("--live" in c and "--blind" in c and "--from-production" in c for c in cmds)
+    cmds_file = campaign_manual_commands(prompt_file="prod.txt")
+    assert all("--prompt-file" in c for c in cmds_file)
 
 
 def test_classify_and_readiness_evidence() -> None:
