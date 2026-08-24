@@ -35,10 +35,18 @@ def main(argv: list[str] | None = None) -> int:
         from textus_kb.shadow import main as shadow_main
 
         return shadow_main(rest)
+    if command == "shadow-report":
+        from textus_kb.shadow_report import main_report
+
+        return main_report(rest)
+    if command == "shadow-compare":
+        from textus_kb.shadow_report import main_compare
+
+        return main_compare(rest)
 
     print(
         f"Unknown command: {command!r}. "
-        "Use: python -m textus_kb [health|retrieve|context|entity|shadow] ...",
+        "Use: python -m textus_kb [health|retrieve|context|entity|shadow|shadow-report|shadow-compare] ...",
         file=sys.stderr,
     )
     return 2

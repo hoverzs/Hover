@@ -147,6 +147,13 @@ def run_kb_shadow_artifact_dict(
         production_output=production_output,
     ).to_dict()
     artifact["generation_duration_ms"] = int(generation_duration_ms)
+    # Optional audit persistence is isolated: never raise to production callers.
+    try:
+        from textus_kb.shadow_audit import persist_shadow_audit
+
+        persist_shadow_audit(artifact)
+    except Exception as exc:  # pragma: no cover - exercised in dedicated tests
+        artifact["audit_persist_error"] = f"{type(exc).__name__}: {exc}"
     return artifact
 
 
@@ -154,8 +161,13 @@ def build_shadow_benchmark_report(passages: list[str], *, modules: list[str]) ->
     rows: list[dict[str, Any]] = []
     for passage in passages:
         for module in modules:
-            artifact = run_kb_shadow_for_module(passage, module=module)
-            rows.append(artifact.to_dict())
+            artifact = run_kb_shadow_artifact_dict(
+                passage=passage,
+                module=module,
+                production_prompt="x" * 1200,
+                production_output="y" * 3400,
+            )
+            rows.append(artifact)
     return {"passages": passages, "modules": modules, "artifacts": rows}
 
 
@@ -172,6 +184,8 @@ def main(argv: list[str] | None = None) -> int:
     passage = args[0]
     module = "exegesis"
     benchmark = False
+    prompt_chars = 0
+    output_chars = 0
     i = 1
     while i < len(args):
         if args[i] == "--module" and i + 1 < len(args):
@@ -181,6 +195,14 @@ def main(argv: list[str] | None = None) -> int:
         if args[i] == "--benchmark":
             benchmark = True
             i += 1
+            continue
+        if args[i] == "--prompt-chars" and i + 1 < len(args):
+            prompt_chars = int(args[i + 1])
+            i += 2
+            continue
+        if args[i] == "--output-chars" and i + 1 < len(args):
+            output_chars = int(args[i + 1])
+            i += 2
             continue
         i += 1
 
@@ -192,7 +214,12 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(report, indent=2, ensure_ascii=True))
         return 0
 
-    artifact = run_kb_shadow_for_module(passage, module=module)
-    print(json.dumps(artifact.to_dict(), indent=2, ensure_ascii=True))
-    return 0 if artifact.success else 1
+    artifact = run_kb_shadow_artifact_dict(
+        passage=passage,
+        module=module,
+        production_prompt=("p" * prompt_chars) if prompt_chars else "",
+        production_output=("o" * output_chars) if output_chars else "",
+    )
+    print(json.dumps(artifact, indent=2, ensure_ascii=True))
+    return 0 if artifact.get("success") else 1
 
