@@ -1,28 +1,50 @@
-"""Dev-only A/B compare: production prompt vs KB-grounded prompt.
+"""Dev-only A/B compare + human review workflow (Phase 5E).
 
-Default mode uses a mock generate function (no API cost).
-Pass ``--live`` only when an explicit live provider callback is wired by the caller.
+Explicit CLI/API only — never invoked from production ``generate_section()``.
+Compare outputs may be stored in a separate gitignored SQLite DB when
+``TEXTUS_KB_COMPARE_STORE_ENABLED=true`` (not the Phase 5B shadow audit store).
 """
 
 from __future__ import annotations
 
+import hashlib
 import json
+import random
 import time
+import uuid
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Callable
 
+from textus_kb.compare_store import (
+    COMPARE_STORE_FLAG,
+    DEFAULT_COMPARE_DB_PATH,
+    HumanReview,
+    is_compare_store_enabled,
+    persist_compare_run,
+)
+from textus_kb.evidence import estimate_text_tokens
 from textus_kb.grounded_generation import prepare_grounded_provider_prompt
 from textus_kb.paths import GENERATED_DATA_DIR
 from textus_kb.prompt_composer import DRY_RUN_PRODUCTION_STUB
 from textus_kb.shadow import MODULE_TO_PROFILE
+from textus_kb.shadow_audit import classify_source_mix
 
 DEFAULT_COMPARE_DIR = GENERATED_DATA_DIR / "kb_grounded_compare"
+BENCHMARK_PASSAGES = (
+    "John.4.1-42",
+    "Luke.10.25-37",
+    "Acts.2.1-13",
+    "Rom.8.28-30",
+)
+BENCHMARK_MODULES = ("exegesis", "historical_context")
 
 
 @dataclass
 class GroundedCompareArtifact:
+    run_id: str
+    timestamp: str
     passage: str
     module: str
     production_output: str
@@ -32,22 +54,63 @@ class GroundedCompareArtifact:
     production_prompt_estimated_tokens: int
     grounded_prompt_estimated_tokens: int
     kb_context_estimated_tokens: int
+    production_output_chars: int = 0
+    grounded_output_chars: int = 0
+    production_output_estimated_tokens: int = 0
+    grounded_output_estimated_tokens: int = 0
     source_ids: list[str] = field(default_factory=list)
     evidence_ids: list[str] = field(default_factory=list)
+    source_trace: dict[str, Any] = field(default_factory=dict)
     grounded_used: bool = False
     grounded_fallback: bool = False
+    grounded_status: str = "success"  # success | error
+    grounded_error: str = ""
     fallback_reason: str = ""
     production_latency_ms: int = 0
     grounded_prep_ms: int = 0
     grounded_latency_ms: int = 0
-    provider_call_count: int = 2
+    provider_call_count: int = 0
     composition_version: str = ""
-    prompt_hash: str = ""
+    prompt_hash_a: str = ""
+    prompt_hash_b: str = ""
+    evidence_build_id: str = ""
+    provider_model: str = "mock"
     model_note: str = "mock"
-    timestamp: str = ""
+    blind: bool = False
+    blind_mapping: dict[str, str] = field(default_factory=dict)
+    review: dict[str, Any] = field(default_factory=dict)
+    metrics: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
+
+
+def _sha256_text(text: str) -> str:
+    return hashlib.sha256((text or "").encode("utf-8")).hexdigest()
+
+
+def build_source_trace(
+    *,
+    source_ids: list[str],
+    evidence_ids: list[str],
+    context_packet: dict[str, Any] | None = None,
+    entity_count: int = 0,
+    selected_item_count: int = 0,
+) -> dict[str, Any]:
+    mix = classify_source_mix(list(source_ids))
+    return {
+        "source_ids": list(source_ids),
+        "selected_evidence_count": len(evidence_ids),
+        "selected_item_count": int(selected_item_count),
+        "study_notes_count": int(mix.get("study_notes") or 0),
+        "dictionary_count": int(mix.get("dictionary") or 0),
+        "acai_entity_source_count": int(mix.get("acai") or 0),
+        "linguistic_evidence_count": int(mix.get("linguistic") or 0),
+        "places_background_count": int(mix.get("places_background") or 0),
+        "entity_count": int(entity_count),
+        "source_mix": mix,
+        "context_section_count": len((context_packet or {}).get("sections") or []),
+    }
 
 
 def run_grounded_compare(
@@ -58,12 +121,23 @@ def run_grounded_compare(
     generate_text_fn: Callable[..., str],
     use_search: bool = False,
     tab_label: str = "grounded-compare",
+    blind: bool = False,
+    provider_model: str = "caller_generate_fn",
+    rng: random.Random | None = None,
 ) -> GroundedCompareArtifact:
-    """Run two explicit provider calls: A=production, B=grounded (or fallback prompt)."""
+    """Run explicit A/B provider calls for human review.
+
+    Compare mode does **not** substitute the production prompt for B on grounded
+    failure — B is recorded as ``error`` while A is preserved.
+    """
     if module not in MODULE_TO_PROFILE and module != "history":
         raise ValueError(f"Unsupported module for grounded-compare: {module!r}")
     module_key = "historical_context" if module == "history" else module
+    run_id = str(uuid.uuid4())
+    timestamp = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+    prompt_hash_a = _sha256_text(production_prompt)
 
+    # --- A: production ---
     t0 = time.perf_counter()
     production_output = generate_text_fn(
         production_prompt,
@@ -71,7 +145,9 @@ def run_grounded_compare(
         tab_label=f"{tab_label}:A",
     )
     production_ms = int((time.perf_counter() - t0) * 1000)
+    provider_calls = 1
 
+    # --- B: grounded prep (no production-prompt substitution on failure) ---
     t1 = time.perf_counter()
     prep = prepare_grounded_provider_prompt(
         production_prompt=production_prompt,
@@ -81,46 +157,262 @@ def run_grounded_compare(
     )
     prep_ms = int((time.perf_counter() - t1) * 1000)
 
-    t2 = time.perf_counter()
-    grounded_output = generate_text_fn(
-        prep.provider_prompt,
-        enable_google_search=use_search,
-        tab_label=f"{tab_label}:B",
-    )
-    grounded_ms = int((time.perf_counter() - t2) * 1000)
+    grounded_output = ""
+    grounded_latency_ms = 0
+    grounded_status = "success"
+    grounded_error = ""
+    prompt_hash_b = ""
+    grounded_prompt_chars = 0
+    grounded_prompt_tokens = 0
 
-    return GroundedCompareArtifact(
-        passage=prep.canonical_passage or passage,
-        module=module_key,
-        production_output=production_output,
-        grounded_output=grounded_output,
-        production_prompt_chars=len(production_prompt),
-        grounded_prompt_chars=len(prep.provider_prompt),
-        production_prompt_estimated_tokens=prep.original_prompt_estimated_tokens
-        or max(1, len(production_prompt) // 4),
-        grounded_prompt_estimated_tokens=prep.composed_prompt_estimated_tokens
-        if prep.grounded_used
-        else prep.original_prompt_estimated_tokens,
-        kb_context_estimated_tokens=prep.kb_context_estimated_tokens,
+    if prep.grounded_used and prep.provider_prompt and prep.provider_prompt != production_prompt:
+        prompt_hash_b = _sha256_text(prep.provider_prompt)
+        grounded_prompt_chars = len(prep.provider_prompt)
+        grounded_prompt_tokens = prep.composed_prompt_estimated_tokens
+        t2 = time.perf_counter()
+        try:
+            grounded_output = generate_text_fn(
+                prep.provider_prompt,
+                enable_google_search=use_search,
+                tab_label=f"{tab_label}:B",
+            )
+            grounded_latency_ms = int((time.perf_counter() - t2) * 1000)
+            provider_calls += 1
+        except Exception as exc:
+            grounded_status = "error"
+            grounded_error = f"{type(exc).__name__}"
+            grounded_latency_ms = int((time.perf_counter() - t2) * 1000)
+    else:
+        grounded_status = "error"
+        grounded_error = (
+            prep.error
+            or prep.fallback_reason
+            or ("grounded_fallback" if prep.grounded_fallback else "grounded_prep_failed")
+        )
+        grounded_prompt_chars = 0
+        grounded_prompt_tokens = 0
+        prompt_hash_b = ""
+
+    source_trace = build_source_trace(
         source_ids=list(prep.source_ids),
         evidence_ids=list(prep.evidence_ids),
-        grounded_used=prep.grounded_used,
+        context_packet=prep.context_packet,
+        entity_count=prep.entity_count,
+        selected_item_count=prep.selected_item_count,
+    )
+
+    # Blind mapping: display labels A/B hide which is production vs grounded.
+    if blind:
+        coin = (rng or random.Random()).choice(("AB", "BA"))
+        if coin == "AB":
+            blind_mapping = {"A": "production", "B": "grounded"}
+        else:
+            blind_mapping = {"A": "grounded", "B": "production"}
+    else:
+        blind_mapping = {"A": "production", "B": "grounded"}
+
+    metrics = {
+        "provider_call_count": provider_calls,
+        "production_prompt_chars": len(production_prompt),
+        "production_prompt_estimated_tokens": prep.original_prompt_estimated_tokens
+        or estimate_text_tokens(production_prompt),
+        "grounded_prompt_chars": grounded_prompt_chars,
+        "grounded_prompt_estimated_tokens": grounded_prompt_tokens,
+        "kb_context_estimated_tokens": prep.kb_context_estimated_tokens,
+        "production_output_chars": len(production_output or ""),
+        "grounded_output_chars": len(grounded_output or ""),
+        "production_output_estimated_tokens": estimate_text_tokens(production_output or ""),
+        "grounded_output_estimated_tokens": estimate_text_tokens(grounded_output or "")
+        if grounded_output
+        else 0,
+        "production_latency_ms": production_ms,
+        "grounded_prep_ms": prep_ms,
+        "grounded_latency_ms": grounded_latency_ms,
+    }
+
+    return GroundedCompareArtifact(
+        run_id=run_id,
+        timestamp=timestamp,
+        passage=prep.canonical_passage or passage,
+        module=module_key,
+        production_output=production_output or "",
+        grounded_output=grounded_output or "",
+        production_prompt_chars=len(production_prompt),
+        grounded_prompt_chars=grounded_prompt_chars,
+        production_prompt_estimated_tokens=metrics["production_prompt_estimated_tokens"],
+        grounded_prompt_estimated_tokens=grounded_prompt_tokens,
+        kb_context_estimated_tokens=prep.kb_context_estimated_tokens,
+        production_output_chars=metrics["production_output_chars"],
+        grounded_output_chars=metrics["grounded_output_chars"],
+        production_output_estimated_tokens=metrics["production_output_estimated_tokens"],
+        grounded_output_estimated_tokens=metrics["grounded_output_estimated_tokens"],
+        source_ids=list(prep.source_ids),
+        evidence_ids=list(prep.evidence_ids),
+        source_trace=source_trace,
+        grounded_used=bool(prep.grounded_used and grounded_status == "success"),
         grounded_fallback=prep.grounded_fallback,
+        grounded_status=grounded_status,
+        grounded_error=grounded_error,
         fallback_reason=prep.fallback_reason,
         production_latency_ms=production_ms,
         grounded_prep_ms=prep_ms,
-        grounded_latency_ms=grounded_ms,
-        provider_call_count=2,
+        grounded_latency_ms=grounded_latency_ms,
+        provider_call_count=provider_calls,
         composition_version=prep.composition_version,
-        prompt_hash=prep.prompt_hash,
-        model_note="caller_generate_fn",
-        timestamp=datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        prompt_hash_a=prompt_hash_a,
+        prompt_hash_b=prompt_hash_b,
+        evidence_build_id=prep.evidence_build_id,
+        provider_model=provider_model,
+        model_note=provider_model,
+        blind=blind,
+        blind_mapping=blind_mapping,
+        review=HumanReview().to_dict(),
+        metrics=metrics,
     )
 
 
+def _responses_for_display(artifact: GroundedCompareArtifact | dict[str, Any]) -> dict[str, str]:
+    data = artifact.to_dict() if isinstance(artifact, GroundedCompareArtifact) else dict(artifact)
+    mapping = data.get("blind_mapping") or {"A": "production", "B": "grounded"}
+    prod = str(data.get("production_output") or "")
+    grounded = str(data.get("grounded_output") or "")
+    if data.get("grounded_status") == "error" and not grounded:
+        grounded = f"[ERROR] {data.get('grounded_error') or 'grounded generation failed'}"
+    out: dict[str, str] = {}
+    for label in ("A", "B"):
+        kind = mapping.get(label, "production" if label == "A" else "grounded")
+        out[label] = prod if kind == "production" else grounded
+    return out
+
+
+def format_compare_report(
+    artifact: GroundedCompareArtifact | dict[str, Any],
+    *,
+    reveal_mapping: bool = False,
+) -> str:
+    """Human-readable report. Blind mode hides production/grounded labels unless revealed."""
+    data = artifact.to_dict() if isinstance(artifact, GroundedCompareArtifact) else dict(artifact)
+    responses = _responses_for_display(data)
+    review = data.get("review") if isinstance(data.get("review"), dict) else {}
+    trace = data.get("source_trace") if isinstance(data.get("source_trace"), dict) else {}
+    metrics = data.get("metrics") if isinstance(data.get("metrics"), dict) else {}
+    lines = [
+        "--------------------------------",
+        f"PASSAGE: {data.get('passage')}",
+        f"MODULE: {data.get('module')}",
+        f"RUN_ID: {data.get('run_id')}",
+        f"TIMESTAMP: {data.get('timestamp')}",
+        "--------------------------------",
+        "",
+        "RESPONSE A",
+        responses.get("A", ""),
+        "",
+        "RESPONSE B",
+        responses.get("B", ""),
+        "",
+        "KB SOURCES",
+    ]
+    if data.get("blind") and not reveal_mapping:
+        lines.append("(hidden in blind mode — see metadata after review)")
+    else:
+        lines.append(f"source_ids: {', '.join(data.get('source_ids') or []) or '(none)'}")
+        lines.append(f"selected_evidence_count: {trace.get('selected_evidence_count', 0)}")
+        lines.append(f"study_notes_count: {trace.get('study_notes_count', 0)}")
+        lines.append(f"dictionary_count: {trace.get('dictionary_count', 0)}")
+        lines.append(f"acai_entity_source_count: {trace.get('acai_entity_source_count', 0)}")
+        lines.append(f"linguistic_evidence_count: {trace.get('linguistic_evidence_count', 0)}")
+        lines.append(f"entity_count: {trace.get('entity_count', 0)}")
+        lines.append(f"grounded_status: {data.get('grounded_status')}")
+        if data.get("grounded_error"):
+            lines.append(f"grounded_error: {data.get('grounded_error')}")
+    lines.extend(
+        [
+            "",
+            "METRICS",
+            f"provider_call_count: {data.get('provider_call_count') or metrics.get('provider_call_count')}",
+            f"production_prompt_estimated_tokens: {data.get('production_prompt_estimated_tokens')}",
+            f"grounded_prompt_estimated_tokens: {data.get('grounded_prompt_estimated_tokens')}",
+            f"kb_context_estimated_tokens: {data.get('kb_context_estimated_tokens')}",
+            f"production_output_chars: {data.get('production_output_chars')}",
+            f"grounded_output_chars: {data.get('grounded_output_chars')}",
+            f"production_latency_ms: {data.get('production_latency_ms')}",
+            f"grounded_prep_ms: {data.get('grounded_prep_ms')}",
+            f"grounded_latency_ms: {data.get('grounded_latency_ms')}",
+            f"provider_model: {data.get('provider_model') or data.get('model_note')}",
+            f"composition_version: {data.get('composition_version')}",
+            f"prompt_hash_a: {data.get('prompt_hash_a')}",
+            f"prompt_hash_b: {data.get('prompt_hash_b')}",
+            f"evidence_build_id: {data.get('evidence_build_id')}",
+            "",
+            "REVIEW",
+        ]
+    )
+    if any(str(v).strip() for v in review.values()):
+        for key in (
+            "factual_accuracy_preference",
+            "exegetical_usefulness_preference",
+            "historical_grounding_preference",
+            "clarity_style_preference",
+            "hallucination_risk",
+            "overall_preference",
+            "reviewer_notes",
+        ):
+            lines.append(f"{key}: {review.get(key) or ''}")
+    else:
+        lines.append("(empty — use review-rate to record human preferences)")
+    if reveal_mapping or not data.get("blind"):
+        lines.extend(
+            [
+                "",
+                "MAPPING",
+                f"blind: {bool(data.get('blind'))}",
+                f"blind_mapping: {json.dumps(data.get('blind_mapping') or {}, ensure_ascii=True)}",
+            ]
+        )
+    else:
+        lines.extend(["", "MAPPING", "blind: true (mapping withheld from reviewer-facing text)"])
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def save_compare_export(
+    artifact: GroundedCompareArtifact | dict[str, Any],
+    output_path: str | Path,
+    *,
+    reveal_mapping: bool = False,
+) -> Path:
+    path = Path(output_path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    data = artifact.to_dict() if isinstance(artifact, GroundedCompareArtifact) else dict(artifact)
+    if path.suffix.lower() == ".json":
+        path.write_text(json.dumps(data, indent=2, ensure_ascii=True), encoding="utf-8")
+    else:
+        path.write_text(
+            format_compare_report(data, reveal_mapping=reveal_mapping),
+            encoding="utf-8",
+        )
+    return path
+
+
 def _mock_generate(prompt: str, *, enable_google_search: bool, tab_label: str) -> str:
-    kind = "grounded" if "BEGIN_KB_DATA" in prompt or "<<<BEGIN_KB_DATA>>>" in prompt else "production"
+    kind = (
+        "grounded"
+        if "<<<BEGIN_KB_DATA>>>" in prompt or "BEGIN_KB_DATA" in prompt
+        else "production"
+    )
     return f"[mock:{kind}:{tab_label}] chars={len(prompt)} search={enable_google_search}"
+
+
+def _resolve_live_generate() -> tuple[Callable[..., str], str]:
+    """Best-effort reuse of production generate_text (dev/staging only)."""
+    try:
+        from app import generate_text  # type: ignore
+
+        return generate_text, "app.generate_text"
+    except Exception as exc:  # pragma: no cover
+        raise RuntimeError(
+            "Could not import app.generate_text for --live. "
+            "Wire generate_text_fn via run_grounded_compare() instead."
+        ) from exc
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -130,7 +422,9 @@ def main(argv: list[str] | None = None) -> int:
     if not args:
         print(
             'Usage: python -m textus_kb grounded-compare "<reference>" '
-            "--module exegesis|historical_context [--live] [--prompt-file PATH] [--out DIR]",
+            "--module exegesis|historical_context "
+            "[--blind] [--live] [--prompt-file PATH] [--output PATH] "
+            "[--database PATH] [--out DIR]",
             file=sys.stderr,
         )
         return 2
@@ -138,8 +432,11 @@ def main(argv: list[str] | None = None) -> int:
     passage = args[0]
     module = "exegesis"
     live = False
+    blind = False
     prompt_file = None
+    output_path = None
     out_dir = DEFAULT_COMPARE_DIR
+    database = None
     i = 1
     while i < len(args):
         if args[i] == "--module" and i + 1 < len(args):
@@ -150,12 +447,24 @@ def main(argv: list[str] | None = None) -> int:
             live = True
             i += 1
             continue
+        if args[i] == "--blind":
+            blind = True
+            i += 1
+            continue
         if args[i] == "--prompt-file" and i + 1 < len(args):
             prompt_file = args[i + 1]
             i += 2
             continue
+        if args[i] == "--output" and i + 1 < len(args):
+            output_path = args[i + 1]
+            i += 2
+            continue
         if args[i] == "--out" and i + 1 < len(args):
             out_dir = Path(args[i + 1])
+            i += 2
+            continue
+        if args[i] == "--database" and i + 1 < len(args):
+            database = args[i + 1]
             i += 2
             continue
         i += 1
@@ -166,50 +475,212 @@ def main(argv: list[str] | None = None) -> int:
         production_prompt = DRY_RUN_PRODUCTION_STUB
 
     if live:
-        print(
-            "ERROR: --live requires an external provider wire-up; "
-            "default CLI uses mock generate. Use run_grounded_compare() from a "
-            "dev script with generate_text_fn=your_provider.",
-            file=sys.stderr,
-        )
-        return 2
+        generate_fn, model_note = _resolve_live_generate()
+    else:
+        generate_fn, model_note = _mock_generate, "mock"
 
     artifact = run_grounded_compare(
         passage,
         module=module,
         production_prompt=production_prompt,
-        generate_text_fn=_mock_generate,
+        generate_text_fn=generate_fn,
+        blind=blind,
+        provider_model=model_note,
     )
+
+    # Optional compare-store persistence (isolated; never touches shadow audit).
+    store_run_id = None
+    store_error = None
+    try:
+        store_run_id = persist_compare_run(
+            artifact.to_dict(),
+            database_path=database,
+            enabled=True if database else None,
+        )
+    except Exception as exc:
+        store_error = f"{type(exc).__name__}"
+
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
-    safe_passage = artifact.passage.replace(".", "_")
-    out_path = out_dir / f"compare_{safe_passage}_{module}.json"
-    # Dev-only fixture may include outputs; directory is under data/generated (gitignored sqlite pattern
-    # — JSON compare files should also stay local; parent data/generated is partially tracked).
-    payload = artifact.to_dict()
-    out_path.write_text(json.dumps(payload, indent=2, ensure_ascii=True), encoding="utf-8")
-    # Print summary without dumping full long outputs by default
+    safe_passage = str(artifact.passage).replace(".", "_")
+    json_path = out_dir / f"compare_{safe_passage}_{module}_{artifact.run_id[:8]}.json"
+    json_path.write_text(
+        json.dumps(artifact.to_dict(), indent=2, ensure_ascii=True),
+        encoding="utf-8",
+    )
+
+    export_path = None
+    if output_path:
+        export_path = save_compare_export(
+            artifact,
+            output_path,
+            reveal_mapping=not blind,
+        )
+
     summary = {
+        "run_id": artifact.run_id,
         "passage": artifact.passage,
         "module": artifact.module,
+        "blind": artifact.blind,
+        "grounded_status": artifact.grounded_status,
+        "grounded_error": artifact.grounded_error,
         "grounded_used": artifact.grounded_used,
-        "grounded_fallback": artifact.grounded_fallback,
-        "fallback_reason": artifact.fallback_reason,
-        "production_prompt_chars": artifact.production_prompt_chars,
-        "grounded_prompt_chars": artifact.grounded_prompt_chars,
-        "kb_context_estimated_tokens": artifact.kb_context_estimated_tokens,
-        "source_ids": artifact.source_ids,
         "provider_call_count": artifact.provider_call_count,
+        "production_prompt_estimated_tokens": artifact.production_prompt_estimated_tokens,
+        "grounded_prompt_estimated_tokens": artifact.grounded_prompt_estimated_tokens,
+        "kb_context_estimated_tokens": artifact.kb_context_estimated_tokens,
+        "production_latency_ms": artifact.production_latency_ms,
         "grounded_prep_ms": artifact.grounded_prep_ms,
-        "out_path": str(out_path),
+        "grounded_latency_ms": artifact.grounded_latency_ms,
+        "source_trace": artifact.source_trace,
+        "json_path": str(json_path),
+        "export_path": str(export_path) if export_path else None,
+        "compare_store_enabled": is_compare_store_enabled() or bool(database),
+        "compare_store_run_id": store_run_id,
+        "compare_store_error": store_error,
+        "compare_store_flag": COMPARE_STORE_FLAG,
     }
     print(json.dumps(summary, indent=2, ensure_ascii=True, sort_keys=True))
+    print()
+    print(format_compare_report(artifact, reveal_mapping=not blind))
+    return 0 if artifact.production_output else 1
+
+
+def main_review_list(argv: list[str] | None = None) -> int:
+    import sys
+
+    from textus_kb.compare_store import list_compare_runs
+
+    args = argv if argv is not None else sys.argv[1:]
+    database = None
+    limit = 50
+    i = 0
+    while i < len(args):
+        if args[i] == "--database" and i + 1 < len(args):
+            database = args[i + 1]
+            i += 2
+            continue
+        if args[i] == "--limit" and i + 1 < len(args):
+            limit = int(args[i + 1])
+            i += 2
+            continue
+        i += 1
+    rows = list_compare_runs(database_path=database, limit=limit)
+    print(json.dumps(rows, indent=2, ensure_ascii=True))
+    return 0
+
+
+def main_review_show(argv: list[str] | None = None) -> int:
+    import sys
+
+    from textus_kb.compare_store import load_compare_run
+
+    args = argv if argv is not None else sys.argv[1:]
+    if not args:
+        print("Usage: python -m textus_kb review-show <run_id> [--reveal] [--database PATH]", file=sys.stderr)
+        return 2
+    run_id = args[0]
+    reveal = False
+    database = None
+    i = 1
+    while i < len(args):
+        if args[i] == "--reveal":
+            reveal = True
+            i += 1
+            continue
+        if args[i] == "--database" and i + 1 < len(args):
+            database = args[i + 1]
+            i += 2
+            continue
+        i += 1
+    artifact = load_compare_run(run_id, database_path=database)
+    if artifact is None:
+        print(f"Run not found: {run_id}", file=sys.stderr)
+        return 1
+    print(format_compare_report(artifact, reveal_mapping=reveal or not artifact.get("blind")))
+    return 0
+
+
+def main_review_rate(argv: list[str] | None = None) -> int:
+    import sys
+
+    from textus_kb.compare_store import load_compare_run, update_compare_review
+
+    args = argv if argv is not None else sys.argv[1:]
+    if not args:
+        print(
+            "Usage: python -m textus_kb review-rate <run_id> "
+            "[--overall A|B|equal|unclear] "
+            "[--factual ...] [--exegetical ...] [--historical ...] [--clarity ...] "
+            "[--hallucination A|B|both|neither|unclear] [--notes TEXT] [--database PATH]",
+            file=sys.stderr,
+        )
+        return 2
+    run_id = args[0]
+    database = None
+    fields: dict[str, str] = {}
+    i = 1
+    while i < len(args):
+        if args[i] == "--database" and i + 1 < len(args):
+            database = args[i + 1]
+            i += 2
+            continue
+        if args[i] == "--overall" and i + 1 < len(args):
+            fields["overall_preference"] = args[i + 1]
+            i += 2
+            continue
+        if args[i] == "--factual" and i + 1 < len(args):
+            fields["factual_accuracy_preference"] = args[i + 1]
+            i += 2
+            continue
+        if args[i] == "--exegetical" and i + 1 < len(args):
+            fields["exegetical_usefulness_preference"] = args[i + 1]
+            i += 2
+            continue
+        if args[i] == "--historical" and i + 1 < len(args):
+            fields["historical_grounding_preference"] = args[i + 1]
+            i += 2
+            continue
+        if args[i] == "--clarity" and i + 1 < len(args):
+            fields["clarity_style_preference"] = args[i + 1]
+            i += 2
+            continue
+        if args[i] == "--hallucination" and i + 1 < len(args):
+            fields["hallucination_risk"] = args[i + 1]
+            i += 2
+            continue
+        if args[i] == "--notes" and i + 1 < len(args):
+            fields["reviewer_notes"] = args[i + 1]
+            i += 2
+            continue
+        i += 1
+
+    existing = load_compare_run(run_id, database_path=database)
+    if existing is None:
+        print(f"Run not found: {run_id}", file=sys.stderr)
+        return 1
+    review = HumanReview.from_dict(existing.get("review"))
+    merged = {**review.to_dict(), **fields}
+    try:
+        updated = update_compare_review(run_id, merged, database_path=database)
+    except ValueError as exc:
+        print(str(exc), file=sys.stderr)
+        return 2
+    print(json.dumps(updated.get("review") if updated else merged, indent=2, ensure_ascii=True))
     return 0
 
 
 __all__ = [
+    "BENCHMARK_MODULES",
+    "BENCHMARK_PASSAGES",
     "DEFAULT_COMPARE_DIR",
     "GroundedCompareArtifact",
+    "build_source_trace",
+    "format_compare_report",
     "main",
+    "main_review_list",
+    "main_review_rate",
+    "main_review_show",
     "run_grounded_compare",
+    "save_compare_export",
 ]

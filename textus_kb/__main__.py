@@ -51,11 +51,24 @@ def main(argv: list[str] | None = None) -> int:
         from textus_kb.grounded_compare import main as grounded_compare_main
 
         return grounded_compare_main(rest)
+    if command == "review-list":
+        from textus_kb.grounded_compare import main_review_list
+
+        return main_review_list(rest)
+    if command == "review-show":
+        from textus_kb.grounded_compare import main_review_show
+
+        return main_review_show(rest)
+    if command == "review-rate":
+        from textus_kb.grounded_compare import main_review_rate
+
+        return main_review_rate(rest)
 
     print(
         f"Unknown command: {command!r}. "
         "Use: python -m textus_kb [health|retrieve|context|entity|shadow|"
-        "shadow-report|shadow-compare|prompt-preview|grounded-compare] ...",
+        "shadow-report|shadow-compare|prompt-preview|grounded-compare|"
+        "review-list|review-show|review-rate] ...",
         file=sys.stderr,
     )
     return 2
