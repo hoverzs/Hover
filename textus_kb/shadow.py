@@ -20,6 +20,7 @@ MODULE_TO_PROFILE = {
 
 @dataclass(frozen=True)
 class KBShadowArtifact:
+    status: str
     success: bool
     module: str
     profile: str
@@ -56,6 +57,7 @@ def run_kb_shadow_for_module(
     profile = MODULE_TO_PROFILE.get(module)
     if profile is None:
         return KBShadowArtifact(
+            status="error",
             success=False,
             module=module,
             profile="",
@@ -95,6 +97,7 @@ def run_kb_shadow_for_module(
             "warnings": list(evidence.warnings),
         }
         return KBShadowArtifact(
+            status="degraded" if evidence.warnings else "success",
             success=True,
             module=module,
             profile=profile,
@@ -118,6 +121,7 @@ def run_kb_shadow_for_module(
         )
     except Exception as exc:  # pragma: no cover - exercised through integration tests
         return KBShadowArtifact(
+            status="error",
             success=False,
             module=module,
             profile=profile,
@@ -126,6 +130,24 @@ def run_kb_shadow_for_module(
             evidence_packet_build_id="",
             error=f"{type(exc).__name__}: {exc}",
         )
+
+
+def run_kb_shadow_artifact_dict(
+    *,
+    passage: str,
+    module: str,
+    production_prompt: str = "",
+    production_output: str = "",
+    generation_duration_ms: int = 0,
+) -> dict[str, Any]:
+    artifact = run_kb_shadow_for_module(
+        passage,
+        module=module,
+        production_prompt=production_prompt,
+        production_output=production_output,
+    ).to_dict()
+    artifact["generation_duration_ms"] = int(generation_duration_ms)
+    return artifact
 
 
 def build_shadow_benchmark_report(passages: list[str], *, modules: list[str]) -> dict[str, Any]:

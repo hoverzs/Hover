@@ -59,6 +59,7 @@ Implemented in `textus_kb/shadow.py` (`KBShadowArtifact`):
   - `source_count`
   - `warnings`
 - `error`
+- `status` (`success | degraded | error`)
 
 Raw Evidence Packet is not persisted into production logs.
 
@@ -109,6 +110,10 @@ with both `exegesis` and `historical_context`.
   - shadow hook is gated and attached after production assignment
   - shadow artifact generation for both profiles
   - failure-isolated shadow behavior
+- `tests/test_textus_kb/test_shadow_integration_contract.py` verifies runtime contract:
+  - same production prompt + params with flag false/true
+  - production call survives forced shadow exception
+  - flag false performs zero shadow work (shadow runner not invoked)
 
 ## Known limitations
 

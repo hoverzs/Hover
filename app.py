@@ -4907,58 +4907,21 @@ def _is_kb_shadow_enabled() -> bool:
 
 def _run_kb_shadow_for_section(
     *,
-    key: str,
-    prompt: str,
-    output: str,
+    passage: str,
+    module: str,
+    production_prompt: str,
+    production_output: str,
     generation_duration_ms: int,
-) -> None:
-    module = "exegesis" if key == "exegesis" else "historical_context"
-    passage = (st.session_state.get("last_igehely") or "").strip()
-    if not passage:
-        return
-    try:
-        from textus_kb.shadow import run_kb_shadow_for_module
+) -> dict:
+    from textus_kb.shadow import run_kb_shadow_artifact_dict
 
-        artifact = run_kb_shadow_for_module(
-            passage,
-            module=module,
-            production_prompt=prompt,
-            production_output=output,
-        ).to_dict()
-        artifact["generation_duration_ms"] = int(generation_duration_ms)
-        st.session_state.setdefault(KB_SHADOW_SESSION_KEY, []).append(artifact)
-        _debug_log_append(
-            {
-                "ts": _now_str(),
-                "tab": "kb_shadow",
-                "attempt": 1,
-                "status": "KB_SHADOW_OK" if artifact.get("success") else "KB_SHADOW_FAIL",
-                "model": "shadow",
-                "prompt_chars": len(prompt),
-                "response_chars": len(output),
-                "latency_ms": int(artifact.get("retrieval_duration_ms", 0))
-                + int(artifact.get("context_build_duration_ms", 0)),
-                "shadow_module": module,
-                "shadow_success": bool(artifact.get("success")),
-                "shadow_tokens": int(artifact.get("token_estimate", 0)),
-                "shadow_sources": int(artifact.get("source_count", 0)),
-                "shadow_warning_count": len(artifact.get("retrieval_warnings") or []),
-            }
-        )
-    except Exception as exc:
-        _debug_log_append(
-            {
-                "ts": _now_str(),
-                "tab": "kb_shadow",
-                "attempt": 1,
-                "status": "KB_SHADOW_EXCEPTION",
-                "model": "shadow",
-                "prompt_chars": len(prompt),
-                "response_chars": len(output),
-                "latency_ms": 0,
-                "error_message": f"{type(exc).__name__}: {exc}",
-            }
-        )
+    return run_kb_shadow_artifact_dict(
+        passage=passage,
+        module=module,
+        production_prompt=production_prompt,
+        production_output=production_output,
+        generation_duration_ms=generation_duration_ms,
+    )
 
 
 def generate_section(key: str) -> bool:
@@ -4998,19 +4961,39 @@ def generate_section(key: str) -> bool:
                 include_biblical_place_context=key in biblical_place_context_sections,
             )
         )
-        _gen_started = _time.perf_counter()
-        st.session_state[key] = generate_text(
-            prompt,
-            enable_google_search=use_search,
+        from textus_kb.shadow_integration import run_production_with_optional_shadow
+
+        run = run_production_with_optional_shadow(
+            key=key,
+            prompt=prompt,
             tab_label=label,
+            use_search=use_search,
+            passage=(st.session_state.get("last_igehely") or "").strip(),
+            shadow_enabled=_is_kb_shadow_enabled(),
+            generate_text_fn=generate_text,
+            shadow_runner_fn=_run_kb_shadow_for_section,
         )
-        _gen_ms = int((_time.perf_counter() - _gen_started) * 1000)
-        if _is_kb_shadow_enabled() and key in {"exegesis", "history"}:
-            _run_kb_shadow_for_section(
-                key=key,
-                prompt=prompt,
-                output=st.session_state[key],
-                generation_duration_ms=_gen_ms,
+        st.session_state[key] = run.production_output
+        artifact = run.shadow_event
+        if artifact is not None:
+            st.session_state.setdefault(KB_SHADOW_SESSION_KEY, []).append(dict(artifact))
+            _debug_log_append(
+                {
+                    "ts": _now_str(),
+                    "tab": "kb_shadow",
+                    "attempt": 1,
+                    "status": str(artifact.get("status") or "error").upper(),
+                    "model": "shadow",
+                    "prompt_chars": len(prompt),
+                    "response_chars": len(st.session_state[key]),
+                    "latency_ms": int(artifact.get("retrieval_duration_ms", 0))
+                    + int(artifact.get("context_build_duration_ms", 0)),
+                    "shadow_module": str(artifact.get("module") or ""),
+                    "shadow_success": bool(artifact.get("success")),
+                    "shadow_tokens": int(artifact.get("token_estimate", 0)),
+                    "shadow_sources": int(artifact.get("source_count", 0)),
+                    "shadow_warning_count": len(artifact.get("retrieval_warnings") or []),
+                }
             )
         if key == "exegesis":
             st.session_state[f"{key}_support_warnings"] = (

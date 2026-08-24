@@ -12,6 +12,7 @@ from textus_kb.shadow import build_shadow_benchmark_report, run_kb_shadow_for_mo
 def test_shadow_artifact_exegesis() -> None:
     artifact = run_kb_shadow_for_module("Jn 4,1-42", module="exegesis")
     assert artifact.success is True
+    assert artifact.status in {"success", "degraded"}
     assert artifact.profile == "exegesis"
     assert artifact.passage_canonical == "John.4.1-42"
     assert artifact.token_estimate > 0
@@ -22,6 +23,7 @@ def test_shadow_artifact_exegesis() -> None:
 def test_shadow_artifact_historical() -> None:
     artifact = run_kb_shadow_for_module("Lk 10,25-37", module="historical_context")
     assert artifact.success is True
+    assert artifact.status in {"success", "degraded"}
     assert artifact.profile == "historical_context"
     assert artifact.passage_canonical == "Luke.10.25-37"
     assert artifact.context_packet.get("profile") == "historical_context"
@@ -36,6 +38,7 @@ def test_shadow_failure_isolated(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(shadow, "retrieve", _boom)
     artifact = run_kb_shadow_for_module("Jn 4,1-42", module="exegesis")
     assert artifact.success is False
+    assert artifact.status == "error"
     assert "RuntimeError" in artifact.error
 
 
@@ -52,9 +55,7 @@ def test_app_shadow_flag_default_false_and_hooked() -> None:
     app_src = Path("app.py").read_text(encoding="utf-8")
     assert 'KB_SHADOW_FLAG = "TEXTUS_KB_SHADOW_ENABLED"' in app_src
     assert 'os.getenv(KB_SHADOW_FLAG, "false")' in app_src
-    assert 'if _is_kb_shadow_enabled() and key in {"exegesis", "history"}:' in app_src
-    # Shadow must run after production output assignment.
-    assign_idx = app_src.index("st.session_state[key] = generate_text(")
-    hook_idx = app_src.find("_run_kb_shadow_for_section(", assign_idx)
-    assert hook_idx > assign_idx
+    assert "run_production_with_optional_shadow(" in app_src
+    assert "shadow_enabled=_is_kb_shadow_enabled()" in app_src
+    assert "st.session_state[key] = run.production_output" in app_src
 
