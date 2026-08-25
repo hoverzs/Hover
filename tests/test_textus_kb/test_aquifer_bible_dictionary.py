@@ -127,7 +127,8 @@ def test_dictionary_evidence_type_distinct() -> None:
 def test_historical_context_uses_dictionary_evidence() -> None:
     packet = retrieve("Jn 4,1-42")
     context = build_context_from_evidence(packet, PROFILE_HISTORICAL)
-    assert context.selection_stats["dictionary_selected"] >= 2
+    assert context.selection_stats["dictionary_selected"] >= 1
+    assert context.selection_stats["historical_background_selected"] >= 1
     dictionary_sections = [
         item
         for section in context.sections

@@ -146,7 +146,9 @@ def test_historical_under_max(full_evidence) -> None:
     assert context.estimated_tokens <= 3500
     assert context.estimated_tokens <= 2500
     assert context.target_tokens == 2200
-    assert context.selection_stats["dictionary_selected"] >= 2
+    assert context.selection_stats["dictionary_selected"] >= 1
+    assert context.selection_stats["historical_background_selected"] >= 1
+    assert context.selection_stats["historical_coverage_status"] == "ok"
     assert context.selection_stats["actual_kb_tokens"] < int(0.8 * 3500)
     assert context.selection_stats["unused_max_kb_tokens"] > 0
 

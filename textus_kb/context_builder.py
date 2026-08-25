@@ -487,6 +487,17 @@ def _build_historical_context(
     return items
 
 
+def _entity_is_historically_useful(entity: dict[str, Any]) -> bool:
+    """Generic deity/keyterm ACAI rows are not historical grounding by themselves."""
+    entity_type = str(entity.get("entity_type") or "").strip().lower()
+    if entity_type in {"person", "place", "group"}:
+        return True
+    if entity_type in {"realia", "fauna", "flora"}:
+        return True
+    # Deity/keyterm alone is not treated as historical background coverage.
+    return False
+
+
 def _entity_summary_items(
     evidence: EvidencePacket,
     profile: ContextProfile,
@@ -498,6 +509,8 @@ def _entity_summary_items(
         if isinstance(entity, dict)
         and str((entity.get("external_ids") or {}).get("acai") or "") not in GENERIC_ACAI_IDS
     ]
+    if profile.name == PROFILE_HISTORICAL:
+        entities = [entity for entity in entities if _entity_is_historically_useful(entity)]
     entities.sort(
         key=lambda entity: (
             0 if entity.get("passage_relations") else 1,
@@ -508,6 +521,11 @@ def _entity_summary_items(
         )
     )
     passage_label = evidence.passage_display or evidence.passage_canonical
+    entity_priority = (
+        profile.priorities.get("historical_entity", 70)
+        if profile.name == PROFILE_HISTORICAL
+        else profile.priorities.get(RELATION_PASSAGE_PLACE, 70)
+    )
     for entity in entities[:8]:
         entity_id = str(entity.get("entity_id") or "")
         entity_type = str(entity.get("entity_type") or "entity")
@@ -526,7 +544,7 @@ def _entity_summary_items(
                 text=text,
                 evidence_id=f"ENT-{entity_id}",
                 source_id=ACAI_SOURCE_ID,
-                relevance_score=profile.priorities.get(RELATION_PASSAGE_PLACE, 70),
+                relevance_score=entity_priority,
                 item_type="entity_summary",
                 metadata={
                     "entity_id": entity_id,
@@ -534,6 +552,7 @@ def _entity_summary_items(
                     "entity_type": entity_type,
                     "budget_type": "entity",
                     "canonical_scope": evidence.passage_canonical,
+                    "historical_grounding": profile.name == PROFILE_HISTORICAL,
                 },
             )
         )
@@ -660,6 +679,19 @@ def _finalize_context_packet(
             f"Dictionary chunks selected {stats.dictionary_selected}/{stats.dictionary_candidates} "
             f"(source-aware selection; full set remains in Evidence Packet)."
         )
+    if profile.name == PROFILE_HISTORICAL:
+        coverage = str(stats.historical_coverage_status or "")
+        if coverage == "limited":
+            available = int(stats.historical_background_candidates or 0)
+            if available <= 0:
+                packet.warnings.append(
+                    "Historical coverage limited: no place/enrichment evidence available "
+                    "for this passage."
+                )
+            else:
+                packet.warnings.append(
+                    "Historical coverage limited: place/enrichment candidates were not selected."
+                )
     return packet
 
 
@@ -689,7 +721,8 @@ def _section_order(profile: str) -> tuple[str, ...]:
     if profile == PROFILE_EXEGESIS:
         return ("passage", "linguistic", "exegetical", "dictionary", "entities", "places", "background")
     if profile == PROFILE_HISTORICAL:
-        return ("passage", "dictionary", "entities", "places", "historical", "geography")
+        # Prefer concrete place/historical grounding before dictionary/entities.
+        return ("passage", "places", "historical", "dictionary", "entities", "geography")
     return ("passage", "lexical", "places", "background")
 
 

@@ -76,9 +76,10 @@ DEFAULT_TYPE_BUDGETS: dict[str, dict[str, int]] = {
         BUDGET_PASSAGE: 120,
         BUDGET_LINGUISTIC: 150,
         BUDGET_EXEGETICAL: 0,
-        BUDGET_DICTIONARY: 1200,
-        BUDGET_ENTITY: 300,
-        BUDGET_BACKGROUND: 400,
+        # Prefer place/enrichment background over dictionary padding.
+        BUDGET_DICTIONARY: 700,
+        BUDGET_ENTITY: 200,
+        BUDGET_BACKGROUND: 900,
     },
     PROFILE_THEOLOGY: {
         BUDGET_PASSAGE: 150,
@@ -92,7 +93,8 @@ DEFAULT_TYPE_BUDGETS: dict[str, dict[str, int]] = {
 # Minimum diversity: reserve slots for these budget types when candidates exist.
 DEFAULT_DIVERSITY_TYPES: dict[str, tuple[str, ...]] = {
     PROFILE_EXEGESIS: (BUDGET_LINGUISTIC, BUDGET_EXEGETICAL, BUDGET_DICTIONARY, BUDGET_ENTITY),
-    PROFILE_HISTORICAL: (BUDGET_DICTIONARY, BUDGET_BACKGROUND, BUDGET_ENTITY),
+    # Background first so place/enrichment is reserved before dictionary/entities.
+    PROFILE_HISTORICAL: (BUDGET_BACKGROUND, BUDGET_DICTIONARY, BUDGET_ENTITY),
     PROFILE_THEOLOGY: (BUDGET_LINGUISTIC, BUDGET_BACKGROUND),
 }
 
@@ -111,12 +113,14 @@ PROFILE_PRIORITIES: dict[str, dict[str, int]] = {
         "passage_summary": 98,
     },
     PROFILE_HISTORICAL: {
-        RELATION_DICTIONARY_BACKGROUND: 100,
-        RELATION_PASSAGE_PLACE: 95,
-        RELATION_PLACE_ENRICHMENT: 90,
-        RELATION_PLACE_CATALOG: 85,
-        "place_geography": 80,
-        "place_card_summary": 75,
+        # Prefer concrete historical/place grounding over generic dictionary/ACAI.
+        RELATION_PLACE_ENRICHMENT: 100,
+        RELATION_PASSAGE_PLACE: 96,
+        RELATION_PLACE_CATALOG: 90,
+        RELATION_DICTIONARY_BACKGROUND: 82,
+        "place_geography": 78,
+        "place_card_summary": 74,
+        "historical_entity": 70,
         RELATION_DIRECT_PASSAGE: 50,
         RELATION_LEXICAL_HIGHLIGHT: 30,
         RELATION_PASSAGE_TOKEN: 10,
@@ -146,11 +150,12 @@ EXEGESIS_ITEM_TIERS: dict[str, str] = {
 
 HISTORICAL_ITEM_TIERS: dict[str, str] = {
     "passage_scope": TIER_CORE,
-    "dictionary_background": TIER_PRIMARY,
-    "entity_summary": TIER_PRIMARY,
-    "passage_place_link": TIER_PRIMARY,
     "historical_enrichment": TIER_PRIMARY,
+    "passage_place_link": TIER_PRIMARY,
     "place_catalog": TIER_SUPPORTING,
+    # Dictionary/entities support history but must not crowd out place/enrichment.
+    "dictionary_background": TIER_SUPPORTING,
+    "entity_summary": TIER_SUPPORTING,
     "geography": TIER_SUPPORTING,
 }
 

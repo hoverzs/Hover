@@ -24,12 +24,26 @@ from textus_kb.context_profiles import (
 
 # Prevent one dictionary article from consuming the entire dictionary budget.
 MAX_DICTIONARY_CHUNKS_PER_ARTICLE = 2
+# Historical packets: one chunk per article is enough (avoids Baptism×2 style padding).
+MAX_HISTORICAL_DICTIONARY_CHUNKS_PER_ARTICLE = 1
 
 # Jaccard threshold for near-duplicate plain text.
 REDUNDANCY_JACCARD_THRESHOLD = 0.85
 
 # Coverage segments for Jn 4-style single-chapter ranges (verse buckets).
 DEFAULT_COVERAGE_SEGMENT_SIZE = 10
+
+# Historical grounding coverage (module-aware; only when candidates exist).
+MIN_HISTORICAL_DICTIONARY_ITEMS = 1
+MIN_HISTORICAL_BACKGROUND_ITEMS = 1
+
+HISTORICAL_BACKGROUND_ITEM_TYPES = frozenset(
+    {
+        "historical_enrichment",
+        "passage_place_link",
+        "place_catalog",
+    }
+)
 
 
 @dataclass
@@ -68,6 +82,9 @@ class SelectionStats:
     dictionary_selected: int = 0
     linguistic_selected: int = 0
     places_background_selected: int = 0
+    historical_background_candidates: int = 0
+    historical_background_selected: int = 0
+    historical_coverage_status: str = ""
     aquifer_candidates: int = 0
     aquifer_selected: int = 0
     target_kb_tokens: int = 0
@@ -98,6 +115,9 @@ class SelectionStats:
             "dictionary_selected": self.dictionary_selected,
             "linguistic_selected": self.linguistic_selected,
             "places_background_selected": self.places_background_selected,
+            "historical_background_candidates": self.historical_background_candidates,
+            "historical_background_selected": self.historical_background_selected,
+            "historical_coverage_status": self.historical_coverage_status,
             "aquifer_candidates": self.aquifer_candidates,
             "aquifer_selected": self.aquifer_selected,
             "target_kb_tokens": self.target_kb_tokens,
@@ -261,6 +281,13 @@ def prepare_candidates(
                 specificity = 85
             else:
                 specificity = 65
+        elif item.item_type == "historical_enrichment":
+            specificity = 98
+        elif item.item_type == "passage_place_link":
+            specificity = 92
+        elif item.item_type == "entity_summary" and profile.name == "historical_context":
+            # Person/place/group entities only reach this path after filtering.
+            specificity = 60
 
         tier = classify_item_type(item.item_type, profile)
         # Whole-passage Aquifer overview is optional; verse-specific notes stay primary.
@@ -293,9 +320,6 @@ def prepare_candidates(
             )
         )
     return prepared
-
-
-MIN_HISTORICAL_DICTIONARY_ITEMS = 2
 
 
 def _diversity_satisfied(
@@ -337,6 +361,10 @@ def _exegetical_coverage_gaps(
     return gaps
 
 
+def _is_historical_background_item(item_type: str) -> bool:
+    return item_type in HISTORICAL_BACKGROUND_ITEM_TYPES
+
+
 def _historical_dictionary_short(
     selected: list[SelectionCandidate],
     kept: list[SelectionCandidate],
@@ -349,6 +377,27 @@ def _historical_dictionary_short(
         return False
     have = sum(1 for c in selected if c.item.item_type == "dictionary_background")
     return have < min(MIN_HISTORICAL_DICTIONARY_ITEMS, available)
+
+
+def _historical_background_short(
+    selected: list[SelectionCandidate],
+    kept: list[SelectionCandidate],
+    profile: ContextProfile,
+) -> bool:
+    """Require at least one place/enrichment item when such candidates exist."""
+    if profile.name != "historical_context":
+        return False
+    available = sum(1 for c in kept if _is_historical_background_item(c.item.item_type))
+    if available <= 0:
+        return False
+    have = sum(1 for c in selected if _is_historical_background_item(c.item.item_type))
+    return have < min(MIN_HISTORICAL_BACKGROUND_ITEMS, available)
+
+
+def _dictionary_article_cap(profile: ContextProfile) -> int:
+    if profile.name == "historical_context":
+        return MAX_HISTORICAL_DICTIONARY_CHUNKS_PER_ARTICLE
+    return MAX_DICTIONARY_CHUNKS_PER_ARTICLE
 
 
 def _selection_goals_met(
@@ -365,6 +414,8 @@ def _selection_goals_met(
     if not _diversity_satisfied(selected, kept, profile):
         return False
     if _exegetical_coverage_gaps(selected, segments, segment_hits):
+        return False
+    if _historical_background_short(selected, kept, profile):
         return False
     if _historical_dictionary_short(selected, kept, profile):
         return False
@@ -394,6 +445,9 @@ def select_context_items(
     )
     stats.dictionary_candidates = sum(
         1 for c in candidates if c.item.item_type == "dictionary_background"
+    )
+    stats.historical_background_candidates = sum(
+        1 for c in candidates if _is_historical_background_item(c.item.item_type)
     )
     stats.aquifer_candidates = stats.study_notes_candidates
 
@@ -569,7 +623,9 @@ def select_context_items(
     for cand in remaining:
         if cand.item.item_type == "dictionary_background":
             article_id = str(cand.item.metadata.get("article_id") or "")
-            if article_id and dictionary_article_counts.get(article_id, 0) >= MAX_DICTIONARY_CHUNKS_PER_ARTICLE:
+            if article_id and dictionary_article_counts.get(article_id, 0) >= _dictionary_article_cap(
+                profile
+            ):
                 stats.dropped_type_budget += 1
                 continue
         # After diversity + coverage are satisfied, do not pad with
@@ -697,6 +753,16 @@ def select_context_items(
             "historical_enrichment",
         }
     )
+    stats.historical_background_selected = sum(
+        1 for item in result_items if _is_historical_background_item(item.item_type)
+    )
+    if profile.name == "historical_context":
+        if stats.historical_background_candidates <= 0:
+            stats.historical_coverage_status = "limited"
+        elif stats.historical_background_selected <= 0:
+            stats.historical_coverage_status = "limited"
+        else:
+            stats.historical_coverage_status = "ok"
     stats.aquifer_selected = stats.study_notes_selected
     stats.tokens_by_type = {}
     stats.selected_by_tier = {}
@@ -759,6 +825,10 @@ def _dedup_key(cand: SelectionCandidate) -> str:
     if article_id:
         return f"aquifer:{article_id}"
     place_id = meta.get("place_id")
+    section_key = meta.get("section_key")
+    if place_id and cand.item.item_type == "historical_enrichment":
+        # Dedup identical place enrichment sections (e.g. duplicate jerusalem excerpts).
+        return f"enrich:{place_id}:{section_key or 'section'}"
     if place_id and cand.item.item_type in {"place_link", "passage_place_link", "geography"}:
         return f"place:{cand.item.item_type}:{place_id}"
     return f"id:{cand.item.evidence_id}"
