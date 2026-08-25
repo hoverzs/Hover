@@ -121,11 +121,18 @@ def test_kb_context_render_stable_and_keeps_ids() -> None:
     assert "=== KNOWLEDGE BASE CONTEXT ===" in rendered
     assert "[LINGUISTIC]" in rendered
     assert "[EXEGETICAL NOTES]" in rendered
-    assert "source_id=stepbible_tagnt" in rendered
+    assert "Source: STEPBible TAGNT" in rendered
+    assert "source_id=stepbible_tagnt" not in rendered
+    assert "EV-" not in rendered
+    assert "ev-lex-1" not in rendered
     assert "ev-lex-1" in evidence_ids
     assert "aquifer_open_study_notes" in sources
     assert evidence_attribution_marker("ev-aquifer-1", "aquifer_open_study_notes").startswith(
         "[EV-AQUIFER-"
+    )
+    assert (
+        evidence_attribution_marker("EV-DICT-3268-c001", "aquifer_open_bible_dictionary")
+        == "[EV-DICT-3268-C001]"
     )
 
 
