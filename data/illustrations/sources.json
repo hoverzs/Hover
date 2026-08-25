@@ -1,0 +1,19 @@
+{
+  "sources": [
+    {
+      "code": "PESTI_ESOPUS_1536",
+      "title": "Esopus fabulái",
+      "author": "Pesti Gábor",
+      "orig_language": "hu-historical",
+      "publication_year": 1536,
+      "edition_reference": null,
+      "license_status": "public_domain_assumed_by_age",
+      "license_basis_hu": "A szerző (Pesti Gábor) kb. 1550 körül halt meg; a magyar szerzői jogi védelmi idő a szerző halálát követő 70 év, ami réges-rég lejárt, így az eredeti 1536-os mű minden kétséget kizáróan közkincs. A 'public_domain_confirmed' státuszhoz azonban még ellenőrizni kell, hogy a ténylegesen felhasználni kívánt DIGITÁLIS forrás (átirat, modernizált szövegváltozat vagy kritikai kiadás) maga is közkincsnek minősül-e, vagy tartalmaz-e egy modern szerkesztő/kiadó saját, önállóan jogvédett hozzájárulását (pl. jegyzetapparátus, szövegkritikai apparátus, modernizált szöveggondozás). Amíg a konkrét digitális forrás nincs azonosítva és emberi felülvizsgálattal ellenőrizve, a jogállás csak feltételezett — a 'public_domain_assumed_by_age' NEM jogosít fel published státuszú történet publikálására.",
+      "rights_holder": null,
+      "source_url": null,
+      "retrieved_at": null,
+      "reliability_tier": "medium",
+      "notes_hu": "Első tervezett forrás az illusztrációs adatbázishoz (2026-08-25 audit terv). A konkrét digitális szövegforrás kiválasztása és jogi ellenőrzése, valamint a forrás-specifikus parser elkészítése a következő fázis feladata. Ehhez a bejegyzéshez még EGYETLEN történet sincs importálva."
+    }
+  ]
+}
