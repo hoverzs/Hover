@@ -248,11 +248,13 @@ def prepare_candidates(
                 verse_start = verse_end = verse
                 specificity = 95
         elif item.item_type == "dictionary_background":
-            if item.metadata.get("passage_associations") or item.metadata.get("passage_linked"):
+            if item.metadata.get("overlapping_passage_associations") or (
+                item.metadata.get("passage_linked") and item.metadata.get("source_scope")
+            ):
                 specificity = 95
             elif item.metadata.get("entity_expansion"):
                 if profile.name == "historical_context":
-                    specificity = 88
+                    specificity = 70
                 else:
                     specificity = 55
             elif item.metadata.get("entity_topics"):

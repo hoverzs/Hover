@@ -106,8 +106,12 @@ def test_retrieval_includes_dictionary_evidence_deterministically() -> None:
         for item in first["evidence_items"]
         if item["relation_type"] == RELATION_DICTIONARY_BACKGROUND
     ]
-    assert len(dictionary_items) == 78
+    assert len(dictionary_items) == 66
     assert first["build"]["build_id"] == PILOT_BUILD_ID_PHASE4E
+    titles = {item["metadata"].get("title") for item in dictionary_items}
+    assert "Abba" not in titles
+    assert "Aegean Sea" not in titles
+    assert "Samaritans" in titles or "Sychar" in titles
 
 
 def test_dictionary_evidence_type_distinct() -> None:
@@ -209,7 +213,14 @@ def test_phase3c_golden_fixtures() -> None:
     dictionary_count = sum(
         1 for item in packet["evidence_items"] if item["relation_type"] == RELATION_DICTIONARY_BACKGROUND
     )
-    assert dictionary_count == 78
+    assert dictionary_count == 66
+    titles = {
+        item["metadata"].get("title")
+        for item in packet["evidence_items"]
+        if item["relation_type"] == RELATION_DICTIONARY_BACKGROUND
+    }
+    assert "Abba" not in titles
+    assert "Aegean Sea" not in titles
 
     ex = build_context_from_evidence(retrieve("Jn 4,1-42"), PROFILE_EXEGESIS).to_dict()
     hi = build_context_from_evidence(retrieve("Jn 4,1-42"), PROFILE_HISTORICAL).to_dict()

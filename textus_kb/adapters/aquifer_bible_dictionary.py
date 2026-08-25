@@ -86,7 +86,12 @@ class AquiferBibleDictionaryAdapter:
             return False
         return pilot.dictionary_resolved.is_file()
 
-    def load_chunks_for_passage(self, reference: CanonicalReference) -> list[AquiferDictionaryChunk]:
+    def load_chunks_for_passage(
+        self,
+        reference: CanonicalReference,
+        *,
+        passage_terms: set[str] | frozenset[str] | list[str] | None = None,
+    ) -> list[AquiferDictionaryChunk]:
         if not self.available:
             return []
         if self.backend == "sqlite" and self._repository is not None:
@@ -107,15 +112,40 @@ class AquiferBibleDictionaryAdapter:
                     if not isinstance(chunk, dict):
                         continue
                     chunks.append(_chunk_from_entry(entry, chunk))
+        if passage_terms is not None:
+            from textus_kb.dictionary_relevance import is_direct_dictionary_relevant
+
+            chunks = [
+                chunk
+                for chunk in chunks
+                if is_direct_dictionary_relevant(
+                    reference=reference,
+                    title=chunk.title,
+                    index_reference=chunk.index_reference,
+                    passage_associations=chunk.passage_associations,
+                    passage_terms=passage_terms,
+                )
+            ]
         chunks.sort(
             key=lambda item: (
-                -_chunk_relevance(item),
+                -_chunk_relevance(item, reference=reference, passage_terms=passage_terms),
                 item.index_reference,
                 item.article_id,
                 item.chunk_index,
             )
         )
-        return chunks[: self._limits.dictionary_candidate_limit]
+        # Prefer article diversity so one long entry cannot crowd out other relevant lemmas.
+        from textus_kb.context_selection import MAX_DICTIONARY_CHUNKS_PER_ARTICLE
+
+        per_article: dict[str, int] = {}
+        diversified: list[AquiferDictionaryChunk] = []
+        for chunk in chunks:
+            count = per_article.get(chunk.article_id, 0)
+            if count >= MAX_DICTIONARY_CHUNKS_PER_ARTICLE:
+                continue
+            per_article[chunk.article_id] = count + 1
+            diversified.append(chunk)
+        return diversified[: self._limits.dictionary_candidate_limit]
 
     def load_chunks_for_article(self, article_id: str) -> list[AquiferDictionaryChunk]:
         if not self.available:
@@ -247,7 +277,23 @@ def _chunk_from_sqlite_row(row: dict[str, Any]) -> AquiferDictionaryChunk:
     )
 
 
-def _chunk_relevance(chunk: AquiferDictionaryChunk) -> int:
+def _chunk_relevance(
+    chunk: AquiferDictionaryChunk,
+    *,
+    reference: CanonicalReference | None = None,
+    passage_terms: set[str] | frozenset[str] | list[str] | None = None,
+) -> int:
+    if reference is not None and passage_terms is not None:
+        from textus_kb.dictionary_relevance import dictionary_relevance_score
+
+        return dictionary_relevance_score(
+            reference=reference,
+            title=chunk.title,
+            index_reference=chunk.index_reference,
+            passage_associations=chunk.passage_associations,
+            passage_terms=passage_terms,
+            selection_reason=chunk.selection_reason,
+        )
     if chunk.passage_associations:
         return 100
     if chunk.selection_reason == "pilot_place_entity_match":

@@ -149,17 +149,25 @@ def build_context_to_json(
     return json.dumps(packet.to_dict(), indent=indent, ensure_ascii=False, sort_keys=True)
 
 
-def _dictionary_context_metadata(item: EvidenceItem, canonical_scope: str) -> dict[str, Any]:
+def _dictionary_context_metadata(item: EvidenceItem, request_scope: str) -> dict[str, Any]:
     """Compact dictionary metadata for context selection (avoid large audit lists)."""
     passage_associations = item.metadata.get("passage_associations")
     entity_topics = item.metadata.get("entity_topics")
+    source_scope = item.metadata.get("source_scope") or item.passage
+    overlapping = item.metadata.get("overlapping_passage_associations")
+    passage_linked = bool(
+        item.metadata.get("passage_linked")
+        if "passage_linked" in item.metadata
+        else overlapping or passage_associations
+    )
     return {
         "article_id": item.metadata.get("article_id"),
         "chunk_id": item.metadata.get("chunk_id"),
         "heading": item.metadata.get("heading"),
         "index_reference": item.metadata.get("index_reference"),
         "selection_reason": item.metadata.get("selection_reason"),
-        "passage_linked": bool(passage_associations),
+        "relevance_reason": item.metadata.get("relevance_reason"),
+        "passage_linked": passage_linked,
         "entity_topic_count": len(entity_topics) if isinstance(entity_topics, (list, tuple)) else 0,
         "entity_expansion": item.metadata.get("entity_expansion"),
         "license": item.metadata.get("license"),
@@ -167,7 +175,10 @@ def _dictionary_context_metadata(item: EvidenceItem, canonical_scope: str) -> di
         "attribution": item.metadata.get("attribution"),
         "upstream_commit": item.metadata.get("upstream_commit"),
         "upstream_resource_version": item.metadata.get("upstream_resource_version"),
-        "canonical_scope": canonical_scope,
+        # Trace integrity: never present the request passage as the source scope.
+        "canonical_scope": source_scope,
+        "source_scope": source_scope,
+        "request_scope": item.metadata.get("request_scope") or request_scope,
     }
 
 

@@ -176,7 +176,7 @@ def test_selection_diagnostics_present(full_evidence) -> None:
     assert "tokens_by_type" in stats
     assert "coverage_segments" in stats
     assert stats["study_notes_candidates"] == 24
-    assert stats["dictionary_candidates"] == 78
+    assert stats["dictionary_candidates"] == 66
     assert "linguistic_selected" in stats
     assert "places_background_selected" in stats
 

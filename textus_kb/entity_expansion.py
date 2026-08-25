@@ -8,9 +8,13 @@ from typing import Any
 from textus_kb.adapters.acai_entities import AcaiEntitiesAdapter, AcaiEntityView
 from textus_kb.adapters.aquifer_bible_dictionary import AquiferBibleDictionaryAdapter
 from textus_kb.canonical_reference import CanonicalReference
+from textus_kb.dictionary_relevance import (
+    annotate_dictionary_scope_metadata,
+    dictionary_relevance_score,
+    is_expanded_dictionary_relevant,
+    passage_term_labels,
+)
 from textus_kb.evidence import (
-    RELEVANCE_DICTIONARY_ENTITY,
-    RELEVANCE_DICTIONARY_PASSAGE,
     EvidenceItem,
     RELATION_DICTIONARY_BACKGROUND,
 )
@@ -34,6 +38,7 @@ class EntityExpansionDiagnostics:
     entities_used: int = 0
     dictionary_candidates_added: int = 0
     dropped_by_limit: int = 0
+    dropped_by_relevance: int = 0
     direct_dictionary_candidates: int = 0
     entity_ids_used: list[str] = field(default_factory=list)
     article_ids_added: list[str] = field(default_factory=list)
@@ -44,6 +49,7 @@ class EntityExpansionDiagnostics:
             "entities_used": self.entities_used,
             "dictionary_candidates_added": self.dictionary_candidates_added,
             "dropped_by_limit": self.dropped_by_limit,
+            "dropped_by_relevance": self.dropped_by_relevance,
             "direct_dictionary_candidates": self.direct_dictionary_candidates,
             "entity_ids_used": list(self.entity_ids_used),
             "article_ids_added": list(self.article_ids_added),
@@ -73,6 +79,7 @@ def expand_dictionary_evidence(
     diagnostics.direct_dictionary_candidates = len(direct_article_ids)
 
     passage_entities = acai_adapter.entities_for_passage(reference)
+    passage_terms = passage_term_labels(passage_entities)
     all_entities = acai_adapter.entities_for_evidence_packet(reference)
     considered = _dedupe_views(passage_entities + [e for e in all_entities if e not in passage_entities])
     diagnostics.entities_considered = len(considered)
@@ -115,6 +122,20 @@ def expand_dictionary_evidence(
             if not chunks:
                 continue
 
+            sample = chunks[0]
+            if not is_expanded_dictionary_relevant(
+                reference=reference,
+                title=sample.title or str(article.get("dictionary_title") or ""),
+                index_reference=sample.index_reference,
+                passage_associations=sample.passage_associations,
+                entity_name=entity.canonical_name,
+                match_method=str(article.get("match_method") or ""),
+                match_confidence=_as_float(article.get("match_confidence")),
+                passage_terms=passage_terms,
+            ):
+                diagnostics.dropped_by_relevance += 1
+                continue
+
             seen_article_entity.add(dedupe_key)
             entity_used = True
             per_entity_added += 1
@@ -123,7 +144,60 @@ def expand_dictionary_evidence(
                     diagnostics.dropped_by_limit += 1
                     break
 
-                relevance = _expansion_relevance(entity)
+                expansion_meta = {
+                    "passage": canonical_passage,
+                    "entity_id": entity.entity_id,
+                    "acai_id": entity.external_id,
+                    "entity_type": entity.entity_type,
+                    "canonical_name": entity.canonical_name,
+                    "dictionary_article_id": article_id,
+                    "dictionary_title": article.get("dictionary_title"),
+                    "match_method": article.get("match_method"),
+                    "match_confidence": article.get("match_confidence"),
+                    "mapping_method": article.get("mapping_method"),
+                    "priority_tier": _priority_tier(entity),
+                    "relevance_reason": "strong_entity_dictionary_match",
+                }
+                metadata = {
+                    "article_id": chunk.article_id,
+                    "chunk_id": chunk.chunk_id,
+                    "chunk_index": chunk.chunk_index,
+                    "title": chunk.title,
+                    "heading": chunk.heading,
+                    "index_reference": chunk.index_reference,
+                    "content_html": chunk.content_html,
+                    "selection_reason": SELECTION_REASON,
+                    "passage_associations": list(chunk.passage_associations),
+                    "entity_topics": [
+                        {
+                            "entity_id": entity.entity_id,
+                            "acai_id": entity.external_id,
+                            "canonical_name": entity.canonical_name,
+                            "entity_type": entity.entity_type,
+                        }
+                    ],
+                    "entity_expansion": expansion_meta,
+                    "license": chunk.license,
+                    "license_url": chunk.license_url,
+                    "attribution": chunk.attribution,
+                    "upstream_commit": dict_meta.get("upstream_commit"),
+                    "upstream_resource_version": dict_meta.get("upstream_resource_version"),
+                    "relevance_reason": "strong_entity_dictionary_match",
+                }
+                annotate_dictionary_scope_metadata(
+                    metadata,
+                    reference=reference,
+                    request_scope=canonical_passage,
+                )
+                relevance = dictionary_relevance_score(
+                    reference=reference,
+                    title=chunk.title,
+                    index_reference=chunk.index_reference,
+                    passage_associations=chunk.passage_associations,
+                    passage_terms=passage_terms,
+                    entity_expansion=expansion_meta,
+                    selection_reason=SELECTION_REASON,
+                )
                 stable_id = (
                     f"EV-DICT-{chunk.chunk_id}"
                     if dictionary_adapter.backend == "sqlite" and chunk.chunk_id
@@ -136,44 +210,9 @@ def expand_dictionary_evidence(
                         source_type="bible_dictionary",
                         language="en",
                         relation_type=RELATION_DICTIONARY_BACKGROUND,
-                        passage=canonical_passage,
+                        passage=metadata.get("source_scope"),
                         content=chunk.content_plain,
-                        metadata={
-                            "article_id": chunk.article_id,
-                            "chunk_id": chunk.chunk_id,
-                            "chunk_index": chunk.chunk_index,
-                            "title": chunk.title,
-                            "heading": chunk.heading,
-                            "index_reference": chunk.index_reference,
-                            "content_html": chunk.content_html,
-                            "selection_reason": SELECTION_REASON,
-                            "passage_associations": list(chunk.passage_associations),
-                            "entity_topics": [
-                                {
-                                    "entity_id": entity.entity_id,
-                                    "acai_id": entity.external_id,
-                                    "canonical_name": entity.canonical_name,
-                                    "entity_type": entity.entity_type,
-                                }
-                            ],
-                            "entity_expansion": {
-                                "passage": canonical_passage,
-                                "entity_id": entity.entity_id,
-                                "acai_id": entity.external_id,
-                                "entity_type": entity.entity_type,
-                                "canonical_name": entity.canonical_name,
-                                "dictionary_article_id": article_id,
-                                "dictionary_title": article.get("dictionary_title"),
-                                "match_method": article.get("match_method"),
-                                "mapping_method": article.get("mapping_method"),
-                                "priority_tier": _priority_tier(entity),
-                            },
-                            "license": chunk.license,
-                            "license_url": chunk.license_url,
-                            "attribution": chunk.attribution,
-                            "upstream_commit": dict_meta.get("upstream_commit"),
-                            "upstream_resource_version": dict_meta.get("upstream_resource_version"),
-                        },
+                        metadata=metadata,
                         relevance_score=relevance,
                     )
                 )
@@ -205,6 +244,7 @@ def _dictionary_articles_for_entity(
                 "dictionary_article_id": article_id,
                 "dictionary_title": rel.get("dictionary_title"),
                 "match_method": rel.get("match_method"),
+                "match_confidence": rel.get("match_confidence"),
                 "mapping_method": rel.get("mapping_method"),
             }
         )
@@ -235,15 +275,6 @@ def _priority_tier(entity: AcaiEntityView) -> int:
     return PRIORITY_INDIRECT
 
 
-def _expansion_relevance(entity: AcaiEntityView) -> int:
-    tier = _priority_tier(entity)
-    if tier <= PRIORITY_PASSAGE_AND_DICTIONARY:
-        return RELEVANCE_DICTIONARY_PASSAGE - 4
-    if tier == PRIORITY_VERIFIED_CROSSWALK:
-        return RELEVANCE_DICTIONARY_ENTITY + 2
-    return RELEVANCE_DICTIONARY_ENTITY - 5
-
-
 def _dedupe_views(views: list[AcaiEntityView]) -> list[AcaiEntityView]:
     seen: set[str] = set()
     ordered: list[AcaiEntityView] = []
@@ -253,3 +284,12 @@ def _dedupe_views(views: list[AcaiEntityView]) -> list[AcaiEntityView]:
         seen.add(view.entity_id)
         ordered.append(view)
     return ordered
+
+
+def _as_float(value: Any) -> float | None:
+    if value is None or value == "":
+        return None
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None

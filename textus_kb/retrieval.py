@@ -13,6 +13,12 @@ from textus_kb.adapters.lexicon import LexiconAdapter
 from textus_kb.adapters.places import PlacesAdapter
 from textus_kb.adapters.tagnt import TagntAdapter
 from textus_kb.canonical_reference import CanonicalReference, CanonicalReferenceError
+from textus_kb.dictionary_relevance import (
+    annotate_dictionary_scope_metadata,
+    dictionary_relevance_score,
+    is_direct_dictionary_relevant,
+    passage_term_labels,
+)
 from textus_kb.entity_expansion import expand_dictionary_evidence
 from textus_kb.entity_selection import entity_type_counts
 from textus_kb.expansion_delta import ExpansionDelta, compute_expansion_delta
@@ -34,10 +40,6 @@ from textus_kb.evidence import (
     RELATION_PLACE_CATALOG,
     RELATION_PLACE_ENRICHMENT,
     RELEVANCE_DIRECT_PASSAGE,
-    RELEVANCE_DICTIONARY_BACKGROUND,
-    RELEVANCE_DICTIONARY_ENTITY,
-    RELEVANCE_DICTIONARY_PASSAGE,
-    RELEVANCE_DICTIONARY_TOPIC,
     RELEVANCE_EXEGETICAL_NOTE,
     RELEVANCE_LEXICAL_HIGHLIGHT,
     RELEVANCE_PASSAGE_PLACE,
@@ -437,10 +439,22 @@ def retrieve(
             )
             aquifer_counter += 1
 
+    acai_source = enabled_sources.get("acai")
+    acai_adapter = AcaiEntitiesAdapter(acai_source)
+    passage_entity_views_early = (
+        acai_adapter.entities_for_passage(canonical) if acai_adapter.available else []
+    )
+    passage_terms = passage_term_labels(passage_entity_views_early)
+    if not passage_terms and pilot is not None:
+        passage_terms = set(pilot.dictionary_index_refs) | {
+            str(place_id).replace("_", " ") for place_id in pilot.dictionary_place_ids
+        }
+
     dictionary_source = enabled_sources.get("aquifer_open_bible_dictionary")
     dictionary_adapter = AquiferBibleDictionaryAdapter(dictionary_source)
     dictionary_counter = 1
     direct_dictionary_count = 0
+    direct_dictionary_dropped = 0
     dict_meta = dictionary_adapter.bundle_metadata(canonical)
     if dictionary_source is None or not dictionary_source.enabled:
         warnings.append("Optional source aquifer_open_bible_dictionary is disabled.")
@@ -451,7 +465,42 @@ def retrieve(
     else:
         _add_source_record(sources_used, enabled_sources, "aquifer_open_bible_dictionary")
         use_stable_dict_ids = dictionary_adapter.backend == "sqlite"
-        for chunk in dictionary_adapter.load_chunks_for_passage(canonical):
+        for chunk in dictionary_adapter.load_chunks_for_passage(
+            canonical,
+            passage_terms=passage_terms,
+        ):
+            if not is_direct_dictionary_relevant(
+                reference=canonical,
+                title=chunk.title,
+                index_reference=chunk.index_reference,
+                passage_associations=chunk.passage_associations,
+                passage_terms=passage_terms,
+            ):
+                direct_dictionary_dropped += 1
+                continue
+            metadata = {
+                "article_id": chunk.article_id,
+                "chunk_id": chunk.chunk_id,
+                "chunk_index": chunk.chunk_index,
+                "title": chunk.title,
+                "heading": chunk.heading,
+                "index_reference": chunk.index_reference,
+                "content_html": chunk.content_html,
+                "selection_reason": chunk.selection_reason,
+                "passage_associations": list(chunk.passage_associations),
+                "entity_topics": list(chunk.entity_topics),
+                "license": chunk.license,
+                "license_url": chunk.license_url,
+                "attribution": chunk.attribution,
+                "upstream_commit": dict_meta.get("upstream_commit"),
+                "upstream_resource_version": dict_meta.get("upstream_resource_version"),
+                "relevance_reason": "passage_overlap_and_term_match",
+            }
+            annotate_dictionary_scope_metadata(
+                metadata,
+                reference=canonical,
+                request_scope=canonical_passage,
+            )
             evidence_items.append(
                 EvidenceItem(
                     evidence_id=_chunk_evidence_id(
@@ -463,37 +512,27 @@ def retrieve(
                     source_type="bible_dictionary",
                     language="en",
                     relation_type=RELATION_DICTIONARY_BACKGROUND,
-                    passage=canonical_passage if chunk.passage_associations else None,
+                    passage=metadata.get("source_scope"),
                     content=chunk.content_plain,
-                    metadata={
-                        "article_id": chunk.article_id,
-                        "chunk_id": chunk.chunk_id,
-                        "chunk_index": chunk.chunk_index,
-                        "title": chunk.title,
-                        "heading": chunk.heading,
-                        "index_reference": chunk.index_reference,
-                        "content_html": chunk.content_html,
-                        "selection_reason": chunk.selection_reason,
-                        "passage_associations": list(chunk.passage_associations),
-                        "entity_topics": list(chunk.entity_topics),
-                        "license": chunk.license,
-                        "license_url": chunk.license_url,
-                        "attribution": chunk.attribution,
-                        "upstream_commit": dict_meta.get("upstream_commit"),
-                        "upstream_resource_version": dict_meta.get("upstream_resource_version"),
-                    },
-                    relevance_score=_dictionary_relevance(chunk),
+                    metadata=metadata,
+                    relevance_score=dictionary_relevance_score(
+                        reference=canonical,
+                        title=chunk.title,
+                        index_reference=chunk.index_reference,
+                        passage_associations=chunk.passage_associations,
+                        passage_terms=passage_terms,
+                        selection_reason=chunk.selection_reason,
+                    ),
                 )
             )
             dictionary_counter += 1
             direct_dictionary_count += 1
 
-    acai_source = enabled_sources.get("acai")
-    acai_adapter = AcaiEntitiesAdapter(acai_source)
     entity_records: list[dict[str, Any]] = []
     entity_expansion_debug: dict[str, Any] = {
         "entity_mode": entity_mode,
         "pilot_id": pilot.id if pilot is not None else None,
+        "direct_dictionary_dropped_by_relevance": direct_dictionary_dropped,
     }
     expansion_delta = ExpansionDelta()
     if acai_source is None or not acai_source.enabled:
@@ -513,7 +552,9 @@ def retrieve(
             for item in evidence_items
             if item.relation_type == RELATION_DICTIONARY_BACKGROUND and item.metadata.get("article_id")
         )
-        passage_entity_views = acai_adapter.entities_for_passage(canonical)
+        passage_entity_views = passage_entity_views_early or acai_adapter.entities_for_passage(
+            canonical
+        )
         entity_views = acai_adapter.entities_for_evidence_packet(
             canonical,
             dictionary_article_ids=dict_article_ids,
@@ -669,16 +710,6 @@ def _aquifer_relevance(canonical_reference: str, *, pilot_canonical: str | None 
     if "-" not in canonical_reference:
         return RELEVANCE_EXEGETICAL_NOTE
     return RELEVANCE_EXEGETICAL_NOTE - 1
-
-
-def _dictionary_relevance(chunk: Any) -> int:
-    if chunk.passage_associations:
-        return RELEVANCE_DICTIONARY_PASSAGE
-    if chunk.selection_reason in {"pilot_place_entity_match", "direct_acai_association"}:
-        return RELEVANCE_DICTIONARY_ENTITY
-    if chunk.selection_reason in {"pilot_index_reference_match", "full_corpus_index"}:
-        return RELEVANCE_DICTIONARY_TOPIC
-    return RELEVANCE_DICTIONARY_BACKGROUND
 
 
 def _resolve_build_id(
