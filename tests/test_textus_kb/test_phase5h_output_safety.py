@@ -69,6 +69,16 @@ def test_unsupported_claim_guard_in_grounded_instruction() -> None:
     assert "Concrete historical, geographical, or linguistic claims" in prompt
     assert "Do not invent specific names, dates, legal statuses" in prompt
     assert "=== LIMITED HISTORICAL COVERAGE ===" not in prompt
+    assert "=== HISTORICAL CLAIM CALIBRATION ===" not in prompt
+
+
+def test_historical_claim_calibration_on_ok_coverage() -> None:
+    _packet, context, preview = _compose("Acts.2.1-13", "historical_context")
+    assert context.selection_stats.get("historical_coverage_status") == "ok"
+    prompt = preview.composed_prompt
+    assert "=== HISTORICAL CLAIM CALIBRATION ===" in prompt
+    assert "need direct evidence support" in prompt
+    assert "=== LIMITED HISTORICAL COVERAGE ===" not in prompt
 
 
 def test_exegesis_does_not_receive_historical_limited_guard() -> None:

@@ -244,6 +244,15 @@ def test_14_detailed_social_political_reconstruction_flagged_as_example():
     )
 
 
+def test_14b_phase5m_historical_claim_calibration_present():
+    history = _PROMPTS["history"]
+    assert "KONKRÉT TÖRTÉNETI ÁLLÍTÁSOK KALIBRÁLÁSA (KÖTELEZŐ)" in history
+    assert "prokurátor" in history and "prefektus" in history
+    assert "Vérút" in history
+    assert "fertőtlenítő" in history
+    assert "religio licita" in history
+
+
 def test_15_hedging_language_examples_given():
     history = _PROMPTS["history"]
     assert "MINDIG óvatosító nyelvet" in history

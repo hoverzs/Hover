@@ -3929,9 +3929,36 @@ használj (pl. "egyes kutatók szerint", "feltételezhetően", "a leletek
   közvetlen leletek,
 - konkrét régészeti "településmaradvány" vagy leletegyüttes létezésének
   vagy jellegének kijelentése, ha ehhez nincs egyértelmű, széles körben
-  elfogadott forrásod.
+  elfogadott forrásod,
+- római hivatali címek biztos hozzárendelése (pl. Pilátus-korabeli
+  "prokurátor" vs. történetileg pontosabb "prefektus"), ha a forrásod
+  nem egyértelmű,
+- népszerű útvonal-becenevek (pl. "Vérút" / "Blood Road") biztos
+  történeti elnevezésként,
+- modern orvosi terminológia (pl. "fertőtlenítő", "antiseptikus")
+  korabeli gyakorlatra,
+- ünnepek későbbi emlékjelentésének (pl. Sínai / Tóra-adás) biztos
+  visszavetítése az 1. századra,
+- pontos zarándoklétszám, házméret vagy épülettípus-rekonstrukció,
+- formális jogi státuszkategóriák (pl. "religio licita"), ha nincs
+  közvetlen alátámasztás,
+- társadalmi szokásból levont szereplő-motiváció (pl. pap/lévita
+  rituális tisztasága), hacsak a szöveg maga nem mondja.
 Ezekben az esetekben az általánosabb megfogalmazás vagy a részlet
 kihagyása a helyes választás, NEM a magabiztos részletgazdagság.
+
+KONKRÉT TÖRTÉNETI ÁLLÍTÁSOK KALIBRÁLÁSA (KÖTELEZŐ):
+Különítsd el a szövegben adott tényt a történeti rekonstrukciótól.
+Konkrét történeti állítások (dátum, hivatali cím, jogi státusz,
+társadalmi szokás, népességszám, elnevezett útvonal, orvosi gyakorlat)
+csak akkor állíthatók tényként, ha alaptankönyvi szinten vitán felül
+ismertek. Ha az adat közvetett, vitatott vagy csak lehetséges magyarázat,
+fogalmazz lehetőségként, ne tényként. Ne kövesd le egy szereplő
+motivációját történelmi szokásból, hacsak a szöveg maga nem támogatja.
+Ne használd a modern orvosi terminológiát történeti gyakorlatra, hacsak
+forrásod így nem fogalmaz. Korlátozott vagy vékony történeti lefedettségnél
+inkább kevesebb konkrétum, mint hihető találgatás — a cél a kalibrált
+bizonyosság, nem a tartalom kiüresítése.
 
 Az óvatosító szónak UGYANABBAN A MONDATBAN kell állnia, mint magának a
 bizonytalan állításnak — nem elég, ha a bizonytalanság csak valahol

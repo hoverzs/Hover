@@ -546,6 +546,19 @@ def _grounded_rules_block(
         "analyze out-of-range verses as if they were part of the requested text.",
     ]
     module_key = "historical_context" if module == "history" else module
+    if module_key == "historical_context":
+        lines.extend(
+            [
+                "",
+                "=== HISTORICAL CLAIM CALIBRATION ===",
+                "Distinguish text-given facts from historical reconstruction.",
+                "Concrete claims (dates, offices, legal status, customs, crowd estimates,",
+                "named routes, medical practices) need direct evidence support; otherwise hedge.",
+                "Do not infer motives from customs unless the text supports it. Avoid modern",
+                "medical framing (disinfectant/antiseptic), popular route nicknames, exact",
+                "house/crowd reconstructions, and unsupported formal legal categories.",
+            ]
+        )
     if (
         module_key == "historical_context"
         and str(historical_coverage_status or "").strip().lower() == "limited"

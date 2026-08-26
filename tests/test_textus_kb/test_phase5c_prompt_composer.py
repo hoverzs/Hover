@@ -200,7 +200,7 @@ def test_prompt_budget_trims_kb_not_production() -> None:
         canonical_passage="John.4.1-42",
         module="historical_context",
         context_packet=packet,
-        token_budget=400,
+        token_budget=550,
     )
     assert production in preview.composed_prompt
     assert any("budget" in w.lower() or "Trimmed" in w or "Dropped" in w for w in preview.warnings)
