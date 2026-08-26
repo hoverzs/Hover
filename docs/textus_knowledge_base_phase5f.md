@@ -47,9 +47,12 @@ Initial staging thresholds (not a scientific benchmark):
 - ≥ 4 distinct passages
 - both `exegesis` and `historical_context`
 - ≥ 2 passages reviewed in **both** modules
-- ≥ 75% overall preference is B (grounded) or equal
-- factual: B-worse rate ≤ 25%
-- hallucination elevated (B/both) ≤ 20%
+- ≥ 75% overall preference is grounded or equal (mapping-aware)
+- factual: grounded-worse rate ≤ 25% (mapping-aware)
+- **legacy report:** hallucination elevated (`grounded_only` / `both`) still computed
+- **readiness veto (Phase 5J-B):** `grounded_blocking_reliability_ratio` ≤ 20%
+  (grounded participates in risk **and** `reliability_issue=blocking_reliability`)
+- missing/unclear `reliability_issue` when grounded risk is present → fail closed
 - grounded error rate ≤ 25%
 
 Mock provider runs are excluded from readiness evidence.
@@ -58,10 +61,14 @@ Mock provider runs are excluded from readiness evidence.
 
 Automatic `not_ready` when:
 
-- factual accuracy repeatedly prefers A (B worse) above threshold
-- hallucination risk elevated for B/both above threshold
+- factual accuracy repeatedly prefers production (grounded worse) above threshold
+- grounded blocking reliability ratio above threshold (Phase 5J-B)
+- missing/unclear reliability severity on grounded-risk runs (legacy fail closed)
 - success runs missing `source_ids`
 - grounded error rate too high
+
+`hallucination_grounded_elevated_ratio` remains a **compatibility report** metric; it is
+no longer the readiness veto after Phase 5J-B.
 
 ## Citation policy (no UI yet)
 

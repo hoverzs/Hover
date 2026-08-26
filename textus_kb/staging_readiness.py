@@ -6,6 +6,11 @@ Readiness is a report — it never flips runtime grounded flags.
 Preference thresholds are mapping-aware: human A/B labels are translated via
 persisted ``blind_mapping`` to production/grounded before ratios are computed.
 Blind reviewer-facing reports remain mapping-free unless explicitly revealed.
+
+Phase 5J-B: ``hallucination_risk`` remains comparative (which side shows risk).
+``reliability_issue`` severity separates blocking reliability from non-blocking
+overclaim. Readiness veto uses ``grounded_blocking_reliability_ratio``; legacy
+``hallucination_grounded_elevated_ratio`` is still reported.
 """
 
 from __future__ import annotations
@@ -37,8 +42,11 @@ class StagingReadinessCriteria:
     min_overall_b_or_equal_ratio: float = 0.75
     # Factual: share where grounded is strictly worse than production (mapping-aware).
     max_factual_b_worse_ratio: float = 0.25
-    # Hallucination: share where grounded risk is elevated (grounded_only or both).
+    # Legacy reporting metric: grounded_only or both (Phase 5F/5G). Still computed;
+    # readiness veto uses grounded_blocking_reliability_ratio (Phase 5J-B).
     max_hallucination_b_elevated_ratio: float = 0.20
+    # Phase 5J-B: grounded participates in risk AND severity is blocking_reliability.
+    max_grounded_blocking_reliability_ratio: float = 0.20
     max_grounded_error_rate: float = 0.25
 
 
@@ -101,8 +109,50 @@ def map_hallucination_risk_to_system(
 
 
 def is_grounded_hallucination_elevated(system_risk: str) -> bool:
-    """Grounded elevated = grounded_only or both. unclear is not elevated (legacy)."""
+    """Grounded elevated = grounded_only or both. unclear is not elevated (legacy).
+
+    Legacy reporting metric only (Phase 5F/5G). Readiness veto uses
+    :func:`classify_grounded_blocking_reliability` / blocking ratio (Phase 5J-B).
+    """
     return system_risk in {"grounded_only", "both"}
+
+
+def classify_grounded_blocking_reliability(
+    *,
+    hallucination_system: str,
+    reliability_issue: str,
+) -> str:
+    """Classify whether grounded has a blocking reliability regression.
+
+    Returns one of:
+    - ``blocking`` — count toward grounded_blocking_reliability_ratio
+    - ``not_blocking`` — do not count
+    - ``unknown`` — missing/unclear severity when grounded participates in risk;
+      fail closed (never treat as safe)
+
+    Semantics:
+    - ``production_only`` / ``neither`` → not_blocking (grounded not implicated)
+    - ``grounded_only`` / ``both`` require an explicit reliability_issue
+    - ``both`` counts only when severity is ``blocking_reliability``
+    - ``non_blocking_overclaim`` / ``none`` → not_blocking
+    - empty or ``unclear`` severity with grounded risk → unknown
+    """
+    hallu = str(hallucination_system or "").strip()
+    severity = str(reliability_issue or "").strip()
+
+    if hallu in {"production_only", "neither"}:
+        return "not_blocking"
+    if hallu not in {"grounded_only", "both"}:
+        # unclear / other hallucination labels — cannot classify safely
+        return "unknown"
+
+    if not severity or severity == "unclear":
+        return "unknown"
+    if severity == "blocking_reliability":
+        return "blocking"
+    if severity in {"none", "non_blocking_overclaim"}:
+        return "not_blocking"
+    return "unknown"
 
 
 def is_live_compare_artifact(artifact: dict[str, Any]) -> bool:
@@ -214,6 +264,7 @@ def build_review_summary(
             ),
             "clarity_style": _field_counts("clarity_style_preference", live_reviewed),
             "hallucination_risk": _field_counts("hallucination_risk", live_reviewed),
+            "reliability_issue": _field_counts("reliability_issue", live_reviewed),
         },
         "grounded_status_live": _preference_counts(
             [str(a.get("grounded_status") or "") for a in live]
@@ -223,7 +274,8 @@ def build_review_summary(
         "note": (
             "Mock runs are excluded from staging readiness evidence. "
             "Readiness never enables TEXTUS_KB_GROUNDED_ENABLED. "
-            "Preference thresholds are mapping-aware via persisted blind_mapping."
+            "Preference thresholds are mapping-aware via persisted blind_mapping. "
+            "Hallucination_risk is comparative; reliability_issue is severity (Phase 5J-B)."
         ),
     }
 
@@ -348,10 +400,50 @@ def evaluate_staging_readiness(
                 mapping_aware_metrics["hallucination_grounded_elevated_ratio"] = round(
                     elevated_ratio, 3
                 )
-                if elevated_ratio > criteria.max_hallucination_b_elevated_ratio:
+                # Legacy elevated ratio is reported for compatibility only.
+                # Readiness veto uses grounded_blocking_reliability_ratio (5J-B).
+
+            # Phase 5J-B blocking reliability (mapping-aware + severity).
+            blocking_count = 0
+            unknown_severity = 0
+            classifiable = 0
+            for art in live_reviewed:
+                mapping, map_err = resolve_blind_mapping(art)
+                if mapping is None:
+                    continue
+                review = art.get("review") if isinstance(art.get("review"), dict) else {}
+                hallu_raw = str(review.get("hallucination_risk") or "").strip()
+                if not hallu_raw:
+                    unknown_severity += 1
+                    continue
+                hallu_sys = map_hallucination_risk_to_system(hallu_raw, mapping)
+                verdict = classify_grounded_blocking_reliability(
+                    hallucination_system=hallu_sys,
+                    reliability_issue=str(review.get("reliability_issue") or ""),
+                )
+                if verdict == "unknown":
+                    unknown_severity += 1
+                    continue
+                classifiable += 1
+                if verdict == "blocking":
+                    blocking_count += 1
+
+            mapping_aware_metrics["reliability_annotation_unknown_count"] = unknown_severity
+            mapping_aware_metrics["reliability_annotation_classifiable_count"] = classifiable
+            if unknown_severity:
+                # Fail closed: never treat legacy missing severity as safe.
+                vetoes.append(
+                    f"missing_or_unclear_reliability_issue:{unknown_severity}"
+                )
+            elif live_reviewed_count:
+                blocking_ratio = blocking_count / live_reviewed_count
+                mapping_aware_metrics["grounded_blocking_reliability_ratio"] = round(
+                    blocking_ratio, 3
+                )
+                if blocking_ratio > criteria.max_grounded_blocking_reliability_ratio:
                     vetoes.append(
-                        f"hallucination_grounded_elevated_ratio {elevated_ratio:.3f} > "
-                        f"{criteria.max_hallucination_b_elevated_ratio}"
+                        f"grounded_blocking_reliability_ratio {blocking_ratio:.3f} > "
+                        f"{criteria.max_grounded_blocking_reliability_ratio}"
                     )
 
         # Citation readiness veto when stored on successful reviewed runs.
@@ -449,6 +541,7 @@ __all__ = [
     "STATUS_READY",
     "StagingReadinessCriteria",
     "build_review_summary",
+    "classify_grounded_blocking_reliability",
     "evaluate_staging_readiness",
     "has_human_overall_review",
     "is_grounded_hallucination_elevated",

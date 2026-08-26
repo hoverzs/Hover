@@ -19,6 +19,23 @@ DEFAULT_COMPARE_DB_PATH = GENERATED_DATA_DIR / "kb_grounded_compare.sqlite3"
 
 REVIEW_CHOICES = frozenset({"A", "B", "equal", "unclear"})
 HALLUCINATION_CHOICES = frozenset({"A", "B", "both", "neither", "unclear"})
+# Phase 5J-B: severity separate from comparative hallucination_risk.
+RELIABILITY_ISSUE_CHOICES = frozenset(
+    {"none", "non_blocking_overclaim", "blocking_reliability", "unclear"}
+)
+RELIABILITY_CATEGORY_CHOICES = frozenset(
+    {
+        "factual_error",
+        "unsupported_concrete_claim",
+        "anachronism",
+        "source_scope_mismatch",
+        "invented_entity_date_status",
+        "internal_output_leak",
+        "linguistic_overclaim",
+        "theological_exegetical_overinterpretation",
+        "other",
+    }
+)
 
 
 @dataclass
@@ -30,6 +47,9 @@ class HumanReview:
     hallucination_risk: str = ""
     overall_preference: str = ""
     reviewer_notes: str = ""
+    # Phase 5J-B severity / optional diagnostic (legacy reviews omit these).
+    reliability_issue: str = ""
+    reliability_category: str = ""
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -50,6 +70,8 @@ class HumanReview:
             hallucination_risk=str(payload.get("hallucination_risk") or ""),
             overall_preference=str(payload.get("overall_preference") or ""),
             reviewer_notes=str(payload.get("reviewer_notes") or ""),
+            reliability_issue=str(payload.get("reliability_issue") or ""),
+            reliability_category=str(payload.get("reliability_category") or ""),
         )
 
 
@@ -285,6 +307,18 @@ def _validate_review_payload(payload: dict[str, Any]) -> None:
         raise ValueError(
             f"Invalid hallucination_risk: {risk!r}; expected one of {sorted(HALLUCINATION_CHOICES)}"
         )
+    reliability = str(payload.get("reliability_issue") or "").strip()
+    if reliability and reliability not in RELIABILITY_ISSUE_CHOICES:
+        raise ValueError(
+            f"Invalid reliability_issue: {reliability!r}; "
+            f"expected one of {sorted(RELIABILITY_ISSUE_CHOICES)}"
+        )
+    category = str(payload.get("reliability_category") or "").strip()
+    if category and category not in RELIABILITY_CATEGORY_CHOICES:
+        raise ValueError(
+            f"Invalid reliability_category: {category!r}; "
+            f"expected one of {sorted(RELIABILITY_CATEGORY_CHOICES)}"
+        )
     # review_updated_at and reviewer_notes are free-form / optional metadata.
 
 
@@ -331,6 +365,8 @@ __all__ = [
     "DEFAULT_COMPARE_DB_PATH",
     "HALLUCINATION_CHOICES",
     "HumanReview",
+    "RELIABILITY_CATEGORY_CHOICES",
+    "RELIABILITY_ISSUE_CHOICES",
     "REVIEW_CHOICES",
     "create_compare_schema",
     "is_compare_store_enabled",

@@ -438,6 +438,8 @@ def format_compare_report(
             "historical_grounding_preference",
             "clarity_style_preference",
             "hallucination_risk",
+            "reliability_issue",
+            "reliability_category",
             "overall_preference",
             "reviewer_notes",
         ):
@@ -829,7 +831,10 @@ def main_review_rate(argv: list[str] | None = None) -> int:
             "Usage: python -m textus_kb review-rate <run_id> "
             "[--overall A|B|equal|unclear] "
             "[--factual ...] [--exegetical ...] [--historical ...] [--clarity ...] "
-            "[--hallucination A|B|both|neither|unclear] [--notes TEXT] [--database PATH]",
+            "[--hallucination A|B|both|neither|unclear] "
+            "[--reliability none|non_blocking_overclaim|blocking_reliability|unclear] "
+            "[--reliability-category CATEGORY] "
+            "[--notes TEXT] [--database PATH]",
             file=sys.stderr,
         )
         return 2
@@ -864,6 +869,14 @@ def main_review_rate(argv: list[str] | None = None) -> int:
             continue
         if args[i] == "--hallucination" and i + 1 < len(args):
             fields["hallucination_risk"] = args[i + 1]
+            i += 2
+            continue
+        if args[i] == "--reliability" and i + 1 < len(args):
+            fields["reliability_issue"] = args[i + 1]
+            i += 2
+            continue
+        if args[i] == "--reliability-category" and i + 1 < len(args):
+            fields["reliability_category"] = args[i + 1]
             i += 2
             continue
         if args[i] == "--notes" and i + 1 < len(args):

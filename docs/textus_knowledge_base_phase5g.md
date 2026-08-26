@@ -124,17 +124,20 @@ python -m textus_kb review-rate <run_id> `
   --historical equal `
   --clarity equal `
   --hallucination neither `
+  --reliability none `
   --notes "..."
 python -m textus_kb review-show <run_id> --reveal
 ```
 
-### Review criteria (Phase 5E schema)
+### Review criteria (Phase 5E schema + Phase 5J-B severity)
 
 - `factual_accuracy_preference`: A | B | equal | unclear  
 - `exegetical_usefulness_preference`: A | B | equal | unclear  
 - `historical_grounding_preference`: A | B | equal | unclear  
 - `clarity_style_preference`: A | B | equal | unclear  
-- `hallucination_risk`: A | B | both | neither | unclear  
+- `hallucination_risk`: A | B | both | neither | unclear  *(comparative: which side shows risk?)*  
+- `reliability_issue`: none | non_blocking_overclaim | blocking_reliability | unclear  *(severity; Phase 5J-B)*  
+- `reliability_category`: optional diagnostic label (factual_error, anachronism, …)  
 - `overall_preference`: A | B | equal | unclear  
 - `reviewer_notes`: free text  
 
@@ -198,8 +201,9 @@ Phase 5F thresholds are unchanged (examples):
 - ≥ 8 live reviewed pairs  
 - ≥ 4 passages, both modules  
 - ≥ 2 passages with both modules  
-- ≥ 75% overall B or equal  
-- factual B not repeatedly worse; hallucination B not repeatedly elevated  
+- ≥ 75% overall grounded or equal (mapping-aware)  
+- factual grounded not repeatedly worse; grounded blocking reliability ≤ 20% (Phase 5J-B)  
+- legacy `hallucination_grounded_elevated_ratio` still reported  
 - citation readiness veto when selected evidence exists but citation_ready_count is 0  
 
 Statuses such as `needs_more_review` / `not_ready` / `insufficient_human_review_data` are acceptable until criteria are met. Readiness never auto-flips:
