@@ -59,6 +59,21 @@
       "retrieved_at": "2026-08-26",
       "reliability_tier": "high",
       "notes_hu": "TEXTUS illustration database — Phase 2D, a Jataka-forrásokat követő második, nagyobb volumenű forrás (313 mese, jelentősen nagyobb, mint a Jataka-kötetek 18+21 tétele). Nemzetközi klasszikus állatmese-korpusz, explicit erkölcsi tanulságokkal. A cím nem egyedi minden esetben (néhány mesecím kétszer szerepel, valódi, egymástól különböző mesékként) — az egyedi azonosítást a canonical_key (a CONTENTS-beli pozíció) biztosítja, nem a cím. A magyar réteg itt is későbbi, külön AI-enrichment fázis feladata; eddig a pontig a rekordok 'draft' állapotban vannak."
+    },
+    {
+      "code": "PG_ARANY_LASZLO_EREDETI_NEPMESEK",
+      "title": "Eredeti népmesék",
+      "author": "Arany László",
+      "orig_language": "hu",
+      "publication_year": 1862,
+      "edition_reference": "Pest: Kiadja Heckenast Gusztáv, 1862 (Nyomatott Landerer és Heckenastnál). Digitized as Project Gutenberg eBook #38852 (release date 2012-02-12, most recently updated 2020-05-11; e-text prepared by Albert László from Google Books page images).",
+      "license_status": "public_domain_confirmed",
+      "license_basis_hu": "Kettős, egymástól független PD-alap: (1) az 1862-es kiadás védelmi ideje régen lejárt; (2) a gyűjtő/szerző Arany László 1898-ban hunyt el, tehát az élet+70 éves szabály szerint is lejárt 1968-ban. A Project Gutenberg a művet 'public domain in the United States' minősítéssel adja ki, korlátozás nélküli PG License alatt. A digitális szövegváltozat maga is tiszta, önkéntes transzkripció (Albert László, ugyanaz a PG-projekt, ami a Jataka-köteteket és Merényi László testvérkötetét is készítette), modern jogvédett szerkesztői/jegyzetelői réteg nélkül. A kötet elején álló tartalomjegyzék (TARTALOM), valamint a 31 elbeszélő népmese UTÁN következő 'Találós mesék' (54 cím nélküli, 2-5 soros találós vers), 'Csali-mesék' (5 cím nélküli, rövid tréfás/csali-versike) és 'Megfejtések' (a találós versek válaszkulcsa) szakaszok STRUKTURÁLISAN eltérő műfajúak — nincs cím+elbeszélő-bekezdés szerkezetük —, ezért nem kerülnek importálásra; ez szerkezeti, nem tartalmi/ízlési szűrés.",
+      "rights_holder": null,
+      "source_url": "https://www.gutenberg.org/ebooks/38852",
+      "retrieved_at": "2026-08-26",
+      "reliability_tier": "high",
+      "notes_hu": "TEXTUS illustration database — Phase 2E. 31 elbeszélő magyar népmese (a könyv 'TARTALOM' listájának teljes elbeszélő-anyaga), kizárva a találós mesék/csali-mesék/megfejtések szakasz. Két forrás-specifikus tipográfiai rendellenességet talált és kezel a parser ékezet-/kis-nagybetű-toleráns illesztéssel (nem verbatim egyezéssel): egy fejléc rendes nagybetűzés helyett vegyes esetű ('Az ARANYHAJÚ HERCZEGKISASSZONY'), egy másik a nagybetűs É ékezetét elhagyja ('TÜNDERKISASSZONY' a 'tündér' szóból). Az utolsó mese címe a törzsszövegben két fizikai sorra törik — ezt a parser generikusan, nem eseti javítással kezeli. A magyar réteg itt is későbbi, külön AI-enrichment fázis feladata; eddig a pontig a rekordok 'draft' állapotban vannak."
     }
   ]
 }
