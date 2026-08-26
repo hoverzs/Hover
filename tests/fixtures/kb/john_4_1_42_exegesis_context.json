@@ -1,0 +1,339 @@
+{
+  "schema_version": "2",
+  "passage": "John.4.1-42",
+  "passage_display": "Jn 4,1-42",
+  "profile": "exegesis",
+  "sections": [
+    {
+      "type": "passage",
+      "items": [
+        {
+          "text": "Canonical passage: John.4.1-42 (Jn 4,1-42)",
+          "evidence_id": "EV-TAGNT-0002",
+          "source_id": "stepbible_tagnt",
+          "relevance_score": 100,
+          "item_type": "passage",
+          "metadata": {
+            "canonical_scope": "John.4.1-42",
+            "selection_tier": "core",
+            "selection_specificity": 50,
+            "budget_type": "passage"
+          }
+        },
+        {
+          "text": "Greek NT coverage: 42 verses, 723 tokens (compact view; full set in Evidence Packet).",
+          "evidence_id": "EV-TAGNT-0001",
+          "source_id": "stepbible_tagnt",
+          "relevance_score": 98,
+          "item_type": "passage_summary",
+          "metadata": {
+            "verse_count": 42,
+            "token_count": 723,
+            "canonical_scope": "John.4.1-42",
+            "selection_tier": "core",
+            "selection_specificity": 50,
+            "budget_type": "passage"
+          }
+        }
+      ]
+    },
+    {
+      "type": "linguistic",
+      "items": [
+        {
+          "text": "Jn 4,1 — ὁ (G3588), morph=T-NSM, \"the/this/who\" / \"a, az\"",
+          "evidence_id": "EV-LEX-0003",
+          "source_id": "stepbible_tbesg",
+          "relevance_score": 88,
+          "item_type": "linguistic",
+          "metadata": {
+            "strong_id": "G3588",
+            "verse": 1,
+            "lemma": "ὁ",
+            "canonical_scope": "John.4.1",
+            "selection_tier": "primary",
+            "selection_specificity": 95,
+            "budget_type": "linguistic"
+          }
+        },
+        {
+          "text": "Jn 4,2 — αὐτὸς (G0846), pronoun, \"it/s/he\" / \"ő; maga\"",
+          "evidence_id": "EV-LEX-0004",
+          "source_id": "stepbible_tbesg",
+          "relevance_score": 88,
+          "item_type": "linguistic",
+          "metadata": {
+            "strong_id": "G0846",
+            "verse": 2,
+            "lemma": "αὐτός",
+            "canonical_scope": "John.4.2",
+            "selection_tier": "primary",
+            "selection_specificity": 95,
+            "budget_type": "linguistic"
+          }
+        },
+        {
+          "text": "Jn 4,1 — καὶ (G2532), conjunction, \"and\" / \"és\"",
+          "evidence_id": "EV-LEX-0005",
+          "source_id": "stepbible_tbesg",
+          "relevance_score": 88,
+          "item_type": "linguistic",
+          "metadata": {
+            "strong_id": "G2532",
+            "verse": 1,
+            "lemma": "καί",
+            "canonical_scope": "John.4.1",
+            "selection_tier": "primary",
+            "selection_specificity": 95,
+            "budget_type": "linguistic"
+          }
+        },
+        {
+          "text": "Jn 4,6 — ἦν (G1510), verb, \"to be\" / \"van; lenni\"",
+          "evidence_id": "EV-LEX-0006",
+          "source_id": "stepbible_tbesg",
+          "relevance_score": 88,
+          "item_type": "linguistic",
+          "metadata": {
+            "strong_id": "G1510",
+            "verse": 6,
+            "lemma": "εἰμί",
+            "canonical_scope": "John.4.6",
+            "selection_tier": "primary",
+            "selection_specificity": 95,
+            "budget_type": "linguistic"
+          }
+        },
+        {
+          "text": "Jn 4,7 — λέγει (G3004G), verb, \"mond; szól\"",
+          "evidence_id": "EV-LEX-0007",
+          "source_id": "lexicon_hu_overlay",
+          "relevance_score": 88,
+          "item_type": "linguistic",
+          "metadata": {
+            "strong_id": "G3004G",
+            "verse": 7,
+            "lemma": "λέγω",
+            "canonical_scope": "John.4.7",
+            "selection_tier": "primary",
+            "selection_specificity": 95,
+            "budget_type": "linguistic"
+          }
+        },
+        {
+          "text": "Jn 4,9 — σὺ (G4771), pronoun, \"you\" / \"te\"",
+          "evidence_id": "EV-LEX-0008",
+          "source_id": "stepbible_tbesg",
+          "relevance_score": 88,
+          "item_type": "linguistic",
+          "metadata": {
+            "strong_id": "G4771",
+            "verse": 9,
+            "lemma": "σύ",
+            "canonical_scope": "John.4.9",
+            "selection_tier": "primary",
+            "selection_specificity": 95,
+            "budget_type": "linguistic"
+          }
+        },
+        {
+          "text": "Jn 4,1 — ὅτι (G3754G), conjunction, \"hogy; mert\"",
+          "evidence_id": "EV-LEX-0009",
+          "source_id": "lexicon_hu_overlay",
+          "relevance_score": 88,
+          "item_type": "linguistic",
+          "metadata": {
+            "strong_id": "G3754G",
+            "verse": 1,
+            "lemma": "ὅτι",
+            "canonical_scope": "John.4.1",
+            "selection_tier": "primary",
+            "selection_specificity": 95,
+            "budget_type": "linguistic"
+          }
+        },
+        {
+          "text": "Jn 4,7 — γυνὴ (G1135G), noun, \"nő\"",
+          "evidence_id": "EV-LEX-0010",
+          "source_id": "lexicon_hu_overlay",
+          "relevance_score": 88,
+          "item_type": "linguistic",
+          "metadata": {
+            "strong_id": "G1135G",
+            "verse": 7,
+            "lemma": "γυνή",
+            "canonical_scope": "John.4.7",
+            "selection_tier": "primary",
+            "selection_specificity": 95,
+            "budget_type": "linguistic"
+          }
+        },
+        {
+          "text": "Jn 4,1 — Ἰησοῦς (G2424G), noun, \"Jézus\"",
+          "evidence_id": "EV-LEX-0011",
+          "source_id": "lexicon_hu_overlay",
+          "relevance_score": 88,
+          "item_type": "linguistic",
+          "metadata": {
+            "strong_id": "G2424G",
+            "verse": 1,
+            "lemma": "Ἰησοῦς",
+            "canonical_scope": "John.4.1",
+            "selection_tier": "primary",
+            "selection_specificity": 95,
+            "budget_type": "linguistic"
+          }
+        },
+        {
+          "text": "Jn 4,7 — μοι (G3165), pronoun, \"me\" / \"engem\"",
+          "evidence_id": "EV-LEX-0012",
+          "source_id": "stepbible_tbesg",
+          "relevance_score": 88,
+          "item_type": "linguistic",
+          "metadata": {
+            "strong_id": "G3165",
+            "verse": 7,
+            "lemma": "μέ",
+            "canonical_scope": "John.4.7",
+            "selection_tier": "primary",
+            "selection_specificity": 95,
+            "budget_type": "linguistic"
+          }
+        },
+        {
+          "text": "Jn 4,5 — ὃ (G3739), morph=R-ASN, \"which\" / \"aki; amely\"",
+          "evidence_id": "EV-LEX-0013",
+          "source_id": "stepbible_tbesg",
+          "relevance_score": 88,
+          "item_type": "linguistic",
+          "metadata": {
+            "strong_id": "G3739",
+            "verse": 5,
+            "lemma": "ὅς",
+            "canonical_scope": "John.4.5",
+            "selection_tier": "primary",
+            "selection_specificity": 95,
+            "budget_type": "linguistic"
+          }
+        },
+        {
+          "text": "Jn 4,5 — ἔρχεται (G2064), verb, \"to come/go\" / \"jön; megy\"",
+          "evidence_id": "EV-LEX-0014",
+          "source_id": "stepbible_tbesg",
+          "relevance_score": 88,
+          "item_type": "linguistic",
+          "metadata": {
+            "strong_id": "G2064",
+            "verse": 5,
+            "lemma": "ἔρχομαι",
+            "canonical_scope": "John.4.5",
+            "selection_tier": "primary",
+            "selection_specificity": 95,
+            "budget_type": "linguistic"
+          }
+        }
+      ]
+    }
+  ],
+  "source_ids": [
+    "lexicon_hu_overlay",
+    "stepbible_tagnt",
+    "stepbible_tbesg"
+  ],
+  "evidence_ids": [
+    "EV-TAGNT-0002",
+    "EV-TAGNT-0001",
+    "EV-LEX-0003",
+    "EV-LEX-0004",
+    "EV-LEX-0005",
+    "EV-LEX-0006",
+    "EV-LEX-0007",
+    "EV-LEX-0008",
+    "EV-LEX-0009",
+    "EV-LEX-0010",
+    "EV-LEX-0011",
+    "EV-LEX-0012",
+    "EV-LEX-0013",
+    "EV-LEX-0014"
+  ],
+  "warnings": [
+    "RUF local text source is disabled by manifest policy; packet excludes RUF prose.",
+    "Optional source aquifer_open_study_notes is disabled.",
+    "Optional source aquifer_open_bible_dictionary is disabled.",
+    "Optional source acai is disabled."
+  ],
+  "estimated_tokens": 736,
+  "target_tokens": 2500,
+  "token_budget": 4500,
+  "max_tokens": 4500,
+  "truncated": false,
+  "evidence_packet_build_id": "kb-phase2a-john4-pilot-v1",
+  "selection_stats": {
+    "candidates": 28,
+    "selected": 14,
+    "candidate_evidence_count": 28,
+    "selected_evidence_count": 14,
+    "dropped_budget": 0,
+    "dropped_by_source_budget": 0,
+    "dropped_redundant": 0,
+    "dropped_type_budget": 0,
+    "dropped_target": 14,
+    "dropped_by_target": 14,
+    "tokens_by_type": {
+      "passage": 97,
+      "linguistic": 639
+    },
+    "selected_by_tier": {
+      "core": 2,
+      "primary": 12
+    },
+    "coverage_segments": [
+      {
+        "segment": "1-10",
+        "covered": false,
+        "note_count": 0
+      },
+      {
+        "segment": "11-20",
+        "covered": false,
+        "note_count": 0
+      },
+      {
+        "segment": "21-30",
+        "covered": false,
+        "note_count": 0
+      },
+      {
+        "segment": "31-40",
+        "covered": false,
+        "note_count": 0
+      },
+      {
+        "segment": "41-42",
+        "covered": false,
+        "note_count": 0
+      }
+    ],
+    "study_notes_candidates": 0,
+    "study_notes_selected": 0,
+    "dictionary_candidates": 0,
+    "dictionary_selected": 0,
+    "linguistic_selected": 12,
+    "places_background_selected": 0,
+    "aquifer_candidates": 0,
+    "aquifer_selected": 0,
+    "target_kb_tokens": 2500,
+    "max_kb_tokens": 4500,
+    "actual_kb_tokens": 736,
+    "unused_target_kb_tokens": 1764,
+    "unused_max_kb_tokens": 3764,
+    "source_diversity": {
+      "linguistic": 14,
+      "study_notes": 0,
+      "dictionary": 0,
+      "acai": 0,
+      "places_background": 0,
+      "other": 0
+    }
+  }
+}

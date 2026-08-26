@@ -1,0 +1,446 @@
+{
+  "schema_version": "2",
+  "passage": "John.4.1-42",
+  "passage_display": "Jn 4,1-42",
+  "profile": "historical_context",
+  "sections": [
+    {
+      "type": "passage",
+      "items": [
+        {
+          "text": "Historical context scope: Jn 4,1-42 (John.4.1-42)",
+          "evidence_id": "EV-TAGNT-0002",
+          "source_id": "stepbible_tagnt",
+          "relevance_score": 50,
+          "item_type": "passage_scope",
+          "metadata": {
+            "canonical_scope": "John.4.1-42",
+            "selection_tier": "core",
+            "selection_specificity": 50,
+            "budget_type": "passage"
+          }
+        }
+      ]
+    },
+    {
+      "type": "dictionary",
+      "items": [
+        {
+          "text": "Jacob’s Well — JACOB’S WELL: JACOB’S WELL Place mentioned only in John’s Gospel ( Jn 4:5–29 ). It was here that Jesus sat and talked with the unnamed woman of Samaria, who readily accepted Jesus’ words. This well is located in a plot of ground acquired by the patriarch Jacob, about 300 yards (274 meters) southeast from the traditional tomb of Joseph ( Gn 33:19 ; Jos 24:32 ; Jn 4:5–6 ). The site is about two miles (3.2 kilometers) southeast of modern Nablus, 600 yards (549 meters) southeast of the site of ancient Shechem (modern Balata), and 1,000 yards (914 meters) south of Sychar (modern Askar). Towering over the site on the northwest is Mt Ebal (at the foot of which lies Askar), and on the southwest Mt Gerizim, mountains of cursing and blessing, respectively ( Dt 27:12–13 ; Jos 8:30–33 ). Near here Abraham built his first altar, and Jacob his second ( Gn 12:6–7 ; 33:18–20 ). Thus the site is one of the most ancient and sacred in the Holy Land. (Source: Aquifer Open Bible Dictionary, CC-BY-SA-4.0)",
+          "evidence_id": "EV-DICT-0001",
+          "source_id": "aquifer_open_bible_dictionary",
+          "relevance_score": 100,
+          "item_type": "dictionary_background",
+          "metadata": {
+            "article_id": "6162",
+            "chunk_id": "6162-c001",
+            "heading": "JACOB’S WELL",
+            "index_reference": "jacobs well",
+            "selection_reason": "direct_passage_association",
+            "passage_associations": [
+              {
+                "start_ref": "43004005",
+                "end_ref": "43004006",
+                "start_ref_usfm": "JHN 4:5",
+                "end_ref_usfm": "JHN 4:6"
+              },
+              {
+                "start_ref": "43004005",
+                "end_ref": "43004029",
+                "start_ref_usfm": "JHN 4:5",
+                "end_ref_usfm": "JHN 4:29"
+              }
+            ],
+            "entity_topics": [
+              {
+                "entity_id": "sychar",
+                "entity_type": "place",
+                "source": "inferred_from_pilot_place_links"
+              },
+              {
+                "entity_id": "John.4.1-42",
+                "entity_type": "passage",
+                "source": "upstream_passage_association"
+              }
+            ],
+            "entity_expansion": null,
+            "license": "CC-BY-SA-4.0",
+            "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "attribution": "Aquifer Open Bible Dictionary © 2026 Mission Mutual, adapted from Tyndale Open Bible Dictionary © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0.",
+            "upstream_commit": "3c4773e8746c9b051ce754c5a01ceddaabea84ce",
+            "upstream_resource_version": "1.1.2",
+            "canonical_scope": "John.4.1-42",
+            "selection_tier": "primary",
+            "selection_specificity": 95,
+            "budget_type": "dictionary"
+          }
+        },
+        {
+          "text": "Jacob’s Well — JACOB’S WELL: The well is about 100 feet (30.5 meters) in depth and one yard (.9 meter) in diameter, cut through limestone. Fed by subterranean streams from the adjacent mountain slopes, the water is pure and plentiful, the pride of the villagers. A church has existed on the site from at least AD 380. The Greek Orthodox Church acquired the site in 1885 and built a structure on the site. Access to the well is by steps leading from either side of the church altar to the well curb below. (Source: Aquifer Open Bible Dictionary, CC-BY-SA-4.0)",
+          "evidence_id": "EV-DICT-0002",
+          "source_id": "aquifer_open_bible_dictionary",
+          "relevance_score": 100,
+          "item_type": "dictionary_background",
+          "metadata": {
+            "article_id": "6162",
+            "chunk_id": "6162-c002",
+            "heading": "JACOB’S WELL",
+            "index_reference": "jacobs well",
+            "selection_reason": "direct_passage_association",
+            "passage_associations": [
+              {
+                "start_ref": "43004005",
+                "end_ref": "43004006",
+                "start_ref_usfm": "JHN 4:5",
+                "end_ref_usfm": "JHN 4:6"
+              },
+              {
+                "start_ref": "43004005",
+                "end_ref": "43004029",
+                "start_ref_usfm": "JHN 4:5",
+                "end_ref_usfm": "JHN 4:29"
+              }
+            ],
+            "entity_topics": [
+              {
+                "entity_id": "sychar",
+                "entity_type": "place",
+                "source": "inferred_from_pilot_place_links"
+              },
+              {
+                "entity_id": "John.4.1-42",
+                "entity_type": "passage",
+                "source": "upstream_passage_association"
+              }
+            ],
+            "entity_expansion": null,
+            "license": "CC-BY-SA-4.0",
+            "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "attribution": "Aquifer Open Bible Dictionary © 2026 Mission Mutual, adapted from Tyndale Open Bible Dictionary © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0.",
+            "upstream_commit": "3c4773e8746c9b051ce754c5a01ceddaabea84ce",
+            "upstream_resource_version": "1.1.2",
+            "canonical_scope": "John.4.1-42",
+            "selection_tier": "primary",
+            "selection_specificity": 95,
+            "budget_type": "dictionary"
+          }
+        },
+        {
+          "text": "Mount Gerizim — MOUNT GERIZIM: MOUNT GERIZIM Mount Gerizim, now called Jebel et-Tor, stands near Shechem. God commanded the Israelites to announce blessings from Mount Gerizim and curses from Mount Ebal ( Deuteronomy 11:29 ). The two mountains face each other. Six tribes stood on Mount Gerizim, and six stood on Mount Ebal. The Levites stood in the valley between them and announced the blessings and curses ( Deuteronomy 27:11–28:68 ; Joshua 8:33–35 ). Mount Gerizim is about 16 kilometers (10 miles) southeast of the ancient city of Samaria. The Samaritan woman referred to it when she told Jesus, “our fathers worshiped on this mountain” ( John 4:20–23 ). Abraham had built an altar near Shechem ( Genesis 12:6–7 ; 33:18–20 ). The area became an important place of worship for the Samaritan people. Jesus told the woman that true worship would not depend on worshiping at Mount Gerizim or in Jerusalem. True worshipers must worship the Father in spirit and truth ( John 4:20–23 ). Joseph’s bones were buried near Shechem ( Joshua 24:32 ). In the same area, Joshua called the Israelites to renew their loyalty to the God of their ancestors (verses 25–27 ). (Source: Aquifer Open Bible Dictionary, CC-BY-SA-4.0)",
+          "evidence_id": "EV-DICT-0003",
+          "source_id": "aquifer_open_bible_dictionary",
+          "relevance_score": 100,
+          "item_type": "dictionary_background",
+          "metadata": {
+            "article_id": "5428",
+            "chunk_id": "5428-c001",
+            "heading": "MOUNT GERIZIM",
+            "index_reference": "mount gerizim",
+            "selection_reason": "direct_passage_association",
+            "passage_associations": [
+              {
+                "start_ref": "43004020",
+                "end_ref": "43004023",
+                "start_ref_usfm": "JHN 4:20",
+                "end_ref_usfm": "JHN 4:23"
+              }
+            ],
+            "entity_topics": [
+              {
+                "entity_id": "mount_gerizim",
+                "entity_type": "place",
+                "source": "inferred_from_pilot_place_links"
+              },
+              {
+                "entity_id": "John.4.1-42",
+                "entity_type": "passage",
+                "source": "upstream_passage_association"
+              }
+            ],
+            "entity_expansion": null,
+            "license": "CC-BY-SA-4.0",
+            "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "attribution": "Aquifer Open Bible Dictionary © 2026 Mission Mutual, adapted from Tyndale Open Bible Dictionary © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0.",
+            "upstream_commit": "3c4773e8746c9b051ce754c5a01ceddaabea84ce",
+            "upstream_resource_version": "1.1.2",
+            "canonical_scope": "John.4.1-42",
+            "selection_tier": "primary",
+            "selection_specificity": 95,
+            "budget_type": "dictionary"
+          }
+        }
+      ]
+    },
+    {
+      "type": "entities",
+      "items": [
+        {
+          "text": "Samaritans — group — directly linked to Jn 4, dictionary-linked",
+          "evidence_id": "ENT-acai-group-Samaritan",
+          "source_id": "acai",
+          "relevance_score": 95,
+          "item_type": "entity_summary",
+          "metadata": {
+            "entity_id": "acai-group-Samaritan",
+            "external_id": "group:Samaritan",
+            "entity_type": "group",
+            "budget_type": "entity",
+            "selection_tier": "primary",
+            "selection_specificity": 50
+          }
+        },
+        {
+          "text": "Israel — person — directly linked to Jn 4, dictionary-linked",
+          "evidence_id": "ENT-acai-person-Israel",
+          "source_id": "acai",
+          "relevance_score": 95,
+          "item_type": "entity_summary",
+          "metadata": {
+            "entity_id": "acai-person-Israel",
+            "external_id": "person:Israel",
+            "entity_type": "person",
+            "budget_type": "entity",
+            "selection_tier": "primary",
+            "selection_specificity": 50
+          }
+        }
+      ]
+    },
+    {
+      "type": "places",
+      "items": [
+        {
+          "text": "Galilea (galilee_1) linked to passage via Jn 4,3: OpenBible vers-hivatkozásból generált helykapcsolat. (32.76000, 35.52700)",
+          "evidence_id": "EV-PLACE-0001",
+          "source_id": "biblical_places_passage_links",
+          "relevance_score": 95,
+          "item_type": "passage_place_link",
+          "metadata": {
+            "place_id": "galilee_1",
+            "passage": "Jn 4,3",
+            "canonical_scope": "Jn 4,3",
+            "selection_tier": "primary",
+            "selection_specificity": 50,
+            "budget_type": "background"
+          }
+        },
+        {
+          "text": "Jeruzsálem (jerusalem) linked to passage via Jn 4,20: OpenBible vers-hivatkozásból generált helykapcsolat. (31.77667, 35.23417)",
+          "evidence_id": "EV-PLACE-0003",
+          "source_id": "biblical_places_passage_links",
+          "relevance_score": 95,
+          "item_type": "passage_place_link",
+          "metadata": {
+            "place_id": "jerusalem",
+            "passage": "Jn 4,20",
+            "canonical_scope": "Jn 4,20",
+            "selection_tier": "primary",
+            "selection_specificity": 50,
+            "budget_type": "background"
+          }
+        },
+        {
+          "text": "Júdea (judea_1) linked to passage via Jn 4,3: OpenBible vers-hivatkozásból generált helykapcsolat. (31.77667, 35.23417)",
+          "evidence_id": "EV-PLACE-0007",
+          "source_id": "biblical_places_passage_links",
+          "relevance_score": 95,
+          "item_type": "passage_place_link",
+          "metadata": {
+            "place_id": "judea_1",
+            "passage": "Jn 4,3",
+            "canonical_scope": "Jn 4,3",
+            "selection_tier": "primary",
+            "selection_specificity": 50,
+            "budget_type": "background"
+          }
+        },
+        {
+          "text": "Garizim-hegy (mount_gerizim) linked to passage via Jn 4,20: OpenBible vers-hivatkozásból generált helykapcsolat. (32.19944, 35.27278)",
+          "evidence_id": "EV-PLACE-0009",
+          "source_id": "biblical_places_passage_links",
+          "relevance_score": 95,
+          "item_type": "passage_place_link",
+          "metadata": {
+            "place_id": "mount_gerizim",
+            "passage": "Jn 4,20",
+            "canonical_scope": "Jn 4,20",
+            "selection_tier": "primary",
+            "selection_specificity": 50,
+            "budget_type": "background"
+          }
+        },
+        {
+          "text": "Samária vidéke (samaria_2) linked to passage via Jn 4,4: OpenBible vers-hivatkozásból generált helykapcsolat. (32.27611, 35.19500)",
+          "evidence_id": "EV-PLACE-0011",
+          "source_id": "biblical_places_passage_links",
+          "relevance_score": 95,
+          "item_type": "passage_place_link",
+          "metadata": {
+            "place_id": "samaria_2",
+            "passage": "Jn 4,4",
+            "canonical_scope": "Jn 4,4",
+            "selection_tier": "primary",
+            "selection_specificity": 50,
+            "budget_type": "background"
+          }
+        },
+        {
+          "text": "Sikár (sychar) linked to passage via Jn 4,5: OpenBible vers-hivatkozásból generált helykapcsolat. (32.21776, 35.28897)",
+          "evidence_id": "EV-PLACE-0013",
+          "source_id": "biblical_places_passage_links",
+          "relevance_score": 95,
+          "item_type": "passage_place_link",
+          "metadata": {
+            "place_id": "sychar",
+            "passage": "Jn 4,5",
+            "canonical_scope": "Jn 4,5",
+            "selection_tier": "primary",
+            "selection_specificity": 50,
+            "budget_type": "background"
+          }
+        },
+        {
+          "text": "Észak-Izrael történeti régiója, Jézus szolgálatának számos fontos helyszínével. A terület ma Izrael északi részén fekszik. | Coordinates: 32.76000, 35.52700 | Identification status: certain",
+          "evidence_id": "EV-PLACE-0002",
+          "source_id": "biblical_places_catalog",
+          "relevance_score": 85,
+          "item_type": "place_catalog",
+          "metadata": {
+            "place_id": "galilee_1",
+            "selection_tier": "supporting",
+            "selection_specificity": 50,
+            "budget_type": "background"
+          }
+        }
+      ]
+    },
+    {
+      "type": "historical",
+      "items": [
+        {
+          "text": "Jeruzsálem a passage-indexben 956 bibliai hivatkozáshoz kapcsolódik. A route-adatok 3 bibliai útvonalhoz kötik. Jeruzsálem a bibliai elbeszélés központi városa, a Templom és több újszövetségi esemény helyszíne.",
+          "evidence_id": "EV-PLACE-0005",
+          "source_id": "place_enrichments_overlay",
+          "relevance_score": 90,
+          "item_type": "historical_enrichment",
+          "metadata": {
+            "place_id": "jerusalem",
+            "section_key": "biblical_significance",
+            "confidence": "high",
+            "selection_tier": "primary",
+            "selection_specificity": 50,
+            "budget_type": "background"
+          }
+        }
+      ]
+    },
+    {
+      "type": "geography",
+      "items": [
+        {
+          "text": "Coordinates: 31.77667, 35.23417 | Identification status: probable",
+          "evidence_id": "EV-PLACE-0004",
+          "source_id": "biblical_places_catalog",
+          "relevance_score": 80,
+          "item_type": "geography",
+          "metadata": {
+            "place_id": "jerusalem",
+            "selection_tier": "supporting",
+            "selection_specificity": 50,
+            "budget_type": "background"
+          }
+        }
+      ]
+    }
+  ],
+  "source_ids": [
+    "acai",
+    "aquifer_open_bible_dictionary",
+    "biblical_places_catalog",
+    "biblical_places_passage_links",
+    "place_enrichments_overlay",
+    "stepbible_tagnt"
+  ],
+  "evidence_ids": [
+    "EV-DICT-0001",
+    "EV-DICT-0002",
+    "EV-DICT-0003",
+    "ENT-acai-group-Samaritan",
+    "ENT-acai-person-Israel",
+    "EV-PLACE-0001",
+    "EV-PLACE-0003",
+    "EV-PLACE-0007",
+    "EV-PLACE-0009",
+    "EV-PLACE-0011",
+    "EV-PLACE-0013",
+    "EV-PLACE-0005",
+    "EV-PLACE-0002",
+    "EV-PLACE-0004",
+    "EV-TAGNT-0002"
+  ],
+  "warnings": [
+    "RUF local text source is disabled by manifest policy; packet excludes RUF prose.",
+    "Supplemental token estimate (95346) exceeds budget (4500); Aquifer exegetical notes and dictionary evidence retained for audit.",
+    "Dictionary chunks selected 3/120 (source-aware selection; full set remains in Evidence Packet)."
+  ],
+  "estimated_tokens": 2311,
+  "target_tokens": 2500,
+  "token_budget": 3500,
+  "max_tokens": 3500,
+  "truncated": false,
+  "evidence_packet_build_id": "kb-phase4b-john4-pilot-v1",
+  "selection_stats": {
+    "candidates": 149,
+    "selected": 15,
+    "dropped_budget": 0,
+    "dropped_redundant": 1,
+    "dropped_type_budget": 132,
+    "dropped_target": 1,
+    "tokens_by_type": {
+      "dictionary": 1514,
+      "entity": 117,
+      "background": 640,
+      "passage": 40
+    },
+    "selected_by_tier": {
+      "primary": 12,
+      "supporting": 2,
+      "core": 1
+    },
+    "coverage_segments": [
+      {
+        "segment": "1-10",
+        "covered": false,
+        "note_count": 0
+      },
+      {
+        "segment": "11-20",
+        "covered": false,
+        "note_count": 0
+      },
+      {
+        "segment": "21-30",
+        "covered": false,
+        "note_count": 0
+      },
+      {
+        "segment": "31-40",
+        "covered": false,
+        "note_count": 0
+      },
+      {
+        "segment": "41-42",
+        "covered": false,
+        "note_count": 0
+      }
+    ],
+    "study_notes_candidates": 0,
+    "study_notes_selected": 0,
+    "dictionary_candidates": 120,
+    "dictionary_selected": 3,
+    "linguistic_selected": 0,
+    "places_background_selected": 9,
+    "aquifer_candidates": 0,
+    "aquifer_selected": 0
+  }
+}

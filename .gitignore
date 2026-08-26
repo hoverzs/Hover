@@ -80,6 +80,11 @@ st_*.log
 *.sqlite3-shm
 !data/generated/tahot_ot_runtime.sqlite3
 !data/generated/tbesh_lexicon_runtime.sqlite3
+!data/generated/acai_entities.sqlite3
+# Dev-only grounded A/B compare artifacts (may contain model outputs).
+data/generated/kb_grounded_compare/
+data/generated/kb_grounded_compare.sqlite3
+data/generated/kb_grounded_compare.sqlite3-*
 # data/generated/ruf_bible.sqlite3 (RÚF 2014 bulk-import): SOSE adj ehhez
 # negation-kivételt / ne commitold. A tahot/tbesh fenti kivételeivel
 # ELLENTÉTBEN ez a fájl a Magyar Bibliatársulattal kötött, korlátozott

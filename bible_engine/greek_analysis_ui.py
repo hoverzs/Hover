@@ -78,6 +78,15 @@ CROSS_CHAPTER_GREEK_MESSAGE = (
     "A fejezeten átívelő görög szakaszok támogatása későbbi "
     "fejlesztésben lesz elérhető."
 )
+NT_NEEDS_VERSES_MESSAGE = (
+    "Adj meg versszámot is a görög elemzéshez "
+    "(pl. Lk 10,25–37 vagy ApCsel 2,1–13)."
+)
+NT_INVALID_REFERENCE_MESSAGE = (
+    "Az újszövetségi hivatkozás nem értelmezhető a görög elemzéshez. "
+    "Használj ismert rövidítést és verstartományt "
+    "(pl. Lk 10,25–37, ApCsel 2,1–13)."
+)
 REVIEW_STATUS_LABELS = {
     "draft": "munkaváltozat",
     "reviewed": "ellenőrzött",
@@ -86,6 +95,7 @@ REVIEW_STATUS_LABELS = {
 GreekReferenceStatus = Literal[
     "empty",
     "invalid",
+    "needs_verses",
     "old_testament",
     "cross_chapter",
     "loaded",
@@ -119,7 +129,13 @@ def render_greek_analysis_block(
     status = greek_reference_status(reference)
     if status == "empty":
         return
+    if status == "needs_verses":
+        st.warning(NT_NEEDS_VERSES_MESSAGE)
+        return
     if status == "invalid":
+        if _reference_book_is_new_testament(reference):
+            st.warning(NT_INVALID_REFERENCE_MESSAGE)
+            return
         _render_possible_hebrew_reference_error(reference)
         return
     if status == "old_testament":
@@ -202,10 +218,47 @@ def greek_reference_status(reference: str) -> GreekReferenceStatus:
     if parsed.book.code not in NEW_TESTAMENT_RUF_CODES:
         return "old_testament"
     if parsed.verse_start is None:
-        return "invalid"
+        return "needs_verses"
 
     return "loaded"
 
+
+def _reference_book_is_new_testament(reference: str) -> bool:
+    """True when the book token resolves to a New Testament RUF code.
+
+    Used to keep NT abbreviations (Lk, ApCsel, Luke, Acts, …) off the
+    Old Testament / Hebrew error path when the verse span is missing or
+    the rest of the reference is malformed.
+    """
+    raw = (reference or "").strip()
+    if not raw:
+        return False
+    try:
+        parsed = parse_tagnt_bible_reference(raw)
+        return parsed.book.code in NEW_TESTAMENT_RUF_CODES
+    except ValueError:
+        pass
+
+    from ruf_bible_service import BOOK_LOOKUP, _fold
+
+    cleaned = (
+        raw.replace("–", "-")
+        .replace("—", "-")
+        .replace("−", "-")
+        .replace("‐", "-")
+    )
+    cleaned = re.sub(r"\s+", " ", cleaned).strip()
+    match = re.match(
+        r"^((?:[1-5]|I{1,3}|IV|V)\s*)?([A-Za-zÁÉÍÓÖŐÚÜŰáéíóöőúüű.]+)",
+        cleaned,
+    )
+    if not match:
+        return False
+    num_prefix = (match.group(1) or "").strip()
+    name = (match.group(2) or "").strip().rstrip(".")
+    book_token = f"{num_prefix}{name}".strip()
+    info = BOOK_LOOKUP.get(_fold(book_token))
+    return bool(info and info.code in NEW_TESTAMENT_RUF_CODES)
 
 @st.cache_data(show_spinner=False)
 def load_john_3_16_tokens() -> list[GreekToken]:

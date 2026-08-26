@@ -1,0 +1,410 @@
+{
+  "schema_version": "2",
+  "passage": "John.4.1-42",
+  "passage_display": "Jn 4,1-42",
+  "profile": "historical_context",
+  "sections": [
+    {
+      "type": "passage",
+      "items": [
+        {
+          "text": "Historical context scope: Jn 4,1-42 (John.4.1-42)",
+          "evidence_id": "EV-TAGNT-0002",
+          "source_id": "stepbible_tagnt",
+          "relevance_score": 50,
+          "item_type": "passage_scope",
+          "metadata": {
+            "canonical_scope": "John.4.1-42",
+            "selection_tier": "core",
+            "selection_specificity": 50,
+            "budget_type": "passage"
+          }
+        }
+      ]
+    },
+    {
+      "type": "dictionary",
+      "items": [
+        {
+          "text": "Abba — ABBA: ABBA Aramaic word for “father,” which is applied to God in Mark 14:36 ; Romans 8:15 ; and Galatians 4:6 . The name expresses a very intimate and inseparable relationship between Christ and the Father, and between believers (as children) and God (as Father). (Source: Aquifer Open Bible Dictionary, CC-BY-SA-4.0)",
+          "evidence_id": "EV-DICT-3268-c001",
+          "source_id": "aquifer_open_bible_dictionary",
+          "relevance_score": 100,
+          "item_type": "dictionary_background",
+          "metadata": {
+            "article_id": "3268",
+            "chunk_id": "3268-c001",
+            "heading": "ABBA",
+            "index_reference": "abba",
+            "selection_reason": "entity_acai_dictionary_link",
+            "passage_linked": true,
+            "entity_topic_count": 1,
+            "entity_expansion": {
+              "passage": "John.4.1-42",
+              "entity_id": "acai-deity-Lord",
+              "acai_id": "deity:Lord",
+              "entity_type": "deity",
+              "canonical_name": "LORD",
+              "dictionary_article_id": "3268",
+              "dictionary_title": "Abba",
+              "match_method": "content_id",
+              "mapping_method": "explicit",
+              "priority_tier": 1
+            },
+            "license": "CC-BY-SA-4.0",
+            "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "attribution": "Aquifer Open Bible Dictionary © 2026 Mission Mutual, adapted from Tyndale Open Bible Dictionary © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0.",
+            "upstream_commit": "3c4773e8746c9b051ce754c5a01ceddaabea84ce",
+            "upstream_resource_version": "1.1.2",
+            "canonical_scope": "John.4.1-42",
+            "selection_tier": "primary",
+            "selection_specificity": 95,
+            "budget_type": "dictionary"
+          }
+        },
+        {
+          "text": "Aegean Sea — AEGEAN SEA: AEGEAN SEA The Aegean Sea is part of the Mediterranean Sea. It is located between Greece on the west and north and Turkey on the east. The large island of Crete marks its southern boundary. To the northeast, the Aegean connects to the Black Sea through the Strait of Dardanelles and the Sea of Marmara. The Aegean Sea is about 200 miles (320 kilometers) wide and 400 miles (640 kilometers) long and has hundreds of islands, including Lesbos and Patmos ( Revelation 1:9 ). The sea was probably named after Aegeus, a king of Athens and the father of Theseus in Greek mythology. The apostle Paul spent a lot of time in the Aegean area during his second and third missionary journeys. The three major modern cities on the Aegean are Athens (with its port of Piraeus), Thessaloniki (biblical Thessalonica) in Greece, and Izmir (biblical Smyrna) in Turkey. (Source: Aquifer Open Bible Dictionary, CC-BY-SA-4.0)",
+          "evidence_id": "EV-DICT-3409-c001",
+          "source_id": "aquifer_open_bible_dictionary",
+          "relevance_score": 100,
+          "item_type": "dictionary_background",
+          "metadata": {
+            "article_id": "3409",
+            "chunk_id": "3409-c001",
+            "heading": "AEGEAN SEA",
+            "index_reference": "aegean sea",
+            "selection_reason": "entity_acai_dictionary_link",
+            "passage_linked": true,
+            "entity_topic_count": 1,
+            "entity_expansion": {
+              "passage": "John.4.1-42",
+              "entity_id": "acai-deity-Lord",
+              "acai_id": "deity:Lord",
+              "entity_type": "deity",
+              "canonical_name": "LORD",
+              "dictionary_article_id": "3409",
+              "dictionary_title": "Aegean Sea",
+              "match_method": "scored",
+              "mapping_method": "explicit",
+              "priority_tier": 1
+            },
+            "license": "CC-BY-SA-4.0",
+            "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "attribution": "Aquifer Open Bible Dictionary © 2026 Mission Mutual, adapted from Tyndale Open Bible Dictionary © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0.",
+            "upstream_commit": "3c4773e8746c9b051ce754c5a01ceddaabea84ce",
+            "upstream_resource_version": "1.1.2",
+            "canonical_scope": "John.4.1-42",
+            "selection_tier": "primary",
+            "selection_specificity": 95,
+            "budget_type": "dictionary"
+          }
+        }
+      ]
+    },
+    {
+      "type": "entities",
+      "items": [
+        {
+          "text": "LORD — deity — explicitly referenced in Jn 4,1-42",
+          "evidence_id": "ENT-acai-deity-Lord",
+          "source_id": "acai",
+          "relevance_score": 95,
+          "item_type": "entity_summary",
+          "metadata": {
+            "entity_id": "acai-deity-Lord",
+            "external_id": "deity:Lord",
+            "entity_type": "deity",
+            "budget_type": "entity",
+            "canonical_scope": "John.4.1-42",
+            "selection_tier": "primary",
+            "selection_specificity": 50
+          }
+        },
+        {
+          "text": "Jews — group — explicitly referenced in Jn 4,1-42",
+          "evidence_id": "ENT-acai-group-Jews",
+          "source_id": "acai",
+          "relevance_score": 95,
+          "item_type": "entity_summary",
+          "metadata": {
+            "entity_id": "acai-group-Jews",
+            "external_id": "group:Jews",
+            "entity_type": "group",
+            "budget_type": "entity",
+            "canonical_scope": "John.4.1-42",
+            "selection_tier": "primary",
+            "selection_specificity": 50
+          }
+        },
+        {
+          "text": "Pharisees — group — explicitly referenced in Jn 4,1-42",
+          "evidence_id": "ENT-acai-group-Pharisee",
+          "source_id": "acai",
+          "relevance_score": 95,
+          "item_type": "entity_summary",
+          "metadata": {
+            "entity_id": "acai-group-Pharisee",
+            "external_id": "group:Pharisee",
+            "entity_type": "group",
+            "budget_type": "entity",
+            "canonical_scope": "John.4.1-42",
+            "selection_tier": "primary",
+            "selection_specificity": 50
+          }
+        },
+        {
+          "text": "Samaritans — group — explicitly referenced in Jn 4,1-42",
+          "evidence_id": "ENT-acai-group-Samaritan",
+          "source_id": "acai",
+          "relevance_score": 95,
+          "item_type": "entity_summary",
+          "metadata": {
+            "entity_id": "acai-group-Samaritan",
+            "external_id": "group:Samaritan",
+            "entity_type": "group",
+            "budget_type": "entity",
+            "canonical_scope": "John.4.1-42",
+            "selection_tier": "primary",
+            "selection_specificity": 50
+          }
+        },
+        {
+          "text": "Always — keyterm — explicitly referenced in Jn 4,1-42",
+          "evidence_id": "ENT-acai-keyterm-Always",
+          "source_id": "acai",
+          "relevance_score": 95,
+          "item_type": "entity_summary",
+          "metadata": {
+            "entity_id": "acai-keyterm-Always",
+            "external_id": "keyterm:Always",
+            "entity_type": "keyterm",
+            "budget_type": "entity",
+            "canonical_scope": "John.4.1-42",
+            "selection_tier": "primary",
+            "selection_specificity": 50
+          }
+        }
+      ]
+    },
+    {
+      "type": "places",
+      "items": [
+        {
+          "text": "Galilea (galilee_1) linked to passage via Jn 4,3: OpenBible vers-hivatkozásból generált helykapcsolat. (32.76000, 35.52700)",
+          "evidence_id": "EV-PLACE-0001",
+          "source_id": "biblical_places_passage_links",
+          "relevance_score": 95,
+          "item_type": "passage_place_link",
+          "metadata": {
+            "place_id": "galilee_1",
+            "passage": "Jn 4,3",
+            "canonical_scope": "Jn 4,3",
+            "selection_tier": "primary",
+            "selection_specificity": 50,
+            "budget_type": "background"
+          }
+        },
+        {
+          "text": "Jeruzsálem (jerusalem) linked to passage via Jn 4,20: OpenBible vers-hivatkozásból generált helykapcsolat. (31.77667, 35.23417)",
+          "evidence_id": "EV-PLACE-0003",
+          "source_id": "biblical_places_passage_links",
+          "relevance_score": 95,
+          "item_type": "passage_place_link",
+          "metadata": {
+            "place_id": "jerusalem",
+            "passage": "Jn 4,20",
+            "canonical_scope": "Jn 4,20",
+            "selection_tier": "primary",
+            "selection_specificity": 50,
+            "budget_type": "background"
+          }
+        },
+        {
+          "text": "Júdea (judea_1) linked to passage via Jn 4,3: OpenBible vers-hivatkozásból generált helykapcsolat. (31.77667, 35.23417)",
+          "evidence_id": "EV-PLACE-0007",
+          "source_id": "biblical_places_passage_links",
+          "relevance_score": 95,
+          "item_type": "passage_place_link",
+          "metadata": {
+            "place_id": "judea_1",
+            "passage": "Jn 4,3",
+            "canonical_scope": "Jn 4,3",
+            "selection_tier": "primary",
+            "selection_specificity": 50,
+            "budget_type": "background"
+          }
+        },
+        {
+          "text": "Garizim-hegy (mount_gerizim) linked to passage via Jn 4,20: OpenBible vers-hivatkozásból generált helykapcsolat. (32.19944, 35.27278)",
+          "evidence_id": "EV-PLACE-0009",
+          "source_id": "biblical_places_passage_links",
+          "relevance_score": 95,
+          "item_type": "passage_place_link",
+          "metadata": {
+            "place_id": "mount_gerizim",
+            "passage": "Jn 4,20",
+            "canonical_scope": "Jn 4,20",
+            "selection_tier": "primary",
+            "selection_specificity": 50,
+            "budget_type": "background"
+          }
+        },
+        {
+          "text": "Samária vidéke (samaria_2) linked to passage via Jn 4,4: OpenBible vers-hivatkozásból generált helykapcsolat. (32.27611, 35.19500)",
+          "evidence_id": "EV-PLACE-0011",
+          "source_id": "biblical_places_passage_links",
+          "relevance_score": 95,
+          "item_type": "passage_place_link",
+          "metadata": {
+            "place_id": "samaria_2",
+            "passage": "Jn 4,4",
+            "canonical_scope": "Jn 4,4",
+            "selection_tier": "primary",
+            "selection_specificity": 50,
+            "budget_type": "background"
+          }
+        },
+        {
+          "text": "Sikár (sychar) linked to passage via Jn 4,5: OpenBible vers-hivatkozásból generált helykapcsolat. (32.21776, 35.28897)",
+          "evidence_id": "EV-PLACE-0013",
+          "source_id": "biblical_places_passage_links",
+          "relevance_score": 95,
+          "item_type": "passage_place_link",
+          "metadata": {
+            "place_id": "sychar",
+            "passage": "Jn 4,5",
+            "canonical_scope": "Jn 4,5",
+            "selection_tier": "primary",
+            "selection_specificity": 50,
+            "budget_type": "background"
+          }
+        }
+      ]
+    },
+    {
+      "type": "historical",
+      "items": [
+        {
+          "text": "Jeruzsálem a passage-indexben 956 bibliai hivatkozáshoz kapcsolódik. A route-adatok 3 bibliai útvonalhoz kötik. Jeruzsálem a bibliai elbeszélés központi városa, a Templom és több újszövetségi esemény helyszíne.",
+          "evidence_id": "EV-PLACE-0005",
+          "source_id": "place_enrichments_overlay",
+          "relevance_score": 90,
+          "item_type": "historical_enrichment",
+          "metadata": {
+            "place_id": "jerusalem",
+            "section_key": "biblical_significance",
+            "confidence": "high",
+            "selection_tier": "primary",
+            "selection_specificity": 50,
+            "budget_type": "background"
+          }
+        }
+      ]
+    }
+  ],
+  "source_ids": [
+    "acai",
+    "aquifer_open_bible_dictionary",
+    "biblical_places_passage_links",
+    "place_enrichments_overlay",
+    "stepbible_tagnt"
+  ],
+  "evidence_ids": [
+    "EV-DICT-3268-c001",
+    "EV-DICT-3409-c001",
+    "ENT-acai-deity-Lord",
+    "ENT-acai-group-Jews",
+    "ENT-acai-group-Pharisee",
+    "ENT-acai-group-Samaritan",
+    "ENT-acai-keyterm-Always",
+    "EV-PLACE-0001",
+    "EV-PLACE-0003",
+    "EV-PLACE-0007",
+    "EV-PLACE-0009",
+    "EV-PLACE-0011",
+    "EV-PLACE-0013",
+    "EV-PLACE-0005",
+    "EV-TAGNT-0002"
+  ],
+  "warnings": [
+    "RUF local text source is disabled by manifest policy; packet excludes RUF prose.",
+    "Supplemental token estimate (182248) exceeds budget (4500); Aquifer exegetical notes and dictionary evidence retained for audit.",
+    "Dictionary chunks selected 2/78 (source-aware selection; full set remains in Evidence Packet)."
+  ],
+  "estimated_tokens": 1688,
+  "target_tokens": 2200,
+  "token_budget": 3500,
+  "max_tokens": 3500,
+  "truncated": false,
+  "evidence_packet_build_id": "kb-phase4e-acai-full-runtime-v1",
+  "selection_stats": {
+    "candidates": 107,
+    "selected": 15,
+    "candidate_evidence_count": 107,
+    "selected_evidence_count": 15,
+    "dropped_budget": 0,
+    "dropped_by_source_budget": 4,
+    "dropped_redundant": 0,
+    "dropped_type_budget": 4,
+    "dropped_target": 88,
+    "dropped_by_target": 88,
+    "tokens_by_type": {
+      "dictionary": 806,
+      "entity": 321,
+      "background": 521,
+      "passage": 40
+    },
+    "selected_by_tier": {
+      "primary": 14,
+      "core": 1
+    },
+    "coverage_segments": [
+      {
+        "segment": "1-10",
+        "covered": false,
+        "note_count": 0
+      },
+      {
+        "segment": "11-20",
+        "covered": false,
+        "note_count": 0
+      },
+      {
+        "segment": "21-30",
+        "covered": false,
+        "note_count": 0
+      },
+      {
+        "segment": "31-40",
+        "covered": false,
+        "note_count": 0
+      },
+      {
+        "segment": "41-42",
+        "covered": false,
+        "note_count": 0
+      }
+    ],
+    "study_notes_candidates": 0,
+    "study_notes_selected": 0,
+    "dictionary_candidates": 78,
+    "dictionary_selected": 2,
+    "linguistic_selected": 0,
+    "places_background_selected": 7,
+    "aquifer_candidates": 0,
+    "aquifer_selected": 0,
+    "target_kb_tokens": 2200,
+    "max_kb_tokens": 3500,
+    "actual_kb_tokens": 1688,
+    "unused_target_kb_tokens": 512,
+    "unused_max_kb_tokens": 1812,
+    "source_diversity": {
+      "linguistic": 1,
+      "study_notes": 0,
+      "dictionary": 2,
+      "acai": 5,
+      "places_background": 7,
+      "other": 0
+    }
+  }
+}

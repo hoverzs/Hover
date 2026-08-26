@@ -658,3 +658,69 @@ def test_21_original_text_and_exegesis_use_separate_warning_state():
     # A modul maga NEM ismeri a session-kulcsokat -- az app.py kotesi
     # retege felelos a kulon kulcsokert (ld. 18-20. teszt: a ket kulcs
     # fuggetlenul nullazodik/toltodik).
+
+
+# =============================================================================
+# Phase 5K-C — false-positive audit (John 4 / Luke 10)
+# =============================================================================
+
+
+def test_5kc_john4_bare_strong_ids_match_lettered_tagnt_variants():
+    """TAGNT stores G4151G / G1487G / G1492H|I; model cites bare G####."""
+    text = "Kulcsszavak: G4151, G1487, G1492."
+    assert check_original_language_grounding(text, "Jn 4,1-42") == []
+
+
+def test_5kc_luke10_surface_forms_ignore_tagnt_trailing_punctuation():
+    text = "A példabeszédben: ἐσπλαγχνίσθη, ζήσῃ, πορεύου."
+    assert check_original_language_grounding(text, "Lk 10,25-37") == []
+
+
+def test_5kc_exact_surface_form_and_lemma_and_strong_still_pass():
+    # Exact Jn 3,16 surface + lemma + Strong (already covered, keep matrix).
+    text = "ἠγάπησεν / ἀγαπάω / G0025"
+    assert check_original_language_grounding(text, "Jn 3,16") == []
+
+
+def test_5kc_normalized_accentless_surface_still_passes():
+    accentless = unicodedata.normalize(
+        "NFC",
+        "".join(
+            ch
+            for ch in unicodedata.normalize("NFD", "ἠγάπησεν")
+            if not unicodedata.combining(ch)
+        ),
+    )
+    assert check_original_language_grounding(accentless, "Jn 3,16") == []
+
+
+def test_5kc_out_of_passage_real_greek_still_warns():
+    # σπλαγχνίζω is real NT Greek (Luke 10) but not in Jn 4,1-42.
+    warnings = check_original_language_grounding("σπλαγχνίζω", "Jn 4,1-42")
+    assert len(warnings) == 1
+    assert warnings[0].category == GroundingCategory.GLOBAL_OTHER_PASSAGE
+
+
+def test_5kc_invented_greek_and_strong_still_warn():
+    warnings = check_original_language_grounding(
+        "ξψζθφ és G19999",
+        "Jn 4,1-42",
+    )
+    by_kind = {w.kind: w.category for w in warnings}
+    assert by_kind["greek_word"] == GroundingCategory.UNKNOWN
+    assert by_kind["greek_strong"] in {
+        GroundingCategory.UNKNOWN,
+        GroundingCategory.INVALID_STRONG_ID,
+    }
+
+
+def test_5kc_vocabulary_strips_tagnt_punctuation_but_keeps_letters():
+    vocab = build_passage_vocabulary("Lk 10,25-37")
+    assert "ἐσπλαγχνίσθη" in vocab.greek_surface_forms
+    assert "ἐσπλαγχνίσθη," not in vocab.greek_surface_forms
+    assert "ζήσῃ" in vocab.greek_surface_forms
+    assert "πορεύου" in vocab.greek_surface_forms
+    john = build_passage_vocabulary("Jn 4,1-42")
+    assert "G4151" in john.greek_strong_ids
+    assert "G1487" in john.greek_strong_ids
+    assert "G1492" in john.greek_strong_ids

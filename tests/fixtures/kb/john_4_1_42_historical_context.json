@@ -1,0 +1,255 @@
+{
+  "estimated_tokens": 671,
+  "evidence_ids": [
+    "EV-PLACE-0005",
+    "EV-PLACE-0006",
+    "EV-PLACE-0001",
+    "EV-PLACE-0003",
+    "EV-PLACE-0007",
+    "EV-PLACE-0009",
+    "EV-PLACE-0011",
+    "EV-PLACE-0013",
+    "EV-TAGNT-0002"
+  ],
+  "evidence_packet_build_id": "kb-phase2a-john4-pilot-v1",
+  "max_tokens": 3500,
+  "passage": "John.4.1-42",
+  "passage_display": "Jn 4,1-42",
+  "profile": "historical_context",
+  "schema_version": "2",
+  "sections": [
+    {
+      "items": [
+        {
+          "evidence_id": "EV-TAGNT-0002",
+          "item_type": "passage_scope",
+          "metadata": {
+            "budget_type": "passage",
+            "canonical_scope": "John.4.1-42",
+            "selection_specificity": 50,
+            "selection_tier": "core"
+          },
+          "relevance_score": 50,
+          "source_id": "stepbible_tagnt",
+          "text": "Historical context scope: Jn 4,1-42 (John.4.1-42)"
+        }
+      ],
+      "type": "passage"
+    },
+    {
+      "items": [
+        {
+          "evidence_id": "EV-PLACE-0001",
+          "item_type": "passage_place_link",
+          "metadata": {
+            "budget_type": "background",
+            "canonical_scope": "Jn 4,3",
+            "passage": "Jn 4,3",
+            "place_id": "galilee_1",
+            "selection_specificity": 92,
+            "selection_tier": "primary"
+          },
+          "relevance_score": 96,
+          "source_id": "biblical_places_passage_links",
+          "text": "Galilea (galilee_1) linked to passage via Jn 4,3: OpenBible vers-hivatkozásból generált helykapcsolat. (32.76000, 35.52700)"
+        },
+        {
+          "evidence_id": "EV-PLACE-0003",
+          "item_type": "passage_place_link",
+          "metadata": {
+            "budget_type": "background",
+            "canonical_scope": "Jn 4,20",
+            "passage": "Jn 4,20",
+            "place_id": "jerusalem",
+            "selection_specificity": 92,
+            "selection_tier": "primary"
+          },
+          "relevance_score": 96,
+          "source_id": "biblical_places_passage_links",
+          "text": "Jeruzsálem (jerusalem) linked to passage via Jn 4,20: OpenBible vers-hivatkozásból generált helykapcsolat. (31.77667, 35.23417)"
+        },
+        {
+          "evidence_id": "EV-PLACE-0007",
+          "item_type": "passage_place_link",
+          "metadata": {
+            "budget_type": "background",
+            "canonical_scope": "Jn 4,3",
+            "passage": "Jn 4,3",
+            "place_id": "judea_1",
+            "selection_specificity": 92,
+            "selection_tier": "primary"
+          },
+          "relevance_score": 96,
+          "source_id": "biblical_places_passage_links",
+          "text": "Júdea (judea_1) linked to passage via Jn 4,3: OpenBible vers-hivatkozásból generált helykapcsolat. (31.77667, 35.23417)"
+        },
+        {
+          "evidence_id": "EV-PLACE-0009",
+          "item_type": "passage_place_link",
+          "metadata": {
+            "budget_type": "background",
+            "canonical_scope": "Jn 4,20",
+            "passage": "Jn 4,20",
+            "place_id": "mount_gerizim",
+            "selection_specificity": 92,
+            "selection_tier": "primary"
+          },
+          "relevance_score": 96,
+          "source_id": "biblical_places_passage_links",
+          "text": "Garizim-hegy (mount_gerizim) linked to passage via Jn 4,20: OpenBible vers-hivatkozásból generált helykapcsolat. (32.19944, 35.27278)"
+        },
+        {
+          "evidence_id": "EV-PLACE-0011",
+          "item_type": "passage_place_link",
+          "metadata": {
+            "budget_type": "background",
+            "canonical_scope": "Jn 4,4",
+            "passage": "Jn 4,4",
+            "place_id": "samaria_2",
+            "selection_specificity": 92,
+            "selection_tier": "primary"
+          },
+          "relevance_score": 96,
+          "source_id": "biblical_places_passage_links",
+          "text": "Samária vidéke (samaria_2) linked to passage via Jn 4,4: OpenBible vers-hivatkozásból generált helykapcsolat. (32.27611, 35.19500)"
+        },
+        {
+          "evidence_id": "EV-PLACE-0013",
+          "item_type": "passage_place_link",
+          "metadata": {
+            "budget_type": "background",
+            "canonical_scope": "Jn 4,5",
+            "passage": "Jn 4,5",
+            "place_id": "sychar",
+            "selection_specificity": 92,
+            "selection_tier": "primary"
+          },
+          "relevance_score": 96,
+          "source_id": "biblical_places_passage_links",
+          "text": "Sikár (sychar) linked to passage via Jn 4,5: OpenBible vers-hivatkozásból generált helykapcsolat. (32.21776, 35.28897)"
+        }
+      ],
+      "type": "places"
+    },
+    {
+      "items": [
+        {
+          "evidence_id": "EV-PLACE-0005",
+          "item_type": "historical_enrichment",
+          "metadata": {
+            "budget_type": "background",
+            "confidence": "high",
+            "place_id": "jerusalem",
+            "section_key": "biblical_significance",
+            "selection_specificity": 98,
+            "selection_tier": "primary"
+          },
+          "relevance_score": 100,
+          "source_id": "place_enrichments_overlay",
+          "text": "Jeruzsálem a passage-indexben 956 bibliai hivatkozáshoz kapcsolódik. A route-adatok 3 bibliai útvonalhoz kötik. Jeruzsálem a bibliai elbeszélés központi városa, a Templom és több újszövetségi esemény helyszíne."
+        },
+        {
+          "evidence_id": "EV-PLACE-0006",
+          "item_type": "historical_enrichment",
+          "metadata": {
+            "budget_type": "background",
+            "confidence": "high",
+            "place_id": "jerusalem",
+            "section_key": "key_events",
+            "selection_specificity": 98,
+            "selection_tier": "primary"
+          },
+          "relevance_score": 100,
+          "source_id": "place_enrichments_overlay",
+          "text": "Felmegy és köszönti a gyülekezetet; a route ezt Jeruzsálem valószínű értelmezéseként jelöli. Felmennek Jeruzsálembe, ahol a testvérek fogadják őket. Pál Jeruzsálemben kerül őrizetbe, majd a továbbszállítás előkészítése megtörténik. (ApCsel 18,22, ApCsel 21,15-17, ApCsel 21,17-23,22)"
+        }
+      ],
+      "type": "historical"
+    }
+  ],
+  "selection_stats": {
+    "actual_kb_tokens": 671,
+    "aquifer_candidates": 0,
+    "aquifer_selected": 0,
+    "candidate_evidence_count": 21,
+    "candidates": 21,
+    "coverage_segments": [
+      {
+        "covered": false,
+        "note_count": 0,
+        "segment": "1-10"
+      },
+      {
+        "covered": false,
+        "note_count": 0,
+        "segment": "11-20"
+      },
+      {
+        "covered": false,
+        "note_count": 0,
+        "segment": "21-30"
+      },
+      {
+        "covered": false,
+        "note_count": 0,
+        "segment": "31-40"
+      },
+      {
+        "covered": false,
+        "note_count": 0,
+        "segment": "41-42"
+      }
+    ],
+    "dictionary_candidates": 0,
+    "dictionary_selected": 0,
+    "dropped_budget": 0,
+    "dropped_by_source_budget": 0,
+    "dropped_by_target": 12,
+    "dropped_redundant": 0,
+    "dropped_target": 12,
+    "dropped_type_budget": 0,
+    "historical_background_candidates": 14,
+    "historical_background_selected": 8,
+    "historical_coverage_status": "ok",
+    "linguistic_selected": 0,
+    "max_kb_tokens": 3500,
+    "places_background_selected": 8,
+    "selected": 9,
+    "selected_by_tier": {
+      "core": 1,
+      "primary": 8
+    },
+    "selected_evidence_count": 9,
+    "source_diversity": {
+      "acai": 0,
+      "dictionary": 0,
+      "linguistic": 1,
+      "other": 0,
+      "places_background": 8,
+      "study_notes": 0
+    },
+    "study_notes_candidates": 0,
+    "study_notes_selected": 0,
+    "target_kb_tokens": 2200,
+    "tokens_by_type": {
+      "background": 631,
+      "passage": 40
+    },
+    "unused_max_kb_tokens": 2829,
+    "unused_target_kb_tokens": 1529
+  },
+  "source_ids": [
+    "biblical_places_passage_links",
+    "place_enrichments_overlay",
+    "stepbible_tagnt"
+  ],
+  "target_tokens": 2200,
+  "token_budget": 3500,
+  "truncated": false,
+  "warnings": [
+    "RUF local text source is disabled by manifest policy; packet excludes RUF prose.",
+    "Optional source aquifer_open_study_notes is disabled.",
+    "Optional source aquifer_open_bible_dictionary is disabled.",
+    "Optional source acai is disabled."
+  ]
+}

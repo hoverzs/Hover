@@ -173,10 +173,10 @@ _BOOK_DEFS: list[tuple[BookInfo, tuple[str, ...]]] = [
     (BookInfo("MAL", "Mal"), ("Mal", "Malakiás", "Malakias")),
     (BookInfo("MAT", "Mt"), ("Mt", "Mat", "Máté", "Mate", "Matthew")),
     (BookInfo("MRK", "Mk"), ("Mk", "Márk", "Mark", "Mar")),
-    (BookInfo("LUK", "Lk"), ("Lk", "Luk", "Lukács", "Luka")),
+    (BookInfo("LUK", "Lk"), ("Lk", "Luk", "Lukács", "Luka", "Luke")),
     (BookInfo("JHN", "Jn"), ("Jn", "János", "Janos", "John", "Jhn")),
-    (BookInfo("ACT", "ApCsel"), ("ApCsel", "Apcsel", "Csel", "Apostolok", "Act")),
-    (BookInfo("ROM", "Róm"), ("Rom", "Róm", "Róma", "Roma", "Rómaiak", "Romaiak")),
+    (BookInfo("ACT", "ApCsel"), ("ApCsel", "Apcsel", "Csel", "Apostolok", "Act", "Acts")),
+    (BookInfo("ROM", "Róm"), ("Rom", "Róm", "Róma", "Roma", "Rómaiak", "Romaiak", "Romans")),
     (BookInfo("1CO", "1Kor"), ("1Kor", "IKor", "1Cor", "1Korinthus", "1Korinthusiak")),
     (BookInfo("2CO", "2Kor"), ("2Kor", "IIKor", "2Cor", "2Korinthus", "2Korinthusiak")),
     (BookInfo("GAL", "Gal"), ("Gal", "Galata", "Galaták", "Galatak")),
@@ -250,6 +250,8 @@ def parse_bible_reference(reference: str) -> ParsedReference:
             return ParsedReference(info, 1, None, None, raw)
         raise ValueError(f"Add meg a fejezetet is (pl. {info.abbr} 3 vagy {info.abbr} 3,16).")
     rest_norm = re.sub(r"\s+", "", rest.replace(":", ","))
+    # English-style chapter.verse(-verse) → chapter,verse(-verse)
+    rest_norm = re.sub(r"^(\d+)\.(\d+)", r"\1,\2", rest_norm)
     if not re.fullmatch(r"[\d,\-]+", rest_norm):
         raise ValueError(f"Hibás fejezet/vers rész: {rest!r}")
     if "," in rest_norm:

@@ -1,0 +1,516 @@
+{
+  "schema_version": "2",
+  "passage": "John.4.1-42",
+  "passage_display": "Jn 4,1-42",
+  "profile": "exegesis",
+  "sections": [
+    {
+      "type": "passage",
+      "items": [
+        {
+          "text": "Canonical passage: John.4.1-42 (Jn 4,1-42)",
+          "evidence_id": "EV-TAGNT-0002",
+          "source_id": "stepbible_tagnt",
+          "relevance_score": 100,
+          "item_type": "passage",
+          "metadata": {
+            "canonical_scope": "John.4.1-42",
+            "selection_tier": "core",
+            "selection_specificity": 50,
+            "budget_type": "passage"
+          }
+        },
+        {
+          "text": "Greek NT coverage: 42 verses, 723 tokens (compact view; full set in Evidence Packet).",
+          "evidence_id": "EV-TAGNT-0001",
+          "source_id": "stepbible_tagnt",
+          "relevance_score": 98,
+          "item_type": "passage_summary",
+          "metadata": {
+            "verse_count": 42,
+            "token_count": 723,
+            "canonical_scope": "John.4.1-42",
+            "selection_tier": "core",
+            "selection_specificity": 50,
+            "budget_type": "passage"
+          }
+        }
+      ]
+    },
+    {
+      "type": "linguistic",
+      "items": [
+        {
+          "text": "Jn 4,1 — ὁ (G3588), morph=T-NSM, \"the/this/who\" / \"a, az\"",
+          "evidence_id": "EV-LEX-0003",
+          "source_id": "stepbible_tbesg",
+          "relevance_score": 88,
+          "item_type": "linguistic",
+          "metadata": {
+            "strong_id": "G3588",
+            "verse": 1,
+            "lemma": "ὁ",
+            "canonical_scope": "John.4.1",
+            "selection_tier": "primary",
+            "selection_specificity": 95,
+            "budget_type": "linguistic"
+          }
+        },
+        {
+          "text": "Jn 4,2 — αὐτὸς (G0846), pronoun, \"it/s/he\" / \"ő; maga\"",
+          "evidence_id": "EV-LEX-0004",
+          "source_id": "stepbible_tbesg",
+          "relevance_score": 88,
+          "item_type": "linguistic",
+          "metadata": {
+            "strong_id": "G0846",
+            "verse": 2,
+            "lemma": "αὐτός",
+            "canonical_scope": "John.4.2",
+            "selection_tier": "primary",
+            "selection_specificity": 95,
+            "budget_type": "linguistic"
+          }
+        },
+        {
+          "text": "Jn 4,1 — καὶ (G2532), conjunction, \"and\" / \"és\"",
+          "evidence_id": "EV-LEX-0005",
+          "source_id": "stepbible_tbesg",
+          "relevance_score": 88,
+          "item_type": "linguistic",
+          "metadata": {
+            "strong_id": "G2532",
+            "verse": 1,
+            "lemma": "καί",
+            "canonical_scope": "John.4.1",
+            "selection_tier": "primary",
+            "selection_specificity": 95,
+            "budget_type": "linguistic"
+          }
+        },
+        {
+          "text": "Jn 4,6 — ἦν (G1510), verb, \"to be\" / \"van; lenni\"",
+          "evidence_id": "EV-LEX-0006",
+          "source_id": "stepbible_tbesg",
+          "relevance_score": 88,
+          "item_type": "linguistic",
+          "metadata": {
+            "strong_id": "G1510",
+            "verse": 6,
+            "lemma": "εἰμί",
+            "canonical_scope": "John.4.6",
+            "selection_tier": "primary",
+            "selection_specificity": 95,
+            "budget_type": "linguistic"
+          }
+        },
+        {
+          "text": "Jn 4,7 — λέγει (G3004G), verb, \"mond; szól\"",
+          "evidence_id": "EV-LEX-0007",
+          "source_id": "lexicon_hu_overlay",
+          "relevance_score": 88,
+          "item_type": "linguistic",
+          "metadata": {
+            "strong_id": "G3004G",
+            "verse": 7,
+            "lemma": "λέγω",
+            "canonical_scope": "John.4.7",
+            "selection_tier": "primary",
+            "selection_specificity": 95,
+            "budget_type": "linguistic"
+          }
+        },
+        {
+          "text": "Jn 4,9 — σὺ (G4771), pronoun, \"you\" / \"te\"",
+          "evidence_id": "EV-LEX-0008",
+          "source_id": "stepbible_tbesg",
+          "relevance_score": 88,
+          "item_type": "linguistic",
+          "metadata": {
+            "strong_id": "G4771",
+            "verse": 9,
+            "lemma": "σύ",
+            "canonical_scope": "John.4.9",
+            "selection_tier": "primary",
+            "selection_specificity": 95,
+            "budget_type": "linguistic"
+          }
+        },
+        {
+          "text": "Jn 4,1 — ὅτι (G3754G), conjunction, \"hogy; mert\"",
+          "evidence_id": "EV-LEX-0009",
+          "source_id": "lexicon_hu_overlay",
+          "relevance_score": 88,
+          "item_type": "linguistic",
+          "metadata": {
+            "strong_id": "G3754G",
+            "verse": 1,
+            "lemma": "ὅτι",
+            "canonical_scope": "John.4.1",
+            "selection_tier": "primary",
+            "selection_specificity": 95,
+            "budget_type": "linguistic"
+          }
+        },
+        {
+          "text": "Jn 4,7 — γυνὴ (G1135G), noun, \"nő\"",
+          "evidence_id": "EV-LEX-0010",
+          "source_id": "lexicon_hu_overlay",
+          "relevance_score": 88,
+          "item_type": "linguistic",
+          "metadata": {
+            "strong_id": "G1135G",
+            "verse": 7,
+            "lemma": "γυνή",
+            "canonical_scope": "John.4.7",
+            "selection_tier": "primary",
+            "selection_specificity": 95,
+            "budget_type": "linguistic"
+          }
+        },
+        {
+          "text": "Jn 4,1 — Ἰησοῦς (G2424G), noun, \"Jézus\"",
+          "evidence_id": "EV-LEX-0011",
+          "source_id": "lexicon_hu_overlay",
+          "relevance_score": 88,
+          "item_type": "linguistic",
+          "metadata": {
+            "strong_id": "G2424G",
+            "verse": 1,
+            "lemma": "Ἰησοῦς",
+            "canonical_scope": "John.4.1",
+            "selection_tier": "primary",
+            "selection_specificity": 95,
+            "budget_type": "linguistic"
+          }
+        },
+        {
+          "text": "Jn 4,7 — μοι (G3165), pronoun, \"me\" / \"engem\"",
+          "evidence_id": "EV-LEX-0012",
+          "source_id": "stepbible_tbesg",
+          "relevance_score": 88,
+          "item_type": "linguistic",
+          "metadata": {
+            "strong_id": "G3165",
+            "verse": 7,
+            "lemma": "μέ",
+            "canonical_scope": "John.4.7",
+            "selection_tier": "primary",
+            "selection_specificity": 95,
+            "budget_type": "linguistic"
+          }
+        },
+        {
+          "text": "Jn 4,5 — ὃ (G3739), morph=R-ASN, \"which\" / \"aki; amely\"",
+          "evidence_id": "EV-LEX-0013",
+          "source_id": "stepbible_tbesg",
+          "relevance_score": 88,
+          "item_type": "linguistic",
+          "metadata": {
+            "strong_id": "G3739",
+            "verse": 5,
+            "lemma": "ὅς",
+            "canonical_scope": "John.4.5",
+            "selection_tier": "primary",
+            "selection_specificity": 95,
+            "budget_type": "linguistic"
+          }
+        },
+        {
+          "text": "Jn 4,5 — ἔρχεται (G2064), verb, \"to come/go\" / \"jön; megy\"",
+          "evidence_id": "EV-LEX-0014",
+          "source_id": "stepbible_tbesg",
+          "relevance_score": 88,
+          "item_type": "linguistic",
+          "metadata": {
+            "strong_id": "G2064",
+            "verse": 5,
+            "lemma": "ἔρχομαι",
+            "canonical_scope": "John.4.5",
+            "selection_tier": "primary",
+            "selection_specificity": 95,
+            "budget_type": "linguistic"
+          }
+        }
+      ]
+    },
+    {
+      "type": "exegetical",
+      "items": [
+        {
+          "text": "John 4:10 [John.4.10] — Shechem had no rivers. So it had no living water, which usually means fresh, flowing water from a stream or spring (see “ Living Water ” Theme Note). However, Jesus was speaking symbolically. The gift he offered was not ordinary water. It was the Holy Spirit, whom God would give to believers ( 7:37–39 ). (Source: Aquifer Open Study Notes, CC-BY-SA-4.0)",
+          "evidence_id": "EV-AQUIFER-19124-c001",
+          "source_id": "aquifer_open_study_notes",
+          "relevance_score": 93,
+          "item_type": "exegetical_note",
+          "metadata": {
+            "article_id": "19124",
+            "chunk_id": "19124-c001",
+            "license": "CC-BY-SA-4.0",
+            "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "attribution": "Aquifer Open Study Notes © 2026 Mission Mutual, adapted from Tyndale Open Study Notes © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0.",
+            "canonical_scope": "John.4.10",
+            "passage": "John.4.10",
+            "selection_tier": "primary",
+            "selection_specificity": 100,
+            "budget_type": "exegetical"
+          }
+        },
+        {
+          "text": "John 4:11 [John.4.11] — Jacob’s well was more than 30 meters (about 100 feet) deep. A person needed a long rope and a container to draw water from it. The woman focused on the physical water in the well. She did not yet understand the deeper meaning of what Jesus was saying. At that time, she was still in spiritual darkness. (Source: Aquifer Open Study Notes, CC-BY-SA-4.0)",
+          "evidence_id": "EV-AQUIFER-19125-c001",
+          "source_id": "aquifer_open_study_notes",
+          "relevance_score": 93,
+          "item_type": "exegetical_note",
+          "metadata": {
+            "article_id": "19125",
+            "chunk_id": "19125-c001",
+            "license": "CC-BY-SA-4.0",
+            "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "attribution": "Aquifer Open Study Notes © 2026 Mission Mutual, adapted from Tyndale Open Study Notes © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0.",
+            "canonical_scope": "John.4.11",
+            "passage": "John.4.11",
+            "selection_tier": "primary",
+            "selection_specificity": 100,
+            "budget_type": "exegetical"
+          }
+        },
+        {
+          "text": "John 4:24 [John.4.24] — in spirit and in truth : In Greek, one preposition (a connecting word) is used for both words. This shows that spirit and truth form one united idea. True worship happens when God’s Spirit makes God’s truth known to a person. Worship is not only about a place or a ceremony. It is about responding to God with the help of his Spirit and according to what is true about him. Jesus himself is the Truth ( 14:6 ). The Spirit is also called the Spirit of truth ( 14:17 ; 15:26 ). Together, the Spirit and the Truth make true worship possible. (Source: Aquifer Open Study Notes, CC-BY-SA-4.0)",
+          "evidence_id": "EV-AQUIFER-19134-c001",
+          "source_id": "aquifer_open_study_notes",
+          "relevance_score": 93,
+          "item_type": "exegetical_note",
+          "metadata": {
+            "article_id": "19134",
+            "chunk_id": "19134-c001",
+            "license": "CC-BY-SA-4.0",
+            "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "attribution": "Aquifer Open Study Notes © 2026 Mission Mutual, adapted from Tyndale Open Study Notes © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0.",
+            "canonical_scope": "John.4.24",
+            "passage": "John.4.24",
+            "selection_tier": "primary",
+            "selection_specificity": 100,
+            "budget_type": "exegetical"
+          }
+        },
+        {
+          "text": "John 4:35 [John.4.35] — four months until the harvest : Jesus referred to a common saying about farming. Farmers usually waited about four months between planting seed and gathering the crop. In Samaria, it was likely the time of harvest, and the fields were ready to be gathered. Jesus used this picture to speak about people, not crops. He had spoken with the woman at the well and planted spiritual seed (God’s message). Soon after, many Samaritans believed in him ( 4:39–42 ). In this way, Jesus was already gathering a harvest of faith. (Source: Aquifer Open Study Notes, CC-BY-SA-4.0)",
+          "evidence_id": "EV-AQUIFER-19139-c001",
+          "source_id": "aquifer_open_study_notes",
+          "relevance_score": 93,
+          "item_type": "exegetical_note",
+          "metadata": {
+            "article_id": "19139",
+            "chunk_id": "19139-c001",
+            "license": "CC-BY-SA-4.0",
+            "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "attribution": "Aquifer Open Study Notes © 2026 Mission Mutual, adapted from Tyndale Open Study Notes © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0.",
+            "canonical_scope": "John.4.35",
+            "passage": "John.4.35",
+            "selection_tier": "primary",
+            "selection_specificity": 100,
+            "budget_type": "exegetical"
+          }
+        },
+        {
+          "text": "John 4:42 [John.4.42] — The Samaritans had heard Jesus and believed his message for themselves. They were no longer depending only on the woman’s testimony. They called him Savior of the world (see also 1 John 4:14 ). This title shows that they understood something important. Salvation was not limited to one ethnic group. As Samaritans, they knew they were separated from the Jews. Yet they recognized that Jesus came for all people. His mission was not only for Jews, but for the whole world ( John 1:4–12 ; compare 12:20–26 ). (Source: Aquifer Open Study Notes, CC-BY-SA-4.0)",
+          "evidence_id": "EV-AQUIFER-19144-c001",
+          "source_id": "aquifer_open_study_notes",
+          "relevance_score": 93,
+          "item_type": "exegetical_note",
+          "metadata": {
+            "article_id": "19144",
+            "chunk_id": "19144-c001",
+            "license": "CC-BY-SA-4.0",
+            "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "attribution": "Aquifer Open Study Notes © 2026 Mission Mutual, adapted from Tyndale Open Study Notes © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0.",
+            "canonical_scope": "John.4.42",
+            "passage": "John.4.42",
+            "selection_tier": "primary",
+            "selection_specificity": 100,
+            "budget_type": "exegetical"
+          }
+        }
+      ]
+    },
+    {
+      "type": "dictionary",
+      "items": [
+        {
+          "text": "Abba — ABBA: ABBA Aramaic word for “father,” which is applied to God in Mark 14:36 ; Romans 8:15 ; and Galatians 4:6 . The name expresses a very intimate and inseparable relationship between Christ and the Father, and between believers (as children) and God (as Father). (Source: Aquifer Open Bible Dictionary, CC-BY-SA-4.0)",
+          "evidence_id": "EV-DICT-3268-c001",
+          "source_id": "aquifer_open_bible_dictionary",
+          "relevance_score": 78,
+          "item_type": "dictionary_background",
+          "metadata": {
+            "article_id": "3268",
+            "chunk_id": "3268-c001",
+            "heading": "ABBA",
+            "index_reference": "abba",
+            "selection_reason": "entity_acai_dictionary_link",
+            "passage_linked": true,
+            "entity_topic_count": 1,
+            "entity_expansion": {
+              "passage": "John.4.1-42",
+              "entity_id": "acai-deity-Lord",
+              "acai_id": "deity:Lord",
+              "entity_type": "deity",
+              "canonical_name": "LORD",
+              "dictionary_article_id": "3268",
+              "dictionary_title": "Abba",
+              "match_method": "content_id",
+              "mapping_method": "explicit",
+              "priority_tier": 1
+            },
+            "license": "CC-BY-SA-4.0",
+            "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "attribution": "Aquifer Open Bible Dictionary © 2026 Mission Mutual, adapted from Tyndale Open Bible Dictionary © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0.",
+            "upstream_commit": "3c4773e8746c9b051ce754c5a01ceddaabea84ce",
+            "upstream_resource_version": "1.1.2",
+            "canonical_scope": "John.4.1-42",
+            "selection_tier": "supporting",
+            "selection_specificity": 95,
+            "budget_type": "dictionary"
+          }
+        }
+      ]
+    },
+    {
+      "type": "entities",
+      "items": [
+        {
+          "text": "LORD — deity — explicitly referenced in Jn 4,1-42",
+          "evidence_id": "ENT-acai-deity-Lord",
+          "source_id": "acai",
+          "relevance_score": 70,
+          "item_type": "entity_summary",
+          "metadata": {
+            "entity_id": "acai-deity-Lord",
+            "external_id": "deity:Lord",
+            "entity_type": "deity",
+            "budget_type": "entity",
+            "canonical_scope": "John.4.1-42",
+            "selection_tier": "supporting",
+            "selection_specificity": 50
+          }
+        }
+      ]
+    }
+  ],
+  "source_ids": [
+    "acai",
+    "aquifer_open_bible_dictionary",
+    "aquifer_open_study_notes",
+    "lexicon_hu_overlay",
+    "stepbible_tagnt",
+    "stepbible_tbesg"
+  ],
+  "evidence_ids": [
+    "EV-TAGNT-0002",
+    "EV-TAGNT-0001",
+    "EV-AQUIFER-19124-c001",
+    "EV-AQUIFER-19125-c001",
+    "EV-AQUIFER-19134-c001",
+    "EV-AQUIFER-19139-c001",
+    "EV-AQUIFER-19144-c001",
+    "EV-LEX-0003",
+    "EV-LEX-0004",
+    "EV-LEX-0005",
+    "EV-LEX-0006",
+    "EV-LEX-0007",
+    "EV-LEX-0008",
+    "EV-LEX-0009",
+    "EV-LEX-0010",
+    "EV-LEX-0011",
+    "EV-LEX-0012",
+    "EV-LEX-0013",
+    "EV-LEX-0014",
+    "EV-DICT-3268-c001",
+    "ENT-acai-deity-Lord"
+  ],
+  "warnings": [
+    "RUF local text source is disabled by manifest policy; packet excludes RUF prose.",
+    "Supplemental token estimate (182248) exceeds budget (4500); Aquifer exegetical notes and dictionary evidence retained for audit.",
+    "Aquifer notes selected 5/24 (source-aware selection; full set remains in Evidence Packet).",
+    "Dictionary chunks selected 1/78 (source-aware selection; full set remains in Evidence Packet)."
+  ],
+  "estimated_tokens": 2320,
+  "target_tokens": 2500,
+  "token_budget": 4500,
+  "max_tokens": 4500,
+  "truncated": false,
+  "evidence_packet_build_id": "kb-phase4e-acai-full-runtime-v1",
+  "selection_stats": {
+    "candidates": 138,
+    "selected": 21,
+    "candidate_evidence_count": 138,
+    "selected_evidence_count": 21,
+    "dropped_budget": 0,
+    "dropped_by_source_budget": 0,
+    "dropped_redundant": 0,
+    "dropped_type_budget": 0,
+    "dropped_target": 117,
+    "dropped_by_target": 117,
+    "tokens_by_type": {
+      "passage": 97,
+      "exegetical": 1195,
+      "linguistic": 639,
+      "dictionary": 326,
+      "entity": 63
+    },
+    "selected_by_tier": {
+      "core": 2,
+      "primary": 17,
+      "supporting": 2
+    },
+    "coverage_segments": [
+      {
+        "segment": "1-10",
+        "covered": true,
+        "note_count": 1
+      },
+      {
+        "segment": "11-20",
+        "covered": true,
+        "note_count": 1
+      },
+      {
+        "segment": "21-30",
+        "covered": true,
+        "note_count": 1
+      },
+      {
+        "segment": "31-40",
+        "covered": true,
+        "note_count": 1
+      },
+      {
+        "segment": "41-42",
+        "covered": true,
+        "note_count": 1
+      }
+    ],
+    "study_notes_candidates": 24,
+    "study_notes_selected": 5,
+    "dictionary_candidates": 78,
+    "dictionary_selected": 1,
+    "linguistic_selected": 12,
+    "places_background_selected": 0,
+    "aquifer_candidates": 24,
+    "aquifer_selected": 5,
+    "target_kb_tokens": 2500,
+    "max_kb_tokens": 4500,
+    "actual_kb_tokens": 2320,
+    "unused_target_kb_tokens": 180,
+    "unused_max_kb_tokens": 2180,
+    "source_diversity": {
+      "linguistic": 14,
+      "study_notes": 5,
+      "dictionary": 1,
+      "acai": 1,
+      "places_background": 0,
+      "other": 0
+    }
+  }
+}

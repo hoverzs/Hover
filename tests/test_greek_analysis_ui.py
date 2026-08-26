@@ -698,7 +698,9 @@ def test_reference_status_distinguishes_supported_and_unsupported_references() -
     assert greek_reference_status("Júd 20-21") == "loaded"
     assert greek_reference_status("Zsolt 23,1") == "old_testament"
     assert greek_reference_status("") == "empty"
-    assert greek_reference_status("Jn 3") == "invalid"
+    assert greek_reference_status("Jn 3") == "needs_verses"
+    assert greek_reference_status("Lk 10") == "needs_verses"
+    assert greek_reference_status("ApCsel 2") == "needs_verses"
     assert greek_reference_status("nem igehely") == "invalid"
 
 

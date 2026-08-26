@@ -1,0 +1,254 @@
+{
+  "bundle_version": "1",
+  "pilot_id": "luke_10_25_37",
+  "pilot_scope": "Luke.10.25-37",
+  "generated_at": "2026-08-23T20:24:21Z",
+  "source_id": "aquifer_open_study_notes",
+  "upstream_repository": "https://github.com/BibleAquifer/AquiferOpenStudyNotes",
+  "upstream_commit": "8f4d7c3614e9a41495f16d7c778e9c8ed0dde808",
+  "upstream_resource_version": "1.1.2",
+  "language": "eng",
+  "license": "CC-BY-SA-4.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+  "attribution": "Aquifer Open Study Notes © 2026 Mission Mutual, adapted from Tyndale Open Study Notes © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0.",
+  "content_hash": "91336ada70c3c151a46fdaa464334bdd34e024b8f2ff9f5f189cddc786894f2d",
+  "import_issues": [],
+  "notes": [
+    {
+      "article_id": "20466",
+      "content_id": "20466",
+      "reference_id": 19634,
+      "title": "Luke 10:25",
+      "index_reference": "42010025",
+      "canonical_reference": "Luke.10.25",
+      "upstream_reference_usfm": "LUK 10:25",
+      "language": "eng",
+      "content_html": "<p><em>an expert in the law</em>: See <span data-bnType=\"resourceReference\" data-resourceId=\"20150\" data-resourceType=\"TyndaleStudyNotes\">study note on 5:17</span>.</p>",
+      "chunks": [
+        {
+          "chunk_id": "20466-c001",
+          "chunk_index": 1,
+          "content_html": "<p><em>an expert in the law</em>: See <span data-bnType=\"resourceReference\" data-resourceId=\"20150\" data-resourceType=\"TyndaleStudyNotes\">study note on 5:17</span>.</p>",
+          "content_plain": "an expert in the law : See study note on 5:17 ."
+        }
+      ],
+      "source_id": "aquifer_open_study_notes",
+      "license": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Aquifer Open Study Notes © 2026 Mission Mutual, adapted from Tyndale Open Study Notes © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0."
+    },
+    {
+      "article_id": "20467",
+      "content_id": "20467",
+      "reference_id": 19635,
+      "title": "Luke 10:27",
+      "index_reference": "42010027",
+      "canonical_reference": "Luke.10.27",
+      "upstream_reference_usfm": "LUK 10:27",
+      "language": "eng",
+      "content_html": "<p><em>Love the Lord your God</em>: Jesus identified <a href=\"https://ref.ly/Deut6:5\">Deuteronomy 6:5</a> and <a href=\"https://ref.ly/Lev19:18\">Leviticus 19:18</a> as the two most important commandments (<a href=\"https://ref.ly/Mark12:28-Mark12:34\">Mark 12:28–34</a>). <a href=\"https://ref.ly/Deut6:5\">Deuteronomy 6:5</a> is part of the prayer called the <em>Shema</em>,<em> </em>which every Jew was to repeat daily.</p>",
+      "chunks": [
+        {
+          "chunk_id": "20467-c001",
+          "chunk_index": 1,
+          "content_html": "<p><em>Love the Lord your God</em>: Jesus identified <a href=\"https://ref.ly/Deut6:5\">Deuteronomy 6:5</a> and <a href=\"https://ref.ly/Lev19:18\">Leviticus 19:18</a> as the two most important commandments (<a href=\"https://ref.ly/Mark12:28-Mark12:34\">Mark 12:28–34</a>). <a href=\"https://ref.ly/Deut6:5\">Deuteronomy 6:5</a> is part of the prayer called the <em>Shema</em>,<em> </em>which every Jew was to repeat daily.</p>",
+          "content_plain": "Love the Lord your God : Jesus identified Deuteronomy 6:5 and Leviticus 19:18 as the two most important commandments ( Mark 12:28–34 ). Deuteronomy 6:5 is part of the prayer called the Shema , which every Jew was to repeat daily."
+        }
+      ],
+      "source_id": "aquifer_open_study_notes",
+      "license": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Aquifer Open Study Notes © 2026 Mission Mutual, adapted from Tyndale Open Study Notes © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0."
+    },
+    {
+      "article_id": "20468",
+      "content_id": "20468",
+      "reference_id": 19636,
+      "title": "Luke 10:28",
+      "index_reference": "42010028",
+      "canonical_reference": "Luke.10.28",
+      "upstream_reference_usfm": "LUK 10:28",
+      "language": "eng",
+      "content_html": "<p><span><em>Do this and you will live</em>:</span> Jesus was not suggesting that people would be saved by their works. Instead, such love expresses genuine faith and devotion to the Lord.</p>",
+      "chunks": [
+        {
+          "chunk_id": "20468-c001",
+          "chunk_index": 1,
+          "content_html": "<p><span><em>Do this and you will live</em>:</span> Jesus was not suggesting that people would be saved by their works. Instead, such love expresses genuine faith and devotion to the Lord.</p>",
+          "content_plain": "Do this and you will live : Jesus was not suggesting that people would be saved by their works. Instead, such love expresses genuine faith and devotion to the Lord."
+        }
+      ],
+      "source_id": "aquifer_open_study_notes",
+      "license": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Aquifer Open Study Notes © 2026 Mission Mutual, adapted from Tyndale Open Study Notes © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0."
+    },
+    {
+      "article_id": "20469",
+      "content_id": "20469",
+      "reference_id": 19637,
+      "title": "Luke 10:29",
+      "index_reference": "42010029",
+      "canonical_reference": "Luke.10.29",
+      "upstream_reference_usfm": "LUK 10:29",
+      "language": "eng",
+      "content_html": "<p><em>Who is my neighbor?</em>: A neighbor, in this context, was normally identified as a fellow Israelite.</p>",
+      "chunks": [
+        {
+          "chunk_id": "20469-c001",
+          "chunk_index": 1,
+          "content_html": "<p><em>Who is my neighbor?</em>: A neighbor, in this context, was normally identified as a fellow Israelite.</p>",
+          "content_plain": "Who is my neighbor? : A neighbor, in this context, was normally identified as a fellow Israelite."
+        }
+      ],
+      "source_id": "aquifer_open_study_notes",
+      "license": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Aquifer Open Study Notes © 2026 Mission Mutual, adapted from Tyndale Open Study Notes © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0."
+    },
+    {
+      "article_id": "20472",
+      "content_id": "20472",
+      "reference_id": 19640,
+      "title": "Luke 10:30",
+      "index_reference": "42010030",
+      "canonical_reference": "Luke.10.30",
+      "upstream_reference_usfm": "LUK 10:30",
+      "language": "eng",
+      "content_html": "<p>The road from Jerusalem to Jericho declined 1,000 meters (3,300 feet) through rugged terrain where robbers often waited for travelers.</p>",
+      "chunks": [
+        {
+          "chunk_id": "20472-c001",
+          "chunk_index": 1,
+          "content_html": "<p>The road from Jerusalem to Jericho declined 1,000 meters (3,300 feet) through rugged terrain where robbers often waited for travelers.</p>",
+          "content_plain": "The road from Jerusalem to Jericho declined 1,000 meters (3,300 feet) through rugged terrain where robbers often waited for travelers."
+        }
+      ],
+      "source_id": "aquifer_open_study_notes",
+      "license": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Aquifer Open Study Notes © 2026 Mission Mutual, adapted from Tyndale Open Study Notes © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0."
+    },
+    {
+      "article_id": "20471",
+      "content_id": "20471",
+      "reference_id": 19639,
+      "title": "Luke 10:30–37",
+      "index_reference": "42010030-42010037",
+      "canonical_reference": "Luke.10.30-37",
+      "upstream_reference_usfm": "LUK 10:30",
+      "language": "eng",
+      "content_html": "<p>This parable shows that true neighbors love even their enemies (<a href=\"https://ref.ly/Luke10:29\">10:29</a>). True faith is not based on a person’s ethnic background or religious group, but on loving God and loving others.</p>",
+      "chunks": [
+        {
+          "chunk_id": "20471-c001",
+          "chunk_index": 1,
+          "content_html": "<p>This parable shows that true neighbors love even their enemies (<a href=\"https://ref.ly/Luke10:29\">10:29</a>). True faith is not based on a person’s ethnic background or religious group, but on loving God and loving others.</p>",
+          "content_plain": "This parable shows that true neighbors love even their enemies ( 10:29 ). True faith is not based on a person’s ethnic background or religious group, but on loving God and loving others."
+        }
+      ],
+      "source_id": "aquifer_open_study_notes",
+      "license": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Aquifer Open Study Notes © 2026 Mission Mutual, adapted from Tyndale Open Study Notes © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0."
+    },
+    {
+      "article_id": "20473",
+      "content_id": "20473",
+      "reference_id": 19641,
+      "title": "Luke 10:31",
+      "index_reference": "42010031",
+      "canonical_reference": "Luke.10.31",
+      "upstream_reference_usfm": "LUK 10:31",
+      "language": "eng",
+      "content_html": "<ul><li><p><em>a priest</em>: Priests were descendants of Aaron from the tribe of Levi (<a href=\"https://ref.ly/Exod28:1-Exod28:3\">Exodus 28:1–3</a>). They served in the temple and offered sacrifices to God. </p></li><li><p><em>passed by</em>: If Aa priest or a Levite touched a dead body, they would become ceremonially unclean and could not serve in the temple. This priest was unwilling to risk ritual impurity by helping a person in serious trouble.</p></li></ul>",
+      "chunks": [
+        {
+          "chunk_id": "20473-c001",
+          "chunk_index": 1,
+          "content_html": "<ul><li><p><em>a priest</em>: Priests were descendants of Aaron from the tribe of Levi (<a href=\"https://ref.ly/Exod28:1-Exod28:3\">Exodus 28:1–3</a>). They served in the temple and offered sacrifices to God. </p></li><li><p><em>passed by</em>: If Aa priest or a Levite touched a dead body, they would become ceremonially unclean and could not serve in the temple. This priest was unwilling to risk ritual impurity by helping a person in serious trouble.</p></li></ul>",
+          "content_plain": "a priest : Priests were descendants of Aaron from the tribe of Levi ( Exodus 28:1–3 ). They served in the temple and offered sacrifices to God. passed by : If Aa priest or a Levite touched a dead body, they would become ceremonially unclean and could not serve in the temple. This priest was unwilling to risk ritual impurity by helping a person in serious trouble."
+        }
+      ],
+      "source_id": "aquifer_open_study_notes",
+      "license": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Aquifer Open Study Notes © 2026 Mission Mutual, adapted from Tyndale Open Study Notes © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0."
+    },
+    {
+      "article_id": "20474",
+      "content_id": "20474",
+      "reference_id": 19642,
+      "title": "Luke 10:32",
+      "index_reference": "42010032",
+      "canonical_reference": "Luke.10.32",
+      "upstream_reference_usfm": "LUK 10:32",
+      "language": "eng",
+      "content_html": "<p><em>a Levite</em>: Levites were members of the tribe of Levi. They were not given a tribal homeland in Israel but were dedicated to God (<a href=\"https://ref.ly/Num3:41\">Numbers 3:41</a>, <a href=\"https://ref.ly/Num3:45\">45</a>; <a href=\"https://ref.ly/Num8:18\">8:18</a>; <a href=\"https://ref.ly/Num35:2-Num35:3\">35:2–3</a>; <a href=\"https://ref.ly/Deut18:1\">Deuteronomy 18:1</a>; <a href=\"https://ref.ly/Josh14:3\">Joshua 14:3</a>). They assisted priests in temple service.</p>",
+      "chunks": [
+        {
+          "chunk_id": "20474-c001",
+          "chunk_index": 1,
+          "content_html": "<p><em>a Levite</em>: Levites were members of the tribe of Levi. They were not given a tribal homeland in Israel but were dedicated to God (<a href=\"https://ref.ly/Num3:41\">Numbers 3:41</a>, <a href=\"https://ref.ly/Num3:45\">45</a>; <a href=\"https://ref.ly/Num8:18\">8:18</a>; <a href=\"https://ref.ly/Num35:2-Num35:3\">35:2–3</a>; <a href=\"https://ref.ly/Deut18:1\">Deuteronomy 18:1</a>; <a href=\"https://ref.ly/Josh14:3\">Joshua 14:3</a>). They assisted priests in temple service.</p>",
+          "content_plain": "a Levite : Levites were members of the tribe of Levi. They were not given a tribal homeland in Israel but were dedicated to God ( Numbers 3:41 , 45 ; 8:18 ; 35:2–3 ; Deuteronomy 18:1 ; Joshua 14:3 ). They assisted priests in temple service."
+        }
+      ],
+      "source_id": "aquifer_open_study_notes",
+      "license": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Aquifer Open Study Notes © 2026 Mission Mutual, adapted from Tyndale Open Study Notes © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0."
+    },
+    {
+      "article_id": "20475",
+      "content_id": "20475",
+      "reference_id": 19643,
+      "title": "Luke 10:33",
+      "index_reference": "42010033",
+      "canonical_reference": "Luke.10.33",
+      "upstream_reference_usfm": "LUK 10:33",
+      "language": "eng",
+      "content_html": "<p><em>a Samaritan</em>: This unexpected change in the story probably surprised the listeners. Jews and Samaritans hated each other (see <a href=\"https://ref.ly/Luke9:52-Luke9:53\">9:52–53</a>; <a href=\"https://ref.ly/Luke17:16\">17:16</a>; <a href=\"https://ref.ly/John4:4-John4:42\">John 4:4–42</a>). After Assyria conquered the northern kingdom of Israel, Assyrian settlers married Israelites who remained in Samaria. Their descendants became known as Samaritans.</p><p>Later, after the Judeans returned from Babylon, conflict grew between Jews and Samaritans (<a href=\"https://ref.ly/Ezra4:1-Ezra4:24\">Ezra 4:1–24</a>). The Samaritans built their own temple on Mount Gerizim. They also used their own version of the Pentateuch, the first five books of the Bible, as Scripture.</p><p>This hatred grew worse when the Jewish king John Hyrcanus attacked the Samaritans and destroyed their temple on Mount Gerizim. This happened around 128 BC. Because of this long hatred, no first-century Jew would expect a despised Samaritan to help a wounded Jew. But in God’s kingdom, a despised foreigner becomes a true neighbor who helps!</p>",
+      "chunks": [
+        {
+          "chunk_id": "20475-c001",
+          "chunk_index": 1,
+          "content_html": "<p><em>a Samaritan</em>: This unexpected change in the story probably surprised the listeners. Jews and Samaritans hated each other (see <a href=\"https://ref.ly/Luke9:52-Luke9:53\">9:52–53</a>; <a href=\"https://ref.ly/Luke17:16\">17:16</a>; <a href=\"https://ref.ly/John4:4-John4:42\">John 4:4–42</a>). After Assyria conquered the northern kingdom of Israel, Assyrian settlers married Israelites who remained in Samaria. Their descendants became known as Samaritans.</p><p>Later, after the Judeans returned from Babylon, conflict grew between Jews and Samaritans (<a href=\"https://ref.ly/Ezra4:1-Ezra4:24\">Ezra 4:1–24</a>). The Samaritans built their own temple on Mount Gerizim. They also used their own version of the Pentateuch, the first five books of the Bible, as Scripture.",
+          "content_plain": "a Samaritan : This unexpected change in the story probably surprised the listeners. Jews and Samaritans hated each other (see 9:52–53 ; 17:16 ; John 4:4–42 ). After Assyria conquered the northern kingdom of Israel, Assyrian settlers married Israelites who remained in Samaria. Their descendants became known as Samaritans. Later, after the Judeans returned from Babylon, conflict grew between Jews and Samaritans ( Ezra 4:1–24 ). The Samaritans built their own temple on Mount Gerizim. They also used their own version of the Pentateuch, the first five books of the Bible, as Scripture."
+        },
+        {
+          "chunk_id": "20475-c002",
+          "chunk_index": 2,
+          "content_html": "</p><p>This hatred grew worse when the Jewish king John Hyrcanus attacked the Samaritans and destroyed their temple on Mount Gerizim. This happened around 128 BC. Because of this long hatred, no first-century Jew would expect a despised Samaritan to help a wounded Jew. But in God’s kingdom, a despised foreigner becomes a true neighbor who helps!</p>",
+          "content_plain": "This hatred grew worse when the Jewish king John Hyrcanus attacked the Samaritans and destroyed their temple on Mount Gerizim. This happened around 128 BC. Because of this long hatred, no first-century Jew would expect a despised Samaritan to help a wounded Jew. But in God’s kingdom, a despised foreigner becomes a true neighbor who helps!"
+        }
+      ],
+      "source_id": "aquifer_open_study_notes",
+      "license": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Aquifer Open Study Notes © 2026 Mission Mutual, adapted from Tyndale Open Study Notes © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0."
+    },
+    {
+      "article_id": "20476",
+      "content_id": "20476",
+      "reference_id": 19644,
+      "title": "Luke 10:34",
+      "index_reference": "42010034",
+      "canonical_reference": "Luke.10.34",
+      "upstream_reference_usfm": "LUK 10:34",
+      "language": "eng",
+      "content_html": "<p><em>Oil</em> calmed the wound, and <em>wine</em> helped keep away infection.</p>",
+      "chunks": [
+        {
+          "chunk_id": "20476-c001",
+          "chunk_index": 1,
+          "content_html": "<p><em>Oil</em> calmed the wound, and <em>wine</em> helped keep away infection.</p>",
+          "content_plain": "Oil calmed the wound, and wine helped keep away infection."
+        }
+      ],
+      "source_id": "aquifer_open_study_notes",
+      "license": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Aquifer Open Study Notes © 2026 Mission Mutual, adapted from Tyndale Open Study Notes © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0."
+    }
+  ]
+}

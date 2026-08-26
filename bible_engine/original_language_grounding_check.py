@@ -106,6 +106,11 @@ _GREEK_RUN_RE = re.compile(r"[Ͱ-Ͽἀ-῿]+")
 _HEBREW_RUN_RE = re.compile(r"[֐-׿]+")
 _GREEK_STRONG_RE = re.compile(r"\bG\d{1,5}[A-Z]?\b", re.IGNORECASE)
 _HEBREW_STRONG_RE = re.compile(r"\bH\d{1,4}[A-Z]?\b", re.IGNORECASE)
+# TAGNT `greek_form` gyakran a mondatközi írásjelet a token végén tartja
+# (pl. ``ἐσπλαγχνίσθη,``, ``ζήσῃ.``). A modell / kinyerés viszont tiszta
+# szóalakot ad — az írásjelet csak a passzus-szótár kulcsából hántjuk le.
+_GREEK_TRAILING_PUNCT_RE = re.compile(r"[.,;:··!?…]+$")
+_GREEK_STRONG_BASE_RE = re.compile(r"^(G\d{1,5})([A-Z])?$")
 
 # A `greek_analysis_ui.py::_looks_like_cross_chapter_reference`-szal
 # SZÁNDÉKOSAN azonos, ide másolt minta — azt a modult NEM importáljuk,
@@ -128,6 +133,36 @@ def _strip_combining_marks(value: str) -> str:
     hívó oldalon, ez csak egy belső, másodlagos összevetési kulcs."""
     decomposed = unicodedata.normalize("NFD", value)
     return "".join(ch for ch in decomposed if not unicodedata.combining(ch))
+
+
+def _strip_greek_trailing_punctuation(value: str) -> str:
+    """TAGNT surface forms often keep clause punctuation on the token."""
+    return _GREEK_TRAILING_PUNCT_RE.sub("", value or "")
+
+
+def _greek_strong_numeric_base(normalized: str) -> str:
+    """``G4151G`` / ``G1492H`` → ``G4151`` / ``G1492`` (sense-letter stripped)."""
+    match = _GREEK_STRONG_BASE_RE.fullmatch((normalized or "").strip().upper())
+    if not match:
+        return (normalized or "").strip().upper()
+    return match.group(1)
+
+
+def _passage_contains_greek_strong(
+    normalized: str, vocabulary: PassageVocabulary
+) -> bool:
+    """Bare Strong citations match TAGNT lettered sense variants in-passage.
+
+    Example: model cites ``G4151`` while TAGNT stores ``G4151G`` for the
+    same token — that is a PASSAGE_MATCH, not GLOBAL_OTHER_PASSAGE.
+    """
+    if normalized in vocabulary.greek_strong_ids:
+        return True
+    base = _greek_strong_numeric_base(normalized)
+    return any(
+        _greek_strong_numeric_base(strong_id) == base
+        for strong_id in vocabulary.greek_strong_ids
+    )
 
 
 def build_passage_vocabulary(igehely: str) -> PassageVocabulary:
@@ -153,8 +188,12 @@ def build_passage_vocabulary(igehely: str) -> PassageVocabulary:
             verse_groups = []
         for group in verse_groups:
             for token in group.tokens:
-                form_nfc = unicodedata.normalize("NFC", token.greek_form)
-                lemma_nfc = unicodedata.normalize("NFC", token.lemma)
+                form_nfc = _strip_greek_trailing_punctuation(
+                    unicodedata.normalize("NFC", token.greek_form)
+                )
+                lemma_nfc = _strip_greek_trailing_punctuation(
+                    unicodedata.normalize("NFC", token.lemma)
+                )
                 if form_nfc:
                     greek_surface.add(form_nfc)
                     greek_surface_stripped.add(_strip_combining_marks(form_nfc))
@@ -162,7 +201,15 @@ def build_passage_vocabulary(igehely: str) -> PassageVocabulary:
                     greek_lemma.add(lemma_nfc)
                     greek_lemma_stripped.add(_strip_combining_marks(lemma_nfc))
                 if token.strong_id:
-                    greek_strong.add(token.strong_id.strip().upper())
+                    raw_strong = token.strong_id.strip().upper()
+                    greek_strong.add(raw_strong)
+                    try:
+                        normalized = normalize_greek_strong_id(raw_strong)
+                    except ValueError:
+                        continue
+                    greek_strong.add(normalized)
+                    base = _greek_strong_numeric_base(normalized)
+                    greek_strong.add(base)
 
     hebrew_surface_stripped: set[str] = set()
     hebrew_lemma_stripped: set[str] = set()
@@ -220,7 +267,7 @@ def _hebrew_word_exists_globally(value: str) -> bool:
 
 
 def _classify_greek_word(value: str, vocabulary: PassageVocabulary) -> GroundingCategory:
-    nfc = unicodedata.normalize("NFC", value)
+    nfc = _strip_greek_trailing_punctuation(unicodedata.normalize("NFC", value))
     stripped = _strip_combining_marks(nfc)
     if nfc in vocabulary.greek_surface_forms or nfc in vocabulary.greek_lemmas:
         return GroundingCategory.PASSAGE_MATCH
@@ -278,7 +325,7 @@ def _classify_strong_id(
             normalized = normalize_greek_strong_id(upper)
         except ValueError:
             return "greek", GroundingCategory.INVALID_STRONG_ID
-        if normalized in vocabulary.greek_strong_ids:
+        if _passage_contains_greek_strong(normalized, vocabulary):
             return "greek", GroundingCategory.PASSAGE_MATCH
         if _greek_strong_exists_globally(normalized):
             return "greek", GroundingCategory.GLOBAL_OTHER_PASSAGE

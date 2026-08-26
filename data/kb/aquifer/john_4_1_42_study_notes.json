@@ -1,0 +1,569 @@
+{
+  "bundle_version": "1",
+  "pilot_scope": "John.4.1-42",
+  "generated_at": "2026-08-23T18:11:31Z",
+  "source_id": "aquifer_open_study_notes",
+  "upstream_repository": "https://github.com/BibleAquifer/AquiferOpenStudyNotes",
+  "upstream_commit": "8f4d7c3614e9a41495f16d7c778e9c8ed0dde808",
+  "upstream_resource_version": "1.1.2",
+  "language": "eng",
+  "license": "CC-BY-SA-4.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+  "attribution": "Aquifer Open Study Notes © 2026 Mission Mutual, adapted from Tyndale Open Study Notes © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0.",
+  "content_hash": "f889e6ff5a0df8ac1fc0ddd7f6116453aeac07985f0ec1d9a1ae450125bf6aef",
+  "import_issues": [],
+  "notes": [
+    {
+      "article_id": "19123",
+      "content_id": "19123",
+      "reference_id": 18291,
+      "title": "John 4:1–42",
+      "index_reference": "43004001-43004042",
+      "canonical_reference": "John.4.1-42",
+      "upstream_reference_usfm": "JHN 4:1",
+      "language": "eng",
+      "content_html": "<ul><li><p>At an ancient well in Samaria, Jesus offered himself as <em>living water</em>. This <em>living water</em> means the life that comes from God. Jesus spoke openly about who he was. When he revealed God’s truth, people had to respond. They either followed him or turned away.</p></li><li><p>The Samaritan woman is very different from Nicodemus. She was a woman, not a man. She was a Samaritan, not a Jew. She had a sinful past, not a reputation for righteousness. She was an outsider, not a respected teacher of Israel.</p><p>Nicodemus came to Jesus at night and did not openly respond to the challenges from Jesus (<a href=\"https://ref.ly/John3:1-John3:21\">3:1–21</a>). The Samaritan woman spoke with Jesus in the daylight. She recognized him as Lord. She remained in the light and showed signs of becoming a disciple (see <a href=\"https://ref.ly/John1:35-John1:51\">1:35–51</a>).</p></li></ul>",
+      "chunks": [
+        {
+          "chunk_id": "19123-c001",
+          "chunk_index": 1,
+          "content_html": "<ul><li><p>At an ancient well in Samaria, Jesus offered himself as <em>living water</em>. This <em>living water</em> means the life that comes from God. Jesus spoke openly about who he was. When he revealed God’s truth, people had to respond. They either followed him or turned away.</p></li><li><p>The Samaritan woman is very different from Nicodemus. She was a woman, not a man. She was a Samaritan, not a Jew. She had a sinful past, not a reputation for righteousness. She was an outsider, not a respected teacher of Israel.</p><p>Nicodemus came to Jesus at night and did not openly respond to the challenges from Jesus (<a href=\"https://ref.ly/John3:1-John3:21\">3:1–21</a>). The Samaritan woman spoke with Jesus in the daylight. She recognized him as Lord. She remained in the light and showed signs of becoming a disciple (see <a href=\"https://ref.ly/John1:35-John1:51\">1:35–51</a>).</p></li></ul>",
+          "content_plain": "At an ancient well in Samaria, Jesus offered himself as living water . This living water means the life that comes from God. Jesus spoke openly about who he was. When he revealed God’s truth, people had to respond. They either followed him or turned away. The Samaritan woman is very different from Nicodemus. She was a woman, not a man. She was a Samaritan, not a Jew. She had a sinful past, not a reputation for righteousness. She was an outsider, not a respected teacher of Israel. Nicodemus came to Jesus at night and did not openly respond to the challenges from Jesus ( 3:1–21 ). The Samaritan woman spoke with Jesus in the daylight. She recognized him as Lord. She remained in the light and showed signs of becoming a disciple (see 1:35–51 )."
+        }
+      ],
+      "source_id": "aquifer_open_study_notes",
+      "license": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Aquifer Open Study Notes © 2026 Mission Mutual, adapted from Tyndale Open Study Notes © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0."
+    },
+    {
+      "article_id": "19137",
+      "content_id": "19137",
+      "reference_id": 18305,
+      "title": "John 4:2",
+      "index_reference": "43004002",
+      "canonical_reference": "John.4.2",
+      "upstream_reference_usfm": "JHN 4:2",
+      "language": "eng",
+      "content_html": "<p>Jesus himself did not baptize anyone with water. He allowed his disciples to perform water baptism.</p><p>Later, after he was lifted up on the cross and then raised from the dead, Jesus returned to the Father. This suffering, death, resurrection, and return to the Father is called his glorification (<a href=\"https://ref.ly/John7:37-John7:39\">7:37–39</a>). After this, Jesus baptized people in the Holy Spirit (<a href=\"https://ref.ly/John1:33\">1:33</a>; <a href=\"https://ref.ly/Acts2:4\">Acts 2:4</a>).</p>",
+      "chunks": [
+        {
+          "chunk_id": "19137-c001",
+          "chunk_index": 1,
+          "content_html": "<p>Jesus himself did not baptize anyone with water. He allowed his disciples to perform water baptism.</p><p>Later, after he was lifted up on the cross and then raised from the dead, Jesus returned to the Father. This suffering, death, resurrection, and return to the Father is called his glorification (<a href=\"https://ref.ly/John7:37-John7:39\">7:37–39</a>). After this, Jesus baptized people in the Holy Spirit (<a href=\"https://ref.ly/John1:33\">1:33</a>; <a href=\"https://ref.ly/Acts2:4\">Acts 2:4</a>).</p>",
+          "content_plain": "Jesus himself did not baptize anyone with water. He allowed his disciples to perform water baptism. Later, after he was lifted up on the cross and then raised from the dead, Jesus returned to the Father. This suffering, death, resurrection, and return to the Father is called his glorification ( 7:37–39 ). After this, Jesus baptized people in the Holy Spirit ( 1:33 ; Acts 2:4 )."
+        }
+      ],
+      "source_id": "aquifer_open_study_notes",
+      "license": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Aquifer Open Study Notes © 2026 Mission Mutual, adapted from Tyndale Open Study Notes © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0."
+    },
+    {
+      "article_id": "19142",
+      "content_id": "19142",
+      "reference_id": 18310,
+      "title": "John 4:3",
+      "index_reference": "43004003",
+      "canonical_reference": "John.4.3",
+      "upstream_reference_usfm": "JHN 4:3",
+      "language": "eng",
+      "content_html": "<p>After John the Baptist had been imprisoned, Jesus left Judea (see <a href=\"https://ref.ly/Mark6:14-Mark6:29\">Mark 6:14–29</a>; compare <a href=\"https://ref.ly/Mark1:14\">Mark 1:14</a>).</p>",
+      "chunks": [
+        {
+          "chunk_id": "19142-c001",
+          "chunk_index": 1,
+          "content_html": "<p>After John the Baptist had been imprisoned, Jesus left Judea (see <a href=\"https://ref.ly/Mark6:14-Mark6:29\">Mark 6:14–29</a>; compare <a href=\"https://ref.ly/Mark1:14\">Mark 1:14</a>).</p>",
+          "content_plain": "After John the Baptist had been imprisoned, Jesus left Judea (see Mark 6:14–29 ; compare Mark 1:14 )."
+        }
+      ],
+      "source_id": "aquifer_open_study_notes",
+      "license": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Aquifer Open Study Notes © 2026 Mission Mutual, adapted from Tyndale Open Study Notes © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0."
+    },
+    {
+      "article_id": "19143",
+      "content_id": "19143",
+      "reference_id": 18311,
+      "title": "John 4:4–6",
+      "index_reference": "43004004-43004006",
+      "canonical_reference": "John.4.4-6",
+      "upstream_reference_usfm": "JHN 4:4",
+      "language": "eng",
+      "content_html": "<ul><li><p>When traveling north to Galilee, Jesus chose the less common route through Samaria. Samaria and Judea had a long history of racial tension (see <a href=\"https://ref.ly/2Kgs17:24-2Kgs17:41\">2 Kings 17:24–41</a>; <a href=\"https://ref.ly/Ezra4:1-Ezra4:5\">Ezra 4:1–5</a>; <a href=\"https://ref.ly/Neh4:1-Neh4:23\">Nehemiah 4</a>; <a href=\"https://ref.ly/Neh6:1-Neh6:19\">6:1–19</a>). In the time of Jesus, there was intense racial and cultural conflict between Jews and Samaritans. Jews usually avoided Samaria by first going east to Jericho and then traveling north through the Jordan Valley. </p></li><li><p>Sychar was likely in the area of Shechem. Jesus arrived at Jacob&apos;s well. Jacob had owned land near Shechem (<a href=\"https://ref.ly/Gen33:18-Gen33:19\">Genesis 33:18–19</a>).</p></li></ul>",
+      "chunks": [
+        {
+          "chunk_id": "19143-c001",
+          "chunk_index": 1,
+          "content_html": "<ul><li><p>When traveling north to Galilee, Jesus chose the less common route through Samaria. Samaria and Judea had a long history of racial tension (see <a href=\"https://ref.ly/2Kgs17:24-2Kgs17:41\">2 Kings 17:24–41</a>; <a href=\"https://ref.ly/Ezra4:1-Ezra4:5\">Ezra 4:1–5</a>; <a href=\"https://ref.ly/Neh4:1-Neh4:23\">Nehemiah 4</a>; <a href=\"https://ref.ly/Neh6:1-Neh6:19\">6:1–19</a>). In the time of Jesus, there was intense racial and cultural conflict between Jews and Samaritans. Jews usually avoided Samaria by first going east to Jericho and then traveling north through the Jordan Valley. </p></li><li><p>Sychar was likely in the area of Shechem. Jesus arrived at Jacob&apos;s well. Jacob had owned land near Shechem (<a href=\"https://ref.ly/Gen33:18-Gen33:19\">Genesis 33:18–19</a>).</p></li></ul>",
+          "content_plain": "When traveling north to Galilee, Jesus chose the less common route through Samaria. Samaria and Judea had a long history of racial tension (see 2 Kings 17:24–41 ; Ezra 4:1–5 ; Nehemiah 4 ; 6:1–19 ). In the time of Jesus, there was intense racial and cultural conflict between Jews and Samaritans. Jews usually avoided Samaria by first going east to Jericho and then traveling north through the Jordan Valley. Sychar was likely in the area of Shechem. Jesus arrived at Jacob's well. Jacob had owned land near Shechem ( Genesis 33:18–19 )."
+        }
+      ],
+      "source_id": "aquifer_open_study_notes",
+      "license": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Aquifer Open Study Notes © 2026 Mission Mutual, adapted from Tyndale Open Study Notes © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0."
+    },
+    {
+      "article_id": "19150",
+      "content_id": "19150",
+      "reference_id": 18318,
+      "title": "John 4:7",
+      "index_reference": "43004007",
+      "canonical_reference": "John.4.7",
+      "upstream_reference_usfm": "JHN 4:7",
+      "language": "eng",
+      "content_html": "<p>Due to the heat, it was customary for the women to draw water in early morning or evening. However, this woman lived in isolation, separated from her community. Jesus was compassionate toward outcasts.</p>",
+      "chunks": [
+        {
+          "chunk_id": "19150-c001",
+          "chunk_index": 1,
+          "content_html": "<p>Due to the heat, it was customary for the women to draw water in early morning or evening. However, this woman lived in isolation, separated from her community. Jesus was compassionate toward outcasts.</p>",
+          "content_plain": "Due to the heat, it was customary for the women to draw water in early morning or evening. However, this woman lived in isolation, separated from her community. Jesus was compassionate toward outcasts."
+        }
+      ],
+      "source_id": "aquifer_open_study_notes",
+      "license": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Aquifer Open Study Notes © 2026 Mission Mutual, adapted from Tyndale Open Study Notes © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0."
+    },
+    {
+      "article_id": "19151",
+      "content_id": "19151",
+      "reference_id": 18319,
+      "title": "John 4:9",
+      "index_reference": "43004009",
+      "canonical_reference": "John.4.9",
+      "upstream_reference_usfm": "JHN 4:9",
+      "language": "eng",
+      "content_html": "<p>The woman was surprised. Social taboos (strict cultural rules about proper behavior) would normally prevent a Jewish teacher like Jesus from speaking to her (<a href=\"https://ref.ly/John4:18\">4:18</a>). But Jesus did not allow these social rules to control him. He chose to speak with her and offer what she truly needed.</p>",
+      "chunks": [
+        {
+          "chunk_id": "19151-c001",
+          "chunk_index": 1,
+          "content_html": "<p>The woman was surprised. Social taboos (strict cultural rules about proper behavior) would normally prevent a Jewish teacher like Jesus from speaking to her (<a href=\"https://ref.ly/John4:18\">4:18</a>). But Jesus did not allow these social rules to control him. He chose to speak with her and offer what she truly needed.</p>",
+          "content_plain": "The woman was surprised. Social taboos (strict cultural rules about proper behavior) would normally prevent a Jewish teacher like Jesus from speaking to her ( 4:18 ). But Jesus did not allow these social rules to control him. He chose to speak with her and offer what she truly needed."
+        }
+      ],
+      "source_id": "aquifer_open_study_notes",
+      "license": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Aquifer Open Study Notes © 2026 Mission Mutual, adapted from Tyndale Open Study Notes © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0."
+    },
+    {
+      "article_id": "19124",
+      "content_id": "19124",
+      "reference_id": 18292,
+      "title": "John 4:10",
+      "index_reference": "43004010",
+      "canonical_reference": "John.4.10",
+      "upstream_reference_usfm": "JHN 4:10",
+      "language": "eng",
+      "content_html": "<p>Shechem had no rivers. So it had no <em>living water,</em> which usually means fresh, flowing water from a stream or spring (see “<span data-bnType=\"resourceReference\" data-resourceId=\"203312\" data-resourceType=\"TyndaleStudyNotesThemes\">Living Water</span>” Theme Note). However, Jesus was speaking symbolically. The gift he offered was not ordinary water. It was the Holy Spirit, whom God would give to believers (<a href=\"https://ref.ly/John7:37-John7:39\">7:37–39</a>).</p>",
+      "chunks": [
+        {
+          "chunk_id": "19124-c001",
+          "chunk_index": 1,
+          "content_html": "<p>Shechem had no rivers. So it had no <em>living water,</em> which usually means fresh, flowing water from a stream or spring (see “<span data-bnType=\"resourceReference\" data-resourceId=\"203312\" data-resourceType=\"TyndaleStudyNotesThemes\">Living Water</span>” Theme Note). However, Jesus was speaking symbolically. The gift he offered was not ordinary water. It was the Holy Spirit, whom God would give to believers (<a href=\"https://ref.ly/John7:37-John7:39\">7:37–39</a>).</p>",
+          "content_plain": "Shechem had no rivers. So it had no living water, which usually means fresh, flowing water from a stream or spring (see “ Living Water ” Theme Note). However, Jesus was speaking symbolically. The gift he offered was not ordinary water. It was the Holy Spirit, whom God would give to believers ( 7:37–39 )."
+        }
+      ],
+      "source_id": "aquifer_open_study_notes",
+      "license": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Aquifer Open Study Notes © 2026 Mission Mutual, adapted from Tyndale Open Study Notes © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0."
+    },
+    {
+      "article_id": "19125",
+      "content_id": "19125",
+      "reference_id": 18293,
+      "title": "John 4:11",
+      "index_reference": "43004011",
+      "canonical_reference": "John.4.11",
+      "upstream_reference_usfm": "JHN 4:11",
+      "language": "eng",
+      "content_html": "<p>Jacob’s well was more than 30 meters (about 100 feet) deep. A person needed a long rope and a container to draw water from it.</p><p>The woman focused on the physical water in the well. She did not yet understand the deeper meaning of what Jesus was saying. At that time, she was still in spiritual darkness.</p>",
+      "chunks": [
+        {
+          "chunk_id": "19125-c001",
+          "chunk_index": 1,
+          "content_html": "<p>Jacob’s well was more than 30 meters (about 100 feet) deep. A person needed a long rope and a container to draw water from it.</p><p>The woman focused on the physical water in the well. She did not yet understand the deeper meaning of what Jesus was saying. At that time, she was still in spiritual darkness.</p>",
+          "content_plain": "Jacob’s well was more than 30 meters (about 100 feet) deep. A person needed a long rope and a container to draw water from it. The woman focused on the physical water in the well. She did not yet understand the deeper meaning of what Jesus was saying. At that time, she was still in spiritual darkness."
+        }
+      ],
+      "source_id": "aquifer_open_study_notes",
+      "license": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Aquifer Open Study Notes © 2026 Mission Mutual, adapted from Tyndale Open Study Notes © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0."
+    },
+    {
+      "article_id": "19126",
+      "content_id": "19126",
+      "reference_id": 18294,
+      "title": "John 4:12",
+      "index_reference": "43004012",
+      "canonical_reference": "John.4.12",
+      "upstream_reference_usfm": "JHN 4:12",
+      "language": "eng",
+      "content_html": "<p><em>Our father Jacob</em>: The Samaritan woman respected the holy traditions related to the well more than the presence of God in front of her.</p>",
+      "chunks": [
+        {
+          "chunk_id": "19126-c001",
+          "chunk_index": 1,
+          "content_html": "<p><em>Our father Jacob</em>: The Samaritan woman respected the holy traditions related to the well more than the presence of God in front of her.</p>",
+          "content_plain": "Our father Jacob : The Samaritan woman respected the holy traditions related to the well more than the presence of God in front of her."
+        }
+      ],
+      "source_id": "aquifer_open_study_notes",
+      "license": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Aquifer Open Study Notes © 2026 Mission Mutual, adapted from Tyndale Open Study Notes © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0."
+    },
+    {
+      "article_id": "19127",
+      "content_id": "19127",
+      "reference_id": 18295,
+      "title": "John 4:14",
+      "index_reference": "43004014",
+      "canonical_reference": "John.4.14",
+      "upstream_reference_usfm": "JHN 4:14",
+      "language": "eng",
+      "content_html": "<p>In the dry climate of Israel, a fresh, bubbling spring was a strong and hopeful image. Flowing water meant life, safety, and relief from thirst.</p><p>The prophets used this image to describe God’s care. They said that those who come to God will not hunger or thirst (see <a href=\"https://ref.ly/Isa49:10\">Isaiah 49:10</a>; <a href=\"https://ref.ly/Isa55:1-Isa55:3\">55:1–3</a>; <a href=\"https://ref.ly/Jer2:13\">Jeremiah 2:13</a>).</p>",
+      "chunks": [
+        {
+          "chunk_id": "19127-c001",
+          "chunk_index": 1,
+          "content_html": "<p>In the dry climate of Israel, a fresh, bubbling spring was a strong and hopeful image. Flowing water meant life, safety, and relief from thirst.</p><p>The prophets used this image to describe God’s care. They said that those who come to God will not hunger or thirst (see <a href=\"https://ref.ly/Isa49:10\">Isaiah 49:10</a>; <a href=\"https://ref.ly/Isa55:1-Isa55:3\">55:1–3</a>; <a href=\"https://ref.ly/Jer2:13\">Jeremiah 2:13</a>).</p>",
+          "content_plain": "In the dry climate of Israel, a fresh, bubbling spring was a strong and hopeful image. Flowing water meant life, safety, and relief from thirst. The prophets used this image to describe God’s care. They said that those who come to God will not hunger or thirst (see Isaiah 49:10 ; 55:1–3 ; Jeremiah 2:13 )."
+        }
+      ],
+      "source_id": "aquifer_open_study_notes",
+      "license": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Aquifer Open Study Notes © 2026 Mission Mutual, adapted from Tyndale Open Study Notes © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0."
+    },
+    {
+      "article_id": "19128",
+      "content_id": "19128",
+      "reference_id": 18296,
+      "title": "John 4:15",
+      "index_reference": "43004015",
+      "canonical_reference": "John.4.15",
+      "upstream_reference_usfm": "JHN 4:15",
+      "language": "eng",
+      "content_html": "<p>The woman asked Jesus for this water, but she did not understand the spiritual meaning of his words. To overcome this spiritual barrier, Jesus spoke about her sin (<a href=\"https://ref.ly/John4:16-John4:18\">4:16–18</a>).</p>",
+      "chunks": [
+        {
+          "chunk_id": "19128-c001",
+          "chunk_index": 1,
+          "content_html": "<p>The woman asked Jesus for this water, but she did not understand the spiritual meaning of his words. To overcome this spiritual barrier, Jesus spoke about her sin (<a href=\"https://ref.ly/John4:16-John4:18\">4:16–18</a>).</p>",
+          "content_plain": "The woman asked Jesus for this water, but she did not understand the spiritual meaning of his words. To overcome this spiritual barrier, Jesus spoke about her sin ( 4:16–18 )."
+        }
+      ],
+      "source_id": "aquifer_open_study_notes",
+      "license": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Aquifer Open Study Notes © 2026 Mission Mutual, adapted from Tyndale Open Study Notes © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0."
+    },
+    {
+      "article_id": "19129",
+      "content_id": "19129",
+      "reference_id": 18297,
+      "title": "John 4:16–18",
+      "index_reference": "43004016-43004018",
+      "canonical_reference": "John.4.16-18",
+      "upstream_reference_usfm": "JHN 4:16",
+      "language": "eng",
+      "content_html": "<p>The woman’s immoral life affected her understanding. Her pattern of broken relationships kept her from seeing clearly.</p><p>She had been married five times. She was also living with a man who was not her husband. These facts show that her life did not match God’s will. Her sin created a barrier between her and a full understanding of what Jesus was saying.</p>",
+      "chunks": [
+        {
+          "chunk_id": "19129-c001",
+          "chunk_index": 1,
+          "content_html": "<p>The woman’s immoral life affected her understanding. Her pattern of broken relationships kept her from seeing clearly.</p><p>She had been married five times. She was also living with a man who was not her husband. These facts show that her life did not match God’s will. Her sin created a barrier between her and a full understanding of what Jesus was saying.</p>",
+          "content_plain": "The woman’s immoral life affected her understanding. Her pattern of broken relationships kept her from seeing clearly. She had been married five times. She was also living with a man who was not her husband. These facts show that her life did not match God’s will. Her sin created a barrier between her and a full understanding of what Jesus was saying."
+        }
+      ],
+      "source_id": "aquifer_open_study_notes",
+      "license": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Aquifer Open Study Notes © 2026 Mission Mutual, adapted from Tyndale Open Study Notes © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0."
+    },
+    {
+      "article_id": "19131",
+      "content_id": "19131",
+      "reference_id": 18299,
+      "title": "John 4:19",
+      "index_reference": "43004019",
+      "canonical_reference": "John.4.19",
+      "upstream_reference_usfm": "JHN 4:19",
+      "language": "eng",
+      "content_html": "<ul><li><p><em>a prophet</em>: Jesus revealed knowledge about the woman that a stranger could not know (<a href=\"https://ref.ly/John4:16-John4:18\">4:16–18</a>; compare <a href=\"https://ref.ly/John1:48\">1:48</a>). </p></li><li><p>As the woman learned more about Jesus, what she called him showed her increasing understanding:</p><ul><li><p>At first, she recognized him as &quot;a Jew&quot; (<a href=\"https://ref.ly/John4:9\">4:9</a>) and called him &quot;Sir&quot; (<a href=\"https://ref.ly/John4:11\">4:11</a>, <a href=\"https://ref.ly/John4:15\">15</a>, <a href=\"https://ref.ly/John4:19\">19</a>). </p></li><li><p>Later, she thought he might be &quot;the Christ&quot; (<a href=\"https://ref.ly/John4:29\">4:29</a>), that is, the Messiah (God&apos;s chosen one). </p></li><li><p>Finally, the people of the village recognized him as &quot;the Savior of the world&quot; (<a href=\"https://ref.ly/John4:42\">4:42</a>). </p></li></ul><p>Her growing understanding of the identity of Jesus is a lesson for John’s audience (see <a href=\"https://ref.ly/John20:31\">20:31</a>).</p></li></ul>",
+      "chunks": [
+        {
+          "chunk_id": "19131-c001",
+          "chunk_index": 1,
+          "content_html": "<ul><li><p><em>a prophet</em>: Jesus revealed knowledge about the woman that a stranger could not know (<a href=\"https://ref.ly/John4:16-John4:18\">4:16–18</a>; compare <a href=\"https://ref.ly/John1:48\">1:48</a>). </p></li><li><p>As the woman learned more about Jesus, what she called him showed her increasing understanding:</p><ul><li><p>At first, she recognized him as &quot;a Jew&quot; (<a href=\"https://ref.ly/John4:9\">4:9</a>) and called him &quot;Sir&quot; (<a href=\"https://ref.ly/John4:11\">4:11</a>, <a href=\"https://ref.ly/John4:15\">15</a>, <a href=\"https://ref.ly/John4:19\">19</a>). </p></li><li><p>Later, she thought he might be &quot;the Christ&quot; (<a href=\"https://ref.ly/John4:29\">4:29</a>), that is, the Messiah (God&apos;s chosen one). </p></li><li><p>Finally, the people of the village recognized him as &quot;the Savior of the world&quot; (<a href=\"https://ref.ly/John4:42\">4:42</a>). </p></li></ul><p>Her growing understanding of the identity of Jesus is a lesson for John’s audience (see <a href=\"https://ref.ly/John20:31\">20:31</a>).</p></li></ul>",
+          "content_plain": "a prophet : Jesus revealed knowledge about the woman that a stranger could not know ( 4:16–18 ; compare 1:48 ). As the woman learned more about Jesus, what she called him showed her increasing understanding: At first, she recognized him as \"a Jew\" ( 4:9 ) and called him \"Sir\" ( 4:11 , 15 , 19 ). Later, she thought he might be \"the Christ\" ( 4:29 ), that is, the Messiah (God's chosen one). Finally, the people of the village recognized him as \"the Savior of the world\" ( 4:42 ). Her growing understanding of the identity of Jesus is a lesson for John’s audience (see 20:31 )."
+        }
+      ],
+      "source_id": "aquifer_open_study_notes",
+      "license": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Aquifer Open Study Notes © 2026 Mission Mutual, adapted from Tyndale Open Study Notes © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0."
+    },
+    {
+      "article_id": "19130",
+      "content_id": "19130",
+      "reference_id": 18298,
+      "title": "John 4:19–20",
+      "index_reference": "43004019-43004020",
+      "canonical_reference": "John.4.19-20",
+      "upstream_reference_usfm": "JHN 4:19",
+      "language": "eng",
+      "content_html": "<p>The woman did not answer the moral questions that Jesus asked her. Instead, she changed the subject.</p><p>She began to speak about the long-standing division between Jews and Samaritans. This conflict included differences about worship and history. By raising this issue, she moved the conversation away from her personal life.</p>",
+      "chunks": [
+        {
+          "chunk_id": "19130-c001",
+          "chunk_index": 1,
+          "content_html": "<p>The woman did not answer the moral questions that Jesus asked her. Instead, she changed the subject.</p><p>She began to speak about the long-standing division between Jews and Samaritans. This conflict included differences about worship and history. By raising this issue, she moved the conversation away from her personal life.</p>",
+          "content_plain": "The woman did not answer the moral questions that Jesus asked her. Instead, she changed the subject. She began to speak about the long-standing division between Jews and Samaritans. This conflict included differences about worship and history. By raising this issue, she moved the conversation away from her personal life."
+        }
+      ],
+      "source_id": "aquifer_open_study_notes",
+      "license": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Aquifer Open Study Notes © 2026 Mission Mutual, adapted from Tyndale Open Study Notes © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0."
+    },
+    {
+      "article_id": "19132",
+      "content_id": "19132",
+      "reference_id": 18300,
+      "title": "John 4:20",
+      "index_reference": "43004020",
+      "canonical_reference": "John.4.20",
+      "upstream_reference_usfm": "JHN 4:20",
+      "language": "eng",
+      "content_html": "<p>The Samaritans worshiped on Mount Gerizim. This mountain rises above the city of Shechem.</p><p>Both Mount Gerizim and Shechem were important places in the Old Testament (see <a href=\"https://ref.ly/Gen12:6-Gen12:7\">Genesis 12:6–7</a>; <a href=\"https://ref.ly/Gen33:19\">33:19</a>; <a href=\"https://ref.ly/Deut11:29\">Deuteronomy 11:29</a>; <a href=\"https://ref.ly/Josh8:33\">Joshua 8:33</a>; <a href=\"https://ref.ly/Josh24:1\">24:1</a>, <a href=\"https://ref.ly/Josh24:25\">25</a>, <a href=\"https://ref.ly/Josh24:32\">32</a>).</p>",
+      "chunks": [
+        {
+          "chunk_id": "19132-c001",
+          "chunk_index": 1,
+          "content_html": "<p>The Samaritans worshiped on Mount Gerizim. This mountain rises above the city of Shechem.</p><p>Both Mount Gerizim and Shechem were important places in the Old Testament (see <a href=\"https://ref.ly/Gen12:6-Gen12:7\">Genesis 12:6–7</a>; <a href=\"https://ref.ly/Gen33:19\">33:19</a>; <a href=\"https://ref.ly/Deut11:29\">Deuteronomy 11:29</a>; <a href=\"https://ref.ly/Josh8:33\">Joshua 8:33</a>; <a href=\"https://ref.ly/Josh24:1\">24:1</a>, <a href=\"https://ref.ly/Josh24:25\">25</a>, <a href=\"https://ref.ly/Josh24:32\">32</a>).</p>",
+          "content_plain": "The Samaritans worshiped on Mount Gerizim. This mountain rises above the city of Shechem. Both Mount Gerizim and Shechem were important places in the Old Testament (see Genesis 12:6–7 ; 33:19 ; Deuteronomy 11:29 ; Joshua 8:33 ; 24:1 , 25 , 32 )."
+        }
+      ],
+      "source_id": "aquifer_open_study_notes",
+      "license": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Aquifer Open Study Notes © 2026 Mission Mutual, adapted from Tyndale Open Study Notes © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0."
+    },
+    {
+      "article_id": "19133",
+      "content_id": "19133",
+      "reference_id": 18301,
+      "title": "John 4:21–22",
+      "index_reference": "43004021-43004022",
+      "canonical_reference": "John.4.21-22",
+      "upstream_reference_usfm": "JHN 4:21",
+      "language": "eng",
+      "content_html": "<ul><li><p>Jesus affirmed that the Jews had preserved the correct understanding of the one true God whom they worshiped.</p></li><li><p>God chose the Jewish people for a special relationship with himself. He gave them his law, his promises, and his covenant (promises between God and his people). The Messiah (God’s chosen one) was to come from the Jewish people (see also <a href=\"https://ref.ly/Rom9:4-Rom9:5\">Romans 9:4–5</a>).</p></li></ul>",
+      "chunks": [
+        {
+          "chunk_id": "19133-c001",
+          "chunk_index": 1,
+          "content_html": "<ul><li><p>Jesus affirmed that the Jews had preserved the correct understanding of the one true God whom they worshiped.</p></li><li><p>God chose the Jewish people for a special relationship with himself. He gave them his law, his promises, and his covenant (promises between God and his people). The Messiah (God’s chosen one) was to come from the Jewish people (see also <a href=\"https://ref.ly/Rom9:4-Rom9:5\">Romans 9:4–5</a>).</p></li></ul>",
+          "content_plain": "Jesus affirmed that the Jews had preserved the correct understanding of the one true God whom they worshiped. God chose the Jewish people for a special relationship with himself. He gave them his law, his promises, and his covenant (promises between God and his people). The Messiah (God’s chosen one) was to come from the Jewish people (see also Romans 9:4–5 )."
+        }
+      ],
+      "source_id": "aquifer_open_study_notes",
+      "license": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Aquifer Open Study Notes © 2026 Mission Mutual, adapted from Tyndale Open Study Notes © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0."
+    },
+    {
+      "article_id": "19134",
+      "content_id": "19134",
+      "reference_id": 18302,
+      "title": "John 4:24",
+      "index_reference": "43004024",
+      "canonical_reference": "John.4.24",
+      "upstream_reference_usfm": "JHN 4:24",
+      "language": "eng",
+      "content_html": "<p><em>in spirit and in truth</em>: In Greek, one preposition (a connecting word) is used for both words. This shows that <em>spirit and truth</em> form one united idea.</p><p>True worship happens when God’s Spirit makes God’s truth known to a person. Worship is not only about a place or a ceremony. It is about responding to God with the help of his Spirit and according to what is true about him.</p><p>Jesus himself is the Truth (<a href=\"https://ref.ly/John14:6\">14:6</a>). The Spirit is also called the Spirit of truth (<a href=\"https://ref.ly/John14:17\">14:17</a>; <a href=\"https://ref.ly/John15:26\">15:26</a>). Together, the Spirit and the Truth make true worship possible.</p>",
+      "chunks": [
+        {
+          "chunk_id": "19134-c001",
+          "chunk_index": 1,
+          "content_html": "<p><em>in spirit and in truth</em>: In Greek, one preposition (a connecting word) is used for both words. This shows that <em>spirit and truth</em> form one united idea.</p><p>True worship happens when God’s Spirit makes God’s truth known to a person. Worship is not only about a place or a ceremony. It is about responding to God with the help of his Spirit and according to what is true about him.</p><p>Jesus himself is the Truth (<a href=\"https://ref.ly/John14:6\">14:6</a>). The Spirit is also called the Spirit of truth (<a href=\"https://ref.ly/John14:17\">14:17</a>; <a href=\"https://ref.ly/John15:26\">15:26</a>). Together, the Spirit and the Truth make true worship possible.</p>",
+          "content_plain": "in spirit and in truth : In Greek, one preposition (a connecting word) is used for both words. This shows that spirit and truth form one united idea. True worship happens when God’s Spirit makes God’s truth known to a person. Worship is not only about a place or a ceremony. It is about responding to God with the help of his Spirit and according to what is true about him. Jesus himself is the Truth ( 14:6 ). The Spirit is also called the Spirit of truth ( 14:17 ; 15:26 ). Together, the Spirit and the Truth make true worship possible."
+        }
+      ],
+      "source_id": "aquifer_open_study_notes",
+      "license": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Aquifer Open Study Notes © 2026 Mission Mutual, adapted from Tyndale Open Study Notes © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0."
+    },
+    {
+      "article_id": "19135",
+      "content_id": "19135",
+      "reference_id": 18303,
+      "title": "John 4:26",
+      "index_reference": "43004026",
+      "canonical_reference": "John.4.26",
+      "upstream_reference_usfm": "JHN 4:26",
+      "language": "eng",
+      "content_html": "<p><span><em>I who speak to you am He</em></span>: Jesus used an unusual and strong form of the words <em>I am</em>.</p><p>This wording may point beyond a simple statement of identity. It can suggest a connection with the name of God revealed in the Old Testament (see <a href=\"https://ref.ly/John8:58\">8:58</a>; <a href=\"https://ref.ly/Exod3:14\">Exodus 3:14</a>).</p>",
+      "chunks": [
+        {
+          "chunk_id": "19135-c001",
+          "chunk_index": 1,
+          "content_html": "<p><span><em>I who speak to you am He</em></span>: Jesus used an unusual and strong form of the words <em>I am</em>.</p><p>This wording may point beyond a simple statement of identity. It can suggest a connection with the name of God revealed in the Old Testament (see <a href=\"https://ref.ly/John8:58\">8:58</a>; <a href=\"https://ref.ly/Exod3:14\">Exodus 3:14</a>).</p>",
+          "content_plain": "I who speak to you am He : Jesus used an unusual and strong form of the words I am . This wording may point beyond a simple statement of identity. It can suggest a connection with the name of God revealed in the Old Testament (see 8:58 ; Exodus 3:14 )."
+        }
+      ],
+      "source_id": "aquifer_open_study_notes",
+      "license": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Aquifer Open Study Notes © 2026 Mission Mutual, adapted from Tyndale Open Study Notes © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0."
+    },
+    {
+      "article_id": "19136",
+      "content_id": "19136",
+      "reference_id": 18304,
+      "title": "John 4:27–30",
+      "index_reference": "43004027-43004030",
+      "canonical_reference": "John.4.27-30",
+      "upstream_reference_usfm": "JHN 4:27",
+      "language": "eng",
+      "content_html": "<p>The woman was not fully certain about who Jesus was (<a href=\"https://ref.ly/John4:29\">4:29</a>). She asked the people of her village, <em>“Could this be the Christ?”</em> Her words show that she was still thinking and learning.</p><p>Even so, she ran back to the village and told others about him. She invited them to come and see for themselves.</p><p>Telling others about Jesus is a sign of discipleship. Earlier in this Gospel, others also invited people to “come and see”(see <a href=\"https://ref.ly/John1:39\">1:39</a>, <a href=\"https://ref.ly/John1:46\">46</a>).</p>",
+      "chunks": [
+        {
+          "chunk_id": "19136-c001",
+          "chunk_index": 1,
+          "content_html": "<p>The woman was not fully certain about who Jesus was (<a href=\"https://ref.ly/John4:29\">4:29</a>). She asked the people of her village, <em>“Could this be the Christ?”</em> Her words show that she was still thinking and learning.</p><p>Even so, she ran back to the village and told others about him. She invited them to come and see for themselves.</p><p>Telling others about Jesus is a sign of discipleship. Earlier in this Gospel, others also invited people to “come and see”(see <a href=\"https://ref.ly/John1:39\">1:39</a>, <a href=\"https://ref.ly/John1:46\">46</a>).</p>",
+          "content_plain": "The woman was not fully certain about who Jesus was ( 4:29 ). She asked the people of her village, “Could this be the Christ?” Her words show that she was still thinking and learning. Even so, she ran back to the village and told others about him. She invited them to come and see for themselves. Telling others about Jesus is a sign of discipleship. Earlier in this Gospel, others also invited people to “come and see”(see 1:39 , 46 )."
+        }
+      ],
+      "source_id": "aquifer_open_study_notes",
+      "license": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Aquifer Open Study Notes © 2026 Mission Mutual, adapted from Tyndale Open Study Notes © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0."
+    },
+    {
+      "article_id": "19138",
+      "content_id": "19138",
+      "reference_id": 18306,
+      "title": "John 4:32–34",
+      "index_reference": "43004032-43004034",
+      "canonical_reference": "John.4.32-34",
+      "upstream_reference_usfm": "JHN 4:32",
+      "language": "eng",
+      "content_html": "<p>While Jesus spoke to the Samaritan woman, the disciples had&nbsp;gone to buy food  (<a href=\"https://ref.ly/John4:8\">4:8</a>). When they returned, they urged Jesus to eat. Jesus spoke with symbolic language, but they did not understand him (<a href=\"https://ref.ly/John4:33\">4:33</a>). </p><p>Later, when the disciples received the Holy Spirit, they understood what he meant (<a href=\"https://ref.ly/John2:22\">2:22</a>). Jesus sustained himself spiritually by doing what his Father told him to do (see <a href=\"https://ref.ly/John5:30\">5:30</a>; <a href=\"https://ref.ly/John6:38\">6:38</a>; <a href=\"https://ref.ly/John7:18\">7:18</a>; <a href=\"https://ref.ly/John8:50\">8:50</a>; <a href=\"https://ref.ly/John9:4\">9:4</a>; <a href=\"https://ref.ly/John10:37-John10:38\">10:37–38</a>; <a href=\"https://ref.ly/John12:49-John12:50\">12:49–50</a>).</p>",
+      "chunks": [
+        {
+          "chunk_id": "19138-c001",
+          "chunk_index": 1,
+          "content_html": "<p>While Jesus spoke to the Samaritan woman, the disciples had&nbsp;gone to buy food  (<a href=\"https://ref.ly/John4:8\">4:8</a>). When they returned, they urged Jesus to eat. Jesus spoke with symbolic language, but they did not understand him (<a href=\"https://ref.ly/John4:33\">4:33</a>). </p><p>Later, when the disciples received the Holy Spirit, they understood what he meant (<a href=\"https://ref.ly/John2:22\">2:22</a>). Jesus sustained himself spiritually by doing what his Father told him to do (see <a href=\"https://ref.ly/John5:30\">5:30</a>; <a href=\"https://ref.ly/John6:38\">6:38</a>; <a href=\"https://ref.ly/John7:18\">7:18</a>; <a href=\"https://ref.ly/John8:50\">8:50</a>; <a href=\"https://ref.ly/John9:4\">9:4</a>; <a href=\"https://ref.ly/John10:37-John10:38\">10:37–38</a>; <a href=\"https://ref.ly/John12:49-John12:50\">12:49–50</a>).</p>",
+          "content_plain": "While Jesus spoke to the Samaritan woman, the disciples had gone to buy food ( 4:8 ). When they returned, they urged Jesus to eat. Jesus spoke with symbolic language, but they did not understand him ( 4:33 ). Later, when the disciples received the Holy Spirit, they understood what he meant ( 2:22 ). Jesus sustained himself spiritually by doing what his Father told him to do (see 5:30 ; 6:38 ; 7:18 ; 8:50 ; 9:4 ; 10:37–38 ; 12:49–50 )."
+        }
+      ],
+      "source_id": "aquifer_open_study_notes",
+      "license": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Aquifer Open Study Notes © 2026 Mission Mutual, adapted from Tyndale Open Study Notes © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0."
+    },
+    {
+      "article_id": "19139",
+      "content_id": "19139",
+      "reference_id": 18307,
+      "title": "John 4:35",
+      "index_reference": "43004035",
+      "canonical_reference": "John.4.35",
+      "upstream_reference_usfm": "JHN 4:35",
+      "language": "eng",
+      "content_html": "<p><em>four months until the harvest</em>: Jesus referred to a common saying about farming. Farmers usually waited about four months between planting seed and gathering the crop.</p><p>In Samaria, it was likely the time of harvest, and the fields were ready to be gathered. Jesus used this picture to speak about people, not crops.</p><p>He had spoken with the woman at the well and planted spiritual seed (God’s message). Soon after, many Samaritans believed in him (<a href=\"https://ref.ly/John4:39-John4:42\">4:39–42</a>). In this way, Jesus was already gathering a harvest of faith.</p>",
+      "chunks": [
+        {
+          "chunk_id": "19139-c001",
+          "chunk_index": 1,
+          "content_html": "<p><em>four months until the harvest</em>: Jesus referred to a common saying about farming. Farmers usually waited about four months between planting seed and gathering the crop.</p><p>In Samaria, it was likely the time of harvest, and the fields were ready to be gathered. Jesus used this picture to speak about people, not crops.</p><p>He had spoken with the woman at the well and planted spiritual seed (God’s message). Soon after, many Samaritans believed in him (<a href=\"https://ref.ly/John4:39-John4:42\">4:39–42</a>). In this way, Jesus was already gathering a harvest of faith.</p>",
+          "content_plain": "four months until the harvest : Jesus referred to a common saying about farming. Farmers usually waited about four months between planting seed and gathering the crop. In Samaria, it was likely the time of harvest, and the fields were ready to be gathered. Jesus used this picture to speak about people, not crops. He had spoken with the woman at the well and planted spiritual seed (God’s message). Soon after, many Samaritans believed in him ( 4:39–42 ). In this way, Jesus was already gathering a harvest of faith."
+        }
+      ],
+      "source_id": "aquifer_open_study_notes",
+      "license": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Aquifer Open Study Notes © 2026 Mission Mutual, adapted from Tyndale Open Study Notes © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0."
+    },
+    {
+      "article_id": "19140",
+      "content_id": "19140",
+      "reference_id": 18308,
+      "title": "John 4:38",
+      "index_reference": "43004038",
+      "canonical_reference": "John.4.38",
+      "upstream_reference_usfm": "JHN 4:38",
+      "language": "eng",
+      "content_html": "<p><span><em>others</em>:</span> Jesus might have meant John the Baptist. Or, he might have been referring to the work he had just done with the Samaritan woman.</p>",
+      "chunks": [
+        {
+          "chunk_id": "19140-c001",
+          "chunk_index": 1,
+          "content_html": "<p><span><em>others</em>:</span> Jesus might have meant John the Baptist. Or, he might have been referring to the work he had just done with the Samaritan woman.</p>",
+          "content_plain": "others : Jesus might have meant John the Baptist. Or, he might have been referring to the work he had just done with the Samaritan woman."
+        }
+      ],
+      "source_id": "aquifer_open_study_notes",
+      "license": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Aquifer Open Study Notes © 2026 Mission Mutual, adapted from Tyndale Open Study Notes © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0."
+    },
+    {
+      "article_id": "19141",
+      "content_id": "19141",
+      "reference_id": 18309,
+      "title": "John 4:39–40",
+      "index_reference": "43004039-43004040",
+      "canonical_reference": "John.4.39-40",
+      "upstream_reference_usfm": "JHN 4:39",
+      "language": "eng",
+      "content_html": "<p><em>Many of the Samaritans</em>: The religious leaders and teachers in Jerusalem did not respond to Jesus with faith (chapter&nbsp;<a href=\"https://ref.ly/John3:1-John3:36\">3</a>). In contrast, many Samaritans believed in him. They first listened because of the testimony (public witness) of this woman, who had been an outsider in her community. Later, they believed because they heard Jesus for themselves.</p>",
+      "chunks": [
+        {
+          "chunk_id": "19141-c001",
+          "chunk_index": 1,
+          "content_html": "<p><em>Many of the Samaritans</em>: The religious leaders and teachers in Jerusalem did not respond to Jesus with faith (chapter&nbsp;<a href=\"https://ref.ly/John3:1-John3:36\">3</a>). In contrast, many Samaritans believed in him. They first listened because of the testimony (public witness) of this woman, who had been an outsider in her community. Later, they believed because they heard Jesus for themselves.</p>",
+          "content_plain": "Many of the Samaritans : The religious leaders and teachers in Jerusalem did not respond to Jesus with faith (chapter 3 ). In contrast, many Samaritans believed in him. They first listened because of the testimony (public witness) of this woman, who had been an outsider in her community. Later, they believed because they heard Jesus for themselves."
+        }
+      ],
+      "source_id": "aquifer_open_study_notes",
+      "license": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Aquifer Open Study Notes © 2026 Mission Mutual, adapted from Tyndale Open Study Notes © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0."
+    },
+    {
+      "article_id": "19144",
+      "content_id": "19144",
+      "reference_id": 18312,
+      "title": "John 4:42",
+      "index_reference": "43004042",
+      "canonical_reference": "John.4.42",
+      "upstream_reference_usfm": "JHN 4:42",
+      "language": "eng",
+      "content_html": "<p>The Samaritans had heard Jesus and believed his message for themselves. They were no longer depending only on the woman’s testimony.</p><p>They called him <em>Savior of the world</em> (see also <a href=\"https://ref.ly/1John4:14\">1&nbsp;John 4:14</a>). This title shows that they understood something important. Salvation was not limited to one ethnic group.</p><p>As Samaritans, they knew they were separated from the Jews. Yet they recognized that Jesus came for all people. His mission was not only for Jews, but for the whole world (<a href=\"https://ref.ly/John1:4-John1:12\">John 1:4–12</a>; compare <a href=\"https://ref.ly/John12:20-John12:26\">12:20–26</a>).</p>",
+      "chunks": [
+        {
+          "chunk_id": "19144-c001",
+          "chunk_index": 1,
+          "content_html": "<p>The Samaritans had heard Jesus and believed his message for themselves. They were no longer depending only on the woman’s testimony.</p><p>They called him <em>Savior of the world</em> (see also <a href=\"https://ref.ly/1John4:14\">1&nbsp;John 4:14</a>). This title shows that they understood something important. Salvation was not limited to one ethnic group.</p><p>As Samaritans, they knew they were separated from the Jews. Yet they recognized that Jesus came for all people. His mission was not only for Jews, but for the whole world (<a href=\"https://ref.ly/John1:4-John1:12\">John 1:4–12</a>; compare <a href=\"https://ref.ly/John12:20-John12:26\">12:20–26</a>).</p>",
+          "content_plain": "The Samaritans had heard Jesus and believed his message for themselves. They were no longer depending only on the woman’s testimony. They called him Savior of the world (see also 1 John 4:14 ). This title shows that they understood something important. Salvation was not limited to one ethnic group. As Samaritans, they knew they were separated from the Jews. Yet they recognized that Jesus came for all people. His mission was not only for Jews, but for the whole world ( John 1:4–12 ; compare 12:20–26 )."
+        }
+      ],
+      "source_id": "aquifer_open_study_notes",
+      "license": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Aquifer Open Study Notes © 2026 Mission Mutual, adapted from Tyndale Open Study Notes © 2023 Tyndale House Publishers. Licensed under CC BY-SA 4.0."
+    }
+  ]
+}
