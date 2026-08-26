@@ -99,6 +99,9 @@ from biblical_place_enrichment import (
 )
 from bible_engine.greek_analysis_ui import (
     CROSS_CHAPTER_GREEK_MESSAGE,
+    NT_INVALID_REFERENCE_MESSAGE,
+    NT_NEEDS_VERSES_MESSAGE,
+    _reference_book_is_new_testament,
     greek_reference_status,
     render_greek_analysis_block,
 )
@@ -3783,6 +3786,18 @@ Készíts alapos exegetikai elemzést. Határozd meg a szakasz **pontos
 szerkezetét** és **irodalmi műfaját**. Elemezd a kontextuális összefüggéseket:
 mi előzi meg, mi követi, és hogyan illeszkedik ez a rész **a kánon egészébe**.
 
+ELSŐDLEGES ELEMZÉSI HATÓKÖR (KÖTELEZŐ):
+A felhasználó által megadott igeszakasz a PRIMÉR elemzési tárgy. A belső
+szerkezet, műfaj, kulcsszavak, érvelésmenet és alcímes kifejtés CSAK erre a
+verstartományra vonatkozhat. Közeli vagy távolabbi verseket (ugyanabból a
+fejezetből vagy más helyről) szabad KONTEXTUSKÉNT, háttérként vagy
+összehasonlításként említeni — de TILOS őket úgy elemezni, mintha a kért
+szakasz részei lennének (pl. ne legyen belőlük külön szerkezeti egység,
+külön „szakasz" alcím, vagy a kért textus helyett egész-fejezetes
+végigolvasás). Példa: Jn 4,1–42 kérésekor a 43–54 nem lehet harmadik
+szerkezeti főblokk; Róm 8,28–30 kérésekor ne elemezd a teljes 8. fejezetet
+elsődleges szövegként.
+
 FONTOS BELSŐ FEGYELEM (nem a végleges szöveg formája): minden érdemi,
 értelmező állításodat kösd egy konkrét vershez, görög/héber szóalakhoz vagy
 konkrét megfigyeléshez — ezt magadban tartsd nyomon, hogy ellenőrizhető
@@ -3964,6 +3979,15 @@ Helyezd el a textust a keletkezésének **valóságos történeti és kulturáli
 terébe**. Keress konkrét **régészeti, társadalmi vagy vallástörténeti
 adatokat**. Milyen dokumentált korabeli szokás, politikai, gazdasági vagy
 vallási körülmény kapcsolódik közvetlenül ehhez a szakaszhoz?
+
+ELSŐDLEGES ELEMZÉSI HATÓKÖR (KÖTELEZŐ):
+A felhasználó által megadott igeszakasz a PRIMÉR tárgy. Történeti/földrajzi
+adatokat elsősorban erre a verstartományra és a benne szereplő helyekre /
+szereplőkre / szokásokra adj. A tágabb fejezet vagy könyv más szakaszait
+(pl. Lk 10,13–15 helyneveit a 10,25–37 kérésekor) csak akkor említsd, ha
+valóban szükséges kontextus a kért szakaszhoz — ne elemezd őket úgy, mintha
+a kért textus részei lennének, és ne bővítsd a választ egész-fejezetes
+kortörténetté.
 
 FONTOS HATÁRVONAL: csak ELLENŐRIZHETŐ, forrásra visszavezethető történeti
 vagy kulturális TÉNYEKET adj. NE állítsd, hogy a szakasz "miről szól" vagy
@@ -4543,6 +4567,9 @@ def build_original_language_token_block(igehely: str) -> str:
     if status == "cross_chapter":
         return header + f"{CROSS_CHAPTER_GREEK_MESSAGE} Nincs lekérhető token-adat."
 
+    if status == "needs_verses":
+        return header + f"{NT_NEEDS_VERSES_MESSAGE} Nincs lekérhető token-adat."
+
     if status == "old_testament":
         try:
             book, chapter, verse_start, verse_end = parse_hebrew_reference(reference)
@@ -4568,6 +4595,9 @@ def build_original_language_token_block(igehely: str) -> str:
         if not lines:
             return header + "A helyi görög adatbázisban nem található token-adat ehhez a szakaszhoz."
         return header + "\n".join(lines)
+
+    if status == "invalid" and _reference_book_is_new_testament(reference):
+        return header + f"{NT_INVALID_REFERENCE_MESSAGE} Nincs lekérhető token-adat."
 
     return header + "Nem sikerült azonosítani a hivatkozást — nincs lekérhető token-adat."
 

@@ -541,6 +541,9 @@ def _grounded_rules_block(
         "Ha az evidence nem elég egy konkrét állításhoz, ne találj ki adatot.",
         "Különítsd el a forrásból következő adatot és a saját értelmező következtetést.",
         "Ne írj ki belső evidence/source azonosítókat a válaszba.",
+        "PRIMARY PASSAGE SCOPE: treat the requested canonical passage as the primary",
+        "analysis object. Nearby verses may be cited as context only — do not structurally",
+        "analyze out-of-range verses as if they were part of the requested text.",
     ]
     module_key = "historical_context" if module == "history" else module
     if (
