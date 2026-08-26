@@ -19,6 +19,8 @@ from illustration_engine.illustration_sqlite import (
 )
 from illustration_engine.jataka_importer import import_jataka_book
 from illustration_engine.jataka_parser import JATAKA_TALES_1912, MORE_JATAKA_TALES_1922
+from illustration_engine.merenyi_laszlo_importer import import_merenyi_laszlo_book
+from illustration_engine.merenyi_laszlo_parser import MERENYI_1_RESZ, MERENYI_2_RESZ
 from illustration_engine.paths import RAW_DATA_DIR
 
 
@@ -26,6 +28,8 @@ DEFAULT_JATAKA_TALES_SOURCE = RAW_DATA_DIR / "pg62514_jataka_tales.txt"
 DEFAULT_MORE_JATAKA_TALES_SOURCE = RAW_DATA_DIR / "pg7518_more_jataka_tales.txt"
 DEFAULT_AESOPS_FABLES_SOURCE = RAW_DATA_DIR / "pg21_aesops_fables.txt"
 DEFAULT_ARANY_LASZLO_SOURCE = RAW_DATA_DIR / "pg38852_arany_laszlo_eredeti_nepmesek.txt"
+DEFAULT_MERENYI_LASZLO_1_SOURCE = RAW_DATA_DIR / "pg39419_merenyi_laszlo_eredeti_nepmesek_1resz.txt"
+DEFAULT_MERENYI_LASZLO_2_SOURCE = RAW_DATA_DIR / "pg39386_merenyi_laszlo_eredeti_nepmesek_2resz.txt"
 
 
 def main() -> None:
@@ -61,6 +65,18 @@ def main() -> None:
         type=Path,
         default=DEFAULT_ARANY_LASZLO_SOURCE,
         help="Path to the raw PG #38852 'Eredeti népmesék' plain-text file.",
+    )
+    parser.add_argument(
+        "--merenyi-laszlo-1-source",
+        type=Path,
+        default=DEFAULT_MERENYI_LASZLO_1_SOURCE,
+        help="Path to the raw PG #39419 'Eredeti népmesék (1. rész)' plain-text file.",
+    )
+    parser.add_argument(
+        "--merenyi-laszlo-2-source",
+        type=Path,
+        default=DEFAULT_MERENYI_LASZLO_2_SOURCE,
+        help="Path to the raw PG #39386 'Eredeti népmesék (2. rész)' plain-text file.",
     )
     args = parser.parse_args()
 
@@ -107,6 +123,21 @@ def main() -> None:
             print(
                 f"SKIP PG_ARANY_LASZLO_EREDETI_NEPMESEK: raw source not found at "
                 f"{args.arany_laszlo_source}"
+            )
+
+        for spec, source_path in (
+            (MERENYI_1_RESZ, args.merenyi_laszlo_1_source),
+            (MERENYI_2_RESZ, args.merenyi_laszlo_2_source),
+        ):
+            if not source_path.exists():
+                print(f"SKIP {spec.source_code}: raw source not found at {source_path}")
+                continue
+            report = import_merenyi_laszlo_book(connection, spec=spec, raw_text_path=source_path)
+            print(
+                f"Merényi László import: source={report.source_code}, "
+                f"parsed={report.parsed_count}, inserted={report.inserted_count}, "
+                f"skipped_existing={report.skipped_existing_count}, "
+                f"raw_sha256={report.raw_file_sha256}"
             )
 
         integrity = check_integrity(connection)

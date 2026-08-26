@@ -74,6 +74,36 @@
       "retrieved_at": "2026-08-26",
       "reliability_tier": "high",
       "notes_hu": "TEXTUS illustration database — Phase 2E. 31 elbeszélő magyar népmese (a könyv 'TARTALOM' listájának teljes elbeszélő-anyaga), kizárva a találós mesék/csali-mesék/megfejtések szakasz. Két forrás-specifikus tipográfiai rendellenességet talált és kezel a parser ékezet-/kis-nagybetű-toleráns illesztéssel (nem verbatim egyezéssel): egy fejléc rendes nagybetűzés helyett vegyes esetű ('Az ARANYHAJÚ HERCZEGKISASSZONY'), egy másik a nagybetűs É ékezetét elhagyja ('TÜNDERKISASSZONY' a 'tündér' szóból). Az utolsó mese címe a törzsszövegben két fizikai sorra törik — ezt a parser generikusan, nem eseti javítással kezeli. A magyar réteg itt is későbbi, külön AI-enrichment fázis feladata; eddig a pontig a rekordok 'draft' állapotban vannak."
+    },
+    {
+      "code": "PG_MERENYI_LASZLO_EREDETI_NEPMESEK_1",
+      "title": "Eredeti népmesék (1. rész)",
+      "author": "Merényi László",
+      "orig_language": "hu",
+      "publication_year": 1861,
+      "edition_reference": "Pest: Kiadja Heckenast Gusztáv, 1861 (Első rész). Digitized as Project Gutenberg eBook #39419 (release date 2012-04-10; produced by Albert László from Google Books page images).",
+      "license_status": "public_domain_confirmed",
+      "license_basis_hu": "Kettős, egymástól független PD-alap: (1) az 1861-es kiadás védelmi ideje régen lejárt; (2) a gyűjtő Merényi László 1907-ben hunyt el, tehát az élet+70 éves szabály szerint is lejárt 1977-ben. A Project Gutenberg 'public domain in the United States' minősítéssel, korlátozás nélküli PG License alatt adja ki. A digitális szövegváltozat tiszta, önkéntes transzkripció (Albert László, ugyanaz a projekt, mint az Arany László- és Jataka-köteteknél), modern jogvédett szerkesztői réteg nélkül. A kötet 10 elbeszélő népmeséje UTÁN következő 'Néptalányok' (kb. 93 cím nélküli, rövid találós vers) és 'Felóldás' (válaszkulcs) szakasz, valamint a hátul álló TARTALOM és a PG-transzkriber jegyzet STRUKTURÁLISAN eltérő/nem elbeszélő tartalom — nem kerülnek importálásra.",
+      "rights_holder": null,
+      "source_url": "https://www.gutenberg.org/ebooks/39419",
+      "retrieved_at": "2026-08-26",
+      "reliability_tier": "high",
+      "notes_hu": "TEXTUS illustration database — Phase 2F, az Eredeti népmesék (1861, Merényi László) két kötetének első fele. 10 elbeszélő népmese. Az egyik mesecím ('A szegény ember és a komája') a törzsszövegben egy lábjegyzet-hivatkozási zárójellel összeforrva jelenik meg ('...KOMÁJA.[101]') — az első, csak pontra hagyatkozó fejléckeresés emiatt tévesen kihagyta; a TARTALOM-listával való kereszt-ellenőrzés fedte fel, a parser mostantól a záró írásjel UTÁN egy opcionális '[szám]' lábjegyzet-jelölőt is elfogad. A magyar réteg itt is későbbi, külön AI-enrichment fázis feladata; eddig a pontig a rekordok 'draft' állapotban vannak."
+    },
+    {
+      "code": "PG_MERENYI_LASZLO_EREDETI_NEPMESEK_2",
+      "title": "Eredeti népmesék (2. rész)",
+      "author": "Merényi László",
+      "orig_language": "hu",
+      "publication_year": 1861,
+      "edition_reference": "Pest: Kiadja Heckenast Gusztáv, 1861 (Második rész). Digitized as Project Gutenberg eBook #39386 (release date 2012-04-06; produced by Albert László from Google Books page images).",
+      "license_status": "public_domain_confirmed",
+      "license_basis_hu": "Azonos, kettős PD-alap, mint az 1. résznél (PG_MERENYI_LASZLO_EREDETI_NEPMESEK_1): 1861-es kiadás + Merényi László (†1907) élet+70 éve is lejárt 1977-ben. PG 'public domain in the United States', korlátozás nélküli PG License. A digitális szöveg tiszta, önkéntes transzkripció, modern jogvédett szerkesztői réteg nélkül. A 13 elbeszélő népmese UTÁN közvetlenül a hátsó TARTALOM és a PG-transzkriber jegyzet (elgépelés-javítási lista) következik — nincs találós mese szakasz ebben a kötetben.",
+      "rights_holder": null,
+      "source_url": "https://www.gutenberg.org/ebooks/39386",
+      "retrieved_at": "2026-08-26",
+      "reliability_tier": "high",
+      "notes_hu": "TEXTUS illustration database — Phase 2F, az Eredeti népmesék (1861, Merényi László) második kötete. 13 elbeszélő népmese. Az utolsó mese (Bolond Jankó) szövege után, a TARTALOM elé, a törzsszövegbe ékelődik a nyomda saját kolofonja ('_Wigand K. F. könyvnyomdája Pozsonyban._') — ez sem a gyűjtő, sem a mese szövege, a parser explicit kizárja (az 1. résznél ugyanez a sor a Néptalányok-szakasz miatt már eleve a kizárt régióba esik, ott nem igényelt külön kezelést). A magyar réteg itt is későbbi, külön AI-enrichment fázis feladata; eddig a pontig a rekordok 'draft' állapotban vannak."
     }
   ]
 }

@@ -25,9 +25,11 @@ Aesop's approach) would each individually miss:
     "tündér"), so a simple `.upper()` on the table-of-contents title
     would not exactly match it.
 Rather than hand-tolerating each irregularity, every title (and the
-whole book body, once) is passed through `_fold_preserving_length`,
-which NFKD-decomposes each character, drops any combining accent mark,
-and casefolds — deliberately implemented to be LENGTH-PRESERVING
+whole book body, once) is passed through the shared
+`hungarian_folktale_text.fold_preserving_length` (see that module for
+why it's shared — a second source, Merényi László, confirmed the same
+concrete need), which NFKD-decomposes each character, drops any
+combining accent mark, and casefolds — deliberately LENGTH-PRESERVING
 (1 codepoint in, 1 codepoint out) so that a match found in the folded
 body maps directly back to the same offsets in the real, unfolded body
 text used for `original_text`. `original_text` itself is always sliced
@@ -54,7 +56,6 @@ back matter, not a judgment about their literary worth.
 from __future__ import annotations
 
 import re
-import unicodedata
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -63,6 +64,7 @@ from illustration_engine.gutenberg_text import (
     collapse_blank_lines,
     extract_pg_body,
 )
+from illustration_engine.hungarian_folktale_text import fold_preserving_length, heading_pattern
 
 
 SOURCE_CODE = "PG_ARANY_LASZLO_EREDETI_NEPMESEK"
@@ -133,12 +135,12 @@ def parse_arany_laszlo_text(raw_text: str) -> tuple[ParsedAranyTale, ...]:
     except GutenbergBoilerplateError as exc:
         raise AranyLaszloParseError(str(exc)) from exc
 
-    folded_body = _fold_preserving_length(body)
+    folded_body = fold_preserving_length(body)
 
     header_matches: list[re.Match[str]] = []
     search_from = 0
     for title in TALE_TITLES:
-        pattern = _heading_pattern(title)
+        pattern = heading_pattern(title)
         match = pattern.search(folded_body, search_from)
         if match is None:
             raise AranyLaszloParseError(
@@ -148,7 +150,7 @@ def parse_arany_laszlo_text(raw_text: str) -> tuple[ParsedAranyTale, ...]:
         header_matches.append(match)
         search_from = match.end()
 
-    back_matter_pattern = _heading_pattern(BACK_MATTER_MARKER)
+    back_matter_pattern = heading_pattern(BACK_MATTER_MARKER)
     back_matter_match = back_matter_pattern.search(folded_body, header_matches[-1].end())
     if back_matter_match is None:
         raise AranyLaszloParseError(
@@ -183,29 +185,6 @@ def parse_arany_laszlo_text(raw_text: str) -> tuple[ParsedAranyTale, ...]:
 def parse_arany_laszlo_file(path: str | Path) -> tuple[ParsedAranyTale, ...]:
     raw_text = Path(path).read_text(encoding="utf-8")
     return parse_arany_laszlo_text(raw_text)
-
-
-def _heading_pattern(title: str) -> re.Pattern[str]:
-    words = _fold_preserving_length(title).split()
-    body_pattern = r"\s+".join(re.escape(word) for word in words)
-    return re.compile(rf"^[ \t]*{body_pattern}[?.!]?[ \t]*$", re.MULTILINE)
-
-
-def _fold_preserving_length(text: str) -> str:
-    """Accent- and case-folds `text` one character at a time so the
-    result has the exact same length (and therefore the same offsets)
-    as the input — Hungarian precomposed accented letters always
-    NFKD-decompose into exactly one base letter plus one combining mark,
-    so stripping the combining mark yields exactly one folded character
-    per input character."""
-    return "".join(_fold_char(ch) for ch in text)
-
-
-def _fold_char(ch: str) -> str:
-    decomposed = unicodedata.normalize("NFKD", ch)
-    base = "".join(c for c in decomposed if not unicodedata.combining(c))
-    folded = (base or ch).casefold()
-    return folded if len(folded) == 1 else ch.casefold()[:1]
 
 
 __all__ = [
