@@ -1,0 +1,81 @@
+{
+  "authors": [
+    {
+      "author_id": "test.author.synthetic",
+      "canonical_name": "Synthetic Test Author",
+      "tradition": "reformed",
+      "birth_year": 1500,
+      "death_year": 1564
+    }
+  ],
+  "works": [
+    {
+      "work_id": "test.work.synthetic_notes",
+      "author_id": "test.author.synthetic",
+      "title": "Synthetic Test Notes",
+      "original_title": null,
+      "tradition": "reformed",
+      "original_language": "en"
+    }
+  ],
+  "editions": [
+    {
+      "edition_id": "test.edition.synthetic_notes.en",
+      "work_id": "test.work.synthetic_notes",
+      "edition_label": "Test fixture edition",
+      "translator": "Synthetic Translator",
+      "publication_year": 1900,
+      "publisher": "Textus Test Fixture",
+      "language": "en",
+      "license": "CC-BY-4.0",
+      "rights_status": "public-domain",
+      "rights_note": "Synthetic test-only fixture; not a real theological source.",
+      "source_url": "https://example.test/theology-v1-fixture",
+      "corpus": "test-fixture",
+      "external_id": "textus-theology-v1-sample"
+    }
+  ],
+  "sections": [
+    {
+      "section_id": "test.section.alpha",
+      "edition_id": "test.edition.synthetic_notes.en",
+      "parent_section_id": null,
+      "section_type": "chapter",
+      "heading": "Synthetic Alpha Heading",
+      "sequence": 1
+    },
+    {
+      "section_id": "test.section.beta",
+      "edition_id": "test.edition.synthetic_notes.en",
+      "parent_section_id": null,
+      "section_type": "chapter",
+      "heading": "Synthetic Beta Heading",
+      "sequence": 2
+    }
+  ],
+  "chunks": [
+    {
+      "chunk_id": "test.chunk.alpha",
+      "section_id": "test.section.alpha",
+      "sequence": 1,
+      "text": "SYNTHETIC TEST ONLY. Alpha marker phrase for fixture search.",
+      "plain_text": "SYNTHETIC TEST ONLY. Alpha marker phrase for fixture search.",
+      "source_locator": "fixture://theology-v1/section-alpha#1",
+      "passage_links": [
+        {
+          "canonical_passage": "John.3.16",
+          "raw_citation": "John.3.16"
+        }
+      ]
+    },
+    {
+      "chunk_id": "test.chunk.beta",
+      "section_id": "test.section.beta",
+      "sequence": 1,
+      "text": "SYNTHETIC TEST ONLY. Beta marker phrase for fixture search.",
+      "plain_text": "SYNTHETIC TEST ONLY. Beta marker phrase for fixture search.",
+      "source_locator": "fixture://theology-v1/section-beta#1",
+      "passage_links": []
+    }
+  ]
+}
