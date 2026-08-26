@@ -24,6 +24,36 @@ guarantees that even a row that somehow ends up with `status='published'`
 against a non-publishable source is never returned by anything reading
 through the view.
 
+ILLUSTRATION UNITS (schema v3, Phase 3A): `stories` stays the immutable,
+verbatim, forráshű provenance layer — enrichment NEVER writes to
+`original_text`, `title_original`, `original_text_checksum`, or
+`source_reference`. `illustration_units` is the new primary retrieval
+object: 1 story -> 0..N units (a Phase 2O finding — a 200-1500-char
+story is typically one unit, a 3000+-char story may yield several short
+extracted-scene units, and most stories yield none until enrichment
+actually runs). The exact same two independent gates that protect
+`stories.status='published'` are mirrored here:
+1. Content-completeness (same-row CHECK): `title_hu`, `modern_hu_text`,
+   `summary_hu` must be non-NULL before `status='published'`.
+2. License (trigger, via `story_id` -> `stories.source_id` ->
+   `sources.license_status`): identical two-layer (Python +
+   `trg_units_publish_requires_license_*` trigger) pattern as `stories`.
+A THIRD gate is new here: `trg_units_protect_human_reviewed_content`
+stops any UPDATE from silently changing a unit's content fields
+(`title_hu`, `modern_hu_text`, `summary_hu`, `moral_hu`,
+`narrative_status`) once `human_reviewed_at` is set, UNLESS that same
+UPDATE both clears `human_reviewed_at` to NULL AND resets `status` to
+'needs_review' — clearing the timestamp alone is deliberately not
+enough, since a row that stayed `approved`/`published` while losing its
+review stamp would be worse than not protecting it at all. This is what
+makes "an AI re-run can never silently overwrite human-approved
+content, nor leave a demoted unit looking still-approved" an enforced
+DB guarantee, not just an API convention. A FOURTH condition —
+`human_reviewed_at IS NOT NULL` — was added to the `published`
+content-completeness CHECK itself, so `status='published'` is
+impossible (INSERT or UPDATE, Python helper or raw SQL) without an
+actual human review having happened.
+
 CONTENT-COMPLETENESS GATE (schema v2, independent of the license gate):
 
 `title_hu`, `modern_hu_text`, and `summary_hu` are the Hungarian layer,
@@ -54,15 +84,55 @@ from illustration_engine.source_registry import PUBLISHABLE_LICENSE_STATUSES
 
 DATABASE_NAME = "illustrations.sqlite3"
 DEFAULT_DATABASE_PATH = GENERATED_DATA_DIR / DATABASE_NAME
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 
 ALLOWED_STORY_STATUSES = frozenset({"draft", "needs_review", "approved", "published"})
 ALLOWED_ADAPTATION_STATUSES = frozenset(
     {"verbatim_transcription", "modernized_spelling", "editorial_paraphrase"}
 )
 
-REQUIRED_TABLES = frozenset({"sources", "stories", "tags", "story_tags", "import_meta"})
-REQUIRED_VIEWS = frozenset({"published_stories"})
+# Phase 3A: illustration_units share the stories workflow vocabulary
+# (draft -> needs_review -> approved -> published) — a separate, equal-by-
+# value constant because the two tables are conceptually distinct, not
+# because the allowed values differ.
+ALLOWED_UNIT_STATUSES = frozenset({"draft", "needs_review", "approved", "published"})
+
+# How a unit's text relates to its parent story's original_text — decides
+# whether source_span_start/end are expected (see the CHECK constraint on
+# illustration_units below).
+ALLOWED_DERIVATION_TYPES = frozenset(
+    {"full_story_translation", "condensed_story", "extracted_scene"}
+)
+
+# Controlled vocabulary from the Phase 2O enrichment-readiness audit —
+# deliberately does NOT assert historical accuracy just because a real
+# person is named (the Phase 2H Baldwin finding this vocabulary exists to
+# capture).
+ALLOWED_NARRATIVE_STATUSES = frozenset(
+    {
+        "documented_historical_event",
+        "legend_about_historical_figure",
+        "traditional_anecdote",
+        "fable",
+        "folktale",
+        "rabbinic_aggadic_tale",
+        "didactic_tale",
+    }
+)
+ALLOWED_NARRATIVE_STATUS_CONFIDENCE = frozenset({"low", "medium", "high"})
+
+REQUIRED_TABLES = frozenset(
+    {
+        "sources",
+        "stories",
+        "tags",
+        "story_tags",
+        "illustration_units",
+        "illustration_unit_tags",
+        "import_meta",
+    }
+)
+REQUIRED_VIEWS = frozenset({"published_stories", "published_illustration_units"})
 
 _publishable_sql_list = ", ".join(f"'{s}'" for s in sorted(PUBLISHABLE_LICENSE_STATUSES))
 _license_status_sql_list = ", ".join(
@@ -108,6 +178,7 @@ def create_schema(connection: sqlite3.Connection) -> None:
             retrieved_at TEXT,
             reliability_tier TEXT NOT NULL,
             notes_hu TEXT,
+            tradition TEXT,
             registered_at TEXT NOT NULL
         );
 
@@ -120,6 +191,7 @@ def create_schema(connection: sqlite3.Connection) -> None:
             title_hu TEXT,
             original_text TEXT,
             original_text_checksum TEXT,
+            source_reference TEXT,
             adaptation_status TEXT NOT NULL CHECK (
                 adaptation_status IN (
                     'verbatim_transcription', 'modernized_spelling', 'editorial_paraphrase'
@@ -140,6 +212,63 @@ def create_schema(connection: sqlite3.Connection) -> None:
             )
         );
 
+        -- Phase 3A: the primary user-facing retrieval object. 1 story ->
+        -- 0..N units (see module docstring). NEVER writes back to its
+        -- parent story's provenance fields.
+        CREATE TABLE IF NOT EXISTS illustration_units (
+            id INTEGER PRIMARY KEY,
+            story_id INTEGER NOT NULL REFERENCES stories(id),
+            unit_index INTEGER NOT NULL,
+            derivation_type TEXT NOT NULL CHECK (
+                derivation_type IN ('full_story_translation', 'condensed_story', 'extracted_scene')
+            ),
+            source_span_start INTEGER,
+            source_span_end INTEGER,
+            title_hu TEXT,
+            modern_hu_text TEXT,
+            summary_hu TEXT,
+            moral_hu TEXT,
+            narrative_status TEXT CHECK (
+                narrative_status IS NULL OR narrative_status IN (
+                    'documented_historical_event', 'legend_about_historical_figure',
+                    'traditional_anecdote', 'fable', 'folktale', 'rabbinic_aggadic_tale',
+                    'didactic_tale'
+                )
+            ),
+            narrative_status_confidence TEXT CHECK (
+                narrative_status_confidence IS NULL
+                OR narrative_status_confidence IN ('low', 'medium', 'high')
+            ),
+            status TEXT NOT NULL DEFAULT 'draft' CHECK (
+                status IN ('draft', 'needs_review', 'approved', 'published')
+            ),
+            enrichment_model TEXT,
+            enrichment_prompt_version TEXT,
+            enrichment_generated_at TEXT,
+            human_reviewed_at TEXT,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            UNIQUE(story_id, unit_index),
+            -- Phase 3A follow-up: publishing an illustration unit requires
+            -- an actual human review, not just complete content — a
+            -- fail-closed requirement this CHECK enforces on every INSERT
+            -- and UPDATE regardless of caller (Python helper or raw SQL).
+            CHECK (
+                status != 'published'
+                OR (
+                    title_hu IS NOT NULL AND modern_hu_text IS NOT NULL AND summary_hu IS NOT NULL
+                    AND human_reviewed_at IS NOT NULL
+                )
+            ),
+            CHECK ((source_span_start IS NULL) = (source_span_end IS NULL)),
+            CHECK (source_span_end IS NULL OR source_span_end > source_span_start),
+            CHECK (
+                derivation_type != 'extracted_scene'
+                OR (source_span_start IS NOT NULL AND source_span_end IS NOT NULL)
+            ),
+            CHECK ((narrative_status IS NULL) = (narrative_status_confidence IS NULL))
+        );
+
         CREATE TABLE IF NOT EXISTS tags (
             id INTEGER PRIMARY KEY,
             category TEXT NOT NULL CHECK (category IN ('topic', 'tone', 'function')),
@@ -154,6 +283,17 @@ def create_schema(connection: sqlite3.Connection) -> None:
             PRIMARY KEY (story_id, tag_id)
         );
 
+        -- Phase 3A: tags attach to illustration_units, not stories — a
+        -- single long story can yield several units with DIFFERENT topics/
+        -- tone/function (Phase 3A brief's own stated principle). story_tags
+        -- is left in place, defined but intentionally unpopulated for now;
+        -- nothing currently writes to it.
+        CREATE TABLE IF NOT EXISTS illustration_unit_tags (
+            unit_id INTEGER NOT NULL REFERENCES illustration_units(id) ON DELETE CASCADE,
+            tag_id INTEGER NOT NULL REFERENCES tags(id),
+            PRIMARY KEY (unit_id, tag_id)
+        );
+
         CREATE TABLE IF NOT EXISTS import_meta (
             key TEXT PRIMARY KEY,
             value TEXT NOT NULL
@@ -162,6 +302,10 @@ def create_schema(connection: sqlite3.Connection) -> None:
         CREATE INDEX IF NOT EXISTS idx_stories_source ON stories(source_id);
         CREATE INDEX IF NOT EXISTS idx_story_tags_story ON story_tags(story_id);
         CREATE INDEX IF NOT EXISTS idx_story_tags_tag ON story_tags(tag_id);
+        CREATE INDEX IF NOT EXISTS idx_illustration_units_story ON illustration_units(story_id);
+        CREATE INDEX IF NOT EXISTS idx_illustration_units_status ON illustration_units(status);
+        CREATE INDEX IF NOT EXISTS idx_illustration_unit_tags_unit ON illustration_unit_tags(unit_id);
+        CREATE INDEX IF NOT EXISTS idx_illustration_unit_tags_tag ON illustration_unit_tags(tag_id);
 
         -- Read-side fail-closed gate: only sources with a confirmed/granted
         -- license AND stories explicitly marked 'published' are exposed here.
@@ -212,6 +356,134 @@ def create_schema(connection: sqlite3.Connection) -> None:
             WHERE (SELECT license_status FROM sources WHERE id = NEW.source_id)
                   NOT IN ({_publishable_sql_list});
         END;
+
+        -- Phase 3A: read-side fail-closed gate for the new retrieval
+        -- object, exactly mirroring published_stories above (same two
+        -- conditions: unit itself published, AND its story's source
+        -- license publishable). Every future search/retrieval read must
+        -- query THIS view (or the FTS index joined back to it), never
+        -- raw illustration_units directly.
+        CREATE VIEW IF NOT EXISTS published_illustration_units AS
+        SELECT
+            u.id,
+            u.story_id,
+            u.unit_index,
+            u.derivation_type,
+            u.source_span_start,
+            u.source_span_end,
+            u.title_hu,
+            u.modern_hu_text,
+            u.summary_hu,
+            u.moral_hu,
+            u.narrative_status,
+            u.narrative_status_confidence,
+            u.status,
+            u.created_at,
+            u.updated_at,
+            st.id AS story_id_check,
+            st.external_ref AS story_external_ref,
+            st.title_original AS story_title_original,
+            s.code AS source_code,
+            s.license_status AS source_license_status,
+            s.reliability_tier AS source_reliability_tier,
+            s.tradition AS source_tradition
+        FROM illustration_units u
+        JOIN stories st ON st.id = u.story_id
+        JOIN sources s ON s.id = st.source_id
+        WHERE u.status = 'published'
+          AND s.license_status IN ({_publishable_sql_list});
+
+        -- SQL-layer license gate for illustration_units — identical
+        -- two-layer (Python + trigger) pattern as stories, just one hop
+        -- further through story_id -> stories.source_id -> sources.
+        CREATE TRIGGER IF NOT EXISTS trg_units_publish_requires_license_insert
+        BEFORE INSERT ON illustration_units
+        WHEN NEW.status = 'published'
+        BEGIN
+            SELECT RAISE(ABORT, 'license_gate: source license_status does not permit published status')
+            WHERE (
+                SELECT s.license_status
+                FROM stories st JOIN sources s ON s.id = st.source_id
+                WHERE st.id = NEW.story_id
+            ) NOT IN ({_publishable_sql_list});
+        END;
+
+        CREATE TRIGGER IF NOT EXISTS trg_units_publish_requires_license_update
+        BEFORE UPDATE OF status, story_id ON illustration_units
+        WHEN NEW.status = 'published'
+        BEGIN
+            SELECT RAISE(ABORT, 'license_gate: source license_status does not permit published status')
+            WHERE (
+                SELECT s.license_status
+                FROM stories st JOIN sources s ON s.id = st.source_id
+                WHERE st.id = NEW.story_id
+            ) NOT IN ({_publishable_sql_list});
+        END;
+
+        -- Human-review protection gate (Phase 3A brief, tightened per
+        -- the follow-up review: "reviewed-content overwrite must
+        -- actually demote the unit, not just clear the timestamp").
+        -- Once human_reviewed_at is set, ANY UPDATE that changes a
+        -- content field is rejected UNLESS that same UPDATE both (a)
+        -- clears human_reviewed_at to NULL AND (b) resets status to
+        -- 'needs_review'. Clearing human_reviewed_at alone is NOT
+        -- sufficient — a row that stayed 'approved'/'published' while
+        -- silently losing its review timestamp would be worse than the
+        -- original problem (unreviewed content still marked as ready).
+        -- There is no "re-stamp with a new timestamp directly" shortcut
+        -- any more: editing reviewed content always drops the unit back
+        -- to needs_review, requiring a fresh approve_unit()/publish_unit()
+        -- pass through the normal lifecycle.
+        CREATE TRIGGER IF NOT EXISTS trg_units_protect_human_reviewed_content
+        BEFORE UPDATE ON illustration_units
+        WHEN OLD.human_reviewed_at IS NOT NULL
+             AND (
+                 NEW.title_hu IS NOT OLD.title_hu
+                 OR NEW.modern_hu_text IS NOT OLD.modern_hu_text
+                 OR NEW.summary_hu IS NOT OLD.summary_hu
+                 OR NEW.moral_hu IS NOT OLD.moral_hu
+                 OR NEW.narrative_status IS NOT OLD.narrative_status
+             )
+             AND NOT (NEW.human_reviewed_at IS NULL AND NEW.status = 'needs_review')
+        BEGIN
+            SELECT RAISE(ABORT, 'review_gate: reviewed content can only change together with human_reviewed_at cleared AND status reset to needs_review');
+        END;
+
+        -- Phase 3A FTS5 index over the three retrieval-relevant text
+        -- fields, requested by the brief. External-content table: indexes
+        -- ALL units regardless of status (simpler, always-in-sync
+        -- triggers) — filtering to retrieval-ready (published + license-
+        -- publishable) rows happens at query time by joining back to
+        -- published_illustration_units, not by excluding rows from the
+        -- index itself (a unit's/source's status can change after the
+        -- fact; the index must not need to "know" about that).
+        CREATE VIRTUAL TABLE IF NOT EXISTS illustration_units_fts USING fts5(
+            title_hu, summary_hu, modern_hu_text,
+            content='illustration_units', content_rowid='id'
+        );
+
+        CREATE TRIGGER IF NOT EXISTS trg_illustration_units_fts_insert
+        AFTER INSERT ON illustration_units
+        BEGIN
+            INSERT INTO illustration_units_fts(rowid, title_hu, summary_hu, modern_hu_text)
+            VALUES (new.id, new.title_hu, new.summary_hu, new.modern_hu_text);
+        END;
+
+        CREATE TRIGGER IF NOT EXISTS trg_illustration_units_fts_delete
+        AFTER DELETE ON illustration_units
+        BEGIN
+            INSERT INTO illustration_units_fts(illustration_units_fts, rowid, title_hu, summary_hu, modern_hu_text)
+            VALUES ('delete', old.id, old.title_hu, old.summary_hu, old.modern_hu_text);
+        END;
+
+        CREATE TRIGGER IF NOT EXISTS trg_illustration_units_fts_update
+        AFTER UPDATE ON illustration_units
+        BEGIN
+            INSERT INTO illustration_units_fts(illustration_units_fts, rowid, title_hu, summary_hu, modern_hu_text)
+            VALUES ('delete', old.id, old.title_hu, old.summary_hu, old.modern_hu_text);
+            INSERT INTO illustration_units_fts(rowid, title_hu, summary_hu, modern_hu_text)
+            VALUES (new.id, new.title_hu, new.summary_hu, new.modern_hu_text);
+        END;
         """
     )
     connection.commit()
@@ -237,6 +509,7 @@ def insert_source(
     source_url: str | None = None,
     retrieved_at: str | None = None,
     notes_hu: str | None = None,
+    tradition: str | None = None,
     registered_at: str | None = None,
 ) -> int:
     cursor = connection.execute(
@@ -244,9 +517,9 @@ def insert_source(
         INSERT INTO sources(
             code, title, author, orig_language, publication_year, edition_reference,
             license_status, license_basis_hu, rights_holder, source_url, retrieved_at,
-            reliability_tier, notes_hu, registered_at
+            reliability_tier, notes_hu, tradition, registered_at
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             code,
@@ -262,6 +535,7 @@ def insert_source(
             retrieved_at,
             reliability_tier,
             notes_hu,
+            tradition,
             registered_at or datetime.now(UTC).isoformat(),
         ),
     )
@@ -282,6 +556,7 @@ def insert_story(
     summary_hu: str | None = None,
     original_text: str | None = None,
     original_text_checksum: str | None = None,
+    source_reference: str | None = None,
     moral_hu: str | None = None,
     created_at: str | None = None,
     updated_at: str | None = None,
@@ -327,10 +602,10 @@ def insert_story(
         """
         INSERT INTO stories(
             source_id, external_ref, canonical_key, title_original, title_hu,
-            original_text, original_text_checksum, adaptation_status, modern_hu_text,
-            summary_hu, moral_hu, status, created_at, updated_at
+            original_text, original_text_checksum, source_reference, adaptation_status,
+            modern_hu_text, summary_hu, moral_hu, status, created_at, updated_at
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             source_id,
@@ -340,6 +615,7 @@ def insert_story(
             title_hu,
             original_text,
             original_text_checksum,
+            source_reference,
             adaptation_status,
             modern_hu_text,
             summary_hu,
@@ -365,6 +641,214 @@ def _assert_source_is_publishable(connection: sqlite3.Connection, source_id: int
             f"{license_status!r} is not in PUBLISHABLE_LICENSE_STATUSES "
             f"({sorted(PUBLISHABLE_LICENSE_STATUSES)})."
         )
+
+
+class IllustrationUnitReviewProtectionError(ValueError):
+    """A write attempted to silently change human-reviewed unit content."""
+
+
+_UNIT_CONTENT_FIELDS = ("title_hu", "modern_hu_text", "summary_hu", "moral_hu", "narrative_status")
+
+
+def insert_illustration_unit(
+    connection: sqlite3.Connection,
+    *,
+    story_id: int,
+    unit_index: int,
+    derivation_type: str,
+    status: str = "draft",
+    title_hu: str | None = None,
+    modern_hu_text: str | None = None,
+    summary_hu: str | None = None,
+    moral_hu: str | None = None,
+    narrative_status: str | None = None,
+    narrative_status_confidence: str | None = None,
+    source_span_start: int | None = None,
+    source_span_end: int | None = None,
+    enrichment_model: str | None = None,
+    enrichment_prompt_version: str | None = None,
+    enrichment_generated_at: str | None = None,
+    human_reviewed_at: str | None = None,
+    created_at: str | None = None,
+    updated_at: str | None = None,
+) -> int:
+    if derivation_type not in ALLOWED_DERIVATION_TYPES:
+        raise ValueError(f"Invalid derivation_type: {derivation_type!r}")
+    if status not in ALLOWED_UNIT_STATUSES:
+        raise ValueError(f"Invalid status: {status!r}")
+    if narrative_status is not None and narrative_status not in ALLOWED_NARRATIVE_STATUSES:
+        raise ValueError(f"Invalid narrative_status: {narrative_status!r}")
+    if (
+        narrative_status_confidence is not None
+        and narrative_status_confidence not in ALLOWED_NARRATIVE_STATUS_CONFIDENCE
+    ):
+        raise ValueError(f"Invalid narrative_status_confidence: {narrative_status_confidence!r}")
+    if (narrative_status is None) != (narrative_status_confidence is None):
+        raise ValueError(
+            "narrative_status and narrative_status_confidence must be both set or both None"
+        )
+    if (source_span_start is None) != (source_span_end is None):
+        raise ValueError("source_span_start and source_span_end must be both set or both None")
+    if (
+        source_span_start is not None
+        and source_span_end is not None
+        and source_span_end <= source_span_start
+    ):
+        raise ValueError("source_span_end must be greater than source_span_start")
+    if derivation_type == "extracted_scene" and source_span_start is None:
+        raise ValueError("derivation_type='extracted_scene' requires a source span")
+    for field_name, value in (
+        ("title_hu", title_hu),
+        ("modern_hu_text", modern_hu_text),
+        ("summary_hu", summary_hu),
+    ):
+        if value is not None and not value.strip():
+            raise ValueError(f"{field_name} must be non-empty when provided")
+
+    if status == "published" and (
+        title_hu is None or modern_hu_text is None or summary_hu is None or human_reviewed_at is None
+    ):
+        missing = [
+            name
+            for name, value in (
+                ("title_hu", title_hu),
+                ("modern_hu_text", modern_hu_text),
+                ("summary_hu", summary_hu),
+                ("human_reviewed_at", human_reviewed_at),
+            )
+            if value is None
+        ]
+        raise ValueError(
+            f"status={status!r} requires title_hu, modern_hu_text, summary_hu, and "
+            f"human_reviewed_at to be filled in (content-completeness + human-review "
+            f"gate) — missing: {missing}"
+        )
+    if status == "published":
+        _assert_unit_source_is_publishable(connection, story_id)
+
+    now = datetime.now(UTC).isoformat()
+    cursor = connection.execute(
+        """
+        INSERT INTO illustration_units(
+            story_id, unit_index, derivation_type, source_span_start, source_span_end,
+            title_hu, modern_hu_text, summary_hu, moral_hu,
+            narrative_status, narrative_status_confidence, status,
+            enrichment_model, enrichment_prompt_version, enrichment_generated_at,
+            human_reviewed_at, created_at, updated_at
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            story_id,
+            unit_index,
+            derivation_type,
+            source_span_start,
+            source_span_end,
+            title_hu,
+            modern_hu_text,
+            summary_hu,
+            moral_hu,
+            narrative_status,
+            narrative_status_confidence,
+            status,
+            enrichment_model,
+            enrichment_prompt_version,
+            enrichment_generated_at,
+            human_reviewed_at,
+            created_at or now,
+            updated_at or now,
+        ),
+    )
+    return int(cursor.lastrowid)
+
+
+def _assert_unit_source_is_publishable(connection: sqlite3.Connection, story_id: int) -> None:
+    row = connection.execute(
+        """
+        SELECT s.license_status FROM stories st JOIN sources s ON s.id = st.source_id
+        WHERE st.id = ?
+        """,
+        (story_id,),
+    ).fetchone()
+    if row is None:
+        raise ValueError(f"story_id not found: {story_id}")
+    license_status = row[0]
+    if license_status not in PUBLISHABLE_LICENSE_STATUSES:
+        raise IllustrationLicenseGateError(
+            "Cannot mark illustration unit as 'published': parent story's source "
+            f"license_status {license_status!r} is not in PUBLISHABLE_LICENSE_STATUSES "
+            f"({sorted(PUBLISHABLE_LICENSE_STATUSES)})."
+        )
+
+
+def update_illustration_unit_fields(
+    connection: sqlite3.Connection,
+    *,
+    unit_id: int,
+    allow_overwrite_reviewed: bool = False,
+    **fields: object,
+) -> None:
+    """Updates one or more columns on an existing illustration unit.
+
+    Python-layer half of the human-review protection guarantee — the SQL
+    trigger `trg_units_protect_human_reviewed_content` is the other,
+    fail-closed half (this function existing gives a clearer Python
+    exception; the trigger is what makes the guarantee hold even for a
+    caller that bypasses this function entirely). Refuses to touch any
+    content field (`title_hu`, `modern_hu_text`, `summary_hu`,
+    `moral_hu`, `narrative_status`) on a unit whose `human_reviewed_at`
+    is already set, unless `allow_overwrite_reviewed=True` is passed
+    explicitly.
+
+    There is no "re-stamp with content in the same call" shortcut: an
+    explicit `allow_overwrite_reviewed=True` ALWAYS both clears
+    `human_reviewed_at` to NULL and resets `status` to 'needs_review' as
+    part of the same write, overriding whatever the caller passed for
+    either — this mirrors the SQL trigger's requirement exactly (see its
+    definition) and is a deliberate, fail-closed design choice: clearing
+    the timestamp alone, while leaving `status='approved'`/`'published'`
+    intact, would be worse than not protecting the content at all (an
+    unreviewed row still marked as if it were ready). The only way back
+    to `approved`/`published` after an override is a fresh
+    `approve_unit()`/`publish_unit()` call.
+
+    A `status='published'` transition here still goes through the same
+    content-completeness/license/human-review CHECK+trigger gates as
+    `insert_illustration_unit` — SQLite raises `IntegrityError` if those
+    are violated; this function does not duplicate that pre-check for
+    updates, only for inserts.
+    """
+    if not fields:
+        return
+    if "status" in fields and fields["status"] not in ALLOWED_UNIT_STATUSES:
+        raise ValueError(f"Invalid status: {fields['status']!r}")
+
+    row = connection.execute(
+        "SELECT human_reviewed_at FROM illustration_units WHERE id = ?", (unit_id,)
+    ).fetchone()
+    if row is None:
+        raise ValueError(f"illustration unit not found: id={unit_id}")
+    human_reviewed_at = row[0]
+
+    touches_content = any(name in fields for name in _UNIT_CONTENT_FIELDS)
+    if human_reviewed_at is not None and touches_content:
+        if not allow_overwrite_reviewed:
+            raise IllustrationUnitReviewProtectionError(
+                f"illustration unit id={unit_id} was human-reviewed at {human_reviewed_at!r} — "
+                "refusing to silently overwrite its content. Pass allow_overwrite_reviewed=True "
+                "to demote it to needs_review and proceed."
+            )
+        # Forcibly demote — see docstring. This overrides any status/
+        # human_reviewed_at the caller may have also passed in `fields`.
+        fields = {**fields, "human_reviewed_at": None, "status": "needs_review"}
+
+    write_fields = dict(fields)
+    write_fields["updated_at"] = write_fields.get("updated_at") or datetime.now(UTC).isoformat()
+    set_clause = ", ".join(f"{name} = ?" for name in write_fields)
+    connection.execute(
+        f"UPDATE illustration_units SET {set_clause} WHERE id = ?",
+        (*write_fields.values(), unit_id),
+    )
 
 
 def set_import_meta(connection: sqlite3.Connection, metadata: dict[str, str]) -> None:
@@ -443,18 +927,25 @@ def _replace_atomically(source: Path, target: Path) -> None:
 
 __all__ = [
     "ALLOWED_ADAPTATION_STATUSES",
+    "ALLOWED_DERIVATION_TYPES",
+    "ALLOWED_NARRATIVE_STATUS_CONFIDENCE",
+    "ALLOWED_NARRATIVE_STATUSES",
     "ALLOWED_STORY_STATUSES",
+    "ALLOWED_UNIT_STATUSES",
     "DATABASE_NAME",
     "DEFAULT_DATABASE_PATH",
     "REQUIRED_TABLES",
     "REQUIRED_VIEWS",
     "SCHEMA_VERSION",
     "IllustrationLicenseGateError",
+    "IllustrationUnitReviewProtectionError",
     "check_integrity",
     "create_schema",
     "initialize_empty_database",
+    "insert_illustration_unit",
     "insert_source",
     "insert_story",
     "resolve_database_path",
     "set_import_meta",
+    "update_illustration_unit_fields",
 ]

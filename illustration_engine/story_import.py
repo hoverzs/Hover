@@ -147,6 +147,7 @@ def _ensure_source(connection: sqlite3.Connection, record: SourceRecord) -> int:
         retrieved_at=record.retrieved_at,
         reliability_tier=record.reliability_tier,
         notes_hu=record.notes_hu,
+        tradition=record.tradition,
     )
 
 

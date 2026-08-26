@@ -66,6 +66,13 @@ class SourceRecord:
     retrieved_at: str | None
     reliability_tier: str
     notes_hu: str | None
+    # Phase 3A: the cultural/religious/literary tradition the WHOLE source
+    # belongs to (e.g. "talmudi/midrási (aggadikus) elbeszélés", "magyar
+    # népmese") — a Phase 2O retrieval-facet gap. Free text, not a fixed
+    # enum (deliberately, to match `reliability_tier`'s own convention and
+    # avoid premature bikeshedding over exact category names); optional
+    # since it does not affect legal/technical validity of a source.
+    tradition: str | None = None
 
 
 def is_publishable_license(license_status: str) -> bool:
@@ -132,6 +139,7 @@ def load_source_registry(path: str | Path | None = None) -> list[SourceRecord]:
                 retrieved_at=_opt_str(entry.get("retrieved_at")),
                 reliability_tier=str(entry.get("reliability_tier") or ""),
                 notes_hu=_opt_str(entry.get("notes_hu")),
+                tradition=_opt_str(entry.get("tradition")),
             )
         except Exception as exc:  # noqa: BLE001 - malformed entry must fail closed with context
             all_errors.append(f"sources[{index}] malformed: {exc}")
