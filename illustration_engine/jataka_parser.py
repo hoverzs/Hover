@@ -27,11 +27,14 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
+from illustration_engine.gutenberg_text import (
+    GutenbergBoilerplateError,
+    collapse_blank_lines,
+    extract_pg_body,
+)
 
-_PG_START_RE = re.compile(r"\*\*\*\s*START OF THE PROJECT GUTENBERG EBOOK[^\n]*\*\*\*")
-_PG_END_RE = re.compile(r"\*\*\*\s*END OF THE PROJECT GUTENBERG EBOOK[^\n]*\*\*\*")
+
 _ILLUSTRATION_RE = re.compile(r"\[Illustration[^\]]*\]")
-_MULTI_BLANK_RE = re.compile(r"\n{3,}")
 _TRAILING_THE_END_RE = re.compile(r"\n+THE END\s*\Z")
 _TRAILING_PG_COLOPHON_RE = re.compile(
     r"\n+End of (?:the )?Project Gutenberg.*\Z", re.IGNORECASE | re.DOTALL
@@ -118,15 +121,10 @@ def parse_jataka_text(raw_text: str, spec: JatakaBookSpec) -> tuple[ParsedJataka
     (roman numeral, title) header is missing, out of order, or duplicated —
     parsing never silently returns a partial or misaligned result.
     """
-    text = raw_text.replace("\r\n", "\n").replace("\r", "\n")
-
-    start_match = _PG_START_RE.search(text)
-    end_match = _PG_END_RE.search(text)
-    if not start_match or not end_match or start_match.end() >= end_match.start():
-        raise JatakaParseError(
-            f"{spec.source_code}: could not locate PG START/END boilerplate markers"
-        )
-    body = text[start_match.end() : end_match.start()]
+    try:
+        body = extract_pg_body(raw_text, source_label=spec.source_code)
+    except GutenbergBoilerplateError as exc:
+        raise JatakaParseError(str(exc)) from exc
 
     header_matches: list[re.Match[str]] = []
     search_from = 0
@@ -173,7 +171,7 @@ def _clean_story_text(raw_text: str) -> str:
     text = _ILLUSTRATION_RE.sub("", raw_text)
     text = _TRAILING_THE_END_RE.sub("", text)
     text = _TRAILING_PG_COLOPHON_RE.sub("", text)
-    text = _MULTI_BLANK_RE.sub("\n\n", text)
+    text = collapse_blank_lines(text)
     return text.strip()
 
 

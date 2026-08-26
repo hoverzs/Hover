@@ -10,6 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from illustration_engine.aesop_importer import import_aesop_book
 from illustration_engine.illustration_sqlite import (
     DEFAULT_DATABASE_PATH,
     check_integrity,
@@ -22,6 +23,7 @@ from illustration_engine.paths import RAW_DATA_DIR
 
 DEFAULT_JATAKA_TALES_SOURCE = RAW_DATA_DIR / "pg62514_jataka_tales.txt"
 DEFAULT_MORE_JATAKA_TALES_SOURCE = RAW_DATA_DIR / "pg7518_more_jataka_tales.txt"
+DEFAULT_AESOPS_FABLES_SOURCE = RAW_DATA_DIR / "pg21_aesops_fables.txt"
 
 
 def main() -> None:
@@ -46,6 +48,12 @@ def main() -> None:
         default=DEFAULT_MORE_JATAKA_TALES_SOURCE,
         help="Path to the raw PG #7518 'More Jataka Tales' plain-text file.",
     )
+    parser.add_argument(
+        "--aesops-fables-source",
+        type=Path,
+        default=DEFAULT_AESOPS_FABLES_SOURCE,
+        help="Path to the raw PG #21 'Three hundred Aesop's fables' plain-text file.",
+    )
     args = parser.parse_args()
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
@@ -67,6 +75,17 @@ def main() -> None:
                 f"skipped_existing={report.skipped_existing_count}, "
                 f"raw_sha256={report.raw_file_sha256}"
             )
+
+        if args.aesops_fables_source.exists():
+            report = import_aesop_book(connection, raw_text_path=args.aesops_fables_source)
+            print(
+                f"Aesop import: source={report.source_code}, "
+                f"parsed={report.parsed_count}, inserted={report.inserted_count}, "
+                f"skipped_existing={report.skipped_existing_count}, "
+                f"raw_sha256={report.raw_file_sha256}"
+            )
+        else:
+            print(f"SKIP PG_AESOPS_FABLES_TOWNSEND: raw source not found at {args.aesops_fables_source}")
 
         integrity = check_integrity(connection)
         if integrity != "ok":

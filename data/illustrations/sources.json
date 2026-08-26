@@ -44,6 +44,21 @@
       "retrieved_at": "2026-08-26",
       "reliability_tier": "high",
       "notes_hu": "TEXTUS illustration database — a Jataka Tales (1912) testvérkötete, azonos szerkesztő/fordító, azonos jogi és technikai jellemzőkkel. 21 további rövid buddhista eredettörténet. A magyar réteg itt is későbbi, külön AI-enrichment fázis feladata; eddig a pontig a rekordok 'draft' állapotban vannak."
+    },
+    {
+      "code": "PG_AESOPS_FABLES_TOWNSEND",
+      "title": "Three hundred Aesop's fables",
+      "author": "Aesop; translated by Rev. George Fyler Townsend, M.A.",
+      "orig_language": "en",
+      "publication_year": 1867,
+      "edition_reference": "London: George Routledge and Sons (Townsend's 'literal translation from the Greek', first published 1867). Digitized as Project Gutenberg eBook #21 (release date 2008-06-25, most recently updated 2025-10-15; credited to David Widger).",
+      "license_status": "public_domain_confirmed",
+      "license_basis_hu": "Kettős, egymástól független PD-alap: (1) a 19. századi (1867-es, később többször újranyomott) brit kiadás védelmi ideje minden lehetséges számítás szerint (mind az USA, mind az EU/Egyesült Királyság szabályai szerint) réges-rég lejárt; (2) a fordító, George Fyler Townsend, 1900-ban hunyt el, tehát az élet+70 éves szabály szerint is lejárt 1970-ben. A Project Gutenberg a művet 'public domain in the United States' minősítéssel adja ki, korlátozás nélküli PG License alatt. A digitális szövegváltozat maga is tiszta transzkripció (hitelesítve: David Widger digitalizálási projektje, nincs benne új, önállóan jogvédett modern szerkesztői/jegyzetelői réteg) — a kötet előszava (Preface), az Aesop-életrajz (Life of Aesop), a lábjegyzet-apparátus (Footnotes) és a tárgymutató (Index) mind ki vannak zárva az importból, kizárólag a 313 számozott mese kerül a stories táblába.",
+      "rights_holder": null,
+      "source_url": "https://www.gutenberg.org/ebooks/21",
+      "retrieved_at": "2026-08-26",
+      "reliability_tier": "high",
+      "notes_hu": "TEXTUS illustration database — Phase 2D, a Jataka-forrásokat követő második, nagyobb volumenű forrás (313 mese, jelentősen nagyobb, mint a Jataka-kötetek 18+21 tétele). Nemzetközi klasszikus állatmese-korpusz, explicit erkölcsi tanulságokkal. A cím nem egyedi minden esetben (néhány mesecím kétszer szerepel, valódi, egymástól különböző mesékként) — az egyedi azonosítást a canonical_key (a CONTENTS-beli pozíció) biztosítja, nem a cím. A magyar réteg itt is későbbi, külön AI-enrichment fázis feladata; eddig a pontig a rekordok 'draft' állapotban vannak."
     }
   ]
 }
