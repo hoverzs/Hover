@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE ThML PUBLIC
+    "-//CCEL/DTD Theological Markup Language//EN"
+    "http://www.ccel.org/dtd/ThML10.dtd">
+<!--
+  CCEL Calvin Institutes markup-derived minimal fixture.
+  Structure mirrors the CCEL ThML for Institutes of the Christian Religion
+  (Beveridge). Texts are synthetic and intentionally short.
+-->
+<ThML>
+  <ThML.head>
+    <generalInfo>
+      <description>Synthetic CCEL Institutes fixture.</description>
+    </generalInfo>
+    <electronicEdInfo>
+      <publisherID>ccel</publisherID>
+      <authorID>calvin</authorID>
+      <bookID>institutes</bookID>
+      <workID>institutes</workID>
+      <version>1.0</version>
+      <DC>
+        <DC.Title>The Institutes of the Christian Religion</DC.Title>
+        <DC.Creator sub="Author" scheme="short-form">John Calvin</DC.Creator>
+        <DC.Creator sub="Author" scheme="file-as">Calvin, John (1509-1564)</DC.Creator>
+        <DC.Creator scheme="short-form" sub="Translator">Henry Beveridge</DC.Creator>
+        <DC.Language scheme="ISO639-3">eng</DC.Language>
+        <DC.Rights>Public Domain</DC.Rights>
+        <DC.Publisher>Christian Classics Ethereal Library, Grand Rapids, MI</DC.Publisher>
+        <DC.Identifier scheme="URL">/ccel/calvin/institutes.html</DC.Identifier>
+      </DC>
+    </electronicEdInfo>
+  </ThML.head>
+  <ThML.body>
+    <div1 title="Title Page" id="i">
+      <h1 id="i-p0.1">SYNTHETIC TITLE PAGE — MUST BE EXCLUDED</h1>
+    </div1>
+    <div1 title="Prefatory Material" id="ii">
+      <div2 title="Introduction" id="ii.i">
+        <p id="ii.i-p1">By The Rev. John Murray. Synthetic excluded introduction.</p>
+      </div2>
+    </div1>
+    <div1 title="BOOK FIRST. OF THE KNOWLEDGE OF GOD THE CREATOR" n="i" id="iii">
+      <div2 title="CHAPTER 1. - SYNTHETIC CHAPTER" n="ii" id="iii.ii">
+        <pb n="36" href="/ccel/calvin/institutes/Page_36.html" id="iii.ii-Page_36"/>
+        <h3 id="iii.ii-p0.1">CHAPTER 1.</h3>
+        <p class="introHead" id="iii.ii-p1">SYNTHETIC CHAPTER TITLE</p>
+        <p class="introHead" id="iii.ii-p2">Sections.</p>
+        <p class="intro" id="iii.ii-p3">1. Synthetic TOC line one.</p>
+        <p class="intro" id="iii.ii-p4">2. Synthetic TOC line two.</p>
+        <p id="iii.ii-p6">1. Synthetic body <i>alpha</i> with <span class="sc">smallcaps</span> and
+          <scripRef passage="John 3:16" id="iii.ii-p6.1" parsed="|John|3|16|0|0" osisRef="Bible:John.3.16">John 3:16</scripRef>
+          plus range
+          <scripRef passage="Rom. 8:28-30" id="iii.ii-p6.2" parsed="|Rom|8|28|8|30" osisRef="Bible:Rom.8.28-Rom.8.30">Rom. 8:28-30</scripRef>
+          and duplicate
+          <scripRef passage="John 3:16" id="iii.ii-p6.3" parsed="|John|3|16|0|0" osisRef="Bible:John.3.16">John 3:16</scripRef>.
+          <note n="1" id="iii.ii-p6.4"><p class="footnote" id="iii.ii-p6.5">Synthetic footnote with <i>italic</i> clause.</p></note>
+        </p>
+        <p id="iii.ii-p7">Continuation of section one after the page break.</p>
+        <p id="iii.ii-p8">2. Synthetic body beta cites
+          <scripRef passage="Ps. 93; 96" id="iii.ii-p8.1" parsed="|Ps|93|0|0|0;|Ps|96|0|0|0" osisRef="Bible:Ps.93 Bible:Ps.96">Ps. 93; 96</scripRef>
+          and
+          <scripRef passage="1 Cor. 3:21-23" id="iii.ii-p8.2" parsed="|1Cor|3|21|3|23" osisRef="Bible:1Cor.3.21-1Cor.3.23">1 Cor. 3:21-23</scripRef>
+          and multi
+          <scripRef passage="John 3:16; Rom. 8:32" id="iii.ii-p8.3" parsed="|John|3|16|0|0;|Rom|8|32|0|0" osisRef="Bible:John.3.16 Bible:Rom.8.32">John 3:16; Rom. 8:32</scripRef>
+          plus
+          <scripRef passage="1 Macc. 1:57" id="iii.ii-p8.4" parsed="|1Macc|1|57|0|0" osisRef="Bible:1Macc.1.57">1 Macc. 1:57</scripRef>
+          and
+          <scripRef passage="Ep. 28" id="iii.ii-p8.5">Ep. 28</scripRef>
+          and
+          <scripRef passage="not-a-ref" id="iii.ii-p8.6" osisRef="Bible:NotABook.1.1">not-a-ref</scripRef>.
+        </p>
+      </div2>
+    </div1>
+    <div1 title="BOOK SECOND." n="ii" id="iv">
+      <div2 title="ARGUMENT." n="i" id="iv.i">
+        <p id="iv.i-p1">Synthetic argument without numbered Institutes sections.</p>
+      </div2>
+    </div1>
+    <div1 title="BOOK THIRD." n="iii" id="v">
+      <div2 title="CHAPTER 1." n="ii" id="v.ii">
+        <p class="introHead" id="v.ii-p1">Sections.</p>
+        <p id="v.ii-p2">1. Synthetic book three section.</p>
+      </div2>
+    </div1>
+    <div1 title="BOOK FOURTH." n="iv" id="vi">
+      <div2 title="CHAPTER 1." n="ii" id="vi.ii">
+        <p id="vi.ii-p1">1. Synthetic book four section.</p>
+      </div2>
+    </div1>
+    <div1 title="ONE HUNDRED APHORISMS" n="v" id="vii">
+      <p id="vii-p1">Synthetic aphorism block — must be excluded.</p>
+    </div1>
+    <div1 title="Indexes" id="viii">
+      <div2 title="Index of Scripture References" id="viii.i">
+        <p class="bbook" id="viii.i-p1">Genesis</p>
+      </div2>
+    </div1>
+  </ThML.body>
+</ThML>
