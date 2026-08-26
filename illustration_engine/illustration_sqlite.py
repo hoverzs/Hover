@@ -23,6 +23,23 @@ A third, read-side layer (the `published_stories` VIEW) additionally
 guarantees that even a row that somehow ends up with `status='published'`
 against a non-publishable source is never returned by anything reading
 through the view.
+
+CONTENT-COMPLETENESS GATE (schema v2, independent of the license gate):
+
+`title_hu`, `modern_hu_text`, and `summary_hu` are the Hungarian layer,
+authored in a later, separate AI-enrichment phase — a source-language
+import (e.g. an English Jataka tale) legitimately has none of them yet.
+They are therefore nullable, but a table-level CHECK constraint enforces
+that a story can only become `status='published'` once all three are
+filled in: `status = 'published'` requires `title_hu`, `modern_hu_text`,
+and `summary_hu` to be non-NULL. Intermediate editorial workflow states
+(`needs_review`, `approved`) are deliberately NOT gated on this — the DB
+guarantees fail-closed *publishability*, not a fully-populated editorial
+workflow at every intermediate step. This is a same-row CHECK (no
+cross-table trigger needed) and applies to every writer, Python or raw
+SQL alike. `title_original` (the source-language title, always known at
+import time) and `original_text` remain the only required content
+fields for a freshly-imported, still-`draft` story.
 """
 
 from __future__ import annotations
@@ -37,7 +54,7 @@ from illustration_engine.source_registry import PUBLISHABLE_LICENSE_STATUSES
 
 DATABASE_NAME = "illustrations.sqlite3"
 DEFAULT_DATABASE_PATH = GENERATED_DATA_DIR / DATABASE_NAME
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 
 ALLOWED_STORY_STATUSES = frozenset({"draft", "needs_review", "approved", "published"})
 ALLOWED_ADAPTATION_STATUSES = frozenset(
@@ -99,7 +116,8 @@ def create_schema(connection: sqlite3.Connection) -> None:
             source_id INTEGER NOT NULL REFERENCES sources(id),
             external_ref TEXT NOT NULL,
             canonical_key TEXT NOT NULL,
-            title_hu TEXT NOT NULL,
+            title_original TEXT NOT NULL,
+            title_hu TEXT,
             original_text TEXT,
             original_text_checksum TEXT,
             adaptation_status TEXT NOT NULL CHECK (
@@ -107,15 +125,19 @@ def create_schema(connection: sqlite3.Connection) -> None:
                     'verbatim_transcription', 'modernized_spelling', 'editorial_paraphrase'
                 )
             ),
-            modern_hu_text TEXT NOT NULL,
-            summary_hu TEXT NOT NULL,
+            modern_hu_text TEXT,
+            summary_hu TEXT,
             moral_hu TEXT,
             status TEXT NOT NULL DEFAULT 'draft' CHECK (
                 status IN ('draft', 'needs_review', 'approved', 'published')
             ),
             created_at TEXT NOT NULL,
             updated_at TEXT NOT NULL,
-            UNIQUE(source_id, canonical_key)
+            UNIQUE(source_id, canonical_key),
+            CHECK (
+                status != 'published'
+                OR (title_hu IS NOT NULL AND modern_hu_text IS NOT NULL AND summary_hu IS NOT NULL)
+            )
         );
 
         CREATE TABLE IF NOT EXISTS tags (
@@ -151,6 +173,7 @@ def create_schema(connection: sqlite3.Connection) -> None:
             st.source_id,
             st.external_ref,
             st.canonical_key,
+            st.title_original,
             st.title_hu,
             st.original_text,
             st.original_text_checksum,
@@ -251,11 +274,12 @@ def insert_story(
     source_id: int,
     external_ref: str,
     canonical_key: str,
-    title_hu: str,
-    modern_hu_text: str,
-    summary_hu: str,
+    title_original: str,
     adaptation_status: str,
     status: str = "draft",
+    title_hu: str | None = None,
+    modern_hu_text: str | None = None,
+    summary_hu: str | None = None,
     original_text: str | None = None,
     original_text_checksum: str | None = None,
     moral_hu: str | None = None,
@@ -269,13 +293,32 @@ def insert_story(
     for field_name, value in (
         ("external_ref", external_ref),
         ("canonical_key", canonical_key),
+        ("title_original", title_original),
+    ):
+        if not (value or "").strip():
+            raise ValueError(f"{field_name} must be non-empty")
+    for field_name, value in (
         ("title_hu", title_hu),
         ("modern_hu_text", modern_hu_text),
         ("summary_hu", summary_hu),
     ):
-        if not (value or "").strip():
-            raise ValueError(f"{field_name} must be non-empty")
+        if value is not None and not value.strip():
+            raise ValueError(f"{field_name} must be non-empty when provided")
 
+    if status == "published" and (title_hu is None or modern_hu_text is None or summary_hu is None):
+        missing = [
+            name
+            for name, value in (
+                ("title_hu", title_hu),
+                ("modern_hu_text", modern_hu_text),
+                ("summary_hu", summary_hu),
+            )
+            if value is None
+        ]
+        raise ValueError(
+            f"status={status!r} requires title_hu, modern_hu_text, and summary_hu "
+            f"to be filled in (content-completeness gate) — missing: {missing}"
+        )
     if status == "published":
         _assert_source_is_publishable(connection, source_id)
 
@@ -283,16 +326,17 @@ def insert_story(
     cursor = connection.execute(
         """
         INSERT INTO stories(
-            source_id, external_ref, canonical_key, title_hu, original_text,
-            original_text_checksum, adaptation_status, modern_hu_text, summary_hu,
-            moral_hu, status, created_at, updated_at
+            source_id, external_ref, canonical_key, title_original, title_hu,
+            original_text, original_text_checksum, adaptation_status, modern_hu_text,
+            summary_hu, moral_hu, status, created_at, updated_at
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             source_id,
             external_ref,
             canonical_key,
+            title_original,
             title_hu,
             original_text,
             original_text_checksum,

@@ -88,6 +88,7 @@ def test_insert_source_and_draft_story_succeeds(tmp_path: Path) -> None:
         source_id=source_id,
         external_ref="1",
         canonical_key="story-1",
+        title_original="Test Title",
         title_hu="Teszt cím",
         modern_hu_text="Mai magyar szöveg.",
         summary_hu="Rövid összefoglaló.",
@@ -99,6 +100,136 @@ def test_insert_source_and_draft_story_succeeds(tmp_path: Path) -> None:
     row = conn.execute("SELECT status FROM stories WHERE id = ?", (story_id,)).fetchone()
     conn.close()
     assert row[0] == "draft"
+
+
+def test_insert_story_draft_without_hungarian_layer_succeeds(tmp_path: Path) -> None:
+    """A source-language import (no title_hu/modern_hu_text/summary_hu yet)
+    must stay valid as long as status stays 'draft' — this is exactly the
+    Jataka import shape before the AI-enrichment phase runs."""
+    db = tmp_path / "illustrations.sqlite3"
+    conn = _connect(db)
+    create_schema(conn)
+    source_id = _insert_source(conn, license_status="unknown")
+
+    story_id = insert_story(
+        conn,
+        source_id=source_id,
+        external_ref="I",
+        canonical_key="01",
+        title_original="The Monkey and the Crocodile",
+        adaptation_status="verbatim_transcription",
+        status="draft",
+    )
+    conn.commit()
+
+    row = conn.execute(
+        "SELECT title_hu, modern_hu_text, summary_hu FROM stories WHERE id = ?", (story_id,)
+    ).fetchone()
+    conn.close()
+    assert row == (None, None, None)
+
+
+@pytest.mark.parametrize("status", ["needs_review", "approved"])
+def test_insert_story_intermediate_workflow_status_without_hungarian_layer_succeeds(
+    tmp_path: Path, status: str
+) -> None:
+    """Intermediate editorial workflow states must tolerate a partially
+    enriched (or not-yet-enriched) Hungarian layer — only 'published' is
+    fail-closed gated. This lets needs_review/approved represent an
+    in-progress enrichment step, not a fully-populated end state."""
+    db = tmp_path / "illustrations.sqlite3"
+    conn = _connect(db)
+    create_schema(conn)
+    source_id = _insert_source(conn, license_status="public_domain_confirmed")
+
+    story_id = insert_story(
+        conn,
+        source_id=source_id,
+        external_ref="I",
+        canonical_key="01",
+        title_original="The Monkey and the Crocodile",
+        adaptation_status="verbatim_transcription",
+        status=status,
+    )
+    conn.commit()
+
+    row = conn.execute(
+        "SELECT status, title_hu, modern_hu_text, summary_hu FROM stories WHERE id = ?",
+        (story_id,),
+    ).fetchone()
+    conn.close()
+    assert row == (status, None, None, None)
+
+
+def test_insert_story_published_without_hungarian_layer_rejected(tmp_path: Path) -> None:
+    db = tmp_path / "illustrations.sqlite3"
+    conn = _connect(db)
+    create_schema(conn)
+    source_id = _insert_source(conn, license_status="public_domain_confirmed")
+
+    with pytest.raises(ValueError, match="content-completeness gate"):
+        insert_story(
+            conn,
+            source_id=source_id,
+            external_ref="I",
+            canonical_key="01",
+            title_original="The Monkey and the Crocodile",
+            adaptation_status="verbatim_transcription",
+            status="published",
+        )
+    conn.close()
+
+
+def test_sql_check_allows_raw_insert_needs_review_without_hungarian_layer(tmp_path: Path) -> None:
+    """Mirrors the Python-layer allowance: raw SQL must also be free to
+    insert a 'needs_review' row without the Hungarian layer filled in."""
+    db = tmp_path / "illustrations.sqlite3"
+    conn = _connect(db)
+    create_schema(conn)
+    source_id = _insert_source(conn, license_status="public_domain_confirmed")
+
+    conn.execute(
+        """
+        INSERT INTO stories(
+            source_id, external_ref, canonical_key, title_original, adaptation_status,
+            status, created_at, updated_at
+        )
+        VALUES (?, 'I', '01', 'The Monkey and the Crocodile', 'verbatim_transcription',
+                'needs_review', '2026-01-01T00:00:00', '2026-01-01T00:00:00')
+        """,
+        (source_id,),
+    )
+    conn.commit()
+
+    row = conn.execute("SELECT status FROM stories WHERE source_id = ?", (source_id,)).fetchone()
+    conn.close()
+    assert row[0] == "needs_review"
+
+
+def test_sql_check_blocks_raw_insert_published_without_hungarian_layer(tmp_path: Path) -> None:
+    """Defense-in-depth for the content-completeness gate: a raw SQL INSERT
+    that bypasses insert_story() must still be blocked by the table-level
+    CHECK constraint when status = 'published' but the Hungarian layer is
+    NULL — even though the source's license is publishable.
+    """
+    db = tmp_path / "illustrations.sqlite3"
+    conn = _connect(db)
+    create_schema(conn)
+    source_id = _insert_source(conn, license_status="public_domain_confirmed")
+
+    with pytest.raises(sqlite3.IntegrityError):
+        conn.execute(
+            """
+            INSERT INTO stories(
+                source_id, external_ref, canonical_key, title_original, adaptation_status,
+                status, created_at, updated_at
+            )
+            VALUES (?, 'I', '01', 'The Monkey and the Crocodile', 'verbatim_transcription',
+                    'published', '2026-01-01T00:00:00', '2026-01-01T00:00:00')
+            """,
+            (source_id,),
+        )
+    conn.close()
 
 
 @pytest.mark.parametrize(
@@ -119,6 +250,7 @@ def test_insert_story_published_rejected_for_non_publishable_license(
             source_id=source_id,
             external_ref="1",
             canonical_key="story-1",
+            title_original="Test Title",
             title_hu="Teszt cím",
             modern_hu_text="Mai magyar szöveg.",
             summary_hu="Rövid összefoglaló.",
@@ -142,6 +274,7 @@ def test_insert_story_published_succeeds_for_publishable_license(
         source_id=source_id,
         external_ref="1",
         canonical_key="story-1",
+        title_original="Test Title",
         title_hu="Teszt cím",
         modern_hu_text="Mai magyar szöveg.",
         summary_hu="Rövid összefoglaló.",
@@ -167,6 +300,7 @@ def test_insert_story_invalid_adaptation_status_rejected(tmp_path: Path) -> None
             source_id=source_id,
             external_ref="1",
             canonical_key="story-1",
+            title_original="Test Title",
             title_hu="Teszt cím",
             modern_hu_text="Mai magyar szöveg.",
             summary_hu="Rövid összefoglaló.",
@@ -188,11 +322,11 @@ def test_sql_trigger_blocks_raw_insert_bypassing_python_gate(tmp_path: Path) -> 
         conn.execute(
             """
             INSERT INTO stories(
-                source_id, external_ref, canonical_key, title_hu, adaptation_status,
-                modern_hu_text, summary_hu, status, created_at, updated_at
+                source_id, external_ref, canonical_key, title_original, title_hu,
+                adaptation_status, modern_hu_text, summary_hu, status, created_at, updated_at
             )
-            VALUES (?, '1', 'story-1', 'Cím', 'editorial_paraphrase', 'Szöveg', 'Összefoglaló',
-                    'published', '2026-01-01T00:00:00', '2026-01-01T00:00:00')
+            VALUES (?, '1', 'story-1', 'Title', 'Cím', 'editorial_paraphrase', 'Szöveg',
+                    'Összefoglaló', 'published', '2026-01-01T00:00:00', '2026-01-01T00:00:00')
             """,
             (source_id,),
         )
@@ -209,6 +343,7 @@ def test_sql_trigger_blocks_raw_update_to_published(tmp_path: Path) -> None:
         source_id=source_id,
         external_ref="1",
         canonical_key="story-1",
+        title_original="Title",
         title_hu="Cím",
         modern_hu_text="Szöveg",
         summary_hu="Összefoglaló",
@@ -234,6 +369,7 @@ def test_published_stories_view_includes_valid_published_story(tmp_path: Path) -
         source_id=source_id,
         external_ref="1",
         canonical_key="story-1",
+        title_original="Title",
         title_hu="Cím",
         modern_hu_text="Szöveg",
         summary_hu="Összefoglaló",
@@ -262,6 +398,7 @@ def test_published_stories_view_excludes_draft_and_non_publishable_sources(
         source_id=draft_source_id,
         external_ref="1",
         canonical_key="draft-story",
+        title_original="Title",
         title_hu="Cím",
         modern_hu_text="Szöveg",
         summary_hu="Összefoglaló",
@@ -318,6 +455,7 @@ def test_allowed_status_constants_match_schema_check_constraints(tmp_path: Path)
             source_id=source_id,
             external_ref=status,
             canonical_key=f"story-{status}",
+            title_original="Title",
             title_hu="Cím",
             modern_hu_text="Szöveg",
             summary_hu="Összefoglaló",
@@ -362,6 +500,7 @@ def test_seed_registry_source_cannot_publish_story(tmp_path: Path) -> None:
             source_id=source_id,
             external_ref="1",
             canonical_key="esopus-1",
+            title_original="A róka és a holló",
             title_hu="A róka és a holló",
             modern_hu_text="Mai magyar átirat.",
             summary_hu="Rövid összefoglaló.",

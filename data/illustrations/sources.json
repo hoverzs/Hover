@@ -14,6 +14,36 @@
       "retrieved_at": null,
       "reliability_tier": "medium",
       "notes_hu": "Első tervezett forrás az illusztrációs adatbázishoz (2026-08-25 audit terv). A konkrét digitális szövegforrás kiválasztása és jogi ellenőrzése, valamint a forrás-specifikus parser elkészítése a következő fázis feladata. Ehhez a bejegyzéshez még EGYETLEN történet sincs importálva."
+    },
+    {
+      "code": "PG_JATAKA_TALES_BABBITT_1912",
+      "title": "Jataka Tales",
+      "author": "Re-told by Ellen C. Babbitt (from the Pali Jataka)",
+      "orig_language": "en",
+      "publication_year": 1912,
+      "edition_reference": "New York: The Century Co., 1912 (Published, September 1912). Digitized as Project Gutenberg eBook #62514 (release date 2020-06-28, most recently updated 2024-10-18; produced by Carlos Colón, the University of North Carolina at Chapel Hill and the Online Distributed Proofreading Team, from images made available by the Internet Archive).",
+      "license_status": "public_domain_confirmed",
+      "license_basis_hu": "Kettős, egymástól független alap: (1) az Egyesült Államokban 1912-ben, szerzői jogi bejegyzéssel megjelent mű védelmi ideje (max. 95 év a megjelenéstől) 2007-ben lejárt; (2) a szerző, Ellen C. Babbitt 1936-ban hunyt el, tehát az élet+70 éves szabály szerint is lejárt 2006-ban. A Project Gutenberg — amely szigorú, dokumentált jogi átvilágítást végez minden kiadványánál — a művet kifejezetten 'public domain in the United States' minősítéssel adja ki, korlátozás nélküli szabad felhasználásra (PG License). A digitális szövegváltozat maga is tiszta: a PG-átirat egy önkéntes közreműködői csapat (Distributed Proofreaders) hű, változtatás nélküli transzkripciója az 1912-es eredeti kiadás lapképeiről — nincs benne új, önállóan jogvédett modern szerkesztői/jegyzetelői réteg (a kötet Felix Adler általi előszava az importból ki lett zárva, csak a 18 számozott mese kerül a stories táblába). Ez strukturálisan más eset, mint a PESTI_ESOPUS_1536/MEK minta, ahol egy élő, modern szerkesztő szövegkritikai/jegyzetelési hozzájárulása volt jelen.",
+      "rights_holder": null,
+      "source_url": "https://www.gutenberg.org/ebooks/62514",
+      "retrieved_at": "2026-08-26",
+      "reliability_tier": "high",
+      "notes_hu": "TEXTUS illustration database — első ténylegesen importált forrás (Phase 2C). 18 rövid buddhista eredettörténet (Jataka), állatmese-formában, explicit erkölcsi tanulsággal. A nyers .txt fájl SHA-256 checksuma és az import_meta részletei a build script kimenetében rögzítve. A forrás angol nyelvű — a modern_hu_text/summary_hu/title_hu mezők egy KÉSŐBBI, külön kontrollált AI-enrichment fázisban készülnek el, eddig a pontig a rekordok 'draft' állapotban, kizárólag hiteles forrásszöveggel és bibliográfiai metaadattal léteznek."
+    },
+    {
+      "code": "PG_MORE_JATAKA_TALES_BABBITT_1922",
+      "title": "More Jataka Tales",
+      "author": "Re-told by Ellen C. Babbitt (from the Pali Jataka, via the Cambridge 'Guild of Jataka Translators' edition, ed. E. B. Cowell, 1895–1907)",
+      "orig_language": "en",
+      "publication_year": 1922,
+      "edition_reference": "New York: The Century Co., 1922. Digitized as Project Gutenberg eBook #7518 (release date 2005-02-01, most recently updated 2015-03-21; produced by Juliet Sutherland, Tonya Allen, and the Online Distributed Proofreading Team).",
+      "license_status": "public_domain_confirmed",
+      "license_basis_hu": "Ugyanaz a kettős PD-alap, mint a testvérkötetnél (PG_JATAKA_TALES_BABBITT_1912): az 1922-es amerikai megjelenés védelmi ideje régen lejárt, és Ellen C. Babbitt (†1936) élet+70 éves védelmi ideje is lejárt 2006-ban. A Project Gutenberg itt is 'public domain in the United States' minősítéssel, korlátozás nélküli PG License alatt adja ki. A digitális szöveg hű, önkéntes-transzkripciós átirat, modern jogvédett szerkesztői réteg nélkül — az előszó/bevezető az importból kizárva, csak a 21 számozott mese kerül a stories táblába.",
+      "rights_holder": null,
+      "source_url": "https://www.gutenberg.org/ebooks/7518",
+      "retrieved_at": "2026-08-26",
+      "reliability_tier": "high",
+      "notes_hu": "TEXTUS illustration database — a Jataka Tales (1912) testvérkötete, azonos szerkesztő/fordító, azonos jogi és technikai jellemzőkkel. 21 további rövid buddhista eredettörténet. A magyar réteg itt is későbbi, külön AI-enrichment fázis feladata; eddig a pontig a rekordok 'draft' állapotban vannak."
     }
   ]
 }
