@@ -4447,6 +4447,92 @@ def build_alap_from_state(
             lines.append(place_context_block)
     return "\n".join(lines)
 
+BIBLICAL_PLACE_HISTORY_SECTION_KEYS = ("ancient_geography", "historical_context", "archaeology")
+BIBLICAL_PLACE_HISTORY_QUALIFYING_CONFIDENCE = {"high", "medium"}
+BIBLICAL_PLACE_HISTORY_MAX_PLACES = 2
+BIBLICAL_PLACE_HISTORY_HEADER = "FORRÁSOLT FÖLDRAJZI/RÉGÉSZETI HÁTTÉR (ellenőrzött adatbázisból):\n"
+BIBLICAL_PLACE_HISTORY_DISCLAIMER = (
+    "\n\nFONTOS: a fenti blokk ellenőrzött, forrásolt adat, és KIZÁRÓLAG az "
+    "itt konkrétan szereplő földrajzi/régészeti/történeti állításokra "
+    "tekinthető groundingnak. A kortörténeti válasz TÖBBI RÉSZE továbbra is "
+    "a saját tudásodból készül — arra változatlanul érvényes a fent leírt "
+    "bizonytalanság-fegyelem (ne állíts konkrétumot bizonytalanul, inkább "
+    "fogalmazz általánosabban vagy hagyd ki). Ne sugalld, hogy a teljes "
+    "válasz forrásolt."
+)
+
+
+def build_biblical_place_history_context(igehely: str) -> str:
+    """Legfeljebb 2, a megadott igehelyhez kapcsolódó helyszín forrásolt
+    földrajzi/régészeti (és explicit forrásolt történeti) hátteréből épít
+    egy rövid, strukturált blokkot a `find_place_links_for_passage()` /
+    `get_place_enrichment()` meglévő runtime helperek segítségével — nem
+    olvas nyers JSON-t.
+
+    Csak `review_status == "source_backed"` ÉS `confidence in {"high",
+    "medium"}` szakasz kerül be. Ha nincs place-link, vagy van place-link,
+    de egyik helyhez sincs kvalifikáló szakasz, üres stringet ad vissza —
+    a hívó ekkor a blokkot TELJESEN kihagyja a promptból (nincs "nincs
+    adat" placeholder; ld. RESET 3B-4b audit: ez ma a tipikus eset)."""
+    reference = (igehely or "").strip()
+    if not reference:
+        return ""
+
+    links = find_place_links_for_passage(reference)
+    if not links:
+        return ""
+
+    place_names = biblical_places_by_id()
+    sources = place_enrichment_sources_by_id()
+
+    place_blocks: list[str] = []
+    for link in links:
+        if len(place_blocks) >= BIBLICAL_PLACE_HISTORY_MAX_PLACES:
+            break
+        enrichment = get_place_enrichment(link.place_id)
+        if enrichment is None:
+            continue
+        section_texts: list[str] = []
+        for section_key in BIBLICAL_PLACE_HISTORY_SECTION_KEYS:
+            section = enrichment.sections.get(section_key)
+            if section is None:
+                continue
+            if section.review_status != "source_backed":
+                continue
+            if section.confidence not in BIBLICAL_PLACE_HISTORY_QUALIFYING_CONFIDENCE:
+                continue
+            institutions = sorted(
+                {
+                    sources[source_id].institution
+                    for source_id in section.source_ids
+                    if source_id in sources
+                }
+            )
+            section_label = BIBLICAL_PLACE_SECTION_LABELS_HU.get(section_key, section_key)
+            confidence_label = BIBLICAL_PLACE_CONFIDENCE_LABELS_HU.get(
+                section.confidence, section.confidence
+            )
+            attribution = ", ".join(institutions) if institutions else "ismeretlen intézmény"
+            section_texts.append(
+                f"[{section_label}, {confidence_label}, forrás: {attribution}]\n"
+                f"{section.text_hu}"
+            )
+        if not section_texts:
+            continue
+        place = place_names.get(link.place_id)
+        place_label = place.name_hu if place is not None else link.place_id
+        place_blocks.append(place_label + "\n" + "\n".join(section_texts))
+
+    if not place_blocks:
+        return ""
+
+    return (
+        BIBLICAL_PLACE_HISTORY_HEADER
+        + "\n\n".join(place_blocks)
+        + BIBLICAL_PLACE_HISTORY_DISCLAIMER
+    )
+
+
 # =========================================================
 # EREDETI SZÖVEG ÉS ÉNEKAJÁNLÓ — PROMPT ÉPÍTŐK
 # =========================================================
