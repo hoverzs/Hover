@@ -16,6 +16,7 @@ from illustration_engine.baldwin_importer import import_baldwin_book
 from illustration_engine.book_of_300_anecdotes_importer import import_book_of_300_anecdotes
 from illustration_engine.english_jests_and_anecdotes_importer import import_english_jests_book
 from illustration_engine.gulistan_importer import import_gulistan_book
+from illustration_engine.hebrew_tales_importer import import_hebrew_tales_book
 from illustration_engine.illustration_sqlite import (
     DEFAULT_DATABASE_PATH,
     check_integrity,
@@ -38,6 +39,7 @@ DEFAULT_BALDWIN_SOURCE = RAW_DATA_DIR / "pg18442_baldwin_fifty_famous_stories_re
 DEFAULT_BOOK_OF_300_ANECDOTES_SOURCE = RAW_DATA_DIR / "pg15413_book_of_300_anecdotes.txt"
 DEFAULT_GULISTAN_SOURCE = RAW_DATA_DIR / "pg13060_persian_literature_vol2_gulistan.txt"
 DEFAULT_ENGLISH_JESTS_SOURCE = RAW_DATA_DIR / "pg49370_english_jests_and_anecdotes.txt"
+DEFAULT_HEBREW_TALES_SOURCE = RAW_DATA_DIR / "wikisource_hebrew_tales_hurwitz_kohut1917.txt"
 
 
 def main() -> None:
@@ -109,6 +111,15 @@ def main() -> None:
         type=Path,
         default=DEFAULT_ENGLISH_JESTS_SOURCE,
         help="Path to the raw PG #49370 'English Jests and Anecdotes' plain-text file.",
+    )
+    parser.add_argument(
+        "--hebrew-tales-source",
+        type=Path,
+        default=DEFAULT_HEBREW_TALES_SOURCE,
+        help=(
+            "Path to the raw Wikisource-derived 'Hebrew Tales' (Hurwitz, Kohut 1917 rev.) "
+            "plain-text file. NOT a Project Gutenberg source."
+        ),
     )
     args = parser.parse_args()
 
@@ -227,6 +238,20 @@ def main() -> None:
             print(
                 f"SKIP PG_ENGLISH_JESTS_AND_ANECDOTES: raw source not found at "
                 f"{args.english_jests_source}"
+            )
+
+        if args.hebrew_tales_source.exists():
+            report = import_hebrew_tales_book(connection, raw_text_path=args.hebrew_tales_source)
+            print(
+                f"Hebrew Tales import: source={report.source_code}, "
+                f"parsed={report.parsed_count}, inserted={report.inserted_count}, "
+                f"skipped_existing={report.skipped_existing_count}, "
+                f"raw_sha256={report.raw_file_sha256}"
+            )
+        else:
+            print(
+                f"SKIP HEBREW_TALES_HURWITZ_KOHUT1917: raw source not found at "
+                f"{args.hebrew_tales_source}"
             )
 
         integrity = check_integrity(connection)
