@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import re
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any
 
 from textus_kb.context_profiles import (
@@ -12,6 +13,8 @@ from textus_kb.context_profiles import (
     PROFILE_HISTORICAL,
     PROFILE_THEOLOGY,
     SUPPORTED_PROFILES,
+    THEOLOGY_EVIDENCE_LIMIT,
+    THEOLOGY_NO_MATCH_WARNING,
     THEOLOGY_SOURCE_WARNING,
     ContextProfile,
 )
@@ -25,12 +28,14 @@ from textus_kb.evidence import (
     RELATION_PASSAGE_TOKEN,
     RELATION_PLACE_CATALOG,
     RELATION_PLACE_ENRICHMENT,
+    RELATION_THEOLOGICAL_SOURCE,
     EvidenceItem,
     EvidencePacket,
     estimate_text_tokens,
 )
 from textus_kb.importers.acai_entities import ACAI_SOURCE_ID, GENERIC_ACAI_IDS
-from textus_kb.retrieval import retrieve
+from textus_kb.retrieval import retrieve, retrieve_theology_evidence
+from textus_kb.repositories.theology_repository import TheologyRepository
 
 SCHEMA_VERSION = "2"
 
@@ -114,15 +119,22 @@ def build_context(
     *,
     token_budget: int | None = None,
     evidence: EvidencePacket | None = None,
+    theology_database_path: str | Path | None = None,
 ) -> LLMContextPacket:
     packet = evidence if evidence is not None else retrieve(reference)
     profile_obj = ContextProfile.load(profile, token_budget=token_budget)
-    return build_context_from_evidence(packet, profile_obj)
+    return build_context_from_evidence(
+        packet,
+        profile_obj,
+        theology_database_path=theology_database_path,
+    )
 
 
 def build_context_from_evidence(
     evidence: EvidencePacket,
     profile: ContextProfile | str,
+    *,
+    theology_database_path: str | Path | None = None,
 ) -> LLMContextPacket:
     if isinstance(profile, str):
         profile = ContextProfile.load(profile)
@@ -134,7 +146,25 @@ def build_context_from_evidence(
     }
     builder = builders[profile.name]
     candidates = builder(evidence, profile)
-    return _finalize_context_packet(evidence, profile, candidates)
+    extra_warnings: list[str] = []
+    if profile.name == PROFILE_THEOLOGY:
+        theology_items, extra_warnings = _load_theology_context_items(
+            evidence,
+            profile,
+            database_path=theology_database_path,
+        )
+        seen = {item.evidence_id for item in candidates}
+        for item in theology_items:
+            if item.evidence_id in seen:
+                continue
+            candidates.append(item)
+            seen.add(item.evidence_id)
+    return _finalize_context_packet(
+        evidence,
+        profile,
+        candidates,
+        extra_warnings=extra_warnings,
+    )
 
 
 def build_context_to_json(
@@ -144,8 +174,15 @@ def build_context_to_json(
     token_budget: int | None = None,
     evidence: EvidencePacket | None = None,
     indent: int | None = 2,
+    theology_database_path: str | Path | None = None,
 ) -> str:
-    packet = build_context(reference, profile, token_budget=token_budget, evidence=evidence)
+    packet = build_context(
+        reference,
+        profile,
+        token_budget=token_budget,
+        evidence=evidence,
+        theology_database_path=theology_database_path,
+    )
     return json.dumps(packet.to_dict(), indent=indent, ensure_ascii=False, sort_keys=True)
 
 
@@ -628,20 +665,83 @@ def _build_theology_context(
     return items
 
 
+def _load_theology_context_items(
+    evidence: EvidencePacket,
+    profile: ContextProfile,
+    *,
+    database_path: str | Path | None,
+) -> tuple[list[ContextItem], list[str]]:
+    repo = TheologyRepository(database_path)
+    if not repo.store_status().available:
+        return [], [THEOLOGY_SOURCE_WARNING]
+    hits = retrieve_theology_evidence(
+        evidence.passage_canonical,
+        repository=repo,
+        limit=THEOLOGY_EVIDENCE_LIMIT,
+    )
+    if not hits:
+        return [], [THEOLOGY_NO_MATCH_WARNING]
+    base_score = profile.priorities.get(RELATION_THEOLOGICAL_SOURCE, 90)
+    items: list[ContextItem] = []
+    seen: set[str] = set()
+    for index, hit in enumerate(hits):
+        if hit.evidence_id in seen:
+            continue
+        seen.add(hit.evidence_id)
+        metadata = _theology_item_metadata(hit, sequence=index)
+        items.append(
+            ContextItem(
+                text=hit.content,
+                evidence_id=hit.evidence_id,
+                source_id=hit.source_id,
+                relevance_score=base_score - index,
+                item_type="theological_source",
+                metadata=metadata,
+            )
+        )
+    return items, []
+
+
+def _theology_item_metadata(hit: EvidenceItem, *, sequence: int) -> dict[str, Any]:
+    meta = dict(hit.metadata)
+    meta["theology_sequence"] = sequence
+    meta["relation_type"] = hit.relation_type
+    if hit.passage and "canonical_scope" not in meta:
+        meta["canonical_scope"] = hit.passage
+    return meta
+
+
+def _preserve_theology_document_order(items: list[ContextItem]) -> list[ContextItem]:
+    ordered = iter(
+        sorted(
+            [item for item in items if item.item_type == "theological_source"],
+            key=lambda item: int(item.metadata.get("theology_sequence") or 0),
+        )
+    )
+    return [
+        next(ordered) if item.item_type == "theological_source" else item
+        for item in items
+    ]
+
+
 def _finalize_context_packet(
     evidence: EvidencePacket,
     profile: ContextProfile,
     candidates: list[ContextItem],
+    *,
+    extra_warnings: list[str] | None = None,
 ) -> LLMContextPacket:
     warnings = list(evidence.warnings)
-    if profile.name == PROFILE_THEOLOGY:
-        warnings.append(THEOLOGY_SOURCE_WARNING)
+    if extra_warnings:
+        warnings.extend(extra_warnings)
 
     kept, stats = select_context_items(
         candidates,
         profile,
         passage_canonical=evidence.passage_canonical,
     )
+    if profile.name == PROFILE_THEOLOGY:
+        kept = _preserve_theology_document_order(kept)
     sections = _group_sections(kept, profile.name)
 
     source_ids = sorted({item.source_id for item in kept})
@@ -723,7 +823,7 @@ def _section_order(profile: str) -> tuple[str, ...]:
     if profile == PROFILE_HISTORICAL:
         # Prefer concrete place/historical grounding before dictionary/entities.
         return ("passage", "places", "historical", "dictionary", "entities", "geography")
-    return ("passage", "lexical", "places", "background")
+    return ("passage", "theological", "lexical", "places", "background")
 
 
 def _item_section_type(item_type: str) -> str:
@@ -739,6 +839,7 @@ def _item_section_type(item_type: str) -> str:
         "place_link": "places",
         "passage_place_link": "places",
         "place_catalog": "places",
+        "theological_source": "theological",
         "enrichment": "background",
         "historical_enrichment": "historical",
         "geography": "geography",

@@ -110,8 +110,15 @@ def test_priority_order_is_deterministic(evidence) -> None:
     assert len(trimmed.evidence_ids) <= len(full.evidence_ids)
 
 
-def test_theology_profile_emits_source_warning(evidence) -> None:
-    context = build_context_from_evidence(evidence, PROFILE_THEOLOGY)
+def test_theology_profile_emits_source_warning_when_store_missing(
+    evidence, tmp_path: Path
+) -> None:
+    missing = tmp_path / "missing.sqlite3"
+    context = build_context_from_evidence(
+        evidence,
+        PROFILE_THEOLOGY,
+        theology_database_path=missing,
+    )
     assert THEOLOGY_SOURCE_WARNING in context.warnings
 
 

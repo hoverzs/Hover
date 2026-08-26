@@ -13,6 +13,7 @@ from textus_kb.evidence import (
     RELATION_PASSAGE_TOKEN,
     RELATION_PLACE_CATALOG,
     RELATION_PLACE_ENRICHMENT,
+    RELATION_THEOLOGICAL_SOURCE,
 )
 
 PROFILE_EXEGESIS = "exegesis"
@@ -41,8 +42,14 @@ BUDGET_DICTIONARY = "dictionary"
 BUDGET_ENTITY = "entity"
 BUDGET_BACKGROUND = "background"
 BUDGET_PASSAGE = "passage"
+BUDGET_THEOLOGY = "theology"
 
 THEOLOGY_SOURCE_WARNING = "No dedicated theological source layer available"
+THEOLOGY_NO_MATCH_WARNING = (
+    "Theological source store is available, but no passage-linked "
+    "theological evidence was found for this reference."
+)
+THEOLOGY_EVIDENCE_LIMIT = 6
 
 # Soft target (prefer stop) vs hard max (never exceed).
 # Goal: minimize provider token usage — do not pad to the hard max.
@@ -50,7 +57,7 @@ THEOLOGY_SOURCE_WARNING = "No dedicated theological source layer available"
 DEFAULT_TARGET_TOKENS: dict[str, int] = {
     PROFILE_EXEGESIS: 2500,
     PROFILE_HISTORICAL: 2200,
-    PROFILE_THEOLOGY: 2200,
+    PROFILE_THEOLOGY: 3500,
 }
 
 DEFAULT_MAX_TOKENS: dict[str, int] = {
@@ -87,6 +94,7 @@ DEFAULT_TYPE_BUDGETS: dict[str, dict[str, int]] = {
         BUDGET_EXEGETICAL: 500,
         BUDGET_DICTIONARY: 250,
         BUDGET_BACKGROUND: 350,
+        BUDGET_THEOLOGY: 3500,
     },
 }
 
@@ -95,7 +103,7 @@ DEFAULT_DIVERSITY_TYPES: dict[str, tuple[str, ...]] = {
     PROFILE_EXEGESIS: (BUDGET_LINGUISTIC, BUDGET_EXEGETICAL, BUDGET_DICTIONARY, BUDGET_ENTITY),
     # Background first so place/enrichment is reserved before dictionary/entities.
     PROFILE_HISTORICAL: (BUDGET_BACKGROUND, BUDGET_DICTIONARY, BUDGET_ENTITY),
-    PROFILE_THEOLOGY: (BUDGET_LINGUISTIC, BUDGET_BACKGROUND),
+    PROFILE_THEOLOGY: (BUDGET_THEOLOGY, BUDGET_LINGUISTIC, BUDGET_BACKGROUND),
 }
 
 # Higher number = retained first under token budget pressure.
@@ -127,6 +135,7 @@ PROFILE_PRIORITIES: dict[str, dict[str, int]] = {
     },
     PROFILE_THEOLOGY: {
         RELATION_DIRECT_PASSAGE: 100,
+        RELATION_THEOLOGICAL_SOURCE: 90,
         RELATION_LEXICAL_HIGHLIGHT: 85,
         RELATION_PASSAGE_PLACE: 75,
         RELATION_PLACE_CATALOG: 65,
@@ -161,6 +170,7 @@ HISTORICAL_ITEM_TIERS: dict[str, str] = {
 
 THEOLOGY_ITEM_TIERS: dict[str, str] = {
     "passage": TIER_CORE,
+    "theological_source": TIER_PRIMARY,
     "lexical": TIER_PRIMARY,
     "place_link": TIER_SUPPORTING,
     "place_catalog": TIER_OPTIONAL,

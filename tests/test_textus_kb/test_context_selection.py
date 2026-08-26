@@ -8,8 +8,16 @@ from pathlib import Path
 import pytest
 
 from textus_kb.context_builder import build_context_from_evidence, build_context_to_json
-from textus_kb.context_profiles import PROFILE_EXEGESIS, PROFILE_HISTORICAL, ContextProfile
+from textus_kb.context_profiles import (
+    BUDGET_BACKGROUND,
+    BUDGET_EXEGETICAL,
+    BUDGET_THEOLOGY,
+    PROFILE_EXEGESIS,
+    PROFILE_HISTORICAL,
+    ContextProfile,
+)
 from textus_kb.context_selection import (
+    budget_type_for_item,
     jaccard_similarity,
     normalize_plain_text,
     select_context_items,
@@ -207,3 +215,9 @@ def test_phase3c_golden_fixtures(full_evidence) -> None:
     assert hi["estimated_tokens"] <= 3500
     assert ex["selection_stats"]["study_notes_selected"] >= 1
     assert ex["selection_stats"]["dictionary_selected"] >= 1
+
+
+def test_theological_source_maps_to_theology_budget_type() -> None:
+    assert budget_type_for_item("theological_source") == BUDGET_THEOLOGY
+    assert budget_type_for_item("exegetical_note") == BUDGET_EXEGETICAL
+    assert budget_type_for_item("historical_enrichment") == BUDGET_BACKGROUND

@@ -14,6 +14,7 @@ from textus_kb.context_profiles import (
     BUDGET_EXEGETICAL,
     BUDGET_LINGUISTIC,
     BUDGET_PASSAGE,
+    BUDGET_THEOLOGY,
     TIER_CORE,
     TIER_OPTIONAL,
     TIER_PRIMARY,
@@ -144,6 +145,8 @@ def budget_type_for_item(item_type: str) -> str:
         return BUDGET_DICTIONARY
     if item_type == "entity_summary":
         return BUDGET_ENTITY
+    if item_type == "theological_source":
+        return BUDGET_THEOLOGY
     return BUDGET_BACKGROUND
 
 
