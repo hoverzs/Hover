@@ -6,12 +6,15 @@ import json
 from collections import Counter
 from typing import Any, Literal
 
+from pathlib import Path
+
 from textus_kb.adapters.acai_entities import AcaiEntitiesAdapter, entity_to_packet_dict
 from textus_kb.adapters.aquifer_bible_dictionary import AquiferBibleDictionaryAdapter
 from textus_kb.adapters.aquifer_study_notes import AquiferStudyNotesAdapter
 from textus_kb.adapters.lexicon import LexiconAdapter
 from textus_kb.adapters.places import PlacesAdapter
 from textus_kb.adapters.tagnt import TagntAdapter
+from textus_kb.adapters.theology import TheologyAdapter
 from textus_kb.canonical_reference import CanonicalReference, CanonicalReferenceError
 from textus_kb.dictionary_relevance import (
     annotate_dictionary_scope_metadata,
@@ -56,6 +59,10 @@ from textus_kb.evidence import (
 )
 from textus_kb.manifest import KnowledgeBaseManifest, ManifestSource, load_manifest
 from textus_kb.pilot_registry import find_pilot
+from textus_kb.repositories.theology_repository import (
+    DEFAULT_SEARCH_LIMIT,
+    TheologyRepository,
+)
 
 DEFAULT_MAX_EVIDENCE_TOKENS = 4500
 DEFAULT_LEXICAL_HIGHLIGHT_LIMIT = 12
@@ -646,6 +653,19 @@ def retrieve(
     return packet
 
 
+def retrieve_theology_evidence(
+    reference: str | CanonicalReference,
+    *,
+    database_path: str | Path | None = None,
+    limit: int = DEFAULT_SEARCH_LIMIT,
+    repository: TheologyRepository | None = None,
+) -> list[EvidenceItem]:
+    """Return citation-ready Theology EvidenceItems. Fail-closed; not wired into retrieve()."""
+    repo = repository if repository is not None else TheologyRepository(database_path)
+    chunks = repo.chunks_for_passage(reference, limit=limit)
+    return TheologyAdapter().to_evidence_items(chunks)
+
+
 def retrieve_to_json(
     reference: str | CanonicalReference,
     *,
@@ -1110,5 +1130,6 @@ __all__ = [
     "RetrievalError",
     "main",
     "retrieve",
+    "retrieve_theology_evidence",
     "retrieve_to_json",
 ]

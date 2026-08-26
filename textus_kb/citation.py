@@ -10,7 +10,7 @@ from dataclasses import asdict, dataclass, field
 from typing import Any
 
 from textus_kb.context_builder import LLMContextPacket
-from textus_kb.evidence import EvidencePacket
+from textus_kb.evidence import EvidenceItem, EvidencePacket
 from textus_kb.manifest import KnowledgeBaseManifest, load_manifest
 from textus_kb.prompt_composer import packet_from_mapping
 
@@ -26,6 +26,7 @@ CITATION_DISPLAY_NAMES: dict[str, str] = {
     "acai": "ACAI Biblical Entities",
     "biblical_places_passage_links": "Biblical places (passage links)",
     "place_enrichments_overlay": "Biblical places enrichments",
+    "theology_sqlite": "Theology store",
 }
 
 CITABLE_RELATION_TYPES = frozenset(
@@ -37,6 +38,7 @@ CITABLE_RELATION_TYPES = frozenset(
         "passage_place_link",
         "place_catalog",
         "place_enrichment",
+        "theological_source",
     }
 )
 
@@ -272,6 +274,40 @@ def citations_from_context_packet(
     return report
 
 
+def format_theology_citation(item: EvidenceItem | dict[str, Any]) -> str:
+    """Build a bibliographic citation from Theology evidence metadata.
+
+    Uses only present metadata fields. Does not invent author, work, pages,
+    translator, or year.
+    """
+    if isinstance(item, EvidenceItem):
+        meta = dict(item.metadata)
+    else:
+        meta = dict(item)
+    locator = _meta_get(meta, "human_readable_locator")
+    if not locator:
+        locator = ", ".join(
+            part
+            for part in (
+                _meta_get(meta, "author_name"),
+                _meta_get(meta, "work_title"),
+            )
+            if part
+        )
+    extras: list[str] = []
+    translator = _meta_get(meta, "translator")
+    if translator:
+        extras.append(f"trans. {translator}")
+    year = meta.get("publication_year")
+    if year is not None and str(year).strip():
+        extras.append(str(year).strip())
+    parts = [part for part in (locator, *extras) if part]
+    if not parts:
+        return ""
+    text = ", ".join(parts)
+    return text if text.endswith(".") else f"{text}."
+
+
 __all__ = [
     "CITABLE_RELATION_TYPES",
     "CITATION_DISPLAY_NAMES",
@@ -282,4 +318,5 @@ __all__ = [
     "citations_from_context_packet",
     "citations_from_evidence_packet",
     "display_name_for_source",
+    "format_theology_citation",
 ]
