@@ -98,17 +98,18 @@ from biblical_place_enrichment import (
     place_enrichment_sources_by_id,
 )
 from bible_engine.greek_analysis_ui import (
-    CROSS_CHAPTER_GREEK_MESSAGE,
-    NT_INVALID_REFERENCE_MESSAGE,
-    NT_NEEDS_VERSES_MESSAGE,
-    _reference_book_is_new_testament,
-    greek_reference_status,
     render_greek_analysis_block,
 )
-from bible_engine.greek_token_repository import load_greek_passage_tokens
-from bible_engine.morphology_hu import parse_morphology_hu
-from bible_engine.hebrew_books import HebrewReferenceError, parse_hebrew_reference
-from bible_engine.hebrew_token_repository import HebrewTokenRepository
+from bible_engine.original_language_analysis import (
+    ORIGINAL_TEXT_BASE_PROMPT,
+    STATUS_AI_FALLBACK,
+    STATUS_GROUNDED,
+    STATUS_UNAVAILABLE,
+    UNAVAILABLE_USER_MESSAGE,
+    build_original_language_token_block,
+    plan_original_language_analysis,
+    run_original_language_analysis,
+)
 from bible_engine.original_language_grounding_check import (
     check_original_language_grounding,
 )
@@ -3508,116 +3509,7 @@ művelt és igényes nyelven.
 """
 
 
-ORIGINAL_TEXT_BASE_PROMPT = """
-Légy alapos, nyelvészeti érzékenységgel dolgozó eredeti nyelvi (görög/héber)
-munkatárs, aki lelkészeknek — nem nyelvészeknek — ír. A feladatod: az alább
-mellékelt, helyi adatbázisból származó token-lista alapján kiválasztani
-azokat a kulcskifejezéseket, amelyek ténylegesen segítik az igeszakasz
-megértését, és ezekből egy összefüggő, magyarázó összefoglalót írni — NEM
-elszigetelt tételek felsorolását.
-
-Kizárólag az alább mellékelt token-listában szereplő szóalakokra, lemmákra,
-morfológiai kódokra és Strong-azonosítókra hivatkozhatsz. Új szót, lemmát
-vagy alakot NEM generálhatsz — ha a token-listában nincs benne, nem létezik
-a válaszod számára. Ezt az adatot a HÁTTÉRBEN, az elemzésed megalapozására
-használd — a végleges szövegben NE idézd a token-lista sorszámát (pl. ne
-írj ilyet: "[3. token]"), és NE nevezd meg a nyelvtani/morfológiai adatot
-szakkifejezéssel (pl. ne írj olyat, hogy "aoristus activus indicativus",
-"accusativus", "genitivus", "particip" stb.) — ezek az adatok a szó-nézetben
-úgyis elérhetők, nem kell megismételni. Ehelyett hétköznapi, magyarázó
-nyelven fogalmazd meg, mit JELENT ez a nyelvi tény (pl. "aoristus" helyett:
-"az ige egyszeri, lezárt cselekvést fejez ki" — a jelentést írd le, ne a
-szakszó nevét).
-
-A görög/héber szó azonosítására elég maga a szó (pl. *μορφή*) — ha segít,
-add meg zárójelben a magyar átírását/kiejtését is (pl. *μορφή* [morphé]).
-Ne hivatkozz token-sorszámra vagy egyéb technikai azonosítóra. Ha egy szó
-jelentését is megadod (zárójelben vagy a szövegbe ágyazva), azt MINDIG
-magyarul fogalmazd meg — a saját nyelvi tudásodból, ne az angol (Strong-
-szótári) hagyomány szerinti kifejezéssel. Ne írj angol nyelvű jelentés-
-megadást vagy glosszát semmilyen formában.
-
-LEGFELJEBB 5 szót vagy kifejezést emelhetsz ki. Ha ennél többet találsz
-figyelemre méltónak, válaszd ki közülük a legfontosabb, legfeljebb 5-öt — a
-többit hagyd ki teljesen, még említés szintjén se szerepeljenek. Elsősorban
-olyanokat válassz, amelyek:
-- morfológiailag szokatlanok vagy ritkák (pl. ritka igealak, szokatlan eset),
-- a szakaszon belül ismétlődnek vagy visszatérő mintát alkotnak,
-- lemma vagy morfológiai kód szerint feltűnő kontrasztban állnak egymással,
-- olyan jelentésréteget hordoznak, ami a szóalak/lemma szintjén megmutatható.
-
-FEGYELEM SZÓNKÉNT — MIKROSZERKEZET (bár nem feltétlenül külön címkével,
-hanem a mondat felépítésével): (1) szóalak + lemma + alapjelentés EGY
-mondatban; (2) mit végez EBBEN a mondatban (funkció) EGY mondatban; (3)
-legfeljebb EGY rövid mondat exegetikai jelentőség, DE csak akkor, ha ez
-ténylegesen indokolt — ha nincs érdemi exegetikai súlya, hagyd ki ezt a
-harmadik mondatot, és álljon meg a szó tárgyalása 2 mondatnál. Egy
-kiválasztott szóhoz ALAPÉRTELMEZETTEN LEGFELJEBB 3 rövid mondat tartozik.
-4. mondat KIVÉTELESEN megengedett, kizárólag akkor, ha a nyelvi adat
-(pl. egy összetett morfológiai szerkezet több elemre bontása) ezt
-ténylegesen megköveteli — ne írj mini-exegézist vagy a szakasz egészének
-teológiai üzenetét minden egyes szó alatt újra kifejtve.
-
-NE tulajdoníts nagy, önálló teológiai vagy exegetikai következtetést
-PUSZTÁN egy szó jelentéséből — egyetlen szó szemantikai mezeje önmagában
-ritkán hordoz akkora súlyt, amennyit egy lelkesen kifejtett bekezdés
-sugallna; a jelentés-magyarázat maradjon arányos a szó tényleges
-szerepével a mondatban. Kerüld, hogy UGYANAZT a gondolatot több kiemelt
-szó alatt is megismételd — ha két szó lényegében ugyanarra a
-megfigyelésre vezetne, csak az egyiknél fejtsd ki, a másiknál legfeljebb
-utalj vissza rá, vagy hagyd ki.
-
-VITATOTT IDENTITÁSI KÉRDÉS NEM DÖNTHETŐ EL NYELVI ESZKÖZZEL: ha egy
-szereplő vagy alak kiléte (pl. egy titokzatos szereplő isteni/emberi/
-angyali volta) a szövegből önmagában nem egyértelműen eldöntött, TILOS
-flat, kész tényként megnevezni (pl. TILOS: "az isteni lény", "Isten
-itt...", "mint isteni jelenlét"), ha ezt maga a KIEMELT szóalak/lemma
-önmagában nem bizonyítja. Ehelyett semleges, a szövegre magára hagyatkozó
-megnevezést használj (pl. "a Jákóbbal küzdő alak", "a szövegben szereplő
-titokzatos küzdő fél"), és csak akkor jelezd az isteni dimenziót, ha ezt
-a TELJES szöveg (pl. egy KÜLÖN, arra utaló szó vagy kifejezés) ténylegesen
-alátámasztja — ekkor is inkább leíró módon (pl. "a narratíva később isteni
-dimenzióval kapcsolja össze a találkozást"), nem kész azonosításként. Ez a
-modul nyelvi elemzés, NEM teológiai identitásdöntés — a vitatott olvasatok
-mérlegelése más modul (Exegézis) feladata.
-
-NE TÚLOZD EL A SZÓETIMOLÓGIÁT: egy lemma jelentését NE bővítsd ki
-rokongyökök, hangzásbeli asszociációk vagy későbbi teológiai kapcsolatok
-alapján úgy, mintha azok a szó közvetlen lexikai jelentéséhez tartoznának.
-Pl. a שׂרה gyöknél a "küzd / harcol / felülkerekedik" jellegű jelentés
-tárgyalható, de az olyan gloss, mint "fejedelmi módon", "uralkodóként",
-CSAK akkor jelenhet meg, ha ezt a helyi lexikai/token-adat ténylegesen
-támogatja — ne vezess le szójelentést pusztán egy rokon alak vagy hasonló
-hangzású szó alapján.
-
-Ezekből írj EGY összefüggő, folyó szövegű magyarázatot, ami megmutatja, hogyan
-épül fel a szakasz nyelvi/jelentésbeli dinamikája ezekből a szóválasztásokból
-— olyan nyelven, amit egy görög/héber nyelvtanban járatlan lelkész is azonnal
-ért, "fordítás" nélkül. Ne különálló kártyákban add meg az egyes szavakat —
-kösd össze őket ott, ahol tartalmilag összefüggenek.
-
-TILOS:
-- 5-nél több szó vagy kifejezés kiemelése — szigorúan LEGFELJEBB 5,
-- nyelvtani szakkifejezés használata a végleges szövegben (eset-, igealak-,
-  szófaj-nevek stb. — a JELENTÉSÜKET írd le, ne a nevüket),
-- token-sorszám vagy egyéb technikai azonosító feltüntetése,
-- angol nyelvű jelentés-megadás vagy gloss (pl. „being, existing”, „he
-  emptied”) — minden jelentés-magyarázat kizárólag magyarul,
-- igehirdetési, homiletikai vagy alkalmazási következtetést levonni (mit
-  "kezdjen" ezzel az igehirdető, mire "használható" a prédikációban),
-- olyan bibliai párhuzamot vagy nyelvi adatot említeni, ami nem vezethető
-  vissza a mellékelt token-listára.
-
-Megengedett és kívánatos: nyelvi tényből (szóalak, morfológia, lemma-
-ismétlődés) levezetett jelentés-magyarázat arról, mit fejeznek ki együttesen
-ezek a szóválasztások a szakasz belső dinamikájáról — amíg ez nem csúszik át
-igehirdetői alkalmazásba.
-
-Ha egy szó morfológiai vagy lexikai háttere bizonytalan a mellékelt
-adatokból, jelöld: „Bizonytalan a rendelkezésre álló adat alapján:” — ne
-egészítsd ki saját tudásból.
-"""
-
+# ORIGINAL_TEXT_BASE_PROMPT imported from bible_engine.original_language_analysis
 
 SONGS_BASE_PROMPT = """
 Te egy református liturgiai és énekirodalmi műhelyvezető vagy,
@@ -4534,169 +4426,9 @@ def build_alap_from_state(
 # Külön függvénybe szervezve, hogy a "Teljes elemzés indítása" gomb
 # is automatikusan tudja generálni ezeket az igehely megadásakor.
 
-def _format_greek_token_line(token) -> str:
-    pos = parse_morphology_hu(token.morph_code or "").part_of_speech or "?"
-    strong = token.strong_id or "nincs"
-    return (
-        f"[{token.word_index}] {token.greek_form} | lemma: {token.lemma} | "
-        f"morf: {token.morph_code or '?'} ({pos}) | Strong: {strong}"
-    )
-
-
-def _format_hebrew_token_line(token, repository: HebrewTokenRepository) -> str:
-    pos = repository.morphology(token).part_of_speech or "?"
-    strong = "+".join(token.strong_ids) if token.strong_ids else "nincs"
-    return (
-        f"[{token.word_index}] {token.surface} | lemma: {token.lemma} | "
-        f"morf: {token.morphology_code or '?'} ({pos}) | Strong: {strong}"
-    )
-
-
-def build_original_language_token_block(igehely: str) -> str:
-    """A helyi görög/héber token-adatbázisból strukturált, kizárólagos
-    forrásként szolgáló token-listát épít a megadott igehelyhez. A modell
-    a promptban csak erre a listára hivatkozhat — nem szabad generálnia
-    saját szót/lemmát/morfológiát."""
-    reference = (igehely or "").strip()
-    header = "EREDETI NYELVI TOKENEK (helyi adatbázisból, kizárólagos forrás):\n"
-    if not reference:
-        return header + "Nincs igehely megadva — nincs lekérhető token-adat."
-
-    status = greek_reference_status(reference)
-
-    if status == "cross_chapter":
-        return header + f"{CROSS_CHAPTER_GREEK_MESSAGE} Nincs lekérhető token-adat."
-
-    if status == "needs_verses":
-        return header + f"{NT_NEEDS_VERSES_MESSAGE} Nincs lekérhető token-adat."
-
-    if status == "old_testament":
-        try:
-            book, chapter, verse_start, verse_end = parse_hebrew_reference(reference)
-        except HebrewReferenceError as exc:
-            return header + f"Nem sikerült azonosítani az ószövetségi hivatkozást: {exc}"
-        repository = HebrewTokenRepository()
-        result = repository.passage(book, chapter, verse_start, verse_end)
-        if result.status != "ok":
-            return header + f"A helyi héber adatbázisban nem található token-adat ehhez a szakaszhoz (státusz: {result.status})."
-        lines = [_format_hebrew_token_line(token, repository) for token in result.tokens]
-        return header + "\n".join(lines)
-
-    if status == "loaded":
-        try:
-            verse_groups = load_greek_passage_tokens(reference)
-        except (FileNotFoundError, ValueError):
-            return header + "A helyi görög adatbázis nem érhető el vagy a hivatkozás érvénytelen."
-        lines = [
-            _format_greek_token_line(token)
-            for group in verse_groups
-            for token in group.tokens
-        ]
-        if not lines:
-            return header + "A helyi görög adatbázisban nem található token-adat ehhez a szakaszhoz."
-        return header + "\n".join(lines)
-
-    if status == "invalid" and _reference_book_is_new_testament(reference):
-        return header + f"{NT_INVALID_REFERENCE_MESSAGE} Nincs lekérhető token-adat."
-
-    return header + "Nem sikerült azonosítani a hivatkozást — nincs lekérhető token-adat."
-
-
-# RESET 3B-4c: a meglévő, forrásolt `biblical_places` adatbázis szűk
-# connectora a kortörténet ("history") szekcióhoz. Csak a földrajzi/
-# régészeti (és explicit forrásolt történeti) hátteret adja tovább — a
-# bibliai jelentőség, kulcsesemények, mai helyzet, azonosítási megjegyzés
-# és homiletikai kontextus szakaszok SOSEM kerülnek bele (ld. RESET 3B-4b
-# audit felelősségi-határ döntése).
-BIBLICAL_PLACE_HISTORY_SECTION_KEYS = ("ancient_geography", "historical_context", "archaeology")
-BIBLICAL_PLACE_HISTORY_QUALIFYING_CONFIDENCE = {"high", "medium"}
-BIBLICAL_PLACE_HISTORY_MAX_PLACES = 2
-BIBLICAL_PLACE_HISTORY_HEADER = "FORRÁSOLT FÖLDRAJZI/RÉGÉSZETI HÁTTÉR (ellenőrzött adatbázisból):\n"
-BIBLICAL_PLACE_HISTORY_DISCLAIMER = (
-    "\n\nFONTOS: a fenti blokk ellenőrzött, forrásolt adat, és KIZÁRÓLAG az "
-    "itt konkrétan szereplő földrajzi/régészeti/történeti állításokra "
-    "tekinthető groundingnak. A kortörténeti válasz TÖBBI RÉSZE továbbra is "
-    "a saját tudásodból készül — arra változatlanul érvényes a fent leírt "
-    "bizonytalanság-fegyelem (ne állíts konkrétumot bizonytalanul, inkább "
-    "fogalmazz általánosabban vagy hagyd ki). Ne sugalld, hogy a teljes "
-    "válasz forrásolt."
-)
-
-
-def build_biblical_place_history_context(igehely: str) -> str:
-    """Legfeljebb 2, a megadott igehelyhez kapcsolódó helyszín forrásolt
-    földrajzi/régészeti (és explicit forrásolt történeti) hátteréből épít
-    egy rövid, strukturált blokkot a `find_place_links_for_passage()` /
-    `get_place_enrichment()` meglévő runtime helperek segítségével — nem
-    olvas nyers JSON-t.
-
-    Csak `review_status == "source_backed"` ÉS `confidence in {"high",
-    "medium"}` szakasz kerül be. Ha nincs place-link, vagy van place-link,
-    de egyik helyhez sincs kvalifikáló szakasz, üres stringet ad vissza —
-    a hívó ekkor a blokkot TELJESEN kihagyja a promptból (nincs "nincs
-    adat" placeholder; ld. RESET 3B-4b audit: ez ma a tipikus eset)."""
-    reference = (igehely or "").strip()
-    if not reference:
-        return ""
-
-    links = find_place_links_for_passage(reference)
-    if not links:
-        return ""
-
-    place_names = biblical_places_by_id()
-    sources = place_enrichment_sources_by_id()
-
-    place_blocks: list[str] = []
-    for link in links:
-        if len(place_blocks) >= BIBLICAL_PLACE_HISTORY_MAX_PLACES:
-            break
-        enrichment = get_place_enrichment(link.place_id)
-        if enrichment is None:
-            continue
-        section_texts: list[str] = []
-        for section_key in BIBLICAL_PLACE_HISTORY_SECTION_KEYS:
-            section = enrichment.sections.get(section_key)
-            if section is None:
-                continue
-            if section.review_status != "source_backed":
-                continue
-            if section.confidence not in BIBLICAL_PLACE_HISTORY_QUALIFYING_CONFIDENCE:
-                continue
-            institutions = sorted(
-                {
-                    sources[source_id].institution
-                    for source_id in section.source_ids
-                    if source_id in sources
-                }
-            )
-            section_label = BIBLICAL_PLACE_SECTION_LABELS_HU.get(section_key, section_key)
-            confidence_label = BIBLICAL_PLACE_CONFIDENCE_LABELS_HU.get(
-                section.confidence, section.confidence
-            )
-            attribution = ", ".join(institutions) if institutions else "ismeretlen intézmény"
-            section_texts.append(
-                f"[{section_label}, {confidence_label}, forrás: {attribution}]\n"
-                f"{section.text_hu}"
-            )
-        if not section_texts:
-            continue
-        place = place_names.get(link.place_id)
-        place_label = place.name_hu if place is not None else link.place_id
-        place_blocks.append(place_label + "\n" + "\n".join(section_texts))
-
-    if not place_blocks:
-        return ""
-
-    return (
-        BIBLICAL_PLACE_HISTORY_HEADER
-        + "\n\n".join(place_blocks)
-        + BIBLICAL_PLACE_HISTORY_DISCLAIMER
-    )
-
 
 def build_original_text_prompt(igehely: str) -> str:
-    """Az „Eredeti szöveg" fül teljes promptja. Csak az igehely kell
-    bemenetként — ugyanaz a sablon, mint a tab saját gombja mögött."""
+    """Az „Eredeti szöveg" fül teljes promptja (DB-first, AI fallback ha kell)."""
     passage_text = st.session_state.get("passage_text") or ""
     if not str(passage_text).strip():
         passage_text = st.session_state.get("passage_text_input") or ""
@@ -4704,26 +4436,15 @@ def build_original_text_prompt(igehely: str) -> str:
         passage_text = passage_text.replace("\r\n", "\n").replace("\r", "\n")
     else:
         passage_text = str(passage_text or "")
-    text_block = (
-        f"\nBibliai szöveg (felhasználó által megadva):\n{passage_text}\n"
-        if passage_text.strip()
-        else "\nBibliai szöveg: nincs adat\n"
+    plan = plan_original_language_analysis(igehely, passage_text)
+    if plan.should_generate and plan.prompt:
+        return plan.prompt
+    # Blocking cases: keep a grounded-shaped prompt with the explanatory
+    # token_block message so batch callers still receive a usable string.
+    return (
+        plan.blocking_message
+        or UNAVAILABLE_USER_MESSAGE
     )
-    token_block = build_original_language_token_block(igehely)
-    return f"""
-{ORIGINAL_TEXT_BASE_PROMPT}
-
-==================================================
-EREDETI NYELVI MŰHELY — FELADAT
-==================================================
-
-Igeszakasz: {igehely}
-{text_block}
-{token_block}
-
-Készíts eredeti nyelvű elemzést ehhez a textushoz a fenti mesterprompt
-szerkezete szerint, kizárólag a fenti token-listára hivatkozva.
-"""
 
 
 _BOLD_LABEL_FIELD_RE = re.compile(r'^\*\*[^*\n:]+:\*\*\s+[^\s,][^\n,]{0,39}$')
@@ -6112,6 +5833,8 @@ defaults = {
     "outline_reworked_draft": "",
     "outline_title_suggestions": "",
     "original_text": "",
+    "original_text_language_status": "",
+    "original_text_fallback_notice": "",
     "songs": "",
 
     "series_planner_output": "",
@@ -7929,39 +7652,37 @@ def render_original_text_panel() -> None:
                 elif not _igehely_now:
                     st.warning("Add meg az igeszakaszt az „Igehely” fülön, mielőtt itt generálsz.")
                 else:
+                    _passage_now = st.session_state.get("passage_text") or ""
+                    if not str(_passage_now).strip():
+                        _passage_now = st.session_state.get("passage_text_input") or ""
                     st.session_state["_original_running"] = True
                     try:
                         with st.spinner("Eredeti nyelvi elemzés készül..."):
-                            st.session_state["original_text"] = generate_text(
-                                build_original_text_prompt(_igehely_now),
+                            _ol_result = run_original_language_analysis(
+                                _igehely_now,
+                                passage_text=str(_passage_now or ""),
+                                generate_text_fn=generate_text,
                                 tab_label="Eredeti szöveg tanulmányozása",
-                                use_cache=False,
                                 system_bundle=KEY_EXPRESSIONS_SYSTEM_PROMPT,
-                                include_brevity_directive=False,
-                                truncation_notice_mode="never",
-                                incomplete_response_message=(
-                                    "⚠️ **Az eredeti nyelvi elemzés nem érkezett meg teljesen.** "
-                                    "Nem jelenítek meg félbeszakadt szöveget. Kérlek, próbáld újra."
-                                ),
+                                generate_kwargs={
+                                    "truncation_notice_mode": "never",
+                                    "incomplete_response_message": (
+                                        "⚠️ **Az eredeti nyelvi elemzés nem érkezett meg teljesen.** "
+                                        "Nem jelenítek meg félbeszakadt szöveget. Kérlek, próbáld újra."
+                                    ),
+                                },
                             )
                     finally:
                         st.session_state["_original_running"] = False
+                    st.session_state["original_text"] = _ol_result.text
+                    st.session_state["original_text_language_status"] = _ol_result.status
+                    st.session_state["original_text_fallback_notice"] = (
+                        _ol_result.user_notice or ""
+                    )
                     st.session_state["original_text_status"] = "draft"
-                    _orig_result = st.session_state["original_text"]
-                    # RESET 3B-6: post-hoc grounding cross-check — csak
-                    # sikeres (nem hiba-/félbeszakadt) eredményre fut,
-                    # SOSEM blokkol, csak figyelmeztetést tárol el.
-                    if _orig_result.startswith(("⚠️", "⏳")):
-                        st.session_state["original_text_grounding_warnings"] = []
-                    else:
-                        st.session_state["original_text_grounding_warnings"] = [
-                            w.message
-                            for w in check_original_language_grounding(
-                                _orig_result, _igehely_now
-                            )
-                        ]
-                    # Korrekciós fázis 3.1: generáláskori ujjlenyomat, ld.
-                    # render_section_tab ugyanezen mintája.
+                    st.session_state["original_text_grounding_warnings"] = list(
+                        _ol_result.grounding_warnings or []
+                    )
                     from sermon_outline_engine import (
                         compute_current_passage_context_hash,
                     )
@@ -7972,9 +7693,15 @@ def render_original_text_panel() -> None:
                     st.rerun()
 
         if st.session_state.get("original_text"):
-            if st.session_state["original_text"].startswith(("⚠️", "⏳")):
-                st.warning(st.session_state["original_text"])
+            _ol_status = st.session_state.get("original_text_language_status") or ""
+            _ol_notice = st.session_state.get("original_text_fallback_notice") or ""
+            if _ol_status == STATUS_UNAVAILABLE or st.session_state[
+                "original_text"
+            ].startswith(("⚠️", "⏳")):
+                st.info(st.session_state["original_text"])
             else:
+                if _ol_status == STATUS_AI_FALLBACK and _ol_notice:
+                    st.info(_ol_notice)
                 st.markdown(
                     '<div class="result-box original-text-result">\n\n'
                     f'{st.session_state["original_text"]}\n\n</div>',
@@ -7987,12 +7714,13 @@ def render_original_text_panel() -> None:
                     "szükséges."
                 )
 
-                # RESET 3B-6: non-blocking grounding figyelmeztetések — az
-                # output mentése/felhasználása ettől függetlenül működik.
-                for _grounding_warning in st.session_state.get(
-                    "original_text_grounding_warnings", []
-                ):
-                    st.warning(_grounding_warning)
+                # RESET 3B-6: non-blocking grounding figyelmeztetések — csak
+                # DB-grounded módban (AI fallback ne zavarja DB-jellegű warningokkal).
+                if _ol_status == STATUS_GROUNDED:
+                    for _grounding_warning in st.session_state.get(
+                        "original_text_grounding_warnings", []
+                    ):
+                        st.warning(_grounding_warning)
 
         else:
             render_info_panel(
