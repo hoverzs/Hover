@@ -257,6 +257,16 @@ def attach_tag_to_unit(connection: sqlite3.Connection, *, unit_id: int, tag_id: 
     )
 
 
+def detach_tag_from_unit(connection: sqlite3.Connection, *, unit_id: int, tag_id: int) -> None:
+    """Symmetric counterpart to `attach_tag_to_unit` — used by callers
+    (e.g. the enrichment pipeline's tag-sync step) that need to REPLACE
+    a unit's tag set rather than only ever add to it."""
+    connection.execute(
+        "DELETE FROM illustration_unit_tags WHERE unit_id = ? AND tag_id = ?",
+        (unit_id, tag_id),
+    )
+
+
 def search_units(
     connection: sqlite3.Connection, query_text: str, *, limit: int = 20
 ) -> list[IllustrationUnitView]:
@@ -285,6 +295,7 @@ __all__ = [
     "approve_unit",
     "attach_tag_to_unit",
     "create_draft_unit",
+    "detach_tag_from_unit",
     "get_or_create_tag",
     "get_unit",
     "list_units_for_story",
