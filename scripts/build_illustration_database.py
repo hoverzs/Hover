@@ -14,6 +14,7 @@ from illustration_engine.aesop_importer import import_aesop_book
 from illustration_engine.arany_laszlo_importer import import_arany_laszlo_book
 from illustration_engine.baldwin_importer import import_baldwin_book
 from illustration_engine.book_of_300_anecdotes_importer import import_book_of_300_anecdotes
+from illustration_engine.gulistan_importer import import_gulistan_book
 from illustration_engine.illustration_sqlite import (
     DEFAULT_DATABASE_PATH,
     check_integrity,
@@ -34,6 +35,7 @@ DEFAULT_MERENYI_LASZLO_1_SOURCE = RAW_DATA_DIR / "pg39419_merenyi_laszlo_eredeti
 DEFAULT_MERENYI_LASZLO_2_SOURCE = RAW_DATA_DIR / "pg39386_merenyi_laszlo_eredeti_nepmesek_2resz.txt"
 DEFAULT_BALDWIN_SOURCE = RAW_DATA_DIR / "pg18442_baldwin_fifty_famous_stories_retold.txt"
 DEFAULT_BOOK_OF_300_ANECDOTES_SOURCE = RAW_DATA_DIR / "pg15413_book_of_300_anecdotes.txt"
+DEFAULT_GULISTAN_SOURCE = RAW_DATA_DIR / "pg13060_persian_literature_vol2_gulistan.txt"
 
 
 def main() -> None:
@@ -93,6 +95,12 @@ def main() -> None:
         type=Path,
         default=DEFAULT_BOOK_OF_300_ANECDOTES_SOURCE,
         help="Path to the raw PG #15413 'The Book of Three Hundred Anecdotes' plain-text file.",
+    )
+    parser.add_argument(
+        "--gulistan-source",
+        type=Path,
+        default=DEFAULT_GULISTAN_SOURCE,
+        help="Path to the raw PG #13060 'The Persian Literature, Volume 2' (Gulistan) plain-text file.",
     )
     args = parser.parse_args()
 
@@ -185,6 +193,17 @@ def main() -> None:
                 f"SKIP PG_BOOK_OF_300_ANECDOTES: raw source not found at "
                 f"{args.book_of_300_anecdotes_source}"
             )
+
+        if args.gulistan_source.exists():
+            report = import_gulistan_book(connection, raw_text_path=args.gulistan_source)
+            print(
+                f"Gulistan import: source={report.source_code}, "
+                f"parsed={report.parsed_count}, inserted={report.inserted_count}, "
+                f"skipped_existing={report.skipped_existing_count}, "
+                f"raw_sha256={report.raw_file_sha256}"
+            )
+        else:
+            print(f"SKIP PG_GULISTAN_SADI_ROSS: raw source not found at {args.gulistan_source}")
 
         integrity = check_integrity(connection)
         if integrity != "ok":
