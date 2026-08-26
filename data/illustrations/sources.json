@@ -104,6 +104,21 @@
       "retrieved_at": "2026-08-26",
       "reliability_tier": "high",
       "notes_hu": "TEXTUS illustration database — Phase 2F, az Eredeti népmesék (1861, Merényi László) második kötete. 13 elbeszélő népmese. Az utolsó mese (Bolond Jankó) szövege után, a TARTALOM elé, a törzsszövegbe ékelődik a nyomda saját kolofonja ('_Wigand K. F. könyvnyomdája Pozsonyban._') — ez sem a gyűjtő, sem a mese szövege, a parser explicit kizárja (az 1. résznél ugyanez a sor a Néptalányok-szakasz miatt már eleve a kizárt régióba esik, ott nem igényelt külön kezelést). A magyar réteg itt is későbbi, külön AI-enrichment fázis feladata; eddig a pontig a rekordok 'draft' állapotban vannak."
+    },
+    {
+      "code": "PG_BALDWIN_FIFTY_FAMOUS_STORIES_RETOLD",
+      "title": "Fifty Famous Stories Retold",
+      "author": "James Baldwin",
+      "orig_language": "en",
+      "publication_year": 1896,
+      "edition_reference": "New York, Cincinnati, Chicago: American Book Company, 1896 (Copyright 1896 by American Book Company). Digitized as Project Gutenberg eBook #18442 (release date 2006-05-23; produced by Juliet Sutherland, Sankar Viswanathan, and the Online Distributed Proofreading Team).",
+      "license_status": "public_domain_confirmed",
+      "license_basis_hu": "Kettős, egymástól független PD-alap: (1) az 1896-os amerikai megjelenés (copyright renewal nélkül) védelmi ideje régen lejárt; (2) a szerző, James Baldwin, 1925-ben hunyt el, tehát az élet+70 éves szabály szerint is lejárt 1995-ben. A Project Gutenberg 'public domain in the United States' minősítéssel, korlátozás nélküli PG License alatt adja ki. A digitális szöveg tiszta, önkéntes Distributed Proofreaders-transzkripció, modern jogvédett szerkesztői/jegyzetelői réteg nélkül. A kötet elején álló CONTENTS lista és Baldwin saját 'Concerning These Stories' előszava ki van zárva az importból, kizárólag az 50 számozott/címzett történet kerül a stories táblába.",
+      "rights_holder": null,
+      "source_url": "https://www.gutenberg.org/ebooks/18442",
+      "retrieved_at": "2026-08-26",
+      "reliability_tier": "high",
+      "notes_hu": "TEXTUS illustration database — Phase 2H, az illusztrációs korpusz első kifejezetten rövid, anekdotikus/félig-legendás elbeszélés-forrása (Phase 2G hiányterület-audit alapján). 50 rövid történet, tipikusan 400-450 szó (medián ~2700 karakter) — jelentősen rövidebb, mint a magyar népmesék (medián 6300-14250 karakter), de nem olyan tömör, mint Aesop egyparagrafusos fabulái (medián ~514 karakter). Baldwin saját 1896-os előszava (kizárva az importból, de a source_registry-ben dokumentálva) explicit 'félig-legendás' (half-legendary) kategóriaként jellemzi a történeteket — NEM dokumentált történelmi eseményként, hanem hagyományos, sokszor kétes hitelességű elbeszélésként valós történelmi személyekről. Ez fontos figyelmeztetés a jövőbeli enrichment/metaadat fázishoz: a 'történelmi személyről szóló hagyomány/legenda' és a 'dokumentált történelmi esemény' kategóriákat ennél a forrásnál explicit külön kell kezelni, nem szabad történeti hitelességet feltételezni pusztán azért, mert valós név szerepel a címben. Két történet (King John and the Abbot; Whittington and his Cat) belső, számozott alrészekre tagolódik — ezeket EGY rekordként importáltuk, a forrás saját CONTENTS-szerkezetét követve, nem daraboltuk szét. A magyar réteg itt is későbbi, külön AI-enrichment fázis feladata; eddig a pontig a rekordok 'draft' állapotban vannak."
     }
   ]
 }

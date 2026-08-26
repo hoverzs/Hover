@@ -12,6 +12,7 @@ if str(ROOT) not in sys.path:
 
 from illustration_engine.aesop_importer import import_aesop_book
 from illustration_engine.arany_laszlo_importer import import_arany_laszlo_book
+from illustration_engine.baldwin_importer import import_baldwin_book
 from illustration_engine.illustration_sqlite import (
     DEFAULT_DATABASE_PATH,
     check_integrity,
@@ -30,6 +31,7 @@ DEFAULT_AESOPS_FABLES_SOURCE = RAW_DATA_DIR / "pg21_aesops_fables.txt"
 DEFAULT_ARANY_LASZLO_SOURCE = RAW_DATA_DIR / "pg38852_arany_laszlo_eredeti_nepmesek.txt"
 DEFAULT_MERENYI_LASZLO_1_SOURCE = RAW_DATA_DIR / "pg39419_merenyi_laszlo_eredeti_nepmesek_1resz.txt"
 DEFAULT_MERENYI_LASZLO_2_SOURCE = RAW_DATA_DIR / "pg39386_merenyi_laszlo_eredeti_nepmesek_2resz.txt"
+DEFAULT_BALDWIN_SOURCE = RAW_DATA_DIR / "pg18442_baldwin_fifty_famous_stories_retold.txt"
 
 
 def main() -> None:
@@ -77,6 +79,12 @@ def main() -> None:
         type=Path,
         default=DEFAULT_MERENYI_LASZLO_2_SOURCE,
         help="Path to the raw PG #39386 'Eredeti népmesék (2. rész)' plain-text file.",
+    )
+    parser.add_argument(
+        "--baldwin-source",
+        type=Path,
+        default=DEFAULT_BALDWIN_SOURCE,
+        help="Path to the raw PG #18442 'Fifty Famous Stories Retold' plain-text file.",
     )
     args = parser.parse_args()
 
@@ -138,6 +146,20 @@ def main() -> None:
                 f"parsed={report.parsed_count}, inserted={report.inserted_count}, "
                 f"skipped_existing={report.skipped_existing_count}, "
                 f"raw_sha256={report.raw_file_sha256}"
+            )
+
+        if args.baldwin_source.exists():
+            report = import_baldwin_book(connection, raw_text_path=args.baldwin_source)
+            print(
+                f"Baldwin import: source={report.source_code}, "
+                f"parsed={report.parsed_count}, inserted={report.inserted_count}, "
+                f"skipped_existing={report.skipped_existing_count}, "
+                f"raw_sha256={report.raw_file_sha256}"
+            )
+        else:
+            print(
+                f"SKIP PG_BALDWIN_FIFTY_FAMOUS_STORIES_RETOLD: raw source not found at "
+                f"{args.baldwin_source}"
             )
 
         integrity = check_integrity(connection)

@@ -1,14 +1,16 @@
 """Shared helpers for parsing raw Project Gutenberg plain-text files.
 
-Used by both `jataka_parser.py` and `aesop_parser.py`. Kept intentionally
-minimal: only the PG boilerplate boundary extraction and blank-line
-normalization are byte-for-byte identical logic across both sources —
-everything about how a given book's individual stories are delimited
-(headers, numbering, back-matter) is source-specific and stays in that
-book's own parser module. This module exists because the PG start/end
-marker extraction was found duplicated verbatim between the Jataka and
-Aesop parsers while implementing the latter, not because a generic
-"Gutenberg parser framework" was planned in advance.
+Used by `jataka_parser.py`, `aesop_parser.py`, and `baldwin_parser.py`.
+Kept intentionally minimal: only logic found byte-for-byte duplicated
+across at least two real sources lives here — everything about how a
+given book's individual stories are delimited (headers, numbering,
+back-matter) is source-specific and stays in that book's own parser
+module. The PG boilerplate boundary extraction and blank-line
+normalization were duplicated between Jataka and Aesop; the
+illustration-tag and trailing-PG-colophon stripping were duplicated
+between Jataka and Baldwin. None of this was planned as a generic
+"Gutenberg parser framework" in advance — every addition here followed a
+second real source needing the exact same thing.
 """
 
 from __future__ import annotations
@@ -19,6 +21,10 @@ import re
 _PG_START_RE = re.compile(r"\*\*\*\s*START OF THE PROJECT GUTENBERG EBOOK[^\n]*\*\*\*")
 _PG_END_RE = re.compile(r"\*\*\*\s*END OF THE PROJECT GUTENBERG EBOOK[^\n]*\*\*\*")
 _MULTI_BLANK_RE = re.compile(r"\n{3,}")
+_ILLUSTRATION_RE = re.compile(r"\[Illustration[^\]]*\]")
+_TRAILING_PG_COLOPHON_RE = re.compile(
+    r"\n+End of (?:the )?Project Gutenberg.*\Z", re.IGNORECASE | re.DOTALL
+)
 
 
 class GutenbergBoilerplateError(ValueError):
@@ -50,9 +56,25 @@ def collapse_blank_lines(text: str) -> str:
     return _MULTI_BLANK_RE.sub("\n\n", text)
 
 
+def strip_illustration_tags(text: str) -> str:
+    """Removes `[Illustration ...]` image-placeholder markers — a PG
+    transcription artifact, not prose content."""
+    return _ILLUSTRATION_RE.sub("", text)
+
+
+def strip_trailing_pg_colophon(text: str) -> str:
+    """Removes a trailing "End of Project Gutenberg's <title>, by
+    <author>" colophon line some PG editions repeat right before the
+    START/END markers wrap it, if it ended up inside a sliced story's
+    tail."""
+    return _TRAILING_PG_COLOPHON_RE.sub("", text)
+
+
 __all__ = [
     "GutenbergBoilerplateError",
     "collapse_blank_lines",
     "extract_pg_body",
     "normalize_line_endings",
+    "strip_illustration_tags",
+    "strip_trailing_pg_colophon",
 ]

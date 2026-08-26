@@ -31,14 +31,12 @@ from illustration_engine.gutenberg_text import (
     GutenbergBoilerplateError,
     collapse_blank_lines,
     extract_pg_body,
+    strip_illustration_tags,
+    strip_trailing_pg_colophon,
 )
 
 
-_ILLUSTRATION_RE = re.compile(r"\[Illustration[^\]]*\]")
 _TRAILING_THE_END_RE = re.compile(r"\n+THE END\s*\Z")
-_TRAILING_PG_COLOPHON_RE = re.compile(
-    r"\n+End of (?:the )?Project Gutenberg.*\Z", re.IGNORECASE | re.DOTALL
-)
 
 
 @dataclass(frozen=True)
@@ -168,9 +166,9 @@ def parse_jataka_file(path: str | Path, spec: JatakaBookSpec) -> tuple[ParsedJat
 
 
 def _clean_story_text(raw_text: str) -> str:
-    text = _ILLUSTRATION_RE.sub("", raw_text)
+    text = strip_illustration_tags(raw_text)
     text = _TRAILING_THE_END_RE.sub("", text)
-    text = _TRAILING_PG_COLOPHON_RE.sub("", text)
+    text = strip_trailing_pg_colophon(text)
     text = collapse_blank_lines(text)
     return text.strip()
 
