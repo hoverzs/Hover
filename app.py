@@ -121,6 +121,7 @@ from hymn_ui_state import (
     mark_hymn_passage_manual_override,
     sync_hymn_passage_from_main_state,
 )
+from illustration_review_ui import is_authorized_reviewer, render_illustration_review_panel
 # =========================================================
 # VERZIÓ
 # =========================================================
@@ -7940,6 +7941,14 @@ def _render_settings_panel() -> None:
             track_event("login", {"method": "google"})
             safe_streamlit_login()
 
+    # ─── 0a) Illusztráció-review — csak a kijelölt reviewer accountnak látszik ──
+    if _is_logged_in() and is_authorized_reviewer((st.user.get("email") or "").strip()):
+        st.divider()
+        st.subheader("Belső eszközök")
+        if st.button("Illusztráció-review megnyitása", key="settings_open_illustration_review"):
+            st.session_state["shell_panel"] = "illustration_review"
+            st.rerun()
+
     # ─── 0b) Saját munkáim — részletes lista; napi mentés a fejlécsávon ──
     st.subheader("Saját munkáim")
     _owner = _owner_sub()
@@ -8334,6 +8343,21 @@ if st.session_state.get("shell_panel") == "settings":
     )
     _render_settings_panel()
     st.stop()
+
+# Illusztráció-review (belső eszköz) — gate ÚJRA ellenőrizve itt is, hogy egy
+# esetlegesen megmaradt session_state érték (pl. kijelentkezés után) soha ne
+# nyisson meg tartalmat jogosulatlan felhasználónak.
+if st.session_state.get("shell_panel") == "illustration_review":
+    if not (_is_logged_in() and is_authorized_reviewer((st.user.get("email") or "").strip())):
+        st.session_state["shell_panel"] = None
+        st.rerun()
+    else:
+        try:
+            track_app_navigation()
+        except Exception:
+            pass
+        render_illustration_review_panel()
+        st.stop()
 
 render_workspace_switcher(
     options=["workshop", "sermon_workshop"],
