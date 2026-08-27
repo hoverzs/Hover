@@ -84,6 +84,12 @@ def _clear_storage_config(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(runtime, "_configured_database_sha256", lambda: "")
 
 
+@pytest.fixture(autouse=True)
+def _isolate_storage_config(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Keep runtime tests hermetic from local env / [theology_database] secrets."""
+    _clear_storage_config(monkeypatch)
+
+
 def test_import_does_not_perform_network_io(monkeypatch: pytest.MonkeyPatch) -> None:
     def boom() -> None:
         raise AssertionError("Theology runtime import must not open Supabase.")
@@ -326,6 +332,7 @@ def test_valid_existing_database_survives_failed_download(
 ) -> None:
     database = _import_sample(tmp_path)
     _pin_to_database(monkeypatch, database)
+    _clear_storage_config(monkeypatch)
     original = database.read_bytes()
 
     def boom() -> None:
