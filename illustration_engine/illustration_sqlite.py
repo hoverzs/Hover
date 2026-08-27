@@ -165,6 +165,45 @@ ALLOWED_RUN_ITEM_STATUSES = frozenset(
 )
 ALLOWED_STRATEGY_BANDS = frozenset({"A", "B", "C"})
 
+# Phase 3B pilot taxonomy (user-approved, 2026-08-26; relocated here in
+# Phase 3G-A). Small and closed on purpose — a caller selects FROM
+# these, it never invents a new slug. category -> slug maps directly
+# onto the existing tags.category CHECK ('topic', 'tone', 'function')
+# above. Lives here, not in enrichment_pipeline.py, specifically so
+# BOTH enrichment_pipeline.py (LLM-side tag selection) AND
+# illustration_unit_repository.py (human-reviewer tag replacement, see
+# replace_review_tags) can import the SAME controlled vocabulary without
+# either module importing the other — enrichment_pipeline.py already
+# imports repository functions, so the reverse direction would be a
+# circular import. enrichment_pipeline.py re-exports these three names
+# from here for backward compatibility with existing callers/tests.
+PILOT_TOPICS: frozenset[str] = frozenset(
+    {
+        "alazat",
+        "buszkeseg",
+        "becsuletesseg",
+        "bolcsesseg",
+        "eszesseg",
+        "igazsagossag",
+        "irgalom",
+        "kapzsisag",
+        "turelem",
+        "tekintely_es_hatalom",
+    }
+)
+PILOT_TONES: frozenset[str] = frozenset(
+    {"humoros", "ironikus", "komoly", "megindito", "elgondolkodtato"}
+)
+PILOT_HOMILETIC_FUNCTIONS: frozenset[str] = frozenset(
+    {
+        "bevezeto_illusztracio",
+        "szemlelteto_pelda",
+        "ellenpelda",
+        "alkalmazasi_pelda",
+        "lezaro_illusztracio",
+    }
+)
+
 _publishable_sql_list = ", ".join(f"'{s}'" for s in sorted(PUBLISHABLE_LICENSE_STATUSES))
 _license_status_sql_list = ", ".join(
     f"'{s}'"
@@ -1194,6 +1233,9 @@ __all__ = [
     "ALLOWED_UNIT_STATUSES",
     "DATABASE_NAME",
     "DEFAULT_DATABASE_PATH",
+    "PILOT_HOMILETIC_FUNCTIONS",
+    "PILOT_TONES",
+    "PILOT_TOPICS",
     "REQUIRED_TABLES",
     "REQUIRED_VIEWS",
     "SCHEMA_VERSION",

@@ -5,22 +5,31 @@ import sqlite3
 import pytest
 
 from illustration_engine.illustration_sqlite import (
+    PILOT_HOMILETIC_FUNCTIONS,
+    PILOT_TONES,
+    PILOT_TOPICS,
     IllustrationUnitReviewProtectionError,
     create_schema,
     insert_source,
     insert_story,
 )
 from illustration_engine.illustration_unit_repository import (
+    IllustrationReviewItem,
     approve_unit,
     attach_tag_to_unit,
     create_draft_unit,
     get_or_create_tag,
+    get_review_item,
     get_unit,
+    list_review_items,
     list_units_for_story,
     mark_needs_review,
     publish_unit,
+    replace_review_tags,
     search_units,
+    send_back_for_rework,
     update_draft_unit,
+    validate_approve_ready,
     validate_publish_ready,
 )
 
@@ -459,3 +468,618 @@ def test_attach_tag_to_unit_and_query() -> None:
     ).fetchone()
     conn.close()
     assert row[0] == 1
+
+
+# ---------------------------------------------------------------------------
+# Phase 3G-A: Human Review Backend Contract
+# ---------------------------------------------------------------------------
+
+_VALID_SUMMARY = " ".join(["szo"] * 45)
+
+
+def _make_full_source(conn: sqlite3.Connection, *, license_status: str = "public_domain_confirmed") -> int:
+    return insert_source(
+        conn,
+        code="SRC",
+        title="Test Source",
+        orig_language="en",
+        license_status=license_status,
+        license_basis_hu="test basis",
+        reliability_tier="high",
+        tradition="test tradition",
+        source_url="http://example.org/src",
+    )
+
+
+def _make_numbered_story(conn: sqlite3.Connection, source_id: int, n: int, *, original_text: str | None = None) -> int:
+    return insert_story(
+        conn,
+        source_id=source_id,
+        external_ref=str(n),
+        canonical_key=f"key-{n}",
+        title_original=f"Original Title {n}",
+        adaptation_status="verbatim_transcription",
+        original_text=original_text or f"Original text number {n}.",
+        source_reference=f"p. {n}",
+    )
+
+
+def _make_needs_review_unit(
+    conn: sqlite3.Connection, story_id: int, *, unit_index: int = 1, warnings: tuple[str, ...] | None = None, **overrides
+) -> int:
+    unit_id = create_draft_unit(
+        conn, story_id=story_id, unit_index=unit_index, derivation_type="full_story_translation"
+    )
+    fields = dict(
+        title_hu="Cím",
+        modern_hu_text="Szöveg",
+        summary_hu=_VALID_SUMMARY,
+        moral_hu="Tanulság",
+        enrichment_model="claude-sonnet-5",
+        enrichment_prompt_version="v1",
+    )
+    fields.update(overrides)
+    update_draft_unit(conn, unit_id=unit_id, enrichment_warnings=warnings, **fields)
+    mark_needs_review(conn, unit_id)
+    replace_review_tags(conn, unit_id, topics=["eszesseg"], tone="humoros", homiletic_functions=["szemlelteto_pelda"])
+    return unit_id
+
+
+def test_get_review_item_returns_full_aggregate() -> None:
+    conn = _fresh_connection()
+    source_id = _make_full_source(conn)
+    story_id = _make_numbered_story(conn, source_id, 1)
+    unit_id = _make_needs_review_unit(conn, story_id, warnings=("suspicious: Test",))
+    conn.commit()
+
+    item = get_review_item(conn, unit_id)
+    conn.close()
+
+    assert isinstance(item, IllustrationReviewItem)
+    # UNIT
+    assert item.unit_id == unit_id
+    assert item.story_id == story_id
+    assert item.status == "needs_review"
+    assert item.derivation_type == "full_story_translation"
+    assert item.title_hu == "Cím"
+    assert item.modern_hu_text == "Szöveg"
+    assert item.summary_hu == _VALID_SUMMARY
+    assert item.moral_hu == "Tanulság"
+    assert item.human_reviewed_at is None
+    # ENRICHMENT PROVENANCE
+    assert item.enrichment_model == "claude-sonnet-5"
+    assert item.enrichment_prompt_version == "v1"
+    assert item.enrichment_warnings == ("suspicious: Test",)
+    # RAW STORY
+    assert item.title_original == "Original Title 1"
+    assert item.original_text == "Original text number 1."
+    assert item.source_reference == "p. 1"
+    # SOURCE
+    assert item.source_code == "SRC"
+    assert item.source_title == "Test Source"
+    assert item.tradition == "test tradition"
+    assert item.license_status == "public_domain_confirmed"
+    assert item.source_url == "http://example.org/src"
+    # TAXONOMY
+    assert item.topics == ("eszesseg",)
+    assert item.tone == "humoros"
+    assert item.homiletic_functions == ("szemlelteto_pelda",)
+
+
+def test_get_review_item_returns_none_for_missing_unit() -> None:
+    conn = _fresh_connection()
+    result = get_review_item(conn, 999999)
+    conn.close()
+    assert result is None
+
+
+def test_list_review_items_only_returns_matching_status() -> None:
+    conn = _fresh_connection()
+    source_id = _make_full_source(conn)
+    story_1 = _make_numbered_story(conn, source_id, 1)
+    story_2 = _make_numbered_story(conn, source_id, 2)
+    needs_review_id = _make_needs_review_unit(conn, story_1)
+    approved_id = _make_needs_review_unit(conn, story_2)
+    approve_unit(conn, approved_id)
+    conn.commit()
+
+    items = list_review_items(conn, status="needs_review")
+    conn.close()
+
+    assert [item.unit_id for item in items] == [needs_review_id]
+
+
+def test_list_review_items_excludes_published_units() -> None:
+    conn = _fresh_connection()
+    source_id = _make_full_source(conn)
+    story_1 = _make_numbered_story(conn, source_id, 1)
+    story_2 = _make_numbered_story(conn, source_id, 2)
+    needs_review_id = _make_needs_review_unit(conn, story_1)
+    published_id = _make_needs_review_unit(conn, story_2)
+    approve_unit(conn, published_id)
+    publish_unit(conn, published_id)
+    conn.commit()
+
+    items = list_review_items(conn, status="needs_review")
+    conn.close()
+
+    assert [item.unit_id for item in items] == [needs_review_id]
+    assert published_id not in [item.unit_id for item in items]
+
+
+def test_list_review_items_source_code_filter() -> None:
+    conn = _fresh_connection()
+    source_a = insert_source(
+        conn, code="SRC-A", title="A", orig_language="en", license_status="public_domain_confirmed",
+        license_basis_hu="x", reliability_tier="high",
+    )
+    source_b = insert_source(
+        conn, code="SRC-B", title="B", orig_language="en", license_status="public_domain_confirmed",
+        license_basis_hu="x", reliability_tier="high",
+    )
+    story_a = _make_numbered_story(conn, source_a, 1)
+    story_b = _make_numbered_story(conn, source_b, 2)
+    unit_a = _make_needs_review_unit(conn, story_a)
+    _make_needs_review_unit(conn, story_b)
+    conn.commit()
+
+    items = list_review_items(conn, status="needs_review", source_code="SRC-A")
+    conn.close()
+
+    assert [item.unit_id for item in items] == [unit_a]
+    assert items[0].source_code == "SRC-A"
+
+
+def test_list_review_items_warnings_only_filter() -> None:
+    conn = _fresh_connection()
+    source_id = _make_full_source(conn)
+    story_1 = _make_numbered_story(conn, source_id, 1)
+    story_2 = _make_numbered_story(conn, source_id, 2)
+    clean_id = _make_needs_review_unit(conn, story_1)
+    warned_id = _make_needs_review_unit(conn, story_2, warnings=("finding",))
+    conn.commit()
+
+    items = list_review_items(conn, status="needs_review", warnings_only=True)
+    conn.close()
+
+    assert [item.unit_id for item in items] == [warned_id]
+    assert clean_id not in [item.unit_id for item in items]
+
+
+def test_list_review_items_deterministic_order() -> None:
+    conn = _fresh_connection()
+    source_id = _make_full_source(conn)
+    # Create out of story_id order to prove the query itself sorts.
+    story_3 = _make_numbered_story(conn, source_id, 3)
+    story_1 = _make_numbered_story(conn, source_id, 1)
+    story_2 = _make_numbered_story(conn, source_id, 2)
+    unit_3 = _make_needs_review_unit(conn, story_3)
+    unit_1 = _make_needs_review_unit(conn, story_1)
+    unit_2 = _make_needs_review_unit(conn, story_2)
+    conn.commit()
+
+    items = list_review_items(conn, status="needs_review")
+    conn.close()
+
+    assert [item.story_id for item in items] == sorted([story_1, story_2, story_3])
+
+
+def test_list_review_items_respects_limit() -> None:
+    conn = _fresh_connection()
+    source_id = _make_full_source(conn)
+    for n in range(5):
+        story_id = _make_numbered_story(conn, source_id, n)
+        _make_needs_review_unit(conn, story_id)
+    conn.commit()
+
+    items = list_review_items(conn, status="needs_review", limit=2)
+    conn.close()
+
+    assert len(items) == 2
+
+
+def test_list_review_items_rejects_invalid_status() -> None:
+    conn = _fresh_connection()
+    with pytest.raises(ValueError):
+        list_review_items(conn, status="not_a_real_status")
+    conn.close()
+
+
+# --- reviewer edit workflow -------------------------------------------------
+
+
+def test_reviewer_edit_keeps_needs_review_status() -> None:
+    conn = _fresh_connection()
+    source_id = _make_full_source(conn)
+    story_id = _make_numbered_story(conn, source_id, 1)
+    unit_id = _make_needs_review_unit(conn, story_id)
+    conn.commit()
+
+    update_draft_unit(conn, unit_id=unit_id, title_hu="Szerkesztett cím", modern_hu_text="Szerkesztett szöveg")
+    conn.commit()
+    item = get_review_item(conn, unit_id)
+    conn.close()
+
+    assert item.title_hu == "Szerkesztett cím"
+    assert item.modern_hu_text == "Szerkesztett szöveg"
+    assert item.status == "needs_review"
+    assert item.human_reviewed_at is None
+
+
+# --- tag replacement atomicity ----------------------------------------------
+
+
+def test_replace_review_tags_atomic_replace_not_accumulate() -> None:
+    conn = _fresh_connection()
+    source_id = _make_full_source(conn)
+    story_id = _make_numbered_story(conn, source_id, 1)
+    unit_id = _make_needs_review_unit(conn, story_id)  # eszesseg/humoros/szemlelteto_pelda
+    conn.commit()
+
+    replace_review_tags(conn, unit_id, topics=["alazat", "irgalom"], tone="komoly", homiletic_functions=["ellenpelda"])
+    conn.commit()
+    item = get_review_item(conn, unit_id)
+    conn.close()
+
+    assert set(item.topics) == {"alazat", "irgalom"}
+    assert "eszesseg" not in item.topics  # old topic replaced, not accumulated
+    assert item.tone == "komoly"
+    assert item.homiletic_functions == ("ellenpelda",)
+
+
+def test_replace_review_tags_invalid_slug_raises_no_partial_change() -> None:
+    conn = _fresh_connection()
+    source_id = _make_full_source(conn)
+    story_id = _make_numbered_story(conn, source_id, 1)
+    unit_id = _make_needs_review_unit(conn, story_id)  # eszesseg/humoros/szemlelteto_pelda
+    conn.commit()
+
+    with pytest.raises(ValueError):
+        replace_review_tags(
+            conn, unit_id, topics=["alazat", "nonexistent_topic"], tone="komoly",
+            homiletic_functions=["ellenpelda"],
+        )
+    item = get_review_item(conn, unit_id)
+    conn.close()
+
+    # Completely unchanged -- not even the valid parts of the request applied.
+    assert item.topics == ("eszesseg",)
+    assert item.tone == "humoros"
+    assert item.homiletic_functions == ("szemlelteto_pelda",)
+
+
+def test_replace_review_tags_rejects_cross_category_slug() -> None:
+    """A slug from the wrong controlled-vocabulary category (e.g. a tone
+    slug submitted inside the topics list) must be rejected exactly like
+    any other invalid slug -- and must not partially apply."""
+    conn = _fresh_connection()
+    source_id = _make_full_source(conn)
+    story_id = _make_numbered_story(conn, source_id, 1)
+    unit_id = _make_needs_review_unit(conn, story_id)  # eszesseg/humoros/szemlelteto_pelda
+    conn.commit()
+
+    with pytest.raises(ValueError):
+        replace_review_tags(
+            conn, unit_id, topics=["alazat", "humoros"],  # "humoros" is a TONE slug, not a topic
+            tone="komoly", homiletic_functions=["ellenpelda"],
+        )
+    item = get_review_item(conn, unit_id)
+    conn.close()
+
+    assert item.topics == ("eszesseg",)
+    assert item.tone == "humoros"
+    assert item.homiletic_functions == ("szemlelteto_pelda",)
+
+
+def test_pilot_taxonomy_categories_are_pairwise_disjoint() -> None:
+    """Sanity net for the cross-category rejection above: it only works
+    because the three controlled-vocabulary sets never share a slug."""
+    assert PILOT_TOPICS.isdisjoint(PILOT_TONES)
+    assert PILOT_TOPICS.isdisjoint(PILOT_HOMILETIC_FUNCTIONS)
+    assert PILOT_TONES.isdisjoint(PILOT_HOMILETIC_FUNCTIONS)
+
+
+# --- approve/publish semantics ----------------------------------------------
+
+
+def test_approve_unit_sets_human_reviewed_at() -> None:
+    conn = _fresh_connection()
+    source_id = _make_full_source(conn)
+    story_id = _make_numbered_story(conn, source_id, 1)
+    unit_id = _make_needs_review_unit(conn, story_id)
+    conn.commit()
+
+    approve_unit(conn, unit_id)
+    conn.commit()
+    item = get_review_item(conn, unit_id)
+    conn.close()
+
+    assert item.status == "approved"
+    assert item.human_reviewed_at is not None
+
+
+def test_approve_unit_does_not_publish() -> None:
+    conn = _fresh_connection()
+    source_id = _make_full_source(conn)
+    story_id = _make_numbered_story(conn, source_id, 1)
+    unit_id = _make_needs_review_unit(conn, story_id)
+    conn.commit()
+
+    approve_unit(conn, unit_id)
+    conn.commit()
+    published_count = conn.execute("SELECT COUNT(*) FROM published_illustration_units WHERE id = ?", (unit_id,)).fetchone()[0]
+    conn.close()
+
+    assert published_count == 0
+
+
+def test_approve_unit_raises_when_content_incomplete() -> None:
+    conn = _fresh_connection()
+    source_id = _make_full_source(conn)
+    story_id = _make_numbered_story(conn, source_id, 1)
+    unit_id = create_draft_unit(conn, story_id=story_id, unit_index=1, derivation_type="full_story_translation")
+    conn.commit()  # never filled in -- title_hu/modern_hu_text/summary_hu all NULL
+
+    ready, reasons = validate_approve_ready(conn, unit_id)
+    assert ready is False
+    assert "title_hu is missing" in reasons
+
+    with pytest.raises(ValueError):
+        approve_unit(conn, unit_id)
+    item = get_review_item(conn, unit_id)
+    conn.close()
+
+    assert item.status == "draft"
+    assert item.human_reviewed_at is None
+
+
+def test_approve_unit_succeeds_on_non_publishable_source_but_publish_still_blocked() -> None:
+    """approve_unit() is the editorial gate (is the Hungarian content
+    reviewed and correct?), publish_unit() is the separate legal gate
+    (may this source's content go out at all?). A reviewer must be able
+    to approve a unit's content as editorially finished even when its
+    source's legal publishability is unresolved or negative -- but
+    publish must still refuse it."""
+    conn = _fresh_connection()
+    source_id = _make_full_source(conn, license_status="restricted")
+    story_id = _make_numbered_story(conn, source_id, 1)
+    unit_id = _make_needs_review_unit(conn, story_id)
+    conn.commit()
+
+    ready, reasons = validate_approve_ready(conn, unit_id)
+    assert ready is True
+    assert reasons == []
+
+    approve_unit(conn, unit_id)  # must NOT raise
+    conn.commit()
+    item = get_review_item(conn, unit_id)
+    assert item.status == "approved"
+    assert item.human_reviewed_at is not None
+
+    publish_ready, publish_reasons = validate_publish_ready(conn, unit_id)
+    assert publish_ready is False
+    assert any("license_status" in r for r in publish_reasons)
+
+    with pytest.raises(sqlite3.IntegrityError):
+        publish_unit(conn, unit_id)
+    conn.close()
+
+
+def test_publish_unit_requires_approved() -> None:
+    conn = _fresh_connection()
+    source_id = _make_full_source(conn)
+    story_id = _make_numbered_story(conn, source_id, 1)
+    unit_id = _make_needs_review_unit(conn, story_id)  # needs_review, not approved
+    conn.commit()
+
+    with pytest.raises(sqlite3.IntegrityError):
+        publish_unit(conn, unit_id)
+    conn.close()
+
+
+# --- published -> send_back_for_rework: the key regression -----------------
+
+
+def test_published_unit_send_back_for_rework_full_invariant_check() -> None:
+    conn = _fresh_connection()
+    source_id = _make_full_source(conn)
+    story_id = _make_numbered_story(conn, source_id, 1)
+    unit_id = _make_needs_review_unit(conn, story_id, warnings=("finding: X",))
+    conn.commit()
+    approve_unit(conn, unit_id)
+    publish_unit(conn, unit_id)
+    conn.commit()
+    before = get_review_item(conn, unit_id)
+    assert before.status == "published"
+
+    send_back_for_rework(conn, unit_id)
+    conn.commit()
+    after = get_review_item(conn, unit_id)
+    published_view_count = conn.execute(
+        "SELECT COUNT(*) FROM published_illustration_units WHERE id = ?", (unit_id,)
+    ).fetchone()[0]
+    search_results = search_units(conn, "Szöveg")
+    conn.close()
+
+    assert after.status == "needs_review"
+    assert after.human_reviewed_at is None
+    assert published_view_count == 0
+    assert unit_id not in [r.id for r in search_results]
+    # content, provenance, and warnings all survive the demotion untouched
+    assert after.title_hu == before.title_hu
+    assert after.modern_hu_text == before.modern_hu_text
+    assert after.enrichment_model == before.enrichment_model
+    assert after.enrichment_warnings == before.enrichment_warnings == ("finding: X",)
+    assert after.original_text == before.original_text
+    assert after.title_original == before.title_original
+
+
+def test_approved_unit_send_back_for_rework() -> None:
+    conn = _fresh_connection()
+    source_id = _make_full_source(conn)
+    story_id = _make_numbered_story(conn, source_id, 1)
+    unit_id = _make_needs_review_unit(conn, story_id, warnings=("finding: Y",))
+    conn.commit()
+    approve_unit(conn, unit_id)
+    conn.commit()
+    before = get_review_item(conn, unit_id)
+    assert before.status == "approved"
+
+    send_back_for_rework(conn, unit_id)
+    conn.commit()
+    after = get_review_item(conn, unit_id)
+    conn.close()
+
+    assert after.status == "needs_review"
+    assert after.human_reviewed_at is None
+    # content, provenance, warnings, and tags all survive the demotion
+    assert after.title_hu == before.title_hu
+    assert after.modern_hu_text == before.modern_hu_text
+    assert after.summary_hu == before.summary_hu
+    assert after.enrichment_model == before.enrichment_model
+    assert after.enrichment_prompt_version == before.enrichment_prompt_version
+    assert after.enrichment_warnings == before.enrichment_warnings == ("finding: Y",)
+    assert after.topics == before.topics
+    assert after.tone == before.tone
+    assert after.homiletic_functions == before.homiletic_functions
+    assert after.original_text == before.original_text
+    assert after.title_original == before.title_original
+
+
+def test_silent_content_edit_blocked_on_approved_unit_without_rework() -> None:
+    conn = _fresh_connection()
+    source_id = _make_full_source(conn)
+    story_id = _make_numbered_story(conn, source_id, 1)
+    unit_id = _make_needs_review_unit(conn, story_id)
+    conn.commit()
+    approve_unit(conn, unit_id)
+    conn.commit()
+
+    with pytest.raises(IllustrationUnitReviewProtectionError):
+        update_draft_unit(conn, unit_id=unit_id, title_hu="Csendes felülírás")
+    conn.close()
+
+
+def test_edit_allowed_after_send_back_for_rework() -> None:
+    conn = _fresh_connection()
+    source_id = _make_full_source(conn)
+    story_id = _make_numbered_story(conn, source_id, 1)
+    unit_id = _make_needs_review_unit(conn, story_id)
+    conn.commit()
+    approve_unit(conn, unit_id)
+    conn.commit()
+
+    send_back_for_rework(conn, unit_id)
+    conn.commit()
+    update_draft_unit(conn, unit_id=unit_id, title_hu="Rework után szerkesztve")  # must NOT raise
+    conn.commit()
+    item = get_review_item(conn, unit_id)
+    conn.close()
+
+    assert item.title_hu == "Rework után szerkesztve"
+    assert item.status == "needs_review"
+    assert item.human_reviewed_at is None  # still needs a fresh approve
+
+
+def test_warning_provenance_survives_approve_publish_rework_cycle() -> None:
+    conn = _fresh_connection()
+    source_id = _make_full_source(conn)
+    story_id = _make_numbered_story(conn, source_id, 1)
+    unit_id = _make_needs_review_unit(conn, story_id, warnings=("suspicious finding",))
+    conn.commit()
+
+    warnings_at_start = get_review_item(conn, unit_id).enrichment_warnings
+    approve_unit(conn, unit_id)
+    conn.commit()
+    warnings_after_approve = get_review_item(conn, unit_id).enrichment_warnings
+    publish_unit(conn, unit_id)
+    conn.commit()
+    warnings_after_publish = get_review_item(conn, unit_id).enrichment_warnings
+    send_back_for_rework(conn, unit_id)
+    conn.commit()
+    warnings_after_rework = get_review_item(conn, unit_id).enrichment_warnings
+    conn.close()
+
+    assert warnings_at_start == warnings_after_approve == warnings_after_publish == warnings_after_rework == ("suspicious finding",)
+
+
+# --- raw provenance immutability --------------------------------------------
+
+
+def test_review_workflow_never_touches_raw_story_or_checksum() -> None:
+    conn = _fresh_connection()
+    source_id = _make_full_source(conn)
+    story_id = _make_numbered_story(conn, source_id, 1)
+    unit_id = _make_needs_review_unit(conn, story_id)
+    conn.commit()
+
+    before_story = conn.execute(
+        "SELECT title_original, original_text, original_text_checksum FROM stories WHERE id = ?", (story_id,)
+    ).fetchone()
+
+    update_draft_unit(conn, unit_id=unit_id, title_hu="Edited")
+    approve_unit(conn, unit_id)
+    publish_unit(conn, unit_id)
+    conn.commit()
+    send_back_for_rework(conn, unit_id)
+    replace_review_tags(conn, unit_id, topics=["alazat"], tone="komoly", homiletic_functions=["ellenpelda"])
+    conn.commit()
+
+    after_story = conn.execute(
+        "SELECT title_original, original_text, original_text_checksum FROM stories WHERE id = ?", (story_id,)
+    ).fetchone()
+    conn.close()
+
+    assert before_story == after_story
+
+
+# --- Phase 3F ledger separation ---------------------------------------------
+
+
+def test_review_operations_do_not_modify_batch_ledger() -> None:
+    """The review lifecycle (approve/publish/rework/edit) must never
+    reach back and rewrite what an enrichment_run_items row already
+    recorded -- that row is a frozen account of what happened DURING the
+    enrichment run, not a live mirror of the unit's current review
+    state. Two entirely separate audit layers (Phase 3F vs Phase 3G-A)."""
+    from illustration_engine.illustration_sqlite import (
+        insert_enrichment_run,
+        insert_enrichment_run_item,
+    )
+
+    conn = _fresh_connection()
+    source_id = _make_full_source(conn)
+    story_id = _make_numbered_story(conn, source_id, 1)
+    unit_id = _make_needs_review_unit(conn, story_id, warnings=("finding",))
+    conn.commit()
+
+    run_id = insert_enrichment_run(
+        conn, model_identifier="claude-sonnet-5", prompt_version="v1", source_code="SRC",
+        strategy_band="A", requested_limit=1,
+    )
+    item_id = insert_enrichment_run_item(conn, run_id=run_id, story_id=story_id, expected_mode="direct_unit")
+    from illustration_engine.illustration_sqlite import update_enrichment_run_item
+    update_enrichment_run_item(
+        conn, item_id=item_id, status="warning", illustration_unit_id=unit_id,
+        warnings_json='["finding"]',
+    )
+    conn.commit()
+    ledger_before = conn.execute(
+        "SELECT status, illustration_unit_id, warnings_json, error_message FROM enrichment_run_items WHERE id = ?",
+        (item_id,),
+    ).fetchone()
+
+    update_draft_unit(conn, unit_id=unit_id, title_hu="Reviewer edited this")
+    approve_unit(conn, unit_id)
+    publish_unit(conn, unit_id)
+    conn.commit()
+    send_back_for_rework(conn, unit_id)
+    conn.commit()
+
+    ledger_after = conn.execute(
+        "SELECT status, illustration_unit_id, warnings_json, error_message FROM enrichment_run_items WHERE id = ?",
+        (item_id,),
+    ).fetchone()
+    conn.close()
+
+    assert ledger_before == ledger_after == ("warning", unit_id, '["finding"]', None)

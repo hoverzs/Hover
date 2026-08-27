@@ -301,6 +301,9 @@ from typing import Callable
 from illustration_engine.illustration_sqlite import (
     ALLOWED_NARRATIVE_STATUS_CONFIDENCE,
     ALLOWED_NARRATIVE_STATUSES,
+    PILOT_HOMILETIC_FUNCTIONS,
+    PILOT_TONES,
+    PILOT_TOPICS,
     IllustrationUnitReviewProtectionError,
 )
 from illustration_engine.illustration_unit_repository import (
@@ -315,36 +318,12 @@ from illustration_engine.illustration_unit_repository import (
 
 DEFAULT_PROMPT_VERSION = "hu_illustration_enrichment_pilot_v1"
 
-# Phase 3B pilot taxonomy (user-approved, 2026-08-26). Small and closed
-# on purpose — the model selects FROM these, it never invents a new
-# slug. category -> slug maps directly onto the existing
-# tags.category CHECK ('topic', 'tone', 'function') from schema v1.
-PILOT_TOPICS: frozenset[str] = frozenset(
-    {
-        "alazat",
-        "buszkeseg",
-        "becsuletesseg",
-        "bolcsesseg",
-        "eszesseg",
-        "igazsagossag",
-        "irgalom",
-        "kapzsisag",
-        "turelem",
-        "tekintely_es_hatalom",
-    }
-)
-PILOT_TONES: frozenset[str] = frozenset(
-    {"humoros", "ironikus", "komoly", "megindito", "elgondolkodtato"}
-)
-PILOT_HOMILETIC_FUNCTIONS: frozenset[str] = frozenset(
-    {
-        "bevezeto_illusztracio",
-        "szemlelteto_pelda",
-        "ellenpelda",
-        "alkalmazasi_pelda",
-        "lezaro_illusztracio",
-    }
-)
+# Phase 3G-A: PILOT_TOPICS/PILOT_TONES/PILOT_HOMILETIC_FUNCTIONS now live
+# in illustration_sqlite.py (the shared, lower-level module both this
+# file and illustration_unit_repository.py already import from) —
+# re-exported here unchanged so every existing caller/test that does
+# `from illustration_engine.enrichment_pipeline import PILOT_TOPICS`
+# keeps working. See illustration_sqlite.py's own comment for why.
 
 _PROPOSAL_DERIVATION_TYPES = frozenset({"extracted_scene", "condensed_story"})
 
