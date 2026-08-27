@@ -53,8 +53,8 @@ def _make_story(conn: sqlite3.Connection, source_id: int, *, original_text: str 
     )
 
 
-def test_schema_version_is_4() -> None:
-    assert SCHEMA_VERSION == 4
+def test_schema_version_is_5() -> None:
+    assert SCHEMA_VERSION == 5
 
 
 def test_required_tables_and_views_present() -> None:

@@ -99,7 +99,7 @@ from illustration_engine.source_registry import PUBLISHABLE_LICENSE_STATUSES
 
 DATABASE_NAME = "illustrations.sqlite3"
 DEFAULT_DATABASE_PATH = GENERATED_DATA_DIR / DATABASE_NAME
-SCHEMA_VERSION = 4
+SCHEMA_VERSION = 5
 
 ALLOWED_STORY_STATUSES = frozenset({"draft", "needs_review", "approved", "published"})
 ALLOWED_ADAPTATION_STATUSES = frozenset(
@@ -145,9 +145,25 @@ REQUIRED_TABLES = frozenset(
         "illustration_units",
         "illustration_unit_tags",
         "import_meta",
+        "enrichment_runs",
+        "enrichment_run_items",
     }
 )
 REQUIRED_VIEWS = frozenset({"published_stories", "published_illustration_units"})
+
+# Phase 3F: production batch control plane -- pure run-audit ledger,
+# never a duplicate of illustration_units' content/provenance. See
+# create_schema()'s enrichment_runs/enrichment_run_items block and
+# illustration_engine/enrichment_batch.py (the orchestration layer that
+# actually reads/writes these tables; this module only owns their schema
+# and raw CRUD, same split as every other table here).
+ALLOWED_RUN_STATUSES = frozenset(
+    {"created", "running", "completed", "completed_with_errors", "interrupted"}
+)
+ALLOWED_RUN_ITEM_STATUSES = frozenset(
+    {"pending", "running", "success", "warning", "rejected", "proposal_ready", "failed"}
+)
+ALLOWED_STRATEGY_BANDS = frozenset({"A", "B", "C"})
 
 _publishable_sql_list = ", ".join(f"'{s}'" for s in sorted(PUBLISHABLE_LICENSE_STATUSES))
 _license_status_sql_list = ", ".join(
@@ -537,6 +553,47 @@ def create_schema(connection: sqlite3.Connection) -> None:
             INSERT INTO illustration_units_fts(rowid, title_hu, summary_hu, modern_hu_text)
             VALUES (new.id, new.title_hu, new.summary_hu, new.modern_hu_text);
         END;
+
+        -- Phase 3F (schema v5): production batch control plane. Pure run-
+        -- audit data -- deliberately does NOT duplicate illustration_units'
+        -- content/provenance columns, only references a resulting unit by
+        -- id when a direct_unit write actually happened. A run's item list
+        -- is fixed at selection time (see enrichment_batch.py) and never
+        -- re-queried on resume, so it is the single reproducible record of
+        -- "which story_ids this run covers."
+        CREATE TABLE IF NOT EXISTS enrichment_runs (
+            id INTEGER PRIMARY KEY,
+            started_at TEXT NOT NULL,
+            finished_at TEXT,
+            model_identifier TEXT NOT NULL,
+            prompt_version TEXT NOT NULL,
+            source_code TEXT,
+            strategy_band TEXT CHECK (strategy_band IS NULL OR strategy_band IN ('A', 'B', 'C')),
+            requested_limit INTEGER,
+            overall_status TEXT NOT NULL DEFAULT 'created' CHECK (
+                overall_status IN ('created', 'running', 'completed', 'completed_with_errors', 'interrupted')
+            ),
+            selection_metadata_json TEXT
+        );
+
+        CREATE TABLE IF NOT EXISTS enrichment_run_items (
+            id INTEGER PRIMARY KEY,
+            run_id INTEGER NOT NULL REFERENCES enrichment_runs(id),
+            story_id INTEGER NOT NULL REFERENCES stories(id),
+            expected_mode TEXT NOT NULL CHECK (expected_mode IN ('direct_unit', 'unit_proposal')),
+            status TEXT NOT NULL DEFAULT 'pending' CHECK (
+                status IN ('pending', 'running', 'success', 'warning', 'rejected', 'proposal_ready', 'failed')
+            ),
+            illustration_unit_id INTEGER REFERENCES illustration_units(id),
+            error_message TEXT,
+            warnings_json TEXT,
+            started_at TEXT,
+            finished_at TEXT,
+            UNIQUE(run_id, story_id)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_enrichment_run_items_run ON enrichment_run_items(run_id);
+        CREATE INDEX IF NOT EXISTS idx_enrichment_run_items_run_status ON enrichment_run_items(run_id, status);
         """
     )
     connection.commit()
@@ -932,6 +989,132 @@ def set_import_meta(connection: sqlite3.Connection, metadata: dict[str, str]) ->
     )
 
 
+# ---------------------------------------------------------------------------
+# Phase 3F: enrichment_runs / enrichment_run_items raw CRUD. Deliberately
+# thin (no business logic, no selection algorithm, no resume/retry policy)
+# -- see illustration_engine/enrichment_batch.py for all of that; this is
+# only the same kind of low-level insert/update primitive every other
+# table in this module already has.
+# ---------------------------------------------------------------------------
+
+
+def insert_enrichment_run(
+    connection: sqlite3.Connection,
+    *,
+    model_identifier: str,
+    prompt_version: str,
+    source_code: str | None = None,
+    strategy_band: str | None = None,
+    requested_limit: int | None = None,
+    selection_metadata_json: str | None = None,
+    overall_status: str = "created",
+    started_at: str | None = None,
+) -> int:
+    if strategy_band is not None and strategy_band not in ALLOWED_STRATEGY_BANDS:
+        raise ValueError(f"Invalid strategy_band: {strategy_band!r}")
+    if overall_status not in ALLOWED_RUN_STATUSES:
+        raise ValueError(f"Invalid overall_status: {overall_status!r}")
+    now = datetime.now(UTC).isoformat()
+    cursor = connection.execute(
+        """
+        INSERT INTO enrichment_runs(
+            started_at, finished_at, model_identifier, prompt_version, source_code,
+            strategy_band, requested_limit, overall_status, selection_metadata_json
+        ) VALUES (?, NULL, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            started_at or now,
+            model_identifier,
+            prompt_version,
+            source_code,
+            strategy_band,
+            requested_limit,
+            overall_status,
+            selection_metadata_json,
+        ),
+    )
+    return int(cursor.lastrowid)
+
+
+def update_enrichment_run(
+    connection: sqlite3.Connection,
+    *,
+    run_id: int,
+    overall_status: str | None = None,
+    finished_at: str | None = None,
+) -> None:
+    fields: dict[str, object] = {}
+    if overall_status is not None:
+        if overall_status not in ALLOWED_RUN_STATUSES:
+            raise ValueError(f"Invalid overall_status: {overall_status!r}")
+        fields["overall_status"] = overall_status
+    if finished_at is not None:
+        fields["finished_at"] = finished_at
+    if not fields:
+        return
+    set_clause = ", ".join(f"{name} = ?" for name in fields)
+    connection.execute(
+        f"UPDATE enrichment_runs SET {set_clause} WHERE id = ?", (*fields.values(), run_id)
+    )
+
+
+def insert_enrichment_run_item(
+    connection: sqlite3.Connection,
+    *,
+    run_id: int,
+    story_id: int,
+    expected_mode: str,
+    status: str = "pending",
+) -> int:
+    if expected_mode not in ("direct_unit", "unit_proposal"):
+        raise ValueError(f"Invalid expected_mode: {expected_mode!r}")
+    if status not in ALLOWED_RUN_ITEM_STATUSES:
+        raise ValueError(f"Invalid status: {status!r}")
+    cursor = connection.execute(
+        """
+        INSERT INTO enrichment_run_items(run_id, story_id, expected_mode, status)
+        VALUES (?, ?, ?, ?)
+        """,
+        (run_id, story_id, expected_mode, status),
+    )
+    return int(cursor.lastrowid)
+
+
+def update_enrichment_run_item(
+    connection: sqlite3.Connection,
+    *,
+    item_id: int,
+    status: str,
+    illustration_unit_id: int | None = None,
+    error_message: str | None = None,
+    warnings_json: str | None = None,
+    started_at: str | None = None,
+    finished_at: str | None = None,
+) -> None:
+    """A run item's outcome is always recorded as ONE complete
+    transition, not a partial field-by-field patch: `status` is required
+    (every call represents "this item just finished being attempted, and
+    here is its full outcome"), and `illustration_unit_id`/
+    `error_message`/`warnings_json` are ALWAYS written exactly as given
+    -- including `None`, which correctly clears a stale value from an
+    earlier attempt (e.g. a retried item that failed with an error
+    message and now succeeds must not keep showing the old error)."""
+    if status not in ALLOWED_RUN_ITEM_STATUSES:
+        raise ValueError(f"Invalid status: {status!r}")
+    set_parts = ["status = ?", "illustration_unit_id = ?", "error_message = ?", "warnings_json = ?"]
+    values: list[object] = [status, illustration_unit_id, error_message, warnings_json]
+    if started_at is not None:
+        set_parts.append("started_at = ?")
+        values.append(started_at)
+    if finished_at is not None:
+        set_parts.append("finished_at = ?")
+        values.append(finished_at)
+    connection.execute(
+        f"UPDATE enrichment_run_items SET {', '.join(set_parts)} WHERE id = ?",
+        (*values, item_id),
+    )
+
+
 def initialize_empty_database(
     database_path: str | Path | None = None,
     *,
@@ -1004,7 +1187,10 @@ __all__ = [
     "ALLOWED_DERIVATION_TYPES",
     "ALLOWED_NARRATIVE_STATUS_CONFIDENCE",
     "ALLOWED_NARRATIVE_STATUSES",
+    "ALLOWED_RUN_ITEM_STATUSES",
+    "ALLOWED_RUN_STATUSES",
     "ALLOWED_STORY_STATUSES",
+    "ALLOWED_STRATEGY_BANDS",
     "ALLOWED_UNIT_STATUSES",
     "DATABASE_NAME",
     "DEFAULT_DATABASE_PATH",
@@ -1016,10 +1202,14 @@ __all__ = [
     "check_integrity",
     "create_schema",
     "initialize_empty_database",
+    "insert_enrichment_run",
+    "insert_enrichment_run_item",
     "insert_illustration_unit",
     "insert_source",
     "insert_story",
     "resolve_database_path",
     "set_import_meta",
+    "update_enrichment_run",
+    "update_enrichment_run_item",
     "update_illustration_unit_fields",
 ]
