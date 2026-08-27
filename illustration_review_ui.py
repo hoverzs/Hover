@@ -1,4 +1,4 @@
-"""Phase 3G-B1: illustration reviewer/admin panel.
+"""Phase 3G-B1/B2: illustration reviewer/admin panel.
 
 Internal-only Streamlit view for reviewing enrichment-pipeline output
 (`illustration_units`) against the Phase 3G-A human-review backend
@@ -14,14 +14,24 @@ check already passed once inside. `is_authorized_reviewer` itself never
 touches `st.session_state`, cookies, or the OAuth flow -- it only
 combines two independent read-only signals (see its docstring) into one
 access decision.
+
+Phase 3G-B2 adds reviewer-SIDE ONLY risk triage (`compute_review_risk`)
+and a legacy/current-strategy mismatch check
+(`_is_legacy_strategy_mismatch`) -- both pure functions computed at
+render time from an already-loaded `IllustrationReviewItem`. Neither
+adds a DB column, a table, or a write path; they exist purely to help a
+human reviewer prioritize which of many `needs_review` units need deep
+manual attention versus a lighter pass.
 """
 
 from __future__ import annotations
 
 import sqlite3
+from dataclasses import dataclass
 
 import streamlit as st
 
+from illustration_engine.enrichment_pipeline import EnrichmentStrategy, derive_enrichment_strategy
 from illustration_engine.illustration_sqlite import (
     DEFAULT_DATABASE_PATH,
     PILOT_HOMILETIC_FUNCTIONS,
@@ -48,10 +58,102 @@ _SELECTED_UNIT_KEY = "ill_review_selected_unit_id"
 _FILTER_STATUS_KEY = "ill_review_filter_status"
 _FILTER_SOURCE_KEY = "ill_review_filter_source"
 _FILTER_WARNINGS_KEY = "ill_review_filter_warnings_only"
+_FILTER_RISK_KEY = "ill_review_filter_risk"
+_FILTER_MISMATCH_ONLY_KEY = "ill_review_filter_mismatch_only"
 _FILTER_LIMIT_KEY = "ill_review_filter_limit"
 _CONFIRM_PUBLISH_PREFIX = "ill_review_confirm_publish_"
 
 _STATUS_OPTIONS = ("needs_review", "approved", "published")
+_RISK_FILTER_OPTIONS = ("Mind", "High priority", "Clean / normal")
+
+
+# ---------------------------------------------------------------------------
+# Phase 3G-B2: reviewer-side-only risk triage. Pure functions over an
+# already-loaded IllustrationReviewItem -- no DB schema change, no new
+# table/column, no write path. See module docstring.
+# ---------------------------------------------------------------------------
+
+# Mirrors derive_enrichment_strategy's own full_story_translation ceiling
+# (enrichment_pipeline._MAX_FULL_TRANSLATION_CHARS) -- not re-imported
+# directly (that constant is private to enrichment_pipeline) but the same
+# value, used here purely as a reviewer-attention heuristic.
+_LONG_SOURCE_THRESHOLD_CHARS = 1500
+# Mirrors the pipeline's own established retrieval-ready band ceiling
+# (enrichment_pipeline._MAX_CONDENSED_MODERN_TEXT_CHARS, formally enforced
+# only for condensed_story) -- used here as a general reviewer-risk
+# heuristic regardless of derivation_type.
+_LONG_MODERN_TEXT_THRESHOLD_CHARS = 1500
+_HIGHER_RISK_DERIVATION_TYPES = frozenset({"condensed_story", "extracted_scene"})
+
+
+@dataclass(frozen=True)
+class ReviewRisk:
+    level: str  # "high" or "normal"
+    reasons: tuple[str, ...]
+    is_legacy_mismatch: bool
+    current_expected_mode: str
+    current_expected_derivation_type: str | None
+
+
+def _is_legacy_strategy_mismatch(stored_derivation_type: str, current_strategy: EnrichmentStrategy) -> bool:
+    """A unit is a legacy/current-strategy mismatch when the
+    derivation_type actually stored on it would no longer be valid under
+    TODAY's deterministic length strategy (`derive_enrichment_strategy`)
+    for its story's CURRENT `original_text` length.
+
+    - `current_strategy.expected_mode == "direct_unit"`: mismatch iff the
+      stored `derivation_type` isn't exactly what length now dictates
+      (a full_story_translation/condensed_story mix-up).
+    - `current_strategy.expected_mode == "unit_proposal"`: a stored
+      `full_story_translation` or `condensed_story` IS a mismatch -- both
+      mean "the whole story was translated/condensed as ONE direct unit,"
+      which today's rules no longer allow past the length threshold; the
+      story would have to go through the human-in-the-loop unit_proposal
+      path first. A stored `extracted_scene` is deliberately NOT flagged
+      here -- it is itself proposal-derived content, i.e. already the
+      correct shape for a long story under current rules."""
+    if current_strategy.expected_mode == "direct_unit":
+        return stored_derivation_type != current_strategy.expected_derivation_type
+    return stored_derivation_type in ("full_story_translation", "condensed_story")
+
+
+def compute_review_risk(item: IllustrationReviewItem) -> ReviewRisk:
+    """Reviewer-side risk triage -- HIGH if any flagged criterion
+    matches, otherwise NORMAL. Criteria: enrichment_warnings present;
+    legacy/current-strategy mismatch; source length > 1500 chars;
+    narrative_status_confidence == "low"; modern_hu_text length > 1500
+    chars; derivation_type in (condensed_story, extracted_scene)."""
+    original_length = len(item.original_text or "")
+    current_strategy = derive_enrichment_strategy(original_length)
+    mismatch = _is_legacy_strategy_mismatch(item.derivation_type, current_strategy)
+
+    reasons: list[str] = []
+    if item.enrichment_warnings:
+        reasons.append(f"{len(item.enrichment_warnings)} enrichment warning")
+    if mismatch:
+        expected = current_strategy.expected_mode
+        if current_strategy.expected_derivation_type:
+            expected = f"{expected}/{current_strategy.expected_derivation_type}"
+        reasons.append(
+            f"legacy/current-strategy mismatch (tárolt: {item.derivation_type}, jelenlegi elvárás: {expected})"
+        )
+    if original_length > _LONG_SOURCE_THRESHOLD_CHARS:
+        reasons.append(f"forrás hossza {original_length} > {_LONG_SOURCE_THRESHOLD_CHARS} karakter")
+    if item.narrative_status_confidence == "low":
+        reasons.append("narrative_status_confidence = low")
+    modern_length = len(item.modern_hu_text or "")
+    if modern_length > _LONG_MODERN_TEXT_THRESHOLD_CHARS:
+        reasons.append(f"modern_hu_text hossza {modern_length} > {_LONG_MODERN_TEXT_THRESHOLD_CHARS} karakter")
+    if item.derivation_type in _HIGHER_RISK_DERIVATION_TYPES:
+        reasons.append(f"derivation_type={item.derivation_type} (proposal/condensed típus)")
+
+    return ReviewRisk(
+        level="high" if reasons else "normal",
+        reasons=tuple(reasons),
+        is_legacy_mismatch=mismatch,
+        current_expected_mode=current_strategy.expected_mode,
+        current_expected_derivation_type=current_strategy.expected_derivation_type,
+    )
 
 
 def is_authenticated_owner(*, is_logged_in: bool, email: str | None) -> bool:
@@ -138,7 +240,7 @@ def _safe_index(options: tuple[str, ...], value: str | None) -> int:
 
 
 def _render_queue_filters() -> None:
-    cols = st.columns([1, 1, 1, 1])
+    cols = st.columns([1, 1, 1, 1, 1])
     with cols[0]:
         st.selectbox("Állapot", options=_STATUS_OPTIONS, key=_FILTER_STATUS_KEY)
     with cols[1]:
@@ -148,30 +250,60 @@ def _render_queue_filters() -> None:
     with cols[2]:
         st.checkbox("Csak figyelmeztetéssel", key=_FILTER_WARNINGS_KEY)
     with cols[3]:
+        st.selectbox("Kockázat", options=_RISK_FILTER_OPTIONS, key=_FILTER_RISK_KEY)
+    with cols[4]:
         st.number_input(
             "Limit", min_value=1, max_value=200, value=20, step=1, key=_FILTER_LIMIT_KEY
         )
+    st.checkbox("Csak legacy/mismatch", key=_FILTER_MISMATCH_ONLY_KEY)
 
 
-def _load_queue(connection: sqlite3.Connection) -> list[IllustrationReviewItem]:
+def _load_queue(connection: sqlite3.Connection) -> list[tuple[IllustrationReviewItem, ReviewRisk]]:
+    """Fetches via the Phase 3G-A review queue API (status/source/
+    warnings_only/limit -- all DB-level), then applies the risk/mismatch
+    filters as a pure Python post-filter over the already-fetched page --
+    risk is reviewer-side metadata, not a DB column, so it cannot be
+    pushed into `list_review_items`'s SQL. NOTE: this means a risk/
+    mismatch filter can show fewer than `limit` results even if more
+    matching units exist beyond the fetched page -- surfaced explicitly
+    in the panel's info caption rather than hidden."""
     status = st.session_state.get(_FILTER_STATUS_KEY) or "needs_review"
     source_code = (st.session_state.get(_FILTER_SOURCE_KEY) or "").strip() or None
     warnings_only = bool(st.session_state.get(_FILTER_WARNINGS_KEY))
     limit = int(st.session_state.get(_FILTER_LIMIT_KEY) or 20)
-    return list_review_items(
+    items = list_review_items(
         connection, status=status, source_code=source_code, warnings_only=warnings_only, limit=limit
     )
+    risk_filter = st.session_state.get(_FILTER_RISK_KEY) or "Mind"
+    mismatch_only = bool(st.session_state.get(_FILTER_MISMATCH_ONLY_KEY))
+
+    result: list[tuple[IllustrationReviewItem, ReviewRisk]] = []
+    for item in items:
+        risk = compute_review_risk(item)
+        if mismatch_only and not risk.is_legacy_mismatch:
+            continue
+        if risk_filter == "High priority" and risk.level != "high":
+            continue
+        if risk_filter == "Clean / normal" and risk.level != "normal":
+            continue
+        result.append((item, risk))
+    return result
 
 
-def _render_queue_list(items: list[IllustrationReviewItem]) -> None:
-    if not items:
+def _render_queue_list(rows: list[tuple[IllustrationReviewItem, ReviewRisk]]) -> None:
+    if not rows:
         st.caption("Nincs a szűrőknek megfelelő tétel.")
         return
     selected_id = st.session_state.get(_SELECTED_UNIT_KEY)
-    for item in items:
+    for item, risk in rows:
         warn_marker = " ⚠️" if item.enrichment_warnings else ""
+        risk_marker = " 🔴HIGH" if risk.level == "high" else ""
+        mismatch_marker = " 🧭LEGACY" if risk.is_legacy_mismatch else ""
         marker = "▶ " if item.unit_id == selected_id else ""
-        label = f"{marker}#{item.unit_id} · {item.title_hu or '(cím nélkül)'}{warn_marker} · {item.source_code}"
+        label = (
+            f"{marker}#{item.unit_id} · {item.title_hu or '(cím nélkül)'}"
+            f"{warn_marker}{risk_marker}{mismatch_marker} · {item.source_code}"
+        )
         if st.button(label, key=f"ill_review_pick_{item.unit_id}", use_container_width=True):
             st.session_state[_SELECTED_UNIT_KEY] = item.unit_id
             st.rerun()
@@ -183,14 +315,13 @@ def _render_original_column(item: IllustrationReviewItem) -> None:
         f"{item.source_title} ({item.source_code}) · {item.tradition or '—'} · {item.license_status}"
     )
     st.markdown(f"**{item.title_original}**")
-    st.text_area(
-        "original_text",
-        value=item.original_text or "",
-        height=280,
-        disabled=True,
-        key=f"ill_review_original_text_{item.unit_id}",
-        label_visibility="collapsed",
-    )
+    # st.code() instead of a disabled st.text_area(): scrollable (fixed
+    # height), fully selectable/copyable (native code block + built-in
+    # copy button), and not an input-like widget at all -- a disabled
+    # text_area blocks selection/copy in most browsers, which is exactly
+    # the manual-QA pain point this replaces. language=None avoids Python
+    # syntax highlighting being applied to plain prose.
+    st.code(item.original_text or "", language=None, wrap_lines=True, height=280)
     if item.source_reference:
         st.caption(item.source_reference)
 
@@ -248,6 +379,30 @@ def _render_meta_section(item: IllustrationReviewItem) -> None:
                 st.warning(warning)
 
 
+def _render_risk_section(item: IllustrationReviewItem) -> ReviewRisk:
+    risk = compute_review_risk(item)
+    if risk.is_legacy_mismatch:
+        expected = risk.current_expected_mode
+        if risk.current_expected_derivation_type:
+            expected = f"{expected}/{risk.current_expected_derivation_type}"
+        st.error(
+            "**LEGACY PILOT / CURRENT STRATEGY MISMATCH**\n\n"
+            f"A forrás jelenlegi hossza ({len(item.original_text or '')} karakter) alapján a mai "
+            f"pipeline **{expected}** stratégiát várna, a tárolt unit viszont "
+            f"**{item.derivation_type}** típusú. Ez a rekord a régi pipeline-szabályokkal készült.\n\n"
+            "Az Approve emiatt le van tiltva ezen a rekordon -- a helyes út jelenleg csak "
+            "**Visszaküldés javításra** (a re-enrichment/derivation_type-javítás nem része ennek a körnek)."
+        )
+    badge = "🔴 HIGH REVIEW PRIORITY" if risk.level == "high" else "🟢 NORMAL REVIEW"
+    with st.expander(f"Review risk: {badge}", expanded=(risk.level == "high")):
+        if risk.reasons:
+            for reason in risk.reasons:
+                st.write(f"- {reason}")
+        else:
+            st.caption("Nincs kockázati jelző -- normál review elegendő.")
+    return risk
+
+
 def _render_taxonomy_section(connection: sqlite3.Connection, item: IllustrationReviewItem) -> None:
     with st.expander("Taxonómia", expanded=False):
         topics_options = tuple(sorted(PILOT_TOPICS))
@@ -285,13 +440,26 @@ def _render_taxonomy_section(connection: sqlite3.Connection, item: IllustrationR
                 st.error(f"Érvénytelen tag-kombináció -- semmi nem módosult: {exc}")
 
 
-def _render_lifecycle_actions(connection: sqlite3.Connection, item: IllustrationReviewItem) -> None:
+def _render_lifecycle_actions(
+    connection: sqlite3.Connection, item: IllustrationReviewItem, risk: ReviewRisk
+) -> None:
     st.markdown("##### Állapot-műveletek")
     cols = st.columns(3)
 
     with cols[0]:
         if item.status == "needs_review":
-            if st.button(
+            if risk.is_legacy_mismatch:
+                st.button(
+                    "✅ Jóváhagyás (Approve)",
+                    key=f"ill_review_approve_{item.unit_id}",
+                    use_container_width=True,
+                    disabled=True,
+                )
+                st.caption(
+                    "Letiltva: legacy/current-strategy mismatch (lásd fent). "
+                    "Használd a Visszaküldés javításra lehetőséget."
+                )
+            elif st.button(
                 "✅ Jóváhagyás (Approve)", key=f"ill_review_approve_{item.unit_id}", use_container_width=True
             ):
                 try:
@@ -370,10 +538,11 @@ def _render_item_detail(connection: sqlite3.Connection, item: IllustrationReview
         _render_edit_column(connection, item)
 
     _render_meta_section(item)
+    risk = _render_risk_section(item)
     _render_taxonomy_section(connection, item)
 
     st.divider()
-    _render_lifecycle_actions(connection, item)
+    _render_lifecycle_actions(connection, item, risk)
 
 
 def render_illustration_review_panel() -> None:
@@ -387,15 +556,22 @@ def render_illustration_review_panel() -> None:
     )
 
     _render_queue_filters()
-    items = _load_queue(connection)
+    rows = _load_queue(connection)
+    high_count = sum(1 for _, risk in rows if risk.level == "high")
+    normal_count = len(rows) - high_count
 
     render_info_panel(
-        title=f"{len(items)} tétel a jelenlegi szűrőkkel",
-        body="A lista nem keresőmotor -- csak a Phase 3G-A review queue szűrőit (állapot, forrás, figyelmeztetés, limit) alkalmazza.",
+        title=f"{len(rows)} tétel a jelenlegi szűrőkkel ({high_count} high priority, {normal_count} normal)",
+        body=(
+            "A lista nem keresőmotor -- csak a Phase 3G-A review queue szűrőit (állapot, forrás, "
+            "figyelmeztetés, limit) alkalmazza, a Kockázat/legacy szűrő pedig a MÁR betöltött (limit-en "
+            "belüli) listán utószűr -- risk/mismatch szűrésnél a teljes darabszám a limit felett ennél "
+            "több is lehet."
+        ),
         tone="info",
     )
 
-    _render_queue_list(items)
+    _render_queue_list(rows)
 
     selected_id = st.session_state.get(_SELECTED_UNIT_KEY)
     if selected_id is None:
@@ -412,6 +588,8 @@ def render_illustration_review_panel() -> None:
 
 
 __all__ = [
+    "ReviewRisk",
+    "compute_review_risk",
     "is_authenticated_owner",
     "is_authorized_reviewer",
     "is_local_loopback_request",
