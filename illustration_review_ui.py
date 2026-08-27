@@ -18,7 +18,6 @@ access decision.
 
 from __future__ import annotations
 
-import os
 import sqlite3
 
 import streamlit as st
@@ -61,21 +60,17 @@ def is_authenticated_owner(*, is_logged_in: bool, email: str | None) -> bool:
     return bool(is_logged_in) and (email or "").strip().lower() == REVIEWER_EMAIL
 
 
-def _local_dev_flag_enabled() -> bool:
-    raw = os.environ.get("TEXTUS_LOCAL_REVIEWER_ENABLED", "")
-    return raw.strip().lower() in ("1", "true", "yes")
-
-
 # Deliberately narrower than auth_config's own local-runtime concept.
 # auth_config.is_local_runtime() also treats 192.168.*/10.* addresses as
 # "local" -- a reasonable, already-reviewed call for ITS use case (is an
 # OAuth redirect_uri safe to point at localhost), but too wide for an
-# auth BYPASS: a cloud/container deployment's internal network address
+# auth bypass: a cloud/container deployment's internal network address
 # can easily be 10.* or 192.168.*, so that alone must never grant
 # reviewer access. This module never changes or wraps
 # auth_config.is_local_runtime() -- it reads the same request host via
 # auth_config.request_host() and applies its own, strictly-narrower
-# loopback-only allowlist instead.
+# loopback-only allowlist instead. Exactly these three values count --
+# nothing else, ever.
 _STRICT_LOCAL_HOSTS = frozenset({"localhost", "127.0.0.1", "::1"})
 
 
@@ -83,14 +78,17 @@ def _is_strict_loopback_host(host: str | None) -> bool:
     return (host or "").strip().lower() in _STRICT_LOCAL_HOSTS
 
 
-def _is_local_dev_runtime() -> bool:
-    """Strict loopback-only runtime signal for the reviewer bypass --
-    NOT the same concept as `auth_config.is_local_runtime()` (see
-    `_STRICT_LOCAL_HOSTS` comment above for why). Fails CLOSED (`False`)
-    on any error, including an empty/unavailable request host -- unlike
-    `auth_config.is_local_runtime()`, an unknown host is treated as
-    NON-local here, since this gates an auth bypass rather than an
-    OAuth redirect safety check."""
+def is_local_loopback_request() -> bool:
+    """True only when the CURRENT request's Host header is exactly
+    `localhost`, `127.0.0.1`, or `::1` (see `_STRICT_LOCAL_HOSTS`).
+
+    This is the entire local-dev reviewer access path -- no env flag,
+    no OAuth. A developer running `streamlit run app.py` on their own
+    machine gets the reviewer panel automatically; anyone reaching the
+    app over a private LAN address (10.*, 192.168.*, 172.16-31.*) or a
+    public/Cloud host does not, and falls through to the production
+    `is_authenticated_owner` gate instead. Fails CLOSED (`False`) on
+    any error, including an empty/unavailable request host."""
     try:
         from auth_config import request_host
 
@@ -99,33 +97,14 @@ def _is_local_dev_runtime() -> bool:
         return False
 
 
-def is_explicit_local_dev_reviewer() -> bool:
-    """Manual-QA-only escape hatch: local development has no Google
-    OAuth configured, so `is_authenticated_owner()` can never pass
-    there. Requires BOTH conditions -- the flag ALONE is never
-    sufficient (an env var set in a misconfigured Cloud deployment must
-    not grant access on its own):
-
-    - `TEXTUS_LOCAL_REVIEWER_ENABLED` set to a truthy value, AND
-    - `_is_local_dev_runtime()` independently confirming this process
-      is not serving a non-local host.
-
-    Never touches `st.session_state`, cookies, or the OAuth flow --
-    this is a pure, stateless read of env + runtime-host signals."""
-    if not _local_dev_flag_enabled():
-        return False
-    return _is_local_dev_runtime()
-
-
 def is_authorized_reviewer(*, is_logged_in: bool, email: str | None) -> bool:
-    """authorized_reviewer = authenticated_owner OR explicit_local_dev_reviewer.
+    """authorized_reviewer = strict_loopback_host OR authenticated_owner.
 
-    The local-dev branch never modifies auth/session state and never
-    weakens the production path -- it only ever ADDS an additional way
-    to pass this one boolean decision, gated by both an explicit env
-    flag and an independent local-runtime check (see
-    `is_explicit_local_dev_reviewer`)."""
-    return is_authenticated_owner(is_logged_in=is_logged_in, email=email) or is_explicit_local_dev_reviewer()
+    Loopback dev access never touches auth/session state, cookies, or
+    the OAuth flow -- it only reads the request host. It can only ever
+    ADD an access path on top of the unchanged production gate, never
+    remove or weaken it."""
+    return is_local_loopback_request() or is_authenticated_owner(is_logged_in=is_logged_in, email=email)
 
 
 @st.cache_resource(show_spinner=False)
@@ -435,6 +414,6 @@ def render_illustration_review_panel() -> None:
 __all__ = [
     "is_authenticated_owner",
     "is_authorized_reviewer",
-    "is_explicit_local_dev_reviewer",
+    "is_local_loopback_request",
     "render_illustration_review_panel",
 ]
