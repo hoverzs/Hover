@@ -227,6 +227,65 @@ summary, tags, narrative_status, rationale, target length) -> human
 accept/reject -> only THEN, for an accepted proposal, a separate future
 call generates the real `modern_hu_text`. That generation step does not
 exist yet in this module — out of scope here, same as before.
+
+PHASE 3D.1 (this section) — two changes, both prompted by findings from
+the Phase 3D UNTOUCHED 25-story pilot (no pre-flight editing between LLM
+output and validation):
+
+**Proper-name guard is now warning-only.** The adjacency-based hard
+reject (previous section) itself turned out to have a real false-reject
+mode: "Ádámnak Lumley" and "North Írországgal" are both genuinely correct
+translations that simply landed next to a real, matched source name by
+ordinary sentence word order — not name-completion at all — and were
+hard-rejected anyway (2 of 24 direct_unit attempts, ~8%, in the untouched
+pilot). The guard cannot reliably tell "invented name glued onto a kept
+one" apart from "unrelated correct word that happens to sit next to a
+name" — so it no longer tries to. `_hallucination_guard` now ONLY
+produces warnings (a higher-priority "SUSPICIOUS NAME EXPANSION" one for
+the adjacency shape, a generic one otherwise) — see its own docstring.
+Fail-closed correctness moves entirely to the human-review gate: a
+warned unit still only ever reaches `needs_review`, never
+`approved`/`published` automatically. Hard rejection is now reserved for
+deterministically provable contract violations only: unparseable JSON,
+missing/invalid required fields, a forbidden enum value, an invalid
+source span, a length-window violation, or a mode/derivation_type
+mismatch against the canonical strategy (below) — never a token-level
+name heuristic.
+
+Also added: `_fold_diacritics` (Unicode NFKD decomposition + combining-
+mark stripping) closes the specific "Ádám"/"Alfréd"/"Orléans" class of
+false positive — a genuine accent-only spelling difference from the
+ASCII source word — WITHOUT any translation dictionary. A real semantic
+translation (János/Anglia/Isten) shares no letters with its English
+source word even after folding, so those still warn exactly as before;
+this is normalization, not translation.
+
+**Deterministic length strategy.** `derive_enrichment_strategy(length)`
+is now the single canonical authority for which `expected_mode` AND (for
+`direct_unit`) which `expected_derivation_type` a story is eligible for,
+based purely on `len(story.original_text)`:
+- <= 1500 chars -> `direct_unit` / `full_story_translation`.
+- 1501-3000 chars -> `direct_unit` / `condensed_story`, with
+  `modern_hu_text` itself required to land in
+  `[_MIN_CONDENSED_MODERN_TEXT_CHARS, _MAX_CONDENSED_MODERN_TEXT_CHARS]`
+  (currently 200-1500, the same retrieval-ready window as
+  `target_length_chars` for proposals).
+- > 3000 chars -> `unit_proposal` (unchanged from Phase 3C-c).
+
+The caller still supplies `expected_mode` explicitly to `enrich_story` —
+that safety contract (a batch runner asserting up front "this story may
+only ever write directly, never propose," or vice versa) is unchanged
+and still valuable — but it is now VALIDATED against
+`derive_enrichment_strategy`'s output rather than trusted outright. A
+mismatched caller `expected_mode` is a configuration error, rejected
+BEFORE `llm_generate` is ever called — no LLM call, no tokens spent, no
+`raw_response` to even parse. Within `direct_unit`, the LLM's own
+`derivation_type` is validated the same way `mode` always was: it must
+equal the ONE value the strategy computed, not merely be "one of the two
+generally-valid direct_unit types" — the model is told exactly which one
+to produce (`build_enrichment_prompt`'s `expected_derivation_type`
+parameter), and a mismatch is rejected with zero DB writes, mirroring
+`expected_mode` enforcement exactly.
 """
 
 from __future__ import annotations
@@ -234,6 +293,7 @@ from __future__ import annotations
 import json
 import re
 import sqlite3
+import unicodedata
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Callable
@@ -286,7 +346,6 @@ PILOT_HOMILETIC_FUNCTIONS: frozenset[str] = frozenset(
     }
 )
 
-_DIRECT_UNIT_DERIVATION_TYPES = frozenset({"full_story_translation", "condensed_story"})
 _PROPOSAL_DERIVATION_TYPES = frozenset({"extracted_scene", "condensed_story"})
 
 # Which text fields _validate_common_fields requires to be non-empty --
@@ -309,6 +368,58 @@ _MIN_TARGET_LENGTH_CHARS = 200
 _MAX_TARGET_LENGTH_CHARS = 1500
 
 ALLOWED_MODES: frozenset[str] = frozenset({"direct_unit", "unit_proposal"})
+
+# Phase 3D.1 DETERMINISTIC LENGTH STRATEGY (see module docstring): the ONLY
+# authority for which expected_mode/expected_derivation_type a story is
+# eligible for is len(story.original_text) -- neither the LLM nor the
+# caller decides this. The caller still supplies expected_mode explicitly
+# (an unchanged, valuable safety contract — see enrich_story()), but it is
+# now VALIDATED against derive_enrichment_strategy()'s output rather than
+# trusted outright; a mismatch is a caller/configuration error, rejected
+# before the LLM is ever called.
+_MAX_FULL_TRANSLATION_CHARS = 1500
+_MAX_CONDENSED_DIRECT_CHARS = 3000
+# The band-B (direct_unit/condensed_story) length window for the
+# generated modern_hu_text itself -- deliberately the SAME range as
+# target_length_chars for unit_proposal's condensed_story (Phase 3C-c):
+# a retrieval-ready illustration unit is short and directly tellable,
+# never "almost the whole source, just barely shorter."
+_MIN_CONDENSED_MODERN_TEXT_CHARS = _MIN_TARGET_LENGTH_CHARS
+_MAX_CONDENSED_MODERN_TEXT_CHARS = _MAX_TARGET_LENGTH_CHARS
+
+
+@dataclass(frozen=True)
+class EnrichmentStrategy:
+    expected_mode: str
+    # None only for unit_proposal -- a proposal's own derivation_type
+    # (extracted_scene vs condensed_story) remains the model's structural
+    # judgment call about the SOURCE story, not something length alone
+    # can determine.
+    expected_derivation_type: str | None
+
+
+def derive_enrichment_strategy(original_text_length: int) -> EnrichmentStrategy:
+    """The single, canonical source of truth for which mode and (for
+    direct_unit) derivation_type a story is eligible for, based purely on
+    the character length of its original_text. Callers, this module's own
+    `enrich_story()`, and the LLM must all defer to this — it is never
+    recomputed differently in more than one place.
+
+    - length <= 1500  -> direct_unit / full_story_translation (full,
+      faithful translation of a short story).
+    - 1501 <= length <= 3000 -> direct_unit / condensed_story (the model
+      still writes the unit directly, but modern_hu_text must itself land
+      in the [200, 1500]-char retrieval-ready range — see
+      _MIN_CONDENSED_MODERN_TEXT_CHARS/_MAX_CONDENSED_MODERN_TEXT_CHARS).
+    - length > 3000 -> unit_proposal (too long to safely commit to one
+      direct translation without a human first deciding WHAT unit(s) the
+      story should become — see the PROPOSAL CONTRACT module-docstring
+      section)."""
+    if original_text_length <= _MAX_FULL_TRANSLATION_CHARS:
+        return EnrichmentStrategy(expected_mode="direct_unit", expected_derivation_type="full_story_translation")
+    if original_text_length <= _MAX_CONDENSED_DIRECT_CHARS:
+        return EnrichmentStrategy(expected_mode="direct_unit", expected_derivation_type="condensed_story")
+    return EnrichmentStrategy(expected_mode="unit_proposal", expected_derivation_type=None)
 
 # Which (category, controlled-slug-set) pairs this pipeline is allowed to
 # synchronize on a unit — see `_sync_pilot_tags`. A tag whose category
@@ -389,10 +500,11 @@ class EnrichmentResult:
     unit_id: int | None = None
     proposed_units: tuple[ProposedUnit, ...] = field(default_factory=tuple)
     errors: tuple[str, ...] = field(default_factory=tuple)
-    # Non-fatal hallucination-guard findings (see _hallucination_guard's
-    # HARD REJECT / WARNING split) -- present alongside a "unit_created" or
-    # "proposal_ready" result, never causes rejection by itself. Meant to
-    # be surfaced to a human reviewer, not acted on automatically.
+    # Non-fatal hallucination-guard findings (see _hallucination_guard --
+    # entirely warning-only as of Phase 3D.1) -- present alongside a
+    # "unit_created" or "proposal_ready" result, never causes rejection by
+    # itself. Meant to be surfaced to a human reviewer, not acted on
+    # automatically.
     warnings: tuple[str, ...] = field(default_factory=tuple)
     raw_response: str | None = None
 
@@ -460,7 +572,32 @@ def enrich_story(
     if story is None:
         return EnrichmentResult(status="rejected", story_id=story_id, errors=("story not found",))
 
-    prompt = build_enrichment_prompt(story, expected_mode=expected_mode)
+    # Phase 3D.1: derive_enrichment_strategy(), not the caller's
+    # expected_mode, is the canonical authority for which mode/
+    # derivation_type this story is eligible for. The caller's
+    # expected_mode is still a required, valuable safety contract (it is
+    # what lets a batch runner assert up front "this story may only ever
+    # write directly, never propose" or vice versa), but it is now
+    # VALIDATED against the length-derived strategy rather than trusted
+    # outright — a caller that gets the length band wrong is a
+    # configuration error, caught here, BEFORE the LLM is ever called (no
+    # tokens spent, no raw_response to even parse).
+    strategy = derive_enrichment_strategy(len(story.original_text))
+    if expected_mode != strategy.expected_mode:
+        return EnrichmentResult(
+            status="rejected",
+            story_id=story_id,
+            errors=(
+                f"expected_mode={expected_mode!r} does not match the length-derived strategy for "
+                f"this story (original_text length={len(story.original_text)}): the canonical "
+                f"strategy requires expected_mode={strategy.expected_mode!r} — refusing to call the "
+                "LLM, no DB write attempted",
+            ),
+        )
+
+    prompt = build_enrichment_prompt(
+        story, expected_mode=expected_mode, expected_derivation_type=strategy.expected_derivation_type
+    )
     raw_response = llm_generate(prompt)
     payload = _extract_json_object(raw_response)
     if payload is None:
@@ -492,6 +629,7 @@ def enrich_story(
             prompt_version=prompt_version,
             unit_index=unit_index,
             allow_overwrite_reviewed=allow_overwrite_reviewed,
+            expected_derivation_type=strategy.expected_derivation_type,
             raw_response=raw_response,
         )
     return _handle_unit_proposal(story=story, payload=payload, raw_response=raw_response)
@@ -518,6 +656,7 @@ def _handle_direct_unit(
     prompt_version: str,
     unit_index: int,
     allow_overwrite_reviewed: bool,
+    expected_derivation_type: str,
     raw_response: str,
 ) -> EnrichmentResult:
     unit_payload = payload.get("unit")
@@ -535,15 +674,36 @@ def _handle_direct_unit(
         unit_payload, errors, warnings,
         source_text=story.original_text, required_text_fields=_DIRECT_UNIT_TEXT_FIELDS,
     )
+    # Phase 3D.1: the LLM no longer freely picks between
+    # full_story_translation/condensed_story -- expected_derivation_type
+    # was already determined from story length by derive_enrichment_
+    # strategy() in enrich_story(), before the LLM was even called. Any
+    # OTHER value (including the other, otherwise-valid direct_unit
+    # derivation_type) is a contract violation, same severity as an
+    # expected_mode mismatch.
     derivation_type = unit_payload.get("derivation_type")
-    if derivation_type not in _DIRECT_UNIT_DERIVATION_TYPES:
+    if derivation_type != expected_derivation_type:
         errors.append(
-            f"direct_unit derivation_type must be one of {sorted(_DIRECT_UNIT_DERIVATION_TYPES)}, "
-            f"got {derivation_type!r}"
+            f"direct_unit derivation_type must be {expected_derivation_type!r} for this story's "
+            f"length ({len(story.original_text)} chars), got {derivation_type!r}"
         )
     if "source_span_start" in unit_payload or "source_span_end" in unit_payload:
         if unit_payload.get("source_span_start") is not None or unit_payload.get("source_span_end") is not None:
             errors.append("direct_unit must not set source_span_start/source_span_end")
+
+    # Band-B length window (condensed_story direct_unit, Phase 3D.1): the
+    # generated text must itself already be a short, retrieval-ready
+    # illustration -- not "the whole 1501-3000-char source, condensed
+    # just enough to squeak under some limit."
+    if expected_derivation_type == "condensed_story":
+        modern_text = unit_payload.get("modern_hu_text")
+        if isinstance(modern_text, str) and not (
+            _MIN_CONDENSED_MODERN_TEXT_CHARS <= len(modern_text) <= _MAX_CONDENSED_MODERN_TEXT_CHARS
+        ):
+            errors.append(
+                f"condensed_story modern_hu_text must be {_MIN_CONDENSED_MODERN_TEXT_CHARS}-"
+                f"{_MAX_CONDENSED_MODERN_TEXT_CHARS} chars, got {len(modern_text)}"
+            )
 
     if errors:
         return EnrichmentResult(
@@ -837,9 +997,10 @@ def _validate_common_fields(
             f"got {confidence!r}"
         )
 
-    hard_reject, guard_warnings = _hallucination_guard(unit_payload, source_text=source_text)
-    errors.extend(hard_reject)
-    warnings.extend(guard_warnings)
+    # Phase 3D.1: the proper-name guard is warning-only now (see
+    # _hallucination_guard's docstring) -- it never contributes to
+    # `errors`/rejection.
+    warnings.extend(_hallucination_guard(unit_payload, source_text=source_text))
 
 
 def _validate_source_span(span_start: object, span_end: object, *, text_length: int) -> list[str]:
@@ -866,88 +1027,83 @@ _MIN_SOURCE_WORD_LEN_FOR_PREFIX_MATCH = 3
 _SOURCE_PROPER_NOUN_RE = re.compile(r"[A-Z][a-zA-Z]{2,}")
 
 
-def _hallucination_guard(unit_payload: dict, *, source_text: str) -> tuple[list[str], list[str]]:
+def _fold_diacritics(s: str) -> str:
+    """Unicode accent/diacritic folding (NFKD decompose, drop combining
+    marks) — Phase 3D.1. Turns "Ádám"/"Alfréd"/"Orléans" into the same
+    string as their unaccented ASCII spelling ("adam"/"alfred"/"orleans")
+    so the guard's prefix match stops treating a bare accent difference
+    as evidence of a different word. Pure Unicode normalization, NOT a
+    translation table: it has no idea "János" means "John" or "Anglia"
+    means "England" (different letters entirely, not an accent
+    variant) — those remain genuinely unmatched and still warn, exactly
+    as intended."""
+    return "".join(c for c in unicodedata.normalize("NFKD", s) if not unicodedata.combining(c))
+
+
+def _hallucination_guard(unit_payload: dict, *, source_text: str) -> list[str]:
     """Flags capitalized, non-sentence-initial Hungarian words in the
     enrichment output that don't look like they're built from any
     CAPITALIZED word appearing in the source text — a coarse tripwire
     for an AI-invented proper noun. Deliberately lightweight: this is
     NOT a real NER/hallucination-detection system, and must not be
-    relied on as one — see the false-negative/false-positive limits
-    documented below, all still present after the fixes.
+    relied on as one.
 
-    Returns `(hard_reject_messages, warning_messages)`. See the module
-    docstring's "TWO-TIER PROPER-NOUN GUARD" section (Phase 3C-c) for
-    the finding that motivated the split — the earlier single-tier
-    version rejected genuinely correct translations (God->Isten,
-    England->Anglia) with the same severity as an actual invented name
-    (Pope->"Alexander Pope"), which is not the same class of problem and
-    must not be handled the same way.
+    Phase 3D.1: this used to hard-reject when an unmatched candidate sat
+    adjacent to a matched one (the "Alexander Pope" name-completion
+    shape). The 25-story untouched pilot found that shape ALSO fires on
+    two genuinely correct translations that simply happened to land next
+    to a real kept name by ordinary sentence word order — "Ádámnak
+    Lumley" (a correct, if diacritic-different, biblical name right
+    before a real surname) and "North Írországgal" (a correct place-name
+    translation right after a real surname) — a real ~10% false-reject
+    rate on live translated output. Since the guard cannot reliably tell
+    "invented name glued onto a kept one" apart from "unrelated correct
+    word that happens to sit next to a name," adjacency is now ONLY ever
+    a WARNING signal (a higher-priority one, still worth a human's
+    attention first) — never a rejection. ALL findings from this
+    function are warnings; nothing it returns can block persistence by
+    itself. Fail-closed correctness now lives entirely in the human-
+    review gate: a warned unit still lands at needs_review, never
+    approved/published automatically.
 
-    TIER LOGIC — an unmatched candidate (no source word it prefix-
-    matches) is:
+    Returns a flat list of warning messages — a "SUSPICIOUS NAME
+    EXPANSION" one (adjacent to a matched source name — prioritize this
+    in review) and/or a generic "translation/exonym" one (standalone),
+    depending on what was found.
 
-    - **HARD REJECT** if it sits immediately next to (before or after) a
-      DIFFERENT candidate word in the same sentence that DOES match a
-      source word. This is the name-completion signature: the model
-      kept a real name from the source ("Pope", "Swift") and glued a new,
-      unverifiable identifying token onto it ("Alexander", "Jonathan").
-      An unmatched word with no such matched neighbor was never observed
-      to exhibit this pattern in the Phase 3C-c pilot's audited cases.
-    - **WARNING** otherwise — most commonly a translated/exonym proper
-      noun standing on its own (Isten, Ördög, Anglia, Skócia,
-      Franciaország, Írország — a real, correct Hungarian word for a
-      source concept that just doesn't share source_text's spelling).
-      Never blocks persistence; the caller carries this into
-      `EnrichmentResult.warnings` for a human reviewer to see.
+    Diacritic folding (`_fold_diacritics`) is applied to BOTH sides of
+    the comparison before matching, closing the Ádám/Alfréd/Orléans class
+    of false positive without any translation dictionary — a semantic
+    translation (János/Anglia/Isten) shares no letters with its English
+    source word even after folding, so those keep warning exactly as
+    before; only genuine accent-only spelling differences are absorbed.
 
-    This adjacency heuristic was chosen over either (a) a hand-maintained
-    translation dictionary (English place/deity names -> Hungarian
-    equivalents — the user explicitly asked NOT to build this, since it
-    only grows and never closes) or (b) a real NER model (explicitly out
-    of scope) — it needs no per-language vocabulary at all, and it is
-    exactly the shape of evidence the Phase 3C-c pilot's own hard-reject
-    cases had that its warning-only cases did not.
-
-    REMAINING, ACCEPTED LIMITATIONS (still real, deliberately not fully
-    closed — a lightweight heuristic cannot close these without becoming
-    a real NER system):
-    - A wholly invented TWO-WORD name (neither word matches any source
-      word) is not adjacent to any MATCHED candidate, so it is only a
-      WARNING, not a hard reject — per the explicit brief, an
-      undecidable case must degrade to a warning rather than risk a
-      false hard-reject.
+    REMAINING, ACCEPTED LIMITATIONS (a lightweight heuristic cannot close
+    these without becoming a real NER system):
+    - A wholly invented name is indistinguishable, by this heuristic,
+      from a correct translation/exonym — both surface as the same class
+      of warning. This is intentional: distinguishing them would require
+      exactly the translation dictionary or NER system this project has
+      repeatedly declined to build. A human reviewer makes the actual
+      call.
     - Very short candidates (right at the 3-letters-after-the-initial-
       capital minimum) are inherently easier to accidentally prefix-
       match than long ones; this guard does not attempt frequency-
       based or dictionary-based discrimination.
-    - A translated proper noun that happens to be ADJACENT to an
-      unrelated matched candidate (rare, no example found in the
-      pilot's audited output) could theoretically be misclassified as
-      hard-reject rather than warning; not observed in practice.
-    - A name-completion where the INVENTED token is itself sentence-
-      initial (e.g. a sentence starting "Jonathan Swift ..." where the
-      source only ever writes "Swift") degrades to a warning instead of
-      a hard reject, because position 0 is never reported regardless of
-      its neighbor's match status — the sentence-initial exemption
-      exists to avoid flagging ordinary capitalized sentence starts, and
-      extending it to "reportable if adjacent-matched" was judged too
-      likely to reopen the original false-positive class that exemption
-      was added to fix. Not observed in the pilot's own audited output;
-      accepted as a narrower, known gap.
     """
     combined = "\n".join(
         str(unit_payload.get(f, "") or "")
         for f in ("title_hu", "modern_hu_text", "summary_hu", "moral_hu")
     )
     source_words = {
-        m.group(0).lower()
+        _fold_diacritics(m.group(0).lower())
         for m in _SOURCE_PROPER_NOUN_RE.finditer(source_text)
         if len(m.group(0)) >= _MIN_SOURCE_WORD_LEN_FOR_PREFIX_MATCH
     }
-    hard_flagged: list[str] = []
-    warn_flagged: list[str] = []
-    seen_hard: set[str] = set()
-    seen_warn: set[str] = set()
+    suspicious_flagged: list[str] = []
+    generic_flagged: list[str] = []
+    seen_suspicious: set[str] = set()
+    seen_generic: set[str] = set()
     for sentence in _SENTENCE_SPLIT_RE.split(combined):
         words = sentence.strip().split()
         # candidates[i] / matched[i] are None for a non-candidate word.
@@ -955,8 +1111,7 @@ def _hallucination_guard(unit_payload: dict, *, source_text: str) -> tuple[list[
         # never itself be REPORTED (see the loop below), but if it is a
         # genuinely matched real name ("Sheridan Ede ...", "Sheridan" at
         # position 0), its match status must still be visible to its
-        # neighbor's adjacency check, or a name-completion glued onto a
-        # sentence-initial name would wrongly degrade to a warning.
+        # neighbor's adjacency check.
         candidates: list[str | None] = [None] * len(words)
         matched: list[bool | None] = [None] * len(words)
         for position, word in enumerate(words):
@@ -965,7 +1120,8 @@ def _hallucination_guard(unit_payload: dict, *, source_text: str) -> tuple[list[
                 continue
             candidate = match.group(0)
             candidates[position] = candidate
-            matched[position] = any(candidate.lower().startswith(sw) for sw in source_words)
+            candidate_folded = _fold_diacritics(candidate.lower())
+            matched[position] = any(candidate_folded.startswith(sw) for sw in source_words)
 
         for position, candidate in enumerate(candidates):
             if position == 0:
@@ -982,39 +1138,29 @@ def _hallucination_guard(unit_payload: dict, *, source_text: str) -> tuple[list[
                 )
             )
             if adjacent_matched:
-                if key not in seen_hard:
-                    seen_hard.add(key)
-                    hard_flagged.append(candidate)
+                if key not in seen_suspicious:
+                    seen_suspicious.add(key)
+                    suspicious_flagged.append(candidate)
             else:
-                if key not in seen_warn:
-                    seen_warn.add(key)
-                    warn_flagged.append(candidate)
+                if key not in seen_generic:
+                    seen_generic.add(key)
+                    generic_flagged.append(candidate)
 
-    hard_messages = (
-        [
-            "possible name completion/invented proper noun (adjacent to a matched "
-            "source name) not found in original_text: " + ", ".join(sorted(set(hard_flagged)))
-        ]
-        if hard_flagged
-        else []
-    )
-    # Deliberately NO illustrative example (e.g. "God->Isten") baked into
-    # this message: an earlier draft had one, and it meant the literal
-    # word "Isten" was present in EVERY warning message regardless of
-    # what was actually flagged — a naive `"Isten" in message` check by a
-    # caller (or a test) would always be true. The full explanation with
-    # examples belongs in this function's own docstring, not repeated in
-    # every runtime message.
-    warn_messages = (
-        [
+    messages: list[str] = []
+    if suspicious_flagged:
+        messages.append(
+            "SUSPICIOUS NAME EXPANSION (adjacent to a matched source name — could be an "
+            "invented name completion like 'Pope'->'Alexander Pope', or could be an "
+            "unrelated correct word that just happens to sit next to a real name; "
+            "prioritize this in review): " + ", ".join(sorted(set(suspicious_flagged)))
+        )
+    if generic_flagged:
+        messages.append(
             "capitalized word(s) with no matching source token — likely a "
             "translation/exonym, not necessarily a hallucination; needs human "
-            "review: " + ", ".join(sorted(set(warn_flagged)))
-        ]
-        if warn_flagged
-        else []
-    )
-    return hard_messages, warn_messages
+            "review: " + ", ".join(sorted(set(generic_flagged)))
+        )
+    return messages
 
 
 def _extract_json_object(raw: str) -> dict | None:
@@ -1053,19 +1199,38 @@ def _extract_json_object(raw: str) -> dict | None:
     return None
 
 
-def build_enrichment_prompt(story: _LoadedStory, *, expected_mode: str) -> str:
+def build_enrichment_prompt(
+    story: _LoadedStory, *, expected_mode: str, expected_derivation_type: str | None = None
+) -> str:
     topics_list = ", ".join(sorted(PILOT_TOPICS))
     tones_list = ", ".join(sorted(PILOT_TONES))
     functions_list = ", ".join(sorted(PILOT_HOMILETIC_FUNCTIONS))
     narrative_statuses = ", ".join(sorted(ALLOWED_NARRATIVE_STATUSES))
     if expected_mode == "direct_unit":
-        mode_instructions = """\
+        # Phase 3D.1: expected_derivation_type is now DICTATED by
+        # derive_enrichment_strategy() from the story's length, before
+        # this prompt is even built — the model is told exactly which
+        # one to produce, not offered a free choice between the two.
+        if expected_derivation_type == "condensed_story":
+            mode_instructions = f"""\
+FELADAT — a rendszer ehhez a történethez EGYETLEN illustration unitot \
+vár ("mode": "direct_unit", "derivation_type": "condensed_story" — ezt \
+a történet hossza határozza meg, NE válassz másik derivation_type-ot). \
+A story hosszabb, ezért a modern_hu_text NEM lehet majdnem-teljes \
+fordítás: {_MIN_CONDENSED_MODERN_TEXT_CHARS}–{_MAX_CONDENSED_MODERN_TEXT_CHARS} \
+karakter hosszú, közvetlenül elmondható, RÖVID prédikációs illusztráció \
+legyen, amely a történet lényegét (a legfontosabb szereplőt, helyzetet \
+és csattanót) őrzi meg, a részletek tömörítésével. NE válaszolj \
+"unit_proposal" móddal — ezt a történetet a rendszer nem fogadja el \
+bontásra javasoltként."""
+        else:
+            mode_instructions = """\
 FELADAT — a rendszer ehhez a történethez EGYETLEN, teljes illustration \
-unitot vár ("mode": "direct_unit"). A teljes történetet dolgozd fel \
-egyetlen unitba (derivation_type: "full_story_translation" a rövid \
-történeteknél, "condensed_story" ha a történet hosszabb és tömörítést \
-igényel). NE válaszolj "unit_proposal" móddal — ezt a történetet a \
-rendszer nem fogadja el bontásra javasoltként."""
+unitot vár ("mode": "direct_unit", "derivation_type": \
+"full_story_translation" — ezt a történet hossza határozza meg, NE \
+válassz másik derivation_type-ot). A teljes történetet dolgozd fel \
+egyetlen unitba. NE válaszolj "unit_proposal" móddal — ezt a történetet \
+a rendszer nem fogadja el bontásra javasoltként."""
     else:
         mode_instructions = f"""\
 FELADAT — a rendszer ehhez a történethez egy vagy több JAVASOLT \
@@ -1094,14 +1259,21 @@ tömörítve. Ha a story olyan rövid, hogy egy {_MIN_TARGET_LENGTH_CHARS} \
 karakteres célhossz sem értelmezhető rá, az nem "unit_proposal", hanem \
 "direct_unit" móddal kezelendő történet."""
     if expected_mode == "direct_unit":
-        modern_text_rules_section = """\
+        length_rule_line = (
+            f"- pontosan {_MIN_CONDENSED_MODERN_TEXT_CHARS}–{_MAX_CONDENSED_MODERN_TEXT_CHARS} "
+            "karakter hosszú legyen — ne a teljes történet fordítása, hanem annak "
+            "tömörített, retrieval-ready lényege;"
+            if expected_derivation_type == "condensed_story"
+            else "- rövid történetnél őrizd meg a teljes narratív tartalmat."
+        )
+        modern_text_rules_section = f"""\
 MAGYAR SZÖVEG SZABÁLYOK (modern_hu_text):
 - természetes, mai magyar nyelv;
 - hű az original_text tartalmához — ne adj hozzá új szereplőt, \
   eseményt, motivációt vagy tanulságot;
 - ne prédikáld túl a történetet (ne fűzz hozzá saját magyarázatot);
 - ne legyen fölöslegesen archaikus;
-- rövid történetnél őrizd meg a teljes narratív tartalmat.
+{length_rule_line}
 
 """
         name_completion_fields = "title_hu, modern_hu_text, summary_hu és moral_hu"
@@ -1118,7 +1290,7 @@ MORAL_HU SZABÁLYOK:
 {
   "mode": "direct_unit",
   "unit": {
-    "derivation_type": "full_story_translation | condensed_story",
+    "derivation_type": "EXPECTED_DERIVATION_TYPE",
     "title_hu": "...",
     "modern_hu_text": "...",
     "summary_hu": "...",
@@ -1131,6 +1303,9 @@ MORAL_HU SZABÁLYOK:
   }
 }
 """
+        json_shape_section = json_shape_section.replace(
+            "EXPECTED_DERIVATION_TYPE", expected_derivation_type or ""
+        )
     else:
         modern_text_rules_section = ""
         name_completion_fields = "title_hu és summary_hu"

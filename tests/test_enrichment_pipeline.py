@@ -5,7 +5,11 @@ import sqlite3
 
 import pytest
 
-from illustration_engine.enrichment_pipeline import build_enrichment_prompt, enrich_story
+from illustration_engine.enrichment_pipeline import (
+    build_enrichment_prompt,
+    derive_enrichment_strategy,
+    enrich_story,
+)
 from illustration_engine.illustration_sqlite import create_schema, insert_source, insert_story
 from illustration_engine.illustration_unit_repository import (
     approve_unit,
@@ -414,7 +418,7 @@ def test_long_story_unit_proposal_not_persisted() -> None:
 def test_unit_proposal_with_invalid_span_rejected() -> None:
     conn = _fresh_connection()
     source_id = _make_source(conn)
-    story_id = _make_story(conn, source_id)
+    story_id = _make_story(conn, source_id, original_text=_LONG_SOURCE_TEXT)
     payload = {
         "mode": "unit_proposal",
         "proposed_units": [
@@ -445,7 +449,7 @@ def test_unit_proposal_with_invalid_span_rejected() -> None:
 def test_extracted_scene_without_rationale_rejected() -> None:
     conn = _fresh_connection()
     source_id = _make_source(conn)
-    story_id = _make_story(conn, source_id)
+    story_id = _make_story(conn, source_id, original_text=_LONG_SOURCE_TEXT)
     payload = {
         "mode": "unit_proposal",
         "proposed_units": [
@@ -473,7 +477,7 @@ def test_extracted_scene_without_rationale_rejected() -> None:
     assert any("rationale" in e for e in result.errors)
 
 
-_LONG_SOURCE_TEXT = "A" * 3000  # long enough for any 200-1500 target_length_chars to still be "shorter"
+_LONG_SOURCE_TEXT = "A" * 3500  # > 3000 so derive_enrichment_strategy() actually resolves to unit_proposal
 
 
 def test_condensed_story_proposal_does_not_require_span() -> None:
@@ -818,13 +822,20 @@ def test_atomic_rollback_preserves_prior_content_on_idempotent_rerun_failure(mon
 
 
 def test_hallucination_guard_short_candidate_prefix_of_unrelated_source_word_still_flagged() -> None:
-    """Regression for a real false-negative found during audit: the
-    OLD bidirectional prefix match let a short hallucinated candidate
-    slip through un-flagged just because it happened to be a prefix of
-    some longer, completely UNRELATED capitalized source word (e.g.
+    """Regression for a real false-negative found during audit: the OLD
+    bidirectional prefix match let a short hallucinated candidate slip
+    through completely UNFLAGGED just because it happened to be a prefix
+    of some longer, completely UNRELATED capitalized source word (e.g.
     'Ede' vs. a real but unrelated source word 'Edenville'). The
     tightened single-direction match (candidate must start with a real
-    source word, never the reverse) correctly rejects it."""
+    source word, never the reverse) still flags it -- but Phase 3D.1
+    downgraded ALL proper-name guard findings to warnings (see
+    _hallucination_guard's docstring: the adjacency shape this exhibits
+    -- 'Ede' right next to the matched real name 'Sheridan' -- turned out
+    to also fire on genuinely correct translations in the untouched
+    pilot, so it can no longer block persistence by itself). 'Ede' is
+    still surfaced, now as a SUSPICIOUS NAME EXPANSION warning, and the
+    unit still reaches needs_review for a human to actually judge it."""
     conn = _fresh_connection()
     source_id = _make_source(conn)
     story_id = _make_story(
@@ -842,8 +853,9 @@ def test_hallucination_guard_short_candidate_prefix_of_unrelated_source_word_sti
         conn, story_id=story_id, llm_generate=_llm(payload), model_identifier="m", expected_mode="direct_unit"
     )
     conn.close()
-    assert result.status == "rejected"
-    assert any("Ede" in e for e in result.errors)
+    assert result.status == "unit_created"
+    assert not result.errors
+    assert any("SUSPICIOUS NAME EXPANSION" in w and "Ede" in w for w in result.warnings)
 
 
 def test_hallucination_guard_still_accepts_inflected_real_name_after_tightening() -> None:
@@ -1114,11 +1126,16 @@ _POPE_SWIFT_SOURCE_TEXT = (
 )
 
 
-def test_name_completion_pope_to_alexander_pope_is_hard_reject() -> None:
+def test_name_completion_pope_to_alexander_pope_is_suspicious_warning_not_reject() -> None:
     """Source only ever writes the bare surname 'Pope' -- an output that
     completes it with an invented given name is the canonical
-    name-completion hallucination and must still hard-reject, unchanged
-    by the two-tier split."""
+    name-completion hallucination shape. Phase 3D.1: the untouched
+    25-story pilot found this SAME adjacency shape also fires on
+    genuinely correct translations ('Ádámnak Lumley', 'North
+    Írországgal'), so it can no longer hard-reject by itself -- it now
+    surfaces as a high-priority SUSPICIOUS NAME EXPANSION warning
+    (silent pass is explicitly NOT acceptable either), and the unit still
+    reaches needs_review for a human to make the actual call."""
     conn = _fresh_connection()
     source_id = _make_source(conn)
     story_id = _make_story(conn, source_id, original_text=_POPE_SWIFT_SOURCE_TEXT)
@@ -1129,17 +1146,18 @@ def test_name_completion_pope_to_alexander_pope_is_hard_reject() -> None:
         conn, story_id=story_id, llm_generate=_llm(payload), model_identifier="m", expected_mode="direct_unit"
     )
     conn.close()
-    assert result.status == "rejected"
-    assert any("Alexander" in e for e in result.errors)
-    assert not result.warnings
+    assert result.status == "unit_created"
+    assert not result.errors
+    assert any("SUSPICIOUS NAME EXPANSION" in w and "Alexander" in w for w in result.warnings)
 
 
-def test_name_completion_swift_to_jonathan_swift_is_hard_reject() -> None:
+def test_name_completion_swift_to_jonathan_swift_is_suspicious_warning_not_reject() -> None:
     """Same pattern, reversed roles: 'Swift' kept bare in source, output
     completes it to 'Jonathan Swift'. Deliberately phrased so 'Jonathan'
-    is NOT sentence-initial (that is a separate, documented, accepted
-    guard limitation — see _hallucination_guard's docstring — not what
-    this test is checking)."""
+    is NOT sentence-initial (a separate, documented, accepted guard
+    limitation — see _hallucination_guard's docstring — not what this
+    test is checking). Same Phase 3D.1 downgrade as the Pope test above:
+    warning, not rejection."""
     conn = _fresh_connection()
     source_id = _make_source(conn)
     story_id = _make_story(conn, source_id, original_text=_POPE_SWIFT_SOURCE_TEXT)
@@ -1150,8 +1168,9 @@ def test_name_completion_swift_to_jonathan_swift_is_hard_reject() -> None:
         conn, story_id=story_id, llm_generate=_llm(payload), model_identifier="m", expected_mode="direct_unit"
     )
     conn.close()
-    assert result.status == "rejected"
-    assert any("Jonathan" in e for e in result.errors)
+    assert result.status == "unit_created"
+    assert not result.errors
+    assert any("SUSPICIOUS NAME EXPANSION" in w and "Jonathan" in w for w in result.warnings)
 
 
 @pytest.mark.parametrize(
@@ -1503,7 +1522,7 @@ def _valid_proposal_unit(**overrides) -> dict:
 def test_proposal_does_not_require_modern_hu_text_or_moral_hu() -> None:
     conn = _fresh_connection()
     source_id = _make_source(conn)
-    story_id = _make_story(conn, source_id)
+    story_id = _make_story(conn, source_id, original_text=_LONG_SOURCE_TEXT)
     payload = {"mode": "unit_proposal", "proposed_units": [_valid_proposal_unit()]}
     result = enrich_story(
         conn, story_id=story_id, llm_generate=_llm(payload), model_identifier="m", expected_mode="unit_proposal"
@@ -1517,7 +1536,7 @@ def test_proposal_does_not_require_modern_hu_text_or_moral_hu() -> None:
 def test_proposal_still_requires_title_and_summary() -> None:
     conn = _fresh_connection()
     source_id = _make_source(conn)
-    story_id = _make_story(conn, source_id)
+    story_id = _make_story(conn, source_id, original_text=_LONG_SOURCE_TEXT)
     payload = {
         "mode": "unit_proposal",
         "proposed_units": [_valid_proposal_unit(summary_hu="")],
@@ -1563,7 +1582,7 @@ def test_condensed_story_target_length_chars_range_boundaries(
     source pair with a 5800-char 'condensed' proposal, effectively no
     condensing at all. target_length_chars must additionally sit in
     [200, 1500], on top of (unconditionally) being shorter than the
-    source. _LONG_SOURCE_TEXT (3000 chars) is long enough that every
+    source. _LONG_SOURCE_TEXT (3500 chars) is long enough that every
     value tested here is already 'shorter than source' -- this test is
     isolating the range check alone, not the shorter-than-source check
     (see test_condensed_story_proposal_target_length_must_be_shorter_than_source
@@ -1584,16 +1603,23 @@ def test_condensed_story_target_length_chars_range_boundaries(
 def test_condensed_story_proposal_target_length_must_be_shorter_than_source() -> None:
     """target_length_chars=250 is comfortably inside [200, 1500], so this
     isolates the SEPARATE 'must actually be shorter than the source'
-    check -- the default ORIGINAL_TEXT fixture is only 148 chars, so a
-    250-char target would not condense it at all."""
-    conn = _fresh_connection()
-    source_id = _make_source(conn)
-    story_id = _make_story(conn, source_id)  # default ORIGINAL_TEXT, 148 chars
-    result = enrich_story(
-        conn, story_id=story_id, llm_generate=_llm(_condensed_story_payload(250)),
-        model_identifier="m", expected_mode="unit_proposal",
+    check. Phase 3D.1 note: since derive_enrichment_strategy() only ever
+    routes a story to unit_proposal once its source exceeds 3000 chars,
+    and target_length_chars is capped at 1500, this specific combination
+    (target_length_chars >= source length) can no longer occur through
+    the normal enrich_story() entry point -- it is exercised here by
+    calling the internal _handle_unit_proposal() handler directly against
+    a short, hand-built _LoadedStory, bypassing the length-strategy gate,
+    so the underlying validation logic itself still has real coverage."""
+    from illustration_engine.enrichment_pipeline import _handle_unit_proposal, _LoadedStory
+
+    story = _LoadedStory(
+        id=1, source_id=1, title_original="T", original_text="A" * 148,
+        source_code="TEST", tradition=None,
     )
-    conn.close()
+    raw_response = _llm(_condensed_story_payload(250))("prompt")
+    payload = json.loads(raw_response)
+    result = _handle_unit_proposal(story=story, payload=payload, raw_response=raw_response)
     assert result.status == "rejected"
     assert any("target_length_chars" in e and "shorter" in e for e in result.errors)
 
@@ -1601,7 +1627,7 @@ def test_condensed_story_proposal_target_length_must_be_shorter_than_source() ->
 def test_extracted_scene_proposal_must_not_set_target_length_chars() -> None:
     conn = _fresh_connection()
     source_id = _make_source(conn)
-    story_id = _make_story(conn, source_id)
+    story_id = _make_story(conn, source_id, original_text=_LONG_SOURCE_TEXT)
     payload = {
         "mode": "unit_proposal",
         "proposed_units": [_valid_proposal_unit(target_length_chars=50)],
@@ -1629,3 +1655,275 @@ def test_proposal_prompt_no_longer_requests_modern_hu_text_or_moral_hu() -> None
     assert '"modern_hu_text":' not in prompt
     assert '"moral_hu":' not in prompt
     assert "target_length_chars" in prompt
+
+
+# ---------------------------------------------------------------------------
+# Phase 3D.1: deterministic length strategy + warning-only proper-name guard
+# ---------------------------------------------------------------------------
+
+
+def test_derive_enrichment_strategy_boundaries() -> None:
+    strategy_1400 = derive_enrichment_strategy(1400)
+    assert strategy_1400.expected_mode == "direct_unit"
+    assert strategy_1400.expected_derivation_type == "full_story_translation"
+
+    strategy_1500 = derive_enrichment_strategy(1500)
+    assert strategy_1500.expected_derivation_type == "full_story_translation"
+
+    strategy_1501 = derive_enrichment_strategy(1501)
+    assert strategy_1501.expected_mode == "direct_unit"
+    assert strategy_1501.expected_derivation_type == "condensed_story"
+
+    strategy_2000 = derive_enrichment_strategy(2000)
+    assert strategy_2000.expected_mode == "direct_unit"
+    assert strategy_2000.expected_derivation_type == "condensed_story"
+
+    strategy_3000 = derive_enrichment_strategy(3000)
+    assert strategy_3000.expected_derivation_type == "condensed_story"
+
+    strategy_3001 = derive_enrichment_strategy(3001)
+    assert strategy_3001.expected_mode == "unit_proposal"
+    assert strategy_3001.expected_derivation_type is None
+
+    strategy_3500 = derive_enrichment_strategy(3500)
+    assert strategy_3500.expected_mode == "unit_proposal"
+
+
+_CONDENSED_BAND_SOURCE_TEXT = (
+    "Sheridan told a long and detailed story about London for many hours. " * 30
+)[:2000]
+
+
+def _padded_hungarian_text(char_count: int) -> str:
+    filler = "Ez egy hosszú, tömörített illusztráció szövege. "
+    return (filler * (char_count // len(filler) + 1))[:char_count]
+
+
+def test_condensed_band_modern_hu_text_over_1500_chars_rejected() -> None:
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    story_id = _make_story(conn, source_id, original_text=_CONDENSED_BAND_SOURCE_TEXT)
+    payload = _valid_direct_unit_payload(
+        derivation_type="condensed_story", modern_hu_text=_padded_hungarian_text(1700)
+    )
+    result = enrich_story(
+        conn, story_id=story_id, llm_generate=_llm(payload), model_identifier="m", expected_mode="direct_unit"
+    )
+    conn.close()
+    assert result.status == "rejected"
+    assert any("condensed_story modern_hu_text must be" in e for e in result.errors)
+
+
+def test_condensed_band_modern_hu_text_within_range_accepted() -> None:
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    story_id = _make_story(conn, source_id, original_text=_CONDENSED_BAND_SOURCE_TEXT)
+    payload = _valid_direct_unit_payload(
+        derivation_type="condensed_story", modern_hu_text=_padded_hungarian_text(1000)
+    )
+    result = enrich_story(
+        conn, story_id=story_id, llm_generate=_llm(payload), model_identifier="m", expected_mode="direct_unit"
+    )
+    conn.close()
+    assert result.status == "unit_created"
+
+
+def test_3500_char_source_accepts_unit_proposal() -> None:
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    story_id = _make_story(conn, source_id, original_text="A" * 3500)
+    payload = _condensed_story_payload(500)
+    result = enrich_story(
+        conn, story_id=story_id, llm_generate=_llm(payload), model_identifier="m", expected_mode="unit_proposal"
+    )
+    conn.close()
+    assert result.status == "proposal_ready"
+
+
+def test_derivation_type_mismatch_rejected_with_zero_db_write() -> None:
+    """The LLM no longer freely picks between the two direct_unit
+    derivation types -- for a short (band-A) story, ONLY
+    full_story_translation is valid; sending condensed_story instead is a
+    contract violation, same severity as an expected_mode mismatch."""
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    story_id = _make_story(conn, source_id)  # default ORIGINAL_TEXT, 148 chars -> band A
+    payload = _valid_direct_unit_payload(derivation_type="condensed_story")
+    result = enrich_story(
+        conn, story_id=story_id, llm_generate=_llm(payload), model_identifier="m", expected_mode="direct_unit"
+    )
+    units = conn.execute("SELECT COUNT(*) FROM illustration_units WHERE story_id = ?", (story_id,)).fetchone()[0]
+    conn.close()
+    assert result.status == "rejected"
+    assert any("derivation_type must be" in e for e in result.errors)
+    assert units == 0
+
+
+def test_caller_expected_mode_mismatch_does_not_call_llm() -> None:
+    """A caller-supplied expected_mode that disagrees with what
+    derive_enrichment_strategy() computes from the story's length is a
+    configuration error caught BEFORE llm_generate is invoked at all --
+    no tokens spent, no raw_response, no DB write."""
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    story_id = _make_story(conn, source_id)  # 148 chars -> band A -> direct_unit
+
+    calls: list[str] = []
+
+    def spy_llm(prompt: str) -> str:
+        calls.append(prompt)
+        return json.dumps(_valid_direct_unit_payload())
+
+    result = enrich_story(
+        conn, story_id=story_id, llm_generate=spy_llm, model_identifier="m", expected_mode="unit_proposal"
+    )
+    units = conn.execute("SELECT COUNT(*) FROM illustration_units WHERE story_id = ?", (story_id,)).fetchone()[0]
+    conn.close()
+    assert result.status == "rejected"
+    assert calls == []
+    assert result.unit_id is None
+    assert units == 0
+    assert any("does not match the length-derived strategy" in e for e in result.errors)
+
+
+def test_caller_expected_mode_mismatch_other_direction_does_not_call_llm() -> None:
+    """Same check, opposite direction: a long (unit_proposal-band) story
+    called with expected_mode="direct_unit" must also be rejected before
+    the LLM is called."""
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    story_id = _make_story(conn, source_id, original_text="A" * 3500)  # unit_proposal band
+
+    calls: list[str] = []
+
+    def spy_llm(prompt: str) -> str:
+        calls.append(prompt)
+        return "{}"
+
+    result = enrich_story(
+        conn, story_id=story_id, llm_generate=spy_llm, model_identifier="m", expected_mode="direct_unit"
+    )
+    conn.close()
+    assert result.status == "rejected"
+    assert calls == []
+
+
+def test_diacritic_folding_adam_to_adam_accented_no_warning() -> None:
+    """Phase 3D.1: 'Ádám' (correct Hungarian) must no longer warn purely
+    because of the accent difference from the ASCII source word 'Adam'."""
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    story_id = _make_story(
+        conn, source_id, original_text="A person announced that Adam was the first man created."
+    )
+    payload = _valid_direct_unit_payload(
+        title_hu="Cím",
+        modern_hu_text="A történet Ádámról szól, az első teremtett emberről.",
+        moral_hu="Tanulság.",
+    )
+    result = enrich_story(
+        conn, story_id=story_id, llm_generate=_llm(payload), model_identifier="m", expected_mode="direct_unit"
+    )
+    conn.close()
+    assert result.status == "unit_created"
+    assert not any("dám" in w for w in result.warnings)
+
+
+def test_diacritic_folding_orleans_to_orleans_accented_no_warning() -> None:
+    """Phase 3D.1: 'Orléans' (correct Hungarian spelling) must no longer
+    warn purely because of the accent difference from the ASCII source
+    word 'Orleans' -- this is the exact case that produced the only
+    warning in the Phase 3D untouched 5-story smoke pilot."""
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    story_id = _make_story(
+        conn, source_id, original_text="The Duke of Orleans received the poet warmly."
+    )
+    payload = _valid_direct_unit_payload(
+        title_hu="Cím",
+        modern_hu_text="Az Orléans-i herceg szívélyesen fogadta a költőt.",
+        moral_hu="Tanulság.",
+    )
+    result = enrich_story(
+        conn, story_id=story_id, llm_generate=_llm(payload), model_identifier="m", expected_mode="direct_unit"
+    )
+    conn.close()
+    assert result.status == "unit_created"
+    assert not any("rléans" in w for w in result.warnings)
+
+
+def test_diacritic_folding_does_not_suppress_genuine_semantic_translation_warnings() -> None:
+    """Guard rail for the folding fix itself: János/Anglia/Isten share no
+    letters with john/england/god even after diacritic folding, so they
+    must keep warning exactly as before -- folding is normalization, not
+    a translation dictionary."""
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    story_id = _make_story(
+        conn, source_id, original_text="A person announced to the king that God had blessed England."
+    )
+    payload = _valid_direct_unit_payload(
+        title_hu="Cím",
+        modern_hu_text="Egy ember azt mondta a királynak, hogy Isten megáldotta Angliát.",
+        moral_hu="Tanulság.",
+    )
+    result = enrich_story(
+        conn, story_id=story_id, llm_generate=_llm(payload), model_identifier="m", expected_mode="direct_unit"
+    )
+    conn.close()
+    assert result.status == "unit_created"
+    assert any("Isten" in w for w in result.warnings)
+    assert any("Angli" in w for w in result.warnings)
+
+
+def test_987_style_adamnak_lumley_not_hard_reject() -> None:
+    """Reproduces the exact Phase 3D untouched-pilot false-reject shape:
+    a correct biblical-name translation ('Ádámnak') sitting, by ordinary
+    sentence word order, right next to a real matched source surname
+    ('Lumley') -- must no longer block persistence."""
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    story_id = _make_story(
+        conn,
+        source_id,
+        original_text="The king visited Lumley Castle and admired the portraits of the family.",
+    )
+    payload = _valid_direct_unit_payload(
+        title_hu="Családfa",
+        modern_hu_text=(
+            "A király meglátogatta Lumley kastélyát, és azt mondta, hogy eddig nem "
+            "tudta, hogy Ádámnak Lumley volt a vezetékneve."
+        ),
+        moral_hu="Tanulság.",
+    )
+    result = enrich_story(
+        conn, story_id=story_id, llm_generate=_llm(payload), model_identifier="m", expected_mode="direct_unit"
+    )
+    conn.close()
+    assert result.status == "unit_created"
+    assert not result.errors
+
+
+def test_1575_style_north_irorszaggal_not_hard_reject() -> None:
+    """Reproduces the second Phase 3D untouched-pilot false-reject shape:
+    a correct place-name translation ('Írországgal') sitting right after
+    a real matched source surname ('North') -- must no longer block
+    persistence, but should still surface as a suspicious-adjacency
+    warning for a human to look at first."""
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    story_id = _make_story(
+        conn, source_id, original_text="Lord North brought forward new measures relating to Ireland."
+    )
+    payload = _valid_direct_unit_payload(
+        title_hu="Cím",
+        modern_hu_text="Lord North Írországgal kapcsolatos javaslatokat terjesztett elő.",
+        moral_hu="Tanulság.",
+    )
+    result = enrich_story(
+        conn, story_id=story_id, llm_generate=_llm(payload), model_identifier="m", expected_mode="direct_unit"
+    )
+    conn.close()
+    assert result.status == "unit_created"
+    assert not result.errors
+    assert any("SUSPICIOUS NAME EXPANSION" in w for w in result.warnings)
