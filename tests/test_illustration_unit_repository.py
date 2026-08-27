@@ -140,6 +140,86 @@ def test_update_draft_unit_refuses_silent_overwrite_of_reviewed_content() -> Non
     conn.close()
 
 
+def test_update_draft_unit_refuses_enrichment_provenance_only_change_on_reviewed_unit() -> None:
+    """Schema v4/Phase 3C-c: enrichment_model/_prompt_version/
+    _generated_at/warnings are protected the same way as title_hu etc.
+    -- a call that touches ONLY provenance fields (no visible content at
+    all) on an already-reviewed unit must still be refused, not slip
+    through because it doesn't mention title_hu/modern_hu_text."""
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    story_id = _make_story(conn, source_id)
+    unit_id = create_draft_unit(conn, story_id=story_id, unit_index=1, derivation_type="full_story_translation")
+    update_draft_unit(
+        conn, unit_id=unit_id, title_hu="Cím", modern_hu_text="Szöveg", summary_hu="Összefoglaló",
+        enrichment_model="claude-sonnet-5",
+    )
+    conn.commit()
+    approve_unit(conn, unit_id)
+    conn.commit()
+
+    with pytest.raises(IllustrationUnitReviewProtectionError):
+        update_draft_unit(conn, unit_id=unit_id, enrichment_model="a-different-model")
+    with pytest.raises(IllustrationUnitReviewProtectionError):
+        update_draft_unit(conn, unit_id=unit_id, enrichment_warnings=("a new warning",))
+    conn.close()
+
+
+def test_explicit_overwrite_of_enrichment_provenance_demotes_unit() -> None:
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    story_id = _make_story(conn, source_id)
+    unit_id = create_draft_unit(conn, story_id=story_id, unit_index=1, derivation_type="full_story_translation")
+    update_draft_unit(
+        conn, unit_id=unit_id, title_hu="Cím", modern_hu_text="Szöveg", summary_hu="Összefoglaló",
+        enrichment_model="claude-sonnet-5",
+    )
+    conn.commit()
+    approve_unit(conn, unit_id)
+    conn.commit()
+
+    update_draft_unit(
+        conn, unit_id=unit_id, enrichment_model="a-different-model", allow_overwrite_reviewed=True
+    )
+    conn.commit()
+    updated = get_unit(conn, unit_id)
+    conn.close()
+    assert updated.enrichment_model == "a-different-model"
+    assert updated.human_reviewed_at is None
+    assert updated.status == "needs_review"
+
+
+def test_approve_and_publish_leave_all_enrichment_provenance_fields_unchanged() -> None:
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    story_id = _make_story(conn, source_id)
+    unit_id = create_draft_unit(conn, story_id=story_id, unit_index=1, derivation_type="full_story_translation")
+    update_draft_unit(
+        conn, unit_id=unit_id, title_hu="Cím", modern_hu_text="Szöveg", summary_hu="Összefoglaló",
+        enrichment_model="claude-sonnet-5",
+        enrichment_prompt_version="hu_illustration_enrichment_pilot_v1",
+        enrichment_generated_at="2026-01-01T00:00:00+00:00",
+        enrichment_warnings=("a real finding",),
+    )
+    conn.commit()
+    before = get_unit(conn, unit_id)
+
+    approve_unit(conn, unit_id)
+    conn.commit()
+    after_approve = get_unit(conn, unit_id)
+
+    publish_unit(conn, unit_id)
+    conn.commit()
+    after_publish = get_unit(conn, unit_id)
+    conn.close()
+
+    for field in ("enrichment_model", "enrichment_prompt_version", "enrichment_generated_at", "enrichment_warnings"):
+        before_value = getattr(before, field)
+        assert getattr(after_approve, field) == before_value
+        assert getattr(after_publish, field) == before_value
+    assert after_publish.status == "published"
+
+
 def test_approved_unit_explicit_overwrite_demotes_to_needs_review() -> None:
     """An explicit override on an APPROVED (not yet published) unit
     succeeds, but must actually demote it: human_reviewed_at cleared

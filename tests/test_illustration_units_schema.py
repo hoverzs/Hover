@@ -53,8 +53,8 @@ def _make_story(conn: sqlite3.Connection, source_id: int, *, original_text: str 
     )
 
 
-def test_schema_version_is_3() -> None:
-    assert SCHEMA_VERSION == 3
+def test_schema_version_is_4() -> None:
+    assert SCHEMA_VERSION == 4
 
 
 def test_required_tables_and_views_present() -> None:
@@ -293,6 +293,127 @@ def test_human_reviewed_content_protected_from_silent_overwrite_via_sql_trigger(
             (unit_id,),
         )
     conn.close()
+
+
+def test_approved_unit_enrichment_warnings_raw_sql_update_blocked_without_demotion() -> None:
+    """Schema v4/Phase 3C-c: enrichment_warnings_json is audit/provenance
+    data, not visible content, but it must be protected the same way --
+    a raw SQL UPDATE that touches ONLY this column on an approved unit,
+    without demoting it, must still be rejected by the trigger."""
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    story_id = _make_story(conn, source_id)
+    unit_id = insert_illustration_unit(
+        conn,
+        story_id=story_id,
+        unit_index=1,
+        derivation_type="full_story_translation",
+        title_hu="Cím",
+        modern_hu_text="Szöveg",
+        summary_hu="Összefoglaló",
+        status="approved",
+        human_reviewed_at="2026-01-01T00:00:00+00:00",
+    )
+    conn.commit()
+    with pytest.raises(sqlite3.IntegrityError, match="review_gate"):
+        conn.execute(
+            "UPDATE illustration_units SET enrichment_warnings_json = '[\"invented\"]' WHERE id = ?",
+            (unit_id,),
+        )
+    conn.close()
+
+
+def test_published_unit_enrichment_model_raw_sql_update_blocked_without_demotion() -> None:
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    story_id = _make_story(conn, source_id)
+    unit_id = insert_illustration_unit(
+        conn,
+        story_id=story_id,
+        unit_index=1,
+        derivation_type="full_story_translation",
+        title_hu="Cím",
+        modern_hu_text="Szöveg",
+        summary_hu="Összefoglaló",
+        status="published",
+        human_reviewed_at="2026-01-01T00:00:00+00:00",
+        enrichment_model="claude-sonnet-5",
+    )
+    conn.commit()
+    with pytest.raises(sqlite3.IntegrityError, match="review_gate"):
+        conn.execute(
+            "UPDATE illustration_units SET enrichment_model = 'a-different-model' WHERE id = ?",
+            (unit_id,),
+        )
+    conn.close()
+
+
+def test_prompt_version_and_generated_at_raw_sql_update_blocked_without_demotion() -> None:
+    """Same protection for the remaining two enrichment-provenance
+    columns -- checked together since they share the exact same
+    mechanism as enrichment_model/enrichment_warnings_json above."""
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    story_id = _make_story(conn, source_id)
+    unit_id = insert_illustration_unit(
+        conn,
+        story_id=story_id,
+        unit_index=1,
+        derivation_type="full_story_translation",
+        title_hu="Cím",
+        modern_hu_text="Szöveg",
+        summary_hu="Összefoglaló",
+        status="approved",
+        human_reviewed_at="2026-01-01T00:00:00+00:00",
+        enrichment_prompt_version="hu_illustration_enrichment_pilot_v1",
+        enrichment_generated_at="2026-01-01T00:00:00+00:00",
+    )
+    conn.commit()
+    with pytest.raises(sqlite3.IntegrityError, match="review_gate"):
+        conn.execute(
+            "UPDATE illustration_units SET enrichment_prompt_version = 'v2' WHERE id = ?",
+            (unit_id,),
+        )
+    with pytest.raises(sqlite3.IntegrityError, match="review_gate"):
+        conn.execute(
+            "UPDATE illustration_units SET enrichment_generated_at = '2027-01-01T00:00:00+00:00' WHERE id = ?",
+            (unit_id,),
+        )
+    conn.close()
+
+
+def test_enrichment_provenance_change_allowed_with_explicit_demotion() -> None:
+    """The same sanctioned path as reviewed CONTENT changes: touching an
+    enrichment-provenance column succeeds when the SAME UPDATE also
+    clears human_reviewed_at and resets status to needs_review."""
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    story_id = _make_story(conn, source_id)
+    unit_id = insert_illustration_unit(
+        conn,
+        story_id=story_id,
+        unit_index=1,
+        derivation_type="full_story_translation",
+        title_hu="Cím",
+        modern_hu_text="Szöveg",
+        summary_hu="Összefoglaló",
+        status="approved",
+        human_reviewed_at="2026-01-01T00:00:00+00:00",
+        enrichment_model="claude-sonnet-5",
+    )
+    conn.commit()
+    conn.execute(
+        "UPDATE illustration_units SET enrichment_model = 'a-different-model', "
+        "human_reviewed_at = NULL, status = 'needs_review' WHERE id = ?",
+        (unit_id,),
+    )
+    conn.commit()
+    row = conn.execute(
+        "SELECT enrichment_model, human_reviewed_at, status FROM illustration_units WHERE id = ?",
+        (unit_id,),
+    ).fetchone()
+    conn.close()
+    assert row == ("a-different-model", None, "needs_review")
 
 
 def test_reviewed_content_change_requires_null_timestamp_and_needs_review_status_together() -> None:

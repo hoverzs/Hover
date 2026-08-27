@@ -1,12 +1,12 @@
-"""Read/write repository API for `illustration_units` (schema v3,
-Phase 3A) — the layer a future controlled enrichment pilot (and,
+"""Read/write repository API for `illustration_units` (schema v4,
+Phase 3A/3C-c) — the layer a future controlled enrichment pilot (and,
 eventually, `app.py`-side retrieval — NOT wired up here) is meant to
 call, instead of every caller hand-rolling its own SQL against
 `illustration_sqlite.py`'s low-level primitives.
 
 Nothing here calls an LLM, generates Hungarian text, or writes to any
 `stories` provenance field — this module only moves already-produced
-enrichment field values into/through the schema v3 gates. Every
+enrichment field values into/through the schema v4 gates. Every
 transition function relies on the two independent DB-layer gates
 (content-completeness CHECK + license trigger for `published`, the
 human-review-protection trigger for content updates) to actually be
@@ -16,6 +16,7 @@ messages and cheaper pre-flight validation, not as the sole guarantee.
 
 from __future__ import annotations
 
+import json
 import sqlite3
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -44,6 +45,11 @@ class IllustrationUnitView:
     enrichment_model: str | None
     enrichment_prompt_version: str | None
     enrichment_generated_at: str | None
+    # Parsed from the DB's `enrichment_warnings_json` TEXT column so no
+    # caller (least of all a future review UI) ever has to hand-parse raw
+    # JSON — () means the last enrichment run produced no warnings, same
+    # meaning as a NULL column value.
+    enrichment_warnings: tuple[str, ...]
     human_reviewed_at: str | None
     created_at: str
     updated_at: str
@@ -66,6 +72,7 @@ _UNIT_COLUMNS = (
     "enrichment_model",
     "enrichment_prompt_version",
     "enrichment_generated_at",
+    "enrichment_warnings_json",
     "human_reviewed_at",
     "created_at",
     "updated_at",
@@ -73,7 +80,10 @@ _UNIT_COLUMNS = (
 
 
 def _row_to_view(row: tuple) -> IllustrationUnitView:
-    return IllustrationUnitView(**dict(zip(_UNIT_COLUMNS, row)))
+    values = dict(zip(_UNIT_COLUMNS, row))
+    raw_warnings_json = values.pop("enrichment_warnings_json")
+    values["enrichment_warnings"] = tuple(json.loads(raw_warnings_json)) if raw_warnings_json else ()
+    return IllustrationUnitView(**values)
 
 
 def create_draft_unit(
@@ -112,6 +122,7 @@ def update_draft_unit(
     enrichment_model: str | None = None,
     enrichment_prompt_version: str | None = None,
     enrichment_generated_at: str | None = None,
+    enrichment_warnings: tuple[str, ...] | None = None,
     allow_overwrite_reviewed: bool = False,
 ) -> None:
     """Writes enrichment output onto an existing unit. Refuses (via
@@ -125,7 +136,17 @@ def update_draft_unit(
     `needs_review` in the same write, so it immediately drops out of
     `published_illustration_units`/`search_units()` results — a fresh
     `approve_unit()`/`publish_unit()` pass is required to make it
-    retrieval-ready again."""
+    retrieval-ready again.
+
+    `enrichment_warnings` uses REPLACE, not accumulate-or-omit,
+    semantics, unlike every other parameter here: passing the Python
+    default `None` means "not specified, leave the column untouched"
+    (same as every other field), but passing `()` (an explicitly EMPTY
+    tuple — a real run that found nothing to warn about) SETS the column
+    to NULL rather than being filtered out like every other falsy-or-None
+    value would be. This is what makes a clean re-run correctly erase a
+    stale warning left over from an earlier, warning-producing run,
+    rather than leaving it to look like it still applies."""
     fields = {
         name: value
         for name, value in (
@@ -141,6 +162,10 @@ def update_draft_unit(
         )
         if value is not None
     }
+    if enrichment_warnings is not None:
+        fields["enrichment_warnings_json"] = (
+            json.dumps(list(enrichment_warnings)) if enrichment_warnings else None
+        )
     if not fields:
         return
     update_illustration_unit_fields(

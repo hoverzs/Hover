@@ -102,6 +102,131 @@ FOLLOW-UP HARDENING (post-review, before any real LLM call):
   cannot catch (e.g. a translated place name/demonym, or a genuinely
   invented name that happens to start with a real short capitalized
   source word).
+
+FINDINGS FROM THE PHASE 3C LIVE SMOKE PILOT (5 real Claude-generated
+stories), fixed here before the full 25-story pilot:
+
+- **Sentence-boundary false positive.** `_SENTENCE_SPLIT_RE` only
+  recognized `.!?…` immediately followed by whitespace as a sentence
+  boundary. Dialogue overwhelmingly ends "word.”" (terminal punctuation,
+  THEN a closing curly quote, THEN the space) — that quote character
+  defeated the boundary check, so the next sentence's genuinely
+  sentence-initial word was treated as mid-sentence and wrongly checked
+  by the hallucination guard. This is exactly how the real pilot
+  rejected a valid story over the Hungarian article "Egy" (not a proper
+  noun at all). Fixed with a minimal extension — a small, fixed set of
+  closing punctuation characters allowed between the terminal mark and
+  the whitespace — not a general NLP sentence segmenter.
+- **Name completion is now an explicit prompt rule, not just a guard
+  side-effect.** The real pilot's OTHER rejection (adding "Alexander"
+  to a source that only ever wrote "Pope") was actually a CORRECT guard
+  catch, but relying on the guard alone to catch this is fragile (the
+  guard only catches a NEW capitalized token, not e.g. a title/rank
+  silently expanded into a full name using a lowercase or already-
+  present surname). `build_enrichment_prompt` now states outright,
+  covering `title_hu`/`modern_hu_text`/`summary_hu`/`moral_hu`: never
+  complete a name from outside knowledge, regardless of whether the
+  completion happens to be factually correct.
+- **`narrative_status` provenance discipline is now an explicit prompt
+  rule.** Nothing in the schema or the pipeline could previously stop
+  the model from using its own general historical knowledge (e.g.
+  "Voltaire was really beaten in the Chevalier de Rohan affair") to
+  decide how confidently a SPECIFIC anecdote should be classified —
+  the classification must come only from `original_text` and the
+  source metadata already in the prompt, never from the model's
+  training-data knowledge about the named figures. The prompt now
+  states this explicitly, using the Voltaire/Rohan case itself (found
+  during the live pilot's own narrative_status output) as the
+  illustrative example of what NOT to do. Deliberate architectural
+  boundary, stated here rather than solved with more code: a genuine
+  historical-fact-verification pipeline, if ever wanted, must be a
+  separate, sourced research/enrichment pipeline — this one is not
+  extended to attempt it.
+- **A single typo ("önteltségééért") found in the live pilot's
+  Hungarian output was audited for a lightweight, deterministic sanity
+  check** (no spellchecker, no new dependency). A narrow, plausible
+  candidate exists — flagging a doubled identical accented vowel
+  letter within one word (e.g. "éé", "óó"), which is not valid in
+  standard Hungarian orthography — but this was deliberately NOT
+  implemented: one incidental typo from one run is not yet a
+  demonstrated pattern, and adding a new rejecting guard on that basis
+  would itself be the kind of speculative heuristic this project
+  avoids. Left as a human-review task; documented here so the option
+  is not lost if a real pattern emerges later. CORRECTION: this
+  specific typo claim was itself wrong on review — "önteltségéért" is
+  correct Hungarian (a possessed noun + the "-ért" postposition
+  regularly doubles the accented vowel, as in the common word
+  "kedvéért"), not a typo. No actual quality defect was found in the
+  first pilot run's Hungarian text; the sanity-check idea above is kept
+  only as a documented (and now known-questionable) option, not a
+  finding that motivates anything.
+
+FURTHER NARRATIVE_STATUS TIGHTENING (second follow-up, before the full
+25-story pilot): the pilot's own `legend_about_historical_figure`
+classification for the Voltaire "Justice" story turned out to still be
+under-justified — "real historical person + old anecdote + punchline +
+unverifiable" is NOT sufficient evidence for "legend" any more than it
+is for "documented event"; both require the SAME kind of explicit
+textual/provenance support. `legend_about_historical_figure`
+now requires the source itself to identify the material as legendary
+(e.g. an editor's preface using the words "legend"/"legendary"/
+"traditional legend") — otherwise the conservative fallback is
+`traditional_anecdote`. Source-aware defaults were also added (English
+Jests -> traditional_anecdote, Aesop -> fable, Hungarian folktale
+sources -> folktale, Hebrew Tales -> rabbinic_aggadic_tale, Gulistan ->
+didactic_tale), with an explicit caution that Baldwin's preface
+documenting a "half-legendary" character for the COLLECTION as a whole
+must not be auto-applied to every individual Baldwin story.
+
+PHASE 3C-c: the 25-story run itself must be described precisely — it was
+a **diagnostic / curated pilot run**, not an untouched live-LLM pass:
+several composed outputs were hand-edited during pre-flight specifically
+to route around the (then single-tier) hallucination guard before the
+real `enrich_story()` call, e.g. keeping "England"/"Scotland" untranslated
+or lower-casing "ördög". That editing is exactly what motivated the two
+changes below — it should not recur as a normal part of running this
+pipeline.
+
+TWO-TIER PROPER-NOUN GUARD (this section) — `_hallucination_guard` used
+to have exactly one severity: any unmatched capitalized candidate was a
+hard rejection, full stop. The 25-story pilot showed this conflates two
+very different situations under one penalty:
+
+- A genuinely invented identifying token glued onto a real, kept source
+  name (source "Pope" -> output "Alexander Pope") — an actual,
+  correctness-relevant hallucination.
+- A correct Hungarian TRANSLATION of a source concept whose spelling
+  simply doesn't resemble the English source word (God -> Isten,
+  Devil -> Ördög, England -> Anglia, Scotland -> Skócia, France ->
+  Franciaország, Ireland -> Írország) — not a hallucination at all.
+
+Hand-maintaining a translation dictionary to whitelist the second case
+was explicitly rejected (it only grows, never closes) — instead,
+`_hallucination_guard` now uses a structural signal already present in
+its own token stream: an unmatched candidate ADJACENT to a matched one
+(the name-completion shape) is a hard reject; an unmatched candidate
+with no such neighbor is a warning only. See `_hallucination_guard`'s
+own docstring for the full reasoning and accepted limitations.
+`EnrichmentResult` and `ProposedUnit` gained a `warnings` field so this
+new, non-fatal tier is actually visible to a caller/reviewer rather than
+silently dropped.
+
+PROPOSAL CONTRACT (this section) — `unit_proposal` mode used to require
+the SAME full `modern_hu_text`/`moral_hu` as `direct_unit`. On the
+25-story pilot's own long-story stress case (412, King John and the
+Abbot: ~6170-char source), this produced a ~5775-char "proposal" — in
+substance a full translation already done, defeating the entire point of
+proposing-before-generating (deciding WHICH unit(s) a long story should
+become before spending tokens writing any of them). `unit_proposal` no
+longer requires (or even accepts as meaningful — a returned
+`ProposedUnit.modern_hu_text` is always `None`) `modern_hu_text`/
+`moral_hu`. A `condensed_story` proposal instead states
+`target_length_chars`, an estimate for a LATER, human-approved generation
+pass to aim for. The pipeline: long source -> AI unit proposal (title,
+summary, tags, narrative_status, rationale, target length) -> human
+accept/reject -> only THEN, for an accepted proposal, a separate future
+call generates the real `modern_hu_text`. That generation step does not
+exist yet in this module — out of scope here, same as before.
 """
 
 from __future__ import annotations
@@ -164,6 +289,25 @@ PILOT_HOMILETIC_FUNCTIONS: frozenset[str] = frozenset(
 _DIRECT_UNIT_DERIVATION_TYPES = frozenset({"full_story_translation", "condensed_story"})
 _PROPOSAL_DERIVATION_TYPES = frozenset({"extracted_scene", "condensed_story"})
 
+# Which text fields _validate_common_fields requires to be non-empty --
+# direct_unit still needs the full Hungarian content; unit_proposal (Phase
+# 3C-c PROPOSAL CONTRACT) deliberately does NOT require modern_hu_text or
+# moral_hu, since a proposal's job is only to decide WHAT unit could be
+# made, not to write it.
+_DIRECT_UNIT_TEXT_FIELDS = ("title_hu", "modern_hu_text", "summary_hu", "moral_hu")
+_PROPOSAL_TEXT_FIELDS = ("title_hu", "summary_hu")
+
+# A retrieval-ready illustration unit is meant to be a short, directly
+# tellable pulpit illustration -- NOT a condensed-but-still-substantial
+# translation of the whole source. Phase 3C-c follow-up: the original
+# "just shorter than the source" rule alone let a 6000-char source pair
+# with a 5800-char "condensed" proposal, i.e. almost no condensing at
+# all -- exactly the problem the target_length_chars field exists to
+# prevent. These bounds mirror the range real full_story_translation
+# units landed in during the 25-story pilot (204-2395 chars, median 395).
+_MIN_TARGET_LENGTH_CHARS = 200
+_MAX_TARGET_LENGTH_CHARS = 1500
+
 ALLOWED_MODES: frozenset[str] = frozenset({"direct_unit", "unit_proposal"})
 
 # Which (category, controlled-slug-set) pairs this pipeline is allowed to
@@ -190,7 +334,20 @@ _SUMMARY_MAX_WORDS = 100
 # human review regardless, so a false rejection here just means a human
 # re-runs or hand-corrects it, never that bad content silently ships.
 _CANDIDATE_PROPER_NOUN_RE = re.compile(r"[A-ZÁÉÍÓÖŐÚÜŰ][a-záéíóöőúüű'\-]{2,}")
-_SENTENCE_SPLIT_RE = re.compile(r"(?<=[.!?…])\s+|\n+")
+# Allows a closing quote/apostrophe/bracket BETWEEN the terminal
+# punctuation and the following whitespace — e.g. '...canals.” Egy
+# ismerőse...' — before this fix, the lookbehind only matched
+# whitespace immediately after .!?…, so a sentence ending in a closing
+# curly quote (extremely common: dialogue almost always ends "word.”")
+# was never recognized as a boundary. The whole rest of that quoted
+# sentence was then treated as a continuation of the PRECEDING sentence,
+# so the first word after the quote landed at a non-zero position and
+# got checked by the hallucination guard even though it was genuinely
+# sentence-initial — this is exactly the "Egy" (Hungarian indefinite
+# article) false positive found on the first real pilot run (Phase 3C).
+# Deliberately minimal: a small, fixed set of closing punctuation
+# characters, not a general NLP sentence segmenter.
+_SENTENCE_SPLIT_RE = re.compile(r"(?<=[.!?…])[\"'’”)\]]*\s+|\n+")
 
 
 @dataclass(frozen=True)
@@ -204,9 +361,13 @@ class ProposedUnit:
     source_span_start: int | None
     source_span_end: int | None
     title_hu: str
-    modern_hu_text: str
+    # modern_hu_text/moral_hu are deliberately None for every proposal (see
+    # the Phase 3C-c "PROPOSAL CONTRACT" module-docstring section) -- full
+    # Hungarian illustration text is generated only after a human accepts
+    # a specific proposed unit, never speculatively for every candidate.
+    modern_hu_text: str | None
     summary_hu: str
-    moral_hu: str
+    moral_hu: str | None
     topics: tuple[str, ...]
     tone: str
     homiletic_functions: tuple[str, ...]
@@ -214,6 +375,11 @@ class ProposedUnit:
     narrative_status_confidence: str
     rationale: str | None
     standalone_reason: str | None
+    # Only set (and only meaningful) for derivation_type="condensed_story":
+    # a rough character-count estimate for the modern_hu_text a LATER,
+    # human-approved generation pass would aim for -- never used to
+    # generate text now.
+    target_length_chars: int | None = None
 
 
 @dataclass(frozen=True)
@@ -223,6 +389,11 @@ class EnrichmentResult:
     unit_id: int | None = None
     proposed_units: tuple[ProposedUnit, ...] = field(default_factory=tuple)
     errors: tuple[str, ...] = field(default_factory=tuple)
+    # Non-fatal hallucination-guard findings (see _hallucination_guard's
+    # HARD REJECT / WARNING split) -- present alongside a "unit_created" or
+    # "proposal_ready" result, never causes rejection by itself. Meant to
+    # be surfaced to a human reviewer, not acted on automatically.
+    warnings: tuple[str, ...] = field(default_factory=tuple)
     raw_response: str | None = None
 
 
@@ -359,7 +530,11 @@ def _handle_direct_unit(
         )
 
     errors: list[str] = []
-    _validate_common_fields(unit_payload, errors, source_text=story.original_text)
+    warnings: list[str] = []
+    _validate_common_fields(
+        unit_payload, errors, warnings,
+        source_text=story.original_text, required_text_fields=_DIRECT_UNIT_TEXT_FIELDS,
+    )
     derivation_type = unit_payload.get("derivation_type")
     if derivation_type not in _DIRECT_UNIT_DERIVATION_TYPES:
         errors.append(
@@ -400,6 +575,10 @@ def _handle_direct_unit(
             enrichment_model=model_identifier,
             enrichment_prompt_version=prompt_version,
             enrichment_generated_at=now,
+            # Always explicitly passed (never omitted) so a clean rerun's
+            # empty tuple correctly REPLACES a stale warning from a
+            # previous run with NULL, rather than leaving it untouched.
+            enrichment_warnings=tuple(warnings),
             allow_overwrite_reviewed=allow_overwrite_reviewed,
         )
         _sync_pilot_tags(
@@ -428,7 +607,10 @@ def _handle_direct_unit(
     else:
         connection.execute("RELEASE SAVEPOINT enrich_direct_unit")
 
-    return EnrichmentResult(status="unit_created", story_id=story.id, unit_id=unit_id, raw_response=raw_response)
+    return EnrichmentResult(
+        status="unit_created", story_id=story.id, unit_id=unit_id,
+        warnings=tuple(warnings), raw_response=raw_response,
+    )
 
 
 def _handle_unit_proposal(
@@ -444,13 +626,18 @@ def _handle_unit_proposal(
         )
 
     errors: list[str] = []
+    warnings: list[str] = []
     proposed: list[ProposedUnit] = []
     for index, unit_payload in enumerate(raw_units):
         if not isinstance(unit_payload, dict):
             errors.append(f"proposed_units[{index}] is not an object")
             continue
         unit_errors: list[str] = []
-        _validate_common_fields(unit_payload, unit_errors, source_text=story.original_text)
+        unit_warnings: list[str] = []
+        _validate_common_fields(
+            unit_payload, unit_errors, unit_warnings,
+            source_text=story.original_text, required_text_fields=_PROPOSAL_TEXT_FIELDS,
+        )
 
         derivation_type = unit_payload.get("derivation_type")
         if derivation_type not in _PROPOSAL_DERIVATION_TYPES:
@@ -474,9 +661,34 @@ def _handle_unit_proposal(
         elif span_start is not None or span_end is not None:
             unit_errors.append(f"proposed_units[{index}]: only extracted_scene may set source_span_start/end")
 
+        # PROPOSAL CONTRACT (Phase 3C-c): a condensed_story proposal states
+        # only an ESTIMATED target length for the eventual modern_hu_text —
+        # the text itself is never generated at proposal time. Required
+        # exactly where extracted_scene requires source_span_start/end.
+        target_length_chars = unit_payload.get("target_length_chars")
+        if derivation_type == "condensed_story":
+            if (
+                not isinstance(target_length_chars, int)
+                or isinstance(target_length_chars, bool)
+                or not (_MIN_TARGET_LENGTH_CHARS <= target_length_chars <= _MAX_TARGET_LENGTH_CHARS)
+            ):
+                unit_errors.append(
+                    f"proposed_units[{index}]: condensed_story requires an integer 'target_length_chars' "
+                    f"between {_MIN_TARGET_LENGTH_CHARS} and {_MAX_TARGET_LENGTH_CHARS}"
+                )
+            elif target_length_chars >= len(story.original_text):
+                unit_errors.append(
+                    f"proposed_units[{index}]: target_length_chars ({target_length_chars}) must be shorter "
+                    f"than the source text ({len(story.original_text)} chars) — a condensed_story must "
+                    "actually condense"
+                )
+        elif target_length_chars is not None:
+            unit_errors.append(f"proposed_units[{index}]: only condensed_story may set target_length_chars")
+
         if unit_errors:
             errors.extend(f"proposed_units[{index}]: {e}" for e in unit_errors)
             continue
+        warnings.extend(f"proposed_units[{index}]: {w}" for w in unit_warnings)
 
         proposed.append(
             ProposedUnit(
@@ -484,9 +696,12 @@ def _handle_unit_proposal(
                 source_span_start=span_start,
                 source_span_end=span_end,
                 title_hu=unit_payload["title_hu"],
-                modern_hu_text=unit_payload["modern_hu_text"],
+                # Deliberately never carried forward from the payload, even
+                # if the model supplied one anyway — see the PROPOSAL
+                # CONTRACT note on ProposedUnit itself.
+                modern_hu_text=None,
                 summary_hu=unit_payload["summary_hu"],
-                moral_hu=unit_payload["moral_hu"],
+                moral_hu=None,
                 topics=tuple(unit_payload["topics"]),
                 tone=unit_payload["tone"],
                 homiletic_functions=tuple(unit_payload["homiletic_functions"]),
@@ -494,6 +709,7 @@ def _handle_unit_proposal(
                 narrative_status_confidence=unit_payload["narrative_status_confidence"],
                 rationale=unit_payload.get("rationale"),
                 standalone_reason=unit_payload.get("standalone_reason"),
+                target_length_chars=target_length_chars if derivation_type == "condensed_story" else None,
             )
         )
 
@@ -506,7 +722,8 @@ def _handle_unit_proposal(
     # split may only become real illustration_units after separate,
     # explicit human approval of THIS proposal list.
     return EnrichmentResult(
-        status="proposal_ready", story_id=story.id, proposed_units=tuple(proposed), raw_response=raw_response
+        status="proposal_ready", story_id=story.id, proposed_units=tuple(proposed),
+        warnings=tuple(warnings), raw_response=raw_response,
     )
 
 
@@ -570,8 +787,15 @@ def _sync_pilot_tags(
         attach_tag_to_unit(connection, unit_id=unit_id, tag_id=tag_id)
 
 
-def _validate_common_fields(unit_payload: dict, errors: list[str], *, source_text: str) -> None:
-    for field_name in ("title_hu", "modern_hu_text", "summary_hu", "moral_hu"):
+def _validate_common_fields(
+    unit_payload: dict,
+    errors: list[str],
+    warnings: list[str],
+    *,
+    source_text: str,
+    required_text_fields: tuple[str, ...],
+) -> None:
+    for field_name in required_text_fields:
         value = unit_payload.get(field_name)
         if not isinstance(value, str) or not value.strip():
             errors.append(f"{field_name} must be a non-empty string")
@@ -613,8 +837,9 @@ def _validate_common_fields(unit_payload: dict, errors: list[str], *, source_tex
             f"got {confidence!r}"
         )
 
-    if isinstance(value := unit_payload.get("modern_hu_text"), str) and value.strip():
-        errors.extend(_hallucination_guard(unit_payload, source_text=source_text))
+    hard_reject, guard_warnings = _hallucination_guard(unit_payload, source_text=source_text)
+    errors.extend(hard_reject)
+    warnings.extend(guard_warnings)
 
 
 def _validate_source_span(span_start: object, span_end: object, *, text_length: int) -> list[str]:
@@ -641,7 +866,7 @@ _MIN_SOURCE_WORD_LEN_FOR_PREFIX_MATCH = 3
 _SOURCE_PROPER_NOUN_RE = re.compile(r"[A-Z][a-zA-Z]{2,}")
 
 
-def _hallucination_guard(unit_payload: dict, *, source_text: str) -> list[str]:
+def _hallucination_guard(unit_payload: dict, *, source_text: str) -> tuple[list[str], list[str]]:
     """Flags capitalized, non-sentence-initial Hungarian words in the
     enrichment output that don't look like they're built from any
     CAPITALIZED word appearing in the source text — a coarse tripwire
@@ -650,46 +875,65 @@ def _hallucination_guard(unit_payload: dict, *, source_text: str) -> list[str]:
     relied on as one — see the false-negative/false-positive limits
     documented below, all still present after the fixes.
 
-    TWO DESIGN CHOICES, both changed after auditing real false results:
+    Returns `(hard_reject_messages, warning_messages)`. See the module
+    docstring's "TWO-TIER PROPER-NOUN GUARD" section (Phase 3C-c) for
+    the finding that motivated the split — the earlier single-tier
+    version rejected genuinely correct translations (God->Isten,
+    England->Anglia) with the same severity as an actual invented name
+    (Pope->"Alexander Pope"), which is not the same class of problem and
+    must not be handled the same way.
 
-    1. Single-direction PREFIX matching (candidate must START WITH a
-       source word — not "either starts with the other"). Hungarian is
-       agglutinative, so a transliterated proper noun almost always
-       carries a case suffix glued directly onto the end ("Sheridannek",
-       "Londonban", "Kenyonhoz") — candidate.startswith(source_word)
-       correctly accepts those. The EARLIER, bidirectional version also
-       accepted source_word.startswith(candidate), which let a SHORT
-       hallucinated name slip through un-flagged whenever it happened to
-       be a prefix of some longer, totally unrelated capitalized source
-       word (e.g. invented "Ede" passing because a real source word
-       "Edenville" happens to start with "ede") — a real false negative
-       found during audit, now closed by dropping that direction.
+    TIER LOGIC — an unmatched candidate (no source word it prefix-
+    matches) is:
 
-    2. The source-word comparison pool is CAPITALIZED source tokens
-       ONLY, not every lowercase word in original_text. This closes a
-       second false-negative hole: a hallucinated name could previously
-       "pass" by prefix-matching an ordinary lowercase common word
-       (a köznév) that has nothing to do with any proper noun in the
-       story — e.g. "Manó" passing because the source happens to contain
-       the ordinary word "man". Since capitalized tokens in the English
-       source are overwhelmingly proper nouns (plus a harmless handful
-       of sentence-initial ordinary words, an acceptable superset), this
-       is a much smaller, more meaningful comparison pool.
+    - **HARD REJECT** if it sits immediately next to (before or after) a
+      DIFFERENT candidate word in the same sentence that DOES match a
+      source word. This is the name-completion signature: the model
+      kept a real name from the source ("Pope", "Swift") and glued a new,
+      unverifiable identifying token onto it ("Alexander", "Jonathan").
+      An unmatched word with no such matched neighbor was never observed
+      to exhibit this pattern in the Phase 3C-c pilot's audited cases.
+    - **WARNING** otherwise — most commonly a translated/exonym proper
+      noun standing on its own (Isten, Ördög, Anglia, Skócia,
+      Franciaország, Írország — a real, correct Hungarian word for a
+      source concept that just doesn't share source_text's spelling).
+      Never blocks persistence; the caller carries this into
+      `EnrichmentResult.warnings` for a human reviewer to see.
 
-    REMAINING, ACCEPTED LIMITATIONS (still real, still not "fixed" —
-    a lightweight heuristic cannot fully close these without becoming a
-    real NER system, which this deliberately is not):
-    - A translated place name/demonym (e.g. "Anglia" for "England")
-      still has no matching source word and will still false-positive.
-    - A genuinely invented name that happens to itself start with a
-      real, short, unrelated capitalized source word can still slip
-      through (e.g. invented "Edemano" against a real source "Ede") —
-      narrower than before (needs a SHORT-OR-SHORTER real source word
-      as the prefix now, not any-length one), but not impossible.
+    This adjacency heuristic was chosen over either (a) a hand-maintained
+    translation dictionary (English place/deity names -> Hungarian
+    equivalents — the user explicitly asked NOT to build this, since it
+    only grows and never closes) or (b) a real NER model (explicitly out
+    of scope) — it needs no per-language vocabulary at all, and it is
+    exactly the shape of evidence the Phase 3C-c pilot's own hard-reject
+    cases had that its warning-only cases did not.
+
+    REMAINING, ACCEPTED LIMITATIONS (still real, deliberately not fully
+    closed — a lightweight heuristic cannot close these without becoming
+    a real NER system):
+    - A wholly invented TWO-WORD name (neither word matches any source
+      word) is not adjacent to any MATCHED candidate, so it is only a
+      WARNING, not a hard reject — per the explicit brief, an
+      undecidable case must degrade to a warning rather than risk a
+      false hard-reject.
     - Very short candidates (right at the 3-letters-after-the-initial-
       capital minimum) are inherently easier to accidentally prefix-
       match than long ones; this guard does not attempt frequency-
       based or dictionary-based discrimination.
+    - A translated proper noun that happens to be ADJACENT to an
+      unrelated matched candidate (rare, no example found in the
+      pilot's audited output) could theoretically be misclassified as
+      hard-reject rather than warning; not observed in practice.
+    - A name-completion where the INVENTED token is itself sentence-
+      initial (e.g. a sentence starting "Jonathan Swift ..." where the
+      source only ever writes "Swift") degrades to a warning instead of
+      a hard reject, because position 0 is never reported regardless of
+      its neighbor's match status — the sentence-initial exemption
+      exists to avoid flagging ordinary capitalized sentence starts, and
+      extending it to "reportable if adjacent-matched" was judged too
+      likely to reopen the original false-positive class that exemption
+      was added to fix. Not observed in the pilot's own audited output;
+      accepted as a narrower, known gap.
     """
     combined = "\n".join(
         str(unit_payload.get(f, "") or "")
@@ -700,29 +944,77 @@ def _hallucination_guard(unit_payload: dict, *, source_text: str) -> list[str]:
         for m in _SOURCE_PROPER_NOUN_RE.finditer(source_text)
         if len(m.group(0)) >= _MIN_SOURCE_WORD_LEN_FOR_PREFIX_MATCH
     }
-    flagged: list[str] = []
-    seen: set[str] = set()
+    hard_flagged: list[str] = []
+    warn_flagged: list[str] = []
+    seen_hard: set[str] = set()
+    seen_warn: set[str] = set()
     for sentence in _SENTENCE_SPLIT_RE.split(combined):
         words = sentence.strip().split()
+        # candidates[i] / matched[i] are None for a non-candidate word.
+        # Position 0 (sentence-initial) IS still recorded here -- it must
+        # never itself be REPORTED (see the loop below), but if it is a
+        # genuinely matched real name ("Sheridan Ede ...", "Sheridan" at
+        # position 0), its match status must still be visible to its
+        # neighbor's adjacency check, or a name-completion glued onto a
+        # sentence-initial name would wrongly degrade to a warning.
+        candidates: list[str | None] = [None] * len(words)
+        matched: list[bool | None] = [None] * len(words)
         for position, word in enumerate(words):
-            if position == 0:
-                continue  # sentence-initial capital is normal, not a name signal
             match = _CANDIDATE_PROPER_NOUN_RE.match(word.strip(",.;:!?\"'()"))
             if not match:
                 continue
             candidate = match.group(0)
-            key = candidate.lower()
-            if key in seen:
+            candidates[position] = candidate
+            matched[position] = any(candidate.lower().startswith(sw) for sw in source_words)
+
+        for position, candidate in enumerate(candidates):
+            if position == 0:
+                continue  # sentence-initial capital is normal, never itself a name signal
+            if candidate is None or matched[position]:
                 continue
-            seen.add(key)
-            if not any(key.startswith(sw) for sw in source_words):
-                flagged.append(candidate)
-    if flagged:
-        return [
-            "possible hallucinated proper noun(s) not found in original_text: "
-            + ", ".join(sorted(set(flagged)))
+            key = candidate.lower()
+            adjacent_matched = (
+                (position > 0 and candidates[position - 1] is not None and matched[position - 1])
+                or (
+                    position + 1 < len(candidates)
+                    and candidates[position + 1] is not None
+                    and matched[position + 1]
+                )
+            )
+            if adjacent_matched:
+                if key not in seen_hard:
+                    seen_hard.add(key)
+                    hard_flagged.append(candidate)
+            else:
+                if key not in seen_warn:
+                    seen_warn.add(key)
+                    warn_flagged.append(candidate)
+
+    hard_messages = (
+        [
+            "possible name completion/invented proper noun (adjacent to a matched "
+            "source name) not found in original_text: " + ", ".join(sorted(set(hard_flagged)))
         ]
-    return []
+        if hard_flagged
+        else []
+    )
+    # Deliberately NO illustrative example (e.g. "God->Isten") baked into
+    # this message: an earlier draft had one, and it meant the literal
+    # word "Isten" was present in EVERY warning message regardless of
+    # what was actually flagged — a naive `"Isten" in message` check by a
+    # caller (or a test) would always be true. The full explanation with
+    # examples belongs in this function's own docstring, not repeated in
+    # every runtime message.
+    warn_messages = (
+        [
+            "capitalized word(s) with no matching source token — likely a "
+            "translation/exonym, not necessarily a hallucination; needs human "
+            "review: " + ", ".join(sorted(set(warn_flagged)))
+        ]
+        if warn_flagged
+        else []
+    )
+    return hard_messages, warn_messages
 
 
 def _extract_json_object(raw: str) -> dict | None:
@@ -775,7 +1067,7 @@ történeteknél, "condensed_story" ha a történet hosszabb és tömörítést 
 igényel). NE válaszolj "unit_proposal" móddal — ezt a történetet a \
 rendszer nem fogadja el bontásra javasoltként."""
     else:
-        mode_instructions = """\
+        mode_instructions = f"""\
 FELADAT — a rendszer ehhez a történethez egy vagy több JAVASOLT \
 illustration unitot vár ("mode": "unit_proposal"). Ez a történet hosszú \
 és/vagy több epizódból állhat. Egy epizódot csak akkor javasolj önálló \
@@ -786,7 +1078,93 @@ extracted_scene-ként, ha:
    Ha ez nem teljesül egyértelműen, NE bontsd szét — adj helyette EGY \
    "condensed_story" javaslatot, ami az egész történetet tömöríti. \
 NE válaszolj "direct_unit" móddal — a rendszer ennél a történetnél \
-semmilyen közvetlen írást nem fogad el, csak javaslatot."""
+semmilyen közvetlen írást nem fogad el, csak javaslatot.
+
+FONTOS — ebben a módban NE generálj "modern_hu_text"-et és "moral_hu"-t: \
+a javaslat egyetlen célja annak eldöntése, MILYEN illustration unit \
+készülhetne ebből a történetből, nem pedig annak megírása. A teljes \
+magyar illusztrációs szöveg csak egy KÉSŐBBI, ember által jóváhagyott \
+lépésben készül el, kizárólag az elfogadott javaslathoz. "condensed_story" \
+esetén add meg helyette a "target_length_chars" mezőt: egy becsült \
+célhosszt (karakterben) a leendő modern_hu_text-hez — {_MIN_TARGET_LENGTH_CHARS} \
+és {_MAX_TARGET_LENGTH_CHARS} közötti egész szám, és mindig rövidebb, mint \
+az original_text hossza. A cél egy közvetlenül elmondható, RÖVID \
+prédikációs illusztráció — NEM a teljes történet magyar fordítása \
+tömörítve. Ha a story olyan rövid, hogy egy {_MIN_TARGET_LENGTH_CHARS} \
+karakteres célhossz sem értelmezhető rá, az nem "unit_proposal", hanem \
+"direct_unit" móddal kezelendő történet."""
+    if expected_mode == "direct_unit":
+        modern_text_rules_section = """\
+MAGYAR SZÖVEG SZABÁLYOK (modern_hu_text):
+- természetes, mai magyar nyelv;
+- hű az original_text tartalmához — ne adj hozzá új szereplőt, \
+  eseményt, motivációt vagy tanulságot;
+- ne prédikáld túl a történetet (ne fűzz hozzá saját magyarázatot);
+- ne legyen fölöslegesen archaikus;
+- rövid történetnél őrizd meg a teljes narratív tartalmat.
+
+"""
+        name_completion_fields = "title_hu, modern_hu_text, summary_hu és moral_hu"
+        moral_rules_section = """\
+MORAL_HU SZABÁLYOK:
+- egy rövid, SEMLEGES tanulság/téma-mondat;
+- NE legyen automatikusan keresztény teológiai értelmezés;
+- NE helyezz bibliai jelentést olyan történetre, ahol az nincs a \
+  forrásban.
+
+"""
+        json_shape_section = """\
+"direct_unit" mód esetén pontosan ez az alak:
+{
+  "mode": "direct_unit",
+  "unit": {
+    "derivation_type": "full_story_translation | condensed_story",
+    "title_hu": "...",
+    "modern_hu_text": "...",
+    "summary_hu": "...",
+    "moral_hu": "...",
+    "topics": ["..."],
+    "tone": "...",
+    "homiletic_functions": ["..."],
+    "narrative_status": "...",
+    "narrative_status_confidence": "low | medium | high"
+  }
+}
+"""
+    else:
+        modern_text_rules_section = ""
+        name_completion_fields = "title_hu és summary_hu"
+        moral_rules_section = ""
+        json_shape_section = """\
+"unit_proposal" mód esetén pontosan ez az alak:
+{
+  "mode": "unit_proposal",
+  "proposed_units": [
+    {
+      "derivation_type": "extracted_scene | condensed_story",
+      "source_span_start": <int, csak extracted_scene esetén>,
+      "source_span_end": <int, csak extracted_scene esetén>,
+      "title_hu": "...",
+      "summary_hu": "...",
+      "topics": ["..."],
+      "tone": "...",
+      "homiletic_functions": ["..."],
+      "narrative_status": "...",
+      "narrative_status_confidence": "...",
+      "rationale": "miért ez a szövegrész, csak extracted_scene esetén kötelező",
+      "standalone_reason": "miért érthető és mondható el önálló illusztrációként, csak extracted_scene esetén kötelező",
+      "target_length_chars": <int, csak condensed_story esetén — TARGET_LENGTH_RANGE közötti egész, a leendő modern_hu_text becsült célhossza karakterben, mindig kisebb mint az original_text hossza>
+    }
+  ]
+}
+
+NE add meg "modern_hu_text"-et vagy "moral_hu"-t ebben a módban — ezek \
+a mezők ehhez a módhoz nem tartoznak (ld. FELADAT fent).
+"""
+        json_shape_section = json_shape_section.replace(
+            "TARGET_LENGTH_RANGE", f"{_MIN_TARGET_LENGTH_CHARS}–{_MAX_TARGET_LENGTH_CHARS}"
+        )
+
     return f"""\
 Te egy magyar református prédikációs illusztráció-adatbázist épító \
 szerkesztő asszisztens vagy. A feladatod egyetlen, alább megadott \
@@ -807,21 +1185,24 @@ ORIGINAL_TEXT:
 
 {mode_instructions}
 
-MAGYAR SZÖVEG SZABÁLYOK (modern_hu_text):
-- természetes, mai magyar nyelv;
-- hű az original_text tartalmához — ne adj hozzá új szereplőt, \
-  eseményt, motivációt vagy tanulságot;
-- ne prédikáld túl a történetet (ne fűzz hozzá saját magyarázatot);
-- ne legyen fölöslegesen archaikus;
-- rövid történetnél őrizd meg a teljes narratív tartalmat.
+{modern_text_rules_section}NÉV-KIEGÉSZÍTÉS TILALMA — ez {name_completion_fields} \
+MINDEGYIKÉRE vonatkozik:
+- SOHA ne egészíts ki egy, az original_text-ben szereplő személynevet \
+  a saját (külső) tudásodból;
+- ha a forrás csak vezetéknevet ír ("Pope"), a kimenetben is csak az \
+  a vezetéknév szerepelhet — TILOS keresztnevet hozzáadni (pl. \
+  "Alexander Pope"), még akkor is, ha külső tudásod szerint helyes \
+  lenne;
+- cím/rang mellé (pl. "a herceg", "a doktor") ne told bele a teljes \
+  nevet, ha az original_text nem adja meg;
+- helynevet se pontosíts vagy egészíts ki külső tudásodból (pl. ha a \
+  forrás csak "London"-t ír, ne told bele, hogy melyik városrész vagy \
+  ország fővárosa — csak azt írd, ami a forrásban áll);
+- ez a szabály ATTÓL FÜGGETLENÜL érvényes, hogy a kiegészítés \
+  ténylegesen igaz-e a valóságban — a kérdés nem az, hogy helyes-e a \
+  kiegészítés, hanem hogy szerepel-e az original_text-ben.
 
-MORAL_HU SZABÁLYOK:
-- egy rövid, SEMLEGES tanulság/téma-mondat;
-- NE legyen automatikusan keresztény teológiai értelmezés;
-- NE helyezz bibliai jelentést olyan történetre, ahol az nincs a \
-  forrásban.
-
-SUMMARY_HU SZABÁLYOK:
+{moral_rules_section}SUMMARY_HU SZABÁLYOK:
 - pontosan 40-100 szó;
 - a történet lényegét foglalja össze, retrieval/böngészés céljára;
 - ne tartalmazzon új információt.
@@ -829,17 +1210,75 @@ SUMMARY_HU SZABÁLYOK:
 NARRATIVE_STATUS — szigorúan kezelendő, csak ezek egyike: \
 {narrative_statuses}
 - SOHA ne állítsd bizonyíték nélkül, hogy egy történet dokumentált \
-  történelmi esemény (documented_historical_event);
-- ha egy ismert, valós személyről szóló, de kétes hitelességű \
-  hagyományról van szó, használd a legend_about_historical_figure \
-  értéket;
+  történelmi esemény (documented_historical_event) — ez KIZÁRÓLAG \
+  akkor használható, ha a rendelkezésre álló forrásadat (original_text \
+  vagy a fenti FORRÁS ADATOK) EXPLICIT módon dokumentált eseményként \
+  azonosítja a történetet. A saját (a promptban nem szereplő) \
+  tudásod erre sosem elegendő;
+- a legend_about_historical_figure ÉRTÉK HASZNÁLATÁNAK FELTÉTELE: ez \
+  KIZÁRÓLAG akkor választható, ha a rendelkezésre álló forrásadat vagy \
+  explicit provenance TÉNYLEGESEN legendaként/legendary/traditional \
+  legend jellegűként azonosítja az adott történetet vagy a forrás \
+  ilyen státuszát (pl. a forrás bevezetője kifejezetten "legend"-nek \
+  vagy "half-legendary"-nek nevezi). ÖNMAGÁBAN EGYIK SEM ELÉG OK a \
+  legend_about_historical_figure választásához: (a) a szereplő valós \
+  történelmi személy; (b) a történet régi/klasszikus anekdota; (c) van \
+  csattanója; (d) nem tudod dokumentálni, hogy megtörtént-e. Ezek a \
+  jellemzők önmagukban egy sima, forma szerinti anekdotát írnak le, \
+  NEM legendát;
+- ha egy valós történelmi személyről szóló anekdota forráskritikai \
+  státusza NEM ismert (a fenti kritérium nem teljesül sem \
+  documented_historical_event-hez, sem legend_about_historical_figure-höz), \
+  a KONZERVATÍV alapértelmezés: traditional_anecdote, megfelelő "low" \
+  vagy "medium" narrative_status_confidence értékkel;
 - ha bizonytalan vagy, narrative_status_confidence legyen "low" vagy \
-  "medium" — SOHA ne találj ki bizonyosságot;
-- vedd figyelembe a forrás saját hagyományát (tradition mező fent) — \
-  pl. talmudi/midrási forrásnál jellemzően rabbinic_aggadic_tale, \
-  fabula-forrásnál fable, népmese-forrásnál folktale, perzsa \
-  didaktikus műnél didactic_tale a plauzibilis alapértelmezés, de ezt \
-  a konkrét történet tartalma alapján döntsd el, ne automatikusan.
+  "medium" — SOHA ne találj ki bizonyosságot.
+
+NARRATIVE_STATUS FORRÁS-TUDATOS ALAPÉRTELMEZÉSEK — a besorolás \
+elsősorban a forrás (source_code/tradition, fent) dokumentált \
+műfajából induljon ki, ettől csak akkor térj el egy adott \
+történetnél, ha az adott story saját tartalma vagy metaadata konkrétan \
+indokolja:
+- PG_ENGLISH_JESTS_AND_ANECDOTES → alapértelmezett fallback: \
+  traditional_anecdote;
+- Aesop-jellegű fabulaforrás → fable;
+- magyar népmese-forrás → folktale;
+- Hebrew Tales (talmudi/midrási) → rabbinic_aggadic_tale;
+- Gulistan (perzsa didaktikus mű) → didactic_tale;
+- James Baldwin "Fifty Famous Stories Retold" KÜLÖNÖSEN óvatosan \
+  kezelendő: a kötet saját előszava dokumentáltan félig-legendás/\
+  romantikus jelleget tulajdonít az anyagnak ÁLTALÁBAN, de ez NEM \
+  jelenti azt, hogy MINDEN Baldwin-történet automatikusan \
+  legend_about_historical_figure — story-szintű bizonytalanság esetén \
+  a narrative_status_confidence legyen "low" vagy "medium", és a \
+  konkrét besorolást mindig az adott történet saját tartalma döntse \
+  el, ne a kötet egészére vonatkozó általános jellemzés automatikus \
+  átvitele.
+
+NARRATIVE_STATUS FORRÁS-FEGYELEM (provenance discipline) — KRITIKUS \
+szabály:
+- a narrative_status és narrative_status_confidence besorolás \
+  KIZÁRÓLAG a fenti ORIGINAL_TEXT tartalmából és a fenti FORRÁS \
+  ADATOK-ból (source_code, tradition) származhat;
+- TILOS a saját (külső, a forrás szövegén kívüli) történelmi \
+  ismereteidet felhasználni annak eldöntésére, hogy egy konkrét \
+  anekdota documented_historical_event vagy legend_about_historical_figure \
+  — még akkor is, ha a szereplő valós, azonosítható történelmi személy, \
+  és még akkor is, ha külső tudásod szerint ismersz a témához \
+  kapcsolódó, dokumentált eseményeket;
+- PÉLDA a helytelen eljárásra: ha a forrás csak egy rövid, Voltaire-ről \
+  szóló anekdotát ad, TILOS a saját tudásodból ismert, dokumentált \
+  Rohan-affért felhasználni annak eldöntésére, hogy EZ a konkrét \
+  anekdota dokumentált esemény-e vagy legenda — a forrás önmagában, \
+  külső kontextus nélkül, tipikusan nem ad elég alapot ehhez a \
+  megkülönböztetéshez, ezért ilyenkor traditional_anecdote a helyes \
+  konzervatív választás, NEM legend_about_historical_figure;
+- ha a rendelkezésre álló forrásadat (original_text + forrás \
+  metaadatok) önmagában NEM elegendő a pontos besoroláshoz, a \
+  KONZERVATÍV alapértelmezés traditional_anecdote (NEM \
+  documented_historical_event, és NEM legend_about_historical_figure, \
+  hacsak a fenti explicit provenance-feltétel nem teljesül), és \
+  narrative_status_confidence legyen "low" vagy "medium".
 
 KONTROLLÁLT CÍMKÉK — KIZÁRÓLAG EZEKET HASZNÁLHATOD, új címkét nem \
 találhatsz ki:
@@ -849,46 +1288,7 @@ találhatsz ki:
 
 VÁLASZOLJ KIZÁRÓLAG JSON OBJEKTUMMAL, más szöveg nélkül.
 
-"direct_unit" mód esetén pontosan ez az alak:
-{{
-  "mode": "direct_unit",
-  "unit": {{
-    "derivation_type": "full_story_translation | condensed_story",
-    "title_hu": "...",
-    "modern_hu_text": "...",
-    "summary_hu": "...",
-    "moral_hu": "...",
-    "topics": ["..."],
-    "tone": "...",
-    "homiletic_functions": ["..."],
-    "narrative_status": "...",
-    "narrative_status_confidence": "low | medium | high"
-  }}
-}}
-
-"unit_proposal" mód esetén pontosan ez az alak:
-{{
-  "mode": "unit_proposal",
-  "proposed_units": [
-    {{
-      "derivation_type": "extracted_scene | condensed_story",
-      "source_span_start": <int, csak extracted_scene esetén>,
-      "source_span_end": <int, csak extracted_scene esetén>,
-      "title_hu": "...",
-      "modern_hu_text": "...",
-      "summary_hu": "...",
-      "moral_hu": "...",
-      "topics": ["..."],
-      "tone": "...",
-      "homiletic_functions": ["..."],
-      "narrative_status": "...",
-      "narrative_status_confidence": "...",
-      "rationale": "miért ez a szövegrész, csak extracted_scene esetén kötelező",
-      "standalone_reason": "miért érthető és mondható el önálló illusztrációként, csak extracted_scene esetén kötelező"
-    }}
-  ]
-}}
-"""
+{json_shape_section}"""
 
 
 __all__ = [

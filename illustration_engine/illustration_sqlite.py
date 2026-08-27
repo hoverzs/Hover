@@ -24,7 +24,7 @@ guarantees that even a row that somehow ends up with `status='published'`
 against a non-publishable source is never returned by anything reading
 through the view.
 
-ILLUSTRATION UNITS (schema v3, Phase 3A): `stories` stays the immutable,
+ILLUSTRATION UNITS (schema v3, Phase 3A; v4, Phase 3C-c): `stories` stays the immutable,
 verbatim, forráshű provenance layer — enrichment NEVER writes to
 `original_text`, `title_original`, `original_text_checksum`, or
 `source_reference`. `illustration_units` is the new primary retrieval
@@ -53,6 +53,21 @@ DB guarantee, not just an API convention. A FOURTH condition —
 content-completeness CHECK itself, so `status='published'` is
 impossible (INSERT or UPDATE, Python helper or raw SQL) without an
 actual human review having happened.
+
+Schema v4 adds `enrichment_warnings_json` (nullable TEXT, a JSON string
+array) — non-fatal hallucination-guard findings from the enrichment
+pipeline's two-tier guard (see `illustration_engine.enrichment_pipeline`'s
+module docstring), kept alongside `enrichment_model`/
+`enrichment_prompt_version`/`enrichment_generated_at` as pure audit/
+provenance data. Not reviewable "content" a human directly edits, but
+still PROTECTED (along with the other three enrichment_* columns) by
+`trg_units_protect_human_reviewed_content`'s WHEN clause below and by
+`_UNIT_CONTENT_FIELDS` — a human who reviewed a unit reviewed it as
+attributed to one specific enrichment run, so silently rewriting which
+run (or its warnings) produced already-approved content would corrupt
+that provenance just as surely as silently rewriting title_hu.
+`approve_unit()`/`publish_unit()` never reference these columns, so
+normal review/publish leaves them untouched regardless.
 
 CONTENT-COMPLETENESS GATE (schema v2, independent of the license gate):
 
@@ -84,7 +99,7 @@ from illustration_engine.source_registry import PUBLISHABLE_LICENSE_STATUSES
 
 DATABASE_NAME = "illustrations.sqlite3"
 DEFAULT_DATABASE_PATH = GENERATED_DATA_DIR / DATABASE_NAME
-SCHEMA_VERSION = 3
+SCHEMA_VERSION = 4
 
 ALLOWED_STORY_STATUSES = frozenset({"draft", "needs_review", "approved", "published"})
 ALLOWED_ADAPTATION_STATUSES = frozenset(
@@ -245,6 +260,19 @@ def create_schema(connection: sqlite3.Connection) -> None:
             enrichment_model TEXT,
             enrichment_prompt_version TEXT,
             enrichment_generated_at TEXT,
+            -- Schema v4: deterministically JSON-serialized string array
+            -- (e.g. '["capitalized word(s) with no matching source
+            -- token...: Isten"]') of non-fatal hallucination-guard
+            -- findings from the LAST enrichment run — NULL means that
+            -- run produced none. Pure enrichment audit/provenance data,
+            -- same class as enrichment_model/_prompt_version/
+            -- _generated_at above: not an FTS field, not a controlled
+            -- taxonomy, not a human-editable content field, and
+            -- deliberately NOT listed in _UNIT_CONTENT_FIELDS or the
+            -- trg_units_protect_human_reviewed_content trigger below —
+            -- approve_unit()/publish_unit() never touch this column, so
+            -- review/publish naturally never clears it either.
+            enrichment_warnings_json TEXT,
             human_reviewed_at TEXT,
             created_at TEXT NOT NULL,
             updated_at TEXT NOT NULL,
@@ -422,7 +450,10 @@ def create_schema(connection: sqlite3.Connection) -> None:
 
         -- Human-review protection gate (Phase 3A brief, tightened per
         -- the follow-up review: "reviewed-content overwrite must
-        -- actually demote the unit, not just clear the timestamp").
+        -- actually demote the unit, not just clear the timestamp";
+        -- tightened AGAIN in schema v4/Phase 3C-c to also cover
+        -- enrichment PROVENANCE fields, not just visible content — see
+        -- below).
         -- Once human_reviewed_at is set, ANY UPDATE that changes a
         -- content field is rejected UNLESS that same UPDATE both (a)
         -- clears human_reviewed_at to NULL AND (b) resets status to
@@ -434,6 +465,24 @@ def create_schema(connection: sqlite3.Connection) -> None:
         -- any more: editing reviewed content always drops the unit back
         -- to needs_review, requiring a fresh approve_unit()/publish_unit()
         -- pass through the normal lifecycle.
+        --
+        -- Schema v4 addition: `enrichment_model`, `enrichment_prompt_
+        -- version`, `enrichment_generated_at`, `enrichment_warnings_json`
+        -- are also guarded here now — even though they are audit/
+        -- provenance data, not human-editable content, a human who
+        -- reviewed a unit reviewed it AS ATTRIBUTED TO A SPECIFIC
+        -- enrichment run; silently rewriting which run (or its warnings)
+        -- produced already-approved content, without demoting the unit
+        -- back through review, would corrupt that provenance record just
+        -- as surely as silently rewriting title_hu would. This closes a
+        -- real gap: before this change, a raw SQL UPDATE that touched
+        -- ONLY these columns bypassed the trigger entirely (it only
+        -- looked at title_hu/modern_hu_text/summary_hu/moral_hu/
+        -- narrative_status), even though update_illustration_unit_fields'
+        -- Python-side check (_UNIT_CONTENT_FIELDS) has the SAME gap —
+        -- see that function for the matching fix. approve_unit()/
+        -- publish_unit() never reference these columns, so normal
+        -- review/publish is completely unaffected by this.
         CREATE TRIGGER IF NOT EXISTS trg_units_protect_human_reviewed_content
         BEFORE UPDATE ON illustration_units
         WHEN OLD.human_reviewed_at IS NOT NULL
@@ -443,10 +492,14 @@ def create_schema(connection: sqlite3.Connection) -> None:
                  OR NEW.summary_hu IS NOT OLD.summary_hu
                  OR NEW.moral_hu IS NOT OLD.moral_hu
                  OR NEW.narrative_status IS NOT OLD.narrative_status
+                 OR NEW.enrichment_model IS NOT OLD.enrichment_model
+                 OR NEW.enrichment_prompt_version IS NOT OLD.enrichment_prompt_version
+                 OR NEW.enrichment_generated_at IS NOT OLD.enrichment_generated_at
+                 OR NEW.enrichment_warnings_json IS NOT OLD.enrichment_warnings_json
              )
              AND NOT (NEW.human_reviewed_at IS NULL AND NEW.status = 'needs_review')
         BEGIN
-            SELECT RAISE(ABORT, 'review_gate: reviewed content can only change together with human_reviewed_at cleared AND status reset to needs_review');
+            SELECT RAISE(ABORT, 'review_gate: reviewed content/provenance can only change together with human_reviewed_at cleared AND status reset to needs_review');
         END;
 
         -- Phase 3A FTS5 index over the three retrieval-relevant text
@@ -647,7 +700,23 @@ class IllustrationUnitReviewProtectionError(ValueError):
     """A write attempted to silently change human-reviewed unit content."""
 
 
-_UNIT_CONTENT_FIELDS = ("title_hu", "modern_hu_text", "summary_hu", "moral_hu", "narrative_status")
+# Schema v4/Phase 3C-c: extended beyond visible content to also cover the
+# enrichment provenance columns (which run/prompt-version produced this
+# content, and what it warned about) — see trg_units_protect_human_
+# reviewed_content's comment in create_schema() for why these need the
+# same protection as title_hu etc., even though a human never edits them
+# directly.
+_UNIT_CONTENT_FIELDS = (
+    "title_hu",
+    "modern_hu_text",
+    "summary_hu",
+    "moral_hu",
+    "narrative_status",
+    "enrichment_model",
+    "enrichment_prompt_version",
+    "enrichment_generated_at",
+    "enrichment_warnings_json",
+)
 
 
 def insert_illustration_unit(
@@ -668,6 +737,7 @@ def insert_illustration_unit(
     enrichment_model: str | None = None,
     enrichment_prompt_version: str | None = None,
     enrichment_generated_at: str | None = None,
+    enrichment_warnings_json: str | None = None,
     human_reviewed_at: str | None = None,
     created_at: str | None = None,
     updated_at: str | None = None,
@@ -734,9 +804,10 @@ def insert_illustration_unit(
             title_hu, modern_hu_text, summary_hu, moral_hu,
             narrative_status, narrative_status_confidence, status,
             enrichment_model, enrichment_prompt_version, enrichment_generated_at,
+            enrichment_warnings_json,
             human_reviewed_at, created_at, updated_at
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             story_id,
@@ -754,6 +825,7 @@ def insert_illustration_unit(
             enrichment_model,
             enrichment_prompt_version,
             enrichment_generated_at,
+            enrichment_warnings_json,
             human_reviewed_at,
             created_at or now,
             updated_at or now,
@@ -795,10 +867,12 @@ def update_illustration_unit_fields(
     fail-closed half (this function existing gives a clearer Python
     exception; the trigger is what makes the guarantee hold even for a
     caller that bypasses this function entirely). Refuses to touch any
-    content field (`title_hu`, `modern_hu_text`, `summary_hu`,
-    `moral_hu`, `narrative_status`) on a unit whose `human_reviewed_at`
-    is already set, unless `allow_overwrite_reviewed=True` is passed
-    explicitly.
+    content OR enrichment-provenance field (see `_UNIT_CONTENT_FIELDS`:
+    `title_hu`, `modern_hu_text`, `summary_hu`, `moral_hu`,
+    `narrative_status`, `enrichment_model`, `enrichment_prompt_version`,
+    `enrichment_generated_at`, `enrichment_warnings_json`) on a unit
+    whose `human_reviewed_at` is already set, unless
+    `allow_overwrite_reviewed=True` is passed explicitly.
 
     There is no "re-stamp with content in the same call" shortcut: an
     explicit `allow_overwrite_reviewed=True` ALWAYS both clears
