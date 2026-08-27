@@ -1,0 +1,112 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE ThML PUBLIC
+    "-//CCEL/DTD Theological Markup Language//EN"
+    "http://www.ccel.org/dtd/ThML10.dtd">
+<!--
+  CCEL Hodge Systematic Theology Volume II markup-derived minimal fixture.
+  Structure mirrors the CCEL ThML. Texts are synthetic and intentionally short
+  except one oversize div3 used to test paragraph-group splitting.
+-->
+<ThML>
+  <ThML.head>
+    <generalInfo>
+      <description>Tim Perrine, CCEL Staff Writer. MUST BE EXCLUDED STAFF BLURB.</description>
+    </generalInfo>
+    <electronicEdInfo>
+      <publisherID>ccel</publisherID>
+      <authorID>hodge</authorID>
+      <bookID>theology2</bookID>
+      <workID>theology2</workID>
+      <DC>
+        <DC.Title>Systematic Theology - Volume II</DC.Title>
+        <DC.Creator sub="Author" scheme="short-form">Charles Hodge</DC.Creator>
+        <DC.Creator sub="Author" scheme="file-as">Hodge, Charles (1797-1878)</DC.Creator>
+        <DC.Language scheme="ISO639-3">eng</DC.Language>
+        <DC.Rights></DC.Rights>
+        <DC.Publisher>Grand Rapids, MI: Christian Classics Ethereal Library</DC.Publisher>
+        <DC.Date sub="Created">2005-06-20</DC.Date>
+        <DC.Identifier scheme="URL">/ccel/hodge/theology2.html</DC.Identifier>
+      </DC>
+    </electronicEdInfo>
+  </ThML.head>
+  <ThML.body>
+    <div1 title="Title" id="i">
+      <h1 id="i-p0.1">SYNTHETIC TITLE PAGE — MUST BE EXCLUDED</h1>
+    </div1>
+    <div1 title="Prefatory" id="ii">
+      <p id="ii-p1">SYNTHETIC PREFATORY — MUST BE EXCLUDED</p>
+    </div1>
+    <div1 title="Part II. Anthropology" id="iii">
+      <div2 title="Chapter I. Origin of Man." id="iii.i">
+        <div3 title="1. Scriptural Doctrine." id="iii.i.i">
+          <p class="center" id="iii.i.i-p1">§ 1. <i>Scriptural Doctrine</i>.</p>
+          <p class="normal" id="iii.i.i-p2">Short anthropology cites
+            <scripRef passage="Genesis i. 26, 27" id="iii.i.i-p2.1" parsed="|Gen|1|26|1|27" osisRef="Bible:Gen.1.26-Gen.1.27">Genesis i. 26, 27</scripRef>
+            and a chapter-only
+            <scripRef passage="Gen. i" id="iii.i.i-p2.2" parsed="|Gen|1|0|0|0" osisRef="Bible:Gen.1">Gen. i</scripRef>.
+            <note n="1" id="iii.i.i-p2.3"><p class="footnote" id="iii.i.i-p2.4">Synthetic footnote kept once.</p></note>
+          </p>
+        </div3>
+        <div3 title="2. Anti-Scriptural Theories." id="iii.i.ii">
+          <p class="center" id="iii.i.ii-p1">§ 2. <i>Anti-Scriptural Theories.</i></p>
+          <p class="normal" id="iii.i.ii-p2">Romans cites
+            <scripRef passage="Rom. 8:3" id="iii.i.ii-p2.1" parsed="|Rom|8|3|0|0" osisRef="Bible:Rom.8.3">Rom. 8:3</scripRef>
+            and duplicate
+            <scripRef passage="Rom. 8:3" id="iii.i.ii-p2.2" parsed="|Rom|8|3|0|0" osisRef="Bible:Rom.8.3">Rom. 8:3</scripRef>.
+            synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. </p>
+          <p class="normal" id="iii.i.ii-p3">Christology cites
+            <scripRef passage="Phil. 2:6-8" id="iii.i.ii-p3.1" parsed="|Phil|2|6|2|8" osisRef="Bible:Phil.2.6-Phil.2.8">Phil. 2:6-8</scripRef>
+            plus malformed
+            <scripRef passage="Eph. 1:17-10" id="iii.i.ii-p3.2" parsed="|Eph|1|17|1|10" osisRef="Bible:Eph.1.17-Eph.1.10">Eph. 1:17-10</scripRef>
+            vulgate
+            <scripRef passage="John 3:16" id="iii.i.ii-p3.3" parsed="|John|3|16|0|0" osisRef="Bible.vul:John.3.16">John 3:16</scripRef>
+            apocrypha
+            <scripRef passage="Wis. 2:24" id="iii.i.ii-p3.4" parsed="|Wis|2|24|0|0" osisRef="Bible:Wis.2.24">Wis. 2:24</scripRef>
+            year-noise
+            <scripRef passage="Co. 1871" id="iii.i.ii-p3.5" parsed="|Col|1871|0|0|0" osisRef="Bible:Col.1871">Co. 1871</scripRef>
+            and missing osis
+            <scripRef passage="not-a-ref" id="iii.i.ii-p3.6">not-a-ref</scripRef>.
+            synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. synthetic oversize padding sentence. </p>
+        </div3>
+      </div2>
+    </div1>
+    <div1 title="Part III. Soteriology." id="iv">
+      <div2 title="Chapter I. The Plan of Salvation." id="iv.i">
+        <div3 title="1. Placeholder." id="iv.i.i">
+          <p class="center" id="iv.i.i-p1">§ 1. <i>Placeholder</i>.</p>
+          <p class="normal" id="iv.i.i-p2">Synthetic part III chapter one.</p>
+        </div3>
+      </div2>
+      <div2 title="Chapter II. The Covenant of Grace." id="iv.ii">
+        <div3 title="1. Placeholder." id="iv.ii.i">
+          <p class="center" id="iv.ii.i-p1">§ 1. <i>Placeholder</i>.</p>
+          <p class="normal" id="iv.ii.i-p2">Synthetic part III chapter two.</p>
+        </div3>
+      </div2>
+      <div2 title="Chapter III. Person of Christ." id="iv.iii">
+        <div3 title="1. Placeholder." id="iv.iii.i">
+          <p class="center" id="iv.iii.i-p1">§ 1. <i>Placeholder</i>.</p>
+          <p class="normal" id="iv.iii.i-p2">Synthetic part III chapter three.</p>
+        </div3>
+      </div2>
+      <div2 title="Chapter IV. The Mediatorial Work Of Christ." id="iv.iv">
+        <div3 title="1. Placeholder." id="iv.iv.i">
+          <p class="center" id="iv.iv.i-p1">§ 1. <i>Placeholder</i>.</p>
+          <p class="normal" id="iv.iv.i-p2">Synthetic part III chapter four.</p>
+        </div3>
+      </div2>
+      <div2 title="Chapter V. Prophetic Office." id="iv.v">
+        <div3 title="2. The Prophets of the Old Testament." id="iv.v.ii">
+          <p class="center" id="iv.v.ii-p1">§ 2. <i>The Prophets of the Old Testament.</i></p>
+          <p class="normal" id="iv.v.ii-p2">Grace cites
+            <scripRef passage="Eph. 2:8-9" id="iv.v.ii-p2.1" parsed="|Eph|2|8|2|9" osisRef="Bible:Eph.2.8-Eph.2.9">Eph. 2:8-9</scripRef>.</p>
+        </div3>
+      </div2>
+    </div1>
+    <div1 title="Indexes" id="v">
+      <div2 title="Index of Scripture References" id="v.i">
+        <p id="v.i-p1">SYNTHETIC INDEX — MUST BE EXCLUDED. Genesis.</p>
+      </div2>
+    </div1>
+  </ThML.body>
+</ThML>
