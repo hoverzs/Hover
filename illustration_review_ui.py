@@ -7,13 +7,18 @@ contract. Reads and writes ONLY through
 module never issues its own SQL against unit content, tags, or
 lifecycle state.
 
-Access control is NOT decided here: `app.py` calls `is_authorized_reviewer()`
-BEFORE routing into `render_illustration_review_panel()`, and this module
-assumes that check already passed. It re-derives nothing about identity.
+Access control is NOT decided by app.py's auth/session code -- `app.py`
+calls `is_authorized_reviewer()` (defined in this module) BEFORE routing
+into `render_illustration_review_panel()`, and this module assumes that
+check already passed once inside. `is_authorized_reviewer` itself never
+touches `st.session_state`, cookies, or the OAuth flow -- it only
+combines two independent read-only signals (see its docstring) into one
+access decision.
 """
 
 from __future__ import annotations
 
+import os
 import sqlite3
 
 import streamlit as st
@@ -50,8 +55,77 @@ _CONFIRM_PUBLISH_PREFIX = "ill_review_confirm_publish_"
 _STATUS_OPTIONS = ("needs_review", "approved", "published")
 
 
-def is_authorized_reviewer(email: str | None) -> bool:
-    return (email or "").strip().lower() == REVIEWER_EMAIL
+def is_authenticated_owner(*, is_logged_in: bool, email: str | None) -> bool:
+    """Production access path: a real Google login whose email matches
+    the hardcoded reviewer/owner address."""
+    return bool(is_logged_in) and (email or "").strip().lower() == REVIEWER_EMAIL
+
+
+def _local_dev_flag_enabled() -> bool:
+    raw = os.environ.get("TEXTUS_LOCAL_REVIEWER_ENABLED", "")
+    return raw.strip().lower() in ("1", "true", "yes")
+
+
+# Deliberately narrower than auth_config's own local-runtime concept.
+# auth_config.is_local_runtime() also treats 192.168.*/10.* addresses as
+# "local" -- a reasonable, already-reviewed call for ITS use case (is an
+# OAuth redirect_uri safe to point at localhost), but too wide for an
+# auth BYPASS: a cloud/container deployment's internal network address
+# can easily be 10.* or 192.168.*, so that alone must never grant
+# reviewer access. This module never changes or wraps
+# auth_config.is_local_runtime() -- it reads the same request host via
+# auth_config.request_host() and applies its own, strictly-narrower
+# loopback-only allowlist instead.
+_STRICT_LOCAL_HOSTS = frozenset({"localhost", "127.0.0.1", "::1"})
+
+
+def _is_strict_loopback_host(host: str | None) -> bool:
+    return (host or "").strip().lower() in _STRICT_LOCAL_HOSTS
+
+
+def _is_local_dev_runtime() -> bool:
+    """Strict loopback-only runtime signal for the reviewer bypass --
+    NOT the same concept as `auth_config.is_local_runtime()` (see
+    `_STRICT_LOCAL_HOSTS` comment above for why). Fails CLOSED (`False`)
+    on any error, including an empty/unavailable request host -- unlike
+    `auth_config.is_local_runtime()`, an unknown host is treated as
+    NON-local here, since this gates an auth bypass rather than an
+    OAuth redirect safety check."""
+    try:
+        from auth_config import request_host
+
+        return _is_strict_loopback_host(request_host())
+    except Exception:
+        return False
+
+
+def is_explicit_local_dev_reviewer() -> bool:
+    """Manual-QA-only escape hatch: local development has no Google
+    OAuth configured, so `is_authenticated_owner()` can never pass
+    there. Requires BOTH conditions -- the flag ALONE is never
+    sufficient (an env var set in a misconfigured Cloud deployment must
+    not grant access on its own):
+
+    - `TEXTUS_LOCAL_REVIEWER_ENABLED` set to a truthy value, AND
+    - `_is_local_dev_runtime()` independently confirming this process
+      is not serving a non-local host.
+
+    Never touches `st.session_state`, cookies, or the OAuth flow --
+    this is a pure, stateless read of env + runtime-host signals."""
+    if not _local_dev_flag_enabled():
+        return False
+    return _is_local_dev_runtime()
+
+
+def is_authorized_reviewer(*, is_logged_in: bool, email: str | None) -> bool:
+    """authorized_reviewer = authenticated_owner OR explicit_local_dev_reviewer.
+
+    The local-dev branch never modifies auth/session state and never
+    weakens the production path -- it only ever ADDS an additional way
+    to pass this one boolean decision, gated by both an explicit env
+    flag and an independent local-runtime check (see
+    `is_explicit_local_dev_reviewer`)."""
+    return is_authenticated_owner(is_logged_in=is_logged_in, email=email) or is_explicit_local_dev_reviewer()
 
 
 @st.cache_resource(show_spinner=False)
@@ -358,4 +432,9 @@ def render_illustration_review_panel() -> None:
     _render_item_detail(connection, item)
 
 
-__all__ = ["is_authorized_reviewer", "render_illustration_review_panel"]
+__all__ = [
+    "is_authenticated_owner",
+    "is_authorized_reviewer",
+    "is_explicit_local_dev_reviewer",
+    "render_illustration_review_panel",
+]

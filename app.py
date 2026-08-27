@@ -7941,8 +7941,11 @@ def _render_settings_panel() -> None:
             track_event("login", {"method": "google"})
             safe_streamlit_login()
 
-    # ─── 0a) Illusztráció-review — csak a kijelölt reviewer accountnak látszik ──
-    if _is_logged_in() and is_authorized_reviewer((st.user.get("email") or "").strip()):
+    # ─── 0a) Illusztráció-review — csak a kijelölt reviewer accountnak (vagy
+    # a local-dev QA bypassnak, lásd illustration_review_ui.py) látszik ──
+    _reviewer_logged_in = _is_logged_in()
+    _reviewer_email = (st.user.get("email") or "").strip() if _reviewer_logged_in else None
+    if is_authorized_reviewer(is_logged_in=_reviewer_logged_in, email=_reviewer_email):
         st.divider()
         st.subheader("Belső eszközök")
         if st.button("Illusztráció-review megnyitása", key="settings_open_illustration_review"):
@@ -8348,7 +8351,9 @@ if st.session_state.get("shell_panel") == "settings":
 # esetlegesen megmaradt session_state érték (pl. kijelentkezés után) soha ne
 # nyisson meg tartalmat jogosulatlan felhasználónak.
 if st.session_state.get("shell_panel") == "illustration_review":
-    if not (_is_logged_in() and is_authorized_reviewer((st.user.get("email") or "").strip())):
+    _reviewer_logged_in2 = _is_logged_in()
+    _reviewer_email2 = (st.user.get("email") or "").strip() if _reviewer_logged_in2 else None
+    if not is_authorized_reviewer(is_logged_in=_reviewer_logged_in2, email=_reviewer_email2):
         st.session_state["shell_panel"] = None
         st.rerun()
     else:
