@@ -30,6 +30,8 @@ from textus_kb.importers.theology_sqlite import (
 from textus_kb.repositories.theology_repository import TheologyRepository
 
 FIXTURE_PATH = Path("tests/fixtures/kb/hodge_theology2_thml_min.xml")
+FIXTURE_PATH_VOL1 = Path("tests/fixtures/kb/hodge_theology1_thml_min.xml")
+FIXTURE_PATH_VOL3 = Path("tests/fixtures/kb/hodge_theology3_thml_min.xml")
 REAL_XML_PATH = (
     Path(os.environ.get("TEMP", os.environ.get("TMP", "")))
     / "textus-hodge-e1"
@@ -159,7 +161,7 @@ def test_wrong_volume_book_id_is_import_error(tmp_path: Path) -> None:
     xml = _fixture_text().replace("<bookID>theology2</bookID>", "<bookID>theology1</bookID>")
     path = _write_xml(tmp_path, xml)
     with pytest.raises(HodgeThmlImportError, match="expected bookID 'theology2'"):
-        parse_hodge_systematic_theology_thml(path)
+        parse_hodge_systematic_theology_thml(path, volume=2)
 
 
 def test_section_hierarchy_volume_part_chapter_subsection(tmp_path: Path) -> None:
@@ -414,3 +416,105 @@ def test_real_volume_two_xml_pilot_parse(tmp_path: Path) -> None:
         )
     ]
     assert any(item.startswith("ccel:hodge/theology2#iii.") for item in locators)
+    assert report.volume == 2
+
+
+def test_volume_one_allowlist_and_introduction_locator(tmp_path: Path) -> None:
+    report = import_hodge_systematic_theology_thml(
+        FIXTURE_PATH_VOL1,
+        database_path=tmp_path / "hodge-volume1-pilot.sqlite3",
+    )
+    assert report.volume == 1
+    assert report.parts == 2
+    assert report.skipped_top_level_ids == ("i", "ii", "v")
+    joined = "\n".join(
+        row[0] for row in _query_all(report.database_path, "SELECT plain_text FROM chunks")
+    )
+    assert "SYNTHETIC TITLE PAGE" not in joined
+    assert "SYNTHETIC INDEX" not in joined
+    hits = TheologyRepository(report.database_path).chunks_for_passage("John.3.16")
+    assert hits
+    assert hits[0].human_readable_locator == (
+        "Charles Hodge, Systematic Theology, Vol. I, Introduction, Chapter 1, §1"
+    )
+    assert hits[0].source_locator == "ccel:hodge/theology1#iii.i.i-p1"
+    proper = TheologyRepository(report.database_path).chunks_for_passage("Eph.2.8-9")
+    assert proper
+    assert proper[0].human_readable_locator == (
+        "Charles Hodge, Systematic Theology, Vol. I, Part I, Chapter 3, §2"
+    )
+    edition = _query_all(
+        report.database_path,
+        "SELECT edition_label, source_url, external_id, rights_status FROM editions",
+    )[0]
+    assert edition == (
+        "Volume I (CCEL ThML)",
+        "https://www.ccel.org/ccel/hodge/theology1.xml",
+        "ccel/hodge/theology1",
+        "needs-review",
+    )
+
+
+def test_volume_three_part_continued_and_eschatology_locator(tmp_path: Path) -> None:
+    report = import_hodge_systematic_theology_thml(
+        FIXTURE_PATH_VOL3,
+        database_path=tmp_path / "hodge-volume3-pilot.sqlite3",
+    )
+    assert report.volume == 3
+    assert report.skipped_top_level_ids == ("i", "ii", "v")
+    rows = {
+        row[0]: row
+        for row in _query_all(
+            report.database_path,
+            "SELECT section_id, section_type, heading FROM sections",
+        )
+    }
+    assert rows["ccel.hodge.systematic_theology.vol3.iii"][1:] == ("part", "Part III")
+    assert rows["ccel.hodge.systematic_theology.vol3.iv"][1:] == ("part", "Part IV")
+    soteriology = TheologyRepository(report.database_path).chunks_for_passage("Eph.2.8-9")
+    assert soteriology
+    assert soteriology[0].human_readable_locator == (
+        "Charles Hodge, Systematic Theology, Vol. III, Part III, Chapter 1, §1"
+    )
+    assert soteriology[0].source_locator.startswith("ccel:hodge/theology3#")
+    eschatology = TheologyRepository(report.database_path).chunks_for_passage("1Cor.15.20")
+    assert eschatology
+    assert eschatology[0].human_readable_locator == (
+        "Charles Hodge, Systematic Theology, Vol. III, Part IV, Chapter 5, §3"
+    )
+    edition = _query_all(
+        report.database_path,
+        "SELECT edition_label, source_url FROM editions",
+    )[0]
+    assert edition == (
+        "Volume III (CCEL ThML)",
+        "https://www.ccel.org/ccel/hodge/theology3.xml",
+    )
+
+
+def test_invalid_volume_is_rejected(tmp_path: Path) -> None:
+    with pytest.raises(HodgeThmlImportError, match="Unsupported Hodge volume"):
+        parse_hodge_systematic_theology_thml(FIXTURE_PATH, volume=4)
+
+
+def test_volume_one_missing_expected_div1_is_import_error(tmp_path: Path) -> None:
+    xml = FIXTURE_PATH_VOL1.read_text(encoding="utf-8").replace('id="iv"', 'id="zz"', 1)
+    path = _write_xml(tmp_path, xml)
+    with pytest.raises(HodgeThmlImportError, match="missing div1 id\\(s\\): iv"):
+        parse_hodge_systematic_theology_thml(path, volume=1)
+
+
+def test_volume_two_fixture_hash_is_stable(tmp_path: Path) -> None:
+    first = import_hodge_systematic_theology_thml(
+        FIXTURE_PATH,
+        database_path=tmp_path / "vol2-a.sqlite3",
+        volume=2,
+    )
+    second = import_hodge_systematic_theology_thml(
+        FIXTURE_PATH,
+        database_path=tmp_path / "vol2-b.sqlite3",
+    )
+    assert first.volume == 2
+    assert first.content_hash == second.content_hash
+    assert first.chunk_count == second.chunk_count
+

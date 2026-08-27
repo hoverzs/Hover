@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE ThML PUBLIC
+    "-//CCEL/DTD Theological Markup Language//EN"
+    "http://www.ccel.org/dtd/ThML10.dtd">
+<!--
+  CCEL Hodge Systematic Theology Volume III markup-derived minimal fixture.
+  Texts are synthetic. Part III continued + Part IV; title/prefatory/index excluded.
+-->
+<ThML>
+  <ThML.head>
+    <generalInfo>
+      <description>Tim Perrine, CCEL Staff Writer. MUST BE EXCLUDED STAFF BLURB.</description>
+    </generalInfo>
+    <electronicEdInfo>
+      <publisherID>ccel</publisherID>
+      <authorID>hodge</authorID>
+      <bookID>theology3</bookID>
+      <workID>theology3</workID>
+      <DC>
+        <DC.Title>Systematic Theology - Volume III</DC.Title>
+        <DC.Creator sub="Author" scheme="short-form">Charles Hodge</DC.Creator>
+        <DC.Language scheme="ISO639-3">eng</DC.Language>
+        <DC.Rights></DC.Rights>
+        <DC.Publisher>Grand Rapids, MI: Christian Classics Ethereal Library</DC.Publisher>
+      </DC>
+    </electronicEdInfo>
+  </ThML.head>
+  <ThML.body>
+    <div1 title="Title" id="i">
+      <h1 id="i-p0.1">SYNTHETIC TITLE PAGE — MUST BE EXCLUDED</h1>
+    </div1>
+    <div1 title="Prefatory" id="ii">
+      <p id="ii-p1">SYNTHETIC PREFATORY — MUST BE EXCLUDED</p>
+    </div1>
+    <div1 title="Part III. Continued." id="iii">
+      <div2 title="Chapter I. Regeneration." id="iii.i">
+        <div3 title="1. Usage of the Word." id="iii.i.i">
+          <p class="center" id="iii.i.i-p1">§ 1. <i>Usage of the Word</i>.</p>
+          <p class="normal" id="iii.i.i-p2">Synthetic soteriology cites
+            <scripRef passage="Phil. 2:6-8" id="iii.i.i-p2.1" parsed="|Phil|2|6|2|8" osisRef="Bible:Phil.2.6-Phil.2.8">Phil. 2:6-8</scripRef>
+            and
+            <scripRef passage="Eph. 2:8-9" id="iii.i.i-p2.2" parsed="|Eph|2|8|2|9" osisRef="Bible:Eph.2.8-Eph.2.9">Eph. 2:8-9</scripRef>.</p>
+        </div3>
+      </div2>
+    </div1>
+    <div1 title="Part IV. Eschatology." id="iv">
+      <div2 title="Chapter I. The Intermediate State." id="iv.i">
+        <div3 title="1. Placeholder." id="iv.i.i">
+          <p class="center" id="iv.i.i-p1">§ 1. <i>Placeholder</i>.</p>
+          <p class="normal" id="iv.i.i-p2">Synthetic eschatology chapter one.</p>
+        </div3>
+      </div2>
+      <div2 title="Chapter II. Resurrection." id="iv.ii">
+        <div3 title="1. Placeholder." id="iv.ii.i">
+          <p class="center" id="iv.ii.i-p1">§ 1. <i>Placeholder</i>.</p>
+          <p class="normal" id="iv.ii.i-p2">Synthetic eschatology chapter two.</p>
+        </div3>
+      </div2>
+      <div2 title="Chapter III. Second Advent." id="iv.iii">
+        <div3 title="1. Placeholder." id="iv.iii.i">
+          <p class="center" id="iv.iii.i-p1">§ 1. <i>Placeholder</i>.</p>
+          <p class="normal" id="iv.iii.i-p2">Synthetic eschatology chapter three.</p>
+        </div3>
+      </div2>
+      <div2 title="Chapter IV. Concomitants of the Second Advent." id="iv.iv">
+        <div3 title="1. Placeholder." id="iv.iv.i">
+          <p class="center" id="iv.iv.i-p1">§ 1. <i>Placeholder</i>.</p>
+          <p class="normal" id="iv.iv.i-p2">Synthetic eschatology chapter four.</p>
+        </div3>
+      </div2>
+      <div2 title="Chapter V. The Final Judgment." id="iv.v">
+        <div3 title="3. The Judge." id="iv.v.iii">
+          <p class="center" id="iv.v.iii-p1">§ 3. <i>The Judge</i>.</p>
+          <p class="normal" id="iv.v.iii-p2">Eschatology cites
+            <scripRef passage="John 3:16" id="iv.v.iii-p2.1" parsed="|John|3|16|0|0" osisRef="Bible:John.3.16">John 3:16</scripRef>
+            and
+            <scripRef passage="1 Cor. 15:20" id="iv.v.iii-p2.2" parsed="|1Cor|15|20|0|0" osisRef="Bible:1Cor.15.20">1 Cor. 15:20</scripRef>.</p>
+        </div3>
+      </div2>
+    </div1>
+    <div1 title="Indexes" id="v">
+      <p id="v-p1">SYNTHETIC INDEX — MUST BE EXCLUDED</p>
+    </div1>
+  </ThML.body>
+</ThML>

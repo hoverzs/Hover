@@ -1,6 +1,6 @@
-"""Charles Hodge Systematic Theology CCEL/ThML pilot importer (Phase E2).
+"""Charles Hodge Systematic Theology CCEL/ThML pilot importer.
 
-Isolated Volume II pilot. Does not write the Calvin production theology DB,
+Isolated Volume I–III pilot. Does not write the Calvin production theology DB,
 does not download, and does not change schema.
 """
 
@@ -34,16 +34,8 @@ from textus_kb.importers.theology_sqlite import (
 IMPORT_MODE_HODGE_THML = "hodge_thml"
 CHUNK_CHAR_THRESHOLD = 10_000
 
-ALLOWED_PART_DIV1_IDS: tuple[str, ...] = ("iii", "iv")
-EXPECTED_BOOK_ID = "theology2"
-
 AUTHOR_ID = "ccel.hodge"
 WORK_ID = "ccel.hodge.systematic_theology"
-EDITION_ID = "ccel.hodge.systematic_theology.vol2.ccel_thml"
-SOURCE_URL = "https://www.ccel.org/ccel/hodge/theology2.xml"
-EXTERNAL_ID = "ccel/hodge/theology2"
-LOCATOR_PREFIX = "ccel:hodge/theology2"
-SECTION_ID_PREFIX = "ccel.hodge.systematic_theology.vol2"
 
 RIGHTS_STATUS = "needs-review"
 LICENSE_PLACEHOLDER = "unspecified"
@@ -55,9 +47,101 @@ RIGHTS_NOTE = (
     "Production reuse requires explicit rights review."
 )
 
-_PART_HEADING_RE = re.compile(r"^(Part\s+[IVXLCDM]+)\b", re.IGNORECASE)
 _SECTION_NUMBER_RE = re.compile(r"^\s*(\d+)\.")
 _SECTION_MARK_RE = re.compile(r"^\s*\u00a7\s*(\d+)\b")
+
+
+@dataclass(frozen=True)
+class HodgeDiv1Spec:
+    xml_id: str
+    section_type: str
+    expected_title_prefix: str
+    heading: str
+
+
+@dataclass(frozen=True)
+class HodgeVolumePolicy:
+    volume: int
+    roman: str
+    book_id: str
+    heading: str
+    edition_label: str
+    edition_id: str
+    source_url: str
+    external_id: str
+    locator_prefix: str
+    section_id_prefix: str
+    div1s: tuple[HodgeDiv1Spec, ...]
+
+    @property
+    def allowed_div1_ids(self) -> tuple[str, ...]:
+        return tuple(spec.xml_id for spec in self.div1s)
+
+
+def _volume_policy(
+    volume: int,
+    *,
+    roman: str,
+    book_id: str,
+    div1s: tuple[HodgeDiv1Spec, ...],
+) -> HodgeVolumePolicy:
+    return HodgeVolumePolicy(
+        volume=volume,
+        roman=roman,
+        book_id=book_id,
+        heading=f"Vol. {roman}",
+        edition_label=f"Volume {roman} (CCEL ThML)",
+        edition_id=f"ccel.hodge.systematic_theology.vol{volume}.ccel_thml",
+        source_url=f"https://www.ccel.org/ccel/hodge/{book_id}.xml",
+        external_id=f"ccel/hodge/{book_id}",
+        locator_prefix=f"ccel:hodge/{book_id}",
+        section_id_prefix=f"ccel.hodge.systematic_theology.vol{volume}",
+        div1s=div1s,
+    )
+
+
+VOLUME_POLICIES: dict[int, HodgeVolumePolicy] = {
+    1: _volume_policy(
+        1,
+        roman="I",
+        book_id="theology1",
+        div1s=(
+            HodgeDiv1Spec("iii", "introduction", "Introduction", "Introduction"),
+            HodgeDiv1Spec("iv", "part", "Part I. Theology Proper", "Part I"),
+        ),
+    ),
+    2: _volume_policy(
+        2,
+        roman="II",
+        book_id="theology2",
+        div1s=(
+            HodgeDiv1Spec("iii", "part", "Part II. Anthropology", "Part II"),
+            HodgeDiv1Spec("iv", "part", "Part III. Soteriology", "Part III"),
+        ),
+    ),
+    3: _volume_policy(
+        3,
+        roman="III",
+        book_id="theology3",
+        div1s=(
+            HodgeDiv1Spec("iii", "part", "Part III. Continued", "Part III"),
+            HodgeDiv1Spec("iv", "part", "Part IV. Eschatology", "Part IV"),
+        ),
+    ),
+}
+
+BOOK_ID_TO_VOLUME = {
+    policy.book_id: policy.volume for policy in VOLUME_POLICIES.values()
+}
+
+# Vol. II ids kept for existing tests; I/II/III all use the same div1 ids.
+ALLOWED_PART_DIV1_IDS: tuple[str, ...] = VOLUME_POLICIES[2].allowed_div1_ids
+EXPECTED_BOOK_ID = VOLUME_POLICIES[2].book_id
+EDITION_ID = VOLUME_POLICIES[2].edition_id
+SOURCE_URL = VOLUME_POLICIES[2].source_url
+EXTERNAL_ID = VOLUME_POLICIES[2].external_id
+LOCATOR_PREFIX = VOLUME_POLICIES[2].locator_prefix
+SECTION_ID_PREFIX = VOLUME_POLICIES[2].section_id_prefix
 
 
 class HodgeThmlImportError(CcelThmlCoreError):
@@ -77,6 +161,7 @@ class HodgeThmlImportReport:
     section_count: int
     chunk_count: int
     passage_link_count: int
+    volume: int = 0
     parts: int = 0
     chapters: int = 0
     sections: int = 0
@@ -105,11 +190,12 @@ def import_hodge_systematic_theology_thml(
     xml_path: str | Path,
     *,
     database_path: str | Path,
+    volume: int | None = None,
     atomic: bool = True,
 ) -> HodgeThmlImportReport:
     target = Path(database_path)
     _reject_production_database(target)
-    document, extras = parse_hodge_systematic_theology_thml(xml_path)
+    document, extras = parse_hodge_systematic_theology_thml(xml_path, volume=volume)
     theology = import_theology_sqlite(
         document=document,
         database_path=target,
@@ -121,9 +207,11 @@ def import_hodge_systematic_theology_thml(
 
 def parse_hodge_systematic_theology_thml(
     xml_path: str | Path,
+    *,
+    volume: int | None = None,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     try:
-        return _parse_hodge_systematic_theology_thml(xml_path)
+        return _parse_hodge_systematic_theology_thml(xml_path, volume=volume)
     except CcelThmlCoreError as exc:
         if isinstance(exc, HodgeThmlImportError):
             raise
@@ -132,6 +220,8 @@ def parse_hodge_systematic_theology_thml(
 
 def _parse_hodge_systematic_theology_thml(
     xml_path: str | Path,
+    *,
+    volume: int | None,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     root = parse_thml_file(xml_path)
     if local_tag(root.tag) != "ThML":
@@ -141,16 +231,19 @@ def _parse_hodge_systematic_theology_thml(
     body = find_child(root, "ThML.body")
     if body is None:
         raise HodgeThmlImportError("ThML.body is missing.")
-    _assert_volume_two(head)
+    policy = _resolve_volume_policy(head, volume)
 
     part_divs, skipped_ids = select_allowlisted_div1(
         body,
-        ALLOWED_PART_DIV1_IDS,
-        duplicate_template="Duplicate allowlisted Volume II div1 id: {div_id}",
+        policy.allowed_div1_ids,
+        duplicate_template=(
+            f"Duplicate allowlisted Volume {policy.roman} div1 id: {{div_id}}"
+        ),
         missing_template=(
-            "Volume II Part II–III allowlist mismatch; missing div1 id(s): {ids}"
+            f"Volume {policy.roman} allowlist mismatch; missing div1 id(s): {{ids}}"
         ),
     )
+    _assert_expected_div1_titles(part_divs, policy)
 
     stats = ScriptureRefStats()
     sections: list[dict[str, Any]] = []
@@ -160,28 +253,28 @@ def _parse_hodge_systematic_theology_thml(
     split_sections = 0
     split_chunks = 0
 
-    volume_section_id = SECTION_ID_PREFIX
+    volume_section_id = policy.section_id_prefix
     sections.append(
         {
             "section_id": volume_section_id,
-            "edition_id": EDITION_ID,
+            "edition_id": policy.edition_id,
             "parent_section_id": None,
             "section_type": "volume",
-            "heading": "Vol. II",
+            "heading": policy.heading,
             "sequence": 1,
         }
     )
 
-    for part_index, part_div in enumerate(part_divs, start=1):
-        part_xml_id = _require_xml_id(part_div, kind="part")
-        part_section_id = _stable_id(part_xml_id)
+    for part_index, (part_div, spec) in enumerate(zip(part_divs, policy.div1s), start=1):
+        part_xml_id = _require_xml_id(part_div, kind=spec.section_type)
+        part_section_id = _stable_id(part_xml_id, policy)
         sections.append(
             {
                 "section_id": part_section_id,
-                "edition_id": EDITION_ID,
+                "edition_id": policy.edition_id,
                 "parent_section_id": volume_section_id,
-                "section_type": "part",
-                "heading": _part_heading(part_div.get("title"), part_xml_id),
+                "section_type": spec.section_type,
+                "heading": spec.heading,
                 "sequence": part_index,
             }
         )
@@ -191,11 +284,11 @@ def _parse_hodge_systematic_theology_thml(
         for chapter_index, chapter_div in enumerate(chapter_divs, start=1):
             chapters_imported += 1
             chapter_xml_id = _require_xml_id(chapter_div, kind="chapter")
-            chapter_section_id = _stable_id(chapter_xml_id)
+            chapter_section_id = _stable_id(chapter_xml_id, policy)
             sections.append(
                 {
                     "section_id": chapter_section_id,
-                    "edition_id": EDITION_ID,
+                    "edition_id": policy.edition_id,
                     "parent_section_id": part_section_id,
                     "section_type": "chapter",
                     "heading": _attr_or_none(chapter_div.get("title")),
@@ -204,11 +297,11 @@ def _parse_hodge_systematic_theology_thml(
             )
             for subsection in _div3_sections(chapter_div):
                 div3_imported += 1
-                section_id = _stable_id(subsection["xml_id"])
+                section_id = _stable_id(subsection["xml_id"], policy)
                 sections.append(
                     {
                         "section_id": section_id,
-                        "edition_id": EDITION_ID,
+                        "edition_id": policy.edition_id,
                         "parent_section_id": chapter_section_id,
                         "section_type": "subsection",
                         "heading": subsection["heading"],
@@ -226,7 +319,8 @@ def _parse_hodge_systematic_theology_thml(
                     elements = [unit["element"] for unit in group]
                     plain = join_paragraph_plain([unit["plain"] for unit in group])
                     locator = (
-                        f"{LOCATOR_PREFIX}#{_leading_locator_id(group, subsection['xml_id'])}"
+                        f"{policy.locator_prefix}#"
+                        f"{_leading_locator_id(group, subsection['xml_id'])}"
                     )
                     chunk_id = _chunk_id(section_id, chunk_index, split=len(packed) > 1)
                     chunks.append(
@@ -244,11 +338,12 @@ def _parse_hodge_systematic_theology_thml(
     document = {
         "authors": [_author_record(head)],
         "works": [_work_record()],
-        "editions": [_edition_record(head)],
+        "editions": [_edition_record(head, policy)],
         "sections": sections,
         "chunks": chunks,
     }
     extras = {
+        "volume": policy.volume,
         "parts": len(part_divs),
         "chapters": chapters_imported,
         "sections": div3_imported,
@@ -361,19 +456,6 @@ def _subsection_heading(number: int, _title: str) -> str:
     return f"\u00a7{number}"
 
 
-def _part_heading(title: str | None, xml_id: str) -> str:
-    text = (title or "").strip()
-    match = _PART_HEADING_RE.match(text)
-    if match:
-        raw = match.group(1)
-        numeral = raw.split(None, 1)[1].upper()
-        return f"Part {numeral}"
-    fallback = {"iii": "Part II", "iv": "Part III"}
-    if xml_id in fallback:
-        return fallback[xml_id]
-    raise HodgeThmlImportError(f"Cannot derive Part heading from title {text!r}.")
-
-
 def _leading_locator_id(group: list[dict[str, Any]], div3_id: str) -> str:
     for unit in group:
         xml_id = str(unit.get("xml_id") or "").strip()
@@ -388,12 +470,40 @@ def _chunk_id(section_id: str, sequence: int, *, split: bool) -> str:
     return f"{section_id}.chunk.{sequence}"
 
 
-def _assert_volume_two(head: ET.Element | None) -> None:
+def _resolve_volume_policy(
+    head: ET.Element | None,
+    volume: int | None,
+) -> HodgeVolumePolicy:
     book_id = electronic_book_id(head)
-    if book_id is not None and book_id != EXPECTED_BOOK_ID:
+    inferred = BOOK_ID_TO_VOLUME.get(book_id) if book_id else None
+    if volume is None:
+        if inferred is None:
+            raise HodgeThmlImportError(
+                "Cannot determine Hodge volume from bookID; pass volume=1, 2, or 3."
+            )
+        volume = inferred
+    if volume not in VOLUME_POLICIES:
+        raise HodgeThmlImportError(f"Unsupported Hodge volume: {volume!r}.")
+    policy = VOLUME_POLICIES[volume]
+    if book_id is not None and book_id != policy.book_id:
         raise HodgeThmlImportError(
-            f"Volume II importer expected bookID {EXPECTED_BOOK_ID!r}, got {book_id!r}."
+            f"Volume {policy.roman} importer expected bookID {policy.book_id!r}, "
+            f"got {book_id!r}."
         )
+    return policy
+
+
+def _assert_expected_div1_titles(
+    part_divs: list[ET.Element],
+    policy: HodgeVolumePolicy,
+) -> None:
+    for div, spec in zip(part_divs, policy.div1s):
+        title = (div.get("title") or "").strip()
+        if not title.casefold().startswith(spec.expected_title_prefix.casefold()):
+            raise HodgeThmlImportError(
+                f"Volume {policy.roman} div1 id={spec.xml_id!r} expected title "
+                f"starting with {spec.expected_title_prefix!r}, got {title!r}."
+            )
 
 
 def _author_record(head: ET.Element | None) -> dict[str, Any]:
@@ -418,14 +528,14 @@ def _work_record() -> dict[str, Any]:
     }
 
 
-def _edition_record(head: ET.Element | None) -> dict[str, Any]:
+def _edition_record(head: ET.Element | None, policy: HodgeVolumePolicy) -> dict[str, Any]:
     language = dc_text(head, "DC.Language") or "en"
     if language.lower() in {"eng", "en"}:
         language = "en"
     return {
-        "edition_id": EDITION_ID,
+        "edition_id": policy.edition_id,
         "work_id": WORK_ID,
-        "edition_label": "Volume II (CCEL ThML)",
+        "edition_label": policy.edition_label,
         "translator": None,
         "publication_year": PUBLICATION_YEAR,
         "publisher": dc_text(head, "DC.Publisher"),
@@ -433,9 +543,9 @@ def _edition_record(head: ET.Element | None) -> dict[str, Any]:
         "license": LICENSE_PLACEHOLDER,
         "rights_status": RIGHTS_STATUS,
         "rights_note": RIGHTS_NOTE,
-        "source_url": SOURCE_URL,
+        "source_url": policy.source_url,
         "corpus": "ccel",
-        "external_id": electronic_id(head) or EXTERNAL_ID,
+        "external_id": electronic_id(head) or policy.external_id,
     }
 
 
@@ -446,11 +556,11 @@ def _require_xml_id(element: ET.Element, *, kind: str) -> str:
     return xml_id
 
 
-def _stable_id(xml_id: str) -> str:
+def _stable_id(xml_id: str, policy: HodgeVolumePolicy) -> str:
     cleaned = xml_id.strip()
     if not cleaned:
         raise HodgeThmlImportError("Missing stable CCEL id.")
-    return f"{SECTION_ID_PREFIX}.{cleaned}"
+    return f"{policy.section_id_prefix}.{cleaned}"
 
 
 def _attr_or_none(value: str | None) -> str | None:
@@ -488,6 +598,7 @@ def _combine_report(
         section_count=theology.section_count,
         chunk_count=theology.chunk_count,
         passage_link_count=theology.passage_link_count,
+        volume=int(extras["volume"]),
         parts=int(extras["parts"]),
         chapters=int(extras["chapters"]),
         sections=int(extras["sections"]),
