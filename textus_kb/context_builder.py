@@ -607,7 +607,8 @@ def _build_theology_context(
         ContextItem(
             text=f"Theological reading scope: {evidence.passage_display} ({evidence.passage_canonical})",
             evidence_id=_first_evidence_id(by_relation, RELATION_DIRECT_PASSAGE),
-            source_id=_first_source_id(by_relation, RELATION_DIRECT_PASSAGE) or "stepbible_tagnt",
+            source_id=_first_source_id(by_relation, RELATION_DIRECT_PASSAGE)
+            or "passage_scope",
             relevance_score=profile.priorities[RELATION_DIRECT_PASSAGE],
             item_type="passage",
             metadata={"canonical_scope": evidence.passage_canonical},

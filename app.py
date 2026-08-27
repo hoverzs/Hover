@@ -4077,23 +4077,28 @@ szöveghez ténylegesen a legtöbbet ad — ne mindet:
   tipológiailag vagy ígéretként
 - Hitvallásos kapcsolódás: utalhatsz a református hitvallási hagyományra
   (pl. Heidelbergi Káté, II. Helvét Hitvallás) TARTALMILAG, de — ld.
-  lentebb a bizonytalanság-fegyelmi szabályt — alapértelmezetten SZÁM
-  NÉLKÜL, mert ehhez a modulhoz nincs ellenőrzött forrásod
+  lentebb a bizonytalanság-fegyelmi szabályt — konkrét kátészámot,
+  fejezethivatkozást, szerzőt, művet vagy bibliográfiai adatot CSAK akkor
+  nevezz meg, ha a rendszer által adott ellenőrzött forráskontextus ezt
+  ténylegesen tartalmazza
 
-BIZONYTALANSÁG-FEGYELEM (KÖTELEZŐ SZABÁLY — mert ehhez a modulhoz
-jelenleg NINCS külső, ellenőrzött teológiai adatforrás, kizárólag a saját
-tudásodból dolgozol): ALAPÉRTELMEZETTEN NE adj meg konkrét hitvallási
+BIZONYTALANSÁG-FEGYELEM (KÖTELEZŐ SZABÁLY): Konkrét teológust, művet,
+hitvallást, kátészámot, fejezetet, kiadást, fordítót vagy más
+bibliográfiai adatot CSAK AKKOR nevezz meg, ha az a rendszer által
+biztosított ellenőrzött forráskontextusban szerepel. Ha nincs ilyen
+forrásadat, ALAPÉRTELMEZETTEN NE adj meg konkrét hitvallási
 hivatkozást — Heidelbergi Káté kérdésszámot, II. Helvét Hitvallás
 fejezetszámát vagy dokumentumpontját, illetve szó szerinti vagy kvázi-szó
-szerinti idézetet —, MERT nincs grounded (ellenőrzött, külső adatforrásból
-származó) hitvallási forrásod, amivel a pontosságát igazolni tudnád. Ez
+szerinti idézetet. Oldalszámot SOHA ne találj ki. Ez
 akkor is érvényes, ha "emlékszel" egy konkrét számra vagy idézetre — a
 saját emlékezetből felidézett szám ÉPP OLYAN ellenőrizetlen, mint egy
 kitalált. Csak a REFORMÁTUS HITVALLÁSI HAGYOMÁNY TARTALMÁT/TANÍTÁSÁT
 fogalmazd meg, szám vagy idézet nélkül (pl. "a református hitvallási
 hagyomány hangsúlyozza..." egy konkrét kérdésszám vagy fejezethivatkozás
 helyett) — ez NEM gyengíti a teológiai mondanivalót, csak elhagyja az
-ellenőrizhetetlen technikai hivatkozást. A hiányzó hivatkozás MINDIG jobb,
+ellenőrizhetetlen technikai hivatkozást. Általános teológiai
+összefoglalást NE tüntess fel konkrét szerző vagy dokumentum
+álláspontjaként bizonyíték nélkül. A hiányzó hivatkozás MINDIG jobb,
 mint a hihetően hangzó, de bizonytalan adat.
 
 Ugyanez vonatkozik konkrét teológusoknak vagy reformátoroknak (pl.

@@ -8,13 +8,14 @@ from dataclasses import asdict, dataclass, field
 from typing import Any
 
 from textus_kb.context_builder import build_context_from_evidence
-from textus_kb.context_profiles import PROFILE_EXEGESIS, PROFILE_HISTORICAL
+from textus_kb.context_profiles import PROFILE_EXEGESIS, PROFILE_HISTORICAL, PROFILE_THEOLOGY
 from textus_kb.retrieval import retrieve
 
 MODULE_TO_PROFILE = {
     "exegesis": PROFILE_EXEGESIS,
     "history": PROFILE_HISTORICAL,
     "historical_context": PROFILE_HISTORICAL,
+    "theology": PROFILE_THEOLOGY,
 }
 
 
@@ -184,7 +185,7 @@ def main(argv: list[str] | None = None) -> int:
     args = argv if argv is not None else sys.argv[1:]
     if not args:
         print(
-            'Usage: python -m textus_kb shadow "<reference>" --module exegesis|historical_context',
+            'Usage: python -m textus_kb shadow "<reference>" --module exegesis|historical_context|theology',
             file=sys.stderr,
         )
         return 2

@@ -168,3 +168,34 @@ def test_cli_retrieve_main_success(monkeypatch: pytest.MonkeyPatch) -> None:
 
     monkeypatch.setattr("sys.argv", ["retrieve", "Jn 4,1-42"])
     assert main(["Jn 4,1-42"]) == 0
+
+
+def test_ot_retrieve_skips_inapplicable_tagnt(monkeypatch: pytest.MonkeyPatch) -> None:
+    calls: list[str] = []
+
+    def boom(self, reference):
+        calls.append(str(reference))
+        raise RuntimeError("TAGNT is NT-only")
+
+    monkeypatch.setattr(
+        "textus_kb.adapters.tagnt.TagntAdapter.load_passage_tokens", boom
+    )
+    packet = retrieve("Obad.1.1")
+    assert calls == []
+    assert packet.passage_canonical == "Obad.1.1"
+    assert all(item.source_id != "stepbible_tagnt" for item in packet.evidence_items)
+    assert all(
+        item.relation_type != "lexical_highlight" for item in packet.evidence_items
+    )
+    assert any("Old Testament" in warning for warning in packet.warnings)
+
+
+def test_nt_retrieve_still_requires_tagnt(monkeypatch: pytest.MonkeyPatch) -> None:
+    def boom(self, reference):
+        raise RuntimeError("tagnt exploded")
+
+    monkeypatch.setattr(
+        "textus_kb.adapters.tagnt.TagntAdapter.load_passage_tokens", boom
+    )
+    with pytest.raises(RuntimeError, match="tagnt exploded"):
+        retrieve("Jn 4,1-42")

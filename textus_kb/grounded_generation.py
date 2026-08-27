@@ -93,6 +93,8 @@ def resolve_grounded_module(section_key: str) -> str | None:
         return "exegesis"
     if section_key == "history":
         return "historical_context"
+    if section_key == "theology":
+        return "theology"
     return None
 
 
@@ -307,6 +309,23 @@ def prepare_grounded_provider_prompt(
             error="Passage not in TEXTUS_KB_GROUNDED_PASSAGE_ALLOWLIST",
         )
 
+    theology_database_path: str | None = None
+    if module == "theology":
+        from textus_kb.theology_runtime import ensure_theology_database
+
+        runtime_status = ensure_theology_database()
+        if not runtime_status.available:
+            return _fallback(
+                production_prompt,
+                reason=REASON_SOURCE_UNAVAILABLE,
+                module=module,
+                profile=profile,
+                passage=passage,
+                error=runtime_status.reason or "Theology store unavailable",
+                warnings=[runtime_status.detail] if runtime_status.detail else None,
+            )
+        theology_database_path = runtime_status.database_path or None
+
     budget = int(token_budget) if token_budget is not None else None
     retrieval_ms = 0
     context_build_ms = 0
@@ -338,12 +357,21 @@ def prepare_grounded_provider_prompt(
         from textus_kb.context_builder import build_context_from_evidence
         from textus_kb.kb_cache import cached_build_context
 
+        def _build_context(evidence_packet, context_profile):
+            if theology_database_path:
+                return build_context_from_evidence(
+                    evidence_packet,
+                    context_profile,
+                    theology_database_path=theology_database_path,
+                )
+            return build_context_from_evidence(evidence_packet, context_profile)
+
         t1 = time.perf_counter()
         context, context_hit = cached_build_context(
             evidence.passage_canonical or passage,
             profile,
             evidence,
-            build_context_from_evidence,
+            _build_context,
             use_cache=use_cache,
         )
         context_build_ms = int((time.perf_counter() - t1) * 1000)

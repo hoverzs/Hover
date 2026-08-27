@@ -121,10 +121,22 @@ def retrieve(
     else:
         lexical_seed = pilot.lexical_seed
 
-    _add_source_record(sources_used, enabled_sources, "stepbible_tagnt")
-    tagnt = _require_source(enabled_sources, "stepbible_tagnt")
-    tagnt_adapter = TagntAdapter(tagnt)
-    verse_tokens = tagnt_adapter.load_passage_tokens(canonical)
+    # TAGNT is an NT-only Greek token provider. Skipping it for OT is not a
+    # retrieval failure: the source is inapplicable, so no Greek token items
+    # are invented and later layers (places, dictionary, theology store) can run.
+    tagnt_applicable = canonical.book.testament == "NT"
+    verse_tokens: list = []
+    if tagnt_applicable:
+        _add_source_record(sources_used, enabled_sources, "stepbible_tagnt")
+        tagnt = _require_source(enabled_sources, "stepbible_tagnt")
+        tagnt_adapter = TagntAdapter(tagnt)
+        verse_tokens = tagnt_adapter.load_passage_tokens(canonical)
+    else:
+        warnings.append(
+            "NT-only source stepbible_tagnt is not applicable to this Old Testament "
+            "passage; Greek token evidence omitted."
+        )
+
     token_count = sum(len(row.tokens) for row in verse_tokens)
     verse_summaries = tuple(
         PassageTokenSummary(
@@ -142,38 +154,39 @@ def retrieve(
     }
     linguistic_evidence["lexical_highlights"] = []
 
-    evidence_items.append(
-        EvidenceItem(
-            evidence_id=_next_id("TAGNT", 1),
-            source_id="stepbible_tagnt",
-            source_type="sqlite",
-            language="grc",
-            relation_type=RELATION_PASSAGE_TOKEN,
-            passage=canonical_passage,
-            content=(
-                f"Greek NT token set for {display}: "
-                f"{len(verse_summaries)} verses, {token_count} tokens."
-            ),
-            metadata={
-                "verse_count": len(verse_summaries),
-                "token_count": token_count,
-            },
-            relevance_score=RELEVANCE_DIRECT_PASSAGE,
+    if tagnt_applicable:
+        evidence_items.append(
+            EvidenceItem(
+                evidence_id=_next_id("TAGNT", 1),
+                source_id="stepbible_tagnt",
+                source_type="sqlite",
+                language="grc",
+                relation_type=RELATION_PASSAGE_TOKEN,
+                passage=canonical_passage,
+                content=(
+                    f"Greek NT token set for {display}: "
+                    f"{len(verse_summaries)} verses, {token_count} tokens."
+                ),
+                metadata={
+                    "verse_count": len(verse_summaries),
+                    "token_count": token_count,
+                },
+                relevance_score=RELEVANCE_DIRECT_PASSAGE,
+            )
         )
-    )
-    evidence_items.append(
-        EvidenceItem(
-            evidence_id=_next_id("TAGNT", 2),
-            source_id="stepbible_tagnt",
-            source_type="sqlite",
-            language="grc",
-            relation_type=RELATION_DIRECT_PASSAGE,
-            passage=canonical_passage,
-            content=f"Direct passage match: {canonical_passage}",
-            metadata={"display_reference": display},
-            relevance_score=RELEVANCE_DIRECT_PASSAGE,
+        evidence_items.append(
+            EvidenceItem(
+                evidence_id=_next_id("TAGNT", 2),
+                source_id="stepbible_tagnt",
+                source_type="sqlite",
+                language="grc",
+                relation_type=RELATION_DIRECT_PASSAGE,
+                passage=canonical_passage,
+                content=f"Direct passage match: {canonical_passage}",
+                metadata={"display_reference": display},
+                relevance_score=RELEVANCE_DIRECT_PASSAGE,
+            )
         )
-    )
 
     tbesg_source = enabled_sources.get("stepbible_tbesg")
     hu_source = enabled_sources.get("lexicon_hu_overlay")

@@ -1,12 +1,12 @@
 """RESET 3D-2 — a teológia ("theology") prompt kockázatcsökkentő
 hardeningje.
 
-A `theology` modulhoz JELENLEG nincs külső, ellenőrzött teológiai
-adatforrás (a stratégia ugyanaz, mint a history modulnál a RESET 3B-4
-audit szerint) — ez a fázis EZT nem változtatja meg, kizárólag a
-promptot szigorítja: a modell ne érezze kötelességének, hogy konkrét, de
-ellenőrizetlen Heidelbergi Káté kérdésszámot, hitvallási fejezethivat-
-kozást, szó szerinti idézetet vagy teológus-attribúciót gyártson.
+A `theology` prompt grounded és ungrounded módban is igaz marad: konkrét
+teológust, művet, hitvallást, kátészámot vagy bibliográfiai adatot csak
+akkor nevezhet meg, ha a rendszer által adott ellenőrzött forráskontextus
+ezt ténylegesen tartalmazza. A modell ne gyártson ellenőrizetlen
+Heidelbergi Káté kérdésszámot, hitvallási fejezethivatkozást, szó szerinti
+idézetet vagy teológus-attribúciót.
 
 FONTOS TESZTINFRASTRUKTÚRA-MEGJEGYZÉS — ugyanaz a korlátozás, mint
 `tests/test_original_language_token_block.py`-ban és `tests/test_
@@ -97,7 +97,8 @@ def test_2_theology_prompt_forbids_uncertain_confession_chapter_reference():
         "II. Helvét Hitvallás\nfejezetszámát vagy dokumentumpontját"
         in theology
     )
-    assert "MERT nincs grounded" in theology
+    assert "ellenőrzött forráskontextusban szerepel" in theology
+    assert "NINCS külső, ellenőrzött teológiai adatforrás" not in theology
 
 
 def test_3_theology_prompt_forbids_fabricated_quotes():

@@ -199,11 +199,11 @@ def test_unsupported_module_no_retrieval(monkeypatch: pytest.MonkeyPatch) -> Non
 
     monkeypatch.setattr("textus_kb.retrieval.retrieve", counting_retrieve)
     calls: list[dict] = []
-    prompt = "THEOLOGY-PROMPT"
+    prompt = "ILLUSTRATIONS-PROMPT"
     result = run_production_with_optional_shadow(
-        key="theology",
+        key="illustrations",
         prompt=prompt,
-        tab_label="Teológia",
+        tab_label="Illusztrációk",
         use_search=False,
         passage="Jn 4,1-42",
         shadow_enabled=False,

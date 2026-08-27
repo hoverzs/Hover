@@ -14,6 +14,7 @@ from dataclasses import asdict, dataclass, field
 from typing import Any
 
 from textus_kb.context_builder import ContextItem, ContextSection, LLMContextPacket
+from textus_kb.context_profiles import THEOLOGY_NO_MATCH_WARNING
 from textus_kb.context_selection import jaccard_similarity, normalize_plain_text, text_token_set
 from textus_kb.evidence import estimate_text_tokens
 from textus_kb.shadow import MODULE_TO_PROFILE
@@ -36,11 +37,13 @@ DEFAULT_KB_CONTEXT_TARGET_BY_MODULE: dict[str, int] = {
     "exegesis": 2500,
     "historical_context": 2200,
     "history": 2200,
+    "theology": 3500,
 }
 DEFAULT_KB_CONTEXT_MAX_BY_MODULE: dict[str, int] = {
     "exegesis": 4500,
     "historical_context": 3500,
     "history": 3500,
+    "theology": 3500,
 }
 
 # Total hard safety cap for composed grounded prompt (production + KB + overhead).
@@ -75,6 +78,7 @@ _SECTION_HEADERS = {
     "places": "PLACES / BACKGROUND",
     "background": "HISTORICAL BACKGROUND",
     "geography": "PLACES / BACKGROUND",
+    "theological": "THEOLOGICAL SOURCES",
 }
 
 # Drop order when shrinking KB context to fit grounded prompt budget
@@ -87,11 +91,15 @@ _TRIM_SECTION_ORDER = (
     "entities",
     "exegetical",
     "linguistic",
+    "lexical",
+    "theological",
     "passage",
 )
 
 _TAG_RE = re.compile(r"<[^>]+>")
-_SUPPORTED_MODULES = frozenset({"exegesis", "historical_context", "history"})
+_SUPPORTED_MODULES = frozenset(
+    {"exegesis", "historical_context", "history", "theology"}
+)
 
 # Internal evidence / attribution tokens that must not appear in LLM-facing KB text.
 _INTERNAL_EV_MARKER_RE = re.compile(r"\[EV-[A-Z0-9-]+\]", re.IGNORECASE)
@@ -113,6 +121,7 @@ _SOURCE_DISPLAY_LABELS: dict[str, str] = {
     "biblical_places_passage_links": "Biblical places (passage links)",
     "biblical_places_catalog": "Biblical places catalog",
     "place_enrichments_overlay": "Biblical places enrichments",
+    "theology_sqlite": "Theology store",
 }
 
 
@@ -472,6 +481,49 @@ def packet_from_mapping(payload: dict[str, Any] | LLMContextPacket) -> LLMContex
     )
 
 
+def _meta_text(meta: dict[str, Any], key: str) -> str:
+    value = meta.get(key)
+    if value is None:
+        return ""
+    if isinstance(value, (list, tuple)):
+        return "; ".join(str(part).strip() for part in value if str(part).strip())
+    text = str(value).strip()
+    return text
+
+
+def _render_theological_source_lines(item: ContextItem) -> list[str]:
+    """Render citation-ready theology provenance. Omit missing fields; invent none."""
+    meta = dict(item.metadata or {})
+    lines: list[str] = [f"Source: {source_display_label(item.source_id)}"]
+    source_type = str(item.item_type or meta.get("source_type") or "").strip()
+    if source_type:
+        lines.append(f"source_type={source_type}")
+    try:
+        from textus_kb.citation import format_theology_citation
+
+        citation = format_theology_citation(meta)
+    except Exception:
+        citation = ""
+    if citation:
+        lines.append(f"Citation: {citation}")
+    for key in (
+        "author_name",
+        "work_title",
+        "human_readable_locator",
+        "source_locator",
+        "translator",
+        "publication_year",
+        "canonical_passages",
+    ):
+        value = _meta_text(meta, key)
+        if value:
+            lines.append(f"{key}={value}")
+    content = scrub_internal_identifiers(normalize_prompt_text(item.text))
+    if content:
+        lines.append(content)
+    return lines
+
+
 def render_kb_context(
     packet: LLMContextPacket | dict[str, Any],
     *,
@@ -490,6 +542,16 @@ def render_kb_context(
     source_ids: list[str] = []
     evidence_ids: list[str] = []
     emitted = 0
+    no_match = THEOLOGY_NO_MATCH_WARNING in list(ctx.warnings or [])
+    has_theological_items = any(
+        item.item_type == "theological_source"
+        for section in ctx.sections
+        for item in section.items
+    )
+    if no_match and not has_theological_items:
+        lines.append(f"[{_SECTION_HEADERS['theological']}]")
+        lines.append(THEOLOGY_NO_MATCH_WARNING)
+        lines.append("")
 
     for section in ctx.sections:
         header = _SECTION_HEADERS.get(section.type, section.type.upper().replace("_", " "))
@@ -500,18 +562,22 @@ def render_kb_context(
                     f"KB context render capped at max_items={max_items}; remaining items omitted."
                 )
                 break
-            scope = ""
-            meta = item.metadata or {}
-            if meta.get("canonical_scope"):
-                scope = str(meta["canonical_scope"])
-            elif meta.get("passage"):
-                scope = str(meta["passage"])
-            content = scrub_internal_identifiers(normalize_prompt_text(item.text))
-            lines.append(f"Source: {source_display_label(item.source_id)}")
-            if scope:
-                lines.append(f"canonical_scope={scope}")
-            lines.append(content)
-            lines.append("")
+            if item.item_type == "theological_source":
+                lines.extend(_render_theological_source_lines(item))
+                lines.append("")
+            else:
+                scope = ""
+                meta = item.metadata or {}
+                if meta.get("canonical_scope"):
+                    scope = str(meta["canonical_scope"])
+                elif meta.get("passage"):
+                    scope = str(meta["passage"])
+                content = scrub_internal_identifiers(normalize_prompt_text(item.text))
+                lines.append(f"Source: {source_display_label(item.source_id)}")
+                if scope:
+                    lines.append(f"canonical_scope={scope}")
+                lines.append(content)
+                lines.append("")
             source_ids.append(item.source_id)
             evidence_ids.append(item.evidence_id)
             emitted += 1
@@ -575,6 +641,22 @@ def _grounded_rules_block(
                 "és ne állítsd biztos tényként a rekonstrukciót.",
             ]
         )
+    if module_key == "theology":
+        lines.extend(
+            [
+                "",
+                "=== THEOLOGY GROUNDED USE RULES ===",
+                "Only name a theologian, work, confession, catechism, translator,",
+                "edition, or locator when it appears in KB DATA.",
+                "Do not invent page numbers.",
+                "Treat bibliographic metadata as source provenance, not as model knowledge.",
+                "If KB DATA states that no passage-linked theological evidence was found,",
+                "do not attribute theological claims to a named source.",
+                "Distinguish source-supported theological claims from general synthesis.",
+                "Never imply that the current corpus represents all Protestant,",
+                "Reformed, or Christian theology.",
+            ]
+        )
     return "\n".join(lines)
 
 
@@ -589,12 +671,21 @@ def _injection_guard_preamble() -> str:
     )
 
 
-def _style_constraints_block() -> str:
+def _style_constraints_block(*, module: str = "") -> str:
+    module_key = "historical_context" if module == "history" else module
+    if module_key == "theology":
+        task_line = (
+            "A KB-adatot építsd be a meglévő teológiai feladathoz,"
+        )
+    else:
+        task_line = (
+            "A KB-adatot építsd be a meglévő exegézis / történeti kontextus feladathoz,"
+        )
     return "\n".join(
         [
             "=== OUTPUT / STYLE CONSTRAINTS ===",
             "Ne változtasd meg a Textus jelenlegi szakmai és stilisztikai célját.",
-            "A KB-adatot építsd be a meglévő exegézis / történeti kontextus feladathoz,",
+            task_line,
             "ne írj új műfajt vagy checklist-szerű forráskivonatot.",
         ]
     )
@@ -627,7 +718,7 @@ def _assemble_prompt(
         kb_block,
         "<<<END_KB_DATA>>>",
         "",
-        _style_constraints_block(),
+        _style_constraints_block(module=module),
     ]
     return "\n".join(parts).rstrip() + "\n"
 
@@ -1062,7 +1153,7 @@ def main(argv: list[str] | None = None) -> int:
     if not args:
         print(
             'Usage: python -m textus_kb prompt-preview "<reference>" '
-            "--module exegesis|historical_context [--show-prompt] [--prompt-file PATH]",
+            "--module exegesis|historical_context|theology [--show-prompt] [--prompt-file PATH]",
             file=sys.stderr,
         )
         return 2
