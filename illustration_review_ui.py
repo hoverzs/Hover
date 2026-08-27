@@ -344,6 +344,10 @@ def _render_edit_column(connection: sqlite3.Connection, item: IllustrationReview
         moral_hu = st.text_area(
             "moral_hu", value=item.moral_hu or "", height=80, key=f"ill_review_moral_hu_{item.unit_id}"
         )
+        st.caption(
+            "A moral opcionális; humoros/ironikus történetnél üresen maradhat. "
+            "Nem kell mesterséges tanulságot kitalálni, ha a történetnek nincs természetes morálja."
+        )
         save_clicked = st.form_submit_button("Mentés (szerkesztés)")
     if save_clicked:
         try:

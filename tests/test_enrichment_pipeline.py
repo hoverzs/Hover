@@ -162,6 +162,56 @@ def test_missing_mode_rejected() -> None:
 
 
 def test_missing_required_field_rejected() -> None:
+    """title_hu remains a genuinely required field -- unlike moral_hu
+    (Phase 3G-B3, see the moral_hu-specific tests below), omitting it
+    must still be rejected."""
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    story_id = _make_story(conn, source_id)
+    payload = _valid_direct_unit_payload()
+    del payload["unit"]["title_hu"]
+
+    result = enrich_story(conn, story_id=story_id, llm_generate=_llm(payload), model_identifier="m", expected_mode="direct_unit")
+    conn.close()
+    assert result.status == "rejected"
+    assert any("title_hu" in e for e in result.errors)
+
+
+# --- Phase 3G-B3: moral_hu is optional ---------------------------------
+
+
+def test_moral_hu_null_is_valid() -> None:
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    story_id = _make_story(conn, source_id)
+    payload = _valid_direct_unit_payload(moral_hu=None)
+
+    result = enrich_story(conn, story_id=story_id, llm_generate=_llm(payload), model_identifier="m", expected_mode="direct_unit")
+    conn.commit()
+    assert result.status == "unit_created"
+    unit = get_unit(conn, result.unit_id)
+    conn.close()
+    assert unit.moral_hu is None
+
+
+def test_moral_hu_empty_string_is_valid() -> None:
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    story_id = _make_story(conn, source_id)
+    payload = _valid_direct_unit_payload(moral_hu="")
+
+    result = enrich_story(conn, story_id=story_id, llm_generate=_llm(payload), model_identifier="m", expected_mode="direct_unit")
+    conn.commit()
+    assert result.status == "unit_created"
+    unit = get_unit(conn, result.unit_id)
+    conn.close()
+    assert unit.moral_hu == ""
+
+
+def test_moral_hu_key_entirely_absent_is_valid() -> None:
+    """The model may omit the moral_hu key outright, not just send null --
+    the old direct-index unit_payload["moral_hu"] access would have raised
+    KeyError for this shape."""
     conn = _fresh_connection()
     source_id = _make_source(conn)
     story_id = _make_story(conn, source_id)
@@ -169,9 +219,78 @@ def test_missing_required_field_rejected() -> None:
     del payload["unit"]["moral_hu"]
 
     result = enrich_story(conn, story_id=story_id, llm_generate=_llm(payload), model_identifier="m", expected_mode="direct_unit")
+    conn.commit()
+    assert result.status == "unit_created"
+    unit = get_unit(conn, result.unit_id)
+    conn.close()
+    assert unit.moral_hu is None
+
+
+def test_humorous_anecdote_with_empty_moral_is_valid() -> None:
+    """The concrete policy motivation: a humoros/ironikus anecdote with no
+    natural lesson must not be forced to invent one."""
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    story_id = _make_story(conn, source_id)
+    payload = _valid_direct_unit_payload(tone="humoros", moral_hu=None)
+
+    result = enrich_story(conn, story_id=story_id, llm_generate=_llm(payload), model_identifier="m", expected_mode="direct_unit")
+    conn.close()
+    assert result.status == "unit_created"
+
+
+def test_existing_moral_hu_still_persists_when_provided() -> None:
+    """The optional policy must not regress the case where a story DOES
+    have a natural moral -- providing one still works exactly as before."""
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    story_id = _make_story(conn, source_id)
+    payload = _valid_direct_unit_payload(moral_hu="A megszokás erősebb, mint a helyzet váratlansága.")
+
+    result = enrich_story(conn, story_id=story_id, llm_generate=_llm(payload), model_identifier="m", expected_mode="direct_unit")
+    conn.commit()
+    assert result.status == "unit_created"
+    unit = get_unit(conn, result.unit_id)
+    conn.close()
+    assert unit.moral_hu == "A megszokás erősebb, mint a helyzet váratlansága."
+
+
+def test_moral_hu_wrong_type_is_rejected() -> None:
+    """Only a genuinely wrong TYPE (not null/empty/absent) is an error."""
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    story_id = _make_story(conn, source_id)
+    payload = _valid_direct_unit_payload(moral_hu=["not", "a", "string"])
+
+    result = enrich_story(conn, story_id=story_id, llm_generate=_llm(payload), model_identifier="m", expected_mode="direct_unit")
     conn.close()
     assert result.status == "rejected"
     assert any("moral_hu" in e for e in result.errors)
+
+
+def test_other_required_fields_still_reject_when_missing() -> None:
+    """modern_hu_text and summary_hu remain required -- only moral_hu's
+    requirement was lifted."""
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    story_id = _make_story(conn, source_id)
+
+    payload_no_modern = _valid_direct_unit_payload()
+    del payload_no_modern["unit"]["modern_hu_text"]
+    result = enrich_story(
+        conn, story_id=story_id, llm_generate=_llm(payload_no_modern), model_identifier="m", expected_mode="direct_unit"
+    )
+    assert result.status == "rejected"
+    assert any("modern_hu_text" in e for e in result.errors)
+
+    payload_no_summary = _valid_direct_unit_payload()
+    del payload_no_summary["unit"]["summary_hu"]
+    result2 = enrich_story(
+        conn, story_id=story_id, llm_generate=_llm(payload_no_summary), model_identifier="m", expected_mode="direct_unit"
+    )
+    conn.close()
+    assert result2.status == "rejected"
+    assert any("summary_hu" in e for e in result2.errors)
 
 
 def test_forbidden_topic_enum_rejected() -> None:
@@ -1036,6 +1155,22 @@ def test_prompt_name_completion_rule_applies_to_all_four_text_fields() -> None:
     rule_section = prompt.split("NÉV-KIEGÉSZÍTÉS TILALMA")[1][:200]
     for field_name in ("title_hu", "modern_hu_text", "summary_hu", "moral_hu"):
         assert field_name in rule_section
+
+
+def test_prompt_states_moral_hu_is_optional() -> None:
+    """Phase 3G-B3: the prompt must explicitly tell the model not to
+    fabricate a moral for a story that has no natural one."""
+    from illustration_engine.enrichment_pipeline import _LoadedStory
+
+    story = _LoadedStory(
+        id=1, source_id=1, title_original="Test", original_text="X.", source_code="TEST", tradition=None
+    )
+    prompt = build_enrichment_prompt(story, expected_mode="direct_unit")
+    assert "OPCIONÁLIS" in prompt
+    assert "moral_hu" in prompt
+    moral_section = prompt.split("MORAL_HU SZABÁLYOK")[1][:600]
+    assert "Ne gyárts erkölcsi tanulságot" in moral_section
+    assert "null" in moral_section
 
 
 # ---------------------------------------------------------------------------

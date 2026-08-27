@@ -328,11 +328,20 @@ DEFAULT_PROMPT_VERSION = "hu_illustration_enrichment_pilot_v1"
 _PROPOSAL_DERIVATION_TYPES = frozenset({"extracted_scene", "condensed_story"})
 
 # Which text fields _validate_common_fields requires to be non-empty --
-# direct_unit still needs the full Hungarian content; unit_proposal (Phase
-# 3C-c PROPOSAL CONTRACT) deliberately does NOT require modern_hu_text or
-# moral_hu, since a proposal's job is only to decide WHAT unit could be
-# made, not to write it.
-_DIRECT_UNIT_TEXT_FIELDS = ("title_hu", "modern_hu_text", "summary_hu", "moral_hu")
+# direct_unit still needs title_hu/modern_hu_text/summary_hu; unit_proposal
+# (Phase 3C-c PROPOSAL CONTRACT) deliberately does NOT require
+# modern_hu_text or moral_hu, since a proposal's job is only to decide WHAT
+# unit could be made, not to write it. moral_hu is DELIBERATELY excluded
+# here even for direct_unit (Phase 3G-B3 optional moral policy) -- not
+# every source story carries a natural moral/lesson (many pilot anecdotes
+# are purely humorous/ironic/punchline-driven), and forcing one invented a
+# tacked-on "lesson" that wasn't in the source. moral_hu may still be
+# filled in when the story genuinely warrants it; see moral_rules_section
+# in build_enrichment_prompt() for the exact instruction given to the
+# model, and _validate_common_fields' separate, permissive moral_hu type
+# check (null/empty/any string all valid, only a non-string/non-null type
+# is rejected).
+_DIRECT_UNIT_REQUIRED_TEXT_FIELDS = ("title_hu", "modern_hu_text", "summary_hu")
 _PROPOSAL_TEXT_FIELDS = ("title_hu", "summary_hu")
 
 # A retrieval-ready illustration unit is meant to be a short, directly
@@ -651,7 +660,7 @@ def _handle_direct_unit(
     warnings: list[str] = []
     _validate_common_fields(
         unit_payload, errors, warnings,
-        source_text=story.original_text, required_text_fields=_DIRECT_UNIT_TEXT_FIELDS,
+        source_text=story.original_text, required_text_fields=_DIRECT_UNIT_REQUIRED_TEXT_FIELDS,
     )
     # Phase 3D.1: the LLM no longer freely picks between
     # full_story_translation/condensed_story -- expected_derivation_type
@@ -708,7 +717,10 @@ def _handle_direct_unit(
             title_hu=unit_payload["title_hu"],
             modern_hu_text=unit_payload["modern_hu_text"],
             summary_hu=unit_payload["summary_hu"],
-            moral_hu=unit_payload["moral_hu"],
+            # moral_hu is optional (Phase 3G-B3) -- the key may be absent
+            # entirely (not just null), so a plain [...] index would raise
+            # KeyError for a model response that omits it outright.
+            moral_hu=unit_payload.get("moral_hu"),
             narrative_status=unit_payload["narrative_status"],
             narrative_status_confidence=unit_payload["narrative_status_confidence"],
             enrichment_model=model_identifier,
@@ -938,6 +950,17 @@ def _validate_common_fields(
         value = unit_payload.get(field_name)
         if not isinstance(value, str) or not value.strip():
             errors.append(f"{field_name} must be a non-empty string")
+
+    # Phase 3G-B3: moral_hu is deliberately OPTIONAL, never in
+    # required_text_fields (see _DIRECT_UNIT_REQUIRED_TEXT_FIELDS) -- a
+    # missing key, null, or "" are all valid ("no natural moral for this
+    # story"). Only a genuinely wrong TYPE (a number, list, etc.) is
+    # rejected; an empty/whitespace-only string is accepted as-is, not
+    # normalized here (persistence stores exactly what was given).
+    if "moral_hu" in unit_payload:
+        moral_hu = unit_payload.get("moral_hu")
+        if moral_hu is not None and not isinstance(moral_hu, str):
+            errors.append("moral_hu must be a string or null when present")
 
     summary_hu = unit_payload.get("summary_hu")
     if isinstance(summary_hu, str) and summary_hu.strip():
@@ -1257,11 +1280,18 @@ MAGYAR SZÖVEG SZABÁLYOK (modern_hu_text):
 """
         name_completion_fields = "title_hu, modern_hu_text, summary_hu és moral_hu"
         moral_rules_section = """\
-MORAL_HU SZABÁLYOK:
-- egy rövid, SEMLEGES tanulság/téma-mondat;
-- NE legyen automatikusan keresztény teológiai értelmezés;
-- NE helyezz bibliai jelentést olyan történetre, ahol az nincs a \
-  forrásban.
+MORAL_HU SZABÁLYOK (OPCIONÁLIS mező):
+- a moral_hu OPCIONÁLIS — ha a történet a saját természeténél fogva \
+  világos erkölcsi/emberi tanulságot hordoz, adj meg egy rövid, \
+  SEMLEGES tanulság/téma-mondatot;
+- Ne gyárts erkölcsi tanulságot, ha a történet természetéből nem \
+  következik. Humoros, ironikus vagy pusztán anekdotikus történetnél a \
+  moral_hu lehet üres — ilyenkor a moral_hu értéke legyen null, NE \
+  találj ki hozzá mesterséges tanulságot csak azért, hogy a mező ki \
+  legyen töltve, és NE erőltess rá a forrásra prédikációs alkalmazást;
+- ha mégis megadod, NE legyen automatikusan keresztény teológiai \
+  értelmezés, és NE helyezz bibliai jelentést olyan történetre, ahol \
+  az nincs a forrásban.
 
 """
         json_shape_section = """\
@@ -1273,7 +1303,7 @@ MORAL_HU SZABÁLYOK:
     "title_hu": "...",
     "modern_hu_text": "...",
     "summary_hu": "...",
-    "moral_hu": "...",
+    "moral_hu": "... vagy null, ha a történetnek nincs természetes tanulsága",
     "topics": ["..."],
     "tone": "...",
     "homiletic_functions": ["..."],
