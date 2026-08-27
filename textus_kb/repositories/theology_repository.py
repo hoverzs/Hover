@@ -139,6 +139,7 @@ class TheologyRepository:
             return []
         try:
             section_map = _load_section_map(connection)
+            chunk_counts = _load_section_chunk_counts(connection)
             rows = connection.execute(
                 """
                 SELECT
@@ -231,6 +232,7 @@ class TheologyRepository:
             result = _result_from_row(
                 row,
                 section_map,
+                chunk_counts,
                 passages=_ordered_passages(
                     bucket["passages"],
                     exact=query_canonical,
@@ -261,6 +263,7 @@ class TheologyRepository:
         match_query = _fts_phrase_query(q)
         try:
             section_map = _load_section_map(connection)
+            chunk_counts = _load_section_chunk_counts(connection)
             rows = _fts_match_rows(connection, match_query)
             if not rows:
                 return []
@@ -277,6 +280,7 @@ class TheologyRepository:
             result = _result_from_row(
                 row,
                 section_map,
+                chunk_counts,
                 passages=tuple(links_by_chunk.get(chunk_id, ())),
                 snippet=str(row["snippet"] or ""),
             )
@@ -421,6 +425,17 @@ def _load_section_map(connection: sqlite3.Connection) -> dict[str, sqlite3.Row]:
         """
     ).fetchall()
     return {str(row["section_id"]): row for row in rows}
+
+
+def _load_section_chunk_counts(connection: sqlite3.Connection) -> dict[str, int]:
+    rows = connection.execute(
+        """
+        SELECT section_id, COUNT(*) AS chunk_count
+        FROM chunks
+        GROUP BY section_id
+        """
+    ).fetchall()
+    return {str(row["section_id"]): int(row["chunk_count"]) for row in rows}
 
 
 def _passage_links_for_chunks(
@@ -593,15 +608,22 @@ def _human_readable_locator(
     author_name: str,
     work_title: str,
     chain: list[sqlite3.Row],
+    *,
+    chunk_sequence: int = 1,
+    section_chunk_count: int = 1,
 ) -> str:
     parts = [author_name.strip(), work_title.strip()]
     parts.extend(_hierarchy_label(node) for node in chain)
-    return ", ".join(part for part in parts if part)
+    locator = ", ".join(part for part in parts if part)
+    if section_chunk_count > 1:
+        locator = f"{locator}, fragment {int(chunk_sequence)}"
+    return locator
 
 
 def _result_from_row(
     row: sqlite3.Row,
     section_map: dict[str, sqlite3.Row],
+    chunk_counts: dict[str, int],
     *,
     passages: tuple[str, ...],
     snippet: str = "",
@@ -614,13 +636,20 @@ def _result_from_row(
         publication_year = int(year) if year is not None and year != "" else None
     except (TypeError, ValueError):
         publication_year = None
+    section_id = str(row["section_id"])
     return TheologyChunkResult(
         chunk_id=str(row["chunk_id"]),
         plain_text=str(row["plain_text"] or ""),
         heading=str(row["heading"] or ""),
         section_type=str(row["section_type"] or ""),
         source_locator=str(row["source_locator"] or ""),
-        human_readable_locator=_human_readable_locator(author, title, chain),
+        human_readable_locator=_human_readable_locator(
+            author,
+            title,
+            chain,
+            chunk_sequence=int(row["chunk_sequence"] or 1),
+            section_chunk_count=int(chunk_counts.get(section_id) or 1),
+        ),
         author_name=author,
         work_title=title,
         tradition=str(row["tradition"] or ""),

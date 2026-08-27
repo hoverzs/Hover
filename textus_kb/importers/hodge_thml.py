@@ -32,7 +32,7 @@ from textus_kb.importers.theology_sqlite import (
 )
 
 IMPORT_MODE_HODGE_THML = "hodge_thml"
-CHUNK_CHAR_THRESHOLD = 10_000
+CHUNK_CHAR_THRESHOLD = 6_000
 
 AUTHOR_ID = "ccel.hodge"
 WORK_ID = "ccel.hodge.systematic_theology"

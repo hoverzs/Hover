@@ -67,7 +67,7 @@ def test_fixture_is_markup_derived_not_real_hodge() -> None:
     assert "markup-derived minimal fixture" in text
     assert "Let us make man in our image" not in text
     assert "Heathen Doctrine of Spontaneous Generation" not in text
-    assert CHUNK_CHAR_THRESHOLD == 10_000
+    assert CHUNK_CHAR_THRESHOLD == 6_000
 
 
 def test_external_dtd_is_not_fetched(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -275,6 +275,7 @@ def test_human_readable_locator_and_source_locator(tmp_path: Path) -> None:
     assert hits[0].human_readable_locator == (
         "Charles Hodge, Systematic Theology, Vol. II, Part III, Chapter 5, §2"
     )
+    assert "fragment" not in hits[0].human_readable_locator
     assert hits[0].source_locator == "ccel:hodge/theology2#iv.v.ii-p1"
     assert "Page_" not in hits[0].source_locator
 
@@ -437,6 +438,7 @@ def test_volume_one_allowlist_and_introduction_locator(tmp_path: Path) -> None:
     assert hits[0].human_readable_locator == (
         "Charles Hodge, Systematic Theology, Vol. I, Introduction, Chapter 1, §1"
     )
+    assert "fragment" not in hits[0].human_readable_locator
     assert hits[0].source_locator == "ccel:hodge/theology1#iii.i.i-p1"
     proper = TheologyRepository(report.database_path).chunks_for_passage("Eph.2.8-9")
     assert proper
@@ -476,12 +478,14 @@ def test_volume_three_part_continued_and_eschatology_locator(tmp_path: Path) -> 
     assert soteriology[0].human_readable_locator == (
         "Charles Hodge, Systematic Theology, Vol. III, Part III, Chapter 1, §1"
     )
+    assert "fragment" not in soteriology[0].human_readable_locator
     assert soteriology[0].source_locator.startswith("ccel:hodge/theology3#")
     eschatology = TheologyRepository(report.database_path).chunks_for_passage("1Cor.15.20")
     assert eschatology
     assert eschatology[0].human_readable_locator == (
         "Charles Hodge, Systematic Theology, Vol. III, Part IV, Chapter 5, §3"
     )
+    assert "fragment" not in eschatology[0].human_readable_locator
     edition = _query_all(
         report.database_path,
         "SELECT edition_label, source_url FROM editions",
@@ -517,4 +521,114 @@ def test_volume_two_fixture_hash_is_stable(tmp_path: Path) -> None:
     assert first.volume == 2
     assert first.content_hash == second.content_hash
     assert first.chunk_count == second.chunk_count
+
+
+def test_split_section_locator_uses_fragment_suffix(tmp_path: Path) -> None:
+    report = _import(tmp_path)
+    repo = TheologyRepository(report.database_path)
+    rom = [
+        hit
+        for hit in repo.chunks_for_passage("Rom.8.3")
+        if hit.source_locator.startswith("ccel:hodge/theology2#iii.i.ii")
+    ]
+    phil = [
+        hit
+        for hit in repo.chunks_for_passage("Phil.2.6-8")
+        if hit.source_locator.startswith("ccel:hodge/theology2#iii.i.ii")
+    ]
+    assert rom
+    assert phil
+    assert rom[0].human_readable_locator == (
+        "Charles Hodge, Systematic Theology, Vol. II, Part II, Chapter 1, §2, fragment 1"
+    )
+    assert phil[0].human_readable_locator == (
+        "Charles Hodge, Systematic Theology, Vol. II, Part II, Chapter 1, §2, fragment 2"
+    )
+    rows = _query_all(
+        report.database_path,
+        """
+        SELECT sequence FROM chunks
+        WHERE chunk_id = ?
+        """,
+        (phil[0].chunk_id,),
+    )
+    assert rows[0][0] == 2
+
+
+def test_single_paragraph_over_threshold_stays_one_chunk() -> None:
+    oversized = {"plain": "y" * (CHUNK_CHAR_THRESHOLD + 80), "xml_id": "p1", "element": None}
+    groups = pack_paragraph_groups([oversized], threshold=CHUNK_CHAR_THRESHOLD)
+    assert groups == [[oversized]]
+
+
+def test_passage_links_are_local_to_split_fragment(tmp_path: Path) -> None:
+    padding = ("synthetic fragment-local padding sentence. " * 180).strip()
+    assert len(padding) > CHUNK_CHAR_THRESHOLD
+    xml = f"""<?xml version="1.0" encoding="UTF-8"?>
+<ThML>
+  <ThML.head>
+    <electronicEdInfo><bookID>theology2</bookID></electronicEdInfo>
+  </ThML.head>
+  <ThML.body>
+    <div1 title="Part II. Anthropology" id="iii">
+      <div2 title="Chapter I." id="iii.i">
+        <div3 title="1. Local links." id="iii.i.i">
+          <p id="iii.i.i-p1">§ 1. First fragment cites
+            <scripRef passage="Rom. 8:3" osisRef="Bible:Rom.8.3">Rom. 8:3</scripRef>.</p>
+          <p id="iii.i.i-p2">{padding}</p>
+          <p id="iii.i.i-p3">Third fragment cites
+            <scripRef passage="Phil. 2:6-8" osisRef="Bible:Phil.2.6-Phil.2.8">Phil. 2:6-8</scripRef>.</p>
+        </div3>
+      </div2>
+    </div1>
+    <div1 title="Part III. Soteriology." id="iv">
+      <div2 title="Chapter I." id="iv.i">
+        <div3 title="1. Other." id="iv.i.i">
+          <p id="iv.i.i-p1">§ 1. Book two.</p>
+        </div3>
+      </div2>
+    </div1>
+  </ThML.body>
+</ThML>
+"""
+    path = _write_xml(tmp_path, xml)
+    report = import_hodge_systematic_theology_thml(
+        path,
+        database_path=tmp_path / "fragment-links.sqlite3",
+        volume=2,
+    )
+    rows = _query_all(
+        report.database_path,
+        """
+        SELECT chunks.sequence, chunks.source_locator, chunks.plain_text,
+               GROUP_CONCAT(passage_links.canonical_passage)
+        FROM chunks
+        LEFT JOIN passage_links ON passage_links.chunk_id = chunks.chunk_id
+        WHERE chunks.section_id = ?
+        GROUP BY chunks.chunk_id
+        ORDER BY chunks.sequence
+        """,
+        ("ccel.hodge.systematic_theology.vol2.iii.i.i",),
+    )
+    assert len(rows) == 3
+    assert rows[0][1] == "ccel:hodge/theology2#iii.i.i-p1"
+    assert rows[1][1] == "ccel:hodge/theology2#iii.i.i-p2"
+    assert rows[2][1] == "ccel:hodge/theology2#iii.i.i-p3"
+    assert rows[0][3] == "Rom.8.3"
+    assert rows[1][3] is None
+    assert rows[2][3] == "Phil.2.6-8"
+    assert "Phil. 2:6-8" not in rows[0][2]
+    assert "Rom. 8:3" not in rows[2][2]
+    repo = TheologyRepository(report.database_path)
+    rom = repo.chunks_for_passage("Rom.8.3")
+    phil = repo.chunks_for_passage("Phil.2.6-8")
+    assert [hit.source_locator for hit in rom] == ["ccel:hodge/theology2#iii.i.i-p1"]
+    assert [hit.source_locator for hit in phil] == ["ccel:hodge/theology2#iii.i.i-p3"]
+    assert rom[0].human_readable_locator.endswith(", fragment 1")
+    assert phil[0].human_readable_locator.endswith(", fragment 3")
+    assert rom[0].canonical_passages == ("Rom.8.3",)
+    assert phil[0].canonical_passages == ("Phil.2.6-8",)
+    reconstructed = join_paragraph_plain([row[2] for row in rows])
+    assert reconstructed.count("Rom. 8:3") == 1
+    assert reconstructed.count("Phil. 2:6-8") == 1
 
