@@ -58,4 +58,34 @@ def test_app_shadow_flag_default_false_and_hooked() -> None:
     assert "run_production_with_optional_shadow(" in app_src
     assert "shadow_enabled=_is_kb_shadow_enabled()" in app_src
     assert "st.session_state[key] = run.production_output" in app_src
+    assert "TEXTUS_KB_GROUNDED_STAGE_ALLOWED" not in app_src
+
+
+def test_shadow_explicit_true_still_produces_artifact() -> None:
+    from textus_kb.prompt_composer import DRY_RUN_PRODUCTION_STUB
+    from textus_kb.shadow_integration import run_production_with_optional_shadow
+
+    calls: list[dict] = []
+
+    def fake_generate(prompt: str, *, enable_google_search: bool, tab_label: str) -> str:
+        calls.append({"prompt": prompt})
+        return "OUT"
+
+    def counting_shadow(**kwargs):
+        return {"status": "success", "success": True, "module": kwargs.get("module")}
+
+    result = run_production_with_optional_shadow(
+        key="exegesis",
+        prompt=DRY_RUN_PRODUCTION_STUB,
+        tab_label="Exegézis",
+        use_search=False,
+        passage="Jn 4,1-42",
+        shadow_enabled=True,
+        grounded_enabled=False,
+        generate_text_fn=fake_generate,
+        shadow_runner_fn=counting_shadow,
+    )
+    assert len(calls) == 1
+    assert result.shadow_event is not None
+    assert result.shadow_event.get("success") is True
 

@@ -1,8 +1,10 @@
 """Guarded KB-grounded production prompt injection (Phase 5D).
 
-Default-off. On success, the Phase 5C composed prompt is sent to the provider
-exactly once. On any preparation failure, the original production prompt is used
-for that same single provider call (hard fallback — no double call).
+Default-on for mapped modules (exegesis, historical, theology). Explicit
+``TEXTUS_KB_GROUNDED_ENABLED=false`` is an emergency kill switch. On success,
+the Phase 5C composed prompt is sent to the provider exactly once. On any
+preparation failure, the original production prompt is used for that same
+single provider call (hard fallback — no double call).
 """
 
 from __future__ import annotations
@@ -20,8 +22,8 @@ from textus_kb.prompt_composer import (
 from textus_kb.shadow import MODULE_TO_PROFILE
 
 GROUNDED_FLAG = "TEXTUS_KB_GROUNDED_ENABLED"
-STAGE_ALLOWED_FLAG = "TEXTUS_KB_GROUNDED_STAGE_ALLOWED"
 PASSAGE_ALLOWLIST_FLAG = "TEXTUS_KB_GROUNDED_PASSAGE_ALLOWLIST"
+_GROUNDED_DISABLED_VALUES = frozenset({"false", "0", "no", "off"})
 
 STATUS_USED = "grounded_used"
 STATUS_FALLBACK = "grounded_fallback"
@@ -36,23 +38,19 @@ REASON_UNSUPPORTED_PASSAGE = "unsupported_passage"
 REASON_SOURCE_UNAVAILABLE = "source_unavailable"
 REASON_UNSUPPORTED_MODULE = "unsupported_module"
 REASON_PASSAGE_NOT_ALLOWLISTED = "passage_not_allowlisted"
-REASON_STAGE_NOT_ALLOWED = "stage_not_allowed"
 
 
 def is_grounded_enabled() -> bool:
-    raw = (os.getenv(GROUNDED_FLAG, "false") or "").strip().lower()
-    return raw in {"1", "true", "yes", "on"}
-
-
-def is_stage_allowed() -> bool:
-    """Extra staging/dev gate. Default false — never auto-enabled by readiness."""
-    raw = (os.getenv(STAGE_ALLOWED_FLAG, "false") or "").strip().lower()
-    return raw in {"1", "true", "yes", "on"}
+    """Optional kill switch. Unset/empty/true → on; only explicit false disables."""
+    raw = os.getenv(GROUNDED_FLAG)
+    if raw is None:
+        return True
+    return raw.strip().lower() not in _GROUNDED_DISABLED_VALUES
 
 
 def is_grounded_injection_allowed() -> bool:
-    """Production injection requires both grounded + stage-allowed flags."""
-    return is_grounded_enabled() and is_stage_allowed()
+    """Production injection follows the grounded kill-switch policy (default on)."""
+    return is_grounded_enabled()
 
 
 def passage_allowlist_canonicals() -> set[str] | None:
@@ -257,33 +255,18 @@ def prepare_grounded_provider_prompt(
     token_budget: int | None = None,
     grounded_enabled: bool | None = None,
     use_cache: bool = True,
-    enforce_stage_gate: bool = False,
 ) -> GroundedPreparationResult:
     """Build grounded provider prompt or hard-fallback to production prompt.
 
     Never calls a model provider. Never raises to callers for KB failures.
 
-    ``enforce_stage_gate`` is for the app injection path only (requires
-    ``TEXTUS_KB_GROUNDED_STAGE_ALLOWED``). Explicit compare/tests pass
-    ``grounded_enabled=True`` without the stage gate.
+    When ``grounded_enabled`` is None, follows ``is_grounded_enabled()``
+    (unset env → on; explicit false → emergency disable).
     """
     if grounded_enabled is None:
-        grounded_enabled = (
-            is_grounded_injection_allowed()
-            if enforce_stage_gate
-            else is_grounded_enabled()
-        )
+        grounded_enabled = is_grounded_enabled()
     if not grounded_enabled:
         return _disabled(production_prompt, passage=passage)
-
-    if enforce_stage_gate and not is_stage_allowed():
-        return _fallback(
-            production_prompt,
-            reason=REASON_STAGE_NOT_ALLOWED,
-            module=module,
-            passage=passage,
-            error="TEXTUS_KB_GROUNDED_STAGE_ALLOWED is false",
-        )
 
     profile = MODULE_TO_PROFILE.get(module)
     if profile is None:
@@ -565,7 +548,6 @@ def build_shadow_artifact_from_preparation(
 __all__ = [
     "GROUNDED_FLAG",
     "PASSAGE_ALLOWLIST_FLAG",
-    "STAGE_ALLOWED_FLAG",
     "GroundedPreparationResult",
     "REASON_BUDGET_EXCEEDED",
     "REASON_COMPOSITION_ERROR",
@@ -573,7 +555,6 @@ __all__ = [
     "REASON_PASSAGE_NOT_ALLOWLISTED",
     "REASON_RETRIEVAL_ERROR",
     "REASON_SOURCE_UNAVAILABLE",
-    "REASON_STAGE_NOT_ALLOWED",
     "REASON_UNSUPPORTED_MODULE",
     "REASON_UNSUPPORTED_PASSAGE",
     "STATUS_DISABLED",
@@ -584,7 +565,6 @@ __all__ = [
     "is_grounded_enabled",
     "is_grounded_injection_allowed",
     "is_passage_allowlisted",
-    "is_stage_allowed",
     "passage_allowlist_canonicals",
     "prepare_grounded_provider_prompt",
     "resolve_grounded_module",

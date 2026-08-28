@@ -20,6 +20,7 @@ from textus_kb.grounded_generation import (
     STATUS_UNSUPPORTED,
     STATUS_USED,
     is_grounded_enabled,
+    is_grounded_injection_allowed,
     prepare_grounded_provider_prompt,
 )
 from textus_kb.prompt_composer import DRY_RUN_PRODUCTION_STUB
@@ -45,9 +46,50 @@ def _noop_shadow(**kwargs):
     return {"status": "success", "success": True, "reused": False}
 
 
-def test_grounded_flag_default_false(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_grounded_flag_default_true(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv(GROUNDED_FLAG, raising=False)
-    assert is_grounded_enabled() is False
+    monkeypatch.delenv("TEXTUS_KB_GROUNDED_STAGE_ALLOWED", raising=False)
+    assert is_grounded_enabled() is True
+    assert is_grounded_injection_allowed() is True
+
+
+def test_exegesis_and_history_grounded_when_env_unset(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from textus_kb.kb_cache import clear_kb_cache
+
+    clear_kb_cache()
+    monkeypatch.delenv(GROUNDED_FLAG, raising=False)
+    monkeypatch.delenv("TEXTUS_KB_GROUNDED_STAGE_ALLOWED", raising=False)
+    ensure_calls: list[str] = []
+    monkeypatch.setattr(
+        "textus_kb.theology_runtime.ensure_theology_database",
+        lambda **kwargs: ensure_calls.append("called"),
+    )
+    for key, passage, tab_label in (
+        ("exegesis", "Jn 4,1-42", "Exegézis"),
+        ("history", "Lk 10,25-37", "Kortörténet"),
+    ):
+        calls: list[dict] = []
+        result = run_production_with_optional_shadow(
+            key=key,
+            prompt=DRY_RUN_PRODUCTION_STUB,
+            tab_label=tab_label,
+            use_search=False,
+            passage=passage,
+            shadow_enabled=False,
+            grounded_enabled=is_grounded_injection_allowed(),
+            generate_text_fn=_fake_generate_factory(calls),
+            shadow_runner_fn=_noop_shadow,
+        )
+        assert len(calls) == 1
+        assert result.provider_call_count == 1
+        assert result.grounded_event is not None
+        assert result.grounded_event["grounded_disabled"] is not True
+        if result.grounded_event.get("grounded_used"):
+            assert "<<<BEGIN_KB_DATA>>>" in calls[0]["prompt"]
+            assert result.provider_prompt_kind == "grounded"
+    assert ensure_calls == []
 
 
 def test_flag_false_production_invariance() -> None:

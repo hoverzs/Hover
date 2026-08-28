@@ -15,11 +15,10 @@ from textus_kb.compare_store import HumanReview, persist_compare_run
 from textus_kb.context_builder import ContextItem, ContextSection, LLMContextPacket
 from textus_kb.grounded_compare import run_grounded_compare
 from textus_kb.grounded_generation import (
+    GROUNDED_FLAG,
     PASSAGE_ALLOWLIST_FLAG,
-    STAGE_ALLOWED_FLAG,
     is_grounded_injection_allowed,
     is_passage_allowlisted,
-    is_stage_allowed,
     prepare_grounded_provider_prompt,
 )
 from textus_kb.kb_cache import (
@@ -247,11 +246,15 @@ def test_cache_error_falls_back(monkeypatch: pytest.MonkeyPatch) -> None:
     assert prep.grounded_used is True or prep.grounded_fallback is True
 
 
-def test_staging_guard_default_false(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.delenv(STAGE_ALLOWED_FLAG, raising=False)
-    monkeypatch.setenv("TEXTUS_KB_GROUNDED_ENABLED", "true")
-    assert is_stage_allowed() is False
-    assert is_grounded_injection_allowed() is False
+def test_staging_env_does_not_gate_injection(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("TEXTUS_KB_GROUNDED_STAGE_ALLOWED", raising=False)
+    monkeypatch.setenv(GROUNDED_FLAG, "true")
+    assert is_grounded_injection_allowed() is True
+    monkeypatch.setenv("TEXTUS_KB_GROUNDED_STAGE_ALLOWED", "false")
+    assert is_grounded_injection_allowed() is True
+    monkeypatch.delenv(GROUNDED_FLAG, raising=False)
+    monkeypatch.setenv("TEXTUS_KB_GROUNDED_STAGE_ALLOWED", "false")
+    assert is_grounded_injection_allowed() is True
 
 
 def test_allowlist(monkeypatch: pytest.MonkeyPatch) -> None:
