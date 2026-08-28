@@ -364,12 +364,16 @@ def build_formatted_bible_text_html(
     return "\n".join(parts)
 
 
-def render_formatted_bible_text(passage_text: str) -> None:
+def render_formatted_bible_text(
+    passage_text: str,
+    *,
+    view_key: str = BIBLE_TEXT_VIEW_KEY,
+) -> None:
     """Formázott, csak olvasható Bibliai szöveg előnézet."""
     view_mode = st.radio(
         "Bibliai szöveg nézete",
         ("Versenkénti nézet", "Folyamatos nézet"),
-        key=BIBLE_TEXT_VIEW_KEY,
+        key=view_key,
         horizontal=True,
         label_visibility="collapsed",
     )
@@ -467,6 +471,14 @@ def _display_passage_text(session_state: MutableMapping[str, Any]) -> str:
         if widget_text.strip():
             return widget_text
     return normalize_passage_text(session_state.get(DURABLE_PASSAGE_TEXT))
+
+
+def _reraise_streamlit_runtime_error(exc: BaseException) -> None:
+    """Do not swallow Streamlit widget / rerun control errors as missing data."""
+    from streamlit.errors import Error as StreamlitError
+
+    if isinstance(exc, StreamlitError):
+        raise exc
 
 
 def _refs_equivalent(a: str, b: str) -> bool:
@@ -739,6 +751,60 @@ def render_bible_text_preview(*, expanded: bool = False) -> None:
             )
 
 
+def render_bible_text_reading_block(
+    *,
+    original_language_key_prefix: str,
+    bible_view_key: str = BIBLE_TEXT_VIEW_KEY,
+    display_mode: str = "full",
+) -> None:
+    """Read-only RÚF + eredeti nyelvi token UI.
+
+    A tartós projektmezőket olvassa (`last_igehely`, `passage_text`).
+    Nem szerkeszt, nem tölt be RÚF-ot, és nem indít LLM-et.
+    Hiányzó vagy hibás adat nem emeli a kivételt a hívó felé.
+    """
+    _ensure_bible_text_styles()
+    snap = get_bible_text_snapshot(st.session_state)
+    reference = (snap.get("passage") or "").strip()
+    text = snap.get("passage_text") or ""
+    translation = (snap.get("bible_translation") or TRANSLATION_NAME).strip() or TRANSLATION_NAME
+
+    if reference:
+        st.markdown(f"**Igehely:** {reference}")
+        st.markdown(f"**Fordítás:** {translation}")
+
+    if str(text).strip():
+        try:
+            render_formatted_bible_text(str(text), view_key=bible_view_key)
+            _render_source_caption(st.session_state)
+        except Exception as exc:
+            _reraise_streamlit_runtime_error(exc)
+            st.caption("A RÚF szöveg jelenleg nem jeleníthető meg.")
+    elif reference:
+        st.caption(
+            "Még nincs RÚF szöveg ehhez az igehelyhez. "
+            "Töltsd be a Textusműhelyben."
+        )
+    else:
+        st.caption(
+            "Nincs megadott igehely. Add meg a Textusműhelyben, "
+            "majd térj vissza az Íróasztalra."
+        )
+
+    if not reference:
+        return
+
+    try:
+        render_greek_analysis_block(
+            reference=reference,
+            key_prefix=original_language_key_prefix,
+            display_mode=display_mode,
+        )
+    except Exception as exc:
+        _reraise_streamlit_runtime_error(exc)
+        st.caption("Az eredeti nyelvi szöveg jelenleg nem tölthető be.")
+
+
 __all__ = [
     "DURABLE_PASSAGE_TEXT",
     "DURABLE_TRANSLATION",
@@ -768,4 +834,5 @@ __all__ = [
     "get_bible_text_snapshot",
     "render_bible_text_editor",
     "render_bible_text_preview",
+    "render_bible_text_reading_block",
 ]

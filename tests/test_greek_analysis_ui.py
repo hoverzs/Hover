@@ -46,6 +46,18 @@ def _render_john_3_16_block() -> None:
     )
 
 
+def _render_john_3_16_compact_block() -> None:
+    from bible_engine.greek_analysis_ui import load_john_3_16_tokens, render_greek_analysis_block
+
+    render_greek_analysis_block(
+        reference="Jn 3,16",
+        key_prefix="test_greek_compact",
+        token_loader=load_john_3_16_tokens,
+        tbesg_lexicon_loader=lambda _strong_id: None,
+        display_mode="compact",
+    )
+
+
 def _render_john_3_16_default_loader_block() -> None:
     from bible_engine.greek_analysis_ui import render_greek_analysis_block
 
@@ -206,6 +218,16 @@ def _render_old_testament_block() -> None:
     from bible_engine.greek_analysis_ui import render_greek_analysis_block
 
     render_greek_analysis_block(reference="Zsolt 23,1", key_prefix="test_greek")
+
+
+def _render_old_testament_compact_block() -> None:
+    from bible_engine.greek_analysis_ui import render_greek_analysis_block
+
+    render_greek_analysis_block(
+        reference="Zsolt 23,1",
+        key_prefix="test_hebrew_compact",
+        display_mode="compact",
+    )
 
 
 def _render_unknown_old_testament_like_block() -> None:
@@ -721,6 +743,44 @@ def test_john_3_16_renders_greek_block_and_analysis_panel() -> None:
     assert any(LEXICAL_SCOPE_NOTE in value for value in caption_values)
 
 
+def test_default_greek_display_mode_keeps_full_research_panel() -> None:
+    app = AppTest.from_function(_render_john_3_16_block).run()
+
+    assert not app.exception
+    page_text = "\n".join(markdown.value for markdown in app.markdown)
+    page_text += "\n".join(caption.value for caption in app.caption)
+    assert "Magyar lexikai jelentések" in page_text
+    assert "Ellenőrzési állapot" in page_text
+    assert any("Alternatív szóválasztás" in expander.label for expander in app.expander)
+    assert app.selectbox
+    assert app.subheader[0].value == "οὕτως"
+    assert "textus-greek-compact-card-marker" not in page_text
+
+
+def test_compact_greek_display_mode_shows_only_essential_word_info() -> None:
+    app = AppTest.from_function(_render_john_3_16_compact_block).run()
+
+    assert not app.exception
+    page_text = "\n".join(markdown.value for markdown in app.markdown)
+    page_text += "\n".join(caption.value for caption in app.caption)
+    assert "Görög eredeti szöveg" in page_text
+    assert "οὕτως" in page_text
+    assert "Morfológia:" in page_text
+    assert "határozószó" in page_text
+    assert "Alapjelentés:" in page_text
+    assert "textus-greek-compact-card-marker" in page_text
+    assert "Magyar lexikai jelentések" not in page_text
+    assert "Ellenőrzési állapot" not in page_text
+    assert "Lehetséges jelentések" not in page_text
+    assert LEXICAL_SCOPE_NOTE not in page_text
+    assert "Konkordancia" not in page_text
+    assert '<div class="textus-greek-analysis-card-marker">' not in page_text
+    assert app.selectbox
+    assert not app.subheader
+    assert not any("Alternatív szóválasztás" in expander.label for expander in app.expander)
+    assert not any("Konkordancia" in button.label for button in app.button)
+
+
 def test_selected_word_analysis_updates_through_fallback_selectbox() -> None:
     app = AppTest.from_function(_render_john_3_16_block).run()
 
@@ -1090,6 +1150,26 @@ def test_old_testament_reference_renders_hebrew_panel() -> None:
     assert "H\u00e9ber-ar\u00e1mi eredeti sz\u00f6veg" in page_text
     assert "V\u00e1lasszon egy h\u00e9ber vagy ar\u00e1mi sz\u00f3t" in page_text
     assert OLD_TESTAMENT_MESSAGE not in page_text
+    assert app.selectbox
+
+
+def test_compact_hebrew_display_mode_hides_research_details() -> None:
+    app = AppTest.from_function(_render_old_testament_compact_block).run()
+
+    assert not app.exception
+    page_text = "\n".join(markdown.value for markdown in app.markdown)
+    page_text += "\n".join(caption.value for caption in app.caption)
+    assert "Héber-arámi eredeti szöveg" in page_text
+    assert "Válasszon egy héber vagy arámi szót" in page_text
+    assert "textus-hebrew-compact-card-marker" in page_text
+    assert "Technikai morfológiai részletek" not in page_text
+    assert "Lexikai adatok" not in page_text
+    assert "Ellenőrzési állapot" not in page_text
+    assert "Forrás és licenc" not in page_text
+    assert "Konkordancia" not in page_text
+    assert not any("Alternatív szóválasztás" in expander.label for expander in app.expander)
+    assert not any("Technikai morfológiai részletek" in expander.label for expander in app.expander)
+    assert not any("Konkordancia" in button.label for button in app.button)
     assert app.selectbox
 
 
