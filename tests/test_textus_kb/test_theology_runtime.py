@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import os
 import sqlite3
 from pathlib import Path
 
@@ -14,6 +15,16 @@ from textus_kb.importers.theology_sqlite import (
     validate_theology_database,
 )
 from textus_kb.theology_runtime import (
+    EXPECTED_AUTHOR_COUNT,
+    EXPECTED_CHUNK_COUNT,
+    EXPECTED_CONTENT_HASH,
+    EXPECTED_EDITION_COUNT,
+    EXPECTED_IMPORT_MODE,
+    EXPECTED_PASSAGE_LINK_COUNT,
+    EXPECTED_SCHEMA_VERSION,
+    EXPECTED_SECTION_COUNT,
+    EXPECTED_WORK_COUNT,
+    THEOLOGY_DATABASE_PATH_ENV_VAR,
     THEOLOGY_DATABASE_SHA256_ENV_VAR,
     THEOLOGY_STORAGE_BUCKET_ENV_VAR,
     THEOLOGY_STORAGE_OBJECT_ENV_VAR,
@@ -80,6 +91,7 @@ def _clear_storage_config(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv(THEOLOGY_STORAGE_BUCKET_ENV_VAR, raising=False)
     monkeypatch.delenv(THEOLOGY_STORAGE_OBJECT_ENV_VAR, raising=False)
     monkeypatch.delenv(THEOLOGY_DATABASE_SHA256_ENV_VAR, raising=False)
+    monkeypatch.delenv(THEOLOGY_DATABASE_PATH_ENV_VAR, raising=False)
     monkeypatch.setattr(runtime, "_theology_secret_value", lambda key: "")
     monkeypatch.setattr(runtime, "_configured_database_sha256", lambda: "")
 
@@ -409,3 +421,107 @@ def test_local_blob_hash_mismatch_is_not_usable_cache(
     )
     assert status.available is False
     assert status.reason == "database_checksum_mismatch"
+
+
+def test_production_pin_is_combined_calvin_hodge() -> None:
+    assert EXPECTED_SCHEMA_VERSION == "1"
+    assert EXPECTED_IMPORT_MODE == "combined_calvin_hodge_thml"
+    assert EXPECTED_AUTHOR_COUNT == 2
+    assert EXPECTED_WORK_COUNT == 2
+    assert EXPECTED_EDITION_COUNT == 4
+    assert EXPECTED_SECTION_COUNT == 1732
+    assert EXPECTED_CHUNK_COUNT == 2520
+    assert EXPECTED_PASSAGE_LINK_COUNT == 6221
+    assert len(EXPECTED_CONTENT_HASH) == 64
+    assert EXPECTED_CONTENT_HASH != (
+        "edc70f3389d622f105eda709a6592ced961c178c0e205cbcf3aeaef601a63b71"
+    )
+
+
+def test_combined_pin_rejects_calvin_only_store(tmp_path: Path) -> None:
+    from textus_kb.importers.ccel_thml import import_ccel_institutes_thml
+
+    calvin = tmp_path / "calvin-only.sqlite3"
+    import_ccel_institutes_thml(
+        Path("tests/fixtures/kb/ccel_institutes_thml_min.xml"),
+        database_path=calvin,
+    )
+    status = get_status(calvin)
+    assert status.available is False
+    assert status.reason == "metadata_validation_failed"
+    assert "import_mode" in status.detail
+    assert "content_hash" in status.detail
+
+
+def test_combined_pin_rejects_production_calvin_artifact_if_present() -> None:
+    calvin = Path("data/generated/theology.sqlite3")
+    if not calvin.is_file():
+        pytest.skip("local Calvin production artifact not present")
+    status = get_status(calvin)
+    assert status.available is False
+    assert status.reason == "metadata_validation_failed"
+    assert "import_mode" in status.detail
+
+
+def test_combined_pin_accepts_matching_combined_store(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from textus_kb.importers.combined_theology import import_combined_calvin_hodge_thml
+
+    database = tmp_path / "combined.sqlite3"
+    import_combined_calvin_hodge_thml(
+        calvin_xml_path=Path("tests/fixtures/kb/ccel_institutes_thml_min.xml"),
+        hodge_volume1_xml_path=Path("tests/fixtures/kb/hodge_theology1_thml_min.xml"),
+        hodge_volume2_xml_path=Path("tests/fixtures/kb/hodge_theology2_thml_min.xml"),
+        hodge_volume3_xml_path=Path("tests/fixtures/kb/hodge_theology3_thml_min.xml"),
+        database_path=database,
+    )
+    _pin_to_database(monkeypatch, database)
+    status = get_status(database)
+    assert status.available is True
+    assert status.reason == "ok"
+
+
+def test_combined_pin_accepts_production_candidate_if_present() -> None:
+    candidate = (
+        Path(os.environ.get("TEMP") or os.environ.get("TMP") or "")
+        / "textus-hodge-e1"
+        / "e9-release"
+        / "theology-combined-calvin-hodge.sqlite3"
+    )
+    if not candidate.is_file():
+        pytest.skip("E9 production candidate artifact not present")
+    status = get_status(candidate)
+    assert status.available is True
+    assert status.reason == "ok"
+
+
+def test_local_path_env_points_runtime_at_explicit_database(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    database = _import_sample(tmp_path)
+    _pin_to_database(monkeypatch, database)
+    missing_default = tmp_path / "not-the-default.sqlite3"
+    monkeypatch.setattr(
+        "textus_kb.theology_runtime.DEFAULT_DATABASE_PATH", missing_default
+    )
+    monkeypatch.setenv(THEOLOGY_DATABASE_PATH_ENV_VAR, str(database))
+    status = ensure_theology_database()
+    assert status.available is True
+    assert Path(status.database_path) == database
+
+
+def test_env_path_does_not_download_when_missing(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    missing = tmp_path / "missing-combined.sqlite3"
+    monkeypatch.setenv(THEOLOGY_DATABASE_PATH_ENV_VAR, str(missing))
+
+    def boom() -> None:
+        raise AssertionError("Env path override must not start a runtime download.")
+
+    monkeypatch.setattr("supabase_client.get_supabase_client", boom, raising=False)
+    status = ensure_theology_database()
+    assert status.available is False
+    assert status.reason == "database_missing"
+    assert Path(status.database_path) == missing

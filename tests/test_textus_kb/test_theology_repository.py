@@ -43,11 +43,13 @@ def _chunk(
     text: str,
     locator: str,
     links: list[str],
+    *,
+    sequence: int = 1,
 ) -> dict:
     payload = {
         "chunk_id": chunk_id,
         "section_id": section_id,
-        "sequence": 1,
+        "sequence": sequence,
         "text": text,
         "plain_text": text,
         "source_locator": locator,
@@ -325,11 +327,44 @@ def test_provenance_and_human_readable_locator(tmp_path: Path) -> None:
     assert hit.source_url == "https://example.test/theology-retrieval"
     assert hit.corpus == "ccel"
     assert hit.external_id == "test/calvin/institutes"
+    assert hit.author_id == AUTHOR_ID
+    assert hit.work_id == WORK_ID
     assert hit.source_locator == "ccel:calvin/institutes#iii.ii-p6"
     assert hit.heading == "1."
     assert hit.section_type == "section"
     assert hit.human_readable_locator == (
         "John Calvin, Institutes of the Christian Religion, Book I, Chapter 1, Section 1"
+    )
+    assert "fragment" not in hit.human_readable_locator
+
+
+def test_split_section_appends_fragment_suffix(tmp_path: Path) -> None:
+    document = _retrieval_document()
+    document["chunks"].append(
+        _chunk(
+            "chunk.exact.dup.2",
+            "book.i.ch1.s1",
+            "SYNTHETIC. Second fragment of the same section.",
+            "ccel:calvin/institutes#iii.ii-p6b",
+            ["John.3.16"],
+            sequence=2,
+        )
+    )
+    database = tmp_path / "split-locator.sqlite3"
+    import_theology_sqlite(document=document, database_path=database)
+    hits = [
+        hit
+        for hit in TheologyRepository(database).chunks_for_passage("John.3.16")
+        if hit.chunk_id.startswith("chunk.exact.dup")
+    ]
+    locators = {hit.chunk_id: hit.human_readable_locator for hit in hits}
+    assert locators["chunk.exact.dup"] == (
+        "John Calvin, Institutes of the Christian Religion, Book I, Chapter 1, "
+        "Section 1, fragment 1"
+    )
+    assert locators["chunk.exact.dup.2"] == (
+        "John Calvin, Institutes of the Christian Religion, Book I, Chapter 1, "
+        "Section 1, fragment 2"
     )
 
 

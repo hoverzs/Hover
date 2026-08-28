@@ -21,13 +21,11 @@ from textus_kb.grounded_generation import (
     GROUNDED_FLAG,
     REASON_RETRIEVAL_ERROR,
     REASON_SOURCE_UNAVAILABLE,
-    REASON_STAGE_NOT_ALLOWED,
-    STAGE_ALLOWED_FLAG,
     STATUS_DISABLED,
     STATUS_FALLBACK,
     STATUS_USED,
     is_grounded_enabled,
-    is_stage_allowed,
+    is_grounded_injection_allowed,
     prepare_grounded_provider_prompt,
     resolve_grounded_module,
 )
@@ -208,23 +206,58 @@ def test_composer_still_rejects_unsupported_modules() -> None:
 
 
 # ---------------------------------------------------------------------------
-# Flags / default-off
+# Flags / default-on kill switch
 # ---------------------------------------------------------------------------
 
+_STAGE_ENV = "TEXTUS_KB_GROUNDED_STAGE_ALLOWED"
 
-def test_grounded_and_stage_flag_defaults_remain_off(monkeypatch: pytest.MonkeyPatch) -> None:
+
+def _clear_grounded_env(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv(GROUNDED_FLAG, raising=False)
-    monkeypatch.delenv(STAGE_ALLOWED_FLAG, raising=False)
-    assert is_grounded_enabled() is False
-    assert is_stage_allowed() is False
+    monkeypatch.delenv(_STAGE_ENV, raising=False)
+
+
+def test_grounded_flag_default_on_when_unset(monkeypatch: pytest.MonkeyPatch) -> None:
+    _clear_grounded_env(monkeypatch)
+    assert is_grounded_enabled() is True
+    assert is_grounded_injection_allowed() is True
 
     gen_src = Path("textus_kb/grounded_generation.py").read_text(encoding="utf-8")
-    assert 'os.getenv(GROUNDED_FLAG, "false")' in gen_src
-    assert 'os.getenv(STAGE_ALLOWED_FLAG, "false")' in gen_src
+    assert "STAGE_ALLOWED_FLAG" not in gen_src
+    assert "TEXTUS_KB_GROUNDED_STAGE_ALLOWED" not in gen_src
+    assert "is_stage_allowed" not in gen_src
+    assert "REASON_STAGE_NOT_ALLOWED" not in gen_src
+    assert "enforce_stage_gate" not in gen_src
     app_src = Path("app.py").read_text(encoding="utf-8")
-    assert 'os.getenv(KB_GROUNDED_FLAG, "false")' in app_src
     assert "grounded_enabled=_is_kb_grounded_injection_allowed()" in app_src
     assert 'os.getenv(KB_SHADOW_FLAG, "false")' in app_src
+    assert "TEXTUS_KB_GROUNDED_STAGE_ALLOWED" not in app_src
+
+
+def test_grounded_flag_explicit_true(monkeypatch: pytest.MonkeyPatch) -> None:
+    for value in ("true", "1", "yes", "on"):
+        monkeypatch.setenv(GROUNDED_FLAG, value)
+        assert is_grounded_enabled() is True
+        assert is_grounded_injection_allowed() is True
+
+
+def test_grounded_flag_explicit_false(monkeypatch: pytest.MonkeyPatch) -> None:
+    for value in ("false", "0", "no", "off"):
+        monkeypatch.setenv(GROUNDED_FLAG, value)
+        assert is_grounded_enabled() is False
+        assert is_grounded_injection_allowed() is False
+
+
+def test_stage_env_has_no_effect(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv(GROUNDED_FLAG, raising=False)
+    monkeypatch.setenv(_STAGE_ENV, "false")
+    assert is_grounded_enabled() is True
+    assert is_grounded_injection_allowed() is True
+    monkeypatch.setenv(_STAGE_ENV, "true")
+    assert is_grounded_injection_allowed() is True
+    monkeypatch.setenv(GROUNDED_FLAG, "false")
+    monkeypatch.setenv(_STAGE_ENV, "true")
+    assert is_grounded_injection_allowed() is False
 
 
 def test_grounded_off_uses_production_prompt_and_skips_ensure(
@@ -276,9 +309,11 @@ def test_grounded_off_uses_production_prompt_and_skips_ensure(
     assert "<<<BEGIN_KB_DATA>>>" not in prep.provider_prompt
 
 
-def test_stage_off_falls_back_and_skips_ensure(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.delenv(STAGE_ALLOWED_FLAG, raising=False)
-    monkeypatch.setenv(GROUNDED_FLAG, "true")
+def test_kill_switch_env_false_skips_ensure_and_uses_production(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv(GROUNDED_FLAG, "false")
+    monkeypatch.delenv(_STAGE_ENV, raising=False)
     ensure_calls: list[str] = []
     monkeypatch.setattr(
         "textus_kb.theology_runtime.ensure_theology_database",
@@ -288,13 +323,10 @@ def test_stage_off_falls_back_and_skips_ensure(monkeypatch: pytest.MonkeyPatch) 
         production_prompt=PRODUCTION,
         passage="Jn 4,1-42",
         module="theology",
-        grounded_enabled=True,
-        enforce_stage_gate=True,
     )
     assert ensure_calls == []
     assert prep.provider_prompt == PRODUCTION
-    assert prep.grounded_fallback is True
-    assert prep.fallback_reason == REASON_STAGE_NOT_ALLOWED
+    assert prep.grounded_disabled is True
     assert "<<<BEGIN_KB_DATA>>>" not in prep.provider_prompt
 
 
@@ -322,6 +354,183 @@ def test_shadow_flag_off_does_not_run_theology_shadow(
     assert shadow_calls == []
     assert result.shadow_event is None
     assert len(calls) == 1
+
+
+def test_theology_auto_grounded_when_env_unset_and_db_valid(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from textus_kb.kb_cache import clear_kb_cache
+
+    clear_kb_cache()
+    _clear_grounded_env(monkeypatch)
+    ensure_calls: list[str] = []
+    monkeypatch.setattr(
+        "textus_kb.theology_runtime.ensure_theology_database",
+        lambda **kwargs: ensure_calls.append("called")
+        or _status(available=True, path="C:/tmp/valid-theology.sqlite3"),
+    )
+    monkeypatch.setattr("textus_kb.retrieval.retrieve", lambda ref: _evidence())
+    monkeypatch.setattr(
+        "textus_kb.context_builder.build_context_from_evidence",
+        lambda evidence, profile, theology_database_path=None: _packet_with_items(
+            _theology_item()
+        ),
+    )
+    calls: list[dict] = []
+    result = run_production_with_optional_shadow(
+        key="theology",
+        prompt=PRODUCTION,
+        tab_label="Teológia",
+        use_search=False,
+        passage="Jn 4,1-42",
+        shadow_enabled=False,
+        grounded_enabled=is_grounded_injection_allowed(),
+        generate_text_fn=_fake_generate_factory(calls),
+        shadow_runner_fn=_noop_shadow,
+    )
+    assert is_grounded_injection_allowed() is True
+    assert ensure_calls == ["called"]
+    assert len(calls) == 1
+    assert result.provider_call_count == 1
+    assert result.provider_prompt_kind == "grounded"
+    assert result.grounded_event["grounded_used"] is True
+    assert result.grounded_event["grounded_status"] == STATUS_USED
+    assert "<<<BEGIN_KB_DATA>>>" in calls[0]["prompt"]
+    assert "[THEOLOGICAL SOURCES]" in calls[0]["prompt"]
+
+    prep = prepare_grounded_provider_prompt(
+        production_prompt=PRODUCTION,
+        passage="Jn 4,1-42",
+        module="theology",
+        use_cache=False,
+    )
+    assert prep.grounded_used is True
+    assert "[THEOLOGICAL SOURCES]" in prep.provider_prompt
+
+
+def test_theology_auto_fallback_when_env_unset_and_db_unavailable(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from textus_kb.kb_cache import clear_kb_cache
+
+    clear_kb_cache()
+    _clear_grounded_env(monkeypatch)
+    ensure_calls: list[str] = []
+    retrieve_calls = {"n": 0}
+
+    monkeypatch.setattr(
+        "textus_kb.theology_runtime.ensure_theology_database",
+        lambda **kwargs: ensure_calls.append("called")
+        or _status(available=False, reason="storage_not_configured"),
+    )
+
+    def counting_retrieve(ref):
+        retrieve_calls["n"] += 1
+        raise AssertionError("invalid store must not retrieve")
+
+    monkeypatch.setattr("textus_kb.retrieval.retrieve", counting_retrieve)
+    calls: list[dict] = []
+    result = run_production_with_optional_shadow(
+        key="theology",
+        prompt=PRODUCTION,
+        tab_label="Teológia",
+        use_search=False,
+        passage="Jn 4,1-42",
+        shadow_enabled=False,
+        grounded_enabled=is_grounded_injection_allowed(),
+        generate_text_fn=_fake_generate_factory(calls),
+        shadow_runner_fn=_noop_shadow,
+    )
+    assert ensure_calls == ["called"]
+    assert retrieve_calls["n"] == 0
+    assert len(calls) == 1
+    assert calls[0]["prompt"] == PRODUCTION
+    assert "<<<BEGIN_KB_DATA>>>" not in calls[0]["prompt"]
+    assert result.provider_call_count == 1
+    assert result.provider_prompt_kind == "production"
+    assert result.grounded_event["grounded_status"] == STATUS_FALLBACK
+    assert result.grounded_event["fallback_reason"] == REASON_SOURCE_UNAVAILABLE
+
+
+@pytest.mark.parametrize(
+    ("key", "module", "tab_label", "prompt"),
+    [
+        ("theology", "theology", "Teológia", PRODUCTION),
+        ("exegesis", "exegesis", "Exegézis", "PROD-EXEGESIS"),
+        ("history", "historical_context", "Kortörténet", "PROD-HISTORY"),
+    ],
+)
+def test_kill_switch_disables_all_mapped_modules(
+    monkeypatch: pytest.MonkeyPatch,
+    key: str,
+    module: str,
+    tab_label: str,
+    prompt: str,
+) -> None:
+    monkeypatch.setenv(GROUNDED_FLAG, "false")
+    ensure_calls: list[str] = []
+    monkeypatch.setattr(
+        "textus_kb.theology_runtime.ensure_theology_database",
+        lambda **kwargs: ensure_calls.append("called") or _status(available=True),
+    )
+    retrieve_calls = {"n": 0}
+
+    def counting_retrieve(ref):
+        retrieve_calls["n"] += 1
+        raise AssertionError("kill switch must not retrieve")
+
+    monkeypatch.setattr("textus_kb.retrieval.retrieve", counting_retrieve)
+    calls: list[dict] = []
+    result = run_production_with_optional_shadow(
+        key=key,
+        prompt=prompt,
+        tab_label=tab_label,
+        use_search=False,
+        passage="Jn 4,1-42",
+        shadow_enabled=False,
+        grounded_enabled=is_grounded_injection_allowed(),
+        generate_text_fn=_fake_generate_factory(calls),
+        shadow_runner_fn=_noop_shadow,
+    )
+    assert is_grounded_injection_allowed() is False
+    assert ensure_calls == []
+    assert retrieve_calls["n"] == 0
+    assert len(calls) == 1
+    assert calls[0]["prompt"] == prompt
+    assert result.provider_prompt_kind == "production"
+    assert result.grounded_event["grounded_status"] == STATUS_DISABLED
+
+    prep = prepare_grounded_provider_prompt(
+        production_prompt=prompt,
+        passage="Jn 4,1-42",
+        module=module,
+    )
+    assert prep.grounded_disabled is True
+    assert prep.provider_prompt == prompt
+
+
+@pytest.mark.parametrize("module", ["exegesis", "historical_context"])
+def test_non_theology_modules_do_not_ensure_theology_when_env_unset(
+    monkeypatch: pytest.MonkeyPatch,
+    module: str,
+) -> None:
+    _clear_grounded_env(monkeypatch)
+    ensure_calls: list[str] = []
+    monkeypatch.setattr(
+        "textus_kb.theology_runtime.ensure_theology_database",
+        lambda **kwargs: ensure_calls.append("called") or _status(available=True),
+    )
+    prep = prepare_grounded_provider_prompt(
+        production_prompt="PROD-MAPPED",
+        passage="Jn 4,1-42" if module == "exegesis" else "Lk 10,25-37",
+        module=module,
+        use_cache=False,
+    )
+    assert ensure_calls == []
+    assert prep.grounded_disabled is False
+    assert prep.grounded_used is True or prep.grounded_fallback is True
+    if prep.grounded_used:
+        assert "<<<BEGIN_KB_DATA>>>" in prep.provider_prompt
 
 
 # ---------------------------------------------------------------------------

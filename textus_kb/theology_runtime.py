@@ -20,23 +20,24 @@ from textus_kb.importers.theology_sqlite import (
     validate_theology_database,
 )
 
-# Pinned Calvin Institutes v1 production artifact (store metadata / counts).
+# Pinned Calvin + Hodge combined v1 production artifact (store metadata / counts).
 # The SQLite *file* SHA-256 is configuration-only and is never invented here.
 EXPECTED_SCHEMA_VERSION = "1"
-EXPECTED_IMPORT_MODE = "ccel_thml"
+EXPECTED_IMPORT_MODE = "combined_calvin_hodge_thml"
 EXPECTED_CONTENT_HASH = (
-    "edc70f3389d622f105eda709a6592ced961c178c0e205cbcf3aeaef601a63b71"
+    "46f39e19449fe0b9015b2759615c67d7fc419d05c053d2d6b484ce09e16b98ed"
 )
-EXPECTED_AUTHOR_COUNT = 1
-EXPECTED_WORK_COUNT = 1
-EXPECTED_EDITION_COUNT = 1
-EXPECTED_SECTION_COUNT = 1370
-EXPECTED_CHUNK_COUNT = 1282
-EXPECTED_PASSAGE_LINK_COUNT = 3553
+EXPECTED_AUTHOR_COUNT = 2
+EXPECTED_WORK_COUNT = 2
+EXPECTED_EDITION_COUNT = 4
+EXPECTED_SECTION_COUNT = 1732
+EXPECTED_CHUNK_COUNT = 2520
+EXPECTED_PASSAGE_LINK_COUNT = 6221
 
 THEOLOGY_STORAGE_BUCKET_ENV_VAR = "TEXTUS_THEOLOGY_DB_STORAGE_BUCKET"
 THEOLOGY_STORAGE_OBJECT_ENV_VAR = "TEXTUS_THEOLOGY_DB_STORAGE_OBJECT"
 THEOLOGY_DATABASE_SHA256_ENV_VAR = "TEXTUS_THEOLOGY_DB_SHA256"
+THEOLOGY_DATABASE_PATH_ENV_VAR = "TEXTUS_THEOLOGY_DATABASE_PATH"
 
 
 @dataclass(frozen=True)
@@ -68,17 +69,19 @@ def ensure_theology_database(
     """Ensure a valid local Theology SQLite file, downloading if allowed.
 
     Explicit ``database_path`` without storage kwargs never touches the network
-    (test/tmp paths). The default path may lazily download from private storage.
+    (test/tmp paths). ``TEXTUS_THEOLOGY_DATABASE_PATH`` is treated the same way.
+    The default path may lazily download from private storage.
     Passing storage kwargs opts into download even for an explicit target path.
     """
     explicit_path = database_path is not None
+    env_override = bool(os.environ.get(THEOLOGY_DATABASE_PATH_ENV_VAR, "").strip())
     path = _resolve_database_path(database_path)
     expected = _resolve_expected_sha256(expected_database_sha256)
     status = _validate_database(path, expected_database_sha256=expected)
     if status.available:
         return status
 
-    allow_download = (not explicit_path) or (
+    allow_download = (not explicit_path and not env_override) or (
         storage_bucket_id is not None or storage_object_path is not None
     )
     if not allow_download:
@@ -153,7 +156,12 @@ def ensure_theology_database(
 
 
 def _resolve_database_path(database_path: str | Path | None) -> Path:
-    return Path(database_path) if database_path is not None else DEFAULT_DATABASE_PATH
+    if database_path is not None:
+        return Path(database_path)
+    env_value = os.environ.get(THEOLOGY_DATABASE_PATH_ENV_VAR, "").strip()
+    if env_value:
+        return Path(env_value)
+    return DEFAULT_DATABASE_PATH
 
 
 def _resolve_expected_sha256(expected_database_sha256: str | None) -> str:
@@ -275,6 +283,7 @@ __all__ = [
     "EXPECTED_SCHEMA_VERSION",
     "EXPECTED_SECTION_COUNT",
     "EXPECTED_WORK_COUNT",
+    "THEOLOGY_DATABASE_PATH_ENV_VAR",
     "THEOLOGY_DATABASE_SHA256_ENV_VAR",
     "THEOLOGY_STORAGE_BUCKET_ENV_VAR",
     "THEOLOGY_STORAGE_OBJECT_ENV_VAR",

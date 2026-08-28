@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE ThML PUBLIC
+    "-//CCEL/DTD Theological Markup Language//EN"
+    "http://www.ccel.org/dtd/ThML10.dtd">
+<!--
+  CCEL Hodge Systematic Theology Volume I markup-derived minimal fixture.
+  Texts are synthetic. Introduction + Part I only; title/prefatory/index excluded.
+-->
+<ThML>
+  <ThML.head>
+    <generalInfo>
+      <description>Tim Perrine, CCEL Staff Writer. MUST BE EXCLUDED STAFF BLURB.</description>
+    </generalInfo>
+    <electronicEdInfo>
+      <publisherID>ccel</publisherID>
+      <authorID>hodge</authorID>
+      <bookID>theology1</bookID>
+      <workID>theology1</workID>
+      <DC>
+        <DC.Title>Systematic Theology - Volume I</DC.Title>
+        <DC.Creator sub="Author" scheme="short-form">Charles Hodge</DC.Creator>
+        <DC.Language scheme="ISO639-3">eng</DC.Language>
+        <DC.Rights></DC.Rights>
+        <DC.Publisher>Grand Rapids, MI: Christian Classics Ethereal Library</DC.Publisher>
+      </DC>
+    </electronicEdInfo>
+  </ThML.head>
+  <ThML.body>
+    <div1 title="Title" id="i">
+      <h1 id="i-p0.1">SYNTHETIC TITLE PAGE — MUST BE EXCLUDED</h1>
+    </div1>
+    <div1 title="Prefatory" id="ii">
+      <p id="ii-p1">SYNTHETIC PREFATORY — MUST BE EXCLUDED</p>
+    </div1>
+    <div1 title="Introduction" id="iii">
+      <div2 title="Chapter I. On Method." id="iii.i">
+        <div3 title="1. Theology a Science." id="iii.i.i">
+          <p class="center" id="iii.i.i-p1">§ 1. <i>Theology a Science</i>.</p>
+          <p class="normal" id="iii.i.i-p2">Synthetic introduction cites
+            <scripRef passage="John 3:16" id="iii.i.i-p2.1" parsed="|John|3|16|0|0" osisRef="Bible:John.3.16">John 3:16</scripRef>.</p>
+        </div3>
+      </div2>
+    </div1>
+    <div1 title="Part I. Theology Proper." id="iv">
+      <div2 title="Chapter I. Origin of the Idea of God." id="iv.i">
+        <div3 title="1. Placeholder." id="iv.i.i">
+          <p class="center" id="iv.i.i-p1">§ 1. <i>Placeholder</i>.</p>
+          <p class="normal" id="iv.i.i-p2">Synthetic part I chapter one.</p>
+        </div3>
+      </div2>
+      <div2 title="Chapter II. Theism." id="iv.ii">
+        <div3 title="1. Placeholder." id="iv.ii.i">
+          <p class="center" id="iv.ii.i-p1">§ 1. <i>Placeholder</i>.</p>
+          <p class="normal" id="iv.ii.i-p2">Synthetic part I chapter two.</p>
+        </div3>
+      </div2>
+      <div2 title="Chapter III. Anti-Theistic Theories." id="iv.iii">
+        <div3 title="2. Materialism." id="iv.iii.ii">
+          <p class="center" id="iv.iii.ii-p1">§ 2. <i>Materialism</i>.</p>
+          <p class="normal" id="iv.iii.ii-p2">Theology Proper cites
+            <scripRef passage="Eph. 2:8-9" id="iv.iii.ii-p2.1" parsed="|Eph|2|8|2|9" osisRef="Bible:Eph.2.8-Eph.2.9">Eph. 2:8-9</scripRef>
+            and
+            <scripRef passage="Ps. 19:1" id="iv.iii.ii-p2.2" parsed="|Ps|19|1|0|0" osisRef="Bible:Ps.19.1">Ps. 19:1</scripRef>.</p>
+        </div3>
+      </div2>
+    </div1>
+    <div1 title="Indexes" id="v">
+      <p id="v-p1">SYNTHETIC INDEX — MUST BE EXCLUDED</p>
+    </div1>
+  </ThML.body>
+</ThML>
