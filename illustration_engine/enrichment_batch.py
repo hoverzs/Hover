@@ -14,15 +14,31 @@ matching `illustration_engine`'s established self-containment rule).
 
 DETERMINISTIC SELECTION — `create_run()` is the ONLY place a batch's
 story list is decided. It queries `source_code`'s stories ordered by
-`story_id ASC`, classifies each by `derive_enrichment_strategy()`
-(mapped to a single letter: 'A' = direct_unit/full_story_translation,
-'B' = direct_unit/condensed_story, 'C' = unit_proposal), keeps the first
-`limit` stories matching the requested `strategy_band`, and freezes that
-exact list into `enrichment_run_items` rows (`status='pending'`) in the
-SAME call. This is what makes a run's item list the reproducible
-definition of the batch — `run_batch()` NEVER re-runs the selection
-query; every subsequent call (including a resume after an interrupted
-process) only re-reads the frozen item rows already in the ledger.
+`story_id ASC`, EXCLUDES any story that already has an `illustration_
+units` row (Phase 3H hardening — see below), classifies each remaining
+one by `derive_enrichment_strategy()` (mapped to a single letter: 'A' =
+direct_unit/full_story_translation, 'B' = direct_unit/condensed_story,
+'C' = unit_proposal), keeps the first `limit` stories matching the
+requested `strategy_band`, and freezes that exact list into
+`enrichment_run_items` rows (`status='pending'`) in the SAME call. This
+is what makes a run's item list the reproducible definition of the
+batch — `run_batch()` NEVER re-runs the selection query; every
+subsequent call (including a resume after an interrupted process) only
+re-reads the frozen item rows already in the ledger.
+
+PHASE 3H HARDENING — the "already has a unit" exclusion above was added
+when a real production-batch attempt discovered that the pure
+`story_id ASC` + length-band selection, with no other filter, could
+re-select a story the 22-unit pilot round had already enriched (pilot
+story_ids are not clustered at either end of a source's id range, so
+they can and did land inside a fresh batch's first-N window). Without
+this exclusion, `enrich_story()` would silently UPDATE the existing
+`needs_review` pilot unit in place (via `_create_or_get_unit_id`'s
+get-or-create semantics) rather than erroring — overwriting pilot
+content every later phase has treated as untouchable. The exclusion is
+a plain `NOT EXISTS` against `illustration_units.story_id`, independent
+of that unit's status, so it protects `needs_review` units exactly as
+much as `approved`/`published` ones.
 
 CONCURRENCY MODEL — SINGLE RUNNER PER RUN, enforced, not just assumed.
 There is no multi-worker processing of one run, no lease, no heartbeat,
@@ -307,6 +323,7 @@ def create_run(
         SELECT st.id, LENGTH(st.original_text)
         FROM stories st JOIN sources s ON s.id = st.source_id
         WHERE s.code = ?
+          AND NOT EXISTS (SELECT 1 FROM illustration_units u WHERE u.story_id = st.id)
         ORDER BY st.id ASC
         """,
         (source_code,),

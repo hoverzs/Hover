@@ -22,6 +22,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 
 from illustration_engine.illustration_sqlite import (
+    ALLOWED_QA_STATUSES,
     ALLOWED_UNIT_STATUSES,
     PILOT_HOMILETIC_FUNCTIONS,
     PILOT_TONES,
@@ -223,6 +224,20 @@ class IllustrationReviewItem:
     enrichment_prompt_version: str | None
     enrichment_generated_at: str | None
     enrichment_warnings: tuple[str, ...]
+    # MACHINE QA PROVENANCE (Phase 3H) -- a THIRD, independent provenance
+    # layer, never conflated with enrichment_* (what the enrichment
+    # pipeline itself produced) or human_reviewed_at (the human lifecycle
+    # gate). qa_status is None for a unit no machine QA run has ever
+    # touched (treat the same as "pending"). qa_issues_json is the raw
+    # JSON string as stored -- kept unparsed here (no qa_agent import in
+    # this module) so a caller that wants structured QAIssue objects
+    # parses it itself.
+    qa_status: str | None
+    qa_model: str | None
+    qa_prompt_version: str | None
+    qa_checked_at: str | None
+    qa_confidence: float | None
+    qa_issues_json: str | None
     # RAW STORY -- read-only here; the review workflow has no write path
     # to any of these (see the Phase 3G-A raw-provenance-immutability
     # regression test).
@@ -248,6 +263,8 @@ _REVIEW_ITEM_SELECT = """
         u.narrative_status, u.narrative_status_confidence, u.human_reviewed_at,
         u.enrichment_model, u.enrichment_prompt_version, u.enrichment_generated_at,
         u.enrichment_warnings_json,
+        u.qa_status, u.qa_model, u.qa_prompt_version, u.qa_checked_at,
+        u.qa_confidence, u.qa_issues_json,
         st.title_original, st.original_text, st.source_reference,
         s.code, s.title, s.tradition, s.license_status, s.source_url
     FROM illustration_units u
@@ -277,6 +294,7 @@ def _row_to_review_item(row: tuple, *, taxonomy: tuple[tuple[str, ...], str | No
         narrative_status, narrative_status_confidence, human_reviewed_at,
         enrichment_model, enrichment_prompt_version, enrichment_generated_at,
         enrichment_warnings_json,
+        qa_status, qa_model, qa_prompt_version, qa_checked_at, qa_confidence, qa_issues_json,
         title_original, original_text, source_reference,
         source_code, source_title, tradition, license_status, source_url,
     ) = row
@@ -289,6 +307,8 @@ def _row_to_review_item(row: tuple, *, taxonomy: tuple[tuple[str, ...], str | No
         enrichment_model=enrichment_model, enrichment_prompt_version=enrichment_prompt_version,
         enrichment_generated_at=enrichment_generated_at,
         enrichment_warnings=tuple(json.loads(enrichment_warnings_json)) if enrichment_warnings_json else (),
+        qa_status=qa_status, qa_model=qa_model, qa_prompt_version=qa_prompt_version,
+        qa_checked_at=qa_checked_at, qa_confidence=qa_confidence, qa_issues_json=qa_issues_json,
         title_original=title_original, original_text=original_text, source_reference=source_reference,
         source_code=source_code, source_title=source_title, tradition=tradition,
         license_status=license_status, source_url=source_url,
@@ -323,17 +343,28 @@ def list_review_items(
     status: str = "needs_review",
     source_code: str | None = None,
     warnings_only: bool = False,
+    qa_status: str | None = None,
     limit: int = 50,
 ) -> list[IllustrationReviewItem]:
     """The review QUEUE, not a general search engine (see `search_units`
     for retrieval-ready full-text search): a small, fixed set of filters
     a review UI actually needs. Deterministic order: `story_id ASC,
     unit_index ASC` — the same reproducible-ordering convention as
-    `enrichment_batch.create_run`'s selection query."""
+    `enrichment_batch.create_run`'s selection query.
+
+    `qa_status` (Phase 3H) filters on the machine-QA verdict column,
+    independent of `status`/`warnings_only` (human-review lifecycle vs.
+    enrichment warnings vs. machine QA are three separate axes — see
+    `IllustrationReviewItem`'s own field-grouping comments).
+    `qa_status="pending"` matches BOTH `qa_status IS NULL` (never
+    QA-checked) and the literal `'pending'` value, since the two mean
+    the same thing to a caller."""
     if status not in ALLOWED_UNIT_STATUSES:
         raise ValueError(f"status must be one of {sorted(ALLOWED_UNIT_STATUSES)}, got {status!r}")
     if limit <= 0:
         raise ValueError(f"limit must be positive, got {limit!r}")
+    if qa_status is not None and qa_status not in ALLOWED_QA_STATUSES:
+        raise ValueError(f"qa_status must be one of {sorted(ALLOWED_QA_STATUSES)}, got {qa_status!r}")
 
     where_clauses = ["u.status = ?"]
     params: list[object] = [status]
@@ -342,6 +373,11 @@ def list_review_items(
         params.append(source_code)
     if warnings_only:
         where_clauses.append("u.enrichment_warnings_json IS NOT NULL")
+    if qa_status == "pending":
+        where_clauses.append("(u.qa_status IS NULL OR u.qa_status = 'pending')")
+    elif qa_status is not None:
+        where_clauses.append("u.qa_status = ?")
+        params.append(qa_status)
 
     query = (
         _REVIEW_ITEM_SELECT

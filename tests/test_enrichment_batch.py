@@ -452,6 +452,48 @@ def test_retry_rejected_true_reprocesses_rejected_items() -> None:
     assert items[0].error_message is None  # stale rejection message cleared, not left stale
 
 
+def test_retry_rejected_leaves_already_successful_items_completely_untouched() -> None:
+    """Phase 3H.1 cohort-recovery scenario: a frozen run with a MIX of
+    already-successful and rejected items -- retrying the rejected ones
+    must not re-process, re-call the LLM for, or in any way alter the
+    already-successful ones' unit content or ledger row."""
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    _seed_short_stories(conn, source_id, 3)
+    conn.commit()
+    run_id = create_run(conn, model_identifier="m", prompt_version="v1", source_code="SRC", strategy_band="A", limit=10)
+
+    call_count = {"n": 0}
+
+    def first_story_bad_llm(prompt: str) -> str:
+        call_count["n"] += 1
+        # First call (story 1, id ASC) gets an invalid derivation_type ->
+        # rejected; the rest succeed normally.
+        if call_count["n"] == 1:
+            return json.dumps(_direct_unit_payload(derivation_type="condensed_story"))
+        return json.dumps(_direct_unit_payload(title_hu=f"Cím {call_count['n']}"))
+
+    run_batch(conn, run_id=run_id, llm_generate=first_story_bad_llm)
+    items_before = list_run_items(conn, run_id)
+    assert [i.status for i in items_before] == ["rejected", "success", "success"]
+    successful_unit_ids = [i.illustration_unit_id for i in items_before if i.status == "success"]
+    successful_titles_before = [get_unit(conn, uid).title_hu for uid in successful_unit_ids]
+
+    calls_before_retry = call_count["n"]
+    summary = run_batch(
+        conn, run_id=run_id, llm_generate=_fixed_llm(_direct_unit_payload(title_hu="Retried")), retry_rejected=True
+    )
+    items_after = list_run_items(conn, run_id)
+    successful_titles_after = [get_unit(conn, uid).title_hu for uid in successful_unit_ids]
+    conn.close()
+
+    # Only the ONE rejected item was reprocessed -- exactly one more LLM call.
+    assert summary.processed_count == 1
+    assert call_count["n"] == calls_before_retry  # the mixed-llm was not called again (fixed llm used instead)
+    assert [i.status for i in items_after] == ["success", "success", "success"]
+    assert successful_titles_after == successful_titles_before  # completely unchanged
+
+
 def test_pending_items_run_on_resume() -> None:
     """Simulates an interrupted process: create_run() ran, but run_batch()
     never got called (or crashed before touching any item) -- all items
@@ -518,7 +560,15 @@ def test_interrupted_batch_resume_processes_only_remaining_items(monkeypatch) ->
 # ---------------------------------------------------------------------------
 
 
-def test_human_reviewed_unit_not_overwritten_by_batch() -> None:
+def test_already_enriched_story_excluded_from_a_later_run_selection() -> None:
+    """Phase 3H hardening: create_run() must never re-select a story that
+    already has an illustration_unit -- regardless of that unit's status
+    (needs_review/approved/both exercised below) -- since a second
+    selection would otherwise let enrich_story() silently UPDATE the
+    existing unit in place via its get-or-create semantics. This is the
+    FIRST line of defense; the human-review-protection guard inside
+    enrich_story()/update_draft_unit() (covered elsewhere, e.g.
+    test_enrichment_pipeline.py) is the second, independent one."""
     conn = _fresh_connection()
     source_id = _make_source(conn)
     story_id = _make_story(conn, source_id, external_ref="r", original_text="Sheridan told a short story.")
@@ -538,11 +588,37 @@ def test_human_reviewed_unit_not_overwritten_by_batch() -> None:
     after = get_unit(conn, unit_id)
     conn.close()
 
-    assert summary.rejected_count == 1
-    assert items_2[0].status == "rejected"
-    assert "human-reviewed" in items_2[0].error_message.lower()
+    # The already-enriched story is excluded at selection time -- run_2
+    # has NOTHING to process, not even a rejected item.
+    assert items_2 == []
+    assert summary.processed_count == 0
     assert after == before
     assert after.title_hu == "Jóváhagyott cím"
+
+
+def test_already_enriched_needs_review_story_also_excluded() -> None:
+    """The exclusion must apply regardless of the existing unit's status
+    -- not just approved/published ones."""
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    story_id = _make_story(conn, source_id, external_ref="r2", original_text="A second short story.")
+    conn.commit()
+
+    run_1 = create_run(conn, model_identifier="m", prompt_version="v1", source_code="SRC", strategy_band="A", limit=10)
+    run_batch(conn, run_id=run_1, llm_generate=_fixed_llm(_direct_unit_payload(title_hu="Első cím")))
+    conn.commit()
+    unit_id = list_run_items(conn, run_1)[0].illustration_unit_id
+    before = get_unit(conn, unit_id)
+    assert before.status == "needs_review"  # never approved -- still excluded
+
+    run_2 = create_run(conn, model_identifier="m", prompt_version="v1", source_code="SRC", strategy_band="A", limit=10)
+    summary = run_batch(conn, run_id=run_2, llm_generate=_fixed_llm(_direct_unit_payload(title_hu="Második cím")))
+    after = get_unit(conn, unit_id)
+    conn.close()
+
+    assert summary.processed_count == 0
+    assert after == before
+    assert after.title_hu == "Első cím"
 
 
 # ---------------------------------------------------------------------------

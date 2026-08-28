@@ -409,6 +409,38 @@ def derive_enrichment_strategy(original_text_length: int) -> EnrichmentStrategy:
         return EnrichmentStrategy(expected_mode="direct_unit", expected_derivation_type="condensed_story")
     return EnrichmentStrategy(expected_mode="unit_proposal", expected_derivation_type=None)
 
+
+def is_legacy_strategy_mismatch(
+    *, stored_derivation_type: str, expected_mode: str, expected_derivation_type: str | None
+) -> bool:
+    """Phase 3H.1: THE single, canonical authority for whether a unit's
+    stored `derivation_type` conflicts with what `derive_enrichment_
+    strategy()` currently dictates for its story's length -- moved here
+    (next to `derive_enrichment_strategy` itself) from a private,
+    duplicated copy in `illustration_review_ui.py`'s reviewer-risk
+    triage, and now ALSO the sole source `qa_agent.run_content_qa` uses
+    to decide the STRATEGY_MISMATCH issue (see that module's docstring
+    for why this must never be an LLM judgment call). Both callers pass
+    `expected_mode`/`expected_derivation_type` as already computed by
+    `derive_enrichment_strategy(len(original_text))` — this function
+    itself does no length math, only the mode/derivation_type
+    comparison.
+
+    - `expected_mode == "direct_unit"`: mismatch iff the stored
+      `derivation_type` isn't exactly what length now dictates (a
+      full_story_translation/condensed_story mix-up).
+    - `expected_mode == "unit_proposal"`: a stored `full_story_
+      translation` or `condensed_story` IS a mismatch -- both mean "the
+      whole story was translated/condensed as ONE direct unit," which
+      today's rules no longer allow past the length threshold. A stored
+      `extracted_scene` is deliberately NOT flagged -- it is itself
+      proposal-derived content, i.e. already the correct shape for a
+      long story under current rules."""
+    if expected_mode == "direct_unit":
+        return stored_derivation_type != expected_derivation_type
+    return stored_derivation_type in ("full_story_translation", "condensed_story")
+
+
 # Which (category, controlled-slug-set) pairs this pipeline is allowed to
 # synchronize on a unit — see `_sync_pilot_tags`. A tag whose category
 # isn't a key here, or whose slug isn't in the matching set, is left
@@ -658,6 +690,12 @@ def _handle_direct_unit(
 
     errors: list[str] = []
     warnings: list[str] = []
+    # Phase 3H.1: resolve safe accent/case slug variants BEFORE the
+    # controlled-vocabulary check below, so a real production failure
+    # mode ("eszesség" instead of "eszesseg") no longer rejects an
+    # otherwise-valid enrichment. See _canonicalize_taxonomy_in_payload's
+    # own docstring for the exact, deliberately narrow safety rule.
+    warnings.extend(_canonicalize_taxonomy_in_payload(unit_payload))
     _validate_common_fields(
         unit_payload, errors, warnings,
         source_text=story.original_text, required_text_fields=_DIRECT_UNIT_REQUIRED_TEXT_FIELDS,
@@ -785,6 +823,7 @@ def _handle_unit_proposal(
             continue
         unit_errors: list[str] = []
         unit_warnings: list[str] = []
+        unit_warnings.extend(_canonicalize_taxonomy_in_payload(unit_payload))
         _validate_common_fields(
             unit_payload, unit_errors, unit_warnings,
             source_text=story.original_text, required_text_fields=_PROPOSAL_TEXT_FIELDS,
@@ -1040,6 +1079,73 @@ def _fold_diacritics(s: str) -> str:
     variant) — those remain genuinely unmatched and still warn, exactly
     as intended."""
     return "".join(c for c in unicodedata.normalize("NFKD", s) if not unicodedata.combining(c))
+
+
+def _canonicalize_slug(raw: object, vocabulary: frozenset[str]) -> tuple[object, bool]:
+    """Phase 3H.1: a SAFE, deterministic taxonomy-slug fixer -- reuses
+    the same `_fold_diacritics` folding as the hallucination guard, not a
+    new heuristic. Fixes exactly the failure mode a real production
+    batch hit: the model returning an accented spelling ("eszesség")
+    instead of the canonical unaccented slug ("eszesseg").
+
+    Returns `(raw, False)` unchanged unless ALL of:
+    - `raw` is a string not already in `vocabulary`;
+    - its diacritic-folded, lowercased form matches the folded form of
+      EXACTLY ONE `vocabulary` member (never >1 -- that would be
+      ambiguous, and this function never guesses between candidates);
+    - there is no fuzzy/semantic matching of any kind -- an unrelated
+      but similar-looking word (e.g. a genuine synonym) is NOT
+      canonicalized, only an accent/case variant of an EXISTING slug is.
+
+    Never invents a new taxonomy slug -- the returned value, when
+    `True`, is always a real, pre-existing member of `vocabulary`."""
+    if not isinstance(raw, str) or raw in vocabulary:
+        return raw, False
+    folded = _fold_diacritics(raw.strip().lower())
+    matches = [slug for slug in vocabulary if _fold_diacritics(slug.lower()) == folded]
+    if len(matches) == 1:
+        return matches[0], True
+    return raw, False
+
+
+def _canonicalize_taxonomy_in_payload(unit_payload: dict) -> list[str]:
+    """Mutates `unit_payload["topics"]`/`["tone"]`/`["homiletic_functions"]`
+    IN PLACE, replacing any slug `_canonicalize_slug` can safely resolve.
+    Anything NOT uniquely resolvable is left exactly as the model wrote
+    it -- `_validate_common_fields`'s existing controlled-vocabulary
+    check is still the fail-closed authority for those; this function
+    only ever narrows what reaches that check, never widens what it
+    accepts. Returns human-readable audit notes for anything actually
+    changed (folded into `warnings`, never applied silently)."""
+    notes: list[str] = []
+
+    topics = unit_payload.get("topics")
+    if isinstance(topics, list):
+        resolved_topics = []
+        for slug in topics:
+            resolved, changed = _canonicalize_slug(slug, PILOT_TOPICS)
+            if changed:
+                notes.append(f"topic slug {slug!r} auto-canonicalized to {resolved!r}")
+            resolved_topics.append(resolved)
+        unit_payload["topics"] = resolved_topics
+
+    tone = unit_payload.get("tone")
+    resolved_tone, tone_changed = _canonicalize_slug(tone, PILOT_TONES)
+    if tone_changed:
+        notes.append(f"tone slug {tone!r} auto-canonicalized to {resolved_tone!r}")
+        unit_payload["tone"] = resolved_tone
+
+    functions = unit_payload.get("homiletic_functions")
+    if isinstance(functions, list):
+        resolved_functions = []
+        for slug in functions:
+            resolved, changed = _canonicalize_slug(slug, PILOT_HOMILETIC_FUNCTIONS)
+            if changed:
+                notes.append(f"homiletic_function slug {slug!r} auto-canonicalized to {resolved!r}")
+            resolved_functions.append(resolved)
+        unit_payload["homiletic_functions"] = resolved_functions
+
+    return notes
 
 
 def _hallucination_guard(unit_payload: dict, *, source_text: str) -> list[str]:
@@ -1484,4 +1590,5 @@ __all__ = [
     "ProposedUnit",
     "build_enrichment_prompt",
     "enrich_story",
+    "is_legacy_strategy_mismatch",
 ]

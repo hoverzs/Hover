@@ -99,7 +99,7 @@ from illustration_engine.source_registry import PUBLISHABLE_LICENSE_STATUSES
 
 DATABASE_NAME = "illustrations.sqlite3"
 DEFAULT_DATABASE_PATH = GENERATED_DATA_DIR / DATABASE_NAME
-SCHEMA_VERSION = 5
+SCHEMA_VERSION = 6
 
 ALLOWED_STORY_STATUSES = frozenset({"draft", "needs_review", "approved", "published"})
 ALLOWED_ADAPTATION_STATUSES = frozenset(
@@ -136,6 +136,14 @@ ALLOWED_NARRATIVE_STATUSES = frozenset(
 )
 ALLOWED_NARRATIVE_STATUS_CONFIDENCE = frozenset({"low", "medium", "high"})
 
+# Phase 3H: machine QA verdict states, per-unit. Deliberately separate
+# from ALLOWED_UNIT_STATUSES/human review lifecycle -- see
+# update_unit_machine_qa()'s docstring for why these two state machines
+# must never be conflated. 'pending' means "no machine QA run has
+# recorded a verdict yet" -- both a fresh row (qa_status IS NULL) and an
+# explicit 'pending' value read as "not yet checked" to callers.
+ALLOWED_QA_STATUSES = frozenset({"pending", "passed", "needs_attention", "failed"})
+
 REQUIRED_TABLES = frozenset(
     {
         "sources",
@@ -147,6 +155,7 @@ REQUIRED_TABLES = frozenset(
         "import_meta",
         "enrichment_runs",
         "enrichment_run_items",
+        "qa_repairs",
     }
 )
 REQUIRED_VIEWS = frozenset({"published_stories", "published_illustration_units"})
@@ -328,6 +337,25 @@ def create_schema(connection: sqlite3.Connection) -> None:
             -- approve_unit()/publish_unit() never touch this column, so
             -- review/publish naturally never clears it either.
             enrichment_warnings_json TEXT,
+            -- Phase 3H: machine QA verdict, a THIRD provenance layer next
+            -- to enrichment_*/human_reviewed_at -- never conflated with
+            -- either. No DB-level CHECK on qa_status (SQLite cannot add a
+            -- CHECK via ALTER TABLE ADD COLUMN on an existing database, and
+            -- this column set must have an IDENTICAL definition whether it
+            -- was created fresh here or added by migrate_schema() to a
+            -- pre-existing file -- see migrate_schema()'s own comment).
+            -- ALLOWED_QA_STATUSES is enforced in Python by
+            -- update_unit_machine_qa(), the sole write path. Deliberately
+            -- NOT listed in _UNIT_CONTENT_FIELDS or the human-review
+            -- protection trigger below -- machine QA must be re-runnable
+            -- on an approved/published unit without disturbing its
+            -- reviewed content or demoting it.
+            qa_status TEXT,
+            qa_model TEXT,
+            qa_prompt_version TEXT,
+            qa_checked_at TEXT,
+            qa_confidence REAL,
+            qa_issues_json TEXT,
             human_reviewed_at TEXT,
             created_at TEXT NOT NULL,
             updated_at TEXT NOT NULL,
@@ -633,8 +661,62 @@ def create_schema(connection: sqlite3.Connection) -> None:
 
         CREATE INDEX IF NOT EXISTS idx_enrichment_run_items_run ON enrichment_run_items(run_id);
         CREATE INDEX IF NOT EXISTS idx_enrichment_run_items_run_status ON enrichment_run_items(run_id, status);
+
+        -- Phase 3H: auto-repair audit trail. A repair is a bounded,
+        -- content-fields-only edit (title_hu/modern_hu_text/summary_hu/
+        -- moral_hu) applied by the machine QA/repair orchestrator when a
+        -- QA verdict flagged safely-fixable issues -- NEVER original_text,
+        -- NEVER source/provenance, NEVER derivation_type. This table is
+        -- the "what changed and why" record; illustration_units.qa_* only
+        -- holds the LATEST verdict, not history.
+        CREATE TABLE IF NOT EXISTS qa_repairs (
+            id INTEGER PRIMARY KEY,
+            unit_id INTEGER NOT NULL REFERENCES illustration_units(id),
+            repaired_at TEXT NOT NULL,
+            qa_model TEXT NOT NULL,
+            qa_prompt_version TEXT NOT NULL,
+            issues_before_json TEXT NOT NULL,
+            fields_changed_json TEXT NOT NULL,
+            before_values_json TEXT NOT NULL,
+            after_values_json TEXT NOT NULL
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_qa_repairs_unit ON qa_repairs(unit_id);
         """
     )
+    connection.commit()
+
+
+def migrate_schema(connection: sqlite3.Connection) -> None:
+    """Idempotent, additive-only migration for an EXISTING database file
+    (Phase 3H). Safe to call on every startup/batch run:
+
+    1. `create_schema()` first -- adds any missing table/view/trigger/
+       index (a no-op for ones that already exist, proven safe/additive
+       for the real pilot DB during the Phase 3G-B audit).
+    2. Then adds any missing individual COLUMNS on `illustration_units`
+       that `CREATE TABLE IF NOT EXISTS` cannot retrofit onto an already-
+       existing table (SQLite has no `ALTER TABLE ... ADD COLUMN IF NOT
+       EXISTS`, so this checks `PRAGMA table_info` itself and only adds
+       what is actually missing).
+
+    NEVER drops, renames, or ALTERs an existing column; NEVER touches
+    existing row data. The added column list/types are IDENTICAL to the
+    ones in `create_schema()`'s own `illustration_units` definition --
+    keep both in sync by hand if either changes."""
+    create_schema(connection)
+    existing_columns = {row[1] for row in connection.execute("PRAGMA table_info(illustration_units)")}
+    qa_columns: dict[str, str] = {
+        "qa_status": "TEXT",
+        "qa_model": "TEXT",
+        "qa_prompt_version": "TEXT",
+        "qa_checked_at": "TEXT",
+        "qa_confidence": "REAL",
+        "qa_issues_json": "TEXT",
+    }
+    for column_name, sql_type in qa_columns.items():
+        if column_name not in existing_columns:
+            connection.execute(f"ALTER TABLE illustration_units ADD COLUMN {column_name} {sql_type}")
     connection.commit()
 
 
@@ -1154,6 +1236,96 @@ def update_enrichment_run_item(
     )
 
 
+# ---------------------------------------------------------------------------
+# Phase 3H: machine QA raw CRUD. Same split as every other table here --
+# no business logic (no verdict computation, no repair decision-making,
+# see illustration_engine/qa_agent.py and qa_orchestrator.py for that),
+# only schema-shaped reads/writes.
+# ---------------------------------------------------------------------------
+
+
+def update_unit_machine_qa(
+    connection: sqlite3.Connection,
+    *,
+    unit_id: int,
+    qa_status: str,
+    qa_model: str,
+    qa_prompt_version: str,
+    qa_checked_at: str | None = None,
+    qa_confidence: float | None = None,
+    qa_issues_json: str | None = None,
+) -> None:
+    """The SOLE write path for a unit's qa_* columns. Deliberately touches
+    ONLY qa_status/qa_model/qa_prompt_version/qa_checked_at/qa_confidence/
+    qa_issues_json -- never status, human_reviewed_at, or any content
+    field. This is what makes "machine QA never sets human_reviewed_at/
+    approved/published" structurally true rather than just a convention:
+    there is no code path here that could touch them even by accident."""
+    if qa_status not in ALLOWED_QA_STATUSES:
+        raise ValueError(f"Invalid qa_status: {qa_status!r}")
+    connection.execute(
+        """
+        UPDATE illustration_units
+        SET qa_status = ?, qa_model = ?, qa_prompt_version = ?, qa_checked_at = ?,
+            qa_confidence = ?, qa_issues_json = ?
+        WHERE id = ?
+        """,
+        (
+            qa_status,
+            qa_model,
+            qa_prompt_version,
+            qa_checked_at or datetime.now(UTC).isoformat(),
+            qa_confidence,
+            qa_issues_json,
+            unit_id,
+        ),
+    )
+
+
+def insert_qa_repair(
+    connection: sqlite3.Connection,
+    *,
+    unit_id: int,
+    qa_model: str,
+    qa_prompt_version: str,
+    issues_before_json: str,
+    fields_changed_json: str,
+    before_values_json: str,
+    after_values_json: str,
+    repaired_at: str | None = None,
+) -> int:
+    """Records one repair event. This call itself does NOT apply the
+    repair to `illustration_units` -- the caller (qa_orchestrator) writes
+    the repaired content via the existing `update_draft_unit` (so the
+    human-review-protection trigger/guard still applies exactly as for
+    any other content edit) and records the audit row here separately."""
+    cursor = connection.execute(
+        """
+        INSERT INTO qa_repairs(
+            unit_id, repaired_at, qa_model, qa_prompt_version,
+            issues_before_json, fields_changed_json, before_values_json, after_values_json
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            unit_id,
+            repaired_at or datetime.now(UTC).isoformat(),
+            qa_model,
+            qa_prompt_version,
+            issues_before_json,
+            fields_changed_json,
+            before_values_json,
+            after_values_json,
+        ),
+    )
+    return int(cursor.lastrowid)
+
+
+def count_qa_repairs_for_unit(connection: sqlite3.Connection, unit_id: int) -> int:
+    return int(
+        connection.execute("SELECT COUNT(*) FROM qa_repairs WHERE unit_id = ?", (unit_id,)).fetchone()[0]
+    )
+
+
 def initialize_empty_database(
     database_path: str | Path | None = None,
     *,
@@ -1226,6 +1398,7 @@ __all__ = [
     "ALLOWED_DERIVATION_TYPES",
     "ALLOWED_NARRATIVE_STATUS_CONFIDENCE",
     "ALLOWED_NARRATIVE_STATUSES",
+    "ALLOWED_QA_STATUSES",
     "ALLOWED_RUN_ITEM_STATUSES",
     "ALLOWED_RUN_STATUSES",
     "ALLOWED_STORY_STATUSES",
@@ -1242,16 +1415,20 @@ __all__ = [
     "IllustrationLicenseGateError",
     "IllustrationUnitReviewProtectionError",
     "check_integrity",
+    "count_qa_repairs_for_unit",
     "create_schema",
     "initialize_empty_database",
     "insert_enrichment_run",
     "insert_enrichment_run_item",
     "insert_illustration_unit",
+    "insert_qa_repair",
     "insert_source",
     "insert_story",
+    "migrate_schema",
     "resolve_database_path",
     "set_import_meta",
     "update_enrichment_run",
     "update_enrichment_run_item",
     "update_illustration_unit_fields",
+    "update_unit_machine_qa",
 ]

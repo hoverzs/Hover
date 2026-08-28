@@ -12,6 +12,7 @@ from illustration_engine.illustration_sqlite import (
     create_schema,
     insert_source,
     insert_story,
+    update_unit_machine_qa,
 )
 from illustration_engine.illustration_unit_repository import (
     IllustrationReviewItem,
@@ -1083,3 +1084,87 @@ def test_review_operations_do_not_modify_batch_ledger() -> None:
     conn.close()
 
     assert ledger_before == ledger_after == ("warning", unit_id, '["finding"]', None)
+
+
+# ---------------------------------------------------------------------------
+# Phase 3H: machine QA fields exposed on IllustrationReviewItem + qa_status
+# filter on list_review_items -- reviewer-facing, no lifecycle coupling.
+# ---------------------------------------------------------------------------
+
+
+def test_review_item_exposes_qa_fields_default_none() -> None:
+    conn = _fresh_connection()
+    source_id = _make_full_source(conn)
+    story_id = _make_numbered_story(conn, source_id, 1)
+    unit_id = _make_needs_review_unit(conn, story_id)
+    conn.commit()
+
+    item = get_review_item(conn, unit_id)
+    conn.close()
+
+    assert item.qa_status is None
+    assert item.qa_confidence is None
+    assert item.qa_issues_json is None
+
+
+def test_review_item_exposes_qa_fields_after_machine_qa() -> None:
+    conn = _fresh_connection()
+    source_id = _make_full_source(conn)
+    story_id = _make_numbered_story(conn, source_id, 1)
+    unit_id = _make_needs_review_unit(conn, story_id)
+    conn.commit()
+
+    update_unit_machine_qa(
+        conn, unit_id=unit_id, qa_status="needs_attention", qa_model="qa-m", qa_prompt_version="qa_v1",
+        qa_confidence=0.55, qa_issues_json='[{"code":"POOR_HUNGARIAN","detail":"x"}]',
+    )
+    conn.commit()
+    item = get_review_item(conn, unit_id)
+    conn.close()
+
+    assert item.qa_status == "needs_attention"
+    assert item.qa_model == "qa-m"
+    assert item.qa_confidence == 0.55
+    assert "POOR_HUNGARIAN" in item.qa_issues_json
+
+
+def test_list_review_items_qa_status_filter() -> None:
+    conn = _fresh_connection()
+    source_id = _make_full_source(conn)
+    story_1 = _make_numbered_story(conn, source_id, 1)
+    story_2 = _make_numbered_story(conn, source_id, 2)
+    passed_id = _make_needs_review_unit(conn, story_1)
+    pending_id = _make_needs_review_unit(conn, story_2)
+    update_unit_machine_qa(conn, unit_id=passed_id, qa_status="passed", qa_model="m", qa_prompt_version="v1")
+    conn.commit()
+
+    passed_items = list_review_items(conn, status="needs_review", qa_status="passed")
+    pending_items = list_review_items(conn, status="needs_review", qa_status="pending")
+    conn.close()
+
+    assert [i.unit_id for i in passed_items] == [passed_id]
+    assert [i.unit_id for i in pending_items] == [pending_id]
+
+
+def test_list_review_items_qa_status_pending_matches_null() -> None:
+    """qa_status='pending' must match units that were NEVER machine-QA'd
+    (qa_status IS NULL in the DB), not just an explicit 'pending' value."""
+    conn = _fresh_connection()
+    source_id = _make_full_source(conn)
+    story_id = _make_numbered_story(conn, source_id, 1)
+    unit_id = _make_needs_review_unit(conn, story_id)
+    conn.commit()
+
+    raw_qa_status = conn.execute("SELECT qa_status FROM illustration_units WHERE id=?", (unit_id,)).fetchone()[0]
+    assert raw_qa_status is None
+
+    items = list_review_items(conn, status="needs_review", qa_status="pending")
+    conn.close()
+    assert [i.unit_id for i in items] == [unit_id]
+
+
+def test_list_review_items_rejects_invalid_qa_status() -> None:
+    conn = _fresh_connection()
+    with pytest.raises(ValueError):
+        list_review_items(conn, qa_status="not_a_real_qa_status")
+    conn.close()

@@ -2062,3 +2062,113 @@ def test_1575_style_north_irorszaggal_not_hard_reject() -> None:
     assert result.status == "unit_created"
     assert not result.errors
     assert any("SUSPICIOUS NAME EXPANSION" in w for w in result.warnings)
+
+
+# ---------------------------------------------------------------------------
+# Phase 3H.1: safe, deterministic taxonomy-slug canonicalization
+# ---------------------------------------------------------------------------
+
+
+def test_accented_topic_slug_canonicalized_and_unit_created() -> None:
+    """The exact real production-batch failure: the model returns
+    'eszesség' (accented) instead of the canonical 'eszesseg' -- this
+    must now be auto-resolved rather than rejected."""
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    story_id = _make_story(conn, source_id)
+    payload = _valid_direct_unit_payload(topics=["eszesség"])
+
+    result = enrich_story(conn, story_id=story_id, llm_generate=_llm(payload), model_identifier="m", expected_mode="direct_unit")
+    conn.commit()
+    assert result.status == "unit_created"
+    assert any("eszesseg" in w for w in result.warnings)  # auditable -- not silent
+
+    rows = conn.execute(
+        "SELECT t.slug FROM illustration_unit_tags ut JOIN tags t ON t.id=ut.tag_id "
+        "WHERE ut.unit_id=? AND t.category='topic'", (result.unit_id,),
+    ).fetchall()
+    conn.close()
+    assert rows == [("eszesseg",)]  # canonical form persisted, not the accented one
+
+
+def test_accented_tone_slug_canonicalized() -> None:
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    story_id = _make_story(conn, source_id)
+    # "humoros" has no accent to strip in this vocabulary, so use a
+    # constructed near-miss: case difference is also folded via .lower().
+    payload = _valid_direct_unit_payload(tone="HUMOROS")
+
+    result = enrich_story(conn, story_id=story_id, llm_generate=_llm(payload), model_identifier="m", expected_mode="direct_unit")
+    conn.close()
+    assert result.status == "unit_created"
+    assert any("humoros" in w for w in result.warnings)
+
+
+def test_unknown_topic_slug_still_rejected_not_canonicalized() -> None:
+    """Canonicalization must never loosen the fail-closed controlled-
+    vocabulary check -- a genuinely unrelated/unknown slug is still
+    rejected exactly as before."""
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    story_id = _make_story(conn, source_id)
+    payload = _valid_direct_unit_payload(topics=["ismeretlen_fogalom"])
+
+    result = enrich_story(conn, story_id=story_id, llm_generate=_llm(payload), model_identifier="m", expected_mode="direct_unit")
+    conn.close()
+    assert result.status == "rejected"
+    assert any("ismeretlen_fogalom" in e for e in result.errors)
+
+
+def test_canonicalize_slug_ambiguous_match_fails_closed() -> None:
+    """Direct unit test of the pure canonicalization function: if a raw
+    slug's folded form matches MORE THAN ONE vocabulary entry, it must
+    NOT be resolved (no guessing). The real pilot taxonomy has no such
+    collision (all its slugs are already unaccented, hence trivially
+    distinct after folding), so this is exercised with a constructed
+    vocabulary to prove the safety rule itself."""
+    from illustration_engine.enrichment_pipeline import _canonicalize_slug
+
+    # Two DIFFERENT vocabulary entries that only differ by an accent --
+    # folding makes them identical, so a query that also folds to that
+    # same form cannot be resolved to either one without guessing.
+    genuine_collision_vocab = frozenset({"remeny", "remény"})
+    resolved, changed = _canonicalize_slug("rémény", genuine_collision_vocab)
+    assert changed is False
+    assert resolved == "rémény"  # left untouched -- ambiguous, no guess
+
+
+def test_canonicalize_slug_no_match_fails_closed() -> None:
+    from illustration_engine.enrichment_pipeline import _canonicalize_slug, PILOT_TOPICS
+
+    resolved, changed = _canonicalize_slug("teljesen_ismeretlen_szo", PILOT_TOPICS)
+    assert changed is False
+    assert resolved == "teljesen_ismeretlen_szo"
+
+
+def test_canonicalize_slug_no_fuzzy_semantic_matching() -> None:
+    """A genuinely different (even if related-sounding) word must NOT be
+    treated as a variant of an existing slug -- only accent/case
+    variants of an EXISTING slug are ever resolved."""
+    from illustration_engine.enrichment_pipeline import _canonicalize_slug, PILOT_TOPICS
+
+    resolved, changed = _canonicalize_slug("bolcsek", PILOT_TOPICS)  # not "bolcsesseg"
+    assert changed is False
+
+
+def test_canonicalize_slug_already_canonical_is_noop() -> None:
+    from illustration_engine.enrichment_pipeline import _canonicalize_slug, PILOT_TOPICS
+
+    resolved, changed = _canonicalize_slug("eszesseg", PILOT_TOPICS)
+    assert changed is False
+    assert resolved == "eszesseg"
+
+
+def test_canonicalize_slug_never_invents_new_slug() -> None:
+    """The resolved slug, whenever changed=True, must always be an
+    EXISTING member of the vocabulary -- never a newly-minted string."""
+    from illustration_engine.enrichment_pipeline import _canonicalize_slug, PILOT_TOPICS
+
+    resolved, changed = _canonicalize_slug("eszesség", PILOT_TOPICS)
+    assert changed is True
+    assert resolved in PILOT_TOPICS

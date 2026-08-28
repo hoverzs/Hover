@@ -15,28 +15,33 @@ touches `st.session_state`, cookies, or the OAuth flow -- it only
 combines two independent read-only signals (see its docstring) into one
 access decision.
 
-Phase 3G-B2 adds reviewer-SIDE ONLY risk triage (`compute_review_risk`)
-and a legacy/current-strategy mismatch check
-(`_is_legacy_strategy_mismatch`) -- both pure functions computed at
-render time from an already-loaded `IllustrationReviewItem`. Neither
-adds a DB column, a table, or a write path; they exist purely to help a
-human reviewer prioritize which of many `needs_review` units need deep
-manual attention versus a lighter pass.
+Phase 3G-B2 adds reviewer-SIDE ONLY risk triage (`compute_review_risk`),
+a pure function computed at render time from an already-loaded
+`IllustrationReviewItem` -- adds no DB column, no table, no write path;
+it exists purely to help a human reviewer prioritize which of many
+`needs_review` units need deep manual attention versus a lighter pass.
+Its legacy/current-strategy mismatch check now delegates to
+`enrichment_pipeline.is_legacy_strategy_mismatch` (Phase 3H.1 -- moved
+there so this UI and `qa_agent.run_content_qa`'s deterministic
+STRATEGY_MISMATCH check can never drift apart).
 """
 
 from __future__ import annotations
 
+import json
 import sqlite3
 from dataclasses import dataclass
 
 import streamlit as st
 
-from illustration_engine.enrichment_pipeline import EnrichmentStrategy, derive_enrichment_strategy
+from illustration_engine.enrichment_pipeline import derive_enrichment_strategy, is_legacy_strategy_mismatch
 from illustration_engine.illustration_sqlite import (
     DEFAULT_DATABASE_PATH,
     PILOT_HOMILETIC_FUNCTIONS,
     PILOT_TONES,
     PILOT_TOPICS,
+    count_qa_repairs_for_unit,
+    migrate_schema,
 )
 from illustration_engine.illustration_unit_repository import (
     IllustrationReviewItem,
@@ -60,11 +65,18 @@ _FILTER_SOURCE_KEY = "ill_review_filter_source"
 _FILTER_WARNINGS_KEY = "ill_review_filter_warnings_only"
 _FILTER_RISK_KEY = "ill_review_filter_risk"
 _FILTER_MISMATCH_ONLY_KEY = "ill_review_filter_mismatch_only"
+_FILTER_QA_KEY = "ill_review_filter_qa"
 _FILTER_LIMIT_KEY = "ill_review_filter_limit"
 _CONFIRM_PUBLISH_PREFIX = "ill_review_confirm_publish_"
 
 _STATUS_OPTIONS = ("needs_review", "approved", "published")
 _RISK_FILTER_OPTIONS = ("Mind", "High priority", "Clean / normal")
+# Phase 3H: machine QA filter. "Problémás" first/default -- so a reviewer
+# opening the panel sees needs_attention+failed units first and does not
+# have to read every PASS record one by one (see module docstring).
+_QA_FILTER_PROBLEMATIC = "Problémás (needs_attention + failed)"
+_QA_FILTER_OPTIONS = (_QA_FILTER_PROBLEMATIC, "Mind", "passed", "needs_attention", "failed", "pending")
+_QA_STATUS_DISPLAY = {"passed": "PASS", "needs_attention": "NEEDS_ATTENTION", "failed": "FAILED", "pending": "PENDING"}
 
 
 # ---------------------------------------------------------------------------
@@ -95,28 +107,6 @@ class ReviewRisk:
     current_expected_derivation_type: str | None
 
 
-def _is_legacy_strategy_mismatch(stored_derivation_type: str, current_strategy: EnrichmentStrategy) -> bool:
-    """A unit is a legacy/current-strategy mismatch when the
-    derivation_type actually stored on it would no longer be valid under
-    TODAY's deterministic length strategy (`derive_enrichment_strategy`)
-    for its story's CURRENT `original_text` length.
-
-    - `current_strategy.expected_mode == "direct_unit"`: mismatch iff the
-      stored `derivation_type` isn't exactly what length now dictates
-      (a full_story_translation/condensed_story mix-up).
-    - `current_strategy.expected_mode == "unit_proposal"`: a stored
-      `full_story_translation` or `condensed_story` IS a mismatch -- both
-      mean "the whole story was translated/condensed as ONE direct unit,"
-      which today's rules no longer allow past the length threshold; the
-      story would have to go through the human-in-the-loop unit_proposal
-      path first. A stored `extracted_scene` is deliberately NOT flagged
-      here -- it is itself proposal-derived content, i.e. already the
-      correct shape for a long story under current rules."""
-    if current_strategy.expected_mode == "direct_unit":
-        return stored_derivation_type != current_strategy.expected_derivation_type
-    return stored_derivation_type in ("full_story_translation", "condensed_story")
-
-
 def compute_review_risk(item: IllustrationReviewItem) -> ReviewRisk:
     """Reviewer-side risk triage -- HIGH if any flagged criterion
     matches, otherwise NORMAL. Criteria: enrichment_warnings present;
@@ -125,7 +115,16 @@ def compute_review_risk(item: IllustrationReviewItem) -> ReviewRisk:
     chars; derivation_type in (condensed_story, extracted_scene)."""
     original_length = len(item.original_text or "")
     current_strategy = derive_enrichment_strategy(original_length)
-    mismatch = _is_legacy_strategy_mismatch(item.derivation_type, current_strategy)
+    # Phase 3H.1: is_legacy_strategy_mismatch now lives in
+    # enrichment_pipeline.py (the SAME canonical authority as
+    # derive_enrichment_strategy itself) -- a former private duplicate
+    # here was removed so this and qa_agent.run_content_qa's
+    # STRATEGY_MISMATCH check can never drift apart.
+    mismatch = is_legacy_strategy_mismatch(
+        stored_derivation_type=item.derivation_type,
+        expected_mode=current_strategy.expected_mode,
+        expected_derivation_type=current_strategy.expected_derivation_type,
+    )
 
     reasons: list[str] = []
     if item.enrichment_warnings:
@@ -223,15 +222,19 @@ def _get_connection() -> sqlite3.Connection:
     later cleanup, but is not needed for Phase 3G-B1 and is deliberately
     out of scope for this round.
 
-    Deliberately does NOT call `create_schema()` -- the Phase 3G-B audit
-    confirmed the review workflow never touches the Phase 3F ledger
-    tables (`enrichment_runs`/`enrichment_run_items`), so this module
-    has no reason to ever mutate the real file's schema on its own
-    initiative. `check_same_thread=False` because `st.cache_resource`
-    shares this one connection across Streamlit session threads.
+    Calls `migrate_schema()` (Phase 3H) once per connection -- unlike the
+    Phase 3G-B1 decision to never touch schema here, this is now needed
+    because the reviewer UI reads `qa_*` columns that may not exist yet
+    on an unmigrated file. `migrate_schema()` is proven idempotent/
+    additive-only (never drops/alters an existing column or touches row
+    data -- see its own docstring), so this is self-healing, not a risk:
+    a fully-migrated file (the normal case) sees zero actual writes.
+    `check_same_thread=False` because `st.cache_resource` shares this one
+    connection across Streamlit session threads.
     """
     connection = sqlite3.connect(str(DEFAULT_DATABASE_PATH), check_same_thread=False)
     connection.execute("PRAGMA foreign_keys = ON")
+    migrate_schema(connection)
     return connection
 
 
@@ -240,7 +243,7 @@ def _safe_index(options: tuple[str, ...], value: str | None) -> int:
 
 
 def _render_queue_filters() -> None:
-    cols = st.columns([1, 1, 1, 1, 1])
+    cols = st.columns([1, 1, 1, 1, 1, 1])
     with cols[0]:
         st.selectbox("Állapot", options=_STATUS_OPTIONS, key=_FILTER_STATUS_KEY)
     with cols[1]:
@@ -252,6 +255,8 @@ def _render_queue_filters() -> None:
     with cols[3]:
         st.selectbox("Kockázat", options=_RISK_FILTER_OPTIONS, key=_FILTER_RISK_KEY)
     with cols[4]:
+        st.selectbox("Machine QA", options=_QA_FILTER_OPTIONS, key=_FILTER_QA_KEY)
+    with cols[5]:
         st.number_input(
             "Limit", min_value=1, max_value=200, value=20, step=1, key=_FILTER_LIMIT_KEY
         )
@@ -259,8 +264,9 @@ def _render_queue_filters() -> None:
 
 
 def _load_queue(connection: sqlite3.Connection) -> list[tuple[IllustrationReviewItem, ReviewRisk]]:
-    """Fetches via the Phase 3G-A review queue API (status/source/
-    warnings_only/limit -- all DB-level), then applies the risk/mismatch
+    """Fetches via the Phase 3G-A/3H review queue API (status/source/
+    warnings_only/qa_status/limit -- all DB-level except the "Problémás"
+    combined QA option, see below), then applies the risk/mismatch
     filters as a pure Python post-filter over the already-fetched page --
     risk is reviewer-side metadata, not a DB column, so it cannot be
     pushed into `list_review_items`'s SQL. NOTE: this means a risk/
@@ -271,9 +277,27 @@ def _load_queue(connection: sqlite3.Connection) -> list[tuple[IllustrationReview
     source_code = (st.session_state.get(_FILTER_SOURCE_KEY) or "").strip() or None
     warnings_only = bool(st.session_state.get(_FILTER_WARNINGS_KEY))
     limit = int(st.session_state.get(_FILTER_LIMIT_KEY) or 20)
-    items = list_review_items(
-        connection, status=status, source_code=source_code, warnings_only=warnings_only, limit=limit
-    )
+    qa_filter = st.session_state.get(_FILTER_QA_KEY) or _QA_FILTER_PROBLEMATIC
+
+    if qa_filter == _QA_FILTER_PROBLEMATIC:
+        # list_review_items only accepts ONE qa_status value -- two calls,
+        # merged, is the simplest correct way to express "either of these
+        # two values" without adding IN-list support to that API.
+        items = list_review_items(
+            connection, status=status, source_code=source_code, warnings_only=warnings_only,
+            qa_status="needs_attention", limit=limit,
+        ) + list_review_items(
+            connection, status=status, source_code=source_code, warnings_only=warnings_only,
+            qa_status="failed", limit=limit,
+        )
+        items.sort(key=lambda i: (i.story_id, i.unit_index))
+    else:
+        qa_status = None if qa_filter == "Mind" else qa_filter
+        items = list_review_items(
+            connection, status=status, source_code=source_code, warnings_only=warnings_only,
+            qa_status=qa_status, limit=limit,
+        )
+
     risk_filter = st.session_state.get(_FILTER_RISK_KEY) or "Mind"
     mismatch_only = bool(st.session_state.get(_FILTER_MISMATCH_ONLY_KEY))
 
@@ -299,10 +323,13 @@ def _render_queue_list(rows: list[tuple[IllustrationReviewItem, ReviewRisk]]) ->
         warn_marker = " ⚠️" if item.enrichment_warnings else ""
         risk_marker = " 🔴HIGH" if risk.level == "high" else ""
         mismatch_marker = " 🧭LEGACY" if risk.is_legacy_mismatch else ""
+        qa_marker = {
+            "passed": " ✅QA", "needs_attention": " 🟡QA", "failed": " 🛑QA",
+        }.get(item.qa_status, "")
         marker = "▶ " if item.unit_id == selected_id else ""
         label = (
             f"{marker}#{item.unit_id} · {item.title_hu or '(cím nélkül)'}"
-            f"{warn_marker}{risk_marker}{mismatch_marker} · {item.source_code}"
+            f"{warn_marker}{risk_marker}{mismatch_marker}{qa_marker} · {item.source_code}"
         )
         if st.button(label, key=f"ill_review_pick_{item.unit_id}", use_container_width=True):
             st.session_state[_SELECTED_UNIT_KEY] = item.unit_id
@@ -381,6 +408,38 @@ def _render_meta_section(item: IllustrationReviewItem) -> None:
         if item.enrichment_warnings:
             for warning in item.enrichment_warnings:
                 st.warning(warning)
+
+
+def _render_qa_section(connection: sqlite3.Connection, item: IllustrationReviewItem) -> None:
+    """Phase 3H: shows the machine QA verdict, confidence, issue codes,
+    and whether a repair was applied -- READ-ONLY, this panel never
+    triggers a QA/repair run itself (that stays a batch/script-level
+    action, not a reviewer UI action, in this round)."""
+    qa_status = item.qa_status or "pending"
+    badge = {"passed": "✅ PASS", "needs_attention": "🟡 NEEDS_ATTENTION", "failed": "🛑 FAILED", "pending": "⚪ PENDING"}[qa_status]
+    repair_count = count_qa_repairs_for_unit(connection, item.unit_id)
+    with st.expander(f"Machine QA: {badge}", expanded=qa_status in ("needs_attention", "failed")):
+        if qa_status == "pending":
+            st.caption("Ezen a rekordon még nem futott machine QA.")
+            return
+        st.write(f"qa_model: {item.qa_model or '—'} · qa_prompt_version: {item.qa_prompt_version or '—'}")
+        st.write(f"qa_checked_at: {item.qa_checked_at or '—'}")
+        st.write(f"confidence: {item.qa_confidence if item.qa_confidence is not None else '—'}")
+        st.write(f"repair történt: {'igen (' + str(repair_count) + 'x)' if repair_count else 'nem'}")
+        issues = []
+        if item.qa_issues_json:
+            try:
+                issues = json.loads(item.qa_issues_json)
+            except (json.JSONDecodeError, TypeError):
+                issues = []
+        if issues:
+            st.markdown("**Issue codes:**")
+            for issue in issues:
+                code = issue.get("code", "?") if isinstance(issue, dict) else str(issue)
+                detail = issue.get("detail", "") if isinstance(issue, dict) else ""
+                st.write(f"- `{code}`" + (f" — {detail}" if detail else ""))
+        else:
+            st.caption("Nincs rögzített issue.")
 
 
 def _render_risk_section(item: IllustrationReviewItem) -> ReviewRisk:
@@ -542,6 +601,7 @@ def _render_item_detail(connection: sqlite3.Connection, item: IllustrationReview
         _render_edit_column(connection, item)
 
     _render_meta_section(item)
+    _render_qa_section(connection, item)
     risk = _render_risk_section(item)
     _render_taxonomy_section(connection, item)
 
