@@ -1,4 +1,4 @@
-"""Phase 3I / 3I.1: user-facing illustration retrieval UI.
+"""Phase 3I / 3I.1 / 3I.2 / 3I.3: user-facing illustration retrieval UI.
 
 Lives OUTSIDE `illustration_review_ui.py` -- that module is the
 internal reviewer/QA tool (gated to the owner email or localhost);
@@ -35,6 +35,33 @@ this module never touches Gemini/HTTP itself.
 NEVER shown to the end user: the ranking prompt, raw JSON, qa_status/
 qa_issues internals, or any other reviewer-facing technical detail --
 see `_render_result_card`.
+
+Phase 3I.3: root-caused a live-vs-diagnostic-script discrepancy where
+the deployed UI returned 0 results for every tested passage while a
+standalone read-only diagnostic script (Phase 3I.2's audit) found real
+matches on the same corpus. Root cause: `retrieve_illustrations` makes
+TWO sequential logical Gemini calls per search (Stage 0 planner, then
+Stage B ranker) via `app.py`'s `generate_text`, which enforces an
+8-second GLOBAL cooldown between ANY two calls and returns a Hungarian
+"please wait" warning STRING (not an exception, not JSON) when a call
+lands inside that window -- which the second call always did, since a
+single Gemini call rarely takes 8+ seconds. `parse_ranking_response`
+correctly fails closed on that non-JSON string, so the symptom was 0
+results on every search, deterministically, regardless of passage --
+exactly what was observed. Fix: `bypass_cooldown=True` on the injected
+`_llm` callback, mirroring `generate_text`'s own documented convention
+for "ugyanazon gombnyomás fill/repair hívásai" (multiple logical calls
+within one click). This module's two Gemini calls per click are
+structurally the same case.
+
+Also added (Phase 3I.3 point 4, fail-closed observability): in
+development mode only, a "Fejlesztői diagnosztika" expander shows the
+structured `RetrievalDiagnostics` from `illustration_engine.retrieval.
+retrieve_illustrations_with_diagnostics` -- reason code (`ok` /
+`no_intent` / `no_local_candidates` / `ranker_rejected_all` /
+`planner_error` / `ranking_error`), intent field counts, Stage-A pool/
+candidate counts, top local scores, Stage-B parsed/accepted counts.
+Never raw LLM prompt/response text, never shown in production.
 """
 
 from __future__ import annotations
@@ -45,13 +72,27 @@ from typing import Callable
 import streamlit as st
 
 from illustration_engine.illustration_sqlite import DEFAULT_DATABASE_PATH, migrate_schema
-from illustration_engine.retrieval import IllustrationRetrievalResult, retrieve_illustrations
+from illustration_engine.retrieval import (
+    IllustrationRetrievalResult,
+    RetrievalDiagnostics,
+    retrieve_illustrations_with_diagnostics,
+)
 from illustration_review_ui import is_local_loopback_request
 from ui_components import action_row, render_info_panel, render_work_section, work_surface
 
 _RESULTS_KEY = "ill_retrieval_results"
 _MODE_KEY = "ill_retrieval_mode"
 _SEARCHED_KEY = "ill_retrieval_searched"
+_DIAGNOSTICS_KEY = "ill_retrieval_diagnostics"
+
+_REASON_LABELS_HU = {
+    "ok": "OK -- volt elfogadott találat",
+    "no_intent": "A tervező (Stage 0) nem adott használható kulcsszót/koncepciót",
+    "no_local_candidates": "Egyetlen jelölt sem érte el a helyi relevancia-küszöböt",
+    "ranker_rejected_all": "A rangsoroló lefutott, de egyik jelöltet sem tartotta elég relevánsnak",
+    "planner_error": "A tervező LLM-hívás hibát dobott (pl. hálózat, cooldown, API-kulcs)",
+    "ranking_error": "A rangsoroló LLM-hívás hibát dobott (pl. hálózat, cooldown, API-kulcs)",
+}
 
 _DEV_MODE_BANNER = "⚠️ Belső QA corpus — még nem publikált tételek."
 _EMPTY_RESULT_MESSAGE = "A tudástárban most nem találtam megfelelő, ellenőrzött illusztrációt."
@@ -88,6 +129,30 @@ def _render_result_card(item: IllustrationRetrievalResult) -> None:
         if item.homiletic_functions:
             caption_parts.append(f"Homiletikai irány: {', '.join(item.homiletic_functions)}")
         st.caption(" · ".join(caption_parts))
+
+
+def _render_dev_diagnostics(diag: RetrievalDiagnostics) -> None:
+    """Phase 3I.3 point 4 -- structured, content-free diagnosis, dev/
+    localhost mode only. Never called in production (see the `mode ==
+    "development"` guard at the call site)."""
+    with st.expander("🔧 Fejlesztői diagnosztika (csak localhoston látható)", expanded=False):
+        st.caption(_REASON_LABELS_HU.get(diag.reason, diag.reason))
+        st.code(
+            "\n".join([
+                f"reason: {diag.reason}",
+                f"intent.keywords_hu: {len(diag.intent.keywords_hu)} db",
+                f"intent.concepts_hu: {len(diag.intent.concepts_hu)} db",
+                f"intent.topics: {list(diag.intent.topics)}",
+                f"intent.preferred_homiletic_functions: {list(diag.intent.preferred_homiletic_functions)}",
+                f"stage_a_pool_size: {diag.stage_a_pool_size}",
+                f"stage_a_candidate_count: {diag.stage_a_candidate_count}",
+                f"stage_a_top_scores: {list(diag.stage_a_top_scores)}",
+                f"stage_b_parsed_count: {diag.stage_b_parsed_count}",
+                f"stage_b_accepted_count: {diag.stage_b_accepted_count}",
+                f"final_count: {diag.final_count}",
+            ]),
+            language="text",
+        )
 
 
 def render_illustration_search_action(*, generate_fn: Callable[..., str] | None = None) -> None:
@@ -133,9 +198,22 @@ def render_illustration_search_action(*, generate_fn: Callable[..., str] | None 
                                 tab_label="Illusztrációk",
                                 use_cache=False,
                                 include_brevity_directive=False,
+                                # Phase 3I.3 fix: retrieve_illustrations makes TWO
+                                # sequential logical calls per search (planner,
+                                # then ranker). Without this, generate_text's
+                                # global 8s cooldown blocked the second call on
+                                # (almost) every search, returning a "please
+                                # wait" warning string instead of JSON -- which
+                                # parse_ranking_response correctly, silently,
+                                # failed closed on, yielding 0 results EVERY
+                                # time regardless of passage. Mirrors generate_
+                                # text's own documented convention for multiple
+                                # logical calls within one click ("ugyanazon
+                                # gombnyomás fill/repair hívásai").
+                                bypass_cooldown=True,
                             )
 
-                        results = retrieve_illustrations(
+                        results, diagnostics = retrieve_illustrations_with_diagnostics(
                             connection,
                             mode=mode,
                             passage_reference=passage,
@@ -147,6 +225,7 @@ def render_illustration_search_action(*, generate_fn: Callable[..., str] | None 
                         st.session_state[_RESULTS_KEY] = results
                         st.session_state[_MODE_KEY] = mode
                         st.session_state[_SEARCHED_KEY] = True
+                        st.session_state[_DIAGNOSTICS_KEY] = diagnostics
 
         if st.session_state.get(_SEARCHED_KEY):
             results: list[IllustrationRetrievalResult] = st.session_state.get(_RESULTS_KEY) or []
@@ -159,6 +238,10 @@ def render_illustration_search_action(*, generate_fn: Callable[..., str] | None 
             else:
                 for item in results:
                     _render_result_card(item)
+            # Phase 3I.3: development/localhost only -- never in production.
+            diag: RetrievalDiagnostics | None = st.session_state.get(_DIAGNOSTICS_KEY)
+            if mode == "development" and diag is not None:
+                _render_dev_diagnostics(diag)
         else:
             render_info_panel(
                 title="Még nincs keresés",

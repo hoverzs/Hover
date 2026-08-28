@@ -19,8 +19,15 @@ from illustration_engine.illustration_sqlite import (
 from illustration_engine.retrieval import (
     MIN_LOCAL_RELEVANCE_SCORE,
     MIN_RANK_SCORE,
+    REASON_NO_INTENT,
+    REASON_NO_LOCAL_CANDIDATES,
+    REASON_OK,
+    REASON_PLANNER_ERROR,
+    REASON_RANKER_REJECTED_ALL,
+    REASON_RANKING_ERROR,
     RankedIllustration,
     RetrievalCandidate,
+    RetrievalDiagnostics,
     RetrievalIntent,
     build_query_planner_prompt,
     build_ranking_prompt,
@@ -30,6 +37,7 @@ from illustration_engine.retrieval import (
     parse_ranking_response,
     plan_retrieval_intent,
     retrieve_illustrations,
+    retrieve_illustrations_with_diagnostics,
 )
 
 _VALID_SUMMARY = " ".join(["szo"] * 45)
@@ -801,3 +809,161 @@ def test_thematically_unrelated_anecdote_does_not_pass_threshold_for_unrelated_p
     candidates = find_candidates(conn, intent=intent, mode="production", limit=10)
     conn.close()
     assert candidates == []
+
+
+# ---------------------------------------------------------------------------
+# Phase 3I.3: fail-closed observability (`RetrievalDiagnostics`). Root cause
+# of the live-vs-diagnostic-script discrepancy this phase found was a
+# GLOBAL COOLDOWN inside app.py's `generate_text` -- outside this module's
+# reach and not something illustration_engine can unit-test directly (it
+# lives in the Streamlit-coupled caller, see tests/test_illustration_
+# retrieval_ui_cooldown.py for that regression). What IS this module's
+# responsibility, and what these tests cover, is that a caller can always
+# tell OK apart from every distinct failure mode without any raw LLM
+# content leaking into the diagnosis.
+# ---------------------------------------------------------------------------
+
+
+def test_diagnostics_reason_ok_when_results_found() -> None:
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    story_id = _make_story(conn, source_id)
+    unit_id = _make_published_unit(conn, story_id, title_hu="Irgalmas apa", summary_hu="Egy irgalmas apa története.")
+    conn.commit()
+
+    llm = _llm_dispatch(
+        {"keywords_hu": ["irgalmas"]},
+        {"results": [{"unit_id": unit_id, "score": 0.9, "reason": "x"}]},
+    )
+    results, diag = retrieve_illustrations_with_diagnostics(
+        conn, mode="production", passage_reference="Lk 15,11-24", llm_generate=llm,
+    )
+    conn.close()
+
+    assert len(results) == 1
+    assert diag.reason == REASON_OK
+    assert diag.final_count == 1
+    assert diag.stage_a_candidate_count == 1
+    assert diag.stage_b_accepted_count == 1
+
+
+def test_diagnostics_reason_planner_error_on_llm_exception() -> None:
+    conn = _fresh_connection()
+
+    def broken_llm(prompt: str) -> str:
+        raise RuntimeError("network down")
+
+    results, diag = retrieve_illustrations_with_diagnostics(
+        conn, mode="production", passage_reference="Lk 15,11-24", llm_generate=broken_llm,
+    )
+    conn.close()
+
+    assert results == []
+    assert diag.reason == REASON_PLANNER_ERROR
+    assert diag.intent == RetrievalIntent()
+
+
+def test_diagnostics_reason_no_intent_on_malformed_planner_response() -> None:
+    conn = _fresh_connection()
+    llm = _llm_dispatch("not json at all", {"results": []})
+    results, diag = retrieve_illustrations_with_diagnostics(
+        conn, mode="production", passage_reference="Lk 15,11-24", llm_generate=llm,
+    )
+    conn.close()
+
+    assert results == []
+    assert diag.reason == REASON_NO_INTENT
+
+
+def test_diagnostics_reason_no_local_candidates_when_nothing_clears_threshold() -> None:
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    story_id = _make_story(conn, source_id)
+    _make_published_unit(conn, story_id, title_hu="Teljesen más témájú anekdota", summary_hu=_VALID_SUMMARY)
+    conn.commit()
+
+    llm = _llm_dispatch({"keywords_hu": ["teljesen_ismeretlen_szokombinacio_xyz"]}, {"results": []})
+    results, diag = retrieve_illustrations_with_diagnostics(
+        conn, mode="production", passage_reference="Lk 15,11-24", llm_generate=llm,
+    )
+    conn.close()
+
+    assert results == []
+    assert diag.reason == REASON_NO_LOCAL_CANDIDATES
+    assert diag.stage_a_pool_size == 1
+    assert diag.stage_a_candidate_count == 0
+    assert len(diag.stage_a_top_scores) == 1  # visible even though nothing cleared threshold
+
+
+def test_diagnostics_reason_ranking_error_on_llm_exception() -> None:
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    story_id = _make_story(conn, source_id)
+    _make_published_unit(conn, story_id, title_hu="Irgalmas apa", summary_hu="Egy irgalmas apa története.")
+    conn.commit()
+
+    def flaky_llm(prompt: str) -> str:
+        if _RANKER_MARKER in prompt:
+            raise RuntimeError("network down mid-ranking")
+        return json.dumps({"keywords_hu": ["irgalmas"]})
+
+    results, diag = retrieve_illustrations_with_diagnostics(
+        conn, mode="production", passage_reference="Lk 15,11-24", llm_generate=flaky_llm,
+    )
+    conn.close()
+
+    assert results == []
+    assert diag.reason == REASON_RANKING_ERROR
+    assert diag.stage_a_candidate_count == 1
+
+
+def test_diagnostics_reason_ranker_rejected_all_when_nothing_clears_rank_threshold() -> None:
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    story_id = _make_story(conn, source_id)
+    unit_id = _make_published_unit(conn, story_id, title_hu="Irgalmas apa", summary_hu="Egy irgalmas apa története.")
+    conn.commit()
+
+    llm = _llm_dispatch(
+        {"keywords_hu": ["irgalmas"]},
+        {"results": [{"unit_id": unit_id, "score": 0.1, "reason": "Gyenge kapcsolat."}]},
+    )
+    results, diag = retrieve_illustrations_with_diagnostics(
+        conn, mode="production", passage_reference="Lk 15,11-24", llm_generate=llm,
+    )
+    conn.close()
+
+    assert results == []
+    assert diag.reason == REASON_RANKER_REJECTED_ALL
+    assert diag.stage_b_parsed_count == 1
+    assert diag.stage_b_accepted_count == 0
+
+
+def test_diagnostics_dataclass_has_no_raw_text_field() -> None:
+    """Structural check: `RetrievalDiagnostics`'s fields are all counts/
+    scores/reason codes/the parsed `RetrievalIntent` -- there is no
+    field that could hold a raw prompt or response string."""
+    field_names = {f.name for f in dataclasses.fields(RetrievalDiagnostics)}
+    assert field_names == {
+        "reason", "intent", "stage_a_pool_size", "stage_a_candidate_count",
+        "stage_a_top_scores", "stage_b_parsed_count", "stage_b_accepted_count", "final_count",
+    }
+
+
+def test_retrieve_illustrations_plain_still_returns_only_results_list() -> None:
+    """Backward compatibility: the plain entry point's return type/
+    behavior is unchanged by adding the diagnostics variant."""
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    story_id = _make_story(conn, source_id)
+    unit_id = _make_published_unit(conn, story_id, title_hu="Irgalmas apa", summary_hu="Egy irgalmas apa története.")
+    conn.commit()
+
+    llm = _llm_dispatch(
+        {"keywords_hu": ["irgalmas"]},
+        {"results": [{"unit_id": unit_id, "score": 0.9, "reason": "x"}]},
+    )
+    results = retrieve_illustrations(conn, mode="production", passage_reference="Lk 15,11-24", llm_generate=llm)
+    conn.close()
+    assert isinstance(results, list)
+    assert len(results) == 1
