@@ -11,6 +11,7 @@ from textus_kb.context_builder import build_context_from_evidence
 from textus_kb.context_profiles import PROFILE_THEOLOGY
 from textus_kb.evidence import EvidencePacket
 from textus_kb.importers.ccel_thml import parse_ccel_institutes_thml
+from textus_kb.importers.hodge_thml import RIGHTS_STATUS
 from textus_kb.importers.combined_theology import (
     IMPORT_MODE_COMBINED_CALVIN_HODGE,
     CombinedTheologyImportError,
@@ -90,9 +91,9 @@ def test_combined_fixture_shape_and_ids(tmp_path: Path) -> None:
         )
     }
     assert editions["ccel.calvin.institutes.beveridge.1845"] == "public-domain"
-    assert editions["ccel.hodge.systematic_theology.vol1.ccel_thml"] == "needs-review"
-    assert editions["ccel.hodge.systematic_theology.vol2.ccel_thml"] == "needs-review"
-    assert editions["ccel.hodge.systematic_theology.vol3.ccel_thml"] == "needs-review"
+    assert editions["ccel.hodge.systematic_theology.vol1.ccel_thml"] == RIGHTS_STATUS
+    assert editions["ccel.hodge.systematic_theology.vol2.ccel_thml"] == RIGHTS_STATUS
+    assert editions["ccel.hodge.systematic_theology.vol3.ccel_thml"] == RIGHTS_STATUS
     store_keys = {
         row[0] for row in _query(report.database_path, "SELECT key FROM store_metadata")
     }
@@ -202,17 +203,19 @@ def test_logical_hash_and_counts_are_deterministic(tmp_path: Path) -> None:
     assert ids_a == ids_b
 
 
-def test_hodge_rights_remain_needs_review(tmp_path: Path) -> None:
+def test_hodge_rights_are_permission_granted(tmp_path: Path) -> None:
     report = _build(tmp_path)
     rows = _query(
         report.database_path,
         """
-        SELECT rights_status, license FROM editions
+        SELECT rights_status, license, rights_note FROM editions
         WHERE edition_id LIKE 'ccel.hodge%'
         """,
     )
     assert rows
-    assert all(row[0] == "needs-review" and row[1] == "unspecified" for row in rows)
+    assert all(row[0] == "permission-granted" and row[1] == "unspecified" for row in rows)
+    assert all("CCEL reuse permission confirmed for Textus" in row[2] for row in rows)
+    assert all("historical public-domain candidate" in row[2] for row in rows)
 
 
 def test_context_and_grounded_compose_from_combined_path(tmp_path: Path) -> None:
@@ -252,4 +255,6 @@ def test_context_and_grounded_compose_from_combined_path(tmp_path: Path) -> None
     assert "Do not invent page numbers." in preview.composed_prompt
     assert "Page_" not in preview.composed_prompt
     assert "needs-review" not in preview.composed_prompt
+    assert "permission-granted" not in preview.composed_prompt
     assert "unspecified" not in preview.composed_prompt
+    assert "CCEL reuse permission confirmed" not in preview.composed_prompt

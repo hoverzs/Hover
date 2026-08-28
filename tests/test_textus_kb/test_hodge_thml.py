@@ -15,6 +15,9 @@ from textus_kb.importers.ccel_thml_core import (
 from textus_kb.importers.hodge_thml import (
     ALLOWED_PART_DIV1_IDS,
     CHUNK_CHAR_THRESHOLD,
+    LICENSE_PLACEHOLDER,
+    RIGHTS_NOTE,
+    RIGHTS_STATUS,
     HodgeThmlImportError,
     import_hodge_systematic_theology_thml,
     join_paragraph_plain,
@@ -333,18 +336,23 @@ def test_provenance_and_rights_metadata(tmp_path: Path) -> None:
     assert edition[0] == "Volume II (CCEL ThML)"
     assert edition[1] == 1871
     assert edition[2] == "en"
-    assert edition[3] == "needs-review"
+    assert edition[3] == RIGHTS_STATUS
+    assert edition[3] == "permission-granted"
+    assert edition[4] == LICENSE_PLACEHOLDER
     assert edition[4] == "unspecified"
-    assert "DC.Rights is empty" in edition[5]
-    assert "1878" in edition[5]
-    assert "2005" in edition[5]
+    assert "historical public-domain candidate" in edition[5]
+    assert "CCEL reuse permission confirmed for Textus" in edition[5]
+    assert "approval retained separately" in edition[5]
+    assert "Source attribution required" in edition[5]
     assert "excluded" in edition[5]
+    assert "needs-review" not in edition[3]
+    assert "public-domain" not in edition[3]
+    assert edition[5] == RIGHTS_NOTE
     assert edition[6] == "https://www.ccel.org/ccel/hodge/theology2.xml"
     assert edition[7] == "ccel"
     assert edition[8] == "ccel/hodge/theology2"
     assert edition[9] is None
     assert report.import_mode == "hodge_thml"
-    assert "public-domain" not in edition[3]
 
 
 def test_sqlite_validation_and_deterministic_ids(tmp_path: Path) -> None:
@@ -453,7 +461,7 @@ def test_volume_one_allowlist_and_introduction_locator(tmp_path: Path) -> None:
         "Volume I (CCEL ThML)",
         "https://www.ccel.org/ccel/hodge/theology1.xml",
         "ccel/hodge/theology1",
-        "needs-review",
+        "permission-granted",
     )
 
 

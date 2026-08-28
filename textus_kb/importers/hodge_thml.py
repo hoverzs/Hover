@@ -37,14 +37,16 @@ CHUNK_CHAR_THRESHOLD = 6_000
 AUTHOR_ID = "ccel.hodge"
 WORK_ID = "ccel.hodge.systematic_theology"
 
-RIGHTS_STATUS = "needs-review"
+RIGHTS_STATUS = "permission-granted"
 LICENSE_PLACEHOLDER = "unspecified"
 PUBLICATION_YEAR = 1871
 RIGHTS_NOTE = (
-    "Original 1871 Charles Hodge text; author died 1878. "
-    "CCEL electronic markup dated 2005. DC.Rights is empty on the source ThML. "
-    "Title, prefatory, indexes, and CCEL staff description are excluded. "
-    "Production reuse requires explicit rights review."
+    "Underlying Hodge text is a 19th-century historical public-domain candidate. "
+    "CCEL ThML/XML electronic edition reuse is approved for Textus. "
+    "CCEL reuse permission confirmed for Textus; "
+    "approval retained separately in project records. "
+    "Source attribution required. "
+    "Title, prefatory, indexes, and CCEL staff description are excluded."
 )
 
 _SECTION_NUMBER_RE = re.compile(r"^\s*(\d+)\.")
