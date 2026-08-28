@@ -54,6 +54,13 @@ from sermon_workshop_data import (
     normalize_sermon_workshop,
 )
 from sermon_workshop_ui import flush_sermon_workshop_from_widgets, render_sermon_workshop_shell
+from writing_desk_data import (
+    WRITING_DESK_KEY,
+    ensure_writing_desk_state,
+    get_default_writing_desk,
+    normalize_writing_desk,
+    writing_desk_has_content,
+)
 from writing_desk_ui import (
     WRITING_DESK_LABEL,
     WRITING_DESK_MODE,
@@ -5071,6 +5078,12 @@ def deserialize_workspace(raw_bytes):
     for nested in (TEXT_WORKSHOP_KEY, SERMON_WORKSHOP_KEY, OCCASION_CONTEXT_KEY):
         if nested in obj:
             st.session_state[nested] = obj[nested]
+    # Íróasztal-kivonatok: hiányzó kulcs (régi fájl) → üres alap, ne maradjon
+    # bent az előző session kivonata.
+    st.session_state[WRITING_DESK_KEY] = normalize_writing_desk(
+        obj.get(WRITING_DESK_KEY)
+    )
+    ensure_writing_desk_state(st.session_state)
     # RESET 3B-6a: az importált fájl sosem tartalmazza ezeket (tisztán
     # futásidejű állapot) — a betöltés előtti, esetleg más tartalomhoz
     # tartozó figyelmeztetések ne maradjanak bent az importált szöveg alatt.
@@ -5262,6 +5275,11 @@ def _apply_project_data_to_session(project_data: dict) -> None:
         project_data.get(OCCASION_CONTEXT_KEY)
     )
     ensure_occasion_context_state(st.session_state)
+    # Régi projektek: hiányzó writing_desk → üres munkakivonatok
+    st.session_state[WRITING_DESK_KEY] = normalize_writing_desk(
+        project_data.get(WRITING_DESK_KEY)
+    )
+    ensure_writing_desk_state(st.session_state)
     # Igehely-keresés alkalom típusa a háttérrel összhangban
     _occ_type = str(
         (st.session_state.get(OCCASION_CONTEXT_KEY) or {}).get("occasion_type") or ""
@@ -5303,6 +5321,8 @@ def _workspace_has_substantive_content() -> bool:
         if (st.session_state.get(key) or "").strip():
             return True
     if st.session_state.get("basket"):
+        return True
+    if writing_desk_has_content(st.session_state.get(WRITING_DESK_KEY)):
         return True
     return False
 
@@ -5581,8 +5601,10 @@ def _clear_workspace_content() -> None:
     # Nested workshop állapotok is nullázódjanak (ne maradjon régi vázlat)
     st.session_state[TEXT_WORKSHOP_KEY] = get_default_text_workshop()
     st.session_state[SERMON_WORKSHOP_KEY] = get_default_sermon_workshop()
+    st.session_state[WRITING_DESK_KEY] = get_default_writing_desk()
     ensure_text_workshop_state(st.session_state)
     ensure_sermon_workshop_state(st.session_state)
+    ensure_writing_desk_state(st.session_state)
     st.session_state["_tw_ui_resync"] = True
     st.session_state["_sw_ui_resync"] = True
     st.session_state.pop("_outline_rapid_evidence_cache", None)
@@ -6016,6 +6038,7 @@ ensure_text_workshop_state(st.session_state)
 ensure_sermon_workshop_state(st.session_state)
 ensure_passage_search_state(st.session_state)
 ensure_occasion_context_state(st.session_state)
+ensure_writing_desk_state(st.session_state)
 
 # Beépített módban a session kulcs másolatát szinkronban tartjuk a
 # Streamlit Secrets / env aktuális értékével (Cloud Secrets frissítés,

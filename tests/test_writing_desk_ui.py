@@ -271,12 +271,14 @@ def test_writing_desk_uses_unique_original_language_widget_keys():
     assert 'display_mode="compact"' not in app_src
 
 
-def test_writing_desk_shell_does_not_define_project_persistence():
-    from workspace_data import EXCLUDED_SESSION_KEYS, PROJECT_DATA_KEYS
+def test_writing_desk_ui_mode_is_not_a_durable_session_key():
+    from workspace_data import EXCLUDED_SESSION_KEYS, PROJECT_DATA_KEYS, PROJECT_NESTED_KEYS
+    from writing_desk_data import WRITING_DESK_KEY
 
     assert "ui_mode" in EXCLUDED_SESSION_KEYS
-    assert WRITING_DESK_MODE not in PROJECT_DATA_KEYS
-    assert "writing_desk" not in PROJECT_DATA_KEYS
+    assert WRITING_DESK_KEY in PROJECT_DATA_KEYS
+    assert WRITING_DESK_KEY in PROJECT_NESTED_KEYS
+    assert WRITING_DESK_KEY == WRITING_DESK_MODE
     assert WRITING_DESK_LABEL == "Íróasztal"
 
 
