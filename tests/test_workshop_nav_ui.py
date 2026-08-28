@@ -17,6 +17,7 @@ from workshop_nav_ui import (
     sermon_section_statuses,
     textus_completed_sections,
 )
+from writing_desk_ui import WRITING_DESK_LABEL, WRITING_DESK_MODE
 
 
 def test_textus_completed_sections_empty():
@@ -301,11 +302,12 @@ def test_shell_components_use_keyed_containers():
     assert "tx-project-toolbar-anchor" not in src or "no-op" in src.lower() or "Kompatibilitási" in src
 
 
-def test_primary_view_switcher_two_modes_only(monkeypatch):
-    """A nézetváltó mostantól csak Textusműhely / Igehirdetési műhely — a 'quick' mód megszűnt."""
+def test_primary_view_switcher_three_top_level_modes(monkeypatch):
+    """A nézetváltó három fő munkafelületet kezel; a régi 'quick' mód megszűnt."""
     import streamlit as st
     from contextlib import nullcontext
 
+    calls = {"columns": [], "buttons": []}
     monkeypatch.setattr(st, "session_state", {"ui_mode": "quick"})
     monkeypatch.setattr(st, "container", lambda **k: nullcontext())
     monkeypatch.setattr(st, "markdown", lambda *a, **k: None)
@@ -313,28 +315,45 @@ def test_primary_view_switcher_two_modes_only(monkeypatch):
     def _columns(*args, **kwargs):
         spec = args[0] if args else kwargs.get("spec", 2)
         n = spec if isinstance(spec, int) else len(spec)
+        calls["columns"].append(n)
         return [nullcontext() for _ in range(n)]
 
     monkeypatch.setattr(st, "columns", _columns)
-    monkeypatch.setattr(st, "button", lambda *a, **k: False)
+
+    def _button(label, *args, **kwargs):
+        calls["buttons"].append((label, kwargs.get("key")))
+        return label == WRITING_DESK_LABEL
+
+    monkeypatch.setattr(st, "button", _button)
+    monkeypatch.setattr(st, "rerun", lambda: None)
 
     result = render_primary_view_switcher(
-        options=["workshop", "sermon_workshop"],
+        options=["workshop", "sermon_workshop", WRITING_DESK_MODE],
+        labels={WRITING_DESK_MODE: WRITING_DESK_LABEL},
         key="ui_mode",
     )
     # A régi "quick" érték nincs az opciók között -> a switcher normalizálja.
-    assert result in ("workshop", "sermon_workshop")
-    assert st.session_state["ui_mode"] != "quick"
+    assert result == WRITING_DESK_MODE
+    assert st.session_state["ui_mode"] == WRITING_DESK_MODE
+    assert calls["columns"] == [3]
+    assert [label for label, _key in calls["buttons"]] == [
+        "Textusműhely",
+        "Igehirdetési műhely",
+        WRITING_DESK_LABEL,
+    ]
 
 
-def test_app_navigation_reduced_to_two_top_level_modes():
-    """Forrásaudit: app.py-ban a régi három-módú switcher/stepper eltűnt."""
+def test_app_navigation_has_writing_desk_top_level_mode():
+    """Forrásaudit: app.py-ban az Íróasztal harmadik fő munkafelületként él."""
     from pathlib import Path
 
     app = Path(__file__).resolve().parents[1].joinpath("app.py").read_text(
         encoding="utf-8"
     )
-    assert 'options=["workshop", "sermon_workshop"]' in app
+    assert 'options=["workshop", "sermon_workshop", WRITING_DESK_MODE]' in app
+    assert "render_writing_desk_shell()" in app
+    assert "WRITING_DESK_MODE" in app
+    assert "WRITING_DESK_LABEL" in app
     assert 'options=["quick", "workshop", "sermon_workshop"]' not in app
     assert "render_textus_workshop_shell" not in app
     assert '"quick": "Gyorseszközök"' not in app

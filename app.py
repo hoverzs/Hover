@@ -54,6 +54,11 @@ from sermon_workshop_data import (
     normalize_sermon_workshop,
 )
 from sermon_workshop_ui import flush_sermon_workshop_from_widgets, render_sermon_workshop_shell
+from writing_desk_ui import (
+    WRITING_DESK_LABEL,
+    WRITING_DESK_MODE,
+    render_writing_desk_shell,
+)
 from workshop_nav_ui import (
     render_app_toolbar,
     render_quick_tools_tabs,
@@ -7634,6 +7639,7 @@ _render_project_status_bar()
 _UI_MODE_LABELS = {
     "workshop": "Textusműhely",
     "sermon_workshop": "Igehirdetési műhely",
+    WRITING_DESK_MODE: WRITING_DESK_LABEL,
 }
 
 
@@ -7850,7 +7856,11 @@ def render_original_text_panel() -> None:
         refinement_chat("Eredeti szöveg tanulmányozása", "original_text", "original_text_chat")
 
 
-if st.session_state.get("ui_mode") not in ("workshop", "sermon_workshop"):
+if st.session_state.get("ui_mode") not in (
+    "workshop",
+    "sermon_workshop",
+    WRITING_DESK_MODE,
+):
     st.session_state["ui_mode"] = "workshop"
 
 def _render_settings_panel() -> None:
@@ -8291,7 +8301,7 @@ if st.session_state.get("shell_panel") == "settings":
     st.stop()
 
 render_workspace_switcher(
-    options=["workshop", "sermon_workshop"],
+    options=["workshop", "sermon_workshop", WRITING_DESK_MODE],
     labels=_UI_MODE_LABELS,
     key="ui_mode",
 )
@@ -8303,6 +8313,14 @@ if st.session_state.get("ui_mode") == "sermon_workshop":
     except Exception:
         pass
     render_sermon_workshop_shell(generate_fn=generate_text)
+    st.stop()
+
+if st.session_state.get("ui_mode") == WRITING_DESK_MODE:
+    try:
+        track_app_navigation()
+    except Exception:
+        pass
+    render_writing_desk_shell()
     st.stop()
 
 
