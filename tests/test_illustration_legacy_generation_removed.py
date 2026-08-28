@@ -171,19 +171,33 @@ def _seed_published_unit(conn: sqlite3.Connection) -> tuple[int, str]:
     return unit_id, exact_db_text
 
 
+_RANKER_MARKER = "JELÖLTEK (kizárólag ezek közül"
+
+
+def _dispatch_llm(planner_response: dict, ranker_response) -> callable:
+    """Phase 3I.2: `retrieve_illustrations` now makes TWO LLM calls
+    (Stage 0 planner, then Stage B ranker) -- dispatches on
+    `_RANKER_MARKER`, which only the ranking prompt contains."""
+    ranker_text = json.dumps(ranker_response) if isinstance(ranker_response, dict) else ranker_response
+
+    def _llm(prompt: str) -> str:
+        if _RANKER_MARKER in prompt:
+            return ranker_text
+        return json.dumps(planner_response)
+
+    return _llm
+
+
 def test_db_hit_shows_only_db_sourced_story_never_llm_authored_text():
     conn = _fresh_connection()
     unit_id, exact_db_text = _seed_published_unit(conn)
 
     llm_invented_story = "Ez egy KITALÁLT, az LLM által írt sztori -- ha ez jelenne meg, az hiba lenne."
 
-    def fake_llm(prompt: str) -> str:
-        # Az LLM válasza (helyesen) csak rangsorolás/indoklás -- SOSEM
-        # tartalmazhat story-szöveget, mert a rendszer úgysem használná
-        # fel a "modern_hu_text" mezőt a válaszból.
-        return json.dumps(
-            {"results": [{"unit_id": unit_id, "score": 0.9, "reason": llm_invented_story}]}
-        )
+    fake_llm = _dispatch_llm(
+        {"keywords_hu": ["tékozló", "fiú"]},
+        {"results": [{"unit_id": unit_id, "score": 0.9, "reason": llm_invented_story}]},
+    )
 
     results = retrieve_illustrations(
         conn, mode="production", passage_reference="Lk 15,11-24",
@@ -203,11 +217,16 @@ def test_no_db_hit_yields_fail_closed_empty_result_not_generated_fallback():
     conn = _fresh_connection()
     create_schema(conn)  # üres DB, nincs unit
 
-    calls = []
+    ranker_calls = []
 
     def fake_llm(prompt: str) -> str:
-        calls.append(prompt)
-        return json.dumps({"results": []})
+        if _RANKER_MARKER in prompt:
+            ranker_calls.append(prompt)
+            return json.dumps({"results": []})
+        # Stage 0 (planner) mindig lefut -- ehhez kell tudnia, mihez
+        # pontozzon; ez önmagában sosem tud story-t vagy candidate ID-t
+        # visszaadni (ld. RetrievalIntent mezői).
+        return json.dumps({"keywords_hu": ["bármi"]})
 
     results = retrieve_illustrations(
         conn, mode="production", passage_reference="Jak 3,2-12",
@@ -215,9 +234,9 @@ def test_no_db_hit_yields_fail_closed_empty_result_not_generated_fallback():
     )
 
     assert results == []
-    # Üres jelölthalmaznál a motor NEM is hívja meg az LLM-et -- nincs
+    # Üres jelölthalmaznál a rangsoroló (Stage B) NEM is fut le -- nincs
     # esély rá, hogy bármi "kitaláljon" egy pótlástörténetet.
-    assert calls == []
+    assert ranker_calls == []
 
 
 def test_malformed_ranker_output_still_yields_fail_closed_not_fabricated_story():
