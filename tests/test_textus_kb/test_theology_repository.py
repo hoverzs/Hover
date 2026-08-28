@@ -327,6 +327,8 @@ def test_provenance_and_human_readable_locator(tmp_path: Path) -> None:
     assert hit.source_url == "https://example.test/theology-retrieval"
     assert hit.corpus == "ccel"
     assert hit.external_id == "test/calvin/institutes"
+    assert hit.author_id == AUTHOR_ID
+    assert hit.work_id == WORK_ID
     assert hit.source_locator == "ccel:calvin/institutes#iii.ii-p6"
     assert hit.heading == "1."
     assert hit.section_type == "section"

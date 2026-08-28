@@ -19,6 +19,7 @@ from textus_kb.pilot_registry import org_ref_bounds, references_overlap
 
 DEFAULT_SEARCH_LIMIT = 20
 MAX_SEARCH_LIMIT = 50
+AUTHOR_DIVERSITY_CAP = 3
 _FTS_FETCH_CAP = 200
 
 
@@ -86,6 +87,8 @@ class TheologyChunkResult:
     external_id: str
     canonical_passages: tuple[str, ...]
     snippet: str = ""
+    author_id: str = ""
+    work_id: str = ""
 
 
 class TheologyRepository:
@@ -159,10 +162,13 @@ class TheologyRepository:
                     e.rights_status AS rights_status,
                     e.rights_note AS rights_note,
                     e.source_url AS source_url,
+                    e.edition_id AS edition_id,
                     e.corpus AS corpus,
                     e.external_id AS external_id,
+                    w.work_id AS work_id,
                     w.title AS work_title,
                     w.tradition AS tradition,
+                    a.author_id AS author_id,
                     a.canonical_name AS author_name,
                     p.canonical_passage AS canonical_passage,
                     p.book_id AS book_id,
@@ -245,7 +251,7 @@ class TheologyRepository:
             )
             ranked.append((order, result))
         ranked.sort(key=lambda item: item[0])
-        return [item[1] for item in ranked[:capped]]
+        return _apply_author_diversity(ranked, limit=capped)
 
     def search_text(
         self,
@@ -394,10 +400,13 @@ def _fts_match_rows(connection: sqlite3.Connection, match_query: str) -> list[sq
             e.rights_status AS rights_status,
             e.rights_note AS rights_note,
             e.source_url AS source_url,
+            e.edition_id AS edition_id,
             e.corpus AS corpus,
             e.external_id AS external_id,
+            w.work_id AS work_id,
             w.title AS work_title,
             w.tradition AS tradition,
+            a.author_id AS author_id,
             a.canonical_name AS author_name,
             snippet(chunks_fts, 2, '**', '**', '…', 32) AS snippet,
             bm25(chunks_fts) AS fts_rank
@@ -530,12 +539,66 @@ def _document_order_key(section_map: dict[str, sqlite3.Row], row: sqlite3.Row) -
         elif kind == "section":
             section_seq = sequence
     return (
+        str(row["author_id"] or ""),
+        str(row["work_id"] or ""),
+        str(row["edition_id"] or ""),
         book_seq,
         chapter_seq,
         section_seq,
         int(row["chunk_sequence"] or 0),
         str(row["chunk_id"]),
     )
+
+
+def _apply_author_diversity(
+    ranked: list[tuple[tuple[Any, ...], TheologyChunkResult]],
+    *,
+    limit: int,
+    cap: int = AUTHOR_DIVERSITY_CAP,
+) -> list[TheologyChunkResult]:
+    """Prefer at most `cap` hits per author_id, without promoting a worse relevance tier.
+
+    Walk each (exact, min_span) tier in already-ranked order. Within a tier, take
+    hits while the author is under the cap; leftover slots in that tier are then
+    filled from the same tier in original relevance order so a single-author
+    corpus is unchanged and a missing second author does not drop information.
+    """
+    if limit <= 0 or not ranked:
+        return []
+    tiers: list[list[tuple[tuple[Any, ...], TheologyChunkResult]]] = []
+    for item in ranked:
+        tier_key = item[0][:2]
+        if not tiers or tiers[-1][0][0][:2] != tier_key:
+            tiers.append([item])
+        else:
+            tiers[-1].append(item)
+
+    selected: list[TheologyChunkResult] = []
+    counts: dict[str, int] = {}
+    remaining = limit
+    for tier in tiers:
+        if remaining <= 0:
+            break
+        deferred: list[TheologyChunkResult] = []
+        for _order, result in tier:
+            if remaining <= 0:
+                deferred.append(result)
+                continue
+            author_id = str(result.author_id or "")
+            if counts.get(author_id, 0) >= cap:
+                deferred.append(result)
+                continue
+            selected.append(result)
+            counts[author_id] = counts.get(author_id, 0) + 1
+            remaining -= 1
+        for result in deferred:
+            if remaining <= 0:
+                break
+            selected.append(result)
+            author_id = str(result.author_id or "")
+            counts[author_id] = counts.get(author_id, 0) + 1
+            remaining -= 1
+    return selected
 
 
 def _to_roman(number: int) -> str:
@@ -664,4 +727,6 @@ def _result_from_row(
         external_id=str(row["external_id"] or ""),
         canonical_passages=passages,
         snippet=snippet,
+        author_id=str(row["author_id"] or ""),
+        work_id=str(row["work_id"] or ""),
     )
