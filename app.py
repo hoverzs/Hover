@@ -4183,73 +4183,17 @@ nem 6-7 kategóriát felületesen végigjáró enciklopédikus válasz. Rövideb
 letisztultabb válasz mindig jobb, mint egy hosszabb, ami minden dobozt
 kipipál.
 """,
-    "illustrations": """{alap}
-
-# ILLUSZTRÁCIÓK — ELMESÉLHETŐ TÖRTÉNETEK
-
-Szakmai vízió:
-Ez a modul KIZÁRÓLAG konkrét, elmesélhető TÖRTÉNETEKET ad — nem elemzést.
-Az exegetikai és homiletikai kifejtés máshol (Exegézis, Teológia, Vázlat
-modulokban) már megvan; ezt itt NE ismételd meg, és NE adj szerkezeti vagy
-alkalmazási javaslatot a prédikációhoz.
-
-Minden illusztráció legyen:
-- valós eset, ismert anekdota, vagy klasszikus tanmese (pl. haszid
-  történetek Anthony de Mello stílusában, keleti bölcs-mesék, ismert
-  történelmi vagy egyháztörténeti anekdoták) — SOHA nem elvont
-  "kép" vagy metafora-leírás cselekmény nélkül,
-- rövid, önmagában megálló sztori — néhány mondat, konkrét szereplővel,
-  helyszínnel/idővel (ha ismert), cselekménnyel és világos csattanóval
-  vagy tanulsággal a végén,
-- olyan forma, amit a lelkész szó szerint fel tud olvasni vagy el tud
-  mesélni a szószéken, elemzés vagy magyarázat nélkül is megáll önmagában.
-
-SZIGORÚAN TILOS (ez a modul feladatköre kizárja, más modul dolga):
-- görög vagy héber szó, kifejezés idézése vagy nyelvi elemzése,
-- exegetikai szövegelemzés (versenkénti bontás, szómagyarázat, szerkezeti
-  vagy teológiai értelmezés) bármilyen formában, még bevezetésképpen is,
-- homiletikai szerkezeti javaslat, igehirdetési felépítés vagy
-  "hogyan építsd be" jellegű alkalmazási útmutatás,
-- elvont "kép" vagy analógia konkrét, elmesélhető cselekmény nélkül.
-Ezek a tiltások AKKOR IS érvényesek, ha az általános rendszerutasítás
-"exegetikailag pontos" vagy "homiletikailag használható" tartalmat kér —
-EZ a modul kizárólag elmesélhető történeteket ad, a nyelvi/teológiai
-feltárást és a szerkezeti javaslatot más modulra (Exegézis, Teológia,
-Vázlat) bízza.
-
-Strukturáld a választ KIZÁRÓLAG az alábbi 4 alcímmel — sem többet, sem
-kevesebbet, ne adj hozzá saját alcímet (pl. "Exegetikai alapvetés",
-"Homiletikai irányok", "Teológiai háttér" stb.), és a válasz a negyedik
-alcím után ÉRJEN VÉGET, ne folytasd tovább:
-
-## Klasszikus tanmesék
-2–3 ismert bölcs-történet vagy tanmese (haszid, keleti, egyháztörténeti
-hagyomány), amely a textus központi mozgását vagy csattanóját visszaadja.
-
-## Valós anekdoták és esetek
-2–3 megtörtént, azonosítható esemény (történelmi, egyháztörténeti, közismert
-életrajzi anekdota) — csak valós, nem kitalált.
-
-## Mai, hétköznapi történet
-1–2 konkrét, megtörténhetett léptékű eset — NEM elvont élethelyzet-leírás,
-hanem tényleges kis sztori szereplővel és csattanóval.
-
-## Bevezető illusztráció
-EGY ÚJ, a fentiektől eltérő, készre formált történet, amelyet a
-lelkipásztor az igehirdetés első mondataiban elmondhat — NE ismételd meg
-szó szerint vagy tartalmában egyik korábbi szakasz sztoriját sem. EZ AZ
-UTOLSÓ SZAKASZ — itt fejezd be a választ, ne adj hozzá további alcímet
-vagy összegzést.
-
-Minden illusztráció végén — külön sorban, dőlten — egy egymondatos jelzés,
-*mire* rímel a textusban (pl. *„Kapcsolódás: a türelmes várakozás
-motívuma"*) — ez NE fejtse ki elemzés vagy magyarázat formájában, csak
-nevezze meg a kapcsolódási pontot.
-
-Soha NE használj hamis idézeteket, ellenőrizetlen legendákat vagy kitalált
-egyházatya-mondásokat. Ha bizonytalan vagy egy történet eredetében vagy
-valóságtartalmában, jelöld: *(bizonytalan eredet)*.
-""",
+    # Phase 3I.1: a korábbi "illustrations" story-generation prompt
+    # (Klasszikus tanmesék / Valós anekdoták / Mai történet / Bevezető
+    # illusztráció) szándékosan TÖRÖLVE -- forrás és provenance nélküli,
+    # az LLM által kitalált történeteket adott a felhasználónak, ami
+    # sérti a Phase 3I "NO GENERATED FAKE STORIES" elvét. Az egyetlen
+    # user-facing illusztrációforrás mostantól a DB-alapú, ellenőrzött
+    # retrieval (ld. illustration_retrieval_ui.render_illustration_
+    # search_action, illustration_engine.retrieval). A kulcs hiánya
+    # szándékos: ha bármi mégis megpróbálná meghívni
+    # `generate_section("illustrations")`-t, azonnal KeyError-ral
+    # bukjon el, ne generáljon csendben történetet.
     "actualization": """{alap}
 
 # AKTUALIZÁLÁS — TÖRTÉNELMI ÉS KÖZÉLETI PÁRHUZAMOK (BRAINSTORMING)
@@ -4337,7 +4281,6 @@ SECTION_LABELS = {
     "exegesis": "Exegézis",
     "history": "Kortörténet",
     "theology": "Teológia",
-    "illustrations": "Illusztrációk",
     "actualization": "Aktualizálás",
 }
 
@@ -8446,15 +8389,12 @@ with tabs[4]:
     )
 
 with tabs[5]:
-    render_section_tab(
-        key="illustrations",
-        header="Illusztrációk",
-        basket_label="Illusztráció",
-        empty_msg="Még nincsenek illusztrációs ötletek. Kattints az „Illusztrációs ötletek gyűjtése” gombra.",
-        action_label="Illusztrációs ötletek gyűjtése",
-    )
-    # Phase 3I: külön, adatbázis-alapú keresés -- a fenti szabad
-    # ötletlistát NEM helyettesíti, csak kiegészíti.
+    # Phase 3I.1: a korábbi szabad LLM-generálású illusztráció-blokkot
+    # (Klasszikus tanmesék / Valós anekdoták / Mai történet / Bevezető
+    # illusztráció -- forrás nélküli, kitalált történetek) eltávolítottuk.
+    # Az egyetlen user-facing tartalom mostantól a DB-alapú, ellenőrzött
+    # retrieval -- ld. illustration_retrieval_ui.render_illustration_
+    # search_action.
     render_illustration_search_action(generate_fn=generate_text)
 
 with tabs[6]:
