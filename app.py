@@ -121,6 +121,7 @@ from hymn_ui_state import (
     mark_hymn_passage_manual_override,
     sync_hymn_passage_from_main_state,
 )
+from illustration_retrieval_ui import render_illustration_search_action
 from illustration_review_ui import is_authorized_reviewer, render_illustration_review_panel
 # =========================================================
 # VERZIÓ
@@ -8452,6 +8453,9 @@ with tabs[5]:
         empty_msg="Még nincsenek illusztrációs ötletek. Kattints az „Illusztrációs ötletek gyűjtése” gombra.",
         action_label="Illusztrációs ötletek gyűjtése",
     )
+    # Phase 3I: külön, adatbázis-alapú keresés -- a fenti szabad
+    # ötletlistát NEM helyettesíti, csak kiegészíti.
+    render_illustration_search_action(generate_fn=generate_text)
 
 with tabs[6]:
     render_section_tab(
