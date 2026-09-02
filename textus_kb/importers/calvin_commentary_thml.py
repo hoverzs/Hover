@@ -91,9 +91,49 @@ IMPORTER_VERSION = "0.1.0"
 AUTHOR_CONTRIBUTOR_ID = "ccel.calvin"
 AUTHOR_NAME_FALLBACK = "John Calvin"
 
+# Closed, small, and extensible only by adding to this set (not by a
+# separate mechanism) — every known_unmapped_sections entry must classify
+# as one of these, so the taxonomy stays honest rather than free text.
+ALLOWED_UNMAPPED_CLASSIFICATIONS = frozenset(
+    {
+        "transcription_error",
+        "incomplete_citation",
+        "disjoint_verse_list",
+        "non_citation_backmatter",
+    }
+)
+
 
 class CalvinCommentaryImportError(CcelThmlCoreError):
     """Raised when a Calvin commentary ThML file cannot be parsed/imported."""
+
+
+@dataclass(frozen=True)
+class KnownUnmappedSection:
+    """One individually-audited, explicitly declared exception: a real
+    scripture-table section whose passage cannot be resolved without
+    guessing (see ``ALLOWED_UNMAPPED_CLASSIFICATIONS`` for why). Declared
+    in the source manifest, never invented by the parser itself — this is
+    documentation with teeth, not a silent allowlist: ``reason`` and
+    ``classification`` are threaded all the way into the built
+    commentary.sqlite3 (via import_batches.report) so QA can report a
+    dedicated ``known_unmapped`` category instead of an unexplained gap.
+    """
+
+    div2_id: str
+    reason: str
+    classification: str
+
+    def __post_init__(self) -> None:
+        if self.classification not in ALLOWED_UNMAPPED_CLASSIFICATIONS:
+            raise CalvinCommentaryImportError(
+                f"Unsupported known_unmapped classification: {self.classification!r}. "
+                f"Allowed: {sorted(ALLOWED_UNMAPPED_CLASSIFICATIONS)}"
+            )
+        if not self.reason.strip():
+            raise CalvinCommentaryImportError(
+                f"known_unmapped section {self.div2_id!r} must have a non-empty reason."
+            )
 
 
 @dataclass
@@ -108,7 +148,7 @@ class CalvinCommentaryParseReport:
     chunk_count: int = 0
     chapter_only_scripcom_count: int = 0
     multi_passage_range_count: int = 0
-    unmapped_section_ids: list[str] = field(default_factory=list)
+    unmapped_sections: list[dict[str, str]] = field(default_factory=list)
     scripture: ScriptureRefStats = field(default_factory=ScriptureRefStats)
 
     def to_dict(self) -> dict[str, Any]:
@@ -123,7 +163,7 @@ def parse_calvin_commentary_thml(
     work_group: str | None = None,
     work_title: str | None = None,
     translator_override: str | None = None,
-    known_unmapped_div2_ids: frozenset[str] = frozenset(),
+    known_unmapped_sections: dict[str, KnownUnmappedSection] | None = None,
 ) -> tuple[dict[str, Any], CalvinCommentaryParseReport]:
     """Parse one real CCEL Calvin commentary ThML file into a normalized
     Commentary document (contributors/works/work_contributors/editions/
@@ -151,20 +191,19 @@ def parse_calvin_commentary_thml(
     same real person. The source manifest is expected to supply this when
     it knows the volumes disagree; never guessed here.
 
-    ``known_unmapped_div2_ids``: an explicit, individually-audited set of
-    this file's own div2 ``id`` attributes (the raw XML id, e.g.
-    ``"xl.iv"``) whose own quotation-table citation is confirmed
-    malformed in the source and cannot be resolved without guessing
-    (found so far: CCEL's own scripRef sometimes marks up a verse-range
-    caption as a chapter-only reference with the range's tail left as
-    plain text outside the tag, e.g. Psalm 34's "Psalm 15-17" caption
-    carries only ``osisRef="Bible:Ps.15"`` with a literal "-17" stranded
-    after the closing tag — 2 confirmed cases in ~620 Psalms sections).
-    Listed sections import as ONE passage-less structural section (their
-    real Calvin prose is kept; only the passage_link is omitted) instead
-    of raising. Every other unparseable scripture section still fails
-    loudly — this is not a blanket fallback.
+    ``known_unmapped_sections``: an explicit, individually-audited map of
+    this file's own div2 ``id`` -> ``KnownUnmappedSection`` (reason +
+    classification) whose own quotation-table citation is confirmed
+    malformed/non-citation in the source and cannot be resolved without
+    guessing. Listed sections import as ONE passage-less structural
+    section (their real Calvin prose is kept; only the passage_link is
+    omitted) instead of raising — and their reason/classification is
+    carried into the built store's import_batches.report so QA can show
+    a dedicated ``known_unmapped`` category, never a silent gap. Every
+    other unparseable scripture section still fails loudly — this is not
+    a blanket fallback.
     """
+    known_unmapped_sections = known_unmapped_sections or {}
     root = parse_thml_file(xml_path)
     if local_tag(root.tag) != "ThML":
         raise CalvinCommentaryImportError(f"Expected ThML root, got {local_tag(root.tag)!r}.")
@@ -184,8 +223,8 @@ def parse_calvin_commentary_thml(
     edition_id = f"ccel.calvin.{book_id}.edition"
     section_prefix = f"ccel.calvin.{book_id}"
 
-    contributors, work_contributors = _contributors(
-        head, work_id=work_id, translator_override=translator_override
+    contributors, work_contributors, contributor_source_names = _contributors(
+        head, work_id=work_id, edition_id=edition_id, translator_override=translator_override
     )
     work = _work_record(head, work_id=work_id, title_override=work_title)
     edition = _edition_record(head, work_id=work_id, edition_id=edition_id, book_id=book_id)
@@ -298,12 +337,20 @@ def parse_calvin_commentary_thml(
             if table is not None:
                 links = _table_passage_links(table, stats, expected_chapter=div1_chapter_number)
                 if not links:
-                    if div2_id not in known_unmapped_div2_ids:
+                    exception = known_unmapped_sections.get(div2_id)
+                    if exception is None:
                         raise CalvinCommentaryImportError(
                             f"Scripture section {div2_id!r} has no parseable passage "
                             "in its own quotation table."
                         )
-                    report.unmapped_section_ids.append(div2_id)
+                    report.unmapped_sections.append(
+                        {
+                            "div2_id": div2_id,
+                            "section_id": div2_section_id,
+                            "reason": exception.reason,
+                            "classification": exception.classification,
+                        }
+                    )
                     sections.append(
                         _section_row(
                             section_id=div2_section_id,
@@ -439,6 +486,7 @@ def parse_calvin_commentary_thml(
         "works": [work],
         "work_contributors": work_contributors,
         "editions": [edition],
+        "contributor_source_names": contributor_source_names,
         "sections": sections,
         "chunks": chunks,
     }
@@ -465,13 +513,13 @@ def build_calvin_commentary_document(
     work_group: str | None = None,
     work_title: str | None = None,
     translator_override: str | None = None,
-    known_unmapped_div2_ids: frozenset[str] = frozenset(),
+    known_unmapped_sections: dict[str, KnownUnmappedSection] | None = None,
 ) -> tuple[dict[str, Any], CalvinCommentaryParseReport]:
     """Parse one Calvin commentary ThML file and attach its own
     source_files/import_batches provenance rows (raw SHA-256 computed from
     the actual bytes on disk, not invented). See ``parse_calvin_commentary_thml``
     for ``work_group``/``work_title``/``translator_override``/
-    ``known_unmapped_div2_ids``."""
+    ``known_unmapped_sections``."""
     path = Path(xml_path)
     try:
         raw_bytes = path.read_bytes()
@@ -483,7 +531,7 @@ def build_calvin_commentary_document(
         path,
         work_group=work_group,
         work_title=work_title,
-        known_unmapped_div2_ids=known_unmapped_div2_ids,
+        known_unmapped_sections=known_unmapped_sections,
         translator_override=translator_override,
     )
     when = imported_at or datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -512,6 +560,7 @@ def build_calvin_commentary_document(
                 "chunk_count": len(document["chunks"]),
                 "passage_link_count": report.passage_link_count,
                 "multi_passage_range_count": report.multi_passage_range_count,
+                "known_unmapped_sections": report.unmapped_sections,
             },
         }
     ]
@@ -530,8 +579,10 @@ def merge_calvin_commentary_documents(documents: list[dict[str, Any]]) -> dict[s
         raise CalvinCommentaryImportError("No Calvin commentary documents to merge.")
     merged: dict[str, list[dict[str, Any]]] = {kind: [] for kind in _ID_FIELD_BY_KIND}
     merged["work_contributors"] = []
+    merged["contributor_source_names"] = []
     index: dict[str, dict[str, dict[str, Any]]] = {kind: {} for kind in _ID_FIELD_BY_KIND}
     seen_work_contributors: set[tuple[str, str, str]] = set()
+    seen_source_names: set[tuple[str, str]] = set()
 
     for document in documents:
         for kind, id_field in _ID_FIELD_BY_KIND.items():
@@ -559,6 +610,15 @@ def merge_calvin_commentary_documents(documents: list[dict[str, Any]]) -> dict[s
                 continue
             seen_work_contributors.add(key)
             merged["work_contributors"].append(wc)
+        for entry in document.get("contributor_source_names") or []:
+            # (contributor_id, edition_id) is unique by construction — each
+            # edition_id comes from exactly one source file — so this is
+            # just a defensive dedupe, not an expected real collision.
+            key = (str(entry.get("contributor_id") or ""), str(entry.get("edition_id") or ""))
+            if key in seen_source_names:
+                continue
+            seen_source_names.add(key)
+            merged["contributor_source_names"].append(entry)
 
     return merged
 
@@ -630,13 +690,17 @@ def import_calvin_corpus_from_manifest(
     documents = []
     reports = []
     for entry in entries:
+        known_unmapped = {
+            item.div2_id: item
+            for item in getattr(entry, "known_unmapped_sections", ())
+        }
         document, report = build_calvin_commentary_document(
             entry.local_path,
             imported_at=when,
             work_group=(entry.work_group or None),
             work_title=(entry.work_title or None),
             translator_override=(entry.translator or None),
-            known_unmapped_div2_ids=getattr(entry, "known_unmapped_div2_ids", frozenset()),
+            known_unmapped_sections=known_unmapped,
         )
         documents.append(document)
         reports.append(report)
@@ -691,6 +755,13 @@ def _table_passage_links(
             stats.seen += 1
             stats.imported += 1
             links.append(fallback)
+    # The first accepted caption in document order is the section's
+    # primary commented passage; any further one (a Harmony section's
+    # second/third parallel-gospel column, or a continuation caption like
+    # Mark 4:21 later in the same column) is explicitly "parallel" — never
+    # inferred later from row insertion order.
+    for index, link in enumerate(links):
+        link["relation_type"] = "primary" if index == 0 else "parallel"
     return links
 
 
@@ -746,7 +817,7 @@ def _reconstruct_chapter_only_caption(
     here is NOT chapter 15, it is verse 15 *of the enclosing Psalm 34*
     (a CCEL transcription slip). Since 15 != expected_chapter (34), this
     function correctly refuses to reconstruct it — that case is instead
-    an explicit, individually-audited known_unmapped_div2_ids exception.
+    an explicit, individually-audited known_unmapped_sections exception.
     Confirmed-safe real case: Acts 2's "Acts 2: 5-12" caption has osisRef
     "Acts.2" with tail ": 5-12"; div1 is "Chapter 2", so 2 == 2 and the
     reconstruction to Acts.2.5-12 is correct.
@@ -918,7 +989,7 @@ def _finalize_verse_section(
     candidates = scripture_candidates(marker, stats)
     passage_display = (marker.get("passage") or "").strip()
     if candidates:
-        links = [candidates[0]]
+        links = [{**candidates[0], "relation_type": "primary"}]
         heading = candidates[0]["canonical_passage"]
     else:
         # Legitimate chapter-only / non-versed aside: no passage_link, but
@@ -989,7 +1060,11 @@ def _section_row(
         "heading": heading,
         "sequence": sequence,
         "passage_links": [
-            {"raw_citation": link["raw_citation"], "canonical_passage": link["canonical_passage"]}
+            {
+                "raw_citation": link["raw_citation"],
+                "canonical_passage": link["canonical_passage"],
+                "relation_type": link["relation_type"],
+            }
             for link in (passage_links or [])
         ],
     }
@@ -1009,11 +1084,14 @@ def _chunk_row(
 
 
 def _contributors(
-    head: ET.Element | None, *, work_id: str, translator_override: str | None = None
-) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
-    author_name = (
-        dc_text(head, "DC.Creator", sub="Author", scheme="short-form") or AUTHOR_NAME_FALLBACK
-    )
+    head: ET.Element | None,
+    *,
+    work_id: str,
+    edition_id: str,
+    translator_override: str | None = None,
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]]:
+    author_raw_name = dc_text(head, "DC.Creator", sub="Author", scheme="short-form")
+    author_name = author_raw_name or AUTHOR_NAME_FALLBACK
     contributors = [
         {
             "contributor_id": AUTHOR_CONTRIBUTOR_ID,
@@ -1025,9 +1103,22 @@ def _contributors(
     work_contributors = [
         {"work_id": work_id, "contributor_id": AUTHOR_CONTRIBUTOR_ID, "role": "author"}
     ]
-    translator_name = translator_override or dc_text(
-        head, "DC.Creator", sub="Translator", scheme="short-form"
-    )
+    contributor_source_names: list[dict[str, Any]] = []
+    if author_raw_name:
+        contributor_source_names.append(
+            {
+                "contributor_id": AUTHOR_CONTRIBUTOR_ID,
+                "edition_id": edition_id,
+                "raw_name": author_raw_name,
+            }
+        )
+
+    # The raw upstream name is recorded only when the edition itself states
+    # one; a work_group-level translator_override is a corpus-building
+    # convenience (unifying spelling across a multi-volume work) and is not,
+    # by itself, evidence of what this specific edition's title page says.
+    translator_source_name = dc_text(head, "DC.Creator", sub="Translator", scheme="short-form")
+    translator_name = translator_override or translator_source_name
     if translator_name:
         translator_id = f"ccel.calvin.translator.{_slug(translator_name)}"
         contributors.append(
@@ -1041,7 +1132,15 @@ def _contributors(
         work_contributors.append(
             {"work_id": work_id, "contributor_id": translator_id, "role": "translator"}
         )
-    return contributors, work_contributors
+        if translator_source_name:
+            contributor_source_names.append(
+                {
+                    "contributor_id": translator_id,
+                    "edition_id": edition_id,
+                    "raw_name": translator_source_name,
+                }
+            )
+    return contributors, work_contributors, contributor_source_names
 
 
 def _work_record(

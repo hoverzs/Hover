@@ -105,17 +105,17 @@ def test_chunks_table_has_no_passage_columns(tmp_path: Path) -> None:
     assert passage_like == set()
 
 
-def test_schema_version_is_one_for_empty_and_fixture_stores(tmp_path: Path) -> None:
+def test_schema_version_is_two_for_empty_and_fixture_stores(tmp_path: Path) -> None:
     empty = create_empty_commentary_database(tmp_path / "empty.sqlite3")
     imported = import_commentary_sqlite(
         fixture_path=FIXTURE_PATH,
         database_path=tmp_path / "fixture.sqlite3",
     )
-    assert empty.schema_version == SCHEMA_VERSION == "1"
-    assert imported.schema_version == "1"
-    assert validate_commentary_database(tmp_path / "empty.sqlite3").schema_version == "1"
+    assert empty.schema_version == SCHEMA_VERSION == "2"
+    assert imported.schema_version == "2"
+    assert validate_commentary_database(tmp_path / "empty.sqlite3").schema_version == "2"
     assert (
-        CommentaryRepository(tmp_path / "fixture.sqlite3").store_status().schema_version == "1"
+        CommentaryRepository(tmp_path / "fixture.sqlite3").store_status().schema_version == "2"
     )
 
 
@@ -404,7 +404,7 @@ def test_section_passage_links_unique_index_is_defense_in_depth(tmp_path: Path) 
         row = connection.execute(
             """
             SELECT section_id, book_id, start_chapter, start_verse,
-                   end_chapter, end_verse, canonical_passage, raw_citation
+                   end_chapter, end_verse, canonical_passage, raw_citation, relation_type
             FROM section_passage_links LIMIT 1
             """
         ).fetchone()
@@ -413,8 +413,8 @@ def test_section_passage_links_unique_index_is_defense_in_depth(tmp_path: Path) 
                 """
                 INSERT INTO section_passage_links (
                     section_id, book_id, start_chapter, start_verse,
-                    end_chapter, end_verse, canonical_passage, raw_citation
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    end_chapter, end_verse, canonical_passage, raw_citation, relation_type
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 row,
             )
@@ -544,7 +544,7 @@ def test_store_status_counts_match_fixture(tmp_path: Path) -> None:
     status = CommentaryRepository(database).store_status()
 
     assert status.available is True
-    assert status.schema_version == "1"
+    assert status.schema_version == "2"
     assert status.contributor_count == report.contributor_count == 3
     assert status.work_count == report.work_count == 1
     assert status.edition_count == report.edition_count == 1
@@ -586,7 +586,7 @@ def test_empty_database_store_status_is_available_with_zero_counts(tmp_path: Pat
     create_empty_commentary_database(database)
     status = CommentaryRepository(database).store_status()
     assert status.available is True
-    assert status.schema_version == "1"
+    assert status.schema_version == "2"
     assert status.import_mode == "empty"
     assert status.chunk_count == 0
     assert status.passage_link_count == 0
@@ -681,7 +681,7 @@ def test_build_script_empty_and_fixture(tmp_path: Path, capsys: pytest.CaptureFi
     assert build_main(["--empty", "--output", str(empty_path)]) == 0
     empty_payload = json.loads(capsys.readouterr().out)
     assert empty_payload["import_mode"] == "empty"
-    assert empty_payload["schema_version"] == "1"
+    assert empty_payload["schema_version"] == "2"
     assert empty_payload["chunk_count"] == 0
 
     assert build_main(

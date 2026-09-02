@@ -20,6 +20,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from textus_kb.importers.calvin_commentary_thml import KnownUnmappedSection
 from textus_kb.paths import PROJECT_ROOT
 
 DEFAULT_MANIFEST_PATH = (
@@ -45,7 +46,7 @@ class CalvinSourceEntry:
     volume: int | None = None
     coverage: str = ""
     translator: str = ""
-    known_unmapped_div2_ids: frozenset[str] = frozenset()
+    known_unmapped_sections: tuple[KnownUnmappedSection, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -96,7 +97,14 @@ def load_source_manifest(
                 volume=item.get("volume"),
                 coverage=str(item.get("coverage") or ""),
                 translator=str(item.get("translator") or ""),
-                known_unmapped_div2_ids=frozenset(item.get("known_unmapped_div2_ids") or ()),
+                known_unmapped_sections=tuple(
+                    KnownUnmappedSection(
+                        div2_id=str(section["div2_id"]),
+                        reason=str(section["reason"]),
+                        classification=str(section["classification"]),
+                    )
+                    for section in (item.get("known_unmapped_sections") or ())
+                ),
             )
         )
     return entries

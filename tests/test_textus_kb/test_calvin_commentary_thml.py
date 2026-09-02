@@ -22,6 +22,7 @@ from textus_kb.importers.calvin_commentary_thml import (
     AUTHOR_CONTRIBUTOR_ID,
     IMPORT_MODE_CALVIN_COMMENTARY_THML,
     CalvinCommentaryImportError,
+    KnownUnmappedSection,
     build_calvin_commentary_document,
     import_calvin_commentary_sqlite,
     merge_calvin_commentary_documents,
@@ -449,7 +450,7 @@ def test_plain_text_caption_without_scripref_is_recovered() -> None:
     by_id = {s["section_id"]: s for s in document["sections"]}
     section = by_id["ccel.calvin.calcom03.v.xiii"]
     assert [l["canonical_passage"] for l in section["passage_links"]] == ["Deut.6.20-25"]
-    assert report.unmapped_section_ids == []
+    assert report.unmapped_sections == []
 
 
 def test_connector_word_is_stripped_before_parsing() -> None:
@@ -468,7 +469,7 @@ def test_non_citation_caption_text_is_not_guessed(tmp_path: Path) -> None:
     Psalms commentary has a caption reading "Major subjects addressed in
     each Psalm" — table-formatted like a real scripture caption, but not a
     Bible citation at all. The plain-text fallback must refuse it (fail
-    loudly, or via an explicit known_unmapped_div2_ids exception) rather
+    loudly, or via an explicit known_unmapped_sections exception) rather
     than inventing a passage from unrelated text."""
     text = HARMONY_LAW_PLAIN_CAPTION_FIXTURE.read_text(encoding="utf-8")
     mutated = text.replace(
@@ -480,10 +481,15 @@ def test_non_citation_caption_text_is_not_guessed(tmp_path: Path) -> None:
     with pytest.raises(CalvinCommentaryImportError, match="no parseable passage"):
         parse_calvin_commentary_thml(broken)
     # The manifest's explicit exception mechanism handles exactly this case.
-    document, report = parse_calvin_commentary_thml(
-        broken, known_unmapped_div2_ids=frozenset({"v.xiii"})
+    exception = KnownUnmappedSection(
+        div2_id="v.xiii",
+        reason="Synthetic mutation of the plain-text caption fixture for this test.",
+        classification="non_citation_backmatter",
     )
-    assert report.unmapped_section_ids == ["v.xiii"]
+    document, report = parse_calvin_commentary_thml(
+        broken, known_unmapped_sections={"v.xiii": exception}
+    )
+    assert [item["div2_id"] for item in report.unmapped_sections] == ["v.xiii"]
     by_id = {s["section_id"]: s for s in document["sections"]}
     assert by_id["ccel.calvin.calcom03.v.xiii"]["passage_links"] == []
 
@@ -492,7 +498,7 @@ def test_non_citation_caption_text_is_not_guessed(tmp_path: Path) -> None:
 
 
 def test_manifest_known_unmapped_exceptions_are_threaded_through(tmp_path: Path) -> None:
-    """The manifest's per-source known_unmapped_div2_ids reaches the parser
+    """The manifest's per-source known_unmapped_sections reaches the parser
     via import_calvin_corpus_from_manifest, not just the lower-level
     build_calvin_commentary_document/parse_calvin_commentary_thml calls."""
     from textus_kb.importers.calvin_commentary_thml import import_calvin_corpus_from_manifest
@@ -511,10 +517,16 @@ def test_manifest_known_unmapped_exceptions_are_threaded_through(tmp_path: Path)
         url="https://example.invalid/test.xml",
         local_path=broken,
         raw_sha256="0" * 64,
-        known_unmapped_div2_ids=frozenset({"v.xiii"}),
+        known_unmapped_sections=(
+            KnownUnmappedSection(
+                div2_id="v.xiii",
+                reason="Synthetic mutation of the plain-text caption fixture for this test.",
+                classification="non_citation_backmatter",
+            ),
+        ),
     )
     report, parse_reports = import_calvin_corpus_from_manifest(
         [entry], database_path=tmp_path / "commentary.sqlite3"
     )
     assert report.section_count > 0
-    assert parse_reports[0].unmapped_section_ids == ["v.xiii"]
+    assert [item["div2_id"] for item in parse_reports[0].unmapped_sections] == ["v.xiii"]

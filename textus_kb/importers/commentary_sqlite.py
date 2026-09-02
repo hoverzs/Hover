@@ -1,4 +1,4 @@
-"""Commentary DB v1 SQLite schema, fixture import, and validation.
+"""Commentary DB v2 SQLite schema, fixture import, and validation.
 
 Isolated store, source-independent. Not wired into the theology store, the
 KB manifest, retrieval, evidence, or context builder. No network.
@@ -8,6 +8,20 @@ content unit and the sole owner of Bible passage links
 (``section_passage_links``). Chunks are retrieval-only fragments derived
 from a section's text and MUST NOT carry their own passage links — an
 input chunk that declares ``passage_links`` is rejected at import time.
+
+Schema v2 (no migration path from v1 — there is no production Commentary
+DB yet, so a schema change just means "rebuild from source"):
+  - ``section_passage_links.relation_type`` is now a required, explicit
+    column (``primary`` or ``parallel``, extensible — see
+    ``ALLOWED_PASSAGE_LINK_RELATIONS``) instead of being inferred by
+    callers from row insertion order.
+  - ``contributor_source_names`` is a new table recording, per edition,
+    the raw contributor name string as that specific upstream source
+    actually wrote it — separate from ``contributors.canonical_name``,
+    which importers may normalize across editions (e.g. the same
+    translator named "Bingham, Charles William" in one edition and
+    "Charles William Bingham" in another) without losing the original
+    per-edition wording.
 """
 
 from __future__ import annotations
@@ -27,7 +41,7 @@ from typing import Any
 from textus_kb.canonical_reference import CanonicalReference, CanonicalReferenceError
 from textus_kb.paths import PROJECT_ROOT
 
-SCHEMA_VERSION = "1"
+SCHEMA_VERSION = "2"
 DEFAULT_DATABASE_PATH = PROJECT_ROOT / "data" / "generated" / "commentary.sqlite3"
 DEFAULT_FIXTURE_PATH = (
     PROJECT_ROOT / "tests" / "fixtures" / "kb" / "commentary_v1_sample.json"
@@ -48,6 +62,11 @@ ALLOWED_CONTRIBUTOR_ROLES = frozenset(
     {"author", "translator", "editor", "annotator", "compiler"}
 )
 
+# Deliberately small and closed for now (the two relations the corpus
+# actually needs); add to this set — not a separate mechanism — if a real
+# source ever needs a third relation (e.g. "commentary_on_related_passage").
+ALLOWED_PASSAGE_LINK_RELATIONS = frozenset({"primary", "parallel"})
+
 _SHA256_HEX_RE = re.compile(r"^[0-9a-f]{64}$")
 
 REQUIRED_TABLES = frozenset(
@@ -62,6 +81,7 @@ REQUIRED_TABLES = frozenset(
         "sections",
         "section_passage_links",
         "chunks",
+        "contributor_source_names",
         "sections_fts",
         "chunks_fts",
     }
@@ -88,6 +108,7 @@ class CommentaryImportReport:
     section_count: int
     passage_link_count: int
     chunk_count: int
+    contributor_source_name_count: int = 0
 
     def to_dict(self) -> dict[str, Any]:
         payload = asdict(self)
@@ -110,6 +131,7 @@ class CommentaryStoreValidation:
     section_count: int
     passage_link_count: int
     chunk_count: int
+    contributor_source_name_count: int = 0
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -207,7 +229,17 @@ def create_schema(connection: sqlite3.Connection) -> None:
             end_verse INTEGER NOT NULL,
             canonical_passage TEXT NOT NULL,
             raw_citation TEXT NOT NULL,
+            relation_type TEXT NOT NULL,
             FOREIGN KEY(section_id) REFERENCES sections(section_id)
+        );
+
+        CREATE TABLE IF NOT EXISTS contributor_source_names (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            contributor_id TEXT NOT NULL,
+            edition_id TEXT NOT NULL,
+            raw_name TEXT NOT NULL,
+            FOREIGN KEY(contributor_id) REFERENCES contributors(contributor_id),
+            FOREIGN KEY(edition_id) REFERENCES editions(edition_id)
         );
 
         CREATE TABLE IF NOT EXISTS chunks (
@@ -247,6 +279,10 @@ def create_schema(connection: sqlite3.Connection) -> None:
             ON section_passage_links(canonical_passage);
         CREATE INDEX IF NOT EXISTS idx_section_passage_links_book
             ON section_passage_links(book_id, start_chapter, start_verse);
+        CREATE UNIQUE INDEX IF NOT EXISTS uq_contributor_source_names
+            ON contributor_source_names(contributor_id, edition_id);
+        CREATE INDEX IF NOT EXISTS idx_contributor_source_names_edition
+            ON contributor_source_names(edition_id);
 
         CREATE VIRTUAL TABLE IF NOT EXISTS sections_fts USING fts5(
             section_id UNINDEXED,
@@ -337,6 +373,12 @@ def normalize_commentary_document(document: dict[str, Any]) -> dict[str, Any]:
     ]
     edition_ids = _unique_ids([item["edition_id"] for item in editions], kind="edition")
 
+    contributor_source_names = [
+        _normalize_contributor_source_name(item, contributor_ids, edition_ids)
+        for item in _as_object_list(document, "contributor_source_names")
+    ]
+    _reject_duplicate_contributor_source_names(contributor_source_names)
+
     source_files = [
         _normalize_source_file(item, edition_ids)
         for item in _as_object_list(document, "source_files")
@@ -380,6 +422,7 @@ def normalize_commentary_document(document: dict[str, Any]) -> dict[str, Any]:
         "works": works,
         "work_contributors": work_contributors,
         "editions": editions,
+        "contributor_source_names": contributor_source_names,
         "source_files": source_files,
         "import_batches": import_batches,
         "sections": sections,
@@ -436,6 +479,7 @@ def validate_commentary_database(
             section_count=_count(connection, "sections"),
             passage_link_count=_count(connection, "section_passage_links"),
             chunk_count=_count(connection, "chunks"),
+            contributor_source_name_count=_count(connection, "contributor_source_names"),
         )
     finally:
         connection.close()
@@ -477,6 +521,7 @@ def _write_document(
             section_count=len(document["sections"]),
             passage_link_count=passage_link_count,
             chunk_count=len(document["chunks"]),
+            contributor_source_name_count=len(document["contributor_source_names"]),
         )
         integrity = connection.execute("PRAGMA integrity_check").fetchone()[0]
         if integrity != "ok":
@@ -508,6 +553,7 @@ def _write_document(
         section_count=len(document["sections"]),
         passage_link_count=passage_link_count,
         chunk_count=len(document["chunks"]),
+        contributor_source_name_count=len(document["contributor_source_names"]),
     )
 
 
@@ -580,6 +626,15 @@ def _insert_document(
                 edition["external_id"],
             ),
         )
+    for entry in document["contributor_source_names"]:
+        connection.execute(
+            """
+            INSERT INTO contributor_source_names (
+                contributor_id, edition_id, raw_name
+            ) VALUES (?, ?, ?)
+            """,
+            (entry["contributor_id"], entry["edition_id"], entry["raw_name"]),
+        )
     for source_file in document["source_files"]:
         connection.execute(
             """
@@ -638,8 +693,9 @@ def _insert_document(
                 """
                 INSERT INTO section_passage_links (
                     section_id, book_id, start_chapter, start_verse,
-                    end_chapter, end_verse, canonical_passage, raw_citation
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    end_chapter, end_verse, canonical_passage, raw_citation,
+                    relation_type
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     section["section_id"],
@@ -650,6 +706,7 @@ def _insert_document(
                     link["end_verse"],
                     link["canonical_passage"],
                     link["raw_citation"],
+                    link["relation_type"],
                 ),
             )
     for chunk in document["chunks"]:
@@ -716,6 +773,7 @@ def _write_metadata(
     section_count: int,
     passage_link_count: int,
     chunk_count: int,
+    contributor_source_name_count: int,
 ) -> None:
     rows = {
         "schema_version": SCHEMA_VERSION,
@@ -731,6 +789,7 @@ def _write_metadata(
         "section_count": str(section_count),
         "passage_link_count": str(passage_link_count),
         "chunk_count": str(chunk_count),
+        "contributor_source_name_count": str(contributor_source_name_count),
     }
     connection.execute("DELETE FROM store_metadata")
     connection.executemany(
@@ -755,6 +814,7 @@ def _empty_document() -> dict[str, Any]:
         "works": [],
         "work_contributors": [],
         "editions": [],
+        "contributor_source_names": [],
         "source_files": [],
         "import_batches": [],
         "sections": [],
@@ -835,6 +895,42 @@ def _reject_duplicate_work_contributors(work_contributors: list[dict[str, Any]])
                 "Duplicate work_contributors entry: "
                 f"work_id={item['work_id']!r}, contributor_id={item['contributor_id']!r}, "
                 f"role={item['role']!r}"
+            )
+        seen.add(key)
+
+
+def _normalize_contributor_source_name(
+    item: dict[str, Any],
+    contributor_ids: set[str],
+    edition_ids: set[str],
+) -> dict[str, Any]:
+    contributor_id = _require_text(item.get("contributor_id"), "contributor_id")
+    if contributor_id not in contributor_ids:
+        raise CommentaryImportError(
+            f"contributor_source_names references unknown contributor_id: {contributor_id!r}"
+        )
+    edition_id = _require_text(item.get("edition_id"), "edition_id")
+    if edition_id not in edition_ids:
+        raise CommentaryImportError(
+            f"contributor_source_names references unknown edition_id: {edition_id!r}"
+        )
+    return {
+        "contributor_id": contributor_id,
+        "edition_id": edition_id,
+        "raw_name": _require_text(item.get("raw_name"), "raw_name"),
+    }
+
+
+def _reject_duplicate_contributor_source_names(
+    entries: list[dict[str, Any]]
+) -> None:
+    seen: set[tuple[str, str]] = set()
+    for item in entries:
+        key = (item["contributor_id"], item["edition_id"])
+        if key in seen:
+            raise CommentaryImportError(
+                "Duplicate contributor_source_names entry: "
+                f"contributor_id={item['contributor_id']!r}, edition_id={item['edition_id']!r}"
             )
         seen.add(key)
 
@@ -1017,6 +1113,12 @@ def _normalize_passage_link(item: Any) -> dict[str, Any]:
         raise CommentaryImportError(
             f"Unparseable passage citation: {canonical_text!r}"
         ) from exc
+    relation_type = _require_text(item.get("relation_type"), "relation_type").strip().lower()
+    if relation_type not in ALLOWED_PASSAGE_LINK_RELATIONS:
+        raise CommentaryImportError(
+            f"Unsupported passage_link relation_type: {relation_type!r}. "
+            f"Allowed: {sorted(ALLOWED_PASSAGE_LINK_RELATIONS)}"
+        )
     return {
         "book_id": reference.book_id,
         "start_chapter": reference.start_chapter,
@@ -1025,6 +1127,7 @@ def _normalize_passage_link(item: Any) -> dict[str, Any]:
         "end_verse": reference.end_verse,
         "canonical_passage": reference.canonical_string(),
         "raw_citation": raw_citation or reference.canonical_string(),
+        "relation_type": relation_type,
     }
 
 

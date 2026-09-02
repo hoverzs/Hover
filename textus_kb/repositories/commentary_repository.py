@@ -36,6 +36,18 @@ _TIER_RANK = {
     RELATION_PARTIAL_OVERLAP: 2,
 }
 
+# Passage-link-level relation (stored explicitly on section_passage_links,
+# schema v2+) — distinct from the query-relative RELATION_* constants above.
+# Used only as a ranking tie-break: when two sections tie on tier and span,
+# the one whose deciding link is "primary" ranks first.
+PASSAGE_RELATION_PRIMARY = "primary"
+PASSAGE_RELATION_PARALLEL = "parallel"
+
+_PASSAGE_RELATION_RANK = {
+    PASSAGE_RELATION_PRIMARY: 0,
+    PASSAGE_RELATION_PARALLEL: 1,
+}
+
 _CONTRIBUTOR_ROLE_ORDER = {
     "author": 0,
     "translator": 1,
@@ -110,6 +122,8 @@ class CommentarySectionResult:
     relation_type: str
     canonical_passages: tuple[str, ...]
     chunk_count: int
+    primary_passages: tuple[str, ...] = ()
+    parallel_passages: tuple[str, ...] = ()
     contributors: tuple[str, ...] = ()
     language: str = ""
     rights_status: str = ""
@@ -133,6 +147,8 @@ class CommentarySectionDetail:
     canonical_passages: tuple[str, ...]
     contributors: tuple[str, ...]
     parent_chain: tuple[tuple[str, str], ...]  # (section_id, heading) root-first
+    primary_passages: tuple[str, ...] = ()
+    parallel_passages: tuple[str, ...] = ()
     chunks: tuple[CommentaryChunkResult, ...] = field(default_factory=tuple)
 
 
@@ -231,18 +247,41 @@ class CommentaryRepository:
             section_id = str(row["section_id"])
             bucket = grouped.setdefault(
                 section_id,
-                {"row": row, "passages": [], "tier": None, "span": None},
+                {
+                    "row": row,
+                    "primary_passages": [],
+                    "parallel_passages": [],
+                    "tier": None,
+                    "span": None,
+                    "relation_rank": None,
+                },
             )
             canonical = str(row["canonical_passage"] or stored.canonical_string())
-            if canonical not in bucket["passages"]:
-                bucket["passages"].append(canonical)
+            link_relation = str(row["relation_type"] or PASSAGE_RELATION_PRIMARY)
+            target_list = (
+                bucket["primary_passages"]
+                if link_relation == PASSAGE_RELATION_PRIMARY
+                else bucket["parallel_passages"]
+            )
+            if canonical not in target_list:
+                target_list.append(canonical)
             tier = _classify_tier(query_ref, stored, canonical, query_canonical)
             span = _span_size(stored)
-            if bucket["tier"] is None or _TIER_RANK[tier] < _TIER_RANK[bucket["tier"]]:
+            relation_rank = _PASSAGE_RELATION_RANK.get(link_relation, 1)
+            # Same-tier, same-span ties are broken in favor of a "primary"
+            # deciding link over a "parallel" one — never insertion order.
+            if bucket["tier"] is None or (
+                _TIER_RANK[tier],
+                span,
+                relation_rank,
+            ) < (
+                _TIER_RANK[bucket["tier"]],
+                bucket["span"],
+                bucket["relation_rank"],
+            ):
                 bucket["tier"] = tier
                 bucket["span"] = span
-            elif tier == bucket["tier"] and span < bucket["span"]:
-                bucket["span"] = span
+                bucket["relation_rank"] = relation_rank
 
         ranked: list[tuple[tuple[Any, ...], CommentarySectionResult]] = []
         for section_id, bucket in grouped.items():
@@ -250,13 +289,19 @@ class CommentaryRepository:
             result = _result_from_row(
                 row,
                 relation_type=bucket["tier"],
-                passages=_ordered_passages(bucket["passages"], exact=query_canonical),
+                primary_passages=_ordered_passages(
+                    bucket["primary_passages"], exact=query_canonical
+                ),
+                parallel_passages=_ordered_passages(
+                    bucket["parallel_passages"], exact=query_canonical
+                ),
                 chunk_counts=chunk_counts,
                 contributors_by_work=contributors_by_work,
             )
             order = (
                 _TIER_RANK[bucket["tier"]],
                 int(bucket["span"]),
+                int(bucket["relation_rank"]),
                 *_document_order_key(section_map, row),
             )
             ranked.append((order, result))
@@ -275,7 +320,7 @@ class CommentaryRepository:
             contributors_by_work = _load_contributors_by_work(connection)
             passage_rows = connection.execute(
                 """
-                SELECT canonical_passage FROM section_passage_links
+                SELECT canonical_passage, relation_type FROM section_passage_links
                 WHERE section_id = ?
                 ORDER BY start_chapter, start_verse, canonical_passage
                 """,
@@ -301,6 +346,14 @@ class CommentaryRepository:
             for node in chain[:-1]
         )
         contributors = contributors_by_work.get(str(row["work_id"]), ())
+        primary_passages = tuple(
+            str(r["canonical_passage"]) for r in passage_rows
+            if str(r["relation_type"] or PASSAGE_RELATION_PRIMARY) == PASSAGE_RELATION_PRIMARY
+        )
+        parallel_passages = tuple(
+            str(r["canonical_passage"]) for r in passage_rows
+            if str(r["relation_type"] or PASSAGE_RELATION_PRIMARY) == PASSAGE_RELATION_PARALLEL
+        )
         return CommentarySectionDetail(
             section_id=str(row["section_id"]),
             edition_id=str(row["edition_id"]),
@@ -313,6 +366,8 @@ class CommentaryRepository:
                 str(row["parent_section_id"]) if row["parent_section_id"] else None
             ),
             canonical_passages=tuple(str(r["canonical_passage"]) for r in passage_rows),
+            primary_passages=primary_passages,
+            parallel_passages=parallel_passages,
             contributors=contributors,
             parent_chain=parent_chain,
             chunks=tuple(
@@ -371,7 +426,6 @@ class CommentaryRepository:
                 _result_from_row(
                     row,
                     relation_type=RELATION_BROADER_CONTEXT,
-                    passages=(),
                     chunk_counts=chunk_counts,
                     contributors_by_work=contributors_by_work,
                 )
@@ -514,7 +568,8 @@ _SECTIONS_BY_BOOK_SQL = (
         p.start_chapter AS start_chapter,
         p.start_verse AS start_verse,
         p.end_chapter AS end_chapter,
-        p.end_verse AS end_verse
+        p.end_verse AS end_verse,
+        p.relation_type AS relation_type
     FROM section_passage_links p
     JOIN sections s ON s.section_id = p.section_id
     JOIN editions e ON e.edition_id = s.edition_id
@@ -734,12 +789,16 @@ def _result_from_row(
     row: sqlite3.Row,
     *,
     relation_type: str,
-    passages: tuple[str, ...],
+    primary_passages: tuple[str, ...] = (),
+    parallel_passages: tuple[str, ...] = (),
     chunk_counts: dict[str, int],
     contributors_by_work: dict[str, tuple[str, ...]],
 ) -> CommentarySectionResult:
     section_id = str(row["section_id"])
     work_id = str(row["work_id"] or "")
+    # Combined view: primary passages first, then parallel — matches each
+    # tuple's own (exact-match-first) ordering, not re-sorted further.
+    combined = tuple(dict.fromkeys([*primary_passages, *parallel_passages]))
     return CommentarySectionResult(
         section_id=section_id,
         edition_id=str(row["edition_id"] or ""),
@@ -752,7 +811,9 @@ def _result_from_row(
             str(row["parent_section_id"]) if row["parent_section_id"] else None
         ),
         relation_type=relation_type,
-        canonical_passages=passages,
+        canonical_passages=combined,
+        primary_passages=primary_passages,
+        parallel_passages=parallel_passages,
         chunk_count=int(chunk_counts.get(section_id) or 0),
         contributors=contributors_by_work.get(work_id, ()),
         language=str(row["language"] or ""),

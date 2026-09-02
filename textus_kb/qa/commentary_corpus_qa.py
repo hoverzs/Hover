@@ -10,17 +10,27 @@ not expected to ever find anything on a store built by
 bug) and the primary/parallel passage split (a classification, not a
 pass/fail check).
 
-Primary vs. parallel passage: ``section_passage_links`` has no dedicated
-column for this — it is derived from row insertion order (the
-autoincrement ``id``), which for every importer in this codebase always
-inserts a section's *first* declared passage before any additional ones
-(Calvin: the first table caption; a future JFB/Henry importer inherits
-the same convention by construction of ``commentary_sqlite``'s insert
-order). The lowest-``id`` link per section is "primary"; any further
-links on the same section are "parallel". Cross-references are not a
-third stored category — they are excluded from ``section_passage_links``
-entirely at import time (see ``calvin_commentary_thml._collect_caption_scriprefs``),
-so there is nothing to report here beyond confirming zero are stored.
+Primary vs. parallel passage: ``section_passage_links.relation_type`` is
+explicit data written by the importer (schema v2+) — "primary" for a
+section's first declared passage, "parallel" for any additional one on
+the same section (Calvin: a Harmony section's further gospel columns).
+This report reads that column directly; it is never inferred here from
+row insertion order. Any value outside ``{"primary", "parallel"}`` is a
+real bug (the schema's own import-time validation should have already
+rejected it) and is surfaced in ``invalid_relation_types``. Cross-references
+are not a third stored category — they are excluded from
+``section_passage_links`` entirely at import time (see
+``calvin_commentary_thml._collect_caption_scriprefs``), so there is
+nothing to report here beyond confirming zero are stored.
+
+Known-unmapped sections: each Calvin import batch's ``import_batches.report``
+JSON carries a ``known_unmapped_sections`` list (div2_id, section_id, reason,
+classification) for the handful of source structures that are genuinely
+unresolvable without guessing and have been individually audited (see the
+source manifest's ``known_unmapped_sections`` entries). This report reads
+that JSON across every batch into a dedicated ``known_unmapped`` category,
+never as a silent allowlist — every OTHER unmapped/unparseable structure
+still fails loudly at import time instead of reaching this report at all.
 """
 
 from __future__ import annotations
@@ -64,11 +74,13 @@ class CommentaryCorpusQAReport:
     duplicate_passage_links: list[dict[str, Any]] = field(default_factory=list)
     cross_edition_hierarchy_issues: list[dict[str, Any]] = field(default_factory=list)
     hierarchy_cycle_sections: list[str] = field(default_factory=list)
+    invalid_relation_types: list[dict[str, Any]] = field(default_factory=list)
     coverage_by_book_primary: dict[str, int] = field(default_factory=dict)
     coverage_by_book_parallel: dict[str, int] = field(default_factory=dict)
     cross_reference_count_stored: int = 0
     source_file_stats: list[dict[str, Any]] = field(default_factory=list)
     low_yield_sources: list[dict[str, Any]] = field(default_factory=list)
+    known_unmapped: list[dict[str, Any]] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
@@ -191,28 +203,35 @@ def _build_report(connection: sqlite3.Connection, db_path: Path) -> CommentaryCo
     # future regression (a leak reappearing) is caught here too.
     report.cross_reference_count_stored = 0
 
-    ranked_links = connection.execute(
-        """
-        SELECT section_id, book_id, canonical_passage,
-               ROW_NUMBER() OVER (PARTITION BY section_id ORDER BY id) AS rn
-        FROM section_passage_links
-        """
+    relation_links = connection.execute(
+        "SELECT id, section_id, book_id, canonical_passage, relation_type FROM section_passage_links"
     ).fetchall()
     primary_by_book: dict[str, set[str]] = {}
     parallel_by_book: dict[str, set[str]] = {}
     primary_count = 0
     parallel_count = 0
-    for row in ranked_links:
+    invalid_relation_types: list[dict[str, Any]] = []
+    for row in relation_links:
         book = row["book_id"]
         passage = row["canonical_passage"]
-        if row["rn"] == 1:
+        relation_type = row["relation_type"]
+        if relation_type == "primary":
             primary_count += 1
             primary_by_book.setdefault(book, set()).add(passage)
-        else:
+        elif relation_type == "parallel":
             parallel_count += 1
             parallel_by_book.setdefault(book, set()).add(passage)
+        else:
+            invalid_relation_types.append(
+                {
+                    "id": row["id"],
+                    "section_id": row["section_id"],
+                    "relation_type": relation_type,
+                }
+            )
     report.primary_passage_link_count = primary_count
     report.parallel_passage_link_count = parallel_count
+    report.invalid_relation_types = invalid_relation_types
     report.coverage_by_book_primary = {
         book: len(passages) for book, passages in primary_by_book.items()
     }
@@ -338,7 +357,14 @@ def _build_report(connection: sqlite3.Connection, db_path: Path) -> CommentaryCo
         entry for entry in report.source_file_stats if entry["passage_link_count"] < LOW_YIELD_THRESHOLD
     ]
 
+    report.known_unmapped = _known_unmapped_sections(connection)
+
     warnings: list[str] = []
+    if report.invalid_relation_types:
+        warnings.append(
+            f"{len(report.invalid_relation_types)} passage link(s) with an unexpected "
+            "relation_type (expected 'primary' or 'parallel')."
+        )
     if report.orphan_sections:
         warnings.append(f"{len(report.orphan_sections)} orphan section(s) found.")
     if report.invalid_references:
@@ -392,6 +418,32 @@ def _source_file_stats(connection: sqlite3.Connection) -> list[dict[str, Any]]:
         }
         for row in rows
     ]
+
+
+def _known_unmapped_sections(connection: sqlite3.Connection) -> list[dict[str, Any]]:
+    """Every ``known_unmapped_sections`` entry recorded in any import
+    batch's ``report`` JSON, flattened into one list with its source batch
+    attached — read directly from the built store, not re-derived from the
+    manifest, so this reflects what actually happened at import time."""
+    entries: list[dict[str, Any]] = []
+    for row in connection.execute(
+        "SELECT batch_id, source_file_id, report FROM import_batches ORDER BY batch_id"
+    ):
+        if not row["report"]:
+            continue
+        batch_report = json.loads(row["report"])
+        for item in batch_report.get("known_unmapped_sections") or []:
+            entries.append(
+                {
+                    "batch_id": row["batch_id"],
+                    "source_file_id": row["source_file_id"],
+                    "div2_id": item.get("div2_id"),
+                    "section_id": item.get("section_id"),
+                    "reason": item.get("reason"),
+                    "classification": item.get("classification"),
+                }
+            )
+    return entries
 
 
 def _detect_hierarchy_cycles(connection: sqlite3.Connection) -> list[str]:
@@ -463,6 +515,13 @@ def format_qa_report_human(report: CommentaryCorpusQAReport) -> str:
         for book_id, count in sorted(report.coverage_by_book_parallel.items(), key=lambda kv: -kv[1]):
             lines.append(f"  - {book_id}: {count}")
     lines.append("")
+    if report.known_unmapped:
+        lines.append(f"Known-unmapped sections ({len(report.known_unmapped)}, individually audited):")
+        for entry in report.known_unmapped:
+            lines.append(
+                f"  - {entry['section_id']} [{entry['classification']}]: {entry['reason']}"
+            )
+        lines.append("")
     if report.low_yield_sources:
         lines.append("Low-yield sources (< %d passage links):" % LOW_YIELD_THRESHOLD)
         for entry in report.low_yield_sources:
