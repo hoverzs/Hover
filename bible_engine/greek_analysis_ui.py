@@ -567,10 +567,15 @@ def _render_analysis_panel(
     st.markdown('<div class="textus-greek-analysis-card-marker"></div>', unsafe_allow_html=True)
     with st.container(border=True):
         st.subheader(_present(selected.greek_form))
-        left, right = st.columns(2, gap="small")
-        analysis_items = list(token_analysis(selected).items())
-        left.markdown(_compact_field_markup(analysis_items[:3]), unsafe_allow_html=True)
-        right.markdown(_compact_field_markup(analysis_items[3:]), unsafe_allow_html=True)
+        analysis = token_analysis(selected)
+        ordered = [
+            ("Szótári alak / alakok", analysis["Szótári alak / alakok"]),
+            ("Morfológiai kód", analysis["Morfológiai kód"]),
+            ("Strong/STEP", analysis["Strong/STEP"]),
+            ("Kiadásjelölés", analysis["Kiadásjelölés"]),
+            ("Nyelvtani alak", analysis["Nyelvtani alak"]),
+        ]
+        st.markdown(_compact_field_markup(ordered), unsafe_allow_html=True)
         _render_lexicon_section(selected, lexicon_entries, tbesg_lexicon_loader)
         _render_concordance_jump_button(selected, key_prefix=key_prefix)
 
@@ -727,8 +732,6 @@ def _render_lexicon_section(
     entries: dict[str, HungarianLexiconEntry] | None,
     tbesg_lexicon_loader: Callable[[str], SQLiteGreekLexiconEntry | None],
 ) -> None:
-    st.divider()
-
     if entries is not None:
         resolution = _hungarian_lexicon_resolution_for_token(entries, token)
         if resolution is not None:
@@ -795,8 +798,9 @@ def _compact_field_markup(items: list[tuple[str, str]]) -> str:
         f'<div class="textus-greek-field"><strong>{html.escape(label)}:</strong> '
         f"{html.escape(value)}</div>"
         for label, value in items
+        if value
     )
-    return f'<div class="textus-greek-field-list">{rows}</div>'
+    return f'<div class="textus-greek-field-list textus-greek-meta-grid">{rows}</div>'
 
 
 def _hungarian_lexicon_resolution_for_token(
@@ -868,9 +872,9 @@ def _ensure_greek_analysis_styles() -> None:
             padding-bottom: 0 !important;
         }
         .greek-token-selector {
-            font-size: 1.12rem;
-            line-height: 1.45;
-            margin: 0 0 0.12rem;
+            font-size: 1.08rem;
+            line-height: 1.32;
+            margin: 0 0 0.06rem;
         }
         .textus-greek-verse-marker {
             float: left;
@@ -930,14 +934,14 @@ def _ensure_greek_analysis_styles() -> None:
             margin-bottom: 0 !important;
         }
         .element-container:has(.textus-greek-compact-card-marker) + .element-container [data-testid="stVerticalBlockBorderWrapper"] {
-            padding: 0.32rem 0.5rem 0.36rem !important;
+            padding: 0.26rem 0.42rem 0.28rem !important;
         }
         .element-container:has(.textus-greek-compact-card-marker) + .element-container [data-testid="stVerticalBlock"] {
-            gap: 0.28rem !important;
+            gap: 0.2rem !important;
         }
         .element-container:has(.textus-greek-compact-card-marker) + .element-container [data-testid="stMarkdownContainer"] p {
-            margin-bottom: 0.12rem !important;
-            line-height: 1.45 !important;
+            margin-bottom: 0.06rem !important;
+            line-height: 1.32 !important;
         }
         .element-container:has(.textus-greek-compact-fallback-marker),
         .element-container:has(.textus-greek-compact-fallback-marker) + .element-container {
@@ -997,11 +1001,18 @@ def _ensure_greek_analysis_styles() -> None:
         .element-container:has(.textus-greek-analysis-card-marker) + .element-container .textus-greek-field-list {
             margin: 0 !important;
             line-height: 1.16 !important;
+            display: grid !important;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+            column-gap: 16px !important;
+            row-gap: 2px !important;
         }
         .element-container:has(.textus-greek-analysis-card-marker) + .element-container .textus-greek-field {
-            margin: 0 0 0.025rem !important;
+            margin: 0 !important;
             line-height: 1.16 !important;
             font-size: 0.9rem !important;
+        }
+        .element-container:has(.textus-greek-analysis-card-marker) + .element-container .textus-greek-field:last-child {
+            grid-column: 1 / -1 !important;
         }
         .element-container:has(.textus-greek-analysis-card-marker) + .element-container [data-testid="stMarkdownContainer"] p {
             margin-bottom: 0.035rem !important;
@@ -1023,9 +1034,20 @@ def _ensure_greek_analysis_styles() -> None:
             margin-bottom: 0.04rem !important;
         }
         .element-container:has(.textus-greek-analysis-card-marker) + .element-container [data-testid="stCaptionContainer"] {
-            margin-bottom: 0.035rem !important;
+            margin-top: 0 !important;
+            margin-bottom: 0.02rem !important;
             line-height: 1.08 !important;
-            font-size: 0.78rem !important;
+            font-size: 0.72rem !important;
+            opacity: 0.82;
+        }
+        .element-container:has(.textus-greek-analysis-card-marker) + .element-container .stButton {
+            margin-top: 4px !important;
+            margin-bottom: 0 !important;
+        }
+        .element-container:has(.textus-greek-analysis-card-marker) + .element-container .stButton button {
+            min-height: 32px !important;
+            height: 32px !important;
+            padding: 0 10px !important;
         }
         @media (max-width: 640px) {
             .greek-token-selector {

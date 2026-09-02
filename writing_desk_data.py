@@ -18,6 +18,11 @@ WRITING_DESK_KEY = "writing_desk"
 DRAFT_HTML_ALLOWED_TAGS: frozenset[str] = frozenset(
     {"p", "br", "strong", "b", "em", "i", "u", "ul", "ol", "li"}
 )
+_DRAFT_ALIGN_VALUES: frozenset[str] = frozenset({"left", "center", "right", "justify"})
+_DRAFT_TEXT_ALIGN_RE = re.compile(
+    r"text-align\s*:\s*(left|center|right|justify)\b",
+    re.IGNORECASE,
+)
 _DRAFT_HTML_VOID_TAGS: frozenset[str] = frozenset({"br"})
 _DRAFT_HTML_MARK_RE = re.compile(
     r"<(p|br|strong|b|em|i|u|ul|ol|li)(\s|/?>)",
@@ -80,8 +85,33 @@ def _looks_like_any_html(text: str) -> bool:
     return bool(_ANY_HTML_TAG_RE.search(text or ""))
 
 
+def _draft_text_align(attrs: list[tuple[str, str | None]]) -> str | None:
+    """Csak p/li text-align — minden más stílus kiesik."""
+    for raw_name, raw_value in attrs:
+        name = (raw_name or "").lower()
+        value = str(raw_value or "").strip()
+        if name == "align":
+            align = value.lower()
+            if align in _DRAFT_ALIGN_VALUES:
+                return align
+        elif name == "style" and value:
+            match = _DRAFT_TEXT_ALIGN_RE.search(value)
+            if match:
+                return match.group(1).lower()
+    return None
+
+
+def _draft_open_tag(name: str, attrs: list[tuple[str, str | None]]) -> str:
+    if name not in {"p", "li"}:
+        return f"<{name}>"
+    align = _draft_text_align(attrs)
+    if align and align != "left":
+        return f'<{name} style="text-align: {align}">'
+    return f"<{name}>"
+
+
 class _DraftHtmlSanitizer(HTMLParser):
-    """Whitelist-szűrő: engedélyezett tagek attribútum nélkül, szöveg megmarad."""
+    """Whitelist-szűrő: engedélyezett tagek, p/li text-align kivételével attribútum nélkül."""
 
     def __init__(self) -> None:
         super().__init__(convert_charrefs=True)
@@ -94,13 +124,21 @@ class _DraftHtmlSanitizer(HTMLParser):
         if name in _DRAFT_HTML_SKIP_CONTENT_TAGS:
             self._skip_depth += 1
             return
-        if self._skip_depth or name not in DRAFT_HTML_ALLOWED_TAGS:
+        if self._skip_depth:
+            return
+        if name == "div":
+            align = _draft_text_align(attrs)
+            if align and align != "left":
+                self._stack.append("p")
+                self._parts.append(_draft_open_tag("p", [("style", f"text-align: {align}")]))
+            return
+        if name not in DRAFT_HTML_ALLOWED_TAGS:
             return
         if name in _DRAFT_HTML_VOID_TAGS:
             self._parts.append(f"<{name}>")
             return
         self._stack.append(name)
-        self._parts.append(f"<{name}>")
+        self._parts.append(_draft_open_tag(name, attrs))
 
     def handle_endtag(self, tag: str) -> None:
         name = tag.lower()
@@ -108,7 +146,11 @@ class _DraftHtmlSanitizer(HTMLParser):
             if self._skip_depth:
                 self._skip_depth -= 1
             return
-        if self._skip_depth or name not in DRAFT_HTML_ALLOWED_TAGS or name in _DRAFT_HTML_VOID_TAGS:
+        if self._skip_depth:
+            return
+        if name == "div":
+            name = "p"
+        if name not in DRAFT_HTML_ALLOWED_TAGS or name in _DRAFT_HTML_VOID_TAGS:
             return
         if name not in self._stack:
             return

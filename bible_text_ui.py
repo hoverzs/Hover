@@ -75,73 +75,86 @@ _BIBLE_TEXT_CSS = """
   padding: 0 !important;
 }
 
+.st-key-bible_text_ruf_load_btn button,
+.st-key-bible_text_ruf_load_btn [data-testid="stBaseButton-primary"],
+.st-key-bible_text_ruf_load_btn button *,
+.st-key-bible_text_ruf_load_btn button p,
+.st-key-bible_text_ruf_load_btn button [data-testid="stMarkdownContainer"] p,
+.st-key-bible_text_ruf_load_btn button [data-testid="stMarkdownContainer"] span,
+.element-container:has(.bible-ruf-load-marker) + .element-container .stButton > button,
+.element-container:has(.bible-ruf-load-marker) + .element-container [data-testid="stBaseButton-primary"],
+.element-container:has(.bible-ruf-load-marker) + .element-container .stButton > button *,
+.element-container:has(.bible-ruf-load-marker) + .element-container .stButton > button p {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  text-shadow: 0 1px 0 rgba(18, 32, 48, 0.25) !important;
+}
+
 /* Csak a marker utáni gomb — Textus primary kék */
+.st-key-bible_text_ruf_load_btn button,
+.st-key-bible_text_ruf_load_btn [data-testid="stBaseButton-primary"],
 .element-container:has(.bible-ruf-load-marker) + .element-container .stButton > button,
 .element-container:has(.bible-ruf-load-marker) + .element-container [data-testid="stBaseButton-primary"] {
   position: relative !important;
-  background:
-    linear-gradient(
-      155deg,
-      #e8eef8 0%,
-      #d4e0f2 22%,
-      #c5d6ea 48%,
-      #b8c9e2 72%,
-      #a8bad8 100%
+  background-color: #4d6f9a !important;
+  background-image: linear-gradient(
+      180deg,
+      #6d8bb6 0%,
+      #4d6f9a 52%,
+      #3b5a84 100%
     ) !important;
-  color: #1a2838 !important;
-  border: 1px solid rgba(122, 145, 176, 0.55) !important;
-  border-radius: 14px !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  border: 1px solid #35557c !important;
+  border-radius: 12px !important;
   font-family: "Inter", "Segoe UI", sans-serif !important;
   font-weight: 700 !important;
   letter-spacing: 0.01em !important;
   text-transform: none !important;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.85) !important;
+  text-shadow: 0 1px 0 rgba(18, 32, 48, 0.25) !important;
   box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.92) inset,
-    0 0 0 1px rgba(255, 255, 255, 0.35) inset,
-    0 2px 6px rgba(52, 68, 92, 0.12),
-    0 10px 22px rgba(52, 68, 92, 0.16) !important;
+    0 1px 0 rgba(255, 255, 255, 0.28) inset,
+    0 4px 10px rgba(31, 51, 77, 0.28) !important;
 }
 
+.st-key-bible_text_ruf_load_btn button:hover,
+.st-key-bible_text_ruf_load_btn [data-testid="stBaseButton-primary"]:hover,
 .element-container:has(.bible-ruf-load-marker) + .element-container .stButton > button:hover,
 .element-container:has(.bible-ruf-load-marker) + .element-container [data-testid="stBaseButton-primary"]:hover {
   background:
     linear-gradient(
-      155deg,
-      #eef3fb 0%,
-      #dde9f6 24%,
-      #ccdff0 50%,
-      #bcd2e8 74%,
-      #aec6df 100%
+      180deg,
+      #7a98c0 0%,
+      #5a7aa8 52%,
+      #45678f 100%
     ) !important;
-  color: #13202e !important;
-  border-color: rgba(100, 130, 168, 0.62) !important;
-  transform: translateY(-3px) !important;
+  color: #ffffff !important;
+  border-color: #35557c !important;
+  transform: translateY(-1px) !important;
   box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.95) inset,
-    0 4px 10px rgba(52, 72, 98, 0.14),
-    0 14px 28px rgba(52, 72, 98, 0.20),
-    0 0 28px rgba(122, 155, 198, 0.22) !important;
+    0 1px 0 rgba(255, 255, 255, 0.34) inset,
+    0 7px 14px rgba(31, 51, 77, 0.32) !important;
 }
 
 .element-container:has(.bible-ruf-load-marker) + .element-container .stButton > button:active,
 .element-container:has(.bible-ruf-load-marker) + .element-container [data-testid="stBaseButton-primary"]:active {
-  transform: translateY(-1px) !important;
+  transform: translateY(1px) !important;
   box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.75) inset,
-    0 2px 5px rgba(52, 68, 92, 0.14),
-    0 8px 18px rgba(52, 68, 92, 0.16) !important;
+    0 1px 0 rgba(255, 255, 255, 0.18) inset,
+    0 1px 3px rgba(31, 51, 77, 0.28) inset !important;
 }
 
+.st-key-bible_text_ruf_load_btn button > div > p,
+.st-key-bible_text_ruf_load_btn [data-testid="stBaseButton-primary"] > div > p,
 .element-container:has(.bible-ruf-load-marker) + .element-container .stButton > button > div > p,
 .element-container:has(.bible-ruf-load-marker) + .element-container [data-testid="stBaseButton-primary"] > div > p {
-  color: #1a2838 !important;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.85) !important;
+  color: #ffffff !important;
+  text-shadow: 0 1px 0 rgba(18, 32, 48, 0.25) !important;
 }
 
 .bible-reader {
-  margin: 0.35rem 0 0.85rem 0;
-  padding: 0.25rem 0 0.25rem 0;
+  margin: 0.12rem 0 0.4rem 0;
+  padding: 0.1rem 0;
   max-width: 74ch;
   max-height: min(58vh, 520px);
   overflow-y: auto;
@@ -151,9 +164,9 @@ _BIBLE_TEXT_CSS = """
 .bible-verse {
   display: flex;
   align-items: flex-start;
-  gap: 0.8rem;
-  margin: 0 0 0.48rem 0;
-  line-height: 1.78;
+  gap: 0.55rem;
+  margin: 0 0 0.28rem 0;
+  line-height: 1.52;
 }
 
 .bible-verse:last-child,
@@ -163,13 +176,13 @@ _BIBLE_TEXT_CSS = """
 
 .bible-verse-num {
   flex: 0 0 auto;
-  width: 2.4rem;
-  font-size: 0.9rem;
+  width: 2.1rem;
+  font-size: 0.86rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   color: #746a5e;
-  line-height: 1.78;
-  padding-top: 0.03em;
+  line-height: 1.52;
+  padding-top: 0.02em;
   user-select: none;
   text-align: right;
 }
@@ -177,28 +190,28 @@ _BIBLE_TEXT_CSS = """
 .bible-verse-text {
   flex: 1 1 auto;
   min-width: 0;
-  font-size: 1.08rem;
+  font-size: 1.04rem;
   font-weight: 450;
   color: #2a241c;
-  line-height: 1.78;
+  line-height: 1.52;
   overflow-wrap: anywhere;
   word-break: break-word;
 }
 
 .bible-para {
-  margin: 0 0 0.72rem 0;
-  font-size: 1.08rem;
+  margin: 0 0 0.42rem 0;
+  font-size: 1.04rem;
   font-weight: 450;
   color: #2a241c;
-  line-height: 1.78;
+  line-height: 1.52;
   overflow-wrap: anywhere;
   word-break: break-word;
 }
 
 .bible-reader-continuous {
-  font-size: 1.08rem;
+  font-size: 1.04rem;
   font-weight: 450;
-  line-height: 1.78;
+  line-height: 1.52;
   color: #2a241c;
 }
 
@@ -218,9 +231,9 @@ _BIBLE_TEXT_CSS = """
 }
 
 .bible-source-note {
-  margin: 0.15rem 0 0.85rem 0;
-  font-size: 0.78rem;
-  line-height: 1.45;
+  margin: 0.04rem 0 0.12rem 0;
+  font-size: 0.75rem;
+  line-height: 1.3;
   color: #7a6c5c;
 }
 
@@ -230,14 +243,39 @@ _BIBLE_TEXT_CSS = """
   text-underline-offset: 2px;
 }
 
+.bible-view-radio-marker {
+  display: none !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+.element-container:has(.bible-view-radio-marker) {
+  display: none !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+.element-container:has(.bible-view-radio-marker) + .element-container {
+  margin-top: 0 !important;
+  margin-bottom: 4px !important;
+}
+.element-container:has(.bible-view-radio-marker) + .element-container [data-testid="stRadio"] {
+  gap: 4px !important;
+}
+.element-container:has(.bible-view-radio-marker) + .element-container label {
+  min-height: 0 !important;
+  padding-top: 2px !important;
+  padding-bottom: 2px !important;
+}
+
 @media (max-width: 640px) {
   .bible-reader {
     padding: 0.2rem 0;
     max-height: min(52vh, 440px);
   }
   .bible-verse {
-    gap: 0.55rem;
-    margin-bottom: 0.65rem;
+    gap: 0.45rem;
+    margin-bottom: 0.22rem;
   }
   .bible-verse-text,
   .bible-para {
@@ -370,6 +408,7 @@ def render_formatted_bible_text(
     view_key: str = BIBLE_TEXT_VIEW_KEY,
 ) -> None:
     """Formázott, csak olvasható Bibliai szöveg előnézet."""
+    st.markdown('<div class="bible-view-radio-marker"></div>', unsafe_allow_html=True)
     view_mode = st.radio(
         "Bibliai szöveg nézete",
         ("Versenkénti nézet", "Folyamatos nézet"),
@@ -650,7 +689,7 @@ def _render_ruf_load_button() -> None:
         "RÚF-szöveg betöltése",
         key="bible_text_ruf_load_btn",
         type="primary",
-        use_container_width=True,
+        width="stretch",
         help="A megadott igehely RÚF 2014 szövegét tölti be.",
     ):
         ref = _current_reference(st.session_state)
@@ -658,6 +697,33 @@ def _render_ruf_load_button() -> None:
             st.error("Előbb add meg az igehelyet (pl. Júd 17–20).")
         else:
             _fetch_ruf_for_current_reference(ref)
+    st.markdown(
+        """
+        <style>
+        html body .st-key-bible_text_ruf_load_btn button[kind="primary"],
+        html body .st-key-bible_text_ruf_load_btn button[data-testid="stBaseButton-primary"],
+        html body .st-key-bible_text_ruf_load_btn button {
+          background-color: #4d6f9a !important;
+          background-image: linear-gradient(180deg, #6d8bb6 0%, #4d6f9a 52%, #3b5a84 100%) !important;
+          color: #ffffff !important;
+          -webkit-text-fill-color: #ffffff !important;
+          border: 1px solid #35557c !important;
+          box-shadow:
+            0 1px 0 rgba(255, 255, 255, 0.28) inset,
+            0 4px 10px rgba(31, 51, 77, 0.28) !important;
+        }
+        html body .st-key-bible_text_ruf_load_btn button *,
+        html body .st-key-bible_text_ruf_load_btn button p,
+        html body .st-key-bible_text_ruf_load_btn button [data-testid="stMarkdownContainer"] p,
+        html body .st-key-bible_text_ruf_load_btn button [data-testid="stMarkdownContainer"] span {
+          color: #ffffff !important;
+          -webkit-text-fill-color: #ffffff !important;
+          text-shadow: 0 1px 0 rgba(18, 32, 48, 0.25) !important;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
     _render_ruf_error_retry()
 
 
@@ -668,7 +734,7 @@ def _render_editor_fields(*, save_label: str = "Bibliai szöveg mentése") -> No
         height=220,
         placeholder="Töltsd be a RÚF szöveget, vagy illeszd be ide kézzel…",
     )
-    if st.button(save_label, key="bible_text_save_btn", use_container_width=True):
+    if st.button(save_label, key="bible_text_save_btn", width="stretch"):
         saved = save_bible_text_from_widgets(st.session_state)
         n = len((saved["passage_text"] or "").strip())
         if n:
@@ -698,7 +764,7 @@ def render_bible_text_editor() -> None:
 
     render_work_section(
         title="Bibliai szöveg",
-        body="RÚF 2014 betöltése vagy kézi beillesztés — ellenőrizd, hogy a szöveg az igehelyhez tartozik.",
+        body="RÚF 2014",
         show_rule=False,
     )
 
@@ -739,8 +805,7 @@ def render_bible_text_preview(*, expanded: bool = False) -> None:
     text = snap["passage_text"]
 
     with st.expander("Bibliai szöveg", expanded=expanded):
-        st.markdown(f"**Igehely:** {passage}")
-        st.markdown(f"**Fordítás:** {translation}")
+        st.markdown(f"**Igehely:** {passage}  ·  **Fordítás:** {translation}")
         if text.strip():
             render_formatted_bible_text(text)
             _render_source_caption(st.session_state)
@@ -770,8 +835,7 @@ def render_bible_text_reading_block(
     translation = (snap.get("bible_translation") or TRANSLATION_NAME).strip() or TRANSLATION_NAME
 
     if reference:
-        st.markdown(f"**Igehely:** {reference}")
-        st.markdown(f"**Fordítás:** {translation}")
+        st.markdown(f"**Igehely:** {reference}  ·  **Fordítás:** {translation}")
 
     if str(text).strip():
         try:

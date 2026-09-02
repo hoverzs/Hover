@@ -768,8 +768,8 @@ def _ensure_hebrew_analysis_styles() -> None:
             line-height: 1.25;
         }
         .hebrew-token-selector {
-            margin: 0 0 0.12rem;
-            line-height: 1.45;
+            margin: 0 0 0.06rem;
+            line-height: 1.32;
         }
         .textus-hebrew-fallback-marker,
         .textus-hebrew-compact-fallback-marker,
@@ -796,14 +796,14 @@ def _ensure_hebrew_analysis_styles() -> None:
             margin-bottom: 0 !important;
         }
         .element-container:has(.textus-hebrew-compact-card-marker) + .element-container [data-testid="stVerticalBlockBorderWrapper"] {
-            padding: 0.32rem 0.5rem 0.36rem !important;
+            padding: 0.26rem 0.42rem 0.28rem !important;
         }
         .element-container:has(.textus-hebrew-compact-card-marker) + .element-container [data-testid="stVerticalBlock"] {
-            gap: 0.28rem !important;
+            gap: 0.2rem !important;
         }
         .element-container:has(.textus-hebrew-compact-card-marker) + .element-container [data-testid="stMarkdownContainer"] p {
-            margin-bottom: 0.12rem !important;
-            line-height: 1.45 !important;
+            margin-bottom: 0.06rem !important;
+            line-height: 1.32 !important;
         }
         .element-container:has(.textus-hebrew-compact-fallback-marker),
         .element-container:has(.textus-hebrew-compact-fallback-marker) + .element-container {

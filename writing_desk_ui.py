@@ -324,8 +324,15 @@ def _render_extract_card(
     if view.status == STATUS_VALID:
         st.session_state.pop(error_key, None)
     error_text = str(st.session_state.get(error_key) or "").strip()
+    needs_action = view.status in {STATUS_READY, STATUS_STALE}
     with st.container(border=True, key=f"writing_desk_extract_card_{extract_key}"):
-        st.markdown(f"**{view.label}**")
+        if needs_action:
+            title_col, action_col = st.columns([1.6, 1], gap="small")
+        else:
+            title_col = st.container()
+            action_col = None
+        with title_col:
+            st.markdown(f"**{view.label}**")
         if error_text:
             render_info_panel(
                 title="A kivonat most nem készült el",
@@ -339,21 +346,23 @@ def _render_extract_card(
             st.markdown(view.content)
             return
         if view.status == STATUS_STALE:
+            with action_col:
+                if st.button(
+                    "Kivonat frissítése",
+                    key=f"writing_desk_extract_refresh_{extract_key}",
+                    width="stretch",
+                ):
+                    _run_extract_generation(extract_key, generate_fn)
             st.caption("A forrásanyag megváltozott")
-            if st.button(
-                "Kivonat frissítése",
-                key=f"writing_desk_extract_refresh_{extract_key}",
-                width="stretch",
-            ):
-                _run_extract_generation(extract_key, generate_fn)
             return
         if view.status == STATUS_READY:
-            if st.button(
-                "Kivonat készítése",
-                key=f"writing_desk_extract_generate_{extract_key}",
-                width="stretch",
-            ):
-                _run_extract_generation(extract_key, generate_fn)
+            with action_col:
+                if st.button(
+                    "Kivonat készítése",
+                    key=f"writing_desk_extract_generate_{extract_key}",
+                    width="stretch",
+                ):
+                    _run_extract_generation(extract_key, generate_fn)
 
 
 def _ensure_writing_desk_extract_row_styles() -> None:
@@ -377,6 +386,25 @@ def _ensure_writing_desk_extract_row_styles() -> None:
         .element-container:has(.writing-desk-extract-row-marker)
             + .element-container [data-testid="stHorizontalBlock"] {
             flex-wrap: wrap;
+            gap: 0.55rem !important;
+        }
+        .element-container:has(.writing-desk-extract-row-marker)
+            + .element-container [data-testid="stColumn"] [data-testid="stVerticalBlockBorderWrapper"] {
+            padding: 12px 14px !important;
+            background:
+                linear-gradient(
+                    180deg,
+                    rgba(255, 253, 248, 0.97) 0%,
+                    rgba(247, 239, 226, 0.92) 100%
+                ) !important;
+            border: 1px solid rgba(170, 145, 112, 0.32) !important;
+            box-shadow:
+                0 1px 0 rgba(255, 255, 255, 0.88) inset,
+                0 4px 10px rgba(58, 40, 22, 0.08) !important;
+        }
+        .element-container:has(.writing-desk-extract-row-marker)
+            + .element-container [data-testid="stColumn"] [data-testid="stVerticalBlock"] {
+            gap: 0.35rem !important;
         }
         @media (max-width: 900px) {
             .element-container:has(.writing-desk-extract-row-marker)
@@ -403,13 +431,12 @@ def render_writing_desk_shell(*, generate_fn: GenerateFn | None = None) -> None:
     ensure_writing_desk_state(st.session_state)
     render_page_intro(
         title=WRITING_DESK_LABEL,
-        body="Jegyzetelés és vázlatkészítés az aktuális projekthez.",
+        body="",
         workspace_scope=True,
     )
 
     render_work_section(
         title="Bibliai szöveg és eredeti nyelv",
-        body="Az aktuális projekt RÚF szövege és kattintható eredeti nyelvi tokenjei.",
         context=WRITING_DESK_LABEL,
     )
     with work_surface("writing_desk_scripture"):
@@ -417,7 +444,6 @@ def render_writing_desk_shell(*, generate_fn: GenerateFn | None = None) -> None:
 
     render_work_section(
         title="Jegyzet / vázlat",
-        body="A készülő jegyzet lesz az Íróasztal középpontja.",
         context=WRITING_DESK_LABEL,
     )
     with work_surface("writing_desk_notes"):
@@ -426,7 +452,6 @@ def render_writing_desk_shell(*, generate_fn: GenerateFn | None = None) -> None:
 
     render_work_section(
         title="Munkaanyag",
-        body="Rövid kivonatok a meglévő projektanyagból.",
         context=WRITING_DESK_LABEL,
     )
     with work_surface("writing_desk_work_material"):
@@ -435,7 +460,7 @@ def render_writing_desk_shell(*, generate_fn: GenerateFn | None = None) -> None:
             '<div class="writing-desk-extract-row-marker"></div>',
             unsafe_allow_html=True,
         )
-        extract_cols = st.columns(3, gap="medium")
+        extract_cols = st.columns(3, gap="small")
         for column, extract_key in zip(
             extract_cols, WRITING_DESK_EXTRACT_KEYS, strict=True
         ):
@@ -444,7 +469,7 @@ def render_writing_desk_shell(*, generate_fn: GenerateFn | None = None) -> None:
 
     render_work_section(
         title="Segítő chat",
-        body="Kérdezhetsz a vázlatról, megfogalmazásról vagy szerkezetről.",
+        body="A vázlatról, megfogalmazásról vagy szerkezetről.",
         context=WRITING_DESK_LABEL,
     )
     with work_surface("writing_desk_helper_chat"):

@@ -637,6 +637,25 @@ def test_word_and_web_paste_html_is_sanitized():
     assert "<b>világ</b>" in cleaned or "<strong>világ</strong>" in cleaned
 
 
+def test_paragraph_text_align_is_kept_and_other_styles_dropped():
+    raw = (
+        '<p class="x" style="color:red;text-align:center" align="center">'
+        "Közép</p>"
+        '<div style="text-align: right">Jobb</div>'
+        '<p style="text-align: left">Bal</p>'
+    )
+    cleaned = sanitize_draft_html(raw)
+    assert 'style="text-align: center"' in cleaned
+    assert 'style="text-align: right"' in cleaned
+    assert "Közép" in draft_visible_text(cleaned)
+    assert "Jobb" in draft_visible_text(cleaned)
+    assert "Bal" in draft_visible_text(cleaned)
+    assert "color" not in cleaned
+    assert "class=" not in cleaned
+    assert "<div" not in cleaned
+    assert 'style="text-align: left"' not in cleaned
+
+
 def test_visually_empty_html_is_not_substantive_content():
     for empty in ("<p><br></p>", "<p></p>", "<p>&nbsp;</p>", "<br>", "   "):
         assert not draft_has_visible_content(empty)

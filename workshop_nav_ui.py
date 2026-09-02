@@ -553,30 +553,17 @@ def render_primary_view_switcher(
     with st.container(key="workspace_switcher"):
         st.markdown(
             "<style>"
-            # A kapcsoló a két fő munkaterület egyenrangú váltója — szélesebb,
-            # középre igazított sáv, mint a lépésválasztó (annál hangsúlyosabb
-            # navigációs elem).
-            f"{scope}{{max-width:860px!important;margin-left:auto!important;"
+            f"{scope}{{max-width:920px!important;margin-left:auto!important;"
             "margin-right:auto!important;width:100%!important;}"
-            # Közös "sín" a két szegmens mögött — ez adja az egységes
-            # segmented-control hatást (nem két külön lebegő gomb).
-            # FONTOS: a Streamlit `st.columns()` ezt a blokkot CSS GRID-ként
-            # rendereli (nem flexbox), és a generált grid-template-columns
-            # ITT (2 oszlopnál) tapasztalat szerint 3 egyenlő sávot adott ki
-            # 2 gyerekelemhez — emiatt a 2. oszlop után üres hely maradt
-            # jobbra. A grid-template-columns EXPLICIT felülírása a
-            # tényleges opciószámmal (ugyanaz a technika, mint a
-            # quick_tools_grid kártyarácsnál) garantálja a pontos 50/50
-            # felosztást, függetlenül attól, hogy a Streamlit mit generál.
             f"{scope} [data-testid='stHorizontalBlock']{{"
             "display:grid!important;"
             f"grid-template-columns:repeat({len(opts)},minmax(0,1fr))!important;"
             "align-items:stretch!important;"
-            "background:var(--ui-surface)!important;"
-            "border:1px solid var(--ui-border)!important;"
+            "background:linear-gradient(180deg,rgba(255,253,248,0.96),rgba(244,235,220,0.9))!important;"
+            "border:1px solid rgba(170,145,112,0.34)!important;"
             "border-radius:16px!important;"
-            "box-shadow:var(--ui-shadow-sm)!important;"
-            "padding:4px!important;gap:4px!important;"
+            "box-shadow:0 1px 0 rgba(255,255,255,0.88) inset,0 8px 18px rgba(58,40,22,0.08)!important;"
+            "padding:5px!important;gap:4px!important;"
             "width:100%!important;}"
             f"{scope} [data-testid='stColumn']{{"
             "flex:1 1 0!important;min-width:0!important;width:100%!important;"
@@ -588,8 +575,9 @@ def render_primary_view_switcher(
             "background:transparent!important;"
             "border:1px solid transparent!important;"
             "border-radius:12px!important;"
+            "box-shadow:none!important;"
             "transition:background 160ms ease,border-color 160ms ease,"
-            "color 160ms ease!important;"
+            "box-shadow 160ms ease,color 160ms ease,transform 160ms ease!important;"
             "}"
             f"{scope} .stButton button [data-testid='stMarkdownContainer'] p{{"
             "font-size:1rem!important;font-weight:600!important;"
@@ -598,22 +586,29 @@ def render_primary_view_switcher(
             "width:20px!important;height:20px!important;font-size:19px!important;"
             "}"
             f"{scope} .stButton button:hover{{"
-            "background:var(--ui-surface-hover)!important;"
+            "background:linear-gradient(180deg,rgba(255,254,250,0.9),rgba(232,238,247,0.72))!important;"
             "border-color:rgba(90,122,168,0.28)!important;"
+            "transform:translateY(-1px)!important;"
+            "box-shadow:0 4px 10px rgba(52,72,98,0.1)!important;"
             "}"
             f"{scope} .{active_cls} .stButton button,"
             f"{scope} .{active_cls} button{{"
-            "background:var(--ui-surface-active)!important;"
-            "border:1px solid var(--ui-border-active)!important;"
-            "box-shadow:var(--ui-shadow-sm)!important;"
-            "color:var(--tx-primary-deep)!important;"
+            "background:linear-gradient(180deg,#6d8bb6,#4d6f9a)!important;"
+            "border:1px solid #35557c!important;"
+            "box-shadow:0 1px 0 rgba(255,255,255,0.28) inset,0 4px 12px rgba(31,51,77,0.28)!important;"
+            "color:#fff!important;"
+            "transform:translateY(-1px)!important;"
             "}"
             f"{scope} .{active_cls} .stButton button:hover{{"
-            "background:var(--ui-surface-active)!important;"
+            "background:linear-gradient(180deg,#7a98c0,#5a7aa8)!important;"
             "}"
             f"{scope} .{active_cls} .stButton button p,"
             f"{scope} .{active_cls} button p{{"
-            "color:var(--tx-primary-deep)!important;font-weight:700!important;"
+            "color:#fff!important;font-weight:700!important;"
+            "}"
+            f"{scope} .{active_cls} .stButton button [data-testid='stIconMaterial'],"
+            f"{scope} .{active_cls} button [data-testid='stIconMaterial']{{"
+            "color:#fff!important;"
             "}"
             f"{scope} .{active_cls} .stButton button::after,"
             f"{scope} .{active_cls} button::after{{height:2px!important;}}"
@@ -635,7 +630,7 @@ def render_primary_view_switcher(
                     title,
                     key=f"tx_mainnav_{mode}",
                     type="secondary",
-                    use_container_width=True,
+                    width="stretch",
                 )
             if clicked and not is_active:
                 st.session_state[key] = mode
@@ -935,9 +930,8 @@ def render_app_toolbar(
 
         st.container(key="tx_toolbar_flex", width="stretch")
 
-        # Jobb: mentés / projektek / új munka / beállítások / fiók
         with st.container(
-            key="tx_toolbar_actions",
+            key="tx_toolbar_center",
             horizontal=True,
             vertical_alignment="center",
             gap="small",
@@ -945,22 +939,31 @@ def render_app_toolbar(
         ):
             _save_controls()
             _projects_picker()
-
             if st.button(
                 "Új munka",
                 key="bar_new_work",
                 type="secondary",
                 icon=":material/add:",
-                use_container_width=False,
+                width="content",
             ):
                 action = "new_work"
 
+        st.container(key="tx_toolbar_flex_end", width="stretch")
+
+        # Jobb: beállítások / fiók
+        with st.container(
+            key="tx_toolbar_actions",
+            horizontal=True,
+            vertical_alignment="center",
+            gap="small",
+            width="content",
+        ):
             if st.button(
                 "Beállítások",
                 key="tx_appbar_settings",
                 icon=":material/settings:",
                 type="secondary",
-                use_container_width=False,
+                width="content",
                 help="Beállítások",
             ):
                 action = "settings"

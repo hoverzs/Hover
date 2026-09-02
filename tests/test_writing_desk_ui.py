@@ -168,7 +168,7 @@ def test_writing_desk_shell_stacks_notes_above_work_material(monkeypatch):
     writing_desk_ui.render_writing_desk_shell()
 
     joined = _joined_markdown(calls)
-    assert calls["columns"] == [(3, "medium")]
+    assert calls["columns"][0] == (3, "small")
     assert "Íróasztal" in joined
     assert "Munkaanyag" in joined
     assert "Jegyzet / vázlat" in joined
@@ -185,7 +185,7 @@ def test_writing_desk_shell_stacks_notes_above_work_material(monkeypatch):
     assert "Letöltés DOCX" in {item["label"] for item in calls["download_button"]}
     assert calls["chat_input"]
     assert "st.columns([1, 2]" not in src
-    assert "st.columns(3, gap=\"medium\")" in src
+    assert "st.columns(3, gap=\"small\")" in src
     assert "A jegyzet- és vázlatszerkesztő a következő fázisban kerül ide." not in joined
     assert "Szerkesztő helye" not in joined
     assert calls["text_area"] == []
@@ -1028,6 +1028,14 @@ def test_draft_editor_toolbar_has_exactly_the_requested_commands():
         / "main.js"
     ).read_text(encoding="utf-8")
     commands = re.findall(r'data-cmd="([^"]+)"', html)
+    aligns = re.findall(r'data-align="([^"]+)"', html)
+    css = (
+        Path(__file__).resolve().parents[1]
+        / "components"
+        / "writing_desk_draft_editor"
+        / "frontend"
+        / "style.css"
+    ).read_text(encoding="utf-8")
     assert commands == [
         "bold",
         "italic",
@@ -1037,6 +1045,11 @@ def test_draft_editor_toolbar_has_exactly_the_requested_commands():
         "undo",
         "redo",
     ]
+    assert aligns == ["left", "center", "right", "justify"]
+    assert "<svg" in html
+    assert ">Bold<" not in html
+    assert ">Undo<" not in html
+    assert "position: sticky" in css
     assert "heading" not in html.casefold()
     assert "font" not in html.casefold()
     assert "tiptap" not in js.casefold()
@@ -1044,6 +1057,8 @@ def test_draft_editor_toolbar_has_exactly_the_requested_commands():
     assert "quill" not in js.casefold()
     assert "tinymce" not in js.casefold()
     assert "lastRevision === null" in js or "revision !== lastRevision" in js
+    assert "applyTextAlign" in js
+    assert "text-align" in js
 
 
 def test_draft_editor_ccv2_registers_frontend_payload(monkeypatch):
@@ -1074,9 +1089,12 @@ def test_draft_editor_ccv2_registers_frontend_payload(monkeypatch):
         assert captured["name"] == "writing_desk_draft_editor"
         assert 'contenteditable="true"' in captured["html"]
         assert 'data-cmd="bold"' in captured["html"]
+        assert 'data-align="justify"' in captured["html"]
+        assert "<svg" in captured["html"]
         assert ".wd-draft-surface" in captured["css"]
         assert "min-height: 650px" in captured["css"]
         assert "min-height: 700px" in captured["css"]
+        assert "position: sticky" in captured["css"]
         assert "setStateValue" in captured["js"]
         assert "revision" in captured["js"]
     finally:

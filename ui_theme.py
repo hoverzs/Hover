@@ -19,6 +19,10 @@ def premium_tokens_css() -> str:
     --tx-primary: #5a7aa8;
     --tx-primary-deep: #1f334d;
     --tx-primary-soft: rgba(232, 238, 247, 0.78);
+    --tx-ui-pass: v3-20260902;
+    --tx-btn-primary-top: #6d8bb6;
+    --tx-btn-primary-mid: #4d6f9a;
+    --tx-btn-primary-bot: #3b5a84;
     --tx-gold: #8a6a3f;
     --tx-text: #2f2a24;
     --tx-text-muted: #5d5347;
@@ -34,12 +38,13 @@ def premium_tokens_css() -> str:
     --tx-space-lg: 1rem;
     --tx-space-xl: 1.5rem;
 
-    /* Hierarchia térközskála: 8 / 12 / 20 / 32 / 48 */
+    /* Hierarchia térközskála: 4 / 8 / 12 / 16 / 24 / 32 */
+    --tx-space-1: 4px;
     --tx-space-2: 8px;
     --tx-space-3: 12px;
-    --tx-space-4: 20px;
-    --tx-space-5: 32px;
-    --tx-space-6: 48px;
+    --tx-space-4: 16px;
+    --tx-space-5: 24px;
+    --tx-space-6: 32px;
 
     --tx-radius-sm: 8px;
     --tx-radius-md: 12px;
@@ -81,8 +86,8 @@ def premium_overlay_css() -> str:
     return """
 /* ===== Premium UX 2.0 overlay ===== */
 .tx-page-intro {
-    margin: 0 0 0.95rem;
-    padding: 0 0 0.4rem;
+    margin: 0 0 0.55rem;
+    padding: 0 0 0.12rem;
 }
 
 .tx-shell-axis {
@@ -111,13 +116,13 @@ def premium_overlay_css() -> str:
 }
 
 .tx-intro-body {
-    margin-top: 12px;
+    margin-top: 6px;
     margin-bottom: 0;
     font-family: "Lora", Georgia, serif;
-    font-size: 1rem;
-    line-height: 1.55;
+    font-size: 0.92rem;
+    line-height: 1.4;
     color: var(--tx-text-muted);
-    max-width: 74ch;
+    max-width: 64ch;
 }
 
 /* Gyorseszközök cím után a rács távolsága */
@@ -125,7 +130,7 @@ def premium_overlay_css() -> str:
 .tx-page-intro ~ .st-key-quick_tools_grid,
 .st-key-workspace_intro + .st-key-quick_tools_grid,
 .st-key-workspace_intro ~ .st-key-quick_tools_grid {
-    margin-top: 24px !important;
+    margin-top: 10px !important;
 }
 
 .tx-status-badge {
@@ -236,13 +241,10 @@ def premium_overlay_css() -> str:
     margin: 0 !important;
     box-sizing: border-box !important;
     border-radius: 50% !important;
-    background: #ffffff !important;
-    border: 1px solid rgba(195, 161, 94, 0.34) !important;
-    box-shadow:
-        0 0 0 1px rgba(255, 255, 255, 0.85),
-        0 4px 18px rgba(90, 62, 28, 0.08),
-        0 0 28px rgba(210, 180, 130, 0.14) !important;
-    overflow: hidden !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    overflow: visible !important;
 }
 
 @media (min-width: 1025px) {
@@ -253,7 +255,7 @@ def premium_overlay_css() -> str:
         width: 142px !important;
         height: 142px !important;
         flex: 0 0 142px !important;
-        padding: 10px !important;
+        padding: 0 !important;
     }
     div.header-logo > div.textus-logo-badge > img.textus-logo-image,
     div.textus-logo-badge > img.textus-logo-image,
@@ -262,8 +264,8 @@ def premium_overlay_css() -> str:
     .textus-logo-badge .main-logo,
     .header-logo .textus-logo-image,
     .header-logo .main-logo {
-        max-width: 122px !important;
-        max-height: 122px !important;
+        max-width: 142px !important;
+        max-height: 142px !important;
     }
 }
 
@@ -292,7 +294,7 @@ div.header-logo img.textus-logo-image.main-logo,
     background-image: none !important;
     opacity: 1 !important;
     mix-blend-mode: normal !important;
-    filter: drop-shadow(0 2px 6px rgba(90, 62, 28, 0.08)) !important;
+    filter: drop-shadow(0 4px 12px rgba(20, 32, 54, 0.22)) !important;
 }
 
 .main-card.header-card {
@@ -454,7 +456,9 @@ div.header-logo img.textus-logo-image.main-logo,
     text-align: left !important;
     align-items: center !important;
     padding: 0 12px !important;
-    box-shadow: 0 1px 3px rgba(58, 40, 22, 0.09) !important;
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.92) inset,
+        0 3px 8px rgba(58, 40, 22, 0.1) !important;
     font-weight: 600 !important;
     white-space: normal !important;
     line-height: 1.2 !important;
@@ -468,17 +472,11 @@ div.header-logo img.textus-logo-image.main-logo,
 
 /* Nincs második ikon / elválasztó — csak Streamlit Material */
 .st-key-quick_tools_grid [data-baseweb="tab"]::before,
-.st-key-quick_tools_grid [data-baseweb="tab"]::after,
 .st-key-quick_tools_grid [data-testid="stTab"]::before,
-.st-key-quick_tools_grid [data-testid="stTab"]::after,
 .tx-quick-tools [data-baseweb="tab"]::before,
-.tx-quick-tools [data-baseweb="tab"]::after,
 .tx-quick-tools [data-testid="stTab"]::before,
-.tx-quick-tools [data-testid="stTab"]::after,
 .tx-quick-tools-root [data-baseweb="tab"]::before,
-.tx-quick-tools-root [data-baseweb="tab"]::after,
 .tx-quick-tools-root [data-testid="stTab"]::before,
-.tx-quick-tools-root [data-testid="stTab"]::after,
 .st-key-quick_tools_grid [data-baseweb="tab"] p::before,
 .st-key-quick_tools_grid [data-baseweb="tab"] p::after,
 .st-key-quick_tools_grid [data-baseweb="tab"] span::before,
@@ -513,16 +511,36 @@ div.header-logo img.textus-logo-image.main-logo,
     background: none !important;
 }
 
+.st-key-quick_tools_grid [data-baseweb="tab"]::after,
+.st-key-quick_tools_grid [data-testid="stTab"]::after,
+.tx-quick-tools [data-baseweb="tab"]::after,
+.tx-quick-tools [data-testid="stTab"]::after,
+.tx-quick-tools-root [data-baseweb="tab"]::after,
+.tx-quick-tools-root [data-testid="stTab"]::after {
+    content: "›" !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    margin-left: auto !important;
+    padding: 0 0 0 8px !important;
+    color: var(--tx-primary) !important;
+    font-size: 1.2rem !important;
+    font-weight: 500 !important;
+    line-height: 1 !important;
+    width: auto !important;
+    height: auto !important;
+    opacity: 0.72 !important;
+}
+
 .st-key-quick_tools_grid [data-baseweb="tab"]:hover,
 .st-key-quick_tools_grid [data-testid="stTab"]:hover,
 .tx-quick-tools [data-baseweb="tab"]:hover,
 .tx-quick-tools [data-testid="stTab"]:hover,
 .tx-quick-tools-root [data-baseweb="tab"]:hover,
 .tx-quick-tools-root [data-testid="stTab"]:hover {
-    transform: translateY(-1px) !important;
-    background: rgba(232, 238, 247, 0.75) !important;
-    border-color: var(--ui-border-active) !important;
-    box-shadow: 0 4px 10px rgba(58, 40, 22, 0.13) !important;
+    transform: translateY(-2px) !important;
+    background: rgba(232, 238, 247, 0.92) !important;
+    border-color: rgba(90, 122, 168, 0.55) !important;
+    box-shadow: 0 8px 16px rgba(58, 40, 22, 0.16) !important;
 }
 
 .st-key-quick_tools_grid [data-baseweb="tab"] [data-testid="stMarkdownContainer"],
@@ -589,12 +607,16 @@ div.header-logo img.textus-logo-image.main-logo,
 .tx-quick-tools [data-testid="stTab"][aria-selected="true"],
 .tx-quick-tools-root [aria-selected="true"][data-baseweb="tab"],
 .tx-quick-tools-root [data-testid="stTab"][aria-selected="true"] {
-    background: rgba(90, 122, 168, 0.16) !important;
-    border-color: rgba(90, 122, 168, 0.55) !important;
-    color: var(--tx-primary-deep) !important;
+    background: rgba(90, 122, 168, 0.38) !important;
+    border-color: rgba(53, 85, 124, 0.72) !important;
+    color: #102033 !important;
     /* Bal oldali accent-sáv — egyértelmű "ez van kiválasztva" jelzés,
        nem csak a háttérszín-árnyalatra hagyatkozva. */
-    box-shadow: inset 3px 0 0 0 var(--tx-primary), 0 2px 5px rgba(58, 40, 22, 0.1) !important;
+    box-shadow:
+        inset 3px 0 0 0 var(--tx-primary),
+        0 1px 0 rgba(255, 255, 255, 0.55) inset,
+        0 4px 12px rgba(52, 72, 98, 0.14) !important;
+    transform: translateY(-1px) !important;
 }
 .st-key-quick_tools_grid [aria-selected="true"][data-baseweb="tab"] [data-testid="stMarkdownContainer"] p,
 .st-key-quick_tools_grid [data-testid="stTab"][aria-selected="true"] [data-testid="stMarkdownContainer"] p,
@@ -838,17 +860,104 @@ body:has(.st-key-passage_search_occasion_field [aria-expanded="true"])
 }
 
 .stExpander {
-    border: 1px solid var(--tx-border) !important;
+    border: 1px solid rgba(170, 145, 112, 0.42) !important;
     border-radius: var(--tx-radius-md) !important;
-    background: var(--tx-surface) !important;
+    background: rgba(255, 252, 247, 0.94) !important;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.8) inset, 0 2px 6px rgba(58, 40, 22, 0.06) !important;
 }
 
 /* ===== Egységes gombhierarchia (alap magasság; scoped nav felülírja) ===== */
 .stButton > button {
-    min-height: 2.75rem !important;
+    min-height: 2.4rem !important;
     border-radius: var(--tx-radius-md) !important;
     font-weight: 600 !important;
     transition: transform 0.14s ease, box-shadow 0.14s ease, background 0.14s ease, border-color 0.14s ease;
+}
+.stButton > button[kind="secondary"],
+.stButton > button[data-testid="stBaseButton-secondary"] {
+    background:
+        linear-gradient(
+            180deg,
+            rgba(255, 254, 250, 0.98) 0%,
+            rgba(236, 226, 210, 0.9) 100%
+        ) !important;
+    border: 1px solid rgba(170, 145, 112, 0.46) !important;
+    color: var(--tx-primary-deep) !important;
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.9) inset,
+        0 -1px 0 rgba(86, 64, 38, 0.08) inset,
+        0 3px 8px rgba(58, 40, 22, 0.1) !important;
+}
+.stButton > button[kind="secondary"]:hover,
+.stButton > button[data-testid="stBaseButton-secondary"]:hover {
+    background:
+        linear-gradient(
+            180deg,
+            rgba(255, 255, 252, 1) 0%,
+            rgba(232, 238, 247, 0.94) 100%
+        ) !important;
+    border-color: rgba(90, 122, 168, 0.48) !important;
+    transform: translateY(-1px) !important;
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.95) inset,
+        0 6px 14px rgba(52, 72, 98, 0.14) !important;
+}
+.stButton > button[kind="primary"],
+.stButton > button[data-testid="stBaseButton-primary"],
+.stButton > button[kind="primaryFormSubmit"] {
+    background:
+        linear-gradient(
+            180deg,
+            var(--tx-btn-primary-top) 0%,
+            var(--tx-btn-primary-mid) 52%,
+            var(--tx-btn-primary-bot) 100%
+        ) !important;
+    border: 1px solid #35557c !important;
+    color: #ffffff !important;
+    text-shadow: 0 1px 0 rgba(18, 32, 48, 0.25) !important;
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.28) inset,
+        0 4px 10px rgba(31, 51, 77, 0.28) !important;
+}
+.stButton > button[kind="primary"]::before,
+.stButton > button[kind="primary"]::after,
+.stButton > button[kind="primaryFormSubmit"]::before,
+.stButton > button[kind="primaryFormSubmit"]::after,
+.stButton > button[data-testid="stBaseButton-primary"]::before,
+.stButton > button[data-testid="stBaseButton-primary"]::after {
+    content: none !important;
+    display: none !important;
+    background: none !important;
+    opacity: 0 !important;
+}
+.stButton > button[kind="primary"] [data-testid="stMarkdownContainer"] p,
+.stButton > button[data-testid="stBaseButton-primary"] [data-testid="stMarkdownContainer"] p,
+.stButton > button[kind="primary"] > div > p,
+.stButton > button[kind="primaryFormSubmit"] > div > p,
+.stButton > button[kind="primary"] [data-testid="stIconMaterial"],
+.stButton > button[data-testid="stBaseButton-primary"] [data-testid="stIconMaterial"] {
+    color: #ffffff !important;
+    text-shadow: 0 1px 0 rgba(18, 32, 48, 0.25) !important;
+}
+.stButton > button[kind="primary"]:hover,
+.stButton > button[data-testid="stBaseButton-primary"]:hover {
+    background:
+        linear-gradient(
+            180deg,
+            #7a98c0 0%,
+            #5a7aa8 52%,
+            #45678f 100%
+        ) !important;
+    transform: translateY(-1px) !important;
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.34) inset,
+        0 7px 14px rgba(31, 51, 77, 0.32) !important;
+}
+.stButton > button:active {
+    transform: translateY(1px) !important;
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.18) inset,
+        0 1px 3px rgba(31, 51, 77, 0.28) inset !important;
 }
 .stButton > button:focus-visible {
     outline: 2px solid rgba(90, 122, 168, 0.55) !important;
@@ -910,7 +1019,7 @@ body:has(.st-key-passage_search_occasion_field [aria-expanded="true"])
         height: 90px !important;
         flex: 0 0 90px !important;
         flex-basis: 90px !important;
-        padding: 7px !important;
+        padding: 0 !important;
         margin: 0 !important;
     }
     div.header-logo > div.textus-logo-badge > img.textus-logo-image,
@@ -921,8 +1030,8 @@ body:has(.st-key-passage_search_occasion_field [aria-expanded="true"])
     .header-logo .main-logo {
         width: 100% !important;
         height: 100% !important;
-        max-width: 76px !important;
-        max-height: 76px !important;
+        max-width: 90px !important;
+        max-height: 90px !important;
         transform: none !important;
         margin: 0 auto !important;
         left: auto !important;
@@ -965,14 +1074,22 @@ body:has(.st-key-passage_search_occasion_field [aria-expanded="true"])
 .st-key-textus_app_toolbar {
     width: 100% !important;
     max-width: 1160px !important;
-    margin: 0 0 12px !important;
-    padding: 6px 10px !important;
+    margin: 0 0 10px !important;
+    padding: 8px 12px !important;
     box-sizing: border-box !important;
-    border-radius: 12px !important;
-    border: 1px solid rgba(170, 145, 112, 0.22) !important;
-    background: rgba(255, 252, 247, 0.92) !important;
-    box-shadow: 0 1px 2px rgba(42, 49, 60, 0.04) !important;
-    min-height: 52px !important;
+    border-radius: 14px !important;
+    border: 1px solid rgba(170, 145, 112, 0.32) !important;
+    background:
+        linear-gradient(
+            180deg,
+            rgba(255, 253, 248, 0.97) 0%,
+            rgba(247, 239, 226, 0.92) 100%
+        ) !important;
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.92) inset,
+        0 -1px 0 rgba(86, 64, 38, 0.06) inset,
+        0 8px 18px rgba(58, 40, 22, 0.08) !important;
+    min-height: 54px !important;
 }
 
 .st-key-textus_app_toolbar [data-testid="stHorizontalBlock"],
@@ -983,10 +1100,13 @@ body:has(.st-key-passage_search_occasion_field [aria-expanded="true"])
 .st-key-textus_app_toolbar > div,
 .st-key-textus_app_toolbar[data-testid="stHorizontalBlock"],
 .st-key-tx_toolbar_main,
-.st-key-tx_toolbar_main[data-testid="stHorizontalBlock"],
+.st-key-tx_toolbar_center,
 .st-key-tx_toolbar_actions,
+.st-key-tx_toolbar_main[data-testid="stHorizontalBlock"],
+.st-key-tx_toolbar_center[data-testid="stHorizontalBlock"],
 .st-key-tx_toolbar_actions[data-testid="stHorizontalBlock"],
 .st-key-tx_toolbar_main > div,
+.st-key-tx_toolbar_center > div,
 .st-key-tx_toolbar_actions > div {
     display: flex !important;
     flex-direction: row !important;
@@ -1002,16 +1122,20 @@ body:has(.st-key-passage_search_occasion_field [aria-expanded="true"])
 }
 
 .st-key-tx_toolbar_main,
+.st-key-tx_toolbar_center,
 .st-key-tx_toolbar_actions {
     width: auto !important;
     max-width: 100% !important;
 }
 
 .st-key-tx_toolbar_main [data-testid="stElementContainer"],
+.st-key-tx_toolbar_center [data-testid="stElementContainer"],
 .st-key-tx_toolbar_actions [data-testid="stElementContainer"],
 .st-key-tx_toolbar_main [data-testid="stMarkdown"],
+.st-key-tx_toolbar_center [data-testid="stMarkdown"],
 .st-key-tx_toolbar_actions [data-testid="stMarkdown"],
 .st-key-tx_toolbar_main [data-testid="stLayoutWrapper"],
+.st-key-tx_toolbar_center [data-testid="stLayoutWrapper"],
 .st-key-tx_toolbar_actions [data-testid="stLayoutWrapper"] {
     width: auto !important;
     max-width: max-content !important;
@@ -1030,10 +1154,19 @@ body:has(.st-key-passage_search_occasion_field [aria-expanded="true"])
     min-width: 0 !important;
 }
 
-.st-key-tx_toolbar_flex {
+.st-key-tx_toolbar_flex,
+.st-key-tx_toolbar_flex_end {
     flex: 1 1 auto !important;
     min-width: 8px !important;
     max-width: none !important;
+}
+
+.st-key-tx_toolbar_center {
+    flex: 0 0 auto !important;
+    padding: 0 10px !important;
+    margin: 0 4px !important;
+    border-left: 1px solid rgba(170, 145, 112, 0.3) !important;
+    border-right: 1px solid rgba(170, 145, 112, 0.3) !important;
 }
 
 .st-key-tx_toolbar_actions {
@@ -1046,14 +1179,19 @@ body:has(.st-key-passage_search_occasion_field [aria-expanded="true"])
     width: auto !important;
     max-width: none !important;
 }
-.st-key-textus_app_toolbar > [data-testid="stLayoutWrapper"]:has(.st-key-tx_toolbar_flex) {
+.st-key-textus_app_toolbar > [data-testid="stLayoutWrapper"]:has(.st-key-tx_toolbar_flex),
+.st-key-textus_app_toolbar > [data-testid="stLayoutWrapper"]:has(.st-key-tx_toolbar_flex_end) {
     flex: 1 1 auto !important;
     min-width: 8px !important;
     width: auto !important;
 }
+.st-key-textus_app_toolbar > [data-testid="stLayoutWrapper"]:has(.st-key-tx_toolbar_center) {
+    flex: 0 0 auto !important;
+    width: auto !important;
+}
 .st-key-textus_app_toolbar > [data-testid="stLayoutWrapper"]:has(.st-key-tx_toolbar_actions) {
     flex: 0 0 auto !important;
-    margin-left: auto !important;
+    margin-left: 0 !important;
     width: auto !important;
 }
 
@@ -1068,38 +1206,85 @@ body:has(.st-key-passage_search_occasion_field [aria-expanded="true"])
 .st-key-textus_app_toolbar [data-testid="stPopover"] > button {
     min-height: 40px !important;
     height: 40px !important;
-    padding: 0 0.55rem !important;
+    padding: 0 0.7rem !important;
     border-radius: 10px !important;
-    font-weight: 600 !important;
+    font-weight: 650 !important;
     gap: 6px !important;
     display: inline-flex !important;
     align-items: center !important;
     white-space: nowrap !important;
     width: auto !important;
-    box-shadow: none !important;
+    transition: transform 0.14s ease, box-shadow 0.14s ease, border-color 0.14s ease, background 0.14s ease !important;
 }
 
 .st-key-textus_app_toolbar .stButton button[kind="secondary"],
 .st-key-textus_app_toolbar [data-testid="stPopover"] > button {
-    background: rgba(255, 253, 249, 0.98) !important;
-    border: 1px solid var(--ui-border) !important;
+    background:
+        linear-gradient(
+            180deg,
+            rgba(255, 254, 250, 0.98) 0%,
+            rgba(236, 226, 210, 0.9) 100%
+        ) !important;
+    border: 1px solid rgba(170, 145, 112, 0.46) !important;
     color: var(--tx-primary-deep) !important;
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.9) inset,
+        0 -1px 0 rgba(86, 64, 38, 0.08) inset,
+        0 3px 8px rgba(58, 40, 22, 0.1) !important;
 }
 
 .st-key-textus_app_toolbar .stButton button[kind="secondary"]:hover,
 .st-key-textus_app_toolbar [data-testid="stPopover"] > button:hover {
-    background: var(--ui-surface-hover) !important;
-    border-color: var(--ui-border-active) !important;
+    background:
+        linear-gradient(
+            180deg,
+            rgba(255, 255, 252, 1) 0%,
+            rgba(232, 238, 247, 0.94) 100%
+        ) !important;
+    border-color: rgba(90, 122, 168, 0.48) !important;
+    transform: translateY(-1px) !important;
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.95) inset,
+        0 6px 14px rgba(52, 72, 98, 0.14) !important;
 }
 
 .st-key-textus_app_toolbar .stButton button[kind="primary"] {
-    background: var(--ui-surface-active) !important;
-    border: 1px solid var(--ui-border-active) !important;
-    color: var(--tx-primary-deep) !important;
+    background:
+        linear-gradient(
+            180deg,
+            var(--tx-btn-primary-top) 0%,
+            var(--tx-btn-primary-mid) 52%,
+            var(--tx-btn-primary-bot) 100%
+        ) !important;
+    border: 1px solid #35557c !important;
+    color: #ffffff !important;
+    text-shadow: 0 1px 0 rgba(18, 32, 48, 0.25) !important;
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.28) inset,
+        0 4px 10px rgba(31, 51, 77, 0.28) !important;
+}
+
+.st-key-textus_app_toolbar .stButton button[kind="primary"] [data-testid="stMarkdownContainer"] p,
+.st-key-textus_app_toolbar .stButton button[kind="primary"] [data-testid="stIconMaterial"] {
+    color: #ffffff !important;
 }
 
 .st-key-textus_app_toolbar .stButton button[kind="primary"]:hover {
-    background: rgba(90, 122, 168, 0.2) !important;
+    background:
+        linear-gradient(
+            180deg,
+            #7a98c0 0%,
+            #5a7aa8 52%,
+            #45678f 100%
+        ) !important;
+    transform: translateY(-1px) !important;
+}
+.st-key-textus_app_toolbar .stButton button:active,
+.st-key-textus_app_toolbar [data-testid="stPopover"] > button:active {
+    transform: translateY(0) !important;
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.55) inset,
+        0 1px 3px rgba(58, 40, 22, 0.14) !important;
 }
 
 .tx-toolbar-divider {
@@ -1135,13 +1320,22 @@ body:has(.st-key-passage_search_occasion_field [aria-expanded="true"])
 
 .tx-guest-strip {
     margin: 0 0 10px;
-    padding: 0.35rem 0.7rem;
-    border-radius: 8px;
-    border: 1px solid rgba(170, 145, 112, 0.22);
-    background: rgba(255, 252, 247, 0.72);
+    padding: 0.28rem 0.72rem;
+    border-radius: 999px;
+    border: 1px solid rgba(170, 145, 112, 0.28);
+    background:
+        linear-gradient(
+            180deg,
+            rgba(255, 252, 247, 0.92),
+            rgba(238, 228, 211, 0.78)
+        );
     color: var(--ui-text-muted);
-    font-size: 0.82rem;
-    line-height: 1.35;
+    font-size: 0.78rem;
+    font-weight: 600;
+    line-height: 1.3;
+    display: inline-flex;
+    align-items: center;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.8) inset, 0 2px 6px rgba(58, 40, 22, 0.06);
 }
 
 .tx-project-name-row {
@@ -1166,15 +1360,22 @@ body:has(.st-key-passage_search_occasion_field [aria-expanded="true"])
 .tx-project-status-chip {
     display: inline-flex;
     align-items: center;
-    font-size: 0.74rem;
-    font-weight: 600;
-    padding: 0.12rem 0.45rem;
+    font-size: 0.72rem;
+    font-weight: 650;
+    letter-spacing: 0.01em;
+    padding: 0.14rem 0.5rem;
     border-radius: 999px;
-    border: 1px solid rgba(170, 145, 112, 0.28);
-    background: rgba(255, 252, 247, 0.9);
+    border: 1px solid rgba(170, 145, 112, 0.32);
+    background:
+        linear-gradient(
+            180deg,
+            rgba(255, 253, 248, 0.96),
+            rgba(238, 228, 211, 0.86)
+        );
     color: var(--ui-text-muted);
     white-space: nowrap;
     flex: 0 0 auto;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.82) inset, 0 1px 3px rgba(58, 40, 22, 0.06);
 }
 
 .tx-project-status-chip.is-dirty {
@@ -2033,14 +2234,16 @@ div[data-baseweb="popover"] [data-testid="stPopoverBody"]::-webkit-scrollbar-thu
 /* ===== 2. Munkafelület — egy feladat = egy emelt panel ===== */
 [class*="st-key-tx_work_surface"] {
     background: var(--tx-work-surface) !important;
-    border: 1px solid rgba(170, 145, 112, 0.22) !important;
+    border: 1px solid rgba(170, 145, 112, 0.24) !important;
     border-radius: var(--tx-radius-surface) !important;
-    box-shadow: var(--tx-shadow-surface) !important;
-    padding: var(--tx-space-4) !important;
-    margin: 0 0 var(--tx-space-4) !important;
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.78) inset,
+        0 6px 16px rgba(58, 40, 22, 0.06) !important;
+    padding: 12px 16px !important;
+    margin: 0 0 16px !important;
 }
 [class*="st-key-tx_work_surface"] > div {
-    gap: var(--tx-space-3) !important;
+    gap: 10px !important;
 }
 
 /* Tipográfia a munkafelületen: címke / mező / meta */
@@ -2166,15 +2369,22 @@ div[data-baseweb="popover"] [data-testid="stPopoverBody"]::-webkit-scrollbar-thu
     gap: 4px !important;
     margin: 0 !important;
     align-items: stretch !important;
-    min-height: 48px !important;
+    min-height: 50px !important;
     box-sizing: border-box !important;
     width: 100% !important;
     max-width: 100% !important;
-    background: var(--ui-surface) !important;
-    border: 1px solid var(--ui-border) !important;
+    background:
+        linear-gradient(
+            180deg,
+            rgba(255, 253, 248, 0.96) 0%,
+            rgba(244, 235, 220, 0.9) 100%
+        ) !important;
+    border: 1px solid rgba(170, 145, 112, 0.34) !important;
     border-radius: var(--ui-radius-md) !important;
-    padding: 4px !important;
-    box-shadow: var(--ui-shadow-sm) !important;
+    padding: 5px !important;
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.88) inset,
+        0 8px 18px rgba(58, 40, 22, 0.08) !important;
 }
 
 .st-key-workspace_switcher [data-testid="stColumn"] {
@@ -2234,7 +2444,8 @@ div[data-baseweb="popover"] [data-testid="stPopoverBody"]::-webkit-scrollbar-thu
         background 170ms ease,
         border-color 170ms ease,
         box-shadow 170ms ease,
-        color 170ms ease !important;
+        color 170ms ease,
+        transform 170ms ease !important;
     transform: none !important;
 }
 
@@ -2276,13 +2487,20 @@ div[data-baseweb="popover"] [data-testid="stPopoverBody"]::-webkit-scrollbar-thu
 }
 
 .st-key-workspace_switcher .stButton button:hover {
-    background: var(--ui-surface-hover) !important;
-    border-color: rgba(90, 122, 168, 0.18) !important;
+    background:
+        linear-gradient(
+            180deg,
+            rgba(255, 254, 250, 0.9) 0%,
+            rgba(232, 238, 247, 0.72) 100%
+        ) !important;
+    border-color: rgba(90, 122, 168, 0.28) !important;
     color: var(--tx-primary-deep) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 10px rgba(52, 72, 98, 0.1) !important;
 }
 
 .st-key-workspace_switcher .stButton button:active {
-    transform: none !important;
+    transform: translateY(0) !important;
 }
 
 .st-key-workspace_switcher .stButton button::after {
@@ -2321,21 +2539,21 @@ div[data-baseweb="popover"] [data-testid="stPopoverBody"]::-webkit-scrollbar-thu
 
 .st-key-workspace_intro .tx-intro-title {
     font-family: "Playfair Display", "Cormorant Garamond", Georgia, serif !important;
-    font-size: 31px !important;
+    font-size: 26px !important;
     font-weight: 650 !important;
-    line-height: 1.2 !important;
+    line-height: 1.15 !important;
     margin: 0 !important;
     color: #2a2117 !important;
 }
 
 .st-key-workspace_intro .tx-intro-body {
-    margin-top: 9px !important;
+    margin-top: 4px !important;
     margin-bottom: 0 !important;
     font-family: "Lora", Georgia, serif !important;
-    font-size: 15.5px !important;
-    line-height: 1.45 !important;
+    font-size: 0.92rem !important;
+    line-height: 1.35 !important;
     color: var(--tx-text-muted) !important;
-    max-width: 740px !important;
+    max-width: 640px !important;
 }
 
 /* spacing handled above (.st-key-workspace_intro ~ .st-key-quick_tools_grid) */
@@ -2588,33 +2806,68 @@ div[data-baseweb="popover"] [data-testid="stPopoverBody"]::-webkit-scrollbar-thu
    szegély; másodlagos = tompább, de MINDIG jól látható, telt háttér. */
 [class*="st-key-sw_refine_"] button[data-testid="stBaseButton-primary"],
 [class*="st-key-sw_flat_"] button[data-testid="stBaseButton-primary"] {
-    background: rgba(90, 122, 168, 0.16) !important;
-    border: 1px solid rgba(90, 122, 168, 0.45) !important;
-    color: var(--tx-primary-deep) !important;
-    box-shadow: none !important;
+    background:
+        linear-gradient(
+            180deg,
+            var(--tx-btn-primary-top) 0%,
+            var(--tx-btn-primary-mid) 52%,
+            var(--tx-btn-primary-bot) 100%
+        ) !important;
+    border: 1px solid #35557c !important;
+    color: #ffffff !important;
+    text-shadow: 0 1px 0 rgba(18, 32, 48, 0.25) !important;
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.28) inset,
+        0 4px 10px rgba(31, 51, 77, 0.28) !important;
     font-weight: 650 !important;
+}
+[class*="st-key-sw_refine_"] button[data-testid="stBaseButton-primary"] [data-testid="stMarkdownContainer"] p,
+[class*="st-key-sw_flat_"] button[data-testid="stBaseButton-primary"] [data-testid="stMarkdownContainer"] p,
+[class*="st-key-sw_refine_"] button[data-testid="stBaseButton-primary"] [data-testid="stIconMaterial"],
+[class*="st-key-sw_flat_"] button[data-testid="stBaseButton-primary"] [data-testid="stIconMaterial"] {
+    color: #ffffff !important;
 }
 [class*="st-key-sw_refine_"] button[data-testid="stBaseButton-primary"]:hover,
 [class*="st-key-sw_flat_"] button[data-testid="stBaseButton-primary"]:hover {
-    background: rgba(90, 122, 168, 0.26) !important;
-    border-color: rgba(90, 122, 168, 0.6) !important;
+    background:
+        linear-gradient(
+            180deg,
+            #7a98c0 0%,
+            #5a7aa8 52%,
+            #45678f 100%
+        ) !important;
+    border-color: #35557c !important;
+    transform: translateY(-1px) !important;
 }
 [class*="st-key-sw_refine_"] button[data-testid="stBaseButton-primary"]:active,
 [class*="st-key-sw_flat_"] button[data-testid="stBaseButton-primary"]:active {
-    background: rgba(90, 122, 168, 0.32) !important;
+    transform: translateY(0) !important;
 }
 [class*="st-key-sw_refine_"] button[data-testid="stBaseButton-secondary"],
 [class*="st-key-sw_flat_"] button[data-testid="stBaseButton-secondary"] {
-    background: rgba(255, 253, 249, 0.92) !important;
-    border: 1px solid rgba(170, 145, 112, 0.45) !important;
+    background:
+        linear-gradient(
+            180deg,
+            rgba(255, 254, 250, 0.98) 0%,
+            rgba(236, 226, 210, 0.9) 100%
+        ) !important;
+    border: 1px solid rgba(170, 145, 112, 0.48) !important;
     color: var(--tx-text) !important;
-    box-shadow: none !important;
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.9) inset,
+        0 3px 8px rgba(58, 40, 22, 0.1) !important;
 }
 [class*="st-key-sw_refine_"] button[data-testid="stBaseButton-secondary"]:hover,
 [class*="st-key-sw_flat_"] button[data-testid="stBaseButton-secondary"]:hover {
-    background: rgba(232, 238, 247, 0.65) !important;
-    border-color: rgba(90, 122, 168, 0.42) !important;
+    background:
+        linear-gradient(
+            180deg,
+            rgba(255, 255, 252, 1) 0%,
+            rgba(232, 238, 247, 0.94) 100%
+        ) !important;
+    border-color: rgba(90, 122, 168, 0.48) !important;
     color: var(--tx-primary-deep) !important;
+    transform: translateY(-1px) !important;
 }
 [class*="st-key-sw_refine_"] button[data-testid="stBaseButton-secondary"]:active,
 [class*="st-key-sw_flat_"] button[data-testid="stBaseButton-secondary"]:active {
@@ -2641,7 +2894,7 @@ div[data-baseweb="popover"] [data-testid="stPopoverBody"]::-webkit-scrollbar-thu
    között, cím/funkció/fő állítás/kibontás/átvezetés mezők között, és
    a kibontás-textarea sorai között — a betűméret VÁLTOZATLAN marad. */
 .st-key-sw_flat_outline_canonical [data-testid="stVerticalBlock"] {
-    gap: 0.4rem !important;
+    gap: 0.28rem !important;
 }
 .st-key-sw_flat_outline_canonical [data-testid="stElementContainer"] {
     margin-bottom: 0 !important;
@@ -2660,8 +2913,120 @@ div[data-baseweb="popover"] [data-testid="stPopoverBody"]::-webkit-scrollbar-thu
     padding: 0.35rem 0.55rem !important;
     line-height: 1.35 !important;
 }
+.st-key-sw_flat_outline_canonical [data-testid="stMarkdownContainer"] p,
+.st-key-sw_flat_outline_canonical [data-testid="stMarkdown"] p {
+    line-height: 1.32 !important;
+    margin-bottom: 0.28rem !important;
+}
+.st-key-sw_flat_outline_canonical [data-testid="stMarkdownContainer"] li,
+.st-key-sw_flat_outline_canonical [data-testid="stMarkdown"] li {
+    line-height: 1.32 !important;
+    margin: 0.05rem 0 !important;
+}
+.st-key-sw_flat_outline_canonical [data-testid="stMarkdownContainer"] ul,
+.st-key-sw_flat_outline_canonical [data-testid="stMarkdown"] ul {
+    margin: 0.15rem 0 0.35rem 0.9rem !important;
+}
+.st-key-sw_flat_outline_canonical [data-testid="stCaptionContainer"] {
+    margin-top: 0.05rem !important;
+    margin-bottom: 0.12rem !important;
+}
+.st-key-sw_flat_outline_canonical [data-testid="stCaptionContainer"] p {
+    line-height: 1.28 !important;
+    margin-bottom: 0 !important;
+}
 [class*="st-key-sw_flat_outline_movement_"] {
-    padding: 0.65rem 0.85rem !important;
+    padding: 0.5rem 0.7rem !important;
+}
+
+/* Hétpontos kártyák + Íróasztal kivonatok — emelt, sűrű dashboard-elemek */
+[class*="st-key-writing_desk_extract_card_"] [data-testid="stVerticalBlockBorderWrapper"] {
+    padding: 12px 14px !important;
+    background:
+        linear-gradient(
+            180deg,
+            rgba(255, 253, 248, 0.96) 0%,
+            rgba(247, 239, 226, 0.9) 100%
+        ) !important;
+    border: 1px solid rgba(170, 145, 112, 0.34) !important;
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.88) inset,
+        0 5px 12px rgba(58, 40, 22, 0.08) !important;
+}
+[class*="st-key-writing_desk_extract_card_"] [data-testid="stVerticalBlock"] {
+    gap: 0.32rem !important;
+}
+
+/* tx-ui-pass-v3-20260902 — hétpontos kártyák sűrítése */
+[data-testid="stVerticalBlockBorderWrapper"]:has([class*="st-key-sw_refine_quick_"]) {
+    padding: 8px 12px !important;
+}
+[data-testid="stVerticalBlockBorderWrapper"]:has([class*="st-key-sw_refine_quick_"]) > [data-testid="stVerticalBlock"] {
+    gap: 8px !important;
+}
+[data-testid="stVerticalBlockBorderWrapper"]:has([class*="st-key-sw_refine_quick_"]) textarea {
+    min-height: 64px !important;
+}
+[data-testid="stVerticalBlockBorderWrapper"]:has([class*="st-key-sw_refine_quick_"]) [data-testid="stElementContainer"] {
+    margin-bottom: 0 !important;
+}
+[data-testid="stVerticalBlockBorderWrapper"]:has([class*="st-key-sw_refine_quick_"]) [data-testid="stExpander"] details,
+[data-testid="stVerticalBlockBorderWrapper"]:has([class*="st-key-sw_refine_quick_"]) [data-testid="stExpander"] summary {
+    padding-top: 4px !important;
+    padding-bottom: 4px !important;
+    min-height: 0 !important;
+}
+[data-testid="stVerticalBlockBorderWrapper"]:has([class*="st-key-sw_refine_quick_"]) [data-testid="stExpander"] summary p {
+    font-size: 0.82rem !important;
+}
+
+/* tx-ui-pass-v3-20260902 — last-wins a korábbi app.py CTA-blokk ellen */
+:root {
+    --tx-ui-pass: v3-20260902;
+}
+.stButton > button[kind="primary"],
+.stButton > button[kind="primaryFormSubmit"],
+.stButton > button[data-testid="stBaseButton-primary"] {
+    background-color: #4d6f9a !important;
+    background-image: linear-gradient(180deg, #6d8bb6 0%, #4d6f9a 52%, #3b5a84 100%) !important;
+    color: #ffffff !important;
+    border: 1px solid #35557c !important;
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.28) inset,
+        0 4px 10px rgba(31, 51, 77, 0.28) !important;
+}
+.st-key-bible_text_ruf_load_btn button,
+.st-key-bible_text_ruf_load_btn [data-testid="stBaseButton-primary"] {
+    background-color: #4d6f9a !important;
+    background-image: linear-gradient(180deg, #6d8bb6 0%, #4d6f9a 52%, #3b5a84 100%) !important;
+    color: #ffffff !important;
+    border: 1px solid #35557c !important;
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.28) inset,
+        0 4px 10px rgba(31, 51, 77, 0.28) !important;
+}
+.stButton > button[kind="primary"]::before,
+.stButton > button[kind="primary"]::after,
+.stButton > button[kind="primaryFormSubmit"]::before,
+.stButton > button[kind="primaryFormSubmit"]::after {
+    content: none !important;
+    display: none !important;
+    background: none !important;
+    opacity: 0 !important;
+}
+.stButton > button[kind="primary"] > div > p,
+.stButton > button[kind="primaryFormSubmit"] > div > p,
+.stButton > button[kind="primary"] [data-testid="stMarkdownContainer"] p,
+.stButton > button[kind="primaryFormSubmit"] [data-testid="stMarkdownContainer"] p {
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+    text-shadow: 0 1px 0 rgba(18, 32, 48, 0.25) !important;
+}
+.st-key-bible_text_ruf_load_btn button,
+.st-key-bible_text_ruf_load_btn button *,
+.st-key-bible_text_ruf_load_btn button p {
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
 }
 """.strip()
 

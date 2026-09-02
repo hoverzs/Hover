@@ -1,7 +1,24 @@
 const ALLOWED_TAGS = new Set(["P", "BR", "STRONG", "B", "EM", "I", "U", "UL", "OL", "LI"])
 const DROP_WITH_CONTENT = new Set(["SCRIPT", "STYLE", "NOSCRIPT"])
+const ALIGN_VALUES = new Set(["left", "center", "right", "justify"])
 const instances = new WeakMap()
 const DEBOUNCE_MS = 350
+
+function readTextAlign(el) {
+  const alignAttr = String(el.getAttribute("align") || "").toLowerCase()
+  if (ALIGN_VALUES.has(alignAttr)) {
+    return alignAttr
+  }
+  const style = String(el.getAttribute("style") || "")
+  const match = style.match(/text-align\s*:\s*(left|center|right|justify)\b/i)
+  return match ? match[1].toLowerCase() : ""
+}
+
+function applyKeptAlign(el, align) {
+  if (align && align !== "left") {
+    el.setAttribute("style", `text-align: ${align}`)
+  }
+}
 
 function clientSanitize(html) {
   const template = document.createElement("template")
@@ -14,13 +31,26 @@ function clientSanitize(html) {
           return
         }
         walk(child)
+        if (child.tagName === "DIV") {
+          const align = readTextAlign(child)
+          const p = child.ownerDocument.createElement("p")
+          while (child.firstChild) {
+            p.appendChild(child.firstChild)
+          }
+          applyKeptAlign(p, align)
+          child.replaceWith(p)
+          return
+        }
         if (!ALLOWED_TAGS.has(child.tagName)) {
           child.replaceWith(...child.childNodes)
           return
         }
+        const align =
+          child.tagName === "P" || child.tagName === "LI" ? readTextAlign(child) : ""
         while (child.attributes.length) {
           child.removeAttribute(child.attributes[0].name)
         }
+        applyKeptAlign(child, align)
       }
     })
   }
@@ -85,11 +115,49 @@ function createInstance(parentElement, setStateValue) {
     flushNow()
   })
 
-  toolbar.querySelectorAll("button[data-cmd]").forEach((button) => {
+  const applyTextAlign = (align) => {
+    editor.focus()
+    const selection = doc.getSelection()
+    let node = selection && selection.anchorNode
+    if (node && node.nodeType === Node.TEXT_NODE) {
+      node = node.parentElement
+    }
+    const block =
+      node && editor.contains(node) ? node.closest("p, li") : null
+    if (block && editor.contains(block)) {
+      if (align === "left") {
+        block.style.removeProperty("text-align")
+        if (!block.getAttribute("style")) {
+          block.removeAttribute("style")
+        }
+      } else {
+        block.style.textAlign = align
+      }
+      flushNow()
+      return
+    }
+    const command =
+      align === "center"
+        ? "justifyCenter"
+        : align === "right"
+          ? "justifyRight"
+          : align === "justify"
+            ? "justifyFull"
+            : "justifyLeft"
+    doc.execCommand(command, false, null)
+    flushNow()
+  }
+
+  toolbar.querySelectorAll("button[data-cmd], button[data-align]").forEach((button) => {
     button.addEventListener("mousedown", (event) => {
       event.preventDefault()
     })
     button.addEventListener("click", () => {
+      const align = button.getAttribute("data-align")
+      if (align) {
+        applyTextAlign(align)
+        return
+      }
       const command = button.getAttribute("data-cmd")
       editor.focus()
       doc.execCommand(command, false, null)

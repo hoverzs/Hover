@@ -28,7 +28,7 @@ from datetime import datetime
 import streamlit as st
 
 APP_NAME = "TEXTUS"
-APP_VERSION = "2.0"
+APP_VERSION = "3.0"
 APP_SUBTITLE = "Homiletikai műhely"
 APP_TAGLINE = "A szövegtől a szószékig"
 

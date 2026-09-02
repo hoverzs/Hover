@@ -11,6 +11,7 @@ from html.parser import HTMLParser
 from typing import Any
 
 from docx import Document
+from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml.ns import qn
 from docx.shared import Inches, Pt
 from docx.text.paragraph import Paragraph
@@ -19,6 +20,31 @@ from writing_desk_data import (
     draft_has_visible_content,
     sanitize_draft_html,
 )
+
+_TEXT_ALIGN_RE = re.compile(
+    r"text-align\s*:\s*(left|center|right|justify)\b",
+    re.IGNORECASE,
+)
+_ALIGN_MAP = {
+    "left": WD_ALIGN_PARAGRAPH.LEFT,
+    "center": WD_ALIGN_PARAGRAPH.CENTER,
+    "right": WD_ALIGN_PARAGRAPH.RIGHT,
+    "justify": WD_ALIGN_PARAGRAPH.JUSTIFY,
+}
+
+
+def _paragraph_align(attrs: list[tuple[str, str | None]]) -> WD_ALIGN_PARAGRAPH | None:
+    for raw_name, raw_value in attrs:
+        name = (raw_name or "").lower()
+        value = str(raw_value or "")
+        if name == "style":
+            match = _TEXT_ALIGN_RE.search(value)
+            if match:
+                return _ALIGN_MAP.get(match.group(1).lower())
+        if name == "align":
+            return _ALIGN_MAP.get(value.strip().lower())
+    return None
+
 
 _UNSAFE_FILENAME_RE = re.compile(r'[<>:"/\\|?*\x00-\x1f]')
 _NON_SLUG_RE = re.compile(r"[^\w]+", re.UNICODE)
@@ -71,7 +97,12 @@ class _DraftHtmlToDocx(HTMLParser):
         kind = self._list_stack[-1] if self._list_stack else ""
         return "List Number" if kind == "ol" else "List Bullet"
 
-    def _add_paragraph(self, *, list_item: bool = False) -> Paragraph:
+    def _add_paragraph(
+        self,
+        *,
+        list_item: bool = False,
+        align: WD_ALIGN_PARAGRAPH | None = None,
+    ) -> Paragraph:
         if list_item and self._list_stack:
             para = self.doc.add_paragraph(style=self._list_style())
             depth = max(len(self._list_stack) - 1, 0)
@@ -79,6 +110,8 @@ class _DraftHtmlToDocx(HTMLParser):
                 para.paragraph_format.left_indent = Inches(0.25 * depth)
         else:
             para = self.doc.add_paragraph()
+        if align is not None:
+            para.alignment = align
         self._para = para
         return para
 
@@ -108,16 +141,19 @@ class _DraftHtmlToDocx(HTMLParser):
             self._para = None
             return
         if name == "li":
-            self._add_paragraph(list_item=True)
+            self._add_paragraph(list_item=True, align=_paragraph_align(attrs))
             self._suppress_p = True
             return
         if name == "p":
+            align = _paragraph_align(attrs)
             if self._suppress_p:
                 self._suppress_p = False
                 if self._para is None:
-                    self._add_paragraph(list_item=bool(self._list_stack))
+                    self._add_paragraph(list_item=bool(self._list_stack), align=align)
+                elif align is not None:
+                    self._para.alignment = align
                 return
-            self._add_paragraph(list_item=bool(self._list_stack))
+            self._add_paragraph(list_item=bool(self._list_stack), align=align)
 
     def handle_endtag(self, tag: str) -> None:
         name = (tag or "").lower()

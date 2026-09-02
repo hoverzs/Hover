@@ -148,7 +148,7 @@ from hymn_ui_state import (
 # =========================================================
 # VERZIÓ
 # =========================================================
-APP_VERSION = "2.0"
+APP_VERSION = "3.0"
 APP_NAME = "TEXTUS"
 APP_SUBTITLE = "Homiletikai műhely"
 APP_TAGLINE = "A szövegtől a szószékig"
@@ -163,7 +163,7 @@ FEEDBACK_TO_EMAIL = "hoverzsolt@gmail.com"
 
 st.set_page_config(
     page_title=f"{APP_NAME} {APP_VERSION}",
-    page_icon="📖",
+    page_icon="Textus_logo_transparent.png",
     layout="wide"
 )
 
@@ -772,17 +772,14 @@ section.main {{
     display: grid;
     place-items: center;
     place-content: center;
-    padding: 10px;
+    padding: 0;
     margin: 0;
     box-sizing: border-box;
     border-radius: 50%;
-    background: #ffffff;
-    border: 1px solid rgba(195, 161, 94, 0.34);
-    box-shadow:
-        0 0 0 1px rgba(255, 255, 255, 0.85),
-        0 4px 18px rgba(90, 62, 28, 0.08),
-        0 0 28px rgba(210, 180, 130, 0.14);
-    overflow: hidden;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    overflow: visible;
 }}
 
 /* Magas specificitás — a badge belső területét tölti ki középen */
@@ -811,7 +808,7 @@ div.header-logo img.textus-logo-image.main-logo,
     background-image: none !important;
     opacity: 1 !important;
     mix-blend-mode: normal !important;
-    filter: drop-shadow(0 2px 6px rgba(90, 62, 28, 0.08));
+    filter: drop-shadow(0 4px 12px rgba(20, 32, 54, 0.22));
 }}
 
 @media (min-width: 721px) {{
@@ -822,8 +819,8 @@ div.header-logo img.textus-logo-image.main-logo,
     .textus-logo-badge .main-logo,
     .header-logo .textus-logo-image,
     .header-logo .main-logo {{
-        max-width: 122px !important;
-        max-height: 122px !important;
+        max-width: 142px !important;
+        max-height: 142px !important;
     }}
 }}
 
@@ -887,7 +884,7 @@ div.header-logo img.textus-logo-image.main-logo,
         width: 90px !important;
         height: 90px !important;
         flex-basis: 90px !important;
-        padding: 7px !important;
+        padding: 0 !important;
     }}
     div.header-logo > div.textus-logo-badge > img.textus-logo-image,
     div.textus-logo-badge > img.textus-logo-image,
@@ -897,8 +894,8 @@ div.header-logo img.textus-logo-image.main-logo,
     .header-logo .main-logo {{
         width: 100% !important;
         height: 100% !important;
-        max-width: 76px !important;
-        max-height: 76px !important;
+        max-width: 90px !important;
+        max-height: 90px !important;
         transform: none !important;
         margin: 0 auto !important;
         left: auto !important;
@@ -1263,130 +1260,80 @@ small {{
     white-space: nowrap;
 }}
 
-/* ===== PRIMARY CTA (világos kékes + erős kontraszt + lebegő hover) ===== */
+/* ===== PRIMARY CTA (telített Textus-kék + fehér felirat) ===== */
 .stButton > button[kind="primary"],
 .stButton > button[kind="primaryFormSubmit"] {{
     position: relative;
     background:
         linear-gradient(
-            155deg,
-            #e8eef8 0%,
-            #d4e0f2 22%,
-            #c5d6ea 48%,
-            #b8c9e2 72%,
-            #a8bad8 100%
+            180deg,
+            #6d8bb6 0%,
+            #4d6f9a 52%,
+            #3b5a84 100%
         );
-    color: #1a2838 !important;
-    border: 1px solid rgba(122, 145, 176, 0.55);
+    color: #ffffff !important;
+    border: 1px solid #35557c;
     border-radius: 12px;
-    padding: 0.62rem 1.25rem;
-    min-height: 2.7rem;
+    padding: 0.55rem 1.15rem;
+    min-height: 2.45rem;
     font-family: "Inter", "Segoe UI", sans-serif;
     font-size: 0.95rem;
-    font-weight: 600;
+    font-weight: 700;
     letter-spacing: 0.01em;
     text-transform: none;
-    text-shadow:
-        0 1px 0 rgba(255, 255, 255, 0.85);
+    text-shadow: 0 1px 0 rgba(18, 32, 48, 0.25);
     box-shadow:
-        0 1px 0 rgba(255, 255, 255, 0.92) inset,
-        0 0 0 1px rgba(255, 255, 255, 0.35) inset,
-        0 -1px 0 rgba(90, 108, 132, 0.12) inset,
-        0 0 0 1px rgba(122, 145, 176, 0.22),
-        0 2px 6px rgba(52, 68, 92, 0.12),
-        0 10px 22px rgba(52, 68, 92, 0.16),
-        0 20px 40px rgba(40, 54, 78, 0.12);
-    transition: transform 0.24s cubic-bezier(0.34, 1.2, 0.64, 1),
-                box-shadow 0.24s cubic-bezier(0.34, 1.2, 0.64, 1),
-                background 0.24s ease,
-                color 0.24s ease,
-                border-color 0.24s ease;
+        0 1px 0 rgba(255, 255, 255, 0.28) inset,
+        0 4px 10px rgba(31, 51, 77, 0.28);
+    transition: transform 0.16s ease,
+                box-shadow 0.16s ease,
+                background 0.16s ease,
+                color 0.16s ease,
+                border-color 0.16s ease;
     overflow: hidden;
     z-index: 1;
 }}
 
 .stButton > button[kind="primary"]::before,
-.stButton > button[kind="primaryFormSubmit"]::before {{
-    content: "";
-    position: absolute;
-    inset: -22px;
-    background: radial-gradient(
-        ellipse 70% 60% at 50% 0%,
-        rgba(255, 252, 246, 0.55),
-        rgba(180, 200, 230, 0.18) 45%,
-        transparent 70%
-    );
-    filter: blur(12px);
-    opacity: 0.85;
-    transition: opacity 0.24s ease, transform 0.24s ease;
-    pointer-events: none;
-    z-index: -1;
-}}
-
+.stButton > button[kind="primaryFormSubmit"]::before,
 .stButton > button[kind="primary"]::after,
 .stButton > button[kind="primaryFormSubmit"]::after {{
-    content: "";
-    position: absolute;
-    inset: 0;
-    background:
-        linear-gradient(125deg, rgba(255, 255, 255, 0.55), transparent 42%),
-        linear-gradient(210deg, transparent 55%, rgba(141, 113, 79, 0.06));
-    pointer-events: none;
-    border-radius: inherit;
-    transition: opacity 0.24s ease;
+    content: none !important;
+    display: none !important;
+    background: none !important;
+    opacity: 0 !important;
+    filter: none !important;
 }}
 
 .stButton > button[kind="primary"]:hover,
 .stButton > button[kind="primaryFormSubmit"]:hover {{
     background:
         linear-gradient(
-            155deg,
-            #eef3fb 0%,
-            #dde9f6 24%,
-            #ccdff0 50%,
-            #bcd2e8 74%,
-            #aec6df 100%
+            180deg,
+            #7a98c0 0%,
+            #5a7aa8 52%,
+            #45678f 100%
         );
-    color: #13202e !important;
-    border-color: rgba(100, 130, 168, 0.62);
-    transform: translateY(-4px);
+    color: #ffffff !important;
+    border-color: #35557c;
+    transform: translateY(-1px);
     box-shadow:
-        0 1px 0 rgba(255, 255, 255, 0.95) inset,
-        0 0 0 1px rgba(255, 255, 255, 0.45) inset,
-        0 -1px 0 rgba(90, 108, 132, 0.10) inset,
-        0 0 0 1px rgba(122, 155, 198, 0.35),
-        0 4px 10px rgba(52, 72, 98, 0.14),
-        0 14px 28px rgba(52, 72, 98, 0.20),
-        0 28px 52px rgba(40, 58, 82, 0.18),
-        0 0 32px rgba(122, 155, 198, 0.28);
-}}
-
-.stButton > button[kind="primary"]:hover::before,
-.stButton > button[kind="primaryFormSubmit"]:hover::before {{
-    opacity: 1;
-    transform: scale(1.04);
-    background: radial-gradient(
-        ellipse 75% 65% at 50% 0%,
-        rgba(255, 255, 255, 0.65),
-        rgba(160, 188, 220, 0.22) 48%,
-        transparent 72%
-    );
+        0 1px 0 rgba(255, 255, 255, 0.34) inset,
+        0 7px 14px rgba(31, 51, 77, 0.32);
 }}
 
 .stButton > button[kind="primary"]:active,
 .stButton > button[kind="primaryFormSubmit"]:active {{
-    transform: translateY(-1px);
+    transform: translateY(1px);
     box-shadow:
-        0 1px 0 rgba(255, 255, 255, 0.75) inset,
-        0 0 0 1px rgba(255, 255, 255, 0.28) inset,
-        0 2px 5px rgba(52, 68, 92, 0.14),
-        0 8px 18px rgba(52, 68, 92, 0.16);
+        0 1px 0 rgba(255, 255, 255, 0.18) inset,
+        0 1px 3px rgba(31, 51, 77, 0.28) inset;
 }}
 
 .stButton > button[kind="primary"]:focus-visible,
 .stButton > button[kind="primaryFormSubmit"]:focus-visible {{
-    outline: 2px solid rgba(122, 155, 198, 0.85);
-    outline-offset: 3px;
+    outline: 2px solid rgba(90, 122, 168, 0.75);
+    outline-offset: 2px;
 }}
 
 .stButton > button[kind="primary"] > div > p,
@@ -1394,59 +1341,56 @@ small {{
     font-size: 0.95rem !important;
     letter-spacing: 0.01em !important;
     text-transform: none !important;
-    color: #1a2838 !important;
-    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.85) !important;
+    color: #ffffff !important;
+    text-shadow: 0 1px 0 rgba(18, 32, 48, 0.25) !important;
 }}
 
 .stButton > button[kind="primary"]:hover > div > p,
 .stButton > button[kind="primaryFormSubmit"]:hover > div > p {{
-    color: #13202e !important;
+    color: #ffffff !important;
 }}
 
-/* ===== SECONDARY (refined glass / quiet action) ===== */
+/* ===== SECONDARY (elefántcsont / kékes, látható szegély) ===== */
 .stButton > button:not([kind="primary"]):not([kind="primaryFormSubmit"]) {{
     position: relative;
     background:
         linear-gradient(
-            145deg,
-            rgba(255, 252, 247, 0.78),
-            rgba(238, 228, 211, 0.58)
+            180deg,
+            rgba(255, 254, 250, 0.98) 0%,
+            rgba(236, 226, 210, 0.92) 100%
         );
-    backdrop-filter: blur(14px) saturate(125%);
-    -webkit-backdrop-filter: blur(14px) saturate(125%);
-    color: #3a2c1d;
-    border: 1px solid rgba(186, 158, 122, 0.55);
+    color: #1f334d;
+    border: 1px solid rgba(170, 145, 112, 0.52);
     border-radius: 12px;
-    padding: 0.55rem 1.15rem;
-    min-height: 2.55rem;
+    padding: 0.5rem 1.05rem;
+    min-height: 2.4rem;
     font-family: "Inter", "Segoe UI", sans-serif;
     font-size: 0.94rem;
-    font-weight: 600;
-    letter-spacing: 0.02em;
+    font-weight: 650;
+    letter-spacing: 0.01em;
     text-transform: none;
     text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
     box-shadow:
-        0 1px 0 rgba(255, 255, 255, 0.78) inset,
-        0 -1px 0 rgba(86, 64, 38, 0.10) inset,
-        0 4px 8px rgba(58, 40, 22, 0.08),
-        0 10px 18px rgba(38, 26, 12, 0.14);
-    transition: transform 0.18s cubic-bezier(0.4, 0.0, 0.2, 1),
-                box-shadow 0.18s cubic-bezier(0.4, 0.0, 0.2, 1),
-                color 0.18s ease,
-                border-color 0.18s ease,
-                background 0.18s ease;
+        0 1px 0 rgba(255, 255, 255, 0.9) inset,
+        0 -1px 0 rgba(86, 64, 38, 0.08) inset,
+        0 3px 8px rgba(58, 40, 22, 0.1);
+    transition: transform 0.16s ease,
+                box-shadow 0.16s ease,
+                color 0.16s ease,
+                border-color 0.16s ease,
+                background 0.16s ease;
     overflow: hidden;
 }}
 
 .stButton > button:not([kind="primary"]):not([kind="primaryFormSubmit"]):hover {{
     background:
         linear-gradient(
-            145deg,
-            rgba(255, 253, 248, 0.92),
-            rgba(240, 232, 218, 0.74)
+            180deg,
+            rgba(255, 255, 252, 1) 0%,
+            rgba(232, 238, 247, 0.94) 100%
         );
-    color: #2c4a72;
-    border-color: rgba(132, 156, 189, 0.62);
+    color: #1f334d;
+    border-color: rgba(90, 122, 168, 0.5);
     transform: translateY(-1px);
     box-shadow:
         0 1px 0 rgba(255, 255, 255, 0.82) inset,
@@ -3111,7 +3055,7 @@ div[data-testid="stForm"] {{
         width: 90px !important;
         height: 90px !important;
         flex-basis: 90px !important;
-        padding: 7px !important;
+        padding: 0 !important;
     }}
 
     div.header-logo > div.textus-logo-badge > img.textus-logo-image,
@@ -3119,8 +3063,8 @@ div[data-testid="stForm"] {{
     .textus-logo-badge .main-logo {{
         width: 100% !important;
         height: 100% !important;
-        max-width: 76px !important;
-        max-height: 76px !important;
+        max-width: 90px !important;
+        max-height: 90px !important;
     }}
 
     .main-card {{
@@ -3176,7 +3120,7 @@ div[data-testid="stForm"] {{
         width: 86px;
         height: 86px;
         flex-basis: 86px;
-        padding: 6px;
+        padding: 0;
         margin: 0;
     }}
 
@@ -3186,8 +3130,8 @@ div[data-testid="stForm"] {{
     .header-logo .main-logo {{
         width: 100% !important;
         height: 100% !important;
-        max-width: 72px !important;
-        max-height: 72px !important;
+        max-width: 86px !important;
+        max-height: 86px !important;
         transform: none !important;
         margin: 0 auto !important;
         left: auto !important;
@@ -3378,15 +3322,15 @@ div[data-testid="stForm"] {{
         width: 82px;
         height: 82px;
         flex-basis: 82px;
-        padding: 6px;
+        padding: 0;
     }}
 
     .textus-logo-badge .textus-logo-image,
     .textus-logo-badge .main-logo {{
         width: 100% !important;
         height: 100% !important;
-        max-width: 68px !important;
-        max-height: 68px !important;
+        max-width: 82px !important;
+        max-height: 82px !important;
         transform: none !important;
         margin: 0 auto !important;
     }}
@@ -7705,7 +7649,7 @@ def render_igehely_panel() -> None:
     apply_pending_passage_search_before_widget()
     render_work_section(
         title="Igeszakasz megadása",
-        body="Textus megadása — innen indul a műhelymunka.",
+        body="Textus megadása.",
         context="Textusműhely",
     )
 
@@ -8384,7 +8328,7 @@ except Exception:
 
 render_page_intro(
     title="Textusműhely",
-    body="Mit mond a textus? Válassz egy eszközt, és folytasd a munkát az aktuális projekttel.",
+    body="Mit mond a textus?",
     workspace_scope=True,
 )
 

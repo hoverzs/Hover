@@ -3888,10 +3888,6 @@ def render_outline_section(
 
     render_work_section(
         title="Igehirdetési vázlat",
-        body=(
-            "A teljes műhelyanyagból összeállított, szerkeszthető és "
-            "jóváhagyható vázlat."
-        ),
         context="Igehirdetési műhely",
     )
 
@@ -11497,10 +11493,6 @@ def render_sermon_path_section(
     ensure_sermon_workshop_state(st.session_state)
 
     st.subheader("Az igehirdetés útja")
-    st.markdown(
-        "Itt nem kész prédikációvázlatot írunk, hanem megtervezzük, milyen "
-        "felismerési úton haladjon végig a hallgató."
-    )
 
     sw = ensure_sermon_workshop_state(st.session_state)
     if (sw.get("sermon_main_idea_status") or "").strip() != "approved":
@@ -11510,12 +11502,6 @@ def render_sermon_path_section(
         )
 
     st.markdown("##### 1. Alaphelyzet")
-    st.caption(
-        "Mi a textus kiinduló feszültsége — konfliktus, hiány, kérdés, "
-        "paradoxon, félreértés, emberi helyzet vagy teológiai probléma? "
-        "(Ez a textus saját feszültsége, nem a hallgató első benyomása — "
-        "azt a Homiletikai belépési pont szakasz Belépés mezője adja.)"
-    )
     st.text_area(
         "Alaphelyzet",
         key=_KEY_PATH["starting_point"],
@@ -11525,12 +11511,6 @@ def render_sermon_path_section(
     )
 
     st.markdown("##### 2. Első fordulópont")
-    st.caption(
-        "Milyen felismerés módosítja itt az addigi értelmezést? Nem "
-        "pusztán új információ, hanem valami megváltozik abban, ahogyan a "
-        "hallgató a helyzetet látja. Nem kötelező — hagyd üresen, ha a "
-        "textus nem indokol külön fordulópontot."
-    )
     st.text_area(
         "Első fordulópont",
         key=_KEY_PATH["first_shift"],
@@ -11540,11 +11520,6 @@ def render_sermon_path_section(
     )
 
     st.markdown("##### 3. Mélyítés és fokozás")
-    st.caption(
-        "Hogyan nő a tét? A kérdés összetettebbé válik, a következmények "
-        "világosabbá lesznek — ne ismételd az első fordulópontot, hanem "
-        "vidd tovább. Elhagyható vagy összevonható az előzővel."
-    )
     st.text_area(
         "Mélyítés és fokozás",
         key=_KEY_PATH["deepening"],
@@ -11554,14 +11529,6 @@ def render_sermon_path_section(
     )
 
     with st.expander("4. Átértelmezés (opcionális)", expanded=False):
-        st.caption(
-            "Itt válik láthatóvá, hogy a textus nem feltétlenül úgy oldja "
-            "fel a kérdést, ahogyan ösztönösen várnánk — váratlan fordulat, "
-            "paradoxon vagy az addigi feltételezések korrekciója. Csak "
-            "akkor töltsd ki, ha a textus valóban indokolja; egyébként "
-            "hagyd üresen, és a mélyítés közvetlenül a második "
-            "fordulóponthoz (Evangéliumi fordulat) vezet tovább."
-        )
         st.text_area(
             "Átértelmezés",
             key=_KEY_PATH["reinterpretation"],
@@ -11965,11 +11932,6 @@ def render_flat_text_and_focus_section(
     expander az egyetlen belépési pont mindkét esethez)."""
     render_work_section(
         title="Textus és fókusz",
-        body=(
-            "A két mező a hét pontot összetartó központi irány — nem "
-            "további modellpont. Kitöltésük opcionális, és nem "
-            "blokkolja a hétpontos vázlat használatát."
-        ),
         context="Igehirdetési műhely",
     )
 
@@ -11977,12 +11939,12 @@ def render_flat_text_and_focus_section(
     sw = ensure_sermon_workshop_state(st.session_state)
 
     st.markdown("**A textus fő gondolata**")
-    st.caption("Mit mond ez a bibliai szakasz saját összefüggésében?")
     st.text_area(
         "A textus fő gondolata",
         key=_KEY_FLAT_TEXT_MAIN_IDEA,
-        height=100,
+        height=72,
         label_visibility="collapsed",
+        placeholder="Mit mond a szakasz a saját összefüggésében?",
         on_change=_flat_save_text_main_idea,
     )
     _render_field_refinement_panel(
@@ -11994,12 +11956,12 @@ def render_flat_text_and_focus_section(
     )
 
     st.markdown("**Az igehirdetés fő gondolata – fókuszmondat**")
-    st.caption("Milyen központi felismerés felé vezesse az igehirdetés a hallgatót?")
     st.text_area(
         "Az igehirdetés fő gondolata – fókuszmondat",
         key=_KEY_SERMON_IDEA,
-        height=100,
+        height=72,
         label_visibility="collapsed",
+        placeholder="Milyen felismerés felé vezesse a hallgatót?",
         on_change=_flat_save_sermon_main_idea,
     )
     _render_field_refinement_panel(
@@ -12056,11 +12018,6 @@ def render_flat_seven_point_outline_section(
     vagy export ezen az útvonalon."""
     render_work_section(
         title="Hétpontos igehirdetési vázlat",
-        body=(
-            "A hét rész együtt alkotja az igehirdetés gondolati és "
-            "dramaturgiai ívét. Nem hét elszigetelt tétel, hanem egyetlen "
-            "előrehaladó gondolatmenet."
-        ),
         context="Igehirdetési műhely",
     )
 
@@ -12107,33 +12064,35 @@ def render_flat_seven_point_outline_section(
     arc = sw.get("arc") if isinstance(sw.get("arc"), dict) else {}
     for idx, point_key in enumerate(_ARC_POINT_KEYS, start=1):
         title = _ARC_CARD_TITLES[point_key]
-        description = _ARC_CARD_DESCRIPTIONS[point_key]
         widget_key = _KEY_FLAT_ARC[point_key]
         with st.container(border=True):
-            st.markdown(f"**{idx}. {title}**")
-            st.caption(description)
+            head_l, head_r = st.columns([1.7, 1], gap="small")
+            with head_l:
+                st.markdown(f"**{idx}. {title}**")
+            with head_r:
+                point_running_key = f"_sw_refine_running_{point_key}"
+                if st.button(
+                    "MI-javaslat ehhez a ponthoz",
+                    key=f"sw_refine_quick_{point_key}",
+                    disabled=bool(st.session_state.get(point_running_key))
+                    or generate_fn is None,
+                ):
+                    _trigger_field_refinement_request(
+                        point_key,
+                        current_text=str((arc.get(point_key) or {}).get("text") or ""),
+                        instruction="",
+                        generate_fn=generate_fn,
+                        running_key=point_running_key,
+                    )
             st.text_area(
                 title,
                 key=widget_key,
-                height=150,
+                height=64,
                 label_visibility="collapsed",
+                placeholder=_ARC_CARD_DESCRIPTIONS.get(point_key, ""),
                 on_change=_flat_save_arc_point,
                 args=(point_key,),
             )
-            point_running_key = f"_sw_refine_running_{point_key}"
-            if st.button(
-                "MI-javaslat ehhez a ponthoz",
-                key=f"sw_refine_quick_{point_key}",
-                disabled=bool(st.session_state.get(point_running_key))
-                or generate_fn is None,
-            ):
-                _trigger_field_refinement_request(
-                    point_key,
-                    current_text=str((arc.get(point_key) or {}).get("text") or ""),
-                    instruction="",
-                    generate_fn=generate_fn,
-                    running_key=point_running_key,
-                )
             _render_field_refinement_panel(
                 point_key,
                 current_text=str((arc.get(point_key) or {}).get("text") or ""),
@@ -12985,11 +12944,6 @@ def render_flat_developed_outline_section(
     betekintési/kézi felülbírálási lehetőség marad."""
     render_work_section(
         title="Részletes prédikációs munkavázlat",
-        body=(
-            "A hétpontos gondolatívből közvetlenül készül — ha szükséges, "
-            "egy belső igehirdetési tervrajz is automatikusan elkészül a "
-            "háttérben, mielőtt a részletes munkavázlat összeáll."
-        ),
         context="Igehirdetési műhely",
     )
 
@@ -13136,7 +13090,7 @@ def render_sermon_workshop_shell(
 
     render_page_intro(
         title="Igehirdetési műhely",
-        body="A textus felismeréseitől a koherens igehirdetési vázlatig.",
+        body="",
         workspace_scope=True,
     )
 

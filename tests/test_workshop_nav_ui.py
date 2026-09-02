@@ -276,6 +276,8 @@ def test_shell_components_use_keyed_containers():
     )
     assert 'key="textus_app_toolbar"' in src
     assert 'key="tx_toolbar_actions"' in src
+    assert 'key="tx_toolbar_center"' in src
+    assert 'key="tx_toolbar_flex_end"' in src
     assert 'key="bar_overflow_more"' in src
     assert "Vissza a főoldalra" in src
     assert 'key="bar_projects_open"' in src

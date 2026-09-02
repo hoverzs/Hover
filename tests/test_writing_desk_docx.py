@@ -104,7 +104,18 @@ def test_no_raw_html_in_docx():
     assert "<strong>" not in xml
 
 
-def test_empty_draft_does_not_export():
+def test_paragraph_alignment_exports_to_docx():
+    from docx.enum.text import WD_ALIGN_PARAGRAPH
+
+    doc = _open(
+        '<p style="text-align: center">Közép</p>'
+        '<p style="text-align: right">Jobb</p>'
+        '<p style="text-align: justify">Sorkizárt</p>'
+    )
+    texts = {p.text: p.alignment for p in doc.paragraphs if (p.text or "").strip()}
+    assert texts["Közép"] == WD_ALIGN_PARAGRAPH.CENTER
+    assert texts["Jobb"] == WD_ALIGN_PARAGRAPH.RIGHT
+    assert texts["Sorkizárt"] == WD_ALIGN_PARAGRAPH.JUSTIFY
     assert build_writing_desk_docx_bytes("") is None
     assert build_writing_desk_docx_bytes("<p><br></p>") is None
     assert build_writing_desk_docx_bytes("   ") is None

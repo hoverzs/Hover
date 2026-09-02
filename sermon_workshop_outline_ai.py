@@ -1845,18 +1845,26 @@ def _ensure_outline_reader_styles() -> None:
 }
 .sw-outline-body {
   font-size: 1.02rem;
-  line-height: 1.55;
+  line-height: 1.35;
   color: #2b2116;
 }
 .sw-outline-body strong {
   display: block;
-  margin-top: 1.05rem;
-  margin-bottom: 0.35rem;
+  margin-top: 0.7rem;
+  margin-bottom: 0.22rem;
   font-size: 1.08rem;
   color: #1f334d;
 }
 .sw-outline-body p {
-  margin-bottom: 0.55rem !important;
+  margin-bottom: 0.32rem !important;
+  line-height: 1.35 !important;
+}
+.sw-outline-body li {
+  margin: 0.05rem 0 !important;
+  line-height: 1.35 !important;
+}
+.sw-outline-body ul {
+  margin: 0.12rem 0 0.35rem 0.95rem !important;
 }
 .sw-pulpit-view {
   background: #fbf8f1;
