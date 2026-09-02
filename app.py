@@ -125,6 +125,8 @@ from hymn_ui_state import (
     mark_hymn_passage_manual_override,
     sync_hymn_passage_from_main_state,
 )
+from illustration_retrieval_ui import render_illustration_search_action
+from illustration_review_ui import is_authorized_reviewer, render_illustration_review_panel
 # =========================================================
 # VERZIÓ
 # =========================================================
@@ -4129,73 +4131,17 @@ nem 6-7 kategóriát felületesen végigjáró enciklopédikus válasz. Rövideb
 letisztultabb válasz mindig jobb, mint egy hosszabb, ami minden dobozt
 kipipál.
 """,
-    "illustrations": """{alap}
-
-# ILLUSZTRÁCIÓK — ELMESÉLHETŐ TÖRTÉNETEK
-
-Szakmai vízió:
-Ez a modul KIZÁRÓLAG konkrét, elmesélhető TÖRTÉNETEKET ad — nem elemzést.
-Az exegetikai és homiletikai kifejtés máshol (Exegézis, Teológia, Vázlat
-modulokban) már megvan; ezt itt NE ismételd meg, és NE adj szerkezeti vagy
-alkalmazási javaslatot a prédikációhoz.
-
-Minden illusztráció legyen:
-- valós eset, ismert anekdota, vagy klasszikus tanmese (pl. haszid
-  történetek Anthony de Mello stílusában, keleti bölcs-mesék, ismert
-  történelmi vagy egyháztörténeti anekdoták) — SOHA nem elvont
-  "kép" vagy metafora-leírás cselekmény nélkül,
-- rövid, önmagában megálló sztori — néhány mondat, konkrét szereplővel,
-  helyszínnel/idővel (ha ismert), cselekménnyel és világos csattanóval
-  vagy tanulsággal a végén,
-- olyan forma, amit a lelkész szó szerint fel tud olvasni vagy el tud
-  mesélni a szószéken, elemzés vagy magyarázat nélkül is megáll önmagában.
-
-SZIGORÚAN TILOS (ez a modul feladatköre kizárja, más modul dolga):
-- görög vagy héber szó, kifejezés idézése vagy nyelvi elemzése,
-- exegetikai szövegelemzés (versenkénti bontás, szómagyarázat, szerkezeti
-  vagy teológiai értelmezés) bármilyen formában, még bevezetésképpen is,
-- homiletikai szerkezeti javaslat, igehirdetési felépítés vagy
-  "hogyan építsd be" jellegű alkalmazási útmutatás,
-- elvont "kép" vagy analógia konkrét, elmesélhető cselekmény nélkül.
-Ezek a tiltások AKKOR IS érvényesek, ha az általános rendszerutasítás
-"exegetikailag pontos" vagy "homiletikailag használható" tartalmat kér —
-EZ a modul kizárólag elmesélhető történeteket ad, a nyelvi/teológiai
-feltárást és a szerkezeti javaslatot más modulra (Exegézis, Teológia,
-Vázlat) bízza.
-
-Strukturáld a választ KIZÁRÓLAG az alábbi 4 alcímmel — sem többet, sem
-kevesebbet, ne adj hozzá saját alcímet (pl. "Exegetikai alapvetés",
-"Homiletikai irányok", "Teológiai háttér" stb.), és a válasz a negyedik
-alcím után ÉRJEN VÉGET, ne folytasd tovább:
-
-## Klasszikus tanmesék
-2–3 ismert bölcs-történet vagy tanmese (haszid, keleti, egyháztörténeti
-hagyomány), amely a textus központi mozgását vagy csattanóját visszaadja.
-
-## Valós anekdoták és esetek
-2–3 megtörtént, azonosítható esemény (történelmi, egyháztörténeti, közismert
-életrajzi anekdota) — csak valós, nem kitalált.
-
-## Mai, hétköznapi történet
-1–2 konkrét, megtörténhetett léptékű eset — NEM elvont élethelyzet-leírás,
-hanem tényleges kis sztori szereplővel és csattanóval.
-
-## Bevezető illusztráció
-EGY ÚJ, a fentiektől eltérő, készre formált történet, amelyet a
-lelkipásztor az igehirdetés első mondataiban elmondhat — NE ismételd meg
-szó szerint vagy tartalmában egyik korábbi szakasz sztoriját sem. EZ AZ
-UTOLSÓ SZAKASZ — itt fejezd be a választ, ne adj hozzá további alcímet
-vagy összegzést.
-
-Minden illusztráció végén — külön sorban, dőlten — egy egymondatos jelzés,
-*mire* rímel a textusban (pl. *„Kapcsolódás: a türelmes várakozás
-motívuma"*) — ez NE fejtse ki elemzés vagy magyarázat formájában, csak
-nevezze meg a kapcsolódási pontot.
-
-Soha NE használj hamis idézeteket, ellenőrizetlen legendákat vagy kitalált
-egyházatya-mondásokat. Ha bizonytalan vagy egy történet eredetében vagy
-valóságtartalmában, jelöld: *(bizonytalan eredet)*.
-""",
+    # Phase 3I.1: a korábbi "illustrations" story-generation prompt
+    # (Klasszikus tanmesék / Valós anekdoták / Mai történet / Bevezető
+    # illusztráció) szándékosan TÖRÖLVE -- forrás és provenance nélküli,
+    # az LLM által kitalált történeteket adott a felhasználónak, ami
+    # sérti a Phase 3I "NO GENERATED FAKE STORIES" elvét. Az egyetlen
+    # user-facing illusztrációforrás mostantól a DB-alapú, ellenőrzött
+    # retrieval (ld. illustration_retrieval_ui.render_illustration_
+    # search_action, illustration_engine.retrieval). A kulcs hiánya
+    # szándékos: ha bármi mégis megpróbálná meghívni
+    # `generate_section("illustrations")`-t, azonnal KeyError-ral
+    # bukjon el, ne generáljon csendben történetet.
     "actualization": """{alap}
 
 # AKTUALIZÁLÁS — TÖRTÉNELMI ÉS KÖZÉLETI PÁRHUZAMOK (BRAINSTORMING)
@@ -4283,7 +4229,6 @@ SECTION_LABELS = {
     "exegesis": "Exegézis",
     "history": "Kortörténet",
     "theology": "Teológia",
-    "illustrations": "Illusztrációk",
     "actualization": "Aktualizálás",
 }
 
@@ -7895,6 +7840,17 @@ def _render_settings_panel() -> None:
             track_event("login", {"method": "google"})
             safe_streamlit_login()
 
+    # ─── 0a) Illusztráció-review — csak a kijelölt reviewer accountnak (vagy
+    # a local-dev QA bypassnak, lásd illustration_review_ui.py) látszik ──
+    _reviewer_logged_in = _is_logged_in()
+    _reviewer_email = (st.user.get("email") or "").strip() if _reviewer_logged_in else None
+    if is_authorized_reviewer(is_logged_in=_reviewer_logged_in, email=_reviewer_email):
+        st.divider()
+        st.subheader("Belső eszközök")
+        if st.button("Illusztráció-review megnyitása", key="settings_open_illustration_review"):
+            st.session_state["shell_panel"] = "illustration_review"
+            st.rerun()
+
     # ─── 0b) Saját munkáim — részletes lista; napi mentés a fejlécsávon ──
     st.subheader("Saját munkáim")
     _owner = _owner_sub()
@@ -8290,6 +8246,23 @@ if st.session_state.get("shell_panel") == "settings":
     _render_settings_panel()
     st.stop()
 
+# Illusztráció-review (belső eszköz) — gate ÚJRA ellenőrizve itt is, hogy egy
+# esetlegesen megmaradt session_state érték (pl. kijelentkezés után) soha ne
+# nyisson meg tartalmat jogosulatlan felhasználónak.
+if st.session_state.get("shell_panel") == "illustration_review":
+    _reviewer_logged_in2 = _is_logged_in()
+    _reviewer_email2 = (st.user.get("email") or "").strip() if _reviewer_logged_in2 else None
+    if not is_authorized_reviewer(is_logged_in=_reviewer_logged_in2, email=_reviewer_email2):
+        st.session_state["shell_panel"] = None
+        st.rerun()
+    else:
+        try:
+            track_app_navigation()
+        except Exception:
+            pass
+        render_illustration_review_panel()
+        st.stop()
+
 render_workspace_switcher(
     options=["workshop", "sermon_workshop"],
     labels=_UI_MODE_LABELS,
@@ -8371,13 +8344,13 @@ with tabs[4]:
     )
 
 with tabs[5]:
-    render_section_tab(
-        key="illustrations",
-        header="Illusztrációk",
-        basket_label="Illusztráció",
-        empty_msg="Még nincsenek illusztrációs ötletek. Kattints az „Illusztrációs ötletek gyűjtése” gombra.",
-        action_label="Illusztrációs ötletek gyűjtése",
-    )
+    # Phase 3I.1: a korábbi szabad LLM-generálású illusztráció-blokkot
+    # (Klasszikus tanmesék / Valós anekdoták / Mai történet / Bevezető
+    # illusztráció -- forrás nélküli, kitalált történetek) eltávolítottuk.
+    # Az egyetlen user-facing tartalom mostantól a DB-alapú, ellenőrzött
+    # retrieval -- ld. illustration_retrieval_ui.render_illustration_
+    # search_action.
+    render_illustration_search_action(generate_fn=generate_text)
 
 with tabs[6]:
     render_section_tab(

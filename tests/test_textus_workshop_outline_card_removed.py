@@ -81,7 +81,12 @@ _EXPECTED_MARKERS: dict[int, str] = {
     2: 'key="exegesis"',
     3: 'key="history"',
     4: 'key="theology"',
-    5: 'key="illustrations"',
+    # Phase 3I.1 (2026-08-28): a korábbi `render_section_tab(key=
+    # "illustrations", ...)` szabad LLM-generálású story-blokkot
+    # eltávolítottuk -- ld. tests/test_illustration_legacy_generation_
+    # removed.py. Az 5. fül tartalma mostantól kizárólag a DB-alapú
+    # retrieval UI.
+    5: "render_illustration_search_action(generate_fn=generate_text)",
     6: 'key="actualization"',
     7: 'st.header("Énekajánló")',
     8: '"Igehirdetési sorozat tervező"',

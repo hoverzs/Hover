@@ -1,0 +1,969 @@
+from __future__ import annotations
+
+import dataclasses
+import hashlib
+import json
+import sqlite3
+
+import pytest
+
+from illustration_engine.illustration_sqlite import (
+    IllustrationLicenseGateError,
+    create_schema,
+    insert_illustration_unit,
+    insert_source,
+    insert_story,
+    update_illustration_unit_fields,
+    update_unit_machine_qa,
+)
+from illustration_engine.retrieval import (
+    MIN_LOCAL_RELEVANCE_SCORE,
+    MIN_RANK_SCORE,
+    REASON_NO_INTENT,
+    REASON_NO_LOCAL_CANDIDATES,
+    REASON_OK,
+    REASON_PLANNER_ERROR,
+    REASON_RANKER_REJECTED_ALL,
+    REASON_RANKING_ERROR,
+    RankedIllustration,
+    RetrievalCandidate,
+    RetrievalDiagnostics,
+    RetrievalIntent,
+    build_query_planner_prompt,
+    build_ranking_prompt,
+    find_candidates,
+    local_relevance_score,
+    parse_planner_response,
+    parse_ranking_response,
+    plan_retrieval_intent,
+    retrieve_illustrations,
+    retrieve_illustrations_with_diagnostics,
+)
+
+_VALID_SUMMARY = " ".join(["szo"] * 45)
+
+# A prompt fragment that only ever appears in the Stage-B ranking prompt
+# (the candidate-list header) -- used by `_llm_dispatch` below to tell
+# apart the two different LLM calls `retrieve_illustrations` now makes
+# (Stage 0 planner, then Stage B ranker) without any call-order tracking.
+_RANKER_MARKER = "JELÖLTEK (kizárólag ezek közül"
+
+
+def _fresh_connection() -> sqlite3.Connection:
+    conn = sqlite3.connect(":memory:")
+    conn.execute("PRAGMA foreign_keys = ON")
+    create_schema(conn)
+    return conn
+
+
+def _make_source(conn: sqlite3.Connection, *, code: str = "SRC", license_status: str = "public_domain_confirmed") -> int:
+    return insert_source(
+        conn, code=code, title="Test Source", orig_language="en",
+        license_status=license_status, license_basis_hu="x", reliability_tier="high", tradition="tradition",
+    )
+
+
+def _make_story(conn: sqlite3.Connection, source_id: int, *, external_ref: str = "1", original_text: str = "Az irgalmas atya története a fiaknak.") -> int:
+    return insert_story(
+        conn, source_id=source_id, external_ref=external_ref, canonical_key=f"key-{external_ref}",
+        title_original="Original Title", adaptation_status="verbatim_transcription", original_text=original_text,
+        original_text_checksum=hashlib.sha256(original_text.encode("utf-8")).hexdigest(),
+    )
+
+
+def _make_unit(
+    conn: sqlite3.Connection, story_id: int, *, unit_index: int = 1, status: str = "needs_review",
+    qa_status: str | None = None, title_hu: str = "Cím", modern_hu_text: str = "Az irgalmas atya elfogadta vissza a fiát.",
+    summary_hu: str = _VALID_SUMMARY, moral_hu: str | None = None,
+) -> int:
+    unit_id = insert_illustration_unit(
+        conn, story_id=story_id, unit_index=unit_index, derivation_type="full_story_translation",
+        status=status, title_hu=title_hu, modern_hu_text=modern_hu_text, summary_hu=summary_hu,
+        moral_hu=moral_hu,
+        human_reviewed_at="2026-08-28T00:00:00+00:00" if status in ("approved", "published") else None,
+    )
+    if qa_status:
+        update_unit_machine_qa(conn, unit_id=unit_id, qa_status=qa_status, qa_model="m", qa_prompt_version="v1")
+    return unit_id
+
+
+def _make_published_unit(conn: sqlite3.Connection, story_id: int, **kwargs) -> int:
+    unit_id = _make_unit(conn, story_id, status="published", qa_status="passed", **kwargs)
+    return unit_id
+
+
+def _llm(response) -> callable:
+    if isinstance(response, dict):
+        return lambda prompt: json.dumps(response)
+    return lambda prompt: response
+
+
+def _llm_dispatch(planner_response, ranker_response) -> callable:
+    """Most `retrieve_illustrations` tests now need two different canned
+    responses -- one for Stage 0's planner call, one for Stage B's
+    ranker call. Dispatches on `_RANKER_MARKER`, which only the ranking
+    prompt contains, rather than tracking call order."""
+    planner_text = json.dumps(planner_response) if isinstance(planner_response, dict) else planner_response
+    ranker_text = json.dumps(ranker_response) if isinstance(ranker_response, dict) else ranker_response
+
+    def _dispatch(prompt: str) -> str:
+        return ranker_text if _RANKER_MARKER in prompt else planner_text
+
+    return _dispatch
+
+
+def _intent(**kwargs) -> RetrievalIntent:
+    return RetrievalIntent(**kwargs)
+
+
+# ---------------------------------------------------------------------------
+# Mode gating (decoupled from relevance scoring via min_relevance=0.0 and a
+# keyword-matching intent, so these tests only exercise the mode/rights gate)
+# ---------------------------------------------------------------------------
+
+_ANY_INTENT = RetrievalIntent(keywords_hu=("atya",))
+
+
+def test_production_mode_returns_only_published() -> None:
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    story_1 = _make_story(conn, source_id, external_ref="1")
+    story_2 = _make_story(conn, source_id, external_ref="2")
+    published_id = _make_published_unit(conn, story_1, title_hu="Publikált")
+    _make_unit(conn, story_2, status="needs_review", qa_status="passed", title_hu="Nem publikált")
+    conn.commit()
+
+    candidates = find_candidates(conn, intent=_ANY_INTENT, mode="production", limit=10, min_relevance=0.0)
+    conn.close()
+
+    assert [c.unit_id for c in candidates] == [published_id]
+    assert candidates[0].provenance_status == "published"
+
+
+def test_development_mode_returns_qa_passed_regardless_of_review_status() -> None:
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    story_id = _make_story(conn, source_id)
+    unit_id = _make_unit(conn, story_id, status="needs_review", qa_status="passed")
+    conn.commit()
+
+    candidates = find_candidates(conn, intent=_ANY_INTENT, mode="development", limit=10, min_relevance=0.0)
+    conn.close()
+
+    assert [c.unit_id for c in candidates] == [unit_id]
+    assert candidates[0].provenance_status == "development_qa_passed"
+
+
+def test_development_mode_excludes_needs_attention() -> None:
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    story_id = _make_story(conn, source_id)
+    _make_unit(conn, story_id, qa_status="needs_attention")
+    conn.commit()
+
+    candidates = find_candidates(conn, intent=_ANY_INTENT, mode="development", limit=10, min_relevance=0.0)
+    conn.close()
+    assert candidates == []
+
+
+def test_development_mode_excludes_failed() -> None:
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    story_id = _make_story(conn, source_id)
+    _make_unit(conn, story_id, qa_status="failed")
+    conn.commit()
+
+    candidates = find_candidates(conn, intent=_ANY_INTENT, mode="development", limit=10, min_relevance=0.0)
+    conn.close()
+    assert candidates == []
+
+
+def test_development_mode_excludes_pending_qa() -> None:
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    story_id = _make_story(conn, source_id)
+    _make_unit(conn, story_id, qa_status=None)  # never QA'd
+    conn.commit()
+
+    candidates = find_candidates(conn, intent=_ANY_INTENT, mode="development", limit=10, min_relevance=0.0)
+    conn.close()
+    assert candidates == []
+
+
+def test_production_mode_excludes_approved_but_not_published() -> None:
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    story_id = _make_story(conn, source_id)
+    _make_unit(conn, story_id, status="approved", qa_status="passed")
+    conn.commit()
+
+    candidates = find_candidates(conn, intent=_ANY_INTENT, mode="production", limit=10, min_relevance=0.0)
+    conn.close()
+    assert candidates == []
+
+
+def test_invalid_mode_rejected() -> None:
+    conn = _fresh_connection()
+    with pytest.raises(ValueError):
+        find_candidates(conn, intent=_ANY_INTENT, mode="staging", limit=10)
+    conn.close()
+
+
+def test_invalid_limit_rejected() -> None:
+    conn = _fresh_connection()
+    with pytest.raises(ValueError):
+        find_candidates(conn, intent=_ANY_INTENT, mode="production", limit=0)
+    conn.close()
+
+
+# ---------------------------------------------------------------------------
+# Rights fail-closed
+# ---------------------------------------------------------------------------
+
+
+def test_non_publishable_license_structurally_cannot_reach_production() -> None:
+    """A 'published' unit on a non-publishable-license source cannot
+    exist at all -- Python-level (IllustrationLicenseGateError) AND
+    DB-level (trigger) both block it. Production-mode retrieval's rights
+    guarantee is therefore structural (enforced by published_
+    illustration_units' own WHERE clause + this two-layer gate), not
+    merely a Python-side filter that could be bypassed."""
+    conn = _fresh_connection()
+    source_id = _make_source(conn, license_status="restricted")
+    story_id = _make_story(conn, source_id)
+    with pytest.raises(IllustrationLicenseGateError):
+        insert_illustration_unit(
+            conn, story_id=story_id, unit_index=1, derivation_type="full_story_translation",
+            status="published", title_hu="T", modern_hu_text="M", summary_hu=_VALID_SUMMARY,
+            human_reviewed_at="2026-08-28T00:00:00+00:00",
+        )
+    conn.close()
+
+
+def test_non_publishable_license_excluded_in_development() -> None:
+    conn = _fresh_connection()
+    source_id = _make_source(conn, license_status="restricted")
+    story_id = _make_story(conn, source_id)
+    _make_unit(conn, story_id, status="needs_review", qa_status="passed")
+    conn.commit()
+
+    candidates = find_candidates(conn, intent=_ANY_INTENT, mode="development", limit=10, min_relevance=0.0)
+    conn.close()
+    assert candidates == []  # qa_status=passed alone is NOT enough -- rights still required
+
+
+# ---------------------------------------------------------------------------
+# Provenance / checksum fail-closed
+# ---------------------------------------------------------------------------
+
+
+def test_checksum_mismatch_excludes_candidate() -> None:
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    story_id = _make_story(conn, source_id)
+    _make_unit(conn, story_id, status="needs_review", qa_status="passed")
+    conn.commit()
+    # Corrupt the checksum directly -- simulates an integrity breach.
+    conn.execute("UPDATE stories SET original_text_checksum = 'corrupted' WHERE id = ?", (story_id,))
+    conn.commit()
+
+    candidates = find_candidates(conn, intent=_ANY_INTENT, mode="development", limit=10, min_relevance=0.0)
+    conn.close()
+    assert candidates == []
+
+
+def test_missing_checksum_excludes_candidate() -> None:
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    story_id = _make_story(conn, source_id)
+    _make_unit(conn, story_id, status="needs_review", qa_status="passed")
+    conn.commit()
+    conn.execute("UPDATE stories SET original_text_checksum = NULL WHERE id = ?", (story_id,))
+    conn.commit()
+
+    candidates = find_candidates(conn, intent=_ANY_INTENT, mode="development", limit=10, min_relevance=0.0)
+    conn.close()
+    assert candidates == []
+
+
+# ---------------------------------------------------------------------------
+# Local relevance scoring / candidate limit (Phase 3I.2)
+# ---------------------------------------------------------------------------
+
+
+def test_local_relevance_score_rewards_title_and_summary_keyword_overlap() -> None:
+    candidate = RetrievalCandidate(
+        unit_id=1, title_hu="A tékozló fiú hazatérése", modern_hu_text="Egy hosszú történet.",
+        summary_hu="Egy apa irgalommal fogadja vissza elveszett fiát.", moral_hu=None,
+        topics=(), tone=None, homiletic_functions=(), source_title="Src", source_code="SRC",
+        tradition=None, license_status="public_domain_confirmed", provenance_status="published",
+    )
+    unrelated = RetrievalCandidate(
+        unit_id=2, title_hu="Egy angol úriember és a kalapja", modern_hu_text="Semmi köze a textushoz.",
+        summary_hu="Viktoriánus kori anekdota egy kalapról.", moral_hu=None,
+        topics=(), tone=None, homiletic_functions=(), source_title="Src", source_code="SRC",
+        tradition=None, license_status="public_domain_confirmed", provenance_status="published",
+    )
+    intent = RetrievalIntent(keywords_hu=("hazatérés", "irgalom"), concepts_hu=("elveszettség", "apa és fiú"))
+
+    assert local_relevance_score(candidate, intent) > local_relevance_score(unrelated, intent)
+    assert local_relevance_score(unrelated, intent) == 0.0
+
+
+def test_local_relevance_score_rewards_topic_match() -> None:
+    candidate = RetrievalCandidate(
+        unit_id=1, title_hu="Cím", modern_hu_text="Szöveg.", summary_hu=_VALID_SUMMARY, moral_hu=None,
+        topics=("irgalom",), tone=None, homiletic_functions=(), source_title="Src", source_code="SRC",
+        tradition=None, license_status="public_domain_confirmed", provenance_status="published",
+    )
+    without_topic = dataclasses.replace(candidate, unit_id=2, topics=())
+    intent = RetrievalIntent(topics=("irgalom",))
+
+    assert local_relevance_score(candidate, intent) > local_relevance_score(without_topic, intent)
+
+
+def test_local_relevance_score_rewards_homiletic_function_match() -> None:
+    candidate = RetrievalCandidate(
+        unit_id=1, title_hu="Cím", modern_hu_text="Szöveg.", summary_hu=_VALID_SUMMARY, moral_hu=None,
+        topics=(), tone=None, homiletic_functions=("bevezeto_illusztracio",), source_title="Src",
+        source_code="SRC", tradition=None, license_status="public_domain_confirmed", provenance_status="published",
+    )
+    without_function = dataclasses.replace(candidate, unit_id=2, homiletic_functions=())
+    intent = RetrievalIntent(preferred_homiletic_functions=("bevezeto_illusztracio",))
+
+    assert local_relevance_score(candidate, intent) > local_relevance_score(without_function, intent)
+
+
+def test_empty_intent_scores_every_candidate_zero() -> None:
+    candidate = RetrievalCandidate(
+        unit_id=1, title_hu="Bármi", modern_hu_text="Bármi", summary_hu=_VALID_SUMMARY, moral_hu=None,
+        topics=("irgalom",), tone=None, homiletic_functions=(), source_title="Src", source_code="SRC",
+        tradition=None, license_status="public_domain_confirmed", provenance_status="published",
+    )
+    assert local_relevance_score(candidate, RetrievalIntent()) == 0.0
+
+
+def test_no_candidate_meets_threshold_returns_empty_not_unfiltered_pool() -> None:
+    """Phase 3I.2 root-cause fix: a passage whose intent shares nothing
+    with the corpus must yield an EMPTY candidate list -- never a
+    recent-first/unfiltered backfill (that was the old, removed
+    behavior; see the module docstring's PHASE_3I2_ROOT_CAUSE note)."""
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    story_id = _make_story(conn, source_id)
+    _make_published_unit(
+        conn, story_id, title_hu="Egy teljesen más témájú anekdota",
+        modern_hu_text="Egy viktoriánus kori úriember és egy kalap.",
+        summary_hu=_VALID_SUMMARY,
+    )
+    conn.commit()
+
+    intent = RetrievalIntent(keywords_hu=("teljesen_ismeretlen_szokombinacio_xyz",))
+    candidates = find_candidates(conn, intent=intent, mode="production", limit=10)
+    conn.close()
+    assert candidates == []
+
+
+def test_min_relevance_threshold_excludes_weak_candidate() -> None:
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    story_id = _make_story(conn, source_id)
+    unit_id = _make_published_unit(
+        conn, story_id, title_hu="Egy irgalmas apa története", summary_hu=_VALID_SUMMARY,
+    )
+    conn.commit()
+
+    intent = RetrievalIntent(keywords_hu=("irgalmas",))
+    below_threshold = find_candidates(conn, intent=intent, mode="production", limit=10, min_relevance=999.0)
+    above_threshold = find_candidates(conn, intent=intent, mode="production", limit=10, min_relevance=0.0)
+    conn.close()
+    assert below_threshold == []
+    assert unit_id in [c.unit_id for c in above_threshold]
+
+
+def test_candidate_limit_respected_after_scoring() -> None:
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    for i in range(5):
+        story_id = _make_story(conn, source_id, external_ref=str(i))
+        _make_published_unit(conn, story_id, unit_index=1, title_hu=f"Irgalmas történet {i}")
+    conn.commit()
+
+    intent = RetrievalIntent(keywords_hu=("irgalmas",))
+    candidates = find_candidates(conn, intent=intent, mode="production", limit=3, min_relevance=0.0)
+    conn.close()
+    assert len(candidates) == 3
+
+
+def test_candidates_sorted_by_score_descending() -> None:
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    story_1 = _make_story(conn, source_id, external_ref="1")
+    story_2 = _make_story(conn, source_id, external_ref="2")
+    weak_id = _make_published_unit(conn, story_1, title_hu="Irgalom egyszer említve", summary_hu=_VALID_SUMMARY)
+    strong_id = _make_published_unit(
+        conn, story_2, title_hu="Irgalom és megbocsátás", summary_hu="Az irgalom és a megbocsátás áll a történet középpontjában."
+    )
+    conn.commit()
+
+    intent = RetrievalIntent(keywords_hu=("irgalom", "megbocsátás"))
+    candidates = find_candidates(conn, intent=intent, mode="production", limit=10, min_relevance=0.0)
+    conn.close()
+    assert [c.unit_id for c in candidates][:2] == [strong_id, weak_id] or strong_id == candidates[0].unit_id
+
+
+def test_candidate_includes_taxonomy_and_attribution_fields() -> None:
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    story_id = _make_story(conn, source_id)
+    unit_id = _make_published_unit(conn, story_id)
+    conn.commit()
+    candidates = find_candidates(conn, intent=_ANY_INTENT, mode="production", limit=10, min_relevance=0.0)
+    conn.close()
+    c = next(c for c in candidates if c.unit_id == unit_id)
+    assert c.source_title == "Test Source"
+    assert c.license_status == "public_domain_confirmed"
+
+
+# ---------------------------------------------------------------------------
+# Stage 0: query planner
+# ---------------------------------------------------------------------------
+
+
+def test_planner_cannot_produce_candidate_id_or_story_content() -> None:
+    """Structural guarantee: `RetrievalIntent` has no field that could
+    carry a unit id or story text -- there is no way for the planner
+    stage to smuggle either past this point, regardless of prompt
+    wording."""
+    field_names = {f.name for f in dataclasses.fields(RetrievalIntent)}
+    assert field_names == {"keywords_hu", "concepts_hu", "topics", "preferred_homiletic_functions"}
+
+
+def test_planner_parses_valid_response() -> None:
+    raw = json.dumps({
+        "keywords_hu": ["hazatérés", "irgalom"],
+        "concepts_hu": ["elveszettség", "apa és fiú"],
+        "topics": ["irgalom"],
+        "preferred_homiletic_functions": ["bevezeto_illusztracio"],
+    })
+    intent = parse_planner_response(raw)
+    assert intent.keywords_hu == ("hazatérés", "irgalom")
+    assert intent.concepts_hu == ("elveszettség", "apa és fiú")
+    assert intent.topics == ("irgalom",)
+    assert intent.preferred_homiletic_functions == ("bevezeto_illusztracio",)
+
+
+def test_planner_malformed_json_yields_empty_intent() -> None:
+    intent = parse_planner_response("this is not json")
+    assert intent == RetrievalIntent()
+    assert intent.is_empty()
+
+
+def test_planner_missing_fields_yield_empty_intent() -> None:
+    intent = parse_planner_response(json.dumps({"unrelated": "stuff"}))
+    assert intent.is_empty()
+
+
+def test_planner_topic_diacritic_variant_canonicalized() -> None:
+    """Same rigor as Phase 3H.1's taxonomy canonicalization: an accented
+    spelling of an existing slug resolves to the canonical one."""
+    intent = parse_planner_response(json.dumps({"topics": ["eszesség"]}))  # canonical: "eszesseg"
+    assert intent.topics == ("eszesseg",)
+
+
+def test_planner_topic_outside_controlled_vocabulary_dropped() -> None:
+    intent = parse_planner_response(json.dumps({"topics": ["hazateres_nem_letezo_topic"]}))
+    assert intent.topics == ()
+
+
+def test_planner_homiletic_function_outside_vocabulary_dropped() -> None:
+    intent = parse_planner_response(json.dumps({"preferred_homiletic_functions": ["nem_letezo_funkcio"]}))
+    assert intent.preferred_homiletic_functions == ()
+
+
+def test_planner_keyword_list_bounded_in_count_and_length() -> None:
+    raw = json.dumps({"keywords_hu": [f"szo{i}" for i in range(50)] + ["x" * 500]})
+    intent = parse_planner_response(raw)
+    assert len(intent.keywords_hu) <= 12
+    assert all(len(k) <= 80 for k in intent.keywords_hu)
+
+
+def test_planner_prompt_forbids_candidate_selection_and_story_writing() -> None:
+    prompt = build_query_planner_prompt(passage_reference="Lk 15,11-24", passage_text="", theme="", occasion="")
+    assert "NEM választasz illusztrációt" in prompt or "NEM írsz történetet" in prompt
+
+
+def test_plan_retrieval_intent_uses_llm_generate_callback() -> None:
+    seen_prompts = []
+
+    def llm(prompt: str) -> str:
+        seen_prompts.append(prompt)
+        return json.dumps({"keywords_hu": ["irgalom"]})
+
+    intent = plan_retrieval_intent(passage_reference="Lk 15,11-24", llm_generate=llm)
+    assert intent.keywords_hu == ("irgalom",)
+    assert len(seen_prompts) == 1
+
+
+def test_plan_retrieval_intent_llm_exception_yields_empty_intent() -> None:
+    def broken_llm(prompt: str) -> str:
+        raise RuntimeError("network down")
+
+    intent = plan_retrieval_intent(passage_reference="Lk 15,11-24", llm_generate=broken_llm)
+    assert intent == RetrievalIntent()
+
+
+# ---------------------------------------------------------------------------
+# Stage B: ranker fail-closed parsing
+# ---------------------------------------------------------------------------
+
+
+def test_ranker_only_returns_known_ids() -> None:
+    ranked = parse_ranking_response(
+        json.dumps({"results": [{"unit_id": 1, "score": 0.9, "reason": "x"}, {"unit_id": 999, "score": 0.8, "reason": "y"}]}),
+        valid_ids={1, 2, 3},
+    )
+    assert [r.unit_id for r in ranked] == [1]  # 999 silently dropped, not replaced
+
+
+def test_ranker_malformed_json_fails_closed() -> None:
+    ranked = parse_ranking_response("this is not json", valid_ids={1, 2, 3})
+    assert ranked == []
+
+
+def test_ranker_missing_results_field_fails_closed() -> None:
+    ranked = parse_ranking_response(json.dumps({"other": "stuff"}), valid_ids={1, 2, 3})
+    assert ranked == []
+
+
+def test_ranker_results_not_a_list_fails_closed() -> None:
+    ranked = parse_ranking_response(json.dumps({"results": "not a list"}), valid_ids={1, 2, 3})
+    assert ranked == []
+
+
+def test_ranker_empty_results_is_valid_empty_answer() -> None:
+    ranked = parse_ranking_response(json.dumps({"results": []}), valid_ids={1, 2, 3})
+    assert ranked == []
+
+
+def test_ranker_score_clamped_to_0_1() -> None:
+    ranked = parse_ranking_response(
+        json.dumps({"results": [{"unit_id": 1, "score": 5.0, "reason": "x"}]}), valid_ids={1},
+    )
+    assert ranked[0].score == 1.0
+
+
+def test_ranker_non_int_unit_id_dropped() -> None:
+    ranked = parse_ranking_response(
+        json.dumps({"results": [{"unit_id": "1", "score": 0.9, "reason": "x"}]}), valid_ids={1},
+    )
+    assert ranked == []  # string "1" is not accepted as int 1 -- fail closed, no type coercion guessing
+
+
+def test_ranking_prompt_forbids_new_story_generation() -> None:
+    candidate = RetrievalCandidate(
+        unit_id=1, title_hu="T", modern_hu_text="M", summary_hu="S", moral_hu=None,
+        topics=(), tone=None, homiletic_functions=(), source_title="Src", source_code="SRC",
+        tradition=None, license_status="public_domain_confirmed", provenance_status="published",
+    )
+    prompt = build_ranking_prompt(passage_reference="Lk 15,11-24", passage_text="", theme="", occasion="", candidates=[candidate])
+    assert "NEM ÍRSZ" in prompt or "NEM TALÁLSZ KI" in prompt
+    assert "[1]" in prompt
+
+
+def test_ranking_prompt_allows_rejecting_all_candidates() -> None:
+    candidate = RetrievalCandidate(
+        unit_id=1, title_hu="T", modern_hu_text="M", summary_hu="S", moral_hu=None,
+        topics=(), tone=None, homiletic_functions=(), source_title="Src", source_code="SRC",
+        tradition=None, license_status="public_domain_confirmed", provenance_status="published",
+    )
+    prompt = build_ranking_prompt(passage_reference="Lk 15,11-24", passage_text="", theme="", occasion="", candidates=[candidate])
+    assert "üres list" in prompt.lower()
+
+
+def test_ranking_prompt_requires_concrete_reason_not_generic() -> None:
+    candidate = RetrievalCandidate(
+        unit_id=1, title_hu="T", modern_hu_text="M", summary_hu="S", moral_hu=None,
+        topics=(), tone=None, homiletic_functions=(), source_title="Src", source_code="SRC",
+        tradition=None, license_status="public_domain_confirmed", provenance_status="published",
+    )
+    prompt = build_ranking_prompt(passage_reference="Lk 15,11-24", passage_text="", theme="", occasion="", candidates=[candidate])
+    assert "kapcsolódik a textushoz" in prompt  # cited as the forbidden example
+    assert "KONKRÉT" in prompt
+
+
+# ---------------------------------------------------------------------------
+# Full pipeline
+# ---------------------------------------------------------------------------
+
+
+def test_full_pipeline_returns_result_with_verbatim_db_text() -> None:
+    """The critical no-hallucination guarantee: modern_hu_text in the
+    result is EXACTLY the candidate's DB row, never anything from the
+    LLM's own response text."""
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    story_id = _make_story(conn, source_id)
+    unit_id = _make_published_unit(
+        conn, story_id, title_hu="Irgalmas apa", summary_hu="Egy irgalmas apa története a hazatérésről.",
+        modern_hu_text="Az eredeti, adatbázisban tárolt szöveg.",
+    )
+    conn.commit()
+
+    llm = _llm_dispatch(
+        {"keywords_hu": ["irgalmas", "hazatérés"]},
+        {"results": [{"unit_id": unit_id, "score": 0.95, "reason": "Nagyon releváns."}]},
+    )
+    results = retrieve_illustrations(
+        conn, mode="production", passage_reference="Lk 15,11-24", llm_generate=llm,
+    )
+    conn.close()
+
+    assert len(results) == 1
+    assert results[0].modern_hu_text == "Az eredeti, adatbázisban tárolt szöveg."
+    assert results[0].unit_id == unit_id
+    assert results[0].rank_reason == "Nagyon releváns."
+
+
+def test_no_candidates_above_threshold_never_calls_ranker() -> None:
+    """Stage 0 (planner) always runs -- it has to, to know what to score
+    candidates against. But if Stage A finds nothing above threshold,
+    Stage B's ranker prompt must never be built/sent."""
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    story_id = _make_story(conn, source_id)
+    _make_published_unit(conn, story_id, title_hu="Teljesen más témájú anekdota", summary_hu=_VALID_SUMMARY)
+    conn.commit()
+
+    ranker_prompts_seen = []
+
+    def llm(prompt: str) -> str:
+        if _RANKER_MARKER in prompt:
+            ranker_prompts_seen.append(prompt)
+            return json.dumps({"results": []})
+        return json.dumps({"keywords_hu": ["teljesen_ismeretlen_szokombinacio_xyz"]})
+
+    results = retrieve_illustrations(conn, mode="production", passage_reference="Lk 15,11-24", llm_generate=llm)
+    conn.close()
+    assert results == []
+    assert ranker_prompts_seen == []  # Stage B never reached
+
+
+def test_planner_failure_yields_empty_result_not_fallback_pool() -> None:
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    story_id = _make_story(conn, source_id)
+    _make_published_unit(conn, story_id)
+    conn.commit()
+
+    def broken_llm(prompt: str) -> str:
+        return "not json at all"
+
+    results = retrieve_illustrations(conn, mode="production", passage_reference="Lk 15,11-24", llm_generate=broken_llm)
+    conn.close()
+    assert results == []
+
+
+def test_malformed_ranker_response_yields_empty_result_not_exception() -> None:
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    story_id = _make_story(conn, source_id)
+    _make_published_unit(conn, story_id, title_hu="Irgalmas apa", summary_hu="Egy irgalmas apa és a hazatérés.")
+    conn.commit()
+
+    llm = _llm_dispatch({"keywords_hu": ["irgalmas", "hazatérés"]}, "garbage, not json")
+    results = retrieve_illustrations(
+        conn, mode="production", passage_reference="Lk 15,11-24", llm_generate=llm,
+    )
+    conn.close()
+    assert results == []
+
+
+def test_low_rank_score_filtered_out_of_final_results() -> None:
+    """Point 5 of the Phase 3I.2 spec: the ranker may score a candidate
+    low without dropping it from `results` entirely -- `retrieve_
+    illustrations` itself must still filter anything below
+    `MIN_RANK_SCORE` out of what the user sees."""
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    story_id = _make_story(conn, source_id)
+    unit_id = _make_published_unit(conn, story_id, title_hu="Irgalmas apa", summary_hu="Egy irgalmas apa története.")
+    conn.commit()
+
+    llm = _llm_dispatch(
+        {"keywords_hu": ["irgalmas"]},
+        {"results": [{"unit_id": unit_id, "score": 0.1, "reason": "Gyenge kapcsolat."}]},
+    )
+    results = retrieve_illustrations(conn, mode="production", passage_reference="Lk 15,11-24", llm_generate=llm)
+    conn.close()
+    assert results == []
+
+
+def test_rank_score_at_or_above_minimum_is_kept() -> None:
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    story_id = _make_story(conn, source_id)
+    unit_id = _make_published_unit(conn, story_id, title_hu="Irgalmas apa", summary_hu="Egy irgalmas apa története.")
+    conn.commit()
+
+    llm = _llm_dispatch(
+        {"keywords_hu": ["irgalmas"]},
+        {"results": [{"unit_id": unit_id, "score": MIN_RANK_SCORE, "reason": "Elég erős kapcsolat."}]},
+    )
+    results = retrieve_illustrations(conn, mode="production", passage_reference="Lk 15,11-24", llm_generate=llm)
+    conn.close()
+    assert len(results) == 1
+
+
+def test_ranker_may_reject_all_end_to_end() -> None:
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    story_id = _make_story(conn, source_id)
+    unit_id = _make_published_unit(conn, story_id, title_hu="Irgalmas apa", summary_hu="Egy irgalmas apa története.")
+    conn.commit()
+
+    llm = _llm_dispatch({"keywords_hu": ["irgalmas"]}, {"results": []})
+    results = retrieve_illustrations(conn, mode="production", passage_reference="Lk 15,11-24", llm_generate=llm)
+    conn.close()
+    assert results == []
+
+
+def test_top_n_limits_result_count() -> None:
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    unit_ids = []
+    for i in range(6):
+        story_id = _make_story(conn, source_id, external_ref=str(i))
+        unit_ids.append(_make_published_unit(conn, story_id, title_hu=f"Irgalmas történet {i}", summary_hu=_VALID_SUMMARY))
+    conn.commit()
+
+    llm = _llm_dispatch(
+        {"keywords_hu": ["irgalmas"]},
+        {"results": [{"unit_id": uid, "score": 0.9, "reason": "x"} for uid in unit_ids]},
+    )
+    results = retrieve_illustrations(
+        conn, mode="production", passage_reference="Lk 15,11-24", llm_generate=llm, top_n=3,
+        min_local_relevance=0.0,
+    )
+    conn.close()
+    assert len(results) == 3
+
+
+def test_development_mode_result_marks_provenance_status() -> None:
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    story_id = _make_story(conn, source_id)
+    unit_id = _make_unit(conn, story_id, status="needs_review", qa_status="passed", title_hu="Irgalmas apa", summary_hu="Egy irgalmas apa története.")
+    conn.commit()
+
+    llm = _llm_dispatch({"keywords_hu": ["irgalmas"]}, {"results": [{"unit_id": unit_id, "score": 0.9, "reason": "x"}]})
+    results = retrieve_illustrations(conn, mode="development", passage_reference="Lk 15,11-24", llm_generate=llm)
+    conn.close()
+
+    assert results[0].provenance_status == "development_qa_passed"
+
+
+def test_retrieval_never_writes_to_db() -> None:
+    """Retrieval is READ-ONLY -- human_reviewed_at, status, qa_status must
+    all be unchanged after a full retrieval call."""
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    story_id = _make_story(conn, source_id)
+    unit_id = _make_unit(conn, story_id, status="needs_review", qa_status="passed", title_hu="Irgalmas apa", summary_hu="Egy irgalmas apa története.")
+    conn.commit()
+    before = conn.execute("SELECT status, human_reviewed_at, qa_status FROM illustration_units WHERE id=?", (unit_id,)).fetchone()
+
+    llm = _llm_dispatch({"keywords_hu": ["irgalmas"]}, {"results": [{"unit_id": unit_id, "score": 0.9, "reason": "x"}]})
+    retrieve_illustrations(conn, mode="development", passage_reference="Lk 15,11-24", llm_generate=llm)
+
+    after = conn.execute("SELECT status, human_reviewed_at, qa_status FROM illustration_units WHERE id=?", (unit_id,)).fetchone()
+    conn.close()
+    assert before == after
+
+
+# ---------------------------------------------------------------------------
+# Regression: manual-QA weak-match cases (Phase 3I.2 point 8) -- a
+# thematically unrelated period-piece anecdote must not outrank/replace
+# a genuinely on-topic candidate just because the corpus has few good
+# matches. Synthetic fixtures standing in for the real corpus's "Beau
+# Brummell" / "Trumpington" / "C---- tanácsos" class of weak matches.
+# ---------------------------------------------------------------------------
+
+
+def test_thematically_unrelated_anecdote_does_not_pass_threshold_for_unrelated_passage() -> None:
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    story_id = _make_story(conn, source_id, original_text="An English anecdote about hats and manners.")
+    _make_published_unit(
+        conn, story_id, title_hu="C---- tanácsos és Trumpington",
+        summary_hu="Egy angol úriember különc viselkedéséről szóló anekdota egy kalapbolt előtt.",
+        modern_hu_text="Egy hosszú, viktoriánus kori anekdota illemről és társasági szokásokról.",
+    )
+    conn.commit()
+
+    intent = RetrievalIntent(
+        keywords_hu=("hazatérés", "irgalom", "megbocsátás"),
+        concepts_hu=("elveszettség", "apa és fiú"),
+        topics=("irgalom",),
+    )
+    candidates = find_candidates(conn, intent=intent, mode="production", limit=10)
+    conn.close()
+    assert candidates == []
+
+
+# ---------------------------------------------------------------------------
+# Phase 3I.3: fail-closed observability (`RetrievalDiagnostics`). Root cause
+# of the live-vs-diagnostic-script discrepancy this phase found was a
+# GLOBAL COOLDOWN inside app.py's `generate_text` -- outside this module's
+# reach and not something illustration_engine can unit-test directly (it
+# lives in the Streamlit-coupled caller, see tests/test_illustration_
+# retrieval_ui_cooldown.py for that regression). What IS this module's
+# responsibility, and what these tests cover, is that a caller can always
+# tell OK apart from every distinct failure mode without any raw LLM
+# content leaking into the diagnosis.
+# ---------------------------------------------------------------------------
+
+
+def test_diagnostics_reason_ok_when_results_found() -> None:
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    story_id = _make_story(conn, source_id)
+    unit_id = _make_published_unit(conn, story_id, title_hu="Irgalmas apa", summary_hu="Egy irgalmas apa története.")
+    conn.commit()
+
+    llm = _llm_dispatch(
+        {"keywords_hu": ["irgalmas"]},
+        {"results": [{"unit_id": unit_id, "score": 0.9, "reason": "x"}]},
+    )
+    results, diag = retrieve_illustrations_with_diagnostics(
+        conn, mode="production", passage_reference="Lk 15,11-24", llm_generate=llm,
+    )
+    conn.close()
+
+    assert len(results) == 1
+    assert diag.reason == REASON_OK
+    assert diag.final_count == 1
+    assert diag.stage_a_candidate_count == 1
+    assert diag.stage_b_accepted_count == 1
+
+
+def test_diagnostics_reason_planner_error_on_llm_exception() -> None:
+    conn = _fresh_connection()
+
+    def broken_llm(prompt: str) -> str:
+        raise RuntimeError("network down")
+
+    results, diag = retrieve_illustrations_with_diagnostics(
+        conn, mode="production", passage_reference="Lk 15,11-24", llm_generate=broken_llm,
+    )
+    conn.close()
+
+    assert results == []
+    assert diag.reason == REASON_PLANNER_ERROR
+    assert diag.intent == RetrievalIntent()
+
+
+def test_diagnostics_reason_no_intent_on_malformed_planner_response() -> None:
+    conn = _fresh_connection()
+    llm = _llm_dispatch("not json at all", {"results": []})
+    results, diag = retrieve_illustrations_with_diagnostics(
+        conn, mode="production", passage_reference="Lk 15,11-24", llm_generate=llm,
+    )
+    conn.close()
+
+    assert results == []
+    assert diag.reason == REASON_NO_INTENT
+
+
+def test_diagnostics_reason_no_local_candidates_when_nothing_clears_threshold() -> None:
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    story_id = _make_story(conn, source_id)
+    _make_published_unit(conn, story_id, title_hu="Teljesen más témájú anekdota", summary_hu=_VALID_SUMMARY)
+    conn.commit()
+
+    llm = _llm_dispatch({"keywords_hu": ["teljesen_ismeretlen_szokombinacio_xyz"]}, {"results": []})
+    results, diag = retrieve_illustrations_with_diagnostics(
+        conn, mode="production", passage_reference="Lk 15,11-24", llm_generate=llm,
+    )
+    conn.close()
+
+    assert results == []
+    assert diag.reason == REASON_NO_LOCAL_CANDIDATES
+    assert diag.stage_a_pool_size == 1
+    assert diag.stage_a_candidate_count == 0
+    assert len(diag.stage_a_top_scores) == 1  # visible even though nothing cleared threshold
+
+
+def test_diagnostics_reason_ranking_error_on_llm_exception() -> None:
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    story_id = _make_story(conn, source_id)
+    _make_published_unit(conn, story_id, title_hu="Irgalmas apa", summary_hu="Egy irgalmas apa története.")
+    conn.commit()
+
+    def flaky_llm(prompt: str) -> str:
+        if _RANKER_MARKER in prompt:
+            raise RuntimeError("network down mid-ranking")
+        return json.dumps({"keywords_hu": ["irgalmas"]})
+
+    results, diag = retrieve_illustrations_with_diagnostics(
+        conn, mode="production", passage_reference="Lk 15,11-24", llm_generate=flaky_llm,
+    )
+    conn.close()
+
+    assert results == []
+    assert diag.reason == REASON_RANKING_ERROR
+    assert diag.stage_a_candidate_count == 1
+
+
+def test_diagnostics_reason_ranker_rejected_all_when_nothing_clears_rank_threshold() -> None:
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    story_id = _make_story(conn, source_id)
+    unit_id = _make_published_unit(conn, story_id, title_hu="Irgalmas apa", summary_hu="Egy irgalmas apa története.")
+    conn.commit()
+
+    llm = _llm_dispatch(
+        {"keywords_hu": ["irgalmas"]},
+        {"results": [{"unit_id": unit_id, "score": 0.1, "reason": "Gyenge kapcsolat."}]},
+    )
+    results, diag = retrieve_illustrations_with_diagnostics(
+        conn, mode="production", passage_reference="Lk 15,11-24", llm_generate=llm,
+    )
+    conn.close()
+
+    assert results == []
+    assert diag.reason == REASON_RANKER_REJECTED_ALL
+    assert diag.stage_b_parsed_count == 1
+    assert diag.stage_b_accepted_count == 0
+
+
+def test_diagnostics_dataclass_has_no_raw_text_field() -> None:
+    """Structural check: `RetrievalDiagnostics`'s fields are all counts/
+    scores/reason codes/the parsed `RetrievalIntent` -- there is no
+    field that could hold a raw prompt or response string."""
+    field_names = {f.name for f in dataclasses.fields(RetrievalDiagnostics)}
+    assert field_names == {
+        "reason", "intent", "stage_a_pool_size", "stage_a_candidate_count",
+        "stage_a_top_scores", "stage_b_parsed_count", "stage_b_accepted_count", "final_count",
+    }
+
+
+def test_retrieve_illustrations_plain_still_returns_only_results_list() -> None:
+    """Backward compatibility: the plain entry point's return type/
+    behavior is unchanged by adding the diagnostics variant."""
+    conn = _fresh_connection()
+    source_id = _make_source(conn)
+    story_id = _make_story(conn, source_id)
+    unit_id = _make_published_unit(conn, story_id, title_hu="Irgalmas apa", summary_hu="Egy irgalmas apa története.")
+    conn.commit()
+
+    llm = _llm_dispatch(
+        {"keywords_hu": ["irgalmas"]},
+        {"results": [{"unit_id": unit_id, "score": 0.9, "reason": "x"}]},
+    )
+    results = retrieve_illustrations(conn, mode="production", passage_reference="Lk 15,11-24", llm_generate=llm)
+    conn.close()
+    assert isinstance(results, list)
+    assert len(results) == 1
