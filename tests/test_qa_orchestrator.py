@@ -3,12 +3,14 @@ from __future__ import annotations
 import hashlib
 import json
 import sqlite3
+import tempfile
+from pathlib import Path
 
 import pytest
 
 from illustration_engine.illustration_sqlite import create_schema, insert_source, insert_story
 from illustration_engine.illustration_unit_repository import create_draft_unit, get_unit, update_draft_unit
-from illustration_engine.qa_orchestrator import run_machine_qa_for_unit
+from illustration_engine.qa_orchestrator import run_machine_qa_for_unit, run_machine_qa_for_unit_and_commit
 
 _VALID_SUMMARY = " ".join(["szo"] * 45)
 
@@ -321,3 +323,101 @@ def test_moral_hu_null_from_the_start_is_not_flagged_as_content_missing() -> Non
     )
     conn.close()
     assert outcome.qa_status_written == "passed"
+
+
+# ---------------------------------------------------------------------------
+# Phase 3J.1: commit-persistence regression -- the exact bug class a
+# standalone batch script hit (called run_machine_qa_for_unit(), never
+# committed, closed the connection -- Python's sqlite3 silently rolled the
+# whole QA write back, no exception, no corruption, qa_status just stayed
+# NULL). A `:memory:` DB can't reproduce this (it never persists across
+# connections in the first place, commit or not) -- these tests use a real
+# temp FILE database so a second, independent connection is the only way
+# to observe whether a write actually survived.
+# ---------------------------------------------------------------------------
+
+
+def _fresh_file_connection(path: Path) -> sqlite3.Connection:
+    conn = sqlite3.connect(str(path))
+    conn.execute("PRAGMA foreign_keys = ON")
+    create_schema(conn)
+    return conn
+
+
+def test_uncommitted_qa_write_does_not_survive_connection_close() -> None:
+    """Documents and enforces the EXISTING, deliberate contract (see
+    `run_machine_qa_for_unit`'s docstring): the function itself never
+    commits -- the caller must. Reproduces the Phase 3J bug exactly:
+    without an explicit `connection.commit()`, the write is silently
+    lost on close, and a fresh connection to the same file sees nothing."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        db_path = Path(tmpdir) / "test.sqlite3"
+        conn = _fresh_file_connection(db_path)
+        source_id = _make_source(conn)
+        story_id = _make_story(conn, source_id, original_text="Short story.")
+        unit_id = _make_unit(conn, story_id)
+        conn.commit()  # commit the setup itself, so only the QA write is in question
+
+        run_machine_qa_for_unit(
+            conn, unit_id=unit_id, llm_generate=lambda p: _qa_response("PASS"), model_identifier="m",
+        )
+        # Deliberately NO conn.commit() here -- this is the bug being guarded against.
+        conn.close()
+
+        fresh = _fresh_file_connection(db_path)
+        row = fresh.execute("SELECT qa_status FROM illustration_units WHERE id=?", (unit_id,)).fetchone()
+        fresh.close()
+        assert row[0] is None, (
+            "if this now fails, run_machine_qa_for_unit started auto-committing -- "
+            "update its docstring and run_machine_qa_for_unit_and_commit accordingly, "
+            "this is not a false alarm to silence"
+        )
+
+
+def test_explicitly_committed_qa_write_survives_connection_close() -> None:
+    """The other half of the same contract: WITH an explicit commit, the
+    write is durable across connections -- proving the bug is specifically
+    about a missing `commit()` call, not something structurally broken."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        db_path = Path(tmpdir) / "test.sqlite3"
+        conn = _fresh_file_connection(db_path)
+        source_id = _make_source(conn)
+        story_id = _make_story(conn, source_id, original_text="Short story.")
+        unit_id = _make_unit(conn, story_id)
+        conn.commit()
+
+        run_machine_qa_for_unit(
+            conn, unit_id=unit_id, llm_generate=lambda p: _qa_response("PASS"), model_identifier="m",
+        )
+        conn.commit()  # the fix: explicit commit
+        conn.close()
+
+        fresh = _fresh_file_connection(db_path)
+        row = fresh.execute("SELECT qa_status FROM illustration_units WHERE id=?", (unit_id,)).fetchone()
+        fresh.close()
+        assert row[0] == "passed"
+
+
+def test_run_machine_qa_for_unit_and_commit_persists_without_caller_commit() -> None:
+    """The preventive helper: a standalone script using THIS function
+    instead of the bare one needs no explicit commit of its own to get
+    durable persistence -- closing the gap the Phase 3J bug fell into."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        db_path = Path(tmpdir) / "test.sqlite3"
+        conn = _fresh_file_connection(db_path)
+        source_id = _make_source(conn)
+        story_id = _make_story(conn, source_id, original_text="Short story.")
+        unit_id = _make_unit(conn, story_id)
+        conn.commit()
+
+        outcome = run_machine_qa_for_unit_and_commit(
+            conn, unit_id=unit_id, llm_generate=lambda p: _qa_response("PASS"), model_identifier="m",
+        )
+        # Deliberately NO conn.commit() here -- the wrapper must have done it already.
+        conn.close()
+
+        assert outcome.qa_status_written == "passed"
+        fresh = _fresh_file_connection(db_path)
+        row = fresh.execute("SELECT qa_status FROM illustration_units WHERE id=?", (unit_id,)).fetchone()
+        fresh.close()
+        assert row[0] == "passed"

@@ -1410,13 +1410,17 @@ MORAL_HU SZABÁLYOK (OPCIONÁLIS mező):
     "modern_hu_text": "...",
     "summary_hu": "...",
     "moral_hu": "... vagy null, ha a történetnek nincs természetes tanulsága",
-    "topics": ["..."],
-    "tone": "...",
-    "homiletic_functions": ["..."],
+    "topics": ["irgalom"],
+    "tone": "komoly",
+    "homiletic_functions": ["szemlelteto_pelda"],
     "narrative_status": "...",
     "narrative_status_confidence": "low | medium | high"
   }
 }
+(A "topics"/"tone"/"homiletic_functions" fenti értékei CSAK a helyes \
+formátumot illusztrálják — a te válaszodban a KONTROLLÁLT CÍMKÉK \
+listákból a TÉNYLEGESEN a történethez illő elemeket add meg, szó \
+szerint úgy írva, ahogy azok a listákban szerepelnek.)
 """
         json_shape_section = json_shape_section.replace(
             "EXPECTED_DERIVATION_TYPE", expected_derivation_type or ""
@@ -1436,9 +1440,9 @@ MORAL_HU SZABÁLYOK (OPCIONÁLIS mező):
       "source_span_end": <int, csak extracted_scene esetén>,
       "title_hu": "...",
       "summary_hu": "...",
-      "topics": ["..."],
-      "tone": "...",
-      "homiletic_functions": ["..."],
+      "topics": ["irgalom"],
+      "tone": "komoly",
+      "homiletic_functions": ["szemlelteto_pelda"],
       "narrative_status": "...",
       "narrative_status_confidence": "...",
       "rationale": "miért ez a szövegrész, csak extracted_scene esetén kötelező",
@@ -1447,6 +1451,10 @@ MORAL_HU SZABÁLYOK (OPCIONÁLIS mező):
     }
   ]
 }
+(A "topics"/"tone"/"homiletic_functions" fenti értékei CSAK a helyes \
+formátumot illusztrálják — a te válaszodban a KONTROLLÁLT CÍMKÉK \
+listákból a TÉNYLEGESEN a történethez illő elemeket add meg, szó \
+szerint úgy írva, ahogy azok a listákban szerepelnek.)
 
 NE add meg "modern_hu_text"-et vagy "moral_hu"-t ebben a módban — ezek \
 a mezők ehhez a módhoz nem tartoznak (ld. FELADAT fent).
@@ -1575,6 +1583,26 @@ találhatsz ki:
 - topics (1-3 db): {topics_list}
 - tone (pontosan 1): {tones_list}
 - homiletic_functions (1-2 db): {functions_list}
+
+SZIGORÚ SZABÁLYOK a fenti három listára (Phase 3J.1 — a leggyakoribb \
+elutasítási ok éppen e szabályok megsértése volt):
+- minden topics/tone/homiletic_functions érték KARAKTERRŐL KARAKTERRE \
+  egyezzen meg a fenti listák egyikével — pontosan úgy írva, ahogy ott \
+  áll (kisbetű, ékezet NÉLKÜL, aláhúzásokkal, pl. "eszesseg", NEM \
+  "eszesség", NEM "eszessegg", NEM semmilyen más alak);
+- NE fordítsd vissza magyar ékezetes alakra, és NE változtass a \
+  szóalakon (elgépelés, toldalék, kötőjel stb.) — a validátor szó \
+  szerinti egyezést ellenőriz;
+- ha egy fogalom rokon értelmű valamelyik listaelemmel, de nem AZONOS \
+  vele, TILOS új, hasonló hangzású vagy szinonim címkét kitalálni — \
+  pl. "szorgalom", "nagylelkűség", "kitartás", "hűség", "csalás" NEM \
+  szerepelnek egyik listán sem, ezért MÉG AKKOR SEM használhatók, ha \
+  a történethez jól illenének;
+- ha a topics-lista egyik eleme sem illik VALÓBAN jelentésben a \
+  történethez, VÁLASSZ KEVESEBBET (akár csak 1 topicot, a leginkább \
+  releváns egyet) — az 1-3-as tartomány FELSŐ határ, nem kötelező \
+  mindig 2-3-at megadni; egy hiányzó, de pontos topic jobb, mint egy \
+  kitalált, közel álló címke.
 
 VÁLASZOLJ KIZÁRÓLAG JSON OBJEKTUMMAL, más szöveg nélkül.
 

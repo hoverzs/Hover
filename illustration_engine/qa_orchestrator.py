@@ -84,6 +84,22 @@ def run_machine_qa_for_unit(
     prompt_version: str = QA_PROMPT_VERSION,
     allow_repair: bool = True,
 ) -> QAOutcome:
+    """Runs the bounded QA -> repair -> final-QA pipeline for one unit.
+
+    DOES NOT COMMIT -- same convention as every other illustration_engine
+    write function and as `enrichment_batch.py`'s own per-item commit
+    pattern (see that module's FAULT ISOLATION docstring section). The
+    CALLER owns the transaction boundary. A batch orchestrator normally
+    commits after each item for fault isolation (a crash mid-run only
+    loses the one in-flight item); a bare, uncommitted call followed by
+    `connection.close()` performs a silent, total ROLLBACK of this
+    write -- no exception, no corruption, the unit's qa_status simply
+    reverts to whatever it was before this call. This is exactly the
+    Phase 3J bug (a standalone batch script never called `commit()`,
+    losing an entire QA pass silently) -- see `tests/test_qa_orchestrator.py`'s
+    commit-persistence regression tests, and `run_machine_qa_for_unit_and_commit`
+    below for a wrapper that closes this gap for simple, single-call
+    scripts."""
     item = get_review_item(connection, unit_id)
     if item is None:
         raise ValueError(f"illustration unit not found: id={unit_id}")
@@ -158,4 +174,30 @@ def run_machine_qa_for_unit(
     )
 
 
-__all__ = ["QAOutcome", "run_machine_qa_for_unit"]
+def run_machine_qa_for_unit_and_commit(
+    connection: sqlite3.Connection,
+    *,
+    unit_id: int,
+    llm_generate: Callable[[str], str],
+    model_identifier: str,
+    prompt_version: str = QA_PROMPT_VERSION,
+    allow_repair: bool = True,
+) -> QAOutcome:
+    """Phase 3J.1: same pipeline as `run_machine_qa_for_unit`, but commits
+    immediately after -- for standalone/one-off scripts that call this
+    function directly (not through an already-committing orchestrator
+    like `enrichment_batch.run_batch()`) and have no reason to batch
+    multiple units into one transaction. Prefer THIS over the bare
+    function for any new standalone script, unless you have a specific,
+    deliberate reason to control the commit boundary yourself (and if so,
+    commit after EVERY unit anyway -- see the bare function's docstring
+    for why per-item commit matters even then)."""
+    outcome = run_machine_qa_for_unit(
+        connection, unit_id=unit_id, llm_generate=llm_generate, model_identifier=model_identifier,
+        prompt_version=prompt_version, allow_repair=allow_repair,
+    )
+    connection.commit()
+    return outcome
+
+
+__all__ = ["QAOutcome", "run_machine_qa_for_unit", "run_machine_qa_for_unit_and_commit"]
