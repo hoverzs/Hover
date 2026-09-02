@@ -1,0 +1,219 @@
+{
+  "contributors": [
+    {
+      "contributor_id": "test.contributor.author",
+      "canonical_name": "Synthetic Commentary Author",
+      "birth_year": 1500,
+      "death_year": 1560
+    },
+    {
+      "contributor_id": "test.contributor.translator",
+      "canonical_name": "Synthetic Commentary Translator",
+      "birth_year": 1800,
+      "death_year": 1870
+    },
+    {
+      "contributor_id": "test.contributor.editor",
+      "canonical_name": "Synthetic Commentary Editor",
+      "birth_year": 1810,
+      "death_year": 1880
+    }
+  ],
+  "works": [
+    {
+      "work_id": "test.work.synthetic_commentary",
+      "title": "Synthetic Commentary on John",
+      "original_title": null,
+      "original_language": "la",
+      "work_type": "commentary"
+    }
+  ],
+  "work_contributors": [
+    {
+      "work_id": "test.work.synthetic_commentary",
+      "contributor_id": "test.contributor.author",
+      "role": "author"
+    },
+    {
+      "work_id": "test.work.synthetic_commentary",
+      "contributor_id": "test.contributor.translator",
+      "role": "translator"
+    },
+    {
+      "work_id": "test.work.synthetic_commentary",
+      "contributor_id": "test.contributor.editor",
+      "role": "editor"
+    }
+  ],
+  "editions": [
+    {
+      "edition_id": "test.edition.synthetic_commentary.en",
+      "work_id": "test.work.synthetic_commentary",
+      "edition_label": "Test fixture edition",
+      "publication_year": 1900,
+      "publisher": "Textus Test Fixture",
+      "language": "en",
+      "license": "CC-BY-4.0",
+      "rights_status": "public-domain",
+      "rights_note": "Synthetic test-only fixture; not a real commentary source.",
+      "source_url": "https://example.test/commentary-v1-fixture",
+      "corpus": "test-fixture",
+      "external_id": "textus-commentary-v1-sample"
+    }
+  ],
+  "source_files": [
+    {
+      "source_file_id": "test.source_file.john_commentary_raw",
+      "edition_id": "test.edition.synthetic_commentary.en",
+      "file_name": "synthetic_john_commentary.xml",
+      "raw_sha256": "f321dc42db147968ce079f72b078a40d2e8243c8fdf62cdc9e127e08de485e56",
+      "byte_size": 4096,
+      "retrieved_at": "2026-08-01T00:00:00Z"
+    }
+  ],
+  "import_batches": [
+    {
+      "batch_id": "test.batch.001",
+      "source_file_id": "test.source_file.john_commentary_raw",
+      "importer_name": "textus_kb.importers.commentary_sqlite",
+      "importer_version": "0.1.0",
+      "imported_at": "2026-08-01T00:05:00Z",
+      "report": {
+        "note": "synthetic fixture batch"
+      }
+    }
+  ],
+  "sections": [
+    {
+      "section_id": "test.section.book",
+      "edition_id": "test.edition.synthetic_commentary.en",
+      "parent_section_id": null,
+      "section_type": "book",
+      "heading": "Commentary on the Gospel of John (synthetic)",
+      "sequence": 1,
+      "passage_links": []
+    },
+    {
+      "section_id": "test.section.chapter3",
+      "edition_id": "test.edition.synthetic_commentary.en",
+      "parent_section_id": "test.section.book",
+      "section_type": "chapter",
+      "heading": "Chapter 3 (synthetic)",
+      "sequence": 1,
+      "passage_links": [
+        {"raw_citation": "John 3:1-36"}
+      ]
+    },
+    {
+      "section_id": "test.section.john316_exact",
+      "edition_id": "test.edition.synthetic_commentary.en",
+      "parent_section_id": "test.section.chapter3",
+      "section_type": "section",
+      "heading": "On John 3:16 (synthetic)",
+      "sequence": 1,
+      "passage_links": [
+        {"raw_citation": "John 3:16"}
+      ]
+    },
+    {
+      "section_id": "test.section.john316_21_range",
+      "edition_id": "test.edition.synthetic_commentary.en",
+      "parent_section_id": "test.section.chapter3",
+      "section_type": "section",
+      "heading": "On John 3:16-21 (synthetic)",
+      "sequence": 2,
+      "passage_links": [
+        {"raw_citation": "John 3:16-21"}
+      ]
+    },
+    {
+      "section_id": "test.section.crossing",
+      "edition_id": "test.edition.synthetic_commentary.en",
+      "parent_section_id": "test.section.chapter3",
+      "section_type": "section",
+      "heading": "Transition ch3-4 (synthetic)",
+      "sequence": 3,
+      "passage_links": [
+        {"raw_citation": "John 3:34-4:2"}
+      ]
+    },
+    {
+      "section_id": "test.section.multi_passage",
+      "edition_id": "test.edition.synthetic_commentary.en",
+      "parent_section_id": "test.section.book",
+      "section_type": "section",
+      "heading": "Cross reference note (synthetic)",
+      "sequence": 2,
+      "passage_links": [
+        {"raw_citation": "John 4:1-6"},
+        {"raw_citation": "John 3:16"}
+      ]
+    }
+  ],
+  "chunks": [
+    {
+      "chunk_id": "test.chunk.book_intro",
+      "section_id": "test.section.book",
+      "sequence": 1,
+      "text": "SYNTHETIC TEST ONLY. INTRO MARKER PHRASE for the whole commentary.",
+      "plain_text": "SYNTHETIC TEST ONLY. INTRO MARKER PHRASE for the whole commentary.",
+      "source_locator": "fixture://commentary-v1/book#1"
+    },
+    {
+      "chunk_id": "test.chunk.chapter3_part1",
+      "section_id": "test.section.chapter3",
+      "sequence": 1,
+      "text": "SYNTHETIC TEST ONLY. GAMMA MARKER PART ONE of the chapter 3 reflection.",
+      "plain_text": "SYNTHETIC TEST ONLY. GAMMA MARKER PART ONE of the chapter 3 reflection.",
+      "source_locator": "fixture://commentary-v1/chapter3#1"
+    },
+    {
+      "chunk_id": "test.chunk.chapter3_part2",
+      "section_id": "test.section.chapter3",
+      "sequence": 2,
+      "text": "SYNTHETIC TEST ONLY. GAMMA MARKER PART TWO of the chapter 3 reflection.",
+      "plain_text": "SYNTHETIC TEST ONLY. GAMMA MARKER PART TWO of the chapter 3 reflection.",
+      "source_locator": "fixture://commentary-v1/chapter3#2"
+    },
+    {
+      "chunk_id": "test.chunk.chapter3_part3",
+      "section_id": "test.section.chapter3",
+      "sequence": 3,
+      "text": "SYNTHETIC TEST ONLY. GAMMA MARKER PART THREE of the chapter 3 reflection.",
+      "plain_text": "SYNTHETIC TEST ONLY. GAMMA MARKER PART THREE of the chapter 3 reflection.",
+      "source_locator": "fixture://commentary-v1/chapter3#3"
+    },
+    {
+      "chunk_id": "test.chunk.john316_exact",
+      "section_id": "test.section.john316_exact",
+      "sequence": 1,
+      "text": "SYNTHETIC TEST ONLY. DELTA MARKER EXACT VERSE note on John 3:16.",
+      "plain_text": "SYNTHETIC TEST ONLY. DELTA MARKER EXACT VERSE note on John 3:16.",
+      "source_locator": "fixture://commentary-v1/john316-exact#1"
+    },
+    {
+      "chunk_id": "test.chunk.john316_21_range",
+      "section_id": "test.section.john316_21_range",
+      "sequence": 1,
+      "text": "SYNTHETIC TEST ONLY. EPSILON MARKER RANGE note on John 3:16-21.",
+      "plain_text": "SYNTHETIC TEST ONLY. EPSILON MARKER RANGE note on John 3:16-21.",
+      "source_locator": "fixture://commentary-v1/john316-21-range#1"
+    },
+    {
+      "chunk_id": "test.chunk.crossing",
+      "section_id": "test.section.crossing",
+      "sequence": 1,
+      "text": "SYNTHETIC TEST ONLY. ETA MARKER TRANSITION note spanning John 3:34-4:2.",
+      "plain_text": "SYNTHETIC TEST ONLY. ETA MARKER TRANSITION note spanning John 3:34-4:2.",
+      "source_locator": "fixture://commentary-v1/crossing#1"
+    },
+    {
+      "chunk_id": "test.chunk.multi_passage",
+      "section_id": "test.section.multi_passage",
+      "sequence": 1,
+      "text": "SYNTHETIC TEST ONLY. ZETA MARKER CROSSREF note linking John 4:1-6 and John 3:16.",
+      "plain_text": "SYNTHETIC TEST ONLY. ZETA MARKER CROSSREF note linking John 4:1-6 and John 3:16.",
+      "source_locator": "fixture://commentary-v1/multi-passage#1"
+    }
+  ]
+}
