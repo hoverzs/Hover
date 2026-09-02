@@ -17,6 +17,13 @@ from ui_components import (
     render_work_section,
     work_surface,
 )
+from writing_desk_chat import (
+    WRITING_DESK_CHAT_INPUT_KEY,
+    WRITING_DESK_CHAT_KEY,
+    ensure_writing_desk_chat_state,
+    send_writing_desk_chat_message,
+    writing_desk_chat_messages,
+)
 from writing_desk_data import (
     WRITING_DESK_EXTRACT_KEYS,
     draft_content_from_widget,
@@ -26,6 +33,10 @@ from writing_desk_data import (
     writing_desk_draft_content,
     writing_desk_draft_widget_html,
     writing_desk_draft_widget_state,
+)
+from writing_desk_docx import (
+    build_writing_desk_docx_bytes,
+    writing_desk_docx_filename,
 )
 from writing_desk_extracts import (
     EXTRACT_LABELS,
@@ -209,6 +220,62 @@ def _render_notes_editor() -> None:
     commit_writing_desk_draft_from_widget()
 
 
+def writing_desk_docx_export_payload() -> tuple[bytes | None, str]:
+    """Flush után a tartós draft DOCX-bytejai. Üres draft → (None, filename)."""
+    flush_writing_desk_draft_from_widget()
+    desk = ensure_writing_desk_state(st.session_state)
+    html = writing_desk_draft_content(desk)
+    blob = build_writing_desk_docx_bytes(html)
+    name = writing_desk_docx_filename(str(st.session_state.get("last_igehely") or ""))
+    return blob, name
+
+
+def send_writing_desk_chat_after_flush(
+    question: str,
+    *,
+    generate_fn: GenerateFn | None,
+):
+    """CCv2 widget → durable draft, majd chat. A resync/pending őröket nem kerüli meg."""
+    flush_writing_desk_draft_from_widget()
+    return send_writing_desk_chat_message(
+        st.session_state,
+        question,
+        generate_fn=generate_fn,
+    )
+
+
+def _render_docx_export() -> None:
+    blob, filename = writing_desk_docx_export_payload()
+    empty = blob is None
+    if empty:
+        st.caption("Nincs exportálható szöveg.")
+    st.download_button(
+        label="Letöltés DOCX",
+        data=blob or b"",
+        file_name=filename,
+        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        key="writing_desk_docx_download",
+        disabled=empty,
+        width="stretch",
+    )
+
+
+def _render_helper_chat(*, generate_fn: GenerateFn | None) -> None:
+    ensure_writing_desk_chat_state(st.session_state)
+    for msg in writing_desk_chat_messages(st.session_state):
+        with st.chat_message(msg["role"]):
+            st.markdown(msg["content"])
+    question = st.chat_input(
+        "Kérdés a vázlathoz…",
+        key=WRITING_DESK_CHAT_INPUT_KEY,
+    )
+    if not question:
+        return
+    with st.spinner("Válasz készül…"):
+        send_writing_desk_chat_after_flush(question, generate_fn=generate_fn)
+    st.rerun()
+
+
 def _render_scripture_block() -> None:
     """RÚF + görög/héber token UI; hiba esetén nem állítja le a shellt."""
     try:
@@ -355,6 +422,7 @@ def render_writing_desk_shell(*, generate_fn: GenerateFn | None = None) -> None:
     )
     with work_surface("writing_desk_notes"):
         _render_notes_editor()
+        _render_docx_export()
 
     render_work_section(
         title="Munkaanyag",
@@ -374,6 +442,14 @@ def render_writing_desk_shell(*, generate_fn: GenerateFn | None = None) -> None:
             with column:
                 _render_extract_card(extract_key, generate_fn=generate_fn)
 
+    render_work_section(
+        title="Segítő chat",
+        body="Kérdezhetsz a vázlatról, megfogalmazásról vagy szerkezetről.",
+        context=WRITING_DESK_LABEL,
+    )
+    with work_surface("writing_desk_helper_chat"):
+        _render_helper_chat(generate_fn=generate_fn)
+
 
 __all__ = [
     "WORK_MATERIAL_SECTIONS",
@@ -392,5 +468,9 @@ __all__ = [
     "flush_writing_desk_draft_from_widget",
     "render_writing_desk_shell",
     "replace_writing_desk_draft_content",
+    "send_writing_desk_chat_after_flush",
+    "writing_desk_docx_export_payload",
     "writing_desk_draft_revision",
+    "WRITING_DESK_CHAT_INPUT_KEY",
+    "WRITING_DESK_CHAT_KEY",
 ]

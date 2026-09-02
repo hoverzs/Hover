@@ -42,6 +42,9 @@ def _patch_streamlit_shell(
         "rerun": [],
         "text_area": [],
         "draft_editor": [],
+        "download_button": [],
+        "chat_input": [],
+        "chat_message": [],
     }
     monkeypatch.setattr(st, "session_state", session if session is not None else {})
     monkeypatch.setattr(st, "container", lambda *args, **kwargs: nullcontext())
@@ -112,11 +115,36 @@ def _patch_streamlit_shell(
         if key is not None and key not in st.session_state:
             st.session_state[key] = {"html": html}
 
+    def _download_button(label, *args, **kwargs):
+        calls["download_button"].append(
+            {
+                "label": str(label),
+                "file_name": kwargs.get("file_name"),
+                "disabled": bool(kwargs.get("disabled")),
+                "key": kwargs.get("key"),
+                "data": kwargs.get("data", args[0] if args else None),
+            }
+        )
+        return False
+
+    def _chat_input(placeholder="", *args, **kwargs):
+        calls["chat_input"].append(
+            {"placeholder": str(placeholder), "key": kwargs.get("key")}
+        )
+        return None
+
+    def _chat_message(role, *args, **kwargs):
+        calls["chat_message"].append(str(role))
+        return nullcontext()
+
     monkeypatch.setattr(st, "columns", _columns)
     monkeypatch.setattr(st, "markdown", _markdown)
     monkeypatch.setattr(st, "radio", _radio)
     monkeypatch.setattr(st, "button", _button)
     monkeypatch.setattr(st, "text_area", _text_area)
+    monkeypatch.setattr(st, "download_button", _download_button)
+    monkeypatch.setattr(st, "chat_input", _chat_input)
+    monkeypatch.setattr(st, "chat_message", _chat_message)
     monkeypatch.setattr(writing_desk_ui, "writing_desk_draft_editor", _draft_editor)
     return calls
 
@@ -153,6 +181,9 @@ def test_writing_desk_shell_stacks_notes_above_work_material(monkeypatch):
         'title="Jegyzet / vázlat"'
     )
     assert src.find('title="Jegyzet / vázlat"') < src.find('title="Munkaanyag"')
+    assert src.find('title="Munkaanyag"') < src.find('title="Segítő chat"')
+    assert "Letöltés DOCX" in {item["label"] for item in calls["download_button"]}
+    assert calls["chat_input"]
     assert "st.columns([1, 2]" not in src
     assert "st.columns(3, gap=\"medium\")" in src
     assert "A jegyzet- és vázlatszerkesztő a következő fázisban kerül ide." not in joined
@@ -370,6 +401,11 @@ def test_writing_desk_ui_mode_is_not_a_durable_session_key():
     assert WRITING_DESK_DRAFT_RESYNC_FLAG in EXCLUDED_SESSION_KEYS
     assert "_wd_draft_resync_bumped" in EXCLUDED_SESSION_KEYS
     assert WRITING_DESK_DRAFT_REVISION_KEY in EXCLUDED_SESSION_KEYS
+    from writing_desk_chat import WRITING_DESK_CHAT_INPUT_KEY, WRITING_DESK_CHAT_KEY
+
+    assert WRITING_DESK_CHAT_KEY in EXCLUDED_SESSION_KEYS
+    assert WRITING_DESK_CHAT_INPUT_KEY in EXCLUDED_SESSION_KEYS
+    assert "writing_desk_docx_download" in EXCLUDED_SESSION_KEYS
     assert WRITING_DESK_KEY in PROJECT_DATA_KEYS
     assert WRITING_DESK_KEY in PROJECT_NESTED_KEYS
     assert WRITING_DESK_KEY == WRITING_DESK_MODE

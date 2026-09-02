@@ -355,11 +355,12 @@ def test_app_wires_writing_desk_into_save_load_and_clear_paths():
     assert "generate_text" not in ui_src
     assert "render_bible_text_editor" not in ui_src
     assert "autosave" not in ui_src.casefold()
-    assert "docx" not in ui_src.casefold()
-    assert "chat" not in ui_src.casefold()
+    assert "Letöltés DOCX" in ui_src
+    assert "Segítő chat" in ui_src
     data_src = (ROOT / "writing_desk_data.py").read_text(encoding="utf-8")
     assert "generate_text" not in data_src
     assert "chat" not in data_src.casefold()
+    assert "docx" not in data_src.casefold()
     assert "flush_writing_desk_draft_from_widget()" in app_src
     assert "WRITING_DESK_DRAFT_WIDGET_KEY" in app_src
     assert "begin_writing_desk_draft_resync()" in app_src
