@@ -45,8 +45,10 @@ def test_qa_report_on_clean_calvin_import(tmp_path: Path) -> None:
     assert report.cross_edition_hierarchy_issues == []
     assert report.warnings == []
 
-    assert "Rom" in report.coverage_by_book
-    assert "Matt" in report.coverage_by_book
+    assert "Rom" in report.coverage_by_book_primary
+    assert "Matt" in report.coverage_by_book_primary
+    assert report.cross_reference_count_stored == 0
+    assert report.primary_passage_link_count > 0
 
 
 def test_qa_report_passageless_sections_are_categorized_not_flagged(tmp_path: Path) -> None:

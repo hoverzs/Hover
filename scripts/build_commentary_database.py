@@ -21,10 +21,12 @@ if str(ROOT) not in sys.path:
 from textus_kb.importers.calvin_commentary_thml import (
     CalvinCommentaryImportError,
     import_calvin_commentary_sqlite,
+    import_calvin_corpus_from_manifest,
 )
 from textus_kb.importers.calvin_source_fetch import (
     CalvinSourceFetchError,
     fetch_all_sources,
+    load_source_manifest,
 )
 from textus_kb.importers.commentary_sqlite import (
     DEFAULT_DATABASE_PATH,
@@ -95,24 +97,28 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(report.to_dict(), indent=2, ensure_ascii=False))
         return 0
 
-    xml_paths: list[str] = []
     if args.calvin_fetch:
         try:
-            results = fetch_all_sources()
+            fetch_all_sources()
         except CalvinSourceFetchError as exc:
             print(f"Calvin source fetch failed: {exc}", file=sys.stderr)
             return 1
-        xml_paths = [str(result.local_path) for result in results]
+        entries = load_source_manifest()
+        try:
+            report, parse_reports = import_calvin_corpus_from_manifest(
+                entries, database_path=args.output
+            )
+        except (CalvinCommentaryImportError, CommentaryImportError) as exc:
+            print(f"Calvin commentary import failed: {exc}", file=sys.stderr)
+            return 1
     else:
-        xml_paths = list(args.calvin_thml)
-
-    try:
-        report, parse_reports = import_calvin_commentary_sqlite(
-            xml_paths, database_path=args.output
-        )
-    except (CalvinCommentaryImportError, CommentaryImportError) as exc:
-        print(f"Calvin commentary import failed: {exc}", file=sys.stderr)
-        return 1
+        try:
+            report, parse_reports = import_calvin_commentary_sqlite(
+                list(args.calvin_thml), database_path=args.output
+            )
+        except (CalvinCommentaryImportError, CommentaryImportError) as exc:
+            print(f"Calvin commentary import failed: {exc}", file=sys.stderr)
+            return 1
     payload = report.to_dict()
     payload["calvin_sources"] = [pr.to_dict() for pr in parse_reports]
     print(json.dumps(payload, indent=2, ensure_ascii=False))

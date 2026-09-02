@@ -19,10 +19,20 @@ Evangelists, Part 1", both fetched from ccel.org):
   Becomes a structural section with no passage of its own; its
   ``div2`` children are:
     - ``div2[type=scripture]``: one or more ``<scripRef>`` elements
-      *inside its own ``<table>``* give the quoted passage(s) — this is
-      the section-defining passage (a range, or several passages for a
-      Harmony section). The quoted Bible text itself (inside the table)
-      is never imported as chunk content — it is not Calvin's prose.
+      *inside its own ``<table>``, and not inside a ``<note>``,* give
+      the quoted passage(s) — this is the section-defining passage (a
+      range, or several passages for a Harmony section: CCEL marks a
+      second/third non-contiguous parallel range within the same table
+      the same way, e.g. Mark 9:49-50 *and* a later Mark 4:21 caption in
+      the same column). A ``<scripRef>`` that *is* inside a ``<note>``
+      within the table is a translator/editor footnote — most often the
+      OT catena Paul himself quotes (e.g. Romans 3:10-18's footnote
+      lists Psalms/Isaiah/Proverbs as "the references given in the
+      margin"), or a plain cross-reference — confirmed on both real
+      files to always sit inside ``<note>``, never as a bare table
+      caption. It is excluded from passage_links, never stored. The
+      quoted Bible text itself (inside the table) is never imported as
+      chunk content — it is not Calvin's prose.
     - a plain (non-"scripture") sibling ``div2``: continuation
       commentary anchored to the *preceding* scripture div2 (CCEL split
       an unusually long verse's commentary into its own div2 instead of
@@ -52,12 +62,14 @@ Commentary schema — everything Calvin-specific lives in this module.
 from __future__ import annotations
 
 import hashlib
+import re
 import xml.etree.ElementTree as ET
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from textus_kb.canonical_reference import CanonicalReference, CanonicalReferenceError
 from textus_kb.importers.ccel_thml_core import (
     CcelThmlCoreError,
     ScriptureRefStats,
@@ -69,7 +81,6 @@ from textus_kb.importers.ccel_thml_core import (
     local_tag,
     paragraph_plain_text,
     parse_thml_file,
-    passage_links_for_elements,
     scripture_candidates,
 )
 
@@ -97,6 +108,7 @@ class CalvinCommentaryParseReport:
     chunk_count: int = 0
     chapter_only_scripcom_count: int = 0
     multi_passage_range_count: int = 0
+    unmapped_section_ids: list[str] = field(default_factory=list)
     scripture: ScriptureRefStats = field(default_factory=ScriptureRefStats)
 
     def to_dict(self) -> dict[str, Any]:
@@ -107,13 +119,52 @@ class CalvinCommentaryParseReport:
 
 def parse_calvin_commentary_thml(
     xml_path: str | Path,
+    *,
+    work_group: str | None = None,
+    work_title: str | None = None,
+    translator_override: str | None = None,
+    known_unmapped_div2_ids: frozenset[str] = frozenset(),
 ) -> tuple[dict[str, Any], CalvinCommentaryParseReport]:
     """Parse one real CCEL Calvin commentary ThML file into a normalized
     Commentary document (contributors/works/work_contributors/editions/
     sections/chunks — matching ``commentary_sqlite.normalize_commentary_document``
     input shape). ``source_files``/``import_batches`` are NOT included here;
     the caller attaches those from the raw file it actually read (this
-    function only sees parsed XML, not the raw bytes/hash)."""
+    function only sees parsed XML, not the raw bytes/hash).
+
+    ``work_group``/``work_title``: when a multi-volume Calvin commentary
+    (e.g. Psalms across 5 CCEL files) should collapse to one logical
+    ``work`` row spanning several ``editions`` (one per volume/file), pass
+    the SAME ``work_group`` key (and the same ``work_title``) for every
+    volume in that group — driven by the source manifest's declarative
+    grouping, never hardcoded here. Each volume still gets its own
+    file-derived ``edition_id`` (so sections never collide across
+    volumes) and carries its own per-file title in ``edition_label``.
+    Omit both to keep the previous one-file-one-work behavior.
+
+    ``translator_override``: use this exact translator name instead of the
+    file's own DC.Creator[Translator] text. CCEL's own metadata is not
+    internally consistent for some translators across a work_group's
+    volumes (e.g. "Charles William Bingham" in one Harmony of the Law
+    volume vs. "Bingham, Charles William" in the others) — without an
+    override each variant would derive a different contributor_id for the
+    same real person. The source manifest is expected to supply this when
+    it knows the volumes disagree; never guessed here.
+
+    ``known_unmapped_div2_ids``: an explicit, individually-audited set of
+    this file's own div2 ``id`` attributes (the raw XML id, e.g.
+    ``"xl.iv"``) whose own quotation-table citation is confirmed
+    malformed in the source and cannot be resolved without guessing
+    (found so far: CCEL's own scripRef sometimes marks up a verse-range
+    caption as a chapter-only reference with the range's tail left as
+    plain text outside the tag, e.g. Psalm 34's "Psalm 15-17" caption
+    carries only ``osisRef="Bible:Ps.15"`` with a literal "-17" stranded
+    after the closing tag — 2 confirmed cases in ~620 Psalms sections).
+    Listed sections import as ONE passage-less structural section (their
+    real Calvin prose is kept; only the passage_link is omitted) instead
+    of raising. Every other unparseable scripture section still fails
+    loudly — this is not a blanket fallback.
+    """
     root = parse_thml_file(xml_path)
     if local_tag(root.tag) != "ThML":
         raise CalvinCommentaryImportError(f"Expected ThML root, got {local_tag(root.tag)!r}.")
@@ -126,12 +177,17 @@ def parse_calvin_commentary_thml(
     if not book_id:
         raise CalvinCommentaryImportError("Missing electronicEdInfo/bookID.")
 
-    work_id = f"ccel.calvin.{book_id}"
-    edition_id = f"{work_id}.edition"
+    if work_group:
+        work_id = f"ccel.calvin.work.{work_group}"
+    else:
+        work_id = f"ccel.calvin.{book_id}"
+    edition_id = f"ccel.calvin.{book_id}.edition"
     section_prefix = f"ccel.calvin.{book_id}"
 
-    contributors, work_contributors = _contributors(head, work_id=work_id)
-    work = _work_record(head, work_id=work_id)
+    contributors, work_contributors = _contributors(
+        head, work_id=work_id, translator_override=translator_override
+    )
+    work = _work_record(head, work_id=work_id, title_override=work_title)
     edition = _edition_record(head, work_id=work_id, edition_id=edition_id, book_id=book_id)
 
     stats = ScriptureRefStats()
@@ -152,11 +208,31 @@ def parse_calvin_commentary_thml(
             raise CalvinCommentaryImportError("div1 is missing a stable id.")
         div1_section_id = f"{section_prefix}.{div1_id}"
 
-        if div1_type not in {"chapter", "section"}:
+        has_table_div2 = any(
+            local_tag(child.tag) == "div2" and find_child(child, "table") is not None
+            for child in list(div1)
+        )
+        if not has_table_div2:
             # Auxiliary matter: preface/dedication/argument ("front"),
-            # a continuous translation appendix ("back"), or an
-            # auto-generated index (no type attribute at all). None of
-            # these follow the verse-by-verse scripCom/table convention,
+            # a continuous translation appendix ("back" — e.g. Romans'
+            # "Translation of Romans", div2s literally titled "Chapter 1",
+            # "Chapter 2"... with NO table: a running translation, not
+            # verse-by-verse commentary), an auto-generated index (no
+            # type attribute at all), or any other non-commentary div1.
+            # Classified structurally — by whether it actually contains a
+            # scripture div2 that itself has a <table> — rather than by
+            # its own `type` attribute value, because that value is NOT
+            # consistent across the corpus: confirmed real values include
+            # "chapter" (most books), "section" (the Harmony volume, one
+            # div1 for its whole body), and "Psalm" (the Psalms
+            # commentary, one div1 per psalm) — an explicit allowlist of
+            # type names would silently misclassify the next volume that
+            # uses yet another label. The table requirement matters
+            # separately: a div1 can have `type="scripture"` div2 children
+            # that are pure quoted text with no table (the "back"
+            # appendix case above) — those must not count as evidence
+            # this div1 is real commentary. None of these non-commentary
+            # div1s follow the verse-by-verse scripCom/table convention,
             # so they are imported as one passage-less section rather
             # than forced through the strict commentary-body parser.
             sections.append(
@@ -198,6 +274,7 @@ def parse_calvin_commentary_thml(
             )
         )
 
+        div1_chapter_number = _div1_chapter_number(div1)
         div2_list = [child for child in list(div1) if local_tag(child.tag) == "div2"]
         current_range_section_id: str | None = None
         for div2_index, div2 in enumerate(div2_list, start=1):
@@ -208,15 +285,49 @@ def parse_calvin_commentary_thml(
                     f"div2 under {div1_id!r} is missing a stable id."
                 )
             div2_section_id = f"{section_prefix}.{div2_id}"
+            table = find_child(div2, "table")
 
-            if div2_type == "scripture":
-                table = find_child(div2, "table")
-                links = _table_passage_links(table, stats) if table is not None else []
+            # A range-defining div2 is identified by having its own <table>
+            # (the quoted-passage block), not by its `type` attribute:
+            # confirmed real value is usually "scripture", but some volumes
+            # (Harmony of the Law) label the identical table-bearing
+            # structure "section" or "Chapter" instead — an explicit
+            # allowlist of type names would misclassify those as
+            # untyped-continuation divs. This mirrors the same
+            # table-presence signal already used to classify div1s.
+            if table is not None:
+                links = _table_passage_links(table, stats, expected_chapter=div1_chapter_number)
                 if not links:
-                    raise CalvinCommentaryImportError(
-                        f"Scripture section {div2_id!r} has no parseable passage "
-                        "in its own quotation table."
+                    if div2_id not in known_unmapped_div2_ids:
+                        raise CalvinCommentaryImportError(
+                            f"Scripture section {div2_id!r} has no parseable passage "
+                            "in its own quotation table."
+                        )
+                    report.unmapped_section_ids.append(div2_id)
+                    sections.append(
+                        _section_row(
+                            section_id=div2_section_id,
+                            edition_id=edition_id,
+                            parent_section_id=div1_section_id,
+                            section_type="commentary_passage_unmapped",
+                            heading=_attr_or_none(div2.get("title")),
+                            sequence=div2_index,
+                        )
                     )
+                    text = element_plain_text(div2, skip_notes=False)
+                    if text:
+                        chunks.append(
+                            _chunk_row(
+                                chunk_id=f"{div2_section_id}.chunk",
+                                section_id=div2_section_id,
+                                sequence=1,
+                                text=text,
+                                locator=f"ccel:calvin/{book_id}#{div2_id}",
+                            )
+                        )
+                        report.chunk_count += 1
+                    current_range_section_id = div2_section_id
+                    continue
                 sections.append(
                     _section_row(
                         section_id=div2_section_id,
@@ -259,17 +370,32 @@ def parse_calvin_commentary_thml(
                     report.chunk_count += 1
                 continue
 
-            # Untyped sibling div2: continuation commentary anchored to the
-            # most recently seen scripture-range section.
-            if current_range_section_id is None:
-                raise CalvinCommentaryImportError(
-                    f"Commentary div2 {div2_id!r} has no preceding scripture "
-                    "section to anchor its passage to."
+            # Untyped sibling div2: usually a continuation anchored to the
+            # most recently seen scripture-range section (Romans-style —
+            # Calvin's exposition of a range's first verse split into its
+            # own div2). When NO scripture-range div2 precedes it in this
+            # div1 at all — a real corpus case: Ezekiel/Daniel/Jeremiah's
+            # `type="lecture"` div2 opens each chapter with introductory
+            # prose before any verse-range content begins — it becomes its
+            # own passage-less section under the div1 instead of being
+            # forced onto a range that doesn't exist.
+            standalone_intro = current_range_section_id is None
+            if standalone_intro:
+                sections.append(
+                    _section_row(
+                        section_id=div2_section_id,
+                        edition_id=edition_id,
+                        parent_section_id=div1_section_id,
+                        section_type=div2_type or "commentary_intro",
+                        heading=_attr_or_none(div2.get("title")),
+                        sequence=div2_index,
+                    )
                 )
+            anchor_section_id = div2_section_id if standalone_intro else current_range_section_id
             verse_sections, verse_chunks, leading_text = _extract_verse_sections(
                 container=div2,
                 exclude=None,
-                parent_section_id=current_range_section_id,
+                parent_section_id=anchor_section_id,
                 section_prefix=f"{div2_section_id}",
                 edition_id=edition_id,
                 book_id=book_id,
@@ -280,13 +406,14 @@ def parse_calvin_commentary_thml(
                 sections.extend(verse_sections)
                 chunks.extend(verse_chunks)
                 if leading_text:
-                    # Unmarked lead-in text inside a continuation div2 belongs
-                    # to the range section it continues, not a new section.
+                    # Unmarked lead-in text belongs to the anchor section
+                    # (an existing range it continues, or its own new
+                    # standalone intro section), not a further new one.
                     chunks.append(
                         _chunk_row(
                             chunk_id=f"{div2_section_id}.lead.chunk",
-                            section_id=current_range_section_id,
-                            sequence=99,
+                            section_id=anchor_section_id,
+                            sequence=1 if standalone_intro else 99,
                             text=leading_text,
                             locator=f"ccel:calvin/{book_id}#{div2_id}",
                         )
@@ -294,13 +421,13 @@ def parse_calvin_commentary_thml(
                     report.chunk_count += 1
             elif leading_text:
                 # No scripCom at all in this div2: fold its whole text into
-                # the range section it continues (benign layout variation,
-                # not a structurally uncertain passage).
+                # the anchor section (benign layout variation, not a
+                # structurally uncertain passage).
                 chunks.append(
                     _chunk_row(
                         chunk_id=f"{div2_section_id}.chunk",
-                        section_id=current_range_section_id,
-                        sequence=99,
+                        section_id=anchor_section_id,
+                        sequence=1 if standalone_intro else 99,
                         text=leading_text,
                         locator=f"ccel:calvin/{book_id}#{div2_id}",
                     )
@@ -335,10 +462,16 @@ def build_calvin_commentary_document(
     xml_path: str | Path,
     *,
     imported_at: str | None = None,
+    work_group: str | None = None,
+    work_title: str | None = None,
+    translator_override: str | None = None,
+    known_unmapped_div2_ids: frozenset[str] = frozenset(),
 ) -> tuple[dict[str, Any], CalvinCommentaryParseReport]:
     """Parse one Calvin commentary ThML file and attach its own
     source_files/import_batches provenance rows (raw SHA-256 computed from
-    the actual bytes on disk, not invented)."""
+    the actual bytes on disk, not invented). See ``parse_calvin_commentary_thml``
+    for ``work_group``/``work_title``/``translator_override``/
+    ``known_unmapped_div2_ids``."""
     path = Path(xml_path)
     try:
         raw_bytes = path.read_bytes()
@@ -346,7 +479,13 @@ def build_calvin_commentary_document(
         raise CalvinCommentaryImportError(f"Cannot read ThML file: {path}") from exc
     raw_sha256 = hashlib.sha256(raw_bytes).hexdigest()
 
-    document, report = parse_calvin_commentary_thml(path)
+    document, report = parse_calvin_commentary_thml(
+        path,
+        work_group=work_group,
+        work_title=work_title,
+        known_unmapped_div2_ids=known_unmapped_div2_ids,
+        translator_override=translator_override,
+    )
     when = imported_at or datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
     source_file_id = f"{report.edition_id}.source"
     batch_id = f"{report.edition_id}.batch.1"
@@ -429,19 +568,32 @@ def import_calvin_commentary_sqlite(
     *,
     database_path: str | Path | None = None,
     atomic: bool = True,
+    imported_at: str | None = None,
 ):
     """Parse one or more Calvin commentary ThML files, merge them, and write
     a commentary.sqlite3 store in one atomic build. Imported here (not at
     module level) to avoid a hard import-time dependency from the shared
-    Commentary schema module onto this Calvin-specific parser."""
+    Commentary schema module onto this Calvin-specific parser.
+
+    ``imported_at`` is generated once up front (a single UTC timestamp
+    shared by every file's provenance row) unless the caller pins one
+    explicitly. Two builds of the same inputs are otherwise not guaranteed
+    byte-identical: each file's source_files/import_batches row embeds a
+    real timestamp, and a build spanning a wall-clock second boundary would
+    otherwise produce a different content_hash purely from that clock
+    read, not from any actual content change. Pin ``imported_at`` whenever
+    a reproducible, comparable content_hash matters (tests, corpus
+    rebuilds meant to be diffed against a prior run).
+    """
     from textus_kb.importers.commentary_sqlite import import_commentary_sqlite
 
     if not xml_paths:
         raise CalvinCommentaryImportError("Provide at least one Calvin ThML source path.")
+    when = imported_at or datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
     documents = []
     reports = []
     for xml_path in xml_paths:
-        document, report = build_calvin_commentary_document(xml_path)
+        document, report = build_calvin_commentary_document(xml_path, imported_at=when)
         documents.append(document)
         reports.append(report)
     merged = merge_calvin_commentary_documents(documents)
@@ -454,11 +606,216 @@ def import_calvin_commentary_sqlite(
     return result, reports
 
 
+def import_calvin_corpus_from_manifest(
+    entries: list[Any],
+    *,
+    database_path: str | Path | None = None,
+    atomic: bool = True,
+    imported_at: str | None = None,
+):
+    """Build one commentary.sqlite3 from a list of
+    ``textus_kb.importers.calvin_source_fetch.CalvinSourceEntry`` (already
+    fetched — ``entry.local_path`` must exist and match its pinned
+    ``raw_sha256``; this function does not fetch). Entries sharing the same
+    ``work_group`` collapse into one logical ``work`` spanning several
+    ``editions`` (one per volume); an entry with no ``work_group`` is its
+    own single-volume work — driven entirely by the manifest, nothing
+    Calvin-specific hardcoded here about which books group together.
+    """
+    from textus_kb.importers.commentary_sqlite import import_commentary_sqlite
+
+    if not entries:
+        raise CalvinCommentaryImportError("Provide at least one manifest entry.")
+    when = imported_at or datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+    documents = []
+    reports = []
+    for entry in entries:
+        document, report = build_calvin_commentary_document(
+            entry.local_path,
+            imported_at=when,
+            work_group=(entry.work_group or None),
+            work_title=(entry.work_title or None),
+            translator_override=(entry.translator or None),
+            known_unmapped_div2_ids=getattr(entry, "known_unmapped_div2_ids", frozenset()),
+        )
+        documents.append(document)
+        reports.append(report)
+    merged = merge_calvin_commentary_documents(documents)
+    result = import_commentary_sqlite(
+        document=merged,
+        database_path=database_path,
+        import_mode=IMPORT_MODE_CALVIN_COMMENTARY_THML,
+        atomic=atomic,
+    )
+    return result, reports
+
+
+_VERSE_TAIL_RE = re.compile(r"^\s*[:.\-]\s*(\d+(?:\s*[-,]\s*\d+)*)\s*$")
+_CHAPTER_ONLY_OSIS_RE = re.compile(r"^([A-Za-z0-9]+)\.(\d+)$")
+_TRAILING_NUMBER_RE = re.compile(r"(\d+)\s*$")
+_CAPTION_CONNECTOR_WORD_RE = re.compile(r"\b(?:Chapters?|Verses?)\b", re.IGNORECASE)
+
+
+def _div1_chapter_number(div1: ET.Element) -> int | None:
+    """The chapter/psalm number this div1 itself declares (from its own
+    title, e.g. "Chapter 2" -> 2, "Psalm 34" -> 34), used only to verify a
+    chapter-only caption reconstruction (see
+    ``_reconstruct_chapter_only_caption``) — never to invent a passage on
+    its own."""
+    match = _TRAILING_NUMBER_RE.search((div1.get("title") or "").strip())
+    return int(match.group(1)) if match else None
+
+
 def _table_passage_links(
-    table: ET.Element, stats: ScriptureRefStats
+    table: ET.Element, stats: ScriptureRefStats, *, expected_chapter: int | None
 ) -> list[dict[str, str]]:
-    scrip_refs = [el for el in table.iter() if local_tag(el.tag) == "scripRef"]
-    return passage_links_for_elements(scrip_refs, stats)
+    scrip_refs = _collect_caption_scriprefs(table)
+    links: list[dict[str, str]] = []
+    seen_canonical: set[str] = set()
+    for ref in scrip_refs:
+        reconstructed = _reconstruct_chapter_only_caption(ref, expected_chapter=expected_chapter)
+        candidates = [reconstructed] if reconstructed else scripture_candidates(ref, stats)
+        if reconstructed:
+            stats.seen += 1
+            stats.imported += 1
+        for candidate in candidates:
+            canonical = candidate["canonical_passage"]
+            if canonical in seen_canonical:
+                stats.duplicate_links += 1
+                continue
+            seen_canonical.add(canonical)
+            links.append(candidate)
+    if not links:
+        fallback = _plain_text_caption_fallback(table)
+        if fallback is not None:
+            stats.seen += 1
+            stats.imported += 1
+            links.append(fallback)
+    return links
+
+
+def _plain_text_caption_fallback(table: ET.Element) -> dict[str, str] | None:
+    """Some CCEL volumes (confirmed: Harmony of the Law) render a table's
+    caption as bare text with no <scripRef> markup at all, e.g.
+    ``<p class="TableCaption16">deuteronomy 6:20-25</p>``. When a table has
+    NO scripRef caption whatsoever, parse the first row's first cell's own
+    paragraph text with the same general-purpose reference parser already
+    trusted for raw_citation fallback elsewhere in this codebase
+    (``CanonicalReference.parse``) — not a heuristic invented for Calvin,
+    just applying the existing strict parser to explicit, human-readable
+    citation text that is present in the document. Returns None (no
+    guessing) if the row structure is unexpected or the text does not
+    parse as a clean single reference.
+    """
+    first_row = find_child(table, "tr")
+    if first_row is None:
+        return None
+    first_cell = find_child(first_row, "td")
+    if first_cell is None:
+        return None
+    caption_p = find_child(first_cell, "p")
+    if caption_p is None:
+        return None
+    text = element_plain_text(caption_p, skip_notes=True)
+    if not text:
+        return None
+    # Strip purely decorative connector words some volumes insert between
+    # the book name and the chapter:verse numbers (confirmed real
+    # captions: "Isaiah Chapter 1:1-31", "Philemon Verses 8-14") — the
+    # word carries no information the numbers don't already give, and
+    # CanonicalReference.parse does not otherwise accept it.
+    normalized = _CAPTION_CONNECTOR_WORD_RE.sub(" ", text).strip()
+    try:
+        reference = CanonicalReference.parse(normalized)
+    except CanonicalReferenceError:
+        return None
+    return {"canonical_passage": reference.canonical_string(), "raw_citation": text}
+
+
+def _reconstruct_chapter_only_caption(
+    ref: ET.Element, *, expected_chapter: int | None
+) -> dict[str, str] | None:
+    """Recover a verse range CCEL split across a scripRef/tail boundary.
+
+    Only when SAFE: the scripRef's own osisRef must be exactly
+    "Book.N" (chapter-only, no verse) AND N must match the enclosing
+    div1's own declared chapter/psalm number (``expected_chapter``) —
+    confirming N really is the chapter, not a mis-encoded verse number.
+    Real corpus counter-example that this guard exists for: Psalm 34's
+    "Psalm 15-17" caption has osisRef "Ps.15" with tail "-17" — but "15"
+    here is NOT chapter 15, it is verse 15 *of the enclosing Psalm 34*
+    (a CCEL transcription slip). Since 15 != expected_chapter (34), this
+    function correctly refuses to reconstruct it — that case is instead
+    an explicit, individually-audited known_unmapped_div2_ids exception.
+    Confirmed-safe real case: Acts 2's "Acts 2: 5-12" caption has osisRef
+    "Acts.2" with tail ": 5-12"; div1 is "Chapter 2", so 2 == 2 and the
+    reconstruction to Acts.2.5-12 is correct.
+
+    Also requires the tail text (immediately after the closing tag,
+    within the same table cell) to be nothing but a clean verse or
+    verse-range preceded by ':', '.', or '-' — any other shape (or no
+    tail at all) returns None rather than guessing.
+    """
+    if expected_chapter is None:
+        return None
+    osis_raw = (ref.get("osisRef") or "").strip()
+    if osis_raw.lower().startswith("bible:"):
+        osis_raw = osis_raw.split(":", 1)[1].strip()
+    if " " in osis_raw:
+        return None  # multi-token osisRef: not the single chapter-only case
+    match = _CHAPTER_ONLY_OSIS_RE.fullmatch(osis_raw)
+    if not match:
+        return None
+    book_token, chapter_str = match.group(1), match.group(2)
+    if int(chapter_str) != expected_chapter:
+        return None
+    tail_match = _VERSE_TAIL_RE.match(ref.tail or "")
+    if not tail_match:
+        return None
+    verse_numbers = [int(v) for v in re.findall(r"\d+", tail_match.group(1))]
+    if not verse_numbers:
+        return None
+    start_verse, end_verse = verse_numbers[0], verse_numbers[-1]
+    if end_verse < start_verse:
+        return None
+    synthetic = (
+        f"{book_token}.{expected_chapter}.{start_verse}"
+        if start_verse == end_verse
+        else f"{book_token}.{expected_chapter}.{start_verse}-{end_verse}"
+    )
+    try:
+        reference = CanonicalReference.parse(synthetic)
+    except CanonicalReferenceError:
+        return None
+    display = (ref.get("passage") or "").strip()
+    tail_text = (ref.tail or "").strip()
+    raw_citation = f"{display}{tail_text}" if display else reference.canonical_string()
+    return {"canonical_passage": reference.canonical_string(), "raw_citation": raw_citation}
+
+
+def _collect_caption_scriprefs(root: ET.Element) -> list[ET.Element]:
+    """<scripRef> elements in ``root``, excluding any inside a <note>.
+
+    Verified against both real Calvin volumes: every table-scoped
+    scripRef that is NOT inside a <note> is a genuine primary/parallel
+    passage caption (regardless of its CSS class — CCEL uses several
+    different auto-generated class names for these), and every one that
+    IS inside a <note> is a footnote-style cross-reference. There is no
+    ambiguous third case in the confirmed structure.
+    """
+    found: list[ET.Element] = []
+
+    def walk(node: ET.Element) -> None:
+        for child in list(node):
+            tag = local_tag(child.tag)
+            if tag == "note":
+                continue
+            if tag == "scripRef":
+                found.append(child)
+            walk(child)
+
+    walk(root)
+    return found
 
 
 def _extract_verse_sections(
@@ -474,55 +831,61 @@ def _extract_verse_sections(
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]], str]:
     """Split ``container``'s direct children on <p><scripCom/></p> markers.
 
+    Everything between one marker and the next (or the end of the
+    container) belongs to that marker's verse — confirmed real content
+    takes two different shapes across the corpus: a single wrapping
+    ``<div class="Commentary">`` (Romans/Harmony/Psalms/Acts) or a run of
+    plain sibling ``<p>`` elements with no wrapper at all (Isaiah). Both
+    are collected the same way here; only the boundary (the next marker)
+    matters, not what tag the content between two markers happens to use.
+
     Returns (sections, chunks, leading_text) where leading_text is any
     content before the first scripCom marker (belongs to the caller).
     """
     sections: list[dict[str, Any]] = []
     chunks: list[dict[str, Any]] = []
     leading_parts: list[str] = []
-    pending: ET.Element | None = None
+    pending_marker: ET.Element | None = None
+    pending_content: list[ET.Element] = []
     verse_index = 0
+
+    def flush() -> None:
+        nonlocal verse_index, pending_marker, pending_content
+        if pending_marker is None:
+            return
+        verse_index += 1
+        _finalize_verse_section(
+            marker=pending_marker,
+            content_elements=pending_content,
+            sections=sections,
+            chunks=chunks,
+            parent_section_id=parent_section_id,
+            section_id=f"{section_prefix}.v{verse_index}",
+            edition_id=edition_id,
+            book_id=book_id,
+            sequence=verse_index,
+            stats=stats,
+            report=report,
+        )
+        pending_marker = None
+        pending_content = []
 
     for child in list(container):
         if child is exclude:
             continue
-        tag = local_tag(child.tag)
         marker = _as_scripcom_marker(child)
         if marker is not None:
-            pending = marker
+            flush()
+            pending_marker = marker
             continue
-        if pending is not None and tag == "div" and (child.get("class") or "") == "Commentary":
-            verse_index += 1
-            _finalize_verse_section(
-                marker=pending,
-                content_element=child,
-                sections=sections,
-                chunks=chunks,
-                parent_section_id=parent_section_id,
-                section_id=f"{section_prefix}.v{verse_index}",
-                edition_id=edition_id,
-                book_id=book_id,
-                sequence=verse_index,
-                stats=stats,
-                report=report,
-            )
-            pending = None
+        if pending_marker is not None:
+            pending_content.append(child)
             continue
-        if pending is not None:
-            # A scripCom marker not immediately followed by its Commentary
-            # div is a structural surprise; do not guess its content.
-            raise CalvinCommentaryImportError(
-                "scripCom marker not followed by a <div class=\"Commentary\"> "
-                f"sibling in {section_prefix!r}."
-            )
-        text = paragraph_plain_text(child) if tag == "p" else ""
+        text = paragraph_plain_text(child) if local_tag(child.tag) == "p" else ""
         if text:
             leading_parts.append(text)
 
-    if pending is not None:
-        raise CalvinCommentaryImportError(
-            f"Dangling scripCom marker with no content in {section_prefix!r}."
-        )
+    flush()
 
     return sections, chunks, "\n\n".join(leading_parts)
 
@@ -541,7 +904,7 @@ def _as_scripcom_marker(element: ET.Element) -> ET.Element | None:
 def _finalize_verse_section(
     *,
     marker: ET.Element,
-    content_element: ET.Element,
+    content_elements: list[ET.Element],
     sections: list[dict[str, Any]],
     chunks: list[dict[str, Any]],
     parent_section_id: str,
@@ -584,9 +947,9 @@ def _finalize_verse_section(
     report.verse_section_count += 1
     report.passage_link_count += len(links)
 
-    text = element_plain_text(content_element, skip_notes=True)
-    notes = _notes_text(content_element)
-    parts = [part for part in (text, notes) if part]
+    text_parts = [element_plain_text(el, skip_notes=True) for el in content_elements]
+    notes = _notes_text(content_elements)
+    parts = [part for part in (*text_parts, notes) if part]
     full_text = "\n\n".join(parts)
     if full_text:
         chunks.append(
@@ -601,10 +964,10 @@ def _finalize_verse_section(
         report.chunk_count += 1
 
 
-def _notes_text(element: ET.Element) -> str:
+def _notes_text(elements: list[ET.Element]) -> str:
     from textus_kb.importers.ccel_thml_core import collect_notes
 
-    notes = collect_notes([element])
+    notes = collect_notes(elements)
     return "\n\n".join(notes)
 
 
@@ -646,7 +1009,7 @@ def _chunk_row(
 
 
 def _contributors(
-    head: ET.Element | None, *, work_id: str
+    head: ET.Element | None, *, work_id: str, translator_override: str | None = None
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     author_name = (
         dc_text(head, "DC.Creator", sub="Author", scheme="short-form") or AUTHOR_NAME_FALLBACK
@@ -662,7 +1025,9 @@ def _contributors(
     work_contributors = [
         {"work_id": work_id, "contributor_id": AUTHOR_CONTRIBUTOR_ID, "role": "author"}
     ]
-    translator_name = dc_text(head, "DC.Creator", sub="Translator", scheme="short-form")
+    translator_name = translator_override or dc_text(
+        head, "DC.Creator", sub="Translator", scheme="short-form"
+    )
     if translator_name:
         translator_id = f"ccel.calvin.translator.{_slug(translator_name)}"
         contributors.append(
@@ -679,8 +1044,15 @@ def _contributors(
     return contributors, work_contributors
 
 
-def _work_record(head: ET.Element | None, *, work_id: str) -> dict[str, Any]:
-    title = dc_text(head, "DC.Title", sub="Main") or dc_text(head, "DC.Title") or "Calvin Commentary"
+def _work_record(
+    head: ET.Element | None, *, work_id: str, title_override: str | None = None
+) -> dict[str, Any]:
+    title = (
+        title_override
+        or dc_text(head, "DC.Title", sub="Main")
+        or dc_text(head, "DC.Title")
+        or "Calvin Commentary"
+    )
     return {
         "work_id": work_id,
         "title": title,
@@ -699,10 +1071,11 @@ def _edition_record(
     rights = dc_text(head, "DC.Rights") or "Public Domain"
     publisher = dc_text(head, "DC.Publisher")
     publication_year = _year_from_date(dc_text(head, "DC.Date", sub="Created"))
+    file_title = dc_text(head, "DC.Title", sub="Main") or dc_text(head, "DC.Title") or book_id
     return {
         "edition_id": edition_id,
         "work_id": work_id,
-        "edition_label": "CCEL ThML edition",
+        "edition_label": file_title,
         "publication_year": publication_year,
         "publisher": publisher,
         "language": language,
@@ -746,6 +1119,7 @@ __all__ = [
     "CalvinCommentaryParseReport",
     "build_calvin_commentary_document",
     "import_calvin_commentary_sqlite",
+    "import_calvin_corpus_from_manifest",
     "merge_calvin_commentary_documents",
     "parse_calvin_commentary_thml",
 ]

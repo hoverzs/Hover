@@ -1,0 +1,317 @@
+<?xml version='1.0' encoding='utf-8'?>
+<ThML>
+  <ThML.head>
+    <generalInfo>
+      <description>Calvin's first commentary,
+<i>Commentary on Romans</i> is an impressive commentary,
+containing some of Calvin's most important views. Calvin
+is regarded as one of the Reformation's best interpreters
+of scripture. He frequently offers his own translations of a passage,
+explaining the subtleties and nuances of his translation. He has a
+penchant for incorporating keen pastoral insight into the text as well.
+He always interacts with other theologians, commentators, and portions
+of the Bible when interpreting a particular passage. Further, this
+volume also contains informative notes from the editor. <i>Commentary on
+Romans</i> should not be ignored by anyone interested in the book of
+Romans
+or John Calvin himself. <br />
+        <br />Tim Perrine.<br /> CCEL Staff Writer
+</description>
+      <firstPublished />
+      <pubHistory />
+      <comments />
+    </generalInfo>
+    <printSourceInfo>
+      <published />
+      <copyLocation />
+      <image type="front" href="" />
+      <image type="spine" href="" />
+    </printSourceInfo>
+    <electronicEdInfo>
+      <publisherID>ccel</publisherID>
+      <authorID>calvin</authorID>
+      <bookID>calcom38</bookID>
+      <workID>calcom38</workID>
+      <bkgID>commentary_on_romans_(calvin)</bkgID>
+      <version>1.02</version>
+      <series />
+      <editorialComments> Initial scanning produced mostly American spelling..1.0 sg - initial XML insertions; 1.01 fj additional anchors, scripRef verification, Foreign language [Latin/French] XML inserted, proofread without a source text.</editorialComments>
+      <revisionHistory>v0.99. Update for DTD 0.99. Main change: use DC record instead of MARC. Significant changes to the head section.v0.98. Update for DTD 0.98; delete some unneeded head elements; italicize Citation style</revisionHistory>
+      <status />
+      <DC>
+        <DC.Title sub="Main">Commentary on Romans</DC.Title>
+        <DC.Title sub="authTitle">Calvin's Commentaries</DC.Title>
+        <DC.Title sub="short">Comm on Romans</DC.Title>
+        <DC.Creator sub="Author" scheme="ccel" />
+        <DC.Creator sub="Author" scheme="file-as">Calvin, John (1509-1564)</DC.Creator>
+        <DC.Creator sub="Author" scheme="short-form">John Calvin</DC.Creator>
+        <DC.Creator sub="Alternative" scheme="ccel" />
+        <DC.Creator sub="Alternative" scheme="file-as" />
+        <DC.Creator sub="Alternative" scheme="short-form">Jean Calvin</DC.Creator>
+        <DC.Creator sub="Translator" scheme="ccel" />
+        <DC.Creator sub="Translator" scheme="file-as" />
+        <DC.Creator sub="Translator" scheme="short-form">Owen, Rev. John</DC.Creator>
+        <DC.Creator scheme="short-form">John Calvin, 1509-1564</DC.Creator>
+        <DC.Subject scheme="CCEL">All; Bible; </DC.Subject>
+        <DC.Subject scheme="LCCN">BS491</DC.Subject>
+        <DC.Subject scheme="lcsh1">The Bible</DC.Subject>
+        <DC.Subject scheme="lcsh2">Works about the Bible</DC.Subject>
+        <DC.Subject scheme="LCSH" />
+        <DC.Description />
+        <DC.Publisher>Grand Rapids, MI: Christian Classics Ethereal Library</DC.Publisher>
+        <DC.Publisher sub="Address">ccel@ccel.org</DC.Publisher>
+        <DC.Publisher scheme="CCEL">CCEL</DC.Publisher>
+        <DC.Contributor sub="Transcriber" scheme="CCEL">Ages</DC.Contributor>
+        <DC.Contributor sub="Markup" scheme="CCEL">sg, fj</DC.Contributor>
+        <DC.Date sub="Created" scheme="ISO8601">1999-11-23</DC.Date>
+        <DC.Type>Text.Commentary</DC.Type>
+        <DC.Format scheme="IMT">text/html</DC.Format>
+        <DC.Identifier scheme="CCEL" />
+        <DC.Identifier />
+        <DC.Subject scheme="LCCS" />
+        <DC.Subject scheme="DDC" />
+        <DC.Source sub="ElectronicEdition" />
+        <DC.Source sub="ElectronicEdition" scheme="URL" />
+        <DC.Source sub="Etext" />
+        <DC.Source sub="Etext" scheme="URL" />
+        <DC.Source sub="Print" />
+        <DC.Language scheme="ISO639-3">eng</DC.Language>
+        <DC.Relation />
+        <DC.Coverage />
+        <DC.Identifier scheme="URL">/ccel/calvin/calcom38.html</DC.Identifier>
+        <DC.Rights>Public Domain</DC.Rights>
+      </DC>
+      <comments />
+    </electronicEdInfo>
+    <link rel="stylesheet" type="text/css" href="/css/ThML099.css" />
+  </ThML.head>
+  <ThML.body>
+    <div1 type="chapter" title="Chapter 3" n="vii" shorttitle="chapter vii" progress="17.37%" prev="vi.vi" next="vii.i" id="vii">
+      <scripCom type="Commentary" passage="Romans 3" id="vii-p0.1" parsed="|Rom|3|0|0|0" osisRef="Bible:Rom.3" />
+      <p class="BOOK-CHAP-BLU-24-CEN11" id="vii-p1">CHAPTER 3</p>
+      <div2 type="scripture" title="Romans 3:10-18" n="v" shorttitle="scripture v" progress="19.49%" prev="vii.iv" next="vii.vi" id="vii.v">
+        <table border="2" id="vii.v-p0.1">
+          <tr valign="top" id="vii.v-p0.2">
+            <td id="vii.v-p0.3">
+              <p class="TableCaption19" id="vii.v-p1">
+                <scripRef passage="Romans 3:10-18" id="vii.v-p1.1" parsed="|Rom|3|10|3|18" osisRef="Bible:Rom.3.10-Rom.3.18">Romans 3:10-18</scripRef>
+              </p>
+            </td>
+          </tr>
+          <tr valign="top" id="vii.v-p1.2">
+            <td id="vii.v-p1.3">
+              <p id="vii.v-p2">
+                <b>10.</b> As it is written, There is none righteous, no, not one:</p>
+            </td>
+            <td id="vii.v-p2.1">
+              <p id="vii.v-p3">
+                <b>10.</b> Sicut scriptum, Quod non est justus quisquam, ne unus quidem;</p>
+            </td>
+          </tr>
+          <tr valign="top" id="vii.v-p3.1">
+            <td id="vii.v-p3.2">
+              <p id="vii.v-p4">
+                <b>11.</b> There is none that understandeth, there is none that seeketh after God.</p>
+            </td>
+            <td id="vii.v-p4.1">
+              <p id="vii.v-p5">
+                <b>11.</b> Non est intelligens, non est qui requirat Deum;</p>
+            </td>
+          </tr>
+          <tr valign="top" id="vii.v-p5.1">
+            <td id="vii.v-p5.2">
+              <p id="vii.v-p6">
+                <b>12.</b> They are all gone out of the way, they are together become unprofitable; there is none that doeth good, no, not one.</p>
+            </td>
+            <td id="vii.v-p6.1">
+              <p id="vii.v-p7">
+                <b>12.</b> Omnes declinarunt, simul facti sunt inutiles; non est qui exerceat benignitatem, ne ad unum quidem:</p>
+            </td>
+          </tr>
+          <tr valign="top" id="vii.v-p7.1">
+            <td id="vii.v-p7.2">
+              <p id="vii.v-p8">
+                <b>13.</b> Their throat <i>is</i> an open sepulchre: with their tongues they have used deceit; the poison of asps <i>is</i> under their lips:</p>
+            </td>
+            <td id="vii.v-p8.1">
+              <p id="vii.v-p9">
+                <b>13. </b>Sepulchrum apertum guttur eorum; linguis dolose egerunt: venenum aspidum sub labiis eorum:</p>
+            </td>
+          </tr>
+          <tr valign="top" id="vii.v-p9.1">
+            <td id="vii.v-p9.2">
+              <p id="vii.v-p10">
+                <b>14.</b> Whose mouth <i>is</i> full of cursing and bitterness:</p>
+            </td>
+            <td id="vii.v-p10.1">
+              <p id="vii.v-p11">
+                <b>14.</b> Quorum os execratione et amarulentia plenum:</p>
+            </td>
+          </tr>
+          <tr valign="top" id="vii.v-p11.1">
+            <td id="vii.v-p11.2">
+              <p id="vii.v-p12">
+                <b>15.</b> Their feet <i>are</i> swift to shed blood:</p>
+            </td>
+            <td id="vii.v-p12.1">
+              <p id="vii.v-p13">
+                <b>15.</b> Veloces pedes eorum ad effundendum sanguinem;</p>
+            </td>
+          </tr>
+          <tr valign="top" id="vii.v-p13.1">
+            <td id="vii.v-p13.2">
+              <p id="vii.v-p14">
+                <b>16.</b> Destruction and misery <i>are</i> in their ways:</p>
+            </td>
+            <td id="vii.v-p14.1">
+              <p id="vii.v-p15">
+                <b>16.</b> Contritio et calamitas in viis eorum;</p>
+            </td>
+          </tr>
+          <tr valign="top" id="vii.v-p15.1">
+            <td id="vii.v-p15.2">
+              <p id="vii.v-p16">
+                <b>17.</b> And the way of peace have they not known:</p>
+            </td>
+            <td id="vii.v-p16.1">
+              <p id="vii.v-p17">
+                <b>17.</b> Et viam pacis non noverunt:</p>
+            </td>
+          </tr>
+          <tr valign="top" id="vii.v-p17.1">
+            <td id="vii.v-p17.2">
+              <p id="vii.v-p18">
+                <b>18.</b> There is no fear of God before their eyes.</p>
+            </td>
+            <td id="vii.v-p18.1">
+              <p id="vii.v-p19">
+                <b>18.</b> Non est timor Dei præ oculis eorum.
+				  <note place="foot" n="97" id="vii.v-p19.1">
+                  <p class="Super" id="vii.v-p20"> The references given in the margin are these, — <scripRef passage="Ps 14:1-3 53:3 5:9 14:3 9:7 Isa 56:7 Pr 1:16 Ps 36:1" id="vii.v-p20.1" parsed="|Ps|14|1|14|3;|Ps|53|3|0|0;|Ps|5|9|0|0;|Ps|14|3|0|0;|Ps|9|7|0|0;|Isa|56|7|0|0;|Prov|1|16|0|0;|Ps|36|1|0|0" osisRef="Bible:Ps.14.1-Ps.14.3 Bible:Ps.53.3 Bible:Ps.5.9 Bible:Ps.14.3 Bible:Ps.9.7 Bible:Isa.56.7 Bible:Prov.1.16 Bible:Ps.36.1">Psalm 14:1-3; Psalm 53:3 Psalm 5:9; Psalm 14:3; Psalm 9:7; Isaiah 56:7; Proverbs 1:16; Psalm 36:1</scripRef>.</p>
+                </note>
+              </p>
+            </td>
+          </tr>
+        </table>
+        <p id="vii.v-p21">
+          <scripCom type="Commentary" passage="Ro 3:10" id="vii.v-p21.1" parsed="|Rom|3|10|0|0" osisRef="Bible:Rom.3.10" />
+        </p>
+        <div class="Commentary" id="Bible:Rom.3.10">
+          <p id="vii.v-p22">
+            <b>10.</b>
+            <i>As it is written,</i>
+            <i>etc.</i> He has hitherto used proofs or arguments to convince men of their iniquity; he now begins to reason from authority; and it is to Christians the strongest kind of proof, when authority is derived from the only
+			 true God. And hence let ecclesiastical teachers learn what their office is; for since Paul asserts here no truth but what he confirms by the sure testimony of Scripture, much less ought such a thing to be attempted by those, who have no other commission but to preach the gospel, which they have received through Paul and others.</p>
+          <p id="vii.v-p23">
+            <i>There is none righteous,</i>
+            <i>etc.</i> The Apostle, who gives the meaning rather than the entire words, seems, in the first place, before he comes to particulars, to state generally the substance of what the Prophet declares to be in man, and that is — <i>that none is
+			 righteous; </i>
+            <note place="foot" n="98" id="vii.v-p23.1">
+              <p class="Super" id="vii.v-p24">
+                <scripRef passage="Ps 14:1" id="vii.v-p24.1" parsed="|Ps|14|1|0|0" osisRef="Bible:Ps.14.1">Psalm 14:1</scripRef>. The Hebrew is, “There is none that doeth good;” and the <i>Septuagint,</i> “There is none doing kindness, (χρηστότητα), there is not even one, (ὀυκ ἔστιν ἕως ἑνός.)” So
+				  that the Apostle quotes the meaning, not the words.</p>
+              <p class="Super" id="vii.v-p25">The <i>eleventh</i> verse (<scripRef passage="Ro 3:11" id="vii.v-p25.1" parsed="|Rom|3|11|0|0" osisRef="Bible:Rom.3.11">Romans 3:11</scripRef>) is from the same Psalm; the Hebrew, with which the <i>Septuagint</i> agree, except that there is the disjunctive ἢ between the participles, is the
+				  following, — “Whether there is any one who understands, who seeks after God.” — <i>Ed.</i>
+              </p>
+            </note>
+			  he afterwards particularly enumerates the effects or fruits of this unrighteousness.</p>
+        </div>
+        <p id="vii.v-p26">
+          <scripCom type="Commentary" passage="Ro 3:11" id="vii.v-p26.1" parsed="|Rom|3|11|0|0" osisRef="Bible:Rom.3.11" />
+        </p>
+        <div class="Commentary" id="Bible:Rom.3.11">
+          <p id="vii.v-p27">
+            <b>11.</b> The first effect is, that <i>there is none that understands:</i> and then this ignorance is immediately proved, for <i>they</i>
+            <i>seek not
+			 God;</i> for empty is the man in whom there is not the knowledge of God, whatever other learning he may possess; yea, the sciences and the arts, which in themselves are good, are empty things, when they are without this groundwork.</p>
+        </div>
+        <p id="vii.v-p28">
+          <scripCom type="Commentary" passage="Ro 3:12" id="vii.v-p28.1" parsed="|Rom|3|12|0|0" osisRef="Bible:Rom.3.12" />
+        </p>
+        <div class="Commentary" id="Bible:Rom.3.12">
+          <p id="vii.v-p29">
+            <b>12.</b> It is added,
+			 <note place="foot" n="99" id="vii.v-p29.1">
+              <p class="Super" id="vii.v-p30"> This verse is literally the <i>Septuagint,</i> and as to meaning, a correct version of the Hebrew. “All have gone out of the way — πάντες ἐξέκλιναν” “is in Hebrew <span lang="he" dir="rtl" id="vii.v-p30.1">הכל סר</span>, “the whole (or every one) has turned aside,” or revolted, or
+				  apostatized. Then, “they have become unprofitable” or useless, is <span lang="he" dir="rtl" id="vii.v-p30.2">נאלחו</span>, “they are become putrid,” or Corrupted, like putrified fruit or meat, therefore useless, not fit for what they were designed — to serve God and to promote their own and the good of others. Idolatry was evidently this putrescence. — <i>Ed.</i>
+              </p>
+            </note>
+            <i>There is no one who doeth kindness</i>  By this we are to understand, that they had put off every feeling of humanity. For as the best bond of mutual concord among us is the knowledge of God, (as he is the common Father of all, he wonderfully unites us, and without him there is nothing but disunion,) so inhumanity commonly follows where there is ignorance
+			 of God, as every one, when he despises others, loves and seeks his own good.</p>
+        </div>
+        <p id="vii.v-p31">
+          <scripCom type="Commentary" passage="Ro 3:13" id="vii.v-p31.1" parsed="|Rom|3|13|0|0" osisRef="Bible:Rom.3.13" />
+        </p>
+        <div class="Commentary" id="Bible:Rom.3.13">
+          <p id="vii.v-p32">
+            <b>13.</b> It is further added, <i>Their throat is an open grave; </i>
+            <note place="foot" n="100" id="vii.v-p32.1">
+              <p class="Super" id="vii.v-p33"> This is from <scripRef passage="Ps 5:9" id="vii.v-p33.1" parsed="|Ps|5|9|0|0" osisRef="Bible:Ps.5.9">Psalm 5:9</scripRef>, that is, the first part, and is literally the <i>Septuagint,</i> which correctly represents the Hebrew. The last clause is from <scripRef passage="Ps 140:3" id="vii.v-p33.2" parsed="|Ps|140|3|0|0" osisRef="Bible:Ps.140.3">Psalm 140:3</scripRef>, and is according to the <i>Septuagint,</i> and the Hebrew, too, except that “asps,” or adders, is in the singular
+				  number. <name id="vii.v-p33.3">Stuart</name> gives the import of this figurative language different from <name id="vii.v-p33.4">Calvin</name>
+                <i>:</i> “As from the sepulchre,” he says, “issues forth an offensive and pestilential vapor; so from the mouths of slanderous persons issue noisome and pestilential words. Their words are like poison, they utter the poisonous breath of slander.” — <i>Ed.</i>
+              </p>
+            </note>
+			  that is, a gulf to swallow up men. It is more than if he had said, that they were devourers (<span lang="el" class="Greek" id="vii.v-p33.5">ἀνθρωποφάγους</span> — men-eaters;) for it is an intimation of extreme barbarity, when the throat is said to be so great a gulf, that it is sufficient to swallow down and devour men whole and entire. Their<i>
+			 tongues are deceitful,</i> and, <i>the poison of asps is under their lips,</i> import the same thing,</p>
+        </div>
+        <p id="vii.v-p34">
+          <scripCom type="Commentary" passage="Ro 3:14" id="vii.v-p34.1" parsed="|Rom|3|14|0|0" osisRef="Bible:Rom.3.14" />
+        </p>
+        <div class="Commentary" id="Bible:Rom.3.14">
+          <p id="vii.v-p35">
+            <b>14.</b> Then he says, that <i>their mouth is full of cursing and bitterness </i>
+            <note place="foot" n="101" id="vii.v-p35.1">
+              <p class="Super" id="vii.v-p36">
+                <scripRef passage="Ps 10:7" id="vii.v-p36.1" parsed="|Ps|10|7|0|0" osisRef="Bible:Ps.10.7">Psalm 10:7</scripRef>. Paul corrects the order of the words as found in the <i>Septuagint,</i> and gives the Hebrew more exactly, but retains the word “bitterness,” by which the <i>Septuagint</i> have rendered <span lang="he" dir="rtl" id="vii.v-p36.2">מרמות</span>, which means <i>deceit,</i> or rather, mischievous deceit. Some think that it ought to be <span lang="he" dir="rtl" id="vii.v-p36.3">מררות</span>, “bitterness;” but there is no copy in its favor. — <i>Ed.</i>
+              </p>
+            </note>
+			  — a vice of an opposite character to the former; but the meaning is, that they are in every way full of wickedness; for if they speak fair, they deceive and blend poison with their flatteries; but if they draw forth what they have in their hearts, bitterness and cursing stream out.</p>
+        </div>
+        <p id="vii.v-p37">
+          <scripCom type="Commentary" passage="Ro 3:16" id="vii.v-p37.1" parsed="|Rom|3|16|0|0" osisRef="Bible:Rom.3.16" />
+        </p>
+        <div class="Commentary" id="Bible:Rom.3.16">
+          <p id="vii.v-p38">
+            <b>16.</b> Very striking is the sentence that is added from Isaiah, <i>Ruin and misery are in all their ways; </i>
+            <note place="foot" n="102" id="vii.v-p38.1">
+              <p class="Super" id="vii.v-p39">
+                <scripRef passage="Ro 3:15,16,17" id="vii.v-p39.1" parsed="|Rom|3|15|0|0;|Rom|3|16|0|0;|Rom|3|17|0|0" osisRef="Bible:Rom.3.15 Bible:Rom.3.16 Bible:Rom.3.17">Romans 3:15, 16, and 17</scripRef> are taken from <scripRef passage="Isa 59:7, 8" id="vii.v-p39.2" parsed="|Isa|59|7|0|0;|Isa|59|8|0|0" osisRef="Bible:Isa.59.7 Bible:Isa.59.8">Isaiah 59:7, 8</scripRef>. Both the Hebrew and the <i>Septuagint</i> are alike, but
+				  Paul has abbreviated them, and changed two words in the Greek version, having put οξει᾿ for ταχινοι, and ἔγνωσαν for ὀίδασι, and has followed that version in leaving out “innocent” before “blood.” — <i>Ed.</i>
+              </p>
+            </note>
+			  for it is a representation of ferociousness above measure barbarous, which produces solitude and waste by destroying every thing wherever it prevails: it is the same as the description which <i>Pliny</i> gives of<i> Domitian.</i>
+          </p>
+        </div>
+        <p id="vii.v-p40">
+          <scripCom type="Commentary" passage="Ro 3:17" id="vii.v-p40.1" parsed="|Rom|3|17|0|0" osisRef="Bible:Rom.3.17" />
+        </p>
+        <div class="Commentary" id="Bible:Rom.3.17">
+          <p id="vii.v-p41">
+            <b>17.</b> It follows, <i>The way of peace they have not known:</i> they are so habituated to plunders, acts of violence and wrong, to savageness and cruelty, that they know not how to act kindly and courteously.</p>
+        </div>
+        <p id="vii.v-p42">
+          <scripCom type="Commentary" passage="Ro 3:18" id="vii.v-p42.1" parsed="|Rom|3|18|0|0" osisRef="Bible:Rom.3.18" />
+        </p>
+        <div class="Commentary" id="Bible:Rom.3.18">
+          <p id="vii.v-p43">
+            <b>18.</b> In the last clause
+			 <note place="foot" n="103" id="vii.v-p43.1">
+              <p class="Super" id="vii.v-p44"> It is taken from <scripRef passage="Ps 36:1" id="vii.v-p44.1" parsed="|Ps|36|1|0|0" osisRef="Bible:Ps.36.1">Psalm 36:1</scripRef>, and verbatim from the Greek version, and strictly in accordance with the Hebrew. It is evident from several of these quotations, that Paul’s object, as <name id="vii.v-p44.2">Calvin</name> says, was to represent the general meaning, and not to keep strictly to the expressions.</p>
+              <p class="Super" id="vii.v-p45">There is a difference of opinion as to the precise object of the Apostle; whether in these quotations he had regard to the Jews only, or to both Jews and Gentiles. In the introduction, <scripRef passage="Ro 3:9" id="vii.v-p45.1" parsed="|Rom|3|9|0|0" osisRef="Bible:Rom.3.9">Romans 3:9</scripRef>, he mentions both, and in the conclusion, <scripRef passage="Ro 3:19" id="vii.v-p45.2" parsed="|Rom|3|19|0|0" osisRef="Bible:Rom.3.19">Romans 3:19</scripRef>, he evidently refers to both, in these
+				  words, “that every, mouth may be stopped, and <i>all the world</i> may become guilty before God.”</p>
+              <p class="Super" id="vii.v-p46">The most consistent view seems to be, that the passages quoted refer both to Jews and Gentiles; the last, more especially, to the Jews, while some of the preceding have a special reference to the Gentile world, particularly <scripRef passage="Ps 14" id="vii.v-p46.1" parsed="|Ps|14|0|0|0" osisRef="Bible:Ps.14">Psalm 14</scripRef>, as it describes the character of the enemies of God and his people, to whose liberation the Psalmist refers in the last verse. —
+				  <i>Ed.</i>
+              </p>
+            </note>
+			 he repeats again, in other words, what we have noticed at the beginning — that every wickedness flows from a disregard of God: for as the principal part of wisdom is the fear of God, when we depart from that, there remains in us nothing right or pure. In short, as it is a bridle to restrain our wickedness, so when it is wanting, we feel at liberty to indulge every kind of licentiousness.</p>
+          <p id="vii.v-p47">And that these testimonies may not seem to any one to have been unfitly produced, let us consider each of them in connection with the passages from which they have been taken. David says in <scripRef passage="Ps 14:1" id="vii.v-p47.1" parsed="|Ps|14|1|0|0" osisRef="Bible:Ps.14.1">Psalm 14:1</scripRef>, that there was such perverseness in men, that God, when looking on them all in their different conditions, could not find a righteous man, no, not one. It then
+			 follows, that this evil pervaded mankind universally; for nothing is hid from the sight of God. He speaks indeed at the end of the Psalm of the redemption of Israel: but we shall presently show how men become holy, and how far they are exempt from this condition. In the other Psalms he speaks of the treachery of his enemies, while he was exhibiting in himself and in his descendants a type of the kingdom of Christ: hence we have in his adversaries the representatives of all those, who being
+			 alienated from Christ, are not led by his Spirit. Isaiah expressly mentions Israel; and therefore his charge applies with still greater force against the Gentiles. What, then? There is no doubt but that the character of men is described in those words, in order that we may see what man is when left to himself; for Scripture testifies that all men are in this state, who are not regenerated by the grace of God. The condition of the saints would be nothing better, were not this depravity corrected
+			 in them: and that they may still remember that they differ nothing from others by nature, they do find in the relics of their flesh (by which they are always encompassed) the seeds of those evils, which would constantly produce fruits, were they not prevented by being mortified; and for this mortification they are indebted to God’s mercy and not to their own nature. We may add, that though all the vices here enumerated are not found conspicuously in every individual, yet they may be justly and
+			 truly ascribed to human nature, as we have already observed <a href="/ccel/Calvin/comm_vol38.htm|vol38.chap1.vs26" id="vii.v-p47.2">on <scripRef passage="Romans 1:26" id="vii.v-p47.3" parsed="|Rom|1|26|0|0" osisRef="Bible:Rom.1.26">Romans 1:26</scripRef>
+            </a>.</p>
+        </div>
+      </div2>
+    </div1>
+  </ThML.body>
+</ThML>

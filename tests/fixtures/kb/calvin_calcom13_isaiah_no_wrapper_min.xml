@@ -1,0 +1,489 @@
+<?xml version='1.0' encoding='utf-8'?>
+<ThML>
+  <ThML.head>
+    <generalInfo>
+      <description />
+      <firstPublished />
+      <pubHistory />
+      <comments />
+    </generalInfo>
+    <printSourceInfo>
+      <published />
+      <copyLocation />
+      <image href="" type="front" />
+      <image href="" type="spine" />
+    </printSourceInfo>
+    <electronicEdInfo>
+      <publisherID>ccel</publisherID>
+      <authorID>calvin</authorID>
+      <bookID>calcom13</bookID>
+      <workID>calcom13</workID>
+      <bkgID>commentary_on_isaiah_volume_1_(calvin)</bkgID>
+      <version>1.01</version>
+      <series />
+      <editorialComments>mostly American spelling.1.0 sg Initial XML insertion1.01 fj OLB specific XML inserted OLB/Html xrefs verifiedProofed against source text (Eerdmands 1948)</editorialComments>
+      <revisionHistory>v0.99. Update for DTD 0.99. Main change: use DC record instead of MARC. Significant changes to the head section.v0.98. Update for DTD 0.98; delete some unneeded head elements; italicize Citation style</revisionHistory>
+      <status />
+      <DC>
+        <DC.Title sub="Main">Commentary on Isaiah - Volume 1</DC.Title>
+        <DC.Title sub="authTitle">Calvin's Commentaries</DC.Title>
+        <DC.Title sub="short">Comm on Isaiah (V1)</DC.Title>
+        <DC.Creator scheme="ccel" sub="Author" />
+        <DC.Creator scheme="file-as" sub="Author">Calvin, John (1509-1564)</DC.Creator>
+        <DC.Creator scheme="short-form" sub="Author">John Calvin</DC.Creator>
+        <DC.Creator scheme="ccel" sub="Alternative" />
+        <DC.Creator scheme="file-as" sub="Alternative" />
+        <DC.Creator scheme="short-form" sub="Alternative">Jean Calvin</DC.Creator>
+        <DC.Creator scheme="ccel" sub="Translator" />
+        <DC.Creator scheme="file-as" sub="Translator" />
+        <DC.Creator scheme="short-form" sub="Translator">Pringle, Rev. William</DC.Creator>
+        <DC.Creator scheme="short-form"> John Calvin, 1509-1564</DC.Creator>
+        <DC.Subject scheme="CCEL">All; Bible; </DC.Subject>
+        <DC.Subject scheme="LCCN">BS491</DC.Subject>
+        <DC.Subject scheme="lcsh1">The Bible</DC.Subject>
+        <DC.Subject scheme="lcsh2">Works about the Bible</DC.Subject>
+        <DC.Subject scheme="LCSH" />
+        <DC.Description />
+        <DC.Publisher>Grand Rapids, MI: Christian Classics Ethereal Library</DC.Publisher>
+        <DC.Publisher sub="Address">ccel@ccel.org</DC.Publisher>
+        <DC.Publisher scheme="CCEL">CCEL</DC.Publisher>
+        <DC.Contributor scheme="CCEL" sub="Transcriber">Ages</DC.Contributor>
+        <DC.Contributor scheme="CCEL" sub="Markup">sg; fj</DC.Contributor>
+        <DC.Date scheme="ISO8601" sub="Created">1999-11-24</DC.Date>
+        <DC.Type>Text.Commentary</DC.Type>
+        <DC.Format scheme="IMT">text/html</DC.Format>
+        <DC.Identifier scheme="CCEL" />
+        <DC.Identifier />
+        <DC.Subject scheme="LCCS" />
+        <DC.Subject scheme="DDC" />
+        <DC.Source sub="ElectronicEdition" />
+        <DC.Source scheme="URL" sub="ElectronicEdition" />
+        <DC.Source sub="Etext" />
+        <DC.Source scheme="URL" sub="Etext" />
+        <DC.Source sub="Print" />
+        <DC.Language scheme="ISO639-3">eng</DC.Language>
+        <DC.Relation />
+        <DC.Identifier scheme="URL">/ccel/calvin/calcom13.html</DC.Identifier>
+        <DC.Coverage />
+        <DC.Rights>Public Domain</DC.Rights>
+      </DC>
+      <comments />
+    </electronicEdInfo>
+    <link href="/css/ThML099.css" rel="stylesheet" type="text/css" />
+  </ThML.head>
+  <ThML.body>
+    <div1 id="viii" n="viii" next="viii.i" prev="vii" progress="4.68%" shorttitle="Chapter viii" title="Chapter 1" type="Chapter">
+      <p class="BOOK-CHAP-GR-16-CEN23" id="viii-p1" shownumber="no">COMMENTARY ON THE PROPHET ISAIAH</p>
+      <p class="BOOK-CHAP-BLU-24-CEN11" id="viii-p2" shownumber="no">CHAPTER 1</p>
+      <div2 id="viii.i" n="i" next="ix" prev="viii" progress="4.69%" shorttitle="scripture i" title="Isaiah 1:1-31" type="scripture">
+        <table border="2" id="viii.i-p0.1">
+          <tr id="viii.i-p0.2" valign="top">
+            <td colspan="1" id="viii.i-p0.3" rowspan="1">
+              <p class="TableCaption24" id="viii.i-p1" shownumber="no">Isaiah Chapter 1:1-31</p>
+            </td>
+          </tr>
+          <tr id="viii.i-p1.1" valign="top">
+            <td colspan="1" id="viii.i-p1.2" rowspan="1">
+              <p id="viii.i-p2" shownumber="no">
+                <b>1.</b> The vision of Isaiah the son of Amoz, which he saw concerning Judah and Jerusalem, in the days of Uzziah, Jotham, Ahaz, <i>and</i> Hezekiah, kings of Judah.</p>
+            </td>
+            <td colspan="1" id="viii.i-p2.1" rowspan="1">
+              <p id="viii.i-p3" shownumber="no">
+                <b>1.</b> Visio Isaiae filii Amoz, quam vidit super Iudam et Ierusalem in diebus Usiae, Iotham, Achaz, Ezechiae, regum Iuda.</p>
+            </td>
+          </tr>
+          <tr id="viii.i-p3.1" valign="top">
+            <td colspan="1" id="viii.i-p3.2" rowspan="1">
+              <p id="viii.i-p4" shownumber="no">
+                <b>2.</b> Hear, O heavens, and give ear, O earth: for the Lord hath spoken, I have nourished and brought up children, and they have rebelled against me.</p>
+            </td>
+            <td colspan="1" id="viii.i-p4.1" rowspan="1">
+              <p id="viii.i-p5" shownumber="no">
+                <b>2.</b> Audite caeli, et ausculta terra; quia sic Dominus loquitur, Filios educavi et sustuli, ipsi tamen <a id="viii.i-p5.1" shape="rect" xml:link="simple" />scelerate egerunt in me, (<i>vel, rebellarunt contra me.</i>)</p>
+            </td>
+          </tr>
+          <tr id="viii.i-p5.2" valign="top">
+            <td colspan="1" id="viii.i-p5.3" rowspan="1">
+              <p id="viii.i-p6" shownumber="no">
+                <b>3.</b> The ox knoweth his owner, and the ass his master's crib: <i>but</i> Israel doth not know, my people doth not consider.</p>
+            </td>
+            <td colspan="1" id="viii.i-p6.1" rowspan="1">
+              <p id="viii.i-p7" shownumber="no">
+                <b>3.</b> Cognovit bos possessorem suum, et asinus praesepe dominorum suorum: Israel non cognovit, populus meus non intellexit.</p>
+            </td>
+          </tr>
+          <tr id="viii.i-p7.1" valign="top">
+            <td colspan="1" id="viii.i-p7.2" rowspan="1">
+              <p id="viii.i-p8" shownumber="no">
+                <b>4.</b> Ah sinful nation, a people laden with iniquity, a seed of evil-doers, children that are corrupters! They have forsaken the Lord, they have provoked the Holy One of Israel unto anger, they are gone away backward.</p>
+            </td>
+            <td colspan="1" id="viii.i-p8.1" rowspan="1">
+              <p id="viii.i-p9" shownumber="no">
+                <b>4.</b> O gens scelesta, populus onustus iniquitate, semen malignorum, filii degeneres! dereliquerunt Iehovam, spreverunt (<i>vel, provocarunt ad iram</i>) sanctum Israelis, alienati sunt retrorsum.</p>
+            </td>
+          </tr>
+          <tr id="viii.i-p9.1" valign="top">
+            <td colspan="1" id="viii.i-p9.2" rowspan="1">
+              <p id="viii.i-p10" shownumber="no">
+                <b>5.</b> Why should ye be stricken any more? ye will revolt more and more. The whole head is sick, and the whole heart faint.</p>
+            </td>
+            <td colspan="1" id="viii.i-p10.1" rowspan="1">
+              <p id="viii.i-p11" shownumber="no">
+                <b>5.</b> Quorsum adhuc vos percuterem? Adjicietis praevaricationem. Totum caput languori, et totum cor dolori.</p>
+            </td>
+          </tr>
+          <tr id="viii.i-p11.1" valign="top">
+            <td colspan="1" id="viii.i-p11.2" rowspan="1">
+              <p id="viii.i-p12" shownumber="no">
+                <b>6.</b> From the sole of the foot even unto the head <i>there is</i> no soundness in it; <i>but</i> wounds, and bruises, and putrifying sores: they have not been closed, neither bound up, neither mollified with ointment.</p>
+            </td>
+            <td colspan="1" id="viii.i-p12.1" rowspan="1">
+              <p id="viii.i-p13" shownumber="no">
+                <b>6.</b> A planta pedis usque ad caput nulla in eo sanitas. Vulnus, tumor, et saniosa plaga. Nec sunt emplastro curatae, nec circumligatae, nec oleo delinitae.</p>
+            </td>
+          </tr>
+          <tr id="viii.i-p13.1" valign="top">
+            <td colspan="1" id="viii.i-p13.2" rowspan="1">
+              <p id="viii.i-p14" shownumber="no">
+                <b>7.</b> Your country <i>is</i> desolate, your cities <i>are</i> burnt with fire: your land, strangers devour it in your presence, and <i>it is</i> desolate, as overthrown by strangers.</p>
+            </td>
+            <td colspan="1" id="viii.i-p14.1" rowspan="1">
+              <p id="viii.i-p15" shownumber="no">
+                <b>7.</b> Terra vestra in vastitatem: Urbes vestrae igni succensae: terram vestram alieni devorant in conspectu vestro, redacta est in solitudinem, juxta subversionem exterorum.</p>
+            </td>
+          </tr>
+          <tr id="viii.i-p15.1" valign="top">
+            <td colspan="1" id="viii.i-p15.2" rowspan="1">
+              <p id="viii.i-p16" shownumber="no">
+                <b>8.</b> And the daughter of Zion is left as a cottage in a vineyard, as a lodge in a garden of cucumbers, as a besieged city.</p>
+            </td>
+            <td colspan="1" id="viii.i-p16.1" rowspan="1">
+              <p id="viii.i-p17" shownumber="no">
+                <b>8.</b> Et residua manebit filia Zion, sicut tugurium in vinea, sicut diversorium in cucumerario, sicut civitas vastata.</p>
+            </td>
+          </tr>
+          <tr id="viii.i-p17.1" valign="top">
+            <td colspan="1" id="viii.i-p17.2" rowspan="1">
+              <p id="viii.i-p18" shownumber="no">
+                <b>9.</b> Except the Lord of hosts had left unto us a very small remnant, we should have been as Sodom, <i>and</i> we should have been like unto Gomorrah.</p>
+            </td>
+            <td colspan="1" id="viii.i-p18.1" rowspan="1">
+              <p id="viii.i-p19" shownumber="no">
+                <b>9.</b> Nisi Dominus exercituum residuas nobis fecisset reliquias vel tantillas, quasi Sodoma fuissemus, et similes Gomorrhae.</p>
+            </td>
+          </tr>
+          <tr id="viii.i-p19.1" valign="top">
+            <td colspan="1" id="viii.i-p19.2" rowspan="1">
+              <p id="viii.i-p20" shownumber="no">
+                <b>10.</b> Hear the word of the Lord, ye rulers of Sodom; give ear unto the law of our God, ye people of Gomorrah:</p>
+            </td>
+            <td colspan="1" id="viii.i-p20.1" rowspan="1">
+              <p id="viii.i-p21" shownumber="no">
+                <b>10. </b>Audite verbum Domini, principes Sodomae: auscultate Legem Dei nostri, populus Gomorrhae.</p>
+            </td>
+          </tr>
+          <tr id="viii.i-p21.1" valign="top">
+            <td colspan="1" id="viii.i-p21.2" rowspan="1">
+              <p id="viii.i-p22" shownumber="no">
+                <b>11.</b> To what purpose <i>is</i> the multitude of your sacrifices unto me? saith the Lord: I am full of the burnt-offerings of rams, and the fat of fed beasts; and I delight not in the blood of bullocks, or of lambs, or of he-goats.</p>
+            </td>
+            <td colspan="1" id="viii.i-p22.1" rowspan="1">
+              <p id="viii.i-p23" shownumber="no">
+                <b>11.</b> Quorsum mihi multitudo sacrificiorum vestrorum? dicit Dominus. Plenus sum holocaustis arietum, et adipe saginatorum animalium: nec sanguinem boum, aut ovium, aut hircorum desidero.</p>
+            </td>
+          </tr>
+          <tr id="viii.i-p23.1" valign="top">
+            <td colspan="1" id="viii.i-p23.2" rowspan="1">
+              <p id="viii.i-p24" shownumber="no">
+                <b>12.</b> When ye come to appear before me, who hath required this at your hand, to tread my courts?</p>
+            </td>
+            <td colspan="1" id="viii.i-p24.1" rowspan="1">
+              <p id="viii.i-p25" shownumber="no">
+                <b>12.</b> Quando venitis ut appareatis coram facie mea, quis hoc e manu vestra requisivit? nempe conterere atria mea.</p>
+            </td>
+          </tr>
+          <tr id="viii.i-p25.1" valign="top">
+            <td colspan="1" id="viii.i-p25.2" rowspan="1">
+              <p id="viii.i-p26" shownumber="no">
+                <b>13.</b> Bring no more oblations; incense is an abomination unto me; the new-moons and sabbaths, the calling of assemblies, I cannot away with; <i>it is</i> iniquity, even the solemn meeting;.</p>
+            </td>
+            <td colspan="1" id="viii.i-p26.1" rowspan="1">
+              <p id="viii.i-p27" shownumber="no">
+                <b>13.</b> Ne pergatis adducere oblationem vanitatis. Incensum abominatio est mihi. Neomeniam, et sabbathum, et solennes indictiones non potero: vana res est, nec conventum.</p>
+            </td>
+          </tr>
+          <tr id="viii.i-p27.1" valign="top">
+            <td colspan="1" id="viii.i-p27.2" rowspan="1">
+              <p id="viii.i-p28" shownumber="no">
+                <b>14.</b> Your new-moons and your appointed feasts my soul hateth: they are a trouble unto me; I am weary to bear <i>them</i>
+              </p>
+            </td>
+            <td colspan="1" id="viii.i-p28.1" rowspan="1">
+              <p id="viii.i-p29" shownumber="no">
+                <b>14.</b> Neomenias vestras et solennia vestra odio habet anima mea: superfuerunt mihi loco oneris, fatigatus sum ferendo.</p>
+            </td>
+          </tr>
+          <tr id="viii.i-p29.1" valign="top">
+            <td colspan="1" id="viii.i-p29.2" rowspan="1">
+              <p id="viii.i-p30" shownumber="no">
+                <b>15.</b> And when ye spread forth your hands, I will hide mine eyes from you; yea, when ye make many prayers, I will not hear: your hands are full of blood.</p>
+            </td>
+            <td colspan="1" id="viii.i-p30.1" rowspan="1">
+              <p id="viii.i-p31" shownumber="no">
+                <b>15. </b>Cum expanderitis manus vestras, abscondam oculos meos a vobis. Etiamsi multiplicaveritis orationem, ego non exaudiam. Manus vestrae sanguine plenae sunt.</p>
+            </td>
+          </tr>
+          <tr id="viii.i-p31.1" valign="top">
+            <td colspan="1" id="viii.i-p31.2" rowspan="1">
+              <p id="viii.i-p32" shownumber="no">
+                <b>16.</b> Wash you, make you clean; put away the evil of your doings from before mine eyes; cease to do evil;</p>
+            </td>
+            <td colspan="1" id="viii.i-p32.1" rowspan="1">
+              <p id="viii.i-p33" shownumber="no">
+                <b>16.</b> Lavate, mundemini, auferte malitiam studiorum vestrorum a conspectu oculorum meorum, desinite mala facere.</p>
+            </td>
+          </tr>
+          <tr id="viii.i-p33.1" valign="top">
+            <td colspan="1" id="viii.i-p33.2" rowspan="1">
+              <p id="viii.i-p34" shownumber="no">
+                <b>17.</b> Learn to do well; seek judgment; relieve the oppressed; judge the fatherless; plead for the widow.</p>
+            </td>
+            <td colspan="1" id="viii.i-p34.1" rowspan="1">
+              <p id="viii.i-p35" shownumber="no">
+                <b>17.</b> Discite benefacere: quaerite judicium: restituite (<i>vel, dirigite</i>) oppressum: jus dicite pupillo: tuemini viduam.</p>
+            </td>
+          </tr>
+          <tr id="viii.i-p35.1" valign="top">
+            <td colspan="1" id="viii.i-p35.2" rowspan="1">
+              <p id="viii.i-p36" shownumber="no">
+                <b>18.</b> Come now, and let us reason together, saith the Lord: Though your sins be as scarlet, they shall be as white as snow; though they be red like crimson, they shall be as wool.</p>
+            </td>
+            <td colspan="1" id="viii.i-p36.1" rowspan="1">
+              <p id="viii.i-p37" shownumber="no">
+                <b>18. </b>Venite, agedum, et disceptemus, dixit Dominus: si fuerint peccata vestra ut coccinum, quasi nix dealbabuntur: si rubicunda fuerint instar purpurae, quasi lana erunt.</p>
+            </td>
+          </tr>
+          <tr id="viii.i-p37.1" valign="top">
+            <td colspan="1" id="viii.i-p37.2" rowspan="1">
+              <p id="viii.i-p38" shownumber="no">
+                <b>19.</b> If ye be willing and obedient, ye shall eat the good of the land:</p>
+            </td>
+            <td colspan="1" id="viii.i-p38.1" rowspan="1">
+              <p id="viii.i-p39" shownumber="no">
+                <b>19.</b> Si volueritis, et audieritis, bonum terrae comedetis.</p>
+            </td>
+          </tr>
+          <tr id="viii.i-p39.1" valign="top">
+            <td colspan="1" id="viii.i-p39.2" rowspan="1">
+              <p id="viii.i-p40" shownumber="no">
+                <b>20.</b> But if ye refuse and rebel, ye shall be devoured with the sword: for the mouth of the Lord hath spoken<i> it</i>
+              </p>
+            </td>
+            <td colspan="1" id="viii.i-p40.1" rowspan="1">
+              <p id="viii.i-p41" shownumber="no">
+                <b>20. </b>Quod si nolueritis, et rebelles fueritis, gladio consummemini: quoniam os Domini loquutum est.</p>
+            </td>
+          </tr>
+          <tr id="viii.i-p41.1" valign="top">
+            <td colspan="1" id="viii.i-p41.2" rowspan="1">
+              <p id="viii.i-p42" shownumber="no">
+                <b>21.</b> How is the faithful city become an harlot! it was full of judgment; righteousness lodged in it; but now murderers.</p>
+            </td>
+            <td colspan="1" id="viii.i-p42.1" rowspan="1">
+              <p id="viii.i-p43" shownumber="no">
+                <b>21.</b> Quomodo facta est meretrix civitas fidelis? plena judicio fuit: et aequitas pernoctavit (<i>vel, habitavit</i>) in ea; nunc autem homicidae.</p>
+            </td>
+          </tr>
+          <tr id="viii.i-p43.1" valign="top">
+            <td colspan="1" id="viii.i-p43.2" rowspan="1">
+              <p id="viii.i-p44" shownumber="no">
+                <b>22.</b> Thy silver is become dross, thy wine mixed with water:</p>
+            </td>
+            <td colspan="1" id="viii.i-p44.1" rowspan="1">
+              <p id="viii.i-p45" shownumber="no">
+                <b>22.</b> Argentum tuum versum est in scoriam, et vinum tuum est aqua mixtum.</p>
+            </td>
+          </tr>
+          <tr id="viii.i-p45.1" valign="top">
+            <td colspan="1" id="viii.i-p45.2" rowspan="1">
+              <p id="viii.i-p46" shownumber="no">
+                <b>23.</b> Thy princes <i>are</i> rebellious, and companions of thieves: every one loveth gifts, and followeth after rewards: they judge not the fatherless, neither doth the cause of the widow come unto them.</p>
+            </td>
+            <td colspan="1" id="viii.i-p46.1" rowspan="1">
+              <p id="viii.i-p47" shownumber="no">
+                <b>23.</b> Principes tui perversi, et socii furum: unusquisque diligit munus, et inhiat mercedibus: causam pupilli non judicant, nec causa viduae pervenit ad eos.</p>
+            </td>
+          </tr>
+          <tr id="viii.i-p47.1" valign="top">
+            <td colspan="1" id="viii.i-p47.2" rowspan="1">
+              <p id="viii.i-p48" shownumber="no">
+                <b>24.</b> Therefore saith the Lord, the Lord of hosts, the mighty One of Israel, Ah, I will ease me of mine adversaries, and avenge me of mine enemies:</p>
+            </td>
+            <td colspan="1" id="viii.i-p48.1" rowspan="1">
+              <p id="viii.i-p49" shownumber="no">
+                <b>24.</b> Propterea dicit Dominus, (<i>vel, Dominator,</i>) Iehovah exercituum, fortis Israel, Heu! consolationem capiam super hostibus meis, vindicabor de inimicis meis.</p>
+            </td>
+          </tr>
+          <tr id="viii.i-p49.1" valign="top">
+            <td colspan="1" id="viii.i-p49.2" rowspan="1">
+              <p id="viii.i-p50" shownumber="no">
+                <b>25.</b> And I will turn my hand upon thee, and purely purge away thy dross, and take away all thy tin:</p>
+            </td>
+            <td colspan="1" id="viii.i-p50.1" rowspan="1">
+              <p id="viii.i-p51" shownumber="no">
+                <b>25.</b> Convertam manum meam super te: purgabo ad liquidum scoriam tuam, et auferam omne stannum tuum.</p>
+            </td>
+          </tr>
+          <tr id="viii.i-p51.1" valign="top">
+            <td colspan="1" id="viii.i-p51.2" rowspan="1">
+              <p id="viii.i-p52" shownumber="no">
+                <b>26.</b> And I will restore thy judges as at the first, and thy counsellors as at the beginning: afterward thou shalt be called, The city of righteousness, The faithful city.</p>
+            </td>
+            <td colspan="1" id="viii.i-p52.1" rowspan="1">
+              <p id="viii.i-p53" shownumber="no">
+                <b>26. </b>Et restituam judices tuos sicut a principio, et consiliarios tuos ut ab initio. Tum dicetur de te, Civitas justitiae, urbs fidelis.</p>
+            </td>
+          </tr>
+          <tr id="viii.i-p53.1" valign="top">
+            <td colspan="1" id="viii.i-p53.2" rowspan="1">
+              <p id="viii.i-p54" shownumber="no">
+                <b>27</b> Zion shall be redeemed with judgment, and her converts with righteousness.</p>
+            </td>
+            <td colspan="1" id="viii.i-p54.1" rowspan="1">
+              <p id="viii.i-p55" shownumber="no">
+                <b>27.</b> Sion in judicio redimetur, et qui reducentur ad eam, in justitia.</p>
+            </td>
+          </tr>
+          <tr id="viii.i-p55.1" valign="top">
+            <td colspan="1" id="viii.i-p55.2" rowspan="1">
+              <p id="viii.i-p56" shownumber="no">
+                <b>28.</b> And the destruction of the transgressors and of the sinners <i>shall be</i> together, and they that forsake the Lord shall be consumed.</p>
+            </td>
+            <td colspan="1" id="viii.i-p56.1" rowspan="1">
+              <p id="viii.i-p57" shownumber="no">
+                <b>28. </b>Contritio autem praevaricatorum et sceleratorum simul fiet; et qui a Domino defecerunt consumentur.</p>
+            </td>
+          </tr>
+          <tr id="viii.i-p57.1" valign="top">
+            <td colspan="1" id="viii.i-p57.2" rowspan="1">
+              <p id="viii.i-p58" shownumber="no">
+                <b>29.</b> For they shall be ashamed of the oaks which ye have desired, and ye shall be confounded for the gardens that ye have chosen.</p>
+            </td>
+            <td colspan="1" id="viii.i-p58.1" rowspan="1">
+              <p id="viii.i-p59" shownumber="no">
+                <b>29. </b>Nempe pudifient ab arboribus quas concupivistis, et ignominia afficiemini a lucis quos elegistis.</p>
+            </td>
+          </tr>
+          <tr id="viii.i-p59.1" valign="top">
+            <td colspan="1" id="viii.i-p59.2" rowspan="1">
+              <p id="viii.i-p60" shownumber="no">
+                <b>30.</b> For ye shall be as an oak whose leaf fadeth, and as a garden that hath no water.</p>
+            </td>
+            <td colspan="1" id="viii.i-p60.1" rowspan="1">
+              <p id="viii.i-p61" shownumber="no">
+                <b>30. </b>Eritis certe sicut arbor cujus folium marcessit, et sicut lucus non habens aquas.</p>
+            </td>
+          </tr>
+          <tr id="viii.i-p61.1" valign="top">
+            <td colspan="1" id="viii.i-p61.2" rowspan="1">
+              <p id="viii.i-p62" shownumber="no">
+                <b>31.</b> And the strong shall be as tow, and the maker of it as a spark, and they shall both burn together, and none shall quench <i>them</i>
+              </p>
+            </td>
+            <td colspan="1" id="viii.i-p62.1" rowspan="1">
+              <p id="viii.i-p63" shownumber="no">
+                <b>31.</b> Eritque fortis vester (<i>alias, Deus</i>) sicut stuppa; et fictor ejus quasi scintilla; et comburentur ambo, nec erit qui extinguat.</p>
+            </td>
+          </tr>
+        </table>
+        <p class="Normal" id="viii.i-p65" shownumber="no">
+          <scripCom id="viii.i-p65.1" osisRef="Bible:Isa.1.1" parsed="|Isa|1|1|0|0" passage="Isa 1:1" type="Commentary" />
+        </p>
+        <p id="viii.i-p66" shownumber="no">
+          <b>1.</b>
+          <i>The vision of Isaiah</i>  The Hebrew word <span dir="rtl" id="viii.i-p66.1" lang="he">חזון</span> (<i>chazon</i>,) though it is derived from <span dir="rtl" id="viii.i-p66.2" lang="he">חזה</span>, (<i>chazah</i>,) <i>he saw</i>, and literally is <i>a vision</i>, yet commonly signifies <i>a prophecy</i>. For when the Scripture makes mention of special visions which were exhibited to the prophets in a symbolical manner, when it was the will of
+			 God that some extraordinary event should receive confirmation, in such cases the word Tibet, (<span dir="rtl" id="viii.i-p66.3" lang="he">מראה</span>,) <i>vision</i>, is employed. Not to multiply quotations, in a passage which relates <i>to prophecy</i> in general the writer says, that <i>the word of God
+			 was precious, because</i>
+          <span dir="rtl" id="viii.i-p66.4" lang="he">חזון</span>, (<i>chazon</i>,) <i>vision, was of rare occurrence</i>. (<scripRef id="viii.i-p66.5" osisRef="Bible:1Sam.3.1" parsed="|1Sam|3|1|0|0" passage="1Sa 3:1">1 Samuel 3:1</scripRef>.) A little afterwards, the word
+			 <span dir="rtl" id="viii.i-p66.6" lang="he">מראה</span>: (mar-ah) is employed to denote the vision by which God revealed himself to Samuel. (<scripRef id="viii.i-p66.7" osisRef="Bible:1Sam.3.13" parsed="|1Sam|3|13|0|0" passage="1Sa 3:13">1 Samuel 3:13</scripRef>.) In distinguishing between two ordinary methods of revelation, <i>a vision and a dream</i>, Moses speaks of <i>a vision</i> (<span dir="rtl" id="viii.i-p66.8" lang="he">מראה</span>) as the special method. (<scripRef id="viii.i-p66.9" osisRef="Bible:Num.12.6" parsed="|Num|12|6|0|0" passage="Nu 12:6">Numbers 12:6</scripRef>.) It is evident, however, that <i>the seer</i>, <span dir="rtl" id="viii.i-p66.10" lang="he">הראה</span>, (<i>haroeh</i>,) was the name formerly given to prophets, (<scripRef id="viii.i-p66.11" osisRef="Bible:1Sam.9.9" parsed="|1Sam|9|9|0|0" passage="1Sa 9:9">1 Samuel 9:9</scripRef>;) but by way of excellence, because God revealed to them his counsel in a familiar manner.</p>
+        <p id="viii.i-p67" shownumber="no">So far as relates to the present passage, this word unquestionably denotes the certainty of the doctrine; as if it had been said that there is nothing contained in this book which was not made known to <i>Isaiah</i> by God himself. The derivation of the word, therefore, deserves attention; for we learn by it that the prophets did not speak of their own accord, or draw from their own imaginations, but that they were enlightened by God, who
+			 opened their eyes to perceive those things which otherwise they would not of themselves have been able to comprehend. Thus the inscription of Isaiah recommends to us the doctrine of this book, as containing no human reasonings, but the oracles of God, in order to convince us that it contains nothing but what was revealed by the Spirit of God.</p>
+        <p id="viii.i-p68" shownumber="no">
+          <i>Concerning Judah</i>  Were we to render it to <i>Judah</i>, it would make little difference, for the preposition <span dir="rtl" id="viii.i-p68.1" lang="he">על</span> (<i>al</i>) has both
+			 significations, and the meaning will still be, that everything contained in this book belongs strictly to <i>Judah and Jerusalem.</i> For though many things are scattered through it which relate to Babylon, Egypt, Tyre, and other cities and countries, yet it was not necessary that those places should be expressly enumerated in the title; for nothing more was required than to announce the principal subject, and
+			 to explain to whom Isaiah was chiefly sent, that is, <i>to Jerusalem, and the Jews</i>. Everything else that is contained in his prophecies may be said to have been accidental and foreign to the subject.</p>
+        <p id="viii.i-p69" shownumber="no">And yet it was not inconsistent with his office to make known to other nations the calamities which should overtake them; for in like manner Amos did not go beyond the limits of his calling, when he did not spare the Jews, though he was not sent to them. (<scripRef id="viii.i-p69.1" osisRef="Bible:Amos.2.4-Amos.2.5" parsed="|Amos|2|4|2|5" passage="Am 2:4, 5">Amos 2:4, 5</scripRef>.) A still more familiar instance is found in the calling of Peter and Paul, the
+			 former of whom was appointed to the Jews, and the latter to the Gentiles. (<scripRef id="viii.i-p69.2" osisRef="Bible:Gal.2.8" parsed="|Gal|2|8|0|0" passage="Ga 2:8">Galatians 2:8</scripRef>.) And yet Peter did not rush beyond the limits of his office, by preaching to the Gentiles; as, for example, when he went to Cornelius: (<scripRef id="viii.i-p69.3" osisRef="Bible:Acts.10.17" parsed="|Acts|10|17|0|0" passage="Ac 10:17">Acts 10:17</scripRef>:) nor did Paul, when he offered his services to the Jews, to whom he immediately went as soon
+			 as he entered into any city. (<scripRef id="viii.i-p69.4" osisRef="Bible:Acts.13.5 Bible:Acts.14.1 Bible:Acts.17.2 Bible:Acts.17.10 Bible:Acts.18.4 Bible:Acts.18.19" parsed="|Acts|13|5|0|0;|Acts|14|1|0|0;|Acts|17|2|0|0;|Acts|17|10|0|0;|Acts|18|4|0|0;|Acts|18|19|0|0" passage="Ac 13:5; 14:1; 17:2,10; 18:4,19">Acts 13:5; 14:1; 17:2, 10; 18:4,19</scripRef>.) In the same light ought we to view Isaiah; for while he is careful to instruct the Jews, and directs his labors expressly towards that object, he does not transgress his proper limits when he likewise takes a passing notice of other nations.</p>
+        <p id="viii.i-p70" shownumber="no">
+          <i>Judah and Jerusalem</i>  He takes <i>Judah</i> for the whole nation, and <i>Jerusalem</i> for the chief city in the kingdom; for he does not make a distinction between <i>Jerusalem</i> and <i>the Jews</i>, but mentions it, by way of eminence, (<span class="Greek" id="viii.i-p70.1" lang="el">κατ ᾿ ἐξοχὴν,</span>) as the metropolis, just as if a prophet of the present day were to address the kingdom of France, and Paris, which is the metropolis of the nation. And this was of great importance, that the inhabitants of Jerusalem might not hold themselves exempted, as if they were free from all blame, or placed
+			 above the laws on account of their high rank, and thus might send the meaner sort of people to be instructed by homely prophets. It is a mistake, however, to suppose that <i>Jerusalem </i>is mentioned separately, on account of its being situated in the tribe of Benjamin; for the half of that tribes which was subject to the posterity of David, is included under the name of <i>Judah</i>
+        </p>
+        <p class="Normal" id="viii.i-p71" shownumber="no">
+          <scripCom id="viii.i-p71.1" osisRef="Bible:Isa.1.2" parsed="|Isa|1|2|0|0" passage="Isa 1:2" type="Commentary" />
+        </p>
+        <p id="viii.i-p72" shownumber="no">
+          <b>2.</b>
+          <i>Hear, O heavens</i>  Isaiah has here imitated Moses, as all the prophets are accustomed to do; and there cannot be a doubt that he alludes to that illustrious Song of Moses, in which, at the very commencement, he calls <i>heaven and
+			 earth</i> to witness against the people:</p>
+        <p class="SCRIPTURE" id="viii.i-p73" shownumber="no">Give ear, O ye heavens, and I will speak; and hear, O earth, the words of my mouth. (<scripRef id="viii.i-p73.1" osisRef="Bible:Deut.32.1" parsed="|Deut|32|1|0|0" passage="De 32:1">Deuteronomy 32:1</scripRef>.)</p>
+        <p id="viii.i-p74" shownumber="no">This is unquestionably a very severe protestation; for it conveys this meaning, that both turn to the elements which are dumb and devoid of feeling, because men have now no ears, or are bereft of all their senses. The Prophet, therefore, speaks of it as an extraordinary and monstrous thing, which ought to strike even the senseless elements with amazement. For what could be more shocking than that the Israelites should revolt from God, who had
+			 bestowed on them so many benefits? Those who think that by <i>heaven </i>are meant angels, and by <i>earth</i> men, weaken too much the import of those words, and thus destroy all their force and majesty.</p>
+        <p id="viii.i-p75" shownumber="no">Almost all the commentators consider the clause to end with the words, <i>for the Lord hath spoken</i>; as if the Prophet had intimated, that as soon as the Lord opens his sacred mouth, all ought to be attentive to<i> hear</i> his voice. And certainly this meaning has the appearance of being more
+			 full; but the context demands that we connect the words in a different manner, so as to make the word hear to refer, not in a general manner to any discourse whatever, but only to the expostulation which immediately follows. The meaning therefore is, Hear the complaint which the Lord brings forward, <i>I have nourished and brought up children</i>, etc. For he relates a prodigy, which fills him with such horror
+			 that he is compelled to summon dead creatures as witnesses, contrary to nature.</p>
+        <p id="viii.i-p76" shownumber="no">That no one may wonder at the circumstance of his addressing dumb and lifeless objects, experience very clearly shows that the voice of God is heard even by dumb creatures, and that the order of nature is nothing else than the obedience which is rendered to him by every part of the world, so that everywhere his supreme authority shines forth; for at his bidding the elements observe the law laid down to them, and <i>heaven and earth</i>
+			 perform their duty. The <i>earth</i> yields her fruits; the sea flows not beyond her settled boundaries; the sun, moon, and stars perform their Courses; the <i>heavens</i>, too, revolve at stated periods; and all with wonderful accuracy, though they are destitute of reason and understanding But man, endued with reason and understanding, in whose ears and in whose heart the voice of God frequently sounds, remains unmoved, like one bereft of his senses, and cannot bend the neck to submit to him.
+			 Against obstinate and rebellious men shall dumb and lifeless creatures bear testimony, so that they will one day feel that this protestation was not in vain.</p>
+        <p id="viii.i-p77" shownumber="no">
+          <i>I have nourished</i>  Literally it runs, <i>I have made them great</i>;
+			 <note anchored="yes" id="viii.i-p77.1" n="7" place="foot">
+            <p class="Footnote" id="viii.i-p78" shownumber="no">
+              <span dir="ltr" id="viii.i-p78.1" lang="la">
+                <i>Feci magnos</i>
+              </span>. The term <span dir="ltr" id="viii.i-p78.2" lang="la">
+                <i>feci</i>
+              </span> (I <i>have made</i>) exhibits the force of the Pihel form, <span dir="rtl" id="viii.i-p78.3" lang="he">
+גדלתי</span>(<i>giddalti</i>,) which, as in other instances, approaches the meaning of the Hiphil form, <span dir="rtl" id="viii.i-p78.4" lang="he">הגדלתי</span>, (<i>higdalti</i>.) — <i>Ed</i>
+            </p>
+          </note>
+			  but as he is speaking about children, we cannot obtain a better rendering than <i>I have nourished</i>, or, <i>I have brought up</i>;
+			 <note anchored="yes" id="viii.i-p78.5" n="8" place="foot">
+            <p class="Footnote" id="viii.i-p79" shownumber="no">
+              <span dir="ltr" id="viii.i-p79.1" lang="la">Educavi, vel sustuli</span>.</p>
+          </note>
+			  for instead of the verb, to nourish,
+			 <note anchored="yes" id="viii.i-p79.2" n="9" place="foot">
+            <p class="Footnote" id="viii.i-p80" shownumber="no">
+              <span dir="ltr" id="viii.i-p80.1" lang="la">Enutrire</span>.</p>
+          </note>
+			  the Latins employ the phrase, <i>to bring up children</i>
+          <note anchored="yes" id="viii.i-p80.2" n="10" place="foot">
+            <p class="Footnote" id="viii.i-p81" shownumber="no">
+              <span dir="ltr" id="viii.i-p81.1" lang="la">Tollere liberos</span>.</p>
+          </note>
+			  But he afterwards mentions other benefits which he had bestowed on them in rich abundance; as if he had said, that he not only had performed the part of a kind father, by giving them food and the ordinary means of support, but had labored to raise them to an honorable rank. For in every sort of kindness towards them he had, as it were, exhausted himself, as he elsewhere reproaches them,</p>
+        <p class="SCRIPTURE" id="viii.i-p82" shownumber="no">What could have been done to my vineyard that I have not done? (<scripRef id="viii.i-p82.1" osisRef="Bible:Isa.5.4" parsed="|Isa|5|4|0|0" passage="Isa 5:4">Isaiah 5:4</scripRef>.)</p>
+        <p id="viii.i-p83" shownumber="no">A similar charge the Lord might indeed have brought against all nations; for all of them he feeds, and on all he confers great and multiplied benefits. But he had chosen the Israelites in a peculiar manner, had given them a preference above others by adopting them into his family, had treated them as his most beloved children, had tenderly cherished them in his bosom, and, in a word, had bestowed on them every kind of blessings.</p>
+        <p id="viii.i-p84" shownumber="no">To apply these observations to our own times, we ought to consider whether our condition be not equal, or even superior to that which the Jews formerly enjoyed. Their adoption into the family of God bound them to maintain the purity of his worship. Our obligation is twofold; for not only have we been redeemed by the blood of Christ, but he who once redeemed us is pleased to favor us with his Gospel, and in this manner prefers us to all those
+			 whom he still allows to remain blinded by ignorance. If we do not acknowledge these things, how much severer punishment shall we deserve? For the more full and abundant the grace of God which hath been poured out on us, the higher will be the ingratitude of which it shall convict us.</p>
+        <p id="viii.i-p85" shownumber="no">
+          <i>They have revolted.</i>
+          <note anchored="yes" id="viii.i-p85.1" n="11" place="foot">
+            <p class="Footnote" id="viii.i-p86" shownumber="no"> Our Author, in his Latin version of the Prophet, (<a href="/ccel/Calvin/comm_vol13.htm|vol13.chap1.p33" id="viii.i-p86.1" shape="rect" xml:link="simple">see p. 33</a>,) has rendered this word by “<span dir="ltr" id="viii.i-p86.2" lang="la">scelerate egerunt in me</span>“ — “they have acted wickedly towards me;” and, in the margin, by “<span dir="ltr" id="viii.i-p86.3" lang="la">rebellarunt contra me</span>,” — “have rebelled against me.” Without taking notice of either of these translations, he has here introduced a third, “<span dir="ltr" id="viii.i-p86.4" lang="la">defecerunt</span>“ — “have revolted,” for which it would be easy to
+				  produce authorities. The participle, <span dir="rtl" id="viii.i-p86.5" lang="he">פושעים</span> (<i>poshegnim</i>,) at <scripRef id="viii.i-p86.6" osisRef="Bible:Hos.14.9" parsed="|Hos|14|9|0|0" passage="Ho 14:9">Hosea 14:10</scripRef>, is defined by Aben Ezra (quoted by Buxtorff) to mean <span dir="rtl" id="viii.i-p86.7" lang="he">שיוצאים מהרשות</span>, (<i>sheyotzeim</i>
+              <i>meharshoth</i>,) those who withdraw from authority, who set at nought, or oppose, the authority of a lawful magistrate. — <i>Ed</i>
+            </p>
+          </note>
+			  Jerome translates it, <i>they have despised</i>;
+			 <note anchored="yes" id="viii.i-p86.8" n="12" place="foot">
+            <p class="Footnote" id="viii.i-p87" shownumber="no">
+              <span dir="ltr" id="viii.i-p87.1" lang="la">Spreverunt</span>.</p>
+          </note>
+			  but it is plain enough, from many passages, that <span dir="rtl" id="viii.i-p87.2" lang="he">פשע</span> (pashang) means something more, namely,<i> revolt</i>. God declares, that by no acts of kindness could they be kept in a state of obedience, that they were utterly disaffected and estranged, like a son who leaves his father’s house, and thus makes manifest that there
+			 remains no hope of his improvement. It is indeed a monstrous thing that children should not be obedient to their father, and to a Father who is so kind, and who gives unceasing attention to his family. Lycurgus refused to enact a law against ungrateful persons, because it was monstrously unnatural not to acknowledge a benefit received. A child who is ungrateful to his father is therefore a double monster; but a child who is ungrateful to a kind and generous father is a threefold monster. For he
+			 employs the word <i>children</i>, not for the purpose of treating them with respect, but in order to exhibit that <i>revolt</i> in a more striking manner, and in more hateful colors.</p>
+      </div2>
+    </div1>
+  </ThML.body>
+</ThML>

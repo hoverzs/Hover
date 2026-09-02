@@ -1,0 +1,276 @@
+<?xml version='1.0' encoding='utf-8'?>
+<ThML>
+  <ThML.head>
+    <generalInfo>
+      <description>In these three volumes, Calvin provides an
+engaging commentary on the synoptic gospels--Matthew,
+Mark, and Luke. Calvin does not separate his treatment of
+the three, but comments on the three books as a whole. Of
+his commentaries, Calvin's <i>Commentary on Matthew, Mark,
+and Luke</i> is well-known--unsurprisingly, given the power,
+insight, and instruction it has. As always, Calvin's
+commentary has an eye towards everyday concerns and he
+incorporates a shrewd practical insight throughout. An
+important and useful commentary, <i>Calvin's Commentary on
+Matthew, Mark, and Luke</i> is deserving of study!<br />
+        <br />Tim
+Perrine<br />CCEL
+Staff
+Writer </description>
+      <firstPublished />
+      <pubHistory />
+      <comments />
+    </generalInfo>
+    <printSourceInfo>
+      <published />
+      <copyLocation />
+      <image href="" type="front" />
+      <image href="" type="spine" />
+    </printSourceInfo>
+    <electronicEdInfo>
+      <publisherID>ccel</publisherID>
+      <authorID>calvin</authorID>
+      <bookID>calcom31</bookID>
+      <workID>calcom31</workID>
+      <bkgID>commentary_on_matthew_mark_luke_volume_1_(calvin)</bkgID>
+      <version>1.01</version>
+      <series />
+      <editorialComments>1.0 initial scanning created much American spelling. sg initial XML insertion, footnote reconciliation, OLB xrefs. 1.01 fj inserted anchors for external xrefs. Added foreign Lang XML to footnotes only. </editorialComments>
+      <revisionHistory>v0.99. Update for DTD 0.99. Main change: use DC record instead of MARC. Significant changes to the head section.v0.98. Update for DTD 0.98; delete some unneeded head elements; italicize Citation style</revisionHistory>
+      <status />
+      <DC>
+        <DC.Title sub="Main">Commentary on Matthew, Mark, Luke - Volume 1</DC.Title>
+        <DC.Title sub="authTitle">Calvin's Commentaries</DC.Title>
+        <DC.Title sub="short">Comm on Mat,Mar,Luk (V1)</DC.Title>
+        <DC.Creator scheme="ccel" sub="Author" />
+        <DC.Creator scheme="file-as" sub="Author">Calvin, John (1509-1564)</DC.Creator>
+        <DC.Creator scheme="short-form" sub="Author">John Calvin</DC.Creator>
+        <DC.Creator scheme="ccel" sub="Alternative" />
+        <DC.Creator scheme="file-as" sub="Alternative" />
+        <DC.Creator scheme="short-form" sub="Alternative">Jean Calvin</DC.Creator>
+        <DC.Creator scheme="ccel" sub="Translator" />
+        <DC.Creator scheme="file-as" sub="Translator" />
+        <DC.Creator scheme="short-form" sub="Translator">Pringle, Rev. William</DC.Creator>
+        <DC.Creator scheme="short-form">John Calvin, 1509-1564</DC.Creator>
+        <DC.Subject scheme="CCEL">All; Bible; </DC.Subject>
+        <DC.Subject scheme="LCCN">BS491</DC.Subject>
+        <DC.Subject scheme="lcsh1">The Bible</DC.Subject>
+        <DC.Subject scheme="lcsh2">Works about the Bible</DC.Subject>
+        <DC.Subject scheme="LCSH" />
+        <DC.Description />
+        <DC.Publisher>Grand Rapids, MI: Christian Classics Ethereal Library</DC.Publisher>
+        <DC.Publisher sub="Address">ccel@ccel.org</DC.Publisher>
+        <DC.Publisher scheme="CCEL">CCEL</DC.Publisher>
+        <DC.Contributor scheme="CCEL" sub="Transcriber">Ages</DC.Contributor>
+        <DC.Contributor scheme="CCEL" sub="Markup">sg, fj</DC.Contributor>
+        <DC.Date scheme="ISO8601" sub="Created">1999-11-20</DC.Date>
+        <DC.Type>Text.Commentary</DC.Type>
+        <DC.Format scheme="IMT">text/html</DC.Format>
+        <DC.Identifier scheme="CCEL"> </DC.Identifier>
+        <DC.Identifier> </DC.Identifier>
+        <DC.Subject scheme="LCCS"> </DC.Subject>
+        <DC.Subject scheme="DDC" />
+        <DC.Source sub="ElectronicEdition" />
+        <DC.Source scheme="URL" sub="ElectronicEdition" />
+        <DC.Source sub="Etext"> </DC.Source>
+        <DC.Source scheme="URL" sub="Etext"> </DC.Source>
+        <DC.Source sub="Print"> </DC.Source>
+        <DC.Language scheme="ISO639-3">eng</DC.Language>
+        <DC.Relation />
+        <DC.Identifier scheme="URL">/ccel/calvin/calcom31.html</DC.Identifier>
+        <DC.Coverage />
+        <DC.Rights>Public Domain</DC.Rights>
+      </DC>
+      <comments />
+    </electronicEdInfo>
+    <link href="/css/ThML099.css" rel="stylesheet" type="text/css" />
+  </ThML.head>
+  <ThML.body>
+    <div1 id="ix" n="ix" next="ix.i" prev="viii" progress="4.53%" shorttitle="section ix" title="Commentary" type="section">
+      <p class="BOOK-CHAP-BLU-24-CEN08" id="ix-p1" shownumber="no">COMMENTARY</p>
+      <p class="3rdLevelAllCap12Bld07" id="ix-p2" shownumber="no">ON A</p>
+      <p class="HDG-C-Gr-16-Pref15" id="ix-p3" shownumber="no">HARMONY OF THE EVANGELISTS</p>
+      <p class="HDG-C-Gr-16-Pref15" id="ix-p4" shownumber="no">LUKE 1:1-4</p>
+      <div2 id="ix.xlii" n="xlii" next="ix.xliii" prev="ix.xli" progress="57.79%" shorttitle="scripture xlii" title="Matthew 5:13-16;Mark 9:49-50; 4:21;Luke 14:34-35; 8:16; 11:33" type="scripture">
+        <p class="HDG-C-Gr-16-Pref15" id="ix.xlii-p1" shownumber="no">MATTHEW 5:13-16; MARK 9:49-50; 4:21;<br />
+ LUKE 14:34-35; 8:16; 11:33</p>
+        <table border="2" id="ix.xlii-p1.2">
+          <tr id="ix.xlii-p1.3" valign="top">
+            <td colspan="1" id="ix.xlii-p1.4" rowspan="1">
+              <p class="TableCaption17" id="ix.xlii-p2" shownumber="no">
+                <scripRef id="ix.xlii-p2.1" osisRef="Bible:Matt.5.13-Matt.5.16" parsed="|Matt|5|13|5|16" passage="Matthew 5:13-16">Matthew 5:13-16</scripRef>
+              </p>
+            </td>
+            <td colspan="1" id="ix.xlii-p2.2" rowspan="1">
+              <p class="TableCaption17" id="ix.xlii-p3" shownumber="no">
+                <scripRef id="ix.xlii-p3.1" osisRef="Bible:Mark.9.49-Mark.9.50" parsed="|Mark|9|49|9|50" passage="Mark 9:49-50">Mark 9:49-50</scripRef>
+              </p>
+            </td>
+            <td colspan="1" id="ix.xlii-p3.2" rowspan="1">
+              <p class="TableCaption17" id="ix.xlii-p4" shownumber="no">
+                <scripRef id="ix.xlii-p4.1" osisRef="Bible:Luke.14.34-Luke.14.35" parsed="|Luke|14|34|14|35" passage="Luke 14:34-35">Luke 14:34-35</scripRef>
+              </p>
+            </td>
+          </tr>
+          <tr id="ix.xlii-p4.2" valign="top">
+            <td colspan="1" id="ix.xlii-p4.3" rowspan="1">
+              <p id="ix.xlii-p5" shownumber="no">
+                <b>13</b>.<b> </b>Ye are the salt of the earth: but if salt shall become tasteless,
+ <note anchored="yes" id="ix.xlii-p5.1" n="372" place="foot">
+                  <p class="Footnote" id="ix.xlii-p6" shownumber="no">
+                    <i>“</i>
+                    <span dir="ltr" id="ix.xlii-p6.1" lang="fr">
+                      <i>Ou, s'evente</i>
+                    </span>
+                    <i>;” </i>—<i> “or, is spoiled.”</i>
+                  </p>
+                </note>
+  with what shall it be salted?
+ <note anchored="yes" id="ix.xlii-p6.2" n="373" place="foot">
+                  <p class="Footnote" id="ix.xlii-p7" shownumber="no">
+                    <i>“</i>
+                    <span dir="ltr" id="ix.xlii-p7.1" lang="fr">
+                      <i>Ou, luy rendra-on sa saveur</i>
+                    </span>
+                    <i>?” </i>—<i> “or, shall its taste be restored to it?” </i>(<scripRef id="ix.xlii-p7.2" osisRef="Bible:Lev.2.13" parsed="|Lev|2|13|0|0" passage="Le 2:13">Leviticus 2:13</scripRef>.)</p>
+                </note>
+  It is good for nothing farther, than to be thrown out and trodden down by men. <b>14</b>.<b> </b>Ye are the light of the world: a city placed upon a mountain cannot be hid. <b>15</b>.<b> </b>Neither do men light a candle, and put it upon a bushel but upon a candlestick, and it gives light to all who are in the house. <b>16</b>.<b> </b>Let your light shine before men, so that they may see your good works, and may glorify your Father who is in heaven.</p>
+            </td>
+            <td colspan="1" id="ix.xlii-p7.3" rowspan="1">
+              <p id="ix.xlii-p8" shownumber="no">
+                <b>49</b>.<b> </b>For every (man) shall be salted with fire, and every sacrifice shall be salted with salt. <b>50</b>.<b> </b>Salt is a good thing: but if salt shall become tasteless, with what shall it be seasoned? Have salt in yourselves, and cultivate peace with one another.</p>
+              <p id="ix.xlii-p9" shownumber="no"> </p>
+              <p class="TableText25" id="ix.xlii-p10" shownumber="no">
+                <scripRef id="ix.xlii-p10.1" osisRef="Bible:Mark.4.21" parsed="|Mark|4|21|0|0" passage="Mark 4:21">Mark 4:21</scripRef>
+              </p>
+              <p id="ix.xlii-p11" shownumber="no">
+                <b>21</b>.<b> </b>And he said to them, Is a candle lighted, that it may be put under a bushel, or under a bed? Is it not that it may be put on a candlestick?</p>
+            </td>
+            <td colspan="1" id="ix.xlii-p11.1" rowspan="1">
+              <p id="ix.xlii-p12" shownumber="no">
+                <b>34</b>.<b> </b>Salt is good: but if salt shall have become tasteless, with what shall it be seasoned? <b>35</b>.<b> </b>It is not useful either for the land
+ <note anchored="yes" id="ix.xlii-p12.1" n="374" place="foot">
+                  <p class="Footnote" id="ix.xlii-p13" shownumber="no"> “<span dir="ltr" id="ix.xlii-p13.1" lang="fr">Il n'est propre ne (pour mettre) en la terre, ni au fumier</span>.” — “It is not fit either (to put) on the land, nor on the dunghill.”</p>
+                </note>
+  or for the dunghill: they throw it out. He who hath ears to hear, let him hear.</p>
+              <p id="ix.xlii-p14" shownumber="no"> </p>
+              <p class="TableText25" id="ix.xlii-p15" shownumber="no">
+                <scripRef id="ix.xlii-p15.1" osisRef="Bible:Luke.8.16" parsed="|Luke|8|16|0|0" passage="Luke 8:16">Luke 8:16</scripRef>
+              </p>
+              <p id="ix.xlii-p16" shownumber="no">
+                <b>16</b>.<b> </b>And no man, when he hath lighted a candle, covered it with a vessel, or putteth it under a bed, but putteth it on a candlestick, that those who enter may see the light.</p>
+              <p id="ix.xlii-p17" shownumber="no"> </p>
+              <p class="TableText25" id="ix.xlii-p18" shownumber="no">
+                <scripRef id="ix.xlii-p18.1" osisRef="Bible:Luke.11.33" parsed="|Luke|11|33|0|0" passage="Luke 11:33">Luke 11:33</scripRef>
+              </p>
+              <p id="ix.xlii-p19" shownumber="no">
+                <b>33</b>.<b> </b>No man lighteth a candle, and putteth it in a hidden place, nor under a bushel, but on a candlestick, that those who enter may see the light.</p>
+            </td>
+          </tr>
+        </table>
+        <p class="Super" id="ix.xlii-p20" shownumber="no"> </p>
+        <p id="ix.xlii-p21" shownumber="no">
+          <scripCom id="ix.xlii-p21.1" osisRef="Bible:Matt.5.13" parsed="|Matt|5|13|0|0" passage="Mt 5:13" type="Commentary" />
+        </p>
+        <div class="Commentary" id="ix.xlii-p21.2">
+          <p id="ix.xlii-p22" shownumber="no">
+            <a id="ix.xlii-p22.1" shape="rect" xml:link="simple" />
+            <b>
+              <scripRef id="ix.xlii-p22.2" osisRef="Bible:Matt.5.13" parsed="|Matt|5|13|0|0" passage="Matthew 5:13">Matthew 5:13</scripRef>.</b> Ye <i>are the salt of the earth.</i> What belongs to doctrine is applied to the persons to whom the administration of it has been committed. When Christ calls the apostles <i>the salt of the earth,
+ </i>he means, that it is their office <i>to salt the earth: </i>because men have nothing in them but what is tasteless, till they have been seasoned with the salt of heavenly doctrine. After having reminded them to what they are called, he pronounces against them a heavy and dreadful judgment, if they do not fulfill their duty. The doctrine, which has been entrusted to them, is shown to be so closely connected with a good
+ conscience and a devout and upright life, that the corruption, which might be tolerated in others, would in them be detestable and monstrous. “If other men are tasteless in the sight of God, to you shall be given the salt which imparts a relish to them: but if you have lost your taste, where shall you obtain the remedy which you ought to supply to others?”</p>
+          <p id="ix.xlii-p23" shownumber="no">Our Lord skillfully pursues his metaphor, by saying, that other things when they lose their original qualities, are still useful after they have become corrupted: but that <i>salt </i>becomes even hurtful, and communicates barrenness even to <i>dunghills.</i>
+            <note anchored="yes" id="ix.xlii-p23.1" n="375" place="foot">
+              <p class="Footnote" id="ix.xlii-p24" shownumber="no"> “<span dir="ltr" id="ix.xlii-p24.1" lang="fr">Que le sel estant empire, ne fait mesmes que gaster tout, a quoi qu'on le mette, tellement qu'il corrompt mesmes les fumiers, et consume toute la grasse d'iceux</span>.” — “That salt, when it is decayed, does only spoil everything that it touches: so that it corrupts even dunghills, and consumes all their fatness.”</p>
+            </note>
+ The amount of his statement is, that it is an incurable disease, when the ministers and teachers of the word corrupt and render themselves tasteless: for they ought to season the rest of the world with their salt. This warning is useful, not only to ministers, but to the whole flock of Christ. Since it is the will of God that <i>the earth shall be salted </i>by his own word, it follows, that
+ whatever is destitute of this salt is, in his estimation, tasteless, how much soever it may be relished by men. There is nothing better, therefore, than to receive the seasoning, by which alone our tastelessness is corrected. But, at the same time, let those whose business is to <i>salt </i>it beware lest they encourage the world in their own folly,<note anchored="yes" id="ix.xlii-p24.2" n="376" place="foot">
+              <p class="Footnote" id="ix.xlii-p25" shownumber="no"> “<span dir="ltr" id="ix.xlii-p25.1" lang="fr">De ne nourrir le monde en sa folie et fadesse</span>;” — “not to nourish the world in their folly and tastelessness.”</p>
+            </note>
+ and still more, that they do not infect it with a depraved and vicious <i>taste.</i>
+          </p>
+          <p id="ix.xlii-p26" shownumber="no">The wickedness of the Papists is therefore intolerable:<note anchored="yes" id="ix.xlii-p26.1" n="377" place="foot">
+              <p class="Footnote" id="ix.xlii-p27" shownumber="no"> “<span dir="ltr" id="ix.xlii-p27.1" lang="fr">Et pourtant la malice des Papistes n'est aucunement a supporter, quand ils n'ont point de honte de couvrir de ces titres leurs Prelats mas-quez, afin que nul ne presume de rien reprendre en leurs personnes</span>.”— “And then the malice of the Papists is not at all to be endured, since they are not ashamed to cover with these titles their masked Prelates, that no one may presume to
+  reprove any thing in their persons.”</p>
+            </note>
+ as if it had been the design of Christ, to allow the apostles unbounded liberty, and to make them tyrants of souls, instead of reminding them of their duty, that they might not swerve from the right path. Christ declares what sort of men he wishes the teachers of his Church to be. Those who, without any proper grounds, give themselves out to be apostles,<note anchored="yes" id="ix.xlii-p27.2" n="378" place="foot">
+              <p class="Footnote" id="ix.xlii-p28" shownumber="no"> “<span dir="ltr" id="ix.xlii-p28.1" lang="fr">Des gens qui se vantent a fausses enseignes de tenir le place des apostres</span>.” — “People who boast, under false colors, of holding the place of apostles.”</p>
+            </note>
+ hide by this covering all the abominations which they are pleased to introduce; because Christ pronounced Peter, and his companions, to be <i>the salt of the earth. </i>They do not, at the same time, consider the sharp and severe reproof which is added, that, if they become <i>tasteless, </i>they are the worst of all. This sentence is mentioned by Luke in
+ an abrupt manner: but is introduced there for the same purpose as in this passage, so that it does not require a separate exposition.</p>
+        </div>
+        <p id="ix.xlii-p29" shownumber="no">
+          <scripCom id="ix.xlii-p29.1" osisRef="Bible:Mark.9.49" parsed="|Mark|9|49|0|0" passage="Mr 9:49" type="Commentary" />
+        </p>
+        <div class="Commentary" id="ix.xlii-p29.2">
+          <p id="ix.xlii-p30" shownumber="no">
+            <a id="ix.xlii-p30.1" shape="rect" xml:link="simple" />
+            <b>
+              <scripRef id="ix.xlii-p30.2" osisRef="Bible:Mark.9.49" parsed="|Mark|9|49|0|0" passage="Mark 9:49">Mark 9:49</scripRef>.</b>
+            <i>Every man shall be salted with fire.</i> I have connected these words of Mark with the passage in Matthew which we have just considered: not that I look upon them to have altogether the same meaning, or to have been spoken at the same place and time,
+ but rather to enable the reader to understand better, by means of comparison, the different applications of the same sentence. According to Mark’s narrative, our Lord, having spoken of eternal <i>fire,</i> (<scripRef id="ix.xlii-p30.3" osisRef="Bible:Mark.9.48" parsed="|Mark|9|48|0|0" passage="Mr 9:48">Mark 9:48</scripRef>,) exhorts his own people, on the contrary, to offer themselves now to God to be seasoned <i>with fire and
+ salt, </i>that they may be devoted sacrifices,<note anchored="yes" id="ix.xlii-p30.4" n="379" place="foot">
+              <p class="Footnote" id="ix.xlii-p31" shownumber="no"> “<span dir="ltr" id="ix.xlii-p31.1" lang="fr">Sacrifices ou offrandes sacrees</span>;” — “sacrifices or sacred offerings.”</p>
+            </note>
+ and that they may not draw upon themselves, by their sins, that <i>fire </i>which is never extinguished. To be <i>salted with fire </i>is an incorrect phrase; but as <i>salt </i>and <i>fire </i>possess the same quality of purifying and refining, Christ applied the same
+ term to both. Such was the occasion on which this sentiment was uttered. It was, that believers may not refuse to be purified by <i>fire </i>and <i>salt; </i>since, without this seasoning, they cannot be holy to God. He alludes to an enactment of the Law:</p>
+          <p class="Center" id="ix.xlii-p32" shownumber="no">“Every oblation of thy meat-offering shalt thou season with salt, neither shalt thou suffer the salt of the covenant of thy God to be lacking from thy meat-offering: with all thine offerings thou shalt offer salt,” <br />
+ (<scripRef id="ix.xlii-p32.2" osisRef="Bible:Lev.2.13" parsed="|Lev|2|13|0|0" passage="Le 2:13">Leviticus 2:13</scripRef>.)</p>
+          <p id="ix.xlii-p33" shownumber="no">But now he shows, that believers are salted by the word of the Gospel, that they may be sanctified.</p>
+          <p id="ix.xlii-p34" shownumber="no">He next adds, <i>salt is good</i> This extends generally to all, whom God has once been pleased to season with his own word. He exhorts them to retain always their savor. To give the name of <i>salt</i> to
+ what is <i>salted</i> is rather a harsh metaphor, but it creates no doubt as to the meaning. When men have lost, by their carelessness, that savor which they obtained by the grace of God, there is no farther remedy. Those who lose their faith, by which they were consecrated to God, and become without savor, are in a desperate condition: for the good savor cannot be acquired by any other
+ seasoning. Besides, those who have become corrupted, by making void the grace of God, are worse than unbelievers, as <i>salt</i> spoils <i>the land</i> and the <i>dunghill</i>
+          </p>
+        </div>
+        <p id="ix.xlii-p35" shownumber="no">
+          <scripCom id="ix.xlii-p35.1" osisRef="Bible:Mark.9.50" parsed="|Mark|9|50|0|0" passage="Mr 9:50" type="Commentary" />
+        </p>
+        <div class="Commentary" id="ix.xlii-p35.2">
+          <p id="ix.xlii-p36" shownumber="no">
+            <a id="ix.xlii-p36.1" shape="rect" xml:link="simple" />
+            <b>
+              <scripRef id="ix.xlii-p36.2" osisRef="Bible:Mark.9.50" parsed="|Mark|9|50|0|0" passage="Mark 9:50">Mark 9:50</scripRef>.</b>
+            <i>Have salt in yourselves</i> This word may be taken in a different sense from what it had in the former verse, as meaning that seasoning of good odor, which is obtained by faith, or rather the wisdom of the Spirit. When Paul enjoins, “Let your speech
+ be always with grace, <i>seasoned with salt,” </i>(<scripRef id="ix.xlii-p36.3" osisRef="Bible:Col.4.6" parsed="|Col|4|6|0|0" passage="Col 4:6">Colossians 4:6</scripRef>,) he means, that we ought to be holy, and purified from all profane follies and corruptions, and filled with spiritual grace, which edifies all who hear it, and diffuses over them its sweet odor. If this
+ exposition is adopted, it may be necessary to understand the latter clause as referring to the mutual peace, which is promoted by that salt. Yet, as it is more probable, that this last sentence depends on the former discourse, I think that Christ is exhorting his own people to maintain the rigor of faith, which may serve also to purify others. “You must do your endeavor, not only to be <i>salted within,
+ </i>but likewise to <i>salt</i> others.” But as salt bites by its sharpness, he immediately admonishes them to regulate the seasoning in such a manner, that <i>peace</i> may be preserved entire <i>with one
+ another</i>
+          </p>
+        </div>
+        <p id="ix.xlii-p37" shownumber="no">
+          <scripCom id="ix.xlii-p37.1" osisRef="Bible:Matt.5.14" parsed="|Matt|5|14|0|0" passage="Mt 5:14" type="Commentary" />
+        </p>
+        <div class="Commentary" id="ix.xlii-p37.2">
+          <p id="ix.xlii-p38" shownumber="no">
+            <a id="ix.xlii-p38.1" shape="rect" xml:link="simple" />
+            <b>
+              <scripRef id="ix.xlii-p38.2" osisRef="Bible:Matt.5.14" parsed="|Matt|5|14|0|0" passage="Matthew 5:14">Matthew 5:14</scripRef>
+            </b>
+            <i>Ye are the light of the world</i> We are all the children of light, after having been enlightened by faith, and are commanded to carry in our hands “burning lamps,” (that we may not wander in darkness,) and even to point out to others the way of
+ life, (<scripRef id="ix.xlii-p38.3" osisRef="Bible:Luke.12.35" parsed="|Luke|12|35|0|0" passage="Lu 12:35">Luke 12:35</scripRef>.) But, as the preaching of the Gospel was committed to the apostles above others, and is now committed to the pastors of the Church, this designation is given to them, in a peculiar manner, by Christ. “They are placed in this rank on the condition, that they shall shine, as from an elevated situation, on all others.”</p>
+          <p id="ix.xlii-p39" shownumber="no">He subjoins two comparisons. <i>A city placed on a mountain cannot be concealed; </i>and <i>a candle, </i>when it has been lighted, is <i>not usually
+ concealed, </i>(verse 15.) This means, that they ought to live in such a manner, as if the eyes of all were upon them.<note anchored="yes" id="ix.xlii-p39.1" n="380" place="foot">
+              <p class="Footnote" id="ix.xlii-p40" shownumber="no"> “<span dir="ltr" id="ix.xlii-p40.1" lang="fr">Comme si tout le monde les regardoit</span>;” — “as if every body were looking at them.”</p>
+            </note>
+ And certainly, the more eminent a person is, the more injury he does by a bad example, if he acts improperly. Christ, therefore, informs the apostles, that they must be more careful to live a devout and holy life, than unknown persons of the common rank, because the eyes of all are directed to them, as to lighted <i>candles; </i>and
+ that they must not be endured, if their devotion, and uprightness of conduct, do not correspond to the doctrine of which they are ministers. Mark and Luke appear to apply the comparison in a different manner: for there Christ gives a general admonition, that they ought to take particular care, lest any one, trusting to the darkness, indulge freely in sin, because what is hidden for a time will afterwards be revealed. But
+ perhaps the discourses related by both of them are detached from the immediate context.</p>
+        </div>
+        <p id="ix.xlii-p41" shownumber="no">
+          <scripCom id="ix.xlii-p41.1" osisRef="Bible:Matt.5.16" parsed="|Matt|5|16|0|0" passage="Mt 5:16" type="Commentary" />
+        </p>
+        <div class="Commentary" id="ix.xlii-p41.2">
+          <p id="ix.xlii-p42" shownumber="no">
+            <a id="ix.xlii-p42.1" shape="rect" xml:link="simple" />
+            <b>16. </b>
+            <i>Let your light shine before men</i> After having taught the apostles that, in consequence of the rank in which they are placed, both their vices and their virtues are better known for a good or bad example, he now enjoins them so to regulate their life, as to excite all to glorify
+ God. <i>That they may see your good works: </i>for, as Paul tells us, believers must,</p>
+          <p class="Center" id="ix.xlii-p43" shownumber="no">“provide for honest things, not only in the sight of God, <br />
+ but also in the sight of men,” (<scripRef id="ix.xlii-p43.2" osisRef="Bible:2Cor.8.21" parsed="|2Cor|8|21|0|0" passage="2Co 8:21">2 Corinthians 8:21</scripRef>.)</p>
+          <p id="ix.xlii-p44" shownumber="no">The command, which he gives shortly afterwards, to seek concealment and a retired situation for their good works, (<scripRef id="ix.xlii-p44.1" osisRef="Bible:Matt.6.4" parsed="|Matt|6|4|0|0" passage="Mt 6:4">Matthew 6:4</scripRef>,) is intended only to forbid ostentation. In the present instance, he has quite a different object in view, to recommend to them the glory of God alone. Now, if the glory of good works cannot be properly ascribed to God, unless they
+ are traced to him, and unless he is acknowledged to be their only Author, it is evident, that we cannot, without offering an open and gross insult to God, extol free will, as if good works proceeded wholly, or in part, from its power. Again, we must observe, how graciously God deals with us, when he calls the good works <i>ours, </i>the entire praise of which would justly be ascribed to himself.</p>
+        </div>
+      </div2>
+    </div1>
+  </ThML.body>
+</ThML>

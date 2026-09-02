@@ -40,6 +40,12 @@ class CalvinSourceEntry:
     local_path: Path
     raw_sha256: str
     byte_size: int | None = None
+    work_group: str = ""
+    work_title: str = ""
+    volume: int | None = None
+    coverage: str = ""
+    translator: str = ""
+    known_unmapped_div2_ids: frozenset[str] = frozenset()
 
 
 @dataclass(frozen=True)
@@ -71,18 +77,46 @@ def load_source_manifest(
     except json.JSONDecodeError as exc:
         raise CalvinSourceFetchError(f"Invalid manifest JSON: {exc}") from exc
     entries = []
+    seen_ids: set[str] = set()
     for item in raw.get("sources") or []:
+        source_id = str(item["id"])
+        if source_id in seen_ids:
+            raise CalvinSourceFetchError(f"Duplicate source id in manifest: {source_id!r}")
+        seen_ids.add(source_id)
         entries.append(
             CalvinSourceEntry(
-                id=str(item["id"]),
+                id=source_id,
                 title=str(item.get("title") or item["id"]),
                 url=str(item["url"]),
                 local_path=PROJECT_ROOT / str(item["local_path"]),
                 raw_sha256=str(item["raw_sha256"]).strip().lower(),
                 byte_size=item.get("byte_size"),
+                work_group=str(item.get("work_group") or ""),
+                work_title=str(item.get("work_title") or ""),
+                volume=item.get("volume"),
+                coverage=str(item.get("coverage") or ""),
+                translator=str(item.get("translator") or ""),
+                known_unmapped_div2_ids=frozenset(item.get("known_unmapped_div2_ids") or ()),
             )
         )
     return entries
+
+
+def group_entries_by_work(
+    entries: list[CalvinSourceEntry],
+) -> dict[str, list[CalvinSourceEntry]]:
+    """Group manifest entries by their declarative ``work_group`` key,
+    ordered by ``volume`` within each group (entries without a volume
+    number keep manifest order). An entry with no ``work_group`` is its
+    own single-entry group keyed by its own ``id`` (one file, one work —
+    the existing single-volume behavior)."""
+    groups: dict[str, list[CalvinSourceEntry]] = {}
+    for entry in entries:
+        key = entry.work_group or entry.id
+        groups.setdefault(key, []).append(entry)
+    for key, members in groups.items():
+        members.sort(key=lambda e: (e.volume if e.volume is not None else 0, e.id))
+    return groups
 
 
 def fetch_source(
@@ -158,5 +192,6 @@ __all__ = [
     "CalvinSourceFetchResult",
     "fetch_all_sources",
     "fetch_source",
+    "group_entries_by_work",
     "load_source_manifest",
 ]

@@ -111,5 +111,6 @@ def test_full_corpus_qa_report_is_clean(full_pilot_db: Path) -> None:
     assert report.cross_edition_hierarchy_issues == []
     assert report.warnings == []
     # Real coverage: Romans dominates one work, Matthew/Luke the harmony.
-    assert report.coverage_by_book.get("Rom", 0) > 400
-    assert report.coverage_by_book.get("Matt", 0) > 100
+    assert report.coverage_by_book_primary.get("Rom", 0) > 400
+    assert report.coverage_by_book_primary.get("Matt", 0) > 100
+    assert report.cross_reference_count_stored == 0
