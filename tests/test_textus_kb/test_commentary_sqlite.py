@@ -310,6 +310,116 @@ def test_import_rejects_work_contributor_unknown_ids(tmp_path: Path) -> None:
         )
 
 
+# --- Data-quality invariants: fail loudly, never silently dedupe --------
+
+
+def test_import_rejects_duplicate_work_contributor(tmp_path: Path) -> None:
+    """(work_id, contributor_id, role) must be unique; a repeated declaration
+    (e.g. from combining multiple per-book source files that each redeclare
+    the same author) is a data-quality error, not something to silently drop."""
+    document = _load_document()
+    document["work_contributors"].append(dict(document["work_contributors"][0]))
+    with pytest.raises(CommentaryImportError, match="Duplicate work_contributors entry"):
+        import_commentary_sqlite(
+            document=document,
+            database_path=tmp_path / "commentary.sqlite3",
+        )
+
+
+def test_work_contributors_unique_index_is_defense_in_depth(tmp_path: Path) -> None:
+    """DB-level UNIQUE constraint rejects a duplicate even if inserted directly,
+    bypassing normalize_commentary_document."""
+    database = tmp_path / "commentary.sqlite3"
+    import_commentary_sqlite(fixture_path=FIXTURE_PATH, database_path=database)
+    with sqlite3.connect(database) as connection:
+        connection.execute("PRAGMA foreign_keys = ON")
+        row = connection.execute(
+            "SELECT work_id, contributor_id, role FROM work_contributors LIMIT 1"
+        ).fetchone()
+        with pytest.raises(sqlite3.IntegrityError):
+            connection.execute(
+                "INSERT INTO work_contributors (work_id, contributor_id, role) VALUES (?, ?, ?)",
+                row,
+            )
+
+
+def test_import_rejects_cross_edition_parent_section(tmp_path: Path) -> None:
+    """A section's parent_section_id must belong to the same edition_id."""
+    document = _load_document()
+    document["editions"].append(
+        {
+            "edition_id": "test.edition.other",
+            "work_id": "test.work.synthetic_commentary",
+            "edition_label": "Other edition",
+            "publication_year": 1901,
+            "publisher": "Textus Test Fixture",
+            "language": "en",
+            "license": "CC-BY-4.0",
+            "rights_status": "public-domain",
+            "rights_note": "synthetic",
+            "source_url": "https://example.test/other-edition",
+            "corpus": "test-fixture",
+            "external_id": "other-edition",
+        }
+    )
+    document["sections"].append(
+        {
+            "section_id": "test.section.cross_edition_leak",
+            "edition_id": "test.edition.other",
+            "parent_section_id": "test.section.chapter3",
+            "section_type": "section",
+            "heading": "Leaked cross-edition child",
+            "sequence": 1,
+            "passage_links": [],
+        }
+    )
+    with pytest.raises(CommentaryImportError, match="different edition"):
+        import_commentary_sqlite(
+            document=document,
+            database_path=tmp_path / "commentary.sqlite3",
+        )
+
+
+def test_import_rejects_duplicate_passage_link_in_section(tmp_path: Path) -> None:
+    """The same canonical passage must not be linked twice on one section."""
+    document = _load_document()
+    exact_section = next(
+        s for s in document["sections"] if s["section_id"] == "test.section.john316_exact"
+    )
+    exact_section["passage_links"].append(dict(exact_section["passage_links"][0]))
+    with pytest.raises(CommentaryImportError, match="Duplicate passage_link"):
+        import_commentary_sqlite(
+            document=document,
+            database_path=tmp_path / "commentary.sqlite3",
+        )
+
+
+def test_section_passage_links_unique_index_is_defense_in_depth(tmp_path: Path) -> None:
+    """DB-level UNIQUE(section_id, canonical_passage) rejects a duplicate even
+    if inserted directly, bypassing normalize_commentary_document."""
+    database = tmp_path / "commentary.sqlite3"
+    import_commentary_sqlite(fixture_path=FIXTURE_PATH, database_path=database)
+    with sqlite3.connect(database) as connection:
+        connection.execute("PRAGMA foreign_keys = ON")
+        row = connection.execute(
+            """
+            SELECT section_id, book_id, start_chapter, start_verse,
+                   end_chapter, end_verse, canonical_passage, raw_citation
+            FROM section_passage_links LIMIT 1
+            """
+        ).fetchone()
+        with pytest.raises(sqlite3.IntegrityError):
+            connection.execute(
+                """
+                INSERT INTO section_passage_links (
+                    section_id, book_id, start_chapter, start_verse,
+                    end_chapter, end_verse, canonical_passage, raw_citation
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                row,
+            )
+
+
 # --- Architectural invariant: section owns passage truth, not chunk -----
 
 

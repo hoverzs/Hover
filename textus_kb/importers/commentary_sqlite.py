@@ -221,6 +221,8 @@ def create_schema(connection: sqlite3.Connection) -> None:
             FOREIGN KEY(section_id) REFERENCES sections(section_id)
         );
 
+        CREATE UNIQUE INDEX IF NOT EXISTS uq_work_contributors_role
+            ON work_contributors(work_id, contributor_id, role);
         CREATE INDEX IF NOT EXISTS idx_work_contributors_work
             ON work_contributors(work_id);
         CREATE INDEX IF NOT EXISTS idx_work_contributors_contributor
@@ -237,6 +239,8 @@ def create_schema(connection: sqlite3.Connection) -> None:
             ON sections(parent_section_id);
         CREATE INDEX IF NOT EXISTS idx_chunks_section
             ON chunks(section_id, sequence);
+        CREATE UNIQUE INDEX IF NOT EXISTS uq_section_passage_links_canonical
+            ON section_passage_links(section_id, canonical_passage);
         CREATE INDEX IF NOT EXISTS idx_section_passage_links_section
             ON section_passage_links(section_id);
         CREATE INDEX IF NOT EXISTS idx_section_passage_links_canonical
@@ -325,6 +329,7 @@ def normalize_commentary_document(document: dict[str, Any]) -> dict[str, Any]:
         _normalize_work_contributor(item, work_ids, contributor_ids)
         for item in _as_object_list(document, "work_contributors")
     ]
+    _reject_duplicate_work_contributors(work_contributors)
 
     editions = [
         _normalize_edition(item, work_ids)
@@ -351,8 +356,14 @@ def normalize_commentary_document(document: dict[str, Any]) -> dict[str, Any]:
         [_require_text(item.get("section_id"), "section_id") for item in sections_raw],
         kind="section",
     )
+    section_edition_preview = {
+        _require_text(item.get("section_id"), "section_id"): _require_text(
+            item.get("edition_id"), "edition_id"
+        )
+        for item in sections_raw
+    }
     sections = [
-        _normalize_section(item, edition_ids, section_ids_preview)
+        _normalize_section(item, edition_ids, section_ids_preview, section_edition_preview)
         for item in sections_raw
     ]
     sections = _order_sections(sections)
@@ -815,6 +826,19 @@ def _normalize_work_contributor(
     return {"work_id": work_id, "contributor_id": contributor_id, "role": role}
 
 
+def _reject_duplicate_work_contributors(work_contributors: list[dict[str, Any]]) -> None:
+    seen: set[tuple[str, str, str]] = set()
+    for item in work_contributors:
+        key = (item["work_id"], item["contributor_id"], item["role"])
+        if key in seen:
+            raise CommentaryImportError(
+                "Duplicate work_contributors entry: "
+                f"work_id={item['work_id']!r}, contributor_id={item['contributor_id']!r}, "
+                f"role={item['role']!r}"
+            )
+        seen.add(key)
+
+
 def _normalize_edition(item: dict[str, Any], work_ids: set[str]) -> dict[str, Any]:
     work_id = _require_text(item.get("work_id"), "work_id")
     if work_id not in work_ids:
@@ -888,26 +912,38 @@ def _normalize_section(
     item: dict[str, Any],
     edition_ids: set[str],
     section_ids: set[str],
+    section_edition_preview: dict[str, str],
 ) -> dict[str, Any]:
+    section_id = _require_text(item.get("section_id"), "section_id")
     edition_id = _require_text(item.get("edition_id"), "edition_id")
     if edition_id not in edition_ids:
         raise CommentaryImportError(f"Section references unknown edition_id: {edition_id!r}")
     parent_section_id = _optional_text(item.get("parent_section_id"))
-    if parent_section_id is not None and parent_section_id not in section_ids:
-        raise CommentaryImportError(
-            f"Section references unknown parent_section_id: {parent_section_id!r}"
-        )
+    if parent_section_id is not None:
+        if parent_section_id not in section_ids:
+            raise CommentaryImportError(
+                f"Section references unknown parent_section_id: {parent_section_id!r}"
+            )
+        parent_edition_id = section_edition_preview.get(parent_section_id)
+        if parent_edition_id != edition_id:
+            raise CommentaryImportError(
+                f"Section {section_id!r} parent_section_id {parent_section_id!r} belongs to "
+                f"a different edition ({parent_edition_id!r} != {edition_id!r}); "
+                "a section's parent must be in the same edition."
+            )
     links_raw = item.get("passage_links") or []
     if not isinstance(links_raw, list):
         raise CommentaryImportError("Section passage_links must be an array.")
+    passage_links = [_normalize_passage_link(link) for link in links_raw]
+    _reject_duplicate_passage_links(passage_links, section_id=section_id)
     return {
-        "section_id": _require_text(item.get("section_id"), "section_id"),
+        "section_id": section_id,
         "edition_id": edition_id,
         "parent_section_id": parent_section_id,
         "section_type": _optional_text(item.get("section_type")),
         "heading": _optional_text(item.get("heading")),
         "sequence": _require_int(item.get("sequence"), "sequence"),
-        "passage_links": [_normalize_passage_link(link) for link in links_raw],
+        "passage_links": passage_links,
     }
 
 
@@ -952,6 +988,20 @@ def _normalize_chunk(item: dict[str, Any], section_ids: set[str]) -> dict[str, A
         "char_count": len(plain_text),
         "source_locator": _require_text(item.get("source_locator"), "source_locator"),
     }
+
+
+def _reject_duplicate_passage_links(
+    passage_links: list[dict[str, Any]], *, section_id: str
+) -> None:
+    seen: set[str] = set()
+    for link in passage_links:
+        canonical = link["canonical_passage"]
+        if canonical in seen:
+            raise CommentaryImportError(
+                f"Duplicate passage_link canonical_passage {canonical!r} "
+                f"in section {section_id!r}."
+            )
+        seen.add(canonical)
 
 
 def _normalize_passage_link(item: Any) -> dict[str, Any]:
