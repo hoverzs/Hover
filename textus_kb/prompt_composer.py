@@ -14,7 +14,7 @@ from dataclasses import asdict, dataclass, field
 from typing import Any
 
 from textus_kb.context_builder import ContextItem, ContextSection, LLMContextPacket
-from textus_kb.context_profiles import THEOLOGY_NO_MATCH_WARNING
+from textus_kb.context_profiles import COMMENTARY_NO_MATCH_WARNING, THEOLOGY_NO_MATCH_WARNING
 from textus_kb.context_selection import jaccard_similarity, normalize_plain_text, text_token_set
 from textus_kb.evidence import estimate_text_tokens
 from textus_kb.shadow import MODULE_TO_PROFILE
@@ -38,12 +38,14 @@ DEFAULT_KB_CONTEXT_TARGET_BY_MODULE: dict[str, int] = {
     "historical_context": 2200,
     "history": 2200,
     "theology": 3500,
+    "commentary": 3000,
 }
 DEFAULT_KB_CONTEXT_MAX_BY_MODULE: dict[str, int] = {
     "exegesis": 4500,
     "historical_context": 3500,
     "history": 3500,
     "theology": 3500,
+    "commentary": 3500,
 }
 
 # Total hard safety cap for composed grounded prompt (production + KB + overhead).
@@ -79,6 +81,7 @@ _SECTION_HEADERS = {
     "background": "HISTORICAL BACKGROUND",
     "geography": "PLACES / BACKGROUND",
     "theological": "THEOLOGICAL SOURCES",
+    "commentary": "COMMENTARY SOURCES",
 }
 
 # Drop order when shrinking KB context to fit grounded prompt budget
@@ -93,12 +96,13 @@ _TRIM_SECTION_ORDER = (
     "linguistic",
     "lexical",
     "theological",
+    "commentary",
     "passage",
 )
 
 _TAG_RE = re.compile(r"<[^>]+>")
 _SUPPORTED_MODULES = frozenset(
-    {"exegesis", "historical_context", "history", "theology"}
+    {"exegesis", "historical_context", "history", "theology", "commentary"}
 )
 
 # Internal evidence / attribution tokens that must not appear in LLM-facing KB text.
@@ -122,6 +126,7 @@ _SOURCE_DISPLAY_LABELS: dict[str, str] = {
     "biblical_places_catalog": "Biblical places catalog",
     "place_enrichments_overlay": "Biblical places enrichments",
     "theology_sqlite": "Theology store",
+    "commentary_sqlite": "Commentary store",
 }
 
 
@@ -524,6 +529,44 @@ def _render_theological_source_lines(item: ContextItem) -> list[str]:
     return lines
 
 
+def _render_commentary_source_lines(item: ContextItem) -> list[str]:
+    """Render citation-ready Commentary provenance. Omit missing fields; invent none.
+
+    Always states which passage was actually matched and whether that link
+    is the section's primary or a parallel passage — never left implicit.
+    """
+    meta = dict(item.metadata or {})
+    lines: list[str] = [f"Source: {source_display_label(item.source_id)}"]
+    source_type = str(item.item_type or meta.get("source_type") or "").strip()
+    if source_type:
+        lines.append(f"source_type={source_type}")
+    try:
+        from textus_kb.citation import format_commentary_citation
+
+        citation = format_commentary_citation(meta)
+    except Exception:
+        citation = ""
+    if citation:
+        lines.append(f"Citation: {citation}")
+    for key in (
+        "human_readable_locator",
+        "work_title",
+        "section_id",
+        "edition_id",
+        "source_locator",
+        "canonical_scope",
+        "primary_passages",
+        "parallel_passages",
+    ):
+        value = _meta_text(meta, key)
+        if value:
+            lines.append(f"{key}={value}")
+    content = scrub_internal_identifiers(normalize_prompt_text(item.text))
+    if content:
+        lines.append(content)
+    return lines
+
+
 def render_kb_context(
     packet: LLMContextPacket | dict[str, Any],
     *,
@@ -553,6 +596,17 @@ def render_kb_context(
         lines.append(THEOLOGY_NO_MATCH_WARNING)
         lines.append("")
 
+    commentary_no_match = COMMENTARY_NO_MATCH_WARNING in list(ctx.warnings or [])
+    has_commentary_items = any(
+        item.item_type == "commentary_source"
+        for section in ctx.sections
+        for item in section.items
+    )
+    if commentary_no_match and not has_commentary_items:
+        lines.append(f"[{_SECTION_HEADERS['commentary']}]")
+        lines.append(COMMENTARY_NO_MATCH_WARNING)
+        lines.append("")
+
     for section in ctx.sections:
         header = _SECTION_HEADERS.get(section.type, section.type.upper().replace("_", " "))
         lines.append(f"[{header}]")
@@ -564,6 +618,9 @@ def render_kb_context(
                 break
             if item.item_type == "theological_source":
                 lines.extend(_render_theological_source_lines(item))
+                lines.append("")
+            elif item.item_type == "commentary_source":
+                lines.extend(_render_commentary_source_lines(item))
                 lines.append("")
             else:
                 scope = ""
@@ -657,6 +714,22 @@ def _grounded_rules_block(
                 "Reformed, or Christian theology.",
             ]
         )
+    if module_key == "commentary":
+        lines.extend(
+            [
+                "",
+                "=== COMMENTARY GROUNDED USE RULES ===",
+                "Commentary evidence is one classical interpreter's reading of the passage,",
+                "not a consensus and not a substitute for direct linguistic evidence.",
+                "Only name a commentator, work, edition, or locator when it appears in KB DATA.",
+                "Do not assign or imply a reliability score for the commentator.",
+                "State whether the cited passage is the section's primary or a parallel",
+                "passage only when KB DATA itself states it — never infer it.",
+                "If KB DATA states that no passage-linked commentary evidence was found,",
+                "do not attribute an interpretive claim to a named commentator.",
+                "Distinguish source-supported commentary claims from general synthesis.",
+            ]
+        )
     return "\n".join(lines)
 
 
@@ -676,6 +749,10 @@ def _style_constraints_block(*, module: str = "") -> str:
     if module_key == "theology":
         task_line = (
             "A KB-adatot építsd be a meglévő teológiai feladathoz,"
+        )
+    elif module_key == "commentary":
+        task_line = (
+            "A KB-adatot építsd be a meglévő kommentár feladathoz,"
         )
     else:
         task_line = (
@@ -1153,7 +1230,7 @@ def main(argv: list[str] | None = None) -> int:
     if not args:
         print(
             'Usage: python -m textus_kb prompt-preview "<reference>" '
-            "--module exegesis|historical_context|theology [--show-prompt] [--prompt-file PATH]",
+            "--module exegesis|historical_context|theology|commentary [--show-prompt] [--prompt-file PATH]",
             file=sys.stderr,
         )
         return 2
