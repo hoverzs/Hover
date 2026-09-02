@@ -66,6 +66,7 @@ from writing_desk_ui import (
     WRITING_DESK_MODE,
     render_writing_desk_shell,
 )
+from writing_desk_dev_seed import maybe_apply_writing_desk_dev_seed
 from workshop_nav_ui import (
     render_app_toolbar,
     render_quick_tools_tabs,
@@ -6039,6 +6040,8 @@ ensure_sermon_workshop_state(st.session_state)
 ensure_passage_search_state(st.session_state)
 ensure_occasion_context_state(st.session_state)
 ensure_writing_desk_state(st.session_state)
+# Helyi smoke: TEXTUS_DEV_SEED=writing_desk. Productionben no-op.
+maybe_apply_writing_desk_dev_seed(st.session_state)
 
 # Beépített módban a session kulcs másolatát szinkronban tartjuk a
 # Streamlit Secrets / env aktuális értékével (Cloud Secrets frissítés,
