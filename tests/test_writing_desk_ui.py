@@ -10,6 +10,8 @@ from streamlit.testing.v1 import AppTest
 import writing_desk_ui
 from writing_desk_ui import (
     WRITING_DESK_BIBLE_VIEW_KEY,
+    WRITING_DESK_DRAFT_RESYNC_FLAG,
+    WRITING_DESK_DRAFT_WIDGET_KEY,
     WRITING_DESK_LABEL,
     WRITING_DESK_MODE,
     WRITING_DESK_ORIGINAL_LANGUAGE_KEY_PREFIX,
@@ -30,6 +32,7 @@ def _patch_streamlit_shell(
         "radio": [],
         "buttons": [],
         "rerun": [],
+        "text_area": [],
     }
     monkeypatch.setattr(st, "session_state", session if session is not None else {})
     monkeypatch.setattr(st, "container", lambda *args, **kwargs: nullcontext())
@@ -66,10 +69,32 @@ def _patch_streamlit_shell(
         calls["buttons"].append((str(label), key))
         return bool(click_key) and key == click_key
 
+    def _text_area(label, *args, **kwargs):
+        key = kwargs.get("key")
+        value = args[0] if args else kwargs.get("value")
+        if key and key in st.session_state:
+            value = st.session_state[key]
+        elif value is None:
+            value = ""
+        if key is not None:
+            st.session_state[key] = value
+        calls["text_area"].append(
+            {
+                "label": str(label),
+                "key": key,
+                "value": value,
+                "height": kwargs.get("height"),
+                "placeholder": kwargs.get("placeholder"),
+                "on_change": kwargs.get("on_change"),
+            }
+        )
+        return value
+
     monkeypatch.setattr(st, "columns", _columns)
     monkeypatch.setattr(st, "markdown", _markdown)
     monkeypatch.setattr(st, "radio", _radio)
     monkeypatch.setattr(st, "button", _button)
+    monkeypatch.setattr(st, "text_area", _text_area)
     return calls
 
 
@@ -93,7 +118,11 @@ def test_writing_desk_shell_keeps_two_column_workspace(monkeypatch):
     assert "Eredeti szöveg" in joined
     assert "Kortörténet" in joined
     assert "Teológia" in joined
-    assert "A jegyzet- és vázlatszerkesztő a következő fázisban kerül ide." in joined
+    assert "A jegyzet- és vázlatszerkesztő a következő fázisban kerül ide." not in joined
+    assert "Szerkesztő helye" not in joined
+    assert calls["text_area"]
+    assert calls["text_area"][0]["key"] == WRITING_DESK_DRAFT_WIDGET_KEY
+    assert calls["text_area"][0]["height"] == 400
 
 
 def test_writing_desk_renders_ruf_reading_block(monkeypatch):
@@ -296,10 +325,143 @@ def test_writing_desk_ui_mode_is_not_a_durable_session_key():
     from writing_desk_data import WRITING_DESK_KEY
 
     assert "ui_mode" in EXCLUDED_SESSION_KEYS
+    assert WRITING_DESK_DRAFT_WIDGET_KEY in EXCLUDED_SESSION_KEYS
+    assert WRITING_DESK_DRAFT_RESYNC_FLAG in EXCLUDED_SESSION_KEYS
     assert WRITING_DESK_KEY in PROJECT_DATA_KEYS
     assert WRITING_DESK_KEY in PROJECT_NESTED_KEYS
     assert WRITING_DESK_KEY == WRITING_DESK_MODE
     assert WRITING_DESK_LABEL == "Íróasztal"
+
+
+def test_notes_text_area_loads_existing_draft(monkeypatch):
+    import streamlit as st
+
+    from writing_desk_data import WRITING_DESK_KEY, set_writing_desk_draft
+
+    session: dict = {}
+    set_writing_desk_draft(session, "Meglévő vázlat\nmásodik sor")
+    monkeypatch.setattr(writing_desk_ui, "_render_scripture_block", lambda: None)
+    calls = _patch_streamlit_shell(monkeypatch, st, session)
+    writing_desk_ui.render_writing_desk_shell()
+
+    assert calls["text_area"][0]["key"] == WRITING_DESK_DRAFT_WIDGET_KEY
+    assert calls["text_area"][0]["value"] == "Meglévő vázlat\nmásodik sor"
+    assert calls["text_area"][0]["on_change"] is writing_desk_ui._on_writing_desk_draft_change
+    assert session[WRITING_DESK_KEY]["draft"]["content"] == (
+        "Meglévő vázlat\nmásodik sor"
+    )
+    assert session[WRITING_DESK_DRAFT_WIDGET_KEY] == "Meglévő vázlat\nmásodik sor"
+
+
+def test_notes_edit_updates_writing_desk_draft_and_survives_rerun(monkeypatch):
+    import streamlit as st
+
+    from writing_desk_data import WRITING_DESK_KEY
+
+    session: dict = {}
+    monkeypatch.setattr(writing_desk_ui, "_render_scripture_block", lambda: None)
+    _patch_streamlit_shell(monkeypatch, st, session)
+    writing_desk_ui.render_writing_desk_shell()
+    assert session[WRITING_DESK_KEY]["draft"]["content"] == ""
+
+    session[WRITING_DESK_DRAFT_WIDGET_KEY] = "Gépelt jegyzet\núj sor"
+    writing_desk_ui.render_writing_desk_shell()
+    assert session[WRITING_DESK_KEY]["draft"]["content"] == "Gépelt jegyzet\núj sor"
+
+    writing_desk_ui.render_writing_desk_shell()
+    assert session[WRITING_DESK_KEY]["draft"]["content"] == "Gépelt jegyzet\núj sor"
+    assert session[WRITING_DESK_DRAFT_WIDGET_KEY] == "Gépelt jegyzet\núj sor"
+
+
+def test_notes_widget_shows_new_project_draft_after_switch(monkeypatch):
+    import streamlit as st
+
+    from writing_desk_data import (
+        WRITING_DESK_KEY,
+        normalize_writing_desk,
+        set_writing_desk_draft,
+    )
+
+    session: dict = {}
+    set_writing_desk_draft(session, "Projekt A jegyzet")
+    monkeypatch.setattr(writing_desk_ui, "_render_scripture_block", lambda: None)
+    _patch_streamlit_shell(monkeypatch, st, session)
+    writing_desk_ui.render_writing_desk_shell()
+    assert session[WRITING_DESK_DRAFT_WIDGET_KEY] == "Projekt A jegyzet"
+
+    session[WRITING_DESK_KEY] = normalize_writing_desk(
+        {"draft": {"content": "Projekt B jegyzet"}}
+    )
+    session[WRITING_DESK_DRAFT_RESYNC_FLAG] = True
+    writing_desk_ui.render_writing_desk_shell()
+    assert session[WRITING_DESK_DRAFT_WIDGET_KEY] == "Projekt B jegyzet"
+    assert session[WRITING_DESK_KEY]["draft"]["content"] == "Projekt B jegyzet"
+    assert WRITING_DESK_DRAFT_RESYNC_FLAG not in session
+
+
+def test_on_change_commit_updates_durable_draft_before_unmount(monkeypatch):
+    import streamlit as st
+
+    from writing_desk_data import WRITING_DESK_KEY, set_writing_desk_extract
+
+    session: dict = {}
+    set_writing_desk_extract(
+        session,
+        "history",
+        content="Rövid kortörténeti kivonat.",
+        source_fingerprint="abc",
+    )
+    monkeypatch.setattr(writing_desk_ui, "_render_scripture_block", lambda: None)
+    _patch_streamlit_shell(monkeypatch, st, session)
+    writing_desk_ui.render_writing_desk_shell()
+
+    session[WRITING_DESK_DRAFT_WIDGET_KEY] = "Íróasztal jegyzet\n\nmásodik bekezdés"
+    writing_desk_ui.commit_writing_desk_draft_from_widget()
+    assert session[WRITING_DESK_KEY]["draft"]["content"] == (
+        "Íróasztal jegyzet\n\nmásodik bekezdés"
+    )
+    assert (
+        session[WRITING_DESK_KEY]["extracts"]["history"]["content"]
+        == "Rövid kortörténeti kivonat."
+    )
+
+    session.pop(WRITING_DESK_DRAFT_WIDGET_KEY, None)
+    assert WRITING_DESK_DRAFT_WIDGET_KEY not in session
+    assert session[WRITING_DESK_KEY]["draft"]["content"] == (
+        "Íróasztal jegyzet\n\nmásodik bekezdés"
+    )
+
+    writing_desk_ui.render_writing_desk_shell()
+    assert session[WRITING_DESK_DRAFT_WIDGET_KEY] == (
+        "Íróasztal jegyzet\n\nmásodik bekezdés"
+    )
+    assert session[WRITING_DESK_KEY]["draft"]["content"] == (
+        "Íróasztal jegyzet\n\nmásodik bekezdés"
+    )
+    assert (
+        session[WRITING_DESK_KEY]["extracts"]["history"]["content"]
+        == "Rövid kortörténeti kivonat."
+    )
+
+
+def test_commit_skips_stale_widget_during_project_resync(monkeypatch):
+    import streamlit as st
+
+    from writing_desk_data import WRITING_DESK_KEY, set_writing_desk_draft
+
+    session: dict = {
+        WRITING_DESK_DRAFT_WIDGET_KEY: "Projekt A stale widget",
+        WRITING_DESK_DRAFT_RESYNC_FLAG: True,
+        "_pending_project_widget_sync": {
+            WRITING_DESK_DRAFT_WIDGET_KEY: "Projekt B jegyzet",
+        },
+    }
+    set_writing_desk_draft(session, "Projekt B jegyzet")
+    monkeypatch.setattr(st, "session_state", session)
+
+    writing_desk_ui.commit_writing_desk_draft_from_widget()
+    assert session[WRITING_DESK_KEY]["draft"]["content"] == "Projekt B jegyzet"
+    assert session[WRITING_DESK_DRAFT_WIDGET_KEY] == "Projekt A stale widget"
 
 
 def test_valid_extract_is_shown_and_does_not_call_llm(monkeypatch):
@@ -636,3 +798,73 @@ def test_writing_desk_hebrew_compact_path_keeps_isolated_key() -> None:
     assert "Technikai morfológiai részletek" not in page_text
     assert "Forrás és licenc" not in page_text
     assert not any("Alternatív szóválasztás" in expander.label for expander in app.expander)
+
+
+def _render_desk_with_main_view_switcher() -> None:
+    """Íróasztal + valódi főnézet-váltó — a smoke útvonal AppTestje."""
+    import streamlit as st
+
+    import writing_desk_ui as wd
+    from workshop_nav_ui import render_workspace_switcher
+
+    original_scripture = wd._render_scripture_block
+    wd._render_scripture_block = lambda: None
+    try:
+        st.session_state.setdefault("ui_mode", wd.WRITING_DESK_MODE)
+        wd.flush_writing_desk_draft_from_widget()
+        render_workspace_switcher(
+            options=["workshop", "sermon_workshop", wd.WRITING_DESK_MODE],
+            labels={
+                "workshop": "Textusműhely",
+                "sermon_workshop": "Igehirdetési műhely",
+                wd.WRITING_DESK_MODE: wd.WRITING_DESK_LABEL,
+            },
+            key="ui_mode",
+        )
+        if st.session_state.get("ui_mode") == wd.WRITING_DESK_MODE:
+            wd.render_writing_desk_shell()
+            st.stop()
+        st.markdown("Textusműhely")
+    finally:
+        wd._render_scripture_block = original_scripture
+
+
+def _notes_area(app: AppTest):
+    return next(
+        ta for ta in app.text_area if ta.key == WRITING_DESK_DRAFT_WIDGET_KEY
+    )
+
+
+def test_draft_survives_textusmuhely_round_trip_via_switcher() -> None:
+    from writing_desk_data import WRITING_DESK_KEY
+
+    app = AppTest.from_function(_render_desk_with_main_view_switcher).run(timeout=60)
+    assert not app.exception
+    assert app.session_state["ui_mode"] == WRITING_DESK_MODE
+
+    _notes_area(app).input("Íróasztal jegyzet\n\nmásodik bekezdés").run()
+    assert not app.exception
+    assert app.session_state[WRITING_DESK_KEY]["draft"]["content"] == (
+        "Íróasztal jegyzet\n\nmásodik bekezdés"
+    )
+
+    app.button(key="tx_mainnav_workshop").click().run()
+    assert not app.exception
+    assert app.session_state["ui_mode"] == "workshop"
+    assert app.session_state[WRITING_DESK_KEY]["draft"]["content"] == (
+        "Íróasztal jegyzet\n\nmásodik bekezdés"
+    )
+    # Az élő app a nem renderelt textarea kulcsát eldobja; az AppTest
+    # megtartja. A production unmountot így szimuláljuk a visszatérés előtt.
+    del app.session_state[WRITING_DESK_DRAFT_WIDGET_KEY]
+
+    app.button(key="tx_mainnav_writing_desk").click().run()
+    assert not app.exception
+    assert app.session_state["ui_mode"] == WRITING_DESK_MODE
+    assert _notes_area(app).value == "Íróasztal jegyzet\n\nmásodik bekezdés"
+    assert app.session_state[WRITING_DESK_KEY]["draft"]["content"] == (
+        "Íróasztal jegyzet\n\nmásodik bekezdés"
+    )
+    assert app.session_state[WRITING_DESK_DRAFT_WIDGET_KEY] == (
+        "Íróasztal jegyzet\n\nmásodik bekezdés"
+    )

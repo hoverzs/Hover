@@ -1,6 +1,6 @@
 """Íróasztal fő munkafelület — RÚF / eredeti nyelvi olvasóblokk + munkakivonatok.
 
-A jobb oldali jegyzetszerkesztő továbbra is helyőrző.
+A jobb oldali jegyzet/vázlat V1-ben natív plain-text mező.
 """
 
 from __future__ import annotations
@@ -16,7 +16,12 @@ from ui_components import (
     render_work_section,
     work_surface,
 )
-from writing_desk_data import WRITING_DESK_EXTRACT_KEYS, ensure_writing_desk_state
+from writing_desk_data import (
+    WRITING_DESK_EXTRACT_KEYS,
+    ensure_writing_desk_state,
+    set_writing_desk_draft,
+    writing_desk_draft_content,
+)
 from writing_desk_extracts import (
     EXTRACT_LABELS,
     STATUS_MISSING_SOURCE,
@@ -33,11 +38,84 @@ WRITING_DESK_MODE = "writing_desk"
 WRITING_DESK_LABEL = "Íróasztal"
 WRITING_DESK_ORIGINAL_LANGUAGE_KEY_PREFIX = "writing_desk_original_language"
 WRITING_DESK_BIBLE_VIEW_KEY = "writing_desk_bible_text_view_mode"
+WRITING_DESK_DRAFT_WIDGET_KEY = "writing_desk_draft_input"
+WRITING_DESK_DRAFT_RESYNC_FLAG = "_wd_draft_resync"
+_DRAFT_TEXT_AREA_HEIGHT_PX = 400
 WORK_MATERIAL_SECTIONS: tuple[str, ...] = tuple(
     EXTRACT_LABELS[key] for key in WRITING_DESK_EXTRACT_KEYS
 )
 
 GenerateFn = Callable[..., str]
+
+
+def apply_writing_desk_draft_resync_if_needed() -> None:
+    """Widgetkulcs szinkronja a tartós writing_desk.draft adattal (widget előtt)."""
+    desk = ensure_writing_desk_state(st.session_state)
+    force = bool(st.session_state.pop(WRITING_DESK_DRAFT_RESYNC_FLAG, False))
+    content = writing_desk_draft_content(desk)
+    if force or WRITING_DESK_DRAFT_WIDGET_KEY not in st.session_state:
+        st.session_state[WRITING_DESK_DRAFT_WIDGET_KEY] = content
+
+
+def _writing_desk_draft_project_sync_pending() -> bool:
+    """Projektváltás / import / új munka: a durable draft a forrás, ne a widget."""
+    return bool(
+        st.session_state.get(WRITING_DESK_DRAFT_RESYNC_FLAG)
+        or st.session_state.get("_pending_project_widget_sync")
+    )
+
+
+def commit_writing_desk_draft_from_widget() -> None:
+    """Jegyzetmező → tartós `writing_desk.draft.content`.
+
+    Normál szerkesztés és `on_change` út. Projektváltáskor / importnál /
+    új munkánál nem ír, hogy a régi widgetérték ne írja felül az új draftot.
+    """
+    if _writing_desk_draft_project_sync_pending():
+        return
+    if WRITING_DESK_DRAFT_WIDGET_KEY not in st.session_state:
+        return
+    set_writing_desk_draft(
+        st.session_state,
+        st.session_state.get(WRITING_DESK_DRAFT_WIDGET_KEY) or "",
+    )
+
+
+def flush_writing_desk_draft_from_widget() -> None:
+    """Élő jegyzetmező → tartós `writing_desk.draft` (ha a widget létezik).
+
+    Mentés / dirty-check előtt hívandó, hogy a gépelés a projekt fingerprintbe
+    kerüljön. Projektváltás után, ha a resync még nem futott, előbb a tartós
+    adatból frissíti a widgetet, hogy régi session-érték ne írjon felül.
+    """
+    ensure_writing_desk_state(st.session_state)
+    apply_writing_desk_draft_resync_if_needed()
+    commit_writing_desk_draft_from_widget()
+
+
+def _on_writing_desk_draft_change() -> None:
+    """A textarea értéke a widget unmountja előtt a tartós draftba kerül.
+
+    A főnézet-váltó gomb `st.rerun()`-t hív, mielőtt az Íróasztal shell
+    újra létrehozná a mezőt. Az `on_change` a Streamlit callback-fázisában
+    fut (az előző futtatás widget-metaadataiból), ezért a draft akkor is
+    durable marad, ha ezen a futáson a textarea már nem mountolódik.
+    """
+    commit_writing_desk_draft_from_widget()
+
+
+def _render_notes_editor() -> None:
+    apply_writing_desk_draft_resync_if_needed()
+    st.text_area(
+        "Jegyzet / vázlat",
+        key=WRITING_DESK_DRAFT_WIDGET_KEY,
+        height=_DRAFT_TEXT_AREA_HEIGHT_PX,
+        width="stretch",
+        placeholder="Jegyzet, vázlat vagy szabad szöveg",
+        label_visibility="collapsed",
+        on_change=_on_writing_desk_draft_change,
+    )
+    commit_writing_desk_draft_from_widget()
 
 
 def _render_scripture_block() -> None:
@@ -155,19 +233,20 @@ def render_writing_desk_shell(*, generate_fn: GenerateFn | None = None) -> None:
             body="A készülő jegyzet lesz az Íróasztal középpontja.",
             context=WRITING_DESK_LABEL,
         )
-        with work_surface("writing_desk_notes_placeholder"):
-            render_info_panel(
-                title="Szerkesztő helye",
-                body="A jegyzet- és vázlatszerkesztő a következő fázisban kerül ide.",
-                tone="neutral",
-            )
+        with work_surface("writing_desk_notes"):
+            _render_notes_editor()
 
 
 __all__ = [
     "WORK_MATERIAL_SECTIONS",
     "WRITING_DESK_BIBLE_VIEW_KEY",
+    "WRITING_DESK_DRAFT_RESYNC_FLAG",
+    "WRITING_DESK_DRAFT_WIDGET_KEY",
     "WRITING_DESK_LABEL",
     "WRITING_DESK_MODE",
     "WRITING_DESK_ORIGINAL_LANGUAGE_KEY_PREFIX",
+    "apply_writing_desk_draft_resync_if_needed",
+    "commit_writing_desk_draft_from_widget",
+    "flush_writing_desk_draft_from_widget",
     "render_writing_desk_shell",
 ]

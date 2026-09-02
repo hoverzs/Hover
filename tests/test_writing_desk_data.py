@@ -30,7 +30,9 @@ from writing_desk_data import (
     fingerprint_source_text,
     get_default_writing_desk,
     normalize_writing_desk,
+    set_writing_desk_draft,
     set_writing_desk_extract,
+    writing_desk_draft_content,
     writing_desk_has_content,
 )
 
@@ -94,6 +96,8 @@ def test_new_project_gets_empty_writing_desk_extracts():
     assert set(desk["extracts"]) == set(WRITING_DESK_EXTRACT_KEYS)
     for key in WRITING_DESK_EXTRACT_KEYS:
         assert desk["extracts"][key] == {"content": "", "source_fingerprint": ""}
+    assert desk["draft"] == {"content": ""}
+    assert writing_desk_draft_content(desk) == ""
     assert not writing_desk_has_content(desk)
 
     payload = build_project_data(session)
@@ -125,7 +129,8 @@ def test_malformed_extracts_are_normalized_without_error():
         "extra_top": True,
     }
     desk = normalize_writing_desk(raw)
-    assert set(desk.keys()) == {"extracts"}
+    assert set(desk.keys()) == {"extracts", "draft"}
+    assert desk["draft"] == {"content": ""}
     assert set(desk["extracts"]) == set(WRITING_DESK_EXTRACT_KEYS)
     assert desk["extracts"]["original_text"] == {
         "content": "",
@@ -349,3 +354,197 @@ def test_app_wires_writing_desk_into_save_load_and_clear_paths():
     data_src = (ROOT / "writing_desk_data.py").read_text(encoding="utf-8")
     assert "generate_text" not in data_src
     assert "chat" not in data_src.casefold()
+    assert "flush_writing_desk_draft_from_widget()" in app_src
+    assert "WRITING_DESK_DRAFT_WIDGET_KEY" in app_src
+    assert "WRITING_DESK_DRAFT_RESYNC_FLAG" in app_src
+    assert "on_change=_on_writing_desk_draft_change" in ui_src
+    assert "def commit_writing_desk_draft_from_widget" in ui_src
+
+
+def test_new_writing_desk_has_empty_draft():
+    desk = get_default_writing_desk()
+    assert desk["draft"] == {"content": ""}
+    assert writing_desk_draft_content(None) == ""
+    assert writing_desk_draft_content({}) == ""
+    assert not writing_desk_has_content(desk)
+
+
+def test_legacy_project_without_draft_gets_empty_string():
+    raw = {
+        "extracts": {
+            "original_text": {
+                "content": "régi kivonat",
+                "source_fingerprint": "abc",
+            },
+            "history": {"content": "", "source_fingerprint": ""},
+            "theology": {"content": "", "source_fingerprint": ""},
+        }
+    }
+    desk = normalize_writing_desk(raw)
+    assert desk["draft"] == {"content": ""}
+    assert writing_desk_draft_content(desk) == ""
+    assert desk["extracts"]["original_text"]["content"] == "régi kivonat"
+
+    session: dict[str, Any] = {}
+    _apply_writing_desk_like_app(session, {WRITING_DESK_KEY: raw})
+    assert session[WRITING_DESK_KEY]["draft"]["content"] == ""
+    assert session[WRITING_DESK_KEY]["extracts"]["original_text"]["content"] == (
+        "régi kivonat"
+    )
+
+
+def test_malformed_draft_normalizes_to_empty_string():
+    assert normalize_writing_desk({"draft": None})["draft"] == {"content": ""}
+    assert normalize_writing_desk({"draft": "sima szöveg"})["draft"] == {
+        "content": ""
+    }
+    desk = normalize_writing_desk(
+        {"draft": {"content": 12, "html": "<b>x</b>", "blocks": []}}
+    )
+    assert desk["draft"] == {"content": "12"}
+    assert "html" not in desk["draft"]
+    assert "blocks" not in desk["draft"]
+
+
+def test_draft_save_and_reload():
+    session: dict[str, Any] = {}
+    set_writing_desk_draft(session, "Első bekezdés.\n\nMásodik sor.")
+    payload = build_project_data(session, version="2.0-test")
+    assert payload[WRITING_DESK_KEY]["draft"]["content"] == (
+        "Első bekezdés.\n\nMásodik sor."
+    )
+
+    cleaned = sanitize_project_data(payload)
+    reloaded: dict[str, Any] = {}
+    _apply_writing_desk_like_app(reloaded, cleaned)
+    assert reloaded[WRITING_DESK_KEY]["draft"]["content"] == (
+        "Első bekezdés.\n\nMásodik sor."
+    )
+
+
+def test_save_as_inherits_draft():
+    session: dict[str, Any] = {
+        "last_igehely": "Jn 3,16",
+        "current_project_id": "old-id",
+        WRITING_DESK_KEY: _filled_extracts(),
+    }
+    set_writing_desk_draft(session, "Örökölt jegyzet")
+    new_payload = build_project_data(session, version="2.0-test")
+    assert new_payload[WRITING_DESK_KEY]["draft"]["content"] == "Örökölt jegyzet"
+    assert (
+        new_payload[WRITING_DESK_KEY]["extracts"]["theology"]["content"]
+        == "Rövid teológiai kivonat"
+    )
+
+    opened: dict[str, Any] = {"current_project_id": "new-id"}
+    _apply_writing_desk_like_app(opened, new_payload)
+    assert opened[WRITING_DESK_KEY]["draft"]["content"] == "Örökölt jegyzet"
+
+
+def test_project_switch_does_not_leak_draft(monkeypatch):
+    session: dict[str, Any] = {
+        "last_igehely": "Jn 3,16",
+        WRITING_DESK_KEY: _filled_extracts(),
+    }
+    set_writing_desk_draft(session, "Projekt A jegyzet")
+    project_a = build_project_data(session)
+
+    app_mod = _stub_app_session(monkeypatch, session)
+    app_mod._apply_project_data_to_session({"last_igehely": "Zsolt 23,1"})
+    assert session[WRITING_DESK_KEY]["draft"]["content"] == ""
+    for key in WRITING_DESK_EXTRACT_KEYS:
+        assert session[WRITING_DESK_KEY]["extracts"][key]["content"] == ""
+
+    app_mod._apply_project_data_to_session(project_a)
+    assert session[WRITING_DESK_KEY]["draft"]["content"] == "Projekt A jegyzet"
+    assert (
+        session[WRITING_DESK_KEY]["extracts"]["history"]["content"]
+        == "Rövid kortörténeti kivonat"
+    )
+
+
+def test_new_work_clears_draft(monkeypatch):
+    session: dict[str, Any] = {WRITING_DESK_KEY: _filled_extracts()}
+    set_writing_desk_draft(session, "Törlendő jegyzet")
+    app_mod = _stub_app_session(monkeypatch, session)
+    app_mod._clear_workspace_content()
+    assert session[WRITING_DESK_KEY] == get_default_writing_desk()
+    assert session[WRITING_DESK_KEY]["draft"]["content"] == ""
+
+
+def test_workspace_import_without_draft_does_not_keep_previous_draft(monkeypatch):
+    session: dict[str, Any] = {WRITING_DESK_KEY: _filled_extracts()}
+    set_writing_desk_draft(session, "Előző projekt jegyzete")
+    app_mod = _stub_app_session(monkeypatch, session)
+    raw = json.dumps(
+        {"_app": "Textus", "last_igehely": "Róm 8,1"},
+        ensure_ascii=False,
+    ).encode("utf-8")
+    ok, _info = app_mod.deserialize_workspace(raw)
+    assert ok is True
+    assert session[WRITING_DESK_KEY]["draft"]["content"] == ""
+    assert session[WRITING_DESK_KEY] == get_default_writing_desk()
+    assert session["last_igehely"] == "Róm 8,1"
+
+
+def test_workspace_import_queues_empty_draft_widget(monkeypatch):
+    import app as app_mod
+
+    session: dict[str, Any] = {
+        "writing_desk_draft_input": "Előző projekt jegyzete",
+    }
+    set_writing_desk_draft(session, "Előző projekt jegyzete")
+    monkeypatch.setattr(app_mod.st, "session_state", session)
+    monkeypatch.setattr(app_mod, "_reset_language_grounding_warnings", lambda: None)
+    raw = json.dumps(
+        {"_app": "Textus", "last_igehely": "Róm 8,1"},
+        ensure_ascii=False,
+    ).encode("utf-8")
+    ok, _info = app_mod.deserialize_workspace(raw)
+    assert ok is True
+    assert session[WRITING_DESK_KEY]["draft"]["content"] == ""
+    assert session.get("_wd_draft_resync") is True
+    pending = session["_pending_project_widget_sync"]
+    assert pending["writing_desk_draft_input"] == ""
+
+
+def test_draft_change_updates_project_fingerprint_extracts_unchanged():
+    session: dict[str, Any] = {
+        "original_text": "TELJES eredeti",
+        "history": "TELJES kortörténet",
+        "theology": "TELJES teológia",
+        WRITING_DESK_KEY: _filled_extracts(),
+    }
+    before_extracts = json.loads(json.dumps(session[WRITING_DESK_KEY]["extracts"]))
+    empty_draft_fp = project_content_fingerprint(session)
+
+    set_writing_desk_draft(session, "Új jegyzet a fingerprinthez")
+    after_fp = project_content_fingerprint(session)
+    assert after_fp != empty_draft_fp
+    assert session[WRITING_DESK_KEY]["extracts"] == before_extracts
+    assert session["original_text"] == "TELJES eredeti"
+    assert session["history"] == "TELJES kortörténet"
+    assert session["theology"] == "TELJES teológia"
+
+    set_writing_desk_extract(
+        session,
+        "history",
+        content="más kivonat",
+        source_fingerprint="x",
+    )
+    assert session[WRITING_DESK_KEY]["draft"]["content"] == (
+        "Új jegyzet a fingerprinthez"
+    )
+    assert writing_desk_has_content({"draft": {"content": "csak jegyzet"}})
+    assert not writing_desk_has_content({"draft": {"content": "   "}})
+
+
+def test_queue_project_widget_sync_includes_draft(monkeypatch):
+    import app as app_mod
+
+    session: dict[str, Any] = {}
+    set_writing_desk_draft(session, "Jegyzet a widget-szinkronhoz")
+    monkeypatch.setattr(app_mod.st, "session_state", session)
+    app_mod._queue_project_widget_sync_from_state()
+    pending = session["_pending_project_widget_sync"]
+    assert pending["writing_desk_draft_input"] == "Jegyzet a widget-szinkronhoz"

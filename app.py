@@ -59,11 +59,16 @@ from writing_desk_data import (
     ensure_writing_desk_state,
     get_default_writing_desk,
     normalize_writing_desk,
+    writing_desk_draft_content,
     writing_desk_has_content,
 )
 from writing_desk_ui import (
+    WRITING_DESK_DRAFT_RESYNC_FLAG,
+    WRITING_DESK_DRAFT_WIDGET_KEY,
     WRITING_DESK_LABEL,
     WRITING_DESK_MODE,
+    apply_writing_desk_draft_resync_if_needed,
+    flush_writing_desk_draft_from_widget,
     render_writing_desk_shell,
 )
 from writing_desk_dev_seed import maybe_apply_writing_desk_dev_seed
@@ -4320,6 +4325,8 @@ def _sync_inputs_to_last():
             from textus_workshop_ui import _apply_tw_ui_resync_if_needed
 
             _apply_tw_ui_resync_if_needed()
+        if st.session_state.get(WRITING_DESK_DRAFT_RESYNC_FLAG):
+            apply_writing_desk_draft_resync_if_needed()
     except Exception:  # noqa: BLE001
         pass
 
@@ -4339,6 +4346,9 @@ def _sync_inputs_to_last():
 
     # Igehirdetési műhely: ugyanez a minta a sermon_workshop widgetekre.
     flush_sermon_workshop_from_widgets()
+
+    # Íróasztal: a jegyzetmező a writing_desk.draft tartós mezőbe.
+    flush_writing_desk_draft_from_widget()
 
 
 def build_alap_from_state(
@@ -5085,6 +5095,8 @@ def deserialize_workspace(raw_bytes):
         obj.get(WRITING_DESK_KEY)
     )
     ensure_writing_desk_state(st.session_state)
+    st.session_state[WRITING_DESK_DRAFT_RESYNC_FLAG] = True
+    _queue_project_widget_sync_from_state()
     # RESET 3B-6a: az importált fájl sosem tartalmazza ezeket (tisztán
     # futásidejű állapot) — a betöltés előtti, esetleg más tartalomhoz
     # tartozó figyelmeztetések ne maradjanak bent az importált szöveg alatt.
@@ -5217,6 +5229,8 @@ def _queue_project_widget_sync_from_state() -> None:
     tw = ensure_text_workshop_state(st.session_state)
     pending["tw_main_idea_input"] = tw.get("text_main_idea") or ""
     pending.update(sync_occasion_context_widgets_from_state(st.session_state))
+    desk = ensure_writing_desk_state(st.session_state)
+    pending[WRITING_DESK_DRAFT_WIDGET_KEY] = writing_desk_draft_content(desk)
     # Igehely-keresés alkalom select — ceremoniális háttér occasion_type-ja
     occ_ctx = ensure_occasion_context_state(st.session_state)
     if occ_ctx.get("occasion_type"):
@@ -5288,9 +5302,10 @@ def _apply_project_data_to_session(project_data: dict) -> None:
     if _occ_type:
         _ps = ensure_passage_search_state(st.session_state)
         _ps["occasion"] = _occ_type
-    # Widgetkulcsok újraszinkronja a következő Textusműhely- / sermon-render előtt
+    # Widgetkulcsok újraszinkronja a következő Textusműhely- / sermon- / Íróasztal-render előtt
     st.session_state["_tw_ui_resync"] = True
     st.session_state["_sw_ui_resync"] = True
+    st.session_state[WRITING_DESK_DRAFT_RESYNC_FLAG] = True
     st.session_state[_BIBLE_TEXT_RESYNC_FLAG] = True
     # Cross-project AI evidence cache ürítése (ne keveredjen a háttércsomag)
     st.session_state.pop("_outline_rapid_evidence_cache", None)
@@ -5608,6 +5623,7 @@ def _clear_workspace_content() -> None:
     ensure_writing_desk_state(st.session_state)
     st.session_state["_tw_ui_resync"] = True
     st.session_state["_sw_ui_resync"] = True
+    st.session_state[WRITING_DESK_DRAFT_RESYNC_FLAG] = True
     st.session_state.pop("_outline_rapid_evidence_cache", None)
     _queue_project_widget_sync_from_state()
 
