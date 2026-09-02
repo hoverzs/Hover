@@ -27,6 +27,12 @@ RELEVANCE_PLACE_CATALOG = 75
 RELEVANCE_LEXICAL_HIGHLIGHT = 70
 RELEVANCE_PLACE_ENRICHMENT = 45
 RELEVANCE_THEOLOGICAL_SOURCE = 80
+# Interpretive witness (exegetical/theological/historical), same tier as
+# RELEVANCE_THEOLOGICAL_SOURCE — a classic commentary is layered evidence,
+# never allowed to outrank RELEVANCE_DIRECT_PASSAGE or the direct
+# linguistic/lexical/morphological evidence tiers above it. No separate
+# "reliability" score is assigned per commentator.
+RELEVANCE_COMMENTARY_SOURCE = 80
 
 RELATION_DIRECT_PASSAGE = "direct_passage_match"
 RELATION_PASSAGE_TOKEN = "passage_token"
@@ -37,6 +43,7 @@ RELATION_PLACE_ENRICHMENT = "place_enrichment"
 RELATION_EXEGETICAL_NOTE = "exegetical_note"
 RELATION_DICTIONARY_BACKGROUND = "dictionary_background"
 RELATION_THEOLOGICAL_SOURCE = "theological_source"
+RELATION_COMMENTARY_SOURCE = "commentary_source"
 
 
 @dataclass(frozen=True)

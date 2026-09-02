@@ -9,6 +9,7 @@ from typing import Any
 from textus_kb.canonical_reference import CanonicalReference, CanonicalReferenceError
 from textus_kb.context_profiles import (
     BUDGET_BACKGROUND,
+    BUDGET_COMMENTARY,
     BUDGET_DICTIONARY,
     BUDGET_ENTITY,
     BUDGET_EXEGETICAL,
@@ -147,6 +148,8 @@ def budget_type_for_item(item_type: str) -> str:
         return BUDGET_ENTITY
     if item_type == "theological_source":
         return BUDGET_THEOLOGY
+    if item_type == "commentary_source":
+        return BUDGET_COMMENTARY
     return BUDGET_BACKGROUND
 
 

@@ -9,6 +9,10 @@ from pathlib import Path
 from typing import Any
 
 from textus_kb.context_profiles import (
+    COMMENTARY_EVIDENCE_LIMIT,
+    COMMENTARY_NO_MATCH_WARNING,
+    COMMENTARY_SOURCE_WARNING,
+    PROFILE_COMMENTARY,
     PROFILE_EXEGESIS,
     PROFILE_HISTORICAL,
     PROFILE_THEOLOGY,
@@ -20,6 +24,7 @@ from textus_kb.context_profiles import (
 )
 from textus_kb.context_selection import SelectionStats, select_context_items
 from textus_kb.evidence import (
+    RELATION_COMMENTARY_SOURCE,
     RELATION_DIRECT_PASSAGE,
     RELATION_DICTIONARY_BACKGROUND,
     RELATION_EXEGETICAL_NOTE,
@@ -34,7 +39,8 @@ from textus_kb.evidence import (
     estimate_text_tokens,
 )
 from textus_kb.importers.acai_entities import ACAI_SOURCE_ID, GENERIC_ACAI_IDS
-from textus_kb.retrieval import retrieve, retrieve_theology_evidence
+from textus_kb.retrieval import retrieve, retrieve_commentary_evidence, retrieve_theology_evidence
+from textus_kb.repositories.commentary_repository import CommentaryRepository
 from textus_kb.repositories.theology_repository import TheologyRepository
 
 SCHEMA_VERSION = "2"
@@ -120,6 +126,7 @@ def build_context(
     token_budget: int | None = None,
     evidence: EvidencePacket | None = None,
     theology_database_path: str | Path | None = None,
+    commentary_database_path: str | Path | None = None,
 ) -> LLMContextPacket:
     packet = evidence if evidence is not None else retrieve(reference)
     profile_obj = ContextProfile.load(profile, token_budget=token_budget)
@@ -127,6 +134,7 @@ def build_context(
         packet,
         profile_obj,
         theology_database_path=theology_database_path,
+        commentary_database_path=commentary_database_path,
     )
 
 
@@ -135,6 +143,7 @@ def build_context_from_evidence(
     profile: ContextProfile | str,
     *,
     theology_database_path: str | Path | None = None,
+    commentary_database_path: str | Path | None = None,
 ) -> LLMContextPacket:
     if isinstance(profile, str):
         profile = ContextProfile.load(profile)
@@ -143,6 +152,7 @@ def build_context_from_evidence(
         PROFILE_EXEGESIS: _build_exegesis_context,
         PROFILE_HISTORICAL: _build_historical_context,
         PROFILE_THEOLOGY: _build_theology_context,
+        PROFILE_COMMENTARY: _build_commentary_context,
     }
     builder = builders[profile.name]
     candidates = builder(evidence, profile)
@@ -155,6 +165,18 @@ def build_context_from_evidence(
         )
         seen = {item.evidence_id for item in candidates}
         for item in theology_items:
+            if item.evidence_id in seen:
+                continue
+            candidates.append(item)
+            seen.add(item.evidence_id)
+    elif profile.name == PROFILE_COMMENTARY:
+        commentary_items, extra_warnings = _load_commentary_context_items(
+            evidence,
+            profile,
+            database_path=commentary_database_path,
+        )
+        seen = {item.evidence_id for item in candidates}
+        for item in commentary_items:
             if item.evidence_id in seen:
                 continue
             candidates.append(item)
@@ -175,6 +197,7 @@ def build_context_to_json(
     evidence: EvidencePacket | None = None,
     indent: int | None = 2,
     theology_database_path: str | Path | None = None,
+    commentary_database_path: str | Path | None = None,
 ) -> str:
     packet = build_context(
         reference,
@@ -182,6 +205,7 @@ def build_context_to_json(
         token_budget=token_budget,
         evidence=evidence,
         theology_database_path=theology_database_path,
+        commentary_database_path=commentary_database_path,
     )
     return json.dumps(packet.to_dict(), indent=indent, ensure_ascii=False, sort_keys=True)
 
@@ -666,6 +690,111 @@ def _build_theology_context(
     return items
 
 
+def _build_commentary_context(
+    evidence: EvidencePacket,
+    profile: ContextProfile,
+) -> list[ContextItem]:
+    items: list[ContextItem] = []
+    by_relation = _index_evidence(evidence)
+
+    items.append(
+        ContextItem(
+            text=f"Commentary reading scope: {evidence.passage_display} ({evidence.passage_canonical})",
+            evidence_id=_first_evidence_id(by_relation, RELATION_DIRECT_PASSAGE),
+            source_id=_first_source_id(by_relation, RELATION_DIRECT_PASSAGE)
+            or "passage_scope",
+            relevance_score=profile.priorities[RELATION_DIRECT_PASSAGE],
+            item_type="passage",
+            metadata={"canonical_scope": evidence.passage_canonical},
+        )
+    )
+
+    highlight_evidence = {
+        str(item.metadata.get("strong_id")): item
+        for item in by_relation.get(RELATION_LEXICAL_HIGHLIGHT, [])
+        if item.metadata.get("strong_id")
+    }
+    for highlight in evidence.linguistic_evidence.get("lexical_highlights", []):
+        strong_id = str(highlight.get("strong_id") or "")
+        linked = highlight_evidence.get(strong_id)
+        if linked is None:
+            continue
+        gloss_en = highlight.get("gloss_en") or ""
+        gloss_hu = highlight.get("gloss_hu") or ""
+        gloss = " / ".join(part for part in (gloss_en, gloss_hu) if part)
+        items.append(
+            ContextItem(
+                text=f"{highlight.get('lemma')} ({strong_id}): {gloss}".strip(),
+                evidence_id=linked.evidence_id,
+                source_id=linked.source_id,
+                relevance_score=profile.priorities[RELATION_LEXICAL_HIGHLIGHT],
+                item_type="lexical",
+                metadata={"strong_id": strong_id},
+            )
+        )
+
+    return items
+
+
+def _load_commentary_context_items(
+    evidence: EvidencePacket,
+    profile: ContextProfile,
+    *,
+    database_path: str | Path | None,
+) -> tuple[list[ContextItem], list[str]]:
+    repo = CommentaryRepository(database_path)
+    if not repo.store_status().available:
+        return [], [COMMENTARY_SOURCE_WARNING]
+    hits = retrieve_commentary_evidence(
+        evidence.passage_canonical,
+        repository=repo,
+        limit=COMMENTARY_EVIDENCE_LIMIT,
+    )
+    if not hits:
+        return [], [COMMENTARY_NO_MATCH_WARNING]
+    base_score = profile.priorities.get(RELATION_COMMENTARY_SOURCE, 90)
+    items: list[ContextItem] = []
+    seen: set[str] = set()
+    for index, hit in enumerate(hits):
+        if hit.evidence_id in seen:
+            continue
+        seen.add(hit.evidence_id)
+        metadata = _commentary_item_metadata(hit, sequence=index)
+        items.append(
+            ContextItem(
+                text=hit.content,
+                evidence_id=hit.evidence_id,
+                source_id=hit.source_id,
+                relevance_score=base_score - index,
+                item_type="commentary_source",
+                metadata=metadata,
+            )
+        )
+    return items, []
+
+
+def _commentary_item_metadata(hit: EvidenceItem, *, sequence: int) -> dict[str, Any]:
+    meta = dict(hit.metadata)
+    meta["commentary_sequence"] = sequence
+    meta["relation_type"] = hit.relation_type
+    if hit.passage and "canonical_scope" not in meta:
+        meta["canonical_scope"] = hit.passage
+    return meta
+
+
+def _preserve_commentary_document_order(items: list[ContextItem]) -> list[ContextItem]:
+    ordered = iter(
+        sorted(
+            [item for item in items if item.item_type == "commentary_source"],
+            key=lambda item: int(item.metadata.get("commentary_sequence") or 0),
+        )
+    )
+    return [
+        next(ordered) if item.item_type == "commentary_source" else item
+        for item in items
+    ]
+
+
 def _load_theology_context_items(
     evidence: EvidencePacket,
     profile: ContextProfile,
@@ -743,6 +872,8 @@ def _finalize_context_packet(
     )
     if profile.name == PROFILE_THEOLOGY:
         kept = _preserve_theology_document_order(kept)
+    elif profile.name == PROFILE_COMMENTARY:
+        kept = _preserve_commentary_document_order(kept)
     sections = _group_sections(kept, profile.name)
 
     source_ids = sorted({item.source_id for item in kept})
@@ -824,6 +955,8 @@ def _section_order(profile: str) -> tuple[str, ...]:
     if profile == PROFILE_HISTORICAL:
         # Prefer concrete place/historical grounding before dictionary/entities.
         return ("passage", "places", "historical", "dictionary", "entities", "geography")
+    if profile == PROFILE_COMMENTARY:
+        return ("passage", "commentary", "lexical")
     return ("passage", "theological", "lexical", "places", "background")
 
 
@@ -841,6 +974,7 @@ def _item_section_type(item_type: str) -> str:
         "passage_place_link": "places",
         "place_catalog": "places",
         "theological_source": "theological",
+        "commentary_source": "commentary",
         "enrichment": "background",
         "historical_enrichment": "historical",
         "geography": "geography",

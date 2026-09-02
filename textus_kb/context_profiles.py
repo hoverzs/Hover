@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from textus_kb.evidence import (
+    RELATION_COMMENTARY_SOURCE,
     RELATION_DIRECT_PASSAGE,
     RELATION_DICTIONARY_BACKGROUND,
     RELATION_EXEGETICAL_NOTE,
@@ -19,9 +20,10 @@ from textus_kb.evidence import (
 PROFILE_EXEGESIS = "exegesis"
 PROFILE_HISTORICAL = "historical_context"
 PROFILE_THEOLOGY = "theology"
+PROFILE_COMMENTARY = "commentary"
 
 SUPPORTED_PROFILES = frozenset(
-    {PROFILE_EXEGESIS, PROFILE_HISTORICAL, PROFILE_THEOLOGY}
+    {PROFILE_EXEGESIS, PROFILE_HISTORICAL, PROFILE_THEOLOGY, PROFILE_COMMENTARY}
 )
 
 TIER_CORE = "core"
@@ -43,6 +45,7 @@ BUDGET_ENTITY = "entity"
 BUDGET_BACKGROUND = "background"
 BUDGET_PASSAGE = "passage"
 BUDGET_THEOLOGY = "theology"
+BUDGET_COMMENTARY = "commentary"
 
 THEOLOGY_SOURCE_WARNING = "No dedicated theological source layer available"
 THEOLOGY_NO_MATCH_WARNING = (
@@ -51,6 +54,13 @@ THEOLOGY_NO_MATCH_WARNING = (
 )
 THEOLOGY_EVIDENCE_LIMIT = 6
 
+COMMENTARY_SOURCE_WARNING = "No dedicated commentary source layer available"
+COMMENTARY_NO_MATCH_WARNING = (
+    "Commentary source store is available, but no passage-linked "
+    "commentary evidence was found for this reference."
+)
+COMMENTARY_EVIDENCE_LIMIT = 6
+
 # Soft target (prefer stop) vs hard max (never exceed).
 # Goal: minimize provider token usage — do not pad to the hard max.
 # Exegesis target ~2200–2800; historical ~1800–2500.
@@ -58,12 +68,14 @@ DEFAULT_TARGET_TOKENS: dict[str, int] = {
     PROFILE_EXEGESIS: 2500,
     PROFILE_HISTORICAL: 2200,
     PROFILE_THEOLOGY: 3500,
+    PROFILE_COMMENTARY: 3000,
 }
 
 DEFAULT_MAX_TOKENS: dict[str, int] = {
     PROFILE_EXEGESIS: 4500,
     PROFILE_HISTORICAL: 3500,
     PROFILE_THEOLOGY: 3500,
+    PROFILE_COMMENTARY: 3500,
 }
 
 # Backward-compatible alias used by older callers.
@@ -96,6 +108,12 @@ DEFAULT_TYPE_BUDGETS: dict[str, dict[str, int]] = {
         BUDGET_BACKGROUND: 350,
         BUDGET_THEOLOGY: 3500,
     },
+    PROFILE_COMMENTARY: {
+        BUDGET_PASSAGE: 150,
+        BUDGET_LINGUISTIC: 500,
+        BUDGET_BACKGROUND: 250,
+        BUDGET_COMMENTARY: 3000,
+    },
 }
 
 # Minimum diversity: reserve slots for these budget types when candidates exist.
@@ -104,6 +122,7 @@ DEFAULT_DIVERSITY_TYPES: dict[str, tuple[str, ...]] = {
     # Background first so place/enrichment is reserved before dictionary/entities.
     PROFILE_HISTORICAL: (BUDGET_BACKGROUND, BUDGET_DICTIONARY, BUDGET_ENTITY),
     PROFILE_THEOLOGY: (BUDGET_THEOLOGY, BUDGET_LINGUISTIC, BUDGET_BACKGROUND),
+    PROFILE_COMMENTARY: (BUDGET_COMMENTARY,),
 }
 
 # Higher number = retained first under token budget pressure.
@@ -142,6 +161,16 @@ PROFILE_PRIORITIES: dict[str, dict[str, int]] = {
         RELATION_PLACE_ENRICHMENT: 55,
         RELATION_PASSAGE_TOKEN: 20,
     },
+    PROFILE_COMMENTARY: {
+        # Direct linguistic/lexical/morphological evidence always outranks
+        # classic commentary — Commentary is an interpretive witness layer,
+        # never a substitute for direct evidence. No per-commentator
+        # reliability score is assigned.
+        RELATION_DIRECT_PASSAGE: 100,
+        RELATION_COMMENTARY_SOURCE: 90,
+        RELATION_LEXICAL_HIGHLIGHT: 85,
+        RELATION_PASSAGE_TOKEN: 20,
+    },
 }
 
 # Item-type → selection tier (profile-specific overrides applied in code).
@@ -176,6 +205,12 @@ THEOLOGY_ITEM_TIERS: dict[str, str] = {
     "place_catalog": TIER_OPTIONAL,
 }
 
+COMMENTARY_ITEM_TIERS: dict[str, str] = {
+    "passage": TIER_CORE,
+    "commentary_source": TIER_PRIMARY,
+    "lexical": TIER_PRIMARY,
+}
+
 
 @dataclass(frozen=True)
 class ContextProfile:
@@ -206,6 +241,7 @@ class ContextProfile:
             PROFILE_EXEGESIS: EXEGESIS_ITEM_TIERS,
             PROFILE_HISTORICAL: HISTORICAL_ITEM_TIERS,
             PROFILE_THEOLOGY: THEOLOGY_ITEM_TIERS,
+            PROFILE_COMMENTARY: COMMENTARY_ITEM_TIERS,
         }[name]
         return cls(
             name=name,

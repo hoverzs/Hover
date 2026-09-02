@@ -430,8 +430,43 @@ def normalize_commentary_document(document: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+# Fields that record *when* a build happened to run rather than *what* was
+# imported. Two builds of byte-identical source content at different wall
+# clock times must produce the same content_hash — these are the only
+# fields that would otherwise break that (batch_id/source_file_id are
+# derived deterministically from edition_id, and raw_sha256/source_url/
+# batch report counts are genuine content-identifying provenance, so they
+# stay in the hash).
+_CONTENT_FINGERPRINT_EXCLUDED_FIELDS = {
+    "import_batches": ("imported_at",),
+    "source_files": ("retrieved_at",),
+}
+
+
+def _content_fingerprint_view(document: dict[str, Any]) -> dict[str, Any]:
+    """A copy of ``document`` with build-time-only timestamp fields
+    stripped, for hashing. Nothing is removed from what actually gets
+    written to the database — only from what feeds ``content_hash``."""
+    view = dict(document)
+    for table, excluded_fields in _CONTENT_FINGERPRINT_EXCLUDED_FIELDS.items():
+        if table not in view:
+            continue
+        view[table] = [
+            {k: v for k, v in item.items() if k not in excluded_fields}
+            for item in view[table]
+        ]
+    return view
+
+
 def hash_commentary_document(document: dict[str, Any]) -> str:
-    payload = json.dumps(document, ensure_ascii=False, sort_keys=True)
+    """Deterministic content fingerprint: identical editorial content
+    (contributors, works, editions, sections, chunks, passage links,
+    contributor_source_names, source identity) always hashes the same,
+    regardless of when a given build happened to run. See
+    ``_content_fingerprint_view``."""
+    payload = json.dumps(
+        _content_fingerprint_view(document), ensure_ascii=False, sort_keys=True
+    )
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 

@@ -649,6 +649,30 @@ def test_content_hash_changes_when_fixture_changes(tmp_path: Path) -> None:
     assert original.content_hash != changed.content_hash
 
 
+def test_content_hash_is_stable_across_import_timestamps(tmp_path: Path) -> None:
+    """Two builds of byte-identical source content at different wall-clock
+    times must fingerprint as the same content — content_hash is a
+    deterministic content fingerprint, not a build-time record. Only
+    ``import_batches.imported_at`` and ``source_files.retrieved_at`` are
+    build-time-only; every other field (including raw_sha256, which really
+    does identify the source content) still participates in the hash."""
+    baseline = copy.deepcopy(_load_document())
+    later = copy.deepcopy(_load_document())
+    later["import_batches"][0]["imported_at"] = "2099-12-31T23:59:59Z"
+    later["source_files"][0]["retrieved_at"] = "2099-12-31T23:59:59Z"
+    assert later != baseline, "the mutation must actually change the raw document"
+
+    baseline_hash = hash_commentary_document(normalize_commentary_document(baseline))
+    later_hash = hash_commentary_document(normalize_commentary_document(later))
+    assert baseline_hash == later_hash
+
+    first = import_commentary_sqlite(document=baseline, database_path=tmp_path / "a.sqlite3")
+    second = import_commentary_sqlite(document=later, database_path=tmp_path / "b.sqlite3")
+    assert first.content_hash == second.content_hash == baseline_hash
+    # generated_at (the store-write wall clock) is expected to vary and is
+    # tracked separately from content_hash, not folded into it.
+
+
 def test_atomic_build_leaves_no_temp_file_on_success(tmp_path: Path) -> None:
     database = tmp_path / "commentary.sqlite3"
     import_commentary_sqlite(fixture_path=FIXTURE_PATH, database_path=database)

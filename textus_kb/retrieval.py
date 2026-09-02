@@ -14,6 +14,7 @@ from textus_kb.adapters.aquifer_study_notes import AquiferStudyNotesAdapter
 from textus_kb.adapters.lexicon import LexiconAdapter
 from textus_kb.adapters.places import PlacesAdapter
 from textus_kb.adapters.tagnt import TagntAdapter
+from textus_kb.adapters.commentary import CommentaryAdapter
 from textus_kb.adapters.theology import TheologyAdapter
 from textus_kb.canonical_reference import CanonicalReference, CanonicalReferenceError
 from textus_kb.dictionary_relevance import (
@@ -59,6 +60,10 @@ from textus_kb.evidence import (
 )
 from textus_kb.manifest import KnowledgeBaseManifest, ManifestSource, load_manifest
 from textus_kb.pilot_registry import find_pilot
+from textus_kb.repositories.commentary_repository import (
+    DEFAULT_SEARCH_LIMIT as COMMENTARY_DEFAULT_SEARCH_LIMIT,
+    CommentaryRepository,
+)
 from textus_kb.repositories.theology_repository import (
     DEFAULT_SEARCH_LIMIT,
     TheologyRepository,
@@ -666,6 +671,42 @@ def retrieve(
     return packet
 
 
+def retrieve_commentary_evidence(
+    reference: str | CanonicalReference,
+    *,
+    database_path: str | Path | None = None,
+    limit: int = COMMENTARY_DEFAULT_SEARCH_LIMIT,
+    repository: CommentaryRepository | None = None,
+) -> list[EvidenceItem]:
+    """Return citation-ready Commentary EvidenceItems. Fail-closed; not wired
+    into retrieve(). Exact/range-overlap section retrieval only (inherited
+    from ``CommentaryRepository.sections_for_passage`` — never falls back to
+    full-text or semantic search); an unsupported book or an unparseable
+    reference simply yields no hits, never a substitute result."""
+    repo = repository if repository is not None else CommentaryRepository(database_path)
+    hits = repo.sections_for_passage(reference, limit=limit)
+    if not hits:
+        return []
+    pairs = []
+    for hit in hits:
+        detail = repo.section_detail(hit.section_id)
+        if detail is None:
+            # Defensive only: a section returned by sections_for_passage
+            # must exist; skip rather than fabricate if it somehow doesn't.
+            continue
+        if not detail.chunks:
+            # A purely structural range/container section (its own primary
+            # passage link exists, but all of Calvin's actual prose lives
+            # in its verse-level children) has nothing to show as evidence.
+            # Skip it rather than cite an empty excerpt — the real content
+            # still surfaces via those child sections' own hits.
+            continue
+        pairs.append((hit, detail))
+    items = CommentaryAdapter().to_evidence_items(pairs)
+    # Defensive: never surface an evidence item with no actual excerpt text.
+    return [item for item in items if item.content.strip()]
+
+
 def retrieve_theology_evidence(
     reference: str | CanonicalReference,
     *,
@@ -1143,6 +1184,7 @@ __all__ = [
     "RetrievalError",
     "main",
     "retrieve",
+    "retrieve_commentary_evidence",
     "retrieve_theology_evidence",
     "retrieve_to_json",
 ]
