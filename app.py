@@ -60,6 +60,7 @@ from writing_desk_data import (
     get_default_writing_desk,
     normalize_writing_desk,
     writing_desk_draft_content,
+    writing_desk_draft_widget_state,
     writing_desk_has_content,
 )
 from writing_desk_ui import (
@@ -68,6 +69,7 @@ from writing_desk_ui import (
     WRITING_DESK_LABEL,
     WRITING_DESK_MODE,
     apply_writing_desk_draft_resync_if_needed,
+    begin_writing_desk_draft_resync,
     flush_writing_desk_draft_from_widget,
     render_writing_desk_shell,
 )
@@ -5095,7 +5097,7 @@ def deserialize_workspace(raw_bytes):
         obj.get(WRITING_DESK_KEY)
     )
     ensure_writing_desk_state(st.session_state)
-    st.session_state[WRITING_DESK_DRAFT_RESYNC_FLAG] = True
+    begin_writing_desk_draft_resync()
     _queue_project_widget_sync_from_state()
     # RESET 3B-6a: az importált fájl sosem tartalmazza ezeket (tisztán
     # futásidejű állapot) — a betöltés előtti, esetleg más tartalomhoz
@@ -5230,7 +5232,9 @@ def _queue_project_widget_sync_from_state() -> None:
     pending["tw_main_idea_input"] = tw.get("text_main_idea") or ""
     pending.update(sync_occasion_context_widgets_from_state(st.session_state))
     desk = ensure_writing_desk_state(st.session_state)
-    pending[WRITING_DESK_DRAFT_WIDGET_KEY] = writing_desk_draft_content(desk)
+    pending[WRITING_DESK_DRAFT_WIDGET_KEY] = writing_desk_draft_widget_state(
+        writing_desk_draft_content(desk)
+    )
     # Igehely-keresés alkalom select — ceremoniális háttér occasion_type-ja
     occ_ctx = ensure_occasion_context_state(st.session_state)
     if occ_ctx.get("occasion_type"):
@@ -5305,7 +5309,7 @@ def _apply_project_data_to_session(project_data: dict) -> None:
     # Widgetkulcsok újraszinkronja a következő Textusműhely- / sermon- / Íróasztal-render előtt
     st.session_state["_tw_ui_resync"] = True
     st.session_state["_sw_ui_resync"] = True
-    st.session_state[WRITING_DESK_DRAFT_RESYNC_FLAG] = True
+    begin_writing_desk_draft_resync()
     st.session_state[_BIBLE_TEXT_RESYNC_FLAG] = True
     # Cross-project AI evidence cache ürítése (ne keveredjen a háttércsomag)
     st.session_state.pop("_outline_rapid_evidence_cache", None)
@@ -5623,7 +5627,7 @@ def _clear_workspace_content() -> None:
     ensure_writing_desk_state(st.session_state)
     st.session_state["_tw_ui_resync"] = True
     st.session_state["_sw_ui_resync"] = True
-    st.session_state[WRITING_DESK_DRAFT_RESYNC_FLAG] = True
+    begin_writing_desk_draft_resync()
     st.session_state.pop("_outline_rapid_evidence_cache", None)
     _queue_project_widget_sync_from_state()
 

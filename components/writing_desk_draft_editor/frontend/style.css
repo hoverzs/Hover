@@ -1,0 +1,83 @@
+.wd-draft-editor {
+  background: var(--st-background-color, #fffdf8);
+  border: 1px solid var(--st-border-color, rgba(90, 74, 56, 0.22));
+  border-radius: 10px;
+  color: var(--st-text-color, #2f2a24);
+  display: flex;
+  flex-direction: column;
+  min-height: 400px;
+}
+
+.wd-draft-toolbar {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.12rem;
+  padding: 0.28rem 0.35rem 0.22rem;
+}
+
+.wd-draft-toolbar button {
+  appearance: none;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1;
+  min-height: 1.7rem;
+  min-width: 1.7rem;
+  padding: 0.22rem 0.38rem;
+}
+
+.wd-draft-toolbar button:hover {
+  background: color-mix(in srgb, var(--st-primary-color, #5a7aa8) 10%, transparent);
+  border-color: color-mix(in srgb, var(--st-border-color, #c4b8a8) 70%, transparent);
+}
+
+.wd-draft-toolbar button:focus-visible {
+  outline: 1px solid var(--st-primary-color, #5a7aa8);
+  outline-offset: 1px;
+}
+
+.wd-draft-surface {
+  flex: 1;
+  font-size: 1.02rem;
+  line-height: 1.55;
+  min-height: 22rem;
+  outline: none;
+  overflow: auto;
+  padding: 0.55rem 0.95rem 0.9rem;
+}
+
+.wd-draft-surface:focus {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--st-primary-color, #5a7aa8) 28%, transparent);
+}
+
+.wd-draft-surface p {
+  margin: 0 0 0.62em;
+}
+
+.wd-draft-surface p:last-child {
+  margin-bottom: 0;
+}
+
+.wd-draft-surface ul,
+.wd-draft-surface ol {
+  margin: 0.15em 0 0.7em;
+  padding-left: 1.35rem;
+}
+
+.wd-draft-surface li {
+  margin: 0.12em 0;
+}
+
+.wd-draft-surface:empty::before,
+.wd-draft-surface:has(> br:only-child)::before,
+.wd-draft-surface:has(> p:only-child:has(> br:only-child))::before {
+  color: color-mix(in srgb, var(--st-text-color, #6a5a48) 55%, transparent);
+  content: attr(data-placeholder);
+  pointer-events: none;
+}

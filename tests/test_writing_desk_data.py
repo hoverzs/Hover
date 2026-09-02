@@ -26,10 +26,16 @@ from workspace_data import (
 from writing_desk_data import (
     WRITING_DESK_EXTRACT_KEYS,
     WRITING_DESK_KEY,
+    draft_content_from_widget,
+    draft_has_visible_content,
+    draft_html_for_editor,
+    draft_visible_text,
     ensure_writing_desk_state,
     fingerprint_source_text,
     get_default_writing_desk,
     normalize_writing_desk,
+    plain_text_to_draft_html,
+    sanitize_draft_html,
     set_writing_desk_draft,
     set_writing_desk_extract,
     writing_desk_draft_content,
@@ -356,8 +362,9 @@ def test_app_wires_writing_desk_into_save_load_and_clear_paths():
     assert "chat" not in data_src.casefold()
     assert "flush_writing_desk_draft_from_widget()" in app_src
     assert "WRITING_DESK_DRAFT_WIDGET_KEY" in app_src
+    assert "begin_writing_desk_draft_resync()" in app_src
     assert "WRITING_DESK_DRAFT_RESYNC_FLAG" in app_src
-    assert "on_change=_on_writing_desk_draft_change" in ui_src
+    assert "on_html_change=_on_writing_desk_draft_change" in ui_src
     assert "def commit_writing_desk_draft_from_widget" in ui_src
 
 
@@ -470,6 +477,8 @@ def test_new_work_clears_draft(monkeypatch):
     app_mod._clear_workspace_content()
     assert session[WRITING_DESK_KEY] == get_default_writing_desk()
     assert session[WRITING_DESK_KEY]["draft"]["content"] == ""
+    assert session.get("_wd_draft_resync") is True
+    assert session.get("writing_desk_draft_input") == {"html": ""}
 
 
 def test_workspace_import_without_draft_does_not_keep_previous_draft(monkeypatch):
@@ -505,7 +514,7 @@ def test_workspace_import_queues_empty_draft_widget(monkeypatch):
     assert session[WRITING_DESK_KEY]["draft"]["content"] == ""
     assert session.get("_wd_draft_resync") is True
     pending = session["_pending_project_widget_sync"]
-    assert pending["writing_desk_draft_input"] == ""
+    assert pending["writing_desk_draft_input"] == {"html": ""}
 
 
 def test_draft_change_updates_project_fingerprint_extracts_unchanged():
@@ -546,5 +555,110 @@ def test_queue_project_widget_sync_includes_draft(monkeypatch):
     set_writing_desk_draft(session, "Jegyzet a widget-szinkronhoz")
     monkeypatch.setattr(app_mod.st, "session_state", session)
     app_mod._queue_project_widget_sync_from_state()
+    from writing_desk_data import writing_desk_draft_widget_state
+
     pending = session["_pending_project_widget_sync"]
-    assert pending["writing_desk_draft_input"] == "Jegyzet a widget-szinkronhoz"
+    assert pending["writing_desk_draft_input"] == writing_desk_draft_widget_state(
+        "Jegyzet a widget-szinkronhoz"
+    )
+
+
+def test_plain_text_4a_draft_becomes_editor_safe_html():
+    html = draft_html_for_editor("ELSŐ\nMÁSODIK")
+    assert html == "<p>ELSŐ<br>MÁSODIK</p>"
+    assert "ELSŐ" in draft_visible_text(html)
+    assert "MÁSODIK" in draft_visible_text(html)
+    session: dict[str, Any] = {}
+    set_writing_desk_draft(session, "ELSŐ\nMÁSODIK")
+    assert session[WRITING_DESK_KEY]["draft"]["content"] == "ELSŐ\nMÁSODIK"
+    assert draft_html_for_editor(session[WRITING_DESK_KEY]["draft"]["content"]) == html
+
+
+def test_whitelist_html_is_kept():
+    raw = (
+        "<p>Egy <strong>félkövér</strong> és <em>dőlt</em> "
+        "<u>aláhúzott</u> szó.</p><ul><li>a</li></ul><ol><li>b</li></ol>"
+    )
+    assert sanitize_draft_html(raw) == raw
+
+
+def test_forbidden_tags_and_style_attributes_are_stripped():
+    raw = (
+        '<p class="x" style="color:red" onclick="alert(1)">Látható '
+        '<span style="font-size:20px">szöveg</span></p>'
+        '<font color="red">marad</font>'
+        '<img src="x.png" alt="kép">'
+        "<script>alert(1)</script>"
+    )
+    cleaned = sanitize_draft_html(raw)
+    assert "<span" not in cleaned
+    assert "<font" not in cleaned
+    assert "<img" not in cleaned
+    assert "<script" not in cleaned
+    assert "style=" not in cleaned
+    assert "onclick" not in cleaned
+    assert "class=" not in cleaned
+    assert "alert(1)" not in cleaned
+    assert "Látható" in draft_visible_text(cleaned)
+    assert "szöveg" in draft_visible_text(cleaned)
+    assert "marad" in draft_visible_text(cleaned)
+
+
+def test_word_and_web_paste_html_is_sanitized():
+    raw = """
+    <html xmlns:o="urn:schemas-microsoft-com:office:office">
+    <head><style>p.MsoNormal { color: red; }</style></head>
+    <body>
+      <h1 class="heading">Cím</h1>
+      <p class="MsoNormal" style="margin:0">
+        <span style="font-family:Calibri;color:#ff0000">Hello <b>világ</b></span>
+      </p>
+      <table><tr><td>táblázat szöveg</td></tr></table>
+      <img src="cid:image001">
+      <a href="https://example.com">link szöveg</a>
+    </body>
+    </html>
+    """
+    cleaned = sanitize_draft_html(raw)
+    assert "<h1" not in cleaned
+    assert "<span" not in cleaned
+    assert "<table" not in cleaned
+    assert "<img" not in cleaned
+    assert "<a " not in cleaned
+    assert "style=" not in cleaned
+    assert "class=" not in cleaned
+    visible = draft_visible_text(cleaned)
+    assert "Cím" in visible
+    assert "Hello" in visible
+    assert "világ" in visible
+    assert "táblázat szöveg" in visible
+    assert "link szöveg" in visible
+    assert "<b>világ</b>" in cleaned or "<strong>világ</strong>" in cleaned
+
+
+def test_visually_empty_html_is_not_substantive_content():
+    for empty in ("<p><br></p>", "<p></p>", "<p>&nbsp;</p>", "<br>", "   "):
+        assert not draft_has_visible_content(empty)
+        session: dict[str, Any] = {}
+        set_writing_desk_draft(session, empty)
+        assert session[WRITING_DESK_KEY]["draft"]["content"] == ""
+        assert not writing_desk_has_content(session[WRITING_DESK_KEY])
+
+    filled = {"draft": {"content": "<p><br></p>"}}
+    empty_fp = project_content_fingerprint({})
+    empty_html_fp = project_content_fingerprint({WRITING_DESK_KEY: filled})
+    assert empty_fp == empty_html_fp
+
+
+def test_widget_dict_and_legacy_string_commit_adapter():
+    html = "<p>Új <strong>HTML</strong> jegyzet</p>"
+    assert draft_content_from_widget({"html": html}, "") == html
+    assert draft_content_from_widget("Régi string jegyzet", "") == "Régi string jegyzet"
+    assert (
+        draft_content_from_widget(
+            {"html": plain_text_to_draft_html("ELSŐ\nMÁSODIK")},
+            "ELSŐ\nMÁSODIK",
+        )
+        == "ELSŐ\nMÁSODIK"
+    )
+    assert draft_content_from_widget({"html": "<p><br></p>"}, "régi") == ""

@@ -151,6 +151,8 @@ EXCLUDED_SESSION_KEYS: frozenset[str] = frozenset(
         "_tw_ui_resync",
         "writing_desk_draft_input",
         "_wd_draft_resync",
+        "_wd_draft_resync_bumped",
+        "_wd_draft_revision",
         "_tw_main_idea_adopt_pending",
         "_main_idea_suggest_running",
         "_main_idea_assess_running",
