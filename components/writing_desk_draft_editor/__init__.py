@@ -42,7 +42,7 @@ def writing_desk_draft_editor(
     revision: int,
     key: str,
     on_html_change: Callable[[], None] | None = None,
-    height: int = 400,
+    height: int = 700,
 ):
     """Jegyzetmező: contenteditable + szűkített HTML state (`html`)."""
     return _component()(

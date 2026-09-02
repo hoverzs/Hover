@@ -99,7 +99,7 @@ def _patch_streamlit_shell(
         )
         return value
 
-    def _draft_editor(*, html, revision, key, on_html_change=None, height=400):
+    def _draft_editor(*, html, revision, key, on_html_change=None, height=700):
         calls["draft_editor"].append(
             {
                 "html": html,
@@ -131,7 +131,7 @@ def _widget_visible(session: dict) -> str:
     )
 
 
-def test_writing_desk_shell_keeps_two_column_workspace(monkeypatch):
+def test_writing_desk_shell_stacks_notes_above_work_material(monkeypatch):
     import streamlit as st
 
     monkeypatch.setattr(writing_desk_ui, "_render_scripture_block", lambda: None)
@@ -140,19 +140,27 @@ def test_writing_desk_shell_keeps_two_column_workspace(monkeypatch):
     writing_desk_ui.render_writing_desk_shell()
 
     joined = _joined_markdown(calls)
-    assert calls["columns"] == [([1, 2], "large")]
+    assert calls["columns"] == [(3, "medium")]
     assert "Íróasztal" in joined
     assert "Munkaanyag" in joined
     assert "Jegyzet / vázlat" in joined
     assert "Eredeti szöveg" in joined
     assert "Kortörténet" in joined
     assert "Teológia" in joined
+    assert joined.index("Jegyzet / vázlat") < joined.index("Munkaanyag")
+    src = Path(writing_desk_ui.__file__).read_text(encoding="utf-8")
+    assert src.find('title="Bibliai szöveg és eredeti nyelv"') < src.find(
+        'title="Jegyzet / vázlat"'
+    )
+    assert src.find('title="Jegyzet / vázlat"') < src.find('title="Munkaanyag"')
+    assert "st.columns([1, 2]" not in src
+    assert "st.columns(3, gap=\"medium\")" in src
     assert "A jegyzet- és vázlatszerkesztő a következő fázisban kerül ide." not in joined
     assert "Szerkesztő helye" not in joined
     assert calls["text_area"] == []
     assert calls["draft_editor"]
     assert calls["draft_editor"][0]["key"] == WRITING_DESK_DRAFT_WIDGET_KEY
-    assert calls["draft_editor"][0]["height"] == 400
+    assert calls["draft_editor"][0]["height"] == 700
     assert calls["draft_editor"][0]["on_html_change"] is (
         writing_desk_ui._on_writing_desk_draft_change
     )
@@ -745,14 +753,19 @@ def test_replace_writing_desk_draft_content_triggers_revision_resync(monkeypatch
 def test_valid_extract_is_shown_and_does_not_call_llm(monkeypatch):
     import streamlit as st
 
-    from writing_desk_data import fingerprint_source_text, set_writing_desk_extract
+    from writing_desk_extracts import current_extract_fingerprint
+    from writing_desk_data import set_writing_desk_extract
 
-    session = {"history": "TELJES kortörténeti forrásanyag a projekthez."}
+    session = {
+        "history": "TELJES kortörténeti forrásanyag a projekthez.",
+        "last_igehely": "Jn 3,16",
+        "passage_text": "Mert úgy szerette Isten a világot.",
+    }
     set_writing_desk_extract(
         session,
         "history",
         content="Rövid, használható kortörténeti megállapítás.",
-        source_fingerprint=fingerprint_source_text(session["history"]),
+        source_fingerprint=current_extract_fingerprint(session, "history"),
     )
     llm_calls: list[str] = []
     monkeypatch.setattr(writing_desk_ui, "_render_scripture_block", lambda: None)
@@ -812,6 +825,41 @@ def test_stale_extract_is_refreshable_and_not_shown_as_valid(monkeypatch):
     assert "Régi teológiai kivonat, ne ezt mutasd érvényesként." not in joined
     assert "A forrásanyag megváltozott" in calls["caption"]
     assert ("Kivonat frissítése", "writing_desk_extract_refresh_theology") in calls["buttons"]
+    assert llm_calls == []
+
+
+def test_leftover_lk15_theology_is_not_shown_on_jn316(monkeypatch):
+    import streamlit as st
+
+    from writing_desk_data import set_writing_desk_extract
+    from writing_desk_extracts import current_extract_fingerprint
+
+    lk = {
+        "last_igehely": "Lk 15,11–24",
+        "passage_text": "Egy embernek volt két fia.",
+        "theology": (
+            "Az elébesiető Atya ünneppel fogadja a hazatérő fiút: "
+            "a halott él, az elveszett megtaláltatott."
+        ),
+    }
+    set_writing_desk_extract(
+        lk,
+        "theology",
+        content="Lk 15 teológiai kivonat, ne ezt mutasd Jn 3,16-ként.",
+        source_fingerprint=current_extract_fingerprint(lk, "theology"),
+    )
+    session = dict(lk)
+    session["last_igehely"] = "Jn 3,16"
+    session["passage_text"] = "Mert úgy szerette Isten a világot."
+    llm_calls: list[str] = []
+    monkeypatch.setattr(writing_desk_ui, "_render_scripture_block", lambda: None)
+    calls = _patch_streamlit_shell(monkeypatch, st, session)
+    writing_desk_ui.render_writing_desk_shell(
+        generate_fn=lambda *args, **kwargs: llm_calls.append("called") or "új"
+    )
+    joined = _joined_markdown(calls)
+    assert "Lk 15 teológiai kivonat" not in joined
+    assert "A forrásanyag megváltozott" in calls["caption"]
     assert llm_calls == []
 
 
@@ -991,6 +1039,8 @@ def test_draft_editor_ccv2_registers_frontend_payload(monkeypatch):
         assert 'contenteditable="true"' in captured["html"]
         assert 'data-cmd="bold"' in captured["html"]
         assert ".wd-draft-surface" in captured["css"]
+        assert "min-height: 650px" in captured["css"]
+        assert "min-height: 700px" in captured["css"]
         assert "setStateValue" in captured["js"]
         assert "revision" in captured["js"]
     finally:

@@ -68,11 +68,32 @@ Ne végezz új kutatást, ne egészítsd ki a forrást saját emlékezetből,
 Sima magyar szöveg legyen: ne JSON, ne cím, ne lista.\
 """
 
+EXTRACT_ROLE_INSTRUCTIONS: dict[str, str] = {
+    "original_text": (
+        "Csak nyelvi és szövegi megfigyelés: kulcsszavak, grammatika, "
+        "szemantika, szövegszerkezet. Ne írj teológiai tanítást és ne "
+        "adj kortörténeti hátteret."
+    ),
+    "history": (
+        "Csak valóban történeti vagy kulturális háttér: társadalom, "
+        "politika, vallási gyakorlat, korabeli szokások, intézmények, "
+        "földrajz, történeti kontextus. Ne tegyél ide jánosi teológiai "
+        "vagy dogmatikai állítást, és ne elemezz irodalmi fogalmakat "
+        "teológiaként."
+    ),
+    "theology": (
+        "Csak az aktuális textushoz tartozó teológiai forrásréteg "
+        "összegzése. A forrásban nem szereplő tanítást, más igehely "
+        "történetét vagy példázatát ne hozd be."
+    ),
+}
+
 _PROMPT_TEMPLATE = """\
 A megadott {label} forrásanyagból válassz ki 3–5, prédikációs előkészítéshez \
 leginkább használható megállapítást.
 Mindegyik legyen önálló, rövid, teljes mondat.
 Csak a forrásban szereplő információt használd.
+{role_instruction}
 Ne írj bevezetőt, lezárást vagy meta-kommentárt, és ne ismételd a feladatot.
 
 Forrásanyag ({label}):
@@ -120,6 +141,32 @@ def source_text_for_extract(session_state: Mapping[str, Any], extract_key: str) 
     return str(session_state.get(field) or "")
 
 
+def passage_identity_for_extracts(session_state: Mapping[str, Any]) -> str:
+    """Az aktuális textus identitása — kivonat nem lehet érvényes más igehelyen."""
+    reference = str(
+        session_state.get("last_igehely") or session_state.get("igehely_input") or ""
+    ).strip()
+    translation = str(session_state.get("bible_translation") or "").strip()
+    passage = str(
+        session_state.get("passage_text") or session_state.get("passage_text_input") or ""
+    ).strip()
+    return f"{reference}\n{translation}\n{passage}"
+
+
+def current_extract_fingerprint(
+    session_state: Mapping[str, Any], extract_key: str
+) -> str:
+    """Forrásréteg + aktuális igehely/passzus. Üres forrás → üres ujjlenyomat."""
+    source = source_text_for_extract(session_state, extract_key)
+    source_fp = fingerprint_source_text(source)
+    if not source_fp:
+        return ""
+    payload = (
+        f"{passage_identity_for_extracts(session_state)}\n{extract_key}\n{source}"
+    )
+    return fingerprint_source_text(payload)
+
+
 def inspect_writing_desk_extract(
     session_state: Mapping[str, Any],
     extract_key: str,
@@ -127,7 +174,7 @@ def inspect_writing_desk_extract(
     if extract_key not in WRITING_DESK_EXTRACT_KEYS:
         raise ValueError(f"Ismeretlen Íróasztal-kivonat: {extract_key}")
     source = source_text_for_extract(session_state, extract_key)
-    current_fp = fingerprint_source_text(source)
+    current_fp = current_extract_fingerprint(session_state, extract_key)
     desk = normalize_writing_desk(session_state.get(WRITING_DESK_KEY))
     saved = desk["extracts"][extract_key]
     saved_content = str(saved.get("content") or "")
@@ -167,7 +214,11 @@ def build_extract_prompt(extract_key: str, source_text: str) -> str:
         limit_name="exegesis",
         max_chars=MAX_SOURCE_CHARS,
     )
-    return _PROMPT_TEMPLATE.format(label=label, source_block=source_block)
+    return _PROMPT_TEMPLATE.format(
+        label=label,
+        role_instruction=EXTRACT_ROLE_INSTRUCTIONS[extract_key],
+        source_block=source_block,
+    )
 
 
 def _is_api_error_text(text: str) -> bool:
@@ -306,8 +357,11 @@ __all__ = [
     "EXTRACT_INCOMPLETE_MESSAGE",
     "EXTRACT_LABELS",
     "EXTRACT_MISSING_MESSAGES",
+    "EXTRACT_ROLE_INSTRUCTIONS",
     "EXTRACT_SOURCE_FIELDS",
     "EXTRACT_SYSTEM_BUNDLE",
+    "current_extract_fingerprint",
+    "passage_identity_for_extracts",
     "MAX_OUTPUT_TOKENS",
     "STATUS_MISSING_SOURCE",
     "STATUS_READY",

@@ -14,6 +14,7 @@ from writing_desk_extracts import (
     EXTRACT_INCOMPLETE_MESSAGE,
     EXTRACT_LABELS,
     EXTRACT_MISSING_MESSAGES,
+    EXTRACT_ROLE_INSTRUCTIONS,
     EXTRACT_SYSTEM_BUNDLE,
     MAX_OUTPUT_TOKENS,
     STATUS_MISSING_SOURCE,
@@ -23,6 +24,7 @@ from writing_desk_extracts import (
     TAB_LABEL_EXTRACT,
     _EXTRACT_INCOMPLETE_SENTINEL,
     build_extract_prompt,
+    current_extract_fingerprint,
     generate_writing_desk_extract,
     inspect_writing_desk_extract,
     source_text_for_extract,
@@ -88,7 +90,9 @@ def test_original_text_extract_can_be_generated():
     assert result.ok is True
     assert result.llm_called is True
     assert "οὕτως" in result.content
-    assert result.source_fingerprint == fingerprint_source_text(SOURCE_ORIGINAL)
+    assert result.source_fingerprint == current_extract_fingerprint(
+        session, "original_text"
+    )
     assert (
         session[WRITING_DESK_KEY]["extracts"]["original_text"]["content"]
         == result.content
@@ -153,7 +157,7 @@ def test_matching_fingerprint_reuses_saved_extract_without_llm():
         session,
         "history",
         content="Mentett kortörténeti kivonat.",
-        source_fingerprint=fingerprint_source_text(SOURCE_HISTORY),
+        source_fingerprint=current_extract_fingerprint(session, "history"),
     )
     calls: list[dict] = []
     result = generate_writing_desk_extract(
@@ -191,7 +195,9 @@ def test_successful_generation_stores_content_and_fingerprint():
     )
     stored = session[WRITING_DESK_KEY]["extracts"]["original_text"]
     assert stored["content"] == result.content
-    assert stored["source_fingerprint"] == fingerprint_source_text(SOURCE_ORIGINAL)
+    assert stored["source_fingerprint"] == current_extract_fingerprint(
+        session, "original_text"
+    )
     assert stored["source_fingerprint"] == result.source_fingerprint
     assert inspect_writing_desk_extract(session, "original_text").status == STATUS_VALID
 
@@ -260,6 +266,13 @@ def test_prompt_contains_only_the_requested_source_module():
     assert "UNTRUSTED_DATA" in prompt
     assert EXTRACT_LABELS["theology"] in prompt
     assert "3–5" in prompt or "3-5" in prompt
+    assert "teológiai forrásréteg" in prompt
+    history_prompt = build_extract_prompt("history", SOURCE_HISTORY)
+    assert "történeti vagy kulturális" in history_prompt
+    assert "dogmatikai" in history_prompt
+    original_prompt = build_extract_prompt("original_text", SOURCE_ORIGINAL)
+    assert "nyelvi és szövegi" in original_prompt
+    assert EXTRACT_ROLE_INSTRUCTIONS["history"]
     assert inspect_writing_desk_extract(
         {"theology": SOURCE_THEOLOGY}, "theology"
     ).status == STATUS_READY
@@ -365,3 +378,60 @@ def test_previously_saved_truncated_extract_is_not_treated_as_valid():
     assert session[WRITING_DESK_KEY]["extracts"]["theology"]["content"] == (
         "Teljes, rövid teológiai megállapítás."
     )
+
+
+def test_lk15_theology_extract_is_stale_on_jn316_passage():
+    lk_theology = (
+        "Az elébesiető Atya ünneppel fogadja a hazatérő fiút: "
+        "a halott él, az elveszett megtaláltatott."
+    )
+    lk_session = {
+        "last_igehely": "Lk 15,11–24",
+        "bible_translation": "RÚF 2014",
+        "passage_text": "Egy embernek volt két fia.",
+        "theology": lk_theology,
+        "original_text": "Az ἀσώτως mértéktelen életmódot jelöl.",
+        "history": "Az örökség előre kérése megszégyenítés volt.",
+    }
+    for key, source in (
+        ("theology", lk_theology),
+        ("original_text", lk_session["original_text"]),
+        ("history", lk_session["history"]),
+    ):
+        set_writing_desk_extract(
+            lk_session,
+            key,
+            content=f"Lk 15 {key} kivonat.",
+            source_fingerprint=current_extract_fingerprint(lk_session, key),
+        )
+        assert inspect_writing_desk_extract(lk_session, key).status == STATUS_VALID
+
+    jn_session = dict(lk_session)
+    jn_session["last_igehely"] = "Jn 3,16"
+    jn_session["passage_text"] = "Mert úgy szerette Isten a világot."
+    for key in WRITING_DESK_EXTRACT_KEYS:
+        view = inspect_writing_desk_extract(jn_session, key)
+        assert view.status == STATUS_STALE
+        assert view.content == ""
+        assert "Lk 15" in view.saved_content
+
+
+def test_source_only_fingerprint_is_not_valid_across_textus():
+    session = {
+        "last_igehely": "Jn 3,16",
+        "passage_text": "Mert úgy szerette Isten a világot.",
+        "theology": (
+            "Az elébesiető Atya ünneppel fogadja a hazatérő fiút: "
+            "a halott él, az elveszett megtaláltatott."
+        ),
+    }
+    leftover = session["theology"]
+    set_writing_desk_extract(
+        session,
+        "theology",
+        content="Lk 15 teológiai kivonat, ne ezt mutasd Jn 3,16-ként.",
+        source_fingerprint=fingerprint_source_text(leftover),
+    )
+    view = inspect_writing_desk_extract(session, "theology")
+    assert view.status == STATUS_STALE
+    assert view.content == ""

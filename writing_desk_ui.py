@@ -47,7 +47,7 @@ WRITING_DESK_DRAFT_WIDGET_KEY = "writing_desk_draft_input"
 WRITING_DESK_DRAFT_RESYNC_FLAG = "_wd_draft_resync"
 WRITING_DESK_DRAFT_RESYNC_BUMPED_KEY = "_wd_draft_resync_bumped"
 WRITING_DESK_DRAFT_REVISION_KEY = "_wd_draft_revision"
-_DRAFT_TEXT_AREA_HEIGHT_PX = 400
+_DRAFT_TEXT_AREA_HEIGHT_PX = 700
 WORK_MATERIAL_SECTIONS: tuple[str, ...] = tuple(
     EXTRACT_LABELS[key] for key in WRITING_DESK_EXTRACT_KEYS
 )
@@ -180,9 +180,8 @@ def _on_writing_desk_draft_change() -> None:
 def replace_writing_desk_draft_content(content: str) -> None:
     """Durable draft csere + editor resync (későbbi 4C vázlatátadás).
 
-    A 4C gombot nem implementálja. A következő Íróasztal-render
-    (`apply_writing_desk_draft_resync_if_needed`) tölti az editort, és a
-    `revision` nő, hogy a frontend szándékosan cserélje a DOM-ot.
+    A következő Íróasztal-render (`apply_writing_desk_draft_resync_if_needed`)
+    tölti az editort, és a `revision` nő, hogy a frontend cserélje a DOM-ot.
     """
     set_writing_desk_draft(st.session_state, content)
     begin_writing_desk_draft_resync()
@@ -290,6 +289,48 @@ def _render_extract_card(
                 _run_extract_generation(extract_key, generate_fn)
 
 
+def _ensure_writing_desk_extract_row_styles() -> None:
+    """Csak a Munkaanyag három kártyájának törése — nem globális spacing."""
+    st.markdown(
+        """
+        <style>
+        .writing-desk-extract-row-marker {
+            display: none !important;
+            height: 0 !important;
+            overflow: hidden !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        .element-container:has(.writing-desk-extract-row-marker) {
+            display: none !important;
+            height: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        .element-container:has(.writing-desk-extract-row-marker)
+            + .element-container [data-testid="stHorizontalBlock"] {
+            flex-wrap: wrap;
+        }
+        @media (max-width: 900px) {
+            .element-container:has(.writing-desk-extract-row-marker)
+                + .element-container [data-testid="stColumn"] {
+                min-width: calc(50% - 0.5rem) !important;
+                flex: 1 1 calc(50% - 0.5rem) !important;
+            }
+        }
+        @media (max-width: 640px) {
+            .element-container:has(.writing-desk-extract-row-marker)
+                + .element-container [data-testid="stColumn"] {
+                min-width: 100% !important;
+                flex: 1 1 100% !important;
+            }
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 def render_writing_desk_shell(*, generate_fn: GenerateFn | None = None) -> None:
     """Rendereli az Íróasztal munkafelületét."""
     ensure_writing_desk_state(st.session_state)
@@ -307,26 +348,31 @@ def render_writing_desk_shell(*, generate_fn: GenerateFn | None = None) -> None:
     with work_surface("writing_desk_scripture"):
         _render_scripture_block()
 
-    left_col, right_col = st.columns([1, 2], gap="large")
+    render_work_section(
+        title="Jegyzet / vázlat",
+        body="A készülő jegyzet lesz az Íróasztal középpontja.",
+        context=WRITING_DESK_LABEL,
+    )
+    with work_surface("writing_desk_notes"):
+        _render_notes_editor()
 
-    with left_col:
-        render_work_section(
-            title="Munkaanyag",
-            body="Rövid kivonatok a meglévő projektanyagból.",
-            context=WRITING_DESK_LABEL,
+    render_work_section(
+        title="Munkaanyag",
+        body="Rövid kivonatok a meglévő projektanyagból.",
+        context=WRITING_DESK_LABEL,
+    )
+    with work_surface("writing_desk_work_material"):
+        _ensure_writing_desk_extract_row_styles()
+        st.markdown(
+            '<div class="writing-desk-extract-row-marker"></div>',
+            unsafe_allow_html=True,
         )
-        with work_surface("writing_desk_work_material"):
-            for extract_key in WRITING_DESK_EXTRACT_KEYS:
+        extract_cols = st.columns(3, gap="medium")
+        for column, extract_key in zip(
+            extract_cols, WRITING_DESK_EXTRACT_KEYS, strict=True
+        ):
+            with column:
                 _render_extract_card(extract_key, generate_fn=generate_fn)
-
-    with right_col:
-        render_work_section(
-            title="Jegyzet / vázlat",
-            body="A készülő jegyzet lesz az Íróasztal középpontja.",
-            context=WRITING_DESK_LABEL,
-        )
-        with work_surface("writing_desk_notes"):
-            _render_notes_editor()
 
 
 __all__ = [

@@ -119,6 +119,29 @@ def _normalize_display_mode(display_mode: str | None) -> AnalysisDisplayMode:
     return "compact" if display_mode == "compact" else "full"
 
 
+def _render_greek_block_heading(
+    *,
+    reference_label: str | None,
+    display_mode: AnalysisDisplayMode,
+) -> None:
+    st.markdown(
+        '<h3 class="textus-greek-analysis-title">Görög eredeti szöveg</h3>',
+        unsafe_allow_html=True,
+    )
+    helper = "Válasszon egy görög szót"
+    label = (
+        f"{helper} · {reference_label.strip()}"
+        if display_mode == "compact" and (reference_label or "").strip()
+        else helper
+    )
+    st.markdown(
+        f'<div class="textus-greek-analysis-label">{html.escape(label)}</div>',
+        unsafe_allow_html=True,
+    )
+    if display_mode != "compact" and (reference_label or "").strip():
+        st.caption(reference_label.strip())
+
+
 def render_greek_analysis_block(
     reference: str,
     key_prefix: str,
@@ -419,16 +442,10 @@ def _render_loaded_greek_passage_analysis(
             st.session_state.get(selected_token_key)
         )
 
-    st.markdown(
-        '<h3 class="textus-greek-analysis-title">Görög eredeti szöveg</h3>',
-        unsafe_allow_html=True,
+    _render_greek_block_heading(
+        reference_label=reference_label,
+        display_mode=display_mode,
     )
-    st.markdown(
-        '<div class="textus-greek-analysis-label">Válasszon egy görög szót</div>',
-        unsafe_allow_html=True,
-    )
-    if reference_label:
-        st.caption(reference_label)
 
     component_key = _key(key_prefix, "inline_token_selector")
     component_selection = greek_token_selector_value(
@@ -496,16 +513,10 @@ def _render_loaded_greek_analysis(
             st.session_state.get(fallback_key),
         )
 
-    st.markdown(
-        '<h3 class="textus-greek-analysis-title">Görög eredeti szöveg</h3>',
-        unsafe_allow_html=True,
+    _render_greek_block_heading(
+        reference_label=reference_label,
+        display_mode=display_mode,
     )
-    st.markdown(
-        '<div class="textus-greek-analysis-label">Válasszon egy görög szót</div>',
-        unsafe_allow_html=True,
-    )
-    if reference_label:
-        st.caption(reference_label)
     component_selection = greek_token_selector(
         tokens=tokens,
         selected_word_index=current_index,
@@ -833,9 +844,9 @@ def _ensure_greek_analysis_styles() -> None:
         """
         <style>
         .textus-greek-analysis-title {
-            margin: 0.06rem 0 0;
+            margin: 0;
             font-size: 0.98rem;
-            line-height: 1.1;
+            line-height: 1.15;
             font-weight: 700;
         }
         .element-container:has(.textus-greek-analysis-title) {
@@ -848,7 +859,7 @@ def _ensure_greek_analysis_styles() -> None:
             margin: 0;
             font-size: 0.86rem;
             font-weight: 600;
-            line-height: 1.08;
+            line-height: 1.25;
         }
         .element-container:has(.textus-greek-analysis-label) {
             margin-top: 0 !important;
@@ -858,8 +869,8 @@ def _ensure_greek_analysis_styles() -> None:
         }
         .greek-token-selector {
             font-size: 1.12rem;
-            line-height: 1.3;
-            margin: 0 0 0.02rem;
+            line-height: 1.45;
+            margin: 0 0 0.12rem;
         }
         .textus-greek-verse-marker {
             float: left;
@@ -896,11 +907,37 @@ def _ensure_greek_analysis_styles() -> None:
         }
         .textus-greek-fallback-marker,
         .textus-greek-compact-fallback-marker,
-        .textus-greek-analysis-card-marker {
+        .textus-greek-analysis-card-marker,
+        .textus-greek-compact-card-marker {
+            display: none !important;
+            height: 0 !important;
+            overflow: hidden !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: 0 !important;
+            background: transparent !important;
+            list-style: none !important;
+        }
+        .element-container:has(.textus-greek-compact-card-marker) {
             display: none !important;
             height: 0 !important;
             margin: 0 !important;
             padding: 0 !important;
+            overflow: hidden !important;
+        }
+        .element-container:has(.textus-greek-compact-card-marker) + .element-container {
+            margin-top: 0.12rem !important;
+            margin-bottom: 0 !important;
+        }
+        .element-container:has(.textus-greek-compact-card-marker) + .element-container [data-testid="stVerticalBlockBorderWrapper"] {
+            padding: 0.32rem 0.5rem 0.36rem !important;
+        }
+        .element-container:has(.textus-greek-compact-card-marker) + .element-container [data-testid="stVerticalBlock"] {
+            gap: 0.28rem !important;
+        }
+        .element-container:has(.textus-greek-compact-card-marker) + .element-container [data-testid="stMarkdownContainer"] p {
+            margin-bottom: 0.12rem !important;
+            line-height: 1.45 !important;
         }
         .element-container:has(.textus-greek-compact-fallback-marker),
         .element-container:has(.textus-greek-compact-fallback-marker) + .element-container {

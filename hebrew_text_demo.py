@@ -650,15 +650,20 @@ def render_hebrew_original_language_panel(
     current_key = _selected_token_key(tokens, st.session_state.get(selected_state_key))
     st.session_state[selected_state_key] = current_key
 
+    resolved_reference = reference_label or _reference_label(book, chapter, verse_start, end)
     st.markdown(
         '<h3 class="textus-hebrew-analysis-title">H\u00e9ber-ar\u00e1mi eredeti sz\u00f6veg</h3>',
         unsafe_allow_html=True,
     )
+    helper = "V\u00e1lasszon egy h\u00e9ber vagy ar\u00e1mi sz\u00f3t"
+    if display_mode == "compact" and resolved_reference:
+        helper = f"{helper} \u00b7 {resolved_reference}"
     st.markdown(
-        '<div class="textus-hebrew-analysis-label">V\u00e1lasszon egy h\u00e9ber vagy ar\u00e1mi sz\u00f3t</div>',
+        f'<div class="textus-hebrew-analysis-label">{html.escape(helper)}</div>',
         unsafe_allow_html=True,
     )
-    st.caption(reference_label or _reference_label(book, chapter, verse_start, end))
+    if display_mode != "compact":
+        st.caption(resolved_reference)
     selected = hebrew_token_selector(
         tokens,
         current_key,
@@ -751,27 +756,54 @@ def _ensure_hebrew_analysis_styles() -> None:
         """
         <style>
         .textus-hebrew-analysis-title {
-            margin: 0.06rem 0 0;
+            margin: 0;
             font-size: 0.98rem;
-            line-height: 1.1;
+            line-height: 1.15;
             font-weight: 700;
         }
         .textus-hebrew-analysis-label {
             margin: 0;
             font-size: 0.86rem;
             font-weight: 600;
-            line-height: 1.08;
+            line-height: 1.25;
         }
         .hebrew-token-selector {
-            margin: 0 0 0.02rem;
+            margin: 0 0 0.12rem;
+            line-height: 1.45;
         }
         .textus-hebrew-fallback-marker,
         .textus-hebrew-compact-fallback-marker,
-        .textus-hebrew-analysis-card-marker {
+        .textus-hebrew-analysis-card-marker,
+        .textus-hebrew-compact-card-marker {
+            display: none !important;
+            height: 0 !important;
+            overflow: hidden !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: 0 !important;
+            background: transparent !important;
+            list-style: none !important;
+        }
+        .element-container:has(.textus-hebrew-compact-card-marker) {
             display: none !important;
             height: 0 !important;
             margin: 0 !important;
             padding: 0 !important;
+            overflow: hidden !important;
+        }
+        .element-container:has(.textus-hebrew-compact-card-marker) + .element-container {
+            margin-top: 0.12rem !important;
+            margin-bottom: 0 !important;
+        }
+        .element-container:has(.textus-hebrew-compact-card-marker) + .element-container [data-testid="stVerticalBlockBorderWrapper"] {
+            padding: 0.32rem 0.5rem 0.36rem !important;
+        }
+        .element-container:has(.textus-hebrew-compact-card-marker) + .element-container [data-testid="stVerticalBlock"] {
+            gap: 0.28rem !important;
+        }
+        .element-container:has(.textus-hebrew-compact-card-marker) + .element-container [data-testid="stMarkdownContainer"] p {
+            margin-bottom: 0.12rem !important;
+            line-height: 1.45 !important;
         }
         .element-container:has(.textus-hebrew-compact-fallback-marker),
         .element-container:has(.textus-hebrew-compact-fallback-marker) + .element-container {

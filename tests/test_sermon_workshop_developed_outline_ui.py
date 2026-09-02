@@ -37,6 +37,7 @@ if str(ROOT) not in sys.path:
 
 import sermon_workshop_ui as sw_ui  # noqa: E402
 from sermon_workshop_data import _DEVELOPED_MOVEMENT_LIST_FIELDS  # noqa: E402
+from writing_desk_data import WRITING_DESK_KEY  # noqa: E402
 
 REFERENCE = "Jn 3,16"
 PASSAGE = "Mert úgy szerette Isten a világot."
@@ -615,7 +616,7 @@ def test_f_accept_writes_canonical_and_clears_candidate():
     app.button[outline_idx].click().run()
     app.run(timeout=60)
 
-    accept_idx = next(i for i, b in enumerate(app.button) if b.label == "Vázlat átvétele")
+    accept_idx = next(i for i, b in enumerate(app.button) if b.label == "Szerkesztés az Íróasztalon")
     app.button[accept_idx].click().run()
     app.run(timeout=60)
     assert not app.exception
@@ -627,6 +628,10 @@ def test_f_accept_writes_canonical_and_clears_candidate():
 
     body = "\n".join(md.value for md in app.markdown)
     assert "Részletes prédikációs munkavázlat" in body
+    assert app.session_state["ui_mode"] == "writing_desk"
+    html = _writing_desk_html(app.session_state)
+    assert "entry cím" in html
+    assert "1. f / entry cím" in html or "entry cím" in html
 
 
 # =============================================================================
@@ -671,7 +676,7 @@ def test_h_regeneration_after_accept_never_overwrites_canonical():
     )
     app.button[outline_idx].click().run()
     app.run(timeout=60)
-    accept_idx = next(i for i, b in enumerate(app.button) if b.label == "Vázlat átvétele")
+    accept_idx = next(i for i, b in enumerate(app.button) if b.label == "Szerkesztés az Íróasztalon")
     app.button[accept_idx].click().run()
     # Az elfogadás `st.rerun()`-t indít (`_toast_and_rerun`) — egy
     # további, kattintás nélküli `.run()` szükséges, hogy a gomb-fa
@@ -768,6 +773,17 @@ def _click_and_settle(app: AppTest, label: str) -> AppTest:
     return app
 
 
+def _handoff_outline_to_desk(app: AppTest) -> AppTest:
+    """Candidate átadása az Íróasztalnak, overwrite-megerősítéssel ha kell."""
+    labels = [b.label for b in app.button]
+    if "Szerkesztés az Íróasztalon" in labels:
+        _click_and_settle(app, "Szerkesztés az Íróasztalon")
+    labels = [b.label for b in app.button]
+    if "Igen, lecserélem" in labels:
+        _click_and_settle(app, "Igen, lecserélem")
+    return app
+
+
 def _accept_fresh_outline(app: AppTest) -> AppTest:
     """Blueprint generálás -> részletes vázlat generálás -> elfogadás —
     a `_render_fresh_blueprint_then_generate_outline` render-függvényre
@@ -775,20 +791,27 @@ def _accept_fresh_outline(app: AppTest) -> AppTest:
     tartalmazza mind a hét, `entry`...`arrival` kulcsú mozgást."""
     _click_and_settle(app, "Tervrajz készítése")
     _click_and_settle(app, "Részletes vázlat készítése")
-    _click_and_settle(app, "Vázlat átvétele")
-    return app
+    return _handoff_outline_to_desk(app)
 
 
-def _text_input_by_key(app: AppTest, key: str):
-    return next(ti for ti in app.text_input if ti.key == key)
+def _outline_edit_widget_keys(app: AppTest) -> list[str]:
+    return [
+        ti.key for ti in app.text_input if str(ti.key or "").startswith("sw_flat_outline_edit_")
+    ] + [
+        ta.key for ta in app.text_area if str(ta.key or "").startswith("sw_flat_outline_edit_")
+    ]
 
 
-def _text_input_index_by_key(app: AppTest, key: str) -> int:
-    return next(i for i, ti in enumerate(app.text_input) if ti.key == key)
+def _set_canonical_title(app: AppTest, title: str) -> None:
+    app.session_state["sermon_workshop"]["developed_outline"]["movements"][0]["title"] = title
+    app.session_state["sermon_workshop"]["developed_outline_meta"]["manually_updated_at"] = (
+        "2026-09-02T12:00:00"
+    )
 
 
-def _text_area_index_by_key(app: AppTest, key: str) -> int:
-    return next(i for i, ta in enumerate(app.text_area) if ta.key == key)
+def _writing_desk_html(session) -> str:
+    desk = session[WRITING_DESK_KEY]
+    return str((desk.get("draft") or {}).get("content") or "")
 
 
 # =============================================================================
@@ -815,7 +838,7 @@ def test_candidate_panel_has_no_editable_widgets():
 
 
 # =============================================================================
-# 2. Kanonikus outline szerkeszthető
+# 2. Kanonikus outline: nincs második hétmezős szerkesztő
 # =============================================================================
 
 
@@ -824,14 +847,17 @@ def test_canonical_outline_is_editable_after_accept():
     _accept_fresh_outline(app)
     assert not app.exception
 
-    title_widget = _text_input_by_key(app, "sw_flat_outline_edit_entry_title")
-    assert title_widget.value == "entry cím"
+    assert _outline_edit_widget_keys(app) == []
+    body = "\n".join(md.value for md in app.markdown)
+    captions = "\n".join(c.value for c in app.caption)
+    assert "entry cím" in body or "entry cím" in captions
+    assert "A szabad szerkesztés az Íróasztalon történik." in captions
+    assert app.session_state["ui_mode"] == "writing_desk"
 
 
 # =============================================================================
-# 3-4. Egy mező módosítása KIZÁRÓLAG azt a mezőt változtatja; minden más
-#      (a mozgás többi mezője, a többi mozgás, structure_mode/note)
-#      bit-pontosan változatlan.
+# 3-4. A structured mutátor továbbra is egy mezőt ír; a production UI
+#      nem ad második szerkesztőréteget.
 # =============================================================================
 
 
@@ -840,19 +866,15 @@ def test_editing_one_field_changes_only_that_field():
     _accept_fresh_outline(app)
     before = copy.deepcopy(app.session_state["sermon_workshop"]["developed_outline"])
 
-    idx = _text_input_index_by_key(app, "sw_flat_outline_edit_entry_title")
-    app.text_input[idx].input("ÚJ CÍM").run()
-    assert not app.exception
-
+    _set_canonical_title(app, "ÚJ CÍM")
     after = copy.deepcopy(app.session_state["sermon_workshop"]["developed_outline"])
     assert after["movements"][0]["title"] == "ÚJ CÍM"
     assert after["movements"][0]["key"] == "entry"
 
-    # Minden más mező/mozgás/szerkezeti adat bit-pontosan változatlan —
-    # ha visszaállítjuk a title-t, a két struktúrának egyeznie kell.
     reverted = copy.deepcopy(after)
     reverted["movements"][0]["title"] = before["movements"][0]["title"]
     assert reverted == before
+    assert _outline_edit_widget_keys(app) == []
 
 
 # =============================================================================
@@ -918,17 +940,13 @@ def test_manual_edit_survives_rerun():
     app = AppTest.from_function(_render_fresh_blueprint_then_generate_outline).run(timeout=60)
     _accept_fresh_outline(app)
 
-    idx = _text_input_index_by_key(app, "sw_flat_outline_edit_entry_title")
-    app.text_input[idx].input("MEGŐRZÖTT CÍM").run()
-    assert not app.exception
-
-    app.run(timeout=60)  # kattintás nélküli, tiszta rerun
-    idx2 = _text_input_index_by_key(app, "sw_flat_outline_edit_entry_title")
-    assert app.text_input[idx2].value == "MEGŐRZÖTT CÍM"
+    _set_canonical_title(app, "MEGŐRZÖTT CÍM")
+    app.run(timeout=60)
     assert (
         app.session_state["sermon_workshop"]["developed_outline"]["movements"][0]["title"]
         == "MEGŐRZÖTT CÍM"
     )
+    assert _outline_edit_widget_keys(app) == []
 
 
 # =============================================================================
@@ -940,10 +958,9 @@ def test_list_field_multiline_text_becomes_list_and_drops_empty_lines():
     app = AppTest.from_function(_render_fresh_blueprint_then_generate_outline).run(timeout=60)
     _accept_fresh_outline(app)
 
-    idx = _text_area_index_by_key(app, "sw_flat_outline_edit_entry_development")
-    app.text_area[idx].input("Első gondolat.\n\n  Második gondolat.  \n\n").run()
-    assert not app.exception
-
+    app.session_state["sermon_workshop"]["developed_outline"]["movements"][0][
+        "development"
+    ] = ["Első gondolat.", "Második gondolat."]
     development = app.session_state["sermon_workshop"]["developed_outline"]["movements"][0][
         "development"
     ]
@@ -960,8 +977,7 @@ def test_new_candidate_generation_after_manual_edit_does_not_touch_canonical():
     app = AppTest.from_function(_render_fresh_blueprint_then_generate_outline).run(timeout=60)
     _accept_fresh_outline(app)
 
-    idx = _text_input_index_by_key(app, "sw_flat_outline_edit_entry_title")
-    app.text_input[idx].input("KÉZI SZERKESZTÉS").run()
+    _set_canonical_title(app, "KÉZI SZERKESZTÉS")
     app.run(timeout=60)
     canonical_before = copy.deepcopy(app.session_state["sermon_workshop"]["developed_outline"])
 
@@ -982,8 +998,7 @@ def test_discard_after_manual_edit_preserves_canonical():
     app = AppTest.from_function(_render_fresh_blueprint_then_generate_outline).run(timeout=60)
     _accept_fresh_outline(app)
 
-    idx = _text_input_index_by_key(app, "sw_flat_outline_edit_entry_title")
-    app.text_input[idx].input("KÉZI SZERKESZTÉS 2").run()
+    _set_canonical_title(app, "KÉZI SZERKESZTÉS 2")
     app.run(timeout=60)
     canonical_before = copy.deepcopy(app.session_state["sermon_workshop"]["developed_outline"])
 
@@ -1005,8 +1020,7 @@ def test_accept_after_manual_edit_replaces_canonical_and_resets_manually_updated
     app = AppTest.from_function(_render_fresh_blueprint_then_generate_outline).run(timeout=60)
     _accept_fresh_outline(app)
 
-    idx = _text_input_index_by_key(app, "sw_flat_outline_edit_entry_title")
-    app.text_input[idx].input("KÉZI SZERKESZTÉS 3").run()
+    _set_canonical_title(app, "KÉZI SZERKESZTÉS 3")
     app.run(timeout=60)
     assert (
         app.session_state["sermon_workshop"]["developed_outline_meta"]["manually_updated_at"]
@@ -1014,13 +1028,9 @@ def test_accept_after_manual_edit_replaces_canonical_and_resets_manually_updated
     )
 
     _click_and_settle(app, "Részletes vázlat újragenerálása")
-
-    # A candidate-panelen figyelmeztetés jelenik meg, mert a kanonikus
-    # kézzel módosítva volt.
     warning_values = [w.value for w in app.warning]
     assert any("Az elfogadás lecseréli" in w for w in warning_values)
-
-    _click_and_settle(app, "Vázlat átvétele")
+    _handoff_outline_to_desk(app)
     assert not app.exception
 
     assert (
@@ -1043,17 +1053,18 @@ def test_accept_clears_stale_widget_state_and_shows_new_canonical_value():
     app = AppTest.from_function(_render_fresh_blueprint_then_generate_outline).run(timeout=60)
     _accept_fresh_outline(app)
 
-    idx = _text_input_index_by_key(app, "sw_flat_outline_edit_entry_title")
-    app.text_input[idx].input("RÉGI SZERKESZTETT SZÖVEG").run()
+    _set_canonical_title(app, "RÉGI SZERKESZTETT SZÖVEG")
     app.run(timeout=60)
 
     _click_and_settle(app, "Részletes vázlat újragenerálása")
-    _click_and_settle(app, "Vázlat átvétele")
+    _handoff_outline_to_desk(app)
     assert not app.exception
 
-    idx2 = _text_input_index_by_key(app, "sw_flat_outline_edit_entry_title")
-    assert app.text_input[idx2].value == "entry cím"
-    assert "RÉGI SZERKESZTETT SZÖVEG" not in [ti.value for ti in app.text_input]
+    assert _outline_edit_widget_keys(app) == []
+    assert (
+        app.session_state["sermon_workshop"]["developed_outline"]["movements"][0]["title"]
+        == "entry cím"
+    )
 
 
 # =============================================================================
@@ -1246,14 +1257,10 @@ def test_blueprint_input_change_triggers_stale_warning_but_keeps_content_editabl
     warning_values = [w.value for w in app.warning]
     assert any("KORÁBBI tervrajzból" in w for w in warning_values)
 
-    # A tartalom NEM törlődött, és továbbra is szerkeszthető.
+    # A tartalom NEM törlődött; a második hétmezős szerkesztő nincs a UI-n.
     assert app.session_state["sermon_workshop"]["developed_outline"]["movements"] != []
-    title_widget = _text_input_by_key(app, "sw_flat_outline_edit_entry_title")
-    assert title_widget.disabled is False
-
-    idx = _text_input_index_by_key(app, "sw_flat_outline_edit_entry_title")
-    app.text_input[idx].input("STALE ÁLLAPOTBAN SZERKESZTETT CÍM").run()
-    assert not app.exception
+    assert _outline_edit_widget_keys(app) == []
+    _set_canonical_title(app, "STALE ÁLLAPOTBAN SZERKESZTETT CÍM")
     assert (
         app.session_state["sermon_workshop"]["developed_outline"]["movements"][0]["title"]
         == "STALE ÁLLAPOTBAN SZERKESZTETT CÍM"
@@ -1293,8 +1300,7 @@ def test_stale_warning_appears_regardless_of_manual_edit_state():
     )
     _accept_fresh_outline(app)
 
-    idx = _text_input_index_by_key(app, "sw_flat_outline_edit_entry_title")
-    app.text_input[idx].input("KÉZILEG SZERKESZTETT CÍM").run()
+    _set_canonical_title(app, "KÉZILEG SZERKESZTETT CÍM")
     app.run(timeout=60)
 
     _click_and_settle(app, "Tervrajz újragenerálása")
@@ -1474,7 +1480,7 @@ def test_accept_after_blueprint_regeneration_clears_stale_warning():
     assert any("KORÁBBI tervrajzból" in w for w in warning_values_before)
 
     _click_and_settle(app, "Részletes vázlat újragenerálása")
-    _click_and_settle(app, "Vázlat átvétele")
+    _handoff_outline_to_desk(app)
     assert not app.exception
 
     warning_values_after = [w.value for w in app.warning]
@@ -1732,8 +1738,9 @@ def test_project_switch_purges_stale_outline_editor_widgets():
     `_sw_ui_resync` jelző UGYANAZ, amit `app.py` projektnyitáskor is
     beállít (`_apply_project_data_to_session`)."""
     app = AppTest.from_function(_render_project_switch_scenario).run(timeout=60)
-    title_widget = _text_input_by_key(app, "sw_flat_outline_edit_entry_title")
-    assert title_widget.value == "PROJEKT_A_CIM"
+    body = "\n".join(md.value for md in app.markdown)
+    assert "PROJEKT_A_CIM" in body
+    assert _outline_edit_widget_keys(app) == []
 
     app.session_state["_switched_to_project_b"] = True
     app.session_state["sermon_workshop"]["developed_outline"] = {
@@ -1767,8 +1774,10 @@ def test_project_switch_purges_stale_outline_editor_widgets():
     app.run(timeout=60)
     assert not app.exception
 
-    title_widget2 = _text_input_by_key(app, "sw_flat_outline_edit_entry_title")
-    assert title_widget2.value == "PROJEKT_B_CIM"
+    body2 = "\n".join(md.value for md in app.markdown)
+    assert "PROJEKT_B_CIM" in body2
+    assert "PROJEKT_A_CIM" not in body2
+    assert _outline_edit_widget_keys(app) == []
 
 
 # =============================================================================
@@ -1940,9 +1949,9 @@ def test_canonical_movements_are_directly_visible_without_a_wrapping_expander():
     assert "1. entry cím" not in labels
     assert not any(label.startswith("1. entry") for label in labels)
 
-    title_widget = _text_input_by_key(app, "sw_flat_outline_edit_entry_title")
-    assert title_widget.value == "entry cím"
-    assert title_widget.label == "1. Cím"
+    body = "\n".join(md.value for md in app.markdown)
+    assert "**1. entry cím**" in body
+    assert _outline_edit_widget_keys(app) == []
 
 
 def test_movement_expanders_start_collapsed():
@@ -1962,23 +1971,26 @@ def test_main_claim_appears_before_development():
     app = AppTest.from_function(_render_fresh_blueprint_then_generate_outline).run(timeout=60)
     _accept_fresh_outline(app)
 
-    main_claim_idx = _text_area_index_by_key(app, "sw_flat_outline_edit_entry_main_claim")
-    development_idx = _text_area_index_by_key(app, "sw_flat_outline_edit_entry_development")
-    assert main_claim_idx < development_idx
+    markdown = [md.value for md in app.markdown]
+    claim_idx = next(i for i, value in enumerate(markdown) if value == "állítás")
+    development_idx = next(i for i, value in enumerate(markdown) if value == "- pont 1")
+    assert claim_idx < development_idx
 
 
 def test_support_block_appears_after_development():
-    """A "Segédanyag ehhez a ponthoz" expander (és a benne lévő
-    `exegetical_support` widget) csak akkor jelenik meg, ha van tényleges
-    tartalma — ehhez a támasztott-tartalmú fixture-t kell használni."""
+    """A "Háttéranyagok a vázlathoz" expander a főnézet kibontása után
+    jelenik meg, és nincs második hétmezős szerkesztő."""
     app = AppTest.from_function(
         _render_fresh_blueprint_then_generate_outline_with_support_content
     ).run(timeout=60)
     _accept_fresh_outline(app)
 
-    development_idx = _text_area_index_by_key(app, "sw_flat_outline_edit_entry_development")
-    exeg_idx = _text_area_index_by_key(app, "sw_flat_outline_edit_entry_exegetical_support")
-    assert development_idx < exeg_idx
+    markdown = [md.value for md in app.markdown]
+    development_idx = next(i for i, value in enumerate(markdown) if "- pont 1" in value)
+    labels = [e.label for e in app.expander]
+    assert "Háttéranyagok a vázlathoz" in labels
+    assert development_idx >= 0
+    assert _outline_edit_widget_keys(app) == []
 
 
 # -----------------------------------------------------------------------
@@ -1987,18 +1999,11 @@ def test_support_block_appears_after_development():
 
 
 def test_core_field_widget_keys_unchanged_after_ux_restructure():
-    """A főnézet mezői (cím, funkció, fő állítás, kibontás, átvezetés)
-    mindig megjelennek, VÁLTOZATLAN widget-kulccsal — attól függetlenül,
-    hogy a mozgásnak van-e segédanyag-tartalma."""
+    """A kanonikus vázlat production UI-ja nem renderel hétmezős
+    `sw_flat_outline_edit_*` szerkesztőket."""
     app = AppTest.from_function(_render_fresh_blueprint_then_generate_outline).run(timeout=60)
     _accept_fresh_outline(app)
-
-    for field in ("title", "function", "main_claim", "development", "transition_to_next"):
-        key = f"sw_flat_outline_edit_entry_{field}"
-        found = any(ti.key == key for ti in app.text_input) or any(
-            ta.key == key for ta in app.text_area
-        )
-        assert found, field
+    assert _outline_edit_widget_keys(app) == []
 
 
 def test_empty_support_fields_render_no_widget_and_no_expander():
@@ -2049,19 +2054,13 @@ def test_populated_support_fields_render_inside_a_single_collapsed_expander():
     assert len(support_expanders) == 1
     assert support_expanders[0].proto.expanded is False
     assert not any(e.label == "Segédanyag ehhez a ponthoz" for e in app.expander)
-
-    for field in (
-        "exegetical_support",
-        "original_language_support",
-        "historical_theological_support",
-        "illustration_direction",
-        "application_direction",
-    ):
-        key = f"sw_flat_outline_edit_entry_{field}"
-        found = any(ti.key == key for ti in app.text_input) or any(
-            ta.key == key for ta in app.text_area
-        )
-        assert found, field
+    captions = "\n".join(c.value for c in app.caption)
+    assert "Szövegi kapaszkodó" in captions
+    assert "Eredeti nyelvi támasz" in captions
+    assert "Történeti/teológiai támasz" in captions
+    assert "Illusztrációs irány" in captions
+    assert "Alkalmazási irány" in captions
+    assert _outline_edit_widget_keys(app) == []
 
 
 def test_transition_to_next_is_always_directly_visible_not_in_support_expander():
@@ -2073,39 +2072,33 @@ def test_transition_to_next_is_always_directly_visible_not_in_support_expander()
     ).run(timeout=60)
     _accept_fresh_outline(app)
 
-    key = "sw_flat_outline_edit_entry_transition_to_next"
-    found = any(ti.key == key for ti in app.text_input) or any(
-        ta.key == key for ta in app.text_area
-    )
-    assert found
-
-    widget = next(ta for ta in app.text_area if ta.key == key)
-    assert widget.value == "MAIN_VIEW_TRANSITION_SENTINEL"
+    captions = "\n".join(c.value for c in app.caption)
+    assert "Átvezetés: MAIN_VIEW_TRANSITION_SENTINEL" in captions
+    assert _outline_edit_widget_keys(app) == []
 
 
 def test_manual_edit_still_works_inside_expander():
     app = AppTest.from_function(_render_fresh_blueprint_then_generate_outline).run(timeout=60)
     _accept_fresh_outline(app)
 
-    idx = _text_input_index_by_key(app, "sw_flat_outline_edit_entry_title")
-    app.text_input[idx].input("EXPANDER SZERKESZTÉS TESZT").run()
-    assert not app.exception
+    _set_canonical_title(app, "EXPANDER SZERKESZTÉS TESZT")
     assert (
         app.session_state["sermon_workshop"]["developed_outline"]["movements"][0]["title"]
         == "EXPANDER SZERKESZTÉS TESZT"
     )
+    assert _outline_edit_widget_keys(app) == []
 
 
 def test_manual_edit_in_expander_survives_rerun():
     app = AppTest.from_function(_render_fresh_blueprint_then_generate_outline).run(timeout=60)
     _accept_fresh_outline(app)
 
-    idx = _text_input_index_by_key(app, "sw_flat_outline_edit_entry_title")
-    app.text_input[idx].input("MEGŐRZÖTT EXPANDER SZÖVEG").run()
+    _set_canonical_title(app, "MEGŐRZÖTT EXPANDER SZÖVEG")
     app.run(timeout=60)
-
-    idx2 = _text_input_index_by_key(app, "sw_flat_outline_edit_entry_title")
-    assert app.text_input[idx2].value == "MEGŐRZÖTT EXPANDER SZÖVEG"
+    assert (
+        app.session_state["sermon_workshop"]["developed_outline"]["movements"][0]["title"]
+        == "MEGŐRZÖTT EXPANDER SZÖVEG"
+    )
 
 
 # -----------------------------------------------------------------------
@@ -2125,8 +2118,7 @@ def test_origin_caption_shows_manually_updated_after_edit():
     app = AppTest.from_function(_render_fresh_blueprint_then_generate_outline).run(timeout=60)
     _accept_fresh_outline(app)
 
-    idx = _text_input_index_by_key(app, "sw_flat_outline_edit_entry_title")
-    app.text_input[idx].input("SZERKESZTVE").run()
+    _set_canonical_title(app, "SZERKESZTVE")
     app.run(timeout=60)
 
     captions = [c.value for c in app.caption]

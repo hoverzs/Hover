@@ -754,7 +754,7 @@ def test_default_greek_display_mode_keeps_full_research_panel() -> None:
     assert any("Alternatív szóválasztás" in expander.label for expander in app.expander)
     assert app.selectbox
     assert app.subheader[0].value == "οὕτως"
-    assert "textus-greek-compact-card-marker" not in page_text
+    assert '<div class="textus-greek-compact-card-marker">' not in page_text
 
 
 def test_compact_greek_display_mode_shows_only_essential_word_info() -> None:
@@ -764,11 +764,16 @@ def test_compact_greek_display_mode_shows_only_essential_word_info() -> None:
     page_text = "\n".join(markdown.value for markdown in app.markdown)
     page_text += "\n".join(caption.value for caption in app.caption)
     assert "Görög eredeti szöveg" in page_text
+    assert "Válasszon egy görög szót ·" in page_text
+    assert "Jn 3,16" in page_text
     assert "οὕτως" in page_text
     assert "Morfológia:" in page_text
     assert "határozószó" in page_text
     assert "Alapjelentés:" in page_text
     assert "textus-greek-compact-card-marker" in page_text
+    src = (ROOT / "bible_engine" / "greek_analysis_ui.py").read_text(encoding="utf-8")
+    assert "textus-greek-compact-card-marker" in src
+    assert "display: none !important" in src
     assert "Magyar lexikai jelentések" not in page_text
     assert "Ellenőrzési állapot" not in page_text
     assert "Lehetséges jelentések" not in page_text
@@ -1160,7 +1165,10 @@ def test_compact_hebrew_display_mode_hides_research_details() -> None:
     page_text = "\n".join(markdown.value for markdown in app.markdown)
     page_text += "\n".join(caption.value for caption in app.caption)
     assert "Héber-arámi eredeti szöveg" in page_text
-    assert "Válasszon egy héber vagy arámi szót" in page_text
+    assert "Válasszon egy héber vagy arámi szót ·" in page_text or (
+        "Válasszon egy héber vagy arámi szót" in page_text
+        and "Zsolt 23,1" in page_text
+    )
     assert "textus-hebrew-compact-card-marker" in page_text
     assert "Technikai morfológiai részletek" not in page_text
     assert "Lexikai adatok" not in page_text
