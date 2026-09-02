@@ -517,18 +517,8 @@ div.header-logo img.textus-logo-image.main-logo,
 .tx-quick-tools [data-testid="stTab"]::after,
 .tx-quick-tools-root [data-baseweb="tab"]::after,
 .tx-quick-tools-root [data-testid="stTab"]::after {
-    content: "›" !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    margin-left: auto !important;
-    padding: 0 0 0 8px !important;
-    color: var(--tx-primary) !important;
-    font-size: 1.2rem !important;
-    font-weight: 500 !important;
-    line-height: 1 !important;
-    width: auto !important;
-    height: auto !important;
-    opacity: 0.72 !important;
+    content: none !important;
+    display: none !important;
 }
 
 .st-key-quick_tools_grid [data-baseweb="tab"]:hover,
