@@ -1,0 +1,561 @@
+<?xml version='1.0' encoding='utf-8'?>
+<ThML>
+  <ThML.head>
+    <generalInfo>
+      <description>In these three volumes, Calvin provides an
+engaging commentary on the synoptic gospels--Matthew,
+Mark, and Luke. Calvin does not separate his treatment of
+the three, but comments on the three books as a whole. Of
+his commentaries, Calvin's <i>Commentary on Matthew, Mark,
+and Luke</i> is well-known--unsurprisingly, given the power,
+insight, and instruction it has. As always, Calvin's
+commentary has an eye towards everyday concerns and he
+incorporates a shrewd practical insight throughout. An
+important and useful commentary, <i>Calvin's Commentary on
+Matthew, Mark, and Luke</i> is deserving of study!<br />
+        <br />Tim
+Perrine<br />CCEL
+Staff
+Writer </description>
+      <firstPublished />
+      <pubHistory />
+      <comments />
+    </generalInfo>
+    <printSourceInfo>
+      <published />
+      <copyLocation />
+      <image href="" type="front" />
+      <image href="" type="spine" />
+    </printSourceInfo>
+    <electronicEdInfo>
+      <publisherID>ccel</publisherID>
+      <authorID>calvin</authorID>
+      <bookID>calcom31</bookID>
+      <workID>calcom31</workID>
+      <bkgID>commentary_on_matthew_mark_luke_volume_1_(calvin)</bkgID>
+      <version>1.01</version>
+      <series />
+      <editorialComments>1.0 initial scanning created much American spelling. sg initial XML insertion, footnote reconciliation, OLB xrefs. 1.01 fj inserted anchors for external xrefs. Added foreign Lang XML to footnotes only. </editorialComments>
+      <revisionHistory>v0.99. Update for DTD 0.99. Main change: use DC record instead of MARC. Significant changes to the head section.v0.98. Update for DTD 0.98; delete some unneeded head elements; italicize Citation style</revisionHistory>
+      <status />
+      <DC>
+        <DC.Title sub="Main">Commentary on Matthew, Mark, Luke - Volume 1</DC.Title>
+        <DC.Title sub="authTitle">Calvin's Commentaries</DC.Title>
+        <DC.Title sub="short">Comm on Mat,Mar,Luk (V1)</DC.Title>
+        <DC.Creator scheme="ccel" sub="Author" />
+        <DC.Creator scheme="file-as" sub="Author">Calvin, John (1509-1564)</DC.Creator>
+        <DC.Creator scheme="short-form" sub="Author">John Calvin</DC.Creator>
+        <DC.Creator scheme="ccel" sub="Alternative" />
+        <DC.Creator scheme="file-as" sub="Alternative" />
+        <DC.Creator scheme="short-form" sub="Alternative">Jean Calvin</DC.Creator>
+        <DC.Creator scheme="ccel" sub="Translator" />
+        <DC.Creator scheme="file-as" sub="Translator" />
+        <DC.Creator scheme="short-form" sub="Translator">Pringle, Rev. William</DC.Creator>
+        <DC.Creator scheme="short-form">John Calvin, 1509-1564</DC.Creator>
+        <DC.Subject scheme="CCEL">All; Bible; </DC.Subject>
+        <DC.Subject scheme="LCCN">BS491</DC.Subject>
+        <DC.Subject scheme="lcsh1">The Bible</DC.Subject>
+        <DC.Subject scheme="lcsh2">Works about the Bible</DC.Subject>
+        <DC.Subject scheme="LCSH" />
+        <DC.Description />
+        <DC.Publisher>Grand Rapids, MI: Christian Classics Ethereal Library</DC.Publisher>
+        <DC.Publisher sub="Address">ccel@ccel.org</DC.Publisher>
+        <DC.Publisher scheme="CCEL">CCEL</DC.Publisher>
+        <DC.Contributor scheme="CCEL" sub="Transcriber">Ages</DC.Contributor>
+        <DC.Contributor scheme="CCEL" sub="Markup">sg, fj</DC.Contributor>
+        <DC.Date scheme="ISO8601" sub="Created">1999-11-20</DC.Date>
+        <DC.Type>Text.Commentary</DC.Type>
+        <DC.Format scheme="IMT">text/html</DC.Format>
+        <DC.Identifier scheme="CCEL"> </DC.Identifier>
+        <DC.Identifier> </DC.Identifier>
+        <DC.Subject scheme="LCCS"> </DC.Subject>
+        <DC.Subject scheme="DDC" />
+        <DC.Source sub="ElectronicEdition" />
+        <DC.Source scheme="URL" sub="ElectronicEdition" />
+        <DC.Source sub="Etext"> </DC.Source>
+        <DC.Source scheme="URL" sub="Etext"> </DC.Source>
+        <DC.Source sub="Print"> </DC.Source>
+        <DC.Language scheme="ISO639-3">eng</DC.Language>
+        <DC.Relation />
+        <DC.Identifier scheme="URL">/ccel/calvin/calcom31.html</DC.Identifier>
+        <DC.Coverage />
+        <DC.Rights>Public Domain</DC.Rights>
+      </DC>
+      <comments />
+    </electronicEdInfo>
+    <link href="/css/ThML099.css" rel="stylesheet" type="text/css" />
+  </ThML.head>
+  <ThML.body>
+    <div1 id="ix" n="ix" next="ix.i" prev="viii" progress="4.53%" shorttitle="section ix" title="Commentary" type="section">
+      <p class="BOOK-CHAP-BLU-24-CEN08" id="ix-p1" shownumber="no">COMMENTARY</p>
+      <p class="3rdLevelAllCap12Bld07" id="ix-p2" shownumber="no">ON A</p>
+      <p class="HDG-C-Gr-16-Pref15" id="ix-p3" shownumber="no">HARMONY OF THE EVANGELISTS</p>
+      <p class="HDG-C-Gr-16-Pref15" id="ix-p4" shownumber="no">LUKE 1:1-4</p>
+      <div2 id="ix.xiv" n="xiv" next="ix.xv" prev="ix.xiii" progress="19.39%" shorttitle="scripture xiv" title="Matthew 1:1-17;Luke 3:23-38" type="scripture">
+        <p class="HDG-C-Gr-16-Pref15" id="ix.xiv-p1" shownumber="no">MATTHEW 1:1-17; LUKE 3:23-38</p>
+        <table border="2" id="ix.xiv-p1.1">
+          <tr id="ix.xiv-p1.2" valign="top">
+            <td colspan="1" id="ix.xiv-p1.3" rowspan="1">
+              <p class="TableCaption17" id="ix.xiv-p2" shownumber="no">
+                <scripRef id="ix.xiv-p2.1" osisRef="Bible:Matt.1.1-Matt.1.17" parsed="|Matt|1|1|1|17" passage="Matthew 1:1-17">Matthew 1:1-17</scripRef>
+              </p>
+            </td>
+            <td colspan="1" id="ix.xiv-p2.2" rowspan="1">
+              <p class="TableCaption17" id="ix.xiv-p3" shownumber="no">
+                <scripRef id="ix.xiv-p3.1" osisRef="Bible:Luke.3.23-Luke.3.38" parsed="|Luke|3|23|3|38" passage="Luke 3:23-38">Luke 3:23-38</scripRef>
+              </p>
+            </td>
+          </tr>
+          <tr id="ix.xiv-p3.2" valign="top">
+            <td colspan="1" id="ix.xiv-p3.3" rowspan="1">
+              <p id="ix.xiv-p4" shownumber="no">
+                <b>1</b>.<b> </b>The book of the generation of Jesus Christ, the son of David, the son of Abraham. <b>2</b>.<b> </b>And Abraham began Isaac. And Issac begat Jacob. And Jacob begat Judah and his brethren. <b>3</b>.<b> </b>And Judah begat Pharez and Zarah by Tamar. And Pharez begat Hezron. and Hezron begat Ram. <b>4</b>.<b> </b>And Ram begat Amminadab. And Amminadab begat Nahshon. And Nahshon begat Salma.
+  <b>5</b>.<b> </b>And Salma begat Boaz by Rahab. And Boaz begat Obed by Ruth. And Obed begat Jesse. <b>6</b>.<b> </b>And Jesse begat David the king. And David the king begat Solomon by her who had been the wife of Uriah. <b>7</b>.<b> </b>And Solomon begat Rehoboam. And Rehoboam begat Abijah. And Abijah begat Asa. <b>8</b>.<b> </b>And Asa begat Jehoshaphat. And Jehoshaphat begat Jorem. And Joram begat Uzziah. <b>9</b>.<b> </b>And Uzziah begat Jotham. And Jotham begat
+  Ahaz. And Ahaz begat Hezekiah. <b>10</b>.<b> </b>And Hezekiah begat Manasseh. And Manasseh begat Amon. And Amon begat Josiah. <b>11</b>.<b> </b>And Josiah begat Jeconiah and his brethren, about the Babylonish exile. <b>12</b>.<b> </b>And after the Babylonish exile, Jeconiah begat Salathiel. And Salathiel begat Zerubbabel. <b>13</b>.<b> </b>And Zerubbabel begat Abiud. And Abiud begat Eliakim. And Eliakim begat Azor. <b>14</b>.<b> </b>And Azor begat Zadok. And Zadok begat
+  Achim. And Achim begat Eliud. <b>15</b>.<b> </b>And Eliud begat Eleazar. And Eleazar begat Matthan. And Matthan begat Jacob. <b>16</b>.<b> </b>And Jacob begat Joseph, the husband of Mary, of whom was born Jesus, who is called Christ. <b>17</b>.<b> </b>Therefore all the generations from Abraham till David are fourteen generations; and from David till the Babylonish migration are fourteen generations; and from the Babylonish migration till Christ are fourteen generations.</p>
+            </td>
+            <td colspan="1" id="ix.xiv-p4.1" rowspan="1">
+              <p id="ix.xiv-p5" shownumber="no">
+                <b>23</b>.<b> </b>Jesus was supposed to be the son of Joseph, who was the son of Heli, <b>24</b>.<b> </b>Who was the son of Matthat, who was the son of Levi, who was the son of Melchi, who was the son of Janna, who was the son of Joseph, <b>25</b>.<b> </b>Who was the son of Matthias, who was the son of Amos, who was the son of Nahum, who was the son of Esli, who was the son of Nagge, <b>26</b>.<b> </b>Who was the son of
+  Maath, who was the son of Mattahtias, who was the son of Semei, who was the son of Joseph, who was the son of Judah, <b>27</b>.<b> </b>Who was the son of Joanna, who was the son of Rhesa, who was the son of Zerubbabel, who was the son of Salathiel, who was the son of Neri, <b>28</b>.<b> </b>Who was the son of Melchi, who was the son of Addi, who was the son of Cosam, who was the son of Elmodam, who was the son, of Er, <b>29</b>.<b> </b>Who was the son of of Joses, who was the son
+  of Eliezer, who was the son of Joriam, who was the son of Matthat, who was the son of Levi, <b>30</b>.<b> </b>Who was the son of Simeon, who was the son of Judah, who was the son of Joseph, who was the son of Jonan, who was the son of Eliakim, <b>31</b>.<b> </b>Who was the son of Meleah, who was the son of Mainan, who was the son of Mattatha, who was the son of Nathan, who was the son of David, <b>32</b>.<b> </b>Who was the son of Jesse, who was the son of Obed, who was the son
+  of Boaz, who was the son of Salmah, who was the son of Nahshon, <b>33</b>.<b> </b>Who was the son of Amminadab, who was the son of Ram, who was the son of Hezron, who was the son of Pharez, who was the son of Judah, <b>34</b>.<b> </b>Who was the son of Jacob, who was the son of Isaac, who was the son of Abraham, who was the son of Terah, who was the son of Nahor, <b>35</b>.<b> </b>Who was the son of Serug, who was the son of Reu, who was the son of Peleg, who was the son of
+  Heber, who was the son of Salah, <b>36</b>.<b> </b>Who was the son of Cainan, who was the son of Arphaxad, who was the son of Shem, who was the son of Noah, who was the son of Lamech, <b>37</b>.<b> </b>Who was the son of Methuselah, who was the son of Enoch, who was the son of Jared, who was the son of Mahalaleel, who was the son of Cainan, <b>38</b>.<b> </b>Who was the son of Enos, who was the son of Seth, who was the son of Adam, who was the son of God.</p>
+            </td>
+          </tr>
+        </table>
+        <p id="ix.xiv-p6" shownumber="no"> </p>
+        <p id="ix.xiv-p7" shownumber="no">
+          <scripCom id="ix.xiv-p7.1" osisRef="Bible:Matt.1.1" parsed="|Matt|1|1|0|0" passage="Mt 1:1" type="Commentary" />
+        </p>
+        <div class="Commentary" id="ix.xiv-p7.2">
+          <p id="ix.xiv-p8" shownumber="no">
+            <a id="ix.xiv-p8.1" shape="rect" xml:link="simple" />As all are not agreed about these two genealogies, which are given by Matthew and Luke, we must first see whether both trace the genealogy of Christ from Joseph, or whether Matthew only traces it from Joseph, and Luke from Mary. Those who are of this latter opinion have a plausible ground for their distinction in the diversity of the names: and certainly, at first sight, nothing seems more improbable than that Matthew
+ and Luke<i>, </i>who differ so widely from each other, give one and the same genealogy. For from David to Salathiel, and again from Zerubbabel till Joseph, the names are totally different.</p>
+          <p id="ix.xiv-p9" shownumber="no">Again, it is alleged, that it would have been idle to bestow so great pains on a thing of no use, in relating a second time the genealogy of Joseph, who after all was not the father of Christ. “Why this repetition,” say they, “which proves nothing that contributes much to the edification of faith? If nothing more be known than this, that Joseph was one of the descendants and family of David, the genealogy of Christ will still remain doubtful.”
+ In their opinion, therefore, it would have been superfluous that two Evangelists should apply themselves to this subject. They excuse Matthew for laying down the ancestry of Joseph, on the ground, that he did it for the sake of many persons, who were still of opinion that he was the father of Christ. But it would have been foolish to hold out such an encouragement to a dangerous error: and what follows is at total variance with the supposition. For as soon as he comes to the close of the
+ genealogy, Matthew points out that Christ was conceived in the womb of the virgin, not from the seed of Joseph, but by the secret power of the Spirit. If their argument were good, Matthew might be charged with folly or inadvertence, in laboring to no purpose to establish the genealogy of Joseph.</p>
+          <p id="ix.xiv-p10" shownumber="no">But we have not yet replied to their objection, that the ancestry of Joseph has nothing to do with Christ. The common and well-known reply is, that in the person of Joseph the genealogy of Mary also is included, because the law enjoined every man to marry from his own tribe. It is objected, on the other hand, that at almost no period had that law been observed: but the arguments on which that assertion rests are frivolous. They quote the
+ instance of the eleven tribes binding themselves by an oath, that they would not give a wife to the Benjamites, (<scripRef id="ix.xiv-p10.1" osisRef="Bible:Judg.21.1" parsed="|Judg|21|1|0|0" passage="Jud 21:1">Judges 21:1</scripRef>.) If this matter, say they, had been settled by law, there would have been no need for a new enactment. I reply, this extraordinary occurrence is erroneously and ignorantly converted by them into a general rule: for if one tribe had been cut off, the body of the people must have been
+ incomplete if some remedy had not been applied to a case of extreme necessity. We must not, therefore, look to this passage for ascertaining the common law.</p>
+          <p id="ix.xiv-p11" shownumber="no">Again, it is objected, that Mary, the mother of Christ, was Elisabeth’s cousin, though Luke has formerly stated that she was of the daughters of Aaron, (<scripRef id="ix.xiv-p11.1" osisRef="Bible:Luke.1.5" parsed="|Luke|1|5|0|0" passage="Lu 1:5">Luke 1:5</scripRef>.) The reply is easy. The daughters of the tribe of Judah, or of any other tribe, were at liberty to marry into the tribe of the priesthood: for they were not prevented by that reason, which is expressed in
+ the law, that no woman should “remove her inheritance” to those who were of a different tribe from her own, (<scripRef id="ix.xiv-p11.2" osisRef="Bible:Num.36.6-Num.36.9" parsed="|Num|36|6|36|9" passage="Nu 36:6-9">Numbers 36:6-9</scripRef>.) Thus, the wife of Jehoiada, the high priest, is declared by the sacred historian to have belonged to the royal family, —</p>
+          <p class="Center" id="ix.xiv-p12" shownumber="no">“Jehoshabeath, the daughter of Jehoram, <br />
+ the wife of Jehoiada the priest,” <br />
+ (<scripRef id="ix.xiv-p12.3" osisRef="Bible:2Chr.22.11" parsed="|2Chr|22|11|0|0" passage="2Ch 22:11">2 Chronicles 22:11</scripRef>.)</p>
+          <p id="ix.xiv-p13" shownumber="no">It was, therefore, nothing wonderful or uncommon, if the mother of Elisabeth were married to a priest. Should any one allege, that this does not enable us to decide, with perfect certainty, that Mary was of the same tribe with Joseph, because she was his wife, I grant that the bare narrative, as it stands, would not prove it without the aid of other circumstances.</p>
+          <p id="ix.xiv-p14" shownumber="no">But, <i>in the first place,</i> we must observe, that the Evangelists do not speak of events known in their own age. When the ancestry of Joseph had been carried up as far as David, every one could easily make out the ancestry of Mary. The Evangelists, trusting to what was generally understood in their own day, were, no doubt, less solicitous on that point:
+ for, if any one entertained doubts, the research was neither difficult nor tedious.<note anchored="yes" id="ix.xiv-p14.1" n="85" place="foot">
+              <p class="Footnote" id="ix.xiv-p15" shownumber="no"> “<span dir="ltr" id="ix.xiv-p15.1" lang="fr">Il, leur estoit aise de le monstrer comme au doigt, et sans long ropos</span>.” — “It was easy for them to point it out, as with the finger, and without a long story.”</p>
+            </note>
+ Besides, they took for granted, that Joseph, as a man of good character and behavior, had obeyed the injunction of the law in marrying a wife from his own tribe. That general rule would not, indeed, be sufficient to prove Mary’s royal descent; for she might have belonged to the tribe of Judah, and yet not have been a descendant of the family of David.</p>
+          <p id="ix.xiv-p16" shownumber="no">My opinion is this. The Evangelists had in their eye godly persons, who entered into no obstinate dispute, but in the person of Joseph acknowledged the descent of Mary; particularly since, as we have said, no doubt was entertained about it in that age. One matter, however, might appear incredible, that this very poor and despised couple belonged to the posterity of David, and to that royal seed, from which the Redeemer was to spring. If any
+ one inquire whether or not the genealogy traced by Matthew and Luke proves clearly and beyond controversy that Mary was descended from the family of David, I own that it cannot be inferred with certainty; but as the relationship between Mary and Joseph was at that time well known, the Evangelists were more at ease on that subject. Meanwhile, it was the design of both Evangelists to remove the stumbling-block arising from the fact, that both Joseph and Mary were unknown, and despised, and poor,
+ and gave not the slightest indication of royalty.</p>
+          <p id="ix.xiv-p17" shownumber="no">Again, the supposition that Luke passes by the descent of Joseph, and relates that of Mary, is easily refuted; for he expressly says, that <i>Jesus was supposed to be the son of Joseph, etc. </i>Certainly, neither the father nor the grandfather of Christ is mentioned, but the ancestry of Joseph himself is carefully
+ explained. I am well aware of the manner in which they attempt to solve this difficulty. The word <i>son, </i>they allege, is put for <i>son-in-law, </i>and the interpretation they give to Joseph being called <i>the son of Heli</i> is, that he had married Heli’s daughter. But this does not agree with the order of nature, and is nowhere countenanced by any example in
+ Scripture.</p>
+          <p id="ix.xiv-p18" shownumber="no">If Solomon is struck out of Mary’s genealogy, Christ will no longer be Christ; for all inquiry as to his descent is founded on that solemn promise,</p>
+          <p class="Center" id="ix.xiv-p19" shownumber="no">“I will set up thy seed after thee; I will establish the throne of his kingdom for ever. I will be his father, and he shall be my son,” <br />
+ (<scripRef id="ix.xiv-p19.2" osisRef="Bible:2Sam.7.12-2Sam.7.14" parsed="|2Sam|7|12|7|14" passage="2Sa 7:12-14">2 Samuel 7:12-14</scripRef>.)</p>
+          <p class="Center" id="ix.xiv-p20" shownumber="no">“The Lord hath sworn in truth unto David; he will not turn from it; Of the fruit of thy body will I set upon thy throne,”<br />
+ (<scripRef id="ix.xiv-p20.2" osisRef="Bible:Ps.132.11" parsed="|Ps|132|11|0|0" passage="Ps 132:11">Psalm 132:11</scripRef>.)</p>
+          <p id="ix.xiv-p21" shownumber="no">Solomon was, beyond controversy, the type of this eternal King who was promised to David; nor can the promise be applied to Christ, except in so far as its truth was shadowed out in Solomon, (<scripRef id="ix.xiv-p21.1" osisRef="Bible:1Chr.28.5" parsed="|1Chr|28|5|0|0" passage="1Ch 28:5">1 Chronicles 28:5</scripRef>.) Now if the descent is not traced to him, how, or by what argument, shall he be proved to be “the son of David”? Whoever expunges Solomon from
+ Christ’s genealogy does at the same time, obliterate and destroy those promises by which he must be acknowledged to be the son of David. In what way Luke, tracing the line of descent from Nathan, does not exclude Solomon, will afterwards be seen at the proper place.</p>
+          <p id="ix.xiv-p22" shownumber="no">Not to be too tedious, those two genealogies agree substantially with each other, but we must attend to four points of difference. The <i>first</i> is; Luke ascends by a retrograde order, from the last to the first, while Matthew begins with the source of the genealogy. The <i>second</i> is; Matthew does not carry his narrative beyond the holy and elect race of Abraham,<note anchored="yes" id="ix.xiv-p22.1" n="86" place="foot">
+              <p class="Footnote" id="ix.xiv-p23" shownumber="no"> “<span dir="ltr" id="ix.xiv-p23.1" lang="fr">Matthieu, en sa description, ne passe point plus haut qu'Abraham, qui a este le pere du peuple sainct et esleu</span>.” — “Matthew, in his description, does not pass higher than Abraham, who was the father of the holy and elect people.”</p>
+            </note>
+ while Luke proceeds as far as Adam. The <i>third</i> is; Matthew treats of his legal descent, and allows himself to make some omissions in the line of ancestors, choosing to assist the reader’s memory by arranging them under three fourteens; while Luke follows the natural descent with greater exactness. The fourth and last is; when they are speaking of the same persons, they sometimes give them different names.</p>
+          <p id="ix.xiv-p24" shownumber="no">It would be superfluous to say more about the <i>first</i> point of difference, for it presents no difficulty. The <i>second</i> is not without a very good reason: for, as God had chosen for himself the family of Abraham, from which the Redeemer of the world would be born, and as the promise of salvation had been, in some sort, shut up in that family till the coming of Christ, Matthew does not pass beyond the limits which God
+ had prescribed. We must attend to what Paul says,</p>
+          <p class="Center" id="ix.xiv-p25" shownumber="no">“that Jesus Christ was a minister of the circumcision for the truth of God, to confirm the promises made unto the fathers,” <br />
+ (<scripRef id="ix.xiv-p25.2" osisRef="Bible:Rom.15.8" parsed="|Rom|15|8|0|0" passage="Ro 15:8">Romans 15:8</scripRef>)</p>
+          <p id="ix.xiv-p26" shownumber="no">with which agrees that saying of Christ, “Salvation is of the Jews,” (<scripRef id="ix.xiv-p26.1" osisRef="Bible:John.4.22" parsed="|John|4|22|0|0" passage="Joh 4:22">John 4:22</scripRef>.) Matthew, therefore, presents him to our contemplation as belonging to that holy race, to which he had been expressly appointed. In Matthew’s catalogue we must look at the covenant of God, by which he adopted the seed of Abraham as his people, separating them, by a “middle wall of
+ partition,” (<scripRef id="ix.xiv-p26.2" osisRef="Bible:Eph.2.14" parsed="|Eph|2|14|0|0" passage="Eph 2:14">Ephesians 2:14</scripRef>,) from the rest of the nations. Luke directed his view to a higher point; for though, from the time that God had made his covenant with Abraham, a Redeemer was promised, in a peculiar manner, to his seed, yet we know that, since the transgression of the first man, all needed a Redeemer, and he was accordingly appointed for the whole world. It was by a wonderful purpose of God, that
+ Luke exhibited Christ to us as the son of Adam, while Matthew confined him within the single family of Abraham. For it would be of no advantage to us, that Christ was given by the Father as “the author of eternal salvations” (<scripRef id="ix.xiv-p26.3" osisRef="Bible:Heb.5.9" parsed="|Heb|5|9|0|0" passage="Heb 5:9">Hebrews 5:9</scripRef>,) unless he had been given indiscriminately to all. Besides, that saying of the Apostle would not be true, that “Jesus Christ is the same yesterday, and to-day, and for ever,”
+ (<scripRef id="ix.xiv-p26.4" osisRef="Bible:Heb.13.8" parsed="|Heb|13|8|0|0" passage="Heb 13:8">Hebrews 13:8</scripRef>,) if his power and grace had not reached to all ages from the very creation of the world. Let us know; therefore, that to the whole human race there has been manifested and exhibited salvation through Christ; for not without reason is he called the son of Noah, and the son of Adam. But as we must seek him in the word of God, the Spirit wisely directs us, through another Evangelist, to the holy
+ race of Abraham, to whose hands the treasure of eternal life, along with Christ, was committed for a time, (<scripRef id="ix.xiv-p26.5" osisRef="Bible:Rom.3.1" parsed="|Rom|3|1|0|0" passage="Ro 3:1">Romans 3:1</scripRef>.)</p>
+          <p id="ix.xiv-p27" shownumber="no">We come now to the <i>third</i> point of difference. Matthew and Luke unquestionably do not observe the same order; for immediately after David the one puts Solomon, and the other, Nathan; which makes it perfectly clear that they follow different lines. This sort of contradiction is reconciled by good and learned interpreters in the following manner. Matthew, departing from the natural lineage, which is followed by Luke, reckons up the
+ legal genealogy. I call it the <i>legal</i> genealogy, because the right to the throne passed into the hands of Salathiel. Eusebius, in the first book of his Ecclesiastical History, adopting the opinion of Africanus, prefers applying the epithet <i>legal</i> to the genealogy which is traced by Luke. But it amounts to the same thing: for he means nothing more than this, that the kingdom, which had been established in the person of Solomon, passed in a lawful manner to Salathiel.
+ But it is more correct and appropriate to say, that Matthew has exhibited the legal order: because, by naming Solomon immediately after David, he attends, not to the persons from whom in a regular line, according to the flesh, Christ derived his birth, but to the manner in which he was descended from Solomon and other kings, so as to be their lawful successor, in whose hand God would “stablish the throne of his kingdom for ever,” (<scripRef id="ix.xiv-p27.1" osisRef="Bible:2Sam.7.13" parsed="|2Sam|7|13|0|0" passage="2Sa 7:13">2 Samuel 7:13</scripRef>.)</p>
+          <p id="ix.xiv-p28" shownumber="no">There is probability in the opinion that, at the death of Ahaziah, the lineal descent from Solomon was closed. As to the command given by David — for which some persons quote the authority of Jewish Commentators — that should the line from Solomon fail, the royal power would pass to the descendants of Nathan, I leave it undetermined; holding this only for certain, that the succession to the kingdom was not confused, but regulated by fixed
+ degrees of kindred. Now, as the sacred history relates that, after the murder of Ahaziah, the throne was occupied, and all the seed-royal destroyed “by his mother Athaliah, (<scripRef id="ix.xiv-p28.1" osisRef="Bible:2Kgs.11.1" parsed="|2Kgs|11|1|0|0" passage="2Ki 11:1">2 Kings 11:1</scripRef>,) it is more than probable that this woman, from an eager desire of power, had perpetrated those wicked and horrible murders that she might not be reduced to a private rank, and see the throne transferred to another. If there
+ had been a son of Ahaziah still alive, the grandmother would willingly have been allowed to reign in peace, without envy or danger, under the mask of being his tutor. When she proceeds to such enormous crimes as to draw upon herself infamy and hatred, it is a proof of desperation arising from her being unable any longer to keep the royal authority in her house.</p>
+          <p id="ix.xiv-p29" shownumber="no">As to Joash being called “the son of Ahaziah,” (<scripRef id="ix.xiv-p29.1" osisRef="Bible:2Chr.22.11" parsed="|2Chr|22|11|0|0" passage="2Ch 22:11">2 Chronicles 22:11</scripRef>,) the reason is, that he was the nearest relative, and was justly considered to be the true and direct heir of the crown. Not to mention that Athaliah (if we shall suppose her to be his grandmother) would gladly have availed herself of her relation to the child, will any person
+ of ordinary understanding think it probable, that an actual son of the king could be so concealed by “Jehoiada the priest,” as not to excite the grandmother to more diligent search? If all is carefully weighed, there will be no hesitation in concluding, that the next heir of the crown belonged to a different line. And this is the meaning of Jehoiada’s words,</p>
+          <p class="Center" id="ix.xiv-p30" shownumber="no">
+            <i>“</i>Behold, the king’s son shall reign, as the Lord hath said of the sons of David,” <br />
+ (<scripRef id="ix.xiv-p30.2" osisRef="Bible:2Chr.23.3" parsed="|2Chr|23|3|0|0" passage="2Ch 23:3">2 Chronicles 23:3</scripRef>.)</p>
+          <p id="ix.xiv-p31" shownumber="no">He considered it to be shameful and intolerable, that a woman, who was a stranger by blood, should violently seize the scepter, which God had commanded to remain in the family of David.</p>
+          <p id="ix.xiv-p32" shownumber="no">There is no absurdity in supposing, that Luke traces the descent of Christ from Nathan: for it is possible that the line of Solomon, so far as relates to the succession of the throne, may have been broken off. It may be objected, that Jesus cannot be acknowledged as the promised Messiah, if he be not a descendant of Solomon, who was an undoubted type of <i>Christ</i> But the answer is easy. Though he was not naturally descended from
+ Solomon, yet he was reckoned his son by legal succession, because he was descended from kings.</p>
+          <p id="ix.xiv-p33" shownumber="no">The <i>fourth</i> point of difference is the great diversity of the names. Many look upon this as a great difficulty: for from David till Joseph, with the exception of Salathiel and Zerubbabel, none of the names are alike in the two Evangelists. The excuse commonly offered, that the diversity arose from its being very customary among the Jews to have two names, appears to many persons not quite satisfactory. But as we are now
+ unacquainted with the method, which was followed by Matthew in drawing up and arranging the genealogy, there is no reason to wonder, if we are unable to determine how far both of them agree or differ as to individual names. It cannot be doubted that, after the Babylonish captivity, the same persons are mentioned under different names. In the case of Salathiel and Zerubbabel, the same names, I think, were purposely retained, on account of the change which had taken place in the nation: because
+ the royal authority was then extinguished. Even while a feeble shadow of power remained, a striking change was visible, which warned believers, that they ought to expect another and more excellent kingdom than that of Solomon, which had flourished but for a short time.</p>
+          <p id="ix.xiv-p34" shownumber="no">It is also worthy of remark, that the additional number in Luke’s catalogue to that of Matthew is nothing strange; for the number of persons in the natural line of descent is usually greater than in the legal line. Besides, Matthew chose to divide the genealogy of Christ into three departments, and to make each department to contain fourteen persons. In this way, he felt himself at liberty to pass by some names, which Luke could not with
+ propriety omit, not having restricted himself by that rule.</p>
+          <p id="ix.xiv-p35" shownumber="no">Thus have I discussed the genealogy of Christ, as far as it appeared to be generally useful. If any one is tickled<note anchored="yes" id="ix.xiv-p35.1" n="87" place="foot">
+              <p class="Footnote" id="ix.xiv-p36" shownumber="no"> “<span dir="ltr" id="ix.xiv-p36.1" lang="la">Si quem titillat major curiositas</span>.” — “<span dir="ltr" id="ix.xiv-p36.2" lang="fr">S'il y a quelqu'un chatouille de curiosite qui en demande d'avantage</span>.” — “If any one is tickled by a curiosity, which asks for more of it.”</p>
+            </note>
+ by a keener curiosity, I remember Paul’s admonition, and prefer sobriety and modesty to trifling and useless disputes. It is a noted passage, in which he enjoins us to avoid excessive keenness in disputing about “genealogies, as unprofitable and vain,” (<scripRef id="ix.xiv-p36.3" passage="Ti 3:9">Titus 3:9</scripRef>.)</p>
+          <p id="ix.xiv-p37" shownumber="no">It now remains to inquire, lastly, why Matthew included the whole genealogy of Christ in <i>three classes, </i>and assigned to each class fourteen persons. Those who think that he did so, in order to aid the memory of his readers, state a part of the reason, but not the whole. It is true, indeed, that a catalogue, divided into three equal numbers, is more easily remembered. But it is also evident that this division is intended to point out a
+ threefold condition of the nation, from the time when Christ was promised to Abraham, to “the fullness of the time” (<scripRef id="ix.xiv-p37.1" osisRef="Bible:Gal.4.4" parsed="|Gal|4|4|0|0" passage="Ga 4:4">Galatians 4:4</scripRef>) when he was “manifested in the flesh,” (<scripRef id="ix.xiv-p37.2" osisRef="Bible:1Tim.3.16" parsed="|1Tim|3|16|0|0" passage="1Ti 3:16">1 Timothy 3:16</scripRef>.) Previous to the time of David, the tribe of Judah, though it occupied a higher rank than the other tribes, held no power. In David the
+ royal authority burst upon the eyes of all with unexpected splendor, and remained till the time of Jeconiah. After that period, there still lingered in the tribe of Judah a portion of rank and government, which sustained the expectations of the godly till the coming of the Messiah.</p>
+          <p id="ix.xiv-p38" shownumber="no">
+            <b>1. </b>
+            <i>The book of the generation</i> Some commentators give themselves unnecessary trouble, in order to excuse Matthew for giving to his whole history this title, which applies only to the half of a single chapter. For this <span class="Greek" id="ix.xiv-p38.1" lang="el">ἐπιγραφή</span>, or <i>title, </i>does not extend to the whole book of Matthew: but the word βίβλος<i>, book, </i>is put for <i>catalogue: </i>as if he had said, “Here follows the catalogue of the generation of Christ.” It is with reference to the promise, that Christ is called <i>the son of David, the son of Abraham: </i>for God had promised to Abraham that he would give him a seed, “in whom all the families of the earth should be blessed,” (<scripRef id="ix.xiv-p38.2" osisRef="Bible:Gen.12.3" parsed="|Gen|12|3|0|0" passage="Ge 12:3">Genesis
+ 12:3</scripRef>.) David received a still clearer promise, that God would “stablish the throne of his kingdom for ever,” (<scripRef id="ix.xiv-p38.3" osisRef="Bible:2Sam.7.13" parsed="|2Sam|7|13|0|0" passage="2Sa 7:13">2 Samuel 7:13</scripRef>;) that one of his posterity would be king “as long as the sun and moon endure,” (<scripRef id="ix.xiv-p38.4" osisRef="Bible:Ps.72.5" parsed="|Ps|72|5|0|0" passage="Ps 72:5">Psalm 72:5</scripRef>;) and that “his throne should be as
+ the days of heaven,” (<scripRef id="ix.xiv-p38.5" osisRef="Bible:Ps.89.29" parsed="|Ps|89|29|0|0" passage="Ps 89:29">Psalm 89:29</scripRef>.) And so it became a customary way of speaking among the Jews to call Christ <i>the son of David</i>
+          </p>
+        </div>
+        <p id="ix.xiv-p39" shownumber="no">
+          <scripCom id="ix.xiv-p39.1" osisRef="Bible:Matt.1.2" parsed="|Matt|1|2|0|0" passage="Mt 1:2" type="Commentary" />
+        </p>
+        <div class="Commentary" id="ix.xiv-p39.2">
+          <p id="ix.xiv-p40" shownumber="no">
+            <a id="ix.xiv-p40.1" shape="rect" xml:link="simple" />
+            <b>2. </b>
+            <i>Jacob begat Judah and his brethren</i> While Matthew passes by in silence Ishmael, Abraham’s first-born, and Esau, who was Jacob’s elder brother, he properly assigns a place in the genealogy to the Twelve Patriarchs, on all of whom God had bestowed a similar favor of adoption. He
+ therefore intimates, that the blessing promised in Christ does not refer to the tribe of Judah alone, but belongs equally to all the children of Jacob, whom God gathered into his Church, while Ishmael and Esau were treated as strangers.<note anchored="yes" id="ix.xiv-p40.2" n="88" place="foot">
+              <p class="Footnote" id="ix.xiv-p41" shownumber="no"> “<span dir="ltr" id="ix.xiv-p41.1" lang="la">Quum essent extranei</span>.” — “<span dir="ltr" id="ix.xiv-p41.2" lang="fr">En lieu qu'Ismael et Esau en avoyent este rejettez et bannis comme estrangers</span>.” — “Whereas Ishmael and Esau were thrown out and banished from it as strangers.”</p>
+            </note>
+          </p>
+        </div>
+        <p id="ix.xiv-p42" shownumber="no">
+          <scripCom id="ix.xiv-p42.1" osisRef="Bible:Matt.1.3" parsed="|Matt|1|3|0|0" passage="Mt 1:3" type="Commentary" />
+        </p>
+        <div class="Commentary" id="ix.xiv-p42.2">
+          <p id="ix.xiv-p43" shownumber="no">
+            <a id="ix.xiv-p43.1" shape="rect" xml:link="simple" />
+            <b>3. </b>
+            <i>Judah begat Pharez and Zarah by Tamar</i> This was a prelude to that emptying of himself,<note anchored="yes" id="ix.xiv-p43.2" n="89" place="foot">
+              <p class="Footnote" id="ix.xiv-p44" shownumber="no"> ᾿Αλλ ᾿ ἑαυτὸν ἐχένωσε, — but he emptied himself. Such is the literal import of the words which are rendered in the English version, <i>But made himself of no reputation. </i>—<i> Ed.</i>
+              </p>
+            </note>
+ of which Paul speaks, (<scripRef id="ix.xiv-p44.1" osisRef="Bible:Phil.2.7" parsed="|Phil|2|7|0|0" passage="Php 2:7">Philippians 2:7</scripRef>). The Son of God might have kept his descent unspotted and pure from every reproach or mark of infamy. But he came into the world to</p>
+          <p class="Center" id="ix.xiv-p45" shownumber="no">“empty himself, and take upon him the form of a servant,” <br />
+ (<scripRef id="ix.xiv-p45.2" osisRef="Bible:Phil.2.7" parsed="|Phil|2|7|0|0" passage="Php 2:7">Philippians 2:7</scripRef>)</p>
+          <p id="ix.xiv-p46" shownumber="no">to be</p>
+          <p class="Center" id="ix.xiv-p47" shownumber="no">“a worm, and no man; a reproach of men, and despised of the people,” <br />
+ (<scripRef id="ix.xiv-p47.2" osisRef="Bible:Ps.22.6" parsed="|Ps|22|6|0|0" passage="Ps 22:6">Psalm 22:6</scripRef>)</p>
+          <p id="ix.xiv-p48" shownumber="no">and at length to undergo the accursed death of the cross. He therefore did not refuse to admit a stain into his genealogy, arising from incestuous intercourse which took place among his ancestors. Though Tamar was not impelled by lust to seek connection with her father-in-law, yet it was in an unlawful manner that she attempted to revenge the injury which she had received. Judah again intended to commit fornication, and unknowingly to
+ himself, met with his daughter-in-law.<note anchored="yes" id="ix.xiv-p48.1" n="90" place="foot">
+              <p class="Footnote" id="ix.xiv-p49" shownumber="no"> “<span dir="ltr" id="ix.xiv-p49.1" lang="la">In nurum suam incidit</span>.” — “<span dir="ltr" id="ix.xiv-p49.2" lang="fr">Judas a commis sa meschancete avec sa bru, pensant que ce fust une autre</span>.” — “Judah committed his wickedness with his daughter-in-law, supposing her to be a different person”</p>
+            </note>
+ But the astonishing goodness of God strove with the sin of both; so that, nevertheless, this adulterous seed came to possess the scepter.<note anchored="yes" id="ix.xiv-p49.3" n="91" place="foot">
+              <p class="Footnote" id="ix.xiv-p50" shownumber="no"> “<span dir="ltr" id="ix.xiv-p50.1" lang="fr">Afin que neantmoins ceste semence bastarde vint a avoir un jour en main le scepter Royal</span>.” — “So that nevertheless this bastard seed came to have one day in its hand the Royal scepter.”</p>
+            </note>
+          </p>
+        </div>
+        <p id="ix.xiv-p51" shownumber="no">
+          <scripCom id="ix.xiv-p51.1" osisRef="Bible:Matt.1.6" parsed="|Matt|1|6|0|0" passage="Mt 1:6" type="Commentary" />
+        </p>
+        <div class="Commentary" id="ix.xiv-p51.2">
+          <p id="ix.xiv-p52" shownumber="no">
+            <a id="ix.xiv-p52.1" shape="rect" xml:link="simple" />
+            <b>6.</b>
+            <i>Begat David the King</i> In this genealogy, the designation of <i>King</i> is bestowed on David alone, because in his person God exhibited a type of the
+ future leader of his people, the Messiah. The kingly office had been formerly held by Saul; but, as he reached it through tumult and the ungodly wishes of the people, the lawful possession of the office is supposed to have commenced with David, more especially in reference to the covenant of God, who promised that “his throne should be established for ever,” (<scripRef id="ix.xiv-p52.2" osisRef="Bible:2Sam.7.16" parsed="|2Sam|7|16|0|0" passage="2Sa 7:16">2 Samuel 7:16</scripRef>.) When the
+ people shook off the yoke of God, and unhappily and wickedly asked a king, saying, “Give us a king to judge us,” (<scripRef id="ix.xiv-p52.3" osisRef="Bible:1Sam.8.5" parsed="|1Sam|8|5|0|0" passage="1Sa 8:5">1 Samuel 8:5</scripRef>,) Saul was granted for short time. But his kingdom was shortly afterwards established by God, as a pledge of true prosperity, in the hand of David. Let this expression, <i>David the King, </i>be understood by us as pointing out the prosperous condition of the people, which the Lord had appointed.</p>
+          <p id="ix.xiv-p53" shownumber="no">Meanwhile, the Evangelist adds a human disgrace, which might almost bring a stain on the glory of this divine blessing. <i>David the King begat Solomon by her that had been the wife of Uriah; </i>by Bathsheba, whom he wickedly tore from her husband, and for the sake of enjoying whom, he basely surrendered an innocent
+ man to be murdered by the swords of the enemy, (<scripRef id="ix.xiv-p53.1" osisRef="Bible:2Sam.11.15" parsed="|2Sam|11|15|0|0" passage="2Sa 11:15">2 Samuel 11:15</scripRef>.) This taint, at the commencement of the kingdom, ought to have taught the <i>Jews </i>not to glory in the flesh. It was the design of God to show that, in establishing this kingdom, nothing depended on human merits.</p>
+          <p id="ix.xiv-p54" shownumber="no">Comparing the inspired history with the succession described by Matthew, it is evident that he has omitted three kings.<note anchored="yes" id="ix.xiv-p54.1" n="92" place="foot">
+              <p class="Footnote" id="ix.xiv-p55" shownumber="no"> “<span dir="ltr" id="ix.xiv-p55.1" lang="fr">Assavoir Ochozias fils de Joram, Joas, et Amazias</span>.” — “Namely, Ahaziah son of Jehoram, Joash, and Amaziah,” (<scripRef id="ix.xiv-p55.2" osisRef="Bible:2Chr.22.1-2Chr.25.23" parsed="|2Chr|22|1|25|23" passage="2Ch 22:1-25:23">2 Chronicles 22, 23, 24, 25</scripRef>.)</p>
+            </note>
+ Those who say that he did so through forgetfulness, cannot be listened to for a moment. Nor is it probable that they were thrown out, because they were unworthy to occupy a place in the genealogy of Christ; for the same reason would equally apply to many others, who are indiscriminately brought forward by Matthew, along with pious and holy persons. A more correct account is, that he resolved to confine the list of each class to fourteen kings, and gave himself little concern in making
+ the selection, because he had an adequate succession of the genealogy to place before the eyes of his readers, down to the close of the kingdom. As to there being only thirteen in the list, it probably arose from the blunders and carelessness of transcribers. Epiphanius, in his First Book against Heresies, assigns this reason, that the name of Jeconiah had been twice put down, and unlearned<note anchored="yes" id="ix.xiv-p55.3" n="93" place="foot">
+              <p class="Footnote" id="ix.xiv-p56" shownumber="no"> “<span dir="ltr" id="ix.xiv-p56.1" lang="la">Indocti</span>;” — “<span dir="ltr" id="ix.xiv-p56.2" lang="fr">quelques gens n'entendans pas le propos</span>,” — “some peope not understanding the design.”</p>
+            </note>
+ persons ventured to strike out the repetition of it as superfluous; which, he tells us, ought not to have been done, because Jehoiakim, the father of king Jehoiakim, had the name Jeconiah, in common with his son, (<scripRef id="ix.xiv-p56.3" osisRef="Bible:1Chr.3.17" parsed="|1Chr|3|17|0|0" passage="1Ch 3:17">1 Chronicles 3:17</scripRef>; <scripRef id="ix.xiv-p56.4" osisRef="Bible:2Kgs.24.15" parsed="|2Kgs|24|15|0|0" passage="2Ki 24:15">2 Kings 24:15</scripRef>;
+ <scripRef id="ix.xiv-p56.5" osisRef="Bible:Jer.27.20 Bible:Jer.28.4" parsed="|Jer|27|20|0|0;|Jer|28|4|0|0" passage="Jer 27:20; 28:4">Jeremiah 27:20; 28:4</scripRef>.) Robert Stephens quotes a Greek manuscript, in which the name of Jehoiakim is introduced.<note anchored="yes" id="ix.xiv-p56.6" n="94" place="foot">
+              <p class="Footnote" id="ix.xiv-p57" shownumber="no"> “<span dir="ltr" id="ix.xiv-p57.1" lang="fr">Robert Etienne a ce propos allegue un exemplaire Grec ancien, ou il y a ainsi, Josias engendra Joacim, et Joacim engendra Jechonias</span>.”— “Robert Stephens, with this view, quotes an ancient Greek manuscript, which runs thus: <i>Josiah begat Jehoiakim, and Jehoiakim begat
+  Jeconiah.”</i>
+              </p>
+            </note>
+          </p>
+        </div>
+        <p id="ix.xiv-p58" shownumber="no">
+          <scripCom id="ix.xiv-p58.1" osisRef="Bible:Matt.1.12" parsed="|Matt|1|12|0|0" passage="Mt 1:12" type="Commentary" />
+        </p>
+        <div class="Commentary" id="ix.xiv-p58.2">
+          <p id="ix.xiv-p59" shownumber="no">
+            <b>12.</b>
+            <i>After the Babylonish exile</i> That is, after the Jews were carried into captivity: for the Evangelist means, that the descendants of David, from being kings, then became exiles and slaves. As that captivity was a sort of destruction, it came to be wonderfully arranged by Divine
+ providence, not only that the Jews again united in one body, but even that some vestiges of dominion remained in the family of David. For those who returned home submitted, of their own accord, to the authority of Zerubbabel. In this manner, the fragments of the royal scepter<note anchored="yes" id="ix.xiv-p59.1" n="95" place="foot">
+              <p class="Footnote" id="ix.xiv-p60" shownumber="no"> “<span dir="ltr" id="ix.xiv-p60.1" lang="fr">Qui avoit este mis bas, et comme rompu</span>;” — “which had been thrown down, and, as it were, broken.”</p>
+            </note>
+ lasted till the coming of Christ was at hand, agreeably to the prediction of Jacob, “The scepter shall not depart from Judah, nor a lawgiver from between his feet, until Shiloh come,” (<scripRef id="ix.xiv-p60.2" osisRef="Bible:Gen.49.10" parsed="|Gen|49|10|0|0" passage="Ge 49:10">Genesis 49:10</scripRef>.) And even during that wretched and melancholy dispersion, the nation never ceased to be illuminated by some rays of the grace of God. The Greek word
+ <span class="Greek" id="ix.xiv-p60.3" lang="el">μετοικεσία</span>, which the old translator renders <i>transmigration, </i>and Erasmus renders <i>exile, </i>literally signifies <i>a change of habitation. </i>The meaning is, that the Jews were compelled to leave their country, and to dwell as “strangers in a land that was not
+ theirs,” (<scripRef id="ix.xiv-p60.4" osisRef="Bible:Gen.15.13" parsed="|Gen|15|13|0|0" passage="Ge 15:13">Genesis 15:13</scripRef>.)</p>
+        </div>
+        <p id="ix.xiv-p61" shownumber="no">
+          <scripCom id="ix.xiv-p61.1" osisRef="Bible:Matt.1.16" parsed="|Matt|1|16|0|0" passage="Mt 1:16" type="Commentary" />
+        </p>
+        <div class="Commentary" id="ix.xiv-p61.2">
+          <p id="ix.xiv-p62" shownumber="no">
+            <b>16.</b>
+            <i>Jesus, who is called Christ</i> By the surname <i>Christ, Anointed, </i>Matthew points out his office, to inform the readers that this was not a private
+ person, but one divinely <i>anointed </i>to perform the office of Redeemer. What that anointing was, and to what it referred, I shall not now illustrate at great length. As to the word itself, it is only necessary to say that, after the royal authority was abolished, it began to be applied exclusively to Him, from whom they were taught to expect a full recovery of the lost salvation. So long as any splendor of royalty continued in the family of David,
+ the kings were wont to be called <span class="Greek" id="ix.xiv-p62.1" lang="el">χριστοί,</span>
+            <i>anointed.</i>
+            <note anchored="yes" id="ix.xiv-p62.2" n="96" place="foot">
+              <p class="Footnote" id="ix.xiv-p63" shownumber="no">
+                <a id="ix.xiv-p63.1" shape="rect" xml:link="simple" />Every reader of the Bible is familiar with the phrase, <i>the Lord's</i>
+                <i>anointed, </i>as applied to David and his successors, (<scripRef id="ix.xiv-p63.2" osisRef="Bible:2Sam.19.21" parsed="|2Sam|19|21|0|0" passage="2Sa 19:21">2 Samuel 19:21</scripRef>; <scripRef id="ix.xiv-p63.3" osisRef="Bible:Lam.4.20" parsed="|Lam|4|20|0|0" passage="La 4:20">Lamentations 4:20</scripRef>.) — <i>Ed.</i>
+              </p>
+            </note>
+ But that the fearful desolation which followed might not throw the minds of the godly into despair, it pleased God to appropriate the name of <i>Messiah, Anointed, </i>to the Redeemer alone: as is evident from Daniel, (<scripRef id="ix.xiv-p63.4" osisRef="Bible:Dan.9.25-Dan.9.26" parsed="|Dan|9|25|9|26" passage="Da 9:25,26">9:25, 26</scripRef>.) The evangelical history everywhere shows that this was an ordinary
+ way of speaking, at the time when the Son of God was “manifested in the flesh,” (<scripRef id="ix.xiv-p63.5" osisRef="Bible:1Tim.3.16" parsed="|1Tim|3|16|0|0" passage="1Ti 3:16">1 Timothy 3:16</scripRef>.)</p>
+        </div>
+      </div2>
+      <div2 id="ix.xv" n="xv" next="ix.xvi" prev="ix.xiv" progress="22.14%" shorttitle="scripture xv" title="Matthew 1:18-25" type="scripture">
+        <p class="HDG-C-Gr-16-Pref15" id="ix.xv-p1" shownumber="no">MATTHEW 1:18-25</p>
+        <table border="2" id="ix.xv-p1.1">
+          <tr id="ix.xv-p1.2" valign="top">
+            <td colspan="1" id="ix.xv-p1.3" rowspan="1">
+              <p class="TableCaption17" id="ix.xv-p2" shownumber="no">
+                <scripRef id="ix.xv-p2.1" osisRef="Bible:Matt.1.18-Matt.1.25" parsed="|Matt|1|18|1|25" passage="Matthew 1:18-25">Matthew 1:18-25</scripRef>
+              </p>
+            </td>
+          </tr>
+          <tr id="ix.xv-p2.2" valign="top">
+            <td colspan="1" id="ix.xv-p2.3" rowspan="1">
+              <p id="ix.xv-p3" shownumber="no">
+                <b>18</b>.<b> </b>Now the birth of Jesus Christ was in this manner. For when his mother Mary was betrothed to Joseph, before they came together, she was found to be with child by the Holy Spirit. <b>19</b>.<b> </b>And Joseph her husband, as he was a just man, and was unwilling to injure her reputation, intended to send her away secretly. <b>20</b>.<b> </b>And while he was considering these things, lo, the angel of the Lord appeared
+  to him in a dream, saying, Joseph, son of David, fear not to take unto thee Mary thy wife: for that which is conceived in her is by the Holy Spirit. <b>21</b>.<b> </b>And she shall bear a son, and thou shalt call his name JESUS. For he shall save his people from their sins. <b>22</b>.<b> </b>Now all this was done that it might be fulfilled which was spoken by the Lord through the prophet, saying, <b>23</b>.<b> </b>Behold, a virgin shall be with child, and shall bear a son, and
+  they shall call his name Immanuel: which, if one interprets it, means, God is with us. <b>24</b>.<b> </b>Then Joseph, being raised from sleep, did as the angel of the Lord had commanded him, and took unto him his wife: <b>25</b>.<b> </b>And knew her not, till she brought forth her first-born son: and called his name JESUS.</p>
+            </td>
+          </tr>
+        </table>
+        <p id="ix.xv-p4" shownumber="no"> </p>
+        <p id="ix.xv-p5" shownumber="no">
+          <scripCom id="ix.xv-p5.1" osisRef="Bible:Matt.1.18" parsed="|Matt|1|18|0|0" passage="Mt 1:18" type="Commentary" />
+        </p>
+        <div class="Commentary" id="ix.xv-p5.2">
+          <p id="ix.xv-p6" shownumber="no">
+            <b>18.</b>
+            <i> Now the birth of Jesus Christ</i> Matthew does not as yet relate the place or manner of Christ’s birth, but the way in which his heavenly generation was made known to Joseph. First, he says that Mary <i>was found to be with child by the Holy
+ Spirit</i> Not that this secret work of God was generally known: but the historian mixes up, with the knowledge of men,<note anchored="yes" id="ix.xv-p6.1" n="97" place="foot">
+              <p class="Footnote" id="ix.xv-p7" shownumber="no"> (“<span dir="ltr" id="ix.xv-p7.1" lang="fr">Qui voyoyent bien par signes externes que Marie estoit enceinte</span>.”) —(“Who saw well by outward marks that Mary was pregnant.”)</p>
+            </note>
+ the power of the Spirit, which was still unknown. He points out the time: <i>When she was espoused to Joseph, </i>and <i>before they came together</i> So far as respects conjugal fidelity, from the time that a young woman was betrothed to a man, she was
+ regarded by the Jews as his lawful wife. When a “damsel betrothed to an husband” was convicted of being unchaste, the law condemned both of the guilty parties as adulterers:</p>
+          <p class="Center" id="ix.xv-p8" shownumber="no">“the damsel, because she cried not, being in the city; <br />
+ and the man, because he hath humbled his neighbor’s wife,” <br />
+ (<scripRef id="ix.xv-p8.3" osisRef="Bible:Deut.22.23-Deut.22.24" parsed="|Deut|22|23|22|24" passage="De 22:23, 24">Deuteronomy 22:23, 24</scripRef>.)</p>
+          <p id="ix.xv-p9" shownumber="no">The phrase employed by the Evangelist, <i>before they came together, </i>is either a modest appellation for conjugal intercourse, or simply means, “before they came to dwell together as husband and wife, and to make one home and family.” The meaning will thus be, that the virgin had not yet been delivered by her parents
+ into the hands of her husband, but still remained under their roof.</p>
+        </div>
+        <p id="ix.xv-p10" shownumber="no">
+          <scripCom id="ix.xv-p10.1" osisRef="Bible:Matt.1.19" parsed="|Matt|1|19|0|0" passage="Mt 1:19" type="Commentary" />
+        </p>
+        <div class="Commentary" id="ix.xv-p10.2">
+          <p id="ix.xv-p11" shownumber="no">
+            <b>19.</b>
+            <i>As he was a just man</i> Some commentators explain this to mean, that Joseph, <i>because</i> he was a just man, determined to spare his wife:<note anchored="yes" id="ix.xv-p11.1" n="98" place="foot">
+              <p class="Footnote" id="ix.xv-p12" shownumber="no"> “<span dir="ltr" id="ix.xv-p12.1" lang="fr">Que Joseph a voulu pardonner a sa femme, et couvrir la faute, d'autant qu'il estoit juste</span>.” — “That Joseph intended to forgive his wife, and conceal her offense, <i>because he was just.”</i>
+              </p>
+            </note>
+ taking <i>justice </i>to be only another name for humanity, or, a gentle and merciful disposition. But others more correctly read the two clauses as contrasted with each other: that Joseph <i>was a just man, </i>but yet that he was anxious about the reputation of his wife. That justice, on which a commendation is here bestowed, consisted in hatred and abhorrence of crime.
+ Suspecting his wife of adultery, and even convinced that she was an adulterer, he was unwilling to hold out the encouragement of lenity to such a crime.<note anchored="yes" id="ix.xv-p12.2" n="99" place="foot">
+              <p class="Footnote" id="ix.xv-p13" shownumber="no"> “<span dir="ltr" id="ix.xv-p13.1" lang="fr">Il ne vouloit point nourrir le mal en dissimulant et faisant semblant de n'y voir rien</span>.” — “He did not wish to encourage wickedness, by dissembling and pretending that he did not see it.”</p>
+            </note>
+ And certainly he is but a pander<note anchored="yes" id="ix.xv-p13.2" n="100" place="foot">
+              <p class="Footnote" id="ix.xv-p14" shownumber="no"> “<span dir="ltr" id="ix.xv-p14.1" lang="la">Leno</span>;” — “<span dir="ltr" id="ix.xv-p14.2" lang="fr">macquereau</span>.”</p>
+            </note>
+ to his wife, who connives at her unchastity. Not only is such wickedness regarded with abhorrence by good and honorable minds, but that winking at crime which I have mentioned is marked by the laws with infamy.</p>
+          <p id="ix.xv-p15" shownumber="no">Joseph, therefore, moved by an ardent love <i>of justice, </i>condemned the crime of which he supposed his wife to have been guilty; while the gentleness of his disposition prevented him from going to the utmost rigor of law. It was a moderate and calmer method to depart privately, and remove to a distant
+ place.<note anchored="yes" id="ix.xv-p15.1" n="101" place="foot">
+              <p class="Footnote" id="ix.xv-p16" shownumber="no"> “<span dir="ltr" id="ix.xv-p16.1" lang="fr">Le moyen le plus doux et le moins scandaleux estoit, que secretement il departist du lieu, et la laissast sans faire aueun bruit</span>.” — “The mildest and least scandalous method was, that he should depart secretly from the place, and leave her without making any noise.”</p>
+            </note>
+ Hence we infer, that he was not of so soft and effeminate a disposition, as to screen and promote uncleanness under the pretense of merciful dealing: he only made some abatement from stern justice, so as not to expose his wife to evil report. Nor ought we to have any hesitation in believing, that his mind was restrained by a secret inspiration of the Spirit. We know how weak jealousy is, and to what violence it hurries its possessor. Though Joseph did not proceed to
+ rash and headlong conduct, yet he was wonderfully preserved from many imminent dangers, which would have sprung out of his resolution to depart.</p>
+          <p id="ix.xv-p17" shownumber="no">The same remark is applicable to Mary’s silence. Granting that modest reserve prevented her from venturing to tell her husband, that <i>she was with child by the Holy Spirit, </i>it was not so much by her own choice, as by the providence of God that she was restrained. Let us suppose her to have spoken. The nature of
+ the case made it little short of incredible. Joseph would have thought himself ridiculed, and everybody would have treated the matter as a laughing-stock: after which the Divine announcement, if it had followed, would have been of less importance. The Lord permitted his servant Joseph to be betrayed by ignorance into an erroneous conclusion, that, by his own voice, he might bring him back to the right path.</p>
+          <p id="ix.xv-p18" shownumber="no">Yet it is proper for us to know, that this was done more on our account than for his personal advantage: for every necessary method was adopted by God, to prevent unfavorable suspicion from falling on the heavenly message. When the angel approaches Joseph, who is still unacquainted with the whole matter, wicked men have no reason to charge him with being influenced by prejudice to listen to the voice of God. He was not overcome by the
+ insinuating address of his wife. His previously formed opinion was not shaken by entreaties. He was not induced by human arguments to take the opposite side. But, while the groundless accusation of his wife was still rankling in his mind, God interposed between them, that we might regard Joseph as a more competent witness, and possessing greater authority, as a messenger sent to us from heaven. We see how God chose to employ an angel in informing his servant Joseph, that to others he might be a
+ heavenly herald, and that the intelligence which he conveyed might not be borrowed from his wife, or from any mortal.</p>
+          <p id="ix.xv-p19" shownumber="no">The reason why this mystery was not immediately made known to a greater number of persons appears to be this. It was proper that this inestimable treasure should remain concealed, and that the knowledge of it should be imparted to none but the children of God. Nor is it absurd to say, that the Lord intended, as he frequently does, to put the faith and obedience of his own people to the trial. Most certainly, if any man shall maliciously refuse
+ to believe and obey God in this matter, he will have abundant reason to be satisfied with the proofs by which this article of our faith is supported. For the same reason, the Lord permitted Mary to enter into the married state, that under the veil of marriage, till the full time for revealing it, the heavenly conception of the virgin might be concealed. Meanwhile, the knowledge of it was withheld from unbelievers, as their ingratitude and malice deserved.</p>
+        </div>
+        <p id="ix.xv-p20" shownumber="no">
+          <scripCom id="ix.xv-p20.1" osisRef="Bible:Matt.1.20" parsed="|Matt|1|20|0|0" passage="Mt 1:20" type="Commentary" />
+        </p>
+        <div class="Commentary" id="ix.xv-p20.2">
+          <p id="ix.xv-p21" shownumber="no">
+            <b>20.</b>
+            <i>And while he was considering these things</i> We see here how seasonably, and, as we would say, at the very point, the Lord usually aids his people. Hence too we infer that, when he appears not to observe our cares and distresses, we are still under his eye. He may, indeed, hide himself,
+ and remain silent; but, when our patience has been subjected to the trial, he will aid us at the time which his own wisdom has selected. How slow or late soever his assistance may be thought to be, it is for our advantage that it is thus delayed.</p>
+          <p id="ix.xv-p22" shownumber="no">
+            <i>The angel of the Lord appeared to him in a dream</i> This is one of two ordinary kinds of revelations mentioned in the book of Numbers, where the Lord thus speaks:</p>
+          <p class="Center" id="ix.xv-p23" shownumber="no">“If there be a prophet among you, I the Lord will make myself known unto him in a vision, and will speak unto him in a dream. My servant Moses is not so. With him will I speak mouth to mouth, even apparently, and not in dark speechess,” <br />
+ (<scripRef id="ix.xv-p23.2" osisRef="Bible:Num.12.6-Num.12.8" parsed="|Num|12|6|12|8" passage="Nu 12:6-8">Numbers 12:6-8</scripRef>.)</p>
+          <p id="ix.xv-p24" shownumber="no">But we must understand that dreams of this sort differ widely from natural dreams; for they have a character of certainty engraven on them, and are impressed with a divine seal, so that there is not the slightest doubt of their truth. The dreams which men commonly have, arise either from the thoughts of the <i>day, </i>or from their natural temperament, or from bodily indisposition, or from similar causes: while the dreams which come from God are accompanied by the testimony of the Spirit, which puts beyond a doubt that it is God who speaks.</p>
+          <p id="ix.xv-p25" shownumber="no">
+            <i>Son of David, fear not</i> This exhortation shows, that Joseph was perplexed with the fear of sharing in the criminality of his wife, by enduring her adultery. The angel removes his suspicion of guilt, with the view of enabling him to dwell with his wife with a safe conscience. The appellation, <i>Son of David, </i>was employed on the present occasion, in order to elevate his mind to that lofty mystery; for he belonged to that family, and was one of the surviving few,<note anchored="yes" id="ix.xv-p25.1" n="102" place="foot">
+              <p class="Footnote" id="ix.xv-p26" shownumber="no"> “<span dir="ltr" id="ix.xv-p26.1" lang="la">Quia esset ex ea familia, et quidem superstes cum paucis</span>;” — “<span dir="ltr" id="ix.xv-p26.2" lang="fr">d'autant qu'il estoit de cette famille, et mesmes que d'icelle il estoit quasi seul vivant, avec quelques autres en bien petit nombre</span>;” — “because he was of that family, and even of that he was almost sole survivor, with some others in very small number.”</p>
+            </note>
+ from whom the salvation promised to the world could proceed. When he heard the name of <i>David, </i>from whom he was <i>descended, </i>Joseph ought to have remembered that remarkable promise of God which related to the
+ establishment of the kingdom, so as to acknowledge that there was nothing new in what was now told him. The predictions of the prophets were, in effect, brought forward by the angel, to prepare the mind of Joseph for receiving the present favor.</p>
+        </div>
+        <p id="ix.xv-p27" shownumber="no">
+          <scripCom id="ix.xv-p27.1" osisRef="Bible:Matt.1.21" parsed="|Matt|1|21|0|0" passage="Mt 1:21" type="Commentary" />
+        </p>
+        <div class="Commentary" id="ix.xv-p27.2">
+          <p id="ix.xv-p28" shownumber="no">
+            <b>21. </b>
+            <i>And thou shalt call his name</i>
+            <i>JESUS</i>. I have already explained briefly, but as far as was necessary, the meaning of that word. At present I shall only add, that the words of the angel set aside the dream of those who derive it from the essential
+ name of God, Jehovah; for the angel expresses the reason why the Son of God is so called, <i>Because he shall</i>
+            <i>SAVE</i>
+            <i>his people; </i>which suggests quite a different etymology from what they have contrived. It is
+ justly and appropriately added, they tell us, that Christ will be the author of salvation, because he is the Eternal God. But in vain do they attempt to escape by this subterfuge; for the nature of the blessing which God bestows upon us is not all that is here stated. This office was conferred upon his Son from the fact, from the command which had been given to him by the Father, from the office with which he was invested when he came down to us from heaven. Besides, the two words
+ <span class="Greek" id="ix.xv-p28.1" lang="el">᾿Ιησοῦς</span> and <span dir="rtl" id="ix.xv-p28.2" lang="he">יהוה</span>
+            <i>, Jesus </i>and <i>Jehovah, </i>agree but in two letters, and differ in all the rest; which makes it exceedingly absurd to allege any affinity whatever between them, as if they were but one name. Such mixtures I leave
+ to the alchymists, or to those who closely resemble them, the Cabalists who contrive for us those trifling and affected refinements.</p>
+          <p id="ix.xv-p29" shownumber="no">When the Son of God came to us clothed in flesh, he received from the Father a name which plainly told for what purpose he came, what was his power, and what we had a right to expect from him. for the name <i>Jesus</i> is derived from the Hebrew verb, in the Hiphil conjugation, <span dir="rtl" id="ix.xv-p29.1" lang="he">הושיע</span>, which signifies <i>to save</i> In Hebrew it is pronounced differently, <i>Jehoshua; </i>but the Evangelists, who wrote in Greek, followed the customary mode of pronunciation; for in the writings of Moses,
+ and in the other books of the Old Testament, the Hebrew word <span dir="rtl" id="ix.xv-p29.2" lang="he">יהושוע</span>, <i>Jehoshua, </i>or <i>Joshua, </i>is rendered by the Greek translators <span class="Greek" id="ix.xv-p29.3" lang="el">᾿Ιησοῦς</span>, <i>Jesus</i> But I must mention another instance of the ignorance of those who derive — or, I would rather say, who forcibly tear — the name <i>Jesus</i> from <i>Jehovah</i> They hold it to be in the highest degree improper that any mortal man should share this name in common with the Son of God, and make a strange outcry that Christ would never allow his name to be so profaned. As if the reply were not at hand, that the name <i>Jesus</i> was quite as commonly used in those
+ days as the name <i>Joshua</i> Now, as it is sufficiently clear that the name <i>Jesus</i> presents to us the Son of God as the Author of salvation, let us examine more closely the words of the angel.</p>
+          <p id="ix.xv-p30" shownumber="no">
+            <i>He shall save his people from their sins</i> The first truth taught us by these words is, that those whom Christ is sent to save are in themselves lost. But he is expressly called the Savior of the Church. If those whom God admits to fellowship with himself were sunk in death and ruin till they were restored to life by Christ, what shall we
+ say of “strangers” (<scripRef id="ix.xv-p30.1" osisRef="Bible:Eph.2.12" parsed="|Eph|2|12|0|0" passage="Eph 2:12">Ephesians 2:12</scripRef>) who have never been illuminated by the hope of life? When salvation is declared to be shut up in Christ, it clearly implies that the whole human race is devoted to destruction. The cause of this destruction ought also to be observed; for it is not unjustly, or without good reason, that the Heavenly Judge pronounces us to be accursed. The angel
+ declares that we have perished, and are overwhelmed by an awful condemnation, because we stand excluded from life by our sins. Thus we obtain a view of our corruption and depravity; for if any man lived a perfectly holy life, he might do without Christ as a Redeemer. But all to a man need his grace; and, therefore, it follows that they are the slaves of sin, and are destitute of true righteousness.</p>
+          <p id="ix.xv-p31" shownumber="no">Hence, too, we learn in what way or manner Christ saves; he delivers us from sins This deliverance consists of two parts. Having made a complete atonement, he brings us a free pardon, which delivers us from condemnation to death, and reconciles us to God. Again, by the sanctifying influences of his Spirit, he frees us from the tyranny of Satan, that we may live “unto
+ righteousness,” (<scripRef id="ix.xv-p31.1" osisRef="Bible:1Pet.2.24" parsed="|1Pet|2|24|0|0" passage="1Pe 2:24">1 Peter 2:24</scripRef>.) Christ is not truly acknowledged as a Savior, till, on the one hand, we learn to receive a free pardon of our sins, and know that we are accounted righteous before God, because we are free from guilt; and till, on the other hand, we ask from him the Spirit of righteousness and holiness, having no confidence whatever in our own works or power. By Christ’s
+ <i>people</i> the angel unquestionably means the Jews, to whom he was appointed as Head and King; but as the Gentiles were shortly afterwards to be ingrafted into the stock of Abraham, (<scripRef id="ix.xv-p31.2" osisRef="Bible:Rom.11.17" parsed="|Rom|11|17|0|0" passage="Ro 11:17">Romans 11:17</scripRef>,) this promise of <i>salvation</i> is extended indiscriminately to all who are incorporated by faith in the “one body” (<scripRef id="ix.xv-p31.3" osisRef="Bible:1Cor.12.20" parsed="|1Cor|12|20|0|0" passage="1Co 12:20">1 Corinthians 12:20</scripRef>) of the Church.</p>
+        </div>
+        <p id="ix.xv-p32" shownumber="no">
+          <scripCom id="ix.xv-p32.1" osisRef="Bible:Matt.1.22" parsed="|Matt|1|22|0|0" passage="Mt 1:22" type="Commentary" />
+        </p>
+        <div class="Commentary" id="ix.xv-p32.2">
+          <p id="ix.xv-p33" shownumber="no">
+            <b>22. </b>
+            <i>Now all this was done</i> It is ignorant and childish trifling to argue, that the name <i>Jesus</i> is given to the Son of God, because he is called <i>Immanuel</i> For Matthew does not confine this assertion to the single fact of the name, but includes whatever is heavenly and divine in the conception of Christ; and that is the reason why he employs the general term <i>all</i> We must now see how appropriately the prediction of Isaiah is applied. It is a well-known
+ and remarkable passage, (<scripRef id="ix.xv-p33.1" osisRef="Bible:Isa.7.14" parsed="|Isa|7|14|0|0" passage="Isa 7:14">Isaiah 7:14</scripRef>,) but perverted by the Jews with their accustomed malice; though the hatred of Christ and of truth, which they thus discover, is as blind and foolish as it is wicked. To such a pitch of impudence have many of their Rabbins proceeded, as to explain it in reference to King Hezekiah, who was then about fifteen years of age. And what, I ask, must be their
+ rage for lying, when, in order to prevent the admission of clear light, they invert the order of nature, and shut up a youth in his mother’s womb, that he may be born sixteen years old? But the enemies of Christ deserve that God should strike them with a spirit of giddiness and insensibility, should</p>
+          <p class="Center" id="ix.xv-p34" shownumber="no">“pour out upon them a spirit of deep sleep and close their eyes,” <br />
+ (<scripRef id="ix.xv-p34.2" osisRef="Bible:Isa.29.10" parsed="|Isa|29|10|0|0" passage="Isa 29:10">Isaiah 29:10</scripRef>.)</p>
+          <p id="ix.xv-p35" shownumber="no">Others apply it to a creature of their own fancy, some unknown son of Ahaz, whose birth Isaiah predicted. But with what propriety was he called <i>Immanuel, </i>or the land subjected to his sway, who closed his life in a private station and without honor? for shortly afterwards the prophet tells us that this child,
+ whoever he was, would be ruler of the land. Equally absurd is the notion that this passage relates to the prophet’s son. On this subject we may remark, that Christian writers have very strangely misapprehended the prediction contained in the next chapter, by applying it to Christ. The prophet there says, that, instructed by a vision, he “went unto the prophetess; and she conceived, and bare a son,” and that the child whom she bore was named by Divine command, ”Maher-shalal-hash-baz,” “Making
+ speed to the spoil, hasten the prey,” (<scripRef id="ix.xv-p35.1" osisRef="Bible:Isa.8.3" parsed="|Isa|8|3|0|0" passage="Isa 8:3">Isaiah 8:3</scripRef>.) All that is there described is approaching war, accompanied by fearful desolation; which makes it very manifest that the subjects are totally different.</p>
+          <p id="ix.xv-p36" shownumber="no">Let us now, therefore, investigate the true meaning of this passage. The city of Jerusalem is besieged. Ahaz trembles, and is almost dead with terror. The prophet is sent to assure him that God will protect the city. But a simple promise is not sufficient to compose his agitated mind. The prophet is sent to him, saying,</p>
+          <p class="Center" id="ix.xv-p37" shownumber="no">“Ask thee a sign of the Lord thy God; <br />
+ ask it either in the depth, or in the height above,” <br />
+ (<scripRef id="ix.xv-p37.3" osisRef="Bible:Isa.7.11" parsed="|Isa|7|11|0|0" passage="Isa 7:11">Isaiah 7:11</scripRef>.)</p>
+          <p id="ix.xv-p38" shownumber="no">That wicked hypocrite, concealing his unbelief, disdains to ask a sign. The prophet rebukes him sharply, and at length adds,</p>
+          <p class="Center" id="ix.xv-p39" shownumber="no">“The Lord himself shall give you a sign; Behold, a virgin shall conceive, and bear a son, and shall call his name Immanuel,” <br />
+ (<scripRef id="ix.xv-p39.2" osisRef="Bible:Isa.7.14" parsed="|Isa|7|14|0|0" passage="Isa 7:14">Isaiah 7:14</scripRef>.)</p>
+          <p id="ix.xv-p40" shownumber="no">We expound this as relating to Christ in the following manner: “You, the whole posterity of David, as far as lies in your power, endeavor to nullify the grace which is promised to you;” (for the prophet expressly calls them, by way of disgrace, the <i>house of David,</i>
+            <scripRef id="ix.xv-p40.1" osisRef="Bible:Isa.7.13" parsed="|Isa|7|13|0|0" passage="Isa 7:13">Isaiah 7:13</scripRef>;) “but your base infidelity will never prevent the truth of God from
+ proving to be victorious. God promises that the city will be preserved safe and unhurt from its enemies. If his word is not enough, he is ready to give you the confirmation of such a sign as you may demand. You reject both favors, and spurn them from you; but God will remain steady to his engagement. For the promised Redeemer will come, in whom God will show himself to be fully present to his people.”</p>
+          <p id="ix.xv-p41" shownumber="no">The Jews reply, that Isaiah would have been at variance with everything like reason or probability, if he had given to the men of that age a sign, which was not to be exhibited till after the lapse of nearly eight hundred years. And then they assume the airs of haughty triumph,<note anchored="yes" id="ix.xv-p41.1" n="103" place="foot">
+              <p class="Footnote" id="ix.xv-p42" shownumber="no"> “<span dir="ltr" id="ix.xv-p42.1" lang="fr">Faisant grand cas de leur argument</span>;” — “setting great store by their argument.”</p>
+            </note>
+ as if this objection of the Christians had originated in ignorance or thoughtlessness, and were now forgotten and buried. But the solution, I think, is easy; provided we keep in view that a covenant of adoption was given to the Jews, on which the other acts of the divine kindness depended. There was then a general promise, by which God adopted the children of Abraham as a nation, and on which were founded all the special promises. Again, the foundation of this covenant was the
+ Messiah. Now we hold, that the reason for delivering the city was, that it was the sanctuary of God, and out of it the Redeemer would come. But for this, Jerusalem would a hundred times have perished.</p>
+          <p id="ix.xv-p43" shownumber="no">Let pious readers now consider, when the royal family had openly rejected the sign which God had offered to them, if it was not suitable that the prophet should pass all at once to the Messiah, and address them in this manner: “Though this age is unworthy of the deliverance of which God has given me a promise, yet God is mindful of his covenant, and will rescue this city from its enemies. While he grants no particular sign to testify his
+ grace, this one sign ought to be deemed more than sufficient to meet your wishes. from the stock of David the Messiah will arise.” Yet it must be observed that, when the prophet reminds unbelievers of the general covenant, it is a sort of reproof, because they did not accept of a particular sign. I have now, I think, proved that, when the door was shut against every kind of miracle, the prophet made an appropriate transition to Christ, for the purpose of leading unbelievers to reflect, that the
+ only cause of the deliverance was the covenant that had been made with their fathers. And by this remarkable example has God been pleased to testify to all ages, that he followed with uninterrupted kindness the children of Abraham, only because in Christ, and not through their own merits, he had made with them a gracious covenant.</p>
+          <p id="ix.xv-p44" shownumber="no">There is another piece of sophistry by which the Jews endeavor to parry our argument. Immediately after the words in question, the prophet adds:</p>
+          <p class="Center" id="ix.xv-p45" shownumber="no">“Before the child shall know to refuse the evil and choose the good, the land that thou abhorrest shall be forsaken of both her kings,” <br />
+ (<scripRef id="ix.xv-p45.2" osisRef="Bible:Isa.7.16" parsed="|Isa|7|16|0|0" passage="Isa 7:16">Isaiah 7:16</scripRef>.)</p>
+          <p id="ix.xv-p46" shownumber="no">Hence they infer, that the promised birth of the child would be delayed for a very short time; otherwise, it would not agree with the rapidly approaching change of the kingdoms, which, the prophet announeed, would take place before that child should have passed half the period of infancy. I reply, when Isaiah has given a sign of the future Savior, and declared that a child will be born, who is the true <i>Immanuel, </i>or — to use
+ Paul’s language —<i> God manifest in the flesh,</i> (<scripRef id="ix.xv-p46.1" osisRef="Bible:1Tim.3.16" parsed="|1Tim|3|16|0|0" passage="1Ti 3:16">1 Timothy 3:16</scripRef>,) he proceeds to speak, in general terms, of all the children of his own time. A strong proof of this readily presents itself; for, after having spoken of the general promise of God, he returns to the special promise, which he had been commissioned to declare. The former passage, which relates to a final and complete redemption,
+ describes one particular child, to whom alone belongs the name of God; while the latter passage, which relates to a special benefit then close at hand, determines the time by the childhood of those who were recently born, or would be born shortly afterwards.</p>
+          <p id="ix.xv-p47" shownumber="no">Hitherto, if I mistake not, I have refuted, by strong and conclusive arguments, the calumnies of the Jews, by which they endeavor to prevent the glory of Christ from appearing, with resplendent luster, in this prediction. It now remains for us to refute their sophistical reasoning about the Hebrew word <span dir="rtl" id="ix.xv-p47.1" lang="he">עלמה</span>
+            <i>,
+ virgin</i>
+            <note anchored="yes" id="ix.xv-p47.2" n="104" place="foot">
+              <p class="Footnote" id="ix.xv-p48" shownumber="no"> “<span dir="ltr" id="ix.xv-p48.1" lang="fr">Le mot Hebrieu <i>Alma, </i>pour lequel l'Evangeliste a use du mot de Vierge</span>;” — “the Hebrew word <i>Alma, </i>for which the Evangelist has used the word Virgin.”</p>
+            </note>
+ They wantonly persecute Matthew for proving that Christ was born of a virgin,<note anchored="yes" id="ix.xv-p48.2" n="105" place="foot">
+              <p class="Footnote" id="ix.xv-p49" shownumber="no"> “<span dir="ltr" id="ix.xv-p49.1" lang="fr">Le blamant de ce qu'il pretend prouver Jesus Christ estre nay d'une Vierge</span>;” — “blaming him for offering to prove Jesus Christ to be born of a Virgin.”</p>
+            </note>
+ while the Hebrew noun merely signifies <i>a young woman; </i>and ridicule us for being led astray by the wrong translation<note anchored="yes" id="ix.xv-p49.2" n="106" place="foot">
+              <p class="Footnote" id="ix.xv-p50" shownumber="no"> “<span dir="ltr" id="ix.xv-p50.1" lang="fr">Abusez par un mot mal tourne</span>;” — “deceived by a word ill translated.”</p>
+            </note>
+ of a word, to believe that he was born by the Holy Spirit, of whom the prophet asserts no more than that he would be the son of a young woman. And, first, they display an excessive eagerness for disputation, by laboring<note anchored="yes" id="ix.xv-p50.2" n="107" place="foot">
+              <p class="Footnote" id="ix.xv-p51" shownumber="no"> “<span dir="ltr" id="ix.xv-p51.1" lang="la">Urgent</span>;” — “<span dir="ltr" id="ix.xv-p51.2" lang="fr">ils veulent a toute force</span>;” — “they attempt with their whole strength.”</p>
+            </note>
+ to prove that a word, which is uniformly applied in Scripture to <i>virgins, </i>denotes here a young woman who had known a man. The etymology too agrees with Matthew’s translation of the word: for it means <i>hiding,</i>
+            <note anchored="yes" id="ix.xv-p51.3" n="108" place="foot">
+              <p class="Footnote" id="ix.xv-p52" shownumber="no">
+                <span dir="rtl" id="ix.xv-p52.1" lang="he">עלמה</span> is derived from <span dir="rtl" id="ix.xv-p52.2" lang="he">עלם</span>, <i>to hide,</i>—<i>a </i>verb not found in Kal, but so frequently in Niphal, (<span dir="rtl" id="ix.xv-p52.3" lang="he">נעלם</span>,) Hiphil, (<span dir="rtl" id="ix.xv-p52.4" lang="he">העלים</span>,) Hithpahel, (<span dir="rtl" id="ix.xv-p52.5" lang="he">התעלם</span>,) that its meaning is fully ascertained. — <i>Ed.</i>
+              </p>
+            </note>
+ which expresses the modesty that becomes a virgin.<note anchored="yes" id="ix.xv-p52.6" n="109" place="foot">
+              <p class="Footnote" id="ix.xv-p53" shownumber="no"> “<span dir="ltr" id="ix.xv-p53.1" lang="fr">Car il emporte Retraitte ou Cachette, qui est pour denoter ceste honte honeste qui doit estre es vierges</span>;” — “for it signifies Retreat or Concealment, which serves to denote that becoming shame which ought to be in virgins.”</p>
+            </note>
+ They produce a passage from the book of Proverbs, “the way of a man with a maids,” <span dir="rtl" id="ix.xv-p53.2" lang="he">בעלמה</span>, (<scripRef id="ix.xv-p53.3" osisRef="Bible:Prov.30.19" parsed="|Prov|30|19|0|0" passage="Pr 30:19">Proverbs 30:19</scripRef>.) But it does not at all support their views. Solomon speaks there of a young woman who has obtained the affections of a
+ young man: but it does not follow as a matter of course, that the young man has seduced the object of his regard; or rather, the probability leans much more strongly to the other side.<note anchored="yes" id="ix.xv-p53.4" n="110" place="foot">
+              <p class="Footnote" id="ix.xv-p54" shownumber="no"> “<span dir="ltr" id="ix.xv-p54.1" lang="fr">C'est bien autrement: car il y a plus d'apparence au contraire</span>;”— “it is quite otherwise: for there is more probability on the opposite side.</p>
+            </note>
+          </p>
+          <p id="ix.xv-p55" shownumber="no">But granting all that they ask as to the meaning of the word, the subject demonstrates, and compels the acknowledgment, that the prophet is speaking of a miraculous and extraordinary birth. He exclaims that he is bringing a sign from the Lord, and not an ordinary sign, but one superior to every other.</p>
+          <p class="Center" id="ix.xv-p56" shownumber="no">The Lord himself shall give you a sign. <br />
+ Behold, a virgin shall conceive, <br />
+ (<scripRef id="ix.xv-p56.3" osisRef="Bible:Isa.7.14" parsed="|Isa|7|14|0|0" passage="Isa 7:14">Isaiah 7:14</scripRef>.)</p>
+          <p id="ix.xv-p57" shownumber="no">If he were only to say, that a woman would bear a child, how ridiculous would that magnificent preface have been? Thus we see, that the insolence of the Jews exposes not only themselves, but the sacred mysteries of God, to scorn.</p>
+          <p id="ix.xv-p58" shownumber="no">Besides, a powerful argument may be drawn from the whole strain of the passage. <i>Behold, a virgin shall conceive</i> Why is no mention made of a man? It is because the prophet draws our attention to something very uncommon. Again, the virgin is commanded to name the child. <i>Thou shalt call his name Immanuel</i> In this respect, also, the prophet expresses something extraordinary: for, though it is frequently related in Scripture, that the names were given to children by their mothers, yet it was done by the authority of the fathers. When the prophet addresses his discourse to the virgin, he takes away from men, in respect to this child, that authority which is conferred upon them by the order
+ of nature. Let this, therefore, be regarded as an established truth, that the prophet here refers to a remarkable miracle of God, and recommends it to the attentive and devout consideration of all the godly, — a miracle which is basely profaned by the Jews, who apply to the ordinary method of conception what is said in reference to the secret power of the Spirit.</p>
+        </div>
+        <p id="ix.xv-p59" shownumber="no">
+          <scripCom id="ix.xv-p59.1" osisRef="Bible:Matt.1.23" parsed="|Matt|1|23|0|0" passage="Mt 1:23" type="Commentary" />
+        </p>
+        <div class="Commentary" id="ix.xv-p59.2">
+          <p id="ix.xv-p60" shownumber="no">
+            <b>23. </b>
+            <i>His name Immanuel</i> The phrase, <i>God is with us, </i>is no doubt frequently employed in Scripture to denote, that he is present with us by his assistance and grace, and displays the power of his hand
+ in our defense. But here we are instructed as to the <i>manner</i> in which God communicates with men. For out of Christ we are alienated from him; but through Christ we are not only received into his favor, but are made one with him. When Paul says, that the Jews under the law <i>were nigh</i> to God, (<scripRef id="ix.xv-p60.1" osisRef="Bible:Eph.2.17" parsed="|Eph|2|17|0|0" passage="Eph 2:17">Ephesians 2:17</scripRef>,) and that a deadly <i>enmity</i> (<scripRef id="ix.xv-p60.2" osisRef="Bible:Eph.2.15" parsed="|Eph|2|15|0|0" passage="Eph 2:15">Ephesians 2:15</scripRef>) subsisted between him and the Gentiles, he means only that, by shadows and figures, God then gave to the people whom he had adopted the tokens of his presence. That promise was
+ still in force, “The Lord thy God is among you,” (<scripRef id="ix.xv-p60.3" osisRef="Bible:Deut.7.21" parsed="|Deut|7|21|0|0" passage="De 7:21">Deuteronomy 7:21</scripRef>,) and, “This is my rest for ever,” (<scripRef id="ix.xv-p60.4" osisRef="Bible:Ps.132.14" parsed="|Ps|132|14|0|0" passage="Ps 132:14">Psalm 132:14</scripRef>.) But while the familiar intercourse between God and the people depended on a Mediator, what had not yet fully taken place was shadowed out by symbols. His seat
+ and residence is placed “between the Cherubim,” (<scripRef id="ix.xv-p60.5" osisRef="Bible:Ps.80.1" parsed="|Ps|80|1|0|0" passage="Ps 80:1">Psalm 80:1</scripRef>,) because the ark was the figure and visible pledge of his glory.</p>
+          <p id="ix.xv-p61" shownumber="no">But in Christ the actual presence of God with his people, and not, as before, his shadowy presence, has been exhibited.<note anchored="yes" id="ix.xv-p61.1" n="111" place="foot">
+              <p class="Footnote" id="ix.xv-p62" shownumber="no"> “<span dir="ltr" id="ix.xv-p62.1" lang="fr">Mais quand Christ est apparu en sa personne, le peuple a eu une presence de Dieu veritable, et non pas ombratile comme paravant</span>.”— “But when Christ appeared in his person, the people had a real presence of God, and not shadowy, as before.”</p>
+            </note>
+ This is the reason, why Paul says, that “in him dwelleth all the fullness of the Godhead bodily,” (<scripRef id="ix.xv-p62.2" osisRef="Bible:Col.2.9" parsed="|Col|2|9|0|0" passage="Col 2:9">Colossians 2:9</scripRef>.) And certainly he would not be a properly qualified Mediator, if he did not unite both natures in his person, and thus bring men into an alliance with God. Nor is there any force in the objection, about which the Jews make a good deal of noise, that the name of God is frequently
+ applied to those memorials, by which he testified that he was present with believers.</p>
+          <p id="ix.xv-p63" shownumber="no">For it cannot be denied, that this name, <i>Immanuel, </i>contains an implied contrast between the presence of God, as exhibited in Christ, with every other kind of presence, which was manifested to the ancient people before his coming. If the reason of this name began to be actually true, when Christ appeared in the
+ flesh, it follows that it was not completely, but only in part, that God was formerly united with the Fathers.</p>
+          <p id="ix.xv-p64" shownumber="no">Hence arises another proof, that Christ is <i>God manifested in the flesh,</i> (<scripRef id="ix.xv-p64.1" osisRef="Bible:1Tim.3.16" parsed="|1Tim|3|16|0|0" passage="1Ti 3:16">1 Timothy 3:16</scripRef>.) He discharged, indeed, the office of Mediator from the beginning of the world; but as this depended wholly on the latest revelation, he is justly called
+ Immanuel at that time, when clothed, as it were, with a new character, he appears in public as a Priest, to atone for the sins of men by the sacrifice of his body, to reconcile them to the Father by the price of his blood, and, in a word, to fulfill every part of the salvation of men.<note anchored="yes" id="ix.xv-p64.2" n="112" place="foot">
+              <p class="Footnote" id="ix.xv-p65" shownumber="no"> “<span dir="ltr" id="ix.xv-p65.1" lang="fr">Somme, pour faire et accomplir toutes choses requises au salut du genre humain</span>;” — “in a word, to do and accomplish all things requisite for the salvation of the human race.”</p>
+            </note>
+ The first thing which we ought to consider in this name is the divine majesty of Christ, so as to yield to him the reverence which is due to the only and eternal God. But we must not, at the same time, forget the fruit which God intended that we should collect and receive from this name. For whenever we contemplate the one person of Christ as God-man, we ought to hold it for certain that, if we are united to Christ by faith, we possess
+ God.</p>
+          <p id="ix.xv-p66" shownumber="no">In the words, <i>they shall call, </i>there is a change of the number. But this is not at all at variance with what I have already said. True, the prophet addresses the virgin alone, and therefore uses the second person, <i>Thou shalt call</i> But from the time that this name was published, all the godly have an equal right to make this confession, that God has given himself to us to be enjoyed in Christ.<note anchored="yes" id="ix.xv-p66.1" n="113" place="foot">
+              <p class="Footnote" id="ix.xv-p67" shownumber="no"> “<span dir="ltr" id="ix.xv-p67.1" lang="fr">Il appartient a tous fideles d'advouer et confesser que Dieu s'est communique et baille a nous en Christ</span>;” — “it belongs to all believers to own and confess that God has communicated and made over himself to us in Christ.”</p>
+            </note>
+          </p>
+        </div>
+        <p id="ix.xv-p68" shownumber="no">
+          <scripCom id="ix.xv-p68.1" osisRef="Bible:Matt.1.24" parsed="|Matt|1|24|0|0" passage="Mt 1:24" type="Commentary" />
+        </p>
+        <div class="Commentary" id="ix.xv-p68.2">
+          <p id="ix.xv-p69" shownumber="no">
+            <b>24. </b>
+            <i>Joseph, being raised from sleep</i> The ready performance, which is here described, serves not less to attest the certainty of Joseph’s faith, than to commend his obedience. For, if every scruple had not been removed, and his conscience fully pacified, he would never have proceeded so cheerfully, on a sudden
+ change of opinion, <i>to take unto him his wife, </i>whose society, he lately thought, would pollute him.<note anchored="yes" id="ix.xv-p69.1" n="114" place="foot">
+              <p class="Footnote" id="ix.xv-p70" shownumber="no"> “<span dir="ltr" id="ix.xv-p70.1" lang="fr">Laquelle un peu auparavant il ne vouloit recevoir, et lui sembloit qu'il se fust pollue en conversant avec elle</span>;” — “whom a little before he refused to receive, and seemed to him that he would be polluted by conversing with her.”</p>
+            </note>
+ The dream must have carried some mark of Divinity, which did not allow his mind to hesitate. Next followed the effect of faith. Having learned the will of God, he instantly prepared himself to obey.</p>
+        </div>
+        <p id="ix.xv-p71" shownumber="no">
+          <scripCom id="ix.xv-p71.1" osisRef="Bible:Matt.1.25" parsed="|Matt|1|25|0|0" passage="Mt 1:25" type="Commentary" />
+        </p>
+        <div class="Commentary" id="ix.xv-p71.2">
+          <p id="ix.xv-p72" shownumber="no">
+            <a id="ix.xv-p72.1" shape="rect" xml:link="simple" />
+            <b>25. </b>
+            <i>And knew her not</i> This passage afforded the pretext for great disturbances, which were introduced into the Church, at a former period, by Helvidius. The inference he drew from it was, that Mary remained a virgin no longer than till her first birth, and that afterwards she had other
+ children by her husband. Jerome, on the other hand, earnestly and copiously defended Mary’s perpetual virginity. Let us rest satisfied with this, that no just and well-grounded inference can be drawn from these words of the Evangelist, as to what took place after the birth of Christ. He is called <i>first-born; </i>but it is for the sole purpose of informing us that he was born of a
+ virgin.<note anchored="yes" id="ix.xv-p72.2" n="115" place="foot">
+              <p class="Footnote" id="ix.xv-p73" shownumber="no"> “<span dir="ltr" id="ix.xv-p73.1" lang="fr">Il est nomme <i>Premier nay, </i>mais non pour autre raison, sinon afin que nous sachions qu'il est nay d'une mere vierge, et qui jamais n'avoit eu enfant</span>;” — “he is called <i>First-born, </i>but for no other reason
+  than that we may know that he was born of a pure virgin, and who never had had a child.”</p>
+            </note>
+ It is said that Joseph <i>knew her not till she had brought forth her first-born son: </i>but this is limited to that very time. What took place afterwards, the historian does not inform us. Such is well known to have been the practice of the inspired writers. Certainly, no man will ever raise a question on this subject, except from
+ curiosity; and no man will obstinately keep up the argument, except from an extreme fondness for disputation.</p>
+        </div>
+      </div2>
+    </div1>
+  </ThML.body>
+</ThML>

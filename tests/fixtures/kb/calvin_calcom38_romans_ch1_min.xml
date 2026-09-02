@@ -1,0 +1,620 @@
+<?xml version='1.0' encoding='utf-8'?>
+<ThML>
+  <ThML.head>
+    <generalInfo>
+      <description>Calvin's first commentary,
+<i>Commentary on Romans</i> is an impressive commentary,
+containing some of Calvin's most important views. Calvin
+is regarded as one of the Reformation's best interpreters
+of scripture. He frequently offers his own translations of a passage,
+explaining the subtleties and nuances of his translation. He has a
+penchant for incorporating keen pastoral insight into the text as well.
+He always interacts with other theologians, commentators, and portions
+of the Bible when interpreting a particular passage. Further, this
+volume also contains informative notes from the editor. <i>Commentary on
+Romans</i> should not be ignored by anyone interested in the book of
+Romans
+or John Calvin himself. <br />
+        <br />Tim Perrine.<br /> CCEL Staff Writer
+</description>
+      <firstPublished />
+      <pubHistory />
+      <comments />
+    </generalInfo>
+    <printSourceInfo>
+      <published />
+      <copyLocation />
+      <image type="front" href="" />
+      <image type="spine" href="" />
+    </printSourceInfo>
+    <electronicEdInfo>
+      <publisherID>ccel</publisherID>
+      <authorID>calvin</authorID>
+      <bookID>calcom38</bookID>
+      <workID>calcom38</workID>
+      <bkgID>commentary_on_romans_(calvin)</bkgID>
+      <version>1.02</version>
+      <series />
+      <editorialComments> Initial scanning produced mostly American spelling..1.0 sg - initial XML insertions; 1.01 fj additional anchors, scripRef verification, Foreign language [Latin/French] XML inserted, proofread without a source text.</editorialComments>
+      <revisionHistory>v0.99. Update for DTD 0.99. Main change: use DC record instead of MARC. Significant changes to the head section.v0.98. Update for DTD 0.98; delete some unneeded head elements; italicize Citation style</revisionHistory>
+      <status />
+      <DC>
+        <DC.Title sub="Main">Commentary on Romans</DC.Title>
+        <DC.Title sub="authTitle">Calvin's Commentaries</DC.Title>
+        <DC.Title sub="short">Comm on Romans</DC.Title>
+        <DC.Creator sub="Author" scheme="ccel" />
+        <DC.Creator sub="Author" scheme="file-as">Calvin, John (1509-1564)</DC.Creator>
+        <DC.Creator sub="Author" scheme="short-form">John Calvin</DC.Creator>
+        <DC.Creator sub="Alternative" scheme="ccel" />
+        <DC.Creator sub="Alternative" scheme="file-as" />
+        <DC.Creator sub="Alternative" scheme="short-form">Jean Calvin</DC.Creator>
+        <DC.Creator sub="Translator" scheme="ccel" />
+        <DC.Creator sub="Translator" scheme="file-as" />
+        <DC.Creator sub="Translator" scheme="short-form">Owen, Rev. John</DC.Creator>
+        <DC.Creator scheme="short-form">John Calvin, 1509-1564</DC.Creator>
+        <DC.Subject scheme="CCEL">All; Bible; </DC.Subject>
+        <DC.Subject scheme="LCCN">BS491</DC.Subject>
+        <DC.Subject scheme="lcsh1">The Bible</DC.Subject>
+        <DC.Subject scheme="lcsh2">Works about the Bible</DC.Subject>
+        <DC.Subject scheme="LCSH" />
+        <DC.Description />
+        <DC.Publisher>Grand Rapids, MI: Christian Classics Ethereal Library</DC.Publisher>
+        <DC.Publisher sub="Address">ccel@ccel.org</DC.Publisher>
+        <DC.Publisher scheme="CCEL">CCEL</DC.Publisher>
+        <DC.Contributor sub="Transcriber" scheme="CCEL">Ages</DC.Contributor>
+        <DC.Contributor sub="Markup" scheme="CCEL">sg, fj</DC.Contributor>
+        <DC.Date sub="Created" scheme="ISO8601">1999-11-23</DC.Date>
+        <DC.Type>Text.Commentary</DC.Type>
+        <DC.Format scheme="IMT">text/html</DC.Format>
+        <DC.Identifier scheme="CCEL" />
+        <DC.Identifier />
+        <DC.Subject scheme="LCCS" />
+        <DC.Subject scheme="DDC" />
+        <DC.Source sub="ElectronicEdition" />
+        <DC.Source sub="ElectronicEdition" scheme="URL" />
+        <DC.Source sub="Etext" />
+        <DC.Source sub="Etext" scheme="URL" />
+        <DC.Source sub="Print" />
+        <DC.Language scheme="ISO639-3">eng</DC.Language>
+        <DC.Relation />
+        <DC.Coverage />
+        <DC.Identifier scheme="URL">/ccel/calvin/calcom38.html</DC.Identifier>
+        <DC.Rights>Public Domain</DC.Rights>
+      </DC>
+      <comments />
+    </electronicEdInfo>
+    <link rel="stylesheet" type="text/css" href="/css/ThML099.css" />
+  </ThML.head>
+  <ThML.body>
+    <div1 type="chapter" title="Chapter 1" n="v" shorttitle="chapter v" progress="4.39%" prev="iv" next="v.i" id="v">
+      <scripCom type="Commentary" passage="Romans 1" id="v-p0.1" parsed="|Rom|1|0|0|0" osisRef="Bible:Rom.1" />
+      <p class="3rdLevelAllCap12Bld17" id="v-p1">COMMENTARIES ON THE</p>
+      <p class="HDG-C-Gr-16-Pref16" id="v-p2">EPISTLE OF ST. PAUL TO THE ROMANS.</p>
+      <p class="BOOK-CHAP-BLU-24-CEN11" id="v-p3">CHAPTER 1</p>
+      <div2 type="scripture" title="Romans 1:1-7" n="i" shorttitle="scripture i" progress="4.39%" prev="v" next="v.ii" id="v.i">
+        <table border="2" id="v.i-p0.1">
+          <tr valign="top" id="v.i-p0.2">
+            <td id="v.i-p0.3">
+              <p class="TableCaption19" id="v.i-p1">
+                <scripRef passage="Romans 1:1-7" id="v.i-p1.1" parsed="|Rom|1|1|1|7" osisRef="Bible:Rom.1.1-Rom.1.7">Romans 1:1-7</scripRef>
+              </p>
+            </td>
+          </tr>
+          <tr valign="top" id="v.i-p1.2">
+            <td id="v.i-p1.3">
+              <p id="v.i-p2">
+                <b>1.</b> Paul, a servant of Jesus Christ, called <i>to be</i> an apostle, separated unto the gospel of God,</p>
+            </td>
+            <td id="v.i-p2.1">
+              <p id="v.i-p3">
+                <b>1.</b> Paulus, servus Iesu Christi, vocatus Apostolus, selectus in Evangelium Dei,</p>
+            </td>
+          </tr>
+          <tr valign="top" id="v.i-p3.1">
+            <td id="v.i-p3.2">
+              <p id="v.i-p4">
+                <b>2.</b> (Which he had promised afore by his prophets in the holy scriptures,)</p>
+            </td>
+            <td id="v.i-p4.1">
+              <p id="v.i-p5">
+                <b>2.</b> Quod ante promiserat per Prophetas suos in Scripturis Sanctis,</p>
+            </td>
+          </tr>
+          <tr valign="top" id="v.i-p5.1">
+            <td id="v.i-p5.2">
+              <p id="v.i-p6">
+                <b>3.</b> Concerning his Son Jesus Christ our Lord, which was made of the seed of David according to the flesh;</p>
+            </td>
+            <td id="v.i-p6.1">
+              <p id="v.i-p7">
+                <b>3.</b> De Filio suo, qui factus est è semine David secundum carnem,</p>
+            </td>
+          </tr>
+          <tr valign="top" id="v.i-p7.1">
+            <td id="v.i-p7.2">
+              <p id="v.i-p8">
+                <b>4.</b> And declared <i>to be</i> the Son of God with power, according to the spirit of holiness, by the resurrection from the dead:</p>
+            </td>
+            <td id="v.i-p8.1">
+              <p id="v.i-p9">
+                <b>4.</b> Declaratus Filius Dei in potentia, per Spiritum sanctificationis, ex resurrectione mortuorum, Iesu Christo Domino nostro:</p>
+            </td>
+          </tr>
+          <tr valign="top" id="v.i-p9.1">
+            <td id="v.i-p9.2">
+              <p id="v.i-p10">
+                <b>5.</b> By whom we have received grace and apostleship, for obedience to the faith among all nations, for his name:</p>
+            </td>
+            <td id="v.i-p10.1">
+              <p id="v.i-p11">
+                <b>5.</b> Per quem accepimus gratiam et Apostolatum, in obedientiam fidei inter omnes gentes, pro nomine ipsius;</p>
+            </td>
+          </tr>
+          <tr valign="top" id="v.i-p11.1">
+            <td id="v.i-p11.2">
+              <p id="v.i-p12">
+                <b>6.</b> Among whom are ye also the called of Jesus Christ:</p>
+            </td>
+            <td id="v.i-p12.1">
+              <p id="v.i-p13">
+                <b>6.</b> Inter quas estis etiam vos, vocati Iesu Christi:</p>
+            </td>
+          </tr>
+          <tr valign="top" id="v.i-p13.1">
+            <td id="v.i-p13.2">
+              <p id="v.i-p14">
+                <b>7.</b> To all that be in Rome, beloved of God, called <i>to be</i> saints: Grace to you and peace from God our Father, and the Lord Jesus Christ.</p>
+            </td>
+            <td id="v.i-p14.1">
+              <p id="v.i-p15">
+                <b>7.</b> Omnibus qui Romæ estis, dilectis Deo, vocatis sanctis: gratia vobis, et pax a Deo Patre nostro, et Domino Iesu Christo.</p>
+            </td>
+          </tr>
+        </table>
+      </div2>
+      <div2 title="Romans 1:1" n="ii" shorttitle="" progress="4.50%" prev="v.i" next="v.iii" id="v.ii">
+        <p id="v.ii-p1">
+          <scripCom type="Commentary" passage="Ro 1:1" id="v.ii-p1.1" parsed="|Rom|1|1|0|0" osisRef="Bible:Rom.1.1" />
+        </p>
+        <div class="Commentary" id="Bible:Rom.1.1">
+          <p id="v.ii-p2">
+            <b>1.</b>
+            <i>Paul, etc.</i>
+            <note place="foot" n="11" id="v.ii-p2.1">
+              <p class="Super" id="v.ii-p3"> “The inscription of the Pauline Epistles,” says <name id="v.ii-p3.1">Turrettin</name>, “is according to the manner of the ancients, both Greeks and Romans. They were wont to prefix their name; and to those to whom they wrote they added their good wishes.” We have an example in <scripRef passage="Ac 23:26" id="v.ii-p3.2" parsed="|Acts|23|26|0|0" osisRef="Bible:Acts.23.26">Acts 23:26</scripRef>. — <i>Ed.</i>
+              </p>
+            </note>
+			  — With regard to the word Paul, as it is a subject of no such moment as ought to detain us, and as nothing can be said which has not been mentioned by other expounders, I should say nothing, were it not proper to satisfy some at small expense without being tedious to others; for the subject shall be despatched in a very few words.</p>
+          <p id="v.ii-p4">They who think that the Apostle attained this name as a trophy for having brought Sergius, the proconsul, to the faith of Christ, are confuted by the testimony of Luke, who shows that he was so called before that time. (<scripRef passage="Ac 13:7, 9" id="v.ii-p4.1" parsed="|Acts|13|7|0|0;|Acts|13|9|0|0" osisRef="Bible:Acts.13.7 Bible:Acts.13.9">Acts 13:7, 9</scripRef>.) Nor does it seem probable to me, that it was given him when he was converted to Christ; though this idea so pleased
+			 <name id="v.ii-p4.2">Augustine</name>, that he took occasion refinedly to philosophize on the subject; for he says, that from a proud Saul he was made a very little (<span lang="la" dir="ltr" id="v.ii-p4.3">
+              <i>parvulum</i>
+            </span>
+            <note place="foot" n="12" id="v.ii-p4.4">
+              <p class="Super" id="v.ii-p5"> Thereby expressing the meaning of Paulus, which in Latin is little. “Paul,” says the quaint <name id="v.ii-p5.1">Elnathan Parr</name>, “as signifies little, and indeed not unfitly, for he is reported to have been low in stature, and to have had a very small voice,” which is thought to have been objected to him in <scripRef passage="2Co 10:10" id="v.ii-p5.2" parsed="|2Cor|10|10|0|0" osisRef="Bible:2Cor.10.10">2 Corinthians 10:10</scripRef> — <i>Ed.</i>
+              </p>
+            </note>
+			 ) disciple of Christ. More probable is the opinion of <name id="v.ii-p5.3">Origen</name>, who thought that he had two names; for it is not unlikely to be true, that his name, Saul, derived from his kindred, was given him by his parents to indicate his religion and his descent; and that his other name, Paul, was added, to show his right to Roman citizenship;
+			 <note place="foot" n="13" id="v.ii-p5.4">
+              <p class="Super" id="v.ii-p6"> Most writers agree in this view, regarding <i>Saul</i> as his Hebrew name and <i>Paul</i> as his Roman name. — <i>Ed.</i>
+              </p>
+            </note>
+			 they would not have this honor, then highly valued, to be otherwise than made evident; but they did not so much value it as to withhold a proof of his Israelitic descent. But he has commonly taken the name Paul in his Epistles, and it may be for the following reasons: because in the churches to which he wrote, it was more known and more common, more acceptable in the Roman empire, and less known among his own nation. It was indeed his duty to avoid the foolish suspicion and hatred
+			 under which the name of a Jew then labored among the Romans and in their provinces, and to abstain from inflaming the rage of his own countrymen, and to take care of himself.</p>
+          <p id="v.ii-p7">
+            <i>A servant of Jesus Christ, etc.</i> — He signalizes himself with these distinctions for the purpose of securing more authority to his doctrine; and this he seeks to secure by two things — first, by asserting his call to the Apostleship;
+			 <note place="foot" n="14" id="v.ii-p7.1">
+              <p class="Super" id="v.ii-p8"> “A called Apostle — <span lang="la" dir="ltr" id="v.ii-p8.1">vocatus apostolus</span> — κλητὸς απόστολος;” our version is, “called <i>to be</i> an Apostle”. Most consider “called” here in the sense of chosen or elected, “a chosen Apostle.” Professor <name id="v.ii-p8.2">Stuart</name> observes, that κλητὸς in the writings of Paul has always the meaning of efficient calling, and signifies not only the invited, but the effectually invited. He refers to <scripRef passage="1Co 1:1, 2, 24; Ro 1:6, 7; 8:28" id="v.ii-p8.3" parsed="|1Cor|1|1|0|0;|1Cor|1|2|0|0;|1Cor|1|24|0|0;|Rom|1|6|0|0;|Rom|1|7|0|0;|Rom|8|28|0|0" osisRef="Bible:1Cor.1.1 Bible:1Cor.1.2 Bible:1Cor.1.24 Bible:Rom.1.6 Bible:Rom.1.7 Bible:Rom.8.28">1
+				  Corinthians 1:1, 2; 1 Corinthians 1:24; Romans 1:6, 7; Romans 8:28</scripRef>; compared with <scripRef passage="Ga 1:15; Jude 1:1 Heb 3:1; Ro 11:29; Eph 4:1" id="v.ii-p8.4" parsed="|Gal|1|15|0|0;|Jude|1|1|0|0;|Heb|3|1|0|0;|Rom|11|29|0|0;|Eph|4|1|0|0" osisRef="Bible:Gal.1.15 Bible:Jude.1.1 Bible:Heb.3.1 Bible:Rom.11.29 Bible:Eph.4.1">Galatians 1:15; Jude 1:1; Hebrews 3:1; Romans 11:29; Ephesians 4:1</scripRef>
+              </p>
+              <p class="Super" id="v.ii-p9">He was an Apostle by a call, or as <name id="v.ii-p9.1">Beza</name> renders it, “by the call <i>of God</i> — <span lang="la" dir="ltr" id="v.ii-p9.2">ex <i>Dei</i> vocatione apostolus</span>.” The meaning is the same as what he himself expresses it in <scripRef passage="Ga 1:1" id="v.ii-p9.3" parsed="|Gal|1|1|0|0" osisRef="Bible:Gal.1.1">Galatians 1:1</scripRef>. <name id="v.ii-p9.4">Turrettin</name> renders it, “<span lang="la" dir="ltr" id="v.ii-p9.5">Apostolus vocatione divina</span> — an Apostle by divine vocation.”</p>
+              <p class="Super" id="v.ii-p10">The difference between “a called Apostle” and “called to be an Apostle,” is this, that the first conveys the idea that he obeyed the call, and the other does not. — <i>Ed.</i>
+              </p>
+            </note>
+			  and secondly, by showing that his call was not unconnected with the Church of Rome: for it was of great importance that he should be deemed an Apostle through God’s call, and that he should be known as one destined for the Roman Church. He therefore says, that he was a <i>servant</i> of Christ, and called to the office of an Apostle, thereby intimating that he had not
+			 presumptuously intruded into that office. He then adds, that he was <i>chosen</i>, (<span lang="la" dir="ltr" id="v.ii-p10.1">selectum</span> — selected,
+			 <note place="foot" n="15" id="v.ii-p10.2">
+              <p class="Super" id="v.ii-p11"> Αφωρισμένος separated, set apart; “<span lang="la" dir="ltr" id="v.ii-p11.1">segregatus</span>,” <i>Vulgate</i>; “<span lang="la" dir="ltr" id="v.ii-p11.2">separatus</span>, <name id="v.ii-p11.3">Beza</name>. “The Pharisees,” says <name id="v.ii-p11.4">Leigh</name>, “were termed ἀφωρισμένος we may English them <i>Separatists:</i> they separated themselves to the study of the law, in which respect they might be called ἀφωρισμένος εἰς τὸν νόμον, separated to the law. In allusion to this, saith <name id="v.ii-p11.5">Drusius</name>, the Apostle is thought to have styled himself, <scripRef passage="Ro 1:1" id="v.ii-p11.6" parsed="|Rom|1|1|0|0" osisRef="Bible:Rom.1.1">Romans 1:1</scripRef>, ἀφωρισμένον εἰς ἐυαγγέλιον, separated unto the Gospel, when he was called from being a Pharisee to be a preacher of the Gospel.” <i>Separated</i> is the word adopted both by <name id="v.ii-p11.7">Doddridge</name> and <name id="v.ii-p11.8">Macknight</name>, as well as by our own version. — <i>Ed.</i>
+              </p>
+            </note>
+			 ) by which he more fully confirms the fact, that he was not one of the people, but a particular Apostle of the Lord. Consistently with this, he had before proceeded from what was general to what was particular, as the Apostleship was an especial service; for all who sustain the office of teaching are to be deemed Christ’s servants, but Apostles, in point of honor, far exceed all others. But the <i>choosing</i> for the
+			 gospel, etc., which he afterwards mentions, expresses the end as well as the use of the Apostleship; for he intended briefly to show for what purpose he was called to that function. By saying then that he was servant of Christ, he declared what he had in common with other teachers; by claiming to himself the title of an Apostle, he put himself before others; but as no authority is due to him who willfully intrudes himself, he reminds us, that he was appointed by God.</p>
+          <p class="Super" id="v.ii-p12">Then the meaning is, — that Paul was a servant of Christ, not any kind of servant, but an Apostle, and that by the call of God, and not by presumptuous intrusion: then follows a clearer explanation of the Apostolic office, — it was ordained for the preaching of the Gospel. For I cannot agree with those who refer this call of which he speaks to the eternal election of God; and who understand the separation, either that from his mother’s womb,
+			 which he mentions in <scripRef passage="Ga 1:15" id="v.ii-p12.1" parsed="|Gal|1|15|0|0" osisRef="Bible:Gal.1.15">Galatians 1:15</scripRef>, or that which Luke refers to, when Paul was appointed for the Gentiles: but I consider that he simply glories in having God as the author of his call, lest any one should think that he had through his own rashness taken this honor to himself.
+			 <note place="foot" n="16" id="v.ii-p12.2">
+              <p class="Super" id="v.ii-p13"> Some combine the four separations. “Set apart in the eternal counsel of God, and from his mother’s womb, <scripRef passage="Ga 1:15" id="v.ii-p13.1" parsed="|Gal|1|15|0|0" osisRef="Bible:Gal.1.15">Galatians 1:15</scripRef>, and by the special commandment of the Holy Ghost, <scripRef passage="Ac 13:2" id="v.ii-p13.2" parsed="|Acts|13|2|0|0" osisRef="Bible:Acts.13.2">Acts 13:2</scripRef>, confirmed by constitution of the Church,
+				  <scripRef passage="Ac 13:3" id="v.ii-p13.3" parsed="|Acts|13|3|0|0" osisRef="Bible:Acts.13.3">Acts 13:3</scripRef>; <scripRef passage="Ga 2:9" id="v.ii-p13.4" parsed="|Gal|2|9|0|0" osisRef="Bible:Gal.2.9">Galatians 2:9</scripRef>.” — <i>Parr</i>. But the object here seems to have been that stated by <name id="v.ii-p13.5">Calvin</name>: nor is it just or prudent to connect any other idea with the word except that which the context requires; for to do so only tends to create confusion. — <i>Ed.</i>
+              </p>
+            </note>
+          </p>
+          <p id="v.ii-p14">We must here observe, that all are not fitted for the ministry of the word; for a special call is necessary: and even those who seem particularly fitted ought to take heed lest they thrust themselves in without a call. But as to the character of the Apostolic and of the Episcopal call, we shall consider it in another place. We must further observe, that the office of an Apostle is the preaching of the gospel. It hence appears what just objects
+			 of ridicule are those dumb dogs, who render themselves conspicuous only by their mitre and their crook, and boast themselves to be the successors of the Apostles!</p>
+          <p id="v.ii-p15">The word, <i>servant</i>, imports nothing else but a minister, for it refers to what is official.
+			 <note place="foot" n="17" id="v.ii-p15.1">
+              <p class="Super" id="v.ii-p16"> Moses, Joshua, David, Nehemiah, etc., where, in a similar sense, called servants; and also our Savior. They were officially servants. — <i>Ed</i>
+              </p>
+            </note>
+			  I mention this to remove the mistake of those who too much refine on this expression and think that there is here to be understood a contrast between the service of Moses and that of Christ.</p>
+        </div>
+        <p id="v.ii-p17">
+          <scripCom type="Commentary" passage="Ro 1:2" id="v.ii-p17.1" parsed="|Rom|1|2|0|0" osisRef="Bible:Rom.1.2" />
+        </p>
+        <div class="Commentary" id="Bible:Rom.1.2">
+          <p id="v.ii-p18">
+            <b>2.</b>
+            <i>Which he had before promised</i>, <i>etc.</i> — As the suspicion of being new subtracts much from the authority of a doctrine, he confirms the faith of the gospel by antiquity; as though he said, “Christ came not on the earth unexpectedly, nor did he introduce a doctrine of
+			 a new kind and not heard of before, inasmuch as he, and his gospel too, had been promised and expected from the beginning of the world.” But as antiquity is often fabulous, he brings witnesses, and those approved, even the Prophets of God, that he might remove every suspicion. He in the third place adds, that their testimonies were duly recorded, that is, in the Holy Scriptures.</p>
+          <p id="v.ii-p19">We may learn from this passage what the gospel is: he teaches us, not that it was promulgated by the Prophets but only promised. If then the Prophets promised the gospel, it follows, that it was revealed, when our Lord was at length manifested in the flesh. They are then mistaken who confound the promises with the gospel, since the gospel is properly the appointed preaching of Christ as manifested, in whom the promises themselves are exhibited.
+
+			 <note place="foot" n="18" id="v.ii-p19.1">
+              <p class="Super" id="v.ii-p20"> The verb is προεπηγγείλατο only here; it comes from επαγγέλλομαι, which <name id="v.ii-p20.1">Schleusner</name> says, means in the middle voice, to promise. “Which he had before promised.” is then the proper rendering, and not “Which he formerly published,” as proposed by Professor <name id="v.ii-p20.2">Stuart</name>. Both <name id="v.ii-p20.3">Doddridge</name> and <name id="v.ii-p20.4">Macknight</name> have retained our version, with which that of <name id="v.ii-p20.5">Beza</name> agrees. — <i>Ed.</i>
+              </p>
+            </note>
+          </p>
+        </div>
+        <p id="v.ii-p21">
+          <scripCom type="Commentary" passage="Ro 1:3" id="v.ii-p21.1" parsed="|Rom|1|3|0|0" osisRef="Bible:Rom.1.3" />
+        </p>
+        <div class="Commentary" id="Bible:Rom.1.3">
+          <p id="v.ii-p22">
+            <b>3.</b>
+            <i>Concerning his own Son,</i>
+            <i>etc.</i> — This is a remarkable passage, by which we are taught that the whole gospel is included in Christ, so that if any removes one step from Christ, he withdraws himself from the gospel. For since he is the living and express image of the
+			 Father, it is no wonder, that he alone is set before us as one to whom our whole faith is to be directed and in whom it is to center. It is then a definition of the gospel, by which Paul expresses what is summarily comprehended in it. I have rendered the words which follow, <i>Jesus Christ our Lord</i>, in the same case; which seems to me to be most agreeable with the context. We hence learn, that he who has made
+			 a due proficiency in the knowledge of Christ, has acquired every thing which can be learned from the gospel; and, on the other hand, that they who seek to be wise without Christ, are not only foolish, but even completely insane.</p>
+          <p id="v.ii-p23">
+            <i>Who was made,</i>
+            <i>etc.</i> — Two things must be found in Christ, in order that we may obtain salvation in him, even divinity and humanity. His divinity possesses power, righteousness, life, which by his humanity are conveyed to us. Hence the Apostle has expressly mentioned both in the Summary he gives of the gospel, that
+			 Christ was manifested in the flesh — and that in it he declared himself to be the Son of God. So John says; after having declared that the Word was made flesh, he adds, that in that flesh there was a glory as of the only-begotten Son of God. (<scripRef passage="Joh 1:14" id="v.ii-p23.1" parsed="|John|1|14|0|0" osisRef="Bible:John.1.14">John 1:14</scripRef>.) That he specially notices the descent and lineage of Christ from his ancestor David, is not superfluous; for by this he calls back our
+			 attention to the promise, that we may not doubt but that he is the very person who had been formerly promised. So well known was the promise made to David, that it appears to have been a common thing among the Jews to call the Messiah the Son of David. This then — that Christ did spring from David — was said for the purpose of confirming our faith.</p>
+          <p id="v.ii-p24">He adds,<i> according to the flesh</i>; and he adds this, that we may understand that he had something more excellent than flesh, which he brought from heaven, and did not take from David, even that which he afterwards mentions, the glory of the divine nature. Paul does further by these words not only declare that Christ had real flesh, but he
+			 also clearly distinguishes his human from his divine nature; and thus he refutes the impious raving of <i>Servetus</i>, who assigned flesh to Christ, composed of three untreated elements.</p>
+        </div>
+        <p id="v.ii-p25">
+          <scripCom type="Commentary" passage="Ro 1:4" id="v.ii-p25.1" parsed="|Rom|1|4|0|0" osisRef="Bible:Rom.1.4" />
+        </p>
+        <div class="Commentary" id="Bible:Rom.1.4">
+          <p id="v.ii-p26">
+            <b>4.</b>
+            <i>Declared </i>
+            <note place="foot" n="19" id="v.ii-p26.1">
+              <p class="Footnote" id="v.ii-p27"> “Declaratus,” ὁρισθέντος. Some of the ancients, such as <name id="v.ii-p27.1">Origen</name>, <name id="v.ii-p27.2">Chrysostom</name>, <name id="v.ii-p27.3">Cyril</name>, and others, have given to this verb the meaning of is “proved — δειχθέντος;” demonstrated
+				  — ἀποφανθέντος;” “exhibited — ἀποδειχθώντος;”etc. But it is said that the word has not this meaning in the New Testament, and that it means, limited, determined, decreed, constituted. Besides here, it is found only in <scripRef passage="Lu 22:22" id="v.ii-p27.4" parsed="|Luke|22|22|0|0" osisRef="Bible:Luke.22.22">Luke 22:22</scripRef>; <scripRef passage="Ac 2:23" id="v.ii-p27.5" parsed="|Acts|2|23|0|0" osisRef="Bible:Acts.2.23">Acts 2:23</scripRef>; <scripRef passage="Ac 10:42" id="v.ii-p27.6" parsed="|Acts|10|42|0|0" osisRef="Bible:Acts.10.42">Acts 10:42</scripRef>; <scripRef passage="Ac 11:29" id="v.ii-p27.7" parsed="|Acts|11|29|0|0" osisRef="Bible:Acts.11.29">Acts 11:29</scripRef>; <scripRef passage="Ac 17:26" id="v.ii-p27.8" parsed="|Acts|17|26|0|0" osisRef="Bible:Acts.17.26">Acts 17:26</scripRef>; <scripRef passage="Heb 4:7" id="v.ii-p27.9" parsed="|Heb|4|7|0|0" osisRef="Bible:Heb.4.7">Hebrews
+				  4:7</scripRef>. The word, <i>determined</i>, or <i>constituted</i>, if adopted here, would amount to the same thing, that is, that Christ was visibly determined or constituted the Son of God through the resurrection, or by that event. It was that which fixed, settled, determined, and manifestly exhibited him as the Son of God, clothed and adorned with his own power. Professor <name id="v.ii-p27.10">Stuart</name> has conjured a number of difficulties in connection with this verse, for which there seems to be no solid reason. The phrase, <i>the Son of God</i>, is so well known from the usage of Scripture, that there is no difficulty connected with it: the full phrase is the <i>only-begotten Son</i>. To say that Christ’s resurrection was no evidence of his divine nature,
+				  as Lazarus and others had been raised from the dead, appears indeed very strange. Did Lazarus rise through his own power? Did Lazarus rise again for our justification? Was his resurrection an attestation of any thing he had previously declared? The Revelation A. <name id="v.ii-p27.11">Barnes</name> very justly says, that the <i>circumstances</i> connected with Christ were those which rendered his resurrection a proof of his
+				  divinity.</p>
+              <p class="Super" id="v.ii-p28">Professor <name id="v.ii-p28.1">Hodge</name> gives what he conceives to be the import of the two verses in these words, “Jesus Christ was, as to his human nature, the Son of David; but he was clearly demonstrated to be, as to his divine nature, the Son of God, by the resurrection from the dead.” This view is taken by many, such as <name id="v.ii-p28.2">Pareus</name>, <name id="v.ii-p28.3">Beza</name>, <name id="v.ii-p28.4">Turrettin</name>, etc. But the words, “according to the Spirit of Holiness” — κατὰ πνεῦμα ἁγιωσύνης, are taken differently by others, as meaning the Holy Spirit. As the phrase is nowhere else found, it may be taken in either sense. That the divine nature of Christ is called Spirit, is evident. See <scripRef passage="1Co 15:45" id="v.ii-p28.5" parsed="|1Cor|15|45|0|0" osisRef="Bible:1Cor.15.45">1 Corinthians 15:45</scripRef>; <scripRef passage="2Co 3:17" id="v.ii-p28.6" parsed="|2Cor|3|17|0|0" osisRef="Bible:2Cor.3.17">2 Corinthians 3:17</scripRef>; <scripRef passage="Heb 9:14" id="v.ii-p28.7" parsed="|Heb|9|14|0|0" osisRef="Bible:Heb.9.14">Hebrews 9:14</scripRef>, <scripRef passage="1Pe 3:18" id="v.ii-p28.8" parsed="|1Pet|3|18|0|0" osisRef="Bible:1Pet.3.18">1 Peter 3:18</scripRef>
+                <name id="v.ii-p28.9">Doddridge</name>, <name id="v.ii-p28.10">Scott</name>, and <name id="v.ii-p28.11">Chalmers</name>, consider The Holy Spirit to be intended. The last gives this paraphrase: — “<i>Declared</i>, or determinately marked out to be the Son of God and with power. The thing was demonstrated by an evidence, the exhibition of which required a putting forth of power, which Paul in
+				  another place represents as a very great and strenuous exertion, ‘According to the working of his mighty power when he raised him from the dead.’ — <i>The Spirit of Holiness</i>, or the Holy Spirit. It was through the operation of the Holy Spirit that the divine nature was infused into the human at the birth of Jesus Christ; and the very same agent, it is remarkable, was employed in the work of the resurrection. ‘Put to death in the flesh,’ says Peter,
+				  and ‘quickened by the Spirit.’ We have only to do with the facts of the case. He was demonstrated to be the Son of God by the power of the Holy Spirit having been put forth in raising him from the dead.” As to the genitive case after “resurrection,” see a similar instance in <scripRef passage="Ac 17:32" id="v.ii-p28.12" parsed="|Acts|17|32|0|0" osisRef="Bible:Acts.17.32">Acts 17:32</scripRef>
+              </p>
+              <p class="Super" id="v.ii-p29">The idea deduced by <name id="v.ii-p29.1">Calvin</name>, that he is called here “the Spirit of Holiness,” on account of the holiness he works in us, seems not well-founded, though advanced by <name id="v.ii-p29.2">Theodoret</name> and <name id="v.ii-p29.3">Augustine</name>. — <i>Ed.</i>
+              </p>
+            </note>
+            <i>the Son of God</i>, <i>etc.</i>: or, if you prefer, determined (<span lang="la" dir="ltr" id="v.ii-p29.4">definitus</span>); as though he had said, that the power, by which he was raised from the dead, was something like a decree by which he was proclaimed the Son of God, according to
+			 what is said in <scripRef passage="Ps 2:7" id="v.ii-p29.5" parsed="|Ps|2|7|0|0" osisRef="Bible:Ps.2.7">Psalm 2:7</scripRef>, “I have this day begotten thee:” for this begetting refers to what was made known. Though some indeed find here three separate evidences of the divinity of Christ — “power,” understanding thereby miracles — then the testimony of the Spirit — and, lastly, the resurrection from the dead — I yet prefer to connect them together, and to reduce these three things to one,
+			 in this manner — that Christ was declared the Son of God by openly exercising a real celestial power, that is, the power of the Spirit, when he rose from the dead; but that this power is comprehended, when a conviction of it is imprinted on our hearts by the same Spirit. The language of the Apostle well agrees with this view; for he says that he was declared by power, because power, peculiar to God, shone forth in him, and uncontestably proved him to be God; and this was indeed made evident by
+			 his resurrection. Paul says the same thing in another place; having stated, that by death the weakness of the flesh appeared, he at the same time extols the power of the Spirit in his resurrection; (<scripRef passage="2CO 13:4" id="v.ii-p29.6" parsed="|2Cor|13|4|0|0" osisRef="Bible:2Cor.13.4">2 Corinthians 13:4</scripRef>) This glory, however, is not made known to us, until the same Spirit imprints a conviction of it on our hearts. And that Paul includes, together with the wonderful
+			 energy of the Spirit, which Christ manifested by rising from the dead, the testimony which all the faithful feel in their hearts, is even evident from this — that he expressly calls it the Spirit of Holiness; as though he had said, that the Spirit, as far as it sanctifies, confirms and ratifies that evidence of its power which it once exhibited. For the Scripture is wont often to ascribe such titles to the Spirit, as tend to illustrate our present subject. Thus He is called by our Lord the
+			 Spirit of Truth, on account of the effect which he mentions; (<scripRef passage="Joh 14:17" id="v.ii-p29.7" parsed="|John|14|17|0|0" osisRef="Bible:John.14.17">John 14:17</scripRef>)</p>
+          <p id="v.ii-p30">Besides, a divine power is said to have shone forth in the resurrection of Christ for this reason — because he rose by his own power, as he had often testified:</p>
+          <p class="SCRIPTURE" id="v.ii-p31">“Destroy this temple, and in three days<br />
+			 I will raise it up again,” (<scripRef passage="Joh 2:19" id="v.ii-p31.2" parsed="|John|2|19|0|0" osisRef="Bible:John.2.19">John 2:19</scripRef>;)</p>
+          <p class="SCRIPTURE" id="v.ii-p32">“No man taketh it from me,” etc.; (<scripRef passage="Joh 10:18" id="v.ii-p32.1" parsed="|John|10|18|0|0" osisRef="Bible:John.10.18">John 10:18</scripRef>)</p>
+          <p id="v.ii-p33">For he gained victory over death, (to which he yielded with regard to the weakness of the flesh,) not by aid sought from another, but by the celestial operation of his own Spirit.</p>
+        </div>
+        <p id="v.ii-p34">
+          <scripCom type="Commentary" passage="Ro 1:5" id="v.ii-p34.1" parsed="|Rom|1|5|0|0" osisRef="Bible:Rom.1.5" />
+        </p>
+        <div class="Commentary" id="Bible:Rom.1.5">
+          <p id="v.ii-p35">
+            <b>5.</b>
+            <i>Through whom we have received,</i>
+            <i>etc.</i> — Having completed his definition of the gospel, which he introduced for the recommendation of his office, he now returns to speak of his own call; and it was a great point that this should be proved to the Romans. By
+			 mentioning grace and apostleship apart, he adopts a form of speech,
+			 <note place="foot" n="20" id="v.ii-p35.1">
+              <p class="Super" id="v.ii-p36"> “Hypellage,” a figure in grammar, by which a noun or an adjective is put in a form or in a case different from that in which it ought grammatically to be. — <i>Ed.</i>
+              </p>
+            </note>
+			  which must be understood as meaning, gratuitous apostleship or the favor of the apostleship; by which he means, that it was wholly through divine favor, not through his own worthiness, that he had been chosen for so high an office. For though it has hardly any thing connected with it in the estimation of the world, except dangers, labors, hatred, and disgrace; yet before God and his saints, it possesses a dignity of no common or ordinary
+			 kind. It is therefore deservedly counted a favor. If you prefer to say, “I have received grace that I should be an Apostle,” the sense would be the same.
+			 <note place="foot" n="21" id="v.ii-p36.1">
+              <p class="Super" id="v.ii-p37"> If this view be taken, the best mode would be to render και, <i>even</i> “favor, even the apostleship.” But, as <name id="v.ii-p37.1">Wolfius</name> says, “both words would perhaps be better rendered separately, and “grace” or favor be referred to the conversion of the Apostle himself, and “apostleship” to his
+				  office. See <scripRef passage="1Ti 1:12-14" id="v.ii-p37.2" parsed="|1Tim|1|12|1|14" osisRef="Bible:1Tim.1.12-1Tim.1.14">1 Timothy 1:12-14</scripRef>, and <scripRef passage="Ac 9:15" id="v.ii-p37.3" parsed="|Acts|9|15|0|0" osisRef="Bible:Acts.9.15">Acts 9:15</scripRef>, <scripRef passage="Ac 13:2" id="v.ii-p37.4" parsed="|Acts|13|2|0|0" osisRef="Bible:Acts.13.2">Acts 13:2</scripRef>; <scripRef passage="Ac 22:21" id="v.ii-p37.5" parsed="|Acts|22|21|0|0" osisRef="Bible:Acts.22.21">Acts 22:21</scripRef>. —
+				  <i>Ed</i>
+              </p>
+            </note>
+          </p>
+          <p id="v.ii-p38">The expression, <i>on account of his name</i>, is rendered by <name id="v.ii-p38.1">Ambrose</name>, “in his name,” as though it meant, that the Apostle was appointed in the place of Christ to preach the gospel, according to that passage, “We are ambassadors for Christ,” etc. (<scripRef passage="2Co 5:20" id="v.ii-p38.2" parsed="|2Cor|5|20|0|0" osisRef="Bible:2Cor.5.20">2 Corinthians 5:20</scripRef>.) Their opinion, however, seems better, who take <i>name</i> for knowledge; for the gospel is preached for this end — that we may believe on the name of the Son of God. (<scripRef passage="1Jo 3:23" id="v.ii-p38.3" parsed="|1John|3|23|0|0" osisRef="Bible:1John.3.23">John 3:23</scripRef>.) And Paul is said to have been a chosen vessel, to carry the name of
+			 Christ among the Gentiles. (<scripRef passage="Ac 9:15" id="v.ii-p38.4" parsed="|Acts|9|15|0|0" osisRef="Bible:Acts.9.15">Acts 9:15</scripRef>.) <i>On account</i> then <i>of</i>
+            <i>his name</i>, which means the same, as though he had said, that I might make known what Christ is.
+			 <note place="foot" n="22" id="v.ii-p38.5">
+              <p class="Super" id="v.ii-p39"> He has taken this clause before that which follows, contrary to the order of the text, because he viewed it as connected with the receiving of the apostleship.</p>
+              <p class="Super" id="v.ii-p40">“<span lang="la" dir="ltr" id="v.ii-p40.1">
+                  <i>Pro nomine ipsius</i>
+                </span>,” — ὑπὲρ τοῦ ὀνὸματος αὐτοῦ; “<span lang="la" dir="ltr" id="v.ii-p40.2">ad nominis ejus gloriam</span> — to the glory of his name,” <name id="v.ii-p40.3">Turrettin</name>; “for
+				  the purpose of magnifying his name,” <name id="v.ii-p40.4">Chalmers</name>
+                <name id="v.ii-p40.5">Hodge</name> observes, “Paul was an apostle that all nations might be obedient, to the honor of Jesus Christ, that is, so that his name may be known.” Some, as <name id="v.ii-p40.6">Tholuck</name>, connect the words with “obedience to the faith,” as they render the phrase, and, in this sense, “that
+				  obedience might be rendered to the faith among all nations for the sake of his name.” But it is better to connect the words with the receiving of the apostleship: it was received for two purposes — that there might be the obedience of faith, and that the name of Christ might be magnified. — <i>Ed.</i>
+              </p>
+            </note>
+          </p>
+          <p id="v.ii-p41">
+            <i>For the obedience of faith,</i>
+            <i>etc.</i> — That is, we have received a command to preach the gospel among all nations, and this gospel they obey by faith. By stating the design of his calling, he again reminds the Romans of his office, as though he said, “It is indeed my duty to discharge the office committed to me, which
+			 is to preach the word; and it is your duty to hear the word and willingly to obey it; you will otherwise make void the vocation which the Lord has bestowed on me.”</p>
+          <p id="v.ii-p42">We hence learn, that they perversely resist the authority of God and upset the whole of what he has ordained, who irreverently and contemptuously reject the preaching of the gospel; the design of which is to constrain us to obey God. We must also notice here what faith is; the name of obedience is given to it, and for this reason — because the Lord calls us by his gospel; we respond to his call by faith; as on the other hand, the chief act of
+			 disobedience to God is unbelief, I prefer rendering the sentence, “For the obedience of faith,” rather than, “In order that they may obey the faith;” for the last is not strictly correct, except taken figuratively, though it be found once in the <scripRef passage="Ac 6:7" id="v.ii-p42.1" parsed="|Acts|6|7|0|0" osisRef="Bible:Acts.6.7">Acts 6:7</scripRef>. Faith is properly that by which we obey the gospel.
+			 <note place="foot" n="23" id="v.ii-p42.2">
+              <p class="Super" id="v.ii-p43"> It might be rendered, “that there might be the obedience of faith,” or, “in order to produce,” or, “Promote the obedience of faith.” The obedience is faith. The command is, “believe,” and the obedience must correspond with it. To obey the faith, as in <scripRef passage="Ac 6:7" id="v.ii-p43.1" parsed="|Acts|6|7|0|0" osisRef="Bible:Acts.6.7">Acts 6:7</scripRef>, is a different form of expression: the article is prefixed there, it is <i>the</i> faith, meaning the gospel. —
+				  See <scripRef passage="2Th 1:8" id="v.ii-p43.2" parsed="|2Thess|1|8|0|0" osisRef="Bible:2Thess.1.8">2 Thessalonians 1:8</scripRef>. Professor <name id="v.ii-p43.3">Stuart</name> and <name id="v.ii-p43.4">Haldane</name>, agree in this view. The latter refers to <scripRef passage="Ro 10:3" id="v.ii-p43.5" parsed="|Rom|10|3|0|0" osisRef="Bible:Rom.10.3">Romans 10:3</scripRef>, where the Israelites are charged for not <i>submitting </i>to God’s righteousness; and, in <scripRef passage="Ro 10:16" id="v.ii-p43.6" parsed="|Rom|10|16|0|0" osisRef="Bible:Rom.10.16">verse 16</scripRef>, it is said, that they had not all <i>obeyed </i>the gospel, “for Esaias saith, Lord, who hath <i>believed</i> our report?” Then to believe the gospel is in an especial manner to obey it. — <i>Ed.</i>
+              </p>
+            </note>
+          </p>
+          <p id="v.ii-p44">
+            <i>Among all nations,</i>
+            <i>etc.</i> It was not enough for him to have been appointed an Apostle, except his ministry had reference to some who were to be taught: hence he adds, that his apostleship extended to all nations. He afterwards calls himself more distinctly the Apostle of the Romans, when he says, that they were
+			 included in the number of the nations, to whom he had been given as a minister. And further, the Apostles had in common the command to preach the gospel to all the world; and they were not, as pastors and bishops, set over certain churches. But Paul, in addition to the general undertaking of the apostolic function, was constituted, by a special appointment, to be a minister to proclaim the gospel among the Gentiles. It is no objection to this, that he was forbidden to pass through Macedonia and
+			 to preach the word in Mysia: for this was done, not that there were limits prescribed to him, but that he was for a time to go elsewhere; for the harvest was not as yet ripe there.</p>
+          <p id="v.ii-p45">
+            <i>Ye are the called of Jesus Christ,</i>
+            <i>etc.</i> He assigns a reason more nearly connected with them — because the Lord had already exhibited in them an evidence by which he had manifested that he had called them to a participation of the gospel. It hence followed, that if they wished their own calling to remain sure, they
+			 were not to reject the ministry of Paul, who had been chosen by the same election of God. I therefore take this clause, “the called of Jesus Christ,” as explanatory, as though the particle “even” were inserted; for he means, that they were by calling made partakers of Christ. For they who shall be heirs of eternal life, are chosen by the celestial Father to be children in Christ; and when chosen, they are committed to his care and protection as their shepherd.
+			 <note place="foot" n="24" id="v.ii-p45.1">
+              <p class="Super" id="v.ii-p46"> “The called of Jesus Christ,” i.e., the called who belong to Christ. Κλητὸς means, not only those to whom the <i>external </i>call of the gospel has been addressed, but those who have been also <i>internally </i>called.” — <name id="v.ii-p46.1">Stuart</name>. The same
+				  author renders the words κλητοῖς ἁγίοις, in the next verse, “chosen saints,” or, “saints effectually called.” — <i>Ed.</i>
+              </p>
+            </note>
+          </p>
+        </div>
+        <p id="v.ii-p47">
+          <scripCom type="Commentary" passage="Ro 1:7" id="v.ii-p47.1" parsed="|Rom|1|7|0|0" osisRef="Bible:Rom.1.7" />
+        </p>
+        <div class="Commentary" id="Bible:Rom.1.7">
+          <p id="v.ii-p48">
+            <b>7.</b>
+            <i>To all of you who are at Rome,</i>
+            <i>etc.</i> By this happy arrangement he sets forth what there is in us worthy of commendation; he says, that first the Lord through his own kindness made us the objects of his favor and love; and then that he has called us; and thirdly,
+			 that he has called us to holiness: but this high honor only then exists, when we are not wanting to our call.</p>
+          <p id="v.ii-p49">Here a rich truth presents itself to us, to which I shall briefly refer, and leave it to be meditated upon by each individual: Paul does by no means ascribe the praise of our salvation to ourselves, but derives it altogether from the fountain of God’s free and paternal love towards us; for he makes this the first thing — God loves us: and what is the cause of his love, except his own goodness alone? On this depends our calling, by which in his
+			 own time he seals his adoption to those whom he had before freely chosen. We also learn from this passage that none rightly connect themselves with the number of the faithful, except they feel assured that the Lord is gracious, however unworthy and wretched sinners they may be, and except they be stimulated by his goodness and aspire to holiness, for he hath not called us to uncleanness, but to holiness. (<scripRef passage="1Th 4:7" id="v.ii-p49.1" parsed="|1Thess|4|7|0|0" osisRef="Bible:1Thess.4.7">1
+			 Thessalonians 4:7</scripRef>.) As the Greek can be rendered in the second person, I see no reason for any change.</p>
+          <p id="v.ii-p50">
+            <i>Grace to you and peace,</i>
+            <i>etc.</i> Nothing is more desirable than to have God propitious to us, and this is signified by <i>grace</i>; and then to have prosperity and success in all things flowing from him, and this is intimated by <i>peace</i>; for however things may seem to smile on us, if God be angry, even blessing itself is turned to a curse. The very foundation then of our felicity is the favor of God, by which we enjoy true and solid prosperity, and by which also our salvation is promoted even when we are in adversities.
+			 <note place="foot" n="25" id="v.ii-p50.1">
+              <p class="Super" id="v.ii-p51"> “The ancient Greeks and Romans,” says <name id="v.ii-p51.1">Turrettin</name>, “wished to those to whom they wrote, in the inscription of their epistles, health, joy, happiness; but Paul prays for far higher blessings even the <i>favor</i> of God, the fountain of all good things, and <i>peace</i>, in which the Hebrews included all blessings.” — <i>Ed.</i>
+              </p>
+            </note>
+			  And then as he prays to God for peace, we must understand, that whatever good comes to us, it is the fruit of divine benevolence. Nor must we omit to notice, that he prays at the same time to the Lord Jesus Christ for these blessings. Worthily indeed is this honor rendered to him, who is not only the administrator and dispenser of his Father’s bounty to us, but also works all things in connection with him. It was, however, the special object
+			 of the Apostle to show, that through him all God’s blessings come to us.
+			 <note place="foot" n="26" id="v.ii-p51.2">
+              <p class="Super" id="v.ii-p52"> “<i>From God our Father,</i> — if God, then able; if our Father, then willing to enrich us with his gifts: <i>and from our Lord Jesus Christ,</i> — from our Lord, who has purchased them for us; from Jesus, for without these we cannot be saved; from Christ, for he is anointed with grace and peace, <scripRef passage="Joh 1:16" id="v.ii-p52.1" parsed="|John|1|16|0|0" osisRef="Bible:John.1.16">John 1:16</scripRef>.” — <name id="v.ii-p52.2">Parr</name>
+              </p>
+            </note>
+          </p>
+          <p id="v.ii-p53">There are those who prefer to regard the word <i>peace</i> as signifying quietness of conscience; and that this meaning belongs to it sometimes, I do not deny: but since it is certain that the Apostle wished to give us here a summary of God’s blessings, the former meaning, which is adduced by <i>Bucer</i>, is much the most suitable. Anxiously wishing then to the godly what makes up real happiness, he betakes himself, as he did before, to the
+			 very fountain itself, even the favor of God, which not only alone brings to us eternal felicity but is also the source of all blessings in this life.</p>
+        </div>
+      </div2>
+      <div2 type="scripture" title="Romans 1:8-12" n="iii" shorttitle="scripture iii" progress="6.50%" prev="v.ii" next="v.iv" id="v.iii">
+        <table border="2" id="v.iii-p0.1">
+          <tr valign="top" id="v.iii-p0.2">
+            <td id="v.iii-p0.3">
+              <p class="TableCaption19" id="v.iii-p1">
+                <scripRef passage="Romans 1:8-12" id="v.iii-p1.1" parsed="|Rom|1|8|1|12" osisRef="Bible:Rom.1.8-Rom.1.12">Romans 1:8-12</scripRef>
+              </p>
+            </td>
+          </tr>
+          <tr valign="top" id="v.iii-p1.2">
+            <td id="v.iii-p1.3">
+              <p id="v.iii-p2">
+                <b>8.</b> First, I thank my God through Jesus Christ for you all, that your faith is spoken of throughout the whole world.</p>
+            </td>
+            <td id="v.iii-p2.1">
+              <p id="v.iii-p3">
+                <b>8.</b> Primum quidem gratias ago Deo meo per Iesum Christum super vobis omnibus, quia fides vestra Prædicatur in universo mundo.</p>
+            </td>
+          </tr>
+          <tr valign="top" id="v.iii-p3.1">
+            <td id="v.iii-p3.2">
+              <p id="v.iii-p4">
+                <b>9.</b> For God is my witness, whom I serve with my spirit in the gospel of his Son, that without ceasing I make mention of you always in my prayers;</p>
+            </td>
+            <td id="v.iii-p4.1">
+              <p id="v.iii-p5">
+                <b>9.</b> Testis enim mihi Deus, quem colo in spiritu meo in Evangelio Filii ipsius, ut continenter memoriam vestri faciam;</p>
+            </td>
+          </tr>
+          <tr valign="top" id="v.iii-p5.1">
+            <td id="v.iii-p5.2">
+              <p id="v.iii-p6">
+                <b>10. </b>Making request, if by any means now at length I might have a prosperous journey by the will of God to come unto you.</p>
+            </td>
+            <td id="v.iii-p6.1">
+              <p id="v.iii-p7">
+                <b>10. </b>Semper in orationibus meis,
+				  <note place="foot" n="27" id="v.iii-p7.1">
+                  <p class="Super" id="v.iii-p8"> Margin, “in all my prayers.”</p>
+                </note>
+				  rogans, si quomodo prosperum iter aliquando mihi, obtingat per voluntatem Dei, veniendi ad vos.</p>
+            </td>
+          </tr>
+          <tr valign="top" id="v.iii-p8.1">
+            <td id="v.iii-p8.2">
+              <p id="v.iii-p9">
+                <b>11. </b>For I long to see you, that I may impart unto you some spiritual gift, to the end ye may be established;</p>
+            </td>
+            <td id="v.iii-p9.1">
+              <p id="v.iii-p10">
+                <b>11. </b>Desidero enim videre, vos, ut aliquod impertiar vobis donum spirituale ad vos confirmandos;</p>
+            </td>
+          </tr>
+          <tr valign="top" id="v.iii-p10.1">
+            <td id="v.iii-p10.2">
+              <p id="v.iii-p11">
+                <b>12. </b>That is, that I may be comforted together with you by the mutual faith both of you and me.</p>
+            </td>
+            <td id="v.iii-p11.1">
+              <p id="v.iii-p12">
+                <b>12.</b> Hoc est. ad cohortationem mutuo percipiendam in vobis per Mutuam fidem, vestram atque meam.</p>
+            </td>
+          </tr>
+        </table>
+        <p id="v.iii-p13">
+          <scripCom type="Commentary" passage="Ro 1:8" id="v.iii-p13.1" parsed="|Rom|1|8|0|0" osisRef="Bible:Rom.1.8" />
+        </p>
+        <div class="Commentary" id="Bible:Rom.1.8">
+          <p id="v.iii-p14">
+            <b>8</b>
+            <i>. I first </i>
+            <note place="foot" n="28" id="v.iii-p14.1">
+              <p class="Super" id="v.iii-p15"> “It does not mean here the first in point of importance, but first in the order of time.” — <name id="v.iii-p15.1">Stuart</name>. The same author thinks that men here has its corresponding δε in <scripRef passage="Ro 1:13" id="v.iii-p15.2" parsed="|Rom|1|13|0|0" osisRef="Bible:Rom.1.13">Romans 1:13</scripRef>, Οὐ θέλω δέ
+				  ὑμᾶς, etc., — <i>Ed</i>
+              </p>
+            </note>
+            <i>indeed</i>, <i>etc.</i> Here the beginning commences, altogether adapted to the occasion, as he seasonably prepares them for receiving instruction by reasons connected with himself as well as with them. What he states respecting them is, the celebrity of their faith; for he intimates that they being honored with the public approbation of
+			 the churches, could not reject an Apostle of the Lord, without disappointing the good opinion entertained of them by all; and such a thing would have been extremely uncourteous and in a manner bordering on perfidy. As then this testimony justly induced the Apostle, by affording him an assurance of their obedience, to undertake, according to his office, to teach and instruct the Romans; so it held them bound not to despise his authority. With regard to himself, he disposes them to a teachable
+			 spirit by testifying his love towards them: and there is nothing more effectual in gaining credit to an adviser, than the impression that he is cordially anxious to consult our wellbeing.</p>
+          <p id="v.iii-p16">The first thing worthy of remark is, that he so commends their faith,
+			 <note place="foot" n="29" id="v.iii-p16.1">
+              <p class="Super" id="v.iii-p17"> “<i>Faith</i> is put here for the whole religion, and means the same as your piety. Faith is one of the principal things of religion, one of its first requirements, and hence it signifies religion itself.” — <name id="v.iii-p17.1">Barnes</name>. It is indeed the principal thing, the very basis of religion. <scripRef passage="Heb 11:6" id="v.iii-p17.2" parsed="|Heb|11|6|0|0" osisRef="Bible:Heb.11.6">Hebrews 11:6</scripRef>. — <i>Ed.</i>
+              </p>
+            </note>
+			  that he implies that it had been received from God. We are here taught that faith is God’s gift; for thanksgiving is an acknowledgment of a benefit. He who gives thanks to God for faith, confesses that it comes from him. And since we find that the Apostle ever begins his congratulations with thanksgiving, let us know that we are hereby reminded, that all our blessings are God’s free gifts. It is also needful to become accustomed to such
+			 forms of speaking, that we may be led more fully to rouse ourselves in the duty of acknowledging God as the giver of all our blessings, and to stir up others to join us in the same acknowledgment. If it be right to do this in little things, how much more with regard to faith; Which is neither a small nor an indiscriminate (<span lang="la" dir="ltr" id="v.iii-p17.3">
+              <i>promiscua</i>
+            </span>) gift of God. We have here besides an example, that thanks
+			 ought to be given <i>through Christ,</i> according to the Apostle’s command in <scripRef passage="Heb 13:15" id="v.iii-p17.4" parsed="|Heb|13|15|0|0" osisRef="Bible:Heb.13.15">Hebrews 13:15</scripRef>; inasmuch as in his name we seek and obtain mercy from the Father. — I observe in the last place, that he calls him <i>his God</i>. This is the faithful’s special
+			 privilege, and on them alone God bestows this honor. There is indeed implied in this a mutual relationship, which is expressed in this promise,</p>
+          <p class="SCRIPTURE" id="v.iii-p18">“I will be to them a God;<br />
+			 they shall be to me a people.” (<scripRef passage="Jer 30:22" id="v.iii-p18.2" parsed="|Jer|30|22|0|0" osisRef="Bible:Jer.30.22">Jeremiah 30:22</scripRef>.)</p>
+          <p id="v.iii-p19">I prefer at the same time to confine this to the character which Paul sustained, as an attestation of his obedience to the end in the work of preaching the gospel. So Hezekiah called God the God of Isaiah, when he desired him to give him the testimony of a true and faithful Prophet. (<scripRef passage="Isa 37:4" id="v.iii-p19.1" parsed="|Isa|37|4|0|0" osisRef="Bible:Isa.37.4">Isaiah 37:4</scripRef>.) So also he is called in an especial manner the God of Daniel.
+			 (<scripRef passage="Da 6:20" id="v.iii-p19.2" parsed="|Dan|6|20|0|0" osisRef="Bible:Dan.6.20">Daniel 6:20</scripRef>.)</p>
+          <p id="v.iii-p20">
+            <i>Through the whole world.</i> The eulogy of faithful men was to Paul equal to that of the whole world, with regard to the faith of the Romans; for the unbelieving, who deemed it detestable, could not have given an impartial or a correct testimony respecting it. We then understood that it was by the mouths of the faithful that the faith of the Romans was proclaimed
+			 through the whole world; and that they were alone able to judge rightly of it, and to pronounce a correct opinion. That this small and despised handful of men were unknown as to their character to the ungodly, even at Rome, was a circumstance he regarded as nothing; for Paul made no account of their judgment.</p>
+        </div>
+        <p id="v.iii-p21">
+          <scripCom type="Commentary" passage="Ro 1:9" id="v.iii-p21.1" parsed="|Rom|1|9|0|0" osisRef="Bible:Rom.1.9" />
+        </p>
+        <div class="Commentary" id="Bible:Rom.1.9">
+          <p id="v.iii-p22">
+            <b>9.</b>
+            <i>For God is my witness,</i>
+            <i>etc.</i> He proves his love by its effects; for had he not greatly loved them, he would not have so anxiously commended them to the Lord, and especially he would not have so ardently desired to promote their welfare by his own labors. His
+			 anxiety then and his ardent desire were certain evidences of his love; for had they not sprung from it, they would never have existed. And as he knew it to be necessary for establishing confidence in his preaching, that the Romans should be fully persuaded of his sincerity, he added an oath — a needful remedy, whenever a declaration, which ought to be received as true and indubitable vacillates through uncertainty. For since an oath is nothing else but an appeal to God as to the truth of what
+			 we declare, most foolish is it to deny that the Apostle used here an oath. He did not notwithstanding transgress the prohibition of Christ.</p>
+          <p id="v.iii-p23">It hence appears that it was not Christ’s design (as the superstitious Anabaptists dream) to abolish oaths altogether, but on the contrary to call attention to the due observance of the law; and the law, allowing an oath, only condemns perjury and needless swearing. If then we would use an oath aright, let us imitate the seriousness and the reverent manner exhibited by the Apostles; and that you may understand what it is, know that God is so
+			 called as a witness, that he is also appealed to as an avenger, in case we deceive; which Paul expresses elsewhere in these words,</p>
+          <p class="SCRIPTURE" id="v.iii-p24">“God is a witness to my soul.” (<scripRef passage="2Co 1:23" id="v.iii-p24.1" parsed="|2Cor|1|23|0|0" osisRef="Bible:2Cor.1.23">2 Corinthians 1:23</scripRef>.)
+			 <note place="foot" n="30" id="v.iii-p24.2">
+              <p class="Super" id="v.iii-p25"> The passage in <scripRef passage="Mt 5:33-37" id="v.iii-p25.1" parsed="|Matt|5|33|5|37" osisRef="Bible:Matt.5.33-Matt.5.37">Matthew 5:33-37</scripRef>, has been often wholly misunderstood. That oaths in common conversation are alone prohibited, is quite evident from what the passage itself contains. In solemn oaths there was no swearing by “heaven,” or by “God’s throne,” or by “the earth,” or by “Jerusalem,” or by “the head.” such forms were only used in conversation, as
+				  similar ones are still used: and these kinds of swearing are alone condemned by our Savior. — <i>Ed.</i>
+              </p>
+            </note>
+          </p>
+          <p id="v.iii-p26">
+            <i>Whom I serve with my spirit,</i>
+            <i>etc.</i> It is usual with profane men, who trifle with God, to pretend his name, no less boldly than presumptuously; but the Apostle here speaks of his own piety, in order to gain credit; and those, in whom the fear of God and reverence for his name prevail, will dread to swear falsely.
+			 At the same time, he sets his own spirit in opposition to the outward mask of religion; for as many falsely pretend to be the worshippers of God, and outwardly appear to be so, he testifies that he, from the heart served, God.
+			 <note place="foot" n="31" id="v.iii-p26.1">
+              <p class="Super" id="v.iii-p27"> “<span lang="fr" dir="ltr" id="v.iii-p27.1">
+                  <i>Sincerè et verè</i>
+                </span> — sincerely and truly,” <name id="v.iii-p27.2">Wolfius</name>, “not merely externally, but cordially,” <name id="v.iii-p27.3">Hodge</name>.</p>
+            </note>
+			  It may be also that he alluded to the ancient ceremonies, in which alone the Jews thought the worship of God consisted. He then intimates, that though he retained not observance of these, he was yet a sincere worshipper of God, according to what he says in <scripRef passage="Php 3:3" id="v.iii-p27.4" parsed="|Phil|3|3|0|0" osisRef="Bible:Phil.3.3">Philippians 3:3</scripRef>,</p>
+          <p class="SCRIPTURE" id="v.iii-p28">“We are the true circumcision, who in spirit serve God,<br />
+			 and glory not in the flesh.”</p>
+          <p id="v.iii-p29">He then glories that he served God with sincere devotion of heart, which is true religion and approved worship.</p>
+          <p id="v.iii-p30">But it was expedient, as I have said, in order that his oath might attain more credit, that Paul should declare his piety towards God; for perjury is a sport to the ungodly, while the pious dread it more than a thousand deaths; inasmuch as it cannot be, but that where there is a real fear of God, there must be also a reverence for his name. It is then the same thing, as though Paul had said, that he knew how much sacredness and sincerity
+			 belonged to an oath, and that he did not rashly appeal to God as a witness, as the profane are wont to do. And thus, by his own example, he teaches us, that whenever we swear, we ought to give such evidence of piety, that the name of God, which we use in our declarations, may retain its sacredness. And further, he gives a proof, even by his own ministry, that he worshipped not God feignedly; for it was the fullest evidence, that he was a man devoted to God’s glory, when he denied himself, and
+			 hesitated not to undergo all the hardships of reproach, poverty, and hatred, and even the peril of death, in advancing the kingdom of God.
+			 <note place="foot" n="32" id="v.iii-p30.1">
+              <p class="Super" id="v.iii-p31"> ἐν τῶ εὐαγγελίω τοῦ υἱοῦ αὐτοῦ “by the preaching of the gospel, etc.” <name id="v.iii-p31.1">Stuart</name>. “<span lang="la" dir="ltr" id="v.iii-p31.2">In predicando evangelio</span> — in preaching the gospel,” <name id="v.iii-p31.3">Beza</name>. “I serve God, not in
+				  teaching legal rites, but a much more celestial doctrine,” <name id="v.iii-p31.4">Grotius</name>
+              </p>
+            </note>
+          </p>
+          <p id="v.iii-p32">Some take this clause, as though Paul intended to recommend that worship which he said he rendered to God, on this account, — because it corresponded with what the gospel prescribes. It is indeed certain that spiritual worship is enjoined on us in the gospel; but the former interpretation is far the most suitable, — that he devoted his service to God in preaching the gospel. He, however, makes at the same time a difference between himself and
+			 hypocrites, who have something else in view rather than to serve God; for ambition, or some such thing, influences most men; and it is far from being the case, that all engage cordially and faithfully in this office. The meaning is, that Paul performed sincerely the office of teaching; for what he says of his own devotion he applies to this subject.</p>
+          <p id="v.iii-p33">But we hence gather a profitable doctrine; for it ought to add no little encouragement to the ministers of the gospel, when they hear that, in preaching the gospel, they render an acceptable and a valuable service to God. What, indeed, is there to prevent them from regarding it an excellent service, when they know that their labor is pleasing to God, and is approved by him? Moreover, he calls it<i>
+			 the gospel of the Son</i> of God; for Christ is in it made known, who has been appointed by the Father for this end, — that he, being glorified, should also glorify the Father.</p>
+          <p id="v.iii-p34">
+            <i>That continually</i>, <i>etc.</i> He still further sets forth the ardor of his love by his very constancy in praying for them. It was, indeed, a strong evidence, when he poured forth no prayers to the Lord without making mention of them. That the meaning may be clearer, I render <span lang="el" class="Greek" id="v.iii-p34.1">παντοτε</span>, “always;” as though it was said, “In all my prayers,” or, “whenever I address God in prayer, I join a mention of you.”
+			 <note place="foot" n="33" id="v.iii-p34.2">
+              <p class="Super" id="v.iii-p35"> The order of the words, as arranged by <name id="v.iii-p35.1">Calvin</name>, is better than that of our version; he connects “always in my prayers,” or, “in all my prayers,” with “requesting.” The simpler rendering would be as follows: —</p>
+              <p class="Footnote" id="v.iii-p36">9. My witness indeed is God, whom I serve with my spirit in the gospel of his Son, that I unceasingly make mention of you, always requesting in my prayers,</p>
+              <p class="Footnote" id="v.iii-p37">10. That by some means now at length I may, through the will of God, have a free course to come to you.</p>
+              <p class="Super" id="v.iii-p38">“In the gospel,” may either mean “according to the gospel,” or, “in preaching the gospel.” <name id="v.iii-p38.1">Hodge</name> prefers the first. The particle ει clearly means “that” in this connection. That it is used in this sense in the New Testament there can be no doubt; see <scripRef passage="Ac 26:8, 23" id="v.iii-p38.2" parsed="|Acts|26|8|0|0;|Acts|26|23|0|0" osisRef="Bible:Acts.26.8 Bible:Acts.26.23">Acts 26:8, 23</scripRef>; <scripRef passage="Heb 7:15" id="v.iii-p38.3" parsed="|Heb|7|15|0|0" osisRef="Bible:Heb.7.15">Hebrews 7:15</scripRef>
+              </p>
+            </note>
+			  Now he speaks not of every kind of calling on God, but of those prayers to which the saints, being at liberty, and laying aside all cares, apply their whole attention to the work; for he might have often expressed suddenly this or that wish, when the Romans did not come into his mind; but whenever he had previously intended, and, as it were, prepared himself to offer up prayers to God, among others he remembered them. He then speaks
+			 peculiarly of those prayers, for which the saints deliberately prepare themselves; as we find to have been the case with our Lord himself, who, for this purpose, sought retirement. He at the same time intimates how frequently, or rather, how unceasingly he was engaged in such prayers, since he says that he prayed continually.</p>
+        </div>
+        <p id="v.iii-p39">
+          <scripCom type="Commentary" passage="Ro 1:10" id="v.iii-p39.1" parsed="|Rom|1|10|0|0" osisRef="Bible:Rom.1.10" />
+        </p>
+        <div class="Commentary" id="Bible:Rom.1.10">
+          <p id="v.iii-p40">
+            <b>10.</b>
+            <i>Requesting, if by any means,</i>
+            <i>etc.</i> As it is not probable that we from the heart study his benefit, whom we are not ready to assist by our labors, he now adds, after having said that he was anxious for their welfare, that he showed by another proof his love to
+			 them, as before God, even by requesting that he might be able to advance their interest. That you may, therefore, perceive the full meaning, read the words as though the word <i>also</i> were inserted, <i>requesting also, if by any means</i>, <i>etc.</i> By saying, <i>A
+			 prosperous journey by the will of God</i> he shows, not only that he looked to the Lord’s favor for success in his journey, but that he deemed his journey prosperous, if it was approved by the Lord. According to this model ought all our wishes to be formed.</p>
+        </div>
+        <p id="v.iii-p41">
+          <scripCom type="Commentary" passage="Ro 1:11" id="v.iii-p41.1" parsed="|Rom|1|11|0|0" osisRef="Bible:Rom.1.11" />
+        </p>
+        <div class="Commentary" id="Bible:Rom.1.11">
+          <p id="v.iii-p42">
+            <b>11.</b>
+            <i>For I greatly desire to see you</i>  He might, indeed, while absent, have confirmed their faith by his doctrine; but as advice is better taken from one present, he had a desire to be with them. But he explains what his object was, and shows that he wished to undertake the toil of a
+			 journey, not for his own, but for their advantage. — <i>Spiritual gifts </i>
+            <note place="foot" n="34" id="v.iii-p42.1">
+              <p class="Super" id="v.iii-p43"> The words, τι χάρισμα πνευματικὸν, some spiritual gift, or benefit, seem to be of general import. Some, such as <name id="v.iii-p43.1">Chalmers</name> and <name id="v.iii-p43.2">Haldane</name>, have supposed that a miraculous power is intended, which the Apostles alone conveyed, such as the power of speaking with tongues: but
+				  most Commentators agree in the view here given. The phrase is not found in any other place: χάρισμα, in the plural number, is used to designate miraculous powers. <scripRef passage="1Co 12:9" id="v.iii-p43.3" parsed="|1Cor|12|9|0|0" osisRef="Bible:1Cor.12.9">1 Corinthians 12:9</scripRef>; and τὰ πνευματικά mean the same, <scripRef passage="1Co 14:1" id="v.iii-p43.4" parsed="|1Cor|14|1|0|0" osisRef="Bible:1Cor.14.1">1 Corinthians 14:1</scripRef>. But here, no doubt, the expression includes any gift or benefit, whether miraculous or ordinary, which the Apostle might have been made the means of conveying. — <i>Ed.</i>
+              </p>
+            </note>
+			  he calls those which he possessed, being either those of doctrine, or of exhortation, or of prophesy which he knew had come to him through God’s favor. He has here strikingly pointed out the use of gifts by the word, <i>imparting</i>: for different gifts are distributed to each individual, that all may in kindness mutually assist one another, and transfer to
+			 others what each one possesses. See <scripRef passage="Ro 12:3 1Co 12:11" id="v.iii-p43.5" parsed="|Rom|12|3|0|0;|1Cor|12|11|0|0" osisRef="Bible:Rom.12.3 Bible:1Cor.12.11">Romans 12:3; and 1 Corinthians 12:11</scripRef>
+          </p>
+          <p id="v.iii-p44">
+            <i>To confirm you</i>, <i>etc.</i> He modifies what he had said of imparting, lest he should seem to regard them such as were yet to be instructed in the first elements of religion, as though they were not hitherto rightly taught in Christ. He then says, that he wished so to lend his aid to them, that they who had for the most
+			 part made a proficiency, might be further assisted: for a confirmation is what we all want, until Christ be fully formed in us. (<scripRef passage="Eph 4:13" id="v.iii-p44.1" parsed="|Eph|4|13|0|0" osisRef="Bible:Eph.4.13">Ephesians 4:13</scripRef>.)</p>
+        </div>
+        <p id="v.iii-p45">
+          <scripCom type="Commentary" passage="Ro 1:12" id="v.iii-p45.1" parsed="|Rom|1|12|0|0" osisRef="Bible:Rom.1.12" />
+        </p>
+        <div class="Commentary" id="Bible:Rom.1.12">
+          <p id="v.iii-p46">
+            <b>12.</b> Being not satisfied with this modest statement, he qualifies it, and shows, that he did not so occupy the place of a teacher, but that he wished to learn also from them; as though he said, “I desire so to confirm you according to the measure of grace conferred on me, that your example may also add courage (<span lang="la" dir="ltr" id="v.iii-p46.1">
+              <i>alacritatem</i>
+            </span> — alacrity) to my faith, and that we may thus mutually benefit one another.”</p>
+          <p id="v.iii-p47">See to what degree of modesty his pious heart submitted itself, so that he disdained not to seek confirmation from unexperienced beginners: nor did he speak dissemblingly, for there is no one so void of gifts in the Church of Christ, who is not able to contribute something to our benefit: but we are hindered by our envy and by our pride from gathering such fruit from one another. Such is our high-mindedness, such is the inebriety produced by
+			 vain reputation, that despising and disregarding others, every one thinks that he possesses what is abundantly sufficient for himself. I prefer to read with Bucer, <i>exhortation</i> (<span lang="la" dir="ltr" id="v.iii-p47.1">
+              <i>exhortationem</i>
+            </span> — encouragement) rather than <span lang="la" dir="ltr" id="v.iii-p47.2">
+              <i>consolatim</i>
+            </span>; for it agrees better with the former part.
+			 <note place="foot" n="35" id="v.iii-p47.3">
+              <p class="Super" id="v.iii-p48"> The verb is συμπαρακληθὢναι, which <name id="v.iii-p48.1">Grotius</name> connects with επιποθῶ in the preceding verse; and adds, “He softens what he had said, by showing, that he would not only bring some joy to them, but they also to him.” “<span lang="la" dir="ltr" id="v.iii-p48.2">Ut percipiam consolationem</span> — that I may receive consolation,” <name id="v.iii-p48.3">Piscator</name>
+                <i>;</i> — “<span lang="la" dir="ltr" id="v.iii-p48.4">Ut unà recreemur</span> — that we may be together refreshed,” <name id="v.iii-p48.5">Castelio</name>. “<span lang="la" dir="ltr" id="v.iii-p48.6">Ad communem exhortationem percipiendam</span> — in order to receive common exhortation,” <name id="v.iii-p48.7">Beza</name>; “<span lang="la" dir="ltr" id="v.iii-p48.8">Ut gaudium et voluptatem ex vobis precipiam</span> — that I may receive joy and pleasure from you;” <span lang="la" dir="ltr" id="v.iii-p48.9">vel</span>, “<span lang="la" dir="ltr" id="v.iii-p48.10">Ut mutuo solatio invicem nos erigamus atque firmemus</span> — that by mutual comfort we may console and strengthen one another,” <name id="v.iii-p48.11">Schleusner</name>
+              </p>
+              <p class="Super" id="v.iii-p49">The verb with the prefix, συμ, is only found here; but the verb παρακαλέω frequently occurs, and its common meaning is, to beseech, to exhort to encourage, and by these means to comfort.</p>
+              <p class="Super" id="v.iii-p50">With regard to this passage, Professor <name id="v.iii-p50.1">Stuart</name> says, “I have rendered the word, <i>comfort</i>, only because I cannot find any English word which will convey the full sense of the original.”</p>
+              <p class="Super" id="v.iii-p51">“The word rendered <i>to comfort</i>,” says Professor <name id="v.iii-p51.1">Hodge</name>, “means <i>to invite</i>, <i>to exhort</i>, <i>to instruct</i>, <i>to console</i>, etc. Which of these senses is to be preferred here, it is not easy to decide. Most probably the Apostle intended to use the word in a wide sense, as expressing the idea, that he might be excited, encouraged, and comforted by his intercourse with his Christian brethren.” — The
+				  two verses may be thus rendered: —</p>
+              <p class="Super" id="v.iii-p52">
+                <b>11. </b>For I desire much to see you, that I may impart to you spiritual</p>
+              <p class="Super" id="v.iii-p53">
+                <b>12. </b>benefit, so that you may be strengthened: this also is what <i>I desire</i>, to be encouraged together with you, through the faith which is in both, even in you and in me.</p>
+              <p class="Super" id="v.iii-p54">
+                <name id="v.iii-p54.1">Grotius</name> observes, “ἐν ἀλλήλοις <span lang="la" dir="ltr" id="v.iii-p54.2">impropriè dixit pro <i>in utrisque</i>, in me et vobis. Dixit sic et Demosthenes</span>, τα πρὸς ἀλλήλοις — <i>Ed</i>
+              </p>
+            </note>
+          </p>
+        </div>
+      </div2>
+    </div1>
+  </ThML.body>
+</ThML>

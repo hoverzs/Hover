@@ -1,0 +1,26 @@
+{
+  "manifest_version": "1",
+  "description": "Reproducible CCEL Calvin Commentary ThML/XML source list (pilot subset). No raw XML is committed to git; fetch with scripts/build_commentary_database.py --calvin-fetch, which downloads each url and verifies raw_sha256 before use.",
+  "generated_at": "2026-09-02",
+  "license": "Public Domain (per each file's ThML DC.Rights)",
+  "sources": [
+    {
+      "id": "calcom38",
+      "title": "Commentary on Romans",
+      "url": "https://www.ccel.org/ccel/calvin/calcom38.xml",
+      "local_path": "data/raw/calvin/calcom38.xml",
+      "raw_sha256": "83f148d977bb0e02928d209dd4cb2b19ebea440dd9c5e85fe3e73131fb53289c",
+      "byte_size": 2269410,
+      "notes": "Standard single-book commentary; clean chapter/verse-range structure. Used as the 'standard' pilot volume."
+    },
+    {
+      "id": "calcom31",
+      "title": "Harmony of the Evangelists (Matthew, Mark, Luke) - Part 1",
+      "url": "https://www.ccel.org/ccel/calvin/calcom31.xml",
+      "local_path": "data/raw/calvin/calcom31.xml",
+      "raw_sha256": "4989da59aa4b29fd076d95bae451def22de137db54bd7c52eb070f544913b428",
+      "byte_size": 1924843,
+      "notes": "Gospel Harmony; div2 sections routinely link two or three passages (e.g. Matthew 1:1-17;Luke 3:23-38) in one section. Used as the 'complex hierarchy / multi-passage' pilot volume."
+    }
+  ]
+}
