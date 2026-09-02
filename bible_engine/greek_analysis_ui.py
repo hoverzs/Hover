@@ -100,6 +100,7 @@ GreekReferenceStatus = Literal[
     "cross_chapter",
     "loaded",
 ]
+AnalysisDisplayMode = Literal["full", "compact"]
 
 
 @dataclass(frozen=True)
@@ -114,6 +115,33 @@ class TokenSelection:
         return f"{self.book}:{self.chapter}:{self.verse}:{self.word_index}"
 
 
+def _normalize_display_mode(display_mode: str | None) -> AnalysisDisplayMode:
+    return "compact" if display_mode == "compact" else "full"
+
+
+def _render_greek_block_heading(
+    *,
+    reference_label: str | None,
+    display_mode: AnalysisDisplayMode,
+) -> None:
+    st.markdown(
+        '<h3 class="textus-greek-analysis-title">Görög eredeti szöveg</h3>',
+        unsafe_allow_html=True,
+    )
+    helper = "Válasszon egy görög szót"
+    label = (
+        f"{helper} · {reference_label.strip()}"
+        if display_mode == "compact" and (reference_label or "").strip()
+        else helper
+    )
+    st.markdown(
+        f'<div class="textus-greek-analysis-label">{html.escape(label)}</div>',
+        unsafe_allow_html=True,
+    )
+    if display_mode != "compact" and (reference_label or "").strip():
+        st.caption(reference_label.strip())
+
+
 def render_greek_analysis_block(
     reference: str,
     key_prefix: str,
@@ -125,8 +153,10 @@ def render_greek_analysis_block(
     | None = None,
     tbesg_lexicon_loader: Callable[[str], SQLiteGreekLexiconEntry | None]
     | None = None,
+    display_mode: AnalysisDisplayMode | str = "full",
 ) -> None:
     status = greek_reference_status(reference)
+    mode = _normalize_display_mode(display_mode)
     if status == "empty":
         return
     if status == "needs_verses":
@@ -143,7 +173,11 @@ def render_greek_analysis_block(
         from hebrew_text_demo import render_hebrew_original_language_reference
 
         try:
-            render_hebrew_original_language_reference(reference, key_prefix=key_prefix)
+            render_hebrew_original_language_reference(
+                reference,
+                key_prefix=key_prefix,
+                display_mode=mode,
+            )
         except HebrewReferenceError as exc:
             st.warning(str(exc))
             with st.expander("Fejlesztői részletek", expanded=False):
@@ -187,6 +221,7 @@ def render_greek_analysis_block(
         tbesg_lexicon_loader,
         key_prefix=key_prefix,
         reference_label=_greek_reference_label(reference),
+        display_mode=mode,
     )
 
 
@@ -366,6 +401,7 @@ def _render_loaded_greek_passage_analysis(
     *,
     key_prefix: str,
     reference_label: str | None = None,
+    display_mode: AnalysisDisplayMode = "full",
 ) -> None:
     all_tokens = _flatten_tokens(verse_groups)
     selected_word_key = _key(key_prefix, "selected_word_index")
@@ -406,16 +442,10 @@ def _render_loaded_greek_passage_analysis(
             st.session_state.get(selected_token_key)
         )
 
-    st.markdown(
-        '<h3 class="textus-greek-analysis-title">Görög eredeti szöveg</h3>',
-        unsafe_allow_html=True,
+    _render_greek_block_heading(
+        reference_label=reference_label,
+        display_mode=display_mode,
     )
-    st.markdown(
-        '<div class="textus-greek-analysis-label">Válasszon egy görög szót</div>',
-        unsafe_allow_html=True,
-    )
-    if reference_label:
-        st.caption(reference_label)
 
     component_key = _key(key_prefix, "inline_token_selector")
     component_selection = greek_token_selector_value(
@@ -435,19 +465,22 @@ def _render_loaded_greek_passage_analysis(
         st.session_state[fallback_key] = _fallback_value(verse_groups, next_selection)
         st.rerun()
 
-    st.markdown('<div class="textus-greek-fallback-marker"></div>', unsafe_allow_html=True)
-    with st.expander("Alternatív szóválasztás", expanded=False):
-        st.selectbox(
-            "Token",
-            options=_fallback_options(verse_groups),
-            key=fallback_key,
-            format_func=lambda value: _fallback_label(verse_groups, value),
-            on_change=sync_fallback_selection,
-        )
+    _render_greek_fallback_selector(
+        verse_groups,
+        fallback_key=fallback_key,
+        on_change=sync_fallback_selection,
+        display_mode=display_mode,
+    )
 
     current_selection = _selected_token_key(all_tokens, st.session_state.get(selected_token_key))
     selected = _token_by_selection_key(all_tokens, current_selection)
-    _render_analysis_panel(selected, lexicon_entries, tbesg_lexicon_loader, key_prefix=key_prefix)
+    _render_analysis_panel(
+        selected,
+        lexicon_entries,
+        tbesg_lexicon_loader,
+        key_prefix=key_prefix,
+        display_mode=display_mode,
+    )
 
 
 def _render_loaded_greek_analysis(
@@ -457,6 +490,7 @@ def _render_loaded_greek_analysis(
     *,
     key_prefix: str,
     reference_label: str | None = None,
+    display_mode: AnalysisDisplayMode = "full",
 ) -> None:
     selected_key = _key(key_prefix, "selected_word_index")
     component_key = _key(key_prefix, "inline_token_selector")
@@ -479,16 +513,10 @@ def _render_loaded_greek_analysis(
             st.session_state.get(fallback_key),
         )
 
-    st.markdown(
-        '<h3 class="textus-greek-analysis-title">Görög eredeti szöveg</h3>',
-        unsafe_allow_html=True,
+    _render_greek_block_heading(
+        reference_label=reference_label,
+        display_mode=display_mode,
     )
-    st.markdown(
-        '<div class="textus-greek-analysis-label">Válasszon egy görög szót</div>',
-        unsafe_allow_html=True,
-    )
-    if reference_label:
-        st.caption(reference_label)
     component_selection = greek_token_selector(
         tokens=tokens,
         selected_word_index=current_index,
@@ -501,20 +529,23 @@ def _render_loaded_greek_analysis(
         st.session_state[fallback_key] = next_index
         st.rerun()
 
-    st.markdown('<div class="textus-greek-fallback-marker"></div>', unsafe_allow_html=True)
-    with st.expander("Alternatív szóválasztás", expanded=False):
-        st.selectbox(
-            "Token",
-            options=[token.word_index for token in tokens],
-            key=fallback_key,
-            format_func=lambda index: token_option_label(_token_by_index(tokens, index)),
-            on_change=sync_fallback_selection,
-        )
+    _render_single_verse_fallback_selector(
+        tokens,
+        fallback_key=fallback_key,
+        on_change=sync_fallback_selection,
+        display_mode=display_mode,
+    )
 
     current_index = selected_word_index(tokens, st.session_state.get(selected_key))
     selected_index = current_index if current_index is not None else tokens[0].word_index
     selected = _token_by_index(tokens, selected_index)
-    _render_analysis_panel(selected, lexicon_entries, tbesg_lexicon_loader, key_prefix=key_prefix)
+    _render_analysis_panel(
+        selected,
+        lexicon_entries,
+        tbesg_lexicon_loader,
+        key_prefix=key_prefix,
+        display_mode=display_mode,
+    )
 
 
 def _render_analysis_panel(
@@ -523,16 +554,144 @@ def _render_analysis_panel(
     tbesg_lexicon_loader: Callable[[str], SQLiteGreekLexiconEntry | None],
     *,
     key_prefix: str,
+    display_mode: AnalysisDisplayMode = "full",
 ) -> None:
+    if display_mode == "compact":
+        _render_compact_analysis_panel(
+            selected,
+            lexicon_entries,
+            tbesg_lexicon_loader,
+            key_prefix=key_prefix,
+        )
+        return
     st.markdown('<div class="textus-greek-analysis-card-marker"></div>', unsafe_allow_html=True)
     with st.container(border=True):
         st.subheader(_present(selected.greek_form))
-        left, right = st.columns(2, gap="small")
-        analysis_items = list(token_analysis(selected).items())
-        left.markdown(_compact_field_markup(analysis_items[:3]), unsafe_allow_html=True)
-        right.markdown(_compact_field_markup(analysis_items[3:]), unsafe_allow_html=True)
+        analysis = token_analysis(selected)
+        ordered = [
+            ("Szótári alak / alakok", analysis["Szótári alak / alakok"]),
+            ("Morfológiai kód", analysis["Morfológiai kód"]),
+            ("Strong/STEP", analysis["Strong/STEP"]),
+            ("Kiadásjelölés", analysis["Kiadásjelölés"]),
+            ("Nyelvtani alak", analysis["Nyelvtani alak"]),
+        ]
+        st.markdown(_compact_field_markup(ordered), unsafe_allow_html=True)
         _render_lexicon_section(selected, lexicon_entries, tbesg_lexicon_loader)
         _render_concordance_jump_button(selected, key_prefix=key_prefix)
+
+
+def _render_greek_fallback_selector(
+    verse_groups: list[GreekVerseTokens],
+    *,
+    fallback_key: str,
+    on_change: Callable[[], None],
+    display_mode: AnalysisDisplayMode,
+) -> None:
+    """Keep the keyed fallback selectbox mounted in both modes.
+
+    Compact hides it visually. Removing the widget entirely left a stale
+    `fallback_selector` key (the Íróasztal `st.stop()` skips widget cleanup)
+    and made CCv2 token clicks fail to commit.
+    """
+    if display_mode == "compact":
+        st.markdown(
+            '<div class="textus-greek-compact-fallback-marker"></div>',
+            unsafe_allow_html=True,
+        )
+        st.selectbox(
+            "Token",
+            options=_fallback_options(verse_groups),
+            key=fallback_key,
+            format_func=lambda value: _fallback_label(verse_groups, value),
+            on_change=on_change,
+            label_visibility="collapsed",
+        )
+        return
+    st.markdown('<div class="textus-greek-fallback-marker"></div>', unsafe_allow_html=True)
+    with st.expander("Alternatív szóválasztás", expanded=False):
+        st.selectbox(
+            "Token",
+            options=_fallback_options(verse_groups),
+            key=fallback_key,
+            format_func=lambda value: _fallback_label(verse_groups, value),
+            on_change=on_change,
+        )
+
+
+def _render_single_verse_fallback_selector(
+    tokens: list[GreekToken],
+    *,
+    fallback_key: str,
+    on_change: Callable[[], None],
+    display_mode: AnalysisDisplayMode,
+) -> None:
+    if display_mode == "compact":
+        st.markdown(
+            '<div class="textus-greek-compact-fallback-marker"></div>',
+            unsafe_allow_html=True,
+        )
+        st.selectbox(
+            "Token",
+            options=[token.word_index for token in tokens],
+            key=fallback_key,
+            format_func=lambda index: token_option_label(_token_by_index(tokens, index)),
+            on_change=on_change,
+            label_visibility="collapsed",
+        )
+        return
+    st.markdown('<div class="textus-greek-fallback-marker"></div>', unsafe_allow_html=True)
+    with st.expander("Alternatív szóválasztás", expanded=False):
+        st.selectbox(
+            "Token",
+            options=[token.word_index for token in tokens],
+            key=fallback_key,
+            format_func=lambda index: token_option_label(_token_by_index(tokens, index)),
+            on_change=on_change,
+        )
+
+
+def _render_compact_analysis_panel(
+    selected: GreekToken,
+    lexicon_entries: dict[str, HungarianLexiconEntry] | None,
+    tbesg_lexicon_loader: Callable[[str], SQLiteGreekLexiconEntry | None],
+    *,
+    key_prefix: str,
+) -> None:
+    analysis = token_analysis(selected)
+    lemma = analysis.get("Szótári alak / alakok") or _present(selected.lemma)
+    morphology = analysis.get("Nyelvtani alak") or ""
+    gloss, note = _compact_greek_gloss_and_note(
+        selected, lexicon_entries, tbesg_lexicon_loader
+    )
+    st.markdown('<div class="textus-greek-compact-card-marker"></div>', unsafe_allow_html=True)
+    with st.container(border=True, key=_key(key_prefix, "compact_analysis")):
+        st.markdown(f"**{_present(selected.greek_form)}** — {lemma}")
+        if morphology:
+            st.markdown(f"**Morfológia:** {morphology}")
+        if gloss:
+            st.markdown(f"**Alapjelentés:** {gloss}")
+        if note:
+            st.markdown(f"**Rövid magyarázat:** {note}")
+
+
+def _compact_greek_gloss_and_note(
+    token: GreekToken,
+    lexicon_entries: dict[str, HungarianLexiconEntry] | None,
+    tbesg_lexicon_loader: Callable[[str], SQLiteGreekLexiconEntry | None],
+) -> tuple[str, str]:
+    if lexicon_entries is not None:
+        resolution = _hungarian_lexicon_resolution_for_token(lexicon_entries, token)
+        if resolution is not None:
+            entry = resolution.entry
+            gloss = (entry.primary_gloss or "").strip()
+            note = (entry.note or "").strip()
+            if note:
+                note, _more = _short_lexicon_preview(note, limit=180)
+            return gloss, note
+    tbesg_entry = _tbesg_lexicon_entry_for_token(tbesg_lexicon_loader, token)
+    if isinstance(tbesg_entry, TBESGDatabaseUnavailableError) or tbesg_entry is None:
+        return "", ""
+    return (_present(tbesg_entry.gloss), "")
 
 
 def _render_concordance_jump_button(selected: GreekToken, *, key_prefix: str) -> None:
@@ -573,8 +732,6 @@ def _render_lexicon_section(
     entries: dict[str, HungarianLexiconEntry] | None,
     tbesg_lexicon_loader: Callable[[str], SQLiteGreekLexiconEntry | None],
 ) -> None:
-    st.divider()
-
     if entries is not None:
         resolution = _hungarian_lexicon_resolution_for_token(entries, token)
         if resolution is not None:
@@ -641,8 +798,9 @@ def _compact_field_markup(items: list[tuple[str, str]]) -> str:
         f'<div class="textus-greek-field"><strong>{html.escape(label)}:</strong> '
         f"{html.escape(value)}</div>"
         for label, value in items
+        if value
     )
-    return f'<div class="textus-greek-field-list">{rows}</div>'
+    return f'<div class="textus-greek-field-list textus-greek-meta-grid">{rows}</div>'
 
 
 def _hungarian_lexicon_resolution_for_token(
@@ -690,9 +848,9 @@ def _ensure_greek_analysis_styles() -> None:
         """
         <style>
         .textus-greek-analysis-title {
-            margin: 0.06rem 0 0;
+            margin: 0;
             font-size: 0.98rem;
-            line-height: 1.1;
+            line-height: 1.15;
             font-weight: 700;
         }
         .element-container:has(.textus-greek-analysis-title) {
@@ -705,7 +863,7 @@ def _ensure_greek_analysis_styles() -> None:
             margin: 0;
             font-size: 0.86rem;
             font-weight: 600;
-            line-height: 1.08;
+            line-height: 1.25;
         }
         .element-container:has(.textus-greek-analysis-label) {
             margin-top: 0 !important;
@@ -714,9 +872,9 @@ def _ensure_greek_analysis_styles() -> None:
             padding-bottom: 0 !important;
         }
         .greek-token-selector {
-            font-size: 1.12rem;
-            line-height: 1.3;
-            margin: 0 0 0.02rem;
+            font-size: 1.08rem;
+            line-height: 1.32;
+            margin: 0 0 0.06rem;
         }
         .textus-greek-verse-marker {
             float: left;
@@ -752,11 +910,48 @@ def _ensure_greek_analysis_styles() -> None:
             line-height: 1.08 !important;
         }
         .textus-greek-fallback-marker,
-        .textus-greek-analysis-card-marker {
+        .textus-greek-compact-fallback-marker,
+        .textus-greek-analysis-card-marker,
+        .textus-greek-compact-card-marker {
+            display: none !important;
+            height: 0 !important;
+            overflow: hidden !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: 0 !important;
+            background: transparent !important;
+            list-style: none !important;
+        }
+        .element-container:has(.textus-greek-compact-card-marker) {
             display: none !important;
             height: 0 !important;
             margin: 0 !important;
             padding: 0 !important;
+            overflow: hidden !important;
+        }
+        .element-container:has(.textus-greek-compact-card-marker) + .element-container {
+            margin-top: 0.12rem !important;
+            margin-bottom: 0 !important;
+        }
+        .element-container:has(.textus-greek-compact-card-marker) + .element-container [data-testid="stVerticalBlockBorderWrapper"] {
+            padding: 0.26rem 0.42rem 0.28rem !important;
+        }
+        .element-container:has(.textus-greek-compact-card-marker) + .element-container [data-testid="stVerticalBlock"] {
+            gap: 0.2rem !important;
+        }
+        .element-container:has(.textus-greek-compact-card-marker) + .element-container [data-testid="stMarkdownContainer"] p {
+            margin-bottom: 0.06rem !important;
+            line-height: 1.32 !important;
+        }
+        .element-container:has(.textus-greek-compact-fallback-marker),
+        .element-container:has(.textus-greek-compact-fallback-marker) + .element-container {
+            display: none !important;
+            height: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow: hidden !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
         }
         .element-container:has(.textus-greek-fallback-marker) {
             margin: 0 !important;
@@ -806,11 +1001,18 @@ def _ensure_greek_analysis_styles() -> None:
         .element-container:has(.textus-greek-analysis-card-marker) + .element-container .textus-greek-field-list {
             margin: 0 !important;
             line-height: 1.16 !important;
+            display: grid !important;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+            column-gap: 16px !important;
+            row-gap: 2px !important;
         }
         .element-container:has(.textus-greek-analysis-card-marker) + .element-container .textus-greek-field {
-            margin: 0 0 0.025rem !important;
+            margin: 0 !important;
             line-height: 1.16 !important;
             font-size: 0.9rem !important;
+        }
+        .element-container:has(.textus-greek-analysis-card-marker) + .element-container .textus-greek-field:last-child {
+            grid-column: 1 / -1 !important;
         }
         .element-container:has(.textus-greek-analysis-card-marker) + .element-container [data-testid="stMarkdownContainer"] p {
             margin-bottom: 0.035rem !important;
@@ -832,9 +1034,20 @@ def _ensure_greek_analysis_styles() -> None:
             margin-bottom: 0.04rem !important;
         }
         .element-container:has(.textus-greek-analysis-card-marker) + .element-container [data-testid="stCaptionContainer"] {
-            margin-bottom: 0.035rem !important;
+            margin-top: 0 !important;
+            margin-bottom: 0.02rem !important;
             line-height: 1.08 !important;
-            font-size: 0.78rem !important;
+            font-size: 0.72rem !important;
+            opacity: 0.82;
+        }
+        .element-container:has(.textus-greek-analysis-card-marker) + .element-container .stButton {
+            margin-top: 4px !important;
+            margin-bottom: 0 !important;
+        }
+        .element-container:has(.textus-greek-analysis-card-marker) + .element-container .stButton button {
+            min-height: 32px !important;
+            height: 32px !important;
+            padding: 0 10px !important;
         }
         @media (max-width: 640px) {
             .greek-token-selector {

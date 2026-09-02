@@ -1,6 +1,6 @@
 # TEXTUS · Homiletikai műhely
 
-**Verzió:** 1.0 (lásd `APP_VERSION` az `app.py` elején)
+**Verzió:** 3.0 (lásd `APP_VERSION` az `app.py` elején)
 
 **A szövegtől a szószékig** — református lelkipásztori környezetre szabott, AI-asszisztált homiletikai műhely: bibliai szakasz alapján exegetikai, teológiai és homiletikai segédleteket készít a **Google Gemini** API-val. A projekt **ingyenes és nyílt forráskódú** ([MIT licenc](LICENSE)).
 

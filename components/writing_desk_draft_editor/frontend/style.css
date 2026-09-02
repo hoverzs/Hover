@@ -1,0 +1,148 @@
+.wd-draft-editor {
+  background: var(--st-background-color, #fffdf8);
+  border: 1px solid var(--st-border-color, rgba(90, 74, 56, 0.22));
+  border-radius: 12px;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 8px 20px rgba(58, 40, 22, 0.07);
+  color: var(--st-text-color, #2f2a24);
+  display: flex;
+  flex-direction: column;
+  min-height: 650px;
+  overflow: hidden;
+}
+
+@media (min-width: 900px) {
+  .wd-draft-editor {
+    min-height: 700px;
+  }
+}
+
+@media (max-width: 640px) {
+  .wd-draft-editor {
+    min-height: 420px;
+  }
+}
+
+.wd-draft-toolbar {
+  align-items: center;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 252, 247, 0.98) 0%,
+      rgba(246, 238, 226, 0.94) 100%
+    );
+  border-bottom: 1px solid rgba(170, 145, 112, 0.28);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.28rem 0.45rem;
+  padding: 0.38rem 0.45rem 0.34rem;
+  position: sticky;
+  top: 0;
+  z-index: 4;
+}
+
+.wd-draft-toolbar-group {
+  align-items: center;
+  display: flex;
+  gap: 0.12rem;
+}
+
+.wd-draft-toolbar-group + .wd-draft-toolbar-group {
+  border-left: 1px solid rgba(170, 145, 112, 0.28);
+  margin-left: 0.12rem;
+  padding-left: 0.42rem;
+}
+
+.wd-draft-toolbar button {
+  appearance: none;
+  align-items: center;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 254, 251, 0.96) 0%,
+      rgba(236, 226, 210, 0.88) 100%
+    );
+  border: 1px solid rgba(170, 145, 112, 0.42);
+  border-radius: 8px;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.88) inset,
+    0 -1px 0 rgba(86, 64, 38, 0.08) inset,
+    0 2px 5px rgba(58, 40, 22, 0.08);
+  color: #2f3340;
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  height: 32px;
+  justify-content: center;
+  min-width: 32px;
+  padding: 0;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+}
+
+.wd-draft-toolbar button svg {
+  display: block;
+  height: 15px;
+  width: 15px;
+}
+
+.wd-draft-toolbar button:hover {
+  border-color: rgba(90, 122, 168, 0.5);
+  transform: translateY(-1px);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.95) inset,
+    0 4px 10px rgba(52, 72, 98, 0.14);
+}
+
+.wd-draft-toolbar button:active {
+  transform: translateY(0);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.55) inset,
+    0 1px 3px rgba(58, 40, 22, 0.14);
+}
+
+.wd-draft-toolbar button:focus-visible {
+  outline: 2px solid rgba(90, 122, 168, 0.65);
+  outline-offset: 1px;
+}
+
+.wd-draft-surface {
+  flex: 1;
+  font-family: "Lora", Georgia, serif;
+  font-size: 1.05rem;
+  line-height: 1.62;
+  min-height: 36rem;
+  outline: none;
+  overflow: auto;
+  padding: 0.85rem 1.05rem 1.05rem;
+}
+
+.wd-draft-surface:focus {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--st-primary-color, #5a7aa8) 28%, transparent);
+}
+
+.wd-draft-surface p {
+  margin: 0 0 0.62em;
+}
+
+.wd-draft-surface p:last-child {
+  margin-bottom: 0;
+}
+
+.wd-draft-surface ul,
+.wd-draft-surface ol {
+  margin: 0.15em 0 0.7em;
+  padding-left: 1.35rem;
+}
+
+.wd-draft-surface li {
+  margin: 0.12em 0;
+}
+
+.wd-draft-surface:empty::before,
+.wd-draft-surface:has(> br:only-child)::before,
+.wd-draft-surface:has(> p:only-child:has(> br:only-child))::before {
+  color: color-mix(in srgb, var(--st-text-color, #6a5a48) 55%, transparent);
+  content: attr(data-placeholder);
+  pointer-events: none;
+}

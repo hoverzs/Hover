@@ -24,6 +24,10 @@ from occasion_context import (
     OCCASION_CONTEXT_KEY,
     normalize_occasion_context,
 )
+from writing_desk_data import (
+    WRITING_DESK_KEY,
+    normalize_writing_desk,
+)
 
 # Meglévő workspace-export kulcsok (app.py serialize_workspace).
 WORKSPACE_STR_KEYS: list[str] = [
@@ -89,6 +93,7 @@ PROJECT_NESTED_KEYS: list[str] = [
     TEXT_WORKSHOP_KEY,
     SERMON_WORKSHOP_KEY,
     OCCASION_CONTEXT_KEY,
+    WRITING_DESK_KEY,
 ]
 
 PROJECT_DATA_STR_KEYS: list[str] = WORKSPACE_STR_KEYS + PROJECT_EXTRA_STR_KEYS
@@ -144,6 +149,14 @@ EXCLUDED_SESSION_KEYS: frozenset[str] = frozenset(
         "tw_main_idea_input",
         "tw_main_idea_status_radio",
         "_tw_ui_resync",
+        "writing_desk_draft_input",
+        "_wd_draft_resync",
+        "_wd_draft_resync_bumped",
+        "_wd_draft_revision",
+        "_wd_outline_handoff_confirm",
+        "_wd_helper_chat",
+        "_wd_helper_chat_input",
+        "writing_desk_docx_download",
         "_tw_main_idea_adopt_pending",
         "_main_idea_suggest_running",
         "_main_idea_assess_running",
@@ -321,6 +334,7 @@ def build_project_data(
     payload[OCCASION_CONTEXT_KEY] = normalize_occasion_context(
         state.get(OCCASION_CONTEXT_KEY)
     )
+    payload[WRITING_DESK_KEY] = normalize_writing_desk(state.get(WRITING_DESK_KEY))
 
     # Biztonsági szűrés: kizárt / titkos / futásidejű kulcsok soha ne maradjanak.
     for excluded in EXCLUDED_SESSION_KEYS:
@@ -458,6 +472,11 @@ def sanitize_project_data_report(
                 value, path=key_s, depth=1, report=report
             )
             clean[key_s] = normalize_occasion_context(nested)
+        elif key_s == WRITING_DESK_KEY:
+            nested = _sanitize_value(
+                value, path=key_s, depth=1, report=report
+            )
+            clean[key_s] = normalize_writing_desk(nested)
         else:
             cleaned = _sanitize_value(
                 value, path=key_s, depth=1, report=report
@@ -484,6 +503,8 @@ def sanitize_project_data_report(
             clean[key] = ""
     if OCCASION_CONTEXT_KEY not in clean:
         clean[OCCASION_CONTEXT_KEY] = normalize_occasion_context(None)
+    if WRITING_DESK_KEY not in clean:
+        clean[WRITING_DESK_KEY] = normalize_writing_desk(None)
 
     # Titkok soha
     for excluded in EXCLUDED_SESSION_KEYS:
@@ -576,6 +597,7 @@ def project_content_fingerprint(state: Mapping[str, Any]) -> str:
     payload[OCCASION_CONTEXT_KEY] = normalize_occasion_context(
         state.get(OCCASION_CONTEXT_KEY)
     )
+    payload[WRITING_DESK_KEY] = normalize_writing_desk(state.get(WRITING_DESK_KEY))
     raw = json.dumps(payload, ensure_ascii=False, sort_keys=True, default=str)
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()
 

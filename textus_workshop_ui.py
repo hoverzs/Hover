@@ -466,11 +466,6 @@ def render_text_main_idea_section(
 
     render_work_section(
         title="A textus fő gondolata",
-        body=(
-            "Fogalmazd meg egyetlen világos mondatban, mit állít ez az "
-            "igeszakasz. Ne még a prédikáció témáját, hanem magának a "
-            "textusnak a központi állítását keresd."
-        ),
         context="Textusműhely",
     )
 
@@ -478,7 +473,7 @@ def render_text_main_idea_section(
         st.text_area(
             "A textus fő gondolata",
             key=_KEY_IDEA_INPUT,
-            height=120,
+            height=90,
             label_visibility="collapsed",
             placeholder="Egyetlen, világos mondat…",
         )
@@ -508,10 +503,7 @@ def render_text_main_idea_section(
     with mi_helper_zone(
         "tw_main_idea",
         title="MI-segéd",
-        body=(
-            "Az MI a már elkészült és jóváhagyott műhelyanyagok alapján segít. "
-            "A végső megfogalmazás és jóváhagyás továbbra is a prédikátor döntése."
-        ),
+        body="Javaslat a már jóváhagyott anyag alapján.",
     ):
         c1, c2 = st.columns(2)
         with c1:
@@ -660,10 +652,6 @@ def render_approved_insights_section() -> None:
 
     render_work_section(
         title="Mit viszünk tovább?",
-        body=(
-            "Itt gyűjtheted össze azokat a felismeréseket, amelyekre az "
-            "igehirdetés felépítésekor valóban támaszkodni szeretnél."
-        ),
         context="Textusműhely",
     )
 
@@ -694,10 +682,6 @@ def render_approved_insights_section() -> None:
                     st.success("Felismerés hozzáadva.")
                     st.rerun()
 
-        st.caption(
-            "A jóváhagyott felismerésekkel folytathatod a munkát az "
-            "Igehirdetési műhelyben."
-        )
         with action_row("tw_insights_next"):
             if st.button(
                 "Tovább az Igehirdetési műhelybe",
@@ -982,13 +966,6 @@ def render_text_summary_section(
 
     render_work_section(
         title="Textusösszegzés",
-        body=(
-            "A Textusműhely záró összegzése: a textus fő gondolata, "
-            "alapfeszültsége, legfontosabb exegetikai felismerései, "
-            "teológiai hangsúlyai és műfaji-szerkezeti sajátosságai egy "
-            "helyen. Jóváhagyás után az Igehirdetési műhely kizárólag "
-            "ebből a kontextusból dolgozik — nem fut újra exegézis."
-        ),
         context="Textusműhely",
     )
 

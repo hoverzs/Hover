@@ -298,7 +298,13 @@ def render_hebrew_analysis_card(
     tbesh_lookup: object,
     *,
     key_prefix: str = "hebrew_original",
+    display_mode: str = "full",
 ) -> None:
+    if display_mode == "compact":
+        _render_compact_hebrew_analysis_card(
+            selected_token, view_model, hu_lookup, tbesh_lookup, key_prefix=key_prefix
+        )
+        return
     st.markdown('<div class="textus-hebrew-analysis-card-marker"></div>', unsafe_allow_html=True)
     with st.container(border=True):
         display_surface = str(view_model.get("display_surface") or selected_token.surface)
@@ -319,6 +325,74 @@ def render_hebrew_analysis_card(
             st.json(asdict(view_model["morphology"]))  # type: ignore[arg-type]
         render_lexical_panel(hu_lookup, tbesh_lookup, view_model)
         _render_concordance_jump_button(selected_token, key_prefix=key_prefix)
+
+
+def _render_compact_hebrew_analysis_card(
+    selected_token: HebrewToken,
+    view_model: dict[str, object],
+    hu_lookup: object | None,
+    tbesh_lookup: object,
+    *,
+    key_prefix: str = "hebrew_original",
+) -> None:
+    display_surface = str(view_model.get("display_surface") or selected_token.surface)
+    lemma = str(view_model.get("lemma") or "").strip()
+    morphology = _compact_hebrew_morphology(view_model)
+    gloss, note = _compact_hebrew_gloss_and_note(hu_lookup, tbesh_lookup, view_model)
+    st.markdown('<div class="textus-hebrew-compact-card-marker"></div>', unsafe_allow_html=True)
+    with st.container(border=True, key=f"{key_prefix}_compact_analysis"):
+        heading = f"**{display_surface}**"
+        if lemma:
+            heading = f"{heading} — {lemma}"
+        st.markdown(heading)
+        if morphology:
+            st.markdown(f"**Morfológia:** {morphology}")
+        if gloss:
+            st.markdown(f"**Alapjelentés:** {gloss}")
+        if note:
+            st.markdown(f"**Rövid magyarázat:** {note}")
+
+
+def _compact_hebrew_morphology(view_model: dict[str, object]) -> str:
+    groups = view_model.get("morphology_groups") or {}
+    alap = dict(groups.get("Alapadatok") or []) if isinstance(groups, dict) else {}
+    part_of_speech = str(alap.get("Szófaj") or "").strip()
+    if part_of_speech:
+        return part_of_speech
+    return _core_part_of_speech_label(view_model)
+
+
+def _compact_hebrew_gloss_and_note(
+    hu_lookup: object | None,
+    tbesh_lookup: object,
+    view_model: dict[str, object],
+) -> tuple[str, str]:
+    hu_entry = getattr(hu_lookup, "entry", None) if hu_lookup is not None else None
+    if hu_entry is not None:
+        gloss = str(getattr(hu_entry, "base_meaning_hu", "") or "").strip()
+        note = _display_lexical_note(hu_entry, view_model).strip()
+        if note:
+            note = _short_hebrew_note(note)
+        return gloss, note
+    fallback = getattr(hu_lookup, "tbesh_fallback", None) if hu_lookup is not None else None
+    fallback = fallback or getattr(tbesh_lookup, "core", None)
+    entry = getattr(fallback, "entry", None) if fallback else None
+    if entry is not None:
+        return str(getattr(entry, "gloss", "") or "").strip(), ""
+    return "", ""
+
+
+def _short_hebrew_note(text: str, limit: int = 180) -> str:
+    compact = re.sub(r"\s+", " ", text).strip()
+    if len(compact) <= limit:
+        return compact
+    truncated = compact[:limit].rstrip()
+    last_sentence = max(truncated.rfind("."), truncated.rfind(";"), truncated.rfind(":"))
+    if last_sentence >= 80:
+        truncated = truncated[: last_sentence + 1]
+    else:
+        truncated = truncated.rstrip(" ,;:")
+    return f"{truncated}..."
 
 
 def _render_concordance_jump_button(selected_token: HebrewToken, *, key_prefix: str) -> None:
@@ -539,6 +613,7 @@ def render_hebrew_original_language_panel(
     key_prefix: str = "hebrew_original",
     database_path: Path = DEFAULT_TAHOT_DATABASE_PATH,
     reference_label: str | None = None,
+    display_mode: str = "full",
 ) -> None:
     _ensure_hebrew_analysis_styles()
 
@@ -575,15 +650,20 @@ def render_hebrew_original_language_panel(
     current_key = _selected_token_key(tokens, st.session_state.get(selected_state_key))
     st.session_state[selected_state_key] = current_key
 
+    resolved_reference = reference_label or _reference_label(book, chapter, verse_start, end)
     st.markdown(
         '<h3 class="textus-hebrew-analysis-title">H\u00e9ber-ar\u00e1mi eredeti sz\u00f6veg</h3>',
         unsafe_allow_html=True,
     )
+    helper = "V\u00e1lasszon egy h\u00e9ber vagy ar\u00e1mi sz\u00f3t"
+    if display_mode == "compact" and resolved_reference:
+        helper = f"{helper} \u00b7 {resolved_reference}"
     st.markdown(
-        '<div class="textus-hebrew-analysis-label">V\u00e1lasszon egy h\u00e9ber vagy ar\u00e1mi sz\u00f3t</div>',
+        f'<div class="textus-hebrew-analysis-label">{html.escape(helper)}</div>',
         unsafe_allow_html=True,
     )
-    st.caption(reference_label or _reference_label(book, chapter, verse_start, end))
+    if display_mode != "compact":
+        st.caption(resolved_reference)
     selected = hebrew_token_selector(
         tokens,
         current_key,
@@ -595,7 +675,6 @@ def render_hebrew_original_language_panel(
         st.rerun()
     selected_token = next((token for token in tokens if token.stable_key == selected_key), tokens[0])
     st.session_state[fallback_key] = selected_token.stable_key
-    st.markdown('<div class="textus-hebrew-fallback-marker"></div>', unsafe_allow_html=True)
 
     def sync_fallback_selection() -> None:
         st.session_state[selected_state_key] = _selected_token_key(
@@ -603,7 +682,11 @@ def render_hebrew_original_language_panel(
             st.session_state.get(fallback_key),
         )
 
-    with st.expander("Alternat\u00edv sz\u00f3v\u00e1laszt\u00e1s", expanded=False):
+    if display_mode == "compact":
+        st.markdown(
+            '<div class="textus-hebrew-compact-fallback-marker"></div>',
+            unsafe_allow_html=True,
+        )
         st.selectbox(
             "Token",
             [token.stable_key for token in tokens],
@@ -611,7 +694,19 @@ def render_hebrew_original_language_panel(
             key=fallback_key,
             format_func=lambda key: _fallback_label(tokens, key),
             on_change=sync_fallback_selection,
+            label_visibility="collapsed",
         )
+    else:
+        st.markdown('<div class="textus-hebrew-fallback-marker"></div>', unsafe_allow_html=True)
+        with st.expander("Alternat\u00edv sz\u00f3v\u00e1laszt\u00e1s", expanded=False):
+            st.selectbox(
+                "Token",
+                [token.stable_key for token in tokens],
+                index=[token.stable_key for token in tokens].index(selected_token.stable_key),
+                key=fallback_key,
+                format_func=lambda key: _fallback_label(tokens, key),
+                on_change=sync_fallback_selection,
+            )
 
     lexicon = HebrewLexiconRepository(DEFAULT_TBESH_DATABASE_PATH)
     hungarian_lexicon = HebrewHungarianLexiconRepository(tbesh_database_path=DEFAULT_TBESH_DATABASE_PATH)
@@ -624,8 +719,16 @@ def render_hebrew_original_language_panel(
         else None
     )
     view_model = build_hebrew_token_view_model(selected_token, morphology, lookup)
-    render_hebrew_analysis_card(selected_token, view_model, hu_lookup, lookup, key_prefix=key_prefix)
-    st.caption("Forr\u00e1s \u00e9s licenc: STEP Bible / STEPBible-Data, CC BY 4.0, www.STEPBible.org.")
+    render_hebrew_analysis_card(
+        selected_token,
+        view_model,
+        hu_lookup,
+        lookup,
+        key_prefix=key_prefix,
+        display_mode=display_mode,
+    )
+    if display_mode != "compact":
+        st.caption("Forr\u00e1s \u00e9s licenc: STEP Bible / STEPBible-Data, CC BY 4.0, www.STEPBible.org.")
 
 
 def render_hebrew_original_language_reference(
@@ -633,6 +736,7 @@ def render_hebrew_original_language_reference(
     *,
     key_prefix: str = "hebrew_original",
     database_path: Path = DEFAULT_TAHOT_DATABASE_PATH,
+    display_mode: str = "full",
 ) -> None:
     book, chapter, verse_start, verse_end = parse_hebrew_original_reference(reference)
     render_hebrew_original_language_panel(
@@ -643,6 +747,7 @@ def render_hebrew_original_language_reference(
         key_prefix=key_prefix,
         database_path=database_path,
         reference_label=reference,
+        display_mode=display_mode,
     )
 
 
@@ -651,26 +756,64 @@ def _ensure_hebrew_analysis_styles() -> None:
         """
         <style>
         .textus-hebrew-analysis-title {
-            margin: 0.06rem 0 0;
+            margin: 0;
             font-size: 0.98rem;
-            line-height: 1.1;
+            line-height: 1.15;
             font-weight: 700;
         }
         .textus-hebrew-analysis-label {
             margin: 0;
             font-size: 0.86rem;
             font-weight: 600;
-            line-height: 1.08;
+            line-height: 1.25;
         }
         .hebrew-token-selector {
-            margin: 0 0 0.02rem;
+            margin: 0 0 0.06rem;
+            line-height: 1.32;
         }
         .textus-hebrew-fallback-marker,
-        .textus-hebrew-analysis-card-marker {
+        .textus-hebrew-compact-fallback-marker,
+        .textus-hebrew-analysis-card-marker,
+        .textus-hebrew-compact-card-marker {
+            display: none !important;
+            height: 0 !important;
+            overflow: hidden !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: 0 !important;
+            background: transparent !important;
+            list-style: none !important;
+        }
+        .element-container:has(.textus-hebrew-compact-card-marker) {
             display: none !important;
             height: 0 !important;
             margin: 0 !important;
             padding: 0 !important;
+            overflow: hidden !important;
+        }
+        .element-container:has(.textus-hebrew-compact-card-marker) + .element-container {
+            margin-top: 0.12rem !important;
+            margin-bottom: 0 !important;
+        }
+        .element-container:has(.textus-hebrew-compact-card-marker) + .element-container [data-testid="stVerticalBlockBorderWrapper"] {
+            padding: 0.26rem 0.42rem 0.28rem !important;
+        }
+        .element-container:has(.textus-hebrew-compact-card-marker) + .element-container [data-testid="stVerticalBlock"] {
+            gap: 0.2rem !important;
+        }
+        .element-container:has(.textus-hebrew-compact-card-marker) + .element-container [data-testid="stMarkdownContainer"] p {
+            margin-bottom: 0.06rem !important;
+            line-height: 1.32 !important;
+        }
+        .element-container:has(.textus-hebrew-compact-fallback-marker),
+        .element-container:has(.textus-hebrew-compact-fallback-marker) + .element-container {
+            display: none !important;
+            height: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow: hidden !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
         }
         .element-container:has(.textus-hebrew-fallback-marker) {
             margin: 0 !important;

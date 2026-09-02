@@ -29,11 +29,15 @@ from bible_text_ui import (
 )
 from bible_text_ui import _ensure_bible_text_styles
 from ruf_bible_service import SOURCE_NAME, fetch_ruf_passage
+from writing_desk_outline_handoff import (
+    OUTLINE_HANDOFF_CONFIRM_KEY,
+    apply_developed_outline_handoff,
+    writing_desk_draft_needs_overwrite_confirmation,
+)
 from sermon_workshop_data import (
     _ARC_POINT_KEYS,
     _DEVELOPED_MOVEMENT_LIST_FIELDS,
     accept_arc_candidate,
-    accept_developed_outline_candidate,
     accept_workshop_proposal,
     discard_developed_outline_candidate,
     update_developed_outline_movement_field,
@@ -3884,10 +3888,6 @@ def render_outline_section(
 
     render_work_section(
         title="Igehirdetési vázlat",
-        body=(
-            "A teljes műhelyanyagból összeállított, szerkeszthető és "
-            "jóváhagyható vázlat."
-        ),
         context="Igehirdetési műhely",
     )
 
@@ -11493,10 +11493,6 @@ def render_sermon_path_section(
     ensure_sermon_workshop_state(st.session_state)
 
     st.subheader("Az igehirdetés útja")
-    st.markdown(
-        "Itt nem kész prédikációvázlatot írunk, hanem megtervezzük, milyen "
-        "felismerési úton haladjon végig a hallgató."
-    )
 
     sw = ensure_sermon_workshop_state(st.session_state)
     if (sw.get("sermon_main_idea_status") or "").strip() != "approved":
@@ -11506,12 +11502,6 @@ def render_sermon_path_section(
         )
 
     st.markdown("##### 1. Alaphelyzet")
-    st.caption(
-        "Mi a textus kiinduló feszültsége — konfliktus, hiány, kérdés, "
-        "paradoxon, félreértés, emberi helyzet vagy teológiai probléma? "
-        "(Ez a textus saját feszültsége, nem a hallgató első benyomása — "
-        "azt a Homiletikai belépési pont szakasz Belépés mezője adja.)"
-    )
     st.text_area(
         "Alaphelyzet",
         key=_KEY_PATH["starting_point"],
@@ -11521,12 +11511,6 @@ def render_sermon_path_section(
     )
 
     st.markdown("##### 2. Első fordulópont")
-    st.caption(
-        "Milyen felismerés módosítja itt az addigi értelmezést? Nem "
-        "pusztán új információ, hanem valami megváltozik abban, ahogyan a "
-        "hallgató a helyzetet látja. Nem kötelező — hagyd üresen, ha a "
-        "textus nem indokol külön fordulópontot."
-    )
     st.text_area(
         "Első fordulópont",
         key=_KEY_PATH["first_shift"],
@@ -11536,11 +11520,6 @@ def render_sermon_path_section(
     )
 
     st.markdown("##### 3. Mélyítés és fokozás")
-    st.caption(
-        "Hogyan nő a tét? A kérdés összetettebbé válik, a következmények "
-        "világosabbá lesznek — ne ismételd az első fordulópontot, hanem "
-        "vidd tovább. Elhagyható vagy összevonható az előzővel."
-    )
     st.text_area(
         "Mélyítés és fokozás",
         key=_KEY_PATH["deepening"],
@@ -11550,14 +11529,6 @@ def render_sermon_path_section(
     )
 
     with st.expander("4. Átértelmezés (opcionális)", expanded=False):
-        st.caption(
-            "Itt válik láthatóvá, hogy a textus nem feltétlenül úgy oldja "
-            "fel a kérdést, ahogyan ösztönösen várnánk — váratlan fordulat, "
-            "paradoxon vagy az addigi feltételezések korrekciója. Csak "
-            "akkor töltsd ki, ha a textus valóban indokolja; egyébként "
-            "hagyd üresen, és a mélyítés közvetlenül a második "
-            "fordulóponthoz (Evangéliumi fordulat) vezet tovább."
-        )
         st.text_area(
             "Átértelmezés",
             key=_KEY_PATH["reinterpretation"],
@@ -11961,11 +11932,6 @@ def render_flat_text_and_focus_section(
     expander az egyetlen belépési pont mindkét esethez)."""
     render_work_section(
         title="Textus és fókusz",
-        body=(
-            "A két mező a hét pontot összetartó központi irány — nem "
-            "további modellpont. Kitöltésük opcionális, és nem "
-            "blokkolja a hétpontos vázlat használatát."
-        ),
         context="Igehirdetési műhely",
     )
 
@@ -11973,12 +11939,12 @@ def render_flat_text_and_focus_section(
     sw = ensure_sermon_workshop_state(st.session_state)
 
     st.markdown("**A textus fő gondolata**")
-    st.caption("Mit mond ez a bibliai szakasz saját összefüggésében?")
     st.text_area(
         "A textus fő gondolata",
         key=_KEY_FLAT_TEXT_MAIN_IDEA,
-        height=100,
+        height=72,
         label_visibility="collapsed",
+        placeholder="Mit mond a szakasz a saját összefüggésében?",
         on_change=_flat_save_text_main_idea,
     )
     _render_field_refinement_panel(
@@ -11990,12 +11956,12 @@ def render_flat_text_and_focus_section(
     )
 
     st.markdown("**Az igehirdetés fő gondolata – fókuszmondat**")
-    st.caption("Milyen központi felismerés felé vezesse az igehirdetés a hallgatót?")
     st.text_area(
         "Az igehirdetés fő gondolata – fókuszmondat",
         key=_KEY_SERMON_IDEA,
-        height=100,
+        height=72,
         label_visibility="collapsed",
+        placeholder="Milyen felismerés felé vezesse a hallgatót?",
         on_change=_flat_save_sermon_main_idea,
     )
     _render_field_refinement_panel(
@@ -12052,11 +12018,6 @@ def render_flat_seven_point_outline_section(
     vagy export ezen az útvonalon."""
     render_work_section(
         title="Hétpontos igehirdetési vázlat",
-        body=(
-            "A hét rész együtt alkotja az igehirdetés gondolati és "
-            "dramaturgiai ívét. Nem hét elszigetelt tétel, hanem egyetlen "
-            "előrehaladó gondolatmenet."
-        ),
         context="Igehirdetési műhely",
     )
 
@@ -12103,33 +12064,35 @@ def render_flat_seven_point_outline_section(
     arc = sw.get("arc") if isinstance(sw.get("arc"), dict) else {}
     for idx, point_key in enumerate(_ARC_POINT_KEYS, start=1):
         title = _ARC_CARD_TITLES[point_key]
-        description = _ARC_CARD_DESCRIPTIONS[point_key]
         widget_key = _KEY_FLAT_ARC[point_key]
         with st.container(border=True):
-            st.markdown(f"**{idx}. {title}**")
-            st.caption(description)
+            head_l, head_r = st.columns([1.7, 1], gap="small")
+            with head_l:
+                st.markdown(f"**{idx}. {title}**")
+            with head_r:
+                point_running_key = f"_sw_refine_running_{point_key}"
+                if st.button(
+                    "MI-javaslat ehhez a ponthoz",
+                    key=f"sw_refine_quick_{point_key}",
+                    disabled=bool(st.session_state.get(point_running_key))
+                    or generate_fn is None,
+                ):
+                    _trigger_field_refinement_request(
+                        point_key,
+                        current_text=str((arc.get(point_key) or {}).get("text") or ""),
+                        instruction="",
+                        generate_fn=generate_fn,
+                        running_key=point_running_key,
+                    )
             st.text_area(
                 title,
                 key=widget_key,
-                height=150,
+                height=64,
                 label_visibility="collapsed",
+                placeholder=_ARC_CARD_DESCRIPTIONS.get(point_key, ""),
                 on_change=_flat_save_arc_point,
                 args=(point_key,),
             )
-            point_running_key = f"_sw_refine_running_{point_key}"
-            if st.button(
-                "MI-javaslat ehhez a ponthoz",
-                key=f"sw_refine_quick_{point_key}",
-                disabled=bool(st.session_state.get(point_running_key))
-                or generate_fn is None,
-            ):
-                _trigger_field_refinement_request(
-                    point_key,
-                    current_text=str((arc.get(point_key) or {}).get("text") or ""),
-                    instruction="",
-                    generate_fn=generate_fn,
-                    running_key=point_running_key,
-                )
             _render_field_refinement_panel(
                 point_key,
                 current_text=str((arc.get(point_key) or {}).get("text") or ""),
@@ -12467,6 +12430,26 @@ def _render_developed_outline_support_material_readonly(
                         st.caption(f"{label}: {value}")
 
 
+def _handoff_developed_outline_to_writing_desk() -> None:
+    """Candidate elfogadása + teljes vázlat átadása az Íróasztalnak."""
+    context = build_developed_outline_context(st.session_state)
+    result = apply_developed_outline_handoff(
+        st.session_state,
+        reference=context.reference,
+        context_hash=context.context_hash,
+    )
+    if result.get("accepted") and result.get("transferred"):
+        _clear_developed_outline_edit_widgets()
+        _toast_and_rerun("A részletes vázlat az Íróasztalra került.")
+        return
+    reason = str(result.get("reason") or "")
+    st.warning(
+        _DEVELOPED_OUTLINE_CANDIDATE_REJECT_MESSAGES.get(
+            reason, "A javaslat nem fogadható el."
+        )
+    )
+
+
 def _render_developed_outline_candidate_panel() -> None:
     """RESET 2E-4: readonly előnézet egy függőben lévő `developed_outline_
     candidate`-re, pontosan két művelettel — az `_render_arc_candidate_
@@ -12507,43 +12490,43 @@ def _render_developed_outline_candidate_panel() -> None:
 
         _render_developed_outline_support_material_readonly(movements, start=1)
 
-        c1, c2 = st.columns(2)
-        with c1:
-            if st.button(
-                "Vázlat átvétele",
-                type="primary",
-                key="sw_flat_outline_candidate_accept",
-            ):
-                context = build_developed_outline_context(st.session_state)
-                result = accept_developed_outline_candidate(
-                    st.session_state,
-                    reference=context.reference,
-                    context_hash=context.context_hash,
-                )
-                if result["accepted"]:
-                    # RESET 2E-5: a kanonikus vázlat TELJESEN lecserélődött —
-                    # a régi szerkesztő-widgetek session_state-ben ragadt
-                    # szövege innentől NEM tartozik semmilyen tényleges
-                    # mozgáshoz. Ha nem törölnénk, a következő renderelés a
-                    # régi (widget-kulcsban megőrzött) szöveget mutatná az
-                    # új kanonikus tartalom helyett — ezért a rerun ELŐTT
-                    # töröljük ezeket, hogy a widgetek a friss kanonikus
-                    # tartalomból seedelődjenek újra.
-                    _clear_developed_outline_edit_widgets()
-                    _toast_and_rerun(
-                        "A részletes vázlat bekerült a kanonikus vázlatba."
-                    )
-                else:
-                    reason = str(result.get("reason") or "")
-                    st.warning(
-                        _DEVELOPED_OUTLINE_CANDIDATE_REJECT_MESSAGES.get(
-                            reason, "A javaslat nem fogadható el."
-                        )
-                    )
-        with c2:
-            if st.button("Vázlat elvetése", key="sw_flat_outline_candidate_discard"):
-                discard_developed_outline_candidate(st.session_state)
-                _toast_and_rerun("A javaslat elvetve.")
+        if st.session_state.get(OUTLINE_HANDOFF_CONFIRM_KEY):
+            st.warning(
+                "Az Íróasztalon már van jegyzet. Lecseréled a teljes tartalmát "
+                "erre a vázlatra?"
+            )
+            y1, y2 = st.columns(2)
+            with y1:
+                if st.button(
+                    "Igen, lecserélem",
+                    type="primary",
+                    key="sw_flat_outline_handoff_replace_yes",
+                ):
+                    _handoff_developed_outline_to_writing_desk()
+            with y2:
+                if st.button("Mégse", key="sw_flat_outline_handoff_replace_no"):
+                    st.session_state[OUTLINE_HANDOFF_CONFIRM_KEY] = False
+                    st.rerun()
+        else:
+            c1, c2 = st.columns(2)
+            with c1:
+                if st.button(
+                    "Szerkesztés az Íróasztalon",
+                    type="primary",
+                    key="sw_flat_outline_candidate_accept",
+                ):
+                    if writing_desk_draft_needs_overwrite_confirmation(
+                        st.session_state
+                    ):
+                        st.session_state[OUTLINE_HANDOFF_CONFIRM_KEY] = True
+                        st.rerun()
+                    else:
+                        _handoff_developed_outline_to_writing_desk()
+            with c2:
+                if st.button("Vázlat elvetése", key="sw_flat_outline_candidate_discard"):
+                    st.session_state[OUTLINE_HANDOFF_CONFIRM_KEY] = False
+                    discard_developed_outline_candidate(st.session_state)
+                    _toast_and_rerun("A javaslat elvetve.")
 
 
 # RESET 2E-5: a kanonikus, MÁR ELFOGADOTT részletes vázlat kézi
@@ -12871,27 +12854,12 @@ def _format_human_timestamp(value: str) -> str:
     return dt.strftime("%Y.%m.%d. %H:%M")
 
 
-def _render_developed_outline_canonical_editable() -> None:
-    """A már elfogadott, kanonikus részletes vázlat kézi szerkesztése.
+def _render_developed_outline_canonical_readonly() -> None:
+    """A már elfogadott kanonikus vázlat read-only áttekintése.
 
-    KIZÁRÓLAG a movementenkénti tartalmi mezők (title/function/
-    main_claim/development/*_support/illustration_direction/
-    application_direction/transition_to_next) szerkeszthetők — a `key`,
-    a `structure_mode`, a `structure_note`, a mozgás-sorrend és a
-    mozgás-darabszám NEM (nincs is hozzá widget). Nincs mozgás
-    hozzáadás/törlés/átrendezés.
-
-    RESET 2E-6a: ha a vázlat upstream szempontból elavult (ld.
-    `_developed_outline_freshness`), egyértelmű `st.warning` jelzi ezt —
-    de a tartalom NEM tűnik el és NEM válik zárolttá: a felhasználó
-    tudatosan dönthet úgy, hogy megtartja és tovább dolgozza a korábbi
-    változatot.
-
-    RESET 2E-6b: a fejléc alatt egy állandó EREDET-caption jelzi, hogy a
-    kanonikus tartalom tisztán AI-eredetű-e, vagy kézzel módosítva —
-    KIZÁRÓLAG a meglévő `developed_outline_meta.manually_updated_at`
-    mezőből származtatva, új state nélkül. Sorrend: cím -> eredet ->
-    stale-warning -> movement-expanderek."""
+    A második hétmezős szerkesztő UI kivezetve: a szabad szerkesztés az
+    Íróasztalon történik. A structured `developed_outline` megmarad.
+    """
     sw = ensure_sermon_workshop_state(st.session_state)
     outline = sw.get("developed_outline")
     outline = outline if isinstance(outline, dict) else {}
@@ -12903,7 +12871,7 @@ def _render_developed_outline_canonical_editable() -> None:
     st.divider()
     with st.container(border=True, key="sw_flat_outline_canonical"):
         st.markdown("**Részletes prédikációs munkavázlat**")
-        st.caption("A mezők automatikusan mentődnek, ahogy szerkeszted őket.")
+        st.caption("A szabad szerkesztés az Íróasztalon történik.")
 
         meta = sw.get("developed_outline_meta")
         meta = meta if isinstance(meta, dict) else {}
@@ -12936,11 +12904,11 @@ def _render_developed_outline_canonical_editable() -> None:
         structure_note = str(outline.get("structure_note") or "").strip()
         if structure_note:
             st.caption(structure_note)
-        for index, movement in enumerate(movements):
+        for index, movement in enumerate(movements, start=1):
             if isinstance(movement, dict):
-                _render_developed_outline_movement_editable(index, movement)
+                _render_developed_outline_movement_readonly(index, movement)
 
-        _render_developed_outline_support_material_expander(movements)
+        _render_developed_outline_support_material_readonly(movements, start=1)
 
 
 def render_flat_developed_outline_section(
@@ -12976,11 +12944,6 @@ def render_flat_developed_outline_section(
     betekintési/kézi felülbírálási lehetőség marad."""
     render_work_section(
         title="Részletes prédikációs munkavázlat",
-        body=(
-            "A hétpontos gondolatívből közvetlenül készül — ha szükséges, "
-            "egy belső igehirdetési tervrajz is automatikusan elkészül a "
-            "háttérben, mielőtt a részletes munkavázlat összeáll."
-        ),
         context="Igehirdetési műhely",
     )
 
@@ -13096,7 +13059,7 @@ def render_flat_developed_outline_section(
             st.caption("Az MI-segéd jelenleg nem elérhető.")
 
     _render_developed_outline_candidate_panel()
-    _render_developed_outline_canonical_editable()
+    _render_developed_outline_canonical_readonly()
 
 
 def render_sermon_workshop_shell(
@@ -13127,7 +13090,7 @@ def render_sermon_workshop_shell(
 
     render_page_intro(
         title="Igehirdetési műhely",
-        body="A textus felismeréseitől a koherens igehirdetési vázlatig.",
+        body="",
         workspace_scope=True,
     )
 
