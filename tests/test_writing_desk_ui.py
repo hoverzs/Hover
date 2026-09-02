@@ -16,16 +16,25 @@ from writing_desk_ui import (
 )
 
 
-def _patch_streamlit_shell(monkeypatch, st, session: dict | None = None) -> dict[str, list]:
+def _patch_streamlit_shell(
+    monkeypatch,
+    st,
+    session: dict | None = None,
+    *,
+    click_key: str | None = None,
+) -> dict[str, list]:
     calls: dict[str, list] = {
         "columns": [],
         "markdown": [],
         "caption": [],
         "radio": [],
+        "buttons": [],
+        "rerun": [],
     }
     monkeypatch.setattr(st, "session_state", session if session is not None else {})
     monkeypatch.setattr(st, "container", lambda *args, **kwargs: nullcontext())
     monkeypatch.setattr(st, "expander", lambda *args, **kwargs: nullcontext())
+    monkeypatch.setattr(st, "spinner", lambda *args, **kwargs: nullcontext())
     monkeypatch.setattr(st, "warning", lambda *args, **kwargs: None)
     monkeypatch.setattr(st, "error", lambda *args, **kwargs: None)
     monkeypatch.setattr(st, "info", lambda *args, **kwargs: None)
@@ -33,6 +42,11 @@ def _patch_streamlit_shell(monkeypatch, st, session: dict | None = None) -> dict
         st,
         "caption",
         lambda body, *args, **kwargs: calls["caption"].append(str(body)),
+    )
+    monkeypatch.setattr(
+        st,
+        "rerun",
+        lambda *args, **kwargs: calls["rerun"].append(True),
     )
 
     def _columns(spec, *args, **kwargs):
@@ -47,9 +61,15 @@ def _patch_streamlit_shell(monkeypatch, st, session: dict | None = None) -> dict
         calls["radio"].append(kwargs.get("key"))
         return options[0]
 
+    def _button(label, *args, **kwargs):
+        key = kwargs.get("key")
+        calls["buttons"].append((str(label), key))
+        return bool(click_key) and key == click_key
+
     monkeypatch.setattr(st, "columns", _columns)
     monkeypatch.setattr(st, "markdown", _markdown)
     monkeypatch.setattr(st, "radio", _radio)
+    monkeypatch.setattr(st, "button", _button)
     return calls
 
 
@@ -280,6 +300,192 @@ def test_writing_desk_ui_mode_is_not_a_durable_session_key():
     assert WRITING_DESK_KEY in PROJECT_NESTED_KEYS
     assert WRITING_DESK_KEY == WRITING_DESK_MODE
     assert WRITING_DESK_LABEL == "Íróasztal"
+
+
+def test_valid_extract_is_shown_and_does_not_call_llm(monkeypatch):
+    import streamlit as st
+
+    from writing_desk_data import fingerprint_source_text, set_writing_desk_extract
+
+    session = {"history": "TELJES kortörténeti forrásanyag a projekthez."}
+    set_writing_desk_extract(
+        session,
+        "history",
+        content="Rövid, használható kortörténeti megállapítás.",
+        source_fingerprint=fingerprint_source_text(session["history"]),
+    )
+    llm_calls: list[str] = []
+    monkeypatch.setattr(writing_desk_ui, "_render_scripture_block", lambda: None)
+    calls = _patch_streamlit_shell(monkeypatch, st, session)
+    writing_desk_ui.render_writing_desk_shell(
+        generate_fn=lambda *args, **kwargs: llm_calls.append("called") or "új"
+    )
+
+    joined = _joined_markdown(calls)
+    assert "Rövid, használható kortörténeti megállapítás." in joined
+    assert "Kivonat készítése" not in [label for label, _key in calls["buttons"]]
+    assert llm_calls == []
+    assert calls["rerun"] == []
+
+
+def test_missing_source_shows_cultural_empty_state_without_llm(monkeypatch):
+    import streamlit as st
+
+    llm_calls: list[str] = []
+    monkeypatch.setattr(writing_desk_ui, "_render_scripture_block", lambda: None)
+    calls = _patch_streamlit_shell(monkeypatch, st, {})
+    writing_desk_ui.render_writing_desk_shell(
+        generate_fn=lambda *args, **kwargs: llm_calls.append("called") or "új"
+    )
+
+    captions = "\n".join(calls["caption"])
+    assert "Ehhez a projekthez még nincs elkészített eredeti szöveges elemzés." in captions
+    assert "Ehhez a projekthez még nincs elkészített kortörténeti elemzés." in captions
+    assert "Ehhez a projekthez még nincs elkészített teológiai elemzés." in captions
+    assert calls["buttons"] == []
+    assert llm_calls == []
+
+
+def test_stale_extract_is_refreshable_and_not_shown_as_valid(monkeypatch):
+    import streamlit as st
+
+    from writing_desk_data import fingerprint_source_text, set_writing_desk_extract
+    from writing_desk_extracts import STATUS_STALE, inspect_writing_desk_extract
+
+    session = {"theology": "ÚJ teológiai forrásanyag."}
+    set_writing_desk_extract(
+        session,
+        "theology",
+        content="Régi teológiai kivonat, ne ezt mutasd érvényesként.",
+        source_fingerprint=fingerprint_source_text("régi forrás"),
+    )
+    assert inspect_writing_desk_extract(session, "theology").status == STATUS_STALE
+
+    llm_calls: list[str] = []
+    monkeypatch.setattr(writing_desk_ui, "_render_scripture_block", lambda: None)
+    calls = _patch_streamlit_shell(monkeypatch, st, session)
+    writing_desk_ui.render_writing_desk_shell(
+        generate_fn=lambda *args, **kwargs: llm_calls.append("called") or "új"
+    )
+
+    joined = _joined_markdown(calls)
+    assert "Régi teológiai kivonat, ne ezt mutasd érvényesként." not in joined
+    assert "A forrásanyag megváltozott" in calls["caption"]
+    assert ("Kivonat frissítése", "writing_desk_extract_refresh_theology") in calls["buttons"]
+    assert llm_calls == []
+
+
+def test_page_load_does_not_generate_extracts_automatically(monkeypatch):
+    import streamlit as st
+
+    session = {
+        "original_text": "Van forrás, de még nincs kivonat.",
+        "history": "Van kortörténet is.",
+        "theology": "Van teológia is.",
+    }
+    llm_calls: list[str] = []
+    monkeypatch.setattr(writing_desk_ui, "_render_scripture_block", lambda: None)
+    calls = _patch_streamlit_shell(monkeypatch, st, session)
+    writing_desk_ui.render_writing_desk_shell(
+        generate_fn=lambda *args, **kwargs: llm_calls.append("called") or "új"
+    )
+
+    labels = [label for label, _key in calls["buttons"]]
+    assert labels == ["Kivonat készítése", "Kivonat készítése", "Kivonat készítése"]
+    assert llm_calls == []
+    assert calls["rerun"] == []
+
+
+def test_generate_button_calls_llm_only_for_clicked_card(monkeypatch):
+    import streamlit as st
+
+    from writing_desk_data import WRITING_DESK_KEY
+
+    session = {
+        "original_text": "Eredeti forrás mondatokkal.",
+        "history": "Kortörténeti forrás mondatokkal.",
+        "theology": "Teológiai forrás mondatokkal.",
+    }
+    llm_calls: list[str] = []
+
+    def _generate(prompt, **kwargs):
+        llm_calls.append(prompt)
+        return "Egy rövid, használható kivonatmondat."
+
+    monkeypatch.setattr(writing_desk_ui, "_render_scripture_block", lambda: None)
+    calls = _patch_streamlit_shell(
+        monkeypatch,
+        st,
+        session,
+        click_key="writing_desk_extract_generate_history",
+    )
+    writing_desk_ui.render_writing_desk_shell(generate_fn=_generate)
+
+    assert len(llm_calls) == 1
+    assert "Kortörténet" in llm_calls[0]
+    assert session[WRITING_DESK_KEY]["extracts"]["history"]["content"] == (
+        "Egy rövid, használható kivonatmondat."
+    )
+    assert session[WRITING_DESK_KEY]["extracts"]["original_text"]["content"] == ""
+    assert session[WRITING_DESK_KEY]["extracts"]["theology"]["content"] == ""
+    assert calls["rerun"] == [True]
+
+
+def test_output_limit_ui_does_not_show_partial_as_valid_extract(monkeypatch):
+    import streamlit as st
+
+    from writing_desk_data import WRITING_DESK_KEY
+    from writing_desk_extracts import (
+        EXTRACT_INCOMPLETE_MESSAGE,
+        extract_error_session_key,
+    )
+
+    partial = (
+        "Az ἀσώτως (asótós) határozószó nem csupán a tékozló pénzszórásra utal, "
+        "hanem egy olyan mértéktelen élet"
+    )
+    truncated = (
+        f"{partial}\n\n---\n\n"
+        "> ⚠️ **A válasz a modell kimeneti korlátjánál megszakadt.** "
+        "Kérlek, próbáld újra vagy bontsd kisebb részekre a kérést; "
+        "részletekért használd a **finomítás chatet**."
+    )
+    session = {
+        "original_text": "Eredeti forrás mondatokkal.",
+        "history": "Kortörténeti forrás mondatokkal.",
+        "theology": "Teológiai forrás mondatokkal.",
+    }
+
+    monkeypatch.setattr(writing_desk_ui, "_render_scripture_block", lambda: None)
+    calls = _patch_streamlit_shell(
+        monkeypatch,
+        st,
+        session,
+        click_key="writing_desk_extract_generate_history",
+    )
+    writing_desk_ui.render_writing_desk_shell(
+        generate_fn=lambda *args, **kwargs: truncated
+    )
+
+    assert session[WRITING_DESK_KEY]["extracts"]["history"]["content"] == ""
+    assert (
+        session[extract_error_session_key("history")] == EXTRACT_INCOMPLETE_MESSAGE
+    )
+    assert partial not in _joined_markdown(calls)
+    assert calls["rerun"] == [True]
+
+    calls2 = _patch_streamlit_shell(monkeypatch, st, session)
+    writing_desk_ui.render_writing_desk_shell(
+        generate_fn=lambda *args, **kwargs: truncated
+    )
+    joined = _joined_markdown(calls2)
+    assert partial not in joined
+    assert "A kivonat most nem készült el" in joined
+    assert EXTRACT_INCOMPLETE_MESSAGE in joined
+    assert (
+        "Kivonat készítése",
+        "writing_desk_extract_generate_history",
+    ) in calls2["buttons"]
 
 
 def _render_writing_desk_john_compact() -> None:

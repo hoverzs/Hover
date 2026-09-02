@@ -1,10 +1,11 @@
-"""Íróasztal fő munkafelület — v1 shell + RÚF / eredeti nyelvi olvasóblokk.
+"""Íróasztal fő munkafelület — RÚF / eredeti nyelvi olvasóblokk + munkakivonatok.
 
-A kétoszlopos munkaterület továbbra is helyőrző. A tetején a meglévő
-Textus RÚF- és eredetinyelv-renderelőket használjuk újra.
+A jobb oldali jegyzetszerkesztő továbbra is helyőrző.
 """
 
 from __future__ import annotations
+
+from typing import Callable
 
 import streamlit as st
 
@@ -15,17 +16,28 @@ from ui_components import (
     render_work_section,
     work_surface,
 )
+from writing_desk_data import WRITING_DESK_EXTRACT_KEYS, ensure_writing_desk_state
+from writing_desk_extracts import (
+    EXTRACT_LABELS,
+    STATUS_MISSING_SOURCE,
+    STATUS_READY,
+    STATUS_STALE,
+    STATUS_VALID,
+    extract_error_session_key,
+    generate_writing_desk_extract,
+    inspect_writing_desk_extract,
+)
 
 
 WRITING_DESK_MODE = "writing_desk"
 WRITING_DESK_LABEL = "Íróasztal"
 WRITING_DESK_ORIGINAL_LANGUAGE_KEY_PREFIX = "writing_desk_original_language"
 WRITING_DESK_BIBLE_VIEW_KEY = "writing_desk_bible_text_view_mode"
-WORK_MATERIAL_SECTIONS: tuple[str, ...] = (
-    "Eredeti szöveg",
-    "Kortörténet",
-    "Teológia",
+WORK_MATERIAL_SECTIONS: tuple[str, ...] = tuple(
+    EXTRACT_LABELS[key] for key in WRITING_DESK_EXTRACT_KEYS
 )
+
+GenerateFn = Callable[..., str]
 
 
 def _render_scripture_block() -> None:
@@ -51,8 +63,66 @@ def _render_scripture_block() -> None:
         )
 
 
-def render_writing_desk_shell() -> None:
+def _run_extract_generation(extract_key: str, generate_fn: GenerateFn | None) -> None:
+    with st.spinner("Kivonat készítése…"):
+        result = generate_writing_desk_extract(
+            st.session_state,
+            extract_key,
+            generate_fn=generate_fn,
+        )
+    error_key = extract_error_session_key(extract_key)
+    if result.ok:
+        st.session_state.pop(error_key, None)
+    else:
+        st.session_state[error_key] = result.error_message
+    st.rerun()
+
+
+def _render_extract_card(
+    extract_key: str,
+    *,
+    generate_fn: GenerateFn | None,
+) -> None:
+    view = inspect_writing_desk_extract(st.session_state, extract_key)
+    error_key = extract_error_session_key(extract_key)
+    if view.status == STATUS_VALID:
+        st.session_state.pop(error_key, None)
+    error_text = str(st.session_state.get(error_key) or "").strip()
+    with st.container(border=True, key=f"writing_desk_extract_card_{extract_key}"):
+        st.markdown(f"**{view.label}**")
+        if error_text:
+            render_info_panel(
+                title="A kivonat most nem készült el",
+                body=error_text,
+                tone="warning",
+            )
+        if view.status == STATUS_MISSING_SOURCE:
+            st.caption(view.missing_message)
+            return
+        if view.status == STATUS_VALID:
+            st.markdown(view.content)
+            return
+        if view.status == STATUS_STALE:
+            st.caption("A forrásanyag megváltozott")
+            if st.button(
+                "Kivonat frissítése",
+                key=f"writing_desk_extract_refresh_{extract_key}",
+                width="stretch",
+            ):
+                _run_extract_generation(extract_key, generate_fn)
+            return
+        if view.status == STATUS_READY:
+            if st.button(
+                "Kivonat készítése",
+                key=f"writing_desk_extract_generate_{extract_key}",
+                width="stretch",
+            ):
+                _run_extract_generation(extract_key, generate_fn)
+
+
+def render_writing_desk_shell(*, generate_fn: GenerateFn | None = None) -> None:
     """Rendereli az Íróasztal munkafelületét."""
+    ensure_writing_desk_state(st.session_state)
     render_page_intro(
         title=WRITING_DESK_LABEL,
         body="Jegyzetelés és vázlatkészítés az aktuális projekthez.",
@@ -72,12 +142,12 @@ def render_writing_desk_shell() -> None:
     with left_col:
         render_work_section(
             title="Munkaanyag",
-            body="Rövid kivonatok helye.",
+            body="Rövid kivonatok a meglévő projektanyagból.",
             context=WRITING_DESK_LABEL,
         )
         with work_surface("writing_desk_work_material"):
-            for section in WORK_MATERIAL_SECTIONS:
-                st.markdown(f"**{section}**")
+            for extract_key in WRITING_DESK_EXTRACT_KEYS:
+                _render_extract_card(extract_key, generate_fn=generate_fn)
 
     with right_col:
         render_work_section(

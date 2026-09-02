@@ -351,7 +351,7 @@ def test_app_navigation_has_writing_desk_top_level_mode():
         encoding="utf-8"
     )
     assert 'options=["workshop", "sermon_workshop", WRITING_DESK_MODE]' in app
-    assert "render_writing_desk_shell()" in app
+    assert "render_writing_desk_shell(generate_fn=generate_text)" in app
     assert "WRITING_DESK_MODE" in app
     assert "WRITING_DESK_LABEL" in app
     assert 'options=["quick", "workshop", "sermon_workshop"]' not in app

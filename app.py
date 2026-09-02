@@ -8343,7 +8343,7 @@ if st.session_state.get("ui_mode") == WRITING_DESK_MODE:
         track_app_navigation()
     except Exception:
         pass
-    render_writing_desk_shell()
+    render_writing_desk_shell(generate_fn=generate_text)
     st.stop()
 
 
