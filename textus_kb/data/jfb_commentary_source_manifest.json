@@ -1,0 +1,542 @@
+{
+  "manifest_version": "1",
+  "description": "Reproducible CCEL source for Jamieson, Fausset & Brown's \"Commentary Critical and Explanatory on the Whole Bible\" (1871, public domain). Unlike Calvin's per-volume CCEL files, JFB is published by CCEL as a single ThML/XML file covering the entire Bible (div1 'x' = Old Testament, div1 'xi' = New Testament, div2 = one Bible book each, div3 = chapter/introduction). No raw XML is committed to git (data/raw/ is gitignored); fetch with scripts/build_commentary_database.py --jfb-fetch, which downloads the url and verifies raw_sha256 before use. Each entry in 'books' below names one div2 (one canonical Bible book) within that single file; contributor_raw_name is the literal 'Commentary by ...' attribution text CCEL prints at the start of that book's own commentary (JFB divided authorship of the whole Bible by book: Jamieson wrote Genesis-Esther, Fausset wrote Job-Malachi plus most epistles and Revelation, Brown wrote the Gospels/Acts/Romans - this is stated in the source text itself for every one of the 66 books, not inferred).",
+  "source": {
+    "id": "jfb",
+    "title": "Commentary Critical and Explanatory on the Whole Bible",
+    "url": "https://www.ccel.org/ccel/jamieson/jfb.xml",
+    "local_path": "data/raw/jfb/jfb.xml",
+    "raw_sha256": "ce16900c4795d9bd3dc7f7aaec3fccd395c166d4d9593a14b9aae06869aab9af",
+    "byte_size": 35275904
+  },
+  "books": [
+    {
+      "order": 1,
+      "div2_id": "x.i",
+      "title": "Genesis",
+      "testament": "OT",
+      "contributor_raw_name": "Robert Jamieson",
+      "coverage": "Genesis"
+    },
+    {
+      "order": 2,
+      "div2_id": "x.ii",
+      "title": "Exodus",
+      "testament": "OT",
+      "contributor_raw_name": "Robert Jamieson",
+      "coverage": "Exodus"
+    },
+    {
+      "order": 3,
+      "div2_id": "x.iii",
+      "title": "Leviticus",
+      "testament": "OT",
+      "contributor_raw_name": "Robert Jamieson",
+      "coverage": "Leviticus"
+    },
+    {
+      "order": 4,
+      "div2_id": "x.iv",
+      "title": "Numbers",
+      "testament": "OT",
+      "contributor_raw_name": "Robert Jamieson",
+      "coverage": "Numbers"
+    },
+    {
+      "order": 5,
+      "div2_id": "x.v",
+      "title": "Deuteronomy",
+      "testament": "OT",
+      "contributor_raw_name": "Robert Jamieson",
+      "coverage": "Deuteronomy"
+    },
+    {
+      "order": 6,
+      "div2_id": "x.vi",
+      "title": "Joshua",
+      "testament": "OT",
+      "contributor_raw_name": "Robert Jamieson",
+      "coverage": "Joshua"
+    },
+    {
+      "order": 7,
+      "div2_id": "x.vii",
+      "title": "Judges",
+      "testament": "OT",
+      "contributor_raw_name": "Robert Jamieson",
+      "coverage": "Judges"
+    },
+    {
+      "order": 8,
+      "div2_id": "x.viii",
+      "title": "Ruth",
+      "testament": "OT",
+      "contributor_raw_name": "Robert Jamieson",
+      "coverage": "Ruth"
+    },
+    {
+      "order": 9,
+      "div2_id": "x.ix",
+      "title": "First Samuel",
+      "testament": "OT",
+      "contributor_raw_name": "Robert Jamieson",
+      "coverage": "First Samuel"
+    },
+    {
+      "order": 10,
+      "div2_id": "x.x",
+      "title": "Second Samuel",
+      "testament": "OT",
+      "contributor_raw_name": "Robert Jamieson",
+      "coverage": "Second Samuel"
+    },
+    {
+      "order": 11,
+      "div2_id": "x.xi",
+      "title": "First Kings",
+      "testament": "OT",
+      "contributor_raw_name": "Robert Jamieson",
+      "coverage": "First Kings"
+    },
+    {
+      "order": 12,
+      "div2_id": "x.xii",
+      "title": "Second Kings",
+      "testament": "OT",
+      "contributor_raw_name": "Robert Jamieson",
+      "coverage": "Second Kings"
+    },
+    {
+      "order": 13,
+      "div2_id": "x.xiii",
+      "title": "First Chronicles",
+      "testament": "OT",
+      "contributor_raw_name": "Robert Jamieson",
+      "coverage": "First Chronicles"
+    },
+    {
+      "order": 14,
+      "div2_id": "x.xiv",
+      "title": "Second Chronicles",
+      "testament": "OT",
+      "contributor_raw_name": "Robert Jamieson",
+      "coverage": "Second Chronicles"
+    },
+    {
+      "order": 15,
+      "div2_id": "x.xv",
+      "title": "Ezra",
+      "testament": "OT",
+      "contributor_raw_name": "Robert Jamieson",
+      "coverage": "Ezra"
+    },
+    {
+      "order": 16,
+      "div2_id": "x.xvi",
+      "title": "Nehemiah",
+      "testament": "OT",
+      "contributor_raw_name": "Robert Jamieson",
+      "coverage": "Nehemiah"
+    },
+    {
+      "order": 17,
+      "div2_id": "x.xvii",
+      "title": "Esther",
+      "testament": "OT",
+      "contributor_raw_name": "Robert Jamieson",
+      "coverage": "Esther"
+    },
+    {
+      "order": 18,
+      "div2_id": "x.xviii",
+      "title": "Job",
+      "testament": "OT",
+      "contributor_raw_name": "A. R. Faussett",
+      "coverage": "Job"
+    },
+    {
+      "order": 19,
+      "div2_id": "x.xix",
+      "title": "Psalms",
+      "testament": "OT",
+      "contributor_raw_name": "A. R. Faussett",
+      "coverage": "Psalms"
+    },
+    {
+      "order": 20,
+      "div2_id": "x.xx",
+      "title": "Proverbs",
+      "testament": "OT",
+      "contributor_raw_name": "A. R. Faussett",
+      "coverage": "Proverbs"
+    },
+    {
+      "order": 21,
+      "div2_id": "x.xxi",
+      "title": "Ecclesiastes",
+      "testament": "OT",
+      "contributor_raw_name": "A. R. Faussett",
+      "coverage": "Ecclesiastes"
+    },
+    {
+      "order": 22,
+      "div2_id": "x.xxii",
+      "title": "Song of Solomon",
+      "testament": "OT",
+      "contributor_raw_name": "A. R. Faussett",
+      "coverage": "Song of Solomon"
+    },
+    {
+      "order": 23,
+      "div2_id": "x.xxiii",
+      "title": "Isaiah",
+      "testament": "OT",
+      "contributor_raw_name": "A. R. Faussett",
+      "coverage": "Isaiah"
+    },
+    {
+      "order": 24,
+      "div2_id": "x.xxiv",
+      "title": "Jeremiah",
+      "testament": "OT",
+      "contributor_raw_name": "A. R. Faussett",
+      "coverage": "Jeremiah"
+    },
+    {
+      "order": 25,
+      "div2_id": "x.xxv",
+      "title": "Lamentations",
+      "testament": "OT",
+      "contributor_raw_name": "A. R. Faussett",
+      "coverage": "Lamentations"
+    },
+    {
+      "order": 26,
+      "div2_id": "x.xxvi",
+      "title": "Ezekiel",
+      "testament": "OT",
+      "contributor_raw_name": "A. R. Faussett",
+      "coverage": "Ezekiel"
+    },
+    {
+      "order": 27,
+      "div2_id": "x.xxvii",
+      "title": "Daniel",
+      "testament": "OT",
+      "contributor_raw_name": "A. R. Faussett",
+      "coverage": "Daniel"
+    },
+    {
+      "order": 28,
+      "div2_id": "x.xxviii",
+      "title": "Hosea",
+      "testament": "OT",
+      "contributor_raw_name": "A. R. Faussett",
+      "coverage": "Hosea"
+    },
+    {
+      "order": 29,
+      "div2_id": "x.xxix",
+      "title": "Joel",
+      "testament": "OT",
+      "contributor_raw_name": "A. R. Faussett",
+      "coverage": "Joel"
+    },
+    {
+      "order": 30,
+      "div2_id": "x.xxx",
+      "title": "Amos",
+      "testament": "OT",
+      "contributor_raw_name": "A. R. Faussett",
+      "coverage": "Amos"
+    },
+    {
+      "order": 31,
+      "div2_id": "x.xxxi",
+      "title": "Obadiah",
+      "testament": "OT",
+      "contributor_raw_name": "A. R. Faussett",
+      "coverage": "Obadiah"
+    },
+    {
+      "order": 32,
+      "div2_id": "x.xxxii",
+      "title": "Jonah",
+      "testament": "OT",
+      "contributor_raw_name": "A. R. Faussett",
+      "coverage": "Jonah"
+    },
+    {
+      "order": 33,
+      "div2_id": "x.xxxiii",
+      "title": "Micah",
+      "testament": "OT",
+      "contributor_raw_name": "A. R. Faussett",
+      "coverage": "Micah"
+    },
+    {
+      "order": 34,
+      "div2_id": "x.xxxiv",
+      "title": "Nahum",
+      "testament": "OT",
+      "contributor_raw_name": "A. R. Faussett",
+      "coverage": "Nahum"
+    },
+    {
+      "order": 35,
+      "div2_id": "x.xxxv",
+      "title": "Habakkuk",
+      "testament": "OT",
+      "contributor_raw_name": "A. R. Faussett",
+      "coverage": "Habakkuk"
+    },
+    {
+      "order": 36,
+      "div2_id": "x.xxxvi",
+      "title": "Zephaniah",
+      "testament": "OT",
+      "contributor_raw_name": "A. R. Faussett",
+      "coverage": "Zephaniah"
+    },
+    {
+      "order": 37,
+      "div2_id": "x.xxxvii",
+      "title": "Haggai",
+      "testament": "OT",
+      "contributor_raw_name": "A. R. Faussett",
+      "coverage": "Haggai"
+    },
+    {
+      "order": 38,
+      "div2_id": "x.xxxviii",
+      "title": "Zechariah",
+      "testament": "OT",
+      "contributor_raw_name": "A. R. Faussett",
+      "coverage": "Zechariah"
+    },
+    {
+      "order": 39,
+      "div2_id": "x.xxxix",
+      "title": "Malachi",
+      "testament": "OT",
+      "contributor_raw_name": "A. R. Faussett",
+      "coverage": "Malachi"
+    },
+    {
+      "order": 40,
+      "div2_id": "xi.i",
+      "title": "Matthew",
+      "testament": "NT",
+      "contributor_raw_name": "David Brown",
+      "coverage": "Matthew"
+    },
+    {
+      "order": 41,
+      "div2_id": "xi.ii",
+      "title": "Mark",
+      "testament": "NT",
+      "contributor_raw_name": "David Brown",
+      "coverage": "Mark"
+    },
+    {
+      "order": 42,
+      "div2_id": "xi.iii",
+      "title": "Luke",
+      "testament": "NT",
+      "contributor_raw_name": "David Brown",
+      "coverage": "Luke"
+    },
+    {
+      "order": 43,
+      "div2_id": "xi.iv",
+      "title": "John",
+      "testament": "NT",
+      "contributor_raw_name": "David Brown",
+      "coverage": "John"
+    },
+    {
+      "order": 44,
+      "div2_id": "xi.v",
+      "title": "Acts",
+      "testament": "NT",
+      "contributor_raw_name": "David Brown",
+      "coverage": "Acts"
+    },
+    {
+      "order": 45,
+      "div2_id": "xi.vi",
+      "title": "Romans",
+      "testament": "NT",
+      "contributor_raw_name": "David Brown",
+      "coverage": "Romans"
+    },
+    {
+      "order": 46,
+      "div2_id": "xi.vii",
+      "title": "First Corinthians",
+      "testament": "NT",
+      "contributor_raw_name": "A. R. Faussett",
+      "coverage": "First Corinthians"
+    },
+    {
+      "order": 47,
+      "div2_id": "xi.viii",
+      "title": "Second Corinthians",
+      "testament": "NT",
+      "contributor_raw_name": "A. R. Faussett",
+      "coverage": "Second Corinthians"
+    },
+    {
+      "order": 48,
+      "div2_id": "xi.ix",
+      "title": "Galatians",
+      "testament": "NT",
+      "contributor_raw_name": "A. R. Faussett",
+      "coverage": "Galatians"
+    },
+    {
+      "order": 49,
+      "div2_id": "xi.x",
+      "title": "Ephesians",
+      "testament": "NT",
+      "contributor_raw_name": "A. R. Faussett",
+      "coverage": "Ephesians"
+    },
+    {
+      "order": 50,
+      "div2_id": "xi.xi",
+      "title": "Philippians",
+      "testament": "NT",
+      "contributor_raw_name": "A. R. Faussett",
+      "coverage": "Philippians"
+    },
+    {
+      "order": 51,
+      "div2_id": "xi.xii",
+      "title": "Colossians",
+      "testament": "NT",
+      "contributor_raw_name": "A. R. Faussett",
+      "coverage": "Colossians"
+    },
+    {
+      "order": 52,
+      "div2_id": "xi.xiii",
+      "title": "First Thessalonians",
+      "testament": "NT",
+      "contributor_raw_name": "A. R. Faussett",
+      "coverage": "First Thessalonians"
+    },
+    {
+      "order": 53,
+      "div2_id": "xi.xiv",
+      "title": "Second Thessalonians",
+      "testament": "NT",
+      "contributor_raw_name": "A. R. Faussett",
+      "coverage": "Second Thessalonians"
+    },
+    {
+      "order": 54,
+      "div2_id": "xi.xv",
+      "title": "First Timothy",
+      "testament": "NT",
+      "contributor_raw_name": "A. R. Faussett",
+      "coverage": "First Timothy"
+    },
+    {
+      "order": 55,
+      "div2_id": "xi.xvi",
+      "title": "Second Timothy",
+      "testament": "NT",
+      "contributor_raw_name": "A. R. Faussett",
+      "coverage": "Second Timothy"
+    },
+    {
+      "order": 56,
+      "div2_id": "xi.xvii",
+      "title": "Titus",
+      "testament": "NT",
+      "contributor_raw_name": "A. R. Faussett",
+      "coverage": "Titus"
+    },
+    {
+      "order": 57,
+      "div2_id": "xi.xviii",
+      "title": "Philemon",
+      "testament": "NT",
+      "contributor_raw_name": "A. R. Faussett",
+      "coverage": "Philemon"
+    },
+    {
+      "order": 58,
+      "div2_id": "xi.xix",
+      "title": "Hebrews",
+      "testament": "NT",
+      "contributor_raw_name": "A. R. Faussett",
+      "coverage": "Hebrews"
+    },
+    {
+      "order": 59,
+      "div2_id": "xi.xx",
+      "title": "James",
+      "testament": "NT",
+      "contributor_raw_name": "A. R. Faussett",
+      "coverage": "James"
+    },
+    {
+      "order": 60,
+      "div2_id": "xi.xxi",
+      "title": "First Peter",
+      "testament": "NT",
+      "contributor_raw_name": "A. R. Faussett",
+      "coverage": "First Peter"
+    },
+    {
+      "order": 61,
+      "div2_id": "xi.xxii",
+      "title": "Second Peter",
+      "testament": "NT",
+      "contributor_raw_name": "A. R. Faussett",
+      "coverage": "Second Peter"
+    },
+    {
+      "order": 62,
+      "div2_id": "xi.xxiii",
+      "title": "First John",
+      "testament": "NT",
+      "contributor_raw_name": "A. R. Faussett",
+      "coverage": "First John"
+    },
+    {
+      "order": 63,
+      "div2_id": "xi.xxiv",
+      "title": "Second John",
+      "testament": "NT",
+      "contributor_raw_name": "A. R. Faussett",
+      "coverage": "Second John"
+    },
+    {
+      "order": 64,
+      "div2_id": "xi.xxv",
+      "title": "Third John",
+      "testament": "NT",
+      "contributor_raw_name": "A. R. Faussett",
+      "coverage": "Third John"
+    },
+    {
+      "order": 65,
+      "div2_id": "xi.xxvi",
+      "title": "Jude",
+      "testament": "NT",
+      "contributor_raw_name": "A. R. Faussett",
+      "coverage": "Jude"
+    },
+    {
+      "order": 66,
+      "div2_id": "xi.xxvii",
+      "title": "Revelation",
+      "testament": "NT",
+      "contributor_raw_name": "A. R. Faussett",
+      "coverage": "Revelation"
+    }
+  ]
+}

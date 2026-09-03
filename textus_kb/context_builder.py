@@ -11,6 +11,7 @@ from typing import Any
 from textus_kb.context_profiles import (
     COMMENTARY_EVIDENCE_LIMIT,
     COMMENTARY_NO_MATCH_WARNING,
+    COMMENTARY_RETRIEVAL_CANDIDATE_LIMIT,
     COMMENTARY_SOURCE_WARNING,
     PROFILE_COMMENTARY,
     PROFILE_EXEGESIS,
@@ -736,6 +737,43 @@ def _build_commentary_context(
     return items
 
 
+def _interleave_commentary_by_work(
+    candidates: list[EvidenceItem],
+    *,
+    limit: int,
+) -> list[EvidenceItem]:
+    """Deterministic round-robin across distinct commentary works.
+
+    ``candidates`` arrives already ranked (tier, span, primary-before-
+    parallel, document order) per work — that per-work relative order is
+    preserved exactly. Without this step, a single work with many
+    same-tier hits (e.g. every verse of a range query) would fill the
+    whole ``COMMENTARY_EVIDENCE_LIMIT`` before a second work sharing the
+    same passage is ever considered, purely because of which work
+    happens to sort first — never a reflection of relevance. Grouping by
+    ``work_id`` is stable (first-seen order), so this is fully
+    deterministic across repeated calls.
+    """
+    by_work: dict[str, list[EvidenceItem]] = {}
+    work_order: list[str] = []
+    for item in candidates:
+        work_id = str(item.metadata.get("work_id") or "")
+        if work_id not in by_work:
+            by_work[work_id] = []
+            work_order.append(work_id)
+        by_work[work_id].append(item)
+
+    interleaved: list[EvidenceItem] = []
+    while len(interleaved) < limit and any(by_work[w] for w in work_order):
+        for work_id in work_order:
+            if len(interleaved) >= limit:
+                break
+            bucket = by_work[work_id]
+            if bucket:
+                interleaved.append(bucket.pop(0))
+    return interleaved
+
+
 def _load_commentary_context_items(
     evidence: EvidencePacket,
     profile: ContextProfile,
@@ -745,13 +783,14 @@ def _load_commentary_context_items(
     repo = CommentaryRepository(database_path)
     if not repo.store_status().available:
         return [], [COMMENTARY_SOURCE_WARNING]
-    hits = retrieve_commentary_evidence(
+    candidates = retrieve_commentary_evidence(
         evidence.passage_canonical,
         repository=repo,
-        limit=COMMENTARY_EVIDENCE_LIMIT,
+        limit=COMMENTARY_RETRIEVAL_CANDIDATE_LIMIT,
     )
-    if not hits:
+    if not candidates:
         return [], [COMMENTARY_NO_MATCH_WARNING]
+    hits = _interleave_commentary_by_work(candidates, limit=COMMENTARY_EVIDENCE_LIMIT)
     base_score = profile.priorities.get(RELATION_COMMENTARY_SOURCE, 90)
     items: list[ContextItem] = []
     seen: set[str] = set()

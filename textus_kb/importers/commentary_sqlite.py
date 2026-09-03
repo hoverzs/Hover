@@ -301,6 +301,85 @@ def create_schema(connection: sqlite3.Connection) -> None:
     )
 
 
+_MERGE_ID_FIELD_BY_KIND = {
+    "contributors": "contributor_id",
+    "works": "work_id",
+    "editions": "edition_id",
+    "source_files": "source_file_id",
+    "import_batches": "batch_id",
+    "sections": "section_id",
+    "chunks": "chunk_id",
+}
+_MERGE_IDENTICAL_OK_KINDS = frozenset({"contributors", "works"})
+
+
+def merge_commentary_documents(
+    documents: list[dict[str, Any]],
+    *,
+    error_cls: type[Exception] = CommentaryImportError,
+) -> dict[str, Any]:
+    """Combine multiple normalized-shape Commentary documents into one.
+
+    Source-independent: works identically whether the documents all come
+    from one importer (e.g. Calvin's 45 per-volume files) or from several
+    different importers (e.g. Calvin + JFB combined into one store) — the
+    document shape is the shared schema's, not any one source's.
+
+    Cross-document duplicates are allowed only for contributors/works when
+    the record is byte-identical (the same real person or bibliographic
+    work re-declared by more than one document); anything else colliding
+    on id is a real error, not silently deduplicated. ``error_cls`` lets a
+    caller raise its own more specific exception type (e.g.
+    ``CalvinCommentaryImportError``) while sharing this one implementation.
+    """
+    if not documents:
+        raise error_cls("No commentary documents to merge.")
+    merged: dict[str, list[dict[str, Any]]] = {kind: [] for kind in _MERGE_ID_FIELD_BY_KIND}
+    merged["work_contributors"] = []
+    merged["contributor_source_names"] = []
+    index: dict[str, dict[str, dict[str, Any]]] = {kind: {} for kind in _MERGE_ID_FIELD_BY_KIND}
+    seen_work_contributors: set[tuple[str, str, str]] = set()
+    seen_source_names: set[tuple[str, str]] = set()
+
+    for document in documents:
+        for kind, id_field in _MERGE_ID_FIELD_BY_KIND.items():
+            for item in document.get(kind) or []:
+                item_id = str(item.get(id_field) or "").strip()
+                if not item_id:
+                    raise error_cls(f"Document {kind} entry missing {id_field}.")
+                existing = index[kind].get(item_id)
+                if existing is None:
+                    merged[kind].append(item)
+                    index[kind][item_id] = item
+                    continue
+                if kind in _MERGE_IDENTICAL_OK_KINDS and existing == item:
+                    continue
+                raise error_cls(
+                    f"Duplicate {kind} id across combined commentary sources: {item_id!r}."
+                )
+        for wc in document.get("work_contributors") or []:
+            key = (
+                str(wc.get("work_id") or ""),
+                str(wc.get("contributor_id") or ""),
+                str(wc.get("role") or ""),
+            )
+            if key in seen_work_contributors:
+                continue
+            seen_work_contributors.add(key)
+            merged["work_contributors"].append(wc)
+        for entry in document.get("contributor_source_names") or []:
+            # (contributor_id, edition_id) is unique by construction — each
+            # edition_id comes from exactly one source file — so this is
+            # just a defensive dedupe, not an expected real collision.
+            key = (str(entry.get("contributor_id") or ""), str(entry.get("edition_id") or ""))
+            if key in seen_source_names:
+                continue
+            seen_source_names.add(key)
+            merged["contributor_source_names"].append(entry)
+
+    return merged
+
+
 def create_empty_commentary_database(
     database_path: str | Path | None = None,
     *,

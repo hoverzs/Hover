@@ -60,6 +60,12 @@ COMMENTARY_NO_MATCH_WARNING = (
     "commentary evidence was found for this reference."
 )
 COMMENTARY_EVIDENCE_LIMIT = 6
+# Retrieval-candidate pool (before the deterministic per-work interleave
+# down to COMMENTARY_EVIDENCE_LIMIT) — must be generous enough that a
+# range query's candidates from every distinct commentary work are seen,
+# not just whichever work happens to rank first in document order (e.g.
+# Calvin's editions were inserted before JFB's in a combined store).
+COMMENTARY_RETRIEVAL_CANDIDATE_LIMIT = 40
 
 # Soft target (prefer stop) vs hard max (never exceed).
 # Goal: minimize provider token usage — do not pad to the hard max.

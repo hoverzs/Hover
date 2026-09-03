@@ -494,18 +494,6 @@ def parse_calvin_commentary_thml(
     return document, report
 
 
-_IDENTICAL_OK_KINDS = frozenset({"contributors", "works"})
-_ID_FIELD_BY_KIND = {
-    "contributors": "contributor_id",
-    "works": "work_id",
-    "editions": "edition_id",
-    "source_files": "source_file_id",
-    "import_batches": "batch_id",
-    "sections": "section_id",
-    "chunks": "chunk_id",
-}
-
-
 def build_calvin_commentary_document(
     xml_path: str | Path,
     *,
@@ -573,54 +561,14 @@ def merge_calvin_commentary_documents(documents: list[dict[str, Any]]) -> dict[s
     Cross-file duplicates are allowed only for contributors/works when the
     record is byte-identical (the same Calvin author or translator
     re-declared by every file); anything else colliding on id is a real
-    error, not silently deduplicated.
+    error, not silently deduplicated. Thin Calvin-flavored wrapper around
+    the shared, source-independent ``commentary_sqlite.merge_commentary_documents``
+    (same logic also used to combine Calvin with other Commentary sources,
+    e.g. JFB, into one store).
     """
-    if not documents:
-        raise CalvinCommentaryImportError("No Calvin commentary documents to merge.")
-    merged: dict[str, list[dict[str, Any]]] = {kind: [] for kind in _ID_FIELD_BY_KIND}
-    merged["work_contributors"] = []
-    merged["contributor_source_names"] = []
-    index: dict[str, dict[str, dict[str, Any]]] = {kind: {} for kind in _ID_FIELD_BY_KIND}
-    seen_work_contributors: set[tuple[str, str, str]] = set()
-    seen_source_names: set[tuple[str, str]] = set()
+    from textus_kb.importers.commentary_sqlite import merge_commentary_documents
 
-    for document in documents:
-        for kind, id_field in _ID_FIELD_BY_KIND.items():
-            for item in document.get(kind) or []:
-                item_id = str(item.get(id_field) or "").strip()
-                if not item_id:
-                    raise CalvinCommentaryImportError(f"Document {kind} entry missing {id_field}.")
-                existing = index[kind].get(item_id)
-                if existing is None:
-                    merged[kind].append(item)
-                    index[kind][item_id] = item
-                    continue
-                if kind in _IDENTICAL_OK_KINDS and existing == item:
-                    continue
-                raise CalvinCommentaryImportError(
-                    f"Duplicate {kind} id across combined Calvin sources: {item_id!r}."
-                )
-        for wc in document.get("work_contributors") or []:
-            key = (
-                str(wc.get("work_id") or ""),
-                str(wc.get("contributor_id") or ""),
-                str(wc.get("role") or ""),
-            )
-            if key in seen_work_contributors:
-                continue
-            seen_work_contributors.add(key)
-            merged["work_contributors"].append(wc)
-        for entry in document.get("contributor_source_names") or []:
-            # (contributor_id, edition_id) is unique by construction — each
-            # edition_id comes from exactly one source file — so this is
-            # just a defensive dedupe, not an expected real collision.
-            key = (str(entry.get("contributor_id") or ""), str(entry.get("edition_id") or ""))
-            if key in seen_source_names:
-                continue
-            seen_source_names.add(key)
-            merged["contributor_source_names"].append(entry)
-
-    return merged
+    return merge_commentary_documents(documents, error_cls=CalvinCommentaryImportError)
 
 
 def import_calvin_commentary_sqlite(
