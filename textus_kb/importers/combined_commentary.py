@@ -1,12 +1,14 @@
-"""Isolated Calvin + JFB combined Commentary store builder.
+"""Isolated Calvin + JFB + Henry combined Commentary store builder.
 
 Source-level merge into one schema-v2 document, then a single SQLite
 write — proves the Commentary Knowledge Base is genuinely multi-source,
 source-independent architecture (mirrors ``combined_theology.py``'s
 Calvin+Hodge precedent for the Theology store). Refuses the production
 commentary.sqlite3 path. No network, no schema change: this module is
-pure orchestration over the two existing per-source importers and the
-shared, generic ``commentary_sqlite.merge_commentary_documents``.
+pure orchestration over the three existing per-source importers and the
+shared, generic ``commentary_sqlite.merge_commentary_documents`` — each
+source is entirely optional, so this same function combines any subset
+(two sources, as proven in the JFB round, or all three).
 """
 
 from __future__ import annotations
@@ -22,13 +24,17 @@ from textus_kb.importers.commentary_sqlite import (
     import_commentary_sqlite,
     merge_commentary_documents,
 )
+from textus_kb.importers.henry_commentary_thml import attach_henry_provenance, parse_henry_commentary_thml
 from textus_kb.importers.jfb_commentary_thml import attach_jfb_provenance, parse_jfb_commentary_thml
 
+IMPORT_MODE_COMBINED_COMMENTARY = "combined_commentary_thml"
+# Retained for exact backward compatibility with the prior (Calvin+JFB
+# only) round's import_mode value.
 IMPORT_MODE_COMBINED_CALVIN_JFB = "combined_calvin_jfb_commentary_thml"
 
 
 class CombinedCommentaryImportError(CommentaryImportError):
-    """Raised when the combined Calvin+JFB commentary store cannot be built."""
+    """Raised when the combined commentary store cannot be built."""
 
 
 @dataclass
@@ -52,6 +58,10 @@ class CombinedCommentaryImportReport:
     jfb_section_count: int = 0
     jfb_chunk_count: int = 0
     jfb_passage_link_count: int = 0
+    henry_work_count: int = 0
+    henry_section_count: int = 0
+    henry_chunk_count: int = 0
+    henry_passage_link_count: int = 0
 
     def to_dict(self) -> dict[str, Any]:
         payload = asdict(self)
@@ -59,25 +69,25 @@ class CombinedCommentaryImportReport:
         return payload
 
 
-def build_combined_calvin_jfb_document(
+def build_combined_commentary_document(
     *,
-    calvin_entries: list[Any],
-    jfb_xml_path: str | Path,
-    jfb_book_entries: list[Any],
+    calvin_entries: list[Any] | None = None,
+    jfb_xml_path: str | Path | None = None,
+    jfb_book_entries: list[Any] | None = None,
+    henry_manifest: Any | None = None,
     imported_at: str | None = None,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
-    """Parse the full Calvin corpus (one document per source file, per
-    ``calvin_entries``) and the full JFB corpus (one document per book,
-    from a single parse of ``jfb_xml_path``), then merge them with the
-    shared, generic merge function — proving no source-specific merge
-    logic is needed to combine two independently-built Commentary
-    sources into one document."""
+    """Parse whichever of the three Commentary sources are provided (each
+    entirely optional) and merge them with the shared, generic merge
+    function — proving no source-specific merge logic is needed to
+    combine any subset of independently-built Commentary sources into
+    one document."""
     from datetime import UTC, datetime
 
     when = imported_at or datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
     calvin_docs: list[dict[str, Any]] = []
-    for entry in calvin_entries:
+    for entry in calvin_entries or []:
         known_unmapped = {
             item.div2_id: item for item in getattr(entry, "known_unmapped_sections", ())
         }
@@ -91,13 +101,27 @@ def build_combined_calvin_jfb_document(
         )
         calvin_docs.append(document)
 
-    jfb_parsed = parse_jfb_commentary_thml(jfb_xml_path, jfb_book_entries)
-    jfb_docs, _jfb_reports = attach_jfb_provenance(
-        jfb_parsed, jfb_book_entries, xml_path=jfb_xml_path, imported_at=when
-    )
+    jfb_docs: list[dict[str, Any]] = []
+    if jfb_xml_path is not None and jfb_book_entries:
+        jfb_parsed = parse_jfb_commentary_thml(jfb_xml_path, jfb_book_entries)
+        jfb_docs, _jfb_reports = attach_jfb_provenance(
+            jfb_parsed, jfb_book_entries, xml_path=jfb_xml_path, imported_at=when
+        )
+
+    henry_docs: list[dict[str, Any]] = []
+    if henry_manifest is not None:
+        for volume in henry_manifest.volumes:
+            volume_books = [b for b in henry_manifest.books if b.volume == volume.volume]
+            if not volume_books:
+                continue
+            parsed = parse_henry_commentary_thml(volume.local_path, volume_books)
+            documents, _reports = attach_henry_provenance(
+                parsed, volume_books, volume=volume, imported_at=when
+            )
+            henry_docs.extend(documents)
 
     merged = merge_commentary_documents(
-        [*calvin_docs, *jfb_docs], error_cls=CombinedCommentaryImportError
+        [*calvin_docs, *jfb_docs, *henry_docs], error_cls=CombinedCommentaryImportError
     )
     extras = {
         "calvin_work_count": len({d["works"][0]["work_id"] for d in calvin_docs}),
@@ -108,32 +132,40 @@ def build_combined_calvin_jfb_document(
         "jfb_section_count": sum(len(d["sections"]) for d in jfb_docs),
         "jfb_chunk_count": sum(len(d["chunks"]) for d in jfb_docs),
         "jfb_passage_link_count": sum(_link_count(d) for d in jfb_docs),
+        "henry_work_count": len(henry_docs),
+        "henry_section_count": sum(len(d["sections"]) for d in henry_docs),
+        "henry_chunk_count": sum(len(d["chunks"]) for d in henry_docs),
+        "henry_passage_link_count": sum(_link_count(d) for d in henry_docs),
     }
     return merged, extras
 
 
-def import_combined_calvin_jfb_commentary(
+def import_combined_commentary_corpus(
     *,
-    calvin_entries: list[Any],
-    jfb_xml_path: str | Path,
-    jfb_book_entries: list[Any],
+    calvin_entries: list[Any] | None = None,
+    jfb_xml_path: str | Path | None = None,
+    jfb_book_entries: list[Any] | None = None,
+    henry_manifest: Any | None = None,
     database_path: str | Path,
     atomic: bool = True,
     imported_at: str | None = None,
+    import_mode: str = IMPORT_MODE_COMBINED_COMMENTARY,
 ) -> CombinedCommentaryImportReport:
-    """Build an isolated combined Calvin+JFB store. ``database_path`` is required."""
+    """Build an isolated combined store from any subset of the three
+    Commentary sources. ``database_path`` is required."""
     target = Path(database_path)
     _reject_production_database(target)
-    document, extras = build_combined_calvin_jfb_document(
+    document, extras = build_combined_commentary_document(
         calvin_entries=calvin_entries,
         jfb_xml_path=jfb_xml_path,
         jfb_book_entries=jfb_book_entries,
+        henry_manifest=henry_manifest,
         imported_at=imported_at,
     )
     result = import_commentary_sqlite(
         document=document,
         database_path=target,
-        import_mode=IMPORT_MODE_COMBINED_CALVIN_JFB,
+        import_mode=import_mode,
         atomic=atomic,
     )
     return CombinedCommentaryImportReport(
@@ -156,6 +188,50 @@ def import_combined_calvin_jfb_commentary(
         jfb_section_count=int(extras["jfb_section_count"]),
         jfb_chunk_count=int(extras["jfb_chunk_count"]),
         jfb_passage_link_count=int(extras["jfb_passage_link_count"]),
+        henry_work_count=int(extras["henry_work_count"]),
+        henry_section_count=int(extras["henry_section_count"]),
+        henry_chunk_count=int(extras["henry_chunk_count"]),
+        henry_passage_link_count=int(extras["henry_passage_link_count"]),
+    )
+
+
+def build_combined_calvin_jfb_document(
+    *,
+    calvin_entries: list[Any],
+    jfb_xml_path: str | Path,
+    jfb_book_entries: list[Any],
+    imported_at: str | None = None,
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Backward-compatible two-source (Calvin+JFB) wrapper around
+    ``build_combined_commentary_document``."""
+    return build_combined_commentary_document(
+        calvin_entries=calvin_entries,
+        jfb_xml_path=jfb_xml_path,
+        jfb_book_entries=jfb_book_entries,
+        imported_at=imported_at,
+    )
+
+
+def import_combined_calvin_jfb_commentary(
+    *,
+    calvin_entries: list[Any],
+    jfb_xml_path: str | Path,
+    jfb_book_entries: list[Any],
+    database_path: str | Path,
+    atomic: bool = True,
+    imported_at: str | None = None,
+) -> CombinedCommentaryImportReport:
+    """Backward-compatible two-source (Calvin+JFB) wrapper around
+    ``import_combined_commentary_corpus``, preserving the prior round's
+    own ``import_mode`` value."""
+    return import_combined_commentary_corpus(
+        calvin_entries=calvin_entries,
+        jfb_xml_path=jfb_xml_path,
+        jfb_book_entries=jfb_book_entries,
+        database_path=database_path,
+        atomic=atomic,
+        imported_at=imported_at,
+        import_mode=IMPORT_MODE_COMBINED_CALVIN_JFB,
     )
 
 
@@ -178,8 +254,11 @@ def _reject_production_database(path: Path) -> None:
 
 __all__ = [
     "IMPORT_MODE_COMBINED_CALVIN_JFB",
+    "IMPORT_MODE_COMBINED_COMMENTARY",
     "CombinedCommentaryImportError",
     "CombinedCommentaryImportReport",
     "build_combined_calvin_jfb_document",
+    "build_combined_commentary_document",
     "import_combined_calvin_jfb_commentary",
+    "import_combined_commentary_corpus",
 ]

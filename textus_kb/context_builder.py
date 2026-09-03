@@ -737,23 +737,53 @@ def _build_commentary_context(
     return items
 
 
+_COMMENTARY_QUERY_TIER_RANK = {
+    "exact_passage": 0,
+    "containing_section": 1,
+    "partial_overlap": 2,
+}
+
+
 def _interleave_commentary_by_work(
     candidates: list[EvidenceItem],
     *,
     limit: int,
 ) -> list[EvidenceItem]:
-    """Deterministic round-robin across distinct commentary works.
+    """Deterministic round-robin across distinct commentary works, never
+    letting work diversity outrank passage relevance.
 
     ``candidates`` arrives already ranked (tier, span, primary-before-
-    parallel, document order) per work — that per-work relative order is
-    preserved exactly. Without this step, a single work with many
-    same-tier hits (e.g. every verse of a range query) would fill the
-    whole ``COMMENTARY_EVIDENCE_LIMIT`` before a second work sharing the
-    same passage is ever considered, purely because of which work
-    happens to sort first — never a reflection of relevance. Grouping by
-    ``work_id`` is stable (first-seen order), so this is fully
+    parallel, document order) — that global tier ordering is respected
+    first: every ``exact_passage`` candidate (from any work) is
+    interleaved and placed before any ``containing_section`` candidate,
+    which in turn precedes every ``partial_overlap`` one. Diversity across
+    works is achieved only *within* one tier group — round-robin never
+    promotes a lower-tier hit from an under-represented work ahead of a
+    higher-tier hit from a different work. Without the outer tier pass,
+    a single work with many same-tier hits (e.g. every verse of a range
+    query) would still fill the whole ``COMMENTARY_EVIDENCE_LIMIT`` before
+    a second work sharing the passage is considered — this fixes that
+    without weakening relevance ordering. Grouping by ``work_id`` within
+    a tier is stable (first-seen order), so the whole result is fully
     deterministic across repeated calls.
     """
+    by_tier: dict[int, list[EvidenceItem]] = {}
+    for item in candidates:
+        tier = str(item.metadata.get("query_relation_type") or "")
+        rank = _COMMENTARY_QUERY_TIER_RANK.get(tier, 99)
+        by_tier.setdefault(rank, []).append(item)
+
+    interleaved: list[EvidenceItem] = []
+    for rank in sorted(by_tier):
+        if len(interleaved) >= limit:
+            break
+        interleaved.extend(
+            _round_robin_by_work(by_tier[rank], limit=limit - len(interleaved))
+        )
+    return interleaved
+
+
+def _round_robin_by_work(candidates: list[EvidenceItem], *, limit: int) -> list[EvidenceItem]:
     by_work: dict[str, list[EvidenceItem]] = {}
     work_order: list[str] = []
     for item in candidates:
@@ -763,15 +793,15 @@ def _interleave_commentary_by_work(
             work_order.append(work_id)
         by_work[work_id].append(item)
 
-    interleaved: list[EvidenceItem] = []
-    while len(interleaved) < limit and any(by_work[w] for w in work_order):
+    result: list[EvidenceItem] = []
+    while len(result) < limit and any(by_work[w] for w in work_order):
         for work_id in work_order:
-            if len(interleaved) >= limit:
+            if len(result) >= limit:
                 break
             bucket = by_work[work_id]
             if bucket:
-                interleaved.append(bucket.pop(0))
-    return interleaved
+                result.append(bucket.pop(0))
+    return result
 
 
 def _load_commentary_context_items(
