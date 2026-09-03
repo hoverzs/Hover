@@ -6306,6 +6306,18 @@ DEFAULT_MAX_OUTPUT_TOKENS_BY_TAB: dict[str, int] = {
     # JSON-t okozott. 8000 kb. 2x tartalék a megfigyelt maximum fölé.
     "Textus fő gondolat — javaslat": 8000,
     "Textus fő gondolat — értékelés": 8000,
+    # LOCAL MANUAL SMOKE TEST FIX (2026-09-03) — a "Kommentárok
+    # összehasonlítása" (commentary_compare.py) tab_label sem szerepelt
+    # itt, ezért a generikus 4096-os alapértékre esett vissza. Élesben
+    # reprodukálva (Róm 3,28, Kálvin+JFB+Henry hármas compare): a válasz
+    # a "Mai exegetikai megjegyzés" szakasz közepén, mondat közben szakadt
+    # meg (finishReason=MAX_TOKENS). A feladat (2-3 forrás szó szerinti
+    # idézeteinek szintézise, 4 kötelező alcímmel) nagyságrendileg az
+    # Exegézis fülével összemérhető vagy annál nagyobb — ugyanarra a
+    # 12000-es plafonra állítva; nincs még több valódi usageMetadata-
+    # méréssel alátámasztva, mint a fenti, korábban finomhangolt
+    # bejegyzések — érdemes később valós használat alapján felülvizsgálni.
+    "Kommentárok összehasonlítása": 12000,
 }
 
 

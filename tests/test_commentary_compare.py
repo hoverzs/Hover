@@ -487,3 +487,42 @@ def test_commentary_ui_imports_compare_module() -> None:
 def test_app_py_passes_generate_fn_to_commentary_panel() -> None:
     app_src = Path("app.py").read_text(encoding="utf-8")
     assert "render_commentary_panel(generate_fn=generate_text)" in app_src
+
+
+def test_stale_result_never_shown_after_passage_change() -> None:
+    """Real bug found via manual browser smoke test (2026-09-03): a
+    compare generated for Róm 3,28, then switching passage to Róm 8,1-4,
+    left the OLD compare result visible on screen, distinguished only by
+    a small caption -- easy to miss while scrolling. A result must only
+    ever render for the exact passage it was generated for."""
+    ok_result = cc.CompareResult(status="ok", message="", text="some real comparison text")
+    ctx_old_passage = {"passage": "Romans.3.28", "passage_display": "Róm 3,28", "sources": ("A", "B")}
+    assert cc.is_result_current_for_passage(ok_result, ctx_old_passage, "Romans.3.28") is True
+    assert cc.is_result_current_for_passage(ok_result, ctx_old_passage, "Romans.8.1-4") is False
+
+
+def test_stale_result_check_handles_missing_or_failed_result() -> None:
+    assert cc.is_result_current_for_passage(None, {"passage": "Romans.3.28"}, "Romans.3.28") is False
+    assert cc.is_result_current_for_passage(None, None, "Romans.3.28") is False
+    failed = cc.CompareResult(status="ineligible", message="not enough sources")
+    assert cc.is_result_current_for_passage(failed, {"passage": "Romans.3.28"}, "Romans.3.28") is False
+
+
+def test_compare_tab_has_a_dedicated_output_token_budget() -> None:
+    """Real bug found via manual browser smoke test (2026-09-03, Róm 3,28,
+    Calvin+JFB+Henry): without a dedicated entry, "Kommentárok
+    összehasonlítása" fell back to the generic 4096-token ceiling and the
+    real response was truncated mid-sentence (finishReason=MAX_TOKENS)
+    before reaching the "Mai exegetikai megjegyzés" section. Mirrors the
+    precedent in tests/test_textus_main_idea_ai.py's own budget tests."""
+    import app
+
+    label = "Kommentárok összehasonlítása"
+    assert label in app.DEFAULT_MAX_OUTPUT_TOKENS_BY_TAB
+    budget = app.DEFAULT_MAX_OUTPUT_TOKENS_BY_TAB[label]
+    generic_fallback = 4096
+    assert budget > generic_fallback * 2, "must clearly exceed the truncating generic default"
+    assert app._default_max_output_tokens(label) == budget
+    # Matches commentary_compare.py's own tab_label string exactly.
+    compare_src = Path("commentary_compare.py").read_text(encoding="utf-8")
+    assert f'tab_label="{label}"' in compare_src

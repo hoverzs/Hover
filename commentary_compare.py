@@ -117,6 +117,21 @@ def _dedupe_ordered(names: Sequence[str]) -> list[str]:
     return list(dict.fromkeys(name for name in names if name))
 
 
+def is_result_current_for_passage(
+    result: CompareResult | None,
+    context: dict[str, Any] | None,
+    passage: str,
+) -> bool:
+    """True only when ``result`` is a real success generated for exactly
+    this ``passage`` -- a result left over from a previous passage must
+    never be displayed under a new one (found via manual smoke test:
+    switching Róm 3,28 -> Róm 8,1-4 left the old compare visible,
+    distinguished only by a small, easy-to-miss caption)."""
+    if result is None or result.status != "ok":
+        return False
+    return bool(context) and context.get("passage") == passage
+
+
 def _looks_like_provider_failure(text: str) -> bool:
     """``generate_text`` (app.py) returns a warning STRING rather than
     raising on a blocking condition (missing API key, cooldown, etc.) --
@@ -386,8 +401,8 @@ def render_commentary_compare_section(
                         st.warning(result.message)
 
         result: CompareResult | None = store.get(_RESULT_KEY)
-        if result is not None and result.status == "ok":
-            ctx = store.get(_CONTEXT_KEY) or {}
+        ctx = store.get(_CONTEXT_KEY) or {}
+        if is_result_current_for_passage(result, ctx, passage):
             st.caption(
                 "AI által készített, forrásalapú összehasonlítás — "
                 f"{', '.join(ctx.get('sources', ()))} · {ctx.get('passage_display', '')}"
@@ -408,6 +423,7 @@ __all__ = [
     "build_compare_prompt",
     "evaluate_compare_readiness",
     "group_evidence_by_source",
+    "is_result_current_for_passage",
     "render_commentary_compare_section",
     "run_commentary_compare",
 ]
