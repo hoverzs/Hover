@@ -117,6 +117,19 @@ def _dedupe_ordered(names: Sequence[str]) -> list[str]:
     return list(dict.fromkeys(name for name in names if name))
 
 
+def _looks_like_provider_failure(text: str) -> bool:
+    """``generate_text`` (app.py) returns a warning STRING rather than
+    raising on a blocking condition (missing API key, cooldown, etc.) --
+    same convention ``bible_engine.original_language_analysis._looks_
+    like_provider_failure`` already guards against. Without this check a
+    "⚠️ Hiányzó API kulcs…" string would be stored and displayed as if it
+    were a genuine, grounded comparison."""
+    raw = (text or "").strip()
+    if not raw:
+        return True
+    return raw.startswith(("⚠️", "⏳"))
+
+
 def group_evidence_by_source(
     passage: str,
     enabled_sources: Sequence[str],
@@ -291,7 +304,10 @@ def run_commentary_compare(
         use_cache=False,
         include_brevity_directive=False,
     )
-    return CompareResult(status="ok", message="", text=str(text or ""), payload=payload)
+    text = str(text or "")
+    if _looks_like_provider_failure(text):
+        return CompareResult(status="provider_error", message=text)
+    return CompareResult(status="ok", message="", text=text, payload=payload)
 
 
 def render_commentary_compare_section(

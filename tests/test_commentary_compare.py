@@ -285,6 +285,41 @@ def test_run_compare_ineligible_never_calls_generate_fn(
     assert fake.calls == []
 
 
+def test_run_compare_provider_failure_string_not_treated_as_ok(
+    synthetic_repo: CommentaryRepository,
+) -> None:
+    """Real bug found via browser smoke test (2026-09-03): generate_text
+    (app.py) returns a warning STRING like "⚠️ Hiányzó API kulcs…" rather
+    than raising when blocked -- without detecting this, that string would
+    be stored/displayed as if it were a genuine grounded comparison."""
+    fake = _FakeGenerate(response="⚠️ **Hiányzó API kulcs.** Add meg a Beállítások fülön...")
+    result = cc.run_commentary_compare(
+        "John.3.16",
+        "John 3:16",
+        ["Test Calvin", "Test JFB"],
+        generate_fn=fake,
+        repository=synthetic_repo,
+    )
+    assert result.status == "provider_error"
+    assert result.text == ""
+    assert "Hiányzó API kulcs" in result.message
+    assert len(fake.calls) == 1  # the call did happen -- this is a post-hoc detection
+
+
+def test_run_compare_empty_provider_response_is_provider_failure(
+    synthetic_repo: CommentaryRepository,
+) -> None:
+    fake = _FakeGenerate(response="")
+    result = cc.run_commentary_compare(
+        "John.3.16",
+        "John 3:16",
+        ["Test Calvin", "Test JFB"],
+        generate_fn=fake,
+        repository=synthetic_repo,
+    )
+    assert result.status == "provider_error"
+
+
 def test_run_compare_unavailable_db_never_calls_generate_fn(tmp_path: Path) -> None:
     fake = _FakeGenerate()
     result = cc.run_commentary_compare(
