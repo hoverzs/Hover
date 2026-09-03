@@ -486,7 +486,12 @@ def test_commentary_ui_imports_compare_module() -> None:
 
 def test_app_py_passes_generate_fn_to_commentary_panel() -> None:
     app_src = Path("app.py").read_text(encoding="utf-8")
-    assert "render_commentary_panel(generate_fn=generate_text)" in app_src
+    # 2026-09-03 (HU translation infra round): now also passes
+    # resolve_model_fn, for the translation-provenance model/provider name.
+    assert (
+        "render_commentary_panel(generate_fn=generate_text, "
+        "resolve_model_fn=resolve_gemini_model_for_tab)" in app_src
+    )
 
 
 def test_stale_result_never_shown_after_passage_change() -> None:

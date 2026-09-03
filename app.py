@@ -6318,6 +6318,18 @@ DEFAULT_MAX_OUTPUT_TOKENS_BY_TAB: dict[str, int] = {
     # méréssel alátámasztva, mint a fenti, korábban finomhangolt
     # bejegyzések — érdemes később valós használat alapján felülvizsgálni.
     "Kommentárok összehasonlítása": 12000,
+    # LOCAL INFRA BUILD (2026-09-03) — a magyar kommentárfordítás
+    # (commentary_translation_service.py) tab_labelje sem szerepelt itt.
+    # A feladat egy TELJES kanonikus kommentárszakasz szó szerinti,
+    # kihagyás nélküli fordítása (nem összefoglalás, nem preview) — egy
+    # hosszabb szakasz lefordított szövege simán meghaladhatja a generikus
+    # 4096-os plafont. A jelenleg bevált fülek közül a legmagasabb
+    # (16000, "Részletes prédikációs munkavázlat") értékére állítva —
+    # még nincs valódi usageMetadata-méréssel alátámasztva (nincs kötelező
+    # éles smoke ehhez a körhöz), érdemes később valós használat alapján
+    # felülvizsgálni; kirívóan hosszú szakaszoknál elvben így is
+    # csonkulhat a válasz (nincs szakaszon belüli darabolás ebben a körben).
+    "Kommentár fordítás (HU)": 16000,
 }
 
 
@@ -8329,7 +8341,7 @@ with tabs[0]:
 # =========================================================
 
 with tabs[2]:
-    render_commentary_panel(generate_fn=generate_text)
+    render_commentary_panel(generate_fn=generate_text, resolve_model_fn=resolve_gemini_model_for_tab)
 
 
 # =========================================================

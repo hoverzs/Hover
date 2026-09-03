@@ -2,7 +2,7 @@
 Knowledge Base fölött (jelenleg Calvin + JFB + Matthew Henry, de a UI
 semmit nem tételez fel a forrásszámról vagy -nevekről -- ld. lentebb).
 
-Nincs generatív AI-hívás ezen a fülön: minden kártya szó szerint a helyi
+A kártyalista maga NEM generatív: minden kártya szó szerint a helyi
 ``commentary.sqlite3``-ból származik (``CommentaryRepository``). A meglévő
 ``render_section_tab()`` "Generálás gomb -> egy hosszú AI-szöveg" mintáját
 szándékosan NEM használja ez a modul -- a Commentary UI/workflow audit
@@ -11,8 +11,13 @@ generált tartalom, és a passage-retrieval mindig exact/range-overlap marad
 (nincs FTS/semantic fallback -- ld. ``CommentaryRepository.
 sections_for_passage`` saját dokumentációját).
 
-Ugyanaz a fájl-szintű függetlenség, mint ``illustration_retrieval_ui.py``-
-nál: nincs ``generate_fn`` paraméter, mert egyáltalán nincs LLM-hívás.
+Egy kibontott szakaszon belül -- opcionálisan, explicit felhasználói
+kattintásra -- elérhető egy "Eredeti" / "Magyar fordítás" nézetváltó is
+(ld. ``_render_translation_toggle``, ``commentary_translation_service``).
+Ez az EGYETLEN generatív AI-hívási pont ezen a fülön; a fordítás mindig
+származtatott, cache-elt réteg a ``commentary_translations.sqlite3``-ban,
+sosem módosítja vagy helyettesíti az itt megjelenő eredeti angol szöveget,
+és az eredeti mindig egy kattintással ("Eredeti") visszaérhető marad.
 
 Forrás-generikusság: a forrás-szűrő checkboxok és a kártya-badge-ek NEM egy
 hardcode-olt 3-elemű listából épülnek, hanem minden alkalommal a ténylegesen
@@ -27,6 +32,7 @@ from typing import Any, Callable, MutableMapping
 
 import streamlit as st
 
+import commentary_translation_service
 from commentary_compare import render_commentary_compare_section
 from textus_kb import commentary_runtime
 from textus_kb.canonical_reference import CanonicalReference, CanonicalReferenceError
@@ -175,6 +181,15 @@ def _get_repository() -> CommentaryRepository:
     return CommentaryRepository()
 
 
+def _translation_database_path() -> str | None:
+    """Single, monkeypatchable seam mirroring ``_get_repository`` for the
+    (separate, derived) translation cache -- ``None`` means "use
+    ``commentary_translation_service``'s own default production path";
+    tests point this at an isolated store so they never touch the real
+    ``data/generated/commentary_translations.sqlite3``."""
+    return None
+
+
 def _get_status() -> commentary_runtime.CommentaryRuntimeStatus:
     """Single, monkeypatchable seam mirroring ``_get_repository`` for the
     runtime availability check."""
@@ -278,7 +293,13 @@ def _render_source_filter(results: list[CommentarySectionResult]) -> set[str]:
     return {name for name, enabled in filter_state.items() if enabled}
 
 
-def _render_card(result: CommentarySectionResult, *, query_canonical: str | None) -> None:
+def _render_card(
+    result: CommentarySectionResult,
+    *,
+    query_canonical: str | None,
+    generate_fn: Callable[..., str] | None = None,
+    resolve_model_fn: Callable[[str], str] | None = None,
+) -> None:
     source_name = _primary_contributor(result.contributors)
     tier_label = _RELATION_TIER_LABELS_HU.get(result.relation_type, result.relation_type)
     relation_key = _passage_relation_key(result, query_canonical)
@@ -307,10 +328,95 @@ def _render_card(result: CommentarySectionResult, *, query_canonical: str | None
             st.write(preview)
 
         with st.expander("Teljes szöveg és forrás megtekintése"):
-            _render_detail(result)
+            _render_detail(result, generate_fn=generate_fn, resolve_model_fn=resolve_model_fn)
 
 
-def _render_detail(card: CommentarySectionResult) -> None:
+_TRANSLATION_VIEW_ORIGINAL = "Eredeti"
+_TRANSLATION_VIEW_HUNGARIAN = "Magyar fordítás"
+_TRANSLATION_VIEW_KEY_PREFIX = "commentary_translation_view_"
+
+
+def _render_translation_view_toggle(section_id: str, *, has_text: bool) -> str:
+    """"Eredeti" / "Magyar fordítás" nézetváltó -- csak akkor jelenik meg,
+    ha a szakaszhoz egyáltalán tartozik önálló szöveg (szerkezeti, üres
+    szakaszoknál nincs mit fordítani). Alapértelmezés MINDIG "Eredeti" --
+    az eredeti angol szöveg soha nem tűnik el, csak explicit váltásra."""
+    if not has_text:
+        return _TRANSLATION_VIEW_ORIGINAL
+    return st.radio(
+        "Nézet",
+        options=(_TRANSLATION_VIEW_ORIGINAL, _TRANSLATION_VIEW_HUNGARIAN),
+        key=f"{_TRANSLATION_VIEW_KEY_PREFIX}{section_id}",
+        horizontal=True,
+        label_visibility="collapsed",
+    )
+
+
+def _render_translation_panel(
+    card: CommentarySectionResult,
+    *,
+    generate_fn: Callable[..., str] | None,
+    resolve_model_fn: Callable[[str], str] | None,
+) -> None:
+    """Cache-hit -> azonnal megjelenik, új modellhívás nélkül. Cache-miss
+    -> explicit "Magyar fordítás készítése" gomb; a teljes kanonikus
+    szakasz fordul (nem preview). Hiba/elérhetetlen provider esetén csak
+    ez a panel jelez -- az "Eredeti" nézet és a fenti kártyalista ettől
+    függetlenül változatlanul működik."""
+    repo = _get_repository()
+    db_path = _translation_database_path()
+    outcome = commentary_translation_service.get_translation(
+        card.section_id, repository=repo, database_path=db_path
+    )
+    if outcome.status == "cached":
+        _render_translated_text(outcome, card)
+        return
+    if outcome.status != "missing":
+        st.caption("A fordítás jelenleg nem érhető el ehhez a szakaszhoz.")
+        return
+
+    if st.button(
+        "Magyar fordítás készítése",
+        key=f"commentary_translate_btn_{card.section_id}",
+        disabled=generate_fn is None,
+    ):
+        provider_model = (
+            resolve_model_fn(commentary_translation_service.TRANSLATION_TAB_LABEL)
+            if resolve_model_fn is not None
+            else ""
+        )
+        with st.spinner("Magyar fordítás készítése…"):
+            result = commentary_translation_service.get_or_create_translation(
+                card.section_id,
+                generate_fn=generate_fn,
+                provider_model=provider_model,
+                repository=repo,
+                database_path=db_path,
+            )
+        if result.status in ("cached", "generated"):
+            _render_translated_text(result, card)
+        else:
+            st.warning(result.message or "A fordítás jelenleg nem készíthető el.")
+
+
+def _render_translated_text(
+    outcome: "commentary_translation_service.TranslationOutcome",
+    card: CommentarySectionResult,
+) -> None:
+    st.caption("AI által készített magyar fordítás")
+    st.write(outcome.text)
+    st.caption(
+        f"Az eredeti angol szöveg gépi fordítása (forrás: {card.work_title}). "
+        "Az eredeti szöveg az „Eredeti” nézetben egy kattintással elérhető."
+    )
+
+
+def _render_detail(
+    card: CommentarySectionResult,
+    *,
+    generate_fn: Callable[..., str] | None = None,
+    resolve_model_fn: Callable[[str], str] | None = None,
+) -> None:
     repo = _get_repository()
     detail = repo.section_detail(card.section_id)
     if detail is None:
@@ -328,10 +434,14 @@ def _render_detail(card: CommentarySectionResult) -> None:
     if detail.parallel_passages:
         st.caption(f"Párhuzamos evangéliumi hely: {', '.join(detail.parallel_passages)}")
 
-    for chunk in detail.chunks:
-        st.write(chunk.plain_text)
-    if not detail.chunks:
-        st.caption("Ehhez a szakaszhoz nem tartozik önálló szöveg (csak szerkezeti elem).")
+    view = _render_translation_view_toggle(card.section_id, has_text=bool(detail.chunks))
+    if view == _TRANSLATION_VIEW_HUNGARIAN and detail.chunks:
+        _render_translation_panel(card, generate_fn=generate_fn, resolve_model_fn=resolve_model_fn)
+    else:
+        for chunk in detail.chunks:
+            st.write(chunk.plain_text)
+        if not detail.chunks:
+            st.caption("Ehhez a szakaszhoz nem tartozik önálló szöveg (csak szerkezeti elem).")
 
     source_locator = detail.chunks[0].source_locator if detail.chunks else ""
     render_context_summary(
@@ -359,12 +469,24 @@ def _render_detail(card: CommentarySectionResult) -> None:
         st.caption(card.rights_note)
 
 
-def render_commentary_panel(*, generate_fn: Callable[..., str] | None = None) -> None:
+def render_commentary_panel(
+    *,
+    generate_fn: Callable[..., str] | None = None,
+    resolve_model_fn: Callable[[str], str] | None = None,
+) -> None:
     """Renders the "Kommentárok" tab's entire content.
 
-    ``generate_fn`` is only used by the "Kommentárok összehasonlítása"
-    section below the (unchanged) retrieval-only cards — this tab's own
-    card list still makes zero LLM calls, matching the module docstring.
+    ``generate_fn`` powers two independent, explicit-click-only generative
+    actions: the "Kommentárok összehasonlítása" section below the cards,
+    and the per-card "Magyar fordítás készítése" button inside an expanded
+    section's "Eredeti" / "Magyar fordítás" toggle (ld. ``_render_
+    translation_panel``). The retrieval-only card list itself still makes
+    zero LLM calls on its own -- and, like ``generate_fn``, never names a
+    concrete provider in this module's own source. ``resolve_model_fn``
+    (app.py's own tab-based model-routing lookup) is optional,
+    translation-only provenance metadata -- when omitted, translations
+    are still generated and cached normally, just without a recorded
+    provider/model name.
     """
     render_work_section(
         title="Kommentárok",
@@ -411,7 +533,12 @@ def render_commentary_panel(*, generate_fn: Callable[..., str] | None = None) ->
 
         shown, hidden = visible[:_MAX_DISPLAYED_CARDS], visible[_MAX_DISPLAYED_CARDS:]
         for result in shown:
-            _render_card(result, query_canonical=query_canonical)
+            _render_card(
+                result,
+                query_canonical=query_canonical,
+                generate_fn=generate_fn,
+                resolve_model_fn=resolve_model_fn,
+            )
         if hidden:
             st.caption(
                 f"+ {len(hidden)} további, alacsonyabb relevanciájú találat nem jelenik meg."

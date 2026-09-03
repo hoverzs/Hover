@@ -85,7 +85,10 @@ _EXPECTED_MARKERS: dict[int, str] = {
     # rács pontosan 12 elemű, 3×4-es marad) -- ld. lentebb. A grounded-
     # compare fázis (2026-09-03, ld. tests/test_commentary_compare.py) óta a
     # hívás generate_fn-t is átad a "Kommentárok összehasonlítása" gombhoz.
-    2: "render_commentary_panel(generate_fn=generate_text)",
+    # A magyar kommentárfordítás fázis (2026-09-03, ld. tests/test_
+    # commentary_translation.py) óta resolve_model_fn-t is átad (a fordítás
+    # provenance-metaadatához).
+    2: "render_commentary_panel(generate_fn=generate_text, resolve_model_fn=resolve_gemini_model_for_tab)",
     3: 'key="exegesis"',
     4: 'key="history"',
     5: 'key="theology"',

@@ -305,4 +305,9 @@ def test_app_py_wires_commentary_tab_between_original_text_and_exegesis() -> Non
 def test_app_py_imports_and_calls_render_commentary_panel() -> None:
     app_src = Path("app.py").read_text(encoding="utf-8")
     assert "from commentary_ui import render_commentary_panel" in app_src
-    assert "render_commentary_panel(generate_fn=generate_text)" in app_src
+    # 2026-09-03 (HU translation infra round): now also passes
+    # resolve_model_fn, for the translation-provenance model/provider name.
+    assert (
+        "render_commentary_panel(generate_fn=generate_text, "
+        "resolve_model_fn=resolve_gemini_model_for_tab)" in app_src
+    )
