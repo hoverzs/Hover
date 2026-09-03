@@ -1029,6 +1029,54 @@ def clean_reader_ui_translation_cache():
     yield
 
 
+def _render_commentary_reader_flow_heading_echo() -> None:
+    """Same fixture/wiring as ``_render_commentary_reader_flow``, but the
+    fake ``generate_fn`` mimics the REAL, observed bug (task item 5): a
+    provider response that starts with a redundant markdown heading
+    echoing the passage (e.g. "## Mt 5:1") despite the prompt forbidding
+    it -- verifies the reader's OWN passage heading is never followed by
+    a visually duplicated second one. Own isolated tmp dir so this
+    doesn't interfere with the other reader-flow tests' cache state."""
+    import re
+    import tempfile
+    from pathlib import Path as _Path
+
+    import streamlit as st
+
+    import commentary_ui as cu
+    from tests.test_commentary_ui import _reader_flow_document
+    from textus_kb import commentary_runtime
+    from textus_kb.importers.commentary_sqlite import import_commentary_sqlite
+    from textus_kb.repositories.commentary_repository import CommentaryRepository
+
+    tmp_root = _Path(tempfile.gettempdir()) / "textus_test_commentary_reader_ui_heading_echo"
+    tmp_root.mkdir(parents=True, exist_ok=True)
+    db_path = tmp_root / "commentary.sqlite3"
+    translation_db_path = tmp_root / "commentary_translations.sqlite3"
+    if translation_db_path.is_file():
+        translation_db_path.unlink()
+    import_commentary_sqlite(document=_reader_flow_document(), database_path=db_path)
+
+    cu._get_repository = lambda: CommentaryRepository(db_path)  # type: ignore[assignment]
+    cu._get_status = lambda: commentary_runtime.get_status(db_path)  # type: ignore[assignment]
+    cu._translation_database_path = lambda: translation_db_path  # type: ignore[assignment]
+
+    def heading_echo_gen(prompt: str, **kwargs) -> str:
+        # Mimics the REAL observed provider behavior: echoes back
+        # whichever passage THIS specific call's prompt is actually
+        # about (never a fixed string), exactly like a real model
+        # response would vary per section/batch.
+        match = re.search(r"Kapcsolódó igehely: (.+)", prompt)
+        passage = match.group(1).strip() if match else "?"
+        heading = passage.replace(",", ":")
+        return f"## {heading}\n\nEz a lefordított tartalom valódi szövege."
+
+    st.session_state["last_igehely"] = "Matt.5.1-2"
+    cu.render_commentary_panel(
+        generate_fn=heading_echo_gen, resolve_model_fn=lambda label: "test-model"
+    )
+
+
 def test_reader_shows_exactly_one_family_selector_and_three_options(
     clean_reader_ui_translation_cache,
 ) -> None:
@@ -1223,6 +1271,52 @@ def test_reader_no_match_and_unavailable_states_unchanged() -> None:
     assert "_render_missing_db(status)" in source
     assert "_render_no_passage()" in source
     assert "_render_no_match(passage)" in source
+
+
+# --- Final hardening round (2026-09-03): UI label + duplicate heading ----
+
+
+def test_full_section_expander_uses_the_renamed_unambiguous_label() -> None:
+    """Task item 4: "Tovább olvasom" read as misleadingly casual for what
+    can open a very long, complete canonical section -- renamed, not
+    removed, not shortened, not summarized."""
+    src = Path("commentary_ui.py").read_text(encoding="utf-8")
+    assert 'st.expander("Teljes kommentárszakasz megnyitása")' in src
+    assert "Tovább olvasom" not in src
+
+
+def test_reader_hungarian_text_never_shows_a_duplicated_passage_heading(
+) -> None:
+    """Task item 5: real bug -- a provider response starting with a
+    redundant markdown heading (e.g. "## Mt 5:1") rendered as a SECOND,
+    visually duplicated heading right under the reader's own "Mt 5,1".
+    The fix lives in commentary_translation_service (stripped once,
+    before caching) -- this is the end-to-end proof the reader itself
+    never shows the duplicate, regardless of where the fix lives.
+    Both of Calvin's sections translate in this one click (v1 -> "## Mt
+    5:1", v2 -> "## Mt 5:2", ld. the fake generate_fn), so this also
+    proves the fix isn't accidentally specific to one hardcoded passage."""
+    at = AppTest.from_function(_render_commentary_reader_flow_heading_echo).run(timeout=60)
+    at = at.segmented_control[0].set_value("ccel.calvin").run(timeout=60)
+    translate_btn = next(
+        b for b in at.button if "lefordítása magyarra" in b.label or b.label == "Magyar fordítás elkészítése"
+    )
+    at = translate_btn.click().run(timeout=60)
+
+    markdown_values = [md.value for md in at.markdown]
+    body = "\n".join(markdown_values)
+    assert body.count("Ez a lefordított tartalom valódi szövege.") == 2  # both v1 and v2
+    # The model's echoed heading must never survive into the rendered
+    # translated text, for EITHER section.
+    assert "## Mt 5:1" not in body
+    assert "## Mt 5:2" not in body
+    # The translated CONTENT block itself (as opposed to the reader's own
+    # "**Mt 5,1**" heading, or the unrelated "Forrásadatok" provenance
+    # block that legitimately also mentions the passage) never starts
+    # with a markdown heading marker.
+    content_values = [v for v in markdown_values if "Ez a lefordított tartalom" in v]
+    assert len(content_values) == 2
+    assert all(not v.startswith("#") for v in content_values)
 
 
 # --- no generative call in this module ------------------------------------

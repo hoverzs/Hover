@@ -172,6 +172,12 @@ def test_group_evidence_no_sources_requested_returns_empty(
 def test_compare_prompt_has_required_structure_headings(
     synthetic_repo: CommentaryRepository,
 ) -> None:
+    """2026-09-03 grounding audit (task item 6): the "Mai exegetikai
+    megjegyzés" fourth section is gone -- Commentary-only compare has no
+    grounded modern textual-critical/philological/historical/theological
+    evidence to base it on (ld. group_evidence_by_source /
+    retrieve_commentary_evidence, both Commentary-corpus-only), so it
+    could only ever be the model's own unsupported prior knowledge."""
     grouped = cc.group_evidence_by_source(
         "John.3.16", ["Test Calvin", "Test JFB", "Test Henry"], repository=synthetic_repo
     )
@@ -180,15 +186,24 @@ def test_compare_prompt_has_required_structure_headings(
         "## Közös hangsúlyok",
         "## Eltérő értelmezések vagy hangsúlyok",
         "## Az egyes kommentárok sajátos hozzájárulása",
-        "## Mai exegetikai megjegyzés",
     ):
         assert heading in payload.prompt
+    assert "Mai exegetikai megjegyzés" not in payload.prompt
 
 
 def test_compare_prompt_forbids_verdicts_and_fabrication_in_rules() -> None:
     assert "TILOS kitalálni" in cc._COMPARE_RULES
     assert "megbízhatósági pontszámot" in cc._COMPARE_RULES
-    assert "helyesnek" in cc._COMPARE_RULES and "hibásnak" in cc._COMPARE_RULES
+
+
+def test_compare_rules_explicitly_forbid_ungrounded_modern_claims() -> None:
+    """Task item 6: not just "be careful" prompt wording -- an explicit,
+    unconditional prohibition on adding any modern textual-critical/
+    philological/historical/theological claim from the model's own
+    background knowledge, in or out of a fourth section."""
+    assert "mai kutatás" in cc._COMPARE_RULES
+    assert "modern exegetika" in cc._COMPARE_RULES
+    assert "TILOS" in cc._COMPARE_RULES
 
 
 def test_compare_prompt_carries_full_citation_provenance(
@@ -380,6 +395,79 @@ def test_run_compare_source_no_match_excludes_it_from_prompt(
     assert "Test Calvin" not in result.payload.source_names
     assert set(result.payload.source_names) == {"Test JFB", "Test Henry"}
     assert "Test Calvin" not in fake.calls[0][0]
+
+
+# --- Grounding audit: no ungrounded modern/textual-critical "fourth
+# section" (2026-09-03 hardening round, task item 6) -----------------------
+
+
+def test_strip_unauthorized_extra_sections_removes_a_fourth_heading() -> None:
+    text = (
+        "## Közös hangsúlyok\nA\n\n"
+        "## Eltérő értelmezések vagy hangsúlyok\nB\n\n"
+        "## Az egyes kommentárok sajátos hozzájárulása\nC\n\n"
+        "## Mai exegetikai megjegyzés\nP46, א, B, C kéziratok szerint..."
+    )
+    result = cc._strip_unauthorized_extra_sections(text)
+    assert "Mai exegetikai megjegyzés" not in result
+    assert "P46" not in result
+    assert "## Az egyes kommentárok sajátos hozzájárulása" in result
+    assert "C" in result
+
+
+def test_strip_unauthorized_extra_sections_catches_any_wording_not_just_the_known_phrase() -> None:
+    """Generic by construction: it's the COUNT of "## " headings that
+    matters, not any specific phrase -- a differently-worded unauthorized
+    section is caught exactly the same way."""
+    text = (
+        "## Közös hangsúlyok\nA\n\n"
+        "## Eltérő értelmezések vagy hangsúlyok\nB\n\n"
+        "## Az egyes kommentárok sajátos hozzájárulása\nC\n\n"
+        "## Modern kritikai kontextus\nSome unrequested extra content."
+    )
+    result = cc._strip_unauthorized_extra_sections(text)
+    assert "Modern kritikai kontextus" not in result
+
+
+def test_strip_unauthorized_extra_sections_leaves_exactly_three_sections_untouched() -> None:
+    text = (
+        "## Közös hangsúlyok\nA\n\n"
+        "## Eltérő értelmezések vagy hangsúlyok\nB\n\n"
+        "## Az egyes kommentárok sajátos hozzájárulása\nC"
+    )
+    assert cc._strip_unauthorized_extra_sections(text) == text
+
+
+def test_strip_unauthorized_extra_sections_leaves_fewer_than_three_untouched() -> None:
+    text = "## Közös hangsúlyok\nA\n\n## Eltérő értelmezések vagy hangsúlyok\nB"
+    assert cc._strip_unauthorized_extra_sections(text) == text
+
+
+def test_run_compare_strips_unauthorized_fourth_section_from_result(
+    synthetic_repo: CommentaryRepository,
+) -> None:
+    """End-to-end: even if the model adds an unrequested "Mai exegetikai
+    megjegyzés"-style section anyway, run_commentary_compare's own result
+    never carries it -- a mechanical safeguard, not just prompt wording."""
+    fake = _FakeGenerate(
+        response=(
+            "## Közös hangsúlyok\nMindkettő egyetért.\n\n"
+            "## Eltérő értelmezések vagy hangsúlyok\nNincs érdemi eltérés.\n\n"
+            "## Az egyes kommentárok sajátos hozzájárulása\nKálvin: X. JFB: Y.\n\n"
+            "## Mai exegetikai megjegyzés\nA modern szövegkritika szerint a P46 kézirat..."
+        )
+    )
+    result = cc.run_commentary_compare(
+        "John.3.16",
+        "John 3:16",
+        ["Test Calvin", "Test JFB", "Test Henry"],
+        generate_fn=fake,
+        repository=synthetic_repo,
+    )
+    assert result.status == "ok"
+    assert "Mai exegetikai megjegyzés" not in result.text
+    assert "P46" not in result.text
+    assert "Kálvin: X. JFB: Y." in result.text
 
 
 # --- Real production-store checks ---------------------------------------

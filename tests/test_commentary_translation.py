@@ -464,3 +464,274 @@ def test_translation_tab_has_a_dedicated_output_token_budget() -> None:
     assert app._default_max_output_tokens(label) == budget
     service_src = Path("commentary_translation_service.py").read_text(encoding="utf-8")
     assert f'tab_label=TRANSLATION_TAB_LABEL' in service_src
+
+
+# --- Long-section translation batching (2026-09-03 hardening round) -------
+#
+# Real bug found via manual smoke test: Matthew Henry's Rom.8.1-9 section
+# (a single 14281-char chunk) truncated mid-sentence at the model's
+# output-token ceiling. split_section_for_translation batches a section
+# for translation -- primarily along its own EXISTING chunk boundaries,
+# only splitting further (paragraph, then sentence/word) when a single
+# chunk alone is too large. Pure/deterministic, tested directly below
+# without any provider call.
+
+
+def test_split_section_short_single_chunk_stays_one_batch() -> None:
+    batches = svc.split_section_for_translation(["A short chunk of text."], max_chars=3000)
+    assert batches == ["A short chunk of text."]
+
+
+def test_split_section_multiple_short_chunks_combine_into_one_batch() -> None:
+    """Unchanged behavior for the common case: several small chunks that
+    collectively still fit under budget produce exactly ONE batch, joined
+    the same way as the pre-batching "\\n\\n".join(chunk_texts) did."""
+    batches = svc.split_section_for_translation(["Chunk one.", "Chunk two."], max_chars=3000)
+    assert batches == ["Chunk one.\n\nChunk two."]
+
+
+def test_split_section_blank_chunks_are_dropped() -> None:
+    batches = svc.split_section_for_translation(["Real text.", "   ", ""], max_chars=3000)
+    assert batches == ["Real text."]
+
+
+def test_split_section_chunks_that_dont_fit_together_become_separate_batches() -> None:
+    """Each chunk individually fits, but not combined -- existing chunk
+    boundaries are used as-is, never split WITHIN a chunk that already
+    fits alone."""
+    chunk_a = "A" * 30
+    chunk_b = "B" * 30
+    batches = svc.split_section_for_translation([chunk_a, chunk_b], max_chars=40)
+    assert batches == [chunk_a, chunk_b]
+
+
+def test_split_section_oversized_single_chunk_splits_at_paragraphs() -> None:
+    para1 = "First paragraph. " * 5
+    para2 = "Second paragraph. " * 5
+    chunk = para1.strip() + "\n\n" + para2.strip()
+    batches = svc.split_section_for_translation([chunk], max_chars=len(para1.strip()) + 10)
+    assert len(batches) >= 2
+    assert all(len(b) <= len(para1.strip()) + 10 for b in batches)
+    # Original order preserved, nothing lost.
+    assert "".join(batches).replace("\n\n", "") == (para1.strip() + para2.strip())
+
+
+def test_split_section_oversized_paragraph_falls_back_to_sentence_boundary() -> None:
+    """A single paragraph with no internal paragraph break but multiple
+    sentences must split AT a sentence boundary, never mid-sentence."""
+    long_paragraph = "Sentence one is here. Sentence two is here. Sentence three is here."
+    batches = svc.split_section_for_translation([long_paragraph], max_chars=30)
+    assert len(batches) > 1
+    for batch in batches:
+        assert len(batch) <= 30 or " " not in batch  # a lone oversized word is the only exception
+    # Never cut mid-sentence: every batch (but possibly the last) ends
+    # with a period, and no batch starts mid-word.
+    rejoined = " ".join(batches)
+    assert "Sentence one is here." in rejoined
+    assert "Sentence two is here." in rejoined
+    assert "Sentence three is here." in rejoined
+
+
+def test_split_section_never_cuts_mid_word_even_with_no_boundaries() -> None:
+    text = "word " * 50  # no sentence-ending periods at all
+    batches = svc.split_section_for_translation([text], max_chars=20)
+    all_words = text.split()
+    for batch in batches:
+        for word in batch.split():
+            assert word in all_words  # every emitted token is a COMPLETE original word
+
+
+def test_split_section_preserves_original_order() -> None:
+    chunks = [f"Chunk number {i}. " * 3 for i in range(5)]
+    batches = svc.split_section_for_translation(chunks, max_chars=60)
+    # Reassembling all batches in order must mention every chunk marker
+    # in the SAME relative order as the input.
+    joined = "\n\n".join(batches)
+    positions = [joined.index(f"Chunk number {i}.") for i in range(5)]
+    assert positions == sorted(positions)
+
+
+# --- Redundant leading passage-heading stripping ---------------------------
+
+
+def test_strip_redundant_passage_heading_removes_genuine_echo() -> None:
+    text = "## Róm 8:1\n\nNincs tehát, stb. Miután leírta a harcot..."
+    result = svc._strip_redundant_passage_heading(text, ["Rom.8.1"])
+    assert result == "Nincs tehát, stb. Miután leírta a harcot..."
+
+
+def test_strip_redundant_passage_heading_handles_verse_only_suffix_match() -> None:
+    """The source's own leading verse marker ("4.") can come back wrapped
+    in an unwanted markdown heading ("### 4.") even though the section's
+    canonical passage carries both chapter and verse ("Rom.8.4") -- a
+    digit-SUFFIX match still catches this."""
+    text = "### 4.\nHogy a törvény igazsága beteljesedjék..."
+    result = svc._strip_redundant_passage_heading(text, ["Rom.8.4"])
+    assert result == "Hogy a törvény igazsága beteljesedjék..."
+
+
+def test_strip_redundant_passage_heading_preserves_genuine_structural_heading() -> None:
+    """Task item 5's own invariant: a REAL content heading from the
+    source (e.g. Henry's outline point "I.", rendered by the model as
+    "## I.") must never be removed -- it carries no digits at all, so it
+    can never be mistaken for a passage-reference echo."""
+    text = "## I.\n\nAz apostol itt egy jelentős kiváltsággal kezdi..."
+    result = svc._strip_redundant_passage_heading(text, ["Rom.8.1-9"])
+    assert result == text
+
+
+def test_strip_redundant_passage_heading_ignores_unrelated_digits() -> None:
+    text = "## 1999\n\nSome text that happens to start with a heading."
+    result = svc._strip_redundant_passage_heading(text, ["Rom.8.4"])
+    assert result == text
+
+
+def test_strip_redundant_passage_heading_ignores_long_headings() -> None:
+    text = "## Ez egy hosszabb, ténylegesen tartalmi címsor 8:1-hez\n\nSzöveg."
+    result = svc._strip_redundant_passage_heading(text, ["Rom.8.1"])
+    assert result == text
+
+
+def test_strip_redundant_passage_heading_no_heading_at_all_is_untouched() -> None:
+    text = "Plain translated text with no heading at all."
+    assert svc._strip_redundant_passage_heading(text, ["Rom.8.1"]) == text
+
+
+def test_strip_redundant_passage_heading_applies_per_batch_not_just_first(
+    synthetic_repo: CommentaryRepository, translation_db: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Every batch's response is sanitized independently -- a stray
+    mid-document heading (any batch after the first echoing the passage
+    again) must never survive into the assembled, cached text."""
+    monkeypatch.setattr(svc, "DEFAULT_TRANSLATION_BATCH_MAX_CHARS", 40)
+    call_count = {"n": 0}
+
+    def fake_gen(prompt: str, **kwargs) -> str:
+        call_count["n"] += 1
+        return f"## John 3:16\n\nRÉSZ {call_count['n']}"
+
+    outcome = svc.get_or_create_translation(
+        _JFB_SECTION_ID, generate_fn=fake_gen, repository=synthetic_repo, database_path=translation_db
+    )
+    assert outcome.status == "generated"
+    assert "## John 3:16" not in outcome.text
+    assert "RÉSZ" in outcome.text
+
+
+# --- Long-section batching: full integration through get_or_create_translation
+
+
+def test_get_or_create_short_section_makes_exactly_one_call(
+    synthetic_repo: CommentaryRepository, translation_db: Path
+) -> None:
+    fake = _FakeGenerate()
+    outcome = svc.get_or_create_translation(
+        _JFB_SECTION_ID, generate_fn=fake, repository=synthetic_repo, database_path=translation_db
+    )
+    assert outcome.status == "generated"
+    assert len(fake.calls) == 1
+
+
+def test_get_or_create_long_section_splits_into_multiple_batches_in_order(
+    synthetic_repo: CommentaryRepository, translation_db: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """_HENRY_SECTION_ID has 2 real chunks ("PART ONE" / "PART TWO", ~34
+    chars each) -- forcing a small max_chars makes them two SEPARATE
+    batches (they don't fit combined), exercising the full
+    get_or_create_translation orchestration end to end."""
+    monkeypatch.setattr(svc, "DEFAULT_TRANSLATION_BATCH_MAX_CHARS", 40)
+    calls: list[str] = []
+
+    def fake_gen(prompt: str, **kwargs) -> str:
+        calls.append(prompt)
+        return f"FORDÍTÁS #{len(calls)}"
+
+    outcome = svc.get_or_create_translation(
+        _HENRY_SECTION_ID, generate_fn=fake_gen, repository=synthetic_repo, database_path=translation_db
+    )
+    assert outcome.status == "generated"
+    assert len(calls) == 2
+    assert outcome.text == "FORDÍTÁS #1\n\nFORDÍTÁS #2"
+    # Each batch's OWN prompt carries only its own share of the source --
+    # the full content is still distributed across calls, not dropped.
+    assert "PART ONE" in calls[0] and "PART TWO" not in calls[0]
+    assert "PART TWO" in calls[1] and "PART ONE" not in calls[1]
+
+
+def test_get_or_create_long_section_full_success_yields_one_cache_row(
+    synthetic_repo: CommentaryRepository, translation_db: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(svc, "DEFAULT_TRANSLATION_BATCH_MAX_CHARS", 40)
+    fake = _FakeGenerate(response="OK")
+    svc.get_or_create_translation(
+        _HENRY_SECTION_ID, generate_fn=fake, repository=synthetic_repo, database_path=translation_db
+    )
+    assert len(fake.calls) == 2  # confirms this really was multi-batch
+
+    second = svc.get_translation(
+        _HENRY_SECTION_ID, repository=synthetic_repo, database_path=translation_db
+    )
+    assert second.status == "cached"
+    assert second.text == "OK\n\nOK"
+
+
+def test_get_or_create_long_section_middle_batch_failure_caches_nothing(
+    synthetic_repo: CommentaryRepository, translation_db: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Task item 1's explicit scenario: of N batches, an early one fails
+    -- the section must NOT get a valid cache hit, no partial/half-done
+    translation is ever stored, and the original English stays available
+    (structurally guaranteed: this function never touches
+    CommentaryRepository's own data)."""
+    monkeypatch.setattr(svc, "DEFAULT_TRANSLATION_BATCH_MAX_CHARS", 40)
+    calls: list[str] = []
+
+    def flaky_gen(prompt: str, **kwargs) -> str:
+        calls.append(prompt)
+        if len(calls) == 2:
+            return "⚠️ Modell hiba (kvóta túllépve)."
+        return f"FORDÍTÁS #{len(calls)}"
+
+    outcome = svc.get_or_create_translation(
+        _HENRY_SECTION_ID, generate_fn=flaky_gen, repository=synthetic_repo, database_path=translation_db
+    )
+    assert outcome.status == "provider_error"
+    assert "⚠️" in outcome.message
+    assert len(calls) == 2  # stopped at the failing batch, never continued past it
+
+    still_missing = svc.get_translation(
+        _HENRY_SECTION_ID, repository=synthetic_repo, database_path=translation_db
+    )
+    assert still_missing.status == "missing"
+    assert not (translation_db.is_file() and _translation_row_exists(translation_db, _HENRY_SECTION_ID))
+
+
+def _translation_row_exists(translation_db: Path, section_id: str) -> bool:
+    import sqlite3
+
+    con = sqlite3.connect(translation_db)
+    try:
+        row = con.execute(
+            "SELECT 1 FROM translations WHERE section_id = ?", (section_id,)
+        ).fetchone()
+        return row is not None
+    finally:
+        con.close()
+
+
+def test_get_or_create_long_section_cache_hit_makes_no_new_calls(
+    synthetic_repo: CommentaryRepository, translation_db: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(svc, "DEFAULT_TRANSLATION_BATCH_MAX_CHARS", 40)
+    fake = _FakeGenerate(response="X")
+    svc.get_or_create_translation(
+        _HENRY_SECTION_ID, generate_fn=fake, repository=synthetic_repo, database_path=translation_db
+    )
+    assert len(fake.calls) == 2
+
+    fake.calls.clear()
+    second = svc.get_or_create_translation(
+        _HENRY_SECTION_ID, generate_fn=fake, repository=synthetic_repo, database_path=translation_db
+    )
+    assert second.status == "cached"
+    assert fake.calls == []

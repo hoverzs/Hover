@@ -697,9 +697,13 @@ def _render_reader_section(
     reader -- a light passage heading (+ a subtle badge only when the
     relation genuinely deserves flagging), then the actual text (HU or
     EN per the reader's own language mode), long text truncated at a
-    paragraph boundary behind a "Tovább olvasom" expander. No card
-    border, no repeated work/contributor/relation caption per section
-    (task item 7) -- those live at the book/reader level instead."""
+    paragraph boundary behind a "Teljes kommentárszakasz megnyitása"
+    expander -- the label names what's actually behind it (the complete
+    canonical section, never shortened/summarized), since "Tovább
+    olvasom" read as misleadingly casual for what can be a very long
+    source text. No card border, no repeated work/contributor/relation
+    caption per section (task item 7) -- those live at the book/reader
+    level instead."""
     passages = result.primary_passages or result.canonical_passages
     passage_display = _format_passage_list_hu(passages)
     relation_key = _passage_relation_key(result, query_canonical)
@@ -716,7 +720,7 @@ def _render_reader_section(
             visible, rest = _split_for_progressive_disclosure(outcome.text, _READER_VISIBLE_CHARS)
             st.write(visible)
             if rest:
-                with st.expander("Tovább olvasom"):
+                with st.expander("Teljes kommentárszakasz megnyitása"):
                     st.write(rest)
         else:
             st.caption(
@@ -732,7 +736,7 @@ def _render_reader_section(
     visible, rest = _split_for_progressive_disclosure(text, _READER_VISIBLE_CHARS)
     st.write(visible)
     if rest:
-        with st.expander("Tovább olvasom"):
+        with st.expander("Teljes kommentárszakasz megnyitása"):
             st.write(rest)
 
 
