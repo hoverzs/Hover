@@ -45,7 +45,6 @@ from textus_workshop_data import (
 from textus_workshop_ui import (
     flush_textus_workshop_from_widgets,
     render_text_main_idea_section,
-    render_text_summary_section,
 )
 from sermon_workshop_data import (
     SERMON_WORKSHOP_KEY,
@@ -119,6 +118,7 @@ from passage_search_ui import (
     ensure_passage_search_state,
     render_passage_search_expander,
 )
+from commentary_ui import render_commentary_panel
 from concordance_ui import render_concordance_expander
 from hymn_recommendation_ai import ERE_BOOK_LABEL, recommend_hymns
 from hymn_ui_state import (
@@ -8310,10 +8310,21 @@ with tabs[0]:
 
 
 # =========================================================
-# TARTALOM TABOK — egységes Generálás-gombos minta
+# KOMMENTÁROK — közvetlen, retrieval-only SQLite-forrásnézet
+# (Calvin + JFB + Matthew Henry; ld. commentary_ui.py). Nem a
+# render_section_tab()-mintát követi: nincs Generálás-gomb, nincs
+# AI-hívás, minden kártya szó szerinti idézet a commentary.sqlite3-ból.
 # =========================================================
 
 with tabs[2]:
+    render_commentary_panel()
+
+
+# =========================================================
+# TARTALOM TABOK — egységes Generálás-gombos minta
+# =========================================================
+
+with tabs[3]:
     render_section_tab(
         key="exegesis",
         header="Exegézis",
@@ -8323,7 +8334,7 @@ with tabs[2]:
         approvable=True,
     )
 
-with tabs[3]:
+with tabs[4]:
     render_section_tab(
         key="history",
         header="Kortörténet",
@@ -8333,7 +8344,7 @@ with tabs[3]:
         approvable=True,
     )
 
-with tabs[4]:
+with tabs[5]:
     render_section_tab(
         key="theology",
         header="Teológia",
@@ -8343,7 +8354,7 @@ with tabs[4]:
         approvable=True,
     )
 
-with tabs[5]:
+with tabs[6]:
     # Phase 3I.1: a korábbi szabad LLM-generálású illusztráció-blokkot
     # (Klasszikus tanmesék / Valós anekdoták / Mai történet / Bevezető
     # illusztráció -- forrás nélküli, kitalált történetek) eltávolítottuk.
@@ -8352,7 +8363,7 @@ with tabs[5]:
     # search_action.
     render_illustration_search_action(generate_fn=generate_text)
 
-with tabs[6]:
+with tabs[7]:
     render_section_tab(
         key="actualization",
         header="Aktualizálás",
@@ -8374,7 +8385,7 @@ with tabs[1]:
 # ÉNEKAJÁNLÓ
 # =========================================================
 
-with tabs[7]:
+with tabs[8]:
     st.header("Énekajánló")
     st.caption("Református liturgiai énekajánlás az igeszakaszhoz és az alkalomhoz")
 
@@ -8494,20 +8505,21 @@ with tabs[7]:
 # A TEXTUS FŐ GONDOLATA (a régi különálló Textusműhelyből beolvasztva)
 # =========================================================
 
-with tabs[9]:
+with tabs[10]:
     render_text_main_idea_section(generate_fn=generate_text)
 
 
 # =========================================================
-# TEXTUSÖSSZEGZÉS (a régi „Mit viszünk tovább?” + új záró bundle)
-# =========================================================
-
-with tabs[10]:
-    render_text_summary_section(generate_fn=generate_text)
-
-
-# =========================================================
 # ÚTMUTATÁS — ARS POETICA + PROMPT GYORSSEGÉD
+# =========================================================
+#
+# A „Textusösszegzés” Gyorseszközök-belépési pont (a régi „Mit viszünk
+# tovább?” + záró bundle) a főmenüből eltávolítva (2026-09-03, a Kommentárok
+# fül bevezetésekor — a Gyorseszközök rács pontosan 12 elemű, 3×4-es marad).
+# A render_text_summary_section implementáció, a textus_workshop_ui.py
+# és a hozzá tartozó adatmodell VÁLTOZATLAN — csak ez a hívási hely szűnt
+# meg. Külön auditálandó, hogy más kód (pl. Igehirdetési műhely) hivatkozik-e
+# még rá.
 # =========================================================
 
 with tabs[11]:
@@ -8603,7 +8615,7 @@ with tabs[11]:
 # IGEHIRDETÉSI SOROZAT TERVEZŐ
 # =========================================================
 
-with tabs[8]:
+with tabs[9]:
     st.header("📅 Igehirdetési sorozat tervező")
 
     st.info(

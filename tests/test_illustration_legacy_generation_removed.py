@@ -61,8 +61,8 @@ def test_illustrations_key_no_longer_wired_into_section_prompts_or_labels():
 
 
 def test_illustrations_tab_no_longer_calls_render_section_tab():
-    start = APP_SRC.index("with tabs[5]:")
-    end = APP_SRC.index("with tabs[6]:")
+    start = APP_SRC.index("with tabs[6]:")
+    end = APP_SRC.index("with tabs[7]:")
     body = APP_SRC[start:end]
     assert 'key="illustrations"' not in body
     assert "render_section_tab(" not in body

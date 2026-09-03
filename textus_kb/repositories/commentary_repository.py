@@ -383,6 +383,51 @@ class CommentaryRepository:
             ),
         )
 
+    def chunk_previews(
+        self,
+        section_ids: list[str],
+        *,
+        max_chars: int = 240,
+    ) -> dict[str, str]:
+        """Cheap first-chunk preview text per section, truncated to
+        ``max_chars`` (word-boundary safe, with an ellipsis).
+
+        For compact card display without loading a section's full chunk
+        sequence — callers that need the complete, ordered text should
+        use ``section_detail()`` instead (explicit opt-in, e.g. on
+        expand). One batched query for the whole ``section_ids`` list,
+        mirroring the existing ``_load_section_chunk_counts``/
+        ``_load_contributors_by_work`` batched-lookup pattern.
+        """
+        ids = [str(s) for s in section_ids if str(s).strip()]
+        if not ids:
+            return {}
+        connection = self._connect_ready()
+        if connection is None:
+            return {}
+        try:
+            placeholders = ",".join("?" for _ in ids)
+            rows = connection.execute(
+                f"""
+                SELECT chunks.section_id AS section_id, chunks.plain_text AS plain_text
+                FROM chunks
+                WHERE chunks.section_id IN ({placeholders})
+                  AND chunks.sequence = (
+                      SELECT MIN(c2.sequence) FROM chunks AS c2
+                      WHERE c2.section_id = chunks.section_id
+                  )
+                """,
+                tuple(ids),
+            ).fetchall()
+        except sqlite3.Error:
+            return {}
+        finally:
+            connection.close()
+        return {
+            str(row["section_id"]): _truncate_preview(str(row["plain_text"] or ""), max_chars)
+            for row in rows
+        }
+
     def broader_context(
         self,
         section_id: str,
@@ -604,6 +649,17 @@ def _clamp_limit(limit: int) -> int:
     if number <= 0:
         return 0
     return min(number, MAX_SEARCH_LIMIT)
+
+
+def _truncate_preview(text: str, max_chars: int) -> str:
+    stripped = " ".join(text.split())
+    if len(stripped) <= max_chars:
+        return stripped
+    cut = stripped[:max_chars]
+    last_space = cut.rfind(" ")
+    if last_space > max_chars * 0.6:
+        cut = cut[:last_space]
+    return cut.rstrip(" ,.;:") + "…"
 
 
 def _fts_phrase_query(query: str) -> str:

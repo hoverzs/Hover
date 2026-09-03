@@ -151,6 +151,50 @@ def test_section_detail_multi_passage_section(repo: CommentaryRepository) -> Non
     assert set(detail.canonical_passages) == {"John.4.1-6", "John.3.16"}
 
 
+# --- chunk_previews (cheap, first-chunk-only card preview text) ------------
+
+
+def test_chunk_previews_returns_first_chunk_only(repo: CommentaryRepository) -> None:
+    previews = repo.chunk_previews(["test.section.chapter3"])
+    assert previews == {"test.section.chapter3": "SYNTHETIC TEST ONLY. GAMMA MARKER PART ONE of the chapter 3 reflection."}
+    assert "PART TWO" not in previews["test.section.chapter3"]
+    assert "PART THREE" not in previews["test.section.chapter3"]
+
+
+def test_chunk_previews_batches_multiple_sections_in_one_call(
+    repo: CommentaryRepository,
+) -> None:
+    previews = repo.chunk_previews(
+        ["test.section.john316_exact", "test.section.john316_21_range"]
+    )
+    assert set(previews) == {"test.section.john316_exact", "test.section.john316_21_range"}
+    assert "DELTA MARKER" in previews["test.section.john316_exact"]
+    assert "EPSILON MARKER" in previews["test.section.john316_21_range"]
+
+
+def test_chunk_previews_truncates_long_text_word_boundary_safe(
+    repo: CommentaryRepository,
+) -> None:
+    preview = repo.chunk_previews(["test.section.chapter3"], max_chars=20)["test.section.chapter3"]
+    assert len(preview) <= 21  # truncated text + ellipsis
+    assert preview.endswith("…")
+    assert not preview[:-1].endswith(" ")  # no dangling trailing space before the ellipsis
+
+
+def test_chunk_previews_empty_input_returns_empty_dict(repo: CommentaryRepository) -> None:
+    assert repo.chunk_previews([]) == {}
+
+
+def test_chunk_previews_unknown_section_id_omitted(repo: CommentaryRepository) -> None:
+    previews = repo.chunk_previews(["unknown.section"])
+    assert previews == {}
+
+
+def test_chunk_previews_missing_database_returns_empty(tmp_path: Path) -> None:
+    repo = CommentaryRepository(tmp_path / "absent.sqlite3")
+    assert repo.chunk_previews(["anything"]) == {}
+
+
 # --- broader_context (explicit opt-in only) --------------------------------
 
 

@@ -667,6 +667,7 @@ def render_workspace_switcher(
 QUICK_TOOLS_TAB_LABELS: tuple[str, ...] = (
     ":material/menu_book: Igehely",
     ":material/translate: Eredeti szöveg tanulmányozása",
+    ":material/library_books: Kommentárok",
     ":material/psychology: Exegézis",
     ":material/history_edu: Kortörténet",
     ":material/account_balance: Teológia",
@@ -675,7 +676,6 @@ QUICK_TOOLS_TAB_LABELS: tuple[str, ...] = (
     ":material/music_note: Énekajánló",
     ":material/calendar_month: Igehirdetési sorozat tervező",
     ":material/target: A textus fő gondolata",
-    ":material/summarize: Textusösszegzés",
     ":material/help: Útmutatás",
 )
 

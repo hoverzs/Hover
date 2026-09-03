@@ -18,14 +18,19 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def test_quick_tools_shared_render_api():
     """Egy közös komponens: 12 címke (a Vázlat/Gyors vázlat kártya
-    megszűnése, majd a RESET 1A-UI-ban a Vázlatkosár kártya megszűnése
-    után — a vázlatkészítés kizárólag az Igehirdetési műhelyben érhető
-    el), kulcsolt rács, nincs auth param."""
+    megszűnése, majd a RESET 1A-UI-ban a Vázlatkosár kártya megszűnése,
+    majd a Commentary UI fázisban (2026-09-03) a Textusösszegzés
+    Gyorseszközök-belépési pontjának megszűnése és a Kommentárok fül
+    bevezetése után is pontosan 12 elemű, 3×4-es rács marad — ld.
+    tests/test_commentary_ui.py::
+    test_app_py_wires_commentary_tab_between_original_text_and_exegesis),
+    kulcsolt rács, nincs auth param."""
     assert QUICK_TOOLS_GRID_KEY == "quick_tools_grid"
     assert len(QUICK_TOOLS_TAB_LABELS) == 12
     assert "Igehely" in QUICK_TOOLS_TAB_LABELS[0]
     assert any("fő gondolata" in label for label in QUICK_TOOLS_TAB_LABELS)
-    assert any("Textusösszegzés" in label for label in QUICK_TOOLS_TAB_LABELS)
+    assert any("Kommentárok" in label for label in QUICK_TOOLS_TAB_LABELS)
+    assert not any("Textusösszegzés" in label for label in QUICK_TOOLS_TAB_LABELS)
     # render_quick_tools_tabs ne fogadjon login/guest kapcsolót
     import inspect
 
