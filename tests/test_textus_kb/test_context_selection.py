@@ -161,8 +161,17 @@ def test_historical_under_max(full_evidence) -> None:
     assert context.selection_stats["unused_max_kb_tokens"] > 0
 
 
-def test_provenance_preserved(full_evidence) -> None:
-    context = build_context_from_evidence(full_evidence, PROFILE_EXEGESIS)
+def test_provenance_preserved(full_evidence, tmp_path: Path) -> None:
+    # Commentary-blind by explicit path override (2026-09-03 Commentary
+    # grounding round, ld. test_context_builder.py::test_context_evidence_
+    # ids_exist_in_evidence_packet's own comment): this test is about the
+    # EXEGESIS-native evidence pipeline's own provenance, not the
+    # separately-sourced (real, non-fabricated) Commentary layer.
+    context = build_context_from_evidence(
+        full_evidence,
+        PROFILE_EXEGESIS,
+        commentary_database_path=tmp_path / "no_commentary.sqlite3",
+    )
     evidence_ids = {item.evidence_id for item in full_evidence.evidence_items}
     entity_ids = {f"ENT-{entity['entity_id']}" for entity in full_evidence.entities}
     allowed_ids = evidence_ids | entity_ids

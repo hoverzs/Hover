@@ -332,9 +332,15 @@ def test_theology_module_does_not_touch_commentary_runtime(
 
 
 @pytest.mark.parametrize("module", ["exegesis", "historical_context"])
-def test_exegesis_and_historical_do_not_touch_commentary_runtime(
+def test_exegesis_and_historical_do_touch_commentary_runtime(
     monkeypatch: pytest.MonkeyPatch, module: str
 ) -> None:
+    """2026-09-03 Commentary grounding round: exegesis/historical_context
+    now DO resolve commentary_runtime.get_status() (so an env-overridden
+    database path is respected, ld. textus_kb/grounded_generation.py) --
+    the opposite of this test's pre-round name. Commentary is still never
+    a HARD dependency for them (ld. the next test): this one only proves
+    the resolution call happens."""
     commentary_calls: list[str] = []
     monkeypatch.setattr(
         "textus_kb.commentary_runtime.get_status",
@@ -347,7 +353,41 @@ def test_exegesis_and_historical_do_not_touch_commentary_runtime(
         grounded_enabled=True,
         use_cache=False,
     )
-    assert commentary_calls == []
+    assert commentary_calls == ["called"]
+
+
+@pytest.mark.parametrize("module", ["exegesis", "historical_context"])
+def test_exegesis_and_historical_never_fall_back_when_commentary_unavailable(
+    monkeypatch: pytest.MonkeyPatch, module: str, tmp_path: Path
+) -> None:
+    """Unlike module='commentary' itself (which hard-falls-back when its
+    own store is unavailable), Commentary is only a SUPPLEMENTARY layer
+    for exegesis/historical_context -- an unavailable Commentary store
+    must never cause these modules to skip grounding entirely.
+
+    ``commentary_runtime.get_status`` is patched to report unavailable
+    (mirrors production's own env-driven resolution), AND the repository's
+    own default-path fallback is redirected to a guaranteed-missing path
+    -- otherwise, in a dev environment where a real production commentary.
+    sqlite3 happens to exist on disk, context_builder's own independent
+    ``CommentaryRepository(None)`` construction would still find it."""
+    monkeypatch.setattr(
+        "textus_kb.commentary_runtime.get_status",
+        lambda **kwargs: _status(available=False, reason="database_missing"),
+    )
+    monkeypatch.setattr(
+        "textus_kb.repositories.commentary_repository.DEFAULT_DATABASE_PATH",
+        tmp_path / "does_not_exist.sqlite3",
+    )
+    result = prepare_grounded_provider_prompt(
+        production_prompt="PROD",
+        passage="Jn 4,1-42" if module == "exegesis" else "Lk 10,25-37",
+        module=module,
+        grounded_enabled=True,
+        use_cache=False,
+    )
+    assert result.grounded_used is True
+    assert "[COMMENTARY SOURCES]" not in result.provider_prompt
 
 
 def test_commentary_module_does_not_touch_theology_runtime(
@@ -372,12 +412,14 @@ def test_commentary_module_does_not_touch_theology_runtime(
     assert theology_calls == []
 
 
-def test_commentary_not_auto_included_in_other_profiles(
+def test_commentary_runtime_touched_only_by_modules_that_use_it(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Commentary must only ever be built when module='commentary' is
-    explicitly requested — proven by never calling commentary_runtime for
-    any other mapped module, across a full prepare call for each."""
+    """2026-09-03 Commentary grounding round: theology stays fully
+    isolated from Commentary (unchanged, still a real invariant), while
+    exegesis/historical_context now intentionally resolve commentary_
+    runtime as a supplementary evidence layer — proven per-module rather
+    than asserting zero calls across the board."""
     commentary_calls: list[str] = []
     monkeypatch.setattr(
         "textus_kb.commentary_runtime.get_status",
@@ -389,11 +431,20 @@ def test_commentary_not_auto_included_in_other_profiles(
             "textus_kb.theology_runtime", fromlist=["TheologyRuntimeStatus"]
         ).TheologyRuntimeStatus(available=True, reason="ok", database_path="x"),
     )
+    prepare_grounded_provider_prompt(
+        production_prompt="PROD",
+        passage="Jn 4,1-42",
+        module="theology",
+        grounded_enabled=True,
+        use_cache=False,
+    )
+    assert commentary_calls == [], "theology must stay isolated from commentary_runtime"
+
     for module, passage in (
-        ("theology", "Jn 4,1-42"),
         ("exegesis", "Jn 4,1-42"),
         ("historical_context", "Lk 10,25-37"),
     ):
+        commentary_calls.clear()
         prepare_grounded_provider_prompt(
             production_prompt="PROD",
             passage=passage,
@@ -401,7 +452,7 @@ def test_commentary_not_auto_included_in_other_profiles(
             grounded_enabled=True,
             use_cache=False,
         )
-    assert commentary_calls == []
+        assert commentary_calls == ["called"], f"{module} must resolve commentary_runtime"
 
 
 # --- Real end-to-end smoke (full 45-volume corpus, no network) -------------

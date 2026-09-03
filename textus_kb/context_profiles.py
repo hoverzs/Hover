@@ -96,6 +96,11 @@ DEFAULT_TYPE_BUDGETS: dict[str, dict[str, int]] = {
         BUDGET_DICTIONARY: 350,
         BUDGET_ENTITY: 200,
         BUDGET_BACKGROUND: 250,
+        # Commentary (Calvin/JFB/Henry) is an interpretive witness layer
+        # here, not primary evidence — moderate budget, well below the
+        # direct-evidence types above, and never allowed to grow past a
+        # fixed cap (unlike them, it has no soft-target competition).
+        BUDGET_COMMENTARY: 900,
     },
     PROFILE_HISTORICAL: {
         BUDGET_PASSAGE: 120,
@@ -105,6 +110,10 @@ DEFAULT_TYPE_BUDGETS: dict[str, dict[str, int]] = {
         BUDGET_DICTIONARY: 700,
         BUDGET_ENTITY: 200,
         BUDGET_BACKGROUND: 900,
+        # Commentary here is purely supplementary historical/cultural
+        # witness — smaller than Exegesis's own Commentary budget, and
+        # far below the direct Aquifer/ACAI/place background budgets.
+        BUDGET_COMMENTARY: 350,
     },
     PROFILE_THEOLOGY: {
         BUDGET_PASSAGE: 150,
@@ -123,10 +132,19 @@ DEFAULT_TYPE_BUDGETS: dict[str, dict[str, int]] = {
 }
 
 # Minimum diversity: reserve slots for these budget types when candidates exist.
+# BUDGET_COMMENTARY is listed LAST in both Exegesis and Historical — every
+# direct-evidence type reserves its slot first; Commentary's single
+# guaranteed slot (ld. select_context_items' "goals met" anti-padding
+# cutoff, which would otherwise silently drop ALL supporting/optional-tier
+# candidates, Commentary included, once the direct-evidence types below are
+# satisfied) is claimed only after them, never displacing one.
 DEFAULT_DIVERSITY_TYPES: dict[str, tuple[str, ...]] = {
-    PROFILE_EXEGESIS: (BUDGET_LINGUISTIC, BUDGET_EXEGETICAL, BUDGET_DICTIONARY, BUDGET_ENTITY),
+    PROFILE_EXEGESIS: (
+        BUDGET_LINGUISTIC, BUDGET_EXEGETICAL, BUDGET_DICTIONARY, BUDGET_ENTITY,
+        BUDGET_COMMENTARY,
+    ),
     # Background first so place/enrichment is reserved before dictionary/entities.
-    PROFILE_HISTORICAL: (BUDGET_BACKGROUND, BUDGET_DICTIONARY, BUDGET_ENTITY),
+    PROFILE_HISTORICAL: (BUDGET_BACKGROUND, BUDGET_DICTIONARY, BUDGET_ENTITY, BUDGET_COMMENTARY),
     PROFILE_THEOLOGY: (BUDGET_THEOLOGY, BUDGET_LINGUISTIC, BUDGET_BACKGROUND),
     PROFILE_COMMENTARY: (BUDGET_COMMENTARY,),
 }
@@ -142,6 +160,13 @@ PROFILE_PRIORITIES: dict[str, dict[str, int]] = {
         "compact_linguistic_line": 88,
         RELATION_PASSAGE_PLACE: 70,
         RELATION_PLACE_CATALOG: 60,
+        # Classic commentary (Calvin/JFB/Henry): interpretive witness, kept
+        # below every direct linguistic/exegetical/dictionary evidence type
+        # above so it is never selected/retained at their expense — see
+        # RELATION_COMMENTARY_SOURCE in context_builder's shared priority
+        # discipline (module: Commentary evidence never outranks direct
+        # evidence in any profile it appears in).
+        RELATION_COMMENTARY_SOURCE: 75,
         RELATION_PLACE_ENRICHMENT: 40,
         "passage_summary": 98,
     },
@@ -155,6 +180,10 @@ PROFILE_PRIORITIES: dict[str, dict[str, int]] = {
         "place_card_summary": 74,
         "historical_entity": 70,
         RELATION_DIRECT_PASSAGE: 50,
+        # Classic commentary here is purely supplementary historical/
+        # cultural witness — ranked below every direct history/background
+        # source above, never given modern-historiography authority.
+        RELATION_COMMENTARY_SOURCE: 45,
         RELATION_LEXICAL_HIGHLIGHT: 30,
         RELATION_PASSAGE_TOKEN: 10,
     },
@@ -189,6 +218,9 @@ EXEGESIS_ITEM_TIERS: dict[str, str] = {
     "entity_summary": TIER_SUPPORTING,
     "place_link": TIER_SUPPORTING,
     "place_catalog": TIER_SUPPORTING,
+    # Interpretive witness, not primary evidence — same tier as other
+    # supporting material, never core/primary.
+    "commentary_source": TIER_SUPPORTING,
     "enrichment": TIER_OPTIONAL,
 }
 
@@ -201,6 +233,9 @@ HISTORICAL_ITEM_TIERS: dict[str, str] = {
     "dictionary_background": TIER_SUPPORTING,
     "entity_summary": TIER_SUPPORTING,
     "geography": TIER_SUPPORTING,
+    # Purely supplementary classical witness — lowest tier, dropped first
+    # under any budget pressure, ahead of every direct history source.
+    "commentary_source": TIER_OPTIONAL,
 }
 
 THEOLOGY_ITEM_TIERS: dict[str, str] = {

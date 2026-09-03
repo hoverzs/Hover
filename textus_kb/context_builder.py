@@ -170,7 +170,17 @@ def build_context_from_evidence(
                 continue
             candidates.append(item)
             seen.add(item.evidence_id)
-    elif profile.name == PROFILE_COMMENTARY:
+    elif profile.name in (PROFILE_COMMENTARY, PROFILE_EXEGESIS, PROFILE_HISTORICAL):
+        # Exegesis/Historical: Commentary (Calvin/JFB/Henry) is a
+        # supplementary interpretive witness layer, added on top of each
+        # profile's own direct-evidence candidates — never a replacement
+        # for them. Its actual token footprint is bounded by each
+        # profile's own (smaller) BUDGET_COMMENTARY type cap and lower
+        # RELATION_COMMENTARY_SOURCE priority (ld. context_profiles.py) —
+        # this call site reuses the exact same fail-closed, exact/range-
+        # only retrieval and tier-aware work-diversity interleave already
+        # proven for the standalone Commentary module; no new retrieval
+        # logic is introduced for these two profiles.
         commentary_items, extra_warnings = _load_commentary_context_items(
             evidence,
             profile,
@@ -804,6 +814,35 @@ def _round_robin_by_work(candidates: list[EvidenceItem], *, limit: int) -> list[
     return result
 
 
+# Per-profile excerpt cap for Commentary content used as AI-grounding
+# evidence (chars, word-boundary safe) — profiles absent here (i.e. the
+# standalone Commentary module) keep the full, untruncated section text,
+# since showing complete commentary text IS that module's whole purpose.
+# For Exegesis/Historical, Commentary is a supplementary witness competing
+# for a small, bounded slice of a much larger budget shared with direct
+# evidence — an untruncated section (which can run to a full paragraph or
+# more, e.g. any "containing_section" tier hit) would let a single
+# diversity-reserved item consume several times its intended BUDGET_
+# COMMENTARY type cap (the per-type cap is bypassed for forced-diversity
+# picks, ld. context_selection.try_add's force_diversity branch) and could
+# starve later legitimate candidates of remaining target headroom.
+_COMMENTARY_CONTENT_CHAR_CAP: dict[str, int] = {
+    PROFILE_EXEGESIS: 600,
+    PROFILE_HISTORICAL: 350,
+}
+
+
+def _cap_commentary_content(text: str, profile_name: str) -> str:
+    cap = _COMMENTARY_CONTENT_CHAR_CAP.get(profile_name)
+    if cap is None or len(text) <= cap:
+        return text
+    cut = text[:cap]
+    last_space = cut.rfind(" ")
+    if last_space > cap * 0.6:
+        cut = cut[:last_space]
+    return cut.rstrip(" ,.;:") + "…"
+
+
 def _load_commentary_context_items(
     evidence: EvidencePacket,
     profile: ContextProfile,
@@ -831,7 +870,7 @@ def _load_commentary_context_items(
         metadata = _commentary_item_metadata(hit, sequence=index)
         items.append(
             ContextItem(
-                text=hit.content,
+                text=_cap_commentary_content(hit.content, profile.name),
                 evidence_id=hit.evidence_id,
                 source_id=hit.source_id,
                 relevance_score=base_score - index,
@@ -941,7 +980,12 @@ def _finalize_context_packet(
     )
     if profile.name == PROFILE_THEOLOGY:
         kept = _preserve_theology_document_order(kept)
-    elif profile.name == PROFILE_COMMENTARY:
+    elif profile.name in (PROFILE_COMMENTARY, PROFILE_EXEGESIS, PROFILE_HISTORICAL):
+        # Restores the tier-aware, work-diversity-interleaved commentary
+        # order (ld. _interleave_commentary_by_work) that select_context_
+        # items' own tier/score sort would otherwise scramble — same
+        # deterministic-ordering guarantee in every profile Commentary
+        # appears in, not just the standalone Commentary module.
         kept = _preserve_commentary_document_order(kept)
     sections = _group_sections(kept, profile.name)
 
@@ -1020,10 +1064,19 @@ def _group_sections(items: list[ContextItem], profile: str) -> list[ContextSecti
 
 def _section_order(profile: str) -> tuple[str, ...]:
     if profile == PROFILE_EXEGESIS:
-        return ("passage", "linguistic", "exegetical", "dictionary", "entities", "places", "background")
+        # "commentary" last — supplementary interpretive witness, rendered
+        # after every direct-evidence section.
+        return (
+            "passage", "linguistic", "exegetical", "dictionary", "entities",
+            "places", "background", "commentary",
+        )
     if profile == PROFILE_HISTORICAL:
-        # Prefer concrete place/historical grounding before dictionary/entities.
-        return ("passage", "places", "historical", "dictionary", "entities", "geography")
+        # Prefer concrete place/historical grounding before dictionary/entities;
+        # "commentary" last — purely supplementary here.
+        return (
+            "passage", "places", "historical", "dictionary", "entities",
+            "geography", "commentary",
+        )
     if profile == PROFILE_COMMENTARY:
         return ("passage", "commentary", "lexical")
     return ("passage", "theological", "lexical", "places", "background")

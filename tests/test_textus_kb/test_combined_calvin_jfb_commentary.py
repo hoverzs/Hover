@@ -342,16 +342,24 @@ def test_direct_linguistic_evidence_priority_unaffected_by_two_sources(
     assert scores_by_id["EV-DIRECT-1"] > scores_by_id["EV-LEX-G1401"]
 
 
-def test_exegesis_profile_unaffected_by_combined_commentary_store(
+def test_exegesis_profile_includes_bounded_commentary_from_combined_store(
     combined_db: Path,
 ) -> None:
-    """PROFILE_EXEGESIS never touches Commentary at all — proven by simply
-    building it against a real, populated combined store and confirming
-    no commentary section appears."""
+    """2026-09-03 Commentary grounding round: PROFILE_EXEGESIS now
+    intentionally includes Commentary as a bounded, supplementary
+    interpretive-witness layer (ld. tests/test_textus_kb/test_commentary_
+    grounded_study_modules.py, which uses real, full evidence packets and
+    proves Commentary never displaces direct linguistic/exegetical
+    evidence there) — this test's ``_packet()`` helper builds a minimal
+    synthetic EvidencePacket with no linguistic evidence of its own, so it
+    only proves Commentary appears without exceeding the profile's own
+    token budget against a real, populated combined store."""
     ctx = build_context_from_evidence(
         _packet("Romans.1.1", "Romans 1:1"),
         PROFILE_EXEGESIS,
         commentary_database_path=combined_db,
     )
     assert ctx.profile == PROFILE_EXEGESIS
-    assert all(section.type != "commentary" for section in ctx.sections)
+    assert ctx.estimated_tokens <= ctx.max_tokens
+    section_types = {section.type for section in ctx.sections}
+    assert "commentary" in section_types

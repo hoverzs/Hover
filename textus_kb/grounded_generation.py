@@ -327,6 +327,19 @@ def prepare_grounded_provider_prompt(
                 warnings=[runtime_status.detail] if runtime_status.detail else None,
             )
         commentary_database_path = runtime_status.database_path or None
+    elif module in ("exegesis", "historical_context"):
+        # Commentary is a SUPPLEMENTARY evidence layer for these two
+        # modules, never a hard dependency — resolve the (possibly env-
+        # overridden, ld. commentary_runtime) database path for
+        # correctness, but never fall back to the ungrounded production
+        # prompt just because Commentary specifically is missing.
+        # context_builder's own _load_commentary_context_items already
+        # degrades gracefully (empty items + warning) when unavailable.
+        from textus_kb.commentary_runtime import get_status as get_commentary_status
+
+        runtime_status = get_commentary_status()
+        if runtime_status.available:
+            commentary_database_path = runtime_status.database_path or None
 
     budget = int(token_budget) if token_budget is not None else None
     retrieval_ms = 0
