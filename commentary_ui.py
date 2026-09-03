@@ -815,13 +815,26 @@ def _render_family_reader(
     lang_key = f"{_READER_LANG_KEY_PREFIX}{family_key}"
     if lang_key not in st.session_state:
         st.session_state[lang_key] = _READER_LANG_HU
-    lang = st.radio(
-        "Nyelv",
-        options=(_READER_LANG_HU, _READER_LANG_EN),
-        key=lang_key,
-        horizontal=True,
-        label_visibility="collapsed",
-    )
+    # Language radio + its explanatory caption share one row (radio on the
+    # left) instead of stacking, so the reader header takes less vertical
+    # space -- st.columns already collapses back to stacked full-width on
+    # a narrow viewport (Streamlit's own responsive breakpoint), so this
+    # needs no extra layout handling for small screens.
+    lang_col, lang_caption_col = st.columns([1, 2], vertical_alignment="center", gap="small")
+    with lang_col:
+        lang = st.radio(
+            "Nyelv",
+            options=(_READER_LANG_HU, _READER_LANG_EN),
+            key=lang_key,
+            horizontal=True,
+            label_visibility="collapsed",
+        )
+    with lang_caption_col:
+        if lang == _READER_LANG_HU:
+            st.caption(
+                "AI által készített magyar fordítás — az eredeti angol szöveg gépi "
+                "fordítása, nem összefoglalás."
+            )
 
     # Cache-only lookup per shown section, once -- feeds both the
     # missing-translation action and each section's own HU rendering, so
@@ -834,49 +847,44 @@ def _render_family_reader(
     }
     missing = [s for s in shown if translation_cache[s.section_id].status != "cached"]
 
-    if lang == _READER_LANG_HU:
-        st.caption(
-            "AI által készített magyar fordítás — az eredeti angol szöveg gépi "
-            "fordítása, nem összefoglalás."
+    if lang == _READER_LANG_HU and missing:
+        label = (
+            "Magyar fordítás elkészítése"
+            if len(shown) == 1
+            else f"A releváns részek lefordítása magyarra ({len(missing)} hiányzik)"
         )
-        if missing:
-            label = (
-                "Magyar fordítás elkészítése"
-                if len(shown) == 1
-                else f"A releváns részek lefordítása magyarra ({len(missing)} hiányzik)"
+        if st.button(
+            label,
+            key=f"commentary_translate_family_{family_key}",
+            disabled=generate_fn is None,
+        ):
+            provider_model = (
+                resolve_model_fn(commentary_translation_service.TRANSLATION_TAB_LABEL)
+                if resolve_model_fn is not None
+                else ""
             )
-            if st.button(
-                label,
-                key=f"commentary_translate_family_{family_key}",
-                disabled=generate_fn is None,
-            ):
-                provider_model = (
-                    resolve_model_fn(commentary_translation_service.TRANSLATION_TAB_LABEL)
-                    if resolve_model_fn is not None
-                    else ""
+            with st.spinner("Fordítás készítése…"):
+                _succeeded, failed = _translate_missing_sections(
+                    missing,
+                    generate_fn=generate_fn,
+                    provider_model=provider_model,
+                    repository=repo,
+                    database_path=db_path,
                 )
-                with st.spinner("Fordítás készítése…"):
-                    _succeeded, failed = _translate_missing_sections(
-                        missing,
-                        generate_fn=generate_fn,
-                        provider_model=provider_model,
-                        repository=repo,
-                        database_path=db_path,
-                    )
-                # Refresh the cache-only lookups so the render below picks
-                # up newly-generated translations within this same run --
-                # an already-cached section was never re-requested above.
-                translation_cache = {
-                    s.section_id: commentary_translation_service.get_translation(
-                        s.section_id, repository=repo, database_path=db_path
-                    )
-                    for s in shown
-                }
-                if failed:
-                    st.warning(
-                        f"{failed} szakasz fordítása nem sikerült; ezek egyelőre "
-                        "angolul érhetők el."
-                    )
+            # Refresh the cache-only lookups so the render below picks
+            # up newly-generated translations within this same run --
+            # an already-cached section was never re-requested above.
+            translation_cache = {
+                s.section_id: commentary_translation_service.get_translation(
+                    s.section_id, repository=repo, database_path=db_path
+                )
+                for s in shown
+            }
+            if failed:
+                st.warning(
+                    f"{failed} szakasz fordítása nem sikerült; ezek egyelőre "
+                    "angolul érhetők el."
+                )
 
     details: dict[str, CommentarySectionDetail | None] = {
         s.section_id: repo.section_detail(s.section_id) for s in shown

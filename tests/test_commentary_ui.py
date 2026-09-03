@@ -1118,6 +1118,33 @@ def test_reader_switching_family_shows_only_that_familys_sections(
     assert not any(c == "Commentary on Matthew" for c in captions)
 
 
+def test_reader_language_radio_and_caption_share_one_row(
+    clean_reader_ui_translation_cache,
+) -> None:
+    """2026-09-04 UX tweak: the "Nyelv" radio and its explanatory caption
+    ("AI által készített magyar fordítás...") sit in two sibling
+    ``st.columns`` -- the radio's own column, and a caption in the very
+    next column -- instead of stacking on separate lines. In "Eredeti
+    angol" mode the caption is simply absent (unchanged existing
+    behaviour), so only the radio's own column is populated."""
+    at = AppTest.from_function(_render_commentary_reader_flow).run(timeout=60)
+    columns = at.columns
+    radio_col_index = next(i for i, col in enumerate(columns) if len(col.radio) == 1)
+    caption_col_index = next(
+        i
+        for i, col in enumerate(columns)
+        if any("gépi fordítása, nem összefoglalás" in c.value for c in col.caption)
+    )
+    assert caption_col_index == radio_col_index + 1
+    assert len(columns[caption_col_index].radio) == 0
+    assert len(columns[radio_col_index].caption) == 0
+
+    radios = at.radio
+    at = radios[0].set_value("Eredeti angol").run(timeout=60)
+    all_captions = [c.value for c in at.caption]
+    assert not any("gépi fordítása, nem összefoglalás" in c for c in all_captions)
+
+
 def test_reader_multiple_sections_render_in_one_reader_in_passage_order(
     clean_reader_ui_translation_cache,
 ) -> None:
