@@ -7,10 +7,11 @@ separate, explicitly-invoked secondary channel.
 
 from __future__ import annotations
 
+import re
 import sqlite3
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
+from typing import Any, Sequence
 
 from textus_kb.canonical_reference import CanonicalReference, CanonicalReferenceError
 from textus_kb.importers.commentary_sqlite import (
@@ -57,6 +58,23 @@ _CONTRIBUTOR_ROLE_ORDER = {
 }
 
 _FTS_FETCH_CAP = 200
+
+
+def primary_contributor_name(contributors: Sequence[str] | None) -> str:
+    """First (highest-role-rank) contributor name, "(role)" suffix stripped.
+
+    Contributors are always formatted "Name (role)", author-first (ld.
+    ``_load_contributors_by_work``) — this is the natural, generic "which
+    source is this" key shared by every caller that groups sections or
+    evidence by commentator (UI cards, source filters, grounded compare):
+    never a hardcoded per-corpus label, works for any future contributor.
+    Returns "" for empty/missing input — callers decide their own
+    fallback label (e.g. "Ismeretlen szerző").
+    """
+    if not contributors:
+        return ""
+    match = re.match(r"^(.*?)\s*\([^)]*\)\s*$", str(contributors[0]))
+    return (match.group(1) if match else str(contributors[0])).strip()
 
 
 @dataclass(frozen=True)

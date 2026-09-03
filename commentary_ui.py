@@ -23,16 +23,17 @@ ez a modul módosítás nélkül megjeleníti majd az új forrást is.
 
 from __future__ import annotations
 
-import re
-from typing import Any, MutableMapping
+from typing import Any, Callable, MutableMapping
 
 import streamlit as st
 
+from commentary_compare import render_commentary_compare_section
 from textus_kb import commentary_runtime
 from textus_kb.canonical_reference import CanonicalReference, CanonicalReferenceError
 from textus_kb.repositories.commentary_repository import (
     CommentaryRepository,
     CommentarySectionResult,
+    primary_contributor_name,
 )
 from ui_components import (
     action_row,
@@ -85,17 +86,11 @@ _MAX_DISPLAYED_CARDS = 12
 
 
 def _primary_contributor(contributors: tuple[str, ...]) -> str:
-    """First (highest-role-rank) contributor name, "(role)" suffix stripped.
-
-    ``CommentaryRepository`` always formats contributors as "Name (role)"
-    with the primary author first (ld. ``_load_contributors_by_work``) --
-    this is the natural, generic "which source is this" grouping key, not
-    a hardcoded per-corpus label.
-    """
-    if not contributors:
-        return "Ismeretlen szerző"
-    stripped = re.sub(r"\s*\([^)]*\)\s*$", "", contributors[0]).strip()
-    return stripped or contributors[0]
+    """UI-facing wrapper around ``commentary_repository.
+    primary_contributor_name`` (shared with ``commentary_compare.py``, so
+    the compare source-selection groups results the exact same way these
+    cards do) — adds this module's own "unknown author" fallback label."""
+    return primary_contributor_name(contributors) or "Ismeretlen szerző"
 
 
 def _source_badge_tone(source_name: str) -> str:
@@ -364,8 +359,13 @@ def _render_detail(card: CommentarySectionResult) -> None:
         st.caption(card.rights_note)
 
 
-def render_commentary_panel() -> None:
-    """Renders the "Kommentárok" tab's entire content."""
+def render_commentary_panel(*, generate_fn: Callable[..., str] | None = None) -> None:
+    """Renders the "Kommentárok" tab's entire content.
+
+    ``generate_fn`` is only used by the "Kommentárok összehasonlítása"
+    section below the (unchanged) retrieval-only cards — this tab's own
+    card list still makes zero LLM calls, matching the module docstring.
+    """
     render_work_section(
         title="Kommentárok",
         body=(
@@ -416,6 +416,21 @@ def render_commentary_panel() -> None:
             st.caption(
                 f"+ {len(hidden)} további, alacsonyabb relevanciájú találat nem jelenik meg."
             )
+
+        # Only enabled-AND-currently-shown sources count -- filter_state can
+        # carry stale entries from a previous passage's checkboxes that no
+        # longer render this render (ld. _render_source_filter), so this
+        # must be intersected with the sources actually present now, not
+        # used as the raw filter_state dict.
+        ordered_enabled_sources = [s for s in _sources_present(results) if s in enabled_sources]
+
+    with work_surface("commentary_compare_section"):
+        render_commentary_compare_section(
+            passage=passage,
+            passage_display=passage,
+            enabled_sources=ordered_enabled_sources,
+            generate_fn=generate_fn,
+        )
 
 
 __all__ = ["render_commentary_panel", "interleave_by_source"]

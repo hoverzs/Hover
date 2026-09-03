@@ -277,17 +277,18 @@ def test_chunk_previews_do_not_load_full_multi_chunk_section(patched_repo: Path)
 # --- no generative call in this module ------------------------------------
 
 
-def test_commentary_ui_has_no_generative_ai_call() -> None:
-    """Static proof this is a pure retrieval view: no generate_text/Gemini
-    reference anywhere in the module (mirrors the pattern used in
-    tests/test_illustration_legacy_generation_removed.py)."""
+def test_commentary_ui_card_list_makes_no_direct_llm_call() -> None:
+    """Static proof the retrieval-only card list itself never calls a
+    provider directly (mirrors tests/test_illustration_legacy_generation_
+    removed.py) -- the module DOES now thread an injected ``generate_fn``
+    through to commentary_compare.py's explicit-action compare section
+    (2026-09-03 grounded-compare round), but never names a concrete
+    provider (generate_text/genai/Gemini) or calls generate_fn itself."""
     source = Path(cu.__file__).read_text(encoding="utf-8")
-    for forbidden in ("generate_text", "genai", "Gemini", "gemini", "GEMINI"):
+    for forbidden in ("generate_text(", "genai", "Gemini", "gemini", "GEMINI"):
         assert forbidden not in source, forbidden
-    # The docstring explains there is deliberately no such parameter; make
-    # sure that stays true of the actual code, not just prose.
-    assert "generate_fn=" not in source
-    assert "def render_commentary_panel(generate_fn" not in source
+    # generate_fn is only ever passed through, never invoked in this module.
+    assert "generate_fn(" not in source
 
 
 # --- tab wiring smoke (index + import name) -------------------------------
@@ -304,4 +305,4 @@ def test_app_py_wires_commentary_tab_between_original_text_and_exegesis() -> Non
 def test_app_py_imports_and_calls_render_commentary_panel() -> None:
     app_src = Path("app.py").read_text(encoding="utf-8")
     assert "from commentary_ui import render_commentary_panel" in app_src
-    assert "render_commentary_panel()" in app_src
+    assert "render_commentary_panel(generate_fn=generate_text)" in app_src

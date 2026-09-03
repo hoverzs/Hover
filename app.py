@@ -8317,7 +8317,7 @@ with tabs[0]:
 # =========================================================
 
 with tabs[2]:
-    render_commentary_panel()
+    render_commentary_panel(generate_fn=generate_text)
 
 
 # =========================================================

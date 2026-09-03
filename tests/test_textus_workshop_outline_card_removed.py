@@ -82,8 +82,10 @@ _EXPECTED_MARKERS: dict[int, str] = {
     # fül az Eredeti szöveg és az Exegézis között -- ld.
     # tests/test_commentary_ui.py a részletes wiring-ellenőrzésért. Ugyanebben
     # a fázisban a "Textusösszegzés" Gyorseszközök-belépési pont megszűnt (a
-    # rács pontosan 12 elemű, 3×4-es marad) -- ld. lentebb.
-    2: "render_commentary_panel()",
+    # rács pontosan 12 elemű, 3×4-es marad) -- ld. lentebb. A grounded-
+    # compare fázis (2026-09-03, ld. tests/test_commentary_compare.py) óta a
+    # hívás generate_fn-t is átad a "Kommentárok összehasonlítása" gombhoz.
+    2: "render_commentary_panel(generate_fn=generate_text)",
     3: 'key="exegesis"',
     4: 'key="history"',
     5: 'key="theology"',
