@@ -14,6 +14,13 @@ like/Henry-like) Commentary DB built directly through the real, generic
 ``commentary_sqlite.import_commentary_sqlite`` -- not the production
 store -- so these tests are fast, deterministic, and independent of
 whether the real corpora have been fetched/built locally.
+
+2026-09-03 reader redesign: the "source-family reader" section further
+down ALSO includes a handful of real, ``AppTest``-driven end-to-end
+round trips (mirroring ``tests/test_sermon_workshop_developed_outline_
+ui.py``'s established convention) -- the reader's family-switch/
+language-toggle/translate-action interplay is genuinely stateful UI
+behavior that the pure-helper style alone can't fully exercise.
 """
 
 from __future__ import annotations
@@ -21,6 +28,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
+from streamlit.testing.v1 import AppTest
 
 import commentary_ui as cu
 from textus_kb import commentary_runtime
@@ -146,10 +154,14 @@ def test_harmony_style_primary_vs_parallel_relation_key(patched_repo: Path) -> N
     assert cu._passage_relation_key(by_work["test.work.jfb"], query_canonical) == "primary"
     assert cu._passage_relation_key(by_work["test.work.calvin"], query_canonical) == "parallel"
     assert cu._passage_relation_key(by_work["test.work.henry"], query_canonical) == "primary"
-    # Human-facing labels are explicitly non-ranking wording (2026-09-03
-    # UI polish round: capitalized as standalone UI copy, ld. task item 6).
-    assert cu._PASSAGE_RELATION_LABELS_HU["primary"] == "Fő kommentált hely"
-    assert cu._PASSAGE_RELATION_LABELS_HU["parallel"] == "Párhuzamos evangéliumi hely"
+    # 2026-09-03 reader redesign (task item 10): the reading flow no
+    # longer decorates every section with a relation caption -- only a
+    # SUBTLE badge for the genuinely notable cases (parallel, or a
+    # section wider than the query). Primary+exact/partial gets none.
+    calvin = by_work["test.work.calvin"]
+    jfb = by_work["test.work.jfb"]
+    assert cu._reader_badge_text(calvin, "parallel") == "Párhuzamos hely"
+    assert cu._reader_badge_text(jfb, "primary") is None
 
 
 def test_only_jfb_and_henry_when_calvin_has_no_link(patched_repo: Path) -> None:
@@ -204,16 +216,14 @@ def test_sources_present_is_derived_not_hardcoded(patched_repo: Path) -> None:
     assert set(sources) == {"Test Calvin", "Test JFB", "Test Henry"}
 
 
-def test_apply_source_filter_narrows_results(patched_repo: Path) -> None:
-    results = cu._fetch_results("John.3.16")
-    filtered = cu._apply_source_filter(results, {"Test JFB"})
-    assert {r.work_id for r in filtered} == {"test.work.jfb"}
-
-
-def test_apply_source_filter_all_disabled_yields_empty(patched_repo: Path) -> None:
-    results = cu._fetch_results("John.3.16")
-    filtered = cu._apply_source_filter(results, set())
-    assert filtered == []
+# NOTE (2026-09-03 reader redesign): the old `_apply_source_filter`
+# (narrowing the flat card list by enabled book-level names) was removed
+# -- the reader no longer shows a multi-family flat list to narrow; it
+# shows exactly one selected family's sections at a time (ld.
+# `_select_reader_family` / `_render_family_reader`). The compare
+# feature's own multi-select still returns book-level names unchanged
+# (ld. `test_source_filter_state_stays_book_level_compatible_with_compare`
+# below), it just no longer feeds a `_apply_source_filter` call.
 
 
 def test_primary_contributor_strips_role_suffix() -> None:
@@ -541,17 +551,18 @@ def test_jfb_family_groups_two_sections_with_book_level_attribution_preserved(
 def test_source_filter_state_stays_book_level_compatible_with_compare(
     patched_grouped_repo: Path,
 ) -> None:
-    """Task item 8: the source-selection state feeding into the compare
-    feature must stay BOOK-LEVEL contributor names, unaffected by the
-    family-grouped filter/card presentation above it."""
+    """Task item 8/11: the source-selection state feeding into the
+    compare feature must stay BOOK-LEVEL contributor names, unaffected by
+    the family-grouped reader above it -- ld. `_group_book_sources_by_
+    family`, which the compare filter (`_render_source_filter`) uses."""
     results = cu._fetch_results("Matt.5.1-12")
     sources = cu._sources_present(results)
     assert set(sources) == {"John Calvin", "David Brown", "Matthew Henry", "Charles Spurgeon"}
-    filtered = cu._apply_source_filter(results, {"David Brown", "Matthew Henry"})
-    assert {cu._primary_contributor(r.contributors) for r in filtered} == {
-        "David Brown",
-        "Matthew Henry",
-    }
+    compare_groups = cu._group_book_sources_by_family(results)
+    all_book_names = {name for _key, _display, names in compare_groups for name in names}
+    assert all_book_names == set(sources)
+    jfb_group = next(g for g in compare_groups if g[0] == "ccel.jfb")
+    assert jfb_group[2] == ["David Brown"]
 
 
 def test_provenance_fields_remain_fully_available_after_grouping(
@@ -583,6 +594,635 @@ def test_human_friendly_passage_display_from_real_retrieval(
 
 def test_no_match_state_unchanged_with_grouped_store(patched_grouped_repo: Path) -> None:
     assert cu._fetch_results("Gen.1.1") == []
+
+
+# --- reader redesign: pure helpers (2026-09-03) ---------------------------
+
+
+def test_select_reader_family_keeps_valid_requested() -> None:
+    assert cu._select_reader_family(["a", "b", "c"], "b") == "b"
+
+
+def test_select_reader_family_falls_back_to_first_when_invalid_or_missing() -> None:
+    assert cu._select_reader_family(["a", "b"], "zzz") == "a"
+    assert cu._select_reader_family(["a", "b"], None) == "a"
+
+
+def test_select_reader_family_empty_list_returns_empty_string() -> None:
+    assert cu._select_reader_family([], "a") == ""
+
+
+def test_sort_sections_for_reading_orders_by_chapter_and_verse() -> None:
+    s3 = _make_result("w", "s3", (), primary_passages=("John.3.18",))
+    s1 = _make_result("w", "s1", (), primary_passages=("John.3.1",))
+    s2 = _make_result("w", "s2", (), primary_passages=("John.3.2",))
+    ordered = cu._sort_sections_for_reading([s3, s1, s2])
+    assert [s.section_id for s in ordered] == ["s1", "s2", "s3"]
+
+
+def test_sort_sections_for_reading_is_stable_for_ties() -> None:
+    """Task item 16: "passage sorrend stabil" -- two sections that both
+    have the EXACT SAME passage span must keep their ORIGINAL relative
+    order, never reshuffle by coincidence."""
+    a = _make_result("w", "a", (), primary_passages=("John.3.16",))
+    b = _make_result("w", "b", (), primary_passages=("John.3.16",))
+    ordered = cu._sort_sections_for_reading([a, b])
+    assert [s.section_id for s in ordered] == ["a", "b"]
+    # A whole-range hit sorts by its OWN start/end -- a wider span
+    # starting at the same verse is a real, meaningful ordering
+    # difference, not a tie (sorts after the narrower single-verse hit
+    # that ends sooner).
+    wide = _make_result("w", "wide", (), primary_passages=("John.3.16-21",))
+    narrow = _make_result("w", "narrow", (), primary_passages=("John.3.16",))
+    ordered2 = cu._sort_sections_for_reading([wide, narrow])
+    assert [s.section_id for s in ordered2] == ["narrow", "wide"]
+
+
+def test_sort_sections_for_reading_unparseable_passage_goes_last() -> None:
+    good = _make_result("w", "good", (), primary_passages=("John.3.1",))
+    bad = _make_result("w", "bad", (), primary_passages=())
+    ordered = cu._sort_sections_for_reading([bad, good])
+    assert [s.section_id for s in ordered] == ["good", "bad"]
+
+
+def test_sections_with_text_drops_zero_chunk_structural_sections() -> None:
+    """Real production data (ld. Róm 8,1-4 smoke): a chapter-level
+    "exact_passage" section can be a zero-chunk structural container
+    whose actual text lives entirely in per-verse child sections --
+    nothing to read there, so the reader must skip it."""
+    empty = CommentarySectionResult(
+        section_id="empty", edition_id="e", work_id="w", work_title="W",
+        section_type="section", heading="", sequence=1, parent_section_id=None,
+        relation_type="exact_passage", canonical_passages=(), chunk_count=0,
+    )
+    full = _make_result("w", "full", (), primary_passages=("John.3.1",))
+    kept = cu._sections_with_text([empty, full])
+    assert [s.section_id for s in kept] == ["full"]
+
+
+def test_group_family_sections_by_book_groups_by_work_id_preserving_order() -> None:
+    a1 = _make_result("w1", "a1", (), work_title="Work One")
+    b1 = _make_result("w2", "b1", (), work_title="Work Two")
+    a2 = _make_result("w1", "a2", (), work_title="Work One")
+    groups = cu._group_family_sections_by_book([a1, b1, a2])
+    assert [g[0] for g in groups] == ["w1", "w2"]
+    assert groups[0][1] == "Work One"
+    assert [s.section_id for s in groups[0][2]] == ["a1", "a2"]
+
+
+def test_book_display_name_hu_derives_from_passage() -> None:
+    s = _make_result("w", "s", (), primary_passages=("Rom.8.1",), work_title="Fallback Title")
+    assert cu._book_display_name_hu([s]) == "Rómaiakhoz írt levél"
+
+
+def test_book_display_name_hu_falls_back_to_work_title_when_unparseable() -> None:
+    s = _make_result("w", "s", (), primary_passages=(), work_title="Fallback Title")
+    assert cu._book_display_name_hu([s]) == "Fallback Title"
+
+
+def test_book_display_name_hu_empty_list_returns_empty_string() -> None:
+    assert cu._book_display_name_hu([]) == ""
+
+
+def test_book_contributor_note_omitted_when_contributor_matches_family() -> None:
+    """Task item 8: Calvin must never show "John Calvin / John Calvin"."""
+    assert (
+        cu._book_contributor_note("Rómaiakhoz írt levél", "John Calvin", "John Calvin")
+        is None
+    )
+
+
+def test_book_contributor_note_shown_when_contributor_differs() -> None:
+    """Task item 8's own Henry-family example, verbatim."""
+    note = cu._book_contributor_note(
+        "Rómaiakhoz írt levél", "Matthew Henry", "Mr. John Evans"
+    )
+    assert note == "A Rómaiakhoz írt levél kommentárjának szerzője: Mr. John Evans"
+
+
+def test_book_contributor_note_none_when_missing_inputs() -> None:
+    assert cu._book_contributor_note("", "Matthew Henry", "Mr. John Evans") is None
+    assert cu._book_contributor_note("Rómaiakhoz írt levél", "Matthew Henry", "") is None
+
+
+def test_split_for_progressive_disclosure_short_text_stays_whole() -> None:
+    """Task item 4: a short section may show in full, untruncated."""
+    visible, rest = cu._split_for_progressive_disclosure("Short text.", 1200)
+    assert visible == "Short text."
+    assert rest == ""
+
+
+def test_split_for_progressive_disclosure_splits_at_paragraph_boundary() -> None:
+    text = ("A" * 50) + "\n\n" + ("B" * 50)
+    visible, rest = cu._split_for_progressive_disclosure(text, 60)
+    assert visible == "A" * 50
+    assert rest == "B" * 50
+
+
+def test_split_for_progressive_disclosure_never_cuts_mid_word() -> None:
+    text = "alpha beta gamma delta epsilon zeta eta theta iota kappa"
+    visible, rest = cu._split_for_progressive_disclosure(text, 20)
+    assert visible
+    assert all(word in text.split() for word in visible.split())
+    assert all(word in text.split() for word in rest.split())
+
+
+def test_reader_badge_text_none_for_the_common_case() -> None:
+    """Task item 10: exact/partial-overlap + primary relation is the
+    expected, boring case -- no badge, no interruption to the flow."""
+    r = _make_result("w", "s", (), relation_type="exact_passage")
+    assert cu._reader_badge_text(r, "primary") is None
+
+
+def test_reader_badge_text_for_wider_containing_section() -> None:
+    r = _make_result("w", "s", (), relation_type="containing_section")
+    assert cu._reader_badge_text(r, "primary") == "Tágabb kommentált szakasz"
+
+
+def test_reader_badge_text_parallel_overrides_tier() -> None:
+    r = _make_result("w", "s", (), relation_type="exact_passage")
+    assert cu._reader_badge_text(r, "parallel") == "Párhuzamos hely"
+
+
+# --- reader redesign: translation orchestration (family-level action) -----
+
+
+def test_translate_missing_sections_only_calls_provider_for_uncached(
+    patched_grouped_repo: Path, tmp_path: Path
+) -> None:
+    """Task item 5/16: "ha három sectionből kettő már cache-elt, csak a
+    hiányzót fordítsa" -- and a second pass over the SAME sections (all
+    now cached) must make zero further provider calls."""
+    repo = cu._get_repository()
+    translation_db = tmp_path / "commentary_translations.sqlite3"
+    results = cu._fetch_results("Matt.5.1-12")
+    calvin_section = next(r for r in results if r.section_id == "grp.calvin.s1")
+    jfb_sections = [r for r in results if r.work_id == "ccel.jfb.work.matthew"]
+    targets = [calvin_section, *jfb_sections]
+
+    calls: list[str] = []
+
+    def fake_gen(prompt: str, **kwargs) -> str:
+        calls.append(prompt)
+        return "FAKE HU TEXT"
+
+    succeeded, failed = cu._translate_missing_sections(
+        targets,
+        generate_fn=fake_gen,
+        provider_model="test-model",
+        repository=repo,
+        database_path=translation_db,
+    )
+    assert succeeded == len(targets)
+    assert failed == 0
+    assert len(calls) == len(targets)
+
+    calls.clear()
+    succeeded2, failed2 = cu._translate_missing_sections(
+        targets,
+        generate_fn=fake_gen,
+        provider_model="test-model",
+        repository=repo,
+        database_path=translation_db,
+    )
+    assert succeeded2 == 0
+    assert failed2 == 0
+    assert calls == []  # cache-hit sections are never re-requested
+
+
+def test_translate_missing_sections_bypasses_cooldown_after_the_first_call(
+    patched_grouped_repo: Path, tmp_path: Path
+) -> None:
+    """Real bug found via manual smoke test (2026-09-03, Róm 8,1-4, 4
+    missing sections translated in one click): every call after the
+    first failed with a false "provider unavailable" because
+    generate_text (app.py) enforces a cooldown between calls unless told
+    otherwise. The FIRST call in a batch still respects the real
+    cooldown; every call AFTER it must explicitly bypass it (matches
+    generate_text's own documented "same button press" convention)."""
+    repo = cu._get_repository()
+    translation_db = tmp_path / "commentary_translations.sqlite3"
+    results = cu._fetch_results("Matt.5.1-12")
+    calvin_section = next(r for r in results if r.section_id == "grp.calvin.s1")
+    jfb_sections = [r for r in results if r.work_id == "ccel.jfb.work.matthew"]
+    targets = [calvin_section, *jfb_sections]
+    assert len(targets) >= 2  # otherwise this test wouldn't exercise the bug at all
+
+    seen_bypass: list[bool] = []
+
+    def fake_gen(prompt: str, **kwargs) -> str:
+        seen_bypass.append(kwargs.get("bypass_cooldown"))
+        return "FAKE HU TEXT"
+
+    cu._translate_missing_sections(
+        targets,
+        generate_fn=fake_gen,
+        provider_model="test-model",
+        repository=repo,
+        database_path=translation_db,
+    )
+    assert seen_bypass[0] is False
+    assert all(v is True for v in seen_bypass[1:])
+
+
+def test_translate_missing_sections_counts_failures_without_crashing(
+    patched_grouped_repo: Path, tmp_path: Path
+) -> None:
+    """Task item 16: a provider failure must be reported, never crash the
+    orchestration or silently cache a warning string as a translation."""
+    repo = cu._get_repository()
+    translation_db = tmp_path / "commentary_translations.sqlite3"
+    results = cu._fetch_results("Matt.5.1-12")
+    calvin_section = next(r for r in results if r.section_id == "grp.calvin.s1")
+
+    def failing_gen(prompt: str, **kwargs) -> str:
+        return "⚠️ Hiányzó API kulcs."
+
+    succeeded, failed = cu._translate_missing_sections(
+        [calvin_section],
+        generate_fn=failing_gen,
+        provider_model="",
+        repository=repo,
+        database_path=translation_db,
+    )
+    assert succeeded == 0
+    assert failed == 1
+
+    from textus_kb import commentary_translation_policy as policy
+    from textus_kb import commentary_translation_store as store
+
+    detail = repo.section_detail(calvin_section.section_id)
+    fingerprint = store.compute_source_fingerprint([c.plain_text for c in detail.chunks])
+    assert (
+        store.get_translation(
+            calvin_section.section_id,
+            fingerprint,
+            language="hu",
+            policy_version=policy.TRANSLATION_POLICY_VERSION,
+            database_path=translation_db,
+        )
+        is None
+    )
+
+
+# --- reader redesign: full end-to-end round trips (AppTest) ---------------
+
+
+def _reader_flow_document() -> dict:
+    """Three curated-family sources (Calvin/JFB/Henry) on the same
+    Matthew 5:1-2 range, with Henry's book-level contributor deliberately
+    DIFFERENT from the family's own display name (a real continuator
+    scenario, ld. task item 8's own example) -- Calvin's own contributor
+    matches the family name exactly, so it must NOT show a redundant
+    note. Real-style ``<namespace>.<family>.work.<book>`` ids throughout,
+    so the curated ``_SOURCE_FAMILY_DISPLAY_NAMES_HU`` names apply."""
+
+    def _edition(edition_id: str, work_id: str, corpus: str) -> dict:
+        return {
+            "edition_id": edition_id,
+            "work_id": work_id,
+            "edition_label": "Test edition",
+            "publication_year": 1900,
+            "publisher": "Textus Test",
+            "language": "en",
+            "license": "CC-BY-4.0",
+            "rights_status": "public-domain",
+            "rights_note": f"Synthetic {corpus} fixture; not a real commentary source.",
+            "source_url": f"https://example.test/{corpus}",
+            "corpus": corpus,
+            "external_id": f"test/{corpus}",
+        }
+
+    return {
+        "contributors": [
+            {"contributor_id": "rd.calvin.john-calvin", "canonical_name": "John Calvin", "birth_year": 1509, "death_year": 1564},
+            {"contributor_id": "rd.jfb.david-brown", "canonical_name": "David Brown", "birth_year": 1803, "death_year": 1897},
+            {"contributor_id": "rd.henry.john-evans", "canonical_name": "Mr. John Evans", "birth_year": 1680, "death_year": 1730},
+        ],
+        "works": [
+            {"work_id": "ccel.calvin.work.matthew", "title": "Commentary on Matthew", "original_title": None, "original_language": "la", "work_type": "commentary"},
+            {"work_id": "ccel.jfb.work.matthew", "title": "Commentary Critical and Explanatory: Matthew", "original_title": None, "original_language": "en", "work_type": "commentary"},
+            {"work_id": "ccel.henry.work.matthew", "title": "Matthew Henry's Commentary on the Whole Bible: Matthew", "original_title": None, "original_language": "en", "work_type": "commentary"},
+        ],
+        "work_contributors": [
+            {"work_id": "ccel.calvin.work.matthew", "contributor_id": "rd.calvin.john-calvin", "role": "author"},
+            {"work_id": "ccel.jfb.work.matthew", "contributor_id": "rd.jfb.david-brown", "role": "author"},
+            {"work_id": "ccel.henry.work.matthew", "contributor_id": "rd.henry.john-evans", "role": "author"},
+        ],
+        "editions": [
+            _edition("ccel.calvin.matthew.edition", "ccel.calvin.work.matthew", "ccel-calvin"),
+            _edition("ccel.jfb.matthew.edition", "ccel.jfb.work.matthew", "ccel-jfb"),
+            _edition("ccel.henry.matthew.edition", "ccel.henry.work.matthew", "ccel-henry"),
+        ],
+        "source_files": [
+            {"source_file_id": "rd.sf.calvin", "edition_id": "ccel.calvin.matthew.edition", "file_name": "c.xml", "raw_sha256": "1" * 64, "byte_size": 10, "retrieved_at": "2026-09-03T00:00:00Z"},
+            {"source_file_id": "rd.sf.jfb", "edition_id": "ccel.jfb.matthew.edition", "file_name": "j.xml", "raw_sha256": "2" * 64, "byte_size": 10, "retrieved_at": "2026-09-03T00:00:00Z"},
+            {"source_file_id": "rd.sf.henry", "edition_id": "ccel.henry.matthew.edition", "file_name": "h.xml", "raw_sha256": "3" * 64, "byte_size": 10, "retrieved_at": "2026-09-03T00:00:00Z"},
+        ],
+        "import_batches": [
+            {"batch_id": "rd.batch.calvin", "source_file_id": "rd.sf.calvin", "importer_name": "test", "importer_version": "0.1.0", "imported_at": "2026-09-03T00:05:00Z", "report": {}},
+            {"batch_id": "rd.batch.jfb", "source_file_id": "rd.sf.jfb", "importer_name": "test", "importer_version": "0.1.0", "imported_at": "2026-09-03T00:05:00Z", "report": {}},
+            {"batch_id": "rd.batch.henry", "source_file_id": "rd.sf.henry", "importer_name": "test", "importer_version": "0.1.0", "imported_at": "2026-09-03T00:05:00Z", "report": {}},
+        ],
+        "sections": [
+            {"section_id": "rd.calvin.v1", "edition_id": "ccel.calvin.matthew.edition", "parent_section_id": None, "section_type": "section", "heading": "Calvin v1", "sequence": 1, "passage_links": [{"raw_citation": "Matthew 5:1", "relation_type": "primary"}]},
+            {"section_id": "rd.calvin.v2", "edition_id": "ccel.calvin.matthew.edition", "parent_section_id": None, "section_type": "section", "heading": "Calvin v2", "sequence": 2, "passage_links": [{"raw_citation": "Matthew 5:2", "relation_type": "primary"}]},
+            {"section_id": "rd.jfb.v1", "edition_id": "ccel.jfb.matthew.edition", "parent_section_id": None, "section_type": "section", "heading": "JFB v1", "sequence": 1, "passage_links": [{"raw_citation": "Matthew 5:1", "relation_type": "primary"}]},
+            {"section_id": "rd.henry.range", "edition_id": "ccel.henry.matthew.edition", "parent_section_id": None, "section_type": "range_commentary", "heading": "Henry range", "sequence": 1, "passage_links": [{"raw_citation": "Matthew 5:1-2", "relation_type": "primary"}]},
+        ],
+        "chunks": [
+            {"chunk_id": "rd.calvin.c1", "section_id": "rd.calvin.v1", "sequence": 1, "text": "CALVIN VERSE ONE TEXT", "plain_text": "CALVIN VERSE ONE TEXT", "source_locator": "fixture://rd/calvin/1"},
+            {"chunk_id": "rd.calvin.c2", "section_id": "rd.calvin.v2", "sequence": 1, "text": "CALVIN VERSE TWO TEXT", "plain_text": "CALVIN VERSE TWO TEXT", "source_locator": "fixture://rd/calvin/2"},
+            {"chunk_id": "rd.jfb.c1", "section_id": "rd.jfb.v1", "sequence": 1, "text": "JFB VERSE ONE TEXT", "plain_text": "JFB VERSE ONE TEXT", "source_locator": "fixture://rd/jfb/1"},
+            {"chunk_id": "rd.henry.c1", "section_id": "rd.henry.range", "sequence": 1, "text": "HENRY RANGE TEXT", "plain_text": "HENRY RANGE TEXT", "source_locator": "fixture://rd/henry/1"},
+        ],
+    }
+
+
+def _render_commentary_reader_flow() -> None:
+    """Self-contained AppTest render helper (own imports/inline data, per
+    this repo's established ``AppTest.from_function`` convention -- ld.
+    tests/test_sermon_workshop_developed_outline_ui.py). Builds an
+    isolated synthetic Commentary + translation SQLite store under the
+    system temp dir (never the real production DBs) and drives the real
+    ``render_commentary_panel()`` end to end with a fake, call-counting
+    ``generate_fn``."""
+    import tempfile
+    from pathlib import Path as _Path
+
+    import streamlit as st
+
+    import commentary_ui as cu
+    from tests.test_commentary_ui import _reader_flow_document
+    from textus_kb import commentary_runtime
+    from textus_kb.importers.commentary_sqlite import import_commentary_sqlite
+    from textus_kb.repositories.commentary_repository import CommentaryRepository
+
+    tmp_root = _Path(tempfile.gettempdir()) / "textus_test_commentary_reader_ui"
+    tmp_root.mkdir(parents=True, exist_ok=True)
+    db_path = tmp_root / "commentary.sqlite3"
+    translation_db_path = tmp_root / "commentary_translations.sqlite3"
+    import_commentary_sqlite(document=_reader_flow_document(), database_path=db_path)
+
+    cu._get_repository = lambda: CommentaryRepository(db_path)  # type: ignore[assignment]
+    cu._get_status = lambda: commentary_runtime.get_status(db_path)  # type: ignore[assignment]
+    cu._translation_database_path = lambda: translation_db_path  # type: ignore[assignment]
+
+    if "_test_call_count" not in st.session_state:
+        st.session_state["_test_call_count"] = 0
+    if "_test_prompts" not in st.session_state:
+        st.session_state["_test_prompts"] = []
+
+    def fake_gen(prompt: str, **kwargs) -> str:
+        st.session_state["_test_call_count"] += 1
+        st.session_state["_test_prompts"].append(prompt)
+        return "FAKE HU TRANSLATION"
+
+    st.session_state["last_igehely"] = "Matt.5.1-2"
+    cu.render_commentary_panel(generate_fn=fake_gen, resolve_model_fn=lambda label: "test-model")
+
+
+def _render_commentary_reader_flow_failing_provider() -> None:
+    """Same fixture/wiring as ``_render_commentary_reader_flow``, but with
+    a FAILING ``generate_fn`` -- proves the English reader stays fully
+    usable even when translation generation fails (task item 16/17)."""
+    import tempfile
+    from pathlib import Path as _Path
+
+    import streamlit as st
+
+    import commentary_ui as cu
+    from tests.test_commentary_ui import _reader_flow_document
+    from textus_kb import commentary_runtime
+    from textus_kb.importers.commentary_sqlite import import_commentary_sqlite
+    from textus_kb.repositories.commentary_repository import CommentaryRepository
+
+    tmp_root = _Path(tempfile.gettempdir()) / "textus_test_commentary_reader_ui_failing"
+    tmp_root.mkdir(parents=True, exist_ok=True)
+    db_path = tmp_root / "commentary.sqlite3"
+    translation_db_path = tmp_root / "commentary_translations.sqlite3"
+    if translation_db_path.is_file():
+        translation_db_path.unlink()
+    import_commentary_sqlite(document=_reader_flow_document(), database_path=db_path)
+
+    cu._get_repository = lambda: CommentaryRepository(db_path)  # type: ignore[assignment]
+    cu._get_status = lambda: commentary_runtime.get_status(db_path)  # type: ignore[assignment]
+    cu._translation_database_path = lambda: translation_db_path  # type: ignore[assignment]
+
+    def failing_gen(prompt: str, **kwargs) -> str:
+        return "⚠️ Hiányzó API kulcs."
+
+    st.session_state["last_igehely"] = "Matt.5.1-2"
+    cu.render_commentary_panel(generate_fn=failing_gen, resolve_model_fn=lambda label: "test-model")
+
+
+@pytest.fixture()
+def clean_reader_ui_translation_cache():
+    """Resets the isolated reader-flow translation store before a test
+    that needs to start from a genuine cache miss."""
+    import tempfile
+    from pathlib import Path as _p
+
+    path = _p(tempfile.gettempdir()) / "textus_test_commentary_reader_ui" / "commentary_translations.sqlite3"
+    if path.is_file():
+        path.unlink()
+    yield
+
+
+def test_reader_shows_exactly_one_family_selector_and_three_options(
+    clean_reader_ui_translation_cache,
+) -> None:
+    """Task item 2: a compact single-select family control, all three
+    metadata-derived families available at once. ``ButtonGroup.options``
+    reports the FORMATTED (display) labels, not the raw family keys."""
+    at = AppTest.from_function(_render_commentary_reader_flow).run(timeout=60)
+    controls = at.segmented_control
+    assert len(controls) == 1
+    assert set(controls[0].options) == {
+        "John Calvin",
+        "Jamieson–Fausset–Brown",
+        "Matthew Henry",
+    }
+
+
+def test_reader_defaults_to_first_family_showing_one_reader_at_a_time(
+    clean_reader_ui_translation_cache,
+) -> None:
+    at = AppTest.from_function(_render_commentary_reader_flow).run(timeout=60)
+    markdown_values = [md.value for md in at.markdown]
+    headers = {"### John Calvin", "### Jamieson–Fausset–Brown", "### Matthew Henry"}
+    shown = [v for v in markdown_values if v in headers]
+    # Exactly one reader (family header) is open at a time.
+    assert len(shown) == 1
+
+
+def test_reader_switching_family_shows_only_that_familys_sections(
+    clean_reader_ui_translation_cache,
+) -> None:
+    at = AppTest.from_function(_render_commentary_reader_flow).run(timeout=60)
+    at = at.segmented_control[0].set_value("ccel.henry").run(timeout=60)
+    markdown_values = [md.value for md in at.markdown]
+    captions = [c.value for c in at.caption]
+    assert "### Matthew Henry" in markdown_values
+    assert "### John Calvin" not in markdown_values
+    assert "### Jamieson–Fausset–Brown" not in markdown_values
+    assert any("Matthew Henry's Commentary" in c for c in captions)
+    assert not any(c == "Commentary on Matthew" for c in captions)
+
+
+def test_reader_multiple_sections_render_in_one_reader_in_passage_order(
+    clean_reader_ui_translation_cache,
+) -> None:
+    """Task item 3/16: Calvin has TWO sections (v1, v2) -- both appear
+    together in one reader, in passage order, without becoming two giant
+    separate source cards. Switches to "Eredeti angol" so the real
+    (untranslated) section text is deterministically visible regardless
+    of translation-cache state."""
+    at = AppTest.from_function(_render_commentary_reader_flow).run(timeout=60)
+    at = at.segmented_control[0].set_value("ccel.calvin").run(timeout=60)
+    radios = at.radio
+    at = radios[0].set_value("Eredeti angol").run(timeout=60)
+    body = "\n".join(md.value for md in at.markdown)
+    assert "CALVIN VERSE ONE TEXT" in body
+    assert "CALVIN VERSE TWO TEXT" in body
+    assert body.index("CALVIN VERSE ONE TEXT") < body.index("CALVIN VERSE TWO TEXT")
+    # No per-section bordered "card" container -- the whole reader is a
+    # single flow, so the work title caption appears only once, at the
+    # book-group level, never repeated per verse.
+    captions = [c.value for c in at.caption]
+    assert captions.count("Commentary on Matthew") == 1
+
+
+def test_reader_calvin_does_not_duplicate_the_same_author_name(
+    clean_reader_ui_translation_cache,
+) -> None:
+    """Task item 8: Calvin's family name and book contributor are
+    identical -- must show ONLY ONCE, never as a redundant note."""
+    at = AppTest.from_function(_render_commentary_reader_flow).run(timeout=60)
+    at = at.segmented_control[0].set_value("ccel.calvin").run(timeout=60)
+    captions = [c.value for c in at.caption]
+    assert not any("kommentárjának szerzője" in c for c in captions)
+
+
+def test_reader_henry_family_shows_the_real_continuator_contributor(
+    clean_reader_ui_translation_cache,
+) -> None:
+    """Task item 8/17: family header "Matthew Henry", but the concrete
+    book contributor note names "Mr. John Evans" -- a real continuator
+    scenario mirroring the production Róm 8,1-4 case."""
+    at = AppTest.from_function(_render_commentary_reader_flow).run(timeout=60)
+    at = at.segmented_control[0].set_value("ccel.henry").run(timeout=60)
+    markdown_values = [md.value for md in at.markdown]
+    assert any(v == "### Matthew Henry" for v in markdown_values)
+    captions = [c.value for c in at.caption]
+    assert any(
+        "kommentárjának szerzője: Mr. John Evans" in c for c in captions
+    )
+
+
+def test_reader_jfb_family_shows_david_brown_contributor(
+    clean_reader_ui_translation_cache,
+) -> None:
+    at = AppTest.from_function(_render_commentary_reader_flow).run(timeout=60)
+    at = at.segmented_control[0].set_value("ccel.jfb").run(timeout=60)
+    markdown_values = [md.value for md in at.markdown]
+    assert any(v == "### Jamieson–Fausset–Brown" for v in markdown_values)
+    captions = [c.value for c in at.caption]
+    assert any("kommentárjának szerzője: David Brown" in c for c in captions)
+
+
+def test_reader_hungarian_mode_untranslated_section_does_not_call_provider(
+    clean_reader_ui_translation_cache,
+) -> None:
+    """Task item 5/16: opening a reader with NO cached translation must
+    never trigger an automatic provider call, even though Hungarian is
+    the default language mode."""
+    at = AppTest.from_function(_render_commentary_reader_flow).run(timeout=60)
+    assert at.session_state["_test_call_count"] == 0
+    captions = [c.value for c in at.caption]
+    assert any("még nincs magyar fordítás" in c for c in captions)
+
+
+def test_reader_translate_action_only_translates_missing_sections(
+    clean_reader_ui_translation_cache,
+) -> None:
+    """Task item 5/16: the family-level action translates ONLY the
+    sections that lack a cached translation; a second, separate AppTest
+    run then hits the cache with zero further provider calls."""
+    at = AppTest.from_function(_render_commentary_reader_flow).run(timeout=60)
+    at = at.segmented_control[0].set_value("ccel.calvin").run(timeout=60)
+    translate_btn = next(
+        b for b in at.button if "lefordítása magyarra" in b.label or b.label == "Magyar fordítás elkészítése"
+    )
+    at = translate_btn.click().run(timeout=60)
+    assert at.session_state["_test_call_count"] == 2  # Calvin has 2 sections
+    body = "\n".join(md.value for md in at.markdown)
+    assert "FAKE HU TRANSLATION" in body
+
+    # Cache-hit: a brand-new AppTest run (fresh session_state counter)
+    # must find both Calvin sections already cached -- zero new calls.
+    at2 = AppTest.from_function(_render_commentary_reader_flow).run(timeout=60)
+    at2 = at2.segmented_control[0].set_value("ccel.calvin").run(timeout=60)
+    assert at2.session_state["_test_call_count"] == 0
+    body2 = "\n".join(md.value for md in at2.markdown)
+    assert "FAKE HU TRANSLATION" in body2
+
+
+def test_reader_english_mode_never_calls_provider(
+    clean_reader_ui_translation_cache,
+) -> None:
+    at = AppTest.from_function(_render_commentary_reader_flow).run(timeout=60)
+    at = at.segmented_control[0].set_value("ccel.calvin").run(timeout=60)
+    radios = at.radio
+    at = radios[0].set_value("Eredeti angol").run(timeout=60)
+    assert at.session_state["_test_call_count"] == 0
+    body = "\n".join(md.value for md in at.markdown)
+    assert "CALVIN VERSE ONE TEXT" in body
+
+
+def test_reader_provider_failure_leaves_english_reader_usable() -> None:
+    """Task item 16/17: a failing provider must never break the English
+    reading mode -- switching language mode away from Hungarian always
+    works, with zero dependency on translation success."""
+    at = AppTest.from_function(_render_commentary_reader_flow_failing_provider).run(timeout=60)
+    at = at.segmented_control[0].set_value("ccel.calvin").run(timeout=60)
+    radios = at.radio
+    at = radios[0].set_value("Eredeti angol").run(timeout=60)
+    body = "\n".join(md.value for md in at.markdown)
+    assert "CALVIN VERSE ONE TEXT" in body
+    assert not at.exception
+
+
+def test_reader_provenance_traceable_to_each_section(
+    clean_reader_ui_translation_cache,
+) -> None:
+    """Task item 9: nothing lost -- edition id, section id, source
+    locator, upstream URL, rights and relation type all remain reachable
+    per section inside the single "Forrásadatok" expander."""
+    at = AppTest.from_function(_render_commentary_reader_flow).run(timeout=60)
+    at = at.segmented_control[0].set_value("ccel.calvin").run(timeout=60)
+    expander_labels = [e.label for e in at.expander]
+    assert "Forrásadatok" in expander_labels
+    page_text = "\n".join(md.value for md in at.markdown) + "\n".join(
+        c.value for c in at.caption
+    )
+    assert "ccel.calvin.matthew.edition" in page_text
+    assert "rd.calvin.v1" in page_text
+    assert "fixture://rd/calvin/1" in page_text
+    assert "https://example.test/ccel-calvin" in page_text
+
+
+def test_reader_no_match_and_unavailable_states_unchanged() -> None:
+    """Task item 16/18: the missing-DB and no-passage/no-match states
+    stay exactly the pure functions they were -- untouched by the reader
+    redesign (ld. the "unavailable store / no passage" section above for
+    the equivalent pure-helper tests already covering these)."""
+    import inspect
+
+    source = inspect.getsource(cu.render_commentary_panel)
+    assert "_render_missing_db(status)" in source
+    assert "_render_no_passage()" in source
+    assert "_render_no_match(passage)" in source
 
 
 # --- no generative call in this module ------------------------------------

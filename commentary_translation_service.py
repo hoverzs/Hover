@@ -113,12 +113,21 @@ def get_or_create_translation(
     provider_model: str = "",
     repository: CommentaryRepository | None = None,
     database_path: str | Path | None = None,
+    bypass_cooldown: bool = False,
 ) -> TranslationOutcome:
     """Cache-hit -> immediate return, zero provider calls. Cache-miss ->
     translates the FULL canonical section (every chunk, in order -- never
     just a UI preview), then persists on success. Provider unavailability
     or failure never stores anything (fail-closed) and never blocks the
-    original English Commentary, which this function never touches."""
+    original English Commentary, which this function never touches.
+
+    ``bypass_cooldown`` forwards straight to ``generate_fn`` (matches
+    ``generate_text``'s own "same button press" convention for multiple
+    calls back-to-back, ld. its docstring in app.py) -- callers that
+    translate SEVERAL sections from one user action (ld. commentary_ui.
+    _translate_missing_sections) must set this for every call after the
+    first, or app.py's own inter-call cooldown makes every call but the
+    first fail as a false "provider unavailable"."""
     repo = repository if repository is not None else CommentaryRepository()
     detail = repo.section_detail(section_id)
     if detail is None:
@@ -158,6 +167,7 @@ def get_or_create_translation(
         tab_label=TRANSLATION_TAB_LABEL,
         use_cache=False,
         include_brevity_directive=False,
+        bypass_cooldown=bypass_cooldown,
     )
     text = str(raw or "")
     if _looks_like_provider_failure(text):

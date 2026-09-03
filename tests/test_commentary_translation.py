@@ -1,5 +1,14 @@
-"""Hungarian Commentary translation infrastructure tests -- store, policy,
-service and minimal UI integration.
+"""Hungarian Commentary translation infrastructure tests -- store, policy
+and service layer only.
+
+2026-09-03 reader redesign: the UI-integration tests that used to live at
+the bottom of this file (a per-section "Eredeti" / "Magyar fordítás"
+toggle) were removed along with that UI -- translation is now a
+READER-level concern (one HU/EN toggle + one "translate the missing
+parts" action per selected source family). The reader-level translation
+UI tests now live in tests/test_commentary_ui.py, next to the rest of
+the reader's own tests, and exercise the exact same, completely
+unchanged store/policy/service layer tested here.
 
 No external LLM/API is called anywhere in this file -- every ``generate_fn``
 is a local fake that records what it was called with. Reuses the same
@@ -13,10 +22,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import tempfile
-
 import pytest
-from streamlit.testing.v1 import AppTest
 
 import commentary_translation_service as svc
 from tests.test_commentary_ui import _synthetic_document
@@ -27,28 +33,6 @@ from textus_kb.repositories.commentary_repository import CommentaryRepository
 
 _HENRY_SECTION_ID = "test.henry.range"  # 2 chunks: "PART ONE" / "PART TWO"
 _JFB_SECTION_ID = "test.jfb.exact"  # 1 chunk
-
-# Same fixed path ``_render_translation_toggle_flow`` below computes for
-# its isolated translation store -- kept as a literal (not a shared
-# import) inside that function per this repo's "AppTest.from_function
-# helpers are fully self-contained" convention; duplicated here only so
-# a pytest fixture can reset it BETWEEN test functions (never from
-# inside the render function itself, which would also wipe it between
-# reruns/clicks WITHIN one AppTest flow -- and between two independent
-# AppTest instances in the same test, defeating the one test that
-# deliberately checks cross-instance cache persistence).
-_UI_TEST_TRANSLATION_DB_PATH = (
-    Path(tempfile.gettempdir()) / "textus_test_commentary_translation_ui" / "commentary_translations.sqlite3"
-)
-
-
-@pytest.fixture()
-def clean_ui_translation_cache():
-    """Resets the isolated UI-test translation store before a test that
-    needs to start from a genuine cache miss."""
-    if _UI_TEST_TRANSLATION_DB_PATH.is_file():
-        _UI_TEST_TRANSLATION_DB_PATH.unlink()
-    yield
 
 
 @pytest.fixture(scope="module")
@@ -414,6 +398,33 @@ def test_generate_fn_called_with_dedicated_tab_label(
     assert kwargs["use_cache"] is False  # generate_text's own cache never fronts this cache
 
 
+def test_bypass_cooldown_defaults_to_false_and_forwards_to_generate_fn(
+    synthetic_repo: CommentaryRepository, translation_db: Path
+) -> None:
+    """Real bug found via manual smoke test (2026-09-03, Róm 8,1-4): a
+    caller that translates SEVERAL sections from one button click (ld.
+    commentary_ui._translate_missing_sections) must be able to bypass
+    app.py's own inter-call cooldown for every call after the first, or
+    every call but the first fails as a false "provider unavailable"."""
+    fake = _FakeGenerate()
+    svc.get_or_create_translation(
+        _HENRY_SECTION_ID, generate_fn=fake, repository=synthetic_repo, database_path=translation_db
+    )
+    _, kwargs = fake.calls[0]
+    assert kwargs["bypass_cooldown"] is False  # unset -> real cooldown protection intact
+
+    fake2 = _FakeGenerate()
+    svc.get_or_create_translation(
+        _JFB_SECTION_ID,
+        generate_fn=fake2,
+        repository=synthetic_repo,
+        database_path=translation_db,
+        bypass_cooldown=True,
+    )
+    _, kwargs2 = fake2.calls[0]
+    assert kwargs2["bypass_cooldown"] is True
+
+
 # --- Provenance ------------------------------------------------------------
 
 
@@ -453,237 +464,3 @@ def test_translation_tab_has_a_dedicated_output_token_budget() -> None:
     assert app._default_max_output_tokens(label) == budget
     service_src = Path("commentary_translation_service.py").read_text(encoding="utf-8")
     assert f'tab_label=TRANSLATION_TAB_LABEL' in service_src
-
-
-# --- Minimal UI integration ------------------------------------------------
-
-
-def test_translation_view_defaults_to_original_when_section_has_no_text() -> None:
-    import commentary_ui as cu
-
-    assert (
-        cu._render_translation_view_toggle(
-            "any.section", has_text=False, has_cached_translation=False
-        )
-        == cu._TRANSLATION_VIEW_ORIGINAL
-    )
-    # Even a (nonsensical, but defensive) cached-translation flag can't
-    # override the "no text at all" case.
-    assert (
-        cu._render_translation_view_toggle(
-            "any.section", has_text=False, has_cached_translation=True
-        )
-        == cu._TRANSLATION_VIEW_ORIGINAL
-    )
-
-
-def test_translation_view_labels_are_original_and_hungarian() -> None:
-    import commentary_ui as cu
-
-    # 2026-09-03 UI polish round: "Eredeti" -> "Eredeti angol" (task item 4).
-    assert cu._TRANSLATION_VIEW_ORIGINAL == "Eredeti angol"
-    assert cu._TRANSLATION_VIEW_HUNGARIAN == "Magyar fordítás"
-
-
-def test_ai_translation_disclosure_label_is_the_exact_required_string() -> None:
-    src = Path("commentary_ui.py").read_text(encoding="utf-8")
-    assert 'st.caption("AI által készített magyar fordítás")' in src
-
-
-def _render_translation_toggle_flow() -> None:
-    """Self-contained AppTest render helper (own imports/inline data,
-    per this repo's established ``AppTest.from_function`` convention --
-    ld. tests/test_sermon_workshop_developed_outline_ui.py). Builds its
-    own isolated synthetic Commentary + translation SQLite stores under
-    the system temp dir (never the real production DBs) and drives the
-    real ``commentary_ui._render_detail`` "Eredeti" / "Magyar fordítás"
-    toggle end to end with a fake, call-counting generate_fn."""
-    import tempfile
-    from pathlib import Path as _Path
-
-    import streamlit as st
-
-    import commentary_ui as cu
-    from textus_kb.importers.commentary_sqlite import import_commentary_sqlite
-    from textus_kb.repositories.commentary_repository import (
-        CommentaryRepository,
-        CommentarySectionResult,
-    )
-
-    tmp_root = _Path(tempfile.gettempdir()) / "textus_test_commentary_translation_ui"
-    tmp_root.mkdir(parents=True, exist_ok=True)
-    db_path = tmp_root / "commentary.sqlite3"
-    translation_db_path = tmp_root / "commentary_translations.sqlite3"
-
-    document = {
-        "contributors": [
-            {"contributor_id": "ui.henry", "canonical_name": "UI Test Henry", "birth_year": 1662, "death_year": 1714},
-        ],
-        "works": [
-            {"work_id": "ui.work.henry", "title": "UI Test Henry Commentary", "original_title": None, "original_language": "en", "work_type": "commentary"},
-        ],
-        "work_contributors": [
-            {"work_id": "ui.work.henry", "contributor_id": "ui.henry", "role": "author"},
-        ],
-        "editions": [
-            {
-                "edition_id": "ui.edition.henry",
-                "work_id": "ui.work.henry",
-                "edition_label": "Test edition",
-                "publication_year": 1900,
-                "publisher": "Textus Test",
-                "language": "en",
-                "license": "CC-BY-4.0",
-                "rights_status": "public-domain",
-                "rights_note": "Synthetic UI fixture; not a real commentary source.",
-                "source_url": "https://example.test/ui-henry",
-                "corpus": "ui-henry",
-                "external_id": "test/ui-henry",
-            },
-        ],
-        "source_files": [
-            {"source_file_id": "ui.sf.henry", "edition_id": "ui.edition.henry", "file_name": "henry.xml", "raw_sha256": "d" * 64, "byte_size": 10, "retrieved_at": "2026-08-01T00:00:00Z"},
-        ],
-        "import_batches": [
-            {"batch_id": "ui.batch.henry", "source_file_id": "ui.sf.henry", "importer_name": "test", "importer_version": "0.1.0", "imported_at": "2026-08-01T00:05:00Z", "report": {}},
-        ],
-        "sections": [
-            {"section_id": "ui.henry.range", "edition_id": "ui.edition.henry", "parent_section_id": None, "section_type": "range_commentary", "heading": "Henry on John 3:16-21 (UI synthetic)", "sequence": 1, "passage_links": [{"raw_citation": "John 3:16-21", "relation_type": "primary"}]},
-        ],
-        "chunks": [
-            {"chunk_id": "ui.chunk.henry.1", "section_id": "ui.henry.range", "sequence": 1, "text": "UI SYNTH HENRY PART ONE", "plain_text": "UI SYNTH HENRY PART ONE", "source_locator": "fixture://ui-henry/1"},
-            {"chunk_id": "ui.chunk.henry.2", "section_id": "ui.henry.range", "sequence": 2, "text": "UI SYNTH HENRY PART TWO", "plain_text": "UI SYNTH HENRY PART TWO", "source_locator": "fixture://ui-henry/2"},
-        ],
-    }
-    import_commentary_sqlite(document=document, database_path=db_path)
-
-    cu._get_repository = lambda: CommentaryRepository(db_path)  # type: ignore[assignment]
-    cu._translation_database_path = lambda: translation_db_path  # type: ignore[assignment]
-
-    if "_test_call_count" not in st.session_state:
-        st.session_state["_test_call_count"] = 0
-
-    def fake_gen(prompt, **kwargs):
-        st.session_state["_test_call_count"] += 1
-        st.session_state["_test_last_prompt"] = prompt
-        return "UI SZINTETIKUS MAGYAR FORDÍTÁS"
-
-    card = CommentarySectionResult(
-        section_id="ui.henry.range",
-        edition_id="ui.edition.henry",
-        work_id="ui.work.henry",
-        work_title="UI Test Henry Commentary",
-        section_type="range_commentary",
-        heading="Henry on John 3:16-21 (UI synthetic)",
-        sequence=1,
-        parent_section_id=None,
-        relation_type="exact_passage",
-        canonical_passages=("John.3.16-21",),
-        chunk_count=2,
-        primary_passages=("John.3.16-21",),
-        contributors=("UI Test Henry (author)",),
-    )
-    cu._render_detail(card, generate_fn=fake_gen, resolve_model_fn=lambda label: "test-model-id")
-
-
-def test_ui_toggle_original_view_shows_english_text_by_default(clean_ui_translation_cache) -> None:
-    at = AppTest.from_function(_render_translation_toggle_flow).run(timeout=60)
-    body = "\n".join(md.value for md in at.markdown)
-    assert "UI SYNTH HENRY PART ONE" in body
-    assert "UI SYNTH HENRY PART TWO" in body
-    captions = [c.value for c in at.caption]
-    assert not any("AI által készített magyar fordítás" in c for c in captions)
-    assert at.session_state["_test_call_count"] == 0  # no provider call just from viewing
-
-
-def test_ui_toggle_switch_and_generate_shows_disclosed_translation(clean_ui_translation_cache) -> None:
-    at = AppTest.from_function(_render_translation_toggle_flow).run(timeout=60)
-    radios = at.radio
-    assert len(radios) == 1
-    at = radios[0].set_value("Magyar fordítás").run(timeout=60)
-
-    translate_btn = next(
-        b for b in at.button if b.label == "Magyar fordítás készítése"
-    )
-    assert translate_btn.disabled is False
-    at = translate_btn.click().run(timeout=60)
-
-    assert at.session_state["_test_call_count"] == 1
-    captions = [c.value for c in at.caption]
-    assert any("AI által készített magyar fordítás" in c for c in captions)
-    body = "\n".join(md.value for md in at.markdown)
-    assert "UI SZINTETIKUS MAGYAR FORDÍTÁS" in body
-    # the FULL section (both chunks) must have been sent for translation
-    assert "UI SYNTH HENRY PART ONE" in at.session_state["_test_last_prompt"]
-    assert "UI SYNTH HENRY PART TWO" in at.session_state["_test_last_prompt"]
-
-
-def test_ui_toggle_cache_hit_on_rerun_does_not_call_provider_again(clean_ui_translation_cache) -> None:
-    at = AppTest.from_function(_render_translation_toggle_flow).run(timeout=60)
-    radios = at.radio
-    at = radios[0].set_value("Magyar fordítás").run(timeout=60)
-    translate_btn = next(b for b in at.button if b.label == "Magyar fordítás készítése")
-    at = translate_btn.click().run(timeout=60)
-    assert at.session_state["_test_call_count"] == 1
-
-    # A later, independent AppTest run (simulating reopening the section
-    # in a new script run) must hit the now-populated cache -- no button
-    # needed, no new provider call, since view defaults back to
-    # "Eredeti" -- switch to "Magyar fordítás" again and confirm it's
-    # already there without a generate click.
-    at2 = AppTest.from_function(_render_translation_toggle_flow).run(timeout=60)
-    radios2 = at2.radio
-    at2 = radios2[0].set_value("Magyar fordítás").run(timeout=60)
-    captions = [c.value for c in at2.caption]
-    assert any("AI által készített magyar fordítás" in c for c in captions)
-    # cache-hit path never calls generate_fn -- session_state counter for
-    # THIS fresh run starts at 0 and must stay there.
-    assert at2.session_state["_test_call_count"] == 0
-
-
-def test_ui_toggle_defaults_to_hungarian_when_translation_already_cached(
-    clean_ui_translation_cache,
-) -> None:
-    """2026-09-03 UI polish round (task item 4): "A magyar nézet legyen
-    kényelmes elsődleges választás, ha már létezik cache-elt fordítás" --
-    pre-populate the cache directly (no button click, no provider call),
-    then confirm a FRESH AppTest run defaults straight to the Hungarian
-    view with zero clicks."""
-    fingerprint = store.compute_source_fingerprint(
-        ["UI SYNTH HENRY PART ONE", "UI SYNTH HENRY PART TWO"]
-    )
-    store.save_translation(
-        section_id="ui.henry.range",
-        source_fingerprint=fingerprint,
-        language="hu",
-        policy_version=policy.TRANSLATION_POLICY_VERSION,
-        translated_text="ELŐRE CACHE-ELT MAGYAR FORDÍTÁS",
-        provider_model="test-model-id",
-        database_path=_UI_TEST_TRANSLATION_DB_PATH,
-    )
-
-    at = AppTest.from_function(_render_translation_toggle_flow).run(timeout=60)
-    captions = [c.value for c in at.caption]
-    assert any("AI által készített magyar fordítás" in c for c in captions)
-    body = "\n".join(md.value for md in at.markdown)
-    assert "ELŐRE CACHE-ELT MAGYAR FORDÍTÁS" in body
-    # Zero provider calls -- this was a pure cache hit, no generation.
-    assert at.session_state["_test_call_count"] == 0
-    # The radio widget itself is showing the Hungarian option as selected.
-    radios = at.radio
-    assert radios[0].value == "Magyar fordítás"
-
-
-def test_ui_toggle_original_always_one_click_away_after_translation(clean_ui_translation_cache) -> None:
-    at = AppTest.from_function(_render_translation_toggle_flow).run(timeout=60)
-    radios = at.radio
-    at = radios[0].set_value("Magyar fordítás").run(timeout=60)
-    translate_btn = next(b for b in at.button if b.label == "Magyar fordítás készítése")
-    at = translate_btn.click().run(timeout=60)
-
-    radios = at.radio
-    at = radios[0].set_value("Eredeti angol").run(timeout=60)
-    body = "\n".join(md.value for md in at.markdown)
-    assert "UI SYNTH HENRY PART ONE" in body
-    captions = [c.value for c in at.caption]
-    assert not any("AI által készített magyar fordítás" in c for c in captions)
