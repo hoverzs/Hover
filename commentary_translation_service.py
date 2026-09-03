@@ -228,6 +228,76 @@ def _strip_redundant_passage_heading(text: str, canonical_passages: Sequence[str
     return text
 
 
+# --- Invalid-output rejection (task: 2026-09-03 placeholder hardening) ----
+#
+# A real Calvin / Rom.8.6 batch response was found cached as
+# "## Kommentár-szakasz fordítása (John Calvin: Commentary on Romans, Róm
+# 8:6)\n\n6. A test gondolkodása, ...<full genuine translation>" -- in THAT
+# specific case the heading was followed by a complete, valid translation
+# (harmless once read in full; the earlier live smoke observation that
+# looked like a bare placeholder was an artifact of the reader's own
+# progressive-disclosure preview cutting right after the heading's
+# paragraph break, not a real service-layer failure). But the same
+# self-referential "meta-description of the task" heading COULD, in a less
+# fortunate call, appear with nothing real after it -- a genuine placeholder
+# that `_looks_like_provider_failure` would NOT catch (non-empty, no
+# "⚠️"/"⏳" prefix). The checks below guard against exactly that failure
+# class: never a semantic/LLM-based quality judgment, only narrow,
+# deterministic structural checks.
+
+# A small, curated set of KNOWN self-referential "this is a translation of
+# section X" meta-descriptions observed (or directly analogous to what was
+# observed) in real provider output -- matched case-insensitively, and only
+# ever treated as disqualifying when the ENTIRE response is short (ld.
+# _looks_like_placeholder_translation), so a long, genuine translation that
+# happens to legitimately use similar wording is never rejected.
+_KNOWN_PLACEHOLDER_MARKERS = (
+    "kommentár-szakasz fordítása",
+    "ez a szakasz fordítása",
+    "translation of this section",
+    "translation of the commentary section",
+)
+
+# Above this length a response is never treated as a "known placeholder"
+# purely by marker wording (only by the heading-with-nothing-after-it
+# check below it) -- the real Calvin/Rom.8.6 case (3185 chars, genuine
+# content) must never be rejected just because it happens to mention this
+# phrasing in its own opening heading.
+_PLACEHOLDER_MARKER_MAX_RESPONSE_CHARS = 400
+
+_LEADING_HEADING_LINE_RE = re.compile(r"^#{1,6}\s+.+$")
+
+
+def _looks_like_placeholder_translation(text: str) -> bool:
+    """Deterministic, narrow rejection of a batch response that is clearly
+    not a real translation result -- never a semantic quality score, just
+    two structural checks:
+
+    1. The response is JUST a markdown heading line with nothing (or only
+       blank lines) after it. A title on its own is never a translation,
+       regardless of what it says -- this deliberately does NOT judge how
+       much content follows a heading (any real, non-blank content after
+       one is accepted as-is, exactly like a response with no heading at
+       all), only whether there is a real body at all.
+    2. The ENTIRE (short) response matches a KNOWN self-referential
+       "meta-description of the task" placeholder pattern (ld.
+       _KNOWN_PLACEHOLDER_MARKERS) -- a fixed, curated marker list, never
+       a fuzzy/semantic match, and only applied to short responses so a
+       long genuine translation is never caught by it.
+    """
+    stripped = (text or "").strip()
+    if not stripped:
+        return True
+    first_line, sep, rest = stripped.partition("\n")
+    if _LEADING_HEADING_LINE_RE.match(first_line) and (not sep or not rest.strip()):
+        return True
+    if len(stripped) < _PLACEHOLDER_MARKER_MAX_RESPONSE_CHARS:
+        lowered = stripped.lower()
+        if any(marker in lowered for marker in _KNOWN_PLACEHOLDER_MARKERS):
+            return True
+    return False
+
+
 def _record_to_outcome(record: TranslationRecord) -> TranslationOutcome:
     return TranslationOutcome(
         status="cached",
@@ -369,6 +439,11 @@ def get_or_create_translation(
         batch_result = str(raw or "")
         if _looks_like_provider_failure(batch_result):
             return TranslationOutcome(status="provider_error", message=batch_result)
+        if _looks_like_placeholder_translation(batch_result):
+            return TranslationOutcome(
+                status="provider_error",
+                message="A modell válasza nem tekinthető valódi fordításnak.",
+            )
         translated_parts.append(
             _strip_redundant_passage_heading(batch_result, canonical_passages)
         )

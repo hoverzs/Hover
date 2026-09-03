@@ -735,3 +735,141 @@ def test_get_or_create_long_section_cache_hit_makes_no_new_calls(
     )
     assert second.status == "cached"
     assert fake.calls == []
+
+
+# --- Invalid-output rejection (2026-09-03 placeholder hardening) --------
+#
+# Real Calvin/Rom.8.6 provider call: "## Kommentár-szakasz fordítása
+# (John Calvin: Commentary on Romans, Róm 8:6)\n\n6.  A test gondolkodása
+# ...<full genuine translation>" -- confirmed via direct DB inspection to
+# have been a COMPLETE, valid translation (the heading was harmless, and
+# _looks_like_placeholder_translation correctly leaves it uncached-worthy
+# here, ld. the length-guarded marker check below). These tests instead
+# target the genuinely BAD version of that same pattern -- a self-
+# referential heading with little or nothing real after it -- which
+# _looks_like_provider_failure alone would never have caught.
+
+
+def test_placeholder_check_accepts_real_translation_with_meta_heading() -> None:
+    """The actual real-world Calvin/Rom.8.6 cached text: a spurious
+    self-referential heading FOLLOWED by a complete, genuine translation
+    -- must never be rejected just because of the heading."""
+    text = (
+        "## Kommentár-szakasz fordítása (John Calvin: Commentary on Romans, "
+        "Róm 8:6)\n\n" + "A test gondolkodása halál, a Szellem gondolkodása "
+        "pedig élet és békesség. " * 20
+    )
+    assert not svc._looks_like_placeholder_translation(text)
+
+
+def test_placeholder_check_accepts_plain_translation_with_no_heading() -> None:
+    assert not svc._looks_like_placeholder_translation(
+        "Ez egy teljesen rendes, valódi fordítás minden különösebb cím nélkül."
+    )
+
+
+def test_placeholder_check_rejects_empty_or_whitespace() -> None:
+    assert svc._looks_like_placeholder_translation("")
+    assert svc._looks_like_placeholder_translation("   \n\n  ")
+
+
+def test_placeholder_check_rejects_heading_with_nothing_after_it() -> None:
+    """The genuinely BAD version of the real observed pattern: the same
+    meta-heading, but with no real translated content following it."""
+    assert svc._looks_like_placeholder_translation(
+        "## Kommentár-szakasz fordítása (John Calvin: Commentary on Romans, Róm 8:6)"
+    )
+    assert svc._looks_like_placeholder_translation(
+        "## Kommentár-szakasz fordítása (John Calvin: Commentary on Romans, Róm 8:6)\n\n"
+    )
+
+
+def test_placeholder_check_accepts_heading_with_short_but_real_content() -> None:
+    """A heading followed by SOME real (even if short) content is not a
+    placeholder -- this check is purely structural (heading + nothing vs.
+    heading + something), never a length/quality judgment on the body."""
+    assert not svc._looks_like_placeholder_translation("## Cím\n\nOK")
+
+
+def test_placeholder_check_rejects_known_marker_when_response_is_short() -> None:
+    assert svc._looks_like_placeholder_translation(
+        "Ez a szakasz fordítása később elkészül."
+    )
+
+
+def test_placeholder_check_does_not_reject_genuine_heading_with_real_content(
+) -> None:
+    """A genuine structural/content heading from the source (e.g. Henry's
+    own outline points) followed by substantial real prose is not a
+    placeholder -- unrelated to _strip_redundant_passage_heading, which
+    handles the separate passage-echo-stripping concern."""
+    text = "## I. Az apostol itt...\n\n" + ("Valódi, hosszú fordított szöveg. " * 15)
+    assert not svc._looks_like_placeholder_translation(text)
+
+
+def test_get_or_create_single_batch_placeholder_response_rejected(
+    synthetic_repo: CommentaryRepository, translation_db: Path
+) -> None:
+    fake = _FakeGenerate(
+        response="## Kommentár-szakasz fordítása (JFB: John 3:16)"
+    )
+    outcome = svc.get_or_create_translation(
+        _JFB_SECTION_ID, generate_fn=fake, repository=synthetic_repo, database_path=translation_db
+    )
+    assert outcome.status == "provider_error"
+    assert len(fake.calls) == 1
+
+    still_missing = svc.get_translation(
+        _JFB_SECTION_ID, repository=synthetic_repo, database_path=translation_db
+    )
+    assert still_missing.status == "missing"
+
+
+def test_get_or_create_multi_batch_one_placeholder_batch_caches_nothing(
+    synthetic_repo: CommentaryRepository, translation_db: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(svc, "DEFAULT_TRANSLATION_BATCH_MAX_CHARS", 40)
+    calls: list[str] = []
+
+    def flaky_gen(prompt: str, **kwargs) -> str:
+        calls.append(prompt)
+        if len(calls) == 1:
+            return "FORDÍTÁS #1"
+        return "## Kommentár-szakasz fordítása (Henry: Rom 8)"
+
+    outcome = svc.get_or_create_translation(
+        _HENRY_SECTION_ID, generate_fn=flaky_gen, repository=synthetic_repo, database_path=translation_db
+    )
+    assert outcome.status == "provider_error"
+    assert len(calls) == 2
+
+    still_missing = svc.get_translation(
+        _HENRY_SECTION_ID, repository=synthetic_repo, database_path=translation_db
+    )
+    assert still_missing.status == "missing"
+    assert not (translation_db.is_file() and _translation_row_exists(translation_db, _HENRY_SECTION_ID))
+
+
+def test_get_or_create_retry_after_placeholder_response_can_succeed(
+    synthetic_repo: CommentaryRepository, translation_db: Path
+) -> None:
+    """After a rejected (uncached) attempt, a later call with a genuine
+    response must succeed and cache normally -- retry stays possible."""
+    bad = _FakeGenerate(response="## Kommentár-szakasz fordítása (JFB: John 3:16)")
+    first = svc.get_or_create_translation(
+        _JFB_SECTION_ID, generate_fn=bad, repository=synthetic_repo, database_path=translation_db
+    )
+    assert first.status == "provider_error"
+
+    good = _FakeGenerate(response="Ez egy valódi, teljes fordítás, minden gond nélkül.")
+    second = svc.get_or_create_translation(
+        _JFB_SECTION_ID, generate_fn=good, repository=synthetic_repo, database_path=translation_db
+    )
+    assert second.status == "generated"
+    assert second.text == "Ez egy valódi, teljes fordítás, minden gond nélkül."
+
+    third = svc.get_translation(
+        _JFB_SECTION_ID, repository=synthetic_repo, database_path=translation_db
+    )
+    assert third.status == "cached"
+    assert third.text == second.text
