@@ -1,8 +1,9 @@
-""""Kommentárok" fül -- közvetlen, retrieval-only nézet a Commentary
-Knowledge Base fölött (jelenleg Calvin + JFB + Matthew Henry, de a UI
-semmit nem tételez fel a forrásszámról vagy -nevekről -- ld. lentebb).
+""""Kommentárok" fül -- közvetlen, retrieval-only, forrásközpontú nézet a
+Commentary Knowledge Base fölött (jelenleg Calvin + JFB + Matthew Henry,
+de a UI semmit nem tételez fel a forrásszámról vagy -nevekről -- ld.
+lentebb).
 
-A kártyalista maga NEM generatív: minden kártya szó szerint a helyi
+A kártyalista maga NEM generatív: minden sor szó szerint a helyi
 ``commentary.sqlite3``-ból származik (``CommentaryRepository``). A meglévő
 ``render_section_tab()`` "Generálás gomb -> egy hosszú AI-szöveg" mintáját
 szándékosan NEM használja ez a modul -- a Commentary UI/workflow audit
@@ -12,23 +13,33 @@ generált tartalom, és a passage-retrieval mindig exact/range-overlap marad
 sections_for_passage`` saját dokumentációját).
 
 Egy kibontott szakaszon belül -- opcionálisan, explicit felhasználói
-kattintásra -- elérhető egy "Eredeti" / "Magyar fordítás" nézetváltó is
-(ld. ``_render_translation_toggle``, ``commentary_translation_service``).
-Ez az EGYETLEN generatív AI-hívási pont ezen a fülön; a fordítás mindig
-származtatott, cache-elt réteg a ``commentary_translations.sqlite3``-ban,
-sosem módosítja vagy helyettesíti az itt megjelenő eredeti angol szöveget,
-és az eredeti mindig egy kattintással ("Eredeti") visszaérhető marad.
+kattintásra -- elérhető egy "Magyar fordítás" / "Eredeti angol" nézetváltó
+is (ld. ``_render_translation_view_toggle``, ``commentary_translation_
+service``). Ez az EGYETLEN generatív AI-hívási pont ezen a fülön; a
+fordítás mindig származtatott, cache-elt réteg a ``commentary_
+translations.sqlite3``-ban, sosem módosítja vagy helyettesíti az itt
+megjelenő eredeti angol szöveget, és az eredeti mindig egy kattintással
+visszaérhető marad.
 
-Forrás-generikusság: a forrás-szűrő checkboxok és a kártya-badge-ek NEM egy
-hardcode-olt 3-elemű listából épülnek, hanem minden alkalommal a ténylegesen
-visszakapott találatok ``contributors`` metaadatából származnak (ld.
-``_primary_contributor``) -- egy jövőbeli negyedik korpusz importálásakor
-ez a modul módosítás nélkül megjeleníti majd az új forrást is.
+Forrásközpontú UI (2026-09-03 polish kör): a találatok NEM egyetlen
+hosszú, section-szintű listában jelennek meg, hanem forrás (work/edition
+"család") szerint csoportosítva -- ld. ``_source_family_key``,
+``_group_results_by_family``. A csoportosítás KULCSA mindig a metaadatból
+(``work_id`` névtér-előtag) származik, sosem egy adott könyv aktuális
+contributorjából -- így a forrás-szűrő és a kártyacsoportok egy jövőbeli
+negyedik korpusz importálásakor is módosítás nélkül megjelennek, saját
+csoportjukban. A megjelenítendő NÉV egy kis, kurált táblázatból jön a már
+ismert forrásokhoz (``_SOURCE_FAMILY_DISPLAY_NAMES_HU``), egyébként a
+ténylegesen jelenlévő contributor-nevekből származtatva (1 név -> az a
+név; több név -> "–"-tel összefűzve) -- sosem összeomlik egy ismeretlen
+forrásnál. A könyv-szintű, bibliográfiailag pontos contributor attribúció
+(pl. "David Brown" a JFB "Jamieson–Fausset–Brown" család alatt) minden
+kártyán/szűrőn külön, kisebb részletként megmarad.
 """
 
 from __future__ import annotations
 
-from typing import Any, Callable, MutableMapping
+from typing import Any, Callable, MutableMapping, Sequence
 
 import streamlit as st
 
@@ -58,8 +69,8 @@ _RELATION_TIER_LABELS_HU: dict[str, str] = {
 }
 
 _PASSAGE_RELATION_LABELS_HU: dict[str, str] = {
-    "primary": "fő kommentált hely",
-    "parallel": "párhuzamos evangéliumi hely",
+    "primary": "Fő kommentált hely",
+    "parallel": "Párhuzamos evangéliumi hely",
 }
 
 _PASSAGE_RELATION_LEGEND_HU = (
@@ -88,7 +99,42 @@ _CACHE_PASSAGE_KEY = "_commentary_ui_cached_passage"
 _CACHE_RESULTS_KEY = "_commentary_ui_cached_results"
 _FILTER_STATE_KEY = "_commentary_ui_source_filter"
 _PREVIEW_MAX_CHARS = 220
-_MAX_DISPLAYED_CARDS = 12
+_MAX_SECTIONS_PER_FAMILY = 6
+
+# Curated display names for the currently-known source families (keyed by
+# the metadata-derived family key, ld. _source_family_key) -- a plain
+# presentation-layer lookup, same idiom as _RELATION_TIER_LABELS_HU above.
+# NOT the grouping mechanism itself (that's pure work_id metadata, scales
+# to any future family automatically) -- only the cosmetic label for the
+# three sources this corpus happens to have today. Any family key NOT
+# listed here still groups and displays correctly via
+# _source_family_display_name's generic, data-derived fallback.
+_SOURCE_FAMILY_DISPLAY_NAMES_HU: dict[str, str] = {
+    "ccel.calvin": "John Calvin",
+    "ccel.jfb": "Jamieson–Fausset–Brown",
+    "ccel.henry": "Matthew Henry",
+}
+
+# OSIS-style canonical book id (ld. textus_kb.books.BOOKS) -> standard
+# Hungarian (RÚF-style) abbreviation. Display-only: never touches the
+# canonical reference system itself (CanonicalReference / textus_kb.books
+# stay completely unmodified) -- ld. _format_passage_hu.
+_OSIS_TO_RUF_ABBR_HU: dict[str, str] = {
+    "Gen": "1Móz", "Exod": "2Móz", "Lev": "3Móz", "Num": "4Móz", "Deut": "5Móz",
+    "Josh": "Józs", "Judg": "Bír", "Ruth": "Ruth", "1Sam": "1Sám", "2Sam": "2Sám",
+    "1Kgs": "1Kir", "2Kgs": "2Kir", "1Chr": "1Krón", "2Chr": "2Krón", "Ezra": "Ezsd",
+    "Neh": "Neh", "Esth": "Eszt", "Job": "Jób", "Ps": "Zsolt", "Prov": "Péld",
+    "Eccl": "Préd", "Song": "Én", "Isa": "Ézs", "Jer": "Jer", "Lam": "JSir",
+    "Ezek": "Ez", "Dan": "Dán", "Hos": "Hós", "Joel": "Jóel", "Amos": "Ámós",
+    "Obad": "Abd", "Jonah": "Jón", "Mic": "Mik", "Nah": "Náh", "Hab": "Hab",
+    "Zeph": "Zof", "Hag": "Hag", "Zech": "Zak", "Mal": "Mal",
+    "Matt": "Mt", "Mark": "Mk", "Luke": "Lk", "John": "Jn", "Acts": "ApCsel",
+    "Rom": "Róm", "1Cor": "1Kor", "2Cor": "2Kor", "Gal": "Gal", "Eph": "Ef",
+    "Phil": "Fil", "Col": "Kol", "1Thess": "1Thessz", "2Thess": "2Thessz",
+    "1Tim": "1Tim", "2Tim": "2Tim", "Titus": "Tit", "Phlm": "Filem", "Heb": "Zsid",
+    "Jas": "Jak", "1Pet": "1Pt", "2Pet": "2Pt", "1John": "1Jn", "2John": "2Jn",
+    "3John": "3Jn", "Jude": "Júd", "Rev": "Jel",
+}
 
 
 def _primary_contributor(contributors: tuple[str, ...]) -> str:
@@ -111,6 +157,68 @@ def _query_canonical(passage: str) -> str | None:
         return CanonicalReference.parse(passage).canonical_string()
     except CanonicalReferenceError:
         return None
+
+
+def _format_passage_hu(canonical: str) -> str:
+    """Human-friendly Hungarian passage display (e.g. ``Mt 5,1–12``) for a
+    single canonical/OSIS-style reference string -- display-only, never
+    changes what's stored/matched internally (still plain ``canonical``
+    everywhere else: provenance, retrieval, compare). Falls back to the
+    raw canonical string for any book id not in the abbreviation table,
+    so nothing is ever hidden -- just less prettily formatted."""
+    try:
+        ref = CanonicalReference.parse(canonical)
+    except CanonicalReferenceError:
+        return canonical
+    abbr = _OSIS_TO_RUF_ABBR_HU.get(ref.book_id)
+    if not abbr:
+        return canonical
+    if ref.start_chapter == ref.end_chapter:
+        if ref.start_verse == ref.end_verse:
+            return f"{abbr} {ref.start_chapter},{ref.start_verse}"
+        return f"{abbr} {ref.start_chapter},{ref.start_verse}–{ref.end_verse}"
+    return (
+        f"{abbr} {ref.start_chapter},{ref.start_verse}"
+        f"–{ref.end_chapter},{ref.end_verse}"
+    )
+
+
+def _format_passage_list_hu(passages: Sequence[str]) -> str:
+    formatted = [_format_passage_hu(p) for p in passages if p]
+    return ", ".join(formatted) if formatted else "—"
+
+
+def _source_family_key(work_id: str) -> str:
+    """Metadata-derived source-family grouping key: the shared namespace
+    prefix of ``work_id`` (e.g. ``ccel.calvin``, ``ccel.jfb``,
+    ``ccel.henry`` for the real corpus -- ld. ``commentary_sqlite``
+    import's ``<namespace>.<family>.work.<book>`` convention, verified
+    identical across every book from one source and distinct across
+    sources). Never a per-book contributor name -- a future 4th corpus
+    following the same import convention groups itself automatically,
+    with zero code changes here."""
+    parts = (work_id or "").split(".")
+    return ".".join(parts[:2]) if len(parts) >= 2 else (work_id or "")
+
+
+def _source_family_display_name(
+    family_key: str, contributor_names: Sequence[str]
+) -> str:
+    """Primary, human-facing source name for a family (task requirement:
+    "fő forrásnév", e.g. "Jamieson–Fausset–Brown" instead of whichever
+    single book's contributor happens to be showing). Curated for the
+    currently-known families; for anything else, derives a reasonable
+    name straight from the real contributor(s) actually present -- never
+    crashes or falls back to a raw internal key."""
+    curated = _SOURCE_FAMILY_DISPLAY_NAMES_HU.get(family_key)
+    if curated:
+        return curated
+    names = [n for n in contributor_names if n]
+    if not names:
+        return "Ismeretlen forrás"
+    if len(names) == 1:
+        return names[0]
+    return " – ".join(names)
 
 
 def _passage_relation_key(
@@ -147,6 +255,10 @@ def interleave_by_source(
     (tier, then per-tier round-robin) approach, applied here to display
     cards instead of AI evidence items -- a UI-local helper, not a reuse
     of that private, differently-shaped function.
+
+    Runs at the book-level contributor granularity (unchanged) -- the
+    family-level grouping used for display (ld. _group_results_by_family)
+    is a separate, later pass over this already-diversified order.
     """
     tier_order: list[str] = []
     tiers: dict[str, list[CommentarySectionResult]] = {}
@@ -173,6 +285,57 @@ def interleave_by_source(
                 if bucket:
                     interleaved.append(bucket.pop(0))
     return interleaved
+
+
+def _group_book_sources_by_family(
+    results: list[CommentarySectionResult],
+) -> list[tuple[str, str, list[str]]]:
+    """Ordered ``(family_key, family_display_name, book_contributor_
+    names)`` groups for the source filter -- purely derived from
+    ``results`` metadata (work_id namespace + contributors), never a
+    hardcoded source list. Each family may list more than one book-level
+    contributor name when the current passage spans multiple books from
+    the same source family."""
+    family_order: list[str] = []
+    family_names: dict[str, list[str]] = {}
+    for r in results:
+        key = _source_family_key(r.work_id)
+        name = _primary_contributor(r.contributors)
+        bucket = family_names.setdefault(key, [])
+        if key not in family_order:
+            family_order.append(key)
+        if name not in bucket:
+            bucket.append(name)
+    return [
+        (key, _source_family_display_name(key, family_names[key]), family_names[key])
+        for key in family_order
+    ]
+
+
+def _group_results_by_family(
+    results: list[CommentarySectionResult],
+) -> list[tuple[str, str, list[CommentarySectionResult]]]:
+    """Ordered ``(family_key, family_display_name, sections)`` groups for
+    the card list -- first-appearance order preserved from the already
+    relevance-sorted/interleaved input, never re-sorted by family name."""
+    family_order: list[str] = []
+    buckets: dict[str, list[CommentarySectionResult]] = {}
+    for r in results:
+        key = _source_family_key(r.work_id)
+        if key not in buckets:
+            buckets[key] = []
+            family_order.append(key)
+        buckets[key].append(r)
+    groups: list[tuple[str, str, list[CommentarySectionResult]]] = []
+    for key in family_order:
+        items = buckets[key]
+        names: list[str] = []
+        for item in items:
+            name = _primary_contributor(item.contributors)
+            if name not in names:
+                names.append(name)
+        groups.append((key, _source_family_display_name(key, names), items))
+    return groups
 
 
 def _get_repository() -> CommentaryRepository:
@@ -202,8 +365,12 @@ def _fetch_results(passage: str) -> list[CommentarySectionResult]:
 
 
 def _sources_present(results: list[CommentarySectionResult]) -> list[str]:
-    """Distinct source names in first-seen order -- purely data-derived,
-    never a hardcoded corpus list (ld. a modul docstringjét)."""
+    """Distinct BOOK-LEVEL source (contributor) names in first-seen order
+    -- purely data-derived, never a hardcoded corpus list. Unchanged
+    granularity (still book-level, not family-level): this is exactly
+    the identity ``commentary_compare.py`` groups evidence by, so the
+    compare integration's ``enabled_sources`` contract stays untouched
+    by the family-grouped UI presentation above it."""
     seen: set[str] = set()
     ordered: list[str] = []
     for r in results:
@@ -278,44 +445,56 @@ def _render_all_sources_disabled() -> None:
 
 
 def _render_source_filter(results: list[CommentarySectionResult]) -> set[str]:
-    sources_present = _sources_present(results)
-
+    """Renders ONE checkbox per source FAMILY (task item 2 -- not per
+    book-level contributor), labeled with the family's primary display
+    name; the concrete book-level contributor(s) actually present for the
+    current passage show as a small caption underneath, so bibliographic
+    attribution is never lost. Returns the set of enabled BOOK-LEVEL
+    contributor names (unchanged contract from before this round --
+    ``commentary_compare.py`` groups evidence by exactly this identity,
+    so the compare integration keeps working without any change there)."""
+    groups = _group_book_sources_by_family(results)
     filter_state: dict[str, bool] = st.session_state.setdefault(_FILTER_STATE_KEY, {})
-    if sources_present:
-        cols = st.columns(len(sources_present))
-        for col, name in zip(cols, sources_present):
+    if groups:
+        cols = st.columns(len(groups))
+        for col, (family_key, family_display, book_names) in zip(cols, groups):
             with col:
-                filter_state[name] = st.checkbox(
-                    name,
-                    value=filter_state.get(name, True),
-                    key=f"commentary_source_filter_{name}",
+                filter_state[family_key] = st.checkbox(
+                    family_display,
+                    value=filter_state.get(family_key, True),
+                    key=f"commentary_source_filter_{family_key}",
                 )
-    return {name for name, enabled in filter_state.items() if enabled}
+                st.caption(", ".join(book_names))
+    enabled_families = {key for key, enabled in filter_state.items() if enabled}
+    enabled_book_names: set[str] = set()
+    for family_key, _display, book_names in groups:
+        if family_key in enabled_families:
+            enabled_book_names.update(book_names)
+    return enabled_book_names
 
 
-def _render_card(
+def _render_compact_section(
     result: CommentarySectionResult,
     *,
     query_canonical: str | None,
-    generate_fn: Callable[..., str] | None = None,
-    resolve_model_fn: Callable[[str], str] | None = None,
+    generate_fn: Callable[..., str] | None,
+    resolve_model_fn: Callable[[str], str] | None,
 ) -> None:
-    source_name = _primary_contributor(result.contributors)
+    """One compact row within a source-family group: passage + short
+    preview + relation + expand -- never repeats a full-size author/work
+    heading per section (that's now the family header above); the exact
+    book-level work/contributor still shows, just as a small caption."""
     tier_label = _RELATION_TIER_LABELS_HU.get(result.relation_type, result.relation_type)
     relation_key = _passage_relation_key(result, query_canonical)
     relation_label = _PASSAGE_RELATION_LABELS_HU.get(relation_key or "", "")
+    contributor = _primary_contributor(result.contributors)
 
     passages = result.primary_passages or result.canonical_passages
-    passage_display = ", ".join(passages) if passages else "—"
+    passage_display = _format_passage_list_hu(passages)
 
     with st.container(border=True):
-        badge_col, title_col = st.columns([1, 4])
-        with badge_col:
-            render_status_badge(source_name, tone=_source_badge_tone(source_name))
-        with title_col:
-            st.markdown(f"**{result.work_title}**")
-
-        caption_bits = [passage_display, tier_label]
+        st.markdown(f"**{passage_display}**")
+        caption_bits = [f"{result.work_title} — {contributor}", tier_label]
         if relation_label:
             caption_bits.append(relation_label)
         st.caption(" · ".join(caption_bits))
@@ -325,28 +504,38 @@ def _render_card(
             result.section_id, ""
         )
         if preview:
-            st.write(preview)
+            st.caption(preview)
 
-        with st.expander("Teljes szöveg és forrás megtekintése"):
+        with st.expander("Teljes szöveg és forrásadatok"):
             _render_detail(result, generate_fn=generate_fn, resolve_model_fn=resolve_model_fn)
 
 
-_TRANSLATION_VIEW_ORIGINAL = "Eredeti"
 _TRANSLATION_VIEW_HUNGARIAN = "Magyar fordítás"
+_TRANSLATION_VIEW_ORIGINAL = "Eredeti angol"
 _TRANSLATION_VIEW_KEY_PREFIX = "commentary_translation_view_"
 
 
-def _render_translation_view_toggle(section_id: str, *, has_text: bool) -> str:
-    """"Eredeti" / "Magyar fordítás" nézetváltó -- csak akkor jelenik meg,
-    ha a szakaszhoz egyáltalán tartozik önálló szöveg (szerkezeti, üres
-    szakaszoknál nincs mit fordítani). Alapértelmezés MINDIG "Eredeti" --
-    az eredeti angol szöveg soha nem tűnik el, csak explicit váltásra."""
+def _render_translation_view_toggle(
+    section_id: str, *, has_text: bool, has_cached_translation: bool
+) -> str:
+    """"Magyar fordítás" / "Eredeti angol" nézetváltó -- csak akkor
+    jelenik meg, ha a szakaszhoz egyáltalán tartozik önálló szöveg
+    (szerkezeti, üres szakaszoknál nincs mit fordítani/mutatni két
+    nézetben). Ha már van cache-elt magyar fordítás, a magyar nézet a
+    kényelmes alapértelmezett; egyébként "Eredeti angol" indul -- de
+    mindkét irányba egy kattintás, az eredeti soha nem tűnik el."""
     if not has_text:
         return _TRANSLATION_VIEW_ORIGINAL
+    options = (_TRANSLATION_VIEW_HUNGARIAN, _TRANSLATION_VIEW_ORIGINAL)
+    key = f"{_TRANSLATION_VIEW_KEY_PREFIX}{section_id}"
+    if key not in st.session_state:
+        st.session_state[key] = (
+            _TRANSLATION_VIEW_HUNGARIAN if has_cached_translation else _TRANSLATION_VIEW_ORIGINAL
+        )
     return st.radio(
         "Nézet",
-        options=(_TRANSLATION_VIEW_ORIGINAL, _TRANSLATION_VIEW_HUNGARIAN),
-        key=f"{_TRANSLATION_VIEW_KEY_PREFIX}{section_id}",
+        options=options,
+        key=key,
         horizontal=True,
         label_visibility="collapsed",
     )
@@ -359,10 +548,11 @@ def _render_translation_panel(
     resolve_model_fn: Callable[[str], str] | None,
 ) -> None:
     """Cache-hit -> azonnal megjelenik, új modellhívás nélkül. Cache-miss
-    -> explicit "Magyar fordítás készítése" gomb; a teljes kanonikus
-    szakasz fordul (nem preview). Hiba/elérhetetlen provider esetén csak
-    ez a panel jelez -- az "Eredeti" nézet és a fenti kártyalista ettől
-    függetlenül változatlanul működik."""
+    -> explicit "Magyar fordítás készítése" gomb (SOHA nem generál
+    automatikusan); a teljes kanonikus szakasz fordul (nem preview). Hiba/
+    elérhetetlen provider esetén csak ez a panel jelez -- az "Eredeti
+    angol" nézet és a fenti kártyalista ettől függetlenül változatlanul
+    működik."""
     repo = _get_repository()
     db_path = _translation_database_path()
     outcome = commentary_translation_service.get_translation(
@@ -406,9 +596,19 @@ def _render_translated_text(
     st.caption("AI által készített magyar fordítás")
     st.write(outcome.text)
     st.caption(
-        f"Az eredeti angol szöveg gépi fordítása (forrás: {card.work_title}). "
-        "Az eredeti szöveg az „Eredeti” nézetben egy kattintással elérhető."
+        "Az eredeti angol szöveg gépi fordítása. Az eredeti szöveg az "
+        "„Eredeti angol” nézetben egy kattintással elérhető."
     )
+
+
+def _has_cached_translation(section_id: str) -> bool:
+    """Cache-only check (no provider call) used purely to decide the
+    toggle's default view -- a real cache-hit lookup happens again inside
+    _render_translation_panel regardless of this default."""
+    outcome = commentary_translation_service.get_translation(
+        section_id, repository=_get_repository(), database_path=_translation_database_path()
+    )
+    return outcome.status == "cached"
 
 
 def _render_detail(
@@ -429,12 +629,23 @@ def _render_detail(
         st.caption(f"Szerkezet: {breadcrumb} › {current}")
 
     passages = detail.primary_passages or detail.canonical_passages
-    if passages:
-        st.caption(f"Ez a szakasz erre a helyre vonatkozik: {', '.join(passages)}")
+    passage_display = _format_passage_list_hu(passages)
+    render_context_summary(
+        [
+            ("Szerző", ", ".join(detail.contributors) or "—"),
+            ("Mű", card.work_title),
+            ("Igehely", passage_display),
+        ]
+    )
     if detail.parallel_passages:
-        st.caption(f"Párhuzamos evangéliumi hely: {', '.join(detail.parallel_passages)}")
+        st.caption(
+            f"Párhuzamos evangéliumi hely: {_format_passage_list_hu(detail.parallel_passages)}"
+        )
 
-    view = _render_translation_view_toggle(card.section_id, has_text=bool(detail.chunks))
+    has_translation = bool(detail.chunks) and _has_cached_translation(card.section_id)
+    view = _render_translation_view_toggle(
+        card.section_id, has_text=bool(detail.chunks), has_cached_translation=has_translation
+    )
     if view == _TRANSLATION_VIEW_HUNGARIAN and detail.chunks:
         _render_translation_panel(card, generate_fn=generate_fn, resolve_model_fn=resolve_model_fn)
     else:
@@ -443,28 +654,23 @@ def _render_detail(
         if not detail.chunks:
             st.caption("Ehhez a szakaszhoz nem tartozik önálló szöveg (csak szerkezeti elem).")
 
+    # Detailed, technical provenance -- kept fully available but demoted
+    # below the reading surface (task item 7): never lost, just not
+    # competing with the actual commentary text for attention.
     source_locator = detail.chunks[0].source_locator if detail.chunks else ""
+    st.markdown("**Forrásadatok**")
     render_context_summary(
         [
-            ("Szerző/közreműködő", ", ".join(detail.contributors) or "—"),
-            ("Mű", card.work_title),
             ("Kiadás (edition)", detail.edition_id),
-            ("Kanonikus hely", ", ".join(detail.canonical_passages) or "—"),
             ("Forrás locator", source_locator or "—"),
+            ("Upstream forrás", card.source_url or "—"),
+            ("Azonosító", card.external_id or "—"),
+            (
+                "Jogi státusz",
+                (card.rights_status or "—") + (f" ({card.license})" if card.license else ""),
+            ),
         ]
     )
-    provenance_bits = []
-    if card.source_url:
-        provenance_bits.append(f"Upstream forrás: {card.source_url}")
-    if card.external_id:
-        provenance_bits.append(f"Azonosító: {card.external_id}")
-    if card.rights_status or card.license:
-        provenance_bits.append(
-            f"Jogi státusz: {card.rights_status or '—'}"
-            + (f" ({card.license})" if card.license else "")
-        )
-    if provenance_bits:
-        st.caption(" · ".join(provenance_bits))
     if card.rights_note:
         st.caption(card.rights_note)
 
@@ -478,22 +684,22 @@ def render_commentary_panel(
 
     ``generate_fn`` powers two independent, explicit-click-only generative
     actions: the "Kommentárok összehasonlítása" section below the cards,
-    and the per-card "Magyar fordítás készítése" button inside an expanded
-    section's "Eredeti" / "Magyar fordítás" toggle (ld. ``_render_
-    translation_panel``). The retrieval-only card list itself still makes
-    zero LLM calls on its own -- and, like ``generate_fn``, never names a
-    concrete provider in this module's own source. ``resolve_model_fn``
-    (app.py's own tab-based model-routing lookup) is optional,
-    translation-only provenance metadata -- when omitted, translations
-    are still generated and cached normally, just without a recorded
-    provider/model name.
+    and the per-section "Magyar fordítás készítése" button inside an
+    expanded section's "Magyar fordítás" / "Eredeti angol" toggle (ld.
+    ``_render_translation_panel``). The retrieval-only card list itself
+    still makes zero LLM calls on its own -- and, like ``generate_fn``,
+    never names a concrete provider in this module's own source.
+    ``resolve_model_fn`` (app.py's own tab-based model-routing lookup) is
+    optional, translation-only provenance metadata -- when omitted,
+    translations are still generated and cached normally, just without a
+    recorded provider/model name.
     """
     render_work_section(
         title="Kommentárok",
         body=(
-            "Klasszikus kommentárok az aktuális igeszakaszhoz -- közvetlenül a "
-            "forrásból, AI-összefoglalás nélkül. Minden kártya szó szerinti "
-            "idézet a kiválasztott műből."
+            "Klasszikus kommentárok az aktuális igeszakaszhoz -- forrásonként "
+            "csoportosítva, közvetlenül a forrásból, AI-összefoglalás nélkül. "
+            "Minden szakasz szó szerinti idézet a kiválasztott műből."
         ),
         context="Textusműhely",
     )
@@ -531,18 +737,21 @@ def render_commentary_panel(
         if any(r.parallel_passages for r in visible):
             st.caption(_PASSAGE_RELATION_LEGEND_HU)
 
-        shown, hidden = visible[:_MAX_DISPLAYED_CARDS], visible[_MAX_DISPLAYED_CARDS:]
-        for result in shown:
-            _render_card(
-                result,
-                query_canonical=query_canonical,
-                generate_fn=generate_fn,
-                resolve_model_fn=resolve_model_fn,
-            )
-        if hidden:
-            st.caption(
-                f"+ {len(hidden)} további, alacsonyabb relevanciájú találat nem jelenik meg."
-            )
+        for _family_key, family_display, items in _group_results_by_family(visible):
+            shown, hidden = items[:_MAX_SECTIONS_PER_FAMILY], items[_MAX_SECTIONS_PER_FAMILY:]
+            st.markdown(f"#### {family_display}")
+            for result in shown:
+                _render_compact_section(
+                    result,
+                    query_canonical=query_canonical,
+                    generate_fn=generate_fn,
+                    resolve_model_fn=resolve_model_fn,
+                )
+            if hidden:
+                st.caption(
+                    f"+ {len(hidden)} további, alacsonyabb relevanciájú "
+                    f"{family_display} találat nem jelenik meg."
+                )
 
         # Only enabled-AND-currently-shown sources count -- filter_state can
         # carry stale entries from a previous passage's checkboxes that no
@@ -565,7 +774,10 @@ __all__ = ["render_commentary_panel", "interleave_by_source"]
 # NOTE: the underscored helpers below (`_get_repository`, `_get_status`,
 # `_fetch_results`, `_ensure_results`, `_sources_present`,
 # `_apply_source_filter`, `_primary_contributor`, `_passage_relation_key`,
-# `_query_canonical`) are intentionally still module-private (no public
-# API contract) but are imported directly by tests/test_commentary_ui.py
-# -- consistent with this repo's existing pattern of testing Streamlit UI
-# modules via their pure helper functions rather than full rendering.
+# `_query_canonical`, `_source_family_key`, `_source_family_display_name`,
+# `_group_results_by_family`, `_group_book_sources_by_family`,
+# `_format_passage_hu`, `_format_passage_list_hu`) are intentionally still
+# module-private (no public API contract) but are imported directly by
+# tests/test_commentary_ui.py -- consistent with this repo's existing
+# pattern of testing Streamlit UI modules via their pure helper functions
+# rather than full rendering.

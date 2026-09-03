@@ -462,7 +462,17 @@ def test_translation_view_defaults_to_original_when_section_has_no_text() -> Non
     import commentary_ui as cu
 
     assert (
-        cu._render_translation_view_toggle("any.section", has_text=False)
+        cu._render_translation_view_toggle(
+            "any.section", has_text=False, has_cached_translation=False
+        )
+        == cu._TRANSLATION_VIEW_ORIGINAL
+    )
+    # Even a (nonsensical, but defensive) cached-translation flag can't
+    # override the "no text at all" case.
+    assert (
+        cu._render_translation_view_toggle(
+            "any.section", has_text=False, has_cached_translation=True
+        )
         == cu._TRANSLATION_VIEW_ORIGINAL
     )
 
@@ -470,7 +480,8 @@ def test_translation_view_defaults_to_original_when_section_has_no_text() -> Non
 def test_translation_view_labels_are_original_and_hungarian() -> None:
     import commentary_ui as cu
 
-    assert cu._TRANSLATION_VIEW_ORIGINAL == "Eredeti"
+    # 2026-09-03 UI polish round: "Eredeti" -> "Eredeti angol" (task item 4).
+    assert cu._TRANSLATION_VIEW_ORIGINAL == "Eredeti angol"
     assert cu._TRANSLATION_VIEW_HUNGARIAN == "Magyar fordítás"
 
 
@@ -630,6 +641,39 @@ def test_ui_toggle_cache_hit_on_rerun_does_not_call_provider_again(clean_ui_tran
     assert at2.session_state["_test_call_count"] == 0
 
 
+def test_ui_toggle_defaults_to_hungarian_when_translation_already_cached(
+    clean_ui_translation_cache,
+) -> None:
+    """2026-09-03 UI polish round (task item 4): "A magyar nézet legyen
+    kényelmes elsődleges választás, ha már létezik cache-elt fordítás" --
+    pre-populate the cache directly (no button click, no provider call),
+    then confirm a FRESH AppTest run defaults straight to the Hungarian
+    view with zero clicks."""
+    fingerprint = store.compute_source_fingerprint(
+        ["UI SYNTH HENRY PART ONE", "UI SYNTH HENRY PART TWO"]
+    )
+    store.save_translation(
+        section_id="ui.henry.range",
+        source_fingerprint=fingerprint,
+        language="hu",
+        policy_version=policy.TRANSLATION_POLICY_VERSION,
+        translated_text="ELŐRE CACHE-ELT MAGYAR FORDÍTÁS",
+        provider_model="test-model-id",
+        database_path=_UI_TEST_TRANSLATION_DB_PATH,
+    )
+
+    at = AppTest.from_function(_render_translation_toggle_flow).run(timeout=60)
+    captions = [c.value for c in at.caption]
+    assert any("AI által készített magyar fordítás" in c for c in captions)
+    body = "\n".join(md.value for md in at.markdown)
+    assert "ELŐRE CACHE-ELT MAGYAR FORDÍTÁS" in body
+    # Zero provider calls -- this was a pure cache hit, no generation.
+    assert at.session_state["_test_call_count"] == 0
+    # The radio widget itself is showing the Hungarian option as selected.
+    radios = at.radio
+    assert radios[0].value == "Magyar fordítás"
+
+
 def test_ui_toggle_original_always_one_click_away_after_translation(clean_ui_translation_cache) -> None:
     at = AppTest.from_function(_render_translation_toggle_flow).run(timeout=60)
     radios = at.radio
@@ -638,7 +682,7 @@ def test_ui_toggle_original_always_one_click_away_after_translation(clean_ui_tra
     at = translate_btn.click().run(timeout=60)
 
     radios = at.radio
-    at = radios[0].set_value("Eredeti").run(timeout=60)
+    at = radios[0].set_value("Eredeti angol").run(timeout=60)
     body = "\n".join(md.value for md in at.markdown)
     assert "UI SYNTH HENRY PART ONE" in body
     captions = [c.value for c in at.caption]
