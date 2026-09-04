@@ -41,8 +41,18 @@ from textus_kb.repositories.commentary_repository import CommentaryRepository
 # content_hash of the full Calvin + JFB + Henry document. content_hash is
 # purely content-derived (imported_at never affects it), so this stays a
 # valid fixed expectation across CLI invocations at different times.
+#
+# 2026-09-04: updated after fixing a structural Calvin importer gap —
+# combined multi-book volumes (e.g. the Catholic Epistles: James/1-2Peter/
+# 1John/Jude) nest one extra div level between a chapter and its actual
+# scripture-range content versus single-book volumes, and the importer
+# only walked direct children, silently importing real chapters as bare
+# "CHAPTER N" heading stubs (ld. textus_kb.importers.calvin_commentary_
+# thml._process_range_group_divs). Calvin's own real content grew
+# accordingly (18989/14673/18397 sections/chunks/passage_links, up from
+# 14643/11785/14153) — content_hash necessarily changes with it.
 _KNOWN_COMBINED_CONTENT_HASH = (
-    "d02276993c03bf0f91b103f2ec097c0ba1f5b556d13bb7a50f115fb35ae96f5a"
+    "569e986a05e3c815e9e779b48d35a716a7c443431e24fd05f0597df264be566e"
 )
 
 _CALVIN_ENTRIES = load_calvin_manifest()
@@ -173,14 +183,17 @@ def test_combined_cli_builds_production_store_with_qa(
     assert payload["work_count"] == 23 + 66 + 66
     assert payload["edition_count"] == 45 + 66 + 66
     assert payload["contributor_count"] == 9 + 3 + 15
-    assert payload["section_count"] == 14643 + 32394 + 5579
-    assert payload["chunk_count"] == 11785 + 21071 + 5512
-    assert payload["passage_link_count"] == 14153 + 31097 + 4258
+    # 2026-09-04: Calvin's own numbers grew — ld. the comment on
+    # _KNOWN_COMBINED_CONTENT_HASH above.
+    assert payload["section_count"] == 18989 + 32394 + 5579
+    assert payload["chunk_count"] == 14673 + 21071 + 5512
+    assert payload["passage_link_count"] == 18397 + 31097 + 4258
     assert payload["runtime_status"]["available"] is True
 
     assert payload["qa"]["available"] is True
-    assert len(payload["qa"]["known_unmapped"]) == 10
-    assert payload["qa"]["parallel_passage_link_count"] == 354
+    # 6 Calvin (+1, 2026-09-04) + 5 Henry known-unmapped exceptions.
+    assert len(payload["qa"]["known_unmapped"]) == 11
+    assert payload["qa"]["parallel_passage_link_count"] == 436
 
     # No leftover staging file next to the real output.
     leftovers = list(output.parent.glob(f".{output.stem}.combined-build.*"))

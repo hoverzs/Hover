@@ -83,9 +83,17 @@ def test_combined_scale_matches_sum_of_both_sources(
     assert status.source_file_count == 45 + 66
     assert status.import_batch_count == 45 + 66
     assert status.contributor_count == 9 + 3
-    assert status.section_count == 14643 + 32394
-    assert status.chunk_count == 11785 + 21071
-    assert status.passage_link_count == 14153 + 31097
+    # 2026-09-04: Calvin's own numbers grew (18989/14673/18397, up from
+    # 14643/11785/14153) after fixing a structural importer gap — combined
+    # multi-book volumes (e.g. the Catholic Epistles: James/1-2Peter/
+    # 1John/Jude) nest one extra div level between a chapter and its
+    # actual scripture-range content versus single-book volumes, and the
+    # importer only walked direct children, silently importing real
+    # chapters as bare "CHAPTER N" heading stubs. See
+    # textus_kb.importers.calvin_commentary_thml._process_range_group_divs.
+    assert status.section_count == 18989 + 32394
+    assert status.chunk_count == 14673 + 21071
+    assert status.passage_link_count == 18397 + 31097
 
 
 def test_combined_qa_is_clean(combined_db: Path) -> None:
@@ -100,11 +108,16 @@ def test_combined_qa_is_clean(combined_db: Path) -> None:
     assert report.hierarchy_cycle_sections == []
     assert report.invalid_relation_types == []
     assert report.warnings == []
-    # Calvin's 5 documented known-unmapped exceptions must still surface
-    # correctly through the combined store.
-    assert len(report.known_unmapped) == 5
-    # Calvin's 354 parallel Harmony links; JFB contributes none.
-    assert report.parallel_passage_link_count == 354
+    # Calvin's 6 documented known-unmapped exceptions must still surface
+    # correctly through the combined store (2026-09-04: +1, calcom30's
+    # "Malichi 3:15" — a plain-text, misspelled-book-name table caption
+    # with no scripRef, newly surfaced once its wrapping chapter div was
+    # correctly unwrapped instead of being silently skipped whole).
+    assert len(report.known_unmapped) == 6
+    # Calvin's 436 parallel Harmony links (2026-09-04: up from 354, since
+    # previously-invisible combined-volume content now contributes some
+    # parallel links of its own); JFB contributes none.
+    assert report.parallel_passage_link_count == 436
     assert len(report.works) == 89
 
 

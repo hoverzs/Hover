@@ -7,6 +7,16 @@ hand-authored or synthetic XML is used here — every structural case below
 (range section, the untyped "anomaly" verse-1 continuation, nested
 per-verse <div class="Commentary"> blocks, a two-passage Harmony section,
 an inline cross-reference) is real Calvin commentary markup.
+
+The one exception is ``COMBINED_VOLUME_FIXTURE`` (2026-09-04): a minimal,
+hand-authored reproduction of the real calcom45.xml ("Commentaries on the
+Catholic Epistles") structure -- confirmed against that actual file
+(``div1[type=book] > div2[type=Chapter] > div3[type=Scripture] > table +
+verse commentary``, one extra div level versus a single-book volume's
+``div1[type=chapter] > div2[type=scripture] > ...``) rather than trimmed
+from it directly, since a literal trim of a 1.6MB multi-book file down to
+a few KB would be far more fragile to keep well-formed than reproducing
+the same confirmed tag/attribute shapes by hand.
 """
 
 from __future__ import annotations
@@ -51,6 +61,9 @@ ISAIAH_NO_WRAPPER_FIXTURE = Path(
 )
 HARMONY_LAW_PLAIN_CAPTION_FIXTURE = Path(
     "tests/fixtures/kb/calvin_calcom03_harmony_law_plain_caption_min.xml"
+)
+COMBINED_VOLUME_FIXTURE = Path(
+    "tests/fixtures/kb/calvin_calcom45_catholic_epistles_min.xml"
 )
 
 
@@ -238,6 +251,112 @@ def test_verse_content_without_commentary_div_wrapper_is_still_collected() -> No
     )
     chunk = chunks_by_section.get(verse_section["section_id"])
     assert chunk is not None and chunk["plain_text"]
+
+
+# --- Combined multi-book volumes (2026-09-04: calcom45 import gap fix) ---
+#
+# Confirmed real-file root cause: a combined multi-book Calvin volume (e.g.
+# "Commentaries on the Catholic Epistles" -- James, 1-2 Peter, 1 John,
+# Jude in ONE file) nests one extra div level between a chapter and its
+# actual scripture-range content: div1[type=book] > div2[type=Chapter] >
+# div3[type=Scripture] > table + verse commentary, instead of a single-book
+# volume's div1[type=chapter] > div2[type=scripture] > table + verse
+# commentary. The importer used to walk only DIRECT children at each
+# level, so a book-wrapped chapter's real content (one level deeper than
+# expected) was invisible -- only the bare "CHAPTER N" heading paragraph
+# (a direct div2 child) survived, and the div2's own passage_link was
+# never created at all. ld. COMBINED_VOLUME_FIXTURE and
+# textus_kb.importers.calvin_commentary_thml._process_range_group_divs.
+
+
+def test_combined_volume_book_gets_its_own_structural_section() -> None:
+    document, _report = parse_calvin_commentary_thml(COMBINED_VOLUME_FIXTURE)
+    by_id = {s["section_id"]: s for s in document["sections"]}
+    first_peter = by_id["ccel.calvin.calcom45test.iv"]
+    jude = by_id["ccel.calvin.calcom45test.v"]
+    assert first_peter["section_type"] == "book"
+    assert first_peter["heading"] == "Commentary on First Peter"
+    assert jude["section_type"] == "book"
+    assert jude["heading"] == "Commentary on Jude"
+
+
+def test_combined_volume_chapter_wrapper_unwraps_to_real_verse_commentary() -> None:
+    """The core regression: a div2[type=Chapter] whose real content sits
+    one level deeper (div3[type=Scripture]) must yield a REAL, non-stub
+    commentary_passage + verse_commentary chunk -- not just its own bare
+    heading paragraph."""
+    document, _report = parse_calvin_commentary_thml(COMBINED_VOLUME_FIXTURE)
+    by_id = {s["section_id"]: s for s in document["sections"]}
+    chunks_by_section = {c["section_id"]: c for c in document["chunks"]}
+
+    chapter = by_id["ccel.calvin.calcom45test.iv.ii"]
+    assert chapter["section_type"] == "chapter"
+    range_section = by_id["ccel.calvin.calcom45test.iv.ii.i"]
+    assert range_section["section_type"] == "commentary_passage"
+    assert range_section["passage_links"] == [
+        {
+            "raw_citation": "1 Peter 1:1-2",
+            "canonical_passage": "1Pet.1.1-2",
+            "relation_type": "primary",
+        }
+    ]
+    verse_section = by_id["ccel.calvin.calcom45test.iv.ii.i.v1"]
+    assert verse_section["section_type"] == "verse_commentary"
+    assert verse_section["passage_links"][0]["canonical_passage"] == "1Pet.1.1"
+    chunk = chunks_by_section["ccel.calvin.calcom45test.iv.ii.i.v1"]
+    assert chunk["plain_text"] == "FIRST PETER CHAPTER ONE VERSE ONE REAL COMMENTARY TEXT."
+
+
+def test_combined_volume_bare_chapter_heading_is_never_mistaken_for_real_body() -> None:
+    """Chapter 3 in the fixture has ONLY a "CHAPTER 3" heading paragraph,
+    no div3[Scripture] content at all -- confirms the fix does not
+    fabricate a passage or verse commentary out of nothing; it stays
+    exactly what it structurally is: a bare, passage-less stub."""
+    document, _report = parse_calvin_commentary_thml(COMBINED_VOLUME_FIXTURE)
+    by_id = {s["section_id"]: s for s in document["sections"]}
+    chunks_by_section = {c["section_id"]: c for c in document["chunks"]}
+
+    chapter_3 = by_id["ccel.calvin.calcom45test.iv.iv"]
+    assert chapter_3["passage_links"] == []
+    assert chunks_by_section["ccel.calvin.calcom45test.iv.iv"]["plain_text"] == "CHAPTER 3"
+    assert not any(
+        s["section_id"].startswith("ccel.calvin.calcom45test.iv.iv.")
+        for s in document["sections"]
+    )
+
+
+def test_combined_volume_one_chapter_book_works() -> None:
+    """Jude-shaped case: a book with exactly one chapter still gets real,
+    non-stub verse commentary through the same unwrap path."""
+    document, _report = parse_calvin_commentary_thml(COMBINED_VOLUME_FIXTURE)
+    chunks_by_section = {c["section_id"]: c for c in document["chunks"]}
+    chunk = chunks_by_section["ccel.calvin.calcom45test.v.ii.i.v1"]
+    assert chunk["plain_text"] == "JUDE VERSE ONE REAL COMMENTARY TEXT, UNRELATED TO ANY OTHER BOOK."
+
+
+def test_combined_volume_books_do_not_leak_content_into_each_other() -> None:
+    document, _report = parse_calvin_commentary_thml(COMBINED_VOLUME_FIXTURE)
+    for chunk in document["chunks"]:
+        if chunk["section_id"].startswith("ccel.calvin.calcom45test.iv."):
+            assert "JUDE" not in chunk["plain_text"]
+        if chunk["section_id"].startswith("ccel.calvin.calcom45test.v."):
+            assert "FIRST PETER" not in chunk["plain_text"]
+
+
+def test_combined_volume_repository_retrieval_finds_real_content(tmp_path: Path) -> None:
+    """End-to-end proof, mirroring how the real bug was discovered: a
+    passage query against the built store returns REAL Calvin prose for
+    a combined-volume book, not a "CHAPTER N" stub."""
+    database = tmp_path / "calcom45_regression_check.sqlite3"
+    import_calvin_commentary_sqlite([COMBINED_VOLUME_FIXTURE], database_path=database)
+    repo = CommentaryRepository(database)
+    hits = repo.sections_for_passage("1Pet.1.1")
+    assert hits, "expected a Calvin hit for a combined-volume book's verse"
+    detail = repo.section_detail(hits[0].section_id)
+    assert detail is not None
+    full_text = "\n".join(c.plain_text for c in detail.chunks)
+    assert "REAL COMMENTARY TEXT" in full_text
+    assert full_text.strip() != "CHAPTER 1"
 
 
 # --- Provenance / SHA-256 -------------------------------------------------

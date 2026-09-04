@@ -421,7 +421,14 @@
       "work_group": "zechariah_malachi",
       "work_title": "Commentary on Zechariah, Malachi",
       "coverage": "Zechariah, Malachi",
-      "translator": "Owen, Rev. John"
+      "translator": "Owen, Rev. John",
+      "known_unmapped_sections": [
+        {
+          "div2_id": "iv.iv.xix",
+          "reason": "Table caption is plain text 'Malichi 3:15' (CCEL's own misspelling of 'Malachi') with no scripRef markup -- the misspelled book name cannot be safely resolved to a canonical book id without guessing.",
+          "classification": "transcription_error"
+        }
+      ]
     },
     {
       "id": "calcom31",

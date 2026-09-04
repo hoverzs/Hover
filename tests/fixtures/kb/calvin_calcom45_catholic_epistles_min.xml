@@ -1,0 +1,165 @@
+<?xml version='1.0' encoding='utf-8'?>
+<ThML>
+  <ThML.head>
+    <generalInfo>
+      <description>Minimal, structurally faithful excerpt of a real CCEL Calvin
+combined multi-book volume (confirmed against calcom45.xml, "Commentaries on
+the Catholic Epistles") -- covers TWO books (a 2-chapter book and a
+1-chapter, Jude-like book) to exercise book-boundary handling and a
+single-chapter book in one file, plus one genuinely bodyless chapter
+heading (no scripture content at all) to confirm that alone is never
+mistaken for real commentary.</description>
+      <firstPublished />
+      <pubHistory />
+      <comments />
+    </generalInfo>
+    <printSourceInfo>
+      <published />
+      <copyLocation />
+      <image type="front" href="" />
+      <image type="spine" href="" />
+    </printSourceInfo>
+    <electronicEdInfo>
+      <publisherID>ccel</publisherID>
+      <authorID>calvin</authorID>
+      <bookID>calcom45test</bookID>
+      <workID>calcom45test</workID>
+      <bkgID>commentaries_on_the_catholic_epistles_(calvin)</bkgID>
+      <version>1.02</version>
+      <series />
+      <editorialComments />
+      <revisionHistory />
+      <status />
+      <DC>
+        <DC.Title sub="Main">Commentaries on the Catholic Epistles</DC.Title>
+        <DC.Creator sub="Author" scheme="ccel" />
+        <DC.Creator sub="Author" scheme="file-as">Calvin, John (1509-1564)</DC.Creator>
+        <DC.Creator sub="Author" scheme="short-form">John Calvin</DC.Creator>
+        <DC.Creator sub="Translator" scheme="ccel" />
+        <DC.Creator sub="Translator" scheme="file-as" />
+        <DC.Creator sub="Translator" scheme="short-form">Owen, Rev. John</DC.Creator>
+        <DC.Creator scheme="short-form">John Calvin, 1509-1564</DC.Creator>
+        <DC.Subject scheme="CCEL">All; Bible; </DC.Subject>
+        <DC.Publisher>Grand Rapids, MI: Christian Classics Ethereal Library</DC.Publisher>
+        <DC.Publisher scheme="CCEL">CCEL</DC.Publisher>
+        <DC.Contributor sub="Transcriber" scheme="CCEL">Ages</DC.Contributor>
+        <DC.Date sub="Created" scheme="ISO8601">1999-11-23</DC.Date>
+        <DC.Type>Text.Commentary</DC.Type>
+        <DC.Format scheme="IMT">text/html</DC.Format>
+        <DC.Identifier scheme="CCEL" />
+        <DC.Identifier />
+        <DC.Source sub="ElectronicEdition" />
+        <DC.Language scheme="ISO639-3">eng</DC.Language>
+        <DC.Identifier scheme="URL">/ccel/calvin/calcom45test.html</DC.Identifier>
+        <DC.Rights>Public Domain</DC.Rights>
+      </DC>
+      <comments />
+    </electronicEdInfo>
+    <link rel="stylesheet" type="text/css" href="/css/ThML099.css" />
+  </ThML.head>
+  <ThML.body>
+    <div1 type="book" title="Commentary on First Peter" n="iv" shorttitle="book iv" progress="10%" prev="iii" next="iv.i" id="iv">
+      <p class="BOOK-CHAP-BLU-24-CEN14" id="iv-p1">COMMENTARIES</p>
+      <p class="3rdLevelAllCap12Bld20" id="iv-p2">ON</p>
+      <p class="BOOK-CHAP-BLU-24-CEN14" id="iv-p3">THE FIRST EPISTLE OF PETER</p>
+      <div2 type="front" title="The Argument" n="i" shorttitle="front i" progress="10%" prev="iv" next="iv.ii" id="iv.i">
+        <p class="HDG-C-Gr-16-Pref21" id="iv.i-p1">THE ARGUMENT</p>
+        <p id="iv.i-p2">The design of Peter in this Epistle is to exhort the faithful to a denial of the world.</p>
+      </div2>
+      <div2 type="Chapter" title="Chapter 1" n="ii" shorttitle="Chapter ii" progress="11%" prev="iv.i" next="iv.iii" id="iv.ii">
+        <scripCom type="Commentary" passage="1 Peter 1" id="iv.ii-p0.1" parsed="|1Pet|1|0|0|0" osisRef="Bible:1Pet.1" />
+        <p class="BOOK-CHAP-BLU-24-CEN14" id="iv.ii-p1">CHAPTER 1</p>
+        <div3 type="Scripture" title="1 Peter 1:1-2" n="i" shorttitle="Scripture i" progress="11%" prev="iv.ii" next="iv.ii.ii" id="iv.ii.i">
+          <table border="2" id="iv.ii.i-p0.1">
+            <tr valign="top" id="iv.ii.i-p0.2">
+              <td id="iv.ii.i-p0.3">
+                <p class="TableCaption16" id="iv.ii.i-p1">
+                  <scripRef passage="1 Peter 1:1-2" id="iv.ii.i-p1.1" parsed="|1Pet|1|1|1|2" osisRef="Bible:1Pet.1.1-1Pet.1.2">1 Peter 1:1-2</scripRef>
+                </p>
+              </td>
+            </tr>
+            <tr valign="top" id="iv.ii.i-p1.1">
+              <td id="iv.ii.i-p1.2">
+                <p id="iv.ii.i-p2">
+                  <b>1.</b> Peter, an apostle of Jesus Christ, to the strangers scattered.</p>
+              </td>
+            </tr>
+          </table>
+          <p class="Normal" id="iv.ii.i-p3">
+            <scripCom type="Commentary" passage="1Pe 1:1" id="iv.ii.i-p3.1" parsed="|1Pet|1|1|0|0" osisRef="Bible:1Pet.1.1" />
+          </p>
+          <div class="Commentary" id="Bible:1Pet.1.1">
+            <p id="iv.ii.i-p4">FIRST PETER CHAPTER ONE VERSE ONE REAL COMMENTARY TEXT.</p>
+          </div>
+        </div3>
+      </div2>
+      <div2 type="Chapter" title="Chapter 2" n="iii" shorttitle="Chapter iii" progress="12%" prev="iv.ii" next="iv.iv" id="iv.iii">
+        <scripCom type="Commentary" passage="1 Peter 2" id="iv.iii-p0.1" parsed="|1Pet|2|0|0|0" osisRef="Bible:1Pet.2" />
+        <p class="BOOK-CHAP-BLU-24-CEN14" id="iv.iii-p1">CHAPTER 2</p>
+        <div3 type="Scripture" title="1 Peter 2:1-2" n="i" shorttitle="Scripture i" progress="12%" prev="iv.iii" next="iv.iii.ii" id="iv.iii.i">
+          <table border="2" id="iv.iii.i-p0.1">
+            <tr valign="top" id="iv.iii.i-p0.2">
+              <td id="iv.iii.i-p0.3">
+                <p class="TableCaption16" id="iv.iii.i-p1">
+                  <scripRef passage="1 Peter 2:1-2" id="iv.iii.i-p1.1" parsed="|1Pet|2|1|2|2" osisRef="Bible:1Pet.2.1-1Pet.2.2">1 Peter 2:1-2</scripRef>
+                </p>
+              </td>
+            </tr>
+            <tr valign="top" id="iv.iii.i-p1.1">
+              <td id="iv.iii.i-p1.2">
+                <p id="iv.iii.i-p2">
+                  <b>1.</b> Wherefore laying aside all malice.</p>
+              </td>
+            </tr>
+          </table>
+          <p class="Normal" id="iv.iii.i-p3">
+            <scripCom type="Commentary" passage="1Pe 2:1" id="iv.iii.i-p3.1" parsed="|1Pet|2|1|0|0" osisRef="Bible:1Pet.2.1" />
+          </p>
+          <div class="Commentary" id="Bible:1Pet.2.1">
+            <p id="iv.iii.i-p4">FIRST PETER CHAPTER TWO VERSE ONE REAL COMMENTARY TEXT.</p>
+          </div>
+        </div3>
+      </div2>
+      <div2 type="Chapter" title="Chapter 3" n="iv" shorttitle="Chapter iv" progress="13%" prev="iv.iii" next="v" id="iv.iv">
+        <scripCom type="Commentary" passage="1 Peter 3" id="iv.iv-p0.1" parsed="|1Pet|3|0|0|0" osisRef="Bible:1Pet.3" />
+        <p class="BOOK-CHAP-BLU-24-CEN14" id="iv.iv-p1">CHAPTER 3</p>
+      </div2>
+    </div1>
+    <div1 type="book" title="Commentary on Jude" n="v" shorttitle="book v" progress="90%" prev="iv" next="v.i" id="v">
+      <p class="BOOK-CHAP-BLU-24-CEN14" id="v-p1">COMMENTARIES</p>
+      <p class="3rdLevelAllCap12Bld20" id="v-p2">ON</p>
+      <p class="BOOK-CHAP-BLU-24-CEN14" id="v-p3">THE EPISTLE OF JUDE</p>
+      <div2 type="front" title="The Argument" n="i" shorttitle="front i" progress="90%" prev="v" next="v.ii" id="v.i">
+        <p class="HDG-C-Gr-16-Pref21" id="v.i-p1">THE ARGUMENT</p>
+        <p id="v.i-p2">Jude writes against corrupters of the faith.</p>
+      </div2>
+      <div2 type="Chapter" title="Chapter 1" n="ii" shorttitle="Chapter ii" progress="91%" prev="v.i" next="vi" id="v.ii">
+        <scripCom type="Commentary" passage="Jude 1" id="v.ii-p0.1" parsed="|Jude|1|0|0|0" osisRef="Bible:Jude.1" />
+        <p class="BOOK-CHAP-BLU-24-CEN14" id="v.ii-p1">CHAPTER 1</p>
+        <div3 type="Scripture" title="Jude 1:1-2" n="i" shorttitle="Scripture i" progress="91%" prev="v.ii" next="v.ii.ii" id="v.ii.i">
+          <table border="2" id="v.ii.i-p0.1">
+            <tr valign="top" id="v.ii.i-p0.2">
+              <td id="v.ii.i-p0.3">
+                <p class="TableCaption16" id="v.ii.i-p1">
+                  <scripRef passage="Jude 1:1-2" id="v.ii.i-p1.1" parsed="|Jude|1|1|1|2" osisRef="Bible:Jude.1.1-Jude.1.2">Jude 1:1-2</scripRef>
+                </p>
+              </td>
+            </tr>
+            <tr valign="top" id="v.ii.i-p1.1">
+              <td id="v.ii.i-p1.2">
+                <p id="v.ii.i-p2">
+                  <b>1.</b> Jude, the servant of Jesus Christ.</p>
+              </td>
+            </tr>
+          </table>
+          <p class="Normal" id="v.ii.i-p3">
+            <scripCom type="Commentary" passage="Jude 1:1" id="v.ii.i-p3.1" parsed="|Jude|1|1|0|0" osisRef="Bible:Jude.1.1" />
+          </p>
+          <div class="Commentary" id="Bible:Jude.1.1">
+            <p id="v.ii.i-p4">JUDE VERSE ONE REAL COMMENTARY TEXT, UNRELATED TO ANY OTHER BOOK.</p>
+          </div>
+        </div3>
+      </div2>
+    </div1>
+  </ThML.body>
+</ThML>

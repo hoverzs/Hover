@@ -315,171 +315,19 @@ def parse_calvin_commentary_thml(
 
         div1_chapter_number = _div1_chapter_number(div1)
         div2_list = [child for child in list(div1) if local_tag(child.tag) == "div2"]
-        current_range_section_id: str | None = None
-        for div2_index, div2 in enumerate(div2_list, start=1):
-            div2_type = (div2.get("type") or "").strip().lower()
-            div2_id = (div2.get("id") or "").strip()
-            if not div2_id:
-                raise CalvinCommentaryImportError(
-                    f"div2 under {div1_id!r} is missing a stable id."
-                )
-            div2_section_id = f"{section_prefix}.{div2_id}"
-            table = find_child(div2, "table")
-
-            # A range-defining div2 is identified by having its own <table>
-            # (the quoted-passage block), not by its `type` attribute:
-            # confirmed real value is usually "scripture", but some volumes
-            # (Harmony of the Law) label the identical table-bearing
-            # structure "section" or "Chapter" instead — an explicit
-            # allowlist of type names would misclassify those as
-            # untyped-continuation divs. This mirrors the same
-            # table-presence signal already used to classify div1s.
-            if table is not None:
-                links = _table_passage_links(table, stats, expected_chapter=div1_chapter_number)
-                if not links:
-                    exception = known_unmapped_sections.get(div2_id)
-                    if exception is None:
-                        raise CalvinCommentaryImportError(
-                            f"Scripture section {div2_id!r} has no parseable passage "
-                            "in its own quotation table."
-                        )
-                    report.unmapped_sections.append(
-                        {
-                            "div2_id": div2_id,
-                            "section_id": div2_section_id,
-                            "reason": exception.reason,
-                            "classification": exception.classification,
-                        }
-                    )
-                    sections.append(
-                        _section_row(
-                            section_id=div2_section_id,
-                            edition_id=edition_id,
-                            parent_section_id=div1_section_id,
-                            section_type="commentary_passage_unmapped",
-                            heading=_attr_or_none(div2.get("title")),
-                            sequence=div2_index,
-                        )
-                    )
-                    text = element_plain_text(div2, skip_notes=False)
-                    if text:
-                        chunks.append(
-                            _chunk_row(
-                                chunk_id=f"{div2_section_id}.chunk",
-                                section_id=div2_section_id,
-                                sequence=1,
-                                text=text,
-                                locator=f"ccel:calvin/{book_id}#{div2_id}",
-                            )
-                        )
-                        report.chunk_count += 1
-                    current_range_section_id = div2_section_id
-                    continue
-                sections.append(
-                    _section_row(
-                        section_id=div2_section_id,
-                        edition_id=edition_id,
-                        parent_section_id=div1_section_id,
-                        section_type="commentary_passage",
-                        heading=_attr_or_none(div2.get("title")),
-                        sequence=div2_index,
-                        passage_links=links,
-                    )
-                )
-                report.range_section_count += 1
-                report.passage_link_count += len(links)
-                if len(links) > 1:
-                    report.multi_passage_range_count += 1
-                current_range_section_id = div2_section_id
-
-                verse_sections, verse_chunks, leading_text = _extract_verse_sections(
-                    container=div2,
-                    exclude=table,
-                    parent_section_id=div2_section_id,
-                    section_prefix=f"{div2_section_id}",
-                    edition_id=edition_id,
-                    book_id=book_id,
-                    stats=stats,
-                    report=report,
-                )
-                sections.extend(verse_sections)
-                chunks.extend(verse_chunks)
-                if leading_text:
-                    chunks.append(
-                        _chunk_row(
-                            chunk_id=f"{div2_section_id}.chunk",
-                            section_id=div2_section_id,
-                            sequence=1,
-                            text=leading_text,
-                            locator=f"ccel:calvin/{book_id}#{div2_id}",
-                        )
-                    )
-                    report.chunk_count += 1
-                continue
-
-            # Untyped sibling div2: usually a continuation anchored to the
-            # most recently seen scripture-range section (Romans-style —
-            # Calvin's exposition of a range's first verse split into its
-            # own div2). When NO scripture-range div2 precedes it in this
-            # div1 at all — a real corpus case: Ezekiel/Daniel/Jeremiah's
-            # `type="lecture"` div2 opens each chapter with introductory
-            # prose before any verse-range content begins — it becomes its
-            # own passage-less section under the div1 instead of being
-            # forced onto a range that doesn't exist.
-            standalone_intro = current_range_section_id is None
-            if standalone_intro:
-                sections.append(
-                    _section_row(
-                        section_id=div2_section_id,
-                        edition_id=edition_id,
-                        parent_section_id=div1_section_id,
-                        section_type=div2_type or "commentary_intro",
-                        heading=_attr_or_none(div2.get("title")),
-                        sequence=div2_index,
-                    )
-                )
-            anchor_section_id = div2_section_id if standalone_intro else current_range_section_id
-            verse_sections, verse_chunks, leading_text = _extract_verse_sections(
-                container=div2,
-                exclude=None,
-                parent_section_id=anchor_section_id,
-                section_prefix=f"{div2_section_id}",
-                edition_id=edition_id,
-                book_id=book_id,
-                stats=stats,
-                report=report,
-            )
-            if verse_sections:
-                sections.extend(verse_sections)
-                chunks.extend(verse_chunks)
-                if leading_text:
-                    # Unmarked lead-in text belongs to the anchor section
-                    # (an existing range it continues, or its own new
-                    # standalone intro section), not a further new one.
-                    chunks.append(
-                        _chunk_row(
-                            chunk_id=f"{div2_section_id}.lead.chunk",
-                            section_id=anchor_section_id,
-                            sequence=1 if standalone_intro else 99,
-                            text=leading_text,
-                            locator=f"ccel:calvin/{book_id}#{div2_id}",
-                        )
-                    )
-                    report.chunk_count += 1
-            elif leading_text:
-                # No scripCom at all in this div2: fold its whole text into
-                # the anchor section (benign layout variation, not a
-                # structurally uncertain passage).
-                chunks.append(
-                    _chunk_row(
-                        chunk_id=f"{div2_section_id}.chunk",
-                        section_id=anchor_section_id,
-                        sequence=1 if standalone_intro else 99,
-                        text=leading_text,
-                        locator=f"ccel:calvin/{book_id}#{div2_id}",
-                    )
-                )
-                report.chunk_count += 1
+        group_sections, group_chunks = _process_range_group_divs(
+            group_divs=div2_list,
+            parent_section_id=div1_section_id,
+            section_prefix=section_prefix,
+            expected_chapter=div1_chapter_number,
+            edition_id=edition_id,
+            book_id=book_id,
+            stats=stats,
+            report=report,
+            known_unmapped_sections=known_unmapped_sections,
+        )
+        sections.extend(group_sections)
+        chunks.extend(group_chunks)
 
     document = {
         "contributors": contributors,
@@ -492,6 +340,268 @@ def parse_calvin_commentary_thml(
     }
     report.chapter_only_scripcom_count = stats.skipped_chapter_only
     return document, report
+
+
+def _direct_table_child(element: ET.Element) -> ET.Element | None:
+    """Like ``find_child(element, "table")`` but DIRECT children only —
+    no recursive fallback. Used to tell apart a genuine table-bearing
+    range div (the table is one of its own direct children, the
+    confirmed structure in single-book volumes like Romans) from a
+    pass-through wrapper div whose table only turns up via ``find_child``'s
+    deep search because it actually belongs to a nested child div."""
+    for child in list(element):
+        if local_tag(child.tag) == "table":
+            return child
+    return None
+
+
+def _child_divs_with_direct_table(element: ET.Element) -> list[ET.Element]:
+    """Direct child divs of ``element`` (any ThML div level — ``div2``,
+    ``div3``, ...) that themselves carry a table as one of THEIR OWN
+    direct children, in document order. Detects a pass-through wrapper
+    div generically, by structure alone (never a specific tag/type
+    literal): a combined multi-book volume nests one extra div level
+    between the "chapter" div and its scripture-range content (e.g.
+    ``div2[type=Chapter] > div3[type=Scripture] > table``, vs. a
+    single-book volume's ``div1[type=chapter] > div2[type=scripture] >
+    table``) — this is how that extra level is found and unwrapped."""
+    return [
+        child
+        for child in list(element)
+        if local_tag(child.tag).startswith("div") and _direct_table_child(child) is not None
+    ]
+
+
+def _process_range_group_divs(
+    *,
+    group_divs: list[ET.Element],
+    parent_section_id: str,
+    section_prefix: str,
+    expected_chapter: int | None,
+    edition_id: str,
+    book_id: str,
+    stats: ScriptureRefStats,
+    report: CalvinCommentaryParseReport,
+    known_unmapped_sections: dict[str, KnownUnmappedSection],
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """Processes one div's list of child "range" divs — normally a
+    div1[chapter]'s own div2 children (the confirmed single-book/Harmony
+    structure), but called AGAIN, one level deeper, on a wrapper div2's
+    own div3 children when that div2 itself carries no table directly
+    (a combined multi-book volume, e.g. Calvin's Catholic Epistles: each
+    book's chapters are div2[type=Chapter], and a chapter's actual
+    scripture-range content sits one level deeper in div3[type=Scripture]
+    children instead of being direct div2 children). The recursion means
+    neither this function nor its caller has to know or guess how many
+    div levels a given volume nests its content at — it is discovered
+    structurally, per chapter, from whichever div actually owns the
+    table.
+    """
+    sections: list[dict[str, Any]] = []
+    chunks: list[dict[str, Any]] = []
+    current_range_section_id: str | None = None
+    for group_index, group_div in enumerate(group_divs, start=1):
+        group_type = (group_div.get("type") or "").strip().lower()
+        group_id = (group_div.get("id") or "").strip()
+        if not group_id:
+            raise CalvinCommentaryImportError(
+                f"div under {parent_section_id!r} is missing a stable id."
+            )
+        group_section_id = f"{section_prefix}.{group_id}"
+        table = _direct_table_child(group_div)
+
+        if table is None:
+            nested_group_divs = _child_divs_with_direct_table(group_div)
+            if nested_group_divs:
+                # Pass-through wrapper div (ld. this function's own
+                # docstring) — a passage-less structural section for the
+                # wrapper itself (mirrors how a div1[type=book] already
+                # wraps passage-less "Chapter" sections today), then the
+                # SAME range-group processing one level deeper, on its
+                # own children, parented under this new section.
+                sections.append(
+                    _section_row(
+                        section_id=group_section_id,
+                        edition_id=edition_id,
+                        parent_section_id=parent_section_id,
+                        section_type=group_type or "chapter",
+                        heading=_attr_or_none(group_div.get("title")),
+                        sequence=group_index,
+                    )
+                )
+                nested_sections, nested_chunks = _process_range_group_divs(
+                    group_divs=nested_group_divs,
+                    parent_section_id=group_section_id,
+                    section_prefix=section_prefix,
+                    expected_chapter=_div1_chapter_number(group_div) or expected_chapter,
+                    edition_id=edition_id,
+                    book_id=book_id,
+                    stats=stats,
+                    report=report,
+                    known_unmapped_sections=known_unmapped_sections,
+                )
+                sections.extend(nested_sections)
+                chunks.extend(nested_chunks)
+                # A wrapper div is never itself a scripture range, so it
+                # cannot anchor a later untyped continuation sibling.
+                current_range_section_id = None
+                continue
+
+        # A range-defining div is identified by having its own <table>
+        # (the quoted-passage block), not by its `type` attribute:
+        # confirmed real value is usually "scripture", but some volumes
+        # (Harmony of the Law) label the identical table-bearing
+        # structure "section" or "Chapter" instead — an explicit
+        # allowlist of type names would misclassify those as
+        # untyped-continuation divs.
+        if table is not None:
+            links = _table_passage_links(table, stats, expected_chapter=expected_chapter)
+            if not links:
+                exception = known_unmapped_sections.get(group_id)
+                if exception is None:
+                    raise CalvinCommentaryImportError(
+                        f"Scripture section {group_id!r} has no parseable passage "
+                        "in its own quotation table."
+                    )
+                report.unmapped_sections.append(
+                    {
+                        "div2_id": group_id,
+                        "section_id": group_section_id,
+                        "reason": exception.reason,
+                        "classification": exception.classification,
+                    }
+                )
+                sections.append(
+                    _section_row(
+                        section_id=group_section_id,
+                        edition_id=edition_id,
+                        parent_section_id=parent_section_id,
+                        section_type="commentary_passage_unmapped",
+                        heading=_attr_or_none(group_div.get("title")),
+                        sequence=group_index,
+                    )
+                )
+                text = element_plain_text(group_div, skip_notes=False)
+                if text:
+                    chunks.append(
+                        _chunk_row(
+                            chunk_id=f"{group_section_id}.chunk",
+                            section_id=group_section_id,
+                            sequence=1,
+                            text=text,
+                            locator=f"ccel:calvin/{book_id}#{group_id}",
+                        )
+                    )
+                    report.chunk_count += 1
+                current_range_section_id = group_section_id
+                continue
+            sections.append(
+                _section_row(
+                    section_id=group_section_id,
+                    edition_id=edition_id,
+                    parent_section_id=parent_section_id,
+                    section_type="commentary_passage",
+                    heading=_attr_or_none(group_div.get("title")),
+                    sequence=group_index,
+                    passage_links=links,
+                )
+            )
+            report.range_section_count += 1
+            report.passage_link_count += len(links)
+            if len(links) > 1:
+                report.multi_passage_range_count += 1
+            current_range_section_id = group_section_id
+
+            verse_sections, verse_chunks, leading_text = _extract_verse_sections(
+                container=group_div,
+                exclude=table,
+                parent_section_id=group_section_id,
+                section_prefix=f"{group_section_id}",
+                edition_id=edition_id,
+                book_id=book_id,
+                stats=stats,
+                report=report,
+            )
+            sections.extend(verse_sections)
+            chunks.extend(verse_chunks)
+            if leading_text:
+                chunks.append(
+                    _chunk_row(
+                        chunk_id=f"{group_section_id}.chunk",
+                        section_id=group_section_id,
+                        sequence=1,
+                        text=leading_text,
+                        locator=f"ccel:calvin/{book_id}#{group_id}",
+                    )
+                )
+                report.chunk_count += 1
+            continue
+
+        # Untyped sibling div: usually a continuation anchored to the
+        # most recently seen scripture-range section (Romans-style —
+        # Calvin's exposition of a range's first verse split into its
+        # own div2). When NO scripture-range div precedes it at this
+        # level at all — a real corpus case: Ezekiel/Daniel/Jeremiah's
+        # `type="lecture"` div2 opens each chapter with introductory
+        # prose before any verse-range content begins — it becomes its
+        # own passage-less section under the parent instead of being
+        # forced onto a range that doesn't exist.
+        standalone_intro = current_range_section_id is None
+        if standalone_intro:
+            sections.append(
+                _section_row(
+                    section_id=group_section_id,
+                    edition_id=edition_id,
+                    parent_section_id=parent_section_id,
+                    section_type=group_type or "commentary_intro",
+                    heading=_attr_or_none(group_div.get("title")),
+                    sequence=group_index,
+                )
+            )
+        anchor_section_id = group_section_id if standalone_intro else current_range_section_id
+        verse_sections, verse_chunks, leading_text = _extract_verse_sections(
+            container=group_div,
+            exclude=None,
+            parent_section_id=anchor_section_id,
+            section_prefix=f"{group_section_id}",
+            edition_id=edition_id,
+            book_id=book_id,
+            stats=stats,
+            report=report,
+        )
+        if verse_sections:
+            sections.extend(verse_sections)
+            chunks.extend(verse_chunks)
+            if leading_text:
+                # Unmarked lead-in text belongs to the anchor section
+                # (an existing range it continues, or its own new
+                # standalone intro section), not a further new one.
+                chunks.append(
+                    _chunk_row(
+                        chunk_id=f"{group_section_id}.lead.chunk",
+                        section_id=anchor_section_id,
+                        sequence=1 if standalone_intro else 99,
+                        text=leading_text,
+                        locator=f"ccel:calvin/{book_id}#{group_id}",
+                    )
+                )
+                report.chunk_count += 1
+        elif leading_text:
+            # No scripCom at all in this div: fold its whole text into
+            # the anchor section (benign layout variation, not a
+            # structurally uncertain passage).
+            chunks.append(
+                _chunk_row(
+                    chunk_id=f"{group_section_id}.chunk",
+                    section_id=anchor_section_id,
+                    sequence=1 if standalone_intro else 99,
+                    text=leading_text,
+                    locator=f"ccel:calvin/{book_id}#{group_id}",
+                )
+            )
+            report.chunk_count += 1
+
+    return sections, chunks
 
 
 def build_calvin_commentary_document(

@@ -89,9 +89,13 @@ def test_combined_scale_matches_sum_of_all_three_sources(
     assert status.source_file_count == 45 + 66 + 66
     assert status.import_batch_count == 45 + 66 + 66
     assert status.contributor_count == 9 + 3 + 15
-    assert status.section_count == 14643 + 32394 + 5579
-    assert status.chunk_count == 11785 + 21071 + 5512
-    assert status.passage_link_count == 14153 + 31097 + 4258
+    # 2026-09-04: Calvin's own numbers grew (18989/14673/18397, up from
+    # 14643/11785/14153) — see the matching comment in
+    # test_combined_calvin_jfb_commentary.py::
+    # test_combined_scale_matches_sum_of_both_sources.
+    assert status.section_count == 18989 + 32394 + 5579
+    assert status.chunk_count == 14673 + 21071 + 5512
+    assert status.passage_link_count == 18397 + 31097 + 4258
 
 
 def test_combined_qa_is_clean(combined_db: Path) -> None:
@@ -110,11 +114,14 @@ def test_combined_qa_is_clean(combined_db: Path) -> None:
     # JFB contribute no warnings of their own.
     assert len(report.warnings) == 1
     assert "< 5 passage link" in report.warnings[0]
-    # Calvin's 5 + Henry's 5 documented known-unmapped exceptions must
+    # Calvin's 6 + Henry's 5 documented known-unmapped exceptions must
     # both survive correctly through the combined store; JFB has none.
-    assert len(report.known_unmapped) == 5 + 5
-    # Only Calvin's 354 parallel Harmony links; JFB and Henry contribute none.
-    assert report.parallel_passage_link_count == 354
+    # (2026-09-04: Calvin +1, ld. the matching comment in
+    # test_combined_calvin_jfb_commentary.py::test_combined_qa_is_clean.)
+    assert len(report.known_unmapped) == 6 + 5
+    # Only Calvin's 436 parallel Harmony links (2026-09-04: up from 354);
+    # JFB and Henry contribute none.
+    assert report.parallel_passage_link_count == 436
     assert len(report.works) == 23 + 66 + 66
     assert len(report.contributors) == 9 + 3 + 15
 
