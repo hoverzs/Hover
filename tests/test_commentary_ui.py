@@ -1243,6 +1243,38 @@ def test_reader_translate_action_only_translates_missing_sections(
     assert "FAKE HU TRANSLATION" in body2
 
 
+def test_render_family_reader_is_fragment_isolated() -> None:
+    """Structural guard (source-level, mirrors this repo's established
+    ``inspect.getsource``-based wiring checks, ld. ``test_app_py_imports_
+    and_calls_render_commentary_panel``): ``@st.fragment`` must stay
+    immediately above ``_render_family_reader`` -- if it's ever removed
+    (e.g. during a future refactor), the translate/language-toggle
+    widgets inside it would silently go back to triggering a full
+    app.py rerun, reintroducing the whole-page dim/stale-frame bug this
+    round fixed.
+
+    Note on why this is a source check rather than an ``AppTest``
+    behavioral one: ``AppTest.from_function(...).run()`` always fully
+    re-executes the given function for every interaction it simulates --
+    verified directly against Streamlit 1.58's own ``ScriptRunner``
+    (``streamlit/runtime/scriptrunner/script_runner.py``): a REAL
+    fragment-scoped rerun request (``rerun_data.fragment_id_queue`` set)
+    looks up and calls only the previously-registered fragment closure
+    from ``self._fragment_storage`` -- it deliberately skips the normal
+    ``exec(code, module.__dict__)`` path that runs the surrounding
+    script. ``AppTest``'s public API (``AppTest.run()``, ``Button.
+    click()``) exposes no fragment-scoped rerun option at all, so it
+    cannot observe this specific optimization -- only the real
+    ``ScriptRunner`` a running app actually uses does."""
+    import inspect
+
+    source = inspect.getsource(cu)
+    fn_index = source.index("def _render_family_reader(")
+    preceding = source[:fn_index]
+    decorator_line = preceding.rstrip().splitlines()[-1].strip()
+    assert decorator_line == "@st.fragment"
+
+
 def test_reader_english_mode_never_calls_provider(
     clean_reader_ui_translation_cache,
 ) -> None:

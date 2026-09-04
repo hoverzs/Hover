@@ -798,6 +798,7 @@ def _render_family_provenance(
                 st.caption(section.rights_note)
 
 
+@st.fragment
 def _render_family_reader(
     family_key: str,
     family_display: str,
@@ -811,7 +812,27 @@ def _render_family_reader(
     reader-level HU/EN language toggle, an optional single "translate the
     missing parts" action, then every relevant section rendered as one
     continuous, passage-ordered flow grouped by book -- never one giant
-    card per verse (task items 3/4/5/6)."""
+    card per verse (task items 3/4/5/6).
+
+    ``@st.fragment`` (2026-09-04, translation-rerun UI fix): the HU/EN
+    radio and the "translate the missing parts" button live INSIDE this
+    function, so without fragment isolation, either one triggers
+    Streamlit's default FULL app.py rerun -- during which Streamlit dims
+    the entire page and briefly shows the previous frame's stale DOM
+    (every other tab's leftover elements included) until the whole
+    script finishes re-executing. Wrapping this function is enough to
+    scope both the rerun AND the dim/stale-frame effect to just this
+    reader surface: a click on either widget now only re-executes THIS
+    function body, in place, inside the same ``work_surface`` container
+    it was already rendered in -- the rest of the page (other tabs'
+    already-rendered content, scroll position, the family/source
+    selector and the "Kommentárok összehasonlítása" section below,
+    both OUTSIDE this fragment) never re-renders and never dims. No
+    other behavior changes: retrieval, the translation cache/policy, and
+    every session_state key used here (the per-family language radio,
+    the translation-cache dict) are read/written exactly as before --
+    fragments share the full script's session_state, they only isolate
+    which DOM subtree reruns."""
     repo = _get_repository()
     db_path = _translation_database_path()
 
