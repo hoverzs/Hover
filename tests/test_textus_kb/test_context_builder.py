@@ -74,8 +74,18 @@ def test_provenance_fields_present(evidence) -> None:
             assert item.relevance_score > 0
 
 
-def test_context_evidence_ids_exist_in_evidence_packet(evidence) -> None:
-    context = build_context_from_evidence(evidence, PROFILE_EXEGESIS)
+def test_context_evidence_ids_exist_in_evidence_packet(evidence, tmp_path: Path) -> None:
+    """Commentary-blind by explicit path override (ld. test_theology_profile_
+    emits_source_warning_when_store_missing's own pattern): this test is
+    about the EXEGESIS-native evidence pipeline never fabricating IDs, not
+    about the separately-sourced (real, non-fabricated) Commentary layer
+    added in the 2026-09-03 grounding round -- keeps this test
+    deterministic regardless of whether a local commentary.sqlite3
+    happens to exist (ld. tests/test_textus_kb/test_commentary_grounded_
+    study_modules.py for the real Commentary-inclusive coverage)."""
+    context = build_context_from_evidence(
+        evidence, PROFILE_EXEGESIS, commentary_database_path=tmp_path / "no_commentary.sqlite3"
+    )
     evidence_ids = {item.evidence_id for item in evidence.evidence_items}
     for context_id in context.evidence_ids:
         assert context_id in evidence_ids
@@ -143,19 +153,35 @@ def test_graceful_with_missing_optional_enrichment() -> None:
     )
 
 
-def test_exegesis_matches_golden_fixture(evidence) -> None:
+def test_exegesis_matches_golden_fixture(evidence, tmp_path: Path) -> None:
+    # Commentary-blind (ld. test_context_evidence_ids_exist_in_evidence_
+    # packet's comment) — this golden fixture predates and is unrelated to
+    # the 2026-09-03 Commentary grounding round.
     golden = json.loads(EXEGESIS_FIXTURE.read_text(encoding="utf-8"))
-    context = json.loads(build_context_to_json("Jn 4,1-42", PROFILE_EXEGESIS, evidence=evidence))
+    context = json.loads(
+        build_context_to_json(
+            "Jn 4,1-42",
+            PROFILE_EXEGESIS,
+            evidence=evidence,
+            commentary_database_path=tmp_path / "no_commentary.sqlite3",
+        )
+    )
     assert context["passage"] == golden["passage"]
     assert context["profile"] == golden["profile"]
     assert context["evidence_ids"] == golden["evidence_ids"]
     assert context["estimated_tokens"] == golden["estimated_tokens"]
 
 
-def test_historical_matches_golden_fixture(evidence) -> None:
+def test_historical_matches_golden_fixture(evidence, tmp_path: Path) -> None:
+    # Commentary-blind — see test_exegesis_matches_golden_fixture above.
     golden = json.loads(HISTORICAL_FIXTURE.read_text(encoding="utf-8"))
     context = json.loads(
-        build_context_to_json("Jn 4,1-42", PROFILE_HISTORICAL, evidence=evidence)
+        build_context_to_json(
+            "Jn 4,1-42",
+            PROFILE_HISTORICAL,
+            evidence=evidence,
+            commentary_database_path=tmp_path / "no_commentary.sqlite3",
+        )
     )
     assert context["passage"] == golden["passage"]
     assert context["profile"] == golden["profile"]

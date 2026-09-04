@@ -1,0 +1,646 @@
+{
+  "manifest_version": "1",
+  "description": "Reproducible CCEL source for Matthew Henry's \"Commentary on the Whole Bible\" (originally published 1706-1721, public domain). Published by CCEL as 6 separate volume files (unlike JFB's single file, and unlike Calvin's 45 single-book files) -- each volume covers several consecutive Bible books. No raw XML is committed to git (data/raw/ is gitignored); fetch with scripts/build_commentary_database.py --henry-fetch, which downloads each volume's url and verifies raw_sha256 before use. Each entry in 'books' names one div1 (one canonical Bible book) within its own volume file; div1 ids are only unique within a single volume (e.g. 'Ez' means Ezra in volume 2 but Ezekiel in volume 4), so lookups must be volume-scoped. Matthew Henry personally wrote Genesis through Acts (44 books: all of volumes I-V, plus Acts in volume VI). Romans through Revelation (22 books) was completed posthumously after Henry's 1714 death by named continuing ministers, per volume VI's own preface and its table of contributors -- each such book's contributor_raw_name is that real author's name as the source states it, and authorship_note quotes the source's own account. This is real, source-stated per-book attribution, not inferred.",
+  "volumes": [
+    {
+      "volume": 1,
+      "title": "Commentary on the Whole Bible Volume I (Genesis to Deuteronomy)",
+      "url": "https://www.ccel.org/ccel/henry/mhc1.xml",
+      "local_path": "data/raw/henry/mhc1.xml",
+      "raw_sha256": "6eb946647f806f46129001f83013d65c51e40ac59b939ac1c51404aa50375971",
+      "byte_size": 7539720
+    },
+    {
+      "volume": 2,
+      "title": "Commentary on the Whole Bible Volume II (Joshua to Esther)",
+      "url": "https://www.ccel.org/ccel/henry/mhc2.xml",
+      "local_path": "data/raw/henry/mhc2.xml",
+      "raw_sha256": "673fcb4168ad946ab1e6923c0e331cc61e4adca4498fc0ee34cf1507285aa2f7",
+      "byte_size": 9301348
+    },
+    {
+      "volume": 3,
+      "title": "Commentary on the Whole Bible Volume III (Job to Song of Solomon)",
+      "url": "https://www.ccel.org/ccel/henry/mhc3.xml",
+      "local_path": "data/raw/henry/mhc3.xml",
+      "raw_sha256": "8ba9779eba5d326acbfc9acaccf2ea1fa2d6b5c48b03ab86fc5e80b0bfa5b17e",
+      "byte_size": 9618829
+    },
+    {
+      "volume": 4,
+      "title": "Commentary on the Whole Bible Volume IV (Isaiah to Malachi)",
+      "url": "https://www.ccel.org/ccel/henry/mhc4.xml",
+      "local_path": "data/raw/henry/mhc4.xml",
+      "raw_sha256": "7b6ea0800caa1daab6b0c807f5b95c7567fb5d880290bbe91d848048a80486b2",
+      "byte_size": 12837774
+    },
+    {
+      "volume": 5,
+      "title": "Commentary on the Whole Bible Volume V (Matthew to John)",
+      "url": "https://www.ccel.org/ccel/henry/mhc5.xml",
+      "local_path": "data/raw/henry/mhc5.xml",
+      "raw_sha256": "8b0853b116e9a68215a594bafe29f45502d4c766e1f128cbf5fb050f45cf2518",
+      "byte_size": 9957346
+    },
+    {
+      "volume": 6,
+      "title": "Commentary on the Whole Bible Volume VI (Acts to Revelation)",
+      "url": "https://www.ccel.org/ccel/henry/mhc6.xml",
+      "local_path": "data/raw/henry/mhc6.xml",
+      "raw_sha256": "296195d09d4fbb1e7516ea77c100dbc87ce37542c3109f9f570c3cf155b594c1",
+      "byte_size": 9115881
+    }
+  ],
+  "books": [
+    {
+      "order": 1,
+      "volume": 1,
+      "div1_id": "Gen",
+      "title": "Genesis",
+      "coverage": "Genesis",
+      "contributor_raw_name": "Matthew Henry"
+    },
+    {
+      "order": 2,
+      "volume": 1,
+      "div1_id": "Ex",
+      "title": "Exodus",
+      "coverage": "Exodus",
+      "contributor_raw_name": "Matthew Henry"
+    },
+    {
+      "order": 3,
+      "volume": 1,
+      "div1_id": "Lev",
+      "title": "Leviticus",
+      "coverage": "Leviticus",
+      "contributor_raw_name": "Matthew Henry"
+    },
+    {
+      "order": 4,
+      "volume": 1,
+      "div1_id": "Num",
+      "title": "Numbers",
+      "coverage": "Numbers",
+      "contributor_raw_name": "Matthew Henry"
+    },
+    {
+      "order": 5,
+      "volume": 1,
+      "div1_id": "Deu",
+      "title": "Deuteronomy",
+      "coverage": "Deuteronomy",
+      "contributor_raw_name": "Matthew Henry"
+    },
+    {
+      "order": 6,
+      "volume": 2,
+      "div1_id": "Jos",
+      "title": "Joshua",
+      "coverage": "Joshua",
+      "contributor_raw_name": "Matthew Henry"
+    },
+    {
+      "order": 7,
+      "volume": 2,
+      "div1_id": "Jud",
+      "title": "Judges",
+      "coverage": "Judges",
+      "contributor_raw_name": "Matthew Henry"
+    },
+    {
+      "order": 8,
+      "volume": 2,
+      "div1_id": "Ru",
+      "title": "Ruth",
+      "coverage": "Ruth",
+      "contributor_raw_name": "Matthew Henry"
+    },
+    {
+      "order": 9,
+      "volume": 2,
+      "div1_id": "iSam",
+      "title": "First Samuel",
+      "coverage": "First Samuel",
+      "contributor_raw_name": "Matthew Henry"
+    },
+    {
+      "order": 10,
+      "volume": 2,
+      "div1_id": "iiSam",
+      "title": "Second Samuel",
+      "coverage": "Second Samuel",
+      "contributor_raw_name": "Matthew Henry"
+    },
+    {
+      "order": 11,
+      "volume": 2,
+      "div1_id": "iKi",
+      "title": "First Kings",
+      "coverage": "First Kings",
+      "contributor_raw_name": "Matthew Henry"
+    },
+    {
+      "order": 12,
+      "volume": 2,
+      "div1_id": "iiKi",
+      "title": "Second Kings",
+      "coverage": "Second Kings",
+      "contributor_raw_name": "Matthew Henry"
+    },
+    {
+      "order": 13,
+      "volume": 2,
+      "div1_id": "iCh",
+      "title": "First Chronicles",
+      "coverage": "First Chronicles",
+      "contributor_raw_name": "Matthew Henry"
+    },
+    {
+      "order": 14,
+      "volume": 2,
+      "div1_id": "iiCh",
+      "title": "Second Chronicles",
+      "coverage": "Second Chronicles",
+      "contributor_raw_name": "Matthew Henry"
+    },
+    {
+      "order": 15,
+      "volume": 2,
+      "div1_id": "Ez",
+      "title": "Ezra",
+      "coverage": "Ezra",
+      "contributor_raw_name": "Matthew Henry"
+    },
+    {
+      "order": 16,
+      "volume": 2,
+      "div1_id": "Neh",
+      "title": "Nehemiah",
+      "coverage": "Nehemiah",
+      "contributor_raw_name": "Matthew Henry"
+    },
+    {
+      "order": 17,
+      "volume": 2,
+      "div1_id": "Esth",
+      "title": "Esther",
+      "coverage": "Esther",
+      "contributor_raw_name": "Matthew Henry"
+    },
+    {
+      "order": 18,
+      "volume": 3,
+      "div1_id": "Job",
+      "title": "Job",
+      "coverage": "Job",
+      "contributor_raw_name": "Matthew Henry"
+    },
+    {
+      "order": 19,
+      "volume": 3,
+      "div1_id": "Ps",
+      "title": "Psalms",
+      "coverage": "Psalms",
+      "contributor_raw_name": "Matthew Henry"
+    },
+    {
+      "order": 20,
+      "volume": 3,
+      "div1_id": "Prov",
+      "title": "Proverbs",
+      "coverage": "Proverbs",
+      "contributor_raw_name": "Matthew Henry"
+    },
+    {
+      "order": 21,
+      "volume": 3,
+      "div1_id": "Ec",
+      "title": "Ecclesiastes",
+      "coverage": "Ecclesiastes",
+      "contributor_raw_name": "Matthew Henry"
+    },
+    {
+      "order": 22,
+      "volume": 3,
+      "div1_id": "Song",
+      "title": "Song of Solomon",
+      "coverage": "Song of Solomon",
+      "contributor_raw_name": "Matthew Henry"
+    },
+    {
+      "order": 23,
+      "volume": 4,
+      "div1_id": "Is",
+      "title": "Isaiah",
+      "coverage": "Isaiah",
+      "contributor_raw_name": "Matthew Henry"
+    },
+    {
+      "order": 24,
+      "volume": 4,
+      "div1_id": "Jer",
+      "title": "Jeremiah",
+      "coverage": "Jeremiah",
+      "contributor_raw_name": "Matthew Henry"
+    },
+    {
+      "order": 25,
+      "volume": 4,
+      "div1_id": "Lam",
+      "title": "Lamentations",
+      "coverage": "Lamentations",
+      "contributor_raw_name": "Matthew Henry"
+    },
+    {
+      "order": 26,
+      "volume": 4,
+      "div1_id": "Ez",
+      "title": "Ezekiel",
+      "coverage": "Ezekiel",
+      "contributor_raw_name": "Matthew Henry"
+    },
+    {
+      "order": 27,
+      "volume": 4,
+      "div1_id": "Dan",
+      "title": "Daniel",
+      "coverage": "Daniel",
+      "contributor_raw_name": "Matthew Henry"
+    },
+    {
+      "order": 28,
+      "volume": 4,
+      "div1_id": "Hos",
+      "title": "Hosea",
+      "coverage": "Hosea",
+      "contributor_raw_name": "Matthew Henry"
+    },
+    {
+      "order": 29,
+      "volume": 4,
+      "div1_id": "Joel",
+      "title": "Joel",
+      "coverage": "Joel",
+      "contributor_raw_name": "Matthew Henry"
+    },
+    {
+      "order": 30,
+      "volume": 4,
+      "div1_id": "Amos",
+      "title": "Amos",
+      "coverage": "Amos",
+      "contributor_raw_name": "Matthew Henry"
+    },
+    {
+      "order": 31,
+      "volume": 4,
+      "div1_id": "Obad",
+      "title": "Obadiah",
+      "coverage": "Obadiah",
+      "contributor_raw_name": "Matthew Henry",
+      "known_empty_commentary_divs": [
+        {
+          "div2_id": "Obad.ii",
+          "commentary_div_id": "Obad.ii-p1.9",
+          "reason": "Upstream CCEL markup artifact, confirmed identical in all 5 one-chapter books of the Bible (Obadiah, Philemon, 2 John, 3 John, Jude) and in no other book: the chapter's own opening <scripCom> carries passage text \"Ob 1\" (a bare book+chapter label, meant as a chapter-only heading marker like every other book's) but is mis-coded with a verse-1-specific osisRef instead of a chapter-only one, and is immediately followed by a completely empty <div class=\"Commentary\"> (zero children -- no quoted text, no prose). The real, complete commentary on this verse immediately follows as the next proper range (which does carry the quoted-passage paragraph and prose). No content or passage coverage is lost by treating this specific empty div as a documented, audited no-op rather than a parse failure.",
+          "classification": "duplicate_empty_marker"
+        }
+      ]
+    },
+    {
+      "order": 32,
+      "volume": 4,
+      "div1_id": "Jonah",
+      "title": "Jonah",
+      "coverage": "Jonah",
+      "contributor_raw_name": "Matthew Henry"
+    },
+    {
+      "order": 33,
+      "volume": 4,
+      "div1_id": "Mic",
+      "title": "Micah",
+      "coverage": "Micah",
+      "contributor_raw_name": "Matthew Henry"
+    },
+    {
+      "order": 34,
+      "volume": 4,
+      "div1_id": "Nah",
+      "title": "Nahum",
+      "coverage": "Nahum",
+      "contributor_raw_name": "Matthew Henry"
+    },
+    {
+      "order": 35,
+      "volume": 4,
+      "div1_id": "Hab",
+      "title": "Habakkuk",
+      "coverage": "Habakkuk",
+      "contributor_raw_name": "Matthew Henry"
+    },
+    {
+      "order": 36,
+      "volume": 4,
+      "div1_id": "Zeph",
+      "title": "Zephaniah",
+      "coverage": "Zephaniah",
+      "contributor_raw_name": "Matthew Henry"
+    },
+    {
+      "order": 37,
+      "volume": 4,
+      "div1_id": "Hag",
+      "title": "Haggai",
+      "coverage": "Haggai",
+      "contributor_raw_name": "Matthew Henry"
+    },
+    {
+      "order": 38,
+      "volume": 4,
+      "div1_id": "Zech",
+      "title": "Zechariah",
+      "coverage": "Zechariah",
+      "contributor_raw_name": "Matthew Henry"
+    },
+    {
+      "order": 39,
+      "volume": 4,
+      "div1_id": "Mal",
+      "title": "Malachi",
+      "coverage": "Malachi",
+      "contributor_raw_name": "Matthew Henry"
+    },
+    {
+      "order": 40,
+      "volume": 5,
+      "div1_id": "Matt",
+      "title": "Matthew",
+      "coverage": "Matthew",
+      "contributor_raw_name": "Matthew Henry"
+    },
+    {
+      "order": 41,
+      "volume": 5,
+      "div1_id": "Mark",
+      "title": "Mark",
+      "coverage": "Mark",
+      "contributor_raw_name": "Matthew Henry"
+    },
+    {
+      "order": 42,
+      "volume": 5,
+      "div1_id": "Luke",
+      "title": "Luke",
+      "coverage": "Luke",
+      "contributor_raw_name": "Matthew Henry"
+    },
+    {
+      "order": 43,
+      "volume": 5,
+      "div1_id": "John",
+      "title": "John",
+      "coverage": "John",
+      "contributor_raw_name": "Matthew Henry"
+    },
+    {
+      "order": 44,
+      "volume": 6,
+      "div1_id": "Acts",
+      "title": "Acts",
+      "coverage": "Acts",
+      "contributor_raw_name": "Matthew Henry"
+    },
+    {
+      "order": 45,
+      "volume": 6,
+      "div1_id": "Rom",
+      "title": "Romans",
+      "coverage": "Romans",
+      "contributor_raw_name": "Mr. John Evans",
+      "authorship_note": "Matthew Henry died in 1714 having completed his own exposition through the Gospels and Acts (Acts is filed under CCEL's Volume VI split for pagination only -- per Volume V's own preface footnote it was originally part of Henry's own Matthew-Acts manuscript). Per Volume VI's preface (\"Preface: Acts to Revelation\") and its own table of contributors, the exposition of Romans was completed after Henry's death by Mr. John Evans, not by Matthew Henry -- named explicitly in that table, not inferred. Traditionally published and cited as part of \"Matthew Henry's Commentary,\" but this book's own words are Mr. John Evans's."
+    },
+    {
+      "order": 46,
+      "volume": 6,
+      "div1_id": "iCor",
+      "title": "First Corinthians",
+      "coverage": "First Corinthians",
+      "contributor_raw_name": "Mr. Simon Browne",
+      "authorship_note": "Matthew Henry died in 1714 having completed his own exposition through the Gospels and Acts (Acts is filed under CCEL's Volume VI split for pagination only -- per Volume V's own preface footnote it was originally part of Henry's own Matthew-Acts manuscript). Per Volume VI's preface (\"Preface: Acts to Revelation\") and its own table of contributors, the exposition of First Corinthians was completed after Henry's death by Mr. Simon Browne, not by Matthew Henry -- named explicitly in that table, not inferred. Traditionally published and cited as part of \"Matthew Henry's Commentary,\" but this book's own words are Mr. Simon Browne's."
+    },
+    {
+      "order": 47,
+      "volume": 6,
+      "div1_id": "iiCor",
+      "title": "Second Corinthians",
+      "coverage": "Second Corinthians",
+      "contributor_raw_name": "Mr. Daniel Mayo",
+      "authorship_note": "Matthew Henry died in 1714 having completed his own exposition through the Gospels and Acts (Acts is filed under CCEL's Volume VI split for pagination only -- per Volume V's own preface footnote it was originally part of Henry's own Matthew-Acts manuscript). Per Volume VI's preface (\"Preface: Acts to Revelation\") and its own table of contributors, the exposition of Second Corinthians was completed after Henry's death by Mr. Daniel Mayo, not by Matthew Henry -- named explicitly in that table, not inferred. Traditionally published and cited as part of \"Matthew Henry's Commentary,\" but this book's own words are Mr. Daniel Mayo's."
+    },
+    {
+      "order": 48,
+      "volume": 6,
+      "div1_id": "Gal",
+      "title": "Galatians",
+      "coverage": "Galatians",
+      "contributor_raw_name": "Mr. Joshua Bayes",
+      "authorship_note": "Matthew Henry died in 1714 having completed his own exposition through the Gospels and Acts (Acts is filed under CCEL's Volume VI split for pagination only -- per Volume V's own preface footnote it was originally part of Henry's own Matthew-Acts manuscript). Per Volume VI's preface (\"Preface: Acts to Revelation\") and its own table of contributors, the exposition of Galatians was completed after Henry's death by Mr. Joshua Bayes, not by Matthew Henry -- named explicitly in that table, not inferred. Traditionally published and cited as part of \"Matthew Henry's Commentary,\" but this book's own words are Mr. Joshua Bayes's."
+    },
+    {
+      "order": 49,
+      "volume": 6,
+      "div1_id": "Eph",
+      "title": "Ephesians",
+      "coverage": "Ephesians",
+      "contributor_raw_name": "Mr. Samuel Rosewell",
+      "authorship_note": "Matthew Henry died in 1714 having completed his own exposition through the Gospels and Acts (Acts is filed under CCEL's Volume VI split for pagination only -- per Volume V's own preface footnote it was originally part of Henry's own Matthew-Acts manuscript). Per Volume VI's preface (\"Preface: Acts to Revelation\") and its own table of contributors, the exposition of Ephesians was completed after Henry's death by Mr. Samuel Rosewell, not by Matthew Henry -- named explicitly in that table, not inferred. Traditionally published and cited as part of \"Matthew Henry's Commentary,\" but this book's own words are Mr. Samuel Rosewell's."
+    },
+    {
+      "order": 50,
+      "volume": 6,
+      "div1_id": "Phi",
+      "title": "Philippians",
+      "coverage": "Philippians",
+      "contributor_raw_name": "Mr. William Harris",
+      "authorship_note": "Matthew Henry died in 1714 having completed his own exposition through the Gospels and Acts (Acts is filed under CCEL's Volume VI split for pagination only -- per Volume V's own preface footnote it was originally part of Henry's own Matthew-Acts manuscript). Per Volume VI's preface (\"Preface: Acts to Revelation\") and its own table of contributors, the exposition of Philippians was completed after Henry's death by Mr. William Harris, not by Matthew Henry -- named explicitly in that table, not inferred. Traditionally published and cited as part of \"Matthew Henry's Commentary,\" but this book's own words are Mr. William Harris's."
+    },
+    {
+      "order": 51,
+      "volume": 6,
+      "div1_id": "Col",
+      "title": "Colossians",
+      "coverage": "Colossians",
+      "contributor_raw_name": "Mr. William Harris",
+      "authorship_note": "Matthew Henry died in 1714 having completed his own exposition through the Gospels and Acts (Acts is filed under CCEL's Volume VI split for pagination only -- per Volume V's own preface footnote it was originally part of Henry's own Matthew-Acts manuscript). Per Volume VI's preface (\"Preface: Acts to Revelation\") and its own table of contributors, the exposition of Colossians was completed after Henry's death by Mr. William Harris, not by Matthew Henry -- named explicitly in that table, not inferred. Traditionally published and cited as part of \"Matthew Henry's Commentary,\" but this book's own words are Mr. William Harris's."
+    },
+    {
+      "order": 52,
+      "volume": 6,
+      "div1_id": "iTh",
+      "title": "First Thessalonians",
+      "coverage": "First Thessalonians",
+      "contributor_raw_name": "Mr. Daniel Mayo",
+      "authorship_note": "Matthew Henry died in 1714 having completed his own exposition through the Gospels and Acts (Acts is filed under CCEL's Volume VI split for pagination only -- per Volume V's own preface footnote it was originally part of Henry's own Matthew-Acts manuscript). Per Volume VI's preface (\"Preface: Acts to Revelation\") and its own table of contributors, the exposition of First Thessalonians was completed after Henry's death by Mr. Daniel Mayo, not by Matthew Henry -- named explicitly in that table, not inferred. Traditionally published and cited as part of \"Matthew Henry's Commentary,\" but this book's own words are Mr. Daniel Mayo's."
+    },
+    {
+      "order": 53,
+      "volume": 6,
+      "div1_id": "iiTh",
+      "title": "Second Thessalonians",
+      "coverage": "Second Thessalonians",
+      "contributor_raw_name": "Mr. Daniel Mayo",
+      "authorship_note": "Matthew Henry died in 1714 having completed his own exposition through the Gospels and Acts (Acts is filed under CCEL's Volume VI split for pagination only -- per Volume V's own preface footnote it was originally part of Henry's own Matthew-Acts manuscript). Per Volume VI's preface (\"Preface: Acts to Revelation\") and its own table of contributors, the exposition of Second Thessalonians was completed after Henry's death by Mr. Daniel Mayo, not by Matthew Henry -- named explicitly in that table, not inferred. Traditionally published and cited as part of \"Matthew Henry's Commentary,\" but this book's own words are Mr. Daniel Mayo's."
+    },
+    {
+      "order": 54,
+      "volume": 6,
+      "div1_id": "iTim",
+      "title": "First Timothy",
+      "coverage": "First Timothy",
+      "contributor_raw_name": "Mr. Benjamin Andrews Atkinson",
+      "authorship_note": "Matthew Henry died in 1714 having completed his own exposition through the Gospels and Acts (Acts is filed under CCEL's Volume VI split for pagination only -- per Volume V's own preface footnote it was originally part of Henry's own Matthew-Acts manuscript). Per Volume VI's preface (\"Preface: Acts to Revelation\") and its own table of contributors, the exposition of First Timothy was completed after Henry's death by Mr. Benjamin Andrews Atkinson, not by Matthew Henry -- named explicitly in that table, not inferred. Traditionally published and cited as part of \"Matthew Henry's Commentary,\" but this book's own words are Mr. Benjamin Andrews Atkinson's."
+    },
+    {
+      "order": 55,
+      "volume": 6,
+      "div1_id": "iiTim",
+      "title": "Second Timothy",
+      "coverage": "Second Timothy",
+      "contributor_raw_name": "Mr. Benjamin Andrews Atkinson",
+      "authorship_note": "Matthew Henry died in 1714 having completed his own exposition through the Gospels and Acts (Acts is filed under CCEL's Volume VI split for pagination only -- per Volume V's own preface footnote it was originally part of Henry's own Matthew-Acts manuscript). Per Volume VI's preface (\"Preface: Acts to Revelation\") and its own table of contributors, the exposition of Second Timothy was completed after Henry's death by Mr. Benjamin Andrews Atkinson, not by Matthew Henry -- named explicitly in that table, not inferred. Traditionally published and cited as part of \"Matthew Henry's Commentary,\" but this book's own words are Mr. Benjamin Andrews Atkinson's."
+    },
+    {
+      "order": 56,
+      "volume": 6,
+      "div1_id": "Tit",
+      "title": "Titus",
+      "coverage": "Titus",
+      "contributor_raw_name": "Mr. Jeremiah Smith",
+      "authorship_note": "Matthew Henry died in 1714 having completed his own exposition through the Gospels and Acts (Acts is filed under CCEL's Volume VI split for pagination only -- per Volume V's own preface footnote it was originally part of Henry's own Matthew-Acts manuscript). Per Volume VI's preface (\"Preface: Acts to Revelation\") and its own table of contributors, the exposition of Titus was completed after Henry's death by Mr. Jeremiah Smith, not by Matthew Henry -- named explicitly in that table, not inferred. Traditionally published and cited as part of \"Matthew Henry's Commentary,\" but this book's own words are Mr. Jeremiah Smith's."
+    },
+    {
+      "order": 57,
+      "volume": 6,
+      "div1_id": "Phm",
+      "title": "Philemon",
+      "coverage": "Philemon",
+      "contributor_raw_name": "Mr. Jeremiah Smith",
+      "authorship_note": "Matthew Henry died in 1714 having completed his own exposition through the Gospels and Acts (Acts is filed under CCEL's Volume VI split for pagination only -- per Volume V's own preface footnote it was originally part of Henry's own Matthew-Acts manuscript). Per Volume VI's preface (\"Preface: Acts to Revelation\") and its own table of contributors, the exposition of Philemon was completed after Henry's death by Mr. Jeremiah Smith, not by Matthew Henry -- named explicitly in that table, not inferred. Traditionally published and cited as part of \"Matthew Henry's Commentary,\" but this book's own words are Mr. Jeremiah Smith's.",
+      "known_empty_commentary_divs": [
+        {
+          "div2_id": "Phm.ii",
+          "commentary_div_id": "Bible:Phlm.1.1",
+          "reason": "Upstream CCEL markup artifact, confirmed identical in all 5 one-chapter books of the Bible (Obadiah, Philemon, 2 John, 3 John, Jude) and in no other book: the chapter's own opening <scripCom> carries passage text \"Phm 1\" (a bare book+chapter label, meant as a chapter-only heading marker like every other book's) but is mis-coded with a verse-1-specific osisRef instead of a chapter-only one, and is immediately followed by a completely empty <div class=\"Commentary\"> (zero children -- no quoted text, no prose). The real, complete commentary on this verse immediately follows as the next proper range (which does carry the quoted-passage paragraph and prose). No content or passage coverage is lost by treating this specific empty div as a documented, audited no-op rather than a parse failure.",
+          "classification": "duplicate_empty_marker"
+        }
+      ]
+    },
+    {
+      "order": 58,
+      "volume": 6,
+      "div1_id": "Heb",
+      "title": "Hebrews",
+      "coverage": "Hebrews",
+      "contributor_raw_name": "Mr. William Tong",
+      "authorship_note": "Matthew Henry died in 1714 having completed his own exposition through the Gospels and Acts (Acts is filed under CCEL's Volume VI split for pagination only -- per Volume V's own preface footnote it was originally part of Henry's own Matthew-Acts manuscript). Per Volume VI's preface (\"Preface: Acts to Revelation\") and its own table of contributors, the exposition of Hebrews was completed after Henry's death by Mr. William Tong, not by Matthew Henry -- named explicitly in that table, not inferred. Traditionally published and cited as part of \"Matthew Henry's Commentary,\" but this book's own words are Mr. William Tong's."
+    },
+    {
+      "order": 59,
+      "volume": 6,
+      "div1_id": "Jam",
+      "title": "James",
+      "coverage": "James",
+      "contributor_raw_name": "Dr. S. Wright",
+      "authorship_note": "Matthew Henry died in 1714 having completed his own exposition through the Gospels and Acts (Acts is filed under CCEL's Volume VI split for pagination only -- per Volume V's own preface footnote it was originally part of Henry's own Matthew-Acts manuscript). Per Volume VI's preface (\"Preface: Acts to Revelation\") and its own table of contributors, the exposition of James was completed after Henry's death by Dr. S. Wright, not by Matthew Henry -- named explicitly in that table, not inferred. Traditionally published and cited as part of \"Matthew Henry's Commentary,\" but this book's own words are Dr. S. Wright's."
+    },
+    {
+      "order": 60,
+      "volume": 6,
+      "div1_id": "iPet",
+      "title": "First Peter",
+      "coverage": "First Peter",
+      "contributor_raw_name": "Mr. Zec. Merrill",
+      "authorship_note": "Matthew Henry died in 1714 having completed his own exposition through the Gospels and Acts (Acts is filed under CCEL's Volume VI split for pagination only -- per Volume V's own preface footnote it was originally part of Henry's own Matthew-Acts manuscript). Per Volume VI's preface (\"Preface: Acts to Revelation\") and its own table of contributors, the exposition of First Peter was completed after Henry's death by Mr. Zec. Merrill, not by Matthew Henry -- named explicitly in that table, not inferred. Traditionally published and cited as part of \"Matthew Henry's Commentary,\" but this book's own words are Mr. Zec. Merrill's."
+    },
+    {
+      "order": 61,
+      "volume": 6,
+      "div1_id": "iiPet",
+      "title": "Second Peter",
+      "coverage": "Second Peter",
+      "contributor_raw_name": "Mr. Joseph Hill",
+      "authorship_note": "Matthew Henry died in 1714 having completed his own exposition through the Gospels and Acts (Acts is filed under CCEL's Volume VI split for pagination only -- per Volume V's own preface footnote it was originally part of Henry's own Matthew-Acts manuscript). Per Volume VI's preface (\"Preface: Acts to Revelation\") and its own table of contributors, the exposition of Second Peter was completed after Henry's death by Mr. Joseph Hill, not by Matthew Henry -- named explicitly in that table, not inferred. Traditionally published and cited as part of \"Matthew Henry's Commentary,\" but this book's own words are Mr. Joseph Hill's."
+    },
+    {
+      "order": 62,
+      "volume": 6,
+      "div1_id": "iJo",
+      "title": "First John",
+      "coverage": "First John",
+      "contributor_raw_name": "Mr. John Reynolds",
+      "authorship_note": "Matthew Henry died in 1714 having completed his own exposition through the Gospels and Acts (Acts is filed under CCEL's Volume VI split for pagination only -- per Volume V's own preface footnote it was originally part of Henry's own Matthew-Acts manuscript). Per Volume VI's preface (\"Preface: Acts to Revelation\") and its own table of contributors, the exposition of First John was completed after Henry's death by Mr. John Reynolds, not by Matthew Henry -- named explicitly in that table, not inferred. Traditionally published and cited as part of \"Matthew Henry's Commentary,\" but this book's own words are Mr. John Reynolds's."
+    },
+    {
+      "order": 63,
+      "volume": 6,
+      "div1_id": "iiJo",
+      "title": "Second John",
+      "coverage": "Second John",
+      "contributor_raw_name": "Mr. John Reynolds",
+      "authorship_note": "Matthew Henry died in 1714 having completed his own exposition through the Gospels and Acts (Acts is filed under CCEL's Volume VI split for pagination only -- per Volume V's own preface footnote it was originally part of Henry's own Matthew-Acts manuscript). Per Volume VI's preface (\"Preface: Acts to Revelation\") and its own table of contributors, the exposition of Second John was completed after Henry's death by Mr. John Reynolds, not by Matthew Henry -- named explicitly in that table, not inferred. Traditionally published and cited as part of \"Matthew Henry's Commentary,\" but this book's own words are Mr. John Reynolds's.",
+      "known_empty_commentary_divs": [
+        {
+          "div2_id": "iiJo.ii",
+          "commentary_div_id": "Bible:2John.1.1",
+          "reason": "Upstream CCEL markup artifact, confirmed identical in all 5 one-chapter books of the Bible (Obadiah, Philemon, 2 John, 3 John, Jude) and in no other book: the chapter's own opening <scripCom> carries passage text \"2Jo 1\" (a bare book+chapter label, meant as a chapter-only heading marker like every other book's) but is mis-coded with a verse-1-specific osisRef instead of a chapter-only one, and is immediately followed by a completely empty <div class=\"Commentary\"> (zero children -- no quoted text, no prose). The real, complete commentary on this verse immediately follows as the next proper range (which does carry the quoted-passage paragraph and prose). No content or passage coverage is lost by treating this specific empty div as a documented, audited no-op rather than a parse failure.",
+          "classification": "duplicate_empty_marker"
+        }
+      ]
+    },
+    {
+      "order": 64,
+      "volume": 6,
+      "div1_id": "iiiJo",
+      "title": "Third John",
+      "coverage": "Third John",
+      "contributor_raw_name": "Mr. John Reynolds",
+      "authorship_note": "Matthew Henry died in 1714 having completed his own exposition through the Gospels and Acts (Acts is filed under CCEL's Volume VI split for pagination only -- per Volume V's own preface footnote it was originally part of Henry's own Matthew-Acts manuscript). Per Volume VI's preface (\"Preface: Acts to Revelation\") and its own table of contributors, the exposition of Third John was completed after Henry's death by Mr. John Reynolds, not by Matthew Henry -- named explicitly in that table, not inferred. Traditionally published and cited as part of \"Matthew Henry's Commentary,\" but this book's own words are Mr. John Reynolds's.",
+      "known_empty_commentary_divs": [
+        {
+          "div2_id": "iiiJo.ii",
+          "commentary_div_id": "Bible:3John.1.1",
+          "reason": "Upstream CCEL markup artifact, confirmed identical in all 5 one-chapter books of the Bible (Obadiah, Philemon, 2 John, 3 John, Jude) and in no other book: the chapter's own opening <scripCom> carries passage text \"3Jo 1\" (a bare book+chapter label, meant as a chapter-only heading marker like every other book's) but is mis-coded with a verse-1-specific osisRef instead of a chapter-only one, and is immediately followed by a completely empty <div class=\"Commentary\"> (zero children -- no quoted text, no prose). The real, complete commentary on this verse immediately follows as the next proper range (which does carry the quoted-passage paragraph and prose). No content or passage coverage is lost by treating this specific empty div as a documented, audited no-op rather than a parse failure.",
+          "classification": "duplicate_empty_marker"
+        }
+      ]
+    },
+    {
+      "order": 65,
+      "volume": 6,
+      "div1_id": "Ju",
+      "title": "Jude",
+      "coverage": "Jude",
+      "contributor_raw_name": "Mr. John Billingsley",
+      "authorship_note": "Matthew Henry died in 1714 having completed his own exposition through the Gospels and Acts (Acts is filed under CCEL's Volume VI split for pagination only -- per Volume V's own preface footnote it was originally part of Henry's own Matthew-Acts manuscript). Per Volume VI's preface (\"Preface: Acts to Revelation\") and its own table of contributors, the exposition of Jude was completed after Henry's death by Mr. John Billingsley, not by Matthew Henry -- named explicitly in that table, not inferred. Traditionally published and cited as part of \"Matthew Henry's Commentary,\" but this book's own words are Mr. John Billingsley's.",
+      "known_empty_commentary_divs": [
+        {
+          "div2_id": "Ju.ii",
+          "commentary_div_id": "Bible:Jude.1.1",
+          "reason": "Upstream CCEL markup artifact, confirmed identical in all 5 one-chapter books of the Bible (Obadiah, Philemon, 2 John, 3 John, Jude) and in no other book: the chapter's own opening <scripCom> carries passage text \"Jude 1\" (a bare book+chapter label, meant as a chapter-only heading marker like every other book's) but is mis-coded with a verse-1-specific osisRef instead of a chapter-only one, and is immediately followed by a completely empty <div class=\"Commentary\"> (zero children -- no quoted text, no prose). The real, complete commentary on this verse immediately follows as the next proper range (which does carry the quoted-passage paragraph and prose). No content or passage coverage is lost by treating this specific empty div as a documented, audited no-op rather than a parse failure.",
+          "classification": "duplicate_empty_marker"
+        }
+      ]
+    },
+    {
+      "order": 66,
+      "volume": 6,
+      "div1_id": "Rev",
+      "title": "Revelation",
+      "coverage": "Revelation",
+      "contributor_raw_name": "Mr. William Tong",
+      "authorship_note": "Matthew Henry died in 1714 having completed his own exposition through the Gospels and Acts (Acts is filed under CCEL's Volume VI split for pagination only -- per Volume V's own preface footnote it was originally part of Henry's own Matthew-Acts manuscript). Per Volume VI's preface (\"Preface: Acts to Revelation\") and its own table of contributors, the exposition of Revelation was completed after Henry's death by Mr. William Tong, not by Matthew Henry -- named explicitly in that table, not inferred. Traditionally published and cited as part of \"Matthew Henry's Commentary,\" but this book's own words are Mr. William Tong's."
+    }
+  ]
+}

@@ -1,0 +1,568 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE ThML PUBLIC "-//CCEL/DTD Theological Markup Language//EN" "http://www.ccel.org/dtd/ThML10.dtd">
+<ThML>
+<ThML.head>
+
+<generalInfo>
+  <description>
+At a time when the theological winds seem to change direction on a daily basis, the <i>Commentary Critical and Explanatory on the Whole Bible</i> is a welcome breath of fresh air from conservative and orthodox teachers of the Christian faith.  This commentary has been a bestseller since its original publication in 1871 due to its scholarly rigor and devotional value.  Jamieson, Fausset, and Brown have crafted a detailed, yet not overly technical, commentary of the Bible that holds to the historic teachings of orthodox Christianity. <i>Commentary Critical and Explanatory on the Whole Bible</i> is based on a detailed exegesis of the scriptures in the original languages and is a “must have” for those who are interested in a deeper appreciation of the Biblical text. 
+  <br /><br />Andrew Hanson<br />CCEL Intern
+  </description>	
+  <pubHistory />
+  <comments />
+</generalInfo>
+
+<printSourceInfo>
+  <published>1871</published>
+</printSourceInfo>
+
+<electronicEdInfo>
+  <publisherID>ccel</publisherID>
+  <authorID>jamieson</authorID>
+  <bookID>jfb</bookID>
+  <workID>jfb</workID>
+  <bkgID>commentary_critical_and_explanatory_on_the_whole_bible_(jamieson)</bkgID>
+  <version>1.0</version>
+  <editorialComments />
+  <revisionHistory />
+  <status />
+
+  <DC>
+    <DC.Title>Commentary Critical and Explanatory on the Whole Bible</DC.Title>
+    <DC.Title sub="short">JFB Commentary</DC.Title>
+    <DC.Title sub="authTitle">JFB Commentary</DC.Title>
+    <DC.Creator sub="Author" scheme="short-form">Robert Jamieson</DC.Creator>
+    <DC.Creator sub="Author" scheme="file-as">Jamieson, Robert</DC.Creator>
+    <DC.Creator sub="Author" scheme="ccel">jamieson</DC.Creator>
+    <DC.Creator sub="Author" scheme="short-form">A. R. Fausset</DC.Creator>
+    <DC.Creator sub="Author" scheme="file-as">Fausset, A. R.</DC.Creator>
+    <DC.Creator sub="Author" scheme="ccel">fausset_ar</DC.Creator>
+    <DC.Creator sub="Author" scheme="short-form">David Brown</DC.Creator>
+    <DC.Creator sub="Author" scheme="file-as">Brown, David</DC.Creator>
+    <DC.Creator sub="Author" scheme="ccel">brown_d</DC.Creator>
+    <DC.Publisher>Grand Rapids: Christian Classics Ethereal Library</DC.Publisher>
+    <DC.Subject scheme="LCCN">BS491.J3</DC.Subject>
+    <DC.Subject scheme="lcsh1">The Bible</DC.Subject>
+    <DC.Subject scheme="lcsh2">Works about the Bible</DC.Subject>
+    <DC.Subject scheme="ccel">All; Bible; Proofed</DC.Subject>
+    <DC.Date sub="Created">2002-11-29</DC.Date>
+    <DC.Type>Text.Commentary</DC.Type>
+    <DC.Format scheme="IMT">text/html</DC.Format>
+    <DC.Identifier scheme="URL">/ccel/jamieson/jfb.html</DC.Identifier>
+    <DC.Language scheme="ISO639-3">eng</DC.Language>
+    <DC.Rights>Public Domain</DC.Rights>
+  </DC>
+  <comments />
+</electronicEdInfo>
+
+
+
+
+
+
+
+
+
+
+<style type="text/css">
+.indentMarg	{ margin-left:0.5in }
+.small	{ font-size:64% }
+.big	{ font-size:116% }
+.big2	{ font-size:132% }
+.w15	{ width:15% }
+.w18	{ width:18% }
+.w50	{ width:50% }
+.w75	{ width:75% }
+.w90	{ width:90% }
+.continuec4	{ font-style:italic; font-weight:bold }
+.c2	{ margin-left:2em }
+.bigc1	{ font-size:116%; font-style:italic }
+</style>
+
+<style type="text/xcss">
+<selector class="indentMarg">
+  <property name="margin-left" value="0.5in" />
+</selector>
+<selector class="small">
+  <property name="font-size" value="64%" />
+</selector>
+<selector class="big">
+  <property name="font-size" value="116%" />
+</selector>
+<selector class="big2">
+  <property name="font-size" value="132%" />
+</selector>
+<selector class="w15">
+  <property name="width" value="15%" />
+</selector>
+<selector class="w18">
+  <property name="width" value="18%" />
+</selector>
+<selector class="w50">
+  <property name="width" value="50%" />
+</selector>
+<selector class="w75">
+  <property name="width" value="75%" />
+</selector>
+<selector class="w90">
+  <property name="width" value="90%" />
+</selector>
+<selector class="continuec4">
+  <property name="font-style" value="italic" />
+  <property name="font-weight" value="bold" />
+</selector>
+<selector class="c2">
+  <property name="margin-left" value="2em" />
+</selector>
+<selector class="bigc1">
+  <property name="font-size" value="116%" />
+  <property name="font-style" value="italic" />
+</selector>
+</style>
+
+
+</ThML.head>
+<ThML.body>
+<div1 id="xi">
+<div2 title="Philemon" progress="87.24%" id="xi.xviii" prev="xi.xvii.iv" next="xi.xviii.i"> 
+<p class="Center" id="xi.xviii-p1"><br />
+<b>THE EPISTLE OF PAUL TO</b><br />
+<span class="big2" id="xi.xviii-p1.3">PHILEMON</span><br />
+<i>Commentary by</i> <span class="sc" id="xi.xviii-p1.5">A. R. Faussett</span></p>
+
+        <div3 title="Introduction" progress="87.24%" id="xi.xviii.i" prev="xi.xviii" next="xi.xviii.ii"> 
+<div class="Center" id="xi.xviii.i-p0.1">
+<p class="big" id="xi.xviii.i-p1">INTRODUCTION</p>
+</div>
+
+<p id="xi.xviii.i-p2">The testimonies to its authenticity are—<span class="sc" id="xi.xviii.i-p2.1">Origen</span> [<i>Homily</i> 19, on <i>Jeremiah,</i>
+vol. 1., p. 185, <i>Edition Huetius</i>], cites it as the letter of
+Paul to Philemon concerning Onesimus; <span class="sc" id="xi.xviii.i-p2.2">Tertullian</span> [<i>Against Marcion,</i> 5.21]: "The
+brevity of this Epistle is the sole cause of its escaping the
+falsifying hands of Marcion." <span class="sc" id="xi.xviii.i-p2.3">Eusebius</span>
+[<i>Ecclesiastical History,</i> 3.25], mentions it among "the
+universally acknowledged Epistles of the canon"; <span class="sc" id="xi.xviii.i-p2.4">Jerome</span> [<i>Commentary on Philemon,</i> vol. iv., p.
+442], argues for it against those who objected to its canonicity on the
+ground of its subject being beneath an apostle to write about. <span class="sc" id="xi.xviii.i-p2.5">Ignatius</span> [<i>Epistle to the Ephesians,</i> 2;
+<i>Epistle to the Magnesians,</i> 12], seems to allude to <scripRef passage="Phm 20" id="xi.xviii.i-p2.6" parsed="|Phlm|1|20|0|0" osisRef="Bible:Phlm.1.20">Phm 20</scripRef>. Compare <i>Epistle to Polycarp</i> [1
+and 6]. Its brevity is the cause of its not being often quoted by the
+Fathers. <span class="sc" id="xi.xviii.i-p2.7">Paley</span> [<i>Horæ
+Paulinæ</i>], has shown striking proofs of its authenticity in the
+undesigned coincidences between it and the Epistle to the
+Colossians.</p>
+
+<p id="xi.xviii.i-p3"><span class="sc" id="xi.xviii.i-p3.1">Place and Time of
+Writing</span>.—This Epistle is closely linked with the Epistle
+to the Colossians. Both were carried by the same bearer, Onesimus (with
+whom, however, Tychicus is joined in the Epistle to the Colossians),
+<scripRef passage="Col 4:9" id="xi.xviii.i-p3.2" parsed="|Col|4|9|0|0" osisRef="Bible:Col.4.9">Col 4:9</scripRef>. The persons sending salutations
+are the same, except one, Jesus called <i>Justus</i> (<scripRef passage="Col 4:11" id="xi.xviii.i-p3.3" parsed="|Col|4|11|0|0" osisRef="Bible:Col.4.11">Col 4:11</scripRef>). In both alike Archippus is addressed
+(<scripRef passage="Phm 2" id="xi.xviii.i-p3.4" parsed="|Phlm|1|2|0|0" osisRef="Bible:Phlm.1.2">Phm 2</scripRef>; <scripRef passage="Col 4:17" id="xi.xviii.i-p3.5" parsed="|Col|4|17|0|0" osisRef="Bible:Col.4.17">Col 4:17</scripRef>). Paul and Timothy stand in the headings
+of both. And in both Paul appears as a prisoner (<scripRef passage="Phm 9" id="xi.xviii.i-p3.6" parsed="|Phlm|1|9|0|0" osisRef="Bible:Phlm.1.9">Phm 9</scripRef>; <scripRef passage="Col 4:18" id="xi.xviii.i-p3.7" parsed="|Col|4|18|0|0" osisRef="Bible:Col.4.18">Col
+4:18</scripRef>). Hence it follows, it
+was written at the same time and place as the Epistle to the Colossians
+(which was about the same time as the Epistle to the Ephesians),
+namely, at Rome, during Paul's first imprisonment, <span class="sc" id="xi.xviii.i-p3.8">A.D.</span> 61 or 62.</p>
+
+<p id="xi.xviii.i-p4"><span class="sc" id="xi.xviii.i-p4.1">Object</span>.—Onesimus, of Colosse ("one of you,"
+<scripRef passage="Col 4:9" id="xi.xviii.i-p4.2" parsed="|Col|4|9|0|0" osisRef="Bible:Col.4.9">Col 4:9</scripRef>), slave of Philemon, had fled from
+his master to Rome, after having probably defrauded him (<scripRef passage="Phm 18" id="xi.xviii.i-p4.3" parsed="|Phlm|1|18|0|0" osisRef="Bible:Phlm.1.18">Phm 18</scripRef>). He there was converted to Christianity
+by Paul, and being induced by him to return to his master, he was
+furnished with this Epistle, recommending him to Philemon's favorable
+reception, as being now no longer a mere servant, but also a brother in
+Christ. Paul ends by requesting Philemon to prepare him a lodging, as
+he trusted soon to be set free and visit Colosse. This Epistle is
+addressed also to Apphia, supposed from its domestic subject to have
+been Philemon's wife, and Archippus (a minister of the Colossian
+Church, <scripRef passage="Col 4:17" id="xi.xviii.i-p4.4" parsed="|Col|4|17|0|0" osisRef="Bible:Col.4.17">Col
+4:17</scripRef>), for the same reason,
+supposed to be a near relative.</p>
+
+<p id="xi.xviii.i-p5">Onesimus in the <i>Apostolical Canons</i> [73], is
+said to have been emancipated by his master. The <i>Apostolical
+Constitutions</i> [7.46] state that he was consecrated by Paul, bishop
+of Berea, in Macedonia, and that he was martyred at Rome. <span class="sc" id="xi.xviii.i-p5.1">Ignatius</span> [<i>Epistle to the Ephesians,</i> 1],
+speaks of him as bishop of the Ephesians.</p>
+
+<p id="xi.xviii.i-p6"><span class="sc" id="xi.xviii.i-p6.1">Style</span>.—It has
+been happily termed, from its graceful and delicate urbanity, "the
+polite Epistle." Yet there is nothing of insincere compliment,
+miscalled politeness by the world. It is manly and straightforward,
+without misrepresentation or suppression of facts; at the same time it
+is most captivatingly persuasive. <span class="sc" id="xi.xviii.i-p6.2">Alford</span>
+quotes <span class="sc" id="xi.xviii.i-p6.3">Luther's</span> eloquent description,
+"This Epistle showeth a right, noble, lovely example of Christian love.
+Here we see how St. Paul layeth himself out for the poor Onesimus, and
+with all his means pleadeth his cause with his master, and so setteth
+himself as if he were Onesimus, and had himself done wrong to Philemon.
+Yet all this doeth he, not with force, as if he had right thereto, but
+he stripped himself of his right, and thus enforceth Philemon to forego
+his right also. Even as Christ did for us with God the Father, thus
+also doth St. Paul for Onesimus with Philemon: for Christ also stripped
+Himself of His right, and by love and humility enforced [?] the Father
+to lay aside His wrath and power, and to take us to His grace for the
+sake of Christ, who lovingly pleadeth our cause, and with all His heart
+layeth Himself out for us; for we are all His Onesimi, to my
+thinking."</p>
+
+</div3>
+
+        <div3 title="Chapter 1" progress="87.28%" id="xi.xviii.ii" prev="xi.xviii.i" next="xi.xix">
+<scripCom type="Commentary" passage="Phm 1:1" id="xi.xviii.ii-p0.1" parsed="|Phlm|1|1|0|0" osisRef="Bible:Phlm.1.1" />
+<div class="Commentary" id="xi.xviii.ii-p0.2">
+<p id="xi.xviii.ii-p1"><scripRef passage="Phm 1-25" id="xi.xviii.ii-p1.1" parsed="|Phlm|1|1|1|25" osisRef="Bible:Phlm.1.1-Phlm.1.25">Phm 1-25</scripRef>.
+<span class="sc" id="xi.xviii.ii-p1.2">Address. Thanksgiving for Philemon's Love and
+Faith</span>. <span class="sc" id="xi.xviii.ii-p1.3">Intercession for Onesimus</span>.
+<span class="sc" id="xi.xviii.ii-p1.4">Concluding Request and Salutations.</span></p>
+
+<p id="xi.xviii.ii-p2">This Epistle affords a specimen of the highest wisdom
+as to the manner in which Christians ought to manage social affairs on
+more exalted principles.</p>
+
+<p id="xi.xviii.ii-p3"><b>1. prisoner of Jesus Christ</b>—one whom
+Christ's cause has made a prisoner (compare "in the bonds of the
+Gospel," (<scripRef passage="Phm 13" id="xi.xviii.ii-p3.1" parsed="|Phlm|1|13|0|0" osisRef="Bible:Phlm.1.13">Phm 13</scripRef>). He
+does not call himself, as in other Epistles, "Paul an apostle," as he
+is writing familiarly, not authoritatively.</p>
+
+<p id="xi.xviii.ii-p4"><b>our … fellow labourer</b>—in
+building up the Church at Colosse, while we were at Ephesus. See my <i>Introduction</i> to Colossians.</p>
+
+<scripCom type="Commentary" passage="Phm 1:2" id="xi.xviii.ii-p4.1" parsed="|Phlm|1|2|0|0" osisRef="Bible:Phlm.1.2" />
+</div><div class="Commentary" id="xi.xviii.ii-p4.2"> 
+<p id="xi.xviii.ii-p5"><b>2. Apphia</b>—the <i>Latin,</i> "Appia";
+either the wife or some close relative of Philemon. She and Archippus,
+if they had not belonged to his family, would not have been included
+with Philemon in the address of a letter on a domestic matter.</p>
+
+<p id="xi.xviii.ii-p6"><b>Archippus</b>—a minister of the Colossian
+Church (<scripRef passage="Col 4:17" id="xi.xviii.ii-p6.1" parsed="|Col|4|17|0|0" osisRef="Bible:Col.4.17">Col
+4:17</scripRef>).</p>
+
+<p id="xi.xviii.ii-p7"><b>fellow soldier</b>—(<scripRef passage="2Ti 2:3" id="xi.xviii.ii-p7.1" parsed="|2Tim|2|3|0|0" osisRef="Bible:2Tim.2.3">2Ti 2:3</scripRef>).</p>
+
+<p id="xi.xviii.ii-p8"><b>church in thy house</b>—In the absence of
+a regular church building, the houses of particular saints were used
+for that purpose. Observe Paul's tact in associating with Philemon
+those associated by kindred or Christian brotherhood with his
+<i>house,</i> and not going beyond it.</p>
+
+<scripCom type="Commentary" passage="Phm 1:3" id="xi.xviii.ii-p8.1" parsed="|Phlm|1|3|0|0" osisRef="Bible:Phlm.1.3" />
+</div><div class="Commentary" id="xi.xviii.ii-p8.2">
+<scripCom type="Commentary" passage="Phm 1:4" id="xi.xviii.ii-p8.3" parsed="|Phlm|1|4|0|0" osisRef="Bible:Phlm.1.4" />
+</div><div class="Commentary" id="xi.xviii.ii-p8.4"> 
+<p id="xi.xviii.ii-p9"><b>4. always</b>—joined by <span class="sc" id="xi.xviii.ii-p9.1">Alford</span> with, "I thank my God."</p>
+
+<scripCom type="Commentary" passage="Phm 1:5" id="xi.xviii.ii-p9.2" parsed="|Phlm|1|5|0|0" osisRef="Bible:Phlm.1.5" />
+</div><div class="Commentary" id="xi.xviii.ii-p9.3"> 
+<p id="xi.xviii.ii-p10"><b>5. Hearing</b>—the ground of his
+thanksgiving. It is a delicate mark of authenticity, that he says
+"hearing" as to churches and persons whom he had not seen or
+<i>then</i> visited. Now Colosse, Philemon's place of residence, he had
+never yet seen. Yet <scripRef passage="Phm 19" id="xi.xviii.ii-p10.1" parsed="|Phlm|1|19|0|0" osisRef="Bible:Phlm.1.19">Phm 19</scripRef> here
+implies that Philemon was his convert. Philemon, doubtless, was
+converted at Ephesus, or in some other place where he met Paul.</p>
+
+<p id="xi.xviii.ii-p11"><b>love and faith</b>—The theological order
+is first <i>faith</i> then <i>love,</i> the fruit of faith. But he
+purposely puts Philemon's <i>love</i> in the first place, as it is to
+an act of love that he is exhorting him.</p>
+
+<p id="xi.xviii.ii-p12"><b>toward … toward</b>—different
+<i>Greek</i> words: "towards" … "unto." <i>Towards</i> implies
+simply direction; <i>unto,</i> to the advantage of.</p>
+
+<scripCom type="Commentary" passage="Phm 1:6" id="xi.xviii.ii-p12.1" parsed="|Phlm|1|6|0|0" osisRef="Bible:Phlm.1.6" />
+</div><div class="Commentary" id="xi.xviii.ii-p12.2"> 
+<p id="xi.xviii.ii-p13"><b>6. That</b>—The aim of my thanksgiving and
+prayers for thee is, <i>in order that the,</i> &amp;c.</p>
+
+<p id="xi.xviii.ii-p14"><b>the communication of thy faith</b>—<i>the
+imparting of it and its fruits</i> (namely, acts of love and
+beneficence: as <scripRef passage="Heb 13:16" id="xi.xviii.ii-p14.1" parsed="|Heb|13|16|0|0" osisRef="Bible:Heb.13.16">Heb 13:16</scripRef>,
+"to communicate," that is, to impart a share) <i>to others;</i> or,
+<i>the liberality to others flowing from thy faith</i> (so the
+<i>Greek</i> is translated, "liberal distribution," <scripRef passage="2Co 9:13" id="xi.xviii.ii-p14.2" parsed="|2Cor|9|13|0|0" osisRef="Bible:2Cor.9.13">2Co 9:13</scripRef>).</p>
+
+<p id="xi.xviii.ii-p15"><b>effectual by</b>—<i>Greek,</i> "in"; the
+element in which his liberality had place, that is, may be <i>proved by
+acts in,</i> &amp;c.</p>
+
+<p id="xi.xviii.ii-p16"><b>acknowledging</b>—<i>Greek,</i> "the
+thorough knowledge," that is, the experimental or practical
+<i>recognition.</i></p>
+
+<p id="xi.xviii.ii-p17"><b>of every good thing which is in
+you</b>—The oldest manuscripts read, "which is in <span class="sc" id="xi.xviii.ii-p17.1">US</span>," that is, the practical recognition of every
+grace which is in us <i>Christians,</i> in so far as we realize the
+Christian character. In short, that thy faith may by acts be proved to
+be "a faith which worketh by love."</p>
+
+<p id="xi.xviii.ii-p18"><b>in Christ Jesus</b>—rather as
+<i>Greek,</i> "<i>unto</i> Christ Jesus," that is, to the glory of
+Christ Jesus. Two of the oldest manuscripts omit "Jesus." This verse
+answers to <scripRef passage="Phm 5" id="xi.xviii.ii-p18.1" parsed="|Phlm|1|5|0|0" osisRef="Bible:Phlm.1.5">Phm 5</scripRef>, "thy
+love and faith toward all saints"; Paul never ceases to mention him in
+his prayers, <i>in order that</i> his faith may still further show its
+power in his relation to others, by exhibiting every grace which is in
+Christians to the glory of Christ. Thus he paves the way for the
+request in behalf of Onesimus.</p>
+
+<scripCom type="Commentary" passage="Phm 1:7" id="xi.xviii.ii-p18.2" parsed="|Phlm|1|7|0|0" osisRef="Bible:Phlm.1.7" />
+</div><div class="Commentary" id="xi.xviii.ii-p18.3"> 
+<p id="xi.xviii.ii-p19"><b>7. For</b>—a reason for the prayer, <scripRef passage="Phm 4-6" id="xi.xviii.ii-p19.1" parsed="|Phlm|1|4|1|6" osisRef="Bible:Phlm.1.4-Phlm.1.6">Phm 4-6</scripRef>.</p>
+
+<p id="xi.xviii.ii-p20"><b>we have</b>—<i>Greek,</i> "we had."</p>
+
+<p id="xi.xviii.ii-p21"><b>joy and consolation</b>—joined in <scripRef passage="2Co 7:4" id="xi.xviii.ii-p21.1" parsed="|2Cor|7|4|0|0" osisRef="Bible:2Cor.7.4">2Co 7:4</scripRef>.</p>
+
+<p id="xi.xviii.ii-p22"><b>saints are refreshed by thee</b>—His house
+was open to them.</p>
+
+<p id="xi.xviii.ii-p23"><b>brother</b>—put last, to conciliate his
+favorable attention to the request which follows.</p>
+
+<scripCom type="Commentary" passage="Phm 1:8" id="xi.xviii.ii-p23.1" parsed="|Phlm|1|8|0|0" osisRef="Bible:Phlm.1.8" />
+</div><div class="Commentary" id="xi.xviii.ii-p23.2"> 
+<p id="xi.xviii.ii-p24"><b>8. Wherefore</b>—Because of my love to thee,
+I prefer to "<i>beseech,</i>" rather than "enjoin," or
+<i>authoritatively command.</i></p>
+
+<p id="xi.xviii.ii-p25"><b>I might … enjoin</b>—in virtue of
+the obligation to <i>obedience</i> which Philemon lay under to Paul, as
+having been converted through his instrumentality.</p>
+
+<p id="xi.xviii.ii-p26"><b>in Christ</b>—the element in which his
+boldness has place.</p>
+
+<scripCom type="Commentary" passage="Phm 1:9" id="xi.xviii.ii-p26.1" parsed="|Phlm|1|9|0|0" osisRef="Bible:Phlm.1.9" />
+</div><div class="Commentary" id="xi.xviii.ii-p26.2"> 
+<p id="xi.xviii.ii-p27"><b>9. for love's sake</b>—mine to thee, and
+(what ought to be) thine to Onesimus. Or, that Christian love of which
+thou showest so bright an example (<scripRef passage="Phm 7" id="xi.xviii.ii-p27.1" parsed="|Phlm|1|7|0|0" osisRef="Bible:Phlm.1.7">Phm 7</scripRef>).</p>
+
+<p id="xi.xviii.ii-p28"><b>being such an one</b>—Explain, <i>Being
+such a one</i> as thou knowest me to be, namely,</p>
+
+<p id="xi.xviii.ii-p29"><b>Paul</b>—the founder of so many churches,
+and an apostle of Christ, and thy father in the faith.</p>
+
+<p id="xi.xviii.ii-p30"><b>the aged</b>—a circumstance calculated to
+secure thy respect for anything I request.</p>
+
+<p id="xi.xviii.ii-p31"><b>and now also a prisoner of Jesus
+Christ</b>—the strongest claim I have on thy regard: if for no
+other reason, at least in consideration of this, through commiseration
+gratify me.</p>
+
+<scripCom type="Commentary" passage="Phm 1:10" id="xi.xviii.ii-p31.1" parsed="|Phlm|1|10|0|0" osisRef="Bible:Phlm.1.10" />
+</div><div class="Commentary" id="xi.xviii.ii-p31.2"> 
+<p id="xi.xviii.ii-p32"><b>10. I beseech thee</b>—emphatically repeated
+from <scripRef passage="Phm 9" id="xi.xviii.ii-p32.1" parsed="|Phlm|1|9|0|0" osisRef="Bible:Phlm.1.9">Phm
+9</scripRef>. In the <i>Greek,</i> the
+name "Onesimus" is skilfully put last, he puts first a favorable
+description of him before he mentions the name that had fallen into so
+bad repute with Philemon. "I beseech thee for my son, whom I have
+begotten in my bonds, Onesimus." Scripture does not sanction slavery,
+but at the same time does not begin a political crusade against it. It
+sets forth <i>principles of love</i> to our fellow men which were sure
+(as they have done) in due time to undermine and overthrow it, without
+violently convulsing the then existing political fabric, by stirring up
+slaves against their masters.</p>
+
+<scripCom type="Commentary" passage="Phm 1:11" id="xi.xviii.ii-p32.2" parsed="|Phlm|1|11|0|0" osisRef="Bible:Phlm.1.11" />
+</div><div class="Commentary" id="xi.xviii.ii-p32.3"> 
+<p id="xi.xviii.ii-p33"><b>11. Which … was …
+unprofitable</b>—belying his name Onesimus, which means
+"profitable." Not only was he "unprofitable," but positively injurious,
+having "wronged" his master. Paul uses a mild expression.</p>
+
+<p id="xi.xviii.ii-p34"><b>now profitable</b>—Without godliness a man
+has no station. <i>Profitable</i> in spiritual, as well as in
+<i>temporal</i> things.</p>
+
+<scripCom type="Commentary" passage="Phm 1:12" id="xi.xviii.ii-p34.1" parsed="|Phlm|1|12|0|0" osisRef="Bible:Phlm.1.12" />
+</div><div class="Commentary" id="xi.xviii.ii-p34.2"> 
+<p id="xi.xviii.ii-p35"><b>12. mine own bowels</b>—as dear to me as my
+own heart [<span class="sc" id="xi.xviii.ii-p35.1">Alford</span>]. Compare <scripRef passage="Phm 17" id="xi.xviii.ii-p35.2" parsed="|Phlm|1|17|0|0" osisRef="Bible:Phlm.1.17">Phm 17</scripRef>, "as myself." The object of my most
+intense affection as that of a parent for a child.</p>
+
+<scripCom type="Commentary" passage="Phm 1:13" id="xi.xviii.ii-p35.3" parsed="|Phlm|1|13|0|0" osisRef="Bible:Phlm.1.13" />
+</div><div class="Commentary" id="xi.xviii.ii-p35.4"> 
+<p id="xi.xviii.ii-p36"><b>13. I</b>—emphatical. I for my part. Since
+<i>I</i> had such implicit trust in him as to desire to keep him with
+me for his services, <i>thou</i> mayest.</p>
+
+<p id="xi.xviii.ii-p37"><b>I would have retained</b>—different
+<i>Greek</i> from the "would," <scripRef passage="Phm 14" id="xi.xviii.ii-p37.1" parsed="|Phlm|1|14|0|0" osisRef="Bible:Phlm.1.14">Phm 14</scripRef>, "I could have <i>wished,</i>" "I was
+<i>minded</i>" here; but "I was not <i>willing,</i>" <scripRef passage="Phm 14" id="xi.xviii.ii-p37.2" parsed="|Phlm|1|14|0|0" osisRef="Bible:Phlm.1.14">Phm 14</scripRef>.</p>
+
+<p id="xi.xviii.ii-p38"><b>in thy stead</b>—that he might supply in
+your place all the services to me which you, if you were here, would
+render in virtue of the love you bear to me (<scripRef passage="Phm 19" id="xi.xviii.ii-p38.1" parsed="|Phlm|1|19|0|0" osisRef="Bible:Phlm.1.19">Phm 19</scripRef>).</p>
+
+<p id="xi.xviii.ii-p39"><b>bonds of the gospel</b>—my bonds endured
+for the Gospel's sake (<scripRef passage="Phm 9" id="xi.xviii.ii-p39.1" parsed="|Phlm|1|9|0|0" osisRef="Bible:Phlm.1.9">Phm 9</scripRef>).</p>
+
+<scripCom type="Commentary" passage="Phm 1:14" id="xi.xviii.ii-p39.2" parsed="|Phlm|1|14|0|0" osisRef="Bible:Phlm.1.14" />
+</div><div class="Commentary" id="xi.xviii.ii-p39.3"> 
+<p id="xi.xviii.ii-p40"><b>14. without thy mind</b>—that is,
+consent.</p>
+
+<p id="xi.xviii.ii-p41"><b>should not be as</b>—"should not appear as
+a matter of necessity, but of free will." Had Paul kept Onesimus,
+however willing to gratify Paul Philemon might be, he would have no
+opportunity given him of showing he was so, his leave not having been
+asked.</p>
+
+<scripCom type="Commentary" passage="Phm 1:15" id="xi.xviii.ii-p41.1" parsed="|Phlm|1|15|0|0" osisRef="Bible:Phlm.1.15" />
+</div><div class="Commentary" id="xi.xviii.ii-p41.2"> 
+<p id="xi.xviii.ii-p42"><b>15. perhaps</b>—speaking in human fashion,
+yet as one believing that God's Providence probably (for we cannot
+dogmatically define the hidden purposes of God in providence) overruled
+the past evil to ultimately greater good to him. This thought would
+soften Philemon's indignation at Onesimus' past offense. So Joseph in
+<scripRef passage="Ge 45:5" id="xi.xviii.ii-p42.1" parsed="|Gen|45|5|0|0" osisRef="Bible:Gen.45.5">Ge 45:5</scripRef>.</p>
+
+<p id="xi.xviii.ii-p43"><b>departed</b>—literally, "was parted from
+thee"; a softening term for "ran away," to mitigate Philemon's
+wrath.</p>
+
+<p id="xi.xviii.ii-p44"><b>receive him</b>—<i>Greek,</i> "have him
+for thyself in full possession" (see on <scripRef passage="Php 4:18" id="xi.xviii.ii-p44.1" parsed="|Phil|4|18|0|0" osisRef="Bible:Phil.4.18">Php
+4:18</scripRef>). The same <i>Greek</i> as in <scripRef passage="Mt 6:2" id="xi.xviii.ii-p44.2" parsed="|Matt|6|2|0|0" osisRef="Bible:Matt.6.2">Mt 6:2</scripRef>.</p>
+
+<p id="xi.xviii.ii-p45"><b>for ever</b>—in this life and in that to
+come (compare <scripRef passage="Ex 21:6" id="xi.xviii.ii-p45.1" parsed="|Exod|21|6|0|0" osisRef="Bible:Exod.21.6">Ex 21:6</scripRef>).
+Onesimus' time of absence, however long, was but a short "hour" (so
+<i>Greek</i>) compared with the everlasting devotion henceforth binding
+him to his master.</p>
+
+<scripCom type="Commentary" passage="Phm 1:16" id="xi.xviii.ii-p45.2" parsed="|Phlm|1|16|0|0" osisRef="Bible:Phlm.1.16" />
+</div><div class="Commentary" id="xi.xviii.ii-p45.3"> 
+<p id="xi.xviii.ii-p46"><b>16.</b> No longer as a mere servant or slave
+(though still he is that), but above a servant, so that thou shalt
+derive from him not merely the services of a slave, but higher
+benefits: a <i>servant</i> "in the flesh," he is a <i>brother</i> "in
+the Lord."</p>
+
+<p id="xi.xviii.ii-p47"><b>beloved, specially to me</b>—who am his
+spiritual father, and who have experienced his faithful attentions.
+Lest Philemon should dislike Onesimus being called "brother," Paul
+first recognizes him as a brother, being the spiritual son of the same
+God.</p>
+
+<p id="xi.xviii.ii-p48"><b>much more unto thee</b>—to whom he stands
+in so much nearer and more lasting relation.</p>
+
+<scripCom type="Commentary" passage="Phm 1:17" id="xi.xviii.ii-p48.1" parsed="|Phlm|1|17|0|0" osisRef="Bible:Phlm.1.17" />
+</div><div class="Commentary" id="xi.xviii.ii-p48.2"> 
+<p id="xi.xviii.ii-p49"><b>17. a partner</b>—in the Christian
+fellowship of faith, hope, and love.</p>
+
+<p id="xi.xviii.ii-p50"><b>receive him as myself</b>—resuming
+"receive him that is mine own bowels."</p>
+
+<scripCom type="Commentary" passage="Phm 1:18" id="xi.xviii.ii-p50.1" parsed="|Phlm|1|18|0|0" osisRef="Bible:Phlm.1.18" />
+</div><div class="Commentary" id="xi.xviii.ii-p50.2"> 
+<p id="xi.xviii.ii-p51"><b>18.</b> <i>Greek,</i> "But it (thou art not
+inclined to 'receive him' because) he hath wronged thee"; a milder term
+than "robbed thee." Onesimus seems to have confessed some such act to
+Paul.</p>
+
+<p id="xi.xviii.ii-p52"><b>put that on mine account</b>—I am ready to
+make good the loss to thee if required. The latter parts of <scripRef passage="Phm 19, 21" id="xi.xviii.ii-p52.1" parsed="|Phlm|1|19|0|0;|Phlm|1|21|0|0" osisRef="Bible:Phlm.1.19 Bible:Phlm.1.21">Phm 19,
+21</scripRef>, imply that he did not
+expect Philemon would probably demand it.</p>
+
+<scripCom type="Commentary" passage="Phm 1:19" id="xi.xviii.ii-p52.2" parsed="|Phlm|1|19|0|0" osisRef="Bible:Phlm.1.19" />
+</div><div class="Commentary" id="xi.xviii.ii-p52.3"> 
+<p id="xi.xviii.ii-p53"><b>19. with mine own hand</b>—not employing an
+amanuensis, as in other Epistles: a special compliment to Philemon
+which he ought to show his appreciation of by granting Paul's request.
+Contrast <scripRef passage="Col 4:18" id="xi.xviii.ii-p53.1" parsed="|Col|4|18|0|0" osisRef="Bible:Col.4.18">Col 4:18</scripRef>,
+which shows that the Epistle to the Colossian Church, accompanying this
+Epistle, had only its closing "salutation" written by Paul's own
+hand.</p>
+
+<p id="xi.xviii.ii-p54"><b>albeit,</b> &amp;c.—literally, "that I may
+not say … not to say," &amp;c.</p>
+
+<p id="xi.xviii.ii-p55"><b>thou owest … even thine own
+self</b>—not merely thy possessions. For to my instrumentality
+thou owest thy salvation. So the debt which "he oweth thee" being
+transferred upon me (I making myself responsible for it) is
+cancelled.</p>
+
+<scripCom type="Commentary" passage="Phm 1:20" id="xi.xviii.ii-p55.1" parsed="|Phlm|1|20|0|0" osisRef="Bible:Phlm.1.20" />
+</div><div class="Commentary" id="xi.xviii.ii-p55.2"> 
+<p id="xi.xviii.ii-p56"><b>20. let me</b>—"me" is emphatic: "Let
+<i>me</i> have profit (so <i>Greek</i> 'for joy,' <i>onainen,</i>
+referring to the name <i>Onesimus,</i> 'profitable') from <i>thee,</i>
+as <i>thou</i> shouldst have had from Onesimus"; for "thou owest thine
+ownself to me."</p>
+
+<p id="xi.xviii.ii-p57"><b>in the Lord</b>—not in worldly gain, but
+in thine increase in the graces of the Lord's Spirit [<span class="sc" id="xi.xviii.ii-p57.1">Alford</span>].</p>
+
+<p id="xi.xviii.ii-p58"><b>my bowels</b>—my heart. Gratify my
+feelings by granting this request.</p>
+
+<p id="xi.xviii.ii-p59"><b>in the Lord</b>—The oldest manuscripts
+read, "<i>in Christ,</i>" the element or sphere in which this act of
+Christian love naturally ought to have place.</p>
+
+<scripCom type="Commentary" passage="Phm 1:21" id="xi.xviii.ii-p59.1" parsed="|Phlm|1|21|0|0" osisRef="Bible:Phlm.1.21" />
+</div><div class="Commentary" id="xi.xviii.ii-p59.2"> 
+<p id="xi.xviii.ii-p60"><b>21. Having confidence in thy
+obedience</b>—to my apostolic authority, if I were to "enjoin" it
+(<scripRef passage="Phm 8" id="xi.xviii.ii-p60.1" parsed="|Phlm|1|8|0|0" osisRef="Bible:Phlm.1.8">Phm
+8</scripRef>), which I do not,
+preferring to beseech thee for it as a favor (<scripRef passage="Phm 9" id="xi.xviii.ii-p60.2" parsed="|Phlm|1|9|0|0" osisRef="Bible:Phlm.1.9">Phm 9</scripRef>).</p>
+
+<p id="xi.xviii.ii-p61"><b>thou will also do more</b>—towards
+Onesimus: hinting at his possible manumission by Philemon,
+<i>besides,</i> being kindly received.</p>
+
+<scripCom type="Commentary" passage="Phm 1:22" id="xi.xviii.ii-p61.1" parsed="|Phlm|1|22|0|0" osisRef="Bible:Phlm.1.22" />
+</div><div class="Commentary" id="xi.xviii.ii-p61.2"> 
+<p id="xi.xviii.ii-p62"><b>22.</b> This prospect of Paul's visiting Colosse
+would tend to secure a kindly reception for Onesimus, as Paul would
+know in person how he had been treated.</p>
+
+<p id="xi.xviii.ii-p63"><b>your … you</b>—referring to
+Philemon, Apphia, Archippus, and the Church in Philemon's house. The
+same expectation is expressed by him, <scripRef passage="Php 2:23" id="xi.xviii.ii-p63.1" parsed="|Phil|2|23|0|0" osisRef="Bible:Phil.2.23">Php 2:23</scripRef>, <scripRef passage="Php 2:24" id="xi.xviii.ii-p63.2" parsed="|Phil|2|24|0|0" osisRef="Bible:Phil.2.24">24</scripRef>, written in the same imprisonment.</p>
+
+<scripCom type="Commentary" passage="Phm 1:23" id="xi.xviii.ii-p63.3" parsed="|Phlm|1|23|0|0" osisRef="Bible:Phlm.1.23" />
+</div><div class="Commentary" id="xi.xviii.ii-p63.4"> 
+<p id="xi.xviii.ii-p64"><b>23.</b> The same persons send salutations in the
+accompanying Epistle, except that "Jesus Justus" is not mentioned
+here.</p>
+
+<p id="xi.xviii.ii-p65"><b>Epaphras, my fellow prisoner</b>—He had
+been sent by the Colossian Church to inquire after, and minister to,
+Paul, and possibly was cast into <i>prison</i> by the Roman authorities
+on suspicion. However, he is not mentioned as a <i>prisoner</i> in
+<scripRef passage="Col 4:12" id="xi.xviii.ii-p65.1" parsed="|Col|4|12|0|0" osisRef="Bible:Col.4.12">Col
+4:12</scripRef>, so that "fellow
+prisoner" here may mean merely one who was a faithful companion to Paul
+in his imprisonment, and by his society put himself in the position of
+a prisoner. So also "Aristarchus, my fellow prisoner," <scripRef passage="Col 4:10" id="xi.xviii.ii-p65.2" parsed="|Col|4|10|0|0" osisRef="Bible:Col.4.10">Col 4:10</scripRef>, may mean. Benson conjectures the
+meaning to be that on some <i>former</i> occasion these two were Paul's
+"fellow prisoners," <i>not at the time.</i></p>
+
+<scripCom type="Commentary" passage="Phm 1:24" id="xi.xviii.ii-p65.3" parsed="|Phlm|1|24|0|0" osisRef="Bible:Phlm.1.24" />
+</div><div class="Commentary" id="xi.xviii.ii-p65.4">
+<scripCom type="Commentary" passage="Phm 1:25" id="xi.xviii.ii-p65.5" parsed="|Phlm|1|25|0|0" osisRef="Bible:Phlm.1.25" />
+</div><div class="Commentary" id="xi.xviii.ii-p65.6"> 
+<p id="xi.xviii.ii-p66"><b>25. <i>be</i> with your spirit</b>—(<scripRef passage="Ga 6:18" id="xi.xviii.ii-p66.1" parsed="|Gal|6|18|0|0" osisRef="Bible:Gal.6.18">Ga 6:18</scripRef>;
+<scripRef passage="2Ti 4:22" id="xi.xviii.ii-p66.2" parsed="|2Tim|4|22|0|0" osisRef="Bible:2Tim.4.22">2Ti 4:22</scripRef>).</p>
+
+</div>
+</div3> </div2>
+
+      
+</div1>
+</ThML.body>
+</ThML>

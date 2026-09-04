@@ -27,6 +27,7 @@ CITATION_DISPLAY_NAMES: dict[str, str] = {
     "biblical_places_passage_links": "Biblical places (passage links)",
     "place_enrichments_overlay": "Biblical places enrichments",
     "theology_sqlite": "Theology store",
+    "commentary_sqlite": "Commentary store",
 }
 
 CITABLE_RELATION_TYPES = frozenset(
@@ -39,6 +40,7 @@ CITABLE_RELATION_TYPES = frozenset(
         "place_catalog",
         "place_enrichment",
         "theological_source",
+        "commentary_source",
     }
 )
 
@@ -154,7 +156,9 @@ def build_citation_ref(
     license_value = _meta_get(meta, "license") or (src.license if src else "")
     license_url = _meta_get(meta, "license_url") or (src.license_url or "" if src else "")
     attribution = _meta_get(meta, "attribution") or (src.usage_note or "" if src else "")
-    article = _meta_get(meta, "article_id", "chunk_id", "strong_id", "entity_id", "place_id")
+    article = _meta_get(
+        meta, "article_id", "chunk_id", "strong_id", "entity_id", "place_id", "section_id"
+    )
     scope = _meta_get(meta, "canonical_scope", "passage", "index_reference")
     upstream_url = _meta_get(meta, "upstream_url", "source_url")
     upstream_version = _meta_get(
@@ -308,6 +312,51 @@ def format_theology_citation(item: EvidenceItem | dict[str, Any]) -> str:
     return text if text.endswith(".") else f"{text}."
 
 
+def format_commentary_citation(item: EvidenceItem | dict[str, Any]) -> str:
+    """Build a bibliographic citation from Commentary evidence metadata.
+
+    Always resolves to a concrete work/edition/section record (never a bare
+    chunk) and states whether the cited passage link is the section's
+    primary or a parallel passage. Uses only present metadata fields; does
+    not invent author, work, or edition information.
+    """
+    if isinstance(item, EvidenceItem):
+        meta = dict(item.metadata)
+    else:
+        meta = dict(item)
+    locator = _meta_get(meta, "human_readable_locator")
+    if not locator:
+        contributors = meta.get("contributors")
+        author = (
+            str(contributors[0]) if isinstance(contributors, list) and contributors else ""
+        )
+        locator = ", ".join(
+            part for part in (author, _meta_get(meta, "work_title")) if part
+        )
+    passage = _meta_get(meta, "canonical_scope", "passage")
+    primary = meta.get("primary_passages") or []
+    parallel = meta.get("parallel_passages") or []
+    relation_label = ""
+    if passage:
+        if passage in primary:
+            relation_label = "primary"
+        elif passage in parallel:
+            relation_label = "parallel"
+    parts = [part for part in (locator,) if part]
+    if passage:
+        suffix = f"on {passage}"
+        if relation_label:
+            suffix = f"{suffix} ({relation_label})"
+        parts.append(suffix)
+    edition_id = _meta_get(meta, "edition_id")
+    if edition_id:
+        parts.append(f"edition: {edition_id}")
+    if not parts:
+        return ""
+    text = ", ".join(parts)
+    return text if text.endswith(".") else f"{text}."
+
+
 __all__ = [
     "CITABLE_RELATION_TYPES",
     "CITATION_DISPLAY_NAMES",
@@ -318,5 +367,6 @@ __all__ = [
     "citations_from_context_packet",
     "citations_from_evidence_packet",
     "display_name_for_source",
+    "format_commentary_citation",
     "format_theology_citation",
 ]

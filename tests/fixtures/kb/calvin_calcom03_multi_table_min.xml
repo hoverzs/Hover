@@ -1,0 +1,218 @@
+<?xml version='1.0' encoding='utf-8'?>
+<ThML>
+  <ThML.head>
+    <generalInfo>
+      <description>Minimal, hand-authored reproduction of a real CCEL Calvin
+"Harmony of the Law" multi-table pattern (confirmed against calcom03/04/05/06
+.xml): a range div can carry TWO OR MORE direct `&lt;table&gt;` children,
+each its own genuinely distinct scripture citation Calvin discusses
+jointly under one heading (e.g. the same commandment as it appears in
+both Exodus and Deuteronomy) -- confirmed to silently lose every
+citation but the first's passage_link before the 2026-09-04
+multi-table fix (commentary text itself was never lost).</description>
+      <firstPublished />
+      <pubHistory />
+      <comments />
+    </generalInfo>
+    <printSourceInfo>
+      <published />
+      <copyLocation />
+      <image type="front" href="" />
+      <image type="spine" href="" />
+    </printSourceInfo>
+    <electronicEdInfo>
+      <publisherID>ccel</publisherID>
+      <authorID>calvin</authorID>
+      <bookID>calcom03test</bookID>
+      <workID>calcom03test</workID>
+      <bkgID>harmony_of_the_law_(calvin)</bkgID>
+      <version>1.02</version>
+      <series />
+      <editorialComments />
+      <revisionHistory />
+      <status />
+      <DC>
+        <DC.Title sub="Main">Harmony of the Law</DC.Title>
+        <DC.Creator sub="Author" scheme="ccel" />
+        <DC.Creator sub="Author" scheme="file-as">Calvin, John (1509-1564)</DC.Creator>
+        <DC.Creator sub="Author" scheme="short-form">John Calvin</DC.Creator>
+        <DC.Creator sub="Translator" scheme="ccel" />
+        <DC.Creator sub="Translator" scheme="file-as" />
+        <DC.Creator sub="Translator" scheme="short-form">Bingham, Charles William</DC.Creator>
+        <DC.Creator scheme="short-form">John Calvin, 1509-1564</DC.Creator>
+        <DC.Subject scheme="CCEL">All; Bible; </DC.Subject>
+        <DC.Publisher>Grand Rapids, MI: Christian Classics Ethereal Library</DC.Publisher>
+        <DC.Publisher scheme="CCEL">CCEL</DC.Publisher>
+        <DC.Contributor sub="Transcriber" scheme="CCEL">Ages</DC.Contributor>
+        <DC.Date sub="Created" scheme="ISO8601">1999-11-23</DC.Date>
+        <DC.Type>Text.Commentary</DC.Type>
+        <DC.Format scheme="IMT">text/html</DC.Format>
+        <DC.Identifier scheme="CCEL" />
+        <DC.Identifier />
+        <DC.Source sub="ElectronicEdition" />
+        <DC.Language scheme="ISO639-3">eng</DC.Language>
+        <DC.Identifier scheme="URL">/ccel/calvin/calcom03test.html</DC.Identifier>
+        <DC.Rights>Public Domain</DC.Rights>
+      </DC>
+      <comments />
+    </electronicEdInfo>
+    <link rel="stylesheet" type="text/css" href="/css/ThML099.css" />
+  </ThML.head>
+  <ThML.body>
+    <div1 type="chapter" title="Chapter 20" n="ii" shorttitle="chapter ii" progress="39%" prev="i" next="ii.i" id="ii">
+      <p class="BOOK-CHAP-BLU-24-CEN13" id="ii-p1">The Ninth Commandment</p>
+
+      <!-- Case A: exactly 2 direct tables, second table a wholly
+           separate book/chapter passage: the core regression. -->
+      <div2 type="scripture" title="Exodus 20:16;Deuteronomy 5:20" n="i" shorttitle="scripture i" progress="39%" prev="ii" next="ii.ii" id="ii.i">
+        <table border="2" id="ii.i-p1.2">
+          <tr id="ii.i-p1.3" valign="top">
+            <td colspan="1" id="ii.i-p1.4" rowspan="1">
+              <p class="TableCaption14" id="ii.i-p2"><scripRef id="ii.i-p2.1" osisRef="Bible:Exod.20.16" parsed="|Exod|20|16|0|0" passage="Exodus 20:16">Exodus 20:16</scripRef></p>
+            </td>
+          </tr>
+          <tr id="ii.i-p2.2" valign="top">
+            <td colspan="1" id="ii.i-p2.3" rowspan="1">
+              <p class="TableText15" id="ii.i-p3"><b>16.</b> Thou shalt not bear false witness against thy neighbor.</p>
+            </td>
+          </tr>
+        </table>
+        <table border="2" id="ii.i-p3.2">
+          <tr id="ii.i-p3.3" valign="top">
+            <td colspan="1" id="ii.i-p3.4" rowspan="1">
+              <p class="TableCaption14" id="ii.i-p4"><scripRef id="ii.i-p4.1" osisRef="Bible:Deut.5.20" parsed="|Deut|5|20|0|0" passage="Deuteronomy 5:20">Deuteronomy 5:20</scripRef></p>
+            </td>
+          </tr>
+          <tr id="ii.i-p4.2" valign="top">
+            <td colspan="1" id="ii.i-p4.3" rowspan="1">
+              <p class="TableText15" id="ii.i-p5"><b>20.</b> Neither shalt thou bear false witness against thy neighbor.</p>
+            </td>
+          </tr>
+        </table>
+
+        <p id="ii.i-p11"> </p>
+
+        <p id="ii.i-p12"><scripCom id="ii.i-p12.1" osisRef="Bible:Exod.20.16" parsed="|Exod|20|16|0|0" passage="Ex 20:16" type="Commentary" /></p><div class="Commentary" id="ii.i-p12.3">
+          <p id="ii.i-p13">16. REAL COMMENTARY ON THE NINTH COMMANDMENT -- shared prose for both the Exodus and Deuteronomy statements.</p>
+        </div>
+      </div2>
+
+      <!-- Case B: 3 direct tables, every citation distinct, order matters. -->
+      <div2 type="scripture" title="Exodus 34:17; Leviticus 19:4, 26:1" n="ii" shorttitle="scripture ii" progress="40%" prev="ii.i" next="ii.iii" id="ii.ii">
+        <table border="2" id="ii.ii-p1.2">
+          <tr id="ii.ii-p1.3" valign="top">
+            <td colspan="1" id="ii.ii-p1.4" rowspan="1">
+              <p class="TableCaption14" id="ii.ii-p2"><scripRef id="ii.ii-p2.1" osisRef="Bible:Exod.34.17" parsed="|Exod|34|17|0|0" passage="Exodus 34:17">Exodus 34:17</scripRef></p>
+            </td>
+          </tr>
+          <tr id="ii.ii-p2.2" valign="top">
+            <td colspan="1" id="ii.ii-p2.3" rowspan="1">
+              <p class="TableText15" id="ii.ii-p3"><b>17.</b> Thou shalt make thee no molten gods.</p>
+            </td>
+          </tr>
+        </table>
+        <table border="2" id="ii.ii-p3.2">
+          <tr id="ii.ii-p3.3" valign="top">
+            <td colspan="1" id="ii.ii-p3.4" rowspan="1">
+              <p class="TableCaption14" id="ii.ii-p4"><scripRef id="ii.ii-p4.1" osisRef="Bible:Lev.19.4" parsed="|Lev|19|4|0|0" passage="Leviticus 19:4">Leviticus 19:4</scripRef></p>
+            </td>
+          </tr>
+          <tr id="ii.ii-p4.2" valign="top">
+            <td colspan="1" id="ii.ii-p4.3" rowspan="1">
+              <p class="TableText15" id="ii.ii-p5"><b>4.</b> Turn ye not unto idols, nor make to yourselves molten gods.</p>
+            </td>
+          </tr>
+        </table>
+        <table border="2" id="ii.ii-p5.2">
+          <tr id="ii.ii-p5.3" valign="top">
+            <td colspan="1" id="ii.ii-p5.4" rowspan="1">
+              <p class="TableCaption14" id="ii.ii-p6"><scripRef id="ii.ii-p6.1" osisRef="Bible:Lev.26.1" parsed="|Lev|26|1|0|0" passage="Leviticus 26:1">Leviticus 26:1</scripRef></p>
+            </td>
+          </tr>
+          <tr id="ii.ii-p6.2" valign="top">
+            <td colspan="1" id="ii.ii-p6.3" rowspan="1">
+              <p class="TableText15" id="ii.ii-p7"><b>1.</b> Ye shall make you no idols nor graven image.</p>
+            </td>
+          </tr>
+        </table>
+
+        <p id="ii.ii-p11"> </p>
+
+        <p id="ii.ii-p12"><scripCom id="ii.ii-p12.1" osisRef="Bible:Exod.34.17" parsed="|Exod|34|17|0|0" passage="Ex 34:17" type="Commentary" /></p><div class="Commentary" id="ii.ii-p12.3">
+          <p id="ii.ii-p13">17. REAL COMMENTARY ON MOLTEN GODS -- three-table case.</p>
+        </div>
+      </div2>
+
+      <!-- Case C: first table has TWO citations of its own (its own
+           existing primary/parallel behavior); second table adds a
+           further, separate citation. Mirrors the real calcom05 example. -->
+      <div2 type="scripture" title="Exodus 21:15,17; Leviticus 20:9" n="iii" shorttitle="scripture iii" progress="41%" prev="ii.ii" next="ii.iv" id="ii.iii">
+        <table border="2" id="ii.iii-p1.2">
+          <tr id="ii.iii-p1.3" valign="top">
+            <td colspan="1" id="ii.iii-p1.4" rowspan="1">
+              <p class="TableCaption14" id="ii.iii-p2"><scripRef id="ii.iii-p2.1" osisRef="Bible:Exod.21.15 Bible:Exod.21.17" parsed="|Exod|21|15|0|0;|Exod|21|17|0|0" passage="Exodus 21:15, 17">Exodus 21:15, 17</scripRef></p>
+            </td>
+          </tr>
+          <tr id="ii.iii-p2.2" valign="top">
+            <td colspan="1" id="ii.iii-p2.3" rowspan="1">
+              <p class="TableText15" id="ii.iii-p3"><b>15.</b> And he that smiteth his father or his mother shall be surely put to death.</p>
+            </td>
+          </tr>
+        </table>
+        <table border="2" id="ii.iii-p3.2">
+          <tr id="ii.iii-p3.3" valign="top">
+            <td colspan="1" id="ii.iii-p3.4" rowspan="1">
+              <p class="TableCaption14" id="ii.iii-p4"><scripRef id="ii.iii-p4.1" osisRef="Bible:Lev.20.9" parsed="|Lev|20|9|0|0" passage="Leviticus 20:9">Leviticus 20:9</scripRef></p>
+            </td>
+          </tr>
+          <tr id="ii.iii-p4.2" valign="top">
+            <td colspan="1" id="ii.iii-p4.3" rowspan="1">
+              <p class="TableText15" id="ii.iii-p5"><b>9.</b> For every one that curseth his father or his mother shall be surely put to death.</p>
+            </td>
+          </tr>
+        </table>
+
+        <p id="ii.iii-p11"> </p>
+
+        <p id="ii.iii-p12"><scripCom id="ii.iii-p12.1" osisRef="Bible:Exod.21.15" parsed="|Exod|21|15|0|0" passage="Ex 21:15" type="Commentary" /></p><div class="Commentary" id="ii.iii-p12.3">
+          <p id="ii.iii-p13">15. REAL COMMENTARY -- first table's own two citations plus a second table's separate one.</p>
+        </div>
+      </div2>
+
+      <!-- Case D: second table cites the SAME passage as the first;
+           must deduplicate to exactly one link, not two. -->
+      <div2 type="scripture" title="Numbers 5:11-31" n="iv" shorttitle="scripture iv" progress="42%" prev="ii.iii" next="iii" id="ii.iv">
+        <table border="2" id="ii.iv-p1.2">
+          <tr id="ii.iv-p1.3" valign="top">
+            <td colspan="1" id="ii.iv-p1.4" rowspan="1">
+              <p class="TableCaption14" id="ii.iv-p2"><scripRef id="ii.iv-p2.1" osisRef="Bible:Num.5.11-Num.5.31" parsed="|Num|5|11|5|31" passage="Numbers 5:11-31">Numbers 5:11-31</scripRef></p>
+            </td>
+          </tr>
+          <tr id="ii.iv-p2.2" valign="top">
+            <td colspan="1" id="ii.iv-p2.3" rowspan="1">
+              <p class="TableText15" id="ii.iv-p3"><b>11.</b> And the Lord spake unto Moses.</p>
+            </td>
+          </tr>
+        </table>
+        <table border="2" id="ii.iv-p3.2">
+          <tr id="ii.iv-p3.3" valign="top">
+            <td colspan="1" id="ii.iv-p3.4" rowspan="1">
+              <p class="TableCaption14" id="ii.iv-p4"><scripRef id="ii.iv-p4.1" osisRef="Bible:Num.5.11-Num.5.31" parsed="|Num|5|11|5|31" passage="Numbers 5:11-31">Numbers 5:11-31</scripRef></p>
+            </td>
+          </tr>
+          <tr id="ii.iv-p4.2" valign="top">
+            <td colspan="1" id="ii.iv-p4.3" rowspan="1">
+              <p class="TableText15" id="ii.iv-p5"><b>11.</b> (duplicate editorial re-citation of the same passage, e.g. a variant printing.)</p>
+            </td>
+          </tr>
+        </table>
+
+        <p id="ii.iv-p11"> </p>
+
+        <p id="ii.iv-p12"><scripCom id="ii.iv-p12.1" osisRef="Bible:Num.5.11" parsed="|Num|5|11|0|0" passage="Nu 5:11" type="Commentary" /></p><div class="Commentary" id="ii.iv-p12.3">
+          <p id="ii.iv-p13">11. REAL COMMENTARY -- duplicate-citation case, must not double-link.</p>
+        </div>
+      </div2>
+    </div1>
+  </ThML.body>
+</ThML>

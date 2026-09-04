@@ -1,0 +1,935 @@
+"""Calvin Commentary ThML importer tests, against real (trimmed) CCEL XML.
+
+Fixtures are exact, unedited slices of the real files fetched from
+ccel.org (Romans = calcom38, Harmony of the Evangelists = calcom31); only
+whole <div1>/<div2> elements were removed to keep the fixtures small. No
+hand-authored or synthetic XML is used here — every structural case below
+(range section, the untyped "anomaly" verse-1 continuation, nested
+per-verse <div class="Commentary"> blocks, a two-passage Harmony section,
+an inline cross-reference) is real Calvin commentary markup.
+
+The one exception is ``COMBINED_VOLUME_FIXTURE`` (2026-09-04): a minimal,
+hand-authored reproduction of the real calcom45.xml ("Commentaries on the
+Catholic Epistles") structure -- confirmed against that actual file
+(``div1[type=book] > div2[type=Chapter] > div3[type=Scripture] > table +
+verse commentary``, one extra div level versus a single-book volume's
+``div1[type=chapter] > div2[type=scripture] > ...``) rather than trimmed
+from it directly, since a literal trim of a 1.6MB multi-book file down to
+a few KB would be far more fragile to keep well-formed than reproducing
+the same confirmed tag/attribute shapes by hand.
+"""
+
+from __future__ import annotations
+
+import copy
+import re
+import sqlite3
+from pathlib import Path
+
+import pytest
+
+from textus_kb.importers.calvin_commentary_thml import (
+    AUTHOR_CONTRIBUTOR_ID,
+    IMPORT_MODE_CALVIN_COMMENTARY_THML,
+    CalvinCommentaryImportError,
+    KnownUnmappedSection,
+    build_calvin_commentary_document,
+    import_calvin_commentary_sqlite,
+    merge_calvin_commentary_documents,
+    parse_calvin_commentary_thml,
+)
+from textus_kb.importers.commentary_sqlite import (
+    CommentaryImportError,
+    import_commentary_sqlite,
+)
+from textus_kb.repositories.commentary_repository import (
+    RELATION_CONTAINING_SECTION,
+    RELATION_EXACT_PASSAGE,
+    CommentaryRepository,
+)
+
+ROMANS_FIXTURE = Path("tests/fixtures/kb/calvin_calcom38_romans_ch1_min.xml")
+HARMONY_FIXTURE = Path("tests/fixtures/kb/calvin_calcom31_harmony_min.xml")
+ROMANS_FOOTNOTE_CATENA_FIXTURE = Path(
+    "tests/fixtures/kb/calvin_calcom38_romans_footnote_catena_min.xml"
+)
+HARMONY_CONTINUATION_FIXTURE = Path(
+    "tests/fixtures/kb/calvin_calcom31_harmony_continuation_min.xml"
+)
+ISAIAH_NO_WRAPPER_FIXTURE = Path(
+    "tests/fixtures/kb/calvin_calcom13_isaiah_no_wrapper_min.xml"
+)
+HARMONY_LAW_PLAIN_CAPTION_FIXTURE = Path(
+    "tests/fixtures/kb/calvin_calcom03_harmony_law_plain_caption_min.xml"
+)
+COMBINED_VOLUME_FIXTURE = Path(
+    "tests/fixtures/kb/calvin_calcom45_catholic_epistles_min.xml"
+)
+BROKEN_MARKER_FIXTURE = Path(
+    "tests/fixtures/kb/calvin_calcom05_broken_marker_min.xml"
+)
+
+
+# --- Parsing structure ------------------------------------------------
+
+
+def test_romans_range_section_gets_range_passage_from_table() -> None:
+    document, report = parse_calvin_commentary_thml(ROMANS_FIXTURE)
+    by_id = {s["section_id"]: s for s in document["sections"]}
+    range_section = by_id["ccel.calvin.calcom38.v.i"]
+    assert [l["canonical_passage"] for l in range_section["passage_links"]] == ["Rom.1.1-7"]
+    assert report.range_section_count == 2
+
+
+def test_romans_untyped_anomaly_div_becomes_children_of_preceding_range() -> None:
+    """The real 'v.ii' div2 (no type=scripture) holds Calvin's exposition of
+    verse 1 as its own top-level div2 instead of a nested Commentary div —
+    a real CCEL editorial quirk. It must still be anchored under v.i."""
+    document, _report = parse_calvin_commentary_thml(ROMANS_FIXTURE)
+    by_id = {s["section_id"]: s for s in document["sections"]}
+    child = by_id["ccel.calvin.calcom38.v.ii.v1"]
+    assert child["parent_section_id"] == "ccel.calvin.calcom38.v.i"
+    assert [l["canonical_passage"] for l in child["passage_links"]] == ["Rom.1.1"]
+
+
+def test_romans_nested_commentary_divs_become_verse_children() -> None:
+    document, _report = parse_calvin_commentary_thml(ROMANS_FIXTURE)
+    by_id = {s["section_id"]: s for s in document["sections"]}
+    parent = by_id["ccel.calvin.calcom38.v.iii"]
+    assert [l["canonical_passage"] for l in parent["passage_links"]] == ["Rom.1.8-12"]
+    for n, verse in enumerate(["Rom.1.8", "Rom.1.9", "Rom.1.10", "Rom.1.11", "Rom.1.12"], start=1):
+        child = by_id[f"ccel.calvin.calcom38.v.iii.v{n}"]
+        assert child["parent_section_id"] == "ccel.calvin.calcom38.v.iii"
+        assert [l["canonical_passage"] for l in child["passage_links"]] == [verse]
+
+
+def test_romans_quoted_bible_text_is_not_chunk_content() -> None:
+    """The scripture div2's own chunk (if any) must never be the quoted
+    verse-text table; that is not Calvin's prose."""
+    document, _report = parse_calvin_commentary_thml(ROMANS_FIXTURE)
+    chunks_by_section = {c["section_id"]: c for c in document["chunks"]}
+    range_chunk = chunks_by_section.get("ccel.calvin.calcom38.v.i.chunk")
+    if range_chunk is not None:
+        assert "servus Iesu Christi" not in range_chunk["plain_text"]
+
+
+def test_inline_cross_reference_is_not_a_passage_link() -> None:
+    """Calvin's exposition of Romans 1:1 cites Acts 23:26 in a footnote as a
+    cross-reference. That must never become a section_passage_links row —
+    only the scripCom-defined Romans 1:1 passage may."""
+    document, _report = parse_calvin_commentary_thml(ROMANS_FIXTURE)
+    by_id = {s["section_id"]: s for s in document["sections"]}
+    section = by_id["ccel.calvin.calcom38.v.ii.v1"]
+    assert [l["canonical_passage"] for l in section["passage_links"]] == ["Rom.1.1"]
+    chunk = next(
+        c for c in _chunks(document) if c["section_id"] == "ccel.calvin.calcom38.v.ii.v1"
+    )
+    assert "Acts" in chunk["plain_text"]  # the cross-reference is in the prose...
+    assert "Acts.23" not in [
+        l["canonical_passage"] for l in section["passage_links"]
+    ]  # ...but never became a passage_link
+
+
+def test_harmony_section_links_multiple_passages() -> None:
+    document, report = parse_calvin_commentary_thml(HARMONY_FIXTURE)
+    by_id = {s["section_id"]: s for s in document["sections"]}
+    section = by_id["ccel.calvin.calcom31.ix.xiv"]
+    passages = {l["canonical_passage"] for l in section["passage_links"]}
+    assert passages == {"Matt.1.1-17", "Luke.3.23-38"}
+    assert report.multi_passage_range_count == 1
+
+
+def test_harmony_verse_children_keep_their_own_single_book() -> None:
+    """Children of a multi-passage Harmony section resolve their own passage
+    independently (Matthew verses here), not the parent's combined range."""
+    document, _report = parse_calvin_commentary_thml(HARMONY_FIXTURE)
+    by_id = {s["section_id"]: s for s in document["sections"]}
+    child = by_id["ccel.calvin.calcom31.ix.xiv.v1"]
+    assert [l["canonical_passage"] for l in child["passage_links"]] == ["Matt.1.1"]
+
+
+def test_contributors_have_author_and_translator_roles() -> None:
+    document, _report = parse_calvin_commentary_thml(ROMANS_FIXTURE)
+    roles = {(wc["contributor_id"], wc["role"]) for wc in document["work_contributors"]}
+    assert (AUTHOR_CONTRIBUTOR_ID, "author") in roles
+    names = {c["contributor_id"]: c["canonical_name"] for c in document["contributors"]}
+    assert names[AUTHOR_CONTRIBUTOR_ID] == "John Calvin"
+    translator_ids = [cid for cid, role in roles if role == "translator"]
+    assert len(translator_ids) == 1
+    assert "Owen" in names[translator_ids[0]]
+
+
+def test_edition_metadata_is_real_not_invented() -> None:
+    document, _report = parse_calvin_commentary_thml(ROMANS_FIXTURE)
+    edition = document["editions"][0]
+    assert edition["license"] == "Public Domain"
+    assert edition["rights_status"] == "public-domain"
+    assert edition["language"] == "en"
+    assert edition["source_url"] == "https://www.ccel.org/ccel/calvin/calcom38.xml"
+    assert edition["external_id"] == "ccel/calvin/calcom38"
+
+
+# --- Footnote-embedded OT catena / bibliographic cross-references --------
+#
+# Real bug found via corpus QA: Romans 3:10-18 is itself a chain of OT
+# quotations (Ps 14:1-3, 53:3, 5:9, 14:3, 9:7; Isaiah 56:7; Proverbs 1:16;
+# Psalm 36:1) and CCEL's translator footnote lists them as "the references
+# given in the margin" — an 8-token osisRef inside a <note> in the SAME
+# <table> as the real "Romans 3:10-18" caption. Before the fix, every one
+# of those 8 tokens leaked into section_passage_links.
+
+
+def test_ot_catena_footnote_is_not_a_passage_link() -> None:
+    document, _report = parse_calvin_commentary_thml(ROMANS_FOOTNOTE_CATENA_FIXTURE)
+    by_id = {s["section_id"]: s for s in document["sections"]}
+    section = by_id["ccel.calvin.calcom38.vii.v"]
+    passages = [l["canonical_passage"] for l in section["passage_links"]]
+    assert passages == ["Rom.3.10-18"]
+    leaked_books = {p.split(".", 1)[0] for p in passages} - {"Rom"}
+    assert leaked_books == set()
+
+
+def test_footnote_catena_note_lives_in_the_excluded_quote_table() -> None:
+    """The catena footnote is attached to verse 18's Latin quote text inside
+    the table, so — consistent with the table never becoming chunk content
+    — neither its citations nor its own text appear in any chunk."""
+    document, _report = parse_calvin_commentary_thml(ROMANS_FOOTNOTE_CATENA_FIXTURE)
+    all_text = " ".join(c["plain_text"] for c in document["chunks"])
+    assert "references given in the margin" not in all_text
+
+
+def test_secondary_table_caption_is_kept_as_parallel_passage() -> None:
+    """A real three-column Harmony table (Matthew/Mark/Luke) where the Mark
+    column carries a SECOND, non-contiguous caption (Mark 4:21, marked with
+    a different CSS class than the primary captions) must keep all six
+    legitimate passages — only the genuine footnote cross-reference
+    (Leviticus 2:13, inside a <note>) must be excluded."""
+    document, _report = parse_calvin_commentary_thml(HARMONY_CONTINUATION_FIXTURE)
+    by_id = {s["section_id"]: s for s in document["sections"]}
+    section = by_id["ccel.calvin.calcom31.ix.xlii"]
+    passages = {l["canonical_passage"] for l in section["passage_links"]}
+    assert passages == {
+        "Matt.5.13-16",
+        "Mark.9.49-50",
+        "Luke.14.34-35",
+        "Mark.4.21",
+        "Luke.8.16",
+        "Luke.11.33",
+    }
+    assert "Lev.2.13" not in passages
+
+
+# --- Fail-loudly on structurally uncertain passage mapping ---------------
+
+
+def test_scripture_section_without_parseable_table_fails_loudly(tmp_path: Path) -> None:
+    text = ROMANS_FIXTURE.read_text(encoding="utf-8")
+    # Break the FIRST scripture div2's table caption so no passage can be
+    # recovered from it either structurally (osisRef) or via the
+    # plain-text-caption fallback (the visible citation text itself).
+    mutated = re.sub(r'osisRef="Bible:Rom\.1\.1-Rom\.1\.7"', 'osisRef=""', text, count=1)
+    mutated = mutated.replace(
+        '<scripRef passage="Romans 1:1-7" id="v.i-p1.1" parsed="|Rom|1|1|1|7" '
+        'osisRef="">Romans 1:1-7</scripRef>',
+        '<scripRef passage="" id="v.i-p1.1" parsed="" osisRef="">not a reference</scripRef>',
+    )
+    assert mutated != text
+    broken = tmp_path / "broken_romans.xml"
+    broken.write_text(mutated, encoding="utf-8")
+    with pytest.raises(CalvinCommentaryImportError, match="no parseable passage"):
+        parse_calvin_commentary_thml(broken)
+
+
+def test_verse_content_without_commentary_div_wrapper_is_still_collected() -> None:
+    """Real corpus case (Isaiah): scripCom markers are sometimes followed by
+    plain sibling <p> elements with no wrapping <div class="Commentary"> at
+    all. Content between one scripCom and the next belongs to that verse
+    regardless of whether a wrapper tag is present — verified against the
+    real, unedited Isaiah 17 fixture below."""
+    document, _report = parse_calvin_commentary_thml(ISAIAH_NO_WRAPPER_FIXTURE)
+    by_id = {s["section_id"]: s for s in document["sections"]}
+    chunks_by_section = {c["section_id"]: c for c in document["chunks"]}
+    verse_section = next(
+        s for s in document["sections"] if s["section_type"] == "verse_commentary"
+    )
+    chunk = chunks_by_section.get(verse_section["section_id"])
+    assert chunk is not None and chunk["plain_text"]
+
+
+# --- Combined multi-book volumes (2026-09-04: calcom45 import gap fix) ---
+#
+# Confirmed real-file root cause: a combined multi-book Calvin volume (e.g.
+# "Commentaries on the Catholic Epistles" -- James, 1-2 Peter, 1 John,
+# Jude in ONE file) nests one extra div level between a chapter and its
+# actual scripture-range content: div1[type=book] > div2[type=Chapter] >
+# div3[type=Scripture] > table + verse commentary, instead of a single-book
+# volume's div1[type=chapter] > div2[type=scripture] > table + verse
+# commentary. The importer used to walk only DIRECT children at each
+# level, so a book-wrapped chapter's real content (one level deeper than
+# expected) was invisible -- only the bare "CHAPTER N" heading paragraph
+# (a direct div2 child) survived, and the div2's own passage_link was
+# never created at all. ld. COMBINED_VOLUME_FIXTURE and
+# textus_kb.importers.calvin_commentary_thml._process_range_group_divs.
+
+
+def test_combined_volume_book_gets_its_own_structural_section() -> None:
+    document, _report = parse_calvin_commentary_thml(COMBINED_VOLUME_FIXTURE)
+    by_id = {s["section_id"]: s for s in document["sections"]}
+    first_peter = by_id["ccel.calvin.calcom45test.iv"]
+    jude = by_id["ccel.calvin.calcom45test.v"]
+    assert first_peter["section_type"] == "book"
+    assert first_peter["heading"] == "Commentary on First Peter"
+    assert jude["section_type"] == "book"
+    assert jude["heading"] == "Commentary on Jude"
+
+
+def test_combined_volume_chapter_wrapper_unwraps_to_real_verse_commentary() -> None:
+    """The core regression: a div2[type=Chapter] whose real content sits
+    one level deeper (div3[type=Scripture]) must yield a REAL, non-stub
+    commentary_passage + verse_commentary chunk -- not just its own bare
+    heading paragraph."""
+    document, _report = parse_calvin_commentary_thml(COMBINED_VOLUME_FIXTURE)
+    by_id = {s["section_id"]: s for s in document["sections"]}
+    chunks_by_section = {c["section_id"]: c for c in document["chunks"]}
+
+    chapter = by_id["ccel.calvin.calcom45test.iv.ii"]
+    assert chapter["section_type"] == "chapter"
+    range_section = by_id["ccel.calvin.calcom45test.iv.ii.i"]
+    assert range_section["section_type"] == "commentary_passage"
+    assert range_section["passage_links"] == [
+        {
+            "raw_citation": "1 Peter 1:1-2",
+            "canonical_passage": "1Pet.1.1-2",
+            "relation_type": "primary",
+        }
+    ]
+    verse_section = by_id["ccel.calvin.calcom45test.iv.ii.i.v1"]
+    assert verse_section["section_type"] == "verse_commentary"
+    assert verse_section["passage_links"][0]["canonical_passage"] == "1Pet.1.1"
+    chunk = chunks_by_section["ccel.calvin.calcom45test.iv.ii.i.v1"]
+    assert chunk["plain_text"] == "FIRST PETER CHAPTER ONE VERSE ONE REAL COMMENTARY TEXT."
+
+
+def test_combined_volume_bare_chapter_heading_is_never_mistaken_for_real_body() -> None:
+    """Chapter 3 in the fixture has ONLY a "CHAPTER 3" heading paragraph,
+    no div3[Scripture] content at all -- confirms the fix does not
+    fabricate a passage or verse commentary out of nothing; it stays
+    exactly what it structurally is: a bare, passage-less stub."""
+    document, _report = parse_calvin_commentary_thml(COMBINED_VOLUME_FIXTURE)
+    by_id = {s["section_id"]: s for s in document["sections"]}
+    chunks_by_section = {c["section_id"]: c for c in document["chunks"]}
+
+    chapter_3 = by_id["ccel.calvin.calcom45test.iv.iv"]
+    assert chapter_3["passage_links"] == []
+    assert chunks_by_section["ccel.calvin.calcom45test.iv.iv"]["plain_text"] == "CHAPTER 3"
+    assert not any(
+        s["section_id"].startswith("ccel.calvin.calcom45test.iv.iv.")
+        for s in document["sections"]
+    )
+
+
+def test_combined_volume_one_chapter_book_works() -> None:
+    """Jude-shaped case: a book with exactly one chapter still gets real,
+    non-stub verse commentary through the same unwrap path."""
+    document, _report = parse_calvin_commentary_thml(COMBINED_VOLUME_FIXTURE)
+    chunks_by_section = {c["section_id"]: c for c in document["chunks"]}
+    chunk = chunks_by_section["ccel.calvin.calcom45test.v.ii.i.v1"]
+    assert chunk["plain_text"] == "JUDE VERSE ONE REAL COMMENTARY TEXT, UNRELATED TO ANY OTHER BOOK."
+
+
+def test_combined_volume_books_do_not_leak_content_into_each_other() -> None:
+    document, _report = parse_calvin_commentary_thml(COMBINED_VOLUME_FIXTURE)
+    for chunk in document["chunks"]:
+        if chunk["section_id"].startswith("ccel.calvin.calcom45test.iv."):
+            assert "JUDE" not in chunk["plain_text"]
+        if chunk["section_id"].startswith("ccel.calvin.calcom45test.v."):
+            assert "FIRST PETER" not in chunk["plain_text"]
+
+
+def test_combined_volume_repository_retrieval_finds_real_content(tmp_path: Path) -> None:
+    """End-to-end proof, mirroring how the real bug was discovered: a
+    passage query against the built store returns REAL Calvin prose for
+    a combined-volume book, not a "CHAPTER N" stub."""
+    database = tmp_path / "calcom45_regression_check.sqlite3"
+    import_calvin_commentary_sqlite([COMBINED_VOLUME_FIXTURE], database_path=database)
+    repo = CommentaryRepository(database)
+    hits = repo.sections_for_passage("1Pet.1.1")
+    assert hits, "expected a Calvin hit for a combined-volume book's verse"
+    detail = repo.section_detail(hits[0].section_id)
+    assert detail is not None
+    full_text = "\n".join(c.plain_text for c in detail.chunks)
+    assert "REAL COMMENTARY TEXT" in full_text
+    assert full_text.strip() != "CHAPTER 1"
+
+
+# --- scripCom marker recognition (2026-09-04 corpus-integrity sweep) -----
+#
+# Confirmed real-file root cause: real CCEL markup sometimes places a
+# harmless, content-free sibling element (a navigation/anchor placeholder,
+# e.g. `<a id="..." shape="rect" xml:link="simple" />`) next to the real
+# `<scripCom>` marker inside the same `<p>` -- the old `_as_scripcom_marker`
+# required EXACTLY one child, so this disqualified the marker and silently
+# dropped everything up to the next real marker, including a full
+# `<div class="Commentary">` of real Calvin prose. Confirmed corpus-wide:
+# 171 such markers across calcom03/04/05/06/13/31/44, ~420K characters of
+# real commentary silently lost, 91% of it in calcom05/06 alone.
+
+
+def test_marker_with_no_sibling_still_recognized() -> None:
+    """Baseline: an unmarked scripCom with no sibling at all -- already
+    worked before this round, must keep working."""
+    document, _report = parse_calvin_commentary_thml(BROKEN_MARKER_FIXTURE)
+    by_id = {s["section_id"]: s for s in document["sections"]}
+    verse = by_id["ccel.calvin.calcom05test.iii.i.v1"]
+    assert verse["passage_links"][0]["canonical_passage"] == "Deut.10.12"
+
+
+def test_marker_with_harmless_anchor_sibling_now_recognized() -> None:
+    """The core regression: the confirmed real bug pattern (scripCom +
+    an empty, content-free `<a>` sibling in the same `<p>`) must now be
+    recognized as a real marker, and its following commentary body
+    actually imported -- not silently dropped."""
+    document, _report = parse_calvin_commentary_thml(BROKEN_MARKER_FIXTURE)
+    by_id = {s["section_id"]: s for s in document["sections"]}
+    chunks_by_section = {c["section_id"]: c["text"] for c in document["chunks"]}
+    verse = by_id["ccel.calvin.calcom05test.iii.i.v2"]
+    assert verse["passage_links"][0]["canonical_passage"] == "Deut.10.13"
+    text = chunks_by_section["ccel.calvin.calcom05test.iii.i.v2"]
+    assert "harmless empty anchor sibling" in text
+
+
+def test_marker_with_genuinely_ambiguous_sibling_still_rejected() -> None:
+    """Staying narrow, not permissive: a sibling that carries REAL
+    content (its own text) must still disqualify the `<p>` as a marker
+    -- no verse_commentary section is fabricated for it."""
+    document, _report = parse_calvin_commentary_thml(BROKEN_MARKER_FIXTURE)
+    section_ids = {s["section_id"] for s in document["sections"]}
+    assert "ccel.calvin.calcom05test.iii.i.v3" not in section_ids
+    # Confirms this is a deliberate rejection, not an accidental parse
+    # failure -- the file still parses fully and v1/v2 are both present.
+    assert "ccel.calvin.calcom05test.iii.i.v1" in section_ids
+    assert "ccel.calvin.calcom05test.iii.i.v2" in section_ids
+
+
+def test_scripcom_marker_helper_rejects_real_sibling_content_directly() -> None:
+    """Direct unit coverage of the narrow acceptance rule, independent of
+    how the surrounding container happens to fold an unrecognized
+    marker's content -- a sibling with its own text, a sibling with a
+    child, and more than one scripCom must all still return ``None``."""
+    import xml.etree.ElementTree as ET
+
+    from textus_kb.importers import calvin_commentary_thml as calvin_thml
+
+    ok = ET.fromstring(
+        '<p><scripCom osisRef="Bible:Gen.1.1" /><a shape="rect" xml:link="simple" /></p>'
+    )
+    assert calvin_thml._as_scripcom_marker(ok) is not None
+
+    real_text_sibling = ET.fromstring(
+        '<p><scripCom osisRef="Bible:Gen.1.1" /><b>1.</b></p>'
+    )
+    assert calvin_thml._as_scripcom_marker(real_text_sibling) is None
+
+    sibling_with_child = ET.fromstring(
+        '<p><scripCom osisRef="Bible:Gen.1.1" /><a><i>x</i></a></p>'
+    )
+    assert calvin_thml._as_scripcom_marker(sibling_with_child) is None
+
+    two_scripcom = ET.fromstring(
+        '<p><scripCom osisRef="Bible:Gen.1.1" /><scripCom osisRef="Bible:Gen.1.2" /></p>'
+    )
+    assert calvin_thml._as_scripcom_marker(two_scripcom) is None
+
+    tail_text_after_sibling = ET.fromstring(
+        '<p><scripCom osisRef="Bible:Gen.1.1" /><a shape="rect" />trailing text</p>'
+    )
+    assert calvin_thml._as_scripcom_marker(tail_text_after_sibling) is None
+
+
+# --- Arbitrary-depth scripture nesting (2026-09-04 corpus-integrity sweep)
+#
+# Confirmed real-file root cause: calcom05 ("Harmony of the Law, Volume 3")
+# nests scripture content a THIRD level deep in places -- a table-less
+# div3[type=section] wrapper (e.g. "Supplements to the Commandment")
+# itself wraps div4[type=scripture] children that carry the real table +
+# commentary, one level deeper than the combined-volume fix (div2 -> div3)
+# already unwraps. The fix generalizes that unwrap into an unbounded
+# hierarchical traversal: a wrapper recurses on ALL of its own div-tagged
+# children (never a pre-filtered subset), so a further-nested wrapper is
+# reclassified the same way on the next call, to whatever depth the
+# source actually nests at. Confirmed corpus-wide: this exact div3->div4
+# pattern is unique to calcom05 (78 sections, ~392K characters, entirely
+# absent from the imported document, not just truncated).
+DEEP_NESTING_FIXTURE = Path(
+    "tests/fixtures/kb/calvin_calcom05_deep_nesting_min.xml"
+)
+MULTI_TABLE_FIXTURE = Path(
+    "tests/fixtures/kb/calvin_calcom03_multi_table_min.xml"
+)
+
+
+def test_deep_nesting_div3_scripture_still_works() -> None:
+    """Baseline: a table-less div2 wrapping a div3[scripture] directly
+    (one extra level, the combined-volume case) must keep working."""
+    document, _report = parse_calvin_commentary_thml(DEEP_NESTING_FIXTURE)
+    by_id = {s["section_id"]: s for s in document["sections"]}
+    chunks_by_section = {c["section_id"]: c["text"] for c in document["chunks"]}
+    range_section = by_id["ccel.calvin.calcom05test2.ii.i.i"]
+    assert range_section["passage_links"][0]["canonical_passage"] == "Lev.19.18"
+    verse = by_id["ccel.calvin.calcom05test2.ii.i.i.v1"]
+    assert "REAL LEVITICUS COMMENTARY" in chunks_by_section[verse["section_id"]]
+
+
+def test_deep_nesting_div4_scripture_recovered() -> None:
+    """The core regression: a table-less div2 wrapping a table-less div3
+    wrapping a div4[scripture] -- THREE levels deep, one further than
+    the already-covered div2->div3 case above -- must now be unwrapped
+    at every level and its real commentary body imported, not silently
+    dropped. Both wrapper levels are themselves passage-less structural
+    sections, exactly mirroring how a div1[type=book] already wraps
+    passage-less "Chapter" sections."""
+    document, _report = parse_calvin_commentary_thml(DEEP_NESTING_FIXTURE)
+    by_id = {s["section_id"]: s for s in document["sections"]}
+    chunks_by_section = {c["section_id"]: c["text"] for c in document["chunks"]}
+    outer_wrapper = by_id["ccel.calvin.calcom05test2.ii.ii"]
+    assert outer_wrapper["passage_links"] == []
+    inner_wrapper = by_id["ccel.calvin.calcom05test2.ii.ii.i"]
+    assert inner_wrapper["passage_links"] == []
+    assert inner_wrapper["parent_section_id"] == "ccel.calvin.calcom05test2.ii.ii"
+    range_section = by_id["ccel.calvin.calcom05test2.ii.ii.i.i"]
+    assert range_section["parent_section_id"] == "ccel.calvin.calcom05test2.ii.ii.i"
+    assert range_section["passage_links"][0]["canonical_passage"] == "Exod.21.15"
+    verse = by_id["ccel.calvin.calcom05test2.ii.ii.i.i.v1"]
+    assert "REAL EXODUS COMMENTARY" in chunks_by_section[verse["section_id"]]
+
+
+def test_deep_nesting_multiple_sibling_scripture_divs_all_recovered() -> None:
+    """Several div4[scripture] siblings under the same table-less div3
+    wrapper -- every one of them must be imported, in source order, none
+    dropped, none merged into another."""
+    document, _report = parse_calvin_commentary_thml(DEEP_NESTING_FIXTURE)
+    siblings = [
+        s
+        for s in document["sections"]
+        if s.get("parent_section_id") == "ccel.calvin.calcom05test2.ii.ii.i"
+        and s["section_type"] == "commentary_passage"
+    ]
+    assert [s["heading"] for s in siblings] == ["Exodus 21:15", "Leviticus 20:9"]
+    assert [s["sequence"] for s in siblings] == sorted(s["sequence"] for s in siblings)
+
+
+def test_deep_nesting_never_imports_the_same_section_twice() -> None:
+    document, _report = parse_calvin_commentary_thml(DEEP_NESTING_FIXTURE)
+    section_ids = [s["section_id"] for s in document["sections"]]
+    assert len(section_ids) == len(set(section_ids))
+    chunk_ids = [c["chunk_id"] for c in document["chunks"]]
+    assert len(chunk_ids) == len(set(chunk_ids))
+
+
+def test_deep_nesting_book_chapter_boundary_preserved() -> None:
+    """Two sibling table-less wrappers under the SAME chapter div1 must
+    never have their content cross-contaminate one another."""
+    document, _report = parse_calvin_commentary_thml(DEEP_NESTING_FIXTURE)
+    chunks_by_section = {c["section_id"]: c["text"] for c in document["chunks"]}
+    lev_text = chunks_by_section["ccel.calvin.calcom05test2.ii.i.i.v1"]
+    exod_text = chunks_by_section["ccel.calvin.calcom05test2.ii.ii.i.i.v1"]
+    assert "REAL EXODUS COMMENTARY" not in lev_text
+    assert "REAL LEVITICUS COMMENTARY" not in exod_text
+
+
+# --- Multi-table range divs (2026-09-04 corpus-integrity sweep) ----------
+#
+# Confirmed real-file root cause: a range div in the Harmony of the Law
+# volumes (calcom03/04/05/06) can carry TWO OR MORE direct <table>
+# children -- each its own genuinely distinct citation Calvin discusses
+# jointly under one heading (e.g. the same commandment as it appears in
+# both Exodus and Deuteronomy), never editorial repetition of the same
+# passage. _direct_table_child only ever returned the FIRST such table,
+# so every further citation's passage_link was silently never created
+# (the commentary TEXT itself was never affected -- only the retrieval
+# index). Confirmed corpus-wide: 45 sections, exclusively in calcom03
+# (9) / calcom04 (15) / calcom05 (20) / calcom06 (1).
+
+
+def test_multi_table_second_table_gets_its_own_parallel_link() -> None:
+    """The core regression: a range div's SECOND direct table, a wholly
+    separate book/chapter citation, must now get its own passage_link
+    -- as `parallel`, since the FIRST table's own citation is (and
+    stays) this section's one `primary` passage."""
+    document, _report = parse_calvin_commentary_thml(MULTI_TABLE_FIXTURE)
+    by_id = {s["section_id"]: s for s in document["sections"]}
+    section = by_id["ccel.calvin.calcom03test.ii.i"]
+    assert section["passage_links"] == [
+        {
+            "raw_citation": "Exodus 20:16",
+            "canonical_passage": "Exod.20.16",
+            "relation_type": "primary",
+        },
+        {
+            "raw_citation": "Deuteronomy 5:20",
+            "canonical_passage": "Deut.5.20",
+            "relation_type": "parallel",
+        },
+    ]
+
+
+def test_multi_table_three_or_more_tables_all_recovered_in_order() -> None:
+    """3+ direct tables: every one of them contributes its own link, in
+    stable source order, only the first ever `primary`."""
+    document, _report = parse_calvin_commentary_thml(MULTI_TABLE_FIXTURE)
+    by_id = {s["section_id"]: s for s in document["sections"]}
+    section = by_id["ccel.calvin.calcom03test.ii.ii"]
+    links = section["passage_links"]
+    assert [l["canonical_passage"] for l in links] == ["Exod.34.17", "Lev.19.4", "Lev.26.1"]
+    assert [l["relation_type"] for l in links] == ["primary", "parallel", "parallel"]
+
+
+def test_multi_table_first_table_own_multi_citation_behavior_unchanged() -> None:
+    """The first table's own existing multi-citation behavior (e.g. a
+    single caption spanning two verses, "Exodus 21:15, 17") is
+    completely unaffected: it still yields its own primary + parallel
+    pair. A second, separate table then adds one further parallel link
+    on top -- three links total, still exactly one primary."""
+    document, _report = parse_calvin_commentary_thml(MULTI_TABLE_FIXTURE)
+    by_id = {s["section_id"]: s for s in document["sections"]}
+    section = by_id["ccel.calvin.calcom03test.ii.iii"]
+    links = section["passage_links"]
+    assert [l["canonical_passage"] for l in links] == ["Exod.21.15", "Exod.21.17", "Lev.20.9"]
+    assert [l["relation_type"] for l in links] == ["primary", "parallel", "parallel"]
+    assert sum(1 for l in links if l["relation_type"] == "primary") == 1
+
+
+def test_multi_table_duplicate_citation_across_tables_deduplicated() -> None:
+    """A second table citing the exact SAME canonical passage as the
+    first must not produce a second, competing link -- deduplicated
+    deterministically, keeping only the first (primary) occurrence."""
+    document, _report = parse_calvin_commentary_thml(MULTI_TABLE_FIXTURE)
+    by_id = {s["section_id"]: s for s in document["sections"]}
+    section = by_id["ccel.calvin.calcom03test.ii.iv"]
+    assert section["passage_links"] == [
+        {
+            "raw_citation": "Numbers 5:11-31",
+            "canonical_passage": "Num.5.11-31",
+            "relation_type": "primary",
+        }
+    ]
+
+
+def test_multi_table_exactly_one_primary_relation_per_section() -> None:
+    """Schema invariant, checked across every multi-table section in
+    the fixture: no section ever ends up with more than one `primary`
+    link just because each of its tables independently starts a
+    "primary" citation in isolation."""
+    document, _report = parse_calvin_commentary_thml(MULTI_TABLE_FIXTURE)
+    for section in document["sections"]:
+        links = section.get("passage_links") or []
+        primaries = [l for l in links if l["relation_type"] == "primary"]
+        assert len(primaries) <= 1, section["section_id"]
+
+
+def test_multi_table_commentary_text_and_chunks_unchanged() -> None:
+    """The multi-table fix touches only passage_links -- commentary
+    text, chunk count/content and section provenance must be exactly
+    what they already were with a single table."""
+    document, _report = parse_calvin_commentary_thml(MULTI_TABLE_FIXTURE)
+    chunks_by_section = {c["section_id"]: c["text"] for c in document["chunks"]}
+    assert chunks_by_section["ccel.calvin.calcom03test.ii.i.v1"] == (
+        "16. REAL COMMENTARY ON THE NINTH COMMANDMENT -- shared prose for "
+        "both the Exodus and Deuteronomy statements."
+    )
+    # Exactly one verse_commentary chunk per range in this fixture -- the
+    # second (and further) table never spawns its own extra chunk.
+    verse_chunks = [c for c in document["chunks"] if c["section_id"].endswith(".v1")]
+    assert len(verse_chunks) == 4
+
+
+# --- Provenance / SHA-256 -------------------------------------------------
+
+
+def test_build_document_attaches_real_raw_sha256() -> None:
+    import hashlib
+
+    document, report = build_calvin_commentary_document(ROMANS_FIXTURE)
+    expected = hashlib.sha256(ROMANS_FIXTURE.read_bytes()).hexdigest()
+    source_file = document["source_files"][0]
+    assert source_file["raw_sha256"] == expected
+    assert source_file["file_name"] == ROMANS_FIXTURE.name
+    batch = document["import_batches"][0]
+    assert batch["source_file_id"] == source_file["source_file_id"]
+    assert batch["importer_name"] == "textus_kb.importers.calvin_commentary_thml"
+    assert batch["report"]["book_id"] == report.book_id
+
+
+# --- Multi-file combined import; no duplicate author/translator ----------
+
+
+def test_merge_two_calvin_documents_dedupes_shared_author() -> None:
+    romans_doc, _ = build_calvin_commentary_document(ROMANS_FIXTURE)
+    harmony_doc, _ = build_calvin_commentary_document(HARMONY_FIXTURE)
+    merged = merge_calvin_commentary_documents([romans_doc, harmony_doc])
+
+    author_rows = [c for c in merged["contributors"] if c["contributor_id"] == AUTHOR_CONTRIBUTOR_ID]
+    assert len(author_rows) == 1  # Calvin declared by both files, not duplicated
+
+    translator_ids = {c["contributor_id"] for c in merged["contributors"]} - {AUTHOR_CONTRIBUTOR_ID}
+    assert len(translator_ids) == 2  # Owen (Romans) and Pringle (Harmony) are distinct people
+
+    assert len(merged["works"]) == 2
+    assert len(merged["editions"]) == 2
+    assert len(merged["source_files"]) == 2
+
+
+# --- Multi-volume work grouping (manifest-declared, not hardcoded) -------
+
+
+def test_work_group_collapses_two_volumes_into_one_work(tmp_path: Path) -> None:
+    """Two files sharing a manifest-declared work_group merge into one
+    `work` row spanning two `editions` (one per volume/file); section ids
+    stay collision-free because they are still derived from each file's
+    own book_id, not from the shared work_group."""
+    fixed = "2026-01-01T00:00:00Z"
+    volume_a, _ = build_calvin_commentary_document(
+        ROMANS_FIXTURE,
+        imported_at=fixed,
+        work_group="test_multivolume",
+        work_title="Test Multi-Volume Work",
+    )
+    volume_b, _ = build_calvin_commentary_document(
+        HARMONY_FIXTURE,
+        imported_at=fixed,
+        work_group="test_multivolume",
+        work_title="Test Multi-Volume Work",
+    )
+    merged = merge_calvin_commentary_documents([volume_a, volume_b])
+
+    assert len(merged["works"]) == 1
+    assert merged["works"][0]["work_id"] == "ccel.calvin.work.test_multivolume"
+    assert merged["works"][0]["title"] == "Test Multi-Volume Work"
+    assert len(merged["editions"]) == 2
+    edition_ids = {e["edition_id"] for e in merged["editions"]}
+    assert len(edition_ids) == 2  # no collision even though work_id is shared
+
+    section_ids = [s["section_id"] for s in merged["sections"]]
+    assert len(section_ids) == len(set(section_ids))  # no cross-volume collisions
+
+    database = tmp_path / "commentary.sqlite3"
+    import_commentary_sqlite(document=merged, database_path=database)
+    repo = CommentaryRepository(database)
+    hits = repo.sections_for_passage("Rom.1.1", work_id="ccel.calvin.work.test_multivolume")
+    assert any(h.section_id == "ccel.calvin.calcom38.v.ii.v1" for h in hits)
+    # Retrieval is unified at the work level: filtering by the shared
+    # work_id still finds a section that lives in the OTHER volume's edition.
+    harmony_hits = repo.sections_for_passage(
+        "Matt.1.1-17", work_id="ccel.calvin.work.test_multivolume"
+    )
+    assert any(h.section_id == "ccel.calvin.calcom31.ix.xiv" for h in harmony_hits)
+
+
+def test_group_entries_by_work_orders_by_volume() -> None:
+    from textus_kb.importers.calvin_source_fetch import CalvinSourceEntry, group_entries_by_work
+
+    entries = [
+        CalvinSourceEntry(
+            id="calcom10", title="t", url="u", local_path=Path("x"), raw_sha256="0" * 64,
+            work_group="psalms", volume=3,
+        ),
+        CalvinSourceEntry(
+            id="calcom08", title="t", url="u", local_path=Path("x"), raw_sha256="0" * 64,
+            work_group="psalms", volume=1,
+        ),
+        CalvinSourceEntry(
+            id="calcom38", title="t", url="u", local_path=Path("x"), raw_sha256="0" * 64,
+        ),
+    ]
+    groups = group_entries_by_work(entries)
+    assert set(groups.keys()) == {"psalms", "calcom38"}
+    assert [e.id for e in groups["psalms"]] == ["calcom08", "calcom10"]
+    assert [e.id for e in groups["calcom38"]] == ["calcom38"]
+
+
+def test_import_calvin_commentary_sqlite_combines_both_fixtures(tmp_path: Path) -> None:
+    database = tmp_path / "commentary.sqlite3"
+    report, parse_reports = import_calvin_commentary_sqlite(
+        [ROMANS_FIXTURE, HARMONY_FIXTURE], database_path=database
+    )
+    assert report.import_mode == IMPORT_MODE_CALVIN_COMMENTARY_THML
+    assert report.work_count == 2
+    assert report.source_file_count == 2
+    assert report.import_batch_count == 2
+    assert len(parse_reports) == 2
+
+    with sqlite3.connect(database) as connection:
+        connection.row_factory = sqlite3.Row
+        contributors = connection.execute(
+            "SELECT contributor_id, canonical_name FROM contributors"
+        ).fetchall()
+    assert len(contributors) == 3  # Calvin + Owen + Pringle, no duplicate Calvin row
+
+
+# --- Deterministic build ---------------------------------------------------
+
+
+def test_deterministic_build_same_content_hash(tmp_path: Path) -> None:
+    """Two builds are byte-identical only when imported_at is pinned: each
+    file's provenance row embeds a real timestamp, so an unpinned build
+    spanning a wall-clock second boundary would otherwise (correctly)
+    produce a different content_hash from that clock read alone."""
+    fixed_timestamp = "2026-01-01T00:00:00Z"
+    first, _ = import_calvin_commentary_sqlite(
+        [ROMANS_FIXTURE, HARMONY_FIXTURE],
+        database_path=tmp_path / "a.sqlite3",
+        imported_at=fixed_timestamp,
+    )
+    second, _ = import_calvin_commentary_sqlite(
+        [ROMANS_FIXTURE, HARMONY_FIXTURE],
+        database_path=tmp_path / "b.sqlite3",
+        imported_at=fixed_timestamp,
+    )
+    assert first.content_hash == second.content_hash
+    assert len(first.content_hash) == 64
+
+
+# --- Repository retrieval on real (trimmed) Calvin data -------------------
+
+
+@pytest.fixture()
+def calvin_repo(tmp_path: Path) -> CommentaryRepository:
+    database = tmp_path / "commentary.sqlite3"
+    import_calvin_commentary_sqlite([ROMANS_FIXTURE, HARMONY_FIXTURE], database_path=database)
+    return CommentaryRepository(database)
+
+
+def test_exact_verse_retrieval_real_data(calvin_repo: CommentaryRepository) -> None:
+    hits = calvin_repo.sections_for_passage("Rom.1.1")
+    by_id = {h.section_id: h for h in hits}
+    assert by_id["ccel.calvin.calcom38.v.ii.v1"].relation_type == RELATION_EXACT_PASSAGE
+    assert by_id["ccel.calvin.calcom38.v.i"].relation_type == RELATION_CONTAINING_SECTION
+
+
+def test_range_retrieval_real_data(calvin_repo: CommentaryRepository) -> None:
+    hits = calvin_repo.sections_for_passage("Rom.1.9")
+    by_id = {h.section_id: h for h in hits}
+    assert by_id["ccel.calvin.calcom38.v.iii.v2"].relation_type == RELATION_EXACT_PASSAGE
+    assert by_id["ccel.calvin.calcom38.v.iii"].relation_type == RELATION_CONTAINING_SECTION
+
+
+def test_multi_passage_retrieval_real_data(calvin_repo: CommentaryRepository) -> None:
+    via_matthew = calvin_repo.sections_for_passage("Matt.1.1-17")
+    via_luke = calvin_repo.sections_for_passage("Luke.3.23-38")
+    assert any(h.section_id == "ccel.calvin.calcom31.ix.xiv" for h in via_matthew)
+    assert any(h.section_id == "ccel.calvin.calcom31.ix.xiv" for h in via_luke)
+
+
+def test_no_cross_book_leak_real_data(calvin_repo: CommentaryRepository) -> None:
+    hits = calvin_repo.sections_for_passage("Rom.1.9")
+    assert all(
+        passage.startswith("Rom.") for h in hits for passage in h.canonical_passages
+    )
+
+
+def test_book_without_calvin_commentary_returns_empty(calvin_repo: CommentaryRepository) -> None:
+    assert calvin_repo.sections_for_passage("Genesis.1.1") == []
+    assert calvin_repo.sections_for_passage("John.3.16") == []
+
+
+def _chunks(document: dict) -> list[dict]:
+    return document["chunks"]
+
+
+# --- Plain-text captions and connector-word normalization ----------------
+#
+# Real bugs found via a full 45-volume corpus scan: some CCEL volumes omit
+# <scripRef> markup from a table caption entirely (Harmony of the Law:
+# bare "deuteronomy 6:20-25" text), and some insert a decorative English
+# word between the book name and the numbers (Isaiah: "Isaiah Chapter
+# 1:1-31"). Both are recovered by parsing the caption's own visible text
+# with the same general-purpose CanonicalReference.parse already trusted
+# for raw_citation elsewhere — never invented, always the literal text
+# present in the document.
+
+
+def test_plain_text_caption_without_scripref_is_recovered() -> None:
+    document, report = parse_calvin_commentary_thml(HARMONY_LAW_PLAIN_CAPTION_FIXTURE)
+    by_id = {s["section_id"]: s for s in document["sections"]}
+    section = by_id["ccel.calvin.calcom03.v.xiii"]
+    assert [l["canonical_passage"] for l in section["passage_links"]] == ["Deut.6.20-25"]
+    assert report.unmapped_sections == []
+
+
+def test_connector_word_is_stripped_before_parsing() -> None:
+    """"Isaiah Chapter 1:1-31" (real caption text, no scripRef at all)
+    resolves correctly only because "Chapter" is stripped before parsing —
+    this is exercised end-to-end by the no-wrapper fixture's own range
+    section, which would otherwise fail to import at all."""
+    document, _report = parse_calvin_commentary_thml(ISAIAH_NO_WRAPPER_FIXTURE)
+    by_id = {s["section_id"]: s for s in document["sections"]}
+    range_section = by_id["ccel.calvin.calcom13.viii.i"]
+    assert [l["canonical_passage"] for l in range_section["passage_links"]] == ["Isa.1.1-31"]
+
+
+def test_non_citation_caption_text_is_not_guessed(tmp_path: Path) -> None:
+    """Real corpus case: a "Tables and Indices" back-matter table in the
+    Psalms commentary has a caption reading "Major subjects addressed in
+    each Psalm" — table-formatted like a real scripture caption, but not a
+    Bible citation at all. The plain-text fallback must refuse it (fail
+    loudly, or via an explicit known_unmapped_sections exception) rather
+    than inventing a passage from unrelated text."""
+    text = HARMONY_LAW_PLAIN_CAPTION_FIXTURE.read_text(encoding="utf-8")
+    mutated = text.replace(
+        "deuteronomy 6:20-25", "Major subjects addressed in each Psalm"
+    )
+    assert mutated != text
+    broken = tmp_path / "not_a_reference.xml"
+    broken.write_text(mutated, encoding="utf-8")
+    with pytest.raises(CalvinCommentaryImportError, match="no parseable passage"):
+        parse_calvin_commentary_thml(broken)
+    # The manifest's explicit exception mechanism handles exactly this case.
+    exception = KnownUnmappedSection(
+        div2_id="v.xiii",
+        reason="Synthetic mutation of the plain-text caption fixture for this test.",
+        classification="non_citation_backmatter",
+    )
+    document, report = parse_calvin_commentary_thml(
+        broken, known_unmapped_sections={"v.xiii": exception}
+    )
+    assert [item["div2_id"] for item in report.unmapped_sections] == ["v.xiii"]
+    by_id = {s["section_id"]: s for s in document["sections"]}
+    assert by_id["ccel.calvin.calcom03.v.xiii"]["passage_links"] == []
+
+
+# --- Full manifest-driven, multi-volume corpus build ----------------------
+
+
+def test_manifest_known_unmapped_exceptions_are_threaded_through(tmp_path: Path) -> None:
+    """The manifest's per-source known_unmapped_sections reaches the parser
+    via import_calvin_corpus_from_manifest, not just the lower-level
+    build_calvin_commentary_document/parse_calvin_commentary_thml calls."""
+    from textus_kb.importers.calvin_commentary_thml import import_calvin_corpus_from_manifest
+    from textus_kb.importers.calvin_source_fetch import CalvinSourceEntry
+
+    text = HARMONY_LAW_PLAIN_CAPTION_FIXTURE.read_text(encoding="utf-8")
+    mutated = text.replace(
+        "deuteronomy 6:20-25", "Major subjects addressed in each Psalm"
+    )
+    broken = tmp_path / "not_a_reference.xml"
+    broken.write_text(mutated, encoding="utf-8")
+
+    entry = CalvinSourceEntry(
+        id="test",
+        title="Test",
+        url="https://example.invalid/test.xml",
+        local_path=broken,
+        raw_sha256="0" * 64,
+        known_unmapped_sections=(
+            KnownUnmappedSection(
+                div2_id="v.xiii",
+                reason="Synthetic mutation of the plain-text caption fixture for this test.",
+                classification="non_citation_backmatter",
+            ),
+        ),
+    )
+    report, parse_reports = import_calvin_corpus_from_manifest(
+        [entry], database_path=tmp_path / "commentary.sqlite3"
+    )
+    assert report.section_count > 0
+    assert [item["div2_id"] for item in parse_reports[0].unmapped_sections] == ["v.xiii"]

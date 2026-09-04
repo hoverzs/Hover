@@ -5,6 +5,15 @@ correctly routed passage, the "Eredeti szöveg" module may use the legacy AI
 linguistic analysis path. AI output must never claim DB provenance.
 
 Fallback is NOT triggered by post-hoc validation warnings on individual tokens.
+
+Commentary integration (Calvin/JFB/Henry, ld. build_original_text_commentary_
+block): strictly secondary here, smaller than every other grounded study
+module's own Commentary budget, and only ever attached to the STATUS_GROUNDED
+(DB-first token) path — never to the AI-fallback path, which already admits
+it has no authoritative local data and must not be further blurred with a
+second, unrelated secondary source. Reuses textus_kb.retrieve_commentary_
+evidence's existing exact/range-overlap-only retrieval and citation
+formatting; introduces no new retrieval logic.
 """
 
 from __future__ import annotations
@@ -40,6 +49,37 @@ UNAVAILABLE_USER_MESSAGE = (
 TOKEN_BLOCK_HEADER = (
     "EREDETI NYELVI TOKENEK (helyi adatbázisból, kizárólagos forrás):\n"
 )
+
+# Commentary (Calvin/JFB/Henry) integration: strictly secondary here — see
+# module docstring. Reuses textus_kb.retrieve_commentary_evidence's
+# existing exact/range-overlap-only retrieval and citation-ready metadata
+# (no new retrieval logic); the excerpt cap is deliberately the smallest
+# of the three grounded study modules (smaller than Exegézis's own
+# BUDGET_COMMENTARY, ld. textus_kb/context_profiles.py), since Commentary
+# is only ever a classical-interpretation aside here, never evidence.
+ORIGINAL_TEXT_COMMENTARY_ITEM_LIMIT = 2
+ORIGINAL_TEXT_COMMENTARY_MAX_CHARS = 220
+
+ORIGINAL_TEXT_COMMENTARY_BLOCK_HEADER = (
+    "KLASSZIKUS KOMMENTÁTORI ÉRTELMEZÉS (kiegészítő, értelmezéstörténeti "
+    "forrás — SOSEM írja felül vagy helyettesíti a fenti EREDETI NYELVI "
+    "TOKENEK adatot):"
+)
+
+ORIGINAL_TEXT_COMMENTARY_RULE = """
+FONTOS — NYELVI ADAT VS. KLASSZIKUS KOMMENTÁTORI ÉRTELMEZÉS:
+A fenti EREDETI NYELVI TOKENEK blokk az EGYETLEN kötelező forrás szóalakra,
+morfológiára, lemmára és Strong-azonosítóra nézve — ezt semmi más nem írhatja
+felül. Az alábbi „KLASSZIKUS KOMMENTÁTORI ÉRTELMEZÉS” blokk kizárólag
+kiegészítő, értelmezéstörténeti szempont — egy klasszikus szerző (Kálvin /
+Jamieson-Fausset-Brown / Matthew Henry) saját olvasata, NEM nyelvi tényadat.
+Csak akkor és csak úgy használd, ha ténylegesen nyelvileg releváns (pl. egy
+szó vagy kifejezés értelmezése, mondattani megfigyelés, fordítási
+alternatíva, klasszikus exegetikai nyelvi megjegyzés) — ha felhasználod,
+VILÁGOSAN jelezd, hogy ez egy adott szerző értelmezése (pl. "Kálvin
+szerint..."), sose írd úgy, mintha a szöveg objektív nyelvi ténye volna.
+Reliability-pontszámot vagy rangsorolást ne rendelj a kommentátorokhoz.
+"""
 
 ORIGINAL_TEXT_BASE_PROMPT = """
 Légy alapos, nyelvészeti érzékenységgel dolgozó eredeti nyelvi (görög/héber)
@@ -408,6 +448,68 @@ def build_original_language_token_block(
     ).token_block
 
 
+def _truncate_commentary_excerpt(text: str, max_chars: int) -> str:
+    stripped = " ".join(text.split())
+    if len(stripped) <= max_chars:
+        return stripped
+    cut = stripped[:max_chars]
+    last_space = cut.rfind(" ")
+    if last_space > max_chars * 0.6:
+        cut = cut[:last_space]
+    return cut.rstrip(" ,.;:") + "…"
+
+
+def build_original_text_commentary_block(igehely: str) -> str:
+    """Small, strictly secondary classical-commentary block for the
+    "Eredeti szöveg" prompt (ld. ORIGINAL_TEXT_COMMENTARY_RULE).
+
+    Fail-closed: returns "" (no block, no rule text added — the caller's
+    prompt is then byte-identical to before this feature existed) when the
+    Commentary DB is missing/invalid, or when there is no passage-linked
+    commentary match. Never falls back to full-text or semantic search —
+    reuses ``CommentaryRepository.sections_for_passage``'s own exact/range-
+    overlap-only retrieval via ``retrieve_commentary_evidence``, unchanged.
+    """
+    reference = (igehely or "").strip()
+    if not reference:
+        return ""
+    try:
+        from textus_kb.commentary_runtime import get_status as get_commentary_status
+
+        status = get_commentary_status()
+        if not status.available:
+            return ""
+        from textus_kb.retrieval import retrieve_commentary_evidence
+
+        items = retrieve_commentary_evidence(
+            reference,
+            database_path=status.database_path,
+            limit=ORIGINAL_TEXT_COMMENTARY_ITEM_LIMIT,
+        )
+    except Exception:
+        return ""
+    if not items:
+        return ""
+
+    from textus_kb.citation import format_commentary_citation
+
+    lines = [ORIGINAL_TEXT_COMMENTARY_BLOCK_HEADER]
+    for item in items:
+        excerpt = _truncate_commentary_excerpt(
+            item.content, ORIGINAL_TEXT_COMMENTARY_MAX_CHARS
+        )
+        if not excerpt:
+            continue
+        try:
+            citation = format_commentary_citation(item)
+        except Exception:
+            citation = ""
+        lines.append(f"- {citation} {excerpt}" if citation else f"- {excerpt}")
+    if len(lines) == 1:
+        return ""
+    return "\n".join(lines)
+
+
 def _passage_text_block(passage_text: str) -> str:
     cleaned = (passage_text or "").replace("\r\n", "\n").replace("\r", "\n")
     if cleaned.strip():
@@ -418,6 +520,12 @@ def _passage_text_block(passage_text: str) -> str:
 def build_grounded_original_text_prompt(
     igehely: str, passage_text: str, token_block: str
 ) -> str:
+    commentary_block = build_original_text_commentary_block(igehely)
+    commentary_section = (
+        f"\n{ORIGINAL_TEXT_COMMENTARY_RULE}\n{commentary_block}\n"
+        if commentary_block
+        else ""
+    )
     return f"""
 {ORIGINAL_TEXT_BASE_PROMPT}
 
@@ -428,9 +536,12 @@ EREDETI NYELVI MŰHELY — FELADAT
 Igeszakasz: {igehely}
 {_passage_text_block(passage_text)}
 {token_block}
-
+{commentary_section}
 Készíts eredeti nyelvű elemzést ehhez a textushoz a fenti mesterprompt
-szerkezete szerint, kizárólag a fenti token-listára hivatkozva.
+szerkezete szerint, kizárólag a fenti token-listára hivatkozva a nyelvi
+tényekben; klasszikus kommentátori értelmezést csak a fenti szabály szerint,
+csak ha ténylegesen szerepel a promptban, és mindig egyértelműen attribuálva
+használj.
 """
 
 
@@ -592,6 +703,10 @@ __all__ = [
     "AI_FALLBACK_USER_NOTICE",
     "ORIGINAL_TEXT_AI_FALLBACK_PROMPT",
     "ORIGINAL_TEXT_BASE_PROMPT",
+    "ORIGINAL_TEXT_COMMENTARY_BLOCK_HEADER",
+    "ORIGINAL_TEXT_COMMENTARY_ITEM_LIMIT",
+    "ORIGINAL_TEXT_COMMENTARY_MAX_CHARS",
+    "ORIGINAL_TEXT_COMMENTARY_RULE",
     "STATUS_AI_FALLBACK",
     "STATUS_GROUNDED",
     "STATUS_UNAVAILABLE",
@@ -603,6 +718,7 @@ __all__ = [
     "build_ai_fallback_original_text_prompt",
     "build_grounded_original_text_prompt",
     "build_original_language_token_block",
+    "build_original_text_commentary_block",
     "inspect_original_language_tokens",
     "plan_original_language_analysis",
     "run_original_language_analysis",

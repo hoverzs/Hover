@@ -14,7 +14,7 @@ from dataclasses import asdict, dataclass, field
 from typing import Any
 
 from textus_kb.context_builder import ContextItem, ContextSection, LLMContextPacket
-from textus_kb.context_profiles import THEOLOGY_NO_MATCH_WARNING
+from textus_kb.context_profiles import COMMENTARY_NO_MATCH_WARNING, THEOLOGY_NO_MATCH_WARNING
 from textus_kb.context_selection import jaccard_similarity, normalize_plain_text, text_token_set
 from textus_kb.evidence import estimate_text_tokens
 from textus_kb.shadow import MODULE_TO_PROFILE
@@ -38,12 +38,14 @@ DEFAULT_KB_CONTEXT_TARGET_BY_MODULE: dict[str, int] = {
     "historical_context": 2200,
     "history": 2200,
     "theology": 3500,
+    "commentary": 3000,
 }
 DEFAULT_KB_CONTEXT_MAX_BY_MODULE: dict[str, int] = {
     "exegesis": 4500,
     "historical_context": 3500,
     "history": 3500,
     "theology": 3500,
+    "commentary": 3500,
 }
 
 # Total hard safety cap for composed grounded prompt (production + KB + overhead).
@@ -79,6 +81,7 @@ _SECTION_HEADERS = {
     "background": "HISTORICAL BACKGROUND",
     "geography": "PLACES / BACKGROUND",
     "theological": "THEOLOGICAL SOURCES",
+    "commentary": "COMMENTARY SOURCES",
 }
 
 # Drop order when shrinking KB context to fit grounded prompt budget
@@ -93,12 +96,27 @@ _TRIM_SECTION_ORDER = (
     "linguistic",
     "lexical",
     "theological",
+    "commentary",
     "passage",
 )
 
+# In exegesis/historical_context, Commentary is a supplementary witness
+# layer added on top of each profile's own direct evidence — it must never
+# survive at the expense of that evidence. Trim it FIRST here, ahead of
+# even background/geography. Theology and the standalone Commentary
+# module (where commentary IS the primary content) keep the original,
+# highly-protected order above.
+_COMMENTARY_FIRST_TRIM_MODULES = frozenset({"exegesis", "historical_context"})
+
+
+def _trim_section_order_for(module_key: str) -> tuple[str, ...]:
+    if module_key in _COMMENTARY_FIRST_TRIM_MODULES:
+        return ("commentary",) + tuple(t for t in _TRIM_SECTION_ORDER if t != "commentary")
+    return _TRIM_SECTION_ORDER
+
 _TAG_RE = re.compile(r"<[^>]+>")
 _SUPPORTED_MODULES = frozenset(
-    {"exegesis", "historical_context", "history", "theology"}
+    {"exegesis", "historical_context", "history", "theology", "commentary"}
 )
 
 # Internal evidence / attribution tokens that must not appear in LLM-facing KB text.
@@ -122,6 +140,7 @@ _SOURCE_DISPLAY_LABELS: dict[str, str] = {
     "biblical_places_catalog": "Biblical places catalog",
     "place_enrichments_overlay": "Biblical places enrichments",
     "theology_sqlite": "Theology store",
+    "commentary_sqlite": "Commentary store",
 }
 
 
@@ -524,6 +543,44 @@ def _render_theological_source_lines(item: ContextItem) -> list[str]:
     return lines
 
 
+def _render_commentary_source_lines(item: ContextItem) -> list[str]:
+    """Render citation-ready Commentary provenance. Omit missing fields; invent none.
+
+    Always states which passage was actually matched and whether that link
+    is the section's primary or a parallel passage — never left implicit.
+    """
+    meta = dict(item.metadata or {})
+    lines: list[str] = [f"Source: {source_display_label(item.source_id)}"]
+    source_type = str(item.item_type or meta.get("source_type") or "").strip()
+    if source_type:
+        lines.append(f"source_type={source_type}")
+    try:
+        from textus_kb.citation import format_commentary_citation
+
+        citation = format_commentary_citation(meta)
+    except Exception:
+        citation = ""
+    if citation:
+        lines.append(f"Citation: {citation}")
+    for key in (
+        "human_readable_locator",
+        "work_title",
+        "section_id",
+        "edition_id",
+        "source_locator",
+        "canonical_scope",
+        "primary_passages",
+        "parallel_passages",
+    ):
+        value = _meta_text(meta, key)
+        if value:
+            lines.append(f"{key}={value}")
+    content = scrub_internal_identifiers(normalize_prompt_text(item.text))
+    if content:
+        lines.append(content)
+    return lines
+
+
 def render_kb_context(
     packet: LLMContextPacket | dict[str, Any],
     *,
@@ -553,6 +610,17 @@ def render_kb_context(
         lines.append(THEOLOGY_NO_MATCH_WARNING)
         lines.append("")
 
+    commentary_no_match = COMMENTARY_NO_MATCH_WARNING in list(ctx.warnings or [])
+    has_commentary_items = any(
+        item.item_type == "commentary_source"
+        for section in ctx.sections
+        for item in section.items
+    )
+    if commentary_no_match and not has_commentary_items:
+        lines.append(f"[{_SECTION_HEADERS['commentary']}]")
+        lines.append(COMMENTARY_NO_MATCH_WARNING)
+        lines.append("")
+
     for section in ctx.sections:
         header = _SECTION_HEADERS.get(section.type, section.type.upper().replace("_", " "))
         lines.append(f"[{header}]")
@@ -564,6 +632,9 @@ def render_kb_context(
                 break
             if item.item_type == "theological_source":
                 lines.extend(_render_theological_source_lines(item))
+                lines.append("")
+            elif item.item_type == "commentary_source":
+                lines.extend(_render_commentary_source_lines(item))
                 lines.append("")
             else:
                 scope = ""
@@ -594,6 +665,7 @@ def _grounded_rules_block(
     *,
     module: str = "",
     historical_coverage_status: str = "",
+    has_commentary_evidence: bool = True,
 ) -> str:
     lines = [
         "=== GROUNDED USE RULES ===",
@@ -612,6 +684,27 @@ def _grounded_rules_block(
         "analyze out-of-range verses as if they were part of the requested text.",
     ]
     module_key = "historical_context" if module == "history" else module
+    if module_key == "exegesis" and has_commentary_evidence:
+        lines.extend(
+            [
+                "",
+                "=== COMMENTARY IN EXEGESIS — GROUNDED USE RULES ===",
+                "Classical commentary (Calvin / Jamieson-Fausset-Brown / Matthew Henry)",
+                "evidence, when present in KB DATA, is an interpretive witness — not the",
+                "same thing as direct linguistic or background evidence, and never a",
+                "substitute for it.",
+                "You may compare and synthesize across multiple commentary works when KB",
+                "DATA provides them, but ALWAYS attribute the interpretive claim to its",
+                "named commentator/work — never present a commentator's reading as if it",
+                "were the text's own plain meaning (do not write \"a szöveg jelentése...\"",
+                "when you are actually reporting one commentator's interpretation; write",
+                "instead e.g. \"Kálvin szerint...\" / \"Henry úgy értelmezi...\").",
+                "Only name a commentator, work, edition, or locator when it appears in KB DATA.",
+                "Do not assign or imply a reliability score for any commentator.",
+                "If KB DATA states that no passage-linked commentary evidence was found,",
+                "do not attribute an interpretive claim to a named commentator.",
+            ]
+        )
     if module_key == "historical_context":
         lines.extend(
             [
@@ -623,6 +716,25 @@ def _grounded_rules_block(
                 "Do not infer motives from customs unless the text supports it. Avoid modern",
                 "medical framing (disinfectant/antiseptic), popular route nicknames, exact",
                 "house/crowd reconstructions, and unsupported formal legal categories.",
+            ]
+        )
+    if module_key == "historical_context" and has_commentary_evidence:
+        lines.extend(
+            [
+                "",
+                "=== COMMENTARY IN HISTORICAL CONTEXT — GROUNDED USE RULES ===",
+                "Classical commentary (Calvin/JFB/Henry) evidence, when present in KB DATA,",
+                "is a supplementary classical interpretive witness — it is NOT a modern",
+                "historical-critical source and never outranks direct Aquifer/ACAI/place",
+                "background evidence.",
+                "Only use a commentator's historical or cultural claim when it is genuinely",
+                "relevant, and always attribute it explicitly as that commentator's classical",
+                "reading (e.g. \"Kálvin szerint...\") — never present it with modern",
+                "historical-scholarship authority.",
+                "Only name a commentator, work, edition, or locator when it appears in KB DATA.",
+                "Do not assign or imply a reliability score for any commentator.",
+                "If KB DATA states that no passage-linked commentary evidence was found,",
+                "do not attribute a claim to a named commentator.",
             ]
         )
     if (
@@ -657,6 +769,22 @@ def _grounded_rules_block(
                 "Reformed, or Christian theology.",
             ]
         )
+    if module_key == "commentary":
+        lines.extend(
+            [
+                "",
+                "=== COMMENTARY GROUNDED USE RULES ===",
+                "Commentary evidence is one classical interpreter's reading of the passage,",
+                "not a consensus and not a substitute for direct linguistic evidence.",
+                "Only name a commentator, work, edition, or locator when it appears in KB DATA.",
+                "Do not assign or imply a reliability score for the commentator.",
+                "State whether the cited passage is the section's primary or a parallel",
+                "passage only when KB DATA itself states it — never infer it.",
+                "If KB DATA states that no passage-linked commentary evidence was found,",
+                "do not attribute an interpretive claim to a named commentator.",
+                "Distinguish source-supported commentary claims from general synthesis.",
+            ]
+        )
     return "\n".join(lines)
 
 
@@ -676,6 +804,10 @@ def _style_constraints_block(*, module: str = "") -> str:
     if module_key == "theology":
         task_line = (
             "A KB-adatot építsd be a meglévő teológiai feladathoz,"
+        )
+    elif module_key == "commentary":
+        task_line = (
+            "A KB-adatot építsd be a meglévő kommentár feladathoz,"
         )
     else:
         task_line = (
@@ -700,6 +832,12 @@ def _assemble_prompt(
     historical_coverage_status: str = "",
 ) -> str:
     # Production prompt is inserted verbatim (no strip/truncate) for invariance.
+    # Commentary usage rules (exegesis/historical_context) are only added
+    # when Commentary actually appears in this KB block this call — a
+    # module with no commentary evidence this time must produce the exact
+    # same prompt shape as before this feature existed (ld. req #9
+    # fail-closed: "a modul működjön pontosan úgy, mint eddig").
+    has_commentary_evidence = f"[{_SECTION_HEADERS['commentary']}]" in kb_block
     parts = [
         "=== TEXTUS PRODUCTION INSTRUCTIONS ===",
         production_prompt,
@@ -710,6 +848,7 @@ def _assemble_prompt(
         _grounded_rules_block(
             module=module,
             historical_coverage_status=historical_coverage_status,
+            has_commentary_evidence=has_commentary_evidence,
         ),
         "",
         _injection_guard_preamble(),
@@ -746,6 +885,8 @@ def _shrink_packet_for_budget(
         else int(kb_max_tokens)
     )
     coverage = str((packet.selection_stats or {}).get("historical_coverage_status") or "")
+    module_key = "historical_context" if module == "history" else module
+    trim_order = _trim_section_order_for(module_key)
 
     def _kb_and_total(pkt: LLMContextPacket) -> tuple[int, int]:
         kb_text = render_kb_context(pkt)[0]
@@ -768,7 +909,7 @@ def _shrink_packet_for_budget(
 
     def _trim_loop(kb_cap: int) -> None:
         nonlocal working, trim_applied
-        for drop_type in _TRIM_SECTION_ORDER:
+        for drop_type in trim_order:
             if _fits(working, kb_cap=kb_cap):
                 return
             remaining = [s for s in working.sections if s.type != drop_type]
@@ -796,7 +937,7 @@ def _shrink_packet_for_budget(
 
         while not _fits(working, kb_cap=kb_cap):
             drop_section_idx = None
-            for section_type in _TRIM_SECTION_ORDER:
+            for section_type in trim_order:
                 for idx, section in enumerate(working.sections):
                     if section.type == section_type and section.items:
                         drop_section_idx = idx
@@ -1153,7 +1294,7 @@ def main(argv: list[str] | None = None) -> int:
     if not args:
         print(
             'Usage: python -m textus_kb prompt-preview "<reference>" '
-            "--module exegesis|historical_context|theology [--show-prompt] [--prompt-file PATH]",
+            "--module exegesis|historical_context|theology|commentary [--show-prompt] [--prompt-file PATH]",
             file=sys.stderr,
         )
         return 2

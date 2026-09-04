@@ -9,6 +9,7 @@ from typing import Any
 from textus_kb.canonical_reference import CanonicalReference, CanonicalReferenceError
 from textus_kb.context_profiles import (
     BUDGET_BACKGROUND,
+    BUDGET_COMMENTARY,
     BUDGET_DICTIONARY,
     BUDGET_ENTITY,
     BUDGET_EXEGETICAL,
@@ -45,6 +46,12 @@ HISTORICAL_BACKGROUND_ITEM_TYPES = frozenset(
         "place_catalog",
     }
 )
+
+# Commentary diversity reservation: prefer representing multiple distinct
+# commentary works (Calvin/JFB/Henry), not just the single top-scoring
+# item, within the diversity-reservation step — bounded small so this
+# stays a modest, supplementary reservation, never a second full budget.
+COMMENTARY_DIVERSITY_MAX_WORKS = 3
 
 
 @dataclass
@@ -147,6 +154,8 @@ def budget_type_for_item(item_type: str) -> str:
         return BUDGET_ENTITY
     if item_type == "theological_source":
         return BUDGET_THEOLOGY
+    if item_type == "commentary_source":
+        return BUDGET_COMMENTARY
     return BUDGET_BACKGROUND
 
 
@@ -600,7 +609,20 @@ def select_context_items(
         if not pool:
             continue
         pool.sort(key=lambda c: (-c.selection_score, c.item.evidence_id))
-        try_add(pool[0], force_diversity=True)
+        if budget_type == BUDGET_COMMENTARY:
+            seen_works: set[str] = set()
+            added = 0
+            for cand in pool:
+                if added >= COMMENTARY_DIVERSITY_MAX_WORKS:
+                    break
+                work_id = str(cand.item.metadata.get("work_id") or "")
+                if work_id in seen_works:
+                    continue
+                if try_add(cand, force_diversity=True):
+                    seen_works.add(work_id)
+                    added += 1
+        else:
+            try_add(pool[0], force_diversity=True)
 
     # 4) Fill remaining by tier/score until goals met or soft target —
     # never pad leftover target once diversity + coverage are satisfied.

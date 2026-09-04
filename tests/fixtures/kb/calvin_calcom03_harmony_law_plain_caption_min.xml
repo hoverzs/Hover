@@ -1,0 +1,188 @@
+<?xml version='1.0' encoding='utf-8'?>
+<ThML>
+  <ThML.head>
+    <generalInfo>
+      <description>Calvin's <i>Harmony of the Law</i> is his
+commentary on the books Exodus, Leviticus, Numbers, and
+Deuteronomy. Whereas the majority of Calvin's commentaries are
+chronologically arranged--beginning with the first verse in a book, and
+ending with the last--<i>Harmony of the Law</i> is arranged topically,
+for
+Calvin believed that his topical arrangement would better present the
+various doctrines of "true piety." A remarkable commentary, <i>Harmony
+of
+the Law</i> contains Calvin's discussion of the Ten Commandments, the
+usefulness of the law, and the harmony of the law. <i>Harmony of the
+Law</i>
+instructs readers in both the narrative history of the Old Testament and
+the practical importance and use of the Old Testament teachings.
+<i>Harmony
+of the Law</i> is highly recommended, and will demonstrate to a reader
+why
+Calvin is regarded as one of the best commentators of the
+Reformation.<br />
+        <br />Tim Perrine<br />CCEL Staff Writer </description>
+      <firstPublished />
+      <pubHistory />
+      <comments />
+    </generalInfo>
+    <printSourceInfo>
+      <published />
+      <copyLocation />
+      <image href="" type="front" />
+      <image href="" type="spine" />
+    </printSourceInfo>
+    <electronicEdInfo>
+      <publisherID>ccel</publisherID>
+      <authorID>calvin</authorID>
+      <bookID>calcom03</bookID>
+      <workID>calcom03</workID>
+      <bkgID>harmony_of_the_law_volume_1_(calvin)</bkgID>
+      <version>1.0</version>
+      <series />
+      <editorialComments />
+      <revisionHistory>v0.99. Update for DTD 0.99. Main change: use DC record instead of MARC. Significant changes to the head section.v0.98. Update for DTD 0.98; delete some unneeded head elements; italicize Citation style</revisionHistory>
+      <status />
+      <DC>
+        <DC.Title sub="Main">Harmony of the Law - Volume 1</DC.Title>
+        <DC.Creator scheme="ccel" sub="Author" />
+        <DC.Creator scheme="file-as" sub="Author">Calvin, John (1509 - 1564)</DC.Creator>
+        <DC.Creator scheme="short-form" sub="Author">John Calvin</DC.Creator>
+        <DC.Creator scheme="ccel" sub="Alternative" />
+        <DC.Creator scheme="file-as" sub="Alternative" />
+        <DC.Creator scheme="short-form" sub="Alternative">Jean Calvin</DC.Creator>
+        <DC.Creator scheme="ccel" sub="Translator" />
+        <DC.Creator scheme="file-as" sub="Translator" />
+        <DC.Creator scheme="short-form" sub="Translator">Bingham, Charles William</DC.Creator>
+        <DC.Creator scheme="short-form">John Calvin, 1509-1564</DC.Creator>
+        <DC.Subject scheme="CCEL">All; Theology; </DC.Subject>
+        <DC.Subject scheme="LCCN">BS491</DC.Subject>
+        <DC.Subject scheme="lcsh1">The Bible</DC.Subject>
+        <DC.Subject scheme="lcsh2">Works about the Bible</DC.Subject>
+        <DC.Subject scheme="LCSH" />
+        <DC.Description />
+        <DC.Publisher>Grand Rapids, MI: Christian Classics Ethereal Library</DC.Publisher>
+        <DC.Publisher sub="Address">ccel@ccel.org</DC.Publisher>
+        <DC.Publisher scheme="CCEL">CCEL</DC.Publisher>
+        <DC.Contributor scheme="CCEL" sub="Transcriber">Ages</DC.Contributor>
+        <DC.Contributor scheme="CCEL" sub="Markup">sg</DC.Contributor>
+        <DC.Date scheme="ISO8601" sub="Created">1998-12-10</DC.Date>
+        <DC.Type>Text.Commentary</DC.Type>
+        <DC.Format scheme="IMT">text/html</DC.Format>
+        <DC.Identifier scheme="CCEL" />
+        <DC.Identifier />
+        <DC.Subject scheme="LCCS" />
+        <DC.Subject scheme="DDC" />
+        <DC.Source sub="ElectronicEdition" />
+        <DC.Source scheme="URL" sub="ElectronicEdition" />
+        <DC.Source sub="Etext" />
+        <DC.Source scheme="URL" sub="Etext" />
+        <DC.Source sub="Print" />
+        <DC.Language scheme="ISO639-3">eng</DC.Language>
+        <DC.Relation />
+        <DC.Coverage />
+        <DC.Identifier scheme="URL">/ccel/calvin/calcom03.html</DC.Identifier>
+        <DC.Rights>Public Domain</DC.Rights>
+      </DC>
+      <comments />
+    </electronicEdInfo>
+    <link href="/css/ThML099.css" rel="stylesheet" type="text/css" />
+  </ThML.head>
+  <ThML.body>
+    <div1 id="v" n="v" next="v.i" prev="iv.xxi.i" progress="66.81%" shorttitle="section v" title="Preface to the Law" type="section">
+      <p class="HDG-C-Gr-16-Pref08" id="v-p1" shownumber="no">Preface to the Law</p>
+      <p class="BOOK-CHAP-BLU-24-CEN15" id="v-p2" shownumber="no">EXODUS 20</p>
+      <div2 id="v.xiii" n="xiii" next="v.xiv" prev="v.xii" progress="71.51%" shorttitle="scripture xiii" title="Deuteronomy 6:20-25" type="scripture">
+        <p class="BOOK-CHAP-BLU-24-CEN15" id="v.xiii-p1" shownumber="no">DEUTERONOMY 6</p>
+        <table border="2" id="v.xiii-p1.1">
+          <tr id="v.xiii-p1.2" valign="top">
+            <td colspan="1" id="v.xiii-p1.3" rowspan="1">
+              <p class="TableCaption16" id="v.xiii-p2" shownumber="no">deuteronomy 6:20-25</p>
+            </td>
+          </tr>
+          <tr id="v.xiii-p2.1" valign="top">
+            <td colspan="1" id="v.xiii-p2.2" rowspan="1">
+              <p class="TableText17" id="v.xiii-p3" shownumber="no">
+                <b>20.</b>
+                <i>And</i> when thy son asketh thee in time to come, saying, What <i>mean </i>the testimonies, and the statutes, and the judgments, which the Lord our God hath commanded you?</p>
+            </td>
+            <td colspan="1" id="v.xiii-p3.1" rowspan="1">
+              <p class="TableText17" id="v.xiii-p4" shownumber="no">
+                <b>20.</b> Quum interrogaverit to filius tuus cras, dicendo, Quid sibi volunt testimonia et statuta et judicia, quae praecepit Jehova Deus noster vobis.</p>
+            </td>
+          </tr>
+          <tr id="v.xiii-p4.1" valign="top">
+            <td colspan="1" id="v.xiii-p4.2" rowspan="1">
+              <p class="TableText17" id="v.xiii-p5" shownumber="no">
+                <b>21.</b> Then thou shalt say unto thy son, We were Pharaoh’s bond-men in Egypt, and the Lord brought us out of Egypt with a mighty hand:</p>
+            </td>
+            <td colspan="1" id="v.xiii-p5.1" rowspan="1">
+              <p class="TableText17" id="v.xiii-p6" shownumber="no">
+                <b>21.</b> Tune dices filio tuo, Servi fuimus Pharaonis in Aegypto, et eduxit nos Jehova ex Aegypto in manu forti.</p>
+            </td>
+          </tr>
+          <tr id="v.xiii-p6.1" valign="top">
+            <td colspan="1" id="v.xiii-p6.2" rowspan="1">
+              <p class="TableText17" id="v.xiii-p7" shownumber="no">
+                <b>22.</b> And the Lord shewed signs and wonders, great and sore, upon Egypt, upon Pharaoh, and upon all his household, before our eyes:</p>
+            </td>
+            <td colspan="1" id="v.xiii-p7.1" rowspan="1">
+              <p class="TableText17" id="v.xiii-p8" shownumber="no">
+                <b>22.</b> Deditque Jehova signa et portenta magna et pessima in Aegypto in Pharaonem, et in totam domum ejus, in oculis nostris.</p>
+            </td>
+          </tr>
+          <tr id="v.xiii-p8.1" valign="top">
+            <td colspan="1" id="v.xiii-p8.2" rowspan="1">
+              <p class="TableText17" id="v.xiii-p9" shownumber="no">
+                <b>23.</b> And he brought us out from thence, that he might bring us in, to give us the land which he sware unto our fathers.</p>
+            </td>
+            <td colspan="1" id="v.xiii-p9.1" rowspan="1">
+              <p class="TableText17" id="v.xiii-p10" shownumber="no">
+                <b>23.</b> Atque nos eduxit inde, ut introduceret nos, ac darer nobis terram de qua juravit patribus nostris.</p>
+            </td>
+          </tr>
+          <tr id="v.xiii-p10.1" valign="top">
+            <td colspan="1" id="v.xiii-p10.2" rowspan="1">
+              <p class="TableText17" id="v.xiii-p11" shownumber="no">
+                <b>24.</b> And the Lord commanded us to do all these statutes, to fear the Lord our God, for our good always, that he might preserve us alive, as <i>it is </i>at this day.</p>
+            </td>
+            <td colspan="1" id="v.xiii-p11.1" rowspan="1">
+              <p class="TableText17" id="v.xiii-p12" shownumber="no">
+                <b>24.</b> Itaque praecepit Jehova ut faciamus omnia statuta ista, ut timeamus Jehovam Deum nostrum in bonum nostrum omnibus diebus, ut conservaret nos in vita, ut in hac die.</p>
+            </td>
+          </tr>
+          <tr id="v.xiii-p12.1" valign="top">
+            <td colspan="1" id="v.xiii-p12.2" rowspan="1">
+              <p class="TableText17" id="v.xiii-p13" shownumber="no">
+                <b>25.</b> And it shall be our righteousness, if we observe to do all these commandments before the Lord our God, as he hath commanded us.</p>
+            </td>
+            <td colspan="1" id="v.xiii-p13.1" rowspan="1">
+              <p class="TableText17" id="v.xiii-p14" shownumber="no">
+                <b>25.</b> Et justitia erit nobis quum custodierimus ut faciamus omne praeceptum istud coram Jehova Deo nostro, quemadmodum praecepit nobis.</p>
+            </td>
+          </tr>
+        </table>
+        <p id="v.xiii-p15" shownumber="no">
+          <scripCom id="v.xiii-p15.1" osisRef="Bible:Deut.6.20" parsed="|Deut|6|20|0|0" passage="De 6:20" type="Commentary" />
+        </p>
+        <div class="Commentary" id="v.xiii-p15.2">
+          <p class="PAR-L-Main-Text09" id="v.xiii-p16" shownumber="no">
+            <b>20.</b>
+            <i>And when thy son asketh thee.</i> The sole point which Moses urges in these verses is, that the people should testify their gratitude by obeying the Law, and that the same religion,<note anchored="yes" id="v.xiii-p16.1" n="232" place="foot">
+              <p class="Footnote" id="v.xiii-p17" shownumber="no"> Addition in <i>Fr., </i>“qu’il a apprinse de Dieu;” which they have learnt of God.</p>
+            </note>
+     which he commands the fathers to teach, should descend to their posterity. The sum is, that there was good reason why all the precepts of the Law should be observed, since by them it was that God desired His people, after their deliverance, to shew forth their sense of His loving-kindness. Again, therefore, in this passage, he commends the Law by reminding them of
+    their redemption, that the people might more willingly and more earnestly reverence it; for its authority has stronger claims upon them, because it was not imposed before God had laid them under obligation to Himself; and it would have been too base and absurd in them to refuse God as their Lawgiver, when they knew that by Him they had been purchased to Himself. In the next place He reminds them that for the same object they had been constituted the heirs of the land of Canaan, that they should
+    honor God as the author of this special favor; thus he concludes that they are bound by a two-fold tie, for God had devoted them to Himself not once only, but had confirmed His dominion over them by their continued possession of the land. But there is nothing inconsistent in his saying that the land was promised by oath to their fathers before the Law was given; for, although God bestowed this gift gratuitously, yet did He justly claim the testimony of their gratitude; just as now-a-days,
+    although He invites us to the hope of an eternal inheritance of His own free bounty, yet the end of our calling is, that we on our part should celebrate His glory all our life long. When in verse 24 he uses the words “to fear the Lord our God,” he briefly defines the sum of the Law; for it would not suffice for us to perform whatever is there commanded, unless our obedience had reference to the fear and worship of God. Integrity and uprightness,
+    indeed, give God delight; but none will say that men’s life is duly ordered, if, whilst they exercise equity one towards another, they defraud God of His right. But it is well known that legitimate honor and worship are comprehended under the name of fear. Just afterwards, he commends the Law on account of its profitableness; for God provided for their own good, in delivering to them the rule of a just and pious life. In these words he intimates that they would be doubly ungrateful if they
+    rejected what God meant for their own advantage. For this expression, “for our good,” is equivalent to saying that God not only had respect and care for His own rights in enacting the Law, but at the same time regarded what would be useful to them; and this he more clearly states in the next verse, where he says that “this shall be their righteousness if they observe” the Law; otherwise, that the
+    rule of a righteous life, which would please God, was prescribed to them, than which nothing better could be desired. But it will be elsewhere shewn at greater length how the keeping of the Law is in itself righteousness, and yet that no man is justified by the Law; for, that the Law brings only wrath and condemnation, does not arise from any defect or faultiness in its doctrine, but must be imputed to our own guilt, as being far removed, nay, aliens from the righteousness<note anchored="yes" id="v.xiii-p17.1" n="233" place="foot">
+              <p class="Footnote" id="v.xiii-p18" shownumber="no"> La doctrine. — Fr.</p>
+            </note>
+     which it contains.</p>
+        </div>
+      </div2>
+    </div1>
+  </ThML.body>
+</ThML>

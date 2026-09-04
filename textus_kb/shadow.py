@@ -8,7 +8,12 @@ from dataclasses import asdict, dataclass, field
 from typing import Any
 
 from textus_kb.context_builder import build_context_from_evidence
-from textus_kb.context_profiles import PROFILE_EXEGESIS, PROFILE_HISTORICAL, PROFILE_THEOLOGY
+from textus_kb.context_profiles import (
+    PROFILE_COMMENTARY,
+    PROFILE_EXEGESIS,
+    PROFILE_HISTORICAL,
+    PROFILE_THEOLOGY,
+)
 from textus_kb.retrieval import retrieve
 
 MODULE_TO_PROFILE = {
@@ -16,6 +21,7 @@ MODULE_TO_PROFILE = {
     "history": PROFILE_HISTORICAL,
     "historical_context": PROFILE_HISTORICAL,
     "theology": PROFILE_THEOLOGY,
+    "commentary": PROFILE_COMMENTARY,
 }
 
 

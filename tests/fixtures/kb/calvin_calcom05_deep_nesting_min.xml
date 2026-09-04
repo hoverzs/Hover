@@ -1,0 +1,142 @@
+<?xml version='1.0' encoding='utf-8'?>
+<ThML>
+  <ThML.head>
+    <generalInfo>
+      <description>Minimal, hand-authored reproduction of a real CCEL Calvin
+ThML nesting pattern (confirmed against calcom05.xml, "Harmony of the Law,
+Volume 3", div "ii.i.iv"): a table-less div2[type=scripture] wraps a real
+div3[type=scripture] directly (already handled by the combined-volume
+fix), but ELSEWHERE in the same volume a table-less div2 wraps a
+table-less div3[type=section] ("Supplements to the Commandment"-style
+grouping) which itself wraps several div4[type=scripture] siblings that
+carry the real table + commentary -- one level deeper than the
+combined-volume fix's original single-level unwrap handled, confirmed to
+silently drop 78 sections / ~392K characters of real Calvin commentary
+before the 2026-09-04 generic hierarchical-traversal fix.</description>
+      <firstPublished />
+      <pubHistory />
+      <comments />
+    </generalInfo>
+    <printSourceInfo>
+      <published />
+      <copyLocation />
+      <image type="front" href="" />
+      <image type="spine" href="" />
+    </printSourceInfo>
+    <electronicEdInfo>
+      <publisherID>ccel</publisherID>
+      <authorID>calvin</authorID>
+      <bookID>calcom05test2</bookID>
+      <workID>calcom05test2</workID>
+      <bkgID>harmony_of_the_law_(calvin)</bkgID>
+      <version>1.02</version>
+      <series />
+      <editorialComments />
+      <revisionHistory />
+      <status />
+      <DC>
+        <DC.Title sub="Main">Harmony of the Law</DC.Title>
+        <DC.Creator sub="Author" scheme="ccel" />
+        <DC.Creator sub="Author" scheme="file-as">Calvin, John (1509-1564)</DC.Creator>
+        <DC.Creator sub="Author" scheme="short-form">John Calvin</DC.Creator>
+        <DC.Creator sub="Translator" scheme="ccel" />
+        <DC.Creator sub="Translator" scheme="file-as" />
+        <DC.Creator sub="Translator" scheme="short-form">Bingham, Charles William</DC.Creator>
+        <DC.Creator scheme="short-form">John Calvin, 1509-1564</DC.Creator>
+        <DC.Subject scheme="CCEL">All; Bible; </DC.Subject>
+        <DC.Publisher>Grand Rapids, MI: Christian Classics Ethereal Library</DC.Publisher>
+        <DC.Publisher scheme="CCEL">CCEL</DC.Publisher>
+        <DC.Contributor sub="Transcriber" scheme="CCEL">Ages</DC.Contributor>
+        <DC.Date sub="Created" scheme="ISO8601">1999-11-23</DC.Date>
+        <DC.Type>Text.Commentary</DC.Type>
+        <DC.Format scheme="IMT">text/html</DC.Format>
+        <DC.Identifier scheme="CCEL" />
+        <DC.Identifier />
+        <DC.Source sub="ElectronicEdition" />
+        <DC.Language scheme="ISO639-3">eng</DC.Language>
+        <DC.Identifier scheme="URL">/ccel/calvin/calcom05test2.html</DC.Identifier>
+        <DC.Rights>Public Domain</DC.Rights>
+      </DC>
+      <comments />
+    </electronicEdInfo>
+    <link rel="stylesheet" type="text/css" href="/css/ThML099.css" />
+  </ThML.head>
+  <ThML.body>
+    <div1 type="chapter" title="Chapter 19" n="ii" shorttitle="chapter ii" progress="39%" prev="i" next="ii.i" id="ii">
+      <p class="BOOK-CHAP-BLU-24-CEN13" id="ii-p1">The Fifth Commandment</p>
+
+      <div2 type="scripture" title="Leviticus 19:18" n="i" shorttitle="scripture i" progress="39%" prev="ii" next="ii.ii" id="ii.i">
+        <div3 type="scripture" title="Leviticus 19:18" n="i" shorttitle="scripture i" progress="39%" prev="ii.i" next="ii.ii" id="ii.i.i">
+          <table border="2" id="ii.i.i-p1.2">
+            <tr id="ii.i.i-p1.3" valign="top">
+              <td colspan="1" id="ii.i.i-p1.4" rowspan="1">
+                <p class="TableCaption14" id="ii.i.i-p2"><scripRef id="ii.i.i-p2.1" osisRef="Bible:Lev.19.18" parsed="|Lev|19|18|0|0" passage="Leviticus 19:18">Leviticus 19:18</scripRef></p>
+              </td>
+            </tr>
+            <tr id="ii.i.i-p2.2" valign="top">
+              <td colspan="1" id="ii.i.i-p2.3" rowspan="1">
+                <p class="TableText15" id="ii.i.i-p3"><b>18.</b> Thou shalt love thy neighbor as thyself.</p>
+              </td>
+            </tr>
+          </table>
+
+          <p id="ii.i.i-p11"> </p>
+
+          <p id="ii.i.i-p12"><scripCom id="ii.i.i-p12.1" osisRef="Bible:Lev.19.18" parsed="|Lev|19|18|0|0" passage="Le 19:18" type="Commentary" /></p><div class="Commentary" id="ii.i.i-p12.3">
+            <p id="ii.i.i-p13">18. REAL LEVITICUS COMMENTARY -- the already-covered div2-wraps-div3 case, confirming it still works after this round's generalized traversal.</p>
+          </div>
+        </div3>
+      </div2>
+
+      <div2 type="section" title="Supplements to the Fifth Commandment" n="ii" shorttitle="section ii" progress="40%" prev="ii.i" next="iii" id="ii.ii">
+        <p class="3rdLevelAllCap12Bld11" id="ii.ii-p1">The Supplements</p>
+
+        <div3 type="section" title="Supplements to the Commandment" n="i" shorttitle="section i" progress="40%" prev="ii.ii" next="iii" id="ii.ii.i">
+          <p class="3rdLevelAllCap12Bld11" id="ii.ii.i-p1">Civil Magistrates</p>
+
+          <div4 type="scripture" title="Exodus 21:15" n="i" shorttitle="scripture i" progress="40%" prev="ii.ii.i" next="ii.ii.i.ii" id="ii.ii.i.i">
+            <table border="2" id="ii.ii.i.i-p1.2">
+              <tr id="ii.ii.i.i-p1.3" valign="top">
+                <td colspan="1" id="ii.ii.i.i-p1.4" rowspan="1">
+                  <p class="TableCaption14" id="ii.ii.i.i-p2"><scripRef id="ii.ii.i.i-p2.1" osisRef="Bible:Exod.21.15" parsed="|Exod|21|15|0|0" passage="Exodus 21:15">Exodus 21:15</scripRef></p>
+                </td>
+              </tr>
+              <tr id="ii.ii.i.i-p2.2" valign="top">
+                <td colspan="1" id="ii.ii.i.i-p2.3" rowspan="1">
+                  <p class="TableText15" id="ii.ii.i.i-p3"><b>15.</b> And he that smiteth his father or his mother shall be surely put to death.</p>
+                </td>
+              </tr>
+            </table>
+
+            <p id="ii.ii.i.i-p11"> </p>
+
+            <p id="ii.ii.i.i-p12"><scripCom id="ii.ii.i.i-p12.1" osisRef="Bible:Exod.21.15" parsed="|Exod|21|15|0|0" passage="Ex 21:15" type="Commentary" /></p><div class="Commentary" id="ii.ii.i.i-p12.3">
+              <p id="ii.ii.i.i-p13">15. REAL EXODUS COMMENTARY -- the core regression case, three levels deep (div2 &gt; div3 &gt; div4), confirmed silently lost before this round's fix.</p>
+            </div>
+          </div4>
+
+          <div4 type="scripture" title="Leviticus 20:9" n="ii" shorttitle="scripture ii" progress="40%" prev="ii.ii.i.i" next="iii" id="ii.ii.i.ii">
+            <table border="2" id="ii.ii.i.ii-p1.2">
+              <tr id="ii.ii.i.ii-p1.3" valign="top">
+                <td colspan="1" id="ii.ii.i.ii-p1.4" rowspan="1">
+                  <p class="TableCaption14" id="ii.ii.i.ii-p2"><scripRef id="ii.ii.i.ii-p2.1" osisRef="Bible:Lev.20.9" parsed="|Lev|20|9|0|0" passage="Leviticus 20:9">Leviticus 20:9</scripRef></p>
+                </td>
+              </tr>
+              <tr id="ii.ii.i.ii-p2.2" valign="top">
+                <td colspan="1" id="ii.ii.i.ii-p2.3" rowspan="1">
+                  <p class="TableText15" id="ii.ii.i.ii-p3"><b>9.</b> For every one that curseth his father or his mother shall be surely put to death.</p>
+                </td>
+              </tr>
+            </table>
+
+            <p id="ii.ii.i.ii-p11"> </p>
+
+            <p id="ii.ii.i.ii-p12"><scripCom id="ii.ii.i.ii-p12.1" osisRef="Bible:Lev.20.9" parsed="|Lev|20|9|0|0" passage="Le 20:9" type="Commentary" /></p><div class="Commentary" id="ii.ii.i.ii-p12.3">
+              <p id="ii.ii.i.ii-p13">9. The second sibling scripture block under the same table-less wrapper -- must be imported in order, never merged with the first.</p>
+            </div>
+          </div4>
+        </div3>
+      </div2>
+    </div1>
+  </ThML.body>
+</ThML>

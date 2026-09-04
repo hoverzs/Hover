@@ -258,6 +258,33 @@ def dc_text(
     return None
 
 
+def dc_text_all(
+    head: ET.Element | None,
+    tag: str,
+    *,
+    sub: str | None = None,
+    scheme: str | None = None,
+) -> list[str]:
+    """Like ``dc_text`` but returns every matching element's text, in
+    document order — needed for sources with more than one contributor of
+    the same role (e.g. JFB's three co-authors), where ``dc_text`` (first
+    match only) would silently drop the rest."""
+    if head is None:
+        return []
+    found: list[str] = []
+    for element in iter_descendants_and_self(head):
+        if local_tag(element.tag) != tag:
+            continue
+        if sub is not None and (element.get("sub") or "") != sub:
+            continue
+        if scheme is not None and (element.get("scheme") or "") != scheme:
+            continue
+        text = "".join(element.itertext()).strip()
+        if text:
+            found.append(text)
+    return found
+
+
 def child_text(parent: ET.Element, tag: str) -> str | None:
     for child in list(parent):
         if local_tag(child.tag) == tag:

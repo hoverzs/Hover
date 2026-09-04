@@ -9,6 +9,11 @@ from pathlib import Path
 from typing import Any
 
 from textus_kb.context_profiles import (
+    COMMENTARY_EVIDENCE_LIMIT,
+    COMMENTARY_NO_MATCH_WARNING,
+    COMMENTARY_RETRIEVAL_CANDIDATE_LIMIT,
+    COMMENTARY_SOURCE_WARNING,
+    PROFILE_COMMENTARY,
     PROFILE_EXEGESIS,
     PROFILE_HISTORICAL,
     PROFILE_THEOLOGY,
@@ -20,6 +25,7 @@ from textus_kb.context_profiles import (
 )
 from textus_kb.context_selection import SelectionStats, select_context_items
 from textus_kb.evidence import (
+    RELATION_COMMENTARY_SOURCE,
     RELATION_DIRECT_PASSAGE,
     RELATION_DICTIONARY_BACKGROUND,
     RELATION_EXEGETICAL_NOTE,
@@ -34,7 +40,8 @@ from textus_kb.evidence import (
     estimate_text_tokens,
 )
 from textus_kb.importers.acai_entities import ACAI_SOURCE_ID, GENERIC_ACAI_IDS
-from textus_kb.retrieval import retrieve, retrieve_theology_evidence
+from textus_kb.retrieval import retrieve, retrieve_commentary_evidence, retrieve_theology_evidence
+from textus_kb.repositories.commentary_repository import CommentaryRepository
 from textus_kb.repositories.theology_repository import TheologyRepository
 
 SCHEMA_VERSION = "2"
@@ -120,6 +127,7 @@ def build_context(
     token_budget: int | None = None,
     evidence: EvidencePacket | None = None,
     theology_database_path: str | Path | None = None,
+    commentary_database_path: str | Path | None = None,
 ) -> LLMContextPacket:
     packet = evidence if evidence is not None else retrieve(reference)
     profile_obj = ContextProfile.load(profile, token_budget=token_budget)
@@ -127,6 +135,7 @@ def build_context(
         packet,
         profile_obj,
         theology_database_path=theology_database_path,
+        commentary_database_path=commentary_database_path,
     )
 
 
@@ -135,6 +144,7 @@ def build_context_from_evidence(
     profile: ContextProfile | str,
     *,
     theology_database_path: str | Path | None = None,
+    commentary_database_path: str | Path | None = None,
 ) -> LLMContextPacket:
     if isinstance(profile, str):
         profile = ContextProfile.load(profile)
@@ -143,6 +153,7 @@ def build_context_from_evidence(
         PROFILE_EXEGESIS: _build_exegesis_context,
         PROFILE_HISTORICAL: _build_historical_context,
         PROFILE_THEOLOGY: _build_theology_context,
+        PROFILE_COMMENTARY: _build_commentary_context,
     }
     builder = builders[profile.name]
     candidates = builder(evidence, profile)
@@ -155,6 +166,28 @@ def build_context_from_evidence(
         )
         seen = {item.evidence_id for item in candidates}
         for item in theology_items:
+            if item.evidence_id in seen:
+                continue
+            candidates.append(item)
+            seen.add(item.evidence_id)
+    elif profile.name in (PROFILE_COMMENTARY, PROFILE_EXEGESIS, PROFILE_HISTORICAL):
+        # Exegesis/Historical: Commentary (Calvin/JFB/Henry) is a
+        # supplementary interpretive witness layer, added on top of each
+        # profile's own direct-evidence candidates — never a replacement
+        # for them. Its actual token footprint is bounded by each
+        # profile's own (smaller) BUDGET_COMMENTARY type cap and lower
+        # RELATION_COMMENTARY_SOURCE priority (ld. context_profiles.py) —
+        # this call site reuses the exact same fail-closed, exact/range-
+        # only retrieval and tier-aware work-diversity interleave already
+        # proven for the standalone Commentary module; no new retrieval
+        # logic is introduced for these two profiles.
+        commentary_items, extra_warnings = _load_commentary_context_items(
+            evidence,
+            profile,
+            database_path=commentary_database_path,
+        )
+        seen = {item.evidence_id for item in candidates}
+        for item in commentary_items:
             if item.evidence_id in seen:
                 continue
             candidates.append(item)
@@ -175,6 +208,7 @@ def build_context_to_json(
     evidence: EvidencePacket | None = None,
     indent: int | None = 2,
     theology_database_path: str | Path | None = None,
+    commentary_database_path: str | Path | None = None,
 ) -> str:
     packet = build_context(
         reference,
@@ -182,6 +216,7 @@ def build_context_to_json(
         token_budget=token_budget,
         evidence=evidence,
         theology_database_path=theology_database_path,
+        commentary_database_path=commentary_database_path,
     )
     return json.dumps(packet.to_dict(), indent=indent, ensure_ascii=False, sort_keys=True)
 
@@ -666,6 +701,208 @@ def _build_theology_context(
     return items
 
 
+def _build_commentary_context(
+    evidence: EvidencePacket,
+    profile: ContextProfile,
+) -> list[ContextItem]:
+    items: list[ContextItem] = []
+    by_relation = _index_evidence(evidence)
+
+    items.append(
+        ContextItem(
+            text=f"Commentary reading scope: {evidence.passage_display} ({evidence.passage_canonical})",
+            evidence_id=_first_evidence_id(by_relation, RELATION_DIRECT_PASSAGE),
+            source_id=_first_source_id(by_relation, RELATION_DIRECT_PASSAGE)
+            or "passage_scope",
+            relevance_score=profile.priorities[RELATION_DIRECT_PASSAGE],
+            item_type="passage",
+            metadata={"canonical_scope": evidence.passage_canonical},
+        )
+    )
+
+    highlight_evidence = {
+        str(item.metadata.get("strong_id")): item
+        for item in by_relation.get(RELATION_LEXICAL_HIGHLIGHT, [])
+        if item.metadata.get("strong_id")
+    }
+    for highlight in evidence.linguistic_evidence.get("lexical_highlights", []):
+        strong_id = str(highlight.get("strong_id") or "")
+        linked = highlight_evidence.get(strong_id)
+        if linked is None:
+            continue
+        gloss_en = highlight.get("gloss_en") or ""
+        gloss_hu = highlight.get("gloss_hu") or ""
+        gloss = " / ".join(part for part in (gloss_en, gloss_hu) if part)
+        items.append(
+            ContextItem(
+                text=f"{highlight.get('lemma')} ({strong_id}): {gloss}".strip(),
+                evidence_id=linked.evidence_id,
+                source_id=linked.source_id,
+                relevance_score=profile.priorities[RELATION_LEXICAL_HIGHLIGHT],
+                item_type="lexical",
+                metadata={"strong_id": strong_id},
+            )
+        )
+
+    return items
+
+
+_COMMENTARY_QUERY_TIER_RANK = {
+    "exact_passage": 0,
+    "containing_section": 1,
+    "partial_overlap": 2,
+}
+
+
+def _interleave_commentary_by_work(
+    candidates: list[EvidenceItem],
+    *,
+    limit: int,
+) -> list[EvidenceItem]:
+    """Deterministic round-robin across distinct commentary works, never
+    letting work diversity outrank passage relevance.
+
+    ``candidates`` arrives already ranked (tier, span, primary-before-
+    parallel, document order) — that global tier ordering is respected
+    first: every ``exact_passage`` candidate (from any work) is
+    interleaved and placed before any ``containing_section`` candidate,
+    which in turn precedes every ``partial_overlap`` one. Diversity across
+    works is achieved only *within* one tier group — round-robin never
+    promotes a lower-tier hit from an under-represented work ahead of a
+    higher-tier hit from a different work. Without the outer tier pass,
+    a single work with many same-tier hits (e.g. every verse of a range
+    query) would still fill the whole ``COMMENTARY_EVIDENCE_LIMIT`` before
+    a second work sharing the passage is considered — this fixes that
+    without weakening relevance ordering. Grouping by ``work_id`` within
+    a tier is stable (first-seen order), so the whole result is fully
+    deterministic across repeated calls.
+    """
+    by_tier: dict[int, list[EvidenceItem]] = {}
+    for item in candidates:
+        tier = str(item.metadata.get("query_relation_type") or "")
+        rank = _COMMENTARY_QUERY_TIER_RANK.get(tier, 99)
+        by_tier.setdefault(rank, []).append(item)
+
+    interleaved: list[EvidenceItem] = []
+    for rank in sorted(by_tier):
+        if len(interleaved) >= limit:
+            break
+        interleaved.extend(
+            _round_robin_by_work(by_tier[rank], limit=limit - len(interleaved))
+        )
+    return interleaved
+
+
+def _round_robin_by_work(candidates: list[EvidenceItem], *, limit: int) -> list[EvidenceItem]:
+    by_work: dict[str, list[EvidenceItem]] = {}
+    work_order: list[str] = []
+    for item in candidates:
+        work_id = str(item.metadata.get("work_id") or "")
+        if work_id not in by_work:
+            by_work[work_id] = []
+            work_order.append(work_id)
+        by_work[work_id].append(item)
+
+    result: list[EvidenceItem] = []
+    while len(result) < limit and any(by_work[w] for w in work_order):
+        for work_id in work_order:
+            if len(result) >= limit:
+                break
+            bucket = by_work[work_id]
+            if bucket:
+                result.append(bucket.pop(0))
+    return result
+
+
+# Per-profile excerpt cap for Commentary content used as AI-grounding
+# evidence (chars, word-boundary safe) — profiles absent here (i.e. the
+# standalone Commentary module) keep the full, untruncated section text,
+# since showing complete commentary text IS that module's whole purpose.
+# For Exegesis/Historical, Commentary is a supplementary witness competing
+# for a small, bounded slice of a much larger budget shared with direct
+# evidence — an untruncated section (which can run to a full paragraph or
+# more, e.g. any "containing_section" tier hit) would let a single
+# diversity-reserved item consume several times its intended BUDGET_
+# COMMENTARY type cap (the per-type cap is bypassed for forced-diversity
+# picks, ld. context_selection.try_add's force_diversity branch) and could
+# starve later legitimate candidates of remaining target headroom.
+_COMMENTARY_CONTENT_CHAR_CAP: dict[str, int] = {
+    PROFILE_EXEGESIS: 600,
+    PROFILE_HISTORICAL: 350,
+}
+
+
+def _cap_commentary_content(text: str, profile_name: str) -> str:
+    cap = _COMMENTARY_CONTENT_CHAR_CAP.get(profile_name)
+    if cap is None or len(text) <= cap:
+        return text
+    cut = text[:cap]
+    last_space = cut.rfind(" ")
+    if last_space > cap * 0.6:
+        cut = cut[:last_space]
+    return cut.rstrip(" ,.;:") + "…"
+
+
+def _load_commentary_context_items(
+    evidence: EvidencePacket,
+    profile: ContextProfile,
+    *,
+    database_path: str | Path | None,
+) -> tuple[list[ContextItem], list[str]]:
+    repo = CommentaryRepository(database_path)
+    if not repo.store_status().available:
+        return [], [COMMENTARY_SOURCE_WARNING]
+    candidates = retrieve_commentary_evidence(
+        evidence.passage_canonical,
+        repository=repo,
+        limit=COMMENTARY_RETRIEVAL_CANDIDATE_LIMIT,
+    )
+    if not candidates:
+        return [], [COMMENTARY_NO_MATCH_WARNING]
+    hits = _interleave_commentary_by_work(candidates, limit=COMMENTARY_EVIDENCE_LIMIT)
+    base_score = profile.priorities.get(RELATION_COMMENTARY_SOURCE, 90)
+    items: list[ContextItem] = []
+    seen: set[str] = set()
+    for index, hit in enumerate(hits):
+        if hit.evidence_id in seen:
+            continue
+        seen.add(hit.evidence_id)
+        metadata = _commentary_item_metadata(hit, sequence=index)
+        items.append(
+            ContextItem(
+                text=_cap_commentary_content(hit.content, profile.name),
+                evidence_id=hit.evidence_id,
+                source_id=hit.source_id,
+                relevance_score=base_score - index,
+                item_type="commentary_source",
+                metadata=metadata,
+            )
+        )
+    return items, []
+
+
+def _commentary_item_metadata(hit: EvidenceItem, *, sequence: int) -> dict[str, Any]:
+    meta = dict(hit.metadata)
+    meta["commentary_sequence"] = sequence
+    meta["relation_type"] = hit.relation_type
+    if hit.passage and "canonical_scope" not in meta:
+        meta["canonical_scope"] = hit.passage
+    return meta
+
+
+def _preserve_commentary_document_order(items: list[ContextItem]) -> list[ContextItem]:
+    ordered = iter(
+        sorted(
+            [item for item in items if item.item_type == "commentary_source"],
+            key=lambda item: int(item.metadata.get("commentary_sequence") or 0),
+        )
+    )
+    return [
+        next(ordered) if item.item_type == "commentary_source" else item
+        for item in items
+    ]
+
+
 def _load_theology_context_items(
     evidence: EvidencePacket,
     profile: ContextProfile,
@@ -743,6 +980,13 @@ def _finalize_context_packet(
     )
     if profile.name == PROFILE_THEOLOGY:
         kept = _preserve_theology_document_order(kept)
+    elif profile.name in (PROFILE_COMMENTARY, PROFILE_EXEGESIS, PROFILE_HISTORICAL):
+        # Restores the tier-aware, work-diversity-interleaved commentary
+        # order (ld. _interleave_commentary_by_work) that select_context_
+        # items' own tier/score sort would otherwise scramble — same
+        # deterministic-ordering guarantee in every profile Commentary
+        # appears in, not just the standalone Commentary module.
+        kept = _preserve_commentary_document_order(kept)
     sections = _group_sections(kept, profile.name)
 
     source_ids = sorted({item.source_id for item in kept})
@@ -820,10 +1064,21 @@ def _group_sections(items: list[ContextItem], profile: str) -> list[ContextSecti
 
 def _section_order(profile: str) -> tuple[str, ...]:
     if profile == PROFILE_EXEGESIS:
-        return ("passage", "linguistic", "exegetical", "dictionary", "entities", "places", "background")
+        # "commentary" last — supplementary interpretive witness, rendered
+        # after every direct-evidence section.
+        return (
+            "passage", "linguistic", "exegetical", "dictionary", "entities",
+            "places", "background", "commentary",
+        )
     if profile == PROFILE_HISTORICAL:
-        # Prefer concrete place/historical grounding before dictionary/entities.
-        return ("passage", "places", "historical", "dictionary", "entities", "geography")
+        # Prefer concrete place/historical grounding before dictionary/entities;
+        # "commentary" last — purely supplementary here.
+        return (
+            "passage", "places", "historical", "dictionary", "entities",
+            "geography", "commentary",
+        )
+    if profile == PROFILE_COMMENTARY:
+        return ("passage", "commentary", "lexical")
     return ("passage", "theological", "lexical", "places", "background")
 
 
@@ -841,6 +1096,7 @@ def _item_section_type(item_type: str) -> str:
         "passage_place_link": "places",
         "place_catalog": "places",
         "theological_source": "theological",
+        "commentary_source": "commentary",
         "enrichment": "background",
         "historical_enrichment": "historical",
         "geography": "geography",

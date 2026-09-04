@@ -78,20 +78,30 @@ def test_no_quick_outline_ui_remnants_in_app_py():
 _EXPECTED_MARKERS: dict[int, str] = {
     0: "render_igehely_panel()",
     1: "render_original_text_panel()",
-    2: 'key="exegesis"',
-    3: 'key="history"',
-    4: 'key="theology"',
+    # Commentary UI phase (2026-09-03): új, retrieval-only "Kommentárok"
+    # fül az Eredeti szöveg és az Exegézis között -- ld.
+    # tests/test_commentary_ui.py a részletes wiring-ellenőrzésért. Ugyanebben
+    # a fázisban a "Textusösszegzés" Gyorseszközök-belépési pont megszűnt (a
+    # rács pontosan 12 elemű, 3×4-es marad) -- ld. lentebb. A grounded-
+    # compare fázis (2026-09-03, ld. tests/test_commentary_compare.py) óta a
+    # hívás generate_fn-t is átad a "Kommentárok összehasonlítása" gombhoz.
+    # A magyar kommentárfordítás fázis (2026-09-03, ld. tests/test_
+    # commentary_translation.py) óta resolve_model_fn-t is átad (a fordítás
+    # provenance-metaadatához).
+    2: "render_commentary_panel(generate_fn=generate_text, resolve_model_fn=resolve_gemini_model_for_tab)",
+    3: 'key="exegesis"',
+    4: 'key="history"',
+    5: 'key="theology"',
     # Phase 3I.1 (2026-08-28): a korábbi `render_section_tab(key=
     # "illustrations", ...)` szabad LLM-generálású story-blokkot
     # eltávolítottuk -- ld. tests/test_illustration_legacy_generation_
-    # removed.py. Az 5. fül tartalma mostantól kizárólag a DB-alapú
+    # removed.py. Ez a fül tartalma mostantól kizárólag a DB-alapú
     # retrieval UI.
-    5: "render_illustration_search_action(generate_fn=generate_text)",
-    6: 'key="actualization"',
-    7: 'st.header("Énekajánló")',
-    8: '"Igehirdetési sorozat tervező"',
-    9: "render_text_main_idea_section(",
-    10: "render_text_summary_section(",
+    6: "render_illustration_search_action(generate_fn=generate_text)",
+    7: 'key="actualization"',
+    8: 'st.header("Énekajánló")',
+    9: '"Igehirdetési sorozat tervező"',
+    10: "render_text_main_idea_section(",
     11: 'st.header("📖 Útmutatás")',
 }
 
@@ -119,18 +129,35 @@ def test_no_stray_quick_outline_marker_in_any_remaining_block():
 
 
 # ---------------------------------------------------------------------------
-# 4. "A textus fő gondolata" és "Textusösszegzés" még elérhető ebben a fázisban
+# 4. "A textus fő gondolata" elérhető marad; a "Textusösszegzés"
+#    Gyorseszközök-belépési pontja megszűnt (Commentary UI fázis,
+#    2026-09-03), de a mögötte álló implementáció (render_text_summary_
+#    section, textus_workshop_ui.py, text_summary adatmodell) VÁLTOZATLAN
+#    -- csak a főmenü-hívási hely tűnt el, ld. app.py-beli megjegyzés.
 # ---------------------------------------------------------------------------
 
 
-def test_text_main_idea_and_summary_still_in_textus_workshop():
+def test_text_main_idea_still_in_quick_tools_summary_nav_entry_removed():
     assert any(
         "fő gondolata" in label for label in QUICK_TOOLS_TAB_LABELS
     )
-    assert any("Textusösszegzés" in label for label in QUICK_TOOLS_TAB_LABELS)
+    assert not any("Textusösszegzés" in label for label in QUICK_TOOLS_TAB_LABELS)
     blocks = _tab_blocks()
-    assert "render_text_main_idea_section(" in blocks[9]
-    assert "render_text_summary_section(" in blocks[10]
+    assert "render_text_main_idea_section(" in blocks[10]
+    # No tab block calls it any more (a source-code comment nearby
+    # mentioning the function name by design does not count).
+    assert not any("render_text_summary_section(" in block for block in blocks.values())
+
+
+def test_text_summary_implementation_untouched_outside_nav():
+    """A user explicit kérése: az implementáció NE törlődjön automatikusan
+    -- csak a belépési pont. A render_text_summary_section funkció, a
+    textus_workshop_ui modul és a text_summary adatmodell továbbra is
+    elérhető és importálható, csak app.py már nem hívja meg."""
+    import textus_workshop_ui
+
+    assert hasattr(textus_workshop_ui, "render_text_summary_section")
+    assert callable(textus_workshop_ui.render_text_summary_section)
 
 
 # ---------------------------------------------------------------------------
