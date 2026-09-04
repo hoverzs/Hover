@@ -894,6 +894,13 @@ def _render_family_reader(
             label,
             key=f"commentary_translate_family_{family_key}",
             disabled=generate_fn is None,
+            # Same primary CTA look as the compare section's own
+            # "Összehasonlítás készítése" button (ld. commentary_compare.
+            # render_commentary_compare_section) -- Streamlit's built-in
+            # `type="primary"` is the shared styling mechanism already
+            # used there, so this is visual-only: no new CSS, no change
+            # to the click handling, spinner, or disabled logic below.
+            type="primary",
         ):
             provider_model = (
                 resolve_model_fn(commentary_translation_service.TRANSLATION_TAB_LABEL)
