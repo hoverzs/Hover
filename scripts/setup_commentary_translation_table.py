@@ -13,8 +13,43 @@ Ez a szkript NEM hoz letre semmit -- csak (1) kiirja a pontos DDL-t, es
 vart oszlopokkal rendelkezik-e (egy read-only SELECT ... LIMIT 0 -- nem
 ir semmit).
 
+A hozzaferesi modell (2026-09-04-i audit alapjan javitva -- ld. a "final
+cleanup" kor jegyzeteit): a production `SUPABASE_KEY` egy Supabase
+"secret" (service_role-osztalyu) kulcs, ami MINDIG megkeruli a Row Level
+Security-t, fuggetlenul attol, milyen policy van (vagy nincs) a tablan.
+Emiatt egy `using(true)/with check(true)` blanket policy semmilyen
+valodi hozzaferes-vezerlest nem ad -- csak felesleges kockazatot, ha a
+kulcstipus valaha valtozna. A helyes modell ezert NEM policy-alapu,
+hanem grant-alapu:
+    - RLS bekapcsolva marad (vedelmi retegkent, policy nelkul -- alapertelmezett
+      tiltas minden nem-service_role szerepre);
+    - `anon`/`authenticated` EXPLICIT revoke-olva (meg egy jovobeli,
+      veletlenul hozza adott policy sem adna nekik hozzaferest, mert a
+      tabla-szintu jogosultsaguk is hianyzik);
+    - `service_role` EXPLICIT grant: SELECT, INSERT, UPDATE -- pontosan
+      azok a muveletek, amiket `commentary_translation_store.py` tenylegesen
+      vegez (`_supabase_get_translation` / `_supabase_save_translation`,
+      utobbi upsert = insert+update). Nincs DELETE grant, mert a store
+      sosem torol sort.
+    - Nincs `CREATE POLICY` egyaltalan -- ez elkeruli a korabbi (hibas)
+      valtozat `CREATE POLICY IF NOT EXISTS` szintaxisat is, ami NEM
+      ervenyes PostgreSQL (a `CREATE POLICY` nem tamogatja az
+      `IF NOT EXISTS` zaradekot, csak a `CREATE TABLE`/`CREATE INDEX`).
+
 Hasznalat:
     python scripts/setup_commentary_translation_table.py
+
+A backend-valasztas Streamlit Secrets-ben SECTION-alapu (ahogy
+`textus_kb.commentary_translation_store._translation_secret_value`
+ténylegesen olvassa: `st.secrets["commentary_translation"][key]`) -- NEM
+egy flat, top-level `TEXTUS_COMMENTARY_TRANSLATION_BACKEND` kulcs (ez
+korabban pontosan azt a production hibat okozta, hogy minden forditas a
+lokalis, a container-ujrainditas utan elveszo SQLite cache-be irodott,
+sosem a megosztott Postgres tablaba -- ld. a "final cleanup" kor
+gyokerok-elemzeset):
+    [commentary_translation]
+    backend = "supabase"
+    table = "commentary_translations"  # (opcionalis, ez az alapertelmezett)
 """
 
 from __future__ import annotations
@@ -39,28 +74,22 @@ create table if not exists {TABLE_NAME} (
     translated_text text not null,
     provider_model text not null default '',
     created_at timestamptz not null default now(),
-    primary key (section_id, source_fingerprint, language, policy_version)
+    primary key (
+        section_id,
+        source_fingerprint,
+        language,
+        policy_version
+    )
 );
 
--- Row Level Security: enable, and allow the anon/service key this app
--- already uses to read/write (mirrors how the app already trusts its
--- single Supabase key for Storage access -- no separate end-user auth
--- layer exists yet in this repo's Supabase usage). Tighten this policy
--- if/when per-user auth is introduced.
-alter table {TABLE_NAME} enable row level security;
+alter table {TABLE_NAME}
+enable row level security;
 
-create policy if not exists "{TABLE_NAME}_read_all"
-    on {TABLE_NAME} for select
-    using (true);
+revoke all on {TABLE_NAME} from anon, authenticated;
 
-create policy if not exists "{TABLE_NAME}_write_all"
-    on {TABLE_NAME} for insert
-    with check (true);
-
-create policy if not exists "{TABLE_NAME}_upsert_update"
-    on {TABLE_NAME} for update
-    using (true)
-    with check (true);
+grant select, insert, update
+on {TABLE_NAME}
+to service_role;
 """.strip()
 
 
@@ -68,12 +97,14 @@ def main() -> None:
     print("Ezt a DDL-t futtasd le MANUALISAN a Supabase projekt SQL Editor-jaban:\n")
     print(DDL)
     print(
-        "\nUtana allitsd be productionben (pl. Streamlit secrets), hogy a "
-        "forditasi cache erre a megosztott tablara aljon at a helyi SQLite "
-        "helyett:"
+        "\nUtana allitsd be productionben Streamlit Secrets-ben (section-alapu "
+        "forma -- NEM flat TEXTUS_COMMENTARY_TRANSLATION_BACKEND kulcskent, "
+        "ld. a modul docstringjet), hogy a forditasi cache erre a megosztott "
+        "tablara aljon at a helyi SQLite helyett:"
     )
-    print('  TEXTUS_COMMENTARY_TRANSLATION_BACKEND = "supabase"')
-    print(f'  TEXTUS_COMMENTARY_TRANSLATION_TABLE = "{TABLE_NAME}"  # (opcionalis, ez az alapertelmezett)')
+    print("  [commentary_translation]")
+    print('  backend = "supabase"')
+    print(f'  table = "{TABLE_NAME}"  # (opcionalis, ez az alapertelmezett)')
 
     print("\nEllenorzes: a tabla mar elerheto-e (csak olvasas, LIMIT 0)...")
     try:
