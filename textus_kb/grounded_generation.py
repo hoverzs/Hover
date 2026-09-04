@@ -313,7 +313,7 @@ def prepare_grounded_provider_prompt(
 
     commentary_database_path: str | None = None
     if module == "commentary":
-        from textus_kb.commentary_runtime import get_status as get_commentary_status
+        from textus_kb.commentary_runtime import ensure_status as get_commentary_status
 
         runtime_status = get_commentary_status()
         if not runtime_status.available:
@@ -335,7 +335,7 @@ def prepare_grounded_provider_prompt(
         # prompt just because Commentary specifically is missing.
         # context_builder's own _load_commentary_context_items already
         # degrades gracefully (empty items + warning) when unavailable.
-        from textus_kb.commentary_runtime import get_status as get_commentary_status
+        from textus_kb.commentary_runtime import ensure_status as get_commentary_status
 
         runtime_status = get_commentary_status()
         if runtime_status.available:

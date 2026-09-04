@@ -95,6 +95,12 @@ _STATUS_REASON_LABELS_HU: dict[str, str] = {
     "database_missing": "A Commentary adatbázis (commentary.sqlite3) még nincs legenerálva.",
     "database_unopenable": "A Commentary adatbázis nem nyitható meg.",
     "schema_incompatible": "A Commentary adatbázis sémája nem kompatibilis a jelenlegi verzióval.",
+    "storage_not_configured": "A Commentary adatbázis nincs helyben, és a távoli tárhely sincs beállítva.",
+    "download_failed": "A Commentary adatbázis letöltése a távoli tárhelyről nem sikerült.",
+    "download_empty": "A Commentary adatbázis letöltése üres választ adott.",
+    "database_checksum_mismatch": "A letöltött Commentary adatbázis ellenőrzőösszege nem egyezik.",
+    "write_failed": "A Commentary adatbázis helyi mentése nem sikerült.",
+    "metadata_validation_failed": "A letöltött Commentary adatbázis tartalma nem egyezik a várt éles verzióval.",
 }
 
 _BUILD_HINT = (
@@ -559,8 +565,18 @@ def _translation_database_path() -> str | None:
 
 def _get_status() -> commentary_runtime.CommentaryRuntimeStatus:
     """Single, monkeypatchable seam mirroring ``_get_repository`` for the
-    runtime availability check."""
-    return commentary_runtime.get_status()
+    runtime availability check. Uses ``ensure_status`` (not the plain
+    ``get_status``) -- the same single production choke point Exegézis /
+    Eredeti szöveg / Kortörténet also call (ld. ``grounded_generation.py``,
+    ``bible_engine/original_language_analysis.py``) -- so whichever
+    module the user reaches FIRST on a freshly deployed instance
+    transparently provisions the production DB from private Supabase
+    Storage if it isn't on the local filesystem yet; opening this tab is
+    never a precondition. After that first successful download it
+    persists locally for the lifetime of the running instance, so every
+    subsequent call from any module is a pure local hit, no further
+    network I/O."""
+    return commentary_runtime.ensure_status()
 
 
 def _fetch_results(passage: str) -> list[CommentarySectionResult]:

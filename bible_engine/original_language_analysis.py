@@ -474,7 +474,7 @@ def build_original_text_commentary_block(igehely: str) -> str:
     if not reference:
         return ""
     try:
-        from textus_kb.commentary_runtime import get_status as get_commentary_status
+        from textus_kb.commentary_runtime import ensure_status as get_commentary_status
 
         status = get_commentary_status()
         if not status.available:

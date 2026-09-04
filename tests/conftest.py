@@ -45,6 +45,33 @@ from __future__ import annotations
 import pytest
 
 
+@pytest.fixture(autouse=True)
+def _isolate_commentary_storage_config(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Guard against any test accidentally reaching real Supabase Storage
+    through ``textus_kb.commentary_runtime.ensure_status`` (2026-09-04
+    production-storage round): that function is now the SINGLE choke
+    point called, with no explicit ``database_path``, by every real
+    Commentary-evidence consumer (the reader UI, Exegézis, Eredeti
+    szöveg, Kortörténet) -- meaning it is reachable from a much wider set
+    of tests than just ``test_commentary_runtime.py``'s own dedicated
+    suite (which already isolates itself further via its own autouse
+    fixture). Any test whose mocked/real local status comes back
+    unavailable would otherwise fall through to real storage-config
+    resolution, and if THIS machine's env/secrets happen to have
+    ``TEXTUS_COMMENTARY_DB_STORAGE_BUCKET`` (etc.) configured -- exactly
+    as they legitimately would be post-deployment -- that fall-through
+    would attempt a real network call during a unit test. Clearing these
+    three env vars for every test (regardless of whether that test cares)
+    keeps ``ensure_status`` degrading to the local, network-free
+    ``storage_not_configured`` reason unless a test explicitly opts back
+    in (ld. ``tests/test_textus_kb/test_commentary_runtime.py``'s own
+    mocked-Supabase-client tests, which set these via monkeypatch/kwargs
+    themselves)."""
+    monkeypatch.delenv("TEXTUS_COMMENTARY_DB_STORAGE_BUCKET", raising=False)
+    monkeypatch.delenv("TEXTUS_COMMENTARY_DB_STORAGE_OBJECT", raising=False)
+    monkeypatch.delenv("TEXTUS_COMMENTARY_DB_SHA256", raising=False)
+
+
 @pytest.fixture(scope="session", autouse=True)
 def _preimport_app_module_inside_streamlit_sandbox() -> None:
     """Lásd a modul docstringjét — ez a session legelső, mindenki által
