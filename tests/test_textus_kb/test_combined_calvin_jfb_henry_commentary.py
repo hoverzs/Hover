@@ -89,12 +89,12 @@ def test_combined_scale_matches_sum_of_all_three_sources(
     assert status.source_file_count == 45 + 66 + 66
     assert status.import_batch_count == 45 + 66 + 66
     assert status.contributor_count == 9 + 3 + 15
-    # 2026-09-04: Calvin's own numbers grew twice — see the matching
-    # comment in test_combined_calvin_jfb_commentary.py::
+    # 2026-09-04: Calvin's own numbers grew three times — see the
+    # matching comment in test_combined_calvin_jfb_commentary.py::
     # test_combined_scale_matches_sum_of_both_sources.
     assert status.section_count == 19358 + 32394 + 5579
     assert status.chunk_count == 15372 + 21071 + 5512
-    assert status.passage_link_count == 18740 + 31097 + 4258
+    assert status.passage_link_count == 18807 + 31097 + 4258
 
 
 def test_combined_qa_is_clean(combined_db: Path) -> None:
@@ -118,11 +118,11 @@ def test_combined_qa_is_clean(combined_db: Path) -> None:
     # (2026-09-04: Calvin +1, ld. the matching comment in
     # test_combined_calvin_jfb_commentary.py::test_combined_qa_is_clean.)
     assert len(report.known_unmapped) == 6 + 5
-    # Only Calvin's 449 parallel Harmony links (2026-09-04: 354 -> 436 ->
-    # 449, across two structural fixes — ld. the matching comment in
-    # test_combined_calvin_jfb_commentary.py::test_combined_qa_is_clean);
-    # JFB and Henry contribute none.
-    assert report.parallel_passage_link_count == 449
+    # Only Calvin's 516 parallel Harmony links (2026-09-04: 354 -> 436 ->
+    # 449 -> 516, across three structural fixes — ld. the matching
+    # comment in test_combined_calvin_jfb_commentary.py::
+    # test_combined_qa_is_clean); JFB and Henry contribute none.
+    assert report.parallel_passage_link_count == 516
     assert len(report.works) == 23 + 66 + 66
     assert len(report.contributors) == 9 + 3 + 15
 

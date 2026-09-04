@@ -42,20 +42,21 @@ from textus_kb.repositories.commentary_repository import CommentaryRepository
 # purely content-derived (imported_at never affects it), so this stays a
 # valid fixed expectation across CLI invocations at different times.
 #
-# 2026-09-04: updated three times in one day: two structural Calvin
+# 2026-09-04: updated four times in one day: three structural Calvin
 # importer fixes (see the matching comment in tests/test_textus_kb/
 # test_combined_calvin_jfb_commentary.py::
-# test_combined_scale_matches_sum_of_both_sources for both root causes),
-# plus a narrow correction to the second fix's own div-tag matching (it
-# initially treated a bare `<div class="Commentary">` content wrapper as
-# though it were a genuine numbered ThML "divN" structural tag, since
-# both share the "div" prefix — producing 3 spurious sections; fixed by
-# matching only `div\d+` exactly). Calvin's own real content grew
-# accordingly, in three steps: 14643/11785/14153 -> 18989/14673/18397 ->
-# 19361/15375/18740 -> 19358/15372/18740 sections/chunks/passage_links —
-# content_hash necessarily changes with it each time.
+# test_combined_scale_matches_sum_of_both_sources for all three root
+# causes), plus a narrow correction to the second fix's own div-tag
+# matching (it initially treated a bare `<div class="Commentary">`
+# content wrapper as though it were a genuine numbered ThML "divN"
+# structural tag, since both share the "div" prefix — producing 3
+# spurious sections; fixed by matching only `div\d+` exactly). Calvin's
+# own real content grew accordingly, in four steps: 14643/11785/14153 ->
+# 18989/14673/18397 -> 19361/15375/18740 -> 19358/15372/18740 ->
+# 19358/15372/18807 sections/chunks/passage_links — content_hash
+# necessarily changes with it each time.
 _KNOWN_COMBINED_CONTENT_HASH = (
-    "72e9d366342d892eac14d4b1fc63dee30d50f5294f34296c8c4dc5c8a949bbf3"
+    "93fd30c7533a7da7af506b1047135ac30256212eca4cfad3df4bc4b942acbeb7"
 )
 
 _CALVIN_ENTRIES = load_calvin_manifest()
@@ -190,13 +191,13 @@ def test_combined_cli_builds_production_store_with_qa(
     # _KNOWN_COMBINED_CONTENT_HASH above.
     assert payload["section_count"] == 19358 + 32394 + 5579
     assert payload["chunk_count"] == 15372 + 21071 + 5512
-    assert payload["passage_link_count"] == 18740 + 31097 + 4258
+    assert payload["passage_link_count"] == 18807 + 31097 + 4258
     assert payload["runtime_status"]["available"] is True
 
     assert payload["qa"]["available"] is True
     # 6 Calvin + 5 Henry known-unmapped exceptions.
     assert len(payload["qa"]["known_unmapped"]) == 11
-    assert payload["qa"]["parallel_passage_link_count"] == 449
+    assert payload["qa"]["parallel_passage_link_count"] == 516
 
     # No leftover staging file next to the real output.
     leftovers = list(output.parent.glob(f".{output.stem}.combined-build.*"))

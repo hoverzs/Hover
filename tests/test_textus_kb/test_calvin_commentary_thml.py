@@ -463,6 +463,9 @@ def test_scripcom_marker_helper_rejects_real_sibling_content_directly() -> None:
 DEEP_NESTING_FIXTURE = Path(
     "tests/fixtures/kb/calvin_calcom05_deep_nesting_min.xml"
 )
+MULTI_TABLE_FIXTURE = Path(
+    "tests/fixtures/kb/calvin_calcom03_multi_table_min.xml"
+)
 
 
 def test_deep_nesting_div3_scripture_still_works() -> None:
@@ -532,6 +535,112 @@ def test_deep_nesting_book_chapter_boundary_preserved() -> None:
     exod_text = chunks_by_section["ccel.calvin.calcom05test2.ii.ii.i.i.v1"]
     assert "REAL EXODUS COMMENTARY" not in lev_text
     assert "REAL LEVITICUS COMMENTARY" not in exod_text
+
+
+# --- Multi-table range divs (2026-09-04 corpus-integrity sweep) ----------
+#
+# Confirmed real-file root cause: a range div in the Harmony of the Law
+# volumes (calcom03/04/05/06) can carry TWO OR MORE direct <table>
+# children -- each its own genuinely distinct citation Calvin discusses
+# jointly under one heading (e.g. the same commandment as it appears in
+# both Exodus and Deuteronomy), never editorial repetition of the same
+# passage. _direct_table_child only ever returned the FIRST such table,
+# so every further citation's passage_link was silently never created
+# (the commentary TEXT itself was never affected -- only the retrieval
+# index). Confirmed corpus-wide: 45 sections, exclusively in calcom03
+# (9) / calcom04 (15) / calcom05 (20) / calcom06 (1).
+
+
+def test_multi_table_second_table_gets_its_own_parallel_link() -> None:
+    """The core regression: a range div's SECOND direct table, a wholly
+    separate book/chapter citation, must now get its own passage_link
+    -- as `parallel`, since the FIRST table's own citation is (and
+    stays) this section's one `primary` passage."""
+    document, _report = parse_calvin_commentary_thml(MULTI_TABLE_FIXTURE)
+    by_id = {s["section_id"]: s for s in document["sections"]}
+    section = by_id["ccel.calvin.calcom03test.ii.i"]
+    assert section["passage_links"] == [
+        {
+            "raw_citation": "Exodus 20:16",
+            "canonical_passage": "Exod.20.16",
+            "relation_type": "primary",
+        },
+        {
+            "raw_citation": "Deuteronomy 5:20",
+            "canonical_passage": "Deut.5.20",
+            "relation_type": "parallel",
+        },
+    ]
+
+
+def test_multi_table_three_or_more_tables_all_recovered_in_order() -> None:
+    """3+ direct tables: every one of them contributes its own link, in
+    stable source order, only the first ever `primary`."""
+    document, _report = parse_calvin_commentary_thml(MULTI_TABLE_FIXTURE)
+    by_id = {s["section_id"]: s for s in document["sections"]}
+    section = by_id["ccel.calvin.calcom03test.ii.ii"]
+    links = section["passage_links"]
+    assert [l["canonical_passage"] for l in links] == ["Exod.34.17", "Lev.19.4", "Lev.26.1"]
+    assert [l["relation_type"] for l in links] == ["primary", "parallel", "parallel"]
+
+
+def test_multi_table_first_table_own_multi_citation_behavior_unchanged() -> None:
+    """The first table's own existing multi-citation behavior (e.g. a
+    single caption spanning two verses, "Exodus 21:15, 17") is
+    completely unaffected: it still yields its own primary + parallel
+    pair. A second, separate table then adds one further parallel link
+    on top -- three links total, still exactly one primary."""
+    document, _report = parse_calvin_commentary_thml(MULTI_TABLE_FIXTURE)
+    by_id = {s["section_id"]: s for s in document["sections"]}
+    section = by_id["ccel.calvin.calcom03test.ii.iii"]
+    links = section["passage_links"]
+    assert [l["canonical_passage"] for l in links] == ["Exod.21.15", "Exod.21.17", "Lev.20.9"]
+    assert [l["relation_type"] for l in links] == ["primary", "parallel", "parallel"]
+    assert sum(1 for l in links if l["relation_type"] == "primary") == 1
+
+
+def test_multi_table_duplicate_citation_across_tables_deduplicated() -> None:
+    """A second table citing the exact SAME canonical passage as the
+    first must not produce a second, competing link -- deduplicated
+    deterministically, keeping only the first (primary) occurrence."""
+    document, _report = parse_calvin_commentary_thml(MULTI_TABLE_FIXTURE)
+    by_id = {s["section_id"]: s for s in document["sections"]}
+    section = by_id["ccel.calvin.calcom03test.ii.iv"]
+    assert section["passage_links"] == [
+        {
+            "raw_citation": "Numbers 5:11-31",
+            "canonical_passage": "Num.5.11-31",
+            "relation_type": "primary",
+        }
+    ]
+
+
+def test_multi_table_exactly_one_primary_relation_per_section() -> None:
+    """Schema invariant, checked across every multi-table section in
+    the fixture: no section ever ends up with more than one `primary`
+    link just because each of its tables independently starts a
+    "primary" citation in isolation."""
+    document, _report = parse_calvin_commentary_thml(MULTI_TABLE_FIXTURE)
+    for section in document["sections"]:
+        links = section.get("passage_links") or []
+        primaries = [l for l in links if l["relation_type"] == "primary"]
+        assert len(primaries) <= 1, section["section_id"]
+
+
+def test_multi_table_commentary_text_and_chunks_unchanged() -> None:
+    """The multi-table fix touches only passage_links -- commentary
+    text, chunk count/content and section provenance must be exactly
+    what they already were with a single table."""
+    document, _report = parse_calvin_commentary_thml(MULTI_TABLE_FIXTURE)
+    chunks_by_section = {c["section_id"]: c["text"] for c in document["chunks"]}
+    assert chunks_by_section["ccel.calvin.calcom03test.ii.i.v1"] == (
+        "16. REAL COMMENTARY ON THE NINTH COMMANDMENT -- shared prose for "
+        "both the Exodus and Deuteronomy statements."
+    )
+    # Exactly one verse_commentary chunk per range in this fixture -- the
+    # second (and further) table never spawns its own extra chunk.
+    verse_chunks = [c for c in document["chunks"] if c["section_id"].endswith(".v1")]
+    assert len(verse_chunks) == 4
 
 
 # --- Provenance / SHA-256 -------------------------------------------------

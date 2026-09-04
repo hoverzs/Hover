@@ -104,11 +104,21 @@ def test_combined_scale_matches_sum_of_both_sources(
     #      that only ever follows genuine ThML "divN" structural tags
     #      (never a bare `<div class="Commentary">` content wrapper,
     #      which shares the "div" prefix but is not a nesting level).
+    #   3. 18740 -> 18807 passage_links (sections/chunks unchanged): a
+    #      range div with 2+ direct <table> children (also Harmony of
+    #      the Law-specific: Calvin discussing e.g. the same commandment
+    #      as it appears in both Exodus and Deuteronomy under one
+    #      heading) only ever had its FIRST table's citation(s) linked;
+    #      every further table's own, genuinely distinct citation is now
+    #      linked too, as `parallel` (the first table's own citation
+    #      stays this section's one `primary` passage, unchanged) — 45
+    #      sections corpus-wide, exclusively calcom03/04/05/06.
     # See textus_kb.importers.calvin_commentary_thml
-    # ._process_range_group_divs and ._as_scripcom_marker.
+    # ._process_range_group_divs, ._as_scripcom_marker and
+    # ._additional_table_parallel_links.
     assert status.section_count == 19358 + 32394
     assert status.chunk_count == 15372 + 21071
-    assert status.passage_link_count == 18740 + 31097
+    assert status.passage_link_count == 18807 + 31097
 
 
 def test_combined_qa_is_clean(combined_db: Path) -> None:
@@ -129,10 +139,11 @@ def test_combined_qa_is_clean(combined_db: Path) -> None:
     # with no scripRef, newly surfaced once its wrapping chapter div was
     # correctly unwrapped instead of being silently skipped whole).
     assert len(report.known_unmapped) == 6
-    # Calvin's 449 parallel Harmony links (2026-09-04: 354 -> 436 -> 449,
-    # across both structural fixes above, as previously-invisible content
-    # contributes some parallel links of its own); JFB contributes none.
-    assert report.parallel_passage_link_count == 449
+    # Calvin's 516 parallel Harmony links (2026-09-04: 354 -> 436 -> 449
+    # -> 516, across all three structural fixes above — the last step is
+    # every further direct <table> in a multi-table range div getting
+    # its own now-indexed parallel link); JFB contributes none.
+    assert report.parallel_passage_link_count == 516
     assert len(report.works) == 89
 
 

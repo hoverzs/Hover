@@ -67,7 +67,7 @@ import xml.etree.ElementTree as ET
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, Sequence
 
 from textus_kb.canonical_reference import CanonicalReference, CanonicalReferenceError
 from textus_kb.importers.ccel_thml_core import (
@@ -355,6 +355,16 @@ def _direct_table_child(element: ET.Element) -> ET.Element | None:
     return None
 
 
+def _all_direct_table_children(element: ET.Element) -> list[ET.Element]:
+    """Every ``<table>`` that is a DIRECT child of ``element``, in source
+    document order — not just the first. Confirmed real corpus case
+    (Harmony of the Law): a range div can carry several, each its own
+    genuinely distinct citation Calvin discusses jointly under one
+    heading (e.g. the same commandment as it appears in both Exodus and
+    Deuteronomy) — never editorial repetition of the same passage."""
+    return [child for child in list(element) if local_tag(child.tag) == "table"]
+
+
 _THML_DIV_LEVEL_TAG_RE = re.compile(r"^div\d+$")
 
 
@@ -432,7 +442,8 @@ def _process_range_group_divs(
                 f"div under {parent_section_id!r} is missing a stable id."
             )
         group_section_id = f"{section_prefix}.{group_id}"
-        table = _direct_table_child(group_div)
+        tables = _all_direct_table_children(group_div)
+        table = tables[0] if tables else None
 
         if table is None and _has_descendant_table(group_div):
             # Pass-through wrapper div (ld. this function's own
@@ -481,6 +492,11 @@ def _process_range_group_divs(
         # allowlist of type names would misclassify those as
         # untyped-continuation divs.
         if table is not None:
+            # The FIRST direct table's own passage-link behavior is
+            # completely unchanged from before this round: same
+            # function, same fail-loud/known_unmapped path on an empty
+            # result, same primary-first/parallel-rest assignment for
+            # multiple citations WITHIN that one table's own caption.
             links = _table_passage_links(table, stats, expected_chapter=expected_chapter)
             if not links:
                 exception = known_unmapped_sections.get(group_id)
@@ -521,6 +537,16 @@ def _process_range_group_divs(
                     report.chunk_count += 1
                 current_range_section_id = group_section_id
                 continue
+            # A SECOND or further direct table (ld.
+            # _additional_table_parallel_links' own docstring) is real,
+            # additional coverage of this SAME canonical section — never
+            # a reason to fail the section if it happens not to parse.
+            links = links + _additional_table_parallel_links(
+                tables[1:],
+                stats,
+                expected_chapter=expected_chapter,
+                seen_canonical={link["canonical_passage"] for link in links},
+            )
             sections.append(
                 _section_row(
                     section_id=group_section_id,
@@ -540,7 +566,7 @@ def _process_range_group_divs(
 
             verse_sections, verse_chunks, leading_text = _extract_verse_sections(
                 container=group_div,
-                exclude=table,
+                exclude=tables,
                 parent_section_id=group_section_id,
                 section_prefix=f"{group_section_id}",
                 edition_id=edition_id,
@@ -587,7 +613,7 @@ def _process_range_group_divs(
         anchor_section_id = group_section_id if standalone_intro else current_range_section_id
         verse_sections, verse_chunks, leading_text = _extract_verse_sections(
             container=group_div,
-            exclude=None,
+            exclude=(),
             parent_section_id=anchor_section_id,
             section_prefix=f"{group_section_id}",
             edition_id=edition_id,
@@ -849,6 +875,46 @@ def _table_passage_links(
     return links
 
 
+def _additional_table_parallel_links(
+    tables: Sequence[ET.Element],
+    stats: ScriptureRefStats,
+    *,
+    expected_chapter: int | None,
+    seen_canonical: set[str],
+) -> list[dict[str, str]]:
+    """Passage links for a range div's SECOND and later direct scripture
+    tables (ld. ``_all_direct_table_children``) — always ``parallel``,
+    never ``primary``, regardless of what ``_table_passage_links`` would
+    have assigned in isolation: a range div only ever gets one primary
+    passage, from its first table (existing, unchanged behavior); every
+    citation from a further table is additional coverage of that SAME
+    canonical section, exactly like a second/third citation already
+    found within one table's own caption.
+
+    Deduplicated against ``seen_canonical`` (the first table's own
+    canonical passages, passed in by the caller) and against itself
+    across multiple further tables, so the same canonical passage is
+    never linked twice — the FIRST occurrence in source/table order
+    wins, ``seen_canonical`` is mutated in place so callers can reuse it
+    across a whole range div.
+
+    A further table that itself fails to yield any parseable citation
+    is skipped rather than failing the whole section: unlike the first
+    table (still fail-loud, unchanged, in the caller), a further table
+    is purely supplementary coverage, never required for a section to
+    be valid."""
+    extra: list[dict[str, str]] = []
+    for table in tables:
+        for link in _table_passage_links(table, stats, expected_chapter=expected_chapter):
+            canonical = link["canonical_passage"]
+            if canonical in seen_canonical:
+                stats.duplicate_links += 1
+                continue
+            seen_canonical.add(canonical)
+            extra.append({**link, "relation_type": "parallel"})
+    return extra
+
+
 def _plain_text_caption_fallback(table: ET.Element) -> dict[str, str] | None:
     """Some CCEL volumes (confirmed: Harmony of the Law) render a table's
     caption as bare text with no <scripRef> markup at all, e.g.
@@ -976,7 +1042,7 @@ def _collect_caption_scriprefs(root: ET.Element) -> list[ET.Element]:
 def _extract_verse_sections(
     *,
     container: ET.Element,
-    exclude: ET.Element | None,
+    exclude: Sequence[ET.Element],
     parent_section_id: str,
     section_prefix: str,
     edition_id: str,
@@ -1026,7 +1092,7 @@ def _extract_verse_sections(
         pending_content = []
 
     for child in list(container):
-        if child is exclude:
+        if child in exclude:
             continue
         marker = _as_scripcom_marker(child)
         if marker is not None:
