@@ -355,21 +355,32 @@ def _direct_table_child(element: ET.Element) -> ET.Element | None:
     return None
 
 
-def _child_divs_with_direct_table(element: ET.Element) -> list[ET.Element]:
-    """Direct child divs of ``element`` (any ThML div level — ``div2``,
-    ``div3``, ...) that themselves carry a table as one of THEIR OWN
-    direct children, in document order. Detects a pass-through wrapper
-    div generically, by structure alone (never a specific tag/type
-    literal): a combined multi-book volume nests one extra div level
-    between the "chapter" div and its scripture-range content (e.g.
-    ``div2[type=Chapter] > div3[type=Scripture] > table``, vs. a
-    single-book volume's ``div1[type=chapter] > div2[type=scripture] >
-    table``) — this is how that extra level is found and unwrapped."""
-    return [
-        child
-        for child in list(element)
-        if local_tag(child.tag).startswith("div") and _direct_table_child(child) is not None
-    ]
+_THML_DIV_LEVEL_TAG_RE = re.compile(r"^div\d+$")
+
+
+def _is_thml_div_level_tag(tag: str) -> bool:
+    """True only for a genuine ThML structural-nesting tag — ``div1``,
+    ``div2``, ``div3``, ... — never a bare ``<div class="...">`` content
+    wrapper (e.g. the real ``<div class="Commentary" id="Bible:...">``
+    every verse's commentary body is held in). Both share the "div"
+    prefix, but only the numbered ThML kind is a structural nesting
+    level worth recursing into; naively matching on the prefix alone
+    would let the traversal wander into a content wrapper and treat its
+    own commentary text as though it were another section/range/
+    scripture level, which is exactly the "too permissive" failure this
+    check exists to prevent."""
+    return bool(_THML_DIV_LEVEL_TAG_RE.match(tag))
+
+
+def _has_descendant_table(element: ET.Element) -> bool:
+    """Whether ``element`` has a ``<table>`` ANYWHERE among its
+    descendants, at any depth — used only to tell a genuine pass-through
+    wrapper div (no table of its own, but real scripture content
+    somewhere underneath) apart from a div with no scripture content at
+    all (front matter, or a citation Calvin simply never wrote
+    commentary for). Reuses ``find_child``'s own recursive fallback
+    search rather than a separate implementation."""
+    return find_child(element, "table") is not None
 
 
 def _process_range_group_divs(
@@ -386,16 +397,29 @@ def _process_range_group_divs(
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     """Processes one div's list of child "range" divs — normally a
     div1[chapter]'s own div2 children (the confirmed single-book/Harmony
-    structure), but called AGAIN, one level deeper, on a wrapper div2's
-    own div3 children when that div2 itself carries no table directly
-    (a combined multi-book volume, e.g. Calvin's Catholic Epistles: each
-    book's chapters are div2[type=Chapter], and a chapter's actual
-    scripture-range content sits one level deeper in div3[type=Scripture]
-    children instead of being direct div2 children). The recursion means
-    neither this function nor its caller has to know or guess how many
-    div levels a given volume nests its content at — it is discovered
-    structurally, per chapter, from whichever div actually owns the
-    table.
+    structure), but called AGAIN, one level deeper (or several), on a
+    wrapper div's own children when that div itself carries no table
+    directly (a combined multi-book volume, e.g. Calvin's Catholic
+    Epistles: each book's chapters are div2[type=Chapter], and a
+    chapter's actual scripture-range content sits one level deeper in
+    div3[type=Scripture] children instead of being direct div2
+    children). This is a genuine unbounded hierarchical traversal, not a
+    fixed "+1 depth" special case: a wrapper div recurses on ALL of its
+    own div-tagged children (never a pre-filtered subset), so a further
+    wrapper nested inside it (e.g. a table-less div3 wrapping a
+    div4[type=Scripture] — a real Harmony-of-the-Law pattern, one level
+    deeper still) is reclassified the exact same way on the next call,
+    to whatever depth the source actually nests at. Every div-tagged
+    element is visited at most once (it is either processed here as a
+    range/wrapper/continuation, or handed to exactly one recursive call
+    as part of its parent's own children — never both), so nothing is
+    ever imported twice, source order is preserved throughout, and the
+    traversal only ever follows ThML div elements (never descends into
+    unrelated content), so it stays bounded to the commentary's own
+    section/range/scripture structure. Neither this function nor its
+    caller has to know or guess how many div levels a given volume
+    nests its content at — it is discovered structurally, per chapter,
+    from whichever div actually owns the table.
     """
     sections: list[dict[str, Any]] = []
     chunks: list[dict[str, Any]] = []
@@ -410,42 +434,44 @@ def _process_range_group_divs(
         group_section_id = f"{section_prefix}.{group_id}"
         table = _direct_table_child(group_div)
 
-        if table is None:
-            nested_group_divs = _child_divs_with_direct_table(group_div)
-            if nested_group_divs:
-                # Pass-through wrapper div (ld. this function's own
-                # docstring) — a passage-less structural section for the
-                # wrapper itself (mirrors how a div1[type=book] already
-                # wraps passage-less "Chapter" sections today), then the
-                # SAME range-group processing one level deeper, on its
-                # own children, parented under this new section.
-                sections.append(
-                    _section_row(
-                        section_id=group_section_id,
-                        edition_id=edition_id,
-                        parent_section_id=parent_section_id,
-                        section_type=group_type or "chapter",
-                        heading=_attr_or_none(group_div.get("title")),
-                        sequence=group_index,
-                    )
-                )
-                nested_sections, nested_chunks = _process_range_group_divs(
-                    group_divs=nested_group_divs,
-                    parent_section_id=group_section_id,
-                    section_prefix=section_prefix,
-                    expected_chapter=_div1_chapter_number(group_div) or expected_chapter,
+        if table is None and _has_descendant_table(group_div):
+            # Pass-through wrapper div (ld. this function's own
+            # docstring) — a passage-less structural section for the
+            # wrapper itself (mirrors how a div1[type=book] already
+            # wraps passage-less "Chapter" sections today), then the
+            # SAME range-group processing one level deeper, on ALL of
+            # its own div-tagged children (not a pre-filtered subset —
+            # each child is independently reclassified by the recursive
+            # call, so a further-nested wrapper among them is unwrapped
+            # in turn rather than silently dropped).
+            sections.append(
+                _section_row(
+                    section_id=group_section_id,
                     edition_id=edition_id,
-                    book_id=book_id,
-                    stats=stats,
-                    report=report,
-                    known_unmapped_sections=known_unmapped_sections,
+                    parent_section_id=parent_section_id,
+                    section_type=group_type or "chapter",
+                    heading=_attr_or_none(group_div.get("title")),
+                    sequence=group_index,
                 )
-                sections.extend(nested_sections)
-                chunks.extend(nested_chunks)
-                # A wrapper div is never itself a scripture range, so it
-                # cannot anchor a later untyped continuation sibling.
-                current_range_section_id = None
-                continue
+            )
+            child_divs = [c for c in list(group_div) if _is_thml_div_level_tag(local_tag(c.tag))]
+            nested_sections, nested_chunks = _process_range_group_divs(
+                group_divs=child_divs,
+                parent_section_id=group_section_id,
+                section_prefix=section_prefix,
+                expected_chapter=_div1_chapter_number(group_div) or expected_chapter,
+                edition_id=edition_id,
+                book_id=book_id,
+                stats=stats,
+                report=report,
+                known_unmapped_sections=known_unmapped_sections,
+            )
+            sections.extend(nested_sections)
+            chunks.extend(nested_chunks)
+            # A wrapper div is never itself a scripture range, so it
+            # cannot anchor a later untyped continuation sibling.
+            current_range_section_id = None
+            continue
 
         # A range-defining div is identified by having its own <table>
         # (the quoted-passage block), not by its `type` attribute:
@@ -1019,15 +1045,52 @@ def _extract_verse_sections(
     return sections, chunks, "\n\n".join(leading_parts)
 
 
+def _is_harmless_marker_sibling(element: ET.Element) -> bool:
+    """A sibling element inside a scripCom-marker ``<p>`` that carries no
+    content of its own -- no text, no children, and no tail text after
+    it -- and can therefore be safely ignored (e.g. a real CCEL
+    navigation/anchor placeholder: ``<a id="..." shape="rect"
+    xml:link="simple" />``, confirmed sitting next to ``<scripCom>``
+    inside the same ``<p>`` in several volumes). Deliberately structural,
+    never a tag allowlist: any element this shape is harmless regardless
+    of its tag name, and any element carrying real content (its own
+    text, a child, or trailing tail text) still disqualifies the marker
+    even if its tag looks similarly minor -- narrow, not a blanket
+    "ignore everything but scripCom" rule."""
+    if (element.text or "").strip():
+        return False
+    if (element.tail or "").strip():
+        return False
+    if list(element):
+        return False
+    return True
+
+
 def _as_scripcom_marker(element: ET.Element) -> ET.Element | None:
+    """A ``<p>`` containing exactly one ``<scripCom>`` and nothing else
+    of substance. Real CCEL markup sometimes places a harmless,
+    content-free sibling element next to the ``<scripCom>`` inside the
+    same ``<p>`` (ld. ``_is_harmless_marker_sibling``) -- recognized here
+    rather than disqualifying the marker, which used to silently drop
+    both the marker AND every paragraph up to the next real marker,
+    including a full ``<div class="Commentary">`` of real Calvin prose.
+    A sibling that DOES carry real content still disqualifies the
+    ``<p>`` as a marker; more than one ``<scripCom>`` is left
+    structurally uncertain and also disqualifies it."""
     if local_tag(element.tag) != "p":
-        return None
-    children = list(element)
-    if len(children) != 1 or local_tag(children[0].tag) != "scripCom":
         return None
     if (element.text or "").strip():
         return None
-    return children[0]
+    scripcom: ET.Element | None = None
+    for child in list(element):
+        if local_tag(child.tag) == "scripCom":
+            if scripcom is not None:
+                return None
+            scripcom = child
+            continue
+        if not _is_harmless_marker_sibling(child):
+            return None
+    return scripcom
 
 
 def _finalize_verse_section(

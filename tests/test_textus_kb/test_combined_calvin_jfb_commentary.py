@@ -83,17 +83,32 @@ def test_combined_scale_matches_sum_of_both_sources(
     assert status.source_file_count == 45 + 66
     assert status.import_batch_count == 45 + 66
     assert status.contributor_count == 9 + 3
-    # 2026-09-04: Calvin's own numbers grew (18989/14673/18397, up from
-    # 14643/11785/14153) after fixing a structural importer gap — combined
-    # multi-book volumes (e.g. the Catholic Epistles: James/1-2Peter/
-    # 1John/Jude) nest one extra div level between a chapter and its
-    # actual scripture-range content versus single-book volumes, and the
-    # importer only walked direct children, silently importing real
-    # chapters as bare "CHAPTER N" heading stubs. See
-    # textus_kb.importers.calvin_commentary_thml._process_range_group_divs.
-    assert status.section_count == 18989 + 32394
-    assert status.chunk_count == 14673 + 21071
-    assert status.passage_link_count == 18397 + 31097
+    # 2026-09-04: Calvin's own numbers grew twice in one day, from two
+    # separate structural importer fixes:
+    #   1. 14643/11785/14153 -> 18989/14673/18397 -- combined multi-book
+    #      volumes (e.g. the Catholic Epistles: James/1-2Peter/1John/Jude)
+    #      nest one extra div level between a chapter and its actual
+    #      scripture-range content versus single-book volumes, and the
+    #      importer only walked direct children, silently importing real
+    #      chapters as bare "CHAPTER N" heading stubs.
+    #   2. 18989/14673/18397 -> 19358/15372/18740 -- (a) a scripCom marker
+    #      `<p>` with a harmless empty sibling element (e.g. CCEL's own
+    #      `<a shape="rect" xml:link="simple" />` navigation placeholder)
+    #      was rejected as "not a marker", silently dropping the real
+    #      commentary body that followed it (171 cases corpus-wide); (b) a
+    #      table-less wrapper div could itself be nested inside ANOTHER
+    #      table-less wrapper (a real 3-level div2>div3>div4 pattern,
+    #      confirmed unique to calcom05/"Harmony of the Law, Volume 3"),
+    #      one level deeper than the first fix's single-level unwrap
+    #      followed -- generalized into an unbounded recursive traversal
+    #      that only ever follows genuine ThML "divN" structural tags
+    #      (never a bare `<div class="Commentary">` content wrapper,
+    #      which shares the "div" prefix but is not a nesting level).
+    # See textus_kb.importers.calvin_commentary_thml
+    # ._process_range_group_divs and ._as_scripcom_marker.
+    assert status.section_count == 19358 + 32394
+    assert status.chunk_count == 15372 + 21071
+    assert status.passage_link_count == 18740 + 31097
 
 
 def test_combined_qa_is_clean(combined_db: Path) -> None:
@@ -114,10 +129,10 @@ def test_combined_qa_is_clean(combined_db: Path) -> None:
     # with no scripRef, newly surfaced once its wrapping chapter div was
     # correctly unwrapped instead of being silently skipped whole).
     assert len(report.known_unmapped) == 6
-    # Calvin's 436 parallel Harmony links (2026-09-04: up from 354, since
-    # previously-invisible combined-volume content now contributes some
-    # parallel links of its own); JFB contributes none.
-    assert report.parallel_passage_link_count == 436
+    # Calvin's 449 parallel Harmony links (2026-09-04: 354 -> 436 -> 449,
+    # across both structural fixes above, as previously-invisible content
+    # contributes some parallel links of its own); JFB contributes none.
+    assert report.parallel_passage_link_count == 449
     assert len(report.works) == 89
 
 

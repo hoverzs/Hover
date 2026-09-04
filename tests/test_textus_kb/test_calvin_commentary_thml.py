@@ -65,6 +65,9 @@ HARMONY_LAW_PLAIN_CAPTION_FIXTURE = Path(
 COMBINED_VOLUME_FIXTURE = Path(
     "tests/fixtures/kb/calvin_calcom45_catholic_epistles_min.xml"
 )
+BROKEN_MARKER_FIXTURE = Path(
+    "tests/fixtures/kb/calvin_calcom05_broken_marker_min.xml"
+)
 
 
 # --- Parsing structure ------------------------------------------------
@@ -357,6 +360,178 @@ def test_combined_volume_repository_retrieval_finds_real_content(tmp_path: Path)
     full_text = "\n".join(c.plain_text for c in detail.chunks)
     assert "REAL COMMENTARY TEXT" in full_text
     assert full_text.strip() != "CHAPTER 1"
+
+
+# --- scripCom marker recognition (2026-09-04 corpus-integrity sweep) -----
+#
+# Confirmed real-file root cause: real CCEL markup sometimes places a
+# harmless, content-free sibling element (a navigation/anchor placeholder,
+# e.g. `<a id="..." shape="rect" xml:link="simple" />`) next to the real
+# `<scripCom>` marker inside the same `<p>` -- the old `_as_scripcom_marker`
+# required EXACTLY one child, so this disqualified the marker and silently
+# dropped everything up to the next real marker, including a full
+# `<div class="Commentary">` of real Calvin prose. Confirmed corpus-wide:
+# 171 such markers across calcom03/04/05/06/13/31/44, ~420K characters of
+# real commentary silently lost, 91% of it in calcom05/06 alone.
+
+
+def test_marker_with_no_sibling_still_recognized() -> None:
+    """Baseline: an unmarked scripCom with no sibling at all -- already
+    worked before this round, must keep working."""
+    document, _report = parse_calvin_commentary_thml(BROKEN_MARKER_FIXTURE)
+    by_id = {s["section_id"]: s for s in document["sections"]}
+    verse = by_id["ccel.calvin.calcom05test.iii.i.v1"]
+    assert verse["passage_links"][0]["canonical_passage"] == "Deut.10.12"
+
+
+def test_marker_with_harmless_anchor_sibling_now_recognized() -> None:
+    """The core regression: the confirmed real bug pattern (scripCom +
+    an empty, content-free `<a>` sibling in the same `<p>`) must now be
+    recognized as a real marker, and its following commentary body
+    actually imported -- not silently dropped."""
+    document, _report = parse_calvin_commentary_thml(BROKEN_MARKER_FIXTURE)
+    by_id = {s["section_id"]: s for s in document["sections"]}
+    chunks_by_section = {c["section_id"]: c["text"] for c in document["chunks"]}
+    verse = by_id["ccel.calvin.calcom05test.iii.i.v2"]
+    assert verse["passage_links"][0]["canonical_passage"] == "Deut.10.13"
+    text = chunks_by_section["ccel.calvin.calcom05test.iii.i.v2"]
+    assert "harmless empty anchor sibling" in text
+
+
+def test_marker_with_genuinely_ambiguous_sibling_still_rejected() -> None:
+    """Staying narrow, not permissive: a sibling that carries REAL
+    content (its own text) must still disqualify the `<p>` as a marker
+    -- no verse_commentary section is fabricated for it."""
+    document, _report = parse_calvin_commentary_thml(BROKEN_MARKER_FIXTURE)
+    section_ids = {s["section_id"] for s in document["sections"]}
+    assert "ccel.calvin.calcom05test.iii.i.v3" not in section_ids
+    # Confirms this is a deliberate rejection, not an accidental parse
+    # failure -- the file still parses fully and v1/v2 are both present.
+    assert "ccel.calvin.calcom05test.iii.i.v1" in section_ids
+    assert "ccel.calvin.calcom05test.iii.i.v2" in section_ids
+
+
+def test_scripcom_marker_helper_rejects_real_sibling_content_directly() -> None:
+    """Direct unit coverage of the narrow acceptance rule, independent of
+    how the surrounding container happens to fold an unrecognized
+    marker's content -- a sibling with its own text, a sibling with a
+    child, and more than one scripCom must all still return ``None``."""
+    import xml.etree.ElementTree as ET
+
+    from textus_kb.importers import calvin_commentary_thml as calvin_thml
+
+    ok = ET.fromstring(
+        '<p><scripCom osisRef="Bible:Gen.1.1" /><a shape="rect" xml:link="simple" /></p>'
+    )
+    assert calvin_thml._as_scripcom_marker(ok) is not None
+
+    real_text_sibling = ET.fromstring(
+        '<p><scripCom osisRef="Bible:Gen.1.1" /><b>1.</b></p>'
+    )
+    assert calvin_thml._as_scripcom_marker(real_text_sibling) is None
+
+    sibling_with_child = ET.fromstring(
+        '<p><scripCom osisRef="Bible:Gen.1.1" /><a><i>x</i></a></p>'
+    )
+    assert calvin_thml._as_scripcom_marker(sibling_with_child) is None
+
+    two_scripcom = ET.fromstring(
+        '<p><scripCom osisRef="Bible:Gen.1.1" /><scripCom osisRef="Bible:Gen.1.2" /></p>'
+    )
+    assert calvin_thml._as_scripcom_marker(two_scripcom) is None
+
+    tail_text_after_sibling = ET.fromstring(
+        '<p><scripCom osisRef="Bible:Gen.1.1" /><a shape="rect" />trailing text</p>'
+    )
+    assert calvin_thml._as_scripcom_marker(tail_text_after_sibling) is None
+
+
+# --- Arbitrary-depth scripture nesting (2026-09-04 corpus-integrity sweep)
+#
+# Confirmed real-file root cause: calcom05 ("Harmony of the Law, Volume 3")
+# nests scripture content a THIRD level deep in places -- a table-less
+# div3[type=section] wrapper (e.g. "Supplements to the Commandment")
+# itself wraps div4[type=scripture] children that carry the real table +
+# commentary, one level deeper than the combined-volume fix (div2 -> div3)
+# already unwraps. The fix generalizes that unwrap into an unbounded
+# hierarchical traversal: a wrapper recurses on ALL of its own div-tagged
+# children (never a pre-filtered subset), so a further-nested wrapper is
+# reclassified the same way on the next call, to whatever depth the
+# source actually nests at. Confirmed corpus-wide: this exact div3->div4
+# pattern is unique to calcom05 (78 sections, ~392K characters, entirely
+# absent from the imported document, not just truncated).
+DEEP_NESTING_FIXTURE = Path(
+    "tests/fixtures/kb/calvin_calcom05_deep_nesting_min.xml"
+)
+
+
+def test_deep_nesting_div3_scripture_still_works() -> None:
+    """Baseline: a table-less div2 wrapping a div3[scripture] directly
+    (one extra level, the combined-volume case) must keep working."""
+    document, _report = parse_calvin_commentary_thml(DEEP_NESTING_FIXTURE)
+    by_id = {s["section_id"]: s for s in document["sections"]}
+    chunks_by_section = {c["section_id"]: c["text"] for c in document["chunks"]}
+    range_section = by_id["ccel.calvin.calcom05test2.ii.i.i"]
+    assert range_section["passage_links"][0]["canonical_passage"] == "Lev.19.18"
+    verse = by_id["ccel.calvin.calcom05test2.ii.i.i.v1"]
+    assert "REAL LEVITICUS COMMENTARY" in chunks_by_section[verse["section_id"]]
+
+
+def test_deep_nesting_div4_scripture_recovered() -> None:
+    """The core regression: a table-less div2 wrapping a table-less div3
+    wrapping a div4[scripture] -- THREE levels deep, one further than
+    the already-covered div2->div3 case above -- must now be unwrapped
+    at every level and its real commentary body imported, not silently
+    dropped. Both wrapper levels are themselves passage-less structural
+    sections, exactly mirroring how a div1[type=book] already wraps
+    passage-less "Chapter" sections."""
+    document, _report = parse_calvin_commentary_thml(DEEP_NESTING_FIXTURE)
+    by_id = {s["section_id"]: s for s in document["sections"]}
+    chunks_by_section = {c["section_id"]: c["text"] for c in document["chunks"]}
+    outer_wrapper = by_id["ccel.calvin.calcom05test2.ii.ii"]
+    assert outer_wrapper["passage_links"] == []
+    inner_wrapper = by_id["ccel.calvin.calcom05test2.ii.ii.i"]
+    assert inner_wrapper["passage_links"] == []
+    assert inner_wrapper["parent_section_id"] == "ccel.calvin.calcom05test2.ii.ii"
+    range_section = by_id["ccel.calvin.calcom05test2.ii.ii.i.i"]
+    assert range_section["parent_section_id"] == "ccel.calvin.calcom05test2.ii.ii.i"
+    assert range_section["passage_links"][0]["canonical_passage"] == "Exod.21.15"
+    verse = by_id["ccel.calvin.calcom05test2.ii.ii.i.i.v1"]
+    assert "REAL EXODUS COMMENTARY" in chunks_by_section[verse["section_id"]]
+
+
+def test_deep_nesting_multiple_sibling_scripture_divs_all_recovered() -> None:
+    """Several div4[scripture] siblings under the same table-less div3
+    wrapper -- every one of them must be imported, in source order, none
+    dropped, none merged into another."""
+    document, _report = parse_calvin_commentary_thml(DEEP_NESTING_FIXTURE)
+    siblings = [
+        s
+        for s in document["sections"]
+        if s.get("parent_section_id") == "ccel.calvin.calcom05test2.ii.ii.i"
+        and s["section_type"] == "commentary_passage"
+    ]
+    assert [s["heading"] for s in siblings] == ["Exodus 21:15", "Leviticus 20:9"]
+    assert [s["sequence"] for s in siblings] == sorted(s["sequence"] for s in siblings)
+
+
+def test_deep_nesting_never_imports_the_same_section_twice() -> None:
+    document, _report = parse_calvin_commentary_thml(DEEP_NESTING_FIXTURE)
+    section_ids = [s["section_id"] for s in document["sections"]]
+    assert len(section_ids) == len(set(section_ids))
+    chunk_ids = [c["chunk_id"] for c in document["chunks"]]
+    assert len(chunk_ids) == len(set(chunk_ids))
+
+
+def test_deep_nesting_book_chapter_boundary_preserved() -> None:
+    """Two sibling table-less wrappers under the SAME chapter div1 must
+    never have their content cross-contaminate one another."""
+    document, _report = parse_calvin_commentary_thml(DEEP_NESTING_FIXTURE)
+    chunks_by_section = {c["section_id"]: c["text"] for c in document["chunks"]}
+    lev_text = chunks_by_section["ccel.calvin.calcom05test2.ii.i.i.v1"]
+    exod_text = chunks_by_section["ccel.calvin.calcom05test2.ii.ii.i.i.v1"]
+    assert "REAL EXODUS COMMENTARY" not in lev_text
+    assert "REAL LEVITICUS COMMENTARY" not in exod_text
 
 
 # --- Provenance / SHA-256 -------------------------------------------------

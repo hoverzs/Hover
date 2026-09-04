@@ -1,0 +1,94 @@
+<?xml version='1.0' encoding='utf-8'?>
+<ThML>
+  <ThML.head>
+    <generalInfo>
+      <description>Minimal, hand-authored reproduction of a real CCEL Calvin
+ThML marker pattern (confirmed against calcom05.xml, "Harmony of the Law,
+Volume 3", div "iii.i-p12"): a scripCom marker `&lt;p&gt;` that carries a
+harmless, content-free `&lt;a id="..." shape="rect" xml:link="simple" /&gt;`
+sibling alongside the real `&lt;scripCom&gt;` element -- confirmed to
+silently drop the marker (and every following paragraph up to the next
+real marker, including a full `&lt;div class="Commentary"&gt;` of real
+prose) before the 2026-09-04 `_as_scripcom_marker` fix.</description>
+      <firstPublished />
+      <pubHistory />
+      <comments />
+    </generalInfo>
+    <printSourceInfo>
+      <published />
+      <copyLocation />
+      <image type="front" href="" />
+      <image type="spine" href="" />
+    </printSourceInfo>
+    <electronicEdInfo>
+      <publisherID>ccel</publisherID>
+      <authorID>calvin</authorID>
+      <bookID>calcom05test</bookID>
+      <workID>calcom05test</workID>
+      <bkgID>harmony_of_the_law_(calvin)</bkgID>
+      <version>1.02</version>
+      <series />
+      <editorialComments />
+      <revisionHistory />
+      <status />
+      <DC>
+        <DC.Title sub="Main">Harmony of the Law</DC.Title>
+        <DC.Creator sub="Author" scheme="ccel" />
+        <DC.Creator sub="Author" scheme="file-as">Calvin, John (1509-1564)</DC.Creator>
+        <DC.Creator sub="Author" scheme="short-form">John Calvin</DC.Creator>
+        <DC.Creator sub="Translator" scheme="ccel" />
+        <DC.Creator sub="Translator" scheme="file-as" />
+        <DC.Creator sub="Translator" scheme="short-form">Bingham, Charles William</DC.Creator>
+        <DC.Creator scheme="short-form">John Calvin, 1509-1564</DC.Creator>
+        <DC.Subject scheme="CCEL">All; Bible; </DC.Subject>
+        <DC.Publisher>Grand Rapids, MI: Christian Classics Ethereal Library</DC.Publisher>
+        <DC.Publisher scheme="CCEL">CCEL</DC.Publisher>
+        <DC.Contributor sub="Transcriber" scheme="CCEL">Ages</DC.Contributor>
+        <DC.Date sub="Created" scheme="ISO8601">1999-11-23</DC.Date>
+        <DC.Type>Text.Commentary</DC.Type>
+        <DC.Format scheme="IMT">text/html</DC.Format>
+        <DC.Identifier scheme="CCEL" />
+        <DC.Identifier />
+        <DC.Source sub="ElectronicEdition" />
+        <DC.Language scheme="ISO639-3">eng</DC.Language>
+        <DC.Identifier scheme="URL">/ccel/calvin/calcom05test.html</DC.Identifier>
+        <DC.Rights>Public Domain</DC.Rights>
+      </DC>
+      <comments />
+    </electronicEdInfo>
+    <link rel="stylesheet" type="text/css" href="/css/ThML099.css" />
+  </ThML.head>
+  <ThML.body>
+    <div1 type="chapter" title="Chapter 10" n="iii" shorttitle="chapter iii" progress="39%" prev="ii" next="iii.i" id="iii">
+      <p class="BOOK-CHAP-BLU-24-CEN13" id="iii-p1">The Sum of the Law</p>
+      <div2 type="scripture" title="Deuteronomy 10:12,13" n="i" shorttitle="scripture i" progress="39%" prev="iii" next="iii.ii" id="iii.i">
+        <table border="2" id="iii.i-p1.2">
+          <tr id="iii.i-p1.3" valign="top">
+            <td colspan="1" id="iii.i-p1.4" rowspan="1">
+              <p class="TableCaption14" id="iii.i-p2"><scripRef id="iii.i-p2.1" osisRef="Bible:Deut.10.12-Deut.10.13" parsed="|Deut|10|12|10|13" passage="Deuteronomy 10:12, 13">Deuteronomy 10:12, 13</scripRef></p>
+            </td>
+          </tr>
+          <tr id="iii.i-p2.2" valign="top">
+            <td colspan="1" id="iii.i-p2.3" rowspan="1">
+              <p class="TableText15" id="iii.i-p3"><b>12.</b> And now, Israel, what doth the Lord thy God require of thee.</p>
+            </td>
+          </tr>
+        </table>
+
+        <p id="iii.i-p11"> </p>
+
+        <p id="iii.i-p12"><scripCom id="iii.i-p12.1" osisRef="Bible:Deut.10.12" parsed="|Deut|10|12|0|0" passage="De 10:12" type="Commentary" /></p><div class="Commentary" id="iii.i-p12.3">
+          <p id="iii.i-p13"><b>12.</b> A NORMAL, unmarked scripCom marker with no sibling at all -- confirmed real content, verse 12, baseline case that already worked before this round's fix.</p>
+        </div>
+
+        <p id="iii.i-p14"><scripCom id="iii.i-p14.1" osisRef="Bible:Deut.10.13" parsed="|Deut|10|13|0|0" passage="De 10:13" type="Commentary" /><a id="iii.i-p14.2" shape="rect" xml:link="simple" /></p><div class="Commentary" id="iii.i-p14.3">
+          <p id="iii.i-p15"><b>13.</b> The real, confirmed bug case: a harmless empty anchor sibling next to scripCom, verse 13 -- this whole paragraph used to be silently dropped because the marker was not recognized.</p>
+        </div>
+
+        <p id="iii.i-p16"><scripCom id="iii.i-p16.1" osisRef="Bible:Deut.10.14" parsed="|Deut|10|14|0|0" passage="De 10:14" type="Commentary" /><b id="iii.i-p16.2">stray</b></p><div class="Commentary" id="iii.i-p16.3">
+          <p id="iii.i-p17"><b>14.</b> A genuinely ambiguous sibling (real text content, not harmless) -- must still be rejected as a marker, not folded in permissively.</p>
+        </div>
+      </div2>
+    </div1>
+  </ThML.body>
+</ThML>
