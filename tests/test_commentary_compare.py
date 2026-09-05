@@ -206,6 +206,136 @@ def test_compare_rules_explicitly_forbid_ungrounded_modern_claims() -> None:
     assert "TILOS" in cc._COMPARE_RULES
 
 
+# --- Hungarian-prose style rules (2026-09-04: too many raw English quote --
+# fragments left in the generated comparison, e.g. "tested him", "in no
+# hostile spirit") ----------------------------------------------------------
+
+
+def test_compare_style_rules_demand_natural_hungarian_prose() -> None:
+    assert "TELJES EGÉSZÉBEN természetes, gördülékeny magyar próza" in cc._STYLE_RULES
+    assert "MAGYARUL PARAFRAZÁLD" in cc._STYLE_RULES
+    assert "ne idézz angol szókapcsolatokat rutinszerűen" in cc._STYLE_RULES
+
+
+def test_compare_style_rules_permit_only_short_immediately_glossed_exceptions() -> None:
+    assert "KIVÉTELESEN" in cc._STYLE_RULES
+    assert "AZONNAL" in cc._STYLE_RULES
+    assert "sose hagyj angol szókapcsolatot magyarázat nélkül" in cc._STYLE_RULES.lower()
+
+
+def test_compare_style_rules_forbid_mixed_language_sentences() -> None:
+    assert "angol mondatrészt" in cc._STYLE_RULES
+    assert "tükörfordításos" in cc._STYLE_RULES
+
+
+def test_compare_style_rules_carry_the_reported_before_after_examples() -> None:
+    """Anchors the instruction to the EXACT real failure the user
+    reported, as a concrete few-shot example inside the prompt itself --
+    not just abstract wording."""
+    assert "tested him" in cc._STYLE_RULES
+    assert "in no hostile spirit" in cc._STYLE_RULES
+    assert "apposite question to a doctor of the law" in cc._STYLE_RULES
+    assert "próbára tette Jézust" in cc._STYLE_RULES
+    assert "törvény ismeretére kérdez vissza" in cc._STYLE_RULES
+
+
+def test_compare_prompt_includes_style_rules_alongside_attribution_requirement(
+    synthetic_repo: CommentaryRepository,
+) -> None:
+    """The new style rules must reach the actual assembled prompt, and
+    must coexist with (never replace) the existing attribution
+    requirement -- source attribution stays mandatory regardless of the
+    new prose-style guidance."""
+    grouped = cc.group_evidence_by_source(
+        "John.3.16", ["Test Calvin", "Test JFB", "Test Henry"], repository=synthetic_repo
+    )
+    payload = cc.build_compare_prompt("John 3:16", "John.3.16", grouped)
+    assert cc._STYLE_RULES in payload.prompt
+    assert "egyértelműen attribuálj" in payload.prompt
+    assert payload.prompt.index(cc._COMPARE_RULES) < payload.prompt.index(cc._STYLE_RULES)
+    assert payload.prompt.index(cc._STYLE_RULES) < payload.prompt.index(cc._INJECTION_GUARD)
+
+
+# --- Heuristic detector for the reported failure mode (test-only tooling,
+# not wired into the production compare flow -- a heuristic false positive
+# must never silently mangle a real, good comparison) ----------------------
+
+
+_ENGLISH_STOPWORDS = frozenset(
+    {
+        "the", "a", "an", "in", "on", "of", "to", "and", "or", "but", "no", "not",
+        "is", "was", "were", "be", "been", "he", "him", "his", "she", "her",
+        "that", "this", "with", "for", "as", "at", "by", "it", "its", "doctor",
+    }
+)
+_HUNGARIAN_ACCENTED = "áéíóöőúüűÁÉÍÓÖŐÚÜŰ"
+
+
+def _quoted_fragments(text: str) -> list[str]:
+    import re
+
+    return re.findall(r"[\"'“”‘’]([^\"'“”‘’]{2,80})[\"'“”‘’]", text)
+
+
+def _looks_like_untranslated_english_quote(fragment: str) -> bool:
+    """Heuristic only: a quoted fragment that reads as a raw, untranslated
+    English clipping -- multiple words, no Hungarian-specific letters, and
+    at least one common English function word. A single short word (e.g.
+    a legitimate technical/proper-noun quote) is deliberately NOT flagged,
+    matching the style rules' own "exceptional, single short term" carve-
+    out."""
+    import re
+
+    words = re.findall(r"[A-Za-z']+", fragment)
+    if len(words) < 2:
+        return False
+    if any(ch in fragment for ch in _HUNGARIAN_ACCENTED):
+        return False
+    return bool({w.lower() for w in words} & _ENGLISH_STOPWORDS)
+
+
+@pytest.mark.parametrize(
+    "reported_bad_sentence",
+    [
+        "David Brown szerint a jogtudós 'tested him', bár 'in no hostile spirit'…",
+        "Jézus kérdését 'apposite question to a doctor of the law'-nak nevezi.",
+        "A kommentátor megjegyzi, hogy 'turned him over to the divine law'.",
+    ],
+)
+def test_heuristic_flags_the_actually_reported_bad_examples(
+    reported_bad_sentence: str,
+) -> None:
+    fragments = _quoted_fragments(reported_bad_sentence)
+    assert fragments, "test sentence must contain at least one quoted fragment"
+    assert any(_looks_like_untranslated_english_quote(f) for f in fragments)
+
+
+@pytest.mark.parametrize(
+    "corrected_hungarian_sentence",
+    [
+        "David Brown szerint a törvénytudó próbára tette Jézust, de nem ellenséges "
+        "szándékkal; inkább Jézus belátását akarta felmérni.",
+        "Brown találónak tartja, hogy Jézus éppen a törvény ismeretére kérdez vissza "
+        "egy törvénytudónál.",
+    ],
+)
+def test_heuristic_does_not_flag_the_corrected_hungarian_examples(
+    corrected_hungarian_sentence: str,
+) -> None:
+    fragments = _quoted_fragments(corrected_hungarian_sentence)
+    assert not any(_looks_like_untranslated_english_quote(f) for f in fragments)
+
+
+def test_heuristic_allows_a_single_short_exceptional_term() -> None:
+    """The style rules explicitly allow a single, very short original term
+    (immediately glossed) -- the heuristic must not flag this legitimate
+    exceptional case as a "raw English quote" failure."""
+    sentence = 'Kálvin itt a "logos" szót emeli ki, ami magyarul igét jelent.'
+    fragments = _quoted_fragments(sentence)
+    assert fragments
+    assert not any(_looks_like_untranslated_english_quote(f) for f in fragments)
+
+
 def test_compare_prompt_carries_full_citation_provenance(
     synthetic_repo: CommentaryRepository,
 ) -> None:
